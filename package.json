@@ -1,5 +1,5 @@
 {
-  "name": "nextjs",
+  "name": "qatar-prode",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,10 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "eslint": "8.26.0",
-    "eslint-config-next": "13.0.2",
-    "next": "13.0.2",
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "next": "12.0.7",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
+    "thin-backend": ">= 0.9.0",
+    "thin-backend-react": ">= 0.9.0"
+  },
+  "devDependencies": {
+    "@types/react": "17.0.37",
+    "@types/thin-backend": "https://thin.dev/types/ead5b638-0375-4dcc-8821-01c85961fcd0/pEbajfGiqJbVwVIGBkMhhNPhLtbvICQi",
+    "eslint": "8.5.0",
+    "eslint-config-next": "12.0.7",
+    "typescript": "4.5.4"
   }
 }

@@ -1,8 +1,15 @@
+import type { NextPage } from 'next'
 import Head from 'next/head'
 import Image from 'next/image'
+import { query, initThinBackend, ensureIsUser, getCurrentUser } from 'thin-backend';
+import { useQuery, useCurrentUser } from 'thin-backend-react';
+import { useEffect, useState } from 'react';
 import styles from '../styles/Home.module.css'
 
-export default function Home() {
+
+initThinBackend({ host: process.env.NEXT_PUBLIC_BACKEND_URL });
+
+const Home: NextPage = () => {
   return (
     <div className={styles.container}>
       <Head>
@@ -33,7 +40,7 @@ export default function Home() {
           </a>
 
           <a
-            href="https://github.com/vercel/next.js/tree/canary/examples"
+            href="https://github.com/vercel/next.js/tree/master/examples"
             className={styles.card}
           >
             <h2>Examples &rarr;</h2>
@@ -42,8 +49,6 @@ export default function Home() {
 
           <a
             href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
             className={styles.card}
           >
             <h2>Deploy &rarr;</h2>
@@ -69,3 +74,5 @@ export default function Home() {
     </div>
   )
 }
+
+export default Home
