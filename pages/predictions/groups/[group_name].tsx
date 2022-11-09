@@ -4,7 +4,7 @@ import {group_games, groups} from "../../../data/group-data";
 import {Game, GameGuess, Group, TeamStats} from "../../../types/definitions";
 import {calculateGroupPosition} from "../../../utils/position-calculator";
 import GroupSelector from "../../../components/group-selector";
-import {createRecords, deleteRecords, GameGuess as StoredGameGuess, getCurrentUserId, query} from "thin-backend";
+import {createRecords, deleteRecords, getCurrentUserId, query} from "thin-backend";
 import {getAwayScore, getLocalScore} from "../../../utils/score-utils";
 
 
@@ -31,7 +31,7 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
 
   useEffect(() => {
     const getData = async () => {
-      const currentGameGuesses: StoredGameGuess[] =
+      const currentGameGuesses: GameGuess[] =
         await query('game_guesses')
           .where('userId', getCurrentUserId())
           .whereIn('gameId', groupGames.map(game => game.MatchNumber)).fetch();
@@ -58,11 +58,12 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
   }
   const savePredictions = async () => {
     const gameGuessesValues = Object.values(gameGuesses)
-    const currentGameGuesses: StoredGameGuess[] =
+    const currentGameGuesses: GameGuess[] =
       await query('game_guesses')
         .where('userId', getCurrentUserId())
         .whereIn('gameId', groupGames.map(game => game.MatchNumber)).fetch();
     console.log(currentGameGuesses)
+    // @ts-ignore
     await deleteRecords('game_guesses', currentGameGuesses.map(gameGuess => gameGuess.id))
     await createRecords('game_guesses', gameGuessesValues);
   }

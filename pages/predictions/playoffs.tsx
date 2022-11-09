@@ -1,7 +1,7 @@
 import {Game, GameGuess} from "../../types/definitions";
 import {final, group_games, groups, round_of_16, round_of_eight, semifinals, third_place} from "../../data/group-data";
 import {ChangeEvent, useEffect, useState} from "react";
-import {createRecords, deleteRecords, GameGuess as StoredGameGuess, getCurrentUserId, query} from "thin-backend";
+import {createRecords, deleteRecords,getCurrentUserId, query} from "thin-backend";
 import {calculateGroupPosition} from "../../utils/position-calculator";
 import {Box} from "@mui/material";
 import GroupSelector from "../../components/group-selector";
@@ -59,7 +59,7 @@ const Playoffs = () => {
 
   useEffect(() => {
     const getData = async () => {
-      const currentGameGuesses: StoredGameGuess[] =
+      const currentGameGuesses: GameGuess[] =
         await query('game_guesses')
           .where('userId', getCurrentUserId()).fetch();
       const gameGuesses = Object.fromEntries(currentGameGuesses.map(({ gameId, localScore, awayScore}) => [gameId, {gameId, localScore, awayScore}]))
@@ -114,11 +114,12 @@ const Playoffs = () => {
 
   const savePredictions = async () => {
     const gameGuessesValues = Object.values(gameGuesses)
-    const currentGameGuesses: StoredGameGuess[] =
+    const currentGameGuesses: GameGuess[] =
       await query('game_guesses')
         .where('userId', getCurrentUserId())
         .whereIn('gameId', [...round_of_16, ...round_of_eight, ...semifinals, final, third_place].map(game => game.MatchNumber)).fetch();
 
+    // @ts-ignore
     await deleteRecords('game_guesses', currentGameGuesses.map(gameGuess => gameGuess.id))
     await createRecords('game_guesses', gameGuessesValues);
   }

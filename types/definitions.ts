@@ -29,6 +29,7 @@ export type TeamStats = {
 }
 
 export type GameGuess = {
+  id?: string,
   gameId: number,
   localScore: number | null,
   awayScore: number | null
