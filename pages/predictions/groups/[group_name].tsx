@@ -27,7 +27,7 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
       AwayTeamScore: gameGuesses[game.MatchNumber]?.awayScore,
     })))
     setGroupPositionsByGuess(groupPosition);
-  }, [gameGuesses])
+  }, [gameGuesses, groupGames, group.teams])
 
   useEffect(() => {
     const getData = async () => {
@@ -40,7 +40,7 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
     };
     getData();
 
-  }, [])
+  }, [groupGames])
 
   const handleUpdateScore = (matchNumber: number, homeTeam: boolean) => (event: ChangeEvent<HTMLInputElement>) => {
     let value: number | null = Number.parseInt(event.target.value, 10);
