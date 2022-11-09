@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@types/thin-backend": "https://thin.dev/types/be141a9e-55cc-45a1-9b6f-1eda68fce1bf/sUFGPYcNjBuHCKCqlOngUWskiCLiILMr",
     "@emotion/react": "^11.10.4",
     "@emotion/styled": "^11.10.4",
     "@mui/icons-material": "^5.10.3",
@@ -23,7 +24,6 @@
   "devDependencies": {
     "@types/node": "18.11.9",
     "@types/react": "17.0.37",
-    "@types/thin-backend": "https://thin.dev/types/be141a9e-55cc-45a1-9b6f-1eda68fce1bf/sUFGPYcNjBuHCKCqlOngUWskiCLiILMr",
     "eslint": "8.5.0",
     "eslint-config-next": "12.0.7",
     "typescript": "4.5.4"
