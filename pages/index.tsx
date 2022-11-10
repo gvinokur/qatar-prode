@@ -73,18 +73,18 @@ const Home: NextPage = () => {
                 {userGroups.map(userGroup => (
                   <ListItem key={userGroup.id}
                     secondaryAction={
-                      <IconButton onClick={() => setOpenSharingDialog(userGroup.id)}>
+                      <IconButton title='Invitar Amigos' onClick={() => setOpenSharingDialog(userGroup.id)}>
                         <ShareIcon/>
                       </IconButton>
                     }>
-                    <ListItemText>{userGroup.name}</ListItemText>
+                    <ListItemText><Link href={`/friend-groups/${userGroup.id}`}>{userGroup.name}</Link></ListItemText>
                   </ListItem>
                 ))}
                 <ListItem divider/>
                 {participantGroups.map(participantGroup => (
                   <ListItem key={participantGroup.id}>
                     <ListItemText>
-                      {participantGroup.name}
+                      <Link href={`/friend-groups/${participantGroup.id}`}>{participantGroup.name}</Link>
                     </ListItemText>
                   </ListItem>
                 ))}
@@ -128,7 +128,7 @@ const Home: NextPage = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button disabled={loading} onClick={handleClose}>Cancelar</Button>
+          <Button disabled={loading} onClick={() => setOpenSharingDialog(false)}>Cancelar</Button>
         </DialogActions>
       </Dialog>
     </>
