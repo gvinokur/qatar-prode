@@ -67,6 +67,14 @@ const Home: NextPage = () => {
       <Grid container>
         <Grid item>
           <Card>
+            <CardHeader title='Principal'/>
+            <CardActions>
+              <Button href='/predictions/groups/group-a'>Completar Pronostico</Button>
+            </CardActions>
+          </Card>
+        </Grid>
+        <Grid item>
+          <Card>
             <CardHeader title='Grupos de Amigos'/>
             <CardContent>
               <List>
