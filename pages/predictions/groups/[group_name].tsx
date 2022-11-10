@@ -102,15 +102,17 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
           <Paper>
             <Table>
               <TableHead>
-                <TableCell>Pos</TableCell>
-                <TableCell>Equipo</TableCell>
-                <TableCell>Pts</TableCell>
-                <TableCell>G</TableCell>
-                <TableCell>E</TableCell>
-                <TableCell>P</TableCell>
-                <TableCell>GF</TableCell>
-                <TableCell>GC</TableCell>
-                <TableCell>DG</TableCell>
+                <TableRow>
+                  <TableCell>Pos</TableCell>
+                  <TableCell>Equipo</TableCell>
+                  <TableCell>Pts</TableCell>
+                  <TableCell>G</TableCell>
+                  <TableCell>E</TableCell>
+                  <TableCell>P</TableCell>
+                  <TableCell>GF</TableCell>
+                  <TableCell>GC</TableCell>
+                  <TableCell>DG</TableCell>
+                </TableRow>
               </TableHead>
               <TableBody>
                 {groupPositionsByGuess.map((teamStats, index) => (

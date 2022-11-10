@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import Image from 'next/image';
 import { useCurrentUser } from 'thin-backend-react';
+import {useRouter} from "next/router";
 
 type FrameProps = {
   children?: JSX.Element | JSX.Element[],
@@ -17,6 +18,7 @@ type FrameProps = {
 
 function Layout(props: FrameProps) {
   const userData = useCurrentUser();
+  const router = useRouter();
   const theme = createTheme({
     palette: {
       primary: {
@@ -28,14 +30,18 @@ function Layout(props: FrameProps) {
     },
   });
 
+  const goHome = () => {
+    router.push('/')
+  }
+
   return (
     <ThemeProvider theme={theme}>
       <AppBar position="static">
         <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Paper variant={'outlined'} sx={{backgroundColor: 'primary.contrastText', height: '24px', padding: '2px', paddingLeft: '4px', paddingRight: '4px'}}>
+          <Paper variant={'outlined'} sx={{backgroundColor: 'primary.contrastText', height: '24px', padding: '2px', paddingLeft: '4px', paddingRight: '4px', cursor: 'pointer'}} onClick={goHome}>
             <Image src={'/logo_qatar.svg'} alt='logo-qatar' height={'20'} width={'100'}/>
           </Paper>
-          <Typography variant="h6" component="div">
+          <Typography variant="h6" component="div" sx={{ cursor: 'pointer'}} onClick={goHome}>
             Prode Mundial
           </Typography>
           {userData && (

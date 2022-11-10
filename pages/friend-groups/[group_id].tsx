@@ -13,7 +13,7 @@ import {
   CardContent,
   CardHeader,
   Grid,
-  Table,
+  Table, TableBody,
   TableCell,
   TableHead,
   TableRow,
@@ -61,21 +61,25 @@ const ProdeGroupPage = ({ group, groupParticipants}: ProdeGroupPageProps) => {
             <CardContent>
               <Table>
                 <TableHead>
-                  <TableCell>P</TableCell>
-                  <TableCell>Nombre</TableCell>
-                  <TableCell>Puntos Totales</TableCell>
-                  <TableCell>Puntos Fase de Grupos</TableCell>
-                  <TableCell>Puntos Playoffs</TableCell>
-                </TableHead>
-                {users.map((user, index) => (
-                  <TableRow key={user.id} selected={user.id === getCurrentUserId()}>
-                    <TableCell>{index+1}</TableCell>
-                    <TableCell>{user.nickname || user.email}</TableCell>
-                    <TableCell>0</TableCell>
-                    <TableCell>0</TableCell>
-                    <TableCell>0</TableCell>
+                  <TableRow>
+                    <TableCell>P</TableCell>
+                    <TableCell>Nombre</TableCell>
+                    <TableCell>Puntos Totales</TableCell>
+                    <TableCell>Puntos Fase de Grupos</TableCell>
+                    <TableCell>Puntos Playoffs</TableCell>
                   </TableRow>
-                ))}
+                </TableHead>
+                <TableBody>
+                  {users.map((user, index) => (
+                    <TableRow key={user.id} selected={user.id === getCurrentUserId()}>
+                      <TableCell>{index+1}</TableCell>
+                      <TableCell>{user.nickname || user.email}</TableCell>
+                      <TableCell>0</TableCell>
+                      <TableCell>0</TableCell>
+                      <TableCell>0</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
               </Table>
             </CardContent>
           </Card>
