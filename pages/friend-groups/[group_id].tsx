@@ -7,8 +7,9 @@ import {
   query,
   User
 } from "thin-backend";
-import {Box, Table, TableCell, TableHead, TableRow, Typography} from "@mui/material";
+import {Box, Grid, Table, TableCell, TableHead, TableRow, Typography} from "@mui/material";
 import {useEffect, useState} from "react";
+import Image from "next/image";
 
 
 type ProdeGroupPageProps = {
@@ -30,7 +31,18 @@ const ProdeGroupPage = ({ group, groupParticipants}: ProdeGroupPageProps) => {
   }, [group, groupParticipants])
   return (
     <Box>
-      <Typography variant={'h1'}>{group.name}</Typography>
+      <Grid container mt={2}>
+        <Grid item>
+          {group.name.toLowerCase() === 'welltech' && (
+            <Image src={'/welltech-logo.jpeg'} alt={'Grupo Welltech'} height={100} width={240}/>
+          )}
+        </Grid>
+        <Grid item>
+          <Typography variant={'h1'}>
+            {group.name}
+          </Typography>
+        </Grid>
+      </Grid>
       <Table>
         <TableHead>
           <TableCell>P</TableCell>

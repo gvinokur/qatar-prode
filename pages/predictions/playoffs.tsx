@@ -3,9 +3,10 @@ import {final, group_games, groups, round_of_16, round_of_eight, semifinals, thi
 import {ChangeEvent, useEffect, useState} from "react";
 import {createRecords, deleteRecords,getCurrentUserId, query} from "thin-backend";
 import {calculateGroupPosition} from "../../utils/position-calculator";
-import {Box} from "@mui/material";
+import {Box, Grid, Typography} from "@mui/material";
 import GroupSelector from "../../components/group-selector";
 import {getAwayScore, getLocalScore, getLoser, getWinner} from "../../utils/score-utils";
+import GameView from "../../components/game-view";
 
 type PlayoffProps = {
   roundOfSixteen: Game[],
@@ -124,57 +125,71 @@ const Playoffs = () => {
     await createRecords('game_guesses', gameGuessesValues);
   }
 
+  const calculateTeams = (game: Game, defaultHomeName?: string, defaultAwayName?: string): Game => ({
+    ...game,
+    HomeTeam: calculatedTeamNameToGameMap[game.MatchNumber]?.homeTeam || defaultHomeName || 'Home Team',
+    AwayTeam: calculatedTeamNameToGameMap[game.MatchNumber]?.awayTeam || defaultAwayName || 'Away Team',
+  })
+
+  const handleGameGuessChange = (gameGuess: GameGuess) => {
+    const newGameGuesses = {
+      ...gameGuesses,
+      [gameGuess.gameId]: gameGuess
+    }
+    setGameGuesses(newGameGuesses)
+
+    setCalculatedTeamNameToGameMap(recalculateLowerRounds(newGameGuesses, calculatedTeamNameToGameMap))
+  }
+
   // @ts-ignore
   return (
-    <Box>
+    <Box p={2}>
       <GroupSelector />
-      ------------- Round of 16 ----------------
-      {round_of_16.map(game => (
-        <div key={game.MatchNumber}>
-          {new Date(Date.parse(game.DateUtc)).toLocaleString()} {Intl.DateTimeFormat().resolvedOptions().timeZone} |
-          {calculatedTeamNameToGameMap[game.MatchNumber]?.homeTeam}
-          <input type='number' onChange={handleUpdateScore(game.MatchNumber, true)} value={getLocalScore(gameGuesses[game.MatchNumber])}/>
-          |
-          {calculatedTeamNameToGameMap[game.MatchNumber]?.awayTeam}
-          <input type='number' onChange={handleUpdateScore(game.MatchNumber, false)} value={getAwayScore(gameGuesses[game.MatchNumber])}/>
-        </div>
-      ))}
-      ------------- Round of 8 ----------------
-      {round_of_eight.map(game => (
-        <div key={game.MatchNumber}>
-          {new Date(Date.parse(game.DateUtc)).toLocaleString()} {Intl.DateTimeFormat().resolvedOptions().timeZone} |
-          {calculatedTeamNameToGameMap[game.MatchNumber]?.homeTeam  || `Winner of Match ${game.HomeTeam}`}
-          <input type='number' onChange={handleUpdateScore(game.MatchNumber, true)} value={getLocalScore(gameGuesses[game.MatchNumber])}/> |
-          {calculatedTeamNameToGameMap[game.MatchNumber]?.awayTeam || `Winner of Match ${game.AwayTeam}`}
-          <input type='number' onChange={handleUpdateScore(game.MatchNumber, false)} value={getAwayScore(gameGuesses[game.MatchNumber])}/> |
-        </div>
-      ))}
-      ------------- Semifinals ----------------
-      {semifinals.map(game => (
-        <div key={game.MatchNumber}>
-          {new Date(Date.parse(game.DateUtc)).toLocaleString()} {Intl.DateTimeFormat().resolvedOptions().timeZone} |
-          {calculatedTeamNameToGameMap[game.MatchNumber]?.homeTeam  || `Winner of Match ${game.HomeTeam}`}
-          <input type='number' onChange={handleUpdateScore(game.MatchNumber, true)} value={getLocalScore(gameGuesses[game.MatchNumber])}/> |
-          {calculatedTeamNameToGameMap[game.MatchNumber]?.awayTeam || `Winner of Match ${game.AwayTeam}`}
-          <input type='number' onChange={handleUpdateScore(game.MatchNumber, false)} value={getAwayScore(gameGuesses[game.MatchNumber])}/> |
-        </div>
-      ))}
-      ----------- Final ----------------
-      <div>
-        {new Date(Date.parse(final.DateUtc)).toLocaleString()} {Intl.DateTimeFormat().resolvedOptions().timeZone} |
-        {calculatedTeamNameToGameMap[final.MatchNumber]?.homeTeam  || `Winner of Match ${final.HomeTeam}`}
-        <input type='number' onChange={handleUpdateScore(final.MatchNumber, true)} value={getLocalScore(gameGuesses[final.MatchNumber])}/> |
-        {calculatedTeamNameToGameMap[final.MatchNumber]?.awayTeam || `Winner of Match ${final.AwayTeam}`}
-        <input type='number' onChange={handleUpdateScore(final.MatchNumber, false)} value={getAwayScore(gameGuesses[final.MatchNumber])}/> |
-      </div>
-      ----------- Third Place ----------------
-      <div>
-        {new Date(Date.parse(third_place.DateUtc)).toLocaleString()} {Intl.DateTimeFormat().resolvedOptions().timeZone} |
-        {calculatedTeamNameToGameMap[third_place.MatchNumber]?.homeTeam  || `Winner of Match ${third_place.HomeTeam}`}
-        <input type='number' onChange={handleUpdateScore(third_place.MatchNumber, true)} value={getLocalScore(gameGuesses[third_place.MatchNumber])}/> |
-        {calculatedTeamNameToGameMap[third_place.MatchNumber]?.awayTeam || `Winner of Match ${third_place.AwayTeam}`}
-        <input type='number' onChange={handleUpdateScore(third_place.MatchNumber, false)} value={getAwayScore(gameGuesses[third_place.MatchNumber])}/> |
-      </div>
+      <Grid container spacing={2} mt={2} columns={12}>
+        <Grid item xs={4}>
+          <Typography variant='h5'>Octavos de Final</Typography>
+          <Grid container spacing={2} >
+            {round_of_16.map(game => (
+              <Grid item key={game.MatchNumber} xs={6}>
+                <GameView game={calculateTeams(game)} gameGuess={gameGuesses[game.MatchNumber]} onGameGuessChange={handleGameGuessChange}/>
+              </Grid>
+            ))}
+          </Grid>
+        </Grid>
+        <Grid item xs={2}>
+          <Typography variant='h5'>Cuartos de Final</Typography>
+          <Grid container spacing={2} flexDirection={"column"}>
+            {round_of_eight.map(game => (
+              <Grid item key={game.MatchNumber}>
+                <GameView game={calculateTeams(game, `Ganador ${game.HomeTeam}`, `Ganador ${game.AwayTeam}`)} gameGuess={gameGuesses[game.MatchNumber]} onGameGuessChange={handleGameGuessChange}/>
+              </Grid>
+            ))}
+          </Grid>
+        </Grid>
+        <Grid item xs={2}>
+          <Typography variant='h5'>Semifinales</Typography>
+          <Grid container spacing={2} flexDirection={"column"}>
+            {semifinals.map(game => (
+              <Grid item key={game.MatchNumber}>
+                <GameView game={calculateTeams(game, `Ganador ${game.HomeTeam}`, `Ganador ${game.AwayTeam}`)} gameGuess={gameGuesses[game.MatchNumber]} onGameGuessChange={handleGameGuessChange}/>
+              </Grid>
+            ))}
+          </Grid>
+        </Grid>
+        <Grid item xs={2}>
+          <Grid container spacing={2} flexDirection={"column"}>
+            <Grid item>
+              <Typography variant='h5'>Final</Typography>
+              <GameView game={calculateTeams(final, `Ganador ${final.HomeTeam}`, `Ganador ${final.AwayTeam}`)} gameGuess={gameGuesses[final.MatchNumber]} onGameGuessChange={handleGameGuessChange}/>
+            </Grid>
+            <Grid item>
+              <Typography variant='h5'>Tercer Puesto</Typography>
+              <GameView game={calculateTeams(third_place, `Perdedor ${third_place.HomeTeam}`, `Perdedor ${third_place.AwayTeam}`)} gameGuess={gameGuesses[third_place.MatchNumber]} onGameGuessChange={handleGameGuessChange}/>
+            </Grid>
+          </Grid>
+        </Grid>
+      </Grid>
+
       ---------- Honor Box ----------
       <div>First Place: {getWinner(gameGuesses[final.MatchNumber], calculatedTeamNameToGameMap[final.MatchNumber]?.homeTeam, calculatedTeamNameToGameMap[final.MatchNumber]?.awayTeam )}</div>
       <div>First Place: {getLoser(gameGuesses[final.MatchNumber], calculatedTeamNameToGameMap[final.MatchNumber]?.homeTeam, calculatedTeamNameToGameMap[final.MatchNumber]?.awayTeam )}</div>
