@@ -1,10 +1,10 @@
 import {Fab, Grid} from "@mui/material";
 
 const GroupSelector = ({group} : {group?: string}) => (
-  <Grid container alignItems={'space-around'}>
+  <Grid container justifyContent={'space-around'} spacing={2}>
     {[ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].map(groupLetter => (
       <Grid item key={groupLetter}>
-        <Fab variant='extended' color={group === `Group {groupLetter.toUpperCase()}` ? 'primary' : 'secondary'} href={`/predictions/groups/group-${groupLetter}`}>
+        <Fab variant='extended' color={group === `Group ${groupLetter.toUpperCase()}` ? 'primary' : 'secondary'} href={`/predictions/groups/group-${groupLetter}`}>
           Group {groupLetter.toUpperCase()}
         </Fab>
       </Grid>

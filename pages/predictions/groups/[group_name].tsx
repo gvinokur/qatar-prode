@@ -1,9 +1,10 @@
 import {ChangeEvent, useEffect, useState} from 'react';
 import {
-  Box,
+  Alert,
+  Box, Button,
   CardContent,
   Grid,
-  Paper,
+  Paper, Snackbar,
   Table,
   TableBody,
   TableCell,
@@ -18,6 +19,7 @@ import GroupSelector from "../../../components/group-selector";
 import {createRecords, deleteRecords, getCurrentUserId, query} from "thin-backend";
 import {getAwayScore, getLocalScore} from "../../../utils/score-utils";
 import GameView from "../../../components/game-view";
+import {LoadingButton} from "@mui/lab";
 
 
 type GroupPageProps = {
@@ -32,6 +34,8 @@ type GameGuessDictionary = {
 const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
   const [gameGuesses, setGameGuesses] = useState<GameGuessDictionary>({})
   const [groupPositionsByGuess, setGroupPositionsByGuess] = useState<TeamStats[]>([])
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   useEffect(() => {
     const groupPosition = calculateGroupPosition(group.teams, groupGames.map(game => ({
       ...game,
@@ -54,21 +58,6 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
 
   }, [groupGames])
 
-  const handleUpdateScore = (matchNumber: number, homeTeam: boolean) => (event: ChangeEvent<HTMLInputElement>) => {
-    let value: number | null = Number.parseInt(event.target.value, 10);
-    if(!Number.isInteger(value)) {
-      value = null
-    }
-    setGameGuesses({
-      ...gameGuesses,
-      [matchNumber]: {
-        gameId: matchNumber,
-        localScore: homeTeam? value : (gameGuesses[matchNumber] ? gameGuesses[matchNumber].localScore : null),
-        awayScore: (!homeTeam)? value : (gameGuesses[matchNumber] ? gameGuesses[matchNumber].awayScore : null),
-      }
-    })
-  }
-
   const handleGameGuessChange = (gameGuess: GameGuess) => {
     setGameGuesses({
       ...gameGuesses,
@@ -77,6 +66,7 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
   }
 
   const savePredictions = async () => {
+    setSaving(true)
     const gameGuessesValues = Object.values(gameGuesses)
     const currentGameGuesses: GameGuess[] =
       await query('game_guesses')
@@ -86,17 +76,14 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
     // @ts-ignore
     await deleteRecords('game_guesses', currentGameGuesses.map(gameGuess => gameGuess.id))
     await createRecords('game_guesses', gameGuessesValues);
+    setSaving(false)
+    setSaved(true)
   }
   return (
-    <Box>
+    <Box p={2}>
       <GroupSelector group={group.name}/>
-      ________________________
-      <div>{group.name}</div>
-      _________________________
-      {group.teams.map(team => (<div key={team}>{team}</div>))}
-      _________________________
-      <Grid container spacing={2}>
-        <Grid item xs={8}>
+      <Grid container spacing={4} mt={'8px'}>
+        <Grid item xs={6}>
           {[1,2,3].map(round => (
             <div key={round}>
               <Typography variant={'h5'}>Fecha {round}</Typography>
@@ -110,7 +97,8 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
             </div>
           ))}
         </Grid>
-        <Grid item xs={4}>
+        <Grid item xs={6}>
+          <Typography variant={'h5'}>Tabla de Resultados</Typography>
           <Paper>
             <Table>
               <TableHead>
@@ -141,11 +129,14 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
               </TableBody>
             </Table>
           </Paper>
+          <LoadingButton loading={saving} variant='contained' size='large' onClick={savePredictions} sx={{ marginTop: '16px'}}>Guardar Pronostico</LoadingButton>
+          <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center'}} open={saved} autoHideDuration={2000} onClose={() => setSaved(false)}>
+            <Alert onClose={() => setSaved(false)} severity="success" sx={{ width: '100%' }}>
+              Tus pronosticos se guardaron correctamente!
+            </Alert>
+          </Snackbar>
         </Grid>
       </Grid>
-      <div>
-        <button onClick={savePredictions}>Save Predictions</button>
-      </div>
     </Box>
   )
 }
