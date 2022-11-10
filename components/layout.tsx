@@ -40,7 +40,7 @@ function Layout(props: FrameProps) {
           </Typography>
           {userData && (
             <div>
-              Welcome {userData.email}
+              Welcome {userData.nickname || userData.email}
             </div>
           )}
         </Toolbar>

@@ -36,10 +36,10 @@ const GameView = ({game, gameGuess, onGameGuessChange}: GameViewProps) => {
       />
       <CardContent>
         <Grid container>
-          <Grid item xs={8} flexDirection={'column'} justifyContent={'center'} alignContent={'center'} display={'flex'}>
+          <Grid item xs={9} flexDirection={'column'} justifyContent={'center'} alignContent={'center'} display={'flex'}>
             <Typography variant={"h6"}>{game.HomeTeam}</Typography>
           </Grid>
-          <Grid item xs={4}>
+          <Grid item xs={3}>
             <TextField
               margin="dense"
               id="name"
@@ -52,10 +52,10 @@ const GameView = ({game, gameGuess, onGameGuessChange}: GameViewProps) => {
             />
           </Grid>
           <Grid item xs={12} justifyContent={"center"} textAlign={'center'}><Typography variant={'h5'}>vs</Typography></Grid>
-          <Grid item xs={8} flexDirection={'column'} justifyContent={'center'} alignContent={'center'} display={'flex'}>
+          <Grid item xs={9} flexDirection={'column'} justifyContent={'center'} alignContent={'center'} display={'flex'}>
             <Typography variant={"h6"}>{game.AwayTeam}</Typography>
           </Grid>
-          <Grid item xs={4}>
+          <Grid item xs={3}>
             <TextField
               margin="dense"
               id="name"

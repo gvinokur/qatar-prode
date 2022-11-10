@@ -7,7 +7,18 @@ import {
   query,
   User
 } from "thin-backend";
-import {Box, Grid, Table, TableCell, TableHead, TableRow, Typography} from "@mui/material";
+import {
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  Grid,
+  Table,
+  TableCell,
+  TableHead,
+  TableRow,
+  Typography
+} from "@mui/material";
 import {useEffect, useState} from "react";
 import Image from "next/image";
 
@@ -30,37 +41,46 @@ const ProdeGroupPage = ({ group, groupParticipants}: ProdeGroupPageProps) => {
     getUsers();
   }, [group, groupParticipants])
   return (
-    <Box>
-      <Grid container mt={2}>
+    <Box p={2}>
+      <Grid container spacing={2}>
         <Grid item>
           {group.name.toLowerCase() === 'welltech' && (
-            <Image src={'/welltech-logo.jpeg'} alt={'Grupo Welltech'} height={100} width={240}/>
+            <Image src={'/welltech-logo.jpeg'} alt={'Grupo Welltech'} height={60} width={150}/>
           )}
         </Grid>
         <Grid item>
-          <Typography variant={'h1'}>
+          <Typography variant={'h2'}>
             {group.name}
           </Typography>
         </Grid>
       </Grid>
-      <Table>
-        <TableHead>
-          <TableCell>P</TableCell>
-          <TableCell>Nombre</TableCell>
-          <TableCell>Puntos Totales</TableCell>
-          <TableCell>Puntos Fase de Grupos</TableCell>
-          <TableCell>Puntos Playoffs</TableCell>
-        </TableHead>
-        {users.map((user, index) => (
-          <TableRow key={user.id} selected={user.id === getCurrentUserId()}>
-            <TableCell>{index+1}</TableCell>
-            <TableCell>{user.nickname || user.email}</TableCell>
-            <TableCell>0</TableCell>
-            <TableCell>0</TableCell>
-            <TableCell>0</TableCell>
-          </TableRow>
-        ))}
-      </Table>
+      <Grid container spacing={2}>
+        <Grid item>
+          <Card>
+            <CardHeader title='Tabla de Posiciones'/>
+            <CardContent>
+              <Table>
+                <TableHead>
+                  <TableCell>P</TableCell>
+                  <TableCell>Nombre</TableCell>
+                  <TableCell>Puntos Totales</TableCell>
+                  <TableCell>Puntos Fase de Grupos</TableCell>
+                  <TableCell>Puntos Playoffs</TableCell>
+                </TableHead>
+                {users.map((user, index) => (
+                  <TableRow key={user.id} selected={user.id === getCurrentUserId()}>
+                    <TableCell>{index+1}</TableCell>
+                    <TableCell>{user.nickname || user.email}</TableCell>
+                    <TableCell>0</TableCell>
+                    <TableCell>0</TableCell>
+                    <TableCell>0</TableCell>
+                  </TableRow>
+                ))}
+              </Table>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
     </Box>
   )
 }

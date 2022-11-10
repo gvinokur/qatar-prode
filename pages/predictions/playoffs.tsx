@@ -3,10 +3,22 @@ import {final, group_games, groups, round_of_16, round_of_eight, semifinals, thi
 import {ChangeEvent, useEffect, useState} from "react";
 import {createRecords, deleteRecords,getCurrentUserId, query} from "thin-backend";
 import {calculateGroupPosition} from "../../utils/position-calculator";
-import {Box, Grid, Typography} from "@mui/material";
+import {
+  Box,
+  Grid,
+  ListItem,
+  Typography,
+  List,
+  ListItemAvatar,
+  ListItemText,
+  Avatar,
+  Snackbar,
+  Alert
+} from "@mui/material";
 import GroupSelector from "../../components/group-selector";
 import {getAwayScore, getLocalScore, getLoser, getWinner} from "../../utils/score-utils";
 import GameView from "../../components/game-view";
+import {LoadingButton} from "@mui/lab";
 
 type PlayoffProps = {
   roundOfSixteen: Game[],
@@ -23,6 +35,8 @@ type GameGuessDictionary = {
 const Playoffs = () => {
   const [gameGuesses, setGameGuesses] = useState<GameGuessDictionary>({})
   const [calculatedTeamNameToGameMap, setCalculatedTeamNameToGameMap] = useState<{ [key: number]: { homeTeam: string, awayTeam: string } }>({})
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const recalculateLowerRounds = (gameGuesses: GameGuessDictionary, currentMap: { [key: number]: { homeTeam: string, awayTeam: string } }) => {
     const mapGame = (currentMap: { [key: number]: { homeTeam: string, awayTeam: string } }, fn: (guess: GameGuess, homeTeam: string, awayTeam: string ) => string | null) => (game: Game): any[] => [
@@ -114,6 +128,7 @@ const Playoffs = () => {
   }
 
   const savePredictions = async () => {
+    setSaving(true)
     const gameGuessesValues = Object.values(gameGuesses)
     const currentGameGuesses: GameGuess[] =
       await query('game_guesses')
@@ -123,6 +138,8 @@ const Playoffs = () => {
     // @ts-ignore
     await deleteRecords('game_guesses', currentGameGuesses.map(gameGuess => gameGuess.id))
     await createRecords('game_guesses', gameGuessesValues);
+    setSaving(false)
+    setSaved(true)
   }
 
   const calculateTeams = (game: Game, defaultHomeName?: string, defaultAwayName?: string): Game => ({
@@ -148,7 +165,7 @@ const Playoffs = () => {
       <Grid container spacing={2} mt={2} columns={12}>
         <Grid item xs={4}>
           <Typography variant='h5'>Octavos de Final</Typography>
-          <Grid container spacing={2} >
+          <Grid container spacing={1} >
             {round_of_16.map(game => (
               <Grid item key={game.MatchNumber} xs={6}>
                 <GameView game={calculateTeams(game)} gameGuess={gameGuesses[game.MatchNumber]} onGameGuessChange={handleGameGuessChange}/>
@@ -188,16 +205,42 @@ const Playoffs = () => {
             </Grid>
           </Grid>
         </Grid>
+        <Grid item xs={2}>
+          <Typography variant='h5'>Cuadro de Honor</Typography>
+          <List>
+            <ListItem>
+              <ListItemAvatar>
+                <Avatar alt='Campeon' src='/gold-medal.png'/>
+              </ListItemAvatar>
+              <ListItemText>
+                {getWinner(gameGuesses[final.MatchNumber], calculatedTeamNameToGameMap[final.MatchNumber]?.homeTeam, calculatedTeamNameToGameMap[final.MatchNumber]?.awayTeam )}
+              </ListItemText>
+            </ListItem>
+            <ListItem>
+              <ListItemAvatar>
+                <Avatar alt='Subampeon' src='/silver-medal.png'/>
+              </ListItemAvatar>
+              <ListItemText>
+                {getLoser(gameGuesses[final.MatchNumber], calculatedTeamNameToGameMap[final.MatchNumber]?.homeTeam, calculatedTeamNameToGameMap[final.MatchNumber]?.awayTeam )}
+              </ListItemText>
+            </ListItem>
+            <ListItem>
+              <ListItemAvatar>
+                <Avatar alt='Tercero' src='/bronze-medal.png'/>
+              </ListItemAvatar>
+              <ListItemText>
+                {getWinner(gameGuesses[third_place.MatchNumber], calculatedTeamNameToGameMap[third_place.MatchNumber]?.homeTeam, calculatedTeamNameToGameMap[third_place.MatchNumber]?.awayTeam )}
+              </ListItemText>
+            </ListItem>
+          </List>
+          <LoadingButton loading={saving} variant='contained' size='large' onClick={savePredictions} sx={{ marginTop: '16px'}}>Guardar Pronostico</LoadingButton>
+          <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center'}} open={saved} autoHideDuration={2000} onClose={() => setSaved(false)}>
+            <Alert onClose={() => setSaved(false)} severity="success" sx={{ width: '100%' }}>
+              Tus pronosticos se guardaron correctamente!
+            </Alert>
+          </Snackbar>
+        </Grid>
       </Grid>
-
-      ---------- Honor Box ----------
-      <div>First Place: {getWinner(gameGuesses[final.MatchNumber], calculatedTeamNameToGameMap[final.MatchNumber]?.homeTeam, calculatedTeamNameToGameMap[final.MatchNumber]?.awayTeam )}</div>
-      <div>First Place: {getLoser(gameGuesses[final.MatchNumber], calculatedTeamNameToGameMap[final.MatchNumber]?.homeTeam, calculatedTeamNameToGameMap[final.MatchNumber]?.awayTeam )}</div>
-      <div>First Place: {getWinner(gameGuesses[third_place.MatchNumber], calculatedTeamNameToGameMap[third_place.MatchNumber]?.homeTeam, calculatedTeamNameToGameMap[third_place.MatchNumber]?.awayTeam )}</div>
-      -------------------------------
-      <div>
-        <button onClick={savePredictions}>Save Predictions</button>
-      </div>
     </Box>
   )
 }

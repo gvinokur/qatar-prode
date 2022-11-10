@@ -4,7 +4,7 @@ import {
   initThinBackend,
   createRecord,
   getCurrentUserId,
-  ProdeGroup
+  ProdeGroup, updateRecord
 } from 'thin-backend';
 import {ChangeEvent, useEffect, useState} from 'react';
 import {
@@ -20,17 +20,20 @@ import {
 } from "@mui/material";
 import {LoadingButton} from "@mui/lab";
 import { Share as ShareIcon } from "@mui/icons-material";
+import {useCurrentUser} from "thin-backend-react";
 
 
 initThinBackend({ host: process.env.NEXT_PUBLIC_BACKEND_URL });
 
 const Home: NextPage = () => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState<string | false>(false);
   const [openSharingDialog, setOpenSharingDialog] = useState<string | false>(false);
   const [groupName, setGroupName] = useState('')
+  const [nickname, setNickname] = useState('')
   const [loading, setLoading] = useState(false)
   const [userGroups, setUserGroups] = useState<ProdeGroup[]>([])
   const [participantGroups, setParticipantGroups] = useState<ProdeGroup[]>([])
+  const user = useCurrentUser();
 
   useEffect(() => {
     const getData = async () => {
@@ -40,12 +43,12 @@ const Home: NextPage = () => {
       setUserGroups(userGroups);
       setParticipantGroups(participantGroups);
     }
-
+    setNickname(user?.nickname || '');
     getData()
-  }, [getCurrentUserId()])
+  }, [getCurrentUserId(), user])
 
-  const handleClickOpen = () => {
-    setOpen(true);
+  const handleClickOpenGrupo = () => {
+    setOpen('grupo');
   };
 
   const handleClose = () => {
@@ -62,14 +65,27 @@ const Home: NextPage = () => {
     handleClose()
   }
 
+  const handleNicknameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setNickname(e.target.value)
+  }
+  const handleNicknameSet = async () => {
+    setLoading(true)
+    await updateRecord('users', getCurrentUserId(), { nickname });
+    setLoading(false)
+    handleClose()
+  }
+
   return (
     <>
-      <Grid container>
+      <Grid container spacing={2} m={2}>
         <Grid item>
           <Card>
             <CardHeader title='Principal'/>
             <CardActions>
               <Button href='/predictions/groups/group-a'>Completar Pronostico</Button>
+            </CardActions>
+            <CardActions>
+              <Button onClick={() => setOpen('nickname')}>Cambiar Apodo</Button>
             </CardActions>
           </Card>
         </Grid>
@@ -99,12 +115,12 @@ const Home: NextPage = () => {
               </List>
             </CardContent>
             <CardActions>
-              <Button onClick={handleClickOpen}>Crear Nuevo Grupo</Button>
+              <Button onClick={handleClickOpenGrupo}>Crear Nuevo Grupo</Button>
             </CardActions>
           </Card>
         </Grid>
       </Grid>
-      <Dialog open={open} onClose={handleClose}>
+      <Dialog open={open === 'grupo'} onClose={handleClose}>
         <DialogTitle>Crear Grupo de Amigos</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -125,6 +141,29 @@ const Home: NextPage = () => {
         <DialogActions>
           <Button disabled={loading} onClick={handleClose}>Cancelar</Button>
           <LoadingButton loading={loading} onClick={handleGroupCreate}>Crear</LoadingButton>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={open === 'nickname'} onClose={handleClose}>
+        <DialogTitle>Cambiar tu apodo</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Este es el nombre que tus amigos van a ver en las tablas de todos tus grupos
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="name"
+            label="Apodo"
+            type="text"
+            value={nickname}
+            fullWidth
+            variant="standard"
+            onChange={handleNicknameChange}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button disabled={loading} onClick={handleClose}>Cancelar</Button>
+          <LoadingButton loading={loading} onClick={handleNicknameSet}>Cambiar</LoadingButton>
         </DialogActions>
       </Dialog>
       <Dialog open={!!openSharingDialog} onClose={() => setOpenSharingDialog(false)}>
