@@ -1,11 +1,23 @@
 import {ChangeEvent, useEffect, useState} from 'react';
-import {Box} from "@mui/material";
+import {
+  Box,
+  CardContent,
+  Grid,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Typography
+} from "@mui/material";
 import {group_games, groups} from "../../../data/group-data";
 import {Game, GameGuess, Group, TeamStats} from "../../../types/definitions";
 import {calculateGroupPosition} from "../../../utils/position-calculator";
 import GroupSelector from "../../../components/group-selector";
 import {createRecords, deleteRecords, getCurrentUserId, query} from "thin-backend";
 import {getAwayScore, getLocalScore} from "../../../utils/score-utils";
+import GameView from "../../../components/game-view";
 
 
 type GroupPageProps = {
@@ -56,6 +68,14 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
       }
     })
   }
+
+  const handleGameGuessChange = (gameGuess: GameGuess) => {
+    setGameGuesses({
+      ...gameGuesses,
+      [gameGuess.gameId]: gameGuess
+    })
+  }
+
   const savePredictions = async () => {
     const gameGuessesValues = Object.values(gameGuesses)
     const currentGameGuesses: GameGuess[] =
@@ -69,22 +89,60 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
   }
   return (
     <Box>
-      <GroupSelector/>
+      <GroupSelector group={group.name}/>
       ________________________
       <div>{group.name}</div>
       _________________________
       {group.teams.map(team => (<div key={team}>{team}</div>))}
       _________________________
-      {[1,2,3].map(round => groupGames.filter(game => game.RoundNumber === round).map(game => (
-        <div key={game.MatchNumber}>{new Date(Date.parse(game.DateUtc)).toLocaleString()} {Intl.DateTimeFormat().resolvedOptions().timeZone} |
-          {game.HomeTeam} <input type='number' onChange={handleUpdateScore(game.MatchNumber, true)} value={getLocalScore(gameGuesses[game.MatchNumber])}/> |
-          {game.AwayTeam} <input type='number' onChange={handleUpdateScore(game.MatchNumber, false)} value={getAwayScore(gameGuesses[game.MatchNumber])}/></div>
-      )))}
-      _________________________
-      {groupPositionsByGuess.map((teamStats, index) => (
-        <div key={index}>{index} | {teamStats.team} | {teamStats.points} | {teamStats.win} | { teamStats.draw} | {teamStats.loss} | {teamStats.goalsFor} | {teamStats.goalsAgainst} | {teamStats.goalDifference} </div>
-      ))}
-      _________________________
+      <Grid container spacing={2}>
+        <Grid item xs={8}>
+          {[1,2,3].map(round => (
+            <div key={round}>
+              <Typography variant={'h5'}>Fecha {round}</Typography>
+              <Grid container spacing={2}>
+                {groupGames.filter(game => game.RoundNumber === round).map(game => (
+                  <Grid key={game.MatchNumber} item xs={6}>
+                    <GameView game={game} gameGuess={gameGuesses[game.MatchNumber]} onGameGuessChange={handleGameGuessChange}/>
+                  </Grid>
+                ))}
+              </Grid>
+            </div>
+          ))}
+        </Grid>
+        <Grid item xs={4}>
+          <Paper>
+            <Table>
+              <TableHead>
+                <TableCell>Pos</TableCell>
+                <TableCell>Equipo</TableCell>
+                <TableCell>Pts</TableCell>
+                <TableCell>G</TableCell>
+                <TableCell>E</TableCell>
+                <TableCell>P</TableCell>
+                <TableCell>GF</TableCell>
+                <TableCell>GC</TableCell>
+                <TableCell>DG</TableCell>
+              </TableHead>
+              <TableBody>
+                {groupPositionsByGuess.map((teamStats, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>{teamStats.team}</TableCell>
+                    <TableCell>{teamStats.points}</TableCell>
+                    <TableCell>{teamStats.win}</TableCell>
+                    <TableCell>{teamStats.draw}</TableCell>
+                    <TableCell>{teamStats.loss}</TableCell>
+                    <TableCell>{teamStats.goalsFor}</TableCell>
+                    <TableCell>{teamStats.goalsAgainst}</TableCell>
+                    <TableCell>{teamStats.goalDifference}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Paper>
+        </Grid>
+      </Grid>
       <div>
         <button onClick={savePredictions}>Save Predictions</button>
       </div>

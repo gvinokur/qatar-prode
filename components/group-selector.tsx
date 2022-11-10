@@ -1,16 +1,18 @@
-import {Box} from "@mui/material";
+import {Fab, Grid} from "@mui/material";
 
-const GroupSelector = () => (
-  <Box>
-    {[ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].map(group => (
-      <span key={group}>
-        <a href={`/predictions/groups/group-${group}`}>Group {group.toUpperCase()}</a>
-      </span>
+const GroupSelector = ({group} : {group?: string}) => (
+  <Grid container alignItems={'space-around'}>
+    {[ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].map(groupLetter => (
+      <Grid item key={groupLetter}>
+        <Fab variant='extended' color={group === `Group {groupLetter.toUpperCase()}` ? 'primary' : 'secondary'} href={`/predictions/groups/group-${groupLetter}`}>
+          Group {groupLetter.toUpperCase()}
+        </Fab>
+      </Grid>
       ))}
-    <span >
-        <a href={`/predictions/playoffs`}>Playoffs</a>
-      </span>
-  </Box>
+    <Grid item>
+      <Fab color={!group ? 'primary' : 'secondary'} variant={'extended'} href={`/predictions/playoffs`}>Playoffs</Fab>
+    </Grid>
+  </Grid>
 )
 
 export default GroupSelector;
