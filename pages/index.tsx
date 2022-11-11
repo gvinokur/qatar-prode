@@ -4,7 +4,7 @@ import {
   initThinBackend,
   createRecord,
   getCurrentUserId,
-  ProdeGroup, updateRecord
+  ProdeGroup, updateRecord, deleteRecord
 } from 'thin-backend';
 import {ChangeEvent, useEffect, useState} from 'react';
 import {
@@ -32,7 +32,7 @@ import {
   Typography
 } from "@mui/material";
 import {LoadingButton} from "@mui/lab";
-import {ExpandMore as ExpandMoreIcon, Share as ShareIcon} from "@mui/icons-material";
+import {ExpandMore as ExpandMoreIcon, Share as ShareIcon, Delete as DeleteIcon} from "@mui/icons-material";
 import {useCurrentUser} from "thin-backend-react";
 
 const rules = [
@@ -69,6 +69,7 @@ const Home: NextPage = () => {
   const [userGroups, setUserGroups] = useState<ProdeGroup[]>([])
   const [participantGroups, setParticipantGroups] = useState<ProdeGroup[]>([])
   const [expanded, setExpanded] = useState(false)
+  const [openConfirmDeleteGroup, setOpenConfirmDeleteGroup] = useState<string | false>(false)
   const theme = useTheme()
 
   const user = useCurrentUser();
@@ -97,9 +98,23 @@ const Home: NextPage = () => {
   }
   const handleGroupCreate = async () => {
     setLoading(true)
-    await createRecord('prode_groups', { ownerUserId: getCurrentUserId(), name: groupName });
+    const createdGroup = await createRecord('prode_groups', { ownerUserId: getCurrentUserId(), name: groupName });
+    setUserGroups([
+      ...userGroups,
+      createdGroup
+    ])
     setLoading(false)
     handleClose()
+  }
+
+  const handleGroupDelete = async () => {
+    setLoading(true)
+    if(openConfirmDeleteGroup) {
+      await deleteRecord('prode_groups', openConfirmDeleteGroup);
+      setUserGroups(userGroups.filter(group => group.id !== openConfirmDeleteGroup))
+    }
+    setLoading(false)
+    setOpenConfirmDeleteGroup(false)
   }
 
   const handleExpandClick = () => {
@@ -151,9 +166,14 @@ const Home: NextPage = () => {
                     alignItems='flex-start'
                     disableGutters
                     secondaryAction={
-                      <IconButton title='Invitar Amigos' onClick={() => setOpenSharingDialog(userGroup.id)}>
-                        <ShareIcon/>
-                      </IconButton>
+                      <>
+                        <IconButton title='Borrar Grupo' onClick={() => setOpenConfirmDeleteGroup(userGroup.id)}>
+                          <DeleteIcon/>
+                        </IconButton>
+                        <IconButton title='Invitar Amigos' onClick={() => setOpenSharingDialog(userGroup.id)}>
+                          <ShareIcon/>
+                        </IconButton>
+                      </>
                     }>
                     <ListItemText><Link href={`/friend-groups/${userGroup.id}`}>{userGroup.name}</Link></ListItemText>
                   </ListItem>
@@ -218,6 +238,18 @@ const Home: NextPage = () => {
         </DialogContent>
         <DialogActions>
           <Button disabled={loading} onClick={() => setOpenSharingDialog(false)}>Cancelar</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={!!openConfirmDeleteGroup} onClose={() => setOpenConfirmDeleteGroup(false)}>
+        <DialogTitle>Borrar Grupo</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Estas seguro que queres borrar este grupo?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button disabled={loading} onClick={() => setOpenConfirmDeleteGroup(false)}>Cancelar</Button>
+          <LoadingButton loading={loading} onClick={handleGroupDelete}>Borrar</LoadingButton>
         </DialogActions>
       </Dialog>
     </>

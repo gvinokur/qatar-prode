@@ -98,7 +98,7 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
           ))}
         </Grid>
         <Grid item xs={12} md={6} mb={xsMatch ? 0 : 12}>
-          <Typography variant={'h5'}>Tabla de Resultados</Typography>
+          <Typography variant={'h5'}>Tabla de Pronosticos</Typography>
           <Paper>
             <Table>
               <TableHead>

@@ -1,7 +1,9 @@
-import {Card, CardContent, CardHeader, Grid, TextField, Typography, useMediaQuery, useTheme} from "@mui/material";
+import {Card, CardContent, CardHeader, Grid, TextField, Typography, Box, useMediaQuery, useTheme} from "@mui/material";
 import {Game, GameGuess} from "../types/definitions";
 import {final} from "../data/group-data";
 import {ChangeEvent} from "react";
+import {calculateScoreForGame} from "../utils/score-calculator";
+import {Done as HitIcon, DoneAll as HitAllIcon, Close as MissIcon} from "@mui/icons-material";
 
 type GameViewProps = {
   game: Game,
@@ -31,6 +33,9 @@ const GameView = ({game, gameGuess, onGameGuessChange}: GameViewProps) => {
       [home ? 'localScore': 'awayScore']: value
     })
   }
+
+  const scoreForGame = calculateScoreForGame(game, gameGuess)
+
   return (
     <Card>
       <CardHeader
@@ -90,6 +95,22 @@ const GameView = ({game, gameGuess, onGameGuessChange}: GameViewProps) => {
           </Grid>
         </form>
       </CardContent>
+      {game.HomeTeamScore !== null && game.AwayTeamScore !== null && (
+        <CardContent sx={{ borderTop: `${theme.palette.primary.contrastText} 1px solid`, backgroundColor: 'secondary.light'}}>
+          <Grid container spacing={1} justifyContent='space-around'>
+            <Grid item>
+              {scoreForGame === 0 && <MissIcon color='error'/>}
+              {scoreForGame === 1 && <HitIcon color='success'/>}
+              {scoreForGame === 2 && <HitAllIcon color='success'/>}
+            </Grid>
+            <Grid item flexGrow={1}>
+              <Typography variant='body1' component='div' color='secondary.contrastText' textAlign='lef'>
+                Resulado: {game.HomeTeam} {game.HomeTeamScore} - {game.AwayTeamScore} {game.AwayTeam}
+              </Typography>
+            </Grid>
+          </Grid>
+        </CardContent>
+      )}
     </Card>
   )
 }

@@ -8,8 +8,8 @@ export type Game = {
   AwayTeam: string | { group: GroupName, position: number} | number,
   Group: GroupName | null,
   Location: string,
-  HomeTeamScore?: number | null,
-  AwayTeamScore?: number | null
+  HomeTeamScore: number | null,
+  AwayTeamScore: number | null
 }
 
 export type Group = {
