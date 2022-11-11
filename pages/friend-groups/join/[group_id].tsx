@@ -9,7 +9,9 @@ const JoinGroup = ( {group}: { group: ProdeGroup}) => {
   const router = useRouter()
   useEffect(() => {
     const createRecordAndForward = async () => {
-      await createRecord('prode_group_participants', { prodeGroupId: group.id, userId: getCurrentUserId()})
+      if (group.ownerUserId !== getCurrentUserId()) {
+        await createRecord('prode_group_participants', {prodeGroupId: group.id, userId: getCurrentUserId()})
+      }
       await router.push(`/friend-groups/${group.id}`)
     }
     if (group) {
