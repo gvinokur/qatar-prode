@@ -85,38 +85,38 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
       <Grid container spacing={4} mt={'8px'}>
         <Grid item xs={12} md={6}>
           {[1,2,3].map(round => (
-            <div key={round}>
+            <Box key={round} mb={3}>
               <Typography variant={'h5'}>Fecha {round}</Typography>
-              <Grid container spacing={2}>
+              <Grid container spacing={2} >
                 {groupGames.filter(game => game.RoundNumber === round).map(game => (
                   <Grid key={game.MatchNumber} item xs={6}>
                     <GameView game={game} gameGuess={gameGuesses[game.MatchNumber]} onGameGuessChange={handleGameGuessChange}/>
                   </Grid>
                 ))}
               </Grid>
-            </div>
+            </Box>
           ))}
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={6} mb={xsMatch ? 0 : 12}>
           <Typography variant={'h5'}>Tabla de Resultados</Typography>
           <Paper>
             <Table>
               <TableHead>
-                <TableRow>
-                  <TableCell>Pos</TableCell>
-                  <TableCell>Equipo</TableCell>
-                  <TableCell>Pts</TableCell>
-                  {xsMatch && <TableCell>G</TableCell>}
-                  {xsMatch && <TableCell>E</TableCell>}
-                  {xsMatch && <TableCell>P</TableCell> }
-                  {xsMatch && <TableCell>GF</TableCell>}
-                  {xsMatch && <TableCell>GC</TableCell>}
-                  <TableCell>DG</TableCell>
+                <TableRow sx={{ backgroundColor: 'primary.main'}}>
+                  <TableCell sx={{ color: 'primary.contrastText'}}>Pos</TableCell>
+                  <TableCell sx={{ color: 'primary.contrastText'}}>Equipo</TableCell>
+                  <TableCell sx={{ color: 'primary.contrastText'}}>Pts</TableCell>
+                  {xsMatch && <TableCell sx={{ color: 'primary.contrastText'}}>G</TableCell>}
+                  {xsMatch && <TableCell sx={{ color: 'primary.contrastText'}}>E</TableCell>}
+                  {xsMatch && <TableCell sx={{ color: 'primary.contrastText'}}>P</TableCell> }
+                  {xsMatch && <TableCell sx={{ color: 'primary.contrastText'}}>GF</TableCell>}
+                  {xsMatch && <TableCell sx={{ color: 'primary.contrastText'}}>GC</TableCell>}
+                  <TableCell sx={{ color: 'primary.contrastText'}}>DG</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {groupPositionsByGuess.map((teamStats, index) => (
-                  <TableRow key={index}>
+                  <TableRow key={index} sx={[0,1].includes(index) ? {backgroundColor: 'primary.contrastText'} : {}}>
                     <TableCell>{index + 1}</TableCell>
                     <TableCell>{teamStats.team}</TableCell>
                     <TableCell>{teamStats.points}</TableCell>

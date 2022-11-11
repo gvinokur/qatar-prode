@@ -23,9 +23,10 @@ function Layout(props: FrameProps) {
     palette: {
       primary: {
         main: '#b71c1c',
+        contrastText: '#dddddd'
       },
       secondary: {
-        main: '#303f9f',
+        main: '#90caf9',
       },
     },
   });

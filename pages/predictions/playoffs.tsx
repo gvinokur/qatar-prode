@@ -13,7 +13,7 @@ import {
   ListItemText,
   Avatar,
   Snackbar,
-  Alert
+  Alert, useMediaQuery
 } from "@mui/material";
 import GroupSelector from "../../components/group-selector";
 import {getAwayScore, getLocalScore, getLoser, getWinner} from "../../utils/score-utils";
@@ -37,6 +37,7 @@ const Playoffs = () => {
   const [calculatedTeamNameToGameMap, setCalculatedTeamNameToGameMap] = useState<{ [key: number]: { homeTeam: string, awayTeam: string } }>({})
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const xsMatch = useMediaQuery('(min-width:900px)')
 
   const recalculateLowerRounds = (gameGuesses: GameGuessDictionary, currentMap: { [key: number]: { homeTeam: string, awayTeam: string } }) => {
     const mapGame = (currentMap: { [key: number]: { homeTeam: string, awayTeam: string } }, fn: (guess: GameGuess, homeTeam: string, awayTeam: string ) => string | null) => (game: Game): any[] => [
@@ -163,7 +164,7 @@ const Playoffs = () => {
     <Box p={2}>
       <GroupSelector />
       <Grid container spacing={2} mt={2} columns={12}>
-        <Grid item xs={4}>
+        <Grid item md={4} xs={12}>
           <Typography variant='h5'>Octavos de Final</Typography>
           <Grid container spacing={1} >
             {round_of_16.map(game => (
@@ -173,39 +174,39 @@ const Playoffs = () => {
             ))}
           </Grid>
         </Grid>
-        <Grid item xs={2}>
+        <Grid item md={2} xs={12}>
           <Typography variant='h5'>Cuartos de Final</Typography>
-          <Grid container spacing={2} flexDirection={"column"}>
+          <Grid container spacing={2}>
             {round_of_eight.map(game => (
-              <Grid item key={game.MatchNumber}>
+              <Grid item key={game.MatchNumber} md={12} xs={6}>
                 <GameView game={calculateTeams(game, `Ganador ${game.HomeTeam}`, `Ganador ${game.AwayTeam}`)} gameGuess={gameGuesses[game.MatchNumber]} onGameGuessChange={handleGameGuessChange}/>
               </Grid>
             ))}
           </Grid>
         </Grid>
-        <Grid item xs={2}>
+        <Grid item md={2} xs={12}>
           <Typography variant='h5'>Semifinales</Typography>
-          <Grid container spacing={2} flexDirection={"column"}>
+          <Grid container spacing={2}>
             {semifinals.map(game => (
-              <Grid item key={game.MatchNumber}>
+              <Grid item key={game.MatchNumber} md={12} xs={6}>
                 <GameView game={calculateTeams(game, `Ganador ${game.HomeTeam}`, `Ganador ${game.AwayTeam}`)} gameGuess={gameGuesses[game.MatchNumber]} onGameGuessChange={handleGameGuessChange}/>
               </Grid>
             ))}
           </Grid>
         </Grid>
-        <Grid item xs={2}>
-          <Grid container spacing={2} flexDirection={"column"}>
-            <Grid item>
+        <Grid item md={2} xs={12}>
+          <Grid container spacing={2}>
+            <Grid item xs={6} md={12}>
               <Typography variant='h5'>Final</Typography>
               <GameView game={calculateTeams(final, `Ganador ${final.HomeTeam}`, `Ganador ${final.AwayTeam}`)} gameGuess={gameGuesses[final.MatchNumber]} onGameGuessChange={handleGameGuessChange}/>
             </Grid>
-            <Grid item>
+            <Grid item xs={6} md={12}>
               <Typography variant='h5'>Tercer Puesto</Typography>
               <GameView game={calculateTeams(third_place, `Perdedor ${third_place.HomeTeam}`, `Perdedor ${third_place.AwayTeam}`)} gameGuess={gameGuesses[third_place.MatchNumber]} onGameGuessChange={handleGameGuessChange}/>
             </Grid>
           </Grid>
         </Grid>
-        <Grid item xs={2}>
+        <Grid item md={2} xs={6}>
           <Typography variant='h5'>Cuadro de Honor</Typography>
           <List>
             <ListItem>
@@ -233,7 +234,8 @@ const Playoffs = () => {
               </ListItemText>
             </ListItem>
           </List>
-          <LoadingButton loading={saving} variant='contained' size='large' onClick={savePredictions} sx={{ marginTop: '16px'}}>Guardar Pronostico</LoadingButton>
+          {xsMatch && <LoadingButton loading={saving} variant='contained' size='large' onClick={savePredictions} sx={{ marginTop: '16px'}}>Guardar Pronostico</LoadingButton>}
+          {!xsMatch && <LoadingButton loading={saving} variant='contained' size='large' onClick={savePredictions} sx={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translate(-50%, 0)' }}>Guardar Pronostico</LoadingButton>}
           <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center'}} open={saved} autoHideDuration={2000} onClose={() => setSaved(false)}>
             <Alert onClose={() => setSaved(false)} severity="success" sx={{ width: '100%' }}>
               Tus pronosticos se guardaron correctamente!

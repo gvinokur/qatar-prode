@@ -1,4 +1,4 @@
-import {Card, CardContent, CardHeader, Grid, TextField, Typography} from "@mui/material";
+import {Card, CardContent, CardHeader, Grid, TextField, Typography, useTheme} from "@mui/material";
 import {Game, GameGuess} from "../types/definitions";
 import {final} from "../data/group-data";
 import {ChangeEvent} from "react";
@@ -10,6 +10,7 @@ type GameViewProps = {
 }
 
 const GameView = ({game, gameGuess, onGameGuessChange}: GameViewProps) => {
+  const theme = useTheme()
   if (!gameGuess) {
     gameGuess = {
       gameId: game.MatchNumber,
@@ -39,6 +40,10 @@ const GameView = ({game, gameGuess, onGameGuessChange}: GameViewProps) => {
           hour: '2-digit',
           minute: '2-digit',
         })}
+        sx={{
+          color: theme.palette.primary.main,
+          borderBottom: `${theme.palette.primary.light} 1px solid`
+        }}
       />
       <CardContent>
         <Grid container>
