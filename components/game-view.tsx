@@ -46,37 +46,39 @@ const GameView = ({game, gameGuess, onGameGuessChange}: GameViewProps) => {
         }}
       />
       <CardContent>
-        <Grid container>
-          <Grid item xs={9} flexDirection={'column'} justifyContent={'center'} alignContent={'center'} display={'flex'}>
-            <Typography variant={"h6"}>{game.HomeTeam}</Typography>
+        <form autoComplete='off'>
+          <Grid container>
+            <Grid item xs={9} flexDirection={'column'} justifyContent={'center'} alignContent={'center'} display={'flex'}>
+              <Typography variant={"h6"}>{game.HomeTeam}</Typography>
+            </Grid>
+            <Grid item xs={3}>
+              <TextField
+                margin="dense"
+                id="name"
+                type="number"
+                fullWidth
+                inputProps={{ min: 0}}
+                value={gameGuess.localScore === null ? '' : gameGuess.localScore}
+                onChange={handleScoreChange(true)}
+              />
+            </Grid>
+            <Grid item xs={12} justifyContent={"center"} textAlign={'center'}><Typography variant={'h5'}>vs</Typography></Grid>
+            <Grid item xs={9} flexDirection={'column'} justifyContent={'center'} alignContent={'center'} display={'flex'}>
+              <Typography variant={"h6"}>{game.AwayTeam}</Typography>
+            </Grid>
+            <Grid item xs={3}>
+              <TextField
+                margin="dense"
+                id="name"
+                type="number"
+                fullWidth
+                inputProps={{ min: 0}}
+                value={gameGuess.awayScore === null ? '' : gameGuess.awayScore}
+                onChange={handleScoreChange(false)}
+              />
+            </Grid>
           </Grid>
-          <Grid item xs={3}>
-            <TextField
-              margin="dense"
-              id="name"
-              type="number"
-              fullWidth
-              inputProps={{ min: 0}}
-              value={gameGuess.localScore === null ? '' : gameGuess.localScore}
-              onChange={handleScoreChange(true)}
-            />
-          </Grid>
-          <Grid item xs={12} justifyContent={"center"} textAlign={'center'}><Typography variant={'h5'}>vs</Typography></Grid>
-          <Grid item xs={9} flexDirection={'column'} justifyContent={'center'} alignContent={'center'} display={'flex'}>
-            <Typography variant={"h6"}>{game.AwayTeam}</Typography>
-          </Grid>
-          <Grid item xs={3}>
-            <TextField
-              margin="dense"
-              id="name"
-              type="number"
-              fullWidth
-              inputProps={{ min: 0}}
-              value={gameGuess.awayScore === null ? '' : gameGuess.awayScore}
-              onChange={handleScoreChange(false)}
-            />
-          </Grid>
-        </Grid>
+        </form>
       </CardContent>
     </Card>
   )
