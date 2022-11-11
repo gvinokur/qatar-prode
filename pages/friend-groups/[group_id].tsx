@@ -73,10 +73,15 @@ const ProdeGroupPage = ({ group, groupParticipants}: ProdeGroupPageProps) => {
                   {users.map((user, index) => (
                     <TableRow key={user.id} selected={user.id === getCurrentUserId()}>
                       <TableCell>{index+1}</TableCell>
-                      <TableCell>{user.nickname || user.email}</TableCell>
-                      <TableCell>0</TableCell>
-                      <TableCell>0</TableCell>
-                      <TableCell>0</TableCell>
+                      <TableCell sx={{
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        maxWidth: '140px'
+                      }}>{user.nickname || user.email}</TableCell>
+                      <TableCell>-</TableCell>
+                      <TableCell>-</TableCell>
+                      <TableCell>-</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

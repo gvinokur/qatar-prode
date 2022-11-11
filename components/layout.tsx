@@ -7,7 +7,18 @@ import {
   Paper,
   Typography,
   IconButton,
-  Link, Menu, MenuItem, Avatar, Box, Tooltip, Button,
+  Link,
+  Menu,
+  MenuItem,
+  Avatar,
+  Box,
+  Tooltip,
+  Button,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  TextField,
+  DialogActions, Dialog,
 } from "@mui/material";
 import {
   Menu as MenuIcon
@@ -15,8 +26,9 @@ import {
 import Image from 'next/image';
 import { useCurrentUser } from 'thin-backend-react';
 import {useRouter} from "next/router";
-import {loginWithRedirect, logout} from "thin-backend";
-import {useEffect} from "react";
+import {getCurrentUserId, loginWithRedirect, logout, updateRecord} from "thin-backend";
+import {ChangeEvent, useEffect, useState} from "react";
+import {LoadingButton} from "@mui/lab";
 
 type FrameProps = {
   children?: JSX.Element | JSX.Element[],
@@ -37,12 +49,16 @@ const pages: Page[] = [ {
 }]
 
 function Layout(props: FrameProps) {
+  const [openNicknameDialog, setOpenNicknameDialog] = useState(false);
+  const [nickname, setNickname] = useState('');
+  const [loading, setLoading] = useState(false);
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
   const userData = useCurrentUser();
   const router = useRouter();
 
   useEffect(() => {
+    setNickname(userData?.nickname || '');
     const timeout = setTimeout(async () => {
       if(!userData) {
         await loginWithRedirect()
@@ -84,6 +100,24 @@ function Layout(props: FrameProps) {
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
   };
+
+  const handleOpen = () => {
+    setOpenNicknameDialog(true);
+  };
+
+  const handleCloseNicknameDialog = () => {
+    setOpenNicknameDialog(false);
+  };
+
+  const handleNicknameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setNickname(e.target.value)
+  }
+  const handleNicknameSet = async () => {
+    setLoading(true)
+    await updateRecord('users', getCurrentUserId(), { nickname });
+    setLoading(false)
+    handleCloseNicknameDialog()
+  }
 
   return (
     <ThemeProvider theme={theme}>
@@ -226,7 +260,10 @@ function Layout(props: FrameProps) {
                 onClose={handleCloseUserMenu}
               >
                 <MenuItem onClick={handleCloseUserMenu}>
-                  <Typography textAlign="center" onClick={() => logout()}>Logout</Typography>
+                  <Typography textAlign="center" onClick={handleOpen}>Cambiar Apodo</Typography>
+                </MenuItem>
+                <MenuItem onClick={handleCloseUserMenu}>
+                  <Typography textAlign="center" onClick={() => logout()}>Salir</Typography>
                 </MenuItem>
               </Menu>
             </Box>
@@ -234,6 +271,29 @@ function Layout(props: FrameProps) {
         </Toolbar>
       </AppBar>
       <main>{userData && props.children}</main>
+      <Dialog open={openNicknameDialog} onClose={handleCloseNicknameDialog}>
+        <DialogTitle>Cambiar tu apodo</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Este es el nombre que tus amigos van a ver en las tablas de todos tus grupos
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="name"
+            label="Apodo"
+            type="text"
+            value={nickname}
+            fullWidth
+            variant="standard"
+            onChange={handleNicknameChange}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button disabled={loading} onClick={handleCloseNicknameDialog}>Cancelar</Button>
+          <LoadingButton loading={loading} onClick={handleNicknameSet}>Cambiar</LoadingButton>
+        </DialogActions>
+      </Dialog>
     </ThemeProvider>
   );
 }

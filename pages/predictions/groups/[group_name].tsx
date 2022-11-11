@@ -118,7 +118,11 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
                 {groupPositionsByGuess.map((teamStats, index) => (
                   <TableRow key={index} sx={[0,1].includes(index) ? {backgroundColor: 'primary.contrastText'} : {}}>
                     <TableCell>{index + 1}</TableCell>
-                    <TableCell>{teamStats.team}</TableCell>
+                    <TableCell sx={{
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden'
+                    }}>{teamStats.team}</TableCell>
                     <TableCell>{teamStats.points}</TableCell>
                     {xsMatch && <TableCell>{teamStats.win}</TableCell>}
                     {xsMatch && <TableCell>{teamStats.draw}</TableCell>}

@@ -1,4 +1,4 @@
-import {Card, CardContent, CardHeader, Grid, TextField, Typography, useTheme} from "@mui/material";
+import {Card, CardContent, CardHeader, Grid, TextField, Typography, useMediaQuery, useTheme} from "@mui/material";
 import {Game, GameGuess} from "../types/definitions";
 import {final} from "../data/group-data";
 import {ChangeEvent} from "react";
@@ -11,6 +11,8 @@ type GameViewProps = {
 
 const GameView = ({game, gameGuess, onGameGuessChange}: GameViewProps) => {
   const theme = useTheme()
+  const xsMatch = useMediaQuery('(min-width:900px)')
+
   if (!gameGuess) {
     gameGuess = {
       gameId: game.MatchNumber,
@@ -34,7 +36,7 @@ const GameView = ({game, gameGuess, onGameGuessChange}: GameViewProps) => {
       <CardHeader
         title={`Partido ${game.MatchNumber}`}
         subheader={new Date(Date.parse(game.DateUtc)).toLocaleString(undefined, {
-          weekday: 'long',
+          weekday: xsMatch ? 'long' : 'short',
           day: 'numeric',
           month: 'short',
           hour: '2-digit',
@@ -48,10 +50,14 @@ const GameView = ({game, gameGuess, onGameGuessChange}: GameViewProps) => {
       <CardContent>
         <form autoComplete='off'>
           <Grid container>
-            <Grid item xs={9} flexDirection={'column'} justifyContent={'center'} alignContent={'center'} display={'flex'}>
-              <Typography variant={"h6"}>{game.HomeTeam}</Typography>
+            <Grid item xs={8} md={9} flexDirection={'column'} justifyContent={'center'} alignContent={'center'} display={'flex'}>
+              <Typography variant={"h6"} sx={{
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden'
+              }}>{game.HomeTeam}</Typography>
             </Grid>
-            <Grid item xs={3}>
+            <Grid item xs={4} md={3}>
               <TextField
                 margin="dense"
                 id="name"
@@ -63,10 +69,14 @@ const GameView = ({game, gameGuess, onGameGuessChange}: GameViewProps) => {
               />
             </Grid>
             <Grid item xs={12} justifyContent={"center"} textAlign={'center'}><Typography variant={'h5'}>vs</Typography></Grid>
-            <Grid item xs={9} flexDirection={'column'} justifyContent={'center'} alignContent={'center'} display={'flex'}>
-              <Typography variant={"h6"}>{game.AwayTeam}</Typography>
+            <Grid item xs={8} md={9} flexDirection={'column'} justifyContent={'center'} alignContent={'center'} display={'flex'}>
+              <Typography variant={"h6"} sx={{
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden'
+              }}>{game.AwayTeam}</Typography>
             </Grid>
-            <Grid item xs={3}>
+            <Grid item xs={4} md={3}>
               <TextField
                 margin="dense"
                 id="name"

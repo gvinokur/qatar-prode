@@ -23,10 +23,9 @@ import { Share as ShareIcon } from "@mui/icons-material";
 import {useCurrentUser} from "thin-backend-react";
 
 const Home: NextPage = () => {
-  const [open, setOpen] = useState<string | false>(false);
   const [openSharingDialog, setOpenSharingDialog] = useState<string | false>(false);
   const [groupName, setGroupName] = useState('')
-  const [nickname, setNickname] = useState('')
+  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false)
   const [userGroups, setUserGroups] = useState<ProdeGroup[]>([])
   const [participantGroups, setParticipantGroups] = useState<ProdeGroup[]>([])
@@ -42,12 +41,11 @@ const Home: NextPage = () => {
       setUserGroups(userGroups);
       setParticipantGroups(participantGroups);
     }
-    setNickname(user?.nickname || '');
     getData()
   }, [getCurrentUserId(), user])
 
   const handleClickOpenGrupo = () => {
-    setOpen('grupo');
+    setOpen(true);
   };
 
   const handleClose = () => {
@@ -64,33 +62,12 @@ const Home: NextPage = () => {
     handleClose()
   }
 
-  const handleNicknameChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setNickname(e.target.value)
-  }
-  const handleNicknameSet = async () => {
-    setLoading(true)
-    await updateRecord('users', getCurrentUserId(), { nickname });
-    setLoading(false)
-    handleClose()
-  }
-
   return (
     <>
       <Grid container spacing={2} p={2}>
         <Grid item>
           <Card>
-            <CardHeader title='Principal'/>
-            <CardActions>
-              <Button href='/predictions/groups/group-a'>Completar Pronostico</Button>
-            </CardActions>
-            <CardActions>
-              <Button onClick={() => setOpen('nickname')}>Cambiar Apodo</Button>
-            </CardActions>
-          </Card>
-        </Grid>
-        <Grid item>
-          <Card>
-            <CardHeader title='Grupos de Amigos'/>
+            <CardHeader title='Grupos de Amigos' sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}/>
             <CardContent sx={{ borderBottom: `${theme.palette.primary.contrastText} 1px solid`, borderTop: `${theme.palette.primary.contrastText} 1px solid` }}>
               <List sx={{ width: '100%'}} disablePadding >
                 {userGroups.map(userGroup => (
@@ -121,7 +98,7 @@ const Home: NextPage = () => {
           </Card>
         </Grid>
       </Grid>
-      <Dialog open={open === 'grupo'} onClose={handleClose}>
+      <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Crear Grupo de Amigos</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -142,29 +119,6 @@ const Home: NextPage = () => {
         <DialogActions>
           <Button disabled={loading} onClick={handleClose}>Cancelar</Button>
           <LoadingButton loading={loading} onClick={handleGroupCreate}>Crear</LoadingButton>
-        </DialogActions>
-      </Dialog>
-      <Dialog open={open === 'nickname'} onClose={handleClose}>
-        <DialogTitle>Cambiar tu apodo</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Este es el nombre que tus amigos van a ver en las tablas de todos tus grupos
-          </DialogContentText>
-          <TextField
-            autoFocus
-            margin="dense"
-            id="name"
-            label="Apodo"
-            type="text"
-            value={nickname}
-            fullWidth
-            variant="standard"
-            onChange={handleNicknameChange}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button disabled={loading} onClick={handleClose}>Cancelar</Button>
-          <LoadingButton loading={loading} onClick={handleNicknameSet}>Cambiar</LoadingButton>
         </DialogActions>
       </Dialog>
       <Dialog open={!!openSharingDialog} onClose={() => setOpenSharingDialog(false)}>
