@@ -16,7 +16,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  Grid, IconButton, List, ListItem, ListItemText, TextField, Link
+  Grid, IconButton, List, ListItem, ListItemText, TextField, Link, useTheme
 } from "@mui/material";
 import {LoadingButton} from "@mui/lab";
 import { Share as ShareIcon } from "@mui/icons-material";
@@ -30,6 +30,7 @@ const Home: NextPage = () => {
   const [loading, setLoading] = useState(false)
   const [userGroups, setUserGroups] = useState<ProdeGroup[]>([])
   const [participantGroups, setParticipantGroups] = useState<ProdeGroup[]>([])
+  const theme = useTheme()
 
   const user = useCurrentUser();
 
@@ -90,10 +91,12 @@ const Home: NextPage = () => {
         <Grid item>
           <Card>
             <CardHeader title='Grupos de Amigos'/>
-            <CardContent>
-              <List>
+            <CardContent sx={{ borderBottom: `${theme.palette.primary.contrastText} 1px solid`, borderTop: `${theme.palette.primary.contrastText} 1px solid` }}>
+              <List sx={{ width: '100%'}} disablePadding >
                 {userGroups.map(userGroup => (
                   <ListItem key={userGroup.id}
+                    alignItems='flex-start'
+                    disableGutters
                     secondaryAction={
                       <IconButton title='Invitar Amigos' onClick={() => setOpenSharingDialog(userGroup.id)}>
                         <ShareIcon/>
@@ -102,7 +105,7 @@ const Home: NextPage = () => {
                     <ListItemText><Link href={`/friend-groups/${userGroup.id}`}>{userGroup.name}</Link></ListItemText>
                   </ListItem>
                 ))}
-                <ListItem divider/>
+                {(userGroups.length > 0 && participantGroups.length > 0) &&  <ListItem divider/>}
                 {participantGroups.map(participantGroup => (
                   <ListItem key={participantGroup.id}>
                     <ListItemText>
