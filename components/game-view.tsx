@@ -32,7 +32,13 @@ const GameView = ({game, gameGuess, onGameGuessChange}: GameViewProps) => {
     <Card>
       <CardHeader
         title={`Partido ${game.MatchNumber}`}
-        subheader={new Date(Date.parse(final.DateUtc)).toLocaleString()}
+        subheader={new Date(Date.parse(game.DateUtc)).toLocaleString(undefined, {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'short',
+          hour: '2-digit',
+          minute: '2-digit',
+        })}
       />
       <CardContent>
         <Grid container>

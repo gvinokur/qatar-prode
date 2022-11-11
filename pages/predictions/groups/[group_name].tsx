@@ -10,7 +10,7 @@ import {
   TableCell,
   TableHead,
   TableRow,
-  Typography
+  Typography, useMediaQuery, useTheme
 } from "@mui/material";
 import {group_games, groups} from "../../../data/group-data";
 import {Game, GameGuess, Group, TeamStats} from "../../../types/definitions";
@@ -36,6 +36,11 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
   const [groupPositionsByGuess, setGroupPositionsByGuess] = useState<TeamStats[]>([])
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const theme = useTheme();
+  const xsMatch = useMediaQuery('(min-width:900px)')
+  console.log(xsMatch)
+  const mdMatch = useMediaQuery(theme.breakpoints.down('md'))
+
   useEffect(() => {
     const groupPosition = calculateGroupPosition(group.teams, groupGames.map(game => ({
       ...game,
@@ -83,7 +88,7 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
     <Box p={2}>
       <GroupSelector group={group.name}/>
       <Grid container spacing={4} mt={'8px'}>
-        <Grid item xs={6}>
+        <Grid item xs={12} md={6}>
           {[1,2,3].map(round => (
             <div key={round}>
               <Typography variant={'h5'}>Fecha {round}</Typography>
@@ -97,7 +102,7 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
             </div>
           ))}
         </Grid>
-        <Grid item xs={6}>
+        <Grid item xs={12} md={6}>
           <Typography variant={'h5'}>Tabla de Resultados</Typography>
           <Paper>
             <Table>
@@ -106,11 +111,11 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
                   <TableCell>Pos</TableCell>
                   <TableCell>Equipo</TableCell>
                   <TableCell>Pts</TableCell>
-                  <TableCell>G</TableCell>
-                  <TableCell>E</TableCell>
-                  <TableCell>P</TableCell>
-                  <TableCell>GF</TableCell>
-                  <TableCell>GC</TableCell>
+                  {xsMatch && <TableCell>G</TableCell>}
+                  {xsMatch && <TableCell>E</TableCell>}
+                  {xsMatch && <TableCell>P</TableCell> }
+                  {xsMatch && <TableCell>GF</TableCell>}
+                  {xsMatch && <TableCell>GC</TableCell>}
                   <TableCell>DG</TableCell>
                 </TableRow>
               </TableHead>
@@ -120,18 +125,19 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
                     <TableCell>{index + 1}</TableCell>
                     <TableCell>{teamStats.team}</TableCell>
                     <TableCell>{teamStats.points}</TableCell>
-                    <TableCell>{teamStats.win}</TableCell>
-                    <TableCell>{teamStats.draw}</TableCell>
-                    <TableCell>{teamStats.loss}</TableCell>
-                    <TableCell>{teamStats.goalsFor}</TableCell>
-                    <TableCell>{teamStats.goalsAgainst}</TableCell>
+                    {xsMatch && <TableCell>{teamStats.win}</TableCell>}
+                    {xsMatch && <TableCell>{teamStats.draw}</TableCell>}
+                    {xsMatch && <TableCell>{teamStats.loss}</TableCell>}
+                    {xsMatch && <TableCell>{teamStats.goalsFor}</TableCell>}
+                    {xsMatch && <TableCell>{teamStats.goalsAgainst}</TableCell>}
                     <TableCell>{teamStats.goalDifference}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </Paper>
-          <LoadingButton loading={saving} variant='contained' size='large' onClick={savePredictions} sx={{ marginTop: '16px'}}>Guardar Pronostico</LoadingButton>
+          {xsMatch && <LoadingButton loading={saving} variant='contained' size='large' onClick={savePredictions} sx={{ marginTop: '16px'}}>Guardar Pronostico</LoadingButton>}
+          {!xsMatch && <LoadingButton loading={saving} variant='contained' size='large' onClick={savePredictions} sx={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translate(-50%, 0)' }}>Guardar Pronostico</LoadingButton>}
           <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center'}} open={saved} autoHideDuration={2000} onClose={() => setSaved(false)}>
             <Alert onClose={() => setSaved(false)} severity="success" sx={{ width: '100%' }}>
               Tus pronosticos se guardaron correctamente!
