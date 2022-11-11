@@ -10,17 +10,56 @@ import {ChangeEvent, useEffect, useState} from 'react';
 import {
   Button,
   Card,
-  CardActions, CardContent,
+  CardActions,
+  CardContent,
   CardHeader,
-  Dialog, DialogActions,
+  Dialog,
+  DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
-  Grid, IconButton, List, ListItem, ListItemText, TextField, Link, useTheme
+  Grid,
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
+  TextField,
+  Link,
+  useTheme,
+  Collapse,
+  styled,
+  IconButtonProps,
+  Typography
 } from "@mui/material";
 import {LoadingButton} from "@mui/lab";
-import { Share as ShareIcon } from "@mui/icons-material";
+import {ExpandMore as ExpandMoreIcon, Share as ShareIcon} from "@mui/icons-material";
 import {useCurrentUser} from "thin-backend-react";
+
+const rules = [
+  '1 Punto por Ganador/Empate acertado - 1 punto extra por resultado exacto',
+  'No se puede empatar en playoffs, agregar un gol para el que gana por penales (1 - 1 y gana local por penales debe ser 2 - 1)',
+  'Partido de playoffs solo cuenta si los equipos tambien son correctos',
+  'Se permite cambiar los pronosticos entre la finalizacion de la primera ronda y el comienzo de cada partido de octavos.',
+  '1 Punto por cada  clasificado a 8vos acertado',
+  '5 Puntos por campeon (no se puede cambiar despues de comenzado el mundial)',
+  '3 Puntos por subcampeon',
+  '1 Punto por tercer puesto'
+]
+
+interface ExpandMoreProps extends IconButtonProps {
+  expand: boolean;
+}
+
+const ExpandMore = styled((props: ExpandMoreProps) => {
+  const { expand, ...other } = props;
+  return <IconButton {...other} />;
+})(({ theme, expand }) => ({
+  transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
+  marginLeft: 'auto',
+  transition: theme.transitions.create('transform', {
+    duration: theme.transitions.duration.shortest,
+  }),
+}));
 
 const Home: NextPage = () => {
   const [openSharingDialog, setOpenSharingDialog] = useState<string | false>(false);
@@ -29,6 +68,7 @@ const Home: NextPage = () => {
   const [loading, setLoading] = useState(false)
   const [userGroups, setUserGroups] = useState<ProdeGroup[]>([])
   const [participantGroups, setParticipantGroups] = useState<ProdeGroup[]>([])
+  const [expanded, setExpanded] = useState(false)
   const theme = useTheme()
 
   const user = useCurrentUser();
@@ -62,10 +102,46 @@ const Home: NextPage = () => {
     handleClose()
   }
 
+  const handleExpandClick = () => {
+    setExpanded(!expanded);
+  }
+
   return (
     <>
       <Grid container spacing={2} p={2}>
-        <Grid item>
+        <Grid item xs={12} md={4} >
+          <Card>
+            <CardHeader
+              title='Reglas Generales'
+              sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
+              action={
+                <ExpandMore
+                  expand={expanded}
+                  onClick={handleExpandClick}
+                  aria-expanded={expanded}
+                  aria-label="show more"
+                >
+                  <ExpandMoreIcon />
+                </ExpandMore>
+              }
+            />
+            <Collapse in={expanded} timeout="auto" unmountOnExit>
+              <CardContent sx={{ borderBottom: `${theme.palette.primary.contrastText} 1px solid`, borderTop: `${theme.palette.primary.contrastText} 1px solid` }}>
+                <List disablePadding>
+                  {rules.map((rule, index) => (
+                    <ListItem
+                      key={index}
+                      alignItems='flex-start'
+                      disableGutters>
+                      <ListItemText>{rule}</ListItemText>
+                    </ListItem>
+                  ))}
+                </List>
+              </CardContent>
+            </Collapse>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={4}>
           <Card>
             <CardHeader title='Grupos de Amigos' sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}/>
             <CardContent sx={{ borderBottom: `${theme.palette.primary.contrastText} 1px solid`, borderTop: `${theme.palette.primary.contrastText} 1px solid` }}>
@@ -95,6 +171,17 @@ const Home: NextPage = () => {
             <CardActions>
               <Button onClick={handleClickOpenGrupo}>Crear Nuevo Grupo</Button>
             </CardActions>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Card>
+            <CardHeader
+              title='Mis Estadisticas'
+              sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
+            />
+            <CardContent>
+              <Typography variant='body1'>Under Construction</Typography>
+            </CardContent>
           </Card>
         </Grid>
       </Grid>
