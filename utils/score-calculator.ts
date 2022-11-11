@@ -20,7 +20,9 @@ export const calculateScoreForGame = (game: Game, gameGuess?: GameGuess) => {
     game.AwayTeamScore !== null &&
     typeof gameGuess !== 'undefined' &&
     typeof gameGuess?.localScore !== undefined &&
-    typeof gameGuess?.awayScore !== undefined) {
+    typeof gameGuess?.awayScore !== undefined &&
+    gameGuess?.localScore !== null &&
+    gameGuess?.awayScore !== null) {
 
     if (game.HomeTeamScore === gameGuess?.localScore && game.AwayTeamScore === gameGuess?.awayScore) {
       return 2;

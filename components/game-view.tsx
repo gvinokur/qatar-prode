@@ -104,7 +104,7 @@ const GameView = ({game, gameGuess, onGameGuessChange}: GameViewProps) => {
               {scoreForGame === 2 && <HitAllIcon color='success'/>}
             </Grid>
             <Grid item flexGrow={1}>
-              <Typography variant='body1' component='div' color='secondary.contrastText' textAlign='lef'>
+              <Typography variant='body1' component='div' color='secondary.contrastText'>
                 Resulado: {game.HomeTeam} {game.HomeTeamScore} - {game.AwayTeamScore} {game.AwayTeam}
               </Typography>
             </Grid>

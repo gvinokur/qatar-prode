@@ -32,6 +32,8 @@ type GameGuessDictionary = {
 const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
   const [gameGuesses, setGameGuesses] = useState<GameGuessDictionary>({})
   const [groupPositionsByGuess, setGroupPositionsByGuess] = useState<TeamStats[]>([])
+  const [groupPositions, setGroupPositions] = useState<TeamStats[]>([])
+  const [usePredictionsTable, setUsePredictionsTable] = useState(true)
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const xsMatch = useMediaQuery('(min-width:900px)')
@@ -43,6 +45,8 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
       AwayTeamScore: gameGuesses[game.MatchNumber]?.awayScore,
     })))
     setGroupPositionsByGuess(groupPosition);
+
+    setGroupPositions(calculateGroupPosition(group.teams, groupGames));
   }, [gameGuesses, groupGames, group.teams])
 
   useEffect(() => {
@@ -98,7 +102,16 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
           ))}
         </Grid>
         <Grid item xs={12} md={6} mb={xsMatch ? 0 : 12}>
-          <Typography variant={'h5'}>Tabla de Pronosticos</Typography>
+          <Box display='flex'>
+            <Typography variant={'h5'} component='a' flexGrow={1} sx={{ textDecoration: 'underline'}}
+                        onClick={() => setUsePredictionsTable(true)}>
+              Tabla de Pronosticos
+            </Typography>
+            <Typography variant={'h5'} component='a' flexGrow={1} sx={{ textDecoration: 'underline'}} textAlign='right'
+                        onClick={() => setUsePredictionsTable(false)}>
+              Tabla Real
+            </Typography>
+          </Box>
           <Paper>
             <Table>
               <TableHead>
@@ -115,7 +128,7 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {groupPositionsByGuess.map((teamStats, index) => (
+                {(usePredictionsTable ? groupPositionsByGuess : groupPositions).map((teamStats, index) => (
                   <TableRow key={index} sx={[0,1].includes(index) ? {backgroundColor: 'primary.contrastText'} : {}}>
                     <TableCell>{index + 1}</TableCell>
                     <TableCell sx={{
