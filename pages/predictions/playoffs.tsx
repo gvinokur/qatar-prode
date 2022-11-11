@@ -176,7 +176,7 @@ const Playoffs = () => {
         </Grid>
         <Grid item md={2} xs={12}>
           <Typography variant='h5'>Cuartos de Final</Typography>
-          <Grid container spacing={2}>
+          <Grid container spacing={1}>
             {round_of_eight.map(game => (
               <Grid item key={game.MatchNumber} md={12} xs={6}>
                 <GameView game={calculateTeams(game, `Ganador ${game.HomeTeam}`, `Ganador ${game.AwayTeam}`)} gameGuess={gameGuesses[game.MatchNumber]} onGameGuessChange={handleGameGuessChange}/>
@@ -186,7 +186,7 @@ const Playoffs = () => {
         </Grid>
         <Grid item md={2} xs={12}>
           <Typography variant='h5'>Semifinales</Typography>
-          <Grid container spacing={2}>
+          <Grid container spacing={1}>
             {semifinals.map(game => (
               <Grid item key={game.MatchNumber} md={12} xs={6}>
                 <GameView game={calculateTeams(game, `Ganador ${game.HomeTeam}`, `Ganador ${game.AwayTeam}`)} gameGuess={gameGuesses[game.MatchNumber]} onGameGuessChange={handleGameGuessChange}/>
@@ -195,7 +195,7 @@ const Playoffs = () => {
           </Grid>
         </Grid>
         <Grid item md={2} xs={12}>
-          <Grid container spacing={2}>
+          <Grid container spacing={1}>
             <Grid item xs={6} md={12}>
               <Typography variant='h5'>Final</Typography>
               <GameView game={calculateTeams(final, `Ganador ${final.HomeTeam}`, `Ganador ${final.AwayTeam}`)} gameGuess={gameGuesses[final.MatchNumber]} onGameGuessChange={handleGameGuessChange}/>

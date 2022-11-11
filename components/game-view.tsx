@@ -40,6 +40,9 @@ const GameView = ({game, gameGuess, onGameGuessChange}: GameViewProps) => {
     <Card>
       <CardHeader
         title={`Partido ${game.MatchNumber}`}
+        subheaderTypographyProps={{
+          noWrap: true,
+        }}
         subheader={new Date(Date.parse(game.DateUtc)).toLocaleString(undefined, {
           weekday: xsMatch ? 'long' : 'short',
           day: 'numeric',
