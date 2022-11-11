@@ -22,9 +22,6 @@ import {LoadingButton} from "@mui/lab";
 import { Share as ShareIcon } from "@mui/icons-material";
 import {useCurrentUser} from "thin-backend-react";
 
-
-initThinBackend({ host: process.env.NEXT_PUBLIC_BACKEND_URL });
-
 const Home: NextPage = () => {
   const [open, setOpen] = useState<string | false>(false);
   const [openSharingDialog, setOpenSharingDialog] = useState<string | false>(false);
@@ -33,6 +30,7 @@ const Home: NextPage = () => {
   const [loading, setLoading] = useState(false)
   const [userGroups, setUserGroups] = useState<ProdeGroup[]>([])
   const [participantGroups, setParticipantGroups] = useState<ProdeGroup[]>([])
+
   const user = useCurrentUser();
 
   useEffect(() => {
@@ -171,7 +169,7 @@ const Home: NextPage = () => {
         <DialogContent>
           <DialogContentText>
             Copia el siguiente link y compartilo con tus amigos para que se unan a tu grupo
-            &nbsp;<Link onClick={() => navigator.clipboard.writeText(`${window.location.origin}/friend-groups/join/${openSharingDialog}`)}>{`${window.location.origin}/friend-groups/join/${openSharingDialog}`}</Link>
+            &nbsp;{!!openSharingDialog && <Link onClick={() => navigator.clipboard.writeText(`${window.location.origin}/friend-groups/join/${openSharingDialog}`)}>{`${window.location.origin}/friend-groups/join/${openSharingDialog}`}</Link>}
           </DialogContentText>
         </DialogContent>
         <DialogActions>

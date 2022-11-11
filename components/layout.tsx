@@ -6,11 +6,13 @@ import {
   Toolbar,
   Paper,
   Typography,
-  IconButton,
+  IconButton, Link,
 } from "@mui/material";
 import Image from 'next/image';
 import { useCurrentUser } from 'thin-backend-react';
 import {useRouter} from "next/router";
+import {loginWithRedirect, logout} from "thin-backend";
+import {useEffect} from "react";
 
 type FrameProps = {
   children?: JSX.Element | JSX.Element[],
@@ -19,6 +21,19 @@ type FrameProps = {
 function Layout(props: FrameProps) {
   const userData = useCurrentUser();
   const router = useRouter();
+
+  useEffect(() => {
+    const timeout = setTimeout(async () => {
+      if(!userData) {
+        await loginWithRedirect()
+      }
+    }, 500)
+
+    return () => {
+      clearTimeout(timeout)
+    }
+  }, [userData]);
+
   const theme = createTheme({
     palette: {
       primary: {
@@ -48,11 +63,12 @@ function Layout(props: FrameProps) {
           {userData && (
             <div>
               Welcome {userData.nickname || userData.email}
+              &nbsp;<Link onClick={() => logout()} title={'logout'} color={'primary.contrastText'}>Logout</Link>
             </div>
           )}
         </Toolbar>
       </AppBar>
-      <main>{props.children}</main>
+      <main>{userData && props.children}</main>
     </ThemeProvider>
   );
 }

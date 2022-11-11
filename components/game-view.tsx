@@ -56,7 +56,6 @@ const GameView = ({game, gameGuess, onGameGuessChange}: GameViewProps) => {
               id="name"
               type="number"
               fullWidth
-              variant="standard"
               inputProps={{ min: 0}}
               value={gameGuess.localScore === null ? '' : gameGuess.localScore}
               onChange={handleScoreChange(true)}
@@ -72,7 +71,6 @@ const GameView = ({game, gameGuess, onGameGuessChange}: GameViewProps) => {
               id="name"
               type="number"
               fullWidth
-              variant="standard"
               inputProps={{ min: 0}}
               value={gameGuess.awayScore === null ? '' : gameGuess.awayScore}
               onChange={handleScoreChange(false)}

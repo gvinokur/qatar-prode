@@ -10,7 +10,7 @@ initThinBackend({ host: process.env.NEXT_PUBLIC_BACKEND_URL });
 function MyApp({ Component, pageProps }: AppProps) {
   // @ts-ignore
   return (
-    <ThinBackend requireLogin>
+    <ThinBackend>
       <Layout>
         <Component {...pageProps} />
       </Layout>
