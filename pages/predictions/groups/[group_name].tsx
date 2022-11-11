@@ -1,8 +1,7 @@
-import {ChangeEvent, useEffect, useState} from 'react';
+import { useEffect, useState} from 'react';
 import {
   Alert,
-  Box, Button,
-  CardContent,
+  Box,
   Grid,
   Paper, Snackbar,
   Table,
@@ -10,14 +9,13 @@ import {
   TableCell,
   TableHead,
   TableRow,
-  Typography, useMediaQuery, useTheme
+  Typography, useMediaQuery,
 } from "@mui/material";
 import {group_games, groups} from "../../../data/group-data";
 import {Game, GameGuess, Group, TeamStats} from "../../../types/definitions";
 import {calculateGroupPosition} from "../../../utils/position-calculator";
 import GroupSelector from "../../../components/group-selector";
 import {createRecords, deleteRecords, getCurrentUserId, query} from "thin-backend";
-import {getAwayScore, getLocalScore} from "../../../utils/score-utils";
 import GameView from "../../../components/game-view";
 import {LoadingButton} from "@mui/lab";
 
@@ -36,10 +34,7 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
   const [groupPositionsByGuess, setGroupPositionsByGuess] = useState<TeamStats[]>([])
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const theme = useTheme();
   const xsMatch = useMediaQuery('(min-width:900px)')
-  console.log(xsMatch)
-  const mdMatch = useMediaQuery(theme.breakpoints.down('md'))
 
   useEffect(() => {
     const groupPosition = calculateGroupPosition(group.teams, groupGames.map(game => ({
