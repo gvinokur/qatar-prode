@@ -47,7 +47,7 @@ function Layout(props: FrameProps) {
       if(!userData) {
         await loginWithRedirect()
       }
-    }, 500)
+    }, 5000)
 
     return () => {
       clearTimeout(timeout)
