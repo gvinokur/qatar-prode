@@ -78,7 +78,10 @@ const Playoffs = () => {
       const currentGameGuesses: GameGuess[] =
         await query('game_guesses')
           .where('userId', getCurrentUserId()).fetch();
-      const gameGuesses = Object.fromEntries(currentGameGuesses.map(({ gameId, localScore, awayScore}) => [gameId, {gameId, localScore, awayScore}]))
+      const gameGuesses = Object.fromEntries(
+        currentGameGuesses.map(
+          ({ gameId, localScore, awayScore, localTeam, awayTeam, localPenaltyWinner, awayPenaltyWinner}) =>
+            [gameId, {gameId, localScore, awayScore, localTeam, awayTeam, localPenaltyWinner, awayPenaltyWinner}]))
       setGameGuesses(gameGuesses);
 
       const positionTeamMap = groups.reduce((tempMap, group) => {
@@ -109,24 +112,6 @@ const Playoffs = () => {
 
     getData();
   }, [])
-
-  const handleUpdateScore = (matchNumber: number, homeTeam: boolean) => (event: ChangeEvent<HTMLInputElement>) => {
-    let value: number | null = Number.parseInt(event.target.value, 10);
-    if(!Number.isInteger(value)) {
-      value = null
-    }
-    const newGameGuesses = {
-      ...gameGuesses,
-      [matchNumber]: {
-        gameId: matchNumber,
-        localScore: homeTeam? value : (gameGuesses[matchNumber] ? gameGuesses[matchNumber].localScore : null),
-        awayScore: (!homeTeam)? value : (gameGuesses[matchNumber] ? gameGuesses[matchNumber].awayScore : null),
-      }
-    }
-    setGameGuesses(newGameGuesses)
-
-    setCalculatedTeamNameToGameMap(recalculateLowerRounds(newGameGuesses, calculatedTeamNameToGameMap))
-  }
 
   const savePredictions = async () => {
     setSaving(true)
@@ -165,7 +150,11 @@ const Playoffs = () => {
       <GroupSelector />
       <Grid container spacing={2} mt={2} columns={12}>
         <Grid item md={4} xs={12}>
-          <Typography variant='h5'>Octavos de Final</Typography>
+          <Typography variant='h5' sx={{
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden'
+          }}>Octavos de Final</Typography>
           <Grid container spacing={1} >
             {round_of_16.map(game => (
               <Grid item key={game.MatchNumber} xs={6}>
@@ -175,7 +164,11 @@ const Playoffs = () => {
           </Grid>
         </Grid>
         <Grid item md={2} xs={12}>
-          <Typography variant='h5'>Cuartos de Final</Typography>
+          <Typography variant='h5' sx={{
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden'
+          }}>Cuartos de Final</Typography>
           <Grid container spacing={1}>
             {round_of_eight.map(game => (
               <Grid item key={game.MatchNumber} md={12} xs={6}>
@@ -185,7 +178,11 @@ const Playoffs = () => {
           </Grid>
         </Grid>
         <Grid item md={2} xs={12}>
-          <Typography variant='h5'>Semifinales</Typography>
+          <Typography variant='h5' sx={{
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden'
+          }}>Semifinales</Typography>
           <Grid container spacing={1}>
             {semifinals.map(game => (
               <Grid item key={game.MatchNumber} md={12} xs={6}>
@@ -197,11 +194,19 @@ const Playoffs = () => {
         <Grid item md={2} xs={12}>
           <Grid container spacing={1}>
             <Grid item xs={6} md={12}>
-              <Typography variant='h5'>Final</Typography>
+              <Typography variant='h5' sx={{
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden'
+              }}>Final</Typography>
               <GameView game={calculateTeams(final, `Ganador ${final.HomeTeam}`, `Ganador ${final.AwayTeam}`)} gameGuess={gameGuesses[final.MatchNumber]} onGameGuessChange={handleGameGuessChange}/>
             </Grid>
             <Grid item xs={6} md={12}>
-              <Typography variant='h5'>Tercer Puesto</Typography>
+              <Typography variant='h5' sx={{
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden'
+              }}>Tercer Puesto</Typography>
               <GameView game={calculateTeams(third_place, `Perdedor ${third_place.HomeTeam}`, `Perdedor ${third_place.AwayTeam}`)} gameGuess={gameGuesses[third_place.MatchNumber]} onGameGuessChange={handleGameGuessChange}/>
             </Grid>
           </Grid>

@@ -13,6 +13,10 @@ export const getWinner = (guess: GameGuess, homeTeam: string, awayTeam: string):
       return homeTeam;
     } else if (guess.localScore < guess.awayScore) {
       return awayTeam;
+    } else if (guess.localPenaltyWinner) {
+      return homeTeam
+    } else if (guess.awayPenaltyWinner) {
+      return awayTeam
     }
   }
   return null;

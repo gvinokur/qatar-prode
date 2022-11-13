@@ -6,10 +6,14 @@ export type Game = {
   DateUtc: string,
   HomeTeam: string | { group: GroupName, position: number} | number,
   AwayTeam: string | { group: GroupName, position: number} | number,
+  CalculatedHomeTeam?: string,
+  CalculatedAwayTeam?: string,
   Group: GroupName | null,
   Location: string,
   HomeTeamScore: number | null,
-  AwayTeamScore: number | null
+  AwayTeamScore: number | null,
+  HomeTeamPenaltyScore?: number,
+  AwayTeamPenaltyScore?: number,
 }
 
 export type Group = {
@@ -32,5 +36,9 @@ export type GameGuess = {
   id?: string,
   gameId: number,
   localScore: number | null,
-  awayScore: number | null
+  awayScore: number | null,
+  localTeam?: string | null,
+  awayTeam?: string | null,
+  localPenaltyWinner?: boolean,
+  awayPenaltyWinner?: boolean,
 }
