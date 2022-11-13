@@ -37,7 +37,6 @@ import {useCurrentUser} from "thin-backend-react";
 
 const rules = [
   '1 Punto por Ganador/Empate acertado - 1 punto extra por resultado exacto',
-  'No se puede empatar en playoffs, agregar un gol para el que gana por penales (1 - 1 y gana local por penales debe ser 2 - 1)',
   'Partido de playoffs solo cuenta si los equipos tambien son correctos',
   'Se permite cambiar los pronosticos entre la finalizacion de la primera ronda y el comienzo de cada partido de octavos.',
   '1 Punto por cada  clasificado a 8vos acertado',
