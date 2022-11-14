@@ -1,6 +1,6 @@
 import { useEffect, useState} from 'react';
 import {
-  Alert,
+  Alert, Avatar,
   Box,
   Grid,
   Paper, Snackbar,
@@ -18,6 +18,8 @@ import GroupSelector from "../../../components/group-selector";
 import {createRecords, deleteRecords, getCurrentUserId, query} from "thin-backend";
 import GameView from "../../../components/game-view";
 import {LoadingButton} from "@mui/lab";
+import {Close as MissIcon, Done as HitIcon} from "@mui/icons-material";
+import {useTheme} from "@mui/system";
 
 
 type GroupPageProps = {
@@ -37,6 +39,7 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const xsMatch = useMediaQuery('(min-width:900px)')
+  const theme = useTheme();
 
   useEffect(() => {
     const groupPosition = calculateGroupPosition(group.teams, groupGames.map(game => ({
@@ -89,6 +92,7 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
   }
 
   const editDisabled = Date.now() > new Date(2022, 10, 20).valueOf();
+  const allGroupGamesPlayed = groupGames.filter(game => (game.localScore === null || game.awayScore === null)).length === 0;
 
   return (
     <Box p={2}>
@@ -142,7 +146,16 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden'
-                    }}>{teamStats.team}</TableCell>
+                    }}>
+                      {usePredictionsTable && allGroupGamesPlayed && index < 2 && (
+                        <Box sx={{ float: 'right'}}>
+                          {teamStats.team === groupPositions[0].team || teamStats.team === groupPositions[1].team ?
+                            (<Avatar title='Pronostico Correcto' sx={{ width: '18px', height: '18px', bgcolor: theme.palette.success.light }}><HitIcon sx={{ width: '12px', height: '12px'}}/></Avatar>):
+                            (<Avatar title='Pronostico Errado' sx={{ width: '18px', height: '18px', bgcolor: theme.palette.error.main }}><MissIcon sx={{ width: '12px', height: '12px'}}/></Avatar>)}
+                        </Box>
+                      )}
+                      {teamStats.team}
+                    </TableCell>
                     <TableCell>{teamStats.points}</TableCell>
                     {xsMatch && <TableCell>{teamStats.win}</TableCell>}
                     {xsMatch && <TableCell>{teamStats.draw}</TableCell>}
