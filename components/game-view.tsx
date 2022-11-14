@@ -78,11 +78,13 @@ const GameView = ({game, gameGuess, onGameGuessChange, editDisabled}: GameViewPr
       <CardHeader
         title={<Box>
           Partido {game.MatchNumber}
-          <Box sx={{ float: 'right'}} alignSelf='center'>
-            {scoreForGame === 0 && <Avatar title='Pronostico Errado' sx={{ width: '30px', height: '30px', bgcolor: theme.palette.error.main }}><MissIcon /></Avatar>}
-            {scoreForGame === 1 && <Avatar title='Pronostico Correcto (1 punto)' sx={{ width: '30px', height: '30px', bgcolor: theme.palette.success.light }}><HitIcon /></Avatar>}
-            {scoreForGame === 2 && <Avatar title='Resultado Exacto (2 puntos)' sx={{ width: '30px', height: '30px', bgcolor: theme.palette.success.main }}><HitAllIcon /></Avatar>}
-          </Box>
+          {game.localScore !== null && game.awayScore !== null && (
+            <Box sx={{ float: 'right'}} alignSelf='center'>
+              {scoreForGame === 0 && <Avatar title='Pronostico Errado' sx={{ width: '30px', height: '30px', bgcolor: theme.palette.error.main }}><MissIcon /></Avatar>}
+              {scoreForGame === 1 && <Avatar title='Pronostico Correcto (1 punto)' sx={{ width: '30px', height: '30px', bgcolor: theme.palette.success.light }}><HitIcon /></Avatar>}
+              {scoreForGame === 2 && <Avatar title='Resultado Exacto (2 puntos)' sx={{ width: '30px', height: '30px', bgcolor: theme.palette.success.main }}><HitAllIcon /></Avatar>}
+            </Box>
+          )}
         </Box>}
         subheaderTypographyProps={{
           noWrap: true,
