@@ -21,6 +21,11 @@ import {
 } from "@mui/material";
 import {useEffect, useState} from "react";
 import Image from "next/image";
+import {GameGuessDictionary} from "../../types/definitions";
+import {
+  calculateScoreForGroupStageQualifiers,
+  calculateScoreStatsForGroupStageGames
+} from "../../utils/score-calculator";
 
 
 type ProdeGroupPageProps = {
@@ -30,15 +35,42 @@ type ProdeGroupPageProps = {
 
 initThinBackend({ host: process.env.NEXT_PUBLIC_BACKEND_URL });
 
-const ProdeGroupPage = ({ group, groupParticipants}: ProdeGroupPageProps) => {
-  const [users, setUsers] = useState<User[]>([]);
-  useEffect(() => {
-    const getUsers = async () => {
-      const users = await query('users').whereIn('id', [group.ownerUserId, ...groupParticipants.map(participant => participant.userId)]).fetch();
+type UserScore = {
+  user: User,
+  groupStageScore: number,
+  groupStageQualifiersScore: number,
+  playoffScore: number,
+  honorRollScore: number,
+  totalPoints: number,
+}
 
-      setUsers(users);
+const ProdeGroupPage = ({ group, groupParticipants}: ProdeGroupPageProps) => {
+  const [userScores, setUserScores] = useState<UserScore[]>([])
+  const [orderBy, setOrderBy] = useState('');
+
+  useEffect(() => {
+    const getUserScores = async () => {
+      const users = await query('users').whereIn('id', [group.ownerUserId, ...groupParticipants.map(participant => participant.userId)]).fetch();
+      const allGroupGameGuesses = await query('game_guesses').whereIn('userId', users.map(user => user.id)).fetch();
+      const guessesByUser: { [key: string]: GameGuessDictionary } = Object.fromEntries(users.map(user => [user.id, {}]));
+      allGroupGameGuesses.forEach(gameGuess => {
+        guessesByUser[gameGuess.userId][gameGuess.gameId] = gameGuess;
+      })
+      const userScores: UserScore[] = users.map(user => {
+        const scoreStatsForGroupStageGames = calculateScoreStatsForGroupStageGames(guessesByUser[user.id]);
+        const scoreForGroupStageQualifiers = calculateScoreForGroupStageQualifiers(guessesByUser[user.id]);
+        return {
+          user,
+          groupStageScore: scoreStatsForGroupStageGames.totalPoints,
+          groupStageQualifiersScore: scoreForGroupStageQualifiers,
+          playoffScore: 0,
+          honorRollScore: 0,
+          totalPoints: scoreStatsForGroupStageGames.totalPoints + scoreForGroupStageQualifiers,
+        }
+      })
+      setUserScores(userScores.sort((a, b) => (b.totalPoints - a.totalPoints)))
     };
-    getUsers();
+    getUserScores();
   }, [group, groupParticipants])
 
   return (
@@ -71,18 +103,18 @@ const ProdeGroupPage = ({ group, groupParticipants}: ProdeGroupPageProps) => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {users.map((user, index) => (
-                    <TableRow key={user.id} selected={user.id === getCurrentUserId()}>
+                  {userScores.map((userScore, index) => (
+                    <TableRow key={userScore.user.id} selected={userScore.user.id === getCurrentUserId()}>
                       <TableCell>{index+1}</TableCell>
                       <TableCell sx={{
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         maxWidth: '140px'
-                      }}>{user.nickname || user.email}</TableCell>
-                      <TableCell>-</TableCell>
-                      <TableCell>-</TableCell>
-                      <TableCell>-</TableCell>
+                      }}>{userScore.user.nickname || userScore.user.email}</TableCell>
+                      <TableCell>{userScore.totalPoints}</TableCell>
+                      <TableCell>{userScore.groupStageScore}</TableCell>
+                      <TableCell>{userScore.playoffScore}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

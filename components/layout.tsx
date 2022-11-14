@@ -121,7 +121,7 @@ function Layout(props: FrameProps) {
 
   return (
     <ThemeProvider theme={theme}>
-      <AppBar position="static">
+      <AppBar position="fixed">
         <Toolbar>
           <Paper
             variant={'outlined'}
@@ -270,7 +270,7 @@ function Layout(props: FrameProps) {
           )}
         </Toolbar>
       </AppBar>
-      <main>{userData && props.children}</main>
+      <main style={{ marginTop: '64px' }}>{userData && props.children}</main>
       <Dialog open={openNicknameDialog} onClose={handleCloseNicknameDialog}>
         <DialogTitle>Cambiar tu apodo</DialogTitle>
         <DialogContent>
