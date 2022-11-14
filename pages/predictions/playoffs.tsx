@@ -82,7 +82,8 @@ const Playoffs = () => {
         await query('game_guesses')
           .where('userId', getCurrentUserId()).fetch();
 
-      setGameGuesses(transformBeListToGameGuessDictionary(currentGameGuesses));
+      const gameGuesses = transformBeListToGameGuessDictionary(currentGameGuesses)
+      setGameGuesses(gameGuesses);
 
       const currentMap = calculateRoundOf16TeamsByMatch(gameGuesses);
 
