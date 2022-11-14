@@ -23,7 +23,7 @@
   "devDependencies": {
     "@types/node": "18.11.9",
     "@types/react": "17.0.37",
-    "@types/thin-backend": "https://thin.dev/types/049ad46a-02aa-4342-b9ae-eff530450f9d/EYadnwcKyYxkUbejOcvCoCkonitKvDlP",
+    "@types/thin-backend": "https://thin.dev/types/52ed060e-2f75-4bda-99e1-4ba242c247e4/RafQpCWnXlKkUGrOsOsttFcHRySRgYZy",
     "eslint": "8.5.0",
     "eslint-config-next": "12.0.7",
     "typescript": "4.5.4"

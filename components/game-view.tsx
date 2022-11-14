@@ -20,9 +20,10 @@ type GameViewProps = {
   game: Game,
   gameGuess: GameGuess,
   onGameGuessChange: (gameGuess: GameGuess) => void,
+  editDisabled: boolean
 }
 
-const GameView = ({game, gameGuess, onGameGuessChange}: GameViewProps) => {
+const GameView = ({game, gameGuess, onGameGuessChange, editDisabled}: GameViewProps) => {
   const theme = useTheme()
   const xsMatch = useMediaQuery('(min-width:900px)')
   const isPlayoffGame = (game.RoundNumber > 3);
@@ -69,8 +70,8 @@ const GameView = ({game, gameGuess, onGameGuessChange}: GameViewProps) => {
   }
 
   const scoreForGame = calculateScoreForGame(game, gameGuess)
-  const teamNameMdCols = 9 - (isPlayoffGame? 1: 0);
-  const scoreMdCols = 3;
+  const teamNameCols = 8 - (isPlayoffGame? 1: 0);
+  const scoreCols = 4;
 
   return (
     <Card>
@@ -94,7 +95,7 @@ const GameView = ({game, gameGuess, onGameGuessChange}: GameViewProps) => {
       <CardContent>
         <form autoComplete='off'>
           <Grid container>
-            <Grid item xs={teamNameMdCols - 1} md={teamNameMdCols} flexDirection={'column'} justifyContent={'center'} alignContent={'center'} display={'flex'}>
+            <Grid item xs={teamNameCols} flexDirection={'column'} justifyContent={'center'} alignContent={'center'} display={'flex'}>
                <Typography
                   variant={"h6"}
                   sx={{
@@ -104,7 +105,7 @@ const GameView = ({game, gameGuess, onGameGuessChange}: GameViewProps) => {
                   }}>
                   {game.HomeTeam}</Typography>
             </Grid>
-            <Grid item xs={scoreMdCols + 1} md={scoreMdCols}>
+            <Grid item xs={scoreCols}>
               <TextField
                 margin="dense"
                 id="name"
@@ -112,12 +113,13 @@ const GameView = ({game, gameGuess, onGameGuessChange}: GameViewProps) => {
                 fullWidth
                 inputProps={{ min: 0}}
                 value={gameGuess.localScore === null ? '' : gameGuess.localScore}
+                disabled={editDisabled}
                 onChange={handleScoreChange(true)}
               />
             </Grid>
             {isPlayoffGame && (
               <Grid item xs={1} alignSelf='center'>
-                <Checkbox disabled={gameGuess.localScore !== gameGuess.awayScore}
+                <Checkbox disabled={editDisabled || gameGuess.localScore !== gameGuess.awayScore}
                           checked={gameGuess.localPenaltyWinner || false}
                           onChange={handlePenaltyWinnerChange(true)}/>
               </Grid>
@@ -137,27 +139,28 @@ const GameView = ({game, gameGuess, onGameGuessChange}: GameViewProps) => {
                   }}/>
               }
             </Grid>
-            <Grid item xs={teamNameMdCols - 1} md={teamNameMdCols} flexDirection={'column'} justifyContent={'center'} alignContent={'center'} display={'flex'}>
+            <Grid item xs={teamNameCols} flexDirection={'column'} justifyContent={'center'} alignContent={'center'} display={'flex'}>
               <Typography variant={"h6"} sx={{
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden'
               }}>{game.AwayTeam}</Typography>
             </Grid>
-            <Grid item xs={scoreMdCols + 1} md={scoreMdCols}>
+            <Grid item xs={scoreCols}>
               <TextField
                 margin="dense"
                 id="name"
                 type="number"
                 fullWidth
                 inputProps={{ min: 0}}
+                disabled={editDisabled}
                 value={gameGuess.awayScore === null ? '' : gameGuess.awayScore}
                 onChange={handleScoreChange(false)}
               />
             </Grid>
             {isPlayoffGame && (
               <Grid item xs={1} alignSelf='center'>
-                <Checkbox disabled={gameGuess.localScore !== gameGuess.awayScore}
+                <Checkbox disabled={editDisabled || gameGuess.localScore !== gameGuess.awayScore}
                           checked={gameGuess.awayPenaltyWinner || false}
                           onChange={handlePenaltyWinnerChange(false)}/>
               </Grid>
@@ -167,18 +170,15 @@ const GameView = ({game, gameGuess, onGameGuessChange}: GameViewProps) => {
       </CardContent>
       {game.HomeTeamScore !== null && game.AwayTeamScore !== null && (
         <CardContent sx={{ borderTop: `${theme.palette.primary.contrastText} 1px solid`, backgroundColor: 'secondary.light'}}>
-          <Grid container spacing={1} justifyContent='space-around'>
-            <Grid item>
+          <Box sx={{ float: 'right', position: 'absolute'}} alignSelf='center'>
               {scoreForGame === 0 && <MissIcon color='error'/>}
               {scoreForGame === 1 && <HitIcon color='success'/>}
               {scoreForGame === 2 && <HitAllIcon color='success'/>}
-            </Grid>
-            <Grid item flexGrow={1}>
-              <Typography variant='body1' component='div' color='secondary.contrastText'>
-                Resulado: {game.HomeTeam} {game.HomeTeamScore} - {game.AwayTeamScore} {game.AwayTeam}
-              </Typography>
-            </Grid>
-          </Grid>
+          </Box>
+          <Typography variant='body1' component='div' textAlign='center' color='secondary.contrastText'>
+            {game.HomeTeam} {game.HomeTeamScore} {Number.isInteger(game.HomeTeamPenaltyScore) && `(${game.HomeTeamPenaltyScore})`} -
+            {Number.isInteger(game.AwayTeamPenaltyScore) && `(${game.AwayTeamPenaltyScore})`} {game.AwayTeamScore} {game.AwayTeam}
+          </Typography>
         </CardContent>
       )}
     </Card>

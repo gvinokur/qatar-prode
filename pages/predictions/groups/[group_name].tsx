@@ -83,6 +83,9 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
     setSaving(false)
     setSaved(true)
   }
+
+  const editDisabled = Date.now() > new Date(2022, 10, 20).valueOf();
+
   return (
     <Box p={2}>
       <GroupSelector group={group.name}/>
@@ -94,7 +97,7 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
               <Grid container spacing={2} >
                 {groupGames.filter(game => game.RoundNumber === round).map(game => (
                   <Grid key={game.MatchNumber} item xs={6}>
-                    <GameView game={game} gameGuess={gameGuesses[game.MatchNumber]} onGameGuessChange={handleGameGuessChange}/>
+                    <GameView game={game} gameGuess={gameGuesses[game.MatchNumber]} onGameGuessChange={handleGameGuessChange} editDisabled={editDisabled}/>
                   </Grid>
                 ))}
               </Grid>

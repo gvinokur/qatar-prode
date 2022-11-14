@@ -694,7 +694,17 @@ export const applyTestingData = () => {
   [...group_games, ...round_of_16, ...round_of_eight, ...semifinals, third_place, final ].forEach(game => {
     game.HomeTeamScore = Math.round(Math.random()*3)
     game.AwayTeamScore = Math.round(Math.random()*3)
+    if (game.HomeTeamScore === game.AwayTeamScore && game.RoundNumber > 3) {
+      game.HomeTeamPenaltyScore = Math.round(Math.random()*3)
+      do {
+        game.AwayTeamPenaltyScore = Math.round(Math.random()*3)
+      } while (game.AwayTeamPenaltyScore === game.HomeTeamPenaltyScore)
+    }
   })
+}
+
+if(process.env.NEXT_PUBLIC_SIMULATE_GAMES) {
+  applyTestingData()
 }
 
 export {
