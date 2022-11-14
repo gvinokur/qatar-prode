@@ -75,14 +75,16 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     const getData = async () => {
-      const userGroups = await query('prode_groups').where('ownerUserId', getCurrentUserId()).fetch();
-      const groupParticipantIn = await query('prode_group_participants').where('userId', getCurrentUserId()).fetch();
-      const participantGroups = await query('prode_groups').whereIn('id', groupParticipantIn.map(groupParticipant => groupParticipant.prodeGroupId)).fetch();
-      setUserGroups(userGroups);
-      setParticipantGroups(participantGroups);
+      if (user) {
+        const userGroups = await query('prode_groups').where('ownerUserId', user.id).fetch();
+        const groupParticipantIn = await query('prode_group_participants').where('userId', user.id).fetch();
+        const participantGroups = await query('prode_groups').whereIn('id', groupParticipantIn.map(groupParticipant => groupParticipant.prodeGroupId)).fetch();
+        setUserGroups(userGroups);
+        setParticipantGroups(participantGroups);
+      }
     }
     getData()
-  }, [getCurrentUserId(), user])
+  }, [user])
 
   const handleClickOpenGrupo = () => {
     setOpen(true);

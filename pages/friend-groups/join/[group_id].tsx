@@ -17,7 +17,7 @@ const JoinGroup = ( {group}: { group: ProdeGroup}) => {
     if (group) {
       createRecordAndForward();
     }
-  }, [group])
+  }, [group, router])
   return (
     <Box>
       {!group && 'El grupo al que te estas tratando de unir no existe, por favor chequea de vuelta con el administrador.'}
