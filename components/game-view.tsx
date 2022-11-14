@@ -76,7 +76,14 @@ const GameView = ({game, gameGuess, onGameGuessChange, editDisabled}: GameViewPr
   return (
     <Card>
       <CardHeader
-        title={`Partido ${game.MatchNumber}`}
+        title={<Box>
+          Partido {game.MatchNumber}
+          <Box sx={{ float: 'right'}} alignSelf='center'>
+            {scoreForGame === 0 && <Avatar title='Pronostico Errado' sx={{ width: '30px', height: '30px', bgcolor: theme.palette.error.main }}><MissIcon /></Avatar>}
+            {scoreForGame === 1 && <Avatar title='Pronostico Correcto (1 punto)' sx={{ width: '30px', height: '30px', bgcolor: theme.palette.success.light }}><HitIcon /></Avatar>}
+            {scoreForGame === 2 && <Avatar title='Resultado Exacto (2 puntos)' sx={{ width: '30px', height: '30px', bgcolor: theme.palette.success.main }}><HitAllIcon /></Avatar>}
+          </Box>
+        </Box>}
         subheaderTypographyProps={{
           noWrap: true,
         }}
@@ -168,16 +175,11 @@ const GameView = ({game, gameGuess, onGameGuessChange, editDisabled}: GameViewPr
           </Grid>
         </form>
       </CardContent>
-      {game.HomeTeamScore !== null && game.AwayTeamScore !== null && (
+      {game.localScore !== null && game.awayScore !== null && (
         <CardContent sx={{ borderTop: `${theme.palette.primary.contrastText} 1px solid`, backgroundColor: 'secondary.light'}}>
-          <Box sx={{ float: 'right', position: 'absolute'}} alignSelf='center'>
-              {scoreForGame === 0 && <MissIcon color='error'/>}
-              {scoreForGame === 1 && <HitIcon color='success'/>}
-              {scoreForGame === 2 && <HitAllIcon color='success'/>}
-          </Box>
           <Typography variant='body1' component='div' textAlign='center' color='secondary.contrastText'>
-            {game.HomeTeam} {game.HomeTeamScore} {Number.isInteger(game.HomeTeamPenaltyScore) && `(${game.HomeTeamPenaltyScore})`} -
-            {Number.isInteger(game.AwayTeamPenaltyScore) && `(${game.AwayTeamPenaltyScore})`} {game.AwayTeamScore} {game.AwayTeam}
+            {typeof game.HomeTeam === "string" && game.HomeTeam?.substring(0, 3)} {game.localScore} {Number.isInteger(game.localPenaltyScore) && `(${game.localPenaltyScore})`} -
+            {Number.isInteger(game.awayPenaltyScore) && `(${game.awayPenaltyScore})`} {game.awayScore} {typeof game.AwayTeam === "string" && game.AwayTeam?.substring(0, 3)}
           </Typography>
         </CardContent>
       )}

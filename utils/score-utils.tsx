@@ -7,7 +7,7 @@ export const getAwayScore = (guess: GameGuess): number | '' => {
   return (guess && guess.awayScore !== null) ? guess.awayScore : '';
 }
 
-export const getWinner = (guess: GameGuess, homeTeam: string, awayTeam: string): string | null => {
+export const getWinner = (guess: GameGuess | Game, homeTeam: string, awayTeam: string): string | null => {
   if (guess && guess.localScore !== null && guess.awayScore !== null && Number.isInteger(guess.localScore) && Number.isInteger(guess.awayScore)) {
     if (guess.localScore > guess.awayScore) {
       return homeTeam;
@@ -22,7 +22,7 @@ export const getWinner = (guess: GameGuess, homeTeam: string, awayTeam: string):
   return null;
 }
 
-export const getLoser = (guess: GameGuess, homeTeam: string, awayTeam: string): string | null => {
+export const getLoser = (guess: GameGuess | Game, homeTeam: string, awayTeam: string): string | null => {
   if (guess && guess.localScore !== null && guess.awayScore !== null && Number.isInteger(guess.localScore) && Number.isInteger(guess.awayScore)) {
     if (guess.localScore < guess.awayScore) {
       return homeTeam;

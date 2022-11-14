@@ -10,10 +10,12 @@ export type Game = {
   CalculatedAwayTeam?: string,
   Group: GroupName | null,
   Location: string,
-  HomeTeamScore: number | null,
-  AwayTeamScore: number | null,
-  HomeTeamPenaltyScore?: number,
-  AwayTeamPenaltyScore?: number,
+  localScore: number | null,
+  awayScore: number | null,
+  localPenaltyScore?: number,
+  awayPenaltyScore?: number,
+  localPenaltyWinner?: boolean,
+  awayPenaltyWinner?: boolean,
 }
 
 export type Group = {

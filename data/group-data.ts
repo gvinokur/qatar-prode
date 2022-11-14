@@ -34,8 +34,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Qatar",
   "AwayTeam": "Ecuador",
   "Group": "Group A",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 3,
   "RoundNumber": 1,
@@ -44,8 +44,8 @@ const group_games: Game[] = [{
   "HomeTeam": "England",
   "AwayTeam": "Iran",
   "Group": "Group B",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 2,
   "RoundNumber": 1,
@@ -54,8 +54,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Senegal",
   "AwayTeam": "Netherlands",
   "Group": "Group A",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 4,
   "RoundNumber": 1,
@@ -64,8 +64,8 @@ const group_games: Game[] = [{
   "HomeTeam": "USA",
   "AwayTeam": "Wales",
   "Group": "Group B",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 8,
   "RoundNumber": 1,
@@ -74,8 +74,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Argentina",
   "AwayTeam": "Saudi Arabia",
   "Group": "Group C",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 6,
   "RoundNumber": 1,
@@ -84,8 +84,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Denmark",
   "AwayTeam": "Tunisia",
   "Group": "Group D",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 7,
   "RoundNumber": 1,
@@ -94,8 +94,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Mexico",
   "AwayTeam": "Poland",
   "Group": "Group C",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 5,
   "RoundNumber": 1,
@@ -104,8 +104,8 @@ const group_games: Game[] = [{
   "HomeTeam": "France",
   "AwayTeam": "Australia",
   "Group": "Group D",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 12,
   "RoundNumber": 1,
@@ -114,8 +114,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Morocco",
   "AwayTeam": "Croatia",
   "Group": "Group F",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 11,
   "RoundNumber": 1,
@@ -124,8 +124,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Germany",
   "AwayTeam": "Japan",
   "Group": "Group E",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 10,
   "RoundNumber": 1,
@@ -134,8 +134,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Spain",
   "AwayTeam": "Costa Rica",
   "Group": "Group E",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 9,
   "RoundNumber": 1,
@@ -144,8 +144,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Belgium",
   "AwayTeam": "Canada",
   "Group": "Group F",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 13,
   "RoundNumber": 1,
@@ -154,8 +154,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Switzerland",
   "AwayTeam": "Cameroon",
   "Group": "Group G",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 14,
   "RoundNumber": 1,
@@ -164,8 +164,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Uruguay",
   "AwayTeam": "Korea Republic",
   "Group": "Group H",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 15,
   "RoundNumber": 1,
@@ -174,8 +174,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Portugal",
   "AwayTeam": "Ghana",
   "Group": "Group H",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 16,
   "RoundNumber": 1,
@@ -184,8 +184,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Brazil",
   "AwayTeam": "Serbia",
   "Group": "Group G",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 17,
   "RoundNumber": 2,
@@ -194,8 +194,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Wales",
   "AwayTeam": "Iran",
   "Group": "Group B",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 18,
   "RoundNumber": 2,
@@ -204,8 +204,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Qatar",
   "AwayTeam": "Senegal",
   "Group": "Group A",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 19,
   "RoundNumber": 2,
@@ -214,8 +214,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Netherlands",
   "AwayTeam": "Ecuador",
   "Group": "Group A",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 20,
   "RoundNumber": 2,
@@ -224,8 +224,8 @@ const group_games: Game[] = [{
   "HomeTeam": "England",
   "AwayTeam": "USA",
   "Group": "Group B",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 21,
   "RoundNumber": 2,
@@ -234,8 +234,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Tunisia",
   "AwayTeam": "Australia",
   "Group": "Group D",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 22,
   "RoundNumber": 2,
@@ -244,8 +244,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Poland",
   "AwayTeam": "Saudi Arabia",
   "Group": "Group C",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 23,
   "RoundNumber": 2,
@@ -254,8 +254,8 @@ const group_games: Game[] = [{
   "HomeTeam": "France",
   "AwayTeam": "Denmark",
   "Group": "Group D",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 24,
   "RoundNumber": 2,
@@ -264,8 +264,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Argentina",
   "AwayTeam": "Mexico",
   "Group": "Group C",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 25,
   "RoundNumber": 2,
@@ -274,8 +274,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Japan",
   "AwayTeam": "Costa Rica",
   "Group": "Group E",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 26,
   "RoundNumber": 2,
@@ -284,8 +284,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Belgium",
   "AwayTeam": "Morocco",
   "Group": "Group F",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 27,
   "RoundNumber": 2,
@@ -294,8 +294,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Croatia",
   "AwayTeam": "Canada",
   "Group": "Group F",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 28,
   "RoundNumber": 2,
@@ -304,8 +304,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Spain",
   "AwayTeam": "Germany",
   "Group": "Group E",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 29,
   "RoundNumber": 2,
@@ -314,8 +314,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Cameroon",
   "AwayTeam": "Serbia",
   "Group": "Group G",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 30,
   "RoundNumber": 2,
@@ -324,8 +324,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Korea Republic",
   "AwayTeam": "Ghana",
   "Group": "Group H",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 31,
   "RoundNumber": 2,
@@ -334,8 +334,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Brazil",
   "AwayTeam": "Switzerland",
   "Group": "Group G",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 32,
   "RoundNumber": 2,
@@ -344,8 +344,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Portugal",
   "AwayTeam": "Uruguay",
   "Group": "Group H",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 35,
   "RoundNumber": 3,
@@ -354,8 +354,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Ecuador",
   "AwayTeam": "Senegal",
   "Group": "Group A",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 36,
   "RoundNumber": 3,
@@ -364,8 +364,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Netherlands",
   "AwayTeam": "Qatar",
   "Group": "Group A",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 33,
   "RoundNumber": 3,
@@ -374,8 +374,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Wales",
   "AwayTeam": "England",
   "Group": "Group B",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 34,
   "RoundNumber": 3,
@@ -384,8 +384,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Iran",
   "AwayTeam": "USA",
   "Group": "Group B",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 37,
   "RoundNumber": 3,
@@ -394,8 +394,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Australia",
   "AwayTeam": "Denmark",
   "Group": "Group D",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 38,
   "RoundNumber": 3,
@@ -404,8 +404,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Tunisia",
   "AwayTeam": "France",
   "Group": "Group D",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 39,
   "RoundNumber": 3,
@@ -414,8 +414,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Poland",
   "AwayTeam": "Argentina",
   "Group": "Group C",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 40,
   "RoundNumber": 3,
@@ -424,8 +424,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Saudi Arabia",
   "AwayTeam": "Mexico",
   "Group": "Group C",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 41,
   "RoundNumber": 3,
@@ -434,8 +434,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Croatia",
   "AwayTeam": "Belgium",
   "Group": "Group F",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 42,
   "RoundNumber": 3,
@@ -444,8 +444,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Canada",
   "AwayTeam": "Morocco",
   "Group": "Group F",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 43,
   "RoundNumber": 3,
@@ -454,8 +454,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Japan",
   "AwayTeam": "Spain",
   "Group": "Group E",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 44,
   "RoundNumber": 3,
@@ -464,8 +464,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Costa Rica",
   "AwayTeam": "Germany",
   "Group": "Group E",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 45,
   "RoundNumber": 3,
@@ -474,8 +474,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Ghana",
   "AwayTeam": "Uruguay",
   "Group": "Group H",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 46,
   "RoundNumber": 3,
@@ -484,8 +484,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Korea Republic",
   "AwayTeam": "Portugal",
   "Group": "Group H",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 47,
   "RoundNumber": 3,
@@ -494,8 +494,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Serbia",
   "AwayTeam": "Switzerland",
   "Group": "Group G",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 48,
   "RoundNumber": 3,
@@ -504,8 +504,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Cameroon",
   "AwayTeam": "Brazil",
   "Group": "Group G",
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }]
 
 const round_of_16: Game[] = [{
@@ -516,8 +516,8 @@ const round_of_16: Game[] = [{
   "HomeTeam": "1A",
   "AwayTeam": "2B",
   "Group": null,
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 50,
   "RoundNumber": 4,
@@ -526,8 +526,8 @@ const round_of_16: Game[] = [{
   "HomeTeam": "1C",
   "AwayTeam": "2D",
   "Group": null,
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 52,
   "RoundNumber": 4,
@@ -536,8 +536,8 @@ const round_of_16: Game[] = [{
   "HomeTeam": "1D",
   "AwayTeam": "2C",
   "Group": null,
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 51,
   "RoundNumber": 4,
@@ -546,8 +546,8 @@ const round_of_16: Game[] = [{
   "HomeTeam": "1B",
   "AwayTeam": "2A",
   "Group": null,
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 53,
   "RoundNumber": 4,
@@ -556,8 +556,8 @@ const round_of_16: Game[] = [{
   "HomeTeam": "1E",
   "AwayTeam": "2F",
   "Group": null,
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 54,
   "RoundNumber": 4,
@@ -566,8 +566,8 @@ const round_of_16: Game[] = [{
   "HomeTeam": "1G",
   "AwayTeam": "2H",
   "Group": null,
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 55,
   "RoundNumber": 4,
@@ -576,8 +576,8 @@ const round_of_16: Game[] = [{
   "HomeTeam": "1F",
   "AwayTeam": "2E",
   "Group": null,
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 56,
   "RoundNumber": 4,
@@ -586,8 +586,8 @@ const round_of_16: Game[] = [{
   "HomeTeam": "1H",
   "AwayTeam": "2G",
   "Group": null,
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }].map(game => ({
   ...game,
   HomeTeam: {
@@ -609,8 +609,8 @@ const round_of_eight:Game[] = [
     "HomeTeam": 49,
     "AwayTeam": 50,
     "Group": null,
-    "HomeTeamScore": null,
-    "AwayTeamScore": null
+    "localScore": null,
+    "awayScore": null
   }, {
     "MatchNumber": 57,
     "RoundNumber": 5,
@@ -619,8 +619,8 @@ const round_of_eight:Game[] = [
     "HomeTeam": 53,
     "AwayTeam": 54,
     "Group": null,
-    "HomeTeamScore": null,
-    "AwayTeamScore": null
+    "localScore": null,
+    "awayScore": null
   }, {
     "MatchNumber": 60,
     "RoundNumber": 5,
@@ -629,8 +629,8 @@ const round_of_eight:Game[] = [
     "HomeTeam": 51,
     "AwayTeam": 52,
     "Group": null,
-    "HomeTeamScore": null,
-    "AwayTeamScore": null
+    "localScore": null,
+    "awayScore": null
   }, {
     "MatchNumber": 59,
     "RoundNumber": 5,
@@ -639,8 +639,8 @@ const round_of_eight:Game[] = [
     "HomeTeam": 55,
     "AwayTeam": 56,
     "Group": null,
-    "HomeTeamScore": null,
-    "AwayTeamScore": null
+    "localScore": null,
+    "awayScore": null
   }
 ]
 
@@ -652,8 +652,8 @@ const semifinals: Game[] = [{
   "HomeTeam": 58,
   "AwayTeam": 57,
   "Group": null,
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }, {
   "MatchNumber": 62,
   "RoundNumber": 6,
@@ -662,8 +662,8 @@ const semifinals: Game[] = [{
   "HomeTeam": 59,
   "AwayTeam": 60,
   "Group": null,
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }]
 
 const third_place: Game = {
@@ -674,8 +674,8 @@ const third_place: Game = {
   "HomeTeam": 61,
   "AwayTeam": 62,
   "Group": null,
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }
 
 const final: Game = {
@@ -686,27 +686,30 @@ const final: Game = {
   "HomeTeam": 61,
   "AwayTeam": 62,
   "Group": null,
-  "HomeTeamScore": null,
-  "AwayTeamScore": null
+  "localScore": null,
+  "awayScore": null
 }
 
 export const applyTestingData = () => {
   [...group_games, ...round_of_16, ...round_of_eight, ...semifinals, third_place, final ].forEach(game => {
-    game.HomeTeamScore = Math.round(Math.random()*3)
-    game.AwayTeamScore = Math.round(Math.random()*3)
-    if (game.HomeTeamScore === game.AwayTeamScore && game.RoundNumber > 3) {
-      game.HomeTeamPenaltyScore = Math.round(Math.random()*3)
+    game.localScore = Math.round(Math.random()*3)
+    game.awayScore = Math.round(Math.random()*3)
+    if (game.localScore === game.awayScore && game.RoundNumber > 3) {
+      game.localPenaltyScore = Math.round(Math.random()*2.7)
       do {
-        game.AwayTeamPenaltyScore = Math.round(Math.random()*3)
-      } while (game.AwayTeamPenaltyScore === game.HomeTeamPenaltyScore)
+        game.awayPenaltyScore = Math.round(Math.random()*4.3)
+      } while (game.awayPenaltyScore === game.localPenaltyScore)
     }
   })
 }
+
+const allGamesByMatchNumber: { [key: number]: Game} = Object.fromEntries([...group_games, ...round_of_16, ...round_of_eight, ...semifinals, final, third_place]
+    .map(game => [game.MatchNumber, game]))
 
 if(process.env.NEXT_PUBLIC_SIMULATE_GAMES) {
   applyTestingData()
 }
 
 export {
-  groups, group_games, round_of_16, round_of_eight, semifinals, third_place, final
+  groups, group_games, round_of_16, round_of_eight, semifinals, third_place, final, allGamesByMatchNumber
 }

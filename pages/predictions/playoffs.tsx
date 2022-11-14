@@ -2,7 +2,7 @@ import {Game, GameGuess} from "../../types/definitions";
 import {final, group_games, groups, round_of_16, round_of_eight, semifinals, third_place} from "../../data/group-data";
 import {ChangeEvent, useEffect, useState} from "react";
 import {createRecords, deleteRecords, getCurrentUserId, query, updateRecord} from "thin-backend";
-import {calculateGroupPosition} from "../../utils/position-calculator";
+import {calculateGroupPosition, calculateRoundOf16TeamsByMatch} from "../../utils/position-calculator";
 import {
   Box,
   Grid,
@@ -86,28 +86,7 @@ const Playoffs = () => {
             [gameId, {gameId, localScore, awayScore, localTeam, awayTeam, localPenaltyWinner, awayPenaltyWinner}]))
       setGameGuesses(gameGuesses);
 
-      const positionTeamMap = groups.reduce((tempMap, group) => {
-        const groupPositions = calculateGroupPosition(group.teams, group_games.filter(game => game.Group === group.name).map(game => ({
-          ...game,
-          HomeTeamScore: gameGuesses[game.MatchNumber]?.localScore,
-          AwayTeamScore: gameGuesses[game.MatchNumber]?.awayScore,
-        })));
-        return {
-          ...tempMap,
-          [`1-${group.name}`]: groupPositions[0]?.team,
-          [`2-${group.name}`]: groupPositions[1]?.team,
-        }
-      }, {})
-
-      const currentMap = Object.fromEntries(
-        round_of_16.map(game => [
-          game.MatchNumber,
-          {
-            // @ts-ignore
-            homeTeam: positionTeamMap[`${game.HomeTeam.position}-${game.HomeTeam.group}`] as string,
-            // @ts-ignore
-            awayTeam: positionTeamMap[`${game.AwayTeam.position}-${game.AwayTeam.group}`] as string,
-          }]))
+      const currentMap = calculateRoundOf16TeamsByMatch(gameGuesses);
 
       setCalculatedTeamNameToGameMap(recalculateLowerRounds(gameGuesses, currentMap))
     }

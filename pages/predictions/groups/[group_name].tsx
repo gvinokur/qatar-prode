@@ -41,8 +41,8 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
   useEffect(() => {
     const groupPosition = calculateGroupPosition(group.teams, groupGames.map(game => ({
       ...game,
-      HomeTeamScore: gameGuesses[game.MatchNumber]?.localScore,
-      AwayTeamScore: gameGuesses[game.MatchNumber]?.awayScore,
+      localScore: gameGuesses[game.MatchNumber]?.localScore,
+      awayScore: gameGuesses[game.MatchNumber]?.awayScore,
     })))
     setGroupPositionsByGuess(groupPosition);
 
@@ -56,7 +56,12 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
           .where('userId', getCurrentUserId())
           .whereIn('gameId', groupGames.map(game => game.MatchNumber)).fetch();
 
-      setGameGuesses(Object.fromEntries(currentGameGuesses.map(({ gameId, localScore, awayScore}) => [gameId, {gameId, localScore, awayScore}])));
+      const gameGuesses = Object.fromEntries(
+        currentGameGuesses.map(
+          ({ gameId, localScore, awayScore, localTeam, awayTeam, localPenaltyWinner, awayPenaltyWinner}) =>
+            [gameId, {gameId, localScore, awayScore, localTeam, awayTeam, localPenaltyWinner, awayPenaltyWinner}]))
+
+      setGameGuesses(gameGuesses);
     };
     getData();
 
@@ -76,7 +81,6 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
       await query('game_guesses')
         .where('userId', getCurrentUserId())
         .whereIn('gameId', groupGames.map(game => game.MatchNumber)).fetch();
-    console.log(currentGameGuesses)
     // @ts-ignore
     await deleteRecords('game_guesses', currentGameGuesses.map(gameGuess => gameGuess.id))
     await createRecords('game_guesses', gameGuessesValues);

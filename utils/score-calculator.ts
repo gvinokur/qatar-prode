@@ -14,10 +14,10 @@ export const calculateScoreForGroupStageGames = (gameGuesses: { [key: number]: G
 
 export const calculateScoreForGame = (game: Game, gameGuess?: GameGuess) => {
   if (
-    typeof game.HomeTeamScore !== undefined &&
-    typeof game.AwayTeamScore !== undefined &&
-    game.HomeTeamScore !== null &&
-    game.AwayTeamScore !== null &&
+    typeof game.localScore !== undefined &&
+    typeof game.awayScore !== undefined &&
+    game.localScore !== null &&
+    game.awayScore !== null &&
     typeof gameGuess !== 'undefined' &&
     typeof gameGuess?.localScore !== undefined &&
     typeof gameGuess?.awayScore !== undefined &&
@@ -25,36 +25,51 @@ export const calculateScoreForGame = (game: Game, gameGuess?: GameGuess) => {
     gameGuess?.awayScore !== null) {
 
     const isPlayoff = game.RoundNumber > 3;
-    const isTie = (game.HomeTeamScore === game.AwayTeamScore);
+    const isTie = (game.localScore === game.awayScore);
+    const guessTie = (gameGuess.localScore === gameGuess.awayScore)
     let homePenaltyWin = false;
     let awayPenaltyWin = false;
 
     // Special case for playoffs and ties
-    if (isPlayoff && (game.HomeTeamScore === game.AwayTeamScore)) {
+    if (isPlayoff && (game.localScore === game.awayScore)) {
       // @ts-ignore
-      homePenaltyWin = (game.HomeTeamPenaltyScore > game.AwayTeamPenaltyScore)
+      homePenaltyWin = (game.localPenaltyScore > game.awayPenaltyScore)
       // @ts-ignore
-      awayPenaltyWin = (game.HomeTeamPenaltyScore < game.AwayTeamPenaltyScore)
+      awayPenaltyWin = (game.localPenaltyScore < game.awayPenaltyScore)
     }
 
-    if (game.HomeTeamScore === gameGuess?.localScore && game.AwayTeamScore === gameGuess?.awayScore) {
-      // If the away team won and guessed the local team did or the other way around, then return 0
+    if (game.localScore === gameGuess?.localScore && game.awayScore === gameGuess?.awayScore) {
+      // This condition can only be false in tied games during the playoffs.
+      // If the penalty win guess is wrong, then 0 points
       if ((homePenaltyWin && !gameGuess.localPenaltyWinner) || (awayPenaltyWin && !gameGuess.awayPenaltyWinner)) {
         return 0;
       }
       return 2;
     }
     // @ts-ignore Already checking for undefined and null above
-    if (Math.sign(game.HomeTeamScore - game.AwayTeamScore) === Math.sign(gameGuess.localScore - gameGuess.awayScore)) {
+    if (Math.sign(game.localScore - game.awayScore) === Math.sign(gameGuess.localScore - gameGuess.awayScore)) {
+      // This condition can only be false in tied games during the playoffs.
+      // If the penalty win guess is wrong, then 0 points
       if (homePenaltyWin && !gameGuess.localPenaltyWinner || awayPenaltyWin && !gameGuess.awayPenaltyWinner) {
         return 0;
       }
       return 1;
     }
+    /*
+    The next 2 conditions check the following
+    A Playoff game was tied, and the guess is correct on the eventual penalty winner (but the guess was a straight win).
+    A Playoff game was won by a team, the guess was for a tied with that team winning by penalties.
+    Both of these scenarios are 1 pointers
+     */
     if (isPlayoff && isTie &&
       (((homePenaltyWin && (gameGuess.localPenaltyWinner || gameGuess.localScore > gameGuess.awayScore)) ||
       (awayPenaltyWin && (gameGuess.awayPenaltyWinner || gameGuess.localScore < gameGuess.awayScore))))) {
       return 1;
+    }
+    if (isPlayoff && guessTie &&
+      ((gameGuess.localPenaltyWinner && (game.localScore > game.awayScore)) ||
+        (gameGuess.awayPenaltyWinner && (game.localScore < game.awayScore)))) {
+      return 1
     }
   }
   return 0;
