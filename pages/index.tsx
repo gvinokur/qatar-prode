@@ -34,6 +34,14 @@ import {
 import {LoadingButton} from "@mui/lab";
 import {ExpandMore as ExpandMoreIcon, Share as ShareIcon, Delete as DeleteIcon} from "@mui/icons-material";
 import {useCurrentUser} from "thin-backend-react";
+import {group_games} from "../data/group-data";
+import {
+  calculateScoreForGame,
+  calculateScoreForGroupStageQualifiers,
+  calculateScoreStatsForGroupStageGames
+} from "../utils/score-calculator";
+import {GameGuess, GameGuessDictionary} from "../types/definitions";
+import {transformBeListToGameGuessDictionary} from "../utils/be-utils";
 
 const rules = [
   '1 Punto por Ganador/Empate acertado - 1 punto extra por resultado exacto',
@@ -67,8 +75,9 @@ const Home: NextPage = () => {
   const [loading, setLoading] = useState(false)
   const [userGroups, setUserGroups] = useState<ProdeGroup[]>([])
   const [participantGroups, setParticipantGroups] = useState<ProdeGroup[]>([])
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(true)
   const [openConfirmDeleteGroup, setOpenConfirmDeleteGroup] = useState<string | false>(false)
+  const [gameGuesses, setGameGuesses] = useState<GameGuessDictionary>({})
   const theme = useTheme()
 
   const user = useCurrentUser();
@@ -79,6 +88,11 @@ const Home: NextPage = () => {
         const userGroups = await query('prode_groups').where('ownerUserId', user.id).fetch();
         const groupParticipantIn = await query('prode_group_participants').where('userId', user.id).fetch();
         const participantGroups = await query('prode_groups').whereIn('id', groupParticipantIn.map(groupParticipant => groupParticipant.prodeGroupId)).fetch();
+        const currentGameGuesses: GameGuess[] =
+          await query('game_guesses')
+            .where('userId', getCurrentUserId()).fetch();
+
+        setGameGuesses(transformBeListToGameGuessDictionary(currentGameGuesses));
         setUserGroups(userGroups);
         setParticipantGroups(participantGroups);
       }
@@ -121,6 +135,8 @@ const Home: NextPage = () => {
   const handleExpandClick = () => {
     setExpanded(!expanded);
   }
+
+  const groupScoreData = calculateScoreStatsForGroupStageGames(gameGuesses);
 
   return (
     <>
@@ -181,7 +197,7 @@ const Home: NextPage = () => {
                 ))}
                 {(userGroups.length > 0 && participantGroups.length > 0) &&  <ListItem divider/>}
                 {participantGroups.map(participantGroup => (
-                  <ListItem key={participantGroup.id}>
+                  <ListItem key={participantGroup.id} disableGutters>
                     <ListItemText>
                       <Link href={`/friend-groups/${participantGroup.id}`}>{participantGroup.name}</Link>
                     </ListItemText>
@@ -201,7 +217,21 @@ const Home: NextPage = () => {
               sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
             />
             <CardContent>
-              <Typography variant='body1'>Under Construction</Typography>
+              <Grid container>
+                <Grid item xs={12}><Typography variant={'h6'} color={'primary.light'}>Fase de Grupos</Typography></Grid>
+                <Grid item xs={8}><Typography variant={'body1'} color={'primary.light'}>Aciertos (Exactos)</Typography></Grid>
+                <Grid item xs={4}><Typography variant={'body1'} fontWeight={700}>
+                  {groupScoreData.correctPredictions} ({groupScoreData.exactPredictions})
+                </Typography></Grid>
+                <Grid item xs={8}><Typography variant={'body1'} color={'primary.light'}>Puntos por Partidos</Typography></Grid>
+                <Grid item xs={4}><Typography variant={'body1'} fontWeight={700}>
+                  {groupScoreData.totalPoints}
+                </Typography></Grid>
+                <Grid item xs={8}><Typography variant={'body1'} color={'primary.light'}>Puntos por Clasificados</Typography></Grid>
+                <Grid item xs={4}><Typography variant={'body1'} fontWeight={700}>
+                  {calculateScoreForGroupStageQualifiers(gameGuesses)}
+                </Typography></Grid>
+              </Grid>
             </CardContent>
           </Card>
         </Grid>

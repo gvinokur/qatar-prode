@@ -20,6 +20,7 @@ import {getAwayScore, getLocalScore, getLoser, getWinner} from "../../utils/scor
 import GameView from "../../components/game-view";
 import {LoadingButton} from "@mui/lab";
 import {useCurrentUser} from "thin-backend-react";
+import {transformBeListToGameGuessDictionary} from "../../utils/be-utils";
 
 type PlayoffProps = {
   roundOfSixteen: Game[],
@@ -80,11 +81,8 @@ const Playoffs = () => {
       const currentGameGuesses: GameGuess[] =
         await query('game_guesses')
           .where('userId', getCurrentUserId()).fetch();
-      const gameGuesses = Object.fromEntries(
-        currentGameGuesses.map(
-          ({ gameId, localScore, awayScore, localTeam, awayTeam, localPenaltyWinner, awayPenaltyWinner}) =>
-            [gameId, {gameId, localScore, awayScore, localTeam, awayTeam, localPenaltyWinner, awayPenaltyWinner}]))
-      setGameGuesses(gameGuesses);
+
+      setGameGuesses(transformBeListToGameGuessDictionary(currentGameGuesses));
 
       const currentMap = calculateRoundOf16TeamsByMatch(gameGuesses);
 

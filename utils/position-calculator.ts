@@ -1,4 +1,4 @@
-import {Game, GameGuess, TeamStats} from "../types/definitions";
+import {Game, GameGuess, TeamStats, GameGuessDictionary} from "../types/definitions";
 import {
   allGamesByMatchNumber,
   final,
@@ -21,10 +21,6 @@ const initialTeamStats: TeamStats = {
   goalsAgainst: 0,
   goalDifference: 0
 }
-
-type GameGuessDictionary = {
-  [key: number]: GameGuess
-};
 
 type TeamsByMatch = { [key: number]: { homeTeam: string, awayTeam: string } }
 

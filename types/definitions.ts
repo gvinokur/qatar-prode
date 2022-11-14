@@ -44,3 +44,7 @@ export type GameGuess = {
   localPenaltyWinner?: boolean,
   awayPenaltyWinner?: boolean,
 }
+
+export type GameGuessDictionary = {
+  [key: number]: GameGuess
+};

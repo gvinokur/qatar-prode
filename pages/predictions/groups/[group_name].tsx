@@ -20,6 +20,7 @@ import GameView from "../../../components/game-view";
 import {LoadingButton} from "@mui/lab";
 import {Close as MissIcon, Done as HitIcon} from "@mui/icons-material";
 import {useTheme} from "@mui/system";
+import {transformBeListToGameGuessDictionary} from "../../../utils/be-utils";
 
 
 type GroupPageProps = {
@@ -59,12 +60,7 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
           .where('userId', getCurrentUserId())
           .whereIn('gameId', groupGames.map(game => game.MatchNumber)).fetch();
 
-      const gameGuesses = Object.fromEntries(
-        currentGameGuesses.map(
-          ({ gameId, localScore, awayScore, localTeam, awayTeam, localPenaltyWinner, awayPenaltyWinner}) =>
-            [gameId, {gameId, localScore, awayScore, localTeam, awayTeam, localPenaltyWinner, awayPenaltyWinner}]))
-
-      setGameGuesses(gameGuesses);
+      setGameGuesses(transformBeListToGameGuessDictionary(currentGameGuesses));
     };
     getData();
 

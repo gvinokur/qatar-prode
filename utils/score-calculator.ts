@@ -1,15 +1,39 @@
 import {Game, GameGuess} from "../types/definitions";
-import {group_games} from "../data/group-data";
+import {group_games, groups} from "../data/group-data";
+import {calculateGroupPosition} from "./position-calculator";
 
 export const calculateScoreForGroupStageQualifiers = (gameGuesses: { [key: number]: GameGuess }) => {
-
+  let score = 0;
+  groups.forEach(group => {
+    const thisGroupGames = group_games.filter(game => game.Group === group.name);
+    const allGroupGamesPlayed = thisGroupGames.filter(game => (game.localScore === null || game.awayScore === null)).length === 0;
+    if(allGroupGamesPlayed) {
+      const realPositions = calculateGroupPosition(group.teams, thisGroupGames);
+      const guessedPositions = calculateGroupPosition(group.teams, thisGroupGames.map(game => ({
+        ...game,
+        localScore: gameGuesses[game.MatchNumber]?.localScore,
+        awayScore: gameGuesses[game.MatchNumber]?.awayScore,
+      })))
+      if (guessedPositions[0].team === realPositions[0].team ||
+        guessedPositions[0].team === realPositions[1].team) {
+        score++;
+      }
+      if (guessedPositions[1].team === realPositions[0].team ||
+        guessedPositions[1].team === realPositions[1].team) {
+        score++;
+      }
+    }
+  })
+  return score;
 }
 
-export const calculateScoreForGroupStageGames = (gameGuesses: { [key: number]: GameGuess }) => {
-  group_games.reduce((score, game) => {
-    const gameScore = calculateScoreForGame(game, gameGuesses[game.MatchNumber])
-    return score + gameScore;
-  }, 0);
+export const calculateScoreStatsForGroupStageGames = (gameGuesses: { [key: number]: GameGuess }) => {
+  const scoreByGame: number[] = group_games.map(game => calculateScoreForGame(game, gameGuesses[game.MatchNumber]))
+  return {
+    correctPredictions: scoreByGame.filter(score => score >= 1).length ,
+    exactPredictions: scoreByGame.filter(score => score > 1).length,
+    totalPoints: scoreByGame.reduce((accum, score) => score + accum, 0)
+  }
 }
 
 export const calculateScoreForGame = (game: Game, gameGuess?: GameGuess) => {

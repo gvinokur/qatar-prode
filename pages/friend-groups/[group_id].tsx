@@ -35,11 +35,12 @@ const ProdeGroupPage = ({ group, groupParticipants}: ProdeGroupPageProps) => {
   useEffect(() => {
     const getUsers = async () => {
       const users = await query('users').whereIn('id', [group.ownerUserId, ...groupParticipants.map(participant => participant.userId)]).fetch();
+
       setUsers(users);
     };
-
     getUsers();
   }, [group, groupParticipants])
+
   return (
     <Box p={2}>
       <Grid container spacing={2}>
@@ -95,7 +96,6 @@ const ProdeGroupPage = ({ group, groupParticipants}: ProdeGroupPageProps) => {
 }
 
 export const getServerSideProps = async ({params}: {params: { group_id: string} }) => {
-  const currentUserId = getCurrentUserId();
   const group: ProdeGroup = await query('prode_groups').where('id', params.group_id).fetchOne();
   const groupParticipants: ProdeGroupParticipant[] = await query('prode_group_participants').where('prodeGroupId', params.group_id).fetch();
   return {
