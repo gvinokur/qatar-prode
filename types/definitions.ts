@@ -25,6 +25,7 @@ export type Group = {
 
 export type TeamStats = {
   team: string,
+  gamesPlayed: number,
   points: number,
   win: number,
   draw: number,

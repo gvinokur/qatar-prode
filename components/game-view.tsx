@@ -33,8 +33,8 @@ const GameView = ({game, gameGuess, onGameGuessChange, editDisabled}: GameViewPr
       gameId: game.MatchNumber,
       localScore: null,
       awayScore: null,
-      localTeam: null,
-      awayTeam: null,
+      localTeam: typeof game.HomeTeam === 'string' && game.HomeTeam || null,
+      awayTeam: typeof game.AwayTeam === 'string' && game.AwayTeam || null,
       localPenaltyWinner: false,
       awayPenaltyWinner: false
     }
@@ -180,8 +180,12 @@ const GameView = ({game, gameGuess, onGameGuessChange, editDisabled}: GameViewPr
       {game.localScore !== null && game.awayScore !== null && (
         <CardContent sx={{ borderTop: `${theme.palette.primary.contrastText} 1px solid`, backgroundColor: 'secondary.light'}}>
           <Typography variant='body1' component='div' textAlign='center' color='secondary.contrastText'>
-            {typeof game.HomeTeam === "string" && game.HomeTeam?.substring(0, 3)} {game.localScore} {Number.isInteger(game.localPenaltyScore) && `(${game.localPenaltyScore})`} -
-            {Number.isInteger(game.awayPenaltyScore) && `(${game.awayPenaltyScore})`} {game.awayScore} {typeof game.AwayTeam === "string" && game.AwayTeam?.substring(0, 3)}
+            {(game.CalculatedHomeTeam || (typeof game.HomeTeam === "string" && game.HomeTeam) || '')?.substring(0, 3)}&nbsp;
+            {game.localScore}&nbsp;
+            {Number.isInteger(game.localPenaltyScore) && `(${game.localPenaltyScore})`} - &nbsp;
+            {Number.isInteger(game.awayPenaltyScore) && `(${game.awayPenaltyScore})`}&nbsp;
+            {game.awayScore}&nbsp;
+            {(game.CalculatedAwayTeam || (typeof game.AwayTeam === "string" && game.AwayTeam) || '')?.substring(0, 3)}
           </Typography>
         </CardContent>
       )}

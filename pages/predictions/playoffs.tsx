@@ -1,8 +1,21 @@
 import {Game, GameGuess} from "../../types/definitions";
-import {final, group_games, groups, round_of_16, round_of_eight, semifinals, third_place} from "../../data/group-data";
+import {
+  final,
+  group_games,
+  groups,
+  playoff_games,
+  round_of_16,
+  round_of_eight,
+  semifinals,
+  third_place
+} from "../../data/group-data";
 import {ChangeEvent, useEffect, useState} from "react";
 import {createRecords, deleteRecords, getCurrentUserId, query, updateRecord} from "thin-backend";
-import {calculateGroupPosition, calculateRoundOf16TeamsByMatch} from "../../utils/position-calculator";
+import {
+  calculateGroupPosition,
+  calculateRoundOf16TeamsByMatch,
+  calculateRoundof8andLowerTeamsByMatch
+} from "../../utils/position-calculator";
 import {
   Box,
   Grid,
@@ -42,40 +55,6 @@ const Playoffs = () => {
   const user = useCurrentUser();
   const xsMatch = useMediaQuery('(min-width:900px)')
 
-  const recalculateLowerRounds = (gameGuesses: GameGuessDictionary, currentMap: { [key: number]: { homeTeam: string, awayTeam: string } }) => {
-    const mapGame = (currentMap: { [key: number]: { homeTeam: string, awayTeam: string } }, fn: (guess: GameGuess, homeTeam: string, awayTeam: string ) => string | null) => (game: Game): any[] => [
-      game.MatchNumber,
-      {
-        // @ts-ignore
-        homeTeam:
-          fn(gameGuesses[game.HomeTeam as number],
-            currentMap[game.HomeTeam as number]?.homeTeam,
-            currentMap[game.HomeTeam as number]?.awayTeam),
-        // @ts-ignore
-        awayTeam:
-          fn(gameGuesses[game.AwayTeam as number],
-            currentMap[game.AwayTeam as number]?.homeTeam,
-            currentMap[game.AwayTeam as number]?.awayTeam),
-      }];
-    currentMap = {
-      ...currentMap,
-      ...Object.fromEntries(round_of_eight.map(mapGame(currentMap, getWinner)))
-    }
-    currentMap = {
-      ...currentMap,
-      ...Object.fromEntries(semifinals.map(mapGame(currentMap, getWinner)))
-    }
-    const finalArray = mapGame(currentMap, getWinner)(final);
-    const thirdPlaceArray = mapGame(currentMap, getLoser)(third_place);
-    currentMap = {
-      ...currentMap,
-      [finalArray[0]]: finalArray[1],
-      [thirdPlaceArray[0]]: thirdPlaceArray[1]
-    }
-
-    return currentMap;
-  }
-
   useEffect(() => {
     const getData = async () => {
       const currentGameGuesses: GameGuess[] =
@@ -83,11 +62,19 @@ const Playoffs = () => {
           .where('userId', getCurrentUserId()).fetch();
 
       const gameGuesses = transformBeListToGameGuessDictionary(currentGameGuesses)
-      setGameGuesses(gameGuesses);
-
       const currentMap = calculateRoundOf16TeamsByMatch(gameGuesses);
-
-      setCalculatedTeamNameToGameMap(recalculateLowerRounds(gameGuesses, currentMap))
+      const calculatedTeamNameToGameMap = calculateRoundof8andLowerTeamsByMatch(currentMap, gameGuesses)
+      setCalculatedTeamNameToGameMap(calculatedTeamNameToGameMap)
+      //Doing this
+      Object.values(gameGuesses).forEach(gameGuess => {
+        if(!gameGuess.localTeam) {
+          gameGuess.localTeam = calculatedTeamNameToGameMap[gameGuess.gameId]?.homeTeam
+        }
+        if(!gameGuess.awayTeam) {
+          gameGuess.awayTeam = calculatedTeamNameToGameMap[gameGuess.gameId]?.awayTeam
+        }
+      })
+      setGameGuesses(gameGuesses);
     }
 
     getData();
@@ -96,6 +83,9 @@ const Playoffs = () => {
   const savePredictions = async () => {
     setSaving(true)
     const gameGuessesValues = Object.values(gameGuesses)
+    const playoffGameIds = playoff_games.map(game => game.MatchNumber)
+    const gameGuessesToSave = gameGuessesValues.filter(gameGuess => playoffGameIds.includes(gameGuess.gameId))
+    console.log(gameGuessesValues)
     const currentGameGuesses: GameGuess[] =
       await query('game_guesses')
         .where('userId', getCurrentUserId())
@@ -103,7 +93,7 @@ const Playoffs = () => {
 
     // @ts-ignore
     await deleteRecords('game_guesses', currentGameGuesses.map(gameGuess => gameGuess.id))
-    await createRecords('game_guesses', gameGuessesValues);
+    await createRecords('game_guesses', gameGuessesToSave);
     // Only save values for honor
     if (Date.now() < new Date(2022, 10,21).valueOf()) {
       const championGuess = getWinner(gameGuesses[final.MatchNumber], calculatedTeamNameToGameMap[final.MatchNumber]?.homeTeam, calculatedTeamNameToGameMap[final.MatchNumber]?.awayTeam )
@@ -126,9 +116,14 @@ const Playoffs = () => {
       ...gameGuesses,
       [gameGuess.gameId]: gameGuess
     }
+    const newCalculatedTeamNameToGameMap = calculateRoundof8andLowerTeamsByMatch(calculatedTeamNameToGameMap, newGameGuesses)
+    setCalculatedTeamNameToGameMap(newCalculatedTeamNameToGameMap)
+    //Doing this
+    Object.values(newGameGuesses).forEach(gameGuess => {
+      gameGuess.localTeam = newCalculatedTeamNameToGameMap[gameGuess.gameId]?.homeTeam
+      gameGuess.awayTeam = newCalculatedTeamNameToGameMap[gameGuess.gameId]?.awayTeam
+    })
     setGameGuesses(newGameGuesses)
-
-    setCalculatedTeamNameToGameMap(recalculateLowerRounds(newGameGuesses, calculatedTeamNameToGameMap))
   }
 
   const editDisabled = Date.now() > new Date(2022, 11, 3).valueOf();

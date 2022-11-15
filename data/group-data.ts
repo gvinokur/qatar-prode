@@ -1,4 +1,5 @@
 import {Game, Group, GroupName} from "../types/definitions";
+import {calculateRoundOf16TeamsByMatch, calculateRoundof8andLowerTeamsByMatch} from "../utils/position-calculator";
 
 const groups: Group[] = [{
   name: 'Group A',
@@ -690,8 +691,12 @@ const final: Game = {
   "awayScore": null
 }
 
-export const applyTestingData = () => {
-  [...group_games, ...round_of_16, ...round_of_eight, ...semifinals, third_place, final ].forEach(game => {
+const playoff_games = [...round_of_16, ...round_of_eight, ...semifinals, final, third_place];
+
+const applyTestingData = (groupStageOnly: boolean = false ) => {
+  const gamesToSimulate = groupStageOnly ? group_games :
+    [...group_games, ...round_of_16, ...round_of_eight, ...semifinals, third_place, final ];
+  gamesToSimulate.forEach(game => {
     game.localScore = Math.round(Math.random()*3)
     game.awayScore = Math.round(Math.random()*3)
     if (game.localScore === game.awayScore && game.RoundNumber > 3) {
@@ -699,6 +704,8 @@ export const applyTestingData = () => {
       do {
         game.awayPenaltyScore = Math.round(Math.random()*4.3)
       } while (game.awayPenaltyScore === game.localPenaltyScore)
+      game.localPenaltyWinner = game.localPenaltyScore > game.awayPenaltyScore;
+      game.awayPenaltyWinner = game.awayPenaltyScore > game.localPenaltyScore;
     }
   })
 }
@@ -711,5 +718,5 @@ if(process.env.NEXT_PUBLIC_SIMULATE_GAMES) {
 }
 
 export {
-  groups, group_games, round_of_16, round_of_eight, semifinals, third_place, final, allGamesByMatchNumber
+  groups, group_games, round_of_16, round_of_eight, semifinals, third_place, final, playoff_games, allGamesByMatchNumber
 }

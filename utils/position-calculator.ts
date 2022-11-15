@@ -9,30 +9,41 @@ import {
   semifinals,
   third_place
 } from "../data/group-data";
+
 import {getLoser, getWinner} from "./score-utils";
 
 const initialTeamStats: TeamStats = {
   team: '',
+  gamesPlayed: 0,
   points: 0,
   win: 0,
   draw: 0,
   loss: 0,
   goalsFor: 0,
   goalsAgainst: 0,
-  goalDifference: 0
+  goalDifference: 0,
 }
 
 type TeamsByMatch = { [key: number]: { homeTeam: string, awayTeam: string } }
+
+const isGroupComplete = (groupGames: Game[]) => {
+  return groupGames.filter(game => game.localScore !== null && game.awayScore !== null).length === 6;
+}
 
 /**
  *
  * @param gameGuesses - user guesses or null to calculate based on actual scores
  */
 export const calculateRoundOf16TeamsByMatch = (gameGuesses?: GameGuessDictionary): TeamsByMatch => {
+  const calculateOnlyCompletedGroups = !gameGuesses;
   const positionTeamMap = groups.reduce((tempMap, group) => {
+    const thisGroupGames = group_games.filter(game => game.Group === group.name);
+    if (calculateOnlyCompletedGroups && !isGroupComplete(thisGroupGames)) {
+      return tempMap;
+    }
     const groupPositions = calculateGroupPosition(
       group.teams,
-      group_games.filter(game => game.Group === group.name).map(game => gameGuesses ? ({
+      thisGroupGames.filter(game => game.Group === group.name).map(game => gameGuesses ? ({
         ...game,
         localScore: gameGuesses[game.MatchNumber]?.localScore,
         awayScore: gameGuesses[game.MatchNumber]?.awayScore,
@@ -62,7 +73,7 @@ export const calculateRoundOf16TeamsByMatch = (gameGuesses?: GameGuessDictionary
  * @param currentMap
  * @param gameGuesses - user guesses or null to calculate based on actual scores
  */
-const calculateRoundof8andLowerTeamsByMatch = (currentMap: { [key: number]: { homeTeam: string, awayTeam: string } }, gameGuesses?: GameGuessDictionary): TeamsByMatch => {
+export const calculateRoundof8andLowerTeamsByMatch = (currentMap: { [key: number]: { homeTeam: string, awayTeam: string } }, gameGuesses?: GameGuessDictionary): TeamsByMatch => {
   const mapGame = (currentMap: { [key: number]: { homeTeam: string, awayTeam: string } }, fn: (guessOrGame: GameGuess | Game, homeTeam: string, awayTeam: string ) => string | null) => (game: Game): any[] => [
     game.MatchNumber,
     {
@@ -92,7 +103,6 @@ const calculateRoundof8andLowerTeamsByMatch = (currentMap: { [key: number]: { ho
     [finalArray[0]]: finalArray[1],
     [thirdPlaceArray[0]]: thirdPlaceArray[1]
   }
-
   return currentMap;
 }
 
@@ -103,18 +113,60 @@ const calculateRoundof8andLowerTeamsByMatch = (currentMap: { [key: number]: { ho
  */
 export const calculateGroupPosition = (teams: string[], games: Game[]) => {
   const gamesWithScores = games.filter(game => (game.localScore !== null && game.awayScore !== null))
-  const teamStats: TeamStats[] = teams.map(team => {
-    return gamesWithScores.filter(game => game.HomeTeam === team || game.AwayTeam === team)
+  const teamsStatsByTeam = Object.fromEntries(teams.map(team => [
+    team,
+    gamesWithScores.filter(game => game.HomeTeam === team || game.AwayTeam === team)
       .reduce(teamStatsGameReducer(team), { ...initialTeamStats, team })
-    }).sort(teamStatsComparator)
+  ]))
+  const teamStats: TeamStats[] = Object.values(teamsStatsByTeam).sort(teamStatsComparator)
+
+  //TODO: cannot do anything more right now about 4 way ties
+
+  let threeWayTie = false
+  //Three way ties
+  if (teamStats.length === 4) {
+    const topThreeWayTie = equalTeamStats(teamStats[0], teamStats[1]) && equalTeamStats(teamStats[1], teamStats[2])
+    const bottomThreeWayTie = equalTeamStats(teamStats[1], teamStats[2]) && equalTeamStats(teamStats[2], teamStats[3])
+    threeWayTie = topThreeWayTie || bottomThreeWayTie
+    if(threeWayTie) {
+      //Three way ties
+      // Among the top 3 teams
+      const baseIndex = topThreeWayTie  ? 0 : 1
+      const tiedTeams = teamStats.slice(baseIndex, baseIndex + 3).map(teamStat => teamStat.team)
+      const tiedTeamGames = games.filter(game => tiedTeams.includes(game.HomeTeam as string) && tiedTeams.includes(game.AwayTeam as string));
+      const threeWayTieStats = calculateGroupPosition(tiedTeams, tiedTeamGames).sort(teamStatsComparator);
+
+      threeWayTieStats.forEach((teamStat, index) => {
+        teamStats[baseIndex + index] = teamsStatsByTeam[teamStat.team]
+      })
+    }
+  }
+  if (!threeWayTie) {
+    for(let i = 0; i < teamStats.length - 1; i++) {
+      if(equalTeamStats(teamStats[i], teamStats[i+1])) {
+        const tiedTeams = [teamStats[i].team, teamStats[i+1].team];
+        console.log(tiedTeams)
+        const teamsGame = games.find(game => tiedTeams.includes(game.HomeTeam as string) && tiedTeams.includes(game.AwayTeam as string));
+        const winnerTeam = teamsGame && teamsGame.localScore !== null && teamsGame.awayScore !== null &&
+          (teamsGame.localScore > teamsGame.awayScore ? teamsGame.HomeTeam : (teamsGame.awayScore > teamsGame.localScore && teamsGame.AwayTeam)) as string;
+        console.log(winnerTeam)
+        if (winnerTeam && winnerTeam != teamStats[i].team) {
+          const temp = teamStats[i]
+          teamStats[i] = teamStats[i+1];
+          teamStats[i+1] = temp
+        }
+      }
+    }
+  }
+
+
   return teamStats;
 }
 
+const equalTeamStats = (a: TeamStats, b: TeamStats): boolean => getMagicNumber(a) === getMagicNumber(b)
+
 const teamStatsComparator = (a: TeamStats, b: TeamStats): number => {
   const comparator = getMagicNumber(b) - getMagicNumber(a);
-  if (comparator === 0) {
-    //Do something to compare with games, may be complex if more than two teams tied here
-  }
   return comparator;
 }
 
@@ -127,6 +179,7 @@ const teamStatsGameReducer = (team: string) => (tempTeamStats: TeamStats, game: 
     : calculateGameData(game.awayScore || 0, game.localScore || 0);;
   return {
     ...tempTeamStats,
+    gamesPlayed: tempTeamStats.gamesPlayed + 1,
     points: tempTeamStats.points + gameData.points,
     win: tempTeamStats.win + gameData.win,
     draw: tempTeamStats.draw + gameData.draw,
@@ -146,3 +199,20 @@ const calculateGameData = (teamScore: number, opponentScore: number) => ({
   goalsAgainst: opponentScore,
   goalDifference: teamScore-opponentScore
 })
+
+const calculatePlayoffsTeams = () => {
+  const roundOf16TeamsByMatch = calculateRoundOf16TeamsByMatch();
+  round_of_16.forEach(game => {
+    game.CalculatedHomeTeam = roundOf16TeamsByMatch[game.MatchNumber]?.homeTeam;
+    game.CalculatedAwayTeam = roundOf16TeamsByMatch[game.MatchNumber]?.awayTeam;
+  })
+  const roundof8andLowerTeamsByMatch = calculateRoundof8andLowerTeamsByMatch(roundOf16TeamsByMatch);
+  [...round_of_eight, ...semifinals, final].forEach(game => {
+    game.CalculatedHomeTeam = roundof8andLowerTeamsByMatch[game.MatchNumber]?.homeTeam;
+    game.CalculatedAwayTeam = roundof8andLowerTeamsByMatch[game.MatchNumber]?.awayTeam;
+  });
+  third_place.CalculatedHomeTeam = roundof8andLowerTeamsByMatch[third_place.MatchNumber]?.homeTeam;
+  third_place.CalculatedAwayTeam = roundof8andLowerTeamsByMatch[third_place.MatchNumber]?.awayTeam;
+}
+
+calculatePlayoffsTeams();
