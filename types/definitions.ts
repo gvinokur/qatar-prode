@@ -49,3 +49,11 @@ export type GameGuess = {
 export type GameGuessDictionary = {
   [key: number]: GameGuess
 };
+
+export type Player = {
+  id: string,
+  name: string,
+  position: string,
+  age: number,
+  team: string,
+}

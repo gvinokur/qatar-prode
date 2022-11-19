@@ -15,6 +15,7 @@
     "@mui/lab": "^5.0.0-alpha.97",
     "@mui/material": "^5.10.3",
     "next": "13.0.2",
+    "node-fetch": "^3.3.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "thin-backend": ">= 0.9.0",
@@ -23,7 +24,7 @@
   "devDependencies": {
     "@types/node": "18.11.9",
     "@types/react": "17.0.37",
-    "@types/thin-backend": "https://thin.dev/types/52ed060e-2f75-4bda-99e1-4ba242c247e4/RafQpCWnXlKkUGrOsOsttFcHRySRgYZy",
+    "@types/thin-backend": "https://thin.dev/types/9a73f7fd-c742-482f-8975-291d587f8127/qLIBunnVIqjbFGoHBlFkQKdtmLlWcgbD",
     "eslint": "8.5.0",
     "eslint-config-next": "12.0.7",
     "typescript": "4.5.4"

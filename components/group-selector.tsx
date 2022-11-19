@@ -9,6 +9,8 @@ const GroupSelector = ({group} : {group?: string}) => {
   const handleOptionChange = (e: SelectChangeEvent<string>) => {
     if (e.target.value === 'playoffs') {
       router.push('/predictions/playoffs')
+    } else if (e.target.value === 'individual_awards') {
+      router.push('/predictions/awards')
     } else {
       router.push(`/predictions/groups/group-${e.target.value.charAt(e.target.value.length - 1).toLowerCase()}`)
     }
@@ -26,6 +28,9 @@ const GroupSelector = ({group} : {group?: string}) => {
       <Grid item>
         <Fab color={!group ? 'primary' : 'secondary'} variant={'extended'} href={'/predictions/playoffs'}>Playoffs</Fab>
       </Grid>
+      <Grid item>
+        <Fab color={group === 'individual_awards' ? 'primary' : 'secondary'} variant={'extended'} href={'/predictions/awards'}>Premios</Fab>
+      </Grid>
     </Grid>
   ) : (
     <Select sx={{ width: '100%'}} value={group || 'playoffs'} onChange={handleOptionChange}>
@@ -33,6 +38,7 @@ const GroupSelector = ({group} : {group?: string}) => {
         <MenuItem key={groupLetter} value={`Group ${groupLetter.toUpperCase()}`}>Group {groupLetter.toUpperCase()}</MenuItem>
       ))}
       <MenuItem value='playoffs'>Playoffs</MenuItem>
+      <MenuItem value='individual_awards'>Premios</MenuItem>
     </Select>
   )
 }
