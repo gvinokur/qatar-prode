@@ -15,6 +15,7 @@ import {final} from "../data/group-data";
 import {ChangeEvent} from "react";
 import {calculateScoreForGame} from "../utils/score-calculator";
 import {Done as HitIcon, DoneAll as HitAllIcon, Close as MissIcon} from "@mui/icons-material";
+import {getDateString} from "../utils/date-utils";
 
 type GameViewProps = {
   game: Game,
@@ -89,13 +90,7 @@ const GameView = ({game, gameGuess, onGameGuessChange, editDisabled}: GameViewPr
         subheaderTypographyProps={{
           noWrap: true,
         }}
-        subheader={new Date(Date.parse(game.DateUtc)).toLocaleString(undefined, {
-          weekday: xsMatch ? 'long' : 'short',
-          day: 'numeric',
-          month: 'short',
-          hour: '2-digit',
-          minute: '2-digit',
-        })}
+        subheader={getDateString(game.DateUtc, xsMatch)}
         sx={{
           color: theme.palette.primary.main,
           borderBottom: `${theme.palette.primary.light} 1px solid`

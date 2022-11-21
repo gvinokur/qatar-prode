@@ -1,4 +1,4 @@
-import {Player} from "../types/definitions";
+import {Game, Player} from "../types/definitions";
 
 type Country = {
   IdTeam: string,
@@ -46,6 +46,12 @@ const fetchPlayerData = async (): Promise<Player[]> => {
     }))
   }))
   return squads.flat()
+}
+
+const fetchMatchResultData = async (): Promise<Partial<Game>[]> => {
+  const allMatchesResult = await fetch('https://api.fifa.com/api/v3/calendar/matches?language=en&count=500&idSeason=255711');
+  const allMatchesData = await allMatchesResult.json()
+  return []
 }
 
 export {fetchPlayerData}

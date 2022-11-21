@@ -1,4 +1,4 @@
-import {fetchPlayerData} from "../api/player_data_helper";
+import {fetchPlayerData} from "../../services/fifa-data-service";
 import {
   Alert,
   Autocomplete,

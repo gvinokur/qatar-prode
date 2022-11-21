@@ -29,12 +29,12 @@ import {
   Collapse,
   styled,
   IconButtonProps,
-  Typography
+  Typography, Avatar
 } from "@mui/material";
 import {LoadingButton} from "@mui/lab";
 import {ExpandMore as ExpandMoreIcon, Share as ShareIcon, Delete as DeleteIcon} from "@mui/icons-material";
 import {useCurrentUser} from "thin-backend-react";
-import {group_games} from "../data/group-data";
+import {group_games, playoff_games} from "../data/group-data";
 import {
   calculateScoreForGame,
   calculateScoreForGroupStageQualifiers,
@@ -42,6 +42,7 @@ import {
 } from "../utils/score-calculator";
 import {GameGuess, GameGuessDictionary} from "../types/definitions";
 import {transformBeListToGameGuessDictionary} from "../utils/be-utils";
+import {getDateString} from "../utils/date-utils";
 
 const rules = [
   '1 Punto por Ganador/Empate acertado - 1 punto extra por resultado exacto',
@@ -137,11 +138,59 @@ const Home: NextPage = () => {
   }
 
   const groupScoreData = calculateScoreStatsForGroupStageGames(gameGuesses);
+  const gamesAroundMyTime = [...group_games, ...playoff_games].sort((a, b) => {
+    return Math.abs(Date.parse(a.DateUtc) - Date.now()) - Math.abs(Date.parse(b.DateUtc) - Date.now())
+  }).filter((_, index) => (index < 5)).sort((a,b) => Date.parse(a.DateUtc) - Date.parse(b.DateUtc))
 
   return (
     <>
       <Grid container spacing={2} p={2}>
-        <Grid item xs={12} md={4} >
+        <Grid item xs={12} md={3}>
+          <Card>
+            <CardHeader
+              title='Resultados y Proximos Partidos'
+              sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
+            />
+            <CardContent>
+              <Grid container spacing={1}>
+                {gamesAroundMyTime.map(game => (
+                  <>
+                    <Grid item xs={6} textAlign='center'>
+                      <Typography variant='body1'>
+                        {getDateString(game.DateUtc, false)}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6} textAlign='center'>
+                      <Typography variant='body1'>
+                        {game.Group}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={4} textAlign='center'>
+                      <Typography variant='body2'>
+                        {game.CalculatedHomeTeam || game.HomeTeam}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={2} textAlign='center'>
+                      <Typography variant='body2'>
+                        {game.localScore} - {game.awayScore}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={4} textAlign='center'>
+                      <Typography variant='body2'>
+                        {game.CalculatedAwayTeam || game.AwayTeam}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={2}>
+
+                    </Grid>
+                    <Grid item xs={12} sx={{ height: 0, borderBottom: `${theme.palette.primary.contrastText} 1px solid` }}/>
+                  </>
+                ))}
+              </Grid>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={3} >
           <Card>
             <CardHeader
               title='Reglas Generales'
@@ -173,7 +222,7 @@ const Home: NextPage = () => {
             </Collapse>
           </Card>
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={3}>
           <Card>
             <CardHeader title='Grupos de Amigos' sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}/>
             <CardContent sx={{ borderBottom: `${theme.palette.primary.contrastText} 1px solid`, borderTop: `${theme.palette.primary.contrastText} 1px solid` }}>
@@ -210,7 +259,7 @@ const Home: NextPage = () => {
             </CardActions>
           </Card>
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={3}>
           <Card>
             <CardHeader
               title='Mis Estadisticas'
