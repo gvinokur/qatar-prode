@@ -127,7 +127,7 @@ const Playoffs = () => {
   }
 
   const editDisabled = Date.now() > new Date(2022, 11, 3).valueOf();
-  const pastStartDate = Date.now() > new Date(2022, 10, 20).valueOf();
+  const pastStartDate = Date.now() > new Date(2022, 10, 23).valueOf();
 
   // @ts-ignore
   return (

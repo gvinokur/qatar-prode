@@ -35,8 +35,8 @@ const group_games: Game[] = [{
   "HomeTeam": "Qatar",
   "AwayTeam": "Ecuador",
   "Group": "Group A",
-  "localScore": null,
-  "awayScore": null
+  "localScore": 0,
+  "awayScore": 2
 }, {
   "MatchNumber": 3,
   "RoundNumber": 1,
@@ -697,6 +697,9 @@ const applyTestingData = (groupStageOnly: boolean = false ) => {
   const gamesToSimulate = groupStageOnly ? group_games :
     [...group_games, ...round_of_16, ...round_of_eight, ...semifinals, third_place, final ];
   gamesToSimulate.forEach(game => {
+    if (game.localScore !== null && game.awayScore !== null) {
+      return
+    }
     game.localScore = Math.round(Math.random()*3)
     game.awayScore = Math.round(Math.random()*3)
     if (game.localScore === game.awayScore && game.RoundNumber > 3) {
