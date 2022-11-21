@@ -1,4 +1,4 @@
-import {Player} from "../../types/definitions";
+import {Player} from "../types/definitions";
 
 type Country = {
   IdTeam: string,
