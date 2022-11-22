@@ -21,6 +21,7 @@ import {LoadingButton} from "@mui/lab";
 import {Close as MissIcon, Done as HitIcon} from "@mui/icons-material";
 import {useTheme} from "@mui/system";
 import {transformBeListToGameGuessDictionary} from "../../../utils/be-utils";
+import {useCurrentUser} from "thin-backend-react";
 
 
 type GroupPageProps = {
@@ -39,6 +40,7 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
   const [usePredictionsTable, setUsePredictionsTable] = useState(true)
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const user = useCurrentUser();
   const xsMatch = useMediaQuery('(min-width:900px)')
   const theme = useTheme();
 
@@ -87,7 +89,12 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
     setSaved(true)
   }
 
-  const editDisabled = Date.now() > new Date(2022, 10, 20).valueOf();
+  const editDisabled = (game: Game) => {
+    if (['gustavo@grupowelltech.com', 'vaguiler@hotmail.com', 'lorenaarchidamo@grupowellltech.com'].includes(user?.email || '')) {
+      return (Date.now() > Date.parse(game.DateUtc))
+    }
+    return Date.now() > new Date(2022, 10, 20).valueOf();
+  }
   const allGroupGamesPlayed = groupGames.filter(game => (game.localScore === null || game.awayScore === null)).length === 0;
 
   return (
@@ -101,7 +108,7 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
               <Grid container spacing={2} >
                 {groupGames.filter(game => game.RoundNumber === round).map(game => (
                   <Grid key={game.MatchNumber} item xs={6}>
-                    <GameView game={game} gameGuess={gameGuesses[game.MatchNumber]} onGameGuessChange={handleGameGuessChange} editDisabled={editDisabled}/>
+                    <GameView game={game} gameGuess={gameGuesses[game.MatchNumber]} onGameGuessChange={handleGameGuessChange} editDisabled={editDisabled(game)}/>
                   </Grid>
                 ))}
               </Grid>
