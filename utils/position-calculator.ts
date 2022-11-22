@@ -145,11 +145,9 @@ export const calculateGroupPosition = (teams: string[], games: Game[]) => {
     for(let i = 0; i < teamStats.length - 1; i++) {
       if(equalTeamStats(teamStats[i], teamStats[i+1])) {
         const tiedTeams = [teamStats[i].team, teamStats[i+1].team];
-        console.log(tiedTeams)
         const teamsGame = games.find(game => tiedTeams.includes(game.HomeTeam as string) && tiedTeams.includes(game.AwayTeam as string));
         const winnerTeam = teamsGame && teamsGame.localScore !== null && teamsGame.awayScore !== null &&
           (teamsGame.localScore > teamsGame.awayScore ? teamsGame.HomeTeam : (teamsGame.awayScore > teamsGame.localScore && teamsGame.AwayTeam)) as string;
-        console.log(winnerTeam)
         if (winnerTeam && winnerTeam != teamStats[i].team) {
           const temp = teamStats[i]
           teamStats[i] = teamStats[i+1];

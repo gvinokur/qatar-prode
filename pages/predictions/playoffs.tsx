@@ -85,7 +85,6 @@ const Playoffs = () => {
     const gameGuessesValues = Object.values(gameGuesses)
     const playoffGameIds = playoff_games.map(game => game.MatchNumber)
     const gameGuessesToSave = gameGuessesValues.filter(gameGuess => playoffGameIds.includes(gameGuess.gameId))
-    console.log(gameGuessesValues)
     const currentGameGuesses: GameGuess[] =
       await query('game_guesses')
         .where('userId', getCurrentUserId())

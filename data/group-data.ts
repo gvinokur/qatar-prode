@@ -1,5 +1,6 @@
 import {Game, Group, GroupName} from "../types/definitions";
 import {calculateRoundOf16TeamsByMatch, calculateRoundof8andLowerTeamsByMatch} from "../utils/position-calculator";
+import {fetchMatchResultData} from "../services/fifa-data-service";
 
 const groups: Group[] = [{
   name: 'Group A',
@@ -719,6 +720,34 @@ const allGamesByMatchNumber: { [key: number]: Game} = Object.fromEntries([...gro
 if(process.env.NEXT_PUBLIC_SIMULATE_GAMES) {
   applyTestingData()
 }
+
+const applyResults = async () => {
+  const resultData: Partial<Game>[] = await fetchMatchResultData();
+  resultData.forEach(gameResult => {
+    if (gameResult.localScore !== null
+      && gameResult.localScore !== undefined
+      && gameResult.awayScore !== null
+      && gameResult.awayScore !== undefined
+      && gameResult.MatchNumber) {
+      const game = allGamesByMatchNumber[gameResult.MatchNumber]
+      if (game) {
+        game.localScore = gameResult.localScore
+        game.awayScore = gameResult.awayScore
+        if (gameResult.localPenaltyScore !== undefined
+          && gameResult.localPenaltyScore !== null
+          && gameResult.awayPenaltyScore !== undefined
+          && gameResult.awayPenaltyScore !== null) {
+          game.localPenaltyScore = gameResult.localPenaltyScore
+          game.awayPenaltyScore = gameResult.awayPenaltyScore
+          game.localPenaltyWinner = game.localPenaltyScore > game.awayPenaltyScore;
+          game.awayPenaltyWinner = game.awayPenaltyScore > game.localPenaltyScore;
+        }
+      }
+    }
+  })
+}
+
+applyResults()
 
 export {
   groups, group_games, round_of_16, round_of_eight, semifinals, third_place, final, playoff_games, allGamesByMatchNumber

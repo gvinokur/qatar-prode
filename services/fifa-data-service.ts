@@ -25,6 +25,20 @@ type SquadData = {
   Players: PlayerData[]
 }
 
+type MatchData = {
+  MatchNumber: number
+  HomeTeamScore: number | null,
+  AwayTeamScore: number | null,
+  AggregateHomeTeamScore: number | null,
+  AggregateAwayTeamScore: number | null,
+  HomeTeamPenaltyScore: number | null,
+  AwayTeamPenaltyScore: number | null,
+}
+
+type MatchesData = {
+  Results: MatchData[]
+}
+
 const calculateAge = (birthDate: string) => {
   const currentDateMillis = Date.now();
   const birthDateMillis = Date.parse(birthDate);
@@ -50,8 +64,14 @@ const fetchPlayerData = async (): Promise<Player[]> => {
 
 const fetchMatchResultData = async (): Promise<Partial<Game>[]> => {
   const allMatchesResult = await fetch('https://api.fifa.com/api/v3/calendar/matches?language=en&count=500&idSeason=255711');
-  const allMatchesData = await allMatchesResult.json()
-  return []
+  const allMatchesData: MatchesData = await allMatchesResult.json()
+  return allMatchesData.Results.map(matchData => ({
+    MatchNumber: matchData.MatchNumber,
+    localScore: matchData.HomeTeamScore !== null ? matchData.HomeTeamScore + (matchData.AggregateHomeTeamScore || 0) : null,
+    awayScore: matchData.AwayTeamScore !== null ? matchData.AwayTeamScore + (matchData.AggregateAwayTeamScore || 0) : null,
+    localPenaltyScore: matchData.HomeTeamPenaltyScore ? matchData.HomeTeamPenaltyScore : undefined,
+    awayPenaltyScore: matchData.AwayTeamPenaltyScore ? matchData.AwayTeamPenaltyScore : undefined,
+  }))
 }
 
-export {fetchPlayerData}
+export {fetchPlayerData, fetchMatchResultData}
