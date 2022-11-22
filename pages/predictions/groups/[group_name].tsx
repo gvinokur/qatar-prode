@@ -90,7 +90,7 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
   }
 
   const editDisabled = (game: Game) => {
-    if (['gustavo@grupowelltech.com', 'vaguiler@hotmail.com', 'lorenaarchidamo@grupowellltech.com'].includes(user?.email || '')) {
+    if (['gustavo@grupowelltech.com', 'vaguiler@hotmail.com', 'lorenaarchidamo@grupowelltech.com'].includes(user?.email || '')) {
       return (Date.now() > Date.parse(game.DateUtc))
     }
     return Date.now() > new Date(2022, 10, 20).valueOf();
