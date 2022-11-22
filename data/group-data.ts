@@ -65,8 +65,8 @@ const group_games: Game[] = [{
   "HomeTeam": "USA",
   "AwayTeam": "Wales",
   "Group": "Group B",
-  "localScore": null,
-  "awayScore": null
+  "localScore": 1,
+  "awayScore": 1
 }, {
   "MatchNumber": 8,
   "RoundNumber": 1,
