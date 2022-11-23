@@ -137,7 +137,18 @@ const ProdeGroupPage = ({ group, groupParticipants, groupGames}: ProdeGroupPageP
   )
 }
 
-export const getServerSideProps = async ({params}: {params: { group_id: string} }) => {
+export const getStaticPaths = async () => {
+  const allGroups: ProdeGroup[] = await query('prode_groups').fetch();
+  const newPaths = allGroups.map(params => ({ params: {
+      group_id: params.id,
+    }}));
+  return {
+    paths: [...newPaths],
+    fallback: 'blocking',
+  }
+}
+
+export const getStaticProps = async ({params}: {params: { group_id: string} }) => {
   const group: ProdeGroup = await query('prode_groups').where('id', params.group_id).fetchOne();
   const groupParticipants: ProdeGroupParticipant[] = await query('prode_group_participants').where('prodeGroupId', params.group_id).fetch();
   return {
@@ -151,7 +162,8 @@ export const getServerSideProps = async ({params}: {params: { group_id: string} 
       semifinals,
       thirdPlace: third_place,
       final
-    }
+    },
+    revalidate: 300,
   }
 }
 
