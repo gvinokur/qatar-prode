@@ -354,7 +354,7 @@ export const getStaticProps = () => {
       groupGames: group_games,
       playoffGames: playoff_games,
     },
-    revalidate: 1000,
+    revalidate: 60,
   }
 }
 

@@ -201,7 +201,7 @@ export const getStaticProps = ({params}: { params : { group_name: string } }) =>
       group,
       groupGames
     },
-    revalidate: 100,
+    revalidate: 60,
   }
 }
 

@@ -260,7 +260,7 @@ export const getStaticProps = () => {
       final,
       allGamesByMatchNumber
     },
-    revalidate: 1000,
+    revalidate: 60,
   }
 }
 
