@@ -1,5 +1,9 @@
 import {Game, Group, GroupName} from "../types/definitions";
-import {calculateRoundOf16TeamsByMatch, calculateRoundof8andLowerTeamsByMatch} from "../utils/position-calculator";
+import {
+  calculatePlayoffsTeams,
+  calculateRoundOf16TeamsByMatch,
+  calculateRoundof8andLowerTeamsByMatch
+} from "../utils/position-calculator";
 import {fetchMatchResultData} from "../services/fifa-data-service";
 
 const groups: Group[] = [{
@@ -745,6 +749,7 @@ const applyResults = async () => {
       }
     }
   })
+  calculatePlayoffsTeams(group_games, round_of_16, round_of_eight, semifinals, third_place, final, allGamesByMatchNumber);
 }
 
 applyResults()

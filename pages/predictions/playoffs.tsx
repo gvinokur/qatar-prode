@@ -1,5 +1,6 @@
 import {Game, GameGuess} from "../../types/definitions";
 import {
+  allGamesByMatchNumber,
   final,
   group_games,
   groups,
@@ -36,18 +37,21 @@ import {useCurrentUser} from "thin-backend-react";
 import {transformBeListToGameGuessDictionary} from "../../utils/be-utils";
 
 type PlayoffProps = {
-  roundOfSixteen: Game[],
-  roundOfEight: Game[],
+  groupGames: Game[],
+  playoffGames: Game[]
+  roundOf16: Game[],
+  roundOf8: Game[],
   semifinals: Game[],
   thirdPlace: Game,
   final: Game,
+  allGamesByMatchNumber: { [k: number]: Game}
 }
 
 type GameGuessDictionary = {
   [key: number]: GameGuess
 };
 
-const Playoffs = () => {
+const Playoffs = ({ groupGames, playoffGames, roundOf16, roundOf8, semifinals, thirdPlace, final, allGamesByMatchNumber}: PlayoffProps) => {
   const [gameGuesses, setGameGuesses] = useState<GameGuessDictionary>({})
   const [calculatedTeamNameToGameMap, setCalculatedTeamNameToGameMap] = useState<{ [key: number]: { homeTeam: string, awayTeam: string } }>({})
   const [saving, setSaving] = useState(false);
@@ -62,8 +66,8 @@ const Playoffs = () => {
           .where('userId', getCurrentUserId()).fetch();
 
       const gameGuesses = transformBeListToGameGuessDictionary(currentGameGuesses)
-      const currentMap = calculateRoundOf16TeamsByMatch(gameGuesses);
-      const calculatedTeamNameToGameMap = calculateRoundof8andLowerTeamsByMatch(currentMap, gameGuesses)
+      const currentMap = calculateRoundOf16TeamsByMatch(groupGames, roundOf16, gameGuesses);
+      const calculatedTeamNameToGameMap = calculateRoundof8andLowerTeamsByMatch(roundOf8, semifinals, thirdPlace, final, allGamesByMatchNumber, currentMap, gameGuesses)
       setCalculatedTeamNameToGameMap(calculatedTeamNameToGameMap)
       //Doing this
       Object.values(gameGuesses).forEach(gameGuess => {
@@ -83,12 +87,12 @@ const Playoffs = () => {
   const savePredictions = async () => {
     setSaving(true)
     const gameGuessesValues = Object.values(gameGuesses)
-    const playoffGameIds = playoff_games.map(game => game.MatchNumber)
+    const playoffGameIds = playoffGames.map(game => game.MatchNumber)
     const gameGuessesToSave = gameGuessesValues.filter(gameGuess => playoffGameIds.includes(gameGuess.gameId))
     const currentGameGuesses: GameGuess[] =
       await query('game_guesses')
         .where('userId', getCurrentUserId())
-        .whereIn('gameId', [...round_of_16, ...round_of_eight, ...semifinals, final, third_place].map(game => game.MatchNumber)).fetch();
+        .whereIn('gameId', playoffGames.map(game => game.MatchNumber)).fetch();
 
     // @ts-ignore
     await deleteRecords('game_guesses', currentGameGuesses.map(gameGuess => gameGuess.id))
@@ -97,7 +101,7 @@ const Playoffs = () => {
     if (Date.now() < new Date(2022, 10,21).valueOf()) {
       const championGuess = getWinner(gameGuesses[final.MatchNumber], calculatedTeamNameToGameMap[final.MatchNumber]?.homeTeam, calculatedTeamNameToGameMap[final.MatchNumber]?.awayTeam )
       const secondPlaceGuess = getLoser(gameGuesses[final.MatchNumber], calculatedTeamNameToGameMap[final.MatchNumber]?.homeTeam, calculatedTeamNameToGameMap[final.MatchNumber]?.awayTeam )
-      const thirdPlaceGuess = getWinner(gameGuesses[third_place.MatchNumber], calculatedTeamNameToGameMap[third_place.MatchNumber]?.homeTeam, calculatedTeamNameToGameMap[third_place.MatchNumber]?.awayTeam )
+      const thirdPlaceGuess = getWinner(gameGuesses[thirdPlace.MatchNumber], calculatedTeamNameToGameMap[thirdPlace.MatchNumber]?.homeTeam, calculatedTeamNameToGameMap[thirdPlace.MatchNumber]?.awayTeam )
       await updateRecord('users', getCurrentUserId(), { championGuess, secondPlaceGuess, thirdPlaceGuess});
     }
     setSaving(false)
@@ -115,7 +119,7 @@ const Playoffs = () => {
       ...gameGuesses,
       [gameGuess.gameId]: gameGuess
     }
-    const newCalculatedTeamNameToGameMap = calculateRoundof8andLowerTeamsByMatch(calculatedTeamNameToGameMap, newGameGuesses)
+    const newCalculatedTeamNameToGameMap = calculateRoundof8andLowerTeamsByMatch(roundOf8, semifinals, thirdPlace, final, allGamesByMatchNumber, calculatedTeamNameToGameMap, newGameGuesses)
     setCalculatedTeamNameToGameMap(newCalculatedTeamNameToGameMap)
     //Doing this
     Object.values(newGameGuesses).forEach(gameGuess => {
@@ -140,7 +144,7 @@ const Playoffs = () => {
             overflow: 'hidden'
           }}>Octavos de Final</Typography>
           <Grid container spacing={1} >
-            {round_of_16.map(game => (
+            {roundOf16.map(game => (
               <Grid item key={game.MatchNumber} xs={6}>
                 <GameView game={calculateTeams(game)} gameGuess={gameGuesses[game.MatchNumber]} onGameGuessChange={handleGameGuessChange} editDisabled={editDisabled}/>
               </Grid>
@@ -154,7 +158,7 @@ const Playoffs = () => {
             overflow: 'hidden'
           }}>Cuartos de Final</Typography>
           <Grid container spacing={1}>
-            {round_of_eight.map(game => (
+            {roundOf8.map(game => (
               <Grid item key={game.MatchNumber} md={12} xs={6}>
                 <GameView game={calculateTeams(game, `Ganador ${game.HomeTeam}`, `Ganador ${game.AwayTeam}`)} gameGuess={gameGuesses[game.MatchNumber]} onGameGuessChange={handleGameGuessChange}
                           editDisabled={editDisabled}/>
@@ -194,7 +198,7 @@ const Playoffs = () => {
                 whiteSpace: 'nowrap',
                 overflow: 'hidden'
               }}>Tercer Puesto</Typography>
-              <GameView game={calculateTeams(third_place, `Perdedor ${third_place.HomeTeam}`, `Perdedor ${third_place.AwayTeam}`)} gameGuess={gameGuesses[third_place.MatchNumber]} onGameGuessChange={handleGameGuessChange}
+              <GameView game={calculateTeams(thirdPlace, `Perdedor ${thirdPlace.HomeTeam}`, `Perdedor ${thirdPlace.AwayTeam}`)} gameGuess={gameGuesses[thirdPlace.MatchNumber]} onGameGuessChange={handleGameGuessChange}
                         editDisabled={editDisabled}/>
             </Grid>
           </Grid>
@@ -225,7 +229,7 @@ const Playoffs = () => {
                 </ListItemAvatar>
                 <ListItemText>
                   {pastStartDate ? user?.thirdPlaceGuess :
-                    getWinner(gameGuesses[third_place.MatchNumber], calculatedTeamNameToGameMap[third_place.MatchNumber]?.homeTeam, calculatedTeamNameToGameMap[third_place.MatchNumber]?.awayTeam )}
+                    getWinner(gameGuesses[thirdPlace.MatchNumber], calculatedTeamNameToGameMap[thirdPlace.MatchNumber]?.homeTeam, calculatedTeamNameToGameMap[thirdPlace.MatchNumber]?.awayTeam )}
                 </ListItemText>
               </ListItem>
             </List>
@@ -242,6 +246,22 @@ const Playoffs = () => {
       </Snackbar>
     </Box>
   )
+}
+
+export const getStaticProps = () => {
+  return {
+    props: {
+      groupGames: group_games,
+      playoffGames: playoff_games,
+      roundOf16: round_of_16,
+      roundOf8: round_of_eight,
+      semifinals,
+      thirdPlace: third_place,
+      final,
+      allGamesByMatchNumber
+    },
+    revalidate: 1000,
+  }
 }
 
 export default Playoffs

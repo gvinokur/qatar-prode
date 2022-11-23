@@ -1,10 +1,9 @@
-import type { NextPage } from 'next'
 import {
   query,
-  initThinBackend,
   createRecord,
   getCurrentUserId,
-  ProdeGroup, updateRecord, deleteRecord
+  ProdeGroup,
+  deleteRecord
 } from 'thin-backend';
 import {ChangeEvent, useEffect, useState} from 'react';
 import {
@@ -34,13 +33,21 @@ import {
 import {LoadingButton} from "@mui/lab";
 import {ExpandMore as ExpandMoreIcon, Share as ShareIcon, Delete as DeleteIcon} from "@mui/icons-material";
 import {useCurrentUser} from "thin-backend-react";
-import {group_games, playoff_games} from "../data/group-data";
+import {
+  final,
+  group_games,
+  playoff_games,
+  round_of_16,
+  round_of_eight,
+  semifinals,
+  third_place
+} from "../data/group-data";
 import {
   calculateScoreForGame,
   calculateScoreForGroupStageQualifiers,
   calculateScoreStatsForGroupStageGames
 } from "../utils/score-calculator";
-import {GameGuess, GameGuessDictionary} from "../types/definitions";
+import {Game, GameGuess, GameGuessDictionary} from "../types/definitions";
 import {transformBeListToGameGuessDictionary} from "../utils/be-utils";
 import {getDateString} from "../utils/date-utils";
 
@@ -69,7 +76,12 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
   }),
 }));
 
-const Home: NextPage = () => {
+type HomePageProps = {
+  groupGames: Game[],
+  playoffGames: Game[]
+}
+
+const Home = ({groupGames, playoffGames}: HomePageProps) => {
   const [openSharingDialog, setOpenSharingDialog] = useState<string | false>(false);
   const [groupName, setGroupName] = useState('')
   const [open, setOpen] = useState(false);
@@ -137,8 +149,8 @@ const Home: NextPage = () => {
     setExpanded(!expanded);
   }
 
-  const groupScoreData = calculateScoreStatsForGroupStageGames(gameGuesses);
-  const gamesAroundMyTime = [...group_games, ...playoff_games].sort((a, b) => {
+  const groupScoreData = calculateScoreStatsForGroupStageGames(groupGames, gameGuesses);
+  const gamesAroundMyTime = [...groupGames, ...playoffGames].sort((a, b) => {
     return Math.abs(Date.parse(a.DateUtc) - Date.now()) - Math.abs(Date.parse(b.DateUtc) - Date.now())
   }).filter((_, index) => (index < 5)).sort((a,b) => Date.parse(a.DateUtc) - Date.parse(b.DateUtc))
 
@@ -278,7 +290,7 @@ const Home: NextPage = () => {
                 </Typography></Grid>
                 <Grid item xs={8}><Typography variant={'body1'} color={'primary.light'}>Puntos por Clasificados</Typography></Grid>
                 <Grid item xs={4}><Typography variant={'body1'} fontWeight={700}>
-                  {calculateScoreForGroupStageQualifiers(gameGuesses)}
+                  {calculateScoreForGroupStageQualifiers(groupGames, gameGuesses)}
                 </Typography></Grid>
               </Grid>
             </CardContent>
@@ -334,6 +346,16 @@ const Home: NextPage = () => {
       </Dialog>
     </>
   )
+}
+
+export const getStaticProps = () => {
+  return {
+    props: {
+      groupGames: group_games,
+      playoffGames: playoff_games,
+    },
+    revalidate: 1000,
+  }
 }
 
 export default Home

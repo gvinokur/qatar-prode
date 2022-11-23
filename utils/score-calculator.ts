@@ -1,11 +1,11 @@
 import {Game, GameGuess} from "../types/definitions";
-import {group_games, groups} from "../data/group-data";
+import {groups} from "../data/group-data";
 import {calculateGroupPosition} from "./position-calculator";
 
-export const calculateScoreForGroupStageQualifiers = (gameGuesses: { [key: number]: GameGuess }) => {
+export const calculateScoreForGroupStageQualifiers = (groupGames: Game[], gameGuesses: { [key: number]: GameGuess }) => {
   let score = 0;
   groups.forEach(group => {
-    const thisGroupGames = group_games.filter(game => game.Group === group.name);
+    const thisGroupGames = groupGames.filter(game => game.Group === group.name);
     const allGroupGamesPlayed = thisGroupGames.filter(game => (game.localScore === null || game.awayScore === null)).length === 0;
     if(allGroupGamesPlayed) {
       const realPositions = calculateGroupPosition(group.teams, thisGroupGames);
@@ -27,8 +27,8 @@ export const calculateScoreForGroupStageQualifiers = (gameGuesses: { [key: numbe
   return score;
 }
 
-export const calculateScoreStatsForGroupStageGames = (gameGuesses: { [key: number]: GameGuess }) => {
-  const scoreByGame: number[] = group_games.map(game => calculateScoreForGame(game, gameGuesses[game.MatchNumber]))
+export const calculateScoreStatsForGroupStageGames = (groupGames: Game[], gameGuesses: { [key: number]: GameGuess }) => {
+  const scoreByGame: number[] = groupGames.map(game => calculateScoreForGame(game, gameGuesses[game.MatchNumber]))
   return {
     correctPredictions: scoreByGame.filter(score => score >= 1).length ,
     exactPredictions: scoreByGame.filter(score => score > 1).length,

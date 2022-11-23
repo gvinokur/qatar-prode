@@ -21,16 +21,26 @@ import {
 } from "@mui/material";
 import {useEffect, useState} from "react";
 import Image from "next/image";
-import {GameGuessDictionary} from "../../types/definitions";
+import {Game, GameGuessDictionary} from "../../types/definitions";
 import {
   calculateScoreForGroupStageQualifiers,
   calculateScoreStatsForGroupStageGames
 } from "../../utils/score-calculator";
+import {
+  final,
+  group_games,
+  playoff_games,
+  round_of_16,
+  round_of_eight,
+  semifinals,
+  third_place
+} from "../../data/group-data";
 
 
 type ProdeGroupPageProps = {
   group: ProdeGroup,
-  groupParticipants: ProdeGroupParticipant[]
+  groupParticipants: ProdeGroupParticipant[],
+  groupGames: Game[]
 }
 
 initThinBackend({ host: process.env.NEXT_PUBLIC_BACKEND_URL });
@@ -44,7 +54,7 @@ type UserScore = {
   totalPoints: number,
 }
 
-const ProdeGroupPage = ({ group, groupParticipants}: ProdeGroupPageProps) => {
+const ProdeGroupPage = ({ group, groupParticipants, groupGames}: ProdeGroupPageProps) => {
   const [userScores, setUserScores] = useState<UserScore[]>([])
   const [orderBy, setOrderBy] = useState('');
 
@@ -57,8 +67,8 @@ const ProdeGroupPage = ({ group, groupParticipants}: ProdeGroupPageProps) => {
         guessesByUser[gameGuess.userId][gameGuess.gameId] = gameGuess;
       })
       const userScores: UserScore[] = users.map(user => {
-        const scoreStatsForGroupStageGames = calculateScoreStatsForGroupStageGames(guessesByUser[user.id]);
-        const scoreForGroupStageQualifiers = calculateScoreForGroupStageQualifiers(guessesByUser[user.id]);
+        const scoreStatsForGroupStageGames = calculateScoreStatsForGroupStageGames(groupGames, guessesByUser[user.id]);
+        const scoreForGroupStageQualifiers = calculateScoreForGroupStageQualifiers(groupGames, guessesByUser[user.id]);
         return {
           user,
           groupStageScore: scoreStatsForGroupStageGames.totalPoints,
@@ -133,7 +143,14 @@ export const getServerSideProps = async ({params}: {params: { group_id: string} 
   return {
     props: {
       group,
-      groupParticipants
+      groupParticipants,
+      groupGames: group_games,
+      playoffGames: playoff_games,
+      roundOf16: round_of_16,
+      roundOf8: round_of_eight,
+      semifinals,
+      thirdPlace: third_place,
+      final
     }
   }
 }
