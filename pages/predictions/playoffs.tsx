@@ -98,7 +98,7 @@ const Playoffs = ({ groupGames, playoffGames, roundOf16, roundOf8, semifinals, t
     await deleteRecords('game_guesses', currentGameGuesses.map(gameGuess => gameGuess.id))
     await createRecords('game_guesses', gameGuessesToSave);
     // Only save values for honor
-    if (Date.now() < new Date(2022, 10,21).valueOf()) {
+    if (Date.now() < new Date(2022, 10,25).valueOf()) {
       const championGuess = getWinner(gameGuesses[final.MatchNumber], calculatedTeamNameToGameMap[final.MatchNumber]?.homeTeam, calculatedTeamNameToGameMap[final.MatchNumber]?.awayTeam )
       const secondPlaceGuess = getLoser(gameGuesses[final.MatchNumber], calculatedTeamNameToGameMap[final.MatchNumber]?.homeTeam, calculatedTeamNameToGameMap[final.MatchNumber]?.awayTeam )
       const thirdPlaceGuess = getWinner(gameGuesses[thirdPlace.MatchNumber], calculatedTeamNameToGameMap[thirdPlace.MatchNumber]?.homeTeam, calculatedTeamNameToGameMap[thirdPlace.MatchNumber]?.awayTeam )

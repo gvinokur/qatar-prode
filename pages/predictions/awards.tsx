@@ -38,8 +38,10 @@ const AwardsPage = ({players}: { players: Player[]}) => {
     })
   }
 
+  const saveDisabled = Date.now() > new Date(2022, 10, 25).valueOf()
+
   const savePredictions = async () => {
-    if (user != null) {
+    if (user != null && !saveDisabled) {
       setSaving(true);
       await updateRecord('users', user.id, userGuesses)
       setSaving(false)
@@ -205,7 +207,7 @@ const AwardsPage = ({players}: { players: Player[]}) => {
           </Grid>
         </CardContent>
       </Card>
-      <LoadingButton loading={saving} variant='contained' size='large' onClick={savePredictions} sx={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translate(-50%, 0)' }}>Guardar Pronostico</LoadingButton>
+      <LoadingButton loading={saving} disabled={saveDisabled} variant='contained' size='large' onClick={savePredictions} sx={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translate(-50%, 0)' }}>Guardar Pronostico</LoadingButton>
       <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center'}} open={saved} autoHideDuration={2000} onClose={() => setSaved(false)}>
         <Alert onClose={() => setSaved(false)} severity="success" sx={{ width: '100%' }}>
           Tus pronosticos se guardaron correctamente!
