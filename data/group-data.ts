@@ -752,8 +752,6 @@ const applyResults = async () => {
   calculatePlayoffsTeams(group_games, round_of_16, round_of_eight, semifinals, third_place, final, allGamesByMatchNumber);
 }
 
-applyResults()
-
 export {
-  groups, group_games, round_of_16, round_of_eight, semifinals, third_place, final, playoff_games, allGamesByMatchNumber
+  groups, group_games, round_of_16, round_of_eight, semifinals, third_place, final, playoff_games, allGamesByMatchNumber, applyResults
 }

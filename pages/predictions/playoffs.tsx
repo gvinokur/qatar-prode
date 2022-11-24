@@ -1,6 +1,6 @@
 import {Game, GameGuess} from "../../types/definitions";
 import {
-  allGamesByMatchNumber,
+  allGamesByMatchNumber, applyResults,
   final,
   group_games,
   groups,
@@ -248,7 +248,8 @@ const Playoffs = ({ groupGames, playoffGames, roundOf16, roundOf8, semifinals, t
   )
 }
 
-export const getStaticProps = () => {
+export const getStaticProps = async () => {
+  await applyResults()
   return {
     props: {
       groupGames: group_games,

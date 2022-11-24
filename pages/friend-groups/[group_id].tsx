@@ -27,6 +27,7 @@ import {
   calculateScoreStatsForGroupStageGames
 } from "../../utils/score-calculator";
 import {
+  applyResults,
   final,
   group_games,
   playoff_games,
@@ -149,6 +150,7 @@ export const getStaticPaths = async () => {
 }
 
 export const getStaticProps = async ({params}: {params: { group_id: string} }) => {
+  await applyResults()
   const group: ProdeGroup = await query('prode_groups').where('id', params.group_id).fetchOne();
   const groupParticipants: ProdeGroupParticipant[] = await query('prode_group_participants').where('prodeGroupId', params.group_id).fetch();
   return {

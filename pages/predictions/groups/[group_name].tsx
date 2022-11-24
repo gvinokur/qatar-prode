@@ -11,7 +11,7 @@ import {
   TableRow,
   Typography, useMediaQuery,
 } from "@mui/material";
-import {group_games, groups} from "../../../data/group-data";
+import {applyResults, group_games, groups} from "../../../data/group-data";
 import {Game, GameGuess, Group, TeamStats} from "../../../types/definitions";
 import {calculateGroupPosition} from "../../../utils/position-calculator";
 import GroupSelector from "../../../components/group-selector";
@@ -188,7 +188,8 @@ export const getStaticPaths = () => {
   }
 }
 
-export const getStaticProps = ({params}: { params : { group_name: string } }) => {
+export const getStaticProps = async ({params}: { params : { group_name: string } }) => {
+  await applyResults()
   const groupName = params.group_name
     .split('-')
     .map(text => text.toLowerCase()

@@ -5,7 +5,7 @@ import {
   ProdeGroup,
   deleteRecord
 } from 'thin-backend';
-import {ChangeEvent, useEffect, useState} from 'react';
+import {ChangeEvent, Fragment, useEffect, useState} from 'react';
 import {
   Button,
   Card,
@@ -34,6 +34,7 @@ import {LoadingButton} from "@mui/lab";
 import {ExpandMore as ExpandMoreIcon, Share as ShareIcon, Delete as DeleteIcon} from "@mui/icons-material";
 import {useCurrentUser} from "thin-backend-react";
 import {
+  applyResults,
   final,
   group_games,
   playoff_games,
@@ -166,7 +167,7 @@ const Home = ({groupGames, playoffGames}: HomePageProps) => {
             <CardContent>
               <Grid container spacing={1}>
                 {gamesAroundMyTime.map(game => (
-                  <>
+                  <Fragment key={game.MatchNumber}>
                     <Grid item xs={6} textAlign='center'>
                       <Typography variant='body1'>
                         {getDateString(game.DateUtc, false)}
@@ -196,7 +197,7 @@ const Home = ({groupGames, playoffGames}: HomePageProps) => {
 
                     </Grid>
                     <Grid item xs={12} sx={{ height: 0, borderBottom: `${theme.palette.primary.contrastText} 1px solid` }}/>
-                  </>
+                  </Fragment>
                 ))}
               </Grid>
             </CardContent>
@@ -348,7 +349,8 @@ const Home = ({groupGames, playoffGames}: HomePageProps) => {
   )
 }
 
-export const getStaticProps = () => {
+export const getStaticProps = async () => {
+  await applyResults()
   return {
     props: {
       groupGames: group_games,
