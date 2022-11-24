@@ -178,23 +178,40 @@ const Home = ({groupGames, playoffGames}: HomePageProps) => {
                         {game.Group}
                       </Typography>
                     </Grid>
-                    <Grid item xs={4} textAlign='center'>
-                      <Typography variant='body2'>
+                    <Grid item xs={3} textAlign='center'>
+                      <Typography variant='body2' sx={{
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden'
+                      }}>
                         {game.CalculatedHomeTeam || game.HomeTeam}
                       </Typography>
                     </Grid>
-                    <Grid item xs={2} textAlign='center'>
+                    <Grid item xs={1} textAlign='center'>
+                      {game.CalculatedHomeTeam || typeof game.HomeTeam === 'string' && (
+                        <Avatar variant='rounded' title={(game.CalculatedHomeTeam || game.HomeTeam)} src={`/flags/${(game.CalculatedHomeTeam || game.HomeTeam).substring(0,3)}.webp`} sx={{
+                          width: '24px', height: '18px'}}/>
+                      )}
+                    </Grid>
+                    <Grid item xs={4} textAlign='center'>
                       <Typography variant='body2'>
                         {game.localScore} - {game.awayScore}
                       </Typography>
                     </Grid>
-                    <Grid item xs={4} textAlign='center'>
-                      <Typography variant='body2'>
+                    <Grid item xs={1} textAlign='center'>
+                      {game.CalculatedAwayTeam || typeof game.AwayTeam === 'string' && (
+                        <Avatar variant='rounded' title={(game.CalculatedAwayTeam || game.AwayTeam)} src={`/flags/${(game.CalculatedAwayTeam || game.AwayTeam).substring(0,3)}.webp`} sx={{
+                          width: '24px', height: '18px'}}/>
+                      )}
+                    </Grid>
+                    <Grid item xs={3} textAlign='center'>
+                      <Typography variant='body2' sx={{
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden'
+                      }}>
                         {game.CalculatedAwayTeam || game.AwayTeam}
                       </Typography>
-                    </Grid>
-                    <Grid item xs={2}>
-
                     </Grid>
                     <Grid item xs={12} sx={{ height: 0, borderBottom: `${theme.palette.primary.contrastText} 1px solid` }}/>
                   </Fragment>
