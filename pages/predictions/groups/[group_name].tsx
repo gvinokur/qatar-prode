@@ -90,6 +90,12 @@ const GroupPage = ( {group, groupGames}: GroupPageProps ) => {
   }
 
   const editDisabled = (game: Game) => {
+    if ([
+      'agustinacardenas@grupowelltech.com',
+      'lionelbekerman@gmail.com',
+    ].includes(user?.email?.toLowerCase() || 'fakeEmail@fakedomain.com') && (Date.now() < Date.parse(game.DateUtc))) {
+      return false;
+    }
     return Date.now() > new Date(2022, 10, 20).valueOf();
   }
   const allGroupGamesPlayed = groupGames.filter(game => (game.localScore === null || game.awayScore === null)).length === 0;
