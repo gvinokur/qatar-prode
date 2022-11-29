@@ -23,8 +23,8 @@ import {useEffect, useState} from "react";
 import Image from "next/image";
 import {Game, GameGuessDictionary} from "../../types/definitions";
 import {
-  calculateScoreForGroupStageQualifiers,
-  calculateScoreStatsForGroupStageGames
+  calculateScoreForGame,
+  calculateScoreForGroupStageQualifiers, calculateScoreForHonorRoll, calculateScoreStatsForGames,
 } from "../../utils/score-calculator";
 import {
   applyResults,
@@ -41,7 +41,10 @@ import {
 type ProdeGroupPageProps = {
   group: ProdeGroup,
   groupParticipants: ProdeGroupParticipant[],
-  groupGames: Game[]
+  groupGames: Game[],
+  playoffGames: Game[],
+  final: Game,
+  thirdPlace: Game
 }
 
 initThinBackend({ host: process.env.NEXT_PUBLIC_BACKEND_URL });
@@ -55,7 +58,7 @@ type UserScore = {
   totalPoints: number,
 }
 
-const ProdeGroupPage = ({ group, groupParticipants, groupGames}: ProdeGroupPageProps) => {
+const ProdeGroupPage = ({ group, groupParticipants, groupGames, playoffGames, final, thirdPlace}: ProdeGroupPageProps) => {
   const [userScores, setUserScores] = useState<UserScore[]>([])
   const [orderBy, setOrderBy] = useState('');
 
@@ -68,15 +71,20 @@ const ProdeGroupPage = ({ group, groupParticipants, groupGames}: ProdeGroupPageP
         guessesByUser[gameGuess.userId][gameGuess.gameId] = gameGuess;
       })
       const userScores: UserScore[] = users.map(user => {
-        const scoreStatsForGroupStageGames = calculateScoreStatsForGroupStageGames(groupGames, guessesByUser[user.id]);
+        const scoreStatsForGroupStageGames = calculateScoreStatsForGames(groupGames, guessesByUser[user.id]);
         const scoreForGroupStageQualifiers = calculateScoreForGroupStageQualifiers(groupGames, guessesByUser[user.id]);
+        const scoreForPlayoffGames = calculateScoreStatsForGames(playoffGames, guessesByUser[user.id]);
+        const honorRollScoreData = calculateScoreForHonorRoll(final, thirdPlace, user);
         return {
           user,
           groupStageScore: scoreStatsForGroupStageGames.totalPoints,
           groupStageQualifiersScore: scoreForGroupStageQualifiers,
-          playoffScore: 0,
-          honorRollScore: 0,
-          totalPoints: scoreStatsForGroupStageGames.totalPoints + scoreForGroupStageQualifiers,
+          playoffScore: scoreForPlayoffGames.totalPoints,
+          honorRollScore: honorRollScoreData.points,
+          totalPoints: scoreStatsForGroupStageGames.totalPoints +
+            scoreForPlayoffGames.totalPoints +
+            scoreForGroupStageQualifiers +
+            honorRollScoreData.points,
         }
       })
       setUserScores(userScores.sort((a, b) => (b.totalPoints - a.totalPoints)))

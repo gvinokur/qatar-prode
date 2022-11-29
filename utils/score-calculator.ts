@@ -1,6 +1,30 @@
 import {Game, GameGuess} from "../types/definitions";
 import {groups} from "../data/group-data";
 import {calculateGroupPosition} from "./position-calculator";
+import {User} from "thin-backend";
+import {getLoser, getWinner} from "./score-utils";
+
+export const calculateScoreForHonorRoll = (final: Game, thirdPlace: Game, user: User | null) => {
+  const championTeam = getWinner(final, final.CalculatedHomeTeam || '', final.CalculatedAwayTeam || '');
+  const secondPlaceTeam = getLoser(final, final.CalculatedHomeTeam || '', final.CalculatedAwayTeam || '');
+  const thirdPlaceTeam = getWinner(thirdPlace, thirdPlace.CalculatedHomeTeam || '', thirdPlace.CalculatedAwayTeam || '');
+  let points = 0;
+  if (championTeam !== null && championTeam === user?.championGuess) {
+    points += 5
+  }
+  if (secondPlaceTeam !== null && secondPlaceTeam === user?.secondPlaceGuess) {
+    points += 3
+  }
+  if (thirdPlaceTeam !== null && thirdPlaceTeam === user?.thirdPlaceGuess) {
+    points += 1
+  }
+  return {
+    championTeam,
+    secondPlaceTeam,
+    thirdPlaceTeam,
+    points
+  }
+}
 
 export const calculateScoreForGroupStageQualifiers = (groupGames: Game[], gameGuesses: { [key: number]: GameGuess }) => {
   let score = 0;
@@ -27,7 +51,7 @@ export const calculateScoreForGroupStageQualifiers = (groupGames: Game[], gameGu
   return score;
 }
 
-export const calculateScoreStatsForGroupStageGames = (groupGames: Game[], gameGuesses: { [key: number]: GameGuess }) => {
+export const calculateScoreStatsForGames = (groupGames: Game[], gameGuesses: { [key: number]: GameGuess }) => {
   const scoreByGame: number[] = groupGames.map(game => calculateScoreForGame(game, gameGuesses[game.MatchNumber]))
   return {
     correctPredictions: scoreByGame.filter(score => score >= 1).length ,
@@ -53,6 +77,12 @@ export const calculateScoreForGame = (game: Game, gameGuess?: GameGuess) => {
     const guessTie = (gameGuess.localScore === gameGuess.awayScore)
     let homePenaltyWin = false;
     let awayPenaltyWin = false;
+
+    // Playoff points are only awarded if both teams are the right ones.
+    if (isPlayoff &&
+      (game.CalculatedHomeTeam !== gameGuess.localTeam || game.CalculatedAwayTeam !== gameGuess.awayTeam)) {
+      return 0;
+    }
 
     // Special case for playoffs and ties
     if (isPlayoff && (game.localScore === game.awayScore)) {

@@ -34,19 +34,13 @@ import {LoadingButton} from "@mui/lab";
 import {ExpandMore as ExpandMoreIcon, Share as ShareIcon, Delete as DeleteIcon} from "@mui/icons-material";
 import {useCurrentUser} from "thin-backend-react";
 import {
-  applyResults,
-  final,
+  applyResults, final,
   group_games,
-  playoff_games,
-  round_of_16,
-  round_of_eight,
-  semifinals,
-  third_place
+  playoff_games, third_place,
 } from "../data/group-data";
 import {
-  calculateScoreForGame,
-  calculateScoreForGroupStageQualifiers,
-  calculateScoreStatsForGroupStageGames
+  calculateScoreForGroupStageQualifiers, calculateScoreForHonorRoll,
+  calculateScoreStatsForGames
 } from "../utils/score-calculator";
 import {Game, GameGuess, GameGuessDictionary} from "../types/definitions";
 import {transformBeListToGameGuessDictionary} from "../utils/be-utils";
@@ -79,10 +73,12 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
 
 type HomePageProps = {
   groupGames: Game[],
-  playoffGames: Game[]
+  playoffGames: Game[],
+  final: Game,
+  thirdPlace: Game
 }
 
-const Home = ({groupGames, playoffGames}: HomePageProps) => {
+const Home = ({groupGames, playoffGames, final, thirdPlace}: HomePageProps) => {
   const [openSharingDialog, setOpenSharingDialog] = useState<string | false>(false);
   const [groupName, setGroupName] = useState('')
   const [open, setOpen] = useState(false);
@@ -150,7 +146,9 @@ const Home = ({groupGames, playoffGames}: HomePageProps) => {
     setExpanded(!expanded);
   }
 
-  const groupScoreData = calculateScoreStatsForGroupStageGames(groupGames, gameGuesses);
+  const groupScoreData = calculateScoreStatsForGames(groupGames, gameGuesses);
+  const playoffScoreData = calculateScoreStatsForGames(playoffGames, gameGuesses);
+  const honorRollScoreData = calculateScoreForHonorRoll(final, thirdPlace, user);
   const gamesAroundMyTime = [...groupGames, ...playoffGames].sort((a, b) => {
     return Math.abs(Date.parse(a.DateUtc) - Date.now()) - Math.abs(Date.parse(b.DateUtc) - Date.now())
   }).filter((_, index) => (index < 5)).sort((a,b) => Date.parse(a.DateUtc) - Date.parse(b.DateUtc))
@@ -296,7 +294,7 @@ const Home = ({groupGames, playoffGames}: HomePageProps) => {
               sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
             />
             <CardContent>
-              <Grid container>
+              <Grid container spacing={1}>
                 <Grid item xs={12}><Typography variant={'h6'} color={'primary.light'}>Fase de Grupos</Typography></Grid>
                 <Grid item xs={8}><Typography variant={'body1'} color={'primary.light'}>Aciertos (Exactos)</Typography></Grid>
                 <Grid item xs={4}><Typography variant={'body1'} fontWeight={700}>
@@ -309,6 +307,22 @@ const Home = ({groupGames, playoffGames}: HomePageProps) => {
                 <Grid item xs={8}><Typography variant={'body1'} color={'primary.light'}>Puntos por Clasificados</Typography></Grid>
                 <Grid item xs={4}><Typography variant={'body1'} fontWeight={700}>
                   {calculateScoreForGroupStageQualifiers(groupGames, gameGuesses)}
+                </Typography></Grid>
+                <Grid item xs={12}
+                      sx={{borderTop: `${theme.palette.primary.contrastText} 1px solid` }} mt={2}>
+                  <Typography variant={'h6'} color={'primary.light'}>Playoffs</Typography>
+                </Grid>
+                <Grid item xs={8}><Typography variant={'body1'} color={'primary.light'}>Aciertos (Exactos)</Typography></Grid>
+                <Grid item xs={4}><Typography variant={'body1'} fontWeight={700}>
+                  {playoffScoreData.correctPredictions} ({playoffScoreData.exactPredictions})
+                </Typography></Grid>
+                <Grid item xs={8}><Typography variant={'body1'} color={'primary.light'}>Puntos por Partidos</Typography></Grid>
+                <Grid item xs={4}><Typography variant={'body1'} fontWeight={700}>
+                  {playoffScoreData.totalPoints}
+                </Typography></Grid>
+                <Grid item xs={8}><Typography variant={'body1'} color={'primary.light'}>Cuadro de Honor</Typography></Grid>
+                <Grid item xs={4}><Typography variant={'body1'} fontWeight={700}>
+                  {honorRollScoreData.points}
                 </Typography></Grid>
               </Grid>
             </CardContent>
@@ -372,6 +386,8 @@ export const getStaticProps = async () => {
     props: {
       groupGames: group_games,
       playoffGames: playoff_games,
+      final,
+      thirdPlace: third_place
     },
     revalidate: 60,
   }
