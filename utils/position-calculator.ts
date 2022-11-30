@@ -37,7 +37,7 @@ export const calculateRoundOf16TeamsByMatch = (groupGames: Game[], roundOf16Game
     }
     const groupPositions = calculateGroupPosition(
       group.teams,
-      thisGroupGames.filter(game => game.Group === group.name).map(game => gameGuesses ? ({
+      thisGroupGames.map(game => (gameGuesses && !isGroupComplete(thisGroupGames)) ? ({
         ...game,
         localScore: gameGuesses[game.MatchNumber]?.localScore,
         awayScore: gameGuesses[game.MatchNumber]?.awayScore,
