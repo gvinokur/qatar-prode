@@ -129,7 +129,7 @@ const Playoffs = ({ groupGames, playoffGames, roundOf16, roundOf8, semifinals, t
     setGameGuesses(newGameGuesses)
   }
 
-  const editDisabled = Date.now() > new Date(2022, 11, 3).valueOf();
+  const editDisabled = (game: Game) => Date.now() > Date.parse(game.DateUtc)
   const pastStartDate = Date.now() > new Date(2022, 10, 23).valueOf();
 
   // @ts-ignore
@@ -146,7 +146,7 @@ const Playoffs = ({ groupGames, playoffGames, roundOf16, roundOf8, semifinals, t
           <Grid container spacing={1} >
             {roundOf16.map(game => (
               <Grid item key={game.MatchNumber} xs={6}>
-                <GameView game={calculateTeams(game)} gameGuess={gameGuesses[game.MatchNumber]} onGameGuessChange={handleGameGuessChange} editDisabled={editDisabled}/>
+                <GameView game={calculateTeams(game)} gameGuess={gameGuesses[game.MatchNumber]} onGameGuessChange={handleGameGuessChange} editDisabled={editDisabled(game)}/>
               </Grid>
             ))}
           </Grid>
@@ -161,7 +161,7 @@ const Playoffs = ({ groupGames, playoffGames, roundOf16, roundOf8, semifinals, t
             {roundOf8.map(game => (
               <Grid item key={game.MatchNumber} md={12} xs={6}>
                 <GameView game={calculateTeams(game, `Ganador ${game.HomeTeam}`, `Ganador ${game.AwayTeam}`)} gameGuess={gameGuesses[game.MatchNumber]} onGameGuessChange={handleGameGuessChange}
-                          editDisabled={editDisabled}/>
+                          editDisabled={editDisabled(game)}/>
               </Grid>
             ))}
           </Grid>
@@ -176,7 +176,7 @@ const Playoffs = ({ groupGames, playoffGames, roundOf16, roundOf8, semifinals, t
             {semifinals.map(game => (
               <Grid item key={game.MatchNumber} md={12} xs={6}>
                 <GameView game={calculateTeams(game, `Ganador ${game.HomeTeam}`, `Ganador ${game.AwayTeam}`)} gameGuess={gameGuesses[game.MatchNumber]} onGameGuessChange={handleGameGuessChange}
-                          editDisabled={editDisabled}/>
+                          editDisabled={editDisabled(game)}/>
               </Grid>
             ))}
           </Grid>
@@ -190,7 +190,7 @@ const Playoffs = ({ groupGames, playoffGames, roundOf16, roundOf8, semifinals, t
                 overflow: 'hidden'
               }}>Final</Typography>
               <GameView game={calculateTeams(final, `Ganador ${final.HomeTeam}`, `Ganador ${final.AwayTeam}`)} gameGuess={gameGuesses[final.MatchNumber]} onGameGuessChange={handleGameGuessChange}
-                        editDisabled={editDisabled}/>
+                        editDisabled={editDisabled(final)}/>
             </Grid>
             <Grid item xs={6} md={12}>
               <Typography variant='h5' sx={{
@@ -199,7 +199,7 @@ const Playoffs = ({ groupGames, playoffGames, roundOf16, roundOf8, semifinals, t
                 overflow: 'hidden'
               }}>Tercer Puesto</Typography>
               <GameView game={calculateTeams(thirdPlace, `Perdedor ${thirdPlace.HomeTeam}`, `Perdedor ${thirdPlace.AwayTeam}`)} gameGuess={gameGuesses[thirdPlace.MatchNumber]} onGameGuessChange={handleGameGuessChange}
-                        editDisabled={editDisabled}/>
+                        editDisabled={editDisabled(thirdPlace)}/>
             </Grid>
           </Grid>
           <Grid item xs={12}>
