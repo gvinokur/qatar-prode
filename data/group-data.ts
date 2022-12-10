@@ -610,23 +610,31 @@ const round_of_eight:Game[] = [
   {
     "MatchNumber": 58,
     "RoundNumber": 5,
-    "DateUtc": "2022-12-09 15:00:00Z",
+    "DateUtc": "2022-12-09 19:00:00Z",
     "Location": "TBA",
     "HomeTeam": 49,
     "AwayTeam": 50,
     "Group": null,
-    "localScore": null,
-    "awayScore": null
+    "localScore": 2,
+    "awayScore": 2,
+    localPenaltyScore: 4,
+    awayPenaltyScore: 2,
+    localPenaltyWinner: true,
+    awayPenaltyWinner: false,
   }, {
     "MatchNumber": 57,
     "RoundNumber": 5,
-    "DateUtc": "2022-12-09 19:00:00Z",
+    "DateUtc": "2022-12-09 15:00:00Z",
     "Location": "TBA",
     "HomeTeam": 53,
     "AwayTeam": 54,
     "Group": null,
-    "localScore": null,
-    "awayScore": null
+    "localScore": 1,
+    "awayScore": 1,
+    localPenaltyScore: 3,
+    awayPenaltyScore: 4,
+    localPenaltyWinner: false,
+    awayPenaltyWinner: true
   }, {
     "MatchNumber": 60,
     "RoundNumber": 5,
@@ -733,6 +741,17 @@ const applyResults = async () => {
       && gameResult.awayScore !== null
       && gameResult.awayScore !== undefined
       && gameResult.MatchNumber) {
+
+      if ([57, 58, 59, 60].includes(gameResult.MatchNumber)) {
+        console.log("swapping result for", gameResult.MatchNumber)
+        const matchSwap: { [k: number]: number } = {
+          57: 58,
+          58: 57,
+          59: 60,
+          60: 59
+        }
+        gameResult.MatchNumber = matchSwap[gameResult.MatchNumber];
+      }
       const game = allGamesByMatchNumber[gameResult.MatchNumber]
       if (game) {
         game.localScore = gameResult.localScore
