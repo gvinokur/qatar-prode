@@ -638,7 +638,7 @@ const round_of_eight:Game[] = [
   }, {
     "MatchNumber": 60,
     "RoundNumber": 5,
-    "DateUtc": "2022-12-10 15:00:00Z",
+    "DateUtc": "2022-12-10 19:00:00Z",
     "Location": "TBA",
     "HomeTeam": 51,
     "AwayTeam": 52,
@@ -648,7 +648,7 @@ const round_of_eight:Game[] = [
   }, {
     "MatchNumber": 59,
     "RoundNumber": 5,
-    "DateUtc": "2022-12-10 19:00:00Z",
+    "DateUtc": "2022-12-10 15:00:00Z",
     "Location": "TBA",
     "HomeTeam": 55,
     "AwayTeam": 56,
