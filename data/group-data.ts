@@ -673,8 +673,8 @@ const semifinals: Game[] = [{
   "RoundNumber": 6,
   "DateUtc": "2022-12-14 19:00:00Z",
   "Location": "TBA",
-  "HomeTeam": 59,
-  "AwayTeam": 60,
+  "HomeTeam": 60,
+  "AwayTeam": 59,
   "Group": null,
   "localScore": null,
   "awayScore": null
