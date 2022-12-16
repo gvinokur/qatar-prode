@@ -23,6 +23,7 @@ import {useEffect, useState} from "react";
 import Image from "next/image";
 import {Game, GameGuessDictionary} from "../../types/definitions";
 import {
+  calculateScoreForAwards,
   calculateScoreForGame,
   calculateScoreForGroupStageQualifiers, calculateScoreForHonorRoll, calculateScoreStatsForGames,
 } from "../../utils/score-calculator";
@@ -75,6 +76,7 @@ const ProdeGroupPage = ({ group, groupParticipants, groupGames, playoffGames, fi
         const scoreForGroupStageQualifiers = calculateScoreForGroupStageQualifiers(groupGames, guessesByUser[user.id]);
         const scoreForPlayoffGames = calculateScoreStatsForGames(playoffGames, guessesByUser[user.id]);
         const honorRollScoreData = calculateScoreForHonorRoll(final, thirdPlace, user);
+        const awardsScoreData = calculateScoreForAwards(user);
         return {
           user,
           groupStageScore: scoreStatsForGroupStageGames.totalPoints,
@@ -84,7 +86,8 @@ const ProdeGroupPage = ({ group, groupParticipants, groupGames, playoffGames, fi
           totalPoints: scoreStatsForGroupStageGames.totalPoints +
             scoreForPlayoffGames.totalPoints +
             scoreForGroupStageQualifiers +
-            honorRollScoreData.points,
+            honorRollScoreData.points +
+            awardsScoreData.points,
         }
       })
       setUserScores(userScores.sort((a, b) => (b.totalPoints - a.totalPoints)))

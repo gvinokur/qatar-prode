@@ -26,6 +26,24 @@ export const calculateScoreForHonorRoll = (final: Game, thirdPlace: Game, user: 
   }
 }
 
+export const calculateScoreForAwards = (user: User | null) => {
+  const awards: Partial<User> = {
+    bestPlayerGuess: 'NOOP',
+    bestYoungPlayerGuess: 'NOOP',
+    topGoalscorerGuess: 'NOOP',
+    bestGoalkeeperGuess: 'NOOP'
+  }
+  let points = 0;
+  points += (awards.bestPlayerGuess?.toLowerCase() === user?.bestPlayerGuess?.toLowerCase()) ? 2 : 0
+  points += (awards.bestYoungPlayerGuess?.toLowerCase() === user?.bestYoungPlayerGuess?.toLowerCase()) ? 2 : 0
+  points += (awards.topGoalscorerGuess?.toLowerCase() === user?.topGoalscorerGuess?.toLowerCase()) ? 2 : 0
+  points += (awards.bestGoalkeeperGuess?.toLowerCase() === user?.bestGoalkeeperGuess?.toLowerCase()) ? 2 : 0
+  return {
+    ...awards,
+    points
+  }
+}
+
 export const calculateScoreForGroupStageQualifiers = (groupGames: Game[], gameGuesses: { [key: number]: GameGuess }) => {
   let score = 0;
   groups.forEach(group => {
