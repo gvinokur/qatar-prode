@@ -28,10 +28,10 @@ export const calculateScoreForHonorRoll = (final: Game, thirdPlace: Game, user: 
 
 export const calculateScoreForAwards = (user: User | null) => {
   const awards: Partial<User> = {
-    bestPlayerGuess: 'NOOP',
-    bestYoungPlayerGuess: 'NOOP',
-    topGoalscorerGuess: 'NOOP',
-    bestGoalkeeperGuess: 'NOOP'
+    bestPlayerGuess: 'Lionel MESSI',
+    bestYoungPlayerGuess: 'Kylian MBAPPE',
+    topGoalscorerGuess: 'Damian MARTINEZ',
+    bestGoalkeeperGuess: 'Enzo FERNANDEZ'
   }
   let points = 0;
   points += (awards.bestPlayerGuess?.toLowerCase() === user?.bestPlayerGuess?.toLowerCase()) ? 2 : 0
