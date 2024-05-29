@@ -8,8 +8,8 @@ import {
 } from "../db/prode-group-repository";
 import {ProdeGroupTable} from "../db/tables-definition";
 import {getServerSession} from "next-auth/next";
-import {authOptions} from "../api/auth/[...nextauth]/route";
 import {getLoggedInUser} from "./user-actions";
+import {authOptions} from "../authOptions";
 
 export async function createGroupInTournament( tournamentId: string, groupName: string) {
   const user = await getLoggedInUser()

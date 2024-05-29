@@ -3,7 +3,8 @@
 import {UserNew} from "../db/tables-definition"
 import {createUser, findUserByEmail, getPasswordHash, updateUser} from "../db/users-repository"
 import {getServerSession} from "next-auth/next";
-import {authOptions} from "../api/auth/[...nextauth]/route";
+
+import {authOptions} from "../authOptions";
 
 /**
  *
