@@ -31,6 +31,10 @@
     ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "components",
+    "services",
+    "pages_old",
+    "utils"
   ]
 }
