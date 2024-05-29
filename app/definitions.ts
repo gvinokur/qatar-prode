@@ -74,3 +74,12 @@ export interface TeamStats {
   goalsAgainst: number
   goalDifference: number
 }
+
+export interface UserScore {
+  userId: string,
+  groupStageScore: number,
+  groupStageQualifiersScore: number,
+  playoffScore: number,
+  honorRollScore: number,
+  totalPoints: number,
+}

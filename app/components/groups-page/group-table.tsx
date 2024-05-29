@@ -18,7 +18,7 @@ import {GuessesContext} from "../context-providers/guesses-context-provider";
 import {TeamStats} from "../../../types/definitions";
 import {ExtendedGameData} from "../../definitions";
 import {Team} from "../../db/tables-definition";
-import {calculateGroupPosition} from "../../utls/group-position-calculator";
+import {calculateGroupPosition} from "../../utils/group-position-calculator";
 import SaveComponent from "./save-component";
 
 type Props = {

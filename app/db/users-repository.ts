@@ -16,6 +16,13 @@ export async function findUserByEmail (email:string) {
     .executeTakeFirst()
 }
 
+export async function findUsersByIds(userIds:string[]) {
+  return db.selectFrom('users')
+    .selectAll()
+    .where("id", "in", userIds)
+    .execute()
+}
+
 export function getPasswordHash(password: string) {
   const saltedPass = (process.env['NEXT_PUBLIC_SALT'] || '') + password
   return sha256(saltedPass).toString();

@@ -12,7 +12,7 @@ import {GuessesContextProvider} from "../../../components/context-providers/gues
 import GameView from "../../../components/game-view";
 import HonorRoll from "../../../components/playoffs-page/honor-roll-component";
 import SavePlayoffsComponent from "../../../components/playoffs-page/save-playoffs-components";
-import {calculatePlayoffTeams} from "../../../utls/playoff-teams-calculator";
+import {calculatePlayoffTeams} from "../../../utils/playoff-teams-calculator";
 import {findTournamentGuessByUserIdTournament} from "../../../db/tournament-guess-repository";
 import {tree} from "next/dist/build/templates/app-page";
 

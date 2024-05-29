@@ -14,12 +14,12 @@ import {
 
 import {Done as HitIcon, DoneAll as HitAllIcon, Close as MissIcon} from "@mui/icons-material";
 import {ChangeEvent, useContext, useEffect, useState} from "react";
-import {calculateScoreForGame} from "../utls/game-score-calculator";
+import {calculateScoreForGame} from "../utils/game-score-calculator";
 import {getDateString} from "../../utils/date-utils";
 import {ExtendedGameData} from "../definitions";
 import {Game, GroupFinishRule, PlayoffRound, Team, TeamWinnerRule} from "../db/tables-definition";
 import {GuessesContext} from "./context-providers/guesses-context-provider";
-import {getLoser, getWinner} from "../utls/score-utils";
+import {getLoser, getWinner} from "../utils/score-utils";
 
 type GameViewProps = {
   game: ExtendedGameData,

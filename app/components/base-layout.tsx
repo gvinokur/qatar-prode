@@ -49,9 +49,9 @@ export default function BaseLayout(props: FrameProps) {
               src={'/logo.png'}
               alt='la-maquina-prode'
               sx={{
-                height: 36,
-                width: 36,
-                mr: 1,
+                height: 48,
+                width: 48,
+                mr: 2,
                 display: { xs: 'none', md: 'flex' }
               }}/>
           </Link>
@@ -87,8 +87,8 @@ export default function BaseLayout(props: FrameProps) {
               src={'/logo.png'}
               alt='la-maquina-prode'
               sx={{
-                height: 36,
-                width: 36,
+                height: 48,
+                width: 48,
                 mr: 1,
                 display: { xs: 'flex', md: 'none' }
               }}/>

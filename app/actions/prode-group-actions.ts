@@ -1,15 +1,12 @@
 'use server'
 
 import {
-  addGroupToTournament,
+  addGroupToTournament, addParticipantToGroup,
   createProdeGroup, deleteAllParticipantsFromGroup, deleteGroupFromAllTournaments, deleteProdeGroup, findProdeGroupById,
   findProdeGroupsByOwner,
   findProdeGroupsByParticipant
 } from "../db/prode-group-repository";
-import {ProdeGroupTable} from "../db/tables-definition";
-import {getServerSession} from "next-auth/next";
 import {getLoggedInUser} from "./user-actions";
-import {authOptions} from "../authOptions";
 
 export async function createGroupInTournament( tournamentId: string, groupName: string) {
   const user = await getLoggedInUser()
@@ -52,4 +49,16 @@ export async function deleteGroup(groupId: string) {
     await deleteAllParticipantsFromGroup(groupId)
     await deleteProdeGroup(groupId);
   }
+}
+
+export async function joinGroup(groupId: string) {
+  const user = await getLoggedInUser();
+  if(!user) {
+    throw 'Should not call this action from a logged out page'
+  }
+  const group = await findProdeGroupById(groupId)
+
+  await addParticipantToGroup(group, user)
+
+  return group
 }
