@@ -1,0 +1,68 @@
+import {TeamNames, Dates, Venues, PlayoffStages} from "./base-data";
+
+const game = (game_number: number,
+              date: Date,
+              location: string,
+              home_team?: string,
+              away_team?: string,
+              group?: string,
+              playoff?: string,
+              home_team_rule?: any,
+              away_team_rule?: any) => ({
+  game_number,
+  home_team,
+  away_team,
+  date,
+  location,
+  group,
+  playoff,
+  home_team_rule,
+  away_team_rule
+})
+
+export const games = [
+  game(1, Dates.June202024, Venues.ATL, TeamNames.Arg, TeamNames.Can, 'A'),
+  game(2, Dates.June212024, Venues.DAL, TeamNames.Per, TeamNames.Chi, 'A'),
+  game(3, Dates.June222024, Venues.HOU, TeamNames.Mex, TeamNames.Jam, 'B'),
+  game(4, Dates.June222024, Venues.SFO, TeamNames.Ecu, TeamNames.Ven, 'B'),
+  game(5, Dates.June232024, Venues.DAL, TeamNames.Usa, TeamNames.Bol, 'C'),
+  game(6, Dates.June232024, Venues.MIA, TeamNames.Uru, TeamNames.Pan, 'C'),
+  game(7, Dates.June242024, Venues.LA, TeamNames.Bra, TeamNames.Crc, 'D'),
+  game(8, Dates.June242024, Venues.HOU, TeamNames.Col, TeamNames.Par, 'D'),
+  game(9, Dates.June252024, Venues.NY, TeamNames.Chi, TeamNames.Arg, 'A'),
+  game(10, Dates.June252024, Venues.KS, TeamNames.Per, TeamNames.Can, 'A'),
+  game(11, Dates.June262024, Venues.LA, TeamNames.Ven, TeamNames.Mex, 'B'),
+  game(12, Dates.June262024, Venues.LV, TeamNames.Ecu, TeamNames.Jam, 'B'),
+  game(13, Dates.June272024, Venues.ATL, TeamNames.Pan, TeamNames.Usa, 'C'),
+  game(14, Dates.June272024, Venues.NY, TeamNames.Uru, TeamNames.Bol, 'C'),
+  game(15, Dates.June282024, Venues.LV, TeamNames.Par, TeamNames.Bra, 'D'),
+  game(16, Dates.June282024, Venues.AZ, TeamNames.Col, TeamNames.Crc, 'D'),
+  game(17, Dates.June292024, Venues.MIA, TeamNames.Arg, TeamNames.Per, 'A'),
+  game(18, Dates.June292024, Venues.ORL, TeamNames.Can, TeamNames.Chi, 'A'),
+  game(19, Dates.June302024, Venues.AZ, TeamNames.Mex, TeamNames.Ecu, 'B'),
+  game(20, Dates.June302024, Venues.AUS, TeamNames.Jam, TeamNames.Ven, 'B'),
+  game(21, Dates.July12024, Venues.KC, TeamNames.Usa, TeamNames.Uru, 'C'),
+  game(22, Dates.July12024, Venues.ORL, TeamNames.Bol, TeamNames.Pan, 'C'),
+  game(23, Dates.July22024, Venues.SFO, TeamNames.Bra, TeamNames.Col, 'D'),
+  game(24, Dates.July112024, Venues.AUS, TeamNames.Crc, TeamNames.Par, 'D'),
+  //Cuartos
+  game(25, Dates.July42024, Venues.HOU, undefined, undefined, undefined,
+    PlayoffStages.cuartos, {group: 'A', position: 1}, {group: 'B', position: 2}),
+  game(26, Dates.July52024, Venues.DAL, undefined, undefined, undefined,
+    PlayoffStages.cuartos, {group: 'B', position: 1}, {group: 'A', position: 2}),
+  game(27, Dates.July62024, Venues.LV, undefined, undefined, undefined,
+    PlayoffStages.cuartos, {group: 'C', position: 1}, {group: 'D', position: 2}),
+  game(28, Dates.July62024, Venues.HOU, undefined, undefined, undefined,
+    PlayoffStages.cuartos, {group: 'D', position: 1}, {group: 'C', position: 2}),
+  //Semis
+  game(29, Dates.July92024, Venues.NY, undefined, undefined, undefined,
+    PlayoffStages.semis, {game: 25, winner: true}, {game: 26, winner: true}),
+  game(30, Dates.July102024, Venues.NC, undefined, undefined, undefined,
+    PlayoffStages.semis, {game: 27, winner: true}, {game: 28, winner: true}),
+  //Tercer Puesto
+  game(31, Dates.July132024, Venues.NC, undefined, undefined, undefined,
+    PlayoffStages.tercer, {game: 29, winner: false}, {game: 30, winner: false}),
+  //Final
+  game(32, Dates.July142024, Venues.NC, undefined, undefined, undefined,
+    PlayoffStages.final, {game: 29, winner: true}, {game: 30, winner: true}),
+]

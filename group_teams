@@ -1,0 +1,8 @@
+                  id                  |            tournament_id             |    round_name    | round_order | total_games | is_final | is_third_place 
+--------------------------------------+--------------------------------------+------------------+-------------+-------------+----------+----------------
+ f28daf80-8412-4380-bc6f-bfcb014a17b0 | 99f6b6e8-d745-46dd-b9f8-062a93c5f42c | Final            |           3 |           1 | t        | f
+ 98fcb77a-a59b-42e2-8b7c-65d7cce1fb39 | 99f6b6e8-d745-46dd-b9f8-062a93c5f42c | Tercer Puesto    |           3 |           1 | f        | t
+ 0582f428-5256-4a94-90f3-2c44ae73b585 | 99f6b6e8-d745-46dd-b9f8-062a93c5f42c | Cuartos de Final |           1 |           4 | f        | f
+ f48b4f08-f38b-42ad-b902-c13c6520d6dc | 99f6b6e8-d745-46dd-b9f8-062a93c5f42c | Semifinal        |           2 |           2 | f        | f
+(4 rows)
+

@@ -1,0 +1,188 @@
+import {
+  ColumnType,
+  Generated,
+  Insertable,
+  JSONColumnType,
+  Selectable,
+  Updateable
+} from "kysely";
+import exp from "node:constants";
+
+export interface Identifiable {
+  id: Generated<string>
+}
+
+export interface TournamentTheme {
+  primary_color?: string
+  secondary_color?: string
+  logo?: string
+  web_page?: string
+}
+
+export interface TournamentTable extends Identifiable{
+  short_name: string
+
+  long_name: string
+
+  is_active: boolean
+
+  theme: JSONColumnType<TournamentTheme> | null
+}
+
+export type Tournament = Selectable<TournamentTable>
+export type TournamentNew = Insertable<TournamentTable>
+export type TournamentUpdate = Updateable<TournamentTable>
+
+export interface UserTable extends Identifiable{
+  email: string
+  nickname: string | null
+  password_hash: string
+  is_admin?: boolean
+}
+
+export type User = Selectable<UserTable>
+export type UserNew = Insertable<UserTable>
+export type UserUpdate = Updateable<UserTable>
+
+export interface TournamentGroupTable extends Identifiable{
+  tournament_id: string
+  group_letter: string
+}
+
+export type TournamentGroup = Selectable<TournamentGroupTable>
+export type TournamentGroupNew = Insertable<TournamentGroupTable>
+export type TournamentGroupUpdate = Updateable<TournamentGroupTable>
+
+export interface TeamTable extends Identifiable {
+  name: string
+  short_name: string
+  theme: JSONColumnType<any> | null
+}
+
+export type Team = Selectable<TeamTable>
+export type TeamNew = Insertable<TeamTable>
+export type TeamUpdate = Updateable<TeamTable>
+
+export interface TournamentTeamTable {
+  tournament_id: string
+  team_id: string
+}
+
+export interface TournamentGroupTeamTable {
+  tournament_group_id: string
+  team_id: string
+  position: number
+}
+
+export interface PlayoffRoundTable extends Identifiable {
+  tournament_id: string
+  round_name: string
+  round_order: number
+  total_games: number
+  is_final?: boolean
+  is_third_place?: boolean
+}
+
+export type PlayoffRound = Selectable<PlayoffRoundTable>
+export type PlayoffRoundNew = Insertable<PlayoffRoundTable>
+export type PlayoffRoundUpdate = Updateable<PlayoffRoundTable>
+
+export interface GroupFinishRule {
+  group: string
+  position: number
+}
+
+export interface TeamWinnerRule {
+  game: number
+  winner: boolean
+}
+
+export interface GameTable extends Identifiable {
+  tournament_id: string
+  game_number: number
+  home_team?: string
+  away_team?: string
+  game_date: Date
+  location: string
+  home_team_rule?: JSONColumnType<GroupFinishRule | TeamWinnerRule>
+  away_team_rule?: JSONColumnType<GroupFinishRule | TeamWinnerRule>
+}
+
+export type Game = Selectable<GameTable>
+export type GameNew = Insertable<GameTable>
+export type GameUpdate = Updateable<GameTable>
+
+export interface TournamentGroupGameTable {
+  tournament_group_id: string
+  game_id: string
+}
+
+export interface PlayoffRoundGameTable {
+  tournament_playoff_round_id: string
+  game_id: string
+}
+
+export interface ProdeGroupTable extends Identifiable{
+  owner_user_id: string
+  name: string
+  theme?: JSONColumnType<any>
+}
+
+export type ProdeGroup = Selectable<ProdeGroupTable>
+export type ProdeGroupNew = Insertable<ProdeGroupTable>
+export type ProdeGroupUpdate = Updateable<ProdeGroupTable>
+
+export interface ProdeGroupParticipantTable {
+  prode_group_id: string
+  participant_id: string
+}
+
+export interface ProdeGroupTournamentTable {
+  prode_group_id: string
+  tournament_id: string
+}
+
+
+export interface GameResultTable extends Identifiable{
+  game_id: string
+  home_score?: number
+  away_score?: number
+  home_penalty_score?: number
+  away_penalty_score?: number
+}
+
+export type GameResult = Selectable<GameResultTable>
+export type GameResultNew = Insertable<GameResultTable>
+export type GameResultUpdate = Updateable<GameResultTable>
+
+export interface GameGuessTable extends Identifiable{
+  game_id: string
+  game_number: number
+  user_id: string
+  home_team?: string
+  away_team?: string
+  home_score?: number
+  away_score?: number
+  home_penalty_winner?: boolean
+  away_penalty_winner?: boolean
+}
+
+export type GameGuess = Selectable<GameGuessTable>
+export type GameGuessNew = Insertable<GameGuessTable>
+export type GameGuessUpdate = Updateable<GameGuessTable>
+
+export interface TournamentGuessTable extends Identifiable{
+  tournament_id:string
+  user_id:string
+  champion_team_id?: string
+  runner_up_team_id?: string
+  third_place_team_id?: string
+  best_player_id?: string
+  top_goalscorer_player_id?: string
+  best_goalkeeper_player_id?: string
+  best_young_player_id?: string
+}
+
+export type TournamentGuess = Selectable<TournamentGuessTable>
+export type TournamentGuessNew = Insertable<TournamentGuessTable>
+export type TournamentGuessUpdate = Updateable<TournamentGuessTable>

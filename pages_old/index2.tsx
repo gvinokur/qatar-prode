@@ -1,10 +1,3 @@
-import {
-  query,
-  createRecord,
-  getCurrentUserId,
-  ProdeGroup,
-  deleteRecord
-} from 'thin-backend';
 import {ChangeEvent, Fragment, useEffect, useState} from 'react';
 import {
   Button,

@@ -24,9 +24,7 @@ import {
   Menu as MenuIcon
 } from '@mui/icons-material'
 import Image from 'next/image';
-import { useCurrentUser } from 'thin-backend-react';
 import {useRouter} from "next/router";
-import {getCurrentUserId, loginWithRedirect, logout, updateRecord} from "thin-backend";
 import {ChangeEvent, useEffect, useState} from "react";
 import {LoadingButton} from "@mui/lab";
 
@@ -54,21 +52,25 @@ function Layout(props: FrameProps) {
   const [loading, setLoading] = useState(false);
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
-  const userData = useCurrentUser();
-  const router = useRouter();
+    const router = useRouter();
 
-  useEffect(() => {
-    setNickname(userData?.nickname || '');
-    const timeout = setTimeout(async () => {
-      if(!userData) {
-        await loginWithRedirect()
-      }
-    }, 5000)
+    const userData = {
+      nickname: 'asdfasd',
+      email: 'asdasda'
+    };
 
-    return () => {
-      clearTimeout(timeout)
-    }
-  }, [userData]);
+  // useEffect(() => {
+  //   setNickname(userData?.nickname || '');
+  //   const timeout = setTimeout(async () => {
+  //     if(!userData) {
+  //
+  //     }
+  //   }, 5000)
+  //
+  //   return () => {
+  //     clearTimeout(timeout)
+  //   }
+  // }, [userData]);
 
   const theme = createTheme({
     palette: {
@@ -114,7 +116,7 @@ function Layout(props: FrameProps) {
   }
   const handleNicknameSet = async () => {
     setLoading(true)
-    await updateRecord('users', getCurrentUserId(), { nickname });
+    //await updateRecord('users', getCurrentUserId(), { nickname });
     setLoading(false)
     handleCloseNicknameDialog()
   }

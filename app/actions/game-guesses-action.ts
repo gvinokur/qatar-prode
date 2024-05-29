@@ -1,0 +1,25 @@
+'use server'
+
+import {getLoggedInUser} from "./user-actions";
+import {GameGuessNew, TournamentGuessNew} from "../db/tables-definition";
+import {updateOrCreateGuess} from "../db/game-guess-repository";
+import {updateOrCreateTournamentGuess as dbUpdateOrCreateTournamentGuess} from "../db/tournament-guess-repository";
+
+export async function updateOrCreateGameGuesses(gameGuesses: GameGuessNew[]) {
+  const user = await getLoggedInUser()
+  if(!user) {
+    return 'Unauthorized action'
+  }
+  const createdGameGuesses = await Promise.all(
+    gameGuesses.map(gameGuess => {
+      return updateOrCreateGuess({
+        ...gameGuess,
+        user_id: user.id
+      })
+    })
+  )
+}
+
+export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew) {
+  return dbUpdateOrCreateTournamentGuess(guess)
+}
