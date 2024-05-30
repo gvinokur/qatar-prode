@@ -1,7 +1,7 @@
 'use client'
 
 import {ProdeGroup} from "../../db/tables-definition";
-import {Card, CardContent, CardHeader, TextField} from "@mui/material";
+import {Card, CardActions, CardContent, CardHeader, TextField} from "@mui/material";
 import {Controller, Form, useForm} from "react-hook-form";
 import * as React from "react";
 import {MuiColorInput} from "mui-color-input";
@@ -9,6 +9,7 @@ import {useState} from "react";
 import {updateTheme} from "../../actions/prode-group-actions";
 import {LoadingButton} from "@mui/lab";
 import ImagePicker from "./image-picker";
+import {useRouter} from "next/navigation";
 
 type Props = {
   group: ProdeGroup
@@ -22,6 +23,7 @@ type FormData = {
 
 export default function ProdeGroupThemer({ group }: Props) {
   const [loading, setLoading] = useState<boolean>(false)
+  const router = useRouter()
   const { handleSubmit, control } =
     useForm<FormData>({
       defaultValues: {
@@ -38,25 +40,27 @@ export default function ProdeGroupThemer({ group }: Props) {
     setLoading(true)
     await updateTheme(group.id, formData)
     setLoading(false)
+    router.refresh()
   }
 
   return (
     <Card>
       <CardHeader title={'Customiza el look de tu grupo'}/>
-      <CardContent>
-        <form onSubmit={handleSubmit(onUpdateTheme)}>
+      <form onSubmit={handleSubmit(onUpdateTheme)}>
+        <CardContent>
+
           <Controller
             control={control}
             name={'primary_color'}
             render={({field, fieldState}) => (
-              <MuiColorInput {...field} format="hex"/>
+              <MuiColorInput {...field} format="hex" margin='dense' fullWidth autoFocus/>
             )}
           />
           <Controller
             control={control}
             name={'secondary_color'}
             render={({field, fieldState}) => (
-              <MuiColorInput {...field} format="hex"/>
+              <MuiColorInput {...field} format="hex" margin='dense' fullWidth/>
             )}
           />
           <Controller
@@ -65,13 +69,17 @@ export default function ProdeGroupThemer({ group }: Props) {
             render={({field, fieldState}) => (
               <ImagePicker {...field} id={'file'} label={'Logo'} defaultValue={group.theme?.logo}
                            onChange={(event) => {
-                field.onChange(event.target.files[0]);
-              }}/>
+                             field.onChange(event.target.files[0]);
+                           }}/>
             )}
           />
+
+        </CardContent>
+        <CardActions>
           <LoadingButton loading={loading} type={'submit'}>Guardar Tema</LoadingButton>
-        </form>
-      </CardContent>
-    </Card>
-  )
+        </CardActions>
+      </form>
+
+</Card>
+)
 }

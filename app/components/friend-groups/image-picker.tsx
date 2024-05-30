@@ -72,16 +72,18 @@ function ImageCard({
     <NoImagePreview onClick={openDialog}/>
 
   return (
-    <Grid container>
-      <Grid item>
+    <Grid container xs={12} p={2}>
+      <Grid item xs={12} textAlign={"center"}>
         {imagePreview}
       </Grid>
-      <Button
-        startIcon={<UploadFile />}
-        onClick={openDialog}
-        className="w-full absolute inset-0"
-        type="button"
-      >Seleccionar Logo</Button>
+      <Grid item xs={12} textAlign={"center"}>
+        <Button
+          startIcon={<UploadFile />}
+          onClick={openDialog}
+          className="w-full absolute inset-0"
+          type="button"
+        >Seleccionar Logo</Button>
+      </Grid>
     </Grid>
   );
 }

@@ -78,7 +78,7 @@ export default async function FriendsGroup({params, searchParams} : Props){
           <ProdeGroupTable users={usersMap} userScores={userScores} loggedInUser={user.id}/>
         </Grid>
         <Grid item xs={12} md={4}>
-          <ProdeGroupThemer group={prodeGroup}/>
+          {prodeGroup.owner_user_id === user.id && <ProdeGroupThemer group={prodeGroup}/>}
         </Grid>
       </Grid>
       {searchParams.hasOwnProperty('recentlyJoined') && (<JoinMessage />)}
