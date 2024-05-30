@@ -10,6 +10,7 @@ import {updateTheme} from "../../actions/prode-group-actions";
 import {LoadingButton} from "@mui/lab";
 import ImagePicker from "./image-picker";
 import {useRouter} from "next/navigation";
+import {right} from "@popperjs/core";
 
 type Props = {
   group: ProdeGroup
@@ -75,8 +76,10 @@ export default function ProdeGroupThemer({ group }: Props) {
           />
 
         </CardContent>
-        <CardActions>
-          <LoadingButton loading={loading} type={'submit'}>Guardar Tema</LoadingButton>
+        <CardActions sx={{
+          direction: 'rtl'
+        }}>
+          <LoadingButton variant={'contained'} loading={loading} type={'submit'}>Guardar Tema</LoadingButton>
         </CardActions>
       </form>
 

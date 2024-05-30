@@ -82,6 +82,7 @@ function ImageCard({
           onClick={openDialog}
           className="w-full absolute inset-0"
           type="button"
+          variant={'outlined'}
         >Seleccionar Logo</Button>
       </Grid>
     </Grid>
