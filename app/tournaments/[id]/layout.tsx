@@ -3,6 +3,7 @@
 import {Grid} from "../../components/mui-wrappers";
 import GroupSelector from "../../components/groups-page/group-selector";
 import {getTournamentAndGroupsData} from "../../actions/tournament-actions";
+import Link from "next/link";
 
 type Props = {
   params: {
@@ -20,7 +21,7 @@ type Props = {
       <Grid item xs={12} md={3} pt={2} pb={1} pl={2} sx={{
         backgroundColor: layoutData.tournament?.theme?.primary_color
       }}>
-        <img src={layoutData.tournament?.theme?.logo || ''}/>
+        <Link href={`/tournaments/${layoutData.tournament.id}`}><img src={layoutData.tournament?.theme?.logo || ''}/></Link>
       </Grid>
       <Grid item xs={12} md={9} pt={2} pb={1} pl={1} pr={1} sx={{
         backgroundColor: layoutData.tournament?.theme?.primary_color

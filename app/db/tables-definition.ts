@@ -12,7 +12,7 @@ export interface Identifiable {
   id: Generated<string>
 }
 
-export interface TournamentTheme {
+export interface Theme {
   primary_color?: string
   secondary_color?: string
   logo?: string
@@ -26,7 +26,7 @@ export interface TournamentTable extends Identifiable{
 
   is_active: boolean
 
-  theme: JSONColumnType<TournamentTheme> | null
+  theme: JSONColumnType<Theme> | null
 }
 
 export type Tournament = Selectable<TournamentTable>
@@ -125,7 +125,7 @@ export interface PlayoffRoundGameTable {
 export interface ProdeGroupTable extends Identifiable{
   owner_user_id: string
   name: string
-  theme?: JSONColumnType<any>
+  theme?: JSONColumnType<Theme>
 }
 
 export type ProdeGroup = Selectable<ProdeGroupTable>

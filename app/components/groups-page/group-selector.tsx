@@ -58,7 +58,7 @@ const GroupSelector = ({groups, tournamentId} : Props) => {
         </Grid>
       </Grid>
       <Select
-        value={selected || 'playoffs'} onChange={handleOptionChange}
+        value={selected} onChange={handleOptionChange}
         sx={{
           width: '100%',
           display: { xs: 'flex', md: 'none'},

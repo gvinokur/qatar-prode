@@ -8,7 +8,7 @@ import {
   Typography,
   IconButton,
   Box,
-  Button, Avatar,
+  Button, Avatar, Container, CssBaseline,
 
 } from "@mui/material";
 import {
@@ -41,7 +41,7 @@ const pages: Page[] = [ {
 export default function BaseLayout(props: FrameProps) {
   return (
     <>
-      <AppBar position="fixed">
+      <AppBar position={'sticky'}>
         <Toolbar>
           <Link href={'/'}>
             <Avatar
@@ -122,7 +122,7 @@ export default function BaseLayout(props: FrameProps) {
           <UserActions user={props.user}/>
         </Toolbar>
       </AppBar>
-      <main style={{ marginTop: '64px' }}>{props.children}</main>
+      <main>{props.children}</main>
     </>
   )
 }
