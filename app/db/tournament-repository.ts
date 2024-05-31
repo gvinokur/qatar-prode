@@ -10,7 +10,7 @@ export const deleteTournament =  baseFunctions.delete
 
 export async function findTournamentByName (name:string) {
   return db.selectFrom('tournaments')
-    .where('short_name', '=', name)
+    .where('long_name', '=', name)
     .selectAll()
     .executeTakeFirst()
 }
@@ -27,4 +27,10 @@ export async function createTournamentTeam(tournamentTeam: TournamentTeamTable) 
     .values(tournamentTeam)
     .returningAll()
     .executeTakeFirstOrThrow()
+}
+
+export async function deleteTournamentTeams(tournamentId: string) {
+  return db.deleteFrom('tournament_teams')
+    .where('tournament_id', '=', tournamentId)
+    .execute()
 }

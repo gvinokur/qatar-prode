@@ -57,3 +57,15 @@ export async function findGroupsWithGamesAndTeamsInTournament(tournamentId: stri
     ])
     .execute()
 }
+
+export async function deleteAllGroupsFromTournament(tournamentId: string) {
+  const groups = await findGroupsInTournament(tournamentId)
+  const waitForAllDelete = Promise.all(groups.map(async (group) => {
+    await db.deleteFrom('tournament_group_teams')
+      .where('tournament_group_id', '=', group.id)
+      .execute()
+
+    await deleteTournamentGroup(group.id)
+  }))
+  return waitForAllDelete
+}

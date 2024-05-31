@@ -9,6 +9,7 @@ import {findUsersByIds} from "../../db/users-repository";
 import ProdeGroupTable from "../../components/friend-groups/friends-group-table";
 import {getLoggedInUser} from "../../actions/user-actions";
 import ProdeGroupThemer from "../../components/friend-groups/friend-groups-themer";
+import {findAllActiveTournaments} from "../../db/tournament-repository";
 
 type Props = {
   params: {
@@ -23,6 +24,7 @@ export default async function FriendsGroup({params, searchParams} : Props){
     redirect("/")
   }
   const participants = await findParticipantsInGroup(prodeGroup.id)
+  const tournaments = await findAllActiveTournaments()
 
   const allParticipants = [
     prodeGroup.owner_user_id,
@@ -32,15 +34,21 @@ export default async function FriendsGroup({params, searchParams} : Props){
   const users = await findUsersByIds(allParticipants)
   const usersMap = Object.fromEntries(users.map(user => [user.id, user]))
 
-  //TODO: Calculate scores for users, but not yes, because all is zero!! :D
-  const userScores = users.map(user => ({
-      userId: user.id,
-      groupStageScore: 0,
-      groupStageQualifiersScore: 0,
-      playoffScore: 0,
-      honorRollScore: 0,
-      totalPoints: 0
-    }))
+  //TODO: Calculate scores for users, but not yet, because all is zero!! :D
+  const userScoresByTournament =
+    Object.fromEntries(
+      tournaments.map(tournament =>
+        [
+          tournament.id,
+          users.map(user => ({
+            userId: user.id,
+            groupStageScore: 0,
+            groupStageQualifiersScore: 0,
+            playoffScore: 0,
+            honorRollScore: 0,
+            totalPoints: 0
+          }))
+      ]))
 
 
   return (
@@ -50,7 +58,7 @@ export default async function FriendsGroup({params, searchParams} : Props){
           prodeGroup,
           searchParams,
           users,
-          userScores
+          userScoresByTournament
         }}/>
       )}
       <Grid container spacing={2}
@@ -75,7 +83,12 @@ export default async function FriendsGroup({params, searchParams} : Props){
       </Grid>
       <Grid container spacing={2} xs={12} p={2}>
         <Grid item xs={12} md={8}>
-          <ProdeGroupTable users={usersMap} userScores={userScores} loggedInUser={user.id}/>
+          <ProdeGroupTable
+            users={usersMap}
+            userScoresByTournament={userScoresByTournament}
+            loggedInUser={user.id}
+            tournaments={tournaments}
+          />
         </Grid>
         <Grid item xs={12} md={4}>
           {prodeGroup.owner_user_id === user.id && <ProdeGroupThemer group={prodeGroup}/>}

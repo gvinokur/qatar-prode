@@ -95,7 +95,7 @@ export default function UserActions({ user }: UserActionProps) {
   }
 
   const handleCreateTournament = (tournamentName: string) => async () => {
-    await generateDbTournament(tournamentName)
+    await generateDbTournament(tournamentName, true)
   }
 
   // @ts-ignore

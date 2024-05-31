@@ -34,3 +34,9 @@ export async function findPlayoffStagesWithGamesInTournament(tournamentId: strin
     .orderBy('is_final', 'desc')
     .execute()
 }
+
+export async function deleteAllPlayoffRoundsInTournament(tournamentId: string) {
+  return await db.deleteFrom('tournament_playoff_rounds')
+    .where('tournament_id', '=', tournamentId)
+    .execute()
+}

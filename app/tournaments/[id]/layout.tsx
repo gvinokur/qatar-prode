@@ -21,7 +21,11 @@ type Props = {
       <Grid item xs={12} md={3} pt={2} pb={1} pl={2} sx={{
         backgroundColor: layoutData.tournament?.theme?.primary_color
       }}>
-        <Link href={`/tournaments/${layoutData.tournament.id}`}><img src={layoutData.tournament?.theme?.logo || ''}/></Link>
+        <Link href={`/tournaments/${layoutData.tournament.id}`}>
+          <img src={layoutData.tournament?.theme?.logo || ''} style={{
+            maxHeight: '48px'
+          }}/>
+        </Link>
       </Grid>
       <Grid item xs={12} md={9} pt={2} pb={1} pl={1} pr={1} sx={{
         backgroundColor: layoutData.tournament?.theme?.primary_color

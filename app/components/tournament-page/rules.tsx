@@ -22,9 +22,8 @@ const rules = [
   '3 Puntos por subcampeon',
   '1 Punto por tercer puesto',
   '3 Puntos por cada premio acertado (mejor jugador, arquero, goleador, etc...)',
-  '(*) Partido de playoffs solo cuenta si los equipos tambien son correctos',
-  '(**) Se permite cambiar los pronosticos de cada partido hasta el dia anterior al mismo',
-  '(***) No se permite modificar pronosticos de podio y premios individuales luego del comienzo del campeonato'
+  '(*) Se permite cambiar los pronosticos de cada partido hasta el dia anterior al mismo',
+  '(**) No se permite modificar pronosticos de podio y premios individuales luego del comienzo del campeonato'
 ]
 
 interface ExpandMoreProps extends IconButtonProps {

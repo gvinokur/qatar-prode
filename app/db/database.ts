@@ -6,7 +6,6 @@ import {
   PlayoffRoundTable,
   ProdeGroupParticipantTable,
   ProdeGroupTable,
-  ProdeGroupTournamentTable,
   TeamTable,
   TournamentGroupGameTable,
   TournamentGroupTable,
@@ -15,7 +14,7 @@ import {
   TournamentTeamTable,
   UserTable
 } from "./tables-definition";
-import {Kysely} from "kysely";
+
 export interface Database {
   users: UserTable
   teams: TeamTable,
@@ -33,7 +32,6 @@ export interface Database {
 
   prode_groups: ProdeGroupTable
   prode_group_participants: ProdeGroupParticipantTable
-  prode_group_tournaments: ProdeGroupTournamentTable
 
   game_guesses: GameGuessTable
   game_results: GameResultTable

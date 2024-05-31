@@ -16,14 +16,13 @@ import {LoadingButton} from "@mui/lab";
 import {useState} from "react";
 import {Controller, useForm} from "react-hook-form";
 import * as React from "react";
-import {createGroupInTournament, deleteGroup} from "../../actions/prode-group-actions";
+import {createDbGroup, deleteGroup} from "../../actions/prode-group-actions";
 import {useSession} from "next-auth/react";
 
 
 type Props = {
   userGroups: { id: string, name: string}[]
   participantGroups: {id: string, name: string}[]
-  tournament: { id: string}
 }
 
 type GroupForm = {
@@ -33,7 +32,6 @@ type GroupForm = {
 export default function FriendGroupsList({
   userGroups:initialUserGroups,
   participantGroups: initialParticipantGroups,
-  tournament,
 } : Props) {
   const theme = useTheme();
   const [openSharingDialog, setOpenSharingDialog] = useState<string | false>(false);
@@ -61,7 +59,7 @@ export default function FriendGroupsList({
 
   const createGroup = async (group: GroupForm) => {
     setLoading(true)
-    const newGroup = await createGroupInTournament(tournament.id, group.name)
+    const newGroup = await createDbGroup(group.name)
     setUserGroups([
       ...userGroups,
       newGroup

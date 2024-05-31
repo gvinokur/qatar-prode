@@ -137,11 +137,6 @@ export interface ProdeGroupParticipantTable {
   participant_id: string
 }
 
-export interface ProdeGroupTournamentTable {
-  prode_group_id: string
-  tournament_id: string
-}
-
 
 export interface GameResultTable extends Identifiable{
   game_id: string

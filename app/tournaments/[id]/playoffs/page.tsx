@@ -57,6 +57,7 @@ export default async function PlayoffPage({params, searchParams}: Props) {
   const final = completePlayoffData.playoffStages.find(ps => ps.is_final)
 
   const thirdPlace = completePlayoffData.playoffStages.find(ps => ps.is_third_place)
+  console.log(thirdPlace)
 
   //TODO: Do some logic if there are more than 3 playoff rounds
   const totalColumns = playoffStagesPreFinal.length === 3 ? 10 : 6

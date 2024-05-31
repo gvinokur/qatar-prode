@@ -1,47 +1,104 @@
 'use client'
 
-import {User} from "../../db/tables-definition";
+import {Tournament, User} from "../../db/tables-definition";
 import {UserScore} from "../../definitions";
-import {Card, CardContent, CardHeader, Table, TableBody, TableCell, TableHead, TableRow} from "@mui/material";
+import {
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  Tab,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Tabs, Typography,
+} from "@mui/material";
+import {useState} from "react";
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`vertical-tabpanel-${index}`}
+      aria-labelledby={`vertical-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+}
 
 type Props = {
   users: {[k:string]: User},
-  userScores: UserScore[],
-  loggedInUser: string
+  userScoresByTournament: {[k:string]: UserScore[]},
+  loggedInUser: string,
+  tournaments: Tournament[]
 }
 
-export default function ProdeGroupTable({users, userScores, loggedInUser}: Props) {
+export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments}: Props) {
+  const [selectedTab, setSelectedTab] = useState<number>(0)
+
   return (
     <Card>
       <CardHeader title='Tabla de Posiciones'/>
       <CardContent>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>P</TableCell>
-              <TableCell>Nombre</TableCell>
-              <TableCell>Puntos Totales</TableCell>
-              <TableCell>Puntos Fase de Grupos</TableCell>
-              <TableCell>Puntos Playoffs</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {userScores.map((userScore, index) => (
-              <TableRow key={userScore.userId} selected={userScore.userId === loggedInUser}>
-                <TableCell>{index+1}</TableCell>
-                <TableCell sx={{
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  maxWidth: '140px'
-                }}>{users[userScore.userId]?.nickname || users[userScore.userId]?.email}</TableCell>
-                <TableCell>{userScore.totalPoints}</TableCell>
-                <TableCell>{userScore.groupStageScore}</TableCell>
-                <TableCell>{userScore.playoffScore}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <Tabs
+          value={selectedTab}
+          onChange={(event, tabSelected) => setSelectedTab(tabSelected)}
+          variant="scrollable"
+          scrollButtons="auto"
+          aria-label="scrollable auto tabs example"
+        >
+          {tournaments.map(tournament=> (
+            <Tab label={tournament.short_name} key={tournament.id}/>
+          ))}
+        </Tabs>
+        {tournaments.map((tournament, index) => (
+          <TabPanel index={index} value={selectedTab} key={tournament.id}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>P</TableCell>
+                  <TableCell>Nombre</TableCell>
+                  <TableCell>Puntos Totales</TableCell>
+                  <TableCell>Puntos Fase de Grupos</TableCell>
+                  <TableCell>Puntos Playoffs</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {userScoresByTournament[tournament.id]?.map((userScore, index) => (
+                  <TableRow key={userScore.userId} selected={userScore.userId === loggedInUser}>
+                    <TableCell>{index+1}</TableCell>
+                    <TableCell sx={{
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      maxWidth: '140px'
+                    }}>{users[userScore.userId]?.nickname || users[userScore.userId]?.email}</TableCell>
+                    <TableCell>{userScore.totalPoints}</TableCell>
+                    <TableCell>{userScore.groupStageScore}</TableCell>
+                    <TableCell>{userScore.playoffScore}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TabPanel>
+        ))}
       </CardContent>
     </Card>
   )

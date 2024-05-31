@@ -9,6 +9,7 @@ import Rules from "../../components/tournament-page/rules";
 import FriendGroupsList from "../../components/tournament-page/friend-groups-list";
 import {getGroupsForUser} from "../../actions/prode-group-actions";
 import {getLoggedInUser} from "../../actions/user-actions";
+import {UserTournamentStatistics} from "../../components/tournament-page/user-tournament-statistics";
 
 type Props = {
   params: {
@@ -44,10 +45,15 @@ export default async function TournamentLandingPage({ params, searchParams }: Pr
           <Fixtures games={gamesAroundMyTime} teamsMap={tournamentData.teamsMap}/>
         </Grid>
         <Grid item xs={12} md={3}>
-          <Rules/>
+          <UserTournamentStatistics />
         </Grid>
+        {prodeGroups && (
+          <Grid item xs={12} md={3}>
+                <FriendGroupsList userGroups={prodeGroups.userGroups} participantGroups={prodeGroups.participantGroups}/>
+          </Grid>
+        )}
         <Grid item xs={12} md={3}>
-          <FriendGroupsList userGroups={prodeGroups.userGroups} participantGroups={prodeGroups.participantGroups} tournament={tournamentData.tournament}/>
+          <Rules/>
         </Grid>
       </Grid>
     </>
