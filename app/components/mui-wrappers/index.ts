@@ -11,6 +11,7 @@ import {
   Button,
   Chip,
   Alert,
+  AlertTitle,
   Snackbar
 } from '@mui/material'
 
@@ -25,5 +26,6 @@ export {
   Button,
   Chip,
   Alert,
+  AlertTitle,
   Snackbar
 }
