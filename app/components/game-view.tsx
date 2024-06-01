@@ -137,6 +137,8 @@ const GameView = ({game, teamsMap, isFinal, isThirdPlace}: GameViewProps) => {
         return `Primero Grupo ${rule.group}`
       } else if (rule.position === 2) {
         return `Segundo Grupo ${rule.group}`
+      } else if (rule.position === 3) {
+        return `Tercero Grupo(s) ${rule.group}`
       }
     } else if (isTeamWinnerRule(rule)){
       if (rule.winner) {

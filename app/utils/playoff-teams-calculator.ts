@@ -1,7 +1,7 @@
 import {ExtendedGroupData, ExtendedPlayoffRoundData, TeamStats} from "../definitions";
 import {Game, GameGuess, GameResult, GroupFinishRule} from "../db/tables-definition";
 import {string} from "prop-types";
-import {calculateGroupPosition, GameWithResultOrGuess} from "./group-position-calculator";
+import {calculateGroupPosition, GameWithResultOrGuess, teamStatsComparator} from "./group-position-calculator";
 
 export function calculatePlayoffTeams(
   firstPlayoffStage: ExtendedPlayoffRoundData,
@@ -44,13 +44,60 @@ export function calculatePlayoffTeams(
       return [group.group_letter.toUpperCase(), positionsMap]
     }))
 
+  const thirdPlaceTeamRules: string[] =[]
+
+  firstPlayoffStage.games.forEach(({game_id}) => {
+    const game = gamesMap[game_id]
+    const homeRule = game.home_team_rule as GroupFinishRule
+    const awayRule = game.away_team_rule as GroupFinishRule
+    if (homeRule.position === 3) {
+      thirdPlaceTeamRules.push(homeRule.group)
+    }
+    if(awayRule.position === 3) {
+      thirdPlaceTeamRules.push(awayRule.group)
+    }
+  })
+
+  let thirdPlaceGroupMap: {[k:string]: string} = {}
+
+  if (thirdPlaceTeamRules) {
+    type ThirdPositionTeamTuple = [string, TeamStats]
+
+    const thirdTeams = Object.entries(groupTableMap).map(([groupLetter, positionsMap]) => {
+      const thirdPositionTeam = positionsMap[3]
+      return [groupLetter, thirdPositionTeam] as ThirdPositionTeamTuple
+    })
+      .filter(([, thirdPositionTeam]) => !!thirdPositionTeam)
+      .sort((a, b) => {
+        const teamAStats = a[1]
+        const teamBStats = b[1]
+        return teamStatsComparator(teamAStats, teamBStats);
+      })
+
+    //Wait until all groups are finished to make this calculation.
+    if(thirdTeams.length === groups.length) {
+      const topThirdTeams = thirdTeams.filter((value, index) => index < thirdPlaceTeamRules.length)
+      const topThirdTeamGroups = topThirdTeams.map(([letter, ]) => letter).sort((a, b) => a.localeCompare(b))
+      thirdPlaceGroupMap = rulesByChampionship[''][topThirdTeamGroups.join('')]
+    }
+  }
+
+
   const calculatedTeamsPerGame = Object.fromEntries(firstPlayoffStage.games.map(({game_id}) => {
     const game = gamesMap[game_id]
     const homeRule = game.home_team_rule as GroupFinishRule
     const awayRule = game.away_team_rule as GroupFinishRule
+    let homeGroup = homeRule.group.toUpperCase()
+    let awayGroup = awayRule.group.toUpperCase()
+    if(homeRule.position === 3) {
+      homeGroup = thirdPlaceGroupMap[homeGroup]
+    }
+    if(awayRule.position === 3) {
+      awayGroup = thirdPlaceGroupMap[awayGroup]
+    }
 
-    const homeTeam = groupTableMap?.[homeRule.group.toUpperCase()]?.[homeRule.position]
-    const awayTeam = groupTableMap?.[awayRule.group.toUpperCase()]?.[awayRule.position]
+    const homeTeam = groupTableMap?.[homeGroup]?.[homeRule.position]
+    const awayTeam = groupTableMap?.[awayGroup]?.[awayRule.position]
 
     return [
       game_id,
@@ -62,4 +109,105 @@ export function calculatePlayoffTeams(
   }))
 
   return calculatedTeamsPerGame;
+}
+
+type Rules = {[k:string]: {[k:string]: string}}
+
+/**
+ * I absolutely hate this, but is how it works
+ */
+const rulesByChampionship: {[k: string]: Rules} =
+  {
+  '': {
+    'ABCD': {
+      'A/D/E/F': 'A',
+      'D/E/F': 'D',
+      'A/B/C/D': 'B',
+      'A/B/C': 'C'
+    },
+    'ABCE': {
+      'A/D/E/F': 'A',
+      'D/E/F': 'E',
+      'A/B/C/D': 'B',
+      'A/B/C': 'C'
+    },
+    'ABCF': {
+      'A/D/E/F': 'A',
+      'D/E/F': 'F',
+      'A/B/C/D': 'B',
+      'A/B/C': 'C'
+    },
+    'ABDE': {
+      'A/D/E/F': 'D',
+      'D/E/F': 'E',
+      'A/B/C/D': 'A',
+      'A/B/C': 'B'
+    },
+    'ABDF': {
+      'A/D/E/F': 'D',
+      'D/E/F': 'F',
+      'A/B/C/D': 'A',
+      'A/B/C': 'B'
+    },
+    'ABEF': {
+      'A/D/E/F': 'E',
+      'D/E/F': 'F',
+      'A/B/C/D': 'B',
+      'A/B/C': 'A'
+    },
+    'ACDE': {
+      'A/D/E/F': 'E',
+      'D/E/F': 'D',
+      'A/B/C/D': 'C',
+      'A/B/C': 'A'
+    },
+    'ACDF': {
+      'A/D/E/F': 'F',
+      'D/E/F': 'D',
+      'A/B/C/D': 'C',
+      'A/B/C': 'A'
+    },
+    'ACEF': {
+      'A/D/E/F': 'E',
+      'D/E/F': 'F',
+      'A/B/C/D': 'C',
+      'A/B/C': 'A'
+    },
+    'ADEF': {
+      'A/D/E/F': 'E',
+      'D/E/F': 'F',
+      'A/B/C/D': 'D',
+      'A/B/C': 'A'
+    },
+    'BCDE': {
+      'A/D/E/F': 'E',
+      'D/E/F': 'D',
+      'A/B/C/D': 'B',
+      'A/B/C': 'C'
+    },
+    'BCDF': {
+      'A/D/E/F': 'F',
+      'D/E/F': 'D',
+      'A/B/C/D': 'C',
+      'A/B/C': 'B'
+    },
+    'BCEF': {
+      'A/D/E/F': 'F',
+      'D/E/F': 'E',
+      'A/B/C/D': 'C',
+      'A/B/C': 'B'
+    },
+    'BDEF': {
+      'A/D/E/F': 'F',
+      'D/E/F': 'E',
+      'A/B/C/D': 'D',
+      'A/B/C': 'B'
+    },
+    'CDEF': {
+      'A/D/E/F': 'F',
+      'D/E/F': 'E',
+      'A/B/C/D': 'D',
+      'A/B/C': 'C'
+    },
+  }
 }

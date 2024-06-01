@@ -116,7 +116,7 @@ const calculateGameData = (teamScore: number, opponentScore: number) => ({
 
 const equalTeamStats = (a: TeamStats, b: TeamStats): boolean => getMagicNumber(a) === getMagicNumber(b)
 
-const teamStatsComparator = (a: TeamStats, b: TeamStats): number => {
+export const teamStatsComparator = (a: TeamStats, b: TeamStats): number => {
   const comparator = getMagicNumber(b) - getMagicNumber(a);
   return comparator;
 }

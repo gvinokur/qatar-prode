@@ -57,10 +57,9 @@ export default async function PlayoffPage({params, searchParams}: Props) {
   const final = completePlayoffData.playoffStages.find(ps => ps.is_final)
 
   const thirdPlace = completePlayoffData.playoffStages.find(ps => ps.is_third_place)
-  console.log(thirdPlace)
 
   //TODO: Do some logic if there are more than 3 playoff rounds
-  const totalColumns = playoffStagesPreFinal.length === 3 ? 10 : 6
+  const totalColumns = playoffStagesPreFinal.length === 3 ? 8 : 6
 
   return (
     <>
@@ -80,7 +79,7 @@ export default async function PlayoffPage({params, searchParams}: Props) {
       >
         <Grid container spacing={2} mt={2} mb={6} columns={totalColumns}>
           {playoffStagesPreFinal.map(playoffStage => (
-            <Grid item md={playoffStage.games.length === 8 ? 4 : 2} sm={12} key={playoffStage.id}>
+            <Grid item md={2} sm={12} key={playoffStage.id}>
               <Chip label={playoffStage.round_name}
                     sx={{
                       textOverflow: 'ellipsis',
