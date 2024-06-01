@@ -28,7 +28,7 @@ type Props = {
             }
           }}>
             <Link href={`/tournaments/${layoutData.tournament.id}`}>
-              <img src={layoutData.tournament?.theme?.logo || ''} style={{
+              <img src={layoutData.tournament?.theme?.logo || ''} alt={layoutData.tournament.long_name} style={{
                 maxHeight: '48px'
               }}/>
             </Link>
