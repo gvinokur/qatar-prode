@@ -1,7 +1,7 @@
 import {findAllActiveTournaments, findTournamentById, findTournamentByName} from "../db/tournament-repository";
 import {findTeamInGroup, findTeamInTournament} from "../db/team-repository";
 import {Game, GameResult, Team, Tournament} from "../db/tables-definition";
-import {findGamesInGroup, findGamesInTournament} from "../db/game-repository";
+import {findFirstGameInTournament, findGamesInGroup, findGamesInTournament} from "../db/game-repository";
 import {
   findGroupsInTournament,
   findGroupsWithGamesAndTeamsInTournament,
@@ -108,4 +108,9 @@ export async function getTournamentAndGroupsData(tournamentId:string) {
     tournament,
     allGroups
   }
+}
+
+export async function getTournamentStartDate(tournamentId: string) {
+  const firstGame = await findFirstGameInTournament(tournamentId)
+  return firstGame?.game_date || new Date(2024,0,1)
 }

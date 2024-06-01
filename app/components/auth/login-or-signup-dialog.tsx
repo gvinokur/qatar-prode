@@ -46,7 +46,6 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
         ...loginForm,
         redirect: false,
       });
-      console.log({ response });
       setLoading(false)
 
       if (!response.ok) {
@@ -56,13 +55,11 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
         })
       } else {
         // Process response here
-        console.log("Login Successful", response);
         handleCloseLoginDialog()
         router.push(searchParams?.get('callbackUrl') || '/')
         router.refresh();
       }
     } catch (error: any) {
-      console.error("Login Failed:", error);
       setError('root', {
         type: 'Server Error',
         message: error
@@ -80,7 +77,6 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
         password_hash: loginForm.password,
         nickname: loginForm.nickname
       });
-      console.log(userOrError);
       setLoading(false)
 
       if (typeof userOrError === 'string') {
@@ -90,7 +86,6 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
         })
       } else {
         // Process response here
-        console.log("Create User Successful, now login");
         await login(loginForm);
       }
     }

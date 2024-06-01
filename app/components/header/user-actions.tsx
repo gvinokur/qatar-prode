@@ -21,7 +21,7 @@ import {signOut, useSession} from "next-auth/react";
 import {updateNickname} from "../../actions/user-actions";
 import {useForm} from "react-hook-form";
 import tournaments from "../../../data/tournaments";
-import {generateDbTournament} from "../../actions/backoffice-actions";
+import {generateDbTournament, generateDbTournamentTeamPlayers} from "../../actions/backoffice-actions";
 import {AdapterUser} from "next-auth/adapters";
 
 type UserActionProps = {
@@ -98,6 +98,10 @@ export default function UserActions({ user }: UserActionProps) {
     await generateDbTournament(tournamentName, true)
   }
 
+  const handleCreatePlayers = (tournamentName: string) => async () => {
+    await generateDbTournamentTeamPlayers(tournamentName)
+  }
+
   // @ts-ignore
   return (
     <>
@@ -130,9 +134,14 @@ export default function UserActions({ user }: UserActionProps) {
             {user.isAdmin && availableTournaments && (<MenuItem divider={true} sx={{ padding: '0px'}}/>)}
             {user.isAdmin && availableTournaments &&
               availableTournaments.map(tournamentName => (
-                <MenuItem key={tournamentName} onClick={handleCreateTournament(tournamentName)}>
-                  Crear el torneo {tournamentName}
-                </MenuItem>
+                <React.Fragment key={tournamentName}>
+                  <MenuItem onClick={handleCreateTournament(tournamentName)}>
+                    Crear el torneo {tournamentName}
+                  </MenuItem>
+                  <MenuItem onClick={handleCreatePlayers(tournamentName)}>
+                    Crear los jugafores  para {tournamentName}
+                  </MenuItem>
+                </React.Fragment>
               ))
             }
             {user.isAdmin && availableTournaments && (<MenuItem divider={true} sx={{ padding: '0px'}}/>)}

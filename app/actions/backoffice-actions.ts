@@ -7,7 +7,7 @@ import {
   deleteTournament, deleteTournamentTeams,
   findTournamentByName
 } from "../db/tournament-repository";
-import {createTeam, getTeamByName} from "../db/team-repository";
+import {createTeam, findTeamInTournament, getTeamByName} from "../db/team-repository";
 import {
   createTournamentGroup,
   createTournamentGroupGame,
@@ -18,8 +18,10 @@ import {
   createPlayoffRoundGame,
   deleteAllPlayoffRoundsInTournament
 } from "../db/tournament-playoff-repository";
-import {GameNew, Tournament} from "../db/tables-definition";
+import {GameNew, PlayerNew, Team, Tournament} from "../db/tables-definition";
 import {createGame, deleteAllGamesFromTournament} from "../db/game-repository";
+import {players} from "../../data/euro/players";
+import {createPlayer, findPlayerByTeamAndTournament, updatePlayer} from "../db/player-repository";
 
 export async function deleteDBTournamentTree(tournament: Tournament) {
   // delete from tournament_playoff_round_games ;
@@ -37,6 +39,58 @@ export async function deleteDBTournamentTree(tournament: Tournament) {
   // TODO: Remove Groups
   // delete from tournaments
   await deleteTournament(tournament.id)
+}
+
+export async function generateDbTournamentTeamPlayers(name: string) {
+  const result = await Promise.all(tournaments
+    .filter(tournament => tournament.tournament_name === name)
+    .map(async (tournament) => {
+      if(tournament.players.length > 0) {
+        const existingDBTournament = await findTournamentByName(name);
+        if(!existingDBTournament) {
+          console.log('You need to create the tournament first, you d******s')
+          throw "Cannot create players for a non existing tournament"
+        }
+        const teams = await findTeamInTournament(existingDBTournament.id);
+        if(teams.length === 0) {
+          console.log('You need to create the tournament teams first, you d******s')
+          throw "Cannot create players for a tournament without teams"
+        }
+        const teamsByNameMap: {[k:string]: Team} = Object.fromEntries(
+          teams.map(team => [team.name, team])
+        )
+        await Promise.all(tournament.players.map(async (player) => {
+          const playerTeam = teamsByNameMap[player.team]
+          if (!playerTeam) {
+            console.log('Cannot find team for player', player, teamsByNameMap)
+            return
+          }
+          const existingPlayer = await findPlayerByTeamAndTournament(existingDBTournament.id, playerTeam.id, player.name)
+          if(existingPlayer) {
+           return updatePlayer(existingPlayer.id, {
+             ...existingPlayer,
+             age_at_tournament: player.age,
+             position: player.position
+           })
+          } else {
+            const newPlayer: PlayerNew = {
+              tournament_id: existingDBTournament.id,
+              team_id: playerTeam.id,
+              name: player.name,
+              age_at_tournament: player.age,
+              position: player.position
+            }
+
+            return createPlayer(newPlayer)
+          }
+
+        }))
+
+        return 'All players created'
+      }
+    }))
+
+  return result
 }
 
 export async function generateDbTournament(name: string, deletePrevious:boolean = false) {

@@ -41,6 +41,14 @@ export async function findGamesInTournament(tournamentId: string) {
     .execute()
 }
 
+export async function findFirstGameInTournament(tournamentId: string) {
+ return db.selectFrom(tableName)
+   .selectAll()
+   .where('tournament_id', '=', tournamentId)
+   .orderBy('game_date asc')
+   .executeTakeFirst()
+}
+
 export async function findGamesInGroup(groupId: string) {
   return db.selectFrom(tableName)
     .innerJoin('tournament_group_games', 'tournament_group_games.game_id', 'games.id')

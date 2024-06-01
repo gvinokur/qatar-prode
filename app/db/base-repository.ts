@@ -12,7 +12,8 @@ type IdentifiableTables =
   'prode_groups' |
   'game_guesses' |
   'game_results' |
-  'tournament_guesses'
+  'tournament_guesses' |
+  'players'
 
 function findByIdFactory<K2 extends Selectable<Identifiable>>  (tableName: IdentifiableTables) {
   return async function (id: string) {

@@ -1,7 +1,7 @@
 import { createKysely } from "@vercel/postgres-kysely";
 import {
   GameGuessTable, GameResultTable,
-  GameTable,
+  GameTable, PlayerTable,
   PlayoffRoundGameTable,
   PlayoffRoundTable,
   ProdeGroupParticipantTable,
@@ -17,8 +17,9 @@ import {
 
 export interface Database {
   users: UserTable
-  teams: TeamTable,
+  teams: TeamTable
   games: GameTable
+  players: PlayerTable
 
   tournaments: TournamentTable
   tournament_teams: TournamentTeamTable

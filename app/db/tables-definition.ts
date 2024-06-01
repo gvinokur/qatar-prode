@@ -181,3 +181,15 @@ export interface TournamentGuessTable extends Identifiable{
 export type TournamentGuess = Selectable<TournamentGuessTable>
 export type TournamentGuessNew = Insertable<TournamentGuessTable>
 export type TournamentGuessUpdate = Updateable<TournamentGuessTable>
+
+export interface PlayerTable extends Identifiable {
+  team_id: string
+  tournament_id: string
+  name: string
+  position: string
+  age_at_tournament: number
+}
+
+export type Player = Selectable<PlayerTable>
+export type PlayerNew = Insertable<PlayerTable>
+export type PlayerUpdate = Updateable<PlayerTable>

@@ -2,6 +2,7 @@ import {teams} from "./teams";
 import {groups} from "./groups";
 import {playoffs} from "./playoffs";
 import {games} from "./games";
+import {players} from "./players";
 
 export default  {
   tournament_name: 'Copa America USA 2024',
@@ -16,4 +17,5 @@ export default  {
   groups,
   playoffs,
   games,
+  players
 }

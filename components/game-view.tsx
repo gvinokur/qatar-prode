@@ -11,7 +11,6 @@ import {
   Avatar, Checkbox
 } from "@mui/material";
 import {Game, GameGuess} from "../types/definitions";
-import {final} from "../data/group-data";
 import {ChangeEvent} from "react";
 import {calculateScoreForGame} from "../utils/score-calculator";
 import {Done as HitIcon, DoneAll as HitAllIcon, Close as MissIcon} from "@mui/icons-material";
