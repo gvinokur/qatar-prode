@@ -52,7 +52,6 @@ export default function BaseLayout(props: FrameProps) {
                 height: 48,
                 width: 48,
                 mr: 2,
-                display: { xs: 'none', md: 'flex' }
               }}/>
           </Link>
           <Typography
@@ -60,7 +59,7 @@ export default function BaseLayout(props: FrameProps) {
             noWrap
             sx={{
               mr: 2,
-              display: { xs: 'none', md: 'flex' },
+              display: 'flex' ,
               flexGrow: 0,
               fontWeight: 700,
               color: 'inherit',
@@ -68,55 +67,9 @@ export default function BaseLayout(props: FrameProps) {
               cursor: 'pointer'}}>
             <Link href={'/'}>La Maquina Prode</Link>
           </Typography>
-          <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
-            <IconButton
-              size="large"
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              //onClick={handleOpenNavMenu}
-              color="inherit"
-            >
-              <MenuIcon />
-            </IconButton>
-          </Box>
 
-          <Link href={'/'}>
-            <Avatar
-              variant={"rounded"}
-              src={'/logo.png'}
-              alt='la-maquina-prode'
-              sx={{
-                height: 48,
-                width: 48,
-                mr: 1,
-                display: { xs: 'flex', md: 'none' }
-              }}/>
-          </Link>
+          <Box sx={{ flexGrow: 1, display: 'flex', ml: 0 }}>
 
-          <Typography
-            variant="h6"
-            noWrap
-            sx={{
-              mr: 2,
-              display: { xs: 'flex', md: 'none' },
-              flexGrow: 1,
-              fontWeight: 700,
-              color: 'inherit',
-              textDecoration: 'none',
-              cursor: 'pointer'}}>
-            <Link href={'/'}>La Maquina Prode</Link>
-          </Typography>
-
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, ml: 0 }}>
-            {pages.map((page) => (
-              <Button
-                key={page.name}
-                sx={{ my: 2, color: 'white', display: 'block' }}
-              >
-                <Link href={page.link}>{page.name}</Link>
-              </Button>
-            ))}
           </Box>
 
           <UserActions user={props.user}/>
