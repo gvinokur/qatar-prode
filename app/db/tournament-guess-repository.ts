@@ -21,7 +21,7 @@ export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew) {
 
   const existingGuess = await findTournamentGuessByUserIdTournament(guess.user_id, guess.tournament_id)
   if(existingGuess) {
-    return await deleteTournamentGuess(existingGuess.id)
+    await deleteTournamentGuess(existingGuess.id)
   }
   return createTournamentGuess(guess)
 

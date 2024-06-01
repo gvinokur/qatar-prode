@@ -99,7 +99,7 @@ const GameView = ({game, teamsMap, isFinal, isThirdPlace}: GameViewProps) => {
         }, isFinal, isThirdPlace)
       }
     }
-  }, [isPlayoffGame, gameGuesses, gameGuess, game, setCalculatedHomeTeam, setCalculatedAwayTeam])
+  }, [isPlayoffGame, gameGuesses, gameGuess, game, setCalculatedHomeTeam, setCalculatedAwayTeam, groupContext, isFinal, isThirdPlace])
 
 
   const handleScoreChange = (home: boolean) => (e: ChangeEvent<HTMLInputElement>) => {
