@@ -21,6 +21,7 @@ type Props = {
 export default async function TournamentLandingPage({ params, searchParams }: Props) {
   const tournamentId = params.id
   const tournamentData = await getCompleteTournament(tournamentId)
+  const user = await getLoggedInUser()
   const prodeGroups = await getGroupsForUser()
   if (!tournamentData) {
     redirect('/?error=NO_TOURNAMENT_FOUND', RedirectType.replace)
@@ -41,18 +42,20 @@ export default async function TournamentLandingPage({ params, searchParams }: Pr
     <>
       {searchParams.hasOwnProperty('debug') && (<DebugObject object={tournamentData}/>)}
       <Grid container spacing={2} p={2}>
-        <Grid item xs={12} md={3}>
+        <Grid item xs={12} md={true}>
           <Fixtures games={gamesAroundMyTime} teamsMap={tournamentData.teamsMap}/>
         </Grid>
-        <Grid item xs={12} md={3}>
-          <UserTournamentStatistics />
-        </Grid>
+        {user && (
+            <Grid item xs={12} md={true}>
+              <UserTournamentStatistics />
+            </Grid>
+        )}
         {prodeGroups && (
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} md={true}>
                 <FriendGroupsList userGroups={prodeGroups.userGroups} participantGroups={prodeGroups.participantGroups}/>
           </Grid>
         )}
-        <Grid item xs={12} md={3}>
+        <Grid item xs={12} md={true}>
           <Rules/>
         </Grid>
       </Grid>

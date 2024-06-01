@@ -29,7 +29,7 @@ export default async function GroupComponent({params, searchParams} : Props) {
   }
   const groupId = params.group_id
   const completeGroupData = await getCompleteGroupData(groupId)
-  const userGameGuesses = await findGameGuessesByUserId(user.id)
+  const userGameGuesses = await findGameGuessesByUserId(user.id, params.id)
   const gameGuesses:{[k: string]: GameGuess} = Object.fromEntries(
     userGameGuesses.map(gameGuess => [gameGuess.game_id, gameGuess])
   )

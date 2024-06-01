@@ -11,10 +11,12 @@ export const createGameGuess = baseFunctions.create
 export const updateGameGuess = baseFunctions.update
 export const deleteGameGuess = baseFunctions.delete
 
-export async function findGameGuessesByUserId(userId: string) {
+export async function findGameGuessesByUserId(userId: string, tournamentId: string) {
   return db.selectFrom(tableName)
-    .selectAll()
-    .where('user_id', '=', userId)
+    .innerJoin('games', "games.id", 'game_guesses.game_id')
+    .where('game_guesses.user_id', '=', userId)
+    .where('games.tournament_id', '=', tournamentId)
+    .selectAll(tableName)
     .execute()
 }
 

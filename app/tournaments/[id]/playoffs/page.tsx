@@ -34,7 +34,7 @@ export default async function PlayoffPage({params, searchParams}: Props) {
   if(!user) {
     redirect('/')
   }
-  const userGameGuesses = await findGameGuessesByUserId(user.id)
+  const userGameGuesses = await findGameGuessesByUserId(user.id, params.id)
   const gameGuesses:{[k: string]: GameGuess} = Object.fromEntries(
     userGameGuesses.map(gameGuess => [gameGuess.game_id, gameGuess])
   )
@@ -58,9 +58,6 @@ export default async function PlayoffPage({params, searchParams}: Props) {
 
   const thirdPlace = completePlayoffData.playoffStages.find(ps => ps.is_third_place)
 
-  //TODO: Do some logic if there are more than 3 playoff rounds
-  const totalColumns = playoffStagesPreFinal.length === 3 ? 8 : 6
-
   return (
     <>
       {searchParams.hasOwnProperty('debug') && (<DebugObject object={{
@@ -77,9 +74,9 @@ export default async function PlayoffPage({params, searchParams}: Props) {
         tournamentGuesses={tournamentGuesses}
         tournamentStartDate={completePlayoffData.tournamentStartDate}
       >
-        <Grid container spacing={2} mt={2} mb={6} columns={totalColumns}>
+        <Grid container spacing={2} mt={2} mb={6} columns={12}>
           {playoffStagesPreFinal.map(playoffStage => (
-            <Grid item md={2} sm={12} key={playoffStage.id}>
+            <Grid item md={true} sm={12} key={playoffStage.id}>
               <Chip label={playoffStage.round_name}
                     sx={{
                       textOverflow: 'ellipsis',
@@ -106,7 +103,7 @@ export default async function PlayoffPage({params, searchParams}: Props) {
               </Grid>
             </Grid>
           ))}
-          <Grid item md={2} xs={12}>
+          <Grid item md={true} xs={12}>
             <Grid container spacing={1}>
               {final && (
                 <>
