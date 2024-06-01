@@ -2,6 +2,7 @@ import {createBaseFunctions} from "./base-repository";
 import {Player, PlayerTable} from "./tables-definition";
 import {db} from "./database";
 import {jsonArrayFrom, jsonObjectFrom} from "kysely/helpers/postgres";
+import {ExtendedPlayerData} from "../definitions";
 
 const tableName = 'players'
 
@@ -22,7 +23,7 @@ export async function findPlayerByTeamAndTournament(tournamentId: string, teamId
 }
 
 export async function findAllPlayersInTournamentWithTeamData(tournamentId: string) {
-  return db.selectFrom('players')
+  const players = await db.selectFrom('players')
     .where('players.tournament_id', '=', tournamentId)
     .selectAll()
     .select((eb) => [
@@ -34,4 +35,5 @@ export async function findAllPlayersInTournamentWithTeamData(tournamentId: strin
       ).as('team')
     ])
     .execute()
+  return players as ExtendedPlayerData[]
 }

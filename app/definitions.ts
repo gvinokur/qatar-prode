@@ -1,4 +1,4 @@
-import {Game, GameResult, PlayoffRound, Team, Tournament, TournamentGroup} from "./db/tables-definition";
+import {Game, GameResult, Player, PlayoffRound, Team, Tournament, TournamentGroup} from "./db/tables-definition";
 
 /**
  * Includes Group data, games and teams
@@ -82,4 +82,8 @@ export interface UserScore {
   playoffScore: number,
   honorRollScore: number,
   totalPoints: number,
+}
+
+export interface ExtendedPlayerData extends Player{
+  team: Team
 }

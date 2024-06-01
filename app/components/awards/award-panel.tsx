@@ -1,6 +1,6 @@
 'use client'
 
-import {Player, TournamentGuessNew} from "../../db/tables-definition";
+import {TournamentGuessNew} from "../../db/tables-definition";
 import {Fragment, useState} from "react";
 import {
   Alert,
@@ -15,9 +15,10 @@ import {
 } from "@mui/material";
 import {LoadingButton} from "@mui/lab";
 import {updateOrCreateTournamentGuess} from "../../actions/game-guesses-action";
+import {ExtendedPlayerData} from "../../definitions";
 
 type Props = {
-  allPlayers: Player[],
+  allPlayers: ExtendedPlayerData[],
   tournamentGuesses: TournamentGuessNew,
   tournamentStartDate: Date
 }
@@ -27,29 +28,29 @@ type AwardTypes = 'best_player_id' | 'top_goalscorer_player_id' | 'best_goalkeep
 interface AwardDefinition {
   label: string
   property: AwardTypes
-  playerFiler: (p: Player) => boolean
+  playerFiler: (p: ExtendedPlayerData) => boolean
 }
 
 const awardsDefinition: AwardDefinition[] = [
   {
     label: 'Mejor Jugador',
     property: 'best_player_id',
-    playerFiler: (p: Player) => true,
+    playerFiler: (p: ExtendedPlayerData) => true,
   },
   {
     label: 'Goleador',
     property: 'top_goalscorer_player_id',
-    playerFiler: (p: Player) => true,
+    playerFiler: (p: ExtendedPlayerData) => true,
   },
   {
     label: 'Mejor Arquero',
     property: 'best_goalkeeper_player_id',
-    playerFiler: (p: Player) => p.position.toUpperCase() === 'GK',
+    playerFiler: (p: ExtendedPlayerData) => p.position.toUpperCase() === 'GK',
   },
   {
     label: 'Mejor Jugador Joven',
     property: 'best_young_player_id',
-    playerFiler: (p: Player) => p.age_at_tournament < 22,
+    playerFiler: (p: ExtendedPlayerData) => p.age_at_tournament < 22,
   }
 ]
 
@@ -69,7 +70,7 @@ export default function AwardsPanel({allPlayers, tournamentGuesses: savedTournam
 
   const handleGuessChange =
     (property: AwardTypes) =>
-      (_: any, player: Player | null) => {
+      (_: any, player: ExtendedPlayerData | null) => {
         console.log('seeting award', property, 'to player', player)
         setTournamentGuesses({
           ...tournamentGuesses,
