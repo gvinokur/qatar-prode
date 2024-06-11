@@ -46,13 +46,13 @@ export const getGameLoser = (game: ExtendedGameData) => {
   return getLoser(homeScore, awayScore, homePenaltyWinner, awayPenaltyWinner, game.home_team, game.away_team)
 }
 
-export const getGuessWinner = (guess: GameGuessNew, homeTeam?: string, awayTeam?: string)  => {
+export const getGuessWinner = (guess: GameGuessNew, homeTeam?: string | null, awayTeam?: string | null)  => {
   const homeScore = guess.home_score;
   const awayScore = guess.away_score
   return getWinner(homeScore, awayScore, guess.home_penalty_winner, guess.away_penalty_winner, homeTeam, awayTeam)
 }
 
-export const getGuessLoser = (guess: GameGuessNew, homeTeam?: string, awayTeam?: string) => {
+export const getGuessLoser = (guess: GameGuessNew, homeTeam?: string | null, awayTeam?: string | null) => {
   const homeScore = guess.home_score;
   const awayScore = guess.away_score
   return getLoser(homeScore, awayScore, guess.home_penalty_winner, guess.away_penalty_winner, homeTeam, awayTeam)

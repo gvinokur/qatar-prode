@@ -44,7 +44,7 @@ function createFactory<K1 extends Identifiable, K2 extends Selectable<Identifiab
   }
 }
 
-function deleteFactory(tableName: IdentifiableTables) {
+function deleteFactory<K1>(tableName: IdentifiableTables) {
   return async function (id: string) {
     return await db.deleteFrom(tableName).where('id', '=', id)
       .returningAll()
@@ -57,6 +57,6 @@ export function createBaseFunctions<K1 extends Identifiable, K2 extends Selectab
     findById: findByIdFactory<K2>(tableName),
     create: createFactory<K1, K2>(tableName),
     update: updateFactory<K1>(tableName),
-    delete: deleteFactory(tableName),
+    delete: deleteFactory<K1>(tableName),
   }
 }

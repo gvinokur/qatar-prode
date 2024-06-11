@@ -5,7 +5,7 @@ import GroupSelector from "../../components/groups-page/group-selector";
 import {getTournamentAndGroupsData} from "../../actions/tournament-actions";
 import Link from "next/link";
 
-type Props = {
+type TournamentLayoutProps = {
   params: {
     id: string
   }
@@ -13,7 +13,7 @@ type Props = {
   children: React.ReactNode
 }
 
- export default async function TournamentLayout({children, params}: Props) {
+export default async function TournamentLayout({children, params}: TournamentLayoutProps) {
   const layoutData = await getTournamentAndGroupsData(params.id)
 
   return (

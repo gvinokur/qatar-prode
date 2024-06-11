@@ -155,8 +155,8 @@ export interface GameGuessTable extends Identifiable{
   game_id: string
   game_number: number
   user_id: string
-  home_team?: string
-  away_team?: string
+  home_team?: string | null
+  away_team?: string | null
   home_score?: number
   away_score?: number
   home_penalty_winner?: boolean
@@ -170,9 +170,9 @@ export type GameGuessUpdate = Updateable<GameGuessTable>
 export interface TournamentGuessTable extends Identifiable{
   tournament_id:string
   user_id:string
-  champion_team_id?: string
-  runner_up_team_id?: string
-  third_place_team_id?: string
+  champion_team_id?: string | null
+  runner_up_team_id?: string | null
+  third_place_team_id?: string | null
   best_player_id?: string
   top_goalscorer_player_id?: string
   best_goalkeeper_player_id?: string
