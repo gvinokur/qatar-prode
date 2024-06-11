@@ -1,4 +1,4 @@
-import {Team, Game, GameResult, GameGuess, GameGuessNew} from "../db/tables-definition";
+import {Team, Game, GameResult, GameGuess, GameGuessNew, GameResultNew} from "../db/tables-definition";
 import {TeamStats} from "../../types/definitions";
 
 const initialTeamStats: TeamStats = {
@@ -14,7 +14,7 @@ const initialTeamStats: TeamStats = {
 }
 
 export interface GameWithResultOrGuess extends Game{
-  resultOrGuess?: GameResult | GameGuessNew
+  resultOrGuess?: GameResultNew | GameGuessNew
 }
 
 /**

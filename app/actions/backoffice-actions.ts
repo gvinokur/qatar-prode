@@ -11,17 +11,30 @@ import {createTeam, findTeamInTournament, getTeamByName} from "../db/team-reposi
 import {
   createTournamentGroup,
   createTournamentGroupGame,
-  createTournamentGroupTeam, deleteAllGroupsFromTournament
+  createTournamentGroupTeam,
+  deleteAllGroupsFromTournament,
+  findGroupsInTournament,
+  findGroupsWithGamesAndTeamsInTournament
 } from "../db/tournament-group-repository";
 import {
   createPlayoffRound,
   createPlayoffRoundGame,
-  deleteAllPlayoffRoundsInTournament
+  deleteAllPlayoffRoundsInTournament, findPlayoffStagesWithGamesInTournament
 } from "../db/tournament-playoff-repository";
-import {GameNew, PlayerNew, Team, Tournament} from "../db/tables-definition";
-import {createGame, deleteAllGamesFromTournament} from "../db/game-repository";
+import {GameNew, GameResult, PlayerNew, Team, Tournament} from "../db/tables-definition";
+import {createGame, deleteAllGamesFromTournament, findGamesInTournament, updateGame} from "../db/game-repository";
 import {players} from "../../data/euro/players";
 import {createPlayer, findPlayerByTeamAndTournament, updatePlayer} from "../db/player-repository";
+import {ExtendedGameData, ExtendedGroupData, ExtendedPlayoffRoundData} from "../definitions";
+import {
+  createGameResult,
+  findGameResultByGameId,
+  findGameResultByGameIds,
+  updateGameResult
+} from "../db/game-result-repository";
+import {calculateGroupPosition} from "../utils/group-position-calculator";
+import {getCompleteTournament} from "./tournament-actions";
+import {calculatePlayoffTeams} from "../utils/playoff-teams-calculator";
 
 export async function deleteDBTournamentTree(tournament: Tournament) {
   // delete from tournament_playoff_round_games ;
@@ -224,4 +237,56 @@ export async function generateDbTournament(name: string, deletePrevious:boolean 
     }))
 
   return result;
+}
+
+export async function saveGameResults(gamesWithResults: ExtendedGameData[]) {
+  //Save all results first
+  await Promise.all(gamesWithResults.map(async (game) => {
+    if(game.gameResult) {
+      const existingResult = await findGameResultByGameId(game.id, true);
+      if (existingResult) {
+        return await updateGameResult(game.id, game.gameResult)
+      } else {
+        return await createGameResult(game.gameResult)
+      }
+    }
+  }))
+}
+
+export async function saveGamesData(games: ExtendedGameData[]) {
+  await Promise.all(games.map(async (game) => {
+    const { home_team, away_team } = game;
+    return await updateGame(game.id, {
+      home_team,
+      away_team
+    })
+  }))
+}
+
+export async function calculateAndSavePlayoffGamesForTournament(tournamentId: string) {
+  type Tuple = [
+    groups: ExtendedGroupData[],
+    games: ExtendedGameData[],
+    playoffStages: ExtendedPlayoffRoundData[],
+  ]
+  const [groups, games, playoffStages ] = await Promise.all([
+    findGroupsWithGamesAndTeamsInTournament(tournamentId),
+    findGamesInTournament(tournamentId),
+    findPlayoffStagesWithGamesInTournament(tournamentId),
+    ]) as Tuple
+
+  const firstPlayoffStage = playoffStages[0]
+  const gameResults = await findGameResultByGameIds(games.map(game => game.id), true)
+  const gamesMap = Object.fromEntries(games.map(game => [game.id, game]))
+  const gameResultMap = Object.fromEntries(
+    gameResults.map(result => [result.game_id, result])
+  )
+
+  const calculatedTeamsPerGame = calculatePlayoffTeams(firstPlayoffStage, groups, gamesMap, gameResultMap, {})
+  return Promise.all(firstPlayoffStage.games.map(async (game) => {
+    return updateGame(game.game_id, {
+      home_team: calculatedTeamsPerGame[game.game_id]?.homeTeam?.team || null,
+      away_team: calculatedTeamsPerGame[game.game_id]?.awayTeam?.team || null
+    })
+  }))
 }

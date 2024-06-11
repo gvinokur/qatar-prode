@@ -100,8 +100,8 @@ export interface TeamWinnerRule {
 export interface GameTable extends Identifiable {
   tournament_id: string
   game_number: number
-  home_team?: string
-  away_team?: string
+  home_team?: string | null
+  away_team?: string | null
   game_date: Date
   location: string
   home_team_rule?: JSONColumnType<GroupFinishRule | TeamWinnerRule>
@@ -138,12 +138,13 @@ export interface ProdeGroupParticipantTable {
 }
 
 
-export interface GameResultTable extends Identifiable{
+export interface GameResultTable {
   game_id: string
   home_score?: number
   away_score?: number
   home_penalty_score?: number
   away_penalty_score?: number
+  is_draft: boolean
 }
 
 export type GameResult = Selectable<GameResultTable>

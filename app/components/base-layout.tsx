@@ -3,18 +3,11 @@
 import * as React from "react";
 import {
   AppBar,
-  Toolbar,
-  Paper,
   Typography,
-  IconButton,
   Box,
-  Button, Avatar, Container, CssBaseline,
+  Avatar, Grid
 
 } from "@mui/material";
-import {
-  Menu as MenuIcon
-} from '@mui/icons-material'
-import Image from 'next/image';
 import UserActions from "./header/user-actions";
 import Link from "next/link";
 import {AdapterUser} from "next-auth/adapters";
@@ -42,40 +35,38 @@ export default function BaseLayout(props: FrameProps) {
   return (
     <>
       <AppBar position={'sticky'}>
-        <Toolbar>
-          <Link href={'/'}>
-            <Avatar
-              variant={"rounded"}
-              src={'/logo.png'}
-              alt='la-maquina-prode'
+        <Grid container xs={12} pl={2} pr={2} pt={1} pb={1} spacing={2}>
+          <Grid item xs={3}>
+            <Link href={'/'}>
+              <Avatar
+                variant={"rounded"}
+                src={'/logo.png'}
+                alt='la-maquina-prode'
+                sx={{
+                  height: 48,
+                  width: 48,
+                  mr: 2,
+                }}/>
+            </Link>
+          </Grid>
+          <Grid item xs={6} alignSelf={'center'} textAlign={'center'}>
+            <Typography
+              variant="h6"
+              noWrap
               sx={{
-                height: 48,
-                width: 48,
-                mr: 2,
-              }}/>
-          </Link>
-          <Typography
-            variant="h6"
-            noWrap
-            sx={{
-              mr: 2,
-              display: 'flex' ,
-              flexGrow: 0,
-              fontWeight: 700,
-              color: 'inherit',
-              textDecoration: 'none',
-              cursor: 'pointer'}}>
-            <Link href={'/'}>La Maquina Prode</Link>
-          </Typography>
-
-          <Box sx={{ flexGrow: 1, display: 'flex', ml: 0 }}>
-
-          </Box>
-
-          <UserActions user={props.user}/>
-        </Toolbar>
+                fontWeight: 700,
+                color: 'inherit',
+                textDecoration: 'none',
+                cursor: 'pointer'}}>
+              <Link href={'/'}>La Maquina Prode</Link>
+            </Typography>
+          </Grid>
+          <Grid item xs={3} textAlign={'right'}>
+            <UserActions user={props.user}/>
+          </Grid>
+        </Grid>
       </AppBar>
-      <main>{props.children}</main>
+      <Box>{props.children}</Box>
     </>
   )
 }

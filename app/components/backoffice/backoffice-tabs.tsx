@@ -2,7 +2,7 @@
 
 import {Tab, Tabs} from "@mui/material";
 import TabPanel from "../tab-panel";
-import {useState} from "react";
+import {useRef, useState} from "react";
 
 type Props = {
   tabs: {
@@ -19,9 +19,8 @@ export default function BackofficeTabs({tabs} :Props) {
       <Tabs
         value={selectedTab}
         onChange={(event, tabSelected) => setSelectedTab(tabSelected)}
-        variant="scrollable"
-        scrollButtons="auto"
         aria-label="scrollable auto tabs example"
+        variant={"fullWidth"}
       >
         {tabs.map(tab=> (
           <Tab label={tab.label} key={tab.label}/>

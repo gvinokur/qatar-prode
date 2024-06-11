@@ -22,17 +22,18 @@ import {calculateGroupPosition} from "../../utils/group-position-calculator";
 import SaveComponent from "./save-component";
 
 type Props = {
+  isPredictions: boolean,
   games: ExtendedGameData[],
   teamsMap: {[k:string]: Team}
 }
 
-export default function GroupTable({games, teamsMap} : Props) {
+export default function GroupTable({games, teamsMap, isPredictions} : Props) {
   const xsMatch = useMediaQuery('(min-width:900px)')
   const theme = useTheme();
   const {gameGuesses} = useContext(GuessesContext)
   const [groupPositionsByGuess, setGroupPositionsByGuess] = useState<TeamStats[]>([])
   const [groupPositions, setGroupPositions] = useState<TeamStats[]>([])
-  const [usePredictionsTable, setUsePredictionsTable] = useState(true)
+  const [usePredictionsTable, setUsePredictionsTable] = useState(isPredictions)
 
   useEffect(() => {
     const teamIds = Object.keys(teamsMap)
@@ -56,21 +57,23 @@ export default function GroupTable({games, teamsMap} : Props) {
 
   return (
     <Grid item xs={12} md={6} mb={xsMatch ? 0 : 12}>
-      <Box display='flex'>
-        <Typography variant={'h5'} component='a' flexGrow={1}
-                    sx={{ textDecoration: 'underline', cursor: 'pointer'}}
-                    color={usePredictionsTable ? 'primary.main' : ''}
-                    onClick={() => setUsePredictionsTable(true)}>
-          Tabla de Pronosticos
-        </Typography>
-        <Typography variant={'h5'} component='a' flexGrow={1}
-                    sx={{ textDecoration: 'underline', cursor: 'pointer'}}
-                    textAlign='right'
-                    color={!usePredictionsTable ? 'primary.main' : ''}
-                    onClick={() => setUsePredictionsTable(false)}>
-          Tabla Real
-        </Typography>
-      </Box>
+      {isPredictions && (
+        <Box display='flex'>
+          <Typography variant={'h5'} component='a' flexGrow={1}
+                      sx={{ textDecoration: 'underline', cursor: 'pointer'}}
+                      color={usePredictionsTable ? 'primary.main' : ''}
+                      onClick={() => setUsePredictionsTable(true)}>
+            Tabla de Pronosticos
+          </Typography>
+          <Typography variant={'h5'} component='a' flexGrow={1}
+                      sx={{ textDecoration: 'underline', cursor: 'pointer'}}
+                      textAlign='right'
+                      color={!usePredictionsTable ? 'primary.main' : ''}
+                      onClick={() => setUsePredictionsTable(false)}>
+            Tabla Real
+          </Typography>
+        </Box>
+      )}
       <Paper>
         <Table>
           <TableHead>
@@ -116,7 +119,7 @@ export default function GroupTable({games, teamsMap} : Props) {
           </TableBody>
         </Table>
       </Paper>
-      <SaveComponent/>
+      {isPredictions && <SaveComponent/>}
     </Grid>
   )
 }

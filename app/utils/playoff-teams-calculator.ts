@@ -1,5 +1,5 @@
 import {ExtendedGroupData, ExtendedPlayoffRoundData, TeamStats} from "../definitions";
-import {Game, GameGuess, GameResult, GroupFinishRule} from "../db/tables-definition";
+import {Game, GameGuess, GameResult, GameResultNew, GroupFinishRule} from "../db/tables-definition";
 import {string} from "prop-types";
 import {calculateGroupPosition, GameWithResultOrGuess, teamStatsComparator} from "./group-position-calculator";
 
@@ -7,7 +7,7 @@ export function calculatePlayoffTeams(
   firstPlayoffStage: ExtendedPlayoffRoundData,
   groups: ExtendedGroupData[],
   gamesMap: {[k:string]: Game},
-  gameResultsMap: {[k:string]: GameResult},
+  gameResultsMap: {[k:string]: GameResultNew},
   gameGuessesMap: {[k:string]: GameGuess}
 ) {
   // Calculate all groups based on either all Results if they are available or all guesses
@@ -15,7 +15,10 @@ export function calculatePlayoffTeams(
     groups.map(group => {
       const gamesWithResult: GameWithResultOrGuess[] = group
         .games
-        .filter(({game_id}) => !!gameResultsMap[game_id])
+        .filter(({game_id}) =>
+          (!!gameResultsMap[game_id] &&
+            Number.isInteger(gameResultsMap[game_id].home_score) &&
+            Number.isInteger(gameResultsMap[game_id].away_score)))
         .map(({game_id}) => ({
           ...gamesMap[game_id],
           resultOrGuess: gameResultsMap[game_id]

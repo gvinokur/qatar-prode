@@ -3,7 +3,7 @@
 import React, {useState} from "react";
 import {GameGuessNew, TournamentGuessNew} from "../../db/tables-definition";
 import {games} from "../../../data/copa-america/games";
-import {getLoser, getWinner} from "../../utils/score-utils";
+import {getGuessLoser, getGuessWinner} from "../../utils/score-utils";
 
 type GameGuessMap = {[k:string]: GameGuessNew}
 
@@ -40,8 +40,8 @@ export function GuessesContextProvider ({children,
       })
       if(tournamentGuesses && tournamentStartDate && tournamentStartDate.getTime() > Date.now()) {
         if (isFinal) {
-          const championTeamId = getWinner(gameGuess, gameGuess.home_team, gameGuess.away_team)
-          const runnerUpTeamId = getLoser(gameGuess, gameGuess.home_team, gameGuess.away_team)
+          const championTeamId = getGuessWinner(gameGuess, gameGuess.home_team, gameGuess.away_team)
+          const runnerUpTeamId = getGuessLoser(gameGuess, gameGuess.home_team, gameGuess.away_team)
           //Ensure we override also when null
           const {champion_team_id, runner_up_team_id, ...restOfTournamentGuess} = tournamentGuesses
           setTournamentGuesses({
@@ -50,7 +50,7 @@ export function GuessesContextProvider ({children,
             runner_up_team_id: runnerUpTeamId,
           })
         } else if (isThirdPlace) {
-          const thirPlaceId = getWinner(gameGuess, gameGuess.home_team, gameGuess.away_team)
+          const thirPlaceId = getGuessWinner(gameGuess, gameGuess.home_team, gameGuess.away_team)
           //Ensure we override also when null
           const {third_place_team_id, ...restOfTournamentGuess} = tournamentGuesses
           setTournamentGuesses({

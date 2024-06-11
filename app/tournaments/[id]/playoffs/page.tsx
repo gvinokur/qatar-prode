@@ -6,7 +6,6 @@ import {redirect} from "next/navigation";
 import {getCompletePlayoffData} from "../../../actions/tournament-actions";
 import {findGameGuessesByUserId} from "../../../db/game-guess-repository";
 import {GameGuess, TournamentGuessNew} from "../../../db/tables-definition";
-import GroupSelector from "../../../components/groups-page/group-selector";
 import {Box, Grid, Chip} from "../../../components/mui-wrappers";
 import {GuessesContextProvider} from "../../../components/context-providers/guesses-context-provider";
 import GameView from "../../../components/game-view";
@@ -14,7 +13,6 @@ import HonorRoll from "../../../components/playoffs-page/honor-roll-component";
 import SavePlayoffsComponent from "../../../components/playoffs-page/save-playoffs-components";
 import {calculatePlayoffTeams} from "../../../utils/playoff-teams-calculator";
 import {findTournamentGuessByUserIdTournament} from "../../../db/tournament-guess-repository";
-import {tree} from "next/dist/build/templates/app-page";
 
 type Props = {
   params: {

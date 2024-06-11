@@ -15,6 +15,12 @@ export async function findTournamentByName (name:string) {
     .executeTakeFirst()
 }
 
+export async function findAllTournaments () {
+  return db.selectFrom('tournaments')
+    .selectAll()
+    .execute()
+}
+
 export async function findAllActiveTournaments () {
   return db.selectFrom('tournaments')
     .where('is_active', '=', true)

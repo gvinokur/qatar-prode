@@ -51,7 +51,7 @@ export default async function GroupComponent({params, searchParams} : Props) {
               }
             </Grid>
           </Grid>
-          <GroupTable games={completeGroupData.games} teamsMap={completeGroupData.teamsMap}/>
+          <GroupTable games={completeGroupData.games} teamsMap={completeGroupData.teamsMap} isPredictions={true}/>
         </Grid>
       </GuessesContextProvider>
     </>

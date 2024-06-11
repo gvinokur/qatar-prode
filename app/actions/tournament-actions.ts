@@ -1,3 +1,5 @@
+'use server'
+
 import {findAllActiveTournaments, findTournamentById, findTournamentByName} from "../db/tournament-repository";
 import {findTeamInGroup, findTeamInTournament} from "../db/team-repository";
 import {Game, GameResult, Team, Tournament} from "../db/tables-definition";
@@ -10,7 +12,6 @@ import {
 import {findPlayoffStagesWithGamesInTournament} from "../db/tournament-playoff-repository";
 import {CompleteGroupData, CompletePlayoffData, CompleteTournamentData} from "../definitions";
 import {findTournamentGuessByUserIdTournament} from "../db/tournament-guess-repository";
-
 
 export async function getTournaments () {
   const tournaments = await findAllActiveTournaments()
@@ -47,7 +48,7 @@ export async function getCompleteTournament(tournamentId: string) {
   }
 }
 
-export async function getCompleteGroupData(groupId: string) {
+export async function getCompleteGroupData(groupId: string, includeDraftResults:boolean = false) {
   const group = await findTournamentgroupById(groupId)
 
   if(group) {
@@ -56,7 +57,7 @@ export async function getCompleteGroupData(groupId: string) {
     const teams: Team[] = await findTeamInGroup(group.id)
     const teamsMap: {[k:string]: Team} = Object.fromEntries(teams.map((team: Team) => ([team.id, team])))
 
-    const games = await findGamesInGroup(group.id)
+    const games = await findGamesInGroup(group.id, true, includeDraftResults)
     const gamesMap: {[k: string]: Game} = Object.fromEntries(games.map((game: Game) => ([game.id, game])))
 
     return {

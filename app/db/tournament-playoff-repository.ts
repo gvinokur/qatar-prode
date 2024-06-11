@@ -17,6 +17,11 @@ export async function createPlayoffRoundGame(playoffRoundGame: PlayoffRoundGameT
     .executeTakeFirstOrThrow()
 }
 
+/**
+ * Returns a list of playoff stages, sorted by round number ascending.
+ * @param tournamentId
+ * @returns Promise<ExtendedPlayoffData[]> sorted by round number ascending
+ */
 export async function findPlayoffStagesWithGamesInTournament(tournamentId: string) {
   return await db.selectFrom('tournament_playoff_rounds')
     .where('tournament_id', '=', tournamentId)

@@ -1,6 +1,7 @@
-import {Box} from "@mui/material";
+import {Box, BoxProps} from "@mui/material";
+import {useRef, useState} from "react";
 
-interface TabPanelProps {
+interface TabPanelProps extends BoxProps{
   children?: React.ReactNode;
   index: number;
   value: number;
@@ -8,20 +9,22 @@ interface TabPanelProps {
 
 export default function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
-
   return (
-    <div
+    <Box
       role="tabpanel"
       hidden={value !== index}
       id={`vertical-tabpanel-${index}`}
       aria-labelledby={`vertical-tab-${index}`}
+      sx={{
+        overflowY: 'auto',
+      }}
       {...other}
     >
       {value === index && (
-        <Box sx={{ p: 3 }}>
+        <Box pt={1} pb={1}>
           {children}
         </Box>
       )}
-    </div>
+    </Box>
   );
 }

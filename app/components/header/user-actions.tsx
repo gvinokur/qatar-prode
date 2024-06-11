@@ -131,20 +131,11 @@ export default function UserActions({ user }: UserActionProps) {
             <MenuItem onClick={handleCloseUserMenu}>
               <Typography textAlign="center" onClick={handleOpen}>Cambiar Apodo</Typography>
             </MenuItem>
-            {user.isAdmin && availableTournaments && (<MenuItem divider={true} sx={{ padding: '0px'}}/>)}
-            {user.isAdmin && availableTournaments &&
-              availableTournaments.map(tournamentName => (
-                <React.Fragment key={tournamentName}>
-                  <MenuItem onClick={handleCreateTournament(tournamentName)}>
-                    Crear el torneo {tournamentName}
-                  </MenuItem>
-                  <MenuItem onClick={handleCreatePlayers(tournamentName)}>
-                    Crear los jugafores  para {tournamentName}
-                  </MenuItem>
-                </React.Fragment>
-              ))
-            }
-            {user.isAdmin && availableTournaments && (<MenuItem divider={true} sx={{ padding: '0px'}}/>)}
+            {user.isAdmin && (
+              <MenuItem onClick={() => router.push('/backoffice')}>
+                Ir al Back Office
+              </MenuItem>
+            )}
             <MenuItem onClick={() => { handleLogout(); handleCloseUserMenu();}}>
               <Typography textAlign="center">Salir</Typography>
             </MenuItem>

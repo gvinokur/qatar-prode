@@ -1,4 +1,13 @@
-import {Game, GameResult, Player, PlayoffRound, Team, Tournament, TournamentGroup} from "./db/tables-definition";
+import {
+  Game,
+  GameResult,
+  GameResultNew,
+  Player,
+  PlayoffRound,
+  Team,
+  Tournament,
+  TournamentGroup
+} from "./db/tables-definition";
 
 /**
  * Includes Group data, games and teams
@@ -31,7 +40,7 @@ export interface ExtendedPlayoffRoundData extends PlayoffRound {
 export interface ExtendedGameData extends Game {
   group?: { tournament_group_id: string,  group_letter: string}
   playoffStage?: { tournament_playoff_round_id: string, round_name: string }
-  gameResult?: GameResult
+  gameResult?: GameResultNew
 }
 
 export interface CompleteTournamentData {
