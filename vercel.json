@@ -1,0 +1,6 @@
+{
+  "crons": [{
+    "path": "/api/update-guesses?",
+    "schedule": "*/30 * * * *"
+  }]
+}
