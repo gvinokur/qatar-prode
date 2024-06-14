@@ -54,6 +54,7 @@ const GameView = ({game, teamsMap, isFinal, isThirdPlace}: GameViewProps) => {
       let homeTeam
       let awayTeam
       const homeTeamRule = game.home_team_rule
+
       if(isTeamWinnerRule(homeTeamRule)) {
         const gameGuess = Object.values(gameGuesses)
           .find(guess => guess.game_number === homeTeamRule.game)

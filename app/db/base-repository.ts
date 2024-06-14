@@ -29,8 +29,7 @@ function updateFactory<K1 extends Identifiable>  (tableName: IdentifiableTables)
   return async function (id: string, updateWith: Updateable<K1>) {
     const query = db.updateTable(tableName).set(updateWith).where('id', '=', id).returningAll()
     const compiledQuery = query.compile()
-    // console.log('compiled query', compiledQuery)
-    await db.updateTable(tableName).set(updateWith).where('id', '=', id).returningAll().execute()
+    return db.updateTable(tableName).set(updateWith).where('id', '=', id).returningAll().execute()
   }
 }
 

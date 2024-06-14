@@ -10,7 +10,6 @@ import {LoadingButton} from "@mui/lab";
 import {
   calculateAndSavePlayoffGamesForTournament,
   saveGameResults,
-  saveGamesData
 } from "../../actions/backoffice-actions";
 import GroupTable from "../groups-page/group-table";
 import {DebugObject} from "../debug";

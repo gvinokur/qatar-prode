@@ -36,3 +36,18 @@ export async function updateOrCreateGuess(guess: GameGuessNew) {
    return createGameGuess(guess)
 
 }
+
+//--------------------------------------------------------------------------------------
+export async function findAllGuessesForGamesWithResultsInDraft() {
+  return db.selectFrom('game_guesses')
+    .selectAll()
+    .where('score', 'is not', null)
+    .where((eb) =>
+      eb.exists(
+        eb.selectFrom('game_results')
+          .selectAll()
+          .whereRef('game_results.game_id', '=', 'game_guesses.game_id')
+          .where('is_draft', '=', true)
+      )
+    ).execute()
+}

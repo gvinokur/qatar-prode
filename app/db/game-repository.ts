@@ -1,7 +1,7 @@
 import {createBaseFunctions} from "./base-repository";
-import {Game, GameTable} from "./tables-definition";
+import {Game, GameGuess, GameResult, GameResultNew, GameTable} from "./tables-definition";
 import {db} from "./database";
-import {jsonObjectFrom} from "kysely/helpers/postgres";
+import {jsonArrayFrom, jsonObjectFrom} from "kysely/helpers/postgres";
 
 const tableName = 'games'
 
@@ -110,3 +110,47 @@ export async function deleteAllGamesFromTournament(tournamentId: string) {
   }))
   return waitForAllDeletes
 }
+
+
+//----------------------------------------------------------------------------------------------------
+interface GameWithResultAndGuess extends Game {
+  gameResult: GameResultNew
+  gameGuesses: GameGuess[]
+}
+
+export async function findAllGamesWithPublishedResultsAndGameGuesses(forceDrafts: boolean, forceAllGameGuesses: boolean) {
+  return await db.selectFrom(tableName)
+    .selectAll()
+    .select((eb) =>[
+      jsonObjectFrom(
+        eb.selectFrom('game_results')
+          .whereRef('game_results.game_id', '=', 'games.id')
+          .where('is_draft', '=', false)
+          .selectAll()
+      ).as('gameResult'),
+      jsonArrayFrom(
+        eb.selectFrom('game_guesses')
+          .whereRef('game_guesses.game_id', '=', 'games.id')
+          .where('score', 'is', null)
+          .selectAll()
+      ).as('gameGuesses')
+    ])
+    .where((eb) =>
+      eb.and([
+        eb.exists(
+          eb.selectFrom('game_results')
+            .whereRef('game_results.game_id', '=', 'games.id')
+            .$if(!forceDrafts, qb => qb.where('is_draft', 'is', false))
+            .selectAll()
+        ),
+        eb.exists(
+          eb.selectFrom('game_guesses')
+            .whereRef('game_guesses.game_id', '=', 'games.id')
+            .$if(!forceAllGameGuesses, qb => qb.where('score', 'is', null))
+            .selectAll()
+        )
+      ])
+    )
+    .execute() as GameWithResultAndGuess[]
+}
+

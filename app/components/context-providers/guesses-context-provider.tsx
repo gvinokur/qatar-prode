@@ -2,7 +2,6 @@
 
 import React, {useState} from "react";
 import {GameGuessNew, TournamentGuessNew} from "../../db/tables-definition";
-import {games} from "../../../data/copa-america/games";
 import {getGuessLoser, getGuessWinner} from "../../utils/score-utils";
 
 type GameGuessMap = {[k:string]: GameGuessNew}

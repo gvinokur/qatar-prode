@@ -81,6 +81,7 @@ export interface PlayoffRoundTable extends Identifiable {
   total_games: number
   is_final?: boolean
   is_third_place?: boolean
+  is_first_stage?: boolean
 }
 
 export type PlayoffRound = Selectable<PlayoffRoundTable>
@@ -96,6 +97,33 @@ export interface TeamWinnerRule {
   game: number
   winner: boolean
 }
+
+// Interesting concept, but could not make it work simpler
+// type BaseGame = {
+//   tournament_id: string
+//   game_number: number
+//   home_team?: string | null
+//   away_team?: string | null
+//   game_date: Date
+//   location: string
+// } & Identifiable
+//
+// type GroupGame = {
+//   game_type: 'group'
+// } & BaseGame
+//
+// type FirstPlayoffRoundGame = {
+//   game_type: 'first_round'
+//   home_team_rule?: JSONColumnType<GroupFinishRule>
+//   away_team_rule?: JSONColumnType<GroupFinishRule>
+// } & BaseGame
+//
+// type OtherPlayoffRoundGame = {
+//   game_type: 'first_round'
+//   home_team_rule?: JSONColumnType<GroupFinishRule>
+//   away_team_rule?: JSONColumnType<GroupFinishRule>
+// } & BaseGame
+
 
 export interface GameTable extends Identifiable {
   tournament_id: string
@@ -161,6 +189,13 @@ export interface GameGuessTable extends Identifiable{
   away_score?: number
   home_penalty_winner?: boolean
   away_penalty_winner?: boolean
+  /**
+   * Undefined - The game has not been played or the calculation did not happen
+   * 0 - Missed guess
+   * 1- Correct guess with wrong score
+   * 2- Exact guess
+   */
+  score?:number
 }
 
 export type GameGuess = Selectable<GameGuessTable>
@@ -177,6 +212,23 @@ export interface TournamentGuessTable extends Identifiable{
   top_goalscorer_player_id?: string
   best_goalkeeper_player_id?: string
   best_young_player_id?: string
+  /**
+   * undefined - No positions defined or did not calculate them
+   * 5 points for champion guess
+   * 3 points for runner up guess
+   * 1 point for third place guess
+   */
+  honor_roll_score?: number
+  /**
+   * undefined - No awards defined or did not calculate them
+   * 3 points for each correct award
+   */
+  individual_awards_score?:number
+  /**
+   * undefined - no qualified team yet.
+   * 1 point for each correct qualified team guessed
+   */
+  qualified_teams_score?: number
 }
 
 export type TournamentGuess = Selectable<TournamentGuessTable>

@@ -20,10 +20,11 @@ export const calculateScoreForGame = (game: ExtendedGameData, gameGuess: GameGue
     let awayPenaltyWin = false;
 
     // Playoff points are only awarded if both teams are the right ones.
-    if (isPlayoff &&
-      (game.home_team !== gameGuess.home_team || game.away_team !== gameGuess.away_team)) {
-      return 0;
-    }
+    // Not anymore
+    // if (isPlayoff &&
+    //   (game.home_team !== gameGuess.home_team || game.away_team !== gameGuess.away_team)) {
+    //   return 0;
+    // }
 
     // Special case for playoffs and ties
     if (isPlayoff && (gameHomeScore === gameAwayScore)) {

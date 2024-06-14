@@ -27,4 +27,3 @@ export function getPasswordHash(password: string) {
   const saltedPass = (process.env['NEXT_PUBLIC_SALT'] || '') + password
   return sha256(saltedPass).toString();
 }
-

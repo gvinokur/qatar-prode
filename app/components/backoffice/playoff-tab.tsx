@@ -1,14 +1,18 @@
 'use client'
 
-import {Backdrop, Box, CircularProgress, Divider, Grid, Typography} from "@mui/material";
+import {Alert, Backdrop, Box, CircularProgress, Divider, Grid, Snackbar, Typography} from "@mui/material";
 import {ChangeEvent, useEffect, useState} from "react";
 import {ExtendedGameData, ExtendedPlayoffRoundData} from "../../definitions";
 import {GameResultNew, Team} from "../../db/tables-definition";
-import {getCompleteGroupData, getCompletePlayoffData} from "../../actions/tournament-actions";
-import {spacing} from "@mui/system";
+import {getCompletePlayoffData} from "../../actions/tournament-actions";
 import BackofficeGameView from "./backoffice-game-view";
 import {isTeamWinnerRule} from "../../utils/playoffs-rule-helper";
 import {getGameWinner, getGameLoser} from "../../utils/score-utils";
+import {LoadingButton} from "@mui/lab";
+import {
+  saveGameResults,
+  saveGamesData
+} from "../../actions/backoffice-actions";
 
 type Props = {
   tournamentId: string
@@ -22,31 +26,33 @@ const buildGameResult = (game: ExtendedGameData):GameResultNew => {
 }
 
 const modifyAffectedTeams = (newGame:ExtendedGameData, newGamesMap: {[k: string]: ExtendedGameData}, gamesMap: {[k: string]: ExtendedGameData}) => {
-  if (newGame.home_team && newGame.away_team) {
-    const affectedGames = Object.values(gamesMap).filter(g => (
-      (g.home_team_rule && isTeamWinnerRule(g.home_team_rule) && g.home_team_rule.game === newGame.game_number) ||
-      (g.away_team_rule && isTeamWinnerRule(g.away_team_rule) && g.away_team_rule.game === newGame.game_number)
-    ))
-    if (affectedGames.length > 0) {
-      affectedGames.forEach(g => {
-        const gameWithTeam = {...g}
-        if (isTeamWinnerRule(g.home_team_rule) && g.home_team_rule.game === newGame.game_number) {
-          if (g.home_team_rule.winner) {
-            gameWithTeam.home_team = getGameWinner(newGame)
-          } else {
-            gameWithTeam.home_team = getGameLoser(newGame)
-          }
+  const affectedGames = Object.values(gamesMap).filter(g => (
+    (g.home_team_rule && isTeamWinnerRule(g.home_team_rule) && g.home_team_rule.game === newGame.game_number) ||
+    (g.away_team_rule && isTeamWinnerRule(g.away_team_rule) && g.away_team_rule.game === newGame.game_number)
+  ))
+  if (affectedGames.length > 0) {
+    affectedGames.forEach(g => {
+      const gameWithTeam = {...g}
+      if (isTeamWinnerRule(g.home_team_rule) && g.home_team_rule.game === newGame.game_number) {
+        if (newGame.gameResult && newGame.gameResult.is_draft) {
+          gameWithTeam.home_team = null
+        } else if (g.home_team_rule.winner) {
+          gameWithTeam.home_team = getGameWinner(newGame)
+        } else {
+          gameWithTeam.home_team = getGameLoser(newGame)
         }
-        if (isTeamWinnerRule(g.away_team_rule) && g.away_team_rule.game === newGame.game_number) {
-          if (g.away_team_rule.winner) {
-            gameWithTeam.away_team = getGameWinner(newGame)
-          } else {
-            gameWithTeam.away_team = getGameLoser(newGame)
-          }
+      }
+      if (isTeamWinnerRule(g.away_team_rule) && g.away_team_rule.game === newGame.game_number) {
+        if (newGame.gameResult && newGame.gameResult.is_draft) {
+          gameWithTeam.away_team = null
+        } else if (g.away_team_rule.winner) {
+          gameWithTeam.away_team = getGameWinner(newGame)
+        } else {
+          gameWithTeam.away_team = getGameLoser(newGame)
         }
-        newGamesMap[gameWithTeam.id] = gameWithTeam
-      })
-    }
+      }
+      newGamesMap[gameWithTeam.id] = gameWithTeam
+    })
   }
 }
 
@@ -132,18 +138,29 @@ export default function PlayoffTab({ tournamentId } :Props) {
         const game = gamesMap[gameId]
         if(game) {
           const gameResult: GameResultNew = game.gameResult || buildGameResult(game)
-          setGamesMap({
-            ...gamesMap,
-            [gameId]: {
-              ...game,
-              gameResult: {
-                ...gameResult,
-                is_draft: !gameResult.is_draft
-              }
+          const newGame = {
+            ...game,
+            gameResult: {
+              ...gameResult,
+              is_draft: !gameResult.is_draft
             }
-          })
+          }
+          const newGamesMap = {
+            ...gamesMap,
+            [gameId]: newGame
+          }
+          modifyAffectedTeams(newGame, newGamesMap, gamesMap)
+          setGamesMap(newGamesMap)
         }
       }
+
+  const handleSaveGameResult = async () => {
+    setSaving(true)
+    await saveGameResults(Object.values(gamesMap))
+    await saveGamesData(Object.values(gamesMap))
+    setSaving(false)
+    setSaved(false)
+  }
 
   return (
     <Box>
@@ -154,22 +171,32 @@ export default function PlayoffTab({ tournamentId } :Props) {
         <CircularProgress color="inherit" />
       </Backdrop>
       {!loading && playoffStages && playoffStages.map(playoffStage => (
-        <Grid container xs={12} spacing={1} key={playoffStage.id}>
-          <Grid item xs={12} textAlign={'center'} m={3}>
-            <Typography variant={'h5'}>{playoffStage.round_name}</Typography>
-          </Grid>
-          {playoffStage.games.map(({game_id}) => (
-            <Grid item xs={6} key={game_id}>
-              <BackofficeGameView
-                game={gamesMap[game_id]}
-                teamsMap={teamsMap}
-                handleScoreChange={handleScoreChange(game_id)}
-                handlePenaltyScoreChange={handlePenaltyScoreChange(game_id)}
-                handleDraftStatusChanged={handleDraftStatusChanged(game_id)}
-              />
+        <>
+          <Grid container xs={12} spacing={1} key={playoffStage.id}>
+            <Grid item xs={12} textAlign={'center'} m={3}>
+              <Typography variant={'h5'}>{playoffStage.round_name}</Typography>
             </Grid>
-          ))}
-        </Grid>
+            {playoffStage.games.map(({game_id}) => (
+              <Grid item xs={6} key={game_id}>
+                <BackofficeGameView
+                  game={gamesMap[game_id]}
+                  teamsMap={teamsMap}
+                  handleScoreChange={handleScoreChange(game_id)}
+                  handlePenaltyScoreChange={handlePenaltyScoreChange(game_id)}
+                  handleDraftStatusChanged={handleDraftStatusChanged(game_id)}
+                />
+              </Grid>
+            ))}
+          </Grid>
+          <LoadingButton loading={saving} variant='contained' size='large' onClick={handleSaveGameResult}
+                                          sx={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translate(-50%, 0)',
+                                            display: 'block' }}>Guardar Resultados</LoadingButton>
+          <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center'}} open={saved} autoHideDuration={2000} onClose={() => setSaved(false)}>
+            <Alert onClose={() => setSaved(false)} severity="success" sx={{ width: '100%' }}>
+              Los resultados se guardaron correctamente!
+            </Alert>
+          </Snackbar>
+        </>
       ))}
     </Box>
   )
