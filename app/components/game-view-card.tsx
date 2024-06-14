@@ -19,6 +19,10 @@ import {getDateString} from "../../utils/date-utils";
 import {ExtendedGameData} from "../definitions";
 import {Theme} from "../db/tables-definition";
 import {ChangeEvent} from "react";
+import {DateTimePicker} from "@mui/x-date-pickers/DateTimePicker";
+import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
+import {LocalizationProvider} from "@mui/x-date-pickers";
+import dayjs from "dayjs";
 
 type GameGuessProps = {
   isGameGuess: true
@@ -65,6 +69,7 @@ type GameResultProps = {
   handleScoreChange: (isHomeTeam: boolean) => (e: ChangeEvent<HTMLInputElement>) => void,
   handlePenaltyScoreChange: (isHomeTeam: boolean) => (e: ChangeEvent<HTMLInputElement>) => void,
   handleDraftStatusChanged: (e: ChangeEvent<HTMLInputElement>) => void,
+  handleGameDateChange: (updatedDate: Date) => void
 }
 
 type Props = GameGuessProps | GameResultProps
@@ -110,7 +115,7 @@ export default function GameViewCard(
         subheaderTypographyProps={{
           noWrap: true,
         }}
-        subheader={getDateString(game.game_date.toUTCString(), xsMatch)}
+        subheader={specificProps.isGameGuess && getDateString(game.game_date.toUTCString(), xsMatch)}
         sx={{
           color: theme.palette.primary.main,
           borderBottom: `${theme.palette.primary.light} 1px solid`
@@ -119,6 +124,17 @@ export default function GameViewCard(
       <CardContent>
         <form autoComplete='off'>
           <Grid container columns={12}>
+            {!specificProps.isGameGuess && (
+              <Grid item xs={12}>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DateTimePicker value={dayjs(game.game_date)} label={'Game Date'} onChange={(newValue) => {
+                    if (newValue) {
+                      specificProps.handleGameDateChange(newValue.toDate())
+                    }
+                  }}/>
+                </LocalizationProvider>
+              </Grid>
+            )}
             <Grid item xs={teamNameCols} flexDirection={'column'} justifyContent={'center'} alignContent={'center'} display={'flex'}>
               <Chip label={homeTeamNameOrDescription}
                     avatar={homeTeamAvatarInfo && (

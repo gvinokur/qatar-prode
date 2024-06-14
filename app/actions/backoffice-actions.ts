@@ -255,10 +255,11 @@ export async function saveGameResults(gamesWithResults: ExtendedGameData[]) {
 
 export async function saveGamesData(games: ExtendedGameData[]) {
   await Promise.all(games.map(async (game) => {
-    const { home_team, away_team } = game;
+    const { home_team, away_team, game_date } = game;
     return await updateGame(game.id, {
       home_team,
-      away_team
+      away_team,
+      game_date
     })
   }))
 }

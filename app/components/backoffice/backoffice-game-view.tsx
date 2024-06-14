@@ -12,9 +12,10 @@ type Props = {
   handleScoreChange: (isHomeTeam: boolean) => (e: ChangeEvent<HTMLInputElement>) => void
   handlePenaltyScoreChange: (isHomeTeam: boolean) => (e: ChangeEvent<HTMLInputElement>) => void
   handleDraftStatusChanged: (e: ChangeEvent<HTMLInputElement>) => void
+  handleGameDateChange: (updatedDate: Date) => void
 }
 
-export default function BackofficeGameView({ game, teamsMap, handlePenaltyScoreChange, handleScoreChange, handleDraftStatusChanged} : Props) {
+export default function BackofficeGameView({ game, teamsMap, handlePenaltyScoreChange, handleScoreChange, handleDraftStatusChanged, handleGameDateChange} : Props) {
 
   return (
     <GameViewCard
@@ -28,6 +29,7 @@ export default function BackofficeGameView({ game, teamsMap, handlePenaltyScoreC
       handleScoreChange={handleScoreChange}
       handlePenaltyScoreChange={handlePenaltyScoreChange}
       handleDraftStatusChanged={handleDraftStatusChanged}
+      handleGameDateChange={handleGameDateChange}
     />
   )
 }

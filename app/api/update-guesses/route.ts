@@ -3,6 +3,8 @@ import {findAllGamesWithPublishedResultsAndGameGuesses} from "../../db/game-repo
 import {calculateScoreForGame} from "../../utils/game-score-calculator";
 import {findAllGuessesForGamesWithResultsInDraft, updateGameGuess} from "../../db/game-guess-repository";
 
+export const maxDuration = 60;
+
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const object = searchParams.get('object')

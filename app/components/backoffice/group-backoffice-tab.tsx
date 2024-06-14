@@ -9,7 +9,7 @@ import BackofficeGameView from "./backoffice-game-view";
 import {LoadingButton} from "@mui/lab";
 import {
   calculateAndSavePlayoffGamesForTournament,
-  saveGameResults,
+  saveGameResults, saveGamesData,
 } from "../../actions/backoffice-actions";
 import GroupTable from "../groups-page/group-table";
 import {DebugObject} from "../debug";
@@ -122,10 +122,23 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
         }
       }
 
+  const handleGameDateChange =  (gameId:string) =>
+    (updatedDate: Date) => {
+      const game = gamesMap[gameId]
+      console.log('Setting game', game, 'date to', updatedDate)
+      setGamesMap({
+        ...gamesMap,
+        [gameId]: {
+          ...game,
+          game_date: updatedDate
+        }
+      })
+    }
   const handleSaveGameResult = async () => {
     setSaving(true)
     await saveGameResults(Object.values(gamesMap))
     await calculateAndSavePlayoffGamesForTournament(tournamentId)
+    await saveGamesData(Object.values(gamesMap))
     setSaving(false)
     setSaved(false)
   }
@@ -152,6 +165,7 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
                         handleScoreChange={handleScoreChange(gameId)}
                         handlePenaltyScoreChange={handlePenaltyScoreChange(gameId)}
                         handleDraftStatusChanged={handleDraftStatusChanged(gameId)}
+                        handleGameDateChange={handleGameDateChange(gameId)}
                       />
                     </Grid>
                   ))}

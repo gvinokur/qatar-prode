@@ -9,13 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@emotion/react": "^11.10.4",
-    "@emotion/styled": "^11.10.4",
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
     "@mui/icons-material": "^5.10.9",
     "@mui/lab": "^5.0.0-alpha.97",
-    "@mui/material": "^5.10.3",
+    "@mui/material": "^5.15.20",
+    "@mui/x-date-pickers": "^7.7.0",
     "@vercel/postgres-kysely": "^0.8.0",
     "crypto-js": "^4.2.0",
+    "dayjs": "^1.11.11",
     "mui-color-input": "^2.0.3",
     "next": "^14.2.3",
     "next-auth": "^4.24.7",

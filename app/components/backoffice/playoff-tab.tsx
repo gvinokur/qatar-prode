@@ -154,6 +154,19 @@ export default function PlayoffTab({ tournamentId } :Props) {
         }
       }
 
+  const handleGameDateChange =  (gameId:string) =>
+    (updatedDate: Date) => {
+      const game = gamesMap[gameId]
+      console.log('Setting game', game, 'date to', updatedDate)
+      setGamesMap({
+        ...gamesMap,
+        [gameId]: {
+          ...game,
+          game_date: updatedDate
+        }
+      })
+    }
+
   const handleSaveGameResult = async () => {
     setSaving(true)
     await saveGameResults(Object.values(gamesMap))
@@ -184,6 +197,7 @@ export default function PlayoffTab({ tournamentId } :Props) {
                   handleScoreChange={handleScoreChange(game_id)}
                   handlePenaltyScoreChange={handlePenaltyScoreChange(game_id)}
                   handleDraftStatusChanged={handleDraftStatusChanged(game_id)}
+                  handleGameDateChange={handleGameDateChange(game_id)}
                 />
               </Grid>
             ))}
