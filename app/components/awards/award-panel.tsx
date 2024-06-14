@@ -78,6 +78,7 @@ export default function AwardsPanel({allPlayers, tournamentGuesses: savedTournam
         });
       }
 
+  const isDisabled = tournamentStartDate.getTime() < Date.now()
 
   return (
     <>
@@ -110,6 +111,7 @@ export default function AwardsPanel({allPlayers, tournamentGuesses: savedTournam
                     getOptionLabel={(option) => option.name}
                     value={allPlayers.find(player => player.id === tournamentGuesses[awardDefinition.property])}
                     onChange={handleGuessChange(awardDefinition.property)}
+                    disabled={isDisabled}
                     renderOption={(props, option) => (
                       <Box component='li' {...props}>
                         {option.name} - {option.team.short_name}
