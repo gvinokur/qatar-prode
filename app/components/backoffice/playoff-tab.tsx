@@ -204,10 +204,10 @@ export default function PlayoffTab({ tournamentId } :Props) {
           </Grid>
           <LoadingButton loading={saving} variant='contained' size='large' onClick={handleSaveGameResult}
                                           sx={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translate(-50%, 0)',
-                                            display: 'block' }}>Guardar Resultados</LoadingButton>
+                                            display: 'block' }}>Guardar Partidos</LoadingButton>
           <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center'}} open={saved} autoHideDuration={2000} onClose={() => setSaved(false)}>
             <Alert onClose={() => setSaved(false)} severity="success" sx={{ width: '100%' }}>
-              Los resultados se guardaron correctamente!
+              Los Partidos se guardaron correctamente!
             </Alert>
           </Snackbar>
         </>
