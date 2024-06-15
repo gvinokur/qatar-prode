@@ -1,25 +1,26 @@
 'use client'
 
 import {Card, CardContent, CardHeader, Grid, Typography, useTheme} from "@mui/material";
+import {GameStatisticForUser} from "../../../types/definitions";
 
 type Props = {
-
+  userGameStatistics?: GameStatisticForUser
 }
 
-export function UserTournamentStatistics({} : Props) {
+export function UserTournamentStatistics({userGameStatistics} : Props) {
   const theme = useTheme()
 
   const groupScoreData = {
-    correctPredictions: 0,
-    exactPredictions: 0,
-    totalPoints:0,
+    correctPredictions: userGameStatistics?.group_correct_guesses || 0,
+    exactPredictions: userGameStatistics?.group_exact_guesses || 0,
+    totalPoints: userGameStatistics?.group_score || 0,
     qualifiers: 0
   }
 
   const playoffScoreData = {
-    correctPredictions: 0,
-    exactPredictions: 0,
-    totalPoints: 0
+    correctPredictions: userGameStatistics?.playoff_correct_guesses || 0,
+    exactPredictions: userGameStatistics?.playoff_exact_guesses || 0,
+    totalPoints: userGameStatistics?.playoff_score || 0,
   }
 
   const honorRollScoreData = {

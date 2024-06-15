@@ -10,6 +10,7 @@ import ProdeGroupTable from "../../components/friend-groups/friends-group-table"
 import {getLoggedInUser} from "../../actions/user-actions";
 import ProdeGroupThemer from "../../components/friend-groups/friend-groups-themer";
 import {findAllActiveTournaments} from "../../db/tournament-repository";
+import {getGameGuessStatisticsForUsers} from "../../db/game-guess-repository";
 
 type Props = {
   params: {
@@ -34,21 +35,30 @@ export default async function FriendsGroup({params, searchParams} : Props){
   const users = await findUsersByIds(allParticipants)
   const usersMap = Object.fromEntries(users.map(user => [user.id, user]))
 
+
   //TODO: Calculate scores for users, but not yet, because all is zero!! :D
   const userScoresByTournament =
     Object.fromEntries(
-      tournaments.map(tournament =>
-        [
-          tournament.id,
-          users.map(user => ({
-            userId: user.id,
-            groupStageScore: 0,
-            groupStageQualifiersScore: 0,
-            playoffScore: 0,
-            honorRollScore: 0,
-            totalPoints: 0
-          }))
-      ]))
+      await Promise.all(
+        tournaments.map(async (tournament) => {
+          const allUsersGameStatics = await getGameGuessStatisticsForUsers(allParticipants, tournament.id)
+          const gameStatisticsByUserIdMap = Object.fromEntries(
+            allUsersGameStatics.map(userGameStatistics => [userGameStatistics.user_id, userGameStatistics]))
+          return [
+            tournament.id,
+            users.map(user => ({
+              userId: user.id,
+              groupStageScore: gameStatisticsByUserIdMap[user.id]?.group_score || 0,
+              groupStageQualifiersScore: 0,
+              playoffScore: gameStatisticsByUserIdMap[user.id]?.playoff_score || 0,
+              honorRollScore: 0,
+              totalPoints: (
+                (gameStatisticsByUserIdMap[user.id]?.total_score || 0)
+              )
+            }))
+          ]
+        }
+      )))
 
 
   return (

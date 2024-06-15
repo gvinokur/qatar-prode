@@ -10,6 +10,7 @@ import FriendGroupsList from "../../components/tournament-page/friend-groups-lis
 import {getGroupsForUser} from "../../actions/prode-group-actions";
 import {getLoggedInUser} from "../../actions/user-actions";
 import {UserTournamentStatistics} from "../../components/tournament-page/user-tournament-statistics";
+import {getGameGuessStatisticsForUsers} from "../../db/game-guess-repository";
 
 type Props = {
   params: {
@@ -38,6 +39,12 @@ export default async function TournamentLandingPage({ params, searchParams }: Pr
       // Then sort by date ascending
       .sort((a,b) => a.game_date.getTime() - b.game_date.getTime())
 
+  const userGameStatisticList = user ?
+    await getGameGuessStatisticsForUsers([user.id], tournamentId) :
+    []
+
+  const userGameStatistics = userGameStatisticList.length > 0 ? userGameStatisticList[0] : undefined
+
   return (
     <>
       {searchParams.hasOwnProperty('debug') && (<DebugObject object={tournamentData}/>)}
@@ -47,7 +54,7 @@ export default async function TournamentLandingPage({ params, searchParams }: Pr
         </Grid>
         {user && (
             <Grid item xs={12} md={true}>
-              <UserTournamentStatistics />
+              <UserTournamentStatistics userGameStatistics={userGameStatistics} />
             </Grid>
         )}
         {prodeGroups && (

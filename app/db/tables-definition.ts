@@ -134,6 +134,7 @@ export interface GameTable extends Identifiable {
   location: string
   home_team_rule?: JSONColumnType<GroupFinishRule | TeamWinnerRule>
   away_team_rule?: JSONColumnType<GroupFinishRule | TeamWinnerRule>
+  game_type?: string
 }
 
 export type Game = Selectable<GameTable>
