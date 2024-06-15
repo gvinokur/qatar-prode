@@ -56,7 +56,9 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
                 </TableRow>
               </TableHead>
               <TableBody>
-                {userScoresByTournament[tournament.id]?.map((userScore, index) => (
+                {userScoresByTournament[tournament.id]
+                  .sort((usa, usb) => usa.totalPoints - usb.totalPoints)
+                  .map((userScore, index) => (
                   <TableRow key={userScore.userId} selected={userScore.userId === loggedInUser}>
                     <TableCell>{index+1}</TableCell>
                     <TableCell sx={{
