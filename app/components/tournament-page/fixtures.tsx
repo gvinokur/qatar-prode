@@ -13,6 +13,18 @@ type FixturesProps = {
 export function Fixtures( { games, teamsMap} : FixturesProps) {
   const theme = useTheme()
 
+  const getGameResultString = (game: ExtendedGameData) => {
+    if (game.gameResult && Number.isInteger(game.gameResult.home_score) && Number.isInteger(game.gameResult.away_score)) {
+      if(game.game_type === 'group' || game.gameResult.home_score !== game.gameResult.away_score) {
+        return `${game.gameResult.home_score} - ${game.gameResult.away_score}`
+      } else {
+        return ''
+      }
+    } else {
+      return 'TBP'
+    }
+  }
+
   return (
     <Card>
       <CardHeader
@@ -48,7 +60,9 @@ export function Fixtures( { games, teamsMap} : FixturesProps) {
                       }} />
               </Grid>
               <Grid item xs={4} textAlign='center'>
-                <Chip variant='outlined' label={'0 - 0'}/>
+                <Chip variant='outlined'
+                      label={getGameResultString(game)}
+                />
               </Grid>
               <Grid item xs={4} textAlign='center'>
                 <Chip variant='filled'

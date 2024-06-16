@@ -2,6 +2,8 @@ import {createBaseFunctions} from "./base-repository";
 import {Game, GameGuess, GameResult, GameResultNew, GameTable} from "./tables-definition";
 import {db} from "./database";
 import {jsonArrayFrom, jsonObjectFrom} from "kysely/helpers/postgres";
+import {sql} from "kysely";
+import {ExtendedGameData} from "../definitions";
 
 const tableName = 'games'
 
@@ -154,3 +156,23 @@ export async function findAllGamesWithPublishedResultsAndGameGuesses(forceDrafts
     .execute() as GameWithResultAndGuess[]
 }
 
+export async function findGamesAroundCurrentTime(tournamentId: string) {
+  const gamesAroundCurrentTime = await db.selectFrom(tableName)
+    .selectAll()
+    .select((eb) =>[
+      jsonObjectFrom(
+        eb.selectFrom('game_results')
+          .whereRef('game_results.game_id', '=', 'games.id')
+          .selectAll()
+      ).as('gameResult'),
+      sql<number>`abs(
+        extract (epoch from NOW()) -  extract(epoch from ${eb.ref('game_date')})
+      )`.as('datediff')
+    ])
+    .where('tournament_id', '=', tournamentId)
+    .orderBy('datediff asc')
+    .limit(5)
+    .execute() as ExtendedGameData[]
+
+  return gamesAroundCurrentTime.sort((a, b) => a.game_date.getTime() - b.game_date.getTime())
+}

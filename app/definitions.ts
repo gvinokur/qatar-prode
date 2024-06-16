@@ -45,9 +45,7 @@ export interface ExtendedGameData extends Game {
 
 export interface CompleteTournamentData {
   tournament: Tournament
-  teams: Team[]
   teamsMap: {[k:string]: Team}
-  games: ExtendedGameData[]
   gamesMap: {[k:string]: ExtendedGameData}
   groups: ExtendedGroupData[]
   playoffRounds: ExtendedPlayoffRoundData[]
@@ -56,9 +54,7 @@ export interface CompleteTournamentData {
 export interface CompleteGroupData {
   group: TournamentGroup
   allGroups: TournamentGroup[]
-  teams: Team[]
   teamsMap: {[k:string]: Team}
-  games: Game[]
   gamesMap: {[k:string]: Game}
 }
 

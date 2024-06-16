@@ -1,7 +1,6 @@
 'use server'
 
-import {getCompleteTournament} from "../../actions/tournament-actions";
-import {redirect, RedirectType} from "next/navigation";
+import {getGamesAroundMyTime, getTeamsMap} from "../../actions/tournament-actions";
 import {DebugObject} from "../../components/debug";
 import {Fixtures} from "../../components/tournament-page/fixtures";
 import {Grid} from "../../components/mui-wrappers/";
@@ -21,23 +20,20 @@ type Props = {
 
 export default async function TournamentLandingPage({ params, searchParams }: Props) {
   const tournamentId = params.id
-  const tournamentData = await getCompleteTournament(tournamentId)
   const user = await getLoggedInUser()
   const prodeGroups = await getGroupsForUser()
-  if (!tournamentData) {
-    redirect('/?error=NO_TOURNAMENT_FOUND', RedirectType.replace)
-  }
 
-  const gamesAroundMyTime =
-    tournamentData.games
-      // Sort games by distance to "now"
-      .sort((a, b) => {
-        return Math.abs(a.game_date.getTime() - Date.now()) - Math.abs(b.game_date.getTime() - Date.now())
-      })
-      // Then keep only 5 of them
-      .filter((_, index) => (index < 5))
-      // Then sort by date ascending
-      .sort((a,b) => a.game_date.getTime() - b.game_date.getTime())
+  const gamesAroundMyTime = await getGamesAroundMyTime(tournamentId);
+  const teamsMap = await getTeamsMap(tournamentId)
+    // Object.values(tournamentData.gamesMap)
+    //   // Sort games by distance to "now"
+    //   .sort((a, b) => {
+    //     return Math.abs(a.game_date.getTime() - Date.now()) - Math.abs(b.game_date.getTime() - Date.now())
+    //   })
+    //   // Then keep only 5 of them
+    //   .filter((_, index) => (index < 5))
+    //   // Then sort by date ascending
+    //   .sort((a,b) => a.game_date.getTime() - b.game_date.getTime())
 
   const userGameStatisticList = user ?
     await getGameGuessStatisticsForUsers([user.id], tournamentId) :
@@ -47,10 +43,14 @@ export default async function TournamentLandingPage({ params, searchParams }: Pr
 
   return (
     <>
-      {searchParams.hasOwnProperty('debug') && (<DebugObject object={tournamentData}/>)}
+      {searchParams.hasOwnProperty('debug') && (<DebugObject object={{
+        gamesAroundMyTime,
+        teamsMap,
+        prodeGroups
+      }}/>)}
       <Grid container spacing={2} p={2}>
         <Grid item xs={12} md={true}>
-          <Fixtures games={gamesAroundMyTime} teamsMap={tournamentData.teamsMap}/>
+          <Fixtures games={gamesAroundMyTime} teamsMap={teamsMap}/>
         </Grid>
         {user && (
             <Grid item xs={12} md={true}>

@@ -41,7 +41,7 @@ export default async function GroupComponent({params, searchParams} : Props) {
         <Grid container spacing={4} mt={'8px'}>
           <Grid item xs={12} md={6}>
             <Grid container spacing={2}>
-              {completeGroupData.games
+              {Object.values(completeGroupData.gamesMap)
                 .sort((a,b) => a.game_number - b.game_number)
                 .map(game => (
                   <Grid key={game.game_number} item xs={6}>
@@ -51,7 +51,7 @@ export default async function GroupComponent({params, searchParams} : Props) {
               }
             </Grid>
           </Grid>
-          <GroupTable games={completeGroupData.games} teamsMap={completeGroupData.teamsMap} isPredictions={true}/>
+          <GroupTable games={Object.values(completeGroupData.gamesMap)} teamsMap={completeGroupData.teamsMap} isPredictions={true}/>
         </Grid>
       </GuessesContextProvider>
     </>

@@ -3,7 +3,7 @@
 import {Alert, Backdrop, Box, CircularProgress, Grid, Snackbar, useTheme} from "@mui/material";
 import {ChangeEvent, useEffect, useState} from "react";
 import {ExtendedGameData, ExtendedGroupData} from "../../definitions";
-import {getCompleteGroupData, getCompleteTournament} from "../../actions/tournament-actions";
+import {getCompleteGroupData} from "../../actions/tournament-actions";
 import {GameResultNew, Team} from "../../db/tables-definition";
 import BackofficeGameView from "./backoffice-game-view";
 import {LoadingButton} from "@mui/lab";
@@ -40,11 +40,9 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
       setLoading(true)
       const completeGroupData = await getCompleteGroupData(group.id, true)
       setGamesMap(
-        Object.fromEntries(
-          completeGroupData.games.map(game => [game.id, game])
-        ))
+        completeGroupData.gamesMap)
       setSortedGameIds(
-        completeGroupData.games
+        Object.values(completeGroupData.gamesMap)
           .sort((a,b) => a.game_number - b.game_number)
           .map(game => game.id))
       setTeamsMap(completeGroupData.teamsMap)

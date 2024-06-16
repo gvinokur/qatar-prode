@@ -3,7 +3,12 @@
 import {findAllActiveTournaments, findTournamentById, findTournamentByName} from "../db/tournament-repository";
 import {findTeamInGroup, findTeamInTournament} from "../db/team-repository";
 import {Game, GameResult, Team, Tournament} from "../db/tables-definition";
-import {findFirstGameInTournament, findGamesInGroup, findGamesInTournament} from "../db/game-repository";
+import {
+  findFirstGameInTournament,
+  findGamesAroundCurrentTime,
+  findGamesInGroup,
+  findGamesInTournament
+} from "../db/game-repository";
 import {
   findGroupsInTournament,
   findGroupsWithGamesAndTeamsInTournament,
@@ -18,34 +23,19 @@ export async function getTournaments () {
   return tournaments
 }
 
-export async function getCompleteTournament(tournamentId: string) {
-  const tournament = await findTournamentById(tournamentId)
-  if(tournament) {
-    const teams: Team[] = await findTeamInTournament(tournament.id);
-    const teamsMap: {[k:string]: Team} = Object.fromEntries(teams.map((team: Team) => ([team.id, team])))
+export async function getTournament(tournamentId: string) {
+  return await findTournamentById(tournamentId)
+}
 
-    const games: Game[] = await findGamesInTournament(tournament.id)
-    const gamesMap: {[k: string]: Game} = Object.fromEntries(games.map((game: Game) => ([game.id, game])))
+export async function getGamesAroundMyTime(tournamentId: string) {
+  return await findGamesAroundCurrentTime(tournamentId)
+}
 
-    const groups = await findGroupsWithGamesAndTeamsInTournament(tournament.id)
+export async function getTeamsMap(objectId: string, teamParent: 'tournament' | 'group' = 'tournament') {
+  const teams: Team[] = teamParent === 'tournament' ? await findTeamInTournament(objectId) : await findTeamInGroup(objectId)
+  const teamsMap: {[k:string]: Team} = Object.fromEntries(teams.map((team: Team) => ([team.id, team])))
 
-    const playoffRounds = await findPlayoffStagesWithGamesInTournament(tournament.id)
-
-    const tournamentData: CompleteTournamentData = {
-      tournament,
-      teams,
-      teamsMap,
-      games,
-      gamesMap,
-      groups,
-      playoffRounds
-    }
-
-    return tournamentData;
-  } else {
-    //Throw some kind of error
-    throw 'Invalid group id'
-  }
+  return teamsMap;
 }
 
 export async function getCompleteGroupData(groupId: string, includeDraftResults:boolean = false) {
@@ -54,8 +44,7 @@ export async function getCompleteGroupData(groupId: string, includeDraftResults:
   if(group) {
     const allGroups = await findGroupsInTournament(group.tournament_id)
 
-    const teams: Team[] = await findTeamInGroup(group.id)
-    const teamsMap: {[k:string]: Team} = Object.fromEntries(teams.map((team: Team) => ([team.id, team])))
+    const teamsMap = await getTeamsMap(group.id, 'group')
 
     const games = await findGamesInGroup(group.id, true, includeDraftResults)
     const gamesMap: {[k: string]: Game} = Object.fromEntries(games.map((game: Game) => ([game.id, game])))
@@ -63,9 +52,7 @@ export async function getCompleteGroupData(groupId: string, includeDraftResults:
     return {
       group,
       allGroups,
-      teams,
       teamsMap,
-      games,
       gamesMap
     } as CompleteGroupData
   } else {
@@ -77,8 +64,7 @@ export async function getCompletePlayoffData(tournamentId: string) {
   const playoffStages = await findPlayoffStagesWithGamesInTournament(tournamentId)
   const allGroups = await findGroupsWithGamesAndTeamsInTournament(tournamentId)
 
-  const teams: Team[] = await findTeamInTournament(tournamentId);
-  const teamsMap: {[k:string]: Team} = Object.fromEntries(teams.map((team: Team) => ([team.id, team])))
+  const teamsMap = await getTeamsMap(tournamentId)
 
   const games: Game[] = await findGamesInTournament(tournamentId)
   const gamesMap: {[k: string]: Game} = Object.fromEntries(games.map((game: Game) => ([game.id, game])))

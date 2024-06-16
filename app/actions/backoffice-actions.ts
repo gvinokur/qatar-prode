@@ -32,8 +32,6 @@ import {
   findGameResultByGameIds,
   updateGameResult
 } from "../db/game-result-repository";
-import {calculateGroupPosition} from "../utils/group-position-calculator";
-import {getCompleteTournament} from "./tournament-actions";
 import {calculatePlayoffTeams} from "../utils/playoff-teams-calculator";
 
 export async function deleteDBTournamentTree(tournament: Tournament) {
@@ -290,4 +288,8 @@ export async function calculateAndSavePlayoffGamesForTournament(tournamentId: st
       away_team: calculatedTeamsPerGame[game.game_id]?.awayTeam?.team || null
     })
   }))
+}
+
+export async function getGroupDataWithGamesAndTeams(tournamentId: string) {
+  return findGroupsWithGamesAndTeamsInTournament(tournamentId)
 }

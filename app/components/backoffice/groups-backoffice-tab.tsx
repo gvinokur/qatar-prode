@@ -5,8 +5,8 @@ import GroupBackoffice from "./group-backoffice-tab";
 import {useEffect, useState} from "react";
 import BackofficeTabs from "./backoffice-tabs";
 import {ExtendedGroupData} from "../../definitions";
-import {findGroupsWithGamesAndTeamsInTournament} from "../../db/tournament-group-repository";
 import PlayoffTab from "./playoff-tab";
+import {getGroupDataWithGamesAndTeams} from "../../actions/backoffice-actions";
 
 type Props = {
   tournamentId: string
@@ -18,7 +18,7 @@ export default function GroupsTab({tournamentId}:Props) {
 
   useEffect(() => {
     const loadGroups = async () => {
-      const groupsData = await findGroupsWithGamesAndTeamsInTournament(tournamentId)
+      const groupsData = await getGroupDataWithGamesAndTeams(tournamentId)
       setGroups(groupsData
         .sort((a, b) =>
           a.group_letter.localeCompare(b.group_letter)))
