@@ -52,12 +52,14 @@ export async function deleteDBTournamentTree(tournament: Tournament) {
   await deleteTournament(tournament.id)
 }
 
-export async function generateDbTournamentTeamPlayers(name: string) {
+export async function generateDbTournamentTeamPlayers(tournamentName: string) {
+  console.log('generating players for ', tournamentName)
   const result = await Promise.all(tournaments
-    .filter(tournament => tournament.tournament_name === name)
+    .filter(tournament => tournament.tournament_name === tournamentName)
     .map(async (tournament) => {
+      console.log('found', tournament.players.length, 'players to create')
       if(tournament.players.length > 0) {
-        const existingDBTournament = await findTournamentByName(name);
+        const existingDBTournament = await findTournamentByName(tournamentName);
         if(!existingDBTournament) {
           console.log('You need to create the tournament first, you d******s')
           throw "Cannot create players for a non existing tournament"
