@@ -69,15 +69,15 @@ export interface CompletePlayoffData {
 }
 
 export interface TeamStats {
-  team: string
-  gamesPlayed: number
+  team_id: string
+  games_played: number
   points: number
   win: number
   draw: number
   loss: number
-  goalsFor: number
-  goalsAgainst: number
-  goalDifference: number
+  goals_for: number
+  goals_against: number
+  goal_difference: number
 }
 
 export interface UserScore {

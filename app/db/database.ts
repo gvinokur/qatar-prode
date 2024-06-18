@@ -8,7 +8,7 @@ import {
   ProdeGroupTable,
   TeamTable,
   TournamentGroupGameTable,
-  TournamentGroupTable,
+  TournamentGroupTable, TournamentGroupTeamStatsGuessTable,
   TournamentGroupTeamTable, TournamentGuessTable,
   TournamentTable,
   TournamentTeamTable,
@@ -27,6 +27,7 @@ export interface Database {
   tournament_groups: TournamentGroupTable
   tournament_group_games: TournamentGroupGameTable
   tournament_group_teams: TournamentGroupTeamTable
+  tournament_group_team_stats_guess: TournamentGroupTeamStatsGuessTable
 
   tournament_playoff_rounds: PlayoffRoundTable
   tournament_playoff_round_games: PlayoffRoundGameTable

@@ -14,7 +14,7 @@ import {
   Typography
 } from "@mui/material";
 import {LoadingButton} from "@mui/lab";
-import {updateOrCreateTournamentGuess} from "../../actions/game-guesses-action";
+import {updateOrCreateTournamentGuess} from "../../actions/guesses-actions";
 import {ExtendedPlayerData} from "../../definitions";
 
 type Props = {

@@ -13,6 +13,9 @@ import SaveComponent from "../../../../components/groups-page/save-component";
 import {findGameGuessesByUserId} from "../../../../db/game-guess-repository";
 import {getLoggedInUser} from "../../../../actions/user-actions";
 import {redirect} from "next/navigation";
+import {findGuessedQualifiedTeams, findQualifiedTeams} from "../../../../db/team-repository";
+import {calculateGroupPosition} from "../../../../utils/group-position-calculator";
+import {findAllTournamentGroupTeamGuessInGroup} from "../../../../db/tournament-group-team-guess-repository";
 
 type Props = {
   params: {
@@ -30,14 +33,43 @@ export default async function GroupComponent({params, searchParams} : Props) {
   const groupId = params.group_id
   const completeGroupData = await getCompleteGroupData(groupId)
   const userGameGuesses = await findGameGuessesByUserId(user.id, params.id)
+  const qualifiedTeamGuesses = await findGuessedQualifiedTeams(params.id, user.id, params.group_id)
+  const qualifiedTeams = await findQualifiedTeams(params.id, params.group_id)
+
   const gameGuesses:{[k: string]: GameGuess} = Object.fromEntries(
     userGameGuesses.map(gameGuess => [gameGuess.game_id, gameGuess])
   )
 
+  const teamIds = Object.keys(completeGroupData.teamsMap)
+  const groupTeamStatsGuesses = await findAllTournamentGroupTeamGuessInGroup(user.id, params.group_id)
+  const guessedGroupPositions =
+    groupTeamStatsGuesses.length > 0 ?
+      groupTeamStatsGuesses.sort((a,b) => (a.position - b.position)) :
+      calculateGroupPosition(teamIds, Object.values(completeGroupData.gamesMap).map(game => ({
+        ...game,
+        resultOrGuess: gameGuesses[game.id]
+      }))).map((teamStat, index) => {
+        return {
+          user_id: user.id,
+          tournament_group_id: params.group_id,
+          position: index,
+          ...teamStat
+        }
+      })
+
   return(
     <>
-      {searchParams.hasOwnProperty('debug') && (<DebugObject object={completeGroupData}/>)}
-      <GuessesContextProvider gameGuesses={gameGuesses}>
+      {searchParams.hasOwnProperty('debug') && (<DebugObject object={{
+        completeGroupData,
+        userGameGuesses,
+        qualifiedTeamGuesses,
+        qualifiedTeams
+      }}/>)}
+      <GuessesContextProvider
+        gameGuesses={gameGuesses}
+        groupGames={Object.values(completeGroupData.gamesMap)}
+        guessedPositions={guessedGroupPositions}
+      >
         <Grid container spacing={4} mt={'8px'}>
           <Grid item xs={12} md={6}>
             <Grid container spacing={2}>

@@ -33,7 +33,7 @@ export default async function PlayoffPage({params, searchParams}: Props) {
     redirect('/')
   }
   const userGameGuesses = await findGameGuessesByUserId(user.id, params.id)
-  const gameGuesses:{[k: string]: GameGuess} = Object.fromEntries(
+  const gameGuessesMap:{[k: string]: GameGuess} = Object.fromEntries(
     userGameGuesses.map(gameGuess => [gameGuess.game_id, gameGuess])
   )
   const tournamentGuesses =
@@ -45,12 +45,20 @@ export default async function PlayoffPage({params, searchParams}: Props) {
     .filter(ps => (!ps.is_final && !ps.is_third_place))
     .sort((a,b) => a.round_order - b.round_order)
 
-  const playoffTeams = calculatePlayoffTeams(
+  const playoffTeamsByGuess = calculatePlayoffTeams(
     completePlayoffData.playoffStages[0],
     completePlayoffData.allGroups,
     completePlayoffData.gamesMap,
-    completePlayoffData.gameResultsMap,
-    gameGuesses)
+    {},
+    gameGuessesMap)
+
+  Object.keys(playoffTeamsByGuess).forEach(game_id => {
+    gameGuessesMap[game_id] = {
+      ...gameGuessesMap[game_id],
+      home_team: playoffTeamsByGuess[game_id].homeTeam?.team_id,
+      away_team: playoffTeamsByGuess[game_id].awayTeam?.team_id
+    }
+  })
 
   const final = completePlayoffData.playoffStages.find(ps => ps.is_final)
 
@@ -62,13 +70,13 @@ export default async function PlayoffPage({params, searchParams}: Props) {
         playoffStagesPreFinal,
         final,
         thirdPlace,
-        gameGuesses,
-        playoffTeams,
+        gameGuesses: gameGuessesMap,
+        playoffTeamsByGuess,
         tournamentStartDate: completePlayoffData.tournamentStartDate
       }}/>)}
 
       <GuessesContextProvider
-        gameGuesses={gameGuesses}
+        gameGuesses={gameGuessesMap}
         tournamentGuesses={tournamentGuesses}
         tournamentStartDate={completePlayoffData.tournamentStartDate}
       >
@@ -88,11 +96,6 @@ export default async function PlayoffPage({params, searchParams}: Props) {
                 {playoffStage.games
                   .map(({game_id}) => completePlayoffData.gamesMap[game_id])
                   .sort((a,b) => a.game_number - b.game_number)
-                  .map(game => ({
-                    ...game,
-                    home_team: playoffTeams[game.id]?.homeTeam?.team,
-                    away_team: playoffTeams[game.id]?.awayTeam?.team
-                  }))
                   .map(game=> (
                     <Grid item key={game.id} md={12} sm={6} xs={12}>
                       <GameView game={game} teamsMap={completePlayoffData.teamsMap} />

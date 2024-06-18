@@ -3,17 +3,23 @@ import {useContext, useState} from "react";
 import {GuessesContext} from "../context-providers/guesses-context-provider";
 import {LoadingButton} from "@mui/lab";
 import {Alert, Hidden, Snackbar} from "@mui/material";
-import {useTheme} from "@mui/system";
-import {updateOrCreateGameGuesses} from "../../actions/game-guesses-action";
+import {updateOrCreateGameGuesses, updateOrCreateTournamentGroupTeamGuesses} from "../../actions/guesses-actions";
 
-export default function SaveComponent() {
-  const {gameGuesses} = useContext(GuessesContext)
+type Props = {
+  isGroup?: boolean
+}
+
+export default function SaveComponent({ isGroup  }: Props) {
+  const {gameGuesses, guessedPositions} = useContext(GuessesContext)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
   const savePredictions = async () => {
     setSaving(true);
     const updatedGameGuesses = await updateOrCreateGameGuesses(Object.values(gameGuesses))
+    if(guessedPositions && guessedPositions.length > 0) {
+      await updateOrCreateTournamentGroupTeamGuesses(guessedPositions)
+    }
     setSaving(false);
     setSaved(true);
   }

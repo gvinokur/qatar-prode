@@ -15,8 +15,7 @@ import {Close as MissIcon, Done as HitIcon} from "@mui/icons-material";
 import {useTheme} from "@mui/system";
 import {useContext, useEffect, useState} from "react";
 import {GuessesContext} from "../context-providers/guesses-context-provider";
-import {TeamStats} from "../../../types/definitions";
-import {ExtendedGameData} from "../../definitions";
+import {ExtendedGameData, TeamStats} from "../../definitions";
 import {Team} from "../../db/tables-definition";
 import {calculateGroupPosition} from "../../utils/group-position-calculator";
 import SaveComponent from "./save-component";
@@ -30,24 +29,18 @@ type Props = {
 export default function GroupTable({games, teamsMap, isPredictions} : Props) {
   const xsMatch = useMediaQuery('(min-width:900px)')
   const theme = useTheme();
-  const {gameGuesses} = useContext(GuessesContext)
-  const [groupPositionsByGuess, setGroupPositionsByGuess] = useState<TeamStats[]>([])
+  const {gameGuesses, guessedPositions: groupPositionsByGuess} = useContext(GuessesContext)
   const [groupPositions, setGroupPositions] = useState<TeamStats[]>([])
   const [usePredictionsTable, setUsePredictionsTable] = useState(isPredictions)
 
   useEffect(() => {
     const teamIds = Object.keys(teamsMap)
-    const guessedGroupPositions = calculateGroupPosition(teamIds, games.map(game => ({
-      ...game,
-      resultOrGuess: gameGuesses[game.id]
-    })))
     const resultGroupPositions = calculateGroupPosition(teamIds, games.map(game => ({
       ...game,
       resultOrGuess: game.gameResult
     })))
 
     setGroupPositions(resultGroupPositions)
-    setGroupPositionsByGuess(guessedGroupPositions)
   }, [gameGuesses, games, teamsMap])
 
   const allGroupGamesPlayed = games
@@ -100,20 +93,20 @@ export default function GroupTable({games, teamsMap, isPredictions} : Props) {
                 }} >
                   {usePredictionsTable && allGroupGamesPlayed && index < 2 && (
                     <Box sx={{ float: 'right'}}>
-                      {teamStats.team === groupPositions[0].team || teamStats.team === groupPositions[1].team ?
+                      {teamStats.team_id === groupPositions[0].team_id || teamStats.team_id === groupPositions[1].team_id ?
                         (<Avatar title='Pronostico Correcto' sx={{ width: '18px', height: '18px', bgcolor: theme.palette.success.light }}><HitIcon sx={{ width: '12px', height: '12px'}}/></Avatar>):
                         (<Avatar title='Pronostico Errado' sx={{ width: '18px', height: '18px', bgcolor: theme.palette.error.main }}><MissIcon sx={{ width: '12px', height: '12px'}}/></Avatar>)}
                     </Box>
                   )}
-                  {teamsMap[teamStats.team].name}
+                  {teamsMap[teamStats.team_id].name}
                 </TableCell>
                 <TableCell>{teamStats.points}</TableCell>
                 <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{teamStats.win}</TableCell>
                 <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{teamStats.draw}</TableCell>
                 <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{teamStats.loss}</TableCell>
-                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{teamStats.goalsFor}</TableCell>
-                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{teamStats.goalsAgainst}</TableCell>
-                <TableCell>{teamStats.goalDifference}</TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{teamStats.goals_for}</TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{teamStats.goals_against}</TableCell>
+                <TableCell>{teamStats.goal_difference}</TableCell>
               </TableRow>
             ))}
           </TableBody>

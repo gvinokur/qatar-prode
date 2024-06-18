@@ -31,3 +31,62 @@ export async function findTeamInGroup(groupId: string) {
     .selectAll(tableName)
     .execute();
 }
+
+export async function findGuessedQualifiedTeams(tournamentId: string, userId: string, inGroupId?:string) {
+ const query = db.selectFrom(tableName)
+   .selectAll()
+   .where(eb =>
+     eb.exists(
+       eb.selectFrom('game_guesses')
+         .innerJoin('games', 'games.id', 'game_guesses.game_id')
+         .where('game_type', '=', 'first_round')
+         .where('games.tournament_id', '=', tournamentId)
+         .where('game_guesses.user_id', '=', userId)
+         .where(ieb => ieb.or([
+           ieb('teams.id', '=', ieb.cast<string>(ieb.ref('game_guesses.home_team'),'uuid')),
+           ieb('teams.id', '=', ieb.cast<string>(ieb.ref('game_guesses.away_team'),'uuid')),
+         ]))
+     )
+   )
+   .$if(typeof inGroupId === 'string', qb =>
+     qb.where(eb =>
+       eb.exists(
+         eb.selectFrom('tournament_group_teams')
+           .selectAll()
+           // @ts-ignore
+           .where('tournament_group_teams.tournament_group_id', '=', inGroupId)
+           .whereRef('tournament_group_teams.team_id', '=', 'teams.id')
+       )
+     ))
+
+   console.log(query.compile().sql);
+
+   return await query.execute()
+}
+
+export async function findQualifiedTeams(tournamentId: string, inGroupId?:string) {
+  return await db.selectFrom(tableName)
+    .selectAll()
+    .where(eb =>
+      eb.exists(
+        eb.selectFrom('games')
+          .where('game_type', '=', 'first_round')
+          .where('games.tournament_id', '=', tournamentId)
+          .where(ieb => ieb.or([
+            ieb('teams.id', '=', ieb.cast<string>(ieb.ref('home_team'),'uuid')),
+            ieb('teams.id', '=', ieb.cast<string>(ieb.ref('away_team'),'uuid')),
+          ]))
+      )
+    )
+    .$if(typeof inGroupId === 'string', qb =>
+      qb.where(eb =>
+        eb.exists(
+          eb.selectFrom('tournament_group_teams')
+            .selectAll()
+            // @ts-ignore
+            .where('tournament_group_teams.tournament_group_id', '=', inGroupId)
+            .whereRef('tournament_group_teams.team_id', '=', 'teams.id')
+        )
+      ))
+    .execute()
+}

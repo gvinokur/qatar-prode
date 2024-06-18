@@ -7,7 +7,7 @@ import {
   deleteTournament, deleteTournamentTeams,
   findTournamentByName
 } from "../db/tournament-repository";
-import {createTeam, findTeamInTournament, getTeamByName} from "../db/team-repository";
+import {createTeam, findTeamInGroup, findTeamInTournament, getTeamByName} from "../db/team-repository";
 import {
   createTournamentGroup,
   createTournamentGroupGame,
@@ -21,9 +21,15 @@ import {
   createPlayoffRoundGame,
   deleteAllPlayoffRoundsInTournament, findPlayoffStagesWithGamesInTournament
 } from "../db/tournament-playoff-repository";
-import {GameNew, GameResult, PlayerNew, Team, Tournament} from "../db/tables-definition";
-import {createGame, deleteAllGamesFromTournament, findGamesInTournament, updateGame} from "../db/game-repository";
-import {players} from "../../data/euro/players";
+import {Game, GameGuess, GameNew, GameResult, PlayerNew, Team, Tournament} from "../db/tables-definition";
+import {
+  createGame,
+  deleteAllGamesFromTournament,
+  findGamesInGroup,
+  findGamesInTournament,
+  updateGame
+} from "../db/game-repository";
+
 import {createPlayer, findPlayerByTeamAndTournament, updatePlayer} from "../db/player-repository";
 import {ExtendedGameData, ExtendedGroupData, ExtendedPlayoffRoundData} from "../definitions";
 import {
@@ -33,6 +39,10 @@ import {
   updateGameResult
 } from "../db/game-result-repository";
 import {calculatePlayoffTeams} from "../utils/playoff-teams-calculator";
+import {findAllUserTournamentGroupsWithoutGuesses} from "../db/tournament-group-team-guess-repository";
+import {findGameGuessesByUserId} from "../db/game-guess-repository";
+import {calculateGroupPosition} from "../utils/group-position-calculator";
+import {updateOrCreateTournamentGroupTeamGuesses} from "./guesses-actions";
 
 export async function deleteDBTournamentTree(tournament: Tournament) {
   // delete from tournament_playoff_round_games ;
@@ -177,7 +187,15 @@ export async function generateDbTournament(name: string, deletePrevious:boolean 
             await createTournamentGroupTeam({
               tournament_group_id: groupId,
               team_id: teamMap[teamName],
-              position: index
+              position: index,
+              games_played: 0,
+              points: 0,
+              win: 0,
+              draw: 0,
+              loss: 0,
+              goals_for: 0,
+              goals_against: 0,
+              goal_difference: 0
             })
           }))
 
@@ -286,12 +304,66 @@ export async function calculateAndSavePlayoffGamesForTournament(tournamentId: st
   const calculatedTeamsPerGame = calculatePlayoffTeams(firstPlayoffStage, groups, gamesMap, gameResultMap, {})
   return Promise.all(firstPlayoffStage.games.map(async (game) => {
     return updateGame(game.game_id, {
-      home_team: calculatedTeamsPerGame[game.game_id]?.homeTeam?.team || null,
-      away_team: calculatedTeamsPerGame[game.game_id]?.awayTeam?.team || null
+      home_team: calculatedTeamsPerGame[game.game_id]?.homeTeam?.team_id || null,
+      away_team: calculatedTeamsPerGame[game.game_id]?.awayTeam?.team_id || null
     })
   }))
 }
 
 export async function getGroupDataWithGamesAndTeams(tournamentId: string) {
   return findGroupsWithGamesAndTeamsInTournament(tournamentId)
+}
+
+export async function calculateAllUsersGroupPositions(tournamentId: string) {
+  const userGroupPairs = await findAllUserTournamentGroupsWithoutGuesses(tournamentId)
+  const userIds = Array.from(new Set(userGroupPairs.map(pair => pair.user_id)))
+  const groupIds = Array.from(new Set(userGroupPairs.map(pair => pair.tournament_group_id)))
+  const guessesByUser: {[k:string]: {[y:string]: GameGuess}} = Object.fromEntries(
+    await Promise.all(
+      userIds.map(async (userId) => {
+        const gameGuesses = await findGameGuessesByUserId(userId, tournamentId)
+        const gameGuessesMap = Object.fromEntries(gameGuesses.map(gameGuess => [gameGuess.game_id, gameGuess]))
+        return [
+          userId,
+          gameGuessesMap
+        ]
+      })
+    ))
+  const gamesByGroup: {[k:string]: Game[]} = Object.fromEntries(
+    await Promise.all(
+      groupIds.map(async (groupId) => [
+        groupId,
+        await findGamesInGroup(groupId, true, false)
+      ])
+    )
+  )
+  const teamsByGroup: {[k:string]: Team[]} = Object.fromEntries(
+    await Promise.all(
+      groupIds.map(async (groupId) => [
+        groupId,
+        await findTeamInGroup(groupId)
+      ])
+    )
+  )
+  return Promise.all(userGroupPairs
+    .map(async ({user_id, tournament_group_id}) => {
+    const groupGames: Game[] = gamesByGroup[tournament_group_id]
+    const gameGuessesMap: {[k:string]: GameGuess} = guessesByUser[user_id]
+    const teams = teamsByGroup[tournament_group_id]
+    if(groupGames && gameGuessesMap && teams) {
+      const guessedPositions = calculateGroupPosition(
+        teams.map(team => team.id),
+        groupGames.map(game => ({
+          ...game,
+          resultOrGuess: gameGuessesMap[game.id]
+        }))).map((teamStat, index) => ({
+            user_id,
+            tournament_group_id,
+            position: index,
+            ...teamStat
+          }))
+      return updateOrCreateTournamentGroupTeamGuesses(guessedPositions)
+    }
+  }))
+
 }

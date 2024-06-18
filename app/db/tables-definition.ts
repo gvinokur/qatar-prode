@@ -68,11 +68,20 @@ export interface TournamentTeamTable {
   team_id: string
 }
 
-export interface TournamentGroupTeamTable {
-  tournament_group_id: string
-  team_id: string
-  position: number
+export interface TournamentGroupTeamTable extends TeamStats, Identifiable {
 }
+
+export type TournamentGroupTeam = Selectable<TournamentGroupTeamTable>
+export type TournamentGroupTeamNew = Insertable<TournamentGroupTeamTable>
+export type TournamentGroupTeamUpdate = Updateable<TournamentGroupTeamTable>
+
+export interface TournamentGroupTeamStatsGuessTable extends TeamStats, Identifiable {
+  user_id: string
+}
+
+export type TournamentGroupTeamStatsGuess = Selectable<TournamentGroupTeamStatsGuessTable>
+export type TournamentGroupTeamStatsGuessNew = Insertable<TournamentGroupTeamStatsGuessTable>
+export type TournamentGroupTeamStatsGuessUpdate = Updateable<TournamentGroupTeamStatsGuessTable>
 
 export interface PlayoffRoundTable extends Identifiable {
   tournament_id: string
@@ -97,33 +106,6 @@ export interface TeamWinnerRule {
   game: number
   winner: boolean
 }
-
-// Interesting concept, but could not make it work simpler
-// type BaseGame = {
-//   tournament_id: string
-//   game_number: number
-//   home_team?: string | null
-//   away_team?: string | null
-//   game_date: Date
-//   location: string
-// } & Identifiable
-//
-// type GroupGame = {
-//   game_type: 'group'
-// } & BaseGame
-//
-// type FirstPlayoffRoundGame = {
-//   game_type: 'first_round'
-//   home_team_rule?: JSONColumnType<GroupFinishRule>
-//   away_team_rule?: JSONColumnType<GroupFinishRule>
-// } & BaseGame
-//
-// type OtherPlayoffRoundGame = {
-//   game_type: 'first_round'
-//   home_team_rule?: JSONColumnType<GroupFinishRule>
-//   away_team_rule?: JSONColumnType<GroupFinishRule>
-// } & BaseGame
-
 
 export interface GameTable extends Identifiable {
   tournament_id: string
@@ -247,3 +229,17 @@ export interface PlayerTable extends Identifiable {
 export type Player = Selectable<PlayerTable>
 export type PlayerNew = Insertable<PlayerTable>
 export type PlayerUpdate = Updateable<PlayerTable>
+
+export interface TeamStats {
+  team_id: string
+  tournament_group_id: string
+  position: number
+  games_played: number
+  points: number
+  win: number
+  draw: number
+  loss: number
+  goals_for: number
+  goals_against: number
+  goal_difference: number
+}

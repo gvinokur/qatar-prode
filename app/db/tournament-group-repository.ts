@@ -3,8 +3,8 @@ import {createBaseFunctions} from "./base-repository";
 import {
   TournamentGroup,
   TournamentGroupGameTable,
-  TournamentGroupTable,
-  TournamentGroupTeamTable,
+  TournamentGroupTable, TournamentGroupTeamNew,
+  TournamentGroupTeamTable, TournamentGroupTeamUpdate,
 } from "./tables-definition";
 import {jsonArrayFrom} from "kysely/helpers/postgres";
 
@@ -14,7 +14,7 @@ export const updateTournamentGroup = baseFunctions.update
 export const createTournamentGroup = baseFunctions.create
 export const deleteTournamentGroup =  baseFunctions.delete
 
-export async function createTournamentGroupTeam(tournamentGroupTeam: TournamentGroupTeamTable) {
+export async function createTournamentGroupTeam(tournamentGroupTeam: TournamentGroupTeamNew) {
   return await db.insertInto('tournament_group_teams')
     .values(tournamentGroupTeam)
     .returningAll()
@@ -68,4 +68,19 @@ export async function deleteAllGroupsFromTournament(tournamentId: string) {
     await deleteTournamentGroup(group.id)
   }))
   return waitForAllDelete
+}
+
+export async function updateGroupTeams(groupTeams: TournamentGroupTeamUpdate[]) {
+  return Promise.all(groupTeams.map( async ({id, team_id, tournament_group_id, ...withUpdate}) => {
+    if(team_id && tournament_group_id) {
+      return db.updateTable('tournament_group_teams')
+        .where(eb => eb.and([
+          eb("tournament_group_teams.team_id","=", team_id),
+          eb("tournament_group_teams.tournament_group_id","=", tournament_group_id)
+        ]))
+        .set(withUpdate)
+        .returningAll()
+        .executeTakeFirst()
+    }
+  }))
 }

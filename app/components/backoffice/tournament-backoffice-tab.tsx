@@ -4,7 +4,7 @@ import {Box, Grid, Typography} from "@mui/material";
 import {LoadingButton} from "@mui/lab";
 import {useState} from "react";
 import {Tournament} from "../../db/tables-definition";
-import {generateDbTournamentTeamPlayers} from "../../actions/backoffice-actions";
+import {calculateAllUsersGroupPositions, generateDbTournamentTeamPlayers} from "../../actions/backoffice-actions";
 
 type Props = {
   tournament: Tournament
@@ -27,6 +27,12 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
     setLoading(false)
   }
 
+  const calculateGroupPositionForPlayers = async () => {
+    setLoading(true)
+    await calculateAllUsersGroupPositions(tournament.id)
+    setLoading(false)
+  }
+
   return (
     <Box>
       <Grid container spacing={1} xs={12}>
@@ -46,6 +52,11 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
         <Grid item xs={6} md={4} textAlign={'center'}>
           <LoadingButton loading={loading} variant={'contained'} onClick={importPlayers}>
             Import Players
+          </LoadingButton>
+        </Grid>
+        <Grid item xs={6} md={4} textAlign={'center'}>
+          <LoadingButton loading={loading} variant={'contained'} onClick={calculateGroupPositionForPlayers}>
+            Calculate Group Positions for players
           </LoadingButton>
         </Grid>
       </Grid>

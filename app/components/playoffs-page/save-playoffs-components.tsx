@@ -3,7 +3,7 @@ import {useContext, useState} from "react";
 import {GuessesContext} from "../context-providers/guesses-context-provider";
 import {LoadingButton} from "@mui/lab";
 import {Alert, Hidden, Snackbar} from "@mui/material";
-import {updateOrCreateGameGuesses, updateOrCreateTournamentGuess} from "../../actions/game-guesses-action";
+import {updateOrCreateGameGuesses, updateOrCreateTournamentGuess} from "../../actions/guesses-actions";
 
 type Props = {
   tournamentStartDate: Date

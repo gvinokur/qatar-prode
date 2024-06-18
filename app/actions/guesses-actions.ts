@@ -1,9 +1,10 @@
 'use server'
 
 import {getLoggedInUser} from "./user-actions";
-import {GameGuessNew, TournamentGuessNew} from "../db/tables-definition";
+import {GameGuessNew, TournamentGroupTeamStatsGuessNew, TournamentGuessNew} from "../db/tables-definition";
 import {updateOrCreateGuess} from "../db/game-guess-repository";
 import {updateOrCreateTournamentGuess as dbUpdateOrCreateTournamentGuess} from "../db/tournament-guess-repository";
+import {upsertTournamentGroupTeamGuesses} from "../db/tournament-group-team-guess-repository";
 
 export async function updateOrCreateGameGuesses(gameGuesses: GameGuessNew[]) {
   const user = await getLoggedInUser()
@@ -22,4 +23,8 @@ export async function updateOrCreateGameGuesses(gameGuesses: GameGuessNew[]) {
 
 export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew) {
   return dbUpdateOrCreateTournamentGuess(guess)
+}
+
+export async function updateOrCreateTournamentGroupTeamGuesses(groupTeamGuesses: TournamentGroupTeamStatsGuessNew[]) {
+  return upsertTournamentGroupTeamGuesses(groupTeamGuesses)
 }

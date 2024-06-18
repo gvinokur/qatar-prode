@@ -1,7 +1,7 @@
 'use server'
 
 import {findAllActiveTournaments, findTournamentById, findTournamentByName} from "../db/tournament-repository";
-import {findTeamInGroup, findTeamInTournament} from "../db/team-repository";
+import {findGuessedQualifiedTeams, findTeamInGroup, findTeamInTournament} from "../db/team-repository";
 import {Game, GameResult, Team, Tournament} from "../db/tables-definition";
 import {
   findFirstGameInTournament,
