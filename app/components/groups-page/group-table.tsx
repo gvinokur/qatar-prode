@@ -1,7 +1,7 @@
 'use client'
 import {
   Avatar,
-  Box, Grid, Hidden,
+  Box, Grid,
   Paper,
   Table,
   TableBody,
@@ -15,8 +15,8 @@ import {Close as MissIcon, Done as HitIcon} from "@mui/icons-material";
 import {useTheme} from "@mui/system";
 import {useContext, useEffect, useState} from "react";
 import {GuessesContext} from "../context-providers/guesses-context-provider";
-import {ExtendedGameData, TeamStats} from "../../definitions";
-import {Team} from "../../db/tables-definition";
+import {ExtendedGameData} from "../../definitions";
+import {Team, TeamStats} from "../../db/tables-definition";
 import {calculateGroupPosition} from "../../utils/group-position-calculator";
 import SaveComponent from "./save-component";
 

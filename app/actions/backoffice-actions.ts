@@ -195,7 +195,8 @@ export async function generateDbTournament(name: string, deletePrevious:boolean 
               loss: 0,
               goals_for: 0,
               goals_against: 0,
-              goal_difference: 0
+              goal_difference: 0,
+              is_complete: false
             })
           }))
 
