@@ -3,14 +3,18 @@ import {useContext, useState} from "react";
 import {GuessesContext} from "../context-providers/guesses-context-provider";
 import {LoadingButton} from "@mui/lab";
 import {Alert, Hidden, Snackbar} from "@mui/material";
-import {updateOrCreateGameGuesses, updateOrCreateTournamentGroupTeamGuesses} from "../../actions/guesses-actions";
+import {
+  updateOrCreateGameGuesses,
+  updateOrCreateTournamentGroupTeamGuesses,
+  updatePlayoffGameGuesses
+} from "../../actions/guesses-actions";
+import {groupCompleteReducer} from "../../utils/playoff-teams-calculator";
+import {useParams} from "next/navigation";
 
-type Props = {
-  isGroup?: boolean
-}
 
-export default function SaveComponent({ isGroup  }: Props) {
+export default function SaveComponent() {
   const {gameGuesses, guessedPositions} = useContext(GuessesContext)
+  const {id} = useParams() as { id:string }
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
@@ -19,6 +23,10 @@ export default function SaveComponent({ isGroup  }: Props) {
     const updatedGameGuesses = await updateOrCreateGameGuesses(Object.values(gameGuesses))
     if(guessedPositions && guessedPositions.length > 0) {
       await updateOrCreateTournamentGroupTeamGuesses(guessedPositions)
+      if(groupCompleteReducer(guessedPositions)) {
+        //TODO: this does not handle well the case where the group was complete and some result has been deleted
+        await updatePlayoffGameGuesses(id)
+      }
     }
     setSaving(false);
     setSaved(true);

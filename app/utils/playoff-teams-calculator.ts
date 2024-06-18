@@ -122,9 +122,7 @@ export function calculatePlayoffTeamsFromPositions(
   const groupTableMap = Object.fromEntries(
     Object.entries(positionsByGroup).filter(([group_letter, teamPositions]) => {
       //How do I know all games where played?
-      return teamPositions.reduce<boolean>(
-        (previousValue, teamPosition) => previousValue && teamPosition.is_complete,
-        true) ;
+      return groupCompleteReducer(teamPositions)
     }))
 
   const thirdPlaceTeamRules: string[] =[]
@@ -196,6 +194,12 @@ export function calculatePlayoffTeamsFromPositions(
 }
 
 type Rules = {[k:string]: {[k:string]: string}}
+
+export const groupCompleteReducer = (teamPositions: TeamStats[]) => {
+  return teamPositions.reduce<boolean>(
+    (previousValue, teamPosition) => previousValue && teamPosition.is_complete,
+    true) ;
+}
 
 /**
  * I absolutely hate this, but is how it works

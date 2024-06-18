@@ -10,7 +10,7 @@ import {
   Checkbox,
   Chip, FormControlLabel,
   Grid, Switch,
-  TextField,
+  TextField, Typography,
   useMediaQuery,
   useTheme
 } from "@mui/material";
@@ -263,18 +263,21 @@ export default function GameViewCard(
           </Grid>
         </form>
       </CardContent>
-      {/*{game.localScore !== null && game.awayScore !== null && (*/}
-      {/*  <CardContent sx={{ borderTop: `${theme.palette.primary.contrastText} 1px solid`, backgroundColor: 'secondary.light'}}>*/}
-      {/*    <Typography variant='body1' component='div' textAlign='center' color='secondary.contrastText'>*/}
-      {/*      {(game.CalculatedHomeTeam || (typeof game.HomeTeam === "string" && game.HomeTeam) || '')?.substring(0, 3)}&nbsp;*/}
-      {/*      {game.localScore}&nbsp;*/}
-      {/*      {Number.isInteger(game.localPenaltyScore) && `(${game.localPenaltyScore})`} - &nbsp;*/}
-      {/*      {Number.isInteger(game.awayPenaltyScore) && `(${game.awayPenaltyScore})`}&nbsp;*/}
-      {/*      {game.awayScore}&nbsp;*/}
-      {/*      {(game.CalculatedAwayTeam || (typeof game.AwayTeam === "string" && game.AwayTeam) || '')?.substring(0, 3)}*/}
-      {/*    </Typography>*/}
-      {/*  </CardContent>*/}
-      {/*)}*/}
+      {specificProps.isGameGuess &&
+        game.gameResult &&
+        Number.isInteger(game.gameResult.home_score) &&
+        Number.isInteger(game.gameResult.away_score) && (
+          <CardContent sx={{ borderTop: `${theme.palette.primary.contrastText} 1px solid`, backgroundColor: 'secondary.light'}}>
+            <Typography variant='body1' component='div' textAlign='center' color='secondary.contrastText'>
+              {homeTeamNameOrDescription?.substring(0, 3)}&nbsp;
+              {game.gameResult.home_score}&nbsp;
+              {Number.isInteger(game.gameResult.home_penalty_score) && `(${game.gameResult.home_penalty_score})`} - &nbsp;
+              {Number.isInteger(game.gameResult.away_penalty_score) && `(${game.gameResult.away_penalty_score})`}&nbsp;
+              {game.gameResult.away_score}&nbsp;
+              {awayTeamNameOrDescription?.substring(0, 3)}
+            </Typography>
+          </CardContent>
+      )}
     </Card>
   )
 }

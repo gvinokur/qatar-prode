@@ -28,3 +28,7 @@ export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew) {
 export async function updateOrCreateTournamentGroupTeamGuesses(groupTeamGuesses: TournamentGroupTeamStatsGuessNew[]) {
   return upsertTournamentGroupTeamGuesses(groupTeamGuesses)
 }
+
+export async function updatePlayoffGameGuesses(tournamentId: string) {
+  console.log('update playoff game guesses on save')
+}
