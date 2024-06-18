@@ -11,8 +11,10 @@ import {GuessesContextProvider} from "../../../components/context-providers/gues
 import GameView from "../../../components/game-view";
 import HonorRoll from "../../../components/playoffs-page/honor-roll-component";
 import SavePlayoffsComponent from "../../../components/playoffs-page/save-playoffs-components";
-import {calculatePlayoffTeams} from "../../../utils/playoff-teams-calculator";
+import {calculatePlayoffTeams, calculatePlayoffTeamsFromPositions} from "../../../utils/playoff-teams-calculator";
 import {findTournamentGuessByUserIdTournament} from "../../../db/tournament-guess-repository";
+import {findGroupsInTournament} from "../../../db/tournament-group-repository";
+import {findAllTournamentGroupTeamGuessInGroup} from "../../../db/tournament-group-team-guess-repository";
 
 type Props = {
   params: {
@@ -39,18 +41,25 @@ export default async function PlayoffPage({params, searchParams}: Props) {
   const tournamentGuesses =
     await findTournamentGuessByUserIdTournament(user.id, params.id) || buildTournamentGuesses(user.id, params.id)
 
+  const groups = await findGroupsInTournament(params.id)
+
+  const guessedPositionsByGroup = Object.fromEntries(
+    await Promise.all(
+      groups.map(async (group) => [
+        group.group_letter,
+        await findAllTournamentGroupTeamGuessInGroup(user.id, group.id)
+      ])
+    ))
 
   const playoffStagesPreFinal = completePlayoffData
     .playoffStages
     .filter(ps => (!ps.is_final && !ps.is_third_place))
     .sort((a,b) => a.round_order - b.round_order)
 
-  const playoffTeamsByGuess = calculatePlayoffTeams(
+  const playoffTeamsByGuess = calculatePlayoffTeamsFromPositions(
     completePlayoffData.playoffStages[0],
-    completePlayoffData.allGroups,
     completePlayoffData.gamesMap,
-    {},
-    gameGuessesMap)
+    guessedPositionsByGroup)
 
   Object.keys(playoffTeamsByGuess).forEach(game_id => {
     gameGuessesMap[game_id] = {
@@ -72,7 +81,8 @@ export default async function PlayoffPage({params, searchParams}: Props) {
         thirdPlace,
         gameGuesses: gameGuessesMap,
         playoffTeamsByGuess,
-        tournamentStartDate: completePlayoffData.tournamentStartDate
+        tournamentStartDate: completePlayoffData.tournamentStartDate,
+        guessedPositionsByGroup
       }}/>)}
 
       <GuessesContextProvider

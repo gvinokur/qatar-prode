@@ -69,6 +69,8 @@ export interface TournamentTeamTable {
 }
 
 export interface TournamentGroupTeamTable extends TeamStats, Identifiable {
+  tournament_group_id: string
+  position: number
 }
 
 export type TournamentGroupTeam = Selectable<TournamentGroupTeamTable>
@@ -76,7 +78,9 @@ export type TournamentGroupTeamNew = Insertable<TournamentGroupTeamTable>
 export type TournamentGroupTeamUpdate = Updateable<TournamentGroupTeamTable>
 
 export interface TournamentGroupTeamStatsGuessTable extends TeamStats, Identifiable {
+  tournament_group_id: string
   user_id: string
+  position: number
 }
 
 export type TournamentGroupTeamStatsGuess = Selectable<TournamentGroupTeamStatsGuessTable>
@@ -232,8 +236,6 @@ export type PlayerUpdate = Updateable<PlayerTable>
 
 export interface TeamStats {
   team_id: string
-  tournament_group_id: string
-  position: number
   games_played: number
   points: number
   win: number
@@ -242,4 +244,5 @@ export interface TeamStats {
   goals_for: number
   goals_against: number
   goal_difference: number
+  is_complete: boolean
 }

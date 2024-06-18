@@ -1,6 +1,5 @@
-import {ExtendedGroupData, ExtendedPlayoffRoundData, TeamStats} from "../definitions";
-import {Game, GameGuess, GameResult, GameResultNew, GroupFinishRule} from "../db/tables-definition";
-import {string} from "prop-types";
+import {ExtendedGroupData, ExtendedPlayoffRoundData} from "../definitions";
+import {Game, GameGuess, GameResultNew, GroupFinishRule, TeamStats} from "../db/tables-definition";
 import {calculateGroupPosition, GameWithResultOrGuess, teamStatsComparator} from "./group-position-calculator";
 
 export function calculatePlayoffTeams(
@@ -101,6 +100,88 @@ export function calculatePlayoffTeams(
 
     const homeTeam = groupTableMap?.[homeGroup]?.[homeRule.position]
     const awayTeam = groupTableMap?.[awayGroup]?.[awayRule.position]
+
+    return [
+      game_id,
+      {
+        game_id,
+        homeTeam,
+        awayTeam,
+      }]
+  }))
+
+  return calculatedTeamsPerGame;
+}
+
+export function calculatePlayoffTeamsFromPositions(
+  firstPlayoffStage: ExtendedPlayoffRoundData,
+  gamesMap: {[k:string]: Game},
+  positionsByGroup: {[group_letter: string]: TeamStats[]}
+) {
+  // Keep only groups that are complete
+  const groupTableMap = Object.fromEntries(
+    Object.entries(positionsByGroup).filter(([group_letter, teamPositions]) => {
+      //How do I know all games where played?
+      return teamPositions.reduce<boolean>(
+        (previousValue, teamPosition) => previousValue && teamPosition.is_complete,
+        true) ;
+    }))
+
+  const thirdPlaceTeamRules: string[] =[]
+
+  firstPlayoffStage.games.forEach(({game_id}) => {
+    const game = gamesMap[game_id]
+    const homeRule = game.home_team_rule as GroupFinishRule
+    const awayRule = game.away_team_rule as GroupFinishRule
+    if (homeRule.position === 3) {
+      thirdPlaceTeamRules.push(homeRule.group)
+    }
+    if(awayRule.position === 3) {
+      thirdPlaceTeamRules.push(awayRule.group)
+    }
+  })
+
+  let thirdPlaceGroupMap: {[k:string]: string} = {}
+
+  if (thirdPlaceTeamRules) {
+    type ThirdPositionTeamTuple = [string, TeamStats]
+
+    const thirdTeams = Object.entries(groupTableMap).map(([groupLetter, positionsMap]) => {
+      const thirdPositionTeam = positionsMap[2]
+      return [groupLetter, thirdPositionTeam] as ThirdPositionTeamTuple
+    })
+      .filter(([, thirdPositionTeam]) => !!thirdPositionTeam)
+      .sort((a, b) => {
+        const teamAStats = a[1]
+        const teamBStats = b[1]
+        return teamStatsComparator(teamAStats, teamBStats);
+      })
+
+    console.log(thirdTeams)
+    //Wait until all groups are finished to make this calculation.
+    if(thirdTeams.length === Object.keys(positionsByGroup).length) {
+      const topThirdTeams = thirdTeams.filter((value, index) => index < thirdPlaceTeamRules.length)
+      const topThirdTeamGroups = topThirdTeams.map(([letter, ]) => letter).sort((a, b) => a.localeCompare(b))
+      thirdPlaceGroupMap = rulesByChampionship[''][topThirdTeamGroups.join('')]
+    }
+  }
+
+
+  const calculatedTeamsPerGame = Object.fromEntries(firstPlayoffStage.games.map(({game_id}) => {
+    const game = gamesMap[game_id]
+    const homeRule = game.home_team_rule as GroupFinishRule
+    const awayRule = game.away_team_rule as GroupFinishRule
+    let homeGroup = homeRule.group.toUpperCase()
+    let awayGroup = awayRule.group.toUpperCase()
+    if(homeRule.position === 3) {
+      homeGroup = thirdPlaceGroupMap[homeGroup]
+    }
+    if(awayRule.position === 3) {
+      awayGroup = thirdPlaceGroupMap[awayGroup]
+    }
+
+    const homeTeam = groupTableMap?.[homeGroup]?.[homeRule.position - 1]
+    const awayTeam = groupTableMap?.[awayGroup]?.[awayRule.position - 1]
 
     return [
       game_id,

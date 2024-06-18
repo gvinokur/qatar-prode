@@ -1,5 +1,4 @@
-import {Game, GameGuessNew, GameResultNew} from "../db/tables-definition";
-import {TeamStats} from "../definitions";
+import {Game, GameGuessNew, GameResultNew, TeamStats} from "../db/tables-definition";
 
 const initialTeamStats: TeamStats = {
   team_id: '',
@@ -11,6 +10,7 @@ const initialTeamStats: TeamStats = {
   goals_for: 0,
   goals_against: 0,
   goal_difference: 0,
+  is_complete: false
 }
 
 export interface GameWithResultOrGuess extends Game{
@@ -26,10 +26,12 @@ export const calculateGroupPosition = (teamIds: string[], games: GameWithResultO
   const gamesWithScores = games.filter(game =>
     (Number.isInteger(game.resultOrGuess?.home_score) && Number.isInteger(game.resultOrGuess?.away_score)))
 
+  const isComplete = gamesWithScores.length === games.length
+
   const teamsStatsByTeam = Object.fromEntries(teamIds.map(teamId => [
     teamId,
     gamesWithScores.filter(game => game.home_team === teamId|| game.away_team === teamId)
-      .reduce(teamStatsGameReducer(teamId), { ...initialTeamStats, team_id: teamId })
+      .reduce(teamStatsGameReducer(teamId), { ...initialTeamStats, team_id: teamId, is_complete: isComplete })
   ]))
   const teamStats: TeamStats[] = Object.values(teamsStatsByTeam).sort(teamStatsComparator)
 

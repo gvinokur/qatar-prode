@@ -25,6 +25,7 @@ export async function findAllTournamentGroupTeamGuessInGroup(userId: string, gro
     .where('user_id', '=', userId)
     .where('tournament_group_id', '=', groupId)
     .selectAll()
+    .orderBy('position asc')
     .execute()
 }
 

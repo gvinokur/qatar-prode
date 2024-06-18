@@ -61,23 +61,9 @@ export interface CompleteGroupData {
 
 export interface CompletePlayoffData {
   playoffStages: ExtendedPlayoffRoundData[]
-  allGroups: ExtendedGroupData[]
   teamsMap: {[k:string]: Team}
   gamesMap: {[k:string]: Game}
-  gameResultsMap: {[k:string]: GameResult}
   tournamentStartDate: Date
-}
-
-export interface TeamStats {
-  team_id: string
-  games_played: number
-  points: number
-  win: number
-  draw: number
-  loss: number
-  goals_for: number
-  goals_against: number
-  goal_difference: number
 }
 
 export interface UserScore {

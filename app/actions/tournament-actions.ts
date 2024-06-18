@@ -23,10 +23,6 @@ export async function getTournaments () {
   return tournaments
 }
 
-export async function getTournament(tournamentId: string) {
-  return await findTournamentById(tournamentId)
-}
-
 export async function getGamesAroundMyTime(tournamentId: string) {
   return await findGamesAroundCurrentTime(tournamentId)
 }
@@ -62,27 +58,17 @@ export async function getCompleteGroupData(groupId: string, includeDraftResults:
 
 export async function getCompletePlayoffData(tournamentId: string) {
   const playoffStages = await findPlayoffStagesWithGamesInTournament(tournamentId)
-  const allGroups = await findGroupsWithGamesAndTeamsInTournament(tournamentId)
-
   const teamsMap = await getTeamsMap(tournamentId)
-
   const games: Game[] = await findGamesInTournament(tournamentId)
   const gamesMap: {[k: string]: Game} = Object.fromEntries(games.map((game: Game) => ([game.id, game])))
-
-  const gameResults: GameResult[] = []
-  const gameResultsMap: {[k:string]: GameResult} = Object.fromEntries(
-    gameResults.map(gameResult => [gameResult.game_id, gameResult]))
-
   const tournamentStartDate: Date =
     // new Date(2024, 4,1) //For debug purposes
     games.sort((a, b) => a.game_date.getTime() - b.game_date.getTime())[0]?.game_date
 
   return {
     playoffStages,
-    allGroups,
     teamsMap,
     gamesMap,
-    gameResultsMap,
     tournamentStartDate
   } as CompletePlayoffData
 }
