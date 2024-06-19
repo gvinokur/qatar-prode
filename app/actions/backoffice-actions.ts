@@ -14,17 +14,26 @@ import {
   createTournamentGroupTeam,
   deleteAllGroupsFromTournament,
   findGroupsInTournament,
-  findGroupsWithGamesAndTeamsInTournament
+  findGroupsWithGamesAndTeamsInTournament, updateTournamentGroupTeams
 } from "../db/tournament-group-repository";
 import {
   createPlayoffRound,
   createPlayoffRoundGame,
   deleteAllPlayoffRoundsInTournament, findPlayoffStagesWithGamesInTournament
 } from "../db/tournament-playoff-repository";
-import {Game, GameGuess, GameNew, GameResult, PlayerNew, Team, Tournament} from "../db/tables-definition";
+import {
+  Game,
+  GameGuess,
+  GameNew,
+  GameResult,
+  PlayerNew,
+  Team,
+  Tournament,
+  TournamentGroupTeamNew
+} from "../db/tables-definition";
 import {
   createGame,
-  deleteAllGamesFromTournament,
+  deleteAllGamesFromTournament, findAllGamesWithPublishedResultsAndGameGuesses,
   findGamesInGroup,
   findGamesInTournament,
   updateGame
@@ -40,9 +49,16 @@ import {
 } from "../db/game-result-repository";
 import {calculatePlayoffTeams} from "../utils/playoff-teams-calculator";
 import {findAllUserTournamentGroupsWithoutGuesses} from "../db/tournament-group-team-guess-repository";
-import {findGameGuessesByUserId} from "../db/game-guess-repository";
+import {
+  findAllGuessesForGamesWithResultsInDraft,
+  findGameGuessesByUserId,
+  updateGameGuess
+} from "../db/game-guess-repository";
 import {calculateGroupPosition} from "../utils/group-position-calculator";
-import {updateOrCreateTournamentGroupTeamGuesses} from "./guesses-actions";
+import {updateOrCreateTournamentGroupTeamGuesses, updatePlayoffGameGuesses} from "./guesses-actions";
+import {customToMap, toMap} from "../utils/ObjectUtils";
+import {db} from "../db/database";
+import {calculateScoreForGame} from "../utils/game-score-calculator";
 
 export async function deleteDBTournamentTree(tournament: Tournament) {
   // delete from tournament_playoff_round_games ;
@@ -79,9 +95,8 @@ export async function generateDbTournamentTeamPlayers(tournamentName: string) {
           console.log('You need to create the tournament teams first, you d******s')
           throw "Cannot create players for a tournament without teams"
         }
-        const teamsByNameMap: {[k:string]: Team} = Object.fromEntries(
-          teams.map(team => [team.name, team])
-        )
+        const teamsByNameMap: {[k:string]: Team} = customToMap(teams, (team) => team.name)
+
         await Promise.all(tournament.players.map(async (player) => {
           const playerTeam = teamsByNameMap[player.team]
           if (!playerTeam) {
@@ -297,10 +312,9 @@ export async function calculateAndSavePlayoffGamesForTournament(tournamentId: st
 
   const firstPlayoffStage = playoffStages[0]
   const gameResults = await findGameResultByGameIds(games.map(game => game.id), true)
-  const gamesMap = Object.fromEntries(games.map(game => [game.id, game]))
-  const gameResultMap = Object.fromEntries(
-    gameResults.map(result => [result.game_id, result])
-  )
+  const gamesMap = toMap(games)
+  const gameResultMap = customToMap(gameResults, (result) => result.game_id)
+
 
   const calculatedTeamsPerGame = calculatePlayoffTeams(firstPlayoffStage, groups, gamesMap, gameResultMap, {})
   return Promise.all(firstPlayoffStage.games.map(async (game) => {
@@ -323,7 +337,7 @@ export async function calculateAllUsersGroupPositions(tournamentId: string) {
     await Promise.all(
       userIds.map(async (userId) => {
         const gameGuesses = await findGameGuessesByUserId(userId, tournamentId)
-        const gameGuessesMap = Object.fromEntries(gameGuesses.map(gameGuess => [gameGuess.game_id, gameGuess]))
+        const gameGuessesMap = customToMap(gameGuesses, (gameGuess) => gameGuess.game_id)
         return [
           userId,
           gameGuessesMap
@@ -366,5 +380,54 @@ export async function calculateAllUsersGroupPositions(tournamentId: string) {
       return updateOrCreateTournamentGroupTeamGuesses(guessedPositions)
     }
   }))
+}
 
+export async function recalculateAllPlayoffFirstRoundGameGuesses(tournamentId: string) {
+  const users = await db.selectFrom('users').select('id').execute();
+  const updatedPlayoffGamesForUsers = await Promise.all(users.map(async (user) => {
+    return updatePlayoffGameGuesses(tournamentId, user)
+  }))
+  return updatedPlayoffGamesForUsers
+    .map(updatedPlayoffGamesForUsers => updatedPlayoffGamesForUsers?.filter(gameGuess => !!gameGuess) || [])
+    .filter(updatedPlayoffGamesForUser => updatedPlayoffGamesForUser.length > 0)
+}
+
+export async function calculateGameScores(forceDrafts: boolean, forceAllGuesses: boolean) {
+  const gamesWithResultAndGuesses = await findAllGamesWithPublishedResultsAndGameGuesses(forceDrafts, forceAllGuesses)
+  const gameGuessesToClean = await findAllGuessesForGamesWithResultsInDraft()
+  console.log('New games to update:', gamesWithResultAndGuesses.length )
+  const updatedGameGuesses = await Promise.all(gamesWithResultAndGuesses.map(game => {
+    console.log('updating all score for game', game.game_number, 'with result', game.gameResult)
+    const gameGuesses = game.gameGuesses
+    return Promise.all(gameGuesses.map(gameGuess => {
+      const score = calculateScoreForGame(game, gameGuess)
+      console.log('updating score for game guess on game', game.game_number, 'for user', gameGuess.user_id,
+        'with guess', gameGuess, 'to score', score)
+      return updateGameGuess(gameGuess.id, {
+        score
+      })
+    }))
+  }))
+  console.log('Updated all scores for games')
+  console.log('Cleaning scores for games', gameGuessesToClean.length)
+  const cleanedGameGuesses = await Promise.all(gameGuessesToClean.map(async (gameGuess) => {
+    return updateGameGuess(gameGuess.id, {
+      // @ts-ignore - setting to null to remove value
+      score: null
+    })
+  }))
+
+  return {updatedGameGuesses, cleanedGameGuesses}
+}
+
+export async function calculateAndStoreGroupPosition(group_id: string, teamIds: string[], groupGames: ExtendedGameData[]) {
+  const groupPositions: TournamentGroupTeamNew[] = calculateGroupPosition(teamIds, groupGames.map(game => ({
+    ...game,
+    resultOrGuess: game.gameResult
+  }))).map((teamPosition, index) => ({
+    ...teamPosition,
+    tournament_group_id: group_id,
+    position: index
+  }))
+  await updateTournamentGroupTeams(groupPositions)
 }

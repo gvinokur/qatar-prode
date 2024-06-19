@@ -113,7 +113,8 @@ const GameView = ({game, teamsMap, isFinal, isThirdPlace}: GameViewProps) => {
     }, isFinal, isThirdPlace)
   }
 
-  const editDisabled = (Date.now() > game.game_date.getTime())
+  const ONE_HOUR = 60 * 60 * 1000
+  const editDisabled = (Date.now() + ONE_HOUR > game.game_date.getTime())
   const scoreForGame = calculateScoreForGame(game, gameGuess)
   const teamNameCols = 8 - (isPlayoffGame? 1: 0)
   const homeTeam = game.home_team || gameGuess.home_team

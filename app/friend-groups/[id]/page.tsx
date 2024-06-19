@@ -11,6 +11,7 @@ import {getLoggedInUser} from "../../actions/user-actions";
 import ProdeGroupThemer from "../../components/friend-groups/friend-groups-themer";
 import {findAllActiveTournaments} from "../../db/tournament-repository";
 import {getGameGuessStatisticsForUsers} from "../../db/game-guess-repository";
+import {customToMap, toMap} from "../../utils/ObjectUtils";
 
 type Props = {
   params: {
@@ -33,7 +34,7 @@ export default async function FriendsGroup({params, searchParams} : Props){
   ]
 
   const users = await findUsersByIds(allParticipants)
-  const usersMap = Object.fromEntries(users.map(user => [user.id, user]))
+  const usersMap = toMap(users)
 
 
   //TODO: Calculate scores for users, but not yet, because all is zero!! :D
@@ -42,8 +43,8 @@ export default async function FriendsGroup({params, searchParams} : Props){
       await Promise.all(
         tournaments.map(async (tournament) => {
           const allUsersGameStatics = await getGameGuessStatisticsForUsers(allParticipants, tournament.id)
-          const gameStatisticsByUserIdMap = Object.fromEntries(
-            allUsersGameStatics.map(userGameStatistics => [userGameStatistics.user_id, userGameStatistics]))
+          const gameStatisticsByUserIdMap =
+            customToMap(allUsersGameStatics, (userGameStatistics) => userGameStatistics.user_id)
           return [
             tournament.id,
             users.map(user => ({

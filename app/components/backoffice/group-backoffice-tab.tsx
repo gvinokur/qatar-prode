@@ -4,15 +4,17 @@ import {Alert, Backdrop, Box, CircularProgress, Grid, Snackbar, useTheme} from "
 import {ChangeEvent, useEffect, useState} from "react";
 import {ExtendedGameData, ExtendedGroupData} from "../../definitions";
 import {getCompleteGroupData} from "../../actions/tournament-actions";
-import {GameResultNew, Team} from "../../db/tables-definition";
+import {GameResultNew, Team, TournamentGroupTeam, TournamentGroupTeamNew} from "../../db/tables-definition";
 import BackofficeGameView from "./backoffice-game-view";
 import {LoadingButton} from "@mui/lab";
 import {
-  calculateAndSavePlayoffGamesForTournament,
+  calculateAndSavePlayoffGamesForTournament, calculateAndStoreGroupPosition,
   saveGameResults, saveGamesData,
 } from "../../actions/backoffice-actions";
 import GroupTable from "../groups-page/group-table";
 import {DebugObject} from "../debug";
+import {calculateGroupPosition} from "../../utils/group-position-calculator";
+import {updateTournamentGroupTeams} from "../../db/tournament-group-repository";
 
 type Props = {
   group: ExtendedGroupData
@@ -137,6 +139,7 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
     await saveGameResults(Object.values(gamesMap))
     await calculateAndSavePlayoffGamesForTournament(tournamentId)
     await saveGamesData(Object.values(gamesMap))
+    await calculateAndStoreGroupPosition(group.id, Object.keys(teamsMap), Object.values(gamesMap))
     setSaving(false)
     setSaved(false)
   }

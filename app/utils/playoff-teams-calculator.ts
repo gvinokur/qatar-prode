@@ -154,8 +154,6 @@ export function calculatePlayoffTeamsFromPositions(
         const teamBStats = b[1]
         return teamStatsComparator(teamAStats, teamBStats);
       })
-
-    console.log(thirdTeams)
     //Wait until all groups are finished to make this calculation.
     if(thirdTeams.length === Object.keys(positionsByGroup).length) {
       const topThirdTeams = thirdTeams.filter((value, index) => index < thirdPlaceTeamRules.length)

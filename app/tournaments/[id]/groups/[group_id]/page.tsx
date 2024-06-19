@@ -16,6 +16,7 @@ import {redirect} from "next/navigation";
 import {findGuessedQualifiedTeams, findQualifiedTeams} from "../../../../db/team-repository";
 import {calculateGroupPosition} from "../../../../utils/group-position-calculator";
 import {findAllTournamentGroupTeamGuessInGroup} from "../../../../db/tournament-group-team-guess-repository";
+import {customToMap, toMap} from "../../../../utils/ObjectUtils";
 
 type Props = {
   params: {
@@ -36,9 +37,7 @@ export default async function GroupComponent({params, searchParams} : Props) {
   const qualifiedTeamGuesses = await findGuessedQualifiedTeams(params.id, user.id, params.group_id)
   const qualifiedTeams = await findQualifiedTeams(params.id, params.group_id)
 
-  const gameGuesses:{[k: string]: GameGuess} = Object.fromEntries(
-    userGameGuesses.map(gameGuess => [gameGuess.game_id, gameGuess])
-  )
+  const gameGuesses:{[k: string]: GameGuess} = customToMap(userGameGuesses, (gameGuess) => gameGuess.game_id)
 
   const teamIds = Object.keys(completeGroupData.teamsMap)
   const groupTeamStatsGuesses = await findAllTournamentGroupTeamGuessInGroup(user.id, params.group_id)
@@ -61,7 +60,7 @@ export default async function GroupComponent({params, searchParams} : Props) {
     <>
       {searchParams.hasOwnProperty('debug') && (<DebugObject object={{
         completeGroupData,
-        userGameGuesses,
+        gameGuesses,
         qualifiedTeamGuesses,
         qualifiedTeams
       }}/>)}

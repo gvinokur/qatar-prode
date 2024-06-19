@@ -70,7 +70,7 @@ export async function deleteAllGroupsFromTournament(tournamentId: string) {
   return waitForAllDelete
 }
 
-export async function updateGroupTeams(groupTeams: TournamentGroupTeamUpdate[]) {
+export async function updateTournamentGroupTeams(groupTeams: TournamentGroupTeamUpdate[]) {
   return Promise.all(groupTeams.map( async ({id, team_id, tournament_group_id, ...withUpdate}) => {
     if(team_id && tournament_group_id) {
       return db.updateTable('tournament_group_teams')

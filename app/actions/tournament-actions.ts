@@ -17,6 +17,7 @@ import {
 import {findPlayoffStagesWithGamesInTournament} from "../db/tournament-playoff-repository";
 import {CompleteGroupData, CompletePlayoffData, CompleteTournamentData} from "../definitions";
 import {findTournamentGuessByUserIdTournament} from "../db/tournament-guess-repository";
+import {toMap} from "../utils/ObjectUtils";
 
 export async function getTournaments () {
   const tournaments = await findAllActiveTournaments()
@@ -29,7 +30,7 @@ export async function getGamesAroundMyTime(tournamentId: string) {
 
 export async function getTeamsMap(objectId: string, teamParent: 'tournament' | 'group' = 'tournament') {
   const teams: Team[] = teamParent === 'tournament' ? await findTeamInTournament(objectId) : await findTeamInGroup(objectId)
-  const teamsMap: {[k:string]: Team} = Object.fromEntries(teams.map((team: Team) => ([team.id, team])))
+  const teamsMap: {[k:string]: Team} = toMap(teams)
 
   return teamsMap;
 }
@@ -43,7 +44,7 @@ export async function getCompleteGroupData(groupId: string, includeDraftResults:
     const teamsMap = await getTeamsMap(group.id, 'group')
 
     const games = await findGamesInGroup(group.id, true, includeDraftResults)
-    const gamesMap: {[k: string]: Game} = Object.fromEntries(games.map((game: Game) => ([game.id, game])))
+    const gamesMap: {[k: string]: Game} = toMap(games)
 
     return {
       group,
@@ -60,7 +61,7 @@ export async function getCompletePlayoffData(tournamentId: string) {
   const playoffStages = await findPlayoffStagesWithGamesInTournament(tournamentId)
   const teamsMap = await getTeamsMap(tournamentId)
   const games: Game[] = await findGamesInTournament(tournamentId)
-  const gamesMap: {[k: string]: Game} = Object.fromEntries(games.map((game: Game) => ([game.id, game])))
+  const gamesMap: {[k: string]: Game} = toMap(games)
   const tournamentStartDate: Date =
     // new Date(2024, 4,1) //For debug purposes
     games.sort((a, b) => a.game_date.getTime() - b.game_date.getTime())[0]?.game_date

@@ -15,6 +15,7 @@ import {calculatePlayoffTeams, calculatePlayoffTeamsFromPositions} from "../../.
 import {findTournamentGuessByUserIdTournament} from "../../../db/tournament-guess-repository";
 import {findGroupsInTournament} from "../../../db/tournament-group-repository";
 import {findAllTournamentGroupTeamGuessInGroup} from "../../../db/tournament-group-team-guess-repository";
+import {customToMap, toMap} from "../../../utils/ObjectUtils";
 
 type Props = {
   params: {
@@ -35,9 +36,8 @@ export default async function PlayoffPage({params, searchParams}: Props) {
     redirect('/')
   }
   const userGameGuesses = await findGameGuessesByUserId(user.id, params.id)
-  const gameGuessesMap:{[k: string]: GameGuess} = Object.fromEntries(
-    userGameGuesses.map(gameGuess => [gameGuess.game_id, gameGuess])
-  )
+  const gameGuessesMap = customToMap(userGameGuesses, (gameGuess) => gameGuess.game_id)
+
   const tournamentGuesses =
     await findTournamentGuessByUserIdTournament(user.id, params.id) || buildTournamentGuesses(user.id, params.id)
 
@@ -51,11 +51,6 @@ export default async function PlayoffPage({params, searchParams}: Props) {
       ])
     ))
 
-  const playoffStagesPreFinal = completePlayoffData
-    .playoffStages
-    .filter(ps => (!ps.is_final && !ps.is_third_place))
-    .sort((a,b) => a.round_order - b.round_order)
-
   const playoffTeamsByGuess = calculatePlayoffTeamsFromPositions(
     completePlayoffData.playoffStages[0],
     completePlayoffData.gamesMap,
@@ -64,10 +59,15 @@ export default async function PlayoffPage({params, searchParams}: Props) {
   Object.keys(playoffTeamsByGuess).forEach(game_id => {
     gameGuessesMap[game_id] = {
       ...gameGuessesMap[game_id],
-      home_team: playoffTeamsByGuess[game_id].homeTeam?.team_id,
-      away_team: playoffTeamsByGuess[game_id].awayTeam?.team_id
+      home_team: playoffTeamsByGuess[game_id].homeTeam?.team_id || null,
+      away_team: playoffTeamsByGuess[game_id].awayTeam?.team_id || null
     }
   })
+
+  const playoffStagesPreFinal = completePlayoffData
+    .playoffStages
+    .filter(ps => (!ps.is_final && !ps.is_third_place))
+    .sort((a,b) => a.round_order - b.round_order)
 
   const final = completePlayoffData.playoffStages.find(ps => ps.is_final)
 

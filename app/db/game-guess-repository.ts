@@ -22,6 +22,21 @@ export async function findGameGuessesByUserId(userId: string, tournamentId: stri
     .execute()
 }
 
+export async function updateGameGuessByGameId(game_id: string, user_id: string, withUpdate: {home_team?: string | null, away_team?:string | null }) {
+
+  return await db
+    .updateTable(tableName)
+    .set(withUpdate)
+    .where("game_guesses.game_id", "=", game_id)
+    .where("game_guesses.user_id", "=", user_id)
+    .where(eb => eb.or([
+      eb("game_guesses.home_team", "<>", withUpdate.home_team),
+      eb("game_guesses.away_team", "<>", withUpdate.away_team)
+    ]))
+    .returningAll()
+    .executeTakeFirst()
+}
+
 export async function updateOrCreateGuess(guess: GameGuessNew) {
 
    const existingGuess = await db
