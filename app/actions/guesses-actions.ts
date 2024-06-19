@@ -39,7 +39,7 @@ export async function updateOrCreateTournamentGroupTeamGuesses(groupTeamGuesses:
   return upsertTournamentGroupTeamGuesses(groupTeamGuesses)
 }
 
-export async function updatePlayoffGameGuesses(tournamentId: string, user: UserUpdate) {
+export async function updatePlayoffGameGuesses(tournamentId: string, user?: UserUpdate) {
   const userId = (user || await getLoggedInUser())?.id
   const playoffStages:ExtendedPlayoffRoundData[] = await findPlayoffStagesWithGamesInTournament(tournamentId)
   const games = await findGamesInTournament(tournamentId)
