@@ -49,7 +49,7 @@ export default function GroupTable({games, teamsMap, isPredictions} : Props) {
     ).length === 0;
 
   return (
-    <Grid item xs={12} md={6} mb={xsMatch ? 0 : 12}>
+    <Box mb={xsMatch ? 0 : 12}>
       {isPredictions && (
         <Box display='flex'>
           <Typography variant={'h5'} component='a' flexGrow={1}
@@ -113,6 +113,6 @@ export default function GroupTable({games, teamsMap, isPredictions} : Props) {
         </Table>
       </Paper>
       {isPredictions && <SaveComponent/>}
-    </Grid>
+    </Box>
   )
 }
