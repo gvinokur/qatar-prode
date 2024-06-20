@@ -24,9 +24,11 @@ type Props = {
   isPredictions: boolean,
   games: ExtendedGameData[],
   teamsMap: {[k:string]: Team}
+  qualifiedTeams?: Team[]
+  qualifiedTeamGuesses?: Team[]
 }
 
-export default function GroupTable({games, teamsMap, isPredictions} : Props) {
+export default function GroupTable({games, teamsMap, isPredictions, qualifiedTeams = [], qualifiedTeamGuesses = []} : Props) {
   const xsMatch = useMediaQuery('(min-width:900px)')
   const theme = useTheme();
   const {gameGuesses, guessedPositions: groupPositionsByGuess} = useContext(GuessesContext)
@@ -84,16 +86,22 @@ export default function GroupTable({games, teamsMap, isPredictions} : Props) {
           </TableHead>
           <TableBody>
             {(usePredictionsTable ? groupPositionsByGuess : groupPositions).map((teamStats, index) => (
-              <TableRow key={index} sx={[0,1].includes(index) ? {backgroundColor: 'primary.contrastText'} : {}}>
+              <TableRow key={index} sx={
+                (usePredictionsTable ? qualifiedTeamGuesses : qualifiedTeams)?.find(qualifiedTeam => qualifiedTeam.id === teamStats.team_id) ?
+                  {backgroundColor: 'primary.contrastText'} :
+                  {}
+              }>
                 <TableCell>{index + 1}</TableCell>
                 <TableCell sx={{
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                 }} >
-                  {usePredictionsTable && allGroupGamesPlayed && index < 2 && (
+                  {usePredictionsTable &&
+                    qualifiedTeamGuesses?.find(qualifiedTeam => qualifiedTeam.id === teamStats.team_id) &&
+                    qualifiedTeams.length > 0  && (
                     <Box sx={{ float: 'right'}}>
-                      {teamStats.team_id === groupPositions[0].team_id || teamStats.team_id === groupPositions[1].team_id ?
+                      {qualifiedTeams?.find(qualifiedTeam => qualifiedTeam.id === teamStats.team_id) ?
                         (<Avatar title='Pronostico Correcto' sx={{ width: '18px', height: '18px', bgcolor: theme.palette.success.light }}><HitIcon sx={{ width: '12px', height: '12px'}}/></Avatar>):
                         (<Avatar title='Pronostico Errado' sx={{ width: '18px', height: '18px', bgcolor: theme.palette.error.main }}><MissIcon sx={{ width: '12px', height: '12px'}}/></Avatar>)}
                     </Box>

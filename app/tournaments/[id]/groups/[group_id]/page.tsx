@@ -83,7 +83,12 @@ export default async function GroupComponent({params, searchParams} : Props) {
             </Grid>
           </Grid>
           <Grid item xs={12} md={6} justifyContent={'center'}>
-            <GroupTable games={Object.values(completeGroupData.gamesMap)} teamsMap={completeGroupData.teamsMap} isPredictions={true}/>
+            <GroupTable
+              games={Object.values(completeGroupData.gamesMap)}
+              teamsMap={completeGroupData.teamsMap}
+              qualifiedTeamGuesses={qualifiedTeamGuesses}
+              qualifiedTeams={qualifiedTeams}
+              isPredictions={true}/>
           </Grid>
         </Grid>
       </GuessesContextProvider>
