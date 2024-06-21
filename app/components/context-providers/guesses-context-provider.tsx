@@ -24,6 +24,7 @@ export const GuessesContext = React.createContext({
 export interface GuessesContextProviderProps {
   children: React.ReactNode
   gameGuesses: {[k:string]: GameGuessNew}
+  gameMap: { [k: string]: Game }
   tournamentGuesses?: TournamentGuessNew
   tournamentStartDate?: Date
   groupGames?: Game[],
@@ -48,12 +49,10 @@ export function GuessesContextProvider ({children,
     tournamentGuesses,
     guessedPositions,
     updateGameGuess: (gameId:string, gameGuess: GameGuessNew, isFinal?:boolean, isThirdPlace?:boolean) => {
-      console.log('updateGameGuess', gameId, gameGuess)
       const newGameGuesses = {
         ...gameGuesses,
         [gameId]: gameGuess
       }
-      console.log('updated gameGuesses', diff(newGameGuesses, gameGuesses))
       setGameGuesses(newGameGuesses)
       if(groupGames && guessedPositions.length >1) {
         const user_id = guessedPositions[0].user_id

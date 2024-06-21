@@ -40,6 +40,8 @@ const GameView = ({game, teamsMap, isFinal, isThirdPlace}: GameViewProps) => {
   const [calculatedHomeTeam, setCalculatedHomeTeam] = useState<string | undefined>()
   const [calculatedAwayTeam, setCalculatedAwayTeam] = useState<string | undefined>()
   const gameGuess = gameGuesses[game.id] || buildGameGuess(game)
+  // May fix issues with the game number not being set in the game guess
+  if(!gameGuess.game_number) gameGuess.game_number = game.game_number
 
   useEffect(()=> {
     /**
