@@ -10,6 +10,7 @@ import {
 } from "../../db/tables-definition";
 import {getGuessLoser, getGuessWinner} from "../../utils/score-utils";
 import {calculateGroupPosition} from "../../utils/group-position-calculator";
+import {diff} from "deep-object-diff";
 
 type GameGuessMap = {[k:string]: GameGuessNew}
 
@@ -52,6 +53,7 @@ export function GuessesContextProvider ({children,
         ...gameGuesses,
         [gameId]: gameGuess
       }
+      console.log('updated gameGuesses', diff(newGameGuesses, gameGuesses))
       setGameGuesses(newGameGuesses)
       if(groupGames && guessedPositions.length >1) {
         const user_id = guessedPositions[0].user_id
