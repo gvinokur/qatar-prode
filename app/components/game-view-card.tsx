@@ -158,7 +158,7 @@ export default function GameViewCard(
             <Grid item xs={teamScoreCols}>
               <TextField
                 margin="dense"
-                id={`home_score_${game.id}`}
+                id={`home_score_"${game.id}`}
                 type="number"
                 fullWidth
                 inputProps={{ min: 0}}

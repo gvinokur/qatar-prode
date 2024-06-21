@@ -47,6 +47,7 @@ export function GuessesContextProvider ({children,
     tournamentGuesses,
     guessedPositions,
     updateGameGuess: (gameId:string, gameGuess: GameGuessNew, isFinal?:boolean, isThirdPlace?:boolean) => {
+      console.log('updateGameGuess', gameId, gameGuess)
       const newGameGuesses = {
         ...gameGuesses,
         [gameId]: gameGuess
