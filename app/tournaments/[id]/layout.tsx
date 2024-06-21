@@ -2,7 +2,7 @@
 
 import {Grid, AppBar, Box} from "../../components/mui-wrappers";
 import GroupSelector from "../../components/groups-page/group-selector";
-import {getTournamentAndGroupsData} from "../../actions/tournament-actions";
+import {getTournamentAndGroupsData, getTournamentStartDate} from "../../actions/tournament-actions";
 import {findTournamentGuessByUserIdTournament} from "../../db/tournament-guess-repository";
 import {getLoggedInUser} from "../../actions/user-actions";
 import Link from "next/link";
@@ -20,6 +20,7 @@ export default async function TournamentLayout({children, params}: TournamentLay
   const user = await getLoggedInUser()
   const layoutData = await getTournamentAndGroupsData(params.id)
   const tournamentGuesses = user && await findTournamentGuessByUserIdTournament(user.id, params.id)
+  const tournamentStartDate = await getTournamentStartDate(params.id)
 
   return (
     <>
@@ -52,7 +53,7 @@ export default async function TournamentLayout({children, params}: TournamentLay
       <Box ml={2} mr={2} mb={2}>
         {children}
       </Box>
-      {user && !tournamentGuesses?.best_player_id && (
+      {user && !tournamentGuesses?.best_player_id && tournamentStartDate.getTime() > new Date().getTime() && (
         <EmptyAwardsSnackbar tournamentId={params.id}/>
       )}
     </>

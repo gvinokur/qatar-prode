@@ -15,6 +15,7 @@ import {findPlayoffStagesWithGamesInTournament} from "../db/tournament-playoff-r
 import {findGamesInTournament} from "../db/game-repository";
 import {toMap} from "../utils/ObjectUtils";
 import {Updateable} from "kysely";
+import {db} from "../db/database";
 
 export async function updateOrCreateGameGuesses(gameGuesses: GameGuessNew[]) {
   const user = await getLoggedInUser()
@@ -62,11 +63,38 @@ export async function updatePlayoffGameGuesses(tournamentId: string, user?: User
     gamesMap,
     guessedPositionsByGroup)
 
-  console.log('should update', playoffTeamsByGuess)
+  // console.log('should update for user id', userId, playoffTeamsByGuess)
 
-  return Promise.all(Object.keys(playoffTeamsByGuess).map(async (game_id) =>
-    updateGameGuessByGameId(game_id, userId, {
+  return Promise.all(Object.keys(playoffTeamsByGuess).map(async (game_id) => {
+    if(playoffTeamsByGuess[game_id].homeTeam?.team_id && playoffTeamsByGuess[game_id].awayTeam?.team_id) {
+      //TODO: remove tempoarary fix
+      const toFix = await db.selectFrom('game_guesses')
+        .selectAll()
+        .where('home_team', '=', playoffTeamsByGuess[game_id].homeTeam?.team_id)
+        .where('away_team', '=', playoffTeamsByGuess[game_id].awayTeam?.team_id)
+        .where('user_id', '=', userId)
+        .where('game_id', 'is', null)
+        .executeTakeFirst()
+
+      if(toFix) {
+        console.log('toFix', toFix)
+      }
+
+      if (toFix) {
+        try {
+          await db.updateTable('game_guesses')
+            .set('game_id', game_id)
+            .where('id', '=', toFix.id)
+            .execute()
+        } catch(e) {
+          console.log(e, 'but continuing')
+        }
+      }
+    }
+
+    return updateGameGuessByGameId(game_id, userId, {
       home_team: playoffTeamsByGuess[game_id].homeTeam?.team_id || null,
       away_team: playoffTeamsByGuess[game_id].awayTeam?.team_id || null
-    })))
+    })
+  }))
 }
