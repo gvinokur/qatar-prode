@@ -158,7 +158,7 @@ export default function GameViewCard(
             <Grid item xs={teamScoreCols}>
               <TextField
                 margin="dense"
-                id="name"
+                id={`away_penalty_score_${game.id}`}
                 type="number"
                 fullWidth
                 inputProps={{ min: 0}}
@@ -173,6 +173,7 @@ export default function GameViewCard(
                   !Number.isInteger(homeScore) ||
                   !Number.isInteger(awayScore) ||
                   homeScore !== awayScore}
+                          id={`home_penalty_score_${game.id}`}
                           checked={specificProps.homePenaltyWinner || false}
                           onChange={specificProps.handlePenaltyWinnerChange(true)}/>
               </Grid>
@@ -184,7 +185,7 @@ export default function GameViewCard(
                   !Number.isInteger(awayScore) ||
                   homeScore !== awayScore}
                            margin="dense"
-                           id="name"
+                           id={`home_penalty_score_${game.id}`}
                            type="number"
                            fullWidth
                            inputProps={{ min: 0}}
@@ -214,7 +215,7 @@ export default function GameViewCard(
             <Grid item xs={teamScoreCols}>
               <TextField
                 margin="dense"
-                id="name"
+                id={`away_score_${game.id}`}
                 type="number"
                 fullWidth
                 inputProps={{ min: 0}}
@@ -229,6 +230,7 @@ export default function GameViewCard(
                   !Number.isInteger(homeScore) ||
                   !Number.isInteger(awayScore) ||
                   homeScore !== awayScore}
+                          id={`away_penalty_score_${game.id}`}
                           checked={specificProps.awayPenaltyWinner || false}
                           onChange={specificProps.handlePenaltyWinnerChange(false)}/>
               </Grid>
@@ -240,6 +242,7 @@ export default function GameViewCard(
                   !Number.isInteger(awayScore) ||
                   homeScore !== awayScore}
                            margin="dense"
+                           id={`away_penalty_score_${game.id}`}
                            type="number"
                            fullWidth
                            inputProps={{ min: 0}}

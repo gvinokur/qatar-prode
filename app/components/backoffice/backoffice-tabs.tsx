@@ -2,7 +2,7 @@
 
 import {Tab, Tabs, useMediaQuery} from "@mui/material";
 import TabPanel from "../tab-panel";
-import {useRef, useState} from "react";
+import {useCallback, useRef, useState} from "react";
 
 type Props = {
   tabs: {
@@ -13,16 +13,19 @@ type Props = {
 
 export default function BackofficeTabs({tabs} :Props) {
   const [selectedTab, setSelectedTab] = useState<number>(0)
-  const xsMatch = useMediaQuery('(min-width:600px)')
+  const isNotExtraSmallScreen = useMediaQuery('(min-width:600px)')
+
+  const handleTabChange = useCallback((event: any, tabSelected: number) => {
+    setSelectedTab(tabSelected)
+  }, [setSelectedTab])
 
   return(
     <>
       <Tabs
         value={selectedTab}
-        onChange={(event, tabSelected) => setSelectedTab(tabSelected)}
+        onChange={handleTabChange}
         aria-label="scrollable auto tabs example"
-        variant={xsMatch ? "fullWidth" : 'scrollable'}
-        centered={xsMatch ? false : true}
+        variant={isNotExtraSmallScreen ? "fullWidth" : 'scrollable'}
         scrollButtons={"auto"}
       >
         {tabs.map(tab=> (
