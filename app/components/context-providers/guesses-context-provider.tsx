@@ -24,7 +24,6 @@ export const GuessesContext = React.createContext({
 export interface GuessesContextProviderProps {
   children: React.ReactNode
   gameGuesses: {[k:string]: GameGuessNew}
-  gameMap: { [k: string]: Game }
   tournamentGuesses?: TournamentGuessNew
   tournamentStartDate?: Date
   groupGames?: Game[],
