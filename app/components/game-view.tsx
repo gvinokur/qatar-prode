@@ -42,6 +42,7 @@ const GameView = ({game, teamsMap, isFinal, isThirdPlace}: GameViewProps) => {
   const gameGuess = gameGuesses[game.id] || buildGameGuess(game)
   // May fix issues with the game number not being set in the game guess
   if(!gameGuess.game_number) gameGuess.game_number = game.game_number
+  if(!gameGuess.game_id) gameGuess.game_id = game.id
 
   useEffect(()=> {
     /**
