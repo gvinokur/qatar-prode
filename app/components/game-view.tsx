@@ -21,6 +21,8 @@ type GameViewProps = {
   teamsMap: {[k:string]: Team}
   isFinal?: boolean
   isThirdPlace?: boolean
+  //Only needed for playoff games
+  gamesMap?: {[k: string]: Game }
 }
 
 const buildGameGuess = (game: Game) => ({
@@ -33,7 +35,7 @@ const buildGameGuess = (game: Game) => ({
   away_penalty_winner: false
 })
 
-const GameView = ({game, teamsMap, isFinal, isThirdPlace}: GameViewProps) => {
+const GameView = ({game, teamsMap, isFinal, isThirdPlace, gamesMap}: GameViewProps) => {
   const isPlayoffGame = (!!game.playoffStage);
   const groupContext = useContext(GuessesContext)
   const gameGuesses = groupContext.gameGuesses
@@ -59,21 +61,33 @@ const GameView = ({game, teamsMap, isFinal, isThirdPlace}: GameViewProps) => {
       const homeTeamRule = game.home_team_rule
       const homeGameGuess = Object.values(gameGuesses)
         .find(guess => guess.game_number === homeTeamRule.game)
+      const homeGame = gamesMap && Object.values(gamesMap)
+        .find(game => game.game_number === homeTeamRule.game)
 
       if(homeGameGuess) {
         homeTeam = homeTeamRule.winner ?
-          getGuessWinner(homeGameGuess, homeGameGuess?.home_team, homeGameGuess?.away_team) :
-          getGuessLoser(homeGameGuess, homeGameGuess?.home_team, homeGameGuess?.away_team)
+          getGuessWinner(homeGameGuess,
+            homeGame?.home_team || homeGameGuess?.home_team,
+            homeGame?.away_team || homeGameGuess?.away_team) :
+          getGuessLoser(homeGameGuess,
+            homeGame?.home_team || homeGameGuess?.home_team,
+            homeGame?.away_team || homeGameGuess?.away_team)
       }
 
       const awayTeamRule = game.away_team_rule
       const awayGameGuess = Object.values(gameGuesses)
         .find(guess => guess.game_number === awayTeamRule.game)
+      const awayGame = gamesMap && Object.values(gamesMap)
+        .find(game => game.game_number === awayTeamRule.game)
 
       if(awayGameGuess) {
         awayTeam = awayTeamRule.winner ?
-          getGuessWinner(awayGameGuess, awayGameGuess?.home_team, awayGameGuess?.away_team) :
-          getGuessLoser(awayGameGuess, awayGameGuess?.home_team, awayGameGuess?.away_team)
+          getGuessWinner(awayGameGuess,
+            awayGame?.home_team || awayGameGuess?.home_team,
+            awayGame?.away_team || awayGameGuess?.away_team) :
+          getGuessLoser(awayGameGuess,
+            awayGame?.home_team || awayGameGuess?.home_team,
+            awayGame?.away_team || awayGameGuess?.away_team)
       }
 
       if(homeTeam !== gameGuess.home_team || awayTeam !== gameGuess.away_team) {

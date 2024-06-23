@@ -133,6 +133,7 @@ export default async function PlayoffPage({params, searchParams}: Props) {
                         game={completePlayoffData.gamesMap[final.games[0].game_id]}
                         teamsMap={completePlayoffData.teamsMap}
                         isFinal={true}
+                        gamesMap={completePlayoffData.gamesMap}
                       />
                     </Box>
                   </Grid>
