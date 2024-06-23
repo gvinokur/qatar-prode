@@ -11,7 +11,7 @@ import {
 } from "../db/game-repository";
 import {
   findGroupsInTournament,
-  findGroupsWithGamesAndTeamsInTournament,
+  findGroupsWithGamesAndTeamsInTournament, findTeamsInGroup,
   findTournamentgroupById
 } from "../db/tournament-group-repository";
 import {findPlayoffStagesWithGamesInTournament} from "../db/tournament-playoff-repository";
@@ -46,11 +46,14 @@ export async function getCompleteGroupData(groupId: string, includeDraftResults:
     const games = await findGamesInGroup(group.id, true, includeDraftResults)
     const gamesMap: {[k: string]: Game} = toMap(games)
 
+    const teamPositions = await findTeamsInGroup(groupId)
+
     return {
       group,
       allGroups,
       teamsMap,
-      gamesMap
+      gamesMap,
+      teamPositions
     } as CompleteGroupData
   } else {
     throw 'Invalid group id'

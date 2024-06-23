@@ -4,7 +4,7 @@ import {ExtendedGameData} from "../definitions";
 
 export const getGameWinner = (game: ExtendedGameData) => {
   const homeScore = game.gameResult?.home_score
-  const awayScore = game.gameResult?. away_score
+  const awayScore = game.gameResult?.away_score
   const homePenaltyScore = game.gameResult?.home_penalty_score
   const awayPenaltyScore = game.gameResult?.away_penalty_score
   const homePenaltyWinner =
@@ -58,7 +58,7 @@ export const getGuessLoser = (guess: GameGuessNew, homeTeam?: string | null, awa
   return getLoser(homeScore, awayScore, guess.home_penalty_winner, guess.away_penalty_winner, homeTeam, awayTeam)
 }
 
-const getWinner = (homeScore?:number, awayScore?:number, homePenaltyWinner?:boolean, awayPenaltyWinner?:boolean, homeTeam?: string | null, awayTeam?: string | null) => {
+export const getWinner = (homeScore?:number, awayScore?:number, homePenaltyWinner?:boolean, awayPenaltyWinner?:boolean, homeTeam?: string | null, awayTeam?: string | null) => {
   if (
     Number.isInteger(homeScore) &&
     Number.isInteger(awayScore) &&

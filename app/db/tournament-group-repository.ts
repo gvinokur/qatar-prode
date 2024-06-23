@@ -70,6 +70,14 @@ export async function deleteAllGroupsFromTournament(tournamentId: string) {
   return waitForAllDelete
 }
 
+export async function findTeamsInGroup(tournamentGroupId: string) {
+  return await db.selectFrom('tournament_group_teams')
+    .where('tournament_group_id', '=', tournamentGroupId)
+    .orderBy('position', 'asc')
+    .selectAll()
+    .execute()
+}
+
 export async function updateTournamentGroupTeams(groupTeams: TournamentGroupTeamUpdate[]) {
   return Promise.all(groupTeams.map( async ({id, team_id, tournament_group_id, ...withUpdate}) => {
     if(team_id && tournament_group_id) {

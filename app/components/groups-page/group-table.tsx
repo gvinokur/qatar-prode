@@ -26,24 +26,14 @@ type Props = {
   teamsMap: {[k:string]: Team}
   qualifiedTeams?: Team[]
   qualifiedTeamGuesses?: Team[]
+  realPositions: TeamStats[]
 }
 
-export default function GroupTable({games, teamsMap, isPredictions, qualifiedTeams = [], qualifiedTeamGuesses = []} : Props) {
+export default function GroupTable({games, teamsMap, isPredictions, qualifiedTeams = [], qualifiedTeamGuesses = [], realPositions} : Props) {
   const xsMatch = useMediaQuery('(min-width:900px)')
   const theme = useTheme();
   const {gameGuesses, guessedPositions: groupPositionsByGuess} = useContext(GuessesContext)
-  const [groupPositions, setGroupPositions] = useState<TeamStats[]>([])
   const [usePredictionsTable, setUsePredictionsTable] = useState(isPredictions)
-
-  useEffect(() => {
-    const teamIds = Object.keys(teamsMap)
-    const resultGroupPositions = calculateGroupPosition(teamIds, games.map(game => ({
-      ...game,
-      resultOrGuess: game.gameResult
-    })))
-
-    setGroupPositions(resultGroupPositions)
-  }, [gameGuesses, games, teamsMap])
 
   const allGroupGamesPlayed = games
     .filter(game =>
@@ -85,7 +75,7 @@ export default function GroupTable({games, teamsMap, isPredictions, qualifiedTea
             </TableRow>
           </TableHead>
           <TableBody>
-            {(usePredictionsTable ? groupPositionsByGuess : groupPositions).map((teamStats, index) => (
+            {(usePredictionsTable ? groupPositionsByGuess : realPositions).map((teamStats, index) => (
               <TableRow key={index} sx={
                 (usePredictionsTable ? qualifiedTeamGuesses : qualifiedTeams)?.find(qualifiedTeam => qualifiedTeam.id === teamStats.team_id) ?
                   {backgroundColor: 'primary.contrastText'} :

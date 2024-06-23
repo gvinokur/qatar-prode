@@ -47,7 +47,8 @@ export default async function GroupComponent({params, searchParams} : Props) {
       calculateGroupPosition(teamIds, Object.values(completeGroupData.gamesMap).map(game => ({
         ...game,
         resultOrGuess: gameGuesses[game.id]
-      }))).map((teamStat, index) => {
+      })),
+        completeGroupData.group.sort_by_games_between_teams).map((teamStat, index) => {
         return {
           user_id: user.id,
           tournament_group_id: params.group_id,
@@ -68,6 +69,7 @@ export default async function GroupComponent({params, searchParams} : Props) {
         gameGuesses={gameGuesses}
         groupGames={Object.values(completeGroupData.gamesMap)}
         guessedPositions={guessedGroupPositions}
+        sortByGamesBetweenTeams={completeGroupData.group.sort_by_games_between_teams}
       >
         <Grid container spacing={4} mt={'8px'}>
           <Grid item xs={12} md={6}>
@@ -88,6 +90,7 @@ export default async function GroupComponent({params, searchParams} : Props) {
               teamsMap={completeGroupData.teamsMap}
               qualifiedTeamGuesses={qualifiedTeamGuesses}
               qualifiedTeams={qualifiedTeams}
+              realPositions={completeGroupData.teamPositions}
               isPredictions={true}/>
           </Grid>
         </Grid>

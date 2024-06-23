@@ -4,7 +4,7 @@ import {
   GameResultNew,
   Player,
   PlayoffRound,
-  Team,
+  Team, TeamStats,
   Tournament,
   TournamentGroup
 } from "./db/tables-definition";
@@ -55,7 +55,8 @@ export interface CompleteGroupData {
   group: TournamentGroup
   allGroups: TournamentGroup[]
   teamsMap: {[k:string]: Team}
-  gamesMap: {[k:string]: Game}
+  gamesMap: {[k:string]: ExtendedGameData}
+  teamPositions: TeamStats[]
 }
 
 

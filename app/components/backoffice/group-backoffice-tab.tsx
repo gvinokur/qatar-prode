@@ -4,7 +4,7 @@ import {Alert, Backdrop, Box, CircularProgress, Grid, Snackbar, useTheme} from "
 import {ChangeEvent, useEffect, useState} from "react";
 import {ExtendedGameData, ExtendedGroupData} from "../../definitions";
 import {getCompleteGroupData} from "../../actions/tournament-actions";
-import {GameResultNew, Team, TournamentGroupTeam, TournamentGroupTeamNew} from "../../db/tables-definition";
+import {GameResultNew, Team, TeamStats, TournamentGroupTeam, TournamentGroupTeamNew} from "../../db/tables-definition";
 import BackofficeGameView from "./backoffice-game-view";
 import {LoadingButton} from "@mui/lab";
 import {
@@ -35,6 +35,7 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
   const [loading, setLoading] = useState<boolean>(true)
   const [saving, setSaving] = useState<boolean>(false)
   const [saved, setSaved] = useState<boolean>(false)
+  const [positions, setPositions] = useState<TeamStats[]>([])
 
 
   useEffect(() => {
@@ -52,6 +53,19 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
     }
     fetchTournamentData()
   }, [group, setGamesMap, setSortedGameIds, setTeamsMap, setLoading]);
+
+  useEffect(() => {
+    const groupPositions = calculateGroupPosition(
+      Object.keys(teamsMap),
+      Object.values(gamesMap).map(game => ({
+        ...game,
+        resultOrGuess: game.gameResult
+      })),
+      group.sort_by_games_between_teams)
+    console.log(groupPositions)
+    setPositions(groupPositions)
+
+  }, [teamsMap, gamesMap, setPositions]);
 
   const handleScoreChange =
     (gameId: string) =>
@@ -139,7 +153,7 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
     await saveGameResults(Object.values(gamesMap))
     await calculateAndSavePlayoffGamesForTournament(tournamentId)
     await saveGamesData(Object.values(gamesMap))
-    await calculateAndStoreGroupPosition(group.id, Object.keys(teamsMap), Object.values(gamesMap))
+    await calculateAndStoreGroupPosition(group.id, Object.keys(teamsMap), Object.values(gamesMap), group.sort_by_games_between_teams)
     setSaving(false)
     setSaved(false)
   }
@@ -159,7 +173,7 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
               <Grid container xs={12} spacing={1}>
                 {sortedGameIds
                   .map(gameId => (
-                    <Grid item xs={6} key={gameId}>
+                    <Grid item xs={12} md={6} key={gameId}>
                       <BackofficeGameView
                         game={gamesMap[gameId]}
                         teamsMap={teamsMap}
@@ -173,7 +187,7 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
               </Grid>
             </Grid>
             <Grid item xs={12} md={6}>
-              <GroupTable games={Object.values(gamesMap)} teamsMap={teamsMap} isPredictions={false}/>
+              <GroupTable games={Object.values(gamesMap)} teamsMap={teamsMap} isPredictions={false} realPositions={positions}/>
             </Grid>
           </Grid>
           <LoadingButton loading={saving} variant='contained' size='large' onClick={handleSaveGameResult}

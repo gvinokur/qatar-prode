@@ -28,6 +28,7 @@ export interface GuessesContextProviderProps {
   tournamentStartDate?: Date
   groupGames?: Game[],
   guessedPositions?: TournamentGroupTeamStatsGuessNew[]
+  sortByGamesBetweenTeams?: boolean
 }
 
 export function GuessesContextProvider ({children,
@@ -35,13 +36,12 @@ export function GuessesContextProvider ({children,
                                           tournamentGuesses: serverTournamentGuesses,
                                           tournamentStartDate,
                                           groupGames,
-                                          guessedPositions: serverGuessedPositions
+                                          guessedPositions: serverGuessedPositions,
+                                          sortByGamesBetweenTeams
                                         }: GuessesContextProviderProps) {
   const [gameGuesses, setGameGuesses] = useState(serverGameGuesses)
   const [tournamentGuesses, setTournamentGuesses] = useState(serverTournamentGuesses)
   const [guessedPositions, setGuessedPositions] = useState<TournamentGroupTeamStatsGuessNew[]>(serverGuessedPositions || [])
-
-  //TODO: Recalculate teams
 
   const context = {
     gameGuesses,
@@ -60,7 +60,8 @@ export function GuessesContextProvider ({children,
         const guessedGroupPositions: TournamentGroupTeamStatsGuessNew[] = calculateGroupPosition(teamIds, groupGames.map(game => ({
           ...game,
           resultOrGuess: newGameGuesses[game.id]
-        }))).map((teamStat, index) => {
+        })),
+          sortByGamesBetweenTeams).map((teamStat, index) => {
           return {
             user_id,
             tournament_group_id,

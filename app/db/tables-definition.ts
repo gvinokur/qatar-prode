@@ -47,6 +47,7 @@ export type UserUpdate = Updateable<UserTable>
 export interface TournamentGroupTable extends Identifiable{
   tournament_id: string
   group_letter: string
+  sort_by_games_between_teams: boolean
 }
 
 export type TournamentGroup = Selectable<TournamentGroupTable>

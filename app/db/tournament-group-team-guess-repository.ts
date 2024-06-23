@@ -29,11 +29,11 @@ export async function findAllTournamentGroupTeamGuessInGroup(userId: string, gro
     .execute()
 }
 
-export async function findAllUserTournamentGroupsWithoutGuesses(tournamentId: string) {
+export async function findAllUserTournamentGroupsWithoutGuesses(tournamentId: string, forceRecalculation:boolean = false) {
   return db.selectFrom(['users', 'tournament_groups'])
     .select(["users.id as user_id", 'tournament_groups.id as tournament_group_id'])
     .where('tournament_groups.tournament_id', '=', tournamentId)
-    .where(eb =>
+    .$if(!forceRecalculation, qb => qb.where(eb =>
       eb.not(
         eb.exists(
           eb.selectFrom('tournament_group_team_stats_guess')
@@ -42,6 +42,6 @@ export async function findAllUserTournamentGroupsWithoutGuesses(tournamentId: st
             .selectAll()
         )
       )
-    )
+    ))
     .execute()
 }

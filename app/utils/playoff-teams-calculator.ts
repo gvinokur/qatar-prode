@@ -1,6 +1,6 @@
 import {ExtendedGroupData, ExtendedPlayoffRoundData} from "../definitions";
 import {Game, GameGuess, GameResultNew, GroupFinishRule, TeamStats} from "../db/tables-definition";
-import {calculateGroupPosition, GameWithResultOrGuess, teamStatsComparator} from "./group-position-calculator";
+import {calculateGroupPosition, GameWithResultOrGuess, genericTeamStatsComparator} from "./group-position-calculator";
 
 export function calculatePlayoffTeams(
   firstPlayoffStage: ExtendedPlayoffRoundData,
@@ -37,8 +37,11 @@ export function calculatePlayoffTeams(
 
       let groupPositions:TeamStats[] = []
       if(allGamesWithGuesses || allGamesWithResult) {
-        groupPositions = calculateGroupPosition(group.teams.map(({team_id}) => team_id),
-          allGamesWithResult ? gamesWithResult : gamesWithGuess)
+        groupPositions = calculateGroupPosition(
+          group.teams.map(({team_id}) => team_id),
+          allGamesWithResult ? gamesWithResult : gamesWithGuess,
+          group.sort_by_games_between_teams
+        )
       }
       const positionsMap = Object.fromEntries(
         groupPositions.map((teamStat, index) => [index+1, teamStat]))
@@ -73,7 +76,7 @@ export function calculatePlayoffTeams(
       .sort((a, b) => {
         const teamAStats = a[1]
         const teamBStats = b[1]
-        return teamStatsComparator(teamAStats, teamBStats);
+        return genericTeamStatsComparator(teamAStats, teamBStats);
       })
 
     //Wait until all groups are finished to make this calculation.
@@ -152,7 +155,7 @@ export function calculatePlayoffTeamsFromPositions(
       .sort((a, b) => {
         const teamAStats = a[1]
         const teamBStats = b[1]
-        return teamStatsComparator(teamAStats, teamBStats);
+        return genericTeamStatsComparator(teamAStats, teamBStats);
       })
     //Wait until all groups are finished to make this calculation.
     if(thirdTeams.length === Object.keys(positionsByGroup).length) {

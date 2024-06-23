@@ -14,7 +14,7 @@ import {
   createTournamentGroupTeam,
   deleteAllGroupsFromTournament,
   findGroupsInTournament,
-  findGroupsWithGamesAndTeamsInTournament, updateTournamentGroupTeams
+  findGroupsWithGamesAndTeamsInTournament, findTournamentgroupById, updateTournamentGroupTeams
 } from "../db/tournament-group-repository";
 import {
   createPlayoffRound,
@@ -28,7 +28,7 @@ import {
   GameResult,
   PlayerNew,
   Team,
-  Tournament,
+  Tournament, TournamentGroup,
   TournamentGroupTeamNew
 } from "../db/tables-definition";
 import {
@@ -195,6 +195,7 @@ export async function generateDbTournament(name: string, deletePrevious:boolean 
           const {id: groupId} = await createTournamentGroup({
             tournament_id: tournamentId,
             group_letter: group.letter,
+            sort_by_games_between_teams: false
           })
 
           //Associate all teams in this group
@@ -330,7 +331,7 @@ export async function getGroupDataWithGamesAndTeams(tournamentId: string) {
 }
 
 export async function calculateAllUsersGroupPositions(tournamentId: string) {
-  const userGroupPairs = await findAllUserTournamentGroupsWithoutGuesses(tournamentId)
+  const userGroupPairs = await findAllUserTournamentGroupsWithoutGuesses(tournamentId, false)
   const userIds = Array.from(new Set(userGroupPairs.map(pair => pair.user_id)))
   const groupIds = Array.from(new Set(userGroupPairs.map(pair => pair.tournament_group_id)))
   const guessesByUser: {[k:string]: {[y:string]: GameGuess}} = Object.fromEntries(
@@ -360,6 +361,13 @@ export async function calculateAllUsersGroupPositions(tournamentId: string) {
       ])
     )
   )
+  const groupsById: { [k: string]: TournamentGroup } = Object.fromEntries(
+    await Promise.all(
+      groupIds.map(async (groupId) => [
+        groupId,
+        await findTournamentgroupById(groupId)
+      ])
+    ))
   return Promise.all(userGroupPairs
     .map(async ({user_id, tournament_group_id}) => {
     const groupGames: Game[] = gamesByGroup[tournament_group_id]
@@ -371,7 +379,9 @@ export async function calculateAllUsersGroupPositions(tournamentId: string) {
         groupGames.map(game => ({
           ...game,
           resultOrGuess: gameGuessesMap[game.id]
-        }))).map((teamStat, index) => ({
+        })),
+        groupsById[tournament_group_id].sort_by_games_between_teams
+        ).map((teamStat, index) => ({
             user_id,
             tournament_group_id,
             position: index,
@@ -420,14 +430,18 @@ export async function calculateGameScores(forceDrafts: boolean, forceAllGuesses:
   return {updatedGameGuesses, cleanedGameGuesses}
 }
 
-export async function calculateAndStoreGroupPosition(group_id: string, teamIds: string[], groupGames: ExtendedGameData[]) {
-  const groupPositions: TournamentGroupTeamNew[] = calculateGroupPosition(teamIds, groupGames.map(game => ({
-    ...game,
-    resultOrGuess: game.gameResult
-  }))).map((teamPosition, index) => ({
-    ...teamPosition,
-    tournament_group_id: group_id,
-    position: index
-  }))
+export async function calculateAndStoreGroupPosition(group_id: string, teamIds: string[], groupGames: ExtendedGameData[], sortByGamesBetweenTeams: boolean) {
+  const groupPositions: TournamentGroupTeamNew[] = calculateGroupPosition(
+    teamIds,
+    groupGames.map(game => ({
+      ...game,
+      resultOrGuess: game.gameResult
+    })),
+    sortByGamesBetweenTeams)
+      .map((teamPosition, index) => ({
+        ...teamPosition,
+        tournament_group_id: group_id,
+        position: index
+      }))
   await updateTournamentGroupTeams(groupPositions)
 }

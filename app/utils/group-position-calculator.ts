@@ -1,4 +1,5 @@
 import {Game, GameGuessNew, GameResultNew, TeamStats} from "../db/tables-definition";
+import {getGameWinner, getWinner} from "./score-utils";
 
 const initialTeamStats: TeamStats = {
   team_id: '',
@@ -22,7 +23,7 @@ export interface GameWithResultOrGuess extends Game{
 * @param teamIds - The Ids of the 4 teams of a given group
 * @param games - Games played by the 4 teams of the group, with the scores filled
 */
-export const calculateGroupPosition = (teamIds: string[], games: GameWithResultOrGuess[]) => {
+export const calculateGroupPosition = (teamIds: string[], games: GameWithResultOrGuess[], sortByGamesBetweenTeams = false): TeamStats[] => {
   const gamesWithScores = games.filter(game =>
     (Number.isInteger(game.resultOrGuess?.home_score) && Number.isInteger(game.resultOrGuess?.away_score)))
 
@@ -33,15 +34,28 @@ export const calculateGroupPosition = (teamIds: string[], games: GameWithResultO
     gamesWithScores.filter(game => game.home_team === teamId|| game.away_team === teamId)
       .reduce(teamStatsGameReducer(teamId), { ...initialTeamStats, team_id: teamId, is_complete: isComplete })
   ]))
-  const teamStats: TeamStats[] = Object.values(teamsStatsByTeam).sort(teamStatsComparator)
 
-  //TODO: cannot do anything more right now about 4 way ties
+  //Depending on the tournament rules, we may need to calculate differently how teams with the same points are sorted
+  const teamStats: TeamStats[] = Object.values(teamsStatsByTeam)
+    .sort(sortByGamesBetweenTeams ? pointsBasesTeamStatsComparator : genericTeamStatsComparator)
+
+  //TODO: cannot do anything more right now about 4 way ties if !sortByGameBetweenTeams
+  // But if there is a four way tie when calculating by games between teams, then the proper thing to do
+  // is to recalculate the group as we would normally do, fully based on stats.
+  if(sortByGamesBetweenTeams) {
+    const allSamePoints = teamStats.every(teamStat => teamStat.points === teamStats[0].points)
+
+    if(allSamePoints) {
+      return calculateGroupPosition(teamIds, games, false)
+    }
+  }
 
   let threeWayTie = false
   //Three way ties
   if (teamStats.length === 4) {
-    const topThreeWayTie = equalTeamStats(teamStats[0], teamStats[1]) && equalTeamStats(teamStats[1], teamStats[2])
-    const bottomThreeWayTie = equalTeamStats(teamStats[1], teamStats[2]) && equalTeamStats(teamStats[2], teamStats[3])
+    const equals = sortByGamesBetweenTeams ? pointsBasedTeamStatsEquals : genericTeamStatsEquals
+    const topThreeWayTie = equals(teamStats[0], teamStats[1]) && equals(teamStats[1], teamStats[2])
+    const bottomThreeWayTie = equals(teamStats[1], teamStats[2]) && equals(teamStats[2], teamStats[3])
     threeWayTie = topThreeWayTie || bottomThreeWayTie
     if(threeWayTie) {
       //Three way ties
@@ -50,7 +64,7 @@ export const calculateGroupPosition = (teamIds: string[], games: GameWithResultO
       const tiedTeams = teamStats.slice(baseIndex, baseIndex + 3).map(teamStat => teamStat.team_id)
       const tiedTeamGames = games.filter(game =>
         tiedTeams.includes(game.home_team as string) && tiedTeams.includes(game.away_team as string));
-      const threeWayTieStats = calculateGroupPosition(tiedTeams, tiedTeamGames).sort(teamStatsComparator);
+      const threeWayTieStats = calculateGroupPosition(tiedTeams, tiedTeamGames, sortByGamesBetweenTeams).sort(genericTeamStatsComparator);
 
       threeWayTieStats.forEach((teamStat, index) => {
         teamStats[baseIndex + index] = teamsStatsByTeam[teamStat.team_id]
@@ -59,28 +73,33 @@ export const calculateGroupPosition = (teamIds: string[], games: GameWithResultO
   }
   if (!threeWayTie) {
     for(let i = 0; i < teamStats.length - 1; i++) {
-      if(equalTeamStats(teamStats[i], teamStats[i+1])) {
+      const equals = sortByGamesBetweenTeams ? pointsBasedTeamStatsEquals : genericTeamStatsEquals
+      if(equals(teamStats[i], teamStats[i+1])) {
         const tiedTeams = [teamStats[i].team_id, teamStats[i+1].team_id];
         const teamsGame = games.find(game =>
           tiedTeams.includes(game.home_team as string) && tiedTeams.includes(game.away_team as string));
-        const winnerTeam = teamsGame &&
-          Number.isInteger(teamsGame.resultOrGuess?.home_score) &&
-          Number.isInteger(teamsGame.resultOrGuess?.away_score) &&
-          //@ts-ignore just checked both are integers above
-          (teamsGame.resultOrGuess.home_score > teamsGame.resultOrGuess?.away_score ?
-            teamsGame.home_team :
-            //@ts-ignore just checked both are integers above
-            (teamsGame.resultOrGuess?.away_score > teamsGame.resultOrGuess.home_score &&
-              teamsGame.away_team)) as string;
+        const winnerTeam = getWinner(teamsGame?.resultOrGuess?.home_score,
+          teamsGame?.resultOrGuess?.away_score,
+          undefined,
+          undefined,
+          teamsGame?.home_team,
+          teamsGame?.away_team)
+        //First sort by matches played between the 2 teams
         if (winnerTeam && winnerTeam != teamStats[i].team_id) {
           const temp = teamStats[i]
           teamStats[i] = teamStats[i+1];
           teamStats[i+1] = temp
+        } else if (!winnerTeam && sortByGamesBetweenTeams) {
+          // If there was no winner, and I haven't yet sorted by stats, sort by stats.
+          if (genericTeamStatsComparator(teamStats[i], teamStats[i + 1]) > 0) {
+            const temp = teamStats[i]
+            teamStats[i] = teamStats[i + 1];
+            teamStats[i + 1] = temp
+          }
         }
       }
     }
   }
-
 
   return teamStats;
 }
@@ -116,10 +135,27 @@ const calculateGameData = (teamScore: number, opponentScore: number) => ({
   goal_difference: teamScore-opponentScore
 })
 
-const equalTeamStats = (a: TeamStats, b: TeamStats): boolean => getMagicNumber(a) === getMagicNumber(b)
+const genericTeamStatsEquals = (a: TeamStats, b: TeamStats): boolean => getMagicNumber(a) === getMagicNumber(b)
 
-export const teamStatsComparator = (a: TeamStats, b: TeamStats): number => {
+const pointsBasedTeamStatsEquals = (a: TeamStats, b: TeamStats): boolean => a.points === b.points
+
+/**
+ * Sort teams by their whole stats as it's customary in tournaments
+ * @param a
+ * @param b
+ */
+export const genericTeamStatsComparator = (a: TeamStats, b: TeamStats): number => {
   const comparator = getMagicNumber(b) - getMagicNumber(a);
+  return comparator;
+}
+
+/**
+ * A first pass comparator that uses only the points to sort teams
+ * @param a
+ * @param b
+ */
+export const pointsBasesTeamStatsComparator = (a: TeamStats, b: TeamStats): number => {
+  const comparator = b.points - a.points;
   return comparator;
 }
 
