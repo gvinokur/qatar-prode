@@ -5,7 +5,7 @@ import {LoadingButton} from "@mui/lab";
 import {useState} from "react";
 import {Tournament} from "../../db/tables-definition";
 import {
-  calculateAllUsersGroupPositions, calculateGameScores,
+  calculateAllUsersGroupPositions, calculateAndStoreQualifiedTeamsPoints, calculateGameScores,
   generateDbTournamentTeamPlayers,
   recalculateAllPlayoffFirstRoundGameGuesses
 } from "../../actions/backoffice-actions";
@@ -54,6 +54,13 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
     setLoading(false)
   }
 
+  const calculateQualifiedScoresForTournament = async () => {
+    setLoading(true)
+    const results = await calculateAndStoreQualifiedTeamsPoints(tournament.id)
+    setActionResults(results)
+    setLoading(false)
+  }
+
   return (
     <Box>
       <Grid container spacing={4} xs={12} columnSpacing={8} justifyContent={'center'}>
@@ -88,6 +95,11 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
         <Grid item xs={6} md={3} lg={2} textAlign={'center'}>
           <LoadingButton loading={loading} variant={'contained'} size={'large'} fullWidth={true} sx={{height: '100%'}} onClick={calculateGameScoresForTournament}>
             Calculate Game Scores
+          </LoadingButton>
+        </Grid>
+        <Grid item xs={6} md={3} lg={2} textAlign={'center'}>
+          <LoadingButton loading={loading} variant={'contained'} size={'large'} fullWidth={true} sx={{height: '100%'}} onClick={calculateQualifiedScoresForTournament}>
+            Calculate Qualified Team Scores
           </LoadingButton>
         </Grid>
       </Grid>

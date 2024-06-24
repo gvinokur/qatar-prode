@@ -7,7 +7,13 @@ import {
   deleteTournament, deleteTournamentTeams,
   findTournamentByName
 } from "../db/tournament-repository";
-import {createTeam, findTeamInGroup, findTeamInTournament, getTeamByName} from "../db/team-repository";
+import {
+  createTeam, findGuessedQualifiedTeams,
+  findQualifiedTeams,
+  findTeamInGroup,
+  findTeamInTournament,
+  getTeamByName
+} from "../db/team-repository";
 import {
   createTournamentGroup,
   createTournamentGroupGame,
@@ -59,6 +65,11 @@ import {updateOrCreateTournamentGroupTeamGuesses, updatePlayoffGameGuesses} from
 import {customToMap, toMap} from "../utils/ObjectUtils";
 import {db} from "../db/database";
 import {calculateScoreForGame} from "../utils/game-score-calculator";
+import {
+  findTournamentGuessByUserIdTournament,
+  updateTournamentGuess,
+  updateTournamentGuessByUserIdTournament
+} from "../db/tournament-guess-repository";
 
 export async function deleteDBTournamentTree(tournament: Tournament) {
   // delete from tournament_playoff_round_games ;
@@ -438,4 +449,18 @@ export async function calculateAndStoreGroupPosition(group_id: string, teamIds: 
         position: index
       }))
   await updateTournamentGroupTeams(groupPositions)
+}
+
+export async function calculateAndStoreQualifiedTeamsPoints(tournamentId: string) {
+  const users = await db.selectFrom('users').select('id').execute();
+  const allQualifiedTeams = await findQualifiedTeams(tournamentId)
+
+  return Promise.all(users.map(async (user) => {
+    const userQualifiedTeams = await findGuessedQualifiedTeams(tournamentId, user.id)
+    const correctGuesses = userQualifiedTeams.filter(team => allQualifiedTeams.find(allTeam => allTeam.id === team.id))
+
+    return await updateTournamentGuessByUserIdTournament(user.id, tournamentId, {
+      qualified_teams_score: correctGuesses.length
+    })
+  }))
 }
