@@ -108,7 +108,7 @@ export default async function PlayoffPage({params, searchParams}: Props) {
                   .sort((a,b) => a.game_number - b.game_number)
                   .map(game=> (
                     <Grid item key={game.id} md={12} sm={6} xs={12}>
-                      <GameView game={game} teamsMap={completePlayoffData.teamsMap} />
+                      <GameView game={game} teamsMap={completePlayoffData.teamsMap} gamesMap={completePlayoffData.gamesMap} />
                     </Grid>
                   ))}
               </Grid>
@@ -156,6 +156,7 @@ export default async function PlayoffPage({params, searchParams}: Props) {
                         game={completePlayoffData.gamesMap[thirdPlace.games[0].game_id]}
                         teamsMap={completePlayoffData.teamsMap}
                         isThirdPlace={true}
+                        gamesMap={completePlayoffData.gamesMap}
                       />
                     </Box>
                   </Grid>
