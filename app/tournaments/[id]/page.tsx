@@ -10,6 +10,7 @@ import {getGroupsForUser} from "../../actions/prode-group-actions";
 import {getLoggedInUser} from "../../actions/user-actions";
 import {UserTournamentStatistics} from "../../components/tournament-page/user-tournament-statistics";
 import {getGameGuessStatisticsForUsers} from "../../db/game-guess-repository";
+import {findTournamentGuessByUserIdTournament} from "../../db/tournament-guess-repository";
 
 type Props = {
   params: {
@@ -25,19 +26,11 @@ export default async function TournamentLandingPage({ params, searchParams }: Pr
 
   const gamesAroundMyTime = await getGamesAroundMyTime(tournamentId);
   const teamsMap = await getTeamsMap(tournamentId)
-    // Object.values(tournamentData.gamesMap)
-    //   // Sort games by distance to "now"
-    //   .sort((a, b) => {
-    //     return Math.abs(a.game_date.getTime() - Date.now()) - Math.abs(b.game_date.getTime() - Date.now())
-    //   })
-    //   // Then keep only 5 of them
-    //   .filter((_, index) => (index < 5))
-    //   // Then sort by date ascending
-    //   .sort((a,b) => a.game_date.getTime() - b.game_date.getTime())
 
   const userGameStatisticList = user ?
     await getGameGuessStatisticsForUsers([user.id], tournamentId) :
     []
+  const tournamentGuesses = user && await findTournamentGuessByUserIdTournament(user.id, params.id)
 
   const userGameStatistics = userGameStatisticList.length > 0 ? userGameStatisticList[0] : undefined
 
@@ -54,7 +47,7 @@ export default async function TournamentLandingPage({ params, searchParams }: Pr
         </Grid>
         {user && (
             <Grid item xs={12} md={true}>
-              <UserTournamentStatistics userGameStatistics={userGameStatistics} />
+              <UserTournamentStatistics userGameStatistics={userGameStatistics} tournamentGuess={tournamentGuesses} />
             </Grid>
         )}
         {prodeGroups && (

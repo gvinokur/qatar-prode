@@ -12,6 +12,9 @@ import ProdeGroupThemer from "../../components/friend-groups/friend-groups-theme
 import {findAllActiveTournaments} from "../../db/tournament-repository";
 import {getGameGuessStatisticsForUsers} from "../../db/game-guess-repository";
 import {customToMap, toMap} from "../../utils/ObjectUtils";
+import {findTournamentGuessByUserIdsTournament} from "../../db/tournament-guess-repository";
+import {TournamentGuess} from "../../db/tables-definition";
+import {UserScore} from "../../definitions";
 
 type Props = {
   params: {
@@ -43,20 +46,28 @@ export default async function FriendsGroup({params, searchParams} : Props){
       await Promise.all(
         tournaments.map(async (tournament) => {
           const allUsersGameStatics = await getGameGuessStatisticsForUsers(allParticipants, tournament.id)
+          const allUserTournamentGuesses: TournamentGuess[] = await findTournamentGuessByUserIdsTournament(allParticipants, tournament.id)
           const gameStatisticsByUserIdMap =
             customToMap(allUsersGameStatics, (userGameStatistics) => userGameStatistics.user_id)
+          const tournamentGuessesByUserIdMap =
+            customToMap(allUserTournamentGuesses, (userTournamentGuess) => userTournamentGuess.user_id)
+
           return [
             tournament.id,
             users.map(user => ({
               userId: user.id,
               groupStageScore: gameStatisticsByUserIdMap[user.id]?.group_score || 0,
-              groupStageQualifiersScore: 0,
+              groupStageQualifiersScore: tournamentGuessesByUserIdMap[user.id]?.qualified_teams_score || 0,
               playoffScore: gameStatisticsByUserIdMap[user.id]?.playoff_score || 0,
-              honorRollScore: 0,
+              honorRollScore: tournamentGuessesByUserIdMap[user.id]?.honor_roll_score || 0,
+              individualAwardsScore: tournamentGuessesByUserIdMap[user.id]?.individual_awards_score || 0,
               totalPoints: (
-                (gameStatisticsByUserIdMap[user.id]?.total_score || 0)
+                (gameStatisticsByUserIdMap[user.id]?.total_score || 0) +
+                (tournamentGuessesByUserIdMap[user.id]?.qualified_teams_score || 0) +
+                (tournamentGuessesByUserIdMap[user.id]?.honor_roll_score || 0) +
+                (tournamentGuessesByUserIdMap[user.id]?.individual_awards_score || 0)
               )
-            }))
+            }) as UserScore )
           ]
         }
       )))
@@ -75,7 +86,8 @@ export default async function FriendsGroup({params, searchParams} : Props){
       <Grid container spacing={2}
             pl={2}
             bgcolor={prodeGroup.theme?.primary_color || ''}
-            color={prodeGroup.theme?.secondary_color || ''}>
+            color={prodeGroup.theme?.secondary_color || ''}
+      >
         <Grid item>
           {prodeGroup.name.toLowerCase() === 'welltech' && (
             <img src={'/welltech-logo.jpeg'} alt={'Grupo Welltech'} height={60} width={150}/>
@@ -92,7 +104,7 @@ export default async function FriendsGroup({params, searchParams} : Props){
           </Typography>
         </Grid>
       </Grid>
-      <Grid container spacing={2} xs={12} p={2}>
+      <Grid container spacing={2} xs={12} p={2} justifyContent={'center'}>
         <Grid item xs={12} md={8}>
           <ProdeGroupTable
             users={usersMap}
@@ -101,9 +113,11 @@ export default async function FriendsGroup({params, searchParams} : Props){
             tournaments={tournaments}
           />
         </Grid>
-        <Grid item xs={12} md={4}>
-          {prodeGroup.owner_user_id === user.id && <ProdeGroupThemer group={prodeGroup}/>}
-        </Grid>
+        {prodeGroup.owner_user_id === user.id && (
+          <Grid item xs={12} md={4}>
+           <ProdeGroupThemer group={prodeGroup}/>
+          </Grid>
+        )}
       </Grid>
       {searchParams.hasOwnProperty('recentlyJoined') && (<JoinMessage />)}
     </Box>

@@ -13,7 +13,7 @@ import {
   TableCell,
   TableHead,
   TableRow,
-  Tabs, Typography,
+  Tabs, Typography, useMediaQuery,
 } from "@mui/material";
 import {useState} from "react";
 import TabPanel from "../tab-panel";
@@ -27,6 +27,7 @@ type Props = {
 
 export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments}: Props) {
   const [selectedTab, setSelectedTab] = useState<number>(0)
+  const isNotExtraSmallScreen = useMediaQuery('(min-width:600px)')
 
   return (
     <Card>
@@ -51,8 +52,11 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
                   <TableCell>P</TableCell>
                   <TableCell>Nombre</TableCell>
                   <TableCell>Puntos Totales</TableCell>
-                  <TableCell>Puntos Fase de Grupos</TableCell>
-                  <TableCell>Puntos Playoffs</TableCell>
+                  <TableCell>Fase de Grupos</TableCell>
+                  {isNotExtraSmallScreen && <TableCell>Clasificados</TableCell>}
+                  <TableCell>Playoffs</TableCell>
+                  {isNotExtraSmallScreen && <TableCell>Posiciones</TableCell>}
+                  {isNotExtraSmallScreen && <TableCell>Premios</TableCell>}
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -69,7 +73,10 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
                     }}>{users[userScore.userId]?.nickname || users[userScore.userId]?.email}</TableCell>
                     <TableCell>{userScore.totalPoints}</TableCell>
                     <TableCell>{userScore.groupStageScore}</TableCell>
+                    {isNotExtraSmallScreen && <TableCell>{userScore.groupStageQualifiersScore}</TableCell>}
                     <TableCell>{userScore.playoffScore}</TableCell>
+                    {isNotExtraSmallScreen && <TableCell>{userScore.honorRollScore}</TableCell>}
+                    {isNotExtraSmallScreen && <TableCell>{userScore.individualAwardsScore}</TableCell>}
                   </TableRow>
                 ))}
               </TableBody>

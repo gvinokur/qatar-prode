@@ -27,6 +27,14 @@ export async function findTournamentGuessByUserIdTournament(userId:string, tourn
     .executeTakeFirst()
 }
 
+export async function findTournamentGuessByUserIdsTournament(userIds: string[], tournamentId: string) {
+  return db.selectFrom('tournament_guesses')
+    .selectAll()
+    .where('user_id', 'in', userIds)
+    .where('tournament_id', '=', tournamentId)
+    .execute()
+}
+
 export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew) {
 
   const existingGuess = await findTournamentGuessByUserIdTournament(guess.user_id, guess.tournament_id)

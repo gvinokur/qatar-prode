@@ -2,29 +2,27 @@
 
 import {Card, CardContent, CardHeader, Grid, Typography, useTheme} from "@mui/material";
 import {GameStatisticForUser} from "../../../types/definitions";
+import {TournamentGuess} from "../../db/tables-definition";
 
 type Props = {
   userGameStatistics?: GameStatisticForUser
+  tournamentGuess?: TournamentGuess
 }
 
-export function UserTournamentStatistics({userGameStatistics} : Props) {
+export function UserTournamentStatistics({userGameStatistics, tournamentGuess} : Props) {
   const theme = useTheme()
 
   const groupScoreData = {
     correctPredictions: userGameStatistics?.group_correct_guesses || 0,
     exactPredictions: userGameStatistics?.group_exact_guesses || 0,
     totalPoints: userGameStatistics?.group_score || 0,
-    qualifiers: 0
+    qualifiers: tournamentGuess?.qualified_teams_score || 0
   }
 
   const playoffScoreData = {
     correctPredictions: userGameStatistics?.playoff_correct_guesses || 0,
     exactPredictions: userGameStatistics?.playoff_exact_guesses || 0,
     totalPoints: userGameStatistics?.playoff_score || 0,
-  }
-
-  const honorRollScoreData = {
-    points: 0
   }
 
   return (
@@ -60,9 +58,17 @@ export function UserTournamentStatistics({userGameStatistics} : Props) {
           <Grid item xs={4}><Typography variant={'body1'} fontWeight={700}>
             {playoffScoreData.totalPoints}
           </Typography></Grid>
+          <Grid item xs={12}
+                sx={{borderTop: `${theme.palette.primary.contrastText} 1px solid` }} mt={2}>
+            <Typography variant={'h6'} color={'primary.light'}>Torneo</Typography>
+          </Grid>
           <Grid item xs={8}><Typography variant={'body1'} color={'primary.light'}>Cuadro de Honor</Typography></Grid>
           <Grid item xs={4}><Typography variant={'body1'} fontWeight={700}>
-            {honorRollScoreData.points}
+            {tournamentGuess?.honor_roll_score || 0}
+          </Typography></Grid>
+          <Grid item xs={8}><Typography variant={'body1'} color={'primary.light'}>Premios</Typography></Grid>
+          <Grid item xs={4}><Typography variant={'body1'} fontWeight={700}>
+            {tournamentGuess?.individual_awards_score || 0}
           </Typography></Grid>
         </Grid>
       </CardContent>

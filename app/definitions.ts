@@ -74,6 +74,7 @@ export interface UserScore {
   playoffScore: number,
   honorRollScore: number,
   totalPoints: number,
+  individualAwardsScore: number
 }
 
 export interface ExtendedPlayerData extends Player{
