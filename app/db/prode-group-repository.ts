@@ -4,6 +4,7 @@ import {ProdeGroupTable, ProdeGroup} from "./tables-definition";
 import {jsonObjectFrom} from "kysely/helpers/postgres";
 import {AdapterUser} from "next-auth/adapters";
 import exp from "node:constants";
+import {cache} from "react";
 
 const baseFunctions = createBaseFunctions<ProdeGroupTable, ProdeGroup>('prode_groups')
 
@@ -12,22 +13,22 @@ export const createProdeGroup = baseFunctions.create
 export const deleteProdeGroup = baseFunctions.delete
 export const updateProdeGroup = baseFunctions.update
 
-export async function findProdeGroupsByOwner(userId: string) {
+export const findProdeGroupsByOwner = cache(async function (userId: string) {
   return await db
     .selectFrom('prode_groups')
     .selectAll()
     .where("prode_groups.owner_user_id", "=", userId)
     .execute()
-}
+})
 
-export async function findProdeGroupsByParticipant(userId: string) {
+export const findProdeGroupsByParticipant = cache(async function (userId: string) {
   return db
     .selectFrom('prode_groups')
     .innerJoin('prode_group_participants', "prode_group_participants.prode_group_id", "prode_groups.id")
     .selectAll('prode_groups')
     .where('prode_group_participants.participant_id', "=", userId)
     .execute()
-}
+})
 
 export async function addParticipantToGroup(group: ProdeGroup, user: AdapterUser) {
   return db.insertInto('prode_group_participants')

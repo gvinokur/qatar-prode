@@ -3,6 +3,7 @@ import {createBaseFunctions} from "./base-repository";
 import {GameGuessTable, GameGuess, GameGuessUpdate, GameGuessNew} from "./tables-definition";
 import {GameStatisticForUser} from "../../types/definitions";
 import {integerPropType} from "@mui/utils";
+import {cache} from "react";
 
 const tableName = 'game_guesses'
 
@@ -13,14 +14,14 @@ export const createGameGuess = baseFunctions.create
 export const updateGameGuess = baseFunctions.update
 export const deleteGameGuess = baseFunctions.delete
 
-export async function findGameGuessesByUserId(userId: string, tournamentId: string) {
+export const findGameGuessesByUserId = cache(async function (userId: string, tournamentId: string) {
   return db.selectFrom(tableName)
     .innerJoin('games', "games.id", 'game_guesses.game_id')
     .where('game_guesses.user_id', '=', userId)
     .where('games.tournament_id', '=', tournamentId)
     .selectAll(tableName)
     .execute()
-}
+})
 
 export async function updateGameGuessByGameId(game_id: string, user_id: string, withUpdate: {home_team?: string | null, away_team?:string | null }) {
 

@@ -1,6 +1,7 @@
 import { db } from './database'
 import { Identifiable } from "./tables-definition";
 import {Insertable, Selectable, Updateable} from "kysely";
+import {cache} from "react";
 
 type IdentifiableTables =
   'tournaments' |
@@ -16,13 +17,13 @@ type IdentifiableTables =
   'players'
 
 function findByIdFactory<K2 extends Selectable<Identifiable>>  (tableName: IdentifiableTables) {
-  return async function (id: string) {
+  return cache(async function (id: string) {
     const result = await db.selectFrom(tableName)
       .where('id', '=', id)
       .selectAll()
       .executeTakeFirst()
     return result as K2
-  }
+  })
 }
 
 function updateFactory<K1 extends Identifiable>  (tableName: IdentifiableTables) {

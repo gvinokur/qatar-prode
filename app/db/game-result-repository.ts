@@ -1,5 +1,6 @@
 import {db} from './database'
 import {GameResultNew, GameResultUpdate} from "./tables-definition";
+import {cache} from "react";
 
 export function createGameResult(result: GameResultNew) {
   return db.insertInto('game_results')
@@ -16,20 +17,20 @@ export function updateGameResult(gameId: string, result: GameResultUpdate) {
     .executeTakeFirst()
 }
 
-export async function findGameResultByGameId(gameId: string, includeDrafts:boolean = false) {
+export const findGameResultByGameId = cache(async function (gameId: string, includeDrafts:boolean = false) {
   return db.selectFrom('game_results')
     .selectAll()
     .where('game_id', '=', gameId)
     //Always include non drafts
     .where('is_draft', 'in', [false, includeDrafts])
     .executeTakeFirst()
-}
+})
 
-export async function findGameResultByGameIds(gameIds: string[], includeDrafts:boolean = false) {
+export const findGameResultByGameIds = cache(async function(gameIds: string[], includeDrafts:boolean = false) {
   return db.selectFrom('game_results')
     .selectAll()
     .where('game_id', 'in', gameIds)
     //Always include non drafts
     .where('is_draft', 'in', [false, includeDrafts])
     .execute()
-}
+})

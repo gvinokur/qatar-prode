@@ -15,10 +15,10 @@ export function Fixtures( { games, teamsMap} : FixturesProps) {
 
   const getGameResultString = (game: ExtendedGameData) => {
     if (game.gameResult && Number.isInteger(game.gameResult.home_score) && Number.isInteger(game.gameResult.away_score)) {
-      if(game.game_type === 'group' || game.gameResult.home_score !== game.gameResult.away_score) {
+      if(game.game_type === 'group' || game.gameResult.is_draft || game.gameResult.home_score !== game.gameResult.away_score ) {
         return `${game.gameResult.home_score} - ${game.gameResult.away_score}`
       } else {
-        return ''
+        return `${game.gameResult.home_score} (${game.gameResult.home_penalty_score}) - (${game.gameResult.away_penalty_score}) ${game.gameResult.away_score}`
       }
     } else {
       return 'TBP'

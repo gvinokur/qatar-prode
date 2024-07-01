@@ -1,6 +1,7 @@
 import {createBaseFunctions} from "./base-repository";
 import {Team, TeamTable, TournamentTable} from "./tables-definition";
 import {db} from "./database";
+import {cache} from 'react'
 
 const tableName = 'teams'
 
@@ -10,29 +11,29 @@ export const updateTeam = baseFunctions.update
 export const createTeam = baseFunctions.create
 export const deleteTeam =  baseFunctions.delete
 
-export async function getTeamByName(name: string) {
+export const getTeamByName = cache(async (name: string)=> {
   return await db.selectFrom(tableName)
     .where('name', '=', name)
     .selectAll()
     .executeTakeFirst()
-}
+})
 
-export async function findTeamInTournament(tournamentId: string) {
+export const findTeamInTournament = cache(async (tournamentId: string) => {
   return await db.selectFrom(tableName)
     .innerJoin('tournament_teams', 'tournament_teams.team_id', 'teams.id')
     .selectAll(tableName)
     .execute();
-}
+})
 
-export async function findTeamInGroup(groupId: string) {
+export const findTeamInGroup = cache(async (groupId: string) => {
   return await db.selectFrom(tableName)
     .innerJoin('tournament_group_teams', 'tournament_group_teams.team_id', 'teams.id')
     .where('tournament_group_teams.tournament_group_id', '=', groupId)
     .selectAll(tableName)
     .execute();
-}
+})
 
-export async function findGuessedQualifiedTeams(tournamentId: string, userId: string, inGroupId?:string) {
+export const findGuessedQualifiedTeams = cache(async (tournamentId: string, userId: string, inGroupId?:string) => {
  const query = db.selectFrom(tableName)
    .selectAll()
    .where(eb =>
@@ -62,9 +63,9 @@ export async function findGuessedQualifiedTeams(tournamentId: string, userId: st
    console.log(query.compile().sql);
 
    return await query.execute()
-}
+})
 
-export async function findQualifiedTeams(tournamentId: string, inGroupId?:string) {
+export const findQualifiedTeams= cache(async (tournamentId: string, inGroupId?:string)  => {
   return await db.selectFrom(tableName)
     .selectAll()
     .where(eb =>
@@ -89,4 +90,4 @@ export async function findQualifiedTeams(tournamentId: string, inGroupId?:string
         )
       ))
     .execute()
-}
+})

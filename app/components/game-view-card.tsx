@@ -179,7 +179,7 @@ export default function GameViewCard(
               </Grid>
             )}
             {isPlayoffGame && !specificProps.isGameGuess && (
-              <Grid item xs={2}>
+              <Grid item xs={2} pl={1}>
                 <TextField disabled={editDisabled ||
                   !Number.isInteger(homeScore) ||
                   !Number.isInteger(awayScore) ||
@@ -236,7 +236,7 @@ export default function GameViewCard(
               </Grid>
             )}
             {isPlayoffGame && !specificProps.isGameGuess && (
-              <Grid item xs={2}>
+              <Grid item xs={2} pl={1}>
                 <TextField disabled={editDisabled ||
                   !Number.isInteger(homeScore) ||
                   !Number.isInteger(awayScore) ||

@@ -190,7 +190,7 @@ export default function PlayoffTab({ tournamentId } :Props) {
               <Typography variant={'h5'}>{playoffStage.round_name}</Typography>
             </Grid>
             {playoffStage.games.map(({game_id}) => (
-              <Grid item xs={6} key={game_id}>
+              <Grid item xs={12} md={6} lg={4} key={game_id}>
                 <BackofficeGameView
                   game={gamesMap[game_id]}
                   teamsMap={teamsMap}

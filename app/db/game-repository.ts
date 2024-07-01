@@ -4,6 +4,7 @@ import {db} from "./database";
 import {jsonArrayFrom, jsonObjectFrom} from "kysely/helpers/postgres";
 import {sql} from "kysely";
 import {ExtendedGameData} from "../definitions";
+import {cache} from "react";
 
 const tableName = 'games'
 
@@ -13,7 +14,7 @@ export const updateGame = baseFunctions.update
 export const createGame = baseFunctions.create
 export const deleteGame =  baseFunctions.delete
 
-export async function findGamesInTournament(tournamentId: string) {
+export const findGamesInTournament = cache(async (tournamentId: string) => {
   return await db.selectFrom(tableName)
     .selectAll()
     .select((eb) =>[
@@ -46,17 +47,17 @@ export async function findGamesInTournament(tournamentId: string) {
     .where('tournament_id', '=', tournamentId)
     .selectAll()
     .execute()
-}
+})
 
-export async function findFirstGameInTournament(tournamentId: string) {
+export const findFirstGameInTournament = cache(async (tournamentId: string)  => {
  return db.selectFrom(tableName)
    .selectAll()
    .where('tournament_id', '=', tournamentId)
    .orderBy('game_date asc')
    .executeTakeFirst()
-}
+})
 
-export async function findGamesInGroup(groupId: string, completeGame: boolean = false , draftResult: boolean = false) {
+export const findGamesInGroup = cache(async (groupId: string, completeGame: boolean = false , draftResult: boolean = false) => {
   const query = db.selectFrom(tableName)
     .innerJoin('tournament_group_games', 'tournament_group_games.game_id', 'games.id')
     .selectAll(tableName)
@@ -97,7 +98,7 @@ export async function findGamesInGroup(groupId: string, completeGame: boolean = 
 
     return query
       .execute()
-}
+})
 
 export async function deleteAllGamesFromTournament(tournamentId: string) {
   const games = await findGamesInTournament(tournamentId)
@@ -120,7 +121,7 @@ interface GameWithResultAndGuess extends Game {
   gameGuesses: GameGuess[]
 }
 
-export async function findAllGamesWithPublishedResultsAndGameGuesses(forceDrafts: boolean, forceAllGameGuesses: boolean) {
+export const findAllGamesWithPublishedResultsAndGameGuesses = cache(async (forceDrafts: boolean, forceAllGameGuesses: boolean) => {
   return await db.selectFrom(tableName)
     .selectAll()
     .select((eb) =>[
@@ -154,12 +155,32 @@ export async function findAllGamesWithPublishedResultsAndGameGuesses(forceDrafts
       ])
     )
     .execute() as GameWithResultAndGuess[]
-}
+})
 
-export async function findGamesAroundCurrentTime(tournamentId: string) {
+export const findGamesAroundCurrentTime = cache(async (tournamentId: string)  => {
   const gamesAroundCurrentTime = await db.selectFrom(tableName)
     .selectAll()
     .select((eb) =>[
+      jsonObjectFrom(
+        eb.selectFrom('tournament_group_games')
+          .innerJoin('tournament_groups', 'tournament_groups.id', 'tournament_group_games.tournament_group_id')
+          .whereRef('tournament_group_games.game_id', '=', 'games.id')
+          .select([
+            'tournament_group_games.tournament_group_id',
+            'tournament_groups.group_letter'
+          ])
+      ).as('group'),
+      jsonObjectFrom(
+        eb.selectFrom('tournament_playoff_round_games')
+          .innerJoin('tournament_playoff_rounds',
+            'tournament_playoff_rounds.id',
+            'tournament_playoff_round_games.tournament_playoff_round_id')
+          .whereRef('tournament_playoff_round_games.game_id', '=', 'games.id')
+          .select([
+            'tournament_playoff_round_games.tournament_playoff_round_id',
+            'tournament_playoff_rounds.round_name'
+          ])
+      ).as('playoffStage'),
       jsonObjectFrom(
         eb.selectFrom('game_results')
           .whereRef('game_results.game_id', '=', 'games.id')
@@ -175,4 +196,4 @@ export async function findGamesAroundCurrentTime(tournamentId: string) {
     .execute() as ExtendedGameData[]
 
   return gamesAroundCurrentTime.sort((a, b) => a.game_date.getTime() - b.game_date.getTime())
-}
+})
