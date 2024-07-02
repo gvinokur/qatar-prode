@@ -4,16 +4,20 @@ import {ExtendedGameData} from "../definitions";
 export const calculateScoreForGame = (game: ExtendedGameData, gameGuess: GameGuessNew) => {
   if (
     game.gameResult &&
-    (game.gameResult.home_score || game.gameResult.home_score === 0) &&
-    (game.gameResult.away_score || game.gameResult.away_score === 0) &&
+    typeof game.gameResult.home_score === 'number' &&
+    Number.isInteger(game.gameResult.home_score) &&
+    typeof game.gameResult.away_score === 'number' &&
+    Number.isInteger(game.gameResult.away_score) &&
     gameGuess &&
-    (gameGuess.home_score || gameGuess.home_score === 0) &&
-    (gameGuess.away_score || gameGuess.away_score === 0)) {
+    typeof gameGuess.home_score === 'number' &&
+    Number.isInteger(gameGuess.home_score) &&
+    typeof gameGuess.away_score === 'number' &&
+    Number.isInteger(gameGuess.away_score)) {
 
     const gameHomeScore = game.gameResult.home_score
     const gameAwayScore = game.gameResult.away_score
 
-    const isPlayoff = (!!game.playoffStage);
+    const isPlayoff = game.game_type !== 'group';
     const isTie = (gameHomeScore === gameAwayScore);
     const guessTie = (gameGuess.home_score === gameGuess.away_score)
     let homePenaltyWin = false;
