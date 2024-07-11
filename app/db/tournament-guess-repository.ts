@@ -36,12 +36,16 @@ export async function findTournamentGuessByUserIdsTournament(userIds: string[], 
 }
 
 export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew) {
-
   const existingGuess = await findTournamentGuessByUserIdTournament(guess.user_id, guess.tournament_id)
   if(existingGuess) {
     await deleteTournamentGuess(existingGuess.id)
   }
   return createTournamentGuess(guess)
+}
 
-
+export async function findTournamentGuessByTournament(tournamentId: string) {
+  return db.selectFrom('tournament_guesses')
+    .selectAll()
+    .where('tournament_id', '=', tournamentId)
+    .execute()
 }

@@ -26,6 +26,14 @@ export interface TournamentTable extends Identifiable{
 
   is_active: boolean
 
+  champion_team_id?: string | null
+  runner_up_team_id?: string | null
+  third_place_team_id?: string | null
+  best_player_id?: string
+  top_goalscorer_player_id?: string
+  best_goalkeeper_player_id?: string
+  best_young_player_id?: string
+
   theme: JSONColumnType<Theme> | null
 }
 

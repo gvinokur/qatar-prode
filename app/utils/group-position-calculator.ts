@@ -19,7 +19,8 @@ export interface GameWithResultOrGuess extends Game{
 }
 
 /**
-*
+* Calculates the relative positions of a team in a group based on the games played between them.
+ *
 * @param teamIds - The Ids of the 4 teams of a given group
 * @param games - Games played by the 4 teams of the group, with the scores filled
 */

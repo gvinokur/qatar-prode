@@ -8,8 +8,12 @@ import {GameResultNew, Team, TeamStats, TournamentGroupTeam, TournamentGroupTeam
 import BackofficeGameView from "./backoffice-game-view";
 import {LoadingButton} from "@mui/lab";
 import {
-  calculateAndSavePlayoffGamesForTournament, calculateAndStoreGroupPosition,
-  saveGameResults, saveGamesData,
+  calculateAndSavePlayoffGamesForTournament,
+  calculateAndStoreGroupPosition,
+  calculateAndStoreQualifiedTeamsPoints,
+  calculateGameScores,
+  saveGameResults,
+  saveGamesData,
 } from "../../actions/backoffice-actions";
 import GroupTable from "../groups-page/group-table";
 import {DebugObject} from "../debug";
@@ -62,7 +66,6 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
         resultOrGuess: game.gameResult
       })),
       group.sort_by_games_between_teams)
-    console.log(groupPositions)
     setPositions(groupPositions)
 
   }, [teamsMap, gamesMap, setPositions]);
@@ -139,7 +142,6 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
   const handleGameDateChange =  (gameId:string) =>
     (updatedDate: Date) => {
       const game = gamesMap[gameId]
-      console.log('Setting game', game, 'date to', updatedDate)
       setGamesMap({
         ...gamesMap,
         [gameId]: {
@@ -154,6 +156,8 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
     await calculateAndSavePlayoffGamesForTournament(tournamentId)
     await saveGamesData(Object.values(gamesMap))
     await calculateAndStoreGroupPosition(group.id, Object.keys(teamsMap), Object.values(gamesMap), group.sort_by_games_between_teams)
+    await calculateGameScores(false, false)
+    await calculateAndStoreQualifiedTeamsPoints(tournamentId)
     setSaving(false)
     setSaved(false)
   }

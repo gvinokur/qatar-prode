@@ -10,6 +10,7 @@ import {DebugObject} from "../components/debug";
 import TournamentsCreate from "../components/backoffice/tournaments-create-components";
 import GroupsTab from "../components/backoffice/groups-backoffice-tab";
 import TournamentBackofficeTab from "../components/backoffice/tournament-backoffice-tab";
+import BackofficeAwardsTab from "../components/backoffice/awards-tab";
 
 export default async function Backoffice() {
   const user = await  getLoggedInUser()
@@ -53,7 +54,7 @@ export default async function Backoffice() {
               {
                 label: 'Overall Awards Management',
                 component: (
-                  <div>Some logic about tournaments awards</div>
+                  <BackofficeAwardsTab tournamentId={tournament.id}/>
                 )
               }
             ]}/>

@@ -10,49 +10,20 @@ import {
   CardContent,
   CardHeader,
   Grid,
-  Snackbar, TextField,
+  Snackbar,
+  TextField,
   Typography
 } from "@mui/material";
 import {LoadingButton} from "@mui/lab";
 import {updateOrCreateTournamentGuess} from "../../actions/guesses-actions";
 import {ExtendedPlayerData} from "../../definitions";
+import {awardsDefinition, AwardTypes} from "../../utils/award-utils";
 
 type Props = {
   allPlayers: ExtendedPlayerData[],
   tournamentGuesses: TournamentGuessNew,
   tournamentStartDate: Date
 }
-
-type AwardTypes = 'best_player_id' | 'top_goalscorer_player_id' | 'best_goalkeeper_player_id' | 'best_young_player_id'
-
-interface AwardDefinition {
-  label: string
-  property: AwardTypes
-  playerFilter: (p: ExtendedPlayerData) => boolean
-}
-
-const awardsDefinition: AwardDefinition[] = [
-  {
-    label: 'Mejor Jugador',
-    property: 'best_player_id',
-    playerFilter: (p: ExtendedPlayerData) => true,
-  },
-  {
-    label: 'Goleador',
-    property: 'top_goalscorer_player_id',
-    playerFilter: (p: ExtendedPlayerData) => true,
-  },
-  {
-    label: 'Mejor Arquero',
-    property: 'best_goalkeeper_player_id',
-    playerFilter: (p: ExtendedPlayerData) => p.position.toUpperCase() === 'GK',
-  },
-  {
-    label: 'Mejor Jugador Joven',
-    property: 'best_young_player_id',
-    playerFilter: (p: ExtendedPlayerData) => p.age_at_tournament < 22,
-  }
-]
 
 export default function AwardsPanel({allPlayers, tournamentGuesses: savedTournamentGuesses, tournamentStartDate}: Props) {
   const [saving, setSaving] = useState<boolean>(false)
@@ -71,7 +42,6 @@ export default function AwardsPanel({allPlayers, tournamentGuesses: savedTournam
   const handleGuessChange =
     (property: AwardTypes) =>
       (_: any, player: ExtendedPlayerData | null) => {
-        console.log('seeting award', property, 'to player', player)
         setTournamentGuesses({
           ...tournamentGuesses,
           [property]: player?.id

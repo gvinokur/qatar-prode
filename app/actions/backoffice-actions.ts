@@ -4,8 +4,8 @@ import tournaments from "../../data/tournaments";
 import {
   createTournament,
   createTournamentTeam,
-  deleteTournament, deleteTournamentTeams,
-  findTournamentByName
+  deleteTournament, deleteTournamentTeams, findTournamentById,
+  findTournamentByName, updateTournament
 } from "../db/tournament-repository";
 import {
   createTeam, findGuessedQualifiedTeams,
@@ -35,7 +35,7 @@ import {
   PlayerNew,
   Team,
   Tournament, TournamentGroup,
-  TournamentGroupTeamNew
+  TournamentGroupTeamNew, TournamentUpdate
 } from "../db/tables-definition";
 import {
   createGame,
@@ -45,7 +45,12 @@ import {
   updateGame
 } from "../db/game-repository";
 
-import {createPlayer, findPlayerByTeamAndTournament, updatePlayer} from "../db/player-repository";
+import {
+  createPlayer,
+  findAllPlayersInTournamentWithTeamData,
+  findPlayerByTeamAndTournament,
+  updatePlayer
+} from "../db/player-repository";
 import {ExtendedGameData, ExtendedGroupData, ExtendedPlayoffRoundData} from "../definitions";
 import {
   createGameResult,
@@ -66,10 +71,12 @@ import {customToMap, toMap} from "../utils/ObjectUtils";
 import {db} from "../db/database";
 import {calculateScoreForGame} from "../utils/game-score-calculator";
 import {
+  findTournamentGuessByTournament,
   findTournamentGuessByUserIdTournament,
   updateTournamentGuess,
   updateTournamentGuessByUserIdTournament
 } from "../db/tournament-guess-repository";
+import {awardsDefinition} from "../utils/award-utils";
 
 export async function deleteDBTournamentTree(tournament: Tournament) {
   // delete from tournament_playoff_round_games ;
@@ -463,4 +470,59 @@ export async function calculateAndStoreQualifiedTeamsPoints(tournamentId: string
       qualified_teams_score: correctGuesses.length
     })
   }))
+}
+
+export async function findDataForAwards(tournamentId: string) {
+  const [{id, theme, short_name, long_name, is_active, ...tournamentUpdate}, players] =
+    await Promise.all([findTournamentById(tournamentId), findAllPlayersInTournamentWithTeamData(tournamentId)])
+
+  return {
+    tournamentUpdate,
+    players
+  }
+}
+
+export async function updateTournamentAwards(tournamentId: string, withUpdate: TournamentUpdate) {
+  //Store and Calculate score for all users if not empty
+  await updateTournament(tournamentId, withUpdate)
+  const allTournamentGuesses = await findTournamentGuessByTournament(tournamentId)
+  return await Promise.all(allTournamentGuesses.map(async (tournamentGuess) => {
+    const awardsScore = awardsDefinition.reduce((accumScore, awardDefinition) => {
+      if (withUpdate[awardDefinition.property]) {
+        if (tournamentGuess[awardDefinition.property] === withUpdate[awardDefinition.property]) {
+          return accumScore + 3
+        }
+      }
+      return accumScore
+    }, 0)
+    return await updateTournamentGuess(tournamentGuess.id, {
+      individual_awards_score: awardsScore
+    })
+  }))
+}
+
+export async function updateTournamentHonorRoll(tournamentId: string, withUpdate: TournamentUpdate) {
+  //Store and calculate score for all users if the honor roll is not empty
+  await updateTournament(tournamentId, withUpdate)
+  if(withUpdate.champion_team_id || withUpdate.runner_up_team_id || withUpdate.third_place_team_id) {
+    const allTournamentGuesses = await findTournamentGuessByTournament(tournamentId)
+    return await Promise.all(allTournamentGuesses.map(async (tournamentGuess) => {
+      let honorRollScore = 0
+      if(withUpdate.champion_team_id &&
+        tournamentGuess.champion_team_id === withUpdate.champion_team_id) {
+        honorRollScore += 5
+      }
+      if(withUpdate.runner_up_team_id &&
+        tournamentGuess.runner_up_team_id === withUpdate.runner_up_team_id) {
+        honorRollScore += 3
+      }
+      if(withUpdate.third_place_team_id &&
+        tournamentGuess.third_place_team_id === withUpdate.third_place_team_id) {
+        honorRollScore += 1
+      }
+      return await updateTournamentGuess(tournamentGuess.id, {
+        honor_roll_score: honorRollScore
+      })
+    }))
+  }
 }
