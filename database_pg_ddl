@@ -1,0 +1,320 @@
+create table users
+(
+    id                    uuid    default gen_random_uuid() not null
+        primary key,
+    email                 text                              not null,
+    password_hash         text                              not null,
+    failed_login_attempts integer default 0,
+    access_token          text,
+    confirmation_token    text,
+    is_confirmed          boolean,
+    nickname              text,
+    is_admin              boolean default false
+);
+
+alter table users
+    owner to "default";
+
+create unique index users_email_idx
+    on users (email);
+
+create table teams
+(
+    id         uuid default gen_random_uuid() not null
+        primary key,
+    name       text                           not null,
+    theme      json,
+    short_name text                           not null
+);
+
+alter table teams
+    owner to "default";
+
+create table tournaments
+(
+    id                        uuid    default gen_random_uuid() not null
+        primary key,
+    short_name                text                              not null,
+    long_name                 text                              not null,
+    theme                     json,
+    is_active                 boolean default true,
+    best_player_id            uuid,
+    best_goalkeeper_player_id uuid,
+    top_goalscorer_player_id  uuid,
+    best_young_player_id      uuid,
+    champion_team_id          uuid
+        references teams,
+    runner_up_team_id         uuid
+        references teams,
+    third_place_team_id       uuid
+        references teams
+);
+
+alter table tournaments
+    owner to "default";
+
+create table tournament_groups
+(
+    id                          uuid    default gen_random_uuid() not null
+        primary key,
+    group_letter                text                              not null,
+    tournament_id               uuid                              not null
+        references tournaments,
+    sort_by_games_between_teams boolean default false             not null
+);
+
+alter table tournament_groups
+    owner to "default";
+
+create table tournament_teams
+(
+    tournament_id uuid not null
+        references tournaments,
+    team_id       uuid not null
+        references teams,
+    primary key (tournament_id, team_id)
+);
+
+alter table tournament_teams
+    owner to "default";
+
+create table tournament_group_teams
+(
+    tournament_group_id uuid                              not null
+        references tournament_groups,
+    team_id             uuid                              not null
+        references teams,
+    position            integer                           not null,
+    games_played        integer default 0                 not null,
+    points              integer default 0                 not null,
+    win                 integer default 0                 not null,
+    draw                integer default 0                 not null,
+    loss                integer default 0                 not null,
+    goals_for           integer default 0                 not null,
+    goals_against       integer default 0                 not null,
+    goal_difference     integer default 0                 not null,
+    id                  uuid    default gen_random_uuid() not null,
+    is_complete         boolean default false             not null,
+    primary key (tournament_group_id, team_id)
+);
+
+alter table tournament_group_teams
+    owner to "default";
+
+create table tournament_playoff_rounds
+(
+    id             uuid    default gen_random_uuid() not null
+        primary key,
+    tournament_id  uuid                              not null
+        constraint tournament_playoffs_rounds_tournament_id_fkey
+            references tournaments,
+    round_name     text                              not null,
+    round_order    integer                           not null,
+    total_games    integer                           not null,
+    is_final       boolean default false,
+    is_third_place boolean default false,
+    is_first_stage boolean default false
+);
+
+alter table tournament_playoff_rounds
+    owner to "default";
+
+create table games
+(
+    id             uuid default gen_random_uuid() not null
+        primary key,
+    home_team      uuid
+        references teams,
+    away_team      uuid
+        references teams,
+    game_date      timestamp with time zone       not null,
+    home_team_rule json,
+    away_team_rule json,
+    location       text,
+    game_number    integer                        not null,
+    tournament_id  uuid                           not null
+        references tournaments,
+    game_type      text default 'group'::text     not null
+);
+
+alter table games
+    owner to "default";
+
+create table tournament_group_games
+(
+    tournament_group_id uuid not null
+        references tournament_groups,
+    game_id             uuid not null
+        references games,
+    primary key (tournament_group_id, game_id)
+);
+
+alter table tournament_group_games
+    owner to "default";
+
+create table tournament_playoff_round_games
+(
+    tournament_playoff_round_id uuid not null
+        references tournament_playoff_rounds,
+    game_id                     uuid not null
+        references games,
+    primary key (tournament_playoff_round_id, game_id)
+);
+
+alter table tournament_playoff_round_games
+    owner to "default";
+
+create table game_results
+(
+    game_id            uuid                  not null
+        primary key
+        references games,
+    home_score         integer default 0,
+    away_score         integer default 0,
+    home_penalty_score integer,
+    away_penalty_score integer,
+    is_draft           boolean default false not null
+);
+
+alter table game_results
+    owner to "default";
+
+create table game_guesses
+(
+    id                  uuid default gen_random_uuid() not null
+        primary key,
+    game_id             uuid
+        references games,
+    user_id             uuid
+        references users,
+    home_score          integer,
+    away_score          integer,
+    home_team           text,
+    away_team           text,
+    home_penalty_winner boolean,
+    away_penalty_winner boolean,
+    game_number         integer,
+    score               integer
+);
+
+alter table game_guesses
+    owner to "default";
+
+create unique index game_guesses_game_id_user_id_idx
+    on game_guesses (game_id, user_id);
+
+create table players
+(
+    id                uuid default gen_random_uuid() not null
+        primary key,
+    team_id           uuid                           not null
+        references teams,
+    tournament_id     uuid                           not null
+        references tournaments,
+    name              text                           not null,
+    position          text                           not null,
+    age_at_tournament integer                        not null
+);
+
+alter table players
+    owner to "default";
+
+alter table tournaments
+    add foreign key (best_player_id) references players;
+
+alter table tournaments
+    add foreign key (best_goalkeeper_player_id) references players;
+
+alter table tournaments
+    add foreign key (top_goalscorer_player_id) references players;
+
+alter table tournaments
+    add foreign key (best_young_player_id) references players;
+
+create table tournament_guesses
+(
+    id                        uuid default gen_random_uuid() not null
+        primary key,
+    tournament_id             uuid
+        references tournaments,
+    user_id                   uuid
+        references users,
+    champion_team_id          uuid
+        references teams,
+    runner_up_team_id         uuid
+        references teams,
+    third_place_team_id       uuid
+        references teams,
+    best_player_id            uuid
+        references players,
+    top_goalscorer_player_id  uuid
+        references players,
+    best_goalkeeper_player_id uuid
+        references players,
+    best_young_player_id      uuid
+        references players,
+    honor_roll_score          integer,
+    individual_awards_score   integer,
+    qualified_teams_score     integer
+);
+
+alter table tournament_guesses
+    owner to "default";
+
+create unique index tournament_guesses_tournament_id_user_id_idx
+    on tournament_guesses (tournament_id, user_id);
+
+create table prode_groups
+(
+    id            uuid default gen_random_uuid() not null
+        primary key,
+    owner_user_id uuid
+        references users,
+    name          text                           not null,
+    theme         json
+);
+
+alter table prode_groups
+    owner to "default";
+
+create unique index prode_groups_name_idx
+    on prode_groups (name);
+
+create table prode_group_participants
+(
+    prode_group_id uuid not null
+        references prode_groups,
+    participant_id uuid not null
+        references users,
+    primary key (prode_group_id, participant_id)
+);
+
+alter table prode_group_participants
+    owner to "default";
+
+create table tournament_group_team_stats_guess
+(
+    id                  uuid    default gen_random_uuid() not null,
+    user_id             uuid                              not null
+        references users,
+    tournament_group_id uuid                              not null
+        references tournament_groups,
+    team_id             uuid                              not null
+        references teams,
+    position            integer                           not null,
+    games_played        integer default 0                 not null,
+    points              integer default 0                 not null,
+    win                 integer default 0                 not null,
+    draw                integer default 0                 not null,
+    loss                integer default 0                 not null,
+    goals_for           integer default 0                 not null,
+    goals_against       integer default 0                 not null,
+    goal_difference     integer default 0                 not null,
+    is_complete         boolean default false             not null,
+    constraint user_tournament_team
+        unique (user_id, tournament_group_id, team_id)
+);
+
+alter table tournament_group_team_stats_guess
+    owner to "default";
+
