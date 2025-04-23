@@ -1,6 +1,6 @@
 'use client'
 
-import {useState, useEffect, Fragment} from 'react';
+import {useState, useEffect, Fragment, useCallback} from 'react';
 import {
   Box,
   Grid,
@@ -67,6 +67,22 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
   //active state
   const [isActive, setIsActive] = useState<boolean>(false);
 
+  // Fetch playoff rounds
+  const fetchPlayoffRounds = useCallback(async () => {
+    setLoadingPlayoffRounds(true);
+    try {
+      const rounds = await getPlayoffRounds(tournamentId);
+      // Sort by round_order
+      const sortedRounds = rounds.sort((a, b) => a.round_order - b.round_order);
+      setPlayoffRounds(sortedRounds);
+    } catch (err: any) {
+      console.error('Error loading playoff rounds:', err);
+      setError(err.message || 'Error loading playoff rounds');
+    } finally {
+      setLoadingPlayoffRounds(false);
+    }
+  }, [tournamentId]);
+
   // Fetch tournament data when component mounts or tournamentId changes
   useEffect(() => {
     async function fetchTournamentData() {
@@ -101,23 +117,9 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
     }
 
     fetchTournamentData();
-  }, [tournamentId]);
+  }, [tournamentId, fetchPlayoffRounds]);
 
-  // Fetch playoff rounds
-  const fetchPlayoffRounds = async () => {
-    setLoadingPlayoffRounds(true);
-    try {
-      const rounds = await getPlayoffRounds(tournamentId);
-      // Sort by round_order
-      const sortedRounds = rounds.sort((a, b) => a.round_order - b.round_order);
-      setPlayoffRounds(sortedRounds);
-    } catch (err: any) {
-      console.error('Error loading playoff rounds:', err);
-      setError(err.message || 'Error loading playoff rounds');
-    } finally {
-      setLoadingPlayoffRounds(false);
-    }
-  };
+
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {

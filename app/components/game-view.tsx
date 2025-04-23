@@ -98,7 +98,7 @@ const GameView = ({game, teamsMap, isFinal, isThirdPlace, gamesMap}: GameViewPro
         }, isFinal, isThirdPlace)
       }
     }
-  }, [isPlayoffGame, gameGuesses, gameGuess, game, setCalculatedHomeTeam, setCalculatedAwayTeam, groupContext, isFinal, isThirdPlace])
+  }, [isPlayoffGame, gameGuesses, gameGuess, game, setCalculatedHomeTeam, setCalculatedAwayTeam, groupContext, isFinal, isThirdPlace, gamesMap])
 
 
   const handleScoreChange = (home: boolean) => (e: ChangeEvent<HTMLInputElement>) => {
@@ -162,11 +162,11 @@ const GameView = ({game, teamsMap, isFinal, isThirdPlace, gamesMap}: GameViewPro
         isPlayoffGame={isPlayoffGame}
         homeTeamNameOrDescription={homeTeam ? teamsMap[homeTeam].name : getTeamDescription(game.home_team_rule)}
         homeTeamAvatarInfo={homeAvatarInfo}
-        homeTeamTheme={homeTeam && teamsMap[homeTeam]?.theme}
+        homeTeamTheme={homeTeam && teamsMap[homeTeam]?.theme || null}
         homeScore={gameGuess.home_score}
         awayTeamNameOrDescription={awayTeam ? teamsMap[awayTeam].name : getTeamDescription(game.away_team_rule)}
         awayTeamAvatarInfo={awayAvatarInfo}
-        awayTeamTheme={awayTeam && teamsMap[awayTeam]?.theme }
+        awayTeamTheme={awayTeam && teamsMap[awayTeam]?.theme || null}
         awayScore={gameGuess.away_score}
         editDisabled={editDisabled}
         homePenaltyWinner={gameGuess.home_penalty_winner}

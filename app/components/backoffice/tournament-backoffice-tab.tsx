@@ -168,7 +168,7 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
         <DialogContent>
           <DialogContentText>
             Are you sure you want to deactivate this tournament?
-            Once deactivated, users will no longer be able to see or interact with "{tournament.long_name}".
+            Once deactivated, users will no longer be able to see or interact with {tournament.long_name}.
           </DialogContentText>
           {deactivateError && (
             <Alert severity="error" sx={{ mt: 2 }}>

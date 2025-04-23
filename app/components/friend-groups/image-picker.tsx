@@ -77,7 +77,7 @@ function ImagePreview({
         }
       });
     }
-  }, [dataUrl, previewWidth, previewHeight]);
+  }, [dataUrl, previewWidth, previewHeight, aspectRatio]);
 
   return (
     <Box position="relative">
@@ -261,7 +261,7 @@ export default function ImagePicker({
       target: {
         name,
         value: null,
-        files: null,
+        files: [],
         type: 'file',
       }
     };

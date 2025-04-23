@@ -15,7 +15,7 @@ const initialTeamStats: TeamStats = {
 }
 
 export interface GameWithResultOrGuess extends Game{
-  resultOrGuess?: GameResultNew | GameGuessNew
+  resultOrGuess?: GameResultNew | GameGuessNew | null
 }
 
 /**

@@ -34,14 +34,14 @@ type GameGuessProps = {
     alt: string
     src: string
   }
-  homeTeamTheme?: Theme
+  homeTeamTheme?: Theme | null
   homeScore?: number
   awayTeamNameOrDescription: string,
   awayTeamAvatarInfo?: {
     alt: string
     src: string
   },
-  awayTeamTheme?: Theme
+  awayTeamTheme?: Theme | null
   awayScore?: number
   editDisabled: boolean
   homePenaltyWinner?: boolean
@@ -59,13 +59,13 @@ type GameResultProps = {
     alt: string
     src: string
   }
-  homeTeamTheme?: Theme
+  homeTeamTheme?: Theme | null
   awayTeamNameOrDescription: string,
   awayTeamAvatarInfo?: {
     alt: string
     src: string
   },
-  awayTeamTheme?: Theme
+  awayTeamTheme?: Theme | null
   handleScoreChange: (isHomeTeam: boolean) => (e: ChangeEvent<HTMLInputElement>) => void,
   handlePenaltyScoreChange: (isHomeTeam: boolean) => (e: ChangeEvent<HTMLInputElement>) => void,
   handleDraftStatusChanged: (e: ChangeEvent<HTMLInputElement>) => void,

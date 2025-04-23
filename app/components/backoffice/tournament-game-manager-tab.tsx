@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   Box,
   Button,
@@ -37,7 +37,6 @@ import GameDialog from './internal/game-dialog';
 import {getGamesInTournament} from "../../actions/game-actions";
 import {ExtendedGameData, ExtendedGroupData} from "../../definitions";
 import dayjs from "dayjs";
-import {undefined} from "zod";
 import {getTeamDescription} from "../../utils/playoffs-rule-helper";
 
 interface TournamentGameManagerProps {
@@ -57,12 +56,7 @@ const TournamentGameManager: React.FC<TournamentGameManagerProps> = ({ tournamen
   const [gameToDelete, setGameToDelete] = useState<Game | null>(null);
   const [nextGameNumber, setNextGameNumber] = useState<number>(0)
 
-  // Load data when component mounts
-  useEffect(() => {
-    loadData();
-  }, [tournamentId]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -88,7 +82,12 @@ const TournamentGameManager: React.FC<TournamentGameManagerProps> = ({ tournamen
     } finally {
       setLoading(false);
     }
-  };
+  }, [tournamentId]);
+
+  // Load data when component mounts
+  useEffect(() => {
+    loadData();
+  }, [tournamentId, loadData]);
 
   const handleOpenCreateDialog = () => {
     setCurrentGame(null);

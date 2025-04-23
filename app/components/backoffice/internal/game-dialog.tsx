@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -77,9 +77,9 @@ const GameDialog: React.FC<GameDialogProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
 
-  const findPlayoffStage = (stageId?: string) => {
+  const findPlayoffStage = useCallback((stageId?: string) => {
     return playoffStages.find(stage => stage.id === stageId);
-  };
+  }, [playoffStages]);
 
   useEffect(() => {
     if (open) {
@@ -121,7 +121,7 @@ const GameDialog: React.FC<GameDialogProps> = ({
       setError(null);
       setFormErrors({});
     }
-  }, [open, game]);
+  }, [open, game, findPlayoffStage, nextGameNumber]);
 
   const validateForm = () => {
     const errors: {[key: string]: string} = {};

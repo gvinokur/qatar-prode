@@ -68,7 +68,7 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
       group.sort_by_games_between_teams)
     setPositions(groupPositions)
 
-  }, [teamsMap, gamesMap, setPositions]);
+  }, [teamsMap, gamesMap, setPositions, group.sort_by_games_between_teams]);
 
   const handleScoreChange =
     (gameId: string) =>
