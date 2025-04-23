@@ -34,7 +34,7 @@ export interface TournamentTable extends Identifiable{
   best_goalkeeper_player_id?: string
   best_young_player_id?: string
 
-  theme: JSONColumnType<Theme> | null
+  theme: JSONColumnType<Theme> | null | undefined
 }
 
 export type Tournament = Selectable<TournamentTable>
@@ -46,6 +46,8 @@ export interface UserTable extends Identifiable{
   nickname: string | null
   password_hash: string
   is_admin?: boolean
+  reset_token?: string | null
+  reset_token_expiration?: Date | null
 }
 
 export type User = Selectable<UserTable>
@@ -65,7 +67,7 @@ export type TournamentGroupUpdate = Updateable<TournamentGroupTable>
 export interface TeamTable extends Identifiable {
   name: string
   short_name: string
-  theme: JSONColumnType<any> | null
+  theme: JSONColumnType<Theme> | null | undefined
 }
 
 export type Team = Selectable<TeamTable>
@@ -255,3 +257,14 @@ export interface TeamStats {
   goal_difference: number
   is_complete: boolean
 }
+
+export interface TournamentVenueTable extends Identifiable {
+  tournament_id: string;
+  name: string;
+  location: string;
+  picture_url: string | null;
+}
+
+export type TournamentVenue = Selectable<TournamentVenueTable>;
+export type TournamentVenueNew = Insertable<TournamentVenueTable>
+export type TournamentVenueUpdate = Updateable<TournamentVenueTable>

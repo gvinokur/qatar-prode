@@ -2,22 +2,19 @@
 
 import {
   addParticipantToGroup,
-  createProdeGroup, deleteAllParticipantsFromGroup, deleteProdeGroup, findProdeGroupById,
+  createProdeGroup,
+  deleteAllParticipantsFromGroup,
+  deleteProdeGroup,
+  findProdeGroupById,
   findProdeGroupsByOwner,
-  findProdeGroupsByParticipant, updateProdeGroup
+  findProdeGroupsByParticipant,
+  updateProdeGroup
 } from "../db/prode-group-repository";
 import {getLoggedInUser} from "./user-actions";
-import { z } from "zod";
-import { s3Client } from "nodejs-s3-typescript";
+import {z} from "zod";
 import {ProdeGroup} from "../db/tables-definition";
+import {createS3Client, getS3KeyFromURL} from "./s3";
 
-//S3 Config
-const s3Config = {
-  bucketName: process.env.AWS_BUCKET_NAME as string,
-  region: process.env.AWS_REGION as string,
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string
-}
 export async function createDbGroup( groupName: string) {
   const user = await getLoggedInUser()
   if(!user) {
@@ -97,15 +94,10 @@ const imageSchema = z.object({
 
 async function deleteCurrentGroupFile(group: ProdeGroup) {
   if(group.theme?.logo) {
-    const regex = new RegExp('([^/]+)/?$')
-    const result = regex.exec(group.theme.logo) || []
-    console.log('keyMatches', result)
-    if(result?.length > 1) {
-      const s3 = new s3Client({
-        ...s3Config,
-        dirName: 'prode-group-files'
-      });
-      s3.deleteFile(`prode-group-files/${result[1]}`)
+    const logoKey = getS3KeyFromURL(group.theme.logo)
+    if(logoKey) {
+      const s3 = createS3Client('prode-group-files')
+      s3.deleteFile(`prode-group-files/${logoKey}`)
     }
   }
 }
@@ -126,10 +118,7 @@ export async function updateTheme(groupId: string, formData: any) {
       };
     }
     try {
-      const s3 = new s3Client({
-        ...s3Config,
-        dirName: 'prode-group-files'
-      });
+      const s3 = createS3Client('prode-group-files')
       await deleteCurrentGroupFile(currentGroup)
       const res = await s3.uploadFile(Buffer.from(await data.logo.arrayBuffer()));
       console.log(res)

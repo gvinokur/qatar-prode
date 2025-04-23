@@ -11,7 +11,7 @@ import {
   TournamentGroupTable, TournamentGroupTeamStatsGuessTable,
   TournamentGroupTeamTable, TournamentGuessTable,
   TournamentTable,
-  TournamentTeamTable,
+  TournamentTeamTable, TournamentVenueTable,
   UserTable
 } from "./tables-definition";
 
@@ -39,6 +39,7 @@ export interface Database {
   game_results: GameResultTable
 
   tournament_guesses: TournamentGuessTable
+  tournament_venues: TournamentVenueTable
 }
 
 export const db= createKysely<Database>();

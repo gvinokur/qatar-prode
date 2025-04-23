@@ -3,10 +3,11 @@
 import {Backdrop, Box, CircularProgress} from "@mui/material";
 import GroupBackoffice from "./group-backoffice-tab";
 import {useEffect, useState} from "react";
-import BackofficeTabs from "./backoffice-tabs";
+import {BackofficeTabs} from "./backoffice-tabs";
 import {ExtendedGroupData} from "../../definitions";
 import PlayoffTab from "./playoff-tab";
 import {getGroupDataWithGamesAndTeams} from "../../actions/backoffice-actions";
+import {createTab} from "./backoffice-tab-utils";
 
 type Props = {
   tournamentId: string
@@ -37,16 +38,12 @@ export default function GroupsTab({tournamentId}:Props) {
       </Backdrop>
       {!loading && (
         <BackofficeTabs tabs={[
-          ...(groups?.map(group => ({
-              label: `Grupo ${group.group_letter}`,
-              component: (
-                <GroupBackoffice group={group} tournamentId={tournamentId}/>
-              )
-            })) || []),
-          {
-            label: 'Playoffs',
-            component: (<PlayoffTab tournamentId={tournamentId}/>)
-          }
+          ...(groups || []).map(group =>
+              createTab(
+                `Grupo ${group.group_letter}`,
+                (<GroupBackoffice group={group} tournamentId={tournamentId}/>))
+          ),
+          createTab('Playoffs', (<PlayoffTab tournamentId={tournamentId}/>))
         ]}/>
       )}
     </Box>

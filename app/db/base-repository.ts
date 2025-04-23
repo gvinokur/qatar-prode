@@ -14,7 +14,8 @@ type IdentifiableTables =
   'game_guesses' |
   'game_results' |
   'tournament_guesses' |
-  'players'
+  'players' |
+  'tournament_venues'
 
 function findByIdFactory<K2 extends Selectable<Identifiable>>  (tableName: IdentifiableTables) {
   return cache(async function (id: string) {
@@ -26,11 +27,11 @@ function findByIdFactory<K2 extends Selectable<Identifiable>>  (tableName: Ident
   })
 }
 
-function updateFactory<K1 extends Identifiable>  (tableName: IdentifiableTables) {
+function updateFactory<K1 extends Identifiable, K2 extends Selectable<Identifiable>>  (tableName: IdentifiableTables) {
   return async function (id: string, updateWith: Updateable<K1>) {
     const query = db.updateTable(tableName).set(updateWith).where('id', '=', id).returningAll()
     const compiledQuery = query.compile()
-    return db.updateTable(tableName).set(updateWith).where('id', '=', id).returningAll().execute()
+    return db.updateTable(tableName).set(updateWith).where('id', '=', id).returningAll().executeTakeFirstOrThrow()
   }
 }
 
@@ -56,7 +57,7 @@ export function createBaseFunctions<K1 extends Identifiable, K2 extends Selectab
   return {
     findById: findByIdFactory<K2>(tableName),
     create: createFactory<K1, K2>(tableName),
-    update: updateFactory<K1>(tableName),
+    update: updateFactory<K1, K2>(tableName),
     delete: deleteFactory<K1>(tableName),
   }
 }

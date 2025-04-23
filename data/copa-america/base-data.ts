@@ -18,20 +18,20 @@ export const TeamNames = {
 }
 
 export const Venues = {
-    ATL: 'Mercedes-Benz Stadium - Atlanta, GA',
-    MIA: 'Hard Rock Stadium - Miami, FL',
-    KC: 'Arrowhead Stadium - Kansas City, MO',
-    AUS: 'Q2 Stadium - Austin, TX',
-    DAL: 'AT&T Stadium - Arlington, TX',
-    NC: 'Bank of America Stadium - Charlotte,NC',
-    NY: 'MetLife Stadium - East Rutherford, NJ',
-    AZ: 'State Farm Stadium - Glendale, AZ',
-    HOU: 'NRG Stadium - Houston, TX',
-    LA: 'SoFi Stadium - Inglewood, CA',
+    ATL: 'Mercedes-Benz location - Atlanta, GA',
+    MIA: 'Hard Rock location - Miami, FL',
+    KC: 'Arrowhead location - Kansas City, MO',
+    AUS: 'Q2 location - Austin, TX',
+    DAL: 'AT&T location - Arlington, TX',
+    NC: 'Bank of America location - Charlotte,NC',
+    NY: 'MetLife location - East Rutherford, NJ',
+    AZ: 'State Farm location - Glendale, AZ',
+    HOU: 'NRG location - Houston, TX',
+    LA: 'SoFi location - Inglewood, CA',
     KS: `Children's Mercy Park - Kansas City, KS`,
-    LV: 'Allegiant Stadium - Las Vegas, NV',
-    ORL: 'Inter&Co Stadium - Orlando, FL',
-    SFO: `Levi's Stadium - Santa Clara, CA`
+    LV: 'Allegiant location - Las Vegas, NV',
+    ORL: 'Inter&Co location - Orlando, FL',
+    SFO: `Levi's location - Santa Clara, CA`
 }
 
 export const Dates = {

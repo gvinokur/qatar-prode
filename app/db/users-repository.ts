@@ -24,6 +24,13 @@ export const findUsersByIds = cache(async function (userIds:string[]) {
     .execute()
 })
 
+export const findUserByResetToken = cache(async function(resetToken: string) {
+  return db.selectFrom('users')
+    .where('reset_token', '=', resetToken)
+    .selectAll()
+    .executeTakeFirst()
+})
+
 export function getPasswordHash(password: string) {
   const saltedPass = (process.env['NEXT_PUBLIC_SALT'] || '') + password
   return sha256(saltedPass).toString();

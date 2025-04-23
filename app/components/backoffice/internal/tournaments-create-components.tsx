@@ -1,6 +1,6 @@
 'use client'
 
-import {TournamentBaseData} from "../../../data/tournaments";
+import {TournamentBaseData} from "../../../../data/tournaments";
 import {Box, Grid, MenuItem, Paper, Select, SelectChangeEvent, Typography, useTheme} from "@mui/material";
 import {useState} from "react";
 import {LoadingButton} from "@mui/lab";

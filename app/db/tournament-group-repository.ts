@@ -92,3 +92,24 @@ export async function updateTournamentGroupTeams(groupTeams: TournamentGroupTeam
     }
   }))
 }
+
+/**
+ * Deletes all team associations for a specific tournament group
+ * @param tournamentGroupId - The ID of the tournament group
+ * @returns A promise that resolves when the deletion is complete
+ */
+export async function deleteTournamentGroupTeams(tournamentGroupId: string) {
+  return await db.deleteFrom('tournament_group_teams')
+    .where('tournament_group_id', '=', tournamentGroupId)
+    .execute();
+}
+
+/**
+ * Deletes a tournament group game by the game_id
+ * @param gameId - The ID of the game to delete
+ */
+export async function deleteTournamentGroupGame(gameId: string) {
+  return await db.deleteFrom('tournament_group_games')
+    .where('game_id', '=', gameId)
+    .execute();
+}

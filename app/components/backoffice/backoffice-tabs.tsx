@@ -4,14 +4,25 @@ import {Tab, Tabs, useMediaQuery} from "@mui/material";
 import TabPanel from "../tab-panel";
 import {useCallback, useRef, useState} from "react";
 
-type Props = {
-  tabs: {
-    label: string,
-    component: React.ReactNode
-  }[]
+
+export type LabelledTab = {
+  type: 'labelledTab'
+  label: string,
+  component: React.ReactNode
 }
 
-export default function BackofficeTabs({tabs} :Props) {
+export type ActionTab = {
+  type: 'actionTab',
+  action: React.ReactNode
+}
+
+type TabDefinition = LabelledTab | ActionTab
+
+type Props = {
+  tabs: TabDefinition[]
+}
+
+export function BackofficeTabs({tabs} :Props) {
   const [selectedTab, setSelectedTab] = useState<number>(0)
   const isNotExtraSmallScreen = useMediaQuery('(min-width:600px)')
 
@@ -28,16 +39,15 @@ export default function BackofficeTabs({tabs} :Props) {
         variant={isNotExtraSmallScreen ? "fullWidth" : 'scrollable'}
         scrollButtons={"auto"}
       >
-        {tabs.map(tab=> (
+        {tabs.map(tab=> tab.type === 'labelledTab' ? (
           <Tab label={tab.label} key={tab.label}/>
-        ))}
+        ) : tab.action)}
       </Tabs>
-      {tabs.map((tab, index) => (
+      {tabs.map((tab, index) => tab.type === 'labelledTab' && (
         <TabPanel key={tab.label} index={index} value={selectedTab}>
           {tab.component}
         </TabPanel>
       ))}
     </>
   )
-
 }

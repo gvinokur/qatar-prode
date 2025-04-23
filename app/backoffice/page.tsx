@@ -2,15 +2,24 @@
 
 import {getLoggedInUser} from "../actions/user-actions";
 import {redirect} from "next/navigation";
-import {Alert, AlertTitle, Box} from "../components/mui-wrappers";
-import BackofficeTabs from "../components/backoffice/backoffice-tabs";
+import {Alert, AlertTitle, Box, Button} from "../components/mui-wrappers";
+import {
+  BackofficeTabs,
+} from "../components/backoffice/backoffice-tabs";
 import {findAllTournaments} from "../db/tournament-repository";
 import tournaments from "../../data/tournaments";
-import {DebugObject} from "../components/debug";
-import TournamentsCreate from "../components/backoffice/tournaments-create-components";
+import TournamentsCreate from "../components/backoffice/internal/tournaments-create-components";
 import GroupsTab from "../components/backoffice/groups-backoffice-tab";
 import TournamentBackofficeTab from "../components/backoffice/tournament-backoffice-tab";
 import BackofficeAwardsTab from "../components/backoffice/awards-tab";
+import TournamentMainDataTab from "../components/backoffice/tournament-main-data-tab";
+import CreateTournamentButton from "../components/backoffice/internal/create-tournament-button";
+import {createActionTab, createTab} from "../components/backoffice/backoffice-tab-utils";
+import TournamentTeamsManagerTab from "../components/backoffice/tournament-teams-manager-tab";
+import TournamentGroupsManagerTab from "../components/backoffice/tournament-groups-manager-tab";
+import TournamentGameManagerTab from "../components/backoffice/tournament-game-manager-tab";
+
+
 
 export default async function Backoffice() {
   const user = await  getLoggedInUser()
@@ -31,35 +40,40 @@ export default async function Backoffice() {
         <AlertTitle>Consola de administracion</AlertTitle>
         Estas en la consola de administracion, cualquie accion que tomes puede afectar la usabilidad general de la pagina.
       </Alert>
+
       {newAvailableTournaments.length > 1 && (
         <TournamentsCreate tournaments={newAvailableTournaments}/>
       )}
       <BackofficeTabs tabs={
-        activeTournaments.map(tournament => ({
-          label: tournament.short_name,
-          component: (
-            <BackofficeTabs key={tournament.short_name} tabs={[
-              {
-                label: 'Tournament Management',
-                component: (
-                  <TournamentBackofficeTab tournament={tournament}/>
-                )
-              },
-              {
-                label: 'Tournament Game Management',
-                component: (
-                  <GroupsTab tournamentId={tournament.id}/>
-                )
-              },
-              {
-                label: 'Overall Awards Management',
-                component: (
-                  <BackofficeAwardsTab tournamentId={tournament.id}/>
-                )
-              }
-            ]}/>
-          )
-        }))
+        [
+          ...activeTournaments.map(tournament =>
+            createTab(
+              tournament.short_name,
+              (
+                <BackofficeTabs key={tournament.short_name} tabs={[
+                  createTab('Tournament Management', <TournamentBackofficeTab tournament={tournament}/>),
+                  createTab('Tournament Game Management', <GroupsTab tournamentId={tournament.id}/>),
+                  createTab('Overall Awards Management', <BackofficeAwardsTab tournamentId={tournament.id}/>),
+                ]}/>
+              ))
+          ),
+          ...inactiveTournaments.map(tournament =>
+            createTab(
+              tournament.short_name,
+              (
+                <BackofficeTabs key={tournament.short_name} tabs={[
+                  createTab('Tournament Data', <TournamentMainDataTab tournamentId={tournament.id}/>),
+                  createTab('Tournament Teams', <TournamentTeamsManagerTab tournamentId={tournament.id}/>),
+                  createTab('Tournament Groups', <TournamentGroupsManagerTab tournamentId={tournament.id}/>),
+                  createTab('Tournament Games', <TournamentGameManagerTab tournamentId={tournament.id}/>),
+                ]}/>
+              )),
+          ),
+          createActionTab(
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mx: 2, my: 1 }}>
+              <CreateTournamentButton />
+            </Box>)
+        ]
       }/>
 
     </Box>

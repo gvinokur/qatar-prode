@@ -1,9 +1,9 @@
 'use client'
 
-import {ExtendedGameData} from "../../definitions";
-import {Team} from "../../db/tables-definition";
-import GameViewCard from "../game-view-card";
-import {getTeamDescription} from "../../utils/playoffs-rule-helper";
+import {ExtendedGameData} from "../../../definitions";
+import {Team} from "../../../db/tables-definition";
+import GameViewCard from "../../game-view-card";
+import {getTeamDescription} from "../../../utils/playoffs-rule-helper";
 import {ChangeEvent} from "react";
 
 type Props = {

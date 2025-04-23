@@ -5,7 +5,7 @@ import {ChangeEvent, useEffect, useState} from "react";
 import {ExtendedGameData, ExtendedGroupData} from "../../definitions";
 import {getCompleteGroupData} from "../../actions/tournament-actions";
 import {GameResultNew, Team, TeamStats, TournamentGroupTeam, TournamentGroupTeamNew} from "../../db/tables-definition";
-import BackofficeGameView from "./backoffice-game-view";
+import BackofficeGameView from "./internal/backoffice-game-view";
 import {LoadingButton} from "@mui/lab";
 import {
   calculateAndSavePlayoffGamesForTournament,

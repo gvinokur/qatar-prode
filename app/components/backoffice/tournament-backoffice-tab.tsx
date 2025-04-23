@@ -1,6 +1,6 @@
 'use client'
 
-import {Alert, Box, Button, Grid, Snackbar, Typography} from "@mui/material";
+import {Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, Snackbar, Typography} from "@mui/material";
 import {LoadingButton} from "@mui/lab";
 import {useState} from "react";
 import {Tournament} from "../../db/tables-definition";
@@ -10,6 +10,7 @@ import {
   recalculateAllPlayoffFirstRoundGameGuesses
 } from "../../actions/backoffice-actions";
 import {DebugObject} from "../debug";
+import {deactivateTournament} from "../../actions/tournament-actions";
 
 type Props = {
   tournament: Tournament
@@ -18,6 +19,9 @@ type Props = {
 export default function TournamentBackofficeTab({ tournament } : Props) {
   const [loading, setLoading] = useState<boolean>(false)
   const [actionResults, setActionResults] = useState<{} | null>(null)
+  const [openDeactivateDialog, setOpenDeactivateDialog] = useState(false);
+  const [deactivateSuccess, setDeactivateSuccess] = useState(false);
+  const [deactivateError, setDeactivateError] = useState<string | null>(null);
 
   const calculatePlayoffTeams = async () => {
 
@@ -61,6 +65,33 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
     setLoading(false)
   }
 
+  const handleDeactivateDialogOpen = () => {
+    setOpenDeactivateDialog(true);
+  };
+
+  const handleDeactivateDialogClose = () => {
+    setOpenDeactivateDialog(false);
+  };
+
+  const handleDeactivateTournament = async () => {
+    setLoading(true);
+    setDeactivateError(null);
+
+    try {
+      await deactivateTournament(tournament.id);
+      setDeactivateSuccess(true);
+      handleDeactivateDialogClose();
+    } catch (error: any) {
+      setDeactivateError(error.message || 'Error deactivating tournament');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCloseSnackbar = () => {
+    setDeactivateSuccess(false);
+  };
+
   return (
     <Box>
       <Grid container spacing={4} xs={12} columnSpacing={8} justifyContent={'center'}>
@@ -102,7 +133,21 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
             Calculate Qualified Team Scores
           </LoadingButton>
         </Grid>
+              <Grid item xs={6} md={3} lg={2} textAlign={'center'}>
+          <LoadingButton
+            loading={loading}
+            variant={'outlined'}
+            size={'large'}
+            fullWidth={true}
+            sx={{height: '100%'}}
+            onClick={handleDeactivateDialogOpen}
+            disabled={!tournament.is_active}
+          >
+            {tournament.is_active ? 'Deactivate Tournament' : 'Tournament Inactive'}
+          </LoadingButton>
+        </Grid>
       </Grid>
+
       {actionResults && (
         <>
           <Grid item xs={12}>
@@ -113,6 +158,46 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
           </Grid>
         </>
       )}
+
+      {/* Deactivation Confirmation Dialog */}
+      <Dialog
+        open={openDeactivateDialog}
+        onClose={handleDeactivateDialogClose}
+      >
+        <DialogTitle>Deactivate Tournament</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to deactivate this tournament?
+            Once deactivated, users will no longer be able to see or interact with "{tournament.long_name}".
+          </DialogContentText>
+          {deactivateError && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {deactivateError}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeactivateDialogClose}>Cancel</Button>
+          <LoadingButton
+            loading={loading}
+            onClick={handleDeactivateTournament}
+            color="error"
+          >
+            Deactivate
+          </LoadingButton>
+        </DialogActions>
+      </Dialog>
+
+      {/* Success Snackbar */}
+      <Snackbar
+        open={deactivateSuccess}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+      >
+        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+          Tournament successfully deactivated
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }

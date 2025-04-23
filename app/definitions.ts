@@ -38,9 +38,9 @@ export interface ExtendedPlayoffRoundData extends PlayoffRound {
  * Includes the game and game results data
  */
 export interface ExtendedGameData extends Game {
-  group?: { tournament_group_id: string,  group_letter: string}
-  playoffStage?: { tournament_playoff_round_id: string, round_name: string }
-  gameResult?: GameResultNew
+  group?: { tournament_group_id: string,  group_letter: string} | null
+  playoffStage?: { tournament_playoff_round_id: string, round_name: string } | null
+  gameResult?: GameResultNew | null
 }
 
 export interface CompleteTournamentData {

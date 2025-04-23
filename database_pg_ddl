@@ -18,6 +18,11 @@ alter table users
 create unique index users_email_idx
     on users (email);
 
+-- Add reset_token and reset_token_expiration columns to users table
+ALTER TABLE users
+ADD COLUMN reset_token text,
+ADD COLUMN reset_token_expiration timestamp with time zone;
+
 create table teams
 (
     id         uuid default gen_random_uuid() not null

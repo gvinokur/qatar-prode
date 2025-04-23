@@ -1,5 +1,5 @@
 import {createBaseFunctions} from "./base-repository";
-import {Team, TeamTable, TournamentTable} from "./tables-definition";
+import {Team, TeamNew, TeamTable, TournamentTable} from "./tables-definition";
 import {db} from "./database";
 import {cache} from 'react'
 
@@ -21,6 +21,7 @@ export const getTeamByName = cache(async (name: string)=> {
 export const findTeamInTournament = cache(async (tournamentId: string) => {
   return await db.selectFrom(tableName)
     .innerJoin('tournament_teams', 'tournament_teams.team_id', 'teams.id')
+    .where('tournament_teams.tournament_id', '=', tournamentId)
     .selectAll(tableName)
     .execute();
 })
@@ -91,3 +92,4 @@ export const findQualifiedTeams= cache(async (tournamentId: string, inGroupId?:s
       ))
     .execute()
 })
+

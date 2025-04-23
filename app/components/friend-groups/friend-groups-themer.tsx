@@ -68,7 +68,7 @@ export default function ProdeGroupThemer({ group }: Props) {
             control={control}
             name={'file'}
             render={({field, fieldState}) => (
-              <ImagePicker {...field} id={'file'} label={'Logo'} defaultValue={group.theme?.logo}
+              <ImagePicker {...field} id={'file'} defaultValue={group.theme?.logo}
                            onChange={(event) => {
                              field.onChange(event.target.files[0]);
                            }}/>

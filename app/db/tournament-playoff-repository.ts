@@ -17,6 +17,12 @@ export async function createPlayoffRoundGame(playoffRoundGame: PlayoffRoundGameT
     .executeTakeFirstOrThrow()
 }
 
+export async function deletePlayoffRoundGame(gameId: string) {
+  return await db.deleteFrom('tournament_playoff_round_games')
+    .where('game_id', '=', gameId)
+    .executeTakeFirstOrThrow()
+}
+
 /**
  * Returns a list of playoff stages, sorted by round number ascending.
  * @param tournamentId

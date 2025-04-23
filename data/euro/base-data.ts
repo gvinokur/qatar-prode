@@ -29,12 +29,12 @@ export const TeamNames = {
 
 export const Venues = {
   BER: 'Olympiastadion Berlin',
-  COL: 'Cologne Stadium',
+  COL: 'Cologne location',
   MUN: 'Munich Football Arena',
   FRA: 'Frankfurt Arena',
   HAM: 'Volksparkstadion Hamburg',
   DOR: 'BVB Stadion Dortmund',
-  LEI: 'Leipzig Stadium',
+  LEI: 'Leipzig location',
   GEL: 'Arena AufSchalke',
   STU: 'Stuttgart Arena',
   DUS: 'Düsseldorf Arena',
