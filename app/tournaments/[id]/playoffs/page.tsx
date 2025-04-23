@@ -9,9 +9,8 @@ import {GameGuess, TournamentGuessNew} from "../../../db/tables-definition";
 import {Box, Grid, Chip} from "../../../components/mui-wrappers";
 import {GuessesContextProvider} from "../../../components/context-providers/guesses-context-provider";
 import GameView from "../../../components/game-view";
-import HonorRoll from "../../../components/playoffs-page/honor-roll-component";
 import SavePlayoffsComponent from "../../../components/playoffs-page/save-playoffs-components";
-import {calculatePlayoffTeams, calculatePlayoffTeamsFromPositions} from "../../../utils/playoff-teams-calculator";
+import {calculatePlayoffTeamsFromPositions} from "../../../utils/playoff-teams-calculator";
 import {findTournamentGuessByUserIdTournament} from "../../../db/tournament-guess-repository";
 import {findGroupsInTournament} from "../../../db/tournament-group-repository";
 import {findAllTournamentGroupTeamGuessInGroup} from "../../../db/tournament-group-team-guess-repository";
@@ -162,22 +161,10 @@ export default async function PlayoffPage({params, searchParams}: Props) {
                   </Grid>
                 </>
               )}
-              <Grid item xs={12} md={12} mt={2}>
-                <Chip label={'Pronosticos Finales'}
-                      sx={{
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        typography: 'h5',
-                        width: '100%',
-                        padding:'24px'
-                      }}/>
-                <HonorRoll teamsMap={completePlayoffData.teamsMap}/>
-              </Grid>
             </Grid>
           </Grid>
         </Grid>
-        <SavePlayoffsComponent tournamentStartDate={completePlayoffData.tournamentStartDate}/>
+        <SavePlayoffsComponent/>
       </GuessesContextProvider>
     </>
   )

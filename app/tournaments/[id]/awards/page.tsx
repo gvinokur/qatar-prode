@@ -3,13 +3,17 @@
 import {Box, Alert, AlertTitle} from "../../../components/mui-wrappers";
 import {findAllPlayersInTournamentWithTeamData} from "../../../db/player-repository";
 import {DebugObject} from "../../../components/debug";
-import {findTournamentGuessByUserIdTournament} from "../../../db/tournament-guess-repository";
+import {findTournamentGuessByUserIdTournament, updateTournamentGuess} from "../../../db/tournament-guess-repository";
 import {getLoggedInUser} from "../../../actions/user-actions";
 import {redirect} from "next/navigation";
 import {TournamentGuessNew} from "../../../db/tables-definition";
 import AwardsPanel from "../../../components/awards/award-panel";
-import {getTournamentStartDate} from "../../../actions/tournament-actions";
-import {debug} from "node:util";
+import {
+  getPlayoffRounds,
+  getTeamsMap,
+  getTournamentStartDate
+} from "../../../actions/tournament-actions";
+
 
 type Props = {
   params: {
@@ -33,6 +37,16 @@ export default async function Awards({ params, searchParams}: Props) {
     await findTournamentGuessByUserIdTournament(user.id, params.id) || buildTournamentGuesses(user.id, params.id)
   const allPlayers = await findAllPlayersInTournamentWithTeamData(params.id)
   const tournamentStartDate = await getTournamentStartDate(params.id)
+  const teamsMap = await getTeamsMap(params.id)
+  const teams = Object.values(teamsMap).sort((a, b) => a.name.localeCompare(b.name))
+
+  // Check if tournament has a third place game
+  const playoffStages = await getPlayoffRounds(params.id)
+  const hasThirdPlaceGame = playoffStages.some(stage => stage.is_third_place)
+
+  // Get tournament start time to check if predictions are still allowed
+  const currentTime = new Date()
+  const isPredictionLocked = currentTime > tournamentStartDate
 
   return (
     <Box pt={2}>
@@ -40,19 +54,19 @@ export default async function Awards({ params, searchParams}: Props) {
         <DebugObject object={{
           allPlayers,
           tournamentGuesses,
-          tournamentStartDate
+          tournamentStartDate,
+          hasThirdPlaceGame,
+          isPredictionLocked
         }}/>
       )}
-      {allPlayers.length === 0 && (
-        <Alert variant={'filled'} severity={'warning'}>
-          <AlertTitle>Premios Inviduales no disponibles</AlertTitle>
-          Esta seccion estara disponible una vez que se den a conocer las nominas de los equipos participantes en el torneo
-        </Alert>
-      )}
-      {allPlayers.length > 0 && (
-        <AwardsPanel allPlayers={allPlayers} tournamentGuesses={tournamentGuesses} tournamentStartDate={tournamentStartDate}/>
-      )}
 
+      <AwardsPanel
+        allPlayers={allPlayers}
+        tournamentGuesses={tournamentGuesses}
+        teams={teams}
+        hasThirdPlaceGame={hasThirdPlaceGame}
+        isPredictionLocked={isPredictionLocked}
+      />
     </Box>
   )
 }

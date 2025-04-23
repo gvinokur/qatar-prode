@@ -5,6 +5,9 @@ export type AwardTypes =
   | 'top_goalscorer_player_id'
   | 'best_goalkeeper_player_id'
   | 'best_young_player_id'
+  | 'champion_team_id'
+  | 'runner_up_team_id'
+  | 'third_place_team_id'
 
 interface AwardDefinition {
   label: string

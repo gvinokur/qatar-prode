@@ -37,3 +37,14 @@ export async function findAllPlayersInTournamentWithTeamData(tournamentId: strin
     .execute()
   return players as ExtendedPlayerData[]
 }
+
+export async function getPlayersInTournament(tournamentId: string) {
+  const res = await db.selectFrom('players')
+    .where('players.tournament_id', '=', tournamentId)
+    .select(({fn}) => [
+      fn.count<number>('players.id').as('players_in_tournament')
+    ] )
+    .executeTakeFirst()
+
+  return res?.players_in_tournament || 0
+}

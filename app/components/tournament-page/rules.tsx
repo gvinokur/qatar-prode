@@ -8,7 +8,7 @@ import {
   IconButtonProps,
   List,
   ListItem,
-  ListItemText, styled,
+  ListItemText, styled, Typography,
   useTheme
 } from "@mui/material";
 import {ExpandMore as ExpandMoreIcon} from "@mui/icons-material";
@@ -20,10 +20,14 @@ const rules = [
   '1 Punto por cada  clasificado a 8vos acertado',
   '5 Puntos por campeon',
   '3 Puntos por subcampeon',
-  '1 Punto por tercer puesto',
+  '1 Punto por tercer puesto, si es que el torneo tiene partido por el mismo',
   '3 Puntos por cada premio acertado (mejor jugador, arquero, goleador, etc...)',
-  '(*) Se permite cambiar los pronosticos de cada partido hasta el dia anterior al mismo',
-  '(**) No se permite modificar pronosticos de podio y premios individuales luego del comienzo del campeonato'
+]
+
+const constraints = [
+  'Se permite cambiar los pronosticos de cada partido hasta una hora antes del mismo',
+  'Se permite modificar pronosticos de podio y premios individuales luego hasta el comienzo del campeonato',
+  'No se permite mas de un pronostico por persona, pero el mismo se puede utilizar en multiples grupos'
 ]
 
 interface ExpandMoreProps extends IconButtonProps {
@@ -67,6 +71,9 @@ export default function Rules() {
       />
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <CardContent sx={{ borderBottom: `${theme.palette.primary.contrastText} 1px solid`, borderTop: `${theme.palette.primary.contrastText} 1px solid` }}>
+          <Typography variant={'h6'}>
+            Calculo de puntos
+          </Typography>
           <List disablePadding>
             {rules.map((rule, index) => (
               <ListItem
@@ -74,6 +81,19 @@ export default function Rules() {
                 alignItems='flex-start'
                 disableGutters>
                 <ListItemText>{rule}</ListItemText>
+              </ListItem>
+            ))}
+          </List>
+          <Typography variant={'h6'}>
+            Condiciones generales
+          </Typography>
+          <List disablePadding>
+            {constraints.map((constraint, index) => (
+              <ListItem
+                key={index}
+                alignItems='flex-start'
+                disableGutters>
+                <ListItemText>{constraint}</ListItemText>
               </ListItem>
             ))}
           </List>

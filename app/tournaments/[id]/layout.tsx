@@ -7,6 +7,7 @@ import {findTournamentGuessByUserIdTournament} from "../../db/tournament-guess-r
 import {getLoggedInUser} from "../../actions/user-actions";
 import Link from "next/link";
 import EmptyAwardsSnackbar from "../../components/awards/empty-award-notification";
+import {findAllPlayersInTournamentWithTeamData, getPlayersInTournament} from "../../db/player-repository";
 
 type TournamentLayoutProps = {
   params: {
@@ -21,6 +22,8 @@ export default async function TournamentLayout({children, params}: TournamentLay
   const layoutData = await getTournamentAndGroupsData(params.id)
   const tournamentGuesses = user && await findTournamentGuessByUserIdTournament(user.id, params.id)
   const tournamentStartDate = await getTournamentStartDate(params.id)
+  const playersInTournament = await getPlayersInTournament(params.id)
+
 
   return (
     <>
@@ -53,7 +56,14 @@ export default async function TournamentLayout({children, params}: TournamentLay
       <Box ml={2} mr={2} mb={2}>
         {children}
       </Box>
-      {user && !tournamentGuesses?.best_player_id && tournamentStartDate.getTime() > new Date().getTime() && (
+      {user &&
+        (!tournamentGuesses?.best_player_id ||
+          !tournamentGuesses?.best_young_player_id ||
+          !tournamentGuesses?.best_goalkeeper_player_id ||
+          !tournamentGuesses?.top_goalscorer_player_id
+        ) &&
+        playersInTournament > 0 &&
+        tournamentStartDate.getTime() > new Date().getTime() && (
         <EmptyAwardsSnackbar tournamentId={params.id}/>
       )}
     </>

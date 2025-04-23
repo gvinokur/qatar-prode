@@ -5,20 +5,14 @@ import {LoadingButton} from "@mui/lab";
 import {Alert, Hidden, Snackbar} from "@mui/material";
 import {updateOrCreateGameGuesses, updateOrCreateTournamentGuess} from "../../actions/guesses-actions";
 
-type Props = {
-  tournamentStartDate: Date
-}
-export default function SavePlayoffsComponent({ tournamentStartDate }: Props) {
+export default function SavePlayoffsComponent() {
   const {gameGuesses, tournamentGuesses} = useContext(GuessesContext)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
   const savePredictions = async () => {
     setSaving(true);
-    const updatedGameGuesses = await updateOrCreateGameGuesses(Object.values(gameGuesses))
-    if(tournamentStartDate.getTime() > Date.now() && tournamentGuesses) {
-      const updatedTournamentGuess = await updateOrCreateTournamentGuess(tournamentGuesses)
-    }
+    await updateOrCreateGameGuesses(Object.values(gameGuesses))
     setSaving(false);
     setSaved(true);
   }
