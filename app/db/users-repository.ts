@@ -35,3 +35,32 @@ export function getPasswordHash(password: string) {
   const saltedPass = (process.env['NEXT_PUBLIC_SALT'] || '') + password
   return sha256(saltedPass).toString();
 }
+
+export async function verifyEmail(token: string) {
+  const now = new Date();
+
+  return await db.updateTable('users')
+    .set({
+      email_verified: true,
+      verification_token: null,
+      verification_token_expiration: null
+    })
+    .where(eb => eb.and([
+      eb('verification_token', '=', token),
+      eb('verification_token_expiration', '>', now)
+    ]))
+    .returningAll()
+    .executeTakeFirst();
+}
+
+export async function findUserByVerificationToken(token: string) {
+  const now = new Date();
+
+  return await db.selectFrom('users')
+    .where(eb => eb.and([
+      eb('verification_token', '=', token),
+      eb('verification_token_expiration', '>', now)
+    ]))
+    .selectAll()
+    .executeTakeFirst();
+}

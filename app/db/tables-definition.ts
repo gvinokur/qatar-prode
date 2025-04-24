@@ -48,6 +48,9 @@ export interface UserTable extends Identifiable{
   is_admin?: boolean
   reset_token?: string | null
   reset_token_expiration?: Date | null
+  email_verified?: boolean
+  verification_token?: string | null
+  verification_token_expiration?: Date | null
 }
 
 export type User = Selectable<UserTable>

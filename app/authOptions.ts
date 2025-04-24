@@ -15,11 +15,8 @@ export const authOptions: NextAuthOptions = {
         password: {label: 'Password', type: 'password'}
       },
       async authorize({email, password}: any) {
-        console.log('authorizing')
         const user = await findUserByEmail(email)
         const passwordHash = getPasswordHash(password)
-        console.log(user?.password_hash)
-        console.log(password, 'hash:', passwordHash)
 
         if (user && passwordHash === user.password_hash) {
           return {
@@ -27,7 +24,8 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             name: user.nickname,
             nickname: user.nickname,
-            isAdmin: user.is_admin
+            isAdmin: user.is_admin,
+            email_verified: user.email_verified,
           }
         }
 
@@ -38,7 +36,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     session: ({session, trigger, token, newSession}) => {
       session.user = {
-        ...pick(token, ['email', 'name', 'nickname', 'isAdmin', 'id']),
+        ...pick(token, ['email', 'name', 'nickname', 'isAdmin', 'id', 'email', 'email_verified']),
         ...session.user
       }
       return session

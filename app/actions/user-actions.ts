@@ -1,11 +1,30 @@
 'use server';
 
-import {UserNew} from "../db/tables-definition"
-import {createUser, findUserByEmail, getPasswordHash, updateUser, findUserByResetToken} from "../db/users-repository"
+import crypto from 'crypto';
+import {User, UserNew} from "../db/tables-definition"
+import {
+  createUser,
+  findUserByEmail,
+  getPasswordHash,
+  updateUser,
+  findUserByResetToken,
+  findUserByVerificationToken, verifyEmail
+} from "../db/users-repository"
 import {getServerSession} from "next-auth/next";
 import {randomBytes} from "crypto";
-
 import {authOptions} from "../authOptions";
+import {generatePasswordResetEmail, generateVerificationEmail} from "../utils/email-templates";
+import {sendEmail} from "../utils/email";
+
+function generateVerificationToken(): string {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+function generateVerificationTokenExpiry(): Date {
+  const expiryDate = new Date();
+  expiryDate.setHours(expiryDate.getHours() + 24); // Token valid for 24 hours
+  return expiryDate;
+}
 
 /**
  *
@@ -14,14 +33,35 @@ import {authOptions} from "../authOptions";
 export async function signupUser(user: UserNew) {
   const existingUser = await findUserByEmail(user.email)
   if (!existingUser) {
-    return await createUser({
+    const newUser = await createUser({
       ...user,
-      password_hash: getPasswordHash(user.password_hash)
+      password_hash: getPasswordHash(user.password_hash),
+      email_verified: false,
+      verification_token: generateVerificationToken(),
+      verification_token_expiration: generateVerificationTokenExpiry()
     })
+
+    await sendVerificationEmail(newUser)
+
+    return newUser
   } else {
     return 'Ya existe un usuario con ese e-mail'
   }
 }
+
+export async function resendVerificationEmail() {
+  const user = await getLoggedInUser()
+  if (!user) {
+    return { success: false, error: 'No existe un usuario con ese e-mail'};
+  }
+  const updatedUser = await updateUser(user.id, {
+    verification_token: generateVerificationToken(),
+    verification_token_expiration: generateVerificationTokenExpiry()
+  })
+
+  return sendVerificationEmail(updatedUser)
+}
+
 
 export async function updateNickname(nickname: string) {
   const user = await getLoggedInUser();
@@ -41,13 +81,13 @@ export async function getLoggedInUser() {
  * @param email - The email of the user requesting password reset
  * @returns A reset URL or an error message
  */
-export async function createPasswordResetLink(email: string) {
+export async function sendPasswordResetLink(email: string) {
   // Find the user by email
   const user = await findUserByEmail(email);
 
   // Check if user exists
   if (!user) {
-    return 'No existe un usuario con ese e-mail';
+    return { success: false, error: 'No existe un usuario con ese e-mail' };
   }
 
   // Generate a random token
@@ -67,7 +107,31 @@ export async function createPasswordResetLink(email: string) {
   // Note: Replace with your actual domain in production
   const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
 
-  return resetUrl;
+  // Generate email content
+  const emailData = generatePasswordResetEmail(email, resetUrl);
+
+  // Send the email
+  const emailResult = await sendEmail(emailData);
+
+  return emailResult
+}
+
+export async function verifyUserEmail(token: string) {
+  try {
+    const user = await findUserByVerificationToken(token);
+    if (!user) {
+      return { success: false, error: 'Invalid or expired verification link' };
+    }
+    const verifiedUser = await verifyEmail(token);
+
+    if (!verifiedUser) {
+      return { success: false, error: 'Failed to verify email' };
+    }
+
+    return { success: true, user: verifiedUser };
+  } catch (error) {
+    return { success: false, error: 'Failed to verify email' };
+  }
 }
 
 /**
@@ -117,5 +181,19 @@ export async function updateUserPassword(userId: string, newPassword: string) {
   } catch (error) {
     console.error('Error updating password:', error);
     return { success: false, message: 'Error al actualizar la contraseña' };
+  }
+}
+
+async function sendVerificationEmail(user: User) {
+  try {
+    // Create verification link
+    const verificationLink = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${user.verification_token}`;
+    // Send verification email
+    const result = await sendEmail(generateVerificationEmail(user.email, verificationLink));
+
+    return result;
+  } catch (error) {
+    console.error('Failed to send verification email:', error);
+    return { success: false, error: 'Failed to send verification email' };
   }
 }

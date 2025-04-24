@@ -7,7 +7,8 @@ declare module "next-auth/jwt" {
   interface JWT extends DefaultJWT{
     id:string
     isAdmin?: boolean,
-    nickname?: string
+    nickname?: string,
+    email_verified?: boolean
   }
 }
 
@@ -16,6 +17,7 @@ declare module "next-auth/adapters" {
     id:string
     nickname?:string
     isAdmin?: boolean
+    email_verified?: boolean
   }
 }
 
@@ -31,6 +33,7 @@ declare module "next-auth" {
   interface Jwt extends DefaultJwt{
     id:string
     isAdmin?: boolean,
-    nickname?: string
+    nickname?: string,
+    email_verified?: boolean
   }
 }

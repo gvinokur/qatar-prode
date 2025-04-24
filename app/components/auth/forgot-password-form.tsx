@@ -1,13 +1,12 @@
 'use client'
 
-import { Alert, TextField, Typography } from "@mui/material";
-import { Controller, SubmitHandler, useForm } from "react-hook-form";
+import {Alert, TextField, Typography} from "@mui/material";
+import {Controller, SubmitHandler, useForm} from "react-hook-form";
 //@ts-ignore
 import validator from "validator";
-import { LoadingButton } from "@mui/lab";
-import { useState } from "react";
-import { createPasswordResetLink } from "../../actions/user-actions";
-import { sendEmail } from "../../utils/email";
+import {LoadingButton} from "@mui/lab";
+import {useState} from "react";
+import {sendPasswordResetLink} from "../../actions/user-actions";
 
 type ForgotPasswordFormData = {
   email?: string
@@ -15,35 +14,6 @@ type ForgotPasswordFormData = {
 
 type ForgotPasswordFormProps = {
   onSuccess: (email: string) => void;
-}
-
-/**
- * Generate password reset email content
- */
-function generatePasswordResetEmail(email: string, resetUrl: string) {
-  const subject = 'Recuperación de contraseña - La Maquina Prode';
-
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #4a4a4a;">Recuperación de contraseña</h2>
-      <p>Hola,</p>
-      <p>Has solicitado restablecer tu contraseña para tu cuenta en Qatar Prode.</p>
-      <p>Haz clic en el siguiente enlace para crear una nueva contraseña:</p>
-      <p style="margin: 20px 0;">
-        <a 
-          href="${resetUrl}" 
-          style="background-color: #1976d2; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block;"
-        >
-          Restablecer contraseña
-        </a>
-      </p>
-      <p>Este enlace expirará en 1 hora.</p>
-      <p>Si no solicitaste restablecer tu contraseña, puedes ignorar este correo electrónico.</p>
-      <p>Saludos,<br>El equipo de La Maquina Prode</p>
-    </div>
-  `;
-
-  return { to: email, subject, html };
 }
 
 
@@ -63,46 +33,18 @@ export default function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProp
 
     try {
       if (resetForm.email) {
-        const result = await createPasswordResetLink(resetForm.email);
-
         setLoading(false);
 
-        if (typeof result === 'string' && result.startsWith('No existe')) {
-          setLoading(false);
+        const result = await sendPasswordResetLink(resetForm.email);
+
+        if (!result.success) {
           setError('root', {
-            type: 'Reset Error',
-            message: result
+            type: 'Email Error',
+            message: 'Error al enviar el correo electrónico. Por favor, inténtalo de nuevo.'
           });
           return;
         }
-
-        // If we got a valid reset URL, send the email
-        if (typeof result === 'string' && result.startsWith('http')) {
-          // Generate email content
-          const emailData = generatePasswordResetEmail(resetForm.email, result);
-
-          // Send the email
-          const emailResult = await sendEmail(emailData);
-
-          setLoading(false);
-
-          if (!emailResult.success) {
-            setError('root', {
-              type: 'Email Error',
-              message: 'Error al enviar el correo electrónico. Por favor, inténtalo de nuevo.'
-            });
-            return;
-          }
-
-          // Success - show confirmation
-          onSuccess(resetForm.email);
-        } else {
-          setLoading(false);
-          setError('root', {
-            type: 'Reset Error',
-            message: 'Error al generar el enlace de restablecimiento'
-          });
-        }
+        onSuccess(resetForm.email);
       }
     } catch (error: any) {
       setLoading(false);
