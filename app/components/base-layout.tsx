@@ -40,11 +40,12 @@ export default function BaseLayout(props: FrameProps) {
             <Link href={'/'}>
               <Avatar
                 variant={"rounded"}
-                src={'/logo.png'}
+                src={'/logo.webp'}
                 alt='la-maquina-prode'
                 sx={{
-                  height: 48,
-                  width: 48,
+                  backgroundColor: 'white',
+                  height: 60,
+                  width: 60,
                   mr: 2,
                 }}/>
             </Link>

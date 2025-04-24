@@ -151,7 +151,7 @@ export default function UserActions({ user }: UserActionProps) {
       <Box sx={{ flexGrow: 0 }}>
         <Button
           onClick={handleOpenLoginDialog}
-          sx={{ my: 2, color: 'white', display: 'block' }}
+          sx={{ my: 2, color: 'white' }}
         >
           Log In
         </Button>
