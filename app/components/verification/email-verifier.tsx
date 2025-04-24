@@ -3,10 +3,9 @@
 import {useState, useEffect, useCallback} from 'react';
 import { useRouter } from 'next/navigation';
 import { Box, Typography, Paper, Alert } from '../../components/mui-wrappers';
-import {useSession} from "next-auth/react";
+import {signOut} from "next-auth/react";
 import {verifyUserEmail} from "../../actions/user-actions";
 import {CircularProgress, Link} from "@mui/material";
-import {User, UserTable} from "../../db/tables-definition";
 
 interface EmailVerifierProps {
   token: string;
@@ -14,36 +13,36 @@ interface EmailVerifierProps {
 
 export default function EmailVerifier({ token }: EmailVerifierProps) {
   const router = useRouter();
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [isVerified, setIsVerified] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [verifiedUser, setVerifiedUser] = useState<User | undefined>()
 
-  const verifyToken = useCallback(async (token: string) => {
-    setIsVerifying(true);
-    try {
-      const result = await verifyUserEmail(token);
+  const verifyToken = useCallback(
+    async (
+      token: string,
+      setIsVerifying: (value: boolean) => void,
+      setError: (error: string | null) => void) => {
+        try {
+          const result = await verifyUserEmail(token);
 
-      if (result.success) {
-        // Redirect to login page with success message
-        setIsVerified(true);
-        setIsVerifying(false)
-      } else {
-        setError(result.error || 'The verification link is invalid or has expired.');
-        setIsVerifying(false);
-      }
-    } catch (err) {
-      setError('An unexpected error occurred during verification.');
-      setIsVerifying(false);
-      setIsVerified(true);
-    }
-  }, [setIsVerifying, setIsVerified, setError]);
+          if (result.success) {
+            // Redirect to login page with success message
+            await signOut({ redirect: true, callbackUrl: '/?verified=true' });
+            setIsVerifying(false)
+          } else {
+            setError(result.error || 'The verification link is invalid or has expired.');
+            setIsVerifying(false);
+          }
+        } catch (err) {
+          setError('An unexpected error occurred during verification.');
+          setIsVerifying(false);
+        }
+      }, []);
 
   useEffect(() => {
-    if(token && !isVerified && !isVerifying && !error) {
-      verifyToken(token);
+    if(token) {
+      verifyToken(token, setIsVerifying, setError);
     }
-  }, [token, verifyToken, isVerified, isVerifying, error]);
+  }, [token, verifyToken, setIsVerifying, setError]);
 
   if (isVerifying) {
     return (
@@ -65,17 +64,13 @@ export default function EmailVerifier({ token }: EmailVerifierProps) {
     );
   }
 
-  if(isVerified) {
-    router.push('/?verified=true');
-  }
-
   return error ? (
     <Box
       sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}
       onLoad={() => {
         setTimeout(() => {
           router.push('/');
-        }, 5000);
+        }, 2000);
       }}
     >
       <Paper sx={{ p: 4, maxWidth: 500, width: '100%' }}>
