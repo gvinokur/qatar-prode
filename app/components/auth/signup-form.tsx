@@ -8,6 +8,7 @@ import { LoadingButton } from "@mui/lab";
 import { useState } from "react";
 import { signupUser } from "../../actions/user-actions";
 import { LoginFormData } from "./login-form";
+import {User} from "../../db/tables-definition";
 
 export type SignupFormData = {
   email?: string,
@@ -18,7 +19,7 @@ export type SignupFormData = {
 }
 
 type SignupFormProps = {
-  onSuccess: (loginData: LoginFormData) => void;
+  onSuccess: (user: User) => void;
 }
 
 export default function SignupForm({ onSuccess }: SignupFormProps) {
@@ -37,7 +38,7 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
     setLoading(true);
     if (signupForm.email && signupForm.password) {
       try {
-        const userOrError: any = await signupUser({
+        const userOrError: User | string = await signupUser({
           email: signupForm.email,
           password_hash: signupForm.password,
           nickname: signupForm.nickname
@@ -51,10 +52,7 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
           });
         } else {
           // Process response here
-          onSuccess({
-            email: signupForm.email,
-            password: signupForm.password
-          });
+          onSuccess(userOrError);
         }
       } catch (error: any) {
         setLoading(false);

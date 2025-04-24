@@ -50,6 +50,12 @@ export default function UserActions({ user }: UserActionProps) {
     }
   }, [user, setAvailableTournaments])
 
+  useEffect(() => {
+    if (searchParams.get('verified')) {
+      setOpenLoginDialog(true)
+    }
+  }, [searchParams]);
+
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElUser(event.currentTarget);
   };

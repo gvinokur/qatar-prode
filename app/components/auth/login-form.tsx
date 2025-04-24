@@ -30,6 +30,8 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
     formState: { errors }
   } = useForm<LoginFormData>();
 
+  const isVerified = searchParams?.get('verified') === 'true';
+
   const handleLogin: SubmitHandler<LoginFormData> = async (loginForm, e) => {
     e?.preventDefault();
     setLoading(true);
@@ -64,6 +66,15 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       {errors.root && (
         <Alert severity="error" variant='standard'>
           {errors.root.message}
+        </Alert>
+      )}
+
+      {isVerified && (
+        <Alert
+          severity="success"
+          sx={{ mb: 2 }}
+        >
+          ¡Tu correo electrónico ha sido verificado exitosamente! Ahora puedes iniciar sesión.
         </Alert>
       )}
 

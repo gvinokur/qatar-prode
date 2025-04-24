@@ -8,17 +8,20 @@ import LoginForm, { LoginFormData } from "./login-form";
 import SignupForm from "./signup-form";
 import ForgotPasswordForm from "./forgot-password-form";
 import ResetSentView from "./reset-sent-view";
+import VerificationSentView from "./verification-sent-view";
+import {User} from "../../db/tables-definition";
 
 type LoginOrSignupProps = {
   handleCloseLoginDialog: () => void;
   openLoginDialog: boolean
 }
 
-type DialogMode = 'login' | 'signup' | 'forgotPassword' | 'resetSent';
+type DialogMode = 'login' | 'signup' | 'forgotPassword' | 'resetSent' | 'verificationSent';
 
 export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginDialog }: LoginOrSignupProps) {
   const [dialogMode, setDialogMode] = useState<DialogMode>('login');
   const [resetEmail, setResetEmail] = useState<string>('');
+  const [createdUser, setCreatedUser] = useState<User>();
 
   const closeDialog = () => {
     handleCloseLoginDialog();
@@ -37,17 +40,10 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
   };
 
   // Handle successful signup
-  const handleSignupSuccess = (loginData: LoginFormData) => {
-    // Auto login after signup
-    signIn("credentials", {
-      ...loginData,
-      redirect: false,
-    }).then((response: any) => {
-      if (response.ok) {
-        switchMode('login');
-        closeDialog();
-      }
-    });
+  const handleSignupSuccess = (user: User) => {
+    // Do Nothing
+    setCreatedUser(user);
+    switchMode('verificationSent');
   };
 
   // Handle successful password reset request
@@ -95,6 +91,8 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
         );
       case 'resetSent':
         return <ResetSentView email={resetEmail} />;
+      case 'verificationSent':
+        return <VerificationSentView user={createdUser}/>
       default:
         return null;
     }
