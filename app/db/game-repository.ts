@@ -48,7 +48,7 @@ export const findGamesInTournament = cache(async (tournamentId: string) => {
     ])
     .where('tournament_id', '=', tournamentId)
     .selectAll()
-    .execute()
+    .execute() as ExtendedGameData[]
 })
 
 export const findFirstGameInTournament = cache(async (tournamentId: string)  => {
