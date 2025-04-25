@@ -15,67 +15,73 @@ import { Edit as EditIcon } from "@mui/icons-material";
 import {Close as MissIcon, Done as HitIcon, DoneAll as HitAllIcon} from "@mui/icons-material";
 import { getDateString } from "../../utils/date-utils";
 import { ExtendedGameData } from "../definitions";
-import { Theme } from "../db/tables-definition";
+import {GameResult, GameResultNew, Theme} from "../db/tables-definition";
 
 type SharedProps = {
-  game: ExtendedGameData;
+  gameNumber: number;
+  gameDate: Date;
+  location: string;
   homeTeamNameOrDescription: string;
   homeTeamTheme?: Theme | null;
   awayTeamNameOrDescription: string;
   awayTeamTheme?: Theme | null;
+  homeScore?: number
+  awayScore?: number
   isPlayoffGame: boolean;
   onEditClick: (gameNumber: number) => void;
+  disabled?: boolean;
 };
 
 type GameGuessProps =  {
   isGameGuess: true
   scoreForGame?: number
-  homeScore?: number
-  awayScore?: number
   homePenaltyWinner?: boolean
   awayPenaltyWinner?: boolean
-  editDisabled?: boolean;
+  gameResult?: GameResultNew | null
 } & SharedProps
 
 type GameResultProps = {
   isGameGuess: false
   onPublishClick?: (game_number: number) => void
+  isDraft?: boolean
+  homePenaltyScore?: number
+  awayPenaltyScore?: number
 } & SharedProps
 
 type CompactGameViewCardProps = GameGuessProps | GameResultProps;
 
 export default function CompactGameViewCard({
-  game,
+  gameNumber,
+  gameDate,
+  location,
   homeTeamNameOrDescription,
   homeTeamTheme,
+  homeScore,
   awayTeamNameOrDescription,
   awayTeamTheme,
+  awayScore,
   isPlayoffGame,
   onEditClick,
+  disabled,
   ...specificProps
 }: CompactGameViewCardProps) {
   const theme = useTheme();
-  const homeScore = specificProps.isGameGuess? specificProps.homeScore : game.gameResult?.home_score;
-  const awayScore =  specificProps.isGameGuess? specificProps.awayScore: game.gameResult?.away_score;
   const hasResult = Number.isInteger(homeScore) && Number.isInteger(awayScore);
-  const isDraft = game.gameResult?.is_draft;
-
-  const isDisabled = specificProps.isGameGuess  && specificProps.editDisabled;
 
   const handleEditClick = () => {
-
-    if (game.game_number && !isDisabled) {
-      onEditClick(game.game_number);
+    if (!disabled) {
+      onEditClick(gameNumber);
     }
   };
 
   const handleDraftChange = () => {
-    if (!specificProps.isGameGuess && specificProps.onPublishClick && game.game_number) {
-      specificProps.onPublishClick(game.game_number);
+    if (!specificProps.isGameGuess && specificProps.onPublishClick) {
+      specificProps.onPublishClick(gameNumber);
     }
   };
 
-  const cardExtraStyles = !isDisabled ? {cursor: 'pointer'} : {}
+  const cardExtraStyles = !disabled ? {cursor: 'pointer'} : {}
+  const isDraft = (!specificProps.isGameGuess && specificProps.isDraft)
 
   return (
     <Card
@@ -93,14 +99,14 @@ export default function CompactGameViewCard({
           <Box display="flex" width='100%'>
             <Box display='flex' flexGrow={1} justifyContent="center" alignItems="center" gap={1}>
               <Typography variant="body2" color="text.secondary">
-                Game #{game.game_number}
+                Partido #{gameNumber}
                 &nbsp;-&nbsp;
-                {getDateString(game.game_date.toUTCString(), false)}
+                {getDateString(gameDate.toUTCString(), false)}
               </Typography>
             </Box>
             {/* Edit button or status */}
-            <Box minWidth="40px" textAlign="right">
-              {(!specificProps.isGameGuess || !specificProps.editDisabled) && (
+            <Box minWidth="40px" textAlign="right" flexDirection={'row'}>
+              {(!disabled) && (
                 <Tooltip title="Edit result">
                   <IconButton
                     size="small"
@@ -111,7 +117,7 @@ export default function CompactGameViewCard({
                   </IconButton>
                 </Tooltip>
               )}
-              {!specificProps.isGameGuess && (
+              {!specificProps.isGameGuess && !disabled && (
                 <Tooltip title="Is Published?">
                   <Switch
                     size="small"
@@ -123,8 +129,8 @@ export default function CompactGameViewCard({
                 </Tooltip>
               )}
               {specificProps.isGameGuess &&
-                Number.isInteger(game.gameResult?.home_score) &&
-                Number.isInteger(game.gameResult?.away_score) &&
+                Number.isInteger(specificProps.gameResult?.home_score) &&
+                Number.isInteger(specificProps.gameResult?.away_score) &&
                 Number.isInteger(specificProps.scoreForGame) && (
                   <>
                     {specificProps.scoreForGame === 0 && <Avatar title='Pronostico Errado' sx={{ width: '20px', height: '20px', bgcolor: theme.palette.error.main }}><MissIcon sx={{ fontSize: 14 }} /></Avatar>}
@@ -183,14 +189,14 @@ export default function CompactGameViewCard({
                   {homeScore}
                   {isPlayoffGame &&
                     !specificProps.isGameGuess &&
-                    Number.isInteger(game.gameResult?.home_penalty_score) &&
-                    ` (${game.gameResult?.home_penalty_score})`}
+                    Number.isInteger(specificProps.homePenaltyScore) &&
+                    ` (${specificProps.homePenaltyScore})`}
                   &nbsp;-&nbsp;
                   {awayScore}
                   {isPlayoffGame &&
                     !specificProps.isGameGuess &&
-                    Number.isInteger(game.gameResult?.home_penalty_score) &&
-                    ` (${game.gameResult?.home_penalty_score})`}
+                    Number.isInteger(specificProps.awayPenaltyScore) &&
+                    ` (${specificProps.awayPenaltyScore})`}
                 </Typography>
               ) : (
                 <Typography variant="caption" color="text.secondary">
@@ -242,16 +248,16 @@ export default function CompactGameViewCard({
 
           <Box display='flex' justifyContent="center" alignItems="center" gap={1}>
             <Typography variant="body2" color="text.secondary">
-              {game.location}
+              {location}
             </Typography>
           </Box>
 
         </Box>
       </CardContent>
       {specificProps.isGameGuess &&
-        game.gameResult &&
-        Number.isInteger(game.gameResult.home_score) &&
-        Number.isInteger(game.gameResult.away_score) && (
+        specificProps.gameResult &&
+        Number.isInteger(specificProps.gameResult.home_score) &&
+        Number.isInteger(specificProps.gameResult.away_score) && (
           <Box
             sx={{
               borderTop: `${theme.palette.divider} 1px solid`,
@@ -263,10 +269,10 @@ export default function CompactGameViewCard({
           >
             <Typography variant='caption' component='div' color='secondary.contrastText'>
               {homeTeamNameOrDescription?.substring(0, 3)}&nbsp;
-              {game.gameResult.home_score}&nbsp;
-              {Number.isInteger(game.gameResult.home_penalty_score) && `(${game.gameResult.home_penalty_score})`} - &nbsp;
-              {Number.isInteger(game.gameResult.away_penalty_score) && `(${game.gameResult.away_penalty_score})`}&nbsp;
-              {game.gameResult.away_score}&nbsp;
+              {specificProps.gameResult.home_score}&nbsp;
+              {Number.isInteger(specificProps.gameResult.home_penalty_score) && `(${specificProps.gameResult.home_penalty_score})`} - &nbsp;
+              {Number.isInteger(specificProps.gameResult.away_penalty_score) && `(${specificProps.gameResult.away_penalty_score})`}&nbsp;
+              {specificProps.gameResult.away_score}&nbsp;
               {awayTeamNameOrDescription?.substring(0, 3)}
             </Typography>
           </Box>

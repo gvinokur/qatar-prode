@@ -45,9 +45,9 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
   }),
 }));
 
-export default function Rules() {
+export default function Rules({ expanded: defaultExpanded = true }: { expanded?: boolean }) {
   const theme = useTheme();
-  const [expanded, setExpanded] = useState(true)
+  const [expanded, setExpanded] = useState(defaultExpanded)
 
   const handleExpandClick = () => {
     setExpanded(!expanded);

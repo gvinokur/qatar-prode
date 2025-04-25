@@ -13,6 +13,7 @@ import {
   getTeamsMap,
   getTournamentStartDate
 } from "../../../actions/tournament-actions";
+import {findTournamentById} from "../../../db/tournament-repository";
 
 
 type Props = {
@@ -39,14 +40,16 @@ export default async function Awards({ params, searchParams}: Props) {
   const tournamentStartDate = await getTournamentStartDate(params.id)
   const teamsMap = await getTeamsMap(params.id)
   const teams = Object.values(teamsMap).sort((a, b) => a.name.localeCompare(b.name))
+  const tournament = await findTournamentById(params.id)
 
   // Check if tournament has a third place game
   const playoffStages = await getPlayoffRounds(params.id)
   const hasThirdPlaceGame = playoffStages.some(stage => stage.is_third_place)
 
   // Get tournament start time to check if predictions are still allowed
+  const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
   const currentTime = new Date()
-  const isPredictionLocked = currentTime > tournamentStartDate
+  const isPredictionLocked = (currentTime.getTime() - tournamentStartDate.getTime()) >= FIVE_DAYS_MS;
 
   return (
     <Box pt={2}>
@@ -56,7 +59,8 @@ export default async function Awards({ params, searchParams}: Props) {
           tournamentGuesses,
           tournamentStartDate,
           hasThirdPlaceGame,
-          isPredictionLocked
+          isPredictionLocked,
+          tournament
         }}/>
       )}
 
@@ -66,6 +70,7 @@ export default async function Awards({ params, searchParams}: Props) {
         teams={teams}
         hasThirdPlaceGame={hasThirdPlaceGame}
         isPredictionLocked={isPredictionLocked}
+        tournament={tournament}
       />
     </Box>
   )

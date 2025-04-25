@@ -24,6 +24,18 @@ export default async function TournamentLayout({children, params}: TournamentLay
   const tournamentStartDate = await getTournamentStartDate(params.id)
   const playersInTournament = await getPlayersInTournament(params.id)
 
+  // Calculate 5 days in milliseconds
+  const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
+
+  // Current time
+  const currentTime = new Date().getTime();
+
+  // Check if we're within 5 days before the tournament or if the tournament hasn't started yet
+  const isWithin5DaysOfTournamentStart =
+    (tournamentStartDate.getTime() > currentTime &&
+      tournamentStartDate.getTime() - currentTime <= FIVE_DAYS_MS) ||
+    (tournamentStartDate.getTime() < currentTime &&
+      currentTime - tournamentStartDate.getTime() <= FIVE_DAYS_MS);
 
   return (
     <>
@@ -57,13 +69,16 @@ export default async function TournamentLayout({children, params}: TournamentLay
         {children}
       </Box>
       {user &&
-        (!tournamentGuesses?.best_player_id ||
+        (((!tournamentGuesses?.best_player_id ||
           !tournamentGuesses?.best_young_player_id ||
           !tournamentGuesses?.best_goalkeeper_player_id ||
           !tournamentGuesses?.top_goalscorer_player_id
         ) &&
-        playersInTournament > 0 &&
-        tournamentStartDate.getTime() > new Date().getTime() && (
+        playersInTournament > 0) ||
+          !tournamentGuesses?.champion_team_id ||
+          !tournamentGuesses?.runner_up_team_id
+        ) &&
+        isWithin5DaysOfTournamentStart && (
         <EmptyAwardsSnackbar tournamentId={params.id}/>
       )}
     </>

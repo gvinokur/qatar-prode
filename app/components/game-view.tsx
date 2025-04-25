@@ -43,7 +43,9 @@ const GameView = ({game, teamsMap, handleEditClick}: GameViewProps) => {
   return (
     <CompactGameViewCard
         isGameGuess={true}
-        game={game}
+        gameNumber={game.game_number}
+        gameDate={game.game_date}
+        location={game.location}
         scoreForGame={scoreForGame}
         isPlayoffGame={isPlayoffGame}
         homeTeamNameOrDescription={homeTeam ? teamsMap[homeTeam].name : getTeamDescription(game.home_team_rule)}
@@ -54,7 +56,8 @@ const GameView = ({game, teamsMap, handleEditClick}: GameViewProps) => {
         awayScore={gameGuess.away_score}
         homePenaltyWinner={gameGuess.home_penalty_winner}
         awayPenaltyWinner={gameGuess.away_penalty_winner}
-        editDisabled={editDisabled}
+        gameResult={game.gameResult}
+        disabled={editDisabled}
         onEditClick={handleEditClick}
     />
   )

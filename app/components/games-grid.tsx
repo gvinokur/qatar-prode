@@ -71,7 +71,7 @@ export default function GamesGrid({ teamsMap, ...gamesOrSections }: GamesGridPro
         }
       })
     }
-    }, [gameGuesses, gamesOrSections.isPlayoffs, games])
+    }, [gameGuesses, gamesOrSections.isPlayoffs, games, groupContext, data])
 
   const handleEditClick = (gameNumber: number) => {
     console.log('Edit clicked for game number:', gameNumber);

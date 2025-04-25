@@ -41,22 +41,26 @@ export default async function TournamentLandingPage({ params, searchParams }: Pr
         teamsMap,
         prodeGroups
       }}/>)}
-      <Grid container spacing={2} p={2}>
-        <Grid item xs={12} md={true}>
+      <Grid container spacing={2} p={2} maxWidth={'1000px'} mx={'auto'}>
+        <Grid item xs={12} md={8}>
           <Fixtures games={gamesAroundMyTime} teamsMap={teamsMap}/>
         </Grid>
-        {user && (
-            <Grid item xs={12} md={true}>
-              <UserTournamentStatistics userGameStatistics={userGameStatistics} tournamentGuess={tournamentGuesses} />
+        <Grid item xs={12} md={4}>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Rules expanded={false}/>
             </Grid>
-        )}
-        {prodeGroups && (
-          <Grid item xs={12} md={true}>
-                <FriendGroupsList userGroups={prodeGroups.userGroups} participantGroups={prodeGroups.participantGroups}/>
+            {user && (
+                <Grid item xs={12}>
+                  <UserTournamentStatistics userGameStatistics={userGameStatistics} tournamentGuess={tournamentGuesses} />
+                </Grid>
+            )}
+            {prodeGroups && (
+              <Grid item xs={12}>
+                    <FriendGroupsList userGroups={prodeGroups.userGroups} participantGroups={prodeGroups.participantGroups}/>
+              </Grid>
+            )}
           </Grid>
-        )}
-        <Grid item xs={12} md={true}>
-          <Rules/>
         </Grid>
       </Grid>
     </>

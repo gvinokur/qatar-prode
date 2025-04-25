@@ -23,8 +23,9 @@ export default function EmptyAwardsSnackbar({ tournamentId } : Props) {
           Ir a Premios
         </Button>
       )}>
-        <AlertTitle>Premios Individuales Disponibles</AlertTitle>
-        <Box>Hemos detectado que no has elegido quien ganara los premios individuales.</Box>
+        <AlertTitle>Pronostico de Premios no Finalizado</AlertTitle>
+        <Box>Hemos detectado que no has elegido quien sera el campeon o los premios individuales.</Box>
+        <Box>La seleccion de dichas predicciones cierra 5 dias luego del inicio del campeonato.</Box>
         <Box>Puedes ir a la pagina de premios para hacer tus predicciones.</Box>
       </Alert>
     </Snackbar>

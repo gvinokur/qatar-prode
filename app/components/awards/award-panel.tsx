@@ -1,10 +1,10 @@
 'use client'
 
-import {Team, TournamentGuess, TournamentGuessNew} from "../../db/tables-definition";
+import {Team, Tournament, TournamentGuessNew} from "../../db/tables-definition";
 import React, {Fragment, useState} from "react";
 import {
   Alert, AlertTitle,
-  Autocomplete,
+  Autocomplete, Avatar,
   Box, Button,
   Card,
   CardContent,
@@ -12,8 +12,9 @@ import {
   Grid,
   Snackbar,
   TextField,
-  Typography
+  Typography, useTheme
 } from "@mui/material";
+import {Close as MissIcon, Done as HitIcon} from "@mui/icons-material";
 import {LoadingButton} from "@mui/lab";
 import {updateOrCreateTournamentGuess} from "../../actions/guesses-actions";
 import {ExtendedPlayerData} from "../../definitions";
@@ -26,6 +27,7 @@ type Props = {
   teams: Team[];
   hasThirdPlaceGame: boolean;
   isPredictionLocked: boolean;
+  tournament: Tournament
 }
 
 export default function AwardsPanel({
@@ -33,8 +35,10 @@ export default function AwardsPanel({
     tournamentGuesses: savedTournamentGuesses,
     teams,
     hasThirdPlaceGame,
-    isPredictionLocked
+    isPredictionLocked,
+    tournament
   }: Props) {
+  const theme = useTheme()
   const [saving, setSaving] = useState<boolean>(false)
   const [saved, setSaved] = useState<boolean>(false)
   const [tournamentGuesses, setTournamentGuesses] = useState(savedTournamentGuesses)
@@ -79,7 +83,7 @@ export default function AwardsPanel({
         <CardHeader title={'Podio del Torneo'}/>
         <CardContent>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={hasThirdPlaceGame ? 4 : 6}>
+            <Grid item xs={12} md={hasThirdPlaceGame ? 4 : 6} flexDirection="row" display="flex">
               <TeamSelector
                 label="Campeón"
                 teams={teams}
@@ -89,9 +93,20 @@ export default function AwardsPanel({
                 helperText="Selecciona el equipo que predigas que ganará el torneo"
                 onChange={handlePodiumGuessChange('champion_team_id')}
               />
+              {tournament.champion_team_id && tournament.champion_team_id === tournamentGuesses.champion_team_id && (
+                <Avatar title='Pronostico Correcto' sx={{ width: '24px', height: '24px', bgcolor: theme.palette.success.light, mt:2, ml:1 }}>
+                  <HitIcon sx={{ fontSize: 14 }} />
+                </Avatar>
+
+              )}
+              {tournament.champion_team_id && tournament.champion_team_id !== tournamentGuesses.champion_team_id && (
+                <Avatar title='Pronostico Errado' sx={{ width: '24px', height: '24px', bgcolor: theme.palette.error.main, mt:2, ml: 1 }}>
+                  <MissIcon sx={{ fontSize: 14 }} />
+                </Avatar>
+              )}
             </Grid>
 
-            <Grid item xs={12} md={hasThirdPlaceGame ? 4 : 6}>
+            <Grid item xs={12} md={hasThirdPlaceGame ? 4 : 6} display={'flex'} flexDirection={'row'}>
               <TeamSelector
                 label="Subcampeón"
                 teams={teams}
@@ -101,10 +116,20 @@ export default function AwardsPanel({
                 helperText="Selecciona el equipo que predigas que llegará a la final"
                 onChange={handlePodiumGuessChange('runner_up_team_id')}
               />
+              {tournament.runner_up_team_id && tournament.runner_up_team_id === tournamentGuesses.runner_up_team_id && (
+                <Avatar title='Pronostico Correcto' sx={{ width: '24px', height: '24px', bgcolor: theme.palette.success.light, mt:2, ml:1 }}>
+                  <HitIcon sx={{ fontSize: 14 }} />
+                </Avatar>
+              )}
+              {tournament.runner_up_team_id && tournament.runner_up_team_id !== tournamentGuesses.runner_up_team_id && (
+                <Avatar title='Pronostico Errado' sx={{ width: '24px', height: '24px', bgcolor: theme.palette.error.main, mt:2, ml: 1 }}>
+                  <MissIcon sx={{ fontSize: 14 }} />
+                </Avatar>
+              )}
             </Grid>
 
             {hasThirdPlaceGame && (
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={4} display={'flex'} flexDirection={'row'}>
                 <TeamSelector
                   label="Third Place"
                   teams={teams}
@@ -114,6 +139,16 @@ export default function AwardsPanel({
                   helperText="Select the team you predict will win the third place match"
                   onChange={handlePodiumGuessChange('third_place_team_id')}
                 />
+                {tournament.third_place_team_id && tournament.third_place_team_id === tournamentGuesses.third_place_team_id && (
+                  <Avatar title='Pronostico Correcto' sx={{ width: '24px', height: '24px', bgcolor: theme.palette.success.light, mt:2, ml:1 }}>
+                    <HitIcon sx={{ fontSize: 14 }} />
+                  </Avatar>
+                )}
+                {tournament.third_place_team_id && tournament.third_place_team_id !== tournamentGuesses.third_place_team_id && (
+                  <Avatar title='Pronostico Errado' sx={{ width: '24px', height: '24px', bgcolor: theme.palette.error.main, mt:2, ml: 1 }}>
+                    <MissIcon sx={{ fontSize: 14 }} />
+                  </Avatar>
+                )}
               </Grid>
             )}
           </Grid>
@@ -132,7 +167,17 @@ export default function AwardsPanel({
             <Grid container spacing={2}>
               {awardsDefinition.map(awardDefinition => (
                 <Fragment key={awardDefinition.property}>
-                  <Grid item xs={5} flexDirection={'column'} justifyContent={'center'} alignContent={'center'} display={'flex'}>
+                  <Grid item xs={5} flexDirection={'row'} alignItems={'center'} display={'flex'}>
+                    {tournament[awardDefinition.property] && tournament[awardDefinition.property] === tournamentGuesses[awardDefinition.property] && (
+                      <Avatar title='Pronostico Correcto' sx={{ width: '24px', height: '24px', bgcolor: theme.palette.success.light, mr: 1}}>
+                        <HitIcon sx={{ fontSize: 14 }} />
+                      </Avatar>
+                    )}
+                    {tournament[awardDefinition.property] && tournament[awardDefinition.property] !== tournamentGuesses[awardDefinition.property] && (
+                      <Avatar title='Pronostico Errado' sx={{ width: '24px', height: '24px', bgcolor: theme.palette.error.main, mr: 1 }}>
+                        <MissIcon sx={{ fontSize: 14 }} />
+                      </Avatar>
+                    )}
                     <Typography
                       variant={"h6"}
                       sx={{
