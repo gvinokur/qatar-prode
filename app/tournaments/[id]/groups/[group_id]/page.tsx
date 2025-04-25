@@ -17,6 +17,7 @@ import {findGuessedQualifiedTeams, findQualifiedTeams} from "../../../../db/team
 import {calculateGroupPosition} from "../../../../utils/group-position-calculator";
 import {findAllTournamentGroupTeamGuessInGroup} from "../../../../db/tournament-group-team-guess-repository";
 import {customToMap, toMap} from "../../../../utils/ObjectUtils";
+import GamesGrid from "../../../../components/games-grid";
 
 type Props = {
   params: {
@@ -70,21 +71,18 @@ export default async function GroupComponent({params, searchParams} : Props) {
         groupGames={Object.values(completeGroupData.gamesMap)}
         guessedPositions={guessedGroupPositions}
         sortByGamesBetweenTeams={completeGroupData.group.sort_by_games_between_teams}
+        autoSave={true}
       >
-        <Grid container spacing={4} mt={'8px'}>
-          <Grid item xs={12} md={6}>
-            <Grid container spacing={2}>
-              {Object.values(completeGroupData.gamesMap)
-                .sort((a,b) => a.game_number - b.game_number)
-                .map(game => (
-                  <Grid key={game.game_number} item xs={6}>
-                    <GameView game={game} teamsMap={completeGroupData.teamsMap}/>
-                  </Grid>
-                ))
-              }
-            </Grid>
+        <Grid container mt={'16px'} maxWidth={'800px'} mx={'auto'}>
+          <Grid item xs={12} mb={'16px'}>
+            <GamesGrid
+              isPlayoffs={false}
+              games={Object.values(completeGroupData.gamesMap)
+                .sort((a,b) => a.game_number - b.game_number)}
+              teamsMap={completeGroupData.teamsMap}
+            />
           </Grid>
-          <Grid item xs={12} md={6} justifyContent={'center'}>
+          <Grid item xs={12} justifyContent={'center'}>
             <GroupTable
               games={Object.values(completeGroupData.gamesMap)}
               teamsMap={completeGroupData.teamsMap}

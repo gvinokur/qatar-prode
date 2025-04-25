@@ -75,30 +75,30 @@ export default function AwardsPanel({
         </Alert>
       ) : null}
 
-      <Card sx={{ maxWidth: '900px', mr: 'auto', ml: 'auto'}}>
+      <Card sx={{ maxWidth: '800px', mr: 'auto', ml: 'auto'}}>
         <CardHeader title={'Podio del Torneo'}/>
         <CardContent>
           <Grid container spacing={3}>
             <Grid item xs={12} md={hasThirdPlaceGame ? 4 : 6}>
               <TeamSelector
-                label="Champion"
+                label="Campeón"
                 teams={teams}
                 selectedTeamId={tournamentGuesses.champion_team_id || ''}
                 name="championTeamId"
                 disabled={isDisabled}
-                helperText="Select the team you predict will win the tournament"
+                helperText="Selecciona el equipo que predigas que ganará el torneo"
                 onChange={handlePodiumGuessChange('champion_team_id')}
               />
             </Grid>
 
             <Grid item xs={12} md={hasThirdPlaceGame ? 4 : 6}>
               <TeamSelector
-                label="Runner-up"
+                label="Subcampeón"
                 teams={teams}
                 selectedTeamId={tournamentGuesses.runner_up_team_id || ''}
                 name="runnerUpTeamId"
                 disabled={isDisabled}
-                helperText="Select the team you predict will be the finalist"
+                helperText="Selecciona el equipo que predigas que llegará a la final"
                 onChange={handlePodiumGuessChange('runner_up_team_id')}
               />
             </Grid>
@@ -119,7 +119,7 @@ export default function AwardsPanel({
           </Grid>
         </CardContent>
       </Card>
-      <Card sx={{ maxWidth: '900px', mr: 'auto', ml: 'auto'}}>
+      <Card sx={{ maxWidth: '800px', mr: 'auto', ml: 'auto', marginTop: '24px'}}>
         <CardHeader title={'Premios Individuales'}/>
         <CardContent>
           {allPlayers.length === 0 && (

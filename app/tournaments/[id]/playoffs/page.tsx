@@ -15,6 +15,7 @@ import {findTournamentGuessByUserIdTournament} from "../../../db/tournament-gues
 import {findGroupsInTournament} from "../../../db/tournament-group-repository";
 import {findAllTournamentGroupTeamGuessInGroup} from "../../../db/tournament-group-team-guess-repository";
 import {customToMap, toMap} from "../../../utils/ObjectUtils";
+import GamesGrid from "../../../components/games-grid";
 
 type Props = {
   params: {
@@ -36,9 +37,6 @@ export default async function PlayoffPage({params, searchParams}: Props) {
   }
   const userGameGuesses = await findGameGuessesByUserId(user.id, params.id)
   const gameGuessesMap = customToMap(userGameGuesses, (gameGuess) => gameGuess.game_id)
-
-  const tournamentGuesses =
-    await findTournamentGuessByUserIdTournament(user.id, params.id) || buildTournamentGuesses(user.id, params.id)
 
   const groups = await findGroupsInTournament(params.id)
 
@@ -72,6 +70,27 @@ export default async function PlayoffPage({params, searchParams}: Props) {
 
   const thirdPlace = completePlayoffData.playoffStages.find(ps => ps.is_third_place)
 
+  const sections = [
+    ...playoffStagesPreFinal
+      .map(playoffStage => ({
+        section: playoffStage.round_name,
+        games: playoffStage.games.map(
+          ({game_id}) => completePlayoffData.gamesMap[game_id])
+          .sort((a,b) => a.game_number - b.game_number)
+      })),
+      {
+        section: 'Finales',
+        games: [
+          ...(thirdPlace && thirdPlace.games.length > 0 ? [
+            completePlayoffData.gamesMap[thirdPlace.games[0].game_id]
+          ] : []),
+          ...(final && final.games.length > 0 ? [
+            completePlayoffData.gamesMap[final.games[0].game_id]
+          ] : [])
+        ]
+      }
+    ]
+
   return (
     <>
       {searchParams.hasOwnProperty('debug') && (<DebugObject object={{
@@ -80,91 +99,22 @@ export default async function PlayoffPage({params, searchParams}: Props) {
         thirdPlace,
         gameGuesses: gameGuessesMap,
         playoffTeamsByGuess,
-        tournamentStartDate: completePlayoffData.tournamentStartDate,
         guessedPositionsByGroup
       }}/>)}
 
       <GuessesContextProvider
         gameGuesses={gameGuessesMap}
-        tournamentGuesses={tournamentGuesses}
-        tournamentStartDate={completePlayoffData.tournamentStartDate}
+        autoSave={true}
       >
-        <Grid container spacing={2} mt={2} mb={6} columns={12}>
-          {playoffStagesPreFinal.map(playoffStage => (
-            <Grid item md={true} sm={12} key={playoffStage.id}>
-              <Chip label={playoffStage.round_name}
-                    sx={{
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      typography: 'h5',
-                      width: '100%',
-                      padding:'24px'
-                    }}/>
-              <Grid container spacing={2} pt={2} pl={1} pr={1}>
-                {playoffStage.games
-                  .map(({game_id}) => completePlayoffData.gamesMap[game_id])
-                  .sort((a,b) => a.game_number - b.game_number)
-                  .map(game=> (
-                    <Grid item key={game.id} md={12} sm={6} xs={12}>
-                      <GameView game={game} teamsMap={completePlayoffData.teamsMap} gamesMap={completePlayoffData.gamesMap} />
-                    </Grid>
-                  ))}
-              </Grid>
-            </Grid>
-          ))}
-          <Grid item md={true} xs={12}>
-            <Grid container spacing={1}>
-              {final && (
-                <>
-                  <Grid item xs={12} sm={6} md={12}>
-                    <Chip label={'Final'}
-                      sx={{
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        typography: 'h5',
-                        width: '100%',
-                        padding:'24px'
-                      }}/>
-                    <Box pt={2} pl={1} pr={1} pb={1}>
-                      <GameView
-                        game={completePlayoffData.gamesMap[final.games[0].game_id]}
-                        teamsMap={completePlayoffData.teamsMap}
-                        isFinal={true}
-                        gamesMap={completePlayoffData.gamesMap}
-                      />
-                    </Box>
-                  </Grid>
-                </>
-              )}
-              {thirdPlace && (
-                <>
-                  <Grid item xs={12} sm={6} md={12}>
-                    <Chip label={'Tercer Puesto'}
-                          sx={{
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            typography: 'h5',
-                            width: '100%',
-                            padding:'24px'
-                          }}/>
-                    <Box pt={2} pl={1} pr={1} pb={1}>
-                      <GameView
-                        game={completePlayoffData.gamesMap[thirdPlace.games[0].game_id]}
-                        teamsMap={completePlayoffData.teamsMap}
-                        isThirdPlace={true}
-                        gamesMap={completePlayoffData.gamesMap}
-                      />
-                    </Box>
-                  </Grid>
-                </>
-              )}
-            </Grid>
+        <Grid container mt={'16px'} maxWidth={'800px'} mx={'auto'}>
+          <Grid item xs={12} mb={'16px'}>
+            <GamesGrid
+              isPlayoffs={true}
+              gameSections={sections}
+              teamsMap={completePlayoffData.teamsMap}
+            />
           </Grid>
         </Grid>
-        <SavePlayoffsComponent/>
       </GuessesContextProvider>
     </>
   )

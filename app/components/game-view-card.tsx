@@ -24,10 +24,8 @@ import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import {LocalizationProvider} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 
-type GameGuessProps = {
-  isGameGuess: true
+type SharedProps = {
   game: ExtendedGameData
-  scoreForGame?: number
   isPlayoffGame: boolean
   homeTeamNameOrDescription: string
   homeTeamAvatarInfo?: {
@@ -35,42 +33,32 @@ type GameGuessProps = {
     src: string
   }
   homeTeamTheme?: Theme | null
-  homeScore?: number
   awayTeamNameOrDescription: string,
   awayTeamAvatarInfo?: {
     alt: string
     src: string
   },
   awayTeamTheme?: Theme | null
+  handleScoreChange: (isHomeTeam: boolean) => (e: ChangeEvent<HTMLInputElement>) => void,
+}
+
+type GameGuessProps =  {
+  isGameGuess: true
+  scoreForGame?: number
+  homeScore?: number
   awayScore?: number
   editDisabled: boolean
   homePenaltyWinner?: boolean
   awayPenaltyWinner?: boolean
-  handleScoreChange: (isHomeTeam: boolean) => (e: ChangeEvent<HTMLInputElement>) => void,
   handlePenaltyWinnerChange: (isHomeTeam: boolean) => (e: ChangeEvent<HTMLInputElement>) => void,
-}
+} & SharedProps
 
 type GameResultProps = {
   isGameGuess: false
-  game: ExtendedGameData
-  isPlayoffGame: boolean
-  homeTeamNameOrDescription: string
-  homeTeamAvatarInfo?: {
-    alt: string
-    src: string
-  }
-  homeTeamTheme?: Theme | null
-  awayTeamNameOrDescription: string,
-  awayTeamAvatarInfo?: {
-    alt: string
-    src: string
-  },
-  awayTeamTheme?: Theme | null
-  handleScoreChange: (isHomeTeam: boolean) => (e: ChangeEvent<HTMLInputElement>) => void,
   handlePenaltyScoreChange: (isHomeTeam: boolean) => (e: ChangeEvent<HTMLInputElement>) => void,
   handleDraftStatusChanged: (e: ChangeEvent<HTMLInputElement>) => void,
   handleGameDateChange: (updatedDate: Date) => void
-}
+} & SharedProps
 
 type Props = GameGuessProps | GameResultProps
 

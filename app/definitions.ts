@@ -39,7 +39,7 @@ export interface ExtendedPlayoffRoundData extends PlayoffRound {
  */
 export interface ExtendedGameData extends Game {
   group?: { tournament_group_id: string,  group_letter: string} | null
-  playoffStage?: { tournament_playoff_round_id: string, round_name: string } | null
+  playoffStage?: { tournament_playoff_round_id: string, round_name: string, is_final: boolean, is_third_place: boolean } | null
   gameResult?: GameResultNew | null
 }
 

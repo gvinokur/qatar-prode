@@ -19,9 +19,9 @@ export const getTeamDescription = (rule?: GroupFinishRule | TeamWinnerRule) => {
     }
   } else if (isTeamWinnerRule(rule)){
     if (rule.winner) {
-      return `Ganador del Partido ${rule.game}`
+      return `Ganador #${rule.game}`
     } else {
-      return `Perdedor del Partido ${rule.game}`
+      return `Perdedor #${rule.game}`
     }
   }
   return ''

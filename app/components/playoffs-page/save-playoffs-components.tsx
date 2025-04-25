@@ -6,7 +6,7 @@ import {Alert, Hidden, Snackbar} from "@mui/material";
 import {updateOrCreateGameGuesses, updateOrCreateTournamentGuess} from "../../actions/guesses-actions";
 
 export default function SavePlayoffsComponent() {
-  const {gameGuesses, tournamentGuesses} = useContext(GuessesContext)
+  const {gameGuesses} = useContext(GuessesContext)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 

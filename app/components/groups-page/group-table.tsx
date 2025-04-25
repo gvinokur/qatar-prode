@@ -110,7 +110,6 @@ export default function GroupTable({games, teamsMap, isPredictions, qualifiedTea
           </TableBody>
         </Table>
       </Paper>
-      {isPredictions && <SaveComponent/>}
     </Box>
   )
 }
