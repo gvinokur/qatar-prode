@@ -109,8 +109,8 @@ export default function GamesGrid({ teamsMap, ...gamesOrSections }: GamesGridPro
       awayTeamName: 'Unknwon'
     })
     const gameGuess = gameGuesses[selectedGame.id]
-    const homeTeam = selectedGame.home_team || gameGuess.home_team
-    const awayTeam = selectedGame.away_team || gameGuess.away_team
+    const homeTeam = selectedGame.home_team || gameGuess?.home_team
+    const awayTeam = selectedGame.away_team || gameGuess?.away_team
     return {
       homeTeamName: homeTeam ? teamsMap[homeTeam].name : getTeamDescription(selectedGame.home_team_rule),
       awayTeamName: awayTeam ? teamsMap[awayTeam].name : getTeamDescription(selectedGame.away_team_rule)
