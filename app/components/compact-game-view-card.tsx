@@ -153,7 +153,7 @@ export default function CompactGameViewCard({
           {/* Teams and score */}
           <Grid container spacing={1}>
             {/* Home team */}
-            <Grid item xs={5} display="flex" justifyContent="flex-end">
+            <Grid item xs={5} display="flex" justifyContent="flex-end" alignItems={'center'}>
               <Typography
                 variant="body2"
                 fontWeight="medium"
@@ -183,7 +183,7 @@ export default function CompactGameViewCard({
             </Grid>
 
             {/* Score */}
-            <Grid item xs={2} textAlign={'center'}>
+            <Grid item xs={2} display={'flex'} justifyContent={'space-around'} alignItems={'center'}>
               {hasResult ? (
                 <Typography variant="body2" fontWeight="bold">
                   {homeScore}
@@ -206,7 +206,7 @@ export default function CompactGameViewCard({
             </Grid>
 
             {/* Away team */}
-            <Grid item xs={5} display="flex">
+            <Grid item xs={5} display="flex" alignItems={'center'}>
               {isPlayoffGame &&
                 specificProps.isGameGuess &&
                 specificProps.awayPenaltyWinner &&
