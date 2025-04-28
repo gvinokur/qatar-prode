@@ -4,7 +4,14 @@ import {Alert, Backdrop, Box, CircularProgress, Grid, Snackbar, useTheme} from "
 import {ChangeEvent, useEffect, useState} from "react";
 import {ExtendedGameData, ExtendedGroupData} from "../../definitions";
 import {getCompleteGroupData} from "../../actions/tournament-actions";
-import {GameResultNew, Team, TeamStats, TournamentGroupTeam, TournamentGroupTeamNew} from "../../db/tables-definition";
+import {
+  Game,
+  GameResultNew,
+  Team,
+  TeamStats,
+  TournamentGroupTeam,
+  TournamentGroupTeamNew
+} from "../../db/tables-definition";
 import BackofficeGameView from "./internal/backoffice-game-view";
 import {LoadingButton} from "@mui/lab";
 import {
@@ -19,6 +26,9 @@ import GroupTable from "../groups-page/group-table";
 import {DebugObject} from "../debug";
 import {calculateGroupPosition} from "../../utils/group-position-calculator";
 import {updateTournamentGroupTeams} from "../../db/tournament-group-repository";
+import GameResultEditDialog from "../game-result-edit-dialog";
+import {getTeamDescription} from "../../utils/playoffs-rule-helper";
+import {getTeamByName} from "../../db/team-repository";
 
 type Props = {
   group: ExtendedGroupData
@@ -37,9 +47,10 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
   const [sortedGameIds, setSortedGameIds] = useState<string[]>([])
   const [teamsMap, setTeamsMap] = useState<{[k:string]:Team}>({})
   const [loading, setLoading] = useState<boolean>(true)
-  const [saving, setSaving] = useState<boolean>(false)
   const [saved, setSaved] = useState<boolean>(false)
   const [positions, setPositions] = useState<TeamStats[]>([])
+  const [editResultDialogOpened, setEditResultDialogOpened] = useState(false)
+  const [selectedGame, setSelectedGame] = useState<ExtendedGameData>()
 
 
   useEffect(() => {
@@ -70,97 +81,60 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
 
   }, [teamsMap, gamesMap, setPositions, group.sort_by_games_between_teams]);
 
-  const handleScoreChange =
-    (gameId: string) =>
-      (isHomeTeam: boolean) =>
-        (e: ChangeEvent<HTMLInputElement>) => {
-          const game = gamesMap[gameId]
-          let value: number | null = Number.parseInt(e.target.value, 10);
-          if(!Number.isInteger(value)) {
-            value = null
-          }
-          if (game) {
-            const gameResult: GameResultNew = game.gameResult || buildGameResult(game)
-            setGamesMap({
-              ...gamesMap,
-              [gameId]: {
-                ...game,
-                gameResult: {
-                  ...gameResult,
-                  [isHomeTeam ? 'home_score' : 'away_score']: value
-                }
-              }
-            })
-          }
-        }
+  const saveGamesAndRecalculate = async (newGamesMap: {[k: string]: ExtendedGameData}) => {
+    await saveGameResults(Object.values(newGamesMap))
+    await calculateAndSavePlayoffGamesForTournament(tournamentId)
+    await saveGamesData(Object.values(newGamesMap))
+    await calculateAndStoreGroupPosition(group.id, Object.keys(teamsMap), Object.values(newGamesMap), group.sort_by_games_between_teams)
+    await calculateGameScores(false, false)
+    await calculateAndStoreQualifiedTeamsPoints(tournamentId)
+    setSaved(false)
+  }
 
+  const handleGameEditStarted = (gameNumber: number) => {
+    setSelectedGame(Object.values(gamesMap).find(game => game.game_number === gameNumber))
+    setEditResultDialogOpened(true)
+  }
 
-  const handlePenaltyScoreChange =
-    (gameId: string) =>
-      (isHomeTeam: boolean) =>
-        (e: ChangeEvent<HTMLInputElement>) => {
-          const game = gamesMap[gameId]
-          let value: number | null = Number.parseInt(e.target.value, 10);
-          if(!Number.isInteger(value)) {
-            value = null
+  const handleGamePublishedStatusChanged = async (gameNumber: number) => {
+    const game = Object.values(gamesMap).find(game => game.game_number === gameNumber)
+    if(game && game.gameResult) {
+      const is_draft = !game.gameResult.is_draft
+      const newGamesMap = {
+        ...gamesMap,
+        [game.id]: {
+          ...game,
+          gameResult: {
+            ...game.gameResult,
+            is_draft
           }
-          if (game) {
-            const gameResult: GameResultNew = game.gameResult || buildGameResult(game)
-            setGamesMap({
-              ...gamesMap,
-              [gameId]: {
-                ...game,
-                gameResult: {
-                  ...gameResult,
-                  [isHomeTeam ? 'home_penalty_score' : 'away_penalty_score']: value
-                }
-              }
-            })
-          }
-        }
-
-
-  const handleDraftStatusChanged =
-    (gameId: string) =>
-      () => {
-        const game = gamesMap[gameId]
-        if(game) {
-          const gameResult: GameResultNew = game.gameResult || buildGameResult(game)
-          setGamesMap({
-            ...gamesMap,
-            [gameId]: {
-              ...game,
-              gameResult: {
-                ...gameResult,
-                is_draft: !gameResult.is_draft
-              }
-            }
-          })
         }
       }
+      await saveGamesAndRecalculate(newGamesMap)
+      setGamesMap(newGamesMap)
+    }
+  }
 
-  const handleGameDateChange =  (gameId:string) =>
-    (updatedDate: Date) => {
-      const game = gamesMap[gameId]
-      setGamesMap({
+  const handleSaveGameResult = async (gameId: string, homeScore: number | null, awayScore: number | null, homePenaltyScore?: number, awayPenaltyScore?: number, gameDate?: Date) => {
+    const game = gamesMap[gameId]
+    if (game) {
+      const gameResult: GameResultNew = game.gameResult || buildGameResult(game)
+      const newGamesMap = {
         ...gamesMap,
         [gameId]: {
           ...game,
-          game_date: updatedDate
+          game_date: gameDate || game.game_date,
+          gameResult: {
+            ...gameResult,
+            home_score: homeScore !== null ? homeScore : undefined,
+            away_score: awayScore !== null ? awayScore : undefined,
+          }
         }
-      })
+      }
+      await saveGamesAndRecalculate(newGamesMap)
+      setGamesMap(newGamesMap)
     }
-  const handleSaveGameResult = async () => {
-    setSaving(true)
-    await saveGameResults(Object.values(gamesMap))
-    await calculateAndSavePlayoffGamesForTournament(tournamentId)
-    await saveGamesData(Object.values(gamesMap))
-    await calculateAndStoreGroupPosition(group.id, Object.keys(teamsMap), Object.values(gamesMap), group.sort_by_games_between_teams)
-    await calculateGameScores(false, false)
-    await calculateAndStoreQualifiedTeamsPoints(tournamentId)
-    setSaving(false)
-    setSaved(false)
-  }
+  };
 
   return (
     <Box>
@@ -181,10 +155,8 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
                       <BackofficeGameView
                         game={gamesMap[gameId]}
                         teamsMap={teamsMap}
-                        handleScoreChange={handleScoreChange(gameId)}
-                        handlePenaltyScoreChange={handlePenaltyScoreChange(gameId)}
-                        handleDraftStatusChanged={handleDraftStatusChanged(gameId)}
-                        handleGameDateChange={handleGameDateChange(gameId)}
+                        onEditClick={handleGameEditStarted}
+                        onPublishClick={handleGamePublishedStatusChanged}
                       />
                     </Grid>
                   ))}
@@ -194,9 +166,6 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
               <GroupTable games={Object.values(gamesMap)} teamsMap={teamsMap} isPredictions={false} realPositions={positions}/>
             </Grid>
           </Grid>
-          <LoadingButton loading={saving} variant='contained' size='large' onClick={handleSaveGameResult}
-              sx={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translate(-50%, 0)',
-                display: 'block' }}>Guardar Partidos</LoadingButton>
           <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center'}} open={saved} autoHideDuration={2000} onClose={() => setSaved(false)}>
             <Alert onClose={() => setSaved(false)} severity="success" sx={{ width: '100%' }}>
               Los Partidos se guardaron correctamente!
@@ -204,6 +173,20 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
           </Snackbar>
         </>
       )}
+      <GameResultEditDialog
+        isGameGuess={false}
+        onGameResultSave={handleSaveGameResult}
+        open={editResultDialogOpened}
+        onClose={() => setEditResultDialogOpened(false)}
+        gameId={selectedGame?.id || ''}
+        gameNumber={selectedGame?.game_number || 0}
+        isPlayoffGame={false}
+        homeTeamName={selectedGame?.home_team && teamsMap[selectedGame.home_team].name || 'Unknown team'}
+        awayTeamName={selectedGame?.away_team && teamsMap[selectedGame.away_team].name || 'Unknown team'}
+        initialHomeScore={selectedGame?.gameResult?.home_score}
+        initialAwayScore={selectedGame?.gameResult?.away_score}
+        initialGameDate={selectedGame?.game_date || new Date()}
+      />
     </Box>
   )
 }

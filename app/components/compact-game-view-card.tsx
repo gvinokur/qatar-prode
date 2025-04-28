@@ -9,13 +9,15 @@ import {
   Typography,
   useTheme,
   IconButton,
-  Tooltip, Switch, Divider, Grid
+  Tooltip, Switch, Divider, Grid,
+  Checkbox,
+  Badge, CircularProgress
 } from "@mui/material";
-import { Edit as EditIcon } from "@mui/icons-material";
-import {Close as MissIcon, Done as HitIcon, DoneAll as HitAllIcon} from "@mui/icons-material";
+import {Edit as EditIcon} from "@mui/icons-material";
+import {Close as MissIcon, Done as HitIcon, DoneAll as HitAllIcon, Save as SaveIcon, SaveOutlined as SaveOutlinedIcon, Scoreboard as ScoreboardIcon} from "@mui/icons-material";
 import { getDateString } from "../../utils/date-utils";
-import { ExtendedGameData } from "../definitions";
-import {GameResult, GameResultNew, Theme} from "../db/tables-definition";
+import { GameResultNew, Theme} from "../db/tables-definition";
+import {useState} from "react";
 
 type SharedProps = {
   gameNumber: number;
@@ -42,7 +44,7 @@ type GameGuessProps =  {
 
 type GameResultProps = {
   isGameGuess: false
-  onPublishClick?: (game_number: number) => void
+  onPublishClick?: (gameNumber: number) => Promise<void>
   isDraft?: boolean
   homePenaltyScore?: number
   awayPenaltyScore?: number
@@ -67,6 +69,7 @@ export default function CompactGameViewCard({
 }: CompactGameViewCardProps) {
   const theme = useTheme();
   const hasResult = Number.isInteger(homeScore) && Number.isInteger(awayScore);
+  const [publishing, setPublishing] = useState(false)
 
   const handleEditClick = () => {
     if (!disabled) {
@@ -74,13 +77,15 @@ export default function CompactGameViewCard({
     }
   };
 
-  const handleDraftChange = () => {
+  const handleDraftChange = async () => {
     if (!specificProps.isGameGuess && specificProps.onPublishClick) {
-      specificProps.onPublishClick(gameNumber);
+      setPublishing(true)
+      await specificProps.onPublishClick(gameNumber);
+      setPublishing(false)
     }
   };
 
-  const cardExtraStyles = !disabled ? {cursor: 'pointer'} : {}
+  const isClickableStyles = !disabled ? {cursor: 'pointer'} : {}
   const isDraft = (!specificProps.isGameGuess && specificProps.isDraft)
 
   return (
@@ -89,11 +94,10 @@ export default function CompactGameViewCard({
       sx={{
         mb: 1,
         borderColor: isDraft ? theme.palette.warning.light : 'divider',
-        backgroundColor: isDraft ? 'rgba(255, 244, 229, 0.1)' : 'background.paper'
       }}
     >
 
-      <CardContent sx={{ py: 2, px: 2, '&:last-child': { pb: 3 }, ...cardExtraStyles }} onClick={handleEditClick}>
+      <CardContent sx={{ py: 2, px: 2, '&:last-child': { pb: 3 } }}>
         <Box display="flex" flexDirection={'column'} alignItems="center" justifyContent="space-between" gap={1}>
           {/* Game number and date */}
           <Box display="flex" width='100%'>
@@ -109,21 +113,30 @@ export default function CompactGameViewCard({
               {(!disabled) && (
                 <Tooltip title="Edit result">
                   <IconButton
-                    size="small"
+                    size={'large'}
                     onClick={handleEditClick}
-                    sx={{ p: 0.5 }}
                   >
-                    <EditIcon fontSize="small" />
+                    <Badge
+                      overlap="circular"
+                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                      badgeContent={
+                        <EditIcon sx={{ width: '16px', height: '16px' }}/>
+                      }
+                    >
+                      <ScoreboardIcon sx={{ width: '20px', height: '20px' }}/>
+                    </Badge>
                   </IconButton>
                 </Tooltip>
               )}
               {!specificProps.isGameGuess && !disabled && (
                 <Tooltip title="Is Published?">
-                  <Switch
-                    size="small"
-                    color="warning"
-                    value={!isDraft}
-                    sx={{ height: 20, fontSize: '0.6rem' }}
+                  <Checkbox
+                    size="medium"
+                    color={isDraft ? 'warning' : 'success'}
+                    checked={!isDraft}
+                    icon={publishing? <CircularProgress size={24} color={'secondary'}/> : <SaveOutlinedIcon color="error" />}
+                    checkedIcon={publishing? <CircularProgress size={24} color={'secondary'}/> :<SaveIcon />}
+                    disabled={publishing}
                     onChange={handleDraftChange}
                   />
                 </Tooltip>
@@ -151,7 +164,7 @@ export default function CompactGameViewCard({
           />
 
           {/* Teams and score */}
-          <Grid container spacing={1}>
+          <Grid container spacing={1} sx={isClickableStyles} onClick={handleEditClick}>
             {/* Home team */}
             <Grid item xs={5} display="flex" justifyContent="flex-end" alignItems={'center'}>
               <Typography

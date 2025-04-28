@@ -83,15 +83,16 @@ export default function GamesGrid({ teamsMap, ...gamesOrSections }: GamesGridPro
   };
 
   const handleGameResultSave = async (
-    gameGuess: GameGuessNew | GameGuess,
+    gameId: string,
     homeScore?: number,
     awayScore?: number,
     homePenaltyWinner?: boolean,
     awayPenaltyWinner?: boolean
   ) => {
     // Update the game guess
+    if (!selectedGame) return;
     const updatedGameGuess = {
-      ...gameGuess,
+      ...(gameGuesses[gameId] || buildGameGuess(selectedGame, data?.user?.id || '')),
       home_score: homeScore,
       away_score: awayScore,
       home_penalty_winner: homePenaltyWinner || false,
@@ -99,7 +100,7 @@ export default function GamesGrid({ teamsMap, ...gamesOrSections }: GamesGridPro
     };
     // Call the context update function
     await groupContext.updateGameGuess(
-      gameGuess.game_id,
+      gameId,
       updatedGameGuess);
   };
 
@@ -118,6 +119,7 @@ export default function GamesGrid({ teamsMap, ...gamesOrSections }: GamesGridPro
   }
 
   const {homeTeamName, awayTeamName} = getTeamNames()
+  const gameGuess = selectedGame && data?.user && (gameGuesses[selectedGame.id] || buildGameGuess(selectedGame, data?.user?.id))
 
   return (
     <>
@@ -151,13 +153,19 @@ export default function GamesGrid({ teamsMap, ...gamesOrSections }: GamesGridPro
         ))}
       </Grid>
       <GameResultEditDialog
+        isGameGuess={true}
         open={editDialogOpen}
         onClose={() => setEditDialogOpen(false)}
-        game={selectedGame}
-        gameGuess={selectedGame && data?.user && (gameGuesses[selectedGame.id] || buildGameGuess(selectedGame, data?.user?.id))}
-        onGameResultSave={handleGameResultSave}
+        onGameGuessSave={handleGameResultSave}
         homeTeamName={homeTeamName}
         awayTeamName={awayTeamName}
+        gameId={selectedGame?.id || ''}
+        gameNumber={selectedGame?.game_number || 0}
+        initialHomeScore={gameGuess?.home_score}
+        initialAwayScore={gameGuess?.away_score}
+        initialHomePenaltyWinner={gameGuess?.home_penalty_winner}
+        initialAwayPenaltyWinner={gameGuess?.away_penalty_winner}
+        isPlayoffGame={gamesOrSections.isPlayoffs}
       />
   </>
   )

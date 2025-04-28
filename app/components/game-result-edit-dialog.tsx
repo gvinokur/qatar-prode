@@ -19,58 +19,98 @@ import {
 import { ExtendedGameData } from '../definitions';
 import {GameGuess, GameGuessNew} from '../db/tables-definition';
 import {calculateTeamNamesForPlayoffGame} from "../utils/playoff-teams-calculator";
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
 
-interface GameResultEditDialogProps {
+interface SharedProps {
   open: boolean;
   onClose: () => void;
-  game?: ExtendedGameData | null;
-  gameGuess?: GameGuessNew | GameGuess | null;
-  onGameResultSave: (gameGuess: GameGuess | GameGuessNew, homeScore?: number, awayScore?: number, homePenaltyWinner?: boolean, awayPenaltyWinner?: boolean) => Promise<void>;
+  gameId: string;
+  gameNumber: number;
+  isPlayoffGame: boolean;
   homeTeamName: string;
   awayTeamName: string;
 }
 
-export default function GameResultEditDialog({
-  open,
-  onClose,
-  game,
-  gameGuess,
-  onGameResultSave,
-  homeTeamName,
-  awayTeamName
-}: GameResultEditDialogProps) {
-  const [homeScore, setHomeScore] = useState<number>();
-  const [awayScore, setAwayScore] = useState<number>();
+interface GameGuessEditProps extends SharedProps {
+  isGameGuess: true;
+  initialHomeScore?: number;
+  initialAwayScore?: number;
+  initialHomePenaltyWinner?: boolean;
+  initialAwayPenaltyWinner?: boolean;
+  onGameGuessSave: (gameId: string, homeScore?: number, awayScore?: number, homePenaltyWinner?: boolean, awayPenaltyWinner?: boolean) => Promise<void>;
+}
+
+interface GameResultEditProps extends SharedProps {
+  isGameGuess: false;
+  initialHomeScore?: number;
+  initialAwayScore?: number;
+  initialHomePenaltyScore?: number;
+  initialAwayPenaltyScore?: number;
+  initialGameDate: Date;
+  onGameResultSave: (gameId: string, homeScore: number | null, awayScore: number | null, homePenaltyScore?: number, awayPenaltyScore?: number, gameDate?: Date) => Promise<void>;
+}
+
+type GameResultEditDialogProps = GameGuessEditProps | GameResultEditProps;
+
+export default function GameResultEditDialog(props: GameResultEditDialogProps) {
+  const {
+    open,
+    onClose,
+    gameId,
+    gameNumber,
+    isPlayoffGame,
+    homeTeamName,
+    awayTeamName
+  } = props;
+
+  const [homeScore, setHomeScore] = useState<number | undefined>();
+  const [awayScore, setAwayScore] = useState<number | undefined>();
   const [homePenaltyWinner, setHomePenaltyWinner] = useState(false);
   const [awayPenaltyWinner, setAwayPenaltyWinner] = useState(false);
+  const [homePenaltyScore, setHomePenaltyScore] = useState<number | undefined>();
+  const [awayPenaltyScore, setAwayPenaltyScore] = useState<number | undefined>();
+  const [gameDate, setGameDate] = useState<Date | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isPlayoffGame = !!game?.playoffStage;
-  const isPenaltyShootout = homeScore !== null && awayScore !== null && homeScore === awayScore && isPlayoffGame;
+  const isPenaltyShootout = homeScore !== undefined && awayScore !== undefined && homeScore === awayScore && isPlayoffGame;
 
-  // Initialize form when dialog opens or game changes
+  // Initialize form when dialog opens or props change
   useEffect(() => {
-    if (open && game) {
-      // If we have a gameGuess, use its values
-      if (gameGuess) {
-        setHomeScore(gameGuess.home_score);
-        setAwayScore(gameGuess.away_score);
-        setHomePenaltyWinner(gameGuess.home_penalty_winner || false);
-        setAwayPenaltyWinner(gameGuess.away_penalty_winner || false);
+    if (open) {
+      if (props.isGameGuess) {
+        setHomeScore(props.initialHomeScore);
+        setAwayScore(props.initialAwayScore);
+        setHomePenaltyWinner(props.initialHomePenaltyWinner || false);
+        setAwayPenaltyWinner(props.initialAwayPenaltyWinner || false);
+      } else {
+        setHomeScore(props.initialHomeScore);
+        setAwayScore(props.initialAwayScore);
+        setHomePenaltyScore(props.initialHomePenaltyScore);
+        setAwayPenaltyScore(props.initialAwayPenaltyScore);
+        setGameDate(props.initialGameDate);
       }
+
       setError(null);
     }
-  }, [open, game, gameGuess]);
+  }, [open, props]);
 
   const handleHomeScoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value === '' ? undefined : Number(e.target.value);
     setHomeScore(value);
 
-    // If scores are no longer equal, reset penalty winners
+    // If scores are no longer equal, reset penalty winners/scores
     if (value !== awayScore) {
-      setHomePenaltyWinner(false);
-      setAwayPenaltyWinner(false);
+      if (props.isGameGuess) {
+        setHomePenaltyWinner(false);
+        setAwayPenaltyWinner(false);
+      } else {
+        setHomePenaltyScore(undefined);
+        setAwayPenaltyScore(undefined);
+      }
     }
   };
 
@@ -78,10 +118,15 @@ export default function GameResultEditDialog({
     const value = e.target.value === '' ? undefined : Number(e.target.value);
     setAwayScore(value);
 
-    // If scores are no longer equal, reset penalty winners
+    // If scores are no longer equal, reset penalty winners/scores
     if (homeScore !== value) {
-      setHomePenaltyWinner(false);
-      setAwayPenaltyWinner(false);
+      if (props.isGameGuess) {
+        setHomePenaltyWinner(false);
+        setAwayPenaltyWinner(false);
+      } else {
+        setHomePenaltyScore(undefined);
+        setAwayPenaltyScore(undefined);
+      }
     }
   };
 
@@ -101,18 +146,41 @@ export default function GameResultEditDialog({
     }
   };
 
-  const handleSave = async () => {
-    if (!game || !gameGuess) return;
+  const handleHomePenaltyScoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value === '' ? undefined : Number(e.target.value);
+    setHomePenaltyScore(value);
+  };
 
+  const handleAwayPenaltyScoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value === '' ? undefined : Number(e.target.value);
+    setAwayPenaltyScore(value);
+  };
+
+  const handleGameDateChange = (newDate: dayjs.Dayjs | null) => {
+    setGameDate(newDate?.toDate() || null);
+  };
+
+  const handleSave = async () => {
     // Validate scores
-    if (homeScore === null || awayScore === null) {
+    if (homeScore === undefined || awayScore === undefined) {
       setError('Please enter both scores');
       return;
     }
 
-    // Validate penalty winner selection if needed
-    if (isPenaltyShootout && !homePenaltyWinner && !awayPenaltyWinner) {
-      setError('Please select a penalty shootout winner');
+    // Validate penalty information if needed
+    if (isPenaltyShootout) {
+      if (props.isGameGuess && !homePenaltyWinner && !awayPenaltyWinner) {
+        setError('Please select a penalty shootout winner');
+        return;
+      } else if (!props.isGameGuess && (homePenaltyScore === undefined || awayPenaltyScore === undefined)) {
+        setError('Please enter both penalty scores');
+        return;
+      }
+    }
+
+    // Validate game date for game results
+    if (!props.isGameGuess && !gameDate) {
+      setError('Please select a game date');
       return;
     }
 
@@ -120,13 +188,26 @@ export default function GameResultEditDialog({
     setError(null);
 
     try {
-      await onGameResultSave(
-        gameGuess,
-        homeScore,
-        awayScore,
-        homePenaltyWinner,
-        awayPenaltyWinner
-      );
+      if (props.isGameGuess) {
+        // For game guesses
+        await props.onGameGuessSave(
+          gameId,
+          homeScore,
+          awayScore,
+          homePenaltyWinner,
+          awayPenaltyWinner
+        );
+      } else {
+        // For game results
+        await props.onGameResultSave(
+          gameId,
+          homeScore,
+          awayScore,
+          homePenaltyScore,
+          awayPenaltyScore,
+          gameDate || undefined
+        );
+      }
       onClose();
     } catch (err) {
       console.error('Error saving game result:', err);
@@ -144,10 +225,7 @@ export default function GameResultEditDialog({
       fullWidth
     >
       <DialogTitle>
-        {game ? `Edit Result: Game #${game.game_number}` : 'Edit Game Result'}
-        <Typography variant="subtitle1" gutterBottom>
-          {game?.game_date ? new Date(game.game_date).toLocaleDateString() : ''}
-        </Typography>
+        {`Edit Result: Game #${gameNumber}`}
       </DialogTitle>
 
       <DialogContent dividers>
@@ -157,6 +235,29 @@ export default function GameResultEditDialog({
           </Alert>
         )}
 
+        {/* Game Date (only for game results) */}
+        {!props.isGameGuess && (
+          <Box sx={{ mb: 3 }}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DateTimePicker
+                label="Game Date & Time"
+                value={gameDate ? dayjs(gameDate) : null}
+                onChange={handleGameDateChange}
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    margin: "normal",
+                    error: !gameDate,
+                    helperText: !gameDate ? "Game date is required" : "",
+                    disabled: loading
+                  }
+                }}
+              />
+            </LocalizationProvider>
+          </Box>
+        )}
+
+        {/* Scores */}
         <Box sx={{ mb: 3 }}>
           <Grid container spacing={2} alignItems="center">
             <Grid item xs={8}>
@@ -168,7 +269,7 @@ export default function GameResultEditDialog({
             <Grid item xs={4}>
               <TextField
                 type="number"
-                value={homeScore === null ? '' : homeScore}
+                value={homeScore === undefined ? '' : homeScore}
                 onChange={handleHomeScoreChange}
                 inputProps={{ min: 0, style: { textAlign: 'center' } }}
                 disabled={loading}
@@ -185,7 +286,7 @@ export default function GameResultEditDialog({
             <Grid item xs={4}>
               <TextField
                 type="number"
-                value={awayScore === null ? '' : awayScore}
+                value={awayScore === undefined ? '' : awayScore}
                 onChange={handleAwayScoreChange}
                 inputProps={{ min: 0, style: { textAlign: 'center' } }}
                 disabled={loading}
@@ -196,47 +297,88 @@ export default function GameResultEditDialog({
           </Grid>
         </Box>
 
-        {isPlayoffGame && (
+        {/* Penalty information for playoff games */}
+        {isPlayoffGame && isPenaltyShootout && (
           <Box sx={{ mt: 3 }}>
             <Typography variant="subtitle2" gutterBottom>
-              Penalty Shootout Winner
+              {props.isGameGuess ? 'Ganador de la tanda de penales' : 'Penalty Shootout Scores'}
             </Typography>
 
-            <Box sx={{ opacity: isPenaltyShootout ? 1 : 0.5, pointerEvents: isPenaltyShootout ? 'auto' : 'none' }}>
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={homePenaltyWinner}
-                        onChange={handleHomePenaltyWinnerChange}
-                        disabled={!isPenaltyShootout || loading}
-                      />
-                    }
-                    label={homeTeamName}
+            {props.isGameGuess ? (
+              // Penalty winner checkboxes for game guesses
+              <Box>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={homePenaltyWinner}
+                          onChange={handleHomePenaltyWinnerChange}
+                          disabled={loading}
+                        />
+                      }
+                      label={homeTeamName}
+                    />
+                  </Grid>
+
+                  <Grid item xs={6}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={awayPenaltyWinner}
+                          onChange={handleAwayPenaltyWinnerChange}
+                          disabled={loading}
+                        />
+                      }
+                      label={awayTeamName}
+                    />
+                  </Grid>
+                </Grid>
+
+                <Typography variant="caption" color="text.secondary">
+                  Dado que el pártido terminó empatado, por favor seleccione el ganador de la tanda de penales.
+                </Typography>
+              </Box>
+            ) : (
+              // Penalty score inputs for game results
+              <Grid container spacing={2} alignItems="center">
+                <Grid item xs={8}>
+                  <Typography variant="body2">
+                    {homeTeamName} (Penalty Score)
+                  </Typography>
+                </Grid>
+
+                <Grid item xs={4}>
+                  <TextField
+                    type="number"
+                    value={homePenaltyScore === undefined ? '' : homePenaltyScore}
+                    onChange={handleHomePenaltyScoreChange}
+                    inputProps={{ min: 0, style: { textAlign: 'center' } }}
+                    disabled={loading}
+                    size="small"
+                    fullWidth
                   />
                 </Grid>
 
-                <Grid item xs={6}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={awayPenaltyWinner}
-                        onChange={handleAwayPenaltyWinnerChange}
-                        disabled={!isPenaltyShootout || loading}
-                      />
-                    }
-                    label={awayTeamName}
+                <Grid item xs={8}>
+                  <Typography variant="body2">
+                    {awayTeamName} (Penalty Score)
+                  </Typography>
+                </Grid>
+
+                <Grid item xs={4}>
+                  <TextField
+                    type="number"
+                    value={awayPenaltyScore === undefined ? '' : awayPenaltyScore}
+                    onChange={handleAwayPenaltyScoreChange}
+                    inputProps={{ min: 0, style: { textAlign: 'center' } }}
+                    disabled={loading}
+                    size="small"
+                    fullWidth
                   />
                 </Grid>
               </Grid>
-
-              {isPenaltyShootout && (
-                <Typography variant="caption" color="text.secondary">
-                  Since the scores are tied, please select the penalty shootout winner.
-                </Typography>
-              )}
-            </Box>
+            )}
           </Box>
         )}
       </DialogContent>
