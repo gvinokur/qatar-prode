@@ -50,7 +50,7 @@ interface GameResultEditProps extends SharedProps {
   initialHomePenaltyScore?: number;
   initialAwayPenaltyScore?: number;
   initialGameDate: Date;
-  onGameResultSave: (gameId: string, homeScore: number | null, awayScore: number | null, homePenaltyScore?: number, awayPenaltyScore?: number, gameDate?: Date) => Promise<void>;
+  onGameResultSave: (gameId: string, homeScore?: number | null, awayScore?: number | null, homePenaltyScore?: number, awayPenaltyScore?: number, gameDate?: Date) => Promise<void>;
 }
 
 type GameResultEditDialogProps = GameGuessEditProps | GameResultEditProps;
@@ -161,12 +161,6 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
   };
 
   const handleSave = async () => {
-    // Validate scores
-    if (homeScore === undefined || awayScore === undefined) {
-      setError('Please enter both scores');
-      return;
-    }
-
     // Validate penalty information if needed
     if (isPenaltyShootout) {
       if (props.isGameGuess && !homePenaltyWinner && !awayPenaltyWinner) {

@@ -32,10 +32,10 @@ export function Fixtures( { games, teamsMap} : FixturesProps) {
                 awayTeamNameOrDescription={game.away_team && teamsMap[game.away_team].name || 'Unknown'}
                 homeTeamTheme={game.home_team && teamsMap[game.home_team].theme || undefined}
                 awayTeamTheme={game.away_team && teamsMap[game.away_team].theme || undefined}
-                homeScore={game.gameResult?.home_score}
-                awayScore={game.gameResult?.away_score}
-                homePenaltyScore={game.gameResult?.home_penalty_score}
-                awayPenaltyScore={game.gameResult?.away_penalty_score}
+                homeScore={!game.gameResult?.is_draft ? game.gameResult?.home_score : undefined}
+                awayScore={!game.gameResult?.is_draft ? game.gameResult?.away_score : undefined}
+                homePenaltyScore={!game.gameResult?.is_draft ? game.gameResult?.home_penalty_score : undefined}
+                awayPenaltyScore={!game.gameResult?.is_draft ? game.gameResult?.away_penalty_score : undefined}
                 isPlayoffGame={game.game_type !== 'group'}
                 disabled={true}
                 onEditClick={() => {}}/>

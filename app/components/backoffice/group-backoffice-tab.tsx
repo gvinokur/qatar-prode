@@ -115,7 +115,7 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
     }
   }
 
-  const handleSaveGameResult = async (gameId: string, homeScore: number | null, awayScore: number | null, homePenaltyScore?: number, awayPenaltyScore?: number, gameDate?: Date) => {
+  const handleSaveGameResult = async (gameId: string, homeScore?: number | null, awayScore?: number | null, homePenaltyScore?: number, awayPenaltyScore?: number, gameDate?: Date) => {
     const game = gamesMap[gameId]
     if (game) {
       const gameResult: GameResultNew = game.gameResult || buildGameResult(game)

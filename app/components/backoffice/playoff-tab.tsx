@@ -9,11 +9,13 @@ import BackofficeGameView from "./internal/backoffice-game-view";
 import {isTeamWinnerRule} from "../../utils/playoffs-rule-helper";
 import {getGameWinner, getGameLoser} from "../../utils/score-utils";
 import {LoadingButton} from "@mui/lab";
+import GameResultEditDialog from '../game-result-edit-dialog';
 import {
   calculateGameScores,
   saveGameResults,
   saveGamesData, updateTournamentHonorRoll
 } from "../../actions/backoffice-actions";
+
 
 type Props = {
   tournamentId: string
@@ -62,7 +64,8 @@ export default function PlayoffTab({ tournamentId } :Props) {
   const [gamesMap, setGamesMap] = useState<{[k: string]: ExtendedGameData}>({})
   const [teamsMap, setTeamsMap] = useState<{[k:string]:Team}>({})
   const [loading, setLoading] = useState<boolean>(true)
-  const [saving, setSaving] = useState<boolean>(false)
+  const [editDialogOpen, setEditDialogOpen] = useState<boolean>(false);
+  const [selectedGame, setSelectedGame] = useState<ExtendedGameData | null>(null);
   const [saved, setSaved] = useState<boolean>(false)
 
   useEffect(() => {
@@ -77,120 +80,102 @@ export default function PlayoffTab({ tournamentId } :Props) {
     fetchTournamentData()
   }, [tournamentId, setGamesMap, setTeamsMap, setLoading, setPlayoffStages]);
 
-  const handleScoreChange =
-    (gameId: string) =>
-      (isHomeTeam: boolean) =>
-        (e: ChangeEvent<HTMLInputElement>) => {
-          const game = gamesMap[gameId]
-          let value: number | null = Number.parseInt(e.target.value, 10);
-          if(!Number.isInteger(value)) {
-            value = null
-          }
-          if (game) {
-            const gameResult: GameResultNew = game.gameResult || buildGameResult(game)
-            const newGame: ExtendedGameData = {
-              ...game,
-              gameResult: {
-                ...gameResult,
-                [isHomeTeam ? 'home_score' : 'away_score']: value
-              }
-            }
-            const newGamesMap = {
-              ...gamesMap,
-              [gameId]: newGame
-            }
-            modifyAffectedTeams(newGame, newGamesMap, gamesMap)
-            setGamesMap(newGamesMap)
-          }
-        }
-
-
-  const handlePenaltyScoreChange =
-    (gameId: string) =>
-      (isHomeTeam: boolean) =>
-        (e: ChangeEvent<HTMLInputElement>) => {
-          const game = gamesMap[gameId]
-          let value: number | null = Number.parseInt(e.target.value, 10);
-          if(!Number.isInteger(value)) {
-            value = null
-          }
-          if (game) {
-            const gameResult: GameResultNew = game.gameResult || buildGameResult(game)
-            const newGame = {
-              ...game,
-              gameResult: {
-                ...gameResult,
-                [isHomeTeam ? 'home_penalty_score' : 'away_penalty_score']: value
-              }
-            }
-            const newGamesMap = {
-              ...gamesMap,
-              [gameId]: newGame
-            }
-            modifyAffectedTeams(newGame, newGamesMap, gamesMap)
-            setGamesMap(newGamesMap)
-          }
-        }
-
-  const handleDraftStatusChanged =
-    (gameId: string) =>
-      () => {
-        const game = gamesMap[gameId]
-        if(game) {
-          const gameResult: GameResultNew = game.gameResult || buildGameResult(game)
-          const newGame = {
-            ...game,
-            gameResult: {
-              ...gameResult,
-              is_draft: !gameResult.is_draft
-            }
-          }
-          const newGamesMap = {
-            ...gamesMap,
-            [gameId]: newGame
-          }
-          modifyAffectedTeams(newGame, newGamesMap, gamesMap)
-          setGamesMap(newGamesMap)
-        }
-      }
-
-  const handleGameDateChange =  (gameId:string) =>
-    (updatedDate: Date) => {
-      const game = gamesMap[gameId]
-      setGamesMap({
-        ...gamesMap,
-        [gameId]: {
-          ...game,
-          game_date: updatedDate
-        }
-      })
+  const handleEditGame = (gameNumber: number) => {
+    const gameToEdit = Object.values(gamesMap).find(game => game.game_number === gameNumber);
+    if (gameToEdit) {
+      setSelectedGame(gameToEdit);
+      setEditDialogOpen(true);
     }
+  };
 
-  const handleSaveGameResult = async () => {
-    setSaving(true)
-    await saveGameResults(Object.values(gamesMap))
-    await saveGamesData(Object.values(gamesMap))
+  const commitGameResults = async (newGame: ExtendedGameData, newGamesMap: {[k: string]: ExtendedGameData}) => {
+    await saveGameResults(Object.values(newGamesMap))
+    await saveGamesData(Object.values(newGamesMap))
     await calculateGameScores(false, false)
     const finalStage = playoffStages?.find(stage => stage.is_final)
     const thirdPlaceStage = playoffStages?.find(stage => stage.is_third_place)
     let champion_team_id: string | null | undefined= null
     let runner_up_team_id: string | null | undefined= null
     let third_place_team_id: string | null | undefined = null
-    if (finalStage?.games && !gamesMap[finalStage.games[0].game_id]?.gameResult?.is_draft) {
+    if (finalStage?.games && !newGamesMap[finalStage.games[0].game_id]?.gameResult?.is_draft) {
       //Calculate champion and runner up teams, store them and updated scores
-      const finalGame = gamesMap[finalStage.games[0].game_id];
+      const finalGame = newGamesMap[finalStage.games[0].game_id];
       champion_team_id = getGameWinner(finalGame)
       runner_up_team_id = getGameLoser(finalGame)
     }
-    if( thirdPlaceStage?.games && !gamesMap[thirdPlaceStage.games[0].game_id]?.gameResult?.is_draft) {
+    if( thirdPlaceStage?.games && !newGamesMap[thirdPlaceStage.games[0].game_id]?.gameResult?.is_draft) {
       //Calculate third place team, store it and updated scores
-      const thirdPlaceGame = gamesMap[thirdPlaceStage.games[0].game_id];
+      const thirdPlaceGame = newGamesMap[thirdPlaceStage.games[0].game_id];
       third_place_team_id = getGameWinner(thirdPlaceGame)
     }
     await updateTournamentHonorRoll(tournamentId, { champion_team_id, runner_up_team_id, third_place_team_id })
-    setSaving(false)
-    setSaved(false)
+    modifyAffectedTeams(newGame, newGamesMap, gamesMap)
+    setGamesMap(newGamesMap)
+    setSaved(true)
   }
+
+  const handleDraftStatusChanged = async (gameNumber: number) => {
+    const game = Object.values(gamesMap).find(game => game.game_number === gameNumber);
+    if(game) {
+      const gameResult: GameResultNew = game.gameResult || buildGameResult(game)
+      const newGame = {
+        ...game,
+        gameResult: {
+          ...gameResult,
+          is_draft: !gameResult.is_draft
+        }
+      }
+      const newGamesMap = {
+        ...gamesMap,
+        [game.id]: newGame
+      }
+
+      await commitGameResults(newGame, newGamesMap)
+    }
+  }
+
+  const handleGameResultSave = async (
+    gameId: string,
+    homeScore?: number | null,
+    awayScore?: number | null,
+    homePenaltyScore?: number,
+    awayPenaltyScore?: number,
+    gameDate?: Date
+  ) => {
+
+    try {
+      const game = gamesMap[gameId];
+      if (!game) return;
+
+      const gameResult = game.gameResult || buildGameResult(game);
+      const newGame: ExtendedGameData = {
+        ...game,
+        gameResult: {
+          ...gameResult,
+          home_score: homeScore !== null ? homeScore : undefined,
+          away_score: awayScore !== null ? awayScore : undefined,
+          home_penalty_score: homePenaltyScore,
+          away_penalty_score: awayPenaltyScore
+        }
+      };
+
+      // Update game date if provided
+      if (gameDate) {
+        newGame.game_date = gameDate;
+      }
+
+      const newGamesMap = {
+        ...gamesMap,
+        [gameId]: newGame
+      };
+
+      // Save changes immediately
+      await commitGameResults(newGame, newGamesMap)
+    } catch (error) {
+      console.error('Error saving game result:', error);
+    }
+  };
+
 
   return (
     <Box>
@@ -210,10 +195,8 @@ export default function PlayoffTab({ tournamentId } :Props) {
               <BackofficeGameView
                 game={gamesMap[game_id]}
                 teamsMap={teamsMap}
-                handleScoreChange={handleScoreChange(game_id)}
-                handlePenaltyScoreChange={handlePenaltyScoreChange(game_id)}
-                handleDraftStatusChanged={handleDraftStatusChanged(game_id)}
-                handleGameDateChange={handleGameDateChange(game_id)}
+                onEditClick={handleEditGame}
+                onPublishClick={handleDraftStatusChanged}
               />
             </Grid>
           ))}
@@ -221,9 +204,22 @@ export default function PlayoffTab({ tournamentId } :Props) {
       ))}
       {!loading && (
         <>
-          <LoadingButton loading={saving} variant='contained' size='large' onClick={handleSaveGameResult}
-                       sx={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translate(-50%, 0)',
-                         display: 'block' }}>Guardar Partidos</LoadingButton>
+          <GameResultEditDialog
+            open={editDialogOpen}
+            onClose={() => setEditDialogOpen(false)}
+            isGameGuess={false}
+            gameId={selectedGame?.id || ''}
+            gameNumber={selectedGame?.game_number || 0}
+            isPlayoffGame={!!selectedGame?.playoffStage}
+            homeTeamName={selectedGame?.home_team ? teamsMap[selectedGame.home_team]?.name || 'Home Team' : 'Home Team'}
+            awayTeamName={selectedGame?.away_team ? teamsMap[selectedGame.away_team]?.name || 'Away Team' : 'Away Team'}
+            initialHomeScore={selectedGame?.gameResult?.home_score}
+            initialAwayScore={selectedGame?.gameResult?.away_score}
+            initialHomePenaltyScore={selectedGame?.gameResult?.home_penalty_score}
+            initialAwayPenaltyScore={selectedGame?.gameResult?.away_penalty_score}
+            initialGameDate={selectedGame?.game_date || new Date()}
+            onGameResultSave={handleGameResultSave}
+          />
           <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center'}} open={saved} autoHideDuration={2000} onClose={() => setSaved(false)}>
             <Alert onClose={() => setSaved(false)} severity="success" sx={{ width: '100%' }}>
               Los Partidos se guardaron correctamente!
