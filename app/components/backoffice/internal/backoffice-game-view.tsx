@@ -10,7 +10,7 @@ type Props = {
   game: ExtendedGameData
   teamsMap: {[k:string]: Team}
   onEditClick: (gameNumber: number) => void
-  onPublishClick: (gameNumber: number) => void
+  onPublishClick: (gameNumber: number) => Promise<void>
 }
 
 export default function BackofficeGameView({ game, teamsMap, onEditClick, onPublishClick } : Props) {
