@@ -87,10 +87,10 @@ export async function getCompleteGroupData(groupId: string, includeDraftResults:
   }
 }
 
-export async function getCompletePlayoffData(tournamentId: string) {
+export async function getCompletePlayoffData(tournamentId: string, includeDraftResults:boolean = true) {
   const playoffStages = await findPlayoffStagesWithGamesInTournament(tournamentId)
   const teamsMap = await getTeamsMap(tournamentId)
-  const games: Game[] = await findGamesInTournament(tournamentId)
+  const games: Game[] = await findGamesInTournament(tournamentId, includeDraftResults)
   const gamesMap: {[k: string]: Game} = toMap(games)
   const tournamentStartDate: Date =
     // new Date(2024, 4,1) //For debug purposes

@@ -31,7 +31,7 @@ const buildTournamentGuesses = (userId: string, tournamentId: string) => ({
 
 export default async function PlayoffPage({params, searchParams}: Props) {
   const user = await getLoggedInUser();
-  const completePlayoffData = await getCompletePlayoffData(params.id)
+  const completePlayoffData = await getCompletePlayoffData(params.id, false)
   if(!user) {
     redirect('/')
   }
@@ -99,7 +99,8 @@ export default async function PlayoffPage({params, searchParams}: Props) {
         thirdPlace,
         gameGuesses: gameGuessesMap,
         playoffTeamsByGuess,
-        guessedPositionsByGroup
+        guessedPositionsByGroup,
+        gameSections: sections,
       }}/>)}
 
       <GuessesContextProvider

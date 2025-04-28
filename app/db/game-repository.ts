@@ -14,7 +14,7 @@ export const updateGame = baseFunctions.update
 export const createGame = baseFunctions.create
 export const deleteGame =  baseFunctions.delete
 
-export const findGamesInTournament = cache(async (tournamentId: string) => {
+export const findGamesInTournament = cache(async (tournamentId: string, draftResult: boolean = true) => {
   return await db.selectFrom(tableName)
     .selectAll()
     .select((eb) =>[
@@ -43,6 +43,7 @@ export const findGamesInTournament = cache(async (tournamentId: string) => {
       jsonObjectFrom(
         eb.selectFrom('game_results')
           .whereRef('game_results.game_id', '=', 'games.id')
+          .where('is_draft', 'in', [false, draftResult])
           .selectAll()
       ).as('gameResult')
     ])
