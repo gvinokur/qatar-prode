@@ -1,14 +1,16 @@
 'use client'
 
-import {Tab, Tabs, useMediaQuery} from "@mui/material";
+import {Box, Tab, Tabs, Tooltip, useMediaQuery} from "@mui/material";
 import TabPanel from "../tab-panel";
 import {useCallback, useRef, useState} from "react";
+import {BugReport} from "@mui/icons-material";
 
 
 export type LabelledTab = {
   type: 'labelledTab'
   label: string,
   component: React.ReactNode
+  isDevOnly?: boolean
 }
 
 export type ActionTab = {
@@ -40,7 +42,16 @@ export function BackofficeTabs({tabs} :Props) {
         scrollButtons={"auto"}
       >
         {tabs.map(tab=> tab.type === 'labelledTab' ? (
-          <Tab label={tab.label} key={tab.label}/>
+          <Tab key={tab.label} label={
+            tab.isDevOnly ? (
+              <Tooltip
+                title={'Este torneo solo está disponible en el ambiente de desarrollo'}>
+                <Box sx={{display: 'flex', alignItems: 'center'}}>
+                  {tab.label} <BugReport sx={{ ml:1, height: '16px'}} />
+                </Box>
+              </Tooltip>
+            ) : tab.label
+          } />
         ) : tab.action)}
       </Tabs>
       {tabs.map((tab, index) => tab.type === 'labelledTab' && (

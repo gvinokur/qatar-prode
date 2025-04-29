@@ -51,11 +51,17 @@ export default async function Backoffice() {
               tournament.short_name,
               (
                 <BackofficeTabs key={tournament.short_name} tabs={[
-                  createTab('Tournament Management', <TournamentBackofficeTab tournament={tournament}/>),
-                  createTab('Tournament Game Management', <GroupsTab tournamentId={tournament.id}/>),
-                  createTab('Overall Awards Management', <BackofficeAwardsTab tournamentId={tournament.id}/>),
+                  createTab('Tournament Actions', <TournamentBackofficeTab tournament={tournament}/>),
+                  createTab('Game Scores', <GroupsTab tournamentId={tournament.id}/>),
+                  createTab('Awards', <BackofficeAwardsTab tournamentId={tournament.id}/>),
+                  createTab('Teams', <TournamentTeamsManagerTab tournamentId={tournament.id}/>),
+                  createTab('Tournament Data', <TournamentMainDataTab tournamentId={tournament.id}/>),
+                  createTab('Tournament Groups', <TournamentGroupsManagerTab tournamentId={tournament.id}/>),
+                  createTab('Games', <TournamentGameManagerTab tournamentId={tournament.id}/>),
                 ]}/>
-              ))
+              ),
+              tournament.dev_only
+            ),
           ),
           ...inactiveTournaments.map(tournament =>
             createTab(

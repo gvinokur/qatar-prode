@@ -1,10 +1,11 @@
 import {ActionTab, LabelledTab} from "./backoffice-tabs";
 
-export function createTab(label: string, component: React.ReactNode): LabelledTab {
+export function createTab(label: string, component: React.ReactNode, isDevOnly:boolean = false): LabelledTab {
   return {
     type: 'labelledTab',
     label,
-    component
+    component,
+    isDevOnly
   }
 }
 

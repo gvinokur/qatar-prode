@@ -1,6 +1,7 @@
 import { db } from './database'
 import {createBaseFunctions} from "./base-repository";
 import {Tournament, TournamentTable, TournamentTeamTable} from "./tables-definition";
+import {isDevelopmentMode} from "../utils/environment-utils";
 
 const baseFunctions = createBaseFunctions<TournamentTable, Tournament>('tournaments');
 export const findTournamentById = baseFunctions.findById
@@ -22,8 +23,18 @@ export async function findAllTournaments () {
 }
 
 export async function findAllActiveTournaments () {
+  const isDevMode = isDevelopmentMode();
+
   return db.selectFrom('tournaments')
     .where('is_active', '=', true)
+    .where(eb => {
+      if (!isDevMode) {
+        // In production, only show non-dev tournaments
+        return eb('dev_only', '=', false);
+      }
+      // In development, show all active tournaments
+      return eb.val(true);
+    })
     .selectAll()
     .execute()
 }

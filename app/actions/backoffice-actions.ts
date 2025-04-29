@@ -77,6 +77,7 @@ import {
   updateTournamentGuessByUserIdTournament
 } from "../db/tournament-guess-repository";
 import {awardsDefinition} from "../utils/award-utils";
+import {getLoggedInUser} from "./user-actions";
 
 export async function deleteDBTournamentTree(tournament: Tournament) {
   // delete from tournament_playoff_round_games ;
@@ -525,4 +526,167 @@ export async function updateTournamentHonorRoll(tournamentId: string, withUpdate
       })
     }))
   }
+}
+
+/**
+ * Creates a complete copy of a tournament including all related data
+ * @param tournamentId - The ID of the tournament to copy
+ * @param longName - Optional custom long name for the new tournament
+ * @param shortName - Optional custom short name for the new tournament
+ * @returns The newly created tournament
+ */
+export async function copyTournament(
+  tournamentId: string,
+  longName?: string,
+  shortName?: string
+): Promise<Tournament> {
+  const user = await getLoggedInUser();
+
+  // Check if user is admin
+  if (!user?.isAdmin) {
+    throw new Error('Unauthorized: Only administrators can copy tournaments');
+  }
+
+  // Get the original tournament
+  const originalTournament = await findTournamentById(tournamentId);
+  if (!originalTournament) {
+    throw new Error('Tournament not found');
+  }
+
+  // Create a new tournament with modified name
+  const newTournament = await createTournament({
+    long_name: longName || `${originalTournament.long_name} - copy`,
+    short_name: shortName || `${originalTournament.short_name} - copy`,
+    theme: originalTournament.theme && JSON.stringify(originalTournament.theme) || undefined,
+    is_active: false, // Start as inactive to prevent access during setup
+    dev_only: true // Mark as dev_only by default for safety
+  });
+
+  // Copy teams association
+  const teamsInTournament = await findTeamInTournament(tournamentId);
+  await Promise.all(teamsInTournament.map(team =>
+    createTournamentTeam({
+      tournament_id: newTournament.id,
+      team_id: team.id
+    })
+  ));
+
+  // Copy players
+  const playersInTournament = await findAllPlayersInTournamentWithTeamData(tournamentId);
+  await Promise.all(playersInTournament.map(player =>
+    createPlayer({
+      tournament_id: newTournament.id,
+      team_id: player.team_id,
+      name: player.name,
+      age_at_tournament: player.age_at_tournament,
+      position: player.position
+    })
+  ));
+
+  // Copy playoff rounds
+  const playoffStages = await findPlayoffStagesWithGamesInTournament(tournamentId);
+  const playoffStageIdMap = new Map<string, string>();
+
+  await Promise.all(playoffStages.map(async (stage) => {
+    const newStage = await createPlayoffRound({
+      tournament_id: newTournament.id,
+      round_name: stage.round_name,
+      round_order: stage.round_order,
+      total_games: stage.total_games,
+      is_final: stage.is_final,
+      is_third_place: stage.is_third_place,
+      is_first_stage: stage.is_first_stage
+    });
+
+    playoffStageIdMap.set(stage.id, newStage.id);
+  }))
+
+  // Copy groups
+  const groups = await findGroupsWithGamesAndTeamsInTournament(tournamentId);
+  const groupIdMap = new Map<string, string>();
+
+  await Promise.all(groups.map(async (group) => {
+    const newGroup = await createTournamentGroup({
+      tournament_id: newTournament.id,
+      group_letter: group.group_letter,
+      sort_by_games_between_teams: group.sort_by_games_between_teams || false
+    });
+
+    groupIdMap.set(group.id, newGroup.id);
+
+    // Copy group teams
+    await Promise.all(group.teams.map((teamAssoc, idx) =>
+      createTournamentGroupTeam({
+        tournament_group_id: newGroup.id,
+        team_id: teamAssoc.team_id,
+        position: idx + 1,
+        games_played: 0,
+        points: 0,
+        win: 0,
+        draw: 0,
+        loss: 0,
+        goals_for: 0,
+        goals_against: 0,
+        goal_difference: 0,
+        is_complete: false
+      })))
+  }))
+
+  // Copy all games
+  const games = await findGamesInTournament(tournamentId);
+  const gameIdMap = new Map<string, string>();
+
+  await Promise.all(games.map(async (game) => {
+    const newGame: GameNew = {
+      tournament_id: newTournament.id,
+      game_number: game.game_number,
+      home_team: game.home_team,
+      away_team: game.away_team,
+      game_date: new Date(game.game_date),
+      location: game.location,
+      game_type: game.game_type,
+      home_team_rule: game.home_team_rule && JSON.stringify(game.home_team_rule) || undefined,
+      away_team_rule: game.away_team_rule && JSON.stringify(game.away_team_rule) || undefined
+    };
+
+    const createdGame = await createGame(newGame);
+    gameIdMap.set(game.id, createdGame.id);
+
+    // Do not copy game results
+  }))
+
+  // Associate games with groups and playoff stages
+  await Promise.all(groups.flatMap(group =>
+    group.games.map(async gameAssoc => {
+      const newGroupId = groupIdMap.get(group.id);
+      const newGameId = gameIdMap.get(gameAssoc.game_id);
+
+      if (newGroupId && newGameId) {
+        await createTournamentGroupGame({
+          tournament_group_id: newGroupId,
+          game_id: newGameId
+        });
+      }
+      return Promise.resolve();
+    })).filter(p => p !== undefined))
+
+
+  // Associate games with playoff stages
+  await Promise.all(playoffStages.flatMap(stage =>
+    stage.games.map(gameAssoc => {
+      const newStageId = playoffStageIdMap.get(stage.id);
+      const newGameId = gameIdMap.get(gameAssoc.game_id);
+
+      if (newStageId && newGameId) {
+        return createPlayoffRoundGame({
+          tournament_playoff_round_id: newStageId,
+          game_id: newGameId
+        });
+      }
+      return Promise.resolve(); // For cases where IDs aren't found
+    })
+  ).filter(p => p !== undefined));
+
+  // Do not activate the tournament automatically
+  return newTournament;
 }

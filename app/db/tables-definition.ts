@@ -33,6 +33,7 @@ export interface TournamentTable extends Identifiable{
   top_goalscorer_player_id?: string
   best_goalkeeper_player_id?: string
   best_young_player_id?: string
+  dev_only?: boolean
 
   theme: JSONColumnType<Theme> | null | undefined
 }

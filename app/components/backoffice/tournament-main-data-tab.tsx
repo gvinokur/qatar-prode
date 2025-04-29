@@ -53,6 +53,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
     logo: '',
   });
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [devOnly, setDevOnly] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [dataError, setDataError] = useState<string | null>(null);
@@ -98,6 +99,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
         setTournament(tournamentData);
         setLongName(tournamentData.long_name || '');
         setShortName(tournamentData.short_name || '');
+        setDevOnly(tournamentData.dev_only || false);
         setTheme({
           primary_color: tournamentData.theme?.primary_color || '#1976d2',
           secondary_color: tournamentData.theme?.secondary_color || '#dc004e',
@@ -134,6 +136,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
         long_name: longName,
         short_name: shortName,
         theme: theme,
+        dev_only: devOnly,
       }));
 
       if (logoFile) {
@@ -334,7 +337,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
               fullWidth
             />
           </Grid>
-          <Grid item xs={12}>
+          <Grid item xs={12} md={6}>
             <TextField
               label="External Website"
               fullWidth
@@ -349,6 +352,26 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
                   </InputAdornment>
                 ),
               }}
+            />
+          </Grid>
+          <Grid item xs={12} md={6} alignContent={'center'}>
+            <FormControlLabel
+              labelPlacement={'start'}
+              control={
+                <Switch
+                  checked={devOnly}
+                  onChange={(e) => setDevOnly(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label={
+                <Box>
+                  <Typography variant="body1">Development Mode Only</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    When enabled, this tournament will only be visible in development mode
+                  </Typography>
+                </Box>
+              }
             />
           </Grid>
           <Grid item xs={12} md={6}>

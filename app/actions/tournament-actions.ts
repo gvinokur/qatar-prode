@@ -2,7 +2,7 @@
 
 import {
   createTournament,
-  findAllActiveTournaments,
+  findAllActiveTournaments, findAllTournaments,
   findTournamentById,
   findTournamentByName,
   updateTournament
@@ -45,6 +45,14 @@ import {toMap} from "../utils/ObjectUtils";
 import {getLoggedInUser} from "./user-actions";
 import {createS3Client, getS3KeyFromURL} from "./s3";
 import {findTeamInGroup, findTeamInTournament} from "../db/team-repository";
+
+/**
+ * Get all tournaments, including dev and inactive ones
+ */
+export async function getAllTournaments () {
+  const tournaments = await findAllTournaments()
+  return tournaments
+}
 
 export async function getTournaments () {
   const tournaments = await findAllActiveTournaments()

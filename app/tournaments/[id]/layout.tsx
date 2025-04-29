@@ -8,6 +8,7 @@ import {getLoggedInUser} from "../../actions/user-actions";
 import Link from "next/link";
 import EmptyAwardsSnackbar from "../../components/awards/empty-award-notification";
 import {findAllPlayersInTournamentWithTeamData, getPlayersInTournament} from "../../db/player-repository";
+import EnvironmentIndicator from "../../components/environment-indicator";
 
 type TournamentLayoutProps = {
   params: {
@@ -81,6 +82,7 @@ export default async function TournamentLayout({children, params}: TournamentLay
         isWithin5DaysOfTournamentStart && (
         <EmptyAwardsSnackbar tournamentId={params.id}/>
       )}
+      <EnvironmentIndicator isDev={layoutData.tournament.dev_only || false}/>
     </>
 
   )
