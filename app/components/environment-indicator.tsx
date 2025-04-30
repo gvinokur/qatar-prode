@@ -1,7 +1,6 @@
 'use client'
 
-import { Box, Chip } from '@mui/material';
-import { useEffect, useState } from 'react';
+import {Alert, AlertTitle, Box} from '@mui/material';
 
 export default function EnvironmentIndicator({ isDev } : {isDev: boolean}) {
 
@@ -12,19 +11,21 @@ export default function EnvironmentIndicator({ isDev } : {isDev: boolean}) {
       sx={{
         position: 'fixed',
         bottom: 16,
-        right: 16,
+        left: 16,
         zIndex: 1000
       }}
     >
-      <Chip
-        label="This tournament is only visible in development mode"
-        color="warning"
+      <Alert
+        severity="warning"
         variant="filled"
         sx={{
           fontWeight: 'bold',
           opacity: 0.8
         }}
-      />
+      >
+        <AlertTitle>Development Mode</AlertTitle>
+        Este torneo solo esta disponible en modo desarrollo.
+      </Alert>
     </Box>
   );
 }

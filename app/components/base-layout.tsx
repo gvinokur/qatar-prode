@@ -62,7 +62,7 @@ export default function BaseLayout(props: FrameProps) {
               <Link href={'/'}>La Maquina Prode</Link>
             </Typography>
           </Grid>
-          <Grid item xs={3} textAlign={'right'}>
+          <Grid item xs={3} textAlign={'right'} alignContent={'center'}>
             <UserActions user={props.user}/>
           </Grid>
         </Grid>
