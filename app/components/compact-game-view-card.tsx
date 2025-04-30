@@ -24,8 +24,10 @@ type SharedProps = {
   gameDate: Date;
   location: string;
   homeTeamNameOrDescription: string;
+  homeTeamShortNameOrDescription?: string;
   homeTeamTheme?: Theme | null;
   awayTeamNameOrDescription: string;
+  awayTeamShortNameOrDescription?: string;
   awayTeamTheme?: Theme | null;
   homeScore?: number
   awayScore?: number
@@ -57,9 +59,11 @@ export default function CompactGameViewCard({
   gameDate,
   location,
   homeTeamNameOrDescription,
+  homeTeamShortNameOrDescription,
   homeTeamTheme,
   homeScore,
   awayTeamNameOrDescription,
+  awayTeamShortNameOrDescription,
   awayTeamTheme,
   awayScore,
   isPlayoffGame,
@@ -100,8 +104,8 @@ export default function CompactGameViewCard({
       <CardContent sx={{ py: 2, px: 2, '&:last-child': { pb: 3 } }}>
         <Box display="flex" flexDirection={'column'} alignItems="center" justifyContent="space-between" gap={1}>
           {/* Game number and date */}
-          <Box display="flex" width='100%'>
-            <Box display='flex' flexGrow={1} justifyContent="center" alignItems="center" gap={1}>
+          <Box width='100%' sx={{ position: 'relative' }}>
+            <Box display='flex' flexGrow={1} justifyContent="center" alignItems="center" gap={1} py={1.5}>
               <Typography variant="body2" color="text.secondary">
                 Partido #{gameNumber}
                 &nbsp;-&nbsp;
@@ -109,49 +113,54 @@ export default function CompactGameViewCard({
               </Typography>
             </Box>
             {/* Edit button or status */}
-            <Box minWidth="40px" textAlign="right" flexDirection={'row'}>
-              {(!disabled) && (
-                <Tooltip title="Edit result">
-                  <IconButton
-                    size={'large'}
-                    onClick={handleEditClick}
-                  >
-                    <Badge
-                      overlap="circular"
-                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                      badgeContent={
-                        <EditIcon sx={{ width: '16px', height: '16px' }}/>
-                      }
+            {(!disabled || (specificProps.isGameGuess &&
+              Number.isInteger(specificProps.gameResult?.home_score) &&
+              Number.isInteger(specificProps.gameResult?.away_score) &&
+              Number.isInteger(specificProps.scoreForGame))) && (
+              <Box minWidth="40px" textAlign="right" flexDirection={'row'} alignContent={'center'} height={'100%'} sx={{ position: 'absolute', top: 0, right: 0 }}>
+                {(!disabled) && (
+                  <Tooltip title="Edit result">
+                    <IconButton
+                      size={'large'}
+                      onClick={handleEditClick}
                     >
-                      <ScoreboardIcon sx={{ width: '20px', height: '20px' }}/>
-                    </Badge>
-                  </IconButton>
-                </Tooltip>
-              )}
-              {!specificProps.isGameGuess && !disabled && (
-                <Tooltip title="Is Published?">
-                  <Checkbox
-                    size="medium"
-                    color={isDraft ? 'warning' : 'success'}
-                    checked={!isDraft}
-                    icon={publishing? <CircularProgress size={24} color={'secondary'}/> : <SaveOutlinedIcon color="error" />}
-                    checkedIcon={publishing? <CircularProgress size={24} color={'secondary'}/> :<SaveIcon />}
-                    disabled={publishing}
-                    onChange={handleDraftChange}
-                  />
-                </Tooltip>
-              )}
-              {specificProps.isGameGuess &&
-                Number.isInteger(specificProps.gameResult?.home_score) &&
-                Number.isInteger(specificProps.gameResult?.away_score) &&
-                Number.isInteger(specificProps.scoreForGame) && (
-                  <>
-                    {specificProps.scoreForGame === 0 && <Avatar title='Pronostico Errado' sx={{ width: '20px', height: '20px', bgcolor: theme.palette.error.main }}><MissIcon sx={{ fontSize: 14 }} /></Avatar>}
-                    {specificProps.scoreForGame === 1 && <Avatar title='Pronostico Correcto (1 punto)' sx={{ width: '20px', height: '20px', bgcolor: theme.palette.success.light }}><HitIcon sx={{ fontSize: 14 }} /></Avatar>}
-                    {specificProps.scoreForGame === 2 && <Avatar title='Resultado Exacto (2 puntos)' sx={{ width: '20px', height: '20px', bgcolor: theme.palette.success.main }}><HitAllIcon sx={{ fontSize: 14 }} /></Avatar>}
-                  </>
+                      <Badge
+                        overlap="circular"
+                        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                        badgeContent={
+                          <EditIcon sx={{ width: '16px', height: '16px' }}/>
+                        }
+                      >
+                        <ScoreboardIcon sx={{ width: '20px', height: '20px' }}/>
+                      </Badge>
+                    </IconButton>
+                  </Tooltip>
                 )}
-            </Box>
+                {!specificProps.isGameGuess && !disabled && (
+                  <Tooltip title="Is Published?">
+                    <Checkbox
+                      size="medium"
+                      color={isDraft ? 'warning' : 'success'}
+                      checked={!isDraft}
+                      icon={publishing? <CircularProgress size={24} color={'secondary'}/> : <SaveOutlinedIcon color="error" />}
+                      checkedIcon={publishing? <CircularProgress size={24} color={'secondary'}/> :<SaveIcon />}
+                      disabled={publishing}
+                      onChange={handleDraftChange}
+                    />
+                  </Tooltip>
+                )}
+                {specificProps.isGameGuess &&
+                  Number.isInteger(specificProps.gameResult?.home_score) &&
+                  Number.isInteger(specificProps.gameResult?.away_score) &&
+                  Number.isInteger(specificProps.scoreForGame) && (
+                    <>
+                      {specificProps.scoreForGame === 0 && <Avatar title='Pronostico Errado' sx={{ width: '20px', height: '20px', bgcolor: theme.palette.error.main }}><MissIcon sx={{ fontSize: 14 }} /></Avatar>}
+                      {specificProps.scoreForGame === 1 && <Avatar title='Pronostico Correcto (1 punto)' sx={{ width: '20px', height: '20px', bgcolor: theme.palette.success.light }}><HitIcon sx={{ fontSize: 14 }} /></Avatar>}
+                      {specificProps.scoreForGame === 2 && <Avatar title='Resultado Exacto (2 puntos)' sx={{ width: '20px', height: '20px', bgcolor: theme.palette.success.main }}><HitAllIcon sx={{ fontSize: 14 }} /></Avatar>}
+                    </>
+                  )}
+              </Box>
+            )}
           </Box>
 
           <Divider
@@ -281,15 +290,35 @@ export default function CompactGameViewCard({
             }}
           >
             <Typography variant='caption' component='div' color='secondary.contrastText'>
-              {homeTeamNameOrDescription?.substring(0, 3)}&nbsp;
+              {homeTeamShortNameOrDescription}&nbsp;
               {specificProps.gameResult.home_score}&nbsp;
               {Number.isInteger(specificProps.gameResult.home_penalty_score) && `(${specificProps.gameResult.home_penalty_score})`} - &nbsp;
               {Number.isInteger(specificProps.gameResult.away_penalty_score) && `(${specificProps.gameResult.away_penalty_score})`}&nbsp;
               {specificProps.gameResult.away_score}&nbsp;
-              {awayTeamNameOrDescription?.substring(0, 3)}
+              {awayTeamShortNameOrDescription?.substring(0, 3)}
             </Typography>
           </Box>
         )}
+      {specificProps.isGameGuess &&
+        gameDate < new Date() &&
+        !(specificProps.gameResult &&
+          Number.isInteger(specificProps.gameResult.home_score) &&
+          Number.isInteger(specificProps.gameResult.away_score)) && (
+          <Box
+            sx={{
+              borderTop: `${theme.palette.divider} 1px solid`,
+              backgroundColor: 'secondary.light',
+              py: 0.5,
+              px: 1,
+              textAlign: 'center'
+            }}
+          >
+            <Typography variant='caption' component='div' color='secondary.contrastText'>
+              IN PLAY OR RECENTLY FINISHED
+            </Typography>
+          </Box>
+        )}
+
     </Card>
   );
 }

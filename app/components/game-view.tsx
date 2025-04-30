@@ -49,9 +49,11 @@ const GameView = ({game, teamsMap, handleEditClick}: GameViewProps) => {
         scoreForGame={scoreForGame}
         isPlayoffGame={isPlayoffGame}
         homeTeamNameOrDescription={homeTeam ? teamsMap[homeTeam].name : getTeamDescription(game.home_team_rule)}
+        homeTeamShortNameOrDescription={homeTeam ? teamsMap[homeTeam].short_name : getTeamDescription(game.home_team_rule, true)}
         homeTeamTheme={homeTeam && teamsMap[homeTeam]?.theme || null}
         homeScore={gameGuess.home_score}
         awayTeamNameOrDescription={awayTeam ? teamsMap[awayTeam].name : getTeamDescription(game.away_team_rule)}
+        awayTeamShortNameOrDescription={awayTeam ? teamsMap[awayTeam].short_name : getTeamDescription(game.away_team_rule, true)}
         awayTeamTheme={awayTeam && teamsMap[awayTeam]?.theme || null}
         awayScore={gameGuess.away_score}
         homePenaltyWinner={gameGuess.home_penalty_winner}

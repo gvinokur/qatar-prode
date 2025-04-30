@@ -8,20 +8,20 @@ export const isTeamWinnerRule = (object: any): object is TeamWinnerRule => {
   return ('winner' in object && 'game' in object);
 }
 
-export const getTeamDescription = (rule?: GroupFinishRule | TeamWinnerRule) => {
+export const getTeamDescription = (rule?: GroupFinishRule | TeamWinnerRule, shortName?: boolean) => {
   if(isGroupFinishRule(rule)) {
     if (rule.position === 1) {
-      return `Primero Grupo ${rule.group}`
+      return shortName ? `1 ${rule.group}` : `Primero Grupo ${rule.group}`
     } else if (rule.position === 2) {
-      return `Segundo Grupo ${rule.group}`
+      return shortName ? `2 ${rule.group}` : `Segundo Grupo ${rule.group}`
     } else if (rule.position === 3) {
-      return `Tercero Grupo(s) ${rule.group}`
+      return shortName ? `3 ${rule.group}` : `Tercero Grupo(s) ${rule.group}`
     }
   } else if (isTeamWinnerRule(rule)){
     if (rule.winner) {
-      return `Ganador #${rule.game}`
+      return shortName ? `G${rule.game}` : `Ganador #${rule.game}`
     } else {
-      return `Perdedor #${rule.game}`
+      return shortName ? `P${rule.game}` : `Perdedor #${rule.game}`
     }
   }
   return ''
