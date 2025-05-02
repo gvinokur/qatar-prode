@@ -18,6 +18,7 @@ import {createActionTab, createTab} from "../components/backoffice/backoffice-ta
 import TournamentTeamsManagerTab from "../components/backoffice/tournament-teams-manager-tab";
 import TournamentGroupsManagerTab from "../components/backoffice/tournament-groups-manager-tab";
 import TournamentGameManagerTab from "../components/backoffice/tournament-game-manager-tab";
+import PlayersTab from "../components/backoffice/PlayersTab";
 
 
 
@@ -58,6 +59,7 @@ export default async function Backoffice() {
                   createTab('Tournament Data', <TournamentMainDataTab tournamentId={tournament.id}/>),
                   createTab('Tournament Groups', <TournamentGroupsManagerTab tournamentId={tournament.id}/>),
                   createTab('Games', <TournamentGameManagerTab tournamentId={tournament.id}/>),
+                  createTab('Players', <PlayersTab tournamentId={tournament.id}/>),
                 ]}/>
               ),
               tournament.dev_only
@@ -72,6 +74,7 @@ export default async function Backoffice() {
                   createTab('Tournament Teams', <TournamentTeamsManagerTab tournamentId={tournament.id}/>),
                   createTab('Tournament Groups', <TournamentGroupsManagerTab tournamentId={tournament.id}/>),
                   createTab('Tournament Games', <TournamentGameManagerTab tournamentId={tournament.id}/>),
+                  createTab('Players', <PlayersTab tournamentId={tournament.id}/>),
                 ]}/>
               )),
           ),

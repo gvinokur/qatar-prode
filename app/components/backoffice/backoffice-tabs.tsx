@@ -37,7 +37,6 @@ export function BackofficeTabs({tabs} :Props) {
       <Tabs
         value={selectedTab}
         onChange={handleTabChange}
-        aria-label="scrollable auto tabs example"
         variant={isNotExtraSmallScreen ? "fullWidth" : 'scrollable'}
         scrollButtons={"auto"}
       >

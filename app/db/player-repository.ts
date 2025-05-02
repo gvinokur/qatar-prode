@@ -1,5 +1,5 @@
 import {createBaseFunctions} from "./base-repository";
-import {Player, PlayerTable} from "./tables-definition";
+import {Player, PlayerTable, PlayerUpdate} from "./tables-definition";
 import {db} from "./database";
 import {jsonArrayFrom, jsonObjectFrom} from "kysely/helpers/postgres";
 import {ExtendedPlayerData} from "../definitions";
@@ -47,4 +47,11 @@ export async function getPlayersInTournament(tournamentId: string) {
     .executeTakeFirst()
 
   return res?.players_in_tournament || 0
+}
+
+export async function deleteAllPlayersInTournamentTeam(tournamentId: string, teamId: string) {
+  return db.deleteFrom('players')
+    .where('tournament_id', '=', tournamentId)
+    .where('team_id', '=', teamId)
+    .execute()
 }
