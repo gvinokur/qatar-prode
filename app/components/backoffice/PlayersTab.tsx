@@ -17,7 +17,7 @@ import {
   Card,
   CardContent,
   CardHeader, Checkbox,
-  CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel,
+  CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Grid,
   Table,
   TableBody,
   TableCell,
@@ -128,7 +128,7 @@ export default function PlayersTab({tournamentId}: {tournamentId: string}) {
 
   const openImportPlayersModal = (team: Team) => {
     setSelectedTeam(team);
-    setTransfermarktName('');
+    setTransfermarktName(team.name.replace(' ', '-') + '-fc-players');
     setTransfermarktId('');
     setDeleteExistingPlayers(false);
     setOpenImportModal(true);
@@ -173,8 +173,8 @@ export default function PlayersTab({tournamentId}: {tournamentId: string}) {
                 </AccordionSummary>
                 <AccordionDetails>
                   {teamData.players.length > 0 ? (
-                    <div>
-                      <TableContainer>
+                    <Box display='flex' flexDirection='row' gap={2}>
+                      <TableContainer >
                         <Table size="small">
                           <TableHead>
                             <TableRow>
@@ -194,7 +194,11 @@ export default function PlayersTab({tournamentId}: {tournamentId: string}) {
                           </TableBody>
                         </Table>
                       </TableContainer>
-                    </div>
+                      <Box display={'flex'} flexDirection={'column'} justifyContent={'start'} gap={2}>
+                        {/*<Button variant='contained' color='secondary' >Delete Players</Button>*/}
+                        <Button variant='contained' color='secondary' onClick={() => openImportPlayersModal(teamData.team)}>Import Players</Button>
+                      </Box>
+                    </Box>
                   ) : (
                     <Box display={'flex'} justifyContent={'space-around'}>
                       <Alert severity={'info'} action={
