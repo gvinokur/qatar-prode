@@ -17,7 +17,7 @@ import {useState} from "react";
 import {Controller, useForm} from "react-hook-form";
 import * as React from "react";
 import {createDbGroup, deleteGroup} from "../../actions/prode-group-actions";
-import {useSession} from "next-auth/react";
+import InviteFriendsDialog from "../invite-friends-dialog";
 
 
 type Props = {
@@ -34,7 +34,6 @@ export default function FriendGroupsList({
   participantGroups: initialParticipantGroups,
 } : Props) {
   const theme = useTheme();
-  const [openSharingDialog, setOpenSharingDialog] = useState<string | false>(false);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [openConfirmDeleteGroup, setOpenConfirmDeleteGroup] = useState<string | false>(false)
   const [loading, setLoading] = useState(false)
@@ -83,9 +82,13 @@ export default function FriendGroupsList({
                             <IconButton title='Borrar Grupo' onClick={() => setOpenConfirmDeleteGroup(userGroup.id)}>
                               <DeleteIcon/>
                             </IconButton>
-                            <IconButton title='Invitar Amigos' onClick={() => setOpenSharingDialog(userGroup.id)}>
-                              <ShareIcon/>
-                            </IconButton>
+                            <InviteFriendsDialog
+                              trigger={
+                                <IconButton title='Invitar Amigos'>
+                                  <ShareIcon/>
+                                </IconButton>}
+                              groupId={userGroup.id}
+                              groupName={userGroup.name} />
                           </>
                         }>
                 <ListItemText><Link href={`/friend-groups/${userGroup.id}`}>{userGroup.name}</Link></ListItemText>
@@ -141,18 +144,6 @@ export default function FriendGroupsList({
         <DialogActions>
           <Button disabled={loading} onClick={handleCloseCreateDialog}>Cancelar</Button>
           <LoadingButton loading={loading} type='submit'>Crear</LoadingButton>
-        </DialogActions>
-      </Dialog>
-      <Dialog open={!!openSharingDialog} onClose={() => setOpenSharingDialog(false)}>
-        <DialogTitle>Compartir Link</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Copia el siguiente link y compartilo con tus amigos para que se unan a tu grupo
-            &nbsp;{!!openSharingDialog && <Link onClick={() => navigator.clipboard.writeText(`${window.location.origin}/friend-groups/join/${openSharingDialog}`)}>{`${window.location.origin}/friend-groups/join/${openSharingDialog}`}</Link>}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button disabled={loading} onClick={() => setOpenSharingDialog(false)}>Cancelar</Button>
         </DialogActions>
       </Dialog>
       <Dialog open={!!openConfirmDeleteGroup} onClose={() => setOpenConfirmDeleteGroup(false)}>

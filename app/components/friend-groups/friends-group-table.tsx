@@ -22,16 +22,19 @@ type Props = {
   users: {[k:string]: User},
   userScoresByTournament: {[k:string]: UserScore[]},
   loggedInUser: string,
-  tournaments: Tournament[]
+  tournaments: Tournament[],
+  action?: React.ReactNode
 }
 
-export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments}: Props) {
+export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action}: Props) {
   const [selectedTab, setSelectedTab] = useState<number>(0)
   const isNotExtraSmallScreen = useMediaQuery('(min-width:600px)')
 
   return (
     <Card>
-      <CardHeader title='Tabla de Posiciones'/>
+      <CardHeader
+        title='Tabla de Posiciones'
+        action={action}/>
       <CardContent>
         <Tabs
           value={selectedTab}

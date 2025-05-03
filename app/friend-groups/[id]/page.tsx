@@ -1,6 +1,6 @@
 'use server'
 
-import {Grid, Box, Typography} from "../../components/mui-wrappers";
+import {Box, Grid, Typography} from "../../components/mui-wrappers";
 import {redirect} from "next/navigation";
 import {DebugObject} from "../../components/debug";
 import {findParticipantsInGroup, findProdeGroupById} from "../../db/prode-group-repository";
@@ -15,6 +15,7 @@ import {customToMap, toMap} from "../../utils/ObjectUtils";
 import {findTournamentGuessByUserIdsTournament} from "../../db/tournament-guess-repository";
 import {TournamentGuess} from "../../db/tables-definition";
 import {UserScore} from "../../definitions";
+import {InviteFriendsDialogButton} from "../../components/friend-groups/invite-friends-dialog-button";
 
 type Props = {
   params: {
@@ -22,6 +23,7 @@ type Props = {
   },
   searchParams: {[k:string]:string}
 }
+
 export default async function FriendsGroup({params, searchParams} : Props){
   const user = await getLoggedInUser()
   const prodeGroup = await findProdeGroupById(params.id)
@@ -38,7 +40,7 @@ export default async function FriendsGroup({params, searchParams} : Props){
 
   const users = await findUsersByIds(allParticipants)
   const usersMap = toMap(users)
-
+  const isAdmin = prodeGroup.owner_user_id === user.id
 
   //TODO: Calculate scores for users, but not yet, because all is zero!! :D
   const userScoresByTournament =
@@ -111,6 +113,11 @@ export default async function FriendsGroup({params, searchParams} : Props){
             userScoresByTournament={userScoresByTournament}
             loggedInUser={user.id}
             tournaments={tournaments}
+            action={isAdmin ? (
+              <InviteFriendsDialogButton
+                groupName={prodeGroup.name}
+                groupId={prodeGroup.id}/>
+            ) : undefined}
           />
         </Grid>
         {prodeGroup.owner_user_id === user.id && (
