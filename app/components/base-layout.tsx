@@ -5,12 +5,15 @@ import {
   AppBar,
   Typography,
   Box,
-  Avatar, Grid
+  Avatar, Grid, useTheme, IconButton
 
 } from "@mui/material";
 import UserActions from "./header/user-actions";
 import Link from "next/link";
 import {AdapterUser} from "next-auth/adapters";
+import {useContext} from "react";
+import {AppThemeModeContext} from "./context-providers/theme-provider";
+import {DarkMode, Light, LightMode} from "@mui/icons-material";
 
 type FrameProps = {
   user?: AdapterUser
@@ -32,6 +35,8 @@ const pages: Page[] = [ {
 }]
 
 export default function BaseLayout(props: FrameProps) {
+  const theme = useTheme()
+  const {themeMode, switchThemeMode } = useContext(AppThemeModeContext)
   return (
     <>
       <AppBar position={'sticky'}>
@@ -62,12 +67,24 @@ export default function BaseLayout(props: FrameProps) {
               <Link href={'/'}>La Maquina Prode</Link>
             </Typography>
           </Grid>
-          <Grid item xs={3} textAlign={'right'} alignContent={'center'}>
+          <Grid
+            item
+            xs={3}
+            alignContent={'center'}
+            display={'flex'}
+            flexDirection={'row'}
+            justifyContent={'flex-end'}
+            flexWrap={'wrap'}
+          >
+            <IconButton title={`Switch to ${themeMode === 'light' ? 'dark' : 'light'} mode`} onClick={switchThemeMode} sx={{ mr: 2 }}>
+              {themeMode === 'light' && <DarkMode sx={{ height: 24, width: 24, color: theme.palette.primary.contrastText  }} />}
+              {themeMode === 'dark' && <LightMode sx={{ height: 24, width: 24, color: theme.palette.primary.contrastText  }} />}
+            </IconButton>
             <UserActions user={props.user}/>
           </Grid>
         </Grid>
       </AppBar>
-      <Box>{props.children}</Box>
+      <Box sx={{ backgroundColor: theme.palette.background.default }}>{props.children}</Box>
     </>
   )
 }

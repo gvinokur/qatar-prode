@@ -4,7 +4,7 @@ import SessionWrapper from "./components/session-wrapper";
 import type {Metadata} from "next";
 import '../styles/globals.css'
 import BaseLayout from "./components/base-layout";
-import ThemeProvider from "./components/theme-provider";
+import ThemeProvider from "./components/context-providers/theme-provider";
 import {getServerSession} from "next-auth/next";
 import {findUserByEmail} from "./db/users-repository";
 
