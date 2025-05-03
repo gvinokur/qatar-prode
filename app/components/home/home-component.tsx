@@ -17,12 +17,11 @@ type HomeProps = {
 export default function Home({tournaments, groups} : HomeProps) {
   const theme = useTheme()
 
-  const panels = !!groups ? 3 : 2;
 
   return (
     <>
-      <Grid container spacing={2} p={2}>
-        <Grid item xs={12} md={12/panels}>
+      <Grid container spacing={2} p={2} maxWidth={'1000px'} mx={'auto'}>
+        <Grid item xs={12} md={8}>
           <Card>
             <CardHeader
               title={'Torneos Disponibles'}
@@ -49,14 +48,20 @@ export default function Home({tournaments, groups} : HomeProps) {
             </CardContent>
           </Card>
         </Grid>
-        {!!groups && (
-          <Grid item xs={12} md={12/panels}>
-            <FriendGroupsList userGroups={groups.userGroups} participantGroups={groups.participantGroups}/>
+        <Grid item xs={12} md={4}>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Rules expanded={false}/>
+            </Grid>
+            {!!groups && (
+              <Grid item xs={12}>
+                <FriendGroupsList userGroups={groups.userGroups} participantGroups={groups.participantGroups}/>
+              </Grid>
+            )}
           </Grid>
-        )}
-        <Grid item xs={12} md={12/panels}>
-          <Rules/>
         </Grid>
+
+
       </Grid>
     </>
   );
