@@ -51,7 +51,7 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName }: Inv
 
   // Generate invitation message
   const getInvitationMessage = () => {
-    return `¡Hola! Te invito a unirte a nuestro grupo "${groupName}" para el Prode de Qatar. Usa este enlace para unirte: ${getInvitationLink()}`;
+    return `¡Hola! Te invito a unirte a nuestro grupo "${groupName}" para jugar en al prode en los torneos actuales y futuros. Usa este enlace para unirte: ${getInvitationLink()}`;
   };
 
   // Copy link to clipboard
