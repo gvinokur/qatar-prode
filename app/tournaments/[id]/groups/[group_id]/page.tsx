@@ -73,7 +73,7 @@ export default async function GroupComponent({params, searchParams} : Props) {
         sortByGamesBetweenTeams={completeGroupData.group.sort_by_games_between_teams}
         autoSave={true}
       >
-        <Grid container mt={'16px'} maxWidth={'800px'} mx={'auto'}>
+        <Grid container mt={'16px'} maxWidth={'868px'} mx={'auto'}>
           <Grid item xs={12} mb={'16px'}>
             <GamesGrid
               isPlayoffs={false}

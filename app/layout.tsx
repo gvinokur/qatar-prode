@@ -22,12 +22,10 @@ export default async function RootLayout({
 }) {
   return (
     <SessionWrapper>
-      <html lang="en">
-        <body>
-          <ThemeProvider>
-            {children}
-          </ThemeProvider>
-        </body>
+      <html lang="en" style={{ height: '100%' }}>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
       </html>
     </SessionWrapper>
   )

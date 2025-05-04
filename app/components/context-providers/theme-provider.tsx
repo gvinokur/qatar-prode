@@ -2,7 +2,7 @@
 
 import {createTheme} from "@mui/material/styles";
 import {ThemeProvider} from "@mui/material";
-import {createContext, useState} from "react";
+import {createContext, useEffect, useState} from "react";
 
 type ThemeMode = 'light' | 'dark'
 
@@ -16,7 +16,14 @@ export default function AppThemeProvider({
                                        }: {
   children: React.ReactNode
 }) {
-  const [themeMode, setThemeMode] = useState<ThemeMode>('light')
+  const storedThemeMode = localStorage.getItem('themeMode')
+  const [themeMode, setThemeMode] = useState<ThemeMode>(storedThemeMode as ThemeMode || 'light')
+
+  const handleSwitchTheme = () => {
+    const newThemeMode = themeMode === 'light' ? 'dark' : 'light'
+    localStorage.setItem('themeMode', newThemeMode)
+    setThemeMode(newThemeMode)
+  }
 
   const lightTheme = {
     primary: {
@@ -57,7 +64,7 @@ export default function AppThemeProvider({
 
   const context = {
     themeMode,
-    switchThemeMode: () => setThemeMode(themeMode === 'light' ? 'dark' : 'light')
+    switchThemeMode: handleSwitchTheme
   }
 
   return (

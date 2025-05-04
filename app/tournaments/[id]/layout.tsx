@@ -66,7 +66,7 @@ export default async function TournamentLayout({children, params}: TournamentLay
           </Grid>
         </Grid>
       </AppBar>
-      <Box ml={2} mr={2} mb={2}>
+      <Box px={2} pb={2}>
         {children}
       </Box>
       {user &&

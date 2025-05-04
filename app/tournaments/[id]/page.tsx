@@ -41,12 +41,12 @@ export default async function TournamentLandingPage({ params, searchParams }: Pr
         teamsMap,
         prodeGroups
       }}/>)}
-      <Grid container spacing={2} p={2} maxWidth={'1000px'} mx={'auto'}>
+      <Grid container maxWidth={'868px'} mt={1} mx={{md: 'auto'}} spacing={2}>
         <Grid item xs={12} md={8}>
           <Fixtures games={gamesAroundMyTime} teamsMap={teamsMap}/>
         </Grid>
         <Grid item xs={12} md={4}>
-          <Grid container spacing={2}>
+          <Grid container rowSpacing={2}>
             <Grid item xs={12}>
               <Rules expanded={false}/>
             </Grid>
@@ -57,7 +57,7 @@ export default async function TournamentLandingPage({ params, searchParams }: Pr
             )}
             {prodeGroups && (
               <Grid item xs={12}>
-                    <FriendGroupsList userGroups={prodeGroups.userGroups} participantGroups={prodeGroups.participantGroups}/>
+                <FriendGroupsList userGroups={prodeGroups.userGroups} participantGroups={prodeGroups.participantGroups}/>
               </Grid>
             )}
           </Grid>

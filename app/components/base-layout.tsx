@@ -38,7 +38,7 @@ export default function BaseLayout(props: FrameProps) {
   const theme = useTheme()
   const {themeMode, switchThemeMode } = useContext(AppThemeModeContext)
   return (
-    <>
+    <body style={{minHeight: '100%', backgroundColor: theme.palette.background.default}}>
       <AppBar position={'sticky'}>
         <Box
           display={'flex'}
@@ -70,7 +70,8 @@ export default function BaseLayout(props: FrameProps) {
               fontWeight: 700,
               color: 'inherit',
               textDecoration: 'none',
-              cursor: 'pointer'}}>
+              cursor: 'pointer'
+            }}>
             <Link href={'/'}>La Maquina Prode</Link>
           </Typography>
           <Box
@@ -81,15 +82,18 @@ export default function BaseLayout(props: FrameProps) {
             flexWrap={'wrap'}
             minWidth={'96px'}
           >
-            <IconButton title={`Switch to ${themeMode === 'light' ? 'dark' : 'light'} mode`} onClick={switchThemeMode} sx={{ mr: 1 }}>
-              {themeMode === 'light' && <DarkMode sx={{ height: 24, width: 24, color: theme.palette.primary.contrastText  }} />}
-              {themeMode === 'dark' && <LightMode sx={{ height: 24, width: 24, color: theme.palette.primary.contrastText  }} />}
+            <IconButton title={`Switch to ${themeMode === 'light' ? 'dark' : 'light'} mode`} onClick={switchThemeMode}
+                        sx={{mr: 1}}>
+              {themeMode === 'light' &&
+                  <DarkMode sx={{height: 24, width: 24, color: theme.palette.primary.contrastText}}/>}
+              {themeMode === 'dark' &&
+                  <LightMode sx={{height: 24, width: 24, color: theme.palette.primary.contrastText}}/>}
             </IconButton>
             <UserActions user={props.user}/>
           </Box>
         </Box>
       </AppBar>
-      <Box sx={{ backgroundColor: theme.palette.background.default }}>{props.children}</Box>
-    </>
+      <Box>{props.children}</Box>
+    </body>
   )
 }
