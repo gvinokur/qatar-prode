@@ -3,26 +3,27 @@
 import {createTheme} from "@mui/material/styles";
 import {ThemeProvider} from "@mui/material";
 import {createContext, useEffect, useState} from "react";
+import {storeThemeMode} from '../../actions/user-actions'
 
-type ThemeMode = 'light' | 'dark'
+export type ThemeMode = 'light' | 'dark'
 
 export const AppThemeModeContext = createContext({
   themeMode: 'light' as ThemeMode,
   switchThemeMode: () => {},
 })
 
-export default function AppThemeProvider({
-                                         children,
-                                       }: {
-  children: React.ReactNode
-}) {
-  const storedThemeMode = typeof window !== 'undefined' && window?.localStorage && localStorage.getItem('themeMode')
-  const [themeMode, setThemeMode] = useState<ThemeMode>(storedThemeMode as ThemeMode || 'light')
+export default function AppThemeProvider(
+  {
+    themeMode,
+    children,
+  }: {
+    themeMode: ThemeMode
+    children: React.ReactNode
+  }) {
 
-  const handleSwitchTheme = () => {
+  const handleSwitchTheme = async () => {
     const newThemeMode = themeMode === 'light' ? 'dark' : 'light'
-    typeof window !== 'undefined' && window?.localStorage && localStorage.setItem('themeMode', newThemeMode)
-    setThemeMode(newThemeMode)
+    await storeThemeMode(newThemeMode)
   }
 
   const lightTheme = {

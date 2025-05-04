@@ -15,6 +15,7 @@ import {randomBytes} from "crypto";
 import {authOptions} from "../authOptions";
 import {generatePasswordResetEmail, generateVerificationEmail} from "../utils/email-templates";
 import {sendEmail} from "../utils/email";
+import {cookies} from "next/headers";
 
 function generateVerificationToken(): string {
   return crypto.randomBytes(32).toString('hex');
@@ -196,4 +197,19 @@ async function sendVerificationEmail(user: User) {
     console.error('Failed to send verification email:', error);
     return { success: false, error: 'Failed to send verification email' };
   }
+}
+
+export async function storeThemeMode(mode: string) {
+  cookies().set('themeMode', mode, {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    path: '/',
+  });
+}
+
+export async function getThemeMode() {
+  const cookieStore = cookies();
+  const themeMode = cookieStore.get('themeMode');
+  return themeMode?.value || 'light';
 }
