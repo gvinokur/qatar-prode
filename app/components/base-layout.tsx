@@ -40,8 +40,15 @@ export default function BaseLayout(props: FrameProps) {
   return (
     <>
       <AppBar position={'sticky'}>
-        <Grid container xs={12} pl={2} pr={2} pt={1} pb={1} spacing={2}>
-          <Grid item xs={3}>
+        <Box
+          display={'flex'}
+          flexDirection={'row'}
+          px={2}
+          py={1}
+          gap={2}
+          justifyContent={'space-between'}
+        >
+          <Box>
             <Link href={'/'}>
               <Avatar
                 variant={"rounded"}
@@ -54,35 +61,33 @@ export default function BaseLayout(props: FrameProps) {
                   mr: 2,
                 }}/>
             </Link>
-          </Grid>
-          <Grid item xs={6} alignSelf={'center'} textAlign={'center'}>
-            <Typography
-              variant="h6"
-              noWrap
-              sx={{
-                fontWeight: 700,
-                color: 'inherit',
-                textDecoration: 'none',
-                cursor: 'pointer'}}>
-              <Link href={'/'}>La Maquina Prode</Link>
-            </Typography>
-          </Grid>
-          <Grid
-            item
-            xs={3}
+          </Box>
+          <Typography
+            variant="h6"
+            noWrap
+            alignContent={'center'}
+            sx={{
+              fontWeight: 700,
+              color: 'inherit',
+              textDecoration: 'none',
+              cursor: 'pointer'}}>
+            <Link href={'/'}>La Maquina Prode</Link>
+          </Typography>
+          <Box
             alignContent={'center'}
             display={'flex'}
             flexDirection={'row'}
             justifyContent={'flex-end'}
             flexWrap={'wrap'}
+            minWidth={'96px'}
           >
-            <IconButton title={`Switch to ${themeMode === 'light' ? 'dark' : 'light'} mode`} onClick={switchThemeMode} sx={{ mr: 2 }}>
+            <IconButton title={`Switch to ${themeMode === 'light' ? 'dark' : 'light'} mode`} onClick={switchThemeMode} sx={{ mr: 1 }}>
               {themeMode === 'light' && <DarkMode sx={{ height: 24, width: 24, color: theme.palette.primary.contrastText  }} />}
               {themeMode === 'dark' && <LightMode sx={{ height: 24, width: 24, color: theme.palette.primary.contrastText  }} />}
             </IconButton>
             <UserActions user={props.user}/>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </AppBar>
       <Box sx={{ backgroundColor: theme.palette.background.default }}>{props.children}</Box>
     </>

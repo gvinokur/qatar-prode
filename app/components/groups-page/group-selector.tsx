@@ -1,6 +1,6 @@
 'use client'
 
-import {Fab, Grid, MenuItem, Select, SelectChangeEvent} from "@mui/material";
+import {Fab, Grid, MenuItem, Select, SelectChangeEvent, useTheme} from "@mui/material";
 
 import {usePathname, useRouter} from "next/navigation";
 import {resolveRelativeUrl} from "next/dist/lib/metadata/resolvers/resolve-url";
@@ -13,6 +13,7 @@ type Props = {
 const GroupSelector = ({groups, tournamentId} : Props) => {
   const router = useRouter()
   const pathname = usePathname()
+  const theme = useTheme()
 
   const getGroupId = (pathname: string) => {
     const regex = new RegExp('([^/]+)/?$')
@@ -62,7 +63,7 @@ const GroupSelector = ({groups, tournamentId} : Props) => {
         sx={{
           width: '100%',
           display: { xs: 'flex', md: 'none'},
-          backgroundColor: 'white'
+          backgroundColor: theme.palette.background.paper,
       }} >
         {groups.map(({group_letter, id})  => (
           <MenuItem key={group_letter} value={id}>Grupo {group_letter.toUpperCase()}</MenuItem>
