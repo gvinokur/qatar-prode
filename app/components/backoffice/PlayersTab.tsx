@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import {useState, useEffect, useCallback} from 'react';
 import { useParams } from 'next/navigation';
 import {Player, PlayerNew, Team} from "../../db/tables-definition";
 import {
@@ -53,11 +53,7 @@ export default function PlayersTab({tournamentId}: {tournamentId: string}) {
   const [deleteExistingPlayers, setDeleteExistingPlayers] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
 
-  useEffect(() => {
-    fetchPlayersData();
-  }, [tournamentId]);
-
-  const fetchPlayersData = async () => {
+  const fetchPlayersData = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getPlayersInTournament(tournamentId);
@@ -67,7 +63,13 @@ export default function PlayersTab({tournamentId}: {tournamentId: string}) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [tournamentId]);
+
+  useEffect(() => {
+    fetchPlayersData();
+  }, [tournamentId, fetchPlayersData]);
+
+
 
   const handleImportPlayers = async () => {
     if(!selectedTeam || !transfermarktName || !transfermarktId) {

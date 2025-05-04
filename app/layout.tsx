@@ -1,14 +1,9 @@
 'use server'
 
 import SessionWrapper from "./components/session-wrapper";
-import type {Metadata} from "next";
 import '../styles/globals.css'
-import BaseLayout from "./components/base-layout";
 import ThemeProvider, {ThemeMode} from "./components/context-providers/theme-provider";
-import {getServerSession} from "next-auth/next";
-import {findUserByEmail} from "./db/users-repository";
-import {cookies} from "next/headers";
-import {getThemeMode} from "./actions/user-actions";
+import {ThemeProvider as NextThemeProvider} from "next-themes";
 
 // export const metadata: Metadata = {
 //   title: 'Prode App',
@@ -22,14 +17,16 @@ export default async function RootLayout({
                                    }: {
   children: React.ReactNode
 }) {
-  const themeMode = await getThemeMode()
-
   return (
     <SessionWrapper>
       <html lang="en" style={{ height: '100%' }}>
-        <ThemeProvider themeMode={themeMode as ThemeMode}>
-          {children}
-        </ThemeProvider>
+        <body style={{ minHeight: '100%' }}>
+          <NextThemeProvider>
+            <ThemeProvider>
+              {children}
+            </ThemeProvider>
+          </NextThemeProvider>
+        </body>
       </html>
     </SessionWrapper>
   )

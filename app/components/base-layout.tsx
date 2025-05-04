@@ -38,7 +38,7 @@ export default function BaseLayout(props: FrameProps) {
   const theme = useTheme()
   const {themeMode, switchThemeMode } = useContext(AppThemeModeContext)
   return (
-    <body style={{minHeight: '100%', backgroundColor: theme.palette.background.default}}>
+    <>
       <AppBar position={'sticky'}>
         <Box
           display={'flex'}
@@ -94,6 +94,6 @@ export default function BaseLayout(props: FrameProps) {
         </Box>
       </AppBar>
       <Box>{props.children}</Box>
-    </body>
+    </>
   )
 }

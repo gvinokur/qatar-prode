@@ -198,18 +198,3 @@ async function sendVerificationEmail(user: User) {
     return { success: false, error: 'Failed to send verification email' };
   }
 }
-
-export async function storeThemeMode(mode: string) {
-  cookies().set('themeMode', mode, {
-    httpOnly: false,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    path: '/',
-  });
-}
-
-export async function getThemeMode() {
-  const cookieStore = cookies();
-  const themeMode = cookieStore.get('themeMode');
-  return themeMode?.value || 'light';
-}
