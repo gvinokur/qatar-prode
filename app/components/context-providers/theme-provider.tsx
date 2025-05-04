@@ -16,12 +16,12 @@ export default function AppThemeProvider({
                                        }: {
   children: React.ReactNode
 }) {
-  const storedThemeMode = localStorage.getItem('themeMode')
+  const storedThemeMode = localStorage && localStorage.getItem('themeMode')
   const [themeMode, setThemeMode] = useState<ThemeMode>(storedThemeMode as ThemeMode || 'light')
 
   const handleSwitchTheme = () => {
     const newThemeMode = themeMode === 'light' ? 'dark' : 'light'
-    localStorage.setItem('themeMode', newThemeMode)
+    localStorage && localStorage.setItem('themeMode', newThemeMode)
     setThemeMode(newThemeMode)
   }
 
