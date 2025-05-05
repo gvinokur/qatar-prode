@@ -54,6 +54,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
   });
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [devOnly, setDevOnly] = useState<boolean>(false);
+  const [displayName, setDisplayName] = useState(false)
   const [success, setSuccess] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [dataError, setDataError] = useState<string | null>(null);
@@ -100,6 +101,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
         setLongName(tournamentData.long_name || '');
         setShortName(tournamentData.short_name || '');
         setDevOnly(tournamentData.dev_only || false);
+        setDisplayName(tournamentData.display_name || false);
         setTheme({
           primary_color: tournamentData.theme?.primary_color || '#1976d2',
           secondary_color: tournamentData.theme?.secondary_color || '#dc004e',
@@ -137,6 +139,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
         short_name: shortName,
         theme: theme,
         dev_only: devOnly,
+        display_name: displayName,
       }));
 
       if (logoFile) {
@@ -354,7 +357,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
               }}
             />
           </Grid>
-          <Grid item xs={12} md={6} alignContent={'center'}>
+          <Grid item xs={12} md={6} lg={3} alignContent={'center'}>
             <FormControlLabel
               labelPlacement={'start'}
               control={
@@ -369,6 +372,26 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
                   <Typography variant="body1">Development Mode Only</Typography>
                   <Typography variant="caption" color="text.secondary">
                     When enabled, this tournament will only be visible in development mode
+                  </Typography>
+                </Box>
+              }
+            />
+          </Grid>
+          <Grid item xs={12} md={6} lg={3} alignContent={'center'}>
+            <FormControlLabel
+              labelPlacement={'start'}
+              control={
+                <Switch
+                  checked={displayName}
+                  onChange={(e) => setDisplayName(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label={
+                <Box>
+                  <Typography variant="body1">Display Name</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Display the name of the tournament in the banner
                   </Typography>
                 </Box>
               }

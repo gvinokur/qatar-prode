@@ -7,8 +7,9 @@ import {findTournamentGuessByUserIdTournament} from "../../db/tournament-guess-r
 import {getLoggedInUser} from "../../actions/user-actions";
 import Link from "next/link";
 import EmptyAwardsSnackbar from "../../components/awards/empty-award-notification";
-import {findAllPlayersInTournamentWithTeamData, getPlayersInTournament} from "../../db/player-repository";
+import {getPlayersInTournament} from "../../db/player-repository";
 import EnvironmentIndicator from "../../components/environment-indicator";
+import {Typography} from "@mui/material";
 
 type TournamentLayoutProps = {
   params: {
@@ -49,10 +50,44 @@ export default async function TournamentLayout({children, params}: TournamentLay
               md: 'left'
             }
           }}>
-            <Link href={`/tournaments/${layoutData.tournament.id}`}>
-              <img src={layoutData.tournament?.theme?.logo || ''} alt={layoutData.tournament.long_name} style={{
-                maxHeight: '48px'
-              }}/>
+            <Link
+              href={`/tournaments/${layoutData.tournament.id}`}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  alignContent: 'center',
+                  height: '100%',
+                  margin: {
+                    xs: 'auto',
+                    md: '0'
+                  },
+                  width: {
+                    xs: 'auto',
+                    md: '100%'
+                  },
+                  justifyContent: {
+                    xs: 'center',
+                    md: 'flex-start'
+                  }
+                }}>
+                <img src={layoutData.tournament?.theme?.logo || ''} alt={layoutData.tournament.long_name} style={{
+                  maxHeight: '48px'
+                }}/>
+                {(layoutData.tournament?.display_name && layoutData.tournament.long_name) && (
+                  <Typography
+                    noWrap
+                    variant={'h6'}
+                    ml={2}
+                    color={layoutData.tournament.theme?.secondary_color}>
+                    {layoutData.tournament.long_name}
+                  </Typography>
+                )}
+              </Box>
+
             </Link>
           </Grid>
           <Grid item xs={12} md={9} pt={2} pb={1} pl={1} pr={1} sx={{
