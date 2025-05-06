@@ -14,9 +14,10 @@ import {AdapterUser} from "next-auth/adapters";
 import {useContext} from "react";
 import {AppThemeModeContext} from "./context-providers/theme-provider";
 import {DarkMode, Light, LightMode} from "@mui/icons-material";
+import {User} from "next-auth";
 
 type FrameProps = {
-  user?: AdapterUser
+  user?: User
   children?: React.ReactNode | React.ReactNode[],
 }
 

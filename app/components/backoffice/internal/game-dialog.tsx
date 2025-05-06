@@ -203,7 +203,6 @@ const GameDialog: React.FC<GameDialogProps> = ({
       <DialogTitle>
         {game ? 'Edit Game' : 'Create New Game'}
       </DialogTitle>
-
       <DialogContent dividers>
         {error && (
           <Alert severity="error" sx={{ mb: 3 }}>
@@ -217,7 +216,12 @@ const GameDialog: React.FC<GameDialogProps> = ({
           </Typography>
 
           <Grid container spacing={3}>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6,
+                md: 3
+              }}>
               <TextField
                 label="Game Number"
                 type="number"
@@ -234,7 +238,12 @@ const GameDialog: React.FC<GameDialogProps> = ({
               />
             </Grid>
 
-            <Grid item xs={12} sm={6} md={5}>
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6,
+                md: 5
+              }}>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DateTimePicker
                   label="Game Date & Time"
@@ -253,7 +262,12 @@ const GameDialog: React.FC<GameDialogProps> = ({
               </LocalizationProvider>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={4}>
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6,
+                md: 4
+              }}>
               <TextField
                 label="Location"
                 value={location}
@@ -265,7 +279,7 @@ const GameDialog: React.FC<GameDialogProps> = ({
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={12}>
               <FormControl component="fieldset" margin="normal">
                 <FormLabel component="legend">Game Type</FormLabel>
                 <RadioGroup
@@ -302,7 +316,7 @@ const GameDialog: React.FC<GameDialogProps> = ({
             </Typography>
 
             <Grid container spacing={3}>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <FormControl fullWidth error={!!formErrors.groupId} margin="normal">
                   <InputLabel>Group</InputLabel>
                   <Select
@@ -323,7 +337,11 @@ const GameDialog: React.FC<GameDialogProps> = ({
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid
+                size={{
+                  xs: 12,
+                  sm: 6
+                }}>
                 <FormControl fullWidth error={!!formErrors.homeTeamId} margin="normal">
                   <InputLabel>Home Team</InputLabel>
                   <Select
@@ -344,7 +362,11 @@ const GameDialog: React.FC<GameDialogProps> = ({
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid
+                size={{
+                  xs: 12,
+                  sm: 6
+                }}>
                 <FormControl fullWidth error={!!formErrors.awayTeamId} margin="normal">
                   <InputLabel>Away Team</InputLabel>
                   <Select
@@ -376,7 +398,7 @@ const GameDialog: React.FC<GameDialogProps> = ({
             </Typography>
 
             <Grid container spacing={3}>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <FormControl fullWidth error={!!formErrors.playoffStageId} margin="normal">
                   <InputLabel>Playoff Round</InputLabel>
                   <Select
@@ -397,7 +419,11 @@ const GameDialog: React.FC<GameDialogProps> = ({
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid
+                size={{
+                  xs: 12,
+                  sm: 6
+                }}>
                 <Typography variant="subtitle2" gutterBottom>
                   Home Team Rule
                 </Typography>
@@ -418,7 +444,11 @@ const GameDialog: React.FC<GameDialogProps> = ({
                 )}
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid
+                size={{
+                  xs: 12,
+                  sm: 6
+                }}>
                 <Typography variant="subtitle2" gutterBottom>
                   Away Team Rule
                 </Typography>
@@ -442,7 +472,6 @@ const GameDialog: React.FC<GameDialogProps> = ({
           </Box>
         )}
       </DialogContent>
-
       <DialogActions>
         <Button onClick={onClose} disabled={loading}>
           Cancel

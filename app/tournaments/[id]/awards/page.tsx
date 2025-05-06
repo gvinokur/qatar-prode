@@ -17,10 +17,10 @@ import {findTournamentById} from "../../../db/tournament-repository";
 
 
 type Props = {
-  params: {
+  params: Promise<{
     id: string
-  }
-  searchParams: {[k:string]:string}
+  }>
+  searchParams: Promise<{[k:string]:string}>
 }
 
 const buildTournamentGuesses = (userId: string, tournamentId: string) => ({
@@ -28,14 +28,17 @@ const buildTournamentGuesses = (userId: string, tournamentId: string) => ({
   tournament_id: tournamentId
 } as TournamentGuessNew)
 
-export default async function Awards({ params, searchParams}: Props) {
+export default async function Awards(props: Props) {
+  const params = await props.params
+  const searchParams = await props.searchParams
+
   const user = await getLoggedInUser()
   if(!user) {
     redirect(`/tournaments/${params.id}`)
   }
 
   const tournamentGuesses =
-    await findTournamentGuessByUserIdTournament(user.id, params.id) || buildTournamentGuesses(user.id, params.id)
+    (await findTournamentGuessByUserIdTournament(user.id, params.id)) || buildTournamentGuesses(user.id, params.id)
   const allPlayers = await findAllPlayersInTournamentWithTeamData(params.id)
   const tournamentStartDate = await getTournamentStartDate(params.id)
   const teamsMap = await getTeamsMap(params.id)

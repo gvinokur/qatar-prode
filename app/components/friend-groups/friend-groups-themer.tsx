@@ -1,13 +1,12 @@
 'use client'
 
 import {ProdeGroup} from "../../db/tables-definition";
-import {Card, CardActions, CardContent, CardHeader, TextField} from "@mui/material";
+import {Button, Card, CardActions, CardContent, CardHeader, TextField} from "@mui/material";
 import {Controller, Form, useForm} from "react-hook-form";
 import * as React from "react";
 import {MuiColorInput} from "mui-color-input";
 import {useState} from "react";
 import {updateTheme} from "../../actions/prode-group-actions";
-import {LoadingButton} from "@mui/lab";
 import ImagePicker from "./image-picker";
 import {useRouter} from "next/navigation";
 import {right} from "@popperjs/core";
@@ -80,7 +79,7 @@ export default function ProdeGroupThemer({ group }: Props) {
         <CardActions sx={{
           direction: 'rtl'
         }}>
-          <LoadingButton variant={'contained'} loading={loading} type={'submit'}>Guardar Tema</LoadingButton>
+          <Button variant={'contained'} loading={loading} type={'submit'}>Guardar Tema</Button>
         </CardActions>
       </form>
 

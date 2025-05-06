@@ -12,7 +12,6 @@ import {
   ListItemText, TextField, useTheme
 } from "@mui/material";
 import {Delete as DeleteIcon, Share as ShareIcon} from "@mui/icons-material";
-import {LoadingButton} from "@mui/lab";
 import {useState} from "react";
 import {Controller, useForm} from "react-hook-form";
 import * as React from "react";
@@ -143,7 +142,7 @@ export default function FriendGroupsList({
         </DialogContent>
         <DialogActions>
           <Button disabled={loading} onClick={handleCloseCreateDialog}>Cancelar</Button>
-          <LoadingButton loading={loading} type='submit'>Crear</LoadingButton>
+          <Button loading={loading} type='submit'>Crear</Button>
         </DialogActions>
       </Dialog>
       <Dialog open={!!openConfirmDeleteGroup} onClose={() => setOpenConfirmDeleteGroup(false)}>
@@ -155,7 +154,7 @@ export default function FriendGroupsList({
         </DialogContent>
         <DialogActions>
           <Button disabled={loading} onClick={() => setOpenConfirmDeleteGroup(false)}>Cancelar</Button>
-          <LoadingButton loading={loading} onClick={handleGroupDelete}>Borrar</LoadingButton>
+          <Button loading={loading} onClick={handleGroupDelete}>Borrar</Button>
         </DialogActions>
       </Dialog>
     </>

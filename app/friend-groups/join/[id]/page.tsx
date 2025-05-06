@@ -7,11 +7,12 @@ import {ProdeGroup} from "../../../db/tables-definition";
 
 
 type Props = {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
-export default async function JoinGroup({params} : Props){
+export default async function JoinGroup(props : Props){
+  const params = await props.params
   let group: ProdeGroup | undefined
   try {
     group = await joinGroup(params.id);

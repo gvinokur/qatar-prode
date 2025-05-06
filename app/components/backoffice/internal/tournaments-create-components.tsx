@@ -1,9 +1,8 @@
 'use client'
 
 import {TournamentBaseData} from "../../../../data/tournaments";
-import {Box, Grid, MenuItem, Paper, Select, SelectChangeEvent, Typography, useTheme} from "@mui/material";
+import {Box, Button, Grid, MenuItem, Paper, Select, SelectChangeEvent, Typography, useTheme} from "@mui/material";
 import {useState} from "react";
-import {LoadingButton} from "@mui/lab";
 
 type Props = {
   tournaments: TournamentBaseData[]
@@ -23,17 +22,12 @@ export default function TournamentsCreate({tournaments}: Props) {
       }}
     >
       <Grid container spacing={2}>
-        <Grid
-          item
-          flexGrow={1}
-          alignSelf={'center'}
-          textAlign={'right'}
-        >
+        <Grid flexGrow={1} alignSelf={'center'} textAlign={'right'}>
           <Typography variant={'body1'}>
             Torneos Disponibles para crear
           </Typography>
         </Grid>
-        <Grid item>
+        <Grid>
           <Select
             labelId="demo-simple-select-label"
             id="demo-simple-select"
@@ -45,23 +39,17 @@ export default function TournamentsCreate({tournaments}: Props) {
             ))}
           </Select>
         </Grid>
-        <Grid
-          item
-          flexGrow={1}
-          alignSelf={'center'}
-        >
-          <LoadingButton
+        <Grid flexGrow={1} alignSelf={'center'}>
+          <Button
             loading={creating}
             variant={'contained'}
             size={'large'}
             //TODO: Handle creating of tournament
           >
             Crear
-          </LoadingButton>
+          </Button>
         </Grid>
       </Grid>
-
-
     </Paper>
-  )
+  );
 }

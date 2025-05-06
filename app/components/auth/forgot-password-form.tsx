@@ -1,10 +1,9 @@
 'use client'
 
-import {Alert, TextField, Typography} from "@mui/material";
+import {Alert, Button, TextField, Typography} from "@mui/material";
 import {Controller, SubmitHandler, useForm} from "react-hook-form";
 //@ts-ignore
 import validator from "validator";
-import {LoadingButton} from "@mui/lab";
 import {useState} from "react";
 import {sendPasswordResetLink} from "../../actions/user-actions";
 
@@ -90,9 +89,9 @@ export default function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProp
       />
 
       <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
-        <LoadingButton loading={loading} type="submit">
+        <Button loading={loading} type="submit">
           Enviar Enlace
-        </LoadingButton>
+        </Button>
       </div>
     </form>
   );

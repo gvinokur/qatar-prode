@@ -1,10 +1,9 @@
 'use client'
 
-import { Alert, TextField } from "@mui/material";
+import {Alert, Button, TextField} from "@mui/material";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 //@ts-ignore
 import validator from "validator";
-import { LoadingButton } from "@mui/lab";
 import { useState } from "react";
 import { signupUser } from "../../actions/user-actions";
 import { LoginFormData } from "./login-form";
@@ -172,9 +171,9 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
       />
 
       <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
-        <LoadingButton loading={loading} type="submit">
+        <Button loading={loading} type="submit">
           Registrarse
-        </LoadingButton>
+        </Button>
       </div>
     </form>
   );

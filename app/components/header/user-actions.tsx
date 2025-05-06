@@ -14,7 +14,6 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import {LoadingButton} from "@mui/lab";
 import {useSearchParams, useRouter} from "next/navigation";
 import LoginOrSignupDialog from "../auth/login-or-signup-dialog";
 import {signOut, useSession} from "next-auth/react";
@@ -23,9 +22,10 @@ import {useForm} from "react-hook-form";
 import tournaments from "../../../data/tournaments";
 import {generateDbTournament, generateDbTournamentTeamPlayers} from "../../actions/backoffice-actions";
 import {AdapterUser} from "next-auth/adapters";
+import {User} from "next-auth";
 
 type UserActionProps = {
-  user?: AdapterUser
+  user?: User
 }
 
 type NicknameFormData = {
@@ -181,7 +181,7 @@ export default function UserActions({ user }: UserActionProps) {
         </DialogContent>
         <DialogActions>
           <Button disabled={loading} onClick={handleCloseNicknameDialog}>Cancelar</Button>
-          <LoadingButton loading={loading} type='submit'>Cambiar</LoadingButton>
+          <Button loading={loading} type='submit'>Cambiar</Button>
         </DialogActions>
       </Dialog>
       <LoginOrSignupDialog openLoginDialog={openLoginDialog} handleCloseLoginDialog={handleCloseLoginDialog}/>

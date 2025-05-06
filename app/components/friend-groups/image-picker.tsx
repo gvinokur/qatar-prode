@@ -158,7 +158,7 @@ function NoImagePreview({
     >
       <Box sx={{ textAlign: 'center' }}>
         <CropOriginal sx={{ fontSize: 40, color: 'info.main', mb: 1 }} />
-        <Alert severity={'info'} sx={{ bgcolor: 'background.paper' }}>{noImageText}</Alert>
+        <Alert severity='info' sx={{ bgcolor: 'background.paper' }}>{noImageText}</Alert>
       </Box>
     </Box>
   )
@@ -176,7 +176,7 @@ function ImageCard({
   previewBackgroundColor
 }: {
   readonly dataUrl: string;
-  readonly fileInput: React.RefObject<HTMLInputElement>;
+  readonly fileInput: React.RefObject<HTMLInputElement | null>;
   readonly error?: string;
   readonly onRemove: () => void;
   readonly buttonText: string;
@@ -186,7 +186,8 @@ function ImageCard({
   readonly previewBackgroundColor?: string;
 }) {
   const openDialog = () => {
-    fileInput.current?.click()
+    fileInput && fileInput.current !== null
+      && "click" in fileInput.current &&  fileInput.current.click()
   }
 
   const imagePreview = dataUrl ?
@@ -206,8 +207,8 @@ function ImageCard({
     />
 
   return (
-    <Grid container xs={12} p={2}>
-      <Grid item xs={12} textAlign={"center"}>
+    <Grid container p={2} size={12}>
+      <Grid textAlign="center" size={12}>
         {imagePreview}
         {error && (
           <Alert severity="error" sx={{ mt: 1 }}>
@@ -215,12 +216,12 @@ function ImageCard({
           </Alert>
         )}
       </Grid>
-      <Grid item xs={12} textAlign={"center"} mt={2}>
+      <Grid textAlign="center" mt={2} size={12}>
         <Button
           startIcon={<UploadFile />}
           onClick={openDialog}
           type="button"
-          variant={'outlined'}
+          variant="outlined"
           fullWidth
         >
           {buttonText}
@@ -246,14 +247,14 @@ export default function ImagePicker({
   previewWidth = 200, // Default preview width of 200px
   previewBackgroundColor, // background color for the preview box
 }: Readonly<ImagePickerProps>) {
-  const fileInput = useRef<HTMLInputElement>(null);
+  const fileInput = useRef<HTMLInputElement | null>(null);
   const [dataUrl, setDataUrl] = useState<string | null>(defaultValue ?? null);
   const [error, setError] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
 
   // Set default texts based on imageType if not provided
   const finalButtonText = buttonText || `Seleccionar ${imageType}`;
-  const finalNoImageText = noImageText || `No ${imageType.toLowerCase()} selected`;
+  const finalNoImageText = noImageText || `No ${imageType?.toLowerCase()} selected`;
 
   // Create a custom event to pass to onChange when removing the image
   const createEmptyFileEvent = () => {
@@ -297,8 +298,8 @@ export default function ImagePicker({
     }
 
     // Check file type
-    if (!allowedTypes.includes(file.type)) {
-      return `Tipo de archivo no permitido. Tipos permitidos: ${allowedTypes.map(type => type.replace('image/', '')).join(', ')}`;
+    if (!allowedTypes?.includes(file.type)) {
+      return `Tipo de archivo no permitido. Tipos permitidos: ${allowedTypes?.map(type => type.replace('image/', '')).join(', ')}`;
     }
 
     return validateImageDimensions(URL.createObjectURL(file));
@@ -314,8 +315,10 @@ export default function ImagePicker({
       if (validationError) {
         setError(validationError);
         // Reset the input
-        if (fileInput.current) {
-          fileInput.current.value = '';
+        if (fileInput && fileInput.current) {
+          if ("value" in fileInput.current) {
+            fileInput.current.value = '';
+          }
         }
         return;
       }
@@ -333,7 +336,9 @@ export default function ImagePicker({
 
     // Reset the input
     if (fileInput.current) {
-      fileInput.current.value = '';
+      if ("value" in fileInput.current) {
+        fileInput.current.value = '';
+      }
     }
 
     // Notify parent component
@@ -357,7 +362,7 @@ export default function ImagePicker({
           onChange={handleFileChange}
           onBlur={onBlur}
           ref={fileInput}
-          accept={allowedTypes.join(',')}
+          accept={allowedTypes?.join(',')}
           style={{ display: 'none' }}
         />
       </Box>

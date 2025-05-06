@@ -10,12 +10,10 @@ import {
   findUserByResetToken,
   findUserByVerificationToken, verifyEmail
 } from "../db/users-repository"
-import {getServerSession} from "next-auth/next";
 import {randomBytes} from "crypto";
-import {authOptions} from "../authOptions";
 import {generatePasswordResetEmail, generateVerificationEmail} from "../utils/email-templates";
 import {sendEmail} from "../utils/email";
-import {cookies} from "next/headers";
+import {auth} from "../../auth";
 
 function generateVerificationToken(): string {
   return crypto.randomBytes(32).toString('hex');
@@ -73,7 +71,7 @@ export async function updateNickname(nickname: string) {
 }
 
 export async function getLoggedInUser() {
-  const session = await getServerSession(authOptions)
+  const session = await auth()
   return session?.user
 }
 

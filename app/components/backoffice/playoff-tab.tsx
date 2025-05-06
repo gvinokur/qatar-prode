@@ -8,7 +8,6 @@ import {getCompletePlayoffData} from "../../actions/tournament-actions";
 import BackofficeGameView from "./internal/backoffice-game-view";
 import {isTeamWinnerRule} from "../../utils/playoffs-rule-helper";
 import {getGameWinner, getGameLoser} from "../../utils/score-utils";
-import {LoadingButton} from "@mui/lab";
 import GameResultEditDialog from '../game-result-edit-dialog';
 import {
   calculateGameScores,
@@ -186,12 +185,18 @@ export default function PlayoffTab({ tournamentId } :Props) {
         <CircularProgress color="inherit" />
       </Backdrop>
       {!loading && playoffStages && playoffStages.map(playoffStage => (
-        <Grid container xs={12} spacing={1} key={playoffStage.id}>
-          <Grid item xs={12} textAlign={'center'} m={3}>
+        <Grid container spacing={1} key={playoffStage.id} size={12}>
+          <Grid textAlign={'center'} m={3} size={12}>
             <Typography variant={'h5'}>{playoffStage.round_name}</Typography>
           </Grid>
           {playoffStage.games.map(({game_id}) => (
-            <Grid item xs={12} md={6} lg={4} key={game_id}>
+            <Grid
+              key={game_id}
+              size={{
+                xs: 12,
+                md: 6,
+                lg: 4
+              }}>
               <BackofficeGameView
                 game={gamesMap[game_id]}
                 teamsMap={teamsMap}
@@ -228,5 +233,5 @@ export default function PlayoffTab({ tournamentId } :Props) {
         </>
       )}
     </Box>
-  )
+  );
 }

@@ -17,15 +17,19 @@ type GameSections = {
   games: ExtendedGameData[]
 }
 
-type GamesGridProps = {
-  isPlayoffs: false
-  games: ExtendedGameData[]
-  teamsMap: {[k:string]: Team}
-} | {
+type PlayoffGameGridProps = {
   isPlayoffs: true
   gameSections: GameSections[]
   teamsMap: {[k:string]: Team}
 }
+
+type GroupGameGridProps = {
+  isPlayoffs: false
+  games: ExtendedGameData[]
+  teamsMap: {[k:string]: Team}
+}
+
+type GamesGridProps =  PlayoffGameGridProps | GroupGameGridProps
 
 const buildGameGuess = (game: Game, userId: string): GameGuessNew => ({
   game_id: game.id,
@@ -40,12 +44,14 @@ const buildGameGuess = (game: Game, userId: string): GameGuessNew => ({
   score: undefined
 })
 
-export default function GamesGrid({ teamsMap, ...gamesOrSections }: GamesGridProps) {
+export default function GamesGrid({ teamsMap, ...gamesOrSectionsA }: GamesGridProps) {
   const groupContext = useContext(GuessesContext)
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState<ExtendedGameData | null>(null);
   const gameGuesses = groupContext.gameGuesses
   const {data} = useSession()
+  let gamesOrSections =
+    gamesOrSectionsA.isPlayoffs ? gamesOrSectionsA as PlayoffGameGridProps : gamesOrSectionsA as GroupGameGridProps
   const games = gamesOrSections.isPlayoffs ? gamesOrSections.gameSections.flatMap(section => section.games) : gamesOrSections.games
 
   useEffect(() => {
@@ -126,13 +132,13 @@ export default function GamesGrid({ teamsMap, ...gamesOrSections }: GamesGridPro
       <Grid container spacing={2}>
         {!gamesOrSections.isPlayoffs && games
           .map(game => (
-            <Grid key={game.game_number} item xs={12} sm={6}>
+            <Grid key={game.game_number} size={{xs:12, sm:6 }}>
               <GameView game={game} teamsMap={teamsMap} handleEditClick={handleEditClick}/>
             </Grid>
           ))
         }
         {gamesOrSections.isPlayoffs && gamesOrSections.gameSections.map(section => (
-          <Grid item xs={12} key={section.section}>
+          <Grid size={12} key={section.section}>
             <Chip label={section.section}
                   sx={{
                     textOverflow: 'ellipsis',
@@ -144,7 +150,7 @@ export default function GamesGrid({ teamsMap, ...gamesOrSections }: GamesGridPro
                   }}/>
             <Grid container spacing={2} pt={2} pl={1} pr={1} justifyContent={'space-evenly'}>
               {section.games.map(game => (
-                <Grid key={game.game_number} item xs={12} sm={6}>
+                <Grid key={game.game_number} size={{ xs: 12, sm:6 }}>
                   <GameView game={game} teamsMap={teamsMap} handleEditClick={handleEditClick}/>
                 </Grid>
               ))}

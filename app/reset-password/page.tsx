@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Alert, Box, Button, Card, CardContent, CircularProgress, Container, TextField, Typography } from '@mui/material';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import { verifyResetToken, updateUserPassword } from '../actions/user-actions';
-import { LoadingButton } from '@mui/lab';
 
 type ResetPasswordFormData = {
   password: string;
@@ -171,13 +170,13 @@ export default function ResetPasswordPage() {
               />
 
               <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-                <LoadingButton
+                <Button
                   loading={submitting}
                   type="submit"
                   variant="contained"
                 >
                   Actualizar contraseña
-                </LoadingButton>
+                </Button>
               </Box>
             </form>
           ) : (

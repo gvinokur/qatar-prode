@@ -78,7 +78,7 @@ export default function GroupTable({games, teamsMap, isPredictions, qualifiedTea
             {(usePredictionsTable ? groupPositionsByGuess : realPositions).map((teamStats, index) => (
               <TableRow key={index} sx={
                 (usePredictionsTable ? qualifiedTeamGuesses : qualifiedTeams)?.find(qualifiedTeam => qualifiedTeam.id === teamStats.team_id) ?
-                  {backgroundColor: 'primary.contrastText'} :
+                  {backgroundColor: 'secondary.main'} :
                   {}
               }>
                 <TableCell>{index + 1}</TableCell>

@@ -1,13 +1,14 @@
-import NextAuth, { DefaultSession, Jwt as DefaultJwt } from "next-auth"
+import { DefaultSession, Jwt as DefaultJwt } from "next-auth"
 import { JWT as DefaultJWT} from "next-auth/jwt"
 import {type AdapterUser as BaseAdapterUser, AdapterUser} from "next-auth/adapters";
+import {DefaultUser} from "@auth/core/types";
 
 declare module "next-auth/jwt" {
   /** Returned by the `jwt` callback and `getToken`, when using JWT sessions */
   interface JWT extends DefaultJWT{
     id:string
     isAdmin?: boolean,
-    nickname?: string,
+    nickname?: string | null,
     email_verified?: boolean
   }
 }
@@ -15,7 +16,7 @@ declare module "next-auth/jwt" {
 declare module "next-auth/adapters" {
   interface AdapterUser extends BaseAdapterUser {
     id:string
-    nickname?:string
+    nickname?: string | null,
     isAdmin?: boolean
     email_verified?: boolean
   }
@@ -33,7 +34,14 @@ declare module "next-auth" {
   interface Jwt extends DefaultJwt{
     id:string
     isAdmin?: boolean,
-    nickname?: string,
+    nickname?: string | null,
+    email_verified?: boolean
+  }
+
+  interface User extends DefaultUser {
+    id:string
+    nickname?: string | null,
+    isAdmin?: boolean
     email_verified?: boolean
   }
 }

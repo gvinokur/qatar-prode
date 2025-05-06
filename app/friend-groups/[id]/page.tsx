@@ -18,13 +18,15 @@ import {UserScore} from "../../definitions";
 import {InviteFriendsDialogButton} from "../../components/friend-groups/invite-friends-dialog-button";
 
 type Props = {
-  params: {
+  params: Promise<{
     id: string
-  },
-  searchParams: {[k:string]:string}
+  }>,
+  searchParams: Promise<{[k:string]:string}>
 }
 
-export default async function FriendsGroup({params, searchParams} : Props){
+export default async function FriendsGroup(props : Props){
+  const params = await props.params
+  const searchParams = await props.searchParams
   const user = await getLoggedInUser()
   const prodeGroup = await findProdeGroupById(params.id)
   if(!prodeGroup || !user) {
@@ -56,21 +58,22 @@ export default async function FriendsGroup({params, searchParams} : Props){
 
           return [
             tournament.id,
-            users.map(user => ({
+            users.map(user => (({
               userId: user.id,
               groupStageScore: gameStatisticsByUserIdMap[user.id]?.group_score || 0,
               groupStageQualifiersScore: tournamentGuessesByUserIdMap[user.id]?.qualified_teams_score || 0,
               playoffScore: gameStatisticsByUserIdMap[user.id]?.playoff_score || 0,
               honorRollScore: tournamentGuessesByUserIdMap[user.id]?.honor_roll_score || 0,
               individualAwardsScore: tournamentGuessesByUserIdMap[user.id]?.individual_awards_score || 0,
+
               totalPoints: (
                 (gameStatisticsByUserIdMap[user.id]?.total_score || 0) +
                 (tournamentGuessesByUserIdMap[user.id]?.qualified_teams_score || 0) +
                 (tournamentGuessesByUserIdMap[user.id]?.honor_roll_score || 0) +
                 (tournamentGuessesByUserIdMap[user.id]?.individual_awards_score || 0)
               )
-            }) as UserScore )
-          ]
+            }) as UserScore) )
+          ];
         }
       )))
 
@@ -90,7 +93,7 @@ export default async function FriendsGroup({params, searchParams} : Props){
             bgcolor={prodeGroup.theme?.primary_color || ''}
             color={prodeGroup.theme?.secondary_color || ''}
       >
-        <Grid item>
+        <Grid>
           {prodeGroup.name.toLowerCase() === 'welltech' && (
             <img src={'/welltech-logo.jpeg'} alt={'Grupo Welltech'} height={60} width={150}/>
           )}
@@ -100,31 +103,31 @@ export default async function FriendsGroup({params, searchParams} : Props){
             }}/>
           )}
         </Grid>
-        <Grid item>
+        <Grid>
           <Typography variant={'h2'} fontWeight={'bold'}>
           {prodeGroup.name}
           </Typography>
         </Grid>
       </Grid>
-      <Grid container spacing={2} xs={12} p={2} justifyContent={'center'}>
-        <Grid item xs={12} md={8}>
+      <Grid container spacing={2} p={2} justifyContent={'center'}>
+        <Grid size={{ xs:12, md :8 }}>
           <ProdeGroupTable
             users={usersMap}
             userScoresByTournament={userScoresByTournament}
             loggedInUser={user.id}
             tournaments={tournaments}
-            action={isAdmin ? (
+            action={isAdmin && (
               <InviteFriendsDialogButton
                 groupName={prodeGroup.name}
                 groupId={prodeGroup.id}/>
-            ) : undefined}
+            )}
           />
         </Grid>
         {prodeGroup.owner_user_id === user.id && (
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs:12, md : 4 }}>
            <ProdeGroupThemer group={prodeGroup}/>
           </Grid>
-        )}
+        ) || <></>}
       </Grid>
       {searchParams.hasOwnProperty('recentlyJoined') && (<JoinMessage />)}
     </Box>

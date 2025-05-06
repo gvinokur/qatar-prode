@@ -1,11 +1,10 @@
 'use client'
 
 import {useState, useEffect, useCallback} from 'react';
-import { useParams } from 'next/navigation';
 import {Player, PlayerNew, Team} from "../../db/tables-definition";
 import {
   createTournamentTeamPlayers,
-  deleteAllTeamPlayersInTournament, deleteTournamentTeamPlayers,
+  deleteTournamentTeamPlayers,
   getPlayersInTournament
 } from "../../actions/team-actions";
 import {
@@ -28,7 +27,6 @@ import {
 } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { getTransfermarktPlayerData } from "../../actions/team-actions";
-import {LoadingButton} from "@mui/lab";
 import {getTournamentStartDate} from "../../actions/tournament-actions";
 
 interface PlayerData {
@@ -265,14 +263,14 @@ export default function PlayersTab({tournamentId}: {tournamentId: string}) {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenImportModal(false)}>Cancel</Button>
-          <LoadingButton
+          <Button
             variant="contained"
             onClick={handleImportPlayers}
             disabled={!transfermarktName || !transfermarktId || importLoading}
             loading={importLoading}
           >
             {importLoading ? 'Importando...' : 'Importar'}
-          </LoadingButton>
+          </Button>
         </DialogActions>
       </Dialog>
     </>

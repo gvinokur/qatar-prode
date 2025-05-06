@@ -1,8 +1,7 @@
 'use client'
 import {useContext, useState} from "react";
 import {GuessesContext} from "../context-providers/guesses-context-provider";
-import {LoadingButton} from "@mui/lab";
-import {Alert, Hidden, Snackbar} from "@mui/material";
+import {Alert, Button, Snackbar} from "@mui/material";
 import {
   updateOrCreateGameGuesses,
   updateOrCreateTournamentGroupTeamGuesses,
@@ -34,11 +33,11 @@ export default function SaveComponent() {
 
   return (
     <>
-      <LoadingButton loading={saving} variant='contained' size='large' onClick={savePredictions}
-                     sx={{ marginTop: '16px', display: { xs: 'none', md: 'block'} }}>Guardar Pronostico</LoadingButton>
-      <LoadingButton loading={saving} variant='contained' size='large' onClick={savePredictions}
+      <Button loading={saving} variant='contained' size='large' onClick={savePredictions}
+                     sx={{ marginTop: '16px', display: { xs: 'none', md: 'block'} }}>Guardar Pronostico</Button>
+      <Button loading={saving} variant='contained' size='large' onClick={savePredictions}
                      sx={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translate(-50%, 0)',
-                       display: { xs: 'block', md: 'none'} }}>Guardar Pronostico</LoadingButton>
+                       display: { xs: 'block', md: 'none'} }}>Guardar Pronostico</Button>
       <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center'}} open={saved} autoHideDuration={2000} onClose={() => setSaved(false)}>
         <Alert onClose={() => setSaved(false)} severity="success" sx={{ width: '100%' }}>
           Tus pronosticos se guardaron correctamente!

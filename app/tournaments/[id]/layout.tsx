@@ -12,17 +12,18 @@ import EnvironmentIndicator from "../../components/environment-indicator";
 import {Typography} from "@mui/material";
 
 type TournamentLayoutProps = {
-  params: {
+  params: Promise<{
     id: string
-  }
-  searchParams: {[k:string]:string}
+  }>
   children: React.ReactNode
 }
 
-export default async function TournamentLayout({children, params}: TournamentLayoutProps) {
+export default async function TournamentLayout(props: TournamentLayoutProps) {
+  const params = await props.params
+  const children = props.children
   const user = await getLoggedInUser()
   const layoutData = await getTournamentAndGroupsData(params.id)
-  const tournamentGuesses = user && await findTournamentGuessByUserIdTournament(user.id, params.id)
+  const tournamentGuesses = user && (await findTournamentGuessByUserIdTournament(user.id, params.id))
   const tournamentStartDate = await getTournamentStartDate(params.id)
   const playersInTournament = await getPlayersInTournament(params.id)
 
@@ -42,8 +43,8 @@ export default async function TournamentLayout({children, params}: TournamentLay
   return (
     <>
       <AppBar position={'sticky'}>
-        <Grid container xs={12}>
-          <Grid item xs={12} md={3} pt={2} pb={1} pl={2} sx={{
+        <Grid container>
+          <Grid size={{ xs:12, md: 3}} pt={2} pb={1} pl={2} sx={{
             backgroundColor: layoutData.tournament?.theme?.primary_color,
             textAlign: {
               xs: 'center',
@@ -90,7 +91,7 @@ export default async function TournamentLayout({children, params}: TournamentLay
 
             </Link>
           </Grid>
-          <Grid item xs={12} md={9} pt={2} pb={1} pl={1} pr={1} sx={{
+          <Grid size={{ xs:12, md: 9}} pt={2} pb={1} pl={1} pr={1} sx={{
             backgroundColor: layoutData.tournament?.theme?.primary_color
           }}>
             <GroupSelector

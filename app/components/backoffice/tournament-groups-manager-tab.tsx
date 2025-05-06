@@ -109,7 +109,6 @@ const TournamentGroups: React.FC<TournamentGroupsProps> = ({ tournamentId }) => 
           Create Group
         </Button>
       </Box>
-
       {groups.length === 0 ? (
         <Alert severity="info">
           No groups found for this tournament.
@@ -118,7 +117,13 @@ const TournamentGroups: React.FC<TournamentGroupsProps> = ({ tournamentId }) => 
         <Box sx={{ flexGrow: 1 }}>
           <Grid container spacing={3}>
             {groups.map((group) => (
-              <Grid item xs={12} sm={6} md={4} key={group.id}>
+              <Grid
+                key={group.id}
+                size={{
+                  xs: 12,
+                  sm: 6,
+                  md: 4
+                }}>
                 <Paper
                   elevation={3}
                   sx={{
@@ -202,7 +207,6 @@ const TournamentGroups: React.FC<TournamentGroupsProps> = ({ tournamentId }) => 
           </Grid>
         </Box>
       )}
-
       <GroupDialog
         open={openDialog}
         onClose={handleCloseDialog}

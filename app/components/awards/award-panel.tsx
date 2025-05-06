@@ -15,7 +15,6 @@ import {
   Typography, useTheme
 } from "@mui/material";
 import {Close as MissIcon, Done as HitIcon} from "@mui/icons-material";
-import {LoadingButton} from "@mui/lab";
 import {updateOrCreateTournamentGuess} from "../../actions/guesses-actions";
 import {ExtendedPlayerData} from "../../definitions";
 import {awardsDefinition, AwardTypes} from "../../utils/award-utils";
@@ -78,12 +77,17 @@ export default function AwardsPanel({
           Predictions are no longer available as the tournament has already started.
         </Alert>
       ) : null}
-
       <Card sx={{ maxWidth: '800px', mr: 'auto', ml: 'auto'}}>
         <CardHeader title={'Podio del Torneo'}/>
         <CardContent>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={hasThirdPlaceGame ? 4 : 6} flexDirection="row" display="flex">
+            <Grid
+              flexDirection="row"
+              display="flex"
+              size={{
+                xs: 12,
+                md: hasThirdPlaceGame ? 4 : 6
+              }}>
               <TeamSelector
                 label="Campeón"
                 teams={teams}
@@ -106,7 +110,13 @@ export default function AwardsPanel({
               )}
             </Grid>
 
-            <Grid item xs={12} md={hasThirdPlaceGame ? 4 : 6} display={'flex'} flexDirection={'row'}>
+            <Grid
+              display={'flex'}
+              flexDirection={'row'}
+              size={{
+                xs: 12,
+                md: hasThirdPlaceGame ? 4 : 6
+              }}>
               <TeamSelector
                 label="Subcampeón"
                 teams={teams}
@@ -129,7 +139,13 @@ export default function AwardsPanel({
             </Grid>
 
             {hasThirdPlaceGame && (
-              <Grid item xs={12} md={4} display={'flex'} flexDirection={'row'}>
+              <Grid
+                display={'flex'}
+                flexDirection={'row'}
+                size={{
+                  xs: 12,
+                  md: 4
+                }}>
                 <TeamSelector
                   label="Third Place"
                   teams={teams}
@@ -167,7 +183,7 @@ export default function AwardsPanel({
             <Grid container spacing={2}>
               {awardsDefinition.map(awardDefinition => (
                 <Fragment key={awardDefinition.property}>
-                  <Grid item xs={5} flexDirection={'row'} alignItems={'center'} display={'flex'}>
+                  <Grid flexDirection={'row'} alignItems={'center'} display={'flex'} size={5}>
                     {tournament[awardDefinition.property] && tournament[awardDefinition.property] === tournamentGuesses[awardDefinition.property] && (
                       <Avatar title='Pronostico Correcto' sx={{ width: '24px', height: '24px', bgcolor: theme.palette.success.light, mr: 1}}>
                         <HitIcon sx={{ fontSize: 14 }} />
@@ -187,7 +203,7 @@ export default function AwardsPanel({
                       }}>
                       {awardDefinition.label}</Typography>
                   </Grid>
-                  <Grid item xs={7}>
+                  <Grid size={7}>
                     <Autocomplete
                       id='best-player-autocomplete'
                       options={allPlayers
@@ -223,12 +239,12 @@ export default function AwardsPanel({
           )}
         </CardContent>
       </Card>
-      <LoadingButton loading={saving} disabled={isPredictionLocked} variant='contained' size='large' onClick={savePredictions} sx={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translate(-50%, 0)' }}>Guardar Pronostico</LoadingButton>
+      <Button loading={saving} disabled={isPredictionLocked} variant='contained' size='large' onClick={savePredictions} sx={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translate(-50%, 0)' }}>Guardar Pronostico</Button>
       <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center'}} open={saved} autoHideDuration={2000} onClose={() => setSaved(false)}>
         <Alert onClose={() => setSaved(false)} severity="success" sx={{ width: '100%' }}>
           Tus pronosticos se guardaron correctamente!
         </Alert>
       </Snackbar>
     </>
-  )
+  );
 }

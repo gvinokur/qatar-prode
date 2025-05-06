@@ -18,7 +18,6 @@ import {
   Button,
   Divider, FormControlLabel, Switch
 } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
 import {PlayoffRound, Tournament} from '../../db/tables-definition';
 import {createOrUpdateTournament, getTournamentById, getPlayoffRounds} from '../../actions/tournament-actions';
 import { MuiColorInput } from 'mui-color-input';
@@ -296,7 +295,11 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
         </Typography>
 
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+          <Grid
+            size={{
+              xs: 12,
+              md: 6
+            }}>
             <TextField
               label="Long Name"
               fullWidth
@@ -307,7 +310,11 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
               helperText="The full name of the tournament (e.g. 'FIFA World Cup 2022')"
             />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid
+            size={{
+              xs: 12,
+              md: 6
+            }}>
             <TextField
               label="Short Name"
               fullWidth
@@ -318,7 +325,11 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
               helperText="A shorter version of the name (e.g. 'World Cup 2022')"
             />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid
+            size={{
+              xs: 12,
+              md: 6
+            }}>
             <Typography variant="subtitle2" gutterBottom>
               Primary Color
             </Typography>
@@ -329,7 +340,11 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
               fullWidth
             />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid
+            size={{
+              xs: 12,
+              md: 6
+            }}>
             <Typography variant="subtitle2" gutterBottom>
               Secondary Color
             </Typography>
@@ -340,7 +355,11 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
               fullWidth
             />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid
+            size={{
+              xs: 12,
+              md: 6
+            }}>
             <TextField
               label="External Website"
               fullWidth
@@ -357,7 +376,13 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
               }}
             />
           </Grid>
-          <Grid item xs={12} md={6} lg={3} alignContent={'center'}>
+          <Grid
+            alignContent={'center'}
+            size={{
+              xs: 12,
+              md: 6,
+              lg: 3
+            }}>
             <FormControlLabel
               labelPlacement={'start'}
               control={
@@ -377,7 +402,13 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
               }
             />
           </Grid>
-          <Grid item xs={12} md={6} lg={3} alignContent={'center'}>
+          <Grid
+            alignContent={'center'}
+            size={{
+              xs: 12,
+              md: 6,
+              lg: 3
+            }}>
             <FormControlLabel
               labelPlacement={'start'}
               control={
@@ -397,7 +428,11 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
               }
             />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid
+            size={{
+              xs: 12,
+              md: 6
+            }}>
             <Typography variant="subtitle2" gutterBottom>
               Tournament Logo
             </Typography>
@@ -414,7 +449,11 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
             />
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid
+            size={{
+              xs: 12,
+              md: 6
+            }}>
             <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="subtitle2">
                 Playoff Rounds
@@ -472,17 +511,16 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
         )}
 
         <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-          <LoadingButton
+          <Button
             loading={loading}
             type="submit"
             variant="contained"
             color="primary"
           >
             Save Changes
-          </LoadingButton>
+          </Button>
         </Box>
       </Paper>
-
       {/* Playoff Round Dialog */}
       <PlayoffRoundDialog
         open={playoffRoundDialogOpen}
@@ -492,7 +530,6 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
         round={currentPlayoffRound}
         nextOrder={getNextPlayoffRoundOrder()}
       />
-
       <Snackbar
         open={success}
         autoHideDuration={6000}
@@ -502,7 +539,6 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
           Tournament information updated successfully
         </Alert>
       </Snackbar>
-
       <Snackbar
         open={playoffRoundSuccess}
         autoHideDuration={6000}

@@ -18,10 +18,10 @@ import {customToMap, toMap} from "../../../utils/ObjectUtils";
 import GamesGrid from "../../../components/games-grid";
 
 type Props = {
-  params: {
+  params: Promise<{
     id: string
-  }
-  searchParams: {[k:string]:string}
+  }>
+  searchParams: Promise<{[k:string]:string}>
 }
 
 const buildTournamentGuesses = (userId: string, tournamentId: string) => ({
@@ -29,7 +29,9 @@ const buildTournamentGuesses = (userId: string, tournamentId: string) => ({
   tournament_id: tournamentId
 } as TournamentGuessNew)
 
-export default async function PlayoffPage({params, searchParams}: Props) {
+export default async function PlayoffPage(props: Props) {
+  const params = await props.params
+  const searchParams = await props.searchParams
   const user = await getLoggedInUser();
   const completePlayoffData = await getCompletePlayoffData(params.id, false)
   if(!user) {
@@ -108,7 +110,7 @@ export default async function PlayoffPage({params, searchParams}: Props) {
         autoSave={true}
       >
         <Grid container mt={'16px'} maxWidth={'800px'} mx={'auto'}>
-          <Grid item xs={12} mb={'16px'}>
+          <Grid size={12} mb={'16px'}>
             <GamesGrid
               isPlayoffs={true}
               gameSections={sections}

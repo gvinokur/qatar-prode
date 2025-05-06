@@ -13,7 +13,6 @@ import {
   FormControl,
   FormControlLabel
 } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
 import { createOrUpdatePlayoffRound } from "../../../actions/tournament-actions";
 import {PlayoffRound, PlayoffRoundNew, PlayoffRoundUpdate} from "../../../db/tables-definition";
 
@@ -124,7 +123,7 @@ export default function PlayoffRoundDialog({
       </DialogTitle>
       <DialogContent dividers>
         <Grid container spacing={2}>
-          <Grid item xs={12}>
+          <Grid size={12}>
             <TextField
               label="Round Name"
               fullWidth
@@ -137,7 +136,11 @@ export default function PlayoffRoundDialog({
               disabled={loading}
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid
+            size={{
+              xs: 12,
+              sm: 6
+            }}>
             <FormControl fullWidth margin="normal">
               <FormControlLabel
                 control={
@@ -156,7 +159,11 @@ export default function PlayoffRoundDialog({
               />
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid
+            size={{
+              xs: 12,
+              sm: 6
+            }}>
             <FormControl fullWidth margin="normal">
               <FormControlLabel
                 control={
@@ -175,7 +182,11 @@ export default function PlayoffRoundDialog({
               />
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid
+            size={{
+              xs: 12,
+              sm: 6
+            }}>
             <TextField
               label="Round Order"
               type="number"
@@ -190,7 +201,11 @@ export default function PlayoffRoundDialog({
               disabled={loading}
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid
+            size={{
+              xs: 12,
+              sm: 6
+            }}>
             <TextField
               label="Matches Count"
               type="number"
@@ -206,7 +221,7 @@ export default function PlayoffRoundDialog({
             />
           </Grid>
           {errors.submit && (
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 error
                 fullWidth
@@ -224,14 +239,14 @@ export default function PlayoffRoundDialog({
         <Button onClick={onClose} disabled={loading}>
           Cancel
         </Button>
-        <LoadingButton
+        <Button
           onClick={handleSave}
           loading={loading}
           variant="contained"
           color="primary"
         >
           Save
-        </LoadingButton>
+        </Button>
       </DialogActions>
     </Dialog>
   );

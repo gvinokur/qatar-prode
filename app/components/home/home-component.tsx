@@ -21,7 +21,11 @@ export default function Home({tournaments, groups} : HomeProps) {
   return (
     <>
       <Grid container spacing={2} p={2} maxWidth={'1000px'} mx={'auto'}>
-        <Grid item xs={12} md={8}>
+        <Grid
+          size={{
+            xs: 12,
+            md: 8
+          }}>
           <Card>
             <CardHeader
               title={'Torneos Disponibles'}
@@ -31,7 +35,7 @@ export default function Home({tournaments, groups} : HomeProps) {
               <Grid container spacing={1}>
                 {tournaments.map(tournament => (
                   <Fragment key={tournament.id}>
-                    <Grid item xs={12}>
+                    <Grid size={12}>
                       <Link href={`/tournaments/${tournament.id}`} variant={'h6'}
 
                                   sx={{
@@ -48,13 +52,17 @@ export default function Home({tournaments, groups} : HomeProps) {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid
+          size={{
+            xs: 12,
+            md: 4
+          }}>
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Rules expanded={false}/>
             </Grid>
             {!!groups && (
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <FriendGroupsList userGroups={groups.userGroups} participantGroups={groups.participantGroups}/>
               </Grid>
             )}

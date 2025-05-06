@@ -127,7 +127,14 @@ export default function TournamentTeamsManagerTab({ tournamentId }: TournamentTe
         ) : (
           <Grid container spacing={3}>
             {teams.map((team) => (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={team.id}>
+              <Grid
+                key={team.id}
+                size={{
+                  xs: 12,
+                  sm: 6,
+                  md: 4,
+                  lg: 3
+                }}>
                 <Card
                   sx={{
                     height: '100%',
@@ -184,7 +191,6 @@ export default function TournamentTeamsManagerTab({ tournamentId }: TournamentTe
           </Grid>
         )}
       </Paper>
-
       {/* Unified Dialog for Create/Edit */}
       <TeamDialog
         open={openDialog}

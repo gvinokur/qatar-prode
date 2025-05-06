@@ -22,7 +22,6 @@ import {
   Divider,
   CircularProgress, FormHelperText
 } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
 import {createOrUpdateTournament, getAllTournaments } from "../../../actions/tournament-actions";
 import { Tournament } from "../../../db/tables-definition";
 import {copyTournament} from "../../../actions/backoffice-actions";
@@ -217,13 +216,13 @@ export default function CreateTournamentModal({ open, onClose, onSuccess }: Crea
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={loading}>Cancel</Button>
-        <LoadingButton
+        <Button
           loading={loading}
           onClick={handleCreateTournament}
           variant="contained"
         >
           {createMode === 'new' ? 'Create' : 'Copy Tournament'}
-        </LoadingButton>
+        </Button>
       </DialogActions>
     </Dialog>
   );

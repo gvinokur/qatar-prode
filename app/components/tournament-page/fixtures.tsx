@@ -22,7 +22,7 @@ export function Fixtures( { games, teamsMap} : FixturesProps) {
       <CardContent>
         <Grid container spacing={1}>
           {games.map(game => (
-            <Grid item xs={12} key={game.game_number}>
+            <Grid key={game.game_number} size={12}>
               <CompactGameViewCard
                 isGameGuess={false}
                 gameNumber={game.game_number}
@@ -44,5 +44,5 @@ export function Fixtures( { games, teamsMap} : FixturesProps) {
         </Grid>
       </CardContent>
     </Card>
-  )
+  );
 }

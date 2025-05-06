@@ -221,7 +221,6 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
       <DialogTitle>
         {`Edit Result: Game #${gameNumber}`}
       </DialogTitle>
-
       <DialogContent dividers>
         {error && (
           <Alert severity="error" sx={{ mb: 3 }}>
@@ -254,13 +253,13 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
         {/* Scores */}
         <Box sx={{ mb: 3 }}>
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={8}>
+            <Grid size={8}>
               <Typography variant="body1" fontWeight="medium">
                 {homeTeamName}
               </Typography>
             </Grid>
 
-            <Grid item xs={4}>
+            <Grid size={4}>
               <TextField
                 type="number"
                 value={homeScore === undefined ? '' : homeScore}
@@ -271,13 +270,13 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
                 fullWidth
               />
             </Grid>
-            <Grid item xs={8}>
+            <Grid size={8}>
               <Typography variant="body1" fontWeight="medium">
                 {awayTeamName}
               </Typography>
             </Grid>
 
-            <Grid item xs={4}>
+            <Grid size={4}>
               <TextField
                 type="number"
                 value={awayScore === undefined ? '' : awayScore}
@@ -300,9 +299,9 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
 
             {props.isGameGuess ? (
               // Penalty winner checkboxes for game guesses
-              <Box>
+              (<Box>
                 <Grid container spacing={2}>
-                  <Grid item xs={6}>
+                  <Grid size={6}>
                     <FormControlLabel
                       control={
                         <Checkbox
@@ -315,7 +314,7 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
                     />
                   </Grid>
 
-                  <Grid item xs={6}>
+                  <Grid size={6}>
                     <FormControlLabel
                       control={
                         <Checkbox
@@ -328,21 +327,19 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
                     />
                   </Grid>
                 </Grid>
-
                 <Typography variant="caption" color="text.secondary">
                   Dado que el pártido terminó empatado, por favor seleccione el ganador de la tanda de penales.
                 </Typography>
-              </Box>
+              </Box>)
             ) : (
               // Penalty score inputs for game results
-              <Grid container spacing={2} alignItems="center">
-                <Grid item xs={8}>
+              (<Grid container spacing={2} alignItems="center">
+                <Grid size={8}>
                   <Typography variant="body2">
                     {homeTeamName} (Penalty Score)
                   </Typography>
                 </Grid>
-
-                <Grid item xs={4}>
+                <Grid size={4}>
                   <TextField
                     type="number"
                     value={homePenaltyScore === undefined ? '' : homePenaltyScore}
@@ -353,14 +350,12 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
                     fullWidth
                   />
                 </Grid>
-
-                <Grid item xs={8}>
+                <Grid size={8}>
                   <Typography variant="body2">
                     {awayTeamName} (Penalty Score)
                   </Typography>
                 </Grid>
-
-                <Grid item xs={4}>
+                <Grid size={4}>
                   <TextField
                     type="number"
                     value={awayPenaltyScore === undefined ? '' : awayPenaltyScore}
@@ -371,12 +366,11 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
                     fullWidth
                   />
                 </Grid>
-              </Grid>
+              </Grid>)
             )}
           </Box>
         )}
       </DialogContent>
-
       <DialogActions>
         <Button onClick={onClose} disabled={loading}>
           Cancel

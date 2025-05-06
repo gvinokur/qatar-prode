@@ -45,16 +45,16 @@ const GroupSelector = ({groups, tournamentId} : Props) => {
       <Grid container justifyContent={'space-around'} spacing={2}
             sx={{ display: { xs: 'none', md: 'flex'}}}>
         {groups.map(({group_letter, id}) => (
-          <Grid item key={id}>
+          <Grid key={id}>
             <Fab variant='extended' color={selected === id ? 'primary' : 'secondary'} href={getUrl(`groups/${id}`)}>
               Grupo {group_letter.toUpperCase()}
             </Fab>
           </Grid>
         ))}
-        <Grid item>
+        <Grid>
           <Fab color={selected === 'playoffs' ? 'primary' : 'secondary'} variant={'extended'} href={getUrl('playoffs')}>Playoffs</Fab>
         </Grid>
-        <Grid item>
+        <Grid>
           <Fab color={selected === 'individual_awards' ? 'primary' : 'secondary'} variant={'extended'} href={getUrl('awards')}>Premios</Fab>
         </Grid>
       </Grid>
@@ -72,7 +72,7 @@ const GroupSelector = ({groups, tournamentId} : Props) => {
         <MenuItem value='individual_awards'>Premios</MenuItem>
       </Select>
     </>
-  )
+  );
 }
 
 export default GroupSelector;

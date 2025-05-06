@@ -8,12 +8,11 @@ import {
   CardHeader,
   CircularProgress,
   Grid,
-  Snackbar,
+  Button,
   TextField,
   Typography
 } from "@mui/material";
 import { Fragment, useEffect, useState} from "react";
-import {LoadingButton} from "@mui/lab";
 import {awardsDefinition, AwardTypes} from "../../utils/award-utils";
 import { TournamentUpdate} from "../../db/tables-definition";
 import {ExtendedPlayerData} from "../../definitions";
@@ -71,7 +70,12 @@ export default function BackofficeAwardsTab({ tournamentId}: Props) {
               <Grid container spacing={2}>
                 {awardsDefinition.map(awardDefinition => (
                   <Fragment key={awardDefinition.property}>
-                    <Grid item xs={5} flexDirection={'column'} justifyContent={'center'} alignContent={'center'} display={'flex'}>
+                    <Grid
+                      flexDirection={'column'}
+                      justifyContent={'center'}
+                      alignContent={'center'}
+                      display={'flex'}
+                      size={5}>
                       <Typography
                         variant={"h6"}
                         sx={{
@@ -81,7 +85,7 @@ export default function BackofficeAwardsTab({ tournamentId}: Props) {
                         }}>
                         {awardDefinition.label}</Typography>
                     </Grid>
-                    <Grid item xs={7}>
+                    <Grid size={7}>
                       <Autocomplete
                         id='best-player-autocomplete'
                         options={players
@@ -115,9 +119,9 @@ export default function BackofficeAwardsTab({ tournamentId}: Props) {
               </Grid>
             </CardContent>
           </Card>
-          <LoadingButton loading={saving} variant='contained' size='large' onClick={saveTournament} sx={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translate(-50%, 0)' }}>Guardar Premios</LoadingButton>
+          <Button loading={saving} variant='contained' size='large' onClick={saveTournament} sx={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translate(-50%, 0)' }}>Guardar Premios</Button>
         </>
       )}
     </Box>
-  )
+  );
 }

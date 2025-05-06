@@ -13,7 +13,6 @@ import {
   TournamentGroupTeamNew
 } from "../../db/tables-definition";
 import BackofficeGameView from "./internal/backoffice-game-view";
-import {LoadingButton} from "@mui/lab";
 import {
   calculateAndSavePlayoffGamesForTournament,
   calculateAndStoreGroupPosition,
@@ -146,12 +145,21 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
       </Backdrop>
       {!loading && (
         <>
-          <Grid container xs={12} spacing={2}>
-            <Grid item xs={12} md={6}>
-              <Grid container xs={12} spacing={1}>
+          <Grid container spacing={2} size={12}>
+            <Grid
+              size={{
+                xs: 12,
+                md: 6
+              }}>
+              <Grid container spacing={1} size={12}>
                 {sortedGameIds
                   .map(gameId => (
-                    <Grid item xs={12} md={6} key={gameId}>
+                    <Grid
+                      key={gameId}
+                      size={{
+                        xs: 12,
+                        md: 6
+                      }}>
                       <BackofficeGameView
                         game={gamesMap[gameId]}
                         teamsMap={teamsMap}
@@ -162,7 +170,11 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
                   ))}
               </Grid>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid
+              size={{
+                xs: 12,
+                md: 6
+              }}>
               <GroupTable games={Object.values(gamesMap)} teamsMap={teamsMap} isPredictions={false} realPositions={positions}/>
             </Grid>
           </Grid>
@@ -188,5 +200,5 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
         initialGameDate={selectedGame?.game_date || new Date()}
       />
     </Box>
-  )
+  );
 }

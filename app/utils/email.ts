@@ -1,5 +1,4 @@
 'use server'
-import mailgun from 'mailgun-js';
 import nodemailer from 'nodemailer';
 
 interface EmailOptions {
@@ -8,13 +7,6 @@ interface EmailOptions {
   html: string;
 }
 
-const createMailgunClient = () => {
-  // Configure Mailgun client
-  return mailgun({
-    apiKey: process.env.EMAIL_SERVER_MG_KEY || '',
-    domain: process.env.EMAIL_SERVER_MG_DOMAIN || ''
-  });
-};
 
 const createGmailClient = () => {
   // Configure Nodemailer with Gmail
@@ -49,19 +41,7 @@ export async function sendEmail({ to, subject, html }: EmailOptions) {
       console.log('Email sent via Gmail:', info.messageId);
       return { success: true, messageId: info.messageId };
     } else {
-      // Use Mailgun (default)
-      const mg = createMailgunClient();
-
-      const data = {
-        from: process.env.EMAIL_FROM,
-        to,
-        subject,
-        html,
-      };
-
-      const response = await mg.messages().send(data);
-      console.log('Email sent via Mailgun:', response.id);
-      return { success: true, messageId: response.id };
+      return { success: false, messageId: "Don't have any other provider configured" };
     }
   } catch (error) {
     console.error("Failed to send email:", error);

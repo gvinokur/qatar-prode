@@ -20,14 +20,17 @@ import {customToMap, toMap} from "../../../../utils/ObjectUtils";
 import GamesGrid from "../../../../components/games-grid";
 
 type Props = {
-  params: {
+  params: Promise<{
     group_id: string
     id: string
-  }
-  searchParams: {[k:string]:string}
+  }>
+  searchParams: Promise<{[k:string]:string}>
 }
 
-export default async function GroupComponent({params, searchParams} : Props) {
+export default async function GroupComponent(props : Props) {
+  const params = await props.params
+  const searchParams = await props.searchParams
+  
   const user = await getLoggedInUser();
   if(!user) {
     redirect('/')
@@ -74,7 +77,7 @@ export default async function GroupComponent({params, searchParams} : Props) {
         autoSave={true}
       >
         <Grid container mt={'16px'} maxWidth={'868px'} mx={'auto'}>
-          <Grid item xs={12} mb={'16px'}>
+          <Grid size={12} mb={'16px'}>
             <GamesGrid
               isPlayoffs={false}
               games={Object.values(completeGroupData.gamesMap)
@@ -82,7 +85,7 @@ export default async function GroupComponent({params, searchParams} : Props) {
               teamsMap={completeGroupData.teamsMap}
             />
           </Grid>
-          <Grid item xs={12} justifyContent={'center'}>
+          <Grid size={12} justifyContent={'center'}>
             <GroupTable
               games={Object.values(completeGroupData.gamesMap)}
               teamsMap={completeGroupData.teamsMap}

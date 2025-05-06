@@ -1,10 +1,9 @@
 'use client'
 
-import { Alert, TextField } from "@mui/material";
+import {Alert, Button, TextField} from "@mui/material";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 //@ts-ignore
 import validator from "validator";
-import { LoadingButton } from "@mui/lab";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -121,9 +120,9 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       />
 
       <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
-        <LoadingButton loading={loading} type="submit">
+        <Button loading={loading} type="submit">
           Ingresar
-        </LoadingButton>
+        </Button>
       </div>
     </form>
   );

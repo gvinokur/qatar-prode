@@ -1,10 +1,8 @@
 import { db } from './database'
 import { createBaseFunctions} from "./base-repository";
 import {ProdeGroupTable, ProdeGroup} from "./tables-definition";
-import {jsonObjectFrom} from "kysely/helpers/postgres";
-import {AdapterUser} from "next-auth/adapters";
-import exp from "node:constants";
 import {cache} from "react";
+import {User} from "next-auth";
 
 const baseFunctions = createBaseFunctions<ProdeGroupTable, ProdeGroup>('prode_groups')
 
@@ -30,7 +28,7 @@ export const findProdeGroupsByParticipant = cache(async function (userId: string
     .execute()
 })
 
-export async function addParticipantToGroup(group: ProdeGroup, user: AdapterUser) {
+export async function addParticipantToGroup(group: ProdeGroup, user: User) {
   return db.insertInto('prode_group_participants')
     .values({
       prode_group_id: group.id,

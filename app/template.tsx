@@ -15,7 +15,7 @@ export default async function Template({
   const user = await getLoggedInUser();
   const isVerified = user &&
     //Solve use case in which the user has just been verified but the session is not updated
-    (user.email_verified || (await findUserById(user.id)).email_verified);
+    (user.emailVerified || (await findUserById(user.id)).email_verified);
 
   return (
     <BaseLayout user={user}>
@@ -29,10 +29,9 @@ export default async function Template({
           children
         ) : (
           /* Render a non-actionable overlay if user is not verified */
-          <Box position="relative">
+          (<Box position="relative">
             {/* Apply a non-interactive overlay */}
             <VerificationOverlay/>
-
             {/* Render children but make them non-interactive */}
             <Box
               sx={{
@@ -42,9 +41,9 @@ export default async function Template({
             >
               {children}
             </Box>
-          </Box>
+          </Box>)
         )}
       </>
     </BaseLayout>
-  )
+  );
 }

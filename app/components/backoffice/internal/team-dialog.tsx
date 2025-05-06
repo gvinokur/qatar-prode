@@ -13,7 +13,6 @@ import {
   Alert,
   Box
 } from '@mui/material';
-import { LoadingButton } from '@mui/lab';
 import { MuiColorInput } from 'mui-color-input';
 import { Team } from '../../../db/tables-definition';
 import ImagePicker from '../../friend-groups/image-picker';
@@ -145,7 +144,11 @@ export default function TeamDialog({
       </DialogTitle>
       <DialogContent>
         <Grid container spacing={3} sx={{ mt: 0 }}>
-          <Grid item xs={12} md={6}>
+          <Grid
+            size={{
+              xs: 12,
+              md: 6
+            }}>
             <TextField
               label="Team Name"
               fullWidth
@@ -157,7 +160,11 @@ export default function TeamDialog({
             />
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid
+            size={{
+              xs: 12,
+              md: 6
+            }}>
             <TextField
               label="Short Name"
               fullWidth
@@ -170,7 +177,11 @@ export default function TeamDialog({
             />
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid
+            size={{
+              xs: 12,
+              md: 6
+            }}>
             <Typography variant="subtitle2" gutterBottom>
               Primary Color
             </Typography>
@@ -182,7 +193,11 @@ export default function TeamDialog({
             />
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid
+            size={{
+              xs: 12,
+              md: 6
+            }}>
             <Typography variant="subtitle2" gutterBottom>
               Secondary Color
             </Typography>
@@ -194,7 +209,7 @@ export default function TeamDialog({
             />
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Typography variant="subtitle2" gutterBottom>
               Team Logo
             </Typography>
@@ -227,13 +242,13 @@ export default function TeamDialog({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cancel</Button>
-        <LoadingButton
+        <Button
           loading={loading}
           onClick={handleSubmit}
           variant="contained"
         >
           {isEditMode ? 'Save Changes' : 'Create Team'}
-        </LoadingButton>
+        </Button>
       </DialogActions>
     </Dialog>
   );

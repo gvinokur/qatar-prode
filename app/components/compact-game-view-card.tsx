@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import {Edit as EditIcon} from "@mui/icons-material";
 import {Close as MissIcon, Done as HitIcon, DoneAll as HitAllIcon, Save as SaveIcon, SaveOutlined as SaveOutlinedIcon, Scoreboard as ScoreboardIcon} from "@mui/icons-material";
-import { getDateString } from "../../utils/date-utils";
+import { getDateString } from "../utils/date-utils";
 import { GameResultNew, Theme} from "../db/tables-definition";
 import {useState} from "react";
 
@@ -100,7 +100,6 @@ export default function CompactGameViewCard({
         borderColor: isDraft ? theme.palette.warning.light : 'divider',
       }}
     >
-
       <CardContent sx={{ py: 2, px: 2, '&:last-child': { pb: 3 } }}>
         <Box display="flex" flexDirection={'column'} alignItems="center" justifyContent="space-between" gap={1}>
           {/* Game number and date */}
@@ -175,7 +174,7 @@ export default function CompactGameViewCard({
           {/* Teams and score */}
           <Grid container spacing={1} sx={isClickableStyles} onClick={handleEditClick}>
             {/* Home team */}
-            <Grid item xs={5} display="flex" justifyContent="flex-end" alignItems={'center'}>
+            <Grid display="flex" justifyContent="flex-end" alignItems={'center'} size={5}>
               <Typography
                 variant="body2"
                 fontWeight="medium"
@@ -205,7 +204,11 @@ export default function CompactGameViewCard({
             </Grid>
 
             {/* Score */}
-            <Grid item xs={2} display={'flex'} justifyContent={'space-around'} alignItems={'center'}>
+            <Grid
+              display={'flex'}
+              justifyContent={'space-around'}
+              alignItems={'center'}
+              size={2}>
               {hasResult ? (
                 <Typography variant="body2" fontWeight="bold">
                   {homeScore}
@@ -228,7 +231,7 @@ export default function CompactGameViewCard({
             </Grid>
 
             {/* Away team */}
-            <Grid item xs={5} display="flex" alignItems={'center'}>
+            <Grid display="flex" alignItems={'center'} size={5}>
               {isPlayoffGame &&
                 specificProps.isGameGuess &&
                 specificProps.awayPenaltyWinner &&
@@ -318,7 +321,6 @@ export default function CompactGameViewCard({
             </Typography>
           </Box>
         )}
-
     </Card>
   );
 }
