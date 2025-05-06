@@ -26,7 +26,7 @@ export async  function generateMetadata() {
 
 export async function createViewport() {
   return {
-    themeColor: '#000000',
+    themeColor: '#242424',
     colorScheme: 'dark light',
     width: 'device-width',
     initialScale: 1,

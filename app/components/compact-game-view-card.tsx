@@ -172,7 +172,13 @@ export default function CompactGameViewCard({
           />
 
           {/* Teams and score */}
-          <Grid container spacing={1} sx={isClickableStyles} onClick={handleEditClick}>
+          <Grid
+            container
+            spacing={1}
+            sx={isClickableStyles}
+            onClick={handleEditClick}
+            width='100%'
+          >
             {/* Home team */}
             <Grid display="flex" justifyContent="flex-end" alignItems={'center'} size={5}>
               <Typography
@@ -194,7 +200,7 @@ export default function CompactGameViewCard({
                   src={homeTeamTheme.logo}
                   alt={homeTeamNameOrDescription}
                   height={'24px'}
-                  style={{ marginLeft: '4px' }}
+                  style={{ marginLeft: '6px' }}
                 />
               )}
               {isPlayoffGame &&
@@ -241,7 +247,7 @@ export default function CompactGameViewCard({
                   src={awayTeamTheme.logo}
                   alt={awayTeamNameOrDescription}
                   height={'24px'}
-                  style={{ marginRight: '4px' }}
+                  style={{ marginRight: '6px' }}
                 />
               )}
               <Typography
