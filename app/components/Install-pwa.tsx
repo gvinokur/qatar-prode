@@ -45,17 +45,12 @@ export default function InstallPwa() {
     // Capture install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      console.log('beforeinstallprompt fired');
       setInstallPrompt(e as BeforeInstallPromptEvent);
     };
-    console.log('adding beforeinstallprompt event listener');
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    console.log('beforeinstallprompt added');
-
     return () => {
-      console.log('removing beforeinstallprompt event listener');
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
   }, []);

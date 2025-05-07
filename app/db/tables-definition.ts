@@ -6,7 +6,7 @@ import {
   Selectable,
   Updateable
 } from "kysely";
-import exp from "node:constants";
+import {PushSubscription} from "web-push";
 
 export interface Identifiable {
   id: Generated<string>
@@ -53,6 +53,7 @@ export interface UserTable extends Identifiable{
   email_verified?: boolean
   verification_token?: string | null
   verification_token_expiration?: Date | null
+  notification_subscriptions?: JSONColumnType<PushSubscription[]> | null
 }
 
 export type User = Selectable<UserTable>

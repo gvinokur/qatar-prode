@@ -24,6 +24,9 @@ self.addEventListener('activate', (event) => {
             );
         })
     );
+    if(navigator.clearAppBadge) {
+        navigator.clearAppBadge();
+    }
     self.clients.claim();
 });
 
@@ -44,17 +47,22 @@ self.addEventListener('notificationclick', (event) => {
     event.waitUntil(
         clients.matchAll({ type: 'window' }).then((clientList) => {
             // If a window client is already open, focus it
+            const url = event.notification?.data?.url || '/';
             for (const client of clientList) {
-                if (client.url === '/' && 'focus' in client) {
+                if (client.url === url && 'focus' in client) {
                     return client.focus();
                 }
             }
             // Otherwise, open a new window
-            if (clients.openWindow) {
-                return clients.openWindow('/');
+            if ("openWindow" in clients) {
+                clients.openWindow(url).then((windowClient) => (windowClient ? windowClient.focus() : null));
             }
         })
     );
+
+    if(navigator.clearAppBadge) {
+        navigator.clearAppBadge();
+    }
 });
 
 // Push event - handle incoming push messages
@@ -71,6 +79,10 @@ self.addEventListener('push', (event) => {
             url: data.url || '/'
         }
     };
+
+    if (navigator.setAppBadge) {
+        navigator.setAppBadge(1);
+    }
 
     event.waitUntil(
         self.registration.showNotification(data.title || 'Notification', options)

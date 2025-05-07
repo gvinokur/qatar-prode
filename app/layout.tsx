@@ -6,6 +6,8 @@ import ThemeProvider, {ThemeMode} from "./components/context-providers/theme-pro
 import {ThemeProvider as NextThemeProvider} from "next-themes";
 import {Metadata} from "next";
 import InstallPwa from "./components/Install-pwa";
+import OfflineDetection from "./components/offline-detection";
+import NotificationsSubscriptionPrompt from "./components/notifications-subscription-prompt";
 
 export async  function generateMetadata() {
   return {
@@ -52,8 +54,8 @@ export default async function RootLayout({
             <ThemeProvider>
               {children}
               <InstallPwa />
-              {/*<ServiceWorkerRegistration />*/}
-              {/*<OfflineDetection />*/}
+              <OfflineDetection />
+              <NotificationsSubscriptionPrompt/>
             </ThemeProvider>
           </NextThemeProvider>
         </body>

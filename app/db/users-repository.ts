@@ -3,6 +3,7 @@ import {createBaseFunctions} from "./base-repository";
 import {User, UserTable, UserUpdate} from "./tables-definition";
 import sha256 from 'crypto-js/sha256'
 import {cache} from "react";
+import {PushSubscription} from "web-push";
 
 const baseFunctions = createBaseFunctions<UserTable, User>('users');
 export const findUserById = baseFunctions.findById
@@ -63,4 +64,48 @@ export async function findUserByVerificationToken(token: string) {
     ]))
     .selectAll()
     .executeTakeFirst();
+}
+
+export async function addNotificationSubscription(userId: string, subscription: PushSubscription) {
+  const user = await findUserById(userId);
+  if (!user) {
+    throw new Error('User not found');
+  }
+  const newSubscriptions: PushSubscription[] =
+    user.notification_subscriptions ?
+      [...user.notification_subscriptions, subscription] :
+      [subscription];
+  return await db.updateTable('users')
+    .set({
+      notification_subscriptions: JSON.stringify(newSubscriptions)
+    })
+    .where('id', '=', userId)
+    .returningAll()
+    .executeTakeFirst();
+}
+
+export async function removeNotificationSubscription(userId: string, subscription: PushSubscription) {
+  const user = await findUserById(userId);
+  if (!user) {
+    throw new Error('User not found');
+  }
+  const newSubscriptions: PushSubscription[] =
+    user.notification_subscriptions ?
+      user.notification_subscriptions.filter(sub => sub.endpoint !== subscription.endpoint) :
+      [];
+  return await db.updateTable('users')
+    .set({
+      notification_subscriptions: JSON.stringify(newSubscriptions)
+    })
+    .where('id', '=', userId)
+    .returningAll()
+    .executeTakeFirst();
+}
+
+export async function getNotificationSubscriptions(userId: string) {
+  const user = await findUserById(userId);
+  if (!user) {
+    throw new Error('User not found');
+  }
+  return user.notification_subscriptions || [];
 }

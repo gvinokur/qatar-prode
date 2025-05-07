@@ -19,6 +19,7 @@ import TournamentTeamsManagerTab from "../components/backoffice/tournament-teams
 import TournamentGroupsManagerTab from "../components/backoffice/tournament-groups-manager-tab";
 import TournamentGameManagerTab from "../components/backoffice/tournament-game-manager-tab";
 import PlayersTab from "../components/backoffice/PlayersTab";
+import NotificationSender from "../components/backoffice/notification-sender";
 
 
 
@@ -81,7 +82,8 @@ export default async function Backoffice() {
           createActionTab(
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mx: 2, my: 1 }}>
               <CreateTournamentButton />
-            </Box>)
+            </Box>),
+          createTab('Notifications', <NotificationSender />)
         ]
       }/>
 
