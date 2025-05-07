@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {clearNotificationBadges, registerServiceWorker} from './service-worker-registration';
+import {registerServiceWorker} from './service-worker-registration';
 import {
   Button,
   Typography,
