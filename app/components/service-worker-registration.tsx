@@ -12,7 +12,6 @@ export function registerServiceWorker() {
 
       // TODO: How to check this and only do it if there are badges?
       await navigator.serviceWorker.ready.then(registration => {
-        console.log('Clearing notifications');
         registration.active?.postMessage({ type: 'clear-notifications', payload: 'Clear notifications' });
       });
     });

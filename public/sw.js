@@ -88,9 +88,14 @@ self.addEventListener('push', (event) => {
     );
 });
 
-self.addEventListener('clear-notifications', (Event) => {
-    notificationCount = 0
-    if (navigator.clearAppBadge) {
-        navigator.clearAppBadge()
+self.addEventListener('message', (event) => {
+    if (event.data.type === 'clear-notifications') {
+        console.log(notificationCount)
+        notificationCount = 0
+        console.log(notificationCount)
+        if (navigator.clearAppBadge) {
+            console.log('clearAppBadge')
+            navigator.clearAppBadge()
+        }
     }
 })
