@@ -9,13 +9,16 @@ export function registerServiceWorker() {
         .catch((error) => {
           console.error('Service Worker registration failed:', error);
         });
-
-      // Send a message to the service worker
-      navigator.serviceWorker.ready.then(registration => {
-        registration.active?.postMessage({ type: 'clear-notifications', payload: 'Clear notifications' });
-      });
     });
   }
+}
+
+export function clearNotificationBadges() {
+  // Send a message to the service worker
+  navigator.serviceWorker.ready.then(registration => {
+    console.log('Clearing notifications');
+    registration.active?.postMessage({ type: 'clear-notifications', payload: 'Clear notifications' });
+  });
 }
 
 export async function requestNotificationPermission() {
