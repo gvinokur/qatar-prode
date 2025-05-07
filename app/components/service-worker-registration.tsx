@@ -1,7 +1,7 @@
 export function registerServiceWorker() {
   if ('serviceWorker' in navigator && typeof window !== 'undefined') {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker
+    window.addEventListener('load', async () => {
+      await navigator.serviceWorker
         .register('/sw.js')
         .then((registration) => {
           console.log('Service Worker registered with scope:', registration.scope);
@@ -9,16 +9,14 @@ export function registerServiceWorker() {
         .catch((error) => {
           console.error('Service Worker registration failed:', error);
         });
+
+      // TODO: How to check this and only do it if there are badges?
+      await navigator.serviceWorker.ready.then(registration => {
+        console.log('Clearing notifications');
+        registration.active?.postMessage({ type: 'clear-notifications', payload: 'Clear notifications' });
+      });
     });
   }
-}
-
-export function clearNotificationBadges() {
-  // Send a message to the service worker
-  navigator.serviceWorker.ready.then(registration => {
-    console.log('Clearing notifications');
-    registration.active?.postMessage({ type: 'clear-notifications', payload: 'Clear notifications' });
-  });
 }
 
 export async function requestNotificationPermission() {

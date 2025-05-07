@@ -32,8 +32,6 @@ export default function InstallPwa() {
 
   useEffect(() => {
     registerServiceWorker();
-    // TODO: How to check this and only do it if there are badges?
-    clearNotificationBadges();
 
     // Check if on iOS
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
