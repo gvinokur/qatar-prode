@@ -1,5 +1,7 @@
 const CACHE_NAME = 'next-pwa-cache-v1';
 
+let notificationCount = 0
+
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
     event.waitUntil(
@@ -59,10 +61,6 @@ self.addEventListener('notificationclick', (event) => {
             }
         })
     );
-
-    if(navigator.clearAppBadge) {
-        navigator.clearAppBadge();
-    }
 });
 
 // Push event - handle incoming push messages
@@ -80,11 +78,19 @@ self.addEventListener('push', (event) => {
         }
     };
 
+    notificationCount += 1
     if (navigator.setAppBadge) {
-        navigator.setAppBadge(1);
+        navigator.setAppBadge(notificationCount);
     }
 
     event.waitUntil(
         self.registration.showNotification(data.title || 'Notification', options)
     );
 });
+
+self.addEventListener('clear-notifications', (Event) => {
+    notificationCount = 0
+    if (navigator.clearAppBadge) {
+        navigator.clearAppBadge()
+    }
+})

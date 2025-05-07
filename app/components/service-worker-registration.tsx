@@ -9,6 +9,11 @@ export function registerServiceWorker() {
         .catch((error) => {
           console.error('Service Worker registration failed:', error);
         });
+
+      // Send a message to the service worker
+      navigator.serviceWorker.ready.then(registration => {
+        registration.active?.postMessage({ type: 'clear-notifications', payload: 'Clear notifications' });
+      });
     });
   }
 }
