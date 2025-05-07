@@ -46,6 +46,12 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
 
+    //Clear badges on notification click
+    notificationCount = 0
+    if (navigator.clearAppBadge) {
+        navigator.clearAppBadge()
+    }
+
     event.waitUntil(
         clients.matchAll({ type: 'window' }).then((clientList) => {
             // If a window client is already open, focus it
@@ -90,11 +96,8 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('message', (event) => {
     if (event.data.type === 'clear-notifications') {
-        console.log(notificationCount)
         notificationCount = 0
-        console.log(notificationCount)
         if (navigator.clearAppBadge) {
-            console.log('clearAppBadge')
             navigator.clearAppBadge()
         }
     }

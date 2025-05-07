@@ -9,13 +9,15 @@ export function registerServiceWorker() {
         .catch((error) => {
           console.error('Service Worker registration failed:', error);
         });
-
-      // TODO: How to check this and only do it if there are badges?
-      await navigator.serviceWorker.ready.then(registration => {
-        registration.active?.postMessage({ type: 'clear-notifications', payload: 'Clear notifications' });
-      });
     });
   }
+}
+
+export function clearBadges() {
+  // TODO: How to check this and only do it if there are badges?
+  navigator.serviceWorker.ready.then(registration => {
+    registration.active?.postMessage({ type: 'clear-notifications', payload: 'Clear notifications' });
+  });
 }
 
 export async function requestNotificationPermission() {
