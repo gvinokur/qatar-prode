@@ -8,12 +8,21 @@ import {
   getPasswordHash,
   updateUser,
   findUserByResetToken,
-  findUserByVerificationToken, verifyEmail
+  findUserByVerificationToken, verifyEmail, deleteUser
 } from "../db/users-repository"
 import {randomBytes} from "crypto";
 import {generatePasswordResetEmail, generateVerificationEmail} from "../utils/email-templates";
 import {sendEmail} from "../utils/email";
 import {auth} from "../../auth";
+import {
+  deleteAllParticipantsFromGroup, deleteParticipantFromAllGroups, deleteProdeGroup,
+  findProdeGroupsByOwner,
+  findProdeGroupsByParticipant
+} from "../db/prode-group-repository";
+import {deleteAllUserTournamentGuesses} from "../db/tournament-guess-repository";
+import {deleteAllUserGameGuesses} from "../db/game-guess-repository";
+import {signOut} from "next-auth/react";
+import {deleteAllUserTournamentStatsGuesses} from "../db/tournament-group-team-guess-repository";
 
 function generateVerificationToken(): string {
   return crypto.randomBytes(32).toString('hex');
@@ -194,5 +203,46 @@ async function sendVerificationEmail(user: User) {
   } catch (error) {
     console.error('Failed to send verification email:', error);
     return { success: false, error: 'Failed to send verification email' };
+  }
+}
+
+/**
+ * Deletes a user account and all associated data
+ * This includes:
+ * - Game and tournament guesses
+ * - Group memberships
+ * - Groups owned by the user
+ * - Notification subscriptions
+ * - User record itself
+ */
+export async function deleteAccount() {
+  // Get the current user session
+  const user = await getLoggedInUser();
+
+  if (!user?.id) {
+    return { error: 'No estás autenticado' };
+  }
+
+  try {
+    // Delete all the user owned groups
+    const ownedGroups = await findProdeGroupsByOwner(user.id);
+    await Promise.all(ownedGroups.map(async (group) => {
+      await deleteAllParticipantsFromGroup(group.id)
+      await deleteProdeGroup(group.id);
+    }))
+    // Remove the user from all groups
+    await deleteParticipantFromAllGroups(user.id);
+    // Delete all user guesses
+    await deleteAllUserTournamentGuesses(user.id);
+    await deleteAllUserGameGuesses(user.id);
+    await deleteAllUserTournamentStatsGuesses(user.id);
+
+    // Delete the user record
+    await deleteUser(user.id);
+    // Return success
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting account:', error);
+    return { error: 'Error al eliminar la cuenta. Por favor, inténtalo de nuevo.' };
   }
 }

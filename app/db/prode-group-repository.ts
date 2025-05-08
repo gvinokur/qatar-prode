@@ -46,6 +46,13 @@ export async function deleteAllParticipantsFromGroup(groupId: string) {
     .execute()
 }
 
+export async function deleteParticipantFromAllGroups(userId: string) {
+  return db
+    .deleteFrom('prode_group_participants')
+    .where('prode_group_participants.participant_id', '=', userId)
+    .execute()
+}
+
 export async function findParticipantsInGroup(groupId: string) {
   return db.selectFrom('prode_group_participants')
     .select("participant_id as user_id")

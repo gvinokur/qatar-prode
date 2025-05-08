@@ -45,3 +45,9 @@ export async function findAllUserTournamentGroupsWithoutGuesses(tournamentId: st
     ))
     .execute()
 }
+
+export async function deleteAllUserTournamentStatsGuesses(userId: string) {
+  return db.deleteFrom('tournament_group_team_stats_guess')
+    .where('user_id', '=', userId)
+    .execute()
+}

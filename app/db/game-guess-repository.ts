@@ -175,3 +175,9 @@ export async function findAllGuessesForGamesWithResultsInDraft() {
       )
     ).execute()
 }
+
+export async function deleteAllUserGameGuesses(userId: string) {
+  return db.deleteFrom(tableName)
+    .where('user_id', '=', userId)
+    .execute()
+}
