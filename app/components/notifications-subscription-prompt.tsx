@@ -11,36 +11,13 @@ import {
 import { useSession } from 'next-auth/react';
 import {subscribeUser} from "../actions/notifiaction-actions";
 import {PushSubscription} from "web-push";
+import {
+  checkExistingSubscription,
+  isNotificationSupported,
+  subscribeToNotifications,
+  urlBase64ToUint8Array
+} from "../utils/notifications-utils";
 
-// Check if the browser supports notifications
-const isNotificationSupported = () => {
-  return 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window;
-};
-
-// Check if the current endpoint is already subscribed
-const checkExistingSubscription = async (): Promise<boolean> => {
-  try {
-    const registration = await navigator.serviceWorker.ready;
-    const subscription = await registration.pushManager.getSubscription();
-    return !!subscription;
-  } catch (error) {
-    console.error('Error checking subscription:', error);
-    return false;
-  }
-};
-
-function urlBase64ToUint8Array(base64String: string) {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
-
-  const rawData = window.atob(base64)
-  const outputArray = new Uint8Array(rawData.length)
-
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i)
-  }
-  return outputArray
-}
 
 export default function NotificationsSubscriptionPrompt() {
   const { data: session, status } = useSession();
@@ -119,30 +96,7 @@ export default function NotificationsSubscriptionPrompt() {
   const handleSubscribe = async () => {
     try {
       // Request permission
-      const permission = await Notification.requestPermission();
-
-      if (permission === 'granted') {
-        const registration = await navigator.serviceWorker.ready;
-
-        // Subscribe the user
-        const subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(
-            process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
-          ),
-        });
-
-        const serializedSub: PushSubscription = JSON.parse(JSON.stringify(subscription))
-        console.log(serializedSub)
-
-        // Save the subscription to the database
-        if (session?.user?.id) {
-          await subscribeUser(serializedSub)
-        }
-
-        // Show success message or handle accordingly
-      }
-
+      await subscribeToNotifications()
       setOpen(false);
     } catch (error) {
       console.error('Error subscribing to notifications:', error);

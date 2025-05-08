@@ -1,21 +1,27 @@
 'use client'
 
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import {
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle,
+  DialogTitle, FormControlLabel, Grid, Switch,
   TextField
 } from "@mui/material";
-import { useForm } from "react-hook-form";
+import {Controller, useForm} from "react-hook-form";
 import { updateNickname } from "../../actions/user-actions";
 import { useSession } from "next-auth/react";
+import {
+  checkExistingSubscription,
+  isNotificationSupported,
+  subscribeToNotifications, unsubscribeFromNotifications
+} from "../../utils/notifications-utils";
 
 type NicknameFormData = {
-  nickname: string
+  nickname: string,
+  enableNotifications: boolean,
 }
 
 type UserSettingsDialogProps = {
@@ -26,19 +32,38 @@ type UserSettingsDialogProps = {
 export default function UserSettingsDialog({ open, onClose }: UserSettingsDialogProps) {
   const { update, data:session } = useSession();
   const [loading, setLoading] = useState(false);
-  const { register, handleSubmit } = useForm<NicknameFormData>({
+  const [disableNotifications, setDisableNotifications] = useState<boolean>(false)
+  const { register, handleSubmit, setValue, control } = useForm<NicknameFormData>({
     defaultValues: {
-      nickname: session?.user.nickname || session?.user?.name || ''
+      nickname: session?.user.nickname || session?.user?.name || '',
+      enableNotifications: false
     }
   });
 
-  const handleNicknameSet = async ({ nickname }: NicknameFormData) => {
+  useEffect(() => {
+    console.log('notification supported', isNotificationSupported())
+    setDisableNotifications(!isNotificationSupported())
+
+    checkExistingSubscription().then(isSubscribed => {
+      console.log('is subscribed', isSubscribed)
+      setValue('enableNotifications', isSubscribed)
+    });
+
+  }, [setValue])
+
+  const handleNicknameSet = async ({ nickname, enableNotifications }: NicknameFormData) => {
     setLoading(true);
     await updateNickname(nickname);
     await update({
       name: nickname,
       nickname
     });
+    console.log('also need to update notifications', enableNotifications)
+    if(enableNotifications) {
+      await subscribeToNotifications()
+    } else {
+      await unsubscribeFromNotifications()
+    }
     setLoading(false);
     onClose();
   };
@@ -50,11 +75,8 @@ export default function UserSettingsDialog({ open, onClose }: UserSettingsDialog
         component: 'form',
         onSubmit: handleSubmit(handleNicknameSet)
       }}>
-      <DialogTitle>Cambiar tu apodo</DialogTitle>
+      <DialogTitle>Configuracion de Usuario</DialogTitle>
       <DialogContent>
-        <DialogContentText>
-          Este es el nombre que tus amigos van a ver en las tablas de todos tus grupos
-        </DialogContentText>
         <TextField
           autoFocus={true}
           margin="dense"
@@ -64,10 +86,29 @@ export default function UserSettingsDialog({ open, onClose }: UserSettingsDialog
           variant="standard"
           {...register('nickname')}
         />
+        <Controller
+          control={control}
+          name={'enableNotifications'}
+          render={
+            ({field}) => (
+              <FormControlLabel
+                sx={{mt:2, mx:0, width: '100%', justifyContent: 'space-between'}}
+                control={
+                  <Switch
+                    checked={field.value}
+                    disabled={disableNotifications}
+                    onClick={() => setValue('enableNotifications', !field.value)}
+                  />
+                }
+                label={'Recibir Notificationes'}
+                labelPlacement='start'
+              />)
+          }/>
+
       </DialogContent>
       <DialogActions>
         <Button disabled={loading} onClick={onClose}>Cancelar</Button>
-        <Button loading={loading} type='submit'>Cambiar</Button>
+        <Button loading={loading} type='submit'>Guardar</Button>
       </DialogActions>
     </Dialog>
   );
