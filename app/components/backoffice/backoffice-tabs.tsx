@@ -57,7 +57,7 @@ export function BackofficeTabs({tabs} :Props) {
         <TabPanel key={tab.label} index={index} value={selectedTab}>
           {tab.component}
         </TabPanel>
-      ))}
+      ) || null )}
     </>
   )
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from "react";
-import { Button } from "@mui/material";
+import {Box, Button} from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
 import CreateTournamentModal from "./create-tournament-modal";
 import { useRouter } from "next/navigation";
@@ -24,7 +24,7 @@ export default function CreateTournamentButton() {
   };
 
   return (
-    <>
+    <Box sx={{ mx: 2, my: 1 }}>
       <Button
         variant="contained"
         color="primary"
@@ -39,6 +39,6 @@ export default function CreateTournamentButton() {
         onClose={handleCloseModal}
         onSuccess={handleSuccess}
       />
-    </>
+    </Box>
   );
 }

@@ -191,7 +191,7 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
             loading={loading}
             variant={'outlined'}
             size={'large'}
-            fullWidth={true}
+            fullWidth
             sx={{height: '100%'}}
             onClick={handleDeactivateDialogOpen}
             disabled={!tournament.is_active}

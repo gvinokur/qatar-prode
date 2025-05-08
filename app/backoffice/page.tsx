@@ -79,10 +79,7 @@ export default async function Backoffice() {
                 ]}/>
               )),
           ),
-          createActionTab(
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mx: 2, my: 1 }}>
-              <CreateTournamentButton />
-            </Box>),
+          createActionTab(<CreateTournamentButton key='create-tournament' />),
           createTab('Notifications', <NotificationSender />)
         ]
       }/>
