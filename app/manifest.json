@@ -1,6 +1,6 @@
 {
   "id": "la_maquina_prode",
-  "start_url": "/",
+  "start_url": "https://la-maquina-prode.vercel.app",
   "name": "La Maquina",
   "short_name": "Maquina",
   "description": "Pagina de prode para multiples torneos de futbol",
@@ -16,9 +16,48 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "theme_color": "#242424",
   "background_color": "#242424",
-  "display": "standalone"
+  "display": "standalone",
+  "dir": "auto",
+  "lang": "es",
+  "orientation": "any",
+  "categories": [
+    "social",
+    "sports"
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot1.png",
+      "sizes": "1274x780",
+      "type": "image/png",
+      "platform": "wide"
+    },
+    {
+      "src": "screenshot2.png",
+      "sizes": "1270x750",
+      "type": "image/png",
+      "platform": "wide"
+    },
+    {
+      "src": "screenshot3.png",
+      "sizes": "1270x815",
+      "type": "image/png",
+      "platform": "wide"
+    },
+    {
+      "src": "screenshot4.png",
+      "sizes": "1270x820",
+      "type": "image/png",
+      "platform": "wide"
+    }
+  ]
 }
