@@ -1,6 +1,7 @@
 const CACHE_NAME = 'next-pwa-cache-v1';
 
 let notificationCount = 0
+const isOffline = () => !self.navigator.onLine;
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
@@ -8,7 +9,10 @@ self.addEventListener('install', (event) => {
         caches.open(CACHE_NAME).then((cache) => {
             return cache.addAll([
                 '/',
-                '/manifest.json'
+                '/manifest.json',
+                '/offline',
+                '/web-app-manifest-192x192.png',
+                '/favicon-96x96.png'
             ]);
         })
     );
@@ -38,7 +42,11 @@ self.addEventListener('fetch', (event) => {
     // Just let the browser handle the request normally
     const request = event.request;
     if(!/(png|jpg|webp)/.test(request.url)) {
-        event.respondWith(fetch(request));
+        if(isOffline()) {
+            event.respondWith(caches.match('/offline'));
+        } else {
+            event.respondWith(fetch(request));
+        }
     }
 });
 
@@ -79,7 +87,6 @@ self.addEventListener('push', (event) => {
         body: data.body || 'New notification',
         icon: '/web-app-manifest-192x192.png',
         badge: '/favicon-96x96.png',
-        image: 'https://la-maquina-prode-group-images.s3-us-east-2.amazonaws.com/tournament-logos/wQHH6EA2M4wMNWhLvVeK3B.png',
         data: {
             url: data.url || '/'
         }
