@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.vercel.la_maquina_prode.twa",
+        "sha256_cert_fingerprints": ["35:05:39:42:FF:0B:5C:CE:67:E4:17:67:F3:A3:99:D6:7B:35:FD:77:A6:27:84:59:FF:9B:B0:21:BC:D9:63:73"]
+      }
+    }]
