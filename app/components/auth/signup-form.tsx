@@ -10,11 +10,11 @@ import { LoginFormData } from "./login-form";
 import {User} from "../../db/tables-definition";
 
 export type SignupFormData = {
-  email?: string,
-  email_confirm?: string,
-  nickname?: string,
-  password?: string,
-  password_confirm?: string
+  email: string,
+  email_confirm: string,
+  nickname: string,
+  password: string,
+  password_confirm: string
 }
 
 type SignupFormProps = {
@@ -30,7 +30,15 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
     getValues,
     setError,
     formState: { errors }
-  } = useForm<SignupFormData>();
+  } = useForm<SignupFormData>({
+    defaultValues: {
+      email: '',
+      email_confirm: '',
+      nickname: '',
+      password: '',
+      password_confirm: ''
+    }
+  });
 
   const handleSignup: SubmitHandler<SignupFormData> = async (signupForm, e) => {
     e?.preventDefault();

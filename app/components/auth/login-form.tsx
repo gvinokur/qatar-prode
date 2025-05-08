@@ -9,8 +9,8 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export type LoginFormData = {
-  email?: string,
-  password?: string
+  email: string,
+  password: string
 }
 
 type LoginFormProps = {
@@ -27,7 +27,12 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
     handleSubmit,
     setError,
     formState: { errors }
-  } = useForm<LoginFormData>();
+  } = useForm<LoginFormData>({
+    defaultValues: {
+      email: '',
+      password: ''
+    }
+  });
 
   const isVerified = searchParams?.get('verified') === 'true';
 

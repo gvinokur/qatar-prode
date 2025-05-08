@@ -8,7 +8,7 @@ import {useState} from "react";
 import {sendPasswordResetLink} from "../../actions/user-actions";
 
 type ForgotPasswordFormData = {
-  email?: string
+  email: string
 }
 
 type ForgotPasswordFormProps = {
@@ -24,7 +24,11 @@ export default function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProp
     handleSubmit,
     setError,
     formState: { errors }
-  } = useForm<ForgotPasswordFormData>();
+  } = useForm<ForgotPasswordFormData>({
+    defaultValues: {
+      email: ''
+    }
+  });
 
   const handlePasswordReset: SubmitHandler<ForgotPasswordFormData> = async (resetForm, e) => {
     e?.preventDefault();

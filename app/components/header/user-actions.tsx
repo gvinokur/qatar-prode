@@ -5,50 +5,30 @@ import * as React from "react";
 import {
   Avatar,
   Box, Button,
-  Dialog, DialogActions,
-  DialogContent, DialogContentText,
-  DialogTitle,
   IconButton,
   Menu,
-  MenuItem, TextField,
+  MenuItem,
   Tooltip,
   Typography,
 } from "@mui/material";
 import {useSearchParams, useRouter} from "next/navigation";
 import LoginOrSignupDialog from "../auth/login-or-signup-dialog";
-import {signOut, useSession} from "next-auth/react";
-import {updateNickname} from "../../actions/user-actions";
-import {useForm} from "react-hook-form";
-import tournaments from "../../../data/tournaments";
+import {signOut} from "next-auth/react";
 import {generateDbTournament, generateDbTournamentTeamPlayers} from "../../actions/backoffice-actions";
-import {AdapterUser} from "next-auth/adapters";
 import {User} from "next-auth";
+import UserSettingsDialog from "../auth/user-settings-dialog";
 
 type UserActionProps = {
   user?: User
 }
 
-type NicknameFormData = {
-  nickname: string
-}
 
 export default function UserActions({ user }: UserActionProps) {
   const searchParams = useSearchParams()
-  const { update} = useSession()
   const [openLoginDialog, setOpenLoginDialog] = useState(!!searchParams?.get('openSignin') && !user);
   const [openNicknameDialog, setOpenNicknameDialog] = useState(false);
-  const [availableTournaments, setAvailableTournaments] = useState<string[]>();
-  const [loading, setLoading] = useState(false);
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
-  const {register, handleSubmit} = useForm<NicknameFormData>()
   const router = useRouter()
-
-  useEffect(() => {
-    if(user?.isAdmin) {
-      const availableTournaments = tournaments.map(tournament => tournament.tournament_name)
-      setAvailableTournaments(availableTournaments)
-    }
-  }, [user, setAvailableTournaments])
 
   useEffect(() => {
     if (searchParams.get('verified')) {
@@ -71,16 +51,6 @@ export default function UserActions({ user }: UserActionProps) {
   const handleCloseNicknameDialog = () => {
     setOpenNicknameDialog(false);
   };
-  const handleNicknameSet = async ({nickname}: NicknameFormData) => {
-    setLoading(true)
-    await updateNickname(nickname)
-    await update({
-      name: nickname,
-      nickname
-    })
-    setLoading(false)
-    handleCloseNicknameDialog()
-  }
 
   const handleOpenLoginDialog = () => {
     setOpenLoginDialog(true);
@@ -113,7 +83,7 @@ export default function UserActions({ user }: UserActionProps) {
     <>
       {user ? (
         <Box sx={{ flexGrow: 0 }}>
-          <Tooltip title="Open settings">
+          <Tooltip title="Abrir Menu de Usuario">
             <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
               <Avatar alt={(user.nickname || user.email || '')}>{(user.nickname || user.email || 'U')[0]}</Avatar>
             </IconButton>
@@ -135,15 +105,18 @@ export default function UserActions({ user }: UserActionProps) {
             onClose={handleCloseUserMenu}
           >
             <MenuItem onClick={handleCloseUserMenu}>
-              <Typography textAlign="center" onClick={handleOpen}>Cambiar Apodo</Typography>
+              <Typography textAlign="center" onClick={handleOpen}>Configuracion</Typography>
             </MenuItem>
             {user.isAdmin && (
               <MenuItem onClick={() => router.push('/backoffice')}>
                 Ir al Back Office
               </MenuItem>
             )}
-            <MenuItem onClick={() => { handleLogout(); handleCloseUserMenu();}}>
+            <MenuItem onClick={() => { handleLogout(); handleCloseUserMenu();}} divider={true}>
               <Typography textAlign="center">Salir</Typography>
+            </MenuItem>
+            <MenuItem onClick={() => router.push('/delete-account')}>
+              Delete Account
             </MenuItem>
           </Menu>
         </Box>
@@ -157,33 +130,10 @@ export default function UserActions({ user }: UserActionProps) {
         </Button>
       </Box>
     )}
-      <Dialog open={openNicknameDialog} onClose={handleCloseNicknameDialog}
-        PaperProps={{
-          //@ts-ignore
-          component: 'form',
-          onSubmit: handleSubmit(handleNicknameSet)
-        }}>
-        <DialogTitle>Cambiar tu apodo</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Este es el nombre que tus amigos van a ver en las tablas de todos tus grupos
-          </DialogContentText>
-          <TextField
-            autoFocus={true}
-            margin="dense"
-            label="Apodo"
-            type="text"
-            defaultValue={user?.nickname}
-            fullWidth
-            variant="standard"
-            { ...register('nickname')}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button disabled={loading} onClick={handleCloseNicknameDialog}>Cancelar</Button>
-          <Button loading={loading} type='submit'>Cambiar</Button>
-        </DialogActions>
-      </Dialog>
+      <UserSettingsDialog
+        open={openNicknameDialog}
+        onClose={handleCloseNicknameDialog}
+      />
       <LoginOrSignupDialog openLoginDialog={openLoginDialog} handleCloseLoginDialog={handleCloseLoginDialog}/>
     </>
   )
