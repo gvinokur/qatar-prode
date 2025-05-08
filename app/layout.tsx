@@ -20,8 +20,10 @@ export async  function generateMetadata() {
       title: 'La Maquina',
     },
     icons: [
-      {rel: 'apple-touch-icon', url: '/apple-icon.png'},
-      {rel: 'shortcut icon', url: '/favicon.ico'}
+      {rel: 'icon', url: '/favicon.svg', type: 'image/svg+xml'},
+      {rel: 'icon', url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png'},
+      {rel: 'shortcut icon', url: '/favicon.ico'},
+      {rel: 'apple-touch-icon', url: '/apple-touch-icon.png', sizes: '180x180'},
     ]
   } as Metadata;
 }

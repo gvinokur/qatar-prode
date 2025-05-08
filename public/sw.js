@@ -77,8 +77,8 @@ self.addEventListener('push', (event) => {
 
     const options = {
         body: data.body || 'New notification',
-        icon: '/icon1.png',
-        badge: '/icon1.png',
+        icon: '/web-app-manifest-192x192.png',
+        badge: '/favicon-96x96.png',
         image: 'https://la-maquina-prode-group-images.s3-us-east-2.amazonaws.com/tournament-logos/wQHH6EA2M4wMNWhLvVeK3B.png',
         data: {
             url: data.url || '/'
