@@ -44,5 +44,9 @@ next-env.d.ts
 #cody
 .cody
 
+#Service workers
+public/sw*
+public/swe-worker*
+
 
 certificates

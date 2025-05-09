@@ -1,4 +1,6 @@
 export function registerServiceWorker() {
+  return;
+
   if ('serviceWorker' in navigator && typeof window !== 'undefined') {
     window.addEventListener('load', async () => {
       await navigator.serviceWorker
@@ -36,23 +38,4 @@ export async function requestNotificationPermission() {
   }
 
   return false;
-}
-
-export async function sendNotification(title: string, options: NotificationOptions = {}) {
-  const hasPermission = await requestNotificationPermission();
-
-  if (!hasPermission) {
-    console.log('Notification permission not granted');
-    return;
-  }
-
-  if ('serviceWorker' in navigator) {
-    const registration = await navigator.serviceWorker.ready;
-    await registration.showNotification(title, {
-      icon: '/icons/icon-192x192.png',
-      ...options
-    });
-  } else {
-    new Notification(title, options);
-  }
 }
