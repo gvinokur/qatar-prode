@@ -1,20 +1,47 @@
-const CACHE_NAME = 'next-pwa-cache-v1';
+const CACHE_NAME = 'la-maquina-cache-v1';
 
 let notificationCount = 0
 const isOffline = () => !self.navigator.onLine;
 
+const createIndexedDB = ({name, stores}) => {
+    const request = self.indexedDB.open(name, 1);
+
+    return new Promise((resolve, reject) => {
+        request.onupgradeneeded = e => {
+            const db = e.target.result;
+
+            Object.keys(stores).forEach((store) => {
+                const {name, keyPath} = stores[store];
+
+                if(!db.objectStoreNames.contains(name)) {
+                    db.createObjectStore(name, {keyPath});
+                    console.log('create objectstore', name);
+                }
+            });
+        };
+
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+};
+
+const filesToCache = [
+    '/',
+    '/manifest.json',
+    '/offline',
+    '/web-app-manifest-192x192.png',
+    '/favicon-96x96.png'
+]
+
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll([
-                '/',
-                '/manifest.json',
-                '/offline',
-                '/web-app-manifest-192x192.png',
-                '/favicon-96x96.png'
-            ]);
-        })
+    e.waitUntil(
+        caches.open(cacheName)
+            .then((cache) => Promise.all([
+                cache.addAll(filesToCache.map(file => new Request(file, {cache: 'no-cache'}))),
+                createIndexedDB(IDBConfig)
+            ]))
+            .catch(err => console.error('install error', err))
     );
     self.skipWaiting();
 });
@@ -30,9 +57,6 @@ self.addEventListener('activate', (event) => {
             );
         })
     );
-    if(navigator.clearAppBadge) {
-        navigator.clearAppBadge();
-    }
     self.clients.claim();
 });
 
@@ -42,11 +66,19 @@ self.addEventListener('fetch', (event) => {
     // Just let the browser handle the request normally
     const request = event.request;
     if(!/(png|jpg|webp)/.test(request.url)) {
-        if(isOffline()) {
-            event.respondWith(caches.match('/offline'));
-        } else {
-            event.respondWith(fetch(request));
-        }
+        event.respondWith(async () => {
+            if(isOffline()) {
+                return await caches.match('/offline');
+            } else {
+                try {
+                    return await fetch(request);
+                } catch (err) {
+                    console.error('fetch error', err)
+                    return await caches.match('/offline');
+                }
+            }
+        })
+
     }
 });
 
