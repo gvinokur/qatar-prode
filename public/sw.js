@@ -3,6 +3,17 @@ const CACHE_NAME = 'la-maquina-cache-v1';
 let notificationCount = 0
 const isOffline = () => !self.navigator.onLine;
 
+const IDBConfig = {
+    name: 'web-app-db',
+    version: 1,
+    stores: {
+        requestStore: {
+            name: `request-store`,
+            keyPath: 'timestamp'
+        }
+    }
+};
+
 const createIndexedDB = ({name, stores}) => {
     const request = self.indexedDB.open(name, 1);
 
@@ -35,8 +46,8 @@ const filesToCache = [
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
-    e.waitUntil(
-        caches.open(cacheName)
+    event.waitUntil(
+        caches.open(CACHE_NAME)
             .then((cache) => Promise.all([
                 cache.addAll(filesToCache.map(file => new Request(file, {cache: 'no-cache'}))),
                 createIndexedDB(IDBConfig)
@@ -66,19 +77,22 @@ self.addEventListener('fetch', (event) => {
     // Just let the browser handle the request normally
     const request = event.request;
     if(!/(png|jpg|webp)/.test(request.url)) {
-        event.respondWith(async () => {
+        event.respondWith((async () => {
+            console.log('start async fetch', request.url);
             if(isOffline()) {
+                console.log('offline');
                 return await caches.match('/offline');
             } else {
                 try {
+                    console.log('fetch', request.url);
                     return await fetch(request);
                 } catch (err) {
                     console.error('fetch error', err)
                     return await caches.match('/offline');
                 }
             }
-        })
-
+            })()
+        );
     }
 });
 
