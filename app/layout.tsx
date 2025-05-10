@@ -57,7 +57,6 @@ export default async function RootLayout({
               {children}
               <InstallPwa />
               <OfflineDetection />
-              <NotificationsSubscriptionPrompt/>
             </ThemeProvider>
           </NextThemeProvider>
         </body>

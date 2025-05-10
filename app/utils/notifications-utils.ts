@@ -56,8 +56,10 @@ export async function unsubscribeFromNotifications(): Promise<void> {
   const registration = await navigator.serviceWorker.ready;
 
   const subscription = await registration.pushManager.getSubscription()
+  const serializedSub: PushSubscription = JSON.parse(JSON.stringify(subscription))
   if (subscription) {
     await subscription.unsubscribe();
   }
   //No need to remove from DB, it will be cleaned up later
+  await unsubscribeUser(serializedSub)
 }

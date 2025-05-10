@@ -36,12 +36,13 @@ export async function unsubscribeUser(sub: PushSubscription) {
 }
 
 export async function sendNotification(
-  title: string,
-  message: string,
-  url: string,
-  userId: string | null,
-  sendToAllUsers = false
+    title: string,
+    message: string,
+    url: string,
+    userId: string | null,
+    sendToAllUsers = false
   ) {
+
   if(!userId) {
     throw new Error('Sending to all users is not allowed yet')
   }
@@ -49,7 +50,7 @@ export async function sendNotification(
   if (!user) {
     throw new Error('User not found')
   }
-  if (!user.notification_subscriptions) {
+  if (!user.notification_subscriptions || user.notification_subscriptions.length === 0) {
     throw new Error('No user subscriptions available')
   }
 

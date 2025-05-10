@@ -25,7 +25,7 @@ export default function OfflineDetection() {
   return (
     <Snackbar
       open={isOffline}
-      anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
     >
       <Alert severity="warning">
         Estás navegando sin conexión. Algunas funciones pueden no estar disponibles.

@@ -19,7 +19,7 @@ import {
 } from "../utils/notifications-utils";
 
 
-export default function NotificationsSubscriptionPrompt() {
+export default function NotificationsSubscriptionPrompt({ canOpen }: { canOpen: boolean }  ) {
   const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
   const [openUnregister, setOpenUnregister] = useState(false)
@@ -109,14 +109,16 @@ export default function NotificationsSubscriptionPrompt() {
 
   return (
     <Snackbar
-      open={open}
+      open={canOpen && open}
       anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      sx={{ maxWidth: '500px', width: '100%' }}
+      sx={{ width: {xs: 'calc(100% - 20px)', sm: '450px' } }}
+      autoHideDuration={10000}
+      onClose={handleClose}
     >
       <Alert
         severity="info"
-        variant="filled"
-        sx={{ width: '100%' }}
+        variant="outlined"
+        sx={{ width: '100%', backgroundColor: 'background.paper' }}
       >
         <AlertTitle>Notificaciones</AlertTitle>
         <p>¿Te gustaría recibir notificaciones para estar al día con las últimas actualizaciones?</p>
