@@ -3,11 +3,11 @@
 import SessionWrapper from "./components/session-wrapper";
 import '../styles/globals.css'
 import ThemeProvider, {ThemeMode} from "./components/context-providers/theme-provider";
-import {ThemeProvider as NextThemeProvider} from "next-themes";
+// import {ThemeProvider as NextThemeProvider} from "next-themes";
+import NextThemeProvider from './components/context-providers/next-theme-wrapper-provider';
 import {Metadata} from "next";
 import InstallPwa from "./components/Install-pwa";
 import OfflineDetection from "./components/offline-detection";
-import NotificationsSubscriptionPrompt from "./components/notifications-subscription-prompt";
 
 export async  function generateMetadata() {
   return {
@@ -47,12 +47,12 @@ export default async function RootLayout({
 }) {
   return (
     <SessionWrapper>
-      <html lang="en" style={{ height: '100%' }} suppressHydrationWarning>
+      <html lang="en" style={{ height: '100%' }}>
         <head>
           <meta name="apple-mobile-web-app-title" content="La Maquina"/>
         </head>
         <body style={{minHeight: '100%'}}>
-          <NextThemeProvider defaultTheme={'light'} enableSystem={false}>
+          <NextThemeProvider defaultTheme={'system'} enableSystem={true}>
             <ThemeProvider>
               {children}
               <InstallPwa />

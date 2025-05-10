@@ -5,16 +5,15 @@ import {
   AppBar,
   Typography,
   Box,
-  Avatar, Grid, useTheme, IconButton
+  Avatar, useTheme, IconButton
 
 } from "@mui/material";
 import UserActions from "./header/user-actions";
 import Link from "next/link";
-import {AdapterUser} from "next-auth/adapters";
 import {useContext} from "react";
-import {AppThemeModeContext} from "./context-providers/theme-provider";
-import {DarkMode, Light, LightMode} from "@mui/icons-material";
+import {DarkMode, LightMode} from "@mui/icons-material";
 import {User} from "next-auth";
+import {useTheme as useNextTheme} from "next-themes";
 
 type FrameProps = {
   user?: User
@@ -37,7 +36,13 @@ const pages: Page[] = [ {
 
 export default function BaseLayout(props: FrameProps) {
   const theme = useTheme()
-  const {themeMode, switchThemeMode } = useContext(AppThemeModeContext)
+  const {resolvedTheme: themeMode, setTheme } = useNextTheme()
+
+  const switchThemeMode = async () => {
+    const newThemeMode = themeMode === 'light' ? 'dark' : 'light'
+    setTheme(newThemeMode)
+  }
+
   return (
     <>
       <AppBar position={'sticky'}>

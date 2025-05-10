@@ -2,15 +2,11 @@
 
 import {createTheme} from "@mui/material/styles";
 import {ThemeProvider} from "@mui/material";
-import {createContext, useEffect, useState} from "react";
 import {useTheme } from 'next-themes'
+import {useEffect, useState} from "react";
 
 export type ThemeMode = 'light' | 'dark'
 
-export const AppThemeModeContext = createContext({
-  themeMode: 'light' as ThemeMode,
-  switchThemeMode: () => {},
-})
 
 export default function AppThemeProvider(
   {
@@ -18,17 +14,12 @@ export default function AppThemeProvider(
   }: {
     children: React.ReactNode
   }) {
-  const { theme: themeMode, setTheme} = useTheme()
+  const { resolvedTheme: themeMode, setTheme} = useTheme()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
-  }, []);
-
-  const handleSwitchTheme = async () => {
-    const newThemeMode = themeMode === 'light' ? 'dark' : 'light'
-    setTheme(newThemeMode)
-  }
+  }, [])
 
   const lightTheme = {
     primary: {
@@ -67,15 +58,6 @@ export default function AppThemeProvider(
     },
   });
 
-  const context = {
-    themeMode: themeMode as ThemeMode,
-    switchThemeMode: handleSwitchTheme
-  }
-
-  return mounted ? (
-    <AppThemeModeContext.Provider value={context}>
-      <ThemeProvider theme={theme}>{children}</ThemeProvider>
-    </AppThemeModeContext.Provider>
-  ) : null
+  return mounted && <ThemeProvider theme={theme}>{children}</ThemeProvider>
 }
 
