@@ -66,15 +66,24 @@ export async function findUserByVerificationToken(token: string) {
     .executeTakeFirst();
 }
 
+function removeInvaidubscriptions(newSubscriptions: PushSubscription[]) {
+  return newSubscriptions.filter(sub =>
+    sub.endpoint === null ||
+    sub.expirationTime && sub.expirationTime < Date.now());
+}
+
 export async function addNotificationSubscription(userId: string, subscription: PushSubscription) {
   const user = await findUserById(userId);
   if (!user) {
     throw new Error('User not found');
   }
-  const newSubscriptions: PushSubscription[] =
+  let newSubscriptions: PushSubscription[] =
     user.notification_subscriptions ?
       [...user.notification_subscriptions, subscription] :
       [subscription];
+
+  newSubscriptions = removeInvaidubscriptions(newSubscriptions);
+
   return await db.updateTable('users')
     .set({
       notification_subscriptions: JSON.stringify(newSubscriptions)
@@ -89,10 +98,13 @@ export async function removeNotificationSubscription(userId: string, subscriptio
   if (!user) {
     throw new Error('User not found');
   }
-  const newSubscriptions: PushSubscription[] =
+  let newSubscriptions: PushSubscription[] =
     user.notification_subscriptions ?
       user.notification_subscriptions.filter(sub => sub.endpoint !== subscription.endpoint) :
       [];
+
+  newSubscriptions = removeInvaidubscriptions(newSubscriptions)
+
   return await db.updateTable('users')
     .set({
       notification_subscriptions: JSON.stringify(newSubscriptions)

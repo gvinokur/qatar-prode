@@ -45,6 +45,10 @@ export async function subscribeToNotifications(): Promise<void> {
       ),
     });
 
+    if(subscription.endpoint === null) {
+      throw new Error('Subscription endpoint is null');
+    }
+
     const serializedSub: PushSubscription = JSON.parse(JSON.stringify(subscription))
 
     // Save the subscription to the database
