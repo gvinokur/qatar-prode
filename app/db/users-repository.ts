@@ -1,6 +1,6 @@
-import { db } from './database'
+import {db} from './database'
 import {createBaseFunctions} from "./base-repository";
-import {User, UserTable, UserUpdate} from "./tables-definition";
+import {User, UserTable} from "./tables-definition";
 import sha256 from 'crypto-js/sha256'
 import {cache} from "react";
 import {PushSubscription} from "web-push";
@@ -68,7 +68,7 @@ export async function findUserByVerificationToken(token: string) {
 
 function removeInvaidubscriptions(newSubscriptions: PushSubscription[]) {
   return newSubscriptions.filter(sub =>
-    sub.endpoint === null ||
+    sub.endpoint ||
     sub.expirationTime && sub.expirationTime < Date.now());
 }
 
