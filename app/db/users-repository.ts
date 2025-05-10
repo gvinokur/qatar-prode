@@ -66,7 +66,7 @@ export async function findUserByVerificationToken(token: string) {
     .executeTakeFirst();
 }
 
-function removeInvaidubscriptions(newSubscriptions: PushSubscription[]) {
+function removeInvalidSubscriptions(newSubscriptions: PushSubscription[]) {
   return newSubscriptions.filter(sub =>
     sub.endpoint ||
     sub.expirationTime && sub.expirationTime < Date.now());
@@ -82,7 +82,7 @@ export async function addNotificationSubscription(userId: string, subscription: 
       [...user.notification_subscriptions, subscription] :
       [subscription];
 
-  newSubscriptions = removeInvaidubscriptions(newSubscriptions);
+  newSubscriptions = removeInvalidSubscriptions(newSubscriptions);
 
   return await db.updateTable('users')
     .set({
@@ -103,7 +103,7 @@ export async function removeNotificationSubscription(userId: string, subscriptio
       user.notification_subscriptions.filter(sub => sub.endpoint !== subscription.endpoint) :
       [];
 
-  newSubscriptions = removeInvaidubscriptions(newSubscriptions)
+  newSubscriptions = removeInvalidSubscriptions(newSubscriptions)
 
   return await db.updateTable('users')
     .set({
@@ -120,4 +120,14 @@ export async function getNotificationSubscriptions(userId: string) {
     throw new Error('User not found');
   }
   return user.notification_subscriptions || [];
+}
+
+export async function findUsersWithNotificationSubscriptions() {
+  return db.selectFrom('users')
+    .where(eb => eb.and([
+      eb('notification_subscriptions', 'is not', null),
+      eb(eb.fn<number>('jsonb_array_length', ['notification_subscriptions']), '>', 0)
+    ]))
+    .selectAll()
+    .execute();
 }

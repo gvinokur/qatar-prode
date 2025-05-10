@@ -124,7 +124,7 @@ export default function NotificationSender() {
       <Box display="flex" alignItems="center" mb={3}>
         <NotificationsActiveIcon color="primary" sx={{ mr: 2, fontSize: 32 }} />
         <Typography variant="h5" component="h2">
-          Enviar Notificaciones Push
+          Enviar Notificaciones
         </Typography>
       </Box>
 

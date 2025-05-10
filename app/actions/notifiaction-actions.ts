@@ -6,7 +6,13 @@ import {
   PushSubscription
 } from 'web-push'
 import {getLoggedInUser} from "./user-actions";
-import {addNotificationSubscription, findUserById, removeNotificationSubscription} from "../db/users-repository";
+import {
+  addNotificationSubscription,
+  findUserById,
+  findUsersWithNotificationSubscriptions,
+  removeNotificationSubscription
+} from "../db/users-repository";
+import {User} from "../db/tables-definition";
 
 setVapidDetails(
   'mailto:la-maquina@gmail.com',
@@ -43,17 +49,35 @@ export async function sendNotification(
     sendToAllUsers = false
   ) {
 
-  if(!userId) {
-    throw new Error('Sending to all users is not allowed yet')
+  let users: User[] = []
+
+  if(sendToAllUsers) {
+    users = await findUsersWithNotificationSubscriptions()
+  } else if (userId) {
+    users = [await findUserById(userId)]
   }
-  const user = await findUserById(userId)
-  if (!user) {
-    throw new Error('User not found')
+  if (!users) {
+    throw new Error('Users not found')
   }
+
+  const sentToAll = await Promise.all(
+    users.map(async (user) =>
+      sendToUser(user, title, message, url)))
+
+  return {
+    success: sentToAll.some((result) => result.success),
+    error: sentToAll.every((result) => result.error),
+    sentCount: sentToAll.reduce(
+      (acc, result) => acc + (result.sentCount || 0), 0),
+    errorCount: sentToAll.reduce(
+      (acc, result) => acc + (result.error ? 1 : 0), 0)
+  }
+}
+
+async function sendToUser(user: User, title: string, message: string, url: string) {
   if (!user.notification_subscriptions || user.notification_subscriptions.length === 0) {
     throw new Error('No user subscriptions available')
   }
-
   try {
     const results = await Promise.all(
       user.notification_subscriptions.map(async (sub) => {
@@ -69,17 +93,18 @@ export async function sendNotification(
           if (error.statusCode === 404) {
             //Subscription not found, remove it
             await removeNotificationSubscription(user.id, sub)
-            return { statusCode: 404, body: 'Subscription not found' }
+            return {statusCode: 404, body: 'Subscription not found'}
           }
-          return { statusCode: 500, body: 'Failed to send notification' }
+          return {statusCode: 500, body: 'Failed to send notification'}
         })
       })
     )
     return {
       success: results.some(r => r.statusCode === 201),
-      sentCount: results.filter(r => r.statusCode === 201).length }
+      sentCount: results.filter(r => r.statusCode === 201).length
+    }
   } catch (error) {
     console.error('Error sending push notification:', error)
-    return { success: false, error: 'Failed to send notification' }
+    return {success: false, error: 'Failed to send notification'}
   }
 }
