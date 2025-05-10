@@ -66,7 +66,11 @@ export async function sendNotification(
 
   return {
     success: sentToAll.some((result) => result.success),
-    error: sentToAll.every((result) => result.error),
+    errors:
+      sentToAll
+        .filter((result) => result.error)
+        .map((result) => result.error)
+    ,
     sentCount: sentToAll.reduce(
       (acc, result) => acc + (result.sentCount || 0), 0),
     errorCount: sentToAll.reduce(
@@ -76,7 +80,7 @@ export async function sendNotification(
 
 async function sendToUser(user: User, title: string, message: string, url: string) {
   if (!user.notification_subscriptions || user.notification_subscriptions.length === 0) {
-    throw new Error('No user subscriptions available')
+    return { success: 0 , error: 'No user subscriptions available' }
   }
   try {
     const results = await Promise.all(

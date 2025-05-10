@@ -84,8 +84,8 @@ export default function NotificationSender() {
         formData.sendToAll ? null : formData.userId,
         formData.sendToAll);
 
-      if (result.error) {
-        throw new Error(result.error);
+      if (!result.success) {
+        throw new Error(result.errors.join(', '));
       }
 
       setSnackbar({
