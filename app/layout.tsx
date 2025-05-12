@@ -8,6 +8,8 @@ import NextThemeProvider from './components/context-providers/next-theme-wrapper
 import {Metadata} from "next";
 import InstallPwa from "./components/Install-pwa";
 import OfflineDetection from "./components/offline-detection";
+import Header from "./components/header/header";
+import {getLoggedInUser} from "./actions/user-actions";
 
 export async  function generateMetadata() {
   return {
@@ -45,6 +47,8 @@ export default async function RootLayout({
                                    }: {
   children: React.ReactNode
 }) {
+  const user = await getLoggedInUser();
+
   return (
     <SessionWrapper>
       <html lang="en" style={{ height: '100%' }}>
@@ -54,6 +58,7 @@ export default async function RootLayout({
         <body style={{minHeight: '100%'}}>
           <NextThemeProvider defaultTheme={'system'} enableSystem={true}>
             <ThemeProvider>
+              <Header user={user}/>
               {children}
               <InstallPwa />
               <OfflineDetection />
