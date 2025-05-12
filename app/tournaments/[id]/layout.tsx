@@ -10,6 +10,7 @@ import EmptyAwardsSnackbar from "../../components/awards/empty-award-notificatio
 import {getPlayersInTournament} from "../../db/player-repository";
 import EnvironmentIndicator from "../../components/environment-indicator";
 import {Typography} from "@mui/material";
+import {getThemeLogoUrl} from "../../utils/theme-utils";
 
 type TournamentLayoutProps = {
   params: Promise<{
@@ -39,6 +40,8 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
       tournamentStartDate.getTime() - currentTime <= FIVE_DAYS_MS) ||
     (tournamentStartDate.getTime() < currentTime &&
       currentTime - tournamentStartDate.getTime() <= FIVE_DAYS_MS);
+
+  const logoUrl = getThemeLogoUrl(layoutData.tournament?.theme)
 
   return (
     <>
@@ -75,7 +78,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                     md: 'flex-start'
                   }
                 }}>
-                <img src={layoutData.tournament?.theme?.logo || ''} alt={layoutData.tournament.long_name} style={{
+                <img src={logoUrl || ''} alt={layoutData.tournament.long_name} style={{
                   maxHeight: '48px'
                 }}/>
                 {(layoutData.tournament?.display_name && layoutData.tournament.long_name) && (

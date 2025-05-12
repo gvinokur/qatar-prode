@@ -186,18 +186,20 @@ export async function createOrUpdateTournament(
 
     // Extract existing logo URL and key if present
     existingLogoUrl = existingTournament.theme?.logo || null;
-    existingLogoKey = getS3KeyFromURL(existingLogoUrl || '');
+    existingLogoKey = existingTournament.theme?.s3_logo_key || getS3KeyFromURL(existingLogoUrl || '');
     console.log('Existing logo Key:', existingLogoKey);
   }
 
   // Handle logo upload if provided
   let logoUrl = existingLogoUrl;
+  let logoKey = existingLogoKey;
   if (logoFile) {
     console.log('Uploading provided logo file:', logoFile);
     try {
       // Upload to S3
       const res = await s3Client.uploadFile(Buffer.from(await logoFile.arrayBuffer()));
       logoUrl = res.location
+      logoKey = res.key;
       console.log('Logo uploaded successfully:', res.location);
     } catch (error) {
       console.error('Error uploading logo:', error);
@@ -211,7 +213,9 @@ export async function createOrUpdateTournament(
     theme: {
       ...(tournamentData.theme),
       ...(existingTournament?.theme || {}),
-      logo: logoUrl || undefined
+      logo: logoUrl || undefined,
+      s3_logo_key: logoKey || undefined,
+      is_s3_logo: true
     }
   };
 

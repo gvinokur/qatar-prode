@@ -18,6 +18,7 @@ import {Close as MissIcon, Done as HitIcon, DoneAll as HitAllIcon, Save as SaveI
 import { getDateString } from "../utils/date-utils";
 import { GameResultNew, Theme} from "../db/tables-definition";
 import {useState} from "react";
+import {getThemeLogoUrl} from "../utils/theme-utils";
 
 type SharedProps = {
   gameNumber: number;
@@ -91,6 +92,8 @@ export default function CompactGameViewCard({
 
   const isClickableStyles = !disabled ? {cursor: 'pointer'} : {}
   const isDraft = (!specificProps.isGameGuess && specificProps.isDraft)
+
+  let logoUrl = null
 
   return (
     <Card
@@ -195,9 +198,9 @@ export default function CompactGameViewCard({
               >
                 {homeTeamNameOrDescription}
               </Typography>
-              {homeTeamTheme?.logo && (
+              {(logoUrl = getThemeLogoUrl(homeTeamTheme)) && (
                 <img
-                  src={homeTeamTheme.logo}
+                  src={logoUrl}
                   alt={homeTeamNameOrDescription}
                   height={'24px'}
                   style={{ marginLeft: '6px' }}
@@ -242,9 +245,9 @@ export default function CompactGameViewCard({
                 specificProps.isGameGuess &&
                 specificProps.awayPenaltyWinner &&
                 '(x)'}
-              {awayTeamTheme?.logo && (
+              {(logoUrl = getThemeLogoUrl(awayTeamTheme)) && (
                 <img
-                  src={awayTeamTheme.logo}
+                  src={logoUrl}
                   alt={awayTeamNameOrDescription}
                   height={'24px'}
                   style={{ marginRight: '6px' }}

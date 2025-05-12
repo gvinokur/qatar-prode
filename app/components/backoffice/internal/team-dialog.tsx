@@ -17,6 +17,7 @@ import { MuiColorInput } from 'mui-color-input';
 import { Team } from '../../../db/tables-definition';
 import ImagePicker from '../../friend-groups/image-picker';
 import { createTeam, updateTeam } from '../../../actions/team-actions';
+import {getThemeLogoUrl} from "../../../utils/theme-utils";
 
 interface TeamDialogProps {
   open: boolean;
@@ -91,7 +92,9 @@ export default function TeamDialog({
         theme: {
           primary_color: primaryColor,
           secondary_color: secondaryColor,
-          logo: team?.theme?.logo // Keep existing logo if in edit mode
+          logo: team?.theme?.logo, // Keep existing logo if in edit mode
+          s3_logo_key: team?.theme?.s3_logo_key,// Keep existing logo key if in edit mode
+          is_s3_logo: team?.theme?.is_s3_logo // Keep existing logo key if in edit mode
         }
       }));
 
@@ -220,7 +223,7 @@ export default function TeamDialog({
               <ImagePicker
                 id="logo"
                 name="logo"
-                defaultValue={team?.theme?.logo}
+                defaultValue={getThemeLogoUrl(team?.theme) || undefined}
                 onChange={handleLogoChange}
                 onBlur={() => {}}
                 aspectRatio={0.6}

@@ -21,6 +21,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { Team } from '../../db/tables-definition';
 import { getTeamsMap } from '../../actions/tournament-actions';
 import TeamDialog from './internal/team-dialog';
+import {getThemeLogoUrl} from "../../utils/theme-utils";
 
 interface TournamentTeamsManagerProps {
   tournamentId: string;
@@ -106,6 +107,8 @@ export default function TournamentTeamsManagerTab({ tournamentId }: TournamentTe
     );
   }
 
+  let logoUrl = null;
+
   return (
     <Box sx={{ mt: 2 }}>
       <Paper sx={{ p: 3, mb: 3 }}>
@@ -148,8 +151,14 @@ export default function TournamentTeamsManagerTab({ tournamentId }: TournamentTe
                       <IconButton
                         onClick={() => handleEditTeam(team)}
                         sx={{
-                          bgcolor: 'rgba(255,255,255,0.7)',
-                          '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' }
+                          color: 'secondary.contrastText',
+                          backgroundColor: 'secondary.main',
+                          ":hover": {
+                            backgroundColor: 'secondary.dark',
+                          },
+                          borderRadius: '50%',
+                          padding: '4px',
+                          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
                         }}
                         size="small"
                       >
@@ -168,9 +177,9 @@ export default function TournamentTeamsManagerTab({ tournamentId }: TournamentTe
                       justifyContent: 'center'
                     }}
                   >
-                    {team.theme?.logo && (
+                    {(logoUrl = getThemeLogoUrl(team.theme)) && (
                       <img
-                        src={team.theme.logo}
+                        src={logoUrl}
                         alt={team.name}
                         style={{
                           maxHeight: '50%',

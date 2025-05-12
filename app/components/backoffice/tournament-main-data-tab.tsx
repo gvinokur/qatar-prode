@@ -18,7 +18,7 @@ import {
   Button,
   Divider, FormControlLabel, Switch
 } from "@mui/material";
-import {PlayoffRound, Tournament} from '../../db/tables-definition';
+import {PlayoffRound, Theme, Tournament} from '../../db/tables-definition';
 import {createOrUpdateTournament, getTournamentById, getPlayoffRounds} from '../../actions/tournament-actions';
 import { MuiColorInput } from 'mui-color-input';
 import LinkIcon from '@mui/icons-material/Link';
@@ -26,17 +26,11 @@ import ImagePicker from "../friend-groups/image-picker";
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import PlayoffRoundDialog from './internal/playoff-round-dialog';
+import {getThemeLogoUrl} from "../../utils/theme-utils";
 
 type Props = {
   tournamentId: string;
   onUpdate?: (updatedTournament: Tournament) => void;
-}
-
-type TournamentTheme = {
-  primary_color: string;
-  secondary_color: string;
-  web_page?: string;
-  logo?: string;
 }
 
 export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props) {
@@ -45,11 +39,13 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [longName, setLongName] = useState<string>('');
   const [shortName, setShortName] = useState<string>('');
-  const [theme, setTheme] = useState<TournamentTheme>({
+  const [theme, setTheme] = useState<Theme>({
     primary_color: '#1976d2',
     secondary_color: '#dc004e',
     web_page: '',
     logo: '',
+    is_s3_logo: false,
+    s3_logo_key: ''
   });
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [devOnly, setDevOnly] = useState<boolean>(false);
@@ -106,6 +102,8 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
           secondary_color: tournamentData.theme?.secondary_color || '#dc004e',
           web_page: tournamentData.theme?.web_page || '',
           logo: tournamentData.theme?.logo || '',
+          is_s3_logo: tournamentData.theme?.is_s3_logo || false,
+          s3_logo_key: tournamentData.theme?.s3_logo_key || ''
         });
         setIsActive(tournamentData.is_active);
 
@@ -334,7 +332,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
               Primary Color
             </Typography>
             <MuiColorInput
-              value={theme.primary_color}
+              value={theme.primary_color || '#000000'}
               onChange={(color) => handleColorChange(color, 'primary_color')}
               format="hex"
               fullWidth
@@ -349,7 +347,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
               Secondary Color
             </Typography>
             <MuiColorInput
-              value={theme.secondary_color}
+              value={theme.secondary_color || '#ffffff'}
               onChange={(color) => handleColorChange(color, 'secondary_color')}
               format="hex"
               fullWidth
@@ -439,7 +437,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
             <ImagePicker
               id="logo"
               name="logo"
-              defaultValue={theme.logo}
+              defaultValue={getThemeLogoUrl(theme) || undefined}
               onChange={handleLogoChange}
               onBlur={() => {}}
               aspectRatio={3/1}

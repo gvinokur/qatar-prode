@@ -2,7 +2,7 @@
 
 import { getLoggedInUser } from './user-actions';
 import {Player, PlayerNew, Team} from '../db/tables-definition';
-import {createS3Client, getS3KeyFromURL} from "./s3";
+import {createS3Client, deleteThemeLogoFromS3, getS3KeyFromURL} from "./s3";
 import {createTeam as createTeamInDb, updateTeam as updateTeaminDb, findTeamInTournament, findTeamInGroup} from "../db/team-repository";
 import {createTournamentTeam} from "../db/tournament-repository";
 import * as cheerio from 'cheerio';
@@ -90,21 +90,18 @@ export async function updateTeam(teamId: string, formData: FormData, tournamentI
   // Handle logo upload if provided
   const logoFile = formData.get('logo') as File;
   let logoUrl = teamData.theme?.logo || null;
+  let logoKey = teamData.theme?.s3_logo_key || null;
 
   if (logoFile) {
     try {
 
       const res = await s3Client.uploadFile(Buffer.from(await logoFile.arrayBuffer()));
       logoUrl = res.location;
+      logoKey = res.key
 
       // Delete old logo if exists
-      if (teamData.theme?.logo) {
-        const oldLogoUrl = teamData.theme.logo;
-        const logoKey = getS3KeyFromURL(oldLogoUrl);
-        if (logoKey) {
-          await s3Client.deleteFile(logoKey);
-        }
-      }
+      await deleteThemeLogoFromS3(teamData.theme);
+
     } catch (error) {
       console.error('Error uploading logo:', error);
       throw new Error('Failed to upload team logo');
@@ -116,7 +113,9 @@ export async function updateTeam(teamId: string, formData: FormData, tournamentI
     ...teamData,
     theme: {
       ...teamData.theme,
-      logo: logoUrl
+      logo: logoUrl,
+      s3_logo_key: logoKey,
+      is_s3_logo: true,
     }
   };
 

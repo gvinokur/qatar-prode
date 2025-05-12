@@ -10,6 +10,7 @@ import {updateTheme} from "../../actions/prode-group-actions";
 import ImagePicker from "./image-picker";
 import {useRouter} from "next/navigation";
 import {right} from "@popperjs/core";
+import {getThemeLogoUrl} from "../../utils/theme-utils";
 
 type Props = {
   group: ProdeGroup
@@ -67,7 +68,9 @@ export default function ProdeGroupThemer({ group }: Props) {
             control={control}
             name={'file'}
             render={({field, fieldState}) => (
-              <ImagePicker {...field} id={'file'} defaultValue={group.theme?.logo}
+              <ImagePicker {...field}
+                           id={'file'}
+                           defaultValue={getThemeLogoUrl(group.theme) || undefined}
                            onChange={(event) => {
                              console.log(event)
                              field.onChange(event.target.files?.[0]);

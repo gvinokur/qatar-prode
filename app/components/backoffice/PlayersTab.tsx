@@ -28,6 +28,7 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { getTransfermarktPlayerData } from "../../actions/team-actions";
 import {getTournamentStartDate} from "../../actions/tournament-actions";
+import {getThemeLogoUrl} from "../../utils/theme-utils";
 
 interface PlayerData {
   name: string;
@@ -142,6 +143,8 @@ export default function PlayersTab({tournamentId}: {tournamentId: string}) {
     );
   }
 
+  let logoUrl = null
+
   return (
     <>
       <Card>
@@ -158,9 +161,9 @@ export default function PlayersTab({tournamentId}: {tournamentId: string}) {
                   id={`panel-${teamData.team.id}-header`}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    {teamData.team.theme?.logo && (
+                    {(logoUrl = getThemeLogoUrl(teamData.team.theme)) && (
                       <img
-                        src={teamData.team.theme.logo}
+                        src={logoUrl}
                         alt={`${teamData.team.name} logo`}
                         style={{ height: 24, width: 24, objectFit: 'contain' }}
                       />

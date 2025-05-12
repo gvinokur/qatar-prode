@@ -1,5 +1,6 @@
 //S3 Config
 import {s3Client} from "nodejs-s3-typescript";
+import {Theme} from "../db/tables-definition";
 
 const s3_config = {
   bucketName: process.env.AWS_BUCKET_NAME as string,
@@ -12,6 +13,16 @@ export const createS3Client = (dirName: string) => new s3Client({
   ...s3_config,
   dirName
 });
+
+export const deleteThemeLogoFromS3 = async (theme?: Theme) => {
+  if(theme?.logo || theme?.s3_logo_key) {
+    const logoKey = theme.s3_logo_key || getS3KeyFromURL(theme.logo || '')
+    if(logoKey) {
+      const s3 = createS3Client('prode-group-files')
+      await s3.deleteFile(`prode-group-files/${logoKey}`)
+    }
+  }
+}
 
 export const getS3KeyFromURL = (url: string) => {
   const regex = new RegExp('([^/]+)/?$')

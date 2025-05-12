@@ -17,6 +17,8 @@ export interface Theme {
   secondary_color?: string
   logo?: string
   web_page?: string
+  is_s3_logo?: boolean
+  s3_logo_key?: string
 }
 
 export interface TournamentTable extends Identifiable{

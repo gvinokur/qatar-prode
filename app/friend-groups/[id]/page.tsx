@@ -16,6 +16,7 @@ import {findTournamentGuessByUserIdsTournament} from "../../db/tournament-guess-
 import {TournamentGuess} from "../../db/tables-definition";
 import {UserScore} from "../../definitions";
 import {InviteFriendsDialogButton} from "../../components/friend-groups/invite-friends-dialog-button";
+import {getThemeLogoUrl} from "../../utils/theme-utils";
 
 type Props = {
   params: Promise<{
@@ -77,9 +78,10 @@ export default async function FriendsGroup(props : Props){
         }
       )))
 
+  let logoUrl = getThemeLogoUrl(prodeGroup.theme)
 
   return (
-    <Box pt={2} pb={2}>
+    <Box>
       {searchParams.hasOwnProperty('debug') && (
         <DebugObject object={{
           prodeGroup,
@@ -90,6 +92,7 @@ export default async function FriendsGroup(props : Props){
       )}
       <Grid container spacing={2}
             pl={2}
+            pt={1}
             bgcolor={prodeGroup.theme?.primary_color || ''}
             color={prodeGroup.theme?.secondary_color || ''}
       >
@@ -97,8 +100,8 @@ export default async function FriendsGroup(props : Props){
           {prodeGroup.name.toLowerCase() === 'welltech' && (
             <img src={'/welltech-logo.jpeg'} alt={'Grupo Welltech'} height={60} width={150}/>
           )}
-          {prodeGroup.theme?.logo && (
-            <img src={prodeGroup.theme?.logo} alt={prodeGroup.name} height={64} width={64} style={{
+          {logoUrl && (
+            <img src={logoUrl} alt={prodeGroup.name} height={64} width={64} style={{
               borderRadius: '8px'
             }}/>
           )}

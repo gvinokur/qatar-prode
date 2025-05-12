@@ -13,7 +13,7 @@ import {
 import {getLoggedInUser} from "./user-actions";
 import {z} from "zod";
 import {ProdeGroup} from "../db/tables-definition";
-import {createS3Client, getS3KeyFromURL} from "./s3";
+import {createS3Client, deleteThemeLogoFromS3, getS3KeyFromURL} from "./s3";
 
 export async function createDbGroup( groupName: string) {
   const user = await getLoggedInUser()
@@ -92,20 +92,12 @@ const imageSchema = z.object({
     .refine((file) => file.size <= MAX_FILE_SIZE, `Max file size is 5MB.`),
 });
 
-async function deleteCurrentGroupFile(group: ProdeGroup) {
-  if(group.theme?.logo) {
-    const logoKey = getS3KeyFromURL(group.theme.logo)
-    if(logoKey) {
-      const s3 = createS3Client('prode-group-files')
-      s3.deleteFile(`prode-group-files/${logoKey}`)
-    }
-  }
-}
 
 export async function updateTheme(groupId: string, formData: any) {
   const currentGroup = await findProdeGroupById(groupId)
   const data = Object.fromEntries(formData)
   let imageUrl: string | undefined = currentGroup.theme?.logo
+  let imageKey: string | undefined = currentGroup.theme?.s3_logo_key
   if (data.logo) {
     const validatedFields = imageSchema.safeParse({
       image: data.logo
@@ -119,10 +111,11 @@ export async function updateTheme(groupId: string, formData: any) {
     }
     try {
       const s3 = createS3Client('prode-group-files')
-      await deleteCurrentGroupFile(currentGroup)
+      await deleteThemeLogoFromS3(currentGroup.theme)
       const res = await s3.uploadFile(Buffer.from(await data.logo.arrayBuffer()));
       console.log(res)
       imageUrl = res.location
+      imageKey = res.key
     } catch (e) {
       console.log(e)
       return "Image Upload failed"
@@ -134,7 +127,9 @@ export async function updateTheme(groupId: string, formData: any) {
     theme: JSON.stringify({
       primary_color: data.primary_color,
       secondary_color: data.secondary_color,
-      logo: imageUrl
+      logo: imageUrl,
+      is_s3_logo: true,
+      s3_logo_key: imageKey
     })
   })
 }

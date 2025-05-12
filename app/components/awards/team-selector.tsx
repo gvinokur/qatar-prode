@@ -4,6 +4,7 @@ import React from 'react';
 import { FormControl, InputLabel, Select, MenuItem, FormHelperText, Box, SelectChangeEvent } from '@mui/material';
 import { Team } from '../../db/tables-definition';
 import Image from 'next/image';
+import {getThemeLogoUrl} from "../../utils/theme-utils";
 
 interface TeamSelectorProps {
   label: string;
@@ -36,6 +37,8 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
     }
   };
 
+  let logoUrl : string | undefined | null = null;
+
   return (
     <FormControl fullWidth disabled={disabled}>
       <InputLabel id={`${name}-label`}>{label}</InputLabel>
@@ -52,9 +55,9 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
 
           return (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              {team.theme?.logo && (
+              {(logoUrl = getThemeLogoUrl(team.theme)) && (
                 <Image
-                  src={team.theme.logo}
+                  src={logoUrl}
                   alt={team.name}
                   width={24}
                   height={16}
@@ -73,9 +76,9 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
         {sortedTeams.map((team) => (
           <MenuItem key={team.id} value={team.id}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              {team.theme?.logo && (
+              {(logoUrl = getThemeLogoUrl(team.theme)) && (
                 <Image
-                  src={team.theme.logo}
+                  src={logoUrl}
                   alt={team.name}
                   width={24}
                   height={16}
