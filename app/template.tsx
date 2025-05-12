@@ -18,7 +18,7 @@ export default async function Template({
     (user.emailVerified || (await findUserById(user.id)).email_verified);
 
   return (
-    <>
+    <Transition>
       {(user && !isVerified) && (
         <VerificationBanner/>
       )}
@@ -42,6 +42,6 @@ export default async function Template({
           </Box>
         </Box>)
       )}
-    </>
+    </Transition>
   );
 }
