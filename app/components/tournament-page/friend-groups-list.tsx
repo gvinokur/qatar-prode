@@ -6,7 +6,6 @@ import {
   CardContent,
   CardHeader, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
   IconButton,
-  Link,
   List,
   ListItem,
   ListItemText, TextField, useTheme
@@ -17,6 +16,7 @@ import {Controller, useForm} from "react-hook-form";
 import * as React from "react";
 import {createDbGroup, deleteGroup} from "../../actions/prode-group-actions";
 import InviteFriendsDialog from "../invite-friends-dialog";
+import Link from "next/link";
 
 
 type Props = {

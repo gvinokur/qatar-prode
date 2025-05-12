@@ -1,11 +1,26 @@
 'use server';
 
-import {Link, Box} from "@mui/material";
+import {Box, Typography} from "@mui/material";
+import Link from "next/link";
 
 export default async function OfflinePage() {
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-      <Link href={'/'} color='secondary'>Recargar Aplicacion</Link>
+      <Link href={'/'}>
+        <Typography
+          color={'secondary.contrastText'}
+          p={2}
+          borderRadius={2}
+          variant={'h5'}
+          sx={{
+            cursor: 'pointer',
+            backgroundColor: 'secondary.main',
+            ":hover": {
+              backgroundColor: 'secondary.dark'
+            }}}>
+          Recargar Aplicacion
+        </Typography>
+      </Link>
     </Box>
   );
 }

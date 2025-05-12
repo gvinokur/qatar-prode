@@ -1,10 +1,11 @@
 "use client";
 
 import {ProdeGroup, Tournament} from "../../db/tables-definition";
-import {Card, CardContent, CardHeader, Grid, Link, Typography, useTheme} from "@mui/material";
+import {Card, CardContent, CardHeader, Grid, Typography, useTheme} from "@mui/material";
 import {Fragment} from "react";
 import Rules from "../tournament-page/rules";
 import FriendGroupsList from "../tournament-page/friend-groups-list";
+import Link from "next/link";
 
 type HomeProps = {
   tournaments: Tournament[]
@@ -36,14 +37,16 @@ export default function Home({tournaments, groups} : HomeProps) {
                 {tournaments.map(tournament => (
                   <Fragment key={tournament.id}>
                     <Grid size={12}>
-                      <Link href={`/tournaments/${tournament.id}`} variant={'h6'}
-
-                                  sx={{
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap',
-                                    overflow: 'hidden'
-                                  }}>
-                        {tournament.long_name}
+                      <Link href={`/tournaments/${tournament.id}`}>
+                        <Typography
+                        variant={'h6'}
+                          sx={{
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden'
+                          }}>
+                          {tournament.long_name}
+                        </Typography>
                       </Link>
                     </Grid>
                   </Fragment>

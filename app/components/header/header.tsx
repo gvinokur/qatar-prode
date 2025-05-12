@@ -1,19 +1,16 @@
-'use client'
+'use server'
 
 import * as React from "react";
 import {
   AppBar,
   Typography,
   Box,
-  Avatar, useTheme, IconButton
-
+  Avatar,
 } from "@mui/material";
 import UserActions from "./user-actions";
 import Link from "next/link";
-import {useContext} from "react";
-import {DarkMode, LightMode} from "@mui/icons-material";
 import {User} from "next-auth";
-import {useTheme as useNextTheme} from "next-themes";
+import ThemeSwitcher from "./theme-switcher";
 
 type FrameProps = {
   user?: User
@@ -34,15 +31,7 @@ const pages: Page[] = [ {
   link: '/tournaments'
 }]
 
-export default function Header(props: FrameProps) {
-  const theme = useTheme()
-  const {resolvedTheme: themeMode, setTheme } = useNextTheme()
-
-  const switchThemeMode = async () => {
-    const newThemeMode = themeMode === 'light' ? 'dark' : 'light'
-    setTheme(newThemeMode)
-  }
-
+export default async function Header(props: FrameProps) {
   return (
     <AppBar position={'sticky'}>
       <Box
@@ -54,7 +43,7 @@ export default function Header(props: FrameProps) {
         justifyContent={'space-between'}
       >
         <Box>
-          <Link href={'/public'}>
+          <Link href={'/'}>
             <Avatar
               variant={"rounded"}
               src={'/logo.webp'}
@@ -77,7 +66,7 @@ export default function Header(props: FrameProps) {
             textDecoration: 'none',
             cursor: 'pointer'
           }}>
-          <Link href={'/public'}>La Maquina Prode</Link>
+          <Link href={'/'}>La Maquina Prode</Link>
         </Typography>
         <Box
           alignContent={'center'}
@@ -87,13 +76,7 @@ export default function Header(props: FrameProps) {
           flexWrap={'wrap'}
           minWidth={'96px'}
         >
-          <IconButton title={`Switch to ${themeMode === 'light' ? 'dark' : 'light'} mode`} onClick={switchThemeMode}
-                      sx={{mr: 1}}>
-            {themeMode === 'light' &&
-                <DarkMode sx={{height: 24, width: 24, color: theme.palette.primary.contrastText}}/>}
-            {themeMode === 'dark' &&
-                <LightMode sx={{height: 24, width: 24, color: theme.palette.primary.contrastText}}/>}
-          </IconButton>
+          <ThemeSwitcher />
           <UserActions user={props.user}/>
         </Box>
       </Box>

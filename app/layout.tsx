@@ -50,7 +50,6 @@ export default async function RootLayout({
   const user = await getLoggedInUser();
 
   return (
-    <SessionWrapper>
       <html lang="en" style={{ height: '100%' }}>
         <head>
           <meta name="apple-mobile-web-app-title" content="La Maquina"/>
@@ -58,14 +57,15 @@ export default async function RootLayout({
         <body style={{minHeight: '100%'}}>
           <NextThemeProvider defaultTheme={'system'} enableSystem={true}>
             <ThemeProvider>
-              <Header user={user}/>
-              {children}
-              <InstallPwa />
-              <OfflineDetection />
+              <SessionWrapper>
+                <Header user={user}/>
+                {children}
+                <InstallPwa />
+                <OfflineDetection />
+              </SessionWrapper>
             </ThemeProvider>
           </NextThemeProvider>
         </body>
       </html>
-    </SessionWrapper>
   )
 }
