@@ -42,7 +42,6 @@ interface TeamWithPlayers {
 }
 
 export default function PlayersTab({tournamentId}: {tournamentId: string}) {
-
   const [teamsWithPlayers, setTeamsWithPlayers] = useState<TeamWithPlayers[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
@@ -51,6 +50,7 @@ export default function PlayersTab({tournamentId}: {tournamentId: string}) {
   const [transfermarktId, setTransfermarktId] = useState('');
   const [deleteExistingPlayers, setDeleteExistingPlayers] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
+  const [expandedTeam, setExpandedTeam] = useState<string | false>(false)
 
   const fetchPlayersData = useCallback(async () => {
     try {
@@ -135,6 +135,11 @@ export default function PlayersTab({tournamentId}: {tournamentId: string}) {
     setOpenImportModal(true);
   };
 
+  const handleChange =
+    (panel: string) => (event: React.SyntheticEvent, newExpanded: boolean) => {
+      setExpandedTeam(newExpanded ? panel : false);
+    };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px' }}>
@@ -153,8 +158,14 @@ export default function PlayersTab({tournamentId}: {tournamentId: string}) {
         />
         <CardContent>
           <div>
-            {teamsWithPlayers.map((teamData, index) => (
-              <Accordion key={teamData.team.id}>
+            {teamsWithPlayers
+              .sort((a, b) => a.team.name.localeCompare(b.team.name))
+              .map((teamData, index) => (
+              <Accordion
+                key={teamData.team.id}
+                expanded={expandedTeam === `panel-${teamData.team.id}`}
+                onChange={handleChange(`panel-${teamData.team.id}`)}
+              >
                 <AccordionSummary
                   expandIcon={<ExpandMoreIcon />}
                   aria-controls={`panel-${teamData.team.id}-content`}
@@ -169,7 +180,7 @@ export default function PlayersTab({tournamentId}: {tournamentId: string}) {
                       />
                     )}
                     <Typography>{teamData.team.name}</Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
+                    <Typography variant="body2" color={teamData.players.length === 0 ? "warning" :  "success"} sx={{ ml: 2 }}>
                       ({teamData.players.length} players)
                     </Typography>
                   </Box>

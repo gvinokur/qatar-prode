@@ -129,7 +129,9 @@ export default function TournamentTeamsManagerTab({ tournamentId }: TournamentTe
           </Alert>
         ) : (
           <Grid container spacing={3}>
-            {teams.map((team) => (
+            {teams
+              .sort((a,b) => a.name.localeCompare(b.name))
+              .map((team) => (
               <Grid
                 key={team.id}
                 size={{
