@@ -10,6 +10,8 @@ import InstallPwa from "./components/Install-pwa";
 import OfflineDetection from "./components/offline-detection";
 import Header from "./components/header/header";
 import {getLoggedInUser} from "./actions/user-actions";
+import { unstable_ViewTransition as ViewTransition } from 'react'
+
 
 export async  function generateMetadata() {
   return {
@@ -50,22 +52,28 @@ export default async function RootLayout({
   const user = await getLoggedInUser();
 
   return (
-      <html lang="en" style={{ height: '100%' }}>
-        <head>
-          <meta name="apple-mobile-web-app-title" content="La Maquina"/>
-        </head>
-        <body style={{minHeight: '100%'}}>
-          <NextThemeProvider defaultTheme={'system'} enableSystem={true}>
-            <ThemeProvider>
-              <SessionWrapper>
-                <Header user={user}/>
+    <html lang="en" style={{ height: '100%' }}>
+      <head>
+        <meta name="apple-mobile-web-app-title" content="La Maquina"/>
+      </head>
+      <body style={{minHeight: '100%'}}>
+        <NextThemeProvider defaultTheme={'system'} enableSystem={true}>
+          <ThemeProvider>
+            <SessionWrapper>
+              <Header user={user}/>
+              <ViewTransition
+                name={'main'}
+                enter={'page-enter'}
+                exit={'page-exit duration-100'}
+              >
                 {children}
-                <InstallPwa />
-                <OfflineDetection />
-              </SessionWrapper>
-            </ThemeProvider>
-          </NextThemeProvider>
-        </body>
-      </html>
+              </ViewTransition>
+              <InstallPwa />
+              <OfflineDetection />
+            </SessionWrapper>
+          </ThemeProvider>
+        </NextThemeProvider>
+      </body>
+    </html>
   )
 }
