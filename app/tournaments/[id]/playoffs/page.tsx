@@ -16,6 +16,7 @@ import {findGroupsInTournament} from "../../../db/tournament-group-repository";
 import {findAllTournamentGroupTeamGuessInGroup} from "../../../db/tournament-group-team-guess-repository";
 import {customToMap, toMap} from "../../../utils/ObjectUtils";
 import GamesGrid from "../../../components/games-grid";
+import {unstable_ViewTransition as ViewTransition} from "react";
 
 type Props = {
   params: Promise<{
@@ -109,15 +110,21 @@ export default async function PlayoffPage(props: Props) {
         gameGuesses={gameGuessesMap}
         autoSave={true}
       >
-        <Grid container mt={'16px'} maxWidth={'800px'} mx={'auto'}>
-          <Grid size={12} mb={'16px'}>
-            <GamesGrid
-              isPlayoffs={true}
-              gameSections={sections}
-              teamsMap={completePlayoffData.teamsMap}
-            />
+        <ViewTransition
+          name={'group-page'}
+          enter={'group-enter'}
+          exit={'group-exit'}
+        >
+          <Grid container mt={'16px'} maxWidth={'800px'} mx={'auto'}>
+            <Grid size={12} mb={'16px'}>
+              <GamesGrid
+                isPlayoffs={true}
+                gameSections={sections}
+                teamsMap={completePlayoffData.teamsMap}
+              />
+            </Grid>
           </Grid>
-        </Grid>
+        </ViewTransition>
       </GuessesContextProvider>
     </>
   )

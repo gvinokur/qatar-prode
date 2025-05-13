@@ -14,7 +14,7 @@ import {
   getTournamentStartDate
 } from "../../../actions/tournament-actions";
 import {findTournamentById} from "../../../db/tournament-repository";
-
+import { unstable_ViewTransition as ViewTransition } from "react";
 
 type Props = {
   params: Promise<{
@@ -66,15 +66,20 @@ export default async function Awards(props: Props) {
           tournament
         }}/>
       )}
-
-      <AwardsPanel
-        allPlayers={allPlayers}
-        tournamentGuesses={tournamentGuesses}
-        teams={teams}
-        hasThirdPlaceGame={hasThirdPlaceGame}
-        isPredictionLocked={isPredictionLocked}
-        tournament={tournament}
-      />
+      <ViewTransition
+        name={'group-page'}
+        enter={'group-enter'}
+        exit={'group-exit'}
+      >
+        <AwardsPanel
+          allPlayers={allPlayers}
+          tournamentGuesses={tournamentGuesses}
+          teams={teams}
+          hasThirdPlaceGame={hasThirdPlaceGame}
+          isPredictionLocked={isPredictionLocked}
+          tournament={tournament}
+        />
+      </ViewTransition>
     </Box>
   )
 }

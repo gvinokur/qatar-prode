@@ -44,7 +44,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
   const logoUrl = getThemeLogoUrl(layoutData.tournament?.theme)
 
   return (
-    <>
+    <Box>
       <AppBar position={'sticky'}>
         <Grid container>
           <Grid size={{ xs:12, md: 3}} pt={2} pb={1} pl={2} sx={{
@@ -122,7 +122,6 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
         <EmptyAwardsSnackbar tournamentId={params.id}/>
       )}
       <EnvironmentIndicator isDev={layoutData.tournament.dev_only || false}/>
-    </>
-
+    </Box>
   )
  }

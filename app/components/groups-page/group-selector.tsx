@@ -3,7 +3,6 @@
 import {Fab, Grid, MenuItem, Select, SelectChangeEvent, useTheme} from "@mui/material";
 
 import {usePathname, useRouter} from "next/navigation";
-import {resolveRelativeUrl} from "next/dist/lib/metadata/resolvers/resolve-url";
 
 type Props = {
   groups: { group_letter: string, id: string}[]
@@ -46,16 +45,19 @@ const GroupSelector = ({groups, tournamentId} : Props) => {
             sx={{ display: { xs: 'none', md: 'flex'}}}>
         {groups.map(({group_letter, id}) => (
           <Grid key={id}>
-            <Fab variant='extended' color={selected === id ? 'primary' : 'secondary'} href={getUrl(`groups/${id}`)}>
+            <Fab variant='extended' color={selected === id ? 'primary' : 'secondary'}
+                 onClick={() => router.push(getUrl(`groups/${id}`))}>
               Grupo {group_letter.toUpperCase()}
             </Fab>
           </Grid>
         ))}
         <Grid>
-          <Fab color={selected === 'playoffs' ? 'primary' : 'secondary'} variant={'extended'} href={getUrl('playoffs')}>Playoffs</Fab>
+          <Fab color={selected === 'playoffs' ? 'primary' : 'secondary'} variant={'extended'}
+          onClick={() => router.push(getUrl('playoffs'))}>Playoffs</Fab>
         </Grid>
         <Grid>
-          <Fab color={selected === 'individual_awards' ? 'primary' : 'secondary'} variant={'extended'} href={getUrl('awards')}>Premios</Fab>
+          <Fab color={selected === 'individual_awards' ? 'primary' : 'secondary'} variant={'extended'}
+            onClick={() => router.push(getUrl('awards'))}>Premios</Fab>
         </Grid>
       </Grid>
       <Select

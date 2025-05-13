@@ -18,6 +18,7 @@ import {calculateGroupPosition} from "../../../../utils/group-position-calculato
 import {findAllTournamentGroupTeamGuessInGroup} from "../../../../db/tournament-group-team-guess-repository";
 import {customToMap, toMap} from "../../../../utils/ObjectUtils";
 import GamesGrid from "../../../../components/games-grid";
+import { unstable_ViewTransition as ViewTransition} from 'react'
 
 type Props = {
   params: Promise<{
@@ -30,7 +31,7 @@ type Props = {
 export default async function GroupComponent(props : Props) {
   const params = await props.params
   const searchParams = await props.searchParams
-  
+
   const user = await getLoggedInUser();
   if(!user) {
     redirect('/')
@@ -76,25 +77,31 @@ export default async function GroupComponent(props : Props) {
         sortByGamesBetweenTeams={completeGroupData.group.sort_by_games_between_teams}
         autoSave={true}
       >
-        <Grid container mt={'16px'} maxWidth={'868px'} mx={'auto'}>
-          <Grid size={12} mb={'16px'}>
-            <GamesGrid
-              isPlayoffs={false}
-              games={Object.values(completeGroupData.gamesMap)
-                .sort((a,b) => a.game_number - b.game_number)}
-              teamsMap={completeGroupData.teamsMap}
-            />
+        <ViewTransition
+          name={'group-page'}
+          enter={'group-enter'}
+          exit={'group-exit'}
+        >
+          <Grid container mt={'16px'} maxWidth={'868px'} mx={'auto'}>
+            <Grid size={12} mb={'16px'}>
+              <GamesGrid
+                isPlayoffs={false}
+                games={Object.values(completeGroupData.gamesMap)
+                  .sort((a,b) => a.game_number - b.game_number)}
+                teamsMap={completeGroupData.teamsMap}
+              />
+            </Grid>
+            <Grid size={12} justifyContent={'center'}>
+              <GroupTable
+                games={Object.values(completeGroupData.gamesMap)}
+                teamsMap={completeGroupData.teamsMap}
+                qualifiedTeamGuesses={qualifiedTeamGuesses}
+                qualifiedTeams={qualifiedTeams}
+                realPositions={completeGroupData.teamPositions}
+                isPredictions={true}/>
+            </Grid>
           </Grid>
-          <Grid size={12} justifyContent={'center'}>
-            <GroupTable
-              games={Object.values(completeGroupData.gamesMap)}
-              teamsMap={completeGroupData.teamsMap}
-              qualifiedTeamGuesses={qualifiedTeamGuesses}
-              qualifiedTeams={qualifiedTeams}
-              realPositions={completeGroupData.teamPositions}
-              isPredictions={true}/>
-          </Grid>
-        </Grid>
+        </ViewTransition>
       </GuessesContextProvider>
     </>
   )
