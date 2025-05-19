@@ -22,7 +22,7 @@ import {
   Radio,
   FormControlLabel,
   Divider,
-  FormLabel
+  FormLabel, Autocomplete
 } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -31,6 +31,8 @@ import {GameNew, GameUpdate, PlayoffRound, Team} from "../../../db/tables-defini
 import { createOrUpdateGame } from "../../../actions/game-actions";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import UTC from "dayjs/plugin/utc";
 import {ExtendedGameData, ExtendedGroupData} from "../../../definitions";
 import {GameWinnerSelector, GroupPositionSelector} from "./game-rule-selectors";
 
@@ -45,6 +47,9 @@ interface GameDialogProps {
   playoffStages: PlayoffRound[];
   onSave: () => void;
 }
+
+dayjs.extend(UTC);
+dayjs.extend(timezone);
 
 const GameDialog: React.FC<GameDialogProps> = ({
   open,
@@ -61,6 +66,7 @@ const GameDialog: React.FC<GameDialogProps> = ({
   const [gameNumber, setGameNumber] = useState<number | null>(null);
   const [gameDate, setGameDate] = useState<Date | null>(new Date());
   const [location, setLocation] = useState('');
+  const [timezone, setTimezone] = useState(dayjs.tz.guess());
   const [gameType, setGameType] = useState<'group' | 'playoff'>('group');
 
   // Group-specific fields
@@ -150,6 +156,8 @@ const GameDialog: React.FC<GameDialogProps> = ({
     return Object.keys(errors).length === 0;
   };
 
+  const timezones = Intl.supportedValuesOf('timeZone');
+
   const handleSave = async () => {
     if (!validateForm()) return;
 
@@ -161,6 +169,7 @@ const GameDialog: React.FC<GameDialogProps> = ({
         id: game?.id,
         tournament_id: tournamentId,
         game_date: gameDate!,
+        game_local_timezone: timezone,
         location,
         game_number: Number(gameNumber),
         game_type: gameType === 'group' ? 'group' :
@@ -242,11 +251,54 @@ const GameDialog: React.FC<GameDialogProps> = ({
               size={{
                 xs: 12,
                 sm: 6,
+                md: 4
+              }}>
+              <TextField
+                label="Location"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                fullWidth
+                disabled={loading}
+                placeholder="Enter location name"
+                margin="normal"
+              />
+            </Grid>
+
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6,
                 md: 5
+              }}
+            >
+              <Autocomplete
+                options={timezones}
+                disableClearable
+                getOptionLabel={option => option}
+                value={timezone}
+                disabled={loading}
+                fullWidth
+                onChange={(e, v) => setTimezone(v)}
+                renderInput={params => (
+                  <TextField
+                    {...params}
+                    label={'Game Timezone'}
+                    variant="outlined"
+                    margin="normal"
+                  />
+                )}
+              />
+            </Grid>
+
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6,
+                md: 6
               }}>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DateTimePicker
-                  label="Game Date & Time"
+                  label="Game Date & Time (Your Time)"
                   value={dayjs(gameDate)}
                   onChange={(newDate) => setGameDate(newDate?.toDate() || null)}
                   slotProps={{
@@ -266,17 +318,21 @@ const GameDialog: React.FC<GameDialogProps> = ({
               size={{
                 xs: 12,
                 sm: 6,
-                md: 4
+                md: 6
               }}>
-              <TextField
-                label="Location"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                fullWidth
-                disabled={loading}
-                placeholder="Enter location name"
-                margin="normal"
-              />
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DateTimePicker
+                  label="Game Date & Time (Local Time)"
+                  value={dayjs(gameDate).tz(timezone)}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      margin: "normal",
+                      disabled: true
+                    }
+                  }}
+                />
+              </LocalizationProvider>
             </Grid>
 
             <Grid size={12}>

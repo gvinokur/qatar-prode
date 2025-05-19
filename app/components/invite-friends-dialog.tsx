@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, ReactNode } from 'react';
+import {useState, ReactNode, useEffect} from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -19,6 +19,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import EmailIcon from '@mui/icons-material/Email';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import CloseIcon from '@mui/icons-material/Close';
+import {awardsDefinition} from "../utils/award-utils";
 
 interface InviteFriendsDialogProps {
   trigger: ReactNode;
@@ -31,7 +32,9 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName }: Inv
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
-  const handleOpen = () => setOpen(true);
+  const handleOpen = async () => {
+    setOpen(true);
+  }
   const handleClose = () => setOpen(false);
 
   const showSnackbar = (message: string) => {

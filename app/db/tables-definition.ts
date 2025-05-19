@@ -140,6 +140,7 @@ export interface GameTable extends Identifiable {
   home_team_rule?: JSONColumnType<GroupFinishRule | TeamWinnerRule>
   away_team_rule?: JSONColumnType<GroupFinishRule | TeamWinnerRule>
   game_type?: string
+  game_local_timezone?: string
 }
 
 export type Game = Selectable<GameTable>

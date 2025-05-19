@@ -37,7 +37,12 @@ import GameDialog from './internal/game-dialog';
 import {getGamesInTournament} from "../../actions/game-actions";
 import {ExtendedGameData, ExtendedGroupData} from "../../definitions";
 import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import UTC from "dayjs/plugin/utc";
 import {getTeamDescription} from "../../utils/playoffs-rule-helper";
+
+dayjs.extend(UTC);
+dayjs.extend(timezone);
 
 interface TournamentGameManagerProps {
   tournamentId: string;
@@ -149,6 +154,13 @@ const TournamentGameManager: React.FC<TournamentGameManagerProps> = ({ tournamen
     return dayjs(date).format('MMM D, YYYY - HH:mm');
   };
 
+  const formatGameDateInLocalTimezone = (date: Date, tz?: string) => {
+    if(tz && Intl.supportedValuesOf('timeZone').includes(tz)) {
+      return dayjs(date).tz(tz).format('MMM D, YYYY - HH:mm');
+    }
+    return "No timezone specified";
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="200px">
@@ -200,12 +212,13 @@ const TournamentGameManager: React.FC<TournamentGameManagerProps> = ({ tournamen
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell width="10%">#</TableCell>
-                <TableCell width="25%">Teams</TableCell>
-                <TableCell width="20%">Date & Time</TableCell>
-                <TableCell width="15%">Location</TableCell>
-                <TableCell width="15%">Group/Stage</TableCell>
-                <TableCell width="15%" align="right">Actions</TableCell>
+                <TableCell width="5%">#</TableCell>
+                <TableCell width="30%">Teams</TableCell>
+                <TableCell width="15%">Date & Time</TableCell>
+                <TableCell width="15%">Local Date & Time</TableCell>
+                <TableCell width="20%">Location</TableCell>
+                <TableCell width="10%">Group/Stage</TableCell>
+                <TableCell width="5%" align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -214,16 +227,16 @@ const TournamentGameManager: React.FC<TournamentGameManagerProps> = ({ tournamen
                   <TableCell>{game.game_number || 'N/A'}</TableCell>
                   <TableCell>
                     <Box>
-                      <Typography variant="body2">
+                      <Typography variant="body2" component={'span'}>
                         {game.home_team && teams[game.home_team]?.name || ''}
                         {game.game_type !== 'group' && game.home_team && ' ( ' || ''}
                         {game.game_type !== 'group' && game.home_team_rule && getTeamDescription(game.home_team_rule) || ''}
                         {game.game_type !== 'group' && game.home_team && ' ) ' || ''}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        vs
+                      <Typography variant="body2" color="text.secondary" component={'span'}>
+                        &nbsp;vs&nbsp;
                       </Typography>
-                      <Typography variant="body2">
+                      <Typography variant="body2" component={'span'}>
                         {game.away_team && teams[game.away_team]?.name || ''}
                         {game.game_type !== 'group' && game.home_team && ' ( ' || ''}
                         {game.game_type !== 'group' && game.away_team_rule && getTeamDescription(game.away_team_rule) || ''}
@@ -232,6 +245,7 @@ const TournamentGameManager: React.FC<TournamentGameManagerProps> = ({ tournamen
                     </Box>
                   </TableCell>
                   <TableCell>{formatGameDate(game.game_date)}</TableCell>
+                  <TableCell>{formatGameDateInLocalTimezone(game.game_date, game.game_local_timezone)}</TableCell>
                   <TableCell>{getGameLocation(game)}</TableCell>
                   <TableCell>
                     <Chip
@@ -243,7 +257,8 @@ const TournamentGameManager: React.FC<TournamentGameManagerProps> = ({ tournamen
                   </TableCell>
                   <TableCell align="right">
                     <Tooltip title="Edit Game">
-                      <IconButton disabled={!!game.gameResult} onClick={() => handleOpenEditDialog(game)} size="small">
+                      <IconButton
+                                  onClick={() => handleOpenEditDialog(game)} size="small">
                         <EditIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>

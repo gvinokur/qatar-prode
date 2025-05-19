@@ -83,7 +83,6 @@ export default async function Backoffice() {
           createTab('Notifications', <NotificationSender />)
         ]
       }/>
-
     </Box>
   )
 }
