@@ -13,17 +13,19 @@ import {
   Checkbox,
   Badge, CircularProgress
 } from "@mui/material";
-import {Edit as EditIcon} from "@mui/icons-material";
+import {Edit as EditIcon, Place as PlaceIcon} from "@mui/icons-material";
 import {Close as MissIcon, Done as HitIcon, DoneAll as HitAllIcon, Save as SaveIcon, SaveOutlined as SaveOutlinedIcon, Scoreboard as ScoreboardIcon} from "@mui/icons-material";
-import { getDateString } from "../utils/date-utils";
+import { getUserLocalTime, getLocalGameTime } from "../utils/date-utils";
 import { GameResultNew, Theme} from "../db/tables-definition";
 import {useState} from "react";
 import {getThemeLogoUrl} from "../utils/theme-utils";
+import { useTimezone } from './context-providers/timezone-context-provider';
 
 type SharedProps = {
   gameNumber: number;
   gameDate: Date;
   location: string;
+  gameTimezone?: string;
   homeTeamNameOrDescription: string;
   homeTeamShortNameOrDescription?: string;
   homeTeamTheme?: Theme | null;
@@ -59,6 +61,7 @@ export default function CompactGameViewCard({
   gameNumber,
   gameDate,
   location,
+  gameTimezone,
   homeTeamNameOrDescription,
   homeTeamShortNameOrDescription,
   homeTeamTheme,
@@ -73,6 +76,7 @@ export default function CompactGameViewCard({
   ...specificProps
 }: CompactGameViewCardProps) {
   const theme = useTheme();
+  const { showLocalTime, toggleTimezone } = useTimezone();
   const hasResult = Number.isInteger(homeScore) && Number.isInteger(awayScore);
   const [publishing, setPublishing] = useState(false)
 
@@ -111,8 +115,17 @@ export default function CompactGameViewCard({
               <Typography variant="body2" color="text.secondary">
                 Partido #{gameNumber}
                 &nbsp;-&nbsp;
-                {getDateString(gameDate.toUTCString(), false)}
+                {showLocalTime ? getUserLocalTime(gameDate) : getLocalGameTime(gameDate, gameTimezone)}
               </Typography>
+              <Tooltip title={`Mostrar en ${showLocalTime ? 'horario local' : 'tu horario'}`}>
+                <IconButton
+                  size="small"
+                  onClick={toggleTimezone}
+                  color={showLocalTime ? 'default' : 'primary' }
+                >
+                  <PlaceIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
             </Box>
             {/* Edit button or status */}
             {(!disabled || (specificProps.isGameGuess &&

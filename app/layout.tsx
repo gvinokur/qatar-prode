@@ -11,6 +11,7 @@ import OfflineDetection from "./components/offline-detection";
 import Header from "./components/header/header";
 import {getLoggedInUser} from "./actions/user-actions";
 import { unstable_ViewTransition as ViewTransition } from 'react'
+import { TimezoneProvider } from './components/context-providers/timezone-context-provider';
 
 
 export async  function generateMetadata() {
@@ -57,22 +58,24 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-title" content="La Maquina"/>
       </head>
       <body style={{minHeight: '100%'}}>
-        <NextThemeProvider defaultTheme={'system'} enableSystem={true}>
-          <ThemeProvider>
-            <SessionWrapper>
-              <Header user={user}/>
-              <ViewTransition
-                name={'main'}
-                enter={'page-enter'}
-                exit={'page-exit duration-100'}
-              >
-                {children}
-              </ViewTransition>
-              <InstallPwa />
-              <OfflineDetection />
-            </SessionWrapper>
-          </ThemeProvider>
-        </NextThemeProvider>
+        <TimezoneProvider>
+          <NextThemeProvider defaultTheme={'system'} enableSystem={true}>
+            <ThemeProvider>
+              <SessionWrapper>
+                <Header user={user}/>
+                <ViewTransition
+                  name={'main'}
+                  enter={'page-enter'}
+                  exit={'page-exit duration-100'}
+                >
+                  {children}
+                </ViewTransition>
+                <InstallPwa />
+                <OfflineDetection />
+              </SessionWrapper>
+            </ThemeProvider>
+          </NextThemeProvider>
+        </TimezoneProvider>
       </body>
     </html>
   )
