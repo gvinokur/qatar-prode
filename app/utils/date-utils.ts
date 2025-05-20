@@ -9,11 +9,11 @@ dayjs.extend(timezone);
 export function getLocalGameTime(date: Date, gameTimezone?: string): string {
   const d = dayjs(date);
   if (gameTimezone && Intl.supportedValuesOf('timeZone').includes(gameTimezone)) {
-    return d.tz(gameTimezone).format('MMM D, YYYY - HH:mm') + ' (Horario Local)';
+    return d.tz(gameTimezone).format('MMM D, YYYY - HH:mm');
   }
-  return d.format('MMM D, YYYY - HH:mm') + ' (Tu horario)';
+  return d.format('MMM D, YYYY - HH:mm');
 }
 
 export function getUserLocalTime(date: Date): string {
-  return dayjs(date).format('MMM D, YYYY - HH:mm') + ' (Tu horario)';
+  return dayjs(date).format('MMM D, YYYY - HH:mm');
 }

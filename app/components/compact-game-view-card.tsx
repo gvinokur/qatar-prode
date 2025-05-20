@@ -13,7 +13,7 @@ import {
   Checkbox,
   Badge, CircularProgress
 } from "@mui/material";
-import {Edit as EditIcon, Place as PlaceIcon} from "@mui/icons-material";
+import {Edit as EditIcon} from "@mui/icons-material";
 import {Close as MissIcon, Done as HitIcon, DoneAll as HitAllIcon, Save as SaveIcon, SaveOutlined as SaveOutlinedIcon, Scoreboard as ScoreboardIcon} from "@mui/icons-material";
 import { getUserLocalTime, getLocalGameTime } from "../utils/date-utils";
 import { GameResultNew, Theme} from "../db/tables-definition";
@@ -118,13 +118,14 @@ export default function CompactGameViewCard({
                 {showLocalTime ? getUserLocalTime(gameDate) : getLocalGameTime(gameDate, gameTimezone)}
               </Typography>
               <Tooltip title={`Mostrar en ${showLocalTime ? 'horario local' : 'tu horario'}`}>
-                <IconButton
-                  size="small"
+                <Typography
+                  variant="body2"
+                  color={showLocalTime ? 'text.secondary' : 'primary'}
+                  sx={{ cursor: 'pointer', textDecoration: 'underline' }}
                   onClick={toggleTimezone}
-                  color={showLocalTime ? 'default' : 'primary' }
                 >
-                  <PlaceIcon fontSize="small" />
-                </IconButton>
+                  {showLocalTime ? 'Tu Horario' : 'Horario Local'}
+                </Typography>
               </Tooltip>
             </Box>
             {/* Edit button or status */}
