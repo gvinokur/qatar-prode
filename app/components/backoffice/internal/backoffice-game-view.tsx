@@ -21,6 +21,7 @@ export default function BackofficeGameView({ game, teamsMap, onEditClick, onPubl
       gameNumber={game.game_number}
       gameDate={game.game_date}
       location={game.location}
+      gameTimezone={game.game_local_timezone}
       isPlayoffGame={!!game.playoffStage}
       homeTeamNameOrDescription={game.home_team ? teamsMap[game.home_team].name : getTeamDescription(game.home_team_rule)}
       awayTeamNameOrDescription={game.away_team ? teamsMap[game.away_team].name : getTeamDescription(game.away_team_rule)}
