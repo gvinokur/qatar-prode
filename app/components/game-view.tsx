@@ -46,6 +46,7 @@ const GameView = ({game, teamsMap, handleEditClick}: GameViewProps) => {
         gameNumber={game.game_number}
         gameDate={game.game_date}
         location={game.location}
+        gameTimezone={game.game_local_timezone}
         scoreForGame={scoreForGame}
         isPlayoffGame={isPlayoffGame}
         homeTeamNameOrDescription={homeTeam ? teamsMap[homeTeam].name : getTeamDescription(game.home_team_rule)}

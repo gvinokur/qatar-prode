@@ -28,6 +28,7 @@ export function Fixtures( { games, teamsMap} : FixturesProps) {
                 gameNumber={game.game_number}
                 gameDate={game.game_date}
                 location={game.location}
+                gameTimezone={game.game_local_timezone}
                 homeTeamNameOrDescription={game.home_team && teamsMap[game.home_team].name || 'Unknown'}
                 awayTeamNameOrDescription={game.away_team && teamsMap[game.away_team].name || 'Unknown'}
                 homeTeamTheme={game.home_team && teamsMap[game.home_team].theme || undefined}
