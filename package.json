@@ -71,7 +71,9 @@
       "npm run coverage"
     ],
     "app/**/*.{ts,tsx}": [
-      "npm run lint"
+      "npm run lint",
+      "npm run test",
+      "npm run coverage"
     ]
   }
 }
