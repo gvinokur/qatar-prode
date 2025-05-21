@@ -17,7 +17,6 @@ import {
 import SendIcon from '@mui/icons-material/Send';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import {sendNotification} from "../../actions/notifiaction-actions";
-import { NOTIFICATION_MESSAGES } from './internal/notifications/notification-messages';
 
 interface NotificationFormData {
   title: string;

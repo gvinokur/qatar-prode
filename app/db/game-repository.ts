@@ -204,3 +204,40 @@ export const findGamesAroundCurrentTime = cache(async (tournamentId: string)  =>
 
   return gamesAroundCurrentTime.sort((a, b) => a.game_date.getTime() - b.game_date.getTime())
 })
+
+export const findGamesInNext24Hours = cache(async (tournamentId: string) => {
+  const now = new Date();
+  const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+  return await db.selectFrom(tableName)
+    .selectAll()
+    .select((eb) => [
+      jsonObjectFrom(
+        eb.selectFrom('tournament_group_games')
+          .innerJoin('tournament_groups', 'tournament_groups.id', 'tournament_group_games.tournament_group_id')
+          .whereRef('tournament_group_games.game_id', '=', 'games.id')
+          .select([
+            'tournament_group_games.tournament_group_id',
+            'tournament_groups.group_letter'
+          ])
+      ).as('group'),
+      jsonObjectFrom(
+        eb.selectFrom('tournament_playoff_round_games')
+          .innerJoin('tournament_playoff_rounds',
+            'tournament_playoff_rounds.id',
+            'tournament_playoff_round_games.tournament_playoff_round_id')
+          .whereRef('tournament_playoff_round_games.game_id', '=', 'games.id')
+          .select([
+            'tournament_playoff_round_games.tournament_playoff_round_id',
+            'tournament_playoff_rounds.round_name',
+            'tournament_playoff_rounds.is_final',
+            'tournament_playoff_rounds.is_third_place'
+          ])
+      ).as('playoffStage')
+    ])
+    .where('tournament_id', '=', tournamentId)
+    .where('game_date', '>=', now)
+    .where('game_date', '<=', tomorrow)
+    .orderBy('game_date', 'asc')
+    .execute() as ExtendedGameData[];
+});
