@@ -99,6 +99,8 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
           }}>
             <GroupSelector
               tournamentId={params.id}
+              backgroundColor={layoutData.tournament?.theme?.primary_color}
+              textColor={layoutData.tournament?.theme?.secondary_color}
               groups={layoutData.allGroups
                 .sort((a, b) => a.group_letter.localeCompare(b.group_letter))
               }/>
