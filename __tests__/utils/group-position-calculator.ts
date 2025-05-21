@@ -262,6 +262,228 @@ const fixtures = [
       'team3',
     ]
   },
+  {
+    condition: 'three-way tie at top with head-to-head resolution',
+    sortByGamesBetweenTeams: true,
+    games: [
+      {
+        ...baseGame,
+        resultOrGuess: gameResult21,
+        home_team: 'team1',
+        away_team: 'team2'
+      },
+      {
+        ...baseGame,
+        resultOrGuess: gameResult12,
+        home_team: 'team2',
+        away_team: 'team3'
+      },
+      {
+        ...baseGame,
+        resultOrGuess: gameResult21,
+        home_team: 'team3',
+        away_team: 'team1'
+      },
+      {
+        ...baseGame,
+        resultOrGuess: gameResult30,
+        home_team: 'team1',
+        away_team: 'team4'
+      },
+      {
+        ...baseGame,
+        resultOrGuess: gameResult30,
+        home_team: 'team2',
+        away_team: 'team4'
+      },
+      {
+        ...baseGame,
+        resultOrGuess: gameResult30,
+        home_team: 'team3',
+        away_team: 'team4'
+      }
+    ] as GameWithResultOrGuess[],
+    expected: [
+      'team3',
+      'team1',
+      'team2',
+      'team4',
+    ]
+  },
+  {
+    condition: 'three-way tie at bottom with head-to-head resolution',
+    sortByGamesBetweenTeams: true,
+    games: [
+      {
+        ...baseGame,
+        resultOrGuess: gameResult30,
+        home_team: 'team1',
+        away_team: 'team2'
+      },
+      {
+        ...baseGame,
+        resultOrGuess: gameResult30,
+        home_team: 'team1',
+        away_team: 'team3'
+      },
+      {
+        ...baseGame,
+        resultOrGuess: gameResult30,
+        home_team: 'team1',
+        away_team: 'team4'
+      },
+      {
+        ...baseGame,
+        resultOrGuess: gameResult21,
+        home_team: 'team2',
+        away_team: 'team3'
+      },
+      {
+        ...baseGame,
+        resultOrGuess: gameResult12,
+        home_team: 'team3',
+        away_team: 'team4'
+      },
+      {
+        ...baseGame,
+        resultOrGuess: gameResult21,
+        home_team: 'team2',
+        away_team: 'team4'
+      }
+    ] as GameWithResultOrGuess[],
+    expected: [
+      'team1',
+      'team2',
+      'team4',
+      'team3',
+    ]
+  },
+  {
+    condition: 'four-way tie with goal difference resolution',
+    sortByGamesBetweenTeams: false,
+    games: [
+      {
+        ...baseGame,
+        resultOrGuess: gameResult21,
+        home_team: 'team1',
+        away_team: 'team2'
+      },
+      {
+        ...baseGame,
+        resultOrGuess: gameResult12,
+        home_team: 'team3',
+        away_team: 'team4'
+      },
+      {
+        ...baseGame,
+        resultOrGuess: gameResult21,
+        home_team: 'team1',
+        away_team: 'team3'
+      },
+      {
+        ...baseGame,
+        resultOrGuess: gameResult12,
+        home_team: 'team2',
+        away_team: 'team4'
+      },
+      {
+        ...baseGame,
+        resultOrGuess: gameResult21,
+        home_team: 'team1',
+        away_team: 'team4'
+      },
+      {
+        ...baseGame,
+        resultOrGuess: gameResult12,
+        home_team: 'team2',
+        away_team: 'team3'
+      }
+    ] as GameWithResultOrGuess[],
+    expected: [
+      'team1',
+      'team4',
+      'team3',
+      'team2',
+    ]
+  },
+  {
+    condition: 'incomplete group with some games missing',
+    sortByGamesBetweenTeams: false,
+    games: [
+      {
+        ...baseGame,
+        resultOrGuess: gameResult21,
+        home_team: 'team1',
+        away_team: 'team2'
+      },
+      {
+        ...baseGame,
+        resultOrGuess: gameResult12,
+        home_team: 'team3',
+        away_team: 'team4'
+      },
+      {
+        ...baseGame,
+        resultOrGuess: gameResult21,
+        home_team: 'team1',
+        away_team: 'team3'
+      }
+    ] as GameWithResultOrGuess[],
+    expected: [
+      'team1',
+      'team4',
+      'team2',
+      'team3',
+    ]
+  },
+  {
+    condition: 'tie resolved by goals scored',
+    sortByGamesBetweenTeams: false,
+    games: [
+      {
+        ...baseGame,
+        resultOrGuess: { home_score: 3, away_score: 2 },
+        home_team: 'team1',
+        away_team: 'team2'
+      },
+      {
+        ...baseGame,
+        resultOrGuess: { home_score: 2, away_score: 1 },
+        home_team: 'team3',
+        away_team: 'team4'
+      },
+      {
+        ...baseGame,
+        resultOrGuess: { home_score: 2, away_score: 2 },
+        home_team: 'team1',
+        away_team: 'team3'
+      },
+      {
+        ...baseGame,
+        resultOrGuess: { home_score: 2, away_score: 2 },
+        home_team: 'team2',
+        away_team: 'team4'
+      },
+      {
+        ...baseGame,
+        resultOrGuess: { home_score: 1, away_score: 1 },
+        home_team: 'team1',
+        away_team: 'team4'
+      },
+      {
+        ...baseGame,
+        resultOrGuess: { home_score: 1, away_score: 1 },
+        home_team: 'team2',
+        away_team: 'team3'
+      }
+    ] as GameWithResultOrGuess[],
+    expected: [
+      'team1',
+      'team3',
+      'team2',
+      'team4',
+    ]
+  }
 ]
 
 
@@ -274,4 +496,49 @@ describe('calculateGroupPosition', () => {
       })
     })
   })
+
+  it('should handle empty games array', () => {
+    const result = calculateGroupPosition(teamIds, [], false);
+    expect(result).toHaveLength(4);
+    result.forEach(team => {
+      expect(team.games_played).toBe(0);
+      expect(team.points).toBe(0);
+    });
+  });
+
+  it('should handle games with null results', () => {
+    const gamesWithNullResults = [
+      {
+        ...baseGame,
+        resultOrGuess: null,
+        home_team: 'team1',
+        away_team: 'team2'
+      }
+    ] as GameWithResultOrGuess[];
+    
+    const result = calculateGroupPosition(teamIds, gamesWithNullResults, false);
+    expect(result).toHaveLength(4);
+    result.forEach(team => {
+      expect(team.games_played).toBe(0);
+      expect(team.points).toBe(0);
+    });
+  });
+
+  it('should handle games with undefined results', () => {
+    const gamesWithUndefinedResults = [
+      {
+        ...baseGame,
+        resultOrGuess: undefined,
+        home_team: 'team1',
+        away_team: 'team2'
+      }
+    ] as GameWithResultOrGuess[];
+    
+    const result = calculateGroupPosition(teamIds, gamesWithUndefinedResults, false);
+    expect(result).toHaveLength(4);
+    result.forEach(team => {
+      expect(team.games_played).toBe(0);
+      expect(team.points).toBe(0);
+    });
+  });
 })
