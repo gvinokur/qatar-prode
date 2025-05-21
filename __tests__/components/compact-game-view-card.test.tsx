@@ -68,4 +68,4 @@ describe('CompactGameViewCard', () => {
     fireEvent.click(toggle);
     expect(toggle.textContent).not.toBe(initialText);
   });
-}); 
+}); // test comment
