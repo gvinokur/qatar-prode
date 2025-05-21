@@ -67,7 +67,8 @@
   },
   "lint-staged": {
     "**/__tests__/**/*.{ts,tsx}": [
-      "npm run test"
+      "npm run test",
+      "npm run coverage"
     ],
     "app/**/*.{ts,tsx}": [
       "npm run lint"
