@@ -12,24 +12,11 @@ import {getTeamDescription} from "../utils/playoffs-rule-helper";
 import {useSession} from "next-auth/react";
 import {calculateTeamNamesForPlayoffGame} from "../utils/playoff-teams-calculator";
 
-type GameSections = {
-  section: string
-  games: ExtendedGameData[]
-}
-
-type PlayoffGameGridProps = {
-  isPlayoffs: true
-  gameSections: GameSections[]
-  teamsMap: {[k:string]: Team}
-}
-
-type GroupGameGridProps = {
-  isPlayoffs: false
+type GamesGridProps =  {
+  isPlayoffs: boolean
   games: ExtendedGameData[]
   teamsMap: {[k:string]: Team}
 }
-
-type GamesGridProps =  PlayoffGameGridProps | GroupGameGridProps
 
 const buildGameGuess = (game: Game, userId: string): GameGuessNew => ({
   game_id: game.id,
@@ -44,18 +31,16 @@ const buildGameGuess = (game: Game, userId: string): GameGuessNew => ({
   score: undefined
 })
 
-export default function GamesGrid({ teamsMap, ...gamesOrSectionsA }: GamesGridProps) {
+export default function GamesGrid({ teamsMap, games, isPlayoffs }: GamesGridProps) {
   const groupContext = useContext(GuessesContext)
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState<ExtendedGameData | null>(null);
   const gameGuesses = groupContext.gameGuesses
   const {data} = useSession()
-  let gamesOrSections =
-    gamesOrSectionsA.isPlayoffs ? gamesOrSectionsA as PlayoffGameGridProps : gamesOrSectionsA as GroupGameGridProps
-  const games = gamesOrSections.isPlayoffs ? gamesOrSections.gameSections.flatMap(section => section.games) : gamesOrSections.games
+
 
   useEffect(() => {
-    if(gamesOrSections.isPlayoffs && data?.user) {
+    if(isPlayoffs && data?.user) {
       games.forEach(game => {
         const gameGuess = gameGuesses[game.id] || buildGameGuess(game, data.user.id)
         const result = calculateTeamNamesForPlayoffGame(
@@ -77,7 +62,7 @@ export default function GamesGrid({ teamsMap, ...gamesOrSectionsA }: GamesGridPr
         }
       })
     }
-    }, [gameGuesses, gamesOrSections.isPlayoffs, games, groupContext, data])
+    }, [gameGuesses, isPlayoffs, games, groupContext, data])
 
   const handleEditClick = (gameNumber: number) => {
     console.log('Edit clicked for game number:', gameNumber);
@@ -130,33 +115,13 @@ export default function GamesGrid({ teamsMap, ...gamesOrSectionsA }: GamesGridPr
   return (
     <>
       <Grid container spacing={2}>
-        {!gamesOrSections.isPlayoffs && games
+        {games
           .map(game => (
             <Grid key={game.game_number} size={{xs:12, sm:6 }}>
               <GameView game={game} teamsMap={teamsMap} handleEditClick={handleEditClick}/>
             </Grid>
           ))
         }
-        {gamesOrSections.isPlayoffs && gamesOrSections.gameSections.map(section => (
-          <Grid size={12} key={section.section}>
-            <Chip label={section.section}
-                  sx={{
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    typography: 'h5',
-                    width: '100%',
-                    padding:'24px'
-                  }}/>
-            <Grid container spacing={2} pt={2} pl={1} pr={1} justifyContent={'space-evenly'}>
-              {section.games.map(game => (
-                <Grid key={game.game_number} size={{ xs: 12, sm:6 }}>
-                  <GameView game={game} teamsMap={teamsMap} handleEditClick={handleEditClick}/>
-                </Grid>
-              ))}
-            </Grid>
-          </Grid>
-        ))}
       </Grid>
       <GameResultEditDialog
         isGameGuess={true}
@@ -171,7 +136,7 @@ export default function GamesGrid({ teamsMap, ...gamesOrSectionsA }: GamesGridPr
         initialAwayScore={gameGuess?.away_score}
         initialHomePenaltyWinner={gameGuess?.home_penalty_winner}
         initialAwayPenaltyWinner={gameGuess?.away_penalty_winner}
-        isPlayoffGame={gamesOrSections.isPlayoffs}
+        isPlayoffGame={isPlayoffs}
       />
   </>
   )

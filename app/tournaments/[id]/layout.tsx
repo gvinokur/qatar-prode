@@ -94,9 +94,10 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
 
             </Link>
           </Grid>
-          <Grid size={{ xs:12, md: 9}} pt={2} pb={1} pl={1} pr={1} sx={{
-            backgroundColor: layoutData.tournament?.theme?.primary_color
-          }}>
+          <Grid size={{ xs:12, md: 9}} pt={2} pb={1} pl={1} pr={1}
+            sx={{
+              backgroundColor: layoutData.tournament?.theme?.primary_color
+            }}>
             <GroupSelector
               tournamentId={params.id}
               backgroundColor={layoutData.tournament?.theme?.primary_color}

@@ -1,6 +1,7 @@
 'use client'
 
 import { Tabs, Tab, useTheme } from "@mui/material";
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -33,16 +34,40 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
       scrollButtons="auto"
       allowScrollButtonsMobile
       aria-label="Selector de grupos"
+      slotProps={{
+        indicator: {
+          sx: {
+            backgroundColor: 'transparent',
+          },
+        },
+      }}
       sx={{
         width: '100%',
-        minHeight: 48,
         backgroundColor: backgroundColor || theme.palette.background.paper,
         '.MuiTab-root': {
           minWidth: 90,
           fontWeight: 600,
+          height: '36px',
+          minHeight: '36px',
         },
       }}
     >
+      <Tab
+        icon={<EmojiEventsIcon sx={{ fontSize: 20 }} />}
+        value=""
+        component={Link}
+        href={`/tournaments/${tournamentId}`}
+        sx={{
+          color: textColor || theme.palette.text.primary,
+          '&.Mui-selected': {
+              color: backgroundColor || theme.palette.primary.contrastText,
+              backgroundColor: textColor || theme.palette.primary.main,
+              borderRadius: '4px',
+              borderWidth: '1px',
+              borderStyle: 'solid',
+            },
+        }}
+      />
       {groups.map(({ group_letter, id }) => (
         <Tab
           key={id}
@@ -52,6 +77,13 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
           href={`/tournaments/${tournamentId}/groups/${id}`}
           sx={{
             color: textColor || theme.palette.text.primary,
+            '&.Mui-selected': {
+                color: backgroundColor || theme.palette.primary.contrastText,
+                backgroundColor: textColor || theme.palette.primary.main,
+                borderRadius: '4px',
+                borderWidth: '1px',
+                borderStyle: 'solid',
+              },
           }}
         />
       ))}
@@ -62,6 +94,13 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
         href={`/tournaments/${tournamentId}/playoffs`}
         sx={{
           color: textColor || theme.palette.text.primary,
+          '&.Mui-selected': {
+              color: backgroundColor || theme.palette.primary.contrastText,
+              backgroundColor: textColor || theme.palette.primary.main,
+              borderRadius: '4px',
+              borderWidth: '1px',
+              borderStyle: 'solid',
+            },
         }}
       />
       <Tab
@@ -71,6 +110,13 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
         href={`/tournaments/${tournamentId}/awards`}
         sx={{
           color: textColor || theme.palette.text.primary,
+          '&.Mui-selected': {
+              color: backgroundColor || theme.palette.primary.contrastText,
+              backgroundColor: textColor || theme.palette.primary.main,
+              borderRadius: '4px',
+              borderWidth: '1px',
+              borderStyle: 'solid',
+            },
         }}
       />
     </Tabs>
