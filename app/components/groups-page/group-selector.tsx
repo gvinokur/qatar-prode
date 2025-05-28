@@ -27,6 +27,17 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
     selected = 'individual_awards';
   }
 
+  const tabSx = (backgroundColor: string | undefined, textColor: string | undefined, theme: any) => ({
+    color: textColor || theme.palette.text.primary,
+    '&.Mui-selected': {
+      color: backgroundColor || theme.palette.primary.contrastText,
+      backgroundColor: textColor || theme.palette.primary.main,
+      borderRadius: '4px',
+      borderWidth: '1px',
+      borderStyle: 'solid',
+    },
+  });
+
   return (
     <Tabs
       value={selected}
@@ -40,12 +51,22 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
             backgroundColor: 'transparent',
           },
         },
+        root: {
+          sx: {
+            height: '36px',
+          },
+        },
+        scrollButtons: {
+          sx: {
+            color: textColor || theme.palette.text.primary,
+            fontWeight: 600,
+          },
+        },
       }}
       sx={{
         width: '100%',
         backgroundColor: backgroundColor || theme.palette.background.paper,
         '.MuiTab-root': {
-          minWidth: 90,
           fontWeight: 600,
           height: '36px',
           minHeight: '36px',
@@ -57,16 +78,7 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
         value=""
         component={Link}
         href={`/tournaments/${tournamentId}`}
-        sx={{
-          color: textColor || theme.palette.text.primary,
-          '&.Mui-selected': {
-              color: backgroundColor || theme.palette.primary.contrastText,
-              backgroundColor: textColor || theme.palette.primary.main,
-              borderRadius: '4px',
-              borderWidth: '1px',
-              borderStyle: 'solid',
-            },
-        }}
+        sx={tabSx(backgroundColor, textColor, theme)}
       />
       {groups.map(({ group_letter, id }) => (
         <Tab
@@ -75,16 +87,7 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
           value={id}
           component={Link}
           href={`/tournaments/${tournamentId}/groups/${id}`}
-          sx={{
-            color: textColor || theme.palette.text.primary,
-            '&.Mui-selected': {
-                color: backgroundColor || theme.palette.primary.contrastText,
-                backgroundColor: textColor || theme.palette.primary.main,
-                borderRadius: '4px',
-                borderWidth: '1px',
-                borderStyle: 'solid',
-              },
-          }}
+          sx={tabSx(backgroundColor, textColor, theme)}
         />
       ))}
       <Tab
@@ -92,32 +95,14 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
         value="playoffs"
         component={Link}
         href={`/tournaments/${tournamentId}/playoffs`}
-        sx={{
-          color: textColor || theme.palette.text.primary,
-          '&.Mui-selected': {
-              color: backgroundColor || theme.palette.primary.contrastText,
-              backgroundColor: textColor || theme.palette.primary.main,
-              borderRadius: '4px',
-              borderWidth: '1px',
-              borderStyle: 'solid',
-            },
-        }}
+        sx={tabSx(backgroundColor, textColor, theme)}
       />
       <Tab
         label="PREMIOS"
         value="individual_awards"
         component={Link}
         href={`/tournaments/${tournamentId}/awards`}
-        sx={{
-          color: textColor || theme.palette.text.primary,
-          '&.Mui-selected': {
-              color: backgroundColor || theme.palette.primary.contrastText,
-              backgroundColor: textColor || theme.palette.primary.main,
-              borderRadius: '4px',
-              borderWidth: '1px',
-              borderStyle: 'solid',
-            },
-        }}
+        sx={tabSx(backgroundColor, textColor, theme)}
       />
     </Tabs>
   );

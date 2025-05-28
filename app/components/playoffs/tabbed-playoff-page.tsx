@@ -35,8 +35,20 @@ const TabbedPlayoffsPage: React.FC<TabbedPlayoffsPageProps> = ({ sections, teams
               sx: {
                 backgroundColor: 'transparent',
               },
+              
             },
-            
+            root: {
+              sx: {
+                height: '36px',
+              },
+            },
+            scrollButtons: {
+              sx: {
+                color: 'secondary.contrastText',
+                minHeight: '36px',
+                height: '36px',
+              },
+            },
           }}
           sx={{ mb: 2 }}
         >
@@ -46,6 +58,8 @@ const TabbedPlayoffsPage: React.FC<TabbedPlayoffsPageProps> = ({ sections, teams
               label={section.section} 
               value={idx} 
               sx={{
+                minHeight: '36px',
+                height: '36px',
                 color: 'secondary.contrastText',
                 '&.Mui-selected': {
                   color: 'background.paper',
