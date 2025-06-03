@@ -1,6 +1,6 @@
 import { db } from './database'
 import { createBaseFunctions} from "./base-repository";
-import {ProdeGroupTable, ProdeGroup} from "./tables-definition";
+import {ProdeGroupTable, ProdeGroup, ProdeGroupTournamentBetting, ProdeGroupTournamentBettingNew, ProdeGroupTournamentBettingUpdate, ProdeGroupTournamentBettingPayment, ProdeGroupTournamentBettingPaymentNew, ProdeGroupTournamentBettingPaymentUpdate} from "./tables-definition";
 import {cache} from "react";
 import {User} from "next-auth";
 
@@ -58,4 +58,73 @@ export async function findParticipantsInGroup(groupId: string) {
     .select("participant_id as user_id")
     .where("prode_group_id", "=", groupId)
     .execute()
+}
+
+// Betting config for a group/tournament
+export async function getGroupTournamentBettingConfig(groupId: string, tournamentId: string): Promise<ProdeGroupTournamentBetting | undefined> {
+  return db
+    .selectFrom('prode_group_tournament_betting')
+    .selectAll()
+    .where('group_id', '=', groupId)
+    .where('tournament_id', '=', tournamentId)
+    .executeTakeFirst();
+}
+
+export async function createGroupTournamentBettingConfig(config: ProdeGroupTournamentBettingNew): Promise<ProdeGroupTournamentBetting> {
+  return db
+    .insertInto('prode_group_tournament_betting')
+    .values(config)
+    .returningAll()
+    .executeTakeFirstOrThrow();
+}
+
+export async function updateGroupTournamentBettingConfig(id: string, update: ProdeGroupTournamentBettingUpdate): Promise<ProdeGroupTournamentBetting> {
+  return db
+    .updateTable('prode_group_tournament_betting')
+    .set(update)
+    .where('id', '=', id)
+    .returningAll()
+    .executeTakeFirstOrThrow();
+}
+
+// Payment status for users in a group/tournament
+export async function getGroupTournamentBettingPayments(groupTournamentBettingId: string): Promise<ProdeGroupTournamentBettingPayment[]> {
+  return db
+    .selectFrom('prode_group_tournament_betting_payments')
+    .selectAll()
+    .where('group_tournament_betting_id', '=', groupTournamentBettingId)
+    .execute();
+}
+
+export async function getUserGroupTournamentBettingPayment(groupTournamentBettingId: string, userId: string): Promise<ProdeGroupTournamentBettingPayment | undefined> {
+  return db
+    .selectFrom('prode_group_tournament_betting_payments')
+    .selectAll()
+    .where('group_tournament_betting_id', '=', groupTournamentBettingId)
+    .where('user_id', '=', userId)
+    .executeTakeFirst();
+}
+
+export async function setUserGroupTournamentBettingPayment(
+  groupTournamentBettingId: string,
+  userId: string,
+  hasPaid: boolean
+): Promise<ProdeGroupTournamentBettingPayment> {
+  // Try update, if not exists, insert
+  const existing = await getUserGroupTournamentBettingPayment(groupTournamentBettingId, userId);
+  if (existing) {
+    return db
+      .updateTable('prode_group_tournament_betting_payments')
+      .set({ has_paid: hasPaid })
+      .where('group_tournament_betting_id', '=', groupTournamentBettingId)
+      .where('user_id', '=', userId)
+      .returningAll()
+      .executeTakeFirstOrThrow();
+  } else {
+    return db
+      .insertInto('prode_group_tournament_betting_payments')
+      .values({ group_tournament_betting_id: groupTournamentBettingId, user_id: userId, has_paid: hasPaid })
+      .returningAll()
+      .executeTakeFirstOrThrow();
+  }
 }

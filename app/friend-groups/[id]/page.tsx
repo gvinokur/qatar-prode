@@ -17,6 +17,7 @@ import {TournamentGuess} from "../../db/tables-definition";
 import {UserScore} from "../../definitions";
 import {InviteFriendsDialogButton} from "../../components/friend-groups/invite-friends-dialog-button";
 import {getThemeLogoUrl} from "../../utils/theme-utils";
+import { getGroupTournamentBettingConfigAction, getGroupTournamentBettingPaymentsAction } from '../../actions/group-tournament-betting-actions';
 
 type Props = {
   params: Promise<{
@@ -80,6 +81,19 @@ export default async function FriendsGroup(props : Props){
 
   let logoUrl = getThemeLogoUrl(prodeGroup.theme)
 
+  const members = users.map(u => ({ id: u.id, nombre: u.nickname || u.email }));
+
+  // Fetch betting config and payments for each tournament
+  const bettingData: { [tournamentId: string]: { config: any, payments: any[] } } = {};
+  for (const tournament of tournaments) {
+    const config = await getGroupTournamentBettingConfigAction(prodeGroup.id, tournament.id);
+    let payments: any[] = [];
+    if (config) {
+      payments = await getGroupTournamentBettingPaymentsAction(config.id);
+    }
+    bettingData[tournament.id] = { config, payments };
+  }
+
   return (
     <Box>
       {searchParams.hasOwnProperty('debug') && (
@@ -124,6 +138,10 @@ export default async function FriendsGroup(props : Props){
                 groupName={prodeGroup.name}
                 groupId={prodeGroup.id}/>
             )}
+            groupId={prodeGroup.id}
+            isOwner={isAdmin}
+            members={members}
+            bettingData={bettingData}
           />
         </Grid>
         {prodeGroup.owner_user_id === user.id && (

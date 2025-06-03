@@ -277,3 +277,27 @@ export interface TournamentVenueTable extends Identifiable {
 export type TournamentVenue = Selectable<TournamentVenueTable>;
 export type TournamentVenueNew = Insertable<TournamentVenueTable>
 export type TournamentVenueUpdate = Updateable<TournamentVenueTable>
+
+// Betting configuration for a group/tournament pair
+export interface ProdeGroupTournamentBettingTable extends Identifiable {
+  group_id: string;
+  tournament_id: string;
+  betting_enabled: boolean;
+  betting_amount?: number | null;
+  betting_payout_description?: string | null;
+}
+
+export type ProdeGroupTournamentBetting = Selectable<ProdeGroupTournamentBettingTable>;
+export type ProdeGroupTournamentBettingNew = Insertable<ProdeGroupTournamentBettingTable>;
+export type ProdeGroupTournamentBettingUpdate = Updateable<ProdeGroupTournamentBettingTable>;
+
+// Payment status for each user in a group/tournament bet
+export interface ProdeGroupTournamentBettingPaymentTable extends Identifiable {
+  group_tournament_betting_id: string;
+  user_id: string;
+  has_paid: boolean;
+}
+
+export type ProdeGroupTournamentBettingPayment = Selectable<ProdeGroupTournamentBettingPaymentTable>;
+export type ProdeGroupTournamentBettingPaymentNew = Insertable<ProdeGroupTournamentBettingPaymentTable>;
+export type ProdeGroupTournamentBettingPaymentUpdate = Updateable<ProdeGroupTournamentBettingPaymentTable>;
