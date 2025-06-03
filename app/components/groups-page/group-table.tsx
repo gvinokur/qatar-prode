@@ -18,7 +18,6 @@ import {GuessesContext} from "../context-providers/guesses-context-provider";
 import {ExtendedGameData} from "../../definitions";
 import {Team, TeamStats} from "../../db/tables-definition";
 import {calculateGroupPosition} from "../../utils/group-position-calculator";
-import SaveComponent from "./save-component";
 
 type Props = {
   isPredictions: boolean,

@@ -9,7 +9,6 @@ import {GameGuess, TournamentGuessNew} from "../../../db/tables-definition";
 import {Box, Grid, Chip} from "../../../components/mui-wrappers";
 import {GuessesContextProvider} from "../../../components/context-providers/guesses-context-provider";
 import GameView from "../../../components/game-view";
-import SavePlayoffsComponent from "../../../components/playoffs-page/save-playoffs-components";
 import {calculatePlayoffTeamsFromPositions} from "../../../utils/playoff-teams-calculator";
 import {findTournamentGuessByUserIdTournament} from "../../../db/tournament-guess-repository";
 import {findGroupsInTournament} from "../../../db/tournament-group-repository";
@@ -37,22 +36,22 @@ export default async function PlayoffPage(props: Props) {
   const params = await props.params
   const searchParams = await props.searchParams
   const user = await getLoggedInUser();
+  const isLoggedIn = !!user;
   const completePlayoffData = await getCompletePlayoffData(params.id, false)
-  if(!user) {
-    redirect('/')
+  let userGameGuesses: GameGuess[] = [];
+  let guessedPositionsByGroup = {};
+  if (isLoggedIn) {
+    userGameGuesses = await findGameGuessesByUserId(user.id, params.id)
+    const groups = await findGroupsInTournament(params.id)
+    guessedPositionsByGroup = Object.fromEntries(
+      await Promise.all(
+        groups.map(async (group) => [
+          group.group_letter,
+          await findAllTournamentGroupTeamGuessInGroup(user.id, group.id)
+        ])
+      ))
   }
-  const userGameGuesses = await findGameGuessesByUserId(user.id, params.id)
   const gameGuessesMap = customToMap(userGameGuesses, (gameGuess) => gameGuess.game_id)
-
-  const groups = await findGroupsInTournament(params.id)
-
-  const guessedPositionsByGroup = Object.fromEntries(
-    await Promise.all(
-      groups.map(async (group) => [
-        group.group_letter,
-        await findAllTournamentGroupTeamGuessInGroup(user.id, group.id)
-      ])
-    ))
 
   const playoffTeamsByGuess = calculatePlayoffTeamsFromPositions(
     completePlayoffData.playoffStages[0],
@@ -109,9 +108,9 @@ export default async function PlayoffPage(props: Props) {
         gameSections: sections,
       }}/>)}
 
-      <GuessesContextProvider gameGuesses={gameGuessesMap} autoSave={true}>
+      <GuessesContextProvider gameGuesses={gameGuessesMap} autoSave={isLoggedIn}>
         <ViewTransition name={'group-page'} enter={'group-enter'} exit={'group-exit'}>
-          <TabbedPlayoffsPage sections={sections} teamsMap={completePlayoffData.teamsMap} />
+          <TabbedPlayoffsPage sections={sections} teamsMap={completePlayoffData.teamsMap} isLoggedIn={isLoggedIn} />
         </ViewTransition>
       </GuessesContextProvider>
     </>

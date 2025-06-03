@@ -4,12 +4,11 @@ import {getCompleteGroupData} from "../../../../actions/tournament-actions";
 import {DebugObject} from "../../../../components/debug";
 import GroupSelector from "../../../../components/groups-page/group-selector";
 import {Box, Grid} from "../../../../components/mui-wrappers";
-import {GameGuess} from "../../../../db/tables-definition";
+import {GameGuess, Team, TournamentGroupTeamStatsGuess} from "../../../../db/tables-definition";
 import GameView from "../../../../components/game-view";
 import {ExtendedGameData} from "../../../../definitions";
 import {GuessesContextProvider, GuessesContext} from "../../../../components/context-providers/guesses-context-provider";
 import GroupTable from "../../../../components/groups-page/group-table";
-import SaveComponent from "../../../../components/groups-page/save-component";
 import {findGameGuessesByUserId} from "../../../../db/game-guess-repository";
 import {getLoggedInUser} from "../../../../actions/user-actions";
 import {redirect} from "next/navigation";
@@ -33,19 +32,24 @@ export default async function GroupComponent(props : Props) {
   const searchParams = await props.searchParams
 
   const user = await getLoggedInUser();
-  if(!user) {
-    redirect('/')
-  }
+  const isLoggedIn = !!user;
   const groupId = params.group_id
   const completeGroupData = await getCompleteGroupData(groupId)
-  const userGameGuesses = await findGameGuessesByUserId(user.id, params.id)
-  const qualifiedTeamGuesses = await findGuessedQualifiedTeams(params.id, user.id, params.group_id)
+  let userGameGuesses: GameGuess[] = [];
+  let qualifiedTeamGuesses: Team[] = [];
+  if (isLoggedIn) {
+    userGameGuesses = await findGameGuessesByUserId(user.id, params.id)
+    qualifiedTeamGuesses = await findGuessedQualifiedTeams(params.id, user.id, params.group_id)
+  }
   const qualifiedTeams = await findQualifiedTeams(params.id, params.group_id)
 
   const gameGuesses:{[k: string]: GameGuess} = customToMap(userGameGuesses, (gameGuess) => gameGuess.game_id)
 
   const teamIds = Object.keys(completeGroupData.teamsMap)
-  const groupTeamStatsGuesses = await findAllTournamentGroupTeamGuessInGroup(user.id, params.group_id)
+  let groupTeamStatsGuesses: TournamentGroupTeamStatsGuess[] = [];
+  if (isLoggedIn) {
+    groupTeamStatsGuesses = await findAllTournamentGroupTeamGuessInGroup(user.id, params.group_id)
+  }
   const guessedGroupPositions =
     groupTeamStatsGuesses.length > 0 ?
       groupTeamStatsGuesses.sort((a,b) => (a.position - b.position)) :
@@ -55,7 +59,7 @@ export default async function GroupComponent(props : Props) {
       })),
         completeGroupData.group.sort_by_games_between_teams).map((teamStat, index) => {
         return {
-          user_id: user.id,
+          user_id: user?.id || '',
           tournament_group_id: params.group_id,
           position: index,
           ...teamStat
@@ -75,7 +79,7 @@ export default async function GroupComponent(props : Props) {
         groupGames={Object.values(completeGroupData.gamesMap)}
         guessedPositions={guessedGroupPositions}
         sortByGamesBetweenTeams={completeGroupData.group.sort_by_games_between_teams}
-        autoSave={true}
+        autoSave={isLoggedIn}
       >
         <ViewTransition
           name={'group-page'}
@@ -89,6 +93,7 @@ export default async function GroupComponent(props : Props) {
                 games={Object.values(completeGroupData.gamesMap)
                   .sort((a,b) => a.game_number - b.game_number)}
                 teamsMap={completeGroupData.teamsMap}
+                isLoggedIn={isLoggedIn}
               />
             </Grid>
             <Grid size={12} justifyContent={'center'}>

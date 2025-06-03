@@ -16,6 +16,7 @@ type GamesGridProps =  {
   isPlayoffs: boolean
   games: ExtendedGameData[]
   teamsMap: {[k:string]: Team}
+  isLoggedIn?: boolean
 }
 
 const buildGameGuess = (game: Game, userId: string): GameGuessNew => ({
@@ -31,7 +32,7 @@ const buildGameGuess = (game: Game, userId: string): GameGuessNew => ({
   score: undefined
 })
 
-export default function GamesGrid({ teamsMap, games, isPlayoffs }: GamesGridProps) {
+export default function GamesGrid({ teamsMap, games, isPlayoffs, isLoggedIn = true }: GamesGridProps) {
   const groupContext = useContext(GuessesContext)
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState<ExtendedGameData | null>(null);
@@ -65,7 +66,7 @@ export default function GamesGrid({ teamsMap, games, isPlayoffs }: GamesGridProp
     }, [gameGuesses, isPlayoffs, games, groupContext, data])
 
   const handleEditClick = (gameNumber: number) => {
-    console.log('Edit clicked for game number:', gameNumber);
+    if (!isLoggedIn) return;
     const game = games.find(game => game.game_number === gameNumber);
     if(game) {
       setSelectedGame(game);
@@ -118,26 +119,28 @@ export default function GamesGrid({ teamsMap, games, isPlayoffs }: GamesGridProp
         {games
           .map(game => (
             <Grid key={game.game_number} size={{xs:12, sm:6 }}>
-              <GameView game={game} teamsMap={teamsMap} handleEditClick={handleEditClick}/>
+              <GameView game={game} teamsMap={teamsMap} handleEditClick={handleEditClick} disabled={!isLoggedIn}/>
             </Grid>
           ))
         }
       </Grid>
-      <GameResultEditDialog
-        isGameGuess={true}
-        open={editDialogOpen}
-        onClose={() => setEditDialogOpen(false)}
-        onGameGuessSave={handleGameResultSave}
-        homeTeamName={homeTeamName}
-        awayTeamName={awayTeamName}
-        gameId={selectedGame?.id || ''}
-        gameNumber={selectedGame?.game_number || 0}
-        initialHomeScore={gameGuess?.home_score}
-        initialAwayScore={gameGuess?.away_score}
-        initialHomePenaltyWinner={gameGuess?.home_penalty_winner}
-        initialAwayPenaltyWinner={gameGuess?.away_penalty_winner}
-        isPlayoffGame={isPlayoffs}
-      />
-  </>
+      {isLoggedIn && (
+        <GameResultEditDialog
+          isGameGuess={true}
+          open={editDialogOpen}
+          onClose={() => setEditDialogOpen(false)}
+          onGameGuessSave={handleGameResultSave}
+          homeTeamName={homeTeamName}
+          awayTeamName={awayTeamName}
+          gameId={selectedGame?.id || ''}
+          gameNumber={selectedGame?.game_number || 0}
+          initialHomeScore={gameGuess?.home_score}
+          initialAwayScore={gameGuess?.away_score}
+          initialHomePenaltyWinner={gameGuess?.home_penalty_winner}
+          initialAwayPenaltyWinner={gameGuess?.away_penalty_winner}
+          isPlayoffGame={isPlayoffs}
+        />
+      )}
+    </>
   )
 }

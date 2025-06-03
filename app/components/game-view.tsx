@@ -13,6 +13,7 @@ type GameViewProps = {
   game: ExtendedGameData,
   teamsMap: {[k:string]: Team}
   handleEditClick: (gameNumber: number) => void
+  disabled?: boolean
 }
 
 const buildGameGuess = (game: Game) => ({
@@ -25,7 +26,7 @@ const buildGameGuess = (game: Game) => ({
   away_penalty_winner: false
 })
 
-const GameView = ({game, teamsMap, handleEditClick}: GameViewProps) => {
+const GameView = ({game, teamsMap, handleEditClick, disabled = false}: GameViewProps) => {
   const isPlayoffGame = (!!game.playoffStage);
   const groupContext = useContext(GuessesContext)
   const gameGuesses = groupContext.gameGuesses
@@ -35,7 +36,7 @@ const GameView = ({game, teamsMap, handleEditClick}: GameViewProps) => {
   if(!gameGuess.game_id) gameGuess.game_id = game.id
 
   const ONE_HOUR = 60 * 60 * 1000
-  const editDisabled = (Date.now() + ONE_HOUR > game.game_date.getTime())
+  const editDisabled = (Date.now() + ONE_HOUR > game.game_date.getTime()) || disabled
   const scoreForGame = calculateScoreForGame(game, gameGuess)
   const homeTeam = game.home_team || gameGuess.home_team
   const awayTeam = game.away_team || gameGuess.away_team
