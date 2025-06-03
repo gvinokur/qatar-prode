@@ -8,6 +8,8 @@ import { useState } from "react";
 import { signupUser } from "../../actions/user-actions";
 import { LoginFormData } from "./login-form";
 import {User} from "../../db/tables-definition";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export type SignupFormData = {
   email: string,
@@ -23,6 +25,7 @@ type SignupFormProps = {
 
 export default function SignupForm({ onSuccess }: SignupFormProps) {
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const {
     control,
@@ -58,8 +61,23 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
             message: userOrError
           });
         } else {
-          // Process response here
-          onSuccess(userOrError);
+          // Automatically sign in the user after successful registration
+          const result = await signIn('credentials', {
+            email: signupForm.email,
+            password: signupForm.password,
+            redirect: false
+          });
+
+          if (result?.error) {
+            setError('root', {
+              type: 'Login Error',
+              message: 'Registration successful but automatic login failed. Please try logging in manually.'
+            });
+          } else {
+            // Process response here
+            onSuccess(userOrError);
+            router.refresh();
+          }
         }
       } catch (error: any) {
         setLoading(false);

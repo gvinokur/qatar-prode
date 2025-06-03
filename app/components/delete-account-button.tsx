@@ -15,6 +15,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import {deleteAccount} from "../actions/user-actions";
 import {signOut, useSession} from "next-auth/react";
+import { useRouter } from 'next/navigation';
 
 export default function DeleteAccountButton() {
   const { data: session } = useSession()
@@ -22,6 +23,7 @@ export default function DeleteAccountButton() {
   const [confirmation, setConfirmation] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleOpen = () => {
     setOpen(true);
@@ -51,7 +53,9 @@ export default function DeleteAccountButton() {
         setLoading(false);
       }
 
-      return signOut()
+      await signOut()
+      router.replace('/');
+      router.refresh();
       // If successful, the page will redirect due to signOut
     } catch (err) {
       setError('Ocurrió un error inesperado. Por favor, inténtalo de nuevo.');
