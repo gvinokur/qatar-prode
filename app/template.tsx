@@ -17,17 +17,20 @@ export default async function Template({
     //Solve use case in which the user has just been verified but the session is not updated
     (user.emailVerified || (await findUserById(user.id)).email_verified);
 
+  // Check if email verification is required
+  const requireEmailVerification = process.env.REQUIRE_EMAIL_VERIFICATION === 'true';
+
   return (
     <>
-      {(user && !isVerified) && (
+      {requireEmailVerification && (user && !isVerified) && (
         <VerificationBanner/>
       )}
 
-      {/* Render children normally if user is verified or not logged in */}
-      {(!user || isVerified) ? (
+      {/* Render children normally if verification is not required, user is verified, or not logged in */}
+      {(!requireEmailVerification || !user || isVerified) ? (
         children
       ) : (
-        /* Render a non-actionable overlay if user is not verified */
+        /* Render a non-actionable overlay if user is not verified and verification is required */
         (<Box position="relative">
           {/* Apply a non-interactive overlay */}
           <VerificationOverlay/>
