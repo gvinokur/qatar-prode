@@ -111,17 +111,16 @@ export default async function FriendsGroup(props : Props){
             color={prodeGroup.theme?.secondary_color || ''}
       >
         <Grid>
-          {prodeGroup.name.toLowerCase() === 'welltech' && (
-            <img src={'/welltech-logo.jpeg'} alt={'Grupo Welltech'} height={60} width={150}/>
-          )}
           {logoUrl && (
-            <img src={logoUrl} alt={prodeGroup.name} height={64} width={64} style={{
+            <img src={logoUrl} alt={prodeGroup.name} 
+             style={{
+              maxHeight: '48px',
               borderRadius: '8px'
             }}/>
           )}
         </Grid>
         <Grid>
-          <Typography variant={'h2'} fontWeight={'bold'}>
+          <Typography variant={'h3'} fontWeight={'bold'}>
           {prodeGroup.name}
           </Typography>
         </Grid>
