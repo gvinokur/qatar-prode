@@ -50,10 +50,11 @@ const GroupTournamentBettingAdmin: React.FC<GroupTournamentBettingAdminProps> = 
   const [bettingDescription, setBettingDescription] = useState(config?.betting_payout_description || '');
   const [payments, setPayments] = useState<ProdeGroupTournamentBettingPayment[]>(initialPayments || []);
   const [saving, setSaving] = useState(false);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error', autoHideDuration: number }>({
     open: false,
     message: '',
     severity: 'success',
+    autoHideDuration: 1000
   });
 
   const handleCloseSnackbar = () => {
@@ -72,9 +73,9 @@ const GroupTournamentBettingAdmin: React.FC<GroupTournamentBettingAdminProps> = 
       setBettingEnabled(!!updated.betting_enabled);
       setBettingAmount(updated.betting_amount?.toString() || '');
       setBettingDescription(updated.betting_payout_description || '');
-      setSnackbar({ open: true, message: '¡Configuración guardada!', severity: 'success' });
+      setSnackbar({ open: true, message: '¡Configuración guardada!', severity: 'success', autoHideDuration: 1000 });
     } catch (e: any) {
-      setSnackbar({ open: true, message: e.message || 'Error al guardar la configuración', severity: 'error' });
+      setSnackbar({ open: true, message: e.message || 'Error al guardar la configuración', severity: 'error', autoHideDuration: 6000 });
     }
     setSaving(false);
   };
@@ -108,15 +109,17 @@ const GroupTournamentBettingAdmin: React.FC<GroupTournamentBettingAdminProps> = 
     const payment = payments.find((p) => p.user_id === userId);
     const newPaid = !payment?.has_paid;
     try {
-      await setUserGroupTournamentBettingPaymentAction(config.id, userId, newPaid, groupId);
-      setPayments((prev) =>
-        prev.map((p) =>
-          p.user_id === userId ? { ...p, has_paid: newPaid } : p
-        )
-      );
-      setSnackbar({ open: true, message: '¡Estado de pago actualizado!', severity: 'success' });
+      const newPayment = await setUserGroupTournamentBettingPaymentAction(config.id, userId, newPaid, groupId);
+      const oldPaymentIndex = payments.findIndex((p) => p.user_id === userId);
+      if (oldPaymentIndex === -1) {
+        setPayments([...payments, newPayment]);
+      } else {
+        setPayments(payments.map((p, index) => index === oldPaymentIndex ? newPayment : p));
+      }
+      
+      setSnackbar({ open: true, message: '¡Estado de pago actualizado!', severity: 'success', autoHideDuration: 1000 });
     } catch (e: any) {
-      setSnackbar({ open: true, message: e.message || 'Error al actualizar el estado de pago', severity: 'error' });
+      setSnackbar({ open: true, message: e.message || 'Error al actualizar el estado de pago', severity: 'error', autoHideDuration: 6000 });
     }
     setSaving(false);
   };
@@ -125,12 +128,12 @@ const GroupTournamentBettingAdmin: React.FC<GroupTournamentBettingAdminProps> = 
   if (isOwner) {
     return (
       <Box mt={4}>
-        <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+        <Snackbar open={snackbar.open} autoHideDuration={snackbar.autoHideDuration} onClose={handleCloseSnackbar}>
           <Alert onClose={handleCloseSnackbar} severity={snackbar.severity}>
             {snackbar.message}
           </Alert>
         </Snackbar>
-        <Paper sx={{ p: 3, mb: 4 }}>
+        <Paper sx={{ p: 2, mb: 4 }} elevation={2}>
           <Typography variant="body1">
             {bettingEnabled ? 'Apuesta habilitada' : 'Apuesta deshabilitada'}
             <Button
@@ -167,46 +170,42 @@ const GroupTournamentBettingAdmin: React.FC<GroupTournamentBettingAdminProps> = 
                 sx={{ mb: 2 }}
                 disabled={saving}
               />
+              <Typography variant="h6" mb={2}>
+                Estado de pago
+              </Typography>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Nombre</TableCell>
+                    <TableCell>¿Pagó?</TableCell>
+                    <TableCell>Acciones</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {members.map((member) => {
+                    const payment = payments.find((p) => p.user_id === member.id);
+                    return (
+                      <TableRow key={member.id}>
+                        <TableCell>{member.nombre}</TableCell>
+                        <TableCell>{payment?.has_paid ? '✅' : '❌'}</TableCell>
+                        <TableCell>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={() => handleTogglePaid(member.id)}
+                            disabled={saving}
+                          >
+                            Cambiar
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
             </Box>
           )}
         </Paper>
-        {bettingEnabled && (
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" mb={2}>
-              Miembros del grupo y estado de pago
-            </Typography>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Nombre</TableCell>
-                  <TableCell>¿Pagó?</TableCell>
-                  <TableCell>Acciones</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {members.map((member) => {
-                  const payment = payments.find((p) => p.user_id === member.id);
-                  return (
-                    <TableRow key={member.id}>
-                      <TableCell>{member.nombre}</TableCell>
-                      <TableCell>{payment?.has_paid ? '✅' : '❌'}</TableCell>
-                      <TableCell>
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          onClick={() => handleTogglePaid(member.id)}
-                          disabled={saving}
-                        >
-                          Cambiar
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </Paper>
-        )}
       </Box>
     );
   }
@@ -214,49 +213,20 @@ const GroupTournamentBettingAdmin: React.FC<GroupTournamentBettingAdminProps> = 
   // Non-owner: compact, read-only view
   return (
     <Box mt={2}>
-      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-      <Paper sx={{ p: 2, mb: 2 }}>
+      <Paper elevation={2} sx={{ p: 2, mb: 2 }}>
         <Typography variant="body1">
           <b>{config?.betting_enabled ? 'Apuesta habilitada' : 'Apuesta deshabilitada'}</b><br />
           {config?.betting_enabled && (
             <>
-              <b>Monto:</b> $ {config?.betting_amount ?? '-'}<br />
+              <b>Monto por persona:</b> $ {config?.betting_amount ?? '-'}<br />
+              <b>Monto acumulado:</b> $ {config?.betting_amount ? config?.betting_amount * payments.filter((p) => p.has_paid).length : '-'}<br />
               <b>Descripción:</b> <br />
-              {config?.betting_payout_description ?? '-'}
+              {config?.betting_payout_description ?? '-'}<br />
+              <b>Pagaron: </b> {payments.filter((p) => p.has_paid).map((p) => members.find((m) => m.id === p.user_id)?.nombre).join(', ')}<br />
             </>
           )}
         </Typography>
       </Paper>
-      {config?.betting_enabled && (
-        <Paper sx={{ p: 2 }}>
-          <Typography variant="subtitle1" fontWeight="bold">
-            Estado de pago de los miembros
-          </Typography>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 'bold' }}>Nombre</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>¿Pagó?</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {members.map((member) => {
-                const payment = initialPayments.find((p) => p.user_id === member.id);
-                return (
-                  <TableRow key={member.id}>
-                    <TableCell>{member.nombre}</TableCell>
-                    <TableCell>{payment?.has_paid ? '✅' : '❌'}</TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </Paper>
-      )}
     </Box>
   );
 };

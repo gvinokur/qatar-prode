@@ -54,41 +54,43 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
           </TabList>
           {tournaments.map((tournament, index) => (
             <TabPanel value={tournament.id} key={tournament.id} keepMounted={true}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>P</TableCell>
-                    <TableCell>Nombre</TableCell>
-                    <TableCell>Puntos Totales</TableCell>
-                    <TableCell>Fase de Grupos</TableCell>
-                    {isNotExtraSmallScreen && <TableCell>Clasificados</TableCell>}
-                    <TableCell>Playoffs</TableCell>
-                    {isNotExtraSmallScreen && <TableCell>Posiciones</TableCell>}
-                    {isNotExtraSmallScreen && <TableCell>Premios</TableCell>}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {userScoresByTournament[tournament.id]
-                    .sort((usa, usb) => usb.totalPoints - usa.totalPoints)
-                    .map((userScore, index) => (
-                    <TableRow key={userScore.userId} selected={userScore.userId === loggedInUser}>
-                      <TableCell>{index+1}</TableCell>
-                      <TableCell sx={{
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        maxWidth: '140px'
-                      }}>{users[userScore.userId]?.nickname || users[userScore.userId]?.email}</TableCell>
-                      <TableCell>{userScore.totalPoints}</TableCell>
-                      <TableCell>{userScore.groupStageScore}</TableCell>
-                      {isNotExtraSmallScreen && <TableCell>{userScore.groupStageQualifiersScore}</TableCell>}
-                      <TableCell>{userScore.playoffScore}</TableCell>
-                      {isNotExtraSmallScreen && <TableCell>{userScore.honorRollScore}</TableCell>}
-                      {isNotExtraSmallScreen && <TableCell>{userScore.individualAwardsScore}</TableCell>}
+              <Box sx={{ width: '100%', overflowX: 'auto' }}>
+                <Table sx={{ minWidth: 650 }}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>P</TableCell>
+                      <TableCell>Nombre</TableCell>
+                      <TableCell>Puntos Totales</TableCell>
+                      <TableCell>Fase de Grupos</TableCell>
+                      {isNotExtraSmallScreen && <TableCell>Clasificados</TableCell>}
+                      <TableCell>Playoffs</TableCell>
+                      {isNotExtraSmallScreen && <TableCell>Posiciones</TableCell>}
+                      {isNotExtraSmallScreen && <TableCell>Premios</TableCell>}
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHead>
+                  <TableBody>
+                    {userScoresByTournament[tournament.id]
+                      .sort((usa, usb) => usb.totalPoints - usa.totalPoints)
+                      .map((userScore, index) => (
+                      <TableRow key={userScore.userId} selected={userScore.userId === loggedInUser}>
+                        <TableCell>{index+1}</TableCell>
+                        <TableCell sx={{
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          maxWidth: '140px'
+                        }}>{users[userScore.userId]?.nickname || users[userScore.userId]?.email}</TableCell>
+                        <TableCell>{userScore.totalPoints}</TableCell>
+                        <TableCell>{userScore.groupStageScore}</TableCell>
+                        {isNotExtraSmallScreen && <TableCell>{userScore.groupStageQualifiersScore}</TableCell>}
+                        <TableCell>{userScore.playoffScore}</TableCell>
+                        {isNotExtraSmallScreen && <TableCell>{userScore.honorRollScore}</TableCell>}
+                        {isNotExtraSmallScreen && <TableCell>{userScore.individualAwardsScore}</TableCell>}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Box>
               <GroupTournamentBettingAdmin
                 groupId={groupId}
                 tournamentId={tournament.id}
