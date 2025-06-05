@@ -109,19 +109,35 @@ export default async function FriendsGroup(props : Props){
             pt={1}
             bgcolor={prodeGroup.theme?.primary_color || ''}
             color={prodeGroup.theme?.secondary_color || ''}
+            alignItems="center"
+            justifyContent="center"
+            direction="row"
       >
         <Grid>
           {logoUrl && (
-            <img src={logoUrl} alt={prodeGroup.name} 
-             style={{
-              maxHeight: '48px',
-              borderRadius: '8px'
-            }}/>
+            <Box
+              component="img"
+              src={logoUrl}
+              alt={prodeGroup.name}
+              sx={{
+                maxHeight: { xs: 32, sm: 40, md: 48 },
+                borderRadius: '8px',
+              }}
+            />
           )}
         </Grid>
         <Grid>
-          <Typography variant={'h3'} fontWeight={'bold'}>
-          {prodeGroup.name}
+          <Typography
+            sx={{
+              textAlign: { xs: 'center', sm: 'center', md: 'left' },
+              fontWeight: 'bold',
+              fontSize: { xs: '2rem', sm: '2.2rem', md: '2.8rem' },
+              lineHeight: 1.1
+            }}
+            variant={undefined}
+            component="h1"
+          >
+            {prodeGroup.name}
           </Typography>
         </Grid>
       </Grid>
@@ -152,5 +168,4 @@ export default async function FriendsGroup(props : Props){
       {searchParams.hasOwnProperty('recentlyJoined') && (<JoinMessage />)}
     </Box>
   )
-
 }

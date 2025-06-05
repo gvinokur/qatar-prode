@@ -54,7 +54,7 @@ export default function ProdeGroupThemer({ group }: Props) {
             control={control}
             name={'primary_color'}
             render={({field, fieldState}) => (
-              <MuiColorInput {...field} format="hex" margin='dense' fullWidth autoFocus/>
+              <MuiColorInput {...field} format="hex" margin='dense' fullWidth/>
             )}
           />
           <Controller
