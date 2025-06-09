@@ -12,7 +12,7 @@ import VerificationSentView from "./verification-sent-view";
 import {User} from "../../db/tables-definition";
 
 type LoginOrSignupProps = {
-  handleCloseLoginDialog: () => void;
+  handleCloseLoginDialog: (forceClose?: boolean) => void;
   openLoginDialog: boolean
 }
 
@@ -24,7 +24,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
   const [createdUser, setCreatedUser] = useState<User>();
 
   const closeDialog = () => {
-    handleCloseLoginDialog();
+    handleCloseLoginDialog(!!createdUser);
     setDialogMode('login');
   }
 
@@ -36,7 +36,8 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
 
   // Handle successful login
   const handleLoginSuccess = () => {
-    closeDialog();
+    handleCloseLoginDialog(true);
+    setDialogMode('login');
   };
 
   // Handle successful signup

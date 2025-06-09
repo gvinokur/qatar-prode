@@ -25,16 +25,21 @@ type UserActionProps = {
 
 export default function UserActions({ user }: UserActionProps) {
   const searchParams = useSearchParams()
-  const [openLoginDialog, setOpenLoginDialog] = useState(!!searchParams?.get('openSignin') && !user);
+  const [forceOpen, setForceOpen] = useState(false)
+  const [openLoginDialog, setOpenLoginDialog] = useState(forceOpen);
   const [openNicknameDialog, setOpenNicknameDialog] = useState(false);
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
   const router = useRouter()
 
   useEffect(() => {
-    if (searchParams.get('verified')) {
+    if(!!searchParams?.get('openSignin') && !user) {
+      setForceOpen(true)
       setOpenLoginDialog(true)
     }
-  }, [searchParams]);
+    if (searchParams.get('verified') || forceOpen) {
+      setOpenLoginDialog(true)
+    }
+  }, [searchParams, user]);
 
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElUser(event.currentTarget);
@@ -56,8 +61,10 @@ export default function UserActions({ user }: UserActionProps) {
     setOpenLoginDialog(true);
   };
 
-  const handleCloseLoginDialog = () => {
-    setOpenLoginDialog(false);
+  const handleCloseLoginDialog = (forceClose?: boolean) => {
+    if(!forceOpen || forceClose) {
+      setOpenLoginDialog(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -134,7 +141,10 @@ export default function UserActions({ user }: UserActionProps) {
         open={openNicknameDialog}
         onClose={handleCloseNicknameDialog}
       />
-      <LoginOrSignupDialog openLoginDialog={openLoginDialog} handleCloseLoginDialog={handleCloseLoginDialog}/>
+      <LoginOrSignupDialog 
+        openLoginDialog={openLoginDialog} 
+        handleCloseLoginDialog={handleCloseLoginDialog}
+      />
     </>
   )
 }
