@@ -53,7 +53,9 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
         });
       } else {
         onSuccess();
-        router.push(searchParams?.get('callbackUrl') || '/');
+        if(searchParams?.get('callbackUrl')) {
+          router.push(searchParams.get('callbackUrl') || '/');
+        }
         router.refresh();
       }
     } catch (error: any) {

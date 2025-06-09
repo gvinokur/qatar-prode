@@ -36,7 +36,7 @@ export default function UserActions({ user }: UserActionProps) {
       setForceOpen(true)
       setOpenLoginDialog(true)
     }
-    if (searchParams.get('verified') || forceOpen) {
+    if (searchParams.get('verified')) {
       setOpenLoginDialog(true)
     }
   }, [searchParams, user]);
@@ -62,7 +62,7 @@ export default function UserActions({ user }: UserActionProps) {
   };
 
   const handleCloseLoginDialog = (forceClose?: boolean) => {
-    if(!forceOpen || forceClose) {
+    if(!forceOpen || forceClose || user) {
       setOpenLoginDialog(false);
     }
   };
