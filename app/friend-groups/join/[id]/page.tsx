@@ -5,7 +5,7 @@ import {Box, Alert, Snackbar, Typography} from "../../../components/mui-wrappers
 import {redirect} from "next/navigation";
 import {ProdeGroup} from "../../../db/tables-definition";
 import { getLoggedInUser } from "../../../actions/user-actions";
-
+import { findProdeGroupById, findParticipantsInGroup } from "../../../db/prode-group-repository";
 
 type Props = {
   params: Promise<{
@@ -18,7 +18,6 @@ type Props = {
 export default async function JoinGroup(props : Props){
   const params = await props.params
   const searchParams = await props.searchParams
-  let group: ProdeGroup | undefined
   const user = await getLoggedInUser()
   
   if(!user) {
@@ -39,14 +38,33 @@ export default async function JoinGroup(props : Props){
       )
     }
   }
-  try {
-    group = await joinGroup(params.id);
-  } catch (e) {
-    console.log(e)
+
+  // Check if user is already a participant
+  const targetGroup = await findProdeGroupById(params.id)
+  if (!targetGroup) {
+    return (
+      <Box>
+        <Alert variant="filled" severity="error">
+          El grupo al que te estas tratando de unir no existe u ocurrió un error, por favor chequea de vuelta con el administrador.
+        </Alert>
+      </Box>
+    )
   }
 
-  if(group) {
-    redirect(`/friend-groups/${group.id}?recentlyJoined`)
+  const participants = await findParticipantsInGroup(targetGroup.id)
+  const isAlreadyParticipant = participants.some((p: { user_id: string }) => p.user_id === user.id)
+  
+  if (isAlreadyParticipant) {
+    redirect(`/friend-groups/${targetGroup.id}`)
+  }
+
+  try {
+    const joinedGroup = await joinGroup(params.id);
+    if(joinedGroup) {
+      redirect(`/friend-groups/${joinedGroup.id}?recentlyJoined`)
+    }
+  } catch (e) {
+    console.log(e)
   }
 
   return (
@@ -56,5 +74,4 @@ export default async function JoinGroup(props : Props){
       </Alert>
     </Box>
   )
-
 }
