@@ -8,7 +8,8 @@ import {
   findProdeGroupById,
   findProdeGroupsByOwner,
   findProdeGroupsByParticipant,
-  updateProdeGroup
+  updateProdeGroup,
+  deleteParticipantFromGroup
 } from "../db/prode-group-repository";
 import {getLoggedInUser} from "./user-actions";
 import {z} from "zod";
@@ -132,4 +133,20 @@ export async function updateTheme(groupId: string, formData: any) {
       s3_logo_key: imageKey
     })
   })
+}
+
+export async function leaveGroupAction(groupId: string) {
+  const user = await getLoggedInUser();
+  if (!user) {
+    throw 'No puedes dejar el grupo si no has iniciado sesión.';
+  }
+  const group = await findProdeGroupById(groupId);
+  if (!group) {
+    throw 'El grupo no existe.';
+  }
+  if (group.owner_user_id === user.id) {
+    throw 'El dueño del grupo no puede dejar el grupo.';
+  }
+  await deleteParticipantFromGroup(groupId, user.id);
+  return { success: true };
 }

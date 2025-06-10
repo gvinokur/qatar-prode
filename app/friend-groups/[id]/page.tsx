@@ -18,6 +18,7 @@ import {UserScore} from "../../definitions";
 import {InviteFriendsDialogButton} from "../../components/friend-groups/invite-friends-dialog-button";
 import {getThemeLogoUrl} from "../../utils/theme-utils";
 import { getGroupTournamentBettingConfigAction, getGroupTournamentBettingPaymentsAction } from '../../actions/group-tournament-betting-actions';
+import LeaveGroupButton from '../../components/friend-groups/leave-group-button';
 
 type Props = {
   params: Promise<{
@@ -45,6 +46,7 @@ export default async function FriendsGroup(props : Props){
   const users = await findUsersByIds(allParticipants)
   const usersMap = toMap(users)
   const isAdmin = prodeGroup.owner_user_id === user.id
+  const isParticipant = participants.some((p: { user_id: string }) => p.user_id === user.id);
 
   //TODO: Calculate scores for users, but not yet, because all is zero!! :D
   const userScoresByTournament =
@@ -148,10 +150,13 @@ export default async function FriendsGroup(props : Props){
             userScoresByTournament={userScoresByTournament}
             loggedInUser={user.id}
             tournaments={tournaments}
-            action={isAdmin && (
+            action={isAdmin ? (
               <InviteFriendsDialogButton
                 groupName={prodeGroup.name}
                 groupId={prodeGroup.id}/>
+            ) : (
+              <LeaveGroupButton groupId={prodeGroup.id} />
+
             )}
             groupId={prodeGroup.id}
             isOwner={isAdmin}

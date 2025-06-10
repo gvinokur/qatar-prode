@@ -60,6 +60,14 @@ export async function findParticipantsInGroup(groupId: string) {
     .execute()
 }
 
+export async function deleteParticipantFromGroup(groupId: string, userId: string) {
+  return db
+    .deleteFrom('prode_group_participants')
+    .where('prode_group_participants.prode_group_id', '=', groupId)
+    .where('prode_group_participants.participant_id', '=', userId)
+    .execute();
+}
+
 // Betting config for a group/tournament
 export async function getGroupTournamentBettingConfig(groupId: string, tournamentId: string): Promise<ProdeGroupTournamentBetting | undefined> {
   return db
