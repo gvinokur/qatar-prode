@@ -125,6 +125,7 @@ export async function updateTheme(groupId: string, formData: any) {
 
 
   return updateProdeGroup(groupId, {
+    ...(data.nombre ? { name: data.nombre } : {}),
     theme: JSON.stringify({
       primary_color: data.primary_color,
       secondary_color: data.secondary_color,

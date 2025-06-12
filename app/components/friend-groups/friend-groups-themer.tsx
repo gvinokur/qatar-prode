@@ -17,6 +17,7 @@ type Props = {
 }
 
 type FormData = {
+  nombre: string;
   file?: File
   primary_color: string
   secondary_color: string
@@ -28,6 +29,7 @@ export default function ProdeGroupThemer({ group }: Props) {
   const { handleSubmit, control } =
     useForm<FormData>({
       defaultValues: {
+        nombre: group.name,
         primary_color: group.theme?.primary_color || '',
         secondary_color: group.theme?.secondary_color || '',
       }
@@ -35,6 +37,7 @@ export default function ProdeGroupThemer({ group }: Props) {
 
   const onUpdateTheme = async (form: FormData) => {
     const formData = new FormData()
+    formData.append('nombre', form.nombre)
     formData.append('primary_color', form.primary_color)
     formData.append('secondary_color', form.secondary_color)
     form.file && formData.append('logo', form.file)
@@ -49,7 +52,20 @@ export default function ProdeGroupThemer({ group }: Props) {
       <CardHeader title={'Customiza el look de tu grupo'}/>
       <form onSubmit={handleSubmit(onUpdateTheme)}>
         <CardContent>
-
+          <Controller
+            control={control}
+            name={'nombre'}
+            render={({ field, fieldState }) => (
+              <TextField
+                {...field}
+                label="Nombre del grupo"
+                margin="dense"
+                fullWidth
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
+              />
+            )}
+          />
           <Controller
             control={control}
             name={'primary_color'}
@@ -77,15 +93,13 @@ export default function ProdeGroupThemer({ group }: Props) {
                            }}/>
             )}
           />
-
         </CardContent>
         <CardActions sx={{
           direction: 'rtl'
         }}>
-          <Button variant={'contained'} loading={loading} type={'submit'}>Guardar Tema</Button>
+          <Button variant={'contained'} loading={loading} type={'submit'}>Guardar</Button>
         </CardActions>
       </form>
-
-</Card>
-)
+    </Card>
+  )
 }
