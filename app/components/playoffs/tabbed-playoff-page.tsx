@@ -12,9 +12,10 @@ export interface TabbedPlayoffsPageProps {
   sections: Section[];
   teamsMap: Record<string, any>;
   isLoggedIn?: boolean;
+  isAwardsPredictionLocked?: boolean;
 }
 
-const TabbedPlayoffsPage: React.FC<TabbedPlayoffsPageProps> = ({ sections, teamsMap, isLoggedIn = true }) => {
+const TabbedPlayoffsPage: React.FC<TabbedPlayoffsPageProps> = ({ sections, teamsMap, isLoggedIn = true, isAwardsPredictionLocked = false }) => {
   const [selectedTab, setSelectedTab] = React.useState(0);
   const theme = useTheme()
   const isSmallScreen = useMediaQuery(theme.breakpoints.up('sm'));

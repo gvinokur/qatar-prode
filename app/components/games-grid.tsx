@@ -11,12 +11,16 @@ import GameResultEditDialog from "./game-result-edit-dialog";
 import {getTeamDescription} from "../utils/playoffs-rule-helper";
 import {useSession} from "next-auth/react";
 import {calculateTeamNamesForPlayoffGame} from "../utils/playoff-teams-calculator";
+import { getGuessLoser, getGuessWinner } from "../utils/score-utils";
+import { updateTournamentGuess } from "../db/tournament-guess-repository";
+import { updateOrCreateTournamentGuess } from "../actions/guesses-actions";
 
 type GamesGridProps =  {
   isPlayoffs: boolean
   games: ExtendedGameData[]
   teamsMap: {[k:string]: Team}
   isLoggedIn?: boolean
+  isAwardsPredictionLocked?: boolean
 }
 
 const buildGameGuess = (game: Game, userId: string): GameGuessNew => ({
@@ -32,7 +36,7 @@ const buildGameGuess = (game: Game, userId: string): GameGuessNew => ({
   score: undefined
 })
 
-export default function GamesGrid({ teamsMap, games, isPlayoffs, isLoggedIn = true }: GamesGridProps) {
+export default function GamesGrid({ teamsMap, games, isPlayoffs, isLoggedIn = true, isAwardsPredictionLocked = false }: GamesGridProps) {
   const groupContext = useContext(GuessesContext)
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState<ExtendedGameData | null>(null);
@@ -94,6 +98,29 @@ export default function GamesGrid({ teamsMap, games, isPlayoffs, isLoggedIn = tr
     await groupContext.updateGameGuess(
       gameId,
       updatedGameGuess);
+
+    if(selectedGame.playoffStage?.is_final || selectedGame.playoffStage?.is_third_place) {
+      if(!isAwardsPredictionLocked) {
+        if(updatedGameGuess?.home_team && updatedGameGuess?.away_team) {
+          const winner_team_id = getGuessWinner(updatedGameGuess, updatedGameGuess.home_team, updatedGameGuess.away_team)
+          const loser_team_id = getGuessLoser(updatedGameGuess, updatedGameGuess.home_team, updatedGameGuess.away_team)
+          if (selectedGame.playoffStage.is_final) {
+            await updateOrCreateTournamentGuess({
+              user_id: data?.user?.id || '',
+              tournament_id: selectedGame.tournament_id,
+              champion_team_id: winner_team_id,
+              runner_up_team_id: loser_team_id,
+            })
+          } else if (selectedGame.playoffStage.is_third_place) {
+            await updateOrCreateTournamentGuess({
+              user_id: data?.user?.id || '',
+              tournament_id: selectedGame.tournament_id,
+              third_place_team_id: loser_team_id,
+            })
+          }
+        }
+      }
+    }
   };
 
   const getTeamNames = () => {

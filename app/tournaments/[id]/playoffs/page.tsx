@@ -58,6 +58,7 @@ export default async function PlayoffPage(props: Props) {
     completePlayoffData.gamesMap,
     guessedPositionsByGroup)
 
+
   Object.keys(playoffTeamsByGuess).forEach(game_id => {
     gameGuessesMap[game_id] = {
       ...gameGuessesMap[game_id],
@@ -96,6 +97,11 @@ export default async function PlayoffPage(props: Props) {
       }
     ]
 
+    // Get tournament start time to check if predictions are still allowed
+  const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
+  const currentTime = new Date()
+  const isAwardsPredictionLocked = (currentTime.getTime() - completePlayoffData.tournamentStartDate.getTime()) >= FIVE_DAYS_MS;
+
   return (
     <>
       {searchParams.hasOwnProperty('debug') && (<DebugObject object={{
@@ -110,7 +116,12 @@ export default async function PlayoffPage(props: Props) {
 
       <GuessesContextProvider gameGuesses={gameGuessesMap} autoSave={isLoggedIn}>
         <ViewTransition name={'group-page'} enter={'group-enter'} exit={'group-exit'}>
-          <TabbedPlayoffsPage sections={sections} teamsMap={completePlayoffData.teamsMap} isLoggedIn={isLoggedIn} />
+          <TabbedPlayoffsPage 
+            sections={sections} 
+            teamsMap={completePlayoffData.teamsMap} 
+            isLoggedIn={isLoggedIn} 
+            isAwardsPredictionLocked={isAwardsPredictionLocked}
+          />
         </ViewTransition>
       </GuessesContextProvider>
     </>
