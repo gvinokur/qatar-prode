@@ -3,7 +3,6 @@
 import {joinGroup} from "../../../actions/prode-group-actions";
 import {Box, Alert, Snackbar, Typography} from "../../../components/mui-wrappers";
 import {redirect} from "next/navigation";
-import {ProdeGroup} from "../../../db/tables-definition";
 import { getLoggedInUser } from "../../../actions/user-actions";
 import { findProdeGroupById, findParticipantsInGroup } from "../../../db/prode-group-repository";
 
@@ -54,17 +53,18 @@ export default async function JoinGroup(props : Props){
   const participants = await findParticipantsInGroup(targetGroup.id)
   const isAlreadyParticipant = participants.some((p: { user_id: string }) => p.user_id === user.id)
   
-  if (isAlreadyParticipant) {
+  if (isAlreadyParticipant || targetGroup.owner_user_id === user.id) {
     redirect(`/friend-groups/${targetGroup.id}`)
   }
-
+  let joinedGroup
   try {
-    const joinedGroup = await joinGroup(params.id);
-    if(joinedGroup) {
-      redirect(`/friend-groups/${joinedGroup.id}?recentlyJoined`)
-    }
+    joinedGroup = await joinGroup(params.id);
   } catch (e) {
     console.log(e)
+  }
+
+  if(joinedGroup) {
+    redirect(`/friend-groups/${joinedGroup.id}?recentlyJoined`)
   }
 
   return (
