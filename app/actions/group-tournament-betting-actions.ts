@@ -8,7 +8,8 @@ import {
   getGroupTournamentBettingPayments,
   setUserGroupTournamentBettingPayment,
   getUserGroupTournamentBettingPayment,
-  findProdeGroupById
+  findProdeGroupById,
+  findParticipantsInGroup
 } from '../db/prode-group-repository';
 import { ProdeGroupTournamentBettingNew, ProdeGroupTournamentBettingUpdate } from '../db/tables-definition';
 
@@ -22,7 +23,11 @@ export async function setGroupTournamentBettingConfigAction(groupId: string, tou
   const user = await getLoggedInUser();
   if (!user) throw new Error('Not authenticated');
   const group = await findProdeGroupById(groupId);
-  if (!group || group.owner_user_id !== user.id) throw new Error('Not authorized: Only group owner can modify betting config');
+  const groupParticipants = await findParticipantsInGroup(groupId);
+  const isAdmin = groupParticipants.find(p => p.user_id === user.id)?.is_admin;
+  if (!group || 
+    !(group.owner_user_id === user.id || isAdmin))
+    throw new Error('Not authorized: Only group owner or admin can modify betting config');
   let existing = await getGroupTournamentBettingConfig(groupId, tournamentId);
   if (existing) {
     return updateGroupTournamentBettingConfig(existing.id, config as ProdeGroupTournamentBettingUpdate);
@@ -41,7 +46,11 @@ export async function setUserGroupTournamentBettingPaymentAction(groupTournament
   const user = await getLoggedInUser();
   if (!user) throw new Error('Not authenticated');
   const group = await findProdeGroupById(groupId);
-  if (!group || group.owner_user_id !== user.id) throw new Error('Not authorized: Only group owner can modify payment status');
+  const groupParticipants = await findParticipantsInGroup(groupId);
+  const isAdmin = groupParticipants.find(p => p.user_id === user.id)?.is_admin;
+  if (!group || 
+    !(group.owner_user_id === user.id || isAdmin))
+    throw new Error('Not authorized: Only group owner or admin can modify betting config');
   return setUserGroupTournamentBettingPayment(groupTournamentBettingId, userId, hasPaid);
 }
 

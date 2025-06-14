@@ -28,15 +28,15 @@ export const findProdeGroupsByParticipant = cache(async function (userId: string
     .execute()
 })
 
-export async function addParticipantToGroup(group: ProdeGroup, user: User) {
+export async function addParticipantToGroup(group: ProdeGroup, user: User, isAdmin: boolean = false) {
   return db.insertInto('prode_group_participants')
     .values({
       prode_group_id: group.id,
-      participant_id: user.id
+      participant_id: user.id,
+      is_admin: isAdmin
     })
     .returningAll()
     .execute()
-
 }
 
 export async function deleteAllParticipantsFromGroup(groupId: string) {
@@ -55,7 +55,7 @@ export async function deleteParticipantFromAllGroups(userId: string) {
 
 export async function findParticipantsInGroup(groupId: string) {
   return db.selectFrom('prode_group_participants')
-    .select("participant_id as user_id")
+    .select(["participant_id as user_id", "is_admin"])
     .where("prode_group_id", "=", groupId)
     .execute()
 }
@@ -65,6 +65,14 @@ export async function deleteParticipantFromGroup(groupId: string, userId: string
     .deleteFrom('prode_group_participants')
     .where('prode_group_participants.prode_group_id', '=', groupId)
     .where('prode_group_participants.participant_id', '=', userId)
+    .execute();
+}
+
+export async function updateParticipantAdminStatus(groupId: string, userId: string, isAdmin: boolean) {
+  return db.updateTable('prode_group_participants')
+    .set({ is_admin: isAdmin })
+    .where('prode_group_id', '=', groupId)
+    .where('participant_id', '=', userId)
     .execute();
 }
 

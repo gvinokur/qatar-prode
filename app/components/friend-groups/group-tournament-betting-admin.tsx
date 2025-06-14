@@ -21,7 +21,7 @@ import {
   setUserGroupTournamentBettingPaymentAction
 } from '../../actions/group-tournament-betting-actions';
 
-// Props: groupId, tournamentId, currentUserId, isOwner, members (array of { id, nombre })
+// Props: groupId, tournamentId, currentUserId, isAdmin, members (array of { id, nombre })
 interface Member {
   id: string;
   nombre: string;
@@ -31,7 +31,7 @@ interface GroupTournamentBettingAdminProps {
   groupId: string;
   tournamentId: string;
   currentUserId: string;
-  isOwner: boolean;
+  isAdmin: boolean;
   members: Member[];
   config: ProdeGroupTournamentBetting | null;
   payments: ProdeGroupTournamentBettingPayment[];
@@ -40,7 +40,7 @@ interface GroupTournamentBettingAdminProps {
 const GroupTournamentBettingAdmin: React.FC<GroupTournamentBettingAdminProps> = ({
   groupId,
   tournamentId,
-  isOwner,
+  isAdmin,
   members,
   config,
   payments: initialPayments,
@@ -125,7 +125,7 @@ const GroupTournamentBettingAdmin: React.FC<GroupTournamentBettingAdminProps> = 
   };
 
   // Owner view: editable config, only show rest if betting is enabled
-  if (isOwner) {
+  if (isAdmin) {
     return (
       <Box mt={4}>
         <Snackbar open={snackbar.open} autoHideDuration={snackbar.autoHideDuration} onClose={handleCloseSnackbar}>

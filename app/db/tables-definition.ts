@@ -170,8 +170,8 @@ export type ProdeGroupUpdate = Updateable<ProdeGroupTable>
 export interface ProdeGroupParticipantTable {
   prode_group_id: string
   participant_id: string
+  is_admin?: boolean
 }
-
 
 export interface GameResultTable {
   game_id: string

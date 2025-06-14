@@ -9,7 +9,8 @@ import {
   findProdeGroupsByOwner,
   findProdeGroupsByParticipant,
   updateProdeGroup,
-  deleteParticipantFromGroup
+  deleteParticipantFromGroup,
+  updateParticipantAdminStatus
 } from "../db/prode-group-repository";
 import {getLoggedInUser} from "./user-actions";
 import {z} from "zod";
@@ -56,14 +57,32 @@ export async function deleteGroup(groupId: string) {
   }
 }
 
-export async function joinGroup(groupId: string) {
+export async function promoteParticipantToAdmin(groupId: string, userId: string) {
+  const user = await getLoggedInUser();
+  if (!user) throw 'Should not call this action from a logged out page';
+  // Only owner or current admin can promote
+  const group = await findProdeGroupById(groupId);
+  if (user.id !== group.owner_user_id) throw 'Only owner can promote admins';
+  await updateParticipantAdminStatus(groupId, userId, true);
+}
+
+export async function demoteParticipantFromAdmin(groupId: string, userId: string) {
+  const user = await getLoggedInUser();
+  if (!user) throw 'Should not call this action from a logged out page';
+  // Only owner or current admin can demote
+  const group = await findProdeGroupById(groupId);
+  if (user.id !== group.owner_user_id) throw 'Only owner can demote admins';
+  await updateParticipantAdminStatus(groupId, userId, false);
+}
+
+export async function joinGroup(groupId: string, isAdmin: boolean = false) {
   const user = await getLoggedInUser();
   if(!user) {
     throw 'Should not call this action from a logged out page'
   }
   const group = await findProdeGroupById(groupId)
 
-  await addParticipantToGroup(group, user)
+  await addParticipantToGroup(group, user, isAdmin)
 
   return group
 }

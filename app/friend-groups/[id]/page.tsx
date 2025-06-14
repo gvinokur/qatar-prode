@@ -45,9 +45,6 @@ export default async function FriendsGroup(props : Props){
 
   const users = await findUsersByIds(allParticipants)
   const usersMap = toMap(users)
-  const isAdmin = prodeGroup.owner_user_id === user.id
-  const isParticipant = participants.some((p: { user_id: string }) => p.user_id === user.id);
-
   //TODO: Calculate scores for users, but not yet, because all is zero!! :D
   const userScoresByTournament =
     Object.fromEntries(
@@ -84,7 +81,7 @@ export default async function FriendsGroup(props : Props){
 
   let logoUrl = getThemeLogoUrl(prodeGroup.theme)
 
-  const members = users.map(u => ({ id: u.id, nombre: u.nickname || u.email }));
+  const members = users.map(u => ({ id: u.id, nombre: u.nickname || u.email, is_admin: participants.find((p: any) => p.user_id === u.id)?.is_admin || false }));
 
   // Fetch betting config and payments for each tournament
   const bettingData: { [tournamentId: string]: { config: any, payments: any[] } } = {};
@@ -151,7 +148,7 @@ export default async function FriendsGroup(props : Props){
             userScoresByTournament={userScoresByTournament}
             loggedInUser={user.id}
             tournaments={tournaments}
-            action={isAdmin ? (
+            action={prodeGroup.owner_user_id === user.id ? (
               <InviteFriendsDialogButton
                 groupName={prodeGroup.name}
                 groupId={prodeGroup.id}/>
@@ -160,12 +157,12 @@ export default async function FriendsGroup(props : Props){
 
             )}
             groupId={prodeGroup.id}
-            isOwner={isAdmin}
+            ownerId={prodeGroup.owner_user_id}
             members={members}
             bettingData={bettingData}
           />
         </Grid>
-        {prodeGroup.owner_user_id === user.id && (
+        {(prodeGroup.owner_user_id === user.id || members.find(m => m.id === user.id)?.is_admin) && (
           <Grid size={{ xs:12, md : 4 }}>
            <ProdeGroupThemer group={prodeGroup}/>
           </Grid>
