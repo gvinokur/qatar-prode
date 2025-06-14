@@ -25,6 +25,7 @@ import MuiAlert from '@mui/material/Alert';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import PersonIcon from '@mui/icons-material/Person';
 import Tooltip from '@mui/material/Tooltip';
+import NotificationDialog from './notification-dialog';
 
 type Props = {
   users: {[k:string]: User},
@@ -44,6 +45,8 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
   const [loadingUserId, setLoadingUserId] = useState<string | null>(null);
   const [snackbar, setSnackbar] = useState<{open: boolean, message: string, severity: 'success' | 'error'}>({open: false, message: '', severity: 'success'});
   const [membersState, setMembersState] = useState(members);
+  const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
+  const isAdmin = ownerId === loggedInUser || !!members.find(m => m.id === loggedInUser && m.is_admin);
 
   const handlePromoteAdmin = async (groupId: string, userId: string) => {
     setLoadingUserId(userId);
@@ -75,7 +78,8 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
     <Card>
       <CardHeader
         title='Tabla de Posiciones'
-        action={action}/>
+        action={action}
+      />
       <CardContent>
         <TabContext value={selectedTab || tournaments[0].id}>
           <TabList
@@ -172,6 +176,13 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
                   </TableBody>
                 </Table>
               </Box>
+              {isAdmin && (
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 2 }}>
+                  <Button variant="contained" color="primary" onClick={() => setNotificationDialogOpen(true)}>
+                    Enviar Notificación
+                  </Button>
+                </Box>
+              )}
               <GroupTournamentBettingAdmin
                 groupId={groupId}
                 tournamentId={tournament.id}
@@ -194,6 +205,13 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
           </MuiAlert>
         </Snackbar>
       </CardContent>
+      <NotificationDialog
+        open={notificationDialogOpen}
+        onClose={() => setNotificationDialogOpen(false)}
+        groupId={groupId}
+        tournamentId={tournaments[selectedTab]?.id}
+        senderId={loggedInUser}
+      />
     </Card>
   )
 }

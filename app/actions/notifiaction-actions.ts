@@ -9,10 +9,12 @@ import {getLoggedInUser} from "./user-actions";
 import {
   addNotificationSubscription,
   findUserById,
+  findUsersByIds,
   findUsersWithNotificationSubscriptions,
   removeNotificationSubscription
 } from "../db/users-repository";
 import {User} from "../db/tables-definition";
+import { findParticipantsInGroup, findProdeGroupById } from "../db/prode-group-repository";
 
 setVapidDetails(
   'mailto:la-maquina@gmail.com',
@@ -45,7 +47,7 @@ export async function sendNotification(
     title: string,
     message: string,
     url: string,
-    userId: string | null,
+    userIds: string | string [] | null,
     sendToAllUsers = false
   ) {
 
@@ -53,8 +55,10 @@ export async function sendNotification(
 
   if(sendToAllUsers) {
     users = await findUsersWithNotificationSubscriptions()
-  } else if (userId) {
-    users = [await findUserById(userId)]
+  } else if (typeof userIds === 'string') {
+    users = [await findUserById(userIds)]
+  } else if (Array.isArray(userIds)) {
+    users = await findUsersByIds(userIds)
   }
   if (!users) {
     throw new Error('Users not found')
@@ -111,4 +115,36 @@ async function sendToUser(user: User, title: string, message: string, url: strin
     console.error('Error sending push notification:', error)
     return {success: false, error: 'Failed to send notification'}
   }
+}
+
+/**
+ * Send a notification from a group admin to all group participants (except sender).
+ * targetPage: 'tournament' | 'friends-group'
+ */
+export async function sendGroupNotification({ groupId, tournamentId, targetPage, title, message, senderId }: {
+  groupId: string,
+  tournamentId: string,
+  targetPage: 'tournament' | 'friends-group',
+  title: string,
+  message: string,
+  senderId: string
+}) {
+  // Find all participants in the group
+  const participants = await findParticipantsInGroup(groupId);
+  const group = await findProdeGroupById(groupId);
+  const recipientIds: string[] = [
+    group.owner_user_id,
+    ...participants.map((p) => p.user_id)
+  ].filter((id) => id !== senderId);
+  
+  // Send notification to each recipient
+  const url = targetPage === 'friends-group' ? `${process.env.NEXT_PUBLIC_APP_URL}/friend-groups/${groupId}` : 
+    `${process.env.NEXT_PUBLIC_APP_URL}/tournaments/${tournamentId}`
+  await sendNotification(
+    title,
+    message,
+    url,
+    recipientIds,
+    false
+  );
 }
