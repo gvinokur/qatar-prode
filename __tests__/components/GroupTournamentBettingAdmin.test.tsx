@@ -17,7 +17,7 @@ describe('GroupTournamentBettingAdmin', () => {
     groupId: 'group-1',
     tournamentId: 'tournament-1',
     currentUserId: 'user-1',
-    isOwner: true,
+    isAdmin: true,
     members: [
       { id: 'user-1', nombre: 'User One' },
       { id: 'user-2', nombre: 'User Two' },
@@ -202,7 +202,7 @@ describe('GroupTournamentBettingAdmin', () => {
   describe('Non-Owner View', () => {
     const nonOwnerProps = {
       ...mockProps,
-      isOwner: false,
+      isAdmin: false,
     };
 
     it('renders read-only view', () => {
