@@ -69,12 +69,13 @@ export default async function FriendsGroup(props : Props){
               playoffScore: gameStatisticsByUserIdMap[user.id]?.playoff_score || 0,
               honorRollScore: tournamentGuessesByUserIdMap[user.id]?.honor_roll_score || 0,
               individualAwardsScore: tournamentGuessesByUserIdMap[user.id]?.individual_awards_score || 0,
-
+              groupPositionScore: tournamentGuessesByUserIdMap[user.id]?.group_position_score || 0,
               totalPoints: (
                 (gameStatisticsByUserIdMap[user.id]?.total_score || 0) +
                 (tournamentGuessesByUserIdMap[user.id]?.qualified_teams_score || 0) +
                 (tournamentGuessesByUserIdMap[user.id]?.honor_roll_score || 0) +
-                (tournamentGuessesByUserIdMap[user.id]?.individual_awards_score || 0)
+                (tournamentGuessesByUserIdMap[user.id]?.individual_awards_score || 0) +
+                (tournamentGuessesByUserIdMap[user.id]?.group_position_score || 0)
               )
             }) as UserScore) )
           ];

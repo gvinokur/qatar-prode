@@ -20,7 +20,7 @@ import {
   createTournamentGroupTeam,
   deleteAllGroupsFromTournament,
   findGroupsInTournament,
-  findGroupsWithGamesAndTeamsInTournament, findTournamentgroupById, updateTournamentGroupTeams
+  findGroupsWithGamesAndTeamsInTournament, findTournamentgroupById, updateTournamentGroupTeams, findTeamsInGroup
 } from "../db/tournament-group-repository";
 import {
   createPlayoffRound,
@@ -78,6 +78,8 @@ import {
 } from "../db/tournament-guess-repository";
 import {awardsDefinition} from "../utils/award-utils";
 import {getLoggedInUser} from "./user-actions";
+import { TournamentGroupTeamTable, TournamentGroupTeamStatsGuess } from '../db/tables-definition';
+import { findAllTournamentGroupTeamGuessInGroup } from '../db/tournament-group-team-guess-repository';
 
 export async function deleteDBTournamentTree(tournament: Tournament) {
   // delete from tournament_playoff_round_games ;
@@ -689,4 +691,45 @@ export async function copyTournament(
 
   // Do not activate the tournament automatically
   return newTournament;
+}
+
+/**
+ * Calculates and stores the group position score for each user in a tournament.
+ * Awards 1 point for each team whose guessed position matches the real position in a group (when both are complete).
+ */
+export async function calculateAndStoreGroupPositionScores(tournamentId: string) {
+  // Get all users who have guesses for this tournament
+  const users = await db.selectFrom('users').select('id').execute();
+  // Get all groups in the tournament
+  const groups = await findGroupsInTournament(tournamentId);
+
+  // For each user, calculate their score
+  await Promise.all(users.map(async (user) => {
+    let totalScore = 0;
+    for (const group of groups) {
+      // Get the actual group positions (only if group is complete)
+      const realPositions = await findTeamsInGroup(group.id);
+      const groupIsComplete = realPositions.length > 0 && realPositions.every((t) => t.is_complete);
+      if (!groupIsComplete) continue;
+      console.log('group is complete', group.id)
+      // Get the user's guesses for this group (only if guess is complete)
+      const userGuesses = await findAllTournamentGroupTeamGuessInGroup(user.id, group.id);
+      const guessIsComplete = userGuesses.length > 0 && userGuesses.every((t) => t.is_complete);
+      if (!guessIsComplete) continue;
+      console.log('guess is complete', group.id, 'for user', user.id)
+      // Compare positions
+      for (let i = 0; i < realPositions.length; i++) {
+        const real = realPositions[i];
+        const guess = userGuesses.find((g: any) => g.team_id === real.team_id);
+        if (guess && guess.position === real.position) {
+          console.log('guess is correct', group.id, 'position', real.position, 'for user', user.id)
+          totalScore += 1;
+        }
+      }
+    }
+    // Store the score in tournament_guesses
+    await updateTournamentGuessByUserIdTournament(user.id, tournamentId, {
+      group_position_score: totalScore
+    });
+  }));
 }

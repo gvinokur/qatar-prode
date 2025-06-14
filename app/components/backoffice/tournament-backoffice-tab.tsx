@@ -6,7 +6,8 @@ import {Tournament} from "../../db/tables-definition";
 import {
   calculateAllUsersGroupPositions, calculateAndStoreQualifiedTeamsPoints, calculateGameScores,
   generateDbTournamentTeamPlayers,
-  recalculateAllPlayoffFirstRoundGameGuesses
+  recalculateAllPlayoffFirstRoundGameGuesses,
+  calculateAndStoreGroupPositionScores
 } from "../../actions/backoffice-actions";
 import {DebugObject} from "../debug";
 import {deactivateTournament} from "../../actions/tournament-actions";
@@ -63,6 +64,13 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
     setActionResults(results)
     setLoading(false)
   }
+
+  const calculateGroupPositionScores = async () => {
+    setLoading(true);
+    await calculateAndStoreGroupPositionScores(tournament.id);
+    setActionResults({ success: true });
+    setLoading(false);
+  };
 
   const handleDeactivateDialogOpen = () => {
     setOpenDeactivateDialog(true);
@@ -180,13 +188,24 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
             Calculate Qualified Team Scores
           </Button>
         </Grid>
-              <Grid
-                textAlign={'center'}
-                size={{
-                  xs: 6,
-                  md: 3,
-                  lg: 2
-                }}>
+        <Grid
+          textAlign={'center'}
+          size={{
+            xs: 6,
+            md: 3,
+            lg: 2
+          }}>
+          <Button loading={loading} variant={'contained'} size={'large'} fullWidth={true} sx={{height: '100%'}} onClick={calculateGroupPositionScores}>
+            Calculate Group Position Scores
+          </Button>
+        </Grid>
+        <Grid
+          textAlign={'center'}
+          size={{
+            xs: 6,
+            md: 3,
+            lg: 2
+          }}>
           <Button
             loading={loading}
             variant={'outlined'}

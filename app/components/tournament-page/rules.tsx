@@ -24,6 +24,7 @@ import IndividualAwardsExample from './rules-examples/individual-awards';
 import MatchPredictionTimeExample from './rules-examples/match-prediction-time';
 import PodiumPredictionTimeExample from './rules-examples/podium-prediction-time';
 import SinglePredictionExample from './rules-examples/single-prediction';
+import GroupPositionExample from './rules-examples/group-position';
 
 interface Rule {
   label: string;
@@ -40,8 +41,12 @@ const rules: Rule[] = [
     component: <ExactScoreExample />
   },
   { 
-    label: '1 Punto por cada  clasificado a 8vos acertado',
+    label: '1 Punto por cada clasificado a 8vos acertado',
     component: <RoundOf16Example />
+  },
+  { 
+    label: '1 Punto por cada posición exacta de equipo en la fase de grupos',
+    component: <GroupPositionExample />
   },
   { 
     label: '5 Puntos por campeon',

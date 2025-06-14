@@ -46,6 +46,10 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess} :
           <Grid size={4}><Typography variant={'body1'} fontWeight={700}>
             {groupScoreData.qualifiers}
           </Typography></Grid>
+          <Grid size={8}><Typography variant={'body1'} color={'primary.light'}>Posiciones Grupo</Typography></Grid>
+          <Grid size={4}><Typography variant={'body1'} fontWeight={700}>
+            {tournamentGuess?.group_position_score || 0}
+          </Typography></Grid>
           <Grid
             sx={{borderTop: `${theme.palette.primary.contrastText} 1px solid` }}
             mt={2}

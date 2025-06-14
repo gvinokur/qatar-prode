@@ -74,7 +74,8 @@ export interface UserScore {
   playoffScore: number,
   honorRollScore: number,
   totalPoints: number,
-  individualAwardsScore: number
+  individualAwardsScore: number,
+  groupPositionScore?: number // 1 point for each exact group position guessed
 }
 
 export interface ExtendedPlayerData extends Player{

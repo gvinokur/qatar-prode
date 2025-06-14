@@ -58,13 +58,14 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
                 <Table sx={{ minWidth: 650 }}>
                   <TableHead>
                     <TableRow>
-                      <TableCell>P</TableCell>
-                      <TableCell>Nombre</TableCell>
+                      <TableCell>#</TableCell>
+                      <TableCell>Usuario</TableCell>
                       <TableCell>Puntos Totales</TableCell>
-                      <TableCell>Fase de Grupos</TableCell>
-                      {isNotExtraSmallScreen && <TableCell>Clasificados</TableCell>}
-                      <TableCell>Playoffs</TableCell>
-                      {isNotExtraSmallScreen && <TableCell>Posiciones</TableCell>}
+                      <TableCell>Puntos Partidos</TableCell>
+                      {isNotExtraSmallScreen && <TableCell>Puntos Clasificados</TableCell>}
+                      {isNotExtraSmallScreen && <TableCell>Posiciones Grupo</TableCell>}
+                      <TableCell>Puntos Playoffs</TableCell>
+                      {isNotExtraSmallScreen && <TableCell>Cuadro de Honor</TableCell>}
                       {isNotExtraSmallScreen && <TableCell>Premios</TableCell>}
                     </TableRow>
                   </TableHead>
@@ -83,6 +84,7 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
                         <TableCell>{userScore.totalPoints}</TableCell>
                         <TableCell>{userScore.groupStageScore}</TableCell>
                         {isNotExtraSmallScreen && <TableCell>{userScore.groupStageQualifiersScore}</TableCell>}
+                        {isNotExtraSmallScreen && <TableCell>{userScore.groupPositionScore || 0}</TableCell>}
                         <TableCell>{userScore.playoffScore}</TableCell>
                         {isNotExtraSmallScreen && <TableCell>{userScore.honorRollScore}</TableCell>}
                         {isNotExtraSmallScreen && <TableCell>{userScore.individualAwardsScore}</TableCell>}
