@@ -9,7 +9,7 @@ import {
   List,
   ListItem,
   ListItemText, styled, Typography,
-  useTheme, Button, CardActions, Box
+  useTheme, Button, CardActions, Box, Tooltip
 } from "@mui/material";
 import {ExpandMore as ExpandMoreIcon} from "@mui/icons-material";
 import {useState} from "react";
@@ -21,6 +21,9 @@ import ChampionExample from './rules-examples/champion';
 import RunnerUpExample from './rules-examples/runner-up';
 import ThirdPlaceExample from './rules-examples/third-place';
 import IndividualAwardsExample from './rules-examples/individual-awards';
+import MatchPredictionTimeExample from './rules-examples/match-prediction-time';
+import PodiumPredictionTimeExample from './rules-examples/podium-prediction-time';
+import SinglePredictionExample from './rules-examples/single-prediction';
 
 interface Rule {
   label: string;
@@ -58,10 +61,19 @@ const rules: Rule[] = [
   },
 ]
 
-const constraints = [
-  'Se permite cambiar los pronosticos de cada partido hasta una hora antes del mismo',
-  'Se permite modificar pronosticos de podio y premios individuales luego hasta 2 dias despues del comienzo del torneo',
-  'No se permite mas de un pronostico por persona, pero el mismo se puede utilizar en multiples grupos'
+const constraints: Rule[] = [
+  {
+    label: 'Se permite cambiar los pronosticos de cada partido hasta una hora antes del mismo',
+    component: <MatchPredictionTimeExample />
+  },
+  {
+    label: 'Se permite modificar pronosticos de podio y premios individuales luego hasta 2 dias despues del comienzo del torneo',
+    component: <PodiumPredictionTimeExample />
+  },
+  {
+    label: 'No se permite mas de un pronostico por persona, pero el mismo se puede utilizar en multiples grupos',
+    component: <SinglePredictionExample />
+  }
 ]
 
 interface ExpandMoreProps extends IconButtonProps {
@@ -83,6 +95,7 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
   const theme = useTheme();
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [expandedRules, setExpandedRules] = useState<number[]>([]);
+  const [expandedConstraints, setExpandedConstraints] = useState<number[]>([]);
 
   const handleExpandClick = () => {
     setExpanded(!expanded);
@@ -90,6 +103,14 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
 
   const handleRuleExpand = (index: number) => {
     setExpandedRules(prev => 
+      prev.includes(index) 
+        ? prev.filter(i => i !== index)
+        : [...prev, index]
+    );
+  }
+
+  const handleConstraintExpand = (index: number) => {
+    setExpandedConstraints(prev => 
       prev.includes(index) 
         ? prev.filter(i => i !== index)
         : [...prev, index]
@@ -139,7 +160,35 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
                 }}
                 onClick={() => fullpage && rule.component && handleRuleExpand(index)}
                 >
-                  <ListItemText>{rule.label}</ListItemText>
+                  {!fullpage && rule.component ? (
+                    <Tooltip 
+                      title={rule.component} 
+                      placement="bottom"
+                      arrow
+                      componentsProps={{
+                        tooltip: {
+                          sx: {
+                            bgcolor: 'background.paper',
+                            color: 'text.primary',
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            maxWidth: 400,
+                            '& .MuiTooltip-arrow': {
+                              color: 'background.paper',
+                              '&:before': {
+                                border: '1px solid',
+                                borderColor: 'divider',
+                              }
+                            }
+                          }
+                        }
+                      }}
+                    >
+                      <ListItemText>{rule.label}</ListItemText>
+                    </Tooltip>
+                  ) : (
+                    <ListItemText>{rule.label}</ListItemText>
+                  )}
                   {fullpage && rule.component && (
                     <ExpandMore
                       expand={expandedRules.includes(index)}
@@ -172,8 +221,67 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
               <ListItem
                 key={index}
                 alignItems='flex-start'
-                disableGutters>
-                <ListItemText>{constraint}</ListItemText>
+                disableGutters
+                sx={{ flexDirection: 'column' }}
+              >
+                <Box sx={{ 
+                  display: 'flex', 
+                  width: '100%', 
+                  alignItems: 'center',
+                  ...(fullpage && constraint.component && { cursor: 'pointer' })
+                }}
+                onClick={() => fullpage && constraint.component && handleConstraintExpand(index)}
+                >
+                  {!fullpage && constraint.component ? (
+                    <Tooltip 
+                      title={constraint.component} 
+                      placement="bottom"
+                      arrow
+                      componentsProps={{
+                        tooltip: {
+                          sx: {
+                            bgcolor: 'background.paper',
+                            color: 'text.primary',
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            maxWidth: 400,
+                            '& .MuiTooltip-arrow': {
+                              color: 'background.paper',
+                              '&:before': {
+                                border: '1px solid',
+                                borderColor: 'divider',
+                              }
+                            }
+                          }
+                        }
+                      }}
+                    >
+                      <ListItemText>{constraint.label}</ListItemText>
+                    </Tooltip>
+                  ) : (
+                    <ListItemText>{constraint.label}</ListItemText>
+                  )}
+                  {fullpage && constraint.component && (
+                    <ExpandMore
+                      expand={expandedConstraints.includes(index)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleConstraintExpand(index);
+                      }}
+                      aria-expanded={expandedConstraints.includes(index)}
+                      aria-label="show more"
+                    >
+                      <ExpandMoreIcon />
+                    </ExpandMore>
+                  )}
+                </Box>
+                {fullpage && constraint.component && (
+                  <Collapse in={expandedConstraints.includes(index)} timeout="auto" unmountOnExit>
+                    <Box sx={{ pl: 2, pr: 1, py: 1 }}>
+                      {constraint.component}
+                    </Box>
+                  </Collapse>
+                )}
               </ListItem>
             ))}
           </List>
