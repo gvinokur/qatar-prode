@@ -98,7 +98,6 @@ export default async function GroupComponent(props : Props) {
             </Grid>
             <Grid size={12} justifyContent={'center'}>
               <GroupTable
-                games={Object.values(completeGroupData.gamesMap)}
                 teamsMap={completeGroupData.teamsMap}
                 qualifiedTeamGuesses={qualifiedTeamGuesses}
                 qualifiedTeams={qualifiedTeams}

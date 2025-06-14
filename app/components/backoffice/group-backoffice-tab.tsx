@@ -175,7 +175,7 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
                 xs: 12,
                 md: 6
               }}>
-              <GroupTable games={Object.values(gamesMap)} teamsMap={teamsMap} isPredictions={false} realPositions={positions}/>
+              <GroupTable teamsMap={teamsMap} isPredictions={false} realPositions={positions}/>
             </Grid>
           </Grid>
           <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center'}} open={saved} autoHideDuration={2000} onClose={() => setSaved(false)}>
