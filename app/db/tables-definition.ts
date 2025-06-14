@@ -236,6 +236,11 @@ export interface TournamentGuessTable extends Identifiable{
    * 1 point for each correct qualified team guessed
    */
   qualified_teams_score?: number
+  /**
+   * undefined - no group position score yet.
+   * 1 point for each exact group position guessed
+   */
+  group_position_score?: number
 }
 
 export type TournamentGuess = Selectable<TournamentGuessTable>

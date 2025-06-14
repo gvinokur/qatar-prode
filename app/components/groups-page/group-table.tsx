@@ -21,23 +21,22 @@ import {calculateGroupPosition} from "../../utils/group-position-calculator";
 
 type Props = {
   isPredictions: boolean,
-  games: ExtendedGameData[],
   teamsMap: {[k:string]: Team}
   qualifiedTeams?: Team[]
   qualifiedTeamGuesses?: Team[]
   realPositions: TeamStats[]
 }
 
-export default function GroupTable({games, teamsMap, isPredictions, qualifiedTeams = [], qualifiedTeamGuesses = [], realPositions} : Props) {
+export default function GroupTable({teamsMap, isPredictions, qualifiedTeams = [], qualifiedTeamGuesses = [], realPositions} : Props) {
   const xsMatch = useMediaQuery('(min-width:900px)')
   const theme = useTheme();
-  const {gameGuesses, guessedPositions: groupPositionsByGuess} = useContext(GuessesContext)
+  const {guessedPositions: groupPositionsByGuess} = useContext(GuessesContext)
   const [usePredictionsTable, setUsePredictionsTable] = useState(isPredictions)
 
-  const allGroupGamesPlayed = games
-    .filter(game =>
-      (!Number.isInteger(game.gameResult?.home_score) || !Number.isInteger(game.gameResult?.away_score))
-    ).length === 0;
+  const groupIsComplete = realPositions.every(position => position.is_complete)
+  const groupGuessIsComplete = groupPositionsByGuess.every(guess => guess.is_complete)
+
+  const showScoreIndicator = groupIsComplete && groupGuessIsComplete
 
   return (
     <Box mb={xsMatch ? 0 : 12}>
@@ -80,19 +79,30 @@ export default function GroupTable({games, teamsMap, isPredictions, qualifiedTea
                   {backgroundColor: 'secondary.main'} :
                   {}
               }>
-                <TableCell>{index + 1}</TableCell>
+                <TableCell>
+                {usePredictionsTable &&
+                    showScoreIndicator && (
+                    <Box sx={{ float: 'right'}}>
+                      {(teamStats.team_id === realPositions[index].team_id) ?
+                        (<Avatar title='Pronostico de Posicion Correcto' sx={{ width: '18px', height: '18px', bgcolor: theme.palette.success.light }}><HitIcon sx={{ width: '12px', height: '12px'}}/></Avatar>):
+                        (<Avatar title='Pronostico de Posicion Errado' sx={{ width: '18px', height: '18px', bgcolor: theme.palette.error.main }}><MissIcon sx={{ width: '12px', height: '12px'}}/></Avatar>)}
+                    </Box>
+                  )}
+                  {index + 1}
+                </TableCell>
                 <TableCell sx={{
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                 }} >
                   {usePredictionsTable &&
+                    showScoreIndicator &&
                     qualifiedTeamGuesses?.find(qualifiedTeam => qualifiedTeam.id === teamStats.team_id) &&
                     qualifiedTeams.length > 0  && (
                     <Box sx={{ float: 'right'}}>
                       {qualifiedTeams?.find(qualifiedTeam => qualifiedTeam.id === teamStats.team_id) ?
-                        (<Avatar title='Pronostico Correcto' sx={{ width: '18px', height: '18px', bgcolor: theme.palette.success.light }}><HitIcon sx={{ width: '12px', height: '12px'}}/></Avatar>):
-                        (<Avatar title='Pronostico Errado' sx={{ width: '18px', height: '18px', bgcolor: theme.palette.error.main }}><MissIcon sx={{ width: '12px', height: '12px'}}/></Avatar>)}
+                        (<Avatar title='Pronostico de Clasificacion Correcto' sx={{ width: '18px', height: '18px', bgcolor: theme.palette.success.light }}><HitIcon sx={{ width: '12px', height: '12px'}}/></Avatar>):
+                        (<Avatar title='Pronostico de Clasificacion Errado' sx={{ width: '18px', height: '18px', bgcolor: theme.palette.error.main }}><MissIcon sx={{ width: '12px', height: '12px'}}/></Avatar>)}
                     </Box>
                   )}
                   {teamsMap[teamStats.team_id].name}
