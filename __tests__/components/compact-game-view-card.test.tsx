@@ -6,6 +6,7 @@ import { TimezoneProvider } from '../../app/components/context-providers/timezon
 
 const resultProps = {
   isGameGuess: false as const,
+  isGameFixture: false as const,
   gameNumber: 1,
   gameDate: new Date('2024-07-01T18:00:00Z'),
   gameTimezone: 'America/New_York',
@@ -20,6 +21,7 @@ const resultProps = {
 
 const guessProps = {
   isGameGuess: true as const,
+  isGameFixture: false as const,
   gameNumber: 1,
   gameDate: new Date('2024-07-01T18:00:00Z'),
   gameTimezone: 'America/New_York',

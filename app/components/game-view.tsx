@@ -63,6 +63,7 @@ const GameView = ({game, teamsMap, handleEditClick, disabled = false}: GameViewP
         gameResult={game.gameResult}
         disabled={editDisabled}
         onEditClick={handleEditClick}
+        isGameFixture={false}
     />
   )
 }

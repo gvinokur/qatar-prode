@@ -41,6 +41,7 @@ type SharedProps = {
 
 type GameGuessProps =  {
   isGameGuess: true
+  isGameFixture: false
   scoreForGame?: number
   homePenaltyWinner?: boolean
   awayPenaltyWinner?: boolean
@@ -49,13 +50,23 @@ type GameGuessProps =  {
 
 type GameResultProps = {
   isGameGuess: false
+  isGameFixture: false
   onPublishClick?: (gameNumber: number) => Promise<void>
   isDraft?: boolean
   homePenaltyScore?: number
   awayPenaltyScore?: number
 } & SharedProps
 
-type CompactGameViewCardProps = GameGuessProps | GameResultProps;
+type GameFixtureProps = {
+  isGameFixture: true
+  isGameGuess: false
+  homePenaltyScore?: number
+  awayPenaltyScore?: number
+  groupOrPlayoffText: string
+  isDraft?: boolean
+} & SharedProps
+
+type CompactGameViewCardProps = GameGuessProps | GameResultProps | GameFixtureProps;
 
 export default function CompactGameViewCard({
   gameNumber,
@@ -81,20 +92,20 @@ export default function CompactGameViewCard({
   const [publishing, setPublishing] = useState(false)
 
   const handleEditClick = () => {
-    if (!disabled) {
+    if (!disabled || specificProps.isGameFixture) {
       onEditClick(gameNumber);
     }
   };
 
   const handleDraftChange = async () => {
-    if (!specificProps.isGameGuess && specificProps.onPublishClick) {
+    if (!specificProps.isGameGuess && !specificProps.isGameFixture && specificProps.onPublishClick) {
       setPublishing(true)
       await specificProps.onPublishClick(gameNumber);
       setPublishing(false)
     }
   };
 
-  const isClickableStyles = !disabled ? {cursor: 'pointer'} : {}
+  const isClickableStyles = (!disabled || specificProps.isGameFixture) ? {cursor: 'pointer'} : {}
   const isDraft = (!specificProps.isGameGuess && specificProps.isDraft)
 
   let logoUrl = null
@@ -128,7 +139,9 @@ export default function CompactGameViewCard({
                 </Tooltip>
               </Box>
               {/* Edit button or status */}
-              {(!disabled || (specificProps.isGameGuess &&
+              {(!disabled || 
+                specificProps.isGameFixture ||
+                (specificProps.isGameGuess &&
                 Number.isInteger(specificProps.gameResult?.home_score) &&
                 Number.isInteger(specificProps.gameResult?.away_score) &&
                 Number.isInteger(specificProps.scoreForGame))) && (
@@ -172,6 +185,13 @@ export default function CompactGameViewCard({
                         {specificProps.scoreForGame === 0 && <Avatar title='Pronostico Errado' sx={{ width: '20px', height: '20px', bgcolor: theme.palette.error.light }}><MissIcon sx={{ fontSize: 14 }} /></Avatar>}
                         {specificProps.scoreForGame === 1 && <Avatar title='Pronostico Correcto (1 punto)' sx={{ width: '20px', height: '20px', bgcolor: theme.palette.success.light }}><HitIcon sx={{ fontSize: 14 }} /></Avatar>}
                         {specificProps.scoreForGame === 2 && <Avatar title='Resultado Exacto (2 puntos)' sx={{ width: '20px', height: '20px', bgcolor: theme.palette.success.main }}><HitAllIcon sx={{ fontSize: 14 }} /></Avatar>}
+                      </Box>
+                    )}
+                  {specificProps.isGameFixture && (
+                      <Box display="flex" justifyContent="flex-end">
+                        <Typography variant="body2" color="text.primary" fontWeight="bold">
+                          {specificProps.groupOrPlayoffText}
+                        </Typography>
                       </Box>
                     )}
                 </Box>

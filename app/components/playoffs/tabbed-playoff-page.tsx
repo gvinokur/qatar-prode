@@ -89,6 +89,7 @@ const TabbedPlayoffsPage: React.FC<TabbedPlayoffsPageProps> = ({ sections, teams
                 games={section.games}
                 teamsMap={teamsMap}
                 isLoggedIn={isLoggedIn}
+                isAwardsPredictionLocked={isAwardsPredictionLocked}
               />
             )}
           </Box>
