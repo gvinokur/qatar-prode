@@ -19,6 +19,8 @@ import {updateOrCreateTournamentGuess} from "../../actions/guesses-actions";
 import {ExtendedPlayerData} from "../../definitions";
 import {awardsDefinition, AwardTypes} from "../../utils/award-utils";
 import TeamSelector from "./team-selector";
+import MobileFriendlyAutocomplete from './mobile-friendly-autocomplete';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 type Props = {
   allPlayers: ExtendedPlayerData[],
@@ -38,6 +40,7 @@ export default function AwardsPanel({
     tournament
   }: Props) {
   const theme = useTheme()
+  const isMobile = useMediaQuery('(max-width:600px)');
   const [saving, setSaving] = useState<boolean>(false)
   const [saved, setSaved] = useState<boolean>(false)
   const [tournamentGuesses, setTournamentGuesses] = useState(savedTournamentGuesses)
@@ -57,6 +60,7 @@ export default function AwardsPanel({
           ...tournamentGuesses,
           [property]: player?.id
         });
+        savePredictions()
       }
 
   const handlePodiumGuessChange = (property: AwardTypes) =>
@@ -65,9 +69,33 @@ export default function AwardsPanel({
         ...tournamentGuesses,
         [property]: (teamId === '') ? null : teamId
       });
+      savePredictions()
   }
 
   const isDisabled = isPredictionLocked || saving
+
+  // Common Autocomplete props/functions for player awards
+  const getPlayerOptions = (awardDefinition: typeof awardsDefinition[number]) =>
+    allPlayers.filter(awardDefinition.playerFilter).sort((a, b) => a.team.name.localeCompare(b.team.name));
+
+  const groupByTeam = (option: ExtendedPlayerData) => option.team.name;
+  const getPlayerLabel = (option: ExtendedPlayerData) => option.name;
+  const getPlayerValue = (property: AwardTypes) => allPlayers.find(player => player.id === tournamentGuesses[property]) || null;
+  const onPlayerChange = (property: AwardTypes) => handleGuessChange(property);
+  const renderPlayerOption = (props: React.HTMLAttributes<HTMLLIElement>, option: ExtendedPlayerData) => (
+    <Box component='li' {...props}>
+      {option.name} - {option.team.short_name}
+    </Box>
+  );
+  const renderPlayerInput = (params: any) => (
+    <TextField
+      {...params}
+      label="Elegir Jugador"
+      inputProps={{
+        ...params.inputProps,
+      }}
+    />
+  );
 
   return (
     <>
@@ -204,34 +232,32 @@ export default function AwardsPanel({
                       {awardDefinition.label}</Typography>
                   </Grid>
                   <Grid size={7}>
-                    <Autocomplete
-                      id='best-player-autocomplete'
-                      options={allPlayers
-                        .filter(awardDefinition.playerFilter)
-                        .sort((a, b) =>
-                          a.team.name.localeCompare(b.team.name))
-                      }
-                      groupBy={(option) => option.team.name}
-                      autoHighlight
-                      getOptionLabel={(option) => option.name}
-                      value={allPlayers.find(player => player.id === tournamentGuesses[awardDefinition.property])}
-                      onChange={handleGuessChange(awardDefinition.property)}
-                      disabled={isDisabled}
-                      renderOption={(props, option) => (
-                        <Box component='li' {...props}>
-                          {option.name} - {option.team.short_name}
-                        </Box>
-                      )}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Elegir Jugador"
-                          inputProps={{
-                            ...params.inputProps,
-                          }}
-                        />
-                      )}
-                    />
+                    {isMobile ? (
+                      <MobileFriendlyAutocomplete
+                        label={awardDefinition.label}
+                        options={getPlayerOptions(awardDefinition)}
+                        groupBy={groupByTeam}
+                        getOptionLabel={getPlayerLabel}
+                        value={getPlayerValue(awardDefinition.property)}
+                        onChange={onPlayerChange(awardDefinition.property)}
+                        disabled={isDisabled}
+                        renderOption={renderPlayerOption}
+                        renderInput={renderPlayerInput}
+                      />
+                    ) : (
+                      <Autocomplete
+                        id='best-player-autocomplete'
+                        options={getPlayerOptions(awardDefinition)}
+                        groupBy={groupByTeam}
+                        autoHighlight
+                        getOptionLabel={getPlayerLabel}
+                        value={getPlayerValue(awardDefinition.property)}
+                        onChange={onPlayerChange(awardDefinition.property)}
+                        disabled={isDisabled}
+                        renderOption={renderPlayerOption}
+                        renderInput={renderPlayerInput}
+                      />
+                    )}
                   </Grid>
                 </Fragment>
               ))}
@@ -239,8 +265,7 @@ export default function AwardsPanel({
           )}
         </CardContent>
       </Card>
-      <Button loading={saving} disabled={isPredictionLocked} variant='contained' size='large' onClick={savePredictions} sx={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translate(-50%, 0)' }}>Guardar Pronostico</Button>
-      <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center'}} open={saved} autoHideDuration={2000} onClose={() => setSaved(false)}>
+      <Snackbar anchorOrigin={{ vertical: 'bottom', horizontal: 'center'}} open={saved} autoHideDuration={2000} onClose={() => setSaved(false)}>
         <Alert onClose={() => setSaved(false)} severity="success" sx={{ width: '100%' }}>
           Tus pronosticos se guardaron correctamente!
         </Alert>
