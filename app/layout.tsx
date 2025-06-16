@@ -12,6 +12,7 @@ import Header from "./components/header/header";
 import {getLoggedInUser} from "./actions/user-actions";
 import { unstable_ViewTransition as ViewTransition } from 'react'
 import { TimezoneProvider } from './components/context-providers/timezone-context-provider';
+import Footer from './components/home/footer';
 
 
 export async  function generateMetadata() {
@@ -57,7 +58,7 @@ export default async function RootLayout({
       <head>
         <meta name="apple-mobile-web-app-title" content="La Maquina"/>
       </head>
-      <body style={{minHeight: '100%'}}>
+      <body style={{minHeight: '100%', paddingBottom: '64px'}}>
         <TimezoneProvider>
           <NextThemeProvider defaultTheme={'system'} enableSystem={true}>
             <ThemeProvider>
@@ -70,6 +71,7 @@ export default async function RootLayout({
                 >
                   {children}
                 </ViewTransition>
+                <Footer message="La Maquina © 2025" />
                 <InstallPwa />
                 <OfflineDetection />
               </SessionWrapper>

@@ -16,6 +16,10 @@ import {getLoggedInUser} from "./user-actions";
 import {z} from "zod";
 import {ProdeGroup} from "../db/tables-definition";
 import {createS3Client, deleteThemeLogoFromS3, getS3KeyFromURL} from "./s3";
+import { getGameGuessStatisticsForUsers } from '../db/game-guess-repository';
+import { findTournamentGuessByUserIdsTournament } from '../db/tournament-guess-repository';
+import { customToMap } from "../utils/ObjectUtils";
+import { UserScore } from "../definitions";
 
 export async function createDbGroup( groupName: string) {
   const user = await getLoggedInUser()
@@ -169,4 +173,27 @@ export async function leaveGroupAction(groupId: string) {
   }
   await deleteParticipantFromGroup(groupId, user.id);
   return { success: true };
+}
+
+export async function getUserScoresForTournament(userIds: string[], tournamentId: string): Promise<UserScore[]> {
+  const allUsersGameStatics = await getGameGuessStatisticsForUsers(userIds, tournamentId);
+  const allUserTournamentGuesses = await findTournamentGuessByUserIdsTournament(userIds, tournamentId);
+  const gameStatisticsByUserIdMap = customToMap(allUsersGameStatics, (userGameStatistics) => userGameStatistics.user_id);
+  const tournamentGuessesByUserIdMap = customToMap(allUserTournamentGuesses, (userTournamentGuess) => userTournamentGuess.user_id);
+
+  return userIds.map(userId => ({
+    userId,
+    groupStageScore: gameStatisticsByUserIdMap[userId]?.group_score || 0,
+    groupStageQualifiersScore: tournamentGuessesByUserIdMap[userId]?.qualified_teams_score || 0,
+    playoffScore: gameStatisticsByUserIdMap[userId]?.playoff_score || 0,
+    honorRollScore: tournamentGuessesByUserIdMap[userId]?.honor_roll_score || 0,
+    individualAwardsScore: tournamentGuessesByUserIdMap[userId]?.individual_awards_score || 0,
+    groupPositionScore: tournamentGuessesByUserIdMap[userId]?.group_position_score || 0,
+    totalPoints:
+      (gameStatisticsByUserIdMap[userId]?.total_score || 0) +
+      (tournamentGuessesByUserIdMap[userId]?.qualified_teams_score || 0) +
+      (tournamentGuessesByUserIdMap[userId]?.honor_roll_score || 0) +
+      (tournamentGuessesByUserIdMap[userId]?.individual_awards_score || 0) +
+      (tournamentGuessesByUserIdMap[userId]?.group_position_score || 0)
+  })) as UserScore[];
 }

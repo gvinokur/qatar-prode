@@ -19,6 +19,7 @@ import {InviteFriendsDialogButton} from "../../components/friend-groups/invite-f
 import {getThemeLogoUrl} from "../../utils/theme-utils";
 import { getGroupTournamentBettingConfigAction, getGroupTournamentBettingPaymentsAction } from '../../actions/group-tournament-betting-actions';
 import LeaveGroupButton from '../../components/friend-groups/leave-group-button';
+import { getUserScoresForTournament } from "../../actions/prode-group-actions";
 
 type Props = {
   params: Promise<{
@@ -35,9 +36,10 @@ export default async function FriendsGroup(props : Props){
   if(!prodeGroup || !user) {
     redirect("/")
   }
-  const participants = await findParticipantsInGroup(prodeGroup.id)
+  
   const tournaments = await findAllActiveTournaments()
 
+  const participants = await findParticipantsInGroup(prodeGroup.id)
   const allParticipants = [
     prodeGroup.owner_user_id,
     ...participants.map(({user_id}) => user_id)
@@ -49,34 +51,10 @@ export default async function FriendsGroup(props : Props){
   const userScoresByTournament =
     Object.fromEntries(
       await Promise.all(
-        tournaments.map(async (tournament) => {
-          const allUsersGameStatics = await getGameGuessStatisticsForUsers(allParticipants, tournament.id)
-          const allUserTournamentGuesses: TournamentGuess[] = await findTournamentGuessByUserIdsTournament(allParticipants, tournament.id)
-          const gameStatisticsByUserIdMap =
-            customToMap(allUsersGameStatics, (userGameStatistics) => userGameStatistics.user_id)
-          const tournamentGuessesByUserIdMap =
-            customToMap(allUserTournamentGuesses, (userTournamentGuess) => userTournamentGuess.user_id)
-
-          return [
+        tournaments.map(async (tournament) => [
             tournament.id,
-            users.map(user => (({
-              userId: user.id,
-              groupStageScore: gameStatisticsByUserIdMap[user.id]?.group_score || 0,
-              groupStageQualifiersScore: tournamentGuessesByUserIdMap[user.id]?.qualified_teams_score || 0,
-              playoffScore: gameStatisticsByUserIdMap[user.id]?.playoff_score || 0,
-              honorRollScore: tournamentGuessesByUserIdMap[user.id]?.honor_roll_score || 0,
-              individualAwardsScore: tournamentGuessesByUserIdMap[user.id]?.individual_awards_score || 0,
-              groupPositionScore: tournamentGuessesByUserIdMap[user.id]?.group_position_score || 0,
-              totalPoints: (
-                (gameStatisticsByUserIdMap[user.id]?.total_score || 0) +
-                (tournamentGuessesByUserIdMap[user.id]?.qualified_teams_score || 0) +
-                (tournamentGuessesByUserIdMap[user.id]?.honor_roll_score || 0) +
-                (tournamentGuessesByUserIdMap[user.id]?.individual_awards_score || 0) +
-                (tournamentGuessesByUserIdMap[user.id]?.group_position_score || 0)
-              )
-            }) as UserScore) )
-          ];
-        }
+            await getUserScoresForTournament(allParticipants, tournament.id)
+          ]
       )))
 
   let logoUrl = getThemeLogoUrl(prodeGroup.theme)
