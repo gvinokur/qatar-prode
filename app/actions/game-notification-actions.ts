@@ -3,6 +3,7 @@
 import { sendNotification } from "./notifiaction-actions";
 import { getLocalGameTime } from "../utils/date-utils";
 import { findGamesInNext24Hours } from "../db/game-repository";
+import { getWinner } from '../utils/score-utils';
 
 export async function sendGamesTomorrowNotification(tournamentId: string) {
   const games = await findGamesInNext24Hours(tournamentId);
@@ -62,31 +63,35 @@ export async function notifyGameFinished(game: {
     timeZone: game.game_local_timezone || 'America/Argentina/Buenos_Aires',
   });
 
-  // Determine winner
+  // Determine winner using utility function
   let resultado = `${home} ${homeScore} - ${awayScore} ${away}`;
   let winnerText = '';
-  if (typeof game.home_score === 'number' && typeof game.away_score === 'number') {
-    if (game.home_score > game.away_score) {
-      winnerText = `Ganó ${home}.`;
-    } else if (game.away_score > game.home_score) {
-      winnerText = `Ganó ${away}.`;
+  
+  const homePenaltyWinner = typeof game.home_penalty_score === 'number' && 
+    typeof game.away_penalty_score === 'number' && 
+    game.home_penalty_score > game.away_penalty_score;
+  const awayPenaltyWinner = typeof game.home_penalty_score === 'number' && 
+    typeof game.away_penalty_score === 'number' && 
+    game.home_penalty_score < game.away_penalty_score;
+
+  const winner = getWinner(
+    game.home_score,
+    game.away_score,
+    homePenaltyWinner,
+    awayPenaltyWinner,
+    home,
+    away
+  );
+
+  if (winner) {
+    if (homePenaltyWinner || awayPenaltyWinner) {
+      resultado += ` (Penales: ${home} ${game.home_penalty_score} - ${game.away_penalty_score} ${away})`;
+      winnerText = `Ganó ${winner} por penales.`;
     } else {
-      // Tie, check penalties
-      if (
-        typeof game.home_penalty_score === 'number' &&
-        typeof game.away_penalty_score === 'number' &&
-        (game.home_penalty_score !== game.away_penalty_score)
-      ) {
-        resultado += ` (Penales: ${home} ${game.home_penalty_score} - ${game.away_penalty_score} ${away})`;
-        if (game.home_penalty_score > game.away_penalty_score) {
-          winnerText = `Ganó ${home} por penales.`;
-        } else {
-          winnerText = `Ganó ${away} por penales.`;
-        }
-      } else {
-        winnerText = 'Empate.';
-      }
+      winnerText = `Ganó ${winner}.`;
     }
+  } else if (typeof game.home_score === 'number' && typeof game.away_score === 'number') {
+    winnerText = 'Empate.';
   }
 
   const title = `Finalizó el partido #${game.game_number}`;
