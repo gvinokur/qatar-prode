@@ -5,6 +5,7 @@ import {Fragment} from "react";
 import {Team} from "../../db/tables-definition";
 import {ExtendedGameData} from "../../definitions";
 import CompactGameViewCard from "../compact-game-view-card";
+import { useRouter } from "next/navigation";
 
 type FixturesProps = {
   games: ExtendedGameData[]
@@ -13,6 +14,8 @@ type FixturesProps = {
 
 export function Fixtures( { games, teamsMap} : FixturesProps) {
   const theme = useTheme()
+  const router = useRouter()
+  
   return (
     <Card>
       <CardHeader
@@ -39,7 +42,16 @@ export function Fixtures( { games, teamsMap} : FixturesProps) {
                 awayPenaltyScore={!game.gameResult?.is_draft ? game.gameResult?.away_penalty_score : undefined}
                 isPlayoffGame={game.game_type !== 'group'}
                 disabled={true}
-                onEditClick={() => {}}/>
+                onEditClick={() => {
+                  if(game.game_type === 'group') {
+                    router.push(`/tournaments/${game.tournament_id}/groups/${game.group?.tournament_group_id}`)
+                  } else {
+                    router.push(`/tournaments/${game.tournament_id}/playoffs?stage=${game.playoffStage?.round_name}`)
+                  }
+                }}
+                isGameFixture={true}
+                groupOrPlayoffText={game.game_type === 'group' ? `Grupo ${game.group?.group_letter}` : (game.playoffStage?.round_name || 'Playoffs')}
+                />
             </Grid>
           ))}
         </Grid>
