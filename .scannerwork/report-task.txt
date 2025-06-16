@@ -1,0 +1,7 @@
+organization=gabriel-vinokur
+projectKey=gvinokur_qatar-prode
+serverUrl=https://sonarcloud.io
+serverVersion=8.0.0.64410
+dashboardUrl=https://sonarcloud.io/dashboard?id=gvinokur_qatar-prode
+ceTaskId=AZdz8csWE7digxjd1wLN
+ceTaskUrl=https://sonarcloud.io/api/ce/task?id=AZdz8csWE7digxjd1wLN

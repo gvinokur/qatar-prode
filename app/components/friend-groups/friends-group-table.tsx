@@ -25,7 +25,7 @@ import MuiAlert from '@mui/material/Alert';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import PersonIcon from '@mui/icons-material/Person';
 import Tooltip from '@mui/material/Tooltip';
-import NotificationDialog from './notification-dialog';
+import NotificationDialog from "./notification-dialog";
 
 type Props = {
   users: {[k:string]: User},

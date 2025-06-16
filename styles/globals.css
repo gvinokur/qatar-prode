@@ -18,12 +18,10 @@ a {
 :root {
   /* Your default theme */
   background: white;
-  foreground: black;
 }
 
 [data-theme='dark'] {
   background: #1a1a1a;
-  foreground: white;
 }
 
 @keyframes reveal {

@@ -168,11 +168,11 @@ export default function CompactGameViewCard({
                     Number.isInteger(specificProps.gameResult?.home_score) &&
                     Number.isInteger(specificProps.gameResult?.away_score) &&
                     Number.isInteger(specificProps.scoreForGame) && (
-                      <>
-                        {specificProps.scoreForGame === 0 && <Avatar title='Pronostico Errado' sx={{ width: '20px', height: '20px', bgcolor: theme.palette.error.main }}><MissIcon sx={{ fontSize: 14 }} /></Avatar>}
+                      <Box display="flex" justifyContent="flex-end">
+                        {specificProps.scoreForGame === 0 && <Avatar title='Pronostico Errado' sx={{ width: '20px', height: '20px', bgcolor: theme.palette.error.light }}><MissIcon sx={{ fontSize: 14 }} /></Avatar>}
                         {specificProps.scoreForGame === 1 && <Avatar title='Pronostico Correcto (1 punto)' sx={{ width: '20px', height: '20px', bgcolor: theme.palette.success.light }}><HitIcon sx={{ fontSize: 14 }} /></Avatar>}
                         {specificProps.scoreForGame === 2 && <Avatar title='Resultado Exacto (2 puntos)' sx={{ width: '20px', height: '20px', bgcolor: theme.palette.success.main }}><HitAllIcon sx={{ fontSize: 14 }} /></Avatar>}
-                      </>
+                      </Box>
                     )}
                 </Box>
               )}
