@@ -44,6 +44,7 @@ const GameView = ({game, teamsMap, handleEditClick, disabled = false}: GameViewP
   return (
     <CompactGameViewCard
         isGameGuess={true}
+        isGameFixture={false}
         gameNumber={game.game_number}
         gameDate={game.game_date}
         location={game.location}
@@ -63,7 +64,6 @@ const GameView = ({game, teamsMap, handleEditClick, disabled = false}: GameViewP
         gameResult={game.gameResult}
         disabled={editDisabled}
         onEditClick={handleEditClick}
-        isGameFixture={false}
     />
   )
 }
