@@ -23,7 +23,7 @@ async function Footer({ imageUrl, message }: FooterProps) {
   let infoMessage: React.ReactNode | null = null;
   if(user) {
     //Hacky hacky
-    const filialWhatsAppGroup = await findProdeGroupById(CUSTOM_GROUP_ID_TEST)    
+    const filialWhatsAppGroup = await findProdeGroupById(CUSTOM_GROUP_ID)    
     const participants = [filialWhatsAppGroup.owner_user_id, ...(await findParticipantsInGroup(filialWhatsAppGroup.id)).map((p) => p.user_id)]
     const userScores = await getUserScoresForTournament(participants, CUSTOM_TOURNAMENT_ID);
     const currentUserPosition = userScores.findIndex((s) => s.userId === user.id);
