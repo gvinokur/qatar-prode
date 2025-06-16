@@ -14,12 +14,20 @@ global.ResizeObserver = class ResizeObserver {
 };
 
 // Mock IntersectionObserver
-global.IntersectionObserver = class IntersectionObserver {
-  constructor() {}
+class MockIntersectionObserver {
+  readonly root: Element | null = null;
+  readonly rootMargin: string = '';
+  readonly thresholds: ReadonlyArray<number> = [];
+
+  constructor(private callback: IntersectionObserverCallback, options?: IntersectionObserverInit) {}
+
   observe() {}
   unobserve() {}
   disconnect() {}
-};
+  takeRecords(): IntersectionObserverEntry[] { return []; }
+}
+
+global.IntersectionObserver = MockIntersectionObserver as any;
 
 // Suppress specific console errors during tests
 const originalError = console.error;
