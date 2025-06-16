@@ -14,10 +14,10 @@ type Props = {
 }
 
 export default function BackofficeGameView({ game, teamsMap, onEditClick, onPublishClick } : Props) {
-
   return (
     <CompactGameViewCard
       isGameGuess={false}
+      isGameFixture={false}
       gameNumber={game.game_number}
       gameDate={game.game_date}
       location={game.location}
