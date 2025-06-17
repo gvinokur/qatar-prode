@@ -26,7 +26,10 @@ function Footer({ imageUrl, message }: FooterProps) {
       if (user && TEASING_FOOTER_GROUP_ID && TEASING_FOOTER_TOURNAMENT_ID) {
         try {
           const participants = await getUsersForGroup(TEASING_FOOTER_GROUP_ID)
-          const userScores = await getUserScoresForTournament(participants, TEASING_FOOTER_TOURNAMENT_ID);
+          const userScores = 
+            (await getUserScoresForTournament(participants, TEASING_FOOTER_TOURNAMENT_ID))
+              .sort((a, b) => b.totalPoints - a.totalPoints);
+
           const currentUserPosition = userScores.findIndex((s) => s.userId === user.id);
 
           if(currentUserPosition === -1) return;
