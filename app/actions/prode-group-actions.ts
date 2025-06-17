@@ -10,7 +10,8 @@ import {
   findProdeGroupsByParticipant,
   updateProdeGroup,
   deleteParticipantFromGroup,
-  updateParticipantAdminStatus
+  updateParticipantAdminStatus,
+  findParticipantsInGroup
 } from "../db/prode-group-repository";
 import {getLoggedInUser} from "./user-actions";
 import {z} from "zod";
@@ -173,6 +174,14 @@ export async function leaveGroupAction(groupId: string) {
   }
   await deleteParticipantFromGroup(groupId, user.id);
   return { success: true };
+}
+
+export async function getUsersForGroup(groupId: string): Promise<string[]> {
+  const group = await findProdeGroupById(groupId);
+  if (!group) {
+    throw 'El grupo no existe.';
+  }
+  return [group.owner_user_id, ...(await findParticipantsInGroup(group.id)).map((p) => p.user_id)];
 }
 
 export async function getUserScoresForTournament(userIds: string[], tournamentId: string): Promise<UserScore[]> {
