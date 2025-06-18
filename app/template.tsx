@@ -3,7 +3,6 @@ import VerificationBanner from "./components/verification/verification-banner";
 import {Box} from "@mui/material";
 import {findUserById} from "./db/users-repository";
 import {VerificationOverlay} from "./components/verification/verification-overlay";
-import Transition from "./transition";
 
 export default async function Template({
                                          // Layouts must accept a children prop.

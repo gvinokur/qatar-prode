@@ -2,14 +2,13 @@
 
 import {ProdeGroup} from "../../db/tables-definition";
 import {Button, Card, CardActions, CardContent, CardHeader, TextField} from "@mui/material";
-import {Controller, Form, useForm} from "react-hook-form";
+import {Controller, useForm} from "react-hook-form";
 import * as React from "react";
 import {MuiColorInput} from "mui-color-input";
 import {useState} from "react";
 import {updateTheme} from "../../actions/prode-group-actions";
 import ImagePicker from "./image-picker";
 import {useRouter} from "next/navigation";
-import {right} from "@popperjs/core";
 import {getThemeLogoUrl} from "../../utils/theme-utils";
 
 type Props = {

@@ -1,16 +1,13 @@
 'use client'
 
-import {Alert, Backdrop, Box, CircularProgress, Grid, Snackbar, useTheme} from "@mui/material";
-import {ChangeEvent, useEffect, useState} from "react";
+import {Alert, Backdrop, Box, CircularProgress, Grid, Snackbar} from "@mui/material";
+import { useEffect, useState} from "react";
 import {ExtendedGameData, ExtendedGroupData} from "../../definitions";
 import {getCompleteGroupData} from "../../actions/tournament-actions";
 import {
-  Game,
   GameResultNew,
   Team,
-  TeamStats,
-  TournamentGroupTeam,
-  TournamentGroupTeamNew
+  TeamStats
 } from "../../db/tables-definition";
 import BackofficeGameView from "./internal/backoffice-game-view";
 import {
@@ -22,12 +19,8 @@ import {
   saveGamesData,
 } from "../../actions/backoffice-actions";
 import GroupTable from "../groups-page/group-table";
-import {DebugObject} from "../debug";
 import {calculateGroupPosition} from "../../utils/group-position-calculator";
-import {updateTournamentGroupTeams} from "../../db/tournament-group-repository";
 import GameResultEditDialog from "../game-result-edit-dialog";
-import {getTeamDescription} from "../../utils/playoffs-rule-helper";
-import {getTeamByName} from "../../db/team-repository";
 
 type Props = {
   group: ExtendedGroupData

@@ -15,8 +15,7 @@ import {
 } from "../db/prode-group-repository";
 import {getLoggedInUser} from "./user-actions";
 import {z} from "zod";
-import {ProdeGroup} from "../db/tables-definition";
-import {createS3Client, deleteThemeLogoFromS3, getS3KeyFromURL} from "./s3";
+import {createS3Client, deleteThemeLogoFromS3} from "./s3";
 import { getGameGuessStatisticsForUsers } from '../db/game-guess-repository';
 import { findTournamentGuessByUserIdsTournament } from '../db/tournament-guess-repository';
 import { customToMap } from "../utils/ObjectUtils";

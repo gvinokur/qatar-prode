@@ -1,6 +1,6 @@
 'use client'
 
-import {useState, ReactNode, useEffect} from 'react';
+import {useState, ReactNode} from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -19,7 +19,6 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import EmailIcon from '@mui/icons-material/Email';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import CloseIcon from '@mui/icons-material/Close';
-import {awardsDefinition} from "../utils/award-utils";
 
 interface InviteFriendsDialogProps {
   trigger: ReactNode;

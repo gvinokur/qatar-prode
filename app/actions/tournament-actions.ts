@@ -4,30 +4,24 @@ import {
   createTournament,
   findAllActiveTournaments, findAllTournaments,
   findTournamentById,
-  findTournamentByName,
   updateTournament
 } from "../db/tournament-repository";
 import {
-  Game, GameNew, GameUpdate, PlayoffRoundNew, PlayoffRoundUpdate,
+  Game, PlayoffRoundNew, PlayoffRoundUpdate,
   Team,
   Tournament,
   TournamentGroup,
-  TournamentGroupTeam, TournamentGroupTeamNew,
-  TournamentNew,
-  TournamentUpdate
+  TournamentNew
 } from "../db/tables-definition";
 import {
-  createGame, deleteGame,
-  findFirstGameInTournament, findGameById,
+  findFirstGameInTournament,
   findGamesAroundCurrentTime,
   findGamesInGroup,
-  findGamesInTournament, updateGame
+  findGamesInTournament
 } from "../db/game-repository";
 import {
   createTournamentGroup,
-  createTournamentGroupGame,
   createTournamentGroupTeam,
-  deleteTournamentGroupGame,
   deleteTournamentGroupTeams,
   findGroupsInTournament,
   findGroupsWithGamesAndTeamsInTournament,
@@ -40,7 +34,7 @@ import {
   findPlayoffStagesWithGamesInTournament,
   updatePlayoffRound
 } from "../db/tournament-playoff-repository";
-import {CompleteGroupData, CompletePlayoffData, CompleteTournamentData} from "../definitions";
+import {CompleteGroupData, CompletePlayoffData} from "../definitions";
 import {toMap} from "../utils/ObjectUtils";
 import {getLoggedInUser} from "./user-actions";
 import {createS3Client, getS3KeyFromURL} from "./s3";

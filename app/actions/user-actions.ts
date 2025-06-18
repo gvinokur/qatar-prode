@@ -16,12 +16,10 @@ import {sendEmail} from "../utils/email";
 import {auth} from "../../auth";
 import {
   deleteAllParticipantsFromGroup, deleteParticipantFromAllGroups, deleteProdeGroup,
-  findProdeGroupsByOwner,
-  findProdeGroupsByParticipant
+  findProdeGroupsByOwner
 } from "../db/prode-group-repository";
 import {deleteAllUserTournamentGuesses} from "../db/tournament-guess-repository";
 import {deleteAllUserGameGuesses} from "../db/game-guess-repository";
-import {signOut} from "next-auth/react";
 import {deleteAllUserTournamentStatsGuesses} from "../db/tournament-group-team-guess-repository";
 
 function generateVerificationToken(): string {

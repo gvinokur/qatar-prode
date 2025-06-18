@@ -3,8 +3,7 @@ import { createBaseFunctions } from "./base-repository";
 import {
   TournamentVenue,
   TournamentVenueNew,
-  TournamentVenueTable,
-  TournamentVenueUpdate
+  TournamentVenueTable
 } from "./tables-definition";
 
 // Create base CRUD functions for tournament venues

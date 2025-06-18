@@ -2,23 +2,17 @@
 
 import {DebugObject} from "../../../components/debug";
 import {getLoggedInUser} from "../../../actions/user-actions";
-import {redirect} from "next/navigation";
 import {getCompletePlayoffData} from "../../../actions/tournament-actions";
 import {findGameGuessesByUserId} from "../../../db/game-guess-repository";
 import {GameGuess, TournamentGuessNew} from "../../../db/tables-definition";
-import {Box, Grid, Chip} from "../../../components/mui-wrappers";
 import {GuessesContextProvider} from "../../../components/context-providers/guesses-context-provider";
-import GameView from "../../../components/game-view";
 import {calculatePlayoffTeamsFromPositions} from "../../../utils/playoff-teams-calculator";
-import {findTournamentGuessByUserIdTournament} from "../../../db/tournament-guess-repository";
 import {findGroupsInTournament} from "../../../db/tournament-group-repository";
 import {findAllTournamentGroupTeamGuessInGroup} from "../../../db/tournament-group-team-guess-repository";
-import {customToMap, toMap} from "../../../utils/ObjectUtils";
-import GamesGrid from "../../../components/games-grid";
+import {customToMap} from "../../../utils/ObjectUtils";
 import {unstable_ViewTransition as ViewTransition} from "react";
-import { Tabs, Tab } from "@mui/material";
 import React from "react";
-import TabbedPlayoffsPage, { Section } from '../../../components/playoffs/tabbed-playoff-page';
+import TabbedPlayoffsPage from '../../../components/playoffs/tabbed-playoff-page';
 
 type Props = {
   params: Promise<{

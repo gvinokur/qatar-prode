@@ -16,9 +16,6 @@ import {
   CircularProgress,
   Alert
 } from '@mui/material';
-import { ExtendedGameData } from '../definitions';
-import {GameGuess, GameGuessNew} from '../db/tables-definition';
-import {calculateTeamNamesForPlayoffGame} from "../utils/playoff-teams-calculator";
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';

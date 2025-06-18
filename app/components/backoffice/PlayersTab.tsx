@@ -16,7 +16,7 @@ import {
   Card,
   CardContent,
   CardHeader, Checkbox,
-  CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Grid,
+  CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel,
   Table,
   TableBody,
   TableCell,
@@ -27,7 +27,6 @@ import {
 } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { getTransfermarktPlayerData } from "../../actions/team-actions";
-import {getTournamentStartDate} from "../../actions/tournament-actions";
 import {getThemeLogoUrl} from "../../utils/theme-utils";
 
 interface PlayerData {

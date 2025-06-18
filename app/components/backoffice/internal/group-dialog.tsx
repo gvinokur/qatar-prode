@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
-import {Team, TournamentGroup, TournamentGroupTeam} from "../../../db/tables-definition";
+import {Team} from "../../../db/tables-definition";
 import {ExtendedGroupData} from "../../../definitions";
 import {createOrUpdateTournamentGroup} from "../../../actions/tournament-actions";
 

@@ -12,8 +12,7 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TableRow,
-  Tabs, Typography, useMediaQuery,
+  TableRow, useMediaQuery,
 } from "@mui/material";
 import {useState} from "react";
 import GroupTournamentBettingAdmin from './group-tournament-betting-admin';

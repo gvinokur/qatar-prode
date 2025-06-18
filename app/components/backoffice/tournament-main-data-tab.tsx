@@ -1,6 +1,6 @@
 'use client'
 
-import {useState, useEffect, Fragment, useCallback} from 'react';
+import {useState, useEffect, useCallback} from 'react';
 import {
   Box,
   Grid,
@@ -15,8 +15,7 @@ import {
   ListItem,
   ListItemText,
   IconButton,
-  Button,
-  Divider, FormControlLabel, Switch
+  Button, FormControlLabel, Switch
 } from "@mui/material";
 import {PlayoffRound, Theme, Tournament} from '../../db/tables-definition';
 import {createOrUpdateTournament, getTournamentById, getPlayoffRounds} from '../../actions/tournament-actions';

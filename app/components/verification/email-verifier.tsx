@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Box, Typography, Paper, Alert } from '../../components/mui-wrappers';
 import {signOut} from "next-auth/react";
 import {verifyUserEmail} from "../../actions/user-actions";
-import {CircularProgress, Link} from "@mui/material";
+import {CircularProgress} from "@mui/material";
 
 interface EmailVerifierProps {
   token: string;

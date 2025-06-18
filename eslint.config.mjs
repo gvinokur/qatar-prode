@@ -8,9 +8,25 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.config({
     extends: ['next', 'prettier'],
+    plugins: ['unused-imports'],
     rules: {
       '@next/next/no-img-element': 'off',
       '@next/next/no-html-link-for-pages': 'off',
+      'no-unused-vars': ['warn', { 
+        'argsIgnorePattern': '^_',
+        'varsIgnorePattern': '^_',
+        'caughtErrorsIgnorePattern': '^_'
+      }],
+      'unused-imports/no-unused-imports': 'error',
+      'unused-imports/no-unused-vars': [
+        'warn',
+        {
+          vars: 'all',
+          varsIgnorePattern: '^_',
+          args: 'after-used',
+          argsIgnorePattern: '^_',
+        },
+      ],
     }
   }),
 ]

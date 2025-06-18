@@ -16,7 +16,7 @@ import AddIcon from '@mui/icons-material/Add';
 import IosShareIcon from '@mui/icons-material/IosShare';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import {InstallMobile, IosShare} from "@mui/icons-material";
+import {InstallMobile} from "@mui/icons-material";
 import NotificationsSubscriptionPrompt from "./notifications-subscription-prompt";
 
 interface BeforeInstallPromptEvent extends Event {

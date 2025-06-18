@@ -1,5 +1,5 @@
 import {Game, GameGuessNew, GameResultNew, TeamStats} from "../db/tables-definition";
-import {getGameWinner, getWinner} from "./score-utils";
+import { getWinner} from "./score-utils";
 
 const initialTeamStats: TeamStats = {
   team_id: '',

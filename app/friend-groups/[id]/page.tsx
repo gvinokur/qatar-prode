@@ -10,11 +10,7 @@ import ProdeGroupTable from "../../components/friend-groups/friends-group-table"
 import {getLoggedInUser} from "../../actions/user-actions";
 import ProdeGroupThemer from "../../components/friend-groups/friend-groups-themer";
 import {findAllActiveTournaments} from "../../db/tournament-repository";
-import {getGameGuessStatisticsForUsers} from "../../db/game-guess-repository";
-import {customToMap, toMap} from "../../utils/ObjectUtils";
-import {findTournamentGuessByUserIdsTournament} from "../../db/tournament-guess-repository";
-import {TournamentGuess} from "../../db/tables-definition";
-import {UserScore} from "../../definitions";
+import { toMap} from "../../utils/ObjectUtils";
 import {InviteFriendsDialogButton} from "../../components/friend-groups/invite-friends-dialog-button";
 import {getThemeLogoUrl} from "../../utils/theme-utils";
 import { getGroupTournamentBettingConfigAction, getGroupTournamentBettingPaymentsAction } from '../../actions/group-tournament-betting-actions';

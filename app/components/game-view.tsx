@@ -1,13 +1,12 @@
 'use client'
 
-import {ChangeEvent, useContext, useEffect, useState} from "react";
+import { useContext} from "react";
 import {calculateScoreForGame} from "../utils/game-score-calculator";
 import {ExtendedGameData} from "../definitions";
 import {Game, Team} from "../db/tables-definition";
 import {GuessesContext} from "./context-providers/guesses-context-provider";
 import {getTeamDescription} from "../utils/playoffs-rule-helper";
 import CompactGameViewCard from "./compact-game-view-card";
-import {calculateTeamNamesForPlayoffGame} from "../utils/playoff-teams-calculator";
 
 type GameViewProps = {
   game: ExtendedGameData,

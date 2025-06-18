@@ -31,7 +31,6 @@ import {
   Game,
   GameGuess,
   GameNew,
-  GameResult,
   PlayerNew,
   Team,
   Tournament, TournamentGroup,
@@ -72,13 +71,11 @@ import {db} from "../db/database";
 import {calculateScoreForGame} from "../utils/game-score-calculator";
 import {
   findTournamentGuessByTournament,
-  findTournamentGuessByUserIdTournament,
   updateTournamentGuess,
   updateTournamentGuessByUserIdTournament
 } from "../db/tournament-guess-repository";
 import {awardsDefinition} from "../utils/award-utils";
 import {getLoggedInUser} from "./user-actions";
-import { TournamentGroupTeamTable, TournamentGroupTeamStatsGuess } from '../db/tables-definition';
 import { findAllTournamentGroupTeamGuessInGroup } from '../db/tournament-group-team-guess-repository';
 
 export async function deleteDBTournamentTree(tournament: Tournament) {

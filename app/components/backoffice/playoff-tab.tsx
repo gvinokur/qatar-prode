@@ -1,7 +1,7 @@
 'use client'
 
-import {Alert, Backdrop, Box, CircularProgress, Divider, Grid, Snackbar, Typography} from "@mui/material";
-import {ChangeEvent, useEffect, useState} from "react";
+import {Alert, Backdrop, Box, CircularProgress, Grid, Snackbar, Typography} from "@mui/material";
+import { useEffect, useState} from "react";
 import {ExtendedGameData, ExtendedPlayoffRoundData} from "../../definitions";
 import {GameResultNew, Team} from "../../db/tables-definition";
 import {getCompletePlayoffData} from "../../actions/tournament-actions";

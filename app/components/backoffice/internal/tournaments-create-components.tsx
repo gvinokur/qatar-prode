@@ -1,7 +1,7 @@
 'use client'
 
 import {TournamentBaseData} from "../../../../data/tournaments";
-import {Box, Button, Grid, MenuItem, Paper, Select, SelectChangeEvent, Typography, useTheme} from "@mui/material";
+import { Button, Grid, MenuItem, Paper, Select, SelectChangeEvent, Typography, useTheme} from "@mui/material";
 import {useState} from "react";
 
 type Props = {

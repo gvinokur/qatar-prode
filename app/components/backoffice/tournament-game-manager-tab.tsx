@@ -26,7 +26,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SportsIcon from '@mui/icons-material/Sports';
-import { Game, Team, TournamentGroup } from "../../db/tables-definition";
+import { Game, Team } from "../../db/tables-definition";
 import {
   getCompleteTournamentGroups,
   getPlayoffRounds,

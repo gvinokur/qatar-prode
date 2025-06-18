@@ -1,6 +1,5 @@
 import {
   Game,
-  GameResult,
   GameResultNew,
   Player,
   PlayoffRound,

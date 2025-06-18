@@ -1,6 +1,6 @@
 import { db } from './database'
 import {createBaseFunctions} from "./base-repository";
-import {PlayoffRound, PlayoffRoundGameTable, PlayoffRoundTable, TournamentGroupGameTable} from "./tables-definition";
+import {PlayoffRound, PlayoffRoundGameTable, PlayoffRoundTable} from "./tables-definition";
 import {jsonArrayFrom} from "kysely/helpers/postgres";
 
 const baseFunctions = createBaseFunctions<PlayoffRoundTable, PlayoffRound>('tournament_playoff_rounds');

@@ -1,5 +1,5 @@
 import {createBaseFunctions} from "./base-repository";
-import {Game, GameGuess, GameResult, GameResultNew, GameTable} from "./tables-definition";
+import {Game, GameGuess, GameResultNew, GameTable} from "./tables-definition";
 import {db} from "./database";
 import {jsonArrayFrom, jsonObjectFrom} from "kysely/helpers/postgres";
 import {sql} from "kysely";

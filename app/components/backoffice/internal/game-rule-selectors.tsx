@@ -8,7 +8,7 @@ import {
   InputLabel,
   MenuItem, Radio, RadioGroup,
   Select,
-  SelectChangeEvent, Switch,
+  SelectChangeEvent,
   TextField
 } from "@mui/material";
 

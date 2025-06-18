@@ -3,7 +3,6 @@
 import {ExtendedGameData} from "../../../definitions";
 import {Team} from "../../../db/tables-definition";
 import {getTeamDescription} from "../../../utils/playoffs-rule-helper";
-import {ChangeEvent} from "react";
 import CompactGameViewCard from "../../compact-game-view-card";
 
 type Props = {

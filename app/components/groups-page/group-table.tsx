@@ -1,7 +1,7 @@
 'use client'
 import {
   Avatar,
-  Box, Grid,
+  Box,
   Paper,
   Table,
   TableBody,
@@ -13,11 +13,9 @@ import {
 } from "@mui/material";
 import {Close as MissIcon, Done as HitIcon} from "@mui/icons-material";
 import {useTheme} from "@mui/system";
-import {useContext, useEffect, useState} from "react";
+import {useContext, useState} from "react";
 import {GuessesContext} from "../context-providers/guesses-context-provider";
-import {ExtendedGameData} from "../../definitions";
 import {Team, TeamStats} from "../../db/tables-definition";
-import {calculateGroupPosition} from "../../utils/group-position-calculator";
 
 type Props = {
   isPredictions: boolean,

@@ -1,5 +1,4 @@
 import {Box, BoxProps} from "@mui/material";
-import {useRef, useState} from "react";
 
 interface TabPanelProps extends BoxProps{
   children?: React.ReactNode;

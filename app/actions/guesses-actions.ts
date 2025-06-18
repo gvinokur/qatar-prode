@@ -2,7 +2,7 @@
 
 import {getLoggedInUser} from "./user-actions";
 import {GameGuessNew, TournamentGroupTeamStatsGuessNew, TournamentGuessNew, UserUpdate} from "../db/tables-definition";
-import {updateGameGuess, updateGameGuessByGameId, updateOrCreateGuess} from "../db/game-guess-repository";
+import { updateGameGuessByGameId, updateOrCreateGuess} from "../db/game-guess-repository";
 import {updateOrCreateTournamentGuess as dbUpdateOrCreateTournamentGuess} from "../db/tournament-guess-repository";
 import {
   findAllTournamentGroupTeamGuessInGroup,
@@ -14,7 +14,6 @@ import {ExtendedPlayoffRoundData} from "../definitions";
 import {findPlayoffStagesWithGamesInTournament} from "../db/tournament-playoff-repository";
 import {findGamesInTournament} from "../db/game-repository";
 import {toMap} from "../utils/ObjectUtils";
-import {Updateable} from "kysely";
 import {db} from "../db/database";
 
 export async function updateOrCreateGameGuesses(gameGuesses: GameGuessNew[]) {

@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import {
   Box,
   Button,
-  Checkbox,
-  FormControlLabel,
   TextField,
   Typography,
   Paper,

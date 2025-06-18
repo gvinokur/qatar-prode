@@ -6,7 +6,6 @@ import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import validator from "validator";
 import { useState } from "react";
 import { signupUser } from "../../actions/user-actions";
-import { LoginFormData } from "./login-form";
 import {User} from "../../db/tables-definition";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";

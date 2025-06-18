@@ -1,7 +1,7 @@
 import {createBaseFunctions} from "./base-repository";
-import {Player, PlayerTable, PlayerUpdate} from "./tables-definition";
+import {Player, PlayerTable} from "./tables-definition";
 import {db} from "./database";
-import {jsonArrayFrom, jsonObjectFrom} from "kysely/helpers/postgres";
+import { jsonObjectFrom} from "kysely/helpers/postgres";
 import {ExtendedPlayerData} from "../definitions";
 
 const tableName = 'players'

@@ -1,7 +1,4 @@
 import {NextRequest, NextResponse} from 'next/server';
-import {findAllGamesWithPublishedResultsAndGameGuesses} from "../../db/game-repository";
-import {calculateScoreForGame} from "../../utils/game-score-calculator";
-import {findAllGuessesForGamesWithResultsInDraft, updateGameGuess} from "../../db/game-guess-repository";
 import {calculateGameScores} from "../../actions/backoffice-actions";
 
 export const maxDuration = 60;

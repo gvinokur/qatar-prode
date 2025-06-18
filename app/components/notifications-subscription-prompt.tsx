@@ -9,13 +9,10 @@ import {
   Stack
 } from '@mui/material';
 import { useSession } from 'next-auth/react';
-import {subscribeUser} from "../actions/notifiaction-actions";
-import {PushSubscription} from "web-push";
 import {
   checkExistingSubscription,
   isNotificationSupported,
-  subscribeToNotifications,
-  urlBase64ToUint8Array
+  subscribeToNotifications
 } from "../utils/notifications-utils";
 
 

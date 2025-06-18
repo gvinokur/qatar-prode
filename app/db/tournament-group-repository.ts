@@ -3,8 +3,7 @@ import {createBaseFunctions} from "./base-repository";
 import {
   TournamentGroup,
   TournamentGroupGameTable,
-  TournamentGroupTable, TournamentGroupTeamNew,
-  TournamentGroupTeamTable, TournamentGroupTeamUpdate,
+  TournamentGroupTable, TournamentGroupTeamNew, TournamentGroupTeamUpdate,
 } from "./tables-definition";
 import {jsonArrayFrom} from "kysely/helpers/postgres";
 

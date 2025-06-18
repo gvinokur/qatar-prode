@@ -1,4 +1,4 @@
-import {GameGuessNew, GameResult} from "../db/tables-definition";
+import {GameGuessNew} from "../db/tables-definition";
 import {ExtendedGameData} from "../definitions";
 
 

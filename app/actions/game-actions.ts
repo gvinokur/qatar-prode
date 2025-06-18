@@ -2,8 +2,6 @@
 import {
   createGame,
   deleteGame,
-  findAllGamesWithPublishedResultsAndGameGuesses, findGameById,
-  findGamesInGroup,
   findGamesInTournament,
   updateGame
 } from "../db/game-repository";

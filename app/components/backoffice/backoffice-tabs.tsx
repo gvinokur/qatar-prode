@@ -2,7 +2,7 @@
 
 import {Box, Tab, Tabs, Tooltip, useMediaQuery} from "@mui/material";
 import TabPanel from "../tab-panel";
-import {useCallback, useRef, useState} from "react";
+import {useCallback, useState} from "react";
 import {BugReport} from "@mui/icons-material";
 
 

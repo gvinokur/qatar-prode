@@ -1,6 +1,6 @@
 import { db } from './database'
 import { createBaseFunctions} from "./base-repository";
-import {ProdeGroupTable, ProdeGroup, ProdeGroupTournamentBetting, ProdeGroupTournamentBettingNew, ProdeGroupTournamentBettingUpdate, ProdeGroupTournamentBettingPayment, ProdeGroupTournamentBettingPaymentNew, ProdeGroupTournamentBettingPaymentUpdate} from "./tables-definition";
+import {ProdeGroupTable, ProdeGroup, ProdeGroupTournamentBetting, ProdeGroupTournamentBettingNew, ProdeGroupTournamentBettingUpdate, ProdeGroupTournamentBettingPayment} from "./tables-definition";
 import {cache} from "react";
 import {User} from "next-auth";
 

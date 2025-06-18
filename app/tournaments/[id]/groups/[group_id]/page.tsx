@@ -2,20 +2,16 @@
 
 import {getCompleteGroupData} from "../../../../actions/tournament-actions";
 import {DebugObject} from "../../../../components/debug";
-import GroupSelector from "../../../../components/groups-page/group-selector";
-import {Box, Grid} from "../../../../components/mui-wrappers";
+import { Grid} from "../../../../components/mui-wrappers";
 import {GameGuess, Team, TournamentGroupTeamStatsGuess} from "../../../../db/tables-definition";
-import GameView from "../../../../components/game-view";
-import {ExtendedGameData} from "../../../../definitions";
-import {GuessesContextProvider, GuessesContext} from "../../../../components/context-providers/guesses-context-provider";
+import {GuessesContextProvider} from "../../../../components/context-providers/guesses-context-provider";
 import GroupTable from "../../../../components/groups-page/group-table";
 import {findGameGuessesByUserId} from "../../../../db/game-guess-repository";
 import {getLoggedInUser} from "../../../../actions/user-actions";
-import {redirect} from "next/navigation";
 import {findGuessedQualifiedTeams, findQualifiedTeams} from "../../../../db/team-repository";
 import {calculateGroupPosition} from "../../../../utils/group-position-calculator";
 import {findAllTournamentGroupTeamGuessInGroup} from "../../../../db/tournament-group-team-guess-repository";
-import {customToMap, toMap} from "../../../../utils/ObjectUtils";
+import {customToMap} from "../../../../utils/ObjectUtils";
 import GamesGrid from "../../../../components/games-grid";
 import { unstable_ViewTransition as ViewTransition} from 'react'
 

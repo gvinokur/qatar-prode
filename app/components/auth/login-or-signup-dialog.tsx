@@ -3,8 +3,7 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from "@mui/material";
 import * as React from "react";
 import { useState } from "react";
-import { signIn } from "next-auth/react";
-import LoginForm, { LoginFormData } from "./login-form";
+import LoginForm from "./login-form";
 import SignupForm from "./signup-form";
 import ForgotPasswordForm from "./forgot-password-form";
 import ResetSentView from "./reset-sent-view";

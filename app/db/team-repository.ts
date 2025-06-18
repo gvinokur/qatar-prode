@@ -1,5 +1,5 @@
 import {createBaseFunctions} from "./base-repository";
-import {Team, TeamNew, TeamTable, TournamentTable} from "./tables-definition";
+import {Team, TeamTable} from "./tables-definition";
 import {db} from "./database";
 import {cache} from 'react'
 

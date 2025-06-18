@@ -1,7 +1,7 @@
 // mark as client component
 "use client";
 
-import {SessionProvider, useSession} from "next-auth/react"
+import {SessionProvider} from "next-auth/react"
 
 import React from 'react'
 

@@ -1,10 +1,10 @@
 'use client'
 
 
-import {Chip, Grid} from "./mui-wrappers";
+import { Grid} from "./mui-wrappers";
 import GameView from "./game-view";
 import {ExtendedGameData} from "../definitions";
-import {Game, GameGuess, GameGuessNew, Team} from "../db/tables-definition";
+import {Game, GameGuessNew, Team} from "../db/tables-definition";
 import {useContext, useEffect, useState} from "react";
 import {GuessesContext} from "./context-providers/guesses-context-provider";
 import GameResultEditDialog from "./game-result-edit-dialog";
@@ -12,7 +12,6 @@ import {getTeamDescription} from "../utils/playoffs-rule-helper";
 import {useSession} from "next-auth/react";
 import {calculateTeamNamesForPlayoffGame} from "../utils/playoff-teams-calculator";
 import { getGuessLoser, getGuessWinner } from "../utils/score-utils";
-import { updateTournamentGuess } from "../db/tournament-guess-repository";
 import { updateOrCreateTournamentGuess } from "../actions/guesses-actions";
 
 type GamesGridProps =  {

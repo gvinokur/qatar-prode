@@ -2,7 +2,7 @@
 
 import {getLoggedInUser} from "../actions/user-actions";
 import {redirect} from "next/navigation";
-import {Alert, AlertTitle, Box, Button} from "../components/mui-wrappers";
+import {Alert, AlertTitle, Box} from "../components/mui-wrappers";
 import {
   BackofficeTabs,
 } from "../components/backoffice/backoffice-tabs";

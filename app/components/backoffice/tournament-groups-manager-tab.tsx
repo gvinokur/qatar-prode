@@ -17,7 +17,7 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import GroupDialog from './internal/group-dialog';
-import {Team, TournamentGroup, TournamentGroupTeam} from "../../db/tables-definition";
+import {Team} from "../../db/tables-definition";
 import {getCompleteTournamentGroups, getTeamsMap} from "../../actions/tournament-actions";
 import {ExtendedGroupData} from "../../definitions";
 

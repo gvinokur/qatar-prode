@@ -6,8 +6,7 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
-  DialogTitle, FormControlLabel, Grid, Switch,
+  DialogTitle, FormControlLabel, Switch,
   TextField
 } from "@mui/material";
 import {Controller, useForm} from "react-hook-form";

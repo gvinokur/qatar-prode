@@ -1,8 +1,7 @@
 import {db} from './database'
 import {createBaseFunctions} from "./base-repository";
-import {GameGuessTable, GameGuess, GameGuessUpdate, GameGuessNew} from "./tables-definition";
+import {GameGuessTable, GameGuess, GameGuessNew} from "./tables-definition";
 import {GameStatisticForUser} from "../../types/definitions";
-import {integerPropType} from "@mui/utils";
 import {cache} from "react";
 
 const tableName = 'game_guesses'

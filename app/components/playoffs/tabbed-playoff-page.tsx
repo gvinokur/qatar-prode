@@ -3,8 +3,6 @@ import React from "react";
 import { Tabs, Tab, Box, useMediaQuery, useTheme } from "@mui/material";
 import { Grid } from '../mui-wrappers';
 import GamesGrid from '../games-grid';
-import { GuessesContextProvider } from '../context-providers/guesses-context-provider';
-import { unstable_ViewTransition as ViewTransition } from 'react';
 
 export type Section = { section: string; games: any[] };
 

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import {Alert, Box, Button, Grid, IconButton, Input, Paper, Typography} from "@mui/material";
+import {Alert, Box, Button, Grid, IconButton, Typography} from "@mui/material";
 import {UploadFile, Delete, CropOriginal} from '@mui/icons-material'
 
 interface ImagePickerProps {

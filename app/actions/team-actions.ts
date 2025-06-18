@@ -2,8 +2,8 @@
 
 import { getLoggedInUser } from './user-actions';
 import {Player, PlayerNew, Team} from '../db/tables-definition';
-import {createS3Client, deleteThemeLogoFromS3, getS3KeyFromURL} from "./s3";
-import {createTeam as createTeamInDb, updateTeam as updateTeaminDb, findTeamInTournament, findTeamInGroup} from "../db/team-repository";
+import {createS3Client, deleteThemeLogoFromS3} from "./s3";
+import {createTeam as createTeamInDb, updateTeam as updateTeaminDb, findTeamInTournament} from "../db/team-repository";
 import {createTournamentTeam} from "../db/tournament-repository";
 import * as cheerio from 'cheerio';
 import {

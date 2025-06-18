@@ -5,7 +5,6 @@ import {
   Box,
   Button,
   Card,
-  CardContent,
   CardMedia,
   CircularProgress,
   Grid,
@@ -17,7 +16,6 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
 import { Team } from '../../db/tables-definition';
 import { getTeamsMap } from '../../actions/tournament-actions';
 import TeamDialog from './internal/team-dialog';

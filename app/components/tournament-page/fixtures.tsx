@@ -1,7 +1,6 @@
 'use client'
 
-import { Card, CardContent, CardHeader, Chip, Grid, Typography, useTheme} from "@mui/material";
-import {Fragment} from "react";
+import { Card, CardContent, CardHeader, Grid, useTheme} from "@mui/material";
 import {Team} from "../../db/tables-definition";
 import {ExtendedGameData} from "../../definitions";
 import CompactGameViewCard from "../compact-game-view-card";
