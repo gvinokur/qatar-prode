@@ -10,8 +10,7 @@ import {calculatePlayoffTeamsFromPositions} from "../../../utils/playoff-teams-c
 import {findGroupsInTournament} from "../../../db/tournament-group-repository";
 import {findAllTournamentGroupTeamGuessInGroup} from "../../../db/tournament-group-team-guess-repository";
 import {customToMap} from "../../../utils/ObjectUtils";
-import {unstable_ViewTransition as ViewTransition} from "react";
-import React from "react";
+import {default as React, unstable_ViewTransition as ViewTransition} from "react";
 import TabbedPlayoffsPage from '../../../components/playoffs/tabbed-playoff-page';
 
 type Props = {

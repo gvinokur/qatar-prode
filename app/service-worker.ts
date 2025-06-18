@@ -14,7 +14,6 @@ declare global {
 declare const self: ServiceWorkerGlobalScope;
 let notificationCount = 0;
 
-
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
   skipWaiting: true,

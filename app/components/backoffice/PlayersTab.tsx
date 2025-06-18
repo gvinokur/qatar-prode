@@ -5,7 +5,8 @@ import {Player, PlayerNew, Team} from "../../db/tables-definition";
 import {
   createTournamentTeamPlayers,
   deleteTournamentTeamPlayers,
-  getPlayersInTournament
+  getPlayersInTournament,
+  getTransfermarktPlayerData
 } from "../../actions/team-actions";
 import {
   Accordion,
@@ -26,7 +27,6 @@ import {
   Typography
 } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { getTransfermarktPlayerData } from "../../actions/team-actions";
 import {getThemeLogoUrl} from "../../utils/theme-utils";
 
 interface PlayerData {

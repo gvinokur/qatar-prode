@@ -34,16 +34,6 @@ export async  function generateMetadata() {
   } as Metadata;
 }
 
-export async function createViewport() {
-  return {
-    themeColor: '#242424',
-    colorScheme: 'dark light',
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-  }
-}
-
 export default async function RootLayout({
                                      // Layouts must accept a children prop.
                                      // This will be populated with nested layouts or pages

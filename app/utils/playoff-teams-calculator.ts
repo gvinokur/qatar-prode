@@ -125,7 +125,7 @@ export function calculatePlayoffTeamsFromPositions(
 ) {
   // Keep only groups that are complete
   const groupTableMap = Object.fromEntries(
-    Object.entries(positionsByGroup).filter(([group_letter, teamPositions]) => {
+    Object.entries(positionsByGroup).filter(([_, teamPositions]) => {
       //How do I know all games where played?
       return groupCompleteReducer(teamPositions)
     }))

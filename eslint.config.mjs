@@ -27,6 +27,7 @@ const eslintConfig = [
           argsIgnorePattern: '^_',
         },
       ],
+      'no-duplicate-imports': 'off',
     }
   }),
 ]

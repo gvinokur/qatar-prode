@@ -10,7 +10,6 @@ import {
   findUserByResetToken,
   findUserByVerificationToken, verifyEmail, deleteUser
 } from "../db/users-repository"
-import {randomBytes} from "crypto";
 import {generatePasswordResetEmail, generateVerificationEmail} from "../utils/email-templates";
 import {sendEmail} from "../utils/email";
 import {auth} from "../../auth";
@@ -97,7 +96,7 @@ export async function sendPasswordResetLink(email: string) {
   }
 
   // Generate a random token
-  const resetToken = randomBytes(32).toString('hex');
+  const resetToken = crypto.randomBytes(32).toString('hex');
 
   // Set expiration time (1 hour from now)
   const resetTokenExpiration = new Date();

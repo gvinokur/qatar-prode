@@ -58,7 +58,7 @@ import {
   updateGameResult
 } from "../db/game-result-repository";
 import {calculatePlayoffTeams} from "../utils/playoff-teams-calculator";
-import {findAllUserTournamentGroupsWithoutGuesses} from "../db/tournament-group-team-guess-repository";
+import {findAllUserTournamentGroupsWithoutGuesses, findAllTournamentGroupTeamGuessInGroup} from "../db/tournament-group-team-guess-repository";
 import {
   findAllGuessesForGamesWithResultsInDraft,
   findGameGuessesByUserId,
@@ -76,7 +76,6 @@ import {
 } from "../db/tournament-guess-repository";
 import {awardsDefinition} from "../utils/award-utils";
 import {getLoggedInUser} from "./user-actions";
-import { findAllTournamentGroupTeamGuessInGroup } from '../db/tournament-group-team-guess-repository';
 
 export async function deleteDBTournamentTree(tournament: Tournament) {
   // delete from tournament_playoff_round_games ;
