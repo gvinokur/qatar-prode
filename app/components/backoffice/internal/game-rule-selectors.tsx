@@ -14,7 +14,7 @@ import {
 
 interface GroupPositionSelectorProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (_value: string) => void;
   groups: ExtendedGroupData[];
   disabled?: boolean;
 }
@@ -35,7 +35,7 @@ export const GroupPositionSelector: React.FC<GroupPositionSelectorProps> = ({
         setSelectedGroups(parsed.group ? parsed.group.split('/') : []);
         setPosition(parsed.position);
       }
-    } catch (e) {
+    } catch (_e) {
       // If parsing fails, initialize with defaults
       setSelectedGroups([]);
       setPosition(1);
@@ -99,7 +99,7 @@ export const GroupPositionSelector: React.FC<GroupPositionSelectorProps> = ({
 
 interface GameWinnerSelectorProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (_value: string) => void;
   currentGameNumber: number;
   disabled?: boolean;
 }
@@ -120,7 +120,7 @@ export const GameWinnerSelector: React.FC<GameWinnerSelectorProps> = ({
         setGameNumber(parsed.game);
         setIsWinner(parsed.winner);
       }
-    } catch (e) {
+    } catch (_e) {
       // If parsing fails, initialize with defaults
       setGameNumber(0);
       setIsWinner(true);

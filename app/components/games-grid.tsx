@@ -51,8 +51,7 @@ export default function GamesGrid({ teamsMap, games, isPlayoffs, isLoggedIn = tr
           true,
           game,
           gameGuesses,
-          Object.fromEntries(games.map(game => [game.id, game])),
-          gameGuess
+          Object.fromEntries(games.map(game => [game.id, game]))
         )
         if(result) {
           const {homeTeam, awayTeam} = result

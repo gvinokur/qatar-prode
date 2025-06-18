@@ -11,7 +11,7 @@ import VerificationSentView from "./verification-sent-view";
 import {User} from "../../db/tables-definition";
 
 type LoginOrSignupProps = {
-  handleCloseLoginDialog: (forceClose?: boolean) => void;
+  handleCloseLoginDialog: (_forceClose?: boolean) => void;
   openLoginDialog: boolean
 }
 

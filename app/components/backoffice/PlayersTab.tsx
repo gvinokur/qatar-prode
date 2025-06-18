@@ -29,12 +29,6 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {getThemeLogoUrl} from "../../utils/theme-utils";
 
-interface PlayerData {
-  name: string;
-  position: string;
-  dateOfBirth: string;
-}
-
 interface TeamWithPlayers {
   team: Team;
   players: Player[];
@@ -159,7 +153,7 @@ export default function PlayersTab({tournamentId}: {tournamentId: string}) {
           <div>
             {teamsWithPlayers
               .sort((a, b) => a.team.name.localeCompare(b.team.name))
-              .map((teamData, index) => (
+              .map((teamData) => (
               <Accordion
                 key={teamData.team.id}
                 expanded={expandedTeam === `panel-${teamData.team.id}`}

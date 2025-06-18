@@ -12,7 +12,7 @@ type ForgotPasswordFormData = {
 }
 
 type ForgotPasswordFormProps = {
-  onSuccess: (email: string) => void;
+  onSuccess: (_email: string) => void;
 }
 
 

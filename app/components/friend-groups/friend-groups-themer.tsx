@@ -54,7 +54,7 @@ export default function ProdeGroupThemer({ group }: Props) {
           <Controller
             control={control}
             name={'nombre'}
-            render={({ field, fieldState }) => (
+            render={({ field, fieldState: fieldState }) => (
               <TextField
                 {...field}
                 label="Nombre del grupo"
@@ -68,21 +68,21 @@ export default function ProdeGroupThemer({ group }: Props) {
           <Controller
             control={control}
             name={'primary_color'}
-            render={({field, fieldState}) => (
+            render={({field}) => (
               <MuiColorInput {...field} format="hex" margin='dense' fullWidth/>
             )}
           />
           <Controller
             control={control}
             name={'secondary_color'}
-            render={({field, fieldState}) => (
+            render={({field}) => (
               <MuiColorInput {...field} format="hex" margin='dense' fullWidth/>
             )}
           />
           <Controller
             control={control}
             name={'file'}
-            render={({field, fieldState}) => (
+            render={({field}) => (
               <ImagePicker {...field}
                            id={'file'}
                            defaultValue={getThemeLogoUrl(group.theme) || undefined}

@@ -9,51 +9,23 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import CloseIcon from '@mui/icons-material/Close';
 import Slide from '@mui/material/Slide';
-import { FixedSizeList, ListChildComponentProps } from 'react-window';
 
 // Transition for Dialog
 const Transition = forwardRef(function Transition(props: any, ref: React.Ref<unknown>) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-// Custom ListboxComponent for virtualization
-const ListboxComponent = forwardRef(function ListboxComponent(props: any, ref: React.Ref<HTMLDivElement>) {
-  const { children, ...other } = props;
-  const itemData = React.Children.toArray(children);
-  const itemSize = 48;
-
-  const renderRow = ({ index, style }: ListChildComponentProps) => (
-    <div style={style}>
-      {itemData[index]}
-    </div>
-  );
-
-  return (
-    <div ref={ref}>
-      <FixedSizeList
-        height={Math.min(itemData.length * itemSize, 300)}
-        itemCount={itemData.length}
-        itemSize={itemSize}
-        width="100%"
-        {...other}
-      >
-        {renderRow}
-      </FixedSizeList>
-    </div>
-  );
-});
-
 // Props type for the component
 interface MobileFriendlyAutocompleteProps<T> {
   label: string;
   options: T[];
-  groupBy?: (option: T) => string;
-  getOptionLabel: (option: T) => string;
+  groupBy?: (_option: T) => string;
+  getOptionLabel: (_option: T) => string;
   value: T | null;
-  onChange: (event: React.SyntheticEvent, value: T | null) => void;
+  onChange: (_event: React.SyntheticEvent, _value: T | null) => void;
   disabled?: boolean;
-  renderOption?: (props: React.HTMLAttributes<HTMLLIElement>, option: T) => React.ReactNode;
-  renderInput: (params: any) => React.ReactNode;
+  renderOption?: (_props: React.HTMLAttributes<HTMLLIElement>, _option: T) => React.ReactNode;
+  renderInput: (_params: any) => React.ReactNode;
   [key: string]: any; // for any other Autocomplete props
 }
 
@@ -77,8 +49,13 @@ function MobileFriendlyAutocomplete<T>(props: MobileFriendlyAutocompleteProps<T>
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  const handleInputChange = (event: any, newInputValue: string) => {
+  const handleInputChange = (_event: any, newInputValue: string) => {
     setInputValue(newInputValue);
+  };
+
+  const handleChange = (_event: any, newValue: T | null) => {
+    onChange?.(_event, newValue);
+    handleClose();
   };
 
   return (
@@ -117,10 +94,7 @@ function MobileFriendlyAutocomplete<T>(props: MobileFriendlyAutocompleteProps<T>
             groupBy={groupBy}
             getOptionLabel={getOptionLabel}
             value={value}
-            onChange={(event, newValue) => {
-              onChange?.(event, newValue);
-              handleClose();
-            }}
+            onChange={handleChange}
             inputValue={inputValue}
             onInputChange={handleInputChange}
             renderInput={renderInput}

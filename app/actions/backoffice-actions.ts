@@ -472,8 +472,7 @@ export async function calculateAndStoreQualifiedTeamsPoints(tournamentId: string
 }
 
 export async function findDataForAwards(tournamentId: string) {
-  const [_id, _theme, _short_name, _long_name, _is_active] = [null, null, null, null, null];
-  const [{id, theme, short_name, long_name, is_active, ...tournamentUpdate}, players] =
+  const [{id: _id, theme: _theme, short_name: _short_name, long_name: _long_name, is_active: _is_active, ...tournamentUpdate}, players] =
     await Promise.all([findTournamentById(tournamentId), findAllPlayersInTournamentWithTeamData(tournamentId)])
 
   return {
