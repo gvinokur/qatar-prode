@@ -21,7 +21,7 @@ export async function updateOrCreateGameGuesses(gameGuesses: GameGuessNew[]) {
   if(!user) {
     return 'Unauthorized action'
   }
-  const createdGameGuesses = await Promise.all(
+  const _createdGameGuesses = await Promise.all(
     gameGuesses.map(gameGuess => {
       return updateOrCreateGuess({
         ...gameGuess,

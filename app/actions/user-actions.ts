@@ -197,8 +197,8 @@ async function sendVerificationEmail(user: User) {
     const result = await sendEmail(generateVerificationEmail(user.email, verificationLink));
 
     return result;
-  } catch (error) {
-    console.error('Failed to send verification email:', error);
+  } catch (_error) {
+    console.error('Failed to send verification email:', _error);
     return { success: false, error: 'Failed to send verification email' };
   }
 }

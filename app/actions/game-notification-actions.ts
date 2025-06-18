@@ -56,7 +56,7 @@ export async function notifyGameFinished(game: {
   const away = game.away_team || 'Equipo por definir';
   const homeScore = typeof game.home_score === 'number' ? game.home_score : '-';
   const awayScore = typeof game.away_score === 'number' ? game.away_score : '-';
-  const location = game.location ? ` en ${game.location}` : '';
+  const _location = game.location ? ` en ${game.location}` : '';
   const date = new Date(game.game_date).toLocaleString('es-AR', {
     dateStyle: 'medium',
     timeStyle: 'short',

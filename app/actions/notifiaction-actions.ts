@@ -22,7 +22,7 @@ setVapidDetails(
   process.env.VAPID_PRIVATE_KEY!
 )
 
-let subscription: PushSubscription | null = null
+const _subscription = null;
 
 export async function subscribeUser(sub: PushSubscription) {
   const user = await getLoggedInUser()
