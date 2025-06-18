@@ -307,7 +307,7 @@ export function calculateTeamNamesForPlayoffGame(isPlayoffGame: boolean, game: E
   [k: string]: GameGuessNew
 }, gamesMap: {
   [p: string]: Game
-} | undefined, gameGuess: GameGuessNew) {
+} | undefined) {
   /**
    * Recalculate the home and away teams for playoffs of rounds below the first playoff round every time
    * a guess in the playoffs change.
