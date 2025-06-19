@@ -24,7 +24,7 @@ interface TeamDialogProps {
   onClose: () => void;
   tournamentId: string;
   team?: Team | null; // Optional team for edit mode
-  onTeamSaved: (team: Team) => void;
+  onTeamSaved: (_team: Team) => void;
 }
 
 export default function TeamDialog({
@@ -107,7 +107,7 @@ export default function TeamDialog({
 
       if (isEditMode && team) {
         // Update existing team
-        savedTeam = await updateTeam(team.id, formData, tournamentId);
+        savedTeam = await updateTeam(team.id, formData);
       } else {
         // Create new team
         savedTeam = await createTeam(formData, tournamentId);
@@ -118,9 +118,9 @@ export default function TeamDialog({
 
       // Notify parent component
       onTeamSaved(savedTeam);
-    } catch (err: any) {
-      console.error(`Error ${isEditMode ? 'updating' : 'creating'} team:`, err);
-      setError(err.message || `Error ${isEditMode ? 'updating' : 'creating'} team`);
+    } catch {
+      console.error(`Error ${isEditMode ? 'updating' : 'creating'} team`);
+      setError(`Error ${isEditMode ? 'updating' : 'creating'} team`);
     } finally {
       setLoading(false);
     }

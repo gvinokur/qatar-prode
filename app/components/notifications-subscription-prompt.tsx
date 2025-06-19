@@ -19,7 +19,6 @@ import {
 export default function NotificationsSubscriptionPrompt({ canOpen }: { canOpen: boolean }  ) {
   const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
-  const [openUnregister, setOpenUnregister] = useState(false)
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -100,7 +99,7 @@ export default function NotificationsSubscriptionPrompt({ canOpen }: { canOpen: 
     }
   };
 
-  if (loading || (!open && !openUnregister)) {
+  if (loading || !open) {
     return null;
   }
 

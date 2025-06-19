@@ -24,7 +24,7 @@ export default function VerificationBanner() {
       } else {
         setError( 'Failed to resend verification email');
       }
-    } catch (error) {
+    } catch {
       setError('An unexpected error occurred');
     } finally {
       setIsResending(false);

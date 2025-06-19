@@ -30,8 +30,7 @@ import { Game, Team } from "../../db/tables-definition";
 import {
   getCompleteTournamentGroups,
   getPlayoffRounds,
-  getTeamsMap,
-  getTournamentById
+  getTeamsMap
 } from "../../actions/tournament-actions";
 import GameDialog from './internal/game-dialog';
 import {getGamesInTournament} from "../../actions/game-actions";
@@ -66,12 +65,11 @@ const TournamentGameManager: React.FC<TournamentGameManagerProps> = ({ tournamen
     setError(null);
 
     try {
-      const [gamesData, teamsData, groupsData, playoffData, tournamentData] = await Promise.all([
+      const [gamesData, teamsData, groupsData, playoffData] = await Promise.all([
         getGamesInTournament(tournamentId),
         getTeamsMap(tournamentId),
         getCompleteTournamentGroups(tournamentId),
         getPlayoffRounds(tournamentId),
-        getTournamentById(tournamentId)
       ]);
 
       // Sort games by game number
@@ -81,8 +79,8 @@ const TournamentGameManager: React.FC<TournamentGameManagerProps> = ({ tournamen
       setTeams(teamsData);
       setGroups(groupsData);
       setPlayoffStages(playoffData);
-    } catch (err) {
-      console.error('Error loading tournament data:', err);
+    } catch {
+      console.error('Error loading tournament data');
       setError('Failed to load tournament data. Please try again.');
     } finally {
       setLoading(false);
@@ -133,8 +131,8 @@ const TournamentGameManager: React.FC<TournamentGameManagerProps> = ({ tournamen
       console.log('Deleting game:', gameToDelete.id);
       handleCloseDeleteConfirm();
       loadData();
-    } catch (err) {
-      console.error('Error deleting game:', err);
+    } catch {
+      console.error('Error deleting game');
       setError('Failed to delete game. Please try again.');
     }
   };

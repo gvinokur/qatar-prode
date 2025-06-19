@@ -13,7 +13,7 @@ interface TeamSelectorProps {
   name: string;
   disabled?: boolean;
   helperText?: string;
-  onChange?: (value: string) => void;
+  onChange?: (_value: string) => void;
 }
 
 const TeamSelector: React.FC<TeamSelectorProps> = ({

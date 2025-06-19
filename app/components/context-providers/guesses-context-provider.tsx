@@ -19,7 +19,7 @@ type GameGuessMap = {[k:string]: GameGuessNew}
 export const GuessesContext = React.createContext({
   gameGuesses: {} as GameGuessMap,
   guessedPositions: [] as TournamentGroupTeamStatsGuessNew[],
-  updateGameGuess: async (gameId:string, gameGuess: GameGuessNew) => {},
+  updateGameGuess: async (_gameId:string, _gameGuess: GameGuessNew) => {},
 })
 
 export interface GuessesContextProviderProps {

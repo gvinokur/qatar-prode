@@ -37,7 +37,7 @@ interface GameGuessEditProps extends SharedProps {
   initialAwayScore?: number;
   initialHomePenaltyWinner?: boolean;
   initialAwayPenaltyWinner?: boolean;
-  onGameGuessSave: (gameId: string, homeScore?: number, awayScore?: number, homePenaltyWinner?: boolean, awayPenaltyWinner?: boolean) => Promise<void>;
+  onGameGuessSave: (_gameId: string, _homeScore?: number, _awayScore?: number, _homePenaltyWinner?: boolean, _awayPenaltyWinner?: boolean) => Promise<void>;
 }
 
 interface GameResultEditProps extends SharedProps {
@@ -47,7 +47,7 @@ interface GameResultEditProps extends SharedProps {
   initialHomePenaltyScore?: number;
   initialAwayPenaltyScore?: number;
   initialGameDate: Date;
-  onGameResultSave: (gameId: string, homeScore?: number | null, awayScore?: number | null, homePenaltyScore?: number, awayPenaltyScore?: number, gameDate?: Date) => Promise<void>;
+  onGameResultSave: (_gameId: string, _homeScore?: number | null, _awayScore?: number | null, _homePenaltyScore?: number, _awayPenaltyScore?: number, _gameDate?: Date) => Promise<void>;
 }
 
 type GameResultEditDialogProps = GameGuessEditProps | GameResultEditProps;
@@ -200,8 +200,8 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
         );
       }
       onClose();
-    } catch (err) {
-      console.error('Error saving game result:', err);
+    } catch {
+      console.error('Error saving game result');
       setError('Failed to save game result. Please try again.');
     } finally {
       setLoading(false);

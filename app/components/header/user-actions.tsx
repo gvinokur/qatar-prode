@@ -14,7 +14,6 @@ import {
 import {useSearchParams, useRouter} from "next/navigation";
 import LoginOrSignupDialog from "../auth/login-or-signup-dialog";
 import {signOut} from "next-auth/react";
-import {generateDbTournament, generateDbTournamentTeamPlayers} from "../../actions/backoffice-actions";
 import {User} from "next-auth";
 import UserSettingsDialog from "../auth/user-settings-dialog";
 
@@ -75,14 +74,6 @@ export default function UserActions({ user }: UserActionProps) {
     console.log('logged out')
     router.push("/");
     router.refresh();
-  }
-
-  const handleCreateTournament = (tournamentName: string) => async () => {
-    await generateDbTournament(tournamentName, true)
-  }
-
-  const handleCreatePlayers = (tournamentName: string) => async () => {
-    await generateDbTournamentTeamPlayers(tournamentName)
   }
 
   // @ts-ignore

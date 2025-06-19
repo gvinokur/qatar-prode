@@ -33,7 +33,7 @@ type SharedProps = {
   homeScore?: number
   awayScore?: number
   isPlayoffGame: boolean;
-  onEditClick: (gameNumber: number) => void;
+  onEditClick: (_gameNumber: number) => void;
   disabled?: boolean;
 };
 
@@ -49,7 +49,7 @@ type GameGuessProps =  {
 type GameResultProps = {
   isGameGuess: false
   isGameFixture: false
-  onPublishClick?: (gameNumber: number) => Promise<void>
+  onPublishClick?: (_gameNumber: number) => Promise<void>
   isDraft?: boolean
   homePenaltyScore?: number
   awayPenaltyScore?: number

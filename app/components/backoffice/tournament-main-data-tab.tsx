@@ -29,7 +29,7 @@ import {getThemeLogoUrl} from "../../utils/theme-utils";
 
 type Props = {
   tournamentId: string;
-  onUpdate?: (updatedTournament: Tournament) => void;
+  onUpdate?: (_updatedTournament: Tournament) => void;
 }
 
 export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props) {

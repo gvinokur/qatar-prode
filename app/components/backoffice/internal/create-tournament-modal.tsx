@@ -29,7 +29,7 @@ import {copyTournament} from "../../../actions/backoffice-actions";
 interface CreateTournamentModalProps {
   open: boolean;
   onClose: () => void;
-  onSuccess: (newTournament: any) => void;
+  onSuccess: (_newTournament: any) => void;
 }
 
 export default function CreateTournamentModal({ open, onClose, onSuccess }: CreateTournamentModalProps) {

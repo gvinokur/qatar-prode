@@ -35,7 +35,7 @@ export const GroupPositionSelector: React.FC<GroupPositionSelectorProps> = ({
         setSelectedGroups(parsed.group ? parsed.group.split('/') : []);
         setPosition(parsed.position);
       }
-    } catch (_e) {
+    } catch {
       // If parsing fails, initialize with defaults
       setSelectedGroups([]);
       setPosition(1);
@@ -120,7 +120,7 @@ export const GameWinnerSelector: React.FC<GameWinnerSelectorProps> = ({
         setGameNumber(parsed.game);
         setIsWinner(parsed.winner);
       }
-    } catch (_e) {
+    } catch {
       // If parsing fails, initialize with defaults
       setGameNumber(0);
       setIsWinner(true);

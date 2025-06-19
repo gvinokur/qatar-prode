@@ -30,7 +30,7 @@ type GroupForm = {
 
 export default function FriendGroupsList({
   userGroups:initialUserGroups,
-  participantGroups: initialParticipantGroups,
+  participantGroups,
 } : Props) {
   const theme = useTheme();
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
@@ -38,7 +38,6 @@ export default function FriendGroupsList({
   const [loading, setLoading] = useState(false)
   const { control, handleSubmit } =useForm<GroupForm>()
   const [userGroups, setUserGroups] = useState(initialUserGroups);
-  const [participantGroups, setParticipantGroups] = useState(initialParticipantGroups)
 
   const handleCloseCreateDialog = () => {
     setOpenCreateDialog(false)

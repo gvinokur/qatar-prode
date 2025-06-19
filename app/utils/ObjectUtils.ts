@@ -6,7 +6,7 @@ export function toMap<K extends Selectable<Identifiable>>(objectList: K[]): {[ke
   return map
 }
 
-export function customToMap<K, T>(objectList: K[], keyExtractor: (obj:K) => T) {
+export function customToMap<K, T>(objectList: K[], keyExtractor: (_obj:K) => T) {
   const map = Object.fromEntries(objectList.map(obj => [keyExtractor(obj), obj]))
   return map
 }

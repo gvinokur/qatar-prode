@@ -134,7 +134,7 @@ export async function verifyUserEmail(token: string) {
     }
 
     return { success: true, user: verifiedUser };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to verify email' };
   }
 }
@@ -197,8 +197,7 @@ async function sendVerificationEmail(user: User) {
     const result = await sendEmail(generateVerificationEmail(user.email, verificationLink));
 
     return result;
-  } catch (_error) {
-    console.error('Failed to send verification email:', _error);
+  } catch {
     return { success: false, error: 'Failed to send verification email' };
   }
 }

@@ -12,19 +12,19 @@ export type AwardTypes =
 interface AwardDefinition {
   label: string
   property: AwardTypes
-  playerFilter: (p: ExtendedPlayerData) => boolean
+  playerFilter: (_: ExtendedPlayerData) => boolean
 }
 
 export const awardsDefinition: AwardDefinition[] = [
   {
     label: 'Mejor Jugador',
     property: 'best_player_id',
-    playerFilter: (p: ExtendedPlayerData) => true,
+    playerFilter: (_: ExtendedPlayerData) => true,
   },
   {
     label: 'Goleador',
     property: 'top_goalscorer_player_id',
-    playerFilter: (p: ExtendedPlayerData) => true,
+    playerFilter: (_: ExtendedPlayerData) => true,
   },
   {
     label: 'Mejor Arquero',

@@ -29,7 +29,7 @@ interface GroupDialogProps {
   group: ExtendedGroupData | null;
   tournamentId: string;
   availableTeams: {[key:string]: Team };
-  onSave: (groups: ExtendedGroupData[]) => void;
+  onSave: (_groups: ExtendedGroupData[]) => void;
 }
 
 const GroupDialog: React.FC<GroupDialogProps> = ({
@@ -116,8 +116,8 @@ const GroupDialog: React.FC<GroupDialogProps> = ({
       }, teamIds)
       setLoading(false)
       onSave(updatedGroups);
-    } catch (err) {
-      console.error('Error saving group:', err);
+    } catch {
+      console.error('Error saving group');
       setError('Failed to save group. Please try again.');
       setLoading(false);
     }

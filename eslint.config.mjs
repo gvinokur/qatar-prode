@@ -15,7 +15,9 @@ const eslintConfig = [
       'no-unused-vars': ['warn', { 
         'argsIgnorePattern': '^_',
         'varsIgnorePattern': '^_',
-        'caughtErrorsIgnorePattern': '^_'
+        'caughtErrorsIgnorePattern': '^_',
+        'ignoreRestSiblings': true,
+        'args': 'after-used'
       }],
       'unused-imports/no-unused-imports': 'error',
       'unused-imports/no-unused-vars': [
@@ -25,6 +27,8 @@ const eslintConfig = [
           varsIgnorePattern: '^_',
           args: 'after-used',
           argsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+          destructuredArrayIgnorePattern: '^_'
         },
       ],
       'no-duplicate-imports': 'off',

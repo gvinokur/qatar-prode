@@ -8,7 +8,7 @@ interface ImagePickerProps {
   name: string;
   showCard?: boolean;
   defaultValue?: string;
-  onChange: (event: any) => void;
+  onChange: (_event: any) => void;
   onBlur: () => void;
   maxSizeInMB?: number;
   allowedTypes?: string[];
@@ -21,7 +21,7 @@ interface ImagePickerProps {
   previewBackgroundColor?: string; // Background color of the preview box
 }
 
-function generateDataUrl(file: File, callback: (imageUrl: string) => void) {
+function generateDataUrl(file: File, callback: (_imageUrl: string) => void) {
   const reader = new FileReader();
   reader.onload = () => callback(reader.result as string);
   reader.readAsDataURL(file);
@@ -250,7 +250,6 @@ export default function ImagePicker({
   const fileInput = useRef<HTMLInputElement | null>(null);
   const [dataUrl, setDataUrl] = useState<string | null>(defaultValue ?? null);
   const [error, setError] = useState<string | null>(null);
-  const [file, setFile] = useState<File | null>(null);
 
   // Set default texts based on imageType if not provided
   const finalButtonText = buttonText || `Seleccionar ${imageType}`;
@@ -285,7 +284,7 @@ export default function ImagePicker({
       } else {
         return null;
       }
-    } catch (error) {
+    } catch {
       return "No se pudo cargar la imagen para validar sus dimensiones.";
     }
   }
@@ -323,7 +322,6 @@ export default function ImagePicker({
         return;
       }
 
-      setFile(selectedFile);
       generateDataUrl(selectedFile, setDataUrl);
       onChange(e);
     }
@@ -331,7 +329,6 @@ export default function ImagePicker({
 
   const handleRemoveImage = () => {
     setDataUrl(null);
-    setFile(null);
     setError(null);
 
     // Reset the input

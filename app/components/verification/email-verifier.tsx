@@ -19,8 +19,8 @@ export default function EmailVerifier({ token }: EmailVerifierProps) {
   const verifyToken = useCallback(
     async (
       token: string,
-      setIsVerifying: (value: boolean) => void,
-      setError: (error: string | null) => void) => {
+      setIsVerifying: (_value: boolean) => void,
+      setError: (_error: string | null) => void) => {
         try {
           const result = await verifyUserEmail(token);
 
@@ -32,7 +32,7 @@ export default function EmailVerifier({ token }: EmailVerifierProps) {
             setError(result.error || 'The verification link is invalid or has expired.');
             setIsVerifying(false);
           }
-        } catch (err) {
+        } catch {
           setError('An unexpected error occurred during verification.');
           setIsVerifying(false);
         }

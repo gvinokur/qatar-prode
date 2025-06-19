@@ -8,8 +8,8 @@ import CompactGameViewCard from "../../compact-game-view-card";
 type Props = {
   game: ExtendedGameData
   teamsMap: {[k:string]: Team}
-  onEditClick: (gameNumber: number) => void
-  onPublishClick: (gameNumber: number) => Promise<void>
+  onEditClick: (_gameNumber: number) => void
+  onPublishClick: (_gameNumber: number) => Promise<void>
 }
 
 export default function BackofficeGameView({ game, teamsMap, onEditClick, onPublishClick } : Props) {

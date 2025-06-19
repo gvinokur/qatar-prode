@@ -14,7 +14,7 @@ export default function AppThemeProvider(
   }: {
     children: React.ReactNode
   }) {
-  const { resolvedTheme: themeMode, setTheme} = useTheme()
+  const { resolvedTheme: themeMode } = useTheme()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {

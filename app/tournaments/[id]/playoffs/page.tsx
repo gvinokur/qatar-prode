@@ -4,7 +4,7 @@ import {DebugObject} from "../../../components/debug";
 import {getLoggedInUser} from "../../../actions/user-actions";
 import {getCompletePlayoffData} from "../../../actions/tournament-actions";
 import {findGameGuessesByUserId} from "../../../db/game-guess-repository";
-import {GameGuess, TournamentGuessNew} from "../../../db/tables-definition";
+import {GameGuess} from "../../../db/tables-definition";
 import {GuessesContextProvider} from "../../../components/context-providers/guesses-context-provider";
 import {calculatePlayoffTeamsFromPositions} from "../../../utils/playoff-teams-calculator";
 import {findGroupsInTournament} from "../../../db/tournament-group-repository";
@@ -19,11 +19,6 @@ type Props = {
   }>
   searchParams: Promise<{[k:string]:string}>
 }
-
-const buildTournamentGuesses = (userId: string, tournamentId: string) => ({
-  user_id: userId,
-  tournament_id: tournamentId
-} as TournamentGuessNew)
 
 export default async function PlayoffPage(props: Props) {
   const params = await props.params

@@ -72,7 +72,7 @@ export async function createTeam(formData: FormData, tournamentId: string): Prom
 /**
  * Update an existing team
  */
-export async function updateTeam(teamId: string, formData: FormData, tournamentId: string): Promise<Team> {
+export async function updateTeam(teamId: string, formData: FormData): Promise<Team> {
   // Check if user is admin
   const user = await getLoggedInUser();
   if (!user?.isAdmin) {

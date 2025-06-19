@@ -57,7 +57,7 @@ export default function DeleteAccountButton() {
       router.replace('/');
       router.refresh();
       // If successful, the page will redirect due to signOut
-    } catch (err) {
+    } catch {
       setError('Ocurrió un error inesperado. Por favor, inténtalo de nuevo.');
       setLoading(false);
     }

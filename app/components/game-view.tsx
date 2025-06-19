@@ -11,7 +11,7 @@ import CompactGameViewCard from "./compact-game-view-card";
 type GameViewProps = {
   game: ExtendedGameData,
   teamsMap: {[k:string]: Team}
-  handleEditClick: (gameNumber: number) => void
+  handleEditClick: (_gameNumber: number) => void
   disabled?: boolean
 }
 

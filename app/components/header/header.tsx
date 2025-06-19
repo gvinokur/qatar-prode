@@ -14,22 +14,7 @@ import ThemeSwitcher from "./theme-switcher";
 
 type FrameProps = {
   user?: User
-  children?: React.ReactNode | React.ReactNode[],
 }
-
-type Page = {
-  name: string,
-  link: string,
-  children?: Page[]
-}
-
-const pages: Page[] = [ {
-  name: 'Home',
-  link: '/'
-}, {
-  name: 'Torneos',
-  link: '/tournaments'
-}]
 
 export default async function Header(props: FrameProps) {
   return (

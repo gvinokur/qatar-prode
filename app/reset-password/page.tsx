@@ -26,7 +26,6 @@ export default function ResetPasswordPage() {
     control,
     handleSubmit,
     watch,
-    formState: { errors }
   } = useForm<ResetPasswordFormData>();
 
   // Verify token on page load

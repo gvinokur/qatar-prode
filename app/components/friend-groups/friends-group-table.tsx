@@ -91,7 +91,7 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
               <Tab label={tournament.short_name} key={tournament.id} value={tournament.id}/>
             ))}
           </TabList>
-          {tournaments.map((tournament, index) => (
+          {tournaments.map((tournament) => (
             <TabPanel value={tournament.id} key={tournament.id} keepMounted={true}>
               <Box sx={{ width: '100%', overflowX: 'auto' }}>
                 <Table sx={{ minWidth: 650 }}>
