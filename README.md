@@ -151,6 +151,59 @@ Jest is configured for testing with:
 - `npm run test` - Run tests
 - `npm run test:watch` - Run tests in watch mode
 
+## Code Quality with SonarQube
+
+This project uses SonarCloud for continuous code quality analysis. The analysis runs automatically on every push to main and pull request.
+
+### Local Analysis
+
+To run SonarQube analysis locally:
+
+```bash
+# Run analysis against SonarCloud
+npm run sonar
+
+# Run analysis against local SonarQube instance
+npm run sonar:local
+```
+
+### Configuration
+
+The SonarQube configuration is in `sonar-project.properties` and includes:
+- TypeScript support
+- Test coverage integration
+- Code quality gates
+- Exclusion patterns for build artifacts
+
+### GitHub Actions
+
+The `.github/workflows/sonarcloud.yml` workflow automatically:
+- Runs tests with coverage
+- Executes linting
+- Builds the project
+- Performs SonarCloud analysis
+- Reports quality gate status
+
+### Setup Requirements
+
+To enable SonarCloud analysis, you need to:
+
+1. **Create a SonarCloud account** at [sonarcloud.io](https://sonarcloud.io)
+2. **Set up the project** in SonarCloud with the key `gvinokur_qatar-prode`
+3. **Add SONAR_TOKEN** to your GitHub repository secrets:
+   - Go to your GitHub repository settings
+   - Navigate to Secrets and variables → Actions
+   - Add a new secret named `SONAR_TOKEN` with your SonarCloud token
+
+### Quality Gates
+
+The project uses SonarCloud quality gates to ensure code quality:
+- Code coverage thresholds
+- Duplicated code detection
+- Security hotspots
+- Code smells and bugs
+- Technical debt ratio
+
 ## Database
 
 The project uses PostgreSQL with a comprehensive schema supporting:
