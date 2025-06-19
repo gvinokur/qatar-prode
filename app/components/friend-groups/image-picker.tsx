@@ -1,7 +1,9 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import {Alert, Box, Button, Grid, IconButton, Typography} from "@mui/material";
-import {UploadFile, Delete, CropOriginal} from '@mui/icons-material'
+import { Box, Typography } from "@mui/material";
+import { generateDataUrl } from './image-picker-utils';
+import { validateFile } from './image-validate-file';
+import { ImageCard } from './image-picker-components';
 
 interface ImagePickerProps {
   id: string;
@@ -19,214 +21,6 @@ interface ImagePickerProps {
   aspectRatioTolerance?: number; // Tolerance for aspect ratio validation (0.1 = 10% tolerance)
   previewWidth?: number; // Width of the preview image in pixels
   previewBackgroundColor?: string; // Background color of the preview box
-}
-
-function generateDataUrl(file: File, callback: (_imageUrl: string) => void) {
-  const reader = new FileReader();
-  reader.onload = () => callback(reader.result as string);
-  reader.readAsDataURL(file);
-}
-
-// Extract the image size getting functionality into a separate function
-async function getImageDimensions(imageUrl: string): Promise<{ width: number; height: number }> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      resolve({
-        width: img.width,
-        height: img.height
-      });
-    };
-    img.onerror = () => {
-      reject(new Error("Could not load image to get dimensions"));
-    };
-    img.src = imageUrl;
-  });
-}
-
-function ImagePreview({
-  dataUrl,
-  onClick,
-  onRemove,
-  aspectRatio = 1,
-  previewWidth:defaultPreviewWidth = 200,
-  previewBackgroundColor
-}: {
-  readonly dataUrl: string,
-  readonly onClick: () => void,
-  readonly onRemove: () => void,
-  readonly aspectRatio?: number,
-  readonly previewWidth?: number
-  readonly previewBackgroundColor?: string
-}) {
-  const [previewWidth, setPreviewWidth] = useState(defaultPreviewWidth)
-  const [previewHeight, setPreviewHeight] = useState(defaultPreviewWidth / aspectRatio);
-
-  useEffect(() => {
-    if(dataUrl) {
-      getImageDimensions(dataUrl).then(({ width, height }) => {
-        const imageAspectRatio = width / height;
-        if (imageAspectRatio > aspectRatio) {
-          setPreviewHeight(previewWidth / imageAspectRatio);
-        //   setWidth(height * imageAspectRatio);
-        } else {
-          setPreviewWidth(previewHeight * imageAspectRatio);
-        //   setHeight(width / imageAspectRatio);
-        }
-      });
-    }
-  }, [dataUrl, previewWidth, previewHeight, aspectRatio]);
-
-  return (
-    <Box position="relative">
-      <Box
-        mx="auto"
-        my={4}
-        bgcolor={previewBackgroundColor}
-        sx={{
-          position: 'relative',
-          width: previewWidth,
-          height: previewHeight,
-          overflow: 'hidden',
-          borderRadius: 2,
-          cursor: 'pointer'
-        }}
-        onClick={onClick}
-      >
-        <img
-          src={dataUrl}
-          alt="preview"
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'fill'
-          }}
-        />
-      </Box>
-      <IconButton
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove();
-        }}
-        sx={{
-          position: 'absolute',
-          top: -10,
-          right: -10,
-          bgcolor: 'error.main',
-          color: 'white',
-          '&:hover': {
-            bgcolor: 'error.dark',
-          }
-        }}
-        size="small"
-      >
-        <Delete fontSize="small" />
-      </IconButton>
-    </Box>
-  );
-}
-
-function NoImagePreview({
-  onClick,
-  noImageText,
-  aspectRatio = 1,
-  previewWidth = 200
-}: {
-  readonly onClick: () => void,
-  readonly noImageText: string,
-  readonly aspectRatio?: number,
-  readonly previewWidth?: number
-}) {
-  return (
-    <Box
-      height={aspectRatio ? previewWidth / aspectRatio : previewWidth}
-      width={previewWidth}
-      my={4}
-      mx={'auto'}
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
-      gap={4}
-      p={2}
-      border={'2px dashed'}
-      borderColor={'info.main'}
-      borderRadius={2}
-      onClick={onClick}
-      sx={{ cursor: 'pointer' }}
-    >
-      <Box sx={{ textAlign: 'center' }}>
-        <CropOriginal sx={{ fontSize: 40, color: 'info.main', mb: 1 }} />
-        <Alert severity='info' sx={{ bgcolor: 'background.paper' }}>{noImageText}</Alert>
-      </Box>
-    </Box>
-  )
-}
-
-function ImageCard({
-  dataUrl,
-  fileInput,
-  error,
-  onRemove,
-  buttonText,
-  noImageText,
-  aspectRatio = 1,
-  previewWidth = 200,
-  previewBackgroundColor
-}: {
-  readonly dataUrl: string;
-  readonly fileInput: React.RefObject<HTMLInputElement | null>;
-  readonly error?: string;
-  readonly onRemove: () => void;
-  readonly buttonText: string;
-  readonly noImageText: string;
-  readonly aspectRatio?: number;
-  readonly previewWidth?: number;
-  readonly previewBackgroundColor?: string;
-}) {
-  const openDialog = () => {
-    fileInput && fileInput.current !== null
-      && "click" in fileInput.current &&  fileInput.current.click()
-  }
-
-  const imagePreview = dataUrl ?
-    <ImagePreview
-      dataUrl={dataUrl}
-      onClick={openDialog}
-      onRemove={onRemove}
-      aspectRatio={aspectRatio}
-      previewWidth={previewWidth}
-      previewBackgroundColor={previewBackgroundColor}
-    /> :
-    <NoImagePreview
-      onClick={openDialog}
-      noImageText={noImageText}
-      aspectRatio={aspectRatio}
-      previewWidth={previewWidth}
-    />
-
-  return (
-    <Grid container p={2} size={12}>
-      <Grid textAlign="center" size={12}>
-        {imagePreview}
-        {error && (
-          <Alert severity="error" sx={{ mt: 1 }}>
-            {error}
-          </Alert>
-        )}
-      </Grid>
-      <Grid textAlign="center" mt={2} size={12}>
-        <Button
-          startIcon={<UploadFile />}
-          onClick={openDialog}
-          type="button"
-          variant="outlined"
-          fullWidth
-        >
-          {buttonText}
-        </Button>
-      </Grid>
-    </Grid>
-  );
 }
 
 export default function ImagePicker({
@@ -266,48 +60,18 @@ export default function ImagePicker({
     return customEvent;
   };
 
-// Then modify the validateImageDimensions function to use async/await
-  async function validateImageDimensions(imageUrl: string): Promise<string | null> {
-    try {
-      const {width, height} = await getImageDimensions(imageUrl);
-
-      const actualRatio = width / height;
-      const minValidRatio = aspectRatio * (1 - aspectRatioTolerance);
-      const maxValidRatio = aspectRatio * (1 + aspectRatioTolerance);
-
-      if (actualRatio < minValidRatio || actualRatio > maxValidRatio) {
-        // Calculate expected dimensions based on width
-        const expectedHeight = Math.round(width / aspectRatio);
-        return `La imagen no tiene la proporción esperada. La proporción debe ser aproximadamente ${aspectRatio}:1 (ancho:alto). Para esta imagen, una altura de ${expectedHeight}px sería ideal.`;
-      } else {
-        return null;
-      }
-    } catch {
-      return "No se pudo cargar la imagen para validar sus dimensiones.";
-    }
-  }
-
-  const validateFile = async (file: File): Promise<string | null> => {
-    // Check file size
-    const fileSizeInMB = file.size / (1024 * 1024);
-    if (fileSizeInMB > maxSizeInMB) {
-      return `El archivo es demasiado grande. El tamaño máximo es ${maxSizeInMB}MB.`;
-    }
-
-    // Check file type
-    if (!allowedTypes?.includes(file.type)) {
-      return `Tipo de archivo no permitido. Tipos permitidos: ${allowedTypes?.map(type => type.replace('image/', '')).join(', ')}`;
-    }
-
-    return validateImageDimensions(URL.createObjectURL(file));
-  };
-
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
     const selectedFile = e.target.files?.[0];
 
     if (selectedFile) {
-      const validationError = await validateFile(selectedFile);
+      const validationError = await validateFile(
+        selectedFile, 
+        maxSizeInMB, 
+        allowedTypes, 
+        aspectRatio, 
+        aspectRatioTolerance
+      );
 
       if (validationError) {
         setError(validationError);
@@ -359,6 +123,7 @@ export default function ImagePicker({
           ref={fileInput}
           accept={allowedTypes?.join(',')}
           style={{ display: 'none' }}
+          data-testid="file-input"
         />
       </Box>
       <ImageCard
