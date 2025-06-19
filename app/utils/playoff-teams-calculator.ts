@@ -117,6 +117,8 @@ export function calculatePlayoffTeams(
   return calculatedTeamsPerGame;
 }
 
+// Calculate the teams for the playoff games based on the positions of the teams in the groups
+// If the group is not complete, it returns undefined for the specific team/game
 export function calculatePlayoffTeamsFromPositions(
   firstPlayoffStage: ExtendedPlayoffRoundData,
   gamesMap: {[k:string]: Game},
