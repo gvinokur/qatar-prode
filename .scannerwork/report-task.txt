@@ -3,5 +3,5 @@ projectKey=gvinokur_qatar-prode
 serverUrl=https://sonarcloud.io
 serverVersion=8.0.0.64616
 dashboardUrl=https://sonarcloud.io/dashboard?id=gvinokur_qatar-prode
-ceTaskId=AZeI-GBmzcYNv8ZKiXNY
-ceTaskUrl=https://sonarcloud.io/api/ce/task?id=AZeI-GBmzcYNv8ZKiXNY
+ceTaskId=AZeJH9OikMw4KG86zvKJ
+ceTaskUrl=https://sonarcloud.io/api/ce/task?id=AZeJH9OikMw4KG86zvKJ

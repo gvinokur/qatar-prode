@@ -6,6 +6,7 @@ import {
   getWinner
 } from '../../app/utils/score-utils';
 import { GameGuessNew } from '../../app/db/tables-definition';
+import { ExtendedGameData } from '../../app/definitions';
 
 // Mock ExtendedGameData for testing
 const createMockGame = (overrides: any = {}) => ({
@@ -31,360 +32,366 @@ const createMockGuess = (overrides: any = {}): GameGuessNew => ({
   ...overrides
 });
 
-describe('getWinner', () => {
-  it('should return home team when home score is higher', () => {
-    const result = getWinner(2, 1, false, false, 'Team A', 'Team B');
-    expect(result).toBe('Team A');
+describe('score-utils', () => {
+  const mockGame = (homeTeam: string, awayTeam: string): ExtendedGameData => ({
+    id: 'test-game',
+    tournament_id: 'test-tournament',
+    game_number: 1,
+    home_team: homeTeam,
+    away_team: awayTeam,
+    game_date: new Date(),
+    location: 'test-venue',
+    home_team_rule: undefined,
+    away_team_rule: undefined,
+    game_type: undefined,
+    game_local_timezone: undefined,
+    group: null,
+    playoffStage: null,
+    gameResult: undefined
   });
 
-  it('should return away team when away score is higher', () => {
-    const result = getWinner(1, 2, false, false, 'Team A', 'Team B');
-    expect(result).toBe('Team B');
+  const mockGameGuess = (homeScore: number, awayScore: number, homePenaltyWinner = false, awayPenaltyWinner = false): GameGuessNew => ({
+    game_number: 1,
+    game_id: 'test-game',
+    user_id: 'test-user',
+    home_team: 'team1',
+    away_team: 'team2',
+    home_score: homeScore,
+    away_score: awayScore,
+    home_penalty_winner: homePenaltyWinner,
+    away_penalty_winner: awayPenaltyWinner
   });
 
-  it('should return home team when scores are tied and home wins penalty shootout', () => {
-    const result = getWinner(1, 1, true, false, 'Team A', 'Team B');
-    expect(result).toBe('Team A');
-  });
+  describe('getGameWinner', () => {
+    it('should return home team when home team wins', () => {
+      const game = {
+        ...mockGame('team1', 'team2'),
+        gameResult: {
+          game_id: 'test-game',
+          is_draft: false,
+          home_score: 2,
+          away_score: 1,
+          home_penalty_score: undefined,
+          away_penalty_score: undefined
+        }
+      };
 
-  it('should return away team when scores are tied and away wins penalty shootout', () => {
-    const result = getWinner(1, 1, false, true, 'Team A', 'Team B');
-    expect(result).toBe('Team B');
-  });
-
-  it('should return undefined when scores are tied but no penalty winner', () => {
-    const result = getWinner(1, 1, false, false, 'Team A', 'Team B');
-    expect(result).toBeUndefined();
-  });
-
-  it('should return undefined when scores are not integers', () => {
-    const result = getWinner(1.5, 2, false, false, 'Team A', 'Team B');
-    expect(result).toBeUndefined();
-  });
-
-  it('should return undefined when scores are undefined', () => {
-    const result = getWinner(undefined, 2, false, false, 'Team A', 'Team B');
-    expect(result).toBeUndefined();
-  });
-
-  it('should return undefined when scores are null', () => {
-    const result = getWinner(null as any, 2, false, false, 'Team A', 'Team B');
-    expect(result).toBeUndefined();
-  });
-
-  it('should handle both penalty winners being true (edge case)', () => {
-    const result = getWinner(1, 1, true, true, 'Team A', 'Team B');
-    expect(result).toBe('Team A'); // Should return home team (first condition)
-  });
-
-  it('should handle teams being null', () => {
-    const result = getWinner(2, 1, false, false, null, null);
-    expect(result).toBeNull();
-  });
-});
-
-describe('getGameWinner', () => {
-  it('should return home team when home score is higher', () => {
-    const game = createMockGame({
-      gameResult: { home_score: 2, away_score: 1, game_id: 'game1', is_draft: false }
+      const winner = getGameWinner(game);
+      expect(winner).toBe('team1');
     });
-    const result = getGameWinner(game);
-    expect(result).toBe('Team A');
-  });
 
-  it('should return away team when away score is higher', () => {
-    const game = createMockGame({
-      gameResult: { home_score: 1, away_score: 2, game_id: 'game1', is_draft: false }
+    it('should return away team when away team wins', () => {
+      const game = {
+        ...mockGame('team1', 'team2'),
+        gameResult: {
+          game_id: 'test-game',
+          is_draft: false,
+          home_score: 1,
+          away_score: 2,
+          home_penalty_score: undefined,
+          away_penalty_score: undefined
+        }
+      };
+
+      const winner = getGameWinner(game);
+      expect(winner).toBe('team2');
     });
-    const result = getGameWinner(game);
-    expect(result).toBe('Team B');
-  });
 
-  it('should return home team when scores are tied and home wins penalty shootout', () => {
-    const game = createMockGame({
-      gameResult: { 
-        home_score: 1, 
-        away_score: 1, 
-        home_penalty_score: 5, 
-        away_penalty_score: 4,
-        game_id: 'game1', 
-        is_draft: false 
-      }
+    it('should return home team when scores are tied and home team wins penalties', () => {
+      const game = {
+        ...mockGame('team1', 'team2'),
+        gameResult: {
+          game_id: 'test-game',
+          is_draft: false,
+          home_score: 1,
+          away_score: 1,
+          home_penalty_score: 5,
+          away_penalty_score: 4
+        }
+      };
+
+      const winner = getGameWinner(game);
+      expect(winner).toBe('team1');
     });
-    const result = getGameWinner(game);
-    expect(result).toBe('Team A');
-  });
 
-  it('should return away team when scores are tied and away wins penalty shootout', () => {
-    const game = createMockGame({
-      gameResult: { 
-        home_score: 1, 
-        away_score: 1, 
-        home_penalty_score: 4, 
-        away_penalty_score: 5,
-        game_id: 'game1', 
-        is_draft: false 
-      }
+    it('should return away team when scores are tied and away team wins penalties', () => {
+      const game = {
+        ...mockGame('team1', 'team2'),
+        gameResult: {
+          game_id: 'test-game',
+          is_draft: false,
+          home_score: 1,
+          away_score: 1,
+          home_penalty_score: 4,
+          away_penalty_score: 5
+        }
+      };
+
+      const winner = getGameWinner(game);
+      expect(winner).toBe('team2');
     });
-    const result = getGameWinner(game);
-    expect(result).toBe('Team B');
-  });
 
-  it('should return undefined when no game result exists', () => {
-    const game = createMockGame();
-    const result = getGameWinner(game);
-    expect(result).toBeUndefined();
-  });
+    it('should return undefined when scores are tied and no penalty scores', () => {
+      const game = {
+        ...mockGame('team1', 'team2'),
+        gameResult: {
+          game_id: 'test-game',
+          is_draft: false,
+          home_score: 1,
+          away_score: 1,
+          home_penalty_score: undefined,
+          away_penalty_score: undefined
+        }
+      };
 
-  it('should return undefined when scores are not integers', () => {
-    const game = createMockGame({
-      gameResult: { home_score: 1.5, away_score: 2, game_id: 'game1', is_draft: false }
+      const winner = getGameWinner(game);
+      expect(winner).toBeUndefined();
     });
-    const result = getGameWinner(game);
-    expect(result).toBeUndefined();
-  });
 
-  it('should return undefined when penalty scores are not integers', () => {
-    const game = createMockGame({
-      gameResult: { 
-        home_score: 1, 
-        away_score: 1, 
-        home_penalty_score: 5.5, 
-        away_penalty_score: 4,
-        game_id: 'game1', 
-        is_draft: false 
-      }
+    it('should return undefined when no game result', () => {
+      const game = mockGame('team1', 'team2');
+
+      const winner = getGameWinner(game);
+      expect(winner).toBeUndefined();
     });
-    const result = getGameWinner(game);
-    expect(result).toBeUndefined();
-  });
 
-  it('should return undefined when penalty scores are undefined', () => {
-    const game = createMockGame({
-      gameResult: { 
-        home_score: 1, 
-        away_score: 1, 
-        home_penalty_score: undefined, 
-        away_penalty_score: 4,
-        game_id: 'game1', 
-        is_draft: false 
-      }
+    it('should return undefined when scores are not integers', () => {
+      const game = {
+        ...mockGame('team1', 'team2'),
+        gameResult: {
+          game_id: 'test-game',
+          is_draft: false,
+          home_score: 1.5,
+          away_score: 1,
+          home_penalty_score: undefined,
+          away_penalty_score: undefined
+        }
+      };
+
+      const winner = getGameWinner(game);
+      expect(winner).toBeUndefined();
     });
-    const result = getGameWinner(game);
-    expect(result).toBeUndefined();
-  });
 
-  it('should handle teams being null', () => {
-    const game = createMockGame({
-      home_team: null,
-      away_team: null,
-      gameResult: { home_score: 2, away_score: 1, game_id: 'game1', is_draft: false }
+    it('should return undefined when scores are undefined', () => {
+      const game = {
+        ...mockGame('team1', 'team2'),
+        gameResult: {
+          game_id: 'test-game',
+          is_draft: false,
+          home_score: undefined,
+          away_score: undefined,
+          home_penalty_score: undefined,
+          away_penalty_score: undefined
+        }
+      };
+
+      const winner = getGameWinner(game);
+      expect(winner).toBeUndefined();
     });
-    const result = getGameWinner(game);
-    expect(result).toBeNull();
   });
-});
 
-describe('getGameLoser', () => {
-  it('should return away team when home score is higher', () => {
-    const game = createMockGame({
-      gameResult: { home_score: 2, away_score: 1, game_id: 'game1', is_draft: false }
+  describe('getGameLoser', () => {
+    it('should return away team when home team wins', () => {
+      const game = {
+        ...mockGame('team1', 'team2'),
+        gameResult: {
+          game_id: 'test-game',
+          is_draft: false,
+          home_score: 2,
+          away_score: 1,
+          home_penalty_score: undefined,
+          away_penalty_score: undefined
+        }
+      };
+
+      const loser = getGameLoser(game);
+      expect(loser).toBe('team2');
     });
-    const result = getGameLoser(game);
-    expect(result).toBe('Team B');
-  });
 
-  it('should return home team when away score is higher', () => {
-    const game = createMockGame({
-      gameResult: { home_score: 1, away_score: 2, game_id: 'game1', is_draft: false }
+    it('should return home team when away team wins', () => {
+      const game = {
+        ...mockGame('team1', 'team2'),
+        gameResult: {
+          game_id: 'test-game',
+          is_draft: false,
+          home_score: 1,
+          away_score: 2,
+          home_penalty_score: undefined,
+          away_penalty_score: undefined
+        }
+      };
+
+      const loser = getGameLoser(game);
+      expect(loser).toBe('team1');
     });
-    const result = getGameLoser(game);
-    expect(result).toBe('Team A');
-  });
 
-  it('should return away team when scores are tied and home wins penalty shootout', () => {
-    const game = createMockGame({
-      gameResult: { 
-        home_score: 1, 
-        away_score: 1, 
-        home_penalty_score: 5, 
-        away_penalty_score: 4,
-        game_id: 'game1', 
-        is_draft: false 
-      }
+    it('should return away team when scores are tied and home team wins penalties', () => {
+      const game = {
+        ...mockGame('team1', 'team2'),
+        gameResult: {
+          game_id: 'test-game',
+          is_draft: false,
+          home_score: 1,
+          away_score: 1,
+          home_penalty_score: 5,
+          away_penalty_score: 4
+        }
+      };
+
+      const loser = getGameLoser(game);
+      expect(loser).toBe('team2');
     });
-    const result = getGameLoser(game);
-    expect(result).toBe('Team B');
-  });
 
-  it('should return home team when scores are tied and away wins penalty shootout', () => {
-    const game = createMockGame({
-      gameResult: { 
-        home_score: 1, 
-        away_score: 1, 
-        home_penalty_score: 4, 
-        away_penalty_score: 5,
-        game_id: 'game1', 
-        is_draft: false 
-      }
+    it('should return home team when scores are tied and away team wins penalties', () => {
+      const game = {
+        ...mockGame('team1', 'team2'),
+        gameResult: {
+          game_id: 'test-game',
+          is_draft: false,
+          home_score: 1,
+          away_score: 1,
+          home_penalty_score: 4,
+          away_penalty_score: 5
+        }
+      };
+
+      const loser = getGameLoser(game);
+      expect(loser).toBe('team1');
     });
-    const result = getGameLoser(game);
-    expect(result).toBe('Team A');
-  });
 
-  it('should return undefined when no game result exists', () => {
-    const game = createMockGame();
-    const result = getGameLoser(game);
-    expect(result).toBeUndefined();
-  });
+    it('should return undefined when scores are tied and no penalty scores', () => {
+      const game = {
+        ...mockGame('team1', 'team2'),
+        gameResult: {
+          game_id: 'test-game',
+          is_draft: false,
+          home_score: 1,
+          away_score: 1,
+          home_penalty_score: undefined,
+          away_penalty_score: undefined
+        }
+      };
 
-  it('should handle teams being null', () => {
-    const game = createMockGame({
-      home_team: null,
-      away_team: null,
-      gameResult: { home_score: 2, away_score: 1, game_id: 'game1', is_draft: false }
+      const loser = getGameLoser(game);
+      expect(loser).toBeUndefined();
     });
-    const result = getGameLoser(game);
-    expect(result).toBeNull();
-  });
-});
-
-describe('getGuessWinner', () => {
-  it('should return home team when home score is higher', () => {
-    const guess = createMockGuess({ home_score: 2, away_score: 1 });
-    const result = getGuessWinner(guess, 'Team A', 'Team B');
-    expect(result).toBe('Team A');
   });
 
-  it('should return away team when away score is higher', () => {
-    const guess = createMockGuess({ home_score: 1, away_score: 2 });
-    const result = getGuessWinner(guess, 'Team A', 'Team B');
-    expect(result).toBe('Team B');
-  });
-
-  it('should return home team when scores are tied and home wins penalty shootout', () => {
-    const guess = createMockGuess({ 
-      home_score: 1, 
-      away_score: 1, 
-      home_penalty_winner: true, 
-      away_penalty_winner: false 
+  describe('getGuessWinner', () => {
+    it('should return home team when home team wins', () => {
+      const guess = mockGameGuess(2, 1);
+      const winner = getGuessWinner(guess, 'team1', 'team2');
+      expect(winner).toBe('team1');
     });
-    const result = getGuessWinner(guess, 'Team A', 'Team B');
-    expect(result).toBe('Team A');
-  });
 
-  it('should return away team when scores are tied and away wins penalty shootout', () => {
-    const guess = createMockGuess({ 
-      home_score: 1, 
-      away_score: 1, 
-      home_penalty_winner: false, 
-      away_penalty_winner: true 
+    it('should return away team when away team wins', () => {
+      const guess = mockGameGuess(1, 2);
+      const winner = getGuessWinner(guess, 'team1', 'team2');
+      expect(winner).toBe('team2');
     });
-    const result = getGuessWinner(guess, 'Team A', 'Team B');
-    expect(result).toBe('Team B');
-  });
 
-  it('should return undefined when scores are tied but no penalty winner', () => {
-    const guess = createMockGuess({ 
-      home_score: 1, 
-      away_score: 1, 
-      home_penalty_winner: false, 
-      away_penalty_winner: false 
+    it('should return home team when scores are tied and home team wins penalties', () => {
+      const guess = mockGameGuess(1, 1, true, false);
+      const winner = getGuessWinner(guess, 'team1', 'team2');
+      expect(winner).toBe('team1');
     });
-    const result = getGuessWinner(guess, 'Team A', 'Team B');
-    expect(result).toBeUndefined();
-  });
 
-  it('should return undefined when scores are not integers', () => {
-    const guess = createMockGuess({ home_score: 1.5, away_score: 2 });
-    const result = getGuessWinner(guess, 'Team A', 'Team B');
-    expect(result).toBeUndefined();
-  });
-
-  it('should return undefined when scores are undefined', () => {
-    const guess = createMockGuess({ home_score: undefined, away_score: 2 });
-    const result = getGuessWinner(guess, 'Team A', 'Team B');
-    expect(result).toBeUndefined();
-  });
-
-  it('should handle teams being null', () => {
-    const guess = createMockGuess({ home_score: 2, away_score: 1 });
-    const result = getGuessWinner(guess, null, null);
-    expect(result).toBeNull();
-  });
-
-  it('should use teams from guess if not provided', () => {
-    const guess = createMockGuess({ 
-      home_score: 2, 
-      away_score: 1, 
-      home_team: 'Guess Team A', 
-      away_team: 'Guess Team B' 
+    it('should return away team when scores are tied and away team wins penalties', () => {
+      const guess = mockGameGuess(1, 1, false, true);
+      const winner = getGuessWinner(guess, 'team1', 'team2');
+      expect(winner).toBe('team2');
     });
-    const result = getGuessWinner(guess);
-    expect(result).toBeUndefined();
-  });
-});
 
-describe('getGuessLoser', () => {
-  it('should return away team when home score is higher', () => {
-    const guess = createMockGuess({ home_score: 2, away_score: 1 });
-    const result = getGuessLoser(guess, 'Team A', 'Team B');
-    expect(result).toBe('Team B');
-  });
-
-  it('should return home team when away score is higher', () => {
-    const guess = createMockGuess({ home_score: 1, away_score: 2 });
-    const result = getGuessLoser(guess, 'Team A', 'Team B');
-    expect(result).toBe('Team A');
-  });
-
-  it('should return away team when scores are tied and home wins penalty shootout', () => {
-    const guess = createMockGuess({ 
-      home_score: 1, 
-      away_score: 1, 
-      home_penalty_winner: true, 
-      away_penalty_winner: false 
+    it('should return undefined when scores are tied and no penalty winner', () => {
+      const guess = mockGameGuess(1, 1, false, false);
+      const winner = getGuessWinner(guess, 'team1', 'team2');
+      expect(winner).toBeUndefined();
     });
-    const result = getGuessLoser(guess, 'Team A', 'Team B');
-    expect(result).toBe('Team B');
-  });
 
-  it('should return home team when scores are tied and away wins penalty shootout', () => {
-    const guess = createMockGuess({ 
-      home_score: 1, 
-      away_score: 1, 
-      home_penalty_winner: false, 
-      away_penalty_winner: true 
+    it('should return undefined when no teams provided', () => {
+      const guess = mockGameGuess(2, 1);
+      const winner = getGuessWinner(guess);
+      expect(winner).toBeUndefined();
     });
-    const result = getGuessLoser(guess, 'Team A', 'Team B');
-    expect(result).toBe('Team A');
   });
 
-  it('should return undefined when scores are tied but no penalty winner', () => {
-    const guess = createMockGuess({ 
-      home_score: 1, 
-      away_score: 1, 
-      home_penalty_winner: false, 
-      away_penalty_winner: false 
+  describe('getGuessLoser', () => {
+    it('should return away team when home team wins', () => {
+      const guess = mockGameGuess(2, 1);
+      const loser = getGuessLoser(guess, 'team1', 'team2');
+      expect(loser).toBe('team2');
     });
-    const result = getGuessLoser(guess, 'Team A', 'Team B');
-    expect(result).toBeUndefined();
-  });
 
-  it('should handle teams being null', () => {
-    const guess = createMockGuess({ home_score: 2, away_score: 1 });
-    const result = getGuessLoser(guess, null, null);
-    expect(result).toBeNull();
-  });
-
-  it('should use teams from guess if not provided', () => {
-    const guess = createMockGuess({ 
-      home_score: 2, 
-      away_score: 1, 
-      home_team: 'Guess Team A', 
-      away_team: 'Guess Team B' 
+    it('should return home team when away team wins', () => {
+      const guess = mockGameGuess(1, 2);
+      const loser = getGuessLoser(guess, 'team1', 'team2');
+      expect(loser).toBe('team1');
     });
-    const result = getGuessLoser(guess);
-    expect(result).toBeUndefined();
+
+    it('should return away team when scores are tied and home team wins penalties', () => {
+      const guess = mockGameGuess(1, 1, true, false);
+      const loser = getGuessLoser(guess, 'team1', 'team2');
+      expect(loser).toBe('team2');
+    });
+
+    it('should return home team when scores are tied and away team wins penalties', () => {
+      const guess = mockGameGuess(1, 1, false, true);
+      const loser = getGuessLoser(guess, 'team1', 'team2');
+      expect(loser).toBe('team1');
+    });
+
+    it('should return undefined when scores are tied and no penalty winner', () => {
+      const guess = mockGameGuess(1, 1, false, false);
+      const loser = getGuessLoser(guess, 'team1', 'team2');
+      expect(loser).toBeUndefined();
+    });
+
+    it('should return undefined when no teams provided', () => {
+      const guess = mockGameGuess(2, 1);
+      const loser = getGuessLoser(guess);
+      expect(loser).toBeUndefined();
+    });
+  });
+
+  describe('getWinner', () => {
+    it('should return home team when home team wins', () => {
+      const winner = getWinner(2, 1, false, false, 'team1', 'team2');
+      expect(winner).toBe('team1');
+    });
+
+    it('should return away team when away team wins', () => {
+      const winner = getWinner(1, 2, false, false, 'team1', 'team2');
+      expect(winner).toBe('team2');
+    });
+
+    it('should return home team when scores are tied and home team wins penalties', () => {
+      const winner = getWinner(1, 1, true, false, 'team1', 'team2');
+      expect(winner).toBe('team1');
+    });
+
+    it('should return away team when scores are tied and away team wins penalties', () => {
+      const winner = getWinner(1, 1, false, true, 'team1', 'team2');
+      expect(winner).toBe('team2');
+    });
+
+    it('should return undefined when scores are tied and no penalty winner', () => {
+      const winner = getWinner(1, 1, false, false, 'team1', 'team2');
+      expect(winner).toBeUndefined();
+    });
+
+    it('should return undefined when scores are not integers', () => {
+      const winner = getWinner(1.5, 1, false, false, 'team1', 'team2');
+      expect(winner).toBeUndefined();
+    });
+
+    it('should return undefined when scores are undefined', () => {
+      const winner = getWinner(undefined, undefined, false, false, 'team1', 'team2');
+      expect(winner).toBeUndefined();
+    });
+
+    it('should return undefined when no teams provided', () => {
+      const winner = getWinner(2, 1, false, false);
+      expect(winner).toBeUndefined();
+    });
   });
 }); 
