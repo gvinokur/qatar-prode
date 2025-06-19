@@ -116,7 +116,6 @@ const imageSchema = z.object({
     .refine((file) => file.size <= MAX_FILE_SIZE, `Max file size is 5MB.`),
 });
 
-
 export async function updateTheme(groupId: string, formData: any) {
   const currentGroup = await findProdeGroupById(groupId)
   const data = Object.fromEntries(formData)
@@ -126,7 +125,6 @@ export async function updateTheme(groupId: string, formData: any) {
     const validatedFields = imageSchema.safeParse({
       image: data.logo
     })
-    console.log(validatedFields)
     if (!validatedFields.success) {
       return {
         errors: validatedFields.error.flatten().fieldErrors,
@@ -137,15 +135,12 @@ export async function updateTheme(groupId: string, formData: any) {
       const s3 = createS3Client('prode-group-files')
       await deleteThemeLogoFromS3(currentGroup.theme)
       const res = await s3.uploadFile(Buffer.from(await data.logo.arrayBuffer()));
-      console.log(res)
       imageUrl = res.location
       imageKey = res.key
     } catch (e) {
-      console.log(e)
       return "Image Upload failed"
     }
   }
-
 
   return updateProdeGroup(groupId, {
     ...(data.nombre ? { name: data.nombre } : {}),

@@ -18,7 +18,6 @@ type HomeProps = {
 export default function Home({tournaments, groups} : HomeProps) {
   const theme = useTheme()
 
-
   return (
     <>
       <Grid container spacing={2} p={2} maxWidth={'1000px'} mx={'auto'}>
@@ -71,7 +70,6 @@ export default function Home({tournaments, groups} : HomeProps) {
             )}
           </Grid>
         </Grid>
-
 
       </Grid>
     </>

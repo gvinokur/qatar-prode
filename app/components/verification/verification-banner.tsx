@@ -5,7 +5,6 @@ import { Alert, AlertTitle, Button, Snackbar } from '@mui/material';
 import { resendVerificationEmail } from '../../actions/user-actions';
 import {usePathname} from "next/navigation";
 
-
 export default function VerificationBanner() {
   const [isResending, setIsResending] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);

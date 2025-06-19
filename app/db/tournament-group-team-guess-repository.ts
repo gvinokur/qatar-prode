@@ -1,7 +1,6 @@
 import { db } from './database'
 import {TournamentGroupTeamStatsGuessNew} from "./tables-definition";
 
-
 export async function upsertTournamentGroupTeamGuesses(groupTeamGuesses: TournamentGroupTeamStatsGuessNew[]) {
   return Promise.all(groupTeamGuesses.map(async ({user_id, tournament_group_id, team_id, ...withUpdate }) => {
     return db.insertInto('tournament_group_team_stats_guess')

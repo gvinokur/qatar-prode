@@ -52,8 +52,6 @@ export default function BackofficeAwardsTab({ tournamentId}: Props) {
     setSaving(false)
   }
 
-
-
   return (
     <Box pt={2}>
       <Backdrop

@@ -1,6 +1,5 @@
 'use client'
 
-
 import { Grid} from "./mui-wrappers";
 import GameView from "./game-view";
 import {ExtendedGameData} from "../definitions";
@@ -41,7 +40,6 @@ export default function GamesGrid({ teamsMap, games, isPlayoffs, isLoggedIn = tr
   const [selectedGame, setSelectedGame] = useState<ExtendedGameData | null>(null);
   const gameGuesses = groupContext.gameGuesses
   const {data} = useSession()
-
 
   useEffect(() => {
     if(isPlayoffs && data?.user) {

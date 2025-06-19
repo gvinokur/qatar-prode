@@ -40,11 +40,9 @@ export default function UserSettingsDialog({ open, onClose }: UserSettingsDialog
   });
 
   useEffect(() => {
-    console.log('notification supported', isNotificationSupported())
     setDisableNotifications(!isNotificationSupported())
 
     checkExistingSubscription().then(isSubscribed => {
-      console.log('is subscribed', isSubscribed)
       setValue('enableNotifications', isSubscribed)
     });
 
@@ -57,7 +55,6 @@ export default function UserSettingsDialog({ open, onClose }: UserSettingsDialog
       name: nickname,
       nickname
     });
-    console.log('also need to update notifications', enableNotifications)
     if(enableNotifications) {
       await subscribeToNotifications()
     } else {

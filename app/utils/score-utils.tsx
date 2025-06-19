@@ -1,7 +1,6 @@
 import {GameGuessNew} from "../db/tables-definition";
 import {ExtendedGameData} from "../definitions";
 
-
 export const getGameWinner = (game: ExtendedGameData) => {
   const homeScore = game.gameResult?.home_score
   const awayScore = game.gameResult?.away_score

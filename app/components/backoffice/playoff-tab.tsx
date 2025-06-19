@@ -15,7 +15,6 @@ import {
   saveGamesData, updateTournamentHonorRoll
 } from "../../actions/backoffice-actions";
 
-
 type Props = {
   tournamentId: string
 }
@@ -174,7 +173,6 @@ export default function PlayoffTab({ tournamentId } :Props) {
       console.error('Error saving game result:', error);
     }
   };
-
 
   return (
     <Box>

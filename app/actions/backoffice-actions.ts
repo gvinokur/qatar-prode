@@ -96,20 +96,16 @@ export async function deleteDBTournamentTree(tournament: Tournament) {
 }
 
 export async function generateDbTournamentTeamPlayers(tournamentName: string) {
-  console.log('generating players for ', tournamentName)
   const result = await Promise.all(tournaments
     .filter(tournament => tournament.tournament_name === tournamentName)
     .map(async (tournament) => {
-      console.log('found', tournament.players.length, 'players to create')
       if(tournament.players.length > 0) {
         const existingDBTournament = await findTournamentByName(tournamentName);
         if(!existingDBTournament) {
-          console.log('You need to create the tournament first, you d******s')
           throw "Cannot create players for a non existing tournament"
         }
         const teams = await findTeamInTournament(existingDBTournament.id);
         if(teams.length === 0) {
-          console.log('You need to create the tournament teams first, you d******s')
           throw "Cannot create players for a tournament without teams"
         }
         const teamsByNameMap: {[k:string]: Team} = customToMap(teams, (team) => team.name)
@@ -117,7 +113,6 @@ export async function generateDbTournamentTeamPlayers(tournamentName: string) {
         await Promise.all(tournament.players.map(async (player) => {
           const playerTeam = teamsByNameMap[player.team]
           if (!playerTeam) {
-            console.log('Cannot find team for player', player, teamsByNameMap)
             return
           }
           const existingPlayer = await findPlayerByTeamAndTournament(existingDBTournament.id, playerTeam.id, player.name)
@@ -153,14 +148,10 @@ export async function generateDbTournament(name: string, deletePrevious:boolean 
     .filter(tournament => tournament.tournament_name === name)
     .map(async (tournament) => {
       const existingDBTournament = await findTournamentByName(name);
-      console.log('torneo ya creado', existingDBTournament)
       try {
         if (existingDBTournament) {
-          console.log('The tournament already exists')
           if (deletePrevious) {
-            console.log('deleting tournament', tournament.tournament_name)
             await deleteDBTournamentTree(existingDBTournament)
-            console.log('torneo borrado')
             return 'Primero lo borro'
           } else {
             return 'El torneo ya existe'
@@ -251,9 +242,7 @@ export async function generateDbTournament(name: string, deletePrevious:boolean 
           })))
 
         //Create all games!!
-        console.log('Creando los partidos', tournament.games.length)
         await Promise.all(tournament.games.map(async game => {
-          console.log('Creando partido', game.game_number)
           const newGame: GameNew = {
             tournament_id: tournamentId,
             game_number: game.game_number,
@@ -279,10 +268,8 @@ export async function generateDbTournament(name: string, deletePrevious:boolean 
               game_id: gameId
             })
           }
-          console.log('Partido', game.game_number, 'creado')
-        }))
+          }))
       } catch (e) {
-        console.log(e)
         return 'El campeonato no pudo ser creado'
       }
       return 'El campeonato fue creado exitosamente'
@@ -332,7 +319,6 @@ export async function calculateAndSavePlayoffGamesForTournament(tournamentId: st
   const gameResults = await findGameResultByGameIds(games.map(game => game.id), true)
   const gamesMap = toMap(games)
   const gameResultMap = customToMap(gameResults, (result) => result.game_id)
-
 
   const calculatedTeamsPerGame = calculatePlayoffTeams(firstPlayoffStage, groups, gamesMap, gameResultMap, {})
   return Promise.all(firstPlayoffStage.games.map(async (game) => {
@@ -668,7 +654,6 @@ export async function copyTournament(
       return Promise.resolve();
     })).filter(p => p !== undefined))
 
-
   // Associate games with playoff stages
   await Promise.all(playoffStages.flatMap(stage =>
     stage.games.map(gameAssoc => {
@@ -707,18 +692,15 @@ export async function calculateAndStoreGroupPositionScores(tournamentId: string)
       const realPositions = await findTeamsInGroup(group.id);
       const groupIsComplete = realPositions.length > 0 && realPositions.every((t) => t.is_complete);
       if (!groupIsComplete) continue;
-      console.log('group is complete', group.id)
       // Get the user's guesses for this group (only if guess is complete)
       const userGuesses = await findAllTournamentGroupTeamGuessInGroup(user.id, group.id);
       const guessIsComplete = userGuesses.length > 0 && userGuesses.every((t) => t.is_complete);
       if (!guessIsComplete) continue;
-      console.log('guess is complete', group.id, 'for user', user.id)
       // Compare positions
       for (let i = 0; i < realPositions.length; i++) {
         const real = realPositions[i];
         const guess = userGuesses.find((g: any) => g.team_id === real.team_id);
         if (guess && guess.position === real.position) {
-          console.log('guess is correct', group.id, 'position', real.position, 'for user', user.id)
           totalScore += 1;
         }
       }

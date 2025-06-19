@@ -27,7 +27,6 @@ export const deleteThemeLogoFromS3 = async (theme?: Theme) => {
 export const getS3KeyFromURL = (url: string) => {
   const regex = new RegExp('([^/]+)/?$')
   const result = regex.exec(url) || []
-  console.log('keyMatches', result)
   if(result?.length > 1) {
     return result[1]
   }

@@ -60,7 +60,6 @@ const TournamentGroups: React.FC<TournamentGroupsProps> = ({ tournamentId }) => 
     setOpenDialog(true);
   };
 
-
   const handleOpenEditDialog = (group: ExtendedGroupData) => {
     setCurrentGroup(group);
     setOpenDialog(true);

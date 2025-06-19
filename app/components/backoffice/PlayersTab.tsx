@@ -61,8 +61,6 @@ export default function PlayersTab({tournamentId}: {tournamentId: string}) {
     fetchPlayersData();
   }, [tournamentId, fetchPlayersData]);
 
-
-
   const handleImportPlayers = async () => {
     if(!selectedTeam || !transfermarktName || !transfermarktId) {
       return;

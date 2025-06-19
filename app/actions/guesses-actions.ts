@@ -62,8 +62,6 @@ export async function updatePlayoffGameGuesses(tournamentId: string, user?: User
     gamesMap,
     guessedPositionsByGroup)
 
-  // console.log('should update for user id', userId, playoffTeamsByGuess)
-
   return Promise.all(Object.keys(playoffTeamsByGuess).map(async (game_id) => {
     if(playoffTeamsByGuess[game_id].homeTeam?.team_id && playoffTeamsByGuess[game_id].awayTeam?.team_id) {
       //TODO: remove tempoarary fix
@@ -75,10 +73,6 @@ export async function updatePlayoffGameGuesses(tournamentId: string, user?: User
         .where('game_id', 'is', null)
         .executeTakeFirst()
 
-      if(toFix) {
-        console.log('toFix', toFix)
-      }
-
       if (toFix) {
         try {
           await db.updateTable('game_guesses')
@@ -86,7 +80,7 @@ export async function updatePlayoffGameGuesses(tournamentId: string, user?: User
             .where('id', '=', toFix.id)
             .execute()
         } catch(e) {
-          console.log(e, 'but continuing')
+          // Continue execution even if update fails
         }
       }
     }

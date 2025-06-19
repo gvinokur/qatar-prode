@@ -18,7 +18,6 @@ import {createDbGroup, deleteGroup} from "../../actions/prode-group-actions";
 import InviteFriendsDialog from "../invite-friends-dialog";
 import Link from "next/link";
 
-
 type Props = {
   userGroups: { id: string, name: string}[]
   participantGroups: {id: string, name: string}[]

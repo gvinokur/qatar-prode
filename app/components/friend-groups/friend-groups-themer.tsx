@@ -87,7 +87,6 @@ export default function ProdeGroupThemer({ group }: Props) {
                            id={'file'}
                            defaultValue={getThemeLogoUrl(group.theme) || undefined}
                            onChange={(event) => {
-                             console.log(event)
                              field.onChange(event.target.files?.[0]);
                            }}/>
             )}

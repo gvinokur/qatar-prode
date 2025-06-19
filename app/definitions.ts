@@ -58,7 +58,6 @@ export interface CompleteGroupData {
   teamPositions: TeamStats[]
 }
 
-
 export interface CompletePlayoffData {
   playoffStages: ExtendedPlayoffRoundData[]
   teamsMap: {[k:string]: Team}

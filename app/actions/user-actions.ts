@@ -67,7 +67,6 @@ export async function resendVerificationEmail() {
   return sendVerificationEmail(updatedUser)
 }
 
-
 export async function updateNickname(nickname: string) {
   const user = await getLoggedInUser();
   if(!user) {

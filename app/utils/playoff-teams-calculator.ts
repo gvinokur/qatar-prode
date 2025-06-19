@@ -89,7 +89,6 @@ export function calculatePlayoffTeams(
     }
   }
 
-
   const calculatedTeamsPerGame = Object.fromEntries(firstPlayoffStage.games.map(({game_id}) => {
     const game = gamesMap[game_id]
     const homeRule = game.home_team_rule as GroupFinishRule
@@ -166,7 +165,6 @@ export function calculatePlayoffTeamsFromPositions(
       thirdPlaceGroupMap = rulesByChampionship[''][topThirdTeamGroups.join('')]
     }
   }
-
 
   const calculatedTeamsPerGame = Object.fromEntries(firstPlayoffStage.games.map(({game_id}) => {
     const game = gamesMap[game_id]

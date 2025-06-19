@@ -27,7 +27,6 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
     setDialogMode('login');
   }
 
-
   // Switch between dialog modes
   const switchMode = (mode: DialogMode) => {
     setDialogMode(mode);

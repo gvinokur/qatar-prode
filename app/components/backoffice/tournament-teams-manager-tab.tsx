@@ -32,7 +32,6 @@ export default function TournamentTeamsManagerTab({ tournamentId }: TournamentTe
   const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
 
-
   // Fetch teams when component mounts or tournamentId changes
   useEffect(() => {
     async function fetchTeams() {

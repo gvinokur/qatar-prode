@@ -13,8 +13,7 @@ export default function Transition({
   useEffect(() => {
     const pageHideHandler = (event: any) => {
       setHidePage(true)
-      console.log('beforeunload', event)
-    };
+      };
 
     window.addEventListener('beforeunload', pageHideHandler )
 

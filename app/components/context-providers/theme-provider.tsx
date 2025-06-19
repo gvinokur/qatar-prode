@@ -7,7 +7,6 @@ import {useEffect, useState} from "react";
 
 export type ThemeMode = 'light' | 'dark'
 
-
 export default function AppThemeProvider(
   {
     children,

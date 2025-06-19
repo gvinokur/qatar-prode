@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, MenuItem, Snackbar, Alert } from '@mui/material';
 import { sendGroupNotification } from '../../actions/notifiaction-actions';
 
-
 interface NotificationDialogProps {
   open: boolean;
   onClose: () => void;

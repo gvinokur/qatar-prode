@@ -72,17 +72,12 @@ export async function deleteGroupGame(gameId: string) {
 export async function createOrUpdateGame(gameData: GameNew | GameUpdate, groupId?: string, playoffRoundId?: string) {
   let game: Game | undefined;
   if(gameData.id) {
-    console.log('update game', gameData);
     game = await updateGame(gameData.id, gameData);
   } else {
     game = await createGame(gameData as GameNew);
-    console.log('create game', gameData);
-  }
+    }
 
   if(game) {
-    console.log('game', game);
-    console.log('groupId', groupId);
-    console.log('playoffRoundId', playoffRoundId);
     await deleteTournamentGroupGame(game.id);
     await deletePlayoffRoundGame(game.id);
     if (groupId) {

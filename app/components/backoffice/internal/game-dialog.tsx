@@ -182,7 +182,6 @@ const GameDialog: React.FC<GameDialogProps> = ({
         away_team_rule: gameType === 'playoff' && awayTeamRule || undefined,
       };
 
-      console.log('Game data to be saved:', gameData, groupId, playoffStage?.id);
       await createOrUpdateGame(gameData, groupId, playoffStage?.id);
       onSave();
     } catch (err: any) {

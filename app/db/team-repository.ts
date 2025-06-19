@@ -59,9 +59,7 @@ export const findGuessedQualifiedTeams = cache(async (tournamentId: string, user
            .where('tournament_group_teams.tournament_group_id', '=', inGroupId)
            .whereRef('tournament_group_teams.team_id', '=', 'teams.id')
        )
-     ))
-
-   console.log(query.compile().sql);
+     ));
 
    return await query.execute()
 })

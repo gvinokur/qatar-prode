@@ -18,7 +18,6 @@ export async function updateTournamentGuessByUserIdTournament(userId:string, tou
     .executeTakeFirst()
 }
 
-
 export async function findTournamentGuessByUserIdTournament(userId:string, tournamentId: string) {
   return db.selectFrom('tournament_guesses')
     .selectAll()

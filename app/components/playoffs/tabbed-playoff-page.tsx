@@ -18,7 +18,6 @@ const TabbedPlayoffsPage: React.FC<TabbedPlayoffsPageProps> = ({ sections, teams
   const theme = useTheme()
   const isSmallScreen = useMediaQuery(theme.breakpoints.up('sm'));
 
-  
   return (
     <Grid container mt={'16px'} maxWidth={'800px'} mx={'auto'}>
       <Grid size={12} mb={'16px'}>

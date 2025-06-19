@@ -7,7 +7,6 @@ interface EmailOptions {
   html: string;
 }
 
-
 const createGmailClient = () => {
   // Configure Nodemailer with Gmail
   return nodemailer.createTransport({
@@ -38,7 +37,6 @@ export async function sendEmail({ to, subject, html }: EmailOptions) {
       };
 
       const info = await transporter.sendMail(mailOptions);
-      console.log('Email sent via Gmail:', info.messageId);
       return { success: true, messageId: info.messageId };
     } else {
       return { success: false, messageId: "Don't have any other provider configured" };

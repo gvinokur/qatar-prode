@@ -21,7 +21,6 @@ type UserActionProps = {
   user?: User
 }
 
-
 export default function UserActions({ user }: UserActionProps) {
   const searchParams = useSearchParams()
   const [forceOpen, setForceOpen] = useState(false)
@@ -67,11 +66,9 @@ export default function UserActions({ user }: UserActionProps) {
   };
 
   const handleLogout = async () => {
-    console.log('logout')
     await signOut({
       redirect: false
     })
-    console.log('logged out')
     router.push("/");
     router.refresh();
   }

@@ -10,7 +10,6 @@ export function createGameResult(result: GameResultNew) {
 }
 
 export function updateGameResult(gameId: string, result: GameResultUpdate) {
-  console.log('updating result for game', gameId, result)
   return db.updateTable('game_results')
     .where('game_id', '=', gameId)
     .set(result)

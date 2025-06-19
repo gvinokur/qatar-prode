@@ -19,8 +19,6 @@ import TournamentGameManagerTab from "../components/backoffice/tournament-game-m
 import PlayersTab from "../components/backoffice/PlayersTab";
 import NotificationSender from "../components/backoffice/notification-sender";
 
-
-
 export default async function Backoffice() {
   const user = await  getLoggedInUser()
   if(!user?.isAdmin) {

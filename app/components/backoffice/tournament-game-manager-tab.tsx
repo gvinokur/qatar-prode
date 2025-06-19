@@ -128,7 +128,6 @@ const TournamentGameManager: React.FC<TournamentGameManagerProps> = ({ tournamen
 
     try {
       // await deleteGame(gameToDelete.id);
-      console.log('Deleting game:', gameToDelete.id);
       handleCloseDeleteConfirm();
       loadData();
     } catch {

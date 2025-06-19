@@ -119,7 +119,6 @@ export async function deleteAllGamesFromTournament(tournamentId: string) {
   return waitForAllDeletes
 }
 
-
 //----------------------------------------------------------------------------------------------------
 interface GameWithResultAndGuess extends Game {
   gameResult: GameResultNew

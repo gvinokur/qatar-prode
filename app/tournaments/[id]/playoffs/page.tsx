@@ -46,7 +46,6 @@ export default async function PlayoffPage(props: Props) {
     completePlayoffData.gamesMap,
     guessedPositionsByGroup)
 
-
   Object.keys(playoffTeamsByGuess).forEach(game_id => {
     gameGuessesMap[game_id] = {
       ...gameGuessesMap[game_id],

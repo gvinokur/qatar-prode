@@ -108,7 +108,6 @@ const GroupDialog: React.FC<GroupDialogProps> = ({
     try {
       const teamIds = selectedTeams.map(team => team.id);
 
-      console.log('teamIds', teamIds)
       const updatedGroups = await createOrUpdateTournamentGroup(tournamentId, {
         id: group?.id,
         group_letter: letter,

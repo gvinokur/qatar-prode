@@ -80,8 +80,6 @@ export default function InstallPwa() {
     installPrompt.prompt();
 
     const { outcome } = await installPrompt.userChoice;
-    console.log(`User ${outcome} the installation`);
-
     if (outcome === 'accepted') {
       setInstallPrompt(null);
       setForceClose(true);

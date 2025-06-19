@@ -5,7 +5,6 @@ import utc from 'dayjs/plugin/utc';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-
 export function getLocalGameTime(date: Date, gameTimezone?: string): string {
   const d = dayjs(date);
   if (gameTimezone && Intl.supportedValuesOf('timeZone').includes(gameTimezone)) {

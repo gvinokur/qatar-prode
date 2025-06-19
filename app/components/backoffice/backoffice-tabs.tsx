@@ -5,7 +5,6 @@ import TabPanel from "../tab-panel";
 import {useCallback, useState} from "react";
 import {BugReport} from "@mui/icons-material";
 
-
 export type LabelledTab = {
   type: 'labelledTab'
   label: string,

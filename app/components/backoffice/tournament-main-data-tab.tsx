@@ -119,8 +119,6 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
     fetchTournamentData();
   }, [tournamentId, fetchPlayoffRounds]);
 
-
-
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

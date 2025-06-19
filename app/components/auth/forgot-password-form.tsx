@@ -15,7 +15,6 @@ type ForgotPasswordFormProps = {
   onSuccess: (_email: string) => void;
 }
 
-
 export default function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {
   const [loading, setLoading] = useState(false);
 

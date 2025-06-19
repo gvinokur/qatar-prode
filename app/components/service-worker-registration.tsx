@@ -6,8 +6,7 @@ export function registerServiceWorker() {
       await navigator.serviceWorker
         .register('/sw.js')
         .then((registration) => {
-          console.log('Service Worker registered with scope:', registration.scope);
-        })
+          })
         .catch((error) => {
           console.error('Service Worker registration failed:', error);
         });
@@ -24,7 +23,6 @@ export function clearBadges() {
 
 export async function requestNotificationPermission() {
   if (!('Notification' in window)) {
-    console.log('This browser does not support notifications');
     return false;
   }
 

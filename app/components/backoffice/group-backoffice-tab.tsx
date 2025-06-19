@@ -44,7 +44,6 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
   const [editResultDialogOpened, setEditResultDialogOpened] = useState(false)
   const [selectedGame, setSelectedGame] = useState<ExtendedGameData>()
 
-
   useEffect(() => {
     const fetchTournamentData = async () => {
       setLoading(true)

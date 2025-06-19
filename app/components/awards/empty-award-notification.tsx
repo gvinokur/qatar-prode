@@ -15,7 +15,6 @@ export default function EmptyAwardsSnackbar({ tournamentId } : Props) {
     return (<></>);
   }
 
-
   return (
     <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center'}} open={open} autoHideDuration={4000} onClose={() => {setOpen(false)}}>
       <Alert severity="warning" sx={{ width: '100%' }} action={(

@@ -14,7 +14,6 @@ import { unstable_ViewTransition as ViewTransition } from 'react'
 import { TimezoneProvider } from './components/context-providers/timezone-context-provider';
 import Footer from './components/home/footer';
 
-
 export async  function generateMetadata() {
   return {
     title: 'La Maquina',

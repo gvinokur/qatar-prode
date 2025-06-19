@@ -90,5 +90,3 @@ self.addEventListener('message', (event: any) => {
 
 serwist.addEventListeners();
 
-
-

@@ -67,11 +67,9 @@ function ImagePreview({
       getImageDimensions(dataUrl).then(({ width, height }) => {
         const imageAspectRatio = width / height;
         if (imageAspectRatio > aspectRatio) {
-          console.log("Image is wider than expected aspect ratio. Adjusting height.", aspectRatio);
           setPreviewHeight(previewWidth / imageAspectRatio);
         //   setWidth(height * imageAspectRatio);
         } else {
-          console.log("Image is taller than expected aspect ratio. Adjusting width.");
           setPreviewWidth(previewHeight * imageAspectRatio);
         //   setHeight(width / imageAspectRatio);
         }

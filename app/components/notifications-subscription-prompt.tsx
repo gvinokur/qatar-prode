@@ -15,7 +15,6 @@ import {
   subscribeToNotifications
 } from "../utils/notifications-utils";
 
-
 export default function NotificationsSubscriptionPrompt({ canOpen }: { canOpen: boolean }  ) {
   const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
@@ -59,7 +58,6 @@ export default function NotificationsSubscriptionPrompt({ canOpen }: { canOpen: 
 
       // Check if already subscribed
       const isSubscribed = await checkExistingSubscription();
-      console.log(isSubscribed)
       if (isSubscribed) {
         setLoading(false);
         return;
@@ -87,7 +85,6 @@ export default function NotificationsSubscriptionPrompt({ canOpen }: { canOpen: 
     localStorage.setItem('notification-dont-ask-until', (Date.now() + 24 * 60 * 60 * 1000).toString());
     setOpen(false);
   }
-
 
   const handleSubscribe = async () => {
     try {

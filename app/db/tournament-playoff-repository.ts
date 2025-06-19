@@ -9,7 +9,6 @@ export const updatePlayoffRound = baseFunctions.update
 export const createPlayoffRound = baseFunctions.create
 export const deletePlayoffRound =  baseFunctions.delete
 
-
 export async function createPlayoffRoundGame(playoffRoundGame: PlayoffRoundGameTable) {
   return await db.insertInto('tournament_playoff_round_games')
     .values(playoffRoundGame)

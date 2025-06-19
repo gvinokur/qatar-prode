@@ -181,21 +181,18 @@ export async function createOrUpdateTournament(
     // Extract existing logo URL and key if present
     existingLogoUrl = existingTournament.theme?.logo || null;
     existingLogoKey = existingTournament.theme?.s3_logo_key || getS3KeyFromURL(existingLogoUrl || '');
-    console.log('Existing logo Key:', existingLogoKey);
-  }
+    }
 
   // Handle logo upload if provided
   let logoUrl = existingLogoUrl;
   let logoKey = existingLogoKey;
   if (logoFile) {
-    console.log('Uploading provided logo file:', logoFile);
     try {
       // Upload to S3
       const res = await s3Client.uploadFile(Buffer.from(await logoFile.arrayBuffer()));
       logoUrl = res.location
       logoKey = res.key;
-      console.log('Logo uploaded successfully:', res.location);
-    } catch (error) {
+      } catch (error) {
       console.error('Error uploading logo:', error);
       throw new Error('Failed to upload logo');
     }
@@ -226,8 +223,7 @@ export async function createOrUpdateTournament(
   if (existingLogoKey && logoFile && logoUrl !== existingLogoUrl) {
     try {
       await s3Client.deleteFile(existingLogoKey);
-      console.log('Deleted old logo:', existingLogoKey);
-    } catch (error) {
+      } catch (error) {
       // Log but don't fail the operation if old logo deletion fails
       console.error('Error deleting old logo:', error);
     }
@@ -289,18 +285,14 @@ export async function createOrUpdateTournamentGroup(
 
   // Create new team associations
   let createTeams = true;
-  console.log('existingTeamsIds', existingTeamsIds)
   if(existingTeamsIds) {
-    console.log('teamIds', teamIds)
     if (teamIds.length !== existingTeamsIds.length ||
       existingTeamsIds.some(existingTeamId => !teamIds.includes(existingTeamId))) {
       await deleteTournamentGroupTeams(group.id);
     } else {
       createTeams = false;
-      console.log('setting createTeams to false')
-    }
+      }
   }
-  console.log('createTeams', createTeams)
   if(createTeams && teamIds.length > 0) {
     await Promise.all(teamIds.map((teamId, index) => {
       return createTournamentGroupTeam({
@@ -319,7 +311,6 @@ export async function createOrUpdateTournamentGroup(
       })
     }));
   }
-
 
   // Return the updated list of groups for the tournament
   return await findGroupsWithGamesAndTeamsInTournament(tournamentId);

@@ -60,8 +60,7 @@ export default async function JoinGroup(props : Props){
   try {
     joinedGroup = await joinGroup(params.id);
   } catch (e) {
-    console.log(e)
-  }
+    }
 
   if(joinedGroup) {
     redirect(`/friend-groups/${joinedGroup.id}?recentlyJoined`)
