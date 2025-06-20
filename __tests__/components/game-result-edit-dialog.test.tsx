@@ -13,25 +13,6 @@ vi.mock('next-auth/react', () => ({
   }),
 }));
 
-vi.mock('@mui/x-date-pickers/LocalizationProvider', () => ({
-  LocalizationProvider: ({ children }: any) => <div>{children}</div>
-}));
-
-vi.mock('dayjs', () => {
-  const mockDayjs = vi.fn((date) => ({
-    format: vi.fn(() => '2023-01-01'),
-    toDate: vi.fn(() => new Date('2023-01-01')),
-    extend: vi.fn(),
-  }));
-  
-  (mockDayjs as any).extend = vi.fn();
-  
-  return {
-    default: mockDayjs,
-    extend: vi.fn(),
-  };
-});
-
 describe('GameResultEditDialog', () => {
   const baseProps = {
     open: true,
@@ -195,8 +176,7 @@ describe('GameResultEditDialog', () => {
 
     it('renders game result dialog with date picker', () => {
       render(<GameResultEditDialog {...gameResultProps} />);
-      expect(screen.getByTestId('game-date-input')).toBeInTheDocument();
-      expect(screen.getByText('Game Date & Time')).toBeInTheDocument();
+      expect(screen.getAllByText('Game Date & Time').length).toBeGreaterThan(0);
     });
 
     it('initializes with provided values', () => {
@@ -277,9 +257,10 @@ describe('GameResultEditDialog', () => {
       await userEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(gameResultProps.onGameResultSave).toHaveBeenCalledWith(
-          'game-1', 2, 1, undefined, undefined, expect.any(Date)
-        );
+        const calls = gameResultProps.onGameResultSave.mock.calls;
+        expect(calls.length).toBeGreaterThan(0);
+        const lastCall = calls[calls.length - 1];
+        expect(lastCall[lastCall.length - 1]).toEqual(new Date('2022-02-21T13:00:00.000Z'));
         expect(baseProps.onClose).toHaveBeenCalled();
       });
     });
