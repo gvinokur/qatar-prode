@@ -71,14 +71,14 @@ export default async function Awards(props: Props) {
         enter={'group-enter'}
         exit={'group-exit'}
       >
-        <AwardsPanel
+        {tournament && <AwardsPanel
           allPlayers={allPlayers}
           tournamentGuesses={tournamentGuesses}
           teams={teams}
           hasThirdPlaceGame={hasThirdPlaceGame}
           isPredictionLocked={isPredictionLocked}
           tournament={tournament}
-        />
+        />}
       </ViewTransition>
     </Box>
   )

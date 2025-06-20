@@ -1,4 +1,4 @@
-import { vi, describe, it, expect } from 'vitest';
+import { vi, describe, it, expect, MockedFunction } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -71,10 +71,10 @@ vi.mock('mui-color-input', () => ({
   )
 }));
 
-const mockGetTournamentById = getTournamentById as vi.MockedFunction<typeof getTournamentById>;
-const mockCreateOrUpdateTournament = createOrUpdateTournament as vi.MockedFunction<typeof createOrUpdateTournament>;
-const mockGetPlayoffRounds = getPlayoffRounds as vi.MockedFunction<typeof getPlayoffRounds>;
-const mockGetThemeLogoUrl = getThemeLogoUrl as vi.MockedFunction<typeof getThemeLogoUrl>;
+const mockGetTournamentById = getTournamentById as MockedFunction<typeof getTournamentById>;
+const mockCreateOrUpdateTournament = createOrUpdateTournament as MockedFunction<typeof createOrUpdateTournament>;
+const mockGetPlayoffRounds = getPlayoffRounds as MockedFunction<typeof getPlayoffRounds>;
+const mockGetThemeLogoUrl = getThemeLogoUrl as MockedFunction<typeof getThemeLogoUrl>;
 
 describe('TournamentMainDataTab', () => {
   const mockTournament = {

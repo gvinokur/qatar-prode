@@ -23,13 +23,13 @@ function findByIdFactory<K2 extends Selectable<Identifiable>>  (tableName: Ident
       .where('id', '=', id)
       .selectAll()
       .executeTakeFirst()
-    return result as K2
+    return result as K2 | undefined
   })
 }
 
-function updateFactory<K1 extends Identifiable>  (tableName: IdentifiableTables) {
-  return async function (id: string, updateWith: Updateable<K1>) {
-    return db.updateTable(tableName).set(updateWith).where('id', '=', id).returningAll().executeTakeFirstOrThrow()
+function updateFactory<K1 extends Identifiable, K2 extends Selectable<Identifiable>>  (tableName: IdentifiableTables) {
+  return async function (id: string, updateWith: Updateable<K1>): Promise<K2> {
+    return db.updateTable(tableName).set(updateWith).where('id', '=', id).returningAll().executeTakeFirstOrThrow() as Promise<K2>
   }
 }
 
@@ -43,11 +43,11 @@ function createFactory<K1 extends Identifiable, K2 extends Selectable<Identifiab
   }
 }
 
-function deleteFactory(tableName: IdentifiableTables) {
-  return async function (id: string) {
-    return await db.deleteFrom(tableName).where('id', '=', id)
+function deleteFactory<K1 extends Identifiable>(tableName: IdentifiableTables) {
+  return async function (id: string): Promise<K1> {
+    return db.deleteFrom(tableName).where('id', '=', id)
       .returningAll()
-      .executeTakeFirst()
+      .executeTakeFirstOrThrow() as Promise<K1>
   }
 }
 
@@ -55,7 +55,7 @@ export function createBaseFunctions<K1 extends Identifiable, K2 extends Selectab
   return {
     findById: findByIdFactory<K2>(tableName),
     create: createFactory<K1, K2>(tableName),
-    update: updateFactory<K1>(tableName),
-    delete: deleteFactory(tableName),
+    update: updateFactory<K1, K2>(tableName),
+    delete: deleteFactory<K1>(tableName),
   }
 }

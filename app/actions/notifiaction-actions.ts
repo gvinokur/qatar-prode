@@ -137,6 +137,9 @@ export async function sendGroupNotification({ groupId, tournamentId, targetPage,
   // Find all participants in the group
   const participants = await findParticipantsInGroup(groupId);
   const group = await findProdeGroupById(groupId);
+  if(!group) {
+    throw new Error('Group not found')
+  }
   const recipientIds: string[] = [
     group.owner_user_id,
     ...participants.map((p) => p.user_id)

@@ -55,7 +55,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
             }
           }}>
             <Link
-              href={`/tournaments/${layoutData.tournament.id}`}
+              href={`/tournaments/${layoutData.tournament?.id}`}
             >
               <Box
                 sx={{
@@ -78,7 +78,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                     md: 'flex-start'
                   }
                 }}>
-                <img src={logoUrl || ''} alt={layoutData.tournament.long_name} style={{
+                <img src={logoUrl || ''} alt={layoutData.tournament?.long_name} style={{
                   maxHeight: '48px'
                 }}/>
                 {(layoutData.tournament?.display_name && layoutData.tournament.long_name) && (
@@ -124,7 +124,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
         isWithin5DaysOfTournamentStart && (
         <EmptyAwardsSnackbar tournamentId={params.id}/>
       )}
-      <EnvironmentIndicator isDev={layoutData.tournament.dev_only || false}/>
+      <EnvironmentIndicator isDev={layoutData.tournament?.dev_only || false}/>
     </Box>
   )
  }

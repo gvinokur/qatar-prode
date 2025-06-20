@@ -6,7 +6,7 @@ import {
   createOrUpdateGame,
   getGamesInTournament
 } from '../../app/actions/game-actions';
-import { Game, GameNew, GameUpdate } from '../../app/db/tables-definition';
+import { Game, GameNew, GameTable, GameUpdate } from '../../app/db/tables-definition';
 import * as gameRepository from '../../app/db/game-repository';
 import * as gameGuessRepository from '../../app/db/game-guess-repository';
 import * as tournamentRepository from '../../app/db/tournament-repository';
@@ -137,11 +137,11 @@ describe('Game Actions', () => {
     mockGetLoggedInUser.mockResolvedValue(mockAdminUser);
     mockCreateGame.mockResolvedValue(mockGame);
     mockUpdateGame.mockResolvedValue(mockGame);
-    mockDeleteGame.mockResolvedValue(mockGame);
+    mockDeleteGame.mockResolvedValue(mockGame as any);
     mockFindGamesInTournament.mockResolvedValue([mockGame]);
     mockCreateTournamentGroupGame.mockResolvedValue({ game_id: 'game1', tournament_group_id: 'group1' });
     mockCreatePlayoffRoundGame.mockResolvedValue({ game_id: 'game1', tournament_playoff_round_id: 'playoff1' });
-    mockDeletePlayoffRoundGame.mockResolvedValue({ game_id: 'game1', tournament_playoff_round_id: 'playoff1' });
+    mockDeletePlayoffRoundGame.mockResolvedValue({numDeletedRows: BigInt(1)});
   });
 
   describe('createGroupGame', () => {
