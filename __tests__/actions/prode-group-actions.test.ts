@@ -80,15 +80,28 @@ describe('Prode Group Actions', () => {
     mockFindParticipantsInGroup.mockResolvedValue([mockParticipant]);
     mockGetGameGuessStatisticsForUsers.mockResolvedValue([{ user_id: 'user1', group_score: 10, playoff_score: 5, total_score: 15 }]);
     mockFindTournamentGuessByUserIdsTournament.mockResolvedValue([{ user_id: 'user1', qualified_teams_score: 2, honor_roll_score: 3, individual_awards_score: 4, group_position_score: 1 }]);
-    mockCustomToMap.mockImplementation((data, key) => {
-      if (key === 'user_id') {
-        if (data[0]?.group_score !== undefined) {
-          // Game statistics data
-          return { user1: { user_id: 'user1', group_score: 10, playoff_score: 5, total_score: 15 } };
-        } else {
-          // Tournament guesses data
-          return { user1: { user_id: 'user1', qualified_teams_score: 2, honor_roll_score: 3, individual_awards_score: 4, group_position_score: 1 } };
-        }
+    mockCustomToMap.mockImplementation((data, keyExtractor) => {
+      if (data.length > 0 && data[0]?.group_score !== undefined) {
+        // Game statistics data
+        return { 
+          user1: { 
+            user_id: 'user1', 
+            group_score: 10, 
+            playoff_score: 5, 
+            total_score: 15 
+          } 
+        };
+      } else if (data.length > 0 && data[0]?.qualified_teams_score !== undefined) {
+        // Tournament guesses data
+        return { 
+          user1: { 
+            user_id: 'user1', 
+            qualified_teams_score: 2, 
+            honor_roll_score: 3, 
+            individual_awards_score: 4, 
+            group_position_score: 1 
+          } 
+        };
       }
       return {};
     });
