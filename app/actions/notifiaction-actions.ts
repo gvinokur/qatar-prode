@@ -56,11 +56,16 @@ export async function sendNotification(
   if(sendToAllUsers) {
     users = await findUsersWithNotificationSubscriptions()
   } else if (typeof userIds === 'string') {
-    users = [await findUserById(userIds)]
+    const user = await findUserById(userIds)
+    if (!user) {
+      throw new Error('Users not found')
+    }
+    users = [user]
   } else if (Array.isArray(userIds)) {
     users = await findUsersByIds(userIds)
   }
-  if (!users) {
+  
+  if (!users || users.length === 0 || users.some(user => !user)) {
     throw new Error('Users not found')
   }
 
