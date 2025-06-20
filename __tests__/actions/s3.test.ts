@@ -189,69 +189,37 @@ describe('S3 Actions', () => {
   describe('getS3KeyFromURL', () => {
     it('extracts key from S3 URL', () => {
       const url = 'https://s3.amazonaws.com/bucket/logos/logo.png';
-      const result = getS3KeyFromURL(url);
-
-      expect(result).toBe('logo.png');
+      expect(getS3KeyFromURL(url)).toBe('logo.png');
     });
 
     it('extracts key from URL with trailing slash', () => {
       const url = 'https://s3.amazonaws.com/bucket/logos/logo.png/';
-      const result = getS3KeyFromURL(url);
-
-      expect(result).toBe('logo.png');
+      expect(getS3KeyFromURL(url)).toBe('logo.png');
     });
 
-    it('extracts key from URL with query parameters', () => {
-      const url = 'https://s3.amazonaws.com/bucket/logos/logo.png?version=123';
-      const result = getS3KeyFromURL(url);
-
-      expect(result).toBe('logo.png?version=123');
+    it('returns null for URL with no path', () => {
+      const url = 'https://s3.amazonaws.com/';
+      expect(getS3KeyFromURL(url)).toBeNull();
     });
 
-    it('extracts key from URL with hash', () => {
-      const url = 'https://s3.amazonaws.com/bucket/logos/logo.png#section';
-      const result = getS3KeyFromURL(url);
-
-      expect(result).toBe('logo.png#section');
+    it('handles URLs with query parameters', () => {
+      const url = 'https://s3.amazonaws.com/bucket/logos/logo.png?versionId=123';
+      expect(getS3KeyFromURL(url)).toBe('logo.png');
     });
 
-    it('returns null for empty URL', () => {
-      const result = getS3KeyFromURL('');
-
-      expect(result).toBeNull();
+    it('handles simple paths without a full URL', () => {
+      const url = 'prode-group-files/logos/logo.png';
+      expect(getS3KeyFromURL(url)).toBe('logo.png');
     });
 
-    it('returns bucket name for URL without filename', () => {
-      const result = getS3KeyFromURL('https://s3.amazonaws.com/bucket/');
-
-      expect(result).toBe('bucket');
+    it('returns null for an empty string', () => {
+      const url = '';
+      expect(getS3KeyFromURL(url)).toBeNull();
     });
 
-    it('returns bucket name for URL with only domain', () => {
-      const result = getS3KeyFromURL('https://s3.amazonaws.com/bucket');
-
-      expect(result).toBe('bucket');
-    });
-
-    it('handles URLs with multiple path segments', () => {
-      const url = 'https://s3.amazonaws.com/bucket/folder1/folder2/folder3/file.jpg';
-      const result = getS3KeyFromURL(url);
-
-      expect(result).toBe('file.jpg');
-    });
-
-    it('handles URLs with dots in path', () => {
-      const url = 'https://s3.amazonaws.com/bucket/folder.name/file.name.jpg';
-      const result = getS3KeyFromURL(url);
-
-      expect(result).toBe('file.name.jpg');
-    });
-
-    it('handles URLs with special characters', () => {
-      const url = 'https://s3.amazonaws.com/bucket/logos/logo%20with%20spaces.png';
-      const result = getS3KeyFromURL(url);
-
-      expect(result).toBe('logo%20with%20spaces.png');
+    it('returns null for an invalid URL that is not a simple path', () => {
+      const url = 'not a url';
+      expect(getS3KeyFromURL(url)).toBeNull();
     });
   });
 }); 

@@ -76,22 +76,20 @@ import {
 } from "../db/tournament-guess-repository";
 import {awardsDefinition} from "../utils/award-utils";
 import {getLoggedInUser} from "./user-actions";
+import { revalidatePath } from 'next/cache';
+import { deleteAllGameGuessesByTournamentId } from '../db/game-guess-repository';
+import { deleteAllTournamentGuessesByTournamentId } from '../db/tournament-guess-repository';
 
 export async function deleteDBTournamentTree(tournament: Tournament) {
-  // delete from tournament_playoff_round_games ;
-  // delete from tournament_group_games;
-  // TODO: Delete GameGuesses
-  // delete from games;
+  revalidatePath(`/tournaments/${tournament.id}/backoffice`);
+
+  // Delete all related entities
+  await deleteAllGameGuessesByTournamentId(tournament.id);
+  await deleteAllTournamentGuessesByTournamentId(tournament.id);
   await deleteAllGamesFromTournament(tournament.id);
-  // delete from tournament_playoff_rounds;
   await deleteAllPlayoffRoundsInTournament(tournament.id);
-  // delete from tournament_group_teams;
-  // delete from tournament_groups;
   await deleteAllGroupsFromTournament(tournament.id);
-  // delete from tournament_teams;
   await deleteTournamentTeams(tournament.id)
-  // TODO: Remove Groups
-  // delete from tournaments
   await deleteTournament(tournament.id)
 }
 

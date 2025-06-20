@@ -54,3 +54,9 @@ export async function deleteAllUserTournamentGuesses(userId: string) {
     .where('user_id', '=', userId)
     .execute()
 }
+
+export async function deleteAllTournamentGuessesByTournamentId(tournamentId: string) {
+  return db.deleteFrom('tournament_guesses')
+    .where('tournament_id', '=', tournamentId)
+    .execute();
+}

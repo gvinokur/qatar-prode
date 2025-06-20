@@ -180,3 +180,8 @@ export async function deleteAllUserGameGuesses(userId: string) {
     .where('user_id', '=', userId)
     .execute()
 }
+
+export async function deleteAllGameGuessesByTournamentId(tournamentId: string) {
+  const gameIds = db.selectFrom('games').select('id').where('tournament_id', '=', tournamentId);
+  return db.deleteFrom(tableName).where('game_id', 'in', gameIds).execute();
+}

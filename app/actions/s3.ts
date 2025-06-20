@@ -24,11 +24,18 @@ export const deleteThemeLogoFromS3 = async (theme?: Theme) => {
   }
 }
 
-export const getS3KeyFromURL = (url: string) => {
-  const regex = new RegExp('([^/]+)/?$')
-  const result = regex.exec(url) || []
-  if(result?.length > 1) {
-    return result[1]
+export const getS3KeyFromURL = (url: string): string | null => {
+  try {
+    const path = new URL(url).pathname;
+    const parts = path.split('/').filter(Boolean);
+    return parts.length > 0 ? parts[parts.length - 1] : null;
+  } catch (error) {
+    // Fallback for cases where the URL might be a simple path
+    if (url.includes('/')) {
+      const parts = url.split('/').filter(Boolean);
+      return parts.length > 0 ? parts[parts.length - 1] : null;
+    }
+    // If it's not a URL and not a path, return null
+    return null;
   }
-  return null
-}
+};

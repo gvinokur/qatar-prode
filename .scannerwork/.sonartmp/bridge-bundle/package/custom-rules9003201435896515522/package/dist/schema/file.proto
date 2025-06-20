@@ -1,0 +1,35 @@
+syntax = "proto3";
+option java_package = "com.sonarsource.architecture.udg.protobuf";
+option csharp_namespace = "SonarAnalyzer.Udg.Protobuf";
+option java_multiple_files = true;
+option optimize_for = SPEED;
+
+import "property.proto";
+
+message Files {
+    /**
+     * Map: Files by file ID.
+     */
+    map<string, File> file_by_id = 1;
+}
+
+/**
+ * Represents a source file in the project, such as a `.java`, `.cpp` or `.h` file.
+ */
+message File {
+
+    /**
+     * ID of this file.
+     */
+    string id = 1;
+
+    /**
+     * String ID: Path of this source file, relative to the project root.
+     */
+    string path_aid = 2; // attribute id to path string
+
+    /**
+     * Additional properties attached by the generator.
+     */
+    optional Properties properties = 3;
+}
