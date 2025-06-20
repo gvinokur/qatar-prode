@@ -17,8 +17,8 @@ vi.mock('../../app/db/database', () => ({
     deleteFrom: vi.fn(),
   }
 }));
-vi.mock('../../app/components/friend-groups/image-picker', () => {
-  return function MockImagePicker({ onChange, defaultValue }: any) {
+vi.mock('../../app/components/friend-groups/image-picker', () => ({
+  default: function MockImagePicker({ onChange, defaultValue }: any) {
     return (
       <div data-testid="image-picker">
         <input
@@ -30,10 +30,10 @@ vi.mock('../../app/components/friend-groups/image-picker', () => {
         {defaultValue && <img src={defaultValue} alt="logo" data-testid="logo-preview" />}
       </div>
     );
-  };
-});
-vi.mock('../../app/components/backoffice/internal/playoff-round-dialog', () => {
-  return function MockPlayoffRoundDialog({ open, onClose, onSave, round, nextOrder }: any) {
+  }
+}));
+vi.mock('../../app/components/backoffice/internal/playoff-round-dialog', () => ({
+  default: function MockPlayoffRoundDialog({ open, onClose, onSave, round, nextOrder }: any) {
     if (!open) return null;
     return (
       <div data-testid="playoff-round-dialog">
@@ -43,8 +43,8 @@ vi.mock('../../app/components/backoffice/internal/playoff-round-dialog', () => {
         {round && <span data-testid="editing-round">{round.round_name}</span>}
       </div>
     );
-  };
-});
+  }
+}));
 vi.mock('next-auth', () => ({
   __esModule: true,
   default: () => ({}),
