@@ -11,7 +11,7 @@ export default function Transition({
   const [hidePage, setHidePage] = useState(false)
 
   useEffect(() => {
-    const pageHideHandler = (event: any) => {
+    const pageHideHandler = () => {
       setHidePage(true)
       };
 

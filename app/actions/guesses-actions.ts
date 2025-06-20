@@ -32,7 +32,11 @@ export async function updateOrCreateGameGuesses(gameGuesses: GameGuessNew[]) {
 }
 
 export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew) {
-  return dbUpdateOrCreateTournamentGuess(guess)
+  try {
+    return dbUpdateOrCreateTournamentGuess(guess)
+  } catch {
+    return { success: false, error: 'Failed to update tournament guess' };
+  }
 }
 
 export async function updateOrCreateTournamentGroupTeamGuesses(groupTeamGuesses: TournamentGroupTeamStatsGuessNew[]) {
@@ -79,7 +83,7 @@ export async function updatePlayoffGameGuesses(tournamentId: string, user?: User
             .set('game_id', game_id)
             .where('id', '=', toFix.id)
             .execute()
-        } catch(e) {
+        } catch {
           // Continue execution even if update fails
         }
       }

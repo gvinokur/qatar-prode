@@ -5,7 +5,7 @@ export function registerServiceWorker() {
     window.addEventListener('load', async () => {
       await navigator.serviceWorker
         .register('/sw.js')
-        .then((registration) => {
+        .then(() => {
           })
         .catch((error) => {
           console.error('Service Worker registration failed:', error);

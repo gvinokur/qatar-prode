@@ -29,7 +29,7 @@ export const getS3KeyFromURL = (url: string): string | null => {
     const path = new URL(url).pathname;
     const parts = path.split('/').filter(Boolean);
     return parts.length > 0 ? parts[parts.length - 1] : null;
-  } catch (error) {
+  } catch {
     // Fallback for cases where the URL might be a simple path
     if (url.includes('/')) {
       const parts = url.split('/').filter(Boolean);

@@ -137,7 +137,7 @@ export async function updateTheme(groupId: string, formData: any) {
       const res = await s3.uploadFile(Buffer.from(await data.logo.arrayBuffer()));
       imageUrl = res.location
       imageKey = res.key
-    } catch (e) {
+    } catch {
       return "Image Upload failed"
     }
   }

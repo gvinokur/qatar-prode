@@ -59,7 +59,7 @@ export default async function JoinGroup(props : Props){
   let joinedGroup
   try {
     joinedGroup = await joinGroup(params.id);
-  } catch (e) {
+  } catch {
     }
 
   if(joinedGroup) {

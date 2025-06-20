@@ -267,7 +267,7 @@ export async function generateDbTournament(name: string, deletePrevious:boolean 
             })
           }
           }))
-      } catch (e) {
+      } catch {
         return 'El campeonato no pudo ser creado'
       }
       return 'El campeonato fue creado exitosamente'
