@@ -55,7 +55,7 @@ export async function deleteGroup(groupId: string) {
   }
   const group = await findProdeGroupById(groupId)
   //Only support deletion  of the group if the user in the session is the same as the owner
-  if(user && user.id === group.owner_user_id) {
+  if(user && group && user.id === group.owner_user_id) {
     await deleteAllParticipantsFromGroup(groupId)
     await deleteProdeGroup(groupId);
   }
@@ -66,6 +66,7 @@ export async function promoteParticipantToAdmin(groupId: string, userId: string)
   if (!user) throw 'Should not call this action from a logged out page';
   // Only owner or current admin can promote
   const group = await findProdeGroupById(groupId);
+  if (!group) throw 'Group not found';
   if (user.id !== group.owner_user_id) throw 'Only owner can promote admins';
   await updateParticipantAdminStatus(groupId, userId, true);
 }
@@ -75,6 +76,7 @@ export async function demoteParticipantFromAdmin(groupId: string, userId: string
   if (!user) throw 'Should not call this action from a logged out page';
   // Only owner or current admin can demote
   const group = await findProdeGroupById(groupId);
+  if (!group) throw 'Group not found';
   if (user.id !== group.owner_user_id) throw 'Only owner can demote admins';
   await updateParticipantAdminStatus(groupId, userId, false);
 }
@@ -85,6 +87,7 @@ export async function joinGroup(groupId: string, isAdmin: boolean = false) {
     throw 'Should not call this action from a logged out page'
   }
   const group = await findProdeGroupById(groupId)
+  if (!group) throw 'Group not found';
 
   await addParticipantToGroup(group, user, isAdmin)
 
@@ -118,6 +121,8 @@ const imageSchema = z.object({
 
 export async function updateTheme(groupId: string, formData: any) {
   const currentGroup = await findProdeGroupById(groupId)
+  if (!currentGroup) throw 'Group not found';
+  
   const data = Object.fromEntries(formData)
   let imageUrl: string | undefined = currentGroup.theme?.logo
   let imageKey: string | undefined = currentGroup.theme?.s3_logo_key

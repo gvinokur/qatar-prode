@@ -173,7 +173,7 @@ export async function createOrUpdateTournament(
 
   // If updating, get existing tournament
   if (tournamentId) {
-    existingTournament = await findTournamentById(tournamentId);
+    existingTournament = (await findTournamentById(tournamentId)) ?? null;
     if (!existingTournament) {
       throw new Error('Tournament not found');
     }
