@@ -13,7 +13,8 @@ import {
   updateOrCreateTournamentGroupTeamGuesses,
   updatePlayoffGameGuesses,
 } from '../../app/actions/guesses-actions';
-import { GameGuessNew, TournamentGuessNew, TournamentGroupTeamStatsGuessNew, UserUpdate } from '../../app/db/tables-definition';
+import { GameGuessNew, TournamentGuessNew, TournamentGroupTeamStatsGuessNew, UserUpdate, GameGuess, TournamentGuess, TournamentGroupTeamStatsGuess } from '../../app/db/tables-definition';
+import { ExtendedGameData, ExtendedPlayoffRoundData } from '../../app/definitions';
 
 // Mock the auth module to prevent Next-auth module resolution errors
 vi.mock('../../auth', () => ({
@@ -84,11 +85,42 @@ describe('Guesses Actions', () => {
     away_score: 1
   };
 
+  const mockGameGuessResult: GameGuess = {
+    id: 'guess1',
+    game_id: 'game1',
+    game_number: 1,
+    user_id: 'user1',
+    home_team: 'team1',
+    away_team: 'team2',
+    home_score: 2,
+    away_score: 1,
+    home_penalty_winner: undefined,
+    away_penalty_winner: undefined,
+    score: undefined
+  };
+
   const mockTournamentGuess: TournamentGuessNew = {
     tournament_id: 'tournament1',
     user_id: 'user1',
     champion_team_id: 'team1',
     runner_up_team_id: 'team2'
+  };
+
+  const mockTournamentGuessResult: TournamentGuess = {
+    id: 'tournament-guess1',
+    tournament_id: 'tournament1',
+    user_id: 'user1',
+    champion_team_id: 'team1',
+    runner_up_team_id: 'team2',
+    third_place_team_id: undefined,
+    best_player_id: undefined,
+    top_goalscorer_player_id: undefined,
+    best_goalkeeper_player_id: undefined,
+    best_young_player_id: undefined,
+    honor_roll_score: undefined,
+    individual_awards_score: undefined,
+    qualified_teams_score: undefined,
+    group_position_score: undefined
   };
 
   const mockGroupTeamGuess: TournamentGroupTeamStatsGuessNew = {
@@ -107,18 +139,35 @@ describe('Guesses Actions', () => {
     is_complete: true
   };
 
+  const mockGroupTeamGuessResult: TournamentGroupTeamStatsGuess = {
+    id: 'group-guess1',
+    tournament_group_id: 'group1',
+    user_id: 'user1',
+    team_id: 'team1',
+    position: 1,
+    games_played: 3,
+    points: 9,
+    win: 3,
+    draw: 0,
+    loss: 0,
+    goals_for: 6,
+    goals_against: 1,
+    goal_difference: 5,
+    is_complete: true
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetLoggedInUser.mockResolvedValue(mockUser);
-    mockUpdateOrCreateGuess.mockResolvedValue({ id: 'guess1', ...mockGameGuess });
-    mockDbUpdateOrCreateTournamentGuess.mockResolvedValue({ id: 'tournament-guess1', ...mockTournamentGuess });
-    mockUpsertTournamentGroupTeamGuesses.mockResolvedValue([{ id: 'group-guess1', ...mockGroupTeamGuess }]);
+    mockUpdateOrCreateGuess.mockResolvedValue(mockGameGuessResult);
+    mockDbUpdateOrCreateTournamentGuess.mockResolvedValue(mockTournamentGuessResult);
+    mockUpsertTournamentGroupTeamGuesses.mockResolvedValue([mockGroupTeamGuessResult]);
     mockFindAllTournamentGroupTeamGuessInGroup.mockResolvedValue([]);
     mockFindGroupsInTournament.mockResolvedValue([]);
     mockFindPlayoffStagesWithGamesInTournament.mockResolvedValue([]);
     mockFindGamesInTournament.mockResolvedValue([]);
     mockCalculatePlayoffTeamsFromPositions.mockReturnValue({});
-    mockUpdateGameGuessByGameId.mockResolvedValue({ id: 'updated-guess1', ...mockGameGuess });
+    mockUpdateGameGuessByGameId.mockResolvedValue(mockGameGuessResult);
   });
 
   describe('updateOrCreateGameGuesses', () => {
@@ -135,7 +184,7 @@ describe('Guesses Actions', () => {
     });
 
     it('returns unauthorized when user is not logged in', async () => {
-      mockGetLoggedInUser.mockResolvedValue(null);
+      mockGetLoggedInUser.mockResolvedValue(undefined);
       const gameGuesses = [mockGameGuess];
 
       const result = await updateOrCreateGameGuesses(gameGuesses);
@@ -165,7 +214,7 @@ describe('Guesses Actions', () => {
       const result = await updateOrCreateTournamentGuess(mockTournamentGuess);
 
       expect(mockDbUpdateOrCreateTournamentGuess).toHaveBeenCalledWith(mockTournamentGuess);
-      expect(result).toEqual({ id: 'tournament-guess1', ...mockTournamentGuess });
+      expect(result).toEqual(mockTournamentGuessResult);
     });
 
     it('handles repository errors', async () => {
@@ -182,7 +231,7 @@ describe('Guesses Actions', () => {
       const result = await updateOrCreateTournamentGroupTeamGuesses(groupTeamGuesses);
 
       expect(mockUpsertTournamentGroupTeamGuesses).toHaveBeenCalledWith(groupTeamGuesses);
-      expect(result).toEqual([{ id: 'group-guess1', ...mockGroupTeamGuess }]);
+      expect(result).toEqual([mockGroupTeamGuessResult]);
     });
 
     it('handles repository errors', async () => {
@@ -195,29 +244,69 @@ describe('Guesses Actions', () => {
   });
 
   describe('updatePlayoffGameGuesses', () => {
-    const mockPlayoffStage = {
+    const mockPlayoffStage: ExtendedPlayoffRoundData = {
       id: 'stage1',
+      tournament_id: 'tournament1',
       round_name: 'Quarter Finals',
-      games: [{ id: 'game1' }]
+      round_order: 1,
+      total_games: 4,
+      is_final: false,
+      is_third_place: false,
+      is_first_stage: true,
+      games: [{ game_id: 'game1' }]
     };
 
-    const mockGame = {
+    const mockGame: ExtendedGameData = {
       id: 'game1',
       tournament_id: 'tournament1',
       game_number: 1,
-      game_date: new Date('2024-01-01')
+      home_team: 'team1',
+      away_team: 'team2',
+      game_date: new Date('2024-01-01'),
+      location: 'Stadium 1',
+      home_team_rule: undefined,
+      away_team_rule: undefined,
+      game_type: 'playoff',
+      game_local_timezone: undefined,
+      group: undefined,
+      playoffStage: undefined,
+      gameResult: undefined
     };
 
     const mockGroup = {
       id: 'group1',
       tournament_id: 'tournament1',
-      group_letter: 'A'
+      group_letter: 'A',
+      sort_by_games_between_teams: false
     };
 
     const mockPlayoffTeams = {
       'game1': {
-        homeTeam: { team_id: 'team1' },
-        awayTeam: { team_id: 'team2' }
+        game_id: 'game1',
+        homeTeam: { 
+          team_id: 'team1',
+          games_played: 3,
+          points: 9,
+          win: 3,
+          draw: 0,
+          loss: 0,
+          goals_for: 6,
+          goals_against: 1,
+          goal_difference: 5,
+          is_complete: true
+        },
+        awayTeam: { 
+          team_id: 'team2',
+          games_played: 3,
+          points: 6,
+          win: 2,
+          draw: 0,
+          loss: 1,
+          goals_for: 4,
+          goals_against: 3,
+          goal_difference: 1,
+          is_complete: true
+        }
       }
     };
 
@@ -244,7 +333,7 @@ describe('Guesses Actions', () => {
     });
 
     it('returns undefined when user is not logged in', async () => {
-      mockGetLoggedInUser.mockResolvedValue(null);
+      mockGetLoggedInUser.mockResolvedValue(undefined);
 
       const result = await updatePlayoffGameGuesses('tournament1');
 
@@ -275,11 +364,23 @@ describe('Guesses Actions', () => {
     it('handles games with missing teams', async () => {
       const mockPlayoffTeamsWithMissingTeams = {
         'game1': {
-          homeTeam: { team_id: 'team1' },
-          awayTeam: null
+          game_id: 'game1',
+          homeTeam: { 
+            team_id: 'team1',
+            games_played: 3,
+            points: 9,
+            win: 3,
+            draw: 0,
+            loss: 0,
+            goals_for: 6,
+            goals_against: 1,
+            goal_difference: 5,
+            is_complete: true
+          },
+          awayTeam: undefined
         }
       };
-      mockCalculatePlayoffTeamsFromPositions.mockReturnValue(mockPlayoffTeamsWithMissingTeams);
+      mockCalculatePlayoffTeamsFromPositions.mockReturnValue(mockPlayoffTeamsWithMissingTeams as any);
 
       await updatePlayoffGameGuesses('tournament1');
 

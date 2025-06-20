@@ -7,5 +7,20 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './vitest.setup.ts',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html', 'lcov'],
+      exclude: [
+        'node_modules/',
+        '**/*.test.ts',
+        '**/*.test.tsx',
+        '**/__tests__/**',
+        '**/jest.setup.ts',
+        '**/next.config.js',
+        '**/tailwind.config.js',
+        '**/vitest.setup.ts',
+        '**/vitest.config.ts'
+      ]
+    }
   },
 }); 
