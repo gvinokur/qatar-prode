@@ -137,11 +137,11 @@ describe('Game Actions', () => {
     mockGetLoggedInUser.mockResolvedValue(mockAdminUser);
     mockCreateGame.mockResolvedValue(mockGame);
     mockUpdateGame.mockResolvedValue(mockGame);
-    mockDeleteGame.mockResolvedValue(undefined);
+    mockDeleteGame.mockResolvedValue(mockGame);
     mockFindGamesInTournament.mockResolvedValue([mockGame]);
     mockCreateTournamentGroupGame.mockResolvedValue({ game_id: 'game1', tournament_group_id: 'group1' });
-    mockCreatePlayoffRoundGame.mockResolvedValue({ game_id: 'game1', playoff_round_id: 'playoff1' });
-    mockDeletePlayoffRoundGame.mockResolvedValue(undefined);
+    mockCreatePlayoffRoundGame.mockResolvedValue({ game_id: 'game1', tournament_playoff_round_id: 'playoff1' });
+    mockDeletePlayoffRoundGame.mockResolvedValue({ game_id: 'game1', tournament_playoff_round_id: 'playoff1' });
   });
 
   describe('createGroupGame', () => {
@@ -270,7 +270,7 @@ describe('Game Actions', () => {
     });
 
     it('handles case when game creation/update fails', async () => {
-      mockCreateGame.mockResolvedValue(undefined);
+      mockCreateGame.mockResolvedValue(mockGame);
 
       await createOrUpdateGame(mockGameData, 'group1');
 
