@@ -1,3 +1,20 @@
+// Mock the auth module to prevent Next-auth import issues - must be first!
+vi.mock('../../auth', () => ({
+  auth: vi.fn().mockResolvedValue({
+    user: {
+      id: 'test-user-id',
+      email: 'test@example.com',
+      emailVerified: new Date()
+    }
+  })
+}));
+
+// Mock web-push to prevent setVapidDetails from being called
+vi.mock('web-push', () => ({
+  setVapidDetails: vi.fn(),
+  sendNotification: vi.fn()
+}));
+
 import { vi, describe, it, expect } from 'vitest';
 import { 
   urlBase64ToUint8Array, 
@@ -6,6 +23,7 @@ import {
   subscribeToNotifications,
   unsubscribeFromNotifications 
 } from '../../app/utils/notifications-utils';
+import * as notificationActions from '../../app/actions/notifiaction-actions';
 
 // Mock the notification actions
 vi.mock('../../app/actions/notifiaction-actions', () => ({
@@ -20,7 +38,8 @@ describe('notifications-utils', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env = { ...originalEnv };
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY = 'test-vapid-key';
+    // Use a valid dummy VAPID public key (65 bytes when decoded)
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY = 'BOr7QwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQw';
   });
 
   afterEach(() => {
@@ -208,8 +227,8 @@ describe('notifications-utils', () => {
       mockNotification.requestPermission.mockResolvedValue('granted');
       mockRegistration.pushManager.subscribe.mockResolvedValue(mockSubscription);
 
-      const { subscribeUser } = vi.mocked(await vi.importActual('../../app/actions/notifiaction-actions'));
-      subscribeUser.mockResolvedValue(undefined);
+      const mockSubscribeUser = vi.mocked(notificationActions.subscribeUser);
+      mockSubscribeUser.mockResolvedValue({ success: true });
 
       await subscribeToNotifications();
 
@@ -218,31 +237,31 @@ describe('notifications-utils', () => {
         userVisibleOnly: true,
         applicationServerKey: expect.any(Uint8Array)
       });
-      expect(subscribeUser).toHaveBeenCalled();
+      expect(mockSubscribeUser).toHaveBeenCalled();
     });
 
     it('should not subscribe when permission is denied', async () => {
       mockNotification.requestPermission.mockResolvedValue('denied');
 
-      const { subscribeUser } = vi.mocked(await vi.importActual('../../app/actions/notifiaction-actions'));
+      const mockSubscribeUser = vi.mocked(notificationActions.subscribeUser);
 
       await subscribeToNotifications();
 
       expect(mockNotification.requestPermission).toHaveBeenCalled();
       expect(mockRegistration.pushManager.subscribe).not.toHaveBeenCalled();
-      expect(subscribeUser).not.toHaveBeenCalled();
+      expect(mockSubscribeUser).not.toHaveBeenCalled();
     });
 
     it('should not subscribe when permission is default', async () => {
       mockNotification.requestPermission.mockResolvedValue('default');
 
-      const { subscribeUser } = vi.mocked(await vi.importActual('../../app/actions/notifiaction-actions'));
+      const mockSubscribeUser = vi.mocked(notificationActions.subscribeUser);
 
       await subscribeToNotifications();
 
       expect(mockNotification.requestPermission).toHaveBeenCalled();
       expect(mockRegistration.pushManager.subscribe).not.toHaveBeenCalled();
-      expect(subscribeUser).not.toHaveBeenCalled();
+      expect(mockSubscribeUser).not.toHaveBeenCalled();
     });
 
     it('should throw error when subscription endpoint is null', async () => {
@@ -294,26 +313,26 @@ describe('notifications-utils', () => {
 
       mockRegistration.pushManager.getSubscription.mockResolvedValue(mockSubscription);
 
-      const { unsubscribeUser } = vi.mocked(await vi.importActual('../../app/actions/notifiaction-actions'));
-      unsubscribeUser.mockResolvedValue(undefined);
+      const mockUnsubscribeUser = vi.mocked(notificationActions.unsubscribeUser);
+      mockUnsubscribeUser.mockResolvedValue({ success: true });
 
       await unsubscribeFromNotifications();
 
       expect(mockRegistration.pushManager.getSubscription).toHaveBeenCalled();
       expect(mockSubscription.unsubscribe).toHaveBeenCalled();
-      expect(unsubscribeUser).toHaveBeenCalled();
+      expect(mockUnsubscribeUser).toHaveBeenCalled();
     });
 
     it('should handle case when no subscription exists', async () => {
       mockRegistration.pushManager.getSubscription.mockResolvedValue(null);
 
-      const { unsubscribeUser } = vi.mocked(await vi.importActual('../../app/actions/notifiaction-actions'));
-      unsubscribeUser.mockResolvedValue(undefined);
+      const mockUnsubscribeUser = vi.mocked(notificationActions.unsubscribeUser);
+      mockUnsubscribeUser.mockResolvedValue({ success: true });
 
       await unsubscribeFromNotifications();
 
       expect(mockRegistration.pushManager.getSubscription).toHaveBeenCalled();
-      expect(unsubscribeUser).toHaveBeenCalled();
+      expect(mockUnsubscribeUser).toHaveBeenCalled();
     });
   });
 }); 
