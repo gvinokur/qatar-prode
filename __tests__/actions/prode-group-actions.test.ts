@@ -18,6 +18,8 @@ import {
   getUserScoresForTournament,
 } from '../../app/actions/prode-group-actions';
 import { z } from 'zod';
+import { ProdeGroupTable, ProdeGroupParticipantTable, TournamentGuessTable } from '../../app/db/tables-definition';
+import { GameStatisticForUser } from '../../types/definitions';
 
 // Mock the auth module to prevent Next-auth module resolution errors
 vi.mock('../../auth', () => ({
@@ -51,11 +53,25 @@ const mockDeleteThemeLogoFromS3 = vi.mocked(s3.deleteThemeLogoFromS3);
 
 describe('Prode Group Actions', () => {
   const mockUser = { id: 'user1', email: 'test@example.com', emailVerified: new Date() };
-  const mockOwner = { id: 'owner1', isAdmin: false };
-  const mockGroup = { id: 'group1', owner_user_id: 'owner1', theme: { logo: 'logo.png', s3_logo_key: 'logo.png' } };
-  const mockParticipant = { user_id: 'user2' };
+  const mockOwner = { id: 'owner1', email: 'owner@test.com', emailVerified: new Date(), isAdmin: false };
+  const mockGroup = { 
+    id: 'group1', 
+    name: 'Test Group',
+    owner_user_id: 'owner1', 
+    theme: { logo: 'logo.png', s3_logo_key: 'logo.png' } 
+  } as any;
+  const mockParticipant = { 
+    prode_group_id: 'group1',
+    user_id: 'user2',
+    is_admin: false
+  } as any;
 
-  const mockProdeGroup = { id: 'group1', name: 'Test Group', owner_user_id: 'user1' };
+  const mockProdeGroup = { 
+    id: 'group1', 
+    name: 'Test Group', 
+    owner_user_id: 'user1',
+    theme: undefined
+  } as any;
 
   const mockFormData = {
     nombre: 'New Group Name',
@@ -64,6 +80,36 @@ describe('Prode Group Actions', () => {
     logo: { size: 100, name: 'logo.png', type: 'image/png', arrayBuffer: async () => new Uint8Array([1,2,3]) },
   };
 
+  const mockGameStatistic: GameStatisticForUser = {
+    user_id: 'user1',
+    total_correct_guesses: 5,
+    total_exact_guesses: 2,
+    total_score: 15,
+    group_correct_guesses: 3,
+    group_exact_guesses: 1,
+    group_score: 10,
+    playoff_correct_guesses: 2,
+    playoff_exact_guesses: 1,
+    playoff_score: 5
+  };
+
+  const mockTournamentGuess = {
+    id: 'guess1',
+    tournament_id: 'tournament1',
+    user_id: 'user1',
+    champion_team_id: 'team1',
+    runner_up_team_id: 'team2',
+    third_place_team_id: 'team3',
+    best_player_id: 'player1',
+    top_goalscorer_player_id: 'player2',
+    best_goalkeeper_player_id: 'player3',
+    best_young_player_id: 'player4',
+    honor_roll_score: 3,
+    individual_awards_score: 4,
+    qualified_teams_score: 2,
+    group_position_score: 1
+  } as any;
+
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetLoggedInUser.mockResolvedValue(mockUser as any);
@@ -71,44 +117,34 @@ describe('Prode Group Actions', () => {
     mockFindProdeGroupById.mockResolvedValue(mockGroup);
     mockFindProdeGroupsByOwner.mockResolvedValue([mockGroup]);
     mockFindProdeGroupsByParticipant.mockResolvedValue([mockGroup]);
-    mockDeleteAllParticipantsFromGroup.mockResolvedValue(undefined);
-    mockDeleteProdeGroup.mockResolvedValue(undefined);
+    mockDeleteAllParticipantsFromGroup.mockResolvedValue([mockParticipant]);
+    mockDeleteProdeGroup.mockResolvedValue(mockGroup);
     mockUpdateProdeGroup.mockResolvedValue(mockGroup);
-    mockAddParticipantToGroup.mockResolvedValue(undefined);
-    mockUpdateParticipantAdminStatus.mockResolvedValue(undefined);
-    mockDeleteParticipantFromGroup.mockResolvedValue(undefined);
+    mockAddParticipantToGroup.mockResolvedValue([mockParticipant]);
+    mockUpdateParticipantAdminStatus.mockResolvedValue([{ ...mockParticipant, is_admin: true }]);
+    mockDeleteParticipantFromGroup.mockResolvedValue([mockParticipant]);
     mockFindParticipantsInGroup.mockResolvedValue([mockParticipant]);
-    mockGetGameGuessStatisticsForUsers.mockResolvedValue([{ user_id: 'user1', group_score: 10, playoff_score: 5, total_score: 15 }]);
-    mockFindTournamentGuessByUserIdsTournament.mockResolvedValue([{ user_id: 'user1', qualified_teams_score: 2, honor_roll_score: 3, individual_awards_score: 4, group_position_score: 1 }]);
-    mockCustomToMap.mockImplementation((data, keyExtractor) => {
-      if (data.length > 0 && data[0]?.group_score !== undefined) {
+    mockGetGameGuessStatisticsForUsers.mockResolvedValue([mockGameStatistic]);
+    mockFindTournamentGuessByUserIdsTournament.mockResolvedValue([mockTournamentGuess]);
+    mockCustomToMap.mockImplementation((data: any[], keyExtractor: any) => {
+      if (data.length > 0 && 'group_score' in data[0]) {
         // Game statistics data
         return { 
-          user1: { 
-            user_id: 'user1', 
-            group_score: 10, 
-            playoff_score: 5, 
-            total_score: 15 
-          } 
+          user1: mockGameStatistic
         };
-      } else if (data.length > 0 && data[0]?.qualified_teams_score !== undefined) {
+      } else if (data.length > 0 && 'qualified_teams_score' in data[0]) {
         // Tournament guesses data
         return { 
-          user1: { 
-            user_id: 'user1', 
-            qualified_teams_score: 2, 
-            honor_roll_score: 3, 
-            individual_awards_score: 4, 
-            group_position_score: 1 
-          } 
+          user1: mockTournamentGuess
         };
       }
       return {};
     });
     mockCreateS3Client.mockReturnValue({
-      uploadFile: vi.fn().mockResolvedValue('uploaded-file-key'),
+      config: {},
+      uploadFile: vi.fn().mockResolvedValue({ location: 'https://example.com/logo.png', key: 'logo.png' }),
       deleteFile: vi.fn().mockResolvedValue(undefined)
-    });
+    } as any);
     mockDeleteThemeLogoFromS3.mockResolvedValue(undefined);
   });
 
@@ -118,7 +154,7 @@ describe('Prode Group Actions', () => {
       expect(result).toEqual(mockProdeGroup);
     });
     it('throws if not logged in', async () => {
-      mockGetLoggedInUser.mockResolvedValue(null);
+      mockGetLoggedInUser.mockResolvedValue(undefined);
       await expect(createDbGroup('Test Group')).rejects.toBe('Should not call this action from a logged out page');
     });
   });
@@ -129,7 +165,7 @@ describe('Prode Group Actions', () => {
       expect(result).toEqual({ userGroups: [mockGroup], participantGroups: [mockGroup] });
     });
     it('returns undefined if not logged in', async () => {
-      mockGetLoggedInUser.mockResolvedValue(null);
+      mockGetLoggedInUser.mockResolvedValue(undefined);
       const result = await getGroupsForUser();
       expect(result).toBeUndefined();
     });
@@ -137,7 +173,7 @@ describe('Prode Group Actions', () => {
 
   describe('deleteGroup', () => {
     it('deletes group if user is owner', async () => {
-      mockGetLoggedInUser.mockResolvedValue(mockOwner);
+      mockGetLoggedInUser.mockResolvedValue(mockOwner as any);
       await deleteGroup('group1');
       expect(mockDeleteAllParticipantsFromGroup).toHaveBeenCalledWith('group1');
       expect(mockDeleteProdeGroup).toHaveBeenCalledWith('group1');
@@ -148,19 +184,19 @@ describe('Prode Group Actions', () => {
       expect(mockDeleteProdeGroup).not.toHaveBeenCalled();
     });
     it('throws if not logged in', async () => {
-      mockGetLoggedInUser.mockResolvedValue(null);
+      mockGetLoggedInUser.mockResolvedValue(undefined);
       await expect(deleteGroup('group1')).rejects.toBe('Should not call this action from a logged out page');
     });
   });
 
   describe('promoteParticipantToAdmin', () => {
     it('promotes participant if user is owner', async () => {
-      mockGetLoggedInUser.mockResolvedValue(mockOwner);
+      mockGetLoggedInUser.mockResolvedValue(mockOwner as any);
       await promoteParticipantToAdmin('group1', 'user2');
       expect(mockUpdateParticipantAdminStatus).toHaveBeenCalledWith('group1', 'user2', true);
     });
     it('throws if not logged in', async () => {
-      mockGetLoggedInUser.mockResolvedValue(null);
+      mockGetLoggedInUser.mockResolvedValue(undefined);
       await expect(promoteParticipantToAdmin('group1', 'user2')).rejects.toBe('Should not call this action from a logged out page');
     });
     it('throws if user is not owner', async () => {
@@ -170,12 +206,12 @@ describe('Prode Group Actions', () => {
 
   describe('demoteParticipantFromAdmin', () => {
     it('demotes participant if user is owner', async () => {
-      mockGetLoggedInUser.mockResolvedValue(mockOwner);
+      mockGetLoggedInUser.mockResolvedValue(mockOwner as any);
       await demoteParticipantFromAdmin('group1', 'user2');
       expect(mockUpdateParticipantAdminStatus).toHaveBeenCalledWith('group1', 'user2', false);
     });
     it('throws if not logged in', async () => {
-      mockGetLoggedInUser.mockResolvedValue(null);
+      mockGetLoggedInUser.mockResolvedValue(undefined);
       await expect(demoteParticipantFromAdmin('group1', 'user2')).rejects.toBe('Should not call this action from a logged out page');
     });
     it('throws if user is not owner', async () => {
@@ -191,7 +227,7 @@ describe('Prode Group Actions', () => {
       expect(result).toEqual(mockGroup);
     });
     it('throws if not logged in', async () => {
-      mockGetLoggedInUser.mockResolvedValue(null);
+      mockGetLoggedInUser.mockResolvedValue(undefined);
       await expect(joinGroup('group1')).rejects.toBe('Should not call this action from a logged out page');
     });
   });
@@ -216,9 +252,10 @@ describe('Prode Group Actions', () => {
     });
     it('returns error if image upload fails', async () => {
       mockCreateS3Client.mockImplementation(() => ({
+        config: {},
         uploadFile: vi.fn().mockRejectedValue(new Error('Upload failed')),
         deleteFile: vi.fn().mockResolvedValue(undefined)
-      }));
+      } as any));
       const result = await updateTheme('group1', Object.entries(mockFormData));
       expect(result).toBe('Image Upload failed');
     });
@@ -227,17 +264,17 @@ describe('Prode Group Actions', () => {
   describe('leaveGroupAction', () => {
     it('removes participant from group', async () => {
       mockFindProdeGroupById.mockResolvedValue(mockGroup);
-      mockGetLoggedInUser.mockResolvedValue(mockUser);
+      mockGetLoggedInUser.mockResolvedValue(mockUser as any);
       const result = await leaveGroupAction('group1');
       expect(mockDeleteParticipantFromGroup).toHaveBeenCalledWith('group1', mockUser.id);
       expect(result).toEqual({ success: true });
     });
     it('throws if not logged in', async () => {
-      mockGetLoggedInUser.mockResolvedValue(null);
+      mockGetLoggedInUser.mockResolvedValue(undefined);
       await expect(leaveGroupAction('group1')).rejects.toBe('No puedes dejar el grupo si no has iniciado sesión.');
     });
     it('throws if group does not exist', async () => {
-      mockFindProdeGroupById.mockResolvedValue(null);
+      mockFindProdeGroupById.mockResolvedValue(null as any);
       await expect(leaveGroupAction('group1')).rejects.toBe('El grupo no existe.');
     });
     it('throws if user is owner', async () => {
@@ -254,7 +291,7 @@ describe('Prode Group Actions', () => {
       expect(result).toEqual(['owner1', 'user2']);
     });
     it('throws if group does not exist', async () => {
-      mockFindProdeGroupById.mockResolvedValue(null);
+      mockFindProdeGroupById.mockResolvedValue(null as any);
       await expect(getUsersForGroup('group1')).rejects.toBe('El grupo no existe.');
     });
   });
