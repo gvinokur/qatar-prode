@@ -15,6 +15,37 @@ import {
 } from '../../app/actions/guesses-actions';
 import { GameGuessNew, TournamentGuessNew, TournamentGroupTeamStatsGuessNew, UserUpdate } from '../../app/db/tables-definition';
 
+// Mock the auth module to prevent Next-auth module resolution errors
+vi.mock('../../auth', () => ({
+  auth: vi.fn(),
+}));
+
+// Mock the database
+vi.mock('../../app/db/database', () => ({
+  db: {
+    selectFrom: vi.fn(() => ({
+      selectAll: vi.fn(() => ({
+        where: vi.fn(() => ({
+          where: vi.fn(() => ({
+            where: vi.fn(() => ({
+              where: vi.fn(() => ({
+                executeTakeFirst: vi.fn().mockResolvedValue(null)
+              }))
+            }))
+          }))
+        }))
+      }))
+    })),
+    updateTable: vi.fn(() => ({
+      set: vi.fn(() => ({
+        where: vi.fn(() => ({
+          execute: vi.fn().mockResolvedValue(undefined)
+        }))
+      }))
+    }))
+  }
+}));
+
 vi.mock('../../app/actions/user-actions');
 vi.mock('../../app/db/game-guess-repository');
 vi.mock('../../app/db/tournament-guess-repository');
@@ -39,6 +70,7 @@ describe('Guesses Actions', () => {
   const mockUser = {
     id: 'user1',
     email: 'user@test.com',
+    emailVerified: new Date(),
     isAdmin: false
   };
 
@@ -78,15 +110,15 @@ describe('Guesses Actions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetLoggedInUser.mockResolvedValue(mockUser);
-    mockUpdateOrCreateGuess.mockResolvedValue({ id: 'guess1' });
-    mockDbUpdateOrCreateTournamentGuess.mockResolvedValue({ id: 'tournament-guess1' });
-    mockUpsertTournamentGroupTeamGuesses.mockResolvedValue([{ id: 'group-guess1' }]);
+    mockUpdateOrCreateGuess.mockResolvedValue({ id: 'guess1', ...mockGameGuess });
+    mockDbUpdateOrCreateTournamentGuess.mockResolvedValue({ id: 'tournament-guess1', ...mockTournamentGuess });
+    mockUpsertTournamentGroupTeamGuesses.mockResolvedValue([{ id: 'group-guess1', ...mockGroupTeamGuess }]);
     mockFindAllTournamentGroupTeamGuessInGroup.mockResolvedValue([]);
     mockFindGroupsInTournament.mockResolvedValue([]);
     mockFindPlayoffStagesWithGamesInTournament.mockResolvedValue([]);
     mockFindGamesInTournament.mockResolvedValue([]);
     mockCalculatePlayoffTeamsFromPositions.mockReturnValue({});
-    mockUpdateGameGuessByGameId.mockResolvedValue({ id: 'updated-guess1' });
+    mockUpdateGameGuessByGameId.mockResolvedValue({ id: 'updated-guess1', ...mockGameGuess });
   });
 
   describe('updateOrCreateGameGuesses', () => {
@@ -133,7 +165,7 @@ describe('Guesses Actions', () => {
       const result = await updateOrCreateTournamentGuess(mockTournamentGuess);
 
       expect(mockDbUpdateOrCreateTournamentGuess).toHaveBeenCalledWith(mockTournamentGuess);
-      expect(result).toEqual({ id: 'tournament-guess1' });
+      expect(result).toEqual({ id: 'tournament-guess1', ...mockTournamentGuess });
     });
 
     it('handles repository errors', async () => {
@@ -150,7 +182,7 @@ describe('Guesses Actions', () => {
       const result = await updateOrCreateTournamentGroupTeamGuesses(groupTeamGuesses);
 
       expect(mockUpsertTournamentGroupTeamGuesses).toHaveBeenCalledWith(groupTeamGuesses);
-      expect(result).toEqual([{ id: 'group-guess1' }]);
+      expect(result).toEqual([{ id: 'group-guess1', ...mockGroupTeamGuess }]);
     });
 
     it('handles repository errors', async () => {
