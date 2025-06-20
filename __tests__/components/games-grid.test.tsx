@@ -1,9 +1,21 @@
+// Mock the auth module to prevent Next-auth import issues - must be first!
+vi.mock('../../auth', () => ({
+  auth: vi.fn().mockResolvedValue({
+    user: {
+      id: 'test-user-id',
+      email: 'test@example.com',
+      emailVerified: new Date()
+    }
+  })
+}));
+
 import { vi, describe, it, expect } from 'vitest';
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import GamesGrid from '../../app/components/games-grid';
 import { GuessesContext } from '../../app/components/context-providers/guesses-context-provider';
+import * as guessesActions from '../../app/actions/guesses-actions';
 
 // Mocks
 vi.mock('../../app/components/game-view', () => ({
@@ -152,10 +164,10 @@ describe('GamesGrid', () => {
     await userEvent.click(screen.getByTestId('edit-btn-1'));
     await userEvent.click(screen.getByTestId('save-btn'));
     
-    const { updateOrCreateTournamentGuess } = vi.mocked(await vi.importActual('../../app/actions/guesses-actions'));
+    const mockUpdateOrCreateTournamentGuess = vi.mocked(guessesActions.updateOrCreateTournamentGuess);
     
     await waitFor(() => {
-      expect(updateOrCreateTournamentGuess).toHaveBeenCalledWith(expect.objectContaining({ champion_team_id: 't1', runner_up_team_id: 't2' }));
+      expect(mockUpdateOrCreateTournamentGuess).toHaveBeenCalledWith(expect.objectContaining({ champion_team_id: 't1', runner_up_team_id: 't2' }));
     }, { timeout: 10000 });
   }, 15000);
 
