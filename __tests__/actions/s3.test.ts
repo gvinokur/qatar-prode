@@ -1,6 +1,7 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { createS3Client, deleteThemeLogoFromS3, getS3KeyFromURL } from '../../app/actions/s3';
 import { Theme } from '../../app/db/tables-definition';
+import { s3Client } from 'nodejs-s3-typescript';
 
 // Set environment variables before importing the module
 process.env.AWS_BUCKET_NAME = 'test-bucket';
@@ -13,8 +14,8 @@ vi.mock('nodejs-s3-typescript', () => ({
   s3Client: vi.fn(),
 }));
 
-// Import the mocked s3Client
-const mockS3Client = require('nodejs-s3-typescript').s3Client;
+// Get the mocked s3Client
+const mockS3Client = vi.mocked(s3Client);
 
 // Mock environment variables
 const originalEnv = process.env;
@@ -92,7 +93,8 @@ describe('S3 Actions', () => {
     it('deletes logo when theme has s3_logo_key', async () => {
       const mockDeleteFile = vi.fn().mockResolvedValue(undefined);
       mockS3Client.mockImplementation(() => ({
-        deleteFile: mockDeleteFile
+        deleteFile: mockDeleteFile,
+        uploadFile: vi.fn()
       }));
 
       await deleteThemeLogoFromS3(mockTheme);
@@ -110,7 +112,8 @@ describe('S3 Actions', () => {
       };
       const mockDeleteFile = vi.fn().mockResolvedValue(undefined);
       mockS3Client.mockImplementation(() => ({
-        deleteFile: mockDeleteFile
+        deleteFile: mockDeleteFile,
+        uploadFile: vi.fn()
       }));
 
       await deleteThemeLogoFromS3(themeWithoutKey);
@@ -121,7 +124,8 @@ describe('S3 Actions', () => {
     it('does nothing when theme is undefined', async () => {
       const mockDeleteFile = vi.fn();
       mockS3Client.mockImplementation(() => ({
-        deleteFile: mockDeleteFile
+        deleteFile: mockDeleteFile,
+        uploadFile: vi.fn()
       }));
 
       await deleteThemeLogoFromS3(undefined);
@@ -136,7 +140,8 @@ describe('S3 Actions', () => {
       };
       const mockDeleteFile = vi.fn();
       mockS3Client.mockImplementation(() => ({
-        deleteFile: mockDeleteFile
+        deleteFile: mockDeleteFile,
+        uploadFile: vi.fn()
       }));
 
       await deleteThemeLogoFromS3(themeWithoutLogo);
@@ -152,7 +157,8 @@ describe('S3 Actions', () => {
       };
       const mockDeleteFile = vi.fn();
       mockS3Client.mockImplementation(() => ({
-        deleteFile: mockDeleteFile
+        deleteFile: mockDeleteFile,
+        uploadFile: vi.fn()
       }));
 
       await deleteThemeLogoFromS3(themeWithEmptyLogo);
@@ -163,7 +169,8 @@ describe('S3 Actions', () => {
     it('handles S3 delete errors gracefully', async () => {
       const mockDeleteFile = vi.fn().mockRejectedValue(new Error('S3 delete failed'));
       mockS3Client.mockImplementation(() => ({
-        deleteFile: mockDeleteFile
+        deleteFile: mockDeleteFile,
+        uploadFile: vi.fn()
       }));
 
       await expect(deleteThemeLogoFromS3(mockTheme))
@@ -178,7 +185,8 @@ describe('S3 Actions', () => {
       };
       const mockDeleteFile = vi.fn().mockResolvedValue(undefined);
       mockS3Client.mockImplementation(() => ({
-        deleteFile: mockDeleteFile
+        deleteFile: mockDeleteFile,
+        uploadFile: vi.fn()
       }));
 
       await deleteThemeLogoFromS3(themeWithBoth);
