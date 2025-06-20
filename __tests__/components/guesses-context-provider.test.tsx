@@ -1,9 +1,12 @@
-import { vi, describe, it, expect } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import React from 'react';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { GuessesContextProvider, GuessesContext } from '../../app/components/context-providers/guesses-context-provider';
 import { Game, GameGuessNew, TournamentGroupTeamStatsGuessNew } from '../../app/db/tables-definition';
+import * as guessesActions from '../../app/actions/guesses-actions';
+import * as groupPositionCalculator from '../../app/utils/group-position-calculator';
+import * as playoffTeamsCalculator from '../../app/utils/playoff-teams-calculator';
 
 // Mock the actions
 vi.mock('../../app/actions/guesses-actions', () => ({
@@ -21,11 +24,11 @@ vi.mock('../../app/utils/playoff-teams-calculator', () => ({
   groupCompleteReducer: vi.fn(),
 }));
 
-const mockUpdateOrCreateGameGuesses = require('../../app/actions/guesses-actions').updateOrCreateGameGuesses;
-const mockUpdateOrCreateTournamentGroupTeamGuesses = require('../../app/actions/guesses-actions').updateOrCreateTournamentGroupTeamGuesses;
-const mockUpdatePlayoffGameGuesses = require('../../app/actions/guesses-actions').updatePlayoffGameGuesses;
-const mockCalculateGroupPosition = require('../../app/utils/group-position-calculator').calculateGroupPosition;
-const mockGroupCompleteReducer = require('../../app/utils/playoff-teams-calculator').groupCompleteReducer;
+const mockUpdateOrCreateGameGuesses = vi.mocked(guessesActions.updateOrCreateGameGuesses);
+const mockUpdateOrCreateTournamentGroupTeamGuesses = vi.mocked(guessesActions.updateOrCreateTournamentGroupTeamGuesses);
+const mockUpdatePlayoffGameGuesses = vi.mocked(guessesActions.updatePlayoffGameGuesses);
+const mockCalculateGroupPosition = vi.mocked(groupPositionCalculator.calculateGroupPosition);
+const mockGroupCompleteReducer = vi.mocked(playoffTeamsCalculator.groupCompleteReducer);
 
 // Test component to consume the context
 const TestConsumer = () => {
@@ -121,8 +124,30 @@ describe('GuessesContextProvider', () => {
     mockUpdateOrCreateTournamentGroupTeamGuesses.mockResolvedValue(undefined);
     mockUpdatePlayoffGameGuesses.mockResolvedValue(undefined);
     mockCalculateGroupPosition.mockReturnValue([
-      { team_id: 'team1', points: 3, goals_for: 2, goals_against: 1, goal_difference: 1, games_played: 1 },
-      { team_id: 'team2', points: 0, goals_for: 1, goals_against: 2, goal_difference: -1, games_played: 1 }
+      { 
+        team_id: 'team1', 
+        points: 3, 
+        goals_for: 2, 
+        goals_against: 1, 
+        goal_difference: 1, 
+        games_played: 1,
+        win: 1,
+        draw: 0,
+        loss: 0,
+        is_complete: false
+      },
+      { 
+        team_id: 'team2', 
+        points: 0, 
+        goals_for: 1, 
+        goals_against: 2, 
+        goal_difference: -1, 
+        games_played: 1,
+        win: 0,
+        draw: 0,
+        loss: 1,
+        is_complete: false
+      }
     ]);
     mockGroupCompleteReducer.mockReturnValue(false);
   });
