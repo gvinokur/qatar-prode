@@ -2,6 +2,9 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import * as userActions from '../../app/actions/user-actions';
 import * as prodeGroupRepository from '../../app/db/prode-group-repository';
 import * as s3 from '../../app/actions/s3';
+import * as gameGuessRepository from '../../app/db/game-guess-repository';
+import * as tournamentGuessRepository from '../../app/db/tournament-guess-repository';
+import * as objectUtils from '../../app/utils/ObjectUtils';
 import {
   createDbGroup,
   getGroupsForUser,
@@ -16,24 +19,35 @@ import {
 } from '../../app/actions/prode-group-actions';
 import { z } from 'zod';
 
+// Mock the auth module to prevent Next-auth module resolution errors
+vi.mock('../../auth', () => ({
+  auth: vi.fn(),
+}));
+
 vi.mock('../../app/actions/user-actions');
 vi.mock('../../app/db/prode-group-repository');
 vi.mock('../../app/actions/s3');
+vi.mock('../../app/db/game-guess-repository');
+vi.mock('../../app/db/tournament-guess-repository');
+vi.mock('../../app/utils/ObjectUtils');
 
 const mockGetLoggedInUser = vi.mocked(userActions.getLoggedInUser);
 const mockCreateProdeGroup = vi.mocked(prodeGroupRepository.createProdeGroup);
-
-vi.mock('../../app/db/game-guess-repository', () => ({
-  getGameGuessStatisticsForUsers: vi.fn(),
-}));
-
-vi.mock('../../app/db/tournament-guess-repository', () => ({
-  findTournamentGuessByUserIdsTournament: vi.fn(),
-}));
-
-vi.mock('../../app/utils/ObjectUtils', () => ({
-  customToMap: vi.fn((arr: any[], fn: (item: any) => string) => Object.fromEntries(arr.map((item: any) => [fn(item), item]))),
-}));
+const mockFindProdeGroupById = vi.mocked(prodeGroupRepository.findProdeGroupById);
+const mockFindProdeGroupsByOwner = vi.mocked(prodeGroupRepository.findProdeGroupsByOwner);
+const mockFindProdeGroupsByParticipant = vi.mocked(prodeGroupRepository.findProdeGroupsByParticipant);
+const mockDeleteAllParticipantsFromGroup = vi.mocked(prodeGroupRepository.deleteAllParticipantsFromGroup);
+const mockDeleteProdeGroup = vi.mocked(prodeGroupRepository.deleteProdeGroup);
+const mockUpdateProdeGroup = vi.mocked(prodeGroupRepository.updateProdeGroup);
+const mockAddParticipantToGroup = vi.mocked(prodeGroupRepository.addParticipantToGroup);
+const mockUpdateParticipantAdminStatus = vi.mocked(prodeGroupRepository.updateParticipantAdminStatus);
+const mockDeleteParticipantFromGroup = vi.mocked(prodeGroupRepository.deleteParticipantFromGroup);
+const mockFindParticipantsInGroup = vi.mocked(prodeGroupRepository.findParticipantsInGroup);
+const mockGetGameGuessStatisticsForUsers = vi.mocked(gameGuessRepository.getGameGuessStatisticsForUsers);
+const mockFindTournamentGuessByUserIdsTournament = vi.mocked(tournamentGuessRepository.findTournamentGuessByUserIdsTournament);
+const mockCustomToMap = vi.mocked(objectUtils.customToMap);
+const mockCreateS3Client = vi.mocked(s3.createS3Client);
+const mockDeleteThemeLogoFromS3 = vi.mocked(s3.deleteThemeLogoFromS3);
 
 describe('Prode Group Actions', () => {
   const mockUser = { id: 'user1', email: 'test@example.com', emailVerified: new Date() };
@@ -54,18 +68,35 @@ describe('Prode Group Actions', () => {
     vi.clearAllMocks();
     mockGetLoggedInUser.mockResolvedValue(mockUser as any);
     mockCreateProdeGroup.mockResolvedValue(mockProdeGroup);
-    require('../../app/db/prode-group-repository').findProdeGroupById.mockResolvedValue(mockGroup);
-    require('../../app/db/prode-group-repository').findProdeGroupsByOwner.mockResolvedValue([mockGroup]);
-    require('../../app/db/prode-group-repository').findProdeGroupsByParticipant.mockResolvedValue([mockGroup]);
-    require('../../app/db/prode-group-repository').deleteAllParticipantsFromGroup.mockResolvedValue(undefined);
-    require('../../app/db/prode-group-repository').deleteProdeGroup.mockResolvedValue(undefined);
-    require('../../app/db/prode-group-repository').updateProdeGroup.mockResolvedValue(mockGroup);
-    require('../../app/db/prode-group-repository').addParticipantToGroup.mockResolvedValue(undefined);
-    require('../../app/db/prode-group-repository').updateParticipantAdminStatus.mockResolvedValue(undefined);
-    require('../../app/db/prode-group-repository').deleteParticipantFromGroup.mockResolvedValue(undefined);
-    require('../../app/db/prode-group-repository').findParticipantsInGroup.mockResolvedValue([mockParticipant]);
-    require('../../app/db/game-guess-repository').getGameGuessStatisticsForUsers.mockResolvedValue([{ user_id: 'user1', group_score: 10, playoff_score: 5, total_score: 15 }]);
-    require('../../app/db/tournament-guess-repository').findTournamentGuessByUserIdsTournament.mockResolvedValue([{ user_id: 'user1', qualified_teams_score: 2, honor_roll_score: 3, individual_awards_score: 4, group_position_score: 1 }]);
+    mockFindProdeGroupById.mockResolvedValue(mockGroup);
+    mockFindProdeGroupsByOwner.mockResolvedValue([mockGroup]);
+    mockFindProdeGroupsByParticipant.mockResolvedValue([mockGroup]);
+    mockDeleteAllParticipantsFromGroup.mockResolvedValue(undefined);
+    mockDeleteProdeGroup.mockResolvedValue(undefined);
+    mockUpdateProdeGroup.mockResolvedValue(mockGroup);
+    mockAddParticipantToGroup.mockResolvedValue(undefined);
+    mockUpdateParticipantAdminStatus.mockResolvedValue(undefined);
+    mockDeleteParticipantFromGroup.mockResolvedValue(undefined);
+    mockFindParticipantsInGroup.mockResolvedValue([mockParticipant]);
+    mockGetGameGuessStatisticsForUsers.mockResolvedValue([{ user_id: 'user1', group_score: 10, playoff_score: 5, total_score: 15 }]);
+    mockFindTournamentGuessByUserIdsTournament.mockResolvedValue([{ user_id: 'user1', qualified_teams_score: 2, honor_roll_score: 3, individual_awards_score: 4, group_position_score: 1 }]);
+    mockCustomToMap.mockImplementation((data, key) => {
+      if (key === 'user_id') {
+        if (data[0]?.group_score !== undefined) {
+          // Game statistics data
+          return { user1: { user_id: 'user1', group_score: 10, playoff_score: 5, total_score: 15 } };
+        } else {
+          // Tournament guesses data
+          return { user1: { user_id: 'user1', qualified_teams_score: 2, honor_roll_score: 3, individual_awards_score: 4, group_position_score: 1 } };
+        }
+      }
+      return {};
+    });
+    mockCreateS3Client.mockReturnValue({
+      uploadFile: vi.fn().mockResolvedValue('uploaded-file-key'),
+      deleteFile: vi.fn().mockResolvedValue(undefined)
+    });
+    mockDeleteThemeLogoFromS3.mockResolvedValue(undefined);
   });
 
   describe('createDbGroup', () => {
@@ -95,13 +126,13 @@ describe('Prode Group Actions', () => {
     it('deletes group if user is owner', async () => {
       mockGetLoggedInUser.mockResolvedValue(mockOwner);
       await deleteGroup('group1');
-      expect(require('../../app/db/prode-group-repository').deleteAllParticipantsFromGroup).toHaveBeenCalledWith('group1');
-      expect(require('../../app/db/prode-group-repository').deleteProdeGroup).toHaveBeenCalledWith('group1');
+      expect(mockDeleteAllParticipantsFromGroup).toHaveBeenCalledWith('group1');
+      expect(mockDeleteProdeGroup).toHaveBeenCalledWith('group1');
     });
     it('does not delete if user is not owner', async () => {
       await deleteGroup('group1');
-      expect(require('../../app/db/prode-group-repository').deleteAllParticipantsFromGroup).not.toHaveBeenCalled();
-      expect(require('../../app/db/prode-group-repository').deleteProdeGroup).not.toHaveBeenCalled();
+      expect(mockDeleteAllParticipantsFromGroup).not.toHaveBeenCalled();
+      expect(mockDeleteProdeGroup).not.toHaveBeenCalled();
     });
     it('throws if not logged in', async () => {
       mockGetLoggedInUser.mockResolvedValue(null);
@@ -113,7 +144,7 @@ describe('Prode Group Actions', () => {
     it('promotes participant if user is owner', async () => {
       mockGetLoggedInUser.mockResolvedValue(mockOwner);
       await promoteParticipantToAdmin('group1', 'user2');
-      expect(require('../../app/db/prode-group-repository').updateParticipantAdminStatus).toHaveBeenCalledWith('group1', 'user2', true);
+      expect(mockUpdateParticipantAdminStatus).toHaveBeenCalledWith('group1', 'user2', true);
     });
     it('throws if not logged in', async () => {
       mockGetLoggedInUser.mockResolvedValue(null);
@@ -128,7 +159,7 @@ describe('Prode Group Actions', () => {
     it('demotes participant if user is owner', async () => {
       mockGetLoggedInUser.mockResolvedValue(mockOwner);
       await demoteParticipantFromAdmin('group1', 'user2');
-      expect(require('../../app/db/prode-group-repository').updateParticipantAdminStatus).toHaveBeenCalledWith('group1', 'user2', false);
+      expect(mockUpdateParticipantAdminStatus).toHaveBeenCalledWith('group1', 'user2', false);
     });
     it('throws if not logged in', async () => {
       mockGetLoggedInUser.mockResolvedValue(null);
@@ -141,9 +172,9 @@ describe('Prode Group Actions', () => {
 
   describe('joinGroup', () => {
     it('adds participant to group', async () => {
-      require('../../app/db/prode-group-repository').findProdeGroupById.mockResolvedValue(mockGroup);
+      mockFindProdeGroupById.mockResolvedValue(mockGroup);
       const result = await joinGroup('group1');
-      expect(require('../../app/db/prode-group-repository').addParticipantToGroup).toHaveBeenCalledWith(mockGroup, mockUser, false);
+      expect(mockAddParticipantToGroup).toHaveBeenCalledWith(mockGroup, mockUser, false);
       expect(result).toEqual(mockGroup);
     });
     it('throws if not logged in', async () => {
@@ -155,8 +186,8 @@ describe('Prode Group Actions', () => {
   describe('updateTheme', () => {
     it('updates theme and uploads logo', async () => {
       const result = await updateTheme('group1', Object.entries(mockFormData));
-      expect(require('../../app/actions/s3').createS3Client).toHaveBeenCalledWith('prode-group-files');
-      expect(require('../../app/actions/s3').deleteThemeLogoFromS3).toHaveBeenCalledWith(mockGroup.theme);
+      expect(mockCreateS3Client).toHaveBeenCalledWith('prode-group-files');
+      expect(mockDeleteThemeLogoFromS3).toHaveBeenCalledWith(mockGroup.theme);
       expect(result).toEqual(mockGroup);
     });
     it('returns error if image validation fails', async () => {
@@ -171,7 +202,7 @@ describe('Prode Group Actions', () => {
       expect((result as any).message).toBe('Invalid Image');
     });
     it('returns error if image upload fails', async () => {
-      require('../../app/actions/s3').createS3Client.mockImplementation(() => ({
+      mockCreateS3Client.mockImplementation(() => ({
         uploadFile: vi.fn().mockRejectedValue(new Error('Upload failed')),
         deleteFile: vi.fn().mockResolvedValue(undefined)
       }));
@@ -182,10 +213,10 @@ describe('Prode Group Actions', () => {
 
   describe('leaveGroupAction', () => {
     it('removes participant from group', async () => {
-      require('../../app/db/prode-group-repository').findProdeGroupById.mockResolvedValue(mockGroup);
+      mockFindProdeGroupById.mockResolvedValue(mockGroup);
       mockGetLoggedInUser.mockResolvedValue(mockUser);
       const result = await leaveGroupAction('group1');
-      expect(require('../../app/db/prode-group-repository').deleteParticipantFromGroup).toHaveBeenCalledWith('group1', mockUser.id);
+      expect(mockDeleteParticipantFromGroup).toHaveBeenCalledWith('group1', mockUser.id);
       expect(result).toEqual({ success: true });
     });
     it('throws if not logged in', async () => {
@@ -193,24 +224,24 @@ describe('Prode Group Actions', () => {
       await expect(leaveGroupAction('group1')).rejects.toBe('No puedes dejar el grupo si no has iniciado sesión.');
     });
     it('throws if group does not exist', async () => {
-      require('../../app/db/prode-group-repository').findProdeGroupById.mockResolvedValue(null);
+      mockFindProdeGroupById.mockResolvedValue(null);
       await expect(leaveGroupAction('group1')).rejects.toBe('El grupo no existe.');
     });
     it('throws if user is owner', async () => {
-      require('../../app/db/prode-group-repository').findProdeGroupById.mockResolvedValue({ ...mockGroup, owner_user_id: mockUser.id });
+      mockFindProdeGroupById.mockResolvedValue({ ...mockGroup, owner_user_id: mockUser.id });
       await expect(leaveGroupAction('group1')).rejects.toBe('El dueño del grupo no puede dejar el grupo.');
     });
   });
 
   describe('getUsersForGroup', () => {
     it('returns owner and participants', async () => {
-      require('../../app/db/prode-group-repository').findProdeGroupById.mockResolvedValue(mockGroup);
-      require('../../app/db/prode-group-repository').findParticipantsInGroup.mockResolvedValue([mockParticipant]);
+      mockFindProdeGroupById.mockResolvedValue(mockGroup);
+      mockFindParticipantsInGroup.mockResolvedValue([mockParticipant]);
       const result = await getUsersForGroup('group1');
       expect(result).toEqual(['owner1', 'user2']);
     });
     it('throws if group does not exist', async () => {
-      require('../../app/db/prode-group-repository').findProdeGroupById.mockResolvedValue(null);
+      mockFindProdeGroupById.mockResolvedValue(null);
       await expect(getUsersForGroup('group1')).rejects.toBe('El grupo no existe.');
     });
   });
