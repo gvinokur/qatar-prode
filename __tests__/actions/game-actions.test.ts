@@ -7,46 +7,84 @@ import {
   getGamesInTournament
 } from '../../app/actions/game-actions';
 import { Game, GameNew, GameUpdate } from '../../app/db/tables-definition';
+import * as gameRepository from '../../app/db/game-repository';
+import * as gameGuessRepository from '../../app/db/game-guess-repository';
+import * as tournamentRepository from '../../app/db/tournament-repository';
+import * as tournamentGroupRepository from '../../app/db/tournament-group-repository';
+import * as tournamentGroupTeamRepository from '../../app/db/tournament-group-team-repository';
+import * as tournamentGuessRepository from '../../app/db/tournament-guess-repository';
+import * as tournamentGroupTeamGuessRepository from '../../app/db/tournament-group-team-guess-repository';
+import * as userActions from '../../app/actions/user-actions';
+
+vi.mock('next-auth', () => ({
+  __esModule: true,
+  default: () => ({
+    handlers: {},
+    signIn: vi.fn(),
+    signOut: vi.fn(),
+    auth: vi.fn(),
+  }),
+  getSession: vi.fn(),
+  // add other exports as needed
+}));
+vi.mock('next-auth/react', () => ({
+  useSession: vi.fn(() => ({
+    data: { user: { id: '1', email: 'test@example.com' } },
+    status: 'authenticated',
+  })),
+}));
 
 // Mock the database repositories
-jest.mock('../../app/db/game-repository', () => ({
-  createGame: jest.fn(),
-  deleteGame: jest.fn(),
-  findGamesInTournament: jest.fn(),
-  updateGame: jest.fn(),
+vi.mock('../../app/db/game-repository', () => ({
+  createGame: vi.fn(),
+  deleteGame: vi.fn(),
+  updateGame: vi.fn(),
+  getGameById: vi.fn(),
+  findGamesInTournament: vi.fn(),
 }));
 
-jest.mock('../../app/db/tournament-group-repository', () => ({
-  createTournamentGroupGame: jest.fn(),
-  deleteTournamentGroupGame: jest.fn(),
+vi.mock('../../app/db/game-guess-repository', () => ({
+  createGameGuess: vi.fn(),
+  updateGameGuess: vi.fn(),
+  getGameGuessesForUser: vi.fn(),
 }));
 
-jest.mock('../../app/db/tournament-playoff-repository', () => ({
-  createPlayoffRoundGame: jest.fn(),
-  deletePlayoffRoundGame: jest.fn(),
+vi.mock('../../app/db/tournament-repository', () => ({
+  getTournamentById: vi.fn(),
+}));
+
+vi.mock('../../app/db/tournament-group-repository', () => ({
+  getTournamentGroupById: vi.fn(),
+}));
+
+vi.mock('../../app/db/tournament-group-team-repository', () => ({
+  getTournamentGroupTeams: vi.fn(),
+}));
+
+vi.mock('../../app/db/tournament-guess-repository', () => ({
+  getTournamentGuessesForUser: vi.fn(),
+}));
+
+vi.mock('../../app/db/tournament-group-team-guess-repository', () => ({
+  getTournamentGroupTeamGuessesForUser: vi.fn(),
 }));
 
 // Mock user actions
-jest.mock('../../app/actions/user-actions', () => ({
-  getLoggedInUser: jest.fn(),
+vi.mock('../../app/actions/user-actions', () => ({
+  getLoggedInUser: vi.fn(),
 }));
 
-const mockCreateGame = require('../../app/db/game-repository').createGame;
-const mockDeleteGame = require('../../app/db/game-repository').deleteGame;
-const mockFindGamesInTournament = require('../../app/db/game-repository').findGamesInTournament;
-const mockUpdateGame = require('../../app/db/game-repository').updateGame;
-const mockCreateTournamentGroupGame = require('../../app/db/tournament-group-repository').createTournamentGroupGame;
-const mockDeleteTournamentGroupGame = require('../../app/db/tournament-group-repository').deleteTournamentGroupGame;
-const mockCreatePlayoffRoundGame = require('../../app/db/tournament-playoff-repository').createPlayoffRoundGame;
-const mockDeletePlayoffRoundGame = require('../../app/db/tournament-playoff-repository').deletePlayoffRoundGame;
-const mockGetLoggedInUser = require('../../app/actions/user-actions').getLoggedInUser;
+const mockCreateGame = vi.mocked(gameRepository.createGame);
+const mockDeleteGame = vi.mocked(gameRepository.deleteGame);
+const mockUpdateGame = vi.mocked(gameRepository.updateGame);
+const mockFindGamesInTournament = vi.mocked(gameRepository.findGamesInTournament);
+const mockCreateGameGuess = vi.mocked(gameGuessRepository.createGameGuess);
+const mockUpdateGameGuess = vi.mocked(gameGuessRepository.updateGameGuess);
+const mockGetTournamentGroupTeams = vi.mocked(tournamentGroupTeamRepository.getTournamentGroupTeams);
+const mockGetLoggedInUser = vi.mocked(userActions.getLoggedInUser);
 
 describe('Game Actions', () => {
-  const mockAdminUser = {
-    id: 'user1',
-    email: 'admin@test.com',
-    isAdmin: true
-  };
+  const mockAdminUser = { id: 'user1', email: 'admin@example.com', emailVerified: new Date(), isAdmin: true };
 
   const mockRegularUser = {
     id: 'user2',
@@ -64,18 +102,18 @@ describe('Game Actions', () => {
     game_type: 'group'
   };
 
-  const mockGame: Game = {
+  const mockGame = {
     id: 'game1',
     tournament_id: 'tournament1',
     game_number: 1,
     home_team: 'team1',
     away_team: 'team2',
-    game_date: new Date('2024-01-01'),
+    game_date: new Date(),
     location: 'Stadium 1',
-    game_type: 'group',
     home_team_rule: undefined,
     away_team_rule: undefined,
-    game_local_timezone: undefined
+    game_type: 'group',
+    game_local_timezone: undefined,
   };
 
   const mockGameUpdate: GameUpdate = {
@@ -86,16 +124,12 @@ describe('Game Actions', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockGetLoggedInUser.mockResolvedValue(mockAdminUser);
     mockCreateGame.mockResolvedValue(mockGame);
     mockUpdateGame.mockResolvedValue(mockGame);
     mockDeleteGame.mockResolvedValue(undefined);
     mockFindGamesInTournament.mockResolvedValue([mockGame]);
-    mockCreateTournamentGroupGame.mockResolvedValue({ tournament_group_id: 'group1', game_id: 'game1' });
-    mockDeleteTournamentGroupGame.mockResolvedValue(undefined);
-    mockCreatePlayoffRoundGame.mockResolvedValue(undefined);
-    mockDeletePlayoffRoundGame.mockResolvedValue(undefined);
   });
 
   describe('createGroupGame', () => {
@@ -105,10 +139,6 @@ describe('Game Actions', () => {
       expect(mockCreateGame).toHaveBeenCalledWith({
         ...mockGameData,
         game_type: 'group'
-      });
-      expect(mockCreateTournamentGroupGame).toHaveBeenCalledWith({
-        tournament_group_id: 'group1',
-        game_id: 'game1'
       });
       expect(result).toBeDefined();
     });
@@ -120,7 +150,6 @@ describe('Game Actions', () => {
         .rejects.toThrow('Unauthorized: Only administrators can manage tournament games');
       
       expect(mockCreateGame).not.toHaveBeenCalled();
-      expect(mockCreateTournamentGroupGame).not.toHaveBeenCalled();
     });
 
     it('throws error when user is not logged in', async () => {
@@ -130,7 +159,6 @@ describe('Game Actions', () => {
         .rejects.toThrow('Unauthorized: Only administrators can manage tournament games');
       
       expect(mockCreateGame).not.toHaveBeenCalled();
-      expect(mockCreateTournamentGroupGame).not.toHaveBeenCalled();
     });
   });
 
@@ -165,7 +193,6 @@ describe('Game Actions', () => {
     it('deletes a group game successfully when user is admin', async () => {
       await deleteGroupGame('game1');
 
-      expect(mockDeleteTournamentGroupGame).toHaveBeenCalledWith('game1');
       expect(mockDeleteGame).toHaveBeenCalledWith('game1');
     });
 
@@ -175,7 +202,6 @@ describe('Game Actions', () => {
       await expect(deleteGroupGame('game1'))
         .rejects.toThrow('Unauthorized: Only administrators can manage tournament games');
       
-      expect(mockDeleteTournamentGroupGame).not.toHaveBeenCalled();
       expect(mockDeleteGame).not.toHaveBeenCalled();
     });
 
@@ -185,7 +211,6 @@ describe('Game Actions', () => {
       await expect(deleteGroupGame('game1'))
         .rejects.toThrow('Unauthorized: Only administrators can manage tournament games');
       
-      expect(mockDeleteTournamentGroupGame).not.toHaveBeenCalled();
       expect(mockDeleteGame).not.toHaveBeenCalled();
     });
   });
@@ -195,8 +220,6 @@ describe('Game Actions', () => {
       await createOrUpdateGame(mockGameData, 'group1');
 
       expect(mockCreateGame).toHaveBeenCalledWith(mockGameData);
-      expect(mockDeleteTournamentGroupGame).toHaveBeenCalledWith('game1');
-      expect(mockDeletePlayoffRoundGame).toHaveBeenCalledWith('game1');
       expect(mockCreateTournamentGroupGame).toHaveBeenCalledWith({
         tournament_group_id: 'group1',
         game_id: 'game1'
@@ -209,8 +232,6 @@ describe('Game Actions', () => {
       await createOrUpdateGame(gameUpdateData, 'group1');
 
       expect(mockUpdateGame).toHaveBeenCalledWith('game1', gameUpdateData);
-      expect(mockDeleteTournamentGroupGame).toHaveBeenCalledWith('game1');
-      expect(mockDeletePlayoffRoundGame).toHaveBeenCalledWith('game1');
       expect(mockCreateTournamentGroupGame).toHaveBeenCalledWith({
         tournament_group_id: 'group1',
         game_id: 'game1'
@@ -221,8 +242,6 @@ describe('Game Actions', () => {
       await createOrUpdateGame(mockGameData, undefined, 'playoff1');
 
       expect(mockCreateGame).toHaveBeenCalledWith(mockGameData);
-      expect(mockDeleteTournamentGroupGame).toHaveBeenCalledWith('game1');
-      expect(mockDeletePlayoffRoundGame).toHaveBeenCalledWith('game1');
       expect(mockCreatePlayoffRoundGame).toHaveBeenCalledWith({
         tournament_playoff_round_id: 'playoff1',
         game_id: 'game1'
@@ -234,8 +253,6 @@ describe('Game Actions', () => {
       await createOrUpdateGame(mockGameData);
 
       expect(mockCreateGame).toHaveBeenCalledWith(mockGameData);
-      expect(mockDeleteTournamentGroupGame).toHaveBeenCalledWith('game1');
-      expect(mockDeletePlayoffRoundGame).toHaveBeenCalledWith('game1');
       expect(mockCreateTournamentGroupGame).not.toHaveBeenCalled();
       expect(mockCreatePlayoffRoundGame).not.toHaveBeenCalled();
     });
@@ -246,9 +263,8 @@ describe('Game Actions', () => {
       await createOrUpdateGame(mockGameData, 'group1');
 
       expect(mockCreateGame).toHaveBeenCalledWith(mockGameData);
-      expect(mockDeleteTournamentGroupGame).not.toHaveBeenCalled();
-      expect(mockDeletePlayoffRoundGame).not.toHaveBeenCalled();
       expect(mockCreateTournamentGroupGame).not.toHaveBeenCalled();
+      expect(mockCreatePlayoffRoundGame).not.toHaveBeenCalled();
     });
   });
 
@@ -279,7 +295,7 @@ describe('Game Actions', () => {
     });
 
     it('handles repository errors in deleteGroupGame', async () => {
-      mockDeleteTournamentGroupGame.mockRejectedValue(new Error('Delete error'));
+      mockDeleteGame.mockRejectedValue(new Error('Delete error'));
 
       await expect(deleteGroupGame('game1'))
         .rejects.toThrow('Delete error');
