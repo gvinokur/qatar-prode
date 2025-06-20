@@ -3,21 +3,29 @@ import { getLocalGameTime, getUserLocalTime } from '../../app/utils/date-utils';
 
 // Mock dayjs to control timezone behavior
 vi.mock('dayjs', () => {
-  const originalDayjs = vi.importActual('dayjs');
   const mockDayjs = vi.fn((date) => {
-    const instance = originalDayjs(date);
-    instance.tz = vi.fn().mockReturnValue({
-      format: vi.fn().mockReturnValue('Mocked timezone time')
-    });
-    instance.format = vi.fn().mockReturnValue('Mocked local time');
+    const instance = {
+      tz: vi.fn().mockReturnValue({
+        format: vi.fn().mockReturnValue('Mocked timezone time')
+      }),
+      format: vi.fn().mockReturnValue('Mocked local time')
+    };
     return instance;
   });
   
-  // Copy static methods
-  Object.setPrototypeOf(mockDayjs, originalDayjs);
-  (mockDayjs as any).extend = originalDayjs.extend;
+  // Add static methods
+  (mockDayjs as any).extend = vi.fn();
+  (mockDayjs as any).tz = {
+    guess: vi.fn().mockReturnValue('UTC')
+  };
   
-  return mockDayjs;
+  return {
+    default: mockDayjs,
+    extend: vi.fn(),
+    tz: {
+      guess: vi.fn().mockReturnValue('UTC')
+    }
+  };
 });
 
 // Mock Intl.supportedValuesOf
