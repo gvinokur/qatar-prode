@@ -1,6 +1,6 @@
+import { vi, describe, it, expect } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import CompactGameViewCard from '../../app/components/compact-game-view-card';
 import { TimezoneProvider } from '../../app/components/context-providers/timezone-context-provider';
 
@@ -14,7 +14,7 @@ const resultProps = {
   homeTeamNameOrDescription: 'Team A',
   awayTeamNameOrDescription: 'Team B',
   isPlayoffGame: false,
-  onEditClick: jest.fn(),
+  onEditClick: vi.fn(),
   homeScore: 2,
   awayScore: 1,
 };
@@ -29,7 +29,7 @@ const guessProps = {
   homeTeamNameOrDescription: 'Team A',
   awayTeamNameOrDescription: 'Team B',
   isPlayoffGame: false,
-  onEditClick: jest.fn(),
+  onEditClick: vi.fn(),
   scoreForGame: 1,
   gameResult: { home_score: 2, away_score: 1, game_id: 'g1', is_draft: false },
 };
@@ -52,7 +52,7 @@ describe('CompactGameViewCard', () => {
   });
 
   it('calls onEditClick when edit button is clicked', () => {
-    const onEditClick = jest.fn();
+    const onEditClick = vi.fn();
     render(<CompactGameViewCard {...resultProps} onEditClick={onEditClick} />);
     const editButton = screen.getByRole('button');
     fireEvent.click(editButton);

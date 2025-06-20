@@ -1,3 +1,4 @@
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import {
   subscribeUser,
   unsubscribeUser,
@@ -5,26 +6,26 @@ import {
   sendGroupNotification
 } from '../../app/actions/notifiaction-actions';
 
-jest.mock('../../app/actions/user-actions', () => ({
-  getLoggedInUser: jest.fn(),
+vi.mock('../../app/actions/user-actions', () => ({
+  getLoggedInUser: vi.fn(),
 }));
 
-jest.mock('../../app/db/users-repository', () => ({
-  addNotificationSubscription: jest.fn(),
-  removeNotificationSubscription: jest.fn(),
-  findUserById: jest.fn(),
-  findUsersByIds: jest.fn(),
-  findUsersWithNotificationSubscriptions: jest.fn(),
+vi.mock('../../app/db/users-repository', () => ({
+  addNotificationSubscription: vi.fn(),
+  removeNotificationSubscription: vi.fn(),
+  findUserById: vi.fn(),
+  findUsersByIds: vi.fn(),
+  findUsersWithNotificationSubscriptions: vi.fn(),
 }));
 
-jest.mock('../../app/db/prode-group-repository', () => ({
-  findParticipantsInGroup: jest.fn(),
-  findProdeGroupById: jest.fn(),
+vi.mock('../../app/db/prode-group-repository', () => ({
+  findParticipantsInGroup: vi.fn(),
+  findProdeGroupById: vi.fn(),
 }));
 
-jest.mock('web-push', () => ({
-  sendNotification: jest.fn(),
-  setVapidDetails: jest.fn(),
+vi.mock('web-push', () => ({
+  sendNotification: vi.fn(),
+  setVapidDetails: vi.fn(),
 }));
 
 describe('Notification Actions', () => {
@@ -50,7 +51,7 @@ describe('Notification Actions', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY = 'test-public-key';
     process.env.VAPID_PRIVATE_KEY = 'test-private-key';
     process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000';

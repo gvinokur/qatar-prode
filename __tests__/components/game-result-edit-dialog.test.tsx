@@ -1,41 +1,41 @@
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import GameResultEditDialog from '../../app/components/game-result-edit-dialog';
+import { updateGameResult } from '../../app/db/game-result-repository';
 
-// Mock dependencies
-jest.mock('@mui/x-date-pickers/DateTimePicker', () => ({
-  DateTimePicker: ({ value, onChange, slotProps, label }: any) => (
-    <div>
-      <label htmlFor="game-date-input">{label}</label>
-      <input
-        data-testid="game-date-input"
-        id="game-date-input"
-        type="datetime-local"
-        value={value ? '2022-11-21T13:00' : ''}
-        onChange={e => onChange && onChange({ toDate: () => new Date(e.target.value) })}
-        {...slotProps?.textField}
-      />
-    </div>
-  )
+// Mock next-auth
+vi.mock('next-auth/react', () => ({
+  useSession: () => ({
+    data: { user: { id: '1', email: 'test@example.com' } },
+    status: 'authenticated',
+  }),
 }));
-jest.mock('@mui/x-date-pickers/LocalizationProvider', () => ({
+
+vi.mock('@mui/x-date-pickers/LocalizationProvider', () => ({
   LocalizationProvider: ({ children }: any) => <div>{children}</div>
 }));
-jest.mock('dayjs', () => {
-  const originalDayjs = jest.requireActual('dayjs');
-  const mockDayjs: any = jest.fn((date: any) => ({
-    ...originalDayjs(date),
-    toDate: jest.fn(() => new Date(date || Date.now())),
+
+vi.mock('dayjs', () => {
+  const mockDayjs = vi.fn((date) => ({
+    format: vi.fn(() => '2023-01-01'),
+    toDate: vi.fn(() => new Date('2023-01-01')),
+    extend: vi.fn(),
   }));
-  mockDayjs.extend = jest.fn();
-  return mockDayjs;
+  
+  (mockDayjs as any).extend = vi.fn();
+  
+  return {
+    default: mockDayjs,
+    extend: vi.fn(),
+  };
 });
 
 describe('GameResultEditDialog', () => {
   const baseProps = {
     open: true,
-    onClose: jest.fn(),
+    onClose: vi.fn(),
     gameId: 'game-1',
     gameNumber: 5,
     isPlayoffGame: false,
@@ -44,14 +44,14 @@ describe('GameResultEditDialog', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Game Guess Mode', () => {
     const gameGuessProps = {
       ...baseProps,
       isGameGuess: true as const,
-      onGameGuessSave: jest.fn(),
+      onGameGuessSave: vi.fn(),
     };
 
     it('renders game guess dialog with correct title', () => {
@@ -190,7 +190,7 @@ describe('GameResultEditDialog', () => {
       ...baseProps,
       isGameGuess: false as const,
       initialGameDate: new Date('2022-11-21T13:00:00Z'),
-      onGameResultSave: jest.fn(),
+      onGameResultSave: vi.fn(),
     };
 
     it('renders game result dialog with date picker', () => {
@@ -303,7 +303,7 @@ describe('GameResultEditDialog', () => {
 
   describe('Shared Functionality', () => {
     it('closes dialog on cancel', async () => {
-      render(<GameResultEditDialog {...baseProps} isGameGuess={true} onGameGuessSave={jest.fn()} />);
+      render(<GameResultEditDialog {...baseProps} isGameGuess={true} onGameGuessSave={vi.fn()} />);
       
       const cancelButton = screen.getByText('Cancel');
       await userEvent.click(cancelButton);
@@ -316,7 +316,7 @@ describe('GameResultEditDialog', () => {
         <GameResultEditDialog
           {...baseProps}
           isGameGuess={true}
-          onGameGuessSave={jest.fn()}
+          onGameGuessSave={vi.fn()}
           initialHomeScore={1}
           initialAwayScore={1}
           isPlayoffGame={false}
@@ -332,7 +332,7 @@ describe('GameResultEditDialog', () => {
         <GameResultEditDialog
           {...baseProps}
           isGameGuess={true}
-          onGameGuessSave={jest.fn()}
+          onGameGuessSave={vi.fn()}
           initialHomeScore={2}
           initialAwayScore={1}
           isPlayoffGame={true}

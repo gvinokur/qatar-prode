@@ -1,3 +1,4 @@
+import { vi, describe, it, expect } from 'vitest';
 import { 
   urlBase64ToUint8Array, 
   isNotificationSupported, 
@@ -7,9 +8,9 @@ import {
 } from '../../app/utils/notifications-utils';
 
 // Mock the notification actions
-jest.mock('../../app/actions/notifiaction-actions', () => ({
-  subscribeUser: jest.fn(),
-  unsubscribeUser: jest.fn()
+vi.mock('../../app/actions/notifiaction-actions', () => ({
+  subscribeUser: vi.fn(),
+  unsubscribeUser: vi.fn()
 }));
 
 // Mock environment variables
@@ -17,7 +18,7 @@ const originalEnv = process.env;
 
 describe('notifications-utils', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     process.env = { ...originalEnv };
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY = 'test-vapid-key';
   });
@@ -120,16 +121,16 @@ describe('notifications-utils', () => {
 
   // Suppress expected console errors for error cases
   beforeAll(() => {
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
   afterAll(() => {
-    (console.error as jest.Mock).mockRestore();
+    (console.error as vi.Mock).mockRestore();
   });
 
   describe('checkExistingSubscription', () => {
     const mockRegistration = {
       pushManager: {
-        getSubscription: jest.fn()
+        getSubscription: vi.fn()
       }
     };
 
@@ -172,7 +173,7 @@ describe('notifications-utils', () => {
   describe('subscribeToNotifications', () => {
     const mockRegistration = {
       pushManager: {
-        subscribe: jest.fn()
+        subscribe: vi.fn()
       }
     };
 
@@ -181,7 +182,7 @@ describe('notifications-utils', () => {
     };
 
     const mockNotification = {
-      requestPermission: jest.fn()
+      requestPermission: vi.fn()
     };
 
     beforeEach(() => {
@@ -207,7 +208,7 @@ describe('notifications-utils', () => {
       mockNotification.requestPermission.mockResolvedValue('granted');
       mockRegistration.pushManager.subscribe.mockResolvedValue(mockSubscription);
 
-      const { subscribeUser } = require('../../app/actions/notifiaction-actions');
+      const { subscribeUser } = vi.mocked(await vi.importActual('../../app/actions/notifiaction-actions'));
       subscribeUser.mockResolvedValue(undefined);
 
       await subscribeToNotifications();
@@ -223,7 +224,7 @@ describe('notifications-utils', () => {
     it('should not subscribe when permission is denied', async () => {
       mockNotification.requestPermission.mockResolvedValue('denied');
 
-      const { subscribeUser } = require('../../app/actions/notifiaction-actions');
+      const { subscribeUser } = vi.mocked(await vi.importActual('../../app/actions/notifiaction-actions'));
 
       await subscribeToNotifications();
 
@@ -235,7 +236,7 @@ describe('notifications-utils', () => {
     it('should not subscribe when permission is default', async () => {
       mockNotification.requestPermission.mockResolvedValue('default');
 
-      const { subscribeUser } = require('../../app/actions/notifiaction-actions');
+      const { subscribeUser } = vi.mocked(await vi.importActual('../../app/actions/notifiaction-actions'));
 
       await subscribeToNotifications();
 
@@ -267,7 +268,7 @@ describe('notifications-utils', () => {
   describe('unsubscribeFromNotifications', () => {
     const mockRegistration = {
       pushManager: {
-        getSubscription: jest.fn()
+        getSubscription: vi.fn()
       }
     };
 
@@ -287,13 +288,13 @@ describe('notifications-utils', () => {
     it('should unsubscribe successfully when subscription exists', async () => {
       const mockSubscription = {
         endpoint: 'test-endpoint',
-        unsubscribe: jest.fn().mockResolvedValue(true),
+        unsubscribe: vi.fn().mockResolvedValue(true),
         toJSON: () => ({ endpoint: 'test-endpoint' })
       };
 
       mockRegistration.pushManager.getSubscription.mockResolvedValue(mockSubscription);
 
-      const { unsubscribeUser } = require('../../app/actions/notifiaction-actions');
+      const { unsubscribeUser } = vi.mocked(await vi.importActual('../../app/actions/notifiaction-actions'));
       unsubscribeUser.mockResolvedValue(undefined);
 
       await unsubscribeFromNotifications();
@@ -306,7 +307,7 @@ describe('notifications-utils', () => {
     it('should handle case when no subscription exists', async () => {
       mockRegistration.pushManager.getSubscription.mockResolvedValue(null);
 
-      const { unsubscribeUser } = require('../../app/actions/notifiaction-actions');
+      const { unsubscribeUser } = vi.mocked(await vi.importActual('../../app/actions/notifiaction-actions'));
       unsubscribeUser.mockResolvedValue(undefined);
 
       await unsubscribeFromNotifications();

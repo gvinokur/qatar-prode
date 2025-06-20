@@ -1,6 +1,0 @@
-{
-  "name": "noop-bundle",
-  "version": "1.0.0",
-  "description": "Noop UCFG rule used when SonarJasmin is used for JS/TS taint analysis",
-  "main": "dist/rules.js"
-}

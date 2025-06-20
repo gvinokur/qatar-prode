@@ -1,14 +1,15 @@
+import { vi, describe, it, expect } from 'vitest';
 import { getLocalGameTime, getUserLocalTime } from '../../app/utils/date-utils';
 
 // Mock dayjs to control timezone behavior
-jest.mock('dayjs', () => {
-  const originalDayjs = jest.requireActual('dayjs');
-  const mockDayjs = jest.fn((date) => {
+vi.mock('dayjs', () => {
+  const originalDayjs = vi.importActual('dayjs');
+  const mockDayjs = vi.fn((date) => {
     const instance = originalDayjs(date);
-    instance.tz = jest.fn().mockReturnValue({
-      format: jest.fn().mockReturnValue('Mocked timezone time')
+    instance.tz = vi.fn().mockReturnValue({
+      format: vi.fn().mockReturnValue('Mocked timezone time')
     });
-    instance.format = jest.fn().mockReturnValue('Mocked local time');
+    instance.format = vi.fn().mockReturnValue('Mocked local time');
     return instance;
   });
   
@@ -22,7 +23,7 @@ jest.mock('dayjs', () => {
 // Mock Intl.supportedValuesOf
 const mockSupportedTimezones = ['America/New_York', 'Europe/London', 'Asia/Tokyo'];
 Object.defineProperty(Intl, 'supportedValuesOf', {
-  value: jest.fn().mockReturnValue(mockSupportedTimezones),
+  value: vi.fn().mockReturnValue(mockSupportedTimezones),
   writable: true
 });
 

@@ -1,3 +1,4 @@
+import { vi, describe, it, expect, Mock, beforeEach } from 'vitest';
 // Test change: trigger pre-commit hook
 import { sendGamesTomorrowNotification } from '../../app/actions/game-notification-actions';
 import { findGamesInNext24Hours } from '../../app/db/game-repository';
@@ -9,36 +10,36 @@ process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY = 'test-public-key';
 process.env.VAPID_PRIVATE_KEY = 'test-private-key';
 
 // Mock web-push
-jest.mock('web-push', () => ({
-  sendNotification: jest.fn(),
-  setVapidDetails: jest.fn(),
+vi.mock('web-push', () => ({
+  sendNotification: vi.fn(),
+  setVapidDetails: vi.fn(),
 }));
 
 // Mock next-auth
-jest.mock('next-auth', () => ({
-  auth: jest.fn(),
-  signIn: jest.fn(),
-  signOut: jest.fn(),
+vi.mock('next-auth', () => ({
+  auth: vi.fn(),
+  signIn: vi.fn(),
+  signOut: vi.fn(),
 }));
 
 // Mock the database
-jest.mock('../../app/db/database', () => ({
+vi.mock('../../app/db/database', () => ({
   db: {
-    selectFrom: jest.fn(),
-    insertInto: jest.fn(),
-    updateTable: jest.fn(),
-    deleteFrom: jest.fn(),
+    selectFrom: vi.fn(),
+    insertInto: vi.fn(),
+    updateTable: vi.fn(),
+    deleteFrom: vi.fn(),
   }
 }));
 
 // Mock user actions
-jest.mock('../../app/actions/user-actions', () => ({
-  getLoggedInUser: jest.fn().mockResolvedValue({ id: 'user-1', email: 'test@example.com' })
+vi.mock('../../app/actions/user-actions', () => ({
+  getLoggedInUser: vi.fn().mockResolvedValue({ id: 'user-1', email: 'test@example.com' })
 }));
 
 // Mock the dependencies
-jest.mock('../../app/db/game-repository');
-jest.mock('../../app/actions/notifiaction-actions');
+vi.mock('../../app/db/game-repository');
+vi.mock('../../app/actions/notifiaction-actions');
 
 describe('Game Notification Actions', () => {
   const mockTournamentId = 'tournament-1';
@@ -64,13 +65,13 @@ describe('Game Notification Actions', () => {
   ];
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     // Mock environment variable
     process.env.NEXT_PUBLIC_APP_URL = 'https://example.com';
   });
 
   it('should return early if no games are found', async () => {
-    (findGamesInNext24Hours as jest.Mock).mockResolvedValue([]);
+    (findGamesInNext24Hours as Mock).mockResolvedValue([]);
 
     const result = await sendGamesTomorrowNotification(mockTournamentId);
 
@@ -82,8 +83,8 @@ describe('Game Notification Actions', () => {
   });
 
   it('should send notification with correct format when games are found', async () => {
-    (findGamesInNext24Hours as jest.Mock).mockResolvedValue(mockGames);
-    (sendNotification as jest.Mock).mockResolvedValue({ success: true });
+    (findGamesInNext24Hours as Mock).mockResolvedValue(mockGames);
+    (sendNotification as Mock).mockResolvedValue({ success: true });
 
     await sendGamesTomorrowNotification(mockTournamentId);
 
@@ -96,7 +97,7 @@ describe('Game Notification Actions', () => {
     );
 
     // Verify the message contains both games
-    const notificationCall = (sendNotification as jest.Mock).mock.calls[0];
+    const notificationCall = (sendNotification as Mock).mock.calls[0];
     const message = notificationCall[1];
     expect(message).toContain('Team A vs Team B');
     expect(message).toContain('Team C vs Team D');
@@ -110,17 +111,17 @@ describe('Game Notification Actions', () => {
         away_team: undefined
       }
     ];
-    (findGamesInNext24Hours as jest.Mock).mockResolvedValue(gamesWithUndefinedTeams);
+    (findGamesInNext24Hours as Mock).mockResolvedValue(gamesWithUndefinedTeams);
 
     await sendGamesTomorrowNotification(mockTournamentId);
 
-    const notificationCall = (sendNotification as jest.Mock).mock.calls[0];
+    const notificationCall = (sendNotification as Mock).mock.calls[0];
     const message = notificationCall[1];
     expect(message).toContain('Equipos por definir');
   });
 
   it('should handle errors from findGamesInNext24Hours', async () => {
-    (findGamesInNext24Hours as jest.Mock).mockRejectedValue(new Error('Database error'));
+    (findGamesInNext24Hours as Mock).mockRejectedValue(new Error('Database error'));
 
     await expect(sendGamesTomorrowNotification(mockTournamentId))
       .rejects
@@ -128,8 +129,8 @@ describe('Game Notification Actions', () => {
   });
 
   it('should handle errors from sendNotification', async () => {
-    (findGamesInNext24Hours as jest.Mock).mockResolvedValue(mockGames);
-    (sendNotification as jest.Mock).mockRejectedValue(new Error('Notification error'));
+    (findGamesInNext24Hours as Mock).mockResolvedValue(mockGames);
+    (sendNotification as Mock).mockRejectedValue(new Error('Notification error'));
 
     await expect(sendGamesTomorrowNotification(mockTournamentId))
       .rejects
@@ -150,14 +151,14 @@ describe('notifyGameFinished', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     process.env.NEXT_PUBLIC_APP_URL = 'https://example.com';
-    (sendNotification as jest.Mock).mockResolvedValue({ success: true });
+    (sendNotification as Mock).mockResolvedValue({ success: true });
   });
 
   it('should notify when home team wins', async () => {
     await notifyGameFinished({ ...baseGame, home_score: 2, away_score: 1 });
-    const call = (sendNotification as jest.Mock).mock.calls[0];
+    const call = (sendNotification as Mock).mock.calls[0];
     expect(call[1]).toContain('Ganó Argentina.');
     expect(call[1]).toContain('Resultado: Argentina 2 - 1 Brasil');
     expect(call[1]).toContain('¡Revisa tus predicciones y posiciones en la tabla!');
@@ -165,41 +166,41 @@ describe('notifyGameFinished', () => {
 
   it('should notify when away team wins', async () => {
     await notifyGameFinished({ ...baseGame, home_score: 0, away_score: 3 });
-    const call = (sendNotification as jest.Mock).mock.calls[0];
+    const call = (sendNotification as Mock).mock.calls[0];
     expect(call[1]).toContain('Ganó Brasil.');
     expect(call[1]).toContain('Resultado: Argentina 0 - 3 Brasil');
   });
 
   it('should notify when tie with no penalties', async () => {
     await notifyGameFinished({ ...baseGame, home_score: 1, away_score: 1 });
-    const call = (sendNotification as jest.Mock).mock.calls[0];
+    const call = (sendNotification as Mock).mock.calls[0];
     expect(call[1]).toContain('Empate.');
     expect(call[1]).toContain('Resultado: Argentina 1 - 1 Brasil');
   });
 
   it('should notify when tie and home wins on penalties', async () => {
     await notifyGameFinished({ ...baseGame, home_score: 2, away_score: 2, home_penalty_score: 5, away_penalty_score: 4 });
-    const call = (sendNotification as jest.Mock).mock.calls[0];
+    const call = (sendNotification as Mock).mock.calls[0];
     expect(call[1]).toContain('Ganó Argentina por penales.');
     expect(call[1]).toContain('Penales: Argentina 5 - 4 Brasil');
   });
 
   it('should notify when tie and away wins on penalties', async () => {
     await notifyGameFinished({ ...baseGame, home_score: 1, away_score: 1, home_penalty_score: 3, away_penalty_score: 4 });
-    const call = (sendNotification as jest.Mock).mock.calls[0];
+    const call = (sendNotification as Mock).mock.calls[0];
     expect(call[1]).toContain('Ganó Brasil por penales.');
     expect(call[1]).toContain('Penales: Argentina 3 - 4 Brasil');
   });
 
   it('should use group URL if group_id is present', async () => {
     await notifyGameFinished({ ...baseGame, home_score: 2, away_score: 1, group_id: 'group-1' });
-    const call = (sendNotification as jest.Mock).mock.calls[0];
+    const call = (sendNotification as Mock).mock.calls[0];
     expect(call[2]).toBe('https://example.com/tournaments/tournament-1/groups/group-1');
   });
 
   it('should use playoffs URL if group_id is not present', async () => {
     await notifyGameFinished({ ...baseGame, home_score: 2, away_score: 1 });
-    const call = (sendNotification as jest.Mock).mock.calls[0];
+    const call = (sendNotification as Mock).mock.calls[0];
     expect(call[2]).toBe('https://example.com/tournaments/tournament-1/playoffs');
   });
 }); 

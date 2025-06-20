@@ -1,82 +1,39 @@
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+import * as userActions from '../../app/actions/user-actions';
+import * as gameGuessRepository from '../../app/db/game-guess-repository';
+import * as tournamentGuessRepository from '../../app/db/tournament-guess-repository';
+import * as tournamentGroupTeamGuessRepository from '../../app/db/tournament-group-team-guess-repository';
+import * as tournamentGroupRepository from '../../app/db/tournament-group-repository';
+import * as playoffTeamsCalculator from '../../app/utils/playoff-teams-calculator';
+import * as tournamentPlayoffRepository from '../../app/db/tournament-playoff-repository';
+import * as gameRepository from '../../app/db/game-repository';
 import {
   updateOrCreateGameGuesses,
   updateOrCreateTournamentGuess,
   updateOrCreateTournamentGroupTeamGuesses,
-  updatePlayoffGameGuesses
+  updatePlayoffGameGuesses,
 } from '../../app/actions/guesses-actions';
 import { GameGuessNew, TournamentGuessNew, TournamentGroupTeamStatsGuessNew, UserUpdate } from '../../app/db/tables-definition';
 
-// Mock all the database repositories and dependencies
-jest.mock('../../app/actions/user-actions', () => ({
-  getLoggedInUser: jest.fn(),
-}));
+vi.mock('../../app/actions/user-actions');
+vi.mock('../../app/db/game-guess-repository');
+vi.mock('../../app/db/tournament-guess-repository');
+vi.mock('../../app/db/tournament-group-team-guess-repository');
+vi.mock('../../app/db/tournament-group-repository');
+vi.mock('../../app/utils/playoff-teams-calculator');
+vi.mock('../../app/db/tournament-playoff-repository');
+vi.mock('../../app/db/game-repository');
 
-jest.mock('../../app/db/game-guess-repository', () => ({
-  updateGameGuessByGameId: jest.fn(),
-  updateOrCreateGuess: jest.fn(),
-}));
-
-jest.mock('../../app/db/tournament-guess-repository', () => ({
-  updateOrCreateTournamentGuess: jest.fn(),
-}));
-
-jest.mock('../../app/db/tournament-group-team-guess-repository', () => ({
-  findAllTournamentGroupTeamGuessInGroup: jest.fn(),
-  upsertTournamentGroupTeamGuesses: jest.fn(),
-}));
-
-jest.mock('../../app/db/tournament-group-repository', () => ({
-  findGroupsInTournament: jest.fn(),
-}));
-
-jest.mock('../../app/db/tournament-playoff-repository', () => ({
-  findPlayoffStagesWithGamesInTournament: jest.fn(),
-}));
-
-jest.mock('../../app/db/game-repository', () => ({
-  findGamesInTournament: jest.fn(),
-}));
-
-jest.mock('../../app/utils/playoff-teams-calculator', () => ({
-  calculatePlayoffTeamsFromPositions: jest.fn(),
-}));
-
-jest.mock('../../app/db/database', () => ({
-  db: {
-    selectFrom: jest.fn(() => ({
-      selectAll: jest.fn(() => ({
-        where: jest.fn(() => ({
-          where: jest.fn(() => ({
-            where: jest.fn(() => ({
-              where: jest.fn(() => ({
-                executeTakeFirst: jest.fn().mockResolvedValue(null),
-              })),
-            })),
-          })),
-        })),
-      })),
-    })),
-    updateTable: jest.fn(() => ({
-      set: jest.fn(() => ({
-        where: jest.fn(() => ({
-          execute: jest.fn().mockResolvedValue(undefined),
-        })),
-      })),
-    })),
-  },
-}));
-
-// Import mocked functions
-const mockGetLoggedInUser = require('../../app/actions/user-actions').getLoggedInUser;
-const mockUpdateGameGuessByGameId = require('../../app/db/game-guess-repository').updateGameGuessByGameId;
-const mockUpdateOrCreateGuess = require('../../app/db/game-guess-repository').updateOrCreateGuess;
-const mockUpdateOrCreateTournamentGuess = require('../../app/db/tournament-guess-repository').updateOrCreateTournamentGuess;
-const mockFindAllTournamentGroupTeamGuessInGroup = require('../../app/db/tournament-group-team-guess-repository').findAllTournamentGroupTeamGuessInGroup;
-const mockUpsertTournamentGroupTeamGuesses = require('../../app/db/tournament-group-team-guess-repository').upsertTournamentGroupTeamGuesses;
-const mockFindGroupsInTournament = require('../../app/db/tournament-group-repository').findGroupsInTournament;
-const mockFindPlayoffStagesWithGamesInTournament = require('../../app/db/tournament-playoff-repository').findPlayoffStagesWithGamesInTournament;
-const mockFindGamesInTournament = require('../../app/db/game-repository').findGamesInTournament;
-const mockCalculatePlayoffTeamsFromPositions = require('../../app/utils/playoff-teams-calculator').calculatePlayoffTeamsFromPositions;
+const mockGetLoggedInUser = vi.mocked(userActions.getLoggedInUser);
+const mockUpdateGameGuessByGameId = vi.mocked(gameGuessRepository.updateGameGuessByGameId);
+const mockUpdateOrCreateGuess = vi.mocked(gameGuessRepository.updateOrCreateGuess);
+const mockDbUpdateOrCreateTournamentGuess = vi.mocked(tournamentGuessRepository.updateOrCreateTournamentGuess);
+const mockUpsertTournamentGroupTeamGuesses = vi.mocked(tournamentGroupTeamGuessRepository.upsertTournamentGroupTeamGuesses);
+const mockFindAllTournamentGroupTeamGuessInGroup = vi.mocked(tournamentGroupTeamGuessRepository.findAllTournamentGroupTeamGuessInGroup);
+const mockFindGroupsInTournament = vi.mocked(tournamentGroupRepository.findGroupsInTournament);
+const mockCalculatePlayoffTeamsFromPositions = vi.mocked(playoffTeamsCalculator.calculatePlayoffTeamsFromPositions);
+const mockFindPlayoffStagesWithGamesInTournament = vi.mocked(tournamentPlayoffRepository.findPlayoffStagesWithGamesInTournament);
+const mockFindGamesInTournament = vi.mocked(gameRepository.findGamesInTournament);
 
 describe('Guesses Actions', () => {
   const mockUser = {
@@ -119,10 +76,10 @@ describe('Guesses Actions', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockGetLoggedInUser.mockResolvedValue(mockUser);
     mockUpdateOrCreateGuess.mockResolvedValue({ id: 'guess1' });
-    mockUpdateOrCreateTournamentGuess.mockResolvedValue({ id: 'tournament-guess1' });
+    mockDbUpdateOrCreateTournamentGuess.mockResolvedValue({ id: 'tournament-guess1' });
     mockUpsertTournamentGroupTeamGuesses.mockResolvedValue([{ id: 'group-guess1' }]);
     mockFindAllTournamentGroupTeamGuessInGroup.mockResolvedValue([]);
     mockFindGroupsInTournament.mockResolvedValue([]);
@@ -175,12 +132,12 @@ describe('Guesses Actions', () => {
     it('creates or updates tournament guess', async () => {
       const result = await updateOrCreateTournamentGuess(mockTournamentGuess);
 
-      expect(mockUpdateOrCreateTournamentGuess).toHaveBeenCalledWith(mockTournamentGuess);
+      expect(mockDbUpdateOrCreateTournamentGuess).toHaveBeenCalledWith(mockTournamentGuess);
       expect(result).toEqual({ id: 'tournament-guess1' });
     });
 
     it('handles repository errors', async () => {
-      mockUpdateOrCreateTournamentGuess.mockRejectedValue(new Error('Database error'));
+      mockDbUpdateOrCreateTournamentGuess.mockRejectedValue(new Error('Database error'));
 
       await expect(updateOrCreateTournamentGuess(mockTournamentGuess))
         .rejects.toThrow('Database error');

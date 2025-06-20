@@ -1,3 +1,4 @@
+import { vi, describe, it, expect } from 'vitest';
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -5,7 +6,7 @@ import GamesGrid from '../../app/components/games-grid';
 import { GuessesContext } from '../../app/components/context-providers/guesses-context-provider';
 
 // Mocks
-jest.mock('../../app/components/game-view', () => ({
+vi.mock('../../app/components/game-view', () => ({
   __esModule: true,
   default: ({ game, handleEditClick, disabled }: any) => (
     <div data-testid={`game-view-${game.game_number}`}>
@@ -14,7 +15,7 @@ jest.mock('../../app/components/game-view', () => ({
     </div>
   )
 }));
-jest.mock('../../app/components/game-result-edit-dialog', () => ({
+vi.mock('../../app/components/game-result-edit-dialog', () => ({
   __esModule: true,
   default: ({ open, onClose, onGameGuessSave, homeTeamName, awayTeamName, gameId, gameNumber, ...props }: any) =>
     open ? (
@@ -27,24 +28,24 @@ jest.mock('../../app/components/game-result-edit-dialog', () => ({
       </div>
     ) : null
 }));
-jest.mock('next-auth/react', () => ({
+vi.mock('next-auth/react', () => ({
   useSession: () => ({ data: { user: { id: 'u1' } } }),
 }));
-jest.mock('../../app/utils/playoffs-rule-helper', () => ({
+vi.mock('../../app/utils/playoffs-rule-helper', () => ({
   getTeamDescription: (rule: any) => `Rule: ${rule}`
 }));
-jest.mock('../../app/utils/score-utils', () => ({
-  getGuessWinner: jest.fn(() => 't1'),
-  getGuessLoser: jest.fn(() => 't2'),
+vi.mock('../../app/utils/score-utils', () => ({
+  getGuessWinner: vi.fn(() => 't1'),
+  getGuessLoser: vi.fn(() => 't2'),
 }));
-jest.mock('../../app/utils/playoff-teams-calculator', () => ({
-  calculateTeamNamesForPlayoffGame: jest.fn(() => ({ homeTeam: 't1', awayTeam: 't2' }))
+vi.mock('../../app/utils/playoff-teams-calculator', () => ({
+  calculateTeamNamesForPlayoffGame: vi.fn(() => ({ homeTeam: 't1', awayTeam: 't2' }))
 }));
-jest.mock('../../app/actions/guesses-actions', () => ({
-  updateOrCreateTournamentGuess: jest.fn()
+vi.mock('../../app/actions/guesses-actions', () => ({
+  updateOrCreateTournamentGuess: vi.fn()
 }));
 
-const updateGameGuess = jest.fn();
+const updateGameGuess = vi.fn();
 const guessesContextValue = {
   gameGuesses: {},
   guessedPositions: [],
@@ -116,7 +117,7 @@ describe('GamesGrid', () => {
   });
 
   it('does not allow editing if not logged in', () => {
-    jest.doMock('next-auth/react', () => ({ useSession: () => ({ data: null }) }));
+    vi.doMock('next-auth/react', () => ({ useSession: () => ({ data: null }) }));
     renderWithContext(<GamesGrid games={games} teamsMap={teamsMap} isPlayoffs={false} isLoggedIn={false} />);
     expect(screen.getByTestId('edit-btn-1')).toBeDisabled();
   });
@@ -150,8 +151,10 @@ describe('GamesGrid', () => {
     
     await userEvent.click(screen.getByTestId('edit-btn-1'));
     await userEvent.click(screen.getByTestId('save-btn'));
+    
+    const { updateOrCreateTournamentGuess } = vi.mocked(await vi.importActual('../../app/actions/guesses-actions'));
+    
     await waitFor(() => {
-      const { updateOrCreateTournamentGuess } = require('../../app/actions/guesses-actions');
       expect(updateOrCreateTournamentGuess).toHaveBeenCalledWith(expect.objectContaining({ champion_team_id: 't1', runner_up_team_id: 't2' }));
     }, { timeout: 10000 });
   }, 15000);

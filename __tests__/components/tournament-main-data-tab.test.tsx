@@ -1,3 +1,4 @@
+import { vi, describe, it, expect } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -6,17 +7,17 @@ import { createOrUpdateTournament, getTournamentById, getPlayoffRounds } from '.
 import { getThemeLogoUrl } from '../../app/utils/theme-utils';
 
 // Mock the dependencies
-jest.mock('../../app/actions/tournament-actions');
-jest.mock('../../app/utils/theme-utils');
-jest.mock('../../app/db/database', () => ({
+vi.mock('../../app/actions/tournament-actions');
+vi.mock('../../app/utils/theme-utils');
+vi.mock('../../app/db/database', () => ({
   db: {
-    selectFrom: jest.fn(),
-    insertInto: jest.fn(),
-    updateTable: jest.fn(),
-    deleteFrom: jest.fn(),
+    selectFrom: vi.fn(),
+    insertInto: vi.fn(),
+    updateTable: vi.fn(),
+    deleteFrom: vi.fn(),
   }
 }));
-jest.mock('../../app/components/friend-groups/image-picker', () => {
+vi.mock('../../app/components/friend-groups/image-picker', () => {
   return function MockImagePicker({ onChange, defaultValue }: any) {
     return (
       <div data-testid="image-picker">
@@ -31,7 +32,7 @@ jest.mock('../../app/components/friend-groups/image-picker', () => {
     );
   };
 });
-jest.mock('../../app/components/backoffice/internal/playoff-round-dialog', () => {
+vi.mock('../../app/components/backoffice/internal/playoff-round-dialog', () => {
   return function MockPlayoffRoundDialog({ open, onClose, onSave, round, nextOrder }: any) {
     if (!open) return null;
     return (
@@ -44,36 +45,36 @@ jest.mock('../../app/components/backoffice/internal/playoff-round-dialog', () =>
     );
   };
 });
-jest.mock('next-auth', () => ({
+vi.mock('next-auth', () => ({
   __esModule: true,
   default: () => ({}),
-  getSession: jest.fn(),
+  getSession: vi.fn(),
   useSession: () => ({ data: null, status: 'unauthenticated' }),
-  signIn: jest.fn(),
-  signOut: jest.fn(),
-  auth: jest.fn(),
+  signIn: vi.fn(),
+  signOut: vi.fn(),
+  auth: vi.fn(),
 }));
-jest.mock('@auth/core', () => ({}));
-jest.mock('next-auth/providers/credentials', () => ({
+vi.mock('@auth/core', () => ({}));
+vi.mock('next-auth/providers/credentials', () => ({
   __esModule: true,
   default: () => ({}),
 }));
-jest.mock('../../app/actions/s3', () => ({
+vi.mock('../../app/actions/s3', () => ({
   createS3Client: () => ({
-    uploadFile: jest.fn(),
-    deleteFile: jest.fn(),
+    uploadFile: vi.fn(),
+    deleteFile: vi.fn(),
   })
 }));
-jest.mock('mui-color-input', () => ({
+vi.mock('mui-color-input', () => ({
   MuiColorInput: ({ value, onChange }: any) => (
     <input data-testid="color-input" value={value} onChange={e => onChange(e.target.value)} />
   )
 }));
 
-const mockGetTournamentById = getTournamentById as jest.MockedFunction<typeof getTournamentById>;
-const mockCreateOrUpdateTournament = createOrUpdateTournament as jest.MockedFunction<typeof createOrUpdateTournament>;
-const mockGetPlayoffRounds = getPlayoffRounds as jest.MockedFunction<typeof getPlayoffRounds>;
-const mockGetThemeLogoUrl = getThemeLogoUrl as jest.MockedFunction<typeof getThemeLogoUrl>;
+const mockGetTournamentById = getTournamentById as vi.MockedFunction<typeof getTournamentById>;
+const mockCreateOrUpdateTournament = createOrUpdateTournament as vi.MockedFunction<typeof createOrUpdateTournament>;
+const mockGetPlayoffRounds = getPlayoffRounds as vi.MockedFunction<typeof getPlayoffRounds>;
+const mockGetThemeLogoUrl = getThemeLogoUrl as vi.MockedFunction<typeof getThemeLogoUrl>;
 
 describe('TournamentMainDataTab', () => {
   const mockTournament = {
@@ -126,7 +127,7 @@ describe('TournamentMainDataTab', () => {
   ];
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockGetThemeLogoUrl.mockReturnValue('mocked-logo-url');
   });
 
@@ -255,7 +256,7 @@ describe('TournamentMainDataTab', () => {
 
     it('should submit form successfully', async () => {
       const user = userEvent.setup();
-      const onUpdateMock = jest.fn();
+      const onUpdateMock = vi.fn();
       
       render(<TournamentMainDataTab tournamentId="test-id" onUpdate={onUpdateMock} />);
 
@@ -293,7 +294,7 @@ describe('TournamentMainDataTab', () => {
 
     it('should handle activation toggle', async () => {
       const user = userEvent.setup();
-      const onUpdateMock = jest.fn();
+      const onUpdateMock = vi.fn();
       mockCreateOrUpdateTournament.mockResolvedValue({ ...mockTournament, is_active: false });
 
       render(<TournamentMainDataTab tournamentId="test-id" onUpdate={onUpdateMock} />);

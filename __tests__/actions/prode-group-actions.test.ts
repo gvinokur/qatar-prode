@@ -1,3 +1,7 @@
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+import * as userActions from '../../app/actions/user-actions';
+import * as prodeGroupRepository from '../../app/db/prode-group-repository';
+import * as s3 from '../../app/actions/s3';
 import {
   createDbGroup,
   getGroupsForUser,
@@ -8,50 +12,31 @@ import {
   updateTheme,
   leaveGroupAction,
   getUsersForGroup,
-  getUserScoresForTournament
+  getUserScoresForTournament,
 } from '../../app/actions/prode-group-actions';
 import { z } from 'zod';
 
-jest.mock('../../app/db/prode-group-repository', () => ({
-  addParticipantToGroup: jest.fn(),
-  createProdeGroup: jest.fn(),
-  deleteAllParticipantsFromGroup: jest.fn(),
-  deleteProdeGroup: jest.fn(),
-  findProdeGroupById: jest.fn(),
-  findProdeGroupsByOwner: jest.fn(),
-  findProdeGroupsByParticipant: jest.fn(),
-  updateProdeGroup: jest.fn(),
-  deleteParticipantFromGroup: jest.fn(),
-  updateParticipantAdminStatus: jest.fn(),
-  findParticipantsInGroup: jest.fn(),
+vi.mock('../../app/actions/user-actions');
+vi.mock('../../app/db/prode-group-repository');
+vi.mock('../../app/actions/s3');
+
+const mockGetLoggedInUser = vi.mocked(userActions.getLoggedInUser);
+const mockCreateProdeGroup = vi.mocked(prodeGroupRepository.createProdeGroup);
+
+vi.mock('../../app/db/game-guess-repository', () => ({
+  getGameGuessStatisticsForUsers: vi.fn(),
 }));
 
-jest.mock('../../app/actions/user-actions', () => ({
-  getLoggedInUser: jest.fn(),
+vi.mock('../../app/db/tournament-guess-repository', () => ({
+  findTournamentGuessByUserIdsTournament: vi.fn(),
 }));
 
-jest.mock('../../app/actions/s3', () => ({
-  createS3Client: jest.fn(() => ({
-    uploadFile: jest.fn().mockResolvedValue({ location: 'https://s3.amazonaws.com/bucket/file.jpg', key: 'file.jpg' }),
-    deleteFile: jest.fn().mockResolvedValue(undefined)
-  })),
-  deleteThemeLogoFromS3: jest.fn().mockResolvedValue(undefined),
-}));
-
-jest.mock('../../app/db/game-guess-repository', () => ({
-  getGameGuessStatisticsForUsers: jest.fn(),
-}));
-
-jest.mock('../../app/db/tournament-guess-repository', () => ({
-  findTournamentGuessByUserIdsTournament: jest.fn(),
-}));
-
-jest.mock('../../app/utils/ObjectUtils', () => ({
-  customToMap: jest.fn((arr: any[], fn: (item: any) => string) => Object.fromEntries(arr.map((item: any) => [fn(item), item]))),
+vi.mock('../../app/utils/ObjectUtils', () => ({
+  customToMap: vi.fn((arr: any[], fn: (item: any) => string) => Object.fromEntries(arr.map((item: any) => [fn(item), item]))),
 }));
 
 describe('Prode Group Actions', () => {
-  const mockUser = { id: 'user1', isAdmin: false };
+  const mockUser = { id: 'user1', email: 'test@example.com', emailVerified: new Date() };
   const mockOwner = { id: 'owner1', isAdmin: false };
   const mockGroup = { id: 'group1', owner_user_id: 'owner1', theme: { logo: 'logo.png', s3_logo_key: 'logo.png' } };
   const mockParticipant = { user_id: 'user2' };
@@ -66,9 +51,9 @@ describe('Prode Group Actions', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    require('../../app/actions/user-actions').getLoggedInUser.mockResolvedValue(mockUser);
-    require('../../app/db/prode-group-repository').createProdeGroup.mockResolvedValue(mockProdeGroup);
+    vi.clearAllMocks();
+    mockGetLoggedInUser.mockResolvedValue(mockUser as any);
+    mockCreateProdeGroup.mockResolvedValue(mockProdeGroup);
     require('../../app/db/prode-group-repository').findProdeGroupById.mockResolvedValue(mockGroup);
     require('../../app/db/prode-group-repository').findProdeGroupsByOwner.mockResolvedValue([mockGroup]);
     require('../../app/db/prode-group-repository').findProdeGroupsByParticipant.mockResolvedValue([mockGroup]);
@@ -89,7 +74,7 @@ describe('Prode Group Actions', () => {
       expect(result).toEqual(mockProdeGroup);
     });
     it('throws if not logged in', async () => {
-      require('../../app/actions/user-actions').getLoggedInUser.mockResolvedValue(null);
+      mockGetLoggedInUser.mockResolvedValue(null);
       await expect(createDbGroup('Test Group')).rejects.toBe('Should not call this action from a logged out page');
     });
   });
@@ -100,7 +85,7 @@ describe('Prode Group Actions', () => {
       expect(result).toEqual({ userGroups: [mockGroup], participantGroups: [mockGroup] });
     });
     it('returns undefined if not logged in', async () => {
-      require('../../app/actions/user-actions').getLoggedInUser.mockResolvedValue(null);
+      mockGetLoggedInUser.mockResolvedValue(null);
       const result = await getGroupsForUser();
       expect(result).toBeUndefined();
     });
@@ -108,7 +93,7 @@ describe('Prode Group Actions', () => {
 
   describe('deleteGroup', () => {
     it('deletes group if user is owner', async () => {
-      require('../../app/actions/user-actions').getLoggedInUser.mockResolvedValue(mockOwner);
+      mockGetLoggedInUser.mockResolvedValue(mockOwner);
       await deleteGroup('group1');
       expect(require('../../app/db/prode-group-repository').deleteAllParticipantsFromGroup).toHaveBeenCalledWith('group1');
       expect(require('../../app/db/prode-group-repository').deleteProdeGroup).toHaveBeenCalledWith('group1');
@@ -119,19 +104,19 @@ describe('Prode Group Actions', () => {
       expect(require('../../app/db/prode-group-repository').deleteProdeGroup).not.toHaveBeenCalled();
     });
     it('throws if not logged in', async () => {
-      require('../../app/actions/user-actions').getLoggedInUser.mockResolvedValue(null);
+      mockGetLoggedInUser.mockResolvedValue(null);
       await expect(deleteGroup('group1')).rejects.toBe('Should not call this action from a logged out page');
     });
   });
 
   describe('promoteParticipantToAdmin', () => {
     it('promotes participant if user is owner', async () => {
-      require('../../app/actions/user-actions').getLoggedInUser.mockResolvedValue(mockOwner);
+      mockGetLoggedInUser.mockResolvedValue(mockOwner);
       await promoteParticipantToAdmin('group1', 'user2');
       expect(require('../../app/db/prode-group-repository').updateParticipantAdminStatus).toHaveBeenCalledWith('group1', 'user2', true);
     });
     it('throws if not logged in', async () => {
-      require('../../app/actions/user-actions').getLoggedInUser.mockResolvedValue(null);
+      mockGetLoggedInUser.mockResolvedValue(null);
       await expect(promoteParticipantToAdmin('group1', 'user2')).rejects.toBe('Should not call this action from a logged out page');
     });
     it('throws if user is not owner', async () => {
@@ -141,12 +126,12 @@ describe('Prode Group Actions', () => {
 
   describe('demoteParticipantFromAdmin', () => {
     it('demotes participant if user is owner', async () => {
-      require('../../app/actions/user-actions').getLoggedInUser.mockResolvedValue(mockOwner);
+      mockGetLoggedInUser.mockResolvedValue(mockOwner);
       await demoteParticipantFromAdmin('group1', 'user2');
       expect(require('../../app/db/prode-group-repository').updateParticipantAdminStatus).toHaveBeenCalledWith('group1', 'user2', false);
     });
     it('throws if not logged in', async () => {
-      require('../../app/actions/user-actions').getLoggedInUser.mockResolvedValue(null);
+      mockGetLoggedInUser.mockResolvedValue(null);
       await expect(demoteParticipantFromAdmin('group1', 'user2')).rejects.toBe('Should not call this action from a logged out page');
     });
     it('throws if user is not owner', async () => {
@@ -162,7 +147,7 @@ describe('Prode Group Actions', () => {
       expect(result).toEqual(mockGroup);
     });
     it('throws if not logged in', async () => {
-      require('../../app/actions/user-actions').getLoggedInUser.mockResolvedValue(null);
+      mockGetLoggedInUser.mockResolvedValue(null);
       await expect(joinGroup('group1')).rejects.toBe('Should not call this action from a logged out page');
     });
   });
@@ -187,8 +172,8 @@ describe('Prode Group Actions', () => {
     });
     it('returns error if image upload fails', async () => {
       require('../../app/actions/s3').createS3Client.mockImplementation(() => ({
-        uploadFile: jest.fn().mockRejectedValue(new Error('Upload failed')),
-        deleteFile: jest.fn().mockResolvedValue(undefined)
+        uploadFile: vi.fn().mockRejectedValue(new Error('Upload failed')),
+        deleteFile: vi.fn().mockResolvedValue(undefined)
       }));
       const result = await updateTheme('group1', Object.entries(mockFormData));
       expect(result).toBe('Image Upload failed');
@@ -198,13 +183,13 @@ describe('Prode Group Actions', () => {
   describe('leaveGroupAction', () => {
     it('removes participant from group', async () => {
       require('../../app/db/prode-group-repository').findProdeGroupById.mockResolvedValue(mockGroup);
-      require('../../app/actions/user-actions').getLoggedInUser.mockResolvedValue(mockUser);
+      mockGetLoggedInUser.mockResolvedValue(mockUser);
       const result = await leaveGroupAction('group1');
       expect(require('../../app/db/prode-group-repository').deleteParticipantFromGroup).toHaveBeenCalledWith('group1', mockUser.id);
       expect(result).toEqual({ success: true });
     });
     it('throws if not logged in', async () => {
-      require('../../app/actions/user-actions').getLoggedInUser.mockResolvedValue(null);
+      mockGetLoggedInUser.mockResolvedValue(null);
       await expect(leaveGroupAction('group1')).rejects.toBe('No puedes dejar el grupo si no has iniciado sesión.');
     });
     it('throws if group does not exist', async () => {

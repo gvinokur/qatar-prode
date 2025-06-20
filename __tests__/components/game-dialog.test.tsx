@@ -1,3 +1,4 @@
+import { vi, describe, it, expect, beforeEach, MockedFunction } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, waitFor, waitForElementToBeRemoved, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -5,8 +6,8 @@ import GameDialog from '../../app/components/backoffice/internal/game-dialog';
 import { createOrUpdateGame } from '../../app/actions/game-actions';
 
 // Mock dependencies
-jest.mock('../../app/actions/game-actions');
-jest.mock('@mui/x-date-pickers/DateTimePicker', () => ({
+vi.mock('../../app/actions/game-actions');
+vi.mock('@mui/x-date-pickers/DateTimePicker', () => ({
   DateTimePicker: ({ value, onChange, slotProps, label }: any) => (
     <input
       data-testid={label}
@@ -17,10 +18,10 @@ jest.mock('@mui/x-date-pickers/DateTimePicker', () => ({
     />
   )
 }));
-jest.mock('@mui/x-date-pickers/LocalizationProvider', () => ({
+vi.mock('@mui/x-date-pickers/LocalizationProvider', () => ({
   LocalizationProvider: ({ children }: any) => <div>{children}</div>
 }));
-jest.mock('../../app/components/backoffice/internal/game-rule-selectors', () => ({
+vi.mock('../../app/components/backoffice/internal/game-rule-selectors', () => ({
   GroupPositionSelector: ({ value, onChange, disabled }: any) => (
     <select data-testid="group-position-selector" value={value} onChange={e => onChange(e.target.value)} disabled={disabled}>
       <option value="A-1">A-1</option>
@@ -34,50 +35,69 @@ jest.mock('../../app/components/backoffice/internal/game-rule-selectors', () => 
     </select>
   )
 }));
-jest.mock('../../app/db/database', () => ({
+vi.mock('../../app/db/database', () => ({
   db: {
-    selectFrom: jest.fn(),
-    insertInto: jest.fn(),
-    updateTable: jest.fn(),
-    deleteFrom: jest.fn(),
+    selectFrom: vi.fn(),
+    insertInto: vi.fn(),
+    updateTable: vi.fn(),
+    deleteFrom: vi.fn(),
   }
 }));
-jest.mock('next-auth', () => ({
+vi.mock('next-auth', () => ({
   __esModule: true,
   default: () => ({}),
-  getSession: jest.fn(),
+  getSession: vi.fn(),
   useSession: () => ({ data: null, status: 'unauthenticated' }),
-  signIn: jest.fn(),
-  signOut: jest.fn(),
-  auth: jest.fn(),
+  signIn: vi.fn(),
+  signOut: vi.fn(),
+  auth: vi.fn(),
 }));
-jest.mock('@auth/core', () => ({}));
-jest.mock('next-auth/providers/credentials', () => ({
+vi.mock('@auth/core', () => ({}));
+vi.mock('next-auth/providers/credentials', () => ({
   __esModule: true,
   default: () => ({}),
+}));
+
+// Mock next-auth
+vi.mock('next-auth/react', () => ({
+  useSession: () => ({
+    data: { user: { id: '1', email: 'test@example.com' } },
+    status: 'authenticated',
+  }),
 }));
 
 // Mock dayjs
-jest.mock('dayjs', () => {
-  const originalDayjs = jest.requireActual('dayjs');
-  const mockDayjs: any = jest.fn((date: any) => ({
-    ...originalDayjs(date),
-    tz: jest.fn(() => mockDayjs(date)),
-    toDate: jest.fn(() => new Date(date || Date.now())),
+vi.mock('dayjs', () => {
+  const mockDayjs = vi.fn((date) => ({
+    format: vi.fn(() => '2023-01-01'),
+    toDate: vi.fn(() => new Date('2023-01-01')),
+    tz: vi.fn(() => ({
+      format: vi.fn(() => '2023-01-01'),
+      toDate: vi.fn(() => new Date('2023-01-01')),
+    })),
+    extend: vi.fn(),
   }));
-  mockDayjs.tz = {
-    guess: jest.fn(() => 'UTC'),
+  
+  (mockDayjs as any).extend = vi.fn();
+  (mockDayjs as any).tz = {
+    guess: () => 'UTC',
   };
-  mockDayjs.extend = jest.fn();
-  return mockDayjs;
+  
+  return {
+    default: mockDayjs,
+    tz: {
+      guess: () => 'UTC',
+    },
+    extend: vi.fn(),
+  };
 });
 
-const mockCreateOrUpdateGame = createOrUpdateGame as jest.MockedFunction<typeof createOrUpdateGame>;
+const mockCreateOrUpdateGame = createOrUpdateGame as MockedFunction<typeof createOrUpdateGame>;
 
 describe('GameDialog', () => {
   const baseProps = {
     open: true,
-    onClose: jest.fn(),
+    onClose: vi.fn(),
     game: null,
     nextGameNumber: 5,
     tournamentId: 't1',
@@ -94,11 +114,11 @@ describe('GameDialog', () => {
       { id: 'p1', tournament_id: 't1', round_name: 'Quarterfinal', round_order: 2, total_games: 2, is_final: false, is_third_place: false, is_first_stage: false, games: [] },
       { id: 'p2', tournament_id: 't1', round_name: 'First Round', round_order: 1, total_games: 4, is_final: false, is_third_place: false, is_first_stage: true, games: [] },
     ],
-    onSave: jest.fn(),
+    onSave: vi.fn(),
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('renders create mode with default values', () => {

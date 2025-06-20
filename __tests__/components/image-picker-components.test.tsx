@@ -1,6 +1,7 @@
+import { vi, describe, it, expect } from 'vitest';
 // Mock the utility functions
-jest.mock('../../app/components/friend-groups/image-picker-utils', () => ({
-  getImageDimensions: jest.fn(() => Promise.resolve({ width: 200, height: 100 })),
+vi.mock('../../app/components/friend-groups/image-picker-utils', () => ({
+  getImageDimensions: vi.fn(() => Promise.resolve({ width: 200, height: 100 })),
 }));
 
 import React from 'react';
@@ -9,16 +10,16 @@ import userEvent from '@testing-library/user-event';
 import { ImageCard, ImagePreview, NoImagePreview } from '../../app/components/friend-groups/image-picker-components';
 
 // Mock global URL.createObjectURL for jsdom
-global.URL.createObjectURL = jest.fn(() => 'blob:mock-url');
+global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
 
 describe('ImagePicker Components', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('NoImagePreview', () => {
     const baseProps = {
-      onClick: jest.fn(),
+      onClick: vi.fn(),
       noImageText: 'No image selected',
       aspectRatio: 1,
       previewWidth: 200,
@@ -51,8 +52,8 @@ describe('ImagePicker Components', () => {
   describe('ImagePreview', () => {
     const baseProps = {
       dataUrl: 'data:image/png;base64,MOCKDATA',
-      onClick: jest.fn(),
-      onRemove: jest.fn(),
+      onClick: vi.fn(),
+      onRemove: vi.fn(),
       aspectRatio: 1,
       previewWidth: 200,
       previewBackgroundColor: '#f0f0f0',
@@ -102,7 +103,7 @@ describe('ImagePicker Components', () => {
         expect(screen.getByAltText('preview')).toBeInTheDocument();
       });
       const deleteBtn = screen.getByTestId('DeleteIcon').closest('button');
-      const mockEvent = { stopPropagation: jest.fn() };
+      const mockEvent = { stopPropagation: vi.fn() };
       // Simulate the click event with the event object
       const clickEvent = new MouseEvent('click', { bubbles: true });
       Object.defineProperty(clickEvent, 'stopPropagation', { value: mockEvent.stopPropagation });
@@ -141,7 +142,7 @@ describe('ImagePicker Components', () => {
   describe('ImageCard', () => {
     const mockFileInput = {
       current: {
-        click: jest.fn(),
+        click: vi.fn(),
       } as unknown as HTMLInputElement,
     };
 
@@ -149,7 +150,7 @@ describe('ImagePicker Components', () => {
       dataUrl: '',
       fileInput: mockFileInput,
       error: undefined,
-      onRemove: jest.fn(),
+      onRemove: vi.fn(),
       buttonText: 'Select Image',
       noImageText: 'No image selected',
       aspectRatio: 1,
@@ -158,7 +159,7 @@ describe('ImagePicker Components', () => {
     };
 
     beforeEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     it('renders NoImagePreview when no dataUrl is provided', () => {

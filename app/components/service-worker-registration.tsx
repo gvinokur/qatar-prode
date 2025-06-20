@@ -37,3 +37,7 @@ export async function requestNotificationPermission() {
 
   return false;
 }
+
+export function onUpdate(_registration: ServiceWorkerRegistration) {
+  // ... existing code ...
+}

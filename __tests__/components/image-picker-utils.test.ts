@@ -1,17 +1,18 @@
+import { vi, describe, it, expect } from 'vitest';
 import { generateDataUrl, getImageDimensions, validateImageDimensions } from '../../app/components/friend-groups/image-picker-utils';
 
 // Mock global URL.createObjectURL for jsdom
-global.URL.createObjectURL = jest.fn(() => 'blob:mock-url');
+global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
 
 // Mock FileReader
 const mockFileReader = {
-  readAsDataURL: jest.fn(),
+  readAsDataURL: vi.fn(),
   onload: null as any,
   onerror: null as any,
   result: 'data:image/png;base64,MOCKDATA'
 };
 
-global.FileReader = jest.fn(() => mockFileReader) as any;
+global.FileReader = vi.fn(() => mockFileReader) as any;
 
 // Mock Image constructor
 const mockImage = {
@@ -22,11 +23,11 @@ const mockImage = {
   src: ''
 };
 
-global.Image = jest.fn(() => mockImage) as any;
+global.Image = vi.fn(() => mockImage) as any;
 
 describe('ImagePicker Utils', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockFileReader.onload = null;
     mockFileReader.onerror = null;
     mockImage.onload = null;
@@ -39,7 +40,7 @@ describe('ImagePicker Utils', () => {
   describe('generateDataUrl', () => {
     it('generates data URL from file', () => {
       const file = new File(['test'], 'test.png', { type: 'image/png' });
-      const callback = jest.fn();
+      const callback = vi.fn();
       
       generateDataUrl(file, callback);
       

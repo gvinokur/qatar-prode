@@ -1,3 +1,4 @@
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { createS3Client, deleteThemeLogoFromS3, getS3KeyFromURL } from '../../app/actions/s3';
 import { Theme } from '../../app/db/tables-definition';
 
@@ -8,8 +9,8 @@ process.env.AWS_ACCESS_KEY_ID = 'test-access-key';
 process.env.AWS_SECRET_ACCESS_KEY = 'test-secret-key';
 
 // Mock the s3Client
-jest.mock('nodejs-s3-typescript', () => ({
-  s3Client: jest.fn(),
+vi.mock('nodejs-s3-typescript', () => ({
+  s3Client: vi.fn(),
 }));
 
 // Import the mocked s3Client
@@ -28,12 +29,12 @@ describe('S3 Actions', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // Mock the s3Client constructor
     mockS3Client.mockImplementation(() => ({
-      deleteFile: jest.fn().mockResolvedValue(undefined),
-      uploadFile: jest.fn().mockResolvedValue({ location: 'https://s3.amazonaws.com/bucket/file.jpg', key: 'file.jpg' })
+      deleteFile: vi.fn().mockResolvedValue(undefined),
+      uploadFile: vi.fn().mockResolvedValue({ location: 'https://s3.amazonaws.com/bucket/file.jpg', key: 'file.jpg' })
     }));
   });
 
@@ -89,7 +90,7 @@ describe('S3 Actions', () => {
 
   describe('deleteThemeLogoFromS3', () => {
     it('deletes logo when theme has s3_logo_key', async () => {
-      const mockDeleteFile = jest.fn().mockResolvedValue(undefined);
+      const mockDeleteFile = vi.fn().mockResolvedValue(undefined);
       mockS3Client.mockImplementation(() => ({
         deleteFile: mockDeleteFile
       }));
@@ -107,7 +108,7 @@ describe('S3 Actions', () => {
         ...mockTheme,
         s3_logo_key: undefined
       };
-      const mockDeleteFile = jest.fn().mockResolvedValue(undefined);
+      const mockDeleteFile = vi.fn().mockResolvedValue(undefined);
       mockS3Client.mockImplementation(() => ({
         deleteFile: mockDeleteFile
       }));
@@ -118,7 +119,7 @@ describe('S3 Actions', () => {
     });
 
     it('does nothing when theme is undefined', async () => {
-      const mockDeleteFile = jest.fn();
+      const mockDeleteFile = vi.fn();
       mockS3Client.mockImplementation(() => ({
         deleteFile: mockDeleteFile
       }));
@@ -133,7 +134,7 @@ describe('S3 Actions', () => {
         primary_color: '#ff0000',
         secondary_color: '#00ff00'
       };
-      const mockDeleteFile = jest.fn();
+      const mockDeleteFile = vi.fn();
       mockS3Client.mockImplementation(() => ({
         deleteFile: mockDeleteFile
       }));
@@ -149,7 +150,7 @@ describe('S3 Actions', () => {
         logo: '',
         s3_logo_key: undefined
       };
-      const mockDeleteFile = jest.fn();
+      const mockDeleteFile = vi.fn();
       mockS3Client.mockImplementation(() => ({
         deleteFile: mockDeleteFile
       }));
@@ -160,7 +161,7 @@ describe('S3 Actions', () => {
     });
 
     it('handles S3 delete errors gracefully', async () => {
-      const mockDeleteFile = jest.fn().mockRejectedValue(new Error('S3 delete failed'));
+      const mockDeleteFile = vi.fn().mockRejectedValue(new Error('S3 delete failed'));
       mockS3Client.mockImplementation(() => ({
         deleteFile: mockDeleteFile
       }));
@@ -175,7 +176,7 @@ describe('S3 Actions', () => {
         logo: 'https://s3.amazonaws.com/bucket/different-logo.png',
         s3_logo_key: 'logos/preferred-logo.png'
       };
-      const mockDeleteFile = jest.fn().mockResolvedValue(undefined);
+      const mockDeleteFile = vi.fn().mockResolvedValue(undefined);
       mockS3Client.mockImplementation(() => ({
         deleteFile: mockDeleteFile
       }));

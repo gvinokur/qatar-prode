@@ -1,10 +1,14 @@
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { sendEmail } from '../../app/utils/email';
 
 // Mock nodemailer
-jest.mock('nodemailer', () => ({
-  createTransport: jest.fn(() => ({
-    sendMail: jest.fn()
-  }))
+vi.mock('nodemailer', () => ({
+  default: {
+    createTransport: vi.fn(() => ({
+      sendMail: vi.fn().mockResolvedValue({ messageId: 'test-message-id' }),
+      verify: vi.fn().mockResolvedValue(true),
+    })),
+  },
 }));
 
 // Mock environment variables
@@ -12,7 +16,7 @@ const originalEnv = process.env;
 
 describe('email', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     process.env = { ...originalEnv };
   });
 
@@ -21,23 +25,29 @@ describe('email', () => {
   });
 
   describe('sendEmail', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      process.env.EMAIL_PROVIDER = 'gmail';
+      process.env.GMAIL_USER = 'test@gmail.com';
+      process.env.GMAIL_PASS = 'test-password';
+    });
+
+    afterEach(() => {
+      vi.resetModules();
+    });
+
     const mockEmailOptions = {
       to: 'test@example.com',
       subject: 'Test Subject',
       html: '<p>Test email content</p>'
     };
 
-    afterEach(() => {
-      jest.resetModules();
-      jest.dontMock('nodemailer');
-    });
-
     it('should send email successfully with Gmail provider', async () => {
-      jest.resetModules();
-      jest.doMock('nodemailer', () => ({
-        createTransport: jest.fn(() => ({ sendMail: jest.fn().mockResolvedValue({ messageId: 'test-message-id' }) }))
+      vi.resetModules();
+      vi.doMock('nodemailer', () => ({
+        createTransport: vi.fn(() => ({ sendMail: vi.fn().mockResolvedValue({ messageId: 'test-message-id' }) }))
       }));
-      const { sendEmail } = require('../../app/utils/email');
+      const { sendEmail } = vi.mocked(await vi.importActual('../../app/utils/email'));
       process.env.EMAIL_PROVIDER = 'gmail';
       process.env.EMAIL_FROM = 'noreply@example.com';
       process.env.EMAIL_SERVER_HOST = 'smtp.gmail.com';
@@ -49,30 +59,30 @@ describe('email', () => {
     });
 
     it('should use default Gmail settings when environment variables are not set', async () => {
-      jest.resetModules();
-      jest.doMock('nodemailer', () => ({
-        createTransport: jest.fn(() => ({ sendMail: jest.fn().mockResolvedValue({ messageId: 'test-message-id' }) }))
+      vi.resetModules();
+      vi.doMock('nodemailer', () => ({
+        createTransport: vi.fn(() => ({ sendMail: vi.fn().mockResolvedValue({ messageId: 'test-message-id' }) }))
       }));
-      const { sendEmail } = require('../../app/utils/email');
+      const { sendEmail } = vi.mocked(await vi.importActual('../../app/utils/email'));
       process.env.EMAIL_PROVIDER = 'gmail';
       process.env.EMAIL_FROM = 'noreply@example.com';
       await sendEmail(mockEmailOptions);
     });
 
     it('should return failure for non-Gmail providers', async () => {
-      jest.resetModules();
-      const { sendEmail } = require('../../app/utils/email');
+      vi.resetModules();
+      const { sendEmail } = vi.mocked(await vi.importActual('../../app/utils/email'));
       process.env.EMAIL_PROVIDER = 'mailgun';
       const result = await sendEmail(mockEmailOptions);
       expect(result).toEqual({ success: false, messageId: "Don't have any other provider configured" });
     });
 
     it('should use Gmail as default provider when EMAIL_PROVIDER is not set', async () => {
-      jest.resetModules();
-      jest.doMock('nodemailer', () => ({
-        createTransport: jest.fn(() => ({ sendMail: jest.fn().mockResolvedValue({ messageId: 'test-message-id' }) }))
+      vi.resetModules();
+      vi.doMock('nodemailer', () => ({
+        createTransport: vi.fn(() => ({ sendMail: vi.fn().mockResolvedValue({ messageId: 'test-message-id' }) }))
       }));
-      const { sendEmail } = require('../../app/utils/email');
+      const { sendEmail } = vi.mocked(await vi.importActual('../../app/utils/email'));
       process.env.EMAIL_FROM = 'noreply@example.com';
       process.env.EMAIL_PROVIDER = 'gmail';
       const result = await sendEmail(mockEmailOptions);
@@ -80,34 +90,34 @@ describe('email', () => {
     });
 
     it('should handle Gmail transport errors', async () => {
-      jest.resetModules();
-      jest.doMock('nodemailer', () => ({
-        createTransport: jest.fn(() => ({ sendMail: jest.fn().mockRejectedValue(new Error('SMTP connection failed')) }))
+      vi.resetModules();
+      vi.doMock('nodemailer', () => ({
+        createTransport: vi.fn(() => ({ sendMail: vi.fn().mockRejectedValue(new Error('SMTP connection failed')) }))
       }));
-      const { sendEmail } = require('../../app/utils/email');
+      const { sendEmail } = vi.mocked(await vi.importActual('../../app/utils/email'));
       process.env.EMAIL_PROVIDER = 'gmail';
       process.env.EMAIL_FROM = 'noreply@example.com';
       await expect(sendEmail(mockEmailOptions)).rejects.toThrow('Failed to send email');
     });
 
     it('should handle nodemailer createTransport errors', async () => {
-      jest.resetModules();
-      jest.doMock('nodemailer', () => ({
-        createTransport: jest.fn(() => { throw new Error('Invalid SMTP configuration'); })
+      vi.resetModules();
+      vi.doMock('nodemailer', () => ({
+        createTransport: vi.fn(() => { throw new Error('Invalid SMTP configuration'); })
       }));
-      const { sendEmail } = require('../../app/utils/email');
+      const { sendEmail } = vi.mocked(await vi.importActual('../../app/utils/email'));
       process.env.EMAIL_PROVIDER = 'gmail';
       process.env.EMAIL_FROM = 'noreply@example.com';
       await expect(sendEmail(mockEmailOptions)).rejects.toThrow('Failed to send email');
     });
 
     it('should handle different email content', async () => {
-      jest.resetModules();
-      const mockSendMail = jest.fn().mockResolvedValue({ messageId: 'test-message-id' });
-      jest.doMock('nodemailer', () => ({
-        createTransport: jest.fn(() => ({ sendMail: mockSendMail }))
+      vi.resetModules();
+      const mockSendMail = vi.fn().mockResolvedValue({ messageId: 'test-message-id' });
+      vi.doMock('nodemailer', () => ({
+        createTransport: vi.fn(() => ({ sendMail: mockSendMail }))
       }));
-      const { sendEmail } = require('../../app/utils/email');
+      const { sendEmail } = vi.mocked(await vi.importActual('../../app/utils/email'));
       process.env.EMAIL_PROVIDER = 'gmail';
       process.env.EMAIL_FROM = 'noreply@example.com';
       const differentEmailOptions = {

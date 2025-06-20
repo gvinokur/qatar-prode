@@ -1,15 +1,15 @@
+import { vi, describe, it, expect, beforeEach, afterEach, Mock } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import '@testing-library/jest-dom';
 import GroupTournamentBettingAdmin from '../../app/components/friend-groups/group-tournament-betting-admin';
 import { setGroupTournamentBettingConfigAction, setUserGroupTournamentBettingPaymentAction } from '../../app/actions/group-tournament-betting-actions';
 import { ProdeGroupTournamentBetting, ProdeGroupTournamentBettingPayment } from '../../app/db/tables-definition';
 
 // Mock the actions
-jest.mock('../../app/actions/group-tournament-betting-actions', () => ({
-  setGroupTournamentBettingConfigAction: jest.fn(),
-  setUserGroupTournamentBettingPaymentAction: jest.fn(),
+vi.mock('../../app/actions/group-tournament-betting-actions', () => ({
+  setGroupTournamentBettingConfigAction: vi.fn(),
+  setUserGroupTournamentBettingPaymentAction: vi.fn(),
 }));
 
 describe('GroupTournamentBettingAdmin', () => {
@@ -37,7 +37,7 @@ describe('GroupTournamentBettingAdmin', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Owner View', () => {
@@ -50,7 +50,7 @@ describe('GroupTournamentBettingAdmin', () => {
     });
 
     it('toggles betting enabled state', async () => {
-      (setGroupTournamentBettingConfigAction as jest.Mock).mockResolvedValueOnce({
+      (setGroupTournamentBettingConfigAction as Mock).mockResolvedValueOnce({
         ...mockProps.config,
         betting_enabled: false,
       });
@@ -76,7 +76,7 @@ describe('GroupTournamentBettingAdmin', () => {
     });
 
     it('updates betting amount on blur', async () => {
-      (setGroupTournamentBettingConfigAction as jest.Mock).mockResolvedValueOnce({
+      (setGroupTournamentBettingConfigAction as Mock).mockResolvedValueOnce({
         ...mockProps.config,
         betting_amount: 200,
       });
@@ -101,7 +101,7 @@ describe('GroupTournamentBettingAdmin', () => {
 
     it('updates betting description on blur', async () => {
       const newDescription = 'New test description';
-      (setGroupTournamentBettingConfigAction as jest.Mock).mockResolvedValueOnce({
+      (setGroupTournamentBettingConfigAction as Mock).mockResolvedValueOnce({
         ...mockProps.config,
         betting_payout_description: newDescription,
       });
@@ -125,7 +125,7 @@ describe('GroupTournamentBettingAdmin', () => {
     });
 
     it('toggles payment status', async () => {
-      (setUserGroupTournamentBettingPaymentAction as jest.Mock).mockResolvedValueOnce({});
+      (setUserGroupTournamentBettingPaymentAction as Mock).mockResolvedValueOnce({});
 
       render(<GroupTournamentBettingAdmin {...mockProps} />);
       
@@ -144,7 +144,7 @@ describe('GroupTournamentBettingAdmin', () => {
 
     it('shows error message when update fails', async () => {
       const errorMessage = 'Update failed';
-      (setGroupTournamentBettingConfigAction as jest.Mock).mockRejectedValueOnce(new Error(errorMessage));
+      (setGroupTournamentBettingConfigAction as Mock).mockRejectedValueOnce(new Error(errorMessage));
 
       render(<GroupTournamentBettingAdmin {...mockProps} />);
       
@@ -168,7 +168,7 @@ describe('GroupTournamentBettingAdmin', () => {
         payments: mockProps.payments // No payment info for user-3
       };
 
-      (setUserGroupTournamentBettingPaymentAction as jest.Mock).mockResolvedValueOnce({
+      (setUserGroupTournamentBettingPaymentAction as Mock).mockResolvedValueOnce({
         id: 'payment-3',
         group_tournament_betting_id: 'config-1',
         user_id: 'user-3',

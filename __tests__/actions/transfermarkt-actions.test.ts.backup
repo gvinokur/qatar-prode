@@ -1,0 +1,195 @@
+import { getTransfermarktPlayerData } from '../../app/actions/transfermarkt-actions';
+import * as userActions from '../../app/actions/user-actions';
+import * as tournamentActions from '../../app/actions/tournament-actions';
+import fs from 'fs';
+import path from 'path';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+
+vi.mock('@vercel/postgres-kysely', () => ({
+  createKysely: vi.fn(),
+}));
+vi.mock('../../app/actions/user-actions');
+vi.mock('../../app/actions/tournament-actions');
+
+const mockedUserActions = userActions as any;
+const mockedTournamentActions = tournamentActions as any;
+
+// Read the fixture file
+const fixturePath = path.join(__dirname, '../fixtures/transfermarkt-real-madrid.html');
+const mockHtmlContent = fs.readFileSync(fixturePath, 'utf-8');
+
+// Mock fetch globally
+global.fetch = vi.fn(() =>
+  Promise.resolve({
+    ok: true,
+    text: () => Promise.resolve(mockHtmlContent),
+  }),
+) as any;
+
+describe('getTransfermarktPlayerData', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedUserActions.getLoggedInUser.mockResolvedValue({ isAdmin: true });
+    mockedTournamentActions.getTournamentStartDate.mockResolvedValue(new Date('2024-06-20T00:00:00.000Z'));
+  });
+
+  it('should fetch and parse player data correctly from Real Madrid squad', async () => {
+    const players = await getTransfermarktPlayerData('real-madrid', '418', 'tournament-123');
+
+    // Verify fetch was called with correct URL and headers
+    expect(fetch).toHaveBeenCalledWith(
+      'https://www.transfermarkt.com/real-madrid/kader/verein/418/saison_id/2024/plus/1',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'User-Agent': expect.any(String),
+          'Accept': expect.any(String),
+          'Referer': 'https://www.transfermarkt.com/',
+        }),
+      }),
+    );
+
+    // Verify we got the expected number of players
+    expect(players).toHaveLength(6);
+
+    // Verify specific players and their data
+    expect(players).toEqual([
+      {
+        name: 'Thibaut Courtois',
+        position: 'GK',
+        ageAtTournament: 33,
+      },
+      {
+        name: 'Dean Huijsen',
+        position: 'DF',
+        ageAtTournament: 20,
+      },
+      {
+        name: 'Federico Valverde',
+        position: 'MF',
+        ageAtTournament: 26,
+      },
+      {
+        name: 'Jude Bellingham',
+        position: 'MF',
+        ageAtTournament: 20,
+      },
+      {
+        name: 'Vinicius Junior',
+        position: 'FW',
+        ageAtTournament: 23,
+      },
+      {
+        name: 'Kylian Mbappé',
+        position: 'FW',
+        ageAtTournament: 26,
+      },
+    ]);
+  });
+
+  it('should throw an error if user is not an admin', async () => {
+    mockedUserActions.getLoggedInUser.mockResolvedValue({ isAdmin: false });
+    
+    await expect(getTransfermarktPlayerData('real-madrid', '418', 'tournament-123')).rejects.toThrow(
+      'Unauthorized: Only administrators can access this data',
+    );
+    
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('should throw an error if user is null', async () => {
+    mockedUserActions.getLoggedInUser.mockResolvedValue(null);
+    
+    await expect(getTransfermarktPlayerData('real-madrid', '418', 'tournament-123')).rejects.toThrow(
+      'Unauthorized: Only administrators can access this data',
+    );
+    
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('should throw an error if fetch fails with non-OK response', async () => {
+    (fetch as any).mockResolvedValueOnce({
+      ok: false,
+      status: 404,
+      statusText: 'Not Found',
+    });
+
+    await expect(getTransfermarktPlayerData('real-madrid', '418', 'tournament-123')).rejects.toThrow(
+      'Failed to fetch player data from Transfermarkt',
+    );
+  });
+
+  it('should throw an error if fetch throws an exception', async () => {
+    (fetch as any).mockRejectedValueOnce(new Error('Network error'));
+
+    await expect(getTransfermarktPlayerData('real-madrid', '418', 'tournament-123')).rejects.toThrow(
+      'Failed to fetch player data from Transfermarkt',
+    );
+  });
+
+  it('should handle players with unknown positions', async () => {
+    // Create a modified HTML with an unknown position
+    const modifiedHtml = mockHtmlContent.replace('Goalkeeper', 'Unknown Position');
+    (fetch as any).mockResolvedValueOnce({
+      ok: true,
+      text: () => Promise.resolve(modifiedHtml),
+    });
+
+    const players = await getTransfermarktPlayerData('real-madrid', '418', 'tournament-123');
+    
+    // Should still parse the player but with 'Unknown Position' position
+    const courtois = players.find((p: any) => p.name === 'Thibaut Courtois');
+    expect(courtois).toEqual({
+      name: 'Thibaut Courtois',
+      position: 'Unknown Position',
+      ageAtTournament: 33,
+    });
+  });
+
+  it('should handle players with invalid date of birth', async () => {
+    // Create a modified HTML with an invalid date
+    const modifiedHtml = mockHtmlContent.replace('May 11, 1991', 'Invalid Date');
+    (fetch as any).mockResolvedValueOnce({
+      ok: true,
+      text: () => Promise.resolve(modifiedHtml),
+    });
+
+    const players = await getTransfermarktPlayerData('real-madrid', '418', 'tournament-123');
+    
+    // Should still parse the player but with default age
+    const courtois = players.find((p: any) => p.name === 'Thibaut Courtois');
+    expect(courtois).toEqual({
+      name: 'Thibaut Courtois',
+      position: 'GK',
+      ageAtTournament: 18, // Default age when date parsing fails
+    });
+  });
+
+  it('should filter out players without names', async () => {
+    // Create a modified HTML with an empty name
+    const modifiedHtml = mockHtmlContent.replace(
+      /<a href="\/thibaut-courtois\/profil\/spieler\/108390">\s*Thibaut Courtois\s*<\/a>/,
+      '<a></a>'
+    );
+    (fetch as any).mockResolvedValueOnce({
+      ok: true,
+      text: () => Promise.resolve(modifiedHtml),
+    });
+
+    const players = await getTransfermarktPlayerData('real-madrid', '418', 'tournament-123');
+    
+    // Should have one less player (5 instead of 6)
+    expect(players).toHaveLength(5);
+    expect(players.find((p: any) => p.name === '')).toBeUndefined();
+  });
+
+  it('should correctly map all position types', async () => {
+    const players = await getTransfermarktPlayerData('real-madrid', '418', 'tournament-123');
+    
+    // Verify position mapping works correctly
+    const positions = players.map((p: any) => p.position);
+    expect(positions).toContain('GK'); // Goalkeeper
+    expect(positions).toContain('DF'); // Centre-Back
+    expect(positions).toContain('MF'); // Central Midfield, Attacking Midfield
+    expect(positions).toContain('FW'); // Left Winger, Centre-Forward
+  });
+}); 

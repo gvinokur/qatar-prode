@@ -1,3 +1,4 @@
+import { vi, describe, it, expect } from 'vitest';
 import React from 'react';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -5,19 +6,19 @@ import { GuessesContextProvider, GuessesContext } from '../../app/components/con
 import { Game, GameGuessNew, TournamentGroupTeamStatsGuessNew } from '../../app/db/tables-definition';
 
 // Mock the actions
-jest.mock('../../app/actions/guesses-actions', () => ({
-  updateOrCreateGameGuesses: jest.fn(),
-  updateOrCreateTournamentGroupTeamGuesses: jest.fn(),
-  updatePlayoffGameGuesses: jest.fn(),
+vi.mock('../../app/actions/guesses-actions', () => ({
+  updateOrCreateGameGuesses: vi.fn(),
+  updateOrCreateTournamentGroupTeamGuesses: vi.fn(),
+  updatePlayoffGameGuesses: vi.fn(),
 }));
 
 // Mock the utils
-jest.mock('../../app/utils/group-position-calculator', () => ({
-  calculateGroupPosition: jest.fn(),
+vi.mock('../../app/utils/group-position-calculator', () => ({
+  calculateGroupPosition: vi.fn(),
 }));
 
-jest.mock('../../app/utils/playoff-teams-calculator', () => ({
-  groupCompleteReducer: jest.fn(),
+vi.mock('../../app/utils/playoff-teams-calculator', () => ({
+  groupCompleteReducer: vi.fn(),
 }));
 
 const mockUpdateOrCreateGameGuesses = require('../../app/actions/guesses-actions').updateOrCreateGameGuesses;
@@ -115,7 +116,7 @@ describe('GuessesContextProvider', () => {
   ];
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockUpdateOrCreateGameGuesses.mockResolvedValue(undefined);
     mockUpdateOrCreateTournamentGroupTeamGuesses.mockResolvedValue(undefined);
     mockUpdatePlayoffGameGuesses.mockResolvedValue(undefined);

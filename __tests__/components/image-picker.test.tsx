@@ -1,15 +1,16 @@
+import { vi, describe, it, expect, Mock } from 'vitest';
 // Mock global URL.createObjectURL for jsdom
-global.URL.createObjectURL = jest.fn(() => 'blob:mock-url');
+global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
 
 // Mock the utility functions
-jest.mock('../../app/components/friend-groups/image-picker-utils', () => ({
-  generateDataUrl: jest.fn((file, cb) => (cb as Function)('data:image/png;base64,MOCKDATA')),
-  getImageDimensions: jest.fn(() => Promise.resolve({ width: 200, height: 200 })),
-  validateImageDimensions: jest.fn(() => Promise.resolve(null)),
+vi.mock('../../app/components/friend-groups/image-picker-utils', () => ({
+  generateDataUrl: vi.fn((file, cb) => (cb as Function)('data:image/png;base64,MOCKDATA')),
+  getImageDimensions: vi.fn(() => Promise.resolve({ width: 200, height: 200 })),
+  validateImageDimensions: vi.fn(() => Promise.resolve(null)),
 }));
 
-jest.mock('../../app/components/friend-groups/image-validate-file', () => ({
-  validateFile: jest.fn(() => Promise.resolve(null)),
+vi.mock('../../app/components/friend-groups/image-validate-file', () => ({
+  validateFile: vi.fn(() => Promise.resolve(null)),
 }));
 
 import React from 'react';
@@ -30,15 +31,15 @@ describe('ImagePicker', () => {
   const baseProps = {
     id: 'test-image',
     name: 'testImage',
-    onChange: jest.fn(),
-    onBlur: jest.fn(),
+    onChange: vi.fn(),
+    onBlur: vi.fn(),
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     // Reset mocks to default behavior
-    (validateFile as jest.Mock).mockImplementation(() => Promise.resolve(null));
-    (generateDataUrl as jest.Mock).mockImplementation((file, cb) => (cb as Function)('data:image/png;base64,MOCKDATA'));
+    (validateFile as Mock).mockImplementation(() => Promise.resolve(null));
+    (generateDataUrl as Mock).mockImplementation((file, cb) => (cb as Function)('data:image/png;base64,MOCKDATA'));
   });
 
   it('renders with no image by default', () => {
@@ -64,7 +65,7 @@ describe('ImagePicker', () => {
   });
 
   it('shows error for invalid file type', async () => {
-    (validateFile as jest.Mock).mockImplementationOnce(() => Promise.resolve('Invalid file type'));
+    (validateFile as Mock).mockImplementationOnce(() => Promise.resolve('Invalid file type'));
     render(<ImagePicker {...baseProps} />);
     const file = createFile('test.txt', 1024, 'text/plain');
     const input = screen.getByTestId('file-input');
@@ -75,7 +76,7 @@ describe('ImagePicker', () => {
   });
 
   it('shows error for file too large', async () => {
-    (validateFile as jest.Mock).mockImplementationOnce(() => Promise.resolve('File too large'));
+    (validateFile as Mock).mockImplementationOnce(() => Promise.resolve('File too large'));
     render(<ImagePicker {...baseProps} maxSizeInMB={0.0001} />);
     const file = createFile('big.png', 1000000, 'image/png');
     const input = screen.getByTestId('file-input');
