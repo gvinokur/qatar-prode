@@ -23,14 +23,6 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
   const [deactivateSuccess, setDeactivateSuccess] = useState(false);
   const [deactivateError, setDeactivateError] = useState<string | null>(null);
 
-  const calculatePlayoffTeams = async () => {
-
-  }
-
-  const cleanUpGamesAndPlayoffTeams = async () => {
-
-  }
-
   const importPlayers = async () => {
     setLoading(true)
     await generateDbTournamentTeamPlayers(tournament.long_name)
@@ -60,8 +52,8 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
 
   const calculateQualifiedScoresForTournament = async () => {
     setLoading(true)
-    const results = await calculateAndStoreQualifiedTeamsPoints(tournament.id)
-    setActionResults(results)
+    const qualifiedTeamScores = await calculateAndStoreQualifiedTeamsPoints(tournament.id)
+    setActionResults({results: qualifiedTeamScores})
     setLoading(false)
   }
 
@@ -110,28 +102,6 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
             md: 12
           }}>
           <Typography variant={'h4'}>Tournament Level Actions</Typography>
-        </Grid>
-        <Grid
-          textAlign={'center'}
-          size={{
-            xs: 6,
-            md: 3,
-            lg: 2
-          }}>
-          <Button loading={loading} variant={'contained'} size={'large'} fullWidth={true} sx={{height: '100%'}} onClick={cleanUpGamesAndPlayoffTeams}>
-            Clean Game results
-          </Button>
-        </Grid>
-        <Grid
-          textAlign={'center'}
-          size={{
-            xs: 6,
-            md: 3,
-            lg: 2
-          }}>
-          <Button loading={loading} variant={'contained'} size={'large'} fullWidth={true} sx={{height: '100%'}} onClick={calculatePlayoffTeams}>
-            Calculate Playoff Teams
-          </Button>
         </Grid>
         <Grid
           textAlign={'center'}

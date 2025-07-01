@@ -61,6 +61,10 @@ export const findGuessedQualifiedTeams = cache(async (tournamentId: string, user
        )
      ));
 
+
+   if(userId === '45bd6e70-ed7b-41b6-a860-e05b5a19deb3') {
+    // console.log(query.compile()) - removed for production
+   }
    return await query.execute()
 })
 
