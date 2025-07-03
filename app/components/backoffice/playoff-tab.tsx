@@ -88,6 +88,7 @@ export default function PlayoffTab({ tournamentId } :Props) {
 
   const commitGameResults = async (newGame: ExtendedGameData, newGamesMap: {[k: string]: ExtendedGameData}) => {
     await saveGameResults(Object.values(newGamesMap))
+    modifyAffectedTeams(newGame, newGamesMap, gamesMap)
     await saveGamesData(Object.values(newGamesMap))
     await calculateGameScores(false, false)
     const finalStage = playoffStages?.find(stage => stage.is_final)
@@ -107,7 +108,6 @@ export default function PlayoffTab({ tournamentId } :Props) {
       third_place_team_id = getGameWinner(thirdPlaceGame)
     }
     await updateTournamentHonorRoll(tournamentId, { champion_team_id, runner_up_team_id, third_place_team_id })
-    modifyAffectedTeams(newGame, newGamesMap, gamesMap)
     setGamesMap(newGamesMap)
     setSaved(true)
   }
