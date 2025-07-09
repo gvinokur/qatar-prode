@@ -3,7 +3,6 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import GameResultEditDialog from '../../app/components/game-result-edit-dialog';
-import { updateGameResult } from '../../app/db/game-result-repository';
 
 // Mock next-auth
 vi.mock('next-auth/react', () => ({

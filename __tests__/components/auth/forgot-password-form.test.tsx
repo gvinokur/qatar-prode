@@ -1,6 +1,6 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ForgotPasswordForm from '../../../app/components/auth/forgot-password-form';
 import { sendPasswordResetLink } from '../../../app/actions/user-actions';
@@ -221,7 +221,7 @@ describe('ForgotPasswordForm', () => {
       validator.isEmail.mockReturnValue(true);
       
       // Mock a delayed response
-      let resolvePromise: (value: any) => void;
+      let resolvePromise: (_value: any) => void;
       const promise = new Promise((resolve) => {
         resolvePromise = resolve;
       });

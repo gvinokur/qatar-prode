@@ -1,6 +1,6 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { ThemeProvider } from '@mui/material/styles';
 import { createTheme } from '@mui/material/styles';
 import LoginOrSignupDialog from '../../../app/components/auth/login-or-signup-dialog';
@@ -56,7 +56,7 @@ vi.mock('../../../app/components/auth/login-form', () => ({
 // Mock SignupForm component
 vi.mock('../../../app/components/auth/signup-form', () => ({
   __esModule: true,
-  default: ({ onSuccess }: { onSuccess: (user: User) => void }) => (
+  default: ({ onSuccess }: { onSuccess: (_user: User) => void }) => (
     <div data-testid="signup-form">
       <button 
         data-testid="signup-submit" 
@@ -71,7 +71,7 @@ vi.mock('../../../app/components/auth/signup-form', () => ({
 // Mock ForgotPasswordForm component
 vi.mock('../../../app/components/auth/forgot-password-form', () => ({
   __esModule: true,
-  default: ({ onSuccess }: { onSuccess: (email: string) => void }) => (
+  default: ({ onSuccess }: { onSuccess: (_email: string) => void }) => (
     <div data-testid="forgot-password-form">
       <button 
         data-testid="forgot-password-submit" 

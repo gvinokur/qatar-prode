@@ -1,6 +1,6 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import React from 'react';
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { GuessesContextProvider, GuessesContext } from '../../app/components/context-providers/guesses-context-provider';
 import { Game, GameGuessNew, TournamentGroupTeamStatsGuessNew } from '../../app/db/tables-definition';

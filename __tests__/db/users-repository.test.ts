@@ -38,7 +38,6 @@ vi.mock('react', () => ({
 // Import after mocking
 import * as usersRepository from '../../app/db/users-repository';
 import { db } from '../../app/db/database';
-import { createBaseFunctions } from '../../app/db/base-repository';
 
 describe('Users Repository', () => {
   const mockUser: User = {

@@ -2,7 +2,7 @@ import { calculateGroupPosition, genericTeamStatsComparator, pointsBasesTeamStat
 import { Game, GameGuessNew, GameResultNew } from '../../app/db/tables-definition';
 
 describe('group-position-calculator', () => {
-  const mockGame = (homeTeam: string, awayTeam: string, homeScore: number, awayScore: number): Game => ({
+  const mockGame = (homeTeam: string, awayTeam: string, _homeScore: number, _awayScore: number): Game => ({
     id: `game-${homeTeam}-${awayTeam}`,
     tournament_id: 'test-tournament',
     game_number: 1,

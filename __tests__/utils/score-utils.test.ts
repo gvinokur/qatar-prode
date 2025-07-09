@@ -9,7 +9,7 @@ import { GameGuessNew } from '../../app/db/tables-definition';
 import { ExtendedGameData } from '../../app/definitions';
 
 // Mock ExtendedGameData for testing
-const createMockGame = (overrides: any = {}) => ({
+const _createMockGame = (overrides: any = {}) => ({
   id: 'game1',
   home_team: 'Team A',
   away_team: 'Team B',
@@ -17,7 +17,7 @@ const createMockGame = (overrides: any = {}) => ({
   ...overrides
 });
 
-const createMockGuess = (overrides: any = {}): GameGuessNew => ({
+const _createMockGuess = (overrides: any = {}): GameGuessNew => ({
   game_id: 'game1',
   user_id: 'user1',
   id: 'guess1',

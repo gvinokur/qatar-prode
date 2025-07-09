@@ -1,6 +1,6 @@
 import { vi, describe, it, expect, beforeEach, MockedFunction } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent, waitFor, waitForElementToBeRemoved, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import GameDialog from '../../app/components/backoffice/internal/game-dialog';
 import { createOrUpdateGame } from '../../app/actions/game-actions';
@@ -68,7 +68,7 @@ vi.mock('next-auth/react', () => ({
 
 // Mock dayjs
 vi.mock('dayjs', () => {
-  const mockDayjs = vi.fn((date) => ({
+  const mockDayjs = vi.fn((_date) => ({
     format: vi.fn(() => '2023-01-01'),
     toDate: vi.fn(() => new Date('2023-01-01')),
     tz: vi.fn(() => ({

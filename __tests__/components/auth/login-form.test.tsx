@@ -1,10 +1,10 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import LoginForm, { LoginFormData } from '../../../app/components/auth/login-form';
+import LoginForm from '../../../app/components/auth/login-form';
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({

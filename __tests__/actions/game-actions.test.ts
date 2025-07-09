@@ -6,13 +6,10 @@ import {
   createOrUpdateGame,
   getGamesInTournament
 } from '../../app/actions/game-actions';
-import { Game, GameNew, GameTable, GameUpdate } from '../../app/db/tables-definition';
+import { Game, GameNew, GameUpdate } from '../../app/db/tables-definition';
 import * as gameRepository from '../../app/db/game-repository';
 import * as gameGuessRepository from '../../app/db/game-guess-repository';
-import * as tournamentRepository from '../../app/db/tournament-repository';
 import * as tournamentGroupRepository from '../../app/db/tournament-group-repository';
-import * as tournamentGuessRepository from '../../app/db/tournament-guess-repository';
-import * as tournamentGroupTeamGuessRepository from '../../app/db/tournament-group-team-guess-repository';
 import * as tournamentPlayoffRepository from '../../app/db/tournament-playoff-repository';
 import * as userActions from '../../app/actions/user-actions';
 
@@ -81,8 +78,8 @@ const mockCreateGame = vi.mocked(gameRepository.createGame);
 const mockDeleteGame = vi.mocked(gameRepository.deleteGame);
 const mockUpdateGame = vi.mocked(gameRepository.updateGame);
 const mockFindGamesInTournament = vi.mocked(gameRepository.findGamesInTournament);
-const mockCreateGameGuess = vi.mocked(gameGuessRepository.createGameGuess);
-const mockUpdateGameGuess = vi.mocked(gameGuessRepository.updateGameGuess);
+const _mockCreateGameGuess = vi.mocked(gameGuessRepository.createGameGuess);
+const _mockUpdateGameGuess = vi.mocked(gameGuessRepository.updateGameGuess);
 const mockGetLoggedInUser = vi.mocked(userActions.getLoggedInUser);
 const mockCreateTournamentGroupGame = vi.mocked(tournamentGroupRepository.createTournamentGroupGame);
 const mockCreatePlayoffRoundGame = vi.mocked(tournamentPlayoffRepository.createPlayoffRoundGame);

@@ -4,7 +4,7 @@ import {
   calculateTeamNamesForPlayoffGame,
   groupCompleteReducer
 } from '../../app/utils/playoff-teams-calculator';
-import { Game, GameGuessNew, GameResultNew, TeamStats } from '../../app/db/tables-definition';
+import { Game, GameGuessNew, TeamStats } from '../../app/db/tables-definition';
 import { ExtendedGroupData, ExtendedPlayoffRoundData } from '../../app/definitions';
 
 describe('playoff-teams-calculator', () => {

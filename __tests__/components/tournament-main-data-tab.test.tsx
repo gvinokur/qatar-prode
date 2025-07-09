@@ -1,6 +1,6 @@
 import { vi, describe, it, expect, MockedFunction } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import TournamentMainDataTab from '../../app/components/backoffice/tournament-main-data-tab';
 import { createOrUpdateTournament, getTournamentById, getPlayoffRounds } from '../../app/actions/tournament-actions';

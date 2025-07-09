@@ -90,7 +90,7 @@ vi.mock('cheerio', () => ({
 global.fetch = vi.fn();
 
 describe('Team Actions', () => {
-  const mockUser = {
+  const _mockUser = {
     id: '1',
     email: 'test@example.com',
     nickname: 'testuser',

@@ -1,4 +1,4 @@
-import { vi, describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import TabPanel from '../../app/components/tab-panel';
@@ -75,14 +75,14 @@ describe('TabPanel', () => {
   });
 
   it('renders null children gracefully', () => {
-    render(<TabPanel {...defaultProps} children={null} />);
+    render(<TabPanel {...defaultProps}>{null}</TabPanel>);
     const tabPanel = screen.getByRole('tabpanel');
     expect(tabPanel).toBeInTheDocument();
     expect(tabPanel).not.toHaveAttribute('hidden');
   });
 
   it('renders empty children gracefully', () => {
-    render(<TabPanel {...defaultProps} children={undefined} />);
+    render(<TabPanel {...defaultProps}>{undefined}</TabPanel>);
     const tabPanel = screen.getByRole('tabpanel');
     expect(tabPanel).toBeInTheDocument();
     expect(tabPanel).not.toHaveAttribute('hidden');
@@ -90,16 +90,13 @@ describe('TabPanel', () => {
 
   it('renders multiple children correctly', () => {
     render(
-      <TabPanel 
-        {...defaultProps} 
-        children={
-          <>
-            <div>First child</div>
-            <div>Second child</div>
-            <span>Third child</span>
-          </>
-        }
-      />
+      <TabPanel {...defaultProps}>
+        <>
+          <div>First child</div>
+          <div>Second child</div>
+          <span>Third child</span>
+        </>
+      </TabPanel>
     );
     expect(screen.getByText('First child')).toBeInTheDocument();
     expect(screen.getByText('Second child')).toBeInTheDocument();
@@ -108,19 +105,16 @@ describe('TabPanel', () => {
 
   it('handles complex nested content', () => {
     render(
-      <TabPanel 
-        {...defaultProps} 
-        children={
-          <div>
-            <h1>Title</h1>
-            <p>Description</p>
-            <ul>
-              <li>Item 1</li>
-              <li>Item 2</li>
-            </ul>
-          </div>
-        }
-      />
+      <TabPanel {...defaultProps}>
+        <div>
+          <h1>Title</h1>
+          <p>Description</p>
+          <ul>
+            <li>Item 1</li>
+            <li>Item 2</li>
+          </ul>
+        </div>
+      </TabPanel>
     );
     expect(screen.getByText('Title')).toBeInTheDocument();
     expect(screen.getByText('Description')).toBeInTheDocument();
@@ -162,7 +156,7 @@ describe('TabPanel', () => {
   });
 
   it('handles string children correctly', () => {
-    render(<TabPanel {...defaultProps} children="Simple string content" />);
+    render(<TabPanel {...defaultProps}>Simple string content</TabPanel>);
     expect(screen.getByText('Simple string content')).toBeInTheDocument();
   });
 

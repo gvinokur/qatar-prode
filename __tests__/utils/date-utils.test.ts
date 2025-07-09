@@ -3,7 +3,7 @@ import { getLocalGameTime, getUserLocalTime } from '../../app/utils/date-utils';
 
 // Mock dayjs to control timezone behavior
 vi.mock('dayjs', () => {
-  const mockDayjs = vi.fn((date) => {
+  const mockDayjs = vi.fn((_date) => {
     const instance = {
       tz: vi.fn().mockReturnValue({
         format: vi.fn().mockReturnValue('Mocked timezone time')

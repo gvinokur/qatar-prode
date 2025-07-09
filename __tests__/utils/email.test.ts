@@ -1,7 +1,7 @@
 declare global {
-  // eslint-disable-next-line no-var
+   
   var mockSendMail: ReturnType<typeof vi.fn>;
-  // eslint-disable-next-line no-var
+   
   var mockCreateTransport: ReturnType<typeof vi.fn>;
 }
 
@@ -26,8 +26,8 @@ vi.mock('nodemailer', () => {
 });
 
 // Get the mocked functions
-const mockSendMail = vi.fn();
-const mockCreateTransport = vi.mocked(nodemailer.createTransport);
+const _mockSendMail = vi.fn();
+const _mockCreateTransport = vi.mocked(nodemailer.createTransport);
 
 // Mock environment variables
 const originalEnv = process.env;

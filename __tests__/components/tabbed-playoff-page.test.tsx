@@ -5,7 +5,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 // Mock the GamesGrid component
 vi.mock('../../app/components/games-grid', () => ({
-  default: ({ games, isPlayoffs, teamsMap, isLoggedIn, isAwardsPredictionLocked }: any) => (
+  default: ({ games, isPlayoffs, _teamsMap, isLoggedIn, isAwardsPredictionLocked }: any) => (
     <div data-testid="games-grid">
       <div data-testid="games-count">{games.length}</div>
       <div data-testid="is-playoffs">{isPlayoffs.toString()}</div>

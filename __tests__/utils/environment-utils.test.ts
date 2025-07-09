@@ -1,9 +1,9 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { vi, describe, it, expect, afterEach } from 'vitest';
 import { isDevelopmentMode } from '../../app/utils/environment-utils';
 
 describe('environment-utils', () => {
   describe('isDevelopmentMode', () => {
-    const originalEnv = process.env.NODE_ENV;
+    const _originalEnv = process.env.NODE_ENV;
 
     afterEach(() => {
       vi.unstubAllEnvs();

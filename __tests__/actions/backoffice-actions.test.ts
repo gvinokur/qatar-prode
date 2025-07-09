@@ -10,7 +10,6 @@ import {
   calculateAllUsersGroupPositions,
   recalculateAllPlayoffFirstRoundGameGuesses,
   calculateGameScores,
-  calculateAndStoreGroupPosition,
   calculateAndStoreQualifiedTeamsPoints,
   findDataForAwards,
   updateTournamentAwards,
@@ -18,7 +17,7 @@ import {
   copyTournament,
   calculateAndStoreGroupPositionScores
 } from '../../app/actions/backoffice-actions';
-import { Tournament, TournamentNew, TournamentUpdate } from '../../app/db/tables-definition';
+import { GameResult, Tournament, TournamentUpdate } from '../../app/db/tables-definition';
 import { ExtendedGameData, ExtendedGroupData, ExtendedPlayoffRoundData } from '../../app/definitions';
 
 // Mock the auth module
@@ -281,7 +280,7 @@ const mockCreateTournamentGroupGame = vi.mocked(tournamentGroupRepository.create
 const mockFindGroupsWithGamesAndTeamsInTournament = vi.mocked(tournamentGroupRepository.findGroupsWithGamesAndTeamsInTournament);
 const mockFindGroupsInTournament = vi.mocked(tournamentGroupRepository.findGroupsInTournament);
 const mockFindTournamentgroupById = vi.mocked(tournamentGroupRepository.findTournamentgroupById);
-const mockUpdateTournamentGroupTeams = vi.mocked(tournamentGroupRepository.updateTournamentGroupTeams);
+const _mockUpdateTournamentGroupTeams = vi.mocked(tournamentGroupRepository.updateTournamentGroupTeams);
 const mockFindTeamsInGroup = vi.mocked(tournamentGroupRepository.findTeamsInGroup);
 
 const mockCreatePlayoffRound = vi.mocked(tournamentPlayoffRepository.createPlayoffRound);
@@ -396,14 +395,12 @@ describe('Backoffice Actions', () => {
     game_local_timezone: undefined,
   };
 
-  const mockGameResult = {
-    id: 'result1',
+  const mockGameResult: GameResult = {
     game_id: 'game1',
     home_score: 2,
     away_score: 1,
-    home_penalty_score: null,
-    away_penalty_score: null,
-    is_published: true,
+    home_penalty_score: undefined,
+    away_penalty_score: undefined,
     is_draft: false
   };
 
@@ -417,7 +414,7 @@ describe('Backoffice Actions', () => {
     tournament_id: 'tournament1',
     group_letter: 'A',
     sort_by_games_between_teams: false,
-    teams: [{ team_id: 'team1', position: 1 }],
+    teams: [{ team_id: 'team1' }],
     games: [{ game_id: 'game1' }]
   };
 
@@ -433,7 +430,7 @@ describe('Backoffice Actions', () => {
     games: [{ game_id: 'game1' }]
   };
 
-  const mockTournamentGuess = {
+  const _mockTournamentGuess = {
     id: 'guess1',
     tournament_id: 'tournament1',
     user_id: 'user1',
@@ -458,7 +455,7 @@ describe('Backoffice Actions', () => {
     mockCustomToMap.mockImplementation((items, keyFn) => {
       const map: any = {};
       items.forEach(item => {
-        map[keyFn(item)] = item;
+        map[keyFn(item) as string] = item;
       });
       return map;
     });
@@ -503,7 +500,7 @@ describe('Backoffice Actions', () => {
     beforeEach(() => {
       mockFindTournamentByName.mockResolvedValue(mockTournament);
       mockFindTeamInTournament.mockResolvedValue([mockTeam]);
-      mockFindPlayerByTeamAndTournament.mockResolvedValue(null);
+      mockFindPlayerByTeamAndTournament.mockResolvedValue(undefined);
       mockCreatePlayer.mockResolvedValue(mockPlayer);
     });
 
@@ -536,7 +533,7 @@ describe('Backoffice Actions', () => {
     });
 
     it('throws error when tournament does not exist in database', async () => {
-      mockFindTournamentByName.mockResolvedValue(null);
+      mockFindTournamentByName.mockResolvedValue(undefined);
 
       await expect(generateDbTournamentTeamPlayers('Test Tournament'))
         .rejects.toBe('Cannot create players for a non existing tournament');
@@ -559,14 +556,14 @@ describe('Backoffice Actions', () => {
 
   describe('generateDbTournament', () => {
     beforeEach(() => {
-      mockFindTournamentByName.mockResolvedValue(null);
+      mockFindTournamentByName.mockResolvedValue(undefined);
       mockCreateTournament.mockResolvedValue(mockTournament);
-      mockGetTeamByName.mockResolvedValue(null);
+      mockGetTeamByName.mockResolvedValue(undefined);
       mockCreateTeam.mockResolvedValue(mockTeam);
       mockCreateTournamentTeam.mockResolvedValue({ tournament_id: 'tournament1', team_id: 'team1' });
-      mockCreateTournamentGroup.mockResolvedValue({ id: 'group1' });
-      mockCreateTournamentGroupTeam.mockResolvedValue({ id: 'groupteam1' });
-      mockCreatePlayoffRound.mockResolvedValue({ id: 'playoff1' });
+      mockCreateTournamentGroup.mockResolvedValue({ id: 'group1', tournament_id: 'tournament1', group_letter: 'A', sort_by_games_between_teams: false });
+      mockCreateTournamentGroupTeam.mockResolvedValue({ id: 'groupteam1', team_id: 'team1', position: 1, tournament_group_id: 'group1', games_played: 1, points: 1, win: 1, draw: 1, loss: 1, goals_for: 1, goals_against: 1, goal_difference: 1, is_complete: true });
+      mockCreatePlayoffRound.mockResolvedValue({ id: 'playoff1', tournament_id: 'tournament1', round_name: 'Final', round_order: 1, total_games: 1, is_final: true, is_third_place: false, is_first_stage: false });
       mockCreateGame.mockResolvedValue(mockGame);
       mockCreateTournamentGroupGame.mockResolvedValue({ tournament_group_id: 'group1', game_id: 'game1' });
       mockCreatePlayoffRoundGame.mockResolvedValue({ tournament_playoff_round_id: 'playoff1', game_id: 'game1' });
@@ -601,7 +598,7 @@ describe('Backoffice Actions', () => {
 
     it('deletes existing tournament when deletePrevious is true', async () => {
       mockFindTournamentByName.mockResolvedValue(mockTournament);
-      mockDeleteAllGameGuessesByTournamentId.mockResolvedValue();
+      mockDeleteAllGameGuessesByTournamentId.mockResolvedValue([]);
 
       const result = await generateDbTournament('Test Tournament', true);
 
@@ -631,7 +628,7 @@ describe('Backoffice Actions', () => {
 
   describe('saveGameResults', () => {
     it('creates new game results when none exist', async () => {
-      mockFindGameResultByGameId.mockResolvedValue(null);
+      mockFindGameResultByGameId.mockResolvedValue(undefined);
 
       await saveGameResults([mockExtendedGameData]);
 
@@ -685,7 +682,7 @@ describe('Backoffice Actions', () => {
       mockFindPlayoffStagesWithGamesInTournament.mockResolvedValue([mockExtendedPlayoffRoundData]);
       mockFindGameResultByGameIds.mockResolvedValue([mockGameResult]);
       mockCalculatePlayoffTeams.mockReturnValue({
-        [mockGame.id]: {
+        [mockGame.id as string]: {
           homeTeam: { team_id: 'team1' },
           awayTeam: { team_id: 'team2' }
         }

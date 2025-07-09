@@ -16,8 +16,8 @@ import {
   getPlayoffRounds,
   createOrUpdatePlayoffRound
 } from '../../app/actions/tournament-actions';
-import { Tournament, TournamentNew, TournamentGroup, Team, Game, PlayoffRound, PlayoffRoundNew, PlayoffRoundUpdate, TournamentGroupTeam } from '../../app/db/tables-definition';
-import { CompleteGroupData, CompletePlayoffData, ExtendedPlayoffRoundData } from '../../app/definitions';
+import { Tournament, TournamentNew, TournamentGroup, Team, Game, PlayoffRoundNew, PlayoffRoundUpdate, TournamentGroupTeam } from '../../app/db/tables-definition';
+import { ExtendedPlayoffRoundData } from '../../app/definitions';
 
 // Mock all database repositories
 vi.mock('../../app/db/tournament-repository', () => ({
@@ -118,7 +118,7 @@ const mockGetLoggedInUser = vi.mocked(userActions.getLoggedInUser);
 const mockCreateS3Client = vi.mocked(s3.createS3Client);
 const mockGetS3KeyFromURL = vi.mocked(s3.getS3KeyFromURL);
 const mockToMap = vi.mocked(objectUtils.toMap);
-const mockS3ClientConstructor = vi.mocked(s3Client);
+const _mockS3ClientConstructor = vi.mocked(s3Client);
 
 describe('Tournament Actions', () => {
   const mockAdminUser = { id: 'admin1', email: 'admin@example.com', emailVerified: new Date(), isAdmin: true };
@@ -147,7 +147,7 @@ describe('Tournament Actions', () => {
     best_young_player_id: undefined,
   };
 
-  const mockTournamentNew: TournamentNew = {
+  const _mockTournamentNew: TournamentNew = {
     short_name: 'WC2024',
     long_name: 'World Cup 2024',
     is_active: true,
@@ -659,7 +659,7 @@ describe('Tournament Actions', () => {
       
       mockCreateTournament.mockResolvedValue(mockTournament);
 
-      const result = await createOrUpdateTournament(null, mockFormDataEntries as any);
+      const _result = await createOrUpdateTournament(null, mockFormDataEntries as any);
 
       expect(mockS3Client.uploadFile).toHaveBeenCalled();
       expect(mockCreateTournament).toHaveBeenCalledWith({
@@ -683,7 +683,7 @@ describe('Tournament Actions', () => {
       mockFindTournamentById.mockResolvedValue(mockTournament);
       mockUpdateTournament.mockResolvedValue(mockTournament);
 
-      const result = await createOrUpdateTournament('tournament1', mockFormDataEntries as any);
+      const _result = await createOrUpdateTournament('tournament1', mockFormDataEntries as any);
 
       expect(mockS3Client.uploadFile).toHaveBeenCalled();
       expect(mockS3Client.deleteFile).toHaveBeenCalledWith('logos/logo.png');

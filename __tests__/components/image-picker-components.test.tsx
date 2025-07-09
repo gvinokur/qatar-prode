@@ -6,7 +6,6 @@ vi.mock('../../app/components/friend-groups/image-picker-utils', () => ({
 
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { ImageCard, ImagePreview, NoImagePreview } from '../../app/components/friend-groups/image-picker-components';
 
 // Mock global URL.createObjectURL for jsdom

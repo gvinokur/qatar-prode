@@ -29,7 +29,7 @@ vi.mock('../../app/components/game-view', () => ({
 }));
 vi.mock('../../app/components/game-result-edit-dialog', () => ({
   __esModule: true,
-  default: ({ open, onClose, onGameGuessSave, homeTeamName, awayTeamName, gameId, gameNumber, ...props }: any) =>
+  default: ({ open, onClose, onGameGuessSave, homeTeamName, awayTeamName, gameId, gameNumber, ..._props }: any) =>
     open ? (
       <div data-testid="game-result-dialog">
         <span data-testid="dialog-home">{homeTeamName}</span>

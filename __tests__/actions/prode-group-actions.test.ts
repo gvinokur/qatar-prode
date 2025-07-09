@@ -17,8 +17,6 @@ import {
   getUsersForGroup,
   getUserScoresForTournament,
 } from '../../app/actions/prode-group-actions';
-import { z } from 'zod';
-import { ProdeGroupTable, ProdeGroupParticipantTable, TournamentGuessTable } from '../../app/db/tables-definition';
 import { GameStatisticForUser } from '../../types/definitions';
 
 // Mock the auth module to prevent Next-auth module resolution errors
@@ -126,7 +124,7 @@ describe('Prode Group Actions', () => {
     mockFindParticipantsInGroup.mockResolvedValue([mockParticipant]);
     mockGetGameGuessStatisticsForUsers.mockResolvedValue([mockGameStatistic]);
     mockFindTournamentGuessByUserIdsTournament.mockResolvedValue([mockTournamentGuess]);
-    mockCustomToMap.mockImplementation((data: any[], keyExtractor: any) => {
+    mockCustomToMap.mockImplementation((data: any[], _keyExtractor: any) => {
       if (data.length > 0 && 'group_score' in data[0]) {
         // Game statistics data
         return { 
