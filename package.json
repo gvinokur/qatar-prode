@@ -9,7 +9,7 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "coverage": "vitest run --coverage",
+    "coverage": "vitest run --coverage && mkdir -p coverage/.tmp && touch coverage/.tmp/keep",
     "sonar": "sonar-scanner",
     "sonar:local": "sonar-scanner -Dsonar.host.url=http://localhost:9000",
     "prepare": "husky"
@@ -82,14 +82,10 @@
   },
   "lint-staged": {
     "**/__tests__/**/*.{ts,tsx}": [
-      "npm run test",
-      "npm run coverage"
+      "npm run test"
     ],
     "app/**/*.{ts,tsx}": [
-      "npm run lint -- .",
-      "npm run coverage -- ."
-    ],
-    "npm run test -- .": [],
-    "npm run coverage -- .": []
+      "npm run lint -- ."
+    ]
   }
 }

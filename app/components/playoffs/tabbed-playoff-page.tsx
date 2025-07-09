@@ -1,10 +1,12 @@
 "use client";
-import React from "react";
+import React, { useCallback, useEffect } from "react";
 import { Tabs, Tab, Box, useMediaQuery, useTheme } from "@mui/material";
 import { Grid } from '../mui-wrappers';
 import GamesGrid from '../games-grid';
+import { ExtendedGameData } from "../../definitions";
 
-export type Section = { section: string; games: any[] };
+
+export type Section = { section: string; games: ExtendedGameData[] };
 
 export interface TabbedPlayoffsPageProps {
   sections: Section[];
@@ -17,6 +19,34 @@ const TabbedPlayoffsPage: React.FC<TabbedPlayoffsPageProps> = ({ sections, teams
   const [selectedTab, setSelectedTab] = React.useState(0);
   const theme = useTheme()
   const isSmallScreen = useMediaQuery(theme.breakpoints.up('sm'));
+
+  // Memoized function to find the section with the game closest to today's date
+  const findClosestSectionToToday = useCallback(() => {
+    const today = new Date();
+    let closestSectionIndex = 0;
+    let minDateDifference = Infinity;
+
+    sections.forEach((section, sectionIndex) => {
+      section.games.forEach((game) => {
+        if (game.game_date) {
+          const dateDifference = Math.abs(today.getTime() - game.game_date.getTime());
+          
+          if (dateDifference < minDateDifference) {
+            minDateDifference = dateDifference;
+            closestSectionIndex = sectionIndex;
+          }
+        }
+      });
+    });
+
+    return closestSectionIndex;
+  }, [sections]);
+
+  // Set the initial tab based on the closest game to today's date
+  useEffect(() => {
+    const closestSectionIndex = findClosestSectionToToday();
+    setSelectedTab(closestSectionIndex);
+  }, [findClosestSectionToToday]);
 
   return (
     <Grid container mt={'16px'} maxWidth={'800px'} mx={'auto'}>
