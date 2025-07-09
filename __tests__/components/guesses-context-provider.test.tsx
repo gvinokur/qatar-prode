@@ -121,7 +121,7 @@ describe('GuessesContextProvider', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUpdateOrCreateGameGuesses.mockResolvedValue(undefined);
-    mockUpdateOrCreateTournamentGroupTeamGuesses.mockResolvedValue(undefined);
+    mockUpdateOrCreateTournamentGroupTeamGuesses.mockResolvedValue([]);
     mockUpdatePlayoffGameGuesses.mockResolvedValue(undefined);
     mockCalculateGroupPosition.mockReturnValue([
       { 
