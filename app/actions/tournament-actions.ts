@@ -144,8 +144,7 @@ export async function deactivateTournament(tournamentId: string) {
   return await updateTournament(tournamentId, { is_active: false });
 }
 
-// Initialize S3 client
-const s3Client = createS3Client('tournament-logos');
+// S3 client will be created when needed
 
 /**
  * Create or update a tournament with optional logo upload
@@ -188,7 +187,8 @@ export async function createOrUpdateTournament(
   let logoKey = existingLogoKey;
   if (logoFile) {
     try {
-      // Upload to S3
+      // Create S3 client and upload to S3
+      const s3Client = createS3Client('tournament-logos');
       const res = await s3Client.uploadFile(Buffer.from(await logoFile.arrayBuffer()));
       logoUrl = res.location
       logoKey = res.key;
@@ -222,6 +222,7 @@ export async function createOrUpdateTournament(
   // Delete old logo if a new one was uploaded
   if (existingLogoKey && logoFile && logoUrl !== existingLogoUrl) {
     try {
+      const s3Client = createS3Client('tournament-logos');
       await s3Client.deleteFile(existingLogoKey);
       } catch (error) {
       // Log but don't fail the operation if old logo deletion fails

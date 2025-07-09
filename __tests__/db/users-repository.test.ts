@@ -2,6 +2,14 @@ import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { User, UserNew, UserUpdate } from '../../app/db/tables-definition';
 import { PushSubscription } from 'web-push';
 
+// Create hoisted mocks for base functions - these need to be available before module import
+const mockBaseFunctions = vi.hoisted(() => ({
+  findById: vi.fn(),
+  create: vi.fn(),
+  update: vi.fn(),
+  delete: vi.fn()
+}));
+
 // Mock the database connection
 vi.mock('../../app/db/database', () => ({
   db: {
@@ -12,14 +20,9 @@ vi.mock('../../app/db/database', () => ({
   }
 }));
 
-// Mock the base repository functions
+// Mock the base repository functions with hoisted mocks
 vi.mock('../../app/db/base-repository', () => ({
-  createBaseFunctions: vi.fn(() => ({
-    findById: vi.fn(),
-    create: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn()
-  }))
+  createBaseFunctions: vi.fn(() => mockBaseFunctions)
 }));
 
 vi.mock('crypto-js/sha256', () => ({
@@ -77,7 +80,6 @@ describe('Users Repository', () => {
 
   // Declare mock variables
   let mockDb: any;
-  let mockBaseFunctions: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -85,7 +87,6 @@ describe('Users Repository', () => {
     
     // Get mocked instances
     mockDb = vi.mocked(db);
-    mockBaseFunctions = vi.mocked(createBaseFunctions)();
     
     // Setup default mock implementations
     mockDb.selectFrom.mockReturnValue({
@@ -444,7 +445,7 @@ describe('Users Repository', () => {
         const userWithSubscription = { ...mockUser, notification_subscriptions: [mockPushSubscription] };
         
         // Mock the findUserById function used internally
-        vi.spyOn(usersRepository, 'findUserById').mockResolvedValue(mockUser);
+        mockBaseFunctions.findById.mockResolvedValue(mockUser);
         
         const mockQuery = {
           set: vi.fn().mockReturnThis(),
@@ -456,7 +457,7 @@ describe('Users Repository', () => {
 
         const result = await usersRepository.addNotificationSubscription('user-123', mockPushSubscription);
 
-        expect(usersRepository.findUserById).toHaveBeenCalledWith('user-123');
+        expect(mockBaseFunctions.findById).toHaveBeenCalledWith('user-123');
         expect(mockDb.updateTable).toHaveBeenCalledWith('users');
         expect(mockQuery.set).toHaveBeenCalledWith({
           notification_subscriptions: JSON.stringify([mockPushSubscription])
@@ -472,7 +473,7 @@ describe('Users Repository', () => {
           notification_subscriptions: [existingSubscription] 
         };
         
-        vi.spyOn(usersRepository, 'findUserById').mockResolvedValue(userWithExistingSubscriptions);
+        mockBaseFunctions.findById.mockResolvedValue(userWithExistingSubscriptions);
         
         const mockQuery = {
           set: vi.fn().mockReturnThis(),
@@ -490,7 +491,7 @@ describe('Users Repository', () => {
       });
 
       it('should throw error when user not found', async () => {
-        vi.spyOn(usersRepository, 'findUserById').mockResolvedValue(null);
+        mockBaseFunctions.findById.mockResolvedValue(null);
 
         await expect(usersRepository.addNotificationSubscription('user-123', mockPushSubscription))
           .rejects.toThrow('User not found');
@@ -510,7 +511,7 @@ describe('Users Repository', () => {
           notification_subscriptions: [invalidSubscription] 
         };
         
-        vi.spyOn(usersRepository, 'findUserById').mockResolvedValue(userWithInvalidSubscriptions);
+        mockBaseFunctions.findById.mockResolvedValue(userWithInvalidSubscriptions);
         
         const mockQuery = {
           set: vi.fn().mockReturnThis(),
@@ -536,7 +537,7 @@ describe('Users Repository', () => {
           notification_subscriptions: [mockPushSubscription] 
         };
         
-        vi.spyOn(usersRepository, 'findUserById').mockResolvedValue(userWithSubscriptions);
+        mockBaseFunctions.findById.mockResolvedValue(userWithSubscriptions);
         
         const mockQuery = {
           set: vi.fn().mockReturnThis(),
@@ -548,7 +549,7 @@ describe('Users Repository', () => {
 
         const result = await usersRepository.removeNotificationSubscription('user-123', mockPushSubscription);
 
-        expect(usersRepository.findUserById).toHaveBeenCalledWith('user-123');
+        expect(mockBaseFunctions.findById).toHaveBeenCalledWith('user-123');
         expect(mockDb.updateTable).toHaveBeenCalledWith('users');
         expect(mockQuery.set).toHaveBeenCalledWith({
           notification_subscriptions: JSON.stringify([])
@@ -559,7 +560,7 @@ describe('Users Repository', () => {
       it('should handle user with no subscriptions', async () => {
         const userWithNoSubscriptions = { ...mockUser, notification_subscriptions: null };
         
-        vi.spyOn(usersRepository, 'findUserById').mockResolvedValue(userWithNoSubscriptions);
+        mockBaseFunctions.findById.mockResolvedValue(userWithNoSubscriptions);
         
         const mockQuery = {
           set: vi.fn().mockReturnThis(),
@@ -585,7 +586,7 @@ describe('Users Repository', () => {
           notification_subscriptions: [subscription1, subscription2] 
         };
         
-        vi.spyOn(usersRepository, 'findUserById').mockResolvedValue(userWithMultipleSubscriptions);
+        mockBaseFunctions.findById.mockResolvedValue(userWithMultipleSubscriptions);
         
         const mockQuery = {
           set: vi.fn().mockReturnThis(),
@@ -603,7 +604,7 @@ describe('Users Repository', () => {
       });
 
       it('should throw error when user not found', async () => {
-        vi.spyOn(usersRepository, 'findUserById').mockResolvedValue(null);
+        mockBaseFunctions.findById.mockResolvedValue(null);
 
         await expect(usersRepository.removeNotificationSubscription('user-123', mockPushSubscription))
           .rejects.toThrow('User not found');
@@ -619,18 +620,18 @@ describe('Users Repository', () => {
           notification_subscriptions: [mockPushSubscription] 
         };
         
-        vi.spyOn(usersRepository, 'findUserById').mockResolvedValue(userWithSubscriptions);
+        mockBaseFunctions.findById.mockResolvedValue(userWithSubscriptions);
 
         const result = await usersRepository.getNotificationSubscriptions('user-123');
 
-        expect(usersRepository.findUserById).toHaveBeenCalledWith('user-123');
+        expect(mockBaseFunctions.findById).toHaveBeenCalledWith('user-123');
         expect(result).toEqual([mockPushSubscription]);
       });
 
       it('should return empty array when user has no subscriptions', async () => {
         const userWithNoSubscriptions = { ...mockUser, notification_subscriptions: null };
         
-        vi.spyOn(usersRepository, 'findUserById').mockResolvedValue(userWithNoSubscriptions);
+        mockBaseFunctions.findById.mockResolvedValue(userWithNoSubscriptions);
 
         const result = await usersRepository.getNotificationSubscriptions('user-123');
 
@@ -638,7 +639,7 @@ describe('Users Repository', () => {
       });
 
       it('should throw error when user not found', async () => {
-        vi.spyOn(usersRepository, 'findUserById').mockResolvedValue(null);
+        mockBaseFunctions.findById.mockResolvedValue(null);
 
         await expect(usersRepository.getNotificationSubscriptions('user-123'))
           .rejects.toThrow('User not found');

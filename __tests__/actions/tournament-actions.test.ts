@@ -61,6 +61,12 @@ vi.mock('../../app/actions/user-actions', () => ({
   getLoggedInUser: vi.fn(),
 }));
 
+// Mock the s3Client from nodejs-s3-typescript
+vi.mock('nodejs-s3-typescript', () => ({
+  s3Client: vi.fn(),
+}));
+
+// Mock the s3 actions module
 vi.mock('../../app/actions/s3', () => ({
   createS3Client: vi.fn(),
   getS3KeyFromURL: vi.fn(),
@@ -79,6 +85,7 @@ import * as teamRepository from '../../app/db/team-repository';
 import * as userActions from '../../app/actions/user-actions';
 import * as s3 from '../../app/actions/s3';
 import * as objectUtils from '../../app/utils/ObjectUtils';
+import { s3Client } from 'nodejs-s3-typescript';
 
 const mockCreateTournament = vi.mocked(tournamentRepository.createTournament);
 const mockFindAllActiveTournaments = vi.mocked(tournamentRepository.findAllActiveTournaments);
@@ -111,6 +118,7 @@ const mockGetLoggedInUser = vi.mocked(userActions.getLoggedInUser);
 const mockCreateS3Client = vi.mocked(s3.createS3Client);
 const mockGetS3KeyFromURL = vi.mocked(s3.getS3KeyFromURL);
 const mockToMap = vi.mocked(objectUtils.toMap);
+const mockS3ClientConstructor = vi.mocked(s3Client);
 
 describe('Tournament Actions', () => {
   const mockAdminUser = { id: 'admin1', email: 'admin@example.com', emailVerified: new Date(), isAdmin: true };
@@ -221,8 +229,10 @@ describe('Tournament Actions', () => {
       });
       return map;
     });
+    
+    // Set up S3 mocks - similar to prode-group-actions pattern
     mockCreateS3Client.mockReturnValue(mockS3Client as any);
-    mockGetS3KeyFromURL.mockReturnValue('logo.png');
+    mockGetS3KeyFromURL.mockReturnValue('logos/logo.png');
     mockS3Client.uploadFile.mockResolvedValue({ location: 'https://s3.example.com/new-logo.png', key: 'new-logo.png' });
     mockS3Client.deleteFile.mockResolvedValue(undefined);
     
@@ -641,14 +651,15 @@ describe('Tournament Actions', () => {
     });
 
     it('handles logo upload for new tournament', async () => {
-      const mockLogoFile = new File(['logo'], 'logo.png', { type: 'image/png' });
-      const formDataWithLogo = new FormData();
-      formDataWithLogo.append('tournament', JSON.stringify(mockTournamentData));
-      formDataWithLogo.append('logo', mockLogoFile);
+      const mockLogoFile = { size: 100, name: 'logo.png', type: 'image/png', arrayBuffer: async () => new Uint8Array([1,2,3]) };
+      const mockFormDataEntries = [
+        ['tournament', JSON.stringify(mockTournamentData)],
+        ['logo', mockLogoFile]
+      ];
       
       mockCreateTournament.mockResolvedValue(mockTournament);
 
-      const result = await createOrUpdateTournament(null, formDataWithLogo);
+      const result = await createOrUpdateTournament(null, mockFormDataEntries as any);
 
       expect(mockS3Client.uploadFile).toHaveBeenCalled();
       expect(mockCreateTournament).toHaveBeenCalledWith({
@@ -663,15 +674,16 @@ describe('Tournament Actions', () => {
     });
 
     it('handles logo upload for existing tournament and deletes old logo', async () => {
-      const mockLogoFile = new File(['logo'], 'logo.png', { type: 'image/png' });
-      const formDataWithLogo = new FormData();
-      formDataWithLogo.append('tournament', JSON.stringify(mockTournamentData));
-      formDataWithLogo.append('logo', mockLogoFile);
+      const mockLogoFile = { size: 100, name: 'logo.png', type: 'image/png', arrayBuffer: async () => new Uint8Array([1,2,3]) };
+      const mockFormDataEntries = [
+        ['tournament', JSON.stringify(mockTournamentData)],
+        ['logo', mockLogoFile]
+      ];
       
       mockFindTournamentById.mockResolvedValue(mockTournament);
       mockUpdateTournament.mockResolvedValue(mockTournament);
 
-      const result = await createOrUpdateTournament('tournament1', formDataWithLogo);
+      const result = await createOrUpdateTournament('tournament1', mockFormDataEntries as any);
 
       expect(mockS3Client.uploadFile).toHaveBeenCalled();
       expect(mockS3Client.deleteFile).toHaveBeenCalledWith('logos/logo.png');
@@ -688,28 +700,30 @@ describe('Tournament Actions', () => {
     });
 
     it('handles S3 upload errors', async () => {
-      const mockLogoFile = new File(['logo'], 'logo.png', { type: 'image/png' });
-      const formDataWithLogo = new FormData();
-      formDataWithLogo.append('tournament', JSON.stringify(mockTournamentData));
-      formDataWithLogo.append('logo', mockLogoFile);
+      const mockLogoFile = { size: 100, name: 'logo.png', type: 'image/png', arrayBuffer: async () => new Uint8Array([1,2,3]) };
+      const mockFormDataEntries = [
+        ['tournament', JSON.stringify(mockTournamentData)],
+        ['logo', mockLogoFile]
+      ];
       
       mockS3Client.uploadFile.mockRejectedValue(new Error('S3 upload failed'));
 
-      await expect(createOrUpdateTournament(null, formDataWithLogo))
+      await expect(createOrUpdateTournament(null, mockFormDataEntries as any))
         .rejects.toThrow('Failed to upload logo');
     });
 
     it('handles S3 delete errors gracefully', async () => {
-      const mockLogoFile = new File(['logo'], 'logo.png', { type: 'image/png' });
-      const formDataWithLogo = new FormData();
-      formDataWithLogo.append('tournament', JSON.stringify(mockTournamentData));
-      formDataWithLogo.append('logo', mockLogoFile);
+      const mockLogoFile = { size: 100, name: 'logo.png', type: 'image/png', arrayBuffer: async () => new Uint8Array([1,2,3]) };
+      const mockFormDataEntries = [
+        ['tournament', JSON.stringify(mockTournamentData)],
+        ['logo', mockLogoFile]
+      ];
       
       mockFindTournamentById.mockResolvedValue(mockTournament);
       mockUpdateTournament.mockResolvedValue(mockTournament);
       mockS3Client.deleteFile.mockRejectedValue(new Error('S3 delete failed'));
 
-      const result = await createOrUpdateTournament('tournament1', formDataWithLogo);
+      const result = await createOrUpdateTournament('tournament1', mockFormDataEntries as any);
 
       expect(result).toEqual(mockTournament);
       expect(mockS3Client.deleteFile).toHaveBeenCalledWith('logos/logo.png');
