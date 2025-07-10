@@ -230,14 +230,17 @@ export default function CompactGameViewCard({
               >
                 {homeTeamNameOrDescription}
               </Typography>
-              {(logoUrl = getThemeLogoUrl(homeTeamTheme)) && (
-                <img
-                  src={logoUrl}
-                  alt={homeTeamNameOrDescription}
-                  height={'24px'}
-                  style={{ marginLeft: '6px' }}
-                />
-              )}
+              {(() => {
+                logoUrl = getThemeLogoUrl(homeTeamTheme);
+                return logoUrl && (
+                  <img
+                    src={logoUrl}
+                    alt={homeTeamNameOrDescription}
+                    height={'24px'}
+                    style={{ marginLeft: '6px' }}
+                  />
+                );
+              })()}
               {isPlayoffGame &&
                 specificProps.isGameGuess &&
                 specificProps.homePenaltyWinner &&
@@ -277,14 +280,17 @@ export default function CompactGameViewCard({
                 specificProps.isGameGuess &&
                 specificProps.awayPenaltyWinner &&
                 '(x)'}
-              {(logoUrl = getThemeLogoUrl(awayTeamTheme)) && (
-                <img
-                  src={logoUrl}
-                  alt={awayTeamNameOrDescription}
-                  height={'24px'}
-                  style={{ marginRight: '6px' }}
-                />
-              )}
+              {(() => {
+                logoUrl = getThemeLogoUrl(awayTeamTheme);
+                return logoUrl && (
+                  <img
+                    src={logoUrl}
+                    alt={awayTeamNameOrDescription}
+                    height={'24px'}
+                    style={{ marginRight: '6px' }}
+                  />
+                );
+              })()}
               <Typography
                 variant="body2"
                 fontWeight="medium"

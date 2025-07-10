@@ -176,18 +176,21 @@ export default function TournamentTeamsManagerTab({ tournamentId }: TournamentTe
                       justifyContent: 'center'
                     }}
                   >
-                    {(logoUrl = getThemeLogoUrl(team.theme)) && (
-                      <img
-                        src={logoUrl}
-                        alt={team.name}
-                        style={{
-                          maxHeight: '50%',
-                          maxWidth: '80%',
-                          objectFit: 'contain',
-                          marginRight: '16px'
-                        }}
-                      />
-                    ) }
+                    {(() => {
+                      logoUrl = getThemeLogoUrl(team.theme);
+                      return logoUrl && (
+                        <img
+                          src={logoUrl}
+                          alt={team.name}
+                          style={{
+                            maxHeight: '50%',
+                            maxWidth: '80%',
+                            objectFit: 'contain',
+                            marginRight: '16px'
+                          }}
+                        />
+                      );
+                    })()}
                     <Typography variant="h4" color={team.theme?.secondary_color || '#000'}>
                       {team.name} ({team.short_name})
                     </Typography>

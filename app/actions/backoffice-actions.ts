@@ -62,7 +62,8 @@ import {findAllUserTournamentGroupsWithoutGuesses, findAllTournamentGroupTeamGue
 import {
   findAllGuessesForGamesWithResultsInDraft,
   findGameGuessesByUserId,
-  updateGameGuess
+  updateGameGuess,
+  deleteAllGameGuessesByTournamentId
 } from "../db/game-guess-repository";
 import {calculateGroupPosition} from "../utils/group-position-calculator";
 import {updateOrCreateTournamentGroupTeamGuesses, updatePlayoffGameGuesses} from "./guesses-actions";
@@ -72,13 +73,13 @@ import {calculateScoreForGame} from "../utils/game-score-calculator";
 import {
   findTournamentGuessByTournament,
   updateTournamentGuess,
-  updateTournamentGuessByUserIdTournament
+  updateTournamentGuessByUserIdTournament,
+  deleteAllTournamentGuessesByTournamentId
 } from "../db/tournament-guess-repository";
 import {awardsDefinition} from "../utils/award-utils";
 import {getLoggedInUser} from "./user-actions";
 import { revalidatePath } from 'next/cache';
-import { deleteAllGameGuessesByTournamentId } from '../db/game-guess-repository';
-import { deleteAllTournamentGuessesByTournamentId } from '../db/tournament-guess-repository';
+
 
 export async function deleteDBTournamentTree(tournament: Tournament) {
   revalidatePath(`/tournaments/${tournament.id}/backoffice`);

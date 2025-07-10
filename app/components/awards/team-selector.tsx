@@ -53,9 +53,10 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
           const team = teams.find(t => t.id === selected);
           if (!team) return label;
 
+          logoUrl = getThemeLogoUrl(team.theme);
           return (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              {(logoUrl = getThemeLogoUrl(team.theme)) && (
+              {logoUrl && (
                 <Image
                   src={logoUrl}
                   alt={team.name}
@@ -73,23 +74,26 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
         <MenuItem value="">
           <em>None</em>
         </MenuItem>
-        {sortedTeams.map((team) => (
-          <MenuItem key={team.id} value={team.id}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              {(logoUrl = getThemeLogoUrl(team.theme)) && (
-                <Image
-                  src={logoUrl}
-                  alt={team.name}
-                  width={24}
-                  height={16}
-                  style={{ objectFit: 'contain' }}
-                  unoptimized
-                />
-              )}
-              {team.name}
-            </Box>
-          </MenuItem>
-        ))}
+        {sortedTeams.map((team) => {
+          logoUrl = getThemeLogoUrl(team.theme);
+          return (
+            <MenuItem key={team.id} value={team.id}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {logoUrl && (
+                  <Image
+                    src={logoUrl}
+                    alt={team.name}
+                    width={24}
+                    height={16}
+                    style={{ objectFit: 'contain' }}
+                    unoptimized
+                  />
+                )}
+                {team.name}
+              </Box>
+            </MenuItem>
+          );
+        })}
       </Select>
       {helperText && <FormHelperText>{helperText}</FormHelperText>}
     </FormControl>

@@ -163,13 +163,16 @@ export default function PlayersTab({tournamentId}: {tournamentId: string}) {
                   id={`panel-${teamData.team.id}-header`}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    {(logoUrl = getThemeLogoUrl(teamData.team.theme)) && (
-                      <img
-                        src={logoUrl}
-                        alt={`${teamData.team.name} logo`}
-                        style={{ height: 24, width: 24, objectFit: 'contain' }}
-                      />
-                    )}
+                    {(() => {
+                      logoUrl = getThemeLogoUrl(teamData.team.theme);
+                      return logoUrl && (
+                        <img
+                          src={logoUrl}
+                          alt={`${teamData.team.name} logo`}
+                          style={{ height: 24, width: 24, objectFit: 'contain' }}
+                        />
+                      );
+                    })()}
                     <Typography>{teamData.team.name}</Typography>
                     <Typography variant="body2" color={teamData.players.length === 0 ? "warning" :  "success"} sx={{ ml: 2 }}>
                       ({teamData.players.length} players)
