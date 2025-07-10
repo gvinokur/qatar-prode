@@ -27,18 +27,24 @@ jobs:
       run: npm ci
 
     - name: Run tests with coverage
-      run: npm run coverage
+      run: |
+        export NODE_OPTIONS="--max-old-space-size=4096" 
+        npm run coverage
 
     - name: Run linter
-      run: npm run lint
+      run: |
+        export NODE_OPTIONS="--max-old-space-size=4096" 
+        npm run lint
 
     - name: Build project
-      run: npm run build
+      run: |
+        export NODE_OPTIONS="--max-old-space-size=4096" 
+        npm run build
 
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@master
       env:
-        NODE_OPTIONS: --max_old_space_size=4096
+        NODE_OPTIONS: "--max-old-space-size=4096"
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       with:
