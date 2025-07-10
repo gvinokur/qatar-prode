@@ -192,7 +192,6 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
               <GroupTournamentBettingAdmin
                 groupId={groupId}
                 tournamentId={tournament.id}
-                currentUserId={loggedInUser}
                 isAdmin={ownerId === loggedInUser || !!membersState.find(m => m.id === loggedInUser)?.is_admin}
                 members={membersState}
                 config={bettingData[tournament.id]?.config}

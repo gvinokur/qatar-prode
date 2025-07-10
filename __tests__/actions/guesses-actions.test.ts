@@ -220,8 +220,9 @@ describe('Guesses Actions', () => {
     it('handles repository errors', async () => {
       mockDbUpdateOrCreateTournamentGuess.mockRejectedValue(new Error('Database error'));
 
-      await expect(updateOrCreateTournamentGuess(mockTournamentGuess))
-        .rejects.toThrow('Database error');
+      const result = await updateOrCreateTournamentGuess(mockTournamentGuess);
+      
+      expect(result).toEqual({ success: false, error: 'Failed to update tournament guess' });
     });
   });
 
