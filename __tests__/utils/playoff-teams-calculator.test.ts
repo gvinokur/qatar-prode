@@ -380,6 +380,150 @@ describe('playoff-teams-calculator', () => {
 
       expect(result).toEqual({ homeTeam: undefined, awayTeam: undefined });
     });
+
+    it('should calculate team names with loser rules for home team', () => {
+      const isPlayoffGame = true;
+      const game = {
+        ...mockGame('game1', 1, undefined, undefined),
+        home_team_rule: { game: 1, winner: false }, // loser
+        away_team_rule: { game: 2, winner: true }   // winner
+      };
+      const gameGuesses = {
+        'guess1': {
+          game_number: 1,
+          game_id: 'game1',
+          user_id: 'user1',
+          home_team: 'team1',
+          away_team: 'team2',
+          home_score: 1,  // team1 loses
+          away_score: 2,  // team2 wins
+          home_penalty_winner: false,
+          away_penalty_winner: false
+        } as GameGuessNew,
+        'guess2': {
+          game_number: 2,
+          game_id: 'game2',
+          user_id: 'user1',
+          home_team: 'team3',
+          away_team: 'team4',
+          home_score: 3,  // team3 wins
+          away_score: 1,  // team4 loses
+          home_penalty_winner: false,
+          away_penalty_winner: false
+        } as GameGuessNew
+      };
+      const gamesMap = {
+        'game1': mockGame('game1', 1, 'team1', 'team2'),
+        'game2': mockGame('game2', 2, 'team3', 'team4')
+      };
+
+      const result = calculateTeamNamesForPlayoffGame(
+        isPlayoffGame,
+        game,
+        gameGuesses,
+        gamesMap
+      );
+
+      expect(result).toBeDefined();
+      expect(result?.homeTeam).toBe('team1'); // loser of game 1
+      expect(result?.awayTeam).toBe('team3'); // winner of game 2
+    });
+
+    it('should calculate team names with loser rules for away team', () => {
+      const isPlayoffGame = true;
+      const game = {
+        ...mockGame('game1', 1, undefined, undefined),
+        home_team_rule: { game: 1, winner: true },  // winner
+        away_team_rule: { game: 2, winner: false }  // loser
+      };
+      const gameGuesses = {
+        'guess1': {
+          game_number: 1,
+          game_id: 'game1',
+          user_id: 'user1',
+          home_team: 'team1',
+          away_team: 'team2',
+          home_score: 2,  // team1 wins
+          away_score: 1,  // team2 loses
+          home_penalty_winner: false,
+          away_penalty_winner: false
+        } as GameGuessNew,
+        'guess2': {
+          game_number: 2,
+          game_id: 'game2',
+          user_id: 'user1',
+          home_team: 'team3',
+          away_team: 'team4',
+          home_score: 1,  // team3 loses
+          away_score: 2,  // team4 wins
+          home_penalty_winner: false,
+          away_penalty_winner: false
+        } as GameGuessNew
+      };
+      const gamesMap = {
+        'game1': mockGame('game1', 1, 'team1', 'team2'),
+        'game2': mockGame('game2', 2, 'team3', 'team4')
+      };
+
+      const result = calculateTeamNamesForPlayoffGame(
+        isPlayoffGame,
+        game,
+        gameGuesses,
+        gamesMap
+      );
+
+      expect(result).toBeDefined();
+      expect(result?.homeTeam).toBe('team1'); // winner of game 1
+      expect(result?.awayTeam).toBe('team3'); // loser of game 2
+    });
+
+    it('should calculate team names with both loser rules', () => {
+      const isPlayoffGame = true;
+      const game = {
+        ...mockGame('game1', 1, undefined, undefined),
+        home_team_rule: { game: 1, winner: false }, // loser
+        away_team_rule: { game: 2, winner: false }  // loser
+      };
+      const gameGuesses = {
+        'guess1': {
+          game_number: 1,
+          game_id: 'game1',
+          user_id: 'user1',
+          home_team: 'team1',
+          away_team: 'team2',
+          home_score: 1,  // team1 loses
+          away_score: 2,  // team2 wins
+          home_penalty_winner: false,
+          away_penalty_winner: false
+        } as GameGuessNew,
+        'guess2': {
+          game_number: 2,
+          game_id: 'game2',
+          user_id: 'user1',
+          home_team: 'team3',
+          away_team: 'team4',
+          home_score: 0,  // team3 loses
+          away_score: 1,  // team4 wins
+          home_penalty_winner: false,
+          away_penalty_winner: false
+        } as GameGuessNew
+      };
+      const gamesMap = {
+        'game1': mockGame('game1', 1, 'team1', 'team2'),
+        'game2': mockGame('game2', 2, 'team3', 'team4')
+      };
+
+      const result = calculateTeamNamesForPlayoffGame(
+        isPlayoffGame,
+        game,
+        gameGuesses,
+        gamesMap
+      );
+
+      expect(result).toBeDefined();
+      expect(result?.homeTeam).toBe('team1'); // loser of game 1
+      expect(result?.awayTeam).toBe('team3'); // loser of game 2
+    });
   });
 
   describe('groupCompleteReducer', () => {
