@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 
 type TimezoneContextType = {
   showLocalTime: boolean;
@@ -23,11 +23,11 @@ export function TimezoneProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const toggleTimezone = () => {
+  const toggleTimezone = useCallback(() => {
     const newValue = !showLocalTime;
     setShowLocalTime(newValue);
     localStorage.setItem('showLocalTime', String(newValue));
-  };
+  }, [showLocalTime]);
 
   const contextValue = useMemo(
     () => ({ showLocalTime, toggleTimezone }),

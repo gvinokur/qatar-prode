@@ -40,6 +40,14 @@ jobs:
       run: |
         export NODE_OPTIONS="--max-old-space-size=4096" 
         npm run build
+      env:
+        # Required for Next.js build - using dummy values for CI
+        POSTGRES_URL: "postgresql://user:pass@localhost:5432/testdb"
+        DATABASE_URL: "postgresql://user:pass@localhost:5432/testdb"
+        NEXTAUTH_SECRET: "dummy-secret-for-ci"
+        NEXTAUTH_URL: "http://localhost:3000"
+        # Add other required env vars with dummy values
+        NODE_ENV: "production"
 
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@master
