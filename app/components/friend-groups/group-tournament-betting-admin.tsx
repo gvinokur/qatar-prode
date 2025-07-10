@@ -28,7 +28,6 @@ interface Member {
 interface GroupTournamentBettingAdminProps {
   groupId: string;
   tournamentId: string;
-  currentUserId: string;
   isAdmin: boolean;
   members: Member[];
   config: ProdeGroupTournamentBetting | null;

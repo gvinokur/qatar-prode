@@ -19,59 +19,57 @@ export default function Home({tournaments, groups} : HomeProps) {
   const theme = useTheme()
 
   return (
-    <>
-      <Grid container spacing={2} p={2} maxWidth={'1000px'} mx={'auto'}>
-        <Grid
-          size={{
-            xs: 12,
-            md: 8
-          }}>
-          <Card>
-            <CardHeader
-              title={'Torneos Disponibles'}
-              sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
-              />
-            <CardContent>
-              <Grid container spacing={1}>
-                {tournaments.map(tournament => (
-                  <Fragment key={tournament.id}>
-                    <Grid size={12}>
-                      <Link href={`/tournaments/${tournament.id}`}>
-                        <Typography
-                        variant={'h6'}
-                          sx={{
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden'
-                          }}>
-                          {tournament.long_name}
-                        </Typography>
-                      </Link>
-                    </Grid>
-                  </Fragment>
-                ))}
-              </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid
-          size={{
-            xs: 12,
-            md: 4
-          }}>
-          <Grid container spacing={2}>
-            <Grid size={12}>
-              <Rules expanded={false}/>
+    <Grid container spacing={2} p={2} maxWidth={'1000px'} mx={'auto'}>
+      <Grid
+        size={{
+          xs: 12,
+          md: 8
+        }}>
+        <Card>
+          <CardHeader
+            title={'Torneos Disponibles'}
+            sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
+            />
+          <CardContent>
+            <Grid container spacing={1}>
+              {tournaments.map(tournament => (
+                <Fragment key={tournament.id}>
+                  <Grid size={12}>
+                    <Link href={`/tournaments/${tournament.id}`}>
+                      <Typography
+                      variant={'h6'}
+                        sx={{
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden'
+                        }}>
+                        {tournament.long_name}
+                      </Typography>
+                    </Link>
+                  </Grid>
+                </Fragment>
+              ))}
             </Grid>
-            {!!groups && (
-              <Grid size={12}>
-                <FriendGroupsList userGroups={groups.userGroups} participantGroups={groups.participantGroups}/>
-              </Grid>
-            )}
-          </Grid>
-        </Grid>
-
+          </CardContent>
+        </Card>
       </Grid>
-    </>
+      <Grid
+        size={{
+          xs: 12,
+          md: 4
+        }}>
+        <Grid container spacing={2}>
+          <Grid size={12}>
+            <Rules expanded={false}/>
+          </Grid>
+          {!!groups && (
+            <Grid size={12}>
+              <FriendGroupsList userGroups={groups.userGroups} participantGroups={groups.participantGroups}/>
+            </Grid>
+          )}
+        </Grid>
+      </Grid>
+
+    </Grid>
   );
 }

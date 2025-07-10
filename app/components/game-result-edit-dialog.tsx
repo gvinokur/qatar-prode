@@ -259,7 +259,7 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
             <Grid size={4}>
               <TextField
                 type="number"
-                value={homeScore === undefined ? '' : homeScore}
+                value={homeScore ?? ''}
                 onChange={handleHomeScoreChange}
                 inputProps={{ min: 0, style: { textAlign: 'center' } }}
                 disabled={loading}
@@ -276,7 +276,7 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
             <Grid size={4}>
               <TextField
                 type="number"
-                value={awayScore === undefined ? '' : awayScore}
+                value={awayScore ?? ''}
                 onChange={handleAwayScoreChange}
                 inputProps={{ min: 0, style: { textAlign: 'center' } }}
                 disabled={loading}
@@ -339,7 +339,7 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
                 <Grid size={4}>
                   <TextField
                     type="number"
-                    value={homePenaltyScore === undefined ? '' : homePenaltyScore}
+                    value={homePenaltyScore ?? ''}
                     onChange={handleHomePenaltyScoreChange}
                     inputProps={{ min: 0, style: { textAlign: 'center' } }}
                     disabled={loading}
@@ -355,7 +355,7 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
                 <Grid size={4}>
                   <TextField
                     type="number"
-                    value={awayPenaltyScore === undefined ? '' : awayPenaltyScore}
+                    value={awayPenaltyScore ?? ''}
                     onChange={handleAwayPenaltyScoreChange}
                     inputProps={{ min: 0, style: { textAlign: 'center' } }}
                     disabled={loading}

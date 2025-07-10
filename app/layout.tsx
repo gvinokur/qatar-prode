@@ -3,7 +3,6 @@
 import SessionWrapper from "./components/session-wrapper";
 import '../styles/globals.css'
 import ThemeProvider from "./components/context-providers/theme-provider";
-// import {ThemeProvider as NextThemeProvider} from "next-themes";
 import NextThemeProvider from './components/context-providers/next-theme-wrapper-provider';
 import {Metadata} from "next";
 import InstallPwa from "./components/Install-pwa";

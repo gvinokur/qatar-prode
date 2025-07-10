@@ -210,15 +210,13 @@ export default function PlayersTab({tournamentId}: {tournamentId: string}) {
                   ) : (
                     <Box display={'flex'} justifyContent={'space-around'}>
                       <Alert severity={'info'} action={
-                        <>
-                          <Button
-                            color="inherit"
-                            disabled={loading}
-                            onClick={() => openImportPlayersModal(teamData.team)}
-                          >
-                            Importar de Transfermarkt.com
-                          </Button>
-                        </>
+                        <Button
+                          color="inherit"
+                          disabled={loading}
+                          onClick={() => openImportPlayersModal(teamData.team)}
+                        >
+                          Importar de Transfermarkt.com
+                        </Button>
                       }>
                         <AlertTitle>No se encontraron jugadores</AlertTitle>
                         {teamData.team.name} no tiene jugadores registrados en este torneo.
