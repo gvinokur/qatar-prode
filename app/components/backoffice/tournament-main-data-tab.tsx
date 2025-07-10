@@ -28,8 +28,8 @@ import PlayoffRoundDialog from './internal/playoff-round-dialog';
 import {getThemeLogoUrl} from "../../utils/theme-utils";
 
 type Props = {
-  tournamentId: string;
-  onUpdate?: (_updatedTournament: Tournament) => void;
+  readonly tournamentId: string;
+  readonly onUpdate?: (_updatedTournament: Tournament) => void;
 }
 
 export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props) {
@@ -362,12 +362,14 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
               onChange={(e) => setTheme(prev => ({ ...prev, web_page: e.target.value }))}
               margin="normal"
               helperText="Official tournament website (optional)"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LinkIcon />
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LinkIcon />
+                    </InputAdornment>
+                  ),
+                }
               }}
             />
           </Grid>

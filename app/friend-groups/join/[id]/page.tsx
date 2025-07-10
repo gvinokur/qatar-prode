@@ -7,10 +7,10 @@ import { getLoggedInUser } from "../../../actions/user-actions";
 import { findProdeGroupById, findParticipantsInGroup } from "../../../db/prode-group-repository";
 
 type Props = {
-  params: Promise<{
+  readonly params: Promise<{
     id: string
   }>,
-  searchParams: Promise<{
+  readonly searchParams: Promise<{
     openSignin?: string
   }>
 }

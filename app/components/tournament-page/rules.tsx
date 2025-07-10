@@ -82,7 +82,7 @@ const constraints: Rule[] = [
 ]
 
 interface ExpandMoreProps extends IconButtonProps {
-  expand: boolean;
+  readonly expand: boolean;
 }
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
@@ -170,7 +170,7 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
                       title={rule.component} 
                       placement="bottom"
                       arrow
-                      componentsProps={{
+                      slotProps={{
                         tooltip: {
                           sx: {
                             bgcolor: 'background.paper',
@@ -242,7 +242,7 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
                       title={constraint.component} 
                       placement="bottom"
                       arrow
-                      componentsProps={{
+                      slotProps={{
                         tooltip: {
                           sx: {
                             bgcolor: 'background.paper',

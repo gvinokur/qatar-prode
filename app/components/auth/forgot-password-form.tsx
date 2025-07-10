@@ -12,7 +12,7 @@ type ForgotPasswordFormData = {
 }
 
 type ForgotPasswordFormProps = {
-  onSuccess: (_email: string) => void;
+  readonly onSuccess: (_email: string) => void;
 }
 
 export default function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {

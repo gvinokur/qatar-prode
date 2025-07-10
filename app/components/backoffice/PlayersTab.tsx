@@ -34,7 +34,7 @@ interface TeamWithPlayers {
   players: Player[];
 }
 
-export default function PlayersTab({tournamentId}: {tournamentId: string}) {
+export default function PlayersTab({tournamentId}: {readonly tournamentId: string}) {
   const [teamsWithPlayers, setTeamsWithPlayers] = useState<TeamWithPlayers[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);

@@ -23,12 +23,12 @@ export const GuessesContext = React.createContext({
 })
 
 export interface GuessesContextProviderProps {
-  children: React.ReactNode
-  gameGuesses: {[k:string]: GameGuessNew}
-  groupGames?: Game[],
-  guessedPositions?: TournamentGroupTeamStatsGuessNew[]
-  sortByGamesBetweenTeams?: boolean
-  autoSave?: boolean
+  readonly children: React.ReactNode
+  readonly gameGuesses: {[k:string]: GameGuessNew}
+  readonly groupGames?: Game[],
+  readonly guessedPositions?: TournamentGroupTeamStatsGuessNew[]
+  readonly sortByGamesBetweenTeams?: boolean
+  readonly autoSave?: boolean
 }
 
 export function GuessesContextProvider ({children,
@@ -74,7 +74,8 @@ export function GuessesContextProvider ({children,
       if(autoSave) {
         await updateOrCreateTournamentGroupTeamGuesses(guessedGroupPositions)
         if (groupCompleteReducer(guessedGroupPositions)) {
-          //TODO: this does not handle well the case where the group was complete and some result has been deleted
+          // Update playoff game guesses when group is complete
+          // Note: If group results are deleted after completion, playoff games may need manual re-evaluation
           await updatePlayoffGameGuesses(groupGames[0].tournament_id)
         }
       }

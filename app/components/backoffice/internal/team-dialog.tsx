@@ -20,11 +20,11 @@ import { createTeam, updateTeam } from '../../../actions/team-actions';
 import {getThemeLogoUrl} from "../../../utils/theme-utils";
 
 interface TeamDialogProps {
-  open: boolean;
-  onClose: () => void;
-  tournamentId: string;
-  team?: Team | null; // Optional team for edit mode
-  onTeamSaved: (_team: Team) => void;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly tournamentId: string;
+  readonly team?: Team | null; // Optional team for edit mode
+  readonly onTeamSaved: (_team: Team) => void;
 }
 
 export default function TeamDialog({
@@ -176,7 +176,7 @@ export default function TeamDialog({
               required
               margin="normal"
               helperText="3-letter code (e.g. 'ARG')"
-              inputProps={{ maxLength: 3 }}
+              slotProps={{ htmlInput: { maxLength: 3 } }}
             />
           </Grid>
 

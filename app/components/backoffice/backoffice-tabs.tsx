@@ -20,7 +20,7 @@ export type ActionTab = {
 type TabDefinition = LabelledTab | ActionTab
 
 type Props = {
-  tabs: TabDefinition[]
+  readonly tabs: TabDefinition[]
 }
 
 export function BackofficeTabs({tabs} :Props) {

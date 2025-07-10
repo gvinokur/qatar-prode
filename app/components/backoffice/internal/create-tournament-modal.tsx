@@ -27,9 +27,9 @@ import { Tournament } from "../../../db/tables-definition";
 import {copyTournament} from "../../../actions/backoffice-actions";
 
 interface CreateTournamentModalProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess: (_newTournament: any) => void;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly onSuccess: (_newTournament: any) => void;
 }
 
 export default function CreateTournamentModal({ open, onClose, onSuccess }: CreateTournamentModalProps) {

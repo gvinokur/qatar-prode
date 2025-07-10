@@ -17,16 +17,16 @@ const Transition = forwardRef(function Transition(props: any, ref: React.Ref<unk
 
 // Props type for the component
 interface MobileFriendlyAutocompleteProps<T> {
-  label: string;
-  options: T[];
-  groupBy?: (_option: T) => string;
-  getOptionLabel: (_option: T) => string;
-  value: T | null;
-  onChange: (_event: React.SyntheticEvent, _value: T | null) => void;
-  disabled?: boolean;
-  renderOption?: (_props: React.HTMLAttributes<HTMLLIElement>, _option: T) => React.ReactNode;
-  renderInput: (_params: any) => React.ReactNode;
-  [key: string]: any; // for any other Autocomplete props
+  readonly label: string;
+  readonly options: T[];
+  readonly groupBy?: (_option: T) => string;
+  readonly getOptionLabel: (_option: T) => string;
+  readonly value: T | null;
+  readonly onChange: (_event: React.SyntheticEvent, _value: T | null) => void;
+  readonly disabled?: boolean;
+  readonly renderOption?: (_props: React.HTMLAttributes<HTMLLIElement>, _option: T) => React.ReactNode;
+  readonly renderInput: (_params: any) => React.ReactNode;
+  readonly [key: string]: any; // for any other Autocomplete props
 }
 
 function MobileFriendlyAutocomplete<T>(props: MobileFriendlyAutocompleteProps<T>) {
@@ -65,7 +65,7 @@ function MobileFriendlyAutocomplete<T>(props: MobileFriendlyAutocompleteProps<T>
         value={value ? getOptionLabel(value) : ''}
         onClick={handleOpen}
         fullWidth
-        InputProps={{ readOnly: true }}
+        slotProps={{ input: { readOnly: true } }}
         disabled={disabled}
       />
 
@@ -73,7 +73,7 @@ function MobileFriendlyAutocomplete<T>(props: MobileFriendlyAutocompleteProps<T>
         fullScreen
         open={open}
         onClose={handleClose}
-        TransitionComponent={Transition}
+        slots={{ transition: Transition }}
       >
         <AppBar sx={{ position: 'relative' }}>
           <Toolbar>

@@ -18,10 +18,10 @@ import LeaveGroupButton from '../../components/friend-groups/leave-group-button'
 import { getUserScoresForTournament } from "../../actions/prode-group-actions";
 
 type Props = {
-  params: Promise<{
+  readonly params: Promise<{
     id: string
   }>,
-  searchParams: Promise<{[k:string]:string}>
+  readonly searchParams: Promise<{[k:string]:string}>
 }
 
 export default async function FriendsGroup(props : Props){

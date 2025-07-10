@@ -4,10 +4,12 @@ export function registerServiceWorker() {
 }
 
 export function clearBadges() {
-  // TODO: How to check this and only do it if there are badges?
-  navigator.serviceWorker.ready.then(registration => {
-    registration.active?.postMessage({ type: 'clear-notifications', payload: 'Clear notifications' });
-  });
+  // Clear notification badges if service worker is available
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.ready.then(registration => {
+      registration.active?.postMessage({ type: 'clear-notifications', payload: 'Clear notifications' });
+    });
+  }
 }
 
 export async function requestNotificationPermission() {

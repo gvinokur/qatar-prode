@@ -6,10 +6,10 @@ import {getTeamDescription} from "../../../utils/playoffs-rule-helper";
 import CompactGameViewCard from "../../compact-game-view-card";
 
 type Props = {
-  game: ExtendedGameData
-  teamsMap: {[k:string]: Team}
-  onEditClick: (_gameNumber: number) => void
-  onPublishClick: (_gameNumber: number) => Promise<void>
+  readonly game: ExtendedGameData
+  readonly teamsMap: {[k:string]: Team}
+  readonly onEditClick: (_gameNumber: number) => void
+  readonly onPublishClick: (_gameNumber: number) => Promise<void>
 }
 
 export default function BackofficeGameView({ game, teamsMap, onEditClick, onPublishClick } : Props) {

@@ -3,7 +3,7 @@
 import { Typography } from "@mui/material";
 
 type ResetSentViewProps = {
-  email: string;
+  readonly email: string;
 }
 
 export default function ResetSentView({ email }: ResetSentViewProps) {

@@ -5,12 +5,12 @@ import {UploadFile, Delete, CropOriginal} from '@mui/icons-material'
 import { getImageDimensions } from './image-picker-utils';
 
 interface ImagePreviewProps {
-  dataUrl: string;
-  onClick: () => void;
-  onRemove: () => void;
-  aspectRatio?: number;
-  previewWidth?: number;
-  previewBackgroundColor?: string;
+  readonly dataUrl: string;
+  readonly onClick: () => void;
+  readonly onRemove: () => void;
+  readonly aspectRatio?: number;
+  readonly previewWidth?: number;
+  readonly previewBackgroundColor?: string;
 }
 
 export function ImagePreview({
@@ -87,10 +87,10 @@ export function ImagePreview({
 }
 
 interface NoImagePreviewProps {
-  onClick: () => void;
-  noImageText: string;
-  aspectRatio?: number;
-  previewWidth?: number;
+  readonly onClick: () => void;
+  readonly noImageText: string;
+  readonly aspectRatio?: number;
+  readonly previewWidth?: number;
 }
 
 export function NoImagePreview({
@@ -125,15 +125,15 @@ export function NoImagePreview({
 }
 
 interface ImageCardProps {
-  dataUrl: string;
-  fileInput: React.RefObject<HTMLInputElement | null>;
-  error?: string;
-  onRemove: () => void;
-  buttonText: string;
-  noImageText: string;
-  aspectRatio?: number;
-  previewWidth?: number;
-  previewBackgroundColor?: string;
+  readonly dataUrl: string;
+  readonly fileInput: React.RefObject<HTMLInputElement | null>;
+  readonly error?: string;
+  readonly onRemove: () => void;
+  readonly buttonText: string;
+  readonly noImageText: string;
+  readonly aspectRatio?: number;
+  readonly previewWidth?: number;
+  readonly previewBackgroundColor?: string;
 }
 
 export function ImageCard({

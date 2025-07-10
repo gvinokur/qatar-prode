@@ -106,10 +106,15 @@ export default function FriendGroupsList({
         </CardActions>
       </Card>
       <Dialog open={openCreateDialog} onClose={handleCloseCreateDialog}
-              PaperProps={{
-                //@ts-ignore
-                component: 'form',
-                onSubmit: handleSubmit(createGroup)
+              slotProps={{
+                paper: {
+                  //@ts-ignore
+                  component: 'form',
+                  onSubmit: (e: React.FormEvent) => {
+                    e.preventDefault();
+                    handleSubmit(createGroup)();
+                  }
+                }
               }}>
         <DialogTitle>Crear Grupo de Amigos</DialogTitle>
         <DialogContent>

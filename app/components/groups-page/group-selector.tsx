@@ -6,10 +6,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 type Props = {
-  groups: { group_letter: string, id: string }[];
-  tournamentId: string;
-  backgroundColor?: string;
-  textColor?: string;
+  readonly groups: { group_letter: string, id: string }[];
+  readonly tournamentId: string;
+  readonly backgroundColor?: string;
+  readonly textColor?: string;
 };
 
 const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Props) => {

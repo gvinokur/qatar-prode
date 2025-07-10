@@ -14,10 +14,10 @@ import {findTournamentGuessByUserIdTournament} from "../../db/tournament-guess-r
 import {unstable_ViewTransition as ViewTransition} from "react";
 
 type Props = {
-  params: Promise<{
+  readonly params: Promise<{
     id: string
   }>
-  searchParams: Promise<{[k:string]:string}>
+  readonly searchParams: Promise<{[k:string]:string}>
 }
 
 export default async function TournamentLandingPage(props: Props) {

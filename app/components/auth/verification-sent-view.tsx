@@ -5,7 +5,7 @@ import EmailIcon from '@mui/icons-material/Email';
 import {User} from "../../db/tables-definition";
 
 type VerificationSentViewProps = {
-  user?: User;
+  readonly user?: User;
 }
 
 export default function VerificationSentView({ user }: VerificationSentViewProps) {

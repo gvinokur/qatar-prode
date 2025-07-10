@@ -17,10 +17,10 @@ import {findTournamentById} from "../../../db/tournament-repository";
 import { unstable_ViewTransition as ViewTransition } from "react";
 
 type Props = {
-  params: Promise<{
+  readonly params: Promise<{
     id: string
   }>
-  searchParams: Promise<{[k:string]:string}>
+  readonly searchParams: Promise<{[k:string]:string}>
 }
 
 const buildTournamentGuesses = (userId: string, tournamentId: string) => ({
