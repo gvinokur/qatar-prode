@@ -110,7 +110,10 @@ export default function FriendGroupsList({
                 paper: {
                   //@ts-ignore
                   component: 'form',
-                  onSubmit: handleSubmit(createGroup)
+                  onSubmit: (e: React.FormEvent) => {
+                    e.preventDefault();
+                    handleSubmit(createGroup)();
+                  }
                 }
               }}>
         <DialogTitle>Crear Grupo de Amigos</DialogTitle>

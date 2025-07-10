@@ -74,7 +74,10 @@ export default function UserSettingsDialog({ open, onClose }: UserSettingsDialog
         paper: {
           //@ts-ignore
           component: 'form',
-          onSubmit: handleSubmit(handleNicknameSet)
+          onSubmit: (e: React.FormEvent) => {
+            e.preventDefault();
+            handleSubmit(handleNicknameSet)();
+          }
         }
       }}>
       <DialogTitle>Configuracion de Usuario</DialogTitle>
