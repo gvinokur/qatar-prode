@@ -27,13 +27,13 @@ import Tooltip from '@mui/material/Tooltip';
 import NotificationDialog from "./notification-dialog";
 
 interface AdminActionButtonProps {
-  member?: { id: string, nombre: string, is_admin?: boolean };
-  ownerId: string;
-  groupId: string;
-  userId: string;
-  loadingUserId: string | null;
-  onPromote: (groupId: string, userId: string) => void;
-  onDemote: (groupId: string, userId: string) => void;
+  readonly member?: { id: string, nombre: string, is_admin?: boolean };
+  readonly ownerId: string;
+  readonly groupId: string;
+  readonly userId: string;
+  readonly loadingUserId: string | null;
+  readonly onPromote: (groupId: string, userId: string) => void;
+  readonly onDemote: (groupId: string, userId: string) => void;
 }
 
 function AdminActionButton({ 
@@ -75,15 +75,15 @@ function AdminActionButton({
 }
 
 type Props = {
-  users: {[k:string]: User},
-  userScoresByTournament: {[k:string]: UserScore[]},
-  loggedInUser: string,
-  tournaments: Tournament[],
-  action?: React.ReactNode,
-  groupId: string,
-  ownerId: string,
-  members: { id: string, nombre: string, is_admin?: boolean }[],
-  bettingData: { [tournamentId: string]: { config: any, payments: any[] } }
+  readonly users: {[k:string]: User},
+  readonly userScoresByTournament: {[k:string]: UserScore[]},
+  readonly loggedInUser: string,
+  readonly tournaments: Tournament[],
+  readonly action?: React.ReactNode,
+  readonly groupId: string,
+  readonly ownerId: string,
+  readonly members: { id: string, nombre: string, is_admin?: boolean }[],
+  readonly bettingData: { [tournamentId: string]: { config: any, payments: any[] } }
 }
 
 export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, ownerId, members, bettingData}: Props) {

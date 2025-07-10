@@ -9,8 +9,8 @@ import { getLoggedInUser } from '../../actions/user-actions';
 import { getUserScoresForTournament, getUsersForGroup } from '../../actions/prode-group-actions';
 
 interface FooterProps {
-  imageUrl?: string;
-  message: string;
+  readonly imageUrl?: string;
+  readonly message: string;
 }
 
 // Environment variables for teasing footer feature

@@ -8,7 +8,7 @@ import {verifyUserEmail} from "../../actions/user-actions";
 import {CircularProgress} from "@mui/material";
 
 interface EmailVerifierProps {
-  token: string;
+  readonly token: string;
 }
 
 export default function EmailVerifier({ token }: EmailVerifierProps) {

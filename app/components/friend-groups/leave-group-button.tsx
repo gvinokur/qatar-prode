@@ -5,7 +5,7 @@ import { Button, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Al
 import { useRouter } from "next/navigation";
 import { leaveGroupAction } from "../../actions/prode-group-actions";
 
-export default function LeaveGroupButton({ groupId }: { groupId: string }) {
+export default function LeaveGroupButton({ groupId }: { readonly groupId: string }) {
   const [open, setOpen] = useState(false);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" }>({ open: false, message: "", severity: "success" });
   const [loading, setLoading] = useState(false);

@@ -17,12 +17,12 @@ import { createOrUpdatePlayoffRound } from "../../../actions/tournament-actions"
 import {PlayoffRound, PlayoffRoundNew, PlayoffRoundUpdate} from "../../../db/tables-definition";
 
 interface PlayoffRoundDialogProps {
-  open: boolean;
-  onClose: () => void;
-  onSave: () => void;
-  tournamentId: string;
-  round: PlayoffRound | null;
-  nextOrder?: number;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly onSave: () => void;
+  readonly tournamentId: string;
+  readonly round: PlayoffRound | null;
+  readonly nextOrder?: number;
 }
 
 export default function PlayoffRoundDialog({
@@ -197,7 +197,7 @@ export default function PlayoffRoundDialog({
               margin="normal"
               error={!!errors.order}
               helperText={errors.order || "Lower numbers come first"}
-              InputProps={{ inputProps: { min: 1 } }}
+              slotProps={{ htmlInput: { min: 1 } }}
               disabled={loading}
             />
           </Grid>
@@ -216,7 +216,7 @@ export default function PlayoffRoundDialog({
               margin="normal"
               error={!!errors.matchesCount}
               helperText={errors.matchesCount || "Number of matches in this round"}
-              InputProps={{ inputProps: { min: 1 } }}
+              slotProps={{ htmlInput: { min: 1 } }}
               disabled={loading}
             />
           </Grid>
@@ -226,8 +226,10 @@ export default function PlayoffRoundDialog({
                 error
                 fullWidth
                 value={errors.submit}
-                InputProps={{
-                  readOnly: true,
+                slotProps={{
+                  input: {
+                    readOnly: true,
+                  }
                 }}
                 variant="filled"
               />

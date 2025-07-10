@@ -68,8 +68,8 @@ export async function updatePlayoffGameGuesses(tournamentId: string, user?: User
 
   return Promise.all(Object.keys(playoffTeamsByGuess).map(async (game_id) => {
     if(playoffTeamsByGuess[game_id].homeTeam?.team_id && playoffTeamsByGuess[game_id].awayTeam?.team_id) {
-      //TODO: remove tempoarary fix
-      const toFix = await db.selectFrom('game_guesses')
+      // Fix orphaned game guesses that don't have a game_id but match home/away teams
+      const orphanedGuess = await db.selectFrom('game_guesses')
         .selectAll()
         .where('home_team', '=', playoffTeamsByGuess[game_id].homeTeam?.team_id)
         .where('away_team', '=', playoffTeamsByGuess[game_id].awayTeam?.team_id)
@@ -77,11 +77,11 @@ export async function updatePlayoffGameGuesses(tournamentId: string, user?: User
         .where('game_id', 'is', null)
         .executeTakeFirst()
 
-      if (toFix) {
+      if (orphanedGuess) {
         try {
           await db.updateTable('game_guesses')
             .set('game_id', game_id)
-            .where('id', '=', toFix.id)
+            .where('id', '=', orphanedGuess.id)
             .execute()
         } catch {
           // Continue execution even if update fails

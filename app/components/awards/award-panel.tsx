@@ -23,12 +23,12 @@ import MobileFriendlyAutocomplete from './mobile-friendly-autocomplete';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
 type Props = {
-  allPlayers: ExtendedPlayerData[],
-  tournamentGuesses: TournamentGuessNew,
-  teams: Team[];
-  hasThirdPlaceGame: boolean;
-  isPredictionLocked: boolean;
-  tournament: Tournament
+  readonly allPlayers: ExtendedPlayerData[],
+  readonly tournamentGuesses: TournamentGuessNew,
+  readonly teams: Team[];
+  readonly hasThirdPlaceGame: boolean;
+  readonly isPredictionLocked: boolean;
+  readonly tournament: Tournament
 }
 
 export default function AwardsPanel({
@@ -91,8 +91,10 @@ export default function AwardsPanel({
     <TextField
       {...params}
       label="Elegir Jugador"
-      inputProps={{
-        ...params.inputProps,
+      slotProps={{
+        htmlInput: {
+          ...params.inputProps,
+        }
       }}
     />
   );

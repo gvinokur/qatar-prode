@@ -240,7 +240,7 @@ const GameDialog: React.FC<GameDialogProps> = ({
                 error={!!formErrors.gameNumber}
                 helperText={formErrors.gameNumber || "Used for ordering games"}
                 disabled={loading}
-                InputProps={{ inputProps: { min: 1 } }}
+                slotProps={{ htmlInput: { min: 1 } }}
                 margin="normal"
                 focused
               />

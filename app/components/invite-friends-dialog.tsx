@@ -21,9 +21,9 @@ import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import CloseIcon from '@mui/icons-material/Close';
 
 interface InviteFriendsDialogProps {
-  trigger: ReactNode;
-  groupId: string;
-  groupName: string;
+  readonly trigger: ReactNode;
+  readonly groupId: string;
+  readonly groupName: string;
 }
 
 export default function InviteFriendsDialog({ trigger, groupId, groupName }: InviteFriendsDialogProps) {
@@ -111,8 +111,10 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName }: Inv
               fullWidth
               variant="outlined"
               value={getInvitationLink()}
-              InputProps={{
-                readOnly: true,
+              slotProps={{
+                input: {
+                  readOnly: true,
+                }
               }}
             />
             <Button

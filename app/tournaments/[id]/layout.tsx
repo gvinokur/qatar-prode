@@ -13,10 +13,10 @@ import {Typography} from "@mui/material";
 import {getThemeLogoUrl} from "../../utils/theme-utils";
 
 type TournamentLayoutProps = {
-  params: Promise<{
+  readonly params: Promise<{
     id: string
   }>
-  children: React.ReactNode
+  readonly children: React.ReactNode
 }
 
 export default async function TournamentLayout(props: TournamentLayoutProps) {

@@ -6,7 +6,7 @@ import {useEffect, useState} from "react";
 export default function Transition({
                                      children,
                                    }: {
-  children: React.ReactNode;
+  readonly children: React.ReactNode;
 }) {
   const [hidePage, setHidePage] = useState(false)
 

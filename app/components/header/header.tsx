@@ -13,7 +13,7 @@ import {User} from "next-auth";
 import ThemeSwitcher from "./theme-switcher";
 
 type FrameProps = {
-  user?: User
+  readonly user?: User
 }
 
 export default async function Header(props: FrameProps) {

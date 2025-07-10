@@ -18,11 +18,11 @@ import {GuessesContext} from "../context-providers/guesses-context-provider";
 import {Team, TeamStats} from "../../db/tables-definition";
 
 type Props = {
-  isPredictions: boolean,
-  teamsMap: {[k:string]: Team}
-  qualifiedTeams?: Team[]
-  qualifiedTeamGuesses?: Team[]
-  realPositions: TeamStats[]
+  readonly isPredictions: boolean,
+  readonly teamsMap: {[k:string]: Team}
+  readonly qualifiedTeams?: Team[]
+  readonly qualifiedTeamGuesses?: Team[]
+  readonly realPositions: TeamStats[]
 }
 
 export default function GroupTable({teamsMap, isPredictions, qualifiedTeams = [], qualifiedTeamGuesses = [], realPositions} : Props) {

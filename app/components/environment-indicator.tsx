@@ -2,7 +2,7 @@
 
 import {Alert, AlertTitle, Box} from '@mui/material';
 
-export default function EnvironmentIndicator({ isDev } : {isDev: boolean}) {
+export default function EnvironmentIndicator({ isDev } : {readonly isDev: boolean}) {
 
   if (!isDev) return null;
 

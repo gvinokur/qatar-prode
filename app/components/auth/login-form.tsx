@@ -14,7 +14,7 @@ export type LoginFormData = {
 }
 
 type LoginFormProps = {
-  onSuccess: () => void;
+  readonly onSuccess: () => void;
 }
 
 export default function LoginForm({ onSuccess }: LoginFormProps) {

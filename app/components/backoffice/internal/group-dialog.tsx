@@ -11,7 +11,7 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemSecondaryAction,
+
   IconButton,
   Divider,
   FormHelperText,
@@ -137,7 +137,7 @@ const GroupDialog: React.FC<GroupDialogProps> = ({
             margin="normal"
             error={!!letterError}
             helperText={letterError}
-            inputProps={{ maxLength: 1 }}
+            slotProps={{ htmlInput: { maxLength: 1 } }}
             placeholder="A"
           />
           <FormHelperText>Enter a single uppercase letter (A-Z)</FormHelperText>
@@ -185,14 +185,14 @@ const GroupDialog: React.FC<GroupDialogProps> = ({
                 </ListItem>
               ) : (
                 selectedTeams.map(team => (
-                  <ListItem key={team.id} divider>
-                    <ListItemText primary={team.name} />
-                    <ListItemSecondaryAction>
-                      <IconButton edge="end" onClick={() => handleRemoveTeam(team)} color="error">
-                        <RemoveIcon />
-                      </IconButton>
-                    </ListItemSecondaryAction>
-                  </ListItem>
+                <ListItem key={team.id} divider
+                secondaryAction={
+                  <IconButton edge="end" onClick={() => handleRemoveTeam(team)} color="error">
+                  <RemoveIcon />
+                </IconButton>
+                }>
+                <ListItemText primary={team.name} />
+                </ListItem>
                 ))
               )}
             </List>
@@ -218,13 +218,13 @@ const GroupDialog: React.FC<GroupDialogProps> = ({
                 </ListItem>
               ) : (
                 unselectedTeams.toSorted((a, b) => a.name.localeCompare(b.name)).map(team => (
-                  <ListItem key={team.id} divider>
-                    <ListItemText primary={team.name} />
-                    <ListItemSecondaryAction>
-                      <IconButton edge="end" onClick={() => handleAddTeam(team)} color="primary">
-                        <AddIcon />
-                      </IconButton>
-                    </ListItemSecondaryAction>
+                  <ListItem key={team.id} divider
+                  secondaryAction={
+                    <IconButton edge="end" onClick={() => handleAddTeam(team)} color="primary">
+                    <AddIcon />
+                  </IconButton>
+                  }>
+                  <ListItemText primary={team.name} />
                   </ListItem>
                 ))
               )}

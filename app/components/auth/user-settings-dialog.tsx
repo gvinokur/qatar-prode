@@ -24,8 +24,8 @@ type NicknameFormData = {
 }
 
 type UserSettingsDialogProps = {
-  open: boolean;
-  onClose: () => void;
+  readonly open: boolean;
+  readonly onClose: () => void;
 }
 
 export default function UserSettingsDialog({ open, onClose }: UserSettingsDialogProps) {
@@ -70,10 +70,12 @@ export default function UserSettingsDialog({ open, onClose }: UserSettingsDialog
 
   return (
     <Dialog open={open} onClose={onClose}
-      PaperProps={{
-        //@ts-ignore
-        component: 'form',
-        onSubmit: handleSubmit(handleNicknameSet)
+      slotProps={{
+        paper: {
+          //@ts-ignore
+          component: 'form',
+          onSubmit: handleSubmit(handleNicknameSet)
+        }
       }}>
       <DialogTitle>Configuracion de Usuario</DialogTitle>
       <DialogContent>

@@ -16,11 +16,11 @@ import GamesGrid from "../../../../components/games-grid";
 import { unstable_ViewTransition as ViewTransition} from 'react'
 
 type Props = {
-  params: Promise<{
+  readonly params: Promise<{
     group_id: string
     id: string
   }>
-  searchParams: Promise<{[k:string]:string}>
+  readonly searchParams: Promise<{[k:string]:string}>
 }
 
 export default async function GroupComponent(props : Props) {

@@ -12,7 +12,7 @@ const TimezoneContext = createContext<TimezoneContextType>({
   toggleTimezone: () => {},
 });
 
-export function TimezoneProvider({ children }: { children: React.ReactNode }) {
+export function TimezoneProvider({ children }: { readonly children: React.ReactNode }) {
   const [showLocalTime, setShowLocalTime] = useState(true);
 
   // Load preference from localStorage on mount

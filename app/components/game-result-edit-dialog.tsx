@@ -261,7 +261,7 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
                 type="number"
                 value={homeScore ?? ''}
                 onChange={handleHomeScoreChange}
-                inputProps={{ min: 0, style: { textAlign: 'center' } }}
+                slotProps={{ htmlInput: { min: 0, style: { textAlign: 'center' } } }}
                 disabled={loading}
                 size="small"
                 fullWidth
@@ -278,7 +278,7 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
                 type="number"
                 value={awayScore ?? ''}
                 onChange={handleAwayScoreChange}
-                inputProps={{ min: 0, style: { textAlign: 'center' } }}
+                slotProps={{ htmlInput: { min: 0, style: { textAlign: 'center' } } }}
                 disabled={loading}
                 size="small"
                 fullWidth
@@ -341,7 +341,7 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
                     type="number"
                     value={homePenaltyScore ?? ''}
                     onChange={handleHomePenaltyScoreChange}
-                    inputProps={{ min: 0, style: { textAlign: 'center' } }}
+                    slotProps={{ htmlInput: { min: 0, style: { textAlign: 'center' } } }}
                     disabled={loading}
                     size="small"
                     fullWidth
@@ -357,7 +357,7 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
                     type="number"
                     value={awayPenaltyScore ?? ''}
                     onChange={handleAwayPenaltyScoreChange}
-                    inputProps={{ min: 0, style: { textAlign: 'center' } }}
+                    slotProps={{ htmlInput: { min: 0, style: { textAlign: 'center' } } }}
                     disabled={loading}
                     size="small"
                     fullWidth

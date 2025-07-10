@@ -19,7 +19,7 @@ export type SignupFormData = {
 }
 
 type SignupFormProps = {
-  onSuccess: (_user: User) => void;
+  readonly onSuccess: (_user: User) => void;
 }
 
 export default function SignupForm({ onSuccess }: SignupFormProps) {

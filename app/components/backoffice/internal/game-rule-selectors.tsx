@@ -89,7 +89,7 @@ export const GroupPositionSelector: React.FC<GroupPositionSelectorProps> = ({
           type="number"
           value={position}
           onChange={handlePositionChange}
-          InputProps={{ inputProps: { min: 1, max: 4 } }}
+          slotProps={{ htmlInput: { min: 1, max: 4 } }}
           helperText="Position in the group (1 = Winner, 2 = Runner-up, etc.)"
         />
       </FormControl>
@@ -155,7 +155,7 @@ export const GameWinnerSelector: React.FC<GameWinnerSelectorProps> = ({
           type="number"
           value={gameNumber}
           onChange={handleGameNumberChange}
-          InputProps={{ inputProps: { min: 1, max: currentGameNumber - 1 } }}
+          slotProps={{ htmlInput: { min: 1, max: currentGameNumber - 1 } }}
           helperText="Enter the game number to reference"
         />
       </FormControl>

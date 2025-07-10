@@ -15,7 +15,7 @@ import {
   subscribeToNotifications
 } from "../utils/notifications-utils";
 
-export default function NotificationsSubscriptionPrompt({ canOpen }: { canOpen: boolean }  ) {
+export default function NotificationsSubscriptionPrompt({ canOpen }: { readonly canOpen: boolean }  ) {
   const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);

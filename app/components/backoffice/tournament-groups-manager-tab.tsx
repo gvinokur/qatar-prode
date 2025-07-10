@@ -175,9 +175,11 @@ const TournamentGroups: React.FC<TournamentGroupsProps> = ({ tournamentId }) => 
                             <ListItem disablePadding sx={{ py: 0.5 }}>
                               <ListItemText
                                 primary={teams[team.team_id]?.name}
-                                primaryTypographyProps={{
-                                  variant: 'body2',
-                                  sx: { display: 'flex', alignItems: 'center' }
+                                slotProps={{
+                                  primary: {
+                                    variant: 'body2',
+                                    sx: { display: 'flex', alignItems: 'center' }
+                                  }
                                 }}
                               />
                             </ListItem>

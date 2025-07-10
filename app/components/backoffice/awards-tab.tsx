@@ -19,7 +19,7 @@ import {ExtendedPlayerData} from "../../definitions";
 import {findDataForAwards, updateTournamentAwards} from "../../actions/backoffice-actions";
 
 type Props = {
-  tournamentId: string
+  readonly tournamentId: string
 }
 export default function BackofficeAwardsTab({ tournamentId}: Props) {
   const [saving, setSaving] = useState<boolean>(false)
@@ -105,8 +105,10 @@ export default function BackofficeAwardsTab({ tournamentId}: Props) {
                           <TextField
                             {...params}
                             label="Elegir Jugador"
-                            inputProps={{
-                              ...params.inputProps,
+                            slotProps={{
+                              htmlInput: {
+                                ...params.inputProps,
+                              }
                             }}
                           />
                         )}

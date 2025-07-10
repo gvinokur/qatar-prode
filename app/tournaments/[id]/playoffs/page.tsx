@@ -14,10 +14,10 @@ import {default as React, unstable_ViewTransition as ViewTransition} from "react
 import TabbedPlayoffsPage from '../../../components/playoffs/tabbed-playoff-page';
 
 type Props = {
-  params: Promise<{
+  readonly params: Promise<{
     id: string
   }>
-  searchParams: Promise<{[k:string]:string}>
+  readonly searchParams: Promise<{[k:string]:string}>
 }
 
 export default async function PlayoffPage(props: Props) {

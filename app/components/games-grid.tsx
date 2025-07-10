@@ -14,11 +14,11 @@ import { getGuessLoser, getGuessWinner } from "../utils/score-utils";
 import { updateOrCreateTournamentGuess } from "../actions/guesses-actions";
 
 type GamesGridProps =  {
-  isPlayoffs: boolean
-  games: ExtendedGameData[]
-  teamsMap: {[k:string]: Team}
-  isLoggedIn?: boolean
-  isAwardsPredictionLocked?: boolean
+  readonly isPlayoffs: boolean
+  readonly games: ExtendedGameData[]
+  readonly teamsMap: {[k:string]: Team}
+  readonly isLoggedIn?: boolean
+  readonly isAwardsPredictionLocked?: boolean
 }
 
 const buildGameGuess = (game: Game, userId: string): GameGuessNew => ({

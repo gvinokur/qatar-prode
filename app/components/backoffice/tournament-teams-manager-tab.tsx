@@ -22,7 +22,7 @@ import TeamDialog from './internal/team-dialog';
 import {getThemeLogoUrl} from "../../utils/theme-utils";
 
 interface TournamentTeamsManagerProps {
-  tournamentId: string;
+  readonly tournamentId: string;
 }
 
 export default function TournamentTeamsManagerTab({ tournamentId }: TournamentTeamsManagerProps) {
