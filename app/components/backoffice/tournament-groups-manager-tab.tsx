@@ -42,7 +42,7 @@ const TournamentGroups: React.FC<TournamentGroupsProps> = ({ tournamentId }) => 
         ]);
 
         // Sort groups alphabetically by letter
-        const sortedGroups = allGroups.sort((a, b) => a.group_letter.localeCompare(b.group_letter));
+        const sortedGroups = allGroups.toSorted((a, b) => a.group_letter.localeCompare(b.group_letter));
         setGroups(sortedGroups);
         setTeams(teamsData);
       } catch (error) {

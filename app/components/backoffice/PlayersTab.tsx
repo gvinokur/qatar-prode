@@ -150,7 +150,7 @@ export default function PlayersTab({tournamentId}: {tournamentId: string}) {
         <CardContent>
           <div>
             {teamsWithPlayers
-              .sort((a, b) => a.team.name.localeCompare(b.team.name))
+              .toSorted((a, b) => a.team.name.localeCompare(b.team.name))
               .map((teamData) => (
               <Accordion
                 key={teamData.team.id}

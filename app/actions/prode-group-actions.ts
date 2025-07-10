@@ -24,7 +24,7 @@ import { UserScore } from "../definitions";
 export async function createDbGroup( groupName: string) {
   const user = await getLoggedInUser()
   if(!user) {
-    throw 'Should not call this action from a logged out page'
+    throw new Error('Should not call this action from a logged out page')
   }
   const prodeGroup = await createProdeGroup({
     name: groupName,
@@ -51,7 +51,7 @@ export async function getGroupsForUser() {
 export async function deleteGroup(groupId: string) {
   const user = await getLoggedInUser()
   if(!user) {
-    throw 'Should not call this action from a logged out page'
+    throw new Error('Should not call this action from a logged out page')
   }
   const group = await findProdeGroupById(groupId)
   //Only support deletion  of the group if the user in the session is the same as the owner
@@ -63,31 +63,31 @@ export async function deleteGroup(groupId: string) {
 
 export async function promoteParticipantToAdmin(groupId: string, userId: string) {
   const user = await getLoggedInUser();
-  if (!user) throw 'Should not call this action from a logged out page';
+  if (!user) throw new Error('Should not call this action from a logged out page');
   // Only owner or current admin can promote
   const group = await findProdeGroupById(groupId);
-  if (!group) throw 'Group not found';
-  if (user.id !== group.owner_user_id) throw 'Only owner can promote admins';
+  if (!group) throw new Error('Group not found');
+  if (user.id !== group.owner_user_id) throw new Error('Only owner can promote admins');
   await updateParticipantAdminStatus(groupId, userId, true);
 }
 
 export async function demoteParticipantFromAdmin(groupId: string, userId: string) {
   const user = await getLoggedInUser();
-  if (!user) throw 'Should not call this action from a logged out page';
+  if (!user) throw new Error('Should not call this action from a logged out page');
   // Only owner or current admin can demote
   const group = await findProdeGroupById(groupId);
-  if (!group) throw 'Group not found';
-  if (user.id !== group.owner_user_id) throw 'Only owner can demote admins';
+  if (!group) throw new Error('Group not found');
+  if (user.id !== group.owner_user_id) throw new Error('Only owner can demote admins');
   await updateParticipantAdminStatus(groupId, userId, false);
 }
 
 export async function joinGroup(groupId: string, isAdmin: boolean = false) {
   const user = await getLoggedInUser();
   if(!user) {
-    throw 'Should not call this action from a logged out page'
+    throw new Error('Should not call this action from a logged out page')
   }
   const group = await findProdeGroupById(groupId)
-  if (!group) throw 'Group not found';
+  if (!group) throw new Error('Group not found');
 
   await addParticipantToGroup(group, user, isAdmin)
 
@@ -121,7 +121,7 @@ const imageSchema = z.object({
 
 export async function updateTheme(groupId: string, formData: any) {
   const currentGroup = await findProdeGroupById(groupId)
-  if (!currentGroup) throw 'Group not found';
+  if (!currentGroup) throw new Error('Group not found');
   
   const data = Object.fromEntries(formData)
   let imageUrl: string | undefined = currentGroup.theme?.logo
@@ -162,14 +162,14 @@ export async function updateTheme(groupId: string, formData: any) {
 export async function leaveGroupAction(groupId: string) {
   const user = await getLoggedInUser();
   if (!user) {
-    throw 'No puedes dejar el grupo si no has iniciado sesión.';
+    throw new Error('No puedes dejar el grupo si no has iniciado sesión.');
   }
   const group = await findProdeGroupById(groupId);
   if (!group) {
-    throw 'El grupo no existe.';
+    throw new Error('El grupo no existe.');
   }
   if (group.owner_user_id === user.id) {
-    throw 'El dueño del grupo no puede dejar el grupo.';
+    throw new Error('El dueño del grupo no puede dejar el grupo.');
   }
   await deleteParticipantFromGroup(groupId, user.id);
   return { success: true };
@@ -178,7 +178,7 @@ export async function leaveGroupAction(groupId: string) {
 export async function getUsersForGroup(groupId: string): Promise<string[]> {
   const group = await findProdeGroupById(groupId);
   if (!group) {
-    throw 'El grupo no existe.';
+    throw new Error('El grupo no existe.');
   }
   return [group.owner_user_id, ...(await findParticipantsInGroup(group.id)).map((p) => p.user_id)];
 }

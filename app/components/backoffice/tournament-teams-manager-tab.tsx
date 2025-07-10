@@ -127,7 +127,7 @@ export default function TournamentTeamsManagerTab({ tournamentId }: TournamentTe
         ) : (
           <Grid container spacing={3}>
             {teams
-              .sort((a,b) => a.name.localeCompare(b.name))
+              .toSorted((a,b) => a.name.localeCompare(b.name))
               .map((team) => (
               <Grid
                 key={team.id}

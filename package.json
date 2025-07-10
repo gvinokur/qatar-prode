@@ -12,6 +12,7 @@
     "coverage": "vitest run --coverage && mkdir -p coverage/.tmp && touch coverage/.tmp/keep",
     "sonar": "sonar-scanner",
     "sonar:local": "sonar-scanner -Dsonar.host.url=http://localhost:9000",
+    "sonar:check": "./scripts/sonar-check.sh",
     "prepare": "husky"
   },
   "dependencies": {

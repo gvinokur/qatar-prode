@@ -225,17 +225,5 @@ describe('GroupTournamentBettingAdmin', () => {
     });
   });
 
-  describe('Snackbar', () => {
-    it('shows success message after successful update', async () => {
-      // REMOVE
-    });
 
-    it('shows error message after failed update', async () => {
-      // REMOVE
-    });
-
-    it('closes snackbar after timeout', async () => {
-      // REMOVE
-    });
-  });
 }); 

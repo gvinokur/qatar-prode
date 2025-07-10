@@ -21,7 +21,7 @@ export default function GroupsTab({tournamentId}:Props) {
     const loadGroups = async () => {
       const groupsData = await getGroupDataWithGamesAndTeams(tournamentId)
       setGroups(groupsData
-        .sort((a, b) =>
+        .toSorted((a, b) =>
           a.group_letter.localeCompare(b.group_letter)))
       setLoading(false)
     }

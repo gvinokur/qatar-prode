@@ -217,7 +217,7 @@ const GroupDialog: React.FC<GroupDialogProps> = ({
                   <ListItemText primary="No teams available" secondary="All teams have been added to a group" />
                 </ListItem>
               ) : (
-                unselectedTeams.sort((a, b) => a.name.localeCompare(b.name)).map(team => (
+                unselectedTeams.toSorted((a, b) => a.name.localeCompare(b.name)).map(team => (
                   <ListItem key={team.id} divider>
                     <ListItemText primary={team.name} />
                     <ListItemSecondaryAction>

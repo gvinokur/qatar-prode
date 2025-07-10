@@ -103,7 +103,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
               backgroundColor={layoutData.tournament?.theme?.primary_color}
               textColor={layoutData.tournament?.theme?.secondary_color}
               groups={layoutData.allGroups
-                .sort((a, b) => a.group_letter.localeCompare(b.group_letter))
+                .toSorted((a, b) => a.group_letter.localeCompare(b.group_letter))
               }/>
           </Grid>
         </Grid>

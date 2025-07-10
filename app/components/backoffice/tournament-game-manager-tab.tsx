@@ -73,7 +73,7 @@ const TournamentGameManager: React.FC<TournamentGameManagerProps> = ({ tournamen
       ]);
 
       // Sort games by game number
-      const sortedGames = gamesData.sort((a, b) => (a.game_number || 0) - (b.game_number || 0));
+      const sortedGames = gamesData.toSorted((a, b) => (a.game_number || 0) - (b.game_number || 0));
 
       setGames(sortedGames);
       setTeams(teamsData);

@@ -153,7 +153,7 @@ describe('Prode Group Actions', () => {
     });
     it('throws if not logged in', async () => {
       mockGetLoggedInUser.mockResolvedValue(undefined);
-      await expect(createDbGroup('Test Group')).rejects.toBe('Should not call this action from a logged out page');
+      await expect(createDbGroup('Test Group')).rejects.toThrow('Should not call this action from a logged out page');
     });
   });
 
@@ -183,7 +183,7 @@ describe('Prode Group Actions', () => {
     });
     it('throws if not logged in', async () => {
       mockGetLoggedInUser.mockResolvedValue(undefined);
-      await expect(deleteGroup('group1')).rejects.toBe('Should not call this action from a logged out page');
+      await expect(deleteGroup('group1')).rejects.toThrow('Should not call this action from a logged out page');
     });
   });
 
@@ -195,10 +195,10 @@ describe('Prode Group Actions', () => {
     });
     it('throws if not logged in', async () => {
       mockGetLoggedInUser.mockResolvedValue(undefined);
-      await expect(promoteParticipantToAdmin('group1', 'user2')).rejects.toBe('Should not call this action from a logged out page');
+      await expect(promoteParticipantToAdmin('group1', 'user2')).rejects.toThrow('Should not call this action from a logged out page');
     });
     it('throws if user is not owner', async () => {
-      await expect(promoteParticipantToAdmin('group1', 'user2')).rejects.toBe('Only owner can promote admins');
+      await expect(promoteParticipantToAdmin('group1', 'user2')).rejects.toThrow('Only owner can promote admins');
     });
   });
 
@@ -210,10 +210,10 @@ describe('Prode Group Actions', () => {
     });
     it('throws if not logged in', async () => {
       mockGetLoggedInUser.mockResolvedValue(undefined);
-      await expect(demoteParticipantFromAdmin('group1', 'user2')).rejects.toBe('Should not call this action from a logged out page');
+      await expect(demoteParticipantFromAdmin('group1', 'user2')).rejects.toThrow('Should not call this action from a logged out page');
     });
     it('throws if user is not owner', async () => {
-      await expect(demoteParticipantFromAdmin('group1', 'user2')).rejects.toBe('Only owner can demote admins');
+      await expect(demoteParticipantFromAdmin('group1', 'user2')).rejects.toThrow('Only owner can demote admins');
     });
   });
 
@@ -226,7 +226,7 @@ describe('Prode Group Actions', () => {
     });
     it('throws if not logged in', async () => {
       mockGetLoggedInUser.mockResolvedValue(undefined);
-      await expect(joinGroup('group1')).rejects.toBe('Should not call this action from a logged out page');
+      await expect(joinGroup('group1')).rejects.toThrow('Should not call this action from a logged out page');
     });
   });
 
@@ -269,15 +269,15 @@ describe('Prode Group Actions', () => {
     });
     it('throws if not logged in', async () => {
       mockGetLoggedInUser.mockResolvedValue(undefined);
-      await expect(leaveGroupAction('group1')).rejects.toBe('No puedes dejar el grupo si no has iniciado sesión.');
+      await expect(leaveGroupAction('group1')).rejects.toThrow('No puedes dejar el grupo si no has iniciado sesión.');
     });
     it('throws if group does not exist', async () => {
       mockFindProdeGroupById.mockResolvedValue(null as any);
-      await expect(leaveGroupAction('group1')).rejects.toBe('El grupo no existe.');
+      await expect(leaveGroupAction('group1')).rejects.toThrow('El grupo no existe.');
     });
     it('throws if user is owner', async () => {
       mockFindProdeGroupById.mockResolvedValue({ ...mockGroup, owner_user_id: mockUser.id });
-      await expect(leaveGroupAction('group1')).rejects.toBe('El dueño del grupo no puede dejar el grupo.');
+      await expect(leaveGroupAction('group1')).rejects.toThrow('El dueño del grupo no puede dejar el grupo.');
     });
   });
 
@@ -290,7 +290,7 @@ describe('Prode Group Actions', () => {
     });
     it('throws if group does not exist', async () => {
       mockFindProdeGroupById.mockResolvedValue(null as any);
-      await expect(getUsersForGroup('group1')).rejects.toBe('El grupo no existe.');
+      await expect(getUsersForGroup('group1')).rejects.toThrow('El grupo no existe.');
     });
   });
 

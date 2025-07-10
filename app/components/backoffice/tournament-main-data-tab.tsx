@@ -69,7 +69,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
     try {
       const rounds = await getPlayoffRounds(tournamentId);
       // Sort by round_order
-      const sortedRounds = rounds.sort((a, b) => a.round_order - b.round_order);
+      const sortedRounds = rounds.toSorted((a, b) => a.round_order - b.round_order);
       setPlayoffRounds(sortedRounds);
     } catch (err: any) {
       console.error('Error loading playoff rounds:', err);
