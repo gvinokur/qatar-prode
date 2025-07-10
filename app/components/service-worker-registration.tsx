@@ -1,17 +1,6 @@
 export function registerServiceWorker() {
+  // Service worker registration disabled
   return;
-
-  if ('serviceWorker' in navigator && typeof window !== 'undefined') {
-    window.addEventListener('load', async () => {
-      await navigator.serviceWorker
-        .register('/sw.js')
-        .then(() => {
-          })
-        .catch((error) => {
-          console.error('Service Worker registration failed:', error);
-        });
-    });
-  }
 }
 
 export function clearBadges() {

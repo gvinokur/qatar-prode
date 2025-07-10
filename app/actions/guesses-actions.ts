@@ -33,7 +33,7 @@ export async function updateOrCreateGameGuesses(gameGuesses: GameGuessNew[]) {
 
 export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew) {
   try {
-    return dbUpdateOrCreateTournamentGuess(guess)
+    return await dbUpdateOrCreateTournamentGuess(guess)
   } catch {
     return { success: false, error: 'Failed to update tournament guess' };
   }
