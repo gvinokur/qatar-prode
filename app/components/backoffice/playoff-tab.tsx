@@ -182,7 +182,7 @@ export default function PlayoffTab({ tournamentId } :Props) {
       >
         <CircularProgress color="inherit" />
       </Backdrop>
-      {!loading && playoffStages && playoffStages.map(playoffStage => (
+      {!loading && playoffStages?.map(playoffStage => (
         <Grid container spacing={1} key={playoffStage.id} size={12}>
           <Grid textAlign={'center'} m={3} size={12}>
             <Typography variant={'h5'}>{playoffStage.round_name}</Typography>

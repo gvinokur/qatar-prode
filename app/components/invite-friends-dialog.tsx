@@ -83,9 +83,13 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName }: Inv
 
   return (
     <>
-      <div onClick={handleOpen} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && handleOpen()}>
+      <button 
+        onClick={handleOpen} 
+        onKeyDown={(e) => e.key === 'Enter' && handleOpen()}
+        style={{ border: 'none', background: 'transparent', padding: 0, cursor: 'pointer' }}
+      >
         {trigger}
-      </div>
+      </button>
 
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>

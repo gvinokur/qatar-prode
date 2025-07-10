@@ -80,15 +80,15 @@ const checkCorrectOutcome = (
  * Checks special playoff penalty scenarios
  */
 const checkPlayoffPenaltyScenarios = (
-  gameHomeScore: number,
-  gameAwayScore: number,
+  gameScores: { homeScore: number; awayScore: number },
   gameGuess: GameGuessNew,
-  isPlayoff: boolean,
-  isTie: boolean,
-  guessTie: boolean,
-  homePenaltyWin: boolean,
-  awayPenaltyWin: boolean
+  gameFlags: { isPlayoff: boolean; isTie: boolean; guessTie: boolean },
+  penaltyFlags: { homePenaltyWin: boolean; awayPenaltyWin: boolean }
 ): number | null => {
+  const { isPlayoff, isTie, guessTie } = gameFlags;
+  const { homePenaltyWin, awayPenaltyWin } = penaltyFlags;
+  const { homeScore: gameHomeScore, awayScore: gameAwayScore } = gameScores;
+
   // Playoff game was tied, guess predicted the penalty winner
   if (isPlayoff && isTie &&
     (((homePenaltyWin && (gameGuess.home_penalty_winner || gameGuess.home_score! > gameGuess.away_score!)) ||
@@ -130,7 +130,10 @@ export const calculateScoreForGame = (game: ExtendedGameData, gameGuess: GameGue
 
   // Check special playoff penalty scenarios
   const penaltyScenario = checkPlayoffPenaltyScenarios(
-    gameHomeScore, gameAwayScore, gameGuess, isPlayoff, isTie, guessTie, homePenaltyWin, awayPenaltyWin
+    { homeScore: gameHomeScore, awayScore: gameAwayScore },
+    gameGuess,
+    { isPlayoff, isTie, guessTie },
+    { homePenaltyWin, awayPenaltyWin }
   );
   if (penaltyScenario !== null) return penaltyScenario;
 

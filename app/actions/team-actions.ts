@@ -146,7 +146,7 @@ export async function getPlayersInTournament(tournamentId: string): Promise<{tea
     playersWithTeams.forEach(playerWithTeam => {
       const { team, ...player } = playerWithTeam;
 
-      teamMap[team.id]?.players && teamMap[team.id]?.players.push(player);
+      teamMap[team.id]?.players?.push(player);
     });
 
     // Convert map to array

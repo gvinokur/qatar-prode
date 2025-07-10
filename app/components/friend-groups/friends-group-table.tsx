@@ -26,6 +26,54 @@ import PersonIcon from '@mui/icons-material/Person';
 import Tooltip from '@mui/material/Tooltip';
 import NotificationDialog from "./notification-dialog";
 
+interface AdminActionButtonProps {
+  member?: { id: string, nombre: string, is_admin?: boolean };
+  ownerId: string;
+  groupId: string;
+  userId: string;
+  loadingUserId: string | null;
+  onPromote: (groupId: string, userId: string) => void;
+  onDemote: (groupId: string, userId: string) => void;
+}
+
+function AdminActionButton({ 
+  member, 
+  ownerId, 
+  groupId, 
+  userId, 
+  loadingUserId, 
+  onPromote, 
+  onDemote 
+}: AdminActionButtonProps) {
+  if (member?.id === ownerId) return null;
+  
+  if (member?.is_admin) {
+    return (
+      <Button 
+        size="small" 
+        variant="outlined" 
+        color="secondary" 
+        onClick={() => onDemote(groupId, userId)} 
+        disabled={loadingUserId === userId}
+      >
+        {loadingUserId === userId ? 'Quitando...' : 'Quitar admin'}
+      </Button>
+    );
+  }
+  
+  return (
+    <Button 
+      size="small" 
+      variant="outlined" 
+      color="primary" 
+      onClick={() => onPromote(groupId, userId)} 
+      disabled={loadingUserId === userId}
+    >
+      {loadingUserId === userId ? 'Agregando...' : 'Hacer admin'}
+    </Button>
+  );
+}
+
 type Props = {
   users: {[k:string]: User},
   userScoresByTournament: {[k:string]: UserScore[]},
@@ -157,23 +205,15 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
                             {isNotExtraSmallScreen && <TableCell>{userScore.individualAwardsScore}</TableCell>}
                             {ownerId === loggedInUser && (
                               <TableCell>
-{(() => {
-                                  if (member?.id === ownerId) return <></>;
-                                  
-                                  if (member?.is_admin) {
-                                    return (
-                                      <Button size="small" variant="outlined" color="secondary" onClick={() => handleDemoteAdmin(groupId, userScore.userId)} disabled={loadingUserId === userScore.userId}>
-                                        {loadingUserId === userScore.userId ? 'Quitando...' : 'Quitar admin'}
-                                      </Button>
-                                    );
-                                  }
-                                  
-                                  return (
-                                    <Button size="small" variant="outlined" color="primary" onClick={() => handlePromoteAdmin(groupId, userScore.userId)} disabled={loadingUserId === userScore.userId}>
-                                      {loadingUserId === userScore.userId ? 'Agregando...' : 'Hacer admin'}
-                                    </Button>
-                                  );
-                                })()}
+                                <AdminActionButton 
+                                  member={member}
+                                  ownerId={ownerId}
+                                  groupId={groupId}
+                                  userId={userScore.userId}
+                                  loadingUserId={loadingUserId}
+                                  onPromote={handlePromoteAdmin}
+                                  onDemote={handleDemoteAdmin}
+                                />
                               </TableCell>
                             )}
                           </TableRow>
