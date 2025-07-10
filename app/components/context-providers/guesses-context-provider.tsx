@@ -1,6 +1,6 @@
 'use client'
 
-import React, {useCallback, useState} from "react";
+import React, {useCallback, useMemo, useState} from "react";
 import {
   Game,
   GameGuessNew,
@@ -45,45 +45,47 @@ export function GuessesContextProvider ({children,
     await updateOrCreateGameGuesses(Object.values(gameGuesses))
   }, [])
 
-  const context = {
-    gameGuesses,
-    guessedPositions,
-    updateGameGuess: async (gameId:string, gameGuess: GameGuessNew) => {
-      const newGameGuesses = {
-        ...gameGuesses,
-        [gameId]: gameGuess
-      }
-      setGameGuesses(newGameGuesses)
+  const updateGameGuess = useCallback(async (gameId:string, gameGuess: GameGuessNew) => {
+    const newGameGuesses = {
+      ...gameGuesses,
+      [gameId]: gameGuess
+    }
+    setGameGuesses(newGameGuesses)
+    if(autoSave) {
+      await autoSaveGameGuesses(newGameGuesses)
+    }
+    if(groupGames && guessedPositions.length >1) {
+      const user_id = guessedPositions[0].user_id
+      const tournament_group_id = guessedPositions[0].tournament_group_id
+      const teamIds = guessedPositions.map(position => position.team_id)
+      const guessedGroupPositions: TournamentGroupTeamStatsGuessNew[] = calculateGroupPosition(teamIds, groupGames.map(game => ({
+        ...game,
+        resultOrGuess: newGameGuesses[game.id]
+      })),
+        sortByGamesBetweenTeams).map((teamStat, index) => {
+        return {
+          user_id,
+          tournament_group_id,
+          position: index,
+          ...teamStat
+        }
+      })
+      setGuessedPositions(guessedGroupPositions)
       if(autoSave) {
-        await autoSaveGameGuesses(newGameGuesses)
-      }
-      if(groupGames && guessedPositions.length >1) {
-        const user_id = guessedPositions[0].user_id
-        const tournament_group_id = guessedPositions[0].tournament_group_id
-        const teamIds = guessedPositions.map(position => position.team_id)
-        const guessedGroupPositions: TournamentGroupTeamStatsGuessNew[] = calculateGroupPosition(teamIds, groupGames.map(game => ({
-          ...game,
-          resultOrGuess: newGameGuesses[game.id]
-        })),
-          sortByGamesBetweenTeams).map((teamStat, index) => {
-          return {
-            user_id,
-            tournament_group_id,
-            position: index,
-            ...teamStat
-          }
-        })
-        setGuessedPositions(guessedGroupPositions)
-        if(autoSave) {
-          await updateOrCreateTournamentGroupTeamGuesses(guessedGroupPositions)
-          if (groupCompleteReducer(guessedGroupPositions)) {
-            //TODO: this does not handle well the case where the group was complete and some result has been deleted
-            await updatePlayoffGameGuesses(groupGames[0].tournament_id)
-          }
+        await updateOrCreateTournamentGroupTeamGuesses(guessedGroupPositions)
+        if (groupCompleteReducer(guessedGroupPositions)) {
+          //TODO: this does not handle well the case where the group was complete and some result has been deleted
+          await updatePlayoffGameGuesses(groupGames[0].tournament_id)
         }
       }
     }
-  }
+  }, [gameGuesses, autoSave, autoSaveGameGuesses, groupGames, guessedPositions, sortByGamesBetweenTeams])
+
+  const context = useMemo(() => ({
+    gameGuesses,
+    guessedPositions,
+    updateGameGuess
+  }), [gameGuesses, guessedPositions, updateGameGuess])
 
   return (
     <GuessesContext.Provider value={context}>

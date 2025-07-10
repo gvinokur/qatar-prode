@@ -157,16 +157,23 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
                             {isNotExtraSmallScreen && <TableCell>{userScore.individualAwardsScore}</TableCell>}
                             {ownerId === loggedInUser && (
                               <TableCell>
-                                {member?.id === ownerId ? <></> :
-                                  member?.is_admin ? (
-                                    <Button size="small" variant="outlined" color="secondary" onClick={() => handleDemoteAdmin(groupId, userScore.userId)} disabled={loadingUserId === userScore.userId}>
-                                      {loadingUserId === userScore.userId ? 'Quitando...' : 'Quitar admin'}
-                                    </Button>
-                                  ) : (
+{(() => {
+                                  if (member?.id === ownerId) return <></>;
+                                  
+                                  if (member?.is_admin) {
+                                    return (
+                                      <Button size="small" variant="outlined" color="secondary" onClick={() => handleDemoteAdmin(groupId, userScore.userId)} disabled={loadingUserId === userScore.userId}>
+                                        {loadingUserId === userScore.userId ? 'Quitando...' : 'Quitar admin'}
+                                      </Button>
+                                    );
+                                  }
+                                  
+                                  return (
                                     <Button size="small" variant="outlined" color="primary" onClick={() => handlePromoteAdmin(groupId, userScore.userId)} disabled={loadingUserId === userScore.userId}>
                                       {loadingUserId === userScore.userId ? 'Agregando...' : 'Hacer admin'}
                                     </Button>
-                                  )}
+                                  );
+                                })()}
                               </TableCell>
                             )}
                           </TableRow>

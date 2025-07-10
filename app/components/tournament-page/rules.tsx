@@ -224,7 +224,7 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
           <List disablePadding>
             {constraints.map((constraint, index) => (
               <ListItem
-                key={index}
+                key={constraint.label}
                 alignItems='flex-start'
                 disableGutters
                 sx={{ flexDirection: 'column' }}
