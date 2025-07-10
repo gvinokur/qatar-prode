@@ -301,7 +301,7 @@ describe('TimezoneProvider', () => {
       expect(typeof contextValue.toggleTimezone).toBe('function');
     });
 
-    it('creates new toggleTimezone function on each render', () => {
+    it('memoizes toggleTimezone function between renders', () => {
       let contextValue1: any;
       let contextValue2: any;
       
@@ -322,7 +322,7 @@ describe('TimezoneProvider', () => {
         </TimezoneProvider>
       );
       
-      expect(contextValue1.toggleTimezone).not.toBe(contextValue2.toggleTimezone);
+      expect(contextValue1.toggleTimezone).toBe(contextValue2.toggleTimezone);
     });
   });
 
