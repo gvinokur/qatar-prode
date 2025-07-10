@@ -44,6 +44,10 @@ export default function UserSettingsDialog({ open, onClose }: UserSettingsDialog
 
     checkExistingSubscription().then(isSubscribed => {
       setValue('enableNotifications', isSubscribed)
+    }).catch(error => {
+      console.error('Failed to check existing subscription:', error);
+      // Default to false if we can't check the subscription
+      setValue('enableNotifications', false);
     });
 
   }, [setValue])
