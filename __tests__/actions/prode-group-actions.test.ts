@@ -255,7 +255,7 @@ describe('Prode Group Actions', () => {
         deleteFile: vi.fn().mockResolvedValue(undefined)
       } as any));
       const result = await updateTheme('group1', Object.entries(mockFormData));
-      expect(result).toBe('Image Upload failed');
+      expect(result).toBe('Image Upload failed. Please try again with a smaller file.');
     });
   });
 

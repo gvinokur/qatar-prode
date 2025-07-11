@@ -142,8 +142,15 @@ export async function updateTheme(groupId: string, formData: any) {
       const res = await s3.uploadFile(Buffer.from(await data.logo.arrayBuffer()));
       imageUrl = res.location
       imageKey = res.key
-    } catch {
-      return "Image Upload failed"
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      
+      // Check if error is related to body size limit
+      if (error instanceof Error && error.message.includes('Body exceeded')) {
+        return "Logo file is too large. Maximum file size allowed is 5MB. Please choose a smaller image file."
+      }
+      
+      return "Image Upload failed. Please try again with a smaller file."
     }
   }
 
