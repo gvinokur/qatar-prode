@@ -47,7 +47,13 @@ export async function createTeam(formData: FormData, tournamentId: string): Prom
       logoUrl = res.location;
     } catch (error) {
       console.error('Error uploading logo:', error);
-      throw new Error('Failed to upload team logo');
+      
+      // Check if error is related to body size limit
+      if (error instanceof Error && error.message.includes('Body exceeded')) {
+        throw new Error('Logo file is too large. Maximum file size allowed is 5MB. Please choose a smaller image file.');
+      }
+      
+      throw new Error('Failed to upload team logo. Please try again with a smaller file.');
     }
   }
 

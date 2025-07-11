@@ -197,10 +197,18 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
   };
 
   // Handle logo file selection
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
+  const handleLogoChange = (event: any) => {
+    // ImagePicker passes the file directly, not an event
+    if (event?.target?.files?.[0]) {
+      // From traditional file input
+      const file = event.target.files[0];
       setLogoFile(file);
+    } else if (event instanceof File) {
+      // From ImagePicker component
+      setLogoFile(event);
+    } else if (event === null || event === '') {
+      // Image was removed
+      setLogoFile(null);
     }
   };
 

@@ -158,48 +158,81 @@ export async function createOrUpdateTournament(
   tournamentFormData: any,
 ): Promise<Tournament> {
   // Check if user is admin
+  await validateAdminUser();
+  
+  const { tournamentData, logoFile } = parseFormData(tournamentFormData);
+  const existingTournament = await getExistingTournament(tournamentId);
+  
+  const { logoUrl, logoKey } = await handleLogoUpload(logoFile, existingTournament);
+  
+  const updatedTournamentData = prepareTournamentData(tournamentData, existingTournament, logoUrl, logoKey);
+  
+  const result = await saveOrUpdateTournament(tournamentId, updatedTournamentData);
+  
+  await cleanupOldLogo(existingTournament, logoFile, logoUrl);
+  
+  return result;
+}
+
+async function validateAdminUser(): Promise<void> {
   const user = await getLoggedInUser();
   if (!user?.isAdmin) {
     throw new Error('Unauthorized: Only administrators can manage tournaments');
   }
-  const data = Object.fromEntries(tournamentFormData)
-  const tournamentData = JSON.parse(data.tournament)
-  const logoFile = data.logo;
+}
 
-  let existingTournament: Tournament | null = null;
-  let existingLogoUrl: string | null = null;
-  let existingLogoKey: string | null = null;
+function parseFormData(formData: any): { tournamentData: any; logoFile: any } {
+  const data = Object.fromEntries(formData);
+  return {
+    tournamentData: JSON.parse(data.tournament),
+    logoFile: data.logo
+  };
+}
 
-  // If updating, get existing tournament
-  if (tournamentId) {
-    existingTournament = (await findTournamentById(tournamentId)) ?? null;
-    if (!existingTournament) {
-      throw new Error('Tournament not found');
-    }
-
-    // Extract existing logo URL and key if present
-    existingLogoUrl = existingTournament.theme?.logo || null;
-    existingLogoKey = existingTournament.theme?.s3_logo_key || getS3KeyFromURL(existingLogoUrl || '');
-    }
-
-  // Handle logo upload if provided
-  let logoUrl = existingLogoUrl;
-  let logoKey = existingLogoKey;
-  if (logoFile) {
-    try {
-      // Create S3 client and upload to S3
-      const s3Client = createS3Client('tournament-logos');
-      const res = await s3Client.uploadFile(Buffer.from(await logoFile.arrayBuffer()));
-      logoUrl = res.location
-      logoKey = res.key;
-      } catch (error) {
-      console.error('Error uploading logo:', error);
-      throw new Error('Failed to upload logo');
-    }
+async function getExistingTournament(tournamentId: string | null): Promise<Tournament | null> {
+  if (!tournamentId) return null;
+  
+  const tournament = await findTournamentById(tournamentId);
+  if (!tournament) {
+    throw new Error('Tournament not found');
   }
+  
+  return tournament;
+}
 
-  // Prepare tournament data with updated theme
-  const updatedTournamentData = {
+async function handleLogoUpload(logoFile: any, existingTournament: Tournament | null): Promise<{ logoUrl: string | null; logoKey: string | null }> {
+  if (!logoFile) {
+    return {
+      logoUrl: existingTournament?.theme?.logo || null,
+      logoKey: existingTournament?.theme?.s3_logo_key || null
+    };
+  }
+  
+  try {
+    const s3Client = createS3Client('tournament-logos');
+    const res = await s3Client.uploadFile(Buffer.from(await logoFile.arrayBuffer()));
+    return {
+      logoUrl: res.location,
+      logoKey: res.key
+    };
+  } catch (error) {
+    console.error('Error uploading logo:', error);
+    
+    if (error instanceof Error && error.message.includes('Body exceeded')) {
+      throw new Error('Logo file is too large. Maximum file size allowed is 5MB. Please choose a smaller image file.');
+    }
+    
+    throw new Error('Failed to upload logo. Please try again with a smaller file.');
+  }
+}
+
+function prepareTournamentData(
+  tournamentData: any,
+  existingTournament: Tournament | null,
+  logoUrl: string | null,
+  logoKey: string | null
+): any {
+  return {
     ...tournamentData,
     theme: {
       ...(tournamentData.theme),
@@ -209,28 +242,29 @@ export async function createOrUpdateTournament(
       is_s3_logo: true
     }
   };
+}
 
-  // Create or update tournament
-  let result: Tournament;
+async function saveOrUpdateTournament(tournamentId: string | null, tournamentData: any): Promise<Tournament> {
   if (tournamentId) {
-    result = await updateTournament(tournamentId, updatedTournamentData);
-  } else {
-    // For new tournaments, use the create function
-    result = await createTournament(updatedTournamentData as TournamentNew);
+    return await updateTournament(tournamentId, tournamentData);
   }
+  return await createTournament(tournamentData as TournamentNew);
+}
 
-  // Delete old logo if a new one was uploaded
-  if (existingLogoKey && logoFile && logoUrl !== existingLogoUrl) {
+async function cleanupOldLogo(existingTournament: Tournament | null, logoFile: any, newLogoUrl: string | null): Promise<void> {
+  if (!existingTournament || !logoFile) return;
+  
+  const existingLogoKey = existingTournament.theme?.s3_logo_key || getS3KeyFromURL(existingTournament.theme?.logo || '');
+  const existingLogoUrl = existingTournament.theme?.logo;
+  
+  if (existingLogoKey && newLogoUrl !== existingLogoUrl) {
     try {
       const s3Client = createS3Client('tournament-logos');
       await s3Client.deleteFile(existingLogoKey);
-      } catch (error) {
-      // Log but don't fail the operation if old logo deletion fails
+    } catch (error) {
       console.error('Error deleting old logo:', error);
     }
   }
-
-  return result;
 }
 
 export async function getTournamentById(tournamentId: string) {

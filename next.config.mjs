@@ -18,6 +18,9 @@ const nextConfig = {
     reactStrictMode: true,
     experimental: {
         viewTransition: true,
+        serverActions: {
+            bodySizeLimit: '5mb'
+        }
     }
 };
 
