@@ -199,7 +199,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
   // Handle logo file selection
   const handleLogoChange = (event: any) => {
     // ImagePicker passes the file directly, not an event
-    if (event && event.target && event.target.files && event.target.files[0]) {
+    if (event?.target?.files?.[0]) {
       // From traditional file input
       const file = event.target.files[0];
       setLogoFile(file);
