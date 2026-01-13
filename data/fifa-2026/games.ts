@@ -310,229 +310,229 @@ export const games = [
   // Game 73: 2A vs 2B - Sunday, June 28 - 14:00 CT - Los Angeles
   game(
     73, 2026, 5, 28, 14, 0, Venues.LA, null, null, undefined, 'Round of 32',
-    { type: 'group_position', group: 'A', position: 2 },
-    { type: 'group_position', group: 'B', position: 2 }
+    { group: 'A', position: 2 },
+    { group: 'B', position: 2 }
   ),
 
   // Game 74: 1C vs 2F - Monday, June 29 - 12:00 CT - Houston
   game(
     74, 2026, 5, 29, 12, 0, Venues.HOU, null, null, undefined, 'Round of 32',
-    { type: 'group_position', group: 'C', position: 1 },
-    { type: 'group_position', group: 'F', position: 2 }
+    { group: 'C', position: 1 },
+    { group: 'F', position: 2 }
   ),
 
   // Game 75: 1E vs 3ABCDF - Monday, June 29 - 15:30 CT - Boston
   game(
     75, 2026, 5, 29, 15, 30, Venues.BOS, null, null, undefined, 'Round of 32',
-    { type: 'group_position', group: 'E', position: 1 },
-    { type: 'third_place', groups: ['A', 'B', 'C', 'D', 'F'] }
+    { group: 'E', position: 1 },
+    { group: 'ABCDF', position: 3 }
   ),
 
   // Game 76: 1F vs 2C - Monday, June 29 - 20:00 CT - Monterrey
   game(
     76, 2026, 5, 29, 20, 0, Venues.MTY, null, null, undefined, 'Round of 32',
-    { type: 'group_position', group: 'F', position: 1 },
-    { type: 'group_position', group: 'C', position: 2 }
+    { group: 'F', position: 1 },
+    { group: 'C', position: 2 }
   ),
 
   // Game 77: 2E vs 2I - Tuesday, June 30 - 12:00 CT - Dallas
   game(
     77, 2026, 5, 30, 12, 0, Venues.DAL, null, null, undefined, 'Round of 32',
-    { type: 'group_position', group: 'E', position: 2 },
-    { type: 'group_position', group: 'I', position: 2 }
+    { group: 'E', position: 2 },
+    { group: 'I', position: 2 }
   ),
 
   // Game 78: 1I vs 3CDFGH - Tuesday, June 30 - 16:00 CT - New York/New Jersey
   game(
     78, 2026, 5, 30, 16, 0, Venues.NYC, null, null, undefined, 'Round of 32',
-    { type: 'group_position', group: 'I', position: 1 },
-    { type: 'third_place', groups: ['C', 'D', 'F', 'G', 'H'] }
+    { group: 'I', position: 1 },
+    { group: 'CDFGH', position: 3 }
   ),
 
   // Game 79: 1A vs 3CEFHI - Tuesday, June 30 - 20:00 CT - Mexico City
   game(
     79, 2026, 5, 30, 20, 0, Venues.MEX, null, null, undefined, 'Round of 32',
-    { type: 'group_position', group: 'A', position: 1 },
-    { type: 'third_place', groups: ['C', 'E', 'F', 'H', 'I'] }
+    { group: 'A', position: 1 },
+    { group: 'CEFHI', position: 3 }
   ),
 
   // Game 80: 1L vs 3EHIJK - Wednesday, July 1 - 11:00 CT - Atlanta
   game(
     80, 2026, 6, 1, 11, 0, Venues.ATL, null, null, undefined, 'Round of 32',
-    { type: 'group_position', group: 'L', position: 1 },
-    { type: 'third_place', groups: ['E', 'H', 'I', 'J', 'K'] }
+    { group: 'L', position: 1 },
+    { group: 'EHIJK', position: 3 }
   ),
 
   // Game 81: 1G vs 3AEHIJ - Wednesday, July 1 - 15:00 CT - Seattle
   game(
     81, 2026, 6, 1, 15, 0, Venues.SEA, null, null, undefined, 'Round of 32',
-    { type: 'group_position', group: 'G', position: 1 },
-    { type: 'third_place', groups: ['A', 'E', 'H', 'I', 'J'] }
+    { group: 'G', position: 1 },
+    { group: 'AEHIJ', position: 3 }
   ),
 
   // Game 82: 1D vs 3BEFIJ - Wednesday, July 1 - 19:00 CT - San Francisco Bay Area
   game(
     82, 2026, 6, 1, 19, 0, Venues.SF, null, null, undefined, 'Round of 32',
-    { type: 'group_position', group: 'D', position: 1 },
-    { type: 'third_place', groups: ['B', 'E', 'F', 'I', 'J'] }
+    { group: 'D', position: 1 },
+    { group: 'BEFIJ', position: 3 }
   ),
 
   // Game 83: 1H vs 2J - Thursday, July 2 - 14:00 CT - Los Angeles
   game(
     83, 2026, 6, 2, 14, 0, Venues.LA, null, null, undefined, 'Round of 32',
-    { type: 'group_position', group: 'H', position: 1 },
-    { type: 'group_position', group: 'J', position: 2 }
+    { group: 'H', position: 1 },
+    { group: 'J', position: 2 }
   ),
 
   // Game 84: 2K vs 2L - Thursday, July 2 - 18:00 CT - Toronto
   game(
     84, 2026, 6, 2, 18, 0, Venues.TOR, null, null, undefined, 'Round of 32',
-    { type: 'group_position', group: 'K', position: 2 },
-    { type: 'group_position', group: 'L', position: 2 }
+    { group: 'K', position: 2 },
+    { group: 'L', position: 2 }
   ),
 
   // Game 85: 1B vs 3EFGIJ - Thursday, July 2 - 22:00 CT - Vancouver
   game(
     85, 2026, 6, 2, 22, 0, Venues.VAN, null, null, undefined, 'Round of 32',
-    { type: 'group_position', group: 'B', position: 1 },
-    { type: 'third_place', groups: ['E', 'F', 'G', 'I', 'J'] }
+    { group: 'B', position: 1 },
+    { group: 'EFGIJ', position: 3 }
   ),
 
   // Game 86: 2D vs 2G - Friday, July 3 - 13:00 CT - Dallas
   game(
     86, 2026, 6, 3, 13, 0, Venues.DAL, null, null, undefined, 'Round of 32',
-    { type: 'group_position', group: 'D', position: 2 },
-    { type: 'group_position', group: 'G', position: 2 }
+    { group: 'D', position: 2 },
+    { group: 'G', position: 2 }
   ),
 
   // Game 87: 1J vs 2H - Friday, July 3 - 17:00 CT - Miami
   game(
     87, 2026, 6, 3, 17, 0, Venues.MIA, null, null, undefined, 'Round of 32',
-    { type: 'group_position', group: 'J', position: 1 },
-    { type: 'group_position', group: 'H', position: 2 }
+    { group: 'J', position: 1 },
+    { group: 'H', position: 2 }
   ),
 
   // Game 88: 1K vs 3DEIJL - Friday, July 3 - 20:30 CT - Kansas City
   game(
     88, 2026, 6, 3, 20, 30, Venues.KC, null, null, undefined, 'Round of 32',
-    { type: 'group_position', group: 'K', position: 1 },
-    { type: 'third_place', groups: ['D', 'E', 'I', 'J', 'L'] }
+    { group: 'K', position: 1 },
+    { group: 'DEIJL', position: 3 }
   ),
 
   // ========== ROUND OF 16 - July 4-7, 2026 ==========
   // Game 89: W73 vs W75 - Saturday, July 4 - 12:00 CT - Houston
   game(
     89, 2026, 6, 4, 12, 0, Venues.HOU, null, null, undefined, 'Round of 16',
-    { type: 'winner', game_number: 73 },
-    { type: 'winner', game_number: 75 }
+    { game: 73, winner: true },
+    { game: 75, winner: true }
   ),
 
   // Game 90: W74 vs W77 - Saturday, July 4 - 16:00 CT - Philadelphia
   game(
     90, 2026, 6, 4, 16, 0, Venues.PHI, null, null, undefined, 'Round of 16',
-    { type: 'winner', game_number: 74 },
-    { type: 'winner', game_number: 77 }
+    { game: 74, winner: true },
+    { game: 77, winner: true }
   ),
 
   // Game 91: W76 vs W78 - Sunday, July 5 - 15:00 CT - New York/New Jersey
   game(
     91, 2026, 6, 5, 15, 0, Venues.NYC, null, null, undefined, 'Round of 16',
-    { type: 'winner', game_number: 76 },
-    { type: 'winner', game_number: 78 }
+    { game: 76, winner: true },
+    { game: 78, winner: true }
   ),
 
   // Game 92: W79 vs W80 - Sunday, July 5 - 19:00 CT - Mexico City
   game(
     92, 2026, 6, 5, 19, 0, Venues.MEX, null, null, undefined, 'Round of 16',
-    { type: 'winner', game_number: 79 },
-    { type: 'winner', game_number: 80 }
+    { game: 79, winner: true },
+    { game: 80, winner: true }
   ),
 
   // Game 93: W83 vs W84 - Monday, July 6 - 14:00 CT - Dallas
   game(
     93, 2026, 6, 6, 14, 0, Venues.DAL, null, null, undefined, 'Round of 16',
-    { type: 'winner', game_number: 83 },
-    { type: 'winner', game_number: 84 }
+    { game: 83, winner: true },
+    { game: 84, winner: true }
   ),
 
   // Game 94: W81 vs W82 - Monday, July 6 - 19:00 CT - Seattle
   game(
     94, 2026, 6, 6, 19, 0, Venues.SEA, null, null, undefined, 'Round of 16',
-    { type: 'winner', game_number: 81 },
-    { type: 'winner', game_number: 82 }
+    { game: 81, winner: true },
+    { game: 82, winner: true }
   ),
 
   // Game 95: W86 vs W88 - Tuesday, July 7 - 11:00 CT - Atlanta
   game(
     95, 2026, 6, 7, 11, 0, Venues.ATL, null, null, undefined, 'Round of 16',
-    { type: 'winner', game_number: 86 },
-    { type: 'winner', game_number: 88 }
+    { game: 86, winner: true },
+    { game: 88, winner: true }
   ),
 
   // Game 96: W85 vs W87 - Tuesday, July 7 - 15:00 CT - Vancouver
   game(
     96, 2026, 6, 7, 15, 0, Venues.VAN, null, null, undefined, 'Round of 16',
-    { type: 'winner', game_number: 85 },
-    { type: 'winner', game_number: 87 }
+    { game: 85, winner: true },
+    { game: 87, winner: true }
   ),
 
   // ========== QUARTER-FINALS - July 9-11, 2026 ==========
   // Game 97: W89 vs W90 - Thursday, July 9 - 15:00 CT - Boston
   game(
     97, 2026, 6, 9, 15, 0, Venues.BOS, null, null, undefined, 'Quarter-finals',
-    { type: 'winner', game_number: 89 },
-    { type: 'winner', game_number: 90 }
+    { game: 89, winner: true },
+    { game: 90, winner: true }
   ),
 
   // Game 98: W93 vs W94 - Friday, July 10 - 14:00 CT - Los Angeles
   game(
     98, 2026, 6, 10, 14, 0, Venues.LA, null, null, undefined, 'Quarter-finals',
-    { type: 'winner', game_number: 93 },
-    { type: 'winner', game_number: 94 }
+    { game: 93, winner: true },
+    { game: 94, winner: true }
   ),
 
   // Game 99: W91 vs W92 - Saturday, July 11 - 16:00 CT - Miami
   game(
     99, 2026, 6, 11, 16, 0, Venues.MIA, null, null, undefined, 'Quarter-finals',
-    { type: 'winner', game_number: 91 },
-    { type: 'winner', game_number: 92 }
+    { game: 91, winner: true },
+    { game: 92, winner: true }
   ),
 
   // Game 100: W95 vs W96 - Saturday, July 11 - 20:00 CT - Kansas City
   game(
     100, 2026, 6, 11, 20, 0, Venues.KC, null, null, undefined, 'Quarter-finals',
-    { type: 'winner', game_number: 95 },
-    { type: 'winner', game_number: 96 }
+    { game: 95, winner: true },
+    { game: 96, winner: true }
   ),
 
   // ========== SEMI-FINALS - July 14-15, 2026 ==========
   // Game 101: W97 vs W98 - Tuesday, July 14 - 14:00 CT - Dallas
   game(
     101, 2026, 6, 14, 14, 0, Venues.DAL, null, null, undefined, 'Semi-finals',
-    { type: 'winner', game_number: 97 },
-    { type: 'winner', game_number: 98 }
+    { game: 97, winner: true },
+    { game: 98, winner: true }
   ),
 
   // Game 102: W99 vs W100 - Wednesday, July 15 - 14:00 CT - Atlanta
   game(
     102, 2026, 6, 15, 14, 0, Venues.ATL, null, null, undefined, 'Semi-finals',
-    { type: 'winner', game_number: 99 },
-    { type: 'winner', game_number: 100 }
+    { game: 99, winner: true },
+    { game: 100, winner: true }
   ),
 
   // ========== THIRD PLACE PLAYOFF - July 18, 2026 ==========
   // Game 103: Loser 101 vs Loser 102 - Saturday, July 18 - 16:00 CT - Miami
   game(
     103, 2026, 6, 18, 16, 0, Venues.MIA, null, null, undefined, 'Third Place',
-    { type: 'loser', game_number: 101 },
-    { type: 'loser', game_number: 102 }
+    { game: 101, winner: false },
+    { game: 102, winner: false }
   ),
 
   // ========== FINAL - July 19, 2026 ==========
   // Game 104: W101 vs W102 - Sunday, July 19 - 14:00 CT - New York/New Jersey
   game(
     104, 2026, 6, 19, 14, 0, Venues.NYC, null, null, undefined, 'Final',
-    { type: 'winner', game_number: 101 },
-    { type: 'winner', game_number: 102 }
+    { game: 101, winner: true },
+    { game: 102, winner: true }
   ),
 ];
