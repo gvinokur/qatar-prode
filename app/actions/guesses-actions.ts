@@ -61,7 +61,8 @@ export async function updatePlayoffGameGuesses(tournamentId: string, user?: User
       ])
     ))
 
-  const playoffTeamsByGuess = calculatePlayoffTeamsFromPositions(
+  const playoffTeamsByGuess = await calculatePlayoffTeamsFromPositions(
+    tournamentId,
     playoffStages[0],
     gamesMap,
     guessedPositionsByGroup)

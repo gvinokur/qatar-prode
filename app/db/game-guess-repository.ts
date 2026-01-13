@@ -185,3 +185,80 @@ export async function deleteAllGameGuessesByTournamentId(tournamentId: string) {
   const gameIds = db.selectFrom('games').select('id').where('tournament_id', '=', tournamentId);
   return db.deleteFrom(tableName).where('game_id', 'in', gameIds).execute();
 }
+
+/**
+ * Update game guess with calculated score and boost
+ */
+export async function updateGameGuessWithBoost(
+  guessId: string,
+  baseScore: number,
+  boostType: 'silver' | 'golden' | null
+): Promise<GameGuess> {
+  const boostMultiplier = boostType === 'golden' ? 3.0 : boostType === 'silver' ? 2.0 : 1.0;
+  const finalScore = Math.round(baseScore * boostMultiplier);
+
+  return db
+    .updateTable(tableName)
+    .set({
+      score: baseScore,
+      boost_multiplier: boostMultiplier,
+      final_score: finalScore,
+    })
+    .where('id', '=', guessId)
+    .returningAll()
+    .executeTakeFirstOrThrow();
+}
+
+/**
+ * Set boost type for a game guess
+ */
+export async function setGameGuessBoost(
+  userId: string,
+  gameId: string,
+  boostType: 'silver' | 'golden' | null
+): Promise<GameGuess> {
+  return db
+    .updateTable(tableName)
+    .set({ boost_type: boostType })
+    .where('user_id', '=', userId)
+    .where('game_id', '=', gameId)
+    .returningAll()
+    .executeTakeFirstOrThrow();
+}
+
+/**
+ * Count user's boosts by type for tournament
+ */
+export async function countUserBoostsByType(
+  userId: string,
+  tournamentId: string
+): Promise<{ silver: number; golden: number }> {
+  const result = await db
+    .selectFrom(tableName)
+    .innerJoin('games', 'games.id', 'game_guesses.game_id')
+    .where('game_guesses.user_id', '=', userId)
+    .where('games.tournament_id', '=', tournamentId)
+    .where('game_guesses.boost_type', 'is not', null)
+    .select(['game_guesses.boost_type'])
+    .execute();
+
+  return {
+    silver: result.filter(r => r.boost_type === 'silver').length,
+    golden: result.filter(r => r.boost_type === 'golden').length,
+  };
+}
+
+/**
+ * Get game guess with boost info (for a specific user/game)
+ */
+export async function getGameGuessWithBoost(
+  userId: string,
+  gameId: string
+): Promise<GameGuess | undefined> {
+  return db
+    .selectFrom(tableName)
+    .where('user_id', '=', userId)
+    .where('game_id', '=', gameId)
+    .selectAll()
+    .executeTakeFirst();
+}

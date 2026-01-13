@@ -167,6 +167,7 @@ vi.mock('../../app/db/game-guess-repository', () => ({
   findAllGuessesForGamesWithResultsInDraft: vi.fn(),
   findGameGuessesByUserId: vi.fn(),
   updateGameGuess: vi.fn(),
+  updateGameGuessWithBoost: vi.fn(),
   deleteAllGameGuessesByTournamentId: vi.fn(),
 }));
 
@@ -305,6 +306,7 @@ const mockFindAllTournamentGroupTeamGuessInGroup = vi.mocked(tournamentGroupTeam
 
 const mockFindGameGuessesByUserId = vi.mocked(gameGuessRepository.findGameGuessesByUserId);
 const mockUpdateGameGuess = vi.mocked(gameGuessRepository.updateGameGuess);
+const mockUpdateGameGuessWithBoost = vi.mocked(gameGuessRepository.updateGameGuessWithBoost);
 const mockFindAllGuessesForGamesWithResultsInDraft = vi.mocked(gameGuessRepository.findAllGuessesForGamesWithResultsInDraft);
 
 const mockFindTournamentGuessByTournament = vi.mocked(tournamentGuessRepository.findTournamentGuessByTournament);
@@ -805,27 +807,31 @@ describe('Backoffice Actions', () => {
 
   describe('calculateGameScores', () => {
     beforeEach(() => {
+      mockFindTournamentById.mockResolvedValue(mockTournament);
       mockFindAllGamesWithPublishedResultsAndGameGuesses.mockResolvedValue([
         {
           ...mockGame,
           gameResult: mockGameResult,
-          gameGuesses: [{ id: 'guess1', game_number: 1, home_team: 'team1', away_team: 'team2', game_id: 'game1', home_score: 1, away_score: 2, user_id: 'user1', home_penalty_winner: false, away_penalty_winner: false, score: 1 }]
+          gameGuesses: [{ id: 'guess1', game_number: 1, home_team: 'team1', away_team: 'team2', game_id: 'game1', home_score: 1, away_score: 2, user_id: 'user1', home_penalty_winner: false, away_penalty_winner: false, score: 1, boost_type: null }]
         }
       ]);
       mockFindAllGuessesForGamesWithResultsInDraft.mockResolvedValue([
         { id: 'guess2', game_id: 'game2', game_number: 2, user_id: 'user2', home_team: 'team3', away_team: 'team4', home_score: 2, away_score: 1, home_penalty_winner: false, away_penalty_winner: false, score: 5 }
       ]);
       mockCalculateScoreForGame.mockReturnValue(2);
+      mockUpdateGameGuessWithBoost.mockResolvedValue({ id: 'guess1', game_number: 1, home_team: 'team1', away_team: 'team2', game_id: 'game1', home_score: 1, away_score: 2, user_id: 'user1', home_penalty_winner: false, away_penalty_winner: false, score: 2, boost_type: null, boost_multiplier: 1.0, final_score: 2 });
     });
 
     it('calculates and updates game scores', async () => {
       const result = await calculateGameScores(false, false);
 
       expect(mockCalculateScoreForGame).toHaveBeenCalled();
-      expect(mockUpdateGameGuess).toHaveBeenCalledWith('guess1', { score: 2 });
+      expect(mockUpdateGameGuessWithBoost).toHaveBeenCalledWith('guess1', 2, null);
       expect(mockUpdateGameGuess).toHaveBeenCalledWith('guess2', { score: null });
-      expect(result).toHaveProperty('updatedGameGuesses');
-      expect(result).toHaveProperty('cleanedGameGuesses');
+      expect(result).toEqual({
+        updatedGameGuesses: expect.arrayContaining([expect.arrayContaining([expect.any(Object)])]),
+        cleanedGameGuesses: expect.any(Array)
+      });
     });
 
     it('handles force drafts parameter', async () => {
@@ -926,6 +932,7 @@ describe('Backoffice Actions', () => {
     };
 
     beforeEach(() => {
+      mockFindTournamentById.mockResolvedValue(mockTournament);
       mockUpdateTournament.mockResolvedValue(mockTournament);
       mockFindTournamentGuessByTournament.mockResolvedValue([
         { 
@@ -1009,6 +1016,7 @@ describe('Backoffice Actions', () => {
     };
 
     beforeEach(() => {
+      mockFindTournamentById.mockResolvedValue(mockTournament);
       mockUpdateTournament.mockResolvedValue(mockTournament);
       mockFindTournamentGuessByTournament.mockResolvedValue([
         {
@@ -1161,6 +1169,10 @@ describe('Backoffice Actions', () => {
 
   describe('calculateAndStoreGroupPositionScores', () => {
     beforeEach(() => {
+      mockFindTournamentById.mockResolvedValue(mockTournament);
+      mockFindQualifiedTeams.mockResolvedValue([
+        { id: 'team1', name: 'Team A', short_name: 'TA', theme: null }
+      ]);
       mockFindGroupsInTournament.mockResolvedValue([{ id: 'group1', tournament_id: 'tournament1', group_letter: 'A', sort_by_games_between_teams: false }]);
       mockFindTeamsInGroup.mockResolvedValue([
         { id: 'teamgroup1', team_id: 'team1', position: 1, tournament_group_id: 'group1', games_played: 3, points: 6, win: 2, draw: 0, loss: 1, goals_for: 4, goals_against: 2, goal_difference: 2, is_complete: true },
@@ -1170,29 +1182,32 @@ describe('Backoffice Actions', () => {
         { id: 'guess1', user_id: 'user1', team_id: 'team1', position: 1, tournament_group_id: 'group1', games_played: 3, points: 6, win: 2, draw: 0, loss: 1, goals_for: 4, goals_against: 2, goal_difference: 2, is_complete: true },
         { id: 'guess2', user_id: 'user1', team_id: 'team2', position: 3, tournament_group_id: 'group1', games_played: 3, points: 3, win: 1, draw: 0, loss: 2, goals_for: 2, goals_against: 4, goal_difference: -2, is_complete: true }
       ]);
-      mockUpdateTournamentGuessByUserIdTournament.mockResolvedValue({ 
-        id: 'guess1', 
-        tournament_id: 'tournament1', 
-        user_id: 'user1', 
-        champion_team_id: null, 
-        runner_up_team_id: null, 
-        third_place_team_id: null, 
-        best_player_id: undefined, 
-        top_goalscorer_player_id: undefined, 
-        best_goalkeeper_player_id: undefined, 
-        best_young_player_id: undefined, 
-        honor_roll_score: undefined, 
-        individual_awards_score: undefined, 
-        qualified_teams_score: undefined, 
-        group_position_score: undefined 
+      mockUpdateTournamentGuessByUserIdTournament.mockResolvedValue({
+        id: 'guess1',
+        tournament_id: 'tournament1',
+        user_id: 'user1',
+        champion_team_id: null,
+        runner_up_team_id: null,
+        third_place_team_id: null,
+        best_player_id: undefined,
+        top_goalscorer_player_id: undefined,
+        best_goalkeeper_player_id: undefined,
+        best_young_player_id: undefined,
+        honor_roll_score: undefined,
+        individual_awards_score: undefined,
+        qualified_teams_score: undefined,
+        group_position_score: undefined
       });
     });
 
     it('calculates group position scores correctly', async () => {
       await calculateAndStoreGroupPositionScores('tournament1');
 
+      // With new qualification-aware logic:
+      // team1: qualified (in qualifiedTeams) + position 1 matches = 1 point (exact_position_qualified_points default is 1)
+      // team2: NOT qualified (not in qualifiedTeams) + position doesn't match = 0 points
       expect(mockUpdateTournamentGuessByUserIdTournament).toHaveBeenCalledWith('user1', 'tournament1', {
-        group_position_score: 1 // Only team1 position matches
+        group_position_score: 1
       });
     });
 
@@ -1283,11 +1298,12 @@ describe('Backoffice Actions', () => {
 
       const awardsResult = await findDataForAwards('tournament1');
       const groupsResult = await getGroupDataWithGamesAndTeams('tournament1');
-      const scoresResult = await updateTournamentAwards('tournament1', {});
 
       expect(awardsResult.tournamentUpdate).toEqual({});
       expect(groupsResult).toEqual([]);
-      expect(scoresResult).toEqual([]);
+
+      // updateTournamentAwards now throws when tournament not found
+      await expect(updateTournamentAwards('tournament1', {})).rejects.toThrow('Tournament tournament1 not found');
     });
 
     it('handles empty arrays in calculations', async () => {

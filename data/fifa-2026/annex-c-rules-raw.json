@@ -1,0 +1,6437 @@
+[
+  {
+    "combination": "EFGHIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "I",
+      "1E": "F",
+      "1G": "H",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "DFGHIJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "I",
+      "1E": "D",
+      "1G": "J",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "DEGHIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "I",
+      "1E": "D",
+      "1G": "H",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "DEFHIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "I",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "DEFGIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "I",
+      "1E": "D",
+      "1G": "J",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "DEFGHJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "DEFGHIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "I",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "DEFGHIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "DEFGHIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CFGHIJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "I",
+      "1E": "C",
+      "1G": "J",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CEGHIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "I",
+      "1E": "C",
+      "1G": "H",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CEFHIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "I",
+      "1E": "C",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CEFGIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "I",
+      "1E": "C",
+      "1G": "J",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CEFGHJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CEFGHIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "I",
+      "1E": "C",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CEFGHIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "CEFGHIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "H",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CDGHIJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "I",
+      "1E": "C",
+      "1G": "J",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CDFHIJKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "I",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CDFGIJKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "I",
+      "1E": "D",
+      "1G": "J",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CDFGHJKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CDFGHIKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "I",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CDFGHIJL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "CDFGHIJK",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CDEHIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "I",
+      "1E": "C",
+      "1G": "H",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CDEGIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "I",
+      "1E": "C",
+      "1G": "J",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CDEGHJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "H",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CDEGHIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "I",
+      "1E": "C",
+      "1G": "H",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CDEGHIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "H",
+      "1I": "D",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "CDEGHIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "H",
+      "1I": "D",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CDEFIJKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "E",
+      "1E": "D",
+      "1G": "I",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CDEFHJKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "E",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CDEFHIKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "E",
+      "1D": "I",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CDEFHIJL",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "E",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "CDEFHIJK",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "E",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CDEFGJKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "E",
+      "1E": "D",
+      "1G": "J",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CDEFGIKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "E",
+      "1E": "D",
+      "1G": "I",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CDEFGIJL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "E",
+      "1E": "D",
+      "1G": "J",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "CDEFGIJK",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "E",
+      "1E": "D",
+      "1G": "J",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CDEFGHKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "E",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CDEFGHJL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "CDEFGHJK",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "E",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CDEFGHIL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "E",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "CDEFGHIK",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "E",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "CDEFGHIJ",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "E",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BFGHIJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "F",
+      "1G": "I",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BEGHIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "I",
+      "1E": "B",
+      "1G": "H",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BEFHIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "F",
+      "1G": "I",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BEFGIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "F",
+      "1G": "I",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BEFGHJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "F",
+      "1G": "H",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BEFGHIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "F",
+      "1G": "I",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BEFGHIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "F",
+      "1G": "H",
+      "1I": "G",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BEFGHIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "F",
+      "1G": "H",
+      "1I": "G",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BDGHIJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "I",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BDFHIJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "I",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BDFGIJKL",
+    "matchups": {
+      "1A": "I",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "J",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BDFGHJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "J",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BDFGHIKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "I",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BDFGHIJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "J",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BDFGHIJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "J",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BDEHIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "I",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BDEGIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "I",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BDEGHJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BDEGHIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "I",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BDEGHIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "G",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BDEGHIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "G",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BDEFIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "I",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BDEFHJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BDEFHIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "I",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BDEFHIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BDEFHIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BDEFGJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "J",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BDEFGIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "I",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BDEFGIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "J",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BDEFGIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "J",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BDEFGHKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BDEFGHJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "J",
+      "1I": "F",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "BDEFGHJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "J",
+      "1I": "F",
+      "1K": "E",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BDEFGHIL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BDEFGHIK",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BDEFGHIJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "J",
+      "1I": "F",
+      "1K": "E",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BCGHIJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "I",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCFHIJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "I",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCFGIJKL",
+    "matchups": {
+      "1A": "I",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "J",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCFGHJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "J",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCFGHIKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "I",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCFGHIJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "J",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BCFGHIJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "J",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCEHIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "I",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCEGIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "I",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCEGHJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "H",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCEGHIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "I",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCEGHIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "H",
+      "1I": "G",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BCEGHIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "H",
+      "1I": "G",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCEFIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "I",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCEFHJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCEFHIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "I",
+      "1D": "B",
+      "1E": "C",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCEFHIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BCEFHIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "H",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCEFGJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "J",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCEFGIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "I",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCEFGIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "J",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BCEFGIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "J",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCEFGHKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCEFGHJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "J",
+      "1I": "F",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "BCEFGHJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "J",
+      "1I": "F",
+      "1K": "E",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCEFGHIL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BCEFGHIK",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "H",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCEFGHIJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "J",
+      "1I": "F",
+      "1K": "E",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BCDHIJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "I",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDGIJKL",
+    "matchups": {
+      "1A": "I",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "J",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDGHJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "J",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDGHIKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "I",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDGHIJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "J",
+      "1I": "D",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BCDGHIJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "J",
+      "1I": "D",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDFIJKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "I",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDFHJKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDFHIKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "I",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDFHIJL",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BCDFHIJK",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDFGJKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "J",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDFGIKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "I",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDFGIJL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "J",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BCDFGIJK",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "J",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDFGHKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDFGHJL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "J"
+    }
+  },
+  {
+    "combination": "BCDFGHJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "J",
+      "1I": "F",
+      "1K": "D",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDFGHIL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BCDFGHIK",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDFGHIJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "J",
+      "1I": "F",
+      "1K": "D",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BCDEIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "I",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDEHJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "H",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDEHIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "I",
+      "1D": "B",
+      "1E": "C",
+      "1G": "H",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDEHIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "H",
+      "1I": "D",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BCDEHIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "H",
+      "1I": "D",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDEGJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "J",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDEGIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "I",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDEGIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "J",
+      "1I": "D",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BCDEGIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "J",
+      "1I": "D",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDEGHKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "H",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDEGHJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "J",
+      "1I": "D",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "BCDEGHJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "J",
+      "1I": "D",
+      "1K": "E",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDEGHIL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "H",
+      "1I": "D",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BCDEGHIK",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "H",
+      "1I": "D",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDEGHIJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "J",
+      "1I": "D",
+      "1K": "E",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BCDEFJKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "E",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDEFIKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "E",
+      "1D": "B",
+      "1E": "D",
+      "1G": "I",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDEFIJL",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "E",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BCDEFIJK",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "E",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDEFHKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "E",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDEFHJL",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "BCDEFHJK",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "E",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDEFHIL",
+    "matchups": {
+      "1A": "C",
+      "1B": "E",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BCDEFHIK",
+    "matchups": {
+      "1A": "C",
+      "1B": "E",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDEFHIJ",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "E",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BCDEFGKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "E",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDEFGJL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "J",
+      "1I": "F",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "BCDEFGJK",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "J",
+      "1I": "F",
+      "1K": "E",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDEFGIL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "E",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BCDEFGIK",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "E",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDEFGIJ",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "J",
+      "1I": "F",
+      "1K": "E",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "BCDEFGHL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "BCDEFGHK",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "E",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "BCDEFGHJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "J",
+      "1I": "F",
+      "1K": "D",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "BCDEFGHI",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "H",
+      "1I": "F",
+      "1K": "E",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "AFGHIJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "I",
+      "1E": "F",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "AEGHIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "I",
+      "1E": "A",
+      "1G": "H",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "AEFHIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "I",
+      "1E": "F",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "AEFGIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "I",
+      "1E": "F",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "AEFGHJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "F",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "AEFGHIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "I",
+      "1E": "F",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "AEFGHIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "F",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "AEFGHIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "F",
+      "1G": "A",
+      "1I": "H",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ADGHIJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "I",
+      "1E": "D",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ADFHIJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "I",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ADFGIJKL",
+    "matchups": {
+      "1A": "I",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ADFGHJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ADFGHIKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "I",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ADFGHIJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ADFGHIJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ADEHIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "I",
+      "1E": "D",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ADEGIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "I",
+      "1E": "D",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ADEGHJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ADEGHIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "I",
+      "1E": "D",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ADEGHIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ADEGHIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "A",
+      "1I": "H",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ADEFIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "I",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ADEFHJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "E",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ADEFHIKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "E",
+      "1D": "I",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ADEFHIJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "E",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ADEFHIJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "E",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ADEFGJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ADEFGIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "I",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ADEFGIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ADEFGIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ADEFGHKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "E",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ADEFGHJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "ADEFGHJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "E",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ADEFGHIL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "E",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ADEFGHIK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "E",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ADEFGHIJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "E",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ACGHIJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "I",
+      "1E": "C",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACFHIJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "I",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACFGIJKL",
+    "matchups": {
+      "1A": "I",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACFGHJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACFGHIKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "I",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACFGHIJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ACFGHIJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACEHIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "I",
+      "1E": "C",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACEGIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "I",
+      "1E": "C",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACEGHJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACEGHIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "I",
+      "1E": "C",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACEGHIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ACEGHIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "H",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACEFIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "I",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACEFHJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "E",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACEFHIKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "E",
+      "1D": "I",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACEFHIJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "E",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ACEFHIJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "E",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACEFGJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACEFGIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "I",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACEFGIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ACEFGIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACEFGHKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "E",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACEFGHJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "ACEFGHJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "E",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACEFGHIL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "E",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ACEFGHIK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "E",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACEFGHIJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "E",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ACDHIJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "I",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDGIJKL",
+    "matchups": {
+      "1A": "I",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDGHJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDGHIKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "I",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDGHIJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ACDGHIJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDFIJKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "I",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDFHJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "F",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDFHIKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "F",
+      "1D": "I",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDFHIJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "F",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ACDFHIJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "F",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDFGJKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDFGIKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "I",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDFGIJL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ACDFGIJK",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDFGHKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "F",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDFGHJL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "H"
+    }
+  },
+  {
+    "combination": "ACDFGHJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "D",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDFGHIL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "F",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ACDFGHIK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "F",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDFGHIJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "D",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ACDEIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "I",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDEHJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "E",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDEHIKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "E",
+      "1D": "I",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDEHIJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "E",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ACDEHIJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "E",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDEGJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDEGIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "I",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDEGIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ACDEGIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDEGHKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "E",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDEGHJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "ACDEGHJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "E",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDEGHIL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "E",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ACDEGHIK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "E",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDEGHIJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "E",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ACDEFJKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "E",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDEFIKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "E",
+      "1D": "I",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDEFIJL",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "E",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ACDEFIJK",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "E",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDEFHKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "E",
+      "1D": "F",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDEFHJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "F",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "ACDEFHJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "E",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "D",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDEFHIL",
+    "matchups": {
+      "1A": "H",
+      "1B": "E",
+      "1D": "F",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ACDEFHIK",
+    "matchups": {
+      "1A": "H",
+      "1B": "E",
+      "1D": "F",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDEFHIJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "E",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "D",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ACDEFGKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "E",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDEFGJL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "ACDEFGJK",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "E",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDEFGIL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "E",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ACDEFGIK",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "E",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDEFGIJ",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "J",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "E",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ACDEFGHL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "F",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "ACDEFGHK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "E",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "D",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ACDEFGHJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "J",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "D",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "ACDEFGHI",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "E",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "D",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABGHIJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "A",
+      "1G": "I",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABFHIJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "A",
+      "1G": "I",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABFGIJKL",
+    "matchups": {
+      "1A": "I",
+      "1B": "J",
+      "1D": "B",
+      "1E": "F",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABFGHJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "F",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABFGHIKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "A",
+      "1G": "I",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABFGHIJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "F",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABFGHIJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "F",
+      "1G": "A",
+      "1I": "G",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABEHIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "A",
+      "1G": "I",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABEGIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "A",
+      "1G": "I",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABEGHJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "A",
+      "1G": "H",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABEGHIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "A",
+      "1G": "I",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABEGHIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "A",
+      "1G": "H",
+      "1I": "G",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABEGHIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "A",
+      "1G": "H",
+      "1I": "G",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABEFIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "A",
+      "1G": "I",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABEFHJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "F",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABEFHIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "I",
+      "1D": "B",
+      "1E": "F",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABEFHIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "F",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABEFHIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "F",
+      "1G": "A",
+      "1I": "H",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABEFGJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "F",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABEFGIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "A",
+      "1G": "I",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABEFGIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "F",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABEFGIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "F",
+      "1G": "A",
+      "1I": "G",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABEFGHKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "F",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABEFGHJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "F",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "ABEFGHJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "F",
+      "1G": "A",
+      "1I": "G",
+      "1K": "E",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABEFGHIL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "F",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABEFGHIK",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "F",
+      "1G": "A",
+      "1I": "H",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABEFGHIJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "F",
+      "1G": "A",
+      "1I": "G",
+      "1K": "E",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABDHIJKL",
+    "matchups": {
+      "1A": "I",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDGIJKL",
+    "matchups": {
+      "1A": "I",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDGHJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDGHIKL",
+    "matchups": {
+      "1A": "I",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDGHIJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABDGHIJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "G",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDFIJKL",
+    "matchups": {
+      "1A": "I",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDFHJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDFHIKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "I",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDFHIJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABDFHIJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDFGJKL",
+    "matchups": {
+      "1A": "F",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDFGIKL",
+    "matchups": {
+      "1A": "I",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDFGIJL",
+    "matchups": {
+      "1A": "F",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABDFGIJK",
+    "matchups": {
+      "1A": "F",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "G",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDFGHKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDFGHJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "J"
+    }
+  },
+  {
+    "combination": "ABDFGHJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "J",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDFGHIL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABDFGHIK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDFGHIJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "J"
+    }
+  },
+  {
+    "combination": "ABDEIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "A",
+      "1G": "I",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDEHJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDEHIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "I",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDEHIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABDEHIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "H",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDEGJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDEGIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "A",
+      "1G": "I",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDEGIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABDEGIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "G",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDEGHKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDEGHJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "ABDEGHJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "G",
+      "1K": "E",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDEGHIL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABDEGHIK",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "H",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDEGHIJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "G",
+      "1K": "E",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABDEFJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDEFIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "I",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDEFIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABDEFIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDEFHKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "E",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDEFHJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "ABDEFHJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "E",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDEFHIL",
+    "matchups": {
+      "1A": "H",
+      "1B": "E",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABDEFHIK",
+    "matchups": {
+      "1A": "H",
+      "1B": "E",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDEFHIJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "E",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABDEFGKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDEFGJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "J"
+    }
+  },
+  {
+    "combination": "ABDEFGJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "J",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDEFGIL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABDEFGIK",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDEFGIJ",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "J"
+    }
+  },
+  {
+    "combination": "ABDEFGHL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "ABDEFGHK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "E",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABDEFGHJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "E",
+      "1L": "J"
+    }
+  },
+  {
+    "combination": "ABDEFGHI",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "E",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCHIJKL",
+    "matchups": {
+      "1A": "I",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCGIJKL",
+    "matchups": {
+      "1A": "I",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCGHJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCGHIKL",
+    "matchups": {
+      "1A": "I",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCGHIJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCGHIJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "G",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCFIJKL",
+    "matchups": {
+      "1A": "I",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCFHJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCFHIKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "I",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCFHIJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCFHIJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCFGJKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "B",
+      "1E": "F",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCFGIKL",
+    "matchups": {
+      "1A": "I",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCFGIJL",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "B",
+      "1E": "F",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCFGIJK",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "B",
+      "1E": "F",
+      "1G": "A",
+      "1I": "G",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCFGHKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCFGHJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "J"
+    }
+  },
+  {
+    "combination": "ABCFGHJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "J",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCFGHIL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCFGHIK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCFGHIJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "J"
+    }
+  },
+  {
+    "combination": "ABCEIJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "A",
+      "1G": "I",
+      "1I": "C",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCEHJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCEHIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "I",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCEHIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCEHIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "H",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCEGJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCEGIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "A",
+      "1G": "I",
+      "1I": "C",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCEGIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCEGIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "G",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCEGHKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCEGHJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "ABCEGHJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "G",
+      "1K": "E",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCEGHIL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "H",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCEGHIK",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "H",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCEGHIJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "G",
+      "1K": "E",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCEFJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCEFIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "I",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCEFIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCEFIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCEFHKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "E",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCEFHJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "ABCEFHJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "E",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCEFHIL",
+    "matchups": {
+      "1A": "H",
+      "1B": "E",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCEFHIK",
+    "matchups": {
+      "1A": "H",
+      "1B": "E",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCEFHIJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "E",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCEFGKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCEFGJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "J"
+    }
+  },
+  {
+    "combination": "ABCEFGJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "J",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCEFGIL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCEFGIK",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCEFGIJ",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "J"
+    }
+  },
+  {
+    "combination": "ABCEFGHL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "ABCEFGHK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "E",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCEFGHJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "E",
+      "1L": "J"
+    }
+  },
+  {
+    "combination": "ABCEFGHI",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "E",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCDIJKL",
+    "matchups": {
+      "1A": "I",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDHJKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDHIKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "I",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDHIJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCDHIJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDGJKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDGIKL",
+    "matchups": {
+      "1A": "I",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDGIJL",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "G",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCDGIJK",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "G",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDGHKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDGHJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "J"
+    }
+  },
+  {
+    "combination": "ABCDGHJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "J",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDGHIL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCDGHIK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDGHIJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "I",
+      "1L": "J"
+    }
+  },
+  {
+    "combination": "ABCDFJKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDFIKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "I",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDFIJL",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCDFIJK",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDFHKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "F",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDFHJL",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "H"
+    }
+  },
+  {
+    "combination": "ABCDFHJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "D",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDFHIL",
+    "matchups": {
+      "1A": "H",
+      "1B": "F",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCDFHIK",
+    "matchups": {
+      "1A": "H",
+      "1B": "F",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDFHIJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "D",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCDFGKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDFGJL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "J"
+    }
+  },
+  {
+    "combination": "ABCDFGJK",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "J",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDFGIL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCDFGIK",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDFGIJ",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "J"
+    }
+  },
+  {
+    "combination": "ABCDFGHL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "H"
+    }
+  },
+  {
+    "combination": "ABCDFGHK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "D",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDFGHJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "D",
+      "1L": "J"
+    }
+  },
+  {
+    "combination": "ABCDFGHI",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "D",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCDEJKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDEIKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "I",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDEIJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCDEIJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDEHKL",
+    "matchups": {
+      "1A": "H",
+      "1B": "E",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDEHJL",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "ABCDEHJK",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "E",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDEHIL",
+    "matchups": {
+      "1A": "H",
+      "1B": "E",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCDEHIK",
+    "matchups": {
+      "1A": "H",
+      "1B": "E",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDEHIJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "E",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCDEGKL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDEGJL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "J"
+    }
+  },
+  {
+    "combination": "ABCDEGJK",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "J",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDEGIL",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCDEGIK",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDEGIJ",
+    "matchups": {
+      "1A": "E",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "I",
+      "1L": "J"
+    }
+  },
+  {
+    "combination": "ABCDEGHL",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "ABCDEGHK",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "E",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDEGHJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "E",
+      "1L": "J"
+    }
+  },
+  {
+    "combination": "ABCDEGHI",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "E",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCDEFKL",
+    "matchups": {
+      "1A": "C",
+      "1B": "E",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDEFJL",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "ABCDEFJK",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "E",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDEFIL",
+    "matchups": {
+      "1A": "C",
+      "1B": "E",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCDEFIK",
+    "matchups": {
+      "1A": "C",
+      "1B": "E",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "I",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDEFIJ",
+    "matchups": {
+      "1A": "C",
+      "1B": "J",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "E",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCDEFHL",
+    "matchups": {
+      "1A": "H",
+      "1B": "F",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "D",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "ABCDEFHK",
+    "matchups": {
+      "1A": "H",
+      "1B": "E",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "D",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDEFHJ",
+    "matchups": {
+      "1A": "H",
+      "1B": "J",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "D",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "ABCDEFHI",
+    "matchups": {
+      "1A": "H",
+      "1B": "E",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "D",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCDEFGL",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "L",
+      "1L": "E"
+    }
+  },
+  {
+    "combination": "ABCDEFGK",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "E",
+      "1L": "K"
+    }
+  },
+  {
+    "combination": "ABCDEFGJ",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "E",
+      "1L": "J"
+    }
+  },
+  {
+    "combination": "ABCDEFGI",
+    "matchups": {
+      "1A": "C",
+      "1B": "G",
+      "1D": "B",
+      "1E": "D",
+      "1G": "A",
+      "1I": "F",
+      "1K": "E",
+      "1L": "I"
+    }
+  },
+  {
+    "combination": "ABCDEFGH",
+    "matchups": {
+      "1A": "H",
+      "1B": "G",
+      "1D": "B",
+      "1E": "C",
+      "1G": "A",
+      "1I": "F",
+      "1K": "D",
+      "1L": "E"
+    }
+  }
+]

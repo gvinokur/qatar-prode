@@ -1,6 +1,6 @@
 'use client'
 
-import {Alert, Backdrop, Box, CircularProgress, Grid, Snackbar} from "@mui/material";
+import {Alert, Backdrop, Box, Button, CircularProgress, Grid, Snackbar} from "@mui/material";
 import { useEffect, useState} from "react";
 import {ExtendedGameData, ExtendedGroupData} from "../../definitions";
 import {getCompleteGroupData} from "../../actions/tournament-actions";
@@ -17,10 +17,13 @@ import {
   calculateGameScores,
   saveGameResults,
   saveGamesData,
+  updateGroupTeamConductScores,
 } from "../../actions/backoffice-actions";
 import GroupTable from "../groups-page/group-table";
 import {calculateGroupPosition} from "../../utils/group-position-calculator";
 import GameResultEditDialog from "../game-result-edit-dialog";
+import TeamStatsEditDialog from "./internal/team-stats-edit-dialog";
+import EditIcon from "@mui/icons-material/Edit";
 
 type Props = {
   group: ExtendedGroupData
@@ -43,6 +46,8 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
   const [positions, setPositions] = useState<TeamStats[]>([])
   const [editResultDialogOpened, setEditResultDialogOpened] = useState(false)
   const [selectedGame, setSelectedGame] = useState<ExtendedGameData>()
+  const [editStatsDialogOpened, setEditStatsDialogOpened] = useState(false)
+  const [conductScores, setConductScores] = useState<{ [teamId: string]: number }>({})
 
   useEffect(() => {
     const fetchTournamentData = async () => {
@@ -55,6 +60,14 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
           .sort((a,b) => a.game_number - b.game_number)
           .map(game => game.id))
       setTeamsMap(completeGroupData.teamsMap)
+
+      // Load conduct scores from group teams
+      const scores: { [teamId: string]: number } = {};
+      group.teams.forEach(teamData => {
+        scores[teamData.team_id] = teamData.conduct_score || 0;
+      });
+      setConductScores(scores);
+
       setLoading(false)
     }
     fetchTournamentData()
@@ -127,6 +140,26 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
     }
   };
 
+  const handleOpenStatsDialog = () => {
+    setEditStatsDialogOpened(true);
+  };
+
+  const handleSaveConductScores = async (newConductScores: { [teamId: string]: number }) => {
+    await updateGroupTeamConductScores(group.id, newConductScores);
+    setConductScores(newConductScores);
+
+    // Recalculate group positions with new conduct scores
+    await calculateAndStoreGroupPosition(
+      group.id,
+      Object.keys(teamsMap),
+      Object.values(gamesMap),
+      group.sort_by_games_between_teams
+    );
+    await calculateGameScores(false, false);
+    await calculateAndStoreQualifiedTeamsPoints(tournamentId);
+    setSaved(true);
+  };
+
   return (
     <Box>
       <Backdrop
@@ -167,6 +200,16 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
                 xs: 12,
                 md: 6
               }}>
+              <Box mb={2}>
+                <Button
+                  variant="outlined"
+                  startIcon={<EditIcon />}
+                  onClick={handleOpenStatsDialog}
+                  size="small"
+                >
+                  Edit Conduct Scores
+                </Button>
+              </Box>
               <GroupTable teamsMap={teamsMap} isPredictions={false} realPositions={positions}/>
             </Grid>
           </Grid>
@@ -190,6 +233,14 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
         initialHomeScore={selectedGame?.gameResult?.home_score}
         initialAwayScore={selectedGame?.gameResult?.away_score}
         initialGameDate={selectedGame?.game_date || new Date()}
+      />
+      <TeamStatsEditDialog
+        open={editStatsDialogOpened}
+        onClose={() => setEditStatsDialogOpened(false)}
+        teams={teamsMap}
+        teamIds={Object.keys(teamsMap)}
+        conductScores={conductScores}
+        onSave={handleSaveConductScores}
       />
     </Box>
   );

@@ -1,11 +1,17 @@
-import { 
-  calculatePlayoffTeams, 
+import {
+  calculatePlayoffTeams,
   calculatePlayoffTeamsFromPositions,
   calculateTeamNamesForPlayoffGame,
   groupCompleteReducer
 } from '../../app/utils/playoff-teams-calculator';
 import { Game, GameGuessNew, TeamStats } from '../../app/db/tables-definition';
 import { ExtendedGroupData, ExtendedPlayoffRoundData } from '../../app/definitions';
+import { vi } from 'vitest';
+
+// Mock the third place rules repository
+vi.mock('../../app/db/tournament-third-place-rules-repository', () => ({
+  getThirdPlaceRulesMapForTournament: vi.fn().mockResolvedValue({})
+}));
 
 describe('playoff-teams-calculator', () => {
   const mockGame = (gameId: string, gameNumber: number, homeTeam?: string, awayTeam?: string): Game => ({
@@ -57,7 +63,7 @@ describe('playoff-teams-calculator', () => {
   });
 
   describe('calculatePlayoffTeams', () => {
-    it('should calculate playoff teams correctly for first stage', () => {
+    it('should calculate playoff teams correctly for first stage', async () => {
       const groups: ExtendedGroupData[] = [
         mockExtendedGroupData('A', [
           mockTeamStats('team1', 9), // 1st
@@ -86,7 +92,8 @@ describe('playoff-teams-calculator', () => {
       const gameResultsMap = {};
       const gameGuessesMap = {};
 
-      const result = calculatePlayoffTeams(
+      const result = await calculatePlayoffTeams(
+        'test-tournament',
         firstPlayoffStage,
         groups,
         gamesMap,
@@ -98,7 +105,7 @@ describe('playoff-teams-calculator', () => {
       expect(Object.keys(result)).toHaveLength(2);
     });
 
-    it('should handle groups with incomplete data', () => {
+    it('should handle groups with incomplete data', async () => {
       const groups: ExtendedGroupData[] = [
         mockExtendedGroupData('A', [
           mockTeamStats('team1', 9, false), // incomplete
@@ -119,7 +126,8 @@ describe('playoff-teams-calculator', () => {
       const gameResultsMap = {};
       const gameGuessesMap = {};
 
-      const result = calculatePlayoffTeams(
+      const result = await calculatePlayoffTeams(
+        'test-tournament',
         firstPlayoffStage,
         groups,
         gamesMap,
@@ -131,7 +139,7 @@ describe('playoff-teams-calculator', () => {
       // Should handle incomplete groups gracefully
     });
 
-    it('should handle empty groups array', () => {
+    it('should handle empty groups array', async () => {
       const groups: ExtendedGroupData[] = [];
 
       const firstPlayoffStage = mockExtendedPlayoffRoundData([
@@ -145,7 +153,8 @@ describe('playoff-teams-calculator', () => {
       const gameResultsMap = {};
       const gameGuessesMap = {};
 
-      const result = calculatePlayoffTeams(
+      const result = await calculatePlayoffTeams(
+        'test-tournament',
         firstPlayoffStage,
         groups,
         gamesMap,
@@ -159,7 +168,7 @@ describe('playoff-teams-calculator', () => {
   });
 
   describe('calculatePlayoffTeamsFromPositions', () => {
-    it('should calculate teams from positions correctly', () => {
+    it('should calculate teams from positions correctly', async () => {
       const positionsByGroup = {
         'A': [
           mockTeamStats('team1', 9), // 1st
@@ -185,7 +194,8 @@ describe('playoff-teams-calculator', () => {
         'game2': mockGame('game2', 2)
       };
 
-      const result = calculatePlayoffTeamsFromPositions(
+      const result = await calculatePlayoffTeamsFromPositions(
+        'test-tournament',
         firstPlayoffStage,
         gamesMap,
         positionsByGroup
@@ -195,7 +205,7 @@ describe('playoff-teams-calculator', () => {
       expect(Object.keys(result)).toHaveLength(2);
     });
 
-    it('should handle third place team rules correctly', () => {
+    it('should handle third place team rules correctly', async () => {
       const positionsByGroup = {
         'A': [
           mockTeamStats('team1', 9), // 1st
@@ -231,7 +241,8 @@ describe('playoff-teams-calculator', () => {
         'game1': mockGame('game1', 1)
       };
 
-      const result = calculatePlayoffTeamsFromPositions(
+      const result = await calculatePlayoffTeamsFromPositions(
+        'test-tournament',
         firstPlayoffStage,
         gamesMap,
         positionsByGroup
@@ -241,7 +252,7 @@ describe('playoff-teams-calculator', () => {
       expect(Object.keys(result)).toHaveLength(1);
     });
 
-    it('should handle missing third place teams', () => {
+    it('should handle missing third place teams', async () => {
       const positionsByGroup = {
         'A': [
           mockTeamStats('team1', 9), // 1st
@@ -258,7 +269,8 @@ describe('playoff-teams-calculator', () => {
         'game1': mockGame('game1', 1)
       };
 
-      const result = calculatePlayoffTeamsFromPositions(
+      const result = await calculatePlayoffTeamsFromPositions(
+        'test-tournament',
         firstPlayoffStage,
         gamesMap,
         positionsByGroup
@@ -268,7 +280,7 @@ describe('playoff-teams-calculator', () => {
       expect(Object.keys(result)).toHaveLength(1);
     });
 
-    it('should handle empty positions by group', () => {
+    it('should handle empty positions by group', async () => {
       const positionsByGroup = {};
 
       const firstPlayoffStage = mockExtendedPlayoffRoundData([
@@ -279,7 +291,8 @@ describe('playoff-teams-calculator', () => {
         'game1': mockGame('game1', 1)
       };
 
-      const result = calculatePlayoffTeamsFromPositions(
+      const result = await calculatePlayoffTeamsFromPositions(
+        'test-tournament',
         firstPlayoffStage,
         gamesMap,
         positionsByGroup

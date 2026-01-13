@@ -3,8 +3,10 @@ import {Game, GameGuess, GameGuessNew, GameResultNew, GroupFinishRule, TeamStats
 import {calculateGroupPosition, GameWithResultOrGuess, genericTeamStatsComparator} from "./group-position-calculator";
 import {isTeamWinnerRule} from "./playoffs-rule-helper";
 import {getGuessLoser, getGuessWinner} from "./score-utils";
+import {getThirdPlaceRulesMapForTournament} from "../db/tournament-third-place-rules-repository";
 
-export function calculatePlayoffTeams(
+export async function calculatePlayoffTeams(
+  tournamentId: string,
   firstPlayoffStage: ExtendedPlayoffRoundData,
   groups: ExtendedGroupData[],
   gamesMap: {[k:string]: Game},
@@ -85,7 +87,16 @@ export function calculatePlayoffTeams(
     if(thirdTeams.length === groups.length) {
       const topThirdTeams = thirdTeams.filter((value, index) => index < thirdPlaceTeamRules.length)
       const topThirdTeamGroups = topThirdTeams.map(([letter, ]) => letter).sort((a, b) => a.localeCompare(b))
-      thirdPlaceGroupMap = rulesByChampionship[''][topThirdTeamGroups.join('')]
+      const combinationKey = topThirdTeamGroups.join('')
+
+      // Fetch rules from database, with fallback to legacy hardcoded rules
+      const tournamentRules = await getThirdPlaceRulesMapForTournament(tournamentId);
+      if (Object.keys(tournamentRules).length > 0) {
+        thirdPlaceGroupMap = tournamentRules[combinationKey] || {};
+      } else {
+        // Fallback to legacy hardcoded rules for backward compatibility
+        thirdPlaceGroupMap = LEGACY_RULES_BY_CHAMPIONSHIP[''][combinationKey] || {};
+      }
     }
   }
 
@@ -119,7 +130,8 @@ export function calculatePlayoffTeams(
 
 // Calculate the teams for the playoff games based on the positions of the teams in the groups
 // If the group is not complete, it returns undefined for the specific team/game
-export function calculatePlayoffTeamsFromPositions(
+export async function calculatePlayoffTeamsFromPositions(
+  tournamentId: string,
   firstPlayoffStage: ExtendedPlayoffRoundData,
   gamesMap: {[k:string]: Game},
   positionsByGroup: {[group_letter: string]: TeamStats[]}
@@ -151,7 +163,7 @@ export function calculatePlayoffTeamsFromPositions(
     type ThirdPositionTeamTuple = [string, TeamStats]
 
     const thirdTeams = Object.entries(groupTableMap).map(([groupLetter, positionsMap]) => {
-      const thirdPositionTeam = positionsMap[2]
+      const thirdPositionTeam = positionsMap[3] // Fixed: was positionsMap[2], should be [3] for third place
       return [groupLetter, thirdPositionTeam] as ThirdPositionTeamTuple
     })
       .filter(([, thirdPositionTeam]) => !!thirdPositionTeam)
@@ -164,7 +176,16 @@ export function calculatePlayoffTeamsFromPositions(
     if(thirdTeams.length === Object.keys(positionsByGroup).length) {
       const topThirdTeams = thirdTeams.filter((value, index) => index < thirdPlaceTeamRules.length)
       const topThirdTeamGroups = topThirdTeams.map(([letter, ]) => letter).sort((a, b) => a.localeCompare(b))
-      thirdPlaceGroupMap = rulesByChampionship[''][topThirdTeamGroups.join('')]
+      const combinationKey = topThirdTeamGroups.join('')
+
+      // Fetch rules from database, with fallback to legacy hardcoded rules
+      const tournamentRules = await getThirdPlaceRulesMapForTournament(tournamentId);
+      if (Object.keys(tournamentRules).length > 0) {
+        thirdPlaceGroupMap = tournamentRules[combinationKey] || {};
+      } else {
+        // Fallback to legacy hardcoded rules for backward compatibility
+        thirdPlaceGroupMap = LEGACY_RULES_BY_CHAMPIONSHIP[''][combinationKey] || {};
+      }
     }
   }
 
@@ -205,9 +226,11 @@ export const groupCompleteReducer = (teamPositions: TeamStats[]) => {
 }
 
 /**
- * I absolutely hate this, but is how it works
+ * Legacy hardcoded third-place assignment rules for EURO format (6 groups, 4 third-place qualifiers)
+ * Kept for backward compatibility with existing tournaments
+ * New tournaments should use database-stored rules instead
  */
-const rulesByChampionship: {[k: string]: Rules} =
+const LEGACY_RULES_BY_CHAMPIONSHIP: {[k: string]: Rules} =
   {
   '': {
     'ABCD': {
