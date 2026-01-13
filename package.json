@@ -28,6 +28,7 @@
     "crypto-js": "^4.2.0",
     "dayjs": "^1.11.11",
     "deep-object-diff": "^1.1.9",
+    "dotenv": "^17.2.3",
     "framer-motion": "^12.11.0",
     "mui-color-input": "^7.0.0",
     "next": "^15.3.6",

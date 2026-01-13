@@ -5,6 +5,11 @@
  * from the old FIFA format (keys: "1A", "1B") to our code format (keys: "CEFHI", "EFGIJ")
  */
 
+// Load environment variables from .env.local
+import { config } from 'dotenv';
+import { resolve } from 'path';
+config({ path: resolve(__dirname, '../.env.local') });
+
 import { db } from '../app/db/database';
 
 // Mapping from FIFA bracket positions to our third-place identifiers
