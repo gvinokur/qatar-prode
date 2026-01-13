@@ -136,72 +136,72 @@ export const games = [
   game(72, Dates.June272026, 20, Venues.PHI, TeamNames.Croatia, TeamNames.Panama, 'L'),
 
   // ==================== ROUND OF 32 ====================
-  // Based on official FIFA bracket structure from:
-  // https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026
+  // Official FIFA bracket structure from:
+  // https://worldcupwiki.com/2026-fifa-world-cup-round-of-32/
   // Third-place team assignments depend on Annex C rules (495 combinations)
 
-  // Group A runners-up vs. Group B runners-up
-  game(73, Dates.June282026, 15, Venues.LA, undefined, undefined, undefined,
+  // Match 73: Runner-up Group A vs. Runner-up Group B
+  game(73, Dates.June282026, 20, Venues.LA, undefined, undefined, undefined,
     PlayoffStages.round32, { group: 'A', position: 2 }, { group: 'B', position: 2 }),
 
-  // Group E winners vs. third place from groups A/B/C/D/F
-  game(74, Dates.June292026, 15, Venues.BOS, undefined, undefined, undefined,
+  // Match 74: Winner Group E vs. 3rd Place (A/B/C/D/F)
+  game(74, Dates.June292026, 21, Venues.BOS, undefined, undefined, undefined,
     PlayoffStages.round32, { group: 'E', position: 1 }, { group: 'A/B/C/D/F', position: 3 }),
 
-  // Group F winners vs. Group C runners-up
-  game(75, Dates.June292026, 18, Venues.GDL, undefined, undefined, undefined,
+  // Match 75: Winner Group F vs. Runner-up Group C
+  game(75, Dates.June292026, 2, Venues.MTY, undefined, undefined, undefined,
     PlayoffStages.round32, { group: 'F', position: 1 }, { group: 'C', position: 2 }),
 
-  // Group C winners vs. Group F runners-up
-  game(76, Dates.June292026, 21, Venues.HOU, undefined, undefined, undefined,
+  // Match 76: Winner Group C vs. Runner-up Group F
+  game(76, Dates.June292026, 18, Venues.HOU, undefined, undefined, undefined,
     PlayoffStages.round32, { group: 'C', position: 1 }, { group: 'F', position: 2 }),
 
-  // Group A winners vs. third place from groups C/E/F/H/I
-  game(77, Dates.June302026, 15, Venues.MEX, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'A', position: 1 }, { group: 'C/E/F/H/I', position: 3 }),
-
-  // Group I winners vs. third place from groups C/D/F/G/H
-  game(78, Dates.June302026, 18, Venues.NYC, undefined, undefined, undefined,
+  // Match 77: Winner Group I vs. 3rd Place (C/D/F/G/H)
+  game(77, Dates.June302026, 22, Venues.NYC, undefined, undefined, undefined,
     PlayoffStages.round32, { group: 'I', position: 1 }, { group: 'C/D/F/G/H', position: 3 }),
 
-  // Group E runners-up vs. Group I runners-up
-  game(79, Dates.June302026, 21, Venues.DAL, undefined, undefined, undefined,
+  // Match 78: Runner-up Group E vs. Runner-up Group I
+  game(78, Dates.June302026, 18, Venues.DAL, undefined, undefined, undefined,
     PlayoffStages.round32, { group: 'E', position: 2 }, { group: 'I', position: 2 }),
 
-  // Group D winners vs. third place from groups B/E/F/I/J
-  game(80, Dates.July012026, 15, Venues.SF, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'D', position: 1 }, { group: 'B/E/F/I/J', position: 3 }),
+  // Match 79: Winner Group A vs. 3rd Place (C/E/F/H/I)
+  game(79, Dates.June302026, 2, Venues.MEX, undefined, undefined, undefined,
+    PlayoffStages.round32, { group: 'A', position: 1 }, { group: 'C/E/F/H/I', position: 3 }),
 
-  // Group L winners vs. third place from groups E/H/I/J/K
-  game(81, Dates.July012026, 18, Venues.ATL, undefined, undefined, undefined,
+  // Match 80: Winner Group L vs. 3rd Place (E/H/I/J/K)
+  game(80, Dates.July012026, 17, Venues.ATL, undefined, undefined, undefined,
     PlayoffStages.round32, { group: 'L', position: 1 }, { group: 'E/H/I/J/K', position: 3 }),
 
-  // Group G winners vs. third place from groups A/E/H/I/J
+  // Match 81: Winner Group D vs. 3rd Place (B/E/F/I/J)
+  game(81, Dates.July012026, 20, Venues.SF, undefined, undefined, undefined,
+    PlayoffStages.round32, { group: 'D', position: 1 }, { group: 'B/E/F/I/J', position: 3 }),
+
+  // Match 82: Winner Group G vs. 3rd Place (A/E/H/I/J)
   game(82, Dates.July012026, 21, Venues.SEA, undefined, undefined, undefined,
     PlayoffStages.round32, { group: 'G', position: 1 }, { group: 'A/E/H/I/J', position: 3 }),
 
-  // Group B winners vs. third place from groups E/F/G/I/J
-  game(83, Dates.July022026, 15, Venues.VAN, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'B', position: 1 }, { group: 'E/F/G/I/J', position: 3 }),
-
-  // Group K runners-up vs. Group L runners-up
-  game(84, Dates.July022026, 18, Venues.TOR, undefined, undefined, undefined,
+  // Match 83: Runner-up Group K vs. Runner-up Group L
+  game(83, Dates.July022026, 18, Venues.TOR, undefined, undefined, undefined,
     PlayoffStages.round32, { group: 'K', position: 2 }, { group: 'L', position: 2 }),
 
-  // Group H winners vs. Group J runners-up
-  game(85, Dates.July022026, 21, Venues.LA, undefined, undefined, undefined,
+  // Match 84: Winner Group H vs. Runner-up Group J
+  game(84, Dates.July022026, 20, Venues.LA, undefined, undefined, undefined,
     PlayoffStages.round32, { group: 'H', position: 1 }, { group: 'J', position: 2 }),
 
-  // Group J winners vs. Group H runners-up
-  game(86, Dates.July032026, 15, Venues.MIA, undefined, undefined, undefined,
+  // Match 85: Winner Group B vs. 3rd Place (E/F/G/I/J)
+  game(85, Dates.July022026, 21, Venues.VAN, undefined, undefined, undefined,
+    PlayoffStages.round32, { group: 'B', position: 1 }, { group: 'E/F/G/I/J', position: 3 }),
+
+  // Match 86: Winner Group J vs. Runner-up Group H
+  game(86, Dates.July032026, 23, Venues.MIA, undefined, undefined, undefined,
     PlayoffStages.round32, { group: 'J', position: 1 }, { group: 'H', position: 2 }),
 
-  // Group K winners vs. third place from groups D/E/I/J/L
-  game(87, Dates.July032026, 18, Venues.KC, undefined, undefined, undefined,
+  // Match 87: Winner Group K vs. 3rd Place (D/E/I/J/L)
+  game(87, Dates.July032026, 2.5, Venues.KC, undefined, undefined, undefined,
     PlayoffStages.round32, { group: 'K', position: 1 }, { group: 'D/E/I/J/L', position: 3 }),
 
-  // Group D runners-up vs. Group G runners-up
-  game(88, Dates.July032026, 21, Venues.PHI, undefined, undefined, undefined,
+  // Match 88: Runner-up Group D vs. Runner-up Group G
+  game(88, Dates.July032026, 19, Venues.DAL, undefined, undefined, undefined,
     PlayoffStages.round32, { group: 'D', position: 2 }, { group: 'G', position: 2 }),
 
   // ==================== ROUND OF 16 ====================
