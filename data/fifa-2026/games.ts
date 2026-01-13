@@ -136,56 +136,73 @@ export const games = [
   game(72, Dates.June272026, 20, Venues.PHI, TeamNames.Croatia, TeamNames.Panama, 'L'),
 
   // ==================== ROUND OF 32 ====================
-  // Based on official FIFA bracket structure
+  // Based on official FIFA bracket structure from:
+  // https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026
   // Third-place team assignments depend on Annex C rules (495 combinations)
 
-  game(73, Dates.June282026, 15, Venues.MEX, undefined, undefined, undefined,
+  // Group A runners-up vs. Group B runners-up
+  game(73, Dates.June282026, 15, Venues.LA, undefined, undefined, undefined,
     PlayoffStages.round32, { group: 'A', position: 2 }, { group: 'B', position: 2 }),
 
-  game(74, Dates.June282026, 18, Venues.LA, undefined, undefined, undefined,
+  // Group E winners vs. third place from groups A/B/C/D/F
+  game(74, Dates.June292026, 15, Venues.BOS, undefined, undefined, undefined,
     PlayoffStages.round32, { group: 'E', position: 1 }, { group: 'A/B/C/D/F', position: 3 }),
 
-  game(75, Dates.June282026, 21, Venues.TOR, undefined, undefined, undefined,
+  // Group F winners vs. Group C runners-up
+  game(75, Dates.June292026, 18, Venues.GDL, undefined, undefined, undefined,
     PlayoffStages.round32, { group: 'F', position: 1 }, { group: 'C', position: 2 }),
 
-  game(76, Dates.June292026, 15, Venues.DAL, undefined, undefined, undefined,
+  // Group C winners vs. Group F runners-up
+  game(76, Dates.June292026, 21, Venues.HOU, undefined, undefined, undefined,
     PlayoffStages.round32, { group: 'C', position: 1 }, { group: 'F', position: 2 }),
 
-  game(77, Dates.June292026, 18, Venues.KC, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'I', position: 1 }, { group: 'C/D/F/G/H', position: 3 }),
-
-  game(78, Dates.June292026, 21, Venues.PHI, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'E', position: 2 }, { group: 'I', position: 2 }),
-
-  game(79, Dates.June302026, 15, Venues.VAN, undefined, undefined, undefined,
+  // Group A winners vs. third place from groups C/E/F/H/I
+  game(77, Dates.June302026, 15, Venues.MEX, undefined, undefined, undefined,
     PlayoffStages.round32, { group: 'A', position: 1 }, { group: 'C/E/F/H/I', position: 3 }),
 
-  game(80, Dates.June302026, 18, Venues.MIA, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'L', position: 1 }, { group: 'E/H/I/J/K', position: 3 }),
+  // Group I winners vs. third place from groups C/D/F/G/H
+  game(78, Dates.June302026, 18, Venues.NYC, undefined, undefined, undefined,
+    PlayoffStages.round32, { group: 'I', position: 1 }, { group: 'C/D/F/G/H', position: 3 }),
 
-  game(81, Dates.June302026, 21, Venues.ATL, undefined, undefined, undefined,
+  // Group E runners-up vs. Group I runners-up
+  game(79, Dates.June302026, 21, Venues.DAL, undefined, undefined, undefined,
+    PlayoffStages.round32, { group: 'E', position: 2 }, { group: 'I', position: 2 }),
+
+  // Group D winners vs. third place from groups B/E/F/I/J
+  game(80, Dates.July012026, 15, Venues.SF, undefined, undefined, undefined,
     PlayoffStages.round32, { group: 'D', position: 1 }, { group: 'B/E/F/I/J', position: 3 }),
 
-  game(82, Dates.July012026, 15, Venues.HOU, undefined, undefined, undefined,
+  // Group L winners vs. third place from groups E/H/I/J/K
+  game(81, Dates.July012026, 18, Venues.ATL, undefined, undefined, undefined,
+    PlayoffStages.round32, { group: 'L', position: 1 }, { group: 'E/H/I/J/K', position: 3 }),
+
+  // Group G winners vs. third place from groups A/E/H/I/J
+  game(82, Dates.July012026, 21, Venues.SEA, undefined, undefined, undefined,
     PlayoffStages.round32, { group: 'G', position: 1 }, { group: 'A/E/H/I/J', position: 3 }),
 
-  game(83, Dates.July012026, 18, Venues.SEA, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'B', position: 1 }, { group: 'A', position: 2 }),
+  // Group B winners vs. third place from groups E/F/G/I/J
+  game(83, Dates.July022026, 15, Venues.VAN, undefined, undefined, undefined,
+    PlayoffStages.round32, { group: 'B', position: 1 }, { group: 'E/F/G/I/J', position: 3 }),
 
-  game(84, Dates.July012026, 21, Venues.NYC, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'H', position: 1 }, { group: 'G', position: 2 }),
+  // Group K runners-up vs. Group L runners-up
+  game(84, Dates.July022026, 18, Venues.TOR, undefined, undefined, undefined,
+    PlayoffStages.round32, { group: 'K', position: 2 }, { group: 'L', position: 2 }),
 
-  game(85, Dates.July022026, 15, Venues.SF, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'G', position: 2 }, { group: 'H', position: 2 }),
+  // Group H winners vs. Group J runners-up
+  game(85, Dates.July022026, 21, Venues.LA, undefined, undefined, undefined,
+    PlayoffStages.round32, { group: 'H', position: 1 }, { group: 'J', position: 2 }),
 
-  game(86, Dates.July022026, 18, Venues.BOS, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'D', position: 2 }, { group: 'E', position: 2 }),
+  // Group J winners vs. Group H runners-up
+  game(86, Dates.July032026, 15, Venues.MIA, undefined, undefined, undefined,
+    PlayoffStages.round32, { group: 'J', position: 1 }, { group: 'H', position: 2 }),
 
-  game(87, Dates.July022026, 21, Venues.GDL, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'J', position: 1 }, { group: 'K', position: 2 }),
+  // Group K winners vs. third place from groups D/E/I/J/L
+  game(87, Dates.July032026, 18, Venues.KC, undefined, undefined, undefined,
+    PlayoffStages.round32, { group: 'K', position: 1 }, { group: 'D/E/I/J/L', position: 3 }),
 
-  game(88, Dates.July032026, 15, Venues.MTY, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'K', position: 1 }, { group: 'J', position: 2 }),
+  // Group D runners-up vs. Group G runners-up
+  game(88, Dates.July032026, 21, Venues.PHI, undefined, undefined, undefined,
+    PlayoffStages.round32, { group: 'D', position: 2 }, { group: 'G', position: 2 }),
 
   // ==================== ROUND OF 16 ====================
 
