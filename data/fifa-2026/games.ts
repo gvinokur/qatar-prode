@@ -1,23 +1,61 @@
-import { TeamNames, Dates, Venues, PlayoffStages } from './base-data';
+import { TeamNames, Venues } from './base-data';
+import { getVenueTimezone, convertCTToLocal } from './venue-timezones';
+
+/**
+ * FIFA 2026 World Cup - Complete Game Schedule
+ * Source: Official FIFA website - https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures
+ * All times from PDF are in Central Time (CT), converted to local venue time
+ * All 104 games: 72 group stage + 32 knockout
+ */
+
+type TeamOrNull = string | null;
+
+/**
+ * Helper to create a game Date object with local time
+ * @param year - Year (2026)
+ * @param month - Month (0-11, where 0=January, 5=June)
+ * @param day - Day of month
+ * @param ctHour - Hour in Central Time from PDF (0-23)
+ * @param ctMinute - Minute (0 or 30)
+ * @param venue - Venue string (to determine timezone)
+ */
+function createGameDateTime(
+  year: number,
+  month: number,
+  day: number,
+  ctHour: number,
+  ctMinute: number,
+  venue: string
+): Date {
+  // Convert CT hour to local hour for the venue
+  const localHour = convertCTToLocal(ctHour, venue);
+
+  // Create Date object with local time
+  // Note: JavaScript Date constructor takes local time
+  return new Date(year, month, day, localHour, ctMinute, 0);
+}
 
 const game = (
   game_number: number,
-  date: Date,
-  time: number,
+  year: number,
+  month: number,
+  day: number,
+  ctHour: number,
+  ctMinute: number,
   location: string,
-  home_team?: string,
-  away_team?: string,
+  home_team: TeamOrNull,
+  away_team: TeamOrNull,
   group?: string,
   playoff?: string,
   home_team_rule?: any,
   away_team_rule?: any
 ) => ({
   game_number,
+  date: createGameDateTime(year, month, day, ctHour, ctMinute, location),
+  location,
+  timezone: getVenueTimezone(location),
   home_team,
   away_team,
-  date,
-  time,
-  location,
   group,
   playoff,
   home_team_rule,
@@ -25,221 +63,476 @@ const game = (
 });
 
 /**
- * FIFA 2026 World Cup Games - OFFICIAL FIFA SCHEDULE
- *
- * Total: 104 matches
- * - Group Stage: 72 matches (6 per group × 12 groups)
- * - Knockout Stage: 32 matches
- *
- * Based on official FIFA World Cup 2026 Match Schedule PDF
- * Source: https://digitalhub.fifa.com/m/1be9ce37eb98fcc5/original/FWC26-Match-Schedule_English.pdf
- * Last updated: January 13, 2026
+ * GROUP STAGE - 72 Games
+ * June 11-27, 2026
+ * All times converted from CT to local venue time
  */
 export const games = [
-  // ==================== GROUP STAGE ====================
-  // Organized by FIFA official match numbers (1-72)
-  // Times are in Eastern Time (ET)
+  // ========== THURSDAY, JUNE 11, 2026 ==========
+  // Game 1: Mexico vs South Africa - 14:00 CT - Group A - Mexico City
+  game(1, 2026, 5, 11, 14, 0, Venues.MEX, TeamNames.Mexico, TeamNames.SouthAfrica, 'A'),
 
-  // GROUP A - Mexico, South Africa, Korea Republic, UEFA Playoff D
-  game(1, Dates.June112026, 15, Venues.MEX, TeamNames.Mexico, TeamNames.SouthAfrica, 'A'),
-  game(2, Dates.June112026, 22, Venues.GDL, TeamNames.SouthKorea, TeamNames.UEFAPlayoffD, 'A'),
-  game(25, Dates.June162026, 12, Venues.SEA, TeamNames.UEFAPlayoffD, TeamNames.SouthAfrica, 'A'),
-  game(28, Dates.June162026, 21, Venues.GDL, TeamNames.Mexico, TeamNames.SouthKorea, 'A'),
-  game(53, Dates.June222026, 21, Venues.SEA, TeamNames.UEFAPlayoffD, TeamNames.Mexico, 'A'),
-  game(54, Dates.June222026, 21, Venues.GDL, TeamNames.SouthAfrica, TeamNames.SouthKorea, 'A'),
+  // Game 2: Korea Republic vs UEFA Playoff D - 21:00 CT - Group A - Guadalajara
+  game(2, 2026, 5, 11, 21, 0, Venues.GDL, TeamNames.SouthKorea, TeamNames.UEFAPlayoffD, 'A'),
 
-  // GROUP B - Canada, Switzerland, Qatar, UEFA Playoff A
-  game(3, Dates.June122026, 15, Venues.TOR, TeamNames.Canada, TeamNames.UEFAPlayoffA, 'B'),
-  game(5, Dates.June122026, 21, Venues.SF, TeamNames.Qatar, TeamNames.Switzerland, 'B'),
-  game(26, Dates.June162026, 15, Venues.SF, TeamNames.Switzerland, TeamNames.UEFAPlayoffA, 'B'),
-  game(27, Dates.June162026, 18, Venues.TOR, TeamNames.Canada, TeamNames.Qatar, 'B'),
-  game(51, Dates.June212026, 15, Venues.SF, TeamNames.Switzerland, TeamNames.Canada, 'B'),
-  game(52, Dates.June212026, 15, Venues.TOR, TeamNames.UEFAPlayoffA, TeamNames.Qatar, 'B'),
+  // ========== FRIDAY, JUNE 12, 2026 ==========
+  // Game 3: Canada vs UEFA Playoff A - 14:00 CT - Group B - Toronto
+  game(3, 2026, 5, 12, 14, 0, Venues.TOR, TeamNames.Canada, TeamNames.UEFAPlayoffA, 'B'),
 
-  // GROUP C - Brazil, Morocco, Haiti, Scotland
-  game(7, Dates.June132026, 18, Venues.NYC, TeamNames.Brazil, TeamNames.Morocco, 'C'),
-  game(8, Dates.June132026, 15, Venues.BOS, TeamNames.Haiti, TeamNames.Scotland, 'C'),
-  game(29, Dates.June172026, 21, Venues.TOR, TeamNames.Brazil, TeamNames.Haiti, 'C'),
-  game(30, Dates.June172026, 18, Venues.BOS, TeamNames.Scotland, TeamNames.Morocco, 'C'),
-  game(49, Dates.June212026, 18, Venues.MIA, TeamNames.Scotland, TeamNames.Brazil, 'C'),
-  game(50, Dates.June212026, 18, Venues.BOS, TeamNames.Morocco, TeamNames.Haiti, 'C'),
+  // Game 4: USA vs Paraguay - 20:00 CT - Group D - Los Angeles
+  game(4, 2026, 5, 12, 20, 0, Venues.LA, TeamNames.USA, TeamNames.Paraguay, 'D'),
 
-  // GROUP D - USA, Paraguay, Australia, UEFA Playoff C
-  game(4, Dates.June122026, 21, Venues.LA, TeamNames.USA, TeamNames.Paraguay, 'D'),
-  game(6, Dates.June122026, 0, Venues.VAN, TeamNames.Australia, TeamNames.UEFAPlayoffC, 'D'),
-  game(31, Dates.June172026, 0, Venues.VAN, TeamNames.UEFAPlayoffC, TeamNames.Paraguay, 'D'),
-  game(32, Dates.June172026, 15, Venues.LA, TeamNames.USA, TeamNames.Australia, 'D'),
-  game(59, Dates.June232026, 22, Venues.VAN, TeamNames.UEFAPlayoffC, TeamNames.USA, 'D'),
-  game(60, Dates.June232026, 22, Venues.LA, TeamNames.Paraguay, TeamNames.Australia, 'D'),
+  // ========== SATURDAY, JUNE 13, 2026 ==========
+  // Game 5: Qatar vs Switzerland - 14:00 CT - Group B - San Francisco Bay Area
+  game(5, 2026, 5, 13, 14, 0, Venues.SF, TeamNames.Qatar, TeamNames.Switzerland, 'B'),
 
-  // GROUP E - Germany, Curaçao, Côte d'Ivoire, Ecuador
-  game(9, Dates.June132026, 19, Venues.PHI, TeamNames.Germany, TeamNames.Curacao, 'E'),
-  game(10, Dates.June132026, 13, Venues.HOU, TeamNames.IvoryCoast, TeamNames.Ecuador, 'E'),
-  game(33, Dates.June182026, 16, Venues.DAL, TeamNames.Germany, TeamNames.IvoryCoast, 'E'),
-  game(34, Dates.June182026, 20, Venues.HOU, TeamNames.Ecuador, TeamNames.Curacao, 'E'),
-  game(55, Dates.June222026, 16, Venues.PHI, TeamNames.IvoryCoast, TeamNames.Ecuador, 'E'),
-  game(56, Dates.June222026, 16, Venues.DAL, TeamNames.Curacao, TeamNames.Germany, 'E'),
+  // Game 6: Brazil vs Morocco - 17:00 CT - Group C - New York/New Jersey
+  game(6, 2026, 5, 13, 17, 0, Venues.NYC, TeamNames.Brazil, TeamNames.Morocco, 'C'),
 
-  // GROUP F - Netherlands, Japan, UEFA Playoff B, Tunisia
-  game(11, Dates.June132026, 16, Venues.DAL, TeamNames.Netherlands, TeamNames.Japan, 'F'),
-  game(12, Dates.June132026, 22, Venues.MTY, TeamNames.UEFAPlayoffB, TeamNames.Tunisia, 'F'),
-  game(36, Dates.June182026, 0, Venues.MTY, TeamNames.Japan, TeamNames.Tunisia, 'F'),
-  game(57, Dates.June232026, 19, Venues.NYC, TeamNames.Japan, TeamNames.UEFAPlayoffB, 'F'),
-  game(58, Dates.June232026, 19, Venues.MTY, TeamNames.Tunisia, TeamNames.Netherlands, 'F'),
-  // Note: Missing one Group F match - need to verify
+  // Game 7: Haiti vs Scotland - 20:00 CT - Group C - Boston
+  game(7, 2026, 5, 13, 20, 0, Venues.BOS, TeamNames.Haiti, TeamNames.Scotland, 'C'),
 
-  // GROUP G - Belgium, Egypt, IR Iran, New Zealand
-  game(15, Dates.June142026, 21, Venues.LA, TeamNames.Iran, TeamNames.NewZealand, 'G'),
-  game(16, Dates.June142026, 15, Venues.SEA, TeamNames.Belgium, TeamNames.Egypt, 'G'),
-  game(39, Dates.June192026, 15, Venues.LA, TeamNames.Belgium, TeamNames.Iran, 'G'),
-  game(40, Dates.June192026, 21, Venues.SEA, TeamNames.NewZealand, TeamNames.Egypt, 'G'),
-  game(63, Dates.June242026, 23, Venues.SEA, TeamNames.NewZealand, TeamNames.Belgium, 'G'),
-  game(64, Dates.June242026, 23, Venues.LA, TeamNames.Egypt, TeamNames.Iran, 'G'),
+  // Game 8: Australia vs UEFA Playoff C - 23:00 CT - Group D - Vancouver
+  game(8, 2026, 5, 13, 23, 0, Venues.VAN, TeamNames.Australia, TeamNames.UEFAPlayoffC, 'D'),
 
-  // GROUP H - Spain, Cabo Verde, Saudi Arabia, Uruguay
-  game(13, Dates.June142026, 18, Venues.MIA, TeamNames.SaudiArabia, TeamNames.Uruguay, 'H'),
-  game(14, Dates.June142026, 12, Venues.ATL, TeamNames.Spain, TeamNames.CapeVerde, 'H'),
-  game(37, Dates.June192026, 18, Venues.KC, TeamNames.Uruguay, TeamNames.CapeVerde, 'H'),
-  game(38, Dates.June192026, 12, Venues.ATL, TeamNames.Spain, TeamNames.SaudiArabia, 'H'),
-  game(65, Dates.June252026, 20, Venues.MIA, TeamNames.CapeVerde, TeamNames.SaudiArabia, 'H'),
-  game(66, Dates.June252026, 20, Venues.KC, TeamNames.Uruguay, TeamNames.Spain, 'H'),
+  // ========== SUNDAY, JUNE 14, 2026 ==========
+  // Game 9: Germany vs Curaçao - 12:00 CT - Group E - Houston
+  game(9, 2026, 5, 14, 12, 0, Venues.HOU, TeamNames.Germany, TeamNames.Curacao, 'E'),
 
-  // GROUP I - France, Senegal, Intercontinental Playoff 2, Norway
-  game(17, Dates.June142026, 15, Venues.BOS, TeamNames.France, TeamNames.Senegal, 'I'),
-  game(18, Dates.June142026, 18, Venues.MTY, TeamNames.IntercontinentalPlayoff2, TeamNames.Norway, 'I'),
-  game(41, Dates.June192026, 20, Venues.DAL, TeamNames.Norway, TeamNames.Senegal, 'I'),
-  game(42, Dates.June192026, 17, Venues.NYC, TeamNames.France, TeamNames.IntercontinentalPlayoff2, 'I'),
-  game(61, Dates.June242026, 15, Venues.BOS, TeamNames.Norway, TeamNames.France, 'I'),
-  game(62, Dates.June242026, 15, Venues.NYC, TeamNames.Senegal, TeamNames.IntercontinentalPlayoff2, 'I'),
+  // Game 10: Netherlands vs Japan - 15:00 CT - Group F - Dallas
+  game(10, 2026, 5, 14, 15, 0, Venues.DAL, TeamNames.Netherlands, TeamNames.Japan, 'F'),
 
-  // GROUP J - Argentina, Algeria, Austria, Jordan
-  game(19, Dates.June152026, 21, Venues.KC, TeamNames.Argentina, TeamNames.Algeria, 'J'),
-  game(20, Dates.June152026, 0, Venues.SF, TeamNames.Austria, TeamNames.Jordan, 'J'),
-  game(43, Dates.June202026, 13, Venues.KC, TeamNames.Argentina, TeamNames.Austria, 'J'),
-  game(44, Dates.June202026, 23, Venues.SF, TeamNames.Jordan, TeamNames.Algeria, 'J'),
-  game(69, Dates.June262026, 22, Venues.ATL, TeamNames.Jordan, TeamNames.Argentina, 'J'),
-  game(70, Dates.June262026, 22, Venues.NYC, TeamNames.Algeria, TeamNames.Austria, 'J'),
+  // Game 11: Ivory Coast vs Ecuador - 18:00 CT - Group E - Philadelphia
+  game(11, 2026, 5, 14, 18, 0, Venues.PHI, TeamNames.IvoryCoast, TeamNames.Ecuador, 'E'),
 
-  // GROUP K - Portugal, Intercontinental Playoff 1, Uzbekistan, Colombia
-  game(23, Dates.June152026, 13, Venues.HOU, TeamNames.Colombia, TeamNames.IntercontinentalPlayoff1, 'K'),
-  game(24, Dates.June152026, 22, Venues.GDL, TeamNames.Portugal, TeamNames.Uzbekistan, 'K'),
-  game(35, Dates.June182026, 13, Venues.HOU, TeamNames.Portugal, TeamNames.IntercontinentalPlayoff1, 'K'),
-  game(48, Dates.June202026, 22, Venues.GDL, TeamNames.Colombia, TeamNames.IntercontinentalPlayoff1, 'K'),
-  game(47, Dates.June202026, 13, Venues.ATL, TeamNames.Portugal, TeamNames.Uzbekistan, 'K'),
-  game(71, Dates.June262026, 19.5, Venues.MIA, TeamNames.Colombia, TeamNames.Portugal, 'K'),
-  game(72, Dates.June262026, 19.5, Venues.DAL, TeamNames.IntercontinentalPlayoff1, TeamNames.Uzbekistan, 'K'),
+  // Game 12: UEFA Playoff B vs Tunisia - 21:00 CT - Group F - Monterrey
+  game(12, 2026, 5, 14, 21, 0, Venues.MTY, TeamNames.UEFAPlayoffB, TeamNames.Tunisia, 'F'),
 
-  // GROUP L - England, Croatia, Ghana, Panama
-  game(21, Dates.June152026, 19, Venues.ATL, TeamNames.Ghana, TeamNames.Panama, 'L'),
-  game(22, Dates.June152026, 16, Venues.DAL, TeamNames.England, TeamNames.Croatia, 'L'),
-  game(45, Dates.June202026, 16, Venues.TOR, TeamNames.England, TeamNames.Ghana, 'L'),
-  game(46, Dates.June202026, 19, Venues.MIA, TeamNames.Panama, TeamNames.Croatia, 'L'),
-  game(67, Dates.June252026, 17, Venues.TOR, TeamNames.Panama, TeamNames.England, 'L'),
-  game(68, Dates.June252026, 17, Venues.PHI, TeamNames.Croatia, TeamNames.Ghana, 'L'),
+  // ========== MONDAY, JUNE 15, 2026 ==========
+  // Game 13: Spain vs Cape Verde - 11:00 CT - Group H - Atlanta
+  game(13, 2026, 5, 15, 11, 0, Venues.ATL, TeamNames.Spain, TeamNames.CapeVerde, 'H'),
 
-  // ==================== KNOCKOUT STAGE ====================
-  // Keep existing playoff games (73-104) as-is for now
-  // These will need to be verified separately
+  // Game 14: Belgium vs Egypt - 14:00 CT - Group G - Seattle
+  game(14, 2026, 5, 15, 14, 0, Venues.SEA, TeamNames.Belgium, TeamNames.Egypt, 'G'),
 
-  // ROUND OF 32
-  game(73, Dates.June282026, 15, Venues.LA, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'A', position: 2 }, { group: 'B', position: 2 }),
+  // Game 15: Saudi Arabia vs Uruguay - 17:00 CT - Group H - Miami
+  game(15, 2026, 5, 15, 17, 0, Venues.MIA, TeamNames.SaudiArabia, TeamNames.Uruguay, 'H'),
 
-  game(74, Dates.June292026, 16.5, Venues.BOS, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'E', position: 1 }, { group: 'A/B/C/D/F', position: 3 }),
+  // Game 16: Iran vs New Zealand - 20:00 CT - Group G - Los Angeles
+  game(16, 2026, 5, 15, 20, 0, Venues.LA, TeamNames.Iran, TeamNames.NewZealand, 'G'),
 
-  game(75, Dates.June292026, 21, Venues.MTY, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'F', position: 1 }, { group: 'C', position: 2 }),
+  // ========== TUESDAY, JUNE 16, 2026 ==========
+  // Game 17: France vs Senegal - 14:00 CT - Group I - New York/New Jersey
+  game(17, 2026, 5, 16, 14, 0, Venues.NYC, TeamNames.France, TeamNames.Senegal, 'I'),
 
-  game(76, Dates.June292026, 13, Venues.HOU, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'C', position: 1 }, { group: 'F', position: 2 }),
+  // Game 18: Intercontinental Playoff 2 vs Norway - 17:00 CT - Group I - Boston
+  game(18, 2026, 5, 16, 17, 0, Venues.BOS, TeamNames.IntercontinentalPlayoff2, TeamNames.Norway, 'I'),
 
-  game(77, Dates.June302026, 17, Venues.NYC, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'I', position: 1 }, { group: 'C/D/F/G/H', position: 3 }),
+  // Game 19: Argentina vs Algeria - 20:00 CT - Group J - Kansas City
+  game(19, 2026, 5, 16, 20, 0, Venues.KC, TeamNames.Argentina, TeamNames.Algeria, 'J'),
 
-  game(78, Dates.June302026, 13, Venues.DAL, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'E', position: 2 }, { group: 'I', position: 2 }),
+  // Game 20: Austria vs Jordan - 23:00 CT - Group J - San Francisco Bay Area
+  game(20, 2026, 5, 16, 23, 0, Venues.SF, TeamNames.Austria, TeamNames.Jordan, 'J'),
 
-  game(79, Dates.June302026, 21, Venues.MEX, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'A', position: 1 }, { group: 'C/E/F/H/I', position: 3 }),
+  // ========== WEDNESDAY, JUNE 17, 2026 ==========
+  // Game 21: Portugal vs Intercontinental Playoff 1 - 12:00 CT - Group K - Houston
+  game(21, 2026, 5, 17, 12, 0, Venues.HOU, TeamNames.Portugal, TeamNames.IntercontinentalPlayoff1, 'K'),
 
-  game(80, Dates.July012026, 12, Venues.ATL, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'L', position: 1 }, { group: 'E/H/I/J/K', position: 3 }),
+  // Game 22: England vs Croatia - 15:00 CT - Group L - Dallas
+  game(22, 2026, 5, 17, 15, 0, Venues.DAL, TeamNames.England, TeamNames.Croatia, 'L'),
 
-  game(81, Dates.July012026, 20, Venues.SF, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'D', position: 1 }, { group: 'B/E/F/I/J', position: 3 }),
+  // Game 23: Ghana vs Panama - 18:00 CT - Group L - Toronto
+  game(23, 2026, 5, 17, 18, 0, Venues.TOR, TeamNames.Ghana, TeamNames.Panama, 'L'),
 
-  game(82, Dates.July012026, 16, Venues.SEA, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'G', position: 1 }, { group: 'A/E/H/I/J', position: 3 }),
+  // Game 24: Uzbekistan vs Colombia - 21:00 CT - Group K - Mexico City
+  game(24, 2026, 5, 17, 21, 0, Venues.MEX, TeamNames.Uzbekistan, TeamNames.Colombia, 'K'),
 
-  game(83, Dates.July022026, 19, Venues.TOR, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'K', position: 2 }, { group: 'L', position: 2 }),
+  // ========== THURSDAY, JUNE 18, 2026 ==========
+  // Game 25: UEFA Playoff D vs South Africa - 11:00 CT - Group A - Atlanta
+  game(25, 2026, 5, 18, 11, 0, Venues.ATL, TeamNames.UEFAPlayoffD, TeamNames.SouthAfrica, 'A'),
 
-  game(84, Dates.July022026, 15, Venues.LA, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'H', position: 1 }, { group: 'J', position: 2 }),
+  // Game 26: Switzerland vs UEFA Playoff A - 14:00 CT - Group B - Los Angeles
+  game(26, 2026, 5, 18, 14, 0, Venues.LA, TeamNames.Switzerland, TeamNames.UEFAPlayoffA, 'B'),
 
-  game(85, Dates.July022026, 23, Venues.VAN, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'B', position: 1 }, { group: 'E/F/G/I/J', position: 3 }),
+  // Game 27: Canada vs Qatar - 17:00 CT - Group B - Vancouver
+  game(27, 2026, 5, 18, 17, 0, Venues.VAN, TeamNames.Canada, TeamNames.Qatar, 'B'),
 
-  game(86, Dates.July032026, 18, Venues.MIA, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'J', position: 1 }, { group: 'H', position: 2 }),
+  // Game 28: Mexico vs South Korea - 20:00 CT - Group A - Guadalajara
+  game(28, 2026, 5, 18, 20, 0, Venues.GDL, TeamNames.Mexico, TeamNames.SouthKorea, 'A'),
 
-  game(87, Dates.July032026, 21.5, Venues.KC, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'K', position: 1 }, { group: 'D/E/I/J/L', position: 3 }),
+  // ========== FRIDAY, JUNE 19, 2026 ==========
+  // Game 29: USA vs Australia - 14:00 CT - Group D - Seattle
+  game(29, 2026, 5, 19, 14, 0, Venues.SEA, TeamNames.USA, TeamNames.Australia, 'D'),
 
-  game(88, Dates.July032026, 14, Venues.DAL, undefined, undefined, undefined,
-    PlayoffStages.round32, { group: 'D', position: 2 }, { group: 'G', position: 2 }),
+  // Game 30: Scotland vs Morocco - 17:00 CT - Group C - Boston
+  game(30, 2026, 5, 19, 17, 0, Venues.BOS, TeamNames.Scotland, TeamNames.Morocco, 'C'),
 
-  // ROUND OF 16
-  game(89, Dates.July042026, 17, Venues.HOU, undefined, undefined, undefined,
-    PlayoffStages.round16, { game: 73, winner: true }, { game: 75, winner: true }),
+  // Game 31: Brazil vs Haiti - 20:00 CT - Group C - Philadelphia
+  game(31, 2026, 5, 19, 20, 0, Venues.PHI, TeamNames.Brazil, TeamNames.Haiti, 'C'),
 
-  game(90, Dates.July042026, 13, Venues.PHI, undefined, undefined, undefined,
-    PlayoffStages.round16, { game: 74, winner: true }, { game: 77, winner: true }),
+  // Game 32: UEFA Playoff C vs Paraguay - 23:00 CT - Group D - San Francisco Bay Area
+  game(32, 2026, 5, 19, 23, 0, Venues.SF, TeamNames.UEFAPlayoffC, TeamNames.Paraguay, 'D'),
 
-  game(91, Dates.July052026, 16, Venues.MEX, undefined, undefined, undefined,
-    PlayoffStages.round16, { game: 76, winner: true }, { game: 78, winner: true }),
+  // ========== SATURDAY, JUNE 20, 2026 ==========
+  // Game 33: Netherlands vs UEFA Playoff B - 12:00 CT - Group F - Houston
+  game(33, 2026, 5, 20, 12, 0, Venues.HOU, TeamNames.Netherlands, TeamNames.UEFAPlayoffB, 'F'),
 
-  game(92, Dates.July052026, 20, Venues.NYC, undefined, undefined, undefined,
-    PlayoffStages.round16, { game: 79, winner: true }, { game: 80, winner: true }),
+  // Game 34: Germany vs Ivory Coast - 15:00 CT - Group E - Toronto
+  game(34, 2026, 5, 20, 15, 0, Venues.TOR, TeamNames.Germany, TeamNames.IvoryCoast, 'E'),
 
-  game(93, Dates.July062026, 15, Venues.DAL, undefined, undefined, undefined,
-    PlayoffStages.round16, { game: 81, winner: true }, { game: 82, winner: true }),
+  // Game 35: Ecuador vs Curaçao - 19:00 CT - Group E - Kansas City
+  game(35, 2026, 5, 20, 19, 0, Venues.KC, TeamNames.Ecuador, TeamNames.Curacao, 'E'),
 
-  game(94, Dates.July062026, 20, Venues.SEA, undefined, undefined, undefined,
-    PlayoffStages.round16, { game: 83, winner: true }, { game: 84, winner: true }),
+  // Game 36: Tunisia vs Japan - 23:00 CT - Group F - Monterrey
+  game(36, 2026, 5, 20, 23, 0, Venues.MTY, TeamNames.Tunisia, TeamNames.Japan, 'F'),
 
-  game(95, Dates.July072026, 12, Venues.ATL, undefined, undefined, undefined,
-    PlayoffStages.round16, { game: 85, winner: true }, { game: 87, winner: true }),
+  // ========== SUNDAY, JUNE 21, 2026 ==========
+  // Game 37: Spain vs Saudi Arabia - 11:00 CT - Group H - Atlanta
+  game(37, 2026, 5, 21, 11, 0, Venues.ATL, TeamNames.Spain, TeamNames.SaudiArabia, 'H'),
 
-  game(96, Dates.July072026, 16, Venues.VAN, undefined, undefined, undefined,
-    PlayoffStages.round16, { game: 86, winner: true }, { game: 88, winner: true }),
+  // Game 38: Belgium vs Iran - 14:00 CT - Group G - Los Angeles
+  game(38, 2026, 5, 21, 14, 0, Venues.LA, TeamNames.Belgium, TeamNames.Iran, 'G'),
 
-  // QUARTER-FINALS
-  game(97, Dates.July092026, 16, Venues.BOS, undefined, undefined, undefined,
-    PlayoffStages.quarters, { game: 89, winner: true }, { game: 90, winner: true }),
+  // Game 39: Uruguay vs Cape Verde - 17:00 CT - Group H - Miami
+  game(39, 2026, 5, 21, 17, 0, Venues.MIA, TeamNames.Uruguay, TeamNames.CapeVerde, 'H'),
 
-  game(98, Dates.July102026, 15, Venues.LA, undefined, undefined, undefined,
-    PlayoffStages.quarters, { game: 91, winner: true }, { game: 92, winner: true }),
+  // Game 40: New Zealand vs Egypt - 20:00 CT - Group G - Vancouver
+  game(40, 2026, 5, 21, 20, 0, Venues.VAN, TeamNames.NewZealand, TeamNames.Egypt, 'G'),
 
-  game(99, Dates.July102026, 17, Venues.KC, undefined, undefined, undefined,
-    PlayoffStages.quarters, { game: 93, winner: true }, { game: 94, winner: true }),
+  // ========== MONDAY, JUNE 22, 2026 ==========
+  // Game 41: Argentina vs Austria - 12:00 CT - Group J - Dallas
+  game(41, 2026, 5, 22, 12, 0, Venues.DAL, TeamNames.Argentina, TeamNames.Austria, 'J'),
 
-  game(100, Dates.July112026, 21, Venues.MIA, undefined, undefined, undefined,
-    PlayoffStages.quarters, { game: 95, winner: true }, { game: 96, winner: true }),
+  // Game 42: France vs Intercontinental Playoff 2 - 16:00 CT - Group I - Philadelphia
+  game(42, 2026, 5, 22, 16, 0, Venues.PHI, TeamNames.France, TeamNames.IntercontinentalPlayoff2, 'I'),
 
-  // SEMI-FINALS
-  game(101, Dates.July142026, 15, Venues.DAL, undefined, undefined, undefined,
-    PlayoffStages.semis, { game: 97, winner: true }, { game: 98, winner: true }),
+  // Game 43: Norway vs Senegal - 19:00 CT - Group I - New York/New Jersey
+  game(43, 2026, 5, 22, 19, 0, Venues.NYC, TeamNames.Norway, TeamNames.Senegal, 'I'),
 
-  game(102, Dates.July152026, 15, Venues.ATL, undefined, undefined, undefined,
-    PlayoffStages.semis, { game: 99, winner: true }, { game: 100, winner: true }),
+  // Game 44: Jordan vs Algeria - 22:00 CT - Group J - San Francisco Bay Area
+  game(44, 2026, 5, 22, 22, 0, Venues.SF, TeamNames.Jordan, TeamNames.Algeria, 'J'),
 
-  // THIRD PLACE
-  game(103, Dates.July182026, 17, Venues.MIA, undefined, undefined, undefined,
-    PlayoffStages.thirdPlace, { game: 101, winner: false }, { game: 102, winner: false }),
+  // ========== TUESDAY, JUNE 23, 2026 ==========
+  // Game 45: Portugal vs Uzbekistan - 12:00 CT - Group K - Houston
+  game(45, 2026, 5, 23, 12, 0, Venues.HOU, TeamNames.Portugal, TeamNames.Uzbekistan, 'K'),
 
-  // FINAL
-  game(104, Dates.July192026, 15, Venues.NYC, undefined, undefined, undefined,
-    PlayoffStages.final, { game: 101, winner: true }, { game: 102, winner: true }),
+  // Game 46: England vs Ghana - 15:00 CT - Group L - Boston
+  game(46, 2026, 5, 23, 15, 0, Venues.BOS, TeamNames.England, TeamNames.Ghana, 'L'),
+
+  // Game 47: Panama vs Croatia - 18:00 CT - Group L - Toronto
+  game(47, 2026, 5, 23, 18, 0, Venues.TOR, TeamNames.Panama, TeamNames.Croatia, 'L'),
+
+  // Game 48: Colombia vs Intercontinental Playoff 1 - 21:00 CT - Group K - Guadalajara
+  game(48, 2026, 5, 23, 21, 0, Venues.GDL, TeamNames.Colombia, TeamNames.IntercontinentalPlayoff1, 'K'),
+
+  // ========== WEDNESDAY, JUNE 24, 2026 ==========
+  // Game 49: Switzerland vs Canada - 14:00 CT - Group B - Vancouver
+  game(49, 2026, 5, 24, 14, 0, Venues.VAN, TeamNames.Switzerland, TeamNames.Canada, 'B'),
+
+  // Game 50: UEFA Playoff A vs Qatar - 14:00 CT - Group B - Seattle
+  game(50, 2026, 5, 24, 14, 0, Venues.SEA, TeamNames.UEFAPlayoffA, TeamNames.Qatar, 'B'),
+
+  // Game 51: Scotland vs Brazil - 17:00 CT - Group C - Miami
+  game(51, 2026, 5, 24, 17, 0, Venues.MIA, TeamNames.Scotland, TeamNames.Brazil, 'C'),
+
+  // Game 52: Morocco vs Haiti - 17:00 CT - Group C - Atlanta
+  game(52, 2026, 5, 24, 17, 0, Venues.ATL, TeamNames.Morocco, TeamNames.Haiti, 'C'),
+
+  // Game 53: UEFA Playoff D vs Mexico - 20:00 CT - Group A - Mexico City
+  game(53, 2026, 5, 24, 20, 0, Venues.MEX, TeamNames.UEFAPlayoffD, TeamNames.Mexico, 'A'),
+
+  // Game 54: South Africa vs South Korea - 20:00 CT - Group A - Monterrey
+  game(54, 2026, 5, 24, 20, 0, Venues.MTY, TeamNames.SouthAfrica, TeamNames.SouthKorea, 'A'),
+
+  // ========== THURSDAY, JUNE 25, 2026 ==========
+  // Game 55: Curaçao vs Ivory Coast - 15:00 CT - Group E - Philadelphia
+  game(55, 2026, 5, 25, 15, 0, Venues.PHI, TeamNames.Curacao, TeamNames.IvoryCoast, 'E'),
+
+  // Game 56: Ecuador vs Germany - 15:00 CT - Group E - New York/New Jersey
+  game(56, 2026, 5, 25, 15, 0, Venues.NYC, TeamNames.Ecuador, TeamNames.Germany, 'E'),
+
+  // Game 57: Japan vs UEFA Playoff B - 18:00 CT - Group F - Dallas
+  game(57, 2026, 5, 25, 18, 0, Venues.DAL, TeamNames.Japan, TeamNames.UEFAPlayoffB, 'F'),
+
+  // Game 58: Tunisia vs Netherlands - 18:00 CT - Group F - Kansas City
+  game(58, 2026, 5, 25, 18, 0, Venues.KC, TeamNames.Tunisia, TeamNames.Netherlands, 'F'),
+
+  // Game 59: UEFA Playoff C vs USA - 21:00 CT - Group D - Los Angeles
+  game(59, 2026, 5, 25, 21, 0, Venues.LA, TeamNames.UEFAPlayoffC, TeamNames.USA, 'D'),
+
+  // Game 60: Paraguay vs Australia - 21:00 CT - Group D - San Francisco Bay Area
+  game(60, 2026, 5, 25, 21, 0, Venues.SF, TeamNames.Paraguay, TeamNames.Australia, 'D'),
+
+  // ========== FRIDAY, JUNE 26, 2026 ==========
+  // Game 61: Norway vs France - 14:00 CT - Group I - Boston
+  game(61, 2026, 5, 26, 14, 0, Venues.BOS, TeamNames.Norway, TeamNames.France, 'I'),
+
+  // Game 62: Senegal vs Intercontinental Playoff 2 - 14:00 CT - Group I - Toronto
+  game(62, 2026, 5, 26, 14, 0, Venues.TOR, TeamNames.Senegal, TeamNames.IntercontinentalPlayoff2, 'I'),
+
+  // Game 63: Cape Verde vs Saudi Arabia - 19:00 CT - Group H - Houston
+  game(63, 2026, 5, 26, 19, 0, Venues.HOU, TeamNames.CapeVerde, TeamNames.SaudiArabia, 'H'),
+
+  // Game 64: Uruguay vs Spain - 19:00 CT - Group H - Guadalajara
+  game(64, 2026, 5, 26, 19, 0, Venues.GDL, TeamNames.Uruguay, TeamNames.Spain, 'H'),
+
+  // Game 65: Egypt vs Iran - 22:00 CT - Group G - Seattle
+  game(65, 2026, 5, 26, 22, 0, Venues.SEA, TeamNames.Egypt, TeamNames.Iran, 'G'),
+
+  // Game 66: New Zealand vs Belgium - 22:00 CT - Group G - Vancouver
+  game(66, 2026, 5, 26, 22, 0, Venues.VAN, TeamNames.NewZealand, TeamNames.Belgium, 'G'),
+
+  // ========== SATURDAY, JUNE 27, 2026 ==========
+  // Game 67: Panama vs England - 16:00 CT - Group L - New York/New Jersey
+  game(67, 2026, 5, 27, 16, 0, Venues.NYC, TeamNames.Panama, TeamNames.England, 'L'),
+
+  // Game 68: Croatia vs Ghana - 16:00 CT - Group L - Philadelphia
+  game(68, 2026, 5, 27, 16, 0, Venues.PHI, TeamNames.Croatia, TeamNames.Ghana, 'L'),
+
+  // Game 69: Colombia vs Portugal - 18:30 CT - Group K - Miami
+  game(69, 2026, 5, 27, 18, 30, Venues.MIA, TeamNames.Colombia, TeamNames.Portugal, 'K'),
+
+  // Game 70: Intercontinental Playoff 1 vs Uzbekistan - 18:30 CT - Group K - Atlanta
+  game(70, 2026, 5, 27, 18, 30, Venues.ATL, TeamNames.IntercontinentalPlayoff1, TeamNames.Uzbekistan, 'K'),
+
+  // Game 71: Algeria vs Austria - 21:00 CT - Group J - Kansas City
+  game(71, 2026, 5, 27, 21, 0, Venues.KC, TeamNames.Algeria, TeamNames.Austria, 'J'),
+
+  // Game 72: Jordan vs Argentina - 21:00 CT - Group J - Dallas
+  game(72, 2026, 5, 27, 21, 0, Venues.DAL, TeamNames.Jordan, TeamNames.Argentina, 'J'),
+
+  // ========================================
+  // KNOCKOUT STAGE - 32 Games
+  // Round of 32 through Final
+  // ========================================
+
+  // ========== ROUND OF 32 - June 28 - July 3, 2026 ==========
+  // Game 73: 2A vs 2B - Sunday, June 28 - 14:00 CT - Los Angeles
+  game(
+    73, 2026, 5, 28, 14, 0, Venues.LA, null, null, undefined, 'Round of 32',
+    { type: 'group_position', group: 'A', position: 2 },
+    { type: 'group_position', group: 'B', position: 2 }
+  ),
+
+  // Game 74: 1C vs 2F - Monday, June 29 - 12:00 CT - Houston
+  game(
+    74, 2026, 5, 29, 12, 0, Venues.HOU, null, null, undefined, 'Round of 32',
+    { type: 'group_position', group: 'C', position: 1 },
+    { type: 'group_position', group: 'F', position: 2 }
+  ),
+
+  // Game 75: 1E vs 3ABCDF - Monday, June 29 - 15:30 CT - Boston
+  game(
+    75, 2026, 5, 29, 15, 30, Venues.BOS, null, null, undefined, 'Round of 32',
+    { type: 'group_position', group: 'E', position: 1 },
+    { type: 'third_place', groups: ['A', 'B', 'C', 'D', 'F'] }
+  ),
+
+  // Game 76: 1F vs 2C - Monday, June 29 - 20:00 CT - Monterrey
+  game(
+    76, 2026, 5, 29, 20, 0, Venues.MTY, null, null, undefined, 'Round of 32',
+    { type: 'group_position', group: 'F', position: 1 },
+    { type: 'group_position', group: 'C', position: 2 }
+  ),
+
+  // Game 77: 2E vs 2I - Tuesday, June 30 - 12:00 CT - Dallas
+  game(
+    77, 2026, 5, 30, 12, 0, Venues.DAL, null, null, undefined, 'Round of 32',
+    { type: 'group_position', group: 'E', position: 2 },
+    { type: 'group_position', group: 'I', position: 2 }
+  ),
+
+  // Game 78: 1I vs 3CDFGH - Tuesday, June 30 - 16:00 CT - New York/New Jersey
+  game(
+    78, 2026, 5, 30, 16, 0, Venues.NYC, null, null, undefined, 'Round of 32',
+    { type: 'group_position', group: 'I', position: 1 },
+    { type: 'third_place', groups: ['C', 'D', 'F', 'G', 'H'] }
+  ),
+
+  // Game 79: 1A vs 3CEFHI - Tuesday, June 30 - 20:00 CT - Mexico City
+  game(
+    79, 2026, 5, 30, 20, 0, Venues.MEX, null, null, undefined, 'Round of 32',
+    { type: 'group_position', group: 'A', position: 1 },
+    { type: 'third_place', groups: ['C', 'E', 'F', 'H', 'I'] }
+  ),
+
+  // Game 80: 1L vs 3EHIJK - Wednesday, July 1 - 11:00 CT - Atlanta
+  game(
+    80, 2026, 6, 1, 11, 0, Venues.ATL, null, null, undefined, 'Round of 32',
+    { type: 'group_position', group: 'L', position: 1 },
+    { type: 'third_place', groups: ['E', 'H', 'I', 'J', 'K'] }
+  ),
+
+  // Game 81: 1G vs 3AEHIJ - Wednesday, July 1 - 15:00 CT - Seattle
+  game(
+    81, 2026, 6, 1, 15, 0, Venues.SEA, null, null, undefined, 'Round of 32',
+    { type: 'group_position', group: 'G', position: 1 },
+    { type: 'third_place', groups: ['A', 'E', 'H', 'I', 'J'] }
+  ),
+
+  // Game 82: 1D vs 3BEFIJ - Wednesday, July 1 - 19:00 CT - San Francisco Bay Area
+  game(
+    82, 2026, 6, 1, 19, 0, Venues.SF, null, null, undefined, 'Round of 32',
+    { type: 'group_position', group: 'D', position: 1 },
+    { type: 'third_place', groups: ['B', 'E', 'F', 'I', 'J'] }
+  ),
+
+  // Game 83: 1H vs 2J - Thursday, July 2 - 14:00 CT - Los Angeles
+  game(
+    83, 2026, 6, 2, 14, 0, Venues.LA, null, null, undefined, 'Round of 32',
+    { type: 'group_position', group: 'H', position: 1 },
+    { type: 'group_position', group: 'J', position: 2 }
+  ),
+
+  // Game 84: 2K vs 2L - Thursday, July 2 - 18:00 CT - Toronto
+  game(
+    84, 2026, 6, 2, 18, 0, Venues.TOR, null, null, undefined, 'Round of 32',
+    { type: 'group_position', group: 'K', position: 2 },
+    { type: 'group_position', group: 'L', position: 2 }
+  ),
+
+  // Game 85: 1B vs 3EFGIJ - Thursday, July 2 - 22:00 CT - Vancouver
+  game(
+    85, 2026, 6, 2, 22, 0, Venues.VAN, null, null, undefined, 'Round of 32',
+    { type: 'group_position', group: 'B', position: 1 },
+    { type: 'third_place', groups: ['E', 'F', 'G', 'I', 'J'] }
+  ),
+
+  // Game 86: 2D vs 2G - Friday, July 3 - 13:00 CT - Dallas
+  game(
+    86, 2026, 6, 3, 13, 0, Venues.DAL, null, null, undefined, 'Round of 32',
+    { type: 'group_position', group: 'D', position: 2 },
+    { type: 'group_position', group: 'G', position: 2 }
+  ),
+
+  // Game 87: 1J vs 2H - Friday, July 3 - 17:00 CT - Miami
+  game(
+    87, 2026, 6, 3, 17, 0, Venues.MIA, null, null, undefined, 'Round of 32',
+    { type: 'group_position', group: 'J', position: 1 },
+    { type: 'group_position', group: 'H', position: 2 }
+  ),
+
+  // Game 88: 1K vs 3DEIJL - Friday, July 3 - 20:30 CT - Kansas City
+  game(
+    88, 2026, 6, 3, 20, 30, Venues.KC, null, null, undefined, 'Round of 32',
+    { type: 'group_position', group: 'K', position: 1 },
+    { type: 'third_place', groups: ['D', 'E', 'I', 'J', 'L'] }
+  ),
+
+  // ========== ROUND OF 16 - July 4-7, 2026 ==========
+  // Game 89: W73 vs W75 - Saturday, July 4 - 12:00 CT - Houston
+  game(
+    89, 2026, 6, 4, 12, 0, Venues.HOU, null, null, undefined, 'Round of 16',
+    { type: 'winner', game_number: 73 },
+    { type: 'winner', game_number: 75 }
+  ),
+
+  // Game 90: W74 vs W77 - Saturday, July 4 - 16:00 CT - Philadelphia
+  game(
+    90, 2026, 6, 4, 16, 0, Venues.PHI, null, null, undefined, 'Round of 16',
+    { type: 'winner', game_number: 74 },
+    { type: 'winner', game_number: 77 }
+  ),
+
+  // Game 91: W76 vs W78 - Sunday, July 5 - 15:00 CT - New York/New Jersey
+  game(
+    91, 2026, 6, 5, 15, 0, Venues.NYC, null, null, undefined, 'Round of 16',
+    { type: 'winner', game_number: 76 },
+    { type: 'winner', game_number: 78 }
+  ),
+
+  // Game 92: W79 vs W80 - Sunday, July 5 - 19:00 CT - Mexico City
+  game(
+    92, 2026, 6, 5, 19, 0, Venues.MEX, null, null, undefined, 'Round of 16',
+    { type: 'winner', game_number: 79 },
+    { type: 'winner', game_number: 80 }
+  ),
+
+  // Game 93: W83 vs W84 - Monday, July 6 - 14:00 CT - Dallas
+  game(
+    93, 2026, 6, 6, 14, 0, Venues.DAL, null, null, undefined, 'Round of 16',
+    { type: 'winner', game_number: 83 },
+    { type: 'winner', game_number: 84 }
+  ),
+
+  // Game 94: W81 vs W82 - Monday, July 6 - 19:00 CT - Seattle
+  game(
+    94, 2026, 6, 6, 19, 0, Venues.SEA, null, null, undefined, 'Round of 16',
+    { type: 'winner', game_number: 81 },
+    { type: 'winner', game_number: 82 }
+  ),
+
+  // Game 95: W86 vs W88 - Tuesday, July 7 - 11:00 CT - Atlanta
+  game(
+    95, 2026, 6, 7, 11, 0, Venues.ATL, null, null, undefined, 'Round of 16',
+    { type: 'winner', game_number: 86 },
+    { type: 'winner', game_number: 88 }
+  ),
+
+  // Game 96: W85 vs W87 - Tuesday, July 7 - 15:00 CT - Vancouver
+  game(
+    96, 2026, 6, 7, 15, 0, Venues.VAN, null, null, undefined, 'Round of 16',
+    { type: 'winner', game_number: 85 },
+    { type: 'winner', game_number: 87 }
+  ),
+
+  // ========== QUARTER-FINALS - July 9-11, 2026 ==========
+  // Game 97: W89 vs W90 - Thursday, July 9 - 15:00 CT - Boston
+  game(
+    97, 2026, 6, 9, 15, 0, Venues.BOS, null, null, undefined, 'Quarter-finals',
+    { type: 'winner', game_number: 89 },
+    { type: 'winner', game_number: 90 }
+  ),
+
+  // Game 98: W93 vs W94 - Friday, July 10 - 14:00 CT - Los Angeles
+  game(
+    98, 2026, 6, 10, 14, 0, Venues.LA, null, null, undefined, 'Quarter-finals',
+    { type: 'winner', game_number: 93 },
+    { type: 'winner', game_number: 94 }
+  ),
+
+  // Game 99: W91 vs W92 - Saturday, July 11 - 16:00 CT - Miami
+  game(
+    99, 2026, 6, 11, 16, 0, Venues.MIA, null, null, undefined, 'Quarter-finals',
+    { type: 'winner', game_number: 91 },
+    { type: 'winner', game_number: 92 }
+  ),
+
+  // Game 100: W95 vs W96 - Saturday, July 11 - 20:00 CT - Kansas City
+  game(
+    100, 2026, 6, 11, 20, 0, Venues.KC, null, null, undefined, 'Quarter-finals',
+    { type: 'winner', game_number: 95 },
+    { type: 'winner', game_number: 96 }
+  ),
+
+  // ========== SEMI-FINALS - July 14-15, 2026 ==========
+  // Game 101: W97 vs W98 - Tuesday, July 14 - 14:00 CT - Dallas
+  game(
+    101, 2026, 6, 14, 14, 0, Venues.DAL, null, null, undefined, 'Semi-finals',
+    { type: 'winner', game_number: 97 },
+    { type: 'winner', game_number: 98 }
+  ),
+
+  // Game 102: W99 vs W100 - Wednesday, July 15 - 14:00 CT - Atlanta
+  game(
+    102, 2026, 6, 15, 14, 0, Venues.ATL, null, null, undefined, 'Semi-finals',
+    { type: 'winner', game_number: 99 },
+    { type: 'winner', game_number: 100 }
+  ),
+
+  // ========== THIRD PLACE PLAYOFF - July 18, 2026 ==========
+  // Game 103: Loser 101 vs Loser 102 - Saturday, July 18 - 16:00 CT - Miami
+  game(
+    103, 2026, 6, 18, 16, 0, Venues.MIA, null, null, undefined, 'Third Place',
+    { type: 'loser', game_number: 101 },
+    { type: 'loser', game_number: 102 }
+  ),
+
+  // ========== FINAL - July 19, 2026 ==========
+  // Game 104: W101 vs W102 - Sunday, July 19 - 14:00 CT - New York/New Jersey
+  game(
+    104, 2026, 6, 19, 14, 0, Venues.NYC, null, null, undefined, 'Final',
+    { type: 'winner', game_number: 101 },
+    { type: 'winner', game_number: 102 }
+  ),
 ];

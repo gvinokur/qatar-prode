@@ -147,6 +147,7 @@ async function updateFifa2026Games() {
         tournament_id: tournamentId,
         game_date: gameData.date,
         location: gameData.location,
+        game_local_timezone: gameData.timezone || null,
         home_team: homeTeamId,
         away_team: awayTeamId,
         home_team_rule: gameData.home_team_rule ? gameData.home_team_rule as any : null,
