@@ -9,7 +9,7 @@ import {GuessesContext} from "./context-providers/guesses-context-provider";
 import GameResultEditDialog from "./game-result-edit-dialog";
 import {getTeamDescription} from "../utils/playoffs-rule-helper";
 import {useSession} from "next-auth/react";
-import {calculateTeamNamesForPlayoffGame} from "../utils/playoff-teams-calculator";
+import {calculateTeamNamesForPlayoffGame} from "../utils/playoff-utils";
 import { getGuessLoser, getGuessWinner } from "../utils/score-utils";
 import { updateOrCreateTournamentGuess } from "../actions/guesses-actions";
 
