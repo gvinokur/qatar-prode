@@ -1,6 +1,6 @@
 'use client'
 
-import {useState, ReactNode} from 'react';
+import {useState, ReactNode, cloneElement, isValidElement} from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -81,15 +81,16 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName }: Inv
     window.open(`https://wa.me/?text=${message}`);
   };
 
+  // Clone the trigger element and add onClick handler
+  const triggerWithClick = isValidElement(trigger)
+    ? cloneElement(trigger as React.ReactElement<any>, {
+        onClick: handleOpen
+      })
+    : trigger;
+
   return (
     <>
-      <button 
-        onClick={handleOpen} 
-        onKeyDown={(e) => e.key === 'Enter' && handleOpen()}
-        style={{ border: 'none', background: 'transparent', padding: 0, cursor: 'pointer' }}
-      >
-        {trigger}
-      </button>
+      {triggerWithClick}
 
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>

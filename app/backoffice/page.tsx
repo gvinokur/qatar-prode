@@ -19,6 +19,7 @@ import TournamentGameManagerTab from "../components/backoffice/tournament-game-m
 import PlayersTab from "../components/backoffice/PlayersTab";
 import NotificationSender from "../components/backoffice/notification-sender";
 import TournamentThirdPlaceRulesTab from "../components/backoffice/tournament-third-place-rules-tab";
+import TournamentScoringConfigTab from "../components/backoffice/tournament-scoring-config-tab";
 
 export default async function Backoffice() {
   const user = await  getLoggedInUser()
@@ -47,6 +48,7 @@ export default async function Backoffice() {
                   createTab('Tournament Actions', <TournamentBackofficeTab tournament={tournament}/>),
                   createTab('Game Scores', <GroupsTab tournamentId={tournament.id}/>),
                   createTab('Awards', <BackofficeAwardsTab tournamentId={tournament.id}/>),
+                  createTab('Scoring Config', <TournamentScoringConfigTab tournamentId={tournament.id}/>),
                   createTab('Teams', <TournamentTeamsManagerTab tournamentId={tournament.id}/>),
                   createTab('Tournament Data', <TournamentMainDataTab tournamentId={tournament.id}/>),
                   createTab('Tournament Groups', <TournamentGroupsManagerTab tournamentId={tournament.id}/>),
@@ -64,6 +66,7 @@ export default async function Backoffice() {
               (
                 <BackofficeTabs key={tournament.short_name} tabs={[
                   createTab('Tournament Data', <TournamentMainDataTab tournamentId={tournament.id}/>),
+                  createTab('Scoring Config', <TournamentScoringConfigTab tournamentId={tournament.id}/>),
                   createTab('Tournament Teams', <TournamentTeamsManagerTab tournamentId={tournament.id}/>),
                   createTab('Tournament Groups', <TournamentGroupsManagerTab tournamentId={tournament.id}/>),
                   createTab('Tournament Games', <TournamentGameManagerTab tournamentId={tournament.id}/>),
