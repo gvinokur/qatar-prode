@@ -394,7 +394,7 @@ export async function getTournamentScoringConfig(tournamentId: string) {
   const tournament = await findTournamentById(tournamentId);
 
   if (!tournament) {
-    return null;
+    return undefined;
   }
 
   return {
