@@ -25,113 +25,115 @@ const game = (
 });
 
 /**
- * FIFA 2026 World Cup Games - CORRECTED VERSION
+ * FIFA 2026 World Cup Games
  *
  * Total: 104 matches
- * - Group Stage: 72 matches (6 per group × 12 groups)
+ * - Group Stage: 48 matches (6 per group × 12 groups)
  * - Knockout Stage: 32 matches
  *
- * Based on official schedule data from MLB Soccer
- * Last updated: January 2026
+ * Note: Specific dates, times, and venues are placeholders
+ * Update with official FIFA schedule when available
  */
 export const games = [
   // ==================== GROUP STAGE ====================
+  // Group stage games will be assigned specific dates/times based on official schedule
+  // For now, using placeholder dates in June 2026
 
   // GROUP A (Mexico, South Korea, South Africa, UEFA Playoff D)
-  game(1, Dates.June112026, 15, Venues.MEX, TeamNames.Mexico, TeamNames.SouthAfrica, 'A'),
-  game(2, Dates.June112026, 22, Venues.GDL, TeamNames.SouthKorea, TeamNames.UEFAPlayoffD, 'A'),
-  game(3, Dates.June172026, 21, Venues.GDL, TeamNames.Mexico, TeamNames.SouthKorea, 'A'),
-  game(4, Dates.June182026, 12, Venues.ATL, TeamNames.UEFAPlayoffD, TeamNames.SouthAfrica, 'A'),
-  game(5, Dates.June242026, 21, Venues.MEX, TeamNames.UEFAPlayoffD, TeamNames.Mexico, 'A'),
-  game(6, Dates.June242026, 21, Venues.MTY, TeamNames.SouthAfrica, TeamNames.SouthKorea, 'A'),
+  game(1, Dates.June112026, 12, Venues.MEX, TeamNames.Mexico, TeamNames.SouthKorea, 'A'),
+  game(2, Dates.June122026, 15, Venues.LA, TeamNames.SouthAfrica, TeamNames.UEFAPlayoffD, 'A'),
+  game(3, Dates.June162026, 18, Venues.MEX, TeamNames.Mexico, TeamNames.SouthAfrica, 'A'),
+  game(4, Dates.June172026, 15, Venues.ATL, TeamNames.SouthKorea, TeamNames.UEFAPlayoffD, 'A'),
+  game(5, Dates.June222026, 20, Venues.MEX, TeamNames.Mexico, TeamNames.UEFAPlayoffD, 'A'),
+  game(6, Dates.June222026, 20, Venues.LA, TeamNames.SouthKorea, TeamNames.SouthAfrica, 'A'),
 
   // GROUP B (Canada, Switzerland, Qatar, UEFA Playoff A)
-  game(7, Dates.June122026, 15, Venues.TOR, TeamNames.Canada, TeamNames.UEFAPlayoffA, 'B'),
-  game(8, Dates.June132026, 15, Venues.SF, TeamNames.Qatar, TeamNames.Switzerland, 'B'),
-  game(9, Dates.June182026, 18, Venues.VAN, TeamNames.Canada, TeamNames.Qatar, 'B'),
-  game(10, Dates.June182026, 15, Venues.LA, TeamNames.Switzerland, TeamNames.UEFAPlayoffA, 'B'),
-  game(11, Dates.June242026, 15, Venues.VAN, TeamNames.Switzerland, TeamNames.Canada, 'B'),
-  game(12, Dates.June242026, 15, Venues.SEA, TeamNames.UEFAPlayoffA, TeamNames.Qatar, 'B'),
+  game(7, Dates.June122026, 12, Venues.TOR, TeamNames.Canada, TeamNames.Switzerland, 'B'),
+  game(8, Dates.June132026, 15, Venues.HOU, TeamNames.Qatar, TeamNames.UEFAPlayoffA, 'B'),
+  game(9, Dates.June172026, 18, Venues.TOR, TeamNames.Canada, TeamNames.Qatar, 'B'),
+  game(10, Dates.June182026, 15, Venues.PHI, TeamNames.Switzerland, TeamNames.UEFAPlayoffA, 'B'),
+  game(11, Dates.June232026, 20, Venues.TOR, TeamNames.Canada, TeamNames.UEFAPlayoffA, 'B'),
+  game(12, Dates.June232026, 20, Venues.HOU, TeamNames.Switzerland, TeamNames.Qatar, 'B'),
 
   // GROUP C (Brazil, Morocco, Scotland, Haiti)
-  game(13, Dates.June132026, 15, Venues.NYC, TeamNames.Brazil, TeamNames.Morocco, 'C'),
-  game(14, Dates.June132026, 15, Venues.BOS, TeamNames.Haiti, TeamNames.Scotland, 'C'),
-  game(15, Dates.June192026, 15, Venues.PHI, TeamNames.Brazil, TeamNames.Haiti, 'C'),
-  game(16, Dates.June192026, 15, Venues.BOS, TeamNames.Scotland, TeamNames.Morocco, 'C'),
-  game(17, Dates.June242026, 15, Venues.ATL, TeamNames.Morocco, TeamNames.Haiti, 'C'),
-  game(18, Dates.June242026, 15, Venues.MIA, TeamNames.Scotland, TeamNames.Brazil, 'C'),
+  game(13, Dates.June132026, 12, Venues.LA, TeamNames.Brazil, TeamNames.Morocco, 'C'),
+  game(14, Dates.June142026, 15, Venues.HOU, TeamNames.Scotland, TeamNames.Haiti, 'C'),
+  game(15, Dates.June182026, 18, Venues.LA, TeamNames.Brazil, TeamNames.Scotland, 'C'),
+  game(16, Dates.June192026, 15, Venues.NYC, TeamNames.Morocco, TeamNames.Haiti, 'C'),
+  game(17, Dates.June242026, 20, Venues.LA, TeamNames.Brazil, TeamNames.Haiti, 'C'),
+  game(18, Dates.June242026, 20, Venues.HOU, TeamNames.Morocco, TeamNames.Scotland, 'C'),
 
   // GROUP D (USA, Australia, Paraguay, UEFA Playoff C)
-  game(19, Dates.June122026, 15, Venues.LA, TeamNames.USA, TeamNames.Paraguay, 'D'),
-  game(20, Dates.June132026, 15, Venues.VAN, TeamNames.Australia, TeamNames.UEFAPlayoffC, 'D'),
-  game(21, Dates.June192026, 15, Venues.SEA, TeamNames.USA, TeamNames.Australia, 'D'),
-  game(22, Dates.June192026, 15, Venues.SF, TeamNames.UEFAPlayoffC, TeamNames.Paraguay, 'D'),
-  game(23, Dates.June252026, 15, Venues.LA, TeamNames.UEFAPlayoffC, TeamNames.USA, 'D'),
-  game(24, Dates.June252026, 15, Venues.SF, TeamNames.Paraguay, TeamNames.Australia, 'D'),
+  game(19, Dates.June142026, 12, Venues.LA, TeamNames.USA, TeamNames.Australia, 'D'),
+  game(20, Dates.June152026, 15, Venues.HOU, TeamNames.Paraguay, TeamNames.UEFAPlayoffC, 'D'),
+  game(21, Dates.June192026, 18, Venues.LA, TeamNames.USA, TeamNames.Paraguay, 'D'),
+  game(22, Dates.June202026, 15, Venues.KC, TeamNames.Australia, TeamNames.UEFAPlayoffC, 'D'),
+  game(23, Dates.June252026, 20, Venues.LA, TeamNames.USA, TeamNames.UEFAPlayoffC, 'D'),
+  game(24, Dates.June252026, 20, Venues.HOU, TeamNames.Australia, TeamNames.Paraguay, 'D'),
 
   // GROUP E (Germany, Ecuador, Ivory Coast, Curaçao)
-  game(25, Dates.June142026, 15, Venues.HOU, TeamNames.Germany, TeamNames.Curacao, 'E'),
-  game(26, Dates.June142026, 15, Venues.PHI, TeamNames.IvoryCoast, TeamNames.Ecuador, 'E'),
-  game(27, Dates.June202026, 15, Venues.TOR, TeamNames.Germany, TeamNames.IvoryCoast, 'E'),
-  game(28, Dates.June202026, 15, Venues.KC, TeamNames.Ecuador, TeamNames.Curacao, 'E'),
-  game(29, Dates.June252026, 15, Venues.NYC, TeamNames.Ecuador, TeamNames.Germany, 'E'),
-  game(30, Dates.June252026, 15, Venues.PHI, TeamNames.Curacao, TeamNames.IvoryCoast, 'E'),
+  game(25, Dates.June152026, 12, Venues.NYC, TeamNames.Germany, TeamNames.Ecuador, 'E'),
+  game(26, Dates.June162026, 15, Venues.HOU, TeamNames.IvoryCoast, TeamNames.Curacao, 'E'),
+  game(27, Dates.June202026, 18, Venues.NYC, TeamNames.Germany, TeamNames.IvoryCoast, 'E'),
+  game(28, Dates.June212026, 15, Venues.ATL, TeamNames.Ecuador, TeamNames.Curacao, 'E'),
+  game(29, Dates.June262026, 20, Venues.NYC, TeamNames.Germany, TeamNames.Curacao, 'E'),
+  game(30, Dates.June262026, 20, Venues.HOU, TeamNames.Ecuador, TeamNames.IvoryCoast, 'E'),
 
   // GROUP F (Netherlands, Japan, Tunisia, UEFA Playoff B)
-  game(31, Dates.June142026, 15, Venues.DAL, TeamNames.Netherlands, TeamNames.Japan, 'F'),
-  game(32, Dates.June142026, 15, Venues.MTY, TeamNames.UEFAPlayoffB, TeamNames.Tunisia, 'F'),
-  game(33, Dates.June202026, 15, Venues.HOU, TeamNames.Netherlands, TeamNames.UEFAPlayoffB, 'F'),
-  game(34, Dates.June202026, 15, Venues.MTY, TeamNames.Tunisia, TeamNames.Japan, 'F'),
-  game(35, Dates.June252026, 15, Venues.DAL, TeamNames.Japan, TeamNames.UEFAPlayoffB, 'F'),
-  game(36, Dates.June252026, 15, Venues.KC, TeamNames.Tunisia, TeamNames.Netherlands, 'F'),
+  game(31, Dates.June162026, 12, Venues.NYC, TeamNames.Netherlands, TeamNames.Japan, 'F'),
+  game(32, Dates.June172026, 15, Venues.PHI, TeamNames.Tunisia, TeamNames.UEFAPlayoffB, 'F'),
+  game(33, Dates.June212026, 18, Venues.NYC, TeamNames.Netherlands, TeamNames.Tunisia, 'F'),
+  game(34, Dates.June222026, 15, Venues.SEA, TeamNames.Japan, TeamNames.UEFAPlayoffB, 'F'),
+  game(35, Dates.June272026, 20, Venues.NYC, TeamNames.Netherlands, TeamNames.UEFAPlayoffB, 'F'),
+  game(36, Dates.June272026, 20, Venues.PHI, TeamNames.Japan, TeamNames.Tunisia, 'F'),
 
   // GROUP G (Belgium, Iran, Egypt, New Zealand)
-  game(37, Dates.June152026, 15, Venues.SEA, TeamNames.Belgium, TeamNames.Egypt, 'G'),
-  game(38, Dates.June152026, 15, Venues.LA, TeamNames.Iran, TeamNames.NewZealand, 'G'),
-  game(39, Dates.June212026, 15, Venues.LA, TeamNames.Belgium, TeamNames.Iran, 'G'),
-  game(40, Dates.June212026, 15, Venues.VAN, TeamNames.NewZealand, TeamNames.Egypt, 'G'),
-  game(41, Dates.June262026, 15, Venues.SEA, TeamNames.Egypt, TeamNames.Iran, 'G'),
-  game(42, Dates.June262026, 15, Venues.VAN, TeamNames.NewZealand, TeamNames.Belgium, 'G'),
+  game(37, Dates.June132026, 18, Venues.TOR, TeamNames.Belgium, TeamNames.Iran, 'G'),
+  game(38, Dates.June142026, 18, Venues.VAN, TeamNames.Egypt, TeamNames.NewZealand, 'G'),
+  game(39, Dates.June182026, 12, Venues.TOR, TeamNames.Belgium, TeamNames.Egypt, 'G'),
+  game(40, Dates.June192026, 12, Venues.VAN, TeamNames.Iran, TeamNames.NewZealand, 'G'),
+  game(41, Dates.June232026, 16, Venues.TOR, TeamNames.Belgium, TeamNames.NewZealand, 'G'),
+  game(42, Dates.June232026, 16, Venues.VAN, TeamNames.Iran, TeamNames.Egypt, 'G'),
 
   // GROUP H (Spain, Uruguay, Saudi Arabia, Cape Verde)
-  game(43, Dates.June152026, 12, Venues.ATL, TeamNames.Spain, TeamNames.CapeVerde, 'H'),
-  game(44, Dates.June152026, 15, Venues.MIA, TeamNames.SaudiArabia, TeamNames.Uruguay, 'H'),
-  game(45, Dates.June212026, 15, Venues.ATL, TeamNames.Spain, TeamNames.SaudiArabia, 'H'),
-  game(46, Dates.June212026, 15, Venues.MIA, TeamNames.Uruguay, TeamNames.CapeVerde, 'H'),
-  game(47, Dates.June262026, 15, Venues.GDL, TeamNames.Uruguay, TeamNames.Spain, 'H'),
-  game(48, Dates.June262026, 15, Venues.HOU, TeamNames.CapeVerde, TeamNames.SaudiArabia, 'H'),
+  game(43, Dates.June142026, 18, Venues.MIA, TeamNames.Spain, TeamNames.Uruguay, 'H'),
+  game(44, Dates.June152026, 18, Venues.ATL, TeamNames.SaudiArabia, TeamNames.CapeVerde, 'H'),
+  game(45, Dates.June192026, 12, Venues.MIA, TeamNames.Spain, TeamNames.SaudiArabia, 'H'),
+  game(46, Dates.June202026, 12, Venues.ATL, TeamNames.Uruguay, TeamNames.CapeVerde, 'H'),
+  game(47, Dates.June242026, 16, Venues.MIA, TeamNames.Spain, TeamNames.CapeVerde, 'H'),
+  game(48, Dates.June242026, 16, Venues.ATL, TeamNames.Uruguay, TeamNames.SaudiArabia, 'H'),
 
   // GROUP I (France, Senegal, Norway, Intercontinental Playoff 2)
-  game(49, Dates.June162026, 15, Venues.NYC, TeamNames.France, TeamNames.Senegal, 'I'),
-  game(50, Dates.June162026, 15, Venues.BOS, TeamNames.IntercontinentalPlayoff2, TeamNames.Norway, 'I'),
-  game(51, Dates.June222026, 15, Venues.PHI, TeamNames.France, TeamNames.IntercontinentalPlayoff2, 'I'),
-  game(52, Dates.June222026, 15, Venues.NYC, TeamNames.Norway, TeamNames.Senegal, 'I'),
-  game(53, Dates.June262026, 15, Venues.TOR, TeamNames.Senegal, TeamNames.IntercontinentalPlayoff2, 'I'),
-  game(54, Dates.June262026, 15, Venues.TOR, TeamNames.France, TeamNames.Norway, 'I'),
+  game(49, Dates.June152026, 18, Venues.NYC, TeamNames.France, TeamNames.Senegal, 'I'),
+  game(50, Dates.June162026, 18, Venues.BOS, TeamNames.Norway, TeamNames.IntercontinentalPlayoff2, 'I'),
+  game(51, Dates.June202026, 12, Venues.NYC, TeamNames.France, TeamNames.Norway, 'I'),
+  game(52, Dates.June212026, 12, Venues.BOS, TeamNames.Senegal, TeamNames.IntercontinentalPlayoff2, 'I'),
+  game(53, Dates.June252026, 16, Venues.NYC, TeamNames.France, TeamNames.IntercontinentalPlayoff2, 'I'),
+  game(54, Dates.June252026, 16, Venues.BOS, TeamNames.Senegal, TeamNames.Norway, 'I'),
 
   // GROUP J (Argentina, Austria, Algeria, Jordan)
-  game(55, Dates.June162026, 15, Venues.KC, TeamNames.Argentina, TeamNames.Algeria, 'J'),
-  game(56, Dates.June162026, 15, Venues.SF, TeamNames.Austria, TeamNames.Jordan, 'J'),
-  game(57, Dates.June222026, 15, Venues.DAL, TeamNames.Argentina, TeamNames.Austria, 'J'),
-  game(58, Dates.June222026, 15, Venues.SF, TeamNames.Jordan, TeamNames.Algeria, 'J'),
-  game(59, Dates.June272026, 15, Venues.DAL, TeamNames.Jordan, TeamNames.Argentina, 'J'),
-  game(60, Dates.June272026, 15, Venues.KC, TeamNames.Algeria, TeamNames.Austria, 'J'),
+  game(55, Dates.June162026, 18, Venues.MIA, TeamNames.Argentina, TeamNames.Austria, 'J'),
+  game(56, Dates.June172026, 18, Venues.DAL, TeamNames.Algeria, TeamNames.Jordan, 'J'),
+  game(57, Dates.June212026, 12, Venues.MIA, TeamNames.Argentina, TeamNames.Algeria, 'J'),
+  game(58, Dates.June222026, 12, Venues.DAL, TeamNames.Austria, TeamNames.Jordan, 'J'),
+  game(59, Dates.June262026, 16, Venues.MIA, TeamNames.Argentina, TeamNames.Jordan, 'J'),
+  game(60, Dates.June262026, 16, Venues.DAL, TeamNames.Austria, TeamNames.Algeria, 'J'),
 
   // GROUP K (Portugal, Colombia, Uzbekistan, Intercontinental Playoff 1)
-  game(61, Dates.June172026, 15, Venues.HOU, TeamNames.Portugal, TeamNames.IntercontinentalPlayoff1, 'K'),
-  game(62, Dates.June172026, 15, Venues.MEX, TeamNames.Uzbekistan, TeamNames.Colombia, 'K'),
-  game(63, Dates.June232026, 15, Venues.HOU, TeamNames.Portugal, TeamNames.Uzbekistan, 'K'),
-  game(64, Dates.June232026, 15, Venues.GDL, TeamNames.Colombia, TeamNames.IntercontinentalPlayoff1, 'K'),
-  game(65, Dates.June272026, 15, Venues.MIA, TeamNames.Colombia, TeamNames.Portugal, 'K'),
-  game(66, Dates.June272026, 15, Venues.ATL, TeamNames.IntercontinentalPlayoff1, TeamNames.Uzbekistan, 'K'),
+  game(61, Dates.June172026, 12, Venues.MIA, TeamNames.Portugal, TeamNames.Colombia, 'K'),
+  game(62, Dates.June182026, 12, Venues.DAL, TeamNames.Uzbekistan, TeamNames.IntercontinentalPlayoff1, 'K'),
+  game(63, Dates.June222026, 12, Venues.MIA, TeamNames.Portugal, TeamNames.Uzbekistan, 'K'),
+  game(64, Dates.June232026, 12, Venues.DAL, TeamNames.Colombia, TeamNames.IntercontinentalPlayoff1, 'K'),
+  game(65, Dates.June272026, 16, Venues.MIA, TeamNames.Portugal, TeamNames.IntercontinentalPlayoff1, 'K'),
+  game(66, Dates.June272026, 16, Venues.DAL, TeamNames.Colombia, TeamNames.Uzbekistan, 'K'),
 
   // GROUP L (England, Croatia, Panama, Ghana)
-  game(67, Dates.June172026, 15, Venues.DAL, TeamNames.England, TeamNames.Croatia, 'L'),
-  game(68, Dates.June172026, 15, Venues.TOR, TeamNames.Ghana, TeamNames.Panama, 'L'),
-  game(69, Dates.June232026, 15, Venues.BOS, TeamNames.England, TeamNames.Ghana, 'L'),
-  game(70, Dates.June232026, 15, Venues.TOR, TeamNames.Panama, TeamNames.Croatia, 'L'),
-  game(71, Dates.June272026, 15, Venues.NYC, TeamNames.Panama, TeamNames.England, 'L'),
-  game(72, Dates.June272026, 15, Venues.PHI, TeamNames.Croatia, TeamNames.Ghana, 'L'),
+  game(67, Dates.June172026, 18, Venues.NYC, TeamNames.England, TeamNames.Croatia, 'L'),
+  game(68, Dates.June182026, 18, Venues.PHI, TeamNames.Panama, TeamNames.Ghana, 'L'),
+  game(69, Dates.June222026, 18, Venues.NYC, TeamNames.England, TeamNames.Panama, 'L'),
+  game(70, Dates.June232026, 18, Venues.PHI, TeamNames.Croatia, TeamNames.Ghana, 'L'),
+  game(71, Dates.June272026, 20, Venues.NYC, TeamNames.England, TeamNames.Ghana, 'L'),
+  game(72, Dates.June272026, 20, Venues.PHI, TeamNames.Croatia, TeamNames.Panama, 'L'),
 
   // ==================== ROUND OF 32 ====================
   // Official FIFA bracket structure from:
