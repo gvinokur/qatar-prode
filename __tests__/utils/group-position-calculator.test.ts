@@ -286,9 +286,10 @@ describe('group-position-calculator', () => {
         goals_for: 5,
         goals_against: 3,
         goal_difference: 2,
+        conduct_score: 0,
         is_complete: true
       };
-      
+
       const teamB = {
         team_id: 'team2',
         games_played: 3,
@@ -299,11 +300,12 @@ describe('group-position-calculator', () => {
         goals_for: 4,
         goals_against: 2,
         goal_difference: 2,
+        conduct_score: 0,
         is_complete: true
       };
-      
+
       const result = genericTeamStatsComparator(teamA, teamB);
-      expect(result).toBeLessThan(0); // teamB should be ranked higher due to better goal difference
+      expect(result).toBeLessThan(0); // teamA should be ranked higher due to more goals scored
     });
 
     it('should compare team stats correctly with pointsBasesTeamStatsComparator', () => {
@@ -348,9 +350,10 @@ describe('group-position-calculator', () => {
         goals_for: 5,
         goals_against: 3,
         goal_difference: 2,
+        conduct_score: 0,
         is_complete: true
       };
-      
+
       const teamB = {
         team_id: 'team2',
         games_played: 3,
@@ -361,9 +364,10 @@ describe('group-position-calculator', () => {
         goals_for: 5,
         goals_against: 3,
         goal_difference: 2,
+        conduct_score: 0,
         is_complete: true
       };
-      
+
       const result = genericTeamStatsComparator(teamA, teamB);
       expect(result).toBe(0); // teams should be equal
     });
@@ -397,6 +401,237 @@ describe('group-position-calculator', () => {
       
       const result = pointsBasesTeamStatsComparator(teamA, teamB);
       expect(result).toBe(0); // teams should be equal (same points)
+    });
+
+    it('should use conduct score as tiebreaker after points, goal difference, and goals scored', () => {
+      const teamA = {
+        team_id: 'team1',
+        games_played: 3,
+        points: 6,
+        win: 2,
+        draw: 0,
+        loss: 1,
+        goals_for: 5,
+        goals_against: 3,
+        goal_difference: 2,
+        conduct_score: 3, // Lower is better
+        is_complete: true
+      };
+
+      const teamB = {
+        team_id: 'team2',
+        games_played: 3,
+        points: 6,
+        win: 2,
+        draw: 0,
+        loss: 1,
+        goals_for: 5,
+        goals_against: 3,
+        goal_difference: 2,
+        conduct_score: 5, // Higher conduct score (worse behavior)
+        is_complete: true
+      };
+
+      const result = genericTeamStatsComparator(teamA, teamB);
+      expect(result).toBeLessThan(0); // teamA should rank higher (lower conduct score is better)
+    });
+
+    it('should rank team with lower conduct score higher when other stats are equal', () => {
+      const teamA = {
+        team_id: 'team1',
+        games_played: 3,
+        points: 7,
+        win: 2,
+        draw: 1,
+        loss: 0,
+        goals_for: 4,
+        goals_against: 2,
+        goal_difference: 2,
+        conduct_score: 8, // 8 yellow cards
+        is_complete: true
+      };
+
+      const teamB = {
+        team_id: 'team2',
+        games_played: 3,
+        points: 7,
+        win: 2,
+        draw: 1,
+        loss: 0,
+        goals_for: 4,
+        goals_against: 2,
+        goal_difference: 2,
+        conduct_score: 2, // 2 yellow cards (better conduct)
+        is_complete: true
+      };
+
+      const result = genericTeamStatsComparator(teamA, teamB);
+      expect(result).toBeGreaterThan(0); // teamB should rank higher (lower conduct score)
+    });
+
+    it('should prioritize points over conduct score', () => {
+      const teamA = {
+        team_id: 'team1',
+        games_played: 3,
+        points: 9,
+        win: 3,
+        draw: 0,
+        loss: 0,
+        goals_for: 5,
+        goals_against: 1,
+        goal_difference: 4,
+        conduct_score: 10, // Poor conduct
+        is_complete: true
+      };
+
+      const teamB = {
+        team_id: 'team2',
+        games_played: 3,
+        points: 6,
+        win: 2,
+        draw: 0,
+        loss: 1,
+        goals_for: 4,
+        goals_against: 2,
+        goal_difference: 2,
+        conduct_score: 0, // Perfect conduct
+        is_complete: true
+      };
+
+      const result = genericTeamStatsComparator(teamA, teamB);
+      expect(result).toBeLessThan(0); // teamA should rank higher despite worse conduct (more points)
+    });
+
+    it('should prioritize goal difference over conduct score', () => {
+      const teamA = {
+        team_id: 'team1',
+        games_played: 3,
+        points: 6,
+        win: 2,
+        draw: 0,
+        loss: 1,
+        goals_for: 6,
+        goals_against: 2,
+        goal_difference: 4,
+        conduct_score: 8,
+        is_complete: true
+      };
+
+      const teamB = {
+        team_id: 'team2',
+        games_played: 3,
+        points: 6,
+        win: 2,
+        draw: 0,
+        loss: 1,
+        goals_for: 4,
+        goals_against: 3,
+        goal_difference: 1,
+        conduct_score: 2,
+        is_complete: true
+      };
+
+      const result = genericTeamStatsComparator(teamA, teamB);
+      expect(result).toBeLessThan(0); // teamA should rank higher (better goal difference)
+    });
+
+    it('should prioritize goals scored over conduct score', () => {
+      const teamA = {
+        team_id: 'team1',
+        games_played: 3,
+        points: 6,
+        win: 2,
+        draw: 0,
+        loss: 1,
+        goals_for: 7,
+        goals_against: 5,
+        goal_difference: 2,
+        conduct_score: 10,
+        is_complete: true
+      };
+
+      const teamB = {
+        team_id: 'team2',
+        games_played: 3,
+        points: 6,
+        win: 2,
+        draw: 0,
+        loss: 1,
+        goals_for: 4,
+        goals_against: 2,
+        goal_difference: 2,
+        conduct_score: 1,
+        is_complete: true
+      };
+
+      const result = genericTeamStatsComparator(teamA, teamB);
+      expect(result).toBeLessThan(0); // teamA should rank higher (more goals scored)
+    });
+
+    it('should handle teams with zero conduct score', () => {
+      const teamA = {
+        team_id: 'team1',
+        games_played: 3,
+        points: 6,
+        win: 2,
+        draw: 0,
+        loss: 1,
+        goals_for: 5,
+        goals_against: 3,
+        goal_difference: 2,
+        conduct_score: 0, // Perfect conduct
+        is_complete: true
+      };
+
+      const teamB = {
+        team_id: 'team2',
+        games_played: 3,
+        points: 6,
+        win: 2,
+        draw: 0,
+        loss: 1,
+        goals_for: 5,
+        goals_against: 3,
+        goal_difference: 2,
+        conduct_score: 4, // Some cards
+        is_complete: true
+      };
+
+      const result = genericTeamStatsComparator(teamA, teamB);
+      expect(result).toBeLessThan(0); // teamA should rank higher (zero conduct score is best)
+    });
+
+    it('should handle teams with equal conduct scores', () => {
+      const teamA = {
+        team_id: 'team1',
+        games_played: 3,
+        points: 6,
+        win: 2,
+        draw: 0,
+        loss: 1,
+        goals_for: 5,
+        goals_against: 3,
+        goal_difference: 2,
+        conduct_score: 3,
+        is_complete: true
+      };
+
+      const teamB = {
+        team_id: 'team2',
+        games_played: 3,
+        points: 6,
+        win: 2,
+        draw: 0,
+        loss: 1,
+        goals_for: 5,
+        goals_against: 3,
+        goal_difference: 2,
+        conduct_score: 3,
+        is_complete: true
+      };
+
+      const result = genericTeamStatsComparator(teamA, teamB);
+      expect(result).toBe(0); // teams should be equal
     });
   });
 }); 

@@ -38,6 +38,18 @@ export interface TournamentTable extends Identifiable{
   display_name?: boolean
 
   theme: JSONColumnType<Theme> | null | undefined
+
+  // Scoring configuration fields
+  game_exact_score_points?: number
+  game_correct_outcome_points?: number
+  champion_points?: number
+  runner_up_points?: number
+  third_place_points?: number
+  individual_award_points?: number
+  qualified_team_points?: number
+  exact_position_qualified_points?: number
+  max_silver_games?: number
+  max_golden_games?: number
 }
 
 export type Tournament = Selectable<TournamentTable>
@@ -202,6 +214,11 @@ export interface GameGuessTable extends Identifiable{
    * 2- Exact guess
    */
   score?:number
+
+  // Boost fields
+  boost_type?: 'silver' | 'golden' | null
+  boost_multiplier?: number
+  final_score?: number
 }
 
 export type GameGuess = Selectable<GameGuessTable>
@@ -268,6 +285,7 @@ export interface TeamStats {
   goals_for: number
   goals_against: number
   goal_difference: number
+  conduct_score: number
   is_complete: boolean
 }
 
@@ -281,6 +299,23 @@ export interface TournamentVenueTable extends Identifiable {
 export type TournamentVenue = Selectable<TournamentVenueTable>;
 export type TournamentVenueNew = Insertable<TournamentVenueTable>
 export type TournamentVenueUpdate = Updateable<TournamentVenueTable>
+
+// Third-place qualifier assignment rules
+export interface ThirdPlaceRuleMapping {
+  [bracketPosition: string]: string; // e.g., {"Position1": "A", "Position2": "B"}
+}
+
+export interface TournamentThirdPlaceRulesTable extends Identifiable {
+  tournament_id: string;
+  combination_key: string;
+  rules: JSONColumnType<ThirdPlaceRuleMapping>;
+  created_at?: Date;
+  updated_at?: Date;
+}
+
+export type TournamentThirdPlaceRules = Selectable<TournamentThirdPlaceRulesTable>;
+export type TournamentThirdPlaceRulesNew = Insertable<TournamentThirdPlaceRulesTable>;
+export type TournamentThirdPlaceRulesUpdate = Updateable<TournamentThirdPlaceRulesTable>;
 
 // Betting configuration for a group/tournament pair
 export interface ProdeGroupTournamentBettingTable extends Identifiable {

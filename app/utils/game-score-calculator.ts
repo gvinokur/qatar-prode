@@ -1,6 +1,12 @@
 import {GameGuessNew} from "../db/tables-definition";
 import {ExtendedGameData} from "../definitions";
 
+// Define scoring config type
+interface ScoringConfig {
+  game_exact_score_points: number;
+  game_correct_outcome_points: number;
+}
+
 /**
  * Validates that both game result and guess have valid scores
  */
@@ -44,14 +50,15 @@ const checkExactMatch = (
   gameAwayScore: number,
   gameGuess: GameGuessNew,
   homePenaltyWin: boolean,
-  awayPenaltyWin: boolean
+  awayPenaltyWin: boolean,
+  exactScorePoints: number
 ): number | null => {
   if (gameHomeScore === gameGuess.home_score && gameAwayScore === gameGuess.away_score) {
     // If penalty guess is wrong, no points
     if ((homePenaltyWin && !gameGuess.home_penalty_winner) || (awayPenaltyWin && !gameGuess.away_penalty_winner)) {
       return 0;
     }
-    return 2;
+    return exactScorePoints;
   }
   return null;
 }
@@ -64,14 +71,15 @@ const checkCorrectOutcome = (
   gameAwayScore: number,
   gameGuess: GameGuessNew,
   homePenaltyWin: boolean,
-  awayPenaltyWin: boolean
+  awayPenaltyWin: boolean,
+  correctOutcomePoints: number
 ): number | null => {
   if (Math.sign(gameHomeScore - gameAwayScore) === Math.sign(gameGuess.home_score! - gameGuess.away_score!)) {
     // If penalty guess is wrong, no points
     if ((homePenaltyWin && !gameGuess.home_penalty_winner) || (awayPenaltyWin && !gameGuess.away_penalty_winner)) {
       return 0;
     }
-    return 1;
+    return correctOutcomePoints;
   }
   return null;
 }
@@ -83,7 +91,8 @@ const checkPlayoffPenaltyScenarios = (
   gameScores: { homeScore: number; awayScore: number },
   gameGuess: GameGuessNew,
   gameFlags: { isPlayoff: boolean; isTie: boolean; guessTie: boolean },
-  penaltyFlags: { homePenaltyWin: boolean; awayPenaltyWin: boolean }
+  penaltyFlags: { homePenaltyWin: boolean; awayPenaltyWin: boolean },
+  correctOutcomePoints: number
 ): number | null => {
   const { isPlayoff, isTie, guessTie } = gameFlags;
   const { homePenaltyWin, awayPenaltyWin } = penaltyFlags;
@@ -93,20 +102,24 @@ const checkPlayoffPenaltyScenarios = (
   if (isPlayoff && isTie &&
     (((homePenaltyWin && (gameGuess.home_penalty_winner || gameGuess.home_score! > gameGuess.away_score!)) ||
       (awayPenaltyWin && (gameGuess.away_penalty_winner || gameGuess.home_score! < gameGuess.away_score!))))) {
-    return 1;
+    return correctOutcomePoints;
   }
 
   // Guess was tie with penalty, actual game was straight win
   if (isPlayoff && guessTie &&
     ((gameGuess.home_penalty_winner && (gameHomeScore > gameAwayScore)) ||
       (gameGuess.away_penalty_winner && (gameHomeScore < gameAwayScore)))) {
-    return 1;
+    return correctOutcomePoints;
   }
 
   return null;
 }
 
-export const calculateScoreForGame = (game: ExtendedGameData, gameGuess: GameGuessNew) => {
+export const calculateScoreForGame = (
+  game: ExtendedGameData,
+  gameGuess: GameGuessNew,
+  scoringConfig: ScoringConfig = { game_exact_score_points: 2, game_correct_outcome_points: 1 }
+) => {
   if (!hasValidScores(game, gameGuess)) {
     return 0;
   }
@@ -121,11 +134,25 @@ export const calculateScoreForGame = (game: ExtendedGameData, gameGuess: GameGue
   const { homePenaltyWin, awayPenaltyWin } = getPenaltyWinners(game, isPlayoff, isTie);
 
   // Check for exact match
-  const exactMatch = checkExactMatch(gameHomeScore, gameAwayScore, gameGuess, homePenaltyWin, awayPenaltyWin);
+  const exactMatch = checkExactMatch(
+    gameHomeScore,
+    gameAwayScore,
+    gameGuess,
+    homePenaltyWin,
+    awayPenaltyWin,
+    scoringConfig.game_exact_score_points
+  );
   if (exactMatch !== null) return exactMatch;
 
   // Check for correct outcome
-  const correctOutcome = checkCorrectOutcome(gameHomeScore, gameAwayScore, gameGuess, homePenaltyWin, awayPenaltyWin);
+  const correctOutcome = checkCorrectOutcome(
+    gameHomeScore,
+    gameAwayScore,
+    gameGuess,
+    homePenaltyWin,
+    awayPenaltyWin,
+    scoringConfig.game_correct_outcome_points
+  );
   if (correctOutcome !== null) return correctOutcome;
 
   // Check special playoff penalty scenarios
@@ -133,7 +160,8 @@ export const calculateScoreForGame = (game: ExtendedGameData, gameGuess: GameGue
     { homeScore: gameHomeScore, awayScore: gameAwayScore },
     gameGuess,
     { isPlayoff, isTie, guessTie },
-    { homePenaltyWin, awayPenaltyWin }
+    { homePenaltyWin, awayPenaltyWin },
+    scoringConfig.game_correct_outcome_points
   );
   if (penaltyScenario !== null) return penaltyScenario;
 

@@ -1,0 +1,6437 @@
+[
+  {
+    "combination": "EFGHIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "F",
+      "AEHIJ": "H",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "DFGHIJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "I",
+      "ABCDF": "D",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "DEGHIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "DEFHIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "DEFGIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "I",
+      "ABCDF": "D",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "DEFGHJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "DEFGHIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "I",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "DEFGHIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "DEFGHIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CFGHIJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "I",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CEGHIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CEFHIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CEFGIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "I",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CEFGHJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CEFGHIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "I",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CEFGHIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "CEFGHIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CDGHIJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "I",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CDFHIJKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CDFGIJKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "I",
+      "ABCDF": "D",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CDFGHJKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CDFGHIKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "I",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CDFGHIJL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "CDFGHIJK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CDEHIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CDEGIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "I",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CDEGHJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CDEGHIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "I",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CDEGHIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "CDEGHIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "D",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CDEFIJKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "E",
+      "ABCDF": "D",
+      "AEHIJ": "I",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CDEFHJKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "E",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CDEFHIKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "E",
+      "BEFIJ": "I",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CDEFHIJL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "E",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "CDEFHIJK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "E",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CDEFGJKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "E",
+      "ABCDF": "D",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CDEFGIKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "E",
+      "ABCDF": "D",
+      "AEHIJ": "I",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CDEFGIJL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "E",
+      "ABCDF": "D",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "CDEFGIJK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "E",
+      "ABCDF": "D",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CDEFGHKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "E",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CDEFGHJL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "CDEFGHJK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CDEFGHIL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "E",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "CDEFGHIK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "E",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "CDEFGHIJ",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BFGHIJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "I",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BEGHIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "B",
+      "AEHIJ": "H",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BEFHIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "I",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BEFGIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "I",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BEFGHJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "H",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BEFGHIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "I",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BEFGHIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "H",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BEFGHIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "H",
+      "CDFGH": "G",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BDGHIJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "I",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BDFHIJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "I",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BDFGIJKL",
+    "matchups": {
+      "CEFHI": "I",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BDFGHJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BDFGHIKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "I",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BDFGHIJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BDFGHIJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BDEHIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "I",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BDEGIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "I",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BDEGHJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BDEGHIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "I",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BDEGHIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BDEGHIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "G",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BDEFIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "I",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BDEFHJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BDEFHIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "I",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BDEFHIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BDEFHIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BDEFGJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BDEFGIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "I",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BDEFGIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BDEFGIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BDEFGHKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BDEFGHJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "BDEFGHJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BDEFGHIL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BDEFGHIK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BDEFGHIJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BCGHIJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "I",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCFHIJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "I",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCFGIJKL",
+    "matchups": {
+      "CEFHI": "I",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCFGHJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCFGHIKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "I",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCFGHIJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BCFGHIJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCEHIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "I",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCEGIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "I",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCEGHJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCEGHIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "I",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCEGHIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BCEGHIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "G",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCEFIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "I",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCEFHJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCEFHIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "I",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCEFHIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BCEFHIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCEFGJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCEFGIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "I",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCEFGIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BCEFGIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCEFGHKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCEFGHJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "BCEFGHJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCEFGHIL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BCEFGHIK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCEFGHIJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BCDHIJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "I",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDGIJKL",
+    "matchups": {
+      "CEFHI": "I",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDGHJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDGHIKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "I",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDGHIJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BCDGHIJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "D",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDFIJKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "I",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDFHJKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDFHIKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "I",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDFHIJL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BCDFHIJK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDFGJKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDFGIKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "I",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDFGIJL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BCDFGIJK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDFGHKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDFGHJL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "J"
+    }
+  },
+  {
+    "combination": "BCDFGHJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "D",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDFGHIL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BCDFGHIK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDFGHIJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "D",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BCDEIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "I",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDEHJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDEHIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "I",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDEHIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BCDEHIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "D",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDEGJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDEGIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "I",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDEGIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BCDEGIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "D",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDEGHKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDEGHJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "BCDEGHJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "D",
+      "DEIJL": "E",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDEGHIL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BCDEGHIK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "H",
+      "CDFGH": "D",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDEGHIJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "D",
+      "DEIJL": "E",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BCDEFJKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "E",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDEFIKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "E",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "I",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDEFIJL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "E",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BCDEFIJK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "E",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDEFHKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "E",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDEFHJL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "BCDEFHJK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDEFHIL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "E",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BCDEFHIK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "E",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDEFHIJ",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BCDEFGKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "E",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDEFGJL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "BCDEFGJK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDEFGIL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "E",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BCDEFGIK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "E",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDEFGIJ",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "BCDEFGHL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "BCDEFGHK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "BCDEFGHJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "J",
+      "CDFGH": "F",
+      "DEIJL": "D",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "BCDEFGHI",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "H",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "AFGHIJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "AEGHIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "A",
+      "AEHIJ": "H",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "AEFHIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "AEFGIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "AEFGHJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "AEFGHIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "I",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "AEFGHIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "AEFGHIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ADGHIJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ADFHIJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ADFGIJKL",
+    "matchups": {
+      "CEFHI": "I",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ADFGHJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ADFGHIKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "I",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ADFGHIJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ADFGHIJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ADEHIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ADEGIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ADEGHJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ADEGHIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "I",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ADEGHIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ADEGHIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ADEFIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ADEFHJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "E",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ADEFHIKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "E",
+      "BEFIJ": "I",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ADEFHIJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "E",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ADEFHIJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "E",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ADEFGJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ADEFGIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "I",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ADEFGIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ADEFGIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ADEFGHKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "E",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ADEFGHJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "ADEFGHJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ADEFGHIL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "E",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ADEFGHIK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "E",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ADEFGHIJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ACGHIJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACFHIJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACFGIJKL",
+    "matchups": {
+      "CEFHI": "I",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACFGHJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACFGHIKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "I",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACFGHIJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ACFGHIJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACEHIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACEGIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACEGHJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACEGHIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "I",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACEGHIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ACEGHIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACEFIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACEFHJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "E",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACEFHIKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "E",
+      "BEFIJ": "I",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACEFHIJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "E",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ACEFHIJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "E",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACEFGJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACEFGIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "I",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACEFGIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ACEFGIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACEFGHKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "E",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACEFGHJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "ACEFGHJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACEFGHIL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "E",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ACEFGHIK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "E",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACEFGHIJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ACDHIJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDGIJKL",
+    "matchups": {
+      "CEFHI": "I",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDGHJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDGHIKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "I",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDGHIJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ACDGHIJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDFIJKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDFHJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "F",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDFHIKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "F",
+      "BEFIJ": "I",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDFHIJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "F",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ACDFHIJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "F",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDFGJKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDFGIKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "I",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDFGIJL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ACDFGIJK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDFGHKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "F",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDFGHJL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "H"
+    }
+  },
+  {
+    "combination": "ACDFGHJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "D",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDFGHIL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "F",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ACDFGHIK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "F",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDFGHIJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "D",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ACDEIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "I",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDEHJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "E",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDEHIKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "E",
+      "BEFIJ": "I",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDEHIJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "E",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ACDEHIJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "E",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDEGJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDEGIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "I",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDEGIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ACDEGIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDEGHKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "E",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDEGHJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "ACDEGHJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "E",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDEGHIL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "E",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ACDEGHIK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "E",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDEGHIJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "E",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ACDEFJKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "E",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDEFIKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "E",
+      "BEFIJ": "I",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDEFIJL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "E",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ACDEFIJK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "E",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDEFHKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "E",
+      "BEFIJ": "F",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDEFHJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "F",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "ACDEFHJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "E",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "D",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDEFHIL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "E",
+      "BEFIJ": "F",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ACDEFHIK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "E",
+      "BEFIJ": "F",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDEFHIJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "E",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "D",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ACDEFGKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "E",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDEFGJL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "ACDEFGJK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDEFGIL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "E",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ACDEFGIK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "E",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDEFGIJ",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ACDEFGHL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "F",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "ACDEFGHK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "E",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "D",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ACDEFGHJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "J",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "D",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "ACDEFGHI",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "E",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "D",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABGHIJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "A",
+      "AEHIJ": "I",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABFHIJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "A",
+      "AEHIJ": "I",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABFGIJKL",
+    "matchups": {
+      "CEFHI": "I",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABFGHJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABFGHIKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "A",
+      "AEHIJ": "I",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABFGHIJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABFGHIJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABEHIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "A",
+      "AEHIJ": "I",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABEGIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "A",
+      "AEHIJ": "I",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABEGHJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "A",
+      "AEHIJ": "H",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABEGHIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "A",
+      "AEHIJ": "I",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABEGHIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "A",
+      "AEHIJ": "H",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABEGHIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "A",
+      "AEHIJ": "H",
+      "CDFGH": "G",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABEFIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "A",
+      "AEHIJ": "I",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABEFHJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABEFHIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "I",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABEFHIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABEFHIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABEFGJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABEFGIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "A",
+      "AEHIJ": "I",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABEFGIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABEFGIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABEFGHKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABEFGHJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "ABEFGHJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "E",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABEFGHIL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABEFGHIK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABEFGHIJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "E",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABDHIJKL",
+    "matchups": {
+      "CEFHI": "I",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDGIJKL",
+    "matchups": {
+      "CEFHI": "I",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDGHJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDGHIKL",
+    "matchups": {
+      "CEFHI": "I",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDGHIJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABDGHIJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDFIJKL",
+    "matchups": {
+      "CEFHI": "I",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDFHJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDFHIKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "I",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDFHIJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABDFHIJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDFGJKL",
+    "matchups": {
+      "CEFHI": "F",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDFGIKL",
+    "matchups": {
+      "CEFHI": "I",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDFGIJL",
+    "matchups": {
+      "CEFHI": "F",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABDFGIJK",
+    "matchups": {
+      "CEFHI": "F",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDFGHKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDFGHJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "J"
+    }
+  },
+  {
+    "combination": "ABDFGHJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "J",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDFGHIL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABDFGHIK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDFGHIJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "J"
+    }
+  },
+  {
+    "combination": "ABDEIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "A",
+      "AEHIJ": "I",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDEHJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDEHIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "I",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDEHIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABDEHIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDEGJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDEGIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "A",
+      "AEHIJ": "I",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDEGIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABDEGIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDEGHKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDEGHJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "ABDEGHJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "E",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDEGHIL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABDEGHIK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDEGHIJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "E",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABDEFJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDEFIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "I",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDEFIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABDEFIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDEFHKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "E",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDEFHJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "ABDEFHJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDEFHIL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "E",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABDEFHIK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "E",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDEFHIJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABDEFGKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDEFGJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "J"
+    }
+  },
+  {
+    "combination": "ABDEFGJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "J",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDEFGIL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABDEFGIK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDEFGIJ",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "J"
+    }
+  },
+  {
+    "combination": "ABDEFGHL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "ABDEFGHK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABDEFGHJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "J"
+    }
+  },
+  {
+    "combination": "ABDEFGHI",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCHIJKL",
+    "matchups": {
+      "CEFHI": "I",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCGIJKL",
+    "matchups": {
+      "CEFHI": "I",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCGHJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCGHIKL",
+    "matchups": {
+      "CEFHI": "I",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCGHIJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCGHIJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCFIJKL",
+    "matchups": {
+      "CEFHI": "I",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCFHJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCFHIKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "I",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCFHIJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCFHIJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCFGJKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCFGIKL",
+    "matchups": {
+      "CEFHI": "I",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCFGIJL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCFGIJK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "F",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCFGHKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCFGHJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "J"
+    }
+  },
+  {
+    "combination": "ABCFGHJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "J",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCFGHIL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCFGHIK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCFGHIJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "J"
+    }
+  },
+  {
+    "combination": "ABCEIJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "A",
+      "AEHIJ": "I",
+      "CDFGH": "C",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCEHJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCEHIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "I",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCEHIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCEHIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCEGJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCEGIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "A",
+      "AEHIJ": "I",
+      "CDFGH": "C",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCEGIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCEGIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCEGHKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCEGHJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "ABCEGHJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "E",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCEGHIL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCEGHIK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "H",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCEGHIJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "E",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCEFJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCEFIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "I",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCEFIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCEFIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCEFHKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "E",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCEFHJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "ABCEFHJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCEFHIL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "E",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCEFHIK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "E",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCEFHIJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCEFGKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCEFGJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "J"
+    }
+  },
+  {
+    "combination": "ABCEFGJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "J",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCEFGIL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCEFGIK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCEFGIJ",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "J"
+    }
+  },
+  {
+    "combination": "ABCEFGHL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "ABCEFGHK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCEFGHJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "J"
+    }
+  },
+  {
+    "combination": "ABCEFGHI",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCDIJKL",
+    "matchups": {
+      "CEFHI": "I",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDHJKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDHIKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "I",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDHIJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCDHIJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDGJKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDGIKL",
+    "matchups": {
+      "CEFHI": "I",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDGIJL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCDGIJK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "G",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDGHKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDGHJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "J"
+    }
+  },
+  {
+    "combination": "ABCDGHJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "J",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDGHIL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCDGHIK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDGHIJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "I",
+      "EHIJK": "J"
+    }
+  },
+  {
+    "combination": "ABCDFJKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDFIKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "I",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDFIJL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCDFIJK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDFHKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "F",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDFHJL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "H"
+    }
+  },
+  {
+    "combination": "ABCDFHJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "D",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDFHIL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "F",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCDFHIK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "F",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDFHIJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "D",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCDFGKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDFGJL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "J"
+    }
+  },
+  {
+    "combination": "ABCDFGJK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "J",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDFGIL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCDFGIK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDFGIJ",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "J"
+    }
+  },
+  {
+    "combination": "ABCDFGHL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "H"
+    }
+  },
+  {
+    "combination": "ABCDFGHK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "D",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDFGHJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "D",
+      "EHIJK": "J"
+    }
+  },
+  {
+    "combination": "ABCDFGHI",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "D",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCDEJKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDEIKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "I",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDEIJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCDEIJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDEHKL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "E",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDEHJL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "ABCDEHJK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "E",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDEHIL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "E",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCDEHIK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "E",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDEHIJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "E",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCDEGKL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDEGJL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "J"
+    }
+  },
+  {
+    "combination": "ABCDEGJK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "J",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDEGIL",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCDEGIK",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDEGIJ",
+    "matchups": {
+      "CEFHI": "E",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "I",
+      "EHIJK": "J"
+    }
+  },
+  {
+    "combination": "ABCDEGHL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "ABCDEGHK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "E",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDEGHJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "E",
+      "EHIJK": "J"
+    }
+  },
+  {
+    "combination": "ABCDEGHI",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "E",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCDEFKL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "E",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDEFJL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "ABCDEFJK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDEFIL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "E",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCDEFIK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "E",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "I",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDEFIJ",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCDEFHL",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "F",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "D",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "ABCDEFHK",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "E",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "D",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDEFHJ",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "J",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "D",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "ABCDEFHI",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "E",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "D",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCDEFGL",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "L",
+      "EHIJK": "E"
+    }
+  },
+  {
+    "combination": "ABCDEFGK",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "K"
+    }
+  },
+  {
+    "combination": "ABCDEFGJ",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "J"
+    }
+  },
+  {
+    "combination": "ABCDEFGI",
+    "matchups": {
+      "CEFHI": "C",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "D",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "E",
+      "EHIJK": "I"
+    }
+  },
+  {
+    "combination": "ABCDEFGH",
+    "matchups": {
+      "CEFHI": "H",
+      "EFGIJ": "G",
+      "BEFIJ": "B",
+      "ABCDF": "C",
+      "AEHIJ": "A",
+      "CDFGH": "F",
+      "DEIJL": "D",
+      "EHIJK": "E"
+    }
+  }
+]

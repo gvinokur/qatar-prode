@@ -11,6 +11,7 @@ const initialTeamStats: TeamStats = {
   goals_for: 0,
   goals_against: 0,
   goal_difference: 0,
+  conduct_score: 0,
   is_complete: false
 }
 
@@ -160,5 +161,16 @@ export const pointsBasesTeamStatsComparator = (a: TeamStats, b: TeamStats): numb
   return comparator;
 }
 
+/**
+ * Calculate a magic number for team sorting based on FIFA tiebreaker rules:
+ * 1. Points (most important)
+ * 2. Goal difference
+ * 3. Goals for
+ * 4. Conduct score (lower is better, so we subtract it)
+ * 5. FIFA ranking (not implemented)
+ *
+ * Weight hierarchy: 10M points > 10K goal diff > 100 goals for > 1 conduct score
+ * This ensures conduct_score can never override goals_for even at high values
+ */
 const getMagicNumber = (t: TeamStats) =>
-  (t.goals_for + t.goal_difference * 1000 + t.points * 1000000);
+  (t.points * 10000000 + t.goal_difference * 10000 + t.goals_for * 100 - (t.conduct_score || 0));

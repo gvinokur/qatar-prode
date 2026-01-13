@@ -112,3 +112,24 @@ export async function deleteTournamentGroupGame(gameId: string) {
     .where('game_id', '=', gameId)
     .execute();
 }
+
+/**
+ * Updates conduct scores for multiple teams in a tournament group
+ * @param conductScores - Map of team_id to conduct_score
+ * @param tournamentGroupId - The ID of the tournament group
+ * @returns Promise that resolves when all updates are complete
+ */
+export async function updateTeamConductScores(
+  conductScores: { [teamId: string]: number },
+  tournamentGroupId: string
+) {
+  const updates = Object.entries(conductScores).map(([teamId, conductScore]) =>
+    db.updateTable('tournament_group_teams')
+      .set({ conduct_score: conductScore })
+      .where('team_id', '=', teamId)
+      .where('tournament_group_id', '=', tournamentGroupId)
+      .executeTakeFirst()
+  );
+
+  return await Promise.all(updates);
+}

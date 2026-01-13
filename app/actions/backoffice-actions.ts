@@ -63,6 +63,7 @@ import {
   findAllGuessesForGamesWithResultsInDraft,
   findGameGuessesByUserId,
   updateGameGuess,
+  updateGameGuessWithBoost,
   deleteAllGameGuessesByTournamentId
 } from "../db/game-guess-repository";
 import {calculateGroupPosition} from "../utils/group-position-calculator";
@@ -219,6 +220,7 @@ export async function generateDbTournament(name: string, deletePrevious:boolean 
               goals_for: 0,
               goals_against: 0,
               goal_difference: 0,
+              conduct_score: 0,
               is_complete: false
             })
           }))
@@ -319,7 +321,7 @@ export async function calculateAndSavePlayoffGamesForTournament(tournamentId: st
   const gamesMap = toMap(games)
   const gameResultMap = customToMap(gameResults, (result) => result.game_id)
 
-  const calculatedTeamsPerGame = calculatePlayoffTeams(firstPlayoffStage, groups, gamesMap, gameResultMap, {})
+  const calculatedTeamsPerGame = await calculatePlayoffTeams(tournamentId, firstPlayoffStage, groups, gamesMap, gameResultMap, {})
   return Promise.all(firstPlayoffStage.games.map(async (game) => {
     return updateGame(game.game_id, {
       home_team: calculatedTeamsPerGame[game.game_id]?.homeTeam?.team_id || null,
@@ -407,15 +409,39 @@ export async function recalculateAllPlayoffFirstRoundGameGuesses(tournamentId: s
 export async function calculateGameScores(forceDrafts: boolean, forceAllGuesses: boolean) {
   const gamesWithResultAndGuesses = await findAllGamesWithPublishedResultsAndGameGuesses(forceDrafts, forceAllGuesses)
   const gameGuessesToClean = await findAllGuessesForGamesWithResultsInDraft()
-  const updatedGameGuesses = await Promise.all(gamesWithResultAndGuesses.map(game => {
+
+  // Cache tournaments by ID
+  const tournamentsMap = new Map<string, any>();
+
+  const updatedGameGuesses = await Promise.all(gamesWithResultAndGuesses.map(async (game) => {
+    // Get or cache tournament
+    if (!tournamentsMap.has(game.tournament_id)) {
+      const tournament = await findTournamentById(game.tournament_id);
+      if (tournament) {
+        tournamentsMap.set(game.tournament_id, tournament);
+      }
+    }
+    const tournament = tournamentsMap.get(game.tournament_id);
+    if (!tournament) {
+      throw new Error(`Tournament ${game.tournament_id} not found`);
+    }
+
+    // Extract scoring config
+    const scoringConfig = {
+      game_exact_score_points: tournament.game_exact_score_points ?? 2,
+      game_correct_outcome_points: tournament.game_correct_outcome_points ?? 1,
+    };
+
     const gameGuesses = game.gameGuesses
     return Promise.all(gameGuesses.map(gameGuess => {
-      const score = calculateScoreForGame(game, gameGuess)
-      return updateGameGuess(gameGuess.id, {
-        score
-      })
+      // Calculate base score with config
+      const baseScore = calculateScoreForGame(game, gameGuess, scoringConfig)
+
+      // Boost type is already in gameGuess.boost_type
+      return updateGameGuessWithBoost(gameGuess.id, baseScore, gameGuess.boost_type ?? null)
     }))
   }))
+
   const cleanedGameGuesses = await Promise.all(gameGuessesToClean.map(async (gameGuess) => {
     return updateGameGuess(gameGuess.id, {
       // @ts-ignore - setting to null to remove value
@@ -482,12 +508,21 @@ export async function findDataForAwards(tournamentId: string) {
 export async function updateTournamentAwards(tournamentId: string, withUpdate: TournamentUpdate) {
   //Store and Calculate score for all users if not empty
   await updateTournament(tournamentId, withUpdate)
+
+  // Get tournament for scoring config
+  const tournament = await findTournamentById(tournamentId);
+  if (!tournament) {
+    throw new Error(`Tournament ${tournamentId} not found`);
+  }
+
+  const individual_award_points = tournament.individual_award_points ?? 3;
   const allTournamentGuesses = await findTournamentGuessByTournament(tournamentId)
+
   return await Promise.all(allTournamentGuesses.map(async (tournamentGuess) => {
     const awardsScore = awardsDefinition.reduce((accumScore, awardDefinition) => {
       if (withUpdate[awardDefinition.property]) {
         if (tournamentGuess[awardDefinition.property] === withUpdate[awardDefinition.property]) {
-          return accumScore + 3
+          return accumScore + individual_award_points
         }
       }
       return accumScore
@@ -501,21 +536,32 @@ export async function updateTournamentAwards(tournamentId: string, withUpdate: T
 export async function updateTournamentHonorRoll(tournamentId: string, withUpdate: TournamentUpdate) {
   //Store and calculate score for all users if the honor roll is not empty
   await updateTournament(tournamentId, withUpdate)
+
+  // Get tournament for scoring config
+  const tournament = await findTournamentById(tournamentId);
+  if (!tournament) {
+    throw new Error(`Tournament ${tournamentId} not found`);
+  }
+
+  const champion_points = tournament.champion_points ?? 5;
+  const runner_up_points = tournament.runner_up_points ?? 3;
+  const third_place_points = tournament.third_place_points ?? 1;
+
   if(withUpdate.champion_team_id || withUpdate.runner_up_team_id || withUpdate.third_place_team_id) {
     const allTournamentGuesses = await findTournamentGuessByTournament(tournamentId)
     return await Promise.all(allTournamentGuesses.map(async (tournamentGuess) => {
       let honorRollScore = 0
       if(withUpdate.champion_team_id &&
         tournamentGuess.champion_team_id === withUpdate.champion_team_id) {
-        honorRollScore += 5
+        honorRollScore += champion_points
       }
       if(withUpdate.runner_up_team_id &&
         tournamentGuess.runner_up_team_id === withUpdate.runner_up_team_id) {
-        honorRollScore += 3
+        honorRollScore += runner_up_points
       }
       if(withUpdate.third_place_team_id &&
         tournamentGuess.third_place_team_id === withUpdate.third_place_team_id) {
-        honorRollScore += 1
+        honorRollScore += third_place_points
       }
       return await updateTournamentGuess(tournamentGuess.id, {
         honor_roll_score: honorRollScore
@@ -624,6 +670,7 @@ export async function copyTournament(
         goals_for: 0,
         goals_against: 0,
         goal_difference: 0,
+        conduct_score: 0,
         is_complete: false
       })))
   }))
@@ -696,6 +743,19 @@ export async function calculateAndStoreGroupPositionScores(tournamentId: string)
   // Get all groups in the tournament
   const groups = await findGroupsInTournament(tournamentId);
 
+  // Get tournament for scoring config
+  const tournament = await findTournamentById(tournamentId);
+  if (!tournament) {
+    throw new Error(`Tournament ${tournamentId} not found`);
+  }
+
+  const qualified_team_points = tournament.qualified_team_points ?? 1;
+  const exact_position_qualified_points = tournament.exact_position_qualified_points ?? 1;
+
+  // Get ALL qualified teams for this tournament
+  const qualifiedTeams = await findQualifiedTeams(tournamentId);
+  const qualifiedTeamIds = new Set(qualifiedTeams.map(t => t.id));
+
   // For each user, calculate their score
   await Promise.all(users.map(async (user) => {
     let totalScore = 0;
@@ -708,13 +768,25 @@ export async function calculateAndStoreGroupPositionScores(tournamentId: string)
       const userGuesses = await findAllTournamentGroupTeamGuessInGroup(user.id, group.id);
       const guessIsComplete = userGuesses.length > 0 && userGuesses.every((t) => t.is_complete);
       if (!guessIsComplete) continue;
-      // Compare positions
-      for (let i = 0; i < realPositions.length; i++) {
-        const real = realPositions[i];
-        const guess = userGuesses.find((g: any) => g.team_id === real.team_id);
-        if (guess && guess.position === real.position) {
-          totalScore += 1;
+
+      // NEW SCORING LOGIC: Qualification-aware scoring
+      for (const real of realPositions) {
+        const teamQualified = qualifiedTeamIds.has(real.team_id);
+        const userGuess = userGuesses.find((g: any) => g.team_id === real.team_id);
+
+        if (!userGuess) continue;
+
+        if (teamQualified) {
+          // Team qualified - check position accuracy
+          if (userGuess.position === real.position) {
+            // Exact position + qualified
+            totalScore += exact_position_qualified_points;
+          } else {
+            // Qualified but wrong position
+            totalScore += qualified_team_points;
+          }
         }
+        // If team didn't qualify: 0 points (even if position was correct)
       }
     }
     // Store the score in tournament_guesses
@@ -722,4 +794,21 @@ export async function calculateAndStoreGroupPositionScores(tournamentId: string)
       group_position_score: totalScore
     });
   }));
+}
+
+/**
+ * Updates conduct scores for teams in a tournament group
+ * Requires admin access
+ */
+export async function updateGroupTeamConductScores(
+  groupId: string,
+  conductScores: { [teamId: string]: number }
+) {
+  const user = await getLoggedInUser();
+  if (!user?.isAdmin) {
+    throw new Error('Unauthorized: Admin access required');
+  }
+
+  const { updateTeamConductScores } = await import('../db/tournament-group-repository');
+  await updateTeamConductScores(conductScores, groupId);
 }

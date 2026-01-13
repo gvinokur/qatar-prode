@@ -12,6 +12,7 @@ import {
   TournamentGroupTeamTable, TournamentGuessTable,
   TournamentTable,
   TournamentTeamTable, TournamentVenueTable,
+  TournamentThirdPlaceRulesTable,
   UserTable,
   ProdeGroupTournamentBettingTable,
   ProdeGroupTournamentBettingPaymentTable
@@ -42,6 +43,7 @@ export interface Database {
 
   tournament_guesses: TournamentGuessTable
   tournament_venues: TournamentVenueTable
+  tournament_third_place_rules: TournamentThirdPlaceRulesTable
 
   prode_group_tournament_betting: ProdeGroupTournamentBettingTable
   prode_group_tournament_betting_payments: ProdeGroupTournamentBettingPaymentTable
