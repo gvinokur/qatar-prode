@@ -76,6 +76,110 @@ All business logic lives in `app/actions/*.ts` files marked with `'use server'`:
 
 Server Actions are imported directly into Client Components for mutations.
 
+#### Client/Server Component Boundaries (CRITICAL)
+
+**NEVER import database repositories directly in Client Components or pages that render Client Components.** This causes build errors and violates Next.js architecture.
+
+**CORRECT Pattern for Data Fetching:**
+
+```typescript
+// ✅ CORRECT: Server Component fetches data and passes as props
+// app/tournaments/[id]/page.tsx
+'use server'
+
+import { findTournamentById } from '../../db/tournament-repository'
+import TournamentView from '../../components/tournament-view'
+
+export default async function TournamentPage({ params }: Props) {
+  const tournament = await findTournamentById(params.id)
+
+  return <TournamentView tournament={tournament} />
+}
+
+// ✅ CORRECT: Client Component receives data as props
+// app/components/tournament-view.tsx
+'use client'
+
+import { Tournament } from '../db/tables-definition'
+
+export default function TournamentView({ tournament }: { tournament: Tournament }) {
+  // Use tournament data in client component
+  return <div>{tournament.name}</div>
+}
+```
+
+**INCORRECT Pattern (causes build errors):**
+
+```typescript
+// ❌ INCORRECT: Client Component imports repository
+'use client'
+
+import { findTournamentById } from '../db/tournament-repository'  // ERROR!
+
+export default function TournamentView({ tournamentId }: Props) {
+  const [tournament, setTournament] = useState(null)
+
+  useEffect(() => {
+    // This will fail at build time
+    findTournamentById(tournamentId).then(setTournament)
+  }, [tournamentId])
+}
+```
+
+**Data Fetching Rules:**
+
+1. **Server Components (default)**: Can directly import and call repositories
+   - Use for pages (`page.tsx`)
+   - Fetch all data needed by child components
+   - Pass data down as props to Client Components
+
+2. **Client Components (`'use client'`)**:
+   - NEVER import repositories or database functions
+   - For data fetching: Use Server Actions (from `app/actions/*.ts`)
+   - For initial data: Receive as props from parent Server Component
+   - For mutations: Call Server Actions
+
+3. **Server Actions (`'use server'`)**:
+   - Can import and call repositories
+   - Used by Client Components for mutations and dynamic data fetching
+   - Example: Form submissions, button clicks, real-time updates
+
+**Example: Proper Data Flow**
+
+```typescript
+// Server Component (page.tsx) - Fetches initial data
+'use server'
+import { getTournamentData } from '@/app/actions/tournament-actions'
+
+export default async function Page() {
+  const data = await getTournamentData(id)
+  return <ClientComponent initialData={data} />
+}
+
+// Server Action - Wraps repository for client access
+'use server'
+export async function getTournamentData(id: string) {
+  return findTournamentById(id)  // ✅ OK in Server Action
+}
+
+// Client Component - Uses Server Action for updates
+'use client'
+export default function ClientComponent({ initialData }) {
+  const [data, setData] = useState(initialData)
+
+  async function handleUpdate() {
+    const updated = await updateTournamentAction(data)  // ✅ OK
+    setData(updated)
+  }
+}
+```
+
+**Why This Matters:**
+- Repositories use database connections that only work server-side
+- Client Components run in the browser (no database access)
+- Mixing them causes build failures and runtime errors
+- Server Actions bridge the gap safely
+
 #### Repository Pattern
 Database access is abstracted through repositories in `app/db/*-repository.ts`:
 ```typescript

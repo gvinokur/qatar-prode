@@ -156,9 +156,10 @@ interface RulesProps {
   expanded?: boolean;
   fullpage?: boolean;
   scoringConfig?: ScoringConfig;
+  tournamentId?: string;
 }
 
-export default function Rules({ expanded: defaultExpanded = true, fullpage = false, scoringConfig }: RulesProps) {
+export default function Rules({ expanded: defaultExpanded = true, fullpage = false, scoringConfig, tournamentId }: RulesProps) {
   const theme = useTheme();
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [expandedRules, setExpandedRules] = useState<number[]>([]);
@@ -362,7 +363,7 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
         <CardActions sx={{ justifyContent: 'flex-end', px: 2 }}>
           <Button
             component={Link}
-            href="/rules"
+            href={tournamentId ? `/tournaments/${tournamentId}/rules` : "/rules"}
             variant="text"
             color="primary"
           >
