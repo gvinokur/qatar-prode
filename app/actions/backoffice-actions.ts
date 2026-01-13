@@ -220,6 +220,7 @@ export async function generateDbTournament(name: string, deletePrevious:boolean 
               goals_for: 0,
               goals_against: 0,
               goal_difference: 0,
+              conduct_score: 0,
               is_complete: false
             })
           }))
@@ -669,6 +670,7 @@ export async function copyTournament(
         goals_for: 0,
         goals_against: 0,
         goal_difference: 0,
+        conduct_score: 0,
         is_complete: false
       })))
   }))

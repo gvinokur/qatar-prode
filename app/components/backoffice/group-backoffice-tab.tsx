@@ -61,10 +61,10 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
           .map(game => game.id))
       setTeamsMap(completeGroupData.teamsMap)
 
-      // Load conduct scores from group teams
+      // Load conduct scores from team positions
       const scores: { [teamId: string]: number } = {};
-      group.teams.forEach(teamData => {
-        scores[teamData.team_id] = teamData.conduct_score || 0;
+      completeGroupData.teamPositions.forEach(teamStats => {
+        scores[teamStats.team_id] = teamStats.conduct_score || 0;
       });
       setConductScores(scores);
 

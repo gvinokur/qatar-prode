@@ -1,8 +1,8 @@
 'use server';
 
-import { auth } from '@/auth';
+import { auth } from '../../auth';
 import { findTournamentById, updateTournament } from '../db/tournament-repository';
-import { findAllGamesInTournament } from '../db/game-repository';
+import { findGamesInTournament } from '../db/game-repository';
 import { TournamentUpdate } from '../db/tables-definition';
 
 /**
@@ -58,7 +58,7 @@ export async function getRecommendedScoringValues(tournamentId: string) {
     throw new Error('Unauthorized');
   }
 
-  const games = await findAllGamesInTournament(tournamentId);
+  const games = await findGamesInTournament(tournamentId);
   const totalGames = games.length;
   const groupGames = games.filter(g => g.game_type === 'group').length;
   const playoffGames = totalGames - groupGames;
