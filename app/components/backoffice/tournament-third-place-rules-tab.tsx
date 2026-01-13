@@ -225,18 +225,18 @@ const TournamentThirdPlaceRulesTab: React.FC<TournamentThirdPlaceRulesTabProps> 
                       <Typography
                         component="pre"
                         variant="body2"
-                        sx={{
+                        sx={(theme) => ({
                           mt: 1,
                           p: 2,
-                          bgcolor: 'background.paper',
-                          color: 'text.primary',
+                          bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100',
+                          color: theme.palette.mode === 'dark' ? 'grey.100' : 'grey.900',
                           borderRadius: 1,
                           fontSize: '0.75rem',
                           overflow: 'auto',
                           fontFamily: 'monospace',
                           border: 1,
                           borderColor: 'divider'
-                        }}
+                        })}
                       >
                         {JSON.stringify(rule.rules, null, 2)}
                       </Typography>
