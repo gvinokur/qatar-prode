@@ -4,6 +4,7 @@ import {calculateGroupPosition, GameWithResultOrGuess, genericTeamStatsComparato
 import {isTeamWinnerRule} from "./playoffs-rule-helper";
 import {getGuessLoser, getGuessWinner} from "./score-utils";
 import {getThirdPlaceRulesMapForTournament} from "../db/tournament-third-place-rules-repository";
+import {groupCompleteReducer} from "./team-stats-utils";
 
 export async function calculatePlayoffTeams(
   tournamentId: string,
@@ -219,11 +220,8 @@ export async function calculatePlayoffTeamsFromPositions(
 
 type Rules = {[k:string]: {[k:string]: string}}
 
-export const groupCompleteReducer = (teamPositions: TeamStats[]) => {
-  return teamPositions.reduce<boolean>(
-    (previousValue, teamPosition) => previousValue && teamPosition.is_complete,
-    true) ;
-}
+// Re-export groupCompleteReducer for backwards compatibility
+export { groupCompleteReducer } from './team-stats-utils';
 
 /**
  * Legacy hardcoded third-place assignment rules for EURO format (6 groups, 4 third-place qualifiers)
