@@ -288,7 +288,7 @@ const TournamentThirdPlaceRulesTab: React.FC<TournamentThirdPlaceRulesTabProps> 
 
             <Alert severity="info" sx={{ mt: 2 }}>
               <Typography variant="body2" gutterBottom>
-                <strong>Format:</strong> Keys are bracket positions (e.g., &ldquo;1A&rdquo; = opponent for 1st place of Group A), values are group letters of third-place teams.
+                <strong>Format:</strong> Keys are third-place position identifiers (e.g., &ldquo;CEFHI&rdquo;), values are group letters indicating which group&apos;s third-place team fills that position.
               </Typography>
               <Typography
                 component="pre"
@@ -301,18 +301,18 @@ const TournamentThirdPlaceRulesTab: React.FC<TournamentThirdPlaceRulesTabProps> 
                 }}
               >
 {`{
-  "1A": "H",
-  "1B": "G",
-  "1D": "I",
-  "1E": "D",
-  "1G": "J",
-  "1I": "F",
-  "1K": "L",
-  "1L": "K"
+  "CEFHI": "E",
+  "EFGIJ": "J",
+  "BEFIJ": "I",
+  "ABCDF": "F",
+  "AEHIJ": "H",
+  "CDFGH": "G",
+  "DEIJL": "L",
+  "EHIJK": "K"
 }`}
               </Typography>
               <Typography variant="body2" sx={{ mt: 1 }}>
-                Example: &ldquo;1A&rdquo;: &ldquo;H&rdquo; means 1st place of Group A plays against 3rd place of Group H in Round of 32.
+                Example: &ldquo;CEFHI&rdquo;: &ldquo;E&rdquo; means the third-place team in position 3CEFHI comes from Group E. This is used when the game rule specifies <code>{`{group: 'CEFHI', position: 3}`}</code>.
               </Typography>
             </Alert>
           </Box>

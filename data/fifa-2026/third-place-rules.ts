@@ -7,16 +7,20 @@
  * Source: FIFA World Cup 26 Regulations, Annex C (page 80)
  * https://digitalhub.fifa.com/m/636f5c9c6f29771f/original/FWC2026_regulations_EN.pdf
  *
- * Each rule maps a combination of qualifying groups (e.g., "ABCDEFGH") to the specific
- * bracket positions (1A, 1B, 1D, 1E, 1G, 1I, 1K, 1L) where each third-place team plays.
+ * Each rule maps a combination of qualifying groups (e.g., "EFGHIJKL") to the specific
+ * third-place position identifiers (e.g., "CEFHI", "EFGIJ") where each group's third-place team plays.
  *
- * Example:
- * - If groups A, B, C, D, E, F, G, H have the best 8 third-place teams
- * - Then the combination key is "ABCDEFGH"
- * - The matchups specify: 1A plays 3H, 1B plays 3G, 1D plays 3B, etc.
+ * Format:
+ * - Key (combination): Sorted letters of groups with qualifying third-place teams (e.g., "EFGHIJKL")
+ * - Value (matchups): Object mapping third-place position identifiers to group letters
+ *
+ * Example for combination "EFGHIJKL":
+ * - "CEFHI": "E" means the third-place team that plays in position "3CEFHI" comes from Group E
+ * - "EFGIJ": "J" means the third-place team that plays in position "3EFGIJ" comes from Group J
+ * - This determines which actual group fills each third-place bracket position
  */
 
-import rawRules from './annex-c-rules-raw.json';
+import transformedRules from './third-place-rules-transformed.json';
 
 export interface ThirdPlaceRule {
   combination: string;
@@ -25,7 +29,7 @@ export interface ThirdPlaceRule {
   };
 }
 
-export const FIFA_2026_THIRD_PLACE_RULES: ThirdPlaceRule[] = rawRules as ThirdPlaceRule[];
+export const FIFA_2026_THIRD_PLACE_RULES: ThirdPlaceRule[] = transformedRules as ThirdPlaceRule[];
 
 /**
  * Convert the rules array to a map for faster lookup
