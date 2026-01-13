@@ -18,13 +18,13 @@ export const TeamNames = {
   UEFAPlayoffA: 'UEFA Playoff A',
 
   // Group C
-  Brazil: 'Brazil',
+  Brazil: 'Brasil',
   Morocco: 'Morocco',
   Scotland: 'Scotland',
   Haiti: 'Haiti',
 
   // Group D
-  USA: 'USA',
+  USA: 'Estados Unidos',
   Australia: 'Australia',
   Paraguay: 'Paraguay',
   UEFAPlayoffC: 'UEFA Playoff C',

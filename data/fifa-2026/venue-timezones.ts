@@ -1,36 +1,38 @@
+import { Venues } from './base-data';
+
 /**
  * FIFA 2026 World Cup Venue Timezones
- * Maps venues to their IANA timezone identifiers
+ * Maps venue constants to their IANA timezone identifiers
  */
 
 export const VenueTimezones = {
   // USA - Eastern Time (ET)
-  'MetLife Stadium (New York/New Jersey)': 'America/New_York',
-  'Gillette Stadium (Boston)': 'America/New_York',
-  'Lincoln Financial Field (Philadelphia)': 'America/New_York',
-  'Mercedes-Benz Stadium (Atlanta)': 'America/New_York',
-  'Hard Rock Stadium (Miami)': 'America/New_York',
+  [Venues.NYC]: 'America/New_York',
+  [Venues.BOS]: 'America/New_York',
+  [Venues.PHI]: 'America/New_York',
+  [Venues.ATL]: 'America/New_York',
+  [Venues.MIA]: 'America/New_York',
 
   // USA - Central Time (CT)
-  'NRG Stadium (Houston)': 'America/Chicago',
-  'AT&T Stadium (Dallas)': 'America/Chicago',
-  'Arrowhead Stadium (Kansas City)': 'America/Chicago',
+  [Venues.HOU]: 'America/Chicago',
+  [Venues.DAL]: 'America/Chicago',
+  [Venues.KC]: 'America/Chicago',
 
   // USA - Pacific Time (PT)
-  'SoFi Stadium (Los Angeles)': 'America/Los_Angeles',
-  'Levi\'s Stadium (San Francisco Bay Area)': 'America/Los_Angeles',
-  'Lumen Field (Seattle)': 'America/Los_Angeles',
+  [Venues.LA]: 'America/Los_Angeles',
+  [Venues.SF]: 'America/Los_Angeles',
+  [Venues.SEA]: 'America/Los_Angeles',
 
   // Canada - Eastern Time
-  'BMO Field (Toronto)': 'America/Toronto',
+  [Venues.TOR]: 'America/Toronto',
 
   // Canada - Pacific Time
-  'BC Place (Vancouver)': 'America/Vancouver',
+  [Venues.VAN]: 'America/Vancouver',
 
   // Mexico - Central Time
-  'Estadio Azteca (Mexico City)': 'America/Mexico_City',
-  'Estadio Akron (Guadalajara)': 'America/Mexico_City',
-  'Estadio BBVA (Monterrey)': 'America/Monterrey',
+  [Venues.MEX]: 'America/Mexico_City',
+  [Venues.GDL]: 'America/Mexico_City',
+  [Venues.MTY]: 'America/Monterrey',
 } as const;
 
 /**
