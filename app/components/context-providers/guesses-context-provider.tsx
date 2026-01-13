@@ -12,7 +12,7 @@ import {
   updateOrCreateTournamentGroupTeamGuesses,
   updatePlayoffGameGuesses
 } from "../../actions/guesses-actions";
-import {groupCompleteReducer} from "../../utils/playoff-teams-calculator";
+import {groupCompleteReducer} from "../../utils/team-stats-utils";
 
 type GameGuessMap = {[k:string]: GameGuessNew}
 
