@@ -205,43 +205,57 @@ export const games = [
     PlayoffStages.round32, { group: 'D', position: 2 }, { group: 'G', position: 2 }),
 
   // ==================== ROUND OF 16 ====================
+  // Official schedule from: https://fwcschedule.com/
 
-  game(89, Dates.July042026, 15, Venues.LA, undefined, undefined, undefined,
-    PlayoffStages.round16, { game: 73, winner: true }, { game: 74, winner: true }),
+  // Match 89: Winner 74 vs Winner 77
+  game(89, Dates.July042026, 13, Venues.PHI, undefined, undefined, undefined,
+    PlayoffStages.round16, { game: 74, winner: true }, { game: 77, winner: true }),
 
-  game(90, Dates.July042026, 21, Venues.MEX, undefined, undefined, undefined,
-    PlayoffStages.round16, { game: 75, winner: true }, { game: 76, winner: true }),
+  // Match 90: Winner 73 vs Winner 75
+  game(90, Dates.July042026, 13, Venues.HOU, undefined, undefined, undefined,
+    PlayoffStages.round16, { game: 73, winner: true }, { game: 75, winner: true }),
 
-  game(91, Dates.July052026, 15, Venues.NYC, undefined, undefined, undefined,
-    PlayoffStages.round16, { game: 77, winner: true }, { game: 78, winner: true }),
+  // Match 91: Winner 76 vs Winner 78
+  game(91, Dates.July052026, 16, Venues.NYC, undefined, undefined, undefined,
+    PlayoffStages.round16, { game: 76, winner: true }, { game: 78, winner: true }),
 
-  game(92, Dates.July052026, 21, Venues.TOR, undefined, undefined, undefined,
+  // Match 92: Winner 79 vs Winner 80
+  game(92, Dates.July052026, 20, Venues.MEX, undefined, undefined, undefined,
     PlayoffStages.round16, { game: 79, winner: true }, { game: 80, winner: true }),
 
-  game(93, Dates.July062026, 15, Venues.HOU, undefined, undefined, undefined,
-    PlayoffStages.round16, { game: 81, winner: true }, { game: 82, winner: true }),
-
-  game(94, Dates.July062026, 21, Venues.KC, undefined, undefined, undefined,
+  // Match 93: Winner 83 vs Winner 84
+  game(93, Dates.July062026, 15, Venues.DAL, undefined, undefined, undefined,
     PlayoffStages.round16, { game: 83, winner: true }, { game: 84, winner: true }),
 
-  game(95, Dates.July072026, 15, Venues.PHI, undefined, undefined, undefined,
-    PlayoffStages.round16, { game: 85, winner: true }, { game: 86, winner: true }),
+  // Match 94: Winner 81 vs Winner 82
+  game(94, Dates.July062026, 17, Venues.SEA, undefined, undefined, undefined,
+    PlayoffStages.round16, { game: 81, winner: true }, { game: 82, winner: true }),
 
-  game(96, Dates.July072026, 21, Venues.MIA, undefined, undefined, undefined,
-    PlayoffStages.round16, { game: 87, winner: true }, { game: 88, winner: true }),
+  // Match 95: Winner 86 vs Winner 88
+  game(95, Dates.July072026, 12, Venues.ATL, undefined, undefined, undefined,
+    PlayoffStages.round16, { game: 86, winner: true }, { game: 88, winner: true }),
+
+  // Match 96: Winner 85 vs Winner 87
+  game(96, Dates.July072026, 16, Venues.VAN, undefined, undefined, undefined,
+    PlayoffStages.round16, { game: 85, winner: true }, { game: 87, winner: true }),
 
   // ==================== QUARTER-FINALS ====================
+  // Official schedule from: https://fwcschedule.com/
 
-  game(97, Dates.July092026, 15, Venues.LA, undefined, undefined, undefined,
+  // Match 97: Winner 89 vs Winner 90
+  game(97, Dates.July092026, 16, Venues.BOS, undefined, undefined, undefined,
     PlayoffStages.quarters, { game: 89, winner: true }, { game: 90, winner: true }),
 
-  game(98, Dates.July092026, 21, Venues.MEX, undefined, undefined, undefined,
-    PlayoffStages.quarters, { game: 91, winner: true }, { game: 92, winner: true }),
-
-  game(99, Dates.July102026, 15, Venues.NYC, undefined, undefined, undefined,
+  // Match 98: Winner 93 vs Winner 94
+  game(98, Dates.July102026, 15, Venues.LA, undefined, undefined, undefined,
     PlayoffStages.quarters, { game: 93, winner: true }, { game: 94, winner: true }),
 
-  game(100, Dates.July102026, 21, Venues.MIA, undefined, undefined, undefined,
+  // Match 99: Winner 91 vs Winner 92
+  game(99, Dates.July112026, 17, Venues.MIA, undefined, undefined, undefined,
+    PlayoffStages.quarters, { game: 91, winner: true }, { game: 92, winner: true }),
+
+  // Match 100: Winner 95 vs Winner 96
+  game(100, Dates.July112026, 21, Venues.KC, undefined, undefined, undefined,
     PlayoffStages.quarters, { game: 95, winner: true }, { game: 96, winner: true }),
 
   // ==================== SEMI-FINALS ====================
