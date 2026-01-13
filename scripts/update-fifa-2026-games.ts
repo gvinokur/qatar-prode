@@ -141,7 +141,7 @@ async function updateFifa2026Games() {
     const awayTeamId = gameData.away_team ? teamMap[gameData.away_team] : null;
 
     // Determine game type based on whether it has a group or playoff
-    const gameType = gameData.group ? 'group' : (gameData.playoff ? 'playoff' : null);
+    const gameType = gameData.group ? 'group' : (gameData.playoff ? 'playoff' : undefined);
 
     const result = await db
       .insertInto('games')
@@ -150,7 +150,7 @@ async function updateFifa2026Games() {
         tournament_id: tournamentId,
         game_date: gameData.date,
         location: gameData.location,
-        game_local_timezone: gameData.timezone || null,
+        game_local_timezone: gameData.timezone || undefined,
         game_type: gameType,
         home_team: homeTeamId,
         away_team: awayTeamId,
