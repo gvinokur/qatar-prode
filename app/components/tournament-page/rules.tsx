@@ -31,40 +31,96 @@ interface Rule {
   component?: React.ReactNode;
 }
 
-const rules: Rule[] = [
-  { 
-    label: '1 Punto por Ganador/Empate acertado',
-    component: <WinnerDrawExample />
-  },
-  { 
-    label: '1 punto extra por resultado exacto',
-    component: <ExactScoreExample />
-  },
-  { 
-    label: '1 Punto por cada clasificado a 8vos acertado',
-    component: <RoundOf16Example />
-  },
-  { 
-    label: '1 Punto por cada posición exacta de equipo en la fase de grupos',
-    component: <GroupPositionExample />
-  },
-  { 
-    label: '5 Puntos por campeon',
-    component: <ChampionExample />
-  },
-  { 
-    label: '3 Puntos por subcampeon',
-    component: <RunnerUpExample />
-  },
-  { 
-    label: '1 Punto por tercer puesto, si es que el torneo tiene partido por el mismo',
-    component: <ThirdPlaceExample />
-  },
-  { 
-    label: '3 Puntos por cada premio acertado (mejor jugador, arquero, goleador, etc...)',
-    component: <IndividualAwardsExample />
-  },
-]
+export interface ScoringConfig {
+  game_exact_score_points: number;
+  game_correct_outcome_points: number;
+  champion_points: number;
+  runner_up_points: number;
+  third_place_points: number;
+  individual_award_points: number;
+  qualified_team_points: number;
+  exact_position_qualified_points: number;
+  max_silver_games: number;
+  max_golden_games: number;
+}
+
+// Default scoring config for display when no tournament-specific config is provided
+const DEFAULT_SCORING: ScoringConfig = {
+  game_exact_score_points: 2,
+  game_correct_outcome_points: 1,
+  champion_points: 5,
+  runner_up_points: 3,
+  third_place_points: 1,
+  individual_award_points: 3,
+  qualified_team_points: 1,
+  exact_position_qualified_points: 2,
+  max_silver_games: 0,
+  max_golden_games: 0,
+};
+
+function getRules(config: ScoringConfig): Rule[] {
+  const exactScoreBonus = config.game_exact_score_points - config.game_correct_outcome_points;
+
+  const baseRules: Rule[] = [
+    {
+      label: `${config.game_correct_outcome_points} ${config.game_correct_outcome_points === 1 ? 'Punto' : 'Puntos'} por Ganador/Empate acertado`,
+      component: <WinnerDrawExample />
+    },
+    {
+      label: `${exactScoreBonus} ${exactScoreBonus === 1 ? 'punto' : 'puntos'} extra por resultado exacto (total: ${config.game_exact_score_points} ${config.game_exact_score_points === 1 ? 'punto' : 'puntos'})`,
+      component: <ExactScoreExample />
+    },
+    {
+      label: `${config.qualified_team_points} ${config.qualified_team_points === 1 ? 'Punto' : 'Puntos'} por cada equipo clasificado acertado`,
+      component: <RoundOf16Example />
+    },
+    {
+      label: `${config.exact_position_qualified_points} ${config.exact_position_qualified_points === 1 ? 'Punto' : 'Puntos'} adicional${config.exact_position_qualified_points === 1 ? '' : 'es'} por posición exacta en la fase de grupos (total: ${config.qualified_team_points + config.exact_position_qualified_points} puntos por equipo clasificado en posición exacta)`,
+      component: <GroupPositionExample />
+    },
+    {
+      label: `${config.champion_points} ${config.champion_points === 1 ? 'Punto' : 'Puntos'} por campeon`,
+      component: <ChampionExample />
+    },
+    {
+      label: `${config.runner_up_points} ${config.runner_up_points === 1 ? 'Punto' : 'Puntos'} por subcampeon`,
+      component: <RunnerUpExample />
+    },
+    {
+      label: `${config.third_place_points} ${config.third_place_points === 1 ? 'Punto' : 'Puntos'} por tercer puesto, si es que el torneo tiene partido por el mismo`,
+      component: <ThirdPlaceExample />
+    },
+    {
+      label: `${config.individual_award_points} ${config.individual_award_points === 1 ? 'Punto' : 'Puntos'} por cada premio acertado (mejor jugador, arquero, goleador, etc...)`,
+      component: <IndividualAwardsExample />
+    },
+  ];
+
+  // Add boost rules only if boosts are enabled
+  if (config.max_silver_games > 0 || config.max_golden_games > 0) {
+    const boostRules: Rule[] = [];
+
+    if (config.max_silver_games > 0) {
+      boostRules.push({
+        label: `Boost Plateado: Puedes seleccionar hasta ${config.max_silver_games} ${config.max_silver_games === 1 ? 'partido' : 'partidos'} que valdrán el doble de puntos (2x)`,
+      });
+    }
+
+    if (config.max_golden_games > 0) {
+      boostRules.push({
+        label: `Boost Dorado: Puedes seleccionar hasta ${config.max_golden_games} ${config.max_golden_games === 1 ? 'partido' : 'partidos'} que valdrán el triple de puntos (3x)`,
+      });
+    }
+
+    boostRules.push({
+      label: 'Los boosts solo pueden aplicarse antes de que comience el partido',
+    });
+
+    return [...baseRules, ...boostRules];
+  }
+
+  return baseRules;
+}
 
 const constraints: Rule[] = [
   {
@@ -96,11 +152,21 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
   }),
 }));
 
-export default function Rules({ expanded: defaultExpanded = true, fullpage = false }: { expanded?: boolean, fullpage?: boolean }) {
+interface RulesProps {
+  expanded?: boolean;
+  fullpage?: boolean;
+  scoringConfig?: ScoringConfig;
+}
+
+export default function Rules({ expanded: defaultExpanded = true, fullpage = false, scoringConfig }: RulesProps) {
   const theme = useTheme();
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [expandedRules, setExpandedRules] = useState<number[]>([]);
   const [expandedConstraints, setExpandedConstraints] = useState<number[]>([]);
+
+  // Use provided config or defaults
+  const config = scoringConfig || DEFAULT_SCORING;
+  const rules = getRules(config);
 
   const handleExpandClick = () => {
     setExpanded(!expanded);

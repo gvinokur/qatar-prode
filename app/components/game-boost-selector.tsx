@@ -23,28 +23,22 @@ import { setGameBoostAction, getBoostCountsAction } from '../actions/game-boost-
 
 interface GameBoostSelectorProps {
   gameId: string;
-  gameNumber: number;
   gameDate: Date;
   currentBoostType: 'silver' | 'golden' | null;
   tournamentId: string;
-  userId: string;
   disabled?: boolean;
 }
 
 interface BoostCounts {
-  silverUsed: number;
-  silverMax: number;
-  goldenUsed: number;
-  goldenMax: number;
+  silver: { used: number; max: number };
+  golden: { used: number; max: number };
 }
 
 export default function GameBoostSelector({
   gameId,
-  gameNumber,
   gameDate,
   currentBoostType,
   tournamentId,
-  userId,
   disabled = false
 }: GameBoostSelectorProps) {
   const [boostType, setBoostType] = useState<'silver' | 'golden' | null>(currentBoostType);
@@ -61,14 +55,14 @@ export default function GameBoostSelector({
   useEffect(() => {
     const fetchBoostCounts = async () => {
       try {
-        const counts = await getBoostCountsAction(tournamentId, userId);
+        const counts = await getBoostCountsAction(tournamentId);
         setBoostCounts(counts);
       } catch (error) {
         console.error('Error fetching boost counts:', error);
       }
     };
     fetchBoostCounts();
-  }, [tournamentId, userId]);
+  }, [tournamentId]);
 
   useEffect(() => {
     setBoostType(currentBoostType);
@@ -84,14 +78,14 @@ export default function GameBoostSelector({
       // Check if user has boosts available
       if (!boostCounts) return;
 
-      if (type === 'silver' && boostCounts.silverUsed >= boostCounts.silverMax && boostCounts.silverMax > 0) {
-        setErrorMessage(`You've used all ${boostCounts.silverMax} silver boosts. Remove one from another game first.`);
+      if (type === 'silver' && boostCounts.silver.used >= boostCounts.silver.max && boostCounts.silver.max > 0) {
+        setErrorMessage(`You've used all ${boostCounts.silver.max} silver boosts. Remove one from another game first.`);
         setDialogOpen(true);
         return;
       }
 
-      if (type === 'golden' && boostCounts.goldenUsed >= boostCounts.goldenMax && boostCounts.goldenMax > 0) {
-        setErrorMessage(`You've used all ${boostCounts.goldenMax} golden boosts. Remove one from another game first.`);
+      if (type === 'golden' && boostCounts.golden.used >= boostCounts.golden.max && boostCounts.golden.max > 0) {
+        setErrorMessage(`You've used all ${boostCounts.golden.max} golden boosts. Remove one from another game first.`);
         setDialogOpen(true);
         return;
       }
@@ -105,20 +99,23 @@ export default function GameBoostSelector({
     setErrorMessage('');
 
     try {
-      await setGameBoostAction(gameId, userId, newBoostType);
+      await setGameBoostAction(gameId, newBoostType);
       setBoostType(newBoostType);
 
       // Update counts
       if (boostCounts) {
-        const newCounts = { ...boostCounts };
+        const newCounts = {
+          silver: { ...boostCounts.silver },
+          golden: { ...boostCounts.golden }
+        };
 
         // Remove old boost
-        if (boostType === 'silver') newCounts.silverUsed--;
-        if (boostType === 'golden') newCounts.goldenUsed--;
+        if (boostType === 'silver') newCounts.silver.used--;
+        if (boostType === 'golden') newCounts.golden.used--;
 
         // Add new boost
-        if (newBoostType === 'silver') newCounts.silverUsed++;
-        if (newBoostType === 'golden') newCounts.goldenUsed++;
+        if (newBoostType === 'silver') newCounts.silver.used++;
+        if (newBoostType === 'golden') newCounts.golden.used++;
 
         setBoostCounts(newCounts);
       }
@@ -130,21 +127,21 @@ export default function GameBoostSelector({
     }
   };
 
-  if (!boostCounts || (boostCounts.silverMax === 0 && boostCounts.goldenMax === 0)) {
+  if (!boostCounts || (boostCounts.silver.max === 0 && boostCounts.golden.max === 0)) {
     return null; // Boosts disabled for this tournament
   }
 
   return (
     <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
       {/* Silver Boost Button */}
-      {boostCounts.silverMax > 0 && (
+      {boostCounts.silver.max > 0 && (
         <Tooltip
           title={
             isDisabled
               ? 'Game has started'
               : boostType === 'silver'
               ? 'Click to remove Silver Boost (2x points)'
-              : `Silver Boost (2x points) - ${boostCounts.silverUsed}/${boostCounts.silverMax} used`
+              : `Silver Boost (2x points) - ${boostCounts.silver.used}/${boostCounts.silver.max} used`
           }
         >
           <span>
@@ -171,14 +168,14 @@ export default function GameBoostSelector({
       )}
 
       {/* Golden Boost Button */}
-      {boostCounts.goldenMax > 0 && (
+      {boostCounts.golden.max > 0 && (
         <Tooltip
           title={
             isDisabled
               ? 'Game has started'
               : boostType === 'golden'
               ? 'Click to remove Golden Boost (3x points)'
-              : `Golden Boost (3x points) - ${boostCounts.goldenUsed}/${boostCounts.goldenMax} used`
+              : `Golden Boost (3x points) - ${boostCounts.golden.used}/${boostCounts.golden.max} used`
           }
         >
           <span>
