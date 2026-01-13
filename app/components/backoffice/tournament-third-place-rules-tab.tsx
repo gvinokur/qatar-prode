@@ -180,7 +180,7 @@ const TournamentThirdPlaceRulesTab: React.FC<TournamentThirdPlaceRulesTabProps> 
           </Alert>
 
           {rules.length === 0 ? (
-            <Paper sx={{ p: 3, textAlign: 'center', bgcolor: 'grey.50' }}>
+            <Paper sx={{ p: 3, textAlign: 'center', bgcolor: 'background.default' }}>
               <Typography variant="h6" color="text.secondary" gutterBottom>
                 No rules configured
               </Typography>
@@ -228,11 +228,13 @@ const TournamentThirdPlaceRulesTab: React.FC<TournamentThirdPlaceRulesTabProps> 
                         sx={{
                           mt: 1,
                           p: 2,
-                          bgcolor: 'grey.100',
+                          bgcolor: 'background.default',
                           borderRadius: 1,
                           fontSize: '0.75rem',
                           overflow: 'auto',
-                          fontFamily: 'monospace'
+                          fontFamily: 'monospace',
+                          border: 1,
+                          borderColor: 'divider'
                         }}
                       >
                         {JSON.stringify(rule.rules, null, 2)}
@@ -286,7 +288,7 @@ const TournamentThirdPlaceRulesTab: React.FC<TournamentThirdPlaceRulesTabProps> 
 
             <Alert severity="info" sx={{ mt: 2 }}>
               <Typography variant="body2" gutterBottom>
-                <strong>Example format for 2026 World Cup (8 third-place qualifiers):</strong>
+                <strong>Format:</strong> Keys are bracket positions (e.g., &ldquo;1A&rdquo; = opponent for 1st place of Group A), values are group letters of third-place teams.
               </Typography>
               <Typography
                 component="pre"
@@ -299,18 +301,18 @@ const TournamentThirdPlaceRulesTab: React.FC<TournamentThirdPlaceRulesTabProps> 
                 }}
               >
 {`{
-  "A/B/C/D/F": "A",
-  "C/D/F/G/H": "C",
-  "C/E/F/H/I": "E",
-  "E/H/I/J/K": "H",
-  "B/E/F/I/J": "B",
-  "A/E/H/I/J": "A",
-  ...
+  "1A": "H",
+  "1B": "G",
+  "1D": "I",
+  "1E": "D",
+  "1G": "J",
+  "1I": "F",
+  "1K": "L",
+  "1L": "K"
 }`}
               </Typography>
               <Typography variant="body2" sx={{ mt: 1 }}>
-                Each key is a bracket position identifier, and each value is the group letter whose
-                third-place team plays in that position.
+                Example: &ldquo;1A&rdquo;: &ldquo;H&rdquo; means 1st place of Group A plays against 3rd place of Group H in Round of 32.
               </Typography>
             </Alert>
           </Box>
