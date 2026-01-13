@@ -228,7 +228,8 @@ const TournamentThirdPlaceRulesTab: React.FC<TournamentThirdPlaceRulesTabProps> 
                         sx={{
                           mt: 1,
                           p: 2,
-                          bgcolor: 'background.default',
+                          bgcolor: 'background.paper',
+                          color: 'text.primary',
                           borderRadius: 1,
                           fontSize: '0.75rem',
                           overflow: 'auto',
