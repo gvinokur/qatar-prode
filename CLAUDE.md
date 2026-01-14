@@ -36,6 +36,54 @@ Husky and lint-staged are configured to:
 - Run tests for modified test files
 - Run linting for modified app files
 
+### Git Worktrees
+
+Git worktrees allow working on multiple branches simultaneously in different directories. This is essential for parallelizing development tasks.
+
+**Important Behavior with Claude Code:**
+- The Bash tool maintains the original working directory as its default
+- Commands do NOT persist directory changes between tool invocations
+- **Always use absolute paths** when working with worktree files
+
+**Creating a Worktree:**
+```bash
+# Create new worktree with a new branch
+git worktree add -b feature/branch-name ../project-name-branch-name
+
+# Create worktree from existing branch
+git worktree add ../project-name-branch-name existing-branch-name
+```
+
+**Managing Worktrees:**
+```bash
+# List all worktrees
+git worktree list
+
+# Remove a worktree (after deleting the directory)
+git worktree remove ../project-name-branch-name
+
+# Prune stale worktree administrative files
+git worktree prune
+```
+
+**Working with Files in Worktrees:**
+```bash
+# ✅ CORRECT: Use absolute paths
+npm test /Users/username/project-worktree/app/file.ts
+git -C /Users/username/project-worktree status
+
+# ❌ INCORRECT: Relying on cd between commands
+cd /Users/username/project-worktree
+npm test  # This runs in the original directory, not the worktree
+```
+
+**Use Cases:**
+- Work on multiple features simultaneously without branch switching
+- Run parallel test suites on different branches
+- Compare implementations side-by-side
+- Keep stable branch running while developing
+- Review PRs without disrupting current work
+
 ## Architecture
 
 ### Stack Overview
