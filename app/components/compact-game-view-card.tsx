@@ -10,9 +10,10 @@ import {
   IconButton,
   Tooltip, Divider, Grid,
   Checkbox,
-  Badge, CircularProgress
+  Badge, CircularProgress,
+  Chip
 } from "@mui/material";
-import { Edit as EditIcon, Close as MissIcon, Done as HitIcon, DoneAll as HitAllIcon, Save as SaveIcon, SaveOutlined as SaveOutlinedIcon, Scoreboard as ScoreboardIcon } from "@mui/icons-material";
+import { Edit as EditIcon, Close as MissIcon, Done as HitIcon, DoneAll as HitAllIcon, Save as SaveIcon, SaveOutlined as SaveOutlinedIcon, Scoreboard as ScoreboardIcon, EmojiEvents as TrophyIcon, Star as StarIcon } from "@mui/icons-material";
 import { getUserLocalTime, getLocalGameTime } from "../utils/date-utils";
 import { GameResultNew, Theme} from "../db/tables-definition";
 import {useState} from "react";
@@ -44,6 +45,7 @@ type GameGuessProps =  {
   homePenaltyWinner?: boolean
   awayPenaltyWinner?: boolean
   gameResult?: GameResultNew | null
+  boostType?: 'silver' | 'golden' | null
 } & SharedProps
 
 type GameResultProps = {
@@ -105,6 +107,21 @@ export default function CompactGameViewCard({
 
   const isClickableStyles = (!disabled || specificProps.isGameFixture) ? {cursor: 'pointer'} : {}
   const isDraft = (!specificProps.isGameGuess && specificProps.isDraft)
+  const boostType = specificProps.isGameGuess ? specificProps.boostType : null
+
+  // Boost styling
+  const getBoostBorderColor = () => {
+    if (boostType === 'golden') return '#FFD700'; // Gold
+    if (boostType === 'silver') return '#C0C0C0'; // Silver
+    if (isDraft) return theme.palette.warning.light;
+    return 'divider';
+  };
+
+  const getBoostShadow = () => {
+    if (boostType === 'golden') return '0 0 8px rgba(255, 215, 0, 0.5)';
+    if (boostType === 'silver') return '0 0 8px rgba(192, 192, 192, 0.5)';
+    return 'none';
+  };
 
   let logoUrl = null
 
@@ -113,7 +130,9 @@ export default function CompactGameViewCard({
       variant="outlined"
       sx={{
         mb: 1,
-        borderColor: isDraft ? theme.palette.warning.light : 'divider',
+        borderColor: getBoostBorderColor(),
+        borderWidth: boostType ? 2 : 1,
+        boxShadow: getBoostShadow(),
       }}
     >
       <CardContent sx={{ py: 2, px: 2, '&:last-child': { pb: 3 } }}>
@@ -143,7 +162,26 @@ export default function CompactGameViewCard({
                 Number.isInteger(specificProps.gameResult?.home_score) &&
                 Number.isInteger(specificProps.gameResult?.away_score) &&
                 Number.isInteger(specificProps.scoreForGame))) && (
-                <Box minWidth="86px" textAlign="right" flexDirection={'row'} alignContent={'center'} height={'100%'}>
+                <Box minWidth="86px" textAlign="right" flexDirection={'row'} alignContent={'center'} height={'100%'} display="flex" alignItems="center" justifyContent="flex-end" gap={0.5}>
+                  {boostType && (
+                    <Tooltip title={`${boostType === 'golden' ? '3x' : '2x'} Boost aplicado`}>
+                      <Chip
+                        icon={boostType === 'golden' ? <TrophyIcon sx={{ fontSize: 14 }} /> : <StarIcon sx={{ fontSize: 14 }} />}
+                        label={boostType === 'golden' ? '3x' : '2x'}
+                        size="small"
+                        sx={{
+                          height: '20px',
+                          backgroundColor: boostType === 'golden' ? 'rgba(255, 215, 0, 0.2)' : 'rgba(192, 192, 192, 0.2)',
+                          color: boostType === 'golden' ? '#FFD700' : '#C0C0C0',
+                          fontWeight: 'bold',
+                          fontSize: '0.7rem',
+                          '& .MuiChip-icon': {
+                            color: boostType === 'golden' ? '#FFD700' : '#C0C0C0'
+                          }
+                        }}
+                      />
+                    </Tooltip>
+                  )}
                   {(!disabled) && (
                     <Tooltip title="Edit result">
                       <IconButton

@@ -7,15 +7,12 @@ import {Game, Team} from "../db/tables-definition";
 import {GuessesContext} from "./context-providers/guesses-context-provider";
 import {getTeamDescription} from "../utils/playoffs-rule-helper";
 import CompactGameViewCard from "./compact-game-view-card";
-import GameBoostSelector from "./game-boost-selector";
-import {Box} from "./mui-wrappers";
 
 type GameViewProps = {
   game: ExtendedGameData,
   teamsMap: {[k:string]: Team}
   handleEditClick: (_gameNumber: number) => void
   disabled?: boolean
-  tournamentId?: string
 }
 
 const buildGameGuess = (game: Game) => ({
@@ -28,7 +25,7 @@ const buildGameGuess = (game: Game) => ({
   away_penalty_winner: false
 })
 
-const GameView = ({game, teamsMap, handleEditClick, disabled = false, tournamentId}: GameViewProps) => {
+const GameView = ({game, teamsMap, handleEditClick, disabled = false}: GameViewProps) => {
   const isPlayoffGame = (!!game.playoffStage);
   const groupContext = useContext(GuessesContext)
   const gameGuesses = groupContext.gameGuesses
@@ -44,42 +41,30 @@ const GameView = ({game, teamsMap, handleEditClick, disabled = false, tournament
   const awayTeam = game.away_team || gameGuess.away_team
 
   return (
-    <Box>
-      <CompactGameViewCard
-        isGameGuess={true}
-        isGameFixture={false}
-        gameNumber={game.game_number}
-        gameDate={game.game_date}
-        location={game.location}
-        gameTimezone={game.game_local_timezone}
-        scoreForGame={scoreForGame}
-        isPlayoffGame={isPlayoffGame}
-        homeTeamNameOrDescription={homeTeam ? teamsMap[homeTeam].name : getTeamDescription(game.home_team_rule)}
-        homeTeamShortNameOrDescription={homeTeam ? teamsMap[homeTeam].short_name : getTeamDescription(game.home_team_rule, true)}
-        homeTeamTheme={homeTeam && teamsMap[homeTeam]?.theme || null}
-        homeScore={gameGuess.home_score}
-        awayTeamNameOrDescription={awayTeam ? teamsMap[awayTeam].name : getTeamDescription(game.away_team_rule)}
-        awayTeamShortNameOrDescription={awayTeam ? teamsMap[awayTeam].short_name : getTeamDescription(game.away_team_rule, true)}
-        awayTeamTheme={awayTeam && teamsMap[awayTeam]?.theme || null}
-        awayScore={gameGuess.away_score}
-        homePenaltyWinner={gameGuess.home_penalty_winner}
-        awayPenaltyWinner={gameGuess.away_penalty_winner}
-        gameResult={game.gameResult}
-        disabled={editDisabled}
-        onEditClick={handleEditClick}
-      />
-      {tournamentId && (
-        <Box mt={1}>
-          <GameBoostSelector
-            gameId={game.id}
-            gameDate={game.game_date}
-            currentBoostType={gameGuess.boost_type || null}
-            tournamentId={tournamentId}
-            disabled={editDisabled}
-          />
-        </Box>
-      )}
-    </Box>
+    <CompactGameViewCard
+      isGameGuess={true}
+      isGameFixture={false}
+      gameNumber={game.game_number}
+      gameDate={game.game_date}
+      location={game.location}
+      gameTimezone={game.game_local_timezone}
+      scoreForGame={scoreForGame}
+      isPlayoffGame={isPlayoffGame}
+      homeTeamNameOrDescription={homeTeam ? teamsMap[homeTeam].name : getTeamDescription(game.home_team_rule)}
+      homeTeamShortNameOrDescription={homeTeam ? teamsMap[homeTeam].short_name : getTeamDescription(game.home_team_rule, true)}
+      homeTeamTheme={homeTeam && teamsMap[homeTeam]?.theme || null}
+      homeScore={gameGuess.home_score}
+      awayTeamNameOrDescription={awayTeam ? teamsMap[awayTeam].name : getTeamDescription(game.away_team_rule)}
+      awayTeamShortNameOrDescription={awayTeam ? teamsMap[awayTeam].short_name : getTeamDescription(game.away_team_rule, true)}
+      awayTeamTheme={awayTeam && teamsMap[awayTeam]?.theme || null}
+      awayScore={gameGuess.away_score}
+      homePenaltyWinner={gameGuess.home_penalty_winner}
+      awayPenaltyWinner={gameGuess.away_penalty_winner}
+      gameResult={game.gameResult}
+      boostType={gameGuess.boost_type || null}
+      disabled={editDisabled}
+      onEditClick={handleEditClick}
+    />
   )
 }
 

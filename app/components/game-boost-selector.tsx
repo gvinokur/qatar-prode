@@ -27,6 +27,7 @@ interface GameBoostSelectorProps {
   currentBoostType: 'silver' | 'golden' | null;
   tournamentId: string;
   disabled?: boolean;
+  noPrediction?: boolean;
 }
 
 interface BoostCounts {
@@ -39,7 +40,8 @@ export default function GameBoostSelector({
   gameDate,
   currentBoostType,
   tournamentId,
-  disabled = false
+  disabled = false,
+  noPrediction = false
 }: GameBoostSelectorProps) {
   const [boostType, setBoostType] = useState<'silver' | 'golden' | null>(currentBoostType);
   const [boostCounts, setBoostCounts] = useState<BoostCounts | null>(null);
@@ -50,7 +52,13 @@ export default function GameBoostSelector({
   // Check if game has started (within 1 hour)
   const ONE_HOUR = 60 * 60 * 1000;
   const gameHasStarted = Date.now() + ONE_HOUR > gameDate.getTime();
-  const isDisabled = disabled || gameHasStarted;
+  const isDisabled = disabled || gameHasStarted || noPrediction;
+
+  const getDisabledReason = () => {
+    if (noPrediction) return 'Enter your prediction first';
+    if (gameHasStarted) return 'Game has started';
+    return '';
+  };
 
   useEffect(() => {
     const fetchBoostCounts = async () => {
@@ -138,7 +146,7 @@ export default function GameBoostSelector({
         <Tooltip
           title={
             isDisabled
-              ? 'Game has started'
+              ? getDisabledReason()
               : boostType === 'silver'
               ? 'Click to remove Silver Boost (2x points)'
               : `Silver Boost (2x points) - ${boostCounts.silver.used}/${boostCounts.silver.max} used`
@@ -172,7 +180,7 @@ export default function GameBoostSelector({
         <Tooltip
           title={
             isDisabled
-              ? 'Game has started'
+              ? getDisabledReason()
               : boostType === 'golden'
               ? 'Click to remove Golden Boost (3x points)'
               : `Golden Boost (3x points) - ${boostCounts.golden.used}/${boostCounts.golden.max} used`

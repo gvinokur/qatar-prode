@@ -12,6 +12,7 @@ import {useSession} from "next-auth/react";
 import {calculateTeamNamesForPlayoffGame} from "../utils/playoff-utils";
 import { getGuessLoser, getGuessWinner } from "../utils/score-utils";
 import { updateOrCreateTournamentGuess } from "../actions/guesses-actions";
+import BoostCountsSummary from "./boost-counts-summary";
 
 type GamesGridProps =  {
   readonly isPlayoffs: boolean
@@ -80,7 +81,8 @@ export default function GamesGrid({ teamsMap, games, isPlayoffs, isLoggedIn = tr
     homeScore?: number,
     awayScore?: number,
     homePenaltyWinner?: boolean,
-    awayPenaltyWinner?: boolean
+    awayPenaltyWinner?: boolean,
+    boostType?: 'silver' | 'golden' | null
   ) => {
     // Update the game guess
     if (!selectedGame) return;
@@ -89,7 +91,8 @@ export default function GamesGrid({ teamsMap, games, isPlayoffs, isLoggedIn = tr
       home_score: homeScore,
       away_score: awayScore,
       home_penalty_winner: homePenaltyWinner || false,
-      away_penalty_winner: awayPenaltyWinner || false
+      away_penalty_winner: awayPenaltyWinner || false,
+      boost_type: boostType
     };
     // Call the context update function
     await groupContext.updateGameGuess(
@@ -139,11 +142,14 @@ export default function GamesGrid({ teamsMap, games, isPlayoffs, isLoggedIn = tr
 
   return (
     <>
+      {isLoggedIn && tournamentId && (
+        <BoostCountsSummary tournamentId={tournamentId} />
+      )}
       <Grid container spacing={2}>
         {games
           .map(game => (
             <Grid key={game.game_number} size={{xs:12, sm:6 }}>
-              <GameView game={game} teamsMap={teamsMap} handleEditClick={handleEditClick} disabled={!isLoggedIn} tournamentId={tournamentId}/>
+              <GameView game={game} teamsMap={teamsMap} handleEditClick={handleEditClick} disabled={!isLoggedIn}/>
             </Grid>
           ))
         }
@@ -162,6 +168,8 @@ export default function GamesGrid({ teamsMap, games, isPlayoffs, isLoggedIn = tr
           initialAwayScore={gameGuess?.away_score}
           initialHomePenaltyWinner={gameGuess?.home_penalty_winner}
           initialAwayPenaltyWinner={gameGuess?.away_penalty_winner}
+          initialBoostType={gameGuess?.boost_type}
+          tournamentId={tournamentId}
           isPlayoffGame={isPlayoffs}
         />
       )}

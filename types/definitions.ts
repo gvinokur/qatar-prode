@@ -3,10 +3,13 @@ export type GameStatisticForUser = {
   total_correct_guesses: number,
   total_exact_guesses: number,
   total_score: number | null,
+  total_boost_bonus: number | null,
   group_correct_guesses: number,
   group_exact_guesses: number,
   group_score: number | null,
+  group_boost_bonus: number | null,
   playoff_correct_guesses: number,
   playoff_exact_guesses: number,
   playoff_score: number | null,
+  playoff_boost_bonus: number | null,
 }
