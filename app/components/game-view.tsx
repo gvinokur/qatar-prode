@@ -7,12 +7,15 @@ import {Game, Team} from "../db/tables-definition";
 import {GuessesContext} from "./context-providers/guesses-context-provider";
 import {getTeamDescription} from "../utils/playoffs-rule-helper";
 import CompactGameViewCard from "./compact-game-view-card";
+import GameBoostSelector from "./game-boost-selector";
+import {Box} from "./mui-wrappers";
 
 type GameViewProps = {
   game: ExtendedGameData,
   teamsMap: {[k:string]: Team}
   handleEditClick: (_gameNumber: number) => void
   disabled?: boolean
+  tournamentId?: string
 }
 
 const buildGameGuess = (game: Game) => ({
@@ -25,7 +28,7 @@ const buildGameGuess = (game: Game) => ({
   away_penalty_winner: false
 })
 
-const GameView = ({game, teamsMap, handleEditClick, disabled = false}: GameViewProps) => {
+const GameView = ({game, teamsMap, handleEditClick, disabled = false, tournamentId}: GameViewProps) => {
   const isPlayoffGame = (!!game.playoffStage);
   const groupContext = useContext(GuessesContext)
   const gameGuesses = groupContext.gameGuesses
@@ -41,7 +44,8 @@ const GameView = ({game, teamsMap, handleEditClick, disabled = false}: GameViewP
   const awayTeam = game.away_team || gameGuess.away_team
 
   return (
-    <CompactGameViewCard
+    <Box>
+      <CompactGameViewCard
         isGameGuess={true}
         isGameFixture={false}
         gameNumber={game.game_number}
@@ -63,7 +67,19 @@ const GameView = ({game, teamsMap, handleEditClick, disabled = false}: GameViewP
         gameResult={game.gameResult}
         disabled={editDisabled}
         onEditClick={handleEditClick}
-    />
+      />
+      {tournamentId && (
+        <Box mt={1}>
+          <GameBoostSelector
+            gameId={game.id}
+            gameDate={game.game_date}
+            currentBoostType={gameGuess.boost_type || null}
+            tournamentId={tournamentId}
+            disabled={editDisabled}
+          />
+        </Box>
+      )}
+    </Box>
   )
 }
 

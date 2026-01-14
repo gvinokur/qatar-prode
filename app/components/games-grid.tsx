@@ -19,6 +19,7 @@ type GamesGridProps =  {
   readonly teamsMap: {[k:string]: Team}
   readonly isLoggedIn?: boolean
   readonly isAwardsPredictionLocked?: boolean
+  readonly tournamentId?: string
 }
 
 const buildGameGuess = (game: Game, userId: string): GameGuessNew => ({
@@ -34,7 +35,7 @@ const buildGameGuess = (game: Game, userId: string): GameGuessNew => ({
   score: undefined
 })
 
-export default function GamesGrid({ teamsMap, games, isPlayoffs, isLoggedIn = true, isAwardsPredictionLocked = false }: GamesGridProps) {
+export default function GamesGrid({ teamsMap, games, isPlayoffs, isLoggedIn = true, isAwardsPredictionLocked = false, tournamentId }: GamesGridProps) {
   const groupContext = useContext(GuessesContext)
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState<ExtendedGameData | null>(null);
@@ -142,7 +143,7 @@ export default function GamesGrid({ teamsMap, games, isPlayoffs, isLoggedIn = tr
         {games
           .map(game => (
             <Grid key={game.game_number} size={{xs:12, sm:6 }}>
-              <GameView game={game} teamsMap={teamsMap} handleEditClick={handleEditClick} disabled={!isLoggedIn}/>
+              <GameView game={game} teamsMap={teamsMap} handleEditClick={handleEditClick} disabled={!isLoggedIn} tournamentId={tournamentId}/>
             </Grid>
           ))
         }
