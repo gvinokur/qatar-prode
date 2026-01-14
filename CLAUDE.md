@@ -52,7 +52,16 @@ git worktree add -b feature/branch-name ../project-name-branch-name
 
 # Create worktree from existing branch
 git worktree add ../project-name-branch-name existing-branch-name
+
+# IMPORTANT: Copy environment files to new worktree
+cp .env.local ../project-name-branch-name/.env.local
 ```
+
+**Environment Files:**
+- Each worktree is a separate directory and needs its own `.env.local` file
+- **ALWAYS copy `.env.local` after creating a new worktree**
+- Without environment variables, the app will fail with `missing_connection_string` errors
+- The `.env.local` file is gitignored, so it must be manually copied
 
 **Managing Worktrees:**
 ```bash
