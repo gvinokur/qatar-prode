@@ -43,6 +43,7 @@ export default function CreateTournamentModal({ open, onClose, onSuccess }: Crea
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selectedTournamentId, setSelectedTournamentId] = useState<string>('');
   const [loadingTournaments, setLoadingTournaments] = useState(false);
+  const [newStartDate, setNewStartDate] = useState<string>('');
 
   // Load existing tournaments when modal opens
   useEffect(() => {
@@ -69,8 +70,8 @@ export default function CreateTournamentModal({ open, onClose, onSuccess }: Crea
     if (selectedTournamentId && createMode === 'copy') {
       const selectedTournament = tournaments.find(t => t.id === selectedTournamentId);
       if (selectedTournament) {
-        setLongName(`${selectedTournament.long_name} - copy`);
-        setShortName(`${selectedTournament.short_name} - copy`);
+        setLongName(`${selectedTournament.long_name} - Copy`);
+        setShortName(`${selectedTournament.short_name} - Copy`);
       }
     }
   }, [selectedTournamentId, createMode, tournaments]);
@@ -81,6 +82,7 @@ export default function CreateTournamentModal({ open, onClose, onSuccess }: Crea
     setError(null);
     setCreateMode('new');
     setSelectedTournamentId('');
+    setNewStartDate('');
     onClose();
   };
 
@@ -116,6 +118,7 @@ export default function CreateTournamentModal({ open, onClose, onSuccess }: Crea
 
         newTournament = await copyTournament(
           selectedTournamentId,
+          newStartDate ? new Date(newStartDate) : undefined,
           longName,
           shortName
         );
@@ -175,6 +178,21 @@ export default function CreateTournamentModal({ open, onClose, onSuccess }: Crea
                 All tournament data including teams, groups, games, and playoff structure will be copied
               </FormHelperText>
             </FormControl>
+          </Box>
+        )}
+
+        {createMode === 'copy' && selectedTournamentId && (
+          <Box sx={{ mb: 3 }}>
+            <TextField
+              label="New Start Date (Optional)"
+              type="date"
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              value={newStartDate || ''}
+              onChange={(e) => setNewStartDate(e.target.value)}
+              helperText="Leave empty to keep original dates, or provide a date to shift all games relative to the original tournament's start date."
+              disabled={loading}
+            />
           </Box>
         )}
 
