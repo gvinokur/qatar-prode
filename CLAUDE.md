@@ -76,6 +76,132 @@ All business logic lives in `app/actions/*.ts` files marked with `'use server'`:
 
 Server Actions are imported directly into Client Components for mutations.
 
+#### Client/Server Component Boundaries (CRITICAL)
+
+**The Golden Rule:** Server Components import repositories directly. Client Components receive data as props OR call Server Actions for mutations.
+
+**CORRECT Pattern for Data Fetching:**
+
+```typescript
+// ✅ CORRECT: Server Component imports repository directly
+// app/tournaments/[id]/page.tsx
+'use server'
+
+import { findTournamentById } from '../../db/tournament-repository'
+import TournamentView from '../../components/tournament-view'
+
+export default async function TournamentPage({ params }: Props) {
+  // Server Component: Import and call repository directly
+  const tournament = await findTournamentById(params.id)
+
+  // Pass data as props to Client Component
+  return <TournamentView tournament={tournament} />
+}
+
+// ✅ CORRECT: Client Component receives data as props
+// app/components/tournament-view.tsx
+'use client'
+
+import { Tournament } from '../db/tables-definition'
+
+export default function TournamentView({ tournament }: { tournament: Tournament }) {
+  // Client Component: Receives data as props, never imports repositories
+  return <div>{tournament.name}</div>
+}
+```
+
+**INCORRECT Patterns (cause build errors):**
+
+```typescript
+// ❌ INCORRECT #1: Client Component imports repository
+'use client'
+
+import { findTournamentById } from '../db/tournament-repository'  // ERROR!
+
+export default function TournamentView({ tournamentId }: Props) {
+  // This will fail at build time
+  const [tournament, setTournament] = useState(null)
+  useEffect(() => {
+    findTournamentById(tournamentId).then(setTournament)
+  }, [tournamentId])
+}
+
+// ❌ INCORRECT #2: Server Component imports Server Action that has repository imports
+'use server'
+
+import { getTournamentData } from './actions/tournament-actions'  // ERROR!
+
+// If tournament-actions.ts has "import { findTournamentById } from '../db/tournament-repository'"
+// at the top level, this creates an import chain that pulls database.ts into the bundle
+
+export default async function Page() {
+  const data = await getTournamentData(id)  // Causes build error
+  return <Component data={data} />
+}
+```
+
+**Data Fetching Rules:**
+
+1. **Server Components (pages, layouts, templates marked `'use server'`)**:
+   - ✅ Import and call repositories DIRECTLY
+   - ✅ Fetch all data needed by child components
+   - ✅ Pass data down as props to Client Components
+   - ❌ NEVER import Server Actions that have repository imports at module scope
+
+2. **Client Components (marked `'use client'`)**:
+   - ❌ NEVER import repositories or database functions
+   - ✅ Receive data as props from parent Server Component
+   - ✅ Call Server Actions for mutations (form submissions, button clicks)
+   - ✅ Call Server Actions for dynamic data fetching (if needed)
+
+3. **Server Actions (files marked `'use server'`)**:
+   - ✅ Can import and call repositories
+   - ✅ Used by Client Components for mutations and dynamic updates
+   - ⚠️ WARNING: If a Server Component imports a Server Action file that has repository imports at the top level, it can cause build errors. Keep Server Actions for Client Component use only.
+
+**Example: Proper Data Flow**
+
+```typescript
+// ✅ Server Component (page.tsx) - Imports repository directly
+'use server'
+import { findTournamentById } from '@/app/db/tournament-repository'
+
+export default async function Page({ params }) {
+  // Direct repository call in Server Component
+  const tournament = await findTournamentById(params.id)
+
+  return <ClientComponent tournament={tournament} />
+}
+
+// ✅ Client Component - Receives props and calls Server Actions for mutations
+'use client'
+import { updateTournamentAction } from '@/app/actions/tournament-actions'
+
+export default function ClientComponent({ tournament }) {
+  async function handleUpdate() {
+    // Call Server Action for mutation
+    await updateTournamentAction(tournament.id, newData)
+  }
+
+  return <button onClick={handleUpdate}>Update</button>
+}
+
+// ✅ Server Action - Used by Client Component for mutations
+'use server'
+import { updateTournament } from '../db/tournament-repository'
+
+export async function updateTournamentAction(id: string, data: any) {
+  return updateTournament(id, data)  // ✅ OK - Server Action wraps repository
+}
+```
+
+**Why This Matters:**
+- Repositories use `database.ts` which creates a Postgres connection at module load time
+- If a Server Component imports a Server Action, and that Server Action imports a repository, the entire import chain (including database.ts) gets bundled
+- This causes `database.ts` to execute during build, before DATABASE_URL is available
+- Result: Build fails with "missing_connection_string" error
+- Solution: Server Components call repositories directly, not through Server Actions
+
 #### Repository Pattern
 Database access is abstracted through repositories in `app/db/*-repository.ts`:
 ```typescript

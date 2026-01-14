@@ -14,12 +14,21 @@ import {
   FormControlLabel,
   Checkbox,
   CircularProgress,
-  Alert
+  Alert,
+  Divider,
+  ToggleButtonGroup,
+  ToggleButton,
+  Chip
 } from '@mui/material';
+import {
+  EmojiEvents as TrophyIcon,
+  Star as StarIcon
+} from '@mui/icons-material';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
+import { getBoostCountsAction } from '../actions/game-boost-actions';
 
 interface SharedProps {
   open: boolean;
@@ -37,7 +46,9 @@ interface GameGuessEditProps extends SharedProps {
   initialAwayScore?: number;
   initialHomePenaltyWinner?: boolean;
   initialAwayPenaltyWinner?: boolean;
-  onGameGuessSave: (_gameId: string, _homeScore?: number, _awayScore?: number, _homePenaltyWinner?: boolean, _awayPenaltyWinner?: boolean) => Promise<void>;
+  initialBoostType?: 'silver' | 'golden' | null;
+  tournamentId?: string;
+  onGameGuessSave: (_gameId: string, _homeScore?: number, _awayScore?: number, _homePenaltyWinner?: boolean, _awayPenaltyWinner?: boolean, _boostType?: 'silver' | 'golden' | null) => Promise<void>;
 }
 
 interface GameResultEditProps extends SharedProps {
@@ -70,10 +81,38 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
   const [homePenaltyScore, setHomePenaltyScore] = useState<number | undefined>();
   const [awayPenaltyScore, setAwayPenaltyScore] = useState<number | undefined>();
   const [gameDate, setGameDate] = useState<Date | null>(null);
+  const [boostType, setBoostType] = useState<'silver' | 'golden' | null>(null);
+  const [boostCounts, setBoostCounts] = useState<{ silver: { used: number; max: number }; golden: { used: number; max: number } } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isPenaltyShootout = homeScore !== undefined && awayScore !== undefined && homeScore === awayScore && isPlayoffGame;
+
+  // Calculate effective boost counts based on current selection
+  const getEffectiveBoostCounts = () => {
+    if (!boostCounts || !props.isGameGuess) return null;
+
+    const initialBoost = props.initialBoostType;
+    const currentBoost = boostType;
+
+    let silverUsed = boostCounts.silver.used;
+    let goldenUsed = boostCounts.golden.used;
+
+    // If initial boost was set, free it up first
+    if (initialBoost === 'silver') silverUsed--;
+    if (initialBoost === 'golden') goldenUsed--;
+
+    // Then apply current selection
+    if (currentBoost === 'silver') silverUsed++;
+    if (currentBoost === 'golden') goldenUsed++;
+
+    return {
+      silver: { used: silverUsed, max: boostCounts.silver.max },
+      golden: { used: goldenUsed, max: boostCounts.golden.max }
+    };
+  };
+
+  const effectiveBoostCounts = getEffectiveBoostCounts();
 
   // Initialize form when dialog opens or props change
   useEffect(() => {
@@ -83,6 +122,7 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
         setAwayScore(props.initialAwayScore);
         setHomePenaltyWinner(props.initialHomePenaltyWinner || false);
         setAwayPenaltyWinner(props.initialAwayPenaltyWinner || false);
+        setBoostType(props.initialBoostType || null);
       } else {
         setHomeScore(props.initialHomeScore);
         setAwayScore(props.initialAwayScore);
@@ -93,6 +133,21 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
 
       setError(null);
     }
+  }, [open, props]);
+
+  // Fetch boost counts when dialog opens for game guesses
+  useEffect(() => {
+    const fetchBoostCounts = async () => {
+      if (open && props.isGameGuess && props.tournamentId) {
+        try {
+          const counts = await getBoostCountsAction(props.tournamentId);
+          setBoostCounts(counts);
+        } catch (error) {
+          console.error('Error fetching boost counts:', error);
+        }
+      }
+    };
+    fetchBoostCounts();
   }, [open, props]);
 
   const handleHomeScoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -186,7 +241,8 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
           homeScore,
           awayScore,
           homePenaltyWinner,
-          awayPenaltyWinner
+          awayPenaltyWinner,
+          boostType
         );
       } else {
         // For game results
@@ -365,6 +421,94 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
                 </Grid>
               </Grid>)
             )}
+          </Box>
+        )}
+
+        {/* Boost Selection (only for game guesses) */}
+        {props.isGameGuess && props.tournamentId && effectiveBoostCounts && (effectiveBoostCounts.silver.max > 0 || effectiveBoostCounts.golden.max > 0) && (
+          <Box sx={{ mt: 3 }}>
+            <Divider sx={{ mb: 2 }} />
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="subtitle2">
+                Apply Boost
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 0.5 }}>
+                {effectiveBoostCounts.silver.max > 0 && (
+                  <Chip
+                    icon={<StarIcon sx={{ fontSize: 14 }} />}
+                    label={`${effectiveBoostCounts.silver.max - effectiveBoostCounts.silver.used}/${effectiveBoostCounts.silver.max}`}
+                    size="small"
+                    sx={{
+                      height: '22px',
+                      color: '#C0C0C0',
+                      borderColor: '#C0C0C0',
+                      '& .MuiChip-icon': { color: '#C0C0C0' }
+                    }}
+                  />
+                )}
+                {effectiveBoostCounts.golden.max > 0 && (
+                  <Chip
+                    icon={<TrophyIcon sx={{ fontSize: 14 }} />}
+                    label={`${effectiveBoostCounts.golden.max - effectiveBoostCounts.golden.used}/${effectiveBoostCounts.golden.max}`}
+                    size="small"
+                    sx={{
+                      height: '22px',
+                      color: '#FFD700',
+                      borderColor: '#FFD700',
+                      '& .MuiChip-icon': { color: '#FFD700' }
+                    }}
+                  />
+                )}
+              </Box>
+            </Box>
+            <ToggleButtonGroup
+              value={boostType || ''}
+              exclusive
+              onChange={(_, newValue) => setBoostType(newValue === '' ? null : newValue as 'silver' | 'golden')}
+              fullWidth
+              disabled={loading}
+              size="small"
+            >
+              <ToggleButton value="">
+                None
+              </ToggleButton>
+              {effectiveBoostCounts.silver.max > 0 && (
+                <ToggleButton
+                  value="silver"
+                  disabled={boostType !== 'silver' && effectiveBoostCounts.silver.used >= effectiveBoostCounts.silver.max}
+                  sx={{
+                    '&.Mui-selected': {
+                      backgroundColor: 'rgba(192, 192, 192, 0.2)',
+                      color: '#C0C0C0',
+                      '&:hover': {
+                        backgroundColor: 'rgba(192, 192, 192, 0.3)',
+                      }
+                    }
+                  }}
+                >
+                  <StarIcon sx={{ mr: 0.5, fontSize: 16 }} />
+                  2x
+                </ToggleButton>
+              )}
+              {effectiveBoostCounts.golden.max > 0 && (
+                <ToggleButton
+                  value="golden"
+                  disabled={boostType !== 'golden' && effectiveBoostCounts.golden.used >= effectiveBoostCounts.golden.max}
+                  sx={{
+                    '&.Mui-selected': {
+                      backgroundColor: 'rgba(255, 215, 0, 0.2)',
+                      color: '#FFD700',
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 215, 0, 0.3)',
+                      }
+                    }
+                  }}
+                >
+                  <TrophyIcon sx={{ mr: 0.5, fontSize: 16 }} />
+                  3x
+                </ToggleButton>
+              )}
+            </ToggleButtonGroup>
           </Box>
         )}
       </DialogContent>

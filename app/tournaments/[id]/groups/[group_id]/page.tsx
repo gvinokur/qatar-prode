@@ -90,6 +90,7 @@ export default async function GroupComponent(props : Props) {
                   .sort((a,b) => a.game_number - b.game_number)}
                 teamsMap={completeGroupData.teamsMap}
                 isLoggedIn={isLoggedIn}
+                tournamentId={params.id}
               />
             </Grid>
             <Grid size={12} justifyContent={'center'}>

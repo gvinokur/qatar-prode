@@ -16,6 +16,7 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess} :
     correctPredictions: userGameStatistics?.group_correct_guesses || 0,
     exactPredictions: userGameStatistics?.group_exact_guesses || 0,
     totalPoints: userGameStatistics?.group_score || 0,
+    boostBonus: userGameStatistics?.group_boost_bonus || 0,
     qualifiers: tournamentGuess?.qualified_teams_score || 0
   }
 
@@ -23,6 +24,7 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess} :
     correctPredictions: userGameStatistics?.playoff_correct_guesses || 0,
     exactPredictions: userGameStatistics?.playoff_exact_guesses || 0,
     totalPoints: userGameStatistics?.playoff_score || 0,
+    boostBonus: userGameStatistics?.playoff_boost_bonus || 0,
   }
 
   return (
@@ -42,6 +44,14 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess} :
           <Grid size={4}><Typography variant={'body1'} fontWeight={700}>
             {groupScoreData.totalPoints}
           </Typography></Grid>
+          {groupScoreData.boostBonus > 0 && (
+            <>
+              <Grid size={8}><Typography variant={'body2'} color={'primary.light'} sx={{ pl: 2 }}>+ Bonus por Boosts</Typography></Grid>
+              <Grid size={4}><Typography variant={'body2'} fontWeight={700} color={'success.main'}>
+                +{groupScoreData.boostBonus}
+              </Typography></Grid>
+            </>
+          )}
           <Grid size={8}><Typography variant={'body1'} color={'primary.light'}>Puntos por Clasificados</Typography></Grid>
           <Grid size={4}><Typography variant={'body1'} fontWeight={700}>
             {groupScoreData.qualifiers}
@@ -64,6 +74,14 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess} :
           <Grid size={4}><Typography variant={'body1'} fontWeight={700}>
             {playoffScoreData.totalPoints}
           </Typography></Grid>
+          {playoffScoreData.boostBonus > 0 && (
+            <>
+              <Grid size={8}><Typography variant={'body2'} color={'primary.light'} sx={{ pl: 2 }}>+ Bonus por Boosts</Typography></Grid>
+              <Grid size={4}><Typography variant={'body2'} fontWeight={700} color={'success.main'}>
+                +{playoffScoreData.boostBonus}
+              </Typography></Grid>
+            </>
+          )}
           <Grid
             sx={{borderTop: `${theme.palette.primary.contrastText} 1px solid` }}
             mt={2}

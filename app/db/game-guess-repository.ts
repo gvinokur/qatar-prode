@@ -3,6 +3,7 @@ import {createBaseFunctions} from "./base-repository";
 import {GameGuessTable, GameGuess, GameGuessNew} from "./tables-definition";
 import {GameStatisticForUser} from "../../types/definitions";
 import {cache} from "react";
+import {sql} from 'kysely';
 
 const tableName = 'game_guesses'
 
@@ -88,6 +89,18 @@ export async function getGameGuessStatisticsForUsers(userIds: string[], tourname
       eb.cast<number>(
         eb.fn.sum(
           eb.case()
+            .when('game_guesses.final_score', 'is not', null)
+            .then(
+              sql<number>`COALESCE(game_guesses.final_score, 0) - COALESCE(game_guesses.score, 0)`
+            )
+            .else(0)
+            .end()
+        ),
+        'integer'
+      ).as('total_boost_bonus'),
+      eb.cast<number>(
+        eb.fn.sum(
+          eb.case()
             .when('games.game_type', '<>', 'group')
             .then(0)
             .when('game_guesses.score', '>', 0)
@@ -122,6 +135,20 @@ export async function getGameGuessStatisticsForUsers(userIds: string[], tourname
       eb.cast<number>(
         eb.fn.sum(
           eb.case()
+            .when('games.game_type', '<>', 'group')
+            .then(0)
+            .when('game_guesses.final_score', 'is not', null)
+            .then(
+              sql<number>`COALESCE(game_guesses.final_score, 0) - COALESCE(game_guesses.score, 0)`
+            )
+            .else(0)
+            .end()
+        ),
+        'integer'
+      ).as('group_boost_bonus'),
+      eb.cast<number>(
+        eb.fn.sum(
+          eb.case()
             .when('games.game_type', '=', 'group')
             .then(0)
             .when('game_guesses.score', '>', 0)
@@ -153,6 +180,20 @@ export async function getGameGuessStatisticsForUsers(userIds: string[], tourname
         ),
         'integer'
       ).as('playoff_score'),
+      eb.cast<number>(
+        eb.fn.sum(
+          eb.case()
+            .when('games.game_type', '=', 'group')
+            .then(0)
+            .when('game_guesses.final_score', 'is not', null)
+            .then(
+              sql<number>`COALESCE(game_guesses.final_score, 0) - COALESCE(game_guesses.score, 0)`
+            )
+            .else(0)
+            .end()
+        ),
+        'integer'
+      ).as('playoff_boost_bonus'),
     ])
     .groupBy('game_guesses.user_id')
     .execute()

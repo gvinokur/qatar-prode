@@ -104,11 +104,12 @@ export default async function PlayoffPage(props: Props) {
 
       <GuessesContextProvider gameGuesses={gameGuessesMap} autoSave={isLoggedIn}>
         <ViewTransition name={'group-page'} enter={'group-enter'} exit={'group-exit'}>
-          <TabbedPlayoffsPage 
-            sections={sections} 
-            teamsMap={completePlayoffData.teamsMap} 
-            isLoggedIn={isLoggedIn} 
+          <TabbedPlayoffsPage
+            sections={sections}
+            teamsMap={completePlayoffData.teamsMap}
+            isLoggedIn={isLoggedIn}
             isAwardsPredictionLocked={isAwardsPredictionLocked}
+            tournamentId={params.id}
           />
         </ViewTransition>
       </GuessesContextProvider>

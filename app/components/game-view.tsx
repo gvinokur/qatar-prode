@@ -42,27 +42,28 @@ const GameView = ({game, teamsMap, handleEditClick, disabled = false}: GameViewP
 
   return (
     <CompactGameViewCard
-        isGameGuess={true}
-        isGameFixture={false}
-        gameNumber={game.game_number}
-        gameDate={game.game_date}
-        location={game.location}
-        gameTimezone={game.game_local_timezone}
-        scoreForGame={scoreForGame}
-        isPlayoffGame={isPlayoffGame}
-        homeTeamNameOrDescription={homeTeam ? teamsMap[homeTeam].name : getTeamDescription(game.home_team_rule)}
-        homeTeamShortNameOrDescription={homeTeam ? teamsMap[homeTeam].short_name : getTeamDescription(game.home_team_rule, true)}
-        homeTeamTheme={homeTeam && teamsMap[homeTeam]?.theme || null}
-        homeScore={gameGuess.home_score}
-        awayTeamNameOrDescription={awayTeam ? teamsMap[awayTeam].name : getTeamDescription(game.away_team_rule)}
-        awayTeamShortNameOrDescription={awayTeam ? teamsMap[awayTeam].short_name : getTeamDescription(game.away_team_rule, true)}
-        awayTeamTheme={awayTeam && teamsMap[awayTeam]?.theme || null}
-        awayScore={gameGuess.away_score}
-        homePenaltyWinner={gameGuess.home_penalty_winner}
-        awayPenaltyWinner={gameGuess.away_penalty_winner}
-        gameResult={game.gameResult}
-        disabled={editDisabled}
-        onEditClick={handleEditClick}
+      isGameGuess={true}
+      isGameFixture={false}
+      gameNumber={game.game_number}
+      gameDate={game.game_date}
+      location={game.location}
+      gameTimezone={game.game_local_timezone}
+      scoreForGame={scoreForGame}
+      isPlayoffGame={isPlayoffGame}
+      homeTeamNameOrDescription={homeTeam ? teamsMap[homeTeam].name : getTeamDescription(game.home_team_rule)}
+      homeTeamShortNameOrDescription={homeTeam ? teamsMap[homeTeam].short_name : getTeamDescription(game.home_team_rule, true)}
+      homeTeamTheme={homeTeam && teamsMap[homeTeam]?.theme || null}
+      homeScore={gameGuess.home_score}
+      awayTeamNameOrDescription={awayTeam ? teamsMap[awayTeam].name : getTeamDescription(game.away_team_rule)}
+      awayTeamShortNameOrDescription={awayTeam ? teamsMap[awayTeam].short_name : getTeamDescription(game.away_team_rule, true)}
+      awayTeamTheme={awayTeam && teamsMap[awayTeam]?.theme || null}
+      awayScore={gameGuess.away_score}
+      homePenaltyWinner={gameGuess.home_penalty_winner}
+      awayPenaltyWinner={gameGuess.away_penalty_winner}
+      gameResult={game.gameResult}
+      boostType={gameGuess.boost_type || null}
+      disabled={editDisabled}
+      onEditClick={handleEditClick}
     />
   )
 }
