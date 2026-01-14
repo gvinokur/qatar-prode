@@ -12,6 +12,15 @@ vi.mock('next-auth/react', () => ({
   }),
 }));
 
+// Mock game-boost-actions to avoid next/server import issues
+vi.mock('../../app/actions/game-boost-actions', () => ({
+  getBoostCountsAction: vi.fn().mockResolvedValue({
+    silver: { used: 0, max: 5 },
+    golden: { used: 0, max: 3 },
+  }),
+  setGameBoostAction: vi.fn().mockResolvedValue(undefined),
+}));
+
 describe('GameResultEditDialog', () => {
   const baseProps = {
     open: true,
@@ -124,7 +133,7 @@ describe('GameResultEditDialog', () => {
       await userEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(gameGuessProps.onGameGuessSave).toHaveBeenCalledWith('game-1', 2, 1, false, false);
+        expect(gameGuessProps.onGameGuessSave).toHaveBeenCalledWith('game-1', 2, 1, false, false, null);
         expect(baseProps.onClose).toHaveBeenCalled();
       });
     });
