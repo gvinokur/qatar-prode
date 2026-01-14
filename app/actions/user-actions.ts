@@ -8,10 +8,7 @@ import {
   getPasswordHash,
   updateUser,
   findUserByResetToken,
-  findUserByVerificationToken,
-  verifyEmail,
-  deleteUser,
-  findUserById
+  findUserByVerificationToken, verifyEmail, deleteUser
 } from "../db/users-repository"
 import {generatePasswordResetEmail, generateVerificationEmail} from "../utils/email-templates";
 import {sendEmail} from "../utils/email";
@@ -81,13 +78,6 @@ export async function updateNickname(nickname: string) {
 export async function getLoggedInUser() {
   const session = await auth()
   return session?.user
-}
-
-/**
- * Get user by ID (wraps repository for use in Server Components)
- */
-export async function getUserById(userId: string) {
-  return findUserById(userId);
 }
 
 /**

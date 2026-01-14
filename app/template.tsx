@@ -1,6 +1,7 @@
-import {getLoggedInUser, getUserById} from "./actions/user-actions";
+import {getLoggedInUser} from "./actions/user-actions";
 import VerificationBanner from "./components/verification/verification-banner";
 import {Box} from "@mui/material";
+import {findUserById} from "./db/users-repository";
 import {VerificationOverlay} from "./components/verification/verification-overlay";
 
 export default async function Template({
@@ -13,7 +14,7 @@ export default async function Template({
   const user = await getLoggedInUser();
   const isVerified = user &&
     //Solve use case in which the user has just been verified but the session is not updated
-    (user.emailVerified || (await getUserById(user.id))?.email_verified);
+    (user.emailVerified || (await findUserById(user.id))?.email_verified);
 
   // Check if email verification is required
   const requireEmailVerification = process.env.REQUIRE_EMAIL_VERIFICATION === 'true';
