@@ -6,7 +6,7 @@ import { GuessesContextProvider, GuessesContext } from '../../app/components/con
 import { Game, GameGuessNew, TournamentGroupTeamStatsGuessNew } from '../../app/db/tables-definition';
 import * as guessesActions from '../../app/actions/guesses-actions';
 import * as groupPositionCalculator from '../../app/utils/group-position-calculator';
-import * as playoffTeamsCalculator from '../../app/utils/playoff-teams-calculator';
+import * as teamStatsUtils from '../../app/utils/team-stats-utils';
 
 // Mock the actions
 vi.mock('../../app/actions/guesses-actions', () => ({
@@ -20,7 +20,7 @@ vi.mock('../../app/utils/group-position-calculator', () => ({
   calculateGroupPosition: vi.fn(),
 }));
 
-vi.mock('../../app/utils/playoff-teams-calculator', () => ({
+vi.mock('../../app/utils/team-stats-utils', () => ({
   groupCompleteReducer: vi.fn(),
 }));
 
@@ -28,7 +28,7 @@ const mockUpdateOrCreateGameGuesses = vi.mocked(guessesActions.updateOrCreateGam
 const mockUpdateOrCreateTournamentGroupTeamGuesses = vi.mocked(guessesActions.updateOrCreateTournamentGroupTeamGuesses);
 const mockUpdatePlayoffGameGuesses = vi.mocked(guessesActions.updatePlayoffGameGuesses);
 const mockCalculateGroupPosition = vi.mocked(groupPositionCalculator.calculateGroupPosition);
-const mockGroupCompleteReducer = vi.mocked(playoffTeamsCalculator.groupCompleteReducer);
+const mockGroupCompleteReducer = vi.mocked(teamStatsUtils.groupCompleteReducer);
 
 // Test component to consume the context
 const TestConsumer = () => {
