@@ -40,10 +40,11 @@ export async function findAllActiveTournaments (userId?: string) {
           eb('dev_only', '=', true),
           userId
             ? eb.exists(
-                db
+                eb
                   .selectFrom('tournament_view_permissions')
                   .whereRef('tournament_view_permissions.tournament_id', '=', 'tournaments.id')
                   .where('tournament_view_permissions.user_id', '=', userId)
+                  .select(eb.lit(1).as('one'))
               )
             : eb.val(false) // No user = no dev tournament access
         ])
