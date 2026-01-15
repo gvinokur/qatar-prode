@@ -10,7 +10,11 @@ import EmptyAwardsSnackbar from "../../components/awards/empty-award-notificatio
 import {getPlayersInTournament} from "../../db/player-repository";
 import EnvironmentIndicator from "../../components/environment-indicator";
 import {Typography} from "@mui/material";
+import BugReportIcon from '@mui/icons-material/BugReport';
 import {getThemeLogoUrl} from "../../utils/theme-utils";
+import { isDevelopmentMode } from '../../utils/environment-utils';
+import { hasUserPermission } from '../../db/tournament-view-permission-repository';
+import { redirect, notFound } from 'next/navigation';
 
 type TournamentLayoutProps = {
   readonly params: Promise<{
@@ -24,6 +28,21 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
   const children = props.children
   const user = await getLoggedInUser()
   const layoutData = await getTournamentAndGroupsData(params.id)
+
+  // Check if user has permission to view this dev tournament
+  if (layoutData.tournament?.dev_only && !isDevelopmentMode()) {
+    if (!user) {
+      // Redirect to login with return URL
+      redirect(`/?openSignin=true&returnUrl=/tournaments/${params.id}`)
+    }
+
+    const hasPermission = await hasUserPermission(params.id, user.id)
+    if (!hasPermission) {
+      // User doesn't have permission - show 403
+      notFound()
+    }
+  }
+
   const tournamentGuesses = user && (await findTournamentGuessByUserIdTournament(user.id, params.id))
   const tournamentStartDate = await getTournamentStartDate(params.id)
   const playersInTournament = await getPlayersInTournament(params.id)
@@ -82,13 +101,22 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                   maxHeight: '48px'
                 }}/>
                 {(layoutData.tournament?.display_name && layoutData.tournament.long_name) && (
-                  <Typography
-                    noWrap
-                    variant={'h6'}
-                    ml={2}
-                    color={layoutData.tournament.theme?.secondary_color}>
-                    {layoutData.tournament.long_name}
-                  </Typography>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    {layoutData.tournament.dev_only && (
+                      <BugReportIcon
+                        fontSize="small"
+                        sx={{ color: layoutData.tournament.theme?.secondary_color || 'warning.main' }}
+                        titleAccess="Development Tournament"
+                      />
+                    )}
+                    <Typography
+                      noWrap
+                      variant={'h6'}
+                      ml={layoutData.tournament.dev_only ? 0 : 2}
+                      color={layoutData.tournament.theme?.secondary_color}>
+                      {layoutData.tournament.long_name}
+                    </Typography>
+                  </Box>
                 )}
               </Box>
 

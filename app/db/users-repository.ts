@@ -25,6 +25,13 @@ export const findUsersByIds = cache(async function (userIds:string[]) {
     .execute()
 })
 
+export const findAllUsers = cache(async function () {
+  return db.selectFrom('users')
+    .select(['id', 'email', 'nickname', 'is_admin'])
+    .orderBy('email', 'asc')
+    .execute()
+})
+
 export const findUserByResetToken = cache(async function(resetToken: string) {
   return db.selectFrom('users')
     .where('reset_token', '=', resetToken)

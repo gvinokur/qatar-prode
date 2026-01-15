@@ -98,6 +98,16 @@ export interface TournamentTeamTable {
   team_id: string
 }
 
+export interface TournamentViewPermissionTable extends Identifiable {
+  tournament_id: string
+  user_id: string
+  created_at?: Date
+}
+
+export type TournamentViewPermission = Selectable<TournamentViewPermissionTable>
+export type TournamentViewPermissionNew = Insertable<TournamentViewPermissionTable>
+export type TournamentViewPermissionUpdate = Updateable<TournamentViewPermissionTable>
+
 export interface TournamentGroupTeamTable extends TeamStats, Identifiable {
   tournament_group_id: string
   position: number

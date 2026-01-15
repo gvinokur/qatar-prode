@@ -22,21 +22,37 @@ export async function findAllTournaments () {
     .execute()
 }
 
-export async function findAllActiveTournaments () {
-  const isDevMode = isDevelopmentMode();
+export async function findAllActiveTournaments (userId?: string) {
+  const isDevMode = isDevelopmentMode()
 
-  return db.selectFrom('tournaments')
+  let query = db
+    .selectFrom('tournaments')
     .where('is_active', '=', true)
-    .where(eb => {
-      if (!isDevMode) {
-        // In production, only show non-dev tournaments
-        return eb('dev_only', '=', false);
-      }
-      // In development, show all active tournaments
-      return eb.val(true);
+
+  // In production, apply dev tournament filtering
+  if (!isDevMode) {
+    query = query.where(eb => {
+      return eb.or([
+        // Include non-dev tournaments
+        eb('dev_only', '=', false),
+        // Include dev tournaments if user has permission
+        eb.and([
+          eb('dev_only', '=', true),
+          userId
+            ? eb.exists(
+                db
+                  .selectFrom('tournament_view_permissions')
+                  .whereRef('tournament_view_permissions.tournament_id', '=', 'tournaments.id')
+                  .where('tournament_view_permissions.user_id', '=', userId)
+              )
+            : eb.val(false) // No user = no dev tournament access
+        ])
+      ])
     })
-    .selectAll()
-    .execute()
+  }
+  // In development mode, show all active tournaments (no filtering)
+
+  return query.selectAll().execute()
 }
 
 export async function createTournamentTeam(tournamentTeam: TournamentTeamTable) {

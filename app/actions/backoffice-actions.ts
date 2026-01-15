@@ -91,6 +91,12 @@ import {
 import {awardsDefinition} from "../utils/award-utils";
 import {getLoggedInUser} from "./user-actions";
 import { revalidatePath } from 'next/cache';
+import { findAllUsers } from '../db/users-repository';
+import {
+  findUserIdsForTournament,
+  addUsersToTournament,
+  removeAllTournamentPermissions
+} from '../db/tournament-view-permission-repository';
 
 
 export async function deleteDBTournamentTree(tournament: Tournament) {
@@ -917,4 +923,39 @@ export async function updateGroupTeamConductScores(
 
   const { updateTeamConductScores } = await import('../db/tournament-group-repository');
   await updateTeamConductScores(conductScores, groupId);
+}
+
+/**
+ * Get all users with permission data for a tournament
+ */
+export async function getTournamentPermissionData(tournamentId: string) {
+  const [allUsers, permittedUserIds] = await Promise.all([
+    findAllUsers(),
+    findUserIdsForTournament(tournamentId)
+  ])
+
+  return {
+    allUsers: allUsers.map(u => ({
+      id: u.id,
+      email: u.email,
+      nickname: u.nickname,
+      isAdmin: u.is_admin || false
+    })),
+    permittedUserIds
+  }
+}
+
+/**
+ * Update tournament view permissions
+ */
+export async function updateTournamentPermissions(
+  tournamentId: string,
+  userIds: string[]
+) {
+  // Remove all existing permissions and add new ones
+  await removeAllTournamentPermissions(tournamentId)
+  await addUsersToTournament(tournamentId, userIds)
+
+  revalidatePath('/backoffice')
+  revalidatePath('/tournaments/[id]', 'layout')
 }

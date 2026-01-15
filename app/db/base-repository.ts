@@ -10,6 +10,7 @@ type IdentifiableTables =
   'teams' |
   'games' |
   'tournament_playoff_rounds' |
+  'tournament_view_permissions' |
   'prode_groups' |
   'game_guesses' |
   'game_results' |
