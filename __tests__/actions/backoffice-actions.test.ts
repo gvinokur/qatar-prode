@@ -1208,6 +1208,45 @@ describe('Backoffice Actions', () => {
       expect(mockCreateTournamentGroupGame).toHaveBeenCalled();
       expect(mockCreatePlayoffRoundGame).toHaveBeenCalled();
     });
+
+    it('shifts game dates when newStartDate is provided', async () => {
+      const originalGameDate = new Date('2024-01-01T12:00:00Z');
+      const newStartDate = new Date('2024-02-01T12:00:00Z');
+      const expectedShiftedDate = new Date('2024-02-01T12:00:00Z');
+
+      mockGame.game_date = originalGameDate;
+      mockFindGamesInTournament.mockResolvedValue([mockGame]);
+
+      await copyTournament('tournament1', newStartDate);
+
+      // Verify createGame was called with shifted date
+      expect(mockCreateGame).toHaveBeenCalledWith(expect.objectContaining({
+        game_date: expect.any(Date),
+      }));
+
+      // Get the actual date passed to createGame
+      const createGameCall = mockCreateGame.mock.calls[0][0];
+      const actualDate = createGameCall.game_date;
+
+      // The date should be shifted by the difference between newStartDate and original first game
+      const expectedOffset = newStartDate.getTime() - originalGameDate.getTime();
+      const actualOffset = actualDate.getTime() - originalGameDate.getTime();
+
+      expect(actualOffset).toBe(expectedOffset);
+    });
+
+    it('does not shift dates when newStartDate is not provided', async () => {
+      const originalGameDate = new Date('2024-01-01T12:00:00Z');
+      mockGame.game_date = originalGameDate;
+      mockFindGamesInTournament.mockResolvedValue([mockGame]);
+
+      await copyTournament('tournament1');
+
+      // Verify createGame was called with original date (not shifted)
+      expect(mockCreateGame).toHaveBeenCalledWith(expect.objectContaining({
+        game_date: originalGameDate,
+      }));
+    });
   });
 
   describe('calculateAndStoreGroupPositionScores', () => {
