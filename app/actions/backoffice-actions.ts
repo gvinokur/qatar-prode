@@ -817,7 +817,7 @@ export async function copyTournament(
     createThirdPlaceRule({
       tournament_id: newTournament.id,
       combination_key: rule.combination_key,
-      rules: rule.rules
+      rules: JSON.stringify(rule.rules)
     })
   ));
 
