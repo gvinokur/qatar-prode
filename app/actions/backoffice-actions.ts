@@ -623,7 +623,7 @@ export async function copyTournament(
   }
 
   // Validate newStartDate if provided
-  if (newStartDate && isNaN(newStartDate.getTime())) {
+  if (newStartDate && Number.isNaN(newStartDate.getTime())) {
     throw new Error('Invalid start date provided');
   }
 
@@ -789,16 +789,16 @@ export async function copyTournament(
     createAssociation: (_entityId: string, _gameId: string) => Promise<any>
   ): Promise<void> {
     const associations = entities.flatMap(entity =>
-      entity.games.map(gameAssoc => {
+      entity.games.flatMap(gameAssoc => {
         const newEntityId = entityIdMap.get(entity.id);
         const newGameId = gameIdMap.get(gameAssoc.game_id);
 
         if (newEntityId && newGameId) {
-          return createAssociation(newEntityId, newGameId);
+          return [createAssociation(newEntityId, newGameId)];
         }
-        // No explicit return needed - undefined values will be filtered
+        return [];
       })
-    ).filter(Boolean);
+    );
 
     await Promise.all(associations);
   }
