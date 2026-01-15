@@ -780,36 +780,49 @@ export async function copyTournament(
     // Do not copy game results
   }))
 
-  // Associate games with groups and playoff stages
-  await Promise.all(groups.flatMap(group =>
-    group.games.map(async gameAssoc => {
-      const newGroupId = groupIdMap.get(group.id);
-      const newGameId = gameIdMap.get(gameAssoc.game_id);
+  // Helper function to associate games with entities (groups or playoff stages)
+  async function associateGamesWithEntities<T extends { id: string; games: Array<{ game_id: string }> }>(
+    entities: T[],
+    entityIdMap: Map<string, string>,
+    gameIdMap: Map<string, string>,
+    createAssociation: (_entityId: string, _gameId: string) => Promise<any>
+  ): Promise<void> {
+    const associations = entities.flatMap(entity =>
+      entity.games.map(gameAssoc => {
+        const newEntityId = entityIdMap.get(entity.id);
+        const newGameId = gameIdMap.get(gameAssoc.game_id);
 
-      if (newGroupId && newGameId) {
-        await createTournamentGroupGame({
-          tournament_group_id: newGroupId,
-          game_id: newGameId
-        });
-      }
-      return Promise.resolve();
-    })).filter(p => p !== undefined))
+        if (newEntityId && newGameId) {
+          return createAssociation(newEntityId, newGameId);
+        }
+        // No explicit return needed - undefined values will be filtered
+      })
+    ).filter(Boolean);
+
+    await Promise.all(associations);
+  }
+
+  // Associate games with groups
+  await associateGamesWithEntities(
+    groups,
+    groupIdMap,
+    gameIdMap,
+    (groupId, gameId) => createTournamentGroupGame({
+      tournament_group_id: groupId,
+      game_id: gameId
+    })
+  );
 
   // Associate games with playoff stages
-  await Promise.all(playoffStages.flatMap(stage =>
-    stage.games.map(gameAssoc => {
-      const newStageId = playoffStageIdMap.get(stage.id);
-      const newGameId = gameIdMap.get(gameAssoc.game_id);
-
-      if (newStageId && newGameId) {
-        return createPlayoffRoundGame({
-          tournament_playoff_round_id: newStageId,
-          game_id: newGameId
-        });
-      }
-      return Promise.resolve(); // For cases where IDs aren't found
+  await associateGamesWithEntities(
+    playoffStages,
+    playoffStageIdMap,
+    gameIdMap,
+    (stageId, gameId) => createPlayoffRoundGame({
+      tournament_playoff_round_id: stageId,
+      game_id: gameId
     })
-  ).filter(p => p !== undefined));
+  );
 
   // Copy third-place rules
   const thirdPlaceRules = await findThirdPlaceRulesByTournament(tournamentId);
