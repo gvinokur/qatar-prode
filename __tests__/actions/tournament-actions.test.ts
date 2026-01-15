@@ -277,7 +277,7 @@ describe('Tournament Actions', () => {
 
       const result = await getTournaments();
 
-      expect(mockFindAllActiveTournaments).toHaveBeenCalledWith();
+      expect(mockFindAllActiveTournaments).toHaveBeenCalledWith('admin1');
       expect(result).toEqual(activeTournaments);
     });
 
