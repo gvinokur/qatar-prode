@@ -69,7 +69,7 @@ import {
   updateGameResult
 } from "../db/game-result-repository";
 import {calculatePlayoffTeams} from "../utils/playoff-teams-calculator";
-import {findAllUserTournamentGroupsWithoutGuesses, findAllTournamentGroupTeamGuessInGroup} from "../db/tournament-group-team-guess-repository";
+import {findAllUserTournamentGroupsWithoutGuesses, findAllTournamentGroupTeamGuessInGroup, deleteAllTournamentGroupTeamStatGuessesByTournamentId} from "../db/tournament-group-team-guess-repository";
 import {
   findAllGuessesForGamesWithResultsInDraft,
   findGameGuessesByUserId,
@@ -112,6 +112,7 @@ export async function deleteDBTournamentTree(tournament: Tournament) {
   // User-related data
   await deleteAllGameGuessesByTournamentId(tournament.id);
   await deleteAllTournamentGuessesByTournamentId(tournament.id);
+  await deleteAllTournamentGroupTeamStatGuessesByTournamentId(tournament.id);
 
   // Tournament structure and content
   await deleteAllPlayersInTournament(tournament.id);
