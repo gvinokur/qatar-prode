@@ -149,6 +149,19 @@ vi.mock('../../app/db/player-repository', () => ({
   findAllPlayersInTournamentWithTeamData: vi.fn(),
   findPlayerByTeamAndTournament: vi.fn(),
   updatePlayer: vi.fn(),
+  deleteAllPlayersInTournament: vi.fn(),
+}));
+
+vi.mock('../../app/db/tournament-venue-repository', () => ({
+  findAllTournamentVenues: vi.fn(),
+  createTournamentVenue: vi.fn(),
+  deleteAllTournamentVenues: vi.fn(),
+}));
+
+vi.mock('../../app/db/tournament-third-place-rules-repository', () => ({
+  findThirdPlaceRulesByTournament: vi.fn(),
+  createThirdPlaceRule: vi.fn(),
+  deleteThirdPlaceRulesByTournament: vi.fn(),
 }));
 
 vi.mock('../../app/db/game-result-repository', () => ({
@@ -240,6 +253,8 @@ import * as gameResultRepository from '../../app/db/game-result-repository';
 import * as tournamentGroupTeamGuessRepository from '../../app/db/tournament-group-team-guess-repository';
 import * as gameGuessRepository from '../../app/db/game-guess-repository';
 import * as tournamentGuessRepository from '../../app/db/tournament-guess-repository';
+import * as tournamentVenueRepository from '../../app/db/tournament-venue-repository';
+import * as tournamentThirdPlaceRulesRepository from '../../app/db/tournament-third-place-rules-repository';
 import * as userActions from '../../app/actions/user-actions';
 import * as guessesActions from '../../app/actions/guesses-actions';
 import * as playoffTeamsCalculator from '../../app/utils/playoff-teams-calculator';
@@ -295,6 +310,15 @@ const mockFindGamesInGroup = vi.mocked(gameRepository.findGamesInGroup);
 const mockFindAllGamesWithPublishedResultsAndGameGuesses = vi.mocked(gameRepository.findAllGamesWithPublishedResultsAndGameGuesses);
 
 const mockFindAllPlayersInTournamentWithTeamData = vi.mocked(playerRepository.findAllPlayersInTournamentWithTeamData);
+const mockDeleteAllPlayersInTournament = vi.mocked(playerRepository.deleteAllPlayersInTournament);
+
+const mockFindAllTournamentVenues = vi.mocked(tournamentVenueRepository.findAllTournamentVenues);
+const mockCreateTournamentVenue = vi.mocked(tournamentVenueRepository.createTournamentVenue);
+const mockDeleteAllTournamentVenues = vi.mocked(tournamentVenueRepository.deleteAllTournamentVenues);
+
+const mockFindThirdPlaceRulesByTournament = vi.mocked(tournamentThirdPlaceRulesRepository.findThirdPlaceRulesByTournament);
+const mockCreateThirdPlaceRule = vi.mocked(tournamentThirdPlaceRulesRepository.createThirdPlaceRule);
+const mockDeleteThirdPlaceRulesByTournament = vi.mocked(tournamentThirdPlaceRulesRepository.deleteThirdPlaceRulesByTournament);
 
 const mockCreateGameResult = vi.mocked(gameResultRepository.createGameResult);
 const mockUpdateGameResult = vi.mocked(gameResultRepository.updateGameResult);
@@ -479,11 +503,15 @@ describe('Backoffice Actions', () => {
 
   describe('deleteDBTournamentTree', () => {
     it('deletes all tournament data in correct order', async () => {
-      await deleteDBTournamentTree(mockTournament);
+      const inactiveTournament = { ...mockTournament, is_active: false };
+      await deleteDBTournamentTree(inactiveTournament);
 
       expect(mockRevalidatePath).toHaveBeenCalledWith(`/tournaments/${mockTournament.id}/backoffice`);
       expect(mockDeleteAllGameGuessesByTournamentId).toHaveBeenCalledWith(mockTournament.id);
       expect(mockDeleteAllTournamentGuessesByTournamentId).toHaveBeenCalledWith(mockTournament.id);
+      expect(mockDeleteAllPlayersInTournament).toHaveBeenCalledWith(mockTournament.id);
+      expect(mockDeleteAllTournamentVenues).toHaveBeenCalledWith(mockTournament.id);
+      expect(mockDeleteThirdPlaceRulesByTournament).toHaveBeenCalledWith(mockTournament.id);
       expect(mockDeleteAllGamesFromTournament).toHaveBeenCalledWith(mockTournament.id);
       expect(mockDeleteAllPlayoffRoundsInTournament).toHaveBeenCalledWith(mockTournament.id);
       expect(mockDeleteAllGroupsFromTournament).toHaveBeenCalledWith(mockTournament.id);
@@ -492,9 +520,14 @@ describe('Backoffice Actions', () => {
     });
 
     it('handles deletion errors gracefully', async () => {
+      const inactiveTournament = { ...mockTournament, is_active: false };
       mockDeleteAllGameGuessesByTournamentId.mockRejectedValue(new Error('Database error'));
 
-      await expect(deleteDBTournamentTree(mockTournament)).rejects.toThrow('Database error');
+      await expect(deleteDBTournamentTree(inactiveTournament)).rejects.toThrow('Database error');
+    });
+
+    it('throws error when trying to delete active tournament', async () => {
+      await expect(deleteDBTournamentTree(mockTournament)).rejects.toThrow('Cannot delete an active tournament');
     });
   });
 
@@ -599,8 +632,12 @@ describe('Backoffice Actions', () => {
     });
 
     it('deletes existing tournament when deletePrevious is true', async () => {
-      mockFindTournamentByName.mockResolvedValue(mockTournament);
+      const inactiveTournament = { ...mockTournament, is_active: false };
+      mockFindTournamentByName.mockResolvedValue(inactiveTournament);
       mockDeleteAllGameGuessesByTournamentId.mockResolvedValue([]);
+      mockDeleteAllPlayersInTournament.mockResolvedValue([]);
+      mockDeleteAllTournamentVenues.mockResolvedValue([]);
+      mockDeleteThirdPlaceRulesByTournament.mockResolvedValue([]);
 
       const result = await generateDbTournament('Test Tournament', true);
 
@@ -1080,24 +1117,28 @@ describe('Backoffice Actions', () => {
       mockCreateTournamentTeam.mockResolvedValue({ tournament_id: 'tournament2', team_id: 'team1' });
       mockFindAllPlayersInTournamentWithTeamData.mockResolvedValue([mockPlayer]);
       mockCreatePlayer.mockResolvedValue({ ...mockPlayer, tournament_id: 'tournament2' });
+      mockFindAllTournamentVenues.mockResolvedValue([]);
+      mockCreateTournamentVenue.mockResolvedValue({ id: 'venue2', tournament_id: 'tournament2', name: 'Venue', location: null, picture_url: null });
+      mockFindThirdPlaceRulesByTournament.mockResolvedValue([]);
+      mockCreateThirdPlaceRule.mockResolvedValue({ id: 'rule2', tournament_id: 'tournament2', combination_key: 'key', rules: '{}' });
       mockFindPlayoffStagesWithGamesInTournament.mockResolvedValue([mockExtendedPlayoffRoundData]);
       mockCreatePlayoffRound.mockResolvedValue({ ...mockExtendedPlayoffRoundData, id: 'playoff2' });
       mockFindGroupsWithGamesAndTeamsInTournament.mockResolvedValue([mockExtendedGroupData]);
       mockCreateTournamentGroup.mockResolvedValue({ ...mockExtendedGroupData, id: 'group2' });
-      mockCreateTournamentGroupTeam.mockResolvedValue({ 
-        id: 'groupteam2', 
-        tournament_group_id: 'group2', 
-        position: 1, 
-        team_id: 'team1', 
-        games_played: 0, 
-        points: 0, 
-        win: 0, 
-        draw: 0, 
-        loss: 0, 
-        goals_for: 0, 
-        goals_against: 0, 
-        goal_difference: 0, 
-        is_complete: false 
+      mockCreateTournamentGroupTeam.mockResolvedValue({
+        id: 'groupteam2',
+        tournament_group_id: 'group2',
+        position: 1,
+        team_id: 'team1',
+        games_played: 0,
+        points: 0,
+        win: 0,
+        draw: 0,
+        loss: 0,
+        goals_for: 0,
+        goals_against: 0,
+        goal_difference: 0,
+        is_complete: false
       });
       mockFindGamesInTournament.mockResolvedValue([mockGame]);
       mockCreateGame.mockResolvedValue({ ...mockGame, id: 'game2' });
@@ -1106,30 +1147,30 @@ describe('Backoffice Actions', () => {
     });
 
     it('copies tournament successfully when user is admin', async () => {
-      const result = await copyTournament('tournament1', 'Custom Name', 'CN');
+      const result = await copyTournament('tournament1', undefined, 'Custom Name', 'CN');
 
       expect(mockGetLoggedInUser).toHaveBeenCalled();
       expect(mockFindTournamentById).toHaveBeenCalledWith('tournament1');
-      expect(mockCreateTournament).toHaveBeenCalledWith({
+      expect(mockCreateTournament).toHaveBeenCalledWith(expect.objectContaining({
         long_name: 'Custom Name',
         short_name: 'CN',
         theme: mockTournament.theme && JSON.stringify(mockTournament.theme) || undefined,
         is_active: false,
-        dev_only: true
-      });
+        dev_only: false
+      }));
       expect(result.id).toBe('tournament2');
     });
 
     it('uses default names when not provided', async () => {
       await copyTournament('tournament1');
 
-      expect(mockCreateTournament).toHaveBeenCalledWith({
-        long_name: 'Test Tournament - copy',
-        short_name: 'TT - copy',
+      expect(mockCreateTournament).toHaveBeenCalledWith(expect.objectContaining({
+        long_name: 'Test Tournament - Copy',
+        short_name: 'TT - Copy',
         theme: mockTournament.theme && JSON.stringify(mockTournament.theme) || undefined,
         is_active: false,
-        dev_only: true
-      });
+        dev_only: false
+      }));
     });
 
     it('throws error when user is not admin', async () => {
@@ -1156,6 +1197,8 @@ describe('Backoffice Actions', () => {
     it('copies all tournament components', async () => {
       await copyTournament('tournament1');
 
+      expect(mockFindAllTournamentVenues).toHaveBeenCalled();
+      expect(mockFindThirdPlaceRulesByTournament).toHaveBeenCalled();
       expect(mockCreateTournamentTeam).toHaveBeenCalled();
       expect(mockCreatePlayer).toHaveBeenCalled();
       expect(mockCreatePlayoffRound).toHaveBeenCalled();
