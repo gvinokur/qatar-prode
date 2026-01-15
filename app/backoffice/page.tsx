@@ -44,7 +44,7 @@ export default async function Backoffice() {
             createTab(
               tournament.short_name,
               (
-                <BackofficeTabs key={tournament.short_name} tabs={[
+                <BackofficeTabs key={tournament.short_name} tabIdParam="subtab" tabs={[
                   createTab('Tournament Actions', <TournamentBackofficeTab tournament={tournament}/>),
                   createTab('Game Scores', <GroupsTab tournamentId={tournament.id}/>),
                   createTab('Awards', <BackofficeAwardsTab tournamentId={tournament.id}/>),
@@ -57,14 +57,16 @@ export default async function Backoffice() {
                   createTab('Players', <PlayersTab tournamentId={tournament.id}/>),
                 ]}/>
               ),
-              tournament.dev_only
+              tournament.dev_only,
+              true // isActive
             ),
           ),
           ...inactiveTournaments.map(tournament =>
             createTab(
               tournament.short_name,
               (
-                <BackofficeTabs key={tournament.short_name} tabs={[
+                <BackofficeTabs key={tournament.short_name} tabIdParam="subtab" tabs={[
+                  createTab('Tournament Actions', <TournamentBackofficeTab tournament={tournament}/>),
                   createTab('Tournament Data', <TournamentMainDataTab tournamentId={tournament.id}/>),
                   createTab('Scoring Config', <TournamentScoringConfigTab tournamentId={tournament.id}/>),
                   createTab('Tournament Teams', <TournamentTeamsManagerTab tournamentId={tournament.id}/>),
@@ -73,7 +75,10 @@ export default async function Backoffice() {
                   createTab('Third-Place Rules', <TournamentThirdPlaceRulesTab tournamentId={tournament.id}/>),
                   createTab('Players', <PlayersTab tournamentId={tournament.id}/>),
                 ]}/>
-              )),
+              ),
+              tournament.dev_only,
+              false // isActive
+            ),
           ),
           createActionTab(<CreateTournamentButton key='create-tournament' />),
           createTab('Notifications', <NotificationSender />)

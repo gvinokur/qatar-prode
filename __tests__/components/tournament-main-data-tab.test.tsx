@@ -9,6 +9,18 @@ import { getThemeLogoUrl } from '../../app/utils/theme-utils';
 // Mock the dependencies
 vi.mock('../../app/actions/tournament-actions');
 vi.mock('../../app/utils/theme-utils');
+vi.mock('next/navigation', () => ({
+  useRouter: vi.fn(() => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    refresh: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    prefetch: vi.fn(),
+  })),
+  useSearchParams: vi.fn(() => new URLSearchParams()),
+  usePathname: vi.fn(() => '/'),
+}));
 vi.mock('../../app/db/database', () => ({
   db: {
     selectFrom: vi.fn(),

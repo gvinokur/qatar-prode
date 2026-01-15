@@ -7,21 +7,27 @@ import {
   calculateAllUsersGroupPositions, calculateAndStoreQualifiedTeamsPoints, calculateGameScores,
   generateDbTournamentTeamPlayers,
   recalculateAllPlayoffFirstRoundGameGuesses,
-  calculateAndStoreGroupPositionScores
+  calculateAndStoreGroupPositionScores,
+  deleteDBTournamentTree
 } from "../../actions/backoffice-actions";
 import {DebugObject} from "../debug";
 import {deactivateTournament} from "../../actions/tournament-actions";
+import {useRouter} from "next/navigation";
 
 type Props = {
   tournament: Tournament
 }
 
 export default function TournamentBackofficeTab({ tournament } : Props) {
+  const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false)
   const [actionResults, setActionResults] = useState<{} | null>(null)
   const [openDeactivateDialog, setOpenDeactivateDialog] = useState(false);
   const [deactivateSuccess, setDeactivateSuccess] = useState(false);
   const [deactivateError, setDeactivateError] = useState<string | null>(null);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [deleteSuccess, setDeleteSuccess] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const importPlayers = async () => {
     setLoading(true)
@@ -80,6 +86,10 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
       await deactivateTournament(tournament.id);
       setDeactivateSuccess(true);
       handleDeactivateDialogClose();
+      // Refresh to update tabs and tournament status
+      setTimeout(() => {
+        router.refresh();
+      }, 1500);
     } catch (error: any) {
       setDeactivateError(error.message || 'Error deactivating tournament');
     } finally {
@@ -89,6 +99,38 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
 
   const handleCloseSnackbar = () => {
     setDeactivateSuccess(false);
+  };
+
+  const handleDeleteDialogOpen = () => {
+    setOpenDeleteDialog(true);
+  };
+
+  const handleDeleteDialogClose = () => {
+    setOpenDeleteDialog(false);
+  };
+
+  const handleDeleteTournament = async () => {
+    setLoading(true);
+    setDeleteError(null);
+
+    try {
+      await deleteDBTournamentTree(tournament);
+      setDeleteSuccess(true);
+      handleDeleteDialogClose();
+      // Redirect to backoffice after successful deletion
+      setTimeout(() => {
+        router.push('/backoffice');
+        router.refresh();
+      }, 2000);
+    } catch (error: any) {
+      setDeleteError(error.message || 'Error deleting tournament');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCloseDeleteSnackbar = () => {
+    setDeleteSuccess(false);
   };
 
   return (
@@ -188,6 +230,27 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
             {tournament.is_active ? 'Deactivate Tournament' : 'Tournament Inactive'}
           </Button>
         </Grid>
+        {!tournament.is_active && (
+          <Grid
+            textAlign={'center'}
+            size={{
+              xs: 6,
+              md: 3,
+              lg: 2
+            }}>
+            <Button
+              loading={loading}
+              variant={'contained'}
+              color={'error'}
+              size={'large'}
+              fullWidth
+              sx={{height: '100%'}}
+              onClick={handleDeleteDialogOpen}
+            >
+              Delete Tournament
+            </Button>
+          </Grid>
+        )}
       </Grid>
       {actionResults && (
         <>
@@ -235,6 +298,57 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
       >
         <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
           Tournament successfully deactivated
+        </Alert>
+      </Snackbar>
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={openDeleteDialog}
+        onClose={handleDeleteDialogClose}
+      >
+        <DialogTitle>Delete Tournament</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            <strong>Warning: This action is permanent and cannot be undone!</strong>
+          </DialogContentText>
+          <DialogContentText sx={{ mt: 2 }}>
+            Are you sure you want to delete {tournament.long_name}?
+          </DialogContentText>
+          <DialogContentText sx={{ mt: 2 }}>
+            This will permanently delete:
+          </DialogContentText>
+          <Box component="ul" sx={{ mt: 1, pl: 2 }}>
+            <li>All tournament configuration and settings</li>
+            <li>All groups, teams, and playoff structure</li>
+            <li>All games and game results</li>
+            <li>All user predictions and guesses</li>
+            <li>All players, venues, and rules</li>
+          </Box>
+          {deleteError && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {deleteError}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteDialogClose}>Cancel</Button>
+          <Button
+            loading={loading}
+            onClick={handleDeleteTournament}
+            color="error"
+            variant="contained"
+          >
+            Delete Permanently
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* Delete Success Snackbar */}
+      <Snackbar
+        open={deleteSuccess}
+        autoHideDuration={6000}
+        onClose={handleCloseDeleteSnackbar}
+      >
+        <Alert onClose={handleCloseDeleteSnackbar} severity="success" sx={{ width: '100%' }}>
+          Tournament successfully deleted. Redirecting...
         </Alert>
       </Snackbar>
     </Box>

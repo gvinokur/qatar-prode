@@ -47,3 +47,14 @@ export async function findTournamentVenueByName(name: string): Promise<Tournamen
 export async function createManyTournamentVenues(venues: TournamentVenueNew[]): Promise<TournamentVenue[]> {
   return await Promise.all(venues.map(venue => createTournamentVenue(venue)));
 }
+
+/**
+ * Deletes all venues for a tournament
+ * @param tournamentId - Tournament ID
+ * @returns Delete result
+ */
+export async function deleteAllTournamentVenues(tournamentId: string) {
+  return db.deleteFrom('tournament_venues')
+    .where('tournament_id', '=', tournamentId)
+    .execute();
+}

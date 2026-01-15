@@ -8,6 +8,7 @@ import {
   updatePlayer,
   deletePlayer,
   deleteAllPlayersInTournamentTeam,
+  deleteAllPlayersInTournament,
 } from '../../app/db/player-repository';
 import { db } from '../../app/db/database';
 import { testFactories } from './test-factories';
@@ -265,6 +266,29 @@ describe('Player Repository', () => {
         mockDb.deleteFrom.mockReturnValue(mockQuery as any);
 
         const result = await deleteAllPlayersInTournamentTeam('tournament-1', 'empty-team');
+
+        expect(mockQuery.execute).toHaveBeenCalled();
+        expect(result).toEqual([]);
+      });
+    });
+
+    describe('deleteAllPlayersInTournament', () => {
+      it('should delete all players for a tournament', async () => {
+        const mockQuery = createMockDeleteQuery(mockPlayers);
+        mockDb.deleteFrom.mockReturnValue(mockQuery as any);
+
+        await deleteAllPlayersInTournament('tournament-1');
+
+        expect(mockDb.deleteFrom).toHaveBeenCalledWith('players');
+        expect(mockQuery.where).toHaveBeenCalledWith('tournament_id', '=', 'tournament-1');
+        expect(mockQuery.execute).toHaveBeenCalled();
+      });
+
+      it('should handle deleting from tournament with no players', async () => {
+        const mockQuery = createMockDeleteQuery([]);
+        mockDb.deleteFrom.mockReturnValue(mockQuery as any);
+
+        const result = await deleteAllPlayersInTournament('empty-tournament');
 
         expect(mockQuery.execute).toHaveBeenCalled();
         expect(result).toEqual([]);

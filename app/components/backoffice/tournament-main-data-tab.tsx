@@ -26,6 +26,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import PlayoffRoundDialog from './internal/playoff-round-dialog';
 import {getThemeLogoUrl} from "../../utils/theme-utils";
+import {useRouter} from "next/navigation";
 
 type Props = {
   readonly tournamentId: string;
@@ -33,6 +34,7 @@ type Props = {
 }
 
 export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props) {
+  const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingData, setLoadingData] = useState<boolean>(true);
   const [tournament, setTournament] = useState<Tournament | null>(null);
@@ -146,11 +148,19 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
 
       // Update local state with new data
       if (updatedTournament) {
+        const devOnlyChanged = tournament && tournament.dev_only !== updatedTournament.dev_only;
         setTournament(updatedTournament as Tournament);
 
         // If onUpdate callback is provided, call it with updated data
         if (onUpdate) {
           onUpdate(updatedTournament as Tournament);
+        }
+
+        // Refresh if dev_only changed (affects tab visibility)
+        if (devOnlyChanged) {
+          setTimeout(() => {
+            router.refresh();
+          }, 1500);
         }
       }
     } catch (err: any) {
@@ -185,6 +195,11 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
         }
 
         setSuccess(true);
+
+        // Refresh to update tabs and tournament visibility
+        setTimeout(() => {
+          router.refresh();
+        }, 1500);
       }
     } catch (err: any) {
       console.error('Error updating tournament activation:', err);

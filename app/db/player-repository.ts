@@ -55,3 +55,14 @@ export async function deleteAllPlayersInTournamentTeam(tournamentId: string, tea
     .where('team_id', '=', teamId)
     .execute()
 }
+
+/**
+ * Deletes all players in a tournament
+ * @param tournamentId - Tournament ID
+ * @returns Delete result
+ */
+export async function deleteAllPlayersInTournament(tournamentId: string) {
+  return db.deleteFrom('players')
+    .where('tournament_id', '=', tournamentId)
+    .execute()
+}
