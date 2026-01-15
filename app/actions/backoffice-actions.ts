@@ -46,17 +46,20 @@ import {
 
 import {
   findAllTournamentVenues,
-  createTournamentVenue
+  createTournamentVenue,
+  deleteAllTournamentVenues
 } from '../db/tournament-venue-repository';
 import {
   findThirdPlaceRulesByTournament,
-  createThirdPlaceRule
+  createThirdPlaceRule,
+  deleteThirdPlaceRulesByTournament
 } from '../db/tournament-third-place-rules-repository';
 import {
   createPlayer,
   findAllPlayersInTournamentWithTeamData,
   findPlayerByTeamAndTournament,
-  updatePlayer
+  updatePlayer,
+  deleteAllPlayersInTournament
 } from "../db/player-repository";
 import {ExtendedGameData, ExtendedGroupData, ExtendedPlayoffRoundData} from "../definitions";
 import {
@@ -91,16 +94,36 @@ import { revalidatePath } from 'next/cache';
 
 
 export async function deleteDBTournamentTree(tournament: Tournament) {
+  const user = await getLoggedInUser();
+
+  // Authorization: Only admins can delete tournaments
+  if (!user?.isAdmin) {
+    throw new Error('Unauthorized: Only administrators can delete tournaments');
+  }
+
+  // Safety check: Only allow deletion of deactivated tournaments
+  if (tournament.is_active) {
+    throw new Error('Cannot delete an active tournament. Please deactivate it first.');
+  }
+
   revalidatePath(`/tournaments/${tournament.id}/backoffice`);
 
-  // Delete all related entities
+  // Delete all related entities in reverse order of dependencies
+  // User-related data
   await deleteAllGameGuessesByTournamentId(tournament.id);
   await deleteAllTournamentGuessesByTournamentId(tournament.id);
+
+  // Tournament structure and content
+  await deleteAllPlayersInTournament(tournament.id);
+  await deleteAllTournamentVenues(tournament.id);
+  await deleteThirdPlaceRulesByTournament(tournament.id);
   await deleteAllGamesFromTournament(tournament.id);
   await deleteAllPlayoffRoundsInTournament(tournament.id);
   await deleteAllGroupsFromTournament(tournament.id);
-  await deleteTournamentTeams(tournament.id)
-  await deleteTournament(tournament.id)
+  await deleteTournamentTeams(tournament.id);
+
+  // Finally, delete the tournament itself
+  await deleteTournament(tournament.id);
 }
 
 export async function generateDbTournamentTeamPlayers(tournamentName: string) {
