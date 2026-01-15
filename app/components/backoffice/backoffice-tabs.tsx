@@ -26,6 +26,46 @@ type Props = {
   readonly tabIdParam?: string // URL search param name for tab selection (e.g., 'tab' or 'subtab')
 }
 
+// Helper function to get tooltip title based on tab properties
+function getTooltipTitle(tab: LabelledTab): string {
+  if (tab.isDevOnly && tab.isActive === true) {
+    return 'Torneo activo (desarrollo)'
+  }
+  if (tab.isDevOnly && tab.isActive === false) {
+    return 'Torneo inactivo (desarrollo)'
+  }
+  if (tab.isDevOnly) {
+    return 'Torneo de desarrollo'
+  }
+  if (tab.isActive === true) {
+    return 'Torneo activo'
+  }
+  if (tab.isActive === false) {
+    return 'Torneo inactivo'
+  }
+  return ''
+}
+
+// Helper function to render tab label with icons
+function renderTabLabel(tab: LabelledTab): React.ReactNode {
+  const hasStatusIndicators = tab.isDevOnly || tab.isActive !== undefined
+
+  if (!hasStatusIndicators) {
+    return tab.label
+  }
+
+  return (
+    <Tooltip title={getTooltipTitle(tab)}>
+      <Box sx={{display: 'flex', alignItems: 'center'}}>
+        {tab.label}
+        {tab.isDevOnly && <BugReport sx={{ ml:1, height: '16px'}} />}
+        {tab.isActive === true && <CheckCircle sx={{ ml:1, height: '16px', color: 'success.main'}} />}
+        {tab.isActive === false && <PauseCircle sx={{ ml:1, height: '16px', color: 'warning.main'}} />}
+      </Box>
+    </Tooltip>
+  )
+}
+
 export function BackofficeTabs({tabs, tabIdParam = 'tab'} :Props) {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -41,7 +81,7 @@ export function BackofficeTabs({tabs, tabIdParam = 'tab'} :Props) {
     const labelledTabs = tabs.filter((tab): tab is LabelledTab => tab.type === 'labelledTab')
     const index = labelledTabs.findIndex(tab => tab.label === selectedTabLabel)
 
-    return index >= 0 ? index : 0
+    return Math.max(index, 0)
   }, [selectedTabLabel, tabs])
 
   // Update URL when tab changes
@@ -76,27 +116,11 @@ export function BackofficeTabs({tabs, tabIdParam = 'tab'} :Props) {
         variant={isNotExtraSmallScreen ? "fullWidth" : 'scrollable'}
         scrollButtons={"auto"}
       >
-        {tabs.map(tab=> tab.type === 'labelledTab' ? (
-          <Tab key={tab.label} label={
-            tab.isDevOnly || tab.isActive !== undefined ? (
-              <Tooltip
-                title={
-                  tab.isDevOnly && tab.isActive === true ? 'Torneo activo (desarrollo)' :
-                  tab.isDevOnly && tab.isActive === false ? 'Torneo inactivo (desarrollo)' :
-                  tab.isDevOnly ? 'Torneo de desarrollo' :
-                  tab.isActive === true ? 'Torneo activo' :
-                  tab.isActive === false ? 'Torneo inactivo' : ''
-                }>
-                <Box sx={{display: 'flex', alignItems: 'center'}}>
-                  {tab.label}
-                  {tab.isDevOnly && <BugReport sx={{ ml:1, height: '16px'}} />}
-                  {tab.isActive === true && <CheckCircle sx={{ ml:1, height: '16px', color: 'success.main'}} />}
-                  {tab.isActive === false && <PauseCircle sx={{ ml:1, height: '16px', color: 'warning.main'}} />}
-                </Box>
-              </Tooltip>
-            ) : tab.label
-          } />
-        ) : tab.action)}
+        {tabs.map(tab =>
+          tab.type === 'labelledTab'
+            ? <Tab key={tab.label} label={renderTabLabel(tab)} />
+            : tab.action
+        )}
       </Tabs>
       {tabs.map((tab, index) => tab.type === 'labelledTab' && (
         <TabPanel key={tab.label} index={index} value={selectedTabIndex}>
