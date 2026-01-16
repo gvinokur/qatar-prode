@@ -12,7 +12,7 @@ const eslintConfig = [
     rules: {
       '@next/next/no-img-element': 'off',
       '@next/next/no-html-link-for-pages': 'off',
-      'no-unused-vars': ['warn', { 
+      'no-unused-vars': ['warn', {
         'argsIgnorePattern': '^_',
         'varsIgnorePattern': '^_',
         'caughtErrorsIgnorePattern': '^_',
@@ -32,6 +32,15 @@ const eslintConfig = [
         },
       ],
       'no-duplicate-imports': 'off',
+      // Code quality rules to prevent SonarQube issues
+      'no-console': ['error', { allow: ['warn', 'error'] }],
+      'complexity': ['warn', { max: 15 }],
+      'max-depth': ['warn', { max: 4 }],
+      'max-lines-per-function': ['warn', {
+        max: 80,
+        skipBlankLines: true,
+        skipComments: true
+      }],
     }
   }),
 ]

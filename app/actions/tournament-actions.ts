@@ -49,7 +49,8 @@ export async function getAllTournaments () {
 }
 
 export async function getTournaments () {
-  const tournaments = await findAllActiveTournaments()
+  const user = await getLoggedInUser()
+  const tournaments = await findAllActiveTournaments(user?.id)
   return tournaments
 }
 

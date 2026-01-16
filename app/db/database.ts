@@ -12,6 +12,7 @@ import {
   TournamentGroupTeamTable, TournamentGuessTable,
   TournamentTable,
   TournamentTeamTable, TournamentVenueTable,
+  TournamentViewPermissionTable,
   TournamentThirdPlaceRulesTable,
   UserTable,
   ProdeGroupTournamentBettingTable,
@@ -26,6 +27,7 @@ export interface Database {
 
   tournaments: TournamentTable
   tournament_teams: TournamentTeamTable
+  tournament_view_permissions: TournamentViewPermissionTable
 
   tournament_groups: TournamentGroupTable
   tournament_group_games: TournamentGroupGameTable

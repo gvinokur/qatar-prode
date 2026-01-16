@@ -11,6 +11,10 @@ import {getPlayersInTournament} from "../../db/player-repository";
 import EnvironmentIndicator from "../../components/environment-indicator";
 import {Typography} from "@mui/material";
 import {getThemeLogoUrl} from "../../utils/theme-utils";
+import { isDevelopmentMode } from '../../utils/environment-utils';
+import { hasUserPermission } from '../../db/tournament-view-permission-repository';
+import { redirect, notFound } from 'next/navigation';
+import { DevTournamentBadge } from '../../components/common/dev-tournament-badge';
 
 type TournamentLayoutProps = {
   readonly params: Promise<{
@@ -24,6 +28,22 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
   const children = props.children
   const user = await getLoggedInUser()
   const layoutData = await getTournamentAndGroupsData(params.id)
+
+  // Check if user has permission to view this dev tournament
+  const isDevTournamentInProduction = layoutData.tournament?.dev_only && !isDevelopmentMode()
+  if (isDevTournamentInProduction) {
+    // Require authentication for dev tournaments in production
+    if (!user) {
+      redirect(`/?openSignin=true&returnUrl=/tournaments/${params.id}`)
+    }
+
+    // Check if user has explicit permission
+    const hasPermission = await hasUserPermission(params.id, user.id)
+    if (!hasPermission) {
+      notFound()
+    }
+  }
+
   const tournamentGuesses = user && (await findTournamentGuessByUserIdTournament(user.id, params.id))
   const tournamentStartDate = await getTournamentStartDate(params.id)
   const playersInTournament = await getPlayersInTournament(params.id)
@@ -82,13 +102,20 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                   maxHeight: '48px'
                 }}/>
                 {(layoutData.tournament?.display_name && layoutData.tournament.long_name) && (
-                  <Typography
-                    noWrap
-                    variant={'h6'}
-                    ml={2}
-                    color={layoutData.tournament.theme?.secondary_color}>
-                    {layoutData.tournament.long_name}
-                  </Typography>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    {layoutData.tournament.dev_only && (
+                      <DevTournamentBadge
+                        color={layoutData.tournament.theme?.secondary_color || 'warning.main'}
+                      />
+                    )}
+                    <Typography
+                      noWrap
+                      variant={'h6'}
+                      ml={layoutData.tournament.dev_only ? 0 : 2}
+                      color={layoutData.tournament.theme?.secondary_color}>
+                      {layoutData.tournament.long_name}
+                    </Typography>
+                  </Box>
                 )}
               </Box>
 

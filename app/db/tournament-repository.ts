@@ -1,4 +1,5 @@
-import { db } from './database'
+import { db, Database } from './database'
+import { ExpressionBuilder } from 'kysely'
 import {createBaseFunctions} from "./base-repository";
 import {Tournament, TournamentTable, TournamentTeamTable} from "./tables-definition";
 import {isDevelopmentMode} from "../utils/environment-utils";
@@ -22,21 +23,45 @@ export async function findAllTournaments () {
     .execute()
 }
 
-export async function findAllActiveTournaments () {
-  const isDevMode = isDevelopmentMode();
+/**
+ * Helper function to check if user has permission for dev tournaments
+ */
+function buildDevTournamentPermissionCheck(
+  eb: ExpressionBuilder<Database, 'tournaments'>,
+  userId: string | undefined
+) {
+  if (!userId) {
+    return eb.val(false)
+  }
 
-  return db.selectFrom('tournaments')
+  return eb.exists(
+    eb
+      .selectFrom('tournament_view_permissions')
+      .whereRef('tournament_view_permissions.tournament_id', '=', 'tournaments.id')
+      .where('tournament_view_permissions.user_id', '=', userId)
+      .select(eb.lit(1).as('one'))
+  )
+}
+
+export async function findAllActiveTournaments (userId?: string) {
+  const isDevMode = isDevelopmentMode()
+
+  let query = db
+    .selectFrom('tournaments')
     .where('is_active', '=', true)
-    .where(eb => {
-      if (!isDevMode) {
-        // In production, only show non-dev tournaments
-        return eb('dev_only', '=', false);
-      }
-      // In development, show all active tournaments
-      return eb.val(true);
-    })
-    .selectAll()
-    .execute()
+
+  // In production, apply dev tournament filtering
+  if (!isDevMode) {
+    query = query.where(eb => eb.or([
+      eb('dev_only', '=', false),
+      eb.and([
+        eb('dev_only', '=', true),
+        buildDevTournamentPermissionCheck(eb, userId)
+      ])
+    ]))
+  }
+
+  return query.selectAll().execute()
 }
 
 export async function createTournamentTeam(tournamentTeam: TournamentTeamTable) {

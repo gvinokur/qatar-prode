@@ -217,6 +217,84 @@ describe('Tournament Repository', () => {
 
         expect(result).toEqual([]);
       });
+
+      it('should filter dev tournaments by user permission in production', async () => {
+        const { isDevelopmentMode } = await import('../../app/utils/environment-utils');
+        vi.mocked(isDevelopmentMode).mockReturnValue(false);
+
+        const mockWhere = vi.fn().mockReturnThis();
+        const mockQuery = {
+          where: mockWhere,
+          selectAll: vi.fn().mockReturnThis(),
+          execute: vi.fn().mockResolvedValue(mockTournaments),
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        const result = await findAllActiveTournaments('user-123');
+
+        expect(mockDb.selectFrom).toHaveBeenCalledWith('tournaments');
+        expect(mockWhere).toHaveBeenCalledWith('is_active', '=', true);
+        expect(mockWhere).toHaveBeenCalledWith(expect.any(Function));
+        expect(result).toEqual(mockTournaments);
+      });
+
+      it('should allow userId parameter in development mode', async () => {
+        const { isDevelopmentMode } = await import('../../app/utils/environment-utils');
+        vi.mocked(isDevelopmentMode).mockReturnValue(true);
+
+        const mockWhere = vi.fn().mockReturnThis();
+        const mockQuery = {
+          where: mockWhere,
+          selectAll: vi.fn().mockReturnThis(),
+          execute: vi.fn().mockResolvedValue(mockTournaments),
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        const result = await findAllActiveTournaments('user-123');
+
+        expect(mockDb.selectFrom).toHaveBeenCalledWith('tournaments');
+        expect(mockWhere).toHaveBeenCalledWith('is_active', '=', true);
+        // In dev mode, no additional filtering is applied
+        expect(result).toEqual(mockTournaments);
+      });
+
+      it('should handle undefined userId in production', async () => {
+        const { isDevelopmentMode } = await import('../../app/utils/environment-utils');
+        vi.mocked(isDevelopmentMode).mockReturnValue(false);
+
+        const mockWhere = vi.fn().mockReturnThis();
+        const mockQuery = {
+          where: mockWhere,
+          selectAll: vi.fn().mockReturnThis(),
+          execute: vi.fn().mockResolvedValue(mockTournaments),
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        const result = await findAllActiveTournaments(undefined);
+
+        expect(mockDb.selectFrom).toHaveBeenCalledWith('tournaments');
+        expect(mockWhere).toHaveBeenCalledWith('is_active', '=', true);
+        expect(mockWhere).toHaveBeenCalledWith(expect.any(Function));
+        expect(result).toEqual(mockTournaments);
+      });
+
+      it('should handle empty string userId in production', async () => {
+        const { isDevelopmentMode } = await import('../../app/utils/environment-utils');
+        vi.mocked(isDevelopmentMode).mockReturnValue(false);
+
+        const mockWhere = vi.fn().mockReturnThis();
+        const mockQuery = {
+          where: mockWhere,
+          selectAll: vi.fn().mockReturnThis(),
+          execute: vi.fn().mockResolvedValue([]),
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        const result = await findAllActiveTournaments('');
+
+        expect(mockDb.selectFrom).toHaveBeenCalledWith('tournaments');
+        expect(result).toEqual([]);
+      });
     });
 
     describe('createTournamentTeam', () => {

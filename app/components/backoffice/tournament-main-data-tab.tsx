@@ -27,6 +27,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import PlayoffRoundDialog from './internal/playoff-round-dialog';
 import {getThemeLogoUrl} from "../../utils/theme-utils";
 import {useRouter} from "next/navigation";
+import TournamentPermissionsSelector from './tournament-permissions-selector';
+import { getTournamentPermissionData, updateTournamentPermissions } from '../../actions/backoffice-actions';
 
 type Props = {
   readonly tournamentId: string;
@@ -51,6 +53,9 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [devOnly, setDevOnly] = useState<boolean>(false);
   const [displayName, setDisplayName] = useState(false)
+  const [permittedUserIds, setPermittedUserIds] = useState<string[]>([])
+  const [allUsers, setAllUsers] = useState<Array<{id: string, email: string, nickname: string | null, isAdmin: boolean}>>([])
+  const [loadingPermissions, setLoadingPermissions] = useState(false)
   const [success, setSuccess] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [dataError, setDataError] = useState<string | null>(null);
@@ -121,6 +126,33 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
     fetchTournamentData();
   }, [tournamentId, fetchPlayoffRounds]);
 
+  // Fetch permissions when devOnly is enabled
+  useEffect(() => {
+    async function fetchPermissions() {
+      if (!devOnly || !tournamentId) {
+        setPermittedUserIds([])
+        setAllUsers([])
+        return
+      }
+
+      setLoadingPermissions(true)
+      try {
+        const { allUsers, permittedUserIds } = await getTournamentPermissionData(tournamentId)
+        setAllUsers(allUsers)
+        setPermittedUserIds(permittedUserIds)
+      } catch {
+        // Permissions are optional - fallback to empty state on error
+        // In production, this should be logged to error tracking service
+        setAllUsers([])
+        setPermittedUserIds([])
+      } finally {
+        setLoadingPermissions(false)
+      }
+    }
+
+    fetchPermissions()
+  }, [devOnly, tournamentId])
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,6 +175,11 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
       }
 
       const updatedTournament = await createOrUpdateTournament(tournamentId, formData);
+
+      // Update permissions if dev tournament
+      if (devOnly) {
+        await updateTournamentPermissions(tournamentId, permittedUserIds)
+      }
 
       setSuccess(true);
 
@@ -448,6 +485,23 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
               }
             />
           </Grid>
+          {/* Permission Selector - Only shown for dev tournaments */}
+          {devOnly && (
+            <Grid size={12}>
+              {loadingPermissions ? (
+                <Box display="flex" justifyContent="center" p={2}>
+                  <CircularProgress size={24} />
+                </Box>
+              ) : (
+                <TournamentPermissionsSelector
+                  allUsers={allUsers}
+                  selectedUserIds={permittedUserIds}
+                  onChange={setPermittedUserIds}
+                  disabled={loading}
+                />
+              )}
+            </Grid>
+          )}
           <Grid
             size={{
               xs: 12,
