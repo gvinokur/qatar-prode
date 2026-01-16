@@ -139,6 +139,56 @@ Client Component (PredictionDashboard)
 - **Value**: `"all" | "unpredicted" | "boosted" | "closing_soon"`
 - **Behavior**: Load on mount, save on change, default to "all"
 
+## Component Implementation Details
+
+### Real-Time Updates Implementation
+
+**Critical Fix**: The current implementation has a bug where boost counts don't update when predictions change. The solution is to use `GuessesContext` for reactive state:
+
+```typescript
+// ❌ WRONG: Pass gameGuesses as prop (static, no updates)
+<PredictionDashboard games={games} gameGuesses={serverGuesses} />
+
+// ✅ CORRECT: Get gameGuesses from context (reactive, auto-updates)
+function PredictionDashboard({ games }: Props) {
+  const { gameGuesses } = useContext(GuessesContext); // Reactive!
+  // Stats recalculate automatically when gameGuesses changes
+}
+```
+
+**Why This Works**:
+1. `GuessesContext` provides `gameGuesses` as React state
+2. When user edits prediction, `updateGameGuess()` updates state
+3. All consumers of context re-render automatically
+4. `useMemo` dependencies on `gameGuesses` trigger recalculation
+5. UI updates instantly without manual refresh
+
+### Tournament Config Access
+
+PredictionDashboard needs tournament config (boost limits). **Two options**:
+
+**Option A: Pass tournament as prop** (Recommended)
+```typescript
+interface PredictionDashboardProps {
+  games: ExtendedGameData[];
+  teamsMap: Record<string, Team>;
+  tournament: Tournament; // NEW: for boost limits
+  // ... other props
+}
+
+// In component:
+const silverMax = tournament.max_silver_games ?? 0;
+const goldenMax = tournament.max_golden_games ?? 0;
+```
+
+**Option B: Fetch via Server Action**
+```typescript
+// More overhead, requires additional data fetching
+const { data: tournament } = useSWR(`/api/tournaments/${tournamentId}`);
+```
+
+**Decision**: Use Option A (pass tournament as prop) - already fetched in pages.
+
 ## Files to Create
 
 ### 1. `/app/components/prediction-dashboard.tsx`
@@ -194,6 +244,171 @@ const filterGames = (games: ExtendedGameData[], filter: FilterType) => {
   }
 };
 ```
+
+**Detailed Implementation with JSX**:
+```typescript
+'use client'
+
+import { useState, useEffect, useMemo, useContext } from 'react';
+import { Box, Typography, Button } from '@mui/material';
+import { GuessesContext } from './context-providers/guesses-context-provider';
+import { PredictionStatusBar } from './prediction-status-bar';
+import { PredictionFilters } from './prediction-filters';
+import { GamesGrid } from './games-grid';
+import type { FilterType } from './prediction-dashboard-types';
+import type { ExtendedGameData, Tournament, Team } from '../definitions';
+
+interface PredictionDashboardProps {
+  games: ExtendedGameData[];
+  teamsMap: Record<string, Team>;
+  tournament: Tournament; // For boost limits
+  isPlayoffs: boolean;
+  isLoggedIn: boolean;
+  tournamentId: string;
+  isAwardsPredictionLocked?: boolean;
+}
+
+export function PredictionDashboard({
+  games,
+  teamsMap,
+  tournament,
+  isPlayoffs,
+  isLoggedIn,
+  tournamentId,
+  isAwardsPredictionLocked
+}: PredictionDashboardProps) {
+  // Get gameGuesses from context (reactive!)
+  const { gameGuesses } = useContext(GuessesContext);
+
+  // Filter state
+  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+
+  // Load filter preference from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('prediction_filter_preference');
+    if (saved && ['all', 'unpredicted', 'boosted', 'closing_soon'].includes(saved)) {
+      setActiveFilter(saved as FilterType);
+    }
+  }, []);
+
+  // Save filter preference to localStorage
+  const handleFilterChange = (filter: FilterType) => {
+    setActiveFilter(filter);
+    localStorage.setItem('prediction_filter_preference', filter);
+  };
+
+  // Calculate stats (reactive to gameGuesses)
+  const stats = useMemo(() => {
+    const predictedCount = games.filter(game => {
+      const guess = gameGuesses[game.id];
+      return guess && guess.home_score !== undefined && guess.away_score !== undefined;
+    }).length;
+
+    const boostedCount = games.filter(game => {
+      const guess = gameGuesses[game.id];
+      return guess?.boost_type === 'silver' || guess?.boost_type === 'golden';
+    }).length;
+
+    const closingSoonCount = games.filter(game => {
+      const now = Date.now();
+      const timeUntilGame = game.game_date.getTime() - now;
+      const oneHour = 60 * 60 * 1000;
+      const twentyFourHours = 24 * 60 * 60 * 1000;
+      return timeUntilGame > oneHour && timeUntilGame <= twentyFourHours;
+    }).length;
+
+    const silverUsed = games.filter(g => gameGuesses[g.id]?.boost_type === 'silver').length;
+    const goldenUsed = games.filter(g => gameGuesses[g.id]?.boost_type === 'golden').length;
+
+    return {
+      totalGames: games.length,
+      predictedGames: predictedCount,
+      unpredictedGames: games.length - predictedCount,
+      boostedGames: boostedCount,
+      closingSoonGames: closingSoonCount,
+      silverUsed,
+      goldenUsed
+    };
+  }, [games, gameGuesses]); // Re-calculates when gameGuesses changes!
+
+  // Filter games
+  const filteredGames = useMemo(() => {
+    return filterGames(games, activeFilter, gameGuesses);
+  }, [games, activeFilter, gameGuesses]);
+
+  // Badge counts
+  const badgeCounts = useMemo(() => ({
+    all: stats.totalGames,
+    unpredicted: stats.unpredictedGames,
+    boosted: stats.boostedGames,
+    closingSoon: stats.closingSoonGames
+  }), [stats]);
+
+  // Boost limits from tournament config
+  const silverMax = tournament.max_silver_games ?? 0;
+  const goldenMax = tournament.max_golden_games ?? 0;
+  const showBoostedFilter = silverMax > 0 || goldenMax > 0;
+
+  return (
+    <>
+      <PredictionStatusBar
+        totalGames={stats.totalGames}
+        predictedGames={stats.predictedGames}
+        silverUsed={stats.silverUsed}
+        silverMax={silverMax}
+        goldenUsed={stats.goldenUsed}
+        goldenMax={goldenMax}
+      />
+
+      <PredictionFilters
+        activeFilter={activeFilter}
+        onFilterChange={handleFilterChange}
+        badgeCounts={badgeCounts}
+        showBoostedFilter={showBoostedFilter}
+      />
+
+      {filteredGames.length > 0 ? (
+        <GamesGrid
+          games={filteredGames}
+          teamsMap={teamsMap}
+          isPlayoffs={isPlayoffs}
+          isLoggedIn={isLoggedIn}
+          tournamentId={tournamentId}
+          isAwardsPredictionLocked={isAwardsPredictionLocked}
+        />
+      ) : (
+        <Box sx={{ textAlign: 'center', p: 4 }}>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+            No games match this filter
+          </Typography>
+          <Button
+            variant="outlined"
+            onClick={() => handleFilterChange('all')}
+          >
+            Show All Games
+          </Button>
+        </Box>
+      )}
+    </>
+  );
+}
+
+// Helper function (can be in same file or separate utils file)
+function filterGames(
+  games: ExtendedGameData[],
+  filter: FilterType,
+  gameGuesses: Record<string, GameGuessNew>
+): ExtendedGameData[] {
+  // ... filter logic from above ...
+}
+```
+
+**Key Points**:
+- Uses `useContext(GuessesContext)` for reactive `gameGuesses`
+- All `useMemo` hooks depend on `gameGuesses` → auto-recalculate on changes
+- Empty state shows "No games match" with reset button
+- localStorage integration for filter persistence
+- Tournament prop provides boost limits
 
 ### 2. `/app/components/prediction-status-bar.tsx`
 **Purpose**: Display prediction progress and boost usage (Client Component)
