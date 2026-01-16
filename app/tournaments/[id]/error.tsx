@@ -4,13 +4,15 @@ import { Box, Typography, Button, Paper } from '@mui/material'
 import { useRouter } from 'next/navigation'
 import LockIcon from '@mui/icons-material/Lock'
 
+type ErrorProps = Readonly<{
+  _error: Error & { digest?: string }
+  _reset: () => void
+}>
+
 export default function TournamentError({
   _error,
   _reset,
-}: {
-  _error: Error & { digest?: string }
-  _reset: () => void
-}) {
+}: ErrorProps) {
   const router = useRouter()
 
   return (
@@ -26,11 +28,11 @@ export default function TournamentError({
         <Typography variant="h4" gutterBottom>
           Access Denied
         </Typography>
-        <Typography variant="body1" color="text.secondary" paragraph>
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
           You don&apos;t have permission to view this tournament. This is a development
           tournament that requires special access.
         </Typography>
-        <Typography variant="body2" color="text.secondary" paragraph>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           If you believe you should have access, please contact an administrator.
         </Typography>
         <Button

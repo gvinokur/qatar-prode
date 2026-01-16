@@ -15,12 +15,12 @@ type UserOption = {
   isAdmin: boolean
 }
 
-type Props = {
-  allUsers: UserOption[]
-  selectedUserIds: string[]
+type Props = Readonly<{
+  allUsers: readonly UserOption[]
+  selectedUserIds: readonly string[]
   onChange: (_userIds: string[]) => void
   disabled?: boolean
-}
+}>
 
 export default function TournamentPermissionsSelector({
   allUsers,
@@ -41,9 +41,11 @@ export default function TournamentPermissionsSelector({
         options={allUsers}
         value={selectedUsers}
         disabled={disabled}
-        getOptionLabel={(option) =>
-          `${option.email}${option.nickname ? ` (${option.nickname})` : ''}${option.isAdmin ? ' [Admin]' : ''}`
-        }
+        getOptionLabel={(option) => {
+          const nickname = option.nickname ? ` (${option.nickname})` : ''
+          const admin = option.isAdmin ? ' [Admin]' : ''
+          return `${option.email}${nickname}${admin}`
+        }}
         onChange={(_, newValue) => {
           onChange(newValue.map(u => u.id))
         }}
@@ -56,15 +58,18 @@ export default function TournamentPermissionsSelector({
           />
         )}
         renderTags={(value, getTagProps) =>
-          value.map((option, index) => (
-            <Chip
-              {...getTagProps({ index })}
-              key={option.id}
-              label={option.nickname || option.email}
-              color={option.isAdmin ? 'primary' : 'default'}
-              size="small"
-            />
-          ))
+          value.map((option, index) => {
+            const { key, ...tagProps } = getTagProps({ index })
+            return (
+              <Chip
+                {...tagProps}
+                key={option.id}
+                label={option.nickname || option.email}
+                color={option.isAdmin ? 'primary' : 'default'}
+                size="small"
+              />
+            )
+          })
         }
         renderOption={(props, option) => (
           <Box component="li" {...props}>
