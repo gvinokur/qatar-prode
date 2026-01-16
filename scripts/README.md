@@ -225,12 +225,121 @@ The script uses ANSI color codes for better readability:
 - Ensure you've pushed your branch and created a PR
 - Or specify PR number explicitly: `--pr 45`
 
+### Testing
+
+To verify the helper script works correctly, test each command independently:
+
+#### Test Project Commands
+
+```bash
+# Test listing projects (should show at least 1 open project)
+./scripts/github-projects-helper projects list
+
+# Expected output: Project details with number, title, URL, item count
+# Verify: Project information displays correctly with colors
+
+# Test project statistics
+./scripts/github-projects-helper projects stats 1
+
+# Expected output: Breakdown by status, priority, milestone, effort
+# Verify: All statistics display with emoji indicators and correct counts
+```
+
+#### Test Story Suggestion
+
+```bash
+# Test story suggestions without filters
+./scripts/github-projects-helper stories suggest 1
+
+# Expected output: Top 5 stories sorted by score (priority + effort)
+# Verify: Critical/Low-effort stories score 13/13
+
+# Test with milestone filter
+./scripts/github-projects-helper stories suggest 1 --milestone "Sprint 1-2: Critical Fixes"
+
+# Expected output: Only stories from specified milestone
+# Verify: Milestone name matches in each result
+
+# Test with priority filter
+./scripts/github-projects-helper stories suggest 1 --priority Critical
+
+# Expected output: Only Critical priority stories
+# Verify: All results show 🔥🔥🔥 Critical
+```
+
+#### Test Story Lifecycle (Non-Destructive)
+
+```bash
+# Test story start (creates worktree)
+./scripts/github-projects-helper story start 999  # Use a test issue number
+
+# Expected output:
+# - Worktree created at ../qatar-prode-story-999
+# - Branch: feature/story-999
+# - .env.local copied
+# - JSON output with paths
+# Verify: Worktree directory exists, .env.local present, issue assigned to you
+
+# Clean up test worktree manually
+rm -rf ../qatar-prode-story-999
+git worktree prune
+```
+
+#### Test PR Operations (Requires Existing PR)
+
+```bash
+# Test PR check waiting (requires active PR with running checks)
+./scripts/github-projects-helper pr wait-checks 45
+
+# Expected output:
+# - Status updates every 30 seconds: [30s] Vercel: IN_PROGRESS ...
+# - Final status with colored results
+# - JSON output: {"vercel": "SUCCESS", "sonar": "SUCCESS"}
+# Verify: Polls until both checks complete, handles timeouts gracefully
+```
+
+#### Test Error Handling
+
+```bash
+# Test with non-existent project
+./scripts/github-projects-helper projects stats 999
+# Expected: Clear error message
+
+# Test with non-existent issue
+./scripts/github-projects-helper story start 999999
+# Expected: Error from gh issue view
+
+# Test story complete without PR
+./scripts/github-projects-helper story complete 999999
+# Expected: "No PR found" error message
+```
+
+#### Common Edge Cases
+
+1. **Worktree already exists**: Try creating worktree twice
+   ```bash
+   ./scripts/github-projects-helper story start 123
+   ./scripts/github-projects-helper story start 123  # Should fail gracefully
+   ```
+
+2. **Missing .env.local**: Test with repo without .env.local
+   - Expected: Warning message but continues
+
+3. **No matching stories**: Filter by non-existent milestone
+   ```bash
+   ./scripts/github-projects-helper stories suggest 1 --milestone "Non-Existent Sprint"
+   # Expected: "No candidate stories found" message
+   ```
+
+4. **PR not mergeable**: Test complete on PR with conflicts
+   - Expected: Clear error about merge conflicts
+
 ### Development
 
 To modify the script:
 
 1. Edit `scripts/github-projects-helper`
-2. Test with various commands
+2. Test with various commands using the testing guide above
 3. The script outputs JSON for programmatic parsing when appropriate
 
 ### Future Enhancements
