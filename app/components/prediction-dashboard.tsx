@@ -47,9 +47,14 @@ export function PredictionDashboard({
     const now = Date.now();
 
     // Count predictions for current games (view-specific)
+    // Must check for both null and undefined - playoff games may have home_team/away_team but not scores
     const predictedCount = games.filter(game => {
       const guess = gameGuesses[game.id];
-      return guess && guess.home_score !== undefined && guess.away_score !== undefined;
+      return guess &&
+        guess.home_score != null &&
+        guess.away_score != null &&
+        typeof guess.home_score === 'number' &&
+        typeof guess.away_score === 'number';
     }).length;
 
     // Count boosts tournament-wide (not just current view)
@@ -60,7 +65,11 @@ export function PredictionDashboard({
     // Calculate urgency warnings for current games
     const unpredictedGamesClosingSoon = games.filter(game => {
       const guess = gameGuesses[game.id];
-      const isPredicted = guess && guess.home_score !== undefined && guess.away_score !== undefined;
+      const isPredicted = guess &&
+        guess.home_score != null &&
+        guess.away_score != null &&
+        typeof guess.home_score === 'number' &&
+        typeof guess.away_score === 'number';
       if (isPredicted) return false;
 
       const timeUntilClose = game.game_date.getTime() - ONE_HOUR - now;

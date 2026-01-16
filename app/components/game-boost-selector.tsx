@@ -5,7 +5,6 @@ import {
   Box,
   IconButton,
   Tooltip,
-  Chip,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -20,6 +19,7 @@ import {
   Close as CloseIcon
 } from '@mui/icons-material';
 import { setGameBoostAction, getBoostCountsAction } from '../actions/game-boost-actions';
+import { BoostBadge, BoostCountBadge } from './boost-badge';
 
 interface GameBoostSelectorProps {
   gameId: string;
@@ -55,8 +55,8 @@ export default function GameBoostSelector({
   const isDisabled = disabled || gameHasStarted || noPrediction;
 
   const getDisabledReason = () => {
-    if (noPrediction) return 'Enter your prediction first';
-    if (gameHasStarted) return 'Game has started';
+    if (noPrediction) return 'Ingresa tu predicción primero';
+    if (gameHasStarted) return 'El partido ya comenzó';
     return '';
   };
 
@@ -87,13 +87,13 @@ export default function GameBoostSelector({
       if (!boostCounts) return;
 
       if (type === 'silver' && boostCounts.silver.used >= boostCounts.silver.max && boostCounts.silver.max > 0) {
-        setErrorMessage(`You've used all ${boostCounts.silver.max} silver boosts. Remove one from another game first.`);
+        setErrorMessage(`Has usado todos tus ${boostCounts.silver.max} multiplicadores de plata. Remueve uno de otro partido primero.`);
         setDialogOpen(true);
         return;
       }
 
       if (type === 'golden' && boostCounts.golden.used >= boostCounts.golden.max && boostCounts.golden.max > 0) {
-        setErrorMessage(`You've used all ${boostCounts.golden.max} golden boosts. Remove one from another game first.`);
+        setErrorMessage(`Has usado todos tus ${boostCounts.golden.max} multiplicadores de oro. Remueve uno de otro partido primero.`);
         setDialogOpen(true);
         return;
       }
@@ -140,94 +140,90 @@ export default function GameBoostSelector({
   }
 
   return (
-    <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
       {/* Silver Boost Button */}
       {boostCounts.silver.max > 0 && (
-        <Tooltip
-          title={
-            isDisabled
-              ? getDisabledReason()
-              : boostType === 'silver'
-              ? 'Click to remove Silver Boost (2x points)'
-              : `Silver Boost (2x points) - ${boostCounts.silver.used}/${boostCounts.silver.max} used`
-          }
-        >
-          <span>
-            <IconButton
-              size="small"
-              onClick={() => handleBoostClick('silver')}
-              disabled={isDisabled || loading}
-              sx={{
-                color: boostType === 'silver' ? '#C0C0C0' : 'action.disabled',
-                '&:hover': {
-                  color: '#C0C0C0',
-                  backgroundColor: 'rgba(192, 192, 192, 0.1)'
-                },
-                ...(boostType === 'silver' && {
-                  backgroundColor: 'rgba(192, 192, 192, 0.2)',
-                  animation: 'pulse 2s infinite'
-                })
-              }}
-            >
-              <StarIcon fontSize="small" />
-            </IconButton>
-          </span>
-        </Tooltip>
+        <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+          <Tooltip
+            title={
+              isDisabled
+                ? getDisabledReason()
+                : boostType === 'silver'
+                ? 'Click para remover Multiplicador de Plata (2x puntos)'
+                : `Multiplicador de Plata (2x puntos) - ${boostCounts.silver.used}/${boostCounts.silver.max} usados`
+            }
+          >
+            <span>
+              <IconButton
+                size="small"
+                onClick={() => handleBoostClick('silver')}
+                disabled={isDisabled || loading}
+                sx={{
+                  color: boostType === 'silver' ? '#C0C0C0' : 'action.disabled',
+                  '&:hover': {
+                    color: '#C0C0C0',
+                    backgroundColor: 'rgba(192, 192, 192, 0.1)'
+                  },
+                  ...(boostType === 'silver' && {
+                    backgroundColor: 'rgba(192, 192, 192, 0.2)',
+                    animation: 'pulse 2s infinite'
+                  })
+                }}
+              >
+                <StarIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <BoostCountBadge type="silver" used={boostCounts.silver.used} max={boostCounts.silver.max} />
+        </Box>
       )}
 
       {/* Golden Boost Button */}
       {boostCounts.golden.max > 0 && (
-        <Tooltip
-          title={
-            isDisabled
-              ? getDisabledReason()
-              : boostType === 'golden'
-              ? 'Click to remove Golden Boost (3x points)'
-              : `Golden Boost (3x points) - ${boostCounts.golden.used}/${boostCounts.golden.max} used`
-          }
-        >
-          <span>
-            <IconButton
-              size="small"
-              onClick={() => handleBoostClick('golden')}
-              disabled={isDisabled || loading}
-              sx={{
-                color: boostType === 'golden' ? '#FFD700' : 'action.disabled',
-                '&:hover': {
-                  color: '#FFD700',
-                  backgroundColor: 'rgba(255, 215, 0, 0.1)'
-                },
-                ...(boostType === 'golden' && {
-                  backgroundColor: 'rgba(255, 215, 0, 0.2)',
-                  animation: 'pulse 2s infinite'
-                })
-              }}
-            >
-              <TrophyIcon fontSize="small" />
-            </IconButton>
-          </span>
-        </Tooltip>
+        <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+          <Tooltip
+            title={
+              isDisabled
+                ? getDisabledReason()
+                : boostType === 'golden'
+                ? 'Click para remover Multiplicador de Oro (3x puntos)'
+                : `Multiplicador de Oro (3x puntos) - ${boostCounts.golden.used}/${boostCounts.golden.max} usados`
+            }
+          >
+            <span>
+              <IconButton
+                size="small"
+                onClick={() => handleBoostClick('golden')}
+                disabled={isDisabled || loading}
+                sx={{
+                  color: boostType === 'golden' ? '#FFD700' : 'action.disabled',
+                  '&:hover': {
+                    color: '#FFD700',
+                    backgroundColor: 'rgba(255, 215, 0, 0.1)'
+                  },
+                  ...(boostType === 'golden' && {
+                    backgroundColor: 'rgba(255, 215, 0, 0.2)',
+                    animation: 'pulse 2s infinite'
+                  })
+                }}
+              >
+                <TrophyIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <BoostCountBadge type="golden" used={boostCounts.golden.used} max={boostCounts.golden.max} />
+        </Box>
       )}
 
-      {/* Boost indicator chip */}
+      {/* Boost indicator badge - shown when boost is applied to current game */}
       {boostType && (
-        <Chip
-          label={boostType === 'silver' ? '2x' : '3x'}
-          size="small"
-          sx={{
-            backgroundColor: boostType === 'silver' ? 'rgba(192, 192, 192, 0.2)' : 'rgba(255, 215, 0, 0.2)',
-            color: boostType === 'silver' ? '#C0C0C0' : '#FFD700',
-            fontWeight: 'bold',
-            fontSize: '0.7rem',
-            height: '20px'
-          }}
-        />
+        <BoostBadge type={boostType} />
       )}
 
       {/* Error Dialog */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle>
-          Boost Limit Reached
+          Límite de Multiplicadores Alcanzado
           <IconButton
             onClick={() => setDialogOpen(false)}
             sx={{ position: 'absolute', right: 8, top: 8 }}
@@ -240,11 +236,11 @@ export default function GameBoostSelector({
             {errorMessage}
           </Alert>
           <Typography variant="body2" color="text.secondary">
-            You can change your boost selections at any time before the games start.
+            Puedes cambiar tus multiplicadores en cualquier momento antes de que comiencen los partidos.
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Close</Button>
+          <Button onClick={() => setDialogOpen(false)}>Cerrar</Button>
         </DialogActions>
       </Dialog>
 
