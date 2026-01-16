@@ -33,23 +33,23 @@ export function PredictionStatusBar({
   const urgencyWarnings = [];
   if (urgentGames > 0) {
     urgencyWarnings.push({
-      level: 'red' as const,
+      severity: 'error' as const,
       count: urgentGames,
-      message: `🔴 URGENTE: ${urgentGames} partido${urgentGames > 1 ? 's' : ''} cierra${urgentGames > 1 ? 'n' : ''} en 2 horas`
+      message: `URGENTE: ${urgentGames} partido${urgentGames > 1 ? 's' : ''} cierra${urgentGames > 1 ? 'n' : ''} en 2 horas`
     });
   }
   if (warningGames > 0) {
     urgencyWarnings.push({
-      level: 'orange' as const,
+      severity: 'warning' as const,
       count: warningGames,
-      message: `🟠 ${warningGames} partido${warningGames > 1 ? 's' : ''} cierra${warningGames > 1 ? 'n' : ''} en 24 horas`
+      message: `${warningGames} partido${warningGames > 1 ? 's' : ''} cierra${warningGames > 1 ? 'n' : ''} en 24 horas`
     });
   }
   if (noticeGames > 0) {
     urgencyWarnings.push({
-      level: 'yellow' as const,
+      severity: 'info' as const,
       count: noticeGames,
-      message: `🟡 ${noticeGames} partido${noticeGames > 1 ? 's' : ''} cierra${noticeGames > 1 ? 'n' : ''} en 2 días`
+      message: `${noticeGames} partido${noticeGames > 1 ? 's' : ''} cierra${noticeGames > 1 ? 'n' : ''} en 2 días`
     });
   }
 
@@ -100,17 +100,8 @@ export function PredictionStatusBar({
           {urgencyWarnings.map((warning, idx) => (
             <Alert
               key={idx}
-              severity={warning.level === 'red' ? 'error' : warning.level === 'orange' ? 'warning' : 'info'}
-              sx={{
-                py: 0.5,
-                ...(warning.level === 'yellow' && {
-                  backgroundColor: '#fff4e5',
-                  color: '#663c00',
-                  '& .MuiAlert-icon': {
-                    color: '#ffa726'
-                  }
-                })
-              }}
+              severity={warning.severity}
+              sx={{ py: 0.5 }}
             >
               {warning.message}
             </Alert>
