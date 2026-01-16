@@ -536,7 +536,78 @@ import { PredictionDashboard } from '@/app/components/prediction-dashboard';
 )}
 ```
 
-### 7. `/app/components/playoffs/tabbed-playoff-page.tsx`
+### 7. `/app/tournaments/[id]/page.tsx` (Main Tournament Page)
+**Changes**: Add dashboard to main tournament landing page
+
+**Current State**: Shows "Fixtures" component (recent + upcoming games, read-only)
+
+**After**: Wrap Fixtures with dashboard for tournament-wide prediction overview
+
+**Pattern**:
+```tsx
+// Import
+import { PredictionDashboard } from '@/app/components/prediction-dashboard';
+import { GuessesContextProvider } from '@/app/components/context-providers/guesses-context-provider';
+import { findGameGuessesByUserId } from '@/app/db/game-guess-repository';
+
+// Fetch data (add to existing fetches)
+const gameGuesses = user ? await findGameGuessesByUserId(user.id, tournamentId) : {};
+const gameGuessesMap = gameGuesses.reduce((acc, guess) => {
+  acc[guess.game_id] = guess;
+  return acc;
+}, {} as Record<string, GameGuessNew>);
+
+// In render (wrap Fixtures)
+<Grid size={{ xs:12, md: 8 }}>
+  {user ? (
+    <GuessesContextProvider
+      gameGuesses={gameGuessesMap}
+      autoSave={false} // Read-only on main page
+    >
+      <PredictionDashboard
+        games={gamesAroundMyTime}
+        teamsMap={teamsMap}
+        tournament={tournament}
+        isPlayoffs={false}
+        isLoggedIn={true}
+        tournamentId={tournamentId}
+        // Render Fixtures as child instead of GamesGrid
+        customGamesRenderer={(filteredGames) => (
+          <Fixtures games={filteredGames} teamsMap={teamsMap} />
+        )}
+      />
+    </GuessesContextProvider>
+  ) : (
+    <Fixtures games={gamesAroundMyTime} teamsMap={teamsMap}/>
+  )}
+</Grid>
+```
+
+**Alternative Approach** (simpler):
+Create separate component `FixturesWithDashboard` that wraps dashboard logic:
+```tsx
+// app/components/tournament-page/fixtures-with-dashboard.tsx
+export function FixturesWithDashboard({ games, teamsMap, tournament }: Props) {
+  const { gameGuesses } = useContext(GuessesContext);
+
+  // Dashboard logic here
+
+  return (
+    <>
+      <PredictionStatusBar ... />
+      <PredictionFilters ... />
+      <Fixtures games={filteredGames} teamsMap={teamsMap} />
+    </>
+  );
+}
+```
+
+**Note**: Main page is read-only (games not editable), so:
+- Dashboard shows stats but users can't edit predictions here
+- Clicking game navigates to group/playoff page for editing
+- Filters still useful for finding games quickly
+
+### 8. `/app/components/playoffs/tabbed-playoff-page.tsx`
 **Changes**: Support dashboard integration with new props
 
 **Add Props**:
@@ -616,13 +687,18 @@ export interface TabbedPlayoffsPageProps {
 6. **Integrate in group page**
    - Import PredictionDashboard
    - Replace GamesGrid with PredictionDashboard for logged-in users
-7. **Modify TabbedPlayoffsPage component**
+   - Pass tournament prop for boost limits
+7. **Integrate in main tournament page**
+   - Add dashboard above Fixtures component
+   - Wrap with GuessesContextProvider
+   - Consider alternative FixturesWithDashboard component approach
+8. **Modify TabbedPlayoffsPage component**
    - Add new props for dashboard support
    - Conditionally render dashboard vs grid
-8. **Integrate in playoffs page**
+9. **Integrate in playoffs page**
    - Pass dashboard props to TabbedPlayoffsPage
-9. **Write unit tests** for all new components
-10. **Manual testing** on both pages, all filters, mobile
+10. **Write unit tests** for all new components
+11. **Manual testing** on all 3 pages (groups, playoffs, main), all filters, mobile
 
 ## Testing Strategy
 
@@ -770,9 +846,10 @@ None - All design decisions made based on existing patterns in codebase.
 - `/app/components/prediction-status-bar.tsx` - Progress display
 - `/app/components/prediction-filters.tsx` - Filter buttons
 
-**Modified Files** (4):
+**Modified Files** (5):
 - `/app/components/games-grid.tsx` - Remove standalone BoostCountsSummary
 - `/app/tournaments/[id]/groups/[group_id]/page.tsx` - Integrate dashboard
+- `/app/tournaments/[id]/page.tsx` - Add dashboard to main tournament page
 - `/app/components/playoffs/tabbed-playoff-page.tsx` - Support dashboard props
 - `/app/tournaments/[id]/playoffs/page.tsx` - Pass dashboard props
 
