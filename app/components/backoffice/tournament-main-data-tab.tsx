@@ -140,8 +140,10 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
         const { allUsers, permittedUserIds } = await getTournamentPermissionData(tournamentId)
         setAllUsers(allUsers)
         setPermittedUserIds(permittedUserIds)
-      } catch (err) {
-        console.error('Error loading permissions:', err)
+      } catch (_err) {
+        // Error is silently ignored as permissions are optional
+        setAllUsers([])
+        setPermittedUserIds([])
       } finally {
         setLoadingPermissions(false)
       }

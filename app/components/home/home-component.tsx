@@ -6,7 +6,7 @@ import {Fragment} from "react";
 import Rules from "../tournament-page/rules";
 import FriendGroupsList from "../tournament-page/friend-groups-list";
 import Link from "next/link";
-import BugReportIcon from '@mui/icons-material/BugReport';
+import { DevTournamentBadge } from "../common/dev-tournament-badge";
 
 type HomeProps = {
   tournaments: Tournament[]
@@ -38,13 +38,7 @@ export default function Home({tournaments, groups} : HomeProps) {
                   <Grid size={12}>
                     <Link href={`/tournaments/${tournament.id}`}>
                       <Box display="flex" alignItems="center" gap={1}>
-                        {tournament.dev_only && (
-                          <BugReportIcon
-                            fontSize="small"
-                            sx={{ color: 'warning.main' }}
-                            titleAccess="Development Tournament"
-                          />
-                        )}
+                        {tournament.dev_only && <DevTournamentBadge />}
                         <Typography
                         variant={'h6'}
                           sx={{

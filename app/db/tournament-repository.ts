@@ -22,6 +22,23 @@ export async function findAllTournaments () {
     .execute()
 }
 
+/**
+ * Helper function to check if user has permission for dev tournaments
+ */
+function buildDevTournamentPermissionCheck(eb: any, userId: string | undefined) {
+  if (!userId) {
+    return eb.val(false)
+  }
+
+  return eb.exists(
+    eb
+      .selectFrom('tournament_view_permissions')
+      .whereRef('tournament_view_permissions.tournament_id', '=', 'tournaments.id')
+      .where('tournament_view_permissions.user_id', '=', userId)
+      .select(eb.lit(1).as('one'))
+  )
+}
+
 export async function findAllActiveTournaments (userId?: string) {
   const isDevMode = isDevelopmentMode()
 
@@ -31,27 +48,14 @@ export async function findAllActiveTournaments (userId?: string) {
 
   // In production, apply dev tournament filtering
   if (!isDevMode) {
-    query = query.where(eb => {
-      return eb.or([
-        // Include non-dev tournaments
-        eb('dev_only', '=', false),
-        // Include dev tournaments if user has permission
-        eb.and([
-          eb('dev_only', '=', true),
-          userId
-            ? eb.exists(
-                eb
-                  .selectFrom('tournament_view_permissions')
-                  .whereRef('tournament_view_permissions.tournament_id', '=', 'tournaments.id')
-                  .where('tournament_view_permissions.user_id', '=', userId)
-                  .select(eb.lit(1).as('one'))
-              )
-            : eb.val(false) // No user = no dev tournament access
-        ])
+    query = query.where(eb => eb.or([
+      eb('dev_only', '=', false),
+      eb.and([
+        eb('dev_only', '=', true),
+        buildDevTournamentPermissionCheck(eb, userId)
       ])
-    })
+    ]))
   }
-  // In development mode, show all active tournaments (no filtering)
 
   return query.selectAll().execute()
 }

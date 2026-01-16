@@ -10,11 +10,11 @@ import EmptyAwardsSnackbar from "../../components/awards/empty-award-notificatio
 import {getPlayersInTournament} from "../../db/player-repository";
 import EnvironmentIndicator from "../../components/environment-indicator";
 import {Typography} from "@mui/material";
-import BugReportIcon from '@mui/icons-material/BugReport';
 import {getThemeLogoUrl} from "../../utils/theme-utils";
 import { isDevelopmentMode } from '../../utils/environment-utils';
 import { hasUserPermission } from '../../db/tournament-view-permission-repository';
 import { redirect, notFound } from 'next/navigation';
+import { DevTournamentBadge } from '../../components/common/dev-tournament-badge';
 
 type TournamentLayoutProps = {
   readonly params: Promise<{
@@ -30,15 +30,16 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
   const layoutData = await getTournamentAndGroupsData(params.id)
 
   // Check if user has permission to view this dev tournament
-  if (layoutData.tournament?.dev_only && !isDevelopmentMode()) {
+  const isDevTournamentInProduction = layoutData.tournament?.dev_only && !isDevelopmentMode()
+  if (isDevTournamentInProduction) {
+    // Require authentication for dev tournaments in production
     if (!user) {
-      // Redirect to login with return URL
       redirect(`/?openSignin=true&returnUrl=/tournaments/${params.id}`)
     }
 
+    // Check if user has explicit permission
     const hasPermission = await hasUserPermission(params.id, user.id)
     if (!hasPermission) {
-      // User doesn't have permission - show 403
       notFound()
     }
   }
@@ -103,10 +104,8 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                 {(layoutData.tournament?.display_name && layoutData.tournament.long_name) && (
                   <Box display="flex" alignItems="center" gap={1}>
                     {layoutData.tournament.dev_only && (
-                      <BugReportIcon
-                        fontSize="small"
-                        sx={{ color: layoutData.tournament.theme?.secondary_color || 'warning.main' }}
-                        titleAccess="Development Tournament"
+                      <DevTournamentBadge
+                        color={layoutData.tournament.theme?.secondary_color || 'warning.main'}
                       />
                     )}
                     <Typography
