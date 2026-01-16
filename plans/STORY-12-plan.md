@@ -12,11 +12,11 @@ Create a prediction tracking dashboard that reduces time to find unpredicted gam
 ## Acceptance Criteria
 - [x] Research codebase patterns for game display and predictions
 - [ ] Display progress indicator: "32/48 games predicted (67%)"
-- [ ] Add filter buttons: All / Unpredicted / Boosted / Closing Soon
 - [ ] Show boost summary: "🥈 3/5 Silver  🥇 1/2 Golden"
-- [ ] Display badge counts on filter buttons
-- [ ] Persist filter preference in localStorage
-- [ ] Filter games based on selected filter
+- [ ] Show urgency warnings for unpredicted games closing soon:
+  - [ ] Red alert: Games closing within 2 hours without prediction
+  - [ ] Orange warning: Games closing within 24 hours without prediction
+  - [ ] Yellow notice: Games closing within 2-3 days without prediction
 - [ ] Mobile responsive layout
 - [ ] Show dashboard on group games page
 - [ ] Show dashboard on playoff games page
@@ -32,23 +32,26 @@ The dashboard sits **ABOVE the games grid** on every page, creating a consistent
 
 ```
 ┌─────────────────────────────────────────────────┐
-│  PREDICTION DASHBOARD                           │
+│  PREDICTION STATUS                              │
 │  ┌──────────────────────────────────────────┐  │
 │  │ Progress: 32/48 (67%)  [■■■■■□□□□□]      │  │
 │  │ 🥈 Silver: 3/5    🥇 Golden: 1/2          │  │
 │  └──────────────────────────────────────────┘  │
 │  ┌──────────────────────────────────────────┐  │
-│  │ [All: 48] [Unpredicted: 16] [Boosted: 4] │  │
-│  │ [Closing Soon: 8]                         │  │
+│  │ 🔴 URGENT: 3 games closing in 2 hours    │  │ ← Red Alert
+│  │ 🟠 5 games closing within 24 hours       │  │ ← Orange Warning
+│  │ 🟡 8 games closing within 2 days         │  │ ← Yellow Notice
 │  └──────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────┘
 ┌─────────────────────────────────────────────────┐
-│  GAMES GRID (filtered based on selection)       │
+│  GAMES GRID (all games, no filtering)           │
 │  ┌──────────┐  ┌──────────┐                    │
 │  │ Game 1   │  │ Game 2   │                    │
+│  │ [🔴 2h]  │  │          │                    │ ← Urgency badge on card
 │  └──────────┘  └──────────┘                    │
 │  ┌──────────┐  ┌──────────┐                    │
 │  │ Game 3   │  │ Game 4   │                    │
+│  │ [🟠 20h] │  │          │                    │
 │  └──────────┘  └──────────┘                    │
 └─────────────────────────────────────────────────┘
 ```
@@ -57,20 +60,20 @@ The dashboard sits **ABOVE the games grid** on every page, creating a consistent
 
 **1. Group Games Page** (`/tournaments/[id]/groups/[group_id]`)
 - **Current**: Shows GamesGrid with editable predictions
-- **After**: Dashboard + filtered GamesGrid
-- **User Flow**: Filter → See relevant games → Edit predictions → Dashboard updates in real-time
+- **After**: Dashboard + GamesGrid (all games visible)
+- **User Flow**: See urgency warnings → Edit predictions → Dashboard updates in real-time
 
 **2. Playoff Games Page** (`/tournaments/[id]/playoffs`)
 - **Current**: Tabbed interface (Round of 16, QF, SF, F) with GamesGrid per tab
-- **After**: Dashboard per tab + filtered GamesGrid
+- **After**: Dashboard per tab + GamesGrid
 - **Behavior**: Each tab shows stats for THAT round only (not tournament-wide)
-- **User Flow**: Switch tab → See round-specific dashboard → Filter games → Edit
+- **User Flow**: Switch tab → See round-specific dashboard with warnings → Edit predictions
 
 **3. Main Tournament Page** (`/tournaments/[id]`)
 - **Current**: Shows "Fixtures" component (recent + upcoming games, read-only)
-- **After**: Dashboard + filtered Fixtures
-- **Behavior**: Tournament-wide stats, filters work for navigation
-- **User Flow**: See unpredicted → Click game → Navigate to edit page
+- **After**: Dashboard + Fixtures
+- **Behavior**: Tournament-wide stats with urgency warnings
+- **User Flow**: See urgency warnings → Click game → Navigate to edit page
 
 ### Real-Time Updates
 
@@ -103,13 +106,13 @@ User edits prediction → updateGameGuess() called
 ## Technical Approach
 
 ### Architecture
-**Client-side filtering approach** - All game data is already loaded in pages (48-64 games typical), so filtering in the client provides instant response with no additional database queries.
+**Simplified approach** - No filters, focus on urgency warnings and progress tracking.
 
 **Component Strategy**:
-1. **New Component**: `PredictionDashboard.tsx` - Orchestrates status bar, filters, and games grid
-2. **New Component**: `PredictionStatusBar.tsx` - Progress indicator with boost chips
-3. **New Component**: `PredictionFilters.tsx` - Filter button group with badge counts
-4. **Modified**: `GamesGrid.tsx` - Remove standalone `BoostCountsSummary` (now part of dashboard)
+1. **New Component**: `PredictionDashboard.tsx` - Orchestrates status bar and games grid
+2. **New Component**: `PredictionStatusBar.tsx` - Progress indicator, boost chips, and urgency warnings
+3. **Modified**: `GamesGrid.tsx` - Remove standalone `BoostCountsSummary` (now part of dashboard)
+4. **Modified**: `CompactGameViewCard.tsx` - Add urgency badge overlay (optional enhancement)
 5. **Modified**: `TabbedPlayoffsPage.tsx` - Support dashboard integration
 6. **Modified**: Pages to integrate dashboard
 
@@ -119,25 +122,25 @@ Server Component (page.tsx)
   → Fetch games + guesses from repositories (already done)
   → Pass data as props
 Client Component (PredictionDashboard)
-  → Calculate stats + badge counts
-  → Apply client-side filtering
-  → Manage filter state + localStorage
-  → Pass filtered games to GamesGrid
+  → Get gameGuesses from GuessesContext (reactive!)
+  → Calculate stats (progress, boosts, urgency warnings)
+  → Display status bar with warnings
+  → Pass all games to GamesGrid (no filtering)
 ```
 
-### Filter Definitions
+### Urgency Warning Definitions
 
-| Filter | Logic |
-|--------|-------|
-| **All** | Show all games (default) |
-| **Unpredicted** | Games where `home_score` and `away_score` are both undefined |
-| **Boosted** | Games where `boost_type` is 'silver' or 'golden' |
-| **Closing Soon** | Games starting within 24 hours but more than 1 hour away |
+Calculate time remaining until game closes (1 hour before game_date):
 
-### localStorage Strategy
-- **Key**: `prediction_filter_preference`
-- **Value**: `"all" | "unpredicted" | "boosted" | "closing_soon"`
-- **Behavior**: Load on mount, save on change, default to "all"
+| Urgency Level | Time Remaining | Color | Display |
+|---------------|----------------|-------|---------|
+| **Red Alert** | < 2 hours | Red (#d32f2f) | "🔴 URGENT: N games closing in X hours" |
+| **Orange Warning** | 2-24 hours | Orange (#ed6c02) | "🟠 N games closing within 24 hours" |
+| **Yellow Notice** | 24-48 hours | Yellow (#ffa726) | "🟡 N games closing within 2 days" |
+
+**Only count unpredicted games** - Games with no prediction or incomplete prediction (missing home_score or away_score).
+
+**Note**: Games lock 1 hour before kickoff (existing `ONE_HOUR` constant in game-view.tsx)
 
 ## Component Implementation Details
 
@@ -411,10 +414,16 @@ function filterGames(
 - Tournament prop provides boost limits
 
 ### 2. `/app/components/prediction-status-bar.tsx`
-**Purpose**: Display prediction progress and boost usage (Client Component)
+**Purpose**: Display prediction progress, boost usage, and urgency warnings (Client Component)
 
 **Props**:
 ```typescript
+interface UrgencyWarning {
+  level: 'red' | 'orange' | 'yellow';
+  count: number;
+  message: string;
+}
+
 interface PredictionStatusBarProps {
   totalGames: number;
   predictedGames: number;
@@ -422,64 +431,121 @@ interface PredictionStatusBarProps {
   silverMax: number;
   goldenUsed: number;
   goldenMax: number;
+  urgencyWarnings: UrgencyWarning[]; // NEW: urgency warnings
 }
 ```
 
 **UI Structure**:
-- Paper container (elevation={0}, light background)
-- Flex layout with gap for horizontal spacing
-- Typography showing "Predictions: X/Y (Z%)"
-- LinearProgress bar (height: 8px, rounded corners)
-- Boost chips with Star icon (silver) and Trophy icon (golden)
-- Hide boost chips if max values are 0
+```tsx
+<Paper elevation={0} sx={{ p: 2, mb: 2, backgroundColor: 'rgba(0, 0, 0, 0.02)', borderRadius: 2 }}>
+  {/* Progress Section */}
+  <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
+    <Typography variant="body2" color="text.secondary" fontWeight="medium">
+      Predictions: {predictedGames}/{totalGames} ({percentage}%)
+    </Typography>
+    <LinearProgress
+      variant="determinate"
+      value={percentage}
+      sx={{ flexGrow: 1, height: 8, borderRadius: 4 }}
+    />
+    {/* Boost chips (if enabled) */}
+    {silverMax > 0 && <Chip icon={<StarIcon />} label={`🥈 ${silverUsed}/${silverMax}`} size="small" />}
+    {goldenMax > 0 && <Chip icon={<EmojiEventsIcon />} label={`🥇 ${goldenUsed}/${goldenMax}`} size="small" />}
+  </Box>
 
-**Styling Pattern**: Follow `BoostCountsSummary` pattern
+  {/* Urgency Warnings Section */}
+  {urgencyWarnings.length > 0 && (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+      {urgencyWarnings.map((warning, idx) => (
+        <Alert
+          key={idx}
+          severity={warning.level === 'red' ? 'error' : warning.level === 'orange' ? 'warning' : 'info'}
+          sx={{ py: 0.5 }}
+        >
+          {warning.message}
+        </Alert>
+      ))}
+    </Box>
+  )}
+</Paper>
+```
+
+**Urgency Calculation** (done in PredictionDashboard, passed as prop):
+```typescript
+const calculateUrgencyWarnings = (games: ExtendedGameData[], gameGuesses: Record<string, GameGuessNew>): UrgencyWarning[] => {
+  const now = Date.now();
+  const ONE_HOUR = 60 * 60 * 1000;
+
+  const unpredictedGamesClosingSoon = games.filter(game => {
+    const guess = gameGuesses[game.id];
+    const isPredicted = guess && guess.home_score !== undefined && guess.away_score !== undefined;
+    if (isPredicted) return false;
+
+    const timeUntilClose = game.game_date.getTime() - ONE_HOUR - now;
+    return timeUntilClose > 0 && timeUntilClose < 48 * 60 * 60 * 1000; // Within 48 hours
+  });
+
+  const warnings: UrgencyWarning[] = [];
+
+  const redCount = unpredictedGamesClosingSoon.filter(g => {
+    const timeUntilClose = g.game_date.getTime() - ONE_HOUR - now;
+    return timeUntilClose < 2 * 60 * 60 * 1000; // < 2 hours
+  }).length;
+
+  if (redCount > 0) {
+    warnings.push({
+      level: 'red',
+      count: redCount,
+      message: `🔴 URGENT: ${redCount} game${redCount > 1 ? 's' : ''} closing within 2 hours`
+    });
+  }
+
+  const orangeCount = unpredictedGamesClosingSoon.filter(g => {
+    const timeUntilClose = g.game_date.getTime() - ONE_HOUR - now;
+    return timeUntilClose >= 2 * 60 * 60 * 1000 && timeUntilClose < 24 * 60 * 60 * 1000; // 2-24 hours
+  }).length;
+
+  if (orangeCount > 0) {
+    warnings.push({
+      level: 'orange',
+      count: orangeCount,
+      message: `🟠 ${orangeCount} game${orangeCount > 1 ? 's' : ''} closing within 24 hours`
+    });
+  }
+
+  const yellowCount = unpredictedGamesClosingSoon.filter(g => {
+    const timeUntilClose = g.game_date.getTime() - ONE_HOUR - now;
+    return timeUntilClose >= 24 * 60 * 60 * 1000 && timeUntilClose < 48 * 60 * 60 * 1000; // 24-48 hours
+  }).length;
+
+  if (yellowCount > 0) {
+    warnings.push({
+      level: 'yellow',
+      count: yellowCount,
+      message: `🟡 ${yellowCount} game${yellowCount > 1 ? 's' : ''} closing within 2 days`
+    });
+  }
+
+  return warnings;
+};
+```
+
+**Styling**:
 - Silver color: `#C0C0C0`
 - Golden color: `#FFD700`
 - Paper background: `rgba(0, 0, 0, 0.02)`
+- Red alert: MUI Alert severity="error" (#d32f2f)
+- Orange warning: MUI Alert severity="warning" (#ed6c02)
+- Yellow notice: MUI Alert severity="info" with custom color (#ffa726)
 
-### 3. `/app/components/prediction-filters.tsx`
-**Purpose**: Filter button group with badge counts (Client Component)
-
-**Props**:
-```typescript
-interface PredictionFiltersProps {
-  activeFilter: FilterType;
-  onFilterChange: (filter: FilterType) => void;
-  badgeCounts: {
-    all: number;
-    unpredicted: number;
-    boosted: number;
-    closingSoon: number;
-  };
-  showBoostedFilter: boolean; // Hide if tournament has no boosts
-}
-```
-
-**UI Structure**:
-- ButtonGroup with outlined buttons
-- Active filter shows as contained button
-- Badge component showing count for each filter
-- Responsive: flexWrap for mobile (buttons wrap)
-- Hide "Boosted" button if `showBoostedFilter` is false
-
-**Badge Colors**:
-- All: `color="default"` (gray)
-- Unpredicted: `color="error"` (red)
-- Boosted: `color="primary"` (blue)
-- Closing Soon: `color="warning"` (orange)
-
-### 4. `/app/components/prediction-dashboard-types.ts` (optional)
+### 3. `/app/components/prediction-dashboard-types.ts` (optional)
 **Purpose**: Type definitions for dashboard components
 
 ```typescript
-export type FilterType = 'all' | 'unpredicted' | 'boosted' | 'closing_soon';
-
-export interface FilterBadgeCounts {
-  all: number;
-  unpredicted: number;
-  boosted: number;
-  closingSoon: number;
+export interface UrgencyWarning {
+  level: 'red' | 'orange' | 'yellow';
+  count: number;
+  message: string;
 }
 ```
 
