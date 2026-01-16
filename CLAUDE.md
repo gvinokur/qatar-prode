@@ -93,6 +93,560 @@ npm test  # This runs in the original directory, not the worktree
 - Keep stable branch running while developing
 - Review PRs without disrupting current work
 
+### GitHub Projects Integration
+
+This project uses GitHub Projects for project management, tracking epics, stories, and milestones. The workflow is streamlined using a Python helper script (`scripts/github-projects-helper`) that encapsulates complex GitHub CLI operations.
+
+**Helper Script Benefits:**
+- ✅ **Single commands** instead of 5-10 bash invocations
+- ✅ **Reduced token usage** in Claude conversations
+- ✅ **Automatic prioritization** of candidate stories
+- ✅ **Built-in error handling** with clear, colored output
+- ✅ **JSON output** for programmatic parsing
+- ✅ **Comprehensive workflow** from story start to completion
+
+**Prerequisites:**
+- Python 3.7+ installed
+- GitHub CLI (`gh`) must be installed and authenticated
+- User must have write access to the repository and projects
+- Repository must be linked to GitHub Projects
+
+**Quick Reference:**
+```bash
+# See all available commands
+./scripts/github-projects-helper --help
+
+# Common workflow
+./scripts/github-projects-helper projects stats 1
+./scripts/github-projects-helper stories suggest 1 --milestone "Sprint 1-2"
+./scripts/github-projects-helper story start 12
+./scripts/github-projects-helper pr wait-checks 45
+./scripts/github-projects-helper story complete 12
+```
+
+For complete documentation, see: `scripts/README.md`
+
+**Terminology:**
+- **Project**: A GitHub Project board (e.g., "Qatar Prode v2.0")
+- **Epic**: Large work items (issues with label "epic")
+- **Story**: Individual work items (issues with labels "story" or "user-story")
+- **Milestone**: Grouping of related issues with a target date
+- **Project Fields**: Custom fields on GitHub Projects (Status, Priority, Size, etc.)
+
+#### Querying Project Status
+
+**Getting Open Projects Overview:**
+When the user asks "which projects do I have open" or "show me project status":
+
+```bash
+# List all open projects with item counts and details
+./scripts/github-projects-helper projects list
+```
+
+Present a summary including:
+- Project name and number
+- Total issues/items
+- Project description and URL
+
+**Getting Detailed Project Information:**
+When the user asks for details on a specific project:
+
+```bash
+# Get comprehensive project statistics
+./scripts/github-projects-helper projects stats <PROJECT_NUMBER>
+```
+
+This single command provides:
+- Total items count
+- Breakdown by status (Todo, In Progress, Done)
+- Breakdown by priority (Critical, High, Medium, Low) with emojis
+- Breakdown by milestone with item counts
+- Breakdown by effort estimation
+- Breakdown by category
+
+The script automatically aggregates and formats all statistics in a readable format.
+
+#### Proposing Stories to Work On
+
+When the user asks "what should I work on" or "propose candidate stories":
+
+```bash
+# Get top candidate stories (automatically prioritized)
+./scripts/github-projects-helper stories suggest <PROJECT_NUMBER>
+
+# Filter by milestone
+./scripts/github-projects-helper stories suggest <PROJECT_NUMBER> --milestone "Sprint 1-2: Critical Fixes"
+
+# Filter by priority
+./scripts/github-projects-helper stories suggest <PROJECT_NUMBER> --priority Critical
+
+# Customize number of suggestions
+./scripts/github-projects-helper stories suggest <PROJECT_NUMBER> --limit 10
+```
+
+**Automatic Prioritization:**
+The script uses a scoring algorithm that considers:
+- **Priority weight**: Critical (10), High (7), Medium (5), Low (3)
+- **Effort bonus**: Low effort (3), Medium (2), High (1)
+- **Combined score**: Higher scores = better candidates (quick wins get highest scores)
+
+**Output includes:**
+- Story number and title
+- Priority with emoji indicators
+- Effort estimation
+- Milestone association
+- Calculated score
+
+Only suggests stories with status "Todo" or "Ready" (filters out In Progress, Done, Blocked).
+
+#### Starting Work on a Story
+
+When the user selects a story to work on (e.g., "let's work on story #123"):
+
+```bash
+# Start work on a story (all-in-one command)
+./scripts/github-projects-helper story start <STORY_NUMBER>
+
+# Include project number for future status updates
+./scripts/github-projects-helper story start <STORY_NUMBER> --project <PROJECT_NUMBER>
+```
+
+**What this single command does:**
+1. Creates worktree at `../qatar-prode-story-<STORY_NUMBER>`
+2. Creates feature branch `feature/story-<STORY_NUMBER>`
+3. Copies `.env.local` to the new worktree (critical for database connection)
+4. Assigns the issue to current user (`@me`)
+5. Outputs JSON with worktree path, branch name, and issue details
+
+**Example output:**
+```json
+{
+  "worktree_path": "/Users/username/qatar-prode-story-123",
+  "branch_name": "feature/story-123",
+  "issue_number": 123,
+  "issue_title": "Progressive Onboarding Flow"
+}
+```
+
+Present confirmation to user:
+- Worktree location
+- Branch name
+- Issue title
+- Next steps (plan the work)
+
+**Note:** Project status update to "In Progress" is not yet implemented (requires GraphQL field IDs). Update manually in GitHub Projects UI if needed.
+
+#### Planning Work for Current Story
+
+When the user asks to "plan work for current story" or "create a plan":
+
+1. **Trigger EnterPlanMode:**
+```typescript
+// Use EnterPlanMode tool to transition to plan mode
+```
+
+2. **Read story details:**
+```bash
+# Fetch full issue details including body, labels, milestone
+gh issue view ${STORY_NUMBER} --json number,title,body,labels,milestone,projectItems
+
+# If story references a milestone, fetch milestone description
+gh api repos/<owner>/<repo>/milestones/<milestone_number> --jq '.description'
+
+# If story is linked to an epic, fetch epic details
+gh issue view <EPIC_NUMBER> --json body
+```
+
+3. **Research context:**
+- Read referenced documentation in milestone/project docs
+- Review acceptance criteria in story description
+- Check related issues or dependencies
+- Search codebase for relevant files
+
+4. **Gather requirements (use AskUserQuestion):**
+- Ask clarifying questions about ambiguous requirements
+- Confirm technical approach preferences
+- Validate assumptions about scope
+- Get decisions on implementation choices
+
+5. **Create plan document:**
+```bash
+# Create plans directory if it doesn't exist
+mkdir -p plans
+
+# Create plan file
+PLAN_FILE="plans/STORY-${STORY_NUMBER}-plan.md"
+```
+
+Plan document structure:
+```markdown
+# Plan: [Story Title] (#STORY_NUMBER)
+
+## Story Context
+- **Epic**: [Link to epic if applicable]
+- **Milestone**: [Milestone name and goals]
+- **Priority**: [High/Medium/Low]
+- **Size Estimate**: [S/M/L/XL]
+
+## Objective
+[Clear statement of what this story aims to accomplish]
+
+## Acceptance Criteria
+[List from story description]
+- [ ] Criterion 1
+- [ ] Criterion 2
+- [ ] Criterion 3
+
+## Technical Approach
+
+### Architecture Changes
+[Describe any new patterns or structural changes]
+
+### Files to Create
+- `path/to/new-file.ts` - Purpose
+
+### Files to Modify
+- `path/to/existing-file.ts` - Changes needed
+
+### Dependencies
+- New packages to install (if any)
+- Other stories that must be completed first
+
+## Implementation Steps
+
+1. [Step 1]
+2. [Step 2]
+3. [Step 3]
+...
+
+## Testing Strategy
+- Unit tests for [specific components/functions]
+- Integration tests for [workflows]
+- Manual testing steps
+
+## Rollout Considerations
+- Breaking changes (if any)
+- Migration steps (if any)
+- Feature flags (if needed)
+
+## Open Questions
+[Any remaining unknowns - use AskUserQuestion to resolve]
+```
+
+6. **Commit and create PR for plan:**
+```bash
+# In the worktree directory
+git -C ${WORKTREE_PATH} add plans/STORY-${STORY_NUMBER}-plan.md
+git -C ${WORKTREE_PATH} commit -m "docs: add implementation plan for story #${STORY_NUMBER}
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+
+git -C ${WORKTREE_PATH} push -u origin ${BRANCH_NAME}
+
+# Create PR
+gh pr create --base main --head ${BRANCH_NAME} \
+  --title "Plan: [Story Title] (#${STORY_NUMBER})" \
+  --body "Implementation plan for #${STORY_NUMBER}
+
+## Summary
+This PR contains the implementation plan for the story.
+
+## Plan Document
+See \`plans/STORY-${STORY_NUMBER}-plan.md\` for full details.
+
+## Next Steps
+- Review and approve plan
+- Iterate on plan based on feedback
+- Execute plan once approved
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)"
+```
+
+7. **Exit plan mode:**
+```typescript
+// Use ExitPlanMode tool when plan is complete
+```
+
+Present to user:
+- Plan created at: `plans/STORY-${STORY_NUMBER}-plan.md`
+- PR opened: [PR URL]
+- Ready for review and iteration
+
+**Plan Iteration:**
+User will review the plan and provide feedback. Make updates to the plan document and push changes to the same PR. This cycle continues until the user approves the plan.
+
+#### Executing the Plan
+
+When the user says "execute the plan" or "start implementation":
+
+1. **Read the approved plan:**
+```bash
+cat plans/STORY-${STORY_NUMBER}-plan.md
+```
+
+2. **Implement according to plan:**
+- Follow implementation steps in order
+- Create/modify files as specified
+- Write tests as outlined in testing strategy
+- Use TodoWrite tool to track progress through implementation steps
+
+3. **IMPORTANT - Commit Policy During Execution:**
+- ❌ **NEVER commit code without user verification**
+- ❌ **NEVER commit automatically after each change**
+- ✅ **Only commit when user explicitly asks to commit**
+- ✅ **Only commit when user says they've verified locally**
+- User needs opportunity to:
+  - Run code locally
+  - Test functionality
+  - Review changes
+  - Request modifications
+
+4. **When user asks to commit:**
+```bash
+# In worktree directory
+git -C ${WORKTREE_PATH} add .
+git -C ${WORKTREE_PATH} commit -m "<descriptive message>
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+```
+
+5. **When pushing to GitHub (first push after implementation):**
+```bash
+# Push to remote
+git -C ${WORKTREE_PATH} push
+
+# Update story status to "Pending Review"
+gh project item-edit --project-id <PROJECT_ID> --id ${PROJECT_ITEM_ID} --field-id <STATUS_FIELD_ID> --text "Pending Review"
+```
+
+6. **When pushing to existing PR:**
+
+After push, **ALWAYS wait for deployment checks:**
+
+```bash
+# Wait for Vercel and SonarCloud checks (single command)
+./scripts/github-projects-helper pr wait-checks <PR_NUMBER>
+
+# Custom timeout (default: 1800 seconds / 30 minutes)
+./scripts/github-projects-helper pr wait-checks <PR_NUMBER> --timeout 3600
+
+# Custom poll interval (default: 30 seconds)
+./scripts/github-projects-helper pr wait-checks <PR_NUMBER> --poll-interval 60
+```
+
+**What this command does:**
+1. Polls PR checks every 30 seconds (configurable)
+2. Monitors Vercel deployment status
+3. Monitors SonarCloud analysis status
+4. Displays live status updates: `[120s] Vercel: IN_PROGRESS SonarCloud: QUEUED`
+5. Exits when both checks complete
+6. Reports final success/failure with colors
+7. Outputs JSON with check results
+
+**Example output:**
+```
+Waiting for PR #45 checks to complete...
+[30s] Vercel: IN_PROGRESS SonarCloud: QUEUED
+[60s] Vercel: IN_PROGRESS SonarCloud: IN_PROGRESS
+[90s] Vercel: COMPLETED SonarCloud: IN_PROGRESS
+[120s] Vercel: COMPLETED SonarCloud: COMPLETED
+
+✓ Vercel: SUCCESS
+✓ SonarCloud: SUCCESS
+
+{
+  "vercel": "SUCCESS",
+  "sonar": "SUCCESS"
+}
+```
+
+7. **If checks fail:**
+
+**Vercel deployment failure:**
+```bash
+# Get deployment logs
+gh pr view ${PR_NUMBER} --json statusCheckRollup --jq '.statusCheckRollup[] | select(.name | contains("vercel"))'
+
+# Common causes:
+# - Build errors (TypeScript, linting)
+# - Missing environment variables
+# - Import/module resolution issues
+```
+
+Propose fixes:
+- Review build logs for specific errors
+- Check for TypeScript errors: `npm run build` in worktree
+- Verify imports and dependencies
+- Fix and commit changes, then wait for re-deployment
+
+**SonarCloud failure:**
+```bash
+# Get SonarCloud report URL
+gh pr view ${PR_NUMBER} --json statusCheckRollup --jq '.statusCheckRollup[] | select(.name | contains("SonarCloud")) | .targetUrl'
+
+# Common issues:
+# - Code coverage below 60%
+# - Code smells or bugs detected
+# - Security vulnerabilities
+# - Duplicated code
+```
+
+Propose fixes:
+- Add missing tests to improve coverage
+- Refactor code to address code smells
+- Fix security issues
+- Reduce code duplication
+- Fix and commit changes, then wait for re-analysis
+
+8. **When checks pass:**
+Present to user:
+- ✓ Vercel deployment successful: [Preview URL]
+- ✓ SonarCloud quality gate passed: [Report URL]
+- Code is ready for final review
+- User can verify functionality on preview deployment
+
+#### Merging and Completing Story
+
+When user says "merge the PR" or "close the story":
+
+```bash
+# Complete the story (all-in-one command)
+./scripts/github-projects-helper story complete <STORY_NUMBER>
+
+# Specify PR number explicitly (otherwise auto-detected)
+./scripts/github-projects-helper story complete <STORY_NUMBER> --pr <PR_NUMBER>
+
+# Use regular merge instead of squash
+./scripts/github-projects-helper story complete <STORY_NUMBER> --merge-method merge
+```
+
+**What this single command does:**
+1. Finds the PR for the story (if not specified)
+2. Verifies PR is open and mergeable
+3. Merges the PR with specified method (default: squash)
+4. Deletes the feature branch automatically
+5. Closes the issue with reason "completed"
+6. Removes the worktree directory
+7. Prunes worktree references
+
+**Example output:**
+```
+Completing story #123...
+ℹ Finding PR for story...
+✓ Found PR #45
+ℹ Checking if PR is mergeable...
+ℹ Merging PR #45 with squash...
+✓ PR #45 merged and branch deleted
+ℹ Closing issue #123...
+✓ Issue #123 closed
+ℹ Cleaning up worktree at /Users/username/qatar-prode-story-123...
+✓ Worktree removed
+
+Story Complete! 🎉
+  Story #123 has been merged and closed
+  Worktree cleaned up
+  Ready to start the next story!
+```
+
+**Error Handling:**
+- If PR not found, exits with error message
+- If PR is not mergeable (conflicts, failing checks), exits with clear error
+- If worktree doesn't exist, skips cleanup gracefully
+
+**Note:** Project status update to "Done" is not yet implemented (requires GraphQL field IDs). Update manually in GitHub Projects UI if needed.
+
+#### GitHub API Notes
+
+**Finding Project and Field IDs:**
+```bash
+# List projects to get PROJECT_ID
+gh api graphql -f query='
+  query {
+    user(login: "<username>") {
+      projectsV2(first: 10) {
+        nodes {
+          id
+          title
+          number
+        }
+      }
+    }
+  }'
+
+# Get field IDs for a project
+gh api graphql -f query='
+  query {
+    node(id: "<PROJECT_ID>") {
+      ... on ProjectV2 {
+        fields(first: 20) {
+          nodes {
+            ... on ProjectV2Field {
+              id
+              name
+            }
+            ... on ProjectV2SingleSelectField {
+              id
+              name
+              options {
+                id
+                name
+              }
+            }
+          }
+        }
+      }
+    }
+  }'
+```
+
+**Updating Project Fields:**
+```bash
+# Update single-select field (Status, Priority, etc.)
+gh api graphql -f query='
+  mutation {
+    updateProjectV2ItemFieldValue(
+      input: {
+        projectId: "<PROJECT_ID>"
+        itemId: "<ITEM_ID>"
+        fieldId: "<FIELD_ID>"
+        value: {
+          singleSelectOptionId: "<OPTION_ID>"
+        }
+      }
+    ) {
+      projectV2Item {
+        id
+      }
+    }
+  }'
+```
+
+#### Common Patterns
+
+**Current Story Context:**
+Maintain context about the current story being worked on:
+- Story number
+- Worktree path
+- Branch name
+- PR number (once created)
+- Project and field IDs
+
+**Story Number Extraction:**
+When user refers to "story #123" or "issue 123", extract the number and use it consistently throughout the workflow.
+
+**Error Handling:**
+- If `gh` commands fail, check authentication: `gh auth status`
+- If project commands fail, verify project access and existence
+- If worktree creation fails, check for existing worktree with same name
+- If status updates fail, verify field IDs and option IDs are correct
+
+**Best Practices:**
+- Always confirm actions with user before executing destructive operations (merge, delete)
+- Provide clear status updates at each step
+- Include relevant links (PR, issue, deployment preview) in summaries
+- Use TodoWrite to track multi-step workflows
+- Keep user informed about wait times (deployment checks, CI runs)
+
 ## Architecture
 
 ### Stack Overview
