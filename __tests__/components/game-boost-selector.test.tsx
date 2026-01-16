@@ -1,14 +1,17 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import GameBoostSelector from '../../app/components/game-boost-selector';
 
-// Mock Server Actions
+// Mock Server Actions using vi.hoisted to avoid hoisting issues
+const { mockSetGameBoostAction, mockGetBoostCountsAction } = vi.hoisted(() => ({
+  mockSetGameBoostAction: vi.fn(),
+  mockGetBoostCountsAction: vi.fn(),
+}));
+
 vi.mock('../../app/actions/game-boost-actions', () => ({
-  setGameBoostAction: vi.fn(),
-  getBoostCountsAction: vi.fn(() => Promise.resolve({
-    silver: { used: 2, max: 5 },
-    golden: { used: 1, max: 2 },
-  })),
+  setGameBoostAction: mockSetGameBoostAction,
+  getBoostCountsAction: mockGetBoostCountsAction,
 }));
 
 // Mock boost badge components
@@ -34,22 +37,28 @@ describe('GameBoostSelector', () => {
     noPrediction: false,
   };
 
+  const defaultBoostCounts = {
+    silver: { used: 2, max: 5 },
+    golden: { used: 1, max: 2 },
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetBoostCountsAction.mockResolvedValue(defaultBoostCounts);
+    mockSetGameBoostAction.mockResolvedValue(undefined);
   });
 
   describe('Rendering', () => {
     it('renders boost count badges for silver and golden', async () => {
       render(<GameBoostSelector {...mockProps} />);
 
-      // Wait for boost counts to load
       await screen.findByTestId('boost-count-silver');
 
       expect(screen.getByTestId('boost-count-silver')).toHaveTextContent('2x: 2/5');
       expect(screen.getByTestId('boost-count-golden')).toHaveTextContent('3x: 1/2');
     });
 
-    it('renders boost badge when boost is applied', async () => {
+    it('renders boost badge when silver boost is applied', async () => {
       render(<GameBoostSelector {...mockProps} currentBoostType="silver" />);
 
       await screen.findByTestId('boost-count-silver');
@@ -57,31 +66,282 @@ describe('GameBoostSelector', () => {
       expect(screen.getByTestId('boost-badge-silver')).toBeInTheDocument();
     });
 
-    it('renders boost badge for golden boost', async () => {
+    it('renders boost badge when golden boost is applied', async () => {
       render(<GameBoostSelector {...mockProps} currentBoostType="golden" />);
 
       await screen.findByTestId('boost-count-golden');
 
       expect(screen.getByTestId('boost-badge-golden')).toBeInTheDocument();
     });
+
+    it('renders nothing when both boost maxes are 0', async () => {
+      mockGetBoostCountsAction.mockResolvedValue({
+        silver: { used: 0, max: 0 },
+        golden: { used: 0, max: 0 },
+      });
+
+      const { container } = render(<GameBoostSelector {...mockProps} />);
+
+      await waitFor(() => {
+        expect(container.firstChild).toBeNull();
+      });
+    });
+
+    it('renders only silver boost when golden max is 0', async () => {
+      mockGetBoostCountsAction.mockResolvedValue({
+        silver: { used: 2, max: 5 },
+        golden: { used: 0, max: 0 },
+      });
+
+      render(<GameBoostSelector {...mockProps} />);
+
+      await screen.findByTestId('boost-count-silver');
+
+      expect(screen.getByTestId('boost-count-silver')).toBeInTheDocument();
+      expect(screen.queryByTestId('boost-count-golden')).not.toBeInTheDocument();
+    });
+
+    it('renders only golden boost when silver max is 0', async () => {
+      mockGetBoostCountsAction.mockResolvedValue({
+        silver: { used: 0, max: 0 },
+        golden: { used: 1, max: 2 },
+      });
+
+      render(<GameBoostSelector {...mockProps} />);
+
+      await screen.findByTestId('boost-count-golden');
+
+      expect(screen.queryByTestId('boost-count-silver')).not.toBeInTheDocument();
+      expect(screen.getByTestId('boost-count-golden')).toBeInTheDocument();
+    });
+  });
+
+  describe('Boost Click Handlers', () => {
+    it('applies silver boost when silver button is clicked', async () => {
+      const user = userEvent.setup();
+      render(<GameBoostSelector {...mockProps} />);
+
+      await screen.findByTestId('boost-count-silver');
+
+      const silverButton = screen.getAllByRole('button')[0]; // First icon button
+      await user.click(silverButton);
+
+      await waitFor(() => {
+        expect(mockSetGameBoostAction).toHaveBeenCalledWith('game-123', 'silver');
+      });
+    });
+
+    it('applies golden boost when golden button is clicked', async () => {
+      const user = userEvent.setup();
+      render(<GameBoostSelector {...mockProps} />);
+
+      await screen.findByTestId('boost-count-golden');
+
+      const goldenButton = screen.getAllByRole('button')[1]; // Second icon button
+      await user.click(goldenButton);
+
+      await waitFor(() => {
+        expect(mockSetGameBoostAction).toHaveBeenCalledWith('game-123', 'golden');
+      });
+    });
+
+    it('removes boost when clicking active boost button', async () => {
+      const user = userEvent.setup();
+      render(<GameBoostSelector {...mockProps} currentBoostType="silver" />);
+
+      await screen.findByTestId('boost-badge-silver');
+
+      const silverButton = screen.getAllByRole('button')[0];
+      await user.click(silverButton);
+
+      await waitFor(() => {
+        expect(mockSetGameBoostAction).toHaveBeenCalledWith('game-123', null);
+      });
+    });
+
+    it('switches from silver to golden boost', async () => {
+      const user = userEvent.setup();
+      render(<GameBoostSelector {...mockProps} currentBoostType="silver" />);
+
+      await screen.findByTestId('boost-badge-silver');
+
+      const goldenButton = screen.getAllByRole('button')[1];
+      await user.click(goldenButton);
+
+      await waitFor(() => {
+        expect(mockSetGameBoostAction).toHaveBeenCalledWith('game-123', 'golden');
+      });
+    });
+
+    it('updates boost counts after applying boost', async () => {
+      const user = userEvent.setup();
+      render(<GameBoostSelector {...mockProps} />);
+
+      await screen.findByTestId('boost-count-silver');
+
+      expect(screen.getByTestId('boost-count-silver')).toHaveTextContent('2x: 2/5');
+
+      const silverButton = screen.getAllByRole('button')[0];
+      await user.click(silverButton);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('boost-count-silver')).toHaveTextContent('2x: 3/5');
+      });
+    });
+
+    it('updates boost counts after removing boost', async () => {
+      const user = userEvent.setup();
+      render(<GameBoostSelector {...mockProps} currentBoostType="silver" />);
+
+      await screen.findByTestId('boost-badge-silver');
+
+      expect(screen.getByTestId('boost-count-silver')).toHaveTextContent('2x: 2/5');
+
+      const silverButton = screen.getAllByRole('button')[0];
+      await user.click(silverButton);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('boost-count-silver')).toHaveTextContent('2x: 1/5');
+      });
+    });
+
+    it('updates counts correctly when switching boosts', async () => {
+      const user = userEvent.setup();
+      render(<GameBoostSelector {...mockProps} currentBoostType="silver" />);
+
+      await screen.findByTestId('boost-badge-silver');
+
+      expect(screen.getByTestId('boost-count-silver')).toHaveTextContent('2x: 2/5');
+      expect(screen.getByTestId('boost-count-golden')).toHaveTextContent('3x: 1/2');
+
+      const goldenButton = screen.getAllByRole('button')[1];
+      await user.click(goldenButton);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('boost-count-silver')).toHaveTextContent('2x: 1/5');
+        expect(screen.getByTestId('boost-count-golden')).toHaveTextContent('3x: 2/2');
+      });
+    });
+  });
+
+  describe('Error Handling - Max Boosts Reached', () => {
+    it('shows error dialog when max silver boosts reached', async () => {
+      mockGetBoostCountsAction.mockResolvedValue({
+        silver: { used: 5, max: 5 },
+        golden: { used: 1, max: 2 },
+      });
+
+      const user = userEvent.setup();
+      render(<GameBoostSelector {...mockProps} />);
+
+      await screen.findByTestId('boost-count-silver');
+
+      const silverButton = screen.getAllByRole('button')[0];
+      await user.click(silverButton);
+
+      await screen.findByText(/Has usado todos tus 5 multiplicadores de plata/);
+      expect(screen.getByText(/Límite de Multiplicadores Alcanzado/)).toBeInTheDocument();
+    });
+
+    it('shows error dialog when max golden boosts reached', async () => {
+      mockGetBoostCountsAction.mockResolvedValue({
+        silver: { used: 2, max: 5 },
+        golden: { used: 2, max: 2 },
+      });
+
+      const user = userEvent.setup();
+      render(<GameBoostSelector {...mockProps} />);
+
+      await screen.findByTestId('boost-count-golden');
+
+      const goldenButton = screen.getAllByRole('button')[1];
+      await user.click(goldenButton);
+
+      await screen.findByText(/Has usado todos tus 2 multiplicadores de oro/);
+      expect(screen.getByText(/Límite de Multiplicadores Alcanzado/)).toBeInTheDocument();
+    });
+
+    it('closes error dialog when close button is clicked', async () => {
+      mockGetBoostCountsAction.mockResolvedValue({
+        silver: { used: 5, max: 5 },
+        golden: { used: 1, max: 2 },
+      });
+
+      const user = userEvent.setup();
+      render(<GameBoostSelector {...mockProps} />);
+
+      await screen.findByTestId('boost-count-silver');
+
+      const silverButton = screen.getAllByRole('button')[0];
+      await user.click(silverButton);
+
+      await screen.findByText(/Límite de Multiplicadores Alcanzado/);
+
+      // Find the icon button (CloseIcon) - it's the button without text content in the dialog
+      const buttons = screen.getAllByRole('button');
+      const closeButton = buttons.find(btn => !btn.textContent);
+      await user.click(closeButton!);
+
+      await waitFor(() => {
+        expect(screen.queryByText(/Límite de Multiplicadores Alcanzado/)).not.toBeInTheDocument();
+      });
+    });
+
+    it('closes error dialog when Cerrar button is clicked', async () => {
+      mockGetBoostCountsAction.mockResolvedValue({
+        silver: { used: 5, max: 5 },
+        golden: { used: 1, max: 2 },
+      });
+
+      const user = userEvent.setup();
+      render(<GameBoostSelector {...mockProps} />);
+
+      await screen.findByTestId('boost-count-silver');
+
+      const silverButton = screen.getAllByRole('button')[0];
+      await user.click(silverButton);
+
+      await screen.findByText(/Límite de Multiplicadores Alcanzado/);
+
+      const cerrarButton = screen.getByRole('button', { name: /cerrar/i });
+      await user.click(cerrarButton);
+
+      await waitFor(() => {
+        expect(screen.queryByText(/Límite de Multiplicadores Alcanzado/)).not.toBeInTheDocument();
+      });
+    });
+
+    it('shows error dialog when setGameBoostAction fails', async () => {
+      mockSetGameBoostAction.mockRejectedValue(new Error('Network error'));
+
+      const user = userEvent.setup();
+      render(<GameBoostSelector {...mockProps} />);
+
+      await screen.findByTestId('boost-count-silver');
+
+      const silverButton = screen.getAllByRole('button')[0];
+      await user.click(silverButton);
+
+      await screen.findByText(/Network error/);
+      expect(screen.getByText(/Límite de Multiplicadores Alcanzado/)).toBeInTheDocument();
+    });
   });
 
   describe('Disabled States', () => {
-    it('renders disabled tooltip when game has started', async () => {
+    it('disables buttons when game has started', async () => {
       render(<GameBoostSelector {...mockProps} gameDate={pastDate} />);
 
       await screen.findByTestId('boost-count-silver');
 
-      // Buttons should be disabled
       const buttons = screen.getAllByRole('button');
-      const iconButtons = buttons.filter(btn => !btn.textContent); // IconButtons don't have text
+      const iconButtons = buttons.filter(btn => !btn.textContent);
 
       iconButtons.forEach(button => {
         expect(button).toBeDisabled();
       });
     });
 
-    it('renders disabled tooltip when no prediction entered', async () => {
+    it('disables buttons when no prediction entered', async () => {
       render(<GameBoostSelector {...mockProps} noPrediction={true} />);
 
       await screen.findByTestId('boost-count-silver');
@@ -94,7 +354,7 @@ describe('GameBoostSelector', () => {
       });
     });
 
-    it('renders disabled when disabled prop is true', async () => {
+    it('disables buttons when disabled prop is true', async () => {
       render(<GameBoostSelector {...mockProps} disabled={true} />);
 
       await screen.findByTestId('boost-count-silver');
@@ -106,18 +366,125 @@ describe('GameBoostSelector', () => {
         expect(button).toBeDisabled();
       });
     });
-  });
 
-  describe('Spanish Translations', () => {
-    it('uses Spanish text for tooltips and messages', async () => {
-      // This test verifies the translations are in place
-      // The actual tooltip text is tested through the disabled state rendering
-      const { container } = render(<GameBoostSelector {...mockProps} />);
+    it('does not call setGameBoostAction when button is disabled', async () => {
+      render(<GameBoostSelector {...mockProps} disabled={true} />);
 
       await screen.findByTestId('boost-count-silver');
 
-      // Component should render without errors with Spanish translations
-      expect(container).toBeInTheDocument();
+      const silverButton = screen.getAllByRole('button')[0];
+
+      // Verify button is disabled - userEvent correctly refuses to click disabled buttons
+      expect(silverButton).toBeDisabled();
+      expect(mockSetGameBoostAction).not.toHaveBeenCalled();
+    });
+
+    it('disables buttons while loading', async () => {
+      mockSetGameBoostAction.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
+
+      const user = userEvent.setup();
+      render(<GameBoostSelector {...mockProps} />);
+
+      await screen.findByTestId('boost-count-silver');
+
+      const silverButton = screen.getAllByRole('button')[0];
+      await user.click(silverButton);
+
+      // During loading, buttons should be disabled
+      await waitFor(() => {
+        const buttons = screen.getAllByRole('button');
+        const iconButtons = buttons.filter(btn => !btn.textContent);
+        iconButtons.forEach(button => {
+          expect(button).toBeDisabled();
+        });
+      });
+    });
+  });
+
+  describe('Loading State', () => {
+    it('handles loading state during boost update', async () => {
+      let resolvePromise: () => void;
+      const promise = new Promise<void>(resolve => {
+        resolvePromise = resolve;
+      });
+      mockSetGameBoostAction.mockReturnValue(promise);
+
+      const user = userEvent.setup();
+      render(<GameBoostSelector {...mockProps} />);
+
+      await screen.findByTestId('boost-count-silver');
+
+      const silverButton = screen.getAllByRole('button')[0];
+      await user.click(silverButton);
+
+      // Buttons should be disabled during loading
+      await waitFor(() => {
+        expect(silverButton).toBeDisabled();
+      });
+
+      resolvePromise!();
+
+      // After loading, buttons should be enabled again
+      await waitFor(() => {
+        expect(silverButton).not.toBeDisabled();
+      });
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('handles getBoostCountsAction error gracefully', async () => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+      mockGetBoostCountsAction.mockRejectedValue(new Error('Failed to fetch'));
+
+      const { container } = render(<GameBoostSelector {...mockProps} />);
+
+      await waitFor(() => {
+        expect(consoleError).toHaveBeenCalledWith('Error fetching boost counts:', expect.any(Error));
+      });
+
+      // Component should render nothing when counts fail to load
+      expect(container.firstChild).toBeNull();
+
+      consoleError.mockRestore();
+    });
+
+    it('shows generic error message when setGameBoostAction fails without message', async () => {
+      mockSetGameBoostAction.mockRejectedValue({});
+
+      const user = userEvent.setup();
+      render(<GameBoostSelector {...mockProps} />);
+
+      await screen.findByTestId('boost-count-silver');
+
+      const silverButton = screen.getAllByRole('button')[0];
+      await user.click(silverButton);
+
+      await screen.findByText(/Error updating boost/);
+    });
+  });
+
+  describe('useEffect Hooks', () => {
+    it('updates boost type when currentBoostType prop changes', async () => {
+      const { rerender } = render(<GameBoostSelector {...mockProps} currentBoostType="silver" />);
+
+      await screen.findByTestId('boost-badge-silver');
+
+      expect(screen.getByTestId('boost-badge-silver')).toBeInTheDocument();
+
+      rerender(<GameBoostSelector {...mockProps} currentBoostType="golden" />);
+
+      await screen.findByTestId('boost-badge-golden');
+
+      expect(screen.queryByTestId('boost-badge-silver')).not.toBeInTheDocument();
+      expect(screen.getByTestId('boost-badge-golden')).toBeInTheDocument();
+    });
+
+    it('fetches boost counts on mount', async () => {
+      render(<GameBoostSelector {...mockProps} />);
+
+      await screen.findByTestId('boost-count-silver');
+
+      expect(mockGetBoostCountsAction).toHaveBeenCalledWith('tournament-123');
     });
   });
 });
