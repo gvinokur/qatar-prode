@@ -35,7 +35,7 @@ export function PredictionStatusBar({
     urgencyWarnings.push({
       severity: 'error' as const,
       count: urgentGames,
-      message: `URGENTE: ${urgentGames} partido${urgentGames > 1 ? 's' : ''} cierra${urgentGames > 1 ? 'n' : ''} en 2 horas`
+      message: `${urgentGames} partido${urgentGames > 1 ? 's' : ''} cierra${urgentGames > 1 ? 'n' : ''} en 2 horas`
     });
   }
   if (warningGames > 0) {
