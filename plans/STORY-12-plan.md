@@ -20,7 +20,85 @@ Create a prediction tracking dashboard that reduces time to find unpredicted gam
 - [ ] Mobile responsive layout
 - [ ] Show dashboard on group games page
 - [ ] Show dashboard on playoff games page
+- [ ] Show dashboard on main tournament page
+- [ ] Real-time updates when predictions/boosts change
 - [ ] Write comprehensive unit tests
+
+## UX Layout & Page Integration
+
+### Where the Dashboard Appears
+
+The dashboard sits **ABOVE the games grid** on every page, creating a consistent prediction management experience:
+
+```
+┌─────────────────────────────────────────────────┐
+│  PREDICTION DASHBOARD                           │
+│  ┌──────────────────────────────────────────┐  │
+│  │ Progress: 32/48 (67%)  [■■■■■□□□□□]      │  │
+│  │ 🥈 Silver: 3/5    🥇 Golden: 1/2          │  │
+│  └──────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────┐  │
+│  │ [All: 48] [Unpredicted: 16] [Boosted: 4] │  │
+│  │ [Closing Soon: 8]                         │  │
+│  └──────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────┐
+│  GAMES GRID (filtered based on selection)       │
+│  ┌──────────┐  ┌──────────┐                    │
+│  │ Game 1   │  │ Game 2   │                    │
+│  └──────────┘  └──────────┘                    │
+│  ┌──────────┐  ┌──────────┐                    │
+│  │ Game 3   │  │ Game 4   │                    │
+│  └──────────┘  └──────────┘                    │
+└─────────────────────────────────────────────────┘
+```
+
+### Integration Points
+
+**1. Group Games Page** (`/tournaments/[id]/groups/[group_id]`)
+- **Current**: Shows GamesGrid with editable predictions
+- **After**: Dashboard + filtered GamesGrid
+- **User Flow**: Filter → See relevant games → Edit predictions → Dashboard updates in real-time
+
+**2. Playoff Games Page** (`/tournaments/[id]/playoffs`)
+- **Current**: Tabbed interface (Round of 16, QF, SF, F) with GamesGrid per tab
+- **After**: Dashboard per tab + filtered GamesGrid
+- **Behavior**: Each tab shows stats for THAT round only (not tournament-wide)
+- **User Flow**: Switch tab → See round-specific dashboard → Filter games → Edit
+
+**3. Main Tournament Page** (`/tournaments/[id]`)
+- **Current**: Shows "Fixtures" component (recent + upcoming games, read-only)
+- **After**: Dashboard + filtered Fixtures
+- **Behavior**: Tournament-wide stats, filters work for navigation
+- **User Flow**: See unpredicted → Click game → Navigate to edit page
+
+### Real-Time Updates
+
+**Problem Identified**: Boost counts and prediction stats currently don't update immediately when predictions change.
+
+**Solution**: Use `GuessesContext` for reactive updates
+
+```typescript
+// GuessesContext provides:
+// - gameGuesses: Record<string, GameGuessNew> (reactive state)
+// - updateGameGuess: (gameId, guess) => void
+// - Context re-renders consumers when gameGuesses changes
+
+// PredictionDashboard will:
+1. Consume GuessesContext via useContext
+2. Listen to gameGuesses changes via useMemo
+3. Recalculate stats automatically when predictions change
+4. No manual refresh needed!
+```
+
+**Real-time Update Flow**:
+```
+User edits prediction → updateGameGuess() called
+→ GuessesContext updates gameGuesses state
+→ PredictionDashboard re-renders (context consumer)
+→ Stats recalculated (useMemo triggered)
+→ UI updates immediately
+```
 
 ## Technical Approach
 
