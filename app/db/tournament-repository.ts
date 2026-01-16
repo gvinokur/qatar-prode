@@ -1,4 +1,5 @@
-import { db } from './database'
+import { db, Database } from './database'
+import { ExpressionBuilder } from 'kysely'
 import {createBaseFunctions} from "./base-repository";
 import {Tournament, TournamentTable, TournamentTeamTable} from "./tables-definition";
 import {isDevelopmentMode} from "../utils/environment-utils";
@@ -25,7 +26,10 @@ export async function findAllTournaments () {
 /**
  * Helper function to check if user has permission for dev tournaments
  */
-function buildDevTournamentPermissionCheck(eb: any, userId: string | undefined) {
+function buildDevTournamentPermissionCheck(
+  eb: ExpressionBuilder<Database, 'tournaments'>,
+  userId: string | undefined
+) {
   if (!userId) {
     return eb.val(false)
   }

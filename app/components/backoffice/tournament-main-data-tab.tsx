@@ -140,8 +140,9 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
         const { allUsers, permittedUserIds } = await getTournamentPermissionData(tournamentId)
         setAllUsers(allUsers)
         setPermittedUserIds(permittedUserIds)
-      } catch (_err) {
-        // Error is silently ignored as permissions are optional
+      } catch {
+        // Permissions are optional - fallback to empty state on error
+        // In production, this should be logged to error tracking service
         setAllUsers([])
         setPermittedUserIds([])
       } finally {
