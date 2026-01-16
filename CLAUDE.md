@@ -374,35 +374,52 @@ See \`plans/STORY-${STORY_NUMBER}-plan.md\` for full details.
 ./scripts/github-projects-helper status update ${STORY_NUMBER} "Pending Review" --project <PROJECT_NUMBER>
 ```
 
-7. **Exit plan mode:**
-```typescript
-// Use ExitPlanMode tool when plan is complete
-```
+7. **STOP. DO NOT EXIT PLAN MODE. DO NOT START IMPLEMENTATION.**
 
 Present to user:
 - Plan created at: `plans/STORY-${STORY_NUMBER}-plan.md`
 - PR opened: [PR URL]
-- Ready for review and iteration
+- Waiting for review and approval
 
-**Plan Iteration:**
-User will review the plan and provide feedback. Make updates to the plan document and push changes to the same PR. This cycle continues until the user approves the plan.
+**CRITICAL**:
+- **DO NOT call ExitPlanMode yet** - stay in plan mode for iterations
+- **DO NOT start writing code** - wait for user to say "execute the plan"
+- **DO NOT make any file changes** except to the plan document during review
+
+**Plan Iteration Phase:**
+User will review the plan and provide feedback. During this phase:
+- **REMAIN in plan mode** (able to edit plan file)
+- Make updates to `plans/STORY-${STORY_NUMBER}-plan.md` based on feedback
+- Commit and push changes to the same PR
+- This cycle continues until the user explicitly approves the plan
+
+When user approves (says "execute the plan" or similar):
+- **THEN call ExitPlanMode** to transition from planning to implementation
+- Proceed to "Executing the Plan" section below
 
 #### Executing the Plan
 
+**ONLY start this section when the user explicitly says "execute the plan" or "start implementation".**
+
 When the user says "execute the plan" or "start implementation":
 
-1. **Read the approved plan:**
+1. **Exit plan mode and transition to implementation:**
+```typescript
+// Use ExitPlanMode tool to exit plan mode
+```
+
+2. **Read the approved plan:**
 ```bash
 cat plans/STORY-${STORY_NUMBER}-plan.md
 ```
 
-2. **Implement according to plan:**
+3. **Implement according to plan:**
 - Follow implementation steps in order
 - Create/modify files as specified
 - Write tests as outlined in testing strategy
 - Use TodoWrite tool to track progress through implementation steps
 
-3. **IMPORTANT - Commit Policy During Execution:**
+4. **IMPORTANT - Commit Policy During Execution:**
 - ❌ **NEVER commit code without user verification**
 - ❌ **NEVER commit automatically after each change**
 - ✅ **Only commit when user explicitly asks to commit**
@@ -413,7 +430,7 @@ cat plans/STORY-${STORY_NUMBER}-plan.md
   - Review changes
   - Request modifications
 
-4. **When user asks to commit:**
+5. **When user asks to commit:**
 ```bash
 # In worktree directory
 git -C ${WORKTREE_PATH} add .
@@ -422,7 +439,7 @@ git -C ${WORKTREE_PATH} commit -m "<descriptive message>
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 ```
 
-5. **When pushing to GitHub (first push after implementation):**
+6. **When pushing to GitHub (first push after implementation):**
 ```bash
 # Push to remote
 git -C ${WORKTREE_PATH} push
@@ -431,7 +448,7 @@ git -C ${WORKTREE_PATH} push
 gh project item-edit --project-id <PROJECT_ID> --id ${PROJECT_ITEM_ID} --field-id <STATUS_FIELD_ID> --text "Pending Review"
 ```
 
-6. **When pushing to existing PR:**
+7. **When pushing to existing PR:**
 
 After push, **ALWAYS wait for deployment checks:**
 
@@ -472,7 +489,7 @@ Waiting for PR #45 checks to complete...
 }
 ```
 
-7. **If checks fail:**
+8. **If checks fail:**
 
 **Vercel deployment failure:**
 ```bash
@@ -510,7 +527,7 @@ Propose fixes:
 - Reduce code duplication
 - Fix and commit changes, then wait for re-analysis
 
-8. **When checks pass:**
+9. **When checks pass:**
 Present to user:
 - ✓ Vercel deployment successful: [Preview URL]
 - ✓ SonarCloud quality gate passed: [Report URL]
