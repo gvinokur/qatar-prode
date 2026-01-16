@@ -116,12 +116,15 @@ This project uses GitHub Projects for project management, tracking epics, storie
 # See all available commands
 ./scripts/github-projects-helper --help
 
-# Common workflow
+# Common workflow (include --project 1 for automatic status updates)
 ./scripts/github-projects-helper projects stats 1
 ./scripts/github-projects-helper stories suggest 1 --milestone "Sprint 1-2"
-./scripts/github-projects-helper story start 12
+./scripts/github-projects-helper story start 12 --project 1      # Sets "In Progress"
 ./scripts/github-projects-helper pr wait-checks 45
-./scripts/github-projects-helper story complete 12
+./scripts/github-projects-helper story complete 12 --project 1   # Sets "Done"
+
+# Manual status update (e.g., after creating PR)
+./scripts/github-projects-helper status update 12 "Pending Review" --project 1
 ```
 
 For complete documentation, see: `scripts/README.md`
@@ -205,9 +208,7 @@ When the user selects a story to work on (e.g., "let's work on story #123"):
 
 ```bash
 # Start work on a story (all-in-one command)
-./scripts/github-projects-helper story start <STORY_NUMBER>
-
-# Include project number for future status updates
+# IMPORTANT: Include --project flag to enable automatic status updates
 ./scripts/github-projects-helper story start <STORY_NUMBER> --project <PROJECT_NUMBER>
 ```
 
@@ -216,7 +217,15 @@ When the user selects a story to work on (e.g., "let's work on story #123"):
 2. Creates feature branch `feature/story-<STORY_NUMBER>`
 3. Copies `.env.local` to the new worktree (critical for database connection)
 4. Assigns the issue to current user (`@me`)
-5. Outputs JSON with worktree path, branch name, and issue details
+5. **Updates project status to "In Progress"** (if --project provided)
+6. Outputs JSON with worktree path, branch name, and issue details
+
+**Status Update:**
+The script uses semantic matching to find the appropriate status:
+- Looks for status field in the project
+- Matches "In Progress", "In Dev", "Working", "Started" (case-insensitive)
+- Uses GraphQL to update the project item status
+- Falls back gracefully with warning if status field not found
 
 **Example output:**
 ```json
@@ -360,6 +369,9 @@ See \`plans/STORY-${STORY_NUMBER}-plan.md\` for full details.
 - Execute plan once approved
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)"
+
+# OPTIONAL: Update status to "Pending Review" (if project uses this status)
+./scripts/github-projects-helper status update ${STORY_NUMBER} "Pending Review" --project <PROJECT_NUMBER>
 ```
 
 7. **Exit plan mode:**
@@ -511,13 +523,14 @@ When user says "merge the PR" or "close the story":
 
 ```bash
 # Complete the story (all-in-one command)
-./scripts/github-projects-helper story complete <STORY_NUMBER>
+# IMPORTANT: Include --project flag to enable automatic status updates
+./scripts/github-projects-helper story complete <STORY_NUMBER> --project <PROJECT_NUMBER>
 
 # Specify PR number explicitly (otherwise auto-detected)
-./scripts/github-projects-helper story complete <STORY_NUMBER> --pr <PR_NUMBER>
+./scripts/github-projects-helper story complete <STORY_NUMBER> --pr <PR_NUMBER> --project <PROJECT_NUMBER>
 
 # Use regular merge instead of squash
-./scripts/github-projects-helper story complete <STORY_NUMBER> --merge-method merge
+./scripts/github-projects-helper story complete <STORY_NUMBER> --merge-method merge --project <PROJECT_NUMBER>
 ```
 
 **What this single command does:**
@@ -526,8 +539,10 @@ When user says "merge the PR" or "close the story":
 3. Merges the PR with specified method (default: squash)
 4. Deletes the feature branch automatically
 5. Closes the issue with reason "completed"
-6. Removes the worktree directory
-7. Prunes worktree references
+6. **Updates project status to "Done"** (if --project provided)
+7. Removes the worktree directory
+8. Deletes the local branch
+9. Prunes worktree references
 
 **Example output:**
 ```
@@ -552,8 +567,9 @@ Story Complete! 🎉
 - If PR not found, exits with error message
 - If PR is not mergeable (conflicts, failing checks), exits with clear error
 - If worktree doesn't exist, skips cleanup gracefully
+- If status update fails, shows warning but continues with other operations
 
-**Note:** Project status update to "Done" is not yet implemented (requires GraphQL field IDs). Update manually in GitHub Projects UI if needed.
+**Note:** Status updates use semantic matching to find the appropriate status field. If your project uses different status names, the script will attempt partial matching. If automatic updates fail, you can manually update in GitHub Projects UI or use the `status update` command.
 
 #### GitHub API Notes
 

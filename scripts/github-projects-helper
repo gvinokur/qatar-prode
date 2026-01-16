@@ -34,6 +34,7 @@ class GitHubProjectsHelper:
         self.repo_path = Path(repo_path).resolve()
         self.owner = None
         self.repo_name = None
+        self._project_fields_cache = {}  # Cache for project fields
         self._load_repo_info()
 
     def _load_repo_info(self):
@@ -95,6 +96,208 @@ class GitHubProjectsHelper:
     def _header(self, msg: str):
         """Print header message."""
         self._print(f"\n{Colors.BOLD}{msg}{Colors.RESET}", Colors.BLUE)
+
+    # ==================== PROJECT FIELD OPERATIONS ====================
+
+    def _get_project_fields(self, project_number: int) -> Dict:
+        """Fetch and cache project fields including status options."""
+        cache_key = f"project_{project_number}_fields"
+
+        if cache_key in self._project_fields_cache:
+            return self._project_fields_cache[cache_key]
+
+        try:
+            result = self._run_command([
+                "gh", "project", "field-list", str(project_number),
+                "--owner", self.owner,
+                "--format", "json",
+                "--limit", "100"
+            ])
+            data = json.loads(result.stdout)
+            self._project_fields_cache[cache_key] = data
+            return data
+        except Exception as e:
+            self._warning(f"Could not fetch project fields: {e}")
+            return {"fields": []}
+
+    def _find_status_field(self, project_number: int) -> Optional[Dict]:
+        """Find the Status field in the project."""
+        fields_data = self._get_project_fields(project_number)
+
+        for field in fields_data.get("fields", []):
+            # Look for Status field (case-insensitive)
+            if field.get("name", "").lower() == "status" and field.get("type") == "ProjectV2SingleSelectField":
+                return field
+
+        return None
+
+    def _match_status_option(self, status_field: Dict, semantic_names: List[str]) -> Optional[Dict]:
+        """
+        Match status option by semantic names.
+
+        Args:
+            status_field: The status field dict with options
+            semantic_names: List of possible names to match (e.g., ["In Progress", "In Dev", "Working"])
+
+        Returns:
+            Dict with 'id' and 'name' of matched option, or None
+        """
+        options = status_field.get("options", [])
+
+        # Try exact match first (case-insensitive)
+        for semantic_name in semantic_names:
+            for option in options:
+                if option.get("name", "").lower() == semantic_name.lower():
+                    return option
+
+        # Try partial match
+        for semantic_name in semantic_names:
+            for option in options:
+                option_name = option.get("name", "").lower()
+                semantic_lower = semantic_name.lower()
+                if semantic_lower in option_name or option_name in semantic_lower:
+                    return option
+
+        return None
+
+    def _get_project_item_id(self, project_number: int, issue_number: int) -> Optional[str]:
+        """Get the project item ID for a given issue."""
+        try:
+            result = self._run_command([
+                "gh", "project", "item-list", str(project_number),
+                "--owner", self.owner,
+                "--format", "json",
+                "--limit", "500"
+            ])
+            data = json.loads(result.stdout)
+
+            for item in data.get("items", []):
+                content = item.get("content", {})
+                if content.get("number") == issue_number:
+                    return item.get("id")
+
+            return None
+        except Exception as e:
+            self._warning(f"Could not find project item: {e}")
+            return None
+
+    def _update_project_item_status(
+        self,
+        project_number: int,
+        issue_number: int,
+        status_name: str
+    ) -> bool:
+        """
+        Update project item status using semantic matching.
+
+        Args:
+            project_number: The project number
+            issue_number: The issue number
+            status_name: Semantic status name (e.g., "In Progress", "Pending Review", "Done")
+
+        Returns:
+            True if successful, False otherwise
+        """
+        # Get project fields to find status field
+        status_field = self._find_status_field(project_number)
+        if not status_field:
+            self._warning("Status field not found in project")
+            return False
+
+        # Define semantic mappings
+        semantic_map = {
+            "in_progress": ["In Progress", "In Dev", "In Development", "Working", "Started"],
+            "pending_review": ["Pending Review", "In Review", "Review", "Ready for Review"],
+            "done": ["Done", "Completed", "Closed", "Finished"]
+        }
+
+        # Determine which semantic group to search
+        status_lower = status_name.lower()
+        search_names = []
+
+        if any(x in status_lower for x in ["progress", "dev", "working", "started"]):
+            search_names = semantic_map["in_progress"]
+        elif any(x in status_lower for x in ["review", "pending"]):
+            search_names = semantic_map["pending_review"]
+        elif any(x in status_lower for x in ["done", "complete", "close", "finish"]):
+            search_names = semantic_map["done"]
+        else:
+            # Fallback: try exact match with provided name
+            search_names = [status_name]
+
+        # Find matching status option
+        status_option = self._match_status_option(status_field, search_names)
+        if not status_option:
+            self._warning(f"Could not find status option matching: {status_name}")
+            return False
+
+        # Get project item ID
+        item_id = self._get_project_item_id(project_number, issue_number)
+        if not item_id:
+            self._warning(f"Could not find project item for issue #{issue_number}")
+            return False
+
+        # Get project global ID (need to query GraphQL for this)
+        try:
+            # First get project ID using GraphQL
+            query = '''
+            query($owner: String!, $number: Int!) {
+              user(login: $owner) {
+                projectV2(number: $number) {
+                  id
+                }
+              }
+            }
+            '''
+
+            result = self._run_command([
+                "gh", "api", "graphql",
+                "-f", f"query={query}",
+                "-F", f"owner={self.owner}",
+                "-F", f"number={project_number}"
+            ])
+            project_data = json.loads(result.stdout)
+            project_id = project_data.get("data", {}).get("user", {}).get("projectV2", {}).get("id")
+
+            if not project_id:
+                self._warning("Could not get project ID")
+                return False
+
+            # Now update the status using GraphQL mutation
+            mutation = '''
+            mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+              updateProjectV2ItemFieldValue(
+                input: {
+                  projectId: $projectId
+                  itemId: $itemId
+                  fieldId: $fieldId
+                  value: {
+                    singleSelectOptionId: $optionId
+                  }
+                }
+              ) {
+                projectV2Item {
+                  id
+                }
+              }
+            }
+            '''
+
+            self._run_command([
+                "gh", "api", "graphql",
+                "-f", f"query={mutation}",
+                "-f", f"projectId={project_id}",
+                "-f", f"itemId={item_id}",
+                "-f", f"fieldId={status_field['id']}",
+                "-f", f"optionId={status_option['id']}"
+            ])
+
+            self._success(f"Updated status to: {status_option['name']}")
+            return True
+
+        except Exception as e:
+            self._warning(f"Could not update project status: {e}")
+            return False
 
     # ==================== PROJECT OPERATIONS ====================
 
@@ -205,25 +408,6 @@ class GitHubProjectsHelper:
     # - Bulk creation from CSV/JSON files
     # - Template-based issue creation with variable substitution
     # Example: ./scripts/github-projects-helper stories create --from-file stories.json --project 1
-
-    # TODO: Implement GitHub Projects V2 status updates via GraphQL
-    # Current limitation: Status updates require GraphQL mutations with multiple IDs:
-    # - Project ID (global ID, not project number)
-    # - Project Item ID (the issue's ID within the project)
-    # - Status Field ID
-    # - Status Option IDs (for "In Progress", "Pending Review", "Done", etc.)
-    #
-    # These IDs must be fetched via GraphQL queries first, then used in mutations.
-    # The gh CLI doesn't provide a simple way to update project fields.
-    #
-    # Implementation approach:
-    # 1. Add method to fetch and cache project field metadata
-    # 2. Add method to update item status via GraphQL mutation
-    # 3. Call in story_start() to set "In Progress"
-    # 4. Document how to set "Pending Review" when PR is created
-    # 5. Call in story_complete() to set "Done"
-    #
-    # See CLAUDE.md "GitHub API Notes" section for GraphQL query examples
 
     def suggest_stories(
         self,
@@ -354,9 +538,9 @@ class GitHubProjectsHelper:
         # Update project status if project number provided
         if project_number:
             self._info("Updating project status to 'In Progress'...")
-            # Note: This requires GraphQL and field IDs, which is complex
-            # For now, we'll skip this and let the user do it manually
-            self._warning("Project status update not yet implemented - please update manually")
+            success = self._update_project_item_status(project_number, issue_number, "In Progress")
+            if not success:
+                self._warning("Could not update project status automatically - please update manually")
 
         # Print summary
         self._header("Setup Complete!")
@@ -471,7 +655,8 @@ class GitHubProjectsHelper:
         self,
         issue_number: int,
         pr_number: Optional[int] = None,
-        merge_method: str = "squash"
+        merge_method: str = "squash",
+        project_number: Optional[int] = None
     ) -> bool:
         """
         Complete a story:
@@ -530,6 +715,13 @@ class GitHubProjectsHelper:
             "--reason", "completed"
         ])
         self._success(f"Issue #{issue_number} closed")
+
+        # Update project status if project number provided
+        if project_number:
+            self._info("Updating project status to 'Done'...")
+            success = self._update_project_item_status(project_number, issue_number, "Done")
+            if not success:
+                self._warning("Could not update project status automatically - please update manually")
 
         # Clean up worktree
         worktree_path = self.repo_path.parent / f"{self.repo_name}-story-{issue_number}"
@@ -620,6 +812,7 @@ Examples:
     complete_parser.add_argument("issue_number", type=int, help="Issue number")
     complete_parser.add_argument("--pr", type=int, help="PR number (auto-detected if not provided)")
     complete_parser.add_argument("--merge-method", choices=["squash", "merge", "rebase"], default="squash", help="Merge method (default: squash)")
+    complete_parser.add_argument("--project", type=int, help="Project number (for status update)")
 
     # PR commands
     pr_parser = subparsers.add_parser("pr", help="Pull request operations")
@@ -629,6 +822,15 @@ Examples:
     wait_parser.add_argument("pr_number", type=int, help="PR number")
     wait_parser.add_argument("--timeout", type=int, default=1800, help="Timeout in seconds (default: 1800)")
     wait_parser.add_argument("--poll-interval", type=int, default=30, help="Poll interval in seconds (default: 30)")
+
+    # Status update commands
+    status_parser = subparsers.add_parser("status", help="Update project item status")
+    status_subparsers = status_parser.add_subparsers(dest="subcommand")
+
+    update_parser = status_subparsers.add_parser("update", help="Update story status in project")
+    update_parser.add_argument("issue_number", type=int, help="Issue number")
+    update_parser.add_argument("status", help="Status to set (e.g., 'Pending Review', 'In Progress', 'Done')")
+    update_parser.add_argument("--project", type=int, required=True, help="Project number")
 
     args = parser.parse_args()
 
@@ -662,13 +864,17 @@ Examples:
                 # Output JSON for programmatic use
                 print(f"\n{json.dumps(result, indent=2)}")
             elif args.subcommand == "complete":
-                helper.complete_story(args.issue_number, args.pr, args.merge_method)
+                helper.complete_story(args.issue_number, args.pr, args.merge_method, args.project)
 
         elif args.command == "pr":
             if args.subcommand == "wait-checks":
                 result = helper.wait_for_checks(args.pr_number, args.timeout, args.poll_interval)
                 # Output JSON for programmatic use
                 print(f"\n{json.dumps(result, indent=2)}")
+
+        elif args.command == "status":
+            if args.subcommand == "update":
+                helper._update_project_item_status(args.project, args.issue_number, args.status)
 
     except KeyboardInterrupt:
         print("\n\nOperation cancelled by user")
