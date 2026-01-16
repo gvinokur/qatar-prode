@@ -1,23 +1,23 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
-
-// Mock GuessesContext to avoid NextAuth module resolution issues
-// Use vi.hoisted to ensure mock is set up before imports
-const { GuessesContext } = vi.hoisted(() => ({
-  GuessesContext: React.createContext({
-    gameGuesses: {},
-    setGameGuesses: vi.fn(),
-  }),
-}));
-
-vi.mock('../../app/components/context-providers/guesses-context-provider', () => ({
-  GuessesContext,
-}));
-
-import { PredictionDashboard } from '../../app/components/prediction-dashboard';
 import type { ExtendedGameData } from '../../app/definitions';
 import type { Tournament } from '../../app/db/tables-definition';
+
+// Mock GuessesContext to avoid NextAuth module resolution issues
+vi.mock('../../app/components/context-providers/guesses-context-provider', () => {
+  const React = require('react');
+  return {
+    GuessesContext: React.createContext({
+      gameGuesses: {},
+      setGameGuesses: vi.fn(),
+    }),
+  };
+});
+
+// Import AFTER mock is set up
+import { PredictionDashboard } from '../../app/components/prediction-dashboard';
+import { GuessesContext } from '../../app/components/context-providers/guesses-context-provider';
 
 // Mock child components
 vi.mock('../../app/components/prediction-status-bar', () => ({
