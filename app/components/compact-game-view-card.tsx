@@ -388,7 +388,7 @@ export default function CompactGameViewCard({
           </Box>
         )}
       {specificProps.isGameGuess &&
-        gameDate < new Date() &&
+        gameDate.getTime() < Date.now() &&
         !(specificProps.gameResult &&
           Number.isInteger(specificProps.gameResult.home_score) &&
           Number.isInteger(specificProps.gameResult.away_score)) && (

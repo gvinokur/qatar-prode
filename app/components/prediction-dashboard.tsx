@@ -73,11 +73,14 @@ export function PredictionDashboard({
       if (isPredicted) return false;
 
       const timeUntilClose = game.game_date.getTime() - ONE_HOUR - now;
-      return timeUntilClose > 0 && timeUntilClose < 48 * 60 * 60 * 1000;
+      // Include games that are closing now or closing soon (within 48 hours)
+      // Changed from > 0 to > -ONE_HOUR to include recently closed games
+      return timeUntilClose > -ONE_HOUR && timeUntilClose < 48 * 60 * 60 * 1000;
     });
 
     const urgentGames = unpredictedGamesClosingSoon.filter(g => {
       const timeUntilClose = g.game_date.getTime() - ONE_HOUR - now;
+      // Urgent: closing within 2 hours (or closed within the last hour)
       return timeUntilClose < 2 * 60 * 60 * 1000;
     }).length;
 
