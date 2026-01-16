@@ -206,25 +206,6 @@ class GitHubProjectsHelper:
     # - Template-based issue creation with variable substitution
     # Example: ./scripts/github-projects-helper stories create --from-file stories.json --project 1
 
-    # TODO: Implement GitHub Projects V2 status updates via GraphQL
-    # Current limitation: Status updates require GraphQL mutations with multiple IDs:
-    # - Project ID (global ID, not project number)
-    # - Project Item ID (the issue's ID within the project)
-    # - Status Field ID
-    # - Status Option IDs (for "In Progress", "Pending Review", "Done", etc.)
-    #
-    # These IDs must be fetched via GraphQL queries first, then used in mutations.
-    # The gh CLI doesn't provide a simple way to update project fields.
-    #
-    # Implementation approach:
-    # 1. Add method to fetch and cache project field metadata
-    # 2. Add method to update item status via GraphQL mutation
-    # 3. Call in story_start() to set "In Progress"
-    # 4. Document how to set "Pending Review" when PR is created
-    # 5. Call in story_complete() to set "Done"
-    #
-    # See CLAUDE.md "GitHub API Notes" section for GraphQL query examples
-
     def suggest_stories(
         self,
         project_number: int,
@@ -395,7 +376,7 @@ class GitHubProjectsHelper:
             # Get check status
             result = self._run_command([
                 "gh", "pr", "checks", str(pr_number),
-                "--json", "name,state,bucket"
+                "--json", "name,state,conclusion"
             ])
             checks = json.loads(result.stdout)
 
@@ -408,9 +389,8 @@ class GitHubProjectsHelper:
                 time.sleep(poll_interval)
                 continue
 
-            # Checks are done when state is SUCCESS or FAILURE (not IN_PROGRESS or PENDING)
-            vercel_done = vercel_check and vercel_check.get("state") in ["SUCCESS", "FAILURE", "CANCELLED"] if vercel_check else True
-            sonar_done = sonar_check and sonar_check.get("state") in ["SUCCESS", "FAILURE", "CANCELLED"] if sonar_check else True
+            vercel_done = vercel_check and vercel_check.get("state") == "COMPLETED" if vercel_check else True
+            sonar_done = sonar_check and sonar_check.get("state") == "COMPLETED" if sonar_check else True
 
             # Print status
             status_line = f"[{int(elapsed)}s] "
@@ -430,32 +410,20 @@ class GitHubProjectsHelper:
 
         results = {}
         if vercel_check:
-            bucket = vercel_check.get("bucket", "UNKNOWN")
-            state = vercel_check.get("state", "UNKNOWN")
-            # bucket can be: pass, fail, pending
-            # Use state for more accurate status
-            if bucket == "pass" or state == "SUCCESS":
-                self._success(f"Vercel: PASS")
-                results["vercel"] = "PASS"
-            elif bucket == "fail":
-                self._error(f"Vercel: FAIL")
-                results["vercel"] = "FAIL"
+            conclusion = vercel_check.get("conclusion", "UNKNOWN")
+            if conclusion == "SUCCESS":
+                self._success(f"Vercel: {conclusion}")
             else:
-                self._warning(f"Vercel: {bucket}")
-                results["vercel"] = bucket
+                self._error(f"Vercel: {conclusion}")
+            results["vercel"] = conclusion
 
         if sonar_check:
-            bucket = sonar_check.get("bucket", "UNKNOWN")
-            state = sonar_check.get("state", "UNKNOWN")
-            if bucket == "pass" or state == "SUCCESS":
-                self._success(f"SonarCloud: PASS")
-                results["sonar"] = "PASS"
-            elif bucket == "fail":
-                self._error(f"SonarCloud: FAIL")
-                results["sonar"] = "FAIL"
+            conclusion = sonar_check.get("conclusion", "UNKNOWN")
+            if conclusion == "SUCCESS":
+                self._success(f"SonarCloud: {conclusion}")
             else:
-                self._warning(f"SonarCloud: {bucket}")
-                results["sonar"] = bucket
+                self._error(f"SonarCloud: {conclusion}")
+            results["sonar"] = conclusion
 
         # Get PR URL for preview
         result = self._run_command([
@@ -514,14 +482,15 @@ class GitHubProjectsHelper:
             self._error(f"PR is not mergeable (status: {pr_data['mergeable']})")
             sys.exit(1)
 
-        # Merge PR (don't delete branch yet - worktree still using it)
+        # Merge PR
         self._info(f"Merging PR #{pr_number} with {merge_method}...")
         merge_flag = f"--{merge_method}"
         self._run_command([
             "gh", "pr", "merge", str(pr_number),
-            merge_flag
+            merge_flag,
+            "--delete-branch"
         ])
-        self._success(f"PR #{pr_number} merged")
+        self._success(f"PR #{pr_number} merged and branch deleted")
 
         # Close issue
         self._info(f"Closing issue #{issue_number}...")
@@ -533,8 +502,6 @@ class GitHubProjectsHelper:
 
         # Clean up worktree
         worktree_path = self.repo_path.parent / f"{self.repo_name}-story-{issue_number}"
-        branch_name = f"feature/story-{issue_number}"
-
         if worktree_path.exists():
             self._info(f"Cleaning up worktree at {worktree_path}...")
             self._run_command([
@@ -544,13 +511,6 @@ class GitHubProjectsHelper:
 
         # Prune worktree references
         self._run_command(["git", "worktree", "prune"])
-
-        # Now safe to delete the local branch
-        self._info(f"Deleting local branch {branch_name}...")
-        self._run_command([
-            "git", "branch", "-D", branch_name
-        ], check=False)  # Don't fail if branch already deleted
-        self._success("Local branch deleted")
 
         self._header("Story Complete! 🎉")
         print(f"  Story #{issue_number} has been merged and closed")

@@ -7,10 +7,11 @@ import {
   createManyTournamentVenues,
   updateTournamentVenue,
   deleteTournamentVenue,
+  deleteAllTournamentVenues,
 } from '../../app/db/tournament-venue-repository';
 import { db } from '../../app/db/database';
 import { testFactories } from './test-factories';
-import { createMockSelectQuery } from './mock-helpers';
+import { createMockSelectQuery, createMockDeleteQuery } from './mock-helpers';
 
 // Mock the database
 vi.mock('../../app/db/database', () => ({
@@ -280,6 +281,29 @@ describe('Tournament Venue Repository', () => {
       const result = await findAllTournamentVenues('');
 
       expect(mockQuery.where).toHaveBeenCalledWith('tournament_id', '=', '');
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('deleteAllTournamentVenues', () => {
+    it('should delete all venues for a tournament', async () => {
+      const mockQuery = createMockDeleteQuery(mockVenues);
+      mockDb.deleteFrom.mockReturnValue(mockQuery as any);
+
+      await deleteAllTournamentVenues('tournament-1');
+
+      expect(mockDb.deleteFrom).toHaveBeenCalledWith('tournament_venues');
+      expect(mockQuery.where).toHaveBeenCalledWith('tournament_id', '=', 'tournament-1');
+      expect(mockQuery.execute).toHaveBeenCalled();
+    });
+
+    it('should handle deleting from tournament with no venues', async () => {
+      const mockQuery = createMockDeleteQuery([]);
+      mockDb.deleteFrom.mockReturnValue(mockQuery as any);
+
+      const result = await deleteAllTournamentVenues('empty-tournament');
+
+      expect(mockQuery.execute).toHaveBeenCalled();
       expect(result).toEqual([]);
     });
   });

@@ -45,10 +45,21 @@ import {
 } from "../db/game-repository";
 
 import {
+  findAllTournamentVenues,
+  createTournamentVenue,
+  deleteAllTournamentVenues
+} from '../db/tournament-venue-repository';
+import {
+  findThirdPlaceRulesByTournament,
+  createThirdPlaceRule,
+  deleteThirdPlaceRulesByTournament
+} from '../db/tournament-third-place-rules-repository';
+import {
   createPlayer,
   findAllPlayersInTournamentWithTeamData,
   findPlayerByTeamAndTournament,
-  updatePlayer
+  updatePlayer,
+  deleteAllPlayersInTournament
 } from "../db/player-repository";
 import {ExtendedGameData, ExtendedGroupData, ExtendedPlayoffRoundData} from "../definitions";
 import {
@@ -58,7 +69,7 @@ import {
   updateGameResult
 } from "../db/game-result-repository";
 import {calculatePlayoffTeams} from "../utils/playoff-teams-calculator";
-import {findAllUserTournamentGroupsWithoutGuesses, findAllTournamentGroupTeamGuessInGroup} from "../db/tournament-group-team-guess-repository";
+import {findAllUserTournamentGroupsWithoutGuesses, findAllTournamentGroupTeamGuessInGroup, deleteAllTournamentGroupTeamStatGuessesByTournamentId} from "../db/tournament-group-team-guess-repository";
 import {
   findAllGuessesForGamesWithResultsInDraft,
   findGameGuessesByUserId,
@@ -83,16 +94,37 @@ import { revalidatePath } from 'next/cache';
 
 
 export async function deleteDBTournamentTree(tournament: Tournament) {
+  const user = await getLoggedInUser();
+
+  // Authorization: Only admins can delete tournaments
+  if (!user?.isAdmin) {
+    throw new Error('Unauthorized: Only administrators can delete tournaments');
+  }
+
+  // Safety check: Only allow deletion of deactivated tournaments
+  if (tournament.is_active) {
+    throw new Error('Cannot delete an active tournament. Please deactivate it first.');
+  }
+
   revalidatePath(`/tournaments/${tournament.id}/backoffice`);
 
-  // Delete all related entities
+  // Delete all related entities in reverse order of dependencies
+  // User-related data
   await deleteAllGameGuessesByTournamentId(tournament.id);
   await deleteAllTournamentGuessesByTournamentId(tournament.id);
+  await deleteAllTournamentGroupTeamStatGuessesByTournamentId(tournament.id);
+
+  // Tournament structure and content
+  await deleteAllPlayersInTournament(tournament.id);
+  await deleteAllTournamentVenues(tournament.id);
+  await deleteThirdPlaceRulesByTournament(tournament.id);
   await deleteAllGamesFromTournament(tournament.id);
   await deleteAllPlayoffRoundsInTournament(tournament.id);
   await deleteAllGroupsFromTournament(tournament.id);
-  await deleteTournamentTeams(tournament.id)
-  await deleteTournament(tournament.id)
+  await deleteTournamentTeams(tournament.id);
+
+  // Finally, delete the tournament itself
+  await deleteTournament(tournament.id);
 }
 
 export async function generateDbTournamentTeamPlayers(tournamentName: string) {
@@ -579,6 +611,7 @@ export async function updateTournamentHonorRoll(tournamentId: string, withUpdate
  */
 export async function copyTournament(
   tournamentId: string,
+  newStartDate?: Date,
   longName?: string,
   shortName?: string
 ): Promise<Tournament> {
@@ -589,6 +622,11 @@ export async function copyTournament(
     throw new Error('Unauthorized: Only administrators can copy tournaments');
   }
 
+  // Validate newStartDate if provided
+  if (newStartDate && Number.isNaN(newStartDate.getTime())) {
+    throw new Error('Invalid start date provided');
+  }
+
   // Get the original tournament
   const originalTournament = await findTournamentById(tournamentId);
   if (!originalTournament) {
@@ -597,11 +635,23 @@ export async function copyTournament(
 
   // Create a new tournament with modified name
   const newTournament = await createTournament({
-    long_name: longName || `${originalTournament.long_name} - copy`,
-    short_name: shortName || `${originalTournament.short_name} - copy`,
+    long_name: longName || `${originalTournament.long_name} - Copy`,
+    short_name: shortName || `${originalTournament.short_name} - Copy`,
     theme: originalTournament.theme && JSON.stringify(originalTournament.theme) || undefined,
     is_active: false, // Start as inactive to prevent access during setup
-    dev_only: true // Mark as dev_only by default for safety
+    dev_only: originalTournament.dev_only || false,
+    display_name: originalTournament.display_name || false,
+    // Copy scoring configuration
+    game_exact_score_points: originalTournament.game_exact_score_points,
+    game_correct_outcome_points: originalTournament.game_correct_outcome_points,
+    champion_points: originalTournament.champion_points,
+    runner_up_points: originalTournament.runner_up_points,
+    third_place_points: originalTournament.third_place_points,
+    individual_award_points: originalTournament.individual_award_points,
+    qualified_team_points: originalTournament.qualified_team_points,
+    exact_position_qualified_points: originalTournament.exact_position_qualified_points,
+    max_silver_games: originalTournament.max_silver_games,
+    max_golden_games: originalTournament.max_golden_games
   });
 
   // Copy teams association
@@ -624,6 +674,38 @@ export async function copyTournament(
       position: player.position
     })
   ));
+
+  // Copy venues
+  const venues = await findAllTournamentVenues(tournamentId);
+  await Promise.all(venues.map(venue =>
+    createTournamentVenue({
+      tournament_id: newTournament.id,
+      name: venue.name,
+      location: venue.location,
+      picture_url: venue.picture_url
+    })
+  ));
+
+  // Calculate date offset if newStartDate is provided
+  let dateOffsetMs = 0;
+  if (newStartDate) {
+    const allGames = await findGamesInTournament(tournamentId);
+    if (allGames.length > 0) {
+      // Find first game date
+      const firstGameDate = allGames
+        .map(g => g.game_date)
+        .sort((a, b) => a.getTime() - b.getTime())[0];
+
+      // Calculate offset in milliseconds
+      dateOffsetMs = newStartDate.getTime() - firstGameDate.getTime();
+    }
+  }
+
+  // Helper function to shift dates
+  const shiftDate = (originalDate: Date): Date => {
+    if (dateOffsetMs === 0) return new Date(originalDate);
+    return new Date(originalDate.getTime() + dateOffsetMs);
+  };
 
   // Copy playoff rounds
   const playoffStages = await findPlayoffStagesWithGamesInTournament(tournamentId);
@@ -685,9 +767,10 @@ export async function copyTournament(
       game_number: game.game_number,
       home_team: game.home_team,
       away_team: game.away_team,
-      game_date: new Date(game.game_date),
+      game_date: shiftDate(game.game_date),
       location: game.location,
       game_type: game.game_type,
+      game_local_timezone: game.game_local_timezone,
       home_team_rule: game.home_team_rule && JSON.stringify(game.home_team_rule) || undefined,
       away_team_rule: game.away_team_rule && JSON.stringify(game.away_team_rule) || undefined
     };
@@ -698,36 +781,59 @@ export async function copyTournament(
     // Do not copy game results
   }))
 
-  // Associate games with groups and playoff stages
-  await Promise.all(groups.flatMap(group =>
-    group.games.map(async gameAssoc => {
-      const newGroupId = groupIdMap.get(group.id);
-      const newGameId = gameIdMap.get(gameAssoc.game_id);
+  // Helper function to associate games with entities (groups or playoff stages)
+  async function associateGamesWithEntities<T extends { id: string; games: Array<{ game_id: string }> }>(
+    entities: T[],
+    entityIdMap: Map<string, string>,
+    gameIdMap: Map<string, string>,
+    createAssociation: (_entityId: string, _gameId: string) => Promise<any>
+  ): Promise<void> {
+    const associations = entities.flatMap(entity =>
+      entity.games.flatMap(gameAssoc => {
+        const newEntityId = entityIdMap.get(entity.id);
+        const newGameId = gameIdMap.get(gameAssoc.game_id);
 
-      if (newGroupId && newGameId) {
-        await createTournamentGroupGame({
-          tournament_group_id: newGroupId,
-          game_id: newGameId
-        });
-      }
-      return Promise.resolve();
-    })).filter(p => p !== undefined))
+        if (newEntityId && newGameId) {
+          return [createAssociation(newEntityId, newGameId)];
+        }
+        return [];
+      })
+    );
+
+    await Promise.all(associations);
+  }
+
+  // Associate games with groups
+  await associateGamesWithEntities(
+    groups,
+    groupIdMap,
+    gameIdMap,
+    (groupId, gameId) => createTournamentGroupGame({
+      tournament_group_id: groupId,
+      game_id: gameId
+    })
+  );
 
   // Associate games with playoff stages
-  await Promise.all(playoffStages.flatMap(stage =>
-    stage.games.map(gameAssoc => {
-      const newStageId = playoffStageIdMap.get(stage.id);
-      const newGameId = gameIdMap.get(gameAssoc.game_id);
-
-      if (newStageId && newGameId) {
-        return createPlayoffRoundGame({
-          tournament_playoff_round_id: newStageId,
-          game_id: newGameId
-        });
-      }
-      return Promise.resolve(); // For cases where IDs aren't found
+  await associateGamesWithEntities(
+    playoffStages,
+    playoffStageIdMap,
+    gameIdMap,
+    (stageId, gameId) => createPlayoffRoundGame({
+      tournament_playoff_round_id: stageId,
+      game_id: gameId
     })
-  ).filter(p => p !== undefined));
+  );
+
+  // Copy third-place rules
+  const thirdPlaceRules = await findThirdPlaceRulesByTournament(tournamentId);
+  await Promise.all(thirdPlaceRules.map(rule =>
+    createThirdPlaceRule({
+      tournament_id: newTournament.id,
+      combination_key: rule.combination_key,
+      rules: JSON.stringify(rule.rules)
+    })
+  ));
 
   // Do not activate the tournament automatically
   return newTournament;
