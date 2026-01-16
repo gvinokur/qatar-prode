@@ -1,9 +1,8 @@
 'use client'
 
 import React from 'react';
-import { Box, Paper, Typography, LinearProgress, Chip, Alert } from '@mui/material';
-import StarIcon from '@mui/icons-material/Star';
-import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import { Box, Card, Typography, LinearProgress, Chip, Alert } from '@mui/material';
+
 interface PredictionStatusBarProps {
   totalGames: number;
   predictedGames: number;
@@ -35,38 +34,38 @@ export function PredictionStatusBar({
     urgencyWarnings.push({
       level: 'red' as const,
       count: urgentGames,
-      message: `🔴 URGENT: ${urgentGames} game${urgentGames > 1 ? 's' : ''} closing within 2 hours`
+      message: `🔴 URGENTE: ${urgentGames} partido${urgentGames > 1 ? 's' : ''} cierra${urgentGames > 1 ? 'n' : ''} en 2 horas`
     });
   }
   if (warningGames > 0) {
     urgencyWarnings.push({
       level: 'orange' as const,
       count: warningGames,
-      message: `🟠 ${warningGames} game${warningGames > 1 ? 's' : ''} closing within 24 hours`
+      message: `🟠 ${warningGames} partido${warningGames > 1 ? 's' : ''} cierra${warningGames > 1 ? 'n' : ''} en 24 horas`
     });
   }
   if (noticeGames > 0) {
     urgencyWarnings.push({
       level: 'yellow' as const,
       count: noticeGames,
-      message: `🟡 ${noticeGames} game${noticeGames > 1 ? 's' : ''} closing within 2 days`
+      message: `🟡 ${noticeGames} partido${noticeGames > 1 ? 's' : ''} cierra${noticeGames > 1 ? 'n' : ''} en 2 días`
     });
   }
 
+  const showBoosts = silverMax > 0 || goldenMax > 0;
+
   return (
-    <Paper
-      elevation={0}
+    <Card
+      variant="outlined"
       sx={{
         p: 2,
-        mb: 2,
-        backgroundColor: 'rgba(0, 0, 0, 0.02)',
-        borderRadius: 2
+        mb: 2
       }}
     >
       {/* Progress Section */}
       <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: urgencyWarnings.length > 0 ? 2 : 0, flexWrap: 'wrap' }}>
-        <Typography variant="body2" color="text.secondary" fontWeight="medium" sx={{ minWidth: '140px' }}>
-          Predictions: {predictedGames}/{totalGames} ({percentage}%)
+        <Typography variant="body2" color="text.secondary" fontWeight="medium" sx={{ minWidth: '160px' }}>
+          Predicciones: {predictedGames}/{totalGames} ({percentage}%)
         </Typography>
         <LinearProgress
           variant="determinate"
@@ -79,29 +78,35 @@ export function PredictionStatusBar({
           }}
         />
         {/* Boost chips (if enabled) */}
-        {silverMax > 0 && (
-          <Chip
-            icon={<StarIcon />}
-            label={`🥈 ${silverUsed}/${silverMax}`}
-            size="small"
-            sx={{
-              backgroundColor: '#C0C0C0',
-              color: '#000',
-              fontWeight: 'medium'
-            }}
-          />
-        )}
-        {goldenMax > 0 && (
-          <Chip
-            icon={<EmojiEventsIcon />}
-            label={`🥇 ${goldenUsed}/${goldenMax}`}
-            size="small"
-            sx={{
-              backgroundColor: '#FFD700',
-              color: '#000',
-              fontWeight: 'medium'
-            }}
-          />
+        {showBoosts && (
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Typography variant="body2" color="text.secondary" fontWeight="medium" sx={{ mr: 0.5 }}>
+              Multiplicadores:
+            </Typography>
+            {silverMax > 0 && (
+              <Chip
+                label={`Plata ${silverUsed}/${silverMax}`}
+                size="small"
+                sx={{
+                  height: '24px',
+                  fontSize: '0.75rem',
+                  fontWeight: 'medium'
+                }}
+              />
+            )}
+            {goldenMax > 0 && (
+              <Chip
+                label={`Oro ${goldenUsed}/${goldenMax}`}
+                size="small"
+                color="warning"
+                sx={{
+                  height: '24px',
+                  fontSize: '0.75rem',
+                  fontWeight: 'medium'
+                }}
+              />
+            )}
+          </Box>
         )}
       </Box>
 
@@ -128,6 +133,6 @@ export function PredictionStatusBar({
           ))}
         </Box>
       )}
-    </Paper>
+    </Card>
   );
 }

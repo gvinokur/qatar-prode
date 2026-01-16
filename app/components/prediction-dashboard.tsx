@@ -1,5 +1,7 @@
 'use client'
 
+import { useMemo, useContext } from 'react';
+import { GuessesContext } from './context-providers/guesses-context-provider';
 import { PredictionStatusBar } from './prediction-status-bar';
 import GamesGrid from './games-grid';
 import type { ExtendedGameData } from '../definitions';
@@ -13,7 +15,7 @@ interface PredictionDashboardProps {
   isLoggedIn: boolean;
   tournamentId: string;
   isAwardsPredictionLocked?: boolean;
-  // Stats from database query
+  // Initial stats from database query (used for tournament-wide urgency on main page)
   dashboardStats: {
     totalGames: number;
     predictedGames: number;
@@ -25,6 +27,8 @@ interface PredictionDashboardProps {
   };
 }
 
+const ONE_HOUR = 60 * 60 * 1000;
+
 export function PredictionDashboard({
   games,
   teamsMap,
@@ -35,6 +39,58 @@ export function PredictionDashboard({
   isAwardsPredictionLocked,
   dashboardStats
 }: PredictionDashboardProps) {
+  // Get gameGuesses from context for real-time updates
+  const { gameGuesses } = useContext(GuessesContext);
+
+  // Recalculate stats client-side when predictions change
+  const currentStats = useMemo(() => {
+    const now = Date.now();
+
+    // Count predictions for current games
+    const predictedCount = games.filter(game => {
+      const guess = gameGuesses[game.id];
+      return guess && guess.home_score !== undefined && guess.away_score !== undefined;
+    }).length;
+
+    // Count boosts for current games
+    const silverUsed = games.filter(g => gameGuesses[g.id]?.boost_type === 'silver').length;
+    const goldenUsed = games.filter(g => gameGuesses[g.id]?.boost_type === 'golden').length;
+
+    // Calculate urgency warnings for current games
+    const unpredictedGamesClosingSoon = games.filter(game => {
+      const guess = gameGuesses[game.id];
+      const isPredicted = guess && guess.home_score !== undefined && guess.away_score !== undefined;
+      if (isPredicted) return false;
+
+      const timeUntilClose = game.game_date.getTime() - ONE_HOUR - now;
+      return timeUntilClose > 0 && timeUntilClose < 48 * 60 * 60 * 1000;
+    });
+
+    const urgentGames = unpredictedGamesClosingSoon.filter(g => {
+      const timeUntilClose = g.game_date.getTime() - ONE_HOUR - now;
+      return timeUntilClose < 2 * 60 * 60 * 1000;
+    }).length;
+
+    const warningGames = unpredictedGamesClosingSoon.filter(g => {
+      const timeUntilClose = g.game_date.getTime() - ONE_HOUR - now;
+      return timeUntilClose >= 2 * 60 * 60 * 1000 && timeUntilClose < 24 * 60 * 60 * 1000;
+    }).length;
+
+    const noticeGames = unpredictedGamesClosingSoon.filter(g => {
+      const timeUntilClose = g.game_date.getTime() - ONE_HOUR - now;
+      return timeUntilClose >= 24 * 60 * 60 * 1000 && timeUntilClose < 48 * 60 * 60 * 1000;
+    }).length;
+
+    return {
+      totalGames: games.length,
+      predictedGames: predictedCount,
+      silverUsed,
+      goldenUsed,
+      urgentGames,
+      warningGames,
+      noticeGames
+    };
+  }, [games, gameGuesses]);
 
   // Boost limits from tournament config
   const silverMax = tournament.max_silver_games ?? 0;
@@ -43,15 +99,15 @@ export function PredictionDashboard({
   return (
     <>
       <PredictionStatusBar
-        totalGames={dashboardStats.totalGames}
-        predictedGames={dashboardStats.predictedGames}
-        silverUsed={dashboardStats.silverUsed}
+        totalGames={currentStats.totalGames}
+        predictedGames={currentStats.predictedGames}
+        silverUsed={currentStats.silverUsed}
         silverMax={silverMax}
-        goldenUsed={dashboardStats.goldenUsed}
+        goldenUsed={currentStats.goldenUsed}
         goldenMax={goldenMax}
-        urgentGames={dashboardStats.urgentGames}
-        warningGames={dashboardStats.warningGames}
-        noticeGames={dashboardStats.noticeGames}
+        urgentGames={currentStats.urgentGames}
+        warningGames={currentStats.warningGames}
+        noticeGames={currentStats.noticeGames}
       />
 
       <GamesGrid
