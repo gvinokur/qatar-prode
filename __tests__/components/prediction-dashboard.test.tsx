@@ -1,9 +1,19 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PredictionDashboard } from '../../app/components/prediction-dashboard';
-import { GuessesContext } from '../../app/components/context-providers/guesses-context-provider';
 import type { ExtendedGameData } from '../../app/definitions';
 import type { Tournament } from '../../app/db/tables-definition';
+import React from 'react';
+
+// Mock GuessesContext to avoid NextAuth module resolution issues
+const GuessesContext = React.createContext<any>({
+  gameGuesses: {},
+  setGameGuesses: vi.fn(),
+});
+
+vi.mock('../../app/components/context-providers/guesses-context-provider', () => ({
+  GuessesContext: GuessesContext,
+}));
 
 // Mock child components
 vi.mock('../../app/components/prediction-status-bar', () => ({
