@@ -57,7 +57,7 @@ export default function TournamentPermissionsSelector({
             helperText="Only selected users will be able to access this tournament in production"
           />
         )}
-        renderTags={(value, getTagProps) =>
+        renderTags={(value, getTagProps) => // NOSONAR - renderTags works reliably, slots API alternative has test compatibility issues
           value.map((option, index) => {
             const { key, ...tagProps } = getTagProps({ index })
             return (
