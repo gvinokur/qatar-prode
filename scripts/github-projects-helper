@@ -206,6 +206,25 @@ class GitHubProjectsHelper:
     # - Template-based issue creation with variable substitution
     # Example: ./scripts/github-projects-helper stories create --from-file stories.json --project 1
 
+    # TODO: Implement GitHub Projects V2 status updates via GraphQL
+    # Current limitation: Status updates require GraphQL mutations with multiple IDs:
+    # - Project ID (global ID, not project number)
+    # - Project Item ID (the issue's ID within the project)
+    # - Status Field ID
+    # - Status Option IDs (for "In Progress", "Pending Review", "Done", etc.)
+    #
+    # These IDs must be fetched via GraphQL queries first, then used in mutations.
+    # The gh CLI doesn't provide a simple way to update project fields.
+    #
+    # Implementation approach:
+    # 1. Add method to fetch and cache project field metadata
+    # 2. Add method to update item status via GraphQL mutation
+    # 3. Call in story_start() to set "In Progress"
+    # 4. Document how to set "Pending Review" when PR is created
+    # 5. Call in story_complete() to set "Done"
+    #
+    # See CLAUDE.md "GitHub API Notes" section for GraphQL query examples
+
     def suggest_stories(
         self,
         project_number: int,
