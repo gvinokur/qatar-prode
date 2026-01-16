@@ -733,38 +733,43 @@ export interface TabbedPlayoffsPageProps {
 ## Implementation Steps
 
 1. **Create type definitions** (`prediction-dashboard-types.ts` or add to `definitions.ts`)
+   - `UrgencyWarning` interface
 2. **Create PredictionStatusBar component**
    - Progress indicator with LinearProgress bar
    - Boost chips reusing existing icons/colors
+   - Urgency warnings with MUI Alert components (Red/Orange/Yellow)
    - Hide boost chips if tournament has no boosts
-3. **Create PredictionFilters component**
-   - Button group with 4 filter buttons
-   - Badge counts on each button
-   - Active state highlighting
-   - Responsive layout
-4. **Create PredictionDashboard component**
-   - Filter state management
-   - localStorage integration
-   - Badge count calculations (memoized)
-   - Filter logic implementation
-   - Render status bar, filters, and games grid
-5. **Modify GamesGrid component**
+3. **Create PredictionDashboard component**
+   - GuessesContext integration for reactive state
+   - Calculate prediction stats (total, predicted, percentage)
+   - Calculate boost usage (silver/golden)
+   - Calculate urgency warnings with time thresholds
+   - Render status bar and games grid (no filtering)
+   - Real-time updates via useMemo dependencies
+4. **Modify GamesGrid component**
    - Remove standalone BoostCountsSummary
-6. **Integrate in group page**
+5. **Integrate in group page**
    - Import PredictionDashboard
    - Replace GamesGrid with PredictionDashboard for logged-in users
    - Pass tournament prop for boost limits
-7. **Integrate in main tournament page**
+6. **Integrate in main tournament page**
    - Add dashboard above Fixtures component
    - Wrap with GuessesContextProvider
    - Consider alternative FixturesWithDashboard component approach
-8. **Modify TabbedPlayoffsPage component**
+7. **Modify TabbedPlayoffsPage component**
    - Add new props for dashboard support
    - Conditionally render dashboard vs grid
-9. **Integrate in playoffs page**
+8. **Integrate in playoffs page**
    - Pass dashboard props to TabbedPlayoffsPage
+9. **(Optional) Add urgency badges to game cards**
+   - Modify CompactGameViewCard to show time remaining badge
+   - Color-code badges (Red/Orange/Yellow) based on urgency
+   - Only show for unpredicted games
 10. **Write unit tests** for all new components
-11. **Manual testing** on all 3 pages (groups, playoffs, main), all filters, mobile
+    - Test urgency calculation logic with different time windows
+    - Test real-time updates when predictions change
+    - Test boost count calculations
+11. **Manual testing** on all 3 pages (groups, playoffs, main), urgency warnings, mobile
 
 ## Testing Strategy
 
@@ -773,14 +778,14 @@ export interface TabbedPlayoffsPageProps {
 **Test File**: `__tests__/components/prediction-dashboard.test.tsx`
 
 **Key Test Cases**:
-- Filter logic correctly filters unpredicted games
-- Filter logic correctly filters boosted games
-- Filter logic correctly filters closing soon games
-- Badge counts calculate correctly for each filter
+- Urgency warning calculation for red alerts (< 2 hours)
+- Urgency warning calculation for orange warnings (2-24 hours)
+- Urgency warning calculation for yellow notices (24-48 hours)
+- Only counts unpredicted games in urgency warnings
 - Progress percentage calculates correctly
-- localStorage saves and loads filter preference
-- Active filter state updates on button click
-- Filtered games passed to GamesGrid
+- Boost counts calculate correctly (silver/golden)
+- Real-time updates when gameGuesses changes (via context)
+- Passes all games to GamesGrid (no filtering)
 
 **Test File**: `__tests__/components/prediction-status-bar.test.tsx`
 
@@ -789,29 +794,29 @@ export interface TabbedPlayoffsPageProps {
 - Shows boost usage correctly
 - Hides boost chips when max values are 0
 - LinearProgress value matches percentage
-
-**Test File**: `__tests__/components/prediction-filters.test.tsx`
-
-**Key Test Cases**:
-- Renders all filter buttons
-- Highlights active filter correctly
-- Calls onFilterChange on button click
-- Shows correct badge counts
-- Hides boosted filter when showBoostedFilter is false
-- Responsive layout works on small screens
+- Renders urgency warnings with correct Alert severity
+- Red alert shows with severity="error"
+- Orange warning shows with severity="warning"
+- Yellow notice shows with severity="info"
+- No warnings when all games predicted or no games closing soon
 
 **Mock Data Pattern**:
 ```typescript
+const ONE_HOUR = 60 * 60 * 1000;
+const now = Date.now();
+
 const mockGames = [
-  { id: '1', game_date: new Date(Date.now() + 2 * 60 * 60 * 1000) }, // 2 hours away
-  { id: '2', game_date: new Date(Date.now() + 12 * 60 * 60 * 1000) }, // 12 hours away
-  { id: '3', game_date: new Date(Date.now() + 48 * 60 * 60 * 1000) }, // 2 days away
+  { id: '1', game_date: new Date(now + ONE_HOUR + 1.5 * 60 * 60 * 1000) }, // Closes in 30 min (1.5h - 1h lock)
+  { id: '2', game_date: new Date(now + ONE_HOUR + 12 * 60 * 60 * 1000) }, // Closes in 11 hours
+  { id: '3', game_date: new Date(now + ONE_HOUR + 30 * 60 * 60 * 1000) }, // Closes in 29 hours
+  { id: '4', game_date: new Date(now + ONE_HOUR + 60 * 60 * 60 * 1000) }, // Closes in 59 hours
 ];
 
 const mockGuesses = {
-  '1': { home_score: 2, away_score: 1, boost_type: 'silver' },
-  '2': { home_score: undefined, away_score: undefined },
-  '3': { home_score: 1, away_score: 1 },
+  '1': { home_score: undefined, away_score: undefined }, // Unpredicted, red alert
+  '2': { home_score: undefined, away_score: undefined }, // Unpredicted, orange warning
+  '3': { home_score: 1, away_score: 1 }, // Predicted, no warning
+  '4': { home_score: undefined, away_score: undefined }, // Unpredicted, beyond 48h window
 };
 ```
 
@@ -820,37 +825,38 @@ const mockGuesses = {
 **Test File**: `__tests__/integration/prediction-dashboard-integration.test.tsx`
 
 **Key Test Cases**:
-- Full workflow: load dashboard → select filter → games update
-- localStorage persistence: set filter → unmount → remount → filter persists
-- GuessesContext integration: update guess → badge counts update
+- Full workflow: load dashboard → see urgency warnings → edit prediction → warnings update
+- GuessesContext integration: update guess → stats and warnings recalculate automatically
+- Real-time urgency updates: as time passes, warnings should change (red → orange → yellow)
 
 ### Manual Testing Checklist
 
 - [ ] Dashboard appears on group games page (logged-in users only)
 - [ ] Dashboard appears on playoff games page (logged-in users only)
+- [ ] Dashboard appears on main tournament page (logged-in users only)
 - [ ] Each playoff tab shows correct stats for that round
-- [ ] "All" filter shows all games
-- [ ] "Unpredicted" filter shows only games without predictions
-- [ ] "Boosted" filter shows only silver/golden boosted games
-- [ ] "Closing Soon" filter shows games 1-24 hours away
-- [ ] Badge counts are accurate for each filter
 - [ ] Progress bar reflects correct percentage
 - [ ] Boost chips show correct usage (X/Y format)
-- [ ] Filter preference persists after page reload
-- [ ] Mobile layout is responsive (buttons wrap)
+- [ ] Red alert shows for unpredicted games closing within 2 hours
+- [ ] Orange warning shows for unpredicted games closing within 24 hours
+- [ ] Yellow notice shows for unpredicted games closing within 2 days
+- [ ] Urgency warnings disappear when predictions are made
+- [ ] Urgency warnings update in real-time when predictions change
+- [ ] No warnings show when all games are predicted
+- [ ] Mobile layout is responsive (warnings stack vertically)
 - [ ] Non-logged-in users see standard GamesGrid (no dashboard)
-- [ ] Tournament without boosts hides boost chips and "Boosted" filter
-- [ ] Empty filter results show appropriate message
+- [ ] Tournament without boosts hides boost chips
+- [ ] All games visible in grid (no filtering)
 
 ## Edge Cases & UX Considerations
 
-1. **Empty Filter Results**: Show message "No games match this filter" with button to reset to "All"
-2. **Closing Soon Window**: 24 hours (configurable in future), excludes games within 1 hour (already locked)
+1. **No Urgency Warnings**: When all games predicted or no games closing soon, show only progress/boost section
+2. **Urgency Time Windows**: Red < 2h, Orange 2-24h, Yellow 24-48h (calculated from game_date - 1 hour lock)
 3. **Playoff Stats**: Per-tab statistics (each round is separate view)
-4. **Tournament Without Boosts**: Hide boost chips and "Boosted" filter button
+4. **Tournament Without Boosts**: Hide boost chips when max_silver_games and max_golden_games are 0
 5. **Non-Logged-In Users**: Fall back to standard GamesGrid (no dashboard)
-6. **Mobile Responsiveness**: Button group wraps, vertical layout on very small screens
-7. **Filter Persistence Scope**: Global preference (same filter for groups and playoffs)
+6. **Mobile Responsiveness**: Alerts stack vertically, progress bar remains readable
+7. **Time Zone Handling**: Urgency calculated using game.game_date (UTC), respects ONE_HOUR lock constant
 
 ## Performance Optimizations
 
@@ -901,25 +907,38 @@ Not needed - low risk, optional feature for logged-in users only
 - 25% increase in prediction completion rate
 - High usage of "Unpredicted" and "Closing Soon" filters
 
-## Open Questions
+## Future Considerations
 
-None - All design decisions made based on existing patterns in codebase.
+### Tournament Guesses Urgency Warnings
+
+The current story focuses on **game predictions** (individual match scores). Tournament Guesses (awards like Best Player, Top Scorer, Champion, etc.) also have deadlines and could benefit from urgency warnings.
+
+**Recommendation**: Handle Tournament Guesses in a separate story because:
+1. Different UI (awards prediction form, not game cards)
+2. Different deadline (usually tournament start, not game-by-game)
+3. Different data model (`tournament_guesses` table vs `game_guesses`)
+4. Less urgent (one deadline vs 48+ game deadlines)
+
+**Future Story**: "[UXI-XXX] Tournament Guesses Urgency Indicator"
+- Show warning when tournament guesses (awards) deadline approaching
+- Similar color coding (Red/Orange/Yellow)
+- Display in awards prediction page
+- Smaller scope, can be quick follow-up story
 
 ## Critical Files Summary
 
-**New Files** (3):
+**New Files** (2):
 - `/app/components/prediction-dashboard.tsx` - Main orchestrator
-- `/app/components/prediction-status-bar.tsx` - Progress display
-- `/app/components/prediction-filters.tsx` - Filter buttons
+- `/app/components/prediction-status-bar.tsx` - Progress display with urgency warnings
 
-**Modified Files** (5):
+**Modified Files** (6):
 - `/app/components/games-grid.tsx` - Remove standalone BoostCountsSummary
 - `/app/tournaments/[id]/groups/[group_id]/page.tsx` - Integrate dashboard
 - `/app/tournaments/[id]/page.tsx` - Add dashboard to main tournament page
 - `/app/components/playoffs/tabbed-playoff-page.tsx` - Support dashboard props
 - `/app/tournaments/[id]/playoffs/page.tsx` - Pass dashboard props
+- `/app/components/compact-game-view-card.tsx` - (Optional) Add urgency badge overlay
 
-**Test Files** (3):
+**Test Files** (2):
 - `__tests__/components/prediction-dashboard.test.tsx`
 - `__tests__/components/prediction-status-bar.test.tsx`
-- `__tests__/components/prediction-filters.test.tsx`
