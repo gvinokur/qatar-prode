@@ -46,15 +46,16 @@ export function PredictionDashboard({
   const currentStats = useMemo(() => {
     const now = Date.now();
 
-    // Count predictions for current games
+    // Count predictions for current games (view-specific)
     const predictedCount = games.filter(game => {
       const guess = gameGuesses[game.id];
       return guess && guess.home_score !== undefined && guess.away_score !== undefined;
     }).length;
 
-    // Count boosts for current games
-    const silverUsed = games.filter(g => gameGuesses[g.id]?.boost_type === 'silver').length;
-    const goldenUsed = games.filter(g => gameGuesses[g.id]?.boost_type === 'golden').length;
+    // Count boosts tournament-wide (not just current view)
+    // Boost limits are tournament-wide, so counts must be tournament-wide
+    const silverUsed = Object.values(gameGuesses).filter(g => g?.boost_type === 'silver').length;
+    const goldenUsed = Object.values(gameGuesses).filter(g => g?.boost_type === 'golden').length;
 
     // Calculate urgency warnings for current games
     const unpredictedGamesClosingSoon = games.filter(game => {

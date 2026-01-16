@@ -1,7 +1,8 @@
 'use client'
 
 import React from 'react';
-import { Box, Card, Typography, LinearProgress, Chip, Alert } from '@mui/material';
+import { Box, Card, Typography, LinearProgress, Alert } from '@mui/material';
+import { BoostCountBadge } from './boost-badge';
 
 interface PredictionStatusBarProps {
   totalGames: number;
@@ -84,27 +85,10 @@ export function PredictionStatusBar({
               Multiplicadores:
             </Typography>
             {silverMax > 0 && (
-              <Chip
-                label={`Plata ${silverUsed}/${silverMax}`}
-                size="small"
-                sx={{
-                  height: '24px',
-                  fontSize: '0.75rem',
-                  fontWeight: 'medium'
-                }}
-              />
+              <BoostCountBadge type="silver" used={silverUsed} max={silverMax} />
             )}
             {goldenMax > 0 && (
-              <Chip
-                label={`Oro ${goldenUsed}/${goldenMax}`}
-                size="small"
-                color="warning"
-                sx={{
-                  height: '24px',
-                  fontSize: '0.75rem',
-                  fontWeight: 'medium'
-                }}
-              />
+              <BoostCountBadge type="golden" used={goldenUsed} max={goldenMax} />
             )}
           </Box>
         )}
