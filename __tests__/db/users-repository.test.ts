@@ -323,6 +323,89 @@ describe('Users Repository', () => {
         expect(result).toBeNull();
       });
     });
+
+    describe('findAllUsers', () => {
+      it('should return all users with selected fields ordered by email', async () => {
+        const mockUsers = [
+          { id: 'user-1', email: 'a@example.com', nickname: 'Alice', is_admin: false },
+          { id: 'user-2', email: 'b@example.com', nickname: 'Bob', is_admin: true },
+          { id: 'user-3', email: 'c@example.com', nickname: null, is_admin: false }
+        ];
+        const mockQuery = {
+          select: vi.fn().mockReturnThis(),
+          orderBy: vi.fn().mockReturnThis(),
+          execute: vi.fn().mockResolvedValue(mockUsers)
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery);
+
+        const result = await usersRepository.findAllUsers();
+
+        expect(mockDb.selectFrom).toHaveBeenCalledWith('users');
+        expect(mockQuery.select).toHaveBeenCalledWith(['id', 'email', 'nickname', 'is_admin']);
+        expect(mockQuery.orderBy).toHaveBeenCalledWith('email', 'asc');
+        expect(mockQuery.execute).toHaveBeenCalled();
+        expect(result).toEqual(mockUsers);
+      });
+
+      it('should return empty array when no users exist', async () => {
+        const mockQuery = {
+          select: vi.fn().mockReturnThis(),
+          orderBy: vi.fn().mockReturnThis(),
+          execute: vi.fn().mockResolvedValue([])
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery);
+
+        const result = await usersRepository.findAllUsers();
+
+        expect(result).toEqual([]);
+      });
+
+      it('should handle database errors', async () => {
+        const mockQuery = {
+          select: vi.fn().mockReturnThis(),
+          orderBy: vi.fn().mockReturnThis(),
+          execute: vi.fn().mockRejectedValue(new Error('Database error'))
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery);
+
+        await expect(usersRepository.findAllUsers()).rejects.toThrow('Database error');
+      });
+
+      it('should include users with null nicknames', async () => {
+        const mockUsers = [
+          { id: 'user-1', email: 'user@example.com', nickname: null, is_admin: false }
+        ];
+        const mockQuery = {
+          select: vi.fn().mockReturnThis(),
+          orderBy: vi.fn().mockReturnThis(),
+          execute: vi.fn().mockResolvedValue(mockUsers)
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery);
+
+        const result = await usersRepository.findAllUsers();
+
+        expect(result).toEqual(mockUsers);
+        expect(result[0].nickname).toBeNull();
+      });
+
+      it('should include admin status for all users', async () => {
+        const mockUsers = [
+          { id: 'user-1', email: 'admin@example.com', nickname: 'Admin', is_admin: true },
+          { id: 'user-2', email: 'user@example.com', nickname: 'User', is_admin: false }
+        ];
+        const mockQuery = {
+          select: vi.fn().mockReturnThis(),
+          orderBy: vi.fn().mockReturnThis(),
+          execute: vi.fn().mockResolvedValue(mockUsers)
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery);
+
+        const result = await usersRepository.findAllUsers();
+
+        expect(result[0].is_admin).toBe(true);
+        expect(result[1].is_admin).toBe(false);
+      });
+    });
   });
 
   describe('Password Hashing', () => {

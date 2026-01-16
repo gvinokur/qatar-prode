@@ -15,7 +15,9 @@ import {
   updateTournamentAwards,
   updateTournamentHonorRoll,
   copyTournament,
-  calculateAndStoreGroupPositionScores
+  calculateAndStoreGroupPositionScores,
+  getTournamentPermissionData,
+  updateTournamentPermissions
 } from '../../app/actions/backoffice-actions';
 import { GameResult, Tournament, TournamentUpdate } from '../../app/db/tables-definition';
 import { ExtendedGameData, ExtendedGroupData, ExtendedPlayoffRoundData } from '../../app/definitions';
@@ -192,6 +194,16 @@ vi.mock('../../app/db/tournament-guess-repository', () => ({
   deleteAllTournamentGuessesByTournamentId: vi.fn(),
 }));
 
+vi.mock('../../app/db/users-repository', () => ({
+  findAllUsers: vi.fn(),
+}));
+
+vi.mock('../../app/db/tournament-view-permission-repository', () => ({
+  findUserIdsForTournament: vi.fn(),
+  removeAllTournamentPermissions: vi.fn(),
+  addUsersToTournament: vi.fn(),
+}));
+
 vi.mock('../../app/actions/user-actions', () => ({
   getLoggedInUser: vi.fn(),
 }));
@@ -256,6 +268,8 @@ import * as gameGuessRepository from '../../app/db/game-guess-repository';
 import * as tournamentGuessRepository from '../../app/db/tournament-guess-repository';
 import * as tournamentVenueRepository from '../../app/db/tournament-venue-repository';
 import * as tournamentThirdPlaceRulesRepository from '../../app/db/tournament-third-place-rules-repository';
+import * as usersRepository from '../../app/db/users-repository';
+import * as tournamentViewPermissionRepository from '../../app/db/tournament-view-permission-repository';
 import * as userActions from '../../app/actions/user-actions';
 import * as guessesActions from '../../app/actions/guesses-actions';
 import * as playoffTeamsCalculator from '../../app/utils/playoff-teams-calculator';
@@ -351,6 +365,11 @@ const mockCustomToMap = vi.mocked(objectUtils.customToMap);
 const mockToMap = vi.mocked(objectUtils.toMap);
 
 const mockDb = vi.mocked(database.db);
+
+const mockFindAllUsers = vi.mocked(usersRepository.findAllUsers);
+const mockFindUserIdsForTournament = vi.mocked(tournamentViewPermissionRepository.findUserIdsForTournament);
+const mockRemoveAllTournamentPermissions = vi.mocked(tournamentViewPermissionRepository.removeAllTournamentPermissions);
+const mockAddUsersToTournament = vi.mocked(tournamentViewPermissionRepository.addUsersToTournament);
 
 describe('Backoffice Actions', () => {
   const mockAdminUser = {
@@ -1402,6 +1421,136 @@ describe('Backoffice Actions', () => {
       expect(groupPositions).toEqual([]);
       expect(gameScores.updatedGameGuesses).toEqual([]);
       expect(gameScores.cleanedGameGuesses).toEqual([]);
+    });
+  });
+
+  describe('Tournament Permission Management', () => {
+    describe('getTournamentPermissionData', () => {
+      it('should fetch all users and permitted user IDs', async () => {
+        const mockAllUsers = [
+          { id: 'user-1', email: 'user1@example.com', nickname: 'User One', is_admin: false },
+          { id: 'user-2', email: 'admin@example.com', nickname: 'Admin User', is_admin: true }
+        ];
+        const mockPermittedUserIds = ['user-1'];
+
+        mockFindAllUsers.mockResolvedValue(mockAllUsers);
+        mockFindUserIdsForTournament.mockResolvedValue(mockPermittedUserIds);
+
+        const result = await getTournamentPermissionData('tournament-123');
+
+        expect(mockFindAllUsers).toHaveBeenCalled();
+        expect(mockFindUserIdsForTournament).toHaveBeenCalledWith('tournament-123');
+        expect(result).toEqual({
+          allUsers: [
+            { id: 'user-1', email: 'user1@example.com', nickname: 'User One', isAdmin: false },
+            { id: 'user-2', email: 'admin@example.com', nickname: 'Admin User', isAdmin: true }
+          ],
+          permittedUserIds: ['user-1']
+        });
+      });
+
+      it('should handle users with null is_admin as false', async () => {
+        const mockAllUsers = [
+          { id: 'user-1', email: 'user@example.com', nickname: 'User', is_admin: null }
+        ];
+
+        mockFindAllUsers.mockResolvedValue(mockAllUsers);
+        mockFindUserIdsForTournament.mockResolvedValue([]);
+
+        const result = await getTournamentPermissionData('tournament-123');
+
+        expect(result.allUsers[0].isAdmin).toBe(false);
+      });
+
+      it('should handle empty users list', async () => {
+        mockFindAllUsers.mockResolvedValue([]);
+        mockFindUserIdsForTournament.mockResolvedValue([]);
+
+        const result = await getTournamentPermissionData('tournament-123');
+
+        expect(result).toEqual({
+          allUsers: [],
+          permittedUserIds: []
+        });
+      });
+
+      it('should handle empty permitted users list', async () => {
+        const mockAllUsers = [
+          { id: 'user-1', email: 'user@example.com', nickname: 'User', is_admin: false }
+        ];
+
+        mockFindAllUsers.mockResolvedValue(mockAllUsers);
+        mockFindUserIdsForTournament.mockResolvedValue([]);
+
+        const result = await getTournamentPermissionData('tournament-123');
+
+        expect(result.permittedUserIds).toEqual([]);
+      });
+
+      it('should handle database errors', async () => {
+        mockFindAllUsers.mockRejectedValue(new Error('Database error'));
+
+        await expect(getTournamentPermissionData('tournament-123')).rejects.toThrow('Database error');
+      });
+    });
+
+    describe('updateTournamentPermissions', () => {
+      it('should remove old permissions and add new ones', async () => {
+        const userIds = ['user-1', 'user-2', 'user-3'];
+
+        mockRemoveAllTournamentPermissions.mockResolvedValue(undefined);
+        mockAddUsersToTournament.mockResolvedValue(undefined);
+
+        await updateTournamentPermissions('tournament-123', userIds);
+
+        expect(mockRemoveAllTournamentPermissions).toHaveBeenCalledWith('tournament-123');
+        expect(mockAddUsersToTournament).toHaveBeenCalledWith('tournament-123', userIds);
+      });
+
+      it('should handle empty user IDs array', async () => {
+        mockRemoveAllTournamentPermissions.mockResolvedValue(undefined);
+        mockAddUsersToTournament.mockResolvedValue(undefined);
+
+        await updateTournamentPermissions('tournament-123', []);
+
+        expect(mockRemoveAllTournamentPermissions).toHaveBeenCalledWith('tournament-123');
+        expect(mockAddUsersToTournament).toHaveBeenCalledWith('tournament-123', []);
+      });
+
+      it('should handle removal errors', async () => {
+        mockRemoveAllTournamentPermissions.mockRejectedValue(new Error('Removal failed'));
+
+        await expect(updateTournamentPermissions('tournament-123', ['user-1'])).rejects.toThrow('Removal failed');
+        expect(mockAddUsersToTournament).not.toHaveBeenCalled();
+      });
+
+      it('should handle addition errors', async () => {
+        mockRemoveAllTournamentPermissions.mockResolvedValue(undefined);
+        mockAddUsersToTournament.mockRejectedValue(new Error('Addition failed'));
+
+        await expect(updateTournamentPermissions('tournament-123', ['user-1'])).rejects.toThrow('Addition failed');
+      });
+
+      it('should update permissions for single user', async () => {
+        mockRemoveAllTournamentPermissions.mockResolvedValue(undefined);
+        mockAddUsersToTournament.mockResolvedValue(undefined);
+
+        await updateTournamentPermissions('tournament-123', ['user-1']);
+
+        expect(mockRemoveAllTournamentPermissions).toHaveBeenCalledWith('tournament-123');
+        expect(mockAddUsersToTournament).toHaveBeenCalledWith('tournament-123', ['user-1']);
+      });
+
+      it('should update permissions for multiple users', async () => {
+        const userIds = ['user-1', 'user-2', 'user-3', 'user-4', 'user-5'];
+
+        mockRemoveAllTournamentPermissions.mockResolvedValue(undefined);
+        mockAddUsersToTournament.mockResolvedValue(undefined);
+
+        await updateTournamentPermissions('tournament-123', userIds);
+
+        expect(mockAddUsersToTournament).toHaveBeenCalledWith('tournament-123', userIds);
+      });
     });
   });
 });
