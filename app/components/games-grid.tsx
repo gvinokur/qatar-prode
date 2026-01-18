@@ -12,7 +12,6 @@ import {useSession} from "next-auth/react";
 import {calculateTeamNamesForPlayoffGame} from "../utils/playoff-utils";
 import { getGuessLoser, getGuessWinner } from "../utils/score-utils";
 import { updateOrCreateTournamentGuess } from "../actions/guesses-actions";
-import BoostCountsSummary from "./boost-counts-summary";
 
 type GamesGridProps =  {
   readonly isPlayoffs: boolean
@@ -142,9 +141,6 @@ export default function GamesGrid({ teamsMap, games, isPlayoffs, isLoggedIn = tr
 
   return (
     <>
-      {isLoggedIn && tournamentId && (
-        <BoostCountsSummary tournamentId={tournamentId} />
-      )}
       <Grid container spacing={2}>
         {games
           .map(game => (

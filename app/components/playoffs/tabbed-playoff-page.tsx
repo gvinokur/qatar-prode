@@ -3,7 +3,9 @@ import React, { useCallback, useEffect } from "react";
 import { Tabs, Tab, Box, useMediaQuery, useTheme } from "@mui/material";
 import { Grid } from '../mui-wrappers';
 import GamesGrid from '../games-grid';
+import { PredictionDashboard } from '../prediction-dashboard';
 import { ExtendedGameData } from "../../definitions";
+import type { Tournament } from "../../db/tables-definition";
 
 
 export type Section = { section: string; games: ExtendedGameData[] };
@@ -14,9 +16,29 @@ export interface TabbedPlayoffsPageProps {
   isLoggedIn?: boolean;
   isAwardsPredictionLocked?: boolean;
   tournamentId?: string;
+  enablePredictionDashboard?: boolean;
+  tournament?: Tournament;
+  dashboardStats?: {
+    totalGames: number;
+    predictedGames: number;
+    silverUsed: number;
+    goldenUsed: number;
+    urgentGames: number;
+    warningGames: number;
+    noticeGames: number;
+  };
 }
 
-const TabbedPlayoffsPage: React.FC<TabbedPlayoffsPageProps> = ({ sections, teamsMap, isLoggedIn = true, isAwardsPredictionLocked = false, tournamentId }) => {
+const TabbedPlayoffsPage: React.FC<TabbedPlayoffsPageProps> = ({
+  sections,
+  teamsMap,
+  isLoggedIn = true,
+  isAwardsPredictionLocked = false,
+  tournamentId,
+  enablePredictionDashboard = false,
+  tournament,
+  dashboardStats
+}) => {
   const [selectedTab, setSelectedTab] = React.useState(0);
   const theme = useTheme()
   const isSmallScreen = useMediaQuery(theme.breakpoints.up('sm'));
@@ -112,14 +134,27 @@ const TabbedPlayoffsPage: React.FC<TabbedPlayoffsPageProps> = ({ sections, teams
             sx={{ width: '100%' }}
           >
             {selectedTab === idx && (
-              <GamesGrid
-                isPlayoffs={true}
-                games={section.games}
-                teamsMap={teamsMap}
-                isLoggedIn={isLoggedIn}
-                isAwardsPredictionLocked={isAwardsPredictionLocked}
-                tournamentId={tournamentId}
-              />
+              enablePredictionDashboard && isLoggedIn && tournament && dashboardStats ? (
+                <PredictionDashboard
+                  games={section.games}
+                  teamsMap={teamsMap}
+                  tournament={tournament}
+                  isPlayoffs={true}
+                  isLoggedIn={isLoggedIn}
+                  tournamentId={tournamentId || ''}
+                  isAwardsPredictionLocked={isAwardsPredictionLocked}
+                  dashboardStats={dashboardStats}
+                />
+              ) : (
+                <GamesGrid
+                  isPlayoffs={true}
+                  games={section.games}
+                  teamsMap={teamsMap}
+                  isLoggedIn={isLoggedIn}
+                  isAwardsPredictionLocked={isAwardsPredictionLocked}
+                  tournamentId={tournamentId}
+                />
+              )
             )}
           </Box>
         ))}

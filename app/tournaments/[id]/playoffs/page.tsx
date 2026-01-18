@@ -3,7 +3,7 @@
 import {DebugObject} from "../../../components/debug";
 import {getLoggedInUser} from "../../../actions/user-actions";
 import {getCompletePlayoffData} from "../../../actions/tournament-actions";
-import {findGameGuessesByUserId} from "../../../db/game-guess-repository";
+import {findGameGuessesByUserId, getPredictionDashboardStats} from "../../../db/game-guess-repository";
 import {GameGuess} from "../../../db/tables-definition";
 import {GuessesContextProvider} from "../../../components/context-providers/guesses-context-provider";
 import {calculatePlayoffTeamsFromPositions} from "../../../utils/playoff-teams-calculator";
@@ -12,6 +12,7 @@ import {findAllTournamentGroupTeamGuessInGroup} from "../../../db/tournament-gro
 import {customToMap} from "../../../utils/ObjectUtils";
 import {default as React, unstable_ViewTransition as ViewTransition} from "react";
 import TabbedPlayoffsPage from '../../../components/playoffs/tabbed-playoff-page';
+import { findTournamentById } from "../../../db/tournament-repository";
 
 type Props = {
   readonly params: Promise<{
@@ -26,10 +27,13 @@ export default async function PlayoffPage(props: Props) {
   const user = await getLoggedInUser();
   const isLoggedIn = !!user;
   const completePlayoffData = await getCompletePlayoffData(params.id, false)
+  const tournament = await findTournamentById(params.id)
   let userGameGuesses: GameGuess[] = [];
   let guessedPositionsByGroup = {};
+  let dashboardStats = null;
   if (isLoggedIn) {
     userGameGuesses = await findGameGuessesByUserId(user.id, params.id)
+    dashboardStats = await getPredictionDashboardStats(user.id, params.id)
     const groups = await findGroupsInTournament(params.id)
     guessedPositionsByGroup = Object.fromEntries(
       await Promise.all(
@@ -110,6 +114,9 @@ export default async function PlayoffPage(props: Props) {
             isLoggedIn={isLoggedIn}
             isAwardsPredictionLocked={isAwardsPredictionLocked}
             tournamentId={params.id}
+            enablePredictionDashboard={true}
+            tournament={tournament || undefined}
+            dashboardStats={dashboardStats || undefined}
           />
         </ViewTransition>
       </GuessesContextProvider>

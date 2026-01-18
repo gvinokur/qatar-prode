@@ -9,10 +9,11 @@ import FriendGroupsList from "../../components/tournament-page/friend-groups-lis
 import {getGroupsForUser} from "../../actions/prode-group-actions";
 import {getLoggedInUser} from "../../actions/user-actions";
 import {UserTournamentStatistics} from "../../components/tournament-page/user-tournament-statistics";
-import {getGameGuessStatisticsForUsers} from "../../db/game-guess-repository";
+import {getPredictionDashboardStats, getGameGuessStatisticsForUsers} from "../../db/game-guess-repository";
 import {findTournamentGuessByUserIdTournament} from "../../db/tournament-guess-repository";
 import {unstable_ViewTransition as ViewTransition} from "react";
 import {findTournamentById} from "../../db/tournament-repository";
+import {PredictionStatusBar} from "../../components/prediction-status-bar";
 import type {ScoringConfig} from "../../components/tournament-page/rules";
 
 type Props = {
@@ -32,6 +33,9 @@ export default async function TournamentLandingPage(props: Props) {
 
   const gamesAroundMyTime = await getGamesAroundMyTime(tournamentId);
   const teamsMap = await getTeamsMap(tournamentId)
+
+  // Fetch dashboard stats for prediction tracking
+  const dashboardStats = user ? await getPredictionDashboardStats(user.id, tournamentId) : null
 
   const userGameStatisticList = user ?
     await getGameGuessStatisticsForUsers([user.id], tournamentId) :
@@ -68,6 +72,19 @@ export default async function TournamentLandingPage(props: Props) {
         exit={'group-exit'}>
         <Grid container maxWidth={'868px'} mt={1} mx={{md: 'auto'}} spacing={2}>
           <Grid size={{ xs:12, md: 8 }}>
+            {user && dashboardStats && tournament && (
+              <PredictionStatusBar
+                totalGames={dashboardStats.totalGames}
+                predictedGames={dashboardStats.predictedGames}
+                silverUsed={dashboardStats.silverUsed}
+                silverMax={tournament.max_silver_games ?? 0}
+                goldenUsed={dashboardStats.goldenUsed}
+                goldenMax={tournament.max_golden_games ?? 0}
+                urgentGames={dashboardStats.urgentGames}
+                warningGames={dashboardStats.warningGames}
+                noticeGames={dashboardStats.noticeGames}
+              />
+            )}
             <Fixtures games={gamesAroundMyTime} teamsMap={teamsMap}/>
           </Grid>
           <Grid size={{ xs:12, md: 4 }}>

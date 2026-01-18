@@ -6,13 +6,15 @@ import { Grid} from "../../../../components/mui-wrappers";
 import {GameGuess, Team, TournamentGroupTeamStatsGuess} from "../../../../db/tables-definition";
 import {GuessesContextProvider} from "../../../../components/context-providers/guesses-context-provider";
 import GroupTable from "../../../../components/groups-page/group-table";
-import {findGameGuessesByUserId} from "../../../../db/game-guess-repository";
+import {findGameGuessesByUserId, getPredictionDashboardStats} from "../../../../db/game-guess-repository";
 import {getLoggedInUser} from "../../../../actions/user-actions";
 import {findGuessedQualifiedTeams, findQualifiedTeams} from "../../../../db/team-repository";
 import {calculateGroupPosition} from "../../../../utils/group-position-calculator";
 import {findAllTournamentGroupTeamGuessInGroup} from "../../../../db/tournament-group-team-guess-repository";
 import {customToMap} from "../../../../utils/ObjectUtils";
 import GamesGrid from "../../../../components/games-grid";
+import { PredictionDashboard } from "../../../../components/prediction-dashboard";
+import { findTournamentById } from "../../../../db/tournament-repository";
 import { unstable_ViewTransition as ViewTransition} from 'react'
 
 type Props = {
@@ -31,11 +33,14 @@ export default async function GroupComponent(props : Props) {
   const isLoggedIn = !!user;
   const groupId = params.group_id
   const completeGroupData = await getCompleteGroupData(groupId)
+  const tournament = await findTournamentById(params.id)
   let userGameGuesses: GameGuess[] = [];
   let qualifiedTeamGuesses: Team[] = [];
+  let dashboardStats = null;
   if (isLoggedIn) {
     userGameGuesses = await findGameGuessesByUserId(user.id, params.id)
     qualifiedTeamGuesses = await findGuessedQualifiedTeams(params.id, user.id, params.group_id)
+    dashboardStats = await getPredictionDashboardStats(user.id, params.id)
   }
   const qualifiedTeams = await findQualifiedTeams(params.id, params.group_id)
 
@@ -84,14 +89,26 @@ export default async function GroupComponent(props : Props) {
         >
           <Grid container mt={'16px'} maxWidth={'868px'} mx={'auto'}>
             <Grid size={12} mb={'16px'}>
-              <GamesGrid
-                isPlayoffs={false}
-                games={Object.values(completeGroupData.gamesMap)
-                  .sort((a,b) => a.game_number - b.game_number)}
-                teamsMap={completeGroupData.teamsMap}
-                isLoggedIn={isLoggedIn}
-                tournamentId={params.id}
-              />
+              {isLoggedIn && tournament && dashboardStats ? (
+                <PredictionDashboard
+                  games={Object.values(completeGroupData.gamesMap)
+                    .sort((a,b) => a.game_number - b.game_number)}
+                  teamsMap={completeGroupData.teamsMap}
+                  tournament={tournament}
+                  isPlayoffs={false}
+                  isLoggedIn={isLoggedIn}
+                  tournamentId={params.id}
+                  dashboardStats={dashboardStats}
+                />
+              ) : (
+                <GamesGrid
+                  isPlayoffs={false}
+                  games={Object.values(completeGroupData.gamesMap)
+                    .sort((a,b) => a.game_number - b.game_number)}
+                  teamsMap={completeGroupData.teamsMap}
+                  isLoggedIn={false}
+                />
+              )}
             </Grid>
             <Grid size={12} justifyContent={'center'}>
               <GroupTable

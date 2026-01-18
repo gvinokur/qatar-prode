@@ -303,3 +303,113 @@ export async function getGameGuessWithBoost(
     .selectAll()
     .executeTakeFirst();
 }
+
+/**
+ * Get prediction dashboard statistics for user and tournament
+ * Returns aggregated counts for total games, predicted games, boost usage, and urgency warnings
+ * All in a single optimized query
+ */
+export async function getPredictionDashboardStats(
+  userId: string,
+  tournamentId: string
+): Promise<{
+  totalGames: number;
+  predictedGames: number;
+  silverUsed: number;
+  goldenUsed: number;
+  urgentGames: number; // Closing within 2 hours
+  warningGames: number; // Closing within 2-24 hours
+  noticeGames: number; // Closing within 24-48 hours
+}> {
+  const now = new Date();
+
+  const stats = await db
+    .selectFrom('games')
+    .leftJoin('game_guesses', (join) =>
+      join
+        .onRef('game_guesses.game_id', '=', 'games.id')
+        .on('game_guesses.user_id', '=', userId)
+    )
+    .where('games.tournament_id', '=', tournamentId)
+    .select((eb) => [
+      // Total games count
+      eb.fn.countAll<number>().as('total_games'),
+
+      // Predicted games count (both scores filled)
+      eb.fn
+        .count<number>('game_guesses.id')
+        .filterWhere('game_guesses.home_score', 'is not', null)
+        .filterWhere('game_guesses.away_score', 'is not', null)
+        .as('predicted_games'),
+
+      // Boost usage counts
+      eb.fn
+        .count<number>('game_guesses.id')
+        .filterWhere('game_guesses.boost_type', '=', 'silver')
+        .as('silver_used'),
+      eb.fn
+        .count<number>('game_guesses.id')
+        .filterWhere('game_guesses.boost_type', '=', 'golden')
+        .as('golden_used'),
+
+      // Urgency warnings: unpredicted games closing within time windows
+      // Red alert: < 2 hours (using SQL interval for time calculation)
+      eb.fn
+        .count<number>('games.id')
+        .filterWhere((eb) =>
+          eb.and([
+            eb(sql`games.game_date - interval '1 hour'`, '>', now),
+            eb(sql`games.game_date - interval '1 hour'`, '<=', sql`NOW() + interval '2 hours'`),
+            eb.or([
+              eb('game_guesses.id', 'is', null),
+              eb('game_guesses.home_score', 'is', null),
+              eb('game_guesses.away_score', 'is', null),
+            ]),
+          ])
+        )
+        .as('urgent_games'),
+
+      // Orange warning: 2-24 hours
+      eb.fn
+        .count<number>('games.id')
+        .filterWhere((eb) =>
+          eb.and([
+            eb(sql`games.game_date - interval '1 hour'`, '>', sql`NOW() + interval '2 hours'`),
+            eb(sql`games.game_date - interval '1 hour'`, '<=', sql`NOW() + interval '24 hours'`),
+            eb.or([
+              eb('game_guesses.id', 'is', null),
+              eb('game_guesses.home_score', 'is', null),
+              eb('game_guesses.away_score', 'is', null),
+            ]),
+          ])
+        )
+        .as('warning_games'),
+
+      // Yellow notice: 24-48 hours
+      eb.fn
+        .count<number>('games.id')
+        .filterWhere((eb) =>
+          eb.and([
+            eb(sql`games.game_date - interval '1 hour'`, '>', sql`NOW() + interval '24 hours'`),
+            eb(sql`games.game_date - interval '1 hour'`, '<=', sql`NOW() + interval '48 hours'`),
+            eb.or([
+              eb('game_guesses.id', 'is', null),
+              eb('game_guesses.home_score', 'is', null),
+              eb('game_guesses.away_score', 'is', null),
+            ]),
+          ])
+        )
+        .as('notice_games'),
+    ])
+    .executeTakeFirstOrThrow();
+
+  return {
+    totalGames: Number(stats.total_games),
+    predictedGames: Number(stats.predicted_games),
+    silverUsed: Number(stats.silver_used),
+    goldenUsed: Number(stats.golden_used),
+    urgentGames: Number(stats.urgent_games),
+    warningGames: Number(stats.warning_games),
+    noticeGames: Number(stats.notice_games),
+  };
+}

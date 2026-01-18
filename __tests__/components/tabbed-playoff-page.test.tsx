@@ -15,6 +15,18 @@ vi.mock('../../app/components/games-grid', () => ({
   ),
 }));
 
+// Mock the PredictionDashboard component
+vi.mock('../../app/components/prediction-dashboard', () => ({
+  PredictionDashboard: ({ games, isPlayoffs, isLoggedIn, isAwardsPredictionLocked }: any) => (
+    <div data-testid="prediction-dashboard">
+      <div data-testid="games-count">{games.length}</div>
+      <div data-testid="is-playoffs">{isPlayoffs.toString()}</div>
+      <div data-testid="is-logged-in">{isLoggedIn.toString()}</div>
+      <div data-testid="is-awards-locked">{isAwardsPredictionLocked.toString()}</div>
+    </div>
+  ),
+}));
+
 // Mock the Grid component with unique test IDs
 vi.mock('../../app/components/mui-wrappers', () => ({
   Grid: ({ children, ...props }: any) => {
