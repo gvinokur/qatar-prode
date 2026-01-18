@@ -15,6 +15,7 @@ import {
   setGameGuessBoost,
   countUserBoostsByType,
   getGameGuessWithBoost,
+  getPredictionDashboardStats,
 } from '../../app/db/game-guess-repository';
 import { db } from '../../app/db/database';
 import { testFactories } from './test-factories';
@@ -718,6 +719,129 @@ describe('Game Guess Repository', () => {
         boost_multiplier: 3.0,
         final_score: 3000,
       });
+    });
+  });
+
+  describe('getPredictionDashboardStats', () => {
+    it('should return prediction dashboard statistics', async () => {
+      const mockStats = {
+        total_games: 10,
+        predicted_games: 7,
+        silver_used: 2,
+        golden_used: 1,
+        urgent_games: 1,
+        warning_games: 2,
+        notice_games: 1,
+      };
+
+      const mockQuery = {
+        leftJoin: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirstOrThrow: vi.fn().mockResolvedValue(mockStats),
+      };
+
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      const result = await getPredictionDashboardStats('user-1', 'tournament-1');
+
+      expect(mockDb.selectFrom).toHaveBeenCalledWith('games');
+      expect(mockQuery.where).toHaveBeenCalledWith('games.tournament_id', '=', 'tournament-1');
+      expect(result).toEqual({
+        totalGames: 10,
+        predictedGames: 7,
+        silverUsed: 2,
+        goldenUsed: 1,
+        urgentGames: 1,
+        warningGames: 2,
+        noticeGames: 1,
+      });
+    });
+
+    it('should return zeros when no data exists', async () => {
+      const mockStats = {
+        total_games: 0,
+        predicted_games: 0,
+        silver_used: 0,
+        golden_used: 0,
+        urgent_games: 0,
+        warning_games: 0,
+        notice_games: 0,
+      };
+
+      const mockQuery = {
+        leftJoin: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirstOrThrow: vi.fn().mockResolvedValue(mockStats),
+      };
+
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      const result = await getPredictionDashboardStats('user-1', 'tournament-1');
+
+      expect(result).toEqual({
+        totalGames: 0,
+        predictedGames: 0,
+        silverUsed: 0,
+        goldenUsed: 0,
+        urgentGames: 0,
+        warningGames: 0,
+        noticeGames: 0,
+      });
+    });
+
+    it('should handle different boost counts', async () => {
+      const mockStats = {
+        total_games: 20,
+        predicted_games: 18,
+        silver_used: 5,
+        golden_used: 2,
+        urgent_games: 0,
+        warning_games: 1,
+        notice_games: 3,
+      };
+
+      const mockQuery = {
+        leftJoin: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirstOrThrow: vi.fn().mockResolvedValue(mockStats),
+      };
+
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      const result = await getPredictionDashboardStats('user-2', 'tournament-2');
+
+      expect(result.silverUsed).toBe(5);
+      expect(result.goldenUsed).toBe(2);
+    });
+
+    it('should handle urgency warnings correctly', async () => {
+      const mockStats = {
+        total_games: 15,
+        predicted_games: 12,
+        silver_used: 3,
+        golden_used: 1,
+        urgent_games: 2,
+        warning_games: 3,
+        notice_games: 1,
+      };
+
+      const mockQuery = {
+        leftJoin: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirstOrThrow: vi.fn().mockResolvedValue(mockStats),
+      };
+
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      const result = await getPredictionDashboardStats('user-3', 'tournament-3');
+
+      expect(result.urgentGames).toBe(2);
+      expect(result.warningGames).toBe(3);
+      expect(result.noticeGames).toBe(1);
     });
   });
 });
