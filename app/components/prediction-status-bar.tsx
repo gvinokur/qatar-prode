@@ -5,15 +5,55 @@ import { Box, Card, Typography, LinearProgress, Alert } from '@mui/material';
 import { BoostCountBadge } from './boost-badge';
 
 interface PredictionStatusBarProps {
-  totalGames: number;
-  predictedGames: number;
-  silverUsed: number;
-  silverMax: number;
-  goldenUsed: number;
-  goldenMax: number;
-  urgentGames: number; // Closing within 2 hours
-  warningGames: number; // Closing within 2-24 hours
-  noticeGames: number; // Closing within 24-48 hours
+  readonly totalGames: number;
+  readonly predictedGames: number;
+  readonly silverUsed: number;
+  readonly silverMax: number;
+  readonly goldenUsed: number;
+  readonly goldenMax: number;
+  readonly urgentGames: number; // Closing within 2 hours
+  readonly warningGames: number; // Closing within 2-24 hours
+  readonly noticeGames: number; // Closing within 24-48 hours
+}
+
+type UrgencyWarning = {
+  severity: 'error' | 'warning' | 'info';
+  count: number;
+  message: string;
+};
+
+// Build urgency warnings from game counts
+function buildUrgencyWarnings(urgentGames: number, warningGames: number, noticeGames: number): UrgencyWarning[] {
+  const warnings: UrgencyWarning[] = [];
+
+  if (urgentGames > 0) {
+    const plural = urgentGames > 1;
+    warnings.push({
+      severity: 'error',
+      count: urgentGames,
+      message: `${urgentGames} partido${plural ? 's' : ''} cierra${plural ? 'n' : ''} en 2 horas`
+    });
+  }
+
+  if (warningGames > 0) {
+    const plural = warningGames > 1;
+    warnings.push({
+      severity: 'warning',
+      count: warningGames,
+      message: `${warningGames} partido${plural ? 's' : ''} cierra${plural ? 'n' : ''} en 24 horas`
+    });
+  }
+
+  if (noticeGames > 0) {
+    const plural = noticeGames > 1;
+    warnings.push({
+      severity: 'info',
+      count: noticeGames,
+      message: `${noticeGames} partido${plural ? 's' : ''} cierra${plural ? 'n' : ''} en 2 días`
+    });
+  }
+
+  return warnings;
 }
 
 export function PredictionStatusBar({
@@ -28,31 +68,7 @@ export function PredictionStatusBar({
   noticeGames
 }: PredictionStatusBarProps) {
   const percentage = totalGames > 0 ? Math.round((predictedGames / totalGames) * 100) : 0;
-
-  // Build urgency warnings from counts
-  const urgencyWarnings = [];
-  if (urgentGames > 0) {
-    urgencyWarnings.push({
-      severity: 'error' as const,
-      count: urgentGames,
-      message: `${urgentGames} partido${urgentGames > 1 ? 's' : ''} cierra${urgentGames > 1 ? 'n' : ''} en 2 horas`
-    });
-  }
-  if (warningGames > 0) {
-    urgencyWarnings.push({
-      severity: 'warning' as const,
-      count: warningGames,
-      message: `${warningGames} partido${warningGames > 1 ? 's' : ''} cierra${warningGames > 1 ? 'n' : ''} en 24 horas`
-    });
-  }
-  if (noticeGames > 0) {
-    urgencyWarnings.push({
-      severity: 'info' as const,
-      count: noticeGames,
-      message: `${noticeGames} partido${noticeGames > 1 ? 's' : ''} cierra${noticeGames > 1 ? 'n' : ''} en 2 días`
-    });
-  }
-
+  const urgencyWarnings = buildUrgencyWarnings(urgentGames, warningGames, noticeGames);
   const showBoosts = silverMax > 0 || goldenMax > 0;
 
   return (
@@ -97,9 +113,9 @@ export function PredictionStatusBar({
       {/* Urgency Warnings Section */}
       {urgencyWarnings.length > 0 && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-          {urgencyWarnings.map((warning, idx) => (
+          {urgencyWarnings.map((warning) => (
             <Alert
-              key={idx}
+              key={warning.severity}
               severity={warning.severity}
               sx={{ py: 0.5 }}
             >

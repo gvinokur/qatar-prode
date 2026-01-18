@@ -459,7 +459,8 @@ describe('GameBoostSelector', () => {
       const silverButton = screen.getAllByRole('button')[0];
       await user.click(silverButton);
 
-      await screen.findByText(/Error updating boost/);
+      const errorMessage = await screen.findByText(/Error updating boost/);
+      expect(errorMessage).toBeInTheDocument();
     });
   });
 

@@ -8,15 +8,15 @@ import type { ExtendedGameData } from '../definitions';
 import type { Tournament, Team } from '../db/tables-definition';
 
 interface PredictionDashboardProps {
-  games: ExtendedGameData[];
-  teamsMap: Record<string, Team>;
-  tournament: Tournament;
-  isPlayoffs: boolean;
-  isLoggedIn: boolean;
-  tournamentId: string;
-  isAwardsPredictionLocked?: boolean;
+  readonly games: ExtendedGameData[];
+  readonly teamsMap: Record<string, Team>;
+  readonly tournament: Tournament;
+  readonly isPlayoffs: boolean;
+  readonly isLoggedIn: boolean;
+  readonly tournamentId: string;
+  readonly isAwardsPredictionLocked?: boolean;
   // Initial stats from database query (used for tournament-wide urgency on main page)
-  dashboardStats: {
+  readonly dashboardStats: {
     totalGames: number;
     predictedGames: number;
     silverUsed: number;

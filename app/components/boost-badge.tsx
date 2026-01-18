@@ -4,9 +4,9 @@ import { Chip } from '@mui/material';
 import { EmojiEvents as TrophyIcon, Star as StarIcon } from '@mui/icons-material';
 
 interface BoostBadgeProps {
-  type: 'silver' | 'golden';
-  showIcon?: boolean;
-  size?: 'small' | 'medium';
+  readonly type: 'silver' | 'golden';
+  readonly showIcon?: boolean;
+  readonly size?: 'small' | 'medium';
 }
 
 /**
@@ -41,9 +41,9 @@ export function BoostBadge({ type, showIcon = true, size = 'small' }: BoostBadge
 }
 
 interface BoostCountBadgeProps {
-  type: 'silver' | 'golden';
-  used: number;
-  max: number;
+  readonly type: 'silver' | 'golden';
+  readonly used: number;
+  readonly max: number;
 }
 
 /**
