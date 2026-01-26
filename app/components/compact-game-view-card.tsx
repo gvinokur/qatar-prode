@@ -12,7 +12,7 @@ import {
   Badge, CircularProgress,
   Chip
 } from "@mui/material";
-import { Edit as EditIcon, Save as SaveIcon, SaveOutlined as SaveOutlinedIcon, Scoreboard as ScoreboardIcon, EmojiEvents as TrophyIcon, Star as StarIcon } from "@mui/icons-material";
+import { Edit as EditIcon, Save as SaveIcon, SaveOutlined as SaveOutlinedIcon, Scoreboard as ScoreboardIcon, EmojiEvents as TrophyIcon } from "@mui/icons-material";
 import { getUserLocalTime, getLocalGameTime } from "../utils/date-utils";
 import { GameResultNew, Theme} from "../db/tables-definition";
 import {useState} from "react";
@@ -164,10 +164,15 @@ export default function CompactGameViewCard({
                 Number.isInteger(specificProps.gameResult?.away_score) &&
                 Number.isInteger(specificProps.scoreForGame))) && (
                 <Box minWidth="86px" textAlign="right" flexDirection={'row'} alignContent={'center'} height={'100%'} display="flex" alignItems="center" justifyContent="flex-end" gap={0.5}>
-                  {boostType && (
+                  {boostType && !(
+                    specificProps.isGameGuess &&
+                    Number.isInteger(specificProps.gameResult?.home_score) &&
+                    Number.isInteger(specificProps.gameResult?.away_score) &&
+                    Number.isInteger(specificProps.scoreForGame)
+                  ) && (
                     <Tooltip title={`${boostType === 'golden' ? '3x' : '2x'} Boost aplicado`}>
                       <Chip
-                        icon={boostType === 'golden' ? <TrophyIcon sx={{ fontSize: 14 }} /> : <StarIcon sx={{ fontSize: 14 }} />}
+                        icon={<TrophyIcon sx={{ fontSize: 14 }} />}
                         label={boostType === 'golden' ? '3x' : '2x'}
                         size="small"
                         sx={{

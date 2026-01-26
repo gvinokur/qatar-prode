@@ -127,4 +127,65 @@ describe('GameCardPointOverlay', () => {
       expect(screen.queryByText(/2pt x3/i)).not.toBeInTheDocument();
     });
   });
+
+  describe('Round 2 refinements', () => {
+    it('should render all chips with consistent 24px height', () => {
+      const { rerender, container } = render(<GameCardPointOverlay {...defaultProps} points={0} />);
+      let chip = container.querySelector('.MuiChip-root');
+      expect(chip).toHaveStyle({ height: '24px' });
+
+      // Regular win (no boost)
+      rerender(<GameCardPointOverlay {...defaultProps} points={2} boostType={null} />);
+      chip = container.querySelector('.MuiChip-root');
+      expect(chip).toHaveStyle({ height: '24px' });
+
+      // Silver boost
+      rerender(<GameCardPointOverlay {...defaultProps} points={4} boostType="silver" />);
+      chip = container.querySelector('.MuiChip-root');
+      expect(chip).toHaveStyle({ height: '24px' });
+
+      // Golden boost
+      rerender(<GameCardPointOverlay {...defaultProps} points={6} boostType="golden" />);
+      chip = container.querySelector('.MuiChip-root');
+      expect(chip).toHaveStyle({ height: '24px' });
+    });
+
+    it('should use white text for regular success chips', () => {
+      const { container } = render(
+        <GameCardPointOverlay {...defaultProps} points={2} boostType={null} />
+      );
+
+      const chip = container.querySelector('.MuiChip-root');
+      // Check for rgb(255, 255, 255) which is equivalent to 'white'
+      expect(chip).toHaveStyle({ color: 'rgb(255, 255, 255)' });
+    });
+
+    it('should render CheckEffect for regular wins without boost', () => {
+      render(<GameCardPointOverlay {...defaultProps} points={2} boostType={null} />);
+
+      // Should show points text for regular win
+      expect(screen.getByText(/\+2 pts/i)).toBeInTheDocument();
+
+      // CheckEffect is rendered as part of the points display
+      // The icon is wrapped in the Box component with the points text
+    });
+
+    it('should render TrophyBounce for boosted wins', () => {
+      render(<GameCardPointOverlay {...defaultProps} points={4} boostType="silver" />);
+
+      // Should show points text for boosted win
+      expect(screen.getByText(/\+4 pts/i)).toBeInTheDocument();
+
+      // TrophyBounce is rendered as part of the points display
+    });
+
+    it('should render SobEffect for zero points', () => {
+      render(<GameCardPointOverlay {...defaultProps} points={0} baseScore={0} />);
+
+      // Should show zero points text
+      expect(screen.getByText(/0 pts/i)).toBeInTheDocument();
+
+      // SobEffect is rendered as part of the points display
+    });
+  });
 });

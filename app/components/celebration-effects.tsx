@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Box } from '@mui/material';
-import { EmojiEvents as TrophyIcon, SentimentVeryDissatisfied as SobIcon } from '@mui/icons-material';
+import { EmojiEvents as TrophyIcon, SentimentVeryDissatisfied as SobIcon, CheckCircle as CheckIcon } from '@mui/icons-material';
 
 interface ConfettiEffectProps {
   show: boolean;
@@ -130,6 +130,46 @@ export function SobEffect({ show, color = 'white' }: SobEffectProps) {
       }}
     >
       <SobIcon
+        sx={{
+          fontSize: 16,
+          color,
+          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+        }}
+      />
+    </motion.div>
+  );
+}
+
+interface CheckEffectProps {
+  show: boolean;
+  color?: string;
+}
+
+/**
+ * Check animation for regular win scores
+ * Shows a bounce effect with checkmark icon
+ */
+export function CheckEffect({ show, color = 'white' }: CheckEffectProps) {
+  if (!show) return null;
+
+  return (
+    <motion.div
+      initial={{ scale: 1, y: 0 }}
+      animate={{
+        scale: [1, 1.3, 1],
+        y: [0, -8, 0],
+      }}
+      transition={{
+        duration: 0.6,
+        ease: 'easeInOut',
+        times: [0, 0.5, 1],
+      }}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+      }}
+    >
+      <CheckIcon
         sx={{
           fontSize: 16,
           color,

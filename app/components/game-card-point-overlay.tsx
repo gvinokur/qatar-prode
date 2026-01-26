@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, useMotionValue, animate } from 'framer-motion';
 import { Box, Chip, useTheme } from '@mui/material';
 import { useSearchParams } from 'next/navigation';
-import { ConfettiEffect, TrophyBounce, SobEffect } from './celebration-effects';
+import { ConfettiEffect, TrophyBounce, SobEffect, CheckEffect } from './celebration-effects';
 import PointBreakdownTooltip from './point-breakdown-tooltip';
 import { BoostType } from '../utils/point-calculator';
 
@@ -95,7 +95,7 @@ export default function GameCardPointOverlay({
     if (boostType) {
       return boostType === 'golden' ? '#FFD700' : '#C0C0C0';
     }
-    return theme.palette.success.main;
+    return 'white';
   };
 
   // Format display text
@@ -117,6 +117,15 @@ export default function GameCardPointOverlay({
         <Box display="flex" alignItems="center" gap={0.5}>
           <span>{pointsText}</span>
           <TrophyBounce show={shouldAnimate && showCelebration} boostType={boostType} />
+        </Box>
+      );
+    }
+
+    if (points > 0) {
+      return (
+        <Box display="flex" alignItems="center" gap={0.5}>
+          <span>{pointsText}</span>
+          <CheckEffect show={shouldAnimate && showCelebration} color="white" />
         </Box>
       );
     }
@@ -164,7 +173,7 @@ export default function GameCardPointOverlay({
             }
             onClick={handleClick}
             sx={{
-              height: boostType ? 28 : 24,
+              height: 24,
               backgroundColor: getChipColor(),
               color: getTextColor(),
               cursor: 'pointer',
@@ -184,7 +193,7 @@ export default function GameCardPointOverlay({
                     : boostType === 'silver'
                     ? 'rgba(192, 192, 192, 0.3)'
                     : theme.palette.success.main,
-                color: points === 0 ? 'white' : undefined,
+                color: 'white',
                 transform: 'scale(1.05)',
               },
             }}
