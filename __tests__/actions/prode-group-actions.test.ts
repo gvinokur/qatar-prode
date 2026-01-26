@@ -88,7 +88,10 @@ describe('Prode Group Actions', () => {
     group_score: 10,
     playoff_correct_guesses: 2,
     playoff_exact_guesses: 1,
-    playoff_score: 5
+    playoff_score: 5,
+    group_boost_bonus: 2,
+    playoff_boost_bonus: 1,
+    total_boost_bonus: 3
   };
 
   const mockTournamentGuess = {
@@ -306,6 +309,9 @@ describe('Prode Group Actions', () => {
           honorRollScore: 3,
           individualAwardsScore: 4,
           groupPositionScore: 1,
+          groupBoostBonus: 2,
+          playoffBoostBonus: 1,
+          totalBoostBonus: 3,
           totalPoints: 25
         }
       ]);
