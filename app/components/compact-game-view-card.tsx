@@ -1,7 +1,6 @@
 'use client'
 
 import {
-  Avatar,
   Box,
   Card,
   CardContent,
@@ -13,12 +12,14 @@ import {
   Badge, CircularProgress,
   Chip
 } from "@mui/material";
-import { Edit as EditIcon, Close as MissIcon, Done as HitIcon, DoneAll as HitAllIcon, Save as SaveIcon, SaveOutlined as SaveOutlinedIcon, Scoreboard as ScoreboardIcon, EmojiEvents as TrophyIcon, Star as StarIcon } from "@mui/icons-material";
+import { Edit as EditIcon, Save as SaveIcon, SaveOutlined as SaveOutlinedIcon, Scoreboard as ScoreboardIcon, EmojiEvents as TrophyIcon } from "@mui/icons-material";
 import { getUserLocalTime, getLocalGameTime } from "../utils/date-utils";
 import { GameResultNew, Theme} from "../db/tables-definition";
 import {useState} from "react";
 import {getThemeLogoUrl} from "../utils/theme-utils";
 import { useTimezone } from './context-providers/timezone-context-provider';
+import { calculateFinalPoints } from "../utils/point-calculator";
+import GameCardPointOverlay from "./game-card-point-overlay";
 
 type SharedProps = {
   gameNumber: number;
@@ -163,10 +164,15 @@ export default function CompactGameViewCard({
                 Number.isInteger(specificProps.gameResult?.away_score) &&
                 Number.isInteger(specificProps.scoreForGame))) && (
                 <Box minWidth="86px" textAlign="right" flexDirection={'row'} alignContent={'center'} height={'100%'} display="flex" alignItems="center" justifyContent="flex-end" gap={0.5}>
-                  {boostType && (
-                    <Tooltip title={`${boostType === 'golden' ? '3x' : '2x'} Boost aplicado`}>
+                  {boostType && !(
+                    specificProps.isGameGuess &&
+                    Number.isInteger(specificProps.gameResult?.home_score) &&
+                    Number.isInteger(specificProps.gameResult?.away_score) &&
+                    Number.isInteger(specificProps.scoreForGame)
+                  ) && (
+                    <Tooltip title={`Multiplicador ${boostType === 'golden' ? '3x' : '2x'} aplicado`}>
                       <Chip
-                        icon={boostType === 'golden' ? <TrophyIcon sx={{ fontSize: 14 }} /> : <StarIcon sx={{ fontSize: 14 }} />}
+                        icon={<TrophyIcon sx={{ fontSize: 14 }} />}
                         label={boostType === 'golden' ? '3x' : '2x'}
                         size="small"
                         sx={{
@@ -183,7 +189,7 @@ export default function CompactGameViewCard({
                     </Tooltip>
                   )}
                   {(!disabled) && (
-                    <Tooltip title="Edit result">
+                    <Tooltip title="Editar resultado">
                       <IconButton
                         size={'large'}
                         onClick={handleEditClick}
@@ -201,7 +207,7 @@ export default function CompactGameViewCard({
                     </Tooltip>
                   )}
                   {!specificProps.isGameGuess && !disabled && (
-                    <Tooltip title="Is Published?">
+                    <Tooltip title="¿Está publicado?">
                       <Checkbox
                         size="medium"
                         color={isDraft ? 'warning' : 'success'}
@@ -218,9 +224,22 @@ export default function CompactGameViewCard({
                     Number.isInteger(specificProps.gameResult?.away_score) &&
                     Number.isInteger(specificProps.scoreForGame) && (
                       <Box display="flex" justifyContent="flex-end">
-                        {specificProps.scoreForGame === 0 && <Avatar title='Pronostico Errado' sx={{ width: '20px', height: '20px', bgcolor: theme.palette.error.light }}><MissIcon sx={{ fontSize: 14 }} /></Avatar>}
-                        {specificProps.scoreForGame === 1 && <Avatar title='Pronostico Correcto (1 punto)' sx={{ width: '20px', height: '20px', bgcolor: theme.palette.success.light }}><HitIcon sx={{ fontSize: 14 }} /></Avatar>}
-                        {specificProps.scoreForGame === 2 && <Avatar title='Resultado Exacto (2 puntos)' sx={{ width: '20px', height: '20px', bgcolor: theme.palette.success.main }}><HitAllIcon sx={{ fontSize: 14 }} /></Avatar>}
+                        {(() => {
+                          const pointCalc = calculateFinalPoints(
+                            specificProps.scoreForGame!,
+                            specificProps.boostType
+                          );
+                          return (
+                            <GameCardPointOverlay
+                              gameId={gameNumber.toString()}
+                              points={pointCalc.finalScore}
+                              baseScore={pointCalc.baseScore}
+                              multiplier={pointCalc.multiplier}
+                              boostType={specificProps.boostType || null}
+                              scoreDescription={pointCalc.description}
+                            />
+                          );
+                        })()}
                       </Box>
                     )}
                   {specificProps.isGameFixture && (
