@@ -521,14 +521,29 @@ describe('ProdeGroupTable', () => {
   });
 
   describe('Edge cases', () => {
+    it('handles empty tournaments array', () => {
+      render(
+        <ProdeGroupTable
+          {...defaultProps}
+          tournaments={[]}
+          userScoresByTournament={{}}
+          bettingData={{}}
+        />
+      );
+
+      expect(screen.getByText('Tabla de Posiciones')).toBeInTheDocument();
+      expect(screen.getByText('No hay torneos activos disponibles en este momento.')).toBeInTheDocument();
+      expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+    });
+
     it('handles empty user scores', () => {
       render(
-        <ProdeGroupTable 
-          {...defaultProps} 
+        <ProdeGroupTable
+          {...defaultProps}
           userScoresByTournament={{ 'tournament1': [], 'tournament2': [] }}
         />
       );
-      
+
       expect(screen.getByText('Tabla de Posiciones')).toBeInTheDocument();
       // Should not crash with empty scores
     });
