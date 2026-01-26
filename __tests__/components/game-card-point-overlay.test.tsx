@@ -63,7 +63,7 @@ describe('GameCardPointOverlay', () => {
     fireEvent.click(chip!);
 
     await waitFor(() => {
-      expect(screen.getByText('Point Breakdown')).toBeInTheDocument();
+      expect(screen.getByText('Desglose de Puntos')).toBeInTheDocument();
     });
   });
 
@@ -74,7 +74,7 @@ describe('GameCardPointOverlay', () => {
     fireEvent.click(chip!);
 
     await waitFor(() => {
-      expect(screen.getByText('Point Breakdown')).toBeInTheDocument();
+      expect(screen.getByText('Desglose de Puntos')).toBeInTheDocument();
     });
 
     // Click the backdrop to close
@@ -83,7 +83,7 @@ describe('GameCardPointOverlay', () => {
       fireEvent.click(backdrop);
 
       await waitFor(() => {
-        expect(screen.queryByText('Point Breakdown')).not.toBeInTheDocument();
+        expect(screen.queryByText('Desglose de Puntos')).not.toBeInTheDocument();
       });
     }
   });
