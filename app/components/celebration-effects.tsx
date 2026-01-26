@@ -104,13 +104,14 @@ export function TrophyBounce({ show, boostType }: TrophyBounceProps) {
 
 interface SobEffectProps {
   show: boolean;
+  color?: string;
 }
 
 /**
  * Sob emoji animation for zero-point scores
  * Shows a wobble/shake effect with sad face
  */
-export function SobEffect({ show }: SobEffectProps) {
+export function SobEffect({ show, color = 'white' }: SobEffectProps) {
   if (!show) return null;
 
   return (
@@ -131,7 +132,7 @@ export function SobEffect({ show }: SobEffectProps) {
       <SobIcon
         sx={{
           fontSize: 16,
-          color: '#f44336', // Error red
+          color,
           filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
         }}
       />

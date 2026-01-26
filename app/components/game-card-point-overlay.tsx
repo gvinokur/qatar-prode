@@ -107,7 +107,7 @@ export default function GameCardPointOverlay({
       return (
         <Box display="flex" alignItems="center" gap={0.5}>
           <span>{pointsText}</span>
-          <SobEffect show={shouldAnimate && showCelebration} />
+          <SobEffect show={shouldAnimate && showCelebration} color="white" />
         </Box>
       );
     }
