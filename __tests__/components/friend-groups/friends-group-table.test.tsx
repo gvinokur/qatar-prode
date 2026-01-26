@@ -410,41 +410,66 @@ describe('ProdeGroupTable', () => {
   describe('Notification functionality', () => {
     it('shows notification button for admins', () => {
       render(<ProdeGroupTable {...defaultProps} loggedInUser="user2" />); // user2 is admin
-      
+
       expect(screen.getAllByText('Enviar Notificación')).toHaveLength(2); // One for each tab
     });
 
     it('shows notification button for owner', () => {
       render(<ProdeGroupTable {...defaultProps} loggedInUser="owner" />);
-      
+
       expect(screen.getAllByText('Enviar Notificación')).toHaveLength(2); // One for each tab
     });
 
     it('does not show notification button for regular users', () => {
       render(<ProdeGroupTable {...defaultProps} loggedInUser="user1" />); // user1 is not admin
-      
+
       expect(screen.queryByText('Enviar Notificación')).not.toBeInTheDocument();
     });
 
     it('opens notification dialog when button clicked', () => {
       render(<ProdeGroupTable {...defaultProps} loggedInUser="owner" />);
-      
+
       const notificationButtons = screen.getAllByText('Enviar Notificación');
       fireEvent.click(notificationButtons[0]);
-      
+
       expect(screen.getByTestId('notification-dialog')).toBeVisible();
     });
 
     it('closes notification dialog', () => {
       render(<ProdeGroupTable {...defaultProps} loggedInUser="owner" />);
-      
+
       const notificationButtons = screen.getAllByText('Enviar Notificación');
       fireEvent.click(notificationButtons[0]);
-      
+
       const closeButton = screen.getByTestId('close-notification');
       fireEvent.click(closeButton);
-      
+
       expect(screen.getByTestId('notification-dialog')).not.toBeVisible();
+    });
+
+    it('passes correct tournament id to notification dialog initially', () => {
+      render(<ProdeGroupTable {...defaultProps} loggedInUser="owner" />);
+
+      const notificationButtons = screen.getAllByText('Enviar Notificación');
+      fireEvent.click(notificationButtons[0]);
+
+      // Should pass the first tournament's ID
+      expect(screen.getByTestId('notification-tournament-id')).toHaveTextContent('tournament1');
+    });
+
+    it('passes correct tournament id to notification dialog after tab switch', async () => {
+      render(<ProdeGroupTable {...defaultProps} loggedInUser="owner" />);
+
+      // Switch to second tournament tab
+      fireEvent.click(screen.getByText('TT2'));
+
+      await waitFor(() => {
+        const notificationButtons = screen.getAllByText('Enviar Notificación');
+        fireEvent.click(notificationButtons[1]); // Click the button in the second tab
+
+        // Should pass the second tournament's ID, not undefined
+        expect(screen.getByTestId('notification-tournament-id')).toHaveTextContent('tournament2');
+      });
     });
   });
 

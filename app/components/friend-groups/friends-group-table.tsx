@@ -87,7 +87,7 @@ type Props = {
 }
 
 export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, ownerId, members, bettingData}: Props) {
-  const [selectedTab, setSelectedTab] = useState<number>(0)
+  const [selectedTab, setSelectedTab] = useState<string>(tournaments[0]?.id || '')
   const isNotExtraSmallScreen = useMediaQuery('(min-width:600px)')
   const [loadingUserId, setLoadingUserId] = useState<string | null>(null);
   const [snackbar, setSnackbar] = useState<{open: boolean, message: string, severity: 'success' | 'error'}>({open: false, message: '', severity: 'success'});
@@ -254,7 +254,7 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
         open={notificationDialogOpen}
         onClose={() => setNotificationDialogOpen(false)}
         groupId={groupId}
-        tournamentId={tournaments[selectedTab]?.id}
+        tournamentId={selectedTab}
         senderId={loggedInUser}
       />
     </Card>
