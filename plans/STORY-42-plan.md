@@ -33,10 +33,10 @@ Follow the **UXI-002 PredictionStatusBar pattern** for visual consistency:
 
 Tournament predictions tracked across 3 categories:
 
-1. **Final Standings** (3 items)
+1. **Final Standings** (2-3 items depending on tournament)
    - Champion (`champion_team_id`)
    - Runner-up (`runner_up_team_id`)
-   - Third Place (`third_place_team_id`)
+   - Third Place (`third_place_team_id`) - **Only if tournament has `has_third_place_game = true`**
 
 2. **Individual Awards** (4 items)
    - Best Player (`best_player_id`)
@@ -44,10 +44,14 @@ Tournament predictions tracked across 3 categories:
    - Best Goalkeeper (`best_goalkeeper_player_id`)
    - Best Young Player (`best_young_player_id`)
 
-3. **Qualifiers** (dynamic count)
-   - Based on playoff game predictions (first_round games with guesses)
+3. **Qualifiers** (dynamic count based on playoff bracket size)
+   - Based on **completing all group game predictions** (which auto-calculates group positions and determines qualifiers)
+   - Total count = number of teams in first round of playoffs
+   - Not directly based on first-round playoff game predictions, but on having all group stage games predicted
 
-**Total**: 7 fixed predictions + N qualifier predictions
+**Total**: 6-7 fixed predictions (depending on third place) + N group game predictions for qualifiers
+
+**Note**: There's a potential future enhancement to decouple qualified team predictions from game score predictions, but that's outside the scope of this story.
 
 ### Files to Create
 
@@ -127,12 +131,15 @@ File: `app/db/tournament-prediction-completion-repository.ts`
 
 Query logic:
 1. Fetch user's `tournament_guesses` via `findTournamentGuessByUserIdTournament()`
-2. Count playoff game guesses for qualifiers (games with `game_type LIKE 'first_round%'`)
-3. Get tournament info for `has_third_place_game` flag
+2. Fetch tournament info via `findTournamentById()` to get `has_third_place_game` flag
+3. Count first-round playoff game slots (teams in first playoff round) to determine total qualifiers needed
 4. Calculate completion status:
-   - Final standings: Check if champion/runner-up/third-place IDs are NOT NULL
-   - Awards: Check if all 4 award player IDs are NOT NULL
-   - Qualifiers: Count distinct `game_id` with guesses / total first_round games
+   - **Final standings**: Check if champion/runner-up are NOT NULL. Check third-place only if `has_third_place_game = true`
+   - **Awards**: Check if all 4 award player IDs are NOT NULL
+   - **Qualifiers**: Check if all group stage games have predictions (which auto-calculates group positions and determines which teams qualify)
+     - Query: Count group games with guesses vs total group games
+     - Total = number of first-round playoff teams (determines how many qualifiers needed)
+     - Completed = whether all group games are predicted
 5. Calculate overall: sum(completed) / sum(total)
 6. Check lock status (5 days after tournament start)
 
@@ -228,10 +235,11 @@ Add component at line 87 (after PredictionStatusBar):
 
 #### Step 5: Handle Edge Cases
 
-1. **No third place game**: Only count 2 final standings items (champion + runner-up)
+1. **No third place game**: Check `tournament.has_third_place_game` - if false, only count 2 final standings items (champion + runner-up) instead of 3
 2. **Locked predictions**: Show lock icon, disable links, no urgency alert
-3. **Zero qualifiers**: Handle tournaments without playoffs (show "N/A")
+3. **Zero qualifiers**: Handle tournaments without playoffs (show "N/A" or hide qualifiers section)
 4. **User not logged in**: Don't render component (handled by conditional in page.tsx)
+5. **Partial group completion**: Qualifiers show as incomplete until ALL group games are predicted (since group positions auto-calculate from complete game predictions)
 
 ## Testing Strategy
 
@@ -268,6 +276,13 @@ None - purely additive feature
 
 ## Open Questions
 None - implementation approach is clear based on existing patterns.
+
+## Future Enhancement (Out of Scope)
+There's potential to decouple qualified team predictions from game score predictions (i.e., let users explicitly predict which teams will qualify without needing to predict all group game scores). This would be a larger task involving:
+- New UI for explicit qualifier selection
+- Schema changes to store explicit qualifier predictions
+- Migration of existing implicit qualifier logic
+- This enhancement is acknowledged but deferred to a future story.
 
 ## Dependencies
 - Existing: `tournament_guesses` table
