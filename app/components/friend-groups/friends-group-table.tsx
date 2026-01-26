@@ -12,7 +12,9 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TableRow, useMediaQuery,
+  TableRow,
+  Typography,
+  useMediaQuery,
 } from "@mui/material";
 import {useState} from "react";
 import GroupTournamentBettingAdmin from './group-tournament-betting-admin';
@@ -121,6 +123,24 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
     }
   };
 
+  if (tournaments.length === 0) {
+    return (
+      <Card>
+        <CardHeader
+          title='Tabla de Posiciones'
+          action={action}
+        />
+        <CardContent>
+          <Box sx={{ textAlign: 'center', py: 4 }}>
+            <Typography variant="body1" color="text.secondary">
+              No hay torneos activos disponibles en este momento.
+            </Typography>
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader
@@ -128,7 +148,7 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
         action={action}
       />
       <CardContent>
-        <TabContext value={selectedTab || tournaments[0].id}>
+        <TabContext value={selectedTab || tournaments[0]?.id || ''}>
           <TabList
             onChange={(event, tabSelected) => setSelectedTab(tabSelected)}
             variant="scrollable"

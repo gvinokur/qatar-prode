@@ -32,8 +32,8 @@ export default async function FriendsGroup(props : Props){
   if(!prodeGroup || !user) {
     redirect("/")
   }
-  
-  const tournaments = await findAllActiveTournaments()
+
+  const tournaments = await findAllActiveTournaments(user.id)
 
   const participants = await findParticipantsInGroup(prodeGroup.id)
   const allParticipants = [
