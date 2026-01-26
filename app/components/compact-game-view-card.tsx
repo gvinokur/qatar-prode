@@ -1,7 +1,6 @@
 'use client'
 
 import {
-  Avatar,
   Box,
   Card,
   CardContent,
@@ -13,12 +12,14 @@ import {
   Badge, CircularProgress,
   Chip
 } from "@mui/material";
-import { Edit as EditIcon, Close as MissIcon, Done as HitIcon, DoneAll as HitAllIcon, Save as SaveIcon, SaveOutlined as SaveOutlinedIcon, Scoreboard as ScoreboardIcon, EmojiEvents as TrophyIcon, Star as StarIcon } from "@mui/icons-material";
+import { Edit as EditIcon, Save as SaveIcon, SaveOutlined as SaveOutlinedIcon, Scoreboard as ScoreboardIcon, EmojiEvents as TrophyIcon, Star as StarIcon } from "@mui/icons-material";
 import { getUserLocalTime, getLocalGameTime } from "../utils/date-utils";
 import { GameResultNew, Theme} from "../db/tables-definition";
 import {useState} from "react";
 import {getThemeLogoUrl} from "../utils/theme-utils";
 import { useTimezone } from './context-providers/timezone-context-provider';
+import { calculateFinalPoints } from "../utils/point-calculator";
+import GameCardPointOverlay from "./game-card-point-overlay";
 
 type SharedProps = {
   gameNumber: number;
@@ -218,9 +219,21 @@ export default function CompactGameViewCard({
                     Number.isInteger(specificProps.gameResult?.away_score) &&
                     Number.isInteger(specificProps.scoreForGame) && (
                       <Box display="flex" justifyContent="flex-end">
-                        {specificProps.scoreForGame === 0 && <Avatar title='Pronostico Errado' sx={{ width: '20px', height: '20px', bgcolor: theme.palette.error.light }}><MissIcon sx={{ fontSize: 14 }} /></Avatar>}
-                        {specificProps.scoreForGame === 1 && <Avatar title='Pronostico Correcto (1 punto)' sx={{ width: '20px', height: '20px', bgcolor: theme.palette.success.light }}><HitIcon sx={{ fontSize: 14 }} /></Avatar>}
-                        {specificProps.scoreForGame === 2 && <Avatar title='Resultado Exacto (2 puntos)' sx={{ width: '20px', height: '20px', bgcolor: theme.palette.success.main }}><HitAllIcon sx={{ fontSize: 14 }} /></Avatar>}
+                        {(() => {
+                          const pointCalc = calculateFinalPoints(
+                            specificProps.scoreForGame!,
+                            specificProps.boostType
+                          );
+                          return (
+                            <GameCardPointOverlay
+                              points={pointCalc.finalScore}
+                              baseScore={pointCalc.baseScore}
+                              multiplier={pointCalc.multiplier}
+                              boostType={specificProps.boostType || null}
+                              scoreDescription={pointCalc.description}
+                            />
+                          );
+                        })()}
                       </Box>
                     )}
                   {specificProps.isGameFixture && (
