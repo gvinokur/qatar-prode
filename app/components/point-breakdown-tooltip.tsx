@@ -34,7 +34,7 @@ export default function PointBreakdownTooltip({
   finalScore,
   scoreDescription,
   boostType,
-}: PointBreakdownTooltipProps) {
+}: Readonly<PointBreakdownTooltipProps>) {
   const theme = useTheme();
 
   return (

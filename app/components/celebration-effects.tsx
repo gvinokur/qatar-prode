@@ -13,7 +13,7 @@ interface ConfettiEffectProps {
  * Confetti animation using framer-motion particles
  * Triggers briefly when points > 0
  */
-export function ConfettiEffect({ show, color = '#FFD700' }: ConfettiEffectProps) {
+export function ConfettiEffect({ show, color = '#FFD700' }: Readonly<ConfettiEffectProps>) {
   if (!show) return null;
 
   const particles = Array.from({ length: 12 }, (_, i) => i);
@@ -69,7 +69,7 @@ interface TrophyBounceProps {
 /**
  * Trophy bounce animation for boosted scores
  */
-export function TrophyBounce({ show, boostType }: TrophyBounceProps) {
+export function TrophyBounce({ show, boostType }: Readonly<TrophyBounceProps>) {
   if (!show) return null;
 
   const color = boostType === 'golden' ? '#FFD700' : '#C0C0C0';
@@ -111,7 +111,7 @@ interface SobEffectProps {
  * Sob emoji animation for zero-point scores
  * Shows a wobble/shake effect with sad face
  */
-export function SobEffect({ show, color = 'white' }: SobEffectProps) {
+export function SobEffect({ show, color = 'white' }: Readonly<SobEffectProps>) {
   if (!show) return null;
 
   return (
@@ -149,7 +149,7 @@ interface CheckEffectProps {
  * Check animation for regular win scores
  * Shows a bounce effect with checkmark icon
  */
-export function CheckEffect({ show, color = 'white' }: CheckEffectProps) {
+export function CheckEffect({ show, color = 'white' }: Readonly<CheckEffectProps>) {
   if (!show) return null;
 
   return (

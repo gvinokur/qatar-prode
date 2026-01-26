@@ -28,7 +28,7 @@ export default function GameCardPointOverlay({
   multiplier,
   boostType,
   scoreDescription,
-}: GameCardPointOverlayProps) {
+}: Readonly<GameCardPointOverlayProps>) {
   const theme = useTheme();
   const searchParams = useSearchParams();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -42,11 +42,11 @@ export default function GameCardPointOverlay({
     // Check if we should animate
     const forceAnimation = searchParams?.get('forceAnimation') === 'true';
     const storageKey = `pointAnimation_${gameId}`;
-    const hasAnimated = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null;
+    const hasAnimated = typeof globalThis.window !== 'undefined' ? localStorage.getItem(storageKey) : null;
 
     if (forceAnimation || !hasAnimated) {
       setShouldAnimate(true);
-      if (!forceAnimation && typeof window !== 'undefined') {
+      if (!forceAnimation && typeof globalThis.window !== 'undefined') {
         localStorage.setItem(storageKey, 'true');
       }
     }
@@ -96,6 +96,19 @@ export default function GameCardPointOverlay({
       return boostType === 'golden' ? '#FFD700' : '#C0C0C0';
     }
     return 'white';
+  };
+
+  const getBoxShadow = () => {
+    if (boostType === 'golden') return '0 0 12px rgba(255, 215, 0, 0.6)';
+    if (boostType === 'silver') return '0 0 12px rgba(192, 192, 192, 0.6)';
+    return 'none';
+  };
+
+  const getHoverBackgroundColor = () => {
+    if (points === 0) return theme.palette.error.main;
+    if (boostType === 'golden') return 'rgba(255, 215, 0, 0.3)';
+    if (boostType === 'silver') return 'rgba(192, 192, 192, 0.3)';
+    return theme.palette.success.main;
   };
 
   // Format display text
@@ -179,20 +192,9 @@ export default function GameCardPointOverlay({
               cursor: 'pointer',
               fontWeight: 'bold',
               transition: 'all 0.2s ease',
-              boxShadow: boostType === 'golden'
-                ? '0 0 12px rgba(255, 215, 0, 0.6)'
-                : boostType === 'silver'
-                ? '0 0 12px rgba(192, 192, 192, 0.6)'
-                : 'none',
+              boxShadow: getBoxShadow(),
               '&:hover': {
-                backgroundColor:
-                  points === 0
-                    ? theme.palette.error.main
-                    : boostType === 'golden'
-                    ? 'rgba(255, 215, 0, 0.3)'
-                    : boostType === 'silver'
-                    ? 'rgba(192, 192, 192, 0.3)'
-                    : theme.palette.success.main,
+                backgroundColor: getHoverBackgroundColor(),
                 color: 'white',
                 transform: 'scale(1.05)',
               },
