@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Box } from '@mui/material';
-import { EmojiEvents as TrophyIcon } from '@mui/icons-material';
+import { EmojiEvents as TrophyIcon, SentimentVeryDissatisfied as SobIcon } from '@mui/icons-material';
 
 interface ConfettiEffectProps {
   show: boolean;
@@ -95,6 +95,43 @@ export function TrophyBounce({ show, boostType }: TrophyBounceProps) {
         sx={{
           fontSize: 16,
           color,
+          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+        }}
+      />
+    </motion.div>
+  );
+}
+
+interface SobEffectProps {
+  show: boolean;
+}
+
+/**
+ * Sob emoji animation for zero-point scores
+ * Shows a wobble/shake effect with sad face
+ */
+export function SobEffect({ show }: SobEffectProps) {
+  if (!show) return null;
+
+  return (
+    <motion.div
+      initial={{ rotate: 0 }}
+      animate={{
+        rotate: [-5, 5, -5, 5, 0],
+      }}
+      transition={{
+        duration: 0.8,
+        ease: 'easeInOut',
+      }}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+      }}
+    >
+      <SobIcon
+        sx={{
+          fontSize: 16,
+          color: '#f44336', // Error red
           filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
         }}
       />

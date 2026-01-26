@@ -226,6 +226,7 @@ export default function CompactGameViewCard({
                           );
                           return (
                             <GameCardPointOverlay
+                              gameId={gameNumber.toString()}
                               points={pointCalc.finalScore}
                               baseScore={pointCalc.baseScore}
                               multiplier={pointCalc.multiplier}

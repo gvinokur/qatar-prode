@@ -13,8 +13,16 @@ vi.mock('framer-motion', () => ({
   animate: vi.fn(() => ({ stop: vi.fn() })),
 }));
 
+// Mock next/navigation for useSearchParams
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => ({
+    get: vi.fn(() => null),
+  }),
+}));
+
 describe('GameCardPointOverlay', () => {
   const defaultProps = {
+    gameId: '1',
     points: 2,
     baseScore: 2,
     multiplier: 1,
@@ -81,9 +89,10 @@ describe('GameCardPointOverlay', () => {
   });
 
   describe('with silver boost', () => {
-    it('should display boosted points with multiplier notation', () => {
+    it('should display boosted points without inline multiplier', () => {
       render(
         <GameCardPointOverlay
+          gameId="1"
           points={4}
           baseScore={2}
           multiplier={2}
@@ -92,15 +101,18 @@ describe('GameCardPointOverlay', () => {
         />
       );
 
+      // Should show final points
       expect(screen.getByText(/\+4 pts/i)).toBeInTheDocument();
-      expect(screen.getByText(/2pt x2/i)).toBeInTheDocument();
+      // Should NOT show inline multiplier (removed per refinement #3)
+      expect(screen.queryByText(/2pt x2/i)).not.toBeInTheDocument();
     });
   });
 
   describe('with golden boost', () => {
-    it('should display boosted points with multiplier notation', () => {
+    it('should display boosted points without inline multiplier', () => {
       render(
         <GameCardPointOverlay
+          gameId="1"
           points={6}
           baseScore={2}
           multiplier={3}
@@ -109,8 +121,10 @@ describe('GameCardPointOverlay', () => {
         />
       );
 
+      // Should show final points
       expect(screen.getByText(/\+6 pts/i)).toBeInTheDocument();
-      expect(screen.getByText(/2pt x3/i)).toBeInTheDocument();
+      // Should NOT show inline multiplier (removed per refinement #3)
+      expect(screen.queryByText(/2pt x3/i)).not.toBeInTheDocument();
     });
   });
 });

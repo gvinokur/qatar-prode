@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import { motion, useMotionValue, animate } from 'framer-motion';
 import { Box, Chip, useTheme } from '@mui/material';
-import { ConfettiEffect, TrophyBounce } from './celebration-effects';
+import { useSearchParams } from 'next/navigation';
+import { ConfettiEffect, TrophyBounce, SobEffect } from './celebration-effects';
 import PointBreakdownTooltip from './point-breakdown-tooltip';
 import { BoostType } from '../utils/point-calculator';
 
 interface GameCardPointOverlayProps {
+  gameId: string;
   points: number;
   baseScore: number;
   multiplier: number;
@@ -20,6 +22,7 @@ interface GameCardPointOverlayProps {
  * Shows animated counter and triggers celebration effects
  */
 export default function GameCardPointOverlay({
+  gameId,
   points,
   baseScore,
   multiplier,
@@ -27,30 +30,44 @@ export default function GameCardPointOverlay({
   scoreDescription,
 }: GameCardPointOverlayProps) {
   const theme = useTheme();
+  const searchParams = useSearchParams();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [shouldAnimate, setShouldAnimate] = useState(false);
 
   // Counter animation
   const count = useMotionValue(0);
 
   useEffect(() => {
+    // Check if we should animate
+    const forceAnimation = searchParams?.get('forceAnimation') === 'true';
+    const storageKey = `pointAnimation_${gameId}`;
+    const hasAnimated = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null;
+
+    if (forceAnimation || !hasAnimated) {
+      setShouldAnimate(true);
+      if (!forceAnimation && typeof window !== 'undefined') {
+        localStorage.setItem(storageKey, 'true');
+      }
+    }
+  }, [gameId, searchParams]);
+
+  useEffect(() => {
+    if (!shouldAnimate) return;
+
     const controls = animate(count, points, {
-      duration: 0.8,
+      duration: 1.5,
       ease: 'easeOut',
     });
 
     // Trigger celebration effects briefly
-    if (points > 0) {
-      setShowCelebration(true);
-      const timeout = setTimeout(() => setShowCelebration(false), 1000);
-      return () => {
-        clearTimeout(timeout);
-        controls.stop();
-      };
-    }
-
-    return () => controls.stop();
-  }, [count, points]);
+    setShowCelebration(true);
+    const timeout = setTimeout(() => setShowCelebration(false), 2500);
+    return () => {
+      clearTimeout(timeout);
+      controls.stop();
+    };
+  }, [count, points, shouldAnimate]);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -74,7 +91,7 @@ export default function GameCardPointOverlay({
   };
 
   const getTextColor = () => {
-    if (points === 0) return theme.palette.error.main;
+    if (points === 0) return 'white';
     if (boostType) {
       return boostType === 'golden' ? '#FFD700' : '#C0C0C0';
     }
@@ -86,21 +103,20 @@ export default function GameCardPointOverlay({
     const sign = points > 0 ? '+' : '';
     const pointsText = `${sign}${points} ${points === 1 ? 'pt' : 'pts'}`;
 
+    if (points === 0) {
+      return (
+        <Box display="flex" alignItems="center" gap={0.5}>
+          <span>{pointsText}</span>
+          <SobEffect show={shouldAnimate && showCelebration} />
+        </Box>
+      );
+    }
+
     if (boostType && points > 0) {
       return (
         <Box display="flex" alignItems="center" gap={0.5}>
           <span>{pointsText}</span>
-          <TrophyBounce show={showCelebration} boostType={boostType} />
-          <Typography
-            component="span"
-            variant="caption"
-            sx={{
-              opacity: 0.8,
-              fontSize: '0.65rem',
-            }}
-          >
-            ({baseScore}pt x{multiplier})
-          </Typography>
+          <TrophyBounce show={shouldAnimate && showCelebration} boostType={boostType} />
         </Box>
       );
     }
@@ -113,15 +129,27 @@ export default function GameCardPointOverlay({
       <Box sx={{ position: 'relative' }}>
         {/* Confetti effect */}
         <ConfettiEffect
-          show={showCelebration && points > 0}
+          show={shouldAnimate && showCelebration && points > 0}
           color={boostType === 'golden' ? '#FFD700' : theme.palette.success.main}
         />
 
         {/* Point display chip */}
         <motion.div
           initial={{ opacity: 0, scale: 0.5, y: -10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
+          animate={
+            boostType && shouldAnimate && showCelebration
+              ? { scale: [1, 1.05, 1], opacity: 1, y: 0 }
+              : { opacity: 1, scale: 1, y: 0 }
+          }
+          transition={
+            boostType && shouldAnimate && showCelebration
+              ? {
+                  scale: { repeat: 2, duration: 0.5 },
+                  opacity: { duration: 0.3 },
+                  y: { duration: 0.3 },
+                }
+              : { duration: 0.3, ease: 'easeOut' }
+          }
         >
           <Chip
             label={
@@ -136,12 +164,17 @@ export default function GameCardPointOverlay({
             }
             onClick={handleClick}
             sx={{
-              height: 24,
+              height: boostType ? 28 : 24,
               backgroundColor: getChipColor(),
               color: getTextColor(),
               cursor: 'pointer',
               fontWeight: 'bold',
               transition: 'all 0.2s ease',
+              boxShadow: boostType === 'golden'
+                ? '0 0 12px rgba(255, 215, 0, 0.6)'
+                : boostType === 'silver'
+                ? '0 0 12px rgba(192, 192, 192, 0.6)'
+                : 'none',
               '&:hover': {
                 backgroundColor:
                   points === 0
@@ -151,6 +184,7 @@ export default function GameCardPointOverlay({
                     : boostType === 'silver'
                     ? 'rgba(192, 192, 192, 0.3)'
                     : theme.palette.success.main,
+                color: points === 0 ? 'white' : undefined,
                 transform: 'scale(1.05)',
               },
             }}
@@ -172,6 +206,3 @@ export default function GameCardPointOverlay({
     </>
   );
 }
-
-// Import Typography for the boost text display
-import { Typography } from '@mui/material';
