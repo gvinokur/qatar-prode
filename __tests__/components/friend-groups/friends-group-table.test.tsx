@@ -53,52 +53,37 @@ describe('ProdeGroupTable', () => {
       id: 'user1',
       email: 'user1@test.com',
       nickname: 'User One',
-      is_email_verified: true,
-      is_prode_admin: false,
-      created_date: new Date(),
-      modified_date: new Date()
-    },
+      password_hash: 'hash1'
+    } as User,
     'user2': {
       id: 'user2',
       email: 'user2@test.com',
       nickname: 'User Two',
-      is_email_verified: true,
-      is_prode_admin: false,
-      created_date: new Date(),
-      modified_date: new Date()
-    },
+      password_hash: 'hash2'
+    } as User,
     'owner': {
       id: 'owner',
       email: 'owner@test.com',
       nickname: 'Owner',
-      is_email_verified: true,
-      is_prode_admin: false,
-      created_date: new Date(),
-      modified_date: new Date()
-    }
+      password_hash: 'hash3'
+    } as User
   };
 
   const mockTournaments: Tournament[] = [
     {
       id: 'tournament1',
-      name: 'Test Tournament 1',
       short_name: 'TT1',
-      description: 'Test',
+      long_name: 'Test Tournament 1',
       is_active: true,
-      logo_url: null,
-      created_date: new Date(),
-      modified_date: new Date()
-    },
+      theme: { primary_color: '#000', secondary_color: '#fff' }
+    } as Tournament,
     {
       id: 'tournament2',
-      name: 'Test Tournament 2',
       short_name: 'TT2',
-      description: 'Test 2',
+      long_name: 'Test Tournament 2',
       is_active: true,
-      logo_url: null,
-      created_date: new Date(),
-      modified_date: new Date()
-    }
+      theme: { primary_color: '#000', secondary_color: '#fff' }
+    } as Tournament
   ];
 
   const mockUserScores: UserScore[] = [
@@ -110,7 +95,10 @@ describe('ProdeGroupTable', () => {
       groupPositionScore: 10,
       playoffScore: 25,
       honorRollScore: 5,
-      individualAwardsScore: 0
+      individualAwardsScore: 0,
+      groupBoostBonus: 8,
+      playoffBoostBonus: 5,
+      totalBoostBonus: 13
     },
     {
       userId: 'user2',
@@ -120,7 +108,10 @@ describe('ProdeGroupTable', () => {
       groupPositionScore: 8,
       playoffScore: 20,
       honorRollScore: 2,
-      individualAwardsScore: 0
+      individualAwardsScore: 0,
+      groupBoostBonus: 6,
+      playoffBoostBonus: 3,
+      totalBoostBonus: 9
     },
     {
       userId: 'owner',
@@ -130,7 +121,10 @@ describe('ProdeGroupTable', () => {
       groupPositionScore: 9,
       playoffScore: 22,
       honorRollScore: 3,
-      individualAwardsScore: 0
+      individualAwardsScore: 0,
+      groupBoostBonus: 7,
+      playoffBoostBonus: 4,
+      totalBoostBonus: 11
     }
   ];
 
@@ -584,7 +578,7 @@ describe('ProdeGroupTable', () => {
   describe('Data display', () => {
     it('displays all score columns correctly', () => {
       render(<ProdeGroupTable {...defaultProps} />);
-      
+
       // Both tabs are rendered, so we see scores for both
       expect(screen.getAllByText('100').length).toBeGreaterThanOrEqual(1); // Total points
       expect(screen.getAllByText('40').length).toBeGreaterThanOrEqual(1);  // Group stage
@@ -600,20 +594,89 @@ describe('ProdeGroupTable', () => {
         ...score,
         groupPositionScore: undefined
       }));
-      
+
       render(
-        <ProdeGroupTable 
-          {...defaultProps} 
-          userScoresByTournament={{ 
-            'tournament1': scoresWithoutGroupPosition, 
-            'tournament2': scoresWithoutGroupPosition 
+        <ProdeGroupTable
+          {...defaultProps}
+          userScoresByTournament={{
+            'tournament1': scoresWithoutGroupPosition,
+            'tournament2': scoresWithoutGroupPosition
           }}
         />
       );
-      
+
       // Should show 0 for undefined group position scores
       const zeroElements = screen.getAllByText('0');
       expect(zeroElements.length).toBeGreaterThanOrEqual(6); // At least 3 users × 2 score types (group position + individual awards) = 6 zeros
+    });
+  });
+
+  describe('Bonus points display', () => {
+    it('shows bonus columns on desktop', () => {
+      (useMediaQuery as any).mockReturnValue(true);
+      render(<ProdeGroupTable {...defaultProps} />);
+
+      expect(screen.getAllByText('Bonus Grupos')).toHaveLength(2);
+      expect(screen.getAllByText('Bonus Playoffs')).toHaveLength(2);
+      expect(screen.queryByText('Total Bonus')).not.toBeInTheDocument();
+    });
+
+    it('shows total bonus column on mobile', () => {
+      (useMediaQuery as any).mockReturnValue(false);
+      render(<ProdeGroupTable {...defaultProps} />);
+
+      expect(screen.queryByText('Bonus Grupos')).not.toBeInTheDocument();
+      expect(screen.queryByText('Bonus Playoffs')).not.toBeInTheDocument();
+      expect(screen.getAllByText('Total Bonus')).toHaveLength(2);
+    });
+
+    it('displays bonus values correctly', () => {
+      (useMediaQuery as any).mockReturnValue(true);
+      render(<ProdeGroupTable {...defaultProps} />);
+
+      // Verify bonus values from mock data appear
+      expect(screen.getAllByText('8').length).toBeGreaterThanOrEqual(2);
+      expect(screen.getAllByText('5').length).toBeGreaterThanOrEqual(2);
+      expect(screen.getAllByText('6').length).toBeGreaterThanOrEqual(2);
+      expect(screen.getAllByText('3').length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('handles zero bonus values', () => {
+      const scoresWithoutBonus = mockUserScores.map(score => ({
+        ...score,
+        groupBoostBonus: 0,
+        playoffBoostBonus: 0,
+        totalBoostBonus: 0
+      }));
+
+      render(
+        <ProdeGroupTable
+          {...defaultProps}
+          userScoresByTournament={{
+            'tournament1': scoresWithoutBonus,
+            'tournament2': scoresWithoutBonus
+          }}
+        />
+      );
+
+      const zeroElements = screen.getAllByText('0');
+      expect(zeroElements.length).toBeGreaterThanOrEqual(6);
+    });
+
+    it('maintains correct column order', () => {
+      (useMediaQuery as any).mockReturnValue(true);
+      render(<ProdeGroupTable {...defaultProps} />);
+
+      const headers = screen.getAllByRole('columnheader');
+      const headerTexts = headers.map(h => h.textContent);
+
+      const groupBonusIndex = headerTexts.findIndex(text => text === 'Bonus Grupos');
+      const playoffBonusIndex = headerTexts.findIndex(text => text === 'Bonus Playoffs');
+      const groupScoreIndex = headerTexts.findIndex(text => text === 'Puntos Partidos');
+      const playoffScoreIndex = headerTexts.findIndex(text => text === 'Puntos Playoffs');
+
+      expect(groupBonusIndex).toBeGreaterThan(groupScoreIndex);
+      expect(playoffBonusIndex).toBeGreaterThan(playoffScoreIndex);
     });
   });
 });
