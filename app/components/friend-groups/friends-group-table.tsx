@@ -12,7 +12,9 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TableRow, useMediaQuery,
+  TableRow,
+  Typography,
+  useMediaQuery,
 } from "@mui/material";
 import {useState} from "react";
 import GroupTournamentBettingAdmin from './group-tournament-betting-admin';
@@ -87,7 +89,7 @@ type Props = {
 }
 
 export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, ownerId, members, bettingData}: Props) {
-  const [selectedTab, setSelectedTab] = useState<number>(0)
+  const [selectedTab, setSelectedTab] = useState<string>(tournaments[0]?.id || '')
   const isNotExtraSmallScreen = useMediaQuery('(min-width:600px)')
   const [loadingUserId, setLoadingUserId] = useState<string | null>(null);
   const [snackbar, setSnackbar] = useState<{open: boolean, message: string, severity: 'success' | 'error'}>({open: false, message: '', severity: 'success'});
@@ -121,6 +123,24 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
     }
   };
 
+  if (tournaments.length === 0) {
+    return (
+      <Card>
+        <CardHeader
+          title='Tabla de Posiciones'
+          action={action}
+        />
+        <CardContent>
+          <Box sx={{ textAlign: 'center', py: 4 }}>
+            <Typography variant="body1" color="text.secondary">
+              No hay torneos activos disponibles en este momento.
+            </Typography>
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader
@@ -128,7 +148,7 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
         action={action}
       />
       <CardContent>
-        <TabContext value={selectedTab || tournaments[0].id}>
+        <TabContext value={selectedTab || tournaments[0]?.id || ''}>
           <TabList
             onChange={(event, tabSelected) => setSelectedTab(tabSelected)}
             variant="scrollable"
@@ -254,7 +274,7 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
         open={notificationDialogOpen}
         onClose={() => setNotificationDialogOpen(false)}
         groupId={groupId}
-        tournamentId={tournaments[selectedTab]?.id}
+        tournamentId={selectedTab}
         senderId={loggedInUser}
       />
     </Card>
