@@ -42,11 +42,11 @@ export default function GameCardPointOverlay({
     // Check if we should animate
     const forceAnimation = searchParams?.get('forceAnimation') === 'true';
     const storageKey = `pointAnimation_${gameId}`;
-    const hasAnimated = typeof globalThis.window !== 'undefined' ? localStorage.getItem(storageKey) : null;
+    const hasAnimated = globalThis.window !== undefined ? localStorage.getItem(storageKey) : null;
 
     if (forceAnimation || !hasAnimated) {
       setShouldAnimate(true);
-      if (!forceAnimation && typeof globalThis.window !== 'undefined') {
+      if (!forceAnimation && globalThis.window !== undefined) {
         localStorage.setItem(storageKey, 'true');
       }
     }
