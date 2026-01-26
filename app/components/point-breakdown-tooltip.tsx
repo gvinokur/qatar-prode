@@ -59,7 +59,7 @@ export default function PointBreakdownTooltip({
     >
       <Box sx={{ p: 2 }}>
         <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-          Point Breakdown
+          Desglose de Puntos
         </Typography>
 
         <Divider sx={{ my: 1 }} />
@@ -70,7 +70,7 @@ export default function PointBreakdownTooltip({
               Base:
             </Typography>
             <Typography variant="body2" fontWeight="medium">
-              {baseScore} {baseScore === 1 ? 'point' : 'points'}
+              {baseScore} {baseScore === 1 ? 'punto' : 'puntos'}
               <Typography
                 component="span"
                 variant="caption"
@@ -85,7 +85,7 @@ export default function PointBreakdownTooltip({
           {boostType && (
             <Box display="flex" justifyContent="space-between" alignItems="center">
               <Typography variant="body2" color="text.secondary">
-                Boost:
+                Multiplicador:
               </Typography>
               <Typography
                 variant="body2"
@@ -111,7 +111,7 @@ export default function PointBreakdownTooltip({
               color="success.main"
               sx={{ fontSize: '1.1rem' }}
             >
-              {finalScore} {finalScore === 1 ? 'point' : 'points'}
+              {finalScore} {finalScore === 1 ? 'punto' : 'puntos'}
             </Typography>
           </Box>
         </Stack>

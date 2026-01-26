@@ -24,7 +24,7 @@ describe('PointBreakdownTooltip', () => {
   it('should render breakdown title', () => {
     render(<PointBreakdownTooltip {...defaultProps} />);
 
-    expect(screen.getByText('Point Breakdown')).toBeInTheDocument();
+    expect(screen.getByText('Desglose de Puntos')).toBeInTheDocument();
   });
 
   it('should display base score with description', () => {
@@ -38,9 +38,9 @@ describe('PointBreakdownTooltip', () => {
     render(<PointBreakdownTooltip {...defaultProps} />);
 
     expect(screen.getByText('Total:')).toBeInTheDocument();
-    // Check the total section contains 2 points
+    // Check the total section contains 2 puntos
     const totalSection = screen.getByText('Total:').parentElement;
-    expect(totalSection).toHaveTextContent('2 points');
+    expect(totalSection).toHaveTextContent('2 puntos');
   });
 
   it('should not render content when open is false', () => {
@@ -51,7 +51,7 @@ describe('PointBreakdownTooltip', () => {
     expect(popoverPaper).not.toBeInTheDocument();
   });
 
-  it('should display singular "point" for base score of 1', () => {
+  it('should display singular "punto" for base score of 1', () => {
     render(
       <PointBreakdownTooltip
         {...defaultProps}
@@ -61,11 +61,11 @@ describe('PointBreakdownTooltip', () => {
       />
     );
 
-    // Check that both "1 point" instances appear (Base and Total sections)
+    // Check that both "1 punto" instances appear (Base and Total sections)
     expect(screen.getByText(/Correct winner/i)).toBeInTheDocument();
-    // The component should show "1 point" in both base and total sections
+    // The component should show "1 punto" in both base and total sections
     const allText = document.body.textContent || '';
-    expect(allText.match(/1 point/g)).toHaveLength(2); // Base section and Total section
+    expect(allText.match(/1 punto/g)).toHaveLength(2); // Base section and Total section
   });
 
   describe('with silver boost', () => {
@@ -79,8 +79,8 @@ describe('PointBreakdownTooltip', () => {
         />
       );
 
-      expect(screen.getByText('Boost:')).toBeInTheDocument();
-      expect(screen.getByText(/2x \(2x Silver Boost\)/i)).toBeInTheDocument();
+      expect(screen.getByText('Multiplicador:')).toBeInTheDocument();
+      expect(screen.getByText(/2x \(Plateado\)/i)).toBeInTheDocument();
     });
 
     it('should display correct final total with boost', () => {
@@ -94,9 +94,9 @@ describe('PointBreakdownTooltip', () => {
       );
 
       expect(screen.getByText('Total:')).toBeInTheDocument();
-      // Check the total section contains 4 points
+      // Check the total section contains 4 puntos
       const totalSection = screen.getByText('Total:').parentElement;
-      expect(totalSection).toHaveTextContent('4 points');
+      expect(totalSection).toHaveTextContent('4 puntos');
     });
   });
 
@@ -111,8 +111,8 @@ describe('PointBreakdownTooltip', () => {
         />
       );
 
-      expect(screen.getByText('Boost:')).toBeInTheDocument();
-      expect(screen.getByText(/3x \(3x Golden Boost\)/i)).toBeInTheDocument();
+      expect(screen.getByText('Multiplicador:')).toBeInTheDocument();
+      expect(screen.getByText(/3x \(Dorado\)/i)).toBeInTheDocument();
     });
 
     it('should display correct final total with boost', () => {
@@ -126,9 +126,9 @@ describe('PointBreakdownTooltip', () => {
       );
 
       expect(screen.getByText('Total:')).toBeInTheDocument();
-      // Check the total section contains 6 points
+      // Check the total section contains 6 puntos
       const totalSection = screen.getByText('Total:').parentElement;
-      expect(totalSection).toHaveTextContent('6 points');
+      expect(totalSection).toHaveTextContent('6 puntos');
     });
   });
 
@@ -136,7 +136,7 @@ describe('PointBreakdownTooltip', () => {
     it('should not display boost row', () => {
       render(<PointBreakdownTooltip {...defaultProps} boostType={null} />);
 
-      expect(screen.queryByText('Boost:')).not.toBeInTheDocument();
+      expect(screen.queryByText('Multiplicador:')).not.toBeInTheDocument();
     });
   });
 });

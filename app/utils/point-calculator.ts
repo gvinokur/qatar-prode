@@ -70,10 +70,10 @@ export function calculateFinalPoints(
 export function formatBoostText(boostType: BoostType): string {
   switch (boostType) {
     case 'golden':
-      return '3x Golden Boost';
+      return 'Dorado';
     case 'silver':
-      return '2x Silver Boost';
+      return 'Plateado';
     default:
-      return 'No Boost';
+      return 'Sin Multiplicador';
   }
 }

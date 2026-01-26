@@ -120,15 +120,15 @@ describe('point-calculator', () => {
 
   describe('formatBoostText', () => {
     it('should format golden boost text', () => {
-      expect(formatBoostText('golden')).toBe('3x Golden Boost');
+      expect(formatBoostText('golden')).toBe('Dorado');
     });
 
     it('should format silver boost text', () => {
-      expect(formatBoostText('silver')).toBe('2x Silver Boost');
+      expect(formatBoostText('silver')).toBe('Plateado');
     });
 
     it('should format no boost text', () => {
-      expect(formatBoostText(null)).toBe('No Boost');
+      expect(formatBoostText(null)).toBe('Sin Multiplicador');
     });
   });
 });
