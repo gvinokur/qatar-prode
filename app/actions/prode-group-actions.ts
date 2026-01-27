@@ -196,19 +196,28 @@ export async function getUserScoresForTournament(userIds: string[], tournamentId
   const gameStatisticsByUserIdMap = customToMap(allUsersGameStatics, (userGameStatistics) => userGameStatistics.user_id);
   const tournamentGuessesByUserIdMap = customToMap(allUserTournamentGuesses, (userTournamentGuess) => userTournamentGuess.user_id);
 
-  return userIds.map(userId => ({
-    userId,
-    groupStageScore: gameStatisticsByUserIdMap[userId]?.group_score || 0,
-    groupStageQualifiersScore: tournamentGuessesByUserIdMap[userId]?.qualified_teams_score || 0,
-    playoffScore: gameStatisticsByUserIdMap[userId]?.playoff_score || 0,
-    honorRollScore: tournamentGuessesByUserIdMap[userId]?.honor_roll_score || 0,
-    individualAwardsScore: tournamentGuessesByUserIdMap[userId]?.individual_awards_score || 0,
-    groupPositionScore: tournamentGuessesByUserIdMap[userId]?.group_position_score || 0,
-    totalPoints:
-      (gameStatisticsByUserIdMap[userId]?.total_score || 0) +
-      (tournamentGuessesByUserIdMap[userId]?.qualified_teams_score || 0) +
-      (tournamentGuessesByUserIdMap[userId]?.honor_roll_score || 0) +
-      (tournamentGuessesByUserIdMap[userId]?.individual_awards_score || 0) +
-      (tournamentGuessesByUserIdMap[userId]?.group_position_score || 0)
-  })) as UserScore[];
+  return userIds.map(userId => {
+    const gameStats = gameStatisticsByUserIdMap[userId];
+    const tournamentGuess = tournamentGuessesByUserIdMap[userId];
+
+    return {
+      userId,
+      groupStageScore: gameStats?.group_score || 0,
+      groupStageQualifiersScore: tournamentGuess?.qualified_teams_score || 0,
+      playoffScore: gameStats?.playoff_score || 0,
+      honorRollScore: tournamentGuess?.honor_roll_score || 0,
+      individualAwardsScore: tournamentGuess?.individual_awards_score || 0,
+      groupPositionScore: tournamentGuess?.group_position_score || 0,
+      groupBoostBonus: gameStats?.group_boost_bonus || 0,
+      playoffBoostBonus: gameStats?.playoff_boost_bonus || 0,
+      totalBoostBonus: gameStats?.total_boost_bonus || 0,
+      totalPoints:
+        (gameStats?.total_score || 0) +
+        (gameStats?.total_boost_bonus || 0) +
+        (tournamentGuess?.qualified_teams_score || 0) +
+        (tournamentGuess?.honor_roll_score || 0) +
+        (tournamentGuess?.individual_awards_score || 0) +
+        (tournamentGuess?.group_position_score || 0)
+    };
+  }) as UserScore[];
 }

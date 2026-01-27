@@ -169,9 +169,12 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
                       <TableCell>Usuario</TableCell>
                       <TableCell>Puntos Totales</TableCell>
                       <TableCell>Puntos Partidos</TableCell>
+                      {isNotExtraSmallScreen && <TableCell>Bonus Grupos</TableCell>}
                       {isNotExtraSmallScreen && <TableCell>Puntos Clasificados</TableCell>}
                       {isNotExtraSmallScreen && <TableCell>Posiciones Grupo</TableCell>}
                       <TableCell>Puntos Playoffs</TableCell>
+                      {isNotExtraSmallScreen && <TableCell>Bonus Playoffs</TableCell>}
+                      {!isNotExtraSmallScreen && <TableCell>Total Bonus</TableCell>}
                       {isNotExtraSmallScreen && <TableCell>Cuadro de Honor</TableCell>}
                       {isNotExtraSmallScreen && <TableCell>Premios</TableCell>}
                       {ownerId === loggedInUser && <TableCell>Actions</TableCell>}
@@ -218,9 +221,24 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
                             </TableCell>
                             <TableCell>{userScore.totalPoints}</TableCell>
                             <TableCell>{userScore.groupStageScore}</TableCell>
+                            {isNotExtraSmallScreen && (
+                              <TableCell sx={{ color: userScore.groupBoostBonus > 0 ? 'success.main' : 'inherit' }}>
+                                {userScore.groupBoostBonus}
+                              </TableCell>
+                            )}
                             {isNotExtraSmallScreen && <TableCell>{userScore.groupStageQualifiersScore}</TableCell>}
                             {isNotExtraSmallScreen && <TableCell>{userScore.groupPositionScore || 0}</TableCell>}
                             <TableCell>{userScore.playoffScore}</TableCell>
+                            {isNotExtraSmallScreen && (
+                              <TableCell sx={{ color: userScore.playoffBoostBonus > 0 ? 'success.main' : 'inherit' }}>
+                                {userScore.playoffBoostBonus}
+                              </TableCell>
+                            )}
+                            {!isNotExtraSmallScreen && (
+                              <TableCell sx={{ color: userScore.totalBoostBonus > 0 ? 'success.main' : 'inherit' }}>
+                                {userScore.totalBoostBonus}
+                              </TableCell>
+                            )}
                             {isNotExtraSmallScreen && <TableCell>{userScore.honorRollScore}</TableCell>}
                             {isNotExtraSmallScreen && <TableCell>{userScore.individualAwardsScore}</TableCell>}
                             {ownerId === loggedInUser && (

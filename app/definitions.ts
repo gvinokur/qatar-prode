@@ -74,6 +74,9 @@ export interface UserScore {
   totalPoints: number,
   individualAwardsScore: number,
   groupPositionScore?: number // 1 point for each exact group position guessed
+  groupBoostBonus: number,      // Bonus from boosted group stage games
+  playoffBoostBonus: number,    // Bonus from boosted playoff games
+  totalBoostBonus: number,      // Total bonus (group + playoff)
 }
 
 export interface ExtendedPlayerData extends Player{

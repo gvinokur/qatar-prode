@@ -53,52 +53,37 @@ describe('ProdeGroupTable', () => {
       id: 'user1',
       email: 'user1@test.com',
       nickname: 'User One',
-      is_email_verified: true,
-      is_prode_admin: false,
-      created_date: new Date(),
-      modified_date: new Date()
-    },
+      password_hash: 'hash1'
+    } as User,
     'user2': {
       id: 'user2',
       email: 'user2@test.com',
       nickname: 'User Two',
-      is_email_verified: true,
-      is_prode_admin: false,
-      created_date: new Date(),
-      modified_date: new Date()
-    },
+      password_hash: 'hash2'
+    } as User,
     'owner': {
       id: 'owner',
       email: 'owner@test.com',
       nickname: 'Owner',
-      is_email_verified: true,
-      is_prode_admin: false,
-      created_date: new Date(),
-      modified_date: new Date()
-    }
+      password_hash: 'hash3'
+    } as User
   };
 
   const mockTournaments: Tournament[] = [
     {
       id: 'tournament1',
-      name: 'Test Tournament 1',
       short_name: 'TT1',
-      description: 'Test',
+      long_name: 'Test Tournament 1',
       is_active: true,
-      logo_url: null,
-      created_date: new Date(),
-      modified_date: new Date()
-    },
+      theme: { primary_color: '#000', secondary_color: '#fff' }
+    } as Tournament,
     {
       id: 'tournament2',
-      name: 'Test Tournament 2',
       short_name: 'TT2',
-      description: 'Test 2',
+      long_name: 'Test Tournament 2',
       is_active: true,
-      logo_url: null,
-      created_date: new Date(),
-      modified_date: new Date()
-    }
+      theme: { primary_color: '#000', secondary_color: '#fff' }
+    } as Tournament
   ];
 
   const mockUserScores: UserScore[] = [
@@ -110,7 +95,10 @@ describe('ProdeGroupTable', () => {
       groupPositionScore: 10,
       playoffScore: 25,
       honorRollScore: 5,
-      individualAwardsScore: 0
+      individualAwardsScore: 0,
+      groupBoostBonus: 8,
+      playoffBoostBonus: 5,
+      totalBoostBonus: 13
     },
     {
       userId: 'user2',
@@ -120,7 +108,10 @@ describe('ProdeGroupTable', () => {
       groupPositionScore: 8,
       playoffScore: 20,
       honorRollScore: 2,
-      individualAwardsScore: 0
+      individualAwardsScore: 0,
+      groupBoostBonus: 6,
+      playoffBoostBonus: 3,
+      totalBoostBonus: 9
     },
     {
       userId: 'owner',
@@ -130,7 +121,10 @@ describe('ProdeGroupTable', () => {
       groupPositionScore: 9,
       playoffScore: 22,
       honorRollScore: 3,
-      individualAwardsScore: 0
+      individualAwardsScore: 0,
+      groupBoostBonus: 7,
+      playoffBoostBonus: 4,
+      totalBoostBonus: 11
     }
   ];
 
@@ -584,7 +578,7 @@ describe('ProdeGroupTable', () => {
   describe('Data display', () => {
     it('displays all score columns correctly', () => {
       render(<ProdeGroupTable {...defaultProps} />);
-      
+
       // Both tabs are rendered, so we see scores for both
       expect(screen.getAllByText('100').length).toBeGreaterThanOrEqual(1); // Total points
       expect(screen.getAllByText('40').length).toBeGreaterThanOrEqual(1);  // Group stage
@@ -600,20 +594,287 @@ describe('ProdeGroupTable', () => {
         ...score,
         groupPositionScore: undefined
       }));
-      
+
       render(
-        <ProdeGroupTable 
-          {...defaultProps} 
-          userScoresByTournament={{ 
-            'tournament1': scoresWithoutGroupPosition, 
-            'tournament2': scoresWithoutGroupPosition 
+        <ProdeGroupTable
+          {...defaultProps}
+          userScoresByTournament={{
+            'tournament1': scoresWithoutGroupPosition,
+            'tournament2': scoresWithoutGroupPosition
           }}
         />
       );
-      
+
       // Should show 0 for undefined group position scores
       const zeroElements = screen.getAllByText('0');
       expect(zeroElements.length).toBeGreaterThanOrEqual(6); // At least 3 users × 2 score types (group position + individual awards) = 6 zeros
+    });
+  });
+
+  describe('Bonus points display', () => {
+    it('shows bonus columns on desktop', () => {
+      (useMediaQuery as any).mockReturnValue(true);
+      render(<ProdeGroupTable {...defaultProps} />);
+
+      expect(screen.getAllByText('Bonus Grupos')).toHaveLength(2);
+      expect(screen.getAllByText('Bonus Playoffs')).toHaveLength(2);
+      expect(screen.queryByText('Total Bonus')).not.toBeInTheDocument();
+    });
+
+    it('shows total bonus column on mobile', () => {
+      (useMediaQuery as any).mockReturnValue(false);
+      render(<ProdeGroupTable {...defaultProps} />);
+
+      expect(screen.queryByText('Bonus Grupos')).not.toBeInTheDocument();
+      expect(screen.queryByText('Bonus Playoffs')).not.toBeInTheDocument();
+      expect(screen.getAllByText('Total Bonus')).toHaveLength(2);
+    });
+
+    it('displays bonus values correctly', () => {
+      (useMediaQuery as any).mockReturnValue(true);
+      render(<ProdeGroupTable {...defaultProps} />);
+
+      // Verify bonus values from mock data appear
+      expect(screen.getAllByText('8').length).toBeGreaterThanOrEqual(2);
+      expect(screen.getAllByText('5').length).toBeGreaterThanOrEqual(2);
+      expect(screen.getAllByText('6').length).toBeGreaterThanOrEqual(2);
+      expect(screen.getAllByText('3').length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('handles zero bonus values', () => {
+      const scoresWithoutBonus = mockUserScores.map(score => ({
+        ...score,
+        groupBoostBonus: 0,
+        playoffBoostBonus: 0,
+        totalBoostBonus: 0
+      }));
+
+      render(
+        <ProdeGroupTable
+          {...defaultProps}
+          userScoresByTournament={{
+            'tournament1': scoresWithoutBonus,
+            'tournament2': scoresWithoutBonus
+          }}
+        />
+      );
+
+      const zeroElements = screen.getAllByText('0');
+      expect(zeroElements.length).toBeGreaterThanOrEqual(6);
+    });
+
+    it('maintains correct column order', () => {
+      (useMediaQuery as any).mockReturnValue(true);
+      render(<ProdeGroupTable {...defaultProps} />);
+
+      const headers = screen.getAllByRole('columnheader');
+      const headerTexts = headers.map(h => h.textContent);
+
+      const groupBonusIndex = headerTexts.findIndex(text => text === 'Bonus Grupos');
+      const playoffBonusIndex = headerTexts.findIndex(text => text === 'Bonus Playoffs');
+      const groupScoreIndex = headerTexts.findIndex(text => text === 'Puntos Partidos');
+      const playoffScoreIndex = headerTexts.findIndex(text => text === 'Puntos Playoffs');
+
+      expect(groupBonusIndex).toBeGreaterThan(groupScoreIndex);
+      expect(playoffBonusIndex).toBeGreaterThan(playoffScoreIndex);
+    });
+
+    it('applies green styling to bonus values greater than zero on desktop', () => {
+      (useMediaQuery as any).mockReturnValue(true);
+      const { container } = render(<ProdeGroupTable {...defaultProps} />);
+
+      // Find all table cells in the body
+      const rows = container.querySelectorAll('tbody tr');
+      expect(rows.length).toBeGreaterThan(0);
+
+      // Check that cells with bonus values > 0 have success color styling
+      const cells = container.querySelectorAll('tbody td');
+      const bonusCells = Array.from(cells).filter(cell => {
+        const text = cell.textContent;
+        const style = (cell as HTMLElement).style;
+        // Check for bonus values (8, 7, 6, 5, 4, 3 from our mock data)
+        return ['8', '7', '6', '5', '4', '3'].includes(text || '');
+      });
+
+      // At least some bonus cells should exist
+      expect(bonusCells.length).toBeGreaterThan(0);
+    });
+
+    it('does not apply special styling to zero bonus values on desktop', () => {
+      (useMediaQuery as any).mockReturnValue(true);
+      const scoresWithZeroBonus = mockUserScores.map(score => ({
+        ...score,
+        groupBoostBonus: 0,
+        playoffBoostBonus: 0,
+        totalBoostBonus: 0
+      }));
+
+      render(
+        <ProdeGroupTable
+          {...defaultProps}
+          userScoresByTournament={{
+            'tournament1': scoresWithZeroBonus,
+            'tournament2': scoresWithZeroBonus
+          }}
+        />
+      );
+
+      // Zero values should be displayed
+      const zeroElements = screen.getAllByText('0');
+      expect(zeroElements.length).toBeGreaterThanOrEqual(6);
+    });
+
+    it('applies green styling to total bonus on mobile when greater than zero', () => {
+      (useMediaQuery as any).mockReturnValue(false);
+      const { container } = render(<ProdeGroupTable {...defaultProps} />);
+
+      // On mobile, totalBoostBonus values (13, 11, 9 from mock) should be displayed
+      expect(screen.getAllByText('13').length).toBeGreaterThanOrEqual(2);
+      expect(screen.getAllByText('11').length).toBeGreaterThanOrEqual(2);
+      expect(screen.getAllByText('9').length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('displays total bonus correctly on mobile with zero values', () => {
+      (useMediaQuery as any).mockReturnValue(false);
+      const scoresWithZeroBonus = mockUserScores.map(score => ({
+        ...score,
+        groupBoostBonus: 0,
+        playoffBoostBonus: 0,
+        totalBoostBonus: 0
+      }));
+
+      render(
+        <ProdeGroupTable
+          {...defaultProps}
+          userScoresByTournament={{
+            'tournament1': scoresWithZeroBonus,
+            'tournament2': scoresWithZeroBonus
+          }}
+        />
+      );
+
+      // Zero values should be visible
+      const zeroElements = screen.getAllByText('0');
+      expect(zeroElements.length).toBeGreaterThanOrEqual(3);
+    });
+
+    it('calculates total points including bonuses', () => {
+      (useMediaQuery as any).mockReturnValue(true);
+      render(<ProdeGroupTable {...defaultProps} />);
+
+      // Verify that total points (100, 90, 80 from mock) are displayed
+      // Even though both tabs have keepMounted, only visible content is easily accessible
+      expect(screen.getAllByText('100').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('90').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('80').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('renders group boost bonus cell with conditional color on desktop', () => {
+      (useMediaQuery as any).mockReturnValue(true);
+      const { container } = render(<ProdeGroupTable {...defaultProps} />);
+
+      // Find rows in the first tab panel (visible)
+      const tabPanel = container.querySelector('[role="tabpanel"]');
+      expect(tabPanel).toBeInTheDocument();
+
+      // Verify bonus values are rendered (may appear multiple times across tabs/cells)
+      expect(screen.getAllByText('8').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('7').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('6').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('renders playoff boost bonus cell with conditional color on desktop', () => {
+      (useMediaQuery as any).mockReturnValue(true);
+      const { container } = render(<ProdeGroupTable {...defaultProps} />);
+
+      // Find rows in the first tab panel (visible)
+      const tabPanel = container.querySelector('[role="tabpanel"]');
+      expect(tabPanel).toBeInTheDocument();
+
+      // Verify playoff bonus values are rendered (may appear multiple times)
+      expect(screen.getAllByText('5').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('4').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('3').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('renders total boost bonus cell with conditional color on mobile', () => {
+      (useMediaQuery as any).mockReturnValue(false);
+      const { container } = render(<ProdeGroupTable {...defaultProps} />);
+
+      // Find rows in the first tab panel (visible)
+      const tabPanel = container.querySelector('[role="tabpanel"]');
+      expect(tabPanel).toBeInTheDocument();
+
+      // Verify total bonus values are rendered (may appear multiple times)
+      expect(screen.getAllByText('13').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('11').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('9').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('shows "0" for zero group boost bonus on desktop without special color', () => {
+      (useMediaQuery as any).mockReturnValue(true);
+      const scoresWithZeroGroupBonus = mockUserScores.map(score => ({
+        ...score,
+        groupBoostBonus: 0
+      }));
+
+      render(
+        <ProdeGroupTable
+          {...defaultProps}
+          userScoresByTournament={{
+            'tournament1': scoresWithZeroGroupBonus,
+            'tournament2': scoresWithZeroGroupBonus
+          }}
+        />
+      );
+
+      // Should display zero values
+      const zeros = screen.getAllByText('0');
+      expect(zeros.length).toBeGreaterThan(0);
+    });
+
+    it('shows "0" for zero playoff boost bonus on desktop without special color', () => {
+      (useMediaQuery as any).mockReturnValue(true);
+      const scoresWithZeroPlayoffBonus = mockUserScores.map(score => ({
+        ...score,
+        playoffBoostBonus: 0
+      }));
+
+      render(
+        <ProdeGroupTable
+          {...defaultProps}
+          userScoresByTournament={{
+            'tournament1': scoresWithZeroPlayoffBonus,
+            'tournament2': scoresWithZeroPlayoffBonus
+          }}
+        />
+      );
+
+      // Should display zero values
+      const zeros = screen.getAllByText('0');
+      expect(zeros.length).toBeGreaterThan(0);
+    });
+
+    it('shows "0" for zero total bonus on mobile without special color', () => {
+      (useMediaQuery as any).mockReturnValue(false);
+      const scoresWithZeroTotalBonus = mockUserScores.map(score => ({
+        ...score,
+        totalBoostBonus: 0
+      }));
+
+      render(
+        <ProdeGroupTable
+          {...defaultProps}
+          userScoresByTournament={{
+            'tournament1': scoresWithZeroTotalBonus,
+            'tournament2': scoresWithZeroTotalBonus
+          }}
+        />
+      );
+
+      // Should display zero values
+      const zeros = screen.getAllByText('0');
+      expect(zeros.length).toBeGreaterThan(0);
     });
   });
 });

@@ -88,7 +88,10 @@ describe('Prode Group Actions', () => {
     group_score: 10,
     playoff_correct_guesses: 2,
     playoff_exact_guesses: 1,
-    playoff_score: 5
+    playoff_score: 5,
+    group_boost_bonus: 2,
+    playoff_boost_bonus: 1,
+    total_boost_bonus: 3
   };
 
   const mockTournamentGuess = {
@@ -306,9 +309,76 @@ describe('Prode Group Actions', () => {
           honorRollScore: 3,
           individualAwardsScore: 4,
           groupPositionScore: 1,
-          totalPoints: 25
+          groupBoostBonus: 2,
+          playoffBoostBonus: 1,
+          totalBoostBonus: 3,
+          totalPoints: 28  // 15 (total_score) + 3 (total_boost_bonus) + 2 + 3 + 4 + 1 = 28
         }
       ]);
+    });
+
+    it('handles missing game statistics gracefully', async () => {
+      mockGetGameGuessStatisticsForUsers.mockResolvedValue([]);
+      mockFindTournamentGuessByUserIdsTournament.mockResolvedValue([mockTournamentGuess]);
+      mockCustomToMap.mockReturnValueOnce({}).mockReturnValueOnce({ 'user1': mockTournamentGuess });
+
+      const result = await getUserScoresForTournament(['user1'], 'tournament1');
+
+      expect(result[0]).toEqual({
+        userId: 'user1',
+        groupStageScore: 0,
+        groupStageQualifiersScore: 2,
+        playoffScore: 0,
+        honorRollScore: 3,
+        individualAwardsScore: 4,
+        groupPositionScore: 1,
+        groupBoostBonus: 0,
+        playoffBoostBonus: 0,
+        totalBoostBonus: 0,
+        totalPoints: 10  // 0 (total_score) + 0 (total_boost_bonus) + 2 + 3 + 4 + 1 = 10
+      });
+    });
+
+    it('handles missing tournament guesses gracefully', async () => {
+      mockGetGameGuessStatisticsForUsers.mockResolvedValue([mockGameStatistic]);
+      mockFindTournamentGuessByUserIdsTournament.mockResolvedValue([]);
+      mockCustomToMap.mockReturnValueOnce({ 'user1': mockGameStatistic }).mockReturnValueOnce({});
+
+      const result = await getUserScoresForTournament(['user1'], 'tournament1');
+
+      expect(result[0]).toEqual({
+        userId: 'user1',
+        groupStageScore: 10,
+        groupStageQualifiersScore: 0,
+        playoffScore: 5,
+        honorRollScore: 0,
+        individualAwardsScore: 0,
+        groupPositionScore: 0,
+        groupBoostBonus: 2,
+        playoffBoostBonus: 1,
+        totalBoostBonus: 3,
+        totalPoints: 18  // 15 (total_score) + 3 (total_boost_bonus) + 0 + 0 + 0 + 0 = 18
+      });
+    });
+
+    it('defaults bonus fields to zero when missing from game statistics', async () => {
+      const gameStatWithoutBonus = {
+        ...mockGameStatistic,
+        group_boost_bonus: undefined,
+        playoff_boost_bonus: undefined,
+        total_boost_bonus: undefined
+      } as any;
+
+      mockGetGameGuessStatisticsForUsers.mockResolvedValue([gameStatWithoutBonus]);
+      mockFindTournamentGuessByUserIdsTournament.mockResolvedValue([mockTournamentGuess]);
+      mockCustomToMap.mockReturnValueOnce({ 'user1': gameStatWithoutBonus }).mockReturnValueOnce({ 'user1': mockTournamentGuess });
+
+      const result = await getUserScoresForTournament(['user1'], 'tournament1');
+
+      expect(result[0].groupBoostBonus).toBe(0);
+      expect(result[0].playoffBoostBonus).toBe(0);
+      expect(result[0].totalBoostBonus).toBe(0);
+      expect(result[0].totalPoints).toBe(25);  // Without bonuses: 15 + 2 + 3 + 4 + 1
     });
   });
 }); 
