@@ -45,10 +45,10 @@ export default function AwardsPanel({
   const [saved, setSaved] = useState<boolean>(false)
   const [tournamentGuesses, setTournamentGuesses] = useState(savedTournamentGuesses)
 
-  const savePredictions = async () => {
+  const savePredictions = async (guessesToSave: typeof tournamentGuesses) => {
     setSaving(true)
     //Do the actual save
-    await updateOrCreateTournamentGuess(tournamentGuesses)
+    await updateOrCreateTournamentGuess(guessesToSave)
     setSaving(false)
     setSaved(true)
   }
@@ -56,20 +56,22 @@ export default function AwardsPanel({
   const handleGuessChange =
     (property: AwardTypes) =>
       (_: any, player: ExtendedPlayerData | null) => {
-        setTournamentGuesses({
+        const newGuesses = {
           ...tournamentGuesses,
           [property]: player?.id
-        });
-        savePredictions()
+        };
+        setTournamentGuesses(newGuesses);
+        savePredictions(newGuesses)
       }
 
   const handlePodiumGuessChange = (property: AwardTypes) =>
     (teamId: string) => {
-      setTournamentGuesses({
+      const newGuesses = {
         ...tournamentGuesses,
         [property]: (teamId === '') ? null : teamId
-      });
-      savePredictions()
+      };
+      setTournamentGuesses(newGuesses);
+      savePredictions(newGuesses)
   }
 
   const isDisabled = isPredictionLocked || saving

@@ -49,12 +49,15 @@ export async function getTournamentPredictionCompletion(
 
   // Count how many first-round games the user has guessed
   // A game is "guessed" if user predicted both home_team and away_team
+  // These get populated when user completes group position predictions
   const guessedFirstRoundGamesResult = await db
     .selectFrom('game_guesses')
     .innerJoin('games', 'games.id', 'game_guesses.game_id')
     .innerJoin('tournament_playoff_round_games', 'tournament_playoff_round_games.game_id', 'games.id')
     .innerJoin('tournament_playoff_rounds', 'tournament_playoff_rounds.id', 'tournament_playoff_round_games.tournament_playoff_round_id')
-    .select((eb) => eb.fn.countAll<number>().as('count'))
+    .select((eb) => [
+      eb.fn.countAll<number>().as('count'),
+    ])
     .where('game_guesses.user_id', '=', userId)
     .where('tournament_playoff_rounds.tournament_id', '=', tournamentId)
     .where('tournament_playoff_rounds.is_first_stage', '=', true)
@@ -63,6 +66,16 @@ export async function getTournamentPredictionCompletion(
     .executeTakeFirst();
 
   const qualifiersCompleted = Number(guessedFirstRoundGamesResult?.count ?? 0);
+
+  // Debug logging
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[TournamentPredictionCompletion] Qualifiers Debug:', {
+      tournamentId,
+      userId,
+      totalFirstRoundGames,
+      qualifiersCompleted,
+    });
+  }
 
   // Calculate overall metrics
   const overallTotal = 3 + 4 + totalFirstRoundGames; // finalStandings + awards + qualifiers
