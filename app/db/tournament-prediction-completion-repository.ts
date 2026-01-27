@@ -32,8 +32,7 @@ export async function getTournamentPredictionCompletion(
   const awardsCompleted = [bestPlayer, topGoalscorer, bestGoalkeeper, bestYoungPlayer].filter(Boolean).length;
 
   // Category 3: Qualifiers (dynamic count)
-  // CRITICAL: Use proper JOIN pattern through playoff_round_games -> tournament_playoff_rounds
-  // Query total first-stage playoff games (these require qualified team guesses)
+  // Total qualifier slots = first-stage playoff games × 2 (home + away teams)
   const totalFirstRoundGamesResult = await db
     .selectFrom('games')
     .innerJoin('tournament_playoff_round_games', 'tournament_playoff_round_games.game_id', 'games.id')
@@ -44,37 +43,53 @@ export async function getTournamentPredictionCompletion(
     .executeTakeFirst();
 
   const totalFirstRoundGames = Number(totalFirstRoundGamesResult?.count ?? 0);
+  const totalQualifierSlots = totalFirstRoundGames * 2; // Each game has 2 teams
 
-  // Count how many first-round games the user has guessed
-  // A game is "guessed" if user predicted both home_team and away_team
-  // These get populated when user completes group position predictions
-  const guessedFirstRoundGamesResult = await db
-    .selectFrom('game_guesses')
-    .innerJoin('games', 'games.id', 'game_guesses.game_id')
-    .innerJoin('tournament_playoff_round_games', 'tournament_playoff_round_games.game_id', 'games.id')
-    .innerJoin('tournament_playoff_rounds', 'tournament_playoff_rounds.id', 'tournament_playoff_round_games.tournament_playoff_round_id')
+  // Count total groups in tournament
+  const totalGroupsResult = await db
+    .selectFrom('tournament_groups')
     .select((eb) => eb.fn.countAll<number>().as('count'))
-    .where('game_guesses.user_id', '=', userId)
-    .where('tournament_playoff_rounds.tournament_id', '=', tournamentId)
-    .where('tournament_playoff_rounds.is_first_stage', '=', true)
-    .where('game_guesses.home_team', 'is not', null)
-    .where('game_guesses.away_team', 'is not', null)
+    .where('tournament_id', '=', tournamentId)
     .executeTakeFirst();
 
-  const qualifiersCompleted = Number(guessedFirstRoundGamesResult?.count ?? 0);
+  const totalGroups = Number(totalGroupsResult?.count ?? 0);
 
-  // Debug logging
-  if (process.env.NODE_ENV === 'development') {
-    console.warn('[TournamentPredictionCompletion] Qualifiers Debug:', {
-      tournamentId,
-      userId,
-      totalFirstRoundGames,
-      qualifiersCompleted,
-    });
-  }
+  // Count how many groups the user has completed
+  // A group is complete when ALL team predictions in that group have is_complete = true
+  const completeGroupsResult = await db
+    .selectFrom('tournament_groups')
+    .select((eb) => eb.fn.countAll<number>().as('count'))
+    .where('tournament_groups.tournament_id', '=', tournamentId)
+    .where((eb) =>
+      eb.not(
+        eb.exists(
+          eb.selectFrom('tournament_group_team_stats_guess')
+            .whereRef('tournament_group_team_stats_guess.tournament_group_id', '=', 'tournament_groups.id')
+            .where('tournament_group_team_stats_guess.user_id', '=', userId)
+            .where('tournament_group_team_stats_guess.is_complete', '=', false)
+        )
+      )
+    )
+    .where((eb) =>
+      eb.exists(
+        eb.selectFrom('tournament_group_team_stats_guess')
+          .whereRef('tournament_group_team_stats_guess.tournament_group_id', '=', 'tournament_groups.id')
+          .where('tournament_group_team_stats_guess.user_id', '=', userId)
+      )
+    )
+    .executeTakeFirst();
+
+  const completeGroups = Number(completeGroupsResult?.count ?? 0);
+
+  // Calculate qualifiers completed:
+  // - Each complete group contributes 2 qualifiers (1st and 2nd place)
+  // - Third-place qualifiers only count when ALL groups are complete
+  const allGroupsComplete = completeGroups === totalGroups && totalGroups > 0;
+  const thirdPlaceQualifiers = allGroupsComplete ? (totalQualifierSlots - (totalGroups * 2)) : 0;
+  const qualifiersCompleted = (completeGroups * 2) + thirdPlaceQualifiers;
 
   // Calculate overall metrics
-  const overallTotal = 3 + 4 + totalFirstRoundGames; // finalStandings + awards + qualifiers
+  const overallTotal = 3 + 4 + totalQualifierSlots; // finalStandings + awards + qualifiers
   const overallCompleted = finalStandingsCompleted + awardsCompleted + qualifiersCompleted;
   const overallPercentage = overallTotal > 0 ? Math.round((overallCompleted / overallTotal) * 100) : 0;
 
@@ -103,7 +118,7 @@ export async function getTournamentPredictionCompletion(
     },
     qualifiers: {
       completed: qualifiersCompleted,
-      total: totalFirstRoundGames,
+      total: totalQualifierSlots,
     },
     overallCompleted,
     overallTotal,

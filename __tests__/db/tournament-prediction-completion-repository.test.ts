@@ -41,15 +41,18 @@ describe('Tournament Prediction Completion Repository', () => {
       // Mock: No tournament guesses
       mockFindTournamentGuess.mockResolvedValue(undefined);
 
-      // Mock: 16 first_round games exist, but user has 0 guesses
+      // Mock: 16 first_round games, 8 groups, 0 complete groups
       let callCount = 0;
       mockDb.selectFrom.mockImplementation((tableName: string) => {
         callCount++;
         if (callCount === 1) {
-          // First call: count total first_round games
+          // First call: count total first_round games (16)
           return createMockSelectQuery({ count: 16 }) as any;
+        } else if (callCount === 2) {
+          // Second call: count total groups (8)
+          return createMockSelectQuery({ count: 8 }) as any;
         } else {
-          // Second call: count user's first_round guesses (0)
+          // Third call: count complete groups (0)
           return createMockSelectQuery({ count: 0 }) as any;
         }
       });
@@ -65,9 +68,9 @@ describe('Tournament Prediction Completion Repository', () => {
       expect(result.awards.completed).toBe(0);
       expect(result.awards.total).toBe(4);
       expect(result.qualifiers.completed).toBe(0);
-      expect(result.qualifiers.total).toBe(16);
+      expect(result.qualifiers.total).toBe(32); // 16 games × 2 teams
       expect(result.overallCompleted).toBe(0);
-      expect(result.overallTotal).toBe(23); // 3 + 4 + 16
+      expect(result.overallTotal).toBe(39); // 3 + 4 + 32
       expect(result.overallPercentage).toBe(0);
       expect(result.isPredictionLocked).toBe(false);
     });
@@ -88,16 +91,19 @@ describe('Tournament Prediction Completion Repository', () => {
       };
       mockFindTournamentGuess.mockResolvedValue(mockTournamentGuess);
 
-      // Mock: 16 first_round games, user predicted 8
+      // Mock: 16 first_round games, 8 total groups, 4 complete groups
       let callCount = 0;
       mockDb.selectFrom.mockImplementation((tableName: string) => {
         callCount++;
         if (callCount === 1) {
-          // First call: count total first_round games
+          // First call: count total first_round games (16)
           return createMockSelectQuery({ count: 16 }) as any;
-        } else {
-          // Second call: count user's first_round guesses
+        } else if (callCount === 2) {
+          // Second call: count total groups (8)
           return createMockSelectQuery({ count: 8 }) as any;
+        } else {
+          // Third call: count complete groups (4)
+          return createMockSelectQuery({ count: 4 }) as any;
         }
       });
 
@@ -118,12 +124,12 @@ describe('Tournament Prediction Completion Repository', () => {
       expect(result.awards.bestGoalkeeper).toBe(false);
       expect(result.awards.bestYoungPlayer).toBe(false);
 
-      expect(result.qualifiers.completed).toBe(8);
-      expect(result.qualifiers.total).toBe(16);
+      expect(result.qualifiers.completed).toBe(8); // 4 complete groups × 2
+      expect(result.qualifiers.total).toBe(32); // 16 games × 2 teams
 
       expect(result.overallCompleted).toBe(10); // 1 + 1 + 8
-      expect(result.overallTotal).toBe(23); // 3 + 4 + 16
-      expect(result.overallPercentage).toBe(43); // Math.round(10/23 * 100)
+      expect(result.overallTotal).toBe(39); // 3 + 4 + 32
+      expect(result.overallPercentage).toBe(26); // Math.round(10/39 * 100)
       expect(result.isPredictionLocked).toBe(false);
     });
 
@@ -143,14 +149,19 @@ describe('Tournament Prediction Completion Repository', () => {
       };
       mockFindTournamentGuess.mockResolvedValue(mockTournamentGuess);
 
-      // Mock: 16 first_round games, user predicted all 16
+      // Mock: 16 first_round games, 8 total groups, all 8 complete
       let callCount = 0;
       mockDb.selectFrom.mockImplementation((tableName: string) => {
         callCount++;
         if (callCount === 1) {
+          // First call: count total first_round games (16)
           return createMockSelectQuery({ count: 16 }) as any;
+        } else if (callCount === 2) {
+          // Second call: count total groups (8)
+          return createMockSelectQuery({ count: 8 }) as any;
         } else {
-          return createMockSelectQuery({ count: 16 }) as any;
+          // Third call: count complete groups (8 - all complete!)
+          return createMockSelectQuery({ count: 8 }) as any;
         }
       });
 
@@ -162,9 +173,9 @@ describe('Tournament Prediction Completion Repository', () => {
 
       expect(result.finalStandings.completed).toBe(3);
       expect(result.awards.completed).toBe(4);
-      expect(result.qualifiers.completed).toBe(16);
-      expect(result.overallCompleted).toBe(23);
-      expect(result.overallTotal).toBe(23);
+      expect(result.qualifiers.completed).toBe(32); // All 8 groups × 2 + all 16 third-place
+      expect(result.overallCompleted).toBe(39);
+      expect(result.overallTotal).toBe(39);
       expect(result.overallPercentage).toBe(100);
       expect(result.isPredictionLocked).toBe(false);
     });
@@ -185,13 +196,18 @@ describe('Tournament Prediction Completion Repository', () => {
       };
       mockFindTournamentGuess.mockResolvedValue(mockTournamentGuess);
 
-      // Mock: 16 first_round games, no user guesses
+      // Mock: 16 first_round games, 8 groups, 0 complete groups
       let callCount = 0;
       mockDb.selectFrom.mockImplementation((tableName: string) => {
         callCount++;
         if (callCount === 1) {
+          // First call: count total first_round games (16)
           return createMockSelectQuery({ count: 16 }) as any;
+        } else if (callCount === 2) {
+          // Second call: count total groups (8)
+          return createMockSelectQuery({ count: 8 }) as any;
         } else {
+          // Third call: count complete groups (0)
           return createMockSelectQuery({ count: 0 }) as any;
         }
       });
@@ -203,7 +219,7 @@ describe('Tournament Prediction Completion Repository', () => {
       const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament);
 
       expect(result.isPredictionLocked).toBe(true);
-      expect(result.overallPercentage).toBe(4); // 1/23 * 100 = 4.3... -> 4
+      expect(result.overallPercentage).toBe(3); // 1/39 * 100 = 2.56... -> 3
     });
 
     it('should handle tournaments with no playoff games', async () => {
