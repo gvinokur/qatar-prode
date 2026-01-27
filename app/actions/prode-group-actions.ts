@@ -213,6 +213,7 @@ export async function getUserScoresForTournament(userIds: string[], tournamentId
       totalBoostBonus: gameStats?.total_boost_bonus || 0,
       totalPoints:
         (gameStats?.total_score || 0) +
+        (gameStats?.total_boost_bonus || 0) +
         (tournamentGuess?.qualified_teams_score || 0) +
         (tournamentGuess?.honor_roll_score || 0) +
         (tournamentGuess?.individual_awards_score || 0) +

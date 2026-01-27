@@ -312,7 +312,7 @@ describe('Prode Group Actions', () => {
           groupBoostBonus: 2,
           playoffBoostBonus: 1,
           totalBoostBonus: 3,
-          totalPoints: 25
+          totalPoints: 28  // 15 (total_score) + 3 (total_boost_bonus) + 2 + 3 + 4 + 1 = 28
         }
       ]);
     });
