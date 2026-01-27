@@ -273,37 +273,6 @@ export type TournamentGuess = Selectable<TournamentGuessTable>
 export type TournamentGuessNew = Insertable<TournamentGuessTable>
 export type TournamentGuessUpdate = Updateable<TournamentGuessTable>
 
-// Tournament Prediction Completion Tracking
-export interface TournamentPredictionCompletion {
-  // Final standings (3 items: champion, runner-up, third place)
-  finalStandings: {
-    completed: number;
-    total: number;
-    champion: boolean;
-    runnerUp: boolean;
-    thirdPlace: boolean;
-  };
-  // Individual awards (4 items)
-  awards: {
-    completed: number;
-    total: number;
-    bestPlayer: boolean;
-    topGoalscorer: boolean;
-    bestGoalkeeper: boolean;
-    bestYoungPlayer: boolean;
-  };
-  // Qualifiers (dynamic count based on playoff bracket)
-  qualifiers: {
-    completed: number;
-    total: number;
-  };
-  // Overall metrics
-  overallCompleted: number;
-  overallTotal: number;
-  overallPercentage: number;
-  isPredictionLocked: boolean;
-}
-
 export interface PlayerTable extends Identifiable {
   team_id: string
   tournament_id: string
