@@ -1,5 +1,7 @@
 import { db } from './database';
-import { TournamentPredictionCompletion } from './tables-definition';
+import { TournamentPredictionCompletion, Tournament } from './tables-definition';
+import { findTournamentGuessByUserIdTournament } from './tournament-guess-repository';
+import { getTournamentStartDate } from '../actions/tournament-actions';
 
 /**
  * Get tournament prediction completion status for a user
@@ -10,15 +12,11 @@ import { TournamentPredictionCompletion } from './tables-definition';
  */
 export async function getTournamentPredictionCompletion(
   userId: string,
-  tournamentId: string
+  tournamentId: string,
+  tournament: Tournament
 ): Promise<TournamentPredictionCompletion> {
-  // Fetch user's tournament guess
-  const tournamentGuess = await db
-    .selectFrom('tournament_guesses')
-    .selectAll()
-    .where('user_id', '=', userId)
-    .where('tournament_id', '=', tournamentId)
-    .executeTakeFirst();
+  // Fetch user's tournament guess using repository function
+  const tournamentGuess = await findTournamentGuessByUserIdTournament(userId, tournamentId);
 
   // Category 1: Final Standings (3 items)
   const champion = !!tournamentGuess?.champion_team_id;
@@ -81,16 +79,10 @@ export async function getTournamentPredictionCompletion(
   const overallPercentage = overallTotal > 0 ? Math.round((overallCompleted / overallTotal) * 100) : 0;
 
   // Check if predictions are locked (5 days after tournament starts)
-  const earliestGameResult = await db
-    .selectFrom('games')
-    .select('game_date')
-    .where('tournament_id', '=', tournamentId)
-    .orderBy('game_date', 'asc')
-    .limit(1)
-    .executeTakeFirst();
+  const tournamentStartDate = await getTournamentStartDate(tournament);
 
-  const isPredictionLocked = earliestGameResult
-    ? new Date().getTime() > new Date(earliestGameResult.game_date).getTime() + 5 * 24 * 60 * 60 * 1000
+  const isPredictionLocked = tournamentStartDate
+    ? new Date().getTime() > tournamentStartDate.getTime() + 5 * 24 * 60 * 60 * 1000
     : false;
 
   return {

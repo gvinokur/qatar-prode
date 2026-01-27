@@ -61,7 +61,9 @@ export default async function TournamentLandingPage(props: Props) {
   } : undefined;
 
   // Fetch tournament prediction completion
-  const tournamentPredictionCompletion = user ? await getTournamentPredictionCompletion(user.id, tournamentId) : null;
+  const tournamentPredictionCompletion = user && tournament
+    ? await getTournamentPredictionCompletion(user.id, tournamentId, tournament)
+    : null;
 
   // Get tournament start date (earliest game date) for lock time calculation
   const tournamentStartDate = gamesAroundMyTime.length > 0
