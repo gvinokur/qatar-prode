@@ -355,7 +355,9 @@ git -C ${WORKTREE_PATH} push -u origin ${BRANCH_NAME}
 # Create PR
 gh pr create --base main --head ${BRANCH_NAME} \
   --title "Plan: [Story Title] (#${STORY_NUMBER})" \
-  --body "Implementation plan for #${STORY_NUMBER}
+  --body "Fixes #${STORY_NUMBER}
+
+Implementation plan for the story.
 
 ## Summary
 This PR contains the implementation plan for the story.
