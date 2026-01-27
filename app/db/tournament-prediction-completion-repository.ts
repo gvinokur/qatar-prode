@@ -67,7 +67,7 @@ export async function getTournamentPredictionCompletion(
 
   // Debug logging
   if (process.env.NODE_ENV === 'development') {
-    console.log('[TournamentPredictionCompletion] Qualifiers Debug:', {
+    console.warn('[TournamentPredictionCompletion] Qualifiers Debug:', {
       tournamentId,
       userId,
       totalFirstRoundGames,
