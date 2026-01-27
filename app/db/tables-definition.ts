@@ -350,3 +350,34 @@ export interface ProdeGroupTournamentBettingPaymentTable extends Identifiable {
 export type ProdeGroupTournamentBettingPayment = Selectable<ProdeGroupTournamentBettingPaymentTable>;
 export type ProdeGroupTournamentBettingPaymentNew = Insertable<ProdeGroupTournamentBettingPaymentTable>;
 export type ProdeGroupTournamentBettingPaymentUpdate = Updateable<ProdeGroupTournamentBettingPaymentTable>;
+
+// Tournament prediction completion status
+export interface TournamentPredictionCompletion {
+  // Final standings (3 items: champion, runner-up, third place)
+  finalStandings: {
+    completed: number;
+    total: number;
+    champion: boolean;
+    runnerUp: boolean;
+    thirdPlace: boolean;
+  };
+  // Individual awards (4 items: best player, top goalscorer, best goalkeeper, best young player)
+  awards: {
+    completed: number;
+    total: number;
+    bestPlayer: boolean;
+    topGoalscorer: boolean;
+    bestGoalkeeper: boolean;
+    bestYoungPlayer: boolean;
+  };
+  // Qualifiers (dynamic count based on playoff bracket)
+  qualifiers: {
+    completed: number;
+    total: number;
+  };
+  // Overall
+  overallCompleted: number;
+  overallTotal: number;
+  overallPercentage: number;
+  isPredictionLocked: boolean;
+}

@@ -14,6 +14,8 @@ import {findTournamentGuessByUserIdTournament} from "../../db/tournament-guess-r
 import {unstable_ViewTransition as ViewTransition} from "react";
 import {findTournamentById} from "../../db/tournament-repository";
 import {PredictionStatusBar} from "../../components/prediction-status-bar";
+import {TournamentPredictionStatusBar} from "../../components/tournament-prediction-status-bar";
+import {getTournamentPredictionCompletion} from "../../db/tournament-prediction-completion-repository";
 import type {ScoringConfig} from "../../components/tournament-page/rules";
 
 type Props = {
@@ -46,6 +48,11 @@ export default async function TournamentLandingPage(props: Props) {
 
   // Server Component pattern: import repository directly and extract scoring config
   const tournament = await findTournamentById(tournamentId);
+
+  // Fetch tournament prediction completion status
+  const tournamentPredictionCompletion = user && tournament ?
+    await getTournamentPredictionCompletion(user.id, tournamentId, tournament) :
+    null;
   const scoringConfig: ScoringConfig | undefined = tournament ? {
     game_exact_score_points: tournament.game_exact_score_points ?? 2,
     game_correct_outcome_points: tournament.game_correct_outcome_points ?? 1,
@@ -83,6 +90,12 @@ export default async function TournamentLandingPage(props: Props) {
                 urgentGames={dashboardStats.urgentGames}
                 warningGames={dashboardStats.warningGames}
                 noticeGames={dashboardStats.noticeGames}
+              />
+            )}
+            {user && tournamentPredictionCompletion && (
+              <TournamentPredictionStatusBar
+                completion={tournamentPredictionCompletion}
+                tournamentId={tournamentId}
               />
             )}
             <Fixtures games={gamesAroundMyTime} teamsMap={teamsMap}/>
