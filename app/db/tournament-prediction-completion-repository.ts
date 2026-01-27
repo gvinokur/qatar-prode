@@ -97,7 +97,7 @@ export async function getTournamentPredictionCompletion(
   const tournamentStartDate = await getTournamentStartDate(tournamentId);
 
   const isPredictionLocked = tournamentStartDate
-    ? new Date().getTime() > tournamentStartDate.getTime() + 5 * 24 * 60 * 60 * 1000
+    ? Date.now() > tournamentStartDate.getTime() + 5 * 24 * 60 * 60 * 1000
     : false;
 
   return {

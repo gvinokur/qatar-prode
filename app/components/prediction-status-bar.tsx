@@ -95,16 +95,27 @@ function buildTournamentUrgencyWarnings(
 
 // Category status display component
 interface CategoryStatusProps {
-  title: string;
-  completed: number;
-  total: number;
-  link?: string;
-  isLocked: boolean;
+  readonly title: string;
+  readonly completed: number;
+  readonly total: number;
+  readonly link?: string;
+  readonly isLocked: boolean;
 }
 
 function CategoryStatus({ title, completed, total, link, isLocked }: CategoryStatusProps) {
   const isComplete = completed === total;
   const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  // Determine status icon based on state
+  const getStatusIcon = () => {
+    if (isLocked) {
+      return <LockIcon sx={{ fontSize: 16, color: 'text.disabled' }} />;
+    }
+    if (isComplete) {
+      return <CheckCircleIcon sx={{ fontSize: 16, color: 'success.main' }} />;
+    }
+    return <WarningIcon sx={{ fontSize: 16, color: 'warning.main' }} />;
+  };
 
   return (
     <Box sx={{
@@ -120,13 +131,7 @@ function CategoryStatus({ title, completed, total, link, isLocked }: CategorySta
     }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         {/* Status Icon */}
-        {isLocked ? (
-          <LockIcon sx={{ fontSize: 16, color: 'text.disabled' }} />
-        ) : isComplete ? (
-          <CheckCircleIcon sx={{ fontSize: 16, color: 'success.main' }} />
-        ) : (
-          <WarningIcon sx={{ fontSize: 16, color: 'warning.main' }} />
-        )}
+        {getStatusIcon()}
 
         {/* Title */}
         <Typography variant="body2" color="text.secondary" sx={{ minWidth: '140px' }}>
