@@ -55,9 +55,7 @@ export async function getTournamentPredictionCompletion(
     .innerJoin('games', 'games.id', 'game_guesses.game_id')
     .innerJoin('tournament_playoff_round_games', 'tournament_playoff_round_games.game_id', 'games.id')
     .innerJoin('tournament_playoff_rounds', 'tournament_playoff_rounds.id', 'tournament_playoff_round_games.tournament_playoff_round_id')
-    .select((eb) => [
-      eb.fn.countAll<number>().as('count'),
-    ])
+    .select((eb) => eb.fn.countAll<number>().as('count'))
     .where('game_guesses.user_id', '=', userId)
     .where('tournament_playoff_rounds.tournament_id', '=', tournamentId)
     .where('tournament_playoff_rounds.is_first_stage', '=', true)
