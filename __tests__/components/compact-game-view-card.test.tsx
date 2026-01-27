@@ -53,7 +53,6 @@ describe('CompactGameViewCard', () => {
         <CompactGameViewCard {...resultProps} />
       </TestWrapper>
     );
-    expect(screen.getByText(/#1/i)).toBeInTheDocument();
     expect(screen.getByText('Team A')).toBeInTheDocument();
     expect(screen.getByText('Team B')).toBeInTheDocument();
     expect(screen.getByText('Stadium 1')).toBeInTheDocument();
@@ -65,7 +64,6 @@ describe('CompactGameViewCard', () => {
         <CompactGameViewCard {...guessProps} />
       </TestWrapper>
     );
-    expect(screen.getByText(/#1/i)).toBeInTheDocument();
     expect(screen.getByText('Team A')).toBeInTheDocument();
     expect(screen.getByText('Team B')).toBeInTheDocument();
     expect(screen.getByText('Stadium 1')).toBeInTheDocument();
@@ -83,16 +81,15 @@ describe('CompactGameViewCard', () => {
     expect(onEditClick).toHaveBeenCalled();
   });
 
-  it('toggles timezone text on click', () => {
+  it('should not display game number', () => {
     render(
       <TestWrapper>
         <CompactGameViewCard {...resultProps} />
       </TestWrapper>
     );
-    const toggle = screen.getByText(/Horario Local|Tu Horario/);
-    const initialText = toggle.textContent;
-    fireEvent.click(toggle);
-    expect(toggle.textContent).not.toBe(initialText);
+
+    // Game number should not be in document
+    expect(screen.queryByText(/#1/)).not.toBeInTheDocument();
   });
 
   describe('Round 2 refinements - Boost chip visibility', () => {

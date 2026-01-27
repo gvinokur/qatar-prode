@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import GameCountdownDisplay from '../../app/components/game-countdown-display';
 import { CountdownProvider } from '../../app/components/context-providers/countdown-context-provider';
 import { TimezoneProvider } from '../../app/components/context-providers/timezone-context-provider';
@@ -42,61 +42,55 @@ describe('GameCountdownDisplay', () => {
       </TestWrapper>
     );
 
+    // Should show countdown on Line 2
     expect(screen.getByText(/Closes in/)).toBeInTheDocument();
     expect(screen.getByText(/4h/)).toBeInTheDocument();
   });
 
-  it('should show formatted date for past games', () => {
-    const now = new Date('2026-01-20T15:00:00Z');
+  it('should show both countdown and date information', () => {
+    const now = new Date('2026-01-20T10:00:00Z');
     vi.setSystemTime(now);
-
-    // Game was 2 hours ago
-    const gameDate = new Date('2026-01-20T13:00:00Z');
+    const gameDate = new Date('2026-01-20T15:00:00Z');
 
     render(
       <TestWrapper>
-        <GameCountdownDisplay gameDate={gameDate} />
+        <GameCountdownDisplay gameDate={gameDate} compact={true} />
       </TestWrapper>
     );
 
-    // Should show formatted date instead of countdown when closed
-    // The component falls back to date display when isClosed = true
-    // Just verify something is rendered (the actual format depends on date-utils)
-    const typography = screen.getByText(/./);
-    expect(typography).toBeInTheDocument();
+    // Should show countdown
+    expect(screen.getByText(/Closes in/)).toBeInTheDocument();
+
+    // Should also show formatted date
+    expect(screen.getByText(/Jan 20/)).toBeInTheDocument();
   });
 
-  it('should render progress bar when showProgressBar is true', () => {
-    const now = new Date('2026-01-20T10:00:00Z');
-    vi.setSystemTime(now);
-
-    const gameDate = new Date('2026-01-20T15:00:00Z');
+  it('should not show progress bar for games >48h away', () => {
+    vi.setSystemTime(new Date('2026-01-20T10:00:00Z'));
+    const gameDate = new Date('2026-01-23T10:00:00Z'); // 72h away
 
     const { container } = render(
       <TestWrapper>
-        <GameCountdownDisplay gameDate={gameDate} showProgressBar={true} />
-      </TestWrapper>
-    );
-
-    // Check for LinearProgress component (has role="progressbar")
-    const progressBar = container.querySelector('.MuiLinearProgress-root');
-    expect(progressBar).toBeInTheDocument();
-  });
-
-  it('should not render progress bar when showProgressBar is false', () => {
-    const now = new Date('2026-01-20T10:00:00Z');
-    vi.setSystemTime(now);
-
-    const gameDate = new Date('2026-01-20T15:00:00Z');
-
-    const { container } = render(
-      <TestWrapper>
-        <GameCountdownDisplay gameDate={gameDate} showProgressBar={false} />
+        <GameCountdownDisplay gameDate={gameDate} compact={true} />
       </TestWrapper>
     );
 
     const progressBar = container.querySelector('.MuiLinearProgress-root');
     expect(progressBar).not.toBeInTheDocument();
+  });
+
+  it('should show progress bar for games within 48h window', () => {
+    vi.setSystemTime(new Date('2026-01-20T10:00:00Z'));
+    const gameDate = new Date('2026-01-20T15:00:00Z'); // 4h to deadline
+
+    const { container } = render(
+      <TestWrapper>
+        <GameCountdownDisplay gameDate={gameDate} compact={true} />
+      </TestWrapper>
+    );
+
+    const progressBar = container.querySelector('.MuiLinearProgress-root');
+    expect(progressBar).toBeInTheDocument();
   });
 
   it('should not render progress bar for closed games', () => {
@@ -107,7 +101,7 @@ describe('GameCountdownDisplay', () => {
 
     const { container } = render(
       <TestWrapper>
-        <GameCountdownDisplay gameDate={gameDate} showProgressBar={true} />
+        <GameCountdownDisplay gameDate={gameDate} compact={true} />
       </TestWrapper>
     );
 
@@ -133,25 +127,30 @@ describe('GameCountdownDisplay', () => {
     expect(screen.getByText(/30m/)).toBeInTheDocument();
   });
 
-  it('should render in compact mode correctly', () => {
+  it('should show date on Line 1 and state on Line 2', () => {
     const now = new Date('2026-01-20T10:00:00Z');
     vi.setSystemTime(now);
-
     const gameDate = new Date('2026-01-20T15:00:00Z');
 
     const { container } = render(
       <TestWrapper>
-        <GameCountdownDisplay gameDate={gameDate} compact={true} showProgressBar={true} />
+        <GameCountdownDisplay gameDate={gameDate} compact={true} />
       </TestWrapper>
     );
 
-    // In compact mode, outer Box should use flexDirection: 'row'
-    const outerBox = container.firstChild?.firstChild;
-    expect(outerBox).toBeInTheDocument();
+    // Check that date and countdown are in separate containers (lines)
+    const outerBox = container.firstChild;
+    expect(outerBox?.childNodes.length).toBe(2); // Two lines
+
+    // Line 1 should have date
+    expect(screen.getByText(/Jan 20/)).toBeInTheDocument();
+
+    // Line 2 should have countdown
+    expect(screen.getByText(/Closes in/)).toBeInTheDocument();
   });
 
   it('should display different urgency colors', () => {
-    // Test safe urgency (green)
+    // Test safe urgency (neutral, not green)
     vi.setSystemTime(new Date('2026-01-20T10:00:00Z'));
     const safeGame = new Date('2026-01-23T10:00:00Z'); // 72h away
     const { container: safeContainer } = render(
@@ -159,7 +158,7 @@ describe('GameCountdownDisplay', () => {
         <GameCountdownDisplay gameDate={safeGame} />
       </TestWrapper>
     );
-    // Safe urgency should show green color (success.main)
+    // Safe urgency should show neutral color (text.secondary)
     const safeTypography = safeContainer.querySelector('p');
     expect(safeTypography).toBeInTheDocument();
 
@@ -186,23 +185,23 @@ describe('GameCountdownDisplay', () => {
     expect(warningTypography).toBeInTheDocument();
   });
 
-  it('should handle timezone toggle via TimezoneProvider', () => {
-    const now = new Date('2026-01-20T15:00:00Z');
+  it('should toggle between user time and game time when date clicked', () => {
+    const now = new Date('2026-01-20T10:00:00Z');
     vi.setSystemTime(now);
-
-    const gameDate = new Date('2026-01-20T13:00:00Z'); // Past game
-    const gameTimezone = 'America/New_York';
+    const gameDate = new Date('2026-01-20T15:00:00Z');
 
     render(
       <TestWrapper>
-        <GameCountdownDisplay gameDate={gameDate} gameTimezone={gameTimezone} />
+        <GameCountdownDisplay gameDate={gameDate} gameTimezone="America/New_York" compact={true} />
       </TestWrapper>
     );
 
-    // Since it's a closed game, it should fall back to date display
-    // The TimezoneProvider's showLocalTime setting should be respected
-    // Just verify the component renders without errors
-    expect(screen.getByText(/./)).toBeInTheDocument();
+    const dateText = screen.getByText(/Jan 20/);
+    const initialText = dateText.textContent;
+
+    fireEvent.click(dateText);
+
+    expect(dateText.textContent).not.toBe(initialText);
   });
 
   it('should handle missing gameTimezone prop gracefully', () => {
@@ -250,5 +249,46 @@ describe('GameCountdownDisplay', () => {
       </TestWrapper>
     );
     expect(screen.getByText(/m/)).toBeInTheDocument();
+  });
+
+  it('should show toggleable date for closed games', () => {
+    const now = new Date('2026-01-20T15:00:00Z');
+    vi.setSystemTime(now);
+    const gameDate = new Date('2026-01-20T13:00:00Z'); // Closed game
+
+    render(
+      <TestWrapper>
+        <GameCountdownDisplay gameDate={gameDate} gameTimezone="America/New_York" compact={true} />
+      </TestWrapper>
+    );
+
+    // Should show date on Line 1
+    const dateText = screen.getByText(/Jan 20/);
+    expect(dateText).toBeInTheDocument();
+
+    // Date should be toggleable (underlined, clickable)
+    expect(dateText).toHaveStyle({ textDecoration: 'underline', cursor: 'pointer' });
+
+    // Should show "Closed" on Line 2
+    expect(screen.getByText('Closed')).toBeInTheDocument();
+  });
+
+  it('should show date with timezone information', () => {
+    const now = new Date('2026-01-20T10:00:00Z');
+    vi.setSystemTime(now);
+    const gameDate = new Date('2026-01-20T15:00:00Z');
+
+    render(
+      <TestWrapper>
+        <GameCountdownDisplay gameDate={gameDate} compact={true} />
+      </TestWrapper>
+    );
+
+    // Should show formatted date (the exact format depends on timezone toggle state)
+    const dateText = screen.getByText(/Jan 20/);
+    expect(dateText).toBeInTheDocument();
+
+    // Date should be clickable/toggleable
+    expect(dateText).toHaveStyle({ cursor: 'pointer', textDecoration: 'underline' });
   });
 });

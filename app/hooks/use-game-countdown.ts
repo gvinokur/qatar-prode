@@ -5,6 +5,7 @@ import {
   formatCountdown,
   getUrgencyLevel,
   calculateProgress,
+  shouldShowProgressBar,
   type UrgencyLevel,
 } from '../utils/countdown-utils';
 
@@ -19,6 +20,8 @@ interface GameCountdownState {
   timeRemaining: number;
   /** Whether predictions are closed */
   isClosed: boolean;
+  /** Whether progress bar should be shown (only within 48h window) */
+  shouldShowProgressBar: boolean;
 }
 
 /**
@@ -37,6 +40,7 @@ export function useGameCountdown(gameDate: Date): GameCountdownState {
     const isClosed = timeRemaining <= 0;
     const urgency = getUrgencyLevel(timeRemaining);
     const progressPercent = calculateProgress(gameDate, currentTime);
+    const shouldShowProgress = shouldShowProgressBar(timeRemaining);
 
     let display: string;
     if (isClosed) {
@@ -52,6 +56,7 @@ export function useGameCountdown(gameDate: Date): GameCountdownState {
       progressPercent,
       timeRemaining,
       isClosed,
+      shouldShowProgressBar: shouldShowProgress,
     };
   }, [gameDate, currentTime]);
 }

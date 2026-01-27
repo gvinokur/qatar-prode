@@ -102,7 +102,7 @@ export function calculateProgress(gameDate: Date, currentTime: number): number {
 export function getUrgencyColor(theme: Theme, urgency: UrgencyLevel): string {
   switch (urgency) {
     case 'safe':
-      return theme.palette.success.main;
+      return theme.palette.text.secondary;
     case 'notice':
       return theme.palette.info.main;
     case 'warning':
@@ -114,4 +114,11 @@ export function getUrgencyColor(theme: Theme, urgency: UrgencyLevel): string {
     default:
       return theme.palette.text.secondary;
   }
+}
+
+/**
+ * Determine if progress bar should be shown (only within 48h window)
+ */
+export function shouldShowProgressBar(ms: number): boolean {
+  return ms > 0 && ms <= 48 * ONE_HOUR;
 }

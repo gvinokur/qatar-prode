@@ -208,4 +208,36 @@ describe('useGameCountdown', () => {
     expect(timeRemaining).toBeLessThan(60 * 60 * 1000); // Less than 1 hour
     expect(timeRemaining).toBeGreaterThan(59 * 60 * 1000); // More than 59 minutes
   });
+
+  it('should indicate progress bar should show only within 48h window', () => {
+    // Game >48h away
+    vi.setSystemTime(new Date('2026-01-20T10:00:00Z'));
+    const farGame = new Date('2026-01-23T10:00:00Z'); // 72h away
+    const { result: farResult } = renderHook(() => useGameCountdown(farGame), { wrapper });
+    expect(farResult.current.shouldShowProgressBar).toBe(false);
+
+    // Game within 48h
+    const nearGame = new Date('2026-01-21T10:00:00Z'); // 24h away
+    const { result: nearResult } = renderHook(() => useGameCountdown(nearGame), { wrapper });
+    expect(nearResult.current.shouldShowProgressBar).toBe(true);
+
+    // Closed game
+    const closedGame = new Date('2026-01-20T08:00:00Z'); // 2h ago
+    const { result: closedResult } = renderHook(() => useGameCountdown(closedGame), { wrapper });
+    expect(closedResult.current.shouldShowProgressBar).toBe(false);
+  });
+
+  it('should handle shouldShowProgressBar at boundary conditions', () => {
+    vi.setSystemTime(new Date('2026-01-20T10:00:00Z'));
+
+    // Exactly 48h to deadline (49h to game start) - should still show progress bar
+    const boundary48h = new Date('2026-01-22T11:00:00Z');
+    const { result: result48h } = renderHook(() => useGameCountdown(boundary48h), { wrapper });
+    expect(result48h.current.shouldShowProgressBar).toBe(true);
+
+    // Just under 48h to deadline
+    const justUnder48h = new Date('2026-01-22T10:59:00Z');
+    const { result: resultUnder48h } = renderHook(() => useGameCountdown(justUnder48h), { wrapper });
+    expect(resultUnder48h.current.shouldShowProgressBar).toBe(true);
+  });
 });

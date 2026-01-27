@@ -16,7 +16,6 @@ import { Edit as EditIcon, Save as SaveIcon, SaveOutlined as SaveOutlinedIcon, S
 import { GameResultNew, Theme} from "../db/tables-definition";
 import {useState} from "react";
 import {getThemeLogoUrl} from "../utils/theme-utils";
-import { useTimezone } from './context-providers/timezone-context-provider';
 import { calculateFinalPoints } from "../utils/point-calculator";
 import GameCardPointOverlay from "./game-card-point-overlay";
 import GameCountdownDisplay from "./game-countdown-display";
@@ -88,7 +87,6 @@ export default function CompactGameViewCard({
   ...specificProps
 }: CompactGameViewCardProps) {
   const theme = useTheme();
-  const { showLocalTime, toggleTimezone } = useTimezone();
   const hasResult = Number.isInteger(homeScore) && Number.isInteger(awayScore);
   const [publishing, setPublishing] = useState(false)
 
@@ -142,27 +140,11 @@ export default function CompactGameViewCard({
           <Box width='100%' sx={{ position: 'relative' }}>
             <Box display='flex' flexGrow={1} justifyContent="space-between" alignItems="center" gap={1} py={1.5}>
               <Box display="flex" flexDirection="column" gap={0.5} flex={1}>
-                <Box display="flex" alignItems="center" gap={1}>
-                  <Typography variant="body2" color="text.secondary">
-                    #{gameNumber}
-                  </Typography>
-                  <GameCountdownDisplay
-                    gameDate={gameDate}
-                    gameTimezone={showLocalTime ? undefined : gameTimezone}
-                    showProgressBar={true}
-                    compact={true}
-                  />
-                  <Tooltip title={`Mostrar en ${showLocalTime ? 'horario local' : 'tu horario'}`}>
-                    <Typography
-                      variant="body2"
-                      color='text.secondary'
-                      sx={{ cursor: 'pointer', textDecoration: 'underline' }}
-                      onClick={toggleTimezone}
-                    >
-                      {showLocalTime ? 'Tu Horario' : 'Horario Local'}
-                    </Typography>
-                  </Tooltip>
-                </Box>
+                <GameCountdownDisplay
+                  gameDate={gameDate}
+                  gameTimezone={gameTimezone}
+                  compact={true}
+                />
               </Box>
               {/* Edit button or status */}
               {(!disabled || 

@@ -1,44 +1,38 @@
 'use client';
 
-import { Box, LinearProgress, Typography, useTheme } from '@mui/material';
+import { Box, LinearProgress, Tooltip, Typography, useTheme } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useGameCountdown } from '../hooks/use-game-countdown';
 import { getUrgencyColor } from '../utils/countdown-utils';
-import { getUserLocalTime, getLocalGameTime } from '../utils/date-utils';
+import { getCompactUserTime, getCompactGameTime } from '../utils/date-utils';
 import { useTimezone } from './context-providers/timezone-context-provider';
 
 interface GameCountdownDisplayProps {
   /** The date and time when the game starts */
   gameDate: Date;
-  /** Optional timezone for the game (if not provided, uses user's local time) */
+  /** Optional timezone for the game */
   gameTimezone?: string;
-  /** Whether to show a progress bar */
-  showProgressBar?: boolean;
   /** Compact mode for smaller display */
   compact?: boolean;
 }
 
 /**
  * Displays a countdown timer for game prediction deadlines with color-coded urgency
- * and optional progress bar. Includes pulsing animation for urgent states.
+ * and optional progress bar. Shows both date (Line 1) and countdown state (Line 2).
+ * Includes pulsing animation for urgent states.
  */
 export default function GameCountdownDisplay({
   gameDate,
   gameTimezone,
-  showProgressBar = false,
   compact = false,
 }: GameCountdownDisplayProps) {
   const theme = useTheme();
-  const { showLocalTime } = useTimezone();
+  const { showLocalTime, toggleTimezone } = useTimezone();
   const countdown = useGameCountdown(gameDate);
 
-  // Determine if we should show the countdown or the original date format
-  const shouldShowCountdown = !countdown.isClosed;
-
-  // Get the color based on urgency level
   const color = getUrgencyColor(theme, countdown.urgency);
 
-  // Pulsing animation for urgent state (respects prefers-reduced-motion)
+  // Pulsing animation only for urgent state
   const pulsingAnimation = countdown.urgency === 'urgent' ? {
     scale: [1, 1.05, 1],
     transition: {
@@ -48,53 +42,63 @@ export default function GameCountdownDisplay({
     },
   } : {};
 
-  // Display fallback to original date format when closed
-  const displayText = shouldShowCountdown
-    ? countdown.display
-    : showLocalTime
-    ? getUserLocalTime(gameDate)
-    : getLocalGameTime(gameDate, gameTimezone);
+  // Get formatted date based on timezone toggle
+  const formattedDate = showLocalTime
+    ? getCompactUserTime(gameDate)
+    : getCompactGameTime(gameDate, gameTimezone);
 
   return (
-    <Box
-      display="flex"
-      flexDirection={compact ? 'row' : 'column'}
-      alignItems={compact ? 'center' : 'flex-start'}
-      gap={compact ? 1 : 0.5}
-      flex={1}
-    >
-      <motion.div
-        animate={pulsingAnimation}
-        style={{ display: 'flex', alignItems: 'center' }}
-      >
+    <Box display="flex" flexDirection="column" gap={0.5} flex={1}>
+      {/* Line 1: Date with timezone toggle (ALWAYS) */}
+      <Tooltip title={`Click to toggle: ${showLocalTime ? 'Show game timezone' : 'Show your time'}`}>
         <Typography
           variant={compact ? 'body2' : 'body1'}
+          color="text.secondary"
           sx={{
-            color: color,
-            fontWeight: countdown.urgency === 'urgent' ? 'bold' : 'normal',
+            cursor: 'pointer',
+            textDecoration: 'underline',
+            whiteSpace: 'nowrap'
           }}
+          onClick={toggleTimezone}
         >
-          {displayText}
+          {formattedDate}
         </Typography>
-      </motion.div>
+      </Tooltip>
 
-      {showProgressBar && shouldShowCountdown && (
-        <Box width="100%" minWidth={compact ? 80 : 120}>
-          <LinearProgress
-            variant="determinate"
-            value={countdown.progressPercent}
+      {/* Line 2: State indicator + Progress bar */}
+      <Box display="flex" alignItems="center" gap={1}>
+        {/* State: "Closed" or "Closes in XXX" */}
+        <motion.div animate={pulsingAnimation} style={{ display: 'flex', alignItems: 'center' }}>
+          <Typography
+            variant={compact ? 'body2' : 'body1'}
             sx={{
-              height: 4,
-              borderRadius: 2,
-              backgroundColor: theme.palette.action.hover,
-              '& .MuiLinearProgress-bar': {
-                backgroundColor: color,
-                borderRadius: 2,
-              },
+              color: color,
+              fontWeight: countdown.urgency === 'urgent' ? 'bold' : 'normal',
             }}
-          />
-        </Box>
-      )}
+          >
+            {countdown.display}
+          </Typography>
+        </motion.div>
+
+        {/* Progress bar - inline on Line 2, only within 48h window */}
+        {countdown.shouldShowProgressBar && (
+          <Box flex={1} minWidth={60}>
+            <LinearProgress
+              variant="determinate"
+              value={countdown.progressPercent}
+              sx={{
+                height: 3,
+                borderRadius: 1.5,
+                backgroundColor: theme.palette.action.hover,
+                '& .MuiLinearProgress-bar': {
+                  backgroundColor: color,
+                  borderRadius: 1.5,
+                },
+              }}
+            />
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 }

@@ -6,6 +6,7 @@ import {
   getUrgencyLevel,
   calculateProgress,
   getUrgencyColor,
+  shouldShowProgressBar,
   type UrgencyLevel,
 } from '../../app/utils/countdown-utils';
 import { createTheme } from '@mui/material/styles';
@@ -172,8 +173,8 @@ describe('countdown-utils', () => {
   describe('getUrgencyColor', () => {
     const theme = createTheme();
 
-    it('should return success color for "safe"', () => {
-      expect(getUrgencyColor(theme, 'safe')).toBe(theme.palette.success.main);
+    it('should return text.secondary for "safe" (neutral color, not green)', () => {
+      expect(getUrgencyColor(theme, 'safe')).toBe(theme.palette.text.secondary);
     });
 
     it('should return info color for "notice"', () => {
@@ -199,6 +200,45 @@ describe('countdown-utils', () => {
       // Should return valid colors for both themes
       expect(getUrgencyColor(darkTheme, 'urgent')).toBeTruthy();
       expect(getUrgencyColor(lightTheme, 'urgent')).toBeTruthy();
+    });
+  });
+
+  describe('shouldShowProgressBar', () => {
+    it('should return false for games >48h away', () => {
+      expect(shouldShowProgressBar(49 * ONE_HOUR)).toBe(false);
+      expect(shouldShowProgressBar(72 * ONE_HOUR)).toBe(false);
+      expect(shouldShowProgressBar(7 * 24 * ONE_HOUR)).toBe(false);
+    });
+
+    it('should return true for games within 48h window', () => {
+      expect(shouldShowProgressBar(48 * ONE_HOUR)).toBe(true);
+      expect(shouldShowProgressBar(24 * ONE_HOUR)).toBe(true);
+      expect(shouldShowProgressBar(1 * ONE_HOUR)).toBe(true);
+      expect(shouldShowProgressBar(30 * 60 * 1000)).toBe(true); // 30 minutes
+      expect(shouldShowProgressBar(1000)).toBe(true); // 1 second
+    });
+
+    it('should return false for closed games (negative or zero time)', () => {
+      expect(shouldShowProgressBar(0)).toBe(false);
+      expect(shouldShowProgressBar(-1 * ONE_HOUR)).toBe(false);
+      expect(shouldShowProgressBar(-1000)).toBe(false);
+    });
+
+    it('should handle boundary conditions correctly', () => {
+      // Exactly 48 hours - should show
+      expect(shouldShowProgressBar(48 * ONE_HOUR)).toBe(true);
+
+      // Just over 48 hours - should not show
+      expect(shouldShowProgressBar(48 * ONE_HOUR + 1)).toBe(false);
+
+      // Just under 48 hours - should show
+      expect(shouldShowProgressBar(48 * ONE_HOUR - 1)).toBe(true);
+
+      // Exactly at 0 - should not show
+      expect(shouldShowProgressBar(0)).toBe(false);
+
+      // Just above 0 - should show
+      expect(shouldShowProgressBar(1)).toBe(true);
     });
   });
 });
