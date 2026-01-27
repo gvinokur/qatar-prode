@@ -14,9 +14,8 @@ import {findTournamentGuessByUserIdTournament} from "../../db/tournament-guess-r
 import {unstable_ViewTransition as ViewTransition} from "react";
 import {findTournamentById} from "../../db/tournament-repository";
 import {PredictionStatusBar} from "../../components/prediction-status-bar";
-import {TournamentPredictionStatusBar} from "../../components/tournament-prediction-status-bar";
-import {getTournamentPredictionCompletion} from "../../db/tournament-prediction-completion-repository";
 import type {ScoringConfig} from "../../components/tournament-page/rules";
+import {getTournamentPredictionCompletion} from "../../db/tournament-prediction-completion-repository";
 
 type Props = {
   readonly params: Promise<{
@@ -48,11 +47,6 @@ export default async function TournamentLandingPage(props: Props) {
 
   // Server Component pattern: import repository directly and extract scoring config
   const tournament = await findTournamentById(tournamentId);
-
-  // Fetch tournament prediction completion status
-  const tournamentPredictionCompletion = user && tournament ?
-    await getTournamentPredictionCompletion(user.id, tournamentId, tournament) :
-    null;
   const scoringConfig: ScoringConfig | undefined = tournament ? {
     game_exact_score_points: tournament.game_exact_score_points ?? 2,
     game_correct_outcome_points: tournament.game_correct_outcome_points ?? 1,
@@ -65,6 +59,14 @@ export default async function TournamentLandingPage(props: Props) {
     max_silver_games: tournament.max_silver_games ?? 0,
     max_golden_games: tournament.max_golden_games ?? 0,
   } : undefined;
+
+  // Fetch tournament prediction completion
+  const tournamentPredictionCompletion = user ? await getTournamentPredictionCompletion(user.id, tournamentId) : null;
+
+  // Get tournament start date (earliest game date) for lock time calculation
+  const tournamentStartDate = gamesAroundMyTime.length > 0
+    ? new Date(Math.min(...gamesAroundMyTime.map(g => new Date(g.game_date).getTime())))
+    : undefined;
 
   return (
     <>
@@ -90,12 +92,9 @@ export default async function TournamentLandingPage(props: Props) {
                 urgentGames={dashboardStats.urgentGames}
                 warningGames={dashboardStats.warningGames}
                 noticeGames={dashboardStats.noticeGames}
-              />
-            )}
-            {user && tournamentPredictionCompletion && (
-              <TournamentPredictionStatusBar
-                completion={tournamentPredictionCompletion}
+                tournamentPredictions={tournamentPredictionCompletion ?? undefined}
                 tournamentId={tournamentId}
+                tournamentStartDate={tournamentStartDate}
               />
             )}
             <Fixtures games={gamesAroundMyTime} teamsMap={teamsMap}/>
