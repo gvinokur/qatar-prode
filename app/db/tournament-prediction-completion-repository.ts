@@ -13,7 +13,7 @@ import { getTournamentStartDate } from '../actions/tournament-actions';
 export async function getTournamentPredictionCompletion(
   userId: string,
   tournamentId: string,
-  tournament: Tournament
+  _tournament: Tournament
 ): Promise<TournamentPredictionCompletion> {
   // Fetch user's tournament guess using repository function
   const tournamentGuess = await findTournamentGuessByUserIdTournament(userId, tournamentId);
@@ -79,7 +79,7 @@ export async function getTournamentPredictionCompletion(
   const overallPercentage = overallTotal > 0 ? Math.round((overallCompleted / overallTotal) * 100) : 0;
 
   // Check if predictions are locked (5 days after tournament starts)
-  const tournamentStartDate = await getTournamentStartDate(tournament);
+  const tournamentStartDate = await getTournamentStartDate(tournamentId);
 
   const isPredictionLocked = tournamentStartDate
     ? new Date().getTime() > tournamentStartDate.getTime() + 5 * 24 * 60 * 60 * 1000
