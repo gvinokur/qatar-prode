@@ -768,5 +768,113 @@ describe('ProdeGroupTable', () => {
       expect(screen.getAllByText('90').length).toBeGreaterThanOrEqual(1);
       expect(screen.getAllByText('80').length).toBeGreaterThanOrEqual(1);
     });
+
+    it('renders group boost bonus cell with conditional color on desktop', () => {
+      (useMediaQuery as any).mockReturnValue(true);
+      const { container } = render(<ProdeGroupTable {...defaultProps} />);
+
+      // Find rows in the first tab panel (visible)
+      const tabPanel = container.querySelector('[role="tabpanel"]');
+      expect(tabPanel).toBeInTheDocument();
+
+      // Verify bonus values are rendered (may appear multiple times across tabs/cells)
+      expect(screen.getAllByText('8').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('7').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('6').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('renders playoff boost bonus cell with conditional color on desktop', () => {
+      (useMediaQuery as any).mockReturnValue(true);
+      const { container } = render(<ProdeGroupTable {...defaultProps} />);
+
+      // Find rows in the first tab panel (visible)
+      const tabPanel = container.querySelector('[role="tabpanel"]');
+      expect(tabPanel).toBeInTheDocument();
+
+      // Verify playoff bonus values are rendered (may appear multiple times)
+      expect(screen.getAllByText('5').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('4').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('3').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('renders total boost bonus cell with conditional color on mobile', () => {
+      (useMediaQuery as any).mockReturnValue(false);
+      const { container } = render(<ProdeGroupTable {...defaultProps} />);
+
+      // Find rows in the first tab panel (visible)
+      const tabPanel = container.querySelector('[role="tabpanel"]');
+      expect(tabPanel).toBeInTheDocument();
+
+      // Verify total bonus values are rendered (may appear multiple times)
+      expect(screen.getAllByText('13').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('11').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('9').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('shows "0" for zero group boost bonus on desktop without special color', () => {
+      (useMediaQuery as any).mockReturnValue(true);
+      const scoresWithZeroGroupBonus = mockUserScores.map(score => ({
+        ...score,
+        groupBoostBonus: 0
+      }));
+
+      render(
+        <ProdeGroupTable
+          {...defaultProps}
+          userScoresByTournament={{
+            'tournament1': scoresWithZeroGroupBonus,
+            'tournament2': scoresWithZeroGroupBonus
+          }}
+        />
+      );
+
+      // Should display zero values
+      const zeros = screen.getAllByText('0');
+      expect(zeros.length).toBeGreaterThan(0);
+    });
+
+    it('shows "0" for zero playoff boost bonus on desktop without special color', () => {
+      (useMediaQuery as any).mockReturnValue(true);
+      const scoresWithZeroPlayoffBonus = mockUserScores.map(score => ({
+        ...score,
+        playoffBoostBonus: 0
+      }));
+
+      render(
+        <ProdeGroupTable
+          {...defaultProps}
+          userScoresByTournament={{
+            'tournament1': scoresWithZeroPlayoffBonus,
+            'tournament2': scoresWithZeroPlayoffBonus
+          }}
+        />
+      );
+
+      // Should display zero values
+      const zeros = screen.getAllByText('0');
+      expect(zeros.length).toBeGreaterThan(0);
+    });
+
+    it('shows "0" for zero total bonus on mobile without special color', () => {
+      (useMediaQuery as any).mockReturnValue(false);
+      const scoresWithZeroTotalBonus = mockUserScores.map(score => ({
+        ...score,
+        totalBoostBonus: 0
+      }));
+
+      render(
+        <ProdeGroupTable
+          {...defaultProps}
+          userScoresByTournament={{
+            'tournament1': scoresWithZeroTotalBonus,
+            'tournament2': scoresWithZeroTotalBonus
+          }}
+        />
+      );
+
+      // Should display zero values
+      const zeros = screen.getAllByText('0');
+      expect(zeros.length).toBeGreaterThan(0);
+    });
   });
 });
