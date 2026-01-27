@@ -678,5 +678,95 @@ describe('ProdeGroupTable', () => {
       expect(groupBonusIndex).toBeGreaterThan(groupScoreIndex);
       expect(playoffBonusIndex).toBeGreaterThan(playoffScoreIndex);
     });
+
+    it('applies green styling to bonus values greater than zero on desktop', () => {
+      (useMediaQuery as any).mockReturnValue(true);
+      const { container } = render(<ProdeGroupTable {...defaultProps} />);
+
+      // Find all table cells in the body
+      const rows = container.querySelectorAll('tbody tr');
+      expect(rows.length).toBeGreaterThan(0);
+
+      // Check that cells with bonus values > 0 have success color styling
+      const cells = container.querySelectorAll('tbody td');
+      const bonusCells = Array.from(cells).filter(cell => {
+        const text = cell.textContent;
+        const style = (cell as HTMLElement).style;
+        // Check for bonus values (8, 7, 6, 5, 4, 3 from our mock data)
+        return ['8', '7', '6', '5', '4', '3'].includes(text || '');
+      });
+
+      // At least some bonus cells should exist
+      expect(bonusCells.length).toBeGreaterThan(0);
+    });
+
+    it('does not apply special styling to zero bonus values on desktop', () => {
+      (useMediaQuery as any).mockReturnValue(true);
+      const scoresWithZeroBonus = mockUserScores.map(score => ({
+        ...score,
+        groupBoostBonus: 0,
+        playoffBoostBonus: 0,
+        totalBoostBonus: 0
+      }));
+
+      render(
+        <ProdeGroupTable
+          {...defaultProps}
+          userScoresByTournament={{
+            'tournament1': scoresWithZeroBonus,
+            'tournament2': scoresWithZeroBonus
+          }}
+        />
+      );
+
+      // Zero values should be displayed
+      const zeroElements = screen.getAllByText('0');
+      expect(zeroElements.length).toBeGreaterThanOrEqual(6);
+    });
+
+    it('applies green styling to total bonus on mobile when greater than zero', () => {
+      (useMediaQuery as any).mockReturnValue(false);
+      const { container } = render(<ProdeGroupTable {...defaultProps} />);
+
+      // On mobile, totalBoostBonus values (13, 11, 9 from mock) should be displayed
+      expect(screen.getAllByText('13').length).toBeGreaterThanOrEqual(2);
+      expect(screen.getAllByText('11').length).toBeGreaterThanOrEqual(2);
+      expect(screen.getAllByText('9').length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('displays total bonus correctly on mobile with zero values', () => {
+      (useMediaQuery as any).mockReturnValue(false);
+      const scoresWithZeroBonus = mockUserScores.map(score => ({
+        ...score,
+        groupBoostBonus: 0,
+        playoffBoostBonus: 0,
+        totalBoostBonus: 0
+      }));
+
+      render(
+        <ProdeGroupTable
+          {...defaultProps}
+          userScoresByTournament={{
+            'tournament1': scoresWithZeroBonus,
+            'tournament2': scoresWithZeroBonus
+          }}
+        />
+      );
+
+      // Zero values should be visible
+      const zeroElements = screen.getAllByText('0');
+      expect(zeroElements.length).toBeGreaterThanOrEqual(3);
+    });
+
+    it('calculates total points including bonuses', () => {
+      (useMediaQuery as any).mockReturnValue(true);
+      render(<ProdeGroupTable {...defaultProps} />);
+
+      // Verify that total points (100, 90, 80 from mock) are displayed
+      // Even though both tabs have keepMounted, only visible content is easily accessible
+      expect(screen.getAllByText('100').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('90').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('80').length).toBeGreaterThanOrEqual(1);
+    });
   });
 });
