@@ -3,6 +3,18 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import CompactGameViewCard from '../../app/components/compact-game-view-card';
 import { TimezoneProvider } from '../../app/components/context-providers/timezone-context-provider';
+import { CountdownProvider } from '../../app/components/context-providers/countdown-context-provider';
+
+// Wrapper component for all required providers
+function TestWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <TimezoneProvider>
+      <CountdownProvider>
+        {children}
+      </CountdownProvider>
+    </TimezoneProvider>
+  );
+}
 
 const resultProps = {
   isGameGuess: false as const,
@@ -36,7 +48,11 @@ const guessProps = {
 
 describe('CompactGameViewCard', () => {
   it('renders game info (result mode)', () => {
-    render(<CompactGameViewCard {...resultProps} />);
+    render(
+      <TestWrapper>
+        <CompactGameViewCard {...resultProps} />
+      </TestWrapper>
+    );
     expect(screen.getByText(/#1/i)).toBeInTheDocument();
     expect(screen.getByText('Team A')).toBeInTheDocument();
     expect(screen.getByText('Team B')).toBeInTheDocument();
@@ -44,7 +60,11 @@ describe('CompactGameViewCard', () => {
   });
 
   it('renders game info (guess mode)', () => {
-    render(<CompactGameViewCard {...guessProps} />);
+    render(
+      <TestWrapper>
+        <CompactGameViewCard {...guessProps} />
+      </TestWrapper>
+    );
     expect(screen.getByText(/#1/i)).toBeInTheDocument();
     expect(screen.getByText('Team A')).toBeInTheDocument();
     expect(screen.getByText('Team B')).toBeInTheDocument();
@@ -53,7 +73,11 @@ describe('CompactGameViewCard', () => {
 
   it('calls onEditClick when edit button is clicked', () => {
     const onEditClick = vi.fn();
-    render(<CompactGameViewCard {...resultProps} onEditClick={onEditClick} />);
+    render(
+      <TestWrapper>
+        <CompactGameViewCard {...resultProps} onEditClick={onEditClick} />
+      </TestWrapper>
+    );
     const editButton = screen.getByRole('button');
     fireEvent.click(editButton);
     expect(onEditClick).toHaveBeenCalled();
@@ -61,9 +85,9 @@ describe('CompactGameViewCard', () => {
 
   it('toggles timezone text on click', () => {
     render(
-      <TimezoneProvider>
+      <TestWrapper>
         <CompactGameViewCard {...resultProps} />
-      </TimezoneProvider>
+      </TestWrapper>
     );
     const toggle = screen.getByText(/Horario Local|Tu Horario/);
     const initialText = toggle.textContent;
@@ -80,7 +104,11 @@ describe('CompactGameViewCard', () => {
         scoreForGame: undefined,
       };
 
-      render(<CompactGameViewCard {...propsWithBoostNoResults} />);
+      render(
+        <TestWrapper>
+          <CompactGameViewCard {...propsWithBoostNoResults} />
+        </TestWrapper>
+      );
 
       // Boost chip should be visible
       expect(screen.getByText('2x')).toBeInTheDocument();
@@ -96,7 +124,11 @@ describe('CompactGameViewCard', () => {
         awayScore: 1,
       };
 
-      render(<CompactGameViewCard {...propsWithBoostAndResults} />);
+      render(
+        <TestWrapper>
+          <CompactGameViewCard {...propsWithBoostAndResults} />
+        </TestWrapper>
+      );
 
       // Boost chip should be hidden when results are available
       expect(screen.queryByText('2x')).not.toBeInTheDocument();
@@ -110,7 +142,11 @@ describe('CompactGameViewCard', () => {
         scoreForGame: undefined,
       };
 
-      render(<CompactGameViewCard {...propsWithGoldenBoostNoResults} />);
+      render(
+        <TestWrapper>
+          <CompactGameViewCard {...propsWithGoldenBoostNoResults} />
+        </TestWrapper>
+      );
 
       // Golden boost chip should be visible
       expect(screen.getByText('3x')).toBeInTheDocument();
@@ -126,7 +162,11 @@ describe('CompactGameViewCard', () => {
         awayScore: 1,
       };
 
-      render(<CompactGameViewCard {...propsWithGoldenBoostAndResults} />);
+      render(
+        <TestWrapper>
+          <CompactGameViewCard {...propsWithGoldenBoostAndResults} />
+        </TestWrapper>
+      );
 
       // Golden boost chip should be hidden when results are available
       expect(screen.queryByText('3x')).not.toBeInTheDocument();
@@ -134,12 +174,14 @@ describe('CompactGameViewCard', () => {
 
     it('should use TrophyIcon for both silver and golden boosts', () => {
       const { rerender } = render(
-        <CompactGameViewCard
-          {...guessProps}
-          boostType="silver"
-          gameResult={null}
-          scoreForGame={undefined}
-        />
+        <TestWrapper>
+          <CompactGameViewCard
+            {...guessProps}
+            boostType="silver"
+            gameResult={null}
+            scoreForGame={undefined}
+          />
+        </TestWrapper>
       );
 
       // Silver boost chip should be visible with 2x label
@@ -147,12 +189,14 @@ describe('CompactGameViewCard', () => {
 
       // Golden boost should also use TrophyIcon with 3x label
       rerender(
-        <CompactGameViewCard
-          {...guessProps}
-          boostType="golden"
-          gameResult={null}
-          scoreForGame={undefined}
-        />
+        <TestWrapper>
+          <CompactGameViewCard
+            {...guessProps}
+            boostType="golden"
+            gameResult={null}
+            scoreForGame={undefined}
+          />
+        </TestWrapper>
       );
 
       expect(screen.getByText('3x')).toBeInTheDocument();
