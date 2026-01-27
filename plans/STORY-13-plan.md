@@ -14,10 +14,16 @@
 
 ### Solution
 Replace timestamps with dynamic countdown timers showing:
-- Relative time: "Closes in 3 hours 45 minutes"
-- Color-coded urgency: Green (>48h), Yellow (1-24h), Red (<1h)
-- Progress bar visual
-- Pulsing animation when < 1 hour
+- **Relative countdown**: "Closes in 3 hours 45 minutes"
+- **Actual time reference**: Show static timestamp alongside or in tooltip (users need schedule reference)
+- **Color-coded urgency** (matching existing prediction-status-bar.tsx pattern):
+  - 🔴 Error/Red (<2h): Closing within 2 hours - urgent action needed
+  - 🟠 Warning/Orange (2-24h): Closing today - plan to predict soon
+  - 🔵 Info/Blue (24-48h): Closing tomorrow - notice to prepare
+  - ⚪ Neutral (>48h): No urgency - don't distract user
+  - ⚫ Disabled/Gray: Closed for predictions
+- **Progress bar visual**: Only show when <48h (conditional to avoid clutter)
+- **Pulsing animation**: When <2h to match urgency level
 
 ### Success Metrics
 - Deadline calculation time: 5-10 sec → 0 sec
@@ -38,6 +44,10 @@ Replace timestamps with dynamic countdown timers showing:
 - dayjs with timezone plugin for date handling
 - TimezoneProvider already exists in layout
 - Multiple cards displayed in GamesGrid (performance critical)
+- **Existing urgency patterns**: `prediction-dashboard.tsx` (lines 81-95) and `prediction-status-bar.tsx` define urgency thresholds:
+  - Urgent: <2h (error/red)
+  - Warning: 2-24h (warning/orange)
+  - Notice: 24-48h (info/blue)
 
 ## Implementation Approach
 
@@ -48,17 +58,19 @@ Create a performance-optimized countdown system with:
 3. Integration into CompactGameViewCard
 4. Color-coded urgency with pulsing animation
 
-### Urgency Levels
-- **Safe** (>48h): Green (`success.main`)
-- **Notice** (24-48h): Blue (`info.main`)
-- **Warning** (1-24h): Orange (`warning.main`)
-- **Urgent** (<1h): Red (`error.main`) + pulsing
+### Urgency Levels (Aligned with prediction-status-bar.tsx)
+- **Neutral** (>48h): Gray (`text.secondary`) - no urgency
+- **Notice** (24-48h): Blue (`info.main` from MUI Alert)
+- **Warning** (2-24h): Orange (`warning.main` from MUI Alert)
+- **Urgent** (<2h): Red (`error.main` from MUI Alert) + pulsing
 - **Closed** (<0): Gray (`text.disabled`)
 
-### Progress Bar
+### Progress Bar (Conditional Display)
+- **Only show when <48h** to avoid clutter (games >90 days away would be confusing)
 - Linear progress from 100% (48h before) to 0% (deadline)
-- Color matches urgency level
+- Color matches urgency level (blue → orange → red as time decreases)
 - 4px height, rounded corners
+- Hidden for games >48h away
 
 ## Files to Create
 
@@ -76,7 +88,8 @@ export function calculateDeadline(gameDate: Date): number
 export function formatCountdown(ms: number): string
 
 // Return urgency level based on time remaining
-export function getUrgencyLevel(ms: number): 'safe' | 'notice' | 'warning' | 'urgent' | 'closed'
+// Matches thresholds from prediction-dashboard.tsx
+export function getUrgencyLevel(ms: number): 'neutral' | 'notice' | 'warning' | 'urgent' | 'closed'
 
 // Calculate progress bar percentage (100% at 48h, 0% at deadline)
 export function calculateProgress(gameDate: Date, currentTime: number): number
@@ -111,9 +124,11 @@ export function getUrgencyColor(theme: Theme, urgency: UrgencyLevel): string
 **Purpose**: Reusable countdown UI component
 
 **Features**:
-- Color-coded text based on urgency
-- Optional progress bar (MUI LinearProgress)
-- Pulsing animation (framer-motion) when urgent
+- **Countdown display**: "Closes in 3h 45m" in color-coded text
+- **Actual time reference**: Show static timestamp alongside (users need schedule reference) or in tooltip
+- Color-coded text based on urgency (matches Alert severity colors)
+- Optional progress bar (MUI LinearProgress) - **only shown when <48h**
+- Pulsing animation (framer-motion) when <2h (urgent)
 - Handles "Closed" and "In Progress" states
 - Respects TimezoneContext for toggle behavior
 
@@ -122,7 +137,8 @@ export function getUrgencyColor(theme: Theme, urgency: UrgencyLevel): string
 {
   gameDate: Date,
   gameTimezone?: string,
-  showProgressBar?: boolean,
+  showProgressBar?: boolean,  // Default: true, but conditional rendering if <48h
+  showActualTime?: boolean,    // Show timestamp alongside countdown (default: true)
   compact?: boolean
 }
 ```
@@ -171,11 +187,16 @@ export function getUrgencyColor(theme: Theme, urgency: UrgencyLevel): string
       gameDate={gameDate}
       gameTimezone={showLocalTime ? undefined : gameTimezone}
       showProgressBar={true}
+      showActualTime={true}  // Show both countdown and timestamp
       compact={true}
     />
   </Box>
 </Box>
 ```
+
+**Note**: The GameCountdownDisplay component will internally show both:
+- Primary: Countdown timer ("Closes in 3h 45m")
+- Secondary: Actual time (e.g., in tooltip or smaller text) for schedule reference
 
 **Imports to add**:
 ```typescript
@@ -269,10 +290,11 @@ import GameCountdownDisplay from './game-countdown-display';
 **Manual testing in development**:
 - [ ] Multiple cards (12+) render without lag
 - [ ] Countdowns update in real-time every second
-- [ ] Colors change at correct thresholds (48h, 24h, 1h)
-- [ ] Pulsing animation starts at < 1 hour
-- [ ] Progress bar animates smoothly
+- [ ] Colors change at correct thresholds (48h, 24h, 2h) - matching prediction-status-bar.tsx
+- [ ] Pulsing animation starts at < 2 hours (urgent level)
+- [ ] Progress bar animates smoothly and only shows when <48h
 - [ ] "Closed" shows for past games
+- [ ] Actual time displayed alongside countdown
 - [ ] Timezone toggle works correctly
 - [ ] Mobile responsive
 - [ ] Dark/light theme compatibility
@@ -327,9 +349,34 @@ import GameCountdownDisplay from './game-countdown-display';
 - Color not sole indicator (text always present)
 - Respect `prefers-reduced-motion` (disable pulsing)
 
-## Open Questions
+## Design Decisions (Based on Feedback)
 
-None - requirements are clear and architecture is well-defined.
+### 1. Display Both Countdown and Actual Time
+**Decision**: Show countdown as primary info with actual time as secondary reference
+**Options considered**:
+- **Option A (Recommended)**: Countdown with tooltip showing actual time
+  - Hover/tap on countdown shows "Feb 15, 2026 - 15:00"
+  - Clean, not cluttered
+- **Option B**: Side-by-side display
+  - "Closes in 3h 45m (Feb 15, 15:00)"
+  - More visible but takes more space
+- **Option C**: Toggle between countdown and actual time
+  - Already have timezone toggle, too many toggles
+
+**Implementation**: Start with Option A (tooltip), can adjust based on user testing
+
+### 2. Progress Bar Visibility
+**Decision**: Only show when <48h
+**Reason**: Games >90 days away would show confusing/meaningless progress bars
+
+### 3. Color Scheme Alignment
+**Decision**: Match existing prediction-status-bar.tsx patterns
+**Thresholds**: <2h (error), 2-24h (warning), 24-48h (info), >48h (neutral)
+**Reason**: Consistency across the app, users already understand these colors
+
+### 4. Pulsing Animation Threshold
+**Decision**: <2h (urgent level only)
+**Reason**: Matches the most critical urgency level from existing patterns
 
 ## Dependencies
 
