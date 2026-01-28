@@ -14,6 +14,25 @@
 ## Overview
 Implement a 5-step interactive onboarding flow to improve first prediction completion from 60% → 85% and reduce time to first prediction from 3min → 1min.
 
+### Updates Based on Feedback (v2)
+
+**Expanded Scope**:
+1. ✅ **Step 2 - Sample Predictions**: Now includes multi-tab demo covering:
+   - Game predictions (Argentina vs Brasil)
+   - Tournament predictions (Champion, Runner-up, Third Place, Individual Awards)
+   - Qualifiers/Group standings (visual explanation)
+
+2. ✅ **Step 3 - Scoring**: Clarifies that scoring is **tournament-specific** (configurable per tournament)
+
+3. ✅ **Step 4 - Boosts**: Emphasizes boosts are **tournament-dependent** with limited quantities per tournament
+
+4. ✅ **Step 5 - Checklist**: Adds **deadline education box** explaining:
+   - Game predictions: Close 1 hour before kickoff
+   - Tournament predictions: Close 5 days after tournament starts
+   - Boosts: Changeable until 1 hour before game
+
+5. ✅ **Deadline Configuration**: Documented decision to keep deadlines hardcoded for now (out of scope for onboarding story)
+
 ## Architecture Decision: Database Schema
 
 **Approach**: Add onboarding columns to existing `users` table (not creating separate table)
@@ -159,10 +178,10 @@ migrations/
 Create all step components in `app/components/onboarding/onboarding-steps/`:
 
 1. **welcome-step.tsx**: Soccer icon, welcome message, duration estimate
-2. **sample-prediction-step.tsx**: Mock game (Argentina vs Brasil) with score inputs
-3. **scoring-explanation-step.tsx**: Points breakdown with icons (2pts exact, 1pt result)
-4. **boost-introduction-step.tsx**: Silver (x1.5) and Golden (x2) boost cards
-5. **checklist-step.tsx**: List of getting-started items with checkboxes
+2. **sample-prediction-step.tsx**: Multi-tab demo (games, tournament, qualifiers) with interactive examples
+3. **scoring-explanation-step.tsx**: Points breakdown (games, tournament, awards, qualifiers) - note scoring is tournament-specific
+4. **boost-introduction-step.tsx**: Silver (2x) and Golden (3x) boost cards - clarify they're tournament-specific with limited quantities
+5. **checklist-step.tsx**: Getting-started items including explanation of prediction deadlines (games vs tournament predictions)
 
 ### Phase 4: Main Dialog (1 hour)
 Create `app/components/onboarding/onboarding-dialog.tsx`:
@@ -235,9 +254,29 @@ Create `app/components/onboarding/onboarding-dialog.tsx`:
 **Timing**: 500ms delay after page render (via `OnboardingTrigger` component)
 
 ### 2. Sample Prediction Step (Step 2)
-**Approach**: Mock demo with Argentina vs Brasil
-**Why**: Doesn't affect real predictions, no tournament dependency, clear demonstration
-**Implementation**: Client-only state with TextField inputs, success message when both scores entered
+**Approach**: Multi-tab demo showing all prediction types
+**Why**: Users need to understand the full breadth of predictions available, not just games
+
+**Implementation** (3 tabs):
+
+1. **Game Predictions Tab** (Default):
+   - Mock game: Argentina vs Brasil with score inputs
+   - Shows game prediction closing (1 hour before game start)
+   - Client-only state, success message when both scores entered
+
+2. **Tournament Predictions Tab**:
+   - Mock champion/runner-up/third place selection (dropdowns with team options)
+   - Mock individual awards selection (4 awards: Best Player, Top Goalscorer, Best Goalkeeper, Best Young Player)
+   - Shows tournament prediction closing (5 days after tournament start)
+   - Simplified UI - just demonstrates the concept
+
+3. **Qualifiers/Group Standings Tab**:
+   - Simple 4-team group table showing predicted positions
+   - Brief explanation: "Your game predictions automatically calculate group standings"
+   - Visual only (no interaction needed) - shows how positions work
+   - Note: Qualifiers lock 5 days after tournament start
+
+**Tab Navigation**: Material-UI Tabs component to switch between prediction types
 
 ### 3. Skip Functionality
 **Behavior**: Marks onboarding as completed (same as finishing normally)
@@ -249,7 +288,45 @@ Create `app/components/onboarding/onboarding-dialog.tsx`:
 **Future**: Could add standalone checklist page at `/onboarding-checklist`
 **Storage**: Checklist items stored in `onboarding_data.checklist.items[]`
 
-### 5. Tooltip System
+### 3. Scoring Explanation (Step 3)
+**Key Points to Communicate**:
+- **Game Scoring** (typical defaults, but configurable per tournament):
+  - Exact score: 2 points
+  - Correct outcome: 1 point
+- **Tournament Scoring** (also tournament-specific):
+  - Champion: 5 points
+  - Runner-up: 3 points
+  - Third place: 1 point
+  - Individual awards: 3 points each (4 awards available)
+  - Qualifiers: 1 point per correct qualifier
+  - Exact position: 1 additional point
+- **Important Note**: "Scoring values may vary by tournament" callout
+- Visual: Use color-coded chips/badges to show different point values
+
+### 4. Boost Introduction (Step 4)
+**Key Points to Communicate**:
+- **Silver Boost**: 2x multiplier (limited per tournament)
+- **Golden Boost**: 3x multiplier (even more limited per tournament)
+- **Tournament-Specific**: "Each tournament gives you a limited number of boosts"
+- **Strategic Use**: "Use them on games you're most confident about"
+- **Game-Only**: Boosts only apply to game predictions, not tournament predictions
+- **Deadline**: Can set boosts until 1 hour before game starts
+
+### 5. Checklist with Deadlines (Step 5)
+**Checklist Items**:
+1. "Hacer mi primera predicción de partido"
+2. "Predecir campeón y premios individuales"
+3. "Completar predicciones de clasificación"
+4. "Unirme a un grupo de amigos"
+5. "Revisar las reglas completas"
+
+**Deadline Education Box** (displayed below checklist):
+- **Game Predictions**: Close 1 hour before kickoff
+- **Tournament & Qualifiers**: Close 5 days after tournament starts
+- **Boosts**: Can be changed until 1 hour before game
+- Visual: Use icons (clock, lock) to indicate urgency
+
+### 6. Tooltip System
 **Approach**: Reusable `OnboardingTooltip` component
 **Persistence**: Stored in `onboarding_data.dismissedTooltips[]` array
 **Trigger**: Check if tooltip ID is in dismissed list before rendering
@@ -340,18 +417,39 @@ After deployment, monitor:
 
 ---
 
+## Deadline Configuration Decision
+
+**Current State**: Prediction deadlines are hardcoded in multiple locations:
+- Games: 1 hour before start (consistent throughout codebase)
+- Tournament predictions: 5 days after start (hardcoded as `5 * 24 * 60 * 60 * 1000` in ~4 files)
+
+**Question**: Should we externalize deadlines to tournament configuration?
+
+**Recommendation for Story #11**: **Keep hardcoded, document in onboarding**
+- Onboarding explains the current rules (1 hour for games, 5 days for tournament)
+- Externalizing deadlines is a separate architectural change (requires migration, UI, testing)
+- Out of scope for onboarding story - could be follow-up Story #XX if business needs flexibility
+
+**If Future Externalization Needed**:
+- Add `game_prediction_hours_before`, `tournament_prediction_days_after` to Tournament table
+- Create admin UI in tournament-scoring-config-tab.tsx
+- Update all deadline calculations to read from tournament config
+- Estimated: 2-3 hours additional work
+
+---
+
 ## Estimated Effort
 
 - Database Layer: 15 min
 - Repository & Actions: 50 min
-- Step Components: 2 hours
+- Step Components: **3 hours** (increased due to multi-tab prediction demo)
 - Main Dialog: 1 hour
 - Supporting Components: 1 hour
 - Integration: 45 min
 - Testing: 1.5 hours
 - Polish: 30 min
 
-**Total: ~8 hours** (aligns with issue estimate: 3-5 days)
+**Total: ~9 hours** (aligns with issue estimate: 3-5 days)
 
 ---
 
