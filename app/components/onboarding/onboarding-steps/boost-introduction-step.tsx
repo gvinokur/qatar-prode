@@ -16,7 +16,7 @@ export default function BoostIntroductionStep() {
       </Typography>
 
       <Stack spacing={2} sx={{ maxWidth: 500, mx: 'auto' }}>
-        <Card elevation={3} sx={{ bgcolor: '#f5f5f5', border: '2px solid #c0c0c0' }}>
+        <Card elevation={3} sx={{ bgcolor: 'action.hover', border: '2px solid', borderColor: 'divider' }}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
               <Box sx={{ fontSize: 32 }}>🥈</Box>
@@ -36,29 +36,32 @@ export default function BoostIntroductionStep() {
               size="small"
               sx={{ mt: 1.5 }}
               color="default"
+              variant="outlined"
             />
           </CardContent>
         </Card>
 
-        <Card elevation={3} sx={{ bgcolor: '#fff8dc', border: '2px solid #ffd700' }}>
+        <Card elevation={3} sx={{ bgcolor: 'warning.dark', border: '2px solid', borderColor: 'warning.main' }}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-              <LocalFireDepartmentIcon sx={{ fontSize: 32, color: '#ffd700' }} />
-              <Typography variant="h6">Boost Dorado</Typography>
+              <LocalFireDepartmentIcon sx={{ fontSize: 32, color: 'warning.main' }} />
+              <Typography variant="h6" color="warning.contrastText">Boost Dorado</Typography>
             </Box>
 
-            <Typography variant="body1" sx={{ mb: 1, fontWeight: 'bold', fontSize: '1.1rem' }}>
+            <Typography variant="body1" sx={{ mb: 1, fontWeight: 'bold', fontSize: '1.1rem', color: 'warning.contrastText' }}>
               Multiplica × 3
             </Typography>
 
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
               Triplica tus puntos en tu partido más importante
             </Typography>
 
             <Chip
               label="Muy escaso - ¡úsalo sabiamente!"
               size="small"
-              sx={{ mt: 1.5, bgcolor: '#ffd700', color: 'black' }}
+              sx={{ mt: 1.5 }}
+              color="warning"
+              variant="filled"
             />
           </CardContent>
         </Card>
@@ -83,11 +86,11 @@ export default function BoostIntroductionStep() {
           </Stack>
         </Alert>
 
-        <Box sx={{ textAlign: 'center', mt: 2, p: 2, bgcolor: 'warning.light', borderRadius: 1 }}>
-          <Typography variant="body2" fontWeight="bold">
+        <Box sx={{ textAlign: 'center', mt: 2, p: 2, bgcolor: 'action.selected', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
+          <Typography variant="body2" fontWeight="bold" color="text.primary">
             💡 Consejo Estratégico
           </Typography>
-          <Typography variant="body2" sx={{ mt: 0.5 }}>
+          <Typography variant="body2" sx={{ mt: 0.5 }} color="text.secondary">
             Guarda tus boosts para finales y partidos decisivos donde estés más seguro del resultado
           </Typography>
         </Box>

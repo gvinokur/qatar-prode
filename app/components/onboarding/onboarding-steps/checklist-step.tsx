@@ -69,10 +69,10 @@ export default function ChecklistStep({ onComplete }: ChecklistStepProps) {
         </List>
 
         {/* Deadline Education Box */}
-        <Paper elevation={2} sx={{ p: 2, bgcolor: 'info.light' }}>
+        <Paper elevation={2} sx={{ p: 2, bgcolor: 'info.dark', border: '1px solid', borderColor: 'info.main' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-            <LockClockIcon color="info" />
-            <Typography variant="subtitle1" fontWeight="bold">
+            <LockClockIcon sx={{ color: 'info.light' }} />
+            <Typography variant="subtitle1" fontWeight="bold" color="info.contrastText">
               ⏰ Plazos de Predicción
             </Typography>
           </Box>
@@ -80,40 +80,40 @@ export default function ChecklistStep({ onComplete }: ChecklistStepProps) {
           <Stack spacing={1.5}>
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                <AccessTimeIcon sx={{ fontSize: 20, color: 'info.main' }} />
-                <Typography variant="body2" fontWeight="bold">
+                <AccessTimeIcon sx={{ fontSize: 20, color: 'info.light' }} />
+                <Typography variant="body2" fontWeight="bold" color="info.contrastText">
                   Predicciones de Partidos
                 </Typography>
               </Box>
-              <Typography variant="body2" color="text.secondary" sx={{ pl: 3.5 }}>
+              <Typography variant="body2" sx={{ pl: 3.5, color: 'rgba(255, 255, 255, 0.8)' }}>
                 Cierran <strong>1 hora antes</strong> del inicio del partido
               </Typography>
             </Box>
 
-            <Divider />
+            <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.2)' }} />
 
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                <AccessTimeIcon sx={{ fontSize: 20, color: 'info.main' }} />
-                <Typography variant="body2" fontWeight="bold">
+                <AccessTimeIcon sx={{ fontSize: 20, color: 'info.light' }} />
+                <Typography variant="body2" fontWeight="bold" color="info.contrastText">
                   Torneo y Clasificación
                 </Typography>
               </Box>
-              <Typography variant="body2" color="text.secondary" sx={{ pl: 3.5 }}>
+              <Typography variant="body2" sx={{ pl: 3.5, color: 'rgba(255, 255, 255, 0.8)' }}>
                 Cierran <strong>5 días después</strong> del inicio del torneo
               </Typography>
             </Box>
 
-            <Divider />
+            <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.2)' }} />
 
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                <LocalFireDepartmentIcon sx={{ fontSize: 20, color: 'warning.main' }} />
-                <Typography variant="body2" fontWeight="bold">
+                <LocalFireDepartmentIcon sx={{ fontSize: 20, color: 'warning.light' }} />
+                <Typography variant="body2" fontWeight="bold" color="info.contrastText">
                   Boosts
                 </Typography>
               </Box>
-              <Typography variant="body2" color="text.secondary" sx={{ pl: 3.5 }}>
+              <Typography variant="body2" sx={{ pl: 3.5, color: 'rgba(255, 255, 255, 0.8)' }}>
                 Se pueden cambiar hasta <strong>1 hora antes</strong> del partido
               </Typography>
             </Box>
