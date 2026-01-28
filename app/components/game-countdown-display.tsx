@@ -104,7 +104,12 @@ export default function GameCountdownDisplay({
 
           {/* Progress bar - inline on Line 2, only within 48h window */}
           {countdown.shouldShowProgressBar && (
-            <Box flex={1} minWidth={40} maxWidth={120}>
+            <Box
+              sx={{
+                width: { xs: 80, sm: 100 }, // Fixed width for consistency
+                flexShrink: 0 // Prevent shrinking
+              }}
+            >
               <LinearProgress
                 variant="determinate"
                 value={countdown.progressPercent}
