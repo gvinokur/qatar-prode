@@ -77,7 +77,7 @@ export default function SamplePredictionStep() {
             </Typography>
 
             <Grid container spacing={2} alignItems="center">
-              <Grid item xs={5} textAlign="center">
+              <Grid size={5} textAlign="center">
                 <Typography variant="h3" sx={{ mb: 1 }}>
                   {MOCK_GAME.homeTeam.flag}
                 </Typography>
@@ -94,13 +94,13 @@ export default function SamplePredictionStep() {
                 />
               </Grid>
 
-              <Grid item xs={2} textAlign="center">
+              <Grid size={2} textAlign="center">
                 <Typography variant="h6" color="text.secondary">
                   VS
                 </Typography>
               </Grid>
 
-              <Grid item xs={5} textAlign="center">
+              <Grid size={5} textAlign="center">
                 <Typography variant="h3" sx={{ mb: 1 }}>
                   {MOCK_GAME.awayTeam.flag}
                 </Typography>
