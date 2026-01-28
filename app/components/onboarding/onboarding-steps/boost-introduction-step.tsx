@@ -41,14 +41,14 @@ export default function BoostIntroductionStep() {
           </CardContent>
         </Card>
 
-        <Card elevation={3} sx={{ bgcolor: 'warning.dark', border: '2px solid', borderColor: 'warning.main' }}>
+        <Card elevation={3} sx={{ bgcolor: 'action.hover', border: '3px solid', borderColor: 'warning.main' }}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
               <LocalFireDepartmentIcon sx={{ fontSize: 32, color: 'warning.main' }} />
-              <Typography variant="h6" color="warning.contrastText">Boost Dorado</Typography>
+              <Typography variant="h6">Boost Dorado</Typography>
             </Box>
 
-            <Typography variant="body1" sx={{ mb: 1, fontWeight: 'bold', fontSize: '1.1rem', color: 'warning.contrastText' }}>
+            <Typography variant="body1" sx={{ mb: 1, fontWeight: 'bold', fontSize: '1.1rem' }}>
               Multiplica × 3
             </Typography>
 
@@ -61,7 +61,7 @@ export default function BoostIntroductionStep() {
               size="small"
               sx={{ mt: 1.5 }}
               color="warning"
-              variant="filled"
+              variant="outlined"
             />
           </CardContent>
         </Card>
