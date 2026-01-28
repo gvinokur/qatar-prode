@@ -5,6 +5,7 @@ import { useState } from 'react'
 import CompactGameViewCard from '../../compact-game-view-card'
 import TeamSelector from '../../awards/team-selector'
 import MobileFriendlyAutocomplete from '../../awards/mobile-friendly-autocomplete'
+import GameResultEditDialog from '../../game-result-edit-dialog'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import type { Team } from '../../../db/tables-definition'
 import type { ExtendedPlayerData } from '../../../definitions'
@@ -52,6 +53,9 @@ function TabPanel(props: TabPanelProps) {
 
 export default function SamplePredictionStep() {
   const [tabValue, setTabValue] = useState(0)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [homeScore, setHomeScore] = useState<number | undefined>(2)
+  const [awayScore, setAwayScore] = useState<number | undefined>(1)
   const [gameClicked, setGameClicked] = useState(false)
   const [champion, setChampion] = useState('')
   const [runnerUp, setRunnerUp] = useState('')
@@ -62,6 +66,17 @@ export default function SamplePredictionStep() {
   }
 
   const handleGameClick = () => {
+    setEditDialogOpen(true)
+  }
+
+  const handleGameGuessSave = async (
+    _gameId: string,
+    newHomeScore?: number,
+    newAwayScore?: number,
+  ) => {
+    setHomeScore(newHomeScore)
+    setAwayScore(newAwayScore)
+    setEditDialogOpen(false)
     setGameClicked(true)
   }
 
@@ -97,13 +112,31 @@ export default function SamplePredictionStep() {
             homeTeamShortNameOrDescription="ARG"
             awayTeamNameOrDescription="Brasil"
             awayTeamShortNameOrDescription="BRA"
-            homeScore={2}
-            awayScore={1}
+            homeScore={homeScore}
+            awayScore={awayScore}
             isPlayoffGame={false}
             isGameGuess={true}
             isGameFixture={false}
             onEditClick={handleGameClick}
             disabled={false}
+          />
+
+          <GameResultEditDialog
+            isGameGuess={true}
+            open={editDialogOpen}
+            onClose={() => setEditDialogOpen(false)}
+            onGameGuessSave={handleGameGuessSave}
+            homeTeamName="Argentina"
+            awayTeamName="Brasil"
+            gameId="mock-game-id"
+            gameNumber={42}
+            initialHomeScore={homeScore}
+            initialAwayScore={awayScore}
+            initialHomePenaltyWinner={false}
+            initialAwayPenaltyWinner={false}
+            initialBoostType={null}
+            tournamentId="mock-tournament-id"
+            isPlayoffGame={false}
           />
 
           {gameClicked && (
@@ -112,7 +145,7 @@ export default function SamplePredictionStep() {
               icon={<CheckCircleIcon />}
               sx={{ mt: 2 }}
             >
-              ¡Perfecto! Así se editan las predicciones. En la app real, se abrirá un diálogo para cambiar los marcadores.
+              ¡Perfecto! Así se editan las predicciones de partidos.
             </Alert>
           )}
 
