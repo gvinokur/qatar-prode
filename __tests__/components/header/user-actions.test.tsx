@@ -22,17 +22,31 @@ vi.mock('../../../app/components/auth/login-or-signup-dialog', () => ({
   default: ({ openLoginDialog, handleCloseLoginDialog }: any) => (
     <div data-testid="login-dialog">
       <span data-testid="login-dialog-open">{openLoginDialog ? 'true' : 'false'}</span>
-      <button 
+      <button
         data-testid="close-login-dialog"
         onClick={() => handleCloseLoginDialog(false)}
       >
         Close Login
       </button>
-      <button 
+      <button
         data-testid="force-close-login-dialog"
         onClick={() => handleCloseLoginDialog(true)}
       >
         Force Close Login
+      </button>
+    </div>
+  ),
+}));
+
+vi.mock('../../../app/components/onboarding/onboarding-dialog', () => ({
+  default: ({ open, onClose }: any) => (
+    <div data-testid="onboarding-dialog">
+      <span data-testid="onboarding-dialog-open">{open ? 'true' : 'false'}</span>
+      <button
+        data-testid="close-onboarding-dialog"
+        onClick={onClose}
+      >
+        Close Onboarding
       </button>
     </div>
   ),
