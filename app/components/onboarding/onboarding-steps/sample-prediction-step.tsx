@@ -1,6 +1,6 @@
 'use client'
 
-import { Box, Typography, Card, CardContent, Tabs, Tab, CardHeader, Grid, Chip, Alert, Table, TableHead, TableRow, TableCell, TableBody, Paper } from '@mui/material'
+import { Box, Typography, Card, CardContent, Tabs, Tab, CardHeader, Grid, Chip, Alert, Table, TableHead, TableRow, TableCell, TableBody, Paper, TextField } from '@mui/material'
 import { useState } from 'react'
 import CompactGameViewCard from '../../compact-game-view-card'
 import TeamSelector from '../../awards/team-selector'
@@ -203,9 +203,15 @@ export default function SamplePredictionStep() {
                     </Box>
                   )}
                   renderInput={(params) => (
-                    <Box {...params}>
-                      {params.children}
-                    </Box>
+                    <TextField
+                      {...params}
+                      label="Elegir Jugador"
+                      slotProps={{
+                        htmlInput: {
+                          ...params.inputProps,
+                        }
+                      }}
+                    />
                   )}
                   label="Mejor Jugador"
                   disabled={false}
