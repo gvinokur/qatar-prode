@@ -7,6 +7,7 @@ import {Game, Team} from "../db/tables-definition";
 import {GuessesContext} from "./context-providers/guesses-context-provider";
 import {getTeamDescription} from "../utils/playoffs-rule-helper";
 import CompactGameViewCard from "./compact-game-view-card";
+import { ONE_HOUR } from "../utils/countdown-utils";
 
 type GameViewProps = {
   game: ExtendedGameData,
@@ -34,7 +35,6 @@ const GameView = ({game, teamsMap, handleEditClick, disabled = false}: GameViewP
   if(!gameGuess.game_number) gameGuess.game_number = game.game_number
   if(!gameGuess.game_id) gameGuess.game_id = game.id
 
-  const ONE_HOUR = 60 * 60 * 1000
   const editDisabled = (Date.now() + ONE_HOUR > game.game_date.getTime()) || disabled
   const scoreForGame = calculateScoreForGame(game, gameGuess)
   const homeTeam = game.home_team || gameGuess.home_team

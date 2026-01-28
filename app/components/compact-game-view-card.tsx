@@ -13,13 +13,12 @@ import {
   Chip
 } from "@mui/material";
 import { Edit as EditIcon, Save as SaveIcon, SaveOutlined as SaveOutlinedIcon, Scoreboard as ScoreboardIcon, EmojiEvents as TrophyIcon } from "@mui/icons-material";
-import { getUserLocalTime, getLocalGameTime } from "../utils/date-utils";
 import { GameResultNew, Theme} from "../db/tables-definition";
 import {useState} from "react";
 import {getThemeLogoUrl} from "../utils/theme-utils";
-import { useTimezone } from './context-providers/timezone-context-provider';
 import { calculateFinalPoints } from "../utils/point-calculator";
 import GameCardPointOverlay from "./game-card-point-overlay";
+import GameCountdownDisplay from "./game-countdown-display";
 
 type SharedProps = {
   gameNumber: number;
@@ -88,9 +87,13 @@ export default function CompactGameViewCard({
   ...specificProps
 }: CompactGameViewCardProps) {
   const theme = useTheme();
-  const { showLocalTime, toggleTimezone } = useTimezone();
   const hasResult = Number.isInteger(homeScore) && Number.isInteger(awayScore);
-  const [publishing, setPublishing] = useState(false)
+  const [publishing, setPublishing] = useState(false);
+
+  // Calculate points for game guess if applicable
+  const pointCalc = specificProps.isGameGuess && specificProps.scoreForGame !== undefined
+    ? calculateFinalPoints(specificProps.scoreForGame, specificProps.boostType)
+    : null;
 
   const handleEditClick = () => {
     if (!disabled || specificProps.isGameFixture) {
@@ -140,30 +143,19 @@ export default function CompactGameViewCard({
         <Box display="flex" flexDirection={'column'} alignItems="center" justifyContent="space-between" gap={1}>
           {/* Game number and date */}
           <Box width='100%' sx={{ position: 'relative' }}>
-            <Box display='flex' flexGrow={1} justifyContent="space-between" alignItems="center" gap={1} py={1.5}>
-              <Box display="flex" flexDirection="row" alignItems="center" gap={1}>
-                <Typography variant="body2" color="text.secondary">
-                  #{gameNumber} - {showLocalTime ? getUserLocalTime(gameDate) : getLocalGameTime(gameDate, gameTimezone)}
-                </Typography>
-                <Tooltip title={`Mostrar en ${showLocalTime ? 'horario local' : 'tu horario'}`}>
-                  <Typography
-                    variant="body2"
-                    color='text.secondary'
-                    sx={{ cursor: 'pointer', textDecoration: 'underline' }}
-                    onClick={toggleTimezone}
-                  >
-                    {showLocalTime ? 'Tu Horario' : 'Horario Local'}
-                  </Typography>
-                </Tooltip>
-              </Box>
-              {/* Edit button or status */}
-              {(!disabled || 
-                specificProps.isGameFixture ||
-                (specificProps.isGameGuess &&
-                Number.isInteger(specificProps.gameResult?.home_score) &&
-                Number.isInteger(specificProps.gameResult?.away_score) &&
-                Number.isInteger(specificProps.scoreForGame))) && (
-                <Box minWidth="86px" textAlign="right" flexDirection={'row'} alignContent={'center'} height={'100%'} display="flex" alignItems="center" justifyContent="flex-end" gap={0.5}>
+            <Box display='flex' flexDirection="column" gap={0.5} py={1.5}>
+              <GameCountdownDisplay
+                gameDate={gameDate}
+                gameTimezone={gameTimezone}
+                compact={true}
+                actions={
+                  (!disabled ||
+                    specificProps.isGameFixture ||
+                    (specificProps.isGameGuess &&
+                    Number.isInteger(specificProps.gameResult?.home_score) &&
+                    Number.isInteger(specificProps.gameResult?.away_score) &&
+                    Number.isInteger(specificProps.scoreForGame))) && (
+                    <>
                   {boostType && !(
                     specificProps.isGameGuess &&
                     Number.isInteger(specificProps.gameResult?.home_score) &&
@@ -222,24 +214,17 @@ export default function CompactGameViewCard({
                   {specificProps.isGameGuess &&
                     Number.isInteger(specificProps.gameResult?.home_score) &&
                     Number.isInteger(specificProps.gameResult?.away_score) &&
-                    Number.isInteger(specificProps.scoreForGame) && (
+                    Number.isInteger(specificProps.scoreForGame) &&
+                    pointCalc && (
                       <Box display="flex" justifyContent="flex-end">
-                        {(() => {
-                          const pointCalc = calculateFinalPoints(
-                            specificProps.scoreForGame!,
-                            specificProps.boostType
-                          );
-                          return (
-                            <GameCardPointOverlay
-                              gameId={gameNumber.toString()}
-                              points={pointCalc.finalScore}
-                              baseScore={pointCalc.baseScore}
-                              multiplier={pointCalc.multiplier}
-                              boostType={specificProps.boostType || null}
-                              scoreDescription={pointCalc.description}
-                            />
-                          );
-                        })()}
+                        <GameCardPointOverlay
+                          gameId={gameNumber.toString()}
+                          points={pointCalc.finalScore}
+                          baseScore={pointCalc.baseScore}
+                          multiplier={pointCalc.multiplier}
+                          boostType={specificProps.boostType || null}
+                          scoreDescription={pointCalc.description}
+                        />
                       </Box>
                     )}
                   {specificProps.isGameFixture && (
@@ -249,8 +234,10 @@ export default function CompactGameViewCard({
                         </Typography>
                       </Box>
                     )}
-                </Box>
-              )}
+                    </>
+                  )
+                }
+              />
             </Box>
           </Box>
 

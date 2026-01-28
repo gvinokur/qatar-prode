@@ -11,6 +11,7 @@ import Header from "./components/header/header";
 import {getLoggedInUser} from "./actions/user-actions";
 import { unstable_ViewTransition as ViewTransition } from 'react'
 import { TimezoneProvider } from './components/context-providers/timezone-context-provider';
+import { CountdownProvider } from './components/context-providers/countdown-context-provider';
 import Footer from './components/home/footer';
 
 export async  function generateMetadata() {
@@ -48,23 +49,25 @@ export default async function RootLayout({
       </head>
       <body style={{minHeight: '100%', paddingBottom: '64px'}}>
         <TimezoneProvider>
-          <NextThemeProvider defaultTheme={'system'} enableSystem={true}>
-            <ThemeProvider>
-              <SessionWrapper>
-                <Header user={user}/>
-                <ViewTransition
-                  name={'main'}
-                  enter={'page-enter'}
-                  exit={'page-exit duration-100'}
-                >
-                  {children}
-                </ViewTransition>
-                <Footer message="La Maquina © 2025" />
-                <InstallPwa />
-                <OfflineDetection />
-              </SessionWrapper>
-            </ThemeProvider>
-          </NextThemeProvider>
+          <CountdownProvider>
+            <NextThemeProvider defaultTheme={'system'} enableSystem={true}>
+              <ThemeProvider>
+                <SessionWrapper>
+                  <Header user={user}/>
+                  <ViewTransition
+                    name={'main'}
+                    enter={'page-enter'}
+                    exit={'page-exit duration-100'}
+                  >
+                    {children}
+                  </ViewTransition>
+                  <Footer message="La Maquina © 2025" />
+                  <InstallPwa />
+                  <OfflineDetection />
+                </SessionWrapper>
+              </ThemeProvider>
+            </NextThemeProvider>
+          </CountdownProvider>
         </TimezoneProvider>
       </body>
     </html>
