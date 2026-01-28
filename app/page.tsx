@@ -9,7 +9,7 @@ import {getOnboardingStatus} from "./db/onboarding-repository";
 import OnboardingTrigger from "./components/onboarding/onboarding-trigger";
 
 type ServerHomeProps = {
-  searchParams: { showOnboarding?: string }
+  searchParams: Promise<{ showOnboarding?: string }>
 }
 
 export default async function ServerHome({ searchParams }: ServerHomeProps) {
@@ -19,7 +19,8 @@ export default async function ServerHome({ searchParams }: ServerHomeProps) {
   const user = await getLoggedInUser()
 
   // Force show onboarding for testing with ?showOnboarding=true
-  const forceShowOnboarding = searchParams?.showOnboarding === 'true'
+  const params = await searchParams
+  const forceShowOnboarding = params?.showOnboarding === 'true'
 
   // Check if user needs onboarding (new users who haven't completed it)
   const needsOnboarding = user && !(await getOnboardingStatus(user.id))?.onboarding_completed
