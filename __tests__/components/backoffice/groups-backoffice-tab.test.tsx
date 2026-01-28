@@ -46,16 +46,14 @@ vi.mock('../../../app/components/backoffice/backoffice-tab-utils', () => ({
 }));
 
 // Mock the BackofficeTabs component to verify props
-const mockBackofficeTabs = vi.fn(({ tabs, tabIdParam }) => (
-  <div data-testid="backoffice-tabs" data-tab-id-param={tabIdParam}>
-    {tabs.map((tab: any, index: number) => (
-      <div key={index}>{tab.label}</div>
-    ))}
-  </div>
-));
-
 vi.mock('../../../app/components/backoffice/backoffice-tabs', () => ({
-  BackofficeTabs: mockBackofficeTabs,
+  BackofficeTabs: vi.fn(({ tabs, tabIdParam }) => (
+    React.createElement('div', { 'data-testid': 'backoffice-tabs', 'data-tab-id-param': tabIdParam },
+      tabs.map((tab: any, index: number) => (
+        React.createElement('div', { key: index }, tab.label)
+      ))
+    )
+  )),
 }));
 
 // Mock server actions
@@ -129,10 +127,12 @@ describe('GroupsTab', () => {
   });
 
   it('should pass tabIdParam="group" to BackofficeTabs', async () => {
+    const { BackofficeTabs } = await import('../../../app/components/backoffice/backoffice-tabs');
+
     render(<GroupsTab tournamentId="tournament-1" />);
 
     await waitFor(() => {
-      expect(mockBackofficeTabs).toHaveBeenCalledWith(
+      expect(BackofficeTabs).toHaveBeenCalledWith(
         expect.objectContaining({
           tabIdParam: 'group',
         }),
@@ -169,10 +169,12 @@ describe('GroupsTab', () => {
   });
 
   it('should pass correct tabs array to BackofficeTabs', async () => {
+    const { BackofficeTabs } = await import('../../../app/components/backoffice/backoffice-tabs');
+
     render(<GroupsTab tournamentId="tournament-1" />);
 
     await waitFor(() => {
-      expect(mockBackofficeTabs).toHaveBeenCalledWith(
+      expect(BackofficeTabs).toHaveBeenCalledWith(
         expect.objectContaining({
           tabs: expect.arrayContaining([
             expect.objectContaining({ label: 'Grupo A' }),
