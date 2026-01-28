@@ -138,22 +138,19 @@ export default function CompactGameViewCard({
         <Box display="flex" flexDirection={'column'} alignItems="center" justifyContent="space-between" gap={1}>
           {/* Game number and date */}
           <Box width='100%' sx={{ position: 'relative' }}>
-            <Box display='flex' flexGrow={1} justifyContent="space-between" alignItems="center" gap={1} py={1.5}>
-              <Box display="flex" flexDirection="column" gap={0.5} flex={1}>
-                <GameCountdownDisplay
-                  gameDate={gameDate}
-                  gameTimezone={gameTimezone}
-                  compact={true}
-                />
-              </Box>
-              {/* Edit button or status */}
-              {(!disabled || 
-                specificProps.isGameFixture ||
-                (specificProps.isGameGuess &&
-                Number.isInteger(specificProps.gameResult?.home_score) &&
-                Number.isInteger(specificProps.gameResult?.away_score) &&
-                Number.isInteger(specificProps.scoreForGame))) && (
-                <Box minWidth="86px" textAlign="right" flexDirection={'row'} alignContent={'center'} height={'100%'} display="flex" alignItems="center" justifyContent="flex-end" gap={0.5}>
+            <Box display='flex' flexDirection="column" gap={0.5} py={1.5}>
+              <GameCountdownDisplay
+                gameDate={gameDate}
+                gameTimezone={gameTimezone}
+                compact={true}
+                actions={
+                  (!disabled ||
+                    specificProps.isGameFixture ||
+                    (specificProps.isGameGuess &&
+                    Number.isInteger(specificProps.gameResult?.home_score) &&
+                    Number.isInteger(specificProps.gameResult?.away_score) &&
+                    Number.isInteger(specificProps.scoreForGame))) && (
+                    <>
                   {boostType && !(
                     specificProps.isGameGuess &&
                     Number.isInteger(specificProps.gameResult?.home_score) &&
@@ -239,8 +236,10 @@ export default function CompactGameViewCard({
                         </Typography>
                       </Box>
                     )}
-                </Box>
-              )}
+                    </>
+                  )
+                }
+              />
             </Box>
           </Box>
 

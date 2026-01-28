@@ -1,10 +1,12 @@
 'use client';
 
-import { Box, LinearProgress, Typography, useTheme } from '@mui/material';
+import { Box, LinearProgress, Link, Typography, useTheme } from '@mui/material';
 import { motion } from 'framer-motion';
+import dayjs from 'dayjs';
 import { useGameCountdown } from '../hooks/use-game-countdown';
 import { getUrgencyColor } from '../utils/countdown-utils';
 import { getCompactUserTime, getCompactGameTime } from '../utils/date-utils';
+import { useTimezone } from './context-providers/timezone-context-provider';
 
 interface GameCountdownDisplayProps {
   /** The date and time when the game starts */
@@ -13,19 +15,23 @@ interface GameCountdownDisplayProps {
   gameTimezone?: string;
   /** Compact mode for smaller display */
   compact?: boolean;
+  /** Optional actions to render on Line 2 (edit button, chips, etc.) */
+  actions?: React.ReactNode;
 }
 
 /**
  * Displays a countdown timer for game prediction deadlines with color-coded urgency
- * and optional progress bar. Shows both date (Line 1, centered) and countdown state (Line 2).
+ * and optional progress bar. Shows date (Line 1, centered with toggle) and countdown state (Line 2 with actions).
  * Includes pulsing animation for urgent states.
  */
 export default function GameCountdownDisplay({
   gameDate,
   gameTimezone,
   compact = false,
+  actions,
 }: GameCountdownDisplayProps) {
   const theme = useTheme();
+  const { showLocalTime, toggleTimezone } = useTimezone();
   const countdown = useGameCountdown(gameDate);
 
   const color = getUrgencyColor(theme, countdown.urgency);
@@ -40,68 +46,89 @@ export default function GameCountdownDisplay({
     },
   } : {};
 
-  // Get formatted dates for both timezones
-  const userTime = getCompactUserTime(gameDate);
-  const gameTime = getCompactGameTime(gameDate, gameTimezone);
+  // Get formatted date based on timezone toggle
+  // If no gameTimezone, just show date without label
+  const currentTime = gameTimezone
+    ? (showLocalTime ? getCompactUserTime(gameDate) : getCompactGameTime(gameDate, gameTimezone))
+    : `${dayjs(gameDate).format('D MMM HH:mm')}`;
+
+  const toggleText = showLocalTime ? 'Ver horario local' : 'Ver tu horario';
 
   return (
-    <Box display="flex" flexDirection="column" gap={0.5} flex={1}>
-      {/* Line 1: Both times displayed, user time in bold, centered */}
-      <Box display="flex" justifyContent="center" alignItems="center">
+    <>
+      {/* Line 1: Date centered with toggle link */}
+      <Box display="flex" justifyContent="center" alignItems="center" gap={1}>
         <Typography
           variant={compact ? 'body2' : 'body1'}
           color="text.secondary"
           sx={{
             whiteSpace: 'nowrap',
-            textAlign: 'center'
+            textAlign: 'center',
+            fontWeight: 'bold'
           }}
         >
-          <Box component="span" sx={{ fontWeight: 'bold' }}>
-            {userTime}
-          </Box>
-          {gameTimezone && (
-            <>
-              {' • '}
-              {gameTime}
-            </>
-          )}
+          {currentTime}
         </Typography>
-      </Box>
-
-      {/* Line 2: State indicator + Progress bar */}
-      <Box display="flex" alignItems="center" gap={1}>
-        {/* State: "Cerrado" or "Cierra en XXX" */}
-        <motion.div animate={pulsingAnimation} style={{ display: 'flex', alignItems: 'center' }}>
-          <Typography
-            variant={compact ? 'body2' : 'body1'}
+        {gameTimezone && (
+          <Link
+            component="button"
+            variant={compact ? 'caption' : 'body2'}
+            onClick={toggleTimezone}
             sx={{
-              color: color,
-              fontWeight: countdown.urgency === 'urgent' ? 'bold' : 'normal',
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap'
             }}
           >
-            {countdown.display}
-          </Typography>
-        </motion.div>
+            {toggleText}
+          </Link>
+        )}
+      </Box>
 
-        {/* Progress bar - inline on Line 2, only within 48h window */}
-        {countdown.shouldShowProgressBar && (
-          <Box flex={1} minWidth={60}>
-            <LinearProgress
-              variant="determinate"
-              value={countdown.progressPercent}
+      {/* Line 2: State indicator + Progress bar + Actions */}
+      <Box display="flex" alignItems="center" justifyContent="space-between" gap={1}>
+        <Box display="flex" alignItems="center" gap={1} flex={1}>
+          {/* State: "Cerrado" or "Cierra en XXX" */}
+          <motion.div animate={pulsingAnimation} style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+            <Typography
+              variant={compact ? 'body2' : 'body1'}
               sx={{
-                height: 3,
-                borderRadius: 1.5,
-                backgroundColor: theme.palette.action.hover,
-                '& .MuiLinearProgress-bar': {
-                  backgroundColor: color,
-                  borderRadius: 1.5,
-                },
+                color: color,
+                fontWeight: countdown.urgency === 'urgent' ? 'bold' : 'normal',
+                whiteSpace: 'nowrap'
               }}
-            />
+            >
+              {countdown.display}
+            </Typography>
+          </motion.div>
+
+          {/* Progress bar - inline on Line 2, only within 48h window */}
+          {countdown.shouldShowProgressBar && (
+            <Box flex={1} minWidth={40} maxWidth={120}>
+              <LinearProgress
+                variant="determinate"
+                value={countdown.progressPercent}
+                sx={{
+                  height: 3,
+                  borderRadius: 1.5,
+                  backgroundColor: theme.palette.action.hover,
+                  '& .MuiLinearProgress-bar': {
+                    backgroundColor: color,
+                    borderRadius: 1.5,
+                  },
+                }}
+              />
+            </Box>
+          )}
+        </Box>
+
+        {/* Actions from parent (chips, buttons, etc.) */}
+        {actions && (
+          <Box display="flex" alignItems="center" gap={0.5}>
+            {actions}
           </Box>
         )}
       </Box>
-    </Box>
+    </>
   );
 }

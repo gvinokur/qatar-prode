@@ -76,7 +76,10 @@ describe('CompactGameViewCard', () => {
         <CompactGameViewCard {...resultProps} onEditClick={onEditClick} />
       </TestWrapper>
     );
-    const editButton = screen.getByRole('button');
+    // Get the edit button specifically (not the timezone toggle button)
+    const editButton = screen.getAllByRole('button').find(btn =>
+      btn.querySelector('[data-testid="EditIcon"], [data-testid="ScoreboardIcon"]')
+    ) || screen.getAllByRole('button')[1]; // Fallback to second button if icon not found
     fireEvent.click(editButton);
     expect(onEditClick).toHaveBeenCalled();
   });

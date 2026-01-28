@@ -54,15 +54,16 @@ describe('GameCountdownDisplay', () => {
 
     render(
       <TestWrapper>
-        <GameCountdownDisplay gameDate={gameDate} compact={true} />
+        <GameCountdownDisplay gameDate={gameDate} gameTimezone="America/New_York" compact={true} />
       </TestWrapper>
     );
 
     // Should show countdown
     expect(screen.getByText(/Cierra en/)).toBeInTheDocument();
 
-    // Should also show formatted date with Tu Horario label
+    // Should also show formatted date with Tu Horario label and toggle
     expect(screen.getByText(/Tu Horario/)).toBeInTheDocument();
+    expect(screen.getByText('Ver horario local')).toBeInTheDocument();
   });
 
   it('should not show progress bar for games >48h away', () => {
@@ -132,18 +133,15 @@ describe('GameCountdownDisplay', () => {
     vi.setSystemTime(now);
     const gameDate = new Date('2026-01-20T15:00:00Z');
 
-    const { container } = render(
+    render(
       <TestWrapper>
-        <GameCountdownDisplay gameDate={gameDate} compact={true} />
+        <GameCountdownDisplay gameDate={gameDate} gameTimezone="America/New_York" compact={true} />
       </TestWrapper>
     );
 
-    // Check that date and countdown are in separate containers (lines)
-    const outerBox = container.firstChild;
-    expect(outerBox?.childNodes.length).toBe(2); // Two lines
-
     // Line 1 should have date with user time label
     expect(screen.getByText(/Tu Horario/)).toBeInTheDocument();
+    expect(screen.getByText('Ver horario local')).toBeInTheDocument();
 
     // Line 2 should have countdown
     expect(screen.getByText(/Cierra en/)).toBeInTheDocument();
@@ -185,7 +183,7 @@ describe('GameCountdownDisplay', () => {
     expect(warningTypography).toBeInTheDocument();
   });
 
-  it('should show both times side-by-side when gameTimezone provided', () => {
+  it('should show toggle link when gameTimezone provided', () => {
     const now = new Date('2026-01-20T10:00:00Z');
     vi.setSystemTime(now);
     const gameDate = new Date('2026-01-20T15:00:00Z');
@@ -196,9 +194,9 @@ describe('GameCountdownDisplay', () => {
       </TestWrapper>
     );
 
-    // Should show both user time (bold) and game time
+    // Should show user time by default with toggle link
     expect(screen.getByText(/Tu Horario/)).toBeInTheDocument();
-    expect(screen.getByText(/Horario Local/)).toBeInTheDocument();
+    expect(screen.getByText('Ver horario local')).toBeInTheDocument();
   });
 
   it('should handle missing gameTimezone prop gracefully', () => {
@@ -248,7 +246,7 @@ describe('GameCountdownDisplay', () => {
     expect(screen.getByText(/m/)).toBeInTheDocument();
   });
 
-  it('should show both times for closed games', () => {
+  it('should toggle between times when toggle link clicked', () => {
     const now = new Date('2026-01-20T15:00:00Z');
     vi.setSystemTime(now);
     const gameDate = new Date('2026-01-20T13:00:00Z'); // Cerrado game
@@ -259,15 +257,23 @@ describe('GameCountdownDisplay', () => {
       </TestWrapper>
     );
 
-    // Should show both dates on Line 1
+    // Should show user time initially
     expect(screen.getByText(/Tu Horario/)).toBeInTheDocument();
+    expect(screen.getByText('Ver horario local')).toBeInTheDocument();
+
+    // Click toggle
+    const toggleLink = screen.getByText('Ver horario local');
+    fireEvent.click(toggleLink);
+
+    // Should now show game time
     expect(screen.getByText(/Horario Local/)).toBeInTheDocument();
+    expect(screen.getByText('Ver tu horario')).toBeInTheDocument();
 
     // Should show "Cerrado" on Line 2
     expect(screen.getByText('Cerrado')).toBeInTheDocument();
   });
 
-  it('should show date with timezone information', () => {
+  it('should show date without label when no gameTimezone provided', () => {
     const now = new Date('2026-01-20T10:00:00Z');
     vi.setSystemTime(now);
     const gameDate = new Date('2026-01-20T15:00:00Z');
@@ -278,7 +284,9 @@ describe('GameCountdownDisplay', () => {
       </TestWrapper>
     );
 
-    // Should show formatted date with user time label
-    expect(screen.getByText(/Tu Horario/)).toBeInTheDocument();
+    // Should show formatted date without label
+    expect(screen.getByText(/20 ene/)).toBeInTheDocument();
+    // Toggle link should not be present
+    expect(screen.queryByText('Ver horario local')).not.toBeInTheDocument();
   });
 });
