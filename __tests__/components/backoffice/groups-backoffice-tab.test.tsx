@@ -67,7 +67,26 @@ const mockGroupData = [
 ];
 
 vi.mock('../../../app/actions/backoffice-actions', () => ({
+  deleteDBTournamentTree: vi.fn(),
+  generateDbTournamentTeamPlayers: vi.fn(),
+  generateDbTournament: vi.fn(),
+  saveGameResults: vi.fn(),
+  saveGamesData: vi.fn(),
+  calculateAndSavePlayoffGamesForTournament: vi.fn(),
   getGroupDataWithGamesAndTeams: vi.fn(() => Promise.resolve(mockGroupData)),
+  calculateAllUsersGroupPositions: vi.fn(),
+  recalculateAllPlayoffFirstRoundGameGuesses: vi.fn(),
+  calculateGameScores: vi.fn(),
+  calculateAndStoreGroupPosition: vi.fn(),
+  calculateAndStoreQualifiedTeamsPoints: vi.fn(),
+  findDataForAwards: vi.fn(),
+  updateTournamentAwards: vi.fn(),
+  updateTournamentHonorRoll: vi.fn(),
+  copyTournament: vi.fn(),
+  calculateAndStoreGroupPositionScores: vi.fn(),
+  updateGroupTeamConductScores: vi.fn(),
+  getTournamentPermissionData: vi.fn(),
+  updateTournamentPermissions: vi.fn(),
 }));
 
 describe('GroupsTab', () => {
