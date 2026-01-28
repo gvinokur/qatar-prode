@@ -1,7 +1,9 @@
 'use client'
 
-import { Box, Typography, Card, CardContent, TextField, Grid, Tabs, Tab, Select, MenuItem, FormControl, InputLabel, Chip, Stack } from '@mui/material'
+import { Box, Typography, Card, CardContent, Tabs, Tab, Select, MenuItem, FormControl, InputLabel, Chip, Stack, Alert } from '@mui/material'
 import { useState } from 'react'
+import CompactGameViewCard from '../../compact-game-view-card'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 
 // Mock data for demonstration
 const MOCK_GAME = {
@@ -41,14 +43,17 @@ function TabPanel(props: TabPanelProps) {
 
 export default function SamplePredictionStep() {
   const [tabValue, setTabValue] = useState(0)
-  const [homeScore, setHomeScore] = useState<number | ''>('')
-  const [awayScore, setAwayScore] = useState<number | ''>('')
+  const [gameClicked, setGameClicked] = useState(false)
   const [champion, setChampion] = useState('')
   const [runnerUp, setRunnerUp] = useState('')
   const [bestPlayer, setBestPlayer] = useState('')
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue)
+  }
+
+  const handleGameClick = () => {
+    setGameClicked(true)
   }
 
   return (
@@ -70,65 +75,42 @@ export default function SamplePredictionStep() {
       </Box>
 
       <TabPanel value={tabValue} index={0}>
-        <Card elevation={3} sx={{ maxWidth: 500, mx: 'auto' }}>
-          <CardContent>
-            <Typography variant="caption" display="block" align="center" sx={{ mb: 2, color: 'text.secondary' }}>
-              {MOCK_GAME.date}
-            </Typography>
+        <Box sx={{ maxWidth: 600, mx: 'auto' }}>
+          <Typography variant="body2" align="center" sx={{ mb: 2, color: 'text.secondary' }}>
+            Haz clic en el lápiz para editar tu predicción
+          </Typography>
 
-            <Grid container spacing={2} alignItems="center">
-              <Grid size={5} textAlign="center">
-                <Typography variant="h3" sx={{ mb: 1 }}>
-                  {MOCK_GAME.homeTeam.flag}
-                </Typography>
-                <Typography variant="body2" fontWeight="bold">
-                  {MOCK_GAME.homeTeam.name}
-                </Typography>
-                <TextField
-                  type="number"
-                  value={homeScore}
-                  onChange={(e) => setHomeScore(e.target.value ? parseInt(e.target.value) : '')}
-                  inputProps={{ min: 0, max: 99, style: { textAlign: 'center' } }}
-                  size="small"
-                  sx={{ mt: 1, width: 60 }}
-                />
-              </Grid>
+          <CompactGameViewCard
+            gameNumber={42}
+            gameDate={new Date('2024-06-15T18:00:00')}
+            location="Estadio Monumental"
+            homeTeamNameOrDescription="Argentina"
+            homeTeamShortNameOrDescription="ARG"
+            awayTeamNameOrDescription="Brasil"
+            awayTeamShortNameOrDescription="BRA"
+            homeScore={2}
+            awayScore={1}
+            isPlayoffGame={false}
+            isGameGuess={true}
+            isGameFixture={false}
+            onEditClick={handleGameClick}
+            disabled={false}
+          />
 
-              <Grid size={2} textAlign="center">
-                <Typography variant="h6" color="text.secondary">
-                  VS
-                </Typography>
-              </Grid>
+          {gameClicked && (
+            <Alert
+              severity="success"
+              icon={<CheckCircleIcon />}
+              sx={{ mt: 2 }}
+            >
+              ¡Perfecto! Así se editan las predicciones. En la app real, se abrirá un diálogo para cambiar los marcadores.
+            </Alert>
+          )}
 
-              <Grid size={5} textAlign="center">
-                <Typography variant="h3" sx={{ mb: 1 }}>
-                  {MOCK_GAME.awayTeam.flag}
-                </Typography>
-                <Typography variant="body2" fontWeight="bold">
-                  {MOCK_GAME.awayTeam.name}
-                </Typography>
-                <TextField
-                  type="number"
-                  value={awayScore}
-                  onChange={(e) => setAwayScore(e.target.value ? parseInt(e.target.value) : '')}
-                  inputProps={{ min: 0, max: 99, style: { textAlign: 'center' } }}
-                  size="small"
-                  sx={{ mt: 1, width: 60 }}
-                />
-              </Grid>
-            </Grid>
-
-            {homeScore !== '' && awayScore !== '' && (
-              <Typography variant="body2" color="success.main" align="center" sx={{ mt: 2 }}>
-                ✓ ¡Perfecto! Así de fácil es predecir un partido
-              </Typography>
-            )}
-          </CardContent>
-        </Card>
-
-        <Typography variant="caption" display="block" align="center" sx={{ mt: 2, fontStyle: 'italic' }}>
-          📅 Las predicciones de partidos cierran 1 hora antes del inicio
-        </Typography>
+          <Typography variant="caption" display="block" align="center" sx={{ mt: 2, fontStyle: 'italic' }}>
+            📅 Las predicciones de partidos cierran 1 hora antes del inicio
+          </Typography>
+        </Box>
       </TabPanel>
 
       <TabPanel value={tabValue} index={1}>
