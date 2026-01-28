@@ -23,16 +23,18 @@ vi.mock('dayjs', () => {
     };
     return instance;
   });
-  
+
   // Add static methods
   (mockDayjs as any).extend = vi.fn();
+  (mockDayjs as any).locale = vi.fn();
   (mockDayjs as any).tz = {
     guess: vi.fn().mockReturnValue('UTC')
   };
-  
+
   return {
     default: mockDayjs,
     extend: vi.fn(),
+    locale: vi.fn(),
     tz: {
       guess: vi.fn().mockReturnValue('UTC')
     }
@@ -130,10 +132,10 @@ describe('date-utils', () => {
   });
 
   describe('getCompactUserTime', () => {
-    it('should return compact formatted local time with "(Your Time)" label', () => {
+    it('should return compact formatted local time with "(Tu Horario)" label', () => {
       const result = getCompactUserTime(mockDate);
-      // Should include the "(Your Time)" label
-      expect(result).toContain('(Your Time)');
+      // Should include the "(Tu Horario)" label (Spanish)
+      expect(result).toContain('(Tu Horario)');
     });
 
     it('should handle different date formats', () => {
@@ -143,9 +145,9 @@ describe('date-utils', () => {
       const result1 = getCompactUserTime(date1);
       const result2 = getCompactUserTime(date2);
 
-      // Both should return formatted strings with the label
-      expect(result1).toContain('(Your Time)');
-      expect(result2).toContain('(Your Time)');
+      // Both should return formatted strings with the Spanish label
+      expect(result1).toContain('(Tu Horario)');
+      expect(result2).toContain('(Tu Horario)');
     });
   });
 }); 

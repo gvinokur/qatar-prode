@@ -44,10 +44,10 @@ export function useGameCountdown(gameDate: Date): GameCountdownState {
 
     let display: string;
     if (isClosed) {
-      display = 'Closed';
+      display = 'Cerrado';
     } else {
       const countdown = formatCountdown(timeRemaining);
-      display = `Closes in ${countdown}`;
+      display = `Cierra en ${countdown}`;
     }
 
     return {

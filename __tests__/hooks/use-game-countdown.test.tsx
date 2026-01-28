@@ -18,7 +18,7 @@ describe('useGameCountdown', () => {
     vi.restoreAllMocks();
   });
 
-  it('should return "Closed" state for past games', () => {
+  it('should return "Cerrado" state for past games', () => {
     const now = new Date('2026-01-20T15:00:00Z');
     vi.setSystemTime(now);
 
@@ -27,7 +27,7 @@ describe('useGameCountdown', () => {
 
     const { result } = renderHook(() => useGameCountdown(gameDate), { wrapper });
 
-    expect(result.current.display).toBe('Closed');
+    expect(result.current.display).toBe('Cerrado');
     expect(result.current.urgency).toBe('closed');
     expect(result.current.isClosed).toBe(true);
     expect(result.current.progressPercent).toBe(0);
@@ -43,7 +43,7 @@ describe('useGameCountdown', () => {
 
     const { result } = renderHook(() => useGameCountdown(gameDate), { wrapper });
 
-    expect(result.current.display).toContain('Closes in');
+    expect(result.current.display).toContain('Cierra en');
     expect(result.current.display).toContain('4h');
     expect(result.current.urgency).toBe('warning'); // 4 hours = warning level
     expect(result.current.isClosed).toBe(false);
@@ -60,8 +60,8 @@ describe('useGameCountdown', () => {
     const { result } = renderHook(() => useGameCountdown(gameDate), { wrapper });
 
     expect(result.current.urgency).toBe('safe');
-    expect(result.current.display).toContain('Closes in');
-    expect(result.current.display).toContain('2 days');
+    expect(result.current.display).toContain('Cierra en');
+    expect(result.current.display).toContain('2 días');
   });
 
   it('should return "notice" urgency for games 24-48h away', () => {
@@ -134,7 +134,7 @@ describe('useGameCountdown', () => {
     const { result } = renderHook(() => useGameCountdown(gameDate), { wrapper });
 
     expect(result.current.isClosed).toBe(true);
-    expect(result.current.display).toBe('Closed');
+    expect(result.current.display).toBe('Cerrado');
     expect(result.current.urgency).toBe('closed');
   });
 
@@ -145,7 +145,7 @@ describe('useGameCountdown', () => {
     // Test days
     const daysGame = new Date('2026-01-23T11:00:00Z'); // ~3 days
     const { result: daysResult } = renderHook(() => useGameCountdown(daysGame), { wrapper });
-    expect(daysResult.current.display).toContain('days');
+    expect(daysResult.current.display).toContain('días');
 
     // Test hours and minutes
     const hoursGame = new Date('2026-01-20T14:30:00Z'); // ~3.5 hours to deadline
@@ -221,7 +221,7 @@ describe('useGameCountdown', () => {
     const { result: nearResult } = renderHook(() => useGameCountdown(nearGame), { wrapper });
     expect(nearResult.current.shouldShowProgressBar).toBe(true);
 
-    // Closed game
+    // Cerrado game
     const closedGame = new Date('2026-01-20T08:00:00Z'); // 2h ago
     const { result: closedResult } = renderHook(() => useGameCountdown(closedGame), { wrapper });
     expect(closedResult.current.shouldShowProgressBar).toBe(false);

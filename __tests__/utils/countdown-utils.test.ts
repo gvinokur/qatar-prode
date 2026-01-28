@@ -32,9 +32,9 @@ describe('countdown-utils', () => {
 
   describe('formatCountdown', () => {
     it('should format days correctly', () => {
-      expect(formatCountdown(1 * 24 * 60 * 60 * 1000)).toBe('1 day');
-      expect(formatCountdown(2 * 24 * 60 * 60 * 1000)).toBe('2 days');
-      expect(formatCountdown(5 * 24 * 60 * 60 * 1000)).toBe('5 days');
+      expect(formatCountdown(1 * 24 * 60 * 60 * 1000)).toBe('1 día');
+      expect(formatCountdown(2 * 24 * 60 * 60 * 1000)).toBe('2 días');
+      expect(formatCountdown(5 * 24 * 60 * 60 * 1000)).toBe('5 días');
     });
 
     it('should format hours and minutes correctly', () => {
@@ -55,10 +55,10 @@ describe('countdown-utils', () => {
       expect(formatCountdown(30 * 1000)).toBe('30s');
     });
 
-    it('should return "Closed" for zero or negative time', () => {
-      expect(formatCountdown(0)).toBe('Closed');
-      expect(formatCountdown(-1000)).toBe('Closed');
-      expect(formatCountdown(-60 * 60 * 1000)).toBe('Closed');
+    it('should return "Cerrado" for zero or negative time', () => {
+      expect(formatCountdown(0)).toBe('Cerrado');
+      expect(formatCountdown(-1000)).toBe('Cerrado');
+      expect(formatCountdown(-60 * 60 * 1000)).toBe('Cerrado');
     });
 
     it('should handle edge cases around boundaries', () => {
@@ -69,7 +69,7 @@ describe('countdown-utils', () => {
       // Just under 1 day
       expect(formatCountdown(23 * 60 * 60 * 1000 + 59 * 60 * 1000)).toBe('23h 59m');
       // Exactly 1 day
-      expect(formatCountdown(24 * 60 * 60 * 1000)).toBe('1 day');
+      expect(formatCountdown(24 * 60 * 60 * 1000)).toBe('1 día');
     });
   });
 

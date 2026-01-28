@@ -43,7 +43,7 @@ describe('GameCountdownDisplay', () => {
     );
 
     // Should show countdown on Line 2
-    expect(screen.getByText(/Closes in/)).toBeInTheDocument();
+    expect(screen.getByText(/Cierra en/)).toBeInTheDocument();
     expect(screen.getByText(/4h/)).toBeInTheDocument();
   });
 
@@ -59,10 +59,10 @@ describe('GameCountdownDisplay', () => {
     );
 
     // Should show countdown
-    expect(screen.getByText(/Closes in/)).toBeInTheDocument();
+    expect(screen.getByText(/Cierra en/)).toBeInTheDocument();
 
-    // Should also show formatted date
-    expect(screen.getByText(/Jan 20/)).toBeInTheDocument();
+    // Should also show formatted date with Tu Horario label
+    expect(screen.getByText(/Tu Horario/)).toBeInTheDocument();
   });
 
   it('should not show progress bar for games >48h away', () => {
@@ -123,7 +123,7 @@ describe('GameCountdownDisplay', () => {
     );
 
     // Should display the countdown with urgent timing
-    expect(screen.getByText(/Closes in/)).toBeInTheDocument();
+    expect(screen.getByText(/Cierra en/)).toBeInTheDocument();
     expect(screen.getByText(/30m/)).toBeInTheDocument();
   });
 
@@ -142,11 +142,11 @@ describe('GameCountdownDisplay', () => {
     const outerBox = container.firstChild;
     expect(outerBox?.childNodes.length).toBe(2); // Two lines
 
-    // Line 1 should have date
-    expect(screen.getByText(/Jan 20/)).toBeInTheDocument();
+    // Line 1 should have date with user time label
+    expect(screen.getByText(/Tu Horario/)).toBeInTheDocument();
 
     // Line 2 should have countdown
-    expect(screen.getByText(/Closes in/)).toBeInTheDocument();
+    expect(screen.getByText(/Cierra en/)).toBeInTheDocument();
   });
 
   it('should display different urgency colors', () => {
@@ -185,7 +185,7 @@ describe('GameCountdownDisplay', () => {
     expect(warningTypography).toBeInTheDocument();
   });
 
-  it('should toggle between user time and game time when date clicked', () => {
+  it('should show both times side-by-side when gameTimezone provided', () => {
     const now = new Date('2026-01-20T10:00:00Z');
     vi.setSystemTime(now);
     const gameDate = new Date('2026-01-20T15:00:00Z');
@@ -196,12 +196,9 @@ describe('GameCountdownDisplay', () => {
       </TestWrapper>
     );
 
-    const dateText = screen.getByText(/Jan 20/);
-    const initialText = dateText.textContent;
-
-    fireEvent.click(dateText);
-
-    expect(dateText.textContent).not.toBe(initialText);
+    // Should show both user time (bold) and game time
+    expect(screen.getByText(/Tu Horario/)).toBeInTheDocument();
+    expect(screen.getByText(/Horario Local/)).toBeInTheDocument();
   });
 
   it('should handle missing gameTimezone prop gracefully', () => {
@@ -216,19 +213,19 @@ describe('GameCountdownDisplay', () => {
       </TestWrapper>
     );
 
-    expect(screen.getByText(/Closes in/)).toBeInTheDocument();
+    expect(screen.getByText(/Cierra en/)).toBeInTheDocument();
   });
 
   it('should render countdown for different time ranges', () => {
-    // Test days display
+    // Test días display
     vi.setSystemTime(new Date('2026-01-20T10:00:00Z'));
-    const daysGame = new Date('2026-01-23T11:00:00Z'); // ~3 days
+    const díasGame = new Date('2026-01-23T11:00:00Z'); // ~3 días
     const { rerender } = render(
       <TestWrapper>
-        <GameCountdownDisplay gameDate={daysGame} />
+        <GameCountdownDisplay gameDate={díasGame} />
       </TestWrapper>
     );
-    expect(screen.getByText(/days/)).toBeInTheDocument();
+    expect(screen.getByText(/días/)).toBeInTheDocument();
 
     // Test hours display
     vi.setSystemTime(new Date('2026-01-20T10:00:00Z'));
@@ -251,10 +248,10 @@ describe('GameCountdownDisplay', () => {
     expect(screen.getByText(/m/)).toBeInTheDocument();
   });
 
-  it('should show toggleable date for closed games', () => {
+  it('should show both times for closed games', () => {
     const now = new Date('2026-01-20T15:00:00Z');
     vi.setSystemTime(now);
-    const gameDate = new Date('2026-01-20T13:00:00Z'); // Closed game
+    const gameDate = new Date('2026-01-20T13:00:00Z'); // Cerrado game
 
     render(
       <TestWrapper>
@@ -262,15 +259,12 @@ describe('GameCountdownDisplay', () => {
       </TestWrapper>
     );
 
-    // Should show date on Line 1
-    const dateText = screen.getByText(/Jan 20/);
-    expect(dateText).toBeInTheDocument();
+    // Should show both dates on Line 1
+    expect(screen.getByText(/Tu Horario/)).toBeInTheDocument();
+    expect(screen.getByText(/Horario Local/)).toBeInTheDocument();
 
-    // Date should be toggleable (underlined, clickable)
-    expect(dateText).toHaveStyle({ textDecoration: 'underline', cursor: 'pointer' });
-
-    // Should show "Closed" on Line 2
-    expect(screen.getByText('Closed')).toBeInTheDocument();
+    // Should show "Cerrado" on Line 2
+    expect(screen.getByText('Cerrado')).toBeInTheDocument();
   });
 
   it('should show date with timezone information', () => {
@@ -284,11 +278,7 @@ describe('GameCountdownDisplay', () => {
       </TestWrapper>
     );
 
-    // Should show formatted date (the exact format depends on timezone toggle state)
-    const dateText = screen.getByText(/Jan 20/);
-    expect(dateText).toBeInTheDocument();
-
-    // Date should be clickable/toggleable
-    expect(dateText).toHaveStyle({ cursor: 'pointer', textDecoration: 'underline' });
+    // Should show formatted date with user time label
+    expect(screen.getByText(/Tu Horario/)).toBeInTheDocument();
   });
 });

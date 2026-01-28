@@ -1,11 +1,10 @@
 'use client';
 
-import { Box, LinearProgress, Tooltip, Typography, useTheme } from '@mui/material';
+import { Box, LinearProgress, Typography, useTheme } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useGameCountdown } from '../hooks/use-game-countdown';
 import { getUrgencyColor } from '../utils/countdown-utils';
 import { getCompactUserTime, getCompactGameTime } from '../utils/date-utils';
-import { useTimezone } from './context-providers/timezone-context-provider';
 
 interface GameCountdownDisplayProps {
   /** The date and time when the game starts */
@@ -18,7 +17,7 @@ interface GameCountdownDisplayProps {
 
 /**
  * Displays a countdown timer for game prediction deadlines with color-coded urgency
- * and optional progress bar. Shows both date (Line 1) and countdown state (Line 2).
+ * and optional progress bar. Shows both date (Line 1, centered) and countdown state (Line 2).
  * Includes pulsing animation for urgent states.
  */
 export default function GameCountdownDisplay({
@@ -27,7 +26,6 @@ export default function GameCountdownDisplay({
   compact = false,
 }: GameCountdownDisplayProps) {
   const theme = useTheme();
-  const { showLocalTime, toggleTimezone } = useTimezone();
   const countdown = useGameCountdown(gameDate);
 
   const color = getUrgencyColor(theme, countdown.urgency);
@@ -42,32 +40,37 @@ export default function GameCountdownDisplay({
     },
   } : {};
 
-  // Get formatted date based on timezone toggle
-  const formattedDate = showLocalTime
-    ? getCompactUserTime(gameDate)
-    : getCompactGameTime(gameDate, gameTimezone);
+  // Get formatted dates for both timezones
+  const userTime = getCompactUserTime(gameDate);
+  const gameTime = getCompactGameTime(gameDate, gameTimezone);
 
   return (
     <Box display="flex" flexDirection="column" gap={0.5} flex={1}>
-      {/* Line 1: Date with timezone toggle (ALWAYS) */}
-      <Tooltip title={`Click to toggle: ${showLocalTime ? 'Show game timezone' : 'Show your time'}`}>
+      {/* Line 1: Both times displayed, user time in bold, centered */}
+      <Box display="flex" justifyContent="center" alignItems="center">
         <Typography
           variant={compact ? 'body2' : 'body1'}
           color="text.secondary"
           sx={{
-            cursor: 'pointer',
-            textDecoration: 'underline',
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
+            textAlign: 'center'
           }}
-          onClick={toggleTimezone}
         >
-          {formattedDate}
+          <Box component="span" sx={{ fontWeight: 'bold' }}>
+            {userTime}
+          </Box>
+          {gameTimezone && (
+            <>
+              {' • '}
+              {gameTime}
+            </>
+          )}
         </Typography>
-      </Tooltip>
+      </Box>
 
       {/* Line 2: State indicator + Progress bar */}
       <Box display="flex" alignItems="center" gap={1}>
-        {/* State: "Closed" or "Closes in XXX" */}
+        {/* State: "Cerrado" or "Cierra en XXX" */}
         <motion.div animate={pulsingAnimation} style={{ display: 'flex', alignItems: 'center' }}>
           <Typography
             variant={compact ? 'body2' : 'body1'}

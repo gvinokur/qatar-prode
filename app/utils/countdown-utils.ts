@@ -13,11 +13,11 @@ export function calculateDeadline(gameDate: Date): number {
 
 /**
  * Format milliseconds as human-readable countdown
- * Examples: "3h 45m", "45m", "2 days", "30s"
+ * Examples: "3h 45m", "45m", "2 días", "30s"
  */
 export function formatCountdown(ms: number): string {
   if (ms <= 0) {
-    return 'Closed';
+    return 'Cerrado';
   }
 
   const seconds = Math.floor(ms / 1000);
@@ -26,7 +26,7 @@ export function formatCountdown(ms: number): string {
   const days = Math.floor(hours / 24);
 
   if (days > 0) {
-    return days === 1 ? '1 day' : `${days} days`;
+    return days === 1 ? '1 día' : `${days} días`;
   }
 
   if (hours > 0) {
