@@ -85,7 +85,7 @@ export default function ChecklistStep({ onComplete }: ChecklistStepProps) {
                   Predicciones de Partidos
                 </Typography>
               </Box>
-              <Typography variant="body2" sx={{ pl: 3.5, color: 'rgba(255, 255, 255, 0.8)' }}>
+              <Typography variant="body2" sx={{ pl: 3.5, color: 'text.secondary' }}>
                 Cierran <strong>1 hora antes</strong> del inicio del partido
               </Typography>
             </Box>
@@ -99,7 +99,7 @@ export default function ChecklistStep({ onComplete }: ChecklistStepProps) {
                   Torneo y Clasificación
                 </Typography>
               </Box>
-              <Typography variant="body2" sx={{ pl: 3.5, color: 'rgba(255, 255, 255, 0.8)' }}>
+              <Typography variant="body2" sx={{ pl: 3.5, color: 'text.secondary' }}>
                 Cierran <strong>5 días después</strong> del inicio del torneo
               </Typography>
             </Box>
@@ -113,7 +113,7 @@ export default function ChecklistStep({ onComplete }: ChecklistStepProps) {
                   Boosts
                 </Typography>
               </Box>
-              <Typography variant="body2" sx={{ pl: 3.5, color: 'rgba(255, 255, 255, 0.8)' }}>
+              <Typography variant="body2" sx={{ pl: 3.5, color: 'text.secondary' }}>
                 Se pueden cambiar hasta <strong>1 hora antes</strong> del partido
               </Typography>
             </Box>

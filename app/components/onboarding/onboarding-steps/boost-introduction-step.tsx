@@ -52,7 +52,7 @@ export default function BoostIntroductionStep() {
               Multiplica × 3
             </Typography>
 
-            <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+            <Typography variant="body2" color="text.secondary">
               Triplica tus puntos en tu partido más importante
             </Typography>
 
