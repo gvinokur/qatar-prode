@@ -13,6 +13,9 @@ import time
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+import urllib.request
+import urllib.parse
+import urllib.error
 
 
 class Colors:
@@ -751,6 +754,230 @@ class GitHubProjectsHelper:
 
         return True
 
+    # ==================== SONARCLOUD OPERATIONS ====================
+
+    def _get_sonar_token(self) -> Optional[str]:
+        """Get SonarCloud token from environment."""
+        # Try .env.local file first
+        env_file = self.repo_path / ".env.local"
+        if env_file.exists():
+            for line in env_file.read_text().splitlines():
+                line = line.strip()
+                if line.startswith("SONAR_TOKEN="):
+                    return line.split("=", 1)[1].strip()
+
+        # Fallback to environment variable
+        return os.environ.get("SONAR_TOKEN")
+
+    def _get_sonar_project_key(self) -> str:
+        """Get SonarCloud project key from repository."""
+        # For GitHub repos, SonarCloud typically uses: owner_repo format
+        return f"{self.owner}_{self.repo_name}"
+
+    def get_pr_sonar_issues(self, pr_number: int) -> Dict:
+        """
+        Fetch SonarCloud issues for a PR.
+        Returns issues categorized by severity.
+        """
+        self._header(f"Fetching SonarCloud issues for PR #{pr_number}...")
+
+        # Get SonarCloud token
+        sonar_token = self._get_sonar_token()
+        if not sonar_token:
+            self._error("SONAR_TOKEN not found in .env.local or environment")
+            self._info("Please add SONAR_TOKEN to .env.local")
+            sys.exit(1)
+
+        # Get SonarCloud project key
+        project_key = self._get_sonar_project_key()
+        self._info(f"SonarCloud project: {project_key}")
+
+        # First, fetch PR measures to get coverage and issue counts
+        self._info("Fetching PR measures...")
+
+        base_url = "https://sonarcloud.io/api"
+
+        # Get PR measures
+        measure_params = {
+            "component": project_key,
+            "pullRequest": str(pr_number),
+            "metricKeys": "new_coverage,new_lines_to_cover,new_uncovered_lines,new_bugs,new_vulnerabilities,new_code_smells,new_security_hotspots"
+        }
+
+        measure_url = f"{base_url}/measures/component?{urllib.parse.urlencode(measure_params)}"
+
+        try:
+            req = urllib.request.Request(measure_url)
+            # SonarCloud uses token authentication
+            auth_string = f"{sonar_token}:"
+            import base64
+            auth_header = base64.b64encode(auth_string.encode()).decode()
+            req.add_header("Authorization", f"Basic {auth_header}")
+
+            with urllib.request.urlopen(req) as response:
+                measure_data = json.loads(response.read().decode())
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                self._warning(f"PR #{pr_number} not found in SonarCloud")
+                self._info("This might be normal if SonarCloud hasn't analyzed this PR yet")
+                return {"issues": [], "total": 0, "by_severity": {}, "by_type": {}, "coverage": None}
+            elif e.code == 401:
+                self._error("Invalid SonarCloud token")
+                sys.exit(1)
+            else:
+                self._error(f"SonarCloud API error: {e.code} - {e.reason}")
+                sys.exit(1)
+        except Exception as e:
+            self._error(f"Failed to fetch SonarCloud measures: {e}")
+            sys.exit(1)
+
+        # Extract measures
+        measures = measure_data.get("component", {}).get("measures", [])
+        coverage = None
+        issue_counts = {}
+
+        for measure in measures:
+            metric = measure.get("metric")
+            periods = measure.get("periods", [])
+            if periods:
+                value = periods[0].get("value")
+                if metric == "new_coverage":
+                    coverage = float(value) if value else None
+                elif metric in ["new_bugs", "new_vulnerabilities", "new_code_smells", "new_security_hotspots"]:
+                    issue_counts[metric] = int(value) if value else 0
+
+        self._success(f"Coverage on new code: {coverage:.2f}%" if coverage else "Coverage: N/A")
+
+        # Fetch issues from SonarCloud API
+        self._info("Fetching issues from SonarCloud...")
+
+        # Fetch issues for the PR using pullRequest parameter
+        params = {
+            "componentKeys": project_key,
+            "pullRequest": str(pr_number),
+            "resolved": "false",
+            "ps": "500"  # Page size
+        }
+
+        url = f"{base_url}/issues/search?{urllib.parse.urlencode(params)}"
+
+        try:
+            req = urllib.request.Request(url)
+            req.add_header("Authorization", f"Basic {auth_header}")
+
+            with urllib.request.urlopen(req) as response:
+                data = json.loads(response.read().decode())
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                self._warning(f"PR #{pr_number} not found in SonarCloud")
+                self._info("This might be normal if SonarCloud hasn't analyzed this PR yet")
+                return {"issues": [], "total": 0, "by_severity": {}, "by_type": {}, "coverage": coverage}
+            elif e.code == 401:
+                self._error("Invalid SonarCloud token")
+                sys.exit(1)
+            else:
+                self._error(f"SonarCloud API error: {e.code} - {e.reason}")
+                sys.exit(1)
+        except Exception as e:
+            self._error(f"Failed to fetch SonarCloud issues: {e}")
+            sys.exit(1)
+
+        issues = data.get("issues", [])
+        total = len(issues)
+
+        if total == 0:
+            self._success("No new issues found! ✨")
+            return {
+                "issues": [],
+                "total": 0,
+                "by_severity": {},
+                "by_type": {},
+                "coverage": coverage
+            }
+
+        # Categorize issues
+        by_severity = {}
+        by_type = {}
+
+        for issue in issues:
+            severity = issue.get("severity", "UNKNOWN")
+            issue_type = issue.get("type", "UNKNOWN")
+
+            by_severity[severity] = by_severity.get(severity, 0) + 1
+            by_type[issue_type] = by_type.get(issue_type, 0) + 1
+
+        # Print summary
+        self._header(f"Found {total} New Issues")
+
+        # Print by severity
+        self._print(f"\n{Colors.BOLD}By Severity:{Colors.RESET}")
+        severity_order = {"BLOCKER": 0, "CRITICAL": 1, "MAJOR": 2, "MINOR": 3, "INFO": 4}
+        severity_colors = {
+            "BLOCKER": Colors.RED,
+            "CRITICAL": Colors.RED,
+            "MAJOR": Colors.YELLOW,
+            "MINOR": Colors.CYAN,
+            "INFO": Colors.RESET
+        }
+        severity_emojis = {
+            "BLOCKER": "🔴🔴🔴",
+            "CRITICAL": "🔴🔴",
+            "MAJOR": "🟡",
+            "MINOR": "🟢",
+            "INFO": "ℹ️"
+        }
+
+        for severity in sorted(by_severity.keys(), key=lambda x: severity_order.get(x, 99)):
+            count = by_severity[severity]
+            emoji = severity_emojis.get(severity, "")
+            color = severity_colors.get(severity, Colors.RESET)
+            self._print(f"  {emoji} {severity}: {count}", color)
+
+        # Print by type
+        self._print(f"\n{Colors.BOLD}By Type:{Colors.RESET}")
+        type_emojis = {
+            "BUG": "🐛",
+            "VULNERABILITY": "🔒",
+            "CODE_SMELL": "👃",
+            "SECURITY_HOTSPOT": "🔥"
+        }
+        for issue_type, count in sorted(by_type.items(), key=lambda x: x[1], reverse=True):
+            emoji = type_emojis.get(issue_type, "")
+            print(f"  {emoji} {issue_type}: {count}")
+
+        # Print detailed issues
+        self._print(f"\n{Colors.BOLD}Detailed Issues:{Colors.RESET}\n")
+
+        for i, issue in enumerate(issues, 1):
+            severity = issue.get("severity", "UNKNOWN")
+            issue_type = issue.get("type", "UNKNOWN")
+            message = issue.get("message", "No message")
+            component = issue.get("component", "").replace(f"{project_key}:", "")
+            line = issue.get("line", "?")
+            rule = issue.get("rule", "")
+
+            severity_emoji = severity_emojis.get(severity, "")
+            type_emoji = type_emojis.get(issue_type, "")
+
+            self._print(f"{i}. [{severity_emoji} {severity}] [{type_emoji} {issue_type}]")
+            print(f"   {message}")
+            print(f"   📁 {component}:{line}")
+            print(f"   📋 Rule: {rule}")
+            print()
+
+        # Print SonarCloud URL
+        sonar_url = f"https://sonarcloud.io/project/issues?pullRequest={pr_number}&id={project_key}&resolved=false"
+        self._info(f"View in SonarCloud: {sonar_url}")
+
+        return {
+            "issues": issues,
+            "total": total,
+            "by_severity": by_severity,
+            "by_type": by_type,
+            "coverage": coverage,
+            "sonar_url": sonar_url
+        }
+
 
 def main():
     """Main CLI entry point."""
@@ -773,6 +1000,9 @@ Examples:
 
   # Wait for PR checks to complete
   %(prog)s pr wait-checks 45
+
+  # Get SonarCloud issues for a PR
+  %(prog)s pr sonar-issues 45
 
   # Complete a story (merge PR, close issue, cleanup)
   %(prog)s story complete 123
@@ -823,6 +1053,9 @@ Examples:
     wait_parser.add_argument("--timeout", type=int, default=1800, help="Timeout in seconds (default: 1800)")
     wait_parser.add_argument("--poll-interval", type=int, default=30, help="Poll interval in seconds (default: 30)")
 
+    sonar_parser = pr_subparsers.add_parser("sonar-issues", help="Get SonarCloud issues for a PR")
+    sonar_parser.add_argument("pr_number", type=int, help="PR number")
+
     # Status update commands
     status_parser = subparsers.add_parser("status", help="Update project item status")
     status_subparsers = status_parser.add_subparsers(dest="subcommand")
@@ -869,6 +1102,10 @@ Examples:
         elif args.command == "pr":
             if args.subcommand == "wait-checks":
                 result = helper.wait_for_checks(args.pr_number, args.timeout, args.poll_interval)
+                # Output JSON for programmatic use
+                print(f"\n{json.dumps(result, indent=2)}")
+            elif args.subcommand == "sonar-issues":
+                result = helper.get_pr_sonar_issues(args.pr_number)
                 # Output JSON for programmatic use
                 print(f"\n{json.dumps(result, indent=2)}")
 
