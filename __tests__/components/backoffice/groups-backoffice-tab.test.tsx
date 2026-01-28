@@ -28,6 +28,23 @@ vi.mock('@mui/material', async () => {
   };
 });
 
+// Mock child components
+vi.mock('../../../app/components/backoffice/group-backoffice-tab', () => ({
+  default: vi.fn(() => <div>Group Backoffice Component</div>),
+}));
+
+vi.mock('../../../app/components/backoffice/playoff-tab', () => ({
+  default: vi.fn(() => <div>Playoff Tab Component</div>),
+}));
+
+vi.mock('../../../app/components/backoffice/backoffice-tab-utils', () => ({
+  createTab: vi.fn((label: string, component: React.ReactNode) => ({
+    type: 'labelledTab',
+    label,
+    component,
+  })),
+}));
+
 // Mock the BackofficeTabs component to verify props
 const mockBackofficeTabs = vi.fn(({ tabs, tabIdParam }) => (
   <div data-testid="backoffice-tabs" data-tab-id-param={tabIdParam}>
