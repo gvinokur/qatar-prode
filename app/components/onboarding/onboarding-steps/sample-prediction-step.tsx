@@ -1,19 +1,28 @@
 'use client'
 
-import { Box, Typography, Card, CardContent, Tabs, Tab, Select, MenuItem, FormControl, InputLabel, Chip, Stack, Alert } from '@mui/material'
+import { Box, Typography, Card, CardContent, Tabs, Tab, CardHeader, Grid, Chip, Stack, Alert } from '@mui/material'
 import { useState } from 'react'
 import CompactGameViewCard from '../../compact-game-view-card'
+import TeamSelector from '../../awards/team-selector'
+import MobileFriendlyAutocomplete from '../../awards/mobile-friendly-autocomplete'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import type { Team } from '../../../db/tables-definition'
+import type { ExtendedPlayerData } from '../../../definitions'
 
 // Mock data for demonstration
-const MOCK_GAME = {
-  homeTeam: { name: 'Argentina', flag: '🇦🇷' },
-  awayTeam: { name: 'Brasil', flag: '🇧🇷' },
-  date: '15 Jun 2024 - 18:00'
-}
+const MOCK_TEAMS: Team[] = [
+  { id: '1', name: 'Argentina', short_name: 'ARG', theme: null },
+  { id: '2', name: 'Brasil', short_name: 'BRA', theme: null },
+  { id: '3', name: 'Uruguay', short_name: 'URU', theme: null },
+  { id: '4', name: 'Chile', short_name: 'CHI', theme: null },
+]
 
-const MOCK_TEAMS = ['Argentina', 'Brasil', 'Uruguay', 'Chile']
-const MOCK_PLAYERS = ['Lionel Messi', 'Neymar Jr', 'Luis Suárez', 'Arturo Vidal']
+const MOCK_PLAYERS: ExtendedPlayerData[] = [
+  { id: '1', name: 'Lionel Messi', position: 'Delantero', age_at_tournament: 34, team_id: '1', tournament_id: 'mock', team: MOCK_TEAMS[0] },
+  { id: '2', name: 'Neymar Jr', position: 'Delantero', age_at_tournament: 29, team_id: '2', tournament_id: 'mock', team: MOCK_TEAMS[1] },
+  { id: '3', name: 'Luis Suárez', position: 'Delantero', age_at_tournament: 34, team_id: '3', tournament_id: 'mock', team: MOCK_TEAMS[2] },
+  { id: '4', name: 'Arturo Vidal', position: 'Mediocampista', age_at_tournament: 34, team_id: '4', tournament_id: 'mock', team: MOCK_TEAMS[3] },
+]
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -114,68 +123,82 @@ export default function SamplePredictionStep() {
       </TabPanel>
 
       <TabPanel value={tabValue} index={1}>
-        <Box sx={{ maxWidth: 500, mx: 'auto' }}>
-          <Stack spacing={2}>
-            <FormControl fullWidth size="small">
-              <InputLabel>Campeón</InputLabel>
-              <Select
-                value={champion}
-                label="Campeón"
-                onChange={(e) => setChampion(e.target.value)}
-              >
-                {MOCK_TEAMS.map((team) => (
-                  <MenuItem key={team} value={team}>{team}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+        <Card sx={{ maxWidth: 800, mx: 'auto' }}>
+          <CardHeader title="Podio del Torneo" />
+          <CardContent>
+            <Grid container spacing={3}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TeamSelector
+                  label="Campeón"
+                  teams={MOCK_TEAMS}
+                  selectedTeamId={champion}
+                  name="champion"
+                  disabled={false}
+                  helperText="Selecciona el equipo que predigas que ganará el torneo"
+                  onChange={setChampion}
+                />
+              </Grid>
 
-            <FormControl fullWidth size="small">
-              <InputLabel>Subcampeón</InputLabel>
-              <Select
-                value={runnerUp}
-                label="Subcampeón"
-                onChange={(e) => setRunnerUp(e.target.value)}
-              >
-                {MOCK_TEAMS.map((team) => (
-                  <MenuItem key={team} value={team}>{team}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TeamSelector
+                  label="Subcampeón"
+                  teams={MOCK_TEAMS}
+                  selectedTeamId={runnerUp}
+                  name="runnerUp"
+                  disabled={false}
+                  helperText="Selecciona el equipo que predigas que llegará a la final"
+                  onChange={setRunnerUp}
+                />
+              </Grid>
+            </Grid>
 
-            <Typography variant="body2" sx={{ pt: 1, fontWeight: 'bold' }}>
-              Premios Individuales (4 premios):
+            <Typography variant="body2" sx={{ mt: 3, mb: 2, fontWeight: 'bold' }}>
+              Premios Individuales:
             </Typography>
 
-            <FormControl fullWidth size="small">
-              <InputLabel>Mejor Jugador</InputLabel>
-              <Select
-                value={bestPlayer}
-                label="Mejor Jugador"
-                onChange={(e) => setBestPlayer(e.target.value)}
-              >
-                {MOCK_PLAYERS.map((player) => (
-                  <MenuItem key={player} value={player}>{player}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <Grid container spacing={2}>
+              <Grid size={12}>
+                <MobileFriendlyAutocomplete
+                  options={MOCK_PLAYERS}
+                  value={MOCK_PLAYERS.find(p => p.id === bestPlayer) || null}
+                  onChange={(_, player) => setBestPlayer(player?.id || '')}
+                  getOptionLabel={(option) => option.name}
+                  groupBy={(option) => option.team.name}
+                  renderOption={(props, option) => (
+                    <Box component="li" {...props}>
+                      {option.name} - {option.team.short_name}
+                    </Box>
+                  )}
+                  renderInput={(params) => (
+                    <Box {...params}>
+                      {params.children}
+                    </Box>
+                  )}
+                  label="Mejor Jugador"
+                  disabled={false}
+                />
+              </Grid>
 
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
-              <Chip label="Goleador" size="small" variant="outlined" />
-              <Chip label="Mejor Arquero" size="small" variant="outlined" />
-              <Chip label="Jugador Joven" size="small" variant="outlined" />
-            </Box>
+              <Grid size={12}>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
+                  <Chip label="Goleador" size="small" variant="outlined" />
+                  <Chip label="Mejor Arquero" size="small" variant="outlined" />
+                  <Chip label="Jugador Joven" size="small" variant="outlined" />
+                </Box>
+              </Grid>
+            </Grid>
 
             {(champion || runnerUp || bestPlayer) && (
-              <Typography variant="body2" color="success.main" align="center">
-                ✓ ¡Excelente! También puedes predecir el tercer lugar
-              </Typography>
+              <Alert severity="success" icon={<CheckCircleIcon />} sx={{ mt: 2 }}>
+                ¡Excelente! Así se predicen el podio y los premios del torneo
+              </Alert>
             )}
-          </Stack>
+          </CardContent>
+        </Card>
 
-          <Typography variant="caption" display="block" align="center" sx={{ mt: 2, fontStyle: 'italic' }}>
-            📅 Las predicciones de torneo cierran 5 días después del inicio
-          </Typography>
-        </Box>
+        <Typography variant="caption" display="block" align="center" sx={{ mt: 2, fontStyle: 'italic' }}>
+          📅 Las predicciones de torneo cierran 5 días después del inicio
+        </Typography>
       </TabPanel>
 
       <TabPanel value={tabValue} index={2}>
