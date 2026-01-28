@@ -37,7 +37,7 @@ export default function GroupsTab({tournamentId}:Props) {
         <CircularProgress color="inherit" />
       </Backdrop>
       {!loading && (
-        <BackofficeTabs tabs={[
+        <BackofficeTabs tabIdParam="group" tabs={[
           ...(groups || []).map(group =>
               createTab(
                 `Grupo ${group.group_letter}`,
