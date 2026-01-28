@@ -1,6 +1,6 @@
 'use client'
 
-import { Box, Typography, Card, CardContent, Tabs, Tab, CardHeader, Grid, Chip, Stack, Alert } from '@mui/material'
+import { Box, Typography, Card, CardContent, Tabs, Tab, CardHeader, Grid, Chip, Alert, Table, TableHead, TableRow, TableCell, TableBody, Paper } from '@mui/material'
 import { useState } from 'react'
 import CompactGameViewCard from '../../compact-game-view-card'
 import TeamSelector from '../../awards/team-selector'
@@ -202,56 +202,84 @@ export default function SamplePredictionStep() {
       </TabPanel>
 
       <TabPanel value={tabValue} index={2}>
-        <Box sx={{ maxWidth: 500, mx: 'auto' }}>
+        <Box sx={{ maxWidth: 800, mx: 'auto' }}>
           <Typography variant="body2" align="center" sx={{ mb: 2 }}>
             Las posiciones de clasificación se calculan automáticamente según tus predicciones de partidos
           </Typography>
 
-          <Card elevation={2} sx={{ bgcolor: 'background.paper' }}>
-            <CardContent>
-              <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold' }}>
-                Grupo A - Posiciones Predichas
-              </Typography>
+          <Typography variant="h6" gutterBottom>
+            Tabla de Pronósticos - Grupo A
+          </Typography>
 
-              <Stack spacing={1} sx={{ mt: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1, bgcolor: 'success.light', borderRadius: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="body2" fontWeight="bold">1°</Typography>
-                    <Typography variant="body2">Argentina</Typography>
-                  </Box>
-                  <Typography variant="caption" fontWeight="bold">9 pts</Typography>
-                </Box>
+          <Paper>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: 'primary.main' }}>
+                  <TableCell sx={{ color: 'primary.contrastText' }}>Pos</TableCell>
+                  <TableCell sx={{ color: 'primary.contrastText' }}>Equipo</TableCell>
+                  <TableCell sx={{ color: 'primary.contrastText' }}>Pts</TableCell>
+                  <TableCell sx={{ color: 'primary.contrastText', display: { xs: 'none', md: 'table-cell' } }}>G</TableCell>
+                  <TableCell sx={{ color: 'primary.contrastText', display: { xs: 'none', md: 'table-cell' } }}>E</TableCell>
+                  <TableCell sx={{ color: 'primary.contrastText', display: { xs: 'none', md: 'table-cell' } }}>P</TableCell>
+                  <TableCell sx={{ color: 'primary.contrastText', display: { xs: 'none', md: 'table-cell' } }}>GF</TableCell>
+                  <TableCell sx={{ color: 'primary.contrastText', display: { xs: 'none', md: 'table-cell' } }}>GC</TableCell>
+                  <TableCell sx={{ color: 'primary.contrastText' }}>DG</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                <TableRow sx={{ backgroundColor: 'secondary.main' }}>
+                  <TableCell>1</TableCell>
+                  <TableCell>Argentina</TableCell>
+                  <TableCell>9</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>3</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>0</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>0</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>7</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>2</TableCell>
+                  <TableCell>+5</TableCell>
+                </TableRow>
+                <TableRow sx={{ backgroundColor: 'secondary.main' }}>
+                  <TableCell>2</TableCell>
+                  <TableCell>Uruguay</TableCell>
+                  <TableCell>6</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>2</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>0</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>1</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>5</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>3</TableCell>
+                  <TableCell>+2</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>3</TableCell>
+                  <TableCell>Chile</TableCell>
+                  <TableCell>3</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>1</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>0</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>2</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>3</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>5</TableCell>
+                  <TableCell>-2</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>4</TableCell>
+                  <TableCell>Paraguay</TableCell>
+                  <TableCell>0</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>0</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>0</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>3</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>2</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>7</TableCell>
+                  <TableCell>-5</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </Paper>
 
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1, bgcolor: 'success.light', borderRadius: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="body2" fontWeight="bold">2°</Typography>
-                    <Typography variant="body2">Uruguay</Typography>
-                  </Box>
-                  <Typography variant="caption" fontWeight="bold">6 pts</Typography>
-                </Box>
-
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1, bgcolor: 'grey.100', borderRadius: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="body2" fontWeight="bold">3°</Typography>
-                    <Typography variant="body2">Chile</Typography>
-                  </Box>
-                  <Typography variant="caption">3 pts</Typography>
-                </Box>
-
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1, bgcolor: 'grey.100', borderRadius: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="body2" fontWeight="bold">4°</Typography>
-                    <Typography variant="body2">Paraguay</Typography>
-                  </Box>
-                  <Typography variant="caption">0 pts</Typography>
-                </Box>
-              </Stack>
-
-              <Typography variant="caption" display="block" sx={{ mt: 2, color: 'text.secondary' }}>
-                🟢 Verde = Clasifican a siguiente fase
-              </Typography>
-            </CardContent>
-          </Card>
+          <Alert severity="info" sx={{ mt: 2 }}>
+            <Typography variant="caption">
+              Los equipos con fondo coloreado clasifican a la siguiente fase
+            </Typography>
+          </Alert>
 
           <Typography variant="caption" display="block" align="center" sx={{ mt: 2, fontStyle: 'italic' }}>
             📅 Las clasificaciones también cierran 5 días después del inicio
