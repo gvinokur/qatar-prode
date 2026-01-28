@@ -29,7 +29,7 @@ export default function GameCountdownDisplay({
   gameTimezone,
   compact = false,
   actions,
-}: GameCountdownDisplayProps) {
+}: Readonly<GameCountdownDisplayProps>) {
   const theme = useTheme();
   const { showLocalTime, toggleTimezone } = useTimezone();
   const countdown = useGameCountdown(gameDate);
@@ -48,9 +48,16 @@ export default function GameCountdownDisplay({
 
   // Get formatted date based on timezone toggle
   // If no gameTimezone, just show date without label
-  const currentTime = gameTimezone
-    ? (showLocalTime ? getCompactUserTime(gameDate) : getCompactGameTime(gameDate, gameTimezone))
-    : `${dayjs(gameDate).format('D MMM HH:mm')}`;
+  let currentTime: string;
+  if (gameTimezone) {
+    if (showLocalTime) {
+      currentTime = getCompactUserTime(gameDate);
+    } else {
+      currentTime = getCompactGameTime(gameDate, gameTimezone);
+    }
+  } else {
+    currentTime = `${dayjs(gameDate).format('D MMM HH:mm')}`;
+  }
 
   const toggleText = showLocalTime ? 'Ver horario local' : 'Ver tu horario';
 

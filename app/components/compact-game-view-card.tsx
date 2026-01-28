@@ -88,7 +88,12 @@ export default function CompactGameViewCard({
 }: CompactGameViewCardProps) {
   const theme = useTheme();
   const hasResult = Number.isInteger(homeScore) && Number.isInteger(awayScore);
-  const [publishing, setPublishing] = useState(false)
+  const [publishing, setPublishing] = useState(false);
+
+  // Calculate points for game guess if applicable
+  const pointCalc = specificProps.isGameGuess && specificProps.scoreForGame !== undefined
+    ? calculateFinalPoints(specificProps.scoreForGame, specificProps.boostType)
+    : null;
 
   const handleEditClick = () => {
     if (!disabled || specificProps.isGameFixture) {
@@ -209,24 +214,17 @@ export default function CompactGameViewCard({
                   {specificProps.isGameGuess &&
                     Number.isInteger(specificProps.gameResult?.home_score) &&
                     Number.isInteger(specificProps.gameResult?.away_score) &&
-                    Number.isInteger(specificProps.scoreForGame) && (
+                    Number.isInteger(specificProps.scoreForGame) &&
+                    pointCalc && (
                       <Box display="flex" justifyContent="flex-end">
-                        {(() => {
-                          const pointCalc = calculateFinalPoints(
-                            specificProps.scoreForGame!,
-                            specificProps.boostType
-                          );
-                          return (
-                            <GameCardPointOverlay
-                              gameId={gameNumber.toString()}
-                              points={pointCalc.finalScore}
-                              baseScore={pointCalc.baseScore}
-                              multiplier={pointCalc.multiplier}
-                              boostType={specificProps.boostType || null}
-                              scoreDescription={pointCalc.description}
-                            />
-                          );
-                        })()}
+                        <GameCardPointOverlay
+                          gameId={gameNumber.toString()}
+                          points={pointCalc.finalScore}
+                          baseScore={pointCalc.baseScore}
+                          multiplier={pointCalc.multiplier}
+                          boostType={specificProps.boostType || null}
+                          scoreDescription={pointCalc.description}
+                        />
                       </Box>
                     )}
                   {specificProps.isGameFixture && (

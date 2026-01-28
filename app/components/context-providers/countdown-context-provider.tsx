@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 interface CountdownContextType {
   currentTime: number;
@@ -25,7 +25,7 @@ interface CountdownProviderProps {
  * This prevents performance issues when rendering multiple countdown timers.
  * All countdown components subscribe to this single interval.
  */
-export function CountdownProvider({ children }: CountdownProviderProps) {
+export function CountdownProvider({ children }: Readonly<CountdownProviderProps>) {
   const [currentTime, setCurrentTime] = useState(() => Date.now());
 
   useEffect(() => {
@@ -37,8 +37,10 @@ export function CountdownProvider({ children }: CountdownProviderProps) {
     return () => clearInterval(interval);
   }, []);
 
+  const value = useMemo(() => ({ currentTime }), [currentTime]);
+
   return (
-    <CountdownContext.Provider value={{ currentTime }}>
+    <CountdownContext.Provider value={value}>
       {children}
     </CountdownContext.Provider>
   );
