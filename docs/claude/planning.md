@@ -112,39 +112,93 @@ See \`plans/STORY-${STORY_NUMBER}-plan.md\` for full details.
 
 ### 5. Plan Iteration Phase
 
-**STAY IN PLAN MODE** - This is critical:
-- ❌ DO NOT call ExitPlanMode yet
-- ❌ DO NOT start writing code
-- ❌ DO NOT make changes outside the plan document
-- ✅ Only edit `plans/STORY-${STORY_NUMBER}-plan.md`
+**ITERATE IN A CYCLE** - This is the key pattern:
 
 **When user provides feedback:**
 
-1. Read the feedback from PR comments or direct messages
-2. Update the plan document accordingly
-3. Commit and push changes:
+1. **While IN plan mode:**
+   - Read the feedback from PR comments or direct messages
+   - Update the plan document: `plans/STORY-${STORY_NUMBER}-plan.md`
 
-```bash
-git -C ${WORKTREE_PATH} add plans/STORY-${STORY_NUMBER}-plan.md
-git -C ${WORKTREE_PATH} commit -m "docs: update plan based on feedback
+2. **Exit plan mode temporarily to commit:**
+   ```typescript
+   // Exit ONLY to commit the updated plan
+   ExitPlanMode()
+   ```
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
-git -C ${WORKTREE_PATH} push
-```
+3. **Commit and push the updated plan:**
+   ```bash
+   git -C ${WORKTREE_PATH} add plans/STORY-${STORY_NUMBER}-plan.md
+   git -C ${WORKTREE_PATH} commit -m "docs: update plan based on feedback
 
-4. Continue iterations until user approves
+   Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+   git -C ${WORKTREE_PATH} push
+   ```
 
-### 6. Exit Plan Mode (ONLY when approved)
+4. **Re-enter plan mode to continue iteration:**
+   ```typescript
+   // Return to plan mode to wait for more feedback
+   EnterPlanMode()
+   ```
 
-**Wait for explicit approval:**
+5. **Repeat cycle** until user approves with "execute the plan"
+
+**CRITICAL: Exiting plan mode ≠ Starting implementation**
+- During iteration: Exit → Commit → Re-enter
+- For execution: Exit → Start coding (only when user says "execute the plan")
+
+### 6. Final Exit: Execute the Plan
+
+**THIS IS DIFFERENT from iteration exits - this is the final approval to start coding.**
+
+**Wait for explicit approval signal from user:**
 - User says "execute the plan"
 - User says "start implementation"
 - User says "looks good, proceed"
+- User says "approved, go ahead"
 
-**Then and only then:**
+**ONLY when you receive this signal:**
 ```typescript
-// Exit plan mode to begin implementation
+// Exit plan mode for the LAST TIME to begin implementation
 ExitPlanMode()
+```
+
+**Then start coding according to the approved plan.**
+
+**Reminder:** During iteration (step 5), you exit temporarily to commit plan updates, then re-enter plan mode. This final exit is different - it means you're starting implementation.
+
+## Plan Iteration Cycle (Visual)
+
+```
+┌─────────────────────────────────────────┐
+│         PLAN ITERATION CYCLE            │
+└─────────────────────────────────────────┘
+
+IN PLAN MODE ──────────────────────┐
+  │                                │
+  │ User provides feedback         │
+  │ Update plan document           │
+  │                                │
+  v                                │
+EXIT PLAN MODE (temporarily)       │
+  │                                │
+  │ Commit updated plan            │
+  │ Push to PR                     │
+  │                                │
+  v                                │
+RE-ENTER PLAN MODE ────────────────┘
+  │
+  │ Repeat until user approves
+  │
+  v
+User says "EXECUTE THE PLAN" ──────────────┐
+  │                                         │
+  v                                         │
+FINAL EXIT PLAN MODE                        │
+  │                                         │
+  │ START IMPLEMENTATION                    │
+  │ (Write code)                            │
+  └─────────────────────────────────────────┘
 ```
 
 ## Common Mistakes
@@ -152,10 +206,11 @@ ExitPlanMode()
 | Mistake | Why It's Wrong | Correct Approach |
 |---------|---------------|------------------|
 | Skipping PR for plan | User can't review in familiar interface | Always create PR for plan |
-| Exiting plan mode early | User hasn't approved yet | Wait for "execute the plan" |
-| Starting to code during planning | Premature implementation | Only edit plan document |
-| Not iterating on feedback | Plan doesn't align with user expectations | Update plan, commit, push |
-| Forgetting to commit plan | No PR to review | Always commit and push plan |
+| Confusing iteration exit with final exit | Starting to code during iteration | Exit→Commit→Re-enter during iteration; Final exit only when user says "execute" |
+| Starting to code during planning | Premature implementation | Only edit plan document in plan mode |
+| Not iterating on feedback | Plan doesn't align with user expectations | Update plan, commit, push, re-enter |
+| Forgetting to commit plan updates | Changes not visible in PR | Always exit→commit→re-enter during iteration |
+| Staying in plan mode to commit | Can't run git commands in plan mode | Must exit to commit, then re-enter |
 
 ## Benefits of This Workflow
 
@@ -167,15 +222,25 @@ ExitPlanMode()
 
 ## Examples
 
-### Good Flow
+### Good Flow (with iteration cycle)
 ```
 User: "Implement story #42"
 Claude: [Checks worktree, enters plan mode, researches, creates plan]
+Claude: [Exits plan mode temporarily]
+Claude: [Commits plan, creates PR #123]
+Claude: [Re-enters plan mode]
 Claude: "Created plan at plans/STORY-42-plan.md and opened PR #123"
+
 User: "Add consideration for mobile responsive design"
-Claude: [Updates plan, commits, pushes]
-User: "Looks good, execute the plan"
-Claude: [Exits plan mode, begins implementation]
+Claude: [IN PLAN MODE - Updates plan document]
+Claude: [Exits plan mode temporarily to commit]
+Claude: [Commits updated plan, pushes to PR #123]
+Claude: [Re-enters plan mode]
+Claude: "Updated plan with mobile considerations"
+
+User: "Perfect! Execute the plan"
+Claude: [Exits plan mode for FINAL time]
+Claude: [Begins implementation - writes code]
 ```
 
 ### Bad Flow (DON'T DO THIS)
