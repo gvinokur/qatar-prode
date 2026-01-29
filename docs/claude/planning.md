@@ -70,7 +70,91 @@ PLAN_FILE="${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-plan.md"
 - Validation considerations (SonarCloud requirements, quality gates)
 - Open questions
 
-### 4. Commit Plan and Create PR
+### 4. Plan Review with Subagent (MANDATORY)
+
+**CRITICAL:** Before committing the plan to PR, use a Plan Reviewer subagent to catch issues early.
+
+**Purpose:** Automated review catches feasibility issues, testability concerns, and missing considerations before user review - reducing iteration cycles.
+
+**Process:**
+
+```typescript
+// Step 1: Main agent has created initial plan
+// Read the plan content
+const planContent = await Read({
+  file_path: `${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-plan.md`
+})
+
+// Step 2: Launch Plan Reviewer subagent (use Haiku for speed/cost)
+Task({
+  subagent_type: "general-purpose",
+  model: "haiku",
+  description: "Review implementation plan",
+  prompt: `Review the implementation plan for story #${STORY_NUMBER}.
+
+Original ticket:
+${TICKET_CONTENT}
+
+Implementation plan:
+${planContent}
+
+Review criteria:
+1. **Feasibility**: Is the technical approach sound? Any missing dependencies or blockers?
+2. **Testability**: Can this be easily tested? Are test scenarios clear and comprehensive?
+3. **Boundaries**: Are task boundaries well-defined? Clear success criteria for each step?
+4. **Risks**: Any potential issues, edge cases, security concerns, or architectural problems?
+5. **Quality Gates**: Will this meet SonarCloud requirements (80% coverage on new code, 0 new issues)?
+6. **Completeness**: Any gaps in requirements, acceptance criteria, or implementation steps?
+
+Provide specific, constructive feedback. Focus on issues that would cause problems during implementation.
+If the plan looks solid, say "No significant concerns."
+`
+})
+
+// Step 3: Wait for subagent response
+// Review the feedback
+
+// Step 4: Incorporate feedback into plan
+// Update plans/STORY-${STORY_NUMBER}-plan.md with improvements
+
+// Step 5: Launch second review (2-3 cycles total)
+// Repeat until subagent says "No significant concerns" OR 3 cycles completed
+```
+
+**Review cycle guidelines:**
+- **Cycle 1:** Focus on major issues (feasibility, architecture, missing requirements)
+- **Cycle 2:** Focus on details (testability, edge cases, quality gates)
+- **Cycle 3:** Final check (only if needed, avoid over-iteration)
+
+**Stop conditions:**
+- Reviewer says "No significant concerns"
+- OR 3 review cycles completed (diminishing returns after this)
+
+**Example feedback to incorporate:**
+```
+Reviewer: "Add validation for email uniqueness in the server action.
+Consider what happens if user updates email to one that already exists.
+Also, test strategy should include testing this edge case."
+
+Main agent:
+- Updates "Technical Approach" section with email uniqueness validation
+- Updates "Testing Strategy" with edge case test scenario
+- Launches second review
+```
+
+**Benefits:**
+- Catches 2-3 issues per story before user review
+- Reduces user review cycles (fewer "did you think about X?" comments)
+- Forces consideration of testability and quality gates
+- Improves plan quality with minimal overhead
+
+**Cautions:**
+- Don't over-iterate (>3 cycles = diminishing returns)
+- Reviewer should be constructive, not overly critical
+- Main agent still makes final decisions
+- This doesn't replace user review - it prepares for it
+
+### 5. Commit Plan and Create PR
 
 **CRITICAL STEP - Do NOT skip this:**
 
@@ -110,7 +194,7 @@ See \`plans/STORY-${STORY_NUMBER}-plan.md\` for full details.
 - Plan file location
 - Next steps (waiting for review/feedback)
 
-### 5. Plan Iteration Phase
+### 6. Plan Iteration Phase
 
 **ITERATE IN A CYCLE** - This is the key pattern:
 
@@ -147,7 +231,7 @@ See \`plans/STORY-${STORY_NUMBER}-plan.md\` for full details.
 - During iteration: Exit → Commit → Re-enter
 - For execution: Exit → Start coding (only when user says "execute the plan")
 
-### 6. Final Exit: Execute the Plan
+### 7. Final Exit: Execute the Plan
 
 **THIS IS DIFFERENT from iteration exits - this is the final approval to start coding.**
 
@@ -165,7 +249,9 @@ ExitPlanMode()
 
 **Then start coding according to the approved plan.**
 
-**Reminder:** During iteration (step 5), you exit temporarily to commit plan updates, then re-enter plan mode. This final exit is different - it means you're starting implementation.
+**Reminder:** During iteration (step 6), you exit temporarily to commit plan updates, then re-enter plan mode. This final exit is different - it means you're starting implementation.
+
+**Next:** See [Implementation Guide](implementation.md) for task definition and execution workflow.
 
 ## Plan Iteration Cycle (Visual)
 

@@ -21,6 +21,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Process
 See **[Planning Guide](docs/claude/planning.md)** for complete workflow.
 
+**Plan review with subagent (MANDATORY):**
+- After creating initial plan, use Plan Reviewer subagent for 2-3 review cycles
+- Catches issues early, improves quality before user review
+- See **[Subagent Workflows Guide](docs/claude/subagent-workflows.md)** for details
+
 **Mid-implementation replanning:**
 - If significant feedback requires approach changes, create a "change plan"
 - Enter plan mode again, create `/plans/STORY-{N}-change-1.md`
@@ -64,12 +69,14 @@ git branch --show-current # Verify current branch
 
 For detailed guidance, see:
 
-- **[Planning Guide](docs/claude/planning.md)** - Plan creation, PR workflow, and iteration process
-- **[Validation Guide](docs/claude/validation.md)** - Quality gates, SonarCloud checks, and pre-merge validation
-- **[Git Worktrees Guide](docs/claude/worktrees.md)** - Worktree setup, management, and safety checks
+- **[Planning Guide](docs/claude/planning.md)** - Plan creation, plan review subagent, PR workflow, iteration
+- **[Implementation Guide](docs/claude/implementation.md)** - Task definition, dependencies, execution waves, coding practices
+- **[Testing Guide](docs/claude/testing.md)** - Parallel test creation, testing conventions, requirements
+- **[Validation Guide](docs/claude/validation.md)** - Quality gates, SonarCloud checks, pre-merge validation
+- **[Subagent Workflows Guide](docs/claude/subagent-workflows.md)** - Quick reference for all subagent patterns
+- **[Git Worktrees Guide](docs/claude/worktrees.md)** - Worktree setup, management, safety checks
 - **[GitHub Projects Workflow](docs/claude/github-projects-workflow.md)** - Complete story workflow from start to completion
 - **[Architecture Guide](docs/claude/architecture.md)** - Stack, patterns, server/client boundaries
-- **[Testing Guide](docs/claude/testing.md)** - Testing conventions and requirements
 - **[Helper Script Docs](scripts/README.md)** - Full documentation for `github-projects-helper`
 
 ## Project Context
@@ -109,6 +116,9 @@ Set WORKTREE_PATH    ASK USER:
              ↓
     EnterPlanMode → Research → Create Plan
              ↓
+    Plan Review Subagent (2-3 cycles)
+    Improve plan quality
+             ↓
     Commit Plan & Create PR
              ↓
     STAY IN PLAN MODE
@@ -119,6 +129,11 @@ Set WORKTREE_PATH    ASK USER:
     ExitPlanMode
              ↓
     IMPLEMENTATION PHASE
+    (see docs/claude/implementation.md)
+             ↓
+    Define tasks with TaskCreate
+    Set dependencies with TaskUpdate
+    Implement in execution waves
     Use absolute paths
     Follow approved plan
              ↓
@@ -138,6 +153,9 @@ Set WORKTREE_PATH    ASK USER:
          ↓        ExitPlanMode
          ↓              ↓
          └──────────────┘
+                ↓
+    Create tests in parallel with subagents
+    (see docs/claude/testing.md)
                 ↓
     STOP - Wait for user to test
     Only commit when user asks
@@ -173,6 +191,7 @@ Set WORKTREE_PATH    ASK USER:
 | Skipping planning phase | No alignment before coding | Always plan first, get approval |
 | Not committing plan to PR | User can't review properly | Commit plan, create PR, iterate |
 | Exiting plan mode early | User hasn't approved yet | Stay in plan mode until "execute" |
+| Not using TaskCreate | No progress tracking, can't parallelize | Always define tasks with TaskCreate/TaskUpdate |
 | Making big changes without change plan | Scope creep, misalignment | Create change plan for significant feedback |
 | Ignoring SonarCloud issues | Accumulates technical debt | Fix ALL new issues, no excuses |
 | Auto-fixing quality issues | User loses control | Show issues, ask permission to fix |

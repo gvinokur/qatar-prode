@@ -427,11 +427,195 @@ Check for:
 - File system paths (use cross-platform paths)
 - Environment variables (CI needs same vars as local)
 
+## Parallel Test Creation (RECOMMENDED)
+
+When implementing 2 or more files that need tests, create tests in parallel using subagents for significant time savings.
+
+### When to Use
+
+**ALWAYS use when:**
+- Implementing 2+ components
+- Implementing 2+ utilities
+- Implementing 2+ server actions
+- Implementing 2+ repository functions
+
+**Example:** After implementing files A, B, C - create tests for all 3 in parallel
+
+### Benefits
+
+- **2-3x faster** than sequential test creation
+- **Consistent quality** - all follow same conventions
+- **Cost efficient** - use Haiku model
+- **No dependencies** - tests are naturally independent
+
+### Process
+
+**Step 1: Complete implementation of multiple files**
+
+```typescript
+// Files implemented:
+// - app/components/FeatureA.tsx
+// - app/components/FeatureB.tsx
+// - app/utils/calculator.ts
+```
+
+**Step 2: Launch parallel test subagents**
+
+**CRITICAL: Use a SINGLE message with multiple Task calls for true parallelism**
+
+```typescript
+// Launch 3 subagents in parallel (single message, three Task calls)
+
+// Subagent 1: Test FeatureA component
+Task({
+  subagent_type: "general-purpose",
+  model: "haiku", // Use Haiku for cost efficiency
+  description: "Create tests for FeatureA",
+  prompt: `Create comprehensive tests for the FeatureA component.
+
+Implementation file:
+${await Read({ file_path: \`\${WORKTREE_PATH}/app/components/FeatureA.tsx\` })}
+
+Testing conventions:
+${await Read({ file_path: '/Users/gvinokur/Personal/qatar-prode/docs/claude/testing.md' })}
+
+Requirements:
+1. Create test file at: \${WORKTREE_PATH}/__tests__/components/FeatureA.test.tsx
+2. Use Vitest + @testing-library/react
+3. Test all user interactions and rendering scenarios
+4. Test edge cases and error handling
+5. Aim for >80% coverage
+6. Follow Arrange-Act-Assert pattern
+7. Use existing tests as examples (e.g., __tests__/components/GameCard.test.tsx)
+
+Use the Write tool to create the test file.
+`
+})
+
+// Subagent 2: Test FeatureB component (parallel to Subagent 1)
+Task({
+  subagent_type: "general-purpose",
+  model: "haiku",
+  description: "Create tests for FeatureB",
+  prompt: `Create comprehensive tests for the FeatureB component.
+
+Implementation file:
+${await Read({ file_path: \`\${WORKTREE_PATH}/app/components/FeatureB.tsx\` })}
+
+Requirements:
+1. Create test file at: \${WORKTREE_PATH}/__tests__/components/FeatureB.test.tsx
+2. Use Vitest + @testing-library/react
+3. Test all props combinations and interactions
+4. Test edge cases
+5. Aim for >80% coverage
+
+Use the Write tool to create the test file.
+`
+})
+
+// Subagent 3: Test calculator utility (parallel to Subagents 1 & 2)
+Task({
+  subagent_type: "general-purpose",
+  model: "haiku",
+  description: "Create tests for calculator",
+  prompt: `Create comprehensive tests for the calculator utility.
+
+Implementation file:
+${await Read({ file_path: \`\${WORKTREE_PATH}/app/utils/calculator.ts\` })}
+
+Requirements:
+1. Create test file at: \${WORKTREE_PATH}/__tests__/utils/calculator.test.ts
+2. Use Vitest
+3. Test all functions with multiple scenarios
+4. Test edge cases (empty inputs, boundaries, invalid data)
+5. Aim for 100% coverage (utilities should be fully tested)
+
+Use the Write tool to create the test file.
+`
+})
+```
+
+**Step 3: Review subagent outputs**
+
+```typescript
+// After all subagents complete, review each test file
+Read({ file_path: `${WORKTREE_PATH}/__tests__/components/FeatureA.test.tsx` })
+Read({ file_path: `${WORKTREE_PATH}/__tests__/components/FeatureB.test.tsx` })
+Read({ file_path: `${WORKTREE_PATH}/__tests__/utils/calculator.test.ts` })
+
+// Check for:
+// - Proper structure (describe blocks, it blocks)
+// - Good test coverage (happy path + edge cases)
+// - Correct imports and setup
+// - Following conventions (Arrange-Act-Assert)
+// - Descriptive test names
+```
+
+**Step 4: Run all tests and verify**
+
+```bash
+# Run all new tests
+npm run test
+
+# Check coverage
+npm run coverage
+
+# Expected: All tests pass, >80% coverage on new code
+```
+
+**Step 5: Fix any issues**
+
+If tests fail or coverage is low:
+- Review test logic
+- Add missing test cases
+- Fix implementation bugs if found
+
+### Context for Test Subagents
+
+**Include in subagent prompt:**
+- ✅ Implementation file being tested
+- ✅ Testing conventions (this document or key excerpts)
+- ✅ Example test file as reference (optional but helpful)
+- ✅ Related types/interfaces (if component uses them)
+
+**DO NOT include:**
+- ❌ Entire codebase
+- ❌ Unrelated files
+- ❌ Multiple example test files (pick best one)
+
+### Example: Testing 3 Files
+
+```
+Implementation complete:
+- app/components/ProfileForm.tsx
+- app/actions/profile-actions.ts
+- app/db/profile-repository.ts
+
+Launch 3 test subagents in parallel:
+1. Test ProfileForm component (UI interactions, validation)
+2. Test profile-actions (server action logic, auth checks)
+3. Test profile-repository (database queries)
+
+Wait for completion: ~5 minutes (vs ~15 minutes sequential)
+Review: Check structure and coverage
+Run: npm run test (all should pass)
+Result: 3 test files created in parallel, >80% coverage
+```
+
+### When NOT to Use Parallel Test Creation
+
+**Don't parallelize when:**
+- Only 1 file needs tests (overhead not worth it)
+- Tests have dependencies on each other (rare, but possible)
+- Implementation is still in flux (wait until stable)
+
+**Instead:** Create tests sequentially yourself
+
 ## Writing Tests for New Code
 
 When implementing new features:
 
-1. **Write tests BEFORE implementation** (TDD approach)
+1. **Create tests in parallel** if 2+ files implemented (see above)
 2. **Test happy path AND edge cases**
 3. **Aim for >80% coverage on new code**
 4. **Run tests locally before pushing**: `npm run test`
