@@ -321,6 +321,24 @@ TaskUpdate({
 - Follow architecture and coding guidelines
 - Add appropriate error handling and types
 
+**Run checks frequently during development:**
+```bash
+# Run tests for files you've modified
+npm --prefix ${WORKTREE_PATH} run test
+
+# Check for linting issues
+npm --prefix ${WORKTREE_PATH} run lint
+
+# Verify build still works
+npm --prefix ${WORKTREE_PATH} run build
+```
+
+**Why run checks during development:**
+- Catch issues early (easier to fix)
+- Faster feedback loop
+- Avoid accumulating errors
+- Less work at validation phase
+
 **Example implementation:**
 
 ```typescript

@@ -50,7 +50,26 @@ npm --prefix ${WORKTREE_PATH} run test
 # ✗ Tests failing → Fix tests first, don't proceed to validation
 ```
 
-### 3. Build Production
+### 3. Run Linter
+
+```bash
+# Run ESLint to catch code quality issues
+npm --prefix ${WORKTREE_PATH} run lint
+
+# Check linting results
+# ✓ No linting errors → Continue
+# ✗ Linting errors found → Fix errors first
+```
+
+**Common linting issues:**
+- Unused imports/variables
+- Missing semicolons
+- Inconsistent formatting
+- Type errors (if using TypeScript ESLint)
+
+**Fix linting issues before proceeding** - Don't push code with linting errors.
+
+### 4. Build Production
 
 ```bash
 # Ensure production build succeeds
@@ -60,7 +79,7 @@ npm --prefix ${WORKTREE_PATH} run build
 # ✗ Build fails → Fix build errors first
 ```
 
-### 4. Commit and Push
+### 5. Commit and Push
 
 ```bash
 # Commit final implementation (if not already committed)
@@ -73,7 +92,7 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 git -C ${WORKTREE_PATH} push
 ```
 
-### 5. Wait for CI/CD Checks
+### 6. Wait for CI/CD Checks
 
 ```bash
 # Wait for Vercel and SonarCloud
@@ -90,7 +109,7 @@ git -C ${WORKTREE_PATH} push
 ./scripts/github-projects-helper pr sonar-issues ${PR_NUMBER}
 ```
 
-### 6. Analyze SonarCloud Results
+### 7. Analyze SonarCloud Results
 
 **Get SonarCloud issues using helper script:**
 ```bash
@@ -147,7 +166,7 @@ Detailed Issues:
 
 **IMPORTANT:** ALL new issues must be fixed, regardless of severity. Even MINOR code smells must be resolved before merge.
 
-### 7. Handle Quality Gate Failures
+### 8. Handle Quality Gate Failures
 
 **If SonarCloud reports new issues:**
 
@@ -236,7 +255,7 @@ Would you like me to add tests to improve coverage?
 3. **Add tests (if authorized)**
 4. **Commit, push, re-validate**
 
-### 8. Validate Vercel Deployment
+### 9. Validate Vercel Deployment
 
 **Check deployment:**
 ```bash
@@ -254,7 +273,7 @@ gh pr view ${PR_NUMBER} --json statusCheckRollup --jq '.statusCheckRollup[] | se
 - Fix build/runtime errors
 - Commit, push, re-validate
 
-### 9. Final Quality Gate Confirmation
+### 10. Final Quality Gate Confirmation
 
 **Present summary to user:**
 ```
@@ -327,6 +346,8 @@ Implementation Complete
 User: "Code looks good, I'm satisfied"
          ↓
 Run Local Tests (npm run test)
+         ↓
+Run Linter (npm run lint)
          ↓
 Build Production (npm run build)
          ↓

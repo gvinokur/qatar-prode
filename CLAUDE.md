@@ -165,7 +165,7 @@ Set WORKTREE_PATH    ASK USER:
     VALIDATION PHASE (MANDATORY)
     (see docs/claude/validation.md)
                 ↓
-    Run tests → Build → Commit → Push
+    Run tests → Lint → Build → Commit → Push
                 ↓
     Wait for CI/CD checks
                 ↓
