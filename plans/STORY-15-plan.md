@@ -348,28 +348,35 @@ GuessesContext updates
 
 ## Implementation Order
 
+### Phase 0: Data Availability (MUST DO FIRST)
+1. **Create `findGamesClosingWithin48Hours`** - New repository function in game-repository.ts
+2. **Create server action wrapper** - Add to tournament-actions.ts
+3. **Update tournament landing page** - Fetch and pass closing games
+4. **Update playoffs page** - Fetch and pass closing games
+5. **Test data fetching** - Verify all closing games are available
+
 ### Phase 1: Base Components (Build bottom-up)
-1. **UrgencyGameCard** - Atomic component, easiest to test in isolation
-2. **UrgencyAccordion** - Uses UrgencyGameCard, test grouping logic
-3. **UrgencyAccordionGroup** - Container, test filtering and state management
+6. **UrgencyGameCard** - Atomic component, easiest to test in isolation
+7. **UrgencyAccordion** - Uses UrgencyGameCard, test grouping logic
+8. **UrgencyAccordionGroup** - Container, test filtering and state management
 
 ### Phase 2: Integration
-4. **PredictionStatusBar** - Add conditional rendering
-5. **PredictionDashboard** - Pass new props
-6. **Manual Testing** - Verify accordions appear and work
+9. **PredictionStatusBar** - Add conditional rendering
+10. **PredictionDashboard** - Pass new props (if needed)
+11. **Manual Testing** - Verify accordions appear and work on all pages
 
 ### Phase 3: Edit Integration
-7. **GameResultEditDialog in UrgencyAccordionGroup** - Copy pattern from GamesGrid
-8. **Test prediction flow** - Edit → save → context update → re-render
+12. **GameResultEditDialog in UrgencyAccordionGroup** - Copy pattern from GamesGrid
+13. **Test prediction flow** - Edit → save → context update → re-render
 
 ### Phase 4: Polish
-9. **Styling refinements** - Match existing theme, responsive breakpoints
-10. **Edge cases** - Empty states, tier transitions, mobile optimization
+14. **Styling refinements** - Match existing theme, responsive breakpoints
+15. **Edge cases** - Empty states, tier transitions, mobile optimization
 
 ### Phase 5: Testing
-12. **Unit tests** - All new components
-13. **Integration tests** - Full prediction flow
-14. **Accessibility** - Keyboard navigation, screen readers
+16. **Unit tests** - All new components + repository function
+17. **Integration tests** - Full prediction flow on all page types
+18. **Accessibility** - Keyboard navigation, screen readers
 
 ---
 
@@ -411,6 +418,14 @@ GuessesContext updates
 
 ### Unit Tests (Required for 80% coverage)
 
+#### `__tests__/db/game-repository.test.ts`
+- ✓ `findGamesClosingWithin48Hours` returns games closing within 48 hours
+- ✓ Excludes games closing after 48 hours
+- ✓ Excludes games that have already closed (> 2 hours ago)
+- ✓ Returns games sorted by date ascending
+- ✓ Includes group and playoff stage information
+- ✓ Returns empty array when no games closing
+
 #### `__tests__/components/urgency-accordion-group.test.tsx`
 - ✓ Filters games by urgency tier correctly
 - ✓ Hides tiers with no games
@@ -448,6 +463,153 @@ GuessesContext updates
 
 ---
 
+## Data Availability Fix (CRITICAL)
+
+### Problem
+Currently, some pages don't have access to all games closing within 48 hours:
+
+1. **Tournament landing page** (`/tournaments/[id]/page.tsx`):
+   - Calls `getGamesAroundMyTime` → `findGamesAroundCurrentTime`
+   - Returns only **5 games** closest to current time (`.limit(5)`)
+   - Does NOT pass games to PredictionStatusBar
+   - Accordion cannot show closing games without data
+
+2. **Playoffs page** (`/tournaments/[id]/playoffs/page.tsx`):
+   - Uses `TabbedPlayoffsPage` with `PredictionDashboard`
+   - PredictionDashboard receives only games for current tab/round
+   - Dashboard stats are tournament-wide but games are per-section
+   - Accordion would show counts but missing games from other rounds
+
+### Solution
+
+#### 1. Create new repository function
+
+**File**: `/Users/gvinokur/Personal/qatar-prode-story-15/app/db/game-repository.ts`
+
+```typescript
+/**
+ * Find all games closing within 48 hours (deadline = game_date - 1 hour)
+ * Used by accordion to show urgent/warning/notice games
+ */
+export const findGamesClosingWithin48Hours = cache(async (tournamentId: string) => {
+  const now = new Date();
+  const in48Hours = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+
+  return await db.selectFrom(tableName)
+    .selectAll()
+    .select((eb) => [
+      // Include group info
+      jsonObjectFrom(
+        eb.selectFrom('tournament_group_games')
+          .innerJoin('tournament_groups', 'tournament_groups.id', 'tournament_group_games.tournament_group_id')
+          .whereRef('tournament_group_games.game_id', '=', 'games.id')
+          .select(['tournament_group_games.tournament_group_id', 'tournament_groups.group_letter'])
+      ).as('group'),
+      // Include playoff info
+      jsonObjectFrom(
+        eb.selectFrom('tournament_playoff_round_games')
+          .innerJoin('tournament_playoff_rounds', 'tournament_playoff_rounds.id', 'tournament_playoff_round_games.tournament_playoff_round_id')
+          .whereRef('tournament_playoff_round_games.game_id', '=', 'games.id')
+          .select(['tournament_playoff_round_games.tournament_playoff_round_id', 'tournament_playoff_rounds.round_name'])
+      ).as('playoffStage'),
+      // Include result info
+      jsonObjectFrom(
+        eb.selectFrom('game_results')
+          .whereRef('game_results.game_id', '=', 'games.id')
+          .selectAll()
+      ).as('gameResult')
+    ])
+    .where('tournament_id', '=', tournamentId)
+    // Game deadline = game_date - 1 hour, so we check game_date - 1 hour < now + 48 hours
+    .where('game_date', '<', in48Hours)
+    // Only include games that haven't closed yet (deadline > now - 1 hour buffer)
+    .where('game_date', '>', sql`NOW() - interval '2 hours'`)
+    .orderBy('game_date', 'asc')
+    .execute() as ExtendedGameData[];
+});
+```
+
+#### 2. Create server action wrapper
+
+**File**: `/Users/gvinokur/Personal/qatar-prode-story-15/app/actions/tournament-actions.ts`
+
+```typescript
+export async function getGamesClosingWithin48Hours(tournamentId: string) {
+  return await findGamesClosingWithin48Hours(tournamentId);
+}
+```
+
+#### 3. Update tournament landing page
+
+**File**: `/Users/gvinokur/Personal/qatar-prode-story-15/app/tournaments/[id]/page.tsx`
+
+Changes around lines 35-36:
+```typescript
+// OLD: Only 5 games around current time
+// const gamesAroundMyTime = await getGamesAroundMyTime(tournamentId);
+
+// NEW: Get games for display + all closing games for accordion
+const gamesAroundMyTime = await getGamesAroundMyTime(tournamentId);
+const closingGames = user ? await getGamesClosingWithin48Hours(tournamentId) : [];
+```
+
+Changes around lines 86-99:
+```typescript
+{user && dashboardStats && tournament && (
+  <PredictionStatusBar
+    totalGames={dashboardStats.totalGames}
+    predictedGames={dashboardStats.predictedGames}
+    silverUsed={dashboardStats.silverUsed}
+    silverMax={tournament.max_silver_games ?? 0}
+    goldenUsed={dashboardStats.goldenUsed}
+    goldenMax={tournament.max_golden_games ?? 0}
+    urgentGames={dashboardStats.urgentGames}
+    warningGames={dashboardStats.warningGames}
+    noticeGames={dashboardStats.noticeGames}
+    // NEW: Pass closing games and related data for accordion
+    games={closingGames}
+    teamsMap={teamsMap}
+    tournamentId={tournamentId}
+    isPlayoffs={false}
+    tournamentPredictions={tournamentPredictionCompletion ?? undefined}
+    tournamentStartDate={tournamentStartDate}
+  />
+)}
+```
+
+**Note**: We need to fetch `gameGuesses` from context or pass it as prop. Since this is a server component, we'll handle this by:
+1. PredictionStatusBar receives games but NO gameGuesses
+2. Inside PredictionStatusBar, pass to UrgencyAccordionGroup
+3. UrgencyAccordionGroup is client component, uses GuessesContext
+
+Actually, PredictionStatusBar is already 'use client', so it can use the context directly.
+
+#### 4. Update playoffs page
+
+**File**: `/Users/gvinokur/Personal/qatar-prode-story-15/app/tournaments/[id]/playoffs/page.tsx`
+
+Changes around line 29-36:
+```typescript
+const completePlayoffData = await getCompletePlayoffData(params.id, false)
+const tournament = await findTournamentById(params.id)
+
+// NEW: Get all closing games for accordion
+const closingGames = isLoggedIn ? await getGamesClosingWithin48Hours(params.id) : [];
+
+let userGameGuesses: GameGuess[] = [];
+```
+
+Then pass `closingGames` to TabbedPlayoffsPage and update its PredictionDashboard call to use all closing games instead of per-section games.
+
+**Alternative approach**: Keep per-section games for the grid, but have PredictionStatusBar receive ALL closing games. This means:
+- TabbedPlayoffsPage receives both `sections` and `closingGames` as separate props
+- PredictionDashboard uses `section.games` for grid
+- PredictionStatusBar uses `closingGames` for accordion
+
+This is cleaner - accordion shows ALL urgent games tournament-wide, grid shows section-specific games.
+
+---
+
 ## Critical Files Reference
 
 **Files to Create**:
@@ -458,6 +620,10 @@ GuessesContext updates
 **Files to Modify**:
 - `/Users/gvinokur/Personal/qatar-prode-story-15/app/components/prediction-status-bar.tsx` (lines 12-27, 286-299)
 - `/Users/gvinokur/Personal/qatar-prode-story-15/app/components/prediction-dashboard.tsx` (lines 114-124)
+- `/Users/gvinokur/Personal/qatar-prode-story-15/app/db/game-repository.ts` (add `findGamesClosingWithin48Hours`)
+- `/Users/gvinokur/Personal/qatar-prode-story-15/app/actions/tournament-actions.ts` (add `getGamesClosingWithin48Hours`)
+- `/Users/gvinokur/Personal/qatar-prode-story-15/app/tournaments/[id]/page.tsx` (fetch and pass closing games)
+- `/Users/gvinokur/Personal/qatar-prode-story-15/app/tournaments/[id]/playoffs/page.tsx` (fetch and pass closing games)
 
 **Files to Reference (No Changes)**:
 - `/Users/gvinokur/Personal/qatar-prode-story-15/app/components/game-countdown-display.tsx` - Reuse for countdown
@@ -472,10 +638,17 @@ GuessesContext updates
 
 ### Manual Testing Checklist
 
-1. **Load tournament page**
+1. **Load tournament landing page** (`/tournaments/[id]`)
    - ✓ Accordions render instead of static alerts
+   - ✓ All closing games available (not just 5 around current time)
    - ✓ Games correctly grouped by urgency tier
-   - ✓ Urgent tier auto-expanded (if has games)
+   - ✓ Urgent tier auto-expanded (if has unpredicted games)
+
+1b. **Load playoffs page** (`/tournaments/[id]/playoffs`)
+   - ✓ Accordions render on each tab
+   - ✓ Accordions show ALL closing games (not just current tab)
+   - ✓ Dashboard stats match tournament-wide data
+   - ✓ Urgent tier auto-expanded (if has unpredicted games)
 
 2. **Expand/Collapse Accordions**
    - ✓ Only one accordion open at a time
@@ -547,15 +720,16 @@ npx tsc --noEmit
 ## Success Criteria
 
 1. ✅ Users can see WHICH games are closing (not just counts)
-2. ✅ Users can edit predictions directly from accordion (no scrolling)
-3. ✅ Urgent tier auto-expands by default
-4. ✅ Games grouped into "REQUIEREN ACCIÓN" and "YA PREDICHOS"
-5. ✅ Real-time countdown timers update every second
-6. ✅ Boost badges visible when applied
-7. ✅ Mobile responsive (1/2/3 column layouts)
-8. ✅ Backward compatible (pages without new props show static alerts)
-9. ✅ 80% test coverage on new code
-10. ✅ 0 new SonarCloud issues
+2. ✅ **ALL closing games available on all pages** (tournament, playoffs, groups)
+3. ✅ Users can edit predictions directly from accordion (no scrolling)
+4. ✅ Urgent tier auto-expands if unpredicted urgent games exist
+5. ✅ Games grouped into "REQUIEREN ACCIÓN" and "YA PREDICHOS"
+6. ✅ Real-time countdown timers update every second
+7. ✅ Boost badges visible when applied
+8. ✅ Mobile responsive (1/2/3 column layouts)
+9. ✅ Backward compatible (pages without new props show static alerts)
+10. ✅ 80% test coverage on new code
+11. ✅ 0 new SonarCloud issues
 
 ---
 
