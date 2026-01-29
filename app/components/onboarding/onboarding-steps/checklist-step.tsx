@@ -69,10 +69,10 @@ export default function ChecklistStep({ onComplete }: ChecklistStepProps) {
         </List>
 
         {/* Deadline Education Box */}
-        <Paper elevation={2} sx={{ p: 2, bgcolor: 'info.dark', border: '1px solid', borderColor: 'info.main' }}>
+        <Paper elevation={2} sx={{ p: 2, bgcolor: 'action.hover', border: '2px solid', borderColor: 'info.main' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-            <LockClockIcon sx={{ color: 'info.light' }} />
-            <Typography variant="subtitle1" fontWeight="bold" color="info.contrastText">
+            <LockClockIcon sx={{ color: 'info.main' }} />
+            <Typography variant="subtitle1" fontWeight="bold">
               ⏰ Plazos de Predicción
             </Typography>
           </Box>
@@ -80,8 +80,8 @@ export default function ChecklistStep({ onComplete }: ChecklistStepProps) {
           <Stack spacing={1.5}>
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                <AccessTimeIcon sx={{ fontSize: 20, color: 'info.light' }} />
-                <Typography variant="body2" fontWeight="bold" color="info.contrastText">
+                <AccessTimeIcon sx={{ fontSize: 20, color: 'info.main' }} />
+                <Typography variant="body2" fontWeight="bold">
                   Predicciones de Partidos
                 </Typography>
               </Box>
@@ -90,12 +90,12 @@ export default function ChecklistStep({ onComplete }: ChecklistStepProps) {
               </Typography>
             </Box>
 
-            <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.2)' }} />
+            <Divider sx={{ borderColor: 'divider' }} />
 
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                <AccessTimeIcon sx={{ fontSize: 20, color: 'info.light' }} />
-                <Typography variant="body2" fontWeight="bold" color="info.contrastText">
+                <AccessTimeIcon sx={{ fontSize: 20, color: 'info.main' }} />
+                <Typography variant="body2" fontWeight="bold">
                   Torneo y Clasificación
                 </Typography>
               </Box>
@@ -104,12 +104,12 @@ export default function ChecklistStep({ onComplete }: ChecklistStepProps) {
               </Typography>
             </Box>
 
-            <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.2)' }} />
+            <Divider sx={{ borderColor: 'divider' }} />
 
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                <LocalFireDepartmentIcon sx={{ fontSize: 20, color: 'warning.light' }} />
-                <Typography variant="body2" fontWeight="bold" color="info.contrastText">
+                <LocalFireDepartmentIcon sx={{ fontSize: 20, color: 'warning.main' }} />
+                <Typography variant="body2" fontWeight="bold">
                   Boosts
                 </Typography>
               </Box>
