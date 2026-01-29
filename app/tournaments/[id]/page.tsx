@@ -9,13 +9,15 @@ import FriendGroupsList from "../../components/tournament-page/friend-groups-lis
 import {getGroupsForUser} from "../../actions/prode-group-actions";
 import {getLoggedInUser} from "../../actions/user-actions";
 import {UserTournamentStatistics} from "../../components/tournament-page/user-tournament-statistics";
-import {getPredictionDashboardStats, getGameGuessStatisticsForUsers} from "../../db/game-guess-repository";
+import {getPredictionDashboardStats, getGameGuessStatisticsForUsers, findGameGuessesByUserId} from "../../db/game-guess-repository";
 import {findTournamentGuessByUserIdTournament} from "../../db/tournament-guess-repository";
 import {unstable_ViewTransition as ViewTransition} from "react";
 import {findTournamentById} from "../../db/tournament-repository";
 import {PredictionStatusBar} from "../../components/prediction-status-bar";
 import type {ScoringConfig} from "../../components/tournament-page/rules";
 import {getTournamentPredictionCompletion} from "../../db/tournament-prediction-completion-repository";
+import {GuessesContextProvider} from "../../components/context-providers/guesses-context-provider";
+import {customToMap} from "../../utils/ObjectUtils";
 
 type Props = {
   readonly params: Promise<{
@@ -40,6 +42,10 @@ export default async function TournamentLandingPage(props: Props) {
 
   // Fetch dashboard stats for prediction tracking
   const dashboardStats = user ? await getPredictionDashboardStats(user.id, tournamentId) : null
+
+  // Fetch game guesses for context provider (needed for accordion)
+  const gameGuessesArray = user ? await findGameGuessesByUserId(user.id, tournamentId) : []
+  const gameGuesses = customToMap(gameGuessesArray, (gameGuess) => gameGuess.game_id)
 
   const userGameStatisticList = user ?
     await getGameGuessStatisticsForUsers([user.id], tournamentId) :
@@ -86,22 +92,28 @@ export default async function TournamentLandingPage(props: Props) {
         exit={'group-exit'}>
         <Grid container maxWidth={'868px'} mt={1} mx={{md: 'auto'}} spacing={2}>
           <Grid size={{ xs:12, md: 8 }}>
-            {user && dashboardStats && tournament && (
-              <PredictionStatusBar
-                totalGames={dashboardStats.totalGames}
-                predictedGames={dashboardStats.predictedGames}
-                silverUsed={dashboardStats.silverUsed}
-                silverMax={tournament.max_silver_games ?? 0}
-                goldenUsed={dashboardStats.goldenUsed}
-                goldenMax={tournament.max_golden_games ?? 0}
-                tournamentPredictions={tournamentPredictionCompletion ?? undefined}
-                tournamentId={tournamentId}
-                tournamentStartDate={tournamentStartDate}
-                games={closingGames}
-                teamsMap={teamsMap}
-                isPlayoffs={false}
-              />
-            )}
+            {user && dashboardStats && tournament ? (
+              <GuessesContextProvider
+                gameGuesses={gameGuesses}
+                groupGames={[]}
+                autoSave={true}
+              >
+                <PredictionStatusBar
+                  totalGames={dashboardStats.totalGames}
+                  predictedGames={dashboardStats.predictedGames}
+                  silverUsed={dashboardStats.silverUsed}
+                  silverMax={tournament.max_silver_games ?? 0}
+                  goldenUsed={dashboardStats.goldenUsed}
+                  goldenMax={tournament.max_golden_games ?? 0}
+                  tournamentPredictions={tournamentPredictionCompletion ?? undefined}
+                  tournamentId={tournamentId}
+                  tournamentStartDate={tournamentStartDate}
+                  games={closingGames}
+                  teamsMap={teamsMap}
+                  isPlayoffs={false}
+                />
+              </GuessesContextProvider>
+            ) : null}
             <Fixtures games={gamesAroundMyTime} teamsMap={teamsMap}/>
           </Grid>
           <Grid size={{ xs:12, md: 4 }}>
