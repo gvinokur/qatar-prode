@@ -6,8 +6,7 @@ import {
   AccordionSummary,
   AccordionDetails,
   Box,
-  Typography,
-  Alert
+  Typography
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Grid } from './mui-wrappers';
@@ -74,26 +73,19 @@ export function UrgencyAccordion({
         aria-controls={`${tierId}-content`}
         id={`${tierId}-header`}
         sx={{
+          bgcolor: severity === 'error' ? 'error.main' : severity === 'warning' ? 'warning.main' : 'info.main',
+          color: 'white',
           '&:hover': {
-            bgcolor: 'action.hover'
+            bgcolor: severity === 'error' ? 'error.dark' : severity === 'warning' ? 'warning.dark' : 'info.dark',
+          },
+          '& .MuiAccordionSummary-content': {
+            my: 1
           }
         }}
       >
-        <Alert
-          severity={severity}
-          icon={false}
-          sx={{
-            width: '100%',
-            py: 0,
-            px: 1,
-            '& .MuiAlert-message': {
-              width: '100%',
-              py: 0.5
-            }
-          }}
-        >
+        <Typography variant="body2" sx={{ fontWeight: 600 }}>
           {title}
-        </Alert>
+        </Typography>
       </AccordionSummary>
 
       <AccordionDetails sx={{ pt: 2 }}>

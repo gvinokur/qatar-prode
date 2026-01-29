@@ -180,11 +180,23 @@ export function UrgencyAccordionGroup({
   const { homeTeamName, awayTeamName } = getTeamNames();
   const gameGuess = selectedGame ? gameGuesses[selectedGame.id] : undefined;
 
-  // Build title messages with Spanish pluralization
-  const buildTitle = (count: number, timeframe: string): string => {
-    const plural = count > 1;
-    return `${count} partido${plural ? 's' : ''} cierra${plural ? 'n' : ''} en ${timeframe}`;
+  // Build title messages with Spanish pluralization and unpredicted count
+  const buildTitle = (totalCount: number, unpredictedCount: number, timeframe: string): string => {
+    const plural = totalCount > 1;
+    let title = `${totalCount} partido${plural ? 's' : ''} cierra${plural ? 'n' : ''} en ${timeframe}`;
+
+    if (unpredictedCount > 0) {
+      const unpredictedPlural = unpredictedCount > 1;
+      title += `, ${unpredictedCount} sin predecir`;
+    }
+
+    return title;
   };
+
+  // Calculate unpredicted counts for each tier
+  const urgentUnpredicted = filteredGames.urgent.filter(game => !isPredicted(game)).length;
+  const warningUnpredicted = filteredGames.warning.filter(game => !isPredicted(game)).length;
+  const noticeUnpredicted = filteredGames.notice.filter(game => !isPredicted(game)).length;
 
   return (
     <>
@@ -193,7 +205,7 @@ export function UrgencyAccordionGroup({
         {filteredGames.urgent.length > 0 && (
           <UrgencyAccordion
             severity="error"
-            title={buildTitle(filteredGames.urgent.length, '2 horas')}
+            title={buildTitle(filteredGames.urgent.length, urgentUnpredicted, '2 horas')}
             games={filteredGames.urgent}
             teamsMap={teamsMap}
             gameGuesses={gameGuesses}
@@ -208,7 +220,7 @@ export function UrgencyAccordionGroup({
         {filteredGames.warning.length > 0 && (
           <UrgencyAccordion
             severity="warning"
-            title={buildTitle(filteredGames.warning.length, '24 horas')}
+            title={buildTitle(filteredGames.warning.length, warningUnpredicted, '24 horas')}
             games={filteredGames.warning}
             teamsMap={teamsMap}
             gameGuesses={gameGuesses}
@@ -223,7 +235,7 @@ export function UrgencyAccordionGroup({
         {filteredGames.notice.length > 0 && (
           <UrgencyAccordion
             severity="info"
-            title={buildTitle(filteredGames.notice.length, '2 días')}
+            title={buildTitle(filteredGames.notice.length, noticeUnpredicted, '2 días')}
             games={filteredGames.notice}
             teamsMap={teamsMap}
             gameGuesses={gameGuesses}
