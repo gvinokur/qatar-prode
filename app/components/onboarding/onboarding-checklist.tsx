@@ -6,7 +6,7 @@ import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
 import { OnboardingChecklistItem } from '../../db/tables-definition'
 
 type OnboardingChecklistProps = {
-  items: OnboardingChecklistItem[]
+  readonly items: OnboardingChecklistItem[]
 }
 
 /**
@@ -41,7 +41,7 @@ export default function OnboardingChecklist({ items }: OnboardingChecklistProps)
 
       <List>
         {items
-          .sort((a, b) => a.order - b.order)
+          .toSorted((a, b) => a.order - b.order)
           .map((item) => (
             <ListItem key={item.id} dense>
               <ListItemIcon>

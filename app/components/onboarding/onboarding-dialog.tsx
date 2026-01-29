@@ -28,8 +28,8 @@ import OnboardingProgress from "./onboarding-progress"
  */
 
 type OnboardingDialogProps = {
-  open: boolean
-  onClose: () => void
+  readonly open: boolean
+  readonly onClose: () => void
 }
 
 type OnboardingStep = 'welcome' | 'prediction' | 'scoring' | 'boost' | 'checklist'

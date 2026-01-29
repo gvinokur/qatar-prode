@@ -6,11 +6,11 @@ import CloseIcon from '@mui/icons-material/Close'
 import { dismissTooltip } from '../../actions/onboarding-actions'
 
 type OnboardingTooltipProps = {
-  id: string
-  title: string
-  content: string
-  children: React.ReactElement
-  dismissed: boolean
+  readonly id: string
+  readonly title: string
+  readonly content: string
+  readonly children: React.ReactElement
+  readonly dismissed: boolean
 }
 
 /**

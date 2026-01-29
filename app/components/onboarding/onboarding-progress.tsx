@@ -3,8 +3,8 @@
 import { Box, Step, StepLabel, Stepper } from "@mui/material"
 
 type OnboardingProgressProps = {
-  currentStep: number
-  totalSteps: number
+  readonly currentStep: number
+  readonly totalSteps: number
 }
 
 const STEP_LABELS = [

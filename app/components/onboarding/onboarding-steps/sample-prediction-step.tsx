@@ -26,9 +26,9 @@ const MOCK_PLAYERS: ExtendedPlayerData[] = [
 ]
 
 interface TabPanelProps {
-  children?: React.ReactNode
-  index: number
-  value: number
+  readonly children?: React.ReactNode
+  readonly index: number
+  readonly value: number
 }
 
 function TabPanel(props: TabPanelProps) {

@@ -16,7 +16,7 @@ const CHECKLIST_ITEMS = [
 ]
 
 type ChecklistStepProps = {
-  onComplete: () => void
+  readonly onComplete: () => void
 }
 
 export default function ChecklistStep({ onComplete }: ChecklistStepProps) {
@@ -139,6 +139,6 @@ export default function ChecklistStep({ onComplete }: ChecklistStepProps) {
   )
 }
 
-function LocalFireDepartmentIcon(props: { sx: any }) {
+function LocalFireDepartmentIcon(props: { readonly sx: any }) {
   return <Box component="span" sx={{ fontSize: 20, ...props.sx }}>🔥</Box>
 }

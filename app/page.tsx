@@ -9,7 +9,7 @@ import {getOnboardingStatus} from "./db/onboarding-repository";
 import OnboardingTrigger from "./components/onboarding/onboarding-trigger";
 
 type ServerHomeProps = {
-  searchParams: Promise<{ showOnboarding?: string }>
+  readonly searchParams: Promise<{ showOnboarding?: string }>
 }
 
 export default async function ServerHome({ searchParams }: ServerHomeProps) {

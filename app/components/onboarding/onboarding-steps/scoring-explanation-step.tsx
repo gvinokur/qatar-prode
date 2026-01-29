@@ -133,7 +133,7 @@ export default function ScoringExplanationStep() {
   )
 }
 
-function SportsSoccerIcon(props: { sx: any }) {
+function SportsSoccerIcon(props: { readonly sx: any }) {
   // Using emoji as fallback since we're using Material-UI icons
   return <Box component="span" sx={{ fontSize: 24, ...props.sx }}>⚽</Box>
 }
