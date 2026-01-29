@@ -72,9 +72,9 @@ export function UrgencyAccordionGroup({
       a.game_date.getTime() - b.game_date.getTime();
 
     return {
-      urgent: urgent.sort(sortByDeadline),
-      warning: warning.sort(sortByDeadline),
-      notice: notice.sort(sortByDeadline)
+      urgent: urgent.toSorted(sortByDeadline),
+      warning: warning.toSorted(sortByDeadline),
+      notice: notice.toSorted(sortByDeadline)
     };
   }, [games, currentTime]);
 
@@ -186,7 +186,6 @@ export function UrgencyAccordionGroup({
     let title = `${totalCount} partido${plural ? 's' : ''} cierra${plural ? 'n' : ''} en ${timeframe}`;
 
     if (unpredictedCount > 0) {
-      const unpredictedPlural = unpredictedCount > 1;
       title += `, ${unpredictedCount} sin predecir`;
     }
 

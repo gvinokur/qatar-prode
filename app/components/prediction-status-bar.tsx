@@ -259,6 +259,41 @@ export function PredictionStatusBar({
 
   const allWarnings = [...gameUrgencyWarnings, ...tournamentUrgencyWarnings];
 
+  // Render urgency warnings section
+  const renderUrgencySection = () => {
+    if (showAccordions) {
+      return (
+        <UrgencyAccordionGroup
+          games={games}
+          teamsMap={teamsMap}
+          gameGuesses={gameGuesses}
+          tournamentId={tournamentId}
+          isPlayoffs={isPlayoffs}
+          silverMax={silverMax}
+          goldenMax={goldenMax}
+        />
+      );
+    }
+
+    if (allWarnings.length > 0) {
+      return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
+          {allWarnings.map((warning, index) => (
+            <Alert
+              key={`${warning.severity}-${index}`}
+              severity={warning.severity}
+              sx={{ py: 0.5 }}
+            >
+              {warning.message}
+            </Alert>
+          ))}
+        </Box>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <Card
       variant="outlined"
@@ -334,29 +369,7 @@ export function PredictionStatusBar({
       )}
 
       {/* Combined Urgency Warnings Section */}
-      {showAccordions ? (
-        <UrgencyAccordionGroup
-          games={games!}
-          teamsMap={teamsMap!}
-          gameGuesses={gameGuesses}
-          tournamentId={tournamentId!}
-          isPlayoffs={isPlayoffs}
-          silverMax={silverMax}
-          goldenMax={goldenMax}
-        />
-      ) : allWarnings.length > 0 ? (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
-          {allWarnings.map((warning, index) => (
-            <Alert
-              key={`${warning.severity}-${index}`}
-              severity={warning.severity}
-              sx={{ py: 0.5 }}
-            >
-              {warning.message}
-            </Alert>
-          ))}
-        </Box>
-      ) : null}
+      {renderUrgencySection()}
     </Card>
   );
 }

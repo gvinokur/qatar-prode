@@ -59,6 +59,13 @@ export function UrgencyAccordion({
     return { unpredictedGames: unpredicted, predictedGames: predicted };
   }, [games, gameGuesses]);
 
+  // Get border color based on severity
+  const getBorderColor = () => {
+    if (severity === 'error') return 'error.main';
+    if (severity === 'warning') return 'warning.main';
+    return 'info.main';
+  };
+
   return (
     <Accordion
       expanded={isExpanded}
@@ -77,7 +84,7 @@ export function UrgencyAccordion({
         id={`${tierId}-header`}
         sx={{
           borderLeft: 4,
-          borderLeftColor: severity === 'error' ? 'error.main' : severity === 'warning' ? 'warning.main' : 'info.main',
+          borderLeftColor: getBorderColor(),
           '& .MuiAccordionSummary-content': {
             my: 1,
             display: 'flex',
