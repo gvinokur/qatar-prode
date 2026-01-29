@@ -2,7 +2,7 @@
 
 import {DebugObject} from "../../../components/debug";
 import {getLoggedInUser} from "../../../actions/user-actions";
-import {getCompletePlayoffData} from "../../../actions/tournament-actions";
+import {getCompletePlayoffData, getGamesClosingWithin48Hours} from "../../../actions/tournament-actions";
 import {findGameGuessesByUserId, getPredictionDashboardStats} from "../../../db/game-guess-repository";
 import {GameGuess} from "../../../db/tables-definition";
 import {GuessesContextProvider} from "../../../components/context-providers/guesses-context-provider";
@@ -28,6 +28,10 @@ export default async function PlayoffPage(props: Props) {
   const isLoggedIn = !!user;
   const completePlayoffData = await getCompletePlayoffData(params.id, false)
   const tournament = await findTournamentById(params.id)
+
+  // Fetch all games closing within 48 hours for accordion display
+  const closingGames = isLoggedIn ? await getGamesClosingWithin48Hours(params.id) : [];
+
   let userGameGuesses: GameGuess[] = [];
   let guessedPositionsByGroup = {};
   let dashboardStats = null;
@@ -117,6 +121,7 @@ export default async function PlayoffPage(props: Props) {
             enablePredictionDashboard={true}
             tournament={tournament || undefined}
             dashboardStats={dashboardStats || undefined}
+            closingGames={closingGames}
           />
         </ViewTransition>
       </GuessesContextProvider>

@@ -54,8 +54,22 @@ export async function getTournaments () {
   return tournaments
 }
 
+/**
+ * Get games for dashboard display (last 24h + next 48h)
+ * This unified function replaces both getGamesAroundMyTime and getGamesClosingWithin48Hours
+ */
+export async function getGamesForDashboard(tournamentId: string) {
+  const { findGamesForDashboard } = await import('../db/game-repository')
+  return await findGamesForDashboard(tournamentId)
+}
+
+// Backward compatibility aliases (deprecated)
 export async function getGamesAroundMyTime(tournamentId: string) {
-  return await findGamesAroundCurrentTime(tournamentId)
+  return await getGamesForDashboard(tournamentId)
+}
+
+export async function getGamesClosingWithin48Hours(tournamentId: string) {
+  return await getGamesForDashboard(tournamentId)
 }
 
 export async function getTeamsMap(objectId: string, teamParent: 'tournament' | 'group' = 'tournament') {

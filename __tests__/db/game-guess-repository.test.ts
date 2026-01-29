@@ -729,9 +729,6 @@ describe('Game Guess Repository', () => {
         predicted_games: 7,
         silver_used: 2,
         golden_used: 1,
-        urgent_games: 1,
-        warning_games: 2,
-        notice_games: 1,
       };
 
       const mockQuery = {
@@ -752,9 +749,6 @@ describe('Game Guess Repository', () => {
         predictedGames: 7,
         silverUsed: 2,
         goldenUsed: 1,
-        urgentGames: 1,
-        warningGames: 2,
-        noticeGames: 1,
       });
     });
 
@@ -764,9 +758,6 @@ describe('Game Guess Repository', () => {
         predicted_games: 0,
         silver_used: 0,
         golden_used: 0,
-        urgent_games: 0,
-        warning_games: 0,
-        notice_games: 0,
       };
 
       const mockQuery = {
@@ -785,9 +776,6 @@ describe('Game Guess Repository', () => {
         predictedGames: 0,
         silverUsed: 0,
         goldenUsed: 0,
-        urgentGames: 0,
-        warningGames: 0,
-        noticeGames: 0,
       });
     });
 
@@ -797,9 +785,6 @@ describe('Game Guess Repository', () => {
         predicted_games: 18,
         silver_used: 5,
         golden_used: 2,
-        urgent_games: 0,
-        warning_games: 1,
-        notice_games: 3,
       };
 
       const mockQuery = {
@@ -817,31 +802,5 @@ describe('Game Guess Repository', () => {
       expect(result.goldenUsed).toBe(2);
     });
 
-    it('should handle urgency warnings correctly', async () => {
-      const mockStats = {
-        total_games: 15,
-        predicted_games: 12,
-        silver_used: 3,
-        golden_used: 1,
-        urgent_games: 2,
-        warning_games: 3,
-        notice_games: 1,
-      };
-
-      const mockQuery = {
-        leftJoin: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        executeTakeFirstOrThrow: vi.fn().mockResolvedValue(mockStats),
-      };
-
-      mockDb.selectFrom.mockReturnValue(mockQuery as any);
-
-      const result = await getPredictionDashboardStats('user-3', 'tournament-3');
-
-      expect(result.urgentGames).toBe(2);
-      expect(result.warningGames).toBe(3);
-      expect(result.noticeGames).toBe(1);
-    });
   });
 });

@@ -1,13 +1,16 @@
 'use client'
 
-import React from 'react';
+import React, { useContext, useMemo } from 'react';
 import { Box, Card, Typography, LinearProgress, Alert, Chip, Button } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import LockIcon from '@mui/icons-material/Lock';
 import WarningIcon from '@mui/icons-material/Warning';
 import Link from 'next/link';
 import { BoostCountBadge } from './boost-badge';
-import { TournamentPredictionCompletion } from '../db/tables-definition';
+import { TournamentPredictionCompletion, Team, GameGuessNew } from '../db/tables-definition';
+import { UrgencyAccordionGroup } from './urgency-accordion-group';
+import { GuessesContext } from './context-providers/guesses-context-provider';
+import type { ExtendedGameData } from '../definitions';
 
 interface PredictionStatusBarProps {
   readonly totalGames: number;
@@ -16,14 +19,16 @@ interface PredictionStatusBarProps {
   readonly silverMax: number;
   readonly goldenUsed: number;
   readonly goldenMax: number;
-  readonly urgentGames: number; // Closing within 2 hours
-  readonly warningGames: number; // Closing within 2-24 hours
-  readonly noticeGames: number; // Closing within 24-48 hours
 
   // Tournament prediction props (optional)
   readonly tournamentPredictions?: TournamentPredictionCompletion;
   readonly tournamentId?: string;
   readonly tournamentStartDate?: Date;
+
+  // New optional props for accordion support
+  readonly games?: ExtendedGameData[];
+  readonly teamsMap?: Record<string, Team>;
+  readonly isPlayoffs?: boolean;
 }
 
 type UrgencyWarning = {
@@ -187,16 +192,61 @@ export function PredictionStatusBar({
   silverMax,
   goldenUsed,
   goldenMax,
-  urgentGames,
-  warningGames,
-  noticeGames,
   tournamentPredictions,
   tournamentId,
-  tournamentStartDate
+  tournamentStartDate,
+  games,
+  teamsMap,
+  isPlayoffs = false
 }: PredictionStatusBarProps) {
   const percentage = totalGames > 0 ? Math.round((predictedGames / totalGames) * 100) : 0;
-  const gameUrgencyWarnings = buildUrgencyWarnings(urgentGames, warningGames, noticeGames);
   const showBoosts = silverMax > 0 || goldenMax > 0;
+
+  // Get gameGuesses from context for accordion
+  const { gameGuesses } = useContext(GuessesContext);
+
+  // Determine if we should show accordions (all required props provided)
+  const showAccordions = games && teamsMap && tournamentId !== undefined;
+
+  // Calculate urgency counts from games array for static alert fallback
+  // Only calculate when we don't have accordions but do have games data
+  const { urgentGames, warningGames, noticeGames } = useMemo(() => {
+    if (!games || showAccordions) {
+      return { urgentGames: 0, warningGames: 0, noticeGames: 0 };
+    }
+
+    const ONE_HOUR = 60 * 60 * 1000;
+    const now = Date.now();
+    let urgent = 0;
+    let warning = 0;
+    let notice = 0;
+
+    games.forEach(game => {
+      const guess = gameGuesses[game.id];
+      const isPredicted = guess &&
+        guess.home_score != null &&
+        guess.away_score != null &&
+        typeof guess.home_score === 'number' &&
+        typeof guess.away_score === 'number';
+
+      if (isPredicted) return;
+
+      const deadline = game.game_date.getTime() - ONE_HOUR;
+      const timeUntilClose = deadline - now;
+
+      if (timeUntilClose < 2 * ONE_HOUR && timeUntilClose > -ONE_HOUR) {
+        urgent++;
+      } else if (timeUntilClose >= 2 * ONE_HOUR && timeUntilClose < 24 * ONE_HOUR) {
+        warning++;
+      } else if (timeUntilClose >= 24 * ONE_HOUR && timeUntilClose < 48 * ONE_HOUR) {
+        notice++;
+      }
+    });
+
+    return { urgentGames: urgent, warningGames: warning, noticeGames: notice };
+  }, [games, gameGuesses, showAccordions]);
+
+  const gameUrgencyWarnings = buildUrgencyWarnings(urgentGames, warningGames, noticeGames);
 
   // Tournament prediction warnings
   const tournamentUrgencyWarnings = tournamentPredictions && tournamentStartDate
@@ -284,7 +334,17 @@ export function PredictionStatusBar({
       )}
 
       {/* Combined Urgency Warnings Section */}
-      {allWarnings.length > 0 && (
+      {showAccordions ? (
+        <UrgencyAccordionGroup
+          games={games!}
+          teamsMap={teamsMap!}
+          gameGuesses={gameGuesses}
+          tournamentId={tournamentId!}
+          isPlayoffs={isPlayoffs}
+          silverMax={silverMax}
+          goldenMax={goldenMax}
+        />
+      ) : allWarnings.length > 0 ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
           {allWarnings.map((warning, index) => (
             <Alert
@@ -296,7 +356,7 @@ export function PredictionStatusBar({
             </Alert>
           ))}
         </Box>
-      )}
+      ) : null}
     </Card>
   );
 }

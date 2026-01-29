@@ -15,16 +15,15 @@ interface PredictionDashboardProps {
   readonly isLoggedIn: boolean;
   readonly tournamentId: string;
   readonly isAwardsPredictionLocked?: boolean;
-  // Initial stats from database query (used for tournament-wide urgency on main page)
+  // Initial stats from database query
   readonly dashboardStats: {
     totalGames: number;
     predictedGames: number;
     silverUsed: number;
     goldenUsed: number;
-    urgentGames: number;
-    warningGames: number;
-    noticeGames: number;
   };
+  // Optional: All games closing within 48 hours (for accordion on playoffs page)
+  readonly closingGames?: ExtendedGameData[];
 }
 
 const ONE_HOUR = 60 * 60 * 1000;
@@ -37,7 +36,8 @@ export function PredictionDashboard({
   isLoggedIn,
   tournamentId,
   isAwardsPredictionLocked,
-  dashboardStats
+  dashboardStats,
+  closingGames
 }: PredictionDashboardProps) {
   // Get gameGuesses from context for real-time updates
   const { gameGuesses } = useContext(GuessesContext);
@@ -121,6 +121,10 @@ export function PredictionDashboard({
         urgentGames={currentStats.urgentGames}
         warningGames={currentStats.warningGames}
         noticeGames={currentStats.noticeGames}
+        games={closingGames || games}
+        teamsMap={teamsMap}
+        tournamentId={tournamentId}
+        isPlayoffs={isPlayoffs}
       />
 
       <GamesGrid

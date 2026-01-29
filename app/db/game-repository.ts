@@ -240,3 +240,53 @@ export const findGamesInNext24Hours = cache(async (tournamentId: string) => {
     .orderBy('game_date', 'asc')
     .execute() as ExtendedGameData[];
 });
+
+/**
+ * Find games for dashboard display
+ * Returns games from last 24 hours (recent results) + next 48 hours (upcoming fixtures & accordion)
+ * This unified function replaces both findGamesAroundCurrentTime and findGamesClosingWithin48Hours
+ */
+export const findGamesForDashboard = cache(async (tournamentId: string) => {
+  const now = new Date();
+  const past24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const future48Hours = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+
+  return await db.selectFrom(tableName)
+    .selectAll()
+    .select((eb) => [
+      jsonObjectFrom(
+        eb.selectFrom('tournament_group_games')
+          .innerJoin('tournament_groups', 'tournament_groups.id', 'tournament_group_games.tournament_group_id')
+          .whereRef('tournament_group_games.game_id', '=', 'games.id')
+          .select([
+            'tournament_group_games.tournament_group_id',
+            'tournament_groups.group_letter'
+          ])
+      ).as('group'),
+      jsonObjectFrom(
+        eb.selectFrom('tournament_playoff_round_games')
+          .innerJoin('tournament_playoff_rounds',
+            'tournament_playoff_rounds.id',
+            'tournament_playoff_round_games.tournament_playoff_round_id')
+          .whereRef('tournament_playoff_round_games.game_id', '=', 'games.id')
+          .select([
+            'tournament_playoff_round_games.tournament_playoff_round_id',
+            'tournament_playoff_rounds.round_name',
+            'tournament_playoff_rounds.is_final',
+            'tournament_playoff_rounds.is_third_place'
+          ])
+      ).as('playoffStage'),
+      jsonObjectFrom(
+        eb.selectFrom('game_results')
+          .whereRef('game_results.game_id', '=', 'games.id')
+          .selectAll()
+      ).as('gameResult')
+    ])
+    .where('tournament_id', '=', tournamentId)
+    // Include games from last 24h (for recent results display)
+    .where('game_date', '>=', past24Hours)
+    // Include games until 48h in future (for fixtures and accordion)
+    .where('game_date', '<=', future48Hours)
+    .orderBy('game_date', 'asc')
+    .execute() as ExtendedGameData[];
+});

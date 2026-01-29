@@ -1,6 +1,6 @@
 'use server'
 
-import {getGamesAroundMyTime, getTeamsMap} from "../../actions/tournament-actions";
+import {getGamesAroundMyTime, getTeamsMap, getGamesClosingWithin48Hours} from "../../actions/tournament-actions";
 import {DebugObject} from "../../components/debug";
 import {Fixtures} from "../../components/tournament-page/fixtures";
 import {Grid} from "../../components/mui-wrappers/";
@@ -34,6 +34,9 @@ export default async function TournamentLandingPage(props: Props) {
 
   const gamesAroundMyTime = await getGamesAroundMyTime(tournamentId);
   const teamsMap = await getTeamsMap(tournamentId)
+
+  // Fetch all games closing within 48 hours for accordion display
+  const closingGames = user ? await getGamesClosingWithin48Hours(tournamentId) : []
 
   // Fetch dashboard stats for prediction tracking
   const dashboardStats = user ? await getPredictionDashboardStats(user.id, tournamentId) : null
@@ -91,12 +94,12 @@ export default async function TournamentLandingPage(props: Props) {
                 silverMax={tournament.max_silver_games ?? 0}
                 goldenUsed={dashboardStats.goldenUsed}
                 goldenMax={tournament.max_golden_games ?? 0}
-                urgentGames={dashboardStats.urgentGames}
-                warningGames={dashboardStats.warningGames}
-                noticeGames={dashboardStats.noticeGames}
                 tournamentPredictions={tournamentPredictionCompletion ?? undefined}
                 tournamentId={tournamentId}
                 tournamentStartDate={tournamentStartDate}
+                games={closingGames}
+                teamsMap={teamsMap}
+                isPlayoffs={false}
               />
             )}
             <Fixtures games={gamesAroundMyTime} teamsMap={teamsMap}/>

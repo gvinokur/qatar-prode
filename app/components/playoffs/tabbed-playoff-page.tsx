@@ -23,10 +23,8 @@ export interface TabbedPlayoffsPageProps {
     predictedGames: number;
     silverUsed: number;
     goldenUsed: number;
-    urgentGames: number;
-    warningGames: number;
-    noticeGames: number;
   };
+  closingGames?: ExtendedGameData[];
 }
 
 const TabbedPlayoffsPage: React.FC<TabbedPlayoffsPageProps> = ({
@@ -37,7 +35,8 @@ const TabbedPlayoffsPage: React.FC<TabbedPlayoffsPageProps> = ({
   tournamentId,
   enablePredictionDashboard = false,
   tournament,
-  dashboardStats
+  dashboardStats,
+  closingGames = []
 }) => {
   const [selectedTab, setSelectedTab] = React.useState(0);
   const theme = useTheme()
@@ -144,6 +143,7 @@ const TabbedPlayoffsPage: React.FC<TabbedPlayoffsPageProps> = ({
                   tournamentId={tournamentId || ''}
                   isAwardsPredictionLocked={isAwardsPredictionLocked}
                   dashboardStats={dashboardStats}
+                  closingGames={closingGames}
                 />
               ) : (
                 <GamesGrid

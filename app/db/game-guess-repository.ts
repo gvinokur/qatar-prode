@@ -317,9 +317,6 @@ export async function getPredictionDashboardStats(
   predictedGames: number;
   silverUsed: number;
   goldenUsed: number;
-  urgentGames: number; // Closing within 2 hours
-  warningGames: number; // Closing within 2-24 hours
-  noticeGames: number; // Closing within 24-48 hours
 }> {
   const now = new Date();
 
@@ -351,55 +348,6 @@ export async function getPredictionDashboardStats(
         .count<number>('game_guesses.id')
         .filterWhere('game_guesses.boost_type', '=', 'golden')
         .as('golden_used'),
-
-      // Urgency warnings: unpredicted games closing within time windows
-      // Red alert: < 2 hours (using SQL interval for time calculation)
-      eb.fn
-        .count<number>('games.id')
-        .filterWhere((eb) =>
-          eb.and([
-            eb(sql`games.game_date - interval '1 hour'`, '>', now),
-            eb(sql`games.game_date - interval '1 hour'`, '<=', sql`NOW() + interval '2 hours'`),
-            eb.or([
-              eb('game_guesses.id', 'is', null),
-              eb('game_guesses.home_score', 'is', null),
-              eb('game_guesses.away_score', 'is', null),
-            ]),
-          ])
-        )
-        .as('urgent_games'),
-
-      // Orange warning: 2-24 hours
-      eb.fn
-        .count<number>('games.id')
-        .filterWhere((eb) =>
-          eb.and([
-            eb(sql`games.game_date - interval '1 hour'`, '>', sql`NOW() + interval '2 hours'`),
-            eb(sql`games.game_date - interval '1 hour'`, '<=', sql`NOW() + interval '24 hours'`),
-            eb.or([
-              eb('game_guesses.id', 'is', null),
-              eb('game_guesses.home_score', 'is', null),
-              eb('game_guesses.away_score', 'is', null),
-            ]),
-          ])
-        )
-        .as('warning_games'),
-
-      // Yellow notice: 24-48 hours
-      eb.fn
-        .count<number>('games.id')
-        .filterWhere((eb) =>
-          eb.and([
-            eb(sql`games.game_date - interval '1 hour'`, '>', sql`NOW() + interval '24 hours'`),
-            eb(sql`games.game_date - interval '1 hour'`, '<=', sql`NOW() + interval '48 hours'`),
-            eb.or([
-              eb('game_guesses.id', 'is', null),
-              eb('game_guesses.home_score', 'is', null),
-              eb('game_guesses.away_score', 'is', null),
-            ]),
-          ])
-        )
-        .as('notice_games'),
     ])
     .executeTakeFirstOrThrow();
 
@@ -408,8 +356,5 @@ export async function getPredictionDashboardStats(
     predictedGames: Number(stats.predicted_games),
     silverUsed: Number(stats.silver_used),
     goldenUsed: Number(stats.golden_used),
-    urgentGames: Number(stats.urgent_games),
-    warningGames: Number(stats.warning_games),
-    noticeGames: Number(stats.notice_games),
   };
 }
