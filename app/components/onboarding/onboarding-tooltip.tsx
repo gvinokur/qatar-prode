@@ -42,7 +42,12 @@ export default function OnboardingTooltip({
         <Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
             <strong>{title}</strong>
-            <IconButton size="small" onClick={handleDismiss} sx={{ color: 'white', ml: 1 }}>
+            <IconButton
+              size="small"
+              onClick={handleDismiss}
+              sx={{ color: 'white', ml: 1 }}
+              data-testid="tooltip-close-button"
+            >
               <CloseIcon fontSize="small" />
             </IconButton>
           </Box>
