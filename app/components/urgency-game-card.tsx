@@ -66,85 +66,100 @@ export function UrgencyGameCard({
       sx={{
         borderColor: getBoostBorderColor(),
         borderWidth: prediction?.boostType ? 2 : 1,
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column'
       }}
     >
-      <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 }, flexGrow: 1 }}>
-        {/* Row 1: Teams + Edit button */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexGrow: 1, minWidth: 0 }}>
-            {/* Home team */}
-            {homeLogoUrl && (
-              <Box
-                component="img"
-                src={homeLogoUrl}
-                alt={homeTeamName}
-                sx={{ width: 20, height: 20, objectFit: 'contain', flexShrink: 0 }}
-              />
-            )}
-            <Typography variant="body2" sx={{ fontWeight: 500, flexShrink: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {homeTeamName}
-            </Typography>
+      <CardContent sx={{
+        p: 1.5,
+        '&:last-child': { pb: 1.5 },
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2
+      }}>
+        {/* Teams section - fixed width */}
+        <Box sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+          minWidth: 0,
+          flex: '0 1 auto'
+        }}>
+          {/* Home team */}
+          {homeLogoUrl && (
+            <Box
+              component="img"
+              src={homeLogoUrl}
+              alt={homeTeamName}
+              sx={{ width: 20, height: 20, objectFit: 'contain', flexShrink: 0 }}
+            />
+          )}
+          <Typography variant="body2" sx={{
+            fontWeight: 500,
+            flexShrink: 1,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}>
+            {homeTeamName}
+          </Typography>
 
-            {/* vs or - */}
-            <Typography variant="body2" color="text.secondary" sx={{ mx: 0.5, flexShrink: 0 }}>
-              vs
-            </Typography>
+          {/* vs */}
+          <Typography variant="body2" color="text.secondary" sx={{ mx: 0.5, flexShrink: 0 }}>
+            vs
+          </Typography>
 
-            {/* Away team */}
-            <Typography variant="body2" sx={{ fontWeight: 500, flexShrink: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {awayTeamName}
+          {/* Away team */}
+          <Typography variant="body2" sx={{
+            fontWeight: 500,
+            flexShrink: 1,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}>
+            {awayTeamName}
+          </Typography>
+          {awayLogoUrl && (
+            <Box
+              component="img"
+              src={awayLogoUrl}
+              alt={awayTeamName}
+              sx={{ width: 20, height: 20, objectFit: 'contain', flexShrink: 0 }}
+            />
+          )}
+        </Box>
+
+        {/* Score + Boost section - only show if predicted */}
+        {isPredicted && prediction && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+            <Typography variant="body2" color="text.primary" sx={{ fontWeight: 600 }}>
+              {prediction.homeScore} - {prediction.awayScore}
             </Typography>
-            {awayLogoUrl && (
-              <Box
-                component="img"
-                src={awayLogoUrl}
-                alt={awayTeamName}
-                sx={{ width: 20, height: 20, objectFit: 'contain', flexShrink: 0 }}
-              />
+            {prediction.boostType && (
+              <BoostBadge type={prediction.boostType} size="small" />
             )}
           </Box>
+        )}
 
-          {/* Edit button - top right */}
-          {!disabled && (
-            <IconButton
-              size="small"
-              onClick={() => onEdit(game.id)}
-              aria-label={`Editar predicción: ${homeTeamName} vs ${awayTeamName}`}
-              sx={{ ml: 0.5, flexShrink: 0 }}
-            >
-              <EditIcon fontSize="small" />
-            </IconButton>
-          )}
-        </Box>
-
-        {/* Row 2: Score + Boost OR "vs" */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-          {isPredicted && prediction ? (
-            <>
-              <Typography variant="body2" color="text.primary" sx={{ fontWeight: 600 }}>
-                {prediction.homeScore} - {prediction.awayScore}
-              </Typography>
-              {prediction.boostType && (
-                <BoostBadge type={prediction.boostType} size="small" />
-              )}
-            </>
-          ) : (
-            <Typography variant="caption" color="text.secondary">
-              Sin predecir
-            </Typography>
-          )}
-        </Box>
-
-        {/* Row 3: Countdown */}
-        <Box>
+        {/* Countdown section - grows to fill space */}
+        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
           <GameCountdownDisplay
             gameDate={game.game_date}
             gameTimezone={game.game_local_timezone}
+            compact={true}
+            hideDate={true}
           />
         </Box>
+
+        {/* Edit button - far right */}
+        {!disabled && (
+          <IconButton
+            size="small"
+            onClick={() => onEdit(game.id)}
+            aria-label={`Editar predicción: ${homeTeamName} vs ${awayTeamName}`}
+            sx={{ flexShrink: 0 }}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+        )}
       </CardContent>
     </Card>
   );

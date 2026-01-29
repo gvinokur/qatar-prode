@@ -114,7 +114,7 @@ export function UrgencyAccordion({
             </Typography>
             <Grid container spacing={1.5}>
               {unpredictedGames.map(game => (
-                <Grid key={game.id} size={{ xs: 12, sm: 6, md: 4 }}>
+                <Grid key={game.id} size={{ xs: 12 }}>
                   <UrgencyGameCard
                     game={game}
                     teamsMap={teamsMap}
@@ -146,7 +146,7 @@ export function UrgencyAccordion({
               {predictedGames.map(game => {
                 const guess = gameGuesses[game.id];
                 return (
-                  <Grid key={game.id} size={{ xs: 12, sm: 6, md: 4 }}>
+                  <Grid key={game.id} size={{ xs: 12 }}>
                     <UrgencyGameCard
                       game={game}
                       teamsMap={teamsMap}
