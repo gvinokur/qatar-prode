@@ -30,7 +30,9 @@ export default async function PlayoffPage(props: Props) {
   const tournament = await findTournamentById(params.id)
 
   // Fetch all games closing within 48 hours for accordion display
-  const closingGames = isLoggedIn ? await getGamesClosingWithin48Hours(params.id) : [];
+  // Filter to only include playoff games (not group stage games)
+  const allClosingGames = isLoggedIn ? await getGamesClosingWithin48Hours(params.id) : [];
+  const closingGames = allClosingGames.filter(game => game.playoffStage !== null && game.playoffStage !== undefined);
 
   let userGameGuesses: GameGuess[] = [];
   let guessedPositionsByGroup = {};
