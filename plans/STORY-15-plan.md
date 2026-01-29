@@ -19,7 +19,7 @@ Transform the static urgency alerts in `PredictionStatusBar` from passive notifi
 - Three expandable accordions (urgent/warning/notice tiers)
 - Each shows specific games with countdown timers
 - Direct edit button on each game card
-- Auto-expand urgent tier (< 2h)
+- Auto-expand urgent tier if it has unpredicted games
 - Real-time updates via GuessesContext
 
 ---
@@ -35,8 +35,7 @@ Transform the static urgency alerts in `PredictionStatusBar` from passive notifi
 **Key Responsibilities**:
 - Filter games by urgency tier (urgent/warning/notice) client-side
 - Manage accordion expansion state (single accordion open at a time)
-- Auto-expand urgent tier on mount if it has games
-- Persist expansion preference to localStorage
+- Auto-expand urgent tier on mount if it has unpredicted games
 - Integrate GameResultEditDialog for editing predictions
 - Handle real-time updates from GuessesContext
 
@@ -94,8 +93,7 @@ const filterGamesByUrgency = () => {
 
 **State Management**:
 - `expandedTierId: string | null` - tracks which accordion is expanded
-- LocalStorage key: `'urgency-accordion-expanded'`
-- Auto-expand priority: urgent → warning → notice → null
+- Auto-expand on mount: urgent tier if it has unpredicted games, otherwise null
 
 ---
 
@@ -219,10 +217,9 @@ interface UrgencyGameCardProps {
 **Layout** (compact, ~80-100px height):
 ```
 ┌────────────────────────────────────┐
-│ 🏴 Argentina vs Brasil             │  ← Teams
+│ 🏴 Argentina vs Brasil   [✏️ Edit] │  ← Teams + Edit button (top right)
+│ 📊 2-1 [2x]              OR  vs    │  ← Score + Boost (if predicted) OR "vs" (unpredicted)
 │ ⏰ Cierra en 1h 23m                │  ← GameCountdownDisplay
-│ 📅 22 Nov 16:30                    │  ← Date
-│ [2x] [✏️ Editar]                   │  ← Boost + Edit button
 └────────────────────────────────────┘
 ```
 
@@ -231,6 +228,7 @@ interface UrgencyGameCardProps {
 - Border color based on boost (reuse getBoostBorderColor logic)
 - Smaller font sizes (body2/caption)
 - Team logos: 20px (vs 24px in full cards)
+- Edit button positioned top right (following existing pattern)
 
 ---
 
@@ -367,7 +365,6 @@ GuessesContext updates
 ### Phase 4: Polish
 9. **Styling refinements** - Match existing theme, responsive breakpoints
 10. **Edge cases** - Empty states, tier transitions, mobile optimization
-11. **localStorage** - Persist expansion preference
 
 ### Phase 5: Testing
 12. **Unit tests** - All new components
@@ -418,9 +415,7 @@ GuessesContext updates
 - ✓ Filters games by urgency tier correctly
 - ✓ Hides tiers with no games
 - ✓ Sorts games by deadline within each tier
-- ✓ Auto-expands urgent tier by default
-- ✓ Persists expansion state to localStorage
-- ✓ Loads expansion state from localStorage
+- ✓ Auto-expands urgent tier if unpredicted games exist
 - ✓ Handles empty games array
 - ✓ Updates when gameGuesses change
 - ✓ Updates when time passes (via currentTime)
@@ -485,7 +480,6 @@ GuessesContext updates
 2. **Expand/Collapse Accordions**
    - ✓ Only one accordion open at a time
    - ✓ Click to expand/collapse works
-   - ✓ Preference saved to localStorage
 
 3. **Game Card Display**
    - ✓ Teams display with logos
@@ -559,10 +553,9 @@ npx tsc --noEmit
 5. ✅ Real-time countdown timers update every second
 6. ✅ Boost badges visible when applied
 7. ✅ Mobile responsive (1/2/3 column layouts)
-8. ✅ Accordion expansion state persists to localStorage
-9. ✅ Backward compatible (pages without new props show static alerts)
-10. ✅ 80% test coverage on new code
-11. ✅ 0 new SonarCloud issues
+8. ✅ Backward compatible (pages without new props show static alerts)
+9. ✅ 80% test coverage on new code
+10. ✅ 0 new SonarCloud issues
 
 ---
 
