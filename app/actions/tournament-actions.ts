@@ -15,7 +15,6 @@ import {
 } from "../db/tables-definition";
 import {
   findFirstGameInTournament,
-  findGamesAroundCurrentTime,
   findGamesInGroup,
   findGamesInTournament
 } from "../db/game-repository";

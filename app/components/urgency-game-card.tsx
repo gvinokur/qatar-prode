@@ -10,10 +10,12 @@ import {
   useTheme
 } from '@mui/material';
 import { Edit as EditIcon } from '@mui/icons-material';
-import type { ExtendedGameData, Team } from '../definitions';
+import type { ExtendedGameData } from '../definitions';
+import type { Team } from '../db/tables-definition';
 import GameCountdownDisplay from './game-countdown-display';
 import { BoostBadge } from './boost-badge';
 import { getThemeLogoUrl } from '../utils/theme-utils';
+import { getTeamDescription } from '../utils/playoffs-rule-helper';
 
 interface UrgencyGameCardProps {
   readonly game: ExtendedGameData;
@@ -24,7 +26,7 @@ interface UrgencyGameCardProps {
     awayScore: number;
     boostType?: 'silver' | 'golden' | null;
   };
-  readonly onEdit: (gameId: string) => void;
+  readonly onEdit: (game: string) => void;
   readonly disabled?: boolean;
 }
 
@@ -43,8 +45,8 @@ export function UrgencyGameCard({
   const awayTeam = game.away_team ? teamsMap[game.away_team] : null;
 
   // Get team names (fallback to descriptions for playoff games without determined teams)
-  const homeTeamName = homeTeam?.short_name || game.home_team_description || 'TBD';
-  const awayTeamName = awayTeam?.short_name || game.away_team_description || 'TBD';
+  const homeTeamName = homeTeam?.short_name || getTeamDescription(game.home_team_rule);
+  const awayTeamName = awayTeam?.short_name || getTeamDescription(game.away_team_rule);
 
   // Get team logos
   const homeLogoUrl = homeTeam ? getThemeLogoUrl(homeTeam.theme) : null;
@@ -140,7 +142,7 @@ export function UrgencyGameCard({
         <Box>
           <GameCountdownDisplay
             gameDate={game.game_date}
-            gameTimezone={game.game_timezone}
+            gameTimezone={game.game_local_timezone}
           />
         </Box>
       </CardContent>

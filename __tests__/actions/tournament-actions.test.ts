@@ -31,6 +31,7 @@ vi.mock('../../app/db/tournament-repository', () => ({
 vi.mock('../../app/db/game-repository', () => ({
   findFirstGameInTournament: vi.fn(),
   findGamesAroundCurrentTime: vi.fn(),
+  findGamesForDashboard: vi.fn(),
   findGamesInGroup: vi.fn(),
   findGamesInTournament: vi.fn(),
 }));
@@ -95,6 +96,7 @@ const mockUpdateTournament = vi.mocked(tournamentRepository.updateTournament);
 
 const mockFindFirstGameInTournament = vi.mocked(gameRepository.findFirstGameInTournament);
 const mockFindGamesAroundCurrentTime = vi.mocked(gameRepository.findGamesAroundCurrentTime);
+const mockFindGamesForDashboard = vi.mocked(gameRepository.findGamesForDashboard);
 const mockFindGamesInGroup = vi.mocked(gameRepository.findGamesInGroup);
 const mockFindGamesInTournament = vi.mocked(gameRepository.findGamesInTournament);
 
@@ -299,16 +301,16 @@ describe('Tournament Actions', () => {
   describe('getGamesAroundMyTime', () => {
     it('returns games around current time for tournament', async () => {
       const games = [mockGame];
-      mockFindGamesAroundCurrentTime.mockResolvedValue(games);
+      mockFindGamesForDashboard.mockResolvedValue(games);
 
       const result = await getGamesAroundMyTime('tournament1');
 
-      expect(mockFindGamesAroundCurrentTime).toHaveBeenCalledWith('tournament1');
+      expect(mockFindGamesForDashboard).toHaveBeenCalledWith('tournament1');
       expect(result).toEqual(games);
     });
 
     it('handles no games found', async () => {
-      mockFindGamesAroundCurrentTime.mockResolvedValue([]);
+      mockFindGamesForDashboard.mockResolvedValue([]);
 
       const result = await getGamesAroundMyTime('tournament1');
 
@@ -316,7 +318,7 @@ describe('Tournament Actions', () => {
     });
 
     it('handles database errors', async () => {
-      mockFindGamesAroundCurrentTime.mockRejectedValue(new Error('Database error'));
+      mockFindGamesForDashboard.mockRejectedValue(new Error('Database error'));
 
       await expect(getGamesAroundMyTime('tournament1')).rejects.toThrow('Database error');
     });

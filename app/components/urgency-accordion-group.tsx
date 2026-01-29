@@ -5,9 +5,9 @@ import { Box } from '@mui/material';
 import { UrgencyAccordion } from './urgency-accordion';
 import GameResultEditDialog from './game-result-edit-dialog';
 import { GuessesContext } from './context-providers/guesses-context-provider';
-import { CountdownContext } from './context-providers/countdown-context-provider';
-import { buildGameGuess } from '../utils/score-utils';
+import { useCountdownContext } from './context-providers/countdown-context-provider';
 import { getGuessLoser, getGuessWinner } from '../utils/score-utils';
+import { getTeamDescription } from '../utils/playoffs-rule-helper';
 import { updateOrCreateTournamentGuess } from '../actions/guesses-actions';
 import { useSession } from 'next-auth/react';
 import type { ExtendedGameData } from '../definitions';
@@ -29,8 +29,8 @@ export function UrgencyAccordionGroup({
   games,
   teamsMap,
   gameGuesses,
-  tournamentId,
-  isPlayoffs,
+  tournamentId: _tournamentId,
+  isPlayoffs: _isPlayoffs,
   silverMax = 0,
   goldenMax = 0
 }: UrgencyAccordionGroupProps) {
@@ -38,13 +38,13 @@ export function UrgencyAccordionGroup({
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState<ExtendedGameData | null>(null);
 
-  const { currentTime } = useContext(CountdownContext);
+  const { currentTime } = useCountdownContext();
   const groupContext = useContext(GuessesContext);
   const { data } = useSession();
 
   // Filter games by urgency tier
   const filteredGames = useMemo(() => {
-    const now = currentTime || Date.now();
+    const now = currentTime;
     const urgent: ExtendedGameData[] = [];
     const warning: ExtendedGameData[] = [];
     const notice: ExtendedGameData[] = [];
@@ -123,7 +123,12 @@ export function UrgencyAccordionGroup({
     if (!selectedGame) return;
 
     const updatedGameGuess = {
-      ...(gameGuesses[gameId] || buildGameGuess(selectedGame, data?.user?.id || '')),
+      ...(gameGuesses[gameId] || {
+        game_id: gameId,
+        user_id: data?.user?.id || '',
+        home_team: selectedGame.home_team,
+        away_team: selectedGame.away_team
+      }),
       home_score: homeScore,
       away_score: awayScore,
       home_penalty_winner: homePenaltyWinner || false,
@@ -162,12 +167,13 @@ export function UrgencyAccordionGroup({
   const getTeamNames = () => {
     if (!selectedGame) return { homeTeamName: 'Unknown', awayTeamName: 'Unknown' };
 
-    const homeTeam = selectedGame.home_team ? teamsMap[selectedGame.home_team] : null;
-    const awayTeam = selectedGame.away_team ? teamsMap[selectedGame.away_team] : null;
+    const gameGuess = gameGuesses[selectedGame.id];
+    const homeTeam = selectedGame.home_team || gameGuess?.home_team;
+    const awayTeam = selectedGame.away_team || gameGuess?.away_team;
 
     return {
-      homeTeamName: homeTeam?.name || selectedGame.home_team_description || 'TBD',
-      awayTeamName: awayTeam?.name || selectedGame.away_team_description || 'TBD'
+      homeTeamName: homeTeam ? teamsMap[homeTeam].name : getTeamDescription(selectedGame.home_team_rule),
+      awayTeamName: awayTeam ? teamsMap[awayTeam].name : getTeamDescription(selectedGame.away_team_rule)
     };
   };
 
@@ -246,10 +252,7 @@ export function UrgencyAccordionGroup({
           initialAwayPenaltyWinner={gameGuess?.away_penalty_winner}
           initialBoostType={gameGuess?.boost_type}
           isPlayoffGame={!!selectedGame.playoffStage}
-          silverUsed={Object.values(gameGuesses).filter(g => g?.boost_type === 'silver').length}
-          silverMax={silverMax}
-          goldenUsed={Object.values(gameGuesses).filter(g => g?.boost_type === 'golden').length}
-          goldenMax={goldenMax}
+          tournamentId={_tournamentId}
         />
       )}
     </>

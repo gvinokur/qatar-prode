@@ -318,8 +318,6 @@ export async function getPredictionDashboardStats(
   silverUsed: number;
   goldenUsed: number;
 }> {
-  const now = new Date();
-
   const stats = await db
     .selectFrom('games')
     .leftJoin('game_guesses', (join) =>

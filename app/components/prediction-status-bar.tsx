@@ -7,7 +7,7 @@ import LockIcon from '@mui/icons-material/Lock';
 import WarningIcon from '@mui/icons-material/Warning';
 import Link from 'next/link';
 import { BoostCountBadge } from './boost-badge';
-import { TournamentPredictionCompletion, Team, GameGuessNew } from '../db/tables-definition';
+import { TournamentPredictionCompletion, Team } from '../db/tables-definition';
 import { UrgencyAccordionGroup } from './urgency-accordion-group';
 import { GuessesContext } from './context-providers/guesses-context-provider';
 import type { ExtendedGameData } from '../definitions';

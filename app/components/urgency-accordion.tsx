@@ -22,9 +22,9 @@ interface UrgencyAccordionProps {
   readonly teamsMap: Record<string, Team>;
   readonly gameGuesses: Record<string, GameGuessNew>;
   readonly isExpanded: boolean;
-  readonly onToggle: (tierId: string) => void;
+  readonly onToggle: (tier: string) => void;
   readonly tierId: string;
-  readonly onEditGame: (gameId: string) => void;
+  readonly onEditGame: (game: string) => void;
 }
 
 export function UrgencyAccordion({
