@@ -9,6 +9,9 @@ import {
   Typography
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ErrorIcon from '@mui/icons-material/Error';
+import WarningIcon from '@mui/icons-material/Warning';
+import InfoIcon from '@mui/icons-material/Info';
 import { Grid } from './mui-wrappers';
 import { UrgencyGameCard } from './urgency-game-card';
 import type { ExtendedGameData } from '../definitions';
@@ -73,16 +76,19 @@ export function UrgencyAccordion({
         aria-controls={`${tierId}-content`}
         id={`${tierId}-header`}
         sx={{
-          bgcolor: severity === 'error' ? 'error.main' : severity === 'warning' ? 'warning.main' : 'info.main',
-          color: 'white',
-          '&:hover': {
-            bgcolor: severity === 'error' ? 'error.dark' : severity === 'warning' ? 'warning.dark' : 'info.dark',
-          },
+          borderLeft: 4,
+          borderLeftColor: severity === 'error' ? 'error.main' : severity === 'warning' ? 'warning.main' : 'info.main',
           '& .MuiAccordionSummary-content': {
-            my: 1
+            my: 1,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1
           }
         }}
       >
+        {severity === 'error' && <ErrorIcon color="error" />}
+        {severity === 'warning' && <WarningIcon color="warning" />}
+        {severity === 'info' && <InfoIcon color="info" />}
         <Typography variant="body2" sx={{ fontWeight: 600 }}>
           {title}
         </Typography>
