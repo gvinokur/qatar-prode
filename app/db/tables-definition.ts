@@ -56,6 +56,23 @@ export type Tournament = Selectable<TournamentTable>
 export type TournamentNew = Insertable<TournamentTable>
 export type TournamentUpdate = Updateable<TournamentTable>
 
+export interface OnboardingChecklistItem {
+  id: string
+  label: string
+  completed: boolean
+  completedAt?: Date
+  order: number
+}
+
+export interface OnboardingData {
+  currentStep?: number
+  skippedSteps?: number[]
+  dismissedTooltips?: string[]
+  checklist?: {
+    items: OnboardingChecklistItem[]
+  }
+}
+
 export interface UserTable extends Identifiable{
   email: string
   nickname: string | null
@@ -67,6 +84,9 @@ export interface UserTable extends Identifiable{
   verification_token?: string | null
   verification_token_expiration?: Date | null
   notification_subscriptions?: JSONColumnType<PushSubscription[]> | null
+  onboarding_completed?: boolean
+  onboarding_completed_at?: Date | null
+  onboarding_data?: JSONColumnType<OnboardingData> | null
 }
 
 export type User = Selectable<UserTable>

@@ -16,6 +16,7 @@ import LoginOrSignupDialog from "../auth/login-or-signup-dialog";
 import {signOut} from "next-auth/react";
 import {User} from "next-auth";
 import UserSettingsDialog from "../auth/user-settings-dialog";
+import OnboardingDialog from "../onboarding/onboarding-dialog";
 
 type UserActionProps = {
   user?: User
@@ -26,6 +27,7 @@ export default function UserActions({ user }: UserActionProps) {
   const [forceOpen, setForceOpen] = useState(false)
   const [openLoginDialog, setOpenLoginDialog] = useState(forceOpen);
   const [openNicknameDialog, setOpenNicknameDialog] = useState(false);
+  const [openOnboardingDialog, setOpenOnboardingDialog] = useState(false);
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
   const router = useRouter()
 
@@ -65,6 +67,15 @@ export default function UserActions({ user }: UserActionProps) {
     }
   };
 
+  const handleOpenOnboarding = () => {
+    setOpenOnboardingDialog(true);
+    handleCloseUserMenu();
+  };
+
+  const handleCloseOnboarding = () => {
+    setOpenOnboardingDialog(false);
+  };
+
   const handleLogout = async () => {
     await signOut({
       redirect: false
@@ -102,6 +113,9 @@ export default function UserActions({ user }: UserActionProps) {
             <MenuItem onClick={handleCloseUserMenu}>
               <Typography textAlign="center" onClick={handleOpen}>Configuracion</Typography>
             </MenuItem>
+            <MenuItem onClick={handleOpenOnboarding}>
+              <Typography textAlign="center">Ver Tutorial</Typography>
+            </MenuItem>
             {user.isAdmin && (
               <MenuItem onClick={() => router.push('/backoffice')}>
                 Ir al Back Office
@@ -129,9 +143,13 @@ export default function UserActions({ user }: UserActionProps) {
         open={openNicknameDialog}
         onClose={handleCloseNicknameDialog}
       />
-      <LoginOrSignupDialog 
-        openLoginDialog={openLoginDialog} 
+      <LoginOrSignupDialog
+        openLoginDialog={openLoginDialog}
         handleCloseLoginDialog={handleCloseLoginDialog}
+      />
+      <OnboardingDialog
+        open={openOnboardingDialog}
+        onClose={handleCloseOnboarding}
       />
     </>
   )
