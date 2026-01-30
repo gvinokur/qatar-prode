@@ -10,6 +10,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 4. **ALWAYS copy `.env.local`** to new worktrees (prevents `missing_connection_string` errors)
 5. **NEVER commit without user verification** - User must test locally first
 
+## Permissions Configuration
+
+**Location:** `.claude/settings.local.json` (already configured with project permissions)
+
+**What's enabled:**
+- File operations: Read, Write, Edit, Glob, Grep (all project files)
+- Git commands: All git operations
+- NPM commands: test, build, lint, scripts
+- GitHub CLI: PR operations, issue management
+- Project scripts: All scripts in ./scripts/
+
+**See:** [Permissions Guide](docs/claude/permissions.md) for details on configuration
+
+**This enables autonomous operation without repetitive permission prompts.**
+
 ## Planning Phase (MANDATORY before implementation)
 
 ### Critical Rules
@@ -101,6 +116,7 @@ For detailed guidance, see:
 - **[Implementation Guide](docs/claude/implementation.md)** - Task definition, dependencies, execution waves, coding practices
 - **[Testing Guide](docs/claude/testing.md)** - Parallel test creation, testing conventions, requirements
 - **[Validation Guide](docs/claude/validation.md)** - Quality gates, SonarCloud checks, pre-merge validation
+- **[Permissions Guide](docs/claude/permissions.md)** - Configure Claude Code permissions for autonomous operation
 - **[Subagent Workflows Guide](docs/claude/subagent-workflows.md)** - Quick reference for all subagent patterns
 - **[Git Worktrees Guide](docs/claude/worktrees.md)** - Worktree setup, management, safety checks
 - **[GitHub Projects Workflow](docs/claude/github-projects-workflow.md)** - Complete story workflow from start to completion
