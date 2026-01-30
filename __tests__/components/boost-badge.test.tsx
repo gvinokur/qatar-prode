@@ -1,11 +1,42 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
+import { ThemeProvider, createTheme } from '@mui/material';
 import { BoostBadge, BoostCountBadge } from '../../app/components/boost-badge';
+
+// Create test theme with accent colors
+const testTheme = createTheme({
+  palette: {
+    mode: 'light',
+    accent: {
+      gold: {
+        main: '#ffc107',
+        light: '#ffd54f',
+        dark: '#ffa000',
+        contrastText: '#000000'
+      },
+      silver: {
+        main: '#C0C0C0',
+        light: '#E0E0E0',
+        dark: '#A0A0A0',
+        contrastText: '#000000'
+      }
+    }
+  }
+});
+
+// Wrapper component for theme provider
+const renderWithTheme = (component: React.ReactElement) => {
+  return render(
+    <ThemeProvider theme={testTheme}>
+      {component}
+    </ThemeProvider>
+  );
+};
 
 describe('BoostBadge', () => {
   describe('Silver Boost', () => {
     it('renders silver boost badge with icon and multiplier', () => {
-      render(<BoostBadge type="silver" />);
+      renderWithTheme(<BoostBadge type="silver" />);
 
       expect(screen.getByText('2x')).toBeInTheDocument();
       // Icon should be present
@@ -14,7 +45,7 @@ describe('BoostBadge', () => {
     });
 
     it('renders without icon when showIcon is false', () => {
-      render(<BoostBadge type="silver" showIcon={false} />);
+      renderWithTheme(<BoostBadge type="silver" showIcon={false} />);
 
       expect(screen.getByText('2x')).toBeInTheDocument();
       const chip = screen.getByText('2x').closest('.MuiChip-root');
@@ -23,19 +54,19 @@ describe('BoostBadge', () => {
     });
 
     it('applies correct silver styling', () => {
-      render(<BoostBadge type="silver" />);
+      renderWithTheme(<BoostBadge type="silver" />);
 
       const chip = screen.getByText('2x').closest('.MuiChip-root');
       const style = window.getComputedStyle(chip!);
 
       // Check for silver colors in style (exact values depend on MUI theme)
-      expect(chip).toHaveStyle({ color: '#C0C0C0' });
+      expect(chip).toHaveStyle({ color: 'rgb(192, 192, 192)' });
     });
   });
 
   describe('Golden Boost', () => {
     it('renders golden boost badge with icon and multiplier', () => {
-      render(<BoostBadge type="golden" />);
+      renderWithTheme(<BoostBadge type="golden" />);
 
       expect(screen.getByText('3x')).toBeInTheDocument();
       const chip = screen.getByText('3x').closest('.MuiChip-root');
@@ -43,7 +74,7 @@ describe('BoostBadge', () => {
     });
 
     it('renders without icon when showIcon is false', () => {
-      render(<BoostBadge type="golden" showIcon={false} />);
+      renderWithTheme(<BoostBadge type="golden" showIcon={false} />);
 
       expect(screen.getByText('3x')).toBeInTheDocument();
       const chip = screen.getByText('3x').closest('.MuiChip-root');
@@ -51,23 +82,23 @@ describe('BoostBadge', () => {
     });
 
     it('applies correct golden styling', () => {
-      render(<BoostBadge type="golden" />);
+      renderWithTheme(<BoostBadge type="golden" />);
 
       const chip = screen.getByText('3x').closest('.MuiChip-root');
-      expect(chip).toHaveStyle({ color: '#FFD700' });
+      expect(chip).toHaveStyle({ color: 'rgb(255, 193, 7)' });
     });
   });
 
   describe('Size Variants', () => {
     it('renders with small size by default', () => {
-      render(<BoostBadge type="silver" />);
+      renderWithTheme(<BoostBadge type="silver" />);
 
       const chip = screen.getByText('2x').closest('.MuiChip-root');
       expect(chip).toHaveClass('MuiChip-sizeSmall');
     });
 
     it('renders with medium size when specified', () => {
-      render(<BoostBadge type="silver" size="medium" />);
+      renderWithTheme(<BoostBadge type="silver" size="medium" />);
 
       const chip = screen.getByText('2x').closest('.MuiChip-root');
       expect(chip).toHaveClass('MuiChip-sizeMedium');
@@ -78,73 +109,73 @@ describe('BoostBadge', () => {
 describe('BoostCountBadge', () => {
   describe('Silver Boost Count', () => {
     it('renders silver boost count in X/Y format', () => {
-      render(<BoostCountBadge type="silver" used={3} max={5} />);
+      renderWithTheme(<BoostCountBadge type="silver" used={3} max={5} />);
 
       expect(screen.getByText('3/5')).toBeInTheDocument();
     });
 
     it('shows correct count when all used', () => {
-      render(<BoostCountBadge type="silver" used={5} max={5} />);
+      renderWithTheme(<BoostCountBadge type="silver" used={5} max={5} />);
 
       expect(screen.getByText('5/5')).toBeInTheDocument();
     });
 
     it('shows correct count when none used', () => {
-      render(<BoostCountBadge type="silver" used={0} max={5} />);
+      renderWithTheme(<BoostCountBadge type="silver" used={0} max={5} />);
 
       expect(screen.getByText('0/5')).toBeInTheDocument();
     });
 
     it('applies correct silver styling', () => {
-      render(<BoostCountBadge type="silver" used={3} max={5} />);
+      renderWithTheme(<BoostCountBadge type="silver" used={3} max={5} />);
 
       const chip = screen.getByText('3/5').closest('.MuiChip-root');
-      expect(chip).toHaveStyle({ color: '#C0C0C0' });
+      expect(chip).toHaveStyle({ color: 'rgb(192, 192, 192)' });
     });
   });
 
   describe('Golden Boost Count', () => {
     it('renders golden boost count in X/Y format', () => {
-      render(<BoostCountBadge type="golden" used={1} max={2} />);
+      renderWithTheme(<BoostCountBadge type="golden" used={1} max={2} />);
 
       expect(screen.getByText('1/2')).toBeInTheDocument();
     });
 
     it('shows correct count when all used', () => {
-      render(<BoostCountBadge type="golden" used={2} max={2} />);
+      renderWithTheme(<BoostCountBadge type="golden" used={2} max={2} />);
 
       expect(screen.getByText('2/2')).toBeInTheDocument();
     });
 
     it('shows correct count when none used', () => {
-      render(<BoostCountBadge type="golden" used={0} max={2} />);
+      renderWithTheme(<BoostCountBadge type="golden" used={0} max={2} />);
 
       expect(screen.getByText('0/2')).toBeInTheDocument();
     });
 
     it('applies correct golden styling', () => {
-      render(<BoostCountBadge type="golden" used={1} max={2} />);
+      renderWithTheme(<BoostCountBadge type="golden" used={1} max={2} />);
 
       const chip = screen.getByText('1/2').closest('.MuiChip-root');
-      expect(chip).toHaveStyle({ color: '#FFD700' });
+      expect(chip).toHaveStyle({ color: 'rgb(255, 193, 7)' });
     });
   });
 
   describe('Edge Cases', () => {
     it('handles very large numbers', () => {
-      render(<BoostCountBadge type="silver" used={99} max={100} />);
+      renderWithTheme(<BoostCountBadge type="silver" used={99} max={100} />);
 
       expect(screen.getByText('99/100')).toBeInTheDocument();
     });
 
     it('handles zero max (tournament without boosts)', () => {
-      render(<BoostCountBadge type="silver" used={0} max={0} />);
+      renderWithTheme(<BoostCountBadge type="silver" used={0} max={0} />);
 
       expect(screen.getByText('0/0')).toBeInTheDocument();
     });
 
     it('handles used > max (should not happen but graceful)', () => {
-      render(<BoostCountBadge type="golden" used={5} max={2} />);
+      renderWithTheme(<BoostCountBadge type="golden" used={5} max={2} />);
 
       expect(screen.getByText('5/2')).toBeInTheDocument();
     });
@@ -152,25 +183,25 @@ describe('BoostCountBadge', () => {
 
   describe('Consistency with BoostBadge', () => {
     it('uses same silver color as BoostBadge', () => {
-      const { container: badgeContainer } = render(<BoostBadge type="silver" />);
-      const { container: countContainer } = render(<BoostCountBadge type="silver" used={1} max={5} />);
+      const { container: badgeContainer } = renderWithTheme(<BoostBadge type="silver" />);
+      const { container: countContainer } = renderWithTheme(<BoostCountBadge type="silver" used={1} max={5} />);
 
       const badge = badgeContainer.querySelector('.MuiChip-root');
       const count = countContainer.querySelector('.MuiChip-root');
 
-      expect(badge).toHaveStyle({ color: '#C0C0C0' });
-      expect(count).toHaveStyle({ color: '#C0C0C0' });
+      expect(badge).toHaveStyle({ color: 'rgb(192, 192, 192)' });
+      expect(count).toHaveStyle({ color: 'rgb(192, 192, 192)' });
     });
 
     it('uses same golden color as BoostBadge', () => {
-      const { container: badgeContainer } = render(<BoostBadge type="golden" />);
-      const { container: countContainer } = render(<BoostCountBadge type="golden" used={1} max={2} />);
+      const { container: badgeContainer } = renderWithTheme(<BoostBadge type="golden" />);
+      const { container: countContainer } = renderWithTheme(<BoostCountBadge type="golden" used={1} max={2} />);
 
       const badge = badgeContainer.querySelector('.MuiChip-root');
       const count = countContainer.querySelector('.MuiChip-root');
 
-      expect(badge).toHaveStyle({ color: '#FFD700' });
-      expect(count).toHaveStyle({ color: '#FFD700' });
+      expect(badge).toHaveStyle({ color: 'rgb(255, 193, 7)' });
+      expect(count).toHaveStyle({ color: 'rgb(255, 193, 7)' });
     });
   });
 });

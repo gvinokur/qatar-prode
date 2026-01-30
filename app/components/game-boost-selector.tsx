@@ -11,7 +11,9 @@ import {
   DialogActions,
   Button,
   Typography,
-  Alert
+  Alert,
+  useTheme,
+  alpha
 } from '@mui/material';
 import {
   EmojiEvents as TrophyIcon,
@@ -43,6 +45,7 @@ export default function GameBoostSelector({
   disabled = false,
   noPrediction = false
 }: GameBoostSelectorProps) {
+  const theme = useTheme();
   const [boostType, setBoostType] = useState<'silver' | 'golden' | null>(currentBoostType);
   const [boostCounts, setBoostCounts] = useState<BoostCounts | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -159,13 +162,13 @@ export default function GameBoostSelector({
                 onClick={() => handleBoostClick('silver')}
                 disabled={isDisabled || loading}
                 sx={{
-                  color: boostType === 'silver' ? '#C0C0C0' : 'action.disabled',
+                  color: boostType === 'silver' ? theme.palette.accent.silver.main : 'action.disabled',
                   '&:hover': {
-                    color: '#C0C0C0',
-                    backgroundColor: 'rgba(192, 192, 192, 0.1)'
+                    color: theme.palette.accent.silver.main,
+                    backgroundColor: alpha(theme.palette.accent.silver.main, 0.1)
                   },
                   ...(boostType === 'silver' && {
-                    backgroundColor: 'rgba(192, 192, 192, 0.2)',
+                    backgroundColor: alpha(theme.palette.accent.silver.main, 0.2),
                     animation: 'pulse 2s infinite'
                   })
                 }}
@@ -196,13 +199,13 @@ export default function GameBoostSelector({
                 onClick={() => handleBoostClick('golden')}
                 disabled={isDisabled || loading}
                 sx={{
-                  color: boostType === 'golden' ? '#FFD700' : 'action.disabled',
+                  color: boostType === 'golden' ? theme.palette.accent.gold.main : 'action.disabled',
                   '&:hover': {
-                    color: '#FFD700',
-                    backgroundColor: 'rgba(255, 215, 0, 0.1)'
+                    color: theme.palette.accent.gold.main,
+                    backgroundColor: alpha(theme.palette.accent.gold.main, 0.1)
                   },
                   ...(boostType === 'golden' && {
-                    backgroundColor: 'rgba(255, 215, 0, 0.2)',
+                    backgroundColor: alpha(theme.palette.accent.gold.main, 0.2),
                     animation: 'pulse 2s infinite'
                   })
                 }}

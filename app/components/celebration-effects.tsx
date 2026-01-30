@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Box } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
 import { EmojiEvents as TrophyIcon, SentimentVeryDissatisfied as SobIcon, CheckCircle as CheckIcon } from '@mui/icons-material';
 
 interface ConfettiEffectProps {
@@ -13,7 +13,10 @@ interface ConfettiEffectProps {
  * Confetti animation using framer-motion particles
  * Triggers briefly when points > 0
  */
-export function ConfettiEffect({ show, color = '#FFD700' }: Readonly<ConfettiEffectProps>) {
+export function ConfettiEffect({ show, color }: Readonly<ConfettiEffectProps>) {
+  const theme = useTheme();
+  const confettiColor = color ?? theme.palette.accent.gold.main;
+
   if (!show) return null;
 
   const particles = Array.from({ length: 12 }, (_, i) => i);
@@ -53,7 +56,7 @@ export function ConfettiEffect({ show, color = '#FFD700' }: Readonly<ConfettiEff
             width: '8px',
             height: '8px',
             borderRadius: '50%',
-            backgroundColor: color,
+            backgroundColor: confettiColor,
           }}
         />
       ))}
@@ -70,9 +73,11 @@ interface TrophyBounceProps {
  * Trophy bounce animation for boosted scores
  */
 export function TrophyBounce({ show, boostType }: Readonly<TrophyBounceProps>) {
+  const theme = useTheme();
+
   if (!show) return null;
 
-  const color = boostType === 'golden' ? '#FFD700' : '#C0C0C0';
+  const color = boostType === 'golden' ? theme.palette.accent.gold.main : theme.palette.accent.silver.main;
 
   return (
     <motion.div

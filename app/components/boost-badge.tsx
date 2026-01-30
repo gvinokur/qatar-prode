@@ -1,6 +1,6 @@
 'use client'
 
-import { Chip } from '@mui/material';
+import { Chip, useTheme, alpha } from '@mui/material';
 import { EmojiEvents as TrophyIcon } from '@mui/icons-material';
 
 interface BoostBadgeProps {
@@ -15,10 +15,12 @@ interface BoostBadgeProps {
  * Golden: 🏆 3x (gold trophy)
  */
 export function BoostBadge({ type, showIcon = true, size = 'small' }: BoostBadgeProps) {
+  const theme = useTheme();
   const isSilver = type === 'silver';
   const multiplier = isSilver ? '2x' : '3x';
-  const color = isSilver ? '#C0C0C0' : '#FFD700';
-  const backgroundColor = isSilver ? 'rgba(192, 192, 192, 0.2)' : 'rgba(255, 215, 0, 0.2)';
+  const accentColor = isSilver ? theme.palette.accent.silver.main : theme.palette.accent.gold.main;
+  const color = accentColor;
+  const backgroundColor = alpha(accentColor, 0.2);
   const Icon = TrophyIcon;
 
   return (
@@ -52,9 +54,11 @@ interface BoostCountBadgeProps {
  * Silver and golden both use trophy icon, differentiated by color
  */
 export function BoostCountBadge({ type, used, max }: BoostCountBadgeProps) {
+  const theme = useTheme();
   const isSilver = type === 'silver';
-  const color = isSilver ? '#C0C0C0' : '#FFD700';
-  const backgroundColor = isSilver ? 'rgba(192, 192, 192, 0.2)' : 'rgba(255, 215, 0, 0.2)';
+  const accentColor = isSilver ? theme.palette.accent.silver.main : theme.palette.accent.gold.main;
+  const color = accentColor;
+  const backgroundColor = alpha(accentColor, 0.2);
   const Icon = TrophyIcon;
 
   return (
