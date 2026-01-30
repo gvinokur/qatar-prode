@@ -23,6 +23,14 @@ vi.mock('../../app/components/urgency-accordion-group', () => ({
   )
 }));
 
+vi.mock('../../app/components/tournament-prediction-accordion', () => ({
+  TournamentPredictionAccordion: ({ tournamentPredictions, isExpanded }: any) => (
+    <div data-testid="tournament-prediction-accordion" data-expanded={isExpanded}>
+      Tournament Accordion: {tournamentPredictions.overallCompleted}/{tournamentPredictions.overallTotal}
+    </div>
+  )
+}));
+
 // Import after mocks
 import { GuessesContext } from '../../app/components/context-providers/guesses-context-provider';
 
@@ -284,10 +292,10 @@ describe('PredictionStatusBar', () => {
         />
       );
 
-      expect(screen.getByText('Predicciones de Torneo')).toBeInTheDocument();
-      expect(screen.getByText('Podio')).toBeInTheDocument();
-      expect(screen.getByText('Premios Individuales')).toBeInTheDocument();
-      expect(screen.getByText('Clasificados')).toBeInTheDocument();
+      // Tournament accordion should be rendered
+      const accordion = screen.getByTestId('tournament-prediction-accordion');
+      expect(accordion).toBeInTheDocument();
+      expect(accordion).toHaveTextContent('Tournament Accordion:');
     });
 
     it('does not render qualifiers section when total is 0', () => {
@@ -310,8 +318,9 @@ describe('PredictionStatusBar', () => {
         />
       );
 
-      expect(screen.getByText('Podio')).toBeInTheDocument();
-      expect(screen.queryByText('Clasificados')).not.toBeInTheDocument();
+      // Tournament accordion should be rendered (category filtering is done inside accordion component)
+      const accordion = screen.getByTestId('tournament-prediction-accordion');
+      expect(accordion).toBeInTheDocument();
     });
 
     it('does not render tournament section when not provided', () => {
@@ -326,7 +335,85 @@ describe('PredictionStatusBar', () => {
         />
       );
 
-      expect(screen.queryByText('Predicciones de Torneo')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('tournament-prediction-accordion')).not.toBeInTheDocument();
+    });
+
+    it('auto-expands tournament accordion when incomplete and unlocked', () => {
+      renderWithContext(
+        <PredictionStatusBar
+          totalGames={10}
+          predictedGames={5}
+          silverUsed={0}
+          silverMax={0}
+          goldenUsed={0}
+          goldenMax={0}
+          tournamentPredictions={{
+            finalStandings: { completed: 1, total: 3, champion: false, runnerUp: true, thirdPlace: false },
+            awards: { completed: 2, total: 4, bestPlayer: true, topGoalscorer: true, bestGoalkeeper: false, bestYoungPlayer: false },
+            qualifiers: { completed: 0, total: 8 },
+            overallCompleted: 3,
+            overallTotal: 15,
+            overallPercentage: 20,
+            isPredictionLocked: false
+          }}
+          tournamentId="tournament-1"
+        />
+      );
+
+      const accordion = screen.getByTestId('tournament-prediction-accordion');
+      expect(accordion).toHaveAttribute('data-expanded', 'true');
+    });
+
+    it('does not auto-expand tournament accordion when complete', () => {
+      renderWithContext(
+        <PredictionStatusBar
+          totalGames={10}
+          predictedGames={5}
+          silverUsed={0}
+          silverMax={0}
+          goldenUsed={0}
+          goldenMax={0}
+          tournamentPredictions={{
+            finalStandings: { completed: 3, total: 3, champion: true, runnerUp: true, thirdPlace: true },
+            awards: { completed: 4, total: 4, bestPlayer: true, topGoalscorer: true, bestGoalkeeper: true, bestYoungPlayer: true },
+            qualifiers: { completed: 8, total: 8 },
+            overallCompleted: 15,
+            overallTotal: 15,
+            overallPercentage: 100,
+            isPredictionLocked: false
+          }}
+          tournamentId="tournament-1"
+        />
+      );
+
+      const accordion = screen.getByTestId('tournament-prediction-accordion');
+      expect(accordion).toHaveAttribute('data-expanded', 'false');
+    });
+
+    it('does not auto-expand tournament accordion when locked', () => {
+      renderWithContext(
+        <PredictionStatusBar
+          totalGames={10}
+          predictedGames={5}
+          silverUsed={0}
+          silverMax={0}
+          goldenUsed={0}
+          goldenMax={0}
+          tournamentPredictions={{
+            finalStandings: { completed: 1, total: 3, champion: false, runnerUp: true, thirdPlace: false },
+            awards: { completed: 2, total: 4, bestPlayer: true, topGoalscorer: true, bestGoalkeeper: false, bestYoungPlayer: false },
+            qualifiers: { completed: 0, total: 8 },
+            overallCompleted: 3,
+            overallTotal: 15,
+            overallPercentage: 20,
+            isPredictionLocked: true
+          }}
+          tournamentId="tournament-1"
+        />
+      );
+
+      const accordion = screen.getByTestId('tournament-prediction-accordion');
+      expect(accordion).toHaveAttribute('data-expanded', 'false');
     });
   });
 });
