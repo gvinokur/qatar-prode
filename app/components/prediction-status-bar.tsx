@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useContext, useMemo, useState, useEffect } from 'react';
-import { Box, Card, Typography, LinearProgress, Alert, Tooltip } from '@mui/material';
+import { Box, Card, Typography, LinearProgress, Alert, Popover } from '@mui/material';
 import { BoostCountBadge } from './boost-badge';
 import { TournamentPredictionCompletion, Team } from '../db/tables-definition';
 import { UrgencyAccordionGroup } from './urgency-accordion-group';
@@ -116,6 +116,22 @@ export function PredictionStatusBar({
 
   // Tournament accordion state
   const [tournamentAccordionExpanded, setTournamentAccordionExpanded] = useState(false);
+
+  // Boost badge popover state
+  const [boostAnchorEl, setBoostAnchorEl] = useState<HTMLElement | null>(null);
+  const [activeBoostType, setActiveBoostType] = useState<'silver' | 'golden' | null>(null);
+
+  const handleBoostClick = (event: React.MouseEvent<HTMLElement>, type: 'silver' | 'golden') => {
+    setBoostAnchorEl(event.currentTarget);
+    setActiveBoostType(type);
+  };
+
+  const handleBoostClose = () => {
+    setBoostAnchorEl(null);
+    setActiveBoostType(null);
+  };
+
+  const boostPopoverOpen = Boolean(boostAnchorEl);
 
   // Auto-expand tournament accordion on mount if incomplete and unlocked
   useEffect(() => {
@@ -279,18 +295,20 @@ export function PredictionStatusBar({
             }}
           >
             {silverMax > 0 && (
-              <Tooltip title="Multiplicador x2" arrow>
-                <span>
-                  <BoostCountBadge type="silver" used={silverUsed} max={silverMax} />
-                </span>
-              </Tooltip>
+              <Box
+                onClick={(e) => handleBoostClick(e, 'silver')}
+                sx={{ cursor: 'pointer' }}
+              >
+                <BoostCountBadge type="silver" used={silverUsed} max={silverMax} />
+              </Box>
             )}
             {goldenMax > 0 && (
-              <Tooltip title="Multiplicador x3" arrow>
-                <span>
-                  <BoostCountBadge type="golden" used={goldenUsed} max={goldenMax} />
-                </span>
-              </Tooltip>
+              <Box
+                onClick={(e) => handleBoostClick(e, 'golden')}
+                sx={{ cursor: 'pointer' }}
+              >
+                <BoostCountBadge type="golden" used={goldenUsed} max={goldenMax} />
+              </Box>
             )}
           </Box>
         )}
@@ -310,6 +328,32 @@ export function PredictionStatusBar({
 
       {/* Combined Urgency Warnings Section */}
       {renderUrgencySection()}
+
+      {/* Boost information popover */}
+      <Popover
+        open={boostPopoverOpen}
+        anchorEl={boostAnchorEl}
+        onClose={handleBoostClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'center',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'center',
+        }}
+      >
+        <Box sx={{ p: 2, minWidth: 200 }}>
+          <Typography variant="subtitle2" fontWeight="bold">
+            {activeBoostType === 'silver' ? 'Multiplicador x2' : 'Multiplicador x3'}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            {activeBoostType === 'silver'
+              ? 'Duplica los puntos obtenidos en este partido'
+              : 'Triplica los puntos obtenidos en este partido'}
+          </Typography>
+        </Box>
+      </Popover>
     </Card>
   );
 }
