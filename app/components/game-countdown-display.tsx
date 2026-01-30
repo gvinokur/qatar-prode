@@ -17,6 +17,8 @@ interface GameCountdownDisplayProps {
   compact?: boolean;
   /** Optional actions to render on Line 2 (edit button, chips, etc.) */
   actions?: React.ReactNode;
+  /** Hide the date line (Line 1) */
+  hideDate?: boolean;
 }
 
 /**
@@ -29,6 +31,7 @@ export default function GameCountdownDisplay({
   gameTimezone,
   compact = false,
   actions,
+  hideDate = false,
 }: Readonly<GameCountdownDisplayProps>) {
   const theme = useTheme();
   const { showLocalTime, toggleTimezone } = useTimezone();
@@ -64,33 +67,35 @@ export default function GameCountdownDisplay({
   return (
     <>
       {/* Line 1: Date centered with toggle link */}
-      <Box display="flex" justifyContent="center" alignItems="center" gap={1}>
-        <Typography
-          variant={compact ? 'body2' : 'body1'}
-          color="text.secondary"
-          sx={{
-            whiteSpace: 'nowrap',
-            textAlign: 'center',
-            fontWeight: 'bold'
-          }}
-        >
-          {currentTime}
-        </Typography>
-        {gameTimezone && (
-          <Link
-            component="button"
-            variant={compact ? 'caption' : 'body2'}
-            onClick={toggleTimezone}
+      {!hideDate && (
+        <Box display="flex" justifyContent="center" alignItems="center" gap={1}>
+          <Typography
+            variant={compact ? 'body2' : 'body1'}
+            color="text.secondary"
             sx={{
-              textDecoration: 'underline',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap'
+              whiteSpace: 'nowrap',
+              textAlign: 'center',
+              fontWeight: 'bold'
             }}
           >
-            {toggleText}
-          </Link>
-        )}
-      </Box>
+            {currentTime}
+          </Typography>
+          {gameTimezone && (
+            <Link
+              component="button"
+              variant={compact ? 'caption' : 'body2'}
+              onClick={toggleTimezone}
+              sx={{
+                textDecoration: 'underline',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {toggleText}
+            </Link>
+          )}
+        </Box>
+      )}
 
       {/* Line 2: State indicator + Progress bar + Actions */}
       <Box display="flex" alignItems="center" justifyContent="space-between" gap={1}>

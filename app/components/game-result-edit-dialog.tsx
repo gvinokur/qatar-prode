@@ -74,6 +74,9 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
     awayTeamName
   } = props;
 
+  // Extract tournamentId for game guesses
+  const tournamentId = props.isGameGuess ? props.tournamentId : undefined;
+
   const [homeScore, setHomeScore] = useState<number | undefined>();
   const [awayScore, setAwayScore] = useState<number | undefined>();
   const [homePenaltyWinner, setHomePenaltyWinner] = useState(false);
@@ -133,14 +136,16 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
 
       setError(null);
     }
-  }, [open, props]);
+    // Only re-initialize when dialog opens, not when other props change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   // Fetch boost counts when dialog opens for game guesses
   useEffect(() => {
     const fetchBoostCounts = async () => {
-      if (open && props.isGameGuess && props.tournamentId) {
+      if (open && props.isGameGuess && tournamentId) {
         try {
-          const counts = await getBoostCountsAction(props.tournamentId);
+          const counts = await getBoostCountsAction(tournamentId);
           setBoostCounts(counts);
         } catch (error) {
           console.error('Error fetching boost counts:', error);
@@ -148,7 +153,7 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
       }
     };
     fetchBoostCounts();
-  }, [open, props]);
+  }, [open, tournamentId, props.isGameGuess]);
 
   const handleHomeScoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value === '' ? undefined : Number(e.target.value);

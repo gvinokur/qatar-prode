@@ -1,10 +1,8 @@
 import '@testing-library/jest-dom';
 
 // Configure React Testing Library
-import { configure } from '@testing-library/react';
-
-// Increase the default timeout
-configure({ asyncUtilTimeout: 5000 });
+// Note: asyncUtilTimeout has been removed in newer versions of @testing-library/react
+// Use waitForOptions in individual test calls if needed
 
 // Mock ResizeObserver
 global.ResizeObserver = class ResizeObserver {
