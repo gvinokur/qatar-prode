@@ -1,7 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { TournamentPredictionAccordion } from '@/app/components/tournament-prediction-accordion';
-import type { TournamentPredictionCompletion } from '@/app/db/tables-definition';
+import { vi } from 'vitest';
+import { TournamentPredictionAccordion } from '../../app/components/tournament-prediction-accordion';
+import type { TournamentPredictionCompletion } from '../../app/db/tables-definition';
 
 describe('TournamentPredictionAccordion', () => {
   const mockTournamentPredictions: TournamentPredictionCompletion = {
@@ -34,7 +35,7 @@ describe('TournamentPredictionAccordion', () => {
     tournamentPredictions: mockTournamentPredictions,
     tournamentId: '1',
     isExpanded: false,
-    onToggle: jest.fn()
+    onToggle: vi.fn()
   };
 
   describe('Rendering', () => {
@@ -45,7 +46,9 @@ describe('TournamentPredictionAccordion', () => {
 
     it('renders with correct icon for incomplete state', () => {
       render(<TournamentPredictionAccordion {...defaultProps} />);
-      expect(screen.getByTestId('WarningIcon')).toBeInTheDocument();
+      // Multiple icons may exist (accordion + category cards), just check at least one exists
+      const icons = screen.getAllByTestId('WarningIcon');
+      expect(icons.length).toBeGreaterThan(0);
     });
 
     it('renders with correct icon for complete state', () => {
@@ -71,7 +74,9 @@ describe('TournamentPredictionAccordion', () => {
         }
       };
       render(<TournamentPredictionAccordion {...lockedProps} />);
-      expect(screen.getByTestId('LockIcon')).toBeInTheDocument();
+      // Multiple icons may exist (accordion + category cards), just check at least one exists
+      const icons = screen.getAllByTestId('LockIcon');
+      expect(icons.length).toBeGreaterThan(0);
     });
 
     it('icon size is 24px (default MUI size)', () => {
@@ -128,7 +133,7 @@ describe('TournamentPredictionAccordion', () => {
 
   describe('Interaction', () => {
     it('calls onToggle when clicked', () => {
-      const onToggle = jest.fn();
+      const onToggle = vi.fn();
       render(<TournamentPredictionAccordion {...defaultProps} onToggle={onToggle} />);
 
       const accordion = screen.getByRole('button', { name: /predicciones de torneo/i });
@@ -145,8 +150,11 @@ describe('TournamentPredictionAccordion', () => {
 
     it('collapses when isExpanded is false', () => {
       render(<TournamentPredictionAccordion {...defaultProps} isExpanded={false} />);
-      // When collapsed, categories should not be visible
-      expect(screen.queryByText('Podio')).not.toBeInTheDocument();
+      // When collapsed, MUI Accordion keeps content in DOM but hidden
+      // Check that the accordion details are collapsed (height: 0 or display:none)
+      const podioText = screen.getByText('Podio');
+      const accordionDetails = podioText.closest('.MuiCollapse-root');
+      expect(accordionDetails).toHaveStyle({ visibility: 'hidden' });
     });
   });
 

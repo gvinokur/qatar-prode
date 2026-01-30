@@ -63,7 +63,7 @@ describe('PredictionStatusBar', () => {
   });
 
   describe('Basic rendering', () => {
-    it('renders progress bar with correct percentage', () => {
+    it('renders progress bar with correct counts (no percentage in label)', () => {
       renderWithContext(
         <PredictionStatusBar
           totalGames={10}
@@ -75,10 +75,14 @@ describe('PredictionStatusBar', () => {
         />
       );
 
-      expect(screen.getByText(/Predicciones: 7\/10 \(70%\)/)).toBeInTheDocument();
+      // Percentage removed from label to save space
+      expect(screen.getByText('Predicciones: 7/10')).toBeInTheDocument();
+      // Percentage still visible in progress bar
+      const progressBar = screen.getByRole('progressbar');
+      expect(progressBar).toHaveAttribute('aria-valuenow', '70');
     });
 
-    it('renders 0% when no games predicted', () => {
+    it('renders counts when no games predicted', () => {
       renderWithContext(
         <PredictionStatusBar
           totalGames={10}
@@ -90,10 +94,12 @@ describe('PredictionStatusBar', () => {
         />
       );
 
-      expect(screen.getByText(/Predicciones: 0\/10 \(0%\)/)).toBeInTheDocument();
+      expect(screen.getByText('Predicciones: 0/10')).toBeInTheDocument();
+      const progressBar = screen.getByRole('progressbar');
+      expect(progressBar).toHaveAttribute('aria-valuenow', '0');
     });
 
-    it('renders 100% when all games predicted', () => {
+    it('renders counts when all games predicted', () => {
       renderWithContext(
         <PredictionStatusBar
           totalGames={10}
@@ -105,7 +111,9 @@ describe('PredictionStatusBar', () => {
         />
       );
 
-      expect(screen.getByText(/Predicciones: 10\/10 \(100%\)/)).toBeInTheDocument();
+      expect(screen.getByText('Predicciones: 10/10')).toBeInTheDocument();
+      const progressBar = screen.getByRole('progressbar');
+      expect(progressBar).toHaveAttribute('aria-valuenow', '100');
     });
 
     it('handles 0 total games', () => {
@@ -120,7 +128,9 @@ describe('PredictionStatusBar', () => {
         />
       );
 
-      expect(screen.getByText(/Predicciones: 0\/0 \(0%\)/)).toBeInTheDocument();
+      expect(screen.getByText('Predicciones: 0/0')).toBeInTheDocument();
+      const progressBar = screen.getByRole('progressbar');
+      expect(progressBar).toHaveAttribute('aria-valuenow', '0');
     });
   });
 
@@ -137,7 +147,9 @@ describe('PredictionStatusBar', () => {
         />
       );
 
-      expect(screen.getByText('Multiplicadores:')).toBeInTheDocument();
+      // Check for silver badge content (no "Multiplicadores:" label anymore)
+      expect(screen.getByText('2/5')).toBeInTheDocument();
+      expect(screen.getByTestId('EmojiEventsIcon')).toBeInTheDocument(); // Trophy icon
     });
 
     it('shows boost badges when goldenMax > 0', () => {
@@ -152,7 +164,9 @@ describe('PredictionStatusBar', () => {
         />
       );
 
-      expect(screen.getByText('Multiplicadores:')).toBeInTheDocument();
+      // Check for golden badge content (no "Multiplicadores:" label anymore)
+      expect(screen.getByText('1/3')).toBeInTheDocument();
+      expect(screen.getByTestId('EmojiEventsIcon')).toBeInTheDocument(); // Trophy icon
     });
 
     it('hides boost badges when both max values are 0', () => {
@@ -167,7 +181,8 @@ describe('PredictionStatusBar', () => {
         />
       );
 
-      expect(screen.queryByText('Multiplicadores:')).not.toBeInTheDocument();
+      // No boost badges should be present
+      expect(screen.queryByTestId('EmojiEventsIcon')).not.toBeInTheDocument();
     });
   });
 

@@ -80,25 +80,25 @@ describe('BoostCountBadge', () => {
     it('renders silver boost count in X/Y format', () => {
       render(<BoostCountBadge type="silver" used={3} max={5} />);
 
-      expect(screen.getByText('2x: 3/5')).toBeInTheDocument();
+      expect(screen.getByText('3/5')).toBeInTheDocument();
     });
 
     it('shows correct count when all used', () => {
       render(<BoostCountBadge type="silver" used={5} max={5} />);
 
-      expect(screen.getByText('2x: 5/5')).toBeInTheDocument();
+      expect(screen.getByText('5/5')).toBeInTheDocument();
     });
 
     it('shows correct count when none used', () => {
       render(<BoostCountBadge type="silver" used={0} max={5} />);
 
-      expect(screen.getByText('2x: 0/5')).toBeInTheDocument();
+      expect(screen.getByText('0/5')).toBeInTheDocument();
     });
 
     it('applies correct silver styling', () => {
       render(<BoostCountBadge type="silver" used={3} max={5} />);
 
-      const chip = screen.getByText('2x: 3/5').closest('.MuiChip-root');
+      const chip = screen.getByText('3/5').closest('.MuiChip-root');
       expect(chip).toHaveStyle({ color: '#C0C0C0' });
     });
   });
@@ -107,25 +107,25 @@ describe('BoostCountBadge', () => {
     it('renders golden boost count in X/Y format', () => {
       render(<BoostCountBadge type="golden" used={1} max={2} />);
 
-      expect(screen.getByText('3x: 1/2')).toBeInTheDocument();
+      expect(screen.getByText('1/2')).toBeInTheDocument();
     });
 
     it('shows correct count when all used', () => {
       render(<BoostCountBadge type="golden" used={2} max={2} />);
 
-      expect(screen.getByText('3x: 2/2')).toBeInTheDocument();
+      expect(screen.getByText('2/2')).toBeInTheDocument();
     });
 
     it('shows correct count when none used', () => {
       render(<BoostCountBadge type="golden" used={0} max={2} />);
 
-      expect(screen.getByText('3x: 0/2')).toBeInTheDocument();
+      expect(screen.getByText('0/2')).toBeInTheDocument();
     });
 
     it('applies correct golden styling', () => {
       render(<BoostCountBadge type="golden" used={1} max={2} />);
 
-      const chip = screen.getByText('3x: 1/2').closest('.MuiChip-root');
+      const chip = screen.getByText('1/2').closest('.MuiChip-root');
       expect(chip).toHaveStyle({ color: '#FFD700' });
     });
   });
@@ -134,19 +134,19 @@ describe('BoostCountBadge', () => {
     it('handles very large numbers', () => {
       render(<BoostCountBadge type="silver" used={99} max={100} />);
 
-      expect(screen.getByText('2x: 99/100')).toBeInTheDocument();
+      expect(screen.getByText('99/100')).toBeInTheDocument();
     });
 
     it('handles zero max (tournament without boosts)', () => {
       render(<BoostCountBadge type="silver" used={0} max={0} />);
 
-      expect(screen.getByText('2x: 0/0')).toBeInTheDocument();
+      expect(screen.getByText('0/0')).toBeInTheDocument();
     });
 
     it('handles used > max (should not happen but graceful)', () => {
       render(<BoostCountBadge type="golden" used={5} max={2} />);
 
-      expect(screen.getByText('3x: 5/2')).toBeInTheDocument();
+      expect(screen.getByText('5/2')).toBeInTheDocument();
     });
   });
 

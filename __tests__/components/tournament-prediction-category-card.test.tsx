@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { TournamentPredictionCategoryCard } from '@/app/components/tournament-prediction-category-card';
+import { TournamentPredictionCategoryCard } from '../../app/components/tournament-prediction-category-card';
 
 describe('TournamentPredictionCategoryCard', () => {
   const defaultProps = {
