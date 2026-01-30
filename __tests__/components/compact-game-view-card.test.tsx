@@ -1,18 +1,42 @@
 import { vi, describe, it, expect } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { ThemeProvider, createTheme } from '@mui/material';
 import CompactGameViewCard from '../../app/components/compact-game-view-card';
 import { TimezoneProvider } from '../../app/components/context-providers/timezone-context-provider';
 import { CountdownProvider } from '../../app/components/context-providers/countdown-context-provider';
 
+// Create test theme with accent colors
+const testTheme = createTheme({
+  palette: {
+    mode: 'light',
+    accent: {
+      gold: {
+        main: '#ffc107',
+        light: '#ffd54f',
+        dark: '#ffa000',
+        contrastText: '#000000'
+      },
+      silver: {
+        main: '#C0C0C0',
+        light: '#E0E0E0',
+        dark: '#A0A0A0',
+        contrastText: '#000000'
+      }
+    }
+  }
+});
+
 // Wrapper component for all required providers
 function TestWrapper({ children }: { children: React.ReactNode }) {
   return (
-    <TimezoneProvider>
-      <CountdownProvider>
-        {children}
-      </CountdownProvider>
-    </TimezoneProvider>
+    <ThemeProvider theme={testTheme}>
+      <TimezoneProvider>
+        <CountdownProvider>
+          {children}
+        </CountdownProvider>
+      </TimezoneProvider>
+    </ThemeProvider>
   );
 }
 
