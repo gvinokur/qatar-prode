@@ -1,6 +1,37 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { ThemeProvider, createTheme } from '@mui/material';
 import GameCardPointOverlay from '../../app/components/game-card-point-overlay';
+
+// Create test theme with accent colors
+const testTheme = createTheme({
+  palette: {
+    mode: 'light',
+    accent: {
+      gold: {
+        main: '#ffc107',
+        light: '#ffd54f',
+        dark: '#ffa000',
+        contrastText: '#000000'
+      },
+      silver: {
+        main: '#C0C0C0',
+        light: '#E0E0E0',
+        dark: '#A0A0A0',
+        contrastText: '#000000'
+      }
+    }
+  }
+});
+
+// Wrapper component for theme provider
+const renderWithTheme = (component: React.ReactElement) => {
+  return render(
+    <ThemeProvider theme={testTheme}>
+      {component}
+    </ThemeProvider>
+  );
+};
 
 // Mock framer-motion to avoid animation complexities in tests
 vi.mock('framer-motion', () => ({
@@ -31,31 +62,31 @@ describe('GameCardPointOverlay', () => {
   };
 
   it('should render point chip with correct value', () => {
-    render(<GameCardPointOverlay {...defaultProps} />);
+    renderWithTheme(<GameCardPointOverlay {...defaultProps} />);
 
     expect(screen.getByText(/2 pts/i)).toBeInTheDocument();
   });
 
   it('should display "+2 pts" for positive points', () => {
-    render(<GameCardPointOverlay {...defaultProps} points={2} />);
+    renderWithTheme(<GameCardPointOverlay {...defaultProps} points={2} />);
 
     expect(screen.getByText(/\+2 pts/i)).toBeInTheDocument();
   });
 
   it('should display "0 pts" for zero points', () => {
-    render(<GameCardPointOverlay {...defaultProps} points={0} baseScore={0} scoreDescription="Miss" />);
+    renderWithTheme(<GameCardPointOverlay {...defaultProps} points={0} baseScore={0} scoreDescription="Miss" />);
 
     expect(screen.getByText(/0 pts/i)).toBeInTheDocument();
   });
 
   it('should display "1 pt" (singular) for 1 point', () => {
-    render(<GameCardPointOverlay {...defaultProps} points={1} baseScore={1} scoreDescription="Correct winner" />);
+    renderWithTheme(<GameCardPointOverlay {...defaultProps} points={1} baseScore={1} scoreDescription="Correct winner" />);
 
     expect(screen.getByText(/\+1 pt\b/i)).toBeInTheDocument();
   });
 
   it('should show breakdown tooltip when clicked', async () => {
-    render(<GameCardPointOverlay {...defaultProps} />);
+    renderWithTheme(<GameCardPointOverlay {...defaultProps} />);
 
     const chip = screen.getByText(/2 pts/i).closest('div');
     expect(chip).toBeInTheDocument();
@@ -68,7 +99,7 @@ describe('GameCardPointOverlay', () => {
   });
 
   it('should close breakdown tooltip when clicking backdrop', async () => {
-    render(<GameCardPointOverlay {...defaultProps} />);
+    renderWithTheme(<GameCardPointOverlay {...defaultProps} />);
 
     const chip = screen.getByText(/2 pts/i).closest('div');
     fireEvent.click(chip!);
@@ -90,7 +121,7 @@ describe('GameCardPointOverlay', () => {
 
   describe('with silver boost', () => {
     it('should display boosted points without inline multiplier', () => {
-      render(
+      renderWithTheme(
         <GameCardPointOverlay
           gameId="1"
           points={4}
@@ -110,7 +141,7 @@ describe('GameCardPointOverlay', () => {
 
   describe('with golden boost', () => {
     it('should display boosted points without inline multiplier', () => {
-      render(
+      renderWithTheme(
         <GameCardPointOverlay
           gameId="1"
           points={6}
@@ -130,28 +161,40 @@ describe('GameCardPointOverlay', () => {
 
   describe('Round 2 refinements', () => {
     it('should render all chips with consistent 24px height', () => {
-      const { rerender, container } = render(<GameCardPointOverlay {...defaultProps} points={0} />);
+      const { rerender, container } = renderWithTheme(<GameCardPointOverlay {...defaultProps} points={0} />);
       let chip = container.querySelector('.MuiChip-root');
       expect(chip).toHaveStyle({ height: '24px' });
 
       // Regular win (no boost)
-      rerender(<GameCardPointOverlay {...defaultProps} points={2} boostType={null} />);
+      rerender(
+        <ThemeProvider theme={testTheme}>
+          <GameCardPointOverlay {...defaultProps} points={2} boostType={null} />
+        </ThemeProvider>
+      );
       chip = container.querySelector('.MuiChip-root');
       expect(chip).toHaveStyle({ height: '24px' });
 
       // Silver boost
-      rerender(<GameCardPointOverlay {...defaultProps} points={4} boostType="silver" />);
+      rerender(
+        <ThemeProvider theme={testTheme}>
+          <GameCardPointOverlay {...defaultProps} points={4} boostType="silver" />
+        </ThemeProvider>
+      );
       chip = container.querySelector('.MuiChip-root');
       expect(chip).toHaveStyle({ height: '24px' });
 
       // Golden boost
-      rerender(<GameCardPointOverlay {...defaultProps} points={6} boostType="golden" />);
+      rerender(
+        <ThemeProvider theme={testTheme}>
+          <GameCardPointOverlay {...defaultProps} points={6} boostType="golden" />
+        </ThemeProvider>
+      );
       chip = container.querySelector('.MuiChip-root');
       expect(chip).toHaveStyle({ height: '24px' });
     });
 
     it('should use white text for regular success chips', () => {
-      const { container } = render(
+      const { container } = renderWithTheme(
         <GameCardPointOverlay {...defaultProps} points={2} boostType={null} />
       );
 
@@ -161,7 +204,7 @@ describe('GameCardPointOverlay', () => {
     });
 
     it('should render CheckEffect for regular wins without boost', () => {
-      render(<GameCardPointOverlay {...defaultProps} points={2} boostType={null} />);
+      renderWithTheme(<GameCardPointOverlay {...defaultProps} points={2} boostType={null} />);
 
       // Should show points text for regular win
       expect(screen.getByText(/\+2 pts/i)).toBeInTheDocument();
@@ -171,7 +214,7 @@ describe('GameCardPointOverlay', () => {
     });
 
     it('should render TrophyBounce for boosted wins', () => {
-      render(<GameCardPointOverlay {...defaultProps} points={4} boostType="silver" />);
+      renderWithTheme(<GameCardPointOverlay {...defaultProps} points={4} boostType="silver" />);
 
       // Should show points text for boosted win
       expect(screen.getByText(/\+4 pts/i)).toBeInTheDocument();
@@ -180,7 +223,7 @@ describe('GameCardPointOverlay', () => {
     });
 
     it('should render SobEffect for zero points', () => {
-      render(<GameCardPointOverlay {...defaultProps} points={0} baseScore={0} />);
+      renderWithTheme(<GameCardPointOverlay {...defaultProps} points={0} baseScore={0} />);
 
       // Should show zero points text
       expect(screen.getByText(/0 pts/i)).toBeInTheDocument();
