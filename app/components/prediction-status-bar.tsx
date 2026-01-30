@@ -1,14 +1,11 @@
 'use client'
 
-import React, { useContext, useMemo } from 'react';
-import { Box, Card, Typography, LinearProgress, Alert, Chip, Button } from '@mui/material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import LockIcon from '@mui/icons-material/Lock';
-import WarningIcon from '@mui/icons-material/Warning';
-import Link from 'next/link';
+import React, { useContext, useMemo, useState, useEffect } from 'react';
+import { Box, Card, Typography, LinearProgress, Alert, Popover } from '@mui/material';
 import { BoostCountBadge } from './boost-badge';
 import { TournamentPredictionCompletion, Team } from '../db/tables-definition';
 import { UrgencyAccordionGroup } from './urgency-accordion-group';
+import { TournamentPredictionAccordion } from './tournament-prediction-accordion';
 import { GuessesContext } from './context-providers/guesses-context-provider';
 import type { ExtendedGameData } from '../definitions';
 
@@ -97,94 +94,6 @@ function buildTournamentUrgencyWarnings(
 
   return [];
 }
-
-// Category status display component
-interface CategoryStatusProps {
-  readonly title: string;
-  readonly completed: number;
-  readonly total: number;
-  readonly link?: string;
-  readonly isLocked: boolean;
-}
-
-function CategoryStatus({ title, completed, total, link, isLocked }: CategoryStatusProps) {
-  const isComplete = completed === total;
-  const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-
-  // Determine status icon based on state
-  const getStatusIcon = () => {
-    if (isLocked) {
-      return <LockIcon sx={{ fontSize: 16, color: 'text.disabled' }} />;
-    }
-    if (isComplete) {
-      return <CheckCircleIcon sx={{ fontSize: 16, color: 'success.main' }} />;
-    }
-    return <WarningIcon sx={{ fontSize: 16, color: 'warning.main' }} />;
-  };
-
-  return (
-    <Box sx={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      py: 0.5,
-      px: 1,
-      '&:hover': {
-        bgcolor: 'action.hover',
-        borderRadius: 1
-      }
-    }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        {/* Status Icon */}
-        {getStatusIcon()}
-
-        {/* Title */}
-        <Typography variant="body2" color="text.secondary" sx={{ minWidth: '140px' }}>
-          {title}
-        </Typography>
-      </Box>
-
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        {/* Count */}
-        <Typography variant="body2" color="text.primary" fontWeight="medium">
-          {completed}/{total} ({percentage}%)
-        </Typography>
-
-        {/* Action Button */}
-        {!isComplete && !isLocked && link && (
-          <Button
-            component={Link}
-            href={link}
-            size="small"
-            variant="text"
-            sx={{ minWidth: 'auto', px: 1, fontSize: '0.75rem' }}
-          >
-            Completar
-          </Button>
-        )}
-
-        {/* Lock Chip */}
-        {isLocked && (
-          <Chip
-            icon={<LockIcon />}
-            label="Cerrado"
-            size="small"
-            sx={{
-              bgcolor: 'grey.700',
-              color: 'white',
-              height: '20px',
-              '& .MuiChip-icon': {
-                color: 'white',
-                fontSize: 14
-              }
-            }}
-          />
-        )}
-      </Box>
-    </Box>
-  );
-}
-
 export function PredictionStatusBar({
   totalGames,
   predictedGames,
@@ -204,6 +113,37 @@ export function PredictionStatusBar({
 
   // Get gameGuesses from context for accordion
   const { gameGuesses } = useContext(GuessesContext);
+
+  // Tournament accordion state
+  const [tournamentAccordionExpanded, setTournamentAccordionExpanded] = useState(false);
+
+  // Boost badge popover state
+  const [boostAnchorEl, setBoostAnchorEl] = useState<HTMLElement | null>(null);
+  const [activeBoostType, setActiveBoostType] = useState<'silver' | 'golden' | null>(null);
+
+  const handleBoostClick = (event: React.MouseEvent<HTMLElement>, type: 'silver' | 'golden') => {
+    setBoostAnchorEl(event.currentTarget);
+    setActiveBoostType(type);
+  };
+
+  const handleBoostClose = () => {
+    setBoostAnchorEl(null);
+    setActiveBoostType(null);
+  };
+
+  const boostPopoverOpen = Boolean(boostAnchorEl);
+
+  // Auto-expand tournament accordion on mount if incomplete and unlocked
+  useEffect(() => {
+    if (tournamentPredictions) {
+      // Auto-expand if incomplete AND unlocked
+      const shouldExpand =
+        !tournamentPredictions.isPredictionLocked &&
+        tournamentPredictions.overallPercentage < 100;
+
+      setTournamentAccordionExpanded(shouldExpand);
+    }
+  }, []); // Only run on mount - INTENTIONAL empty deps array
 
   // Determine if we should show accordions (all required props provided)
   const showAccordions = games && teamsMap && tournamentId !== undefined;
@@ -303,73 +243,117 @@ export function PredictionStatusBar({
       }}
     >
       {/* Game Predictions Progress Section */}
-      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: allWarnings.length > 0 || tournamentPredictions ? 2 : 0, flexWrap: 'wrap' }}>
-        <Typography variant="body2" color="text.secondary" fontWeight="medium" sx={{ minWidth: '160px' }}>
-          Predicciones: {predictedGames}/{totalGames} ({percentage}%)
-        </Typography>
-        <LinearProgress
-          variant="determinate"
-          value={percentage}
+      <Box
+        sx={{
+          display: 'flex',
+          gap: 2,
+          alignItems: 'center',
+          mb: allWarnings.length > 0 || tournamentPredictions ? 2 : 0,
+          // Single line for all screen sizes
+          flexDirection: 'row'
+        }}
+      >
+        {/* Predictions Label + Progress Bar Container */}
+        <Box
           sx={{
+            display: 'flex',
+            gap: 2,
+            alignItems: 'center',
             flexGrow: 1,
-            minWidth: '100px',
-            height: 8,
-            borderRadius: 4
+            minWidth: 0
           }}
-        />
-        {/* Boost chips (if enabled) */}
+        >
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            fontWeight="medium"
+            sx={{ whiteSpace: 'nowrap' }}
+          >
+            Predicciones: {predictedGames}/{totalGames}
+          </Typography>
+
+          <LinearProgress
+            variant="determinate"
+            value={percentage}
+            sx={{
+              flexGrow: 1,
+              minWidth: '30px',
+              height: 8,
+              borderRadius: 4
+            }}
+          />
+        </Box>
+
+        {/* Boost chips (if enabled) - no label to save space */}
         {showBoosts && (
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Typography variant="body2" color="text.secondary" fontWeight="medium" sx={{ mr: 0.5 }}>
-              Multiplicadores:
-            </Typography>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 1,
+              alignItems: 'center',
+              flexShrink: 0
+            }}
+          >
             {silverMax > 0 && (
-              <BoostCountBadge type="silver" used={silverUsed} max={silverMax} />
+              <Box
+                onClick={(e) => handleBoostClick(e, 'silver')}
+                sx={{ cursor: 'pointer' }}
+              >
+                <BoostCountBadge type="silver" used={silverUsed} max={silverMax} />
+              </Box>
             )}
             {goldenMax > 0 && (
-              <BoostCountBadge type="golden" used={goldenUsed} max={goldenMax} />
+              <Box
+                onClick={(e) => handleBoostClick(e, 'golden')}
+                sx={{ cursor: 'pointer' }}
+              >
+                <BoostCountBadge type="golden" used={goldenUsed} max={goldenMax} />
+              </Box>
             )}
           </Box>
         )}
       </Box>
 
-      {/* Tournament Predictions Categories Section */}
+      {/* Tournament Predictions Accordion */}
       {tournamentPredictions && tournamentId && (
         <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
-          <Typography variant="body2" color="text.secondary" fontWeight="medium" sx={{ mb: 1 }}>
-            Predicciones de Torneo
-          </Typography>
-
-          <CategoryStatus
-            title="Podio"
-            completed={tournamentPredictions.finalStandings.completed}
-            total={tournamentPredictions.finalStandings.total}
-            link={`/tournaments/${tournamentId}/awards`}
-            isLocked={tournamentPredictions.isPredictionLocked}
+          <TournamentPredictionAccordion
+            tournamentPredictions={tournamentPredictions}
+            tournamentId={tournamentId}
+            isExpanded={tournamentAccordionExpanded}
+            onToggle={() => setTournamentAccordionExpanded(prev => !prev)}
           />
-
-          <CategoryStatus
-            title="Premios Individuales"
-            completed={tournamentPredictions.awards.completed}
-            total={tournamentPredictions.awards.total}
-            link={`/tournaments/${tournamentId}/awards`}
-            isLocked={tournamentPredictions.isPredictionLocked}
-          />
-
-          {tournamentPredictions.qualifiers.total > 0 && (
-            <CategoryStatus
-              title="Clasificados"
-              completed={tournamentPredictions.qualifiers.completed}
-              total={tournamentPredictions.qualifiers.total}
-              link={`/tournaments/${tournamentId}/playoffs`}
-              isLocked={tournamentPredictions.isPredictionLocked}
-            />
-          )}
         </Box>
       )}
 
       {/* Combined Urgency Warnings Section */}
       {renderUrgencySection()}
+
+      {/* Boost information popover */}
+      <Popover
+        open={boostPopoverOpen}
+        anchorEl={boostAnchorEl}
+        onClose={handleBoostClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'center',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'center',
+        }}
+      >
+        <Box sx={{ p: 2, minWidth: 200 }}>
+          <Typography variant="subtitle2" fontWeight="bold">
+            {activeBoostType === 'silver' ? 'Multiplicador x2' : 'Multiplicador x3'}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            {activeBoostType === 'silver'
+              ? 'Duplica los puntos obtenidos en este partido'
+              : 'Triplica los puntos obtenidos en este partido'}
+          </Typography>
+        </Box>
+      </Popover>
     </Card>
   );
 }
