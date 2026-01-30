@@ -9,10 +9,28 @@ Every story must go through a planning phase before implementation. The plan is 
 ## Critical Rules
 
 1. **ALWAYS create plan** at `/plans/STORY-{N}-plan.md` before coding
-2. **ALWAYS commit plan and create PR** for user review
-3. **STAY IN PLAN MODE** - Do NOT exit until user says "execute the plan"
-4. **NEVER start coding** - Only edit the plan document during this phase
-5. **ITERATE on feedback** - Update plan based on user comments, commit changes to same PR
+2. **ALWAYS run plan review subagent** for 2-3 cycles until "no significant concerns"
+3. **ALWAYS commit plan and create PR** for user review
+4. **STAY IN PLAN MODE** after creating PR - Do NOT exit until user says "execute the plan"
+5. **NEVER start coding** during planning phase - Not after creating plan, not after ExitPlanMode for commits
+6. **TEMPORARY EXITS ONLY FOR COMMITS** - Exit to commit, then IMMEDIATELY re-enter plan mode
+7. **ITERATE on feedback** - Update plan based on user comments, commit changes to same PR
+
+## ⚠️ CRITICAL: Two Types of Plan Mode Exits
+
+**Type 1: TEMPORARY EXIT (for commits during planning)**
+- Exit plan mode ONLY to commit plan updates
+- Run git commands
+- Push to PR
+- **IMMEDIATELY re-enter plan mode** with `EnterPlanMode()`
+- **DO NOT START CODING** - You are still in planning phase
+
+**Type 2: FINAL EXIT (when user approves plan)**
+- User explicitly says "execute the plan"
+- Exit plan mode for the LAST TIME
+- **NOW you can start coding** (see implementation.md)
+
+**IF YOU EXIT PLAN MODE AND USER HAS NOT SAID "EXECUTE THE PLAN", YOU MUST RE-ENTER PLAN MODE IMMEDIATELY.**
 
 ## Complete Planning Workflow
 
@@ -72,25 +90,49 @@ PLAN_FILE="${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-plan.md"
 
 ### 4. Plan Review with Subagent (MANDATORY)
 
-**CRITICAL:** Before committing the plan to PR, use a Plan Reviewer subagent to catch issues early.
+**CRITICAL:** Before committing the plan to PR, you MUST run a Plan Reviewer subagent for 2-3 review cycles.
 
 **Purpose:** Automated review catches feasibility issues, testability concerns, and missing considerations before user review - reducing iteration cycles.
 
-**Process:**
+**MANDATORY LOOP - DO NOT SKIP:**
+
+```
+Initialize: reviewCycle = 1, maxCycles = 3
+
+WHILE reviewCycle <= maxCycles:
+    1. Read current plan
+    2. Launch Plan Reviewer subagent
+    3. Wait for feedback
+    4. IF feedback says "No significant concerns":
+         BREAK (plan is ready)
+    5. IF feedback has concerns:
+         - Update plan with improvements
+         - reviewCycle++
+         - CONTINUE to next iteration
+    6. IF reviewCycle > maxCycles:
+         BREAK (diminishing returns)
+
+After loop completes → Proceed to commit plan
+```
+
+**Detailed Implementation:**
 
 ```typescript
-// Step 1: Main agent has created initial plan
-// Read the plan content
+// REVIEW CYCLE 1
+console.log("Starting plan review cycle 1...")
+
 const planContent = await Read({
   file_path: `${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-plan.md`
 })
 
-// Step 2: Launch Plan Reviewer subagent (use Haiku for speed/cost)
+// Launch Plan Reviewer subagent (use Haiku for speed/cost)
 Task({
   subagent_type: "general-purpose",
   model: "haiku",
-  description: "Review implementation plan",
+  description: "Review implementation plan (Cycle 1)",
   prompt: `Review the implementation plan for story #${STORY_NUMBER}.
+
+This is review cycle 1 of up to 3. Focus on major issues.
 
 Original ticket:
 ${TICKET_CONTENT}
@@ -111,24 +153,57 @@ If the plan looks solid, say "No significant concerns."
 `
 })
 
-// Step 3: Wait for subagent response
-// Review the feedback
+// Wait for subagent response and review feedback
+// IF feedback says "No significant concerns" → SKIP to Step 5 (commit plan)
+// IF feedback has concerns → Update plan, proceed to REVIEW CYCLE 2
 
-// Step 4: Incorporate feedback into plan
-// Update plans/STORY-${STORY_NUMBER}-plan.md with improvements
+// REVIEW CYCLE 2 (if cycle 1 had concerns)
+console.log("Plan updated. Starting review cycle 2...")
 
-// Step 5: Launch second review (2-3 cycles total)
-// Repeat until subagent says "No significant concerns" OR 3 cycles completed
+const updatedPlanContent = await Read({
+  file_path: `${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-plan.md`
+})
+
+Task({
+  subagent_type: "general-purpose",
+  model: "haiku",
+  description: "Review implementation plan (Cycle 2)",
+  prompt: `Review the UPDATED implementation plan for story #${STORY_NUMBER}.
+
+This is review cycle 2. The plan has been updated based on previous feedback.
+
+Implementation plan:
+${updatedPlanContent}
+
+Review the updates and check for:
+- Were previous concerns addressed?
+- Any new issues introduced?
+- Any remaining gaps or risks?
+
+If the plan looks solid now, say "No significant concerns."
+Otherwise, provide specific feedback.
+`
+})
+
+// Wait for subagent response
+// IF "No significant concerns" → SKIP to Step 5
+// IF still has concerns → Update plan, proceed to REVIEW CYCLE 3
+
+// REVIEW CYCLE 3 (if cycle 2 still had concerns)
+console.log("Plan updated again. Starting review cycle 3 (final)...")
+
+// Same pattern as cycle 2, but this is the final review
+// After cycle 3, proceed to commit regardless (diminishing returns)
 ```
 
-**Review cycle guidelines:**
-- **Cycle 1:** Focus on major issues (feasibility, architecture, missing requirements)
-- **Cycle 2:** Focus on details (testability, edge cases, quality gates)
-- **Cycle 3:** Final check (only if needed, avoid over-iteration)
-
 **Stop conditions:**
-- Reviewer says "No significant concerns"
-- OR 3 review cycles completed (diminishing returns after this)
+- Reviewer says "No significant concerns" → Stop, plan is ready
+- OR 3 review cycles completed → Stop (diminishing returns after this)
+
+**DO NOT:**
+- ❌ Skip the review loop
+- ❌ Stop after only 1 cycle if concerns were raised
+- ❌ Continue beyond 3 cycles (over-iteration)
 
 **Example feedback to incorporate:**
 ```
@@ -194,7 +269,23 @@ See \`plans/STORY-${STORY_NUMBER}-plan.md\` for full details.
 - Plan file location
 - Next steps (waiting for review/feedback)
 
+**🛑 STOP HERE - DO NOT PROCEED TO IMPLEMENTATION 🛑**
+
+**CRITICAL - READ THIS:**
+- ✅ Plan is committed to PR
+- ✅ You are STILL IN PLAN MODE
+- ❌ DO NOT exit plan mode yet
+- ❌ DO NOT start coding
+- ❌ DO NOT read implementation files
+- ❌ DO NOT create tasks with TaskCreate
+- ✅ WAIT for user to review the plan and provide feedback
+- ✅ OR user says "execute the plan" (then go to Step 7)
+
+**You are now in the Plan Iteration Phase (see Step 6 below).**
+
 ### 6. Plan Iteration Phase
+
+**YOU ARE HERE after creating the PR. STAY IN PLAN MODE.**
 
 **ITERATE IN A CYCLE** - This is the key pattern:
 
@@ -204,9 +295,11 @@ See \`plans/STORY-${STORY_NUMBER}-plan.md\` for full details.
    - Read the feedback from PR comments or direct messages
    - Update the plan document: `plans/STORY-${STORY_NUMBER}-plan.md`
 
-2. **Exit plan mode temporarily to commit:**
+2. **⚠️ TEMPORARY EXIT to commit (you will RE-ENTER immediately):**
    ```typescript
    // Exit ONLY to commit the updated plan
+   // YOU ARE NOT STARTING IMPLEMENTATION
+   // YOU WILL RE-ENTER PLAN MODE IN STEP 4
    ExitPlanMode()
    ```
 
@@ -219,13 +312,19 @@ See \`plans/STORY-${STORY_NUMBER}-plan.md\` for full details.
    git -C ${WORKTREE_PATH} push
    ```
 
-4. **Re-enter plan mode to continue iteration:**
+4. **🛑 IMMEDIATELY RE-ENTER PLAN MODE 🛑:**
    ```typescript
    // Return to plan mode to wait for more feedback
+   // DO NOT START CODING
+   // DO NOT USE TaskCreate
+   // YOU ARE STILL IN THE PLANNING PHASE
    EnterPlanMode()
    ```
 
 5. **Repeat cycle** until user approves with "execute the plan"
+
+**🚨 CRITICAL WARNING 🚨**
+If you just ran `ExitPlanMode()` and the user has NOT said "execute the plan", you MUST run `EnterPlanMode()` IMMEDIATELY. Do not do anything else between ExitPlanMode and EnterPlanMode except git commands.
 
 **CRITICAL: Exiting plan mode ≠ Starting implementation**
 - During iteration: Exit → Commit → Re-enter

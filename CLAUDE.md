@@ -14,17 +14,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Critical Rules
 1. **ALWAYS create plan** at `/plans/STORY-{N}-plan.md` before coding
-2. **ALWAYS commit plan and create PR** for user review
-3. **STAY IN PLAN MODE** - Do NOT exit until user says "execute the plan"
-4. **NEVER start coding** - Only edit plan document during planning phase
+2. **ALWAYS run plan review subagent for 2-3 cycles** until "no significant concerns"
+3. **ALWAYS commit plan and create PR** for user review
+4. **STAY IN PLAN MODE after creating PR** - Do NOT exit until user says "execute the plan"
+5. **NEVER start coding during planning** - Not after creating plan, not during ExitPlanMode for commits
+6. **TEMPORARY EXITS ONLY FOR COMMITS** - Exit to commit, then IMMEDIATELY re-enter plan mode
+
+### ⚠️ Two Types of Plan Mode Exits
+- **TEMPORARY** (during planning): Exit → Commit → RE-ENTER IMMEDIATELY → Do NOT start coding
+- **FINAL** (user approves): Exit → Start implementation (only when user says "execute the plan")
 
 ### Process
 See **[Planning Guide](docs/claude/planning.md)** for complete workflow.
 
 **Plan review with subagent (MANDATORY):**
 - After creating initial plan, use Plan Reviewer subagent for 2-3 review cycles
+- Loop until "no significant concerns" OR 3 cycles complete
 - Catches issues early, improves quality before user review
-- See **[Subagent Workflows Guide](docs/claude/subagent-workflows.md)** for details
+
+**After creating PR - STOP AND WAIT:**
+- Do NOT start implementation
+- Do NOT use TaskCreate
+- WAIT for user to review plan or say "execute the plan"
 
 **Mid-implementation replanning:**
 - If significant feedback requires approach changes, create a "change plan"
@@ -116,17 +127,28 @@ Set WORKTREE_PATH    ASK USER:
              ↓
     EnterPlanMode → Research → Create Plan
              ↓
-    Plan Review Subagent (2-3 cycles)
-    Improve plan quality
+    ┌──────────────────────────────────┐
+    │ Plan Review Loop (2-3 cycles):   │
+    │ 1. Launch reviewer subagent      │
+    │ 2. Get feedback                  │
+    │ 3. Update plan if needed         │
+    │ 4. Repeat until "no concerns"    │
+    │    OR 3 cycles complete          │
+    └──────────────────────────────────┘
              ↓
     Commit Plan & Create PR
              ↓
-    STAY IN PLAN MODE
+    🛑 STOP - STAY IN PLAN MODE 🛑
+    Do NOT start implementation
+    Do NOT use TaskCreate
+    WAIT for user approval
+             ↓
     Iterate on user feedback
+    (Exit → Commit → RE-ENTER immediately)
              ↓
     User says "execute the plan"
              ↓
-    ExitPlanMode
+    ExitPlanMode (FINAL EXIT)
              ↓
     IMPLEMENTATION PHASE
     (see docs/claude/implementation.md)
@@ -189,8 +211,12 @@ Set WORKTREE_PATH    ASK USER:
 | Mistake | Why It's Wrong | Correct Approach |
 |---------|---------------|------------------|
 | Skipping planning phase | No alignment before coding | Always plan first, get approval |
+| Only 1 plan review cycle | Misses issues that iterative review catches | Run 2-3 cycles until "no significant concerns" |
+| Starting implementation after creating plan | User hasn't approved yet | Commit plan → PR → WAIT for approval |
+| Starting implementation during ExitPlanMode | Temporary exit ≠ final exit | Exit → Commit → RE-ENTER immediately |
+| Not re-entering plan mode after commit | Premature implementation | MUST re-enter plan mode after temporary exit |
 | Not committing plan to PR | User can't review properly | Commit plan, create PR, iterate |
-| Exiting plan mode early | User hasn't approved yet | Stay in plan mode until "execute" |
+| Exiting plan mode before "execute the plan" | User hasn't approved yet | Stay in plan mode until user says "execute" |
 | Not using TaskCreate | No progress tracking, can't parallelize | Always define tasks with TaskCreate/TaskUpdate |
 | Making big changes without change plan | Scope creep, misalignment | Create change plan for significant feedback |
 | Ignoring SonarCloud issues | Accumulates technical debt | Fix ALL new issues, no excuses |
