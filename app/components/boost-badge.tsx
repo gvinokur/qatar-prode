@@ -47,11 +47,11 @@ interface BoostCountBadgeProps {
 }
 
 /**
- * Boost count badge for dashboard: shows "⭐ 2x: 3/5" format
+ * Boost count badge for dashboard: shows "⭐ 3/5" format
+ * (2x/3x multiplier removed to save space, can be added to tooltip in future)
  */
 export function BoostCountBadge({ type, used, max }: BoostCountBadgeProps) {
   const isSilver = type === 'silver';
-  const multiplier = isSilver ? '2x' : '3x';
   const color = isSilver ? '#C0C0C0' : '#FFD700';
   const backgroundColor = isSilver ? 'rgba(192, 192, 192, 0.2)' : 'rgba(255, 215, 0, 0.2)';
   const Icon = isSilver ? StarIcon : TrophyIcon;
@@ -59,7 +59,7 @@ export function BoostCountBadge({ type, used, max }: BoostCountBadgeProps) {
   return (
     <Chip
       icon={<Icon sx={{ fontSize: 14 }} />}
-      label={`${multiplier}: ${used}/${max}`}
+      label={`${used}/${max}`}
       size="small"
       sx={{
         height: '24px',

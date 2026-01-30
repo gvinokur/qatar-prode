@@ -231,11 +231,10 @@ export function PredictionStatusBar({
         sx={{
           display: 'flex',
           gap: 2,
+          alignItems: 'center',
           mb: allWarnings.length > 0 || tournamentPredictions ? 2 : 0,
-          // Mobile (≤900px): Stack vertically
-          flexDirection: { xs: 'column', md: 'row' },
-          // Mobile: Full width for each section
-          alignItems: { xs: 'stretch', md: 'center' }
+          // Single line for all screen sizes
+          flexDirection: 'row'
         }}
       >
         {/* Predictions Label + Progress Bar Container */}
@@ -252,9 +251,9 @@ export function PredictionStatusBar({
             variant="body2"
             color="text.secondary"
             fontWeight="medium"
-            sx={{ minWidth: { xs: 'auto', md: '160px' } }}
+            sx={{ whiteSpace: 'nowrap' }}
           >
-            Predicciones: {predictedGames}/{totalGames} ({percentage}%)
+            Predicciones: {predictedGames}/{totalGames}
           </Typography>
 
           <LinearProgress
@@ -262,14 +261,14 @@ export function PredictionStatusBar({
             value={percentage}
             sx={{
               flexGrow: 1,
-              minWidth: '100px',
+              minWidth: '30px',
               height: 8,
               borderRadius: 4
             }}
           />
         </Box>
 
-        {/* Boost chips (if enabled) */}
+        {/* Boost chips (if enabled) - no label to save space */}
         {showBoosts && (
           <Box
             sx={{
@@ -279,9 +278,6 @@ export function PredictionStatusBar({
               flexShrink: 0
             }}
           >
-            <Typography variant="body2" color="text.secondary" fontWeight="medium" sx={{ mr: 0.5 }}>
-              Multiplicadores:
-            </Typography>
             {silverMax > 0 && (
               <BoostCountBadge type="silver" used={silverUsed} max={silverMax} />
             )}
