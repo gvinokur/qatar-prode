@@ -35,7 +35,7 @@ export function TournamentPredictionCategoryCard({
   const isComplete = safeCompleted === total;
 
   // Icon logic - 16px icons
-  const getCategoryStatusIcon = (): JSX.Element => {
+  const getCategoryStatusIcon = (): React.ReactElement => {
     if (isLocked) {
       return <LockIcon sx={{ fontSize: 16, color: 'text.disabled' }} />;
     }

@@ -1,11 +1,7 @@
 'use client'
 
 import React, { useContext, useMemo, useState, useEffect } from 'react';
-import { Box, Card, Typography, LinearProgress, Alert, Chip, Button } from '@mui/material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import LockIcon from '@mui/icons-material/Lock';
-import WarningIcon from '@mui/icons-material/Warning';
-import Link from 'next/link';
+import { Box, Card, Typography, LinearProgress, Alert } from '@mui/material';
 import { BoostCountBadge } from './boost-badge';
 import { TournamentPredictionCompletion, Team } from '../db/tables-definition';
 import { UrgencyAccordionGroup } from './urgency-accordion-group';
@@ -235,7 +231,6 @@ export function PredictionStatusBar({
         sx={{
           display: 'flex',
           gap: 2,
-          alignItems: 'center',
           mb: allWarnings.length > 0 || tournamentPredictions ? 2 : 0,
           // Mobile (≤900px): Stack vertically
           flexDirection: { xs: 'column', md: 'row' },

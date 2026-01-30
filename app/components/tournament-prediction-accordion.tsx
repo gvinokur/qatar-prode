@@ -38,7 +38,7 @@ export function TournamentPredictionAccordion({
   };
 
   // Icon logic - 24px icons (default size)
-  const getAccordionIcon = (): JSX.Element => {
+  const getAccordionIcon = (): React.ReactElement => {
     if (isPredictionLocked) {
       return <LockIcon color="disabled" />;
     }
