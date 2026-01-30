@@ -1,6 +1,37 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { ThemeProvider, createTheme } from '@mui/material';
 import PointBreakdownTooltip from '../../app/components/point-breakdown-tooltip';
+
+// Create test theme with accent colors
+const testTheme = createTheme({
+  palette: {
+    mode: 'light',
+    accent: {
+      gold: {
+        main: '#ffc107',
+        light: '#ffd54f',
+        dark: '#ffa000',
+        contrastText: '#000000'
+      },
+      silver: {
+        main: '#C0C0C0',
+        light: '#E0E0E0',
+        dark: '#A0A0A0',
+        contrastText: '#000000'
+      }
+    }
+  }
+});
+
+// Wrapper component for theme provider
+const renderWithTheme = (component: React.ReactElement) => {
+  return render(
+    <ThemeProvider theme={testTheme}>
+      {component}
+    </ThemeProvider>
+  );
+};
 
 describe('PointBreakdownTooltip', () => {
   const mockAnchorEl = document.createElement('div');
@@ -22,20 +53,20 @@ describe('PointBreakdownTooltip', () => {
   });
 
   it('should render breakdown title', () => {
-    render(<PointBreakdownTooltip {...defaultProps} />);
+    renderWithTheme(<PointBreakdownTooltip {...defaultProps} />);
 
     expect(screen.getByText('Desglose de Puntos')).toBeInTheDocument();
   });
 
   it('should display base score with description', () => {
-    render(<PointBreakdownTooltip {...defaultProps} />);
+    renderWithTheme(<PointBreakdownTooltip {...defaultProps} />);
 
     expect(screen.getByText('Base:')).toBeInTheDocument();
     expect(screen.getByText(/\(Exact score\)/i)).toBeInTheDocument();
   });
 
   it('should display final total', () => {
-    render(<PointBreakdownTooltip {...defaultProps} />);
+    renderWithTheme(<PointBreakdownTooltip {...defaultProps} />);
 
     expect(screen.getByText('Total:')).toBeInTheDocument();
     // Check the total section contains 2 puntos
@@ -44,7 +75,7 @@ describe('PointBreakdownTooltip', () => {
   });
 
   it('should not render content when open is false', () => {
-    const { container } = render(<PointBreakdownTooltip {...defaultProps} open={false} />);
+    const { container } = renderWithTheme(<PointBreakdownTooltip {...defaultProps} open={false} />);
 
     // MUI Popover still renders in DOM but with display:none or aria-hidden when closed
     const popoverPaper = container.querySelector('.MuiPopover-paper');
@@ -70,7 +101,7 @@ describe('PointBreakdownTooltip', () => {
 
   describe('with silver boost', () => {
     it('should display boost multiplier', () => {
-      render(
+      renderWithTheme(
         <PointBreakdownTooltip
           {...defaultProps}
           boostType="silver"
@@ -84,7 +115,7 @@ describe('PointBreakdownTooltip', () => {
     });
 
     it('should display correct final total with boost', () => {
-      render(
+      renderWithTheme(
         <PointBreakdownTooltip
           {...defaultProps}
           boostType="silver"
@@ -102,7 +133,7 @@ describe('PointBreakdownTooltip', () => {
 
   describe('with golden boost', () => {
     it('should display boost multiplier', () => {
-      render(
+      renderWithTheme(
         <PointBreakdownTooltip
           {...defaultProps}
           boostType="golden"
@@ -116,7 +147,7 @@ describe('PointBreakdownTooltip', () => {
     });
 
     it('should display correct final total with boost', () => {
-      render(
+      renderWithTheme(
         <PointBreakdownTooltip
           {...defaultProps}
           boostType="golden"
@@ -134,7 +165,7 @@ describe('PointBreakdownTooltip', () => {
 
   describe('without boost', () => {
     it('should not display boost row', () => {
-      render(<PointBreakdownTooltip {...defaultProps} boostType={null} />);
+      renderWithTheme(<PointBreakdownTooltip {...defaultProps} boostType={null} />);
 
       expect(screen.queryByText('Multiplicador:')).not.toBeInTheDocument();
     });
