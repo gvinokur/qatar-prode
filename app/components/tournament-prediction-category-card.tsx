@@ -62,7 +62,7 @@ export function TournamentPredictionCategoryCard({
   };
 
   // ARIA label for accessibility
-  const cardAriaLabel = `${title}: ${safeCompleted} de ${total} completado${safeCompleted !== 1 ? 's' : ''}`;
+  const cardAriaLabel = `${title}: ${safeCompleted} de ${total} completado${safeCompleted === 1 ? '' : 's'}`;
 
   return (
     <Card
