@@ -10,7 +10,8 @@ import {
   Tooltip, Divider, Grid,
   Checkbox,
   Badge, CircularProgress,
-  Chip
+  Chip,
+  alpha
 } from "@mui/material";
 import { Edit as EditIcon, Save as SaveIcon, SaveOutlined as SaveOutlinedIcon, Scoreboard as ScoreboardIcon, EmojiEvents as TrophyIcon } from "@mui/icons-material";
 import { GameResultNew, Theme} from "../db/tables-definition";
@@ -115,15 +116,15 @@ export default function CompactGameViewCard({
 
   // Boost styling
   const getBoostBorderColor = () => {
-    if (boostType === 'golden') return '#FFD700'; // Gold
-    if (boostType === 'silver') return '#C0C0C0'; // Silver
+    if (boostType === 'golden') return theme.palette.accent.gold.main;
+    if (boostType === 'silver') return theme.palette.accent.silver.main;
     if (isDraft) return theme.palette.warning.light;
     return 'divider';
   };
 
   const getBoostShadow = () => {
-    if (boostType === 'golden') return '0 0 8px rgba(255, 215, 0, 0.5)';
-    if (boostType === 'silver') return '0 0 8px rgba(192, 192, 192, 0.5)';
+    if (boostType === 'golden') return `0 0 8px ${alpha(theme.palette.accent.gold.main, 0.5)}`;
+    if (boostType === 'silver') return `0 0 8px ${alpha(theme.palette.accent.silver.main, 0.5)}`;
     return 'none';
   };
 
@@ -169,12 +170,12 @@ export default function CompactGameViewCard({
                         size="small"
                         sx={{
                           height: '20px',
-                          backgroundColor: boostType === 'golden' ? 'rgba(255, 215, 0, 0.2)' : 'rgba(192, 192, 192, 0.2)',
-                          color: boostType === 'golden' ? '#FFD700' : '#C0C0C0',
+                          backgroundColor: boostType === 'golden' ? alpha(theme.palette.accent.gold.main, 0.2) : alpha(theme.palette.accent.silver.main, 0.2),
+                          color: boostType === 'golden' ? theme.palette.accent.gold.main : theme.palette.accent.silver.main,
                           fontWeight: 'bold',
                           fontSize: '0.7rem',
                           '& .MuiChip-icon': {
-                            color: boostType === 'golden' ? '#FFD700' : '#C0C0C0'
+                            color: boostType === 'golden' ? theme.palette.accent.gold.main : theme.palette.accent.silver.main
                           }
                         }}
                       />

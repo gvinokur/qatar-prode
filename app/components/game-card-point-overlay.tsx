@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, useMotionValue, animate } from 'framer-motion';
-import { Box, Chip, useTheme } from '@mui/material';
+import { Box, Chip, useTheme, alpha } from '@mui/material';
 import { useSearchParams } from 'next/navigation';
 import { ConfettiEffect, TrophyBounce, SobEffect, CheckEffect } from './celebration-effects';
 import PointBreakdownTooltip from './point-breakdown-tooltip';
@@ -84,8 +84,8 @@ export default function GameCardPointOverlay({
     if (points === 0) return theme.palette.error.light;
     if (boostType) {
       return boostType === 'golden'
-        ? 'rgba(255, 215, 0, 0.2)'
-        : 'rgba(192, 192, 192, 0.2)';
+        ? alpha(theme.palette.accent.gold.main, 0.2)
+        : alpha(theme.palette.accent.silver.main, 0.2);
     }
     return theme.palette.success.light;
   };
@@ -93,21 +93,21 @@ export default function GameCardPointOverlay({
   const getTextColor = () => {
     if (points === 0) return 'white';
     if (boostType) {
-      return boostType === 'golden' ? '#FFD700' : '#C0C0C0';
+      return boostType === 'golden' ? theme.palette.accent.gold.main : theme.palette.accent.silver.main;
     }
     return 'white';
   };
 
   const getBoxShadow = () => {
-    if (boostType === 'golden') return '0 0 12px rgba(255, 215, 0, 0.6)';
-    if (boostType === 'silver') return '0 0 12px rgba(192, 192, 192, 0.6)';
+    if (boostType === 'golden') return `0 0 12px ${alpha(theme.palette.accent.gold.main, 0.6)}`;
+    if (boostType === 'silver') return `0 0 12px ${alpha(theme.palette.accent.silver.main, 0.6)}`;
     return 'none';
   };
 
   const getHoverBackgroundColor = () => {
     if (points === 0) return theme.palette.error.main;
-    if (boostType === 'golden') return 'rgba(255, 215, 0, 0.3)';
-    if (boostType === 'silver') return 'rgba(192, 192, 192, 0.3)';
+    if (boostType === 'golden') return alpha(theme.palette.accent.gold.main, 0.3);
+    if (boostType === 'silver') return alpha(theme.palette.accent.silver.main, 0.3);
     return theme.palette.success.main;
   };
 
@@ -152,7 +152,7 @@ export default function GameCardPointOverlay({
         {/* Confetti effect */}
         <ConfettiEffect
           show={shouldAnimate && showCelebration && points > 0}
-          color={boostType === 'golden' ? '#FFD700' : theme.palette.success.main}
+          color={boostType === 'golden' ? theme.palette.accent.gold.main : theme.palette.success.main}
         />
 
         {/* Point display chip */}

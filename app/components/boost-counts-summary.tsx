@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { Box, Chip, Paper, Typography } from '@mui/material';
+import { Box, Chip, Paper, Typography, useTheme, alpha } from '@mui/material';
 import { EmojiEvents as TrophyIcon, Star as StarIcon } from '@mui/icons-material';
 import { getBoostCountsAction } from '../actions/game-boost-actions';
 
@@ -10,6 +10,7 @@ interface BoostCountsSummaryProps {
 }
 
 export default function BoostCountsSummary({ tournamentId }: BoostCountsSummaryProps) {
+  const theme = useTheme();
   const [boostCounts, setBoostCounts] = useState<{
     silver: { used: number; max: number };
     golden: { used: number; max: number };
@@ -53,11 +54,11 @@ export default function BoostCountsSummary({ tournamentId }: BoostCountsSummaryP
             label={`Silver: ${boostCounts.silver.max - boostCounts.silver.used} / ${boostCounts.silver.max}`}
             size="small"
             sx={{
-              backgroundColor: boostCounts.silver.used >= boostCounts.silver.max ? 'rgba(192, 192, 192, 0.1)' : 'rgba(192, 192, 192, 0.2)',
-              color: '#C0C0C0',
+              backgroundColor: boostCounts.silver.used >= boostCounts.silver.max ? alpha(theme.palette.accent.silver.main, 0.1) : alpha(theme.palette.accent.silver.main, 0.2),
+              color: theme.palette.accent.silver.main,
               fontWeight: 'bold',
               '& .MuiChip-icon': {
-                color: '#C0C0C0'
+                color: theme.palette.accent.silver.main
               }
             }}
           />
@@ -68,11 +69,11 @@ export default function BoostCountsSummary({ tournamentId }: BoostCountsSummaryP
             label={`Golden: ${boostCounts.golden.max - boostCounts.golden.used} / ${boostCounts.golden.max}`}
             size="small"
             sx={{
-              backgroundColor: boostCounts.golden.used >= boostCounts.golden.max ? 'rgba(255, 215, 0, 0.1)' : 'rgba(255, 215, 0, 0.2)',
-              color: '#FFD700',
+              backgroundColor: boostCounts.golden.used >= boostCounts.golden.max ? alpha(theme.palette.accent.gold.main, 0.1) : alpha(theme.palette.accent.gold.main, 0.2),
+              color: theme.palette.accent.gold.main,
               fontWeight: 'bold',
               '& .MuiChip-icon': {
-                color: '#FFD700'
+                color: theme.palette.accent.gold.main
               }
             }}
           />

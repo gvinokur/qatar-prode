@@ -91,7 +91,7 @@ export default function PointBreakdownTooltip({
                 variant="body2"
                 fontWeight="medium"
                 sx={{
-                  color: boostType === 'golden' ? '#FFD700' : '#C0C0C0',
+                  color: boostType === 'golden' ? theme.palette.accent.gold.main : theme.palette.accent.silver.main,
                 }}
               >
                 {multiplier}x ({formatBoostText(boostType)})

@@ -1,7 +1,38 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { ThemeProvider, createTheme } from '@mui/material';
 import userEvent from '@testing-library/user-event';
 import GameBoostSelector from '../../app/components/game-boost-selector';
+
+// Create test theme with accent colors
+const testTheme = createTheme({
+  palette: {
+    mode: 'light',
+    accent: {
+      gold: {
+        main: '#ffc107',
+        light: '#ffd54f',
+        dark: '#ffa000',
+        contrastText: '#000000'
+      },
+      silver: {
+        main: '#C0C0C0',
+        light: '#E0E0E0',
+        dark: '#A0A0A0',
+        contrastText: '#000000'
+      }
+    }
+  }
+});
+
+// Wrapper component for theme provider
+const renderWithTheme = (component: React.ReactElement) => {
+  return render(
+    <ThemeProvider theme={testTheme}>
+      {component}
+    </ThemeProvider>
+  );
+};
 
 // Mock Server Actions using vi.hoisted to avoid hoisting issues
 const { mockSetGameBoostAction, mockGetBoostCountsAction } = vi.hoisted(() => ({
@@ -50,7 +81,7 @@ describe('GameBoostSelector', () => {
 
   describe('Rendering', () => {
     it('renders boost count badges for silver and golden', async () => {
-      render(<GameBoostSelector {...mockProps} />);
+      renderWithTheme(<GameBoostSelector {...mockProps} />);
 
       await screen.findByTestId('boost-count-silver');
 
@@ -59,7 +90,7 @@ describe('GameBoostSelector', () => {
     });
 
     it('renders boost badge when silver boost is applied', async () => {
-      render(<GameBoostSelector {...mockProps} currentBoostType="silver" />);
+      renderWithTheme(<GameBoostSelector {...mockProps} currentBoostType="silver" />);
 
       await screen.findByTestId('boost-count-silver');
 
@@ -67,7 +98,7 @@ describe('GameBoostSelector', () => {
     });
 
     it('renders boost badge when golden boost is applied', async () => {
-      render(<GameBoostSelector {...mockProps} currentBoostType="golden" />);
+      renderWithTheme(<GameBoostSelector {...mockProps} currentBoostType="golden" />);
 
       await screen.findByTestId('boost-count-golden');
 
@@ -80,7 +111,7 @@ describe('GameBoostSelector', () => {
         golden: { used: 0, max: 0 },
       });
 
-      const { container } = render(<GameBoostSelector {...mockProps} />);
+      const { container } = renderWithTheme(<GameBoostSelector {...mockProps} />);
 
       await waitFor(() => {
         expect(container.firstChild).toBeNull();
@@ -93,7 +124,7 @@ describe('GameBoostSelector', () => {
         golden: { used: 0, max: 0 },
       });
 
-      render(<GameBoostSelector {...mockProps} />);
+      renderWithTheme(<GameBoostSelector {...mockProps} />);
 
       await screen.findByTestId('boost-count-silver');
 
@@ -107,7 +138,7 @@ describe('GameBoostSelector', () => {
         golden: { used: 1, max: 2 },
       });
 
-      render(<GameBoostSelector {...mockProps} />);
+      renderWithTheme(<GameBoostSelector {...mockProps} />);
 
       await screen.findByTestId('boost-count-golden');
 
@@ -119,7 +150,7 @@ describe('GameBoostSelector', () => {
   describe('Boost Click Handlers', () => {
     it('applies silver boost when silver button is clicked', async () => {
       const user = userEvent.setup();
-      render(<GameBoostSelector {...mockProps} />);
+      renderWithTheme(<GameBoostSelector {...mockProps} />);
 
       await screen.findByTestId('boost-count-silver');
 
@@ -133,7 +164,7 @@ describe('GameBoostSelector', () => {
 
     it('applies golden boost when golden button is clicked', async () => {
       const user = userEvent.setup();
-      render(<GameBoostSelector {...mockProps} />);
+      renderWithTheme(<GameBoostSelector {...mockProps} />);
 
       await screen.findByTestId('boost-count-golden');
 
@@ -147,7 +178,7 @@ describe('GameBoostSelector', () => {
 
     it('removes boost when clicking active boost button', async () => {
       const user = userEvent.setup();
-      render(<GameBoostSelector {...mockProps} currentBoostType="silver" />);
+      renderWithTheme(<GameBoostSelector {...mockProps} currentBoostType="silver" />);
 
       await screen.findByTestId('boost-badge-silver');
 
@@ -161,7 +192,7 @@ describe('GameBoostSelector', () => {
 
     it('switches from silver to golden boost', async () => {
       const user = userEvent.setup();
-      render(<GameBoostSelector {...mockProps} currentBoostType="silver" />);
+      renderWithTheme(<GameBoostSelector {...mockProps} currentBoostType="silver" />);
 
       await screen.findByTestId('boost-badge-silver');
 
@@ -175,7 +206,7 @@ describe('GameBoostSelector', () => {
 
     it('updates boost counts after applying boost', async () => {
       const user = userEvent.setup();
-      render(<GameBoostSelector {...mockProps} />);
+      renderWithTheme(<GameBoostSelector {...mockProps} />);
 
       await screen.findByTestId('boost-count-silver');
 
@@ -191,7 +222,7 @@ describe('GameBoostSelector', () => {
 
     it('updates boost counts after removing boost', async () => {
       const user = userEvent.setup();
-      render(<GameBoostSelector {...mockProps} currentBoostType="silver" />);
+      renderWithTheme(<GameBoostSelector {...mockProps} currentBoostType="silver" />);
 
       await screen.findByTestId('boost-badge-silver');
 
@@ -207,7 +238,7 @@ describe('GameBoostSelector', () => {
 
     it('updates counts correctly when switching boosts', async () => {
       const user = userEvent.setup();
-      render(<GameBoostSelector {...mockProps} currentBoostType="silver" />);
+      renderWithTheme(<GameBoostSelector {...mockProps} currentBoostType="silver" />);
 
       await screen.findByTestId('boost-badge-silver');
 
@@ -232,7 +263,7 @@ describe('GameBoostSelector', () => {
       });
 
       const user = userEvent.setup();
-      render(<GameBoostSelector {...mockProps} />);
+      renderWithTheme(<GameBoostSelector {...mockProps} />);
 
       await screen.findByTestId('boost-count-silver');
 
@@ -250,7 +281,7 @@ describe('GameBoostSelector', () => {
       });
 
       const user = userEvent.setup();
-      render(<GameBoostSelector {...mockProps} />);
+      renderWithTheme(<GameBoostSelector {...mockProps} />);
 
       await screen.findByTestId('boost-count-golden');
 
@@ -268,7 +299,7 @@ describe('GameBoostSelector', () => {
       });
 
       const user = userEvent.setup();
-      render(<GameBoostSelector {...mockProps} />);
+      renderWithTheme(<GameBoostSelector {...mockProps} />);
 
       await screen.findByTestId('boost-count-silver');
 
@@ -294,7 +325,7 @@ describe('GameBoostSelector', () => {
       });
 
       const user = userEvent.setup();
-      render(<GameBoostSelector {...mockProps} />);
+      renderWithTheme(<GameBoostSelector {...mockProps} />);
 
       await screen.findByTestId('boost-count-silver');
 
@@ -315,7 +346,7 @@ describe('GameBoostSelector', () => {
       mockSetGameBoostAction.mockRejectedValue(new Error('Network error'));
 
       const user = userEvent.setup();
-      render(<GameBoostSelector {...mockProps} />);
+      renderWithTheme(<GameBoostSelector {...mockProps} />);
 
       await screen.findByTestId('boost-count-silver');
 
@@ -329,7 +360,7 @@ describe('GameBoostSelector', () => {
 
   describe('Disabled States', () => {
     it('disables buttons when game has started', async () => {
-      render(<GameBoostSelector {...mockProps} gameDate={pastDate} />);
+      renderWithTheme(<GameBoostSelector {...mockProps} gameDate={pastDate} />);
 
       await screen.findByTestId('boost-count-silver');
 
@@ -342,7 +373,7 @@ describe('GameBoostSelector', () => {
     });
 
     it('disables buttons when no prediction entered', async () => {
-      render(<GameBoostSelector {...mockProps} noPrediction={true} />);
+      renderWithTheme(<GameBoostSelector {...mockProps} noPrediction={true} />);
 
       await screen.findByTestId('boost-count-silver');
 
@@ -355,7 +386,7 @@ describe('GameBoostSelector', () => {
     });
 
     it('disables buttons when disabled prop is true', async () => {
-      render(<GameBoostSelector {...mockProps} disabled={true} />);
+      renderWithTheme(<GameBoostSelector {...mockProps} disabled={true} />);
 
       await screen.findByTestId('boost-count-silver');
 
@@ -368,7 +399,7 @@ describe('GameBoostSelector', () => {
     });
 
     it('does not call setGameBoostAction when button is disabled', async () => {
-      render(<GameBoostSelector {...mockProps} disabled={true} />);
+      renderWithTheme(<GameBoostSelector {...mockProps} disabled={true} />);
 
       await screen.findByTestId('boost-count-silver');
 
@@ -383,7 +414,7 @@ describe('GameBoostSelector', () => {
       mockSetGameBoostAction.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
 
       const user = userEvent.setup();
-      render(<GameBoostSelector {...mockProps} />);
+      renderWithTheme(<GameBoostSelector {...mockProps} />);
 
       await screen.findByTestId('boost-count-silver');
 
@@ -410,7 +441,7 @@ describe('GameBoostSelector', () => {
       mockSetGameBoostAction.mockReturnValue(promise);
 
       const user = userEvent.setup();
-      render(<GameBoostSelector {...mockProps} />);
+      renderWithTheme(<GameBoostSelector {...mockProps} />);
 
       await screen.findByTestId('boost-count-silver');
 
@@ -436,7 +467,7 @@ describe('GameBoostSelector', () => {
       const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
       mockGetBoostCountsAction.mockRejectedValue(new Error('Failed to fetch'));
 
-      const { container } = render(<GameBoostSelector {...mockProps} />);
+      const { container } = renderWithTheme(<GameBoostSelector {...mockProps} />);
 
       await waitFor(() => {
         expect(consoleError).toHaveBeenCalledWith('Error fetching boost counts:', expect.any(Error));
@@ -452,7 +483,7 @@ describe('GameBoostSelector', () => {
       mockSetGameBoostAction.mockRejectedValue({});
 
       const user = userEvent.setup();
-      render(<GameBoostSelector {...mockProps} />);
+      renderWithTheme(<GameBoostSelector {...mockProps} />);
 
       await screen.findByTestId('boost-count-silver');
 
@@ -466,13 +497,17 @@ describe('GameBoostSelector', () => {
 
   describe('useEffect Hooks', () => {
     it('updates boost type when currentBoostType prop changes', async () => {
-      const { rerender } = render(<GameBoostSelector {...mockProps} currentBoostType="silver" />);
+      const { rerender } = renderWithTheme(<GameBoostSelector {...mockProps} currentBoostType="silver" />);
 
       await screen.findByTestId('boost-badge-silver');
 
       expect(screen.getByTestId('boost-badge-silver')).toBeInTheDocument();
 
-      rerender(<GameBoostSelector {...mockProps} currentBoostType="golden" />);
+      rerender(
+        <ThemeProvider theme={testTheme}>
+          <GameBoostSelector {...mockProps} currentBoostType="golden" />
+        </ThemeProvider>
+      );
 
       await screen.findByTestId('boost-badge-golden');
 
@@ -481,7 +516,7 @@ describe('GameBoostSelector', () => {
     });
 
     it('fetches boost counts on mount', async () => {
-      render(<GameBoostSelector {...mockProps} />);
+      renderWithTheme(<GameBoostSelector {...mockProps} />);
 
       await screen.findByTestId('boost-count-silver');
 

@@ -18,7 +18,9 @@ import {
   Divider,
   ToggleButtonGroup,
   ToggleButton,
-  Chip
+  Chip,
+  useTheme,
+  alpha
 } from '@mui/material';
 import {
   EmojiEvents as TrophyIcon,
@@ -64,6 +66,7 @@ interface GameResultEditProps extends SharedProps {
 type GameResultEditDialogProps = GameGuessEditProps | GameResultEditProps;
 
 export default function GameResultEditDialog(props: GameResultEditDialogProps) {
+  const theme = useTheme();
   const {
     open,
     onClose,
@@ -445,9 +448,9 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
                     size="small"
                     sx={{
                       height: '22px',
-                      color: '#C0C0C0',
-                      borderColor: '#C0C0C0',
-                      '& .MuiChip-icon': { color: '#C0C0C0' }
+                      color: theme.palette.accent.silver.main,
+                      borderColor: theme.palette.accent.silver.main,
+                      '& .MuiChip-icon': { color: theme.palette.accent.silver.main }
                     }}
                   />
                 )}
@@ -458,9 +461,9 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
                     size="small"
                     sx={{
                       height: '22px',
-                      color: '#FFD700',
-                      borderColor: '#FFD700',
-                      '& .MuiChip-icon': { color: '#FFD700' }
+                      color: theme.palette.accent.gold.main,
+                      borderColor: theme.palette.accent.gold.main,
+                      '& .MuiChip-icon': { color: theme.palette.accent.gold.main }
                     }}
                   />
                 )}
@@ -483,10 +486,10 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
                   disabled={boostType !== 'silver' && effectiveBoostCounts.silver.used >= effectiveBoostCounts.silver.max}
                   sx={{
                     '&.Mui-selected': {
-                      backgroundColor: 'rgba(192, 192, 192, 0.2)',
-                      color: '#C0C0C0',
+                      backgroundColor: alpha(theme.palette.accent.silver.main, 0.2),
+                      color: theme.palette.accent.silver.main,
                       '&:hover': {
-                        backgroundColor: 'rgba(192, 192, 192, 0.3)',
+                        backgroundColor: alpha(theme.palette.accent.silver.main, 0.3),
                       }
                     }
                   }}
@@ -501,10 +504,10 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
                   disabled={boostType !== 'golden' && effectiveBoostCounts.golden.used >= effectiveBoostCounts.golden.max}
                   sx={{
                     '&.Mui-selected': {
-                      backgroundColor: 'rgba(255, 215, 0, 0.2)',
-                      color: '#FFD700',
+                      backgroundColor: alpha(theme.palette.accent.gold.main, 0.2),
+                      color: theme.palette.accent.gold.main,
                       '&:hover': {
-                        backgroundColor: 'rgba(255, 215, 0, 0.3)',
+                        backgroundColor: alpha(theme.palette.accent.gold.main, 0.3),
                       }
                     }
                   }}
