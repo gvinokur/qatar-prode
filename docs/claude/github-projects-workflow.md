@@ -212,19 +212,37 @@ PLAN_FILE="plans/STORY-${STORY_NUMBER}-plan.md"
 [Any remaining unknowns]
 ```
 
-**Commit and create PR for plan:**
-```bash
-# In worktree directory
+**Commit and create PR for plan (using Bash subagent):**
+
+```typescript
+// First, fetch the actual issue title
+const issueTitle = await Bash({
+  command: `gh issue view ${STORY_NUMBER} --json title --jq '.title'`,
+  description: "Get issue title for PR"
+})
+
+// Launch Bash subagent to commit and create PR
+Task({
+  subagent_type: "Bash",
+  description: "Commit plan and create PR",
+  prompt: `Commit the implementation plan and create a PR.
+
+Execute these commands in sequence:
+
+1. Add plan file:
 git -C ${WORKTREE_PATH} add plans/STORY-${STORY_NUMBER}-plan.md
+
+2. Commit with co-author:
 git -C ${WORKTREE_PATH} commit -m "docs: add implementation plan for story #${STORY_NUMBER}
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
+3. Push to remote:
 git -C ${WORKTREE_PATH} push -u origin ${BRANCH_NAME}
 
-# Create PR
-gh pr create --base main --head ${BRANCH_NAME} \
-  --title "Plan: [Story Title] (#${STORY_NUMBER})" \
+4. Create PR with proper issue linking:
+gh pr create --base main --head ${BRANCH_NAME} \\
+  --title "Plan: ${issueTitle} #${STORY_NUMBER}" \\
   --body "Fixes #${STORY_NUMBER}
 
 Implementation plan for the story.
@@ -242,11 +260,19 @@ See \`plans/STORY-${STORY_NUMBER}-plan.md\` for full details.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)"
 
-# Optional: Update status to "Pending Review"
+5. Optional: Update status to "Pending Review":
 ./scripts/github-projects-helper status update ${STORY_NUMBER} "Pending Review" --project <PROJECT_NUMBER>
+
+Report back the PR number and URL.
+`
+})
+
+// Wait for subagent to complete
+// You remain IN PLAN MODE the entire time
 ```
 
 **CRITICAL:**
+- **You are STILL IN PLAN MODE** - subagent handled git operations
 - **DO NOT call ExitPlanMode yet** - stay in plan mode for iterations
 - **DO NOT start writing code** - wait for user to say "execute the plan"
 - **DO NOT make any file changes** except to the plan document
@@ -254,7 +280,7 @@ See \`plans/STORY-${STORY_NUMBER}-plan.md\` for full details.
 **Plan Iteration Phase:**
 - Remain in plan mode
 - Make updates to plan based on feedback
-- Commit and push changes to the same PR
+- Use Bash subagent to commit and push changes to the same PR
 - Continue until user explicitly approves
 
 When user says "execute the plan":

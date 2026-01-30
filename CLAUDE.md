@@ -34,7 +34,10 @@ See **[Planning Guide](docs/claude/planning.md)** for complete workflow.
 - Catches issues early, improves quality before user review
 
 **Commit plan with Bash subagent:**
+- Fetch actual issue title: `gh issue view ${STORY_NUMBER} --json title --jq '.title'`
 - Launch Bash subagent to: git add, commit, push, create PR
+- PR title format: `"Plan: ${issueTitle} #${STORY_NUMBER}"` (links to issue)
+- PR body must include: `Fixes #${STORY_NUMBER}` (auto-links and auto-closes issue)
 - You stay in plan mode the entire time
 - Subagent reports back PR number/URL
 

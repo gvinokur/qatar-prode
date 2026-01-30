@@ -244,6 +244,12 @@ Main agent:
 **Launch Bash subagent to handle git operations:**
 
 ```typescript
+// First, fetch the actual issue title for the PR
+const issueTitle = await Bash({
+  command: `gh issue view ${STORY_NUMBER} --json title --jq '.title'`,
+  description: "Get issue title for PR"
+})
+
 Task({
   subagent_type: "Bash",
   description: "Commit plan and create PR",
@@ -262,9 +268,9 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 3. Push to remote:
 git -C ${WORKTREE_PATH} push -u origin ${BRANCH_NAME}
 
-4. Create PR:
+4. Create PR with proper issue linking:
 gh pr create --base main --head ${BRANCH_NAME} \\
-  --title "Plan: [Story Title] (#${STORY_NUMBER})" \\
+  --title "Plan: ${issueTitle} #${STORY_NUMBER}" \\
   --body "Fixes #${STORY_NUMBER}
 
 ## Summary
@@ -287,6 +293,12 @@ Report back the PR number and URL.
 // Wait for subagent to complete
 // You remain IN PLAN MODE the entire time
 ```
+
+**CRITICAL: PR Title Format**
+- Always use actual issue title (fetch with `gh issue view`)
+- Include issue number in title: `#${STORY_NUMBER}` (for easy reference)
+- Include `Fixes #${STORY_NUMBER}` in body (for GitHub auto-linking)
+- Format: `"Plan: ${issueTitle} #${STORY_NUMBER}"`
 
 **Output to user:**
 - PR number and URL
