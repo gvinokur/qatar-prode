@@ -15,14 +15,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Critical Rules
 1. **ALWAYS create plan** at `/plans/STORY-{N}-plan.md` before coding
 2. **ALWAYS run plan review subagent for 2-3 cycles** until "no significant concerns"
-3. **ALWAYS commit plan and create PR** for user review
-4. **STAY IN PLAN MODE after creating PR** - Do NOT exit until user says "execute the plan"
-5. **NEVER start coding during planning** - Not after creating plan, not during ExitPlanMode for commits
-6. **TEMPORARY EXITS ONLY FOR COMMITS** - Exit to commit, then IMMEDIATELY re-enter plan mode
+3. **ALWAYS commit plan using Bash subagent** - Stay in plan mode while subagent handles git
+4. **NEVER EXIT PLAN MODE** until user says "execute the plan"
+5. **USE SUBAGENTS FOR GIT OPERATIONS** - Launch Bash subagent for commits/pushes (you stay in plan mode)
+6. **EXIT PLAN MODE = START IMPLEMENTATION** - Simple, unambiguous rule
 
-### ⚠️ Two Types of Plan Mode Exits
-- **TEMPORARY** (during planning): Exit → Commit → RE-ENTER IMMEDIATELY → Do NOT start coding
-- **FINAL** (user approves): Exit → Start implementation (only when user says "execute the plan")
+### ⚠️ The Only Exit Rule
+- **STAY IN PLAN MODE** the entire planning phase (use subagents for git)
+- **EXIT ONCE** when user says "execute the plan" = start implementation
+- No temporary exits, no re-entry, no confusion
 
 ### Process
 See **[Planning Guide](docs/claude/planning.md)** for complete workflow.
@@ -32,15 +33,28 @@ See **[Planning Guide](docs/claude/planning.md)** for complete workflow.
 - Loop until "no significant concerns" OR 3 cycles complete
 - Catches issues early, improves quality before user review
 
+**Commit plan with Bash subagent:**
+- Launch Bash subagent to: git add, commit, push, create PR
+- You stay in plan mode the entire time
+- Subagent reports back PR number/URL
+
 **After creating PR - STOP AND WAIT:**
+- Do NOT exit plan mode
 - Do NOT start implementation
 - Do NOT use TaskCreate
 - WAIT for user to review plan or say "execute the plan"
 
+**Iterate on feedback:**
+- Update plan document
+- Launch Bash subagent to commit changes
+- Stay in plan mode
+- Repeat until "execute the plan"
+
 **Mid-implementation replanning:**
 - If significant feedback requires approach changes, create a "change plan"
 - Enter plan mode again, create `/plans/STORY-{N}-change-1.md`
-- Commit to same PR, iterate, wait for "execute the change plan"
+- Use Bash subagent to commit to same PR
+- Iterate, wait for "execute the change plan"
 
 ## Validation & Quality Gates (MANDATORY before merge)
 
@@ -126,6 +140,7 @@ Set WORKTREE_PATH    ASK USER:
     (see docs/claude/planning.md)
              ↓
     EnterPlanMode → Research → Create Plan
+    (NEVER EXIT UNTIL "EXECUTE THE PLAN")
              ↓
     ┌──────────────────────────────────┐
     │ Plan Review Loop (2-3 cycles):   │
@@ -136,19 +151,25 @@ Set WORKTREE_PATH    ASK USER:
     │    OR 3 cycles complete          │
     └──────────────────────────────────┘
              ↓
+    Launch Bash Subagent:
     Commit Plan & Create PR
+    (You stay in plan mode)
              ↓
     🛑 STOP - STAY IN PLAN MODE 🛑
+    Do NOT exit plan mode
     Do NOT start implementation
     Do NOT use TaskCreate
     WAIT for user approval
              ↓
-    Iterate on user feedback
-    (Exit → Commit → RE-ENTER immediately)
+    User provides feedback?
+    Update plan
+    Launch Bash Subagent to commit
+    (Stay in plan mode)
+    Repeat until approved
              ↓
     User says "execute the plan"
              ↓
-    ExitPlanMode (FINAL EXIT)
+    ExitPlanMode (ONLY EXIT)
              ↓
     IMPLEMENTATION PHASE
     (see docs/claude/implementation.md)
@@ -212,11 +233,10 @@ Set WORKTREE_PATH    ASK USER:
 |---------|---------------|------------------|
 | Skipping planning phase | No alignment before coding | Always plan first, get approval |
 | Only 1 plan review cycle | Misses issues that iterative review catches | Run 2-3 cycles until "no significant concerns" |
+| Exiting plan mode to commit | Confusion about when to start coding | Use Bash subagent to commit, stay in plan mode |
 | Starting implementation after creating plan | User hasn't approved yet | Commit plan → PR → WAIT for approval |
-| Starting implementation during ExitPlanMode | Temporary exit ≠ final exit | Exit → Commit → RE-ENTER immediately |
-| Not re-entering plan mode after commit | Premature implementation | MUST re-enter plan mode after temporary exit |
-| Not committing plan to PR | User can't review properly | Commit plan, create PR, iterate |
-| Exiting plan mode before "execute the plan" | User hasn't approved yet | Stay in plan mode until user says "execute" |
+| Exiting plan mode before "execute the plan" | User hasn't approved yet | NEVER exit until user says "execute the plan" |
+| Not committing plan to PR | User can't review properly | Use Bash subagent: commit plan, create PR |
 | Not using TaskCreate | No progress tracking, can't parallelize | Always define tasks with TaskCreate/TaskUpdate |
 | Making big changes without change plan | Scope creep, misalignment | Create change plan for significant feedback |
 | Ignoring SonarCloud issues | Accumulates technical debt | Fix ALL new issues, no excuses |

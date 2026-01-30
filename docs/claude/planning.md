@@ -10,27 +10,35 @@ Every story must go through a planning phase before implementation. The plan is 
 
 1. **ALWAYS create plan** at `/plans/STORY-{N}-plan.md` before coding
 2. **ALWAYS run plan review subagent** for 2-3 cycles until "no significant concerns"
-3. **ALWAYS commit plan and create PR** for user review
-4. **STAY IN PLAN MODE** after creating PR - Do NOT exit until user says "execute the plan"
-5. **NEVER start coding** during planning phase - Not after creating plan, not after ExitPlanMode for commits
-6. **TEMPORARY EXITS ONLY FOR COMMITS** - Exit to commit, then IMMEDIATELY re-enter plan mode
-7. **ITERATE on feedback** - Update plan based on user comments, commit changes to same PR
+3. **ALWAYS commit plan and create PR** using a Bash subagent (stay in plan mode)
+4. **NEVER EXIT PLAN MODE** until user says "execute the plan"
+5. **USE SUBAGENTS FOR GIT OPERATIONS** - Launch Bash subagent to commit/push (you stay in plan mode)
+6. **EXIT PLAN MODE = START IMPLEMENTATION** - Clear, unambiguous rule
+7. **ITERATE on feedback** - Update plan, use subagent to commit, stay in plan mode
 
-## ⚠️ CRITICAL: Two Types of Plan Mode Exits
+## ⚠️ CRITICAL: NEVER Exit Plan Mode Until "Execute the Plan"
 
-**Type 1: TEMPORARY EXIT (for commits during planning)**
-- Exit plan mode ONLY to commit plan updates
-- Run git commands
-- Push to PR
-- **IMMEDIATELY re-enter plan mode** with `EnterPlanMode()`
-- **DO NOT START CODING** - You are still in planning phase
+**The Rule:**
+- **STAY IN PLAN MODE** from start to finish of planning phase
+- **NEVER exit** until user says "execute the plan"
+- Use **subagents for git operations** (commit, push, create PR)
+- Subagents can run Bash while you stay in plan mode
 
-**Type 2: FINAL EXIT (when user approves plan)**
+**Why this approach:**
+- Eliminates confusion between "temporary" and "final" exits
+- Clear rule: **Exit plan mode = start implementation**
+- No risk of accidentally starting to code after a commit
+
+**How to commit while in plan mode:**
+- Launch a Bash subagent to run git commands
+- You stay in plan mode
+- Subagent does: add, commit, push, create PR
+- Subagent completes, you're still in plan mode
+
+**The ONLY time you exit plan mode:**
 - User explicitly says "execute the plan"
-- Exit plan mode for the LAST TIME
-- **NOW you can start coding** (see implementation.md)
-
-**IF YOU EXIT PLAN MODE AND USER HAS NOT SAID "EXECUTE THE PLAN", YOU MUST RE-ENTER PLAN MODE IMMEDIATELY.**
+- This is your signal to start implementation
+- Exit once = done planning forever (for this story)
 
 ## Complete Planning Workflow
 
@@ -231,23 +239,32 @@ Main agent:
 
 ### 5. Commit Plan and Create PR
 
-**CRITICAL STEP - Do NOT skip this:**
+**CRITICAL: You are STILL IN PLAN MODE. Use a subagent to commit.**
 
-```bash
-# Add plan file
+**Launch Bash subagent to handle git operations:**
+
+```typescript
+Task({
+  subagent_type: "Bash",
+  description: "Commit plan and create PR",
+  prompt: `Commit the implementation plan and create a PR.
+
+Execute these commands in sequence:
+
+1. Add plan file:
 git -C ${WORKTREE_PATH} add plans/STORY-${STORY_NUMBER}-plan.md
 
-# Commit with co-author
+2. Commit with co-author:
 git -C ${WORKTREE_PATH} commit -m "docs: add implementation plan for story #${STORY_NUMBER}
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
-# Push to remote
+3. Push to remote:
 git -C ${WORKTREE_PATH} push -u origin ${BRANCH_NAME}
 
-# Create PR
-gh pr create --base main --head ${BRANCH_NAME} \
-  --title "Plan: [Story Title] (#${STORY_NUMBER})" \
+4. Create PR:
+gh pr create --base main --head ${BRANCH_NAME} \\
+  --title "Plan: [Story Title] (#${STORY_NUMBER})" \\
   --body "Fixes #${STORY_NUMBER}
 
 ## Summary
@@ -262,6 +279,13 @@ See \`plans/STORY-${STORY_NUMBER}-plan.md\` for full details.
 - Execute plan once approved
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)"
+
+Report back the PR number and URL.
+`
+})
+
+// Wait for subagent to complete
+// You remain IN PLAN MODE the entire time
 ```
 
 **Output to user:**
@@ -291,40 +315,39 @@ See \`plans/STORY-${STORY_NUMBER}-plan.md\` for full details.
 
 **When user provides feedback:**
 
-1. **While IN plan mode:**
+1. **While IN plan mode (you NEVER exit):**
    - Read the feedback from PR comments or direct messages
    - Update the plan document: `plans/STORY-${STORY_NUMBER}-plan.md`
 
-2. **⚠️ TEMPORARY EXIT to commit (you will RE-ENTER immediately):**
+2. **Launch Bash subagent to commit updates:**
    ```typescript
-   // Exit ONLY to commit the updated plan
-   // YOU ARE NOT STARTING IMPLEMENTATION
-   // YOU WILL RE-ENTER PLAN MODE IN STEP 4
-   ExitPlanMode()
-   ```
+   Task({
+     subagent_type: "Bash",
+     description: "Commit plan updates",
+     prompt: `Commit the updated plan based on user feedback.
 
-3. **Commit and push the updated plan:**
-   ```bash
+   Execute these commands:
+
+   1. Add updated plan:
    git -C ${WORKTREE_PATH} add plans/STORY-${STORY_NUMBER}-plan.md
+
+   2. Commit:
    git -C ${WORKTREE_PATH} commit -m "docs: update plan based on feedback
 
    Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+
+   3. Push to remote:
    git -C ${WORKTREE_PATH} push
+   `
+   })
+
+   // Wait for subagent to complete
+   // You remain IN PLAN MODE
    ```
 
-4. **🛑 IMMEDIATELY RE-ENTER PLAN MODE 🛑:**
-   ```typescript
-   // Return to plan mode to wait for more feedback
-   // DO NOT START CODING
-   // DO NOT USE TaskCreate
-   // YOU ARE STILL IN THE PLANNING PHASE
-   EnterPlanMode()
-   ```
+3. **Repeat cycle** until user approves with "execute the plan"
 
-5. **Repeat cycle** until user approves with "execute the plan"
-
-**🚨 CRITICAL WARNING 🚨**
-If you just ran `ExitPlanMode()` and the user has NOT said "execute the plan", you MUST run `EnterPlanMode()` IMMEDIATELY. Do not do anything else between ExitPlanMode and EnterPlanMode except git commands.
+**YOU NEVER EXIT PLAN MODE during this iteration cycle. Subagents handle all git operations.**
 
 **CRITICAL: Exiting plan mode ≠ Starting implementation**
 - During iteration: Exit → Commit → Re-enter
@@ -332,7 +355,7 @@ If you just ran `ExitPlanMode()` and the user has NOT said "execute the plan", y
 
 ### 7. Final Exit: Execute the Plan
 
-**THIS IS DIFFERENT from iteration exits - this is the final approval to start coding.**
+**This is the ONLY time you exit plan mode.**
 
 **Wait for explicit approval signal from user:**
 - User says "execute the plan"
@@ -342,13 +365,18 @@ If you just ran `ExitPlanMode()` and the user has NOT said "execute the plan", y
 
 **ONLY when you receive this signal:**
 ```typescript
-// Exit plan mode for the LAST TIME to begin implementation
+// Exit plan mode - this is your ONLY exit during planning
+// Now you start implementation
 ExitPlanMode()
 ```
 
 **Then start coding according to the approved plan.**
 
-**Reminder:** During iteration (step 6), you exit temporarily to commit plan updates, then re-enter plan mode. This final exit is different - it means you're starting implementation.
+**Key difference with new approach:**
+- You NEVER exited plan mode during iterations (subagents handled commits)
+- This is your FIRST and ONLY exit from plan mode
+- Exit = clear signal to start implementation
+- No ambiguity, no confusion
 
 **Next:** See [Implementation Guide](implementation.md) for task definition and execution workflow.
 
@@ -357,33 +385,32 @@ ExitPlanMode()
 ```
 ┌─────────────────────────────────────────┐
 │         PLAN ITERATION CYCLE            │
+│     (NEVER EXIT PLAN MODE)              │
 └─────────────────────────────────────────┘
 
-IN PLAN MODE ──────────────────────┐
+STAY IN PLAN MODE ─────────────────┐
   │                                │
   │ User provides feedback         │
   │ Update plan document           │
   │                                │
-  v                                │
-EXIT PLAN MODE (temporarily)       │
+  │ Launch Bash subagent           │
+  │   → git add, commit, push      │
+  │   → subagent completes         │
   │                                │
-  │ Commit updated plan            │
-  │ Push to PR                     │
-  │                                │
-  v                                │
-RE-ENTER PLAN MODE ────────────────┘
+  │ Still in plan mode ────────────┘
   │
   │ Repeat until user approves
   │
   v
-User says "EXECUTE THE PLAN" ──────────────┐
-  │                                         │
-  v                                         │
-FINAL EXIT PLAN MODE                        │
-  │                                         │
-  │ START IMPLEMENTATION                    │
-  │ (Write code)                            │
-  └─────────────────────────────────────────┘
+User says "EXECUTE THE PLAN"
+  │
+  v
+EXIT PLAN MODE (ONLY EXIT)
+  │
+  │ START IMPLEMENTATION
+  │ (Write code with TaskCreate)
+  │
+  v
 ```
 
 ## Common Mistakes
@@ -407,33 +434,43 @@ FINAL EXIT PLAN MODE                        │
 
 ## Examples
 
-### Good Flow (with iteration cycle)
+### Good Flow (with new subagent approach)
 ```
 User: "Implement story #42"
 Claude: [Checks worktree, enters plan mode, researches, creates plan]
-Claude: [Exits plan mode temporarily]
-Claude: [Commits plan, creates PR #123]
-Claude: [Re-enters plan mode]
+Claude: [STAYS IN PLAN MODE]
+Claude: [Runs plan review loop 2-3 times until "no concerns"]
+Claude: [Launches Bash subagent to commit plan and create PR #123]
+Claude: [STILL IN PLAN MODE after subagent completes]
 Claude: "Created plan at plans/STORY-42-plan.md and opened PR #123"
 
 User: "Add consideration for mobile responsive design"
 Claude: [IN PLAN MODE - Updates plan document]
-Claude: [Exits plan mode temporarily to commit]
-Claude: [Commits updated plan, pushes to PR #123]
-Claude: [Re-enters plan mode]
+Claude: [Launches Bash subagent to commit updated plan]
+Claude: [STILL IN PLAN MODE after subagent completes]
 Claude: "Updated plan with mobile considerations"
 
 User: "Perfect! Execute the plan"
-Claude: [Exits plan mode for FINAL time]
-Claude: [Begins implementation - writes code]
+Claude: [Exits plan mode - ONLY EXIT during entire planning phase]
+Claude: [Begins implementation with TaskCreate]
 ```
 
 ### Bad Flow (DON'T DO THIS)
 ```
 User: "Implement story #42"
 Claude: [Enters plan mode, creates plan]
-Claude: "Here's my plan: [shows plan content]"
-Claude: [Exits plan mode and starts coding]  ❌ NO PR, no approval!
+Claude: [Exits plan mode to commit]  ❌ Don't exit! Use Bash subagent
+Claude: [Re-enters plan mode]  ❌ Unnecessary confusion
+```
+
+**OR**
+
+```
+User: "Implement story #42"
+Claude: [Enters plan mode, creates plan]
+Claude: [Runs only 1 plan review cycle]  ❌ Need 2-3 cycles
+Claude: [Launches Bash subagent to commit and create PR]
+Claude: [Exits plan mode]  ❌ User hasn't said "execute"! Stay in plan mode
 ```
 
 ## Change Plans (Mid-Implementation Replanning)
@@ -499,23 +536,35 @@ Brief summary of why this change plan is needed.
 [How testing strategy changes]
 ```
 
-**4. Commit change plan to same PR:**
-```bash
-# Add change plan
+**4. Commit change plan to same PR (using Bash subagent):**
+```typescript
+Task({
+  subagent_type: "Bash",
+  description: "Commit change plan to PR",
+  prompt: `Commit the change plan to the existing PR.
+
+Execute these commands:
+
+1. Add change plan:
 git -C ${WORKTREE_PATH} add plans/STORY-${STORY_NUMBER}-change-1.md
 
-# Commit with descriptive message
+2. Commit with descriptive message:
 git -C ${WORKTREE_PATH} commit -m "docs: add change plan 1 for story #${STORY_NUMBER}
 
 [Brief description of what changed]
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
-# Push to same branch (updates existing PR)
+3. Push to same branch (updates existing PR):
 git -C ${WORKTREE_PATH} push
+`
+})
+
+// Wait for subagent to complete
+// You remain IN PLAN MODE
 ```
 
-**5. STAY IN PLAN MODE:**
+**5. STAY IN PLAN MODE (you never exited):**
 - ❌ DO NOT exit plan mode
 - ❌ DO NOT resume coding
 - ✅ Iterate on change plan based on feedback
@@ -544,12 +593,19 @@ Each change plan is a separate file for clear history.
 [Initial planning complete, implementation in progress]
 
 User: "Actually, we need to handle offline mode. Let's do a change plan"
-Claude: [Enters plan mode]
+Claude: [Enters plan mode, creates change plan document]
+Claude: [Launches Bash subagent to commit change plan to PR #123]
+Claude: [STAYS IN PLAN MODE after subagent completes]
 Claude: "Created change plan at plans/STORY-42-change-1.md and pushed to PR #123"
+
 User: "Add consideration for data sync when coming back online"
-Claude: [Updates change plan, commits, pushes]
+Claude: [IN PLAN MODE - Updates change plan document]
+Claude: [Launches Bash subagent to commit updates]
+Claude: [STAYS IN PLAN MODE after subagent completes]
+Claude: "Updated change plan with sync considerations"
+
 User: "Perfect, execute the change plan"
-Claude: [Exits plan mode, resumes implementation with new approach]
+Claude: [Exits plan mode - resumes implementation with new approach]
 ```
 
 ### Benefits
