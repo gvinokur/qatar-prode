@@ -1,7 +1,7 @@
 'use client'
 
 import { Chip } from '@mui/material';
-import { EmojiEvents as TrophyIcon, Star as StarIcon } from '@mui/icons-material';
+import { EmojiEvents as TrophyIcon } from '@mui/icons-material';
 
 interface BoostBadgeProps {
   readonly type: 'silver' | 'golden';
@@ -11,15 +11,15 @@ interface BoostBadgeProps {
 
 /**
  * Reusable boost badge component matching the styling from GameView cards
- * Silver: ⭐ 2x (gray)
- * Golden: 🏆 3x (gold)
+ * Silver: 🏆 2x (silver trophy)
+ * Golden: 🏆 3x (gold trophy)
  */
 export function BoostBadge({ type, showIcon = true, size = 'small' }: BoostBadgeProps) {
   const isSilver = type === 'silver';
   const multiplier = isSilver ? '2x' : '3x';
   const color = isSilver ? '#C0C0C0' : '#FFD700';
   const backgroundColor = isSilver ? 'rgba(192, 192, 192, 0.2)' : 'rgba(255, 215, 0, 0.2)';
-  const Icon = isSilver ? StarIcon : TrophyIcon;
+  const Icon = TrophyIcon;
 
   return (
     <Chip
@@ -47,14 +47,15 @@ interface BoostCountBadgeProps {
 }
 
 /**
- * Boost count badge for dashboard: shows "⭐ 3/5" format
- * (2x/3x multiplier removed to save space, can be added to tooltip in future)
+ * Boost count badge for dashboard: shows "🏆 3/5" format
+ * (2x/3x multiplier removed to save space, shown in click popover instead)
+ * Silver and golden both use trophy icon, differentiated by color
  */
 export function BoostCountBadge({ type, used, max }: BoostCountBadgeProps) {
   const isSilver = type === 'silver';
   const color = isSilver ? '#C0C0C0' : '#FFD700';
   const backgroundColor = isSilver ? 'rgba(192, 192, 192, 0.2)' : 'rgba(255, 215, 0, 0.2)';
-  const Icon = isSilver ? StarIcon : TrophyIcon;
+  const Icon = TrophyIcon;
 
   return (
     <Chip
