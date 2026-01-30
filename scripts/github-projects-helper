@@ -7,6 +7,7 @@ A CLI tool to streamline GitHub Projects operations for story-based development 
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -526,9 +527,19 @@ class GitHubProjectsHelper:
             self._info("Copying .env.local file...")
             target_env = worktree_path / ".env.local"
             target_env.write_text(env_file.read_text())
-            self._success("Environment files copied")
+            self._success(".env.local copied")
         else:
             self._warning(".env.local not found - you may need to create it manually")
+
+        # Copy Claude Code permissions
+        claude_dir = self.repo_path / ".claude"
+        if claude_dir.exists():
+            self._info("Copying .claude directory...")
+            target_claude = worktree_path / ".claude"
+            shutil.copytree(claude_dir, target_claude)
+            self._success(".claude directory copied (permissions configured)")
+        else:
+            self._warning(".claude directory not found - Claude will ask for permissions")
 
         # Assign issue to current user
         self._info("Assigning issue to you...")

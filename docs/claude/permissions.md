@@ -176,10 +176,28 @@ Claude asks: "Permission to run: Bash(npx vitest run)"
 
 ## Worktree Permissions
 
-**Worktrees inherit project permissions:**
-- `/qatar-prode-story-42` uses the same `.claude/settings.local.json`
-- No need to configure permissions per worktree
-- Permissions are project-level, not directory-level
+**Worktrees need their own `.claude/` directory:**
+- Each worktree is a separate directory
+- Claude Code looks for settings in the current working directory
+- The `.claude/` directory must be copied to each worktree
+
+**Automatic copying (using helper script):**
+```bash
+./scripts/github-projects-helper story start 42 --project 1
+# Automatically copies .claude/ to new worktree
+```
+
+**Manual copying (if creating worktree manually):**
+```bash
+git worktree add -b feature/story-42 ../qatar-prode-story-42
+cp -r .claude ../qatar-prode-story-42/.claude
+cp .env.local ../qatar-prode-story-42/.env.local
+```
+
+**Why this is needed:**
+- Permissions are per-directory, not per-git-repository
+- Without `.claude/` in the worktree, Claude will ask for permissions for every operation
+- The helper script handles this automatically
 
 ## Troubleshooting
 

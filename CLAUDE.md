@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 1. **NEVER implement stories in main worktree** (`/qatar-prode`) - Always use story worktrees
 2. **NEVER commit to `main` branch** unless user explicitly says "commit to main"
 3. **ALWAYS use absolute paths** when working with worktree files (e.g., `/qatar-prode-story-42/app/file.ts`)
-4. **ALWAYS copy `.env.local`** to new worktrees (prevents `missing_connection_string` errors)
+4. **ALWAYS copy `.env.local` and `.claude/`** to new worktrees (automated by helper script)
 5. **NEVER commit without user verification** - User must test locally first
 
 ## Permissions Configuration

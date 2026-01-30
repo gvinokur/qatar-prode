@@ -45,9 +45,10 @@ git branch --show-current
 This command:
 1. Creates worktree at `../qatar-prode-story-<STORY_NUMBER>`
 2. Creates feature branch `feature/story-<STORY_NUMBER>`
-3. **Copies `.env.local` to the new worktree** (critical!)
-4. Assigns the issue to current user
-5. Updates project status to "In Progress"
+3. **Copies `.env.local` to the new worktree** (critical for database connection!)
+4. **Copies `.claude/` directory to the new worktree** (critical for permissions!)
+5. Assigns the issue to current user
+6. Updates project status to "In Progress"
 
 ### Manual Creation
 
@@ -58,13 +59,16 @@ git worktree add -b feature/branch-name ../qatar-prode-branch-name
 # Create worktree from existing branch
 git worktree add ../qatar-prode-branch-name existing-branch-name
 
-# CRITICAL: Copy environment files to new worktree
+# CRITICAL: Copy gitignored files to new worktree
 cp .env.local ../qatar-prode-branch-name/.env.local
+cp -r .claude ../qatar-prode-branch-name/.claude
 ```
 
-## Environment Files
+## Required Files for Worktrees
 
-**⚠️ ALWAYS copy `.env.local` after creating a worktree**
+**⚠️ ALWAYS copy these gitignored files after creating a worktree:**
+
+### 1. Environment Variables (`.env.local`)
 
 - Each worktree is a separate directory and needs its own `.env.local` file
 - Without environment variables, the app will fail with `missing_connection_string` errors
@@ -73,6 +77,21 @@ cp .env.local ../qatar-prode-branch-name/.env.local
 ```bash
 cp .env.local /path/to/worktree/.env.local
 ```
+
+### 2. Claude Code Permissions (`.claude/` directory)
+
+- Each worktree needs its own `.claude/` directory with permissions configuration
+- Without this, Claude will ask for permission for every operation in the worktree
+- The `.claude/` directory is gitignored, so it must be manually copied
+
+```bash
+cp -r .claude /path/to/worktree/.claude
+```
+
+**Why this is needed:**
+- Claude Code looks for settings in the current working directory
+- Worktrees are separate directories, don't inherit settings from main worktree
+- Without permissions configured, you'll get repetitive permission prompts
 
 ## Managing Worktrees
 
