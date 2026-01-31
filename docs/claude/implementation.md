@@ -43,6 +43,7 @@ After the planning phase is complete and the user approves the plan with "execut
 5. **ALWAYS follow the approved plan** - no scope creep
 6. **ALWAYS mark tasks in_progress** when starting, completed when done
 7. **NEVER commit without user verification** - user tests locally first
+8. **NEVER commit without running validation checks** - MUST run tests, lint, and build before ANY commit (see Section 7)
 
 ## Implementation Workflow
 
@@ -470,30 +471,114 @@ See [Planning Guide - Change Plans](planning.md#change-plans-mid-implementation-
 
 ### 7. After Implementation Complete
 
-**Before committing:**
+**🚨 CRITICAL: NEVER COMMIT WITHOUT VALIDATION 🚨**
 
-1. **Verify all tasks are completed**
-   ```typescript
-   TaskList()
-   // Ensure all tasks show "completed"
+Before even considering a commit, you MUST complete ALL steps below.
+
+#### Step 1: Verify All Tasks Completed
+
+```typescript
+TaskList()
+// Ensure all tasks show "completed"
+```
+
+#### Step 2: Create Tests
+
+See [Testing Guide](testing.md) and parallel test creation pattern.
+
+#### Step 3: Inform User - Wait for Testing
+
+```markdown
+Implementation complete. All tasks finished:
+✓ Task 1: Add database layer
+✓ Task 2: Implement server action
+✓ Task 3: Create UI component
+✓ Task 4: Integrate into page
+
+Tests created and passing.
+
+Please test locally before I proceed with validation.
+```
+
+**STOP and WAIT for user to test locally and say "code looks good" or "I'm satisfied"**
+
+#### Step 4: User Says "Code Looks Good" - Run Validation Checks
+
+**🛑 MANDATORY VALIDATION BEFORE ANY COMMIT 🛑**
+
+When user says "code looks good" or "I'm satisfied", you MUST run validation checks:
+
+1. **Run Tests**
+   ```bash
+   npm --prefix ${WORKTREE_PATH} run test
    ```
+   - ✅ All tests passing → Continue
+   - ❌ Tests failing → Fix tests first, DO NOT proceed
 
-2. **Create tests** (see [Testing Guide](testing.md) and parallel test creation pattern)
-
-3. **Inform user**
-   ```markdown
-   Implementation complete. All tasks finished:
-   ✓ Task 1: Add database layer
-   ✓ Task 2: Implement server action
-   ✓ Task 3: Create UI component
-   ✓ Task 4: Integrate into page
-
-   Tests created and passing.
-
-   Please test locally before I commit.
+2. **Run Linter**
+   ```bash
+   npm --prefix ${WORKTREE_PATH} run lint
    ```
+   - ✅ No linting errors → Continue
+   - ❌ Linting errors → Fix errors first, DO NOT proceed
 
-4. **Wait for user verification** - NEVER commit without user approval
+3. **Run Build**
+   ```bash
+   npm --prefix ${WORKTREE_PATH} run build
+   ```
+   - ✅ Build succeeds → Continue
+   - ❌ Build fails → Fix build errors first, DO NOT proceed
+
+**🛑 VERIFICATION QUESTIONS - Answer Before Committing: 🛑**
+
+1. **Have I run `npm run test`?** (Answer MUST be YES)
+2. **Did all tests pass?** (Answer MUST be YES)
+3. **Have I run `npm run lint`?** (Answer MUST be YES)
+4. **Did linting pass with no errors?** (Answer MUST be YES)
+5. **Have I run `npm run build`?** (Answer MUST be YES)
+6. **Did the build succeed?** (Answer MUST be YES)
+7. **Has the user tested locally and said "code looks good"?** (Answer MUST be YES)
+
+**If ANY answer is NO, DO NOT COMMIT. Fix the issues first.**
+
+#### Step 5: Commit (Only After All Checks Pass)
+
+**Only commit if ALL validation checks passed:**
+
+```bash
+# Add changes
+git -C ${WORKTREE_PATH} add .
+
+# Commit with co-author
+git -C ${WORKTREE_PATH} commit -m "$(cat <<'EOF'
+feat: implement story #${STORY_NUMBER}
+
+[Brief description of changes]
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+EOF
+)"
+
+# Push to remote
+git -C ${WORKTREE_PATH} push
+```
+
+**🚫 NEVER COMMIT IF: 🚫**
+- ❌ Tests are failing
+- ❌ Linter has errors
+- ❌ Build fails
+- ❌ User hasn't tested locally
+- ❌ User hasn't said "code looks good"
+
+**IF YOU COMMIT WITHOUT RUNNING ALL VALIDATION CHECKS, YOU HAVE VIOLATED THE WORKFLOW.**
+
+#### Step 6: After Committing - Follow Validation Workflow
+
+After pushing, follow the complete validation workflow in [validation.md](validation.md):
+- Wait for CI/CD checks
+- Analyze SonarCloud results
+- Fix any new issues
+- Ensure 0 new issues and 80% coverage
 
 ## Coding Best Practices
 

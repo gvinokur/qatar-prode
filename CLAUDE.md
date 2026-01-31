@@ -138,7 +138,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 3. **ALWAYS use absolute paths** when working with worktree files (see worktrees.md "Working with Files in Worktrees")
 4. **ALWAYS copy `.env.local` and `.claude/`** to new worktrees (automated by helper script - see worktrees.md "Required Files")
 5. **NEVER commit without user verification** - User must test locally first
-6. **NEVER ask "would you like to proceed?" after creating plan PR** - Just WAIT for user (see planning.md Step 7 "CRITICAL CHECKPOINT")
+6. **NEVER commit without running validation checks** - MUST run tests, lint, and build before ANY commit (see implementation.md Section 7)
+7. **NEVER ask "would you like to proceed?" after creating plan PR** - Just WAIT for user (see planning.md Step 7 "CRITICAL CHECKPOINT")
 
 ## Permissions Configuration
 
@@ -249,7 +250,7 @@ Read({
 
 **READ [docs/claude/implementation.md](docs/claude/implementation.md) COMPLETELY**
 
-### Critical Rules
+### Critical Rules - NON-NEGOTIABLE
 1. **ALWAYS read implementation.md first** - Before starting to code
 2. **ALWAYS define tasks using TaskCreate** - Break down plan into atomic tasks (see implementation.md Section 2)
 3. **ALWAYS set dependencies using TaskUpdate** - Define blockedBy/blocks relationships (see implementation.md Section 2)
@@ -257,6 +258,10 @@ Read({
 5. **ALWAYS follow the approved plan** - No scope creep
 6. **ALWAYS mark tasks in_progress/completed** - Track progress with TaskUpdate
 7. **NEVER commit without user verification** - User tests locally first
+8. **NEVER commit without validation checks** - MUST run tests, lint, AND build before ANY commit (see implementation.md Section 7)
+   - IF you commit without running tests → You have violated the workflow
+   - IF you commit without running lint → You have violated the workflow
+   - IF you commit without running build → You have violated the workflow
 
 ### Process Overview
 
@@ -269,6 +274,10 @@ Read({
 3. **Implement in execution waves** → implementation.md Sections 3-4 (parallel execution where possible)
 4. **Create tests in parallel** → See [testing.md](docs/claude/testing.md) "Parallel Test Creation"
 5. **Wait for user to test** → Do NOT commit until user verifies
+6. **Run validation checks before commit** → implementation.md Section 7 (MANDATORY: tests, lint, build)
+   - User says "code looks good" → Run: npm test, npm lint, npm build
+   - ALL must pass before commit
+   - See verification questions in implementation.md Section 7
 
 **For task parallelization and subagent patterns:** See [subagent-workflows.md](docs/claude/subagent-workflows.md)
 
@@ -422,14 +431,18 @@ If scope changes → Change Plan (planning.md)
 STOP - Wait for user to test
 Only commit when user asks
     ↓
+User: "Code looks good, I'm satisfied"
+    ↓
+🛑 MANDATORY VALIDATION CHECKS (implementation.md Section 7)
+Run: npm test → npm lint → npm build
+ALL must pass before commit
+    ↓
 ┌─────────────────────────────────────┐
 │       PHASE 3: VALIDATION           │
 │  📖 SEE validation.md WORKFLOW      │
 └─────────────────────────────────────┘
     ↓
-User: "Code looks good, I'm satisfied"
-    ↓
-Run: Tests → Lint → Build (validation.md Sections 2-4)
+Commit & Push (validation.md Section 5)
     ↓
 Commit & Push (validation.md Section 5)
     ↓
@@ -473,6 +486,7 @@ Fix issues if needed (validation.md Section 8)
 | Forgetting `.env.local` or `.claude/` | App fails with DB errors or permission prompts | Copy after worktree creation (automated by helper) | worktrees.md "Required Files" |
 | Client imports repository | Causes build errors | Server Components import repos, Client Components get props | architecture.md |
 | Auto-committing after changes | User can't verify locally | Only commit when user asks | implementation.md Rule 7 |
+| Committing without running validation checks | Broken code gets committed, CI/CD fails | MUST run tests, lint, AND build before ANY commit | implementation.md Section 7 |
 
 ## Development Guidelines
 
