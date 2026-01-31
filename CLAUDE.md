@@ -126,12 +126,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Planning Phase (MANDATORY before implementation)
 
-### 🛑 BEFORE STARTING: Read the Planning Guide
+### 🛑 FIRST ACTION: Use Read Tool to Load Planning Guide
 
-**MANDATORY:** Before entering plan mode or creating any plan:
-**READ [docs/claude/planning.md](docs/claude/planning.md) COMPLETELY - Step 0: Read This Guide First**
+**YOUR FIRST ACTION when user says "implement story":**
 
-The planning guide has critical guardrails you MUST follow, including 10-step workflow, STOP checkpoints, and exit rules.
+```typescript
+// Before doing ANYTHING else, read the planning guide
+Read({
+  file_path: "/Users/gvinokur/Personal/qatar-prode/docs/claude/planning.md"
+})
+```
+
+**This is NOT optional. Planning.md contains:**
+- Complete 10-step workflow (you need ALL steps)
+- HOW to use Plan Reviewer subagent (Step 5 - exact prompts)
+- HOW to use Bash subagent for commits (Step 7 - exact commands)
+- Mandatory checklists at each transition (Steps 4, 6, 9)
+- Critical checkpoints where you MUST STOP
+
+**Without reading planning.md, you WILL:**
+- ❌ Skip mandatory subagents
+- ❌ Exit plan mode when you shouldn't
+- ❌ Not know when to STOP and WAIT
+- ❌ Start implementing before approval
 
 ### Critical Rules
 1. **ALWAYS read planning.md Step 0 first** - Before entering plan mode
