@@ -2,6 +2,76 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+---
+
+# 🛑🛑🛑 STOP - READ THIS FIRST - STOP 🛑🛑🛑
+
+## BEFORE YOU DO ANYTHING - READ THIS SECTION COMPLETELY
+
+**If user says "implement story #42" or similar, you MUST follow this EXACT sequence:**
+
+### THE ONLY VALID WORKFLOW:
+
+```
+1. READ docs/claude/planning.md COMPLETELY
+   ↓
+2. EnterPlanMode (NEVER exit until user says "execute the plan")
+   ↓
+3. Create plan + visual prototypes (if UI changes)
+   ↓
+4. Review plan with subagent (2-3 cycles)
+   ↓
+5. Use BASH SUBAGENT to commit plan and create PR
+   ↓
+6. STOP ⛔ STAY IN PLAN MODE ⛔ WAIT FOR USER
+   ↓
+7. User reviews, provides feedback, you iterate
+   ↓
+8. User says "execute the plan" (ONLY THEN proceed)
+   ↓
+9. READ docs/claude/implementation.md COMPLETELY
+   ↓
+10. ExitPlanMode (ONLY exit in entire planning phase)
+   ↓
+11. Use TaskCreate to define tasks
+   ↓
+12. Implement
+```
+
+### CRITICAL - YOU MUST STOP AFTER CREATING PR (STEP 6)
+
+**After you create the PR, you MUST:**
+- ✅ STAY in plan mode
+- ✅ WAIT for user to review the plan
+- ✅ WAIT for user to say "execute the plan"
+
+**After you create the PR, you MUST NOT:**
+- ❌ Ask "would you like to proceed?"
+- ❌ Ask "should I start implementation?"
+- ❌ Exit plan mode
+- ❌ Start implementing
+- ❌ Use TaskCreate
+- ❌ Read implementation files
+
+### IF YOU ARE CONFUSED ABOUT WHAT TO DO:
+
+**Ask yourself:**
+1. Did the user say "execute the plan"?
+   - If NO → STOP, stay in plan mode, WAIT
+   - If YES → Read implementation.md, then proceed
+
+2. Have I created a PR with the plan?
+   - If NO → Create it first (with Bash subagent)
+   - If YES → STOP, stay in plan mode, WAIT for user
+
+3. Am I in plan mode?
+   - If YES and user hasn't said "execute" → WAIT
+   - If NO and user said "execute" → Good, proceed to implementation
+
+**THE GOLDEN RULE: WHEN IN DOUBT, STOP AND WAIT FOR USER INPUT.**
+
+---
+
 ## ⚠️ Critical Rules
 
 1. **NEVER implement stories in main worktree** (`/qatar-prode`) - Always use story worktrees
@@ -9,6 +79,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 3. **ALWAYS use absolute paths** when working with worktree files (e.g., `/qatar-prode-story-42/app/file.ts`)
 4. **ALWAYS copy `.env.local` and `.claude/`** to new worktrees (automated by helper script)
 5. **NEVER commit without user verification** - User must test locally first
+6. **NEVER ask "would you like to proceed?" after creating plan PR** - Just WAIT for user
 
 ## Permissions Configuration
 
