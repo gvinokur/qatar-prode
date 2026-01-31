@@ -53,6 +53,12 @@ vi.mock('../../app/components/tournament-prediction-accordion', () => ({
   )
 }));
 
+vi.mock('../../app/components/boost-info-popover', () => ({
+  default: ({ boostType, open }: any) => (
+    open ? <div data-testid="boost-info-popover" data-boost-type={boostType}>Boost Popover</div> : null
+  )
+}));
+
 // Import after mocks
 import { GuessesContext } from '../../app/components/context-providers/guesses-context-provider';
 
@@ -654,5 +660,43 @@ describe('Static alert fallback (when accordion not shown)', () => {
     );
 
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  describe('Boost Info Popover Integration', () => {
+    it('renders boost badges for silver and golden boosts', () => {
+      renderWithContext(
+        <PredictionStatusBar
+          totalGames={10}
+          predictedGames={5}
+          silverUsed={2}
+          silverMax={5}
+          goldenUsed={1}
+          goldenMax={3}
+        />
+      );
+
+      // Boost badges should be visible (showing usage counts)
+      expect(screen.getByText('2/5')).toBeInTheDocument(); // silver
+      expect(screen.getByText('1/3')).toBeInTheDocument(); // golden
+    });
+
+    it('integrates with BoostInfoPopover component', () => {
+      // This test verifies that the component renders without errors
+      // The actual popover behavior is tested in boost-info-popover.test.tsx
+      renderWithContext(
+        <PredictionStatusBar
+          totalGames={10}
+          predictedGames={5}
+          silverUsed={2}
+          silverMax={5}
+          goldenUsed={1}
+          goldenMax={3}
+          tournamentId="tournament-1"
+        />
+      );
+
+      // Component should render successfully
+      expect(screen.getByText(/Predicciones:/)).toBeInTheDocument();
+    });
   });
 });

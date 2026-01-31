@@ -16,6 +16,7 @@ import {
   countUserBoostsByType,
   getGameGuessWithBoost,
   getPredictionDashboardStats,
+  getBoostAllocationBreakdown,
 } from '../../app/db/game-guess-repository';
 import { db } from '../../app/db/database';
 import { testFactories } from './test-factories';
@@ -800,6 +801,227 @@ describe('Game Guess Repository', () => {
 
       expect(result.silverUsed).toBe(5);
       expect(result.goldenUsed).toBe(2);
+    });
+
+  });
+
+  describe('getBoostAllocationBreakdown', () => {
+    it('should return empty data when no boosts allocated', async () => {
+      // Mock group stage query (empty results)
+      const mockGroupQuery = {
+        innerJoin: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        groupBy: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue([]),
+      };
+
+      // Mock playoff query (no results)
+      const mockPlayoffQuery = {
+        innerJoin: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(null),
+      };
+
+      // First selectFrom is for group query
+      mockDb.selectFrom.mockReturnValueOnce(mockGroupQuery as any);
+      // Second selectFrom is for playoff query
+      mockDb.selectFrom.mockReturnValueOnce(mockPlayoffQuery as any);
+
+      const result = await getBoostAllocationBreakdown('user-1', 'tournament-1', 'silver');
+
+      expect(result).toEqual({
+        byGroup: [],
+        playoffCount: 0,
+        totalBoosts: 0,
+        scoredGamesCount: 0,
+        totalPointsEarned: 0,
+      });
+    });
+
+    it('should aggregate boosts correctly by group letter', async () => {
+      const mockGroupResults = [
+        { group_letter: 'A', count: 2, scored_games: 1, boost_bonus: 3 },
+        { group_letter: 'B', count: 1, scored_games: 1, boost_bonus: 2 },
+      ];
+
+      const mockGroupQuery = {
+        innerJoin: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        groupBy: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue(mockGroupResults),
+      };
+
+      const mockPlayoffQuery = {
+        innerJoin: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(null),
+      };
+
+      mockDb.selectFrom.mockReturnValueOnce(mockGroupQuery as any);
+      mockDb.selectFrom.mockReturnValueOnce(mockPlayoffQuery as any);
+
+      const result = await getBoostAllocationBreakdown('user-1', 'tournament-1', 'silver');
+
+      expect(result.byGroup).toEqual([
+        { groupLetter: 'A', count: 2 },
+        { groupLetter: 'B', count: 1 },
+      ]);
+      expect(result.totalBoosts).toBe(3);
+      expect(result.scoredGamesCount).toBe(2);
+      expect(result.totalPointsEarned).toBe(5);
+    });
+
+    it('should separate playoff boosts from group boosts', async () => {
+      const mockGroupResults = [
+        { group_letter: 'A', count: 2, scored_games: 0, boost_bonus: 0 },
+      ];
+
+      const mockPlayoffResult = {
+        count: 3,
+        scored_games: 1,
+        boost_bonus: 4,
+      };
+
+      const mockGroupQuery = {
+        innerJoin: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        groupBy: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue(mockGroupResults),
+      };
+
+      const mockPlayoffQuery = {
+        innerJoin: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(mockPlayoffResult),
+      };
+
+      mockDb.selectFrom.mockReturnValueOnce(mockGroupQuery as any);
+      mockDb.selectFrom.mockReturnValueOnce(mockPlayoffQuery as any);
+
+      const result = await getBoostAllocationBreakdown('user-1', 'tournament-1', 'golden');
+
+      expect(result.byGroup).toEqual([{ groupLetter: 'A', count: 2 }]);
+      expect(result.playoffCount).toBe(3);
+      expect(result.totalBoosts).toBe(5);
+      expect(result.scoredGamesCount).toBe(1);
+      expect(result.totalPointsEarned).toBe(4);
+    });
+
+    it('should handle mix of scored and unscored games', async () => {
+      const mockGroupResults = [
+        { group_letter: 'A', count: 3, scored_games: 2, boost_bonus: 5 },
+        { group_letter: 'B', count: 2, scored_games: 0, boost_bonus: 0 },
+      ];
+
+      const mockPlayoffResult = {
+        count: 1,
+        scored_games: 1,
+        boost_bonus: 3,
+      };
+
+      const mockGroupQuery = {
+        innerJoin: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        groupBy: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue(mockGroupResults),
+      };
+
+      const mockPlayoffQuery = {
+        innerJoin: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(mockPlayoffResult),
+      };
+
+      mockDb.selectFrom.mockReturnValueOnce(mockGroupQuery as any);
+      mockDb.selectFrom.mockReturnValueOnce(mockPlayoffQuery as any);
+
+      const result = await getBoostAllocationBreakdown('user-1', 'tournament-1', 'silver');
+
+      expect(result.totalBoosts).toBe(6); // 3 + 2 + 1
+      expect(result.scoredGamesCount).toBe(3); // 2 + 0 + 1
+      expect(result.totalPointsEarned).toBe(8); // 5 + 0 + 3
+    });
+
+    it('should return correct totals with only playoff boosts', async () => {
+      const mockGroupQuery = {
+        innerJoin: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        groupBy: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue([]),
+      };
+
+      const mockPlayoffResult = {
+        count: 2,
+        scored_games: 2,
+        boost_bonus: 6,
+      };
+
+      const mockPlayoffQuery = {
+        innerJoin: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(mockPlayoffResult),
+      };
+
+      mockDb.selectFrom.mockReturnValueOnce(mockGroupQuery as any);
+      mockDb.selectFrom.mockReturnValueOnce(mockPlayoffQuery as any);
+
+      const result = await getBoostAllocationBreakdown('user-1', 'tournament-1', 'golden');
+
+      expect(result.byGroup).toEqual([]);
+      expect(result.playoffCount).toBe(2);
+      expect(result.totalBoosts).toBe(2);
+      expect(result.scoredGamesCount).toBe(2);
+      expect(result.totalPointsEarned).toBe(6);
+    });
+
+    it('should handle null boost_bonus values', async () => {
+      const mockGroupResults = [
+        { group_letter: 'A', count: 2, scored_games: 1, boost_bonus: null },
+      ];
+
+      const mockPlayoffResult = {
+        count: 1,
+        scored_games: 0,
+        boost_bonus: null,
+      };
+
+      const mockGroupQuery = {
+        innerJoin: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        groupBy: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue(mockGroupResults),
+      };
+
+      const mockPlayoffQuery = {
+        innerJoin: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(mockPlayoffResult),
+      };
+
+      mockDb.selectFrom.mockReturnValueOnce(mockGroupQuery as any);
+      mockDb.selectFrom.mockReturnValueOnce(mockPlayoffQuery as any);
+
+      const result = await getBoostAllocationBreakdown('user-1', 'tournament-1', 'silver');
+
+      expect(result.totalPointsEarned).toBe(0); // nulls treated as 0
     });
 
   });

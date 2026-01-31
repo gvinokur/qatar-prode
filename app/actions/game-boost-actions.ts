@@ -5,6 +5,7 @@ import {
   setGameGuessBoost,
   countUserBoostsByType,
   getGameGuessWithBoost,
+  getBoostAllocationBreakdown,
 } from '../db/game-guess-repository';
 import { findGameById } from '../db/game-repository';
 import { findTournamentById } from '../db/tournament-repository';
@@ -83,4 +84,20 @@ export async function getBoostCountsAction(tournamentId: string) {
     silver: { used: counts.silver, max: tournament.max_silver_games ?? 0 },
     golden: { used: counts.golden, max: tournament.max_golden_games ?? 0 },
   };
+}
+
+/**
+ * Get boost allocation breakdown for tournament
+ * Returns how boosts are distributed across groups and playoffs
+ */
+export async function getBoostAllocationBreakdownAction(
+  tournamentId: string,
+  boostType: 'silver' | 'golden'
+) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error('Not authenticated');
+  }
+
+  return getBoostAllocationBreakdown(session.user.id, tournamentId, boostType);
 }
