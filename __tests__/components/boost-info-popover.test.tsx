@@ -31,57 +31,46 @@ const renderWithTheme = (component: React.ReactElement) => {
 // Mock anchor element for popover positioning
 const mockAnchorEl = document.createElement('div');
 
+// Helper to render popover with default props
+const renderPopover = (overrides?: Partial<React.ComponentProps<typeof BoostInfoPopover>>) => {
+  const defaultProps: React.ComponentProps<typeof BoostInfoPopover> = {
+    boostType: 'silver',
+    used: 2,
+    max: 5,
+    tournamentId: 'tournament-1',
+    open: true,
+    anchorEl: mockAnchorEl,
+    onClose: () => {},
+    ...overrides,
+  };
+  return renderWithTheme(<BoostInfoPopover {...defaultProps} />);
+};
+
 describe('BoostInfoPopover', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe('Header and Description', () => {
-    it('renders silver boost header and description', () => {
-      mockGetBoostAllocationBreakdownAction.mockResolvedValue({
-        byGroup: [],
-        playoffCount: 0,
-        totalBoosts: 0,
-        scoredGamesCount: 0,
-        totalPointsEarned: 0,
-      });
+    const emptyBreakdown = {
+      byGroup: [],
+      playoffCount: 0,
+      totalBoosts: 0,
+      scoredGamesCount: 0,
+      totalPointsEarned: 0,
+    };
 
-      renderWithTheme(
-        <BoostInfoPopover
-          boostType="silver"
-          used={2}
-          max={5}
-          tournamentId="tournament-1"
-          open={true}
-          anchorEl={mockAnchorEl}
-          onClose={() => {}}
-        />
-      );
+    it('renders silver boost header and description', () => {
+      mockGetBoostAllocationBreakdownAction.mockResolvedValue(emptyBreakdown);
+      renderPopover();
 
       expect(screen.getByText(/Multiplicador x2/i)).toBeInTheDocument();
       expect(screen.getByText(/Duplica los puntos obtenidos/i)).toBeInTheDocument();
     });
 
     it('renders golden boost header and description', () => {
-      mockGetBoostAllocationBreakdownAction.mockResolvedValue({
-        byGroup: [],
-        playoffCount: 0,
-        totalBoosts: 0,
-        scoredGamesCount: 0,
-        totalPointsEarned: 0,
-      });
-
-      renderWithTheme(
-        <BoostInfoPopover
-          boostType="golden"
-          used={1}
-          max={2}
-          tournamentId="tournament-1"
-          open={true}
-          anchorEl={mockAnchorEl}
-          onClose={() => {}}
-        />
-      );
+      mockGetBoostAllocationBreakdownAction.mockResolvedValue(emptyBreakdown);
+      renderPopover({ boostType: 'golden', used: 1, max: 2 });
 
       expect(screen.getByText(/Multiplicador x3/i)).toBeInTheDocument();
       expect(screen.getByText(/Triplica los puntos obtenidos/i)).toBeInTheDocument();
@@ -94,17 +83,7 @@ describe('BoostInfoPopover', () => {
         () => new Promise(() => {}) // Never resolves
       );
 
-      renderWithTheme(
-        <BoostInfoPopover
-          boostType="silver"
-          used={2}
-          max={5}
-          tournamentId="tournament-1"
-          open={true}
-          anchorEl={mockAnchorEl}
-          onClose={() => {}}
-        />
-      );
+      renderPopover();
 
       expect(screen.getByText(/Cargando.../i)).toBeInTheDocument();
     });
@@ -151,17 +130,7 @@ describe('BoostInfoPopover', () => {
         totalPointsEarned: 0,
       });
 
-      renderWithTheme(
-        <BoostInfoPopover
-          boostType="golden"
-          used={2}
-          max={2}
-          tournamentId="tournament-1"
-          open={true}
-          anchorEl={mockAnchorEl}
-          onClose={() => {}}
-        />
-      );
+      renderPopover({ boostType: 'golden', used: 2, max: 2 });
 
       await waitFor(() => {
         expect(screen.getByText(/Playoffs: 2 partidos/i)).toBeInTheDocument();
@@ -177,17 +146,7 @@ describe('BoostInfoPopover', () => {
         totalPointsEarned: 0,
       });
 
-      renderWithTheme(
-        <BoostInfoPopover
-          boostType="silver"
-          used={0}
-          max={5}
-          tournamentId="tournament-1"
-          open={true}
-          anchorEl={mockAnchorEl}
-          onClose={() => {}}
-        />
-      );
+      renderPopover({ used: 0 });
 
       await waitFor(() => {
         expect(screen.getByText(/Aún no has usado boosts de este tipo/i)).toBeInTheDocument();
