@@ -4,95 +4,61 @@ Complete workflow for validating code quality before final PR review and merge.
 
 ## Overview
 
-After implementation is complete and user is satisfied with how the code works, run comprehensive validation checks. This is a hard gate - all issues must be resolved before proceeding to merge.
+After implementation is complete, code is committed/pushed, and user has tested in Vercel Preview and is satisfied, run final SonarCloud validation. This is a hard gate - all issues must be resolved before proceeding to merge.
+
+**Note:** Tests, lint, and build are run BEFORE commit (see implementation.md Section 7). This validation phase focuses on SonarCloud analysis and quality gates.
 
 ## Critical Rules
 
-1. **ONLY validate when user says "code looks good" or "I'm satisfied"** - Not before
-2. **0 new SonarCloud issues of ANY severity** - Low, medium, high, or critical
-3. **80% coverage on new code** - SonarCloud enforces this automatically
-4. **NEVER auto-fix issues** - Always show user and ask permission
-5. **All checks must pass** - Build, tests, SonarCloud, Vercel deployment
+1. **ONLY validate when user says "code looks good" after testing in Vercel Preview** - Not before
+2. **Tests/lint/build already passed** - These were run before commit (implementation.md Section 7)
+3. **0 new SonarCloud issues of ANY severity** - Low, medium, high, or critical
+4. **80% coverage on new code** - SonarCloud enforces this automatically
+5. **NEVER auto-fix issues** - Always show user and ask permission
+6. **All checks must pass** - CI/CD, SonarCloud quality gates
 
 ## When to Run Validation
 
-**Trigger phrases:**
-- "Code looks good, let's validate"
+**Default workflow (Vercel Preview testing):**
+1. Implementation complete → Commit & push
+2. User tests in Vercel Preview
+3. User says "code looks good" or "I'm satisfied" (after testing in preview)
+4. **NOW run this validation workflow** (SonarCloud analysis)
+
+**Trigger phrases from user (after Vercel Preview testing):**
+- "Code looks good" (tested in Vercel Preview)
 - "I'm satisfied with the implementation"
 - "Ready to merge"
 - "Let's check quality gates"
+- "Looks good in preview"
 
 **DO NOT validate:**
 - During implementation
-- Before user has tested locally
+- Before user has tested in Vercel Preview
 - When user is still iterating on functionality
+- Before commit (tests/lint/build happen before commit, not here)
 
 ## Complete Validation Workflow
 
-### 1. Verify User Satisfaction
+**Prerequisites (already completed in implementation phase):**
+- ✅ Tests run and passing (done before commit - implementation.md Section 7 Step 3)
+- ✅ Linting passed (done before commit - implementation.md Section 7 Step 3)
+- ✅ Build succeeded (done before commit - implementation.md Section 7 Step 3)
+- ✅ Code committed and pushed
+- ✅ Vercel Preview deployment created
 
-Confirm user has tested and is satisfied with:
-- Functionality works as expected
-- UI looks correct
+### 1. Verify User Satisfaction from Vercel Preview
+
+Confirm user has tested in Vercel Preview and is satisfied with:
+- Functionality works as expected in preview environment
+- UI looks correct in preview environment
 - Edge cases are handled
 - No obvious bugs
+- User has explicitly said "code looks good" or similar
 
-**Only proceed when user explicitly confirms satisfaction.**
+**Only proceed when user explicitly confirms satisfaction after testing in Vercel Preview.**
 
-### 2. Run Local Tests
-
-```bash
-# Run all tests in worktree
-npm --prefix ${WORKTREE_PATH} run test
-
-# Check test results
-# ✓ All tests passing → Continue
-# ✗ Tests failing → Fix tests first, don't proceed to validation
-```
-
-### 3. Run Linter
-
-```bash
-# Run ESLint to catch code quality issues
-npm --prefix ${WORKTREE_PATH} run lint
-
-# Check linting results
-# ✓ No linting errors → Continue
-# ✗ Linting errors found → Fix errors first
-```
-
-**Common linting issues:**
-- Unused imports/variables
-- Missing semicolons
-- Inconsistent formatting
-- Type errors (if using TypeScript ESLint)
-
-**Fix linting issues before proceeding** - Don't push code with linting errors.
-
-### 4. Build Production
-
-```bash
-# Ensure production build succeeds
-npm --prefix ${WORKTREE_PATH} run build
-
-# ✓ Build successful → Continue
-# ✗ Build fails → Fix build errors first
-```
-
-### 5. Commit and Push
-
-```bash
-# Commit final implementation (if not already committed)
-git -C ${WORKTREE_PATH} add .
-git -C ${WORKTREE_PATH} commit -m "feat: implement story #${STORY_NUMBER}
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
-
-# Push to remote
-git -C ${WORKTREE_PATH} push
-```
-
-### 6. Wait for CI/CD Checks
+### 2. Wait for CI/CD Checks
 
 ```bash
 # Wait for Vercel and SonarCloud
@@ -109,7 +75,7 @@ git -C ${WORKTREE_PATH} push
 ./scripts/github-projects-helper pr sonar-issues ${PR_NUMBER}
 ```
 
-### 7. Analyze SonarCloud Results
+### 3. Analyze SonarCloud Results
 
 **Get SonarCloud issues using helper script:**
 ```bash
@@ -166,7 +132,7 @@ Detailed Issues:
 
 **IMPORTANT:** ALL new issues must be fixed, regardless of severity. Even MINOR code smells must be resolved before merge.
 
-### 8. Handle Quality Gate Failures
+### 4. Handle Quality Gate Failures
 
 **If SonarCloud reports new issues:**
 

@@ -471,9 +471,9 @@ See [Planning Guide - Change Plans](planning.md#change-plans-mid-implementation-
 
 ### 7. After Implementation Complete
 
-**🚨 CRITICAL: NEVER COMMIT WITHOUT VALIDATION 🚨**
+**🚨 CRITICAL: VALIDATE, DEPLOY, THEN USER TESTS IN VERCEL PREVIEW 🚨**
 
-Before even considering a commit, you MUST complete ALL steps below.
+The default workflow is to deploy to Vercel Preview for user testing (NOT local testing). Follow ALL steps below.
 
 #### Step 1: Verify All Tasks Completed
 
@@ -486,27 +486,11 @@ TaskList()
 
 See [Testing Guide](testing.md) and parallel test creation pattern.
 
-#### Step 3: Inform User - Wait for Testing
-
-```markdown
-Implementation complete. All tasks finished:
-✓ Task 1: Add database layer
-✓ Task 2: Implement server action
-✓ Task 3: Create UI component
-✓ Task 4: Integrate into page
-
-Tests created and passing.
-
-Please test locally before I proceed with validation.
-```
-
-**STOP and WAIT for user to test locally and say "code looks good" or "I'm satisfied"**
-
-#### Step 4: User Says "Code Looks Good" - Run Validation Checks
+#### Step 3: Run Local Validation Checks
 
 **🛑 MANDATORY VALIDATION BEFORE ANY COMMIT 🛑**
 
-When user says "code looks good" or "I'm satisfied", you MUST run validation checks:
+You MUST run validation checks before committing:
 
 1. **Run Tests**
    ```bash
@@ -529,7 +513,7 @@ When user says "code looks good" or "I'm satisfied", you MUST run validation che
    - ✅ Build succeeds → Continue
    - ❌ Build fails → Fix build errors first, DO NOT proceed
 
-**🛑 VERIFICATION QUESTIONS - Answer Before Committing: 🛑**
+**🛑 VERIFICATION QUESTIONS - Answer Before Proceeding: 🛑**
 
 1. **Have I run `npm run test`?** (Answer MUST be YES)
 2. **Did all tests pass?** (Answer MUST be YES)
@@ -537,11 +521,48 @@ When user says "code looks good" or "I'm satisfied", you MUST run validation che
 4. **Did linting pass with no errors?** (Answer MUST be YES)
 5. **Have I run `npm run build`?** (Answer MUST be YES)
 6. **Did the build succeed?** (Answer MUST be YES)
-7. **Has the user tested locally and said "code looks good"?** (Answer MUST be YES)
 
 **If ANY answer is NO, DO NOT COMMIT. Fix the issues first.**
 
-#### Step 5: Commit (Only After All Checks Pass)
+#### Step 4: Check for Database Migrations
+
+**🚨 ALWAYS ASK PERMISSION BEFORE RUNNING MIGRATIONS 🚨**
+
+Check if there are new migrations that need to be run:
+
+```bash
+# Check for migration files in migrations/ directory
+ls -la ${WORKTREE_PATH}/migrations/
+```
+
+**If new migration files exist:**
+
+1. **Ask user for permission to run migrations:**
+   ```markdown
+   I found new database migrations that need to be run before deployment:
+   - migrations/YYYY-MM-DD-description.sql
+
+   These migrations will modify the database schema.
+
+   **Do you want me to run these migrations now?**
+
+   (If you prefer to run migrations manually, say "no" and I'll proceed
+   without running them. You can run them yourself before testing.)
+   ```
+
+2. **If user says YES:**
+   - Run the migrations (exact command depends on project setup)
+   - Verify migrations succeeded
+   - Continue to commit
+
+3. **If user says NO:**
+   - DO NOT run migrations
+   - User will run them manually
+   - Continue to commit (user responsible for running migrations)
+
+**NEVER run migrations without explicit user permission.**
+
+#### Step 5: Commit and Push (Triggers Vercel Preview Deployment)
 
 **Only commit if ALL validation checks passed:**
 
@@ -559,7 +580,7 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 EOF
 )"
 
-# Push to remote
+# Push to remote (triggers Vercel Preview deployment)
 git -C ${WORKTREE_PATH} push
 ```
 
@@ -567,18 +588,102 @@ git -C ${WORKTREE_PATH} push
 - ❌ Tests are failing
 - ❌ Linter has errors
 - ❌ Build fails
-- ❌ User hasn't tested locally
-- ❌ User hasn't said "code looks good"
+- ❌ Migrations need to run and you don't have permission
 
 **IF YOU COMMIT WITHOUT RUNNING ALL VALIDATION CHECKS, YOU HAVE VIOLATED THE WORKFLOW.**
 
-#### Step 6: After Committing - Follow Validation Workflow
+#### Step 6: Inform User to Test in Vercel Preview
 
-After pushing, follow the complete validation workflow in [validation.md](validation.md):
-- Wait for CI/CD checks
-- Analyze SonarCloud results
-- Fix any new issues
-- Ensure 0 new issues and 80% coverage
+After pushing, Vercel will automatically create a preview deployment. Inform the user:
+
+```markdown
+✅ Implementation complete and pushed to branch.
+
+Summary:
+✓ All tasks completed
+✓ Tests created and passing (npm test)
+✓ Linting passed (npm lint)
+✓ Build succeeded (npm build)
+✓ Migrations: [ran/not needed/user will run manually]
+
+**Vercel Preview deployment will be available shortly.**
+
+Please test the changes in the Vercel Preview environment and let me know:
+- "Code looks good" (to proceed with final SonarCloud validation)
+- Or provide feedback for any issues found
+
+Preview URL will appear in the PR checks once deployment completes.
+```
+
+**STOP and WAIT for user to test in Vercel Preview**
+
+#### Step 7: Wait for User Feedback from Vercel Preview
+
+**User testing scenarios:**
+
+**Scenario A: User says "code looks good" or "I'm satisfied"**
+- User has tested in Vercel Preview
+- No issues found
+- Ready for final validation
+- **Action**: Proceed to Step 8 (Final SonarCloud Validation)
+
+**Scenario B: User provides feedback or reports issues**
+- User found issues in Vercel Preview
+- Changes needed
+- **Action**:
+  - Fix the issues
+  - Go back to Step 3 (run validation checks again)
+  - Commit and push again (new Vercel Preview)
+  - Wait for user to test again
+
+**Scenario C: User requests local testing instead**
+- User prefers to test locally this time
+- **Action**: Wait for user to test locally and provide feedback
+
+#### Step 8: Final SonarCloud Validation (After User Approval)
+
+Once user says "code looks good" after testing in Vercel Preview, follow the complete validation workflow in [validation.md](validation.md):
+
+1. **Wait for CI/CD checks**
+   ```bash
+   ./scripts/github-projects-helper pr wait-checks ${PR_NUMBER}
+   ```
+
+2. **Analyze SonarCloud results**
+   ```bash
+   ./scripts/github-projects-helper pr sonar-issues ${PR_NUMBER}
+   ```
+
+3. **If SonarCloud issues found:**
+   - Show user the issues
+   - Ask permission to fix
+   - Fix if approved
+   - Commit, push, wait for new analysis
+   - Repeat until 0 new issues
+
+4. **Quality gates must pass:**
+   - 0 new issues of ANY severity
+   - 80% coverage on new code
+   - Security rating: A
+   - Maintainability: B or higher
+
+**Only after quality gates pass:** Ready to merge
+
+---
+
+## Alternative Workflow: Local Testing (If User Requests)
+
+If user explicitly says "test locally" or "I'll test locally", follow this alternative flow:
+
+1. Complete Steps 1-4 above (tasks, tests, validation, migrations)
+2. **DO NOT commit yet**
+3. Inform user: "Implementation complete. Please test locally."
+4. **STOP and WAIT** for user to test locally
+5. When user says "code looks good":
+   - Commit and push (Step 5)
+   - Follow validation.md for CI/CD and SonarCloud (Step 8)
+
+**The default is Vercel Preview testing unless user explicitly requests local testing.**
 
 ## Coding Best Practices
 
