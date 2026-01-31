@@ -11,13 +11,153 @@ import {
 import { getBoostAllocationBreakdownAction } from '../actions/game-boost-actions';
 
 interface BoostInfoPopoverProps {
-  boostType: 'silver' | 'golden';
-  used: number;
-  max: number;
-  tournamentId?: string;
-  open: boolean;
-  anchorEl: HTMLElement | null;
-  onClose: () => void;
+  readonly boostType: 'silver' | 'golden';
+  readonly used: number;
+  readonly max: number;
+  readonly tournamentId?: string;
+  readonly open: boolean;
+  readonly anchorEl: HTMLElement | null;
+  readonly onClose: () => void;
+}
+
+interface BreakdownData {
+  byGroup: { groupLetter: string; count: number }[];
+  playoffCount: number;
+  totalBoosts: number;
+  scoredGamesCount: number;
+  totalPointsEarned: number;
+}
+
+// Helper component for loading state
+function LoadingState() {
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 1 }}>
+      <CircularProgress size={16} />
+      <Typography variant="caption" color="text.secondary">
+        Cargando...
+      </Typography>
+    </Box>
+  );
+}
+
+// Helper component for error state
+function ErrorState({ message }: { readonly message: string }) {
+  return (
+    <Typography variant="caption" color="error">
+      {message}
+    </Typography>
+  );
+}
+
+// Helper component for empty state
+function EmptyState() {
+  return (
+    <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>
+      Aún no has usado boosts de este tipo
+    </Typography>
+  );
+}
+
+// Helper component for breakdown content
+function BreakdownContent({
+  breakdown,
+  used,
+  max,
+}: {
+  readonly breakdown: BreakdownData;
+  readonly used: number;
+  readonly max: number;
+}) {
+  const hasNoBoosts = breakdown.byGroup.length === 0 && breakdown.playoffCount === 0;
+
+  if (hasNoBoosts) {
+    return <EmptyState />;
+  }
+
+  return (
+    <>
+      {breakdown.byGroup.map((group) => (
+        <Typography key={group.groupLetter} variant="body2" sx={{ py: 0.5 }}>
+          • Grupo {group.groupLetter}: {group.count}{' '}
+          {group.count === 1 ? 'partido' : 'partidos'}
+        </Typography>
+      ))}
+      {breakdown.playoffCount > 0 && (
+        <Typography variant="body2" sx={{ py: 0.5 }}>
+          • Playoffs: {breakdown.playoffCount}{' '}
+          {breakdown.playoffCount === 1 ? 'partido' : 'partidos'}
+        </Typography>
+      )}
+      <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+        Total: {used} de {max} usados
+      </Typography>
+    </>
+  );
+}
+
+// Helper component for distribution section
+function DistributionSection({
+  tournamentId,
+  loading,
+  error,
+  breakdown,
+  used,
+  max,
+}: {
+  readonly tournamentId?: string;
+  readonly loading: boolean;
+  readonly error: string | null;
+  readonly breakdown: BreakdownData | null;
+  readonly used: number;
+  readonly max: number;
+}) {
+  if (tournamentId === undefined) {
+    return (
+      <Typography variant="caption" color="text.secondary">
+        Información no disponible
+      </Typography>
+    );
+  }
+
+  if (loading) {
+    return <LoadingState />;
+  }
+
+  if (error) {
+    return <ErrorState message={error} />;
+  }
+
+  if (breakdown) {
+    return <BreakdownContent breakdown={breakdown} used={used} max={max} />;
+  }
+
+  return null;
+}
+
+// Helper component for performance section
+function PerformanceSection({ breakdown }: { readonly breakdown: BreakdownData | null }) {
+  if (!breakdown || breakdown.scoredGamesCount === 0) {
+    return null;
+  }
+
+  const pointsLabel = breakdown.totalPointsEarned === 1 ? 'punto extra' : 'puntos extra';
+  const gamesLabel =
+    breakdown.scoredGamesCount === 1
+      ? 'partido boosteado calificado'
+      : 'partidos boosteados calificados';
+
+  return (
+    <>
+      <Divider sx={{ my: 2 }} />
+      <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+        RENDIMIENTO
+      </Typography>
+      <Typography variant="body2" sx={{ py: 1 }}>
+        Ganaste {breakdown.totalPointsEarned} {pointsLabel} en {breakdown.scoredGamesCount}{' '}
+        {gamesLabel}
+      </Typography>
+    </>
+  );
 }
 
 export default function BoostInfoPopover({
@@ -29,13 +169,7 @@ export default function BoostInfoPopover({
   anchorEl,
   onClose,
 }: BoostInfoPopoverProps) {
-  const [breakdown, setBreakdown] = useState<{
-    byGroup: { groupLetter: string; count: number }[];
-    playoffCount: number;
-    totalBoosts: number;
-    scoredGamesCount: number;
-    totalPointsEarned: number;
-  } | null>(null);
+  const [breakdown, setBreakdown] = useState<BreakdownData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -89,64 +223,17 @@ export default function BoostInfoPopover({
           DISTRIBUCIÓN DE BOOSTS
         </Typography>
 
-        {!tournamentId ? (
-          <Typography variant="caption" color="text.secondary">
-            Información no disponible
-          </Typography>
-        ) : loading ? (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 1 }}>
-            <CircularProgress size={16} />
-            <Typography variant="caption" color="text.secondary">
-              Cargando...
-            </Typography>
-          </Box>
-        ) : error ? (
-          <Typography variant="caption" color="error">
-            {error}
-          </Typography>
-        ) : breakdown ? (
-          <>
-            {breakdown.byGroup.length === 0 && breakdown.playoffCount === 0 ? (
-              <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>
-                Aún no has usado boosts de este tipo
-              </Typography>
-            ) : (
-              <>
-                {breakdown.byGroup.map((group) => (
-                  <Typography key={group.groupLetter} variant="body2" sx={{ py: 0.5 }}>
-                    • Grupo {group.groupLetter}: {group.count}{' '}
-                    {group.count === 1 ? 'partido' : 'partidos'}
-                  </Typography>
-                ))}
-                {breakdown.playoffCount > 0 && (
-                  <Typography variant="body2" sx={{ py: 0.5 }}>
-                    • Playoffs: {breakdown.playoffCount}{' '}
-                    {breakdown.playoffCount === 1 ? 'partido' : 'partidos'}
-                  </Typography>
-                )}
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                  Total: {used} de {max} usados
-                </Typography>
-              </>
-            )}
-          </>
-        ) : null}
+        <DistributionSection
+          tournamentId={tournamentId}
+          loading={loading}
+          error={error}
+          breakdown={breakdown}
+          used={used}
+          max={max}
+        />
 
         {/* Performance Section - Conditional */}
-        {breakdown && breakdown.scoredGamesCount > 0 && (
-          <>
-            <Divider sx={{ my: 2 }} />
-            <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-              RENDIMIENTO
-            </Typography>
-            <Typography variant="body2" sx={{ py: 1 }}>
-              Ganaste {breakdown.totalPointsEarned}{' '}
-              {breakdown.totalPointsEarned === 1 ? 'punto extra' : 'puntos extra'} en{' '}
-              {breakdown.scoredGamesCount}{' '}
-              {breakdown.scoredGamesCount === 1 ? 'partido boosteado calificado' : 'partidos boosteados calificados'}
-            </Typography>
-          </>
-        )}
+        <PerformanceSection breakdown={breakdown} />
       </Box>
     </Popover>
   );
