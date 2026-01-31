@@ -8,6 +8,9 @@ Replace 5+ minute prediction workflow (25+ clicks) with inline card flip editing
 - **Shared Logic**: Extract common edit controls used by both dialog and inline editor
 - **Card Flip**: Click edit → card flips → show inline editor on back
 - **Auto-Save**: On blur with 500ms debounce
+  - **Save Feedback**: Silent auto-save (no "Saved!" toast), only errors shown
+  - **Visual indicator**: Subtle spinner/pulse during save (via `isPending` prop)
+  - **Current pattern preserved**: Existing save icon behavior in cards unchanged
 - **Keyboard Nav**: Tab (fields → next card), Arrow keys (boost), Escape (exit)
 
 ## Architecture Overview
@@ -56,53 +59,53 @@ This maintains backward compatibility while enabling per-game debouncing.
 - Lines 355-432: Penalty selection logic
 - Lines 436-520: Boost selector ToggleButtonGroup
 
-**Props Interface**:
+**Props Interface** (SonarQube: readonly props):
 ```typescript
 interface GamePredictionEditControlsProps {
-  // Game info
-  gameId: string;
-  homeTeamName: string;
-  awayTeamName: string;
-  isPlayoffGame: boolean;
-  tournamentId?: string;
+  // Game info (readonly per SonarQube)
+  readonly gameId: string;
+  readonly homeTeamName: string;
+  readonly awayTeamName: string;
+  readonly isPlayoffGame: boolean;
+  readonly tournamentId?: string;
 
-  // Values
-  homeScore?: number;
-  awayScore?: number;
-  homePenaltyWinner?: boolean;
-  awayPenaltyWinner?: boolean;
-  boostType?: 'silver' | 'golden' | null;
-  initialBoostType?: 'silver' | 'golden' | null;
+  // Values (readonly per SonarQube)
+  readonly homeScore?: number;
+  readonly awayScore?: number;
+  readonly homePenaltyWinner?: boolean;
+  readonly awayPenaltyWinner?: boolean;
+  readonly boostType?: 'silver' | 'golden' | null;
+  readonly initialBoostType?: 'silver' | 'golden' | null;
 
-  // Boost counts (passed from parent to avoid stale data)
-  silverUsed: number;
-  silverMax: number;
-  goldenUsed: number;
-  goldenMax: number;
+  // Boost counts (readonly, passed from parent to avoid stale data)
+  readonly silverUsed: number;
+  readonly silverMax: number;
+  readonly goldenUsed: number;
+  readonly goldenMax: number;
 
   // Callbacks
-  onHomeScoreChange: (value?: number) => void;
-  onAwayScoreChange: (value?: number) => void;
-  onHomePenaltyWinnerChange: (checked: boolean) => void;
-  onAwayPenaltyWinnerChange: (checked: boolean) => void;
-  onBoostTypeChange: (type: 'silver' | 'golden' | null) => void;
+  readonly onHomeScoreChange: (value?: number) => void;
+  readonly onAwayScoreChange: (value?: number) => void;
+  readonly onHomePenaltyWinnerChange: (checked: boolean) => void;
+  readonly onAwayPenaltyWinnerChange: (checked: boolean) => void;
+  readonly onBoostTypeChange: (type: 'silver' | 'golden' | null) => void;
 
-  // State
-  loading?: boolean;
-  error?: string | null;
+  // State (readonly per SonarQube)
+  readonly loading?: boolean;
+  readonly error?: string | null;
 
-  // Layout (vertical for dialog, horizontal for inline)
-  layout?: 'vertical' | 'horizontal';
-  compact?: boolean;
+  // Layout (readonly per SonarQube)
+  readonly layout?: 'vertical' | 'horizontal';
+  readonly compact?: boolean;
 
-  // Refs for keyboard navigation
-  homeScoreInputRef?: React.RefObject<HTMLInputElement>;
-  awayScoreInputRef?: React.RefObject<HTMLInputElement>;
-  boostButtonGroupRef?: React.RefObject<HTMLDivElement>;
+  // Refs for keyboard navigation (readonly per SonarQube)
+  readonly homeScoreInputRef?: React.RefObject<HTMLInputElement>;
+  readonly awayScoreInputRef?: React.RefObject<HTMLInputElement>;
+  readonly boostButtonGroupRef?: React.RefObject<HTMLDivElement>;
 
-  // Keyboard callbacks
-  onTabFromLastField?: () => void; // Auto-advance to next card
-  onEscapePressed?: () => void; // Exit edit mode
+  // Keyboard callbacks (readonly per SonarQube)
+  readonly onTabFromLastField?: () => void; // Auto-advance to next card
+  readonly onEscapePressed?: () => void; // Exit edit mode
 }
 ```
 
@@ -336,10 +339,16 @@ useEffect(() => {
 **Testing**:
 - Rapid input → only one save after debounce
 - Concurrent saves → await previous save before starting new one
-- Server error → rollback to previous value
+- Server error → rollback to previous value + **display error message to user** via `saveErrors[gameId]`
 - Unmount → flush dirty games, abort in-flight
 - Tab switch → dirty games persisted
 - Only changed games sent to server (not entire array)
+
+**Error Display to User**:
+- Errors shown via `Alert` component in GamePredictionEditControls
+- Error stays visible in card until user fixes and retries
+- For retryable errors: "Retry" button shown
+- For conflicts: "Refresh" message shown
 
 ---
 
@@ -787,70 +796,47 @@ This ensures only one edit UI (inline or dialog) is active at a time.
 ---
 
 ### Phase 6: Mobile Optimization
-**Priority**: Medium | **Effort**: 2-3h
+**Priority**: Medium | **Effort**: 1-2h
 
-**CRITICAL FIX**: Don't use Accordion (conflicts with edit button click). Use **slide-down panel** instead.
+**DECISION**: Use same flip animation on mobile as desktop (user feedback: slide-down conflicts with keyboard).
 
-**Changes in `flippable-game-card.tsx`**:
+**Why flip works on mobile**:
+- Only flips content area (not entire card) - keeps header/footer stable
+- Smooth 0.4-0.5s animation feels natural on mobile
+- Keeps edit controls in same screen position (no keyboard conflict)
+- Simpler implementation (one code path for both)
+
+**Mobile-Specific Adjustments** in `flippable-game-card.tsx`:
 
 ```typescript
-import { useMediaQuery, useTheme, Collapse } from '@mui/material';
+import { useMediaQuery, useTheme } from '@mui/material';
 
 const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-// Mobile: Slide panel below card (no flip)
-if (isMobile) {
-  return (
-    <Card variant="outlined">
-      <CardContent>
-        {/* Header + Teams grid (always visible) */}
-        <GameCountdownDisplay {...} />
-        <Divider />
+// Use same flip animation, but with mobile optimizations:
+const flipDuration = isMobile ? 0.5 : 0.4; // Slightly slower on mobile
 
-        {/* Teams section (not flipped) */}
-        <Grid container spacing={1}>
-          {/* Home team, scores, away team */}
-        </Grid>
-
-        {/* Edit controls slide down */}
-        <Collapse in={isEditing} timeout={300}>
-          <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
-            <GamePredictionEditControls
-              {...editControlsProps}
-              layout="vertical"
-              compact
-              onTabFromLastField={onAutoAdvanceNext}
-              onEscapePressed={onEditEnd}
-            />
-          </Box>
-        </Collapse>
-
-        <Divider sx={{ mt: 2 }} />
-        {/* Footer: location */}
-      </CardContent>
-    </Card>
-  );
-}
-
-// Desktop: card flip animation (Phase 4 implementation)
+<motion.div
+  variants={{
+    front: { rotateY: 0, transition: { duration: flipDuration, ease: 'easeInOut' } },
+    back: { rotateY: 180, transition: { duration: flipDuration, ease: 'easeInOut' } }
+  }}
+>
+  {/* Same flip implementation as desktop */}
+</motion.div>
 ```
 
-**Key Differences Mobile vs Desktop**:
-- **Desktop**: 3D flip animation (0.4s), horizontal layout, Tab navigation
-- **Mobile**: Slide-down Collapse (0.3s), vertical layout, no Tab key
-- Both use same edit controls component
-- Mobile: Better touch targets (larger buttons, `minHeight: 44px`)
-
-**Mobile Keyboard Behavior**:
-- Virtual keyboard shows on focus → card scrolls to keep input visible (browser default)
-- **No Tab key on most mobile keyboards** → use "Next" button instead:
+**Mobile-Specific Edit Controls**:
+- **Touch targets**: `minHeight: 44px` on all buttons (already spec'd)
+- **Layout**: Use `layout="vertical"` on mobile for easier thumb reach
+- **"Next" button**: Added for field navigation (no Tab key on mobile keyboards)
   ```tsx
   {isMobile && (
     <Button
       fullWidth
       variant="outlined"
       onClick={() => {
-        // Advance to next field: home → away → boost → done
+        // Advance: home → away → boost → done
         if (currentField === 'home') awayInputRef.current?.focus();
         else if (currentField === 'away') boostButtonRef.current?.focus();
         else onAutoAdvanceNext?.(); // Or close edit
@@ -860,8 +846,18 @@ if (isMobile) {
     </Button>
   )}
   ```
-- Auto-advance works via "Next" button, not Tab
-- Escape key often not available → "Cancel" button always visible
+- **"Cancel" button**: Always visible (Escape key not available)
+
+**Mobile Keyboard Behavior**:
+- Virtual keyboard shows on focus → browser auto-scrolls to keep input visible
+- Edit controls stay in card bounds (no slide-down), so no keyboard conflict
+- Card flip keeps everything in viewport (unlike slide-down which extends below)
+
+**Key Benefits vs Slide-Down**:
+- ✅ No keyboard conflict (edit controls don't extend below card)
+- ✅ Simpler implementation (one code path)
+- ✅ Consistent UX (same animation feel across devices)
+- ✅ Less screen space used (flip replaces content vs adding below)
 
 **Accessibility**:
 - `aria-label="Edit prediction for {home} vs {away}"` on edit button
