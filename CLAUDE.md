@@ -26,25 +26,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    ↓
 3. Create plan + visual prototypes (if UI changes)
    ↓
-4. ⚠️ MANDATORY: Use Task tool to launch Plan Reviewer SUBAGENT ⚠️
-   - Must run 2-3 review cycles
-   - Must continue until "no significant concerns" OR 3 cycles
-   - This is NOT optional - every plan must be reviewed
+4. 🛑 STOP - Before proceeding, launch Plan Reviewer SUBAGENT 🛑
+   ⚠️ MANDATORY: Use Task tool with subagent_type: "general-purpose" ⚠️
+   - DO NOT skip this step
+   - DO NOT try to review the plan manually
+   - MUST run 2-3 review cycles
+   - MUST continue until "no significant concerns" OR 3 cycles
+   - This is NOT optional - every plan MUST be reviewed by subagent
    - See planning.md Step 5 for exact Task tool implementation
+   - IF you skip this, you have violated the workflow
    ↓
-5. ⚠️ MANDATORY: Use Task tool to launch BASH SUBAGENT ⚠️
-   - Must handle: git add, commit, push, gh pr create
+5. 🛑 STOP - Before committing, launch BASH SUBAGENT 🛑
+   ⚠️ MANDATORY: Use Task tool with subagent_type: "Bash" ⚠️
+   - DO NOT skip this step
+   - DO NOT exit plan mode to commit
+   - DO NOT commit manually with git commands
+   - MUST handle: git add, commit, push, gh pr create
    - You STAY in plan mode while subagent runs
    - This is NOT optional - never exit plan mode to commit
    - See planning.md Step 7 for exact Task tool implementation
+   - IF you skip this, you have violated the workflow
    ↓
 6. 🛑 STOP ⛔ STAY IN PLAN MODE ⛔ WAIT FOR USER 🛑
    Complete CRITICAL CHECKPOINT verification checklist
    Do NOT proceed, do NOT exit plan mode, WAIT
    ↓
-7. Iterate on feedback: Update plan + launch BASH SUBAGENT to commit
-   You stay in plan mode for ALL iterations
-   See planning.md Step 8
+7. Iterate on feedback (if user provides feedback):
+   - Update plan document (while in plan mode)
+   - 🛑 MUST launch BASH SUBAGENT to commit updates 🛑
+   - DO NOT exit plan mode to commit
+   - You stay in plan mode for ALL iterations
+   - See planning.md Step 8
    ↓
 8. User says "execute the plan" (ONLY THEN proceed)
    ↓
@@ -60,17 +72,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### CRITICAL - SUBAGENTS ARE MANDATORY, NOT OPTIONAL
 
 **You MUST use the Task tool with subagents at Steps 4, 5, and 7:**
-- ⚠️ **Step 4: Plan Reviewer** - Task tool with subagent_type "general-purpose"
+- ⚠️ **Step 4: Plan Reviewer** - Task tool with subagent_type "general-purpose", model "haiku"
+  - IF you skip this, you have violated the workflow
+  - IF you try to review manually, you have violated the workflow
 - ⚠️ **Step 5: Git Operations** - Task tool with subagent_type "Bash"
+  - IF you exit plan mode to commit, you have violated the workflow
+  - IF you run git commands directly, you have violated the workflow
 - ⚠️ **Step 7: Iteration Commits** - Task tool with subagent_type "Bash"
+  - IF you exit plan mode during iteration, you have violated the workflow
+  - IF you commit manually, you have violated the workflow
 
 **Why subagents are mandatory:**
 - You NEVER exit plan mode during planning (subagents handle git while you stay in plan mode)
 - Plan review catches issues early (improves quality before user review)
 - Clear separation of concerns (planning vs git operations)
+- Prevents premature implementation (exit plan mode = start coding)
+
+**Before launching any subagent:**
+- Read the verification questions in planning.md (Steps 5 and 7)
+- Answer each question to yourself
+- If any answer is wrong, STOP and fix it
 
 **planning.md contains the exact Task tool calls, prompts, and parameters.**
 **Do NOT try to figure it out yourself - READ planning.md and follow it exactly.**
+**If you skip subagents or try to do it manually, you have FAILED to follow the workflow.**
 
 ### CRITICAL - YOU MUST STOP AFTER CREATING PR (STEP 6)
 

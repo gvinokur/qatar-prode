@@ -247,6 +247,16 @@ Before launching the plan reviewer subagent:
 
 **Purpose:** Automated review catches feasibility issues, testability concerns, and missing considerations before user review - reducing iteration cycles.
 
+**🛑 BEFORE YOU PROCEED - Answer These Verification Questions: 🛑**
+
+1. **Am I about to launch a Plan Reviewer subagent?** (Answer MUST be YES)
+2. **Am I using the Task tool with subagent_type: "general-purpose"?** (Answer MUST be YES)
+3. **Am I using model: "haiku"?** (Answer MUST be YES)
+4. **Will I run 2-3 review cycles?** (Answer MUST be YES)
+5. **Am I trying to review the plan manually instead?** (Answer MUST be NO)
+
+**If ANY answer is wrong, STOP and fix it before proceeding.**
+
 **MANDATORY LOOP - DO NOT SKIP:**
 
 ```
@@ -404,6 +414,17 @@ Before launching Bash subagent to commit and create PR:
 
 **CRITICAL: You are STILL IN PLAN MODE. Use a subagent to commit.**
 
+**🛑 BEFORE YOU PROCEED - Answer These Verification Questions: 🛑**
+
+1. **Have I completed the plan review loop (2-3 cycles)?** (Answer MUST be YES)
+2. **Am I about to launch a Bash subagent to commit?** (Answer MUST be YES)
+3. **Am I using the Task tool with subagent_type: "Bash"?** (Answer MUST be YES)
+4. **Am I still in plan mode?** (Answer MUST be YES)
+5. **Am I about to exit plan mode to commit?** (Answer MUST be NO)
+6. **Am I trying to commit manually with git commands?** (Answer MUST be NO)
+
+**If ANY answer is wrong, STOP and fix it before proceeding.**
+
 **Launch Bash subagent to handle git operations:**
 
 ```typescript
@@ -470,6 +491,8 @@ Report back the PR number and URL.
 
 **🛑🛑🛑 CRITICAL CHECKPOINT - STOP AND VERIFY 🛑🛑🛑**
 
+**🚨 MANDATORY: DO NOT PROCEED PAST THIS POINT WITHOUT COMPLETING THIS SECTION 🚨**
+
 **READ THIS ENTIRE SECTION CAREFULLY:**
 
 You have just committed the plan and created a PR. This is a **CRITICAL CHECKPOINT**.
@@ -485,13 +508,34 @@ You have just committed the plan and created a PR. This is a **CRITICAL CHECKPOI
 - ✅ The Bash subagent handled git operations
 - ✅ You remained in plan mode the entire time
 
-**VERIFICATION CHECKLIST - Answer these questions:**
-- [ ] Did I exit plan mode? (Answer MUST be NO)
-- [ ] Am I still in plan mode? (Answer MUST be YES)
-- [ ] Did the user say "execute the plan"? (Answer MUST be NO)
-- [ ] Have I started implementing? (Answer MUST be NO)
-- [ ] Have I used TaskCreate? (Answer MUST be NO)
-- [ ] Am I reading implementation files? (Answer MUST be NO)
+**VERIFICATION CHECKLIST - You MUST answer these questions to yourself:**
+- [ ] Did I exit plan mode? (Answer MUST be NO - Type to yourself: "I did not exit plan mode")
+- [ ] Am I still in plan mode? (Answer MUST be YES - Type to yourself: "I am in plan mode")
+- [ ] Did the user say "execute the plan"? (Answer MUST be NO - Type to yourself: "User has not approved")
+- [ ] Have I started implementing? (Answer MUST be NO - Type to yourself: "I have not started implementing")
+- [ ] Have I used TaskCreate? (Answer MUST be NO - Type to yourself: "I have not used TaskCreate")
+- [ ] Am I reading implementation files? (Answer MUST be NO - Type to yourself: "I am not reading implementation files")
+
+**🛑 YOUR NEXT MESSAGE TO THE USER MUST CONTAIN EXACTLY THIS AND NOTHING MORE: 🛑**
+
+Required content:
+- ✅ Report PR number and URL
+- ✅ Say "Waiting for your review and feedback"
+- ✅ STOP - Say NOTHING ELSE
+
+**🚫 YOUR NEXT MESSAGE TO THE USER MUST NOT CONTAIN: 🚫**
+
+Forbidden phrases (if you use any of these, you have FAILED):
+- ❌ "Would you like to proceed?"
+- ❌ "Should I start implementation?"
+- ❌ "Ready to implement"
+- ❌ "Shall I move forward?"
+- ❌ "Would you like me to begin?"
+- ❌ "Next steps would be to..."
+- ❌ "I can now start..."
+- ❌ Any suggestion of proceeding beyond plan review
+
+**IF YOUR NEXT MESSAGE CONTAINS MORE THAN THE REQUIRED CONTENT ABOVE, YOU HAVE VIOLATED THE WORKFLOW.**
 
 **What you MUST do now:**
 - ✅ STAY IN PLAN MODE
@@ -506,12 +550,14 @@ You have just committed the plan and created a PR. This is a **CRITICAL CHECKPOI
 - ❌ DO NOT create tasks with TaskCreate
 - ❌ DO NOT use the implementation guide
 - ❌ DO NOT think about implementation details
+- ❌ DO NOT ask about proceeding
 
 **If you are confused about what to do next:**
 1. Re-read this section
 2. Confirm you are in plan mode
-3. Wait for user input
-4. Do nothing else
+3. Report PR to user and say "Waiting for your review and feedback"
+4. Wait for user input
+5. Do nothing else
 
 **You are now in the Plan Iteration Phase (see Step 8 below).**
 
