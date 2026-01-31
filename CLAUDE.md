@@ -74,12 +74,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## ⚠️ Critical Rules
 
-1. **NEVER implement stories in main worktree** (`/qatar-prode`) - Always use story worktrees
-2. **NEVER commit to `main` branch** unless user explicitly says "commit to main"
-3. **ALWAYS use absolute paths** when working with worktree files (e.g., `/qatar-prode-story-42/app/file.ts`)
-4. **ALWAYS copy `.env.local` and `.claude/`** to new worktrees (automated by helper script)
+1. **NEVER implement stories in main worktree** (`/qatar-prode`) - Always use story worktrees (see [worktrees.md](docs/claude/worktrees.md))
+2. **NEVER commit to `main` branch** unless user explicitly says "commit to main" (see worktrees.md "Commit Safety Checks")
+3. **ALWAYS use absolute paths** when working with worktree files (see worktrees.md "Working with Files in Worktrees")
+4. **ALWAYS copy `.env.local` and `.claude/`** to new worktrees (automated by helper script - see worktrees.md "Required Files")
 5. **NEVER commit without user verification** - User must test locally first
-6. **NEVER ask "would you like to proceed?" after creating plan PR** - Just WAIT for user
+6. **NEVER ask "would you like to proceed?" after creating plan PR** - Just WAIT for user (see planning.md Step 7 "CRITICAL CHECKPOINT")
 
 ## Permissions Configuration
 
@@ -101,73 +101,96 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### 🛑 BEFORE STARTING: Read the Planning Guide
 
 **MANDATORY:** Before entering plan mode or creating any plan:
-1. **Read docs/claude/planning.md COMPLETELY**
-2. Understand all 10 steps of the planning workflow
-3. Note all STOP checkpoints where you MUST wait
-4. Understand you NEVER exit plan mode until "execute the plan"
+**READ [docs/claude/planning.md](docs/claude/planning.md) COMPLETELY - Step 0: Read This Guide First**
 
-**This is not optional. The planning guide has critical guardrails you MUST follow.**
+The planning guide has critical guardrails you MUST follow, including 10-step workflow, STOP checkpoints, and exit rules.
 
 ### Critical Rules
-1. **ALWAYS read planning.md first** - Before entering plan mode
-2. **ALWAYS create plan** at `/plans/STORY-{N}-plan.md` before coding
-3. **ALWAYS include visual prototypes** if there are UI changes
-4. **ALWAYS run plan review subagent for 2-3 cycles** until "no significant concerns"
-5. **ALWAYS commit plan using Bash subagent** - Stay in plan mode while subagent handles git
-6. **NEVER EXIT PLAN MODE** until user says "execute the plan"
-7. **USE SUBAGENTS FOR GIT OPERATIONS** - Launch Bash subagent for commits/pushes (you stay in plan mode)
-8. **COMPLETE CHECKLISTS** at each checkpoint before proceeding
+1. **ALWAYS read planning.md Step 0 first** - Before entering plan mode
+2. **ALWAYS create plan** at `/plans/STORY-{N}-plan.md` - See planning.md Step 3
+3. **ALWAYS include visual prototypes** for UI changes - See planning.md Step 3.1 (MANDATORY for UI Changes)
+4. **ALWAYS run plan review subagent for 2-3 cycles** - See planning.md Step 5 (MANDATORY LOOP)
+5. **ALWAYS commit plan using Bash subagent** - See planning.md Step 7 (Commit Plan and Create PR)
+6. **NEVER EXIT PLAN MODE** until user says "execute the plan" - See planning.md "CRITICAL: NEVER Exit Plan Mode"
+7. **USE SUBAGENTS FOR GIT OPERATIONS** - See planning.md Step 7 (Launch Bash subagent)
+8. **COMPLETE CHECKLISTS** at each checkpoint - See planning.md Steps 4, 6, 9 (Pre-Review, Pre-Commit, Pre-Execution)
 9. **EXIT PLAN MODE = START IMPLEMENTATION** - Simple, unambiguous rule
 
-### ⚠️ The Only Exit Rule
-- **STAY IN PLAN MODE** the entire planning phase (use subagents for git)
-- **EXIT ONCE** when user says "execute the plan" = start implementation
-- No temporary exits, no re-entry, no confusion
+### Process Overview
 
-### Process
-See **[Planning Guide](docs/claude/planning.md)** for complete workflow.
+**Complete workflow:** [Planning Guide](docs/claude/planning.md) (10 steps)
 
-**Plan review with subagent (MANDATORY):**
-- After creating initial plan, use Plan Reviewer subagent for 2-3 review cycles
-- Loop until "no significant concerns" OR 3 cycles complete
-- Catches issues early, improves quality before user review
+**Key phases:**
 
-**Commit plan with Bash subagent:**
-- Fetch actual issue title: `gh issue view ${STORY_NUMBER} --json title --jq '.title'`
-- Launch Bash subagent to: git add, commit, push, create PR
-- PR title format: `"Plan: ${issueTitle} #${STORY_NUMBER}"` (links to issue)
-- PR body must include: `Fixes #${STORY_NUMBER}` (auto-links and auto-closes issue)
-- You stay in plan mode the entire time
-- Subagent reports back PR number/URL
-
-**After creating PR - 🛑 CRITICAL CHECKPOINT 🛑:**
-- Complete the verification checklist in planning.md
-- Confirm you are STILL in plan mode
-- Confirm you have NOT exited plan mode
-- Confirm user has NOT said "execute the plan"
-- Do NOT exit plan mode
-- Do NOT start implementation
-- Do NOT use TaskCreate
-- Do NOT read implementation.md yet
-- WAIT for user to review plan or say "execute the plan"
-
-**Iterate on feedback:**
-- Update plan document
-- Launch Bash subagent to commit changes
-- Stay in plan mode
-- Repeat until "execute the plan"
-
-**When user says "execute the plan":**
-- Complete pre-execution checklist in planning.md
-- Read docs/claude/implementation.md COMPLETELY
-- Exit plan mode (ONLY exit during entire planning phase)
-- Follow implementation workflow
+1. **Enter plan mode** → See planning.md Step 1
+2. **Research & create plan** → See planning.md Steps 2-3 (include visual prototypes for UI changes - Step 3.1)
+3. **Run plan review subagent** → See planning.md Step 5 (2-3 cycles until "no significant concerns")
+4. **Commit plan with Bash subagent** → See planning.md Step 7 (PR format: "Plan: ${issueTitle} #${STORY_NUMBER}")
+5. **🛑 CRITICAL CHECKPOINT** → See planning.md Step 7 "CRITICAL CHECKPOINT - STOP AND VERIFY"
+   - STAY in plan mode, WAIT for user review
+   - Complete verification checklist
+   - Do NOT exit plan mode, do NOT start implementation
+6. **Iterate on feedback** → See planning.md Step 8 (Plan Iteration Phase)
+   - Update plan, use Bash subagent to commit
+   - Repeat until user says "execute the plan"
+7. **When user says "execute the plan"** → See planning.md Steps 9-10
+   - Complete pre-execution checklist
+   - Read [docs/claude/implementation.md](docs/claude/implementation.md) COMPLETELY
+   - Exit plan mode (ONLY exit during entire planning phase)
+   - Follow implementation workflow
 
 **Mid-implementation replanning:**
 - If significant feedback requires approach changes, create a "change plan"
 - Enter plan mode again, create `/plans/STORY-{N}-change-1.md`
 - Use Bash subagent to commit to same PR
 - Iterate, wait for "execute the change plan"
+
+## Implementation Phase (After plan approval)
+
+### 🛑 BEFORE STARTING: Read the Implementation Guide
+
+**MANDATORY:** You should ONLY start implementation after:
+- ✅ Planning phase is complete
+- ✅ User explicitly said "execute the plan"
+- ✅ You have exited plan mode (final exit)
+
+**READ [docs/claude/implementation.md](docs/claude/implementation.md) COMPLETELY**
+
+### Critical Rules
+1. **ALWAYS read implementation.md first** - Before starting to code
+2. **ALWAYS define tasks using TaskCreate** - Break down plan into atomic tasks (see implementation.md Section 2)
+3. **ALWAYS set dependencies using TaskUpdate** - Define blockedBy/blocks relationships (see implementation.md Section 2)
+4. **ALWAYS use absolute paths** - When working in worktrees (see [worktrees.md](docs/claude/worktrees.md))
+5. **ALWAYS follow the approved plan** - No scope creep
+6. **ALWAYS mark tasks in_progress/completed** - Track progress with TaskUpdate
+7. **NEVER commit without user verification** - User tests locally first
+
+### Process Overview
+
+**Complete workflow:** [Implementation Guide](docs/claude/implementation.md)
+
+**Key phases:**
+
+1. **Exit plan mode** → implementation.md Section 1 (final exit when user says "execute the plan")
+2. **Define tasks with dependencies** → implementation.md Section 2 (use TaskCreate/TaskUpdate)
+3. **Implement in execution waves** → implementation.md Sections 3-4 (parallel execution where possible)
+4. **Create tests in parallel** → See [testing.md](docs/claude/testing.md) "Parallel Test Creation"
+5. **Wait for user to test** → Do NOT commit until user verifies
+
+**For task parallelization and subagent patterns:** See [subagent-workflows.md](docs/claude/subagent-workflows.md)
+
+## Testing (Parallel test creation)
+
+**Complete guide:** [Testing Guide](docs/claude/testing.md)
+
+**Critical rules:**
+1. **ALWAYS create tests** - Every story requires unit tests
+2. **80% coverage on new code** - SonarCloud enforces this
+3. **Parallelize test creation** - Use subagents for independent test files (see testing.md "Parallel Test Creation")
+4. **Follow testing conventions** - See testing.md for patterns and best practices
+
+**Parallel test creation example:**
+Launch multiple subagents in parallel (single message, multiple Task calls) to create tests for independent features. See testing.md for detailed workflow.
 
 ## Validation & Quality Gates (MANDATORY before merge)
 
@@ -177,8 +200,21 @@ See **[Planning Guide](docs/claude/planning.md)** for complete workflow.
 3. **80% coverage on new code** - SonarCloud enforces this
 4. **NEVER auto-fix issues** - Show user, ask permission to fix
 
-### Process
-See **[Validation Guide](docs/claude/validation.md)** for complete workflow.
+### Process Overview
+
+**Complete workflow:** [Validation Guide](docs/claude/validation.md)
+
+**Key steps:**
+1. **Verify user satisfaction** → See validation.md Section 1
+2. **Run tests** → See validation.md Section 2: `npm run test`
+3. **Run linter** → See validation.md Section 3: `npm run lint`
+4. **Build project** → See validation.md Section 4: `npm run build`
+5. **Commit and push** → See validation.md Section 5 (git operations)
+6. **Wait for CI/CD** → See validation.md Section 6 (use `./scripts/github-projects-helper pr wait-checks`)
+7. **Analyze SonarCloud** → See validation.md Section 7 (use `./scripts/github-projects-helper pr sonar-issues`)
+8. **Fix issues if needed** → See validation.md Section 8 (show user, ask permission)
+
+**For detailed SonarCloud analysis and issue resolution:** See validation.md complete workflow
 
 ## Quick Reference
 
@@ -194,10 +230,10 @@ npm run lint             # Run ESLint
 git worktree list        # Check existing worktrees
 git branch --show-current # Verify current branch
 
-# GitHub Projects Workflow
+# GitHub Projects Workflow (see docs/claude/github-projects-workflow.md)
 ./scripts/github-projects-helper projects stats 1          # View project status
 ./scripts/github-projects-helper stories suggest 1         # Get candidate stories
-./scripts/github-projects-helper story start 42 --project 1   # Start story
+./scripts/github-projects-helper story start 42 --project 1   # Start story (creates worktree)
 ./scripts/github-projects-helper pr wait-checks 45         # Wait for CI/CD
 ./scripts/github-projects-helper pr sonar-issues 45        # Get SonarCloud issues
 ./scripts/github-projects-helper story complete 42 --project 1 # Merge & cleanup
@@ -227,12 +263,15 @@ For detailed guidance, see:
 - **Testing**: Vitest (80% coverage on new code)
 - **Deployment**: Vercel (auto-deploy on push to main)
 
-## Decision Tree for Implementation
+## Decision Tree: What Phase Am I In?
+
+Use this to identify which phase you're in and which guide to follow:
 
 ```
 User says "implement story #42"
     ↓
-Run: git worktree list && git branch --show-current
+Check worktree status:
+git worktree list && git branch --show-current
     ↓
 ┌─────────────────────────────────────┐
 │ Story worktree exists?              │
@@ -241,143 +280,106 @@ Run: git worktree list && git branch --show-current
     ↓                    ↓
    YES                  NO
     ↓                    ↓
-Set WORKTREE_PATH    ASK USER:
-    ↓               "Should I create
-    ↓                story worktree?"
-    ↓                    ↓
-    ↓               Create with:
-    ↓               ./scripts/github-projects-helper story start 42 --project 1
-    ↓                    ↓
+Set WORKTREE_PATH    Create worktree:
+                     ./scripts/github-projects-helper story start 42 --project 1
+                     (See docs/claude/worktrees.md)
+    ↓
     └────────────────────┘
              ↓
-    PLANNING PHASE (MANDATORY)
-             ↓
-    🛑 READ docs/claude/planning.md FIRST 🛑
-             ↓
-    EnterPlanMode → Research → Create Plan
-    Include visual prototypes if UI changes
-    (NEVER EXIT UNTIL "EXECUTE THE PLAN")
-             ↓
-    ┌──────────────────────────────────┐
-    │ Plan Review Loop (2-3 cycles):   │
-    │ 1. Launch reviewer subagent      │
-    │ 2. Get feedback                  │
-    │ 3. Update plan if needed         │
-    │ 4. Repeat until "no concerns"    │
-    │    OR 3 cycles complete          │
-    └──────────────────────────────────┘
-             ↓
-    Complete pre-commit checklist
-             ↓
-    Launch Bash Subagent:
-    Commit Plan & Create PR
-    (You stay in plan mode)
-             ↓
-    🛑🛑🛑 CRITICAL CHECKPOINT 🛑🛑🛑
-    Complete verification checklist
-    Confirm STILL in plan mode
-    Confirm NOT started implementing
-    Do NOT exit plan mode
-    Do NOT start implementation
-    Do NOT use TaskCreate
-    Do NOT read implementation.md
-    WAIT for user approval
-             ↓
-    User provides feedback?
-    Update plan
-    Launch Bash Subagent to commit
-    (Stay in plan mode)
-    Repeat until approved
-             ↓
-    User says "execute the plan"
-             ↓
-    Complete pre-execution checklist
-             ↓
-    🛑 READ docs/claude/implementation.md FIRST 🛑
-             ↓
-    ExitPlanMode (ONLY EXIT)
-             ↓
-    IMPLEMENTATION PHASE
-    (see docs/claude/implementation.md)
-             ↓
-    Define tasks with TaskCreate
-    Set dependencies with TaskUpdate
-    Implement in execution waves
-    Use absolute paths
-    Follow approved plan
-             ↓
-    ┌────────────────────────┐
-    │ Significant feedback?  │
-    │ Scope changes?         │
-    └────────────────────────┘
-         ↓              ↓
-        NO             YES
-         ↓              ↓
-    Continue      CHANGE PLAN
-    coding        EnterPlanMode
-         ↓        Create change-N.md
-         ↓        Commit to same PR
-         ↓        Iterate on feedback
-         ↓        "execute change plan"
-         ↓        ExitPlanMode
-         ↓              ↓
-         └──────────────┘
-                ↓
-    Create tests in parallel with subagents
-    (see docs/claude/testing.md)
-                ↓
-    STOP - Wait for user to test
-    Only commit when user asks
-                ↓
-    User: "Code looks good, I'm satisfied"
-                ↓
-    VALIDATION PHASE (MANDATORY)
-    (see docs/claude/validation.md)
-                ↓
-    Run tests → Lint → Build → Commit → Push
-                ↓
-    Wait for CI/CD checks
-                ↓
-    Analyze SonarCloud results
-                ↓
-    ┌─────────────────────┐
-    │ New issues found?   │
-    └─────────────────────┘
-         ↓           ↓
-        YES         NO
-         ↓           ↓
-    Show issues  ✅ Quality Gates Passed
-    Ask permission   ↓
-    Fix if approved  Ready to merge
-         ↓           ↓
-         └───────────┘
+┌─────────────────────────────────────┐
+│        PHASE 1: PLANNING            │
+│  📖 READ planning.md COMPLETELY     │
+└─────────────────────────────────────┘
+    ↓
+EnterPlanMode (planning.md Step 1)
+    ↓
+Research & Create Plan (planning.md Steps 2-3)
+Include visual prototypes for UI (Step 3.1)
+    ↓
+Plan Review Loop (planning.md Step 5)
+    ↓
+Commit with Bash Subagent (planning.md Step 7)
+    ↓
+🛑 CRITICAL CHECKPOINT (planning.md Step 7)
+STAY in plan mode, WAIT for user
+    ↓
+Iterate on feedback (planning.md Step 8)
+Repeat until approved
+    ↓
+User says "execute the plan"
+    ↓
+Pre-execution checklist (planning.md Step 9)
+    ↓
+┌─────────────────────────────────────┐
+│      PHASE 2: IMPLEMENTATION        │
+│  📖 READ implementation.md FIRST    │
+└─────────────────────────────────────┘
+    ↓
+ExitPlanMode (ONLY EXIT - planning.md Step 10)
+    ↓
+Define Tasks (implementation.md Section 2)
+    ↓
+Implement in waves (implementation.md Sections 3-4)
+Use absolute paths (docs/claude/worktrees.md)
+    ↓
+Create tests in parallel (docs/claude/testing.md)
+    ↓
+If scope changes → Change Plan (planning.md)
+    ↓
+STOP - Wait for user to test
+Only commit when user asks
+    ↓
+┌─────────────────────────────────────┐
+│       PHASE 3: VALIDATION           │
+│  📖 SEE validation.md WORKFLOW      │
+└─────────────────────────────────────┘
+    ↓
+User: "Code looks good, I'm satisfied"
+    ↓
+Run: Tests → Lint → Build (validation.md Sections 2-4)
+    ↓
+Commit & Push (validation.md Section 5)
+    ↓
+Wait for CI/CD (validation.md Section 6)
+    ↓
+Analyze SonarCloud (validation.md Section 7)
+    ↓
+Fix issues if needed (validation.md Section 8)
+    ↓
+✅ Quality Gates Passed → Ready to merge
 ```
+
+**Quick Phase Identification:**
+- **Am I in plan mode?** → Follow planning.md, stay in plan mode until "execute the plan"
+- **User said "execute the plan"?** → Read implementation.md, exit plan mode, start coding
+- **User said "code looks good"?** → Follow validation.md workflow
+- **Confused?** → Re-read the STOP section at top of this file
 
 ## Common Mistakes to Avoid
 
-| Mistake | Why It's Wrong | Correct Approach |
-|---------|---------------|------------------|
-| Not reading planning.md first | Miss critical workflow and guardrails | ALWAYS read planning.md before starting |
-| Skipping planning phase | No alignment before coding | Always plan first, get approval |
-| No visual prototypes for UI changes | No design alignment, wasted implementation | Include prototypes in plan when UI changes |
-| Only 1 plan review cycle | Misses issues that iterative review catches | Run 2-3 cycles until "no significant concerns" |
-| Skipping pre-commit checklist | Rush ahead without verification | Complete checklist before committing plan |
-| Exiting plan mode to commit | Confusion about when to start coding | Use Bash subagent to commit, stay in plan mode |
-| Starting implementation after creating plan | User hasn't approved yet | Commit plan → PR → Complete checkpoint → WAIT |
-| Not completing verification checkpoint | Jump to implementation prematurely | Complete all checklist items, verify state |
-| Exiting plan mode before "execute the plan" | User hasn't approved yet | NEVER exit until user says "execute the plan" |
-| Not reading implementation.md before coding | Miss task definition workflow | Read implementation.md after "execute the plan" |
-| Not using TaskCreate | No progress tracking, can't parallelize | Always define tasks with TaskCreate/TaskUpdate |
-| Making big changes without change plan | Scope creep, misalignment | Create change plan for significant feedback |
-| Ignoring SonarCloud issues | Accumulates technical debt | Fix ALL new issues, no excuses |
-| Auto-fixing quality issues | User loses control | Show issues, ask permission to fix |
-| Validating too early | User hasn't tested yet | Wait for "code looks good" signal |
-| Implementing in `/qatar-prode` | Stories need isolated worktrees | Use `/qatar-prode-story-N` |
-| Current branch is `main` | Risk of committing to main | Use feature branch `feature/story-N` |
-| Using relative paths | Bash tool doesn't persist `cd` | Use absolute paths: `/qatar-prode-story-N/file.ts` |
-| Forgetting `.env.local` | App fails with DB errors | Copy after worktree creation |
-| Client imports repository | Causes build errors | Server Components import repos, Client Components get props |
-| Auto-committing after changes | User can't verify locally | Only commit when user asks |
+| Mistake | Why It's Wrong | Correct Approach | Reference |
+|---------|---------------|------------------|-----------|
+| Not reading planning.md first | Miss critical workflow and guardrails | ALWAYS read planning.md Step 0 before starting | planning.md Step 0 |
+| Skipping planning phase | No alignment before coding | Always plan first, get approval | planning.md overview |
+| No visual prototypes for UI changes | No design alignment, wasted implementation | Include prototypes in plan when UI changes | planning.md Step 3.1 |
+| Only 1 plan review cycle | Misses issues that iterative review catches | Run 2-3 cycles until "no significant concerns" | planning.md Step 5 |
+| Skipping pre-commit checklist | Rush ahead without verification | Complete checklist before committing plan | planning.md Step 6 |
+| Exiting plan mode to commit | Confusion about when to start coding | Use Bash subagent to commit, stay in plan mode | planning.md Step 7 |
+| Starting implementation after creating plan | User hasn't approved yet | Commit plan → PR → Complete checkpoint → WAIT | planning.md Step 7 "CRITICAL CHECKPOINT" |
+| Not completing verification checkpoint | Jump to implementation prematurely | Complete all checklist items, verify state | planning.md Step 7 checklist |
+| Exiting plan mode before "execute the plan" | User hasn't approved yet | NEVER exit until user says "execute the plan" | planning.md "CRITICAL: NEVER Exit" |
+| Not reading implementation.md before coding | Miss task definition workflow | Read implementation.md after "execute the plan" | implementation.md "BEFORE STARTING" |
+| Not using TaskCreate | No progress tracking, can't parallelize | Always define tasks with TaskCreate/TaskUpdate | implementation.md Section 2 |
+| Making big changes without change plan | Scope creep, misalignment | Create change plan for significant feedback | planning.md (change plans) |
+| Ignoring SonarCloud issues | Accumulates technical debt | Fix ALL new issues, no excuses | validation.md Section 7 |
+| Auto-fixing quality issues | User loses control | Show issues, ask permission to fix | validation.md Section 8 |
+| Validating too early | User hasn't tested yet | Wait for "code looks good" signal | validation.md "When to Run" |
+| Implementing in `/qatar-prode` | Stories need isolated worktrees | Use `/qatar-prode-story-N` | worktrees.md "Why Worktrees" |
+| Current branch is `main` | Risk of committing to main | Use feature branch `feature/story-N` | worktrees.md "Commit Safety" |
+| Using relative paths | Bash tool doesn't persist `cd` | Use absolute paths: `/qatar-prode-story-N/file.ts` | worktrees.md "Working with Files" |
+| Forgetting `.env.local` or `.claude/` | App fails with DB errors or permission prompts | Copy after worktree creation (automated by helper) | worktrees.md "Required Files" |
+| Client imports repository | Causes build errors | Server Components import repos, Client Components get props | architecture.md |
+| Auto-committing after changes | User can't verify locally | Only commit when user asks | implementation.md Rule 7 |
 
 ## Development Guidelines
 
