@@ -340,8 +340,6 @@ export function PredictionStatusBar({
           used={activeBoostType === 'silver' ? silverUsed : goldenUsed}
           max={activeBoostType === 'silver' ? silverMax : goldenMax}
           tournamentId={tournamentId}
-          totalGames={totalGames}
-          predictedGames={predictedGames}
         />
       )}
     </Card>

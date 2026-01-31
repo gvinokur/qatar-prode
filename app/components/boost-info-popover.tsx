@@ -6,7 +6,6 @@ import {
   Box,
   Typography,
   Divider,
-  Alert,
   CircularProgress,
 } from '@mui/material';
 import { getBoostAllocationBreakdownAction } from '../actions/game-boost-actions';
@@ -16,22 +15,16 @@ interface BoostInfoPopoverProps {
   used: number;
   max: number;
   tournamentId?: string;
-  totalGames: number;
-  predictedGames: number;
   open: boolean;
   anchorEl: HTMLElement | null;
   onClose: () => void;
 }
-
-const RISK_WARNING_BUFFER = 3;
 
 export default function BoostInfoPopover({
   boostType,
   used,
   max,
   tournamentId,
-  totalGames,
-  predictedGames,
   open,
   anchorEl,
   onClose,
@@ -69,10 +62,6 @@ export default function BoostInfoPopover({
     boostType === 'silver'
       ? 'Duplica los puntos obtenidos en este partido'
       : 'Triplica los puntos obtenidos en este partido';
-
-  const unusedBoosts = max - used;
-  const gamesLeft = totalGames - predictedGames;
-  const showWarning = unusedBoosts > 0 && gamesLeft < unusedBoosts + RISK_WARNING_BUFFER;
 
   return (
     <Popover
@@ -142,24 +131,6 @@ export default function BoostInfoPopover({
             )}
           </>
         ) : null}
-
-        {/* Risk Warning Section - Conditional */}
-        {showWarning && (
-          <>
-            <Divider sx={{ my: 2 }} />
-            <Alert severity="warning" sx={{ py: 0.5 }}>
-              <Typography variant="caption" fontWeight="bold">
-                ⚠️ ALERTA DE RIESGO
-              </Typography>
-              <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
-                Tienes {unusedBoosts} {unusedBoosts === 1 ? 'boost' : 'boosts'} sin usar y solo{' '}
-                {gamesLeft === 0 ? 'no quedan' : gamesLeft === 1 ? `queda ${gamesLeft}` : `quedan ${gamesLeft}`}{' '}
-                {gamesLeft === 1 ? 'partido' : 'partidos'} para predecir.
-                {gamesLeft > 0 && ' ¡Úsalo antes de que cierre!'}
-              </Typography>
-            </Alert>
-          </>
-        )}
 
         {/* Performance Section - Conditional */}
         {breakdown && breakdown.scoredGamesCount > 0 && (
