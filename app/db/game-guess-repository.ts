@@ -48,10 +48,31 @@ export async function updateOrCreateGuess(guess: GameGuessNew) {
      .executeTakeFirst()
 
    if(existingGuess) {
+     // Optimistic locking: check timestamp
+     if (existingGuess.updated_at && guess.updated_at) {
+       const serverTime = new Date(existingGuess.updated_at).getTime();
+       const clientTime = new Date(guess.updated_at).getTime();
+
+       if (serverTime > clientTime) {
+         // Server version is newer - conflict!
+         const error = new Error('This prediction was updated by another user. Please refresh.');
+         (error as any).status = 409;
+         (error as any).code = 'CONFLICT';
+         throw error;
+       }
+     }
+
      //Always recreate the guess
      await deleteGameGuess(existingGuess.id)
    }
-   return createGameGuess(guess)
+
+   // Set server timestamp on create
+   const guessWithTimestamp: GameGuessNew = {
+     ...guess,
+     updated_at: new Date()
+   };
+
+   return createGameGuess(guessWithTimestamp)
 
 }
 

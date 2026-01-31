@@ -249,6 +249,9 @@ export interface GameGuessTable extends Identifiable{
   boost_type?: 'silver' | 'golden' | null
   boost_multiplier?: number
   final_score?: number
+
+  // Optimistic locking
+  updated_at?: Date
 }
 
 export type GameGuess = Selectable<GameGuessTable>
