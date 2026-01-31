@@ -27,13 +27,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Planning Phase (MANDATORY before implementation)
 
+### 🛑 BEFORE STARTING: Read the Planning Guide
+
+**MANDATORY:** Before entering plan mode or creating any plan:
+1. **Read docs/claude/planning.md COMPLETELY**
+2. Understand all 10 steps of the planning workflow
+3. Note all STOP checkpoints where you MUST wait
+4. Understand you NEVER exit plan mode until "execute the plan"
+
+**This is not optional. The planning guide has critical guardrails you MUST follow.**
+
 ### Critical Rules
-1. **ALWAYS create plan** at `/plans/STORY-{N}-plan.md` before coding
-2. **ALWAYS run plan review subagent for 2-3 cycles** until "no significant concerns"
-3. **ALWAYS commit plan using Bash subagent** - Stay in plan mode while subagent handles git
-4. **NEVER EXIT PLAN MODE** until user says "execute the plan"
-5. **USE SUBAGENTS FOR GIT OPERATIONS** - Launch Bash subagent for commits/pushes (you stay in plan mode)
-6. **EXIT PLAN MODE = START IMPLEMENTATION** - Simple, unambiguous rule
+1. **ALWAYS read planning.md first** - Before entering plan mode
+2. **ALWAYS create plan** at `/plans/STORY-{N}-plan.md` before coding
+3. **ALWAYS include visual prototypes** if there are UI changes
+4. **ALWAYS run plan review subagent for 2-3 cycles** until "no significant concerns"
+5. **ALWAYS commit plan using Bash subagent** - Stay in plan mode while subagent handles git
+6. **NEVER EXIT PLAN MODE** until user says "execute the plan"
+7. **USE SUBAGENTS FOR GIT OPERATIONS** - Launch Bash subagent for commits/pushes (you stay in plan mode)
+8. **COMPLETE CHECKLISTS** at each checkpoint before proceeding
+9. **EXIT PLAN MODE = START IMPLEMENTATION** - Simple, unambiguous rule
 
 ### ⚠️ The Only Exit Rule
 - **STAY IN PLAN MODE** the entire planning phase (use subagents for git)
@@ -56,10 +69,15 @@ See **[Planning Guide](docs/claude/planning.md)** for complete workflow.
 - You stay in plan mode the entire time
 - Subagent reports back PR number/URL
 
-**After creating PR - STOP AND WAIT:**
+**After creating PR - 🛑 CRITICAL CHECKPOINT 🛑:**
+- Complete the verification checklist in planning.md
+- Confirm you are STILL in plan mode
+- Confirm you have NOT exited plan mode
+- Confirm user has NOT said "execute the plan"
 - Do NOT exit plan mode
 - Do NOT start implementation
 - Do NOT use TaskCreate
+- Do NOT read implementation.md yet
 - WAIT for user to review plan or say "execute the plan"
 
 **Iterate on feedback:**
@@ -67,6 +85,12 @@ See **[Planning Guide](docs/claude/planning.md)** for complete workflow.
 - Launch Bash subagent to commit changes
 - Stay in plan mode
 - Repeat until "execute the plan"
+
+**When user says "execute the plan":**
+- Complete pre-execution checklist in planning.md
+- Read docs/claude/implementation.md COMPLETELY
+- Exit plan mode (ONLY exit during entire planning phase)
+- Follow implementation workflow
 
 **Mid-implementation replanning:**
 - If significant feedback requires approach changes, create a "change plan"
@@ -156,9 +180,11 @@ Set WORKTREE_PATH    ASK USER:
     └────────────────────┘
              ↓
     PLANNING PHASE (MANDATORY)
-    (see docs/claude/planning.md)
+             ↓
+    🛑 READ docs/claude/planning.md FIRST 🛑
              ↓
     EnterPlanMode → Research → Create Plan
+    Include visual prototypes if UI changes
     (NEVER EXIT UNTIL "EXECUTE THE PLAN")
              ↓
     ┌──────────────────────────────────┐
@@ -170,14 +196,20 @@ Set WORKTREE_PATH    ASK USER:
     │    OR 3 cycles complete          │
     └──────────────────────────────────┘
              ↓
+    Complete pre-commit checklist
+             ↓
     Launch Bash Subagent:
     Commit Plan & Create PR
     (You stay in plan mode)
              ↓
-    🛑 STOP - STAY IN PLAN MODE 🛑
+    🛑🛑🛑 CRITICAL CHECKPOINT 🛑🛑🛑
+    Complete verification checklist
+    Confirm STILL in plan mode
+    Confirm NOT started implementing
     Do NOT exit plan mode
     Do NOT start implementation
     Do NOT use TaskCreate
+    Do NOT read implementation.md
     WAIT for user approval
              ↓
     User provides feedback?
@@ -187,6 +219,10 @@ Set WORKTREE_PATH    ASK USER:
     Repeat until approved
              ↓
     User says "execute the plan"
+             ↓
+    Complete pre-execution checklist
+             ↓
+    🛑 READ docs/claude/implementation.md FIRST 🛑
              ↓
     ExitPlanMode (ONLY EXIT)
              ↓
@@ -250,12 +286,16 @@ Set WORKTREE_PATH    ASK USER:
 
 | Mistake | Why It's Wrong | Correct Approach |
 |---------|---------------|------------------|
+| Not reading planning.md first | Miss critical workflow and guardrails | ALWAYS read planning.md before starting |
 | Skipping planning phase | No alignment before coding | Always plan first, get approval |
+| No visual prototypes for UI changes | No design alignment, wasted implementation | Include prototypes in plan when UI changes |
 | Only 1 plan review cycle | Misses issues that iterative review catches | Run 2-3 cycles until "no significant concerns" |
+| Skipping pre-commit checklist | Rush ahead without verification | Complete checklist before committing plan |
 | Exiting plan mode to commit | Confusion about when to start coding | Use Bash subagent to commit, stay in plan mode |
-| Starting implementation after creating plan | User hasn't approved yet | Commit plan → PR → WAIT for approval |
+| Starting implementation after creating plan | User hasn't approved yet | Commit plan → PR → Complete checkpoint → WAIT |
+| Not completing verification checkpoint | Jump to implementation prematurely | Complete all checklist items, verify state |
 | Exiting plan mode before "execute the plan" | User hasn't approved yet | NEVER exit until user says "execute the plan" |
-| Not committing plan to PR | User can't review properly | Use Bash subagent: commit plan, create PR |
+| Not reading implementation.md before coding | Miss task definition workflow | Read implementation.md after "execute the plan" |
 | Not using TaskCreate | No progress tracking, can't parallelize | Always define tasks with TaskCreate/TaskUpdate |
 | Making big changes without change plan | Scope creep, misalignment | Create change plan for significant feedback |
 | Ignoring SonarCloud issues | Accumulates technical debt | Fix ALL new issues, no excuses |

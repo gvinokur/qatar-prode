@@ -2,18 +2,47 @@
 
 Complete workflow for implementing stories after plan approval.
 
+## 🛑 BEFORE STARTING: Read This Guide First
+
+**MANDATORY:** You should ONLY be reading this guide after:
+1. ✅ Planning phase is complete
+2. ✅ Plan has been reviewed and approved by user
+3. ✅ User has explicitly said "execute the plan"
+4. ✅ You have exited plan mode (final exit)
+
+**If ANY of the above is NOT true, STOP and go back to planning phase.**
+
+**Now read this entire guide:**
+1. Read all sections below completely
+2. Understand the task definition workflow
+3. Understand execution waves and dependencies
+4. Note the coding best practices
+
+**Checklist before proceeding:**
+- [ ] I have exited plan mode because user said "execute the plan"
+- [ ] I have read this implementation.md guide completely
+- [ ] I understand I MUST use TaskCreate to define tasks
+- [ ] I understand I MUST use TaskUpdate to set dependencies
+- [ ] I understand execution happens in waves based on dependencies
+- [ ] I understand I do NOT commit until user verifies
+
+**Only proceed to implementation after completing this checklist.**
+
+---
+
 ## Overview
 
 After the planning phase is complete and the user approves the plan with "execute the plan", you move into implementation. This guide covers task definition, execution strategies, progress tracking, and coding best practices.
 
 ## Critical Rules
 
-1. **ALWAYS define tasks** using TaskCreate before starting implementation
-2. **ALWAYS define dependencies** using TaskUpdate (blockedBy, blocks)
-3. **ALWAYS use absolute paths** when working in worktrees
-4. **ALWAYS follow the approved plan** - no scope creep
-5. **ALWAYS mark tasks in_progress** when starting, completed when done
-6. **NEVER commit without user verification** - user tests locally first
+1. **ALWAYS read this guide first** - Before starting implementation
+2. **ALWAYS define tasks** using TaskCreate before starting implementation
+3. **ALWAYS define dependencies** using TaskUpdate (blockedBy, blocks)
+4. **ALWAYS use absolute paths** when working in worktrees
+5. **ALWAYS follow the approved plan** - no scope creep
+6. **ALWAYS mark tasks in_progress** when starting, completed when done
+7. **NEVER commit without user verification** - user tests locally first
 
 ## Implementation Workflow
 

@@ -42,6 +42,33 @@ Every story must go through a planning phase before implementation. The plan is 
 
 ## Complete Planning Workflow
 
+### 0. Read This Guide First (MANDATORY)
+
+**🛑 BEFORE DOING ANYTHING - READ THIS ENTIRE GUIDE 🛑**
+
+Before entering plan mode or creating any plan:
+1. **Read this file completely**: `docs/claude/planning.md`
+2. **Understand the workflow**: All 7 steps below
+3. **Note the STOP points**: Where you MUST wait for user
+4. **Understand exit rules**: NEVER exit until "execute the plan"
+
+**Why this is critical:**
+- You MUST follow the exact workflow below
+- Skipping steps or rushing to implementation causes problems
+- The user has reported issues with agents jumping ahead
+- Reading this first ensures you follow the process correctly
+
+**Checklist before proceeding:**
+- [ ] I have read this planning.md guide completely
+- [ ] I understand I stay in plan mode until user says "execute the plan"
+- [ ] I understand I use subagents for git operations
+- [ ] I understand the plan review loop (2-3 cycles)
+- [ ] I understand I STOP and WAIT after creating PR
+
+**Only proceed to Step 1 after completing this checklist.**
+
+---
+
 ### 1. Enter Plan Mode
 
 Use the EnterPlanMode tool to transition into planning mode:
@@ -94,9 +121,127 @@ PLAN_FILE="${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-plan.md"
 - Implementation steps
 - Testing strategy (must include unit tests)
 - Validation considerations (SonarCloud requirements, quality gates)
+- **Visual prototypes** (if UI changes - see below)
 - Open questions
 
-### 4. Plan Review with Subagent (MANDATORY)
+### 3.1. Visual Prototypes (MANDATORY for UI Changes)
+
+**When UI changes are involved, you MUST create visual prototypes.**
+
+**Determine if prototypes are needed:**
+- ✅ New UI components
+- ✅ Changes to existing UI
+- ✅ Layout modifications
+- ✅ New pages or views
+- ✅ Form designs
+- ✅ User interactions
+- ❌ Backend-only changes
+- ❌ Database schema changes (no UI)
+- ❌ API endpoints (no UI)
+
+**How to create prototypes:**
+
+1. **Describe the visual design in detail:**
+   ```markdown
+   ## Visual Prototype
+
+   ### Component: User Profile Form
+
+   **Layout:**
+   - Two-column form layout
+   - Left column: Avatar upload with preview (120x120px circle)
+   - Right column: Form fields
+
+   **Fields:**
+   - Name (text input, required)
+   - Email (email input, required, read-only)
+   - Bio (textarea, optional, max 500 chars)
+   - Location (text input, optional)
+
+   **Actions:**
+   - Save button (primary, bottom right)
+   - Cancel button (secondary, bottom right)
+
+   **Validation:**
+   - Inline errors below fields
+   - Red border on invalid fields
+   - Success toast on save
+   ```
+
+2. **Use ASCII diagrams for layout:**
+   ```
+   ┌─────────────────────────────────────┐
+   │         User Profile Form           │
+   ├─────────────┬───────────────────────┤
+   │             │                       │
+   │   [Avatar]  │  Name: [________]     │
+   │    Upload   │                       │
+   │             │  Email: [________]    │
+   │             │  (read-only)          │
+   │             │                       │
+   │             │  Bio:                 │
+   │             │  [________________]   │
+   │             │  [________________]   │
+   │             │  [________________]   │
+   │             │                       │
+   │             │  Location: [______]   │
+   │             │                       │
+   │             │      [Cancel] [Save]  │
+   └─────────────┴───────────────────────┘
+   ```
+
+3. **Reference existing patterns:**
+   ```markdown
+   **Similar to:** GameCard component layout
+   **Material-UI components:**
+   - TextField for inputs
+   - Button for actions
+   - Avatar for profile picture
+   - Paper for container
+   ```
+
+4. **Show state variations:**
+   ```markdown
+   **States:**
+   - Loading: Show skeleton loaders for fields
+   - Error: Display error message banner
+   - Success: Show success toast and disable form
+   - Editing: All fields enabled except email
+   ```
+
+**Include in plan document:**
+Add a "Visual Prototypes" section after "Technical Approach" with:
+- Detailed descriptions
+- ASCII diagrams
+- Component references
+- State variations
+- Responsive considerations (mobile, tablet, desktop)
+
+**Why this is critical:**
+- Ensures alignment on UI before coding
+- Catches UX issues early
+- User can approve design before implementation
+- Reduces back-and-forth during implementation
+
+### 4. Pre-Review Checklist (MANDATORY)
+
+**🛑 STOP - Complete this checklist before launching plan review 🛑**
+
+Before launching the plan reviewer subagent:
+- [ ] Plan document is complete with all sections
+- [ ] Visual prototypes included (if UI changes)
+- [ ] Technical approach is detailed
+- [ ] Files to create/modify are listed
+- [ ] Testing strategy is comprehensive
+- [ ] I am STILL IN PLAN MODE
+- [ ] I have NOT exited plan mode
+- [ ] I have NOT started implementing
+
+**Only proceed to plan review after completing this checklist.**
+
+---
+
+### 5. Plan Review with Subagent (MANDATORY)
 
 **CRITICAL:** Before committing the plan to PR, you MUST run a Plan Reviewer subagent for 2-3 review cycles.
 
@@ -237,7 +382,25 @@ Main agent:
 - Main agent still makes final decisions
 - This doesn't replace user review - it prepares for it
 
-### 5. Commit Plan and Create PR
+### 6. Pre-Commit Checklist (MANDATORY)
+
+**🛑 STOP - Complete this checklist before committing plan 🛑**
+
+Before launching Bash subagent to commit and create PR:
+- [ ] Plan review loop completed (2-3 cycles OR "no significant concerns")
+- [ ] All reviewer feedback incorporated
+- [ ] Visual prototypes included (if UI changes)
+- [ ] Plan is comprehensive and ready for user review
+- [ ] I am STILL IN PLAN MODE
+- [ ] I have NOT exited plan mode
+- [ ] I have NOT started implementing
+- [ ] I will use Bash SUBAGENT to commit (not exit plan mode)
+
+**Only proceed to commit after completing this checklist.**
+
+---
+
+### 7. Commit Plan and Create PR
 
 **CRITICAL: You are STILL IN PLAN MODE. Use a subagent to commit.**
 
@@ -305,21 +468,56 @@ Report back the PR number and URL.
 - Plan file location
 - Next steps (waiting for review/feedback)
 
-**🛑 STOP HERE - DO NOT PROCEED TO IMPLEMENTATION 🛑**
+**🛑🛑🛑 CRITICAL CHECKPOINT - STOP AND VERIFY 🛑🛑🛑**
 
-**CRITICAL - READ THIS:**
-- ✅ Plan is committed to PR
-- ✅ You are STILL IN PLAN MODE
-- ❌ DO NOT exit plan mode yet
+**READ THIS ENTIRE SECTION CAREFULLY:**
+
+You have just committed the plan and created a PR. This is a **CRITICAL CHECKPOINT**.
+
+**What you have done:**
+- ✅ Created implementation plan
+- ✅ Reviewed with subagent (2-3 cycles)
+- ✅ Committed plan using Bash subagent
+- ✅ Created PR for user review
+
+**What state you are in:**
+- ✅ You are STILL IN PLAN MODE (you never exited)
+- ✅ The Bash subagent handled git operations
+- ✅ You remained in plan mode the entire time
+
+**VERIFICATION CHECKLIST - Answer these questions:**
+- [ ] Did I exit plan mode? (Answer MUST be NO)
+- [ ] Am I still in plan mode? (Answer MUST be YES)
+- [ ] Did the user say "execute the plan"? (Answer MUST be NO)
+- [ ] Have I started implementing? (Answer MUST be NO)
+- [ ] Have I used TaskCreate? (Answer MUST be NO)
+- [ ] Am I reading implementation files? (Answer MUST be NO)
+
+**What you MUST do now:**
+- ✅ STAY IN PLAN MODE
+- ✅ WAIT for user to review plan
+- ✅ Be ready to iterate on feedback
+- ✅ Only proceed when user says "execute the plan"
+
+**What you MUST NOT do:**
+- ❌ DO NOT exit plan mode
 - ❌ DO NOT start coding
 - ❌ DO NOT read implementation files
 - ❌ DO NOT create tasks with TaskCreate
-- ✅ WAIT for user to review the plan and provide feedback
-- ✅ OR user says "execute the plan" (then go to Step 7)
+- ❌ DO NOT use the implementation guide
+- ❌ DO NOT think about implementation details
 
-**You are now in the Plan Iteration Phase (see Step 6 below).**
+**If you are confused about what to do next:**
+1. Re-read this section
+2. Confirm you are in plan mode
+3. Wait for user input
+4. Do nothing else
 
-### 6. Plan Iteration Phase
+**You are now in the Plan Iteration Phase (see Step 8 below).**
+
+---
+
+### 8. Plan Iteration Phase
 
 **YOU ARE HERE after creating the PR. STAY IN PLAN MODE.**
 
@@ -361,11 +559,34 @@ Report back the PR number and URL.
 
 **YOU NEVER EXIT PLAN MODE during this iteration cycle. Subagents handle all git operations.**
 
-**CRITICAL: Exiting plan mode ≠ Starting implementation**
-- During iteration: Exit → Commit → Re-enter
-- For execution: Exit → Start coding (only when user says "execute the plan")
+---
 
-### 7. Final Exit: Execute the Plan
+### 9. Pre-Execution Checklist (MANDATORY)
+
+**🛑 STOP - Complete this checklist before exiting plan mode 🛑**
+
+**This checklist runs when user says "execute the plan".**
+
+Before exiting plan mode:
+- [ ] User has explicitly said "execute the plan" or similar approval phrase
+- [ ] Plan has been reviewed and approved by user
+- [ ] All feedback has been incorporated
+- [ ] I have read docs/claude/implementation.md completely
+- [ ] I understand I will use TaskCreate to define tasks
+- [ ] I understand I will set dependencies with TaskUpdate
+- [ ] I understand implementation workflow
+- [ ] I am ready to start coding (not before!)
+
+**If ANY checkbox is unchecked, DO NOT exit plan mode. WAIT.**
+
+**Only proceed to Step 10 after:**
+1. User says "execute the plan"
+2. All checklist items are verified
+3. You have read implementation.md
+
+---
+
+### 10. Final Exit: Execute the Plan
 
 **This is the ONLY time you exit plan mode.**
 
@@ -390,7 +611,19 @@ ExitPlanMode()
 - Exit = clear signal to start implementation
 - No ambiguity, no confusion
 
-**Next:** See [Implementation Guide](implementation.md) for task definition and execution workflow.
+**AFTER exiting plan mode:**
+
+1. **Read implementation.md**: Before doing ANYTHING, read the implementation guide
+2. **Create tasks**: Use TaskCreate to break down the plan
+3. **Set dependencies**: Use TaskUpdate to define execution order
+4. **Start implementing**: Follow the implementation workflow
+
+**DO NOT:**
+- ❌ Start coding immediately after ExitPlanMode
+- ❌ Skip reading implementation.md
+- ❌ Skip task definition
+
+**Next:** **[Read Implementation Guide First](implementation.md)** before starting implementation.
 
 ## Plan Iteration Cycle (Visual)
 
