@@ -15,27 +15,36 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```
 1. READ docs/claude/planning.md COMPLETELY - NOT OPTIONAL
    ↓
-   planning.md contains ALL the details on HOW to:
-   - Use Plan Reviewer subagent (Step 5 - MANDATORY)
-   - Use Bash subagent for git operations (Step 7 - MANDATORY)
-   - Complete all checklists (Steps 4, 6, 9)
-   - Handle iteration loop (Step 8)
+   MUST pay particular attention to:
+   - Step 5: Plan Reviewer subagent (MANDATORY - exact Task tool usage)
+   - Step 7: Bash subagent for commits (MANDATORY - exact Task tool usage)
+   - Step 7: CRITICAL CHECKPOINT (STOP and WAIT after PR)
+   - Step 8: Iteration with Bash subagent
+   - NEVER EXIT rule (stay in plan mode entire time)
    ↓
 2. EnterPlanMode (NEVER exit until user says "execute the plan")
    ↓
 3. Create plan + visual prototypes (if UI changes)
    ↓
-4. MANDATORY: Launch Plan Reviewer SUBAGENT (2-3 cycles)
-   HOW: See planning.md Step 5 for complete implementation
+4. ⚠️ MANDATORY: Use Task tool to launch Plan Reviewer SUBAGENT ⚠️
+   - Must run 2-3 review cycles
+   - Must continue until "no significant concerns" OR 3 cycles
+   - This is NOT optional - every plan must be reviewed
+   - See planning.md Step 5 for exact Task tool implementation
    ↓
-5. MANDATORY: Launch BASH SUBAGENT to commit plan and create PR
-   HOW: See planning.md Step 7 for complete implementation
-   WHY: You STAY in plan mode while subagent handles git
+5. ⚠️ MANDATORY: Use Task tool to launch BASH SUBAGENT ⚠️
+   - Must handle: git add, commit, push, gh pr create
+   - You STAY in plan mode while subagent runs
+   - This is NOT optional - never exit plan mode to commit
+   - See planning.md Step 7 for exact Task tool implementation
    ↓
-6. STOP ⛔ STAY IN PLAN MODE ⛔ WAIT FOR USER
+6. 🛑 STOP ⛔ STAY IN PLAN MODE ⛔ WAIT FOR USER 🛑
+   Complete CRITICAL CHECKPOINT verification checklist
+   Do NOT proceed, do NOT exit plan mode, WAIT
    ↓
-7. Iterate on feedback using BASH SUBAGENT
-   HOW: See planning.md Step 8
+7. Iterate on feedback: Update plan + launch BASH SUBAGENT to commit
+   You stay in plan mode for ALL iterations
+   See planning.md Step 8
    ↓
 8. User says "execute the plan" (ONLY THEN proceed)
    ↓
@@ -48,23 +57,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 12. Implement
 ```
 
-### CRITICAL - WHY YOU MUST READ PLANNING.MD
+### CRITICAL - SUBAGENTS ARE MANDATORY, NOT OPTIONAL
 
-**If you skip reading planning.md, you will:**
-- ❌ Not know HOW to use Plan Reviewer subagent
-- ❌ Not know HOW to use Bash subagent for commits
-- ❌ Exit plan mode when you shouldn't
-- ❌ Skip mandatory checklists
-- ❌ Start implementing before user approval
+**You MUST use the Task tool with subagents at Steps 4, 5, and 7:**
+- ⚠️ **Step 4: Plan Reviewer** - Task tool with subagent_type "general-purpose"
+- ⚠️ **Step 5: Git Operations** - Task tool with subagent_type "Bash"
+- ⚠️ **Step 7: Iteration Commits** - Task tool with subagent_type "Bash"
 
-**planning.md contains:**
-- ✅ Exact subagent prompts and parameters
-- ✅ Complete review loop implementation (2-3 cycles)
-- ✅ Complete git subagent commands
-- ✅ All mandatory checklists
-- ✅ Critical checkpoints with verification questions
+**Why subagents are mandatory:**
+- You NEVER exit plan mode during planning (subagents handle git while you stay in plan mode)
+- Plan review catches issues early (improves quality before user review)
+- Clear separation of concerns (planning vs git operations)
 
-**This section does NOT duplicate planning.md - it tells you to READ IT.**
+**planning.md contains the exact Task tool calls, prompts, and parameters.**
+**Do NOT try to figure it out yourself - READ planning.md and follow it exactly.**
 
 ### CRITICAL - YOU MUST STOP AFTER CREATING PR (STEP 6)
 
@@ -137,29 +143,46 @@ Read({
 })
 ```
 
-**This is NOT optional. Planning.md contains:**
-- Complete 10-step workflow (you need ALL steps)
-- HOW to use Plan Reviewer subagent (Step 5 - exact prompts)
-- HOW to use Bash subagent for commits (Step 7 - exact commands)
-- Mandatory checklists at each transition (Steps 4, 6, 9)
-- Critical checkpoints where you MUST STOP
+**CRITICAL: When reading planning.md, you MUST pay particular attention to:**
 
-**Without reading planning.md, you WILL:**
-- ❌ Skip mandatory subagents
+1. **The complete 10-step workflow** - You need ALL steps, in order, no skipping
+2. **Step 5: Plan Reviewer Subagent (MANDATORY)** - Must use Task tool with subagent_type "general-purpose" for 2-3 review cycles
+3. **Step 7: Bash Subagent for Commits (MANDATORY)** - Must use Task tool with subagent_type "Bash" to commit and create PR
+4. **The NEVER EXIT rule** - You stay in plan mode the ENTIRE planning phase, subagents handle git operations
+5. **Step 7 CRITICAL CHECKPOINT** - After creating PR, you STOP and WAIT, do NOT proceed
+6. **The iteration loop (Step 8)** - How to handle feedback using Bash subagent while staying in plan mode
+7. **Mandatory checklists (Steps 4, 6, 9)** - Complete these at each transition point
+
+**These are NOT suggestions - they are MANDATORY workflow steps.**
+
+**Planning.md contains the exact implementation for:**
+- ✅ Complete subagent prompts and parameters (Steps 5, 7)
+- ✅ Review loop logic (2-3 cycles until "no significant concerns")
+- ✅ Git subagent commands (add, commit, push, PR creation)
+- ✅ Verification checklists at each checkpoint
+- ✅ PR title format with proper issue linking
+
+**Without reading and following planning.md, you WILL:**
+- ❌ Skip mandatory subagents (plan reviewer, bash subagent)
 - ❌ Exit plan mode when you shouldn't
 - ❌ Not know when to STOP and WAIT
 - ❌ Start implementing before approval
+- ❌ Skip critical verification checkpoints
 
-### Critical Rules
+### Critical Rules - NON-NEGOTIABLE
+
 1. **ALWAYS read planning.md Step 0 first** - Before entering plan mode
 2. **ALWAYS create plan** at `/plans/STORY-{N}-plan.md` - See planning.md Step 3
 3. **ALWAYS include visual prototypes** for UI changes - See planning.md Step 3.1 (MANDATORY for UI Changes)
-4. **ALWAYS run plan review subagent for 2-3 cycles** - See planning.md Step 5 (MANDATORY LOOP)
-5. **ALWAYS commit plan using Bash subagent** - See planning.md Step 7 (Commit Plan and Create PR)
-6. **NEVER EXIT PLAN MODE** until user says "execute the plan" - See planning.md "CRITICAL: NEVER Exit Plan Mode"
-7. **USE SUBAGENTS FOR GIT OPERATIONS** - See planning.md Step 7 (Launch Bash subagent)
-8. **COMPLETE CHECKLISTS** at each checkpoint - See planning.md Steps 4, 6, 9 (Pre-Review, Pre-Commit, Pre-Execution)
-9. **EXIT PLAN MODE = START IMPLEMENTATION** - Simple, unambiguous rule
+4. **MUST use Plan Reviewer SUBAGENT for 2-3 cycles** - See planning.md Step 5 for exact Task tool usage (MANDATORY, NOT optional)
+5. **MUST use Bash SUBAGENT to commit plan and create PR** - See planning.md Step 7 for exact Task tool usage (MANDATORY, NOT optional)
+6. **NEVER EXIT PLAN MODE** until user says "execute the plan" - Subagents handle ALL git operations while you stay in plan mode
+7. **MUST complete verification checklist after creating PR** - See planning.md Step 7 "CRITICAL CHECKPOINT" - STOP and WAIT
+8. **MUST use Bash SUBAGENT for all plan iterations** - See planning.md Step 8 (stay in plan mode, subagent commits updates)
+9. **COMPLETE ALL CHECKLISTS** at each checkpoint - See planning.md Steps 4, 6, 9 (Pre-Review, Pre-Commit, Pre-Execution)
+10. **EXIT PLAN MODE = START IMPLEMENTATION** - Simple, unambiguous rule
+
+**KEY POINT: Subagent usage is NOT optional - Steps 5, 7, and 8 REQUIRE Task tool with appropriate subagent_type.**
 
 ### Process Overview
 
