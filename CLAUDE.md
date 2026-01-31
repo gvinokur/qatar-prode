@@ -13,19 +13,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### THE ONLY VALID WORKFLOW:
 
 ```
-1. READ docs/claude/planning.md COMPLETELY
+1. READ docs/claude/planning.md COMPLETELY - NOT OPTIONAL
+   ↓
+   planning.md contains ALL the details on HOW to:
+   - Use Plan Reviewer subagent (Step 5 - MANDATORY)
+   - Use Bash subagent for git operations (Step 7 - MANDATORY)
+   - Complete all checklists (Steps 4, 6, 9)
+   - Handle iteration loop (Step 8)
    ↓
 2. EnterPlanMode (NEVER exit until user says "execute the plan")
    ↓
 3. Create plan + visual prototypes (if UI changes)
    ↓
-4. Review plan with subagent (2-3 cycles)
+4. MANDATORY: Launch Plan Reviewer SUBAGENT (2-3 cycles)
+   HOW: See planning.md Step 5 for complete implementation
    ↓
-5. Use BASH SUBAGENT to commit plan and create PR
+5. MANDATORY: Launch BASH SUBAGENT to commit plan and create PR
+   HOW: See planning.md Step 7 for complete implementation
+   WHY: You STAY in plan mode while subagent handles git
    ↓
 6. STOP ⛔ STAY IN PLAN MODE ⛔ WAIT FOR USER
    ↓
-7. User reviews, provides feedback, you iterate
+7. Iterate on feedback using BASH SUBAGENT
+   HOW: See planning.md Step 8
    ↓
 8. User says "execute the plan" (ONLY THEN proceed)
    ↓
@@ -37,6 +47,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    ↓
 12. Implement
 ```
+
+### CRITICAL - WHY YOU MUST READ PLANNING.MD
+
+**If you skip reading planning.md, you will:**
+- ❌ Not know HOW to use Plan Reviewer subagent
+- ❌ Not know HOW to use Bash subagent for commits
+- ❌ Exit plan mode when you shouldn't
+- ❌ Skip mandatory checklists
+- ❌ Start implementing before user approval
+
+**planning.md contains:**
+- ✅ Exact subagent prompts and parameters
+- ✅ Complete review loop implementation (2-3 cycles)
+- ✅ Complete git subagent commands
+- ✅ All mandatory checklists
+- ✅ Critical checkpoints with verification questions
+
+**This section does NOT duplicate planning.md - it tells you to READ IT.**
 
 ### CRITICAL - YOU MUST STOP AFTER CREATING PR (STEP 6)
 
