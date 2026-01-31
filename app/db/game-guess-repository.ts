@@ -3,7 +3,7 @@ import {createBaseFunctions} from "./base-repository";
 import {GameGuessTable, GameGuess, GameGuessNew} from "./tables-definition";
 import {GameStatisticForUser} from "../../types/definitions";
 import {cache} from "react";
-import {sql} from 'kysely';
+import {sql, ExpressionBuilder} from 'kysely';
 
 const tableName = 'game_guesses'
 
@@ -362,6 +362,29 @@ export async function getPredictionDashboardStats(
  * Returns how boosts are distributed across tournament groups and playoff games
  * Also includes performance metrics (scored games and points earned)
  */
+// Helper function to build boost aggregation select expressions
+function buildBoostAggregateSelect(eb: ExpressionBuilder<any, any>) {
+  return [
+    eb.fn.countAll().as('count'),
+    eb.fn
+      .count('gg.id')
+      .filterWhere('gg.final_score', 'is not', null)
+      .as('scored_games'),
+    eb.cast(
+      eb.fn.sum(
+        eb.case()
+          .when('gg.final_score', 'is not', null)
+          .then(
+            sql<number>`COALESCE(gg.final_score, 0) - COALESCE(gg.score, 0)`
+          )
+          .else(0)
+          .end()
+      ),
+      'integer'
+    ).as('boost_bonus'),
+  ];
+}
+
 export async function getBoostAllocationBreakdown(
   userId: string,
   tournamentId: string,
@@ -383,25 +406,7 @@ export async function getBoostAllocationBreakdown(
     .where('g.tournament_id', '=', tournamentId)
     .where('gg.boost_type', '=', boostType)
     .select('tg.group_letter')
-    .select((eb) => [
-      eb.fn.countAll<number>().as('count'),
-      eb.fn
-        .count<number>('gg.id')
-        .filterWhere('gg.final_score', 'is not', null)
-        .as('scored_games'),
-      eb.cast<number>(
-        eb.fn.sum(
-          eb.case()
-            .when('gg.final_score', 'is not', null)
-            .then(
-              sql<number>`COALESCE(gg.final_score, 0) - COALESCE(gg.score, 0)`
-            )
-            .else(0)
-            .end()
-        ),
-        'integer'
-      ).as('boost_bonus'),
-    ])
+    .select(buildBoostAggregateSelect)
     .groupBy('tg.group_letter')
     .orderBy('tg.group_letter')
     .execute();
@@ -414,25 +419,7 @@ export async function getBoostAllocationBreakdown(
     .where('gg.user_id', '=', userId)
     .where('g.tournament_id', '=', tournamentId)
     .where('gg.boost_type', '=', boostType)
-    .select((eb) => [
-      eb.fn.countAll<number>().as('count'),
-      eb.fn
-        .count<number>('gg.id')
-        .filterWhere('gg.final_score', 'is not', null)
-        .as('scored_games'),
-      eb.cast<number>(
-        eb.fn.sum(
-          eb.case()
-            .when('gg.final_score', 'is not', null)
-            .then(
-              sql<number>`COALESCE(gg.final_score, 0) - COALESCE(gg.score, 0)`
-            )
-            .else(0)
-            .end()
-        ),
-        'integer'
-      ).as('boost_bonus'),
-    ])
+    .select(buildBoostAggregateSelect)
     .executeTakeFirst();
 
   // Aggregate results
