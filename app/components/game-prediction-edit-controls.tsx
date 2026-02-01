@@ -128,7 +128,8 @@ export default function GamePredictionEditControls({
 }: GamePredictionEditControlsProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const [currentField, setCurrentField] = useState<'home' | 'away' | 'boost' | 'save'>('home');
+  const [currentField, setCurrentField] = useState<'home' | 'away' | 'homePenalty' | 'awayPenalty' | 'boost' | 'save'>('home');
+  const [attemptedSave, setAttemptedSave] = useState(false);
 
   // Calculate effective boost counts (account for switching types)
   const getEffectiveBoostCounts = () => {
@@ -154,9 +155,9 @@ export default function GamePredictionEditControls({
   // Check if scores are tied (for playoff penalty shootout)
   const isPenaltyShootout = homeScore !== undefined && awayScore !== undefined && homeScore === awayScore && isPlayoffGame;
 
-  // Validate playoff penalty selection
+  // Validate playoff penalty selection (only show after attempted save)
   const hasValidationError = isPenaltyShootout && !homePenaltyWinner && !awayPenaltyWinner;
-  const validationErrorMessage = hasValidationError
+  const validationErrorMessage = attemptedSave && hasValidationError
     ? 'Please select a penalty shootout winner for tied playoff games'
     : null;
 
@@ -170,6 +171,9 @@ export default function GamePredictionEditControls({
       onHomePenaltyWinnerChange(false);
       onAwayPenaltyWinnerChange(false);
     }
+
+    // Reset attempted save flag when scores change
+    setAttemptedSave(false);
   };
 
   const handleAwayScoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -181,6 +185,9 @@ export default function GamePredictionEditControls({
       onHomePenaltyWinnerChange(false);
       onAwayPenaltyWinnerChange(false);
     }
+
+    // Reset attempted save flag when scores change
+    setAttemptedSave(false);
   };
 
   // Handle penalty winner changes (mutual exclusion)
@@ -189,6 +196,8 @@ export default function GamePredictionEditControls({
     onHomePenaltyWinnerChange(checked);
     if (checked) {
       onAwayPenaltyWinnerChange(false);
+      // Clear validation error when a winner is selected
+      setAttemptedSave(false);
     }
   };
 
@@ -197,6 +206,8 @@ export default function GamePredictionEditControls({
     onAwayPenaltyWinnerChange(checked);
     if (checked) {
       onHomePenaltyWinnerChange(false);
+      // Clear validation error when a winner is selected
+      setAttemptedSave(false);
     }
   };
 
@@ -219,6 +230,7 @@ export default function GamePredictionEditControls({
     // Enter key ALWAYS saves
     if (e.key === 'Enter' && onSave) {
       e.preventDefault();
+      setAttemptedSave(true);
       onSave();
       return;
     }
@@ -803,6 +815,7 @@ export default function GamePredictionEditControls({
                 setCurrentField('boost');
               } else {
                 // Last field - save
+                setAttemptedSave(true);
                 if (onSave) {
                   onSave();
                 } else if (onSaveAndAdvance) {
@@ -839,7 +852,10 @@ export default function GamePredictionEditControls({
           <Button
             ref={saveButtonRef}
             variant="contained"
-            onClick={onSave}
+            onClick={() => {
+              setAttemptedSave(true);
+              onSave?.();
+            }}
             onKeyDown={(e) => handleKeyDown(e, 'save')}
             onFocus={() => setCurrentField('save')}
             disabled={loading}
