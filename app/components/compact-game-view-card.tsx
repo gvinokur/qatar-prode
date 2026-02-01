@@ -138,6 +138,11 @@ export default function CompactGameViewCard({
         borderColor: getBoostBorderColor(),
         borderWidth: boostType ? 2 : 1,
         boxShadow: getBoostShadow(),
+        transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
+        '&:focus-within': {
+          borderColor: 'primary.main',
+          boxShadow: (theme) => `0 0 0 3px ${theme.palette.primary.main}33`,
+        }
       }}
     >
       <CardContent sx={{ py: 2, px: 2, '&:last-child': { pb: 3 } }}>
