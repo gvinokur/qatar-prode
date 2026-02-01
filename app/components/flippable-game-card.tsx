@@ -1,35 +1,16 @@
 'use client'
 
 import React, { useRef, useEffect } from 'react';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Grid,
-  Divider,
-  useTheme,
-  IconButton,
-  Tooltip,
-  CircularProgress,
-  alpha,
-  useMediaQuery
-} from '@mui/material';
-import { Edit as EditIcon, Close as CloseIcon } from '@mui/icons-material';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { Box, Card, CardContent, useTheme, useMediaQuery } from '@mui/material';
+import { useReducedMotion } from 'framer-motion';
 import GamePredictionEditControls from './game-prediction-edit-controls';
-import GameCountdownDisplay from './game-countdown-display';
-import { Game } from '../db/tables-definition';
-import { getThemeLogoUrl } from '../utils/theme-utils';
-
-interface Team {
-  name: string;
-  theme?: any;
-}
+import GameView from './game-view';
+import { ExtendedGameData } from '../definitions';
+import { Team } from '../db/tables-definition';
 
 interface FlippableGameCardProps {
   // Game data
-  game: Game;
+  game: ExtendedGameData;
   teamsMap: Record<string, Team>;
   isPlayoffs: boolean;
   tournamentId?: string;
@@ -111,7 +92,6 @@ export default function FlippableGameCard({
   const homeScoreInputRef = useRef<HTMLInputElement | null>(null);
   const awayScoreInputRef = useRef<HTMLInputElement | null>(null);
   const boostButtonGroupRef = useRef<HTMLDivElement | null>(null);
-  const editButtonRef = useRef<HTMLButtonElement | null>(null);
 
   // Get team info
   const homeTeam = game.home_team ? teamsMap[game.home_team] : null;
@@ -119,21 +99,17 @@ export default function FlippableGameCard({
   const homeTeamName = homeTeam?.name || game.home_team || 'TBD';
   const awayTeamName = awayTeam?.name || game.away_team || 'TBD';
 
-  const hasResult = Number.isInteger(homeScore) && Number.isInteger(awayScore);
-
   // Flip animation duration (slightly slower on mobile)
   const flipDuration = isMobile ? 0.5 : 0.4;
 
   const flipVariants = {
     front: {
       rotateY: 0,
-      transition: { duration: flipDuration, ease: 'easeInOut' },
-      backfaceVisibility: 'hidden' as const
+      transition: { duration: flipDuration, ease: 'easeInOut' }
     },
     back: {
       rotateY: 180,
-      transition: { duration: flipDuration, ease: 'easeInOut' },
-      backfaceVisibility: 'hidden' as const
+      transition: { duration: flipDuration, ease: 'easeInOut' }
     }
   };
 
@@ -144,7 +120,6 @@ export default function FlippableGameCard({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onEditEnd();
-        setTimeout(() => editButtonRef.current?.focus(), 100);
       }
     };
 
@@ -159,227 +134,100 @@ export default function FlippableGameCard({
     }
   }, [isEditing, flipDuration]);
 
+  const handleEditClick = (gameNumber: number) => {
+    if (!isEditing) {
+      onEditStart();
+    }
+  };
+
   return (
-    <Card
-      variant="outlined"
-      sx={{ position: 'relative' }}
+    <Box
+      sx={{
+        perspective: '2000px',
+        position: 'relative',
+        width: '100%'
+      }}
       data-game-id={game.id}
       data-editing={isEditing}
     >
-      <CardContent sx={{ py: 2, px: 2, '&:last-child': { pb: 3 } }}>
-        {/* Header: ALWAYS VISIBLE (no flip) */}
-        <GameCountdownDisplay
-          gameDate={game.game_date}
-          gameTimezone={game.game_local_timezone}
-        />
+      <Box
+        sx={{
+          position: 'relative',
+          width: '100%',
+          transformStyle: 'preserve-3d',
+          transition: prefersReducedMotion ? 'none' : `transform ${flipDuration}s ease-in-out`,
+          transform: isEditing ? 'rotateY(180deg)' : 'rotateY(0deg)'
+        }}
+      >
+        {/* Front: Original card (visible when not editing) */}
+        <Box
+          sx={{
+            backfaceVisibility: 'hidden',
+            position: isEditing ? 'absolute' : 'relative',
+            width: '100%',
+            top: 0,
+            left: 0
+          }}
+        >
+          <GameView
+            game={game}
+            teamsMap={teamsMap}
+            handleEditClick={handleEditClick}
+            disabled={disabled}
+          />
+        </Box>
 
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1, mb: 1 }}>
-          {/* Edit button */}
-          <Tooltip title={isEditing ? 'Close' : 'Edit prediction'}>
-            <IconButton
-              ref={editButtonRef}
-              size="small"
-              onClick={isEditing ? onEditEnd : onEditStart}
-              disabled={disabled}
-              aria-label={isEditing ? 'Close edit' : `Edit prediction for ${homeTeamName} vs ${awayTeamName}`}
-              aria-expanded={isEditing}
-            >
-              {isEditing ? <CloseIcon /> : <EditIcon />}
-            </IconButton>
-          </Tooltip>
-
-          {/* Save indicator */}
-          {isPending && (
-            <CircularProgress size={16} />
+        {/* Back: Edit controls only (visible when editing) */}
+        <Box
+          sx={{
+            backfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)',
+            position: isEditing ? 'relative' : 'absolute',
+            width: '100%',
+            top: 0,
+            left: 0
+          }}
+        >
+          {isEditing && (
+            <Card variant="outlined">
+              <CardContent>
+                <GamePredictionEditControls
+                  gameId={game.id}
+                  homeTeamName={homeTeamName}
+                  awayTeamName={awayTeamName}
+                  isPlayoffGame={isPlayoffs}
+                  tournamentId={tournamentId}
+                  homeScore={homeScore}
+                  awayScore={awayScore}
+                  homePenaltyWinner={homePenaltyWinner}
+                  awayPenaltyWinner={awayPenaltyWinner}
+                  boostType={boostType}
+                  initialBoostType={initialBoostType}
+                  silverUsed={silverUsed}
+                  silverMax={silverMax}
+                  goldenUsed={goldenUsed}
+                  goldenMax={goldenMax}
+                  onHomeScoreChange={onHomeScoreChange}
+                  onAwayScoreChange={onAwayScoreChange}
+                  onHomePenaltyWinnerChange={onHomePenaltyWinnerChange}
+                  onAwayPenaltyWinnerChange={onAwayPenaltyWinnerChange}
+                  onBoostTypeChange={onBoostTypeChange}
+                  loading={isPending}
+                  error={error}
+                  layout="vertical"
+                  compact={false}
+                  homeScoreInputRef={homeScoreInputRef}
+                  awayScoreInputRef={awayScoreInputRef}
+                  boostButtonGroupRef={boostButtonGroupRef}
+                  onTabFromLastField={onAutoAdvanceNext}
+                  onEscapePressed={onEditEnd}
+                  retryCallback={retryCallback}
+                />
+              </CardContent>
+            </Card>
           )}
         </Box>
-
-        <Divider sx={{ mb: 2 }} />
-
-        {/* Flippable Content Area */}
-        <Box sx={{ perspective: '1000px', position: 'relative', minHeight: '120px' }}>
-          <AnimatePresence mode="sync" initial={false}>
-            {!isEditing ? (
-              // Front side: Teams and scores display
-              <motion.div
-                key="front"
-                layoutId={`game-${game.id}-content`}
-                initial={prefersReducedMotion ? false : "back"}
-                animate="front"
-                exit="back"
-                variants={prefersReducedMotion ? {} : flipVariants}
-                style={{
-                  position: 'absolute',
-                  width: '100%',
-                  transformStyle: 'preserve-3d'
-                }}
-              >
-                <Grid container spacing={1}>
-                  {/* Home team */}
-                  <Grid size={5} display="flex" justifyContent="flex-end" alignItems="center">
-                    <Typography
-                      variant="body2"
-                      fontWeight="medium"
-                      sx={{
-                        ml: 1,
-                        maxWidth: '100%',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      {homeTeamName}
-                    </Typography>
-                    {(() => {
-                      const logoUrl = getThemeLogoUrl(homeTeam?.theme);
-                      return logoUrl && (
-                        <img
-                          src={logoUrl}
-                          alt={homeTeamName}
-                          height="24px"
-                          style={{ marginLeft: '6px' }}
-                        />
-                      );
-                    })()}
-                    {isPlayoffs && homePenaltyWinner && '(x)'}
-                  </Grid>
-
-                  {/* Score */}
-                  <Grid size={2} display="flex" justifyContent="space-around" alignItems="center">
-                    {hasResult ? (
-                      <Typography variant="body2" fontWeight="bold">
-                        {homeScore}&nbsp;-&nbsp;{awayScore}
-                      </Typography>
-                    ) : (
-                      <Typography variant="caption" color="text.secondary">
-                        vs
-                      </Typography>
-                    )}
-                  </Grid>
-
-                  {/* Away team */}
-                  <Grid size={5} display="flex" alignItems="center">
-                    {isPlayoffs && awayPenaltyWinner && '(x)'}
-                    {(() => {
-                      const logoUrl = getThemeLogoUrl(awayTeam?.theme);
-                      return logoUrl && (
-                        <img
-                          src={logoUrl}
-                          alt={awayTeamName}
-                          height="24px"
-                          style={{ marginRight: '6px' }}
-                        />
-                      );
-                    })()}
-                    <Typography
-                      variant="body2"
-                      fontWeight="medium"
-                      sx={{
-                        ml: 1,
-                        maxWidth: '100%',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      {awayTeamName}
-                    </Typography>
-                  </Grid>
-                </Grid>
-              </motion.div>
-            ) : (
-              // Back side: Edit controls
-              <motion.div
-                key="back"
-                layoutId={`game-${game.id}-content`}
-                initial={prefersReducedMotion ? false : "front"}
-                animate="back"
-                exit="front"
-                variants={prefersReducedMotion ? {} : flipVariants}
-                style={{
-                  position: 'absolute',
-                  width: '100%',
-                  transform: 'rotateY(180deg)',
-                  transformStyle: 'preserve-3d'
-                }}
-              >
-                {/* Un-flip content so text is readable */}
-                <Box sx={{ transform: 'scaleX(-1)' }}>
-                  <GamePredictionEditControls
-                    gameId={game.id}
-                    homeTeamName={homeTeamName}
-                    awayTeamName={awayTeamName}
-                    isPlayoffGame={isPlayoffs}
-                    tournamentId={tournamentId}
-                    homeScore={homeScore}
-                    awayScore={awayScore}
-                    homePenaltyWinner={homePenaltyWinner}
-                    awayPenaltyWinner={awayPenaltyWinner}
-                    boostType={boostType}
-                    initialBoostType={initialBoostType}
-                    silverUsed={silverUsed}
-                    silverMax={silverMax}
-                    goldenUsed={goldenUsed}
-                    goldenMax={goldenMax}
-                    onHomeScoreChange={onHomeScoreChange}
-                    onAwayScoreChange={onAwayScoreChange}
-                    onHomePenaltyWinnerChange={onHomePenaltyWinnerChange}
-                    onAwayPenaltyWinnerChange={onAwayPenaltyWinnerChange}
-                    onBoostTypeChange={onBoostTypeChange}
-                    loading={isPending}
-                    error={error}
-                    layout="horizontal"
-                    compact
-                    homeScoreInputRef={homeScoreInputRef}
-                    awayScoreInputRef={awayScoreInputRef}
-                    boostButtonGroupRef={boostButtonGroupRef}
-                    onTabFromLastField={onAutoAdvanceNext}
-                    onEscapePressed={onEditEnd}
-                    retryCallback={retryCallback}
-                  />
-                </Box>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </Box>
-
-        <Divider sx={{ mt: 2 }} />
-
-        {/* Footer: Location */}
-        <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1 }}>
-          <Typography variant="body2" color="text.secondary">
-            {game.location}
-          </Typography>
-        </Box>
-
-        {/* Overlay during save */}
-        {isPending && (
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: alpha(theme.palette.primary.main, 0.05),
-              pointerEvents: 'none',
-              borderRadius: 1
-            }}
-          />
-        )}
-
-        {/* Accessibility: Screen reader announcement */}
-        {isEditing && (
-          <Box
-            component="div"
-            sx={{ position: 'absolute', left: '-10000px', width: '1px', height: '1px', overflow: 'hidden' }}
-            role="status"
-            aria-live="polite"
-          >
-            Editing prediction. Press Escape to cancel.
-          </Box>
-        )}
-      </CardContent>
-    </Card>
+      </Box>
+    </Box>
   );
 }
