@@ -122,16 +122,20 @@ export default function FlippableGameCard({
         game_id: game.id,
         game_number: game.game_number,
         user_id: currentGuess?.user_id || '', // Server will set this
-        home_score: editHomeScore,
-        away_score: editAwayScore,
         home_penalty_winner: editHomePenaltyWinner,
-        away_penalty_winner: editAwayPenaltyWinner,
-        boost_type: editBoostType
+        away_penalty_winner: editAwayPenaltyWinner
       };
 
-      // Only add optional fields if they have values (avoid $undefined serialization)
+      // Numbers: Include if not undefined (0 is valid!)
+      if (editHomeScore !== undefined) guessData.home_score = editHomeScore;
+      if (editAwayScore !== undefined) guessData.away_score = editAwayScore;
+
+      // Strings: Include if truthy
       if (currentGuess?.home_team) guessData.home_team = currentGuess.home_team;
       if (currentGuess?.away_team) guessData.away_team = currentGuess.away_team;
+
+      // Boost type: Include if not null (could be null, 'silver', or 'golden')
+      if (editBoostType !== null) guessData.boost_type = editBoostType;
 
       await groupContext.updateGameGuess(game.id, guessData);
 
@@ -174,16 +178,20 @@ export default function FlippableGameCard({
         game_id: game.id,
         game_number: game.game_number,
         user_id: currentGuess?.user_id || '', // Server will set this
-        home_score: editHomeScore,
-        away_score: editAwayScore,
         home_penalty_winner: editHomePenaltyWinner,
-        away_penalty_winner: editAwayPenaltyWinner,
-        boost_type: editBoostType
+        away_penalty_winner: editAwayPenaltyWinner
       };
 
-      // Only add optional fields if they have values (avoid $undefined serialization)
+      // Numbers: Include if not undefined (0 is valid!)
+      if (editHomeScore !== undefined) guessData.home_score = editHomeScore;
+      if (editAwayScore !== undefined) guessData.away_score = editAwayScore;
+
+      // Strings: Include if truthy
       if (currentGuess?.home_team) guessData.home_team = currentGuess.home_team;
       if (currentGuess?.away_team) guessData.away_team = currentGuess.away_team;
+
+      // Boost type: Include if not null (could be null, 'silver', or 'golden')
+      if (editBoostType !== null) guessData.boost_type = editBoostType;
 
       await groupContext.updateGameGuess(game.id, guessData);
 
