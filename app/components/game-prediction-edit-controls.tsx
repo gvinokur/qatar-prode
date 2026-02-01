@@ -242,67 +242,122 @@ export default function GamePredictionEditControls({
 
       {/* Scores */}
       <Box sx={{ mb: compact ? 2 : 3 }}>
-        <Grid container spacing={layout === 'horizontal' ? 1 : 2} alignItems="center">
-          <Grid size={layout === 'horizontal' ? 5 : 8}>
-            <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
-              {homeTeamName}
-            </Typography>
-          </Grid>
-
-          <Grid size={layout === 'horizontal' ? 3 : 4}>
-            <TextField
-              inputRef={homeScoreInputRef}
-              type="number"
-              value={homeScore ?? ''}
-              onChange={handleHomeScoreChange}
-              onKeyDown={(e) => handleKeyDown(e, 'home')}
-              onFocus={() => setCurrentField('home')}
-              slotProps={{
-                htmlInput: {
-                  min: 0,
-                  style: { textAlign: 'center' },
-                  'aria-label': `${homeTeamName} score`
-                }
-              }}
-              disabled={loading}
-              size="small"
-              fullWidth
-            />
-          </Grid>
-
-          <Grid size={layout === 'horizontal' ? 1 : 12} sx={{ textAlign: 'center' }}>
-            {layout === 'horizontal' && (
+        {layout === 'horizontal' ? (
+          // Horizontal layout: each team on its own row
+          <Box>
+            <Grid container spacing={1} alignItems="center" sx={{ mb: 1 }}>
+              <Grid size={7}>
+                <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
+                  {homeTeamName}
+                </Typography>
+              </Grid>
+              <Grid size={5}>
+                <TextField
+                  inputRef={homeScoreInputRef}
+                  type="number"
+                  value={homeScore ?? ''}
+                  onChange={handleHomeScoreChange}
+                  onKeyDown={(e) => handleKeyDown(e, 'home')}
+                  onFocus={() => setCurrentField('home')}
+                  slotProps={{
+                    htmlInput: {
+                      min: 0,
+                      style: { textAlign: 'center' },
+                      'aria-label': `${homeTeamName} score`
+                    }
+                  }}
+                  disabled={loading}
+                  size="small"
+                  fullWidth
+                />
+              </Grid>
+            </Grid>
+            <Grid container spacing={1} alignItems="center">
+              <Grid size={7}>
+                <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
+                  {awayTeamName}
+                </Typography>
+              </Grid>
+              <Grid size={5}>
+                <TextField
+                  inputRef={awayScoreInputRef}
+                  type="number"
+                  value={awayScore ?? ''}
+                  onChange={handleAwayScoreChange}
+                  onKeyDown={(e) => handleKeyDown(e, 'away')}
+                  onFocus={() => setCurrentField('away')}
+                  slotProps={{
+                    htmlInput: {
+                      min: 0,
+                      style: { textAlign: 'center' },
+                      'aria-label': `${awayTeamName} score`
+                    }
+                  }}
+                  disabled={loading}
+                  size="small"
+                  fullWidth
+                />
+              </Grid>
+            </Grid>
+          </Box>
+        ) : (
+          // Vertical layout with "vs" separator
+          <Grid container spacing={2} alignItems="center">
+            <Grid size={8}>
+              <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
+                {homeTeamName}
+              </Typography>
+            </Grid>
+            <Grid size={4}>
+              <TextField
+                inputRef={homeScoreInputRef}
+                type="number"
+                value={homeScore ?? ''}
+                onChange={handleHomeScoreChange}
+                onKeyDown={(e) => handleKeyDown(e, 'home')}
+                onFocus={() => setCurrentField('home')}
+                slotProps={{
+                  htmlInput: {
+                    min: 0,
+                    style: { textAlign: 'center' },
+                    'aria-label': `${homeTeamName} score`
+                  }
+                }}
+                disabled={loading}
+                size="small"
+                fullWidth
+              />
+            </Grid>
+            <Grid size={12} sx={{ textAlign: 'center' }}>
               <Typography variant="body2" color="text.secondary">vs</Typography>
-            )}
+            </Grid>
+            <Grid size={8}>
+              <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
+                {awayTeamName}
+              </Typography>
+            </Grid>
+            <Grid size={4}>
+              <TextField
+                inputRef={awayScoreInputRef}
+                type="number"
+                value={awayScore ?? ''}
+                onChange={handleAwayScoreChange}
+                onKeyDown={(e) => handleKeyDown(e, 'away')}
+                onFocus={() => setCurrentField('away')}
+                slotProps={{
+                  htmlInput: {
+                    min: 0,
+                    style: { textAlign: 'center' },
+                    'aria-label': `${awayTeamName} score`
+                  }
+                }}
+                disabled={loading}
+                size="small"
+                fullWidth
+              />
+            </Grid>
           </Grid>
-
-          <Grid size={layout === 'horizontal' ? 5 : 8}>
-            <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
-              {awayTeamName}
-            </Typography>
-          </Grid>
-
-          <Grid size={layout === 'horizontal' ? 3 : 4}>
-            <TextField
-              inputRef={awayScoreInputRef}
-              type="number"
-              value={awayScore ?? ''}
-              onChange={handleAwayScoreChange}
-              onKeyDown={(e) => handleKeyDown(e, 'away')}
-              onFocus={() => setCurrentField('away')}
-              slotProps={{
-                htmlInput: {
-                  min: 0,
-                  style: { textAlign: 'center' },
-                  'aria-label': `${awayTeamName} score`
-                }
-              }}
-              disabled={loading}
-              size="small"
-              fullWidth
-            />
-          </Grid>
-        </Grid>
+        )}
       </Box>
 
       {/* Penalty information for playoff games */}
