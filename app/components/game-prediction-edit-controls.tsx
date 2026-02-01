@@ -67,15 +67,20 @@ interface GamePredictionEditControlsProps {
   readonly boostButtonGroupRef?: React.RefObject<HTMLDivElement | null>;
 
   // Keyboard callbacks (readonly per SonarQube)
-  readonly onTabFromLastField?: () => void; // Auto-advance to next card
+  readonly onSaveAndAdvance?: () => Promise<void>; // Save current card and advance to next
+  readonly onShiftTabFromFirstField?: () => void; // Go to previous card (no save)
   readonly onEscapePressed?: () => void; // Exit edit mode
 
   // Save/Cancel callbacks
-  readonly onSave?: () => void;
+  readonly onSave?: () => Promise<void>;
   readonly onCancel?: () => void;
 
   // Retry callback for network errors
   readonly retryCallback?: () => void;
+
+  // Refs for Save/Cancel buttons
+  readonly saveButtonRef?: React.RefObject<HTMLButtonElement | null>;
+  readonly cancelButtonRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
 export default function GamePredictionEditControls({
@@ -108,13 +113,16 @@ export default function GamePredictionEditControls({
   homeScoreInputRef,
   awayScoreInputRef,
   boostButtonGroupRef,
-  onTabFromLastField,
+  saveButtonRef,
+  cancelButtonRef,
+  onSaveAndAdvance,
+  onShiftTabFromFirstField,
   onEscapePressed,
   retryCallback
 }: GamePredictionEditControlsProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const [currentField, setCurrentField] = useState<'home' | 'away' | 'boost'>('home');
+  const [currentField, setCurrentField] = useState<'home' | 'away' | 'boost' | 'save'>('home');
 
   // Calculate effective boost counts (account for switching types)
   const getEffectiveBoostCounts = () => {
@@ -187,21 +195,62 @@ export default function GamePredictionEditControls({
   };
 
   // Handle keyboard navigation
-  const handleKeyDown = (e: React.KeyboardEvent, field: 'home' | 'away' | 'boost') => {
-    if (e.key === 'Escape' && onEscapePressed) {
-      onEscapePressed();
+  const handleKeyDown = (e: React.KeyboardEvent, field: 'home' | 'away' | 'boost' | 'save' | 'cancel') => {
+    // Enter key ALWAYS saves
+    if (e.key === 'Enter' && onSave) {
       e.preventDefault();
-    } else if (e.key === 'Tab' && !e.shiftKey) {
-      // Forward tab navigation
-      if (field === 'home' && awayScoreInputRef?.current) {
-        e.preventDefault();
-        awayScoreInputRef.current.focus();
-      } else if (field === 'away' && boostButtonGroupRef?.current) {
-        e.preventDefault();
-        boostButtonGroupRef.current.querySelector<HTMLButtonElement>('button')?.focus();
-      } else if (field === 'boost' && onTabFromLastField) {
-        e.preventDefault();
-        onTabFromLastField();
+      onSave();
+      return;
+    }
+
+    // Escape key cancels/exits
+    if (e.key === 'Escape' && onEscapePressed) {
+      e.preventDefault();
+      onEscapePressed();
+      return;
+    }
+
+    // Tab key navigation
+    if (e.key === 'Tab') {
+      if (e.shiftKey) {
+        // Shift+Tab: Backward navigation
+        if (field === 'home' && onShiftTabFromFirstField) {
+          // First field - go to previous card (no save)
+          e.preventDefault();
+          onShiftTabFromFirstField();
+        } else if (field === 'away' && homeScoreInputRef?.current) {
+          e.preventDefault();
+          homeScoreInputRef.current.focus();
+        } else if (field === 'boost' && awayScoreInputRef?.current) {
+          e.preventDefault();
+          awayScoreInputRef.current.focus();
+        } else if (field === 'save' && boostButtonGroupRef?.current) {
+          e.preventDefault();
+          boostButtonGroupRef.current.querySelector<HTMLButtonElement>('button')?.focus();
+        } else if (field === 'cancel' && saveButtonRef?.current) {
+          e.preventDefault();
+          saveButtonRef.current.focus();
+        }
+      } else {
+        // Forward Tab: home → away → boost → save → advance
+        if (field === 'home' && awayScoreInputRef?.current) {
+          e.preventDefault();
+          awayScoreInputRef.current.focus();
+        } else if (field === 'away' && boostButtonGroupRef?.current) {
+          e.preventDefault();
+          boostButtonGroupRef.current.querySelector<HTMLButtonElement>('button')?.focus();
+        } else if (field === 'boost' && saveButtonRef?.current) {
+          // Tab from boost → Save button
+          e.preventDefault();
+          saveButtonRef.current.focus();
+        } else if (field === 'save' && onSaveAndAdvance) {
+          // Tab from Save button → save and advance to next card
+          e.preventDefault();
+          onSaveAndAdvance();
+        } else if (field === 'cancel' && saveButtonRef?.current) {
+          e.preventDefault();
+          saveButtonRef.current.focus();
+        }
       }
     }
   };
@@ -542,8 +591,8 @@ export default function GamePredictionEditControls({
                 // Last field - save
                 if (onSave) {
                   onSave();
-                } else if (onTabFromLastField) {
-                  onTabFromLastField();
+                } else if (onSaveAndAdvance) {
+                  onSaveAndAdvance();
                 } else if (onEscapePressed) {
                   onEscapePressed();
                 }
@@ -562,16 +611,22 @@ export default function GamePredictionEditControls({
       {!isMobile && onSave && onCancel && (
         <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
           <Button
+            ref={cancelButtonRef}
             variant="outlined"
             onClick={onCancel}
+            onKeyDown={(e) => handleKeyDown(e, 'cancel')}
+            onFocus={() => setCurrentField('save')}
             disabled={loading}
             fullWidth
           >
             Cancel
           </Button>
           <Button
+            ref={saveButtonRef}
             variant="contained"
             onClick={onSave}
+            onKeyDown={(e) => handleKeyDown(e, 'save')}
+            onFocus={() => setCurrentField('save')}
             disabled={loading}
             fullWidth
           >

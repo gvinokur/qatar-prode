@@ -81,6 +81,8 @@ export default function FlippableGameCard({
   const homeScoreInputRef = useRef<HTMLInputElement | null>(null);
   const awayScoreInputRef = useRef<HTMLInputElement | null>(null);
   const boostButtonGroupRef = useRef<HTMLDivElement | null>(null);
+  const saveButtonRef = useRef<HTMLButtonElement | null>(null);
+  const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
 
   // Get team info
   const homeTeam = game.home_team ? teamsMap[game.home_team] : null;
@@ -149,19 +151,61 @@ export default function FlippableGameCard({
     onEditEnd();
   };
 
-  // Handle Escape key to cancel
-  useEffect(() => {
-    if (!isEditing) return;
+  // Save and advance to next card
+  const handleSaveAndAdvance = async () => {
+    setSaving(true);
+    setSaveError(null);
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        handleCancel();
+    try {
+      // Get current guess from context
+      const currentGuess = groupContext.gameGuesses[game.id];
+
+      // Update context with new values (triggers save)
+      await groupContext.updateGameGuess(game.id, {
+        ...currentGuess,
+        game_id: game.id,
+        game_number: game.game_number,
+        user_id: currentGuess?.user_id || '',
+        home_score: editHomeScore,
+        away_score: editAwayScore,
+        home_penalty_winner: editHomePenaltyWinner,
+        away_penalty_winner: editAwayPenaltyWinner,
+        boost_type: editBoostType
+      });
+
+      // Success - close current card and advance to next
+      onEditEnd();
+
+      // Advance to next card if callback provided
+      if (onAutoAdvanceNext) {
+        onAutoAdvanceNext();
       }
-    };
+    } catch (error: any) {
+      // Show error, stay in edit mode
+      setSaveError(error.message || 'Failed to save. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isEditing]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Go to previous card (no save)
+  const handleShiftTabToPrevious = () => {
+    // Discard local changes (like Cancel)
+    setEditHomeScore(homeScore);
+    setEditAwayScore(awayScore);
+    setEditHomePenaltyWinner(homePenaltyWinner || false);
+    setEditAwayPenaltyWinner(awayPenaltyWinner || false);
+    setEditBoostType(boostType || null);
+    setSaveError(null);
+
+    // Close current card
+    onEditEnd();
+
+    // TODO: Add callback for going to previous card
+    // For now, just close - parent component will need to implement this
+  };
+
+  // Note: Escape key is now handled by GamePredictionEditControls
 
   // Focus home input when entering edit mode
   useEffect(() => {
@@ -255,9 +299,12 @@ export default function FlippableGameCard({
                   homeScoreInputRef={homeScoreInputRef}
                   awayScoreInputRef={awayScoreInputRef}
                   boostButtonGroupRef={boostButtonGroupRef}
+                  saveButtonRef={saveButtonRef}
+                  cancelButtonRef={cancelButtonRef}
                   onSave={handleSave}
                   onCancel={handleCancel}
-                  onTabFromLastField={onAutoAdvanceNext}
+                  onSaveAndAdvance={handleSaveAndAdvance}
+                  onShiftTabFromFirstField={handleShiftTabToPrevious}
                   onEscapePressed={handleCancel}
                   retryCallback={handleSave}
                 />
