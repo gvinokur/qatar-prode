@@ -17,7 +17,8 @@ import {
   Button,
   useTheme,
   useMediaQuery,
-  alpha
+  alpha,
+  Tooltip
 } from '@mui/material';
 import {
   EmojiEvents as TrophyIcon,
@@ -65,6 +66,7 @@ interface GamePredictionEditControlsProps {
   readonly homeScoreInputRef?: React.RefObject<HTMLInputElement | null>;
   readonly awayScoreInputRef?: React.RefObject<HTMLInputElement | null>;
   readonly boostButtonGroupRef?: React.RefObject<HTMLDivElement | null>;
+  readonly editButtonRef?: React.RefObject<HTMLButtonElement | null>; // For focus restoration after save
 
   // Keyboard callbacks (readonly per SonarQube)
   readonly onSaveAndAdvance?: () => Promise<void>; // Save current card and advance to next
@@ -320,13 +322,29 @@ export default function GamePredictionEditControls({
         {layout === 'horizontal' ? (
           // Horizontal layout: each team on its own row
           <Box>
+            {/* Header row for compact penalty mode */}
+            {compact && isPenaltyShootout && (
+              <Grid container spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
+                <Grid size={7}></Grid>
+                <Grid size={3}></Grid>
+                <Grid size={2} sx={{ textAlign: 'center' }}>
+                  <Tooltip title="Ganador de la tanda de penales" arrow>
+                    <Typography variant="caption" color="text.secondary" sx={{ cursor: 'help', fontSize: '0.65rem' }}>
+                      Gan. Pen
+                    </Typography>
+                  </Tooltip>
+                </Grid>
+              </Grid>
+            )}
+
+            {/* Home team row */}
             <Grid container spacing={1} alignItems="center" sx={{ mb: 1 }}>
-              <Grid size={7}>
+              <Grid size={compact && isPenaltyShootout ? 5 : 7}>
                 <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
                   {homeTeamName}
                 </Typography>
               </Grid>
-              <Grid size={5}>
+              <Grid size={compact && isPenaltyShootout ? 5 : 5}>
                 <TextField
                   inputRef={homeScoreInputRef}
                   type="number"
@@ -346,14 +364,27 @@ export default function GamePredictionEditControls({
                   fullWidth
                 />
               </Grid>
+              {compact && isPenaltyShootout && (
+                <Grid size={2} sx={{ textAlign: 'center' }}>
+                  <Checkbox
+                    checked={homePenaltyWinner}
+                    onChange={handleHomePenaltyWinnerChange}
+                    disabled={loading}
+                    size="small"
+                    inputProps={{ 'aria-label': `${homeTeamName} penalty winner` }}
+                  />
+                </Grid>
+              )}
             </Grid>
+
+            {/* Away team row */}
             <Grid container spacing={1} alignItems="center">
-              <Grid size={7}>
+              <Grid size={compact && isPenaltyShootout ? 5 : 7}>
                 <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
                   {awayTeamName}
                 </Typography>
               </Grid>
-              <Grid size={5}>
+              <Grid size={compact && isPenaltyShootout ? 5 : 5}>
                 <TextField
                   inputRef={awayScoreInputRef}
                   type="number"
@@ -373,6 +404,17 @@ export default function GamePredictionEditControls({
                   fullWidth
                 />
               </Grid>
+              {compact && isPenaltyShootout && (
+                <Grid size={2} sx={{ textAlign: 'center' }}>
+                  <Checkbox
+                    checked={awayPenaltyWinner}
+                    onChange={handleAwayPenaltyWinnerChange}
+                    disabled={loading}
+                    size="small"
+                    inputProps={{ 'aria-label': `${awayTeamName} penalty winner` }}
+                  />
+                </Grid>
+              )}
             </Grid>
           </Box>
         ) : (
@@ -435,9 +477,9 @@ export default function GamePredictionEditControls({
         )}
       </Box>
 
-      {/* Penalty information for playoff games */}
-      {isPenaltyShootout && (
-        <Box sx={{ mt: compact ? 2 : 3 }}>
+      {/* Penalty information for playoff games (non-compact mode only) */}
+      {isPenaltyShootout && !compact && (
+        <Box sx={{ mt: 3 }}>
           <Typography variant="subtitle2" gutterBottom>
             Ganador de la tanda de penales
           </Typography>
@@ -482,102 +524,192 @@ export default function GamePredictionEditControls({
       {tournamentId && (silverMax > 0 || goldenMax > 0) && (
         <Box sx={{ mt: compact ? 1.5 : 3 }}>
           <Divider sx={{ mb: compact ? 1.5 : 2 }} />
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', justifyContent: 'space-between', mb: compact ? 1 : 2 }}>
-            <Typography variant={compact ? 'body2' : 'subtitle2'} fontWeight="medium">
-              Boost
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 0.5 }}>
-              {silverMax > 0 && (
-                <Chip
-                  icon={<StarIcon sx={{ fontSize: 14 }} />}
-                  label={`${effectiveBoostCounts.silver.max - effectiveBoostCounts.silver.used}/${effectiveBoostCounts.silver.max}`}
-                  size="small"
-                  sx={{
-                    height: '22px',
-                    color: theme.palette.accent.silver.main,
-                    borderColor: theme.palette.accent.silver.main,
-                    '& .MuiChip-icon': { color: theme.palette.accent.silver.main }
-                  }}
-                />
-              )}
-              {goldenMax > 0 && (
-                <Chip
-                  icon={<TrophyIcon sx={{ fontSize: 14 }} />}
-                  label={`${effectiveBoostCounts.golden.max - effectiveBoostCounts.golden.used}/${effectiveBoostCounts.golden.max}`}
-                  size="small"
-                  sx={{
-                    height: '22px',
-                    color: theme.palette.accent.gold.main,
-                    borderColor: theme.palette.accent.gold.main,
-                    '& .MuiChip-icon': { color: theme.palette.accent.gold.main }
-                  }}
-                />
-              )}
+          {compact ? (
+            // Compact mode: single line with label, counters, and buttons
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography variant="body2" fontWeight="medium" sx={{ flexShrink: 0 }}>
+                Boost
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0 }}>
+                {silverMax > 0 && (
+                  <Chip
+                    icon={<StarIcon sx={{ fontSize: 12 }} />}
+                    label={`${effectiveBoostCounts.silver.max - effectiveBoostCounts.silver.used}/${effectiveBoostCounts.silver.max}`}
+                    size="small"
+                    sx={{
+                      height: '20px',
+                      fontSize: '0.7rem',
+                      color: theme.palette.accent.silver.main,
+                      borderColor: theme.palette.accent.silver.main,
+                      '& .MuiChip-icon': { color: theme.palette.accent.silver.main }
+                    }}
+                  />
+                )}
+                {goldenMax > 0 && (
+                  <Chip
+                    icon={<TrophyIcon sx={{ fontSize: 12 }} />}
+                    label={`${effectiveBoostCounts.golden.max - effectiveBoostCounts.golden.used}/${effectiveBoostCounts.golden.max}`}
+                    size="small"
+                    sx={{
+                      height: '20px',
+                      fontSize: '0.7rem',
+                      color: theme.palette.accent.gold.main,
+                      borderColor: theme.palette.accent.gold.main,
+                      '& .MuiChip-icon': { color: theme.palette.accent.gold.main }
+                    }}
+                  />
+                )}
+              </Box>
+              <ToggleButtonGroup
+                ref={boostButtonGroupRef}
+                value={boostType || ''}
+                exclusive
+                onChange={(_, newValue) => onBoostTypeChange(newValue === '' ? null : newValue as 'silver' | 'golden')}
+                onKeyDown={(e) => handleKeyDown(e, 'boost')}
+                onFocus={() => setCurrentField('boost')}
+                disabled={loading}
+                size="small"
+                aria-label="Boost selection"
+                sx={{ flexShrink: 0 }}
+              >
+                <ToggleButton value="" aria-label="No boost" sx={{ py: 0.5, px: 1, fontSize: '0.75rem' }}>
+                  None
+                </ToggleButton>
+                {silverMax > 0 && (
+                  <ToggleButton
+                    value="silver"
+                    disabled={boostType !== 'silver' && effectiveBoostCounts.silver.used >= effectiveBoostCounts.silver.max}
+                    aria-label="Silver boost (2x)"
+                    sx={{
+                      py: 0.5, px: 1, fontSize: '0.75rem',
+                      '&.Mui-selected': {
+                        backgroundColor: alpha(theme.palette.accent.silver.main, 0.2),
+                        color: theme.palette.accent.silver.main,
+                        '&:hover': {
+                          backgroundColor: alpha(theme.palette.accent.silver.main, 0.3),
+                        }
+                      }
+                    }}
+                  >
+                    2x
+                  </ToggleButton>
+                )}
+                {goldenMax > 0 && (
+                  <ToggleButton
+                    value="golden"
+                    disabled={boostType !== 'golden' && effectiveBoostCounts.golden.used >= effectiveBoostCounts.golden.max}
+                    aria-label="Golden boost (3x)"
+                    sx={{
+                      py: 0.5, px: 1, fontSize: '0.75rem',
+                      '&.Mui-selected': {
+                        backgroundColor: alpha(theme.palette.accent.gold.main, 0.2),
+                        color: theme.palette.accent.gold.main,
+                        '&:hover': {
+                          backgroundColor: alpha(theme.palette.accent.gold.main, 0.3),
+                        }
+                      }
+                    }}
+                  >
+                    3x
+                  </ToggleButton>
+                )}
+              </ToggleButtonGroup>
             </Box>
-          </Box>
-          <ToggleButtonGroup
-            ref={boostButtonGroupRef}
-            value={boostType || ''}
-            exclusive
-            onChange={(_, newValue) => onBoostTypeChange(newValue === '' ? null : newValue as 'silver' | 'golden')}
-            onKeyDown={(e) => handleKeyDown(e, 'boost')}
-            onFocus={() => setCurrentField('boost')}
-            fullWidth
-            disabled={loading}
-            size="small"
-            aria-label="Boost selection"
-          >
-            <ToggleButton value="" aria-label="No boost">
-              None
-            </ToggleButton>
-            {silverMax > 0 && (
-              <ToggleButton
-                value="silver"
-                disabled={boostType !== 'silver' && effectiveBoostCounts.silver.used >= effectiveBoostCounts.silver.max}
-                aria-label="Silver boost (2x)"
-                sx={{
-                  '&.Mui-selected': {
-                    backgroundColor: alpha(theme.palette.accent.silver.main, 0.2),
-                    color: theme.palette.accent.silver.main,
-                    '&:hover': {
-                      backgroundColor: alpha(theme.palette.accent.silver.main, 0.3),
-                    }
-                  }
-                }}
+          ) : (
+            // Non-compact mode: original layout with label/counters on top, buttons below
+            <>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                <Typography variant="subtitle2">
+                  Apply Boost
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 0.5 }}>
+                  {silverMax > 0 && (
+                    <Chip
+                      icon={<StarIcon sx={{ fontSize: 14 }} />}
+                      label={`${effectiveBoostCounts.silver.max - effectiveBoostCounts.silver.used}/${effectiveBoostCounts.silver.max}`}
+                      size="small"
+                      sx={{
+                        height: '22px',
+                        color: theme.palette.accent.silver.main,
+                        borderColor: theme.palette.accent.silver.main,
+                        '& .MuiChip-icon': { color: theme.palette.accent.silver.main }
+                      }}
+                    />
+                  )}
+                  {goldenMax > 0 && (
+                    <Chip
+                      icon={<TrophyIcon sx={{ fontSize: 14 }} />}
+                      label={`${effectiveBoostCounts.golden.max - effectiveBoostCounts.golden.used}/${effectiveBoostCounts.golden.max}`}
+                      size="small"
+                      sx={{
+                        height: '22px',
+                        color: theme.palette.accent.gold.main,
+                        borderColor: theme.palette.accent.gold.main,
+                        '& .MuiChip-icon': { color: theme.palette.accent.gold.main }
+                      }}
+                    />
+                  )}
+                </Box>
+              </Box>
+              <ToggleButtonGroup
+                ref={boostButtonGroupRef}
+                value={boostType || ''}
+                exclusive
+                onChange={(_, newValue) => onBoostTypeChange(newValue === '' ? null : newValue as 'silver' | 'golden')}
+                onKeyDown={(e) => handleKeyDown(e, 'boost')}
+                onFocus={() => setCurrentField('boost')}
+                fullWidth
+                disabled={loading}
+                size="small"
+                aria-label="Boost selection"
               >
-                <StarIcon sx={{ mr: 0.5, fontSize: 16 }} />
-                2x
-              </ToggleButton>
-            )}
-            {goldenMax > 0 && (
-              <ToggleButton
-                value="golden"
-                disabled={boostType !== 'golden' && effectiveBoostCounts.golden.used >= effectiveBoostCounts.golden.max}
-                aria-label="Golden boost (3x)"
-                sx={{
-                  '&.Mui-selected': {
-                    backgroundColor: alpha(theme.palette.accent.gold.main, 0.2),
-                    color: theme.palette.accent.gold.main,
-                    '&:hover': {
-                      backgroundColor: alpha(theme.palette.accent.gold.main, 0.3),
-                    }
-                  }
-                }}
-              >
-                <TrophyIcon sx={{ mr: 0.5, fontSize: 16 }} />
-                3x
-              </ToggleButton>
-            )}
-          </ToggleButtonGroup>
+                <ToggleButton value="" aria-label="No boost">
+                  None
+                </ToggleButton>
+                {silverMax > 0 && (
+                  <ToggleButton
+                    value="silver"
+                    disabled={boostType !== 'silver' && effectiveBoostCounts.silver.used >= effectiveBoostCounts.silver.max}
+                    aria-label="Silver boost (2x)"
+                    sx={{
+                      '&.Mui-selected': {
+                        backgroundColor: alpha(theme.palette.accent.silver.main, 0.2),
+                        color: theme.palette.accent.silver.main,
+                        '&:hover': {
+                          backgroundColor: alpha(theme.palette.accent.silver.main, 0.3),
+                        }
+                      }
+                    }}
+                  >
+                    <StarIcon sx={{ mr: 0.5, fontSize: 16 }} />
+                    2x
+                  </ToggleButton>
+                )}
+                {goldenMax > 0 && (
+                  <ToggleButton
+                    value="golden"
+                    disabled={boostType !== 'golden' && effectiveBoostCounts.golden.used >= effectiveBoostCounts.golden.max}
+                    aria-label="Golden boost (3x)"
+                    sx={{
+                      '&.Mui-selected': {
+                        backgroundColor: alpha(theme.palette.accent.gold.main, 0.2),
+                        color: theme.palette.accent.gold.main,
+                        '&:hover': {
+                          backgroundColor: alpha(theme.palette.accent.gold.main, 0.3),
+                        }
+                      }
+                    }}
+                  >
+                    <TrophyIcon sx={{ mr: 0.5, fontSize: 16 }} />
+                    3x
+                  </ToggleButton>
+                )}
+              </ToggleButtonGroup>
+            </>
+          )}
         </Box>
       )}
 
-      {/* Loading indicator */}
-      {loading && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-          <CircularProgress size={24} />
-        </Box>
-      )}
 
       {/* Mobile-specific controls */}
       {isMobile && layout === 'horizontal' && (

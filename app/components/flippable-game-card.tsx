@@ -139,6 +139,13 @@ export default function FlippableGameCard({
 
       // Success - close edit mode
       onEditEnd();
+
+      // Restore focus to edit button after flip animation completes
+      setTimeout(() => {
+        const cardElement = document.querySelector(`[data-game-id="${game.id}"]`);
+        const editButton = cardElement?.querySelector<HTMLButtonElement>('button[aria-label*="Editar"]');
+        editButton?.focus();
+      }, flipDuration * 1000 + 50); // Wait for flip + small buffer
     } catch (error: any) {
       // Show error, stay in edit mode
       setSaveError(error.message || 'Failed to save. Please try again.');
@@ -159,6 +166,13 @@ export default function FlippableGameCard({
 
     // Close edit mode
     onEditEnd();
+
+    // Restore focus to edit button after flip animation completes
+    setTimeout(() => {
+      const cardElement = document.querySelector(`[data-game-id="${game.id}"]`);
+      const editButton = cardElement?.querySelector<HTMLButtonElement>('button[aria-label*="Editar"]');
+      editButton?.focus();
+    }, flipDuration * 1000 + 50); // Wait for flip + small buffer
   };
 
   // Save and advance to next card
