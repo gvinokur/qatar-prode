@@ -117,19 +117,23 @@ export default function FlippableGameCard({
       const currentGuess = groupContext.gameGuesses[game.id];
 
       // Build GameGuessNew object (only fields needed for insert/update)
-      await groupContext.updateGameGuess(game.id, {
+      // Note: Don't pass undefined - use null or omit the field
+      const guessData: any = {
         game_id: game.id,
         game_number: game.game_number,
-        user_id: currentGuess?.user_id || '',
-        home_team: currentGuess?.home_team,
-        away_team: currentGuess?.away_team,
+        user_id: currentGuess?.user_id || '', // Server will set this
         home_score: editHomeScore,
         away_score: editAwayScore,
         home_penalty_winner: editHomePenaltyWinner,
         away_penalty_winner: editAwayPenaltyWinner,
-        boost_type: editBoostType,
-        score: undefined // Let server calculate
-      });
+        boost_type: editBoostType
+      };
+
+      // Only add optional fields if they have values (avoid $undefined serialization)
+      if (currentGuess?.home_team) guessData.home_team = currentGuess.home_team;
+      if (currentGuess?.away_team) guessData.away_team = currentGuess.away_team;
+
+      await groupContext.updateGameGuess(game.id, guessData);
 
       // Success - close edit mode
       onEditEnd();
@@ -165,19 +169,23 @@ export default function FlippableGameCard({
       const currentGuess = groupContext.gameGuesses[game.id];
 
       // Build GameGuessNew object (only fields needed for insert/update)
-      await groupContext.updateGameGuess(game.id, {
+      // Note: Don't pass undefined - use null or omit the field
+      const guessData: any = {
         game_id: game.id,
         game_number: game.game_number,
-        user_id: currentGuess?.user_id || '',
-        home_team: currentGuess?.home_team,
-        away_team: currentGuess?.away_team,
+        user_id: currentGuess?.user_id || '', // Server will set this
         home_score: editHomeScore,
         away_score: editAwayScore,
         home_penalty_winner: editHomePenaltyWinner,
         away_penalty_winner: editAwayPenaltyWinner,
-        boost_type: editBoostType,
-        score: undefined // Let server calculate
-      });
+        boost_type: editBoostType
+      };
+
+      // Only add optional fields if they have values (avoid $undefined serialization)
+      if (currentGuess?.home_team) guessData.home_team = currentGuess.home_team;
+      if (currentGuess?.away_team) guessData.away_team = currentGuess.away_team;
+
+      await groupContext.updateGameGuess(game.id, guessData);
 
       // Success - close current card and advance to next
       onEditEnd();
