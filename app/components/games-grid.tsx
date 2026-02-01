@@ -243,48 +243,12 @@ export default function GamesGrid({
                     isEditing={editingGameId === game.id}
                     onEditStart={() => handleEditStart(game.id)}
                     onEditEnd={handleEditEnd}
-                    onHomeScoreChange={(value) => {
-                      groupContext.updateGameGuess(game.id, {
-                        ...gameGuess,
-                        home_score: value
-                      })
-                    }}
-                    onAwayScoreChange={(value) => {
-                      groupContext.updateGameGuess(game.id, {
-                        ...gameGuess,
-                        away_score: value
-                      })
-                    }}
-                    onHomePenaltyWinnerChange={(checked) => {
-                      groupContext.updateGameGuess(game.id, {
-                        ...gameGuess,
-                        home_penalty_winner: checked
-                      })
-                    }}
-                    onAwayPenaltyWinnerChange={(checked) => {
-                      groupContext.updateGameGuess(game.id, {
-                        ...gameGuess,
-                        away_penalty_winner: checked
-                      })
-                    }}
-                    onBoostTypeChange={(type) => {
-                      groupContext.updateGameGuess(game.id, {
-                        ...gameGuess,
-                        boost_type: type
-                      })
-                    }}
                     silverUsed={dashboardStats?.silverUsed || 0}
                     silverMax={tournament?.max_silver_games || 0}
                     goldenUsed={dashboardStats?.goldenUsed || 0}
                     goldenMax={tournament?.max_golden_games || 0}
-                    isPending={groupContext.pendingSaves.has(game.id)}
-                    error={groupContext.saveErrors[game.id]}
                     disabled={!isLoggedIn}
                     onAutoAdvanceNext={() => handleAutoAdvanceNext(game.id)}
-                    retryCallback={groupContext.saveErrors[game.id] ? () => {
-                      groupContext.clearSaveError(game.id);
-                      groupContext.updateGameGuess(game.id, gameGuess, { immediate: true });
-                    } : undefined}
                   />
                 ) : (
                   <GameView

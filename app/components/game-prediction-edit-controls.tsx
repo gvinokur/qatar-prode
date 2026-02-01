@@ -70,6 +70,10 @@ interface GamePredictionEditControlsProps {
   readonly onTabFromLastField?: () => void; // Auto-advance to next card
   readonly onEscapePressed?: () => void; // Exit edit mode
 
+  // Save/Cancel callbacks
+  readonly onSave?: () => void;
+  readonly onCancel?: () => void;
+
   // Retry callback for network errors
   readonly retryCallback?: () => void;
 }
@@ -99,6 +103,8 @@ export default function GamePredictionEditControls({
   error = null,
   layout = 'vertical',
   compact = false,
+  onSave,
+  onCancel,
   homeScoreInputRef,
   awayScoreInputRef,
   boostButtonGroupRef,
@@ -510,7 +516,9 @@ export default function GamePredictionEditControls({
           <Button
             variant="outlined"
             onClick={() => {
-              if (onEscapePressed) {
+              if (onCancel) {
+                onCancel();
+              } else if (onEscapePressed) {
                 onEscapePressed();
               }
             }}
@@ -531,8 +539,10 @@ export default function GamePredictionEditControls({
                 boostButtonGroupRef?.current?.querySelector<HTMLButtonElement>('button')?.focus();
                 setCurrentField('boost');
               } else {
-                // Last field - advance to next card or close
-                if (onTabFromLastField) {
+                // Last field - save
+                if (onSave) {
+                  onSave();
+                } else if (onTabFromLastField) {
                   onTabFromLastField();
                 } else if (onEscapePressed) {
                   onEscapePressed();
@@ -543,7 +553,29 @@ export default function GamePredictionEditControls({
             sx={{ minHeight: '44px' }}
             fullWidth
           >
-            {currentField === 'boost' ? 'Done' : 'Next'}
+            {currentField === 'boost' ? 'Save' : 'Next'}
+          </Button>
+        </Box>
+      )}
+
+      {/* Desktop Save/Cancel buttons */}
+      {!isMobile && onSave && onCancel && (
+        <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+          <Button
+            variant="outlined"
+            onClick={onCancel}
+            disabled={loading}
+            fullWidth
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={onSave}
+            disabled={loading}
+            fullWidth
+          >
+            {loading ? 'Saving...' : 'Save'}
           </Button>
         </Box>
       )}

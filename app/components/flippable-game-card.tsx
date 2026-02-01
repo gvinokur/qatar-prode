@@ -1,12 +1,13 @@
 'use client'
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState, useContext } from 'react';
 import { Box, Card, CardContent, useTheme, useMediaQuery } from '@mui/material';
 import { useReducedMotion } from 'framer-motion';
 import GamePredictionEditControls from './game-prediction-edit-controls';
 import GameView from './game-view';
 import { ExtendedGameData } from '../definitions';
 import { Team } from '../db/tables-definition';
+import { GuessesContext } from './context-providers/guesses-context-provider';
 
 interface FlippableGameCardProps {
   // Game data
@@ -28,31 +29,17 @@ interface FlippableGameCardProps {
   onEditStart: () => void;
   onEditEnd: () => void;
 
-  // Edit callbacks (parent handles context updates)
-  onHomeScoreChange: (value?: number) => void;
-  onAwayScoreChange: (value?: number) => void;
-  onHomePenaltyWinnerChange: (checked: boolean) => void;
-  onAwayPenaltyWinnerChange: (checked: boolean) => void;
-  onBoostTypeChange: (type: 'silver' | 'golden' | null) => void;
-
   // Boost counts for edit controls
   silverUsed: number;
   silverMax: number;
   goldenUsed: number;
   goldenMax: number;
 
-  // State indicators (from parent's context)
-  isPending: boolean; // pendingSaves.has(game.id)
-  error?: string | null; // saveErrors[game.id]
-
   // Disabled state
   disabled?: boolean;
 
   // Auto-advance
   onAutoAdvanceNext?: () => void;
-
-  // Retry callback
-  retryCallback?: () => void;
 }
 
 export default function FlippableGameCard({
@@ -69,24 +56,26 @@ export default function FlippableGameCard({
   isEditing,
   onEditStart,
   onEditEnd,
-  onHomeScoreChange,
-  onAwayScoreChange,
-  onHomePenaltyWinnerChange,
-  onAwayPenaltyWinnerChange,
-  onBoostTypeChange,
   silverUsed,
   silverMax,
   goldenUsed,
   goldenMax,
-  isPending,
-  error,
   disabled = false,
-  onAutoAdvanceNext,
-  retryCallback
+  onAutoAdvanceNext
 }: FlippableGameCardProps) {
   const theme = useTheme();
   const prefersReducedMotion = useReducedMotion();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const groupContext = useContext(GuessesContext);
+
+  // Local edit state (only used during editing)
+  const [editHomeScore, setEditHomeScore] = useState<number | undefined>(homeScore);
+  const [editAwayScore, setEditAwayScore] = useState<number | undefined>(awayScore);
+  const [editHomePenaltyWinner, setEditHomePenaltyWinner] = useState<boolean>(homePenaltyWinner || false);
+  const [editAwayPenaltyWinner, setEditAwayPenaltyWinner] = useState<boolean>(awayPenaltyWinner || false);
+  const [editBoostType, setEditBoostType] = useState<'silver' | 'golden' | null>(boostType || null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Refs for keyboard navigation
   const homeScoreInputRef = useRef<HTMLInputElement | null>(null);
@@ -102,30 +91,77 @@ export default function FlippableGameCard({
   // Flip animation duration (slightly slower on mobile)
   const flipDuration = isMobile ? 0.5 : 0.4;
 
-  const flipVariants = {
-    front: {
-      rotateY: 0,
-      transition: { duration: flipDuration, ease: 'easeInOut' }
-    },
-    back: {
-      rotateY: 180,
-      transition: { duration: flipDuration, ease: 'easeInOut' }
+  // Initialize local state when entering edit mode
+  useEffect(() => {
+    if (isEditing) {
+      setEditHomeScore(homeScore);
+      setEditAwayScore(awayScore);
+      setEditHomePenaltyWinner(homePenaltyWinner || false);
+      setEditAwayPenaltyWinner(awayPenaltyWinner || false);
+      setEditBoostType(boostType || null);
+      setSaveError(null);
+    }
+  }, [isEditing, homeScore, awayScore, homePenaltyWinner, awayPenaltyWinner, boostType]);
+
+  // Save changes and close edit mode
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveError(null);
+
+    try {
+      // Get current guess from context
+      const currentGuess = groupContext.gameGuesses[game.id];
+
+      // Update context with new values (triggers save)
+      await groupContext.updateGameGuess(game.id, {
+        ...currentGuess,
+        game_id: game.id,
+        game_number: game.game_number,
+        user_id: currentGuess?.user_id || '',
+        home_score: editHomeScore,
+        away_score: editAwayScore,
+        home_penalty_winner: editHomePenaltyWinner,
+        away_penalty_winner: editAwayPenaltyWinner,
+        boost_type: editBoostType
+      }, { immediate: true });
+
+      // Success - close edit mode
+      onEditEnd();
+    } catch (error: any) {
+      // Show error, stay in edit mode
+      setSaveError(error.message || 'Failed to save. Please try again.');
+    } finally {
+      setSaving(false);
     }
   };
 
-  // Handle Escape key to exit edit mode
+  // Cancel changes and close edit mode
+  const handleCancel = () => {
+    // Discard local changes
+    setEditHomeScore(homeScore);
+    setEditAwayScore(awayScore);
+    setEditHomePenaltyWinner(homePenaltyWinner || false);
+    setEditAwayPenaltyWinner(awayPenaltyWinner || false);
+    setEditBoostType(boostType || null);
+    setSaveError(null);
+
+    // Close edit mode
+    onEditEnd();
+  };
+
+  // Handle Escape key to cancel
   useEffect(() => {
     if (!isEditing) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onEditEnd();
+        handleCancel();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isEditing, onEditEnd]);
+  }, [isEditing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Focus home input when entering edit mode
   useEffect(() => {
@@ -197,31 +233,33 @@ export default function FlippableGameCard({
                   awayTeamName={awayTeamName}
                   isPlayoffGame={isPlayoffs}
                   tournamentId={tournamentId}
-                  homeScore={homeScore}
-                  awayScore={awayScore}
-                  homePenaltyWinner={homePenaltyWinner}
-                  awayPenaltyWinner={awayPenaltyWinner}
-                  boostType={boostType}
+                  homeScore={editHomeScore}
+                  awayScore={editAwayScore}
+                  homePenaltyWinner={editHomePenaltyWinner}
+                  awayPenaltyWinner={editAwayPenaltyWinner}
+                  boostType={editBoostType}
                   initialBoostType={initialBoostType}
                   silverUsed={silverUsed}
                   silverMax={silverMax}
                   goldenUsed={goldenUsed}
                   goldenMax={goldenMax}
-                  onHomeScoreChange={onHomeScoreChange}
-                  onAwayScoreChange={onAwayScoreChange}
-                  onHomePenaltyWinnerChange={onHomePenaltyWinnerChange}
-                  onAwayPenaltyWinnerChange={onAwayPenaltyWinnerChange}
-                  onBoostTypeChange={onBoostTypeChange}
-                  loading={isPending}
-                  error={error}
+                  onHomeScoreChange={setEditHomeScore}
+                  onAwayScoreChange={setEditAwayScore}
+                  onHomePenaltyWinnerChange={setEditHomePenaltyWinner}
+                  onAwayPenaltyWinnerChange={setEditAwayPenaltyWinner}
+                  onBoostTypeChange={setEditBoostType}
+                  loading={saving}
+                  error={saveError}
                   layout="vertical"
                   compact={false}
                   homeScoreInputRef={homeScoreInputRef}
                   awayScoreInputRef={awayScoreInputRef}
                   boostButtonGroupRef={boostButtonGroupRef}
+                  onSave={handleSave}
+                  onCancel={handleCancel}
                   onTabFromLastField={onAutoAdvanceNext}
-                  onEscapePressed={onEditEnd}
-                  retryCallback={retryCallback}
+                  onEscapePressed={handleCancel}
+                  retryCallback={handleSave}
                 />
               </CardContent>
             </Card>
