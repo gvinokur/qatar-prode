@@ -197,6 +197,20 @@ export default function GamePredictionEditControls({
   };
 
   // Handle keyboard navigation
+  // Helper function to focus on the selected boost button, or first if none selected
+  const focusBoostButtonGroup = () => {
+    if (!boostButtonGroupRef?.current) return;
+
+    // Try to find the selected button first
+    const selectedButton = boostButtonGroupRef.current.querySelector<HTMLButtonElement>('button.Mui-selected');
+    if (selectedButton) {
+      selectedButton.focus();
+    } else {
+      // No selection, focus first button
+      boostButtonGroupRef.current.querySelector<HTMLButtonElement>('button')?.focus();
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent, field: 'home' | 'away' | 'boost' | 'save' | 'cancel') => {
     // Enter key ALWAYS saves
     if (e.key === 'Enter' && onSave) {
@@ -246,9 +260,9 @@ export default function GamePredictionEditControls({
         } else if (field === 'boost' && awayScoreInputRef?.current) {
           e.preventDefault();
           awayScoreInputRef.current.focus();
-        } else if (field === 'save' && boostButtonGroupRef?.current) {
+        } else if (field === 'save') {
           e.preventDefault();
-          boostButtonGroupRef.current.querySelector<HTMLButtonElement>('button')?.focus();
+          focusBoostButtonGroup();
         } else if (field === 'cancel' && saveButtonRef?.current) {
           e.preventDefault();
           saveButtonRef.current.focus();
@@ -258,9 +272,9 @@ export default function GamePredictionEditControls({
         if (field === 'home' && awayScoreInputRef?.current) {
           e.preventDefault();
           awayScoreInputRef.current.focus();
-        } else if (field === 'away' && boostButtonGroupRef?.current) {
+        } else if (field === 'away') {
           e.preventDefault();
-          boostButtonGroupRef.current.querySelector<HTMLButtonElement>('button')?.focus();
+          focusBoostButtonGroup();
         } else if (field === 'boost' && saveButtonRef?.current) {
           // Tab from boost → Save button
           e.preventDefault();
@@ -737,7 +751,7 @@ export default function GamePredictionEditControls({
                 awayScoreInputRef?.current?.focus();
                 setCurrentField('away');
               } else if (currentField === 'away') {
-                boostButtonGroupRef?.current?.querySelector<HTMLButtonElement>('button')?.focus();
+                focusBoostButtonGroup();
                 setCurrentField('boost');
               } else {
                 // Last field - save
