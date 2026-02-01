@@ -117,13 +117,14 @@ export default function FlippableGameCard({
       const currentGuess = groupContext.gameGuesses[game.id];
 
       // Build GameGuessNew object (only fields needed for insert/update)
-      // Note: Don't pass undefined - use null or omit the field
+      // Note: Don't pass undefined - omit the field entirely
+      // Note: Don't pass user_id - server will set it from session
       const guessData: any = {
         game_id: game.id,
         game_number: game.game_number,
-        user_id: currentGuess?.user_id || '', // Server will set this
         home_penalty_winner: editHomePenaltyWinner,
-        away_penalty_winner: editAwayPenaltyWinner
+        away_penalty_winner: editAwayPenaltyWinner,
+        boost_type: editBoostType
       };
 
       // Numbers: Include if not undefined (0 is valid!)
@@ -133,9 +134,6 @@ export default function FlippableGameCard({
       // Strings: Include if truthy
       if (currentGuess?.home_team) guessData.home_team = currentGuess.home_team;
       if (currentGuess?.away_team) guessData.away_team = currentGuess.away_team;
-
-      // Boost type: Include if not null (could be null, 'silver', or 'golden')
-      if (editBoostType !== null) guessData.boost_type = editBoostType;
 
       await groupContext.updateGameGuess(game.id, guessData);
 
@@ -173,13 +171,14 @@ export default function FlippableGameCard({
       const currentGuess = groupContext.gameGuesses[game.id];
 
       // Build GameGuessNew object (only fields needed for insert/update)
-      // Note: Don't pass undefined - use null or omit the field
+      // Note: Don't pass undefined - omit the field entirely
+      // Note: Don't pass user_id - server will set it from session
       const guessData: any = {
         game_id: game.id,
         game_number: game.game_number,
-        user_id: currentGuess?.user_id || '', // Server will set this
         home_penalty_winner: editHomePenaltyWinner,
-        away_penalty_winner: editAwayPenaltyWinner
+        away_penalty_winner: editAwayPenaltyWinner,
+        boost_type: editBoostType
       };
 
       // Numbers: Include if not undefined (0 is valid!)
@@ -189,9 +188,6 @@ export default function FlippableGameCard({
       // Strings: Include if truthy
       if (currentGuess?.home_team) guessData.home_team = currentGuess.home_team;
       if (currentGuess?.away_team) guessData.away_team = currentGuess.away_team;
-
-      // Boost type: Include if not null (could be null, 'silver', or 'golden')
-      if (editBoostType !== null) guessData.boost_type = editBoostType;
 
       await groupContext.updateGameGuess(game.id, guessData);
 
