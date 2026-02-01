@@ -65,6 +65,8 @@ interface GamePredictionEditControlsProps {
   // Refs for keyboard navigation (readonly per SonarQube)
   readonly homeScoreInputRef?: React.RefObject<HTMLInputElement | null>;
   readonly awayScoreInputRef?: React.RefObject<HTMLInputElement | null>;
+  readonly homePenaltyCheckboxRef?: React.RefObject<HTMLInputElement | null>;
+  readonly awayPenaltyCheckboxRef?: React.RefObject<HTMLInputElement | null>;
   readonly boostButtonGroupRef?: React.RefObject<HTMLDivElement | null>;
   readonly editButtonRef?: React.RefObject<HTMLButtonElement | null>; // For focus restoration after save
 
@@ -114,6 +116,8 @@ export default function GamePredictionEditControls({
   onCancel,
   homeScoreInputRef,
   awayScoreInputRef,
+  homePenaltyCheckboxRef,
+  awayPenaltyCheckboxRef,
   boostButtonGroupRef,
   saveButtonRef,
   cancelButtonRef,
@@ -211,7 +215,7 @@ export default function GamePredictionEditControls({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent, field: 'home' | 'away' | 'boost' | 'save' | 'cancel') => {
+  const handleKeyDown = (e: React.KeyboardEvent, field: 'home' | 'away' | 'homePenalty' | 'awayPenalty' | 'boost' | 'save' | 'cancel') => {
     // Enter key ALWAYS saves
     if (e.key === 'Enter' && onSave) {
       e.preventDefault();
@@ -257,9 +261,22 @@ export default function GamePredictionEditControls({
         } else if (field === 'away' && homeScoreInputRef?.current) {
           e.preventDefault();
           homeScoreInputRef.current.focus();
-        } else if (field === 'boost' && awayScoreInputRef?.current) {
+        } else if (field === 'homePenalty' && awayScoreInputRef?.current) {
+          // Penalty shootout: homePenalty → away
           e.preventDefault();
           awayScoreInputRef.current.focus();
+        } else if (field === 'awayPenalty' && homePenaltyCheckboxRef?.current) {
+          // Penalty shootout: awayPenalty → homePenalty
+          e.preventDefault();
+          homePenaltyCheckboxRef.current.focus();
+        } else if (field === 'boost') {
+          e.preventDefault();
+          // boost → awayPenalty (if penalty shootout) OR away
+          if (isPenaltyShootout && awayPenaltyCheckboxRef?.current) {
+            awayPenaltyCheckboxRef.current.focus();
+          } else if (awayScoreInputRef?.current) {
+            awayScoreInputRef.current.focus();
+          }
         } else if (field === 'save') {
           e.preventDefault();
           focusBoostButtonGroup();
@@ -268,11 +285,24 @@ export default function GamePredictionEditControls({
           saveButtonRef.current.focus();
         }
       } else {
-        // Forward Tab: home → away → boost → save → advance
+        // Forward Tab: home → away → (penalty if needed) → boost → save → advance
         if (field === 'home' && awayScoreInputRef?.current) {
           e.preventDefault();
           awayScoreInputRef.current.focus();
         } else if (field === 'away') {
+          e.preventDefault();
+          // away → homePenalty (if penalty shootout) OR boost
+          if (isPenaltyShootout && homePenaltyCheckboxRef?.current) {
+            homePenaltyCheckboxRef.current.focus();
+          } else {
+            focusBoostButtonGroup();
+          }
+        } else if (field === 'homePenalty' && awayPenaltyCheckboxRef?.current) {
+          // Penalty shootout: homePenalty → awayPenalty
+          e.preventDefault();
+          awayPenaltyCheckboxRef.current.focus();
+        } else if (field === 'awayPenalty') {
+          // Penalty shootout: awayPenalty → boost
           e.preventDefault();
           focusBoostButtonGroup();
         } else if (field === 'boost' && saveButtonRef?.current) {
@@ -381,8 +411,11 @@ export default function GamePredictionEditControls({
               {compact && isPenaltyShootout && (
                 <Grid size={2} sx={{ textAlign: 'center' }}>
                   <Checkbox
+                    inputRef={homePenaltyCheckboxRef}
                     checked={homePenaltyWinner}
                     onChange={handleHomePenaltyWinnerChange}
+                    onKeyDown={(e) => handleKeyDown(e, 'homePenalty')}
+                    onFocus={() => setCurrentField('homePenalty')}
                     disabled={loading}
                     size="small"
                     inputProps={{ 'aria-label': `${homeTeamName} penalty winner` }}
@@ -421,8 +454,11 @@ export default function GamePredictionEditControls({
               {compact && isPenaltyShootout && (
                 <Grid size={2} sx={{ textAlign: 'center' }}>
                   <Checkbox
+                    inputRef={awayPenaltyCheckboxRef}
                     checked={awayPenaltyWinner}
                     onChange={handleAwayPenaltyWinnerChange}
+                    onKeyDown={(e) => handleKeyDown(e, 'awayPenalty')}
+                    onFocus={() => setCurrentField('awayPenalty')}
                     disabled={loading}
                     size="small"
                     inputProps={{ 'aria-label': `${awayTeamName} penalty winner` }}
@@ -746,11 +782,23 @@ export default function GamePredictionEditControls({
           <Button
             variant="contained"
             onClick={() => {
-              // Navigate through fields: home → away → boost → done
+              // Navigate through fields: home → away → (penalty if needed) → boost → done
               if (currentField === 'home') {
                 awayScoreInputRef?.current?.focus();
                 setCurrentField('away');
               } else if (currentField === 'away') {
+                // away → homePenalty (if penalty shootout) OR boost
+                if (isPenaltyShootout && homePenaltyCheckboxRef?.current) {
+                  homePenaltyCheckboxRef.current.focus();
+                  setCurrentField('homePenalty');
+                } else {
+                  focusBoostButtonGroup();
+                  setCurrentField('boost');
+                }
+              } else if (currentField === 'homePenalty') {
+                awayPenaltyCheckboxRef?.current?.focus();
+                setCurrentField('awayPenalty');
+              } else if (currentField === 'awayPenalty') {
                 focusBoostButtonGroup();
                 setCurrentField('boost');
               } else {

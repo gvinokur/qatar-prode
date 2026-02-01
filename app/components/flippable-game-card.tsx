@@ -82,6 +82,8 @@ export default function FlippableGameCard({
   // Refs for keyboard navigation
   const homeScoreInputRef = useRef<HTMLInputElement | null>(null);
   const awayScoreInputRef = useRef<HTMLInputElement | null>(null);
+  const homePenaltyCheckboxRef = useRef<HTMLInputElement | null>(null);
+  const awayPenaltyCheckboxRef = useRef<HTMLInputElement | null>(null);
   const boostButtonGroupRef = useRef<HTMLDivElement | null>(null);
   const saveButtonRef = useRef<HTMLButtonElement | null>(null);
   const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -332,6 +334,8 @@ export default function FlippableGameCard({
                   compact={true}
                   homeScoreInputRef={homeScoreInputRef}
                   awayScoreInputRef={awayScoreInputRef}
+                  homePenaltyCheckboxRef={homePenaltyCheckboxRef}
+                  awayPenaltyCheckboxRef={awayPenaltyCheckboxRef}
                   boostButtonGroupRef={boostButtonGroupRef}
                   saveButtonRef={saveButtonRef}
                   cancelButtonRef={cancelButtonRef}
