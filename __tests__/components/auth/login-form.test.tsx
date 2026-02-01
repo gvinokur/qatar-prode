@@ -113,7 +113,7 @@ describe('LoginForm', () => {
     });
 
     it('shows error when email format is invalid', async () => {
-      const validator = vi.mocked(await vi.importMock('validator')).default;
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(false);
       
       render(<LoginForm onSuccess={mockOnSuccess} />);
@@ -128,7 +128,7 @@ describe('LoginForm', () => {
     });
 
     it('validates email format correctly with valid email', async () => {
-      const validator = vi.mocked(await vi.importMock('validator')).default;
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
       
       render(<LoginForm onSuccess={mockOnSuccess} />);

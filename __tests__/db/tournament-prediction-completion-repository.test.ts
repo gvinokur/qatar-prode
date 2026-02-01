@@ -271,6 +271,10 @@ describe('Tournament Prediction Completion Repository', () => {
         top_goalscorer_player_id: 'player-2',
         best_goalkeeper_player_id: 'player-3',
         best_young_player_id: undefined,
+        honor_roll_score: undefined,
+        individual_awards_score: undefined,
+        qualified_teams_score: undefined,
+        group_position_score: undefined,
       };
       mockFindTournamentGuess.mockResolvedValue(mockTournamentGuess);
 

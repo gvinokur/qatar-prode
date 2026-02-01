@@ -62,6 +62,10 @@ const guessesContextValue = {
   gameGuesses: {},
   guessedPositions: [],
   updateGameGuess,
+  pendingSaves: new Set<string>(),
+  saveErrors: {},
+  clearSaveError: vi.fn(),
+  flushPendingSave: vi.fn(),
 };
 
 const teamsMap = {
@@ -153,6 +157,10 @@ describe('GamesGrid', () => {
       },
       guessedPositions: [],
       updateGameGuess,
+      pendingSaves: new Set<string>(),
+      saveErrors: {},
+      clearSaveError: vi.fn(),
+      flushPendingSave: vi.fn(),
     };
     
     render(

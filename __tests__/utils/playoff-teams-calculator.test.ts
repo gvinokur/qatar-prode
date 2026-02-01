@@ -38,6 +38,7 @@ describe('playoff-teams-calculator', () => {
     goals_for: 5,
     goals_against: 2,
     goal_difference: 3,
+    conduct_score: 0,
     is_complete: isComplete
   });
 

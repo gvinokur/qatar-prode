@@ -1,3 +1,5 @@
+import { vi, describe, it, expect, Mock } from 'vitest';
+
 // Mock the auth module to prevent Next-auth import issues - must be first!
 vi.mock('../../auth', () => ({
   auth: vi.fn().mockResolvedValue({
@@ -14,8 +16,6 @@ vi.mock('web-push', () => ({
   setVapidDetails: vi.fn(),
   sendNotification: vi.fn()
 }));
-
-import { vi, describe, it, expect } from 'vitest';
 import { 
   urlBase64ToUint8Array, 
   isNotificationSupported, 
@@ -143,7 +143,7 @@ describe('notifications-utils', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
   });
   afterAll(() => {
-    (console.error as vi.Mock).mockRestore();
+    (console.error as Mock).mockRestore();
   });
 
   describe('checkExistingSubscription', () => {

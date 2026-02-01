@@ -49,9 +49,7 @@ const renderWithTheme = (component: React.ReactElement) => {
 const mockGroup: ProdeGroup = {
   id: 'group1',
   name: 'Test Group',
-  owner_id: 'owner1',
-  invite_code: 'ABC123',
-  created_at: new Date(),
+  owner_user_id: 'owner1',
   theme: {
     primary_color: '#ff0000',
     secondary_color: '#00ff00'
@@ -61,10 +59,8 @@ const mockGroup: ProdeGroup = {
 const mockGroupWithoutTheme: ProdeGroup = {
   id: 'group2',
   name: 'Test Group 2',
-  owner_id: 'owner2',
-  invite_code: 'DEF456',
-  created_at: new Date(),
-  theme: null
+  owner_user_id: 'owner2',
+  theme: undefined
 };
 
 describe('ProdeGroupThemer', () => {

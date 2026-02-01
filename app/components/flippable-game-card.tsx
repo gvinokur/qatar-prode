@@ -108,10 +108,10 @@ export default function FlippableGameCard({
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   // Refs for keyboard navigation
-  const homeScoreInputRef = useRef<HTMLInputElement>(null);
-  const awayScoreInputRef = useRef<HTMLInputElement>(null);
-  const boostButtonGroupRef = useRef<HTMLDivElement>(null);
-  const editButtonRef = useRef<HTMLButtonElement>(null);
+  const homeScoreInputRef = useRef<HTMLInputElement | null>(null);
+  const awayScoreInputRef = useRef<HTMLInputElement | null>(null);
+  const boostButtonGroupRef = useRef<HTMLDivElement | null>(null);
+  const editButtonRef = useRef<HTMLButtonElement | null>(null);
 
   // Get team info
   const homeTeam = game.home_team ? teamsMap[game.home_team] : null;
@@ -170,7 +170,6 @@ export default function FlippableGameCard({
         {/* Header: ALWAYS VISIBLE (no flip) */}
         <GameCountdownDisplay
           gameDate={game.game_date}
-          gameNumber={game.game_number}
           gameTimezone={game.game_local_timezone}
         />
 

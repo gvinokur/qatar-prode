@@ -90,8 +90,11 @@ describe('User Actions', () => {
     verification_token_expiration: new Date(Date.now() + 24 * 60 * 60 * 1000),
     reset_token: null,
     reset_token_expiration: null,
-    created_at: new Date(),
-    updated_at: new Date()
+    is_admin: false,
+    onboarding_completed: false,
+    onboarding_completed_at: null,
+    onboarding_data: null,
+    notification_subscriptions: []
   };
 
   const mockNewUser: UserNew = {
@@ -107,7 +110,7 @@ describe('User Actions', () => {
 
   describe('signupUser', () => {
     it('should create a new user when email does not exist', async () => {
-      vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(null);
+      vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(undefined);
       vi.mocked(usersRepository.getPasswordHash).mockReturnValue('hashed-password');
       vi.mocked(usersRepository.createUser).mockResolvedValue(mockUser);
       vi.mocked(emailTemplates.generateVerificationEmail).mockReturnValue({
@@ -115,7 +118,7 @@ describe('User Actions', () => {
         subject: 'Verification',
         html: '<div>Verify email</div>'
       });
-      vi.mocked(email.sendEmail).mockResolvedValue({ success: true });
+      vi.mocked(email.sendEmail).mockResolvedValue({ success: true, messageId: 'msg-123' });
 
       const result = await signupUser(mockNewUser);
 
@@ -147,7 +150,7 @@ describe('User Actions', () => {
     });
 
     it('should generate verification token with 24-hour expiration', async () => {
-      vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(null);
+      vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(undefined);
       vi.mocked(usersRepository.getPasswordHash).mockReturnValue('hashed-password');
       vi.mocked(usersRepository.createUser).mockResolvedValue(mockUser);
       vi.mocked(emailTemplates.generateVerificationEmail).mockReturnValue({
@@ -155,7 +158,7 @@ describe('User Actions', () => {
         subject: 'Verification',
         html: '<div>Verify email</div>'
       });
-      vi.mocked(email.sendEmail).mockResolvedValue({ success: true });
+      vi.mocked(email.sendEmail).mockResolvedValue({ success: true, messageId: 'msg-123' });
 
       const beforeCall = Date.now();
       await signupUser(mockNewUser);
@@ -178,7 +181,7 @@ describe('User Actions', () => {
         subject: 'Verification',
         html: '<div>Verify email</div>'
       });
-      vi.mocked(email.sendEmail).mockResolvedValue({ success: true });
+      vi.mocked(email.sendEmail).mockResolvedValue({ success: true, messageId: 'msg-123' });
 
       const result = await resendVerificationEmail();
 
@@ -187,11 +190,11 @@ describe('User Actions', () => {
         verification_token_expiration: expect.any(Date)
       });
       expect(email.sendEmail).toHaveBeenCalled();
-      expect(result).toEqual({ success: true });
+      expect(result).toEqual({ success: true, messageId: 'msg-123' });
     });
 
     it('should return error when user is not logged in', async () => {
-      vi.mocked(auth).mockResolvedValue(null);
+      vi.mocked(auth).mockResolvedValue(null as any);
 
       const result = await resendVerificationEmail();
 
@@ -214,7 +217,7 @@ describe('User Actions', () => {
     });
 
     it('should return error when user is not logged in', async () => {
-      vi.mocked(auth).mockResolvedValue(null);
+      vi.mocked(auth).mockResolvedValue(null as any);
 
       const result = await updateNickname('newnickname');
 
@@ -233,7 +236,7 @@ describe('User Actions', () => {
     });
 
     it('should return undefined when no session', async () => {
-      vi.mocked(auth).mockResolvedValue(null);
+      vi.mocked(auth).mockResolvedValue(null as any);
 
       const result = await getLoggedInUser();
 
@@ -250,7 +253,7 @@ describe('User Actions', () => {
         subject: 'Password Reset',
         html: '<div>Reset password</div>'
       });
-      vi.mocked(email.sendEmail).mockResolvedValue({ success: true });
+      vi.mocked(email.sendEmail).mockResolvedValue({ success: true, messageId: 'msg-123' });
 
       const result = await sendPasswordResetLink('test@example.com');
 
@@ -264,11 +267,11 @@ describe('User Actions', () => {
         'http://localhost:3000/reset-password?token=mocked-token-123456789abcdef'
       );
       expect(email.sendEmail).toHaveBeenCalled();
-      expect(result).toEqual({ success: true });
+      expect(result).toEqual({ success: true, messageId: 'msg-123' });
     });
 
     it('should return error when user does not exist', async () => {
-      vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(null);
+      vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(undefined);
 
       const result = await sendPasswordResetLink('nonexistent@example.com');
 
@@ -284,7 +287,7 @@ describe('User Actions', () => {
         subject: 'Password Reset',
         html: '<div>Reset password</div>'
       });
-      vi.mocked(email.sendEmail).mockResolvedValue({ success: true });
+      vi.mocked(email.sendEmail).mockResolvedValue({ success: true, messageId: 'msg-123' });
 
       const beforeCall = Date.now();
       await sendPasswordResetLink('test@example.com');
@@ -312,7 +315,7 @@ describe('User Actions', () => {
     });
 
     it('should return error when token is invalid', async () => {
-      vi.mocked(usersRepository.findUserByVerificationToken).mockResolvedValue(null);
+      vi.mocked(usersRepository.findUserByVerificationToken).mockResolvedValue(undefined);
 
       const result = await verifyUserEmail('invalid-token');
 
@@ -322,7 +325,7 @@ describe('User Actions', () => {
 
     it('should return error when verification fails', async () => {
       vi.mocked(usersRepository.findUserByVerificationToken).mockResolvedValue(mockUser);
-      vi.mocked(usersRepository.verifyEmail).mockResolvedValue(null);
+      vi.mocked(usersRepository.verifyEmail).mockResolvedValue(undefined);
 
       const result = await verifyUserEmail('valid-token');
 
@@ -354,7 +357,7 @@ describe('User Actions', () => {
     });
 
     it('should return null when user is not found', async () => {
-      vi.mocked(usersRepository.findUserByResetToken).mockResolvedValue(null);
+      vi.mocked(usersRepository.findUserByResetToken).mockResolvedValue(undefined);
 
       const result = await verifyResetToken('invalid-token');
 
@@ -421,20 +424,20 @@ describe('User Actions', () => {
 
   describe('deleteAccount', () => {
     const mockOwnedGroups = [
-      { id: 'group1', name: 'Group 1' },
-      { id: 'group2', name: 'Group 2' }
+      { id: 'group1', name: 'Group 1', owner_user_id: 'user-123', theme: undefined },
+      { id: 'group2', name: 'Group 2', owner_user_id: 'user-123', theme: undefined }
     ];
 
     it('should delete user account and all associated data', async () => {
       vi.mocked(auth).mockResolvedValue({ user: mockUser } as any);
       vi.mocked(prodeGroupRepository.findProdeGroupsByOwner).mockResolvedValue(mockOwnedGroups);
-      vi.mocked(prodeGroupRepository.deleteAllParticipantsFromGroup).mockResolvedValue();
-      vi.mocked(prodeGroupRepository.deleteProdeGroup).mockResolvedValue();
-      vi.mocked(prodeGroupRepository.deleteParticipantFromAllGroups).mockResolvedValue();
-      vi.mocked(tournamentGuessRepository.deleteAllUserTournamentGuesses).mockResolvedValue();
-      vi.mocked(gameGuessRepository.deleteAllUserGameGuesses).mockResolvedValue();
-      vi.mocked(tournamentGroupTeamGuessRepository.deleteAllUserTournamentStatsGuesses).mockResolvedValue();
-      vi.mocked(usersRepository.deleteUser).mockResolvedValue();
+      vi.mocked(prodeGroupRepository.deleteAllParticipantsFromGroup).mockResolvedValue([]);
+      vi.mocked(prodeGroupRepository.deleteProdeGroup).mockResolvedValue(mockOwnedGroups[0] as any);
+      vi.mocked(prodeGroupRepository.deleteParticipantFromAllGroups).mockResolvedValue([]);
+      vi.mocked(tournamentGuessRepository.deleteAllUserTournamentGuesses).mockResolvedValue([]);
+      vi.mocked(gameGuessRepository.deleteAllUserGameGuesses).mockResolvedValue([]);
+      vi.mocked(tournamentGroupTeamGuessRepository.deleteAllUserTournamentStatsGuesses).mockResolvedValue([]);
+      vi.mocked(usersRepository.deleteUser).mockResolvedValue(mockUser as any);
 
       const result = await deleteAccount();
 
@@ -450,7 +453,7 @@ describe('User Actions', () => {
     });
 
     it('should return error when user is not authenticated', async () => {
-      vi.mocked(auth).mockResolvedValue(null);
+      vi.mocked(auth).mockResolvedValue(null as any);
 
       const result = await deleteAccount();
 
@@ -484,11 +487,11 @@ describe('User Actions', () => {
     it('should handle empty owned groups array', async () => {
       vi.mocked(auth).mockResolvedValue({ user: mockUser } as any);
       vi.mocked(prodeGroupRepository.findProdeGroupsByOwner).mockResolvedValue([]);
-      vi.mocked(prodeGroupRepository.deleteParticipantFromAllGroups).mockResolvedValue();
-      vi.mocked(tournamentGuessRepository.deleteAllUserTournamentGuesses).mockResolvedValue();
-      vi.mocked(gameGuessRepository.deleteAllUserGameGuesses).mockResolvedValue();
-      vi.mocked(tournamentGroupTeamGuessRepository.deleteAllUserTournamentStatsGuesses).mockResolvedValue();
-      vi.mocked(usersRepository.deleteUser).mockResolvedValue();
+      vi.mocked(prodeGroupRepository.deleteParticipantFromAllGroups).mockResolvedValue([]);
+      vi.mocked(tournamentGuessRepository.deleteAllUserTournamentGuesses).mockResolvedValue([]);
+      vi.mocked(gameGuessRepository.deleteAllUserGameGuesses).mockResolvedValue([]);
+      vi.mocked(tournamentGroupTeamGuessRepository.deleteAllUserTournamentStatsGuesses).mockResolvedValue([]);
+      vi.mocked(usersRepository.deleteUser).mockResolvedValue(mockUser as any);
 
       const result = await deleteAccount();
 

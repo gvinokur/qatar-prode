@@ -11,21 +11,9 @@ import {
   Box,
   Typography,
   Grid,
-  FormControlLabel,
-  Checkbox,
   CircularProgress,
-  Alert,
-  Divider,
-  ToggleButtonGroup,
-  ToggleButton,
-  Chip,
-  useTheme,
-  alpha
+  Alert
 } from '@mui/material';
-import {
-  EmojiEvents as TrophyIcon,
-  Star as StarIcon
-} from '@mui/icons-material';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -67,7 +55,6 @@ interface GameResultEditProps extends SharedProps {
 type GameResultEditDialogProps = GameGuessEditProps | GameResultEditProps;
 
 export default function GameResultEditDialog(props: GameResultEditDialogProps) {
-  const theme = useTheme();
   const {
     open,
     onClose,
@@ -118,8 +105,6 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
       golden: { used: goldenUsed, max: boostCounts.golden.max }
     };
   };
-
-  const effectiveBoostCounts = getEffectiveBoostCounts();
 
   // Initialize form when dialog opens or props change
   useEffect(() => {
@@ -191,21 +176,6 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
     }
   };
 
-  const handleHomePenaltyWinnerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const checked = e.target.checked;
-    setHomePenaltyWinner(checked);
-    if (checked) {
-      setAwayPenaltyWinner(false);
-    }
-  };
-
-  const handleAwayPenaltyWinnerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const checked = e.target.checked;
-    setAwayPenaltyWinner(checked);
-    if (checked) {
-      setHomePenaltyWinner(false);
-    }
-  };
 
   const handleHomePenaltyScoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value === '' ? undefined : Number(e.target.value);

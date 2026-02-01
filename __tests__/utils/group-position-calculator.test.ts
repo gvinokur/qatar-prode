@@ -319,9 +319,10 @@ describe('group-position-calculator', () => {
         goals_for: 6,
         goals_against: 1,
         goal_difference: 5,
+        conduct_score: 0,
         is_complete: true
       };
-      
+
       const teamB = {
         team_id: 'team2',
         games_played: 3,
@@ -332,9 +333,10 @@ describe('group-position-calculator', () => {
         goals_for: 4,
         goals_against: 2,
         goal_difference: 2,
+        conduct_score: 0,
         is_complete: true
       };
-      
+
       const result = pointsBasesTeamStatsComparator(teamA, teamB);
       expect(result).toBeLessThan(0); // teamA should be ranked higher due to more points
     });
@@ -383,9 +385,10 @@ describe('group-position-calculator', () => {
         goals_for: 5,
         goals_against: 3,
         goal_difference: 2,
+        conduct_score: 0,
         is_complete: true
       };
-      
+
       const teamB = {
         team_id: 'team2',
         games_played: 3,
@@ -396,9 +399,10 @@ describe('group-position-calculator', () => {
         goals_for: 4,
         goals_against: 2,
         goal_difference: 2,
+        conduct_score: 0,
         is_complete: true
       };
-      
+
       const result = pointsBasesTeamStatsComparator(teamA, teamB);
       expect(result).toBe(0); // teams should be equal (same points)
     });

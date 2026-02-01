@@ -2,6 +2,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { ThemeProvider, createTheme } from '@mui/material';
 import GameResultEditDialog from '../../app/components/game-result-edit-dialog';
 
 // Mock next-auth
@@ -14,12 +15,34 @@ vi.mock('next-auth/react', () => ({
 
 // Mock game-boost-actions to avoid next/server import issues
 vi.mock('../../app/actions/game-boost-actions', () => ({
-  getBoostCountsAction: vi.fn().mockResolvedValue({
+  getBoostCountsAction: vi.fn(() => Promise.resolve({
     silver: { used: 0, max: 5 },
     golden: { used: 0, max: 3 },
-  }),
-  setGameBoostAction: vi.fn().mockResolvedValue(undefined),
+  })),
+  setGameBoostAction: vi.fn(() => Promise.resolve(undefined)),
 }));
+
+// Create a theme with accent colors for testing
+const testTheme = createTheme({
+  palette: {
+    accent: {
+      silver: {
+        main: '#C0C0C0',
+      },
+      gold: {
+        main: '#FFD700',
+      },
+    },
+  } as any,
+});
+
+const renderWithTheme = (component: React.ReactElement) => {
+  return render(
+    <ThemeProvider theme={testTheme}>
+      {component}
+    </ThemeProvider>
+  );
+};
 
 describe('GameResultEditDialog', () => {
   const baseProps = {
@@ -33,25 +56,34 @@ describe('GameResultEditDialog', () => {
   };
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    // Reset call history for shared mocks to ensure test isolation
+    baseProps.onClose.mockClear();
   });
 
   describe('Game Guess Mode', () => {
     const gameGuessProps = {
       ...baseProps,
       isGameGuess: true as const,
+      tournamentId: 'tournament-1',
       onGameGuessSave: vi.fn(),
     };
 
-    it('renders game guess dialog with correct title', () => {
-      render(<GameResultEditDialog {...gameGuessProps} />);
-      expect(screen.getByText('Edit Result: Game #5')).toBeInTheDocument();
-      expect(screen.getByText('Team A')).toBeInTheDocument();
-      expect(screen.getByText('Team B')).toBeInTheDocument();
+    beforeEach(() => {
+      gameGuessProps.onGameGuessSave.mockClear();
     });
 
-    it('initializes with provided values', () => {
-      render(
+    it('renders game guess dialog with correct title', async () => {
+      renderWithTheme(<GameResultEditDialog {...gameGuessProps} />);
+      expect(screen.getByText('Edit Result: Game #5')).toBeInTheDocument();
+
+      // Wait for boost counts to load and GamePredictionEditControls to render
+      // Use findByText which automatically waits
+      expect(await screen.findByText('Team A', {}, { timeout: 3000 })).toBeInTheDocument();
+      expect(await screen.findByText('Team B', {}, { timeout: 3000 })).toBeInTheDocument();
+    });
+
+    it('initializes with provided values', async () => {
+      renderWithTheme(
         <GameResultEditDialog
           {...gameGuessProps}
           isPlayoffGame={true}
@@ -60,14 +92,18 @@ describe('GameResultEditDialog', () => {
           initialHomePenaltyWinner={true}
         />
       );
-      // Both home and away scores are 1
-      expect(screen.getAllByDisplayValue('1')).toHaveLength(2);
-      // Penalty winner checkbox for Team A should be checked
-      expect(screen.getByRole('checkbox', { name: /Team A/i })).toBeChecked();
+
+      // Wait for GamePredictionEditControls to load
+      await waitFor(() => {
+        // Both home and away scores are 1
+        expect(screen.getAllByDisplayValue('1')).toHaveLength(2);
+        // Penalty winner checkbox for Team A should be checked
+        expect(screen.getByRole('checkbox', { name: /Team A/i })).toBeChecked();
+      });
     });
 
     it('handles score changes and resets penalty winners when scores differ', async () => {
-      render(
+      renderWithTheme(
         <GameResultEditDialog
           {...gameGuessProps}
           isPlayoffGame={true}
@@ -76,6 +112,11 @@ describe('GameResultEditDialog', () => {
           initialHomePenaltyWinner={true}
         />
       );
+
+      // Wait for GamePredictionEditControls to load
+      await waitFor(() => {
+        expect(screen.getAllByRole('spinbutton')).toHaveLength(2);
+      });
 
       // Change home score to make scores different
       const homeScoreInput = screen.getAllByRole('spinbutton')[0];
@@ -83,12 +124,14 @@ describe('GameResultEditDialog', () => {
       await userEvent.type(homeScoreInput, '2');
 
       // Penalty section should disappear (checkboxes not present)
-      expect(screen.queryByRole('checkbox', { name: /Team A/i })).not.toBeInTheDocument();
-      expect(screen.queryByRole('checkbox', { name: /Team B/i })).not.toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.queryByRole('checkbox', { name: /Team A/i })).not.toBeInTheDocument();
+        expect(screen.queryByRole('checkbox', { name: /Team B/i })).not.toBeInTheDocument();
+      });
     });
 
-    it('shows penalty winner selection for tied playoff games', () => {
-      render(
+    it('shows penalty winner selection for tied playoff games', async () => {
+      renderWithTheme(
         <GameResultEditDialog
           {...gameGuessProps}
           initialHomeScore={1}
@@ -97,13 +140,16 @@ describe('GameResultEditDialog', () => {
         />
       );
 
-      expect(screen.getByText('Ganador de la tanda de penales')).toBeInTheDocument();
-      expect(screen.getByRole('checkbox', { name: /Team A/i })).toBeInTheDocument();
-      expect(screen.getByRole('checkbox', { name: /Team B/i })).toBeInTheDocument();
+      // Wait for GamePredictionEditControls to load
+      await waitFor(() => {
+        expect(screen.getByText('Ganador de la tanda de penales')).toBeInTheDocument();
+        expect(screen.getByRole('checkbox', { name: /Team A/i })).toBeInTheDocument();
+        expect(screen.getByRole('checkbox', { name: /Team B/i })).toBeInTheDocument();
+      });
     });
 
     it('validates penalty winner selection for tied playoff games', async () => {
-      render(
+      renderWithTheme(
         <GameResultEditDialog
           {...gameGuessProps}
           initialHomeScore={1}
@@ -111,21 +157,32 @@ describe('GameResultEditDialog', () => {
           isPlayoffGame={true}
         />
       );
+
+      // Wait for GamePredictionEditControls to load
+      await waitFor(() => {
+        expect(screen.getByText('Ganador de la tanda de penales')).toBeInTheDocument();
+      });
 
       const saveButton = screen.getByText('Save Result');
       await userEvent.click(saveButton);
 
-      expect(screen.getByText('Please select a penalty shootout winner')).toBeInTheDocument();
+      // Error appears in both dialog and controls, use getAllByText
+      expect(screen.getAllByText('Please select a penalty shootout winner').length).toBeGreaterThan(0);
       expect(gameGuessProps.onGameGuessSave).not.toHaveBeenCalled();
     });
 
     it('saves game guess successfully', async () => {
       gameGuessProps.onGameGuessSave.mockResolvedValue(undefined);
-      render(<GameResultEditDialog {...gameGuessProps} />);
+      renderWithTheme(<GameResultEditDialog {...gameGuessProps} />);
+
+      // Wait for GamePredictionEditControls to load
+      await waitFor(() => {
+        expect(screen.getAllByRole('spinbutton')).toHaveLength(2);
+      });
 
       const homeScoreInput = screen.getAllByRole('spinbutton')[0];
       const awayScoreInput = screen.getAllByRole('spinbutton')[1];
-      
+
       await userEvent.type(homeScoreInput, '2');
       await userEvent.type(awayScoreInput, '1');
 
@@ -140,7 +197,12 @@ describe('GameResultEditDialog', () => {
 
     it('handles save error', async () => {
       gameGuessProps.onGameGuessSave.mockRejectedValue(new Error('Save failed'));
-      render(<GameResultEditDialog {...gameGuessProps} />);
+      renderWithTheme(<GameResultEditDialog {...gameGuessProps} />);
+
+      // Wait for GamePredictionEditControls to load
+      await waitFor(() => {
+        expect(screen.getAllByRole('spinbutton')).toHaveLength(2);
+      });
 
       const homeScoreInput = screen.getAllByRole('spinbutton')[0];
       await userEvent.type(homeScoreInput, '1');
@@ -149,14 +211,20 @@ describe('GameResultEditDialog', () => {
       await userEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Failed to save game result. Please try again.')).toBeInTheDocument();
+        // Error appears in both dialog and controls
+        expect(screen.getAllByText('Failed to save game result. Please try again.').length).toBeGreaterThan(0);
         expect(baseProps.onClose).not.toHaveBeenCalled();
       });
     });
 
     it('prevents closing dialog while loading', async () => {
       gameGuessProps.onGameGuessSave.mockImplementation(() => new Promise(() => {})); // Never resolves
-      render(<GameResultEditDialog {...gameGuessProps} isPlayoffGame={true} initialHomeScore={1} initialAwayScore={1} />);
+      renderWithTheme(<GameResultEditDialog {...gameGuessProps} isPlayoffGame={true} initialHomeScore={1} initialAwayScore={1} />);
+
+      // Wait for GamePredictionEditControls to load
+      await waitFor(() => {
+        expect(screen.getAllByRole('spinbutton')).toHaveLength(2);
+      });
 
       const homeScoreInput = screen.getAllByRole('spinbutton')[0];
       await userEvent.type(homeScoreInput, '1');
@@ -166,7 +234,8 @@ describe('GameResultEditDialog', () => {
 
       // Dialog should show loading state
       expect(screen.getByText('Saving...')).toBeInTheDocument();
-      expect(screen.getByRole('progressbar')).toBeInTheDocument();
+      // Multiple progress bars (dialog button + potentially controls)
+      expect(screen.getAllByRole('progressbar').length).toBeGreaterThan(0);
 
       // Cancel button should be disabled
       const cancelButton = screen.getByText('Cancel');
@@ -182,13 +251,17 @@ describe('GameResultEditDialog', () => {
       onGameResultSave: vi.fn(),
     };
 
+    beforeEach(() => {
+      gameResultProps.onGameResultSave.mockClear();
+    });
+
     it('renders game result dialog with date picker', () => {
-      render(<GameResultEditDialog {...gameResultProps} />);
+      renderWithTheme(<GameResultEditDialog {...gameResultProps} />);
       expect(screen.getAllByText('Game Date & Time').length).toBeGreaterThan(0);
     });
 
     it('initializes with provided values', () => {
-      render(
+      renderWithTheme(
         <GameResultEditDialog
           {...gameResultProps}
           initialHomeScore={3}
@@ -205,7 +278,7 @@ describe('GameResultEditDialog', () => {
     });
 
     it('shows penalty score inputs for tied playoff games', () => {
-      render(
+      renderWithTheme(
         <GameResultEditDialog
           {...gameResultProps}
           initialHomeScore={1}
@@ -220,7 +293,7 @@ describe('GameResultEditDialog', () => {
     });
 
     it('validates penalty scores for tied playoff games', async () => {
-      render(
+      renderWithTheme(
         <GameResultEditDialog
           {...gameResultProps}
           initialHomeScore={1}
@@ -237,7 +310,7 @@ describe('GameResultEditDialog', () => {
     });
 
     it('validates game date is required', async () => {
-      render(
+      renderWithTheme(
         <GameResultEditDialog
           {...gameResultProps}
           initialGameDate={undefined as any}
@@ -253,7 +326,7 @@ describe('GameResultEditDialog', () => {
 
     it('saves game result successfully', async () => {
       gameResultProps.onGameResultSave.mockResolvedValue(undefined);
-      render(<GameResultEditDialog {...gameResultProps} />);
+      renderWithTheme(<GameResultEditDialog {...gameResultProps} />);
 
       const homeScoreInput = screen.getAllByRole('spinbutton')[0];
       const awayScoreInput = screen.getAllByRole('spinbutton')[1];
@@ -275,7 +348,7 @@ describe('GameResultEditDialog', () => {
 
     it('handles save error', async () => {
       gameResultProps.onGameResultSave.mockRejectedValue(new Error('Save failed'));
-      render(<GameResultEditDialog {...gameResultProps} />);
+      renderWithTheme(<GameResultEditDialog {...gameResultProps} />);
 
       const homeScoreInput = screen.getAllByRole('spinbutton')[0];
       await userEvent.type(homeScoreInput, '1');
@@ -284,7 +357,8 @@ describe('GameResultEditDialog', () => {
       await userEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Failed to save game result. Please try again.')).toBeInTheDocument();
+        // Error appears in both dialog and controls
+        expect(screen.getAllByText('Failed to save game result. Please try again.').length).toBeGreaterThan(0);
         expect(baseProps.onClose).not.toHaveBeenCalled();
       });
     });
@@ -292,7 +366,7 @@ describe('GameResultEditDialog', () => {
 
   describe('Shared Functionality', () => {
     it('closes dialog on cancel', async () => {
-      render(<GameResultEditDialog {...baseProps} isGameGuess={true} onGameGuessSave={vi.fn()} />);
+      renderWithTheme(<GameResultEditDialog {...baseProps} isGameGuess={true} onGameGuessSave={vi.fn()} />);
       
       const cancelButton = screen.getByText('Cancel');
       await userEvent.click(cancelButton);
@@ -301,7 +375,7 @@ describe('GameResultEditDialog', () => {
     });
 
     it('does not show penalty section for non-playoff games', () => {
-      render(
+      renderWithTheme(
         <GameResultEditDialog
           {...baseProps}
           isGameGuess={true}
@@ -317,7 +391,7 @@ describe('GameResultEditDialog', () => {
     });
 
     it('does not show penalty section when scores are different', () => {
-      render(
+      renderWithTheme(
         <GameResultEditDialog
           {...baseProps}
           isGameGuess={true}

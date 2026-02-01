@@ -73,7 +73,7 @@ describe('Onboarding Integration Flow', () => {
     const { getOnboardingStatus } = await import('../../app/db/onboarding-repository')
     const status = await getOnboardingStatus('user-123')
 
-    expect(status.onboarding_completed).toBe(false)
+    expect(status?.onboarding_completed).toBe(false)
     expect(mockGetOnboardingStatus).toHaveBeenCalledWith('user-123')
   })
 
@@ -83,6 +83,6 @@ describe('Onboarding Integration Flow', () => {
     const { getOnboardingStatus } = await import('../../app/db/onboarding-repository')
     const status = await getOnboardingStatus('user-123')
 
-    expect(status.onboarding_completed).toBe(true)
+    expect(status?.onboarding_completed).toBe(true)
   })
 })

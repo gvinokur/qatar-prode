@@ -73,8 +73,10 @@ const mockContext = {
     gameGuesses: mockGameGuesses,
     guessedPositions: [],
     updateGameGuess: vi.fn(),
-    updateGuessedPositions: vi.fn(),
-    autoSave: true,
+    pendingSaves: new Set<string>(),
+    saveErrors: {},
+    clearSaveError: vi.fn(),
+    flushPendingSave: vi.fn(),
 };
 
 const mockTeamsMap: { [k: string]: Team } = {
@@ -82,13 +84,13 @@ const mockTeamsMap: { [k: string]: Team } = {
         id: 'team1',
         name: 'Team 1',
         short_name: 'T1',
-        theme: 'blue',
+        theme: { primary_color: '#0000FF', secondary_color: '#FFFFFF' },
     },
     'team2': {
         id: 'team2',
         name: 'Team 2',
         short_name: 'T2',
-        theme: 'red',
+        theme: { primary_color: '#FF0000', secondary_color: '#FFFFFF' },
     },
 };
 
@@ -259,7 +261,7 @@ describe('GameView', () => {
         const gameGuessWithoutNumber = {
             game1: {
                 ...mockGameGuesses.game1,
-                game_number: undefined,
+                game_number: 0,
             },
         };
 
@@ -272,7 +274,7 @@ describe('GameView', () => {
         const gameGuessWithoutId = {
             game1: {
                 ...mockGameGuesses.game1,
-                game_id: undefined,
+                game_id: '',
             },
         };
 

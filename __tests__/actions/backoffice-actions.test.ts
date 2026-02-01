@@ -404,6 +404,16 @@ describe('Backoffice Actions', () => {
     top_goalscorer_player_id: undefined,
     best_goalkeeper_player_id: undefined,
     best_young_player_id: undefined,
+    game_exact_score_points: 3,
+    game_correct_outcome_points: 1,
+    champion_points: 10,
+    runner_up_points: 5,
+    third_place_points: 3,
+    individual_award_points: 5,
+    qualified_team_points: 1,
+    exact_position_qualified_points: 1,
+    max_silver_games: 3,
+    max_golden_games: 1,
   };
 
   const mockTeam = {
@@ -619,7 +629,7 @@ describe('Backoffice Actions', () => {
       mockCreateTeam.mockResolvedValue(mockTeam);
       mockCreateTournamentTeam.mockResolvedValue({ tournament_id: 'tournament1', team_id: 'team1' });
       mockCreateTournamentGroup.mockResolvedValue({ id: 'group1', tournament_id: 'tournament1', group_letter: 'A', sort_by_games_between_teams: false });
-      mockCreateTournamentGroupTeam.mockResolvedValue({ id: 'groupteam1', team_id: 'team1', position: 1, tournament_group_id: 'group1', games_played: 1, points: 1, win: 1, draw: 1, loss: 1, goals_for: 1, goals_against: 1, goal_difference: 1, is_complete: true });
+      mockCreateTournamentGroupTeam.mockResolvedValue({ id: 'groupteam1', team_id: 'team1', position: 1, tournament_group_id: 'group1', games_played: 1, points: 1, win: 1, draw: 1, loss: 1, goals_for: 1, goals_against: 1, goal_difference: 1, conduct_score: 0, is_complete: true });
       mockCreatePlayoffRound.mockResolvedValue({ id: 'playoff1', tournament_id: 'tournament1', round_name: 'Final', round_order: 1, total_games: 1, is_final: true, is_third_place: false, is_first_stage: false });
       mockCreateGame.mockResolvedValue(mockGame);
       mockCreateTournamentGroupGame.mockResolvedValue({ tournament_group_id: 'group1', game_id: 'game1' });
@@ -742,10 +752,10 @@ describe('Backoffice Actions', () => {
       mockFindGamesInTournament.mockResolvedValue([mockGame]);
       mockFindPlayoffStagesWithGamesInTournament.mockResolvedValue([mockExtendedPlayoffRoundData]);
       mockFindGameResultByGameIds.mockResolvedValue([mockGameResult]);
-      mockCalculatePlayoffTeams.mockReturnValue({
+      mockCalculatePlayoffTeams.mockReturnValue(Promise.resolve({
         [mockGame.id as string]: {
           game_id: mockGame.id,
-          homeTeam: { 
+          homeTeam: {
             team_id: 'team1',
             games_played: 0,
             points: 0,
@@ -755,9 +765,10 @@ describe('Backoffice Actions', () => {
             goals_for: 0,
             goals_against: 0,
             goal_difference: 0,
+            conduct_score: 0,
             is_complete: false
           },
-          awayTeam: { 
+          awayTeam: {
             team_id: 'team2',
             games_played: 0,
             points: 0,
@@ -767,10 +778,11 @@ describe('Backoffice Actions', () => {
             goals_for: 0,
             goals_against: 0,
             goal_difference: 0,
+            conduct_score: 0,
             is_complete: false
           }
         }
-      });
+      }));
     });
 
     it('calculates and saves playoff games', async () => {
@@ -784,13 +796,13 @@ describe('Backoffice Actions', () => {
     });
 
     it('handles null team calculations', async () => {
-      mockCalculatePlayoffTeams.mockReturnValue({
+      mockCalculatePlayoffTeams.mockReturnValue(Promise.resolve({
         [mockGame.id as string]: {
           game_id: mockGame.id,
           homeTeam: null,
           awayTeam: null
         }
-      } as any);
+      }) as any);
 
       await calculateAndSavePlayoffGamesForTournament('tournament1');
 
@@ -823,7 +835,7 @@ describe('Backoffice Actions', () => {
       mockFindTeamInGroup.mockResolvedValue([mockTeam]);
       mockFindTournamentgroupById.mockResolvedValue({ id: 'group1', tournament_id: 'tournament1', group_letter: 'A', sort_by_games_between_teams: false });
       mockCalculateGroupPosition.mockReturnValue([
-        { team_id: 'team1', games_played: 1, points: 3, win: 1, draw: 0, loss: 0, goals_for: 2, goals_against: 1, goal_difference: 1, is_complete: true }
+        { team_id: 'team1', games_played: 1, points: 3, win: 1, draw: 0, loss: 0, goals_for: 2, goals_against: 1, goal_difference: 1, conduct_score: 0, is_complete: true }
       ]);
     });
 
@@ -845,7 +857,7 @@ describe('Backoffice Actions', () => {
 
   describe('recalculateAllPlayoffFirstRoundGameGuesses', () => {
     beforeEach(() => {
-      mockUpdatePlayoffGameGuesses.mockResolvedValue([{ id: 'guess1', game_number: 1, home_team: 'team1', away_team: 'team2', game_id: 'game1', home_score: 1, away_score: 2, user_id: 'user1', home_penalty_winner: false, away_penalty_winner: false, score: 1 }]);
+      mockUpdatePlayoffGameGuesses.mockResolvedValue([{ id: 'guess1', game_number: 1, home_team: 'team1', away_team: 'team2', game_id: 'game1', home_score: 1, away_score: 2, user_id: 'user1', home_penalty_winner: false, away_penalty_winner: false, score: 1, boost_type: null, boost_multiplier: 1.0, final_score: 1, updated_at: new Date() }]);
     });
 
     it('recalculates playoff guesses for all users', async () => {
@@ -871,14 +883,14 @@ describe('Backoffice Actions', () => {
         {
           ...mockGame,
           gameResult: mockGameResult,
-          gameGuesses: [{ id: 'guess1', game_number: 1, home_team: 'team1', away_team: 'team2', game_id: 'game1', home_score: 1, away_score: 2, user_id: 'user1', home_penalty_winner: false, away_penalty_winner: false, score: 1, boost_type: null }]
+          gameGuesses: [{ id: 'guess1', game_number: 1, home_team: 'team1', away_team: 'team2', game_id: 'game1', home_score: 1, away_score: 2, user_id: 'user1', home_penalty_winner: false, away_penalty_winner: false, score: 1, boost_type: null, boost_multiplier: 1.0, final_score: 1, updated_at: new Date() }]
         }
       ]);
       mockFindAllGuessesForGamesWithResultsInDraft.mockResolvedValue([
-        { id: 'guess2', game_id: 'game2', game_number: 2, user_id: 'user2', home_team: 'team3', away_team: 'team4', home_score: 2, away_score: 1, home_penalty_winner: false, away_penalty_winner: false, score: 5 }
+        { id: 'guess2', game_id: 'game2', game_number: 2, user_id: 'user2', home_team: 'team3', away_team: 'team4', home_score: 2, away_score: 1, home_penalty_winner: false, away_penalty_winner: false, score: 5, boost_type: null, boost_multiplier: 1.0, final_score: 5, updated_at: new Date() }
       ]);
       mockCalculateScoreForGame.mockReturnValue(2);
-      mockUpdateGameGuessWithBoost.mockResolvedValue({ id: 'guess1', game_number: 1, home_team: 'team1', away_team: 'team2', game_id: 'game1', home_score: 1, away_score: 2, user_id: 'user1', home_penalty_winner: false, away_penalty_winner: false, score: 2, boost_type: null, boost_multiplier: 1.0, final_score: 2 });
+      mockUpdateGameGuessWithBoost.mockResolvedValue({ id: 'guess1', game_number: 1, home_team: 'team1', away_team: 'team2', game_id: 'game1', home_score: 1, away_score: 2, user_id: 'user1', home_penalty_winner: false, away_penalty_winner: false, score: 2, boost_type: null, boost_multiplier: 1.0, final_score: 2, updated_at: new Date() });
     });
 
     it('calculates and updates game scores', async () => {
@@ -978,6 +990,16 @@ describe('Backoffice Actions', () => {
           best_young_player_id: undefined,
           dev_only: false,
           display_name: true,
+          game_exact_score_points: 3,
+          game_correct_outcome_points: 1,
+          champion_points: 10,
+          runner_up_points: 5,
+          third_place_points: 3,
+          individual_award_points: 5,
+          qualified_team_points: 1,
+          exact_position_qualified_points: 1,
+          max_silver_games: 3,
+          max_golden_games: 1,
         },
         players: [mockPlayer]
       });
@@ -1034,7 +1056,7 @@ describe('Backoffice Actions', () => {
 
       expect(mockUpdateTournament).toHaveBeenCalledWith('tournament1', mockTournamentUpdate);
       expect(mockUpdateTournamentGuess).toHaveBeenCalledWith('guess1', {
-        individual_awards_score: 3 // Only best_player_id matches
+        individual_awards_score: 5 // Only best_player_id matches (5 points from tournament config)
       });
       expect(result).toHaveLength(1);
     });
@@ -1118,7 +1140,7 @@ describe('Backoffice Actions', () => {
 
       expect(mockUpdateTournament).toHaveBeenCalledWith('tournament1', mockTournamentUpdate);
       expect(mockUpdateTournamentGuess).toHaveBeenCalledWith('guess1', {
-        honor_roll_score: 8 // 5 (champion) + 3 (runner-up) + 0 (third place)
+        honor_roll_score: 15 // 10 (champion) + 5 (runner-up) + 0 (third place) from tournament config
       });
       expect(result).toHaveLength(1);
     });
@@ -1140,9 +1162,9 @@ describe('Backoffice Actions', () => {
       mockFindAllPlayersInTournamentWithTeamData.mockResolvedValue([mockPlayer]);
       mockCreatePlayer.mockResolvedValue({ ...mockPlayer, tournament_id: 'tournament2' });
       mockFindAllTournamentVenues.mockResolvedValue([]);
-      mockCreateTournamentVenue.mockResolvedValue({ id: 'venue2', tournament_id: 'tournament2', name: 'Venue', location: null, picture_url: null });
+      mockCreateTournamentVenue.mockResolvedValue({ id: 'venue2', tournament_id: 'tournament2', name: 'Venue', location: 'Location', picture_url: null });
       mockFindThirdPlaceRulesByTournament.mockResolvedValue([]);
-      mockCreateThirdPlaceRule.mockResolvedValue({ id: 'rule2', tournament_id: 'tournament2', combination_key: 'key', rules: '{}' });
+      mockCreateThirdPlaceRule.mockResolvedValue({ id: 'rule2', tournament_id: 'tournament2', combination_key: 'key', rules: {}, created_at: undefined, updated_at: undefined });
       mockFindPlayoffStagesWithGamesInTournament.mockResolvedValue([mockExtendedPlayoffRoundData]);
       mockCreatePlayoffRound.mockResolvedValue({ ...mockExtendedPlayoffRoundData, id: 'playoff2' });
       mockFindGroupsWithGamesAndTeamsInTournament.mockResolvedValue([mockExtendedGroupData]);
@@ -1160,6 +1182,7 @@ describe('Backoffice Actions', () => {
         goals_for: 0,
         goals_against: 0,
         goal_difference: 0,
+        conduct_score: 0,
         is_complete: false
       });
       mockFindGamesInTournament.mockResolvedValue([mockGame]);
@@ -1279,12 +1302,12 @@ describe('Backoffice Actions', () => {
       ]);
       mockFindGroupsInTournament.mockResolvedValue([{ id: 'group1', tournament_id: 'tournament1', group_letter: 'A', sort_by_games_between_teams: false }]);
       mockFindTeamsInGroup.mockResolvedValue([
-        { id: 'teamgroup1', team_id: 'team1', position: 1, tournament_group_id: 'group1', games_played: 3, points: 6, win: 2, draw: 0, loss: 1, goals_for: 4, goals_against: 2, goal_difference: 2, is_complete: true },
-        { id: 'teamgroup2', team_id: 'team2', position: 2, tournament_group_id: 'group1', games_played: 3, points: 3, win: 1, draw: 0, loss: 2, goals_for: 2, goals_against: 4, goal_difference: -2, is_complete: true }
+        { id: 'teamgroup1', team_id: 'team1', position: 1, tournament_group_id: 'group1', games_played: 3, points: 6, win: 2, draw: 0, loss: 1, goals_for: 4, goals_against: 2, goal_difference: 2, conduct_score: 0, is_complete: true },
+        { id: 'teamgroup2', team_id: 'team2', position: 2, tournament_group_id: 'group1', games_played: 3, points: 3, win: 1, draw: 0, loss: 2, goals_for: 2, goals_against: 4, goal_difference: -2, conduct_score: 0, is_complete: true }
       ]);
       mockFindAllTournamentGroupTeamGuessInGroup.mockResolvedValue([
-        { id: 'guess1', user_id: 'user1', team_id: 'team1', position: 1, tournament_group_id: 'group1', games_played: 3, points: 6, win: 2, draw: 0, loss: 1, goals_for: 4, goals_against: 2, goal_difference: 2, is_complete: true },
-        { id: 'guess2', user_id: 'user1', team_id: 'team2', position: 3, tournament_group_id: 'group1', games_played: 3, points: 3, win: 1, draw: 0, loss: 2, goals_for: 2, goals_against: 4, goal_difference: -2, is_complete: true }
+        { id: 'guess1', user_id: 'user1', team_id: 'team1', position: 1, tournament_group_id: 'group1', games_played: 3, points: 6, win: 2, draw: 0, loss: 1, goals_for: 4, goals_against: 2, goal_difference: 2, conduct_score: 0, is_complete: true },
+        { id: 'guess2', user_id: 'user1', team_id: 'team2', position: 3, tournament_group_id: 'group1', games_played: 3, points: 3, win: 1, draw: 0, loss: 2, goals_for: 2, goals_against: 4, goal_difference: -2, conduct_score: 0, is_complete: true }
       ]);
       mockUpdateTournamentGuessByUserIdTournament.mockResolvedValue({
         id: 'guess1',
@@ -1317,7 +1340,7 @@ describe('Backoffice Actions', () => {
 
     it('skips incomplete groups', async () => {
       mockFindTeamsInGroup.mockResolvedValue([
-        { id: 'teamgroup1', team_id: 'team1', position: 1, tournament_group_id: 'group1', games_played: 2, points: 3, win: 1, draw: 0, loss: 1, goals_for: 2, goals_against: 2, goal_difference: 0, is_complete: false }
+        { id: 'teamgroup1', team_id: 'team1', position: 1, tournament_group_id: 'group1', games_played: 2, points: 3, win: 1, draw: 0, loss: 1, goals_for: 2, goals_against: 2, goal_difference: 0, conduct_score: 0, is_complete: false }
       ]);
 
       await calculateAndStoreGroupPositionScores('tournament1');
@@ -1329,7 +1352,7 @@ describe('Backoffice Actions', () => {
 
     it('skips incomplete user guesses', async () => {
       mockFindAllTournamentGroupTeamGuessInGroup.mockResolvedValue([
-        { id: 'guess1', user_id: 'user1', team_id: 'team1', position: 1, tournament_group_id: 'group1', games_played: 2, points: 3, win: 1, draw: 0, loss: 1, goals_for: 2, goals_against: 2, goal_difference: 0, is_complete: false }
+        { id: 'guess1', user_id: 'user1', team_id: 'team1', position: 1, tournament_group_id: 'group1', games_played: 2, points: 3, win: 1, draw: 0, loss: 1, goals_for: 2, goals_against: 2, goal_difference: 0, conduct_score: 0, is_complete: false }
       ]);
 
       await calculateAndStoreGroupPositionScores('tournament1');
@@ -1451,7 +1474,7 @@ describe('Backoffice Actions', () => {
 
       it('should handle users with null is_admin as false', async () => {
         const mockAllUsers = [
-          { id: 'user-1', email: 'user@example.com', nickname: 'User', is_admin: null }
+          { id: 'user-1', email: 'user@example.com', nickname: 'User', is_admin: undefined }
         ];
 
         mockFindAllUsers.mockResolvedValue(mockAllUsers);

@@ -1,6 +1,6 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { GuessesContextProvider, GuessesContext } from '../../app/components/context-providers/guesses-context-provider';
 import { Game, GameGuessNew, TournamentGroupTeamStatsGuessNew } from '../../app/db/tables-definition';
@@ -99,6 +99,7 @@ describe('GuessesContextProvider', () => {
       win: 1,
       draw: 0,
       loss: 0,
+      conduct_score: 0,
       is_complete: false
     },
     {
@@ -114,38 +115,42 @@ describe('GuessesContextProvider', () => {
       win: 0,
       draw: 0,
       loss: 1,
+      conduct_score: 0,
       is_complete: false
     }
   ];
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers(); // Ensure real timers are used
     mockUpdateOrCreateGameGuesses.mockResolvedValue(undefined);
     mockUpdateOrCreateTournamentGroupTeamGuesses.mockResolvedValue([]);
     mockUpdatePlayoffGameGuesses.mockResolvedValue(undefined);
     mockCalculateGroupPosition.mockReturnValue([
-      { 
-        team_id: 'team1', 
-        points: 3, 
-        goals_for: 2, 
-        goals_against: 1, 
-        goal_difference: 1, 
+      {
+        team_id: 'team1',
+        points: 3,
+        goals_for: 2,
+        goals_against: 1,
+        goal_difference: 1,
         games_played: 1,
         win: 1,
         draw: 0,
         loss: 0,
+        conduct_score: 0,
         is_complete: false
       },
-      { 
-        team_id: 'team2', 
-        points: 0, 
-        goals_for: 1, 
-        goals_against: 2, 
+      {
+        team_id: 'team2',
+        points: 0,
+        goals_for: 1,
+        goals_against: 2,
         goal_difference: -1, 
         games_played: 1,
         win: 0,
         draw: 0,
         loss: 1,
+        conduct_score: 0,
         is_complete: false
       }
     ]);
@@ -221,26 +226,59 @@ describe('GuessesContextProvider', () => {
   });
 
   it('auto-saves game guesses when autoSave is true', async () => {
+    const TestConsumerWithImmediate = () => {
+      const context = React.useContext(GuessesContext);
+
+      return (
+        <div>
+          <div data-testid="game-guesses-count">
+            {Object.keys(context.gameGuesses).length}
+          </div>
+          <div data-testid="guessed-positions-count">
+            {context.guessedPositions.length}
+          </div>
+          <button
+            data-testid="update-guess"
+            onClick={() => context.updateGameGuess('game1', {
+              game_id: 'game1',
+              game_number: 1,
+              user_id: 'user1',
+              home_score: 2,
+              away_score: 1
+            }, { immediate: true })} // Use immediate save to bypass debouncing
+          >
+            Update Guess
+          </button>
+        </div>
+      );
+    };
+
     const user = userEvent.setup();
-    
+
     render(
       <GuessesContextProvider gameGuesses={mockGameGuesses} autoSave={true}>
-        <TestConsumer />
+        <TestConsumerWithImmediate />
       </GuessesContextProvider>
     );
 
+    // Click the update button
     await user.click(screen.getByTestId('update-guess'));
-    
+
+    // Wait for immediate save to complete
     await waitFor(() => {
-      expect(mockUpdateOrCreateGameGuesses).toHaveBeenCalledWith([
-        expect.objectContaining({
-          game_id: 'game1',
-          user_id: 'user1',
-          home_score: 2,
-          away_score: 1
-        })
-      ]);
+      expect(mockUpdateOrCreateGameGuesses).toHaveBeenCalled();
     });
+
+    // Verify the save was called with correct data
+    expect(mockUpdateOrCreateGameGuesses).toHaveBeenCalledWith([
+      expect.objectContaining({
+        game_id: 'game1',
+        user_id: 'user1',
+        home_score: 2,
+        away_score: 1,
+        updated_at: expect.any(Date)
+      })
+    ]);
   });
 
   it('calculates group positions when group games and guessed positions are provided', async () => {

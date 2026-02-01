@@ -218,7 +218,12 @@ describe('Game Guess Repository', () => {
 
         expect(mockDb.selectFrom).toHaveBeenCalledWith('game_guesses');
         expect(mockBaseFunctions.delete).toHaveBeenCalledWith(mockGuess.id);
-        expect(mockBaseFunctions.create).toHaveBeenCalledWith(guessData);
+        expect(mockBaseFunctions.create).toHaveBeenCalledWith(
+          expect.objectContaining({
+            ...guessData,
+            updated_at: expect.any(Date)
+          })
+        );
         expect(result).toEqual(newGuess);
       });
 
@@ -243,7 +248,12 @@ describe('Game Guess Repository', () => {
         const result = await updateOrCreateGuess(guessData);
 
         expect(mockBaseFunctions.delete).not.toHaveBeenCalled();
-        expect(mockBaseFunctions.create).toHaveBeenCalledWith(guessData);
+        expect(mockBaseFunctions.create).toHaveBeenCalledWith(
+          expect.objectContaining({
+            ...guessData,
+            updated_at: expect.any(Date)
+          })
+        );
         expect(result).toEqual(mockGuess);
       });
     });

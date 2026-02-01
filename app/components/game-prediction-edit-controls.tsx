@@ -62,9 +62,9 @@ interface GamePredictionEditControlsProps {
   readonly compact?: boolean;
 
   // Refs for keyboard navigation (readonly per SonarQube)
-  readonly homeScoreInputRef?: React.RefObject<HTMLInputElement>;
-  readonly awayScoreInputRef?: React.RefObject<HTMLInputElement>;
-  readonly boostButtonGroupRef?: React.RefObject<HTMLDivElement>;
+  readonly homeScoreInputRef?: React.RefObject<HTMLInputElement | null>;
+  readonly awayScoreInputRef?: React.RefObject<HTMLInputElement | null>;
+  readonly boostButtonGroupRef?: React.RefObject<HTMLDivElement | null>;
 
   // Keyboard callbacks (readonly per SonarQube)
   readonly onTabFromLastField?: () => void; // Auto-advance to next card

@@ -147,16 +147,26 @@ describe('Tournament Actions', () => {
     top_goalscorer_player_id: undefined,
     best_goalkeeper_player_id: undefined,
     best_young_player_id: undefined,
+    game_exact_score_points: 3,
+    game_correct_outcome_points: 1,
+    champion_points: 10,
+    runner_up_points: 5,
+    third_place_points: 3,
+    individual_award_points: 5,
+    qualified_team_points: 1,
+    exact_position_qualified_points: 1,
+    max_silver_games: 3,
+    max_golden_games: 1,
   };
 
   const _mockTournamentNew: TournamentNew = {
     short_name: 'WC2024',
     long_name: 'World Cup 2024',
     is_active: true,
-    theme: {
+    theme: JSON.stringify({
       primary_color: '#ff0000',
       secondary_color: '#00ff00',
-    },
+    }),
   };
 
   const mockTournamentGroup: TournamentGroup = {
@@ -164,6 +174,12 @@ describe('Tournament Actions', () => {
     tournament_id: 'tournament1',
     group_letter: 'A',
     sort_by_games_between_teams: false,
+  };
+
+  const mockExtendedTournamentGroup = {
+    ...mockTournamentGroup,
+    games: [],
+    teams: [],
   };
 
   const mockTeam: Team = {
@@ -212,6 +228,7 @@ describe('Tournament Actions', () => {
     goals_for: 0,
     goals_against: 0,
     goal_difference: 0,
+    conduct_score: 0,
     is_complete: false,
   };
 
@@ -411,7 +428,7 @@ describe('Tournament Actions', () => {
     });
 
     it('throws error when group not found', async () => {
-      mockFindTournamentgroupById.mockResolvedValue(null);
+      mockFindTournamentgroupById.mockResolvedValue(undefined);
 
       await expect(getCompleteGroupData('group1')).rejects.toBe('Invalid group id');
     });
@@ -515,7 +532,7 @@ describe('Tournament Actions', () => {
     });
 
     it('returns default date when no games found', async () => {
-      mockFindFirstGameInTournament.mockResolvedValue(null);
+      mockFindFirstGameInTournament.mockResolvedValue(undefined);
 
       const result = await getTournamentStartDate('tournament1');
 
@@ -553,7 +570,7 @@ describe('Tournament Actions', () => {
     });
 
     it('throws error when user is not logged in', async () => {
-      mockGetLoggedInUser.mockResolvedValue(null);
+      mockGetLoggedInUser.mockResolvedValue(undefined);
 
       await expect(deactivateTournament('tournament1'))
         .rejects.toThrow('Unauthorized: Only administrators can deactivate tournaments');
@@ -563,7 +580,7 @@ describe('Tournament Actions', () => {
     });
 
     it('throws error when tournament not found', async () => {
-      mockFindTournamentById.mockResolvedValue(null);
+      mockFindTournamentById.mockResolvedValue(undefined);
 
       await expect(deactivateTournament('tournament1'))
         .rejects.toThrow('Tournament not found');
@@ -639,14 +656,14 @@ describe('Tournament Actions', () => {
     });
 
     it('throws error when user is not logged in', async () => {
-      mockGetLoggedInUser.mockResolvedValue(null);
+      mockGetLoggedInUser.mockResolvedValue(undefined);
 
       await expect(createOrUpdateTournament(null, mockFormData))
         .rejects.toThrow('Unauthorized: Only administrators can manage tournaments');
     });
 
     it('throws error when tournament not found for update', async () => {
-      mockFindTournamentById.mockResolvedValue(null);
+      mockFindTournamentById.mockResolvedValue(undefined);
 
       await expect(createOrUpdateTournament('tournament1', mockFormData))
         .rejects.toThrow('Tournament not found');
@@ -750,11 +767,11 @@ describe('Tournament Actions', () => {
     });
 
     it('returns null when tournament not found', async () => {
-      mockFindTournamentById.mockResolvedValue(null);
+      mockFindTournamentById.mockResolvedValue(undefined);
 
       const result = await getTournamentById('tournament1');
 
-      expect(result).toBeNull();
+      expect(result).toBeUndefined();
     });
 
     it('handles database errors', async () => {
@@ -766,7 +783,7 @@ describe('Tournament Actions', () => {
 
   describe('getCompleteTournamentGroups', () => {
     it('returns complete tournament groups', async () => {
-      const groups = [mockTournamentGroup];
+      const groups = [mockExtendedTournamentGroup];
       mockFindGroupsWithGamesAndTeamsInTournament.mockResolvedValue(groups);
 
       const result = await getCompleteTournamentGroups('tournament1');
@@ -788,7 +805,7 @@ describe('Tournament Actions', () => {
       sort_by_games_between_teams: false,
     };
     const mockTeamIds = ['team1', 'team2'];
-    const mockUpdatedGroups = [mockTournamentGroup];
+    const mockUpdatedGroups = [mockExtendedTournamentGroup];
 
     it('creates new tournament group', async () => {
       mockCreateTournamentGroup.mockResolvedValue(mockTournamentGroup);
@@ -835,7 +852,7 @@ describe('Tournament Actions', () => {
     });
 
     it('throws error when user is not logged in', async () => {
-      mockGetLoggedInUser.mockResolvedValue(null);
+      mockGetLoggedInUser.mockResolvedValue(undefined);
 
       await expect(createOrUpdateTournamentGroup('tournament1', mockGroupData, mockTeamIds))
         .rejects.toThrow('Unauthorized: Only administrators can manage tournament groups');
@@ -858,7 +875,10 @@ describe('Tournament Actions', () => {
 
     it('skips team creation when teams are the same', async () => {
       const groupDataWithId = { ...mockGroupData, id: 'group1' };
-      const existingTeams = [{ id: 'team1' }, { id: 'team2' }];
+      const existingTeams = [
+        { id: 'team1', name: 'Team 1', short_name: 'T1', theme: null },
+        { id: 'team2', name: 'Team 2', short_name: 'T2', theme: null }
+      ];
       mockUpdateTournamentGroup.mockResolvedValue(mockTournamentGroup);
       mockFindTeamInGroup.mockResolvedValue(existingTeams);
       mockFindGroupsWithGamesAndTeamsInTournament.mockResolvedValue(mockUpdatedGroups);
@@ -952,7 +972,7 @@ describe('Tournament Actions', () => {
     });
 
     it('throws error when user is not logged in', async () => {
-      mockGetLoggedInUser.mockResolvedValue(null);
+      mockGetLoggedInUser.mockResolvedValue(undefined);
 
       await expect(createOrUpdatePlayoffRound(mockPlayoffRoundNew))
         .rejects.toThrow('Unauthorized: Only administrators can manage playoff stages');
@@ -991,7 +1011,7 @@ describe('Tournament Actions', () => {
     it('handles null/undefined values gracefully', async () => {
       mockFindAllTournaments.mockResolvedValue([]);
       mockFindAllActiveTournaments.mockResolvedValue([]);
-      mockFindTournamentById.mockResolvedValue(null);
+      mockFindTournamentById.mockResolvedValue(undefined);
 
       const allTournaments = await getAllTournaments();
       const activeTournaments = await getTournaments();
@@ -999,7 +1019,7 @@ describe('Tournament Actions', () => {
 
       expect(allTournaments).toEqual([]);
       expect(activeTournaments).toEqual([]);
-      expect(tournament).toBeNull();
+      expect(tournament).toBeUndefined();
     });
 
     it('handles concurrent operations correctly', async () => {

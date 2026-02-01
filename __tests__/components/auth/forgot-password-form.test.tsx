@@ -25,7 +25,7 @@ describe('ForgotPasswordForm', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSendPasswordResetLink.mockResolvedValue({ success: true });
+    mockSendPasswordResetLink.mockResolvedValue({ success: true, messageId: 'test-message-id' });
   });
 
   afterEach(() => {
@@ -75,7 +75,7 @@ describe('ForgotPasswordForm', () => {
     });
 
     it('shows error when email format is invalid', async () => {
-      const validator = vi.mocked(await vi.importMock('validator')).default;
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(false);
       
       render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
@@ -90,7 +90,7 @@ describe('ForgotPasswordForm', () => {
     });
 
     it('validates email format correctly with valid email', async () => {
-      const validator = vi.mocked(await vi.importMock('validator')).default;
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
       
       render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
@@ -137,7 +137,7 @@ describe('ForgotPasswordForm', () => {
 
   describe('form submission', () => {
     it('calls sendPasswordResetLink with correct email on successful validation', async () => {
-      const validator = vi.mocked(await vi.importMock('validator')).default;
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
       
       render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
@@ -154,9 +154,9 @@ describe('ForgotPasswordForm', () => {
     });
 
     it('calls onSuccess when password reset link is sent successfully', async () => {
-      const validator = vi.mocked(await vi.importMock('validator')).default;
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
-      mockSendPasswordResetLink.mockResolvedValue({ success: true });
+      mockSendPasswordResetLink.mockResolvedValue({ success: true, messageId: 'test-message-id' });
       
       render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
       
@@ -172,7 +172,7 @@ describe('ForgotPasswordForm', () => {
     });
 
     it('submits form when Enter is pressed', async () => {
-      const validator = vi.mocked(await vi.importMock('validator')).default;
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
       
       render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
@@ -198,7 +198,7 @@ describe('ForgotPasswordForm', () => {
     });
 
     it('does not submit form when email validation fails', async () => {
-      const validator = vi.mocked(await vi.importMock('validator')).default;
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(false);
       
       render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
@@ -217,12 +217,12 @@ describe('ForgotPasswordForm', () => {
 
   describe('loading state', () => {
     it('shows loading state while sending password reset link', async () => {
-      const validator = vi.mocked(await vi.importMock('validator')).default;
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
       
       // Mock a delayed response
       let resolvePromise: (_value: any) => void;
-      const promise = new Promise((resolve) => {
+      const promise = new Promise<{ success: boolean; messageId: string } | { success: boolean; error: string }>((resolve) => {
         resolvePromise = resolve;
       });
       mockSendPasswordResetLink.mockReturnValue(promise);
@@ -246,9 +246,9 @@ describe('ForgotPasswordForm', () => {
     });
 
     it('resets loading state after successful submission', async () => {
-      const validator = vi.mocked(await vi.importMock('validator')).default;
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
-      mockSendPasswordResetLink.mockResolvedValue({ success: true });
+      mockSendPasswordResetLink.mockResolvedValue({ success: true, messageId: 'test-message-id' });
       
       render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
       
@@ -267,9 +267,9 @@ describe('ForgotPasswordForm', () => {
     });
 
     it('resets loading state after failed submission', async () => {
-      const validator = vi.mocked(await vi.importMock('validator')).default;
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
-      mockSendPasswordResetLink.mockResolvedValue({ success: false });
+      mockSendPasswordResetLink.mockResolvedValue({ success: false, error: 'Test error' });
       
       render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
       
@@ -290,9 +290,9 @@ describe('ForgotPasswordForm', () => {
 
   describe('error handling', () => {
     it('shows error message when sendPasswordResetLink fails', async () => {
-      const validator = vi.mocked(await vi.importMock('validator')).default;
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
-      mockSendPasswordResetLink.mockResolvedValue({ success: false });
+      mockSendPasswordResetLink.mockResolvedValue({ success: false, error: 'Test error' });
       
       render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
       
@@ -308,7 +308,7 @@ describe('ForgotPasswordForm', () => {
     });
 
     it('shows server error message when sendPasswordResetLink throws', async () => {
-      const validator = vi.mocked(await vi.importMock('validator')).default;
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
       const errorMessage = 'Network error';
       mockSendPasswordResetLink.mockRejectedValue(new Error(errorMessage));
@@ -327,9 +327,9 @@ describe('ForgotPasswordForm', () => {
     });
 
     it('does not call onSuccess when sendPasswordResetLink fails', async () => {
-      const validator = vi.mocked(await vi.importMock('validator')).default;
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
-      mockSendPasswordResetLink.mockResolvedValue({ success: false });
+      mockSendPasswordResetLink.mockResolvedValue({ success: false, error: 'Test error' });
       
       render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
       
@@ -347,10 +347,10 @@ describe('ForgotPasswordForm', () => {
     });
 
     it('clears error message when form is resubmitted', async () => {
-      const validator = vi.mocked(await vi.importMock('validator')).default;
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
-      mockSendPasswordResetLink.mockResolvedValueOnce({ success: false })
-        .mockResolvedValueOnce({ success: true });
+      mockSendPasswordResetLink.mockResolvedValueOnce({ success: false, error: 'Test error' })
+        .mockResolvedValueOnce({ success: true, messageId: 'test-message-id' });
       
       render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
       
@@ -375,9 +375,9 @@ describe('ForgotPasswordForm', () => {
     });
 
     it('displays error alert with correct severity', async () => {
-      const validator = vi.mocked(await vi.importMock('validator')).default;
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
-      mockSendPasswordResetLink.mockResolvedValue({ success: false });
+      mockSendPasswordResetLink.mockResolvedValue({ success: false, error: 'Test error' });
       
       render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
       
@@ -456,7 +456,7 @@ describe('ForgotPasswordForm', () => {
 
   describe('edge cases', () => {
     it('handles special characters in email', async () => {
-      const validator = vi.mocked(await vi.importMock('validator')).default;
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
       
       render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
@@ -473,7 +473,7 @@ describe('ForgotPasswordForm', () => {
     });
 
     it('handles empty email string gracefully', async () => {
-      const validator = vi.mocked(await vi.importMock('validator')).default;
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(false);
       
       render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
@@ -499,7 +499,7 @@ describe('ForgotPasswordForm', () => {
     });
 
     it('handles very long email addresses', async () => {
-      const validator = vi.mocked(await vi.importMock('validator')).default;
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
       
       render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
@@ -517,7 +517,7 @@ describe('ForgotPasswordForm', () => {
     });
 
     it('handles network errors gracefully', async () => {
-      const validator = vi.mocked(await vi.importMock('validator')).default;
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
       mockSendPasswordResetLink.mockRejectedValue(new Error('Network error'));
       
@@ -537,9 +537,9 @@ describe('ForgotPasswordForm', () => {
     });
 
     it('handles multiple rapid clicks on submit button', async () => {
-      const validator = vi.mocked(await vi.importMock('validator')).default;
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
-      mockSendPasswordResetLink.mockResolvedValue({ success: true });
+      mockSendPasswordResetLink.mockResolvedValue({ success: true, messageId: 'test-message-id' });
       
       render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
       

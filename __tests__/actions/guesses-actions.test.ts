@@ -96,7 +96,11 @@ describe('Guesses Actions', () => {
     away_score: 1,
     home_penalty_winner: undefined,
     away_penalty_winner: undefined,
-    score: undefined
+    score: undefined,
+    boost_type: null,
+    boost_multiplier: 1.0,
+    final_score: undefined,
+    updated_at: new Date()
   };
 
   const mockTournamentGuess: TournamentGuessNew = {
@@ -136,6 +140,7 @@ describe('Guesses Actions', () => {
     goals_for: 6,
     goals_against: 1,
     goal_difference: 5,
+    conduct_score: 0,
     is_complete: true
   };
 
@@ -153,6 +158,7 @@ describe('Guesses Actions', () => {
     goals_for: 6,
     goals_against: 1,
     goal_difference: 5,
+    conduct_score: 0,
     is_complete: true
   };
 
@@ -166,7 +172,7 @@ describe('Guesses Actions', () => {
     mockFindGroupsInTournament.mockResolvedValue([]);
     mockFindPlayoffStagesWithGamesInTournament.mockResolvedValue([]);
     mockFindGamesInTournament.mockResolvedValue([]);
-    mockCalculatePlayoffTeamsFromPositions.mockReturnValue({});
+    mockCalculatePlayoffTeamsFromPositions.mockReturnValue(Promise.resolve({}));
     mockUpdateGameGuessByGameId.mockResolvedValue(mockGameGuessResult);
   });
 
@@ -284,7 +290,7 @@ describe('Guesses Actions', () => {
     const mockPlayoffTeams = {
       'game1': {
         game_id: 'game1',
-        homeTeam: { 
+        homeTeam: {
           team_id: 'team1',
           games_played: 3,
           points: 9,
@@ -294,9 +300,10 @@ describe('Guesses Actions', () => {
           goals_for: 6,
           goals_against: 1,
           goal_difference: 5,
+          conduct_score: 0,
           is_complete: true
         },
-        awayTeam: { 
+        awayTeam: {
           team_id: 'team2',
           games_played: 3,
           points: 6,
@@ -306,6 +313,7 @@ describe('Guesses Actions', () => {
           goals_for: 4,
           goals_against: 3,
           goal_difference: 1,
+          conduct_score: 0,
           is_complete: true
         }
       }
@@ -315,7 +323,7 @@ describe('Guesses Actions', () => {
       mockFindPlayoffStagesWithGamesInTournament.mockResolvedValue([mockPlayoffStage]);
       mockFindGamesInTournament.mockResolvedValue([mockGame]);
       mockFindGroupsInTournament.mockResolvedValue([mockGroup]);
-      mockCalculatePlayoffTeamsFromPositions.mockReturnValue(mockPlayoffTeams);
+      mockCalculatePlayoffTeamsFromPositions.mockReturnValue(Promise.resolve(mockPlayoffTeams));
     });
 
     it('updates playoff game guesses when user is logged in and playoff stages exist', async () => {

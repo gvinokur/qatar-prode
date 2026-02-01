@@ -66,21 +66,34 @@ export function GuessesContextProvider ({children,
   const saveAbortControllers = useRef<Record<string, AbortController>>({})
   const pendingSavePromises = useRef<Map<string, Promise<void>>>(new Map())
 
-  // CRITICAL FIX: Use ref to always read latest gameGuesses state (avoid stale closure)
+  // CRITICAL FIX: Use refs to always read latest state (avoid stale closure and circular dependencies)
   const gameGuessesRef = useRef(gameGuesses)
+  const dirtyGamesRef = useRef(dirtyGames)
+  const lastSavedValuesRef = useRef(lastSavedValues)
+
   useEffect(() => {
     gameGuessesRef.current = gameGuesses
   }, [gameGuesses])
 
+  useEffect(() => {
+    dirtyGamesRef.current = dirtyGames
+  }, [dirtyGames])
+
+  useEffect(() => {
+    lastSavedValuesRef.current = lastSavedValues
+  }, [lastSavedValues])
+
   const autoSaveGameGuesses = useCallback(async () => {
-    // Always read from ref to get latest values (avoid stale closure)
+    // Always read from refs to get latest values
     const currentGuesses = gameGuessesRef.current
+    const currentDirtyGames = dirtyGamesRef.current
+    const currentLastSavedValues = lastSavedValuesRef.current
 
     // Filter only dirty games that have actually changed
-    const dirtyGuessesArray = Array.from(dirtyGames)
+    const dirtyGuessesArray = Array.from(currentDirtyGames)
       .filter(gameId => {
         const current = currentGuesses[gameId]
-        const lastSaved = lastSavedValues[gameId]
+        const lastSaved = currentLastSavedValues[gameId]
         return !lastSaved || JSON.stringify(current) !== JSON.stringify(lastSaved)
       })
       .map(gameId => currentGuesses[gameId])
@@ -107,7 +120,7 @@ export function GuessesContextProvider ({children,
       dirtyGuessesArray.forEach(g => next.delete(g.game_id))
       return next
     })
-  }, [dirtyGames, lastSavedValues])
+  }, [])
 
   const updateGameGuess = useCallback(async (
     gameId: string,
@@ -116,22 +129,29 @@ export function GuessesContextProvider ({children,
   ) => {
     const { immediate = false, debounceMs = 500 } = options || {}
 
+    // Read latest values from refs
+    const currentGameGuesses = gameGuessesRef.current
+
     // Store previous guess for rollback
-    const previousGuess = gameGuesses[gameId]
+    const previousGuess = currentGameGuesses[gameId]
 
     // Optimistic update (immediate state change)
     const newGameGuesses = {
-      ...gameGuesses,
+      ...currentGameGuesses,
       [gameId]: gameGuess
     }
     setGameGuesses(newGameGuesses)
 
+    // CRITICAL: Update ref immediately for immediate saves (before useEffect runs)
+    gameGuessesRef.current = newGameGuesses
+
     // Mark game as dirty
-    setDirtyGames(prev => {
-      const next = new Set(prev)
-      next.add(gameId)
-      return next
-    })
+    const newDirtyGames = new Set(dirtyGamesRef.current)
+    newDirtyGames.add(gameId)
+    setDirtyGames(newDirtyGames)
+
+    // CRITICAL: Update ref immediately for immediate saves (before useEffect runs)
+    dirtyGamesRef.current = newDirtyGames
 
     // Clear any existing error for this game
     setSaveErrors(prev => {
@@ -272,7 +292,7 @@ export function GuessesContextProvider ({children,
       const timeout = setTimeout(executeSave, debounceMs)
       saveTimeoutRefs.current[gameId] = timeout
     }
-  }, [gameGuesses, autoSave, autoSaveGameGuesses, groupGames, guessedPositions, sortByGamesBetweenTeams])
+  }, [autoSave, autoSaveGameGuesses, groupGames, guessedPositions, sortByGamesBetweenTeams])
 
   // Clear save error for a game
   const clearSaveError = useCallback((gameId: string) => {

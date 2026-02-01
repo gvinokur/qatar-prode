@@ -63,8 +63,11 @@ describe('Mailing Actions', () => {
     verification_token_expiration: new Date(Date.now() + 24 * 60 * 60 * 1000),
     reset_token: null,
     reset_token_expiration: null,
-    created_at: new Date(),
-    updated_at: new Date()
+    is_admin: false,
+    onboarding_completed: false,
+    onboarding_completed_at: null,
+    onboarding_data: null,
+    notification_subscriptions: []
   };
 
   const mockNewUser: UserNew = {
@@ -111,7 +114,7 @@ describe('Mailing Actions', () => {
       });
 
       it('should return error when user does not exist', async () => {
-        vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(null);
+        vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(undefined);
 
         const result = await sendPasswordResetLink('nonexistent@example.com');
 
@@ -136,7 +139,7 @@ describe('Mailing Actions', () => {
         vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(mockUser);
         vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
         vi.mocked(generatePasswordResetEmail).mockReturnValue(mockEmailTemplate);
-        vi.mocked(sendEmail).mockResolvedValue({ success: true });
+        vi.mocked(sendEmail).mockResolvedValue({ success: true, messageId: 'msg-123' });
 
         const beforeCall = Date.now();
         await sendPasswordResetLink('test@example.com');
@@ -156,7 +159,7 @@ describe('Mailing Actions', () => {
         vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(mockUser);
         vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
         vi.mocked(generatePasswordResetEmail).mockReturnValue(mockEmailTemplate);
-        vi.mocked(sendEmail).mockResolvedValue({ success: true });
+        vi.mocked(sendEmail).mockResolvedValue({ success: true, messageId: 'msg-123' });
 
         await sendPasswordResetLink('test@example.com');
 
@@ -193,7 +196,7 @@ describe('Mailing Actions', () => {
         });
 
         it('should return error when user is not logged in', async () => {
-          vi.mocked(auth).mockResolvedValue(null);
+          vi.mocked(auth).mockResolvedValue(null as any);
 
           const result = await resendVerificationEmail();
 
@@ -208,7 +211,7 @@ describe('Mailing Actions', () => {
           vi.mocked(auth).mockResolvedValue({ user: mockUser } as any);
           vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
           vi.mocked(generateVerificationEmail).mockReturnValue(mockEmailTemplate);
-          vi.mocked(sendEmail).mockResolvedValue({ success: true });
+          vi.mocked(sendEmail).mockResolvedValue({ success: true, messageId: 'msg-123' });
 
           const beforeCall = Date.now();
           await resendVerificationEmail();
@@ -235,11 +238,11 @@ describe('Mailing Actions', () => {
 
       describe('signupUser - verification email', () => {
         it('should send verification email during signup', async () => {
-          vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(null);
+          vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(undefined);
           vi.mocked(usersRepository.getPasswordHash).mockReturnValue('hashed-password');
           vi.mocked(usersRepository.createUser).mockResolvedValue(mockUser);
           vi.mocked(generateVerificationEmail).mockReturnValue(mockEmailTemplate);
-          vi.mocked(sendEmail).mockResolvedValue({ success: true });
+          vi.mocked(sendEmail).mockResolvedValue({ success: true, messageId: 'msg-123' });
 
           const result = await signupUser(mockNewUser);
 
@@ -252,7 +255,7 @@ describe('Mailing Actions', () => {
         });
 
         it('should handle verification email failure during signup', async () => {
-          vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(null);
+          vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(undefined);
           vi.mocked(usersRepository.getPasswordHash).mockReturnValue('hashed-password');
           vi.mocked(usersRepository.createUser).mockResolvedValue(mockUser);
           vi.mocked(generateVerificationEmail).mockReturnValue(mockEmailTemplate);
@@ -283,7 +286,7 @@ describe('Mailing Actions', () => {
         });
 
         it('should return error for invalid token', async () => {
-          vi.mocked(usersRepository.findUserByVerificationToken).mockResolvedValue(null);
+          vi.mocked(usersRepository.findUserByVerificationToken).mockResolvedValue(undefined);
 
           const result = await verifyUserEmail('invalid-token');
 
@@ -296,7 +299,7 @@ describe('Mailing Actions', () => {
           const unverifiedUser = { ...mockUser, email_verified: false };
 
           vi.mocked(usersRepository.findUserByVerificationToken).mockResolvedValue(unverifiedUser);
-          vi.mocked(usersRepository.verifyEmail).mockResolvedValue(null);
+          vi.mocked(usersRepository.verifyEmail).mockResolvedValue(undefined);
 
           const result = await verifyUserEmail('valid-token');
 
@@ -318,7 +321,7 @@ describe('Mailing Actions', () => {
         vi.mocked(auth).mockResolvedValue({ user: mockUser } as any);
         vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
         vi.mocked(generateVerificationEmail).mockReturnValue(mockEmailTemplate);
-        vi.mocked(sendEmail).mockResolvedValue({ success: true });
+        vi.mocked(sendEmail).mockResolvedValue({ success: true, messageId: 'msg-123' });
 
         await resendVerificationEmail();
 
@@ -332,7 +335,7 @@ describe('Mailing Actions', () => {
         vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(mockUser);
         vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
         vi.mocked(generatePasswordResetEmail).mockReturnValue(mockEmailTemplate);
-        vi.mocked(sendEmail).mockResolvedValue({ success: true });
+        vi.mocked(sendEmail).mockResolvedValue({ success: true, messageId: 'msg-123' });
 
         await sendPasswordResetLink('test@example.com');
 
@@ -364,7 +367,7 @@ describe('Mailing Actions', () => {
           ...mockEmailTemplate,
           to: specialEmail
         });
-        vi.mocked(sendEmail).mockResolvedValue({ success: true });
+        vi.mocked(sendEmail).mockResolvedValue({ success: true, messageId: 'msg-123' });
 
         const result = await sendPasswordResetLink(specialEmail);
 
@@ -372,11 +375,11 @@ describe('Mailing Actions', () => {
           specialEmail,
           expect.any(String)
         );
-        expect(result).toEqual({ success: true });
+        expect(result).toEqual({ success: true, messageId: 'msg-123' });
       });
 
       it('should handle empty email input', async () => {
-        vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(null);
+        vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(undefined);
 
         const result = await sendPasswordResetLink('');
 
@@ -385,7 +388,7 @@ describe('Mailing Actions', () => {
 
       it('should handle very long email addresses', async () => {
         const longEmail = 'a'.repeat(100) + '@example.com';
-        vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(null);
+        vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(undefined);
 
         const result = await sendPasswordResetLink(longEmail);
 
@@ -400,7 +403,7 @@ describe('Mailing Actions', () => {
         vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(mockUser);
         vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
         vi.mocked(generatePasswordResetEmail).mockReturnValue(mockEmailTemplate);
-        vi.mocked(sendEmail).mockResolvedValue({ success: true });
+        vi.mocked(sendEmail).mockResolvedValue({ success: true, messageId: 'msg-123' });
 
         // Mock crypto to return different tokens
         const mockCrypto = await import('crypto');
@@ -419,11 +422,11 @@ describe('Mailing Actions', () => {
       });
 
       it('should set proper token expiration for verification emails', async () => {
-        vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(null);
+        vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(undefined);
         vi.mocked(usersRepository.getPasswordHash).mockReturnValue('hashed-password');
         vi.mocked(usersRepository.createUser).mockResolvedValue(mockUser);
         vi.mocked(generateVerificationEmail).mockReturnValue(mockEmailTemplate);
-        vi.mocked(sendEmail).mockResolvedValue({ success: true });
+        vi.mocked(sendEmail).mockResolvedValue({ success: true, messageId: 'msg-123' });
 
         const beforeCall = Date.now();
         await signupUser(mockNewUser);
@@ -477,11 +480,11 @@ describe('Mailing Actions', () => {
       ];
 
       vi.mocked(usersRepository.findUserByEmail).mockImplementation(async (email) => {
-        return users.find(u => u.email === email) || null;
+        return users.find(u => u.email === email) || undefined;
       });
       vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
       vi.mocked(generatePasswordResetEmail).mockReturnValue(mockEmailTemplate);
-      vi.mocked(sendEmail).mockResolvedValue({ success: true });
+      vi.mocked(sendEmail).mockResolvedValue({ success: true, messageId: 'msg-123' });
 
       const promises = users.map(user => sendPasswordResetLink(user.email));
       const results = await Promise.all(promises);
