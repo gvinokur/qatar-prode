@@ -314,8 +314,8 @@ export default function FlippableGameCard({
                   onBoostTypeChange={setEditBoostType}
                   loading={saving}
                   error={saveError}
-                  layout="vertical"
-                  compact={false}
+                  layout="horizontal"
+                  compact={true}
                   homeScoreInputRef={homeScoreInputRef}
                   awayScoreInputRef={awayScoreInputRef}
                   boostButtonGroupRef={boostButtonGroupRef}

@@ -210,6 +210,26 @@ export default function GamePredictionEditControls({
       return;
     }
 
+    // Arrow key navigation for boost selection
+    if (field === 'boost' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+      e.preventDefault();
+      const buttons = boostButtonGroupRef?.current?.querySelectorAll<HTMLButtonElement>('button:not([disabled])');
+      if (!buttons || buttons.length === 0) return;
+
+      const currentIndex = Array.from(buttons).findIndex(btn => btn === document.activeElement);
+      let nextIndex: number;
+
+      if (e.key === 'ArrowLeft') {
+        nextIndex = currentIndex <= 0 ? buttons.length - 1 : currentIndex - 1;
+      } else {
+        nextIndex = currentIndex >= buttons.length - 1 ? 0 : currentIndex + 1;
+      }
+
+      buttons[nextIndex].focus();
+      buttons[nextIndex].click(); // Select the boost option
+      return;
+    }
+
     // Tab key navigation
     if (e.key === 'Tab') {
       if (e.shiftKey) {
@@ -460,11 +480,11 @@ export default function GamePredictionEditControls({
 
       {/* Boost Selection */}
       {tournamentId && (silverMax > 0 || goldenMax > 0) && (
-        <Box sx={{ mt: compact ? 2 : 3 }}>
-          <Divider sx={{ mb: 2 }} />
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="subtitle2">
-              Apply Boost
+        <Box sx={{ mt: compact ? 1.5 : 3 }}>
+          <Divider sx={{ mb: compact ? 1.5 : 2 }} />
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', justifyContent: 'space-between', mb: compact ? 1 : 2 }}>
+            <Typography variant={compact ? 'body2' : 'subtitle2'} fontWeight="medium">
+              Boost
             </Typography>
             <Box sx={{ display: 'flex', gap: 0.5 }}>
               {silverMax > 0 && (
@@ -609,7 +629,7 @@ export default function GamePredictionEditControls({
 
       {/* Desktop Save/Cancel buttons */}
       {!isMobile && onSave && onCancel && (
-        <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+        <Box sx={{ display: 'flex', gap: 1, mt: compact ? 2 : 3 }}>
           <Button
             ref={cancelButtonRef}
             variant="outlined"
@@ -617,6 +637,7 @@ export default function GamePredictionEditControls({
             onKeyDown={(e) => handleKeyDown(e, 'cancel')}
             onFocus={() => setCurrentField('save')}
             disabled={loading}
+            size={compact ? 'small' : 'medium'}
             fullWidth
           >
             Cancel
@@ -628,6 +649,7 @@ export default function GamePredictionEditControls({
             onKeyDown={(e) => handleKeyDown(e, 'save')}
             onFocus={() => setCurrentField('save')}
             disabled={loading}
+            size={compact ? 'small' : 'medium'}
             fullWidth
           >
             {loading ? 'Saving...' : 'Save'}
