@@ -17,8 +17,7 @@ import {
   Button,
   useTheme,
   useMediaQuery,
-  alpha,
-  Tooltip
+  alpha
 } from '@mui/material';
 import {
   EmojiEvents as TrophyIcon,
