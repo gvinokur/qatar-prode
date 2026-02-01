@@ -4,7 +4,7 @@ import { Grid} from "./mui-wrappers";
 import GameView from "./game-view";
 import FlippableGameCard from "./flippable-game-card";
 import {ExtendedGameData} from "../definitions";
-import {Game, GameGuessNew, Team} from "../db/tables-definition";
+import {Game, GameGuessNew, Team, Tournament} from "../db/tables-definition";
 import {useContext, useEffect, useState, useCallback} from "react";
 import {GuessesContext} from "./context-providers/guesses-context-provider";
 import {useEditMode} from "./context-providers/edit-mode-context-provider";
@@ -26,10 +26,7 @@ type GamesGridProps =  {
     silverUsed: number;
     goldenUsed: number;
   } | null
-  readonly tournament?: {
-    max_silver_games: number;
-    max_golden_games: number;
-  }
+  readonly tournament?: Tournament
 }
 
 const buildGameGuess = (game: Game, userId: string): GameGuessNew => ({
