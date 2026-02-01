@@ -116,17 +116,19 @@ export default function FlippableGameCard({
       // Get current guess from context
       const currentGuess = groupContext.gameGuesses[game.id];
 
-      // Update context with new values (triggers save)
+      // Build GameGuessNew object (only fields needed for insert/update)
       await groupContext.updateGameGuess(game.id, {
-        ...currentGuess,
         game_id: game.id,
         game_number: game.game_number,
         user_id: currentGuess?.user_id || '',
+        home_team: currentGuess?.home_team,
+        away_team: currentGuess?.away_team,
         home_score: editHomeScore,
         away_score: editAwayScore,
         home_penalty_winner: editHomePenaltyWinner,
         away_penalty_winner: editAwayPenaltyWinner,
-        boost_type: editBoostType
+        boost_type: editBoostType,
+        score: undefined // Let server calculate
       });
 
       // Success - close edit mode
@@ -162,17 +164,19 @@ export default function FlippableGameCard({
       // Get current guess from context
       const currentGuess = groupContext.gameGuesses[game.id];
 
-      // Update context with new values (triggers save)
+      // Build GameGuessNew object (only fields needed for insert/update)
       await groupContext.updateGameGuess(game.id, {
-        ...currentGuess,
         game_id: game.id,
         game_number: game.game_number,
         user_id: currentGuess?.user_id || '',
+        home_team: currentGuess?.home_team,
+        away_team: currentGuess?.away_team,
         home_score: editHomeScore,
         away_score: editAwayScore,
         home_penalty_winner: editHomePenaltyWinner,
         away_penalty_winner: editAwayPenaltyWinner,
-        boost_type: editBoostType
+        boost_type: editBoostType,
+        score: undefined // Let server calculate
       });
 
       // Success - close current card and advance to next
