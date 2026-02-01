@@ -88,7 +88,13 @@ export function GuessesContextProvider ({children,
     if (!autoSave) return
 
     // Save to server
-    await updateOrCreateGameGuesses([gameGuess])
+    const result = await updateOrCreateGameGuesses([gameGuess])
+
+    // Check if save failed
+    if (result && 'success' in result && !result.success) {
+      console.error('[GuessesContext] Save failed:', result.error)
+      throw new Error(result.error || 'Failed to save prediction')
+    }
   }, [autoSave, gameGuesses, groupGames, guessedPositions, sortByGamesBetweenTeams])
 
   const context = useMemo(() => ({
