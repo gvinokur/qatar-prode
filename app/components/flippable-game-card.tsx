@@ -93,6 +93,8 @@ export default function FlippableGameCard({
   const awayTeam = game.away_team ? teamsMap[game.away_team] : null;
   const homeTeamName = homeTeam?.name || game.home_team || 'TBD';
   const awayTeamName = awayTeam?.name || game.away_team || 'TBD';
+  const homeTeamShortName = homeTeam?.short_name;
+  const awayTeamShortName = awayTeam?.short_name;
 
   // Flip animation duration (slightly slower on mobile)
   const flipDuration = isMobile ? 0.5 : 0.4;
@@ -311,6 +313,8 @@ export default function FlippableGameCard({
                   gameId={game.id}
                   homeTeamName={homeTeamName}
                   awayTeamName={awayTeamName}
+                  homeTeamShortName={homeTeamShortName}
+                  awayTeamShortName={awayTeamShortName}
                   isPlayoffGame={isPlayoffs}
                   tournamentId={tournamentId}
                   homeScore={editHomeScore}

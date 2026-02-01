@@ -30,6 +30,8 @@ interface GamePredictionEditControlsProps {
   readonly gameId: string;
   readonly homeTeamName: string;
   readonly awayTeamName: string;
+  readonly homeTeamShortName?: string;
+  readonly awayTeamShortName?: string;
   readonly isPlayoffGame: boolean;
   readonly tournamentId?: string;
 
@@ -91,6 +93,8 @@ export default function GamePredictionEditControls({
   gameId,
   homeTeamName,
   awayTeamName,
+  homeTeamShortName,
+  awayTeamShortName,
   isPlayoffGame,
   tournamentId,
   homeScore,
@@ -129,7 +133,6 @@ export default function GamePredictionEditControls({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [currentField, setCurrentField] = useState<'home' | 'away' | 'homePenalty' | 'awayPenalty' | 'boost' | 'save'>('home');
-  const [attemptedSave, setAttemptedSave] = useState(false);
 
   // Calculate effective boost counts (account for switching types)
   const getEffectiveBoostCounts = () => {
@@ -155,12 +158,6 @@ export default function GamePredictionEditControls({
   // Check if scores are tied (for playoff penalty shootout)
   const isPenaltyShootout = homeScore !== undefined && awayScore !== undefined && homeScore === awayScore && isPlayoffGame;
 
-  // Validate playoff penalty selection (only show after attempted save)
-  const hasValidationError = isPenaltyShootout && !homePenaltyWinner && !awayPenaltyWinner;
-  const validationErrorMessage = attemptedSave && hasValidationError
-    ? 'Please select a penalty shootout winner for tied playoff games'
-    : null;
-
   // Handle score changes
   const handleHomeScoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value === '' ? undefined : Number(e.target.value);
@@ -171,9 +168,6 @@ export default function GamePredictionEditControls({
       onHomePenaltyWinnerChange(false);
       onAwayPenaltyWinnerChange(false);
     }
-
-    // Reset attempted save flag when scores change
-    setAttemptedSave(false);
   };
 
   const handleAwayScoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -185,9 +179,6 @@ export default function GamePredictionEditControls({
       onHomePenaltyWinnerChange(false);
       onAwayPenaltyWinnerChange(false);
     }
-
-    // Reset attempted save flag when scores change
-    setAttemptedSave(false);
   };
 
   // Handle penalty winner changes (mutual exclusion)
@@ -196,8 +187,6 @@ export default function GamePredictionEditControls({
     onHomePenaltyWinnerChange(checked);
     if (checked) {
       onAwayPenaltyWinnerChange(false);
-      // Clear validation error when a winner is selected
-      setAttemptedSave(false);
     }
   };
 
@@ -206,8 +195,6 @@ export default function GamePredictionEditControls({
     onAwayPenaltyWinnerChange(checked);
     if (checked) {
       onHomePenaltyWinnerChange(false);
-      // Clear validation error when a winner is selected
-      setAttemptedSave(false);
     }
   };
 
@@ -230,7 +217,6 @@ export default function GamePredictionEditControls({
     // Enter key ALWAYS saves
     if (e.key === 'Enter' && onSave) {
       e.preventDefault();
-      setAttemptedSave(true);
       onSave();
       return;
     }
@@ -366,41 +352,20 @@ export default function GamePredictionEditControls({
         </Alert>
       )}
 
-      {/* Validation error display */}
-      {validationErrorMessage && !error && (
-        <Alert severity="warning" sx={{ mb: 2 }}>
-          {validationErrorMessage}
-        </Alert>
-      )}
 
       {/* Scores */}
-      <Box sx={{ mb: compact ? 2 : 3 }}>
+      <Box sx={{ mb: compact ? 1.5 : 3 }}>
         {layout === 'horizontal' ? (
           // Horizontal layout: each team on its own row
           <Box>
-            {/* Header row for compact penalty mode */}
-            {compact && isPenaltyShootout && (
-              <Grid container spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
-                <Grid size={7}></Grid>
-                <Grid size={3}></Grid>
-                <Grid size={2} sx={{ textAlign: 'center' }}>
-                  <Tooltip title="Ganador de la tanda de penales" arrow>
-                    <Typography variant="caption" color="text.secondary" sx={{ cursor: 'help', fontSize: '0.65rem' }}>
-                      Gan. Pen
-                    </Typography>
-                  </Tooltip>
-                </Grid>
-              </Grid>
-            )}
-
             {/* Home team row */}
             <Grid container spacing={1} alignItems="center" sx={{ mb: 1 }}>
-              <Grid size={compact && isPenaltyShootout ? 5 : 7}>
+              <Grid size={7}>
                 <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
                   {homeTeamName}
                 </Typography>
               </Grid>
-              <Grid size={compact && isPenaltyShootout ? 5 : 5}>
+              <Grid size={5}>
                 <TextField
                   inputRef={homeScoreInputRef}
                   type="number"
@@ -420,30 +385,16 @@ export default function GamePredictionEditControls({
                   fullWidth
                 />
               </Grid>
-              {compact && isPenaltyShootout && (
-                <Grid size={2} sx={{ textAlign: 'center' }}>
-                  <Checkbox
-                    inputRef={homePenaltyCheckboxRef}
-                    checked={homePenaltyWinner}
-                    onChange={handleHomePenaltyWinnerChange}
-                    onKeyDown={(e) => handleKeyDown(e, 'homePenalty')}
-                    onFocus={() => setCurrentField('homePenalty')}
-                    disabled={loading}
-                    size="small"
-                    inputProps={{ 'aria-label': `${homeTeamName} penalty winner` }}
-                  />
-                </Grid>
-              )}
             </Grid>
 
             {/* Away team row */}
             <Grid container spacing={1} alignItems="center">
-              <Grid size={compact && isPenaltyShootout ? 5 : 7}>
+              <Grid size={7}>
                 <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
                   {awayTeamName}
                 </Typography>
               </Grid>
-              <Grid size={compact && isPenaltyShootout ? 5 : 5}>
+              <Grid size={5}>
                 <TextField
                   inputRef={awayScoreInputRef}
                   type="number"
@@ -463,8 +414,37 @@ export default function GamePredictionEditControls({
                   fullWidth
                 />
               </Grid>
-              {compact && isPenaltyShootout && (
-                <Grid size={2} sx={{ textAlign: 'center' }}>
+            </Grid>
+
+            {/* Penalty shootout selector - single line below scores */}
+            {compact && isPenaltyShootout && (
+              <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
+                  Ganador Penales
+                </Typography>
+                <Typography variant="caption" sx={{ flexShrink: 0 }}>
+                  -
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography variant="caption" fontWeight="medium">
+                    {homeTeamShortName || homeTeamName.substring(0, 3).toUpperCase()}
+                  </Typography>
+                  <Checkbox
+                    inputRef={homePenaltyCheckboxRef}
+                    checked={homePenaltyWinner}
+                    onChange={handleHomePenaltyWinnerChange}
+                    onKeyDown={(e) => handleKeyDown(e, 'homePenalty')}
+                    onFocus={() => setCurrentField('homePenalty')}
+                    disabled={loading}
+                    size="small"
+                    sx={{ p: 0.5 }}
+                    inputProps={{ 'aria-label': `${homeTeamName} penalty winner` }}
+                  />
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography variant="caption" fontWeight="medium">
+                    {awayTeamShortName || awayTeamName.substring(0, 3).toUpperCase()}
+                  </Typography>
                   <Checkbox
                     inputRef={awayPenaltyCheckboxRef}
                     checked={awayPenaltyWinner}
@@ -473,11 +453,12 @@ export default function GamePredictionEditControls({
                     onFocus={() => setCurrentField('awayPenalty')}
                     disabled={loading}
                     size="small"
+                    sx={{ p: 0.5 }}
                     inputProps={{ 'aria-label': `${awayTeamName} penalty winner` }}
                   />
-                </Grid>
-              )}
-            </Grid>
+                </Box>
+              </Box>
+            )}
           </Box>
         ) : (
           // Vertical layout with "vs" separator
@@ -815,7 +796,6 @@ export default function GamePredictionEditControls({
                 setCurrentField('boost');
               } else {
                 // Last field - save
-                setAttemptedSave(true);
                 if (onSave) {
                   onSave();
                 } else if (onSaveAndAdvance) {
@@ -852,10 +832,7 @@ export default function GamePredictionEditControls({
           <Button
             ref={saveButtonRef}
             variant="contained"
-            onClick={() => {
-              setAttemptedSave(true);
-              onSave?.();
-            }}
+            onClick={onSave}
             onKeyDown={(e) => handleKeyDown(e, 'save')}
             onFocus={() => setCurrentField('save')}
             disabled={loading}
