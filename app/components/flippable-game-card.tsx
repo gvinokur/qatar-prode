@@ -38,8 +38,9 @@ interface FlippableGameCardProps {
   // Disabled state
   disabled?: boolean;
 
-  // Auto-advance
+  // Auto-advance / Auto-previous
   onAutoAdvanceNext?: () => void;
+  onAutoGoPrevious?: () => void;
 }
 
 export default function FlippableGameCard({
@@ -61,7 +62,8 @@ export default function FlippableGameCard({
   goldenUsed,
   goldenMax,
   disabled = false,
-  onAutoAdvanceNext
+  onAutoAdvanceNext,
+  onAutoGoPrevious
 }: FlippableGameCardProps) {
   const theme = useTheme();
   const prefersReducedMotion = useReducedMotion();
@@ -201,8 +203,10 @@ export default function FlippableGameCard({
     // Close current card
     onEditEnd();
 
-    // TODO: Add callback for going to previous card
-    // For now, just close - parent component will need to implement this
+    // Go to previous card if callback provided
+    if (onAutoGoPrevious) {
+      onAutoGoPrevious();
+    }
   };
 
   // Note: Escape key is now handled by GamePredictionEditControls

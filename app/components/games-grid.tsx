@@ -191,6 +191,31 @@ export default function GamesGrid({
     // No next enabled game - stay in current card (user can manually close)
   }, [games, handleEditStart]);
 
+  const handleAutoGoPrevious = useCallback((currentGameId: string) => {
+    const idx = games.findIndex(g => g.id === currentGameId);
+
+    // Find previous enabled game (skip disabled games)
+    for (let i = idx - 1; i >= 0; i--) {
+      const prevGame = games[i];
+      const ONE_HOUR = 60 * 60 * 1000;
+      const isDisabled = Date.now() + ONE_HOUR > prevGame.game_date.getTime();
+
+      if (!isDisabled) {
+        handleEditStart(prevGame.id);
+
+        // Scroll to previous card
+        setTimeout(() => {
+          const cardElement = document.querySelector(`[data-game-id="${prevGame.id}"]`);
+          cardElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100); // Delay for flip animation to start
+
+        return;
+      }
+    }
+
+    // No previous enabled game - stay in current card (user can manually close)
+  }, [games, handleEditStart]);
+
   const getTeamNames = () => {
     if (!selectedGame) return ({
       homeTeamName: 'Unknown',
@@ -238,6 +263,7 @@ export default function GamesGrid({
                     goldenMax={tournament?.max_golden_games || 0}
                     disabled={!isLoggedIn}
                     onAutoAdvanceNext={() => handleAutoAdvanceNext(game.id)}
+                    onAutoGoPrevious={() => handleAutoGoPrevious(game.id)}
                   />
                 ) : (
                   <GameView
