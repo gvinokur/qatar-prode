@@ -123,7 +123,7 @@ export default function FlippableGameCard({
         home_penalty_winner: editHomePenaltyWinner,
         away_penalty_winner: editAwayPenaltyWinner,
         boost_type: editBoostType
-      }, { immediate: true });
+      });
 
       // Success - close edit mode
       onEditEnd();

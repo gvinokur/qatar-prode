@@ -103,24 +103,14 @@ export default function GamesGrid({
   };
 
   const handleEditStart = useCallback(async (gameId: string) => {
-    // If another card is editing, flush its pending save
-    if (editingGameId && editingGameId !== gameId) {
-      if (groupContext.pendingSaves.has(editingGameId)) {
-        try {
-          await groupContext.flushPendingSave(editingGameId);
-        } catch (error) {
-          console.error('Failed to save previous game:', error);
-          // Continue anyway - allow opening new card
-        }
-      }
-    }
+    // No need to flush - saves happen immediately when card closes
 
     // Use EditModeContext if available, otherwise use local state
     if (editMode) {
       await editMode.startEdit(gameId, 'inline');
     }
     setEditingGameId(gameId);
-  }, [editingGameId, groupContext, editMode]);
+  }, [editMode]);
 
   const handleEditEnd = useCallback(() => {
     if (editMode) {
@@ -179,14 +169,13 @@ export default function GamesGrid({
   const handleAutoAdvanceNext = useCallback((currentGameId: string) => {
     const idx = games.findIndex(g => g.id === currentGameId);
 
-    // Find next enabled game (skip disabled and errored)
+    // Find next enabled game (skip disabled games)
     for (let i = idx + 1; i < games.length; i++) {
       const nextGame = games[i];
       const ONE_HOUR = 60 * 60 * 1000;
       const isDisabled = Date.now() + ONE_HOUR > nextGame.game_date.getTime();
-      const hasError = groupContext.saveErrors[nextGame.id];
 
-      if (!isDisabled && !hasError) {
+      if (!isDisabled) {
         handleEditStart(nextGame.id);
 
         // Scroll to next card
@@ -200,7 +189,7 @@ export default function GamesGrid({
     }
 
     // No next enabled game - stay in current card (user can manually close)
-  }, [games, groupContext.saveErrors, handleEditStart]);
+  }, [games, handleEditStart]);
 
   const getTeamNames = () => {
     if (!selectedGame) return ({

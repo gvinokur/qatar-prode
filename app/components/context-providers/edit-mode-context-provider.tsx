@@ -1,7 +1,6 @@
 'use client'
 
 import React, { createContext, useState, useContext, useCallback } from 'react';
-import { GuessesContext } from './guesses-context-provider';
 
 interface EditModeContextValue {
   editingGameId: string | null;
@@ -28,24 +27,13 @@ interface EditModeProviderProps {
 export function EditModeProvider({ children }: EditModeProviderProps) {
   const [editingGameId, setEditingGameId] = useState<string | null>(null);
   const [editMode, setEditMode] = useState<'inline' | 'dialog' | null>(null);
-  const guessesContext = useContext(GuessesContext);
 
   const startEdit = useCallback(async (gameId: string, mode: 'inline' | 'dialog') => {
-    // Close any existing edit before opening new one
-    if (editingGameId && editingGameId !== gameId) {
-      // Flush pending save for previous game
-      if (guessesContext.pendingSaves.has(editingGameId)) {
-        try {
-          await guessesContext.flushPendingSave(editingGameId);
-        } catch (error) {
-          console.error('Failed to save previous game:', error);
-          // Continue anyway - don't block new edit
-        }
-      }
-    }
+    // Simply set the new editing state
+    // No need to flush - saves happen immediately when card closes
     setEditingGameId(gameId);
     setEditMode(mode);
-  }, [editingGameId, guessesContext]);
+  }, []);
 
   const endEdit = useCallback(() => {
     setEditingGameId(null);
