@@ -1,13 +1,14 @@
 'use client'
 
 import React, { useContext, useMemo, useState, useEffect } from 'react';
-import { Box, Card, Typography, LinearProgress, Alert, Popover } from '@mui/material';
+import { Box, Card, Typography, LinearProgress, Alert } from '@mui/material';
 import { BoostCountBadge } from './boost-badge';
 import { TournamentPredictionCompletion, Team } from '../db/tables-definition';
 import { UrgencyAccordionGroup } from './urgency-accordion-group';
 import { TournamentPredictionAccordion } from './tournament-prediction-accordion';
 import { GuessesContext } from './context-providers/guesses-context-provider';
 import type { ExtendedGameData } from '../definitions';
+import BoostInfoPopover from './boost-info-popover';
 
 interface PredictionStatusBarProps {
   readonly totalGames: number;
@@ -330,30 +331,17 @@ export function PredictionStatusBar({
       {renderUrgencySection()}
 
       {/* Boost information popover */}
-      <Popover
-        open={boostPopoverOpen}
-        anchorEl={boostAnchorEl}
-        onClose={handleBoostClose}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'center',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'center',
-        }}
-      >
-        <Box sx={{ p: 2, minWidth: 200 }}>
-          <Typography variant="subtitle2" fontWeight="bold">
-            {activeBoostType === 'silver' ? 'Multiplicador x2' : 'Multiplicador x3'}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            {activeBoostType === 'silver'
-              ? 'Duplica los puntos obtenidos en este partido'
-              : 'Triplica los puntos obtenidos en este partido'}
-          </Typography>
-        </Box>
-      </Popover>
+      {activeBoostType && (
+        <BoostInfoPopover
+          open={boostPopoverOpen}
+          anchorEl={boostAnchorEl}
+          onClose={handleBoostClose}
+          boostType={activeBoostType}
+          used={activeBoostType === 'silver' ? silverUsed : goldenUsed}
+          max={activeBoostType === 'silver' ? silverMax : goldenMax}
+          tournamentId={tournamentId}
+        />
+      )}
     </Card>
   );
 }

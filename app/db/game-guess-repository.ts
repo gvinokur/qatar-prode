@@ -3,7 +3,7 @@ import {createBaseFunctions} from "./base-repository";
 import {GameGuessTable, GameGuess, GameGuessNew} from "./tables-definition";
 import {GameStatisticForUser} from "../../types/definitions";
 import {cache} from "react";
-import {sql} from 'kysely';
+import {sql, ExpressionBuilder} from 'kysely';
 
 const tableName = 'game_guesses'
 
@@ -354,5 +354,97 @@ export async function getPredictionDashboardStats(
     predictedGames: Number(stats.predicted_games),
     silverUsed: Number(stats.silver_used),
     goldenUsed: Number(stats.golden_used),
+  };
+}
+
+/**
+ * Get boost allocation breakdown by group and playoff stages
+ * Returns how boosts are distributed across tournament groups and playoff games
+ * Also includes performance metrics (scored games and points earned)
+ */
+// Helper function to build boost aggregation select expressions
+function buildBoostAggregateSelect(eb: ExpressionBuilder<any, any>) {
+  return [
+    eb.fn.countAll().as('count'),
+    eb.fn
+      .count('gg.id')
+      .filterWhere('gg.final_score', 'is not', null)
+      .as('scored_games'),
+    eb.cast(
+      eb.fn.sum(
+        eb.case()
+          .when('gg.final_score', 'is not', null)
+          .then(
+            sql<number>`COALESCE(gg.final_score, 0) - COALESCE(gg.score, 0)`
+          )
+          .else(0)
+          .end()
+      ),
+      'integer'
+    ).as('boost_bonus'),
+  ];
+}
+
+export async function getBoostAllocationBreakdown(
+  userId: string,
+  tournamentId: string,
+  boostType: 'silver' | 'golden'
+): Promise<{
+  byGroup: { groupLetter: string; count: number }[];
+  playoffCount: number;
+  totalBoosts: number;
+  scoredGamesCount: number;
+  totalPointsEarned: number;
+}> {
+  // Query 1: Group stage boosts
+  const groupBoosts = await db
+    .selectFrom('game_guesses as gg')
+    .innerJoin('games as g', 'g.id', 'gg.game_id')
+    .innerJoin('tournament_group_games as tgg', 'tgg.game_id', 'g.id')
+    .innerJoin('tournament_groups as tg', 'tg.id', 'tgg.tournament_group_id')
+    .where('gg.user_id', '=', userId)
+    .where('g.tournament_id', '=', tournamentId)
+    .where('gg.boost_type', '=', boostType)
+    .select('tg.group_letter')
+    .select(buildBoostAggregateSelect)
+    .groupBy('tg.group_letter')
+    .orderBy('tg.group_letter')
+    .execute();
+
+  // Query 2: Playoff boosts
+  const playoffBoosts = await db
+    .selectFrom('game_guesses as gg')
+    .innerJoin('games as g', 'g.id', 'gg.game_id')
+    .innerJoin('tournament_playoff_round_games as prg', 'prg.game_id', 'g.id')
+    .where('gg.user_id', '=', userId)
+    .where('g.tournament_id', '=', tournamentId)
+    .where('gg.boost_type', '=', boostType)
+    .select(buildBoostAggregateSelect)
+    .executeTakeFirst();
+
+  // Aggregate results
+  const byGroup = groupBoosts.map((row) => ({
+    groupLetter: row.group_letter,
+    count: Number(row.count),
+  }));
+
+  const playoffCount = playoffBoosts ? Number(playoffBoosts.count) : 0;
+
+  const totalBoosts = byGroup.reduce((sum, g) => sum + g.count, 0) + playoffCount;
+
+  const scoredGamesCount =
+    groupBoosts.reduce((sum, row) => sum + Number(row.scored_games), 0) +
+    (playoffBoosts ? Number(playoffBoosts.scored_games) : 0);
+
+  const totalPointsEarned =
+    groupBoosts.reduce((sum, row) => sum + Number(row.boost_bonus || 0), 0) +
+    (playoffBoosts ? Number(playoffBoosts.boost_bonus || 0) : 0);
+
+  return {
+    byGroup,
+    playoffCount,
+    totalBoosts,
+    scoredGamesCount,
+    totalPointsEarned,
   };
 }
