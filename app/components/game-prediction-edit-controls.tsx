@@ -516,6 +516,13 @@ export default function GamePredictionEditControls({
                           'aria-label': `${homeTeamShortName || homeTeamName} penalty winner`
                         }
                       }}
+                      sx={{
+                        '&:focus-visible': {
+                          outline: '2px solid',
+                          outlineColor: 'primary.main',
+                          outlineOffset: '2px'
+                        }
+                      }}
                     />
                   }
                   label={<Typography variant="caption">{homeTeamShortName || homeTeamName}</Typography>}
@@ -534,6 +541,13 @@ export default function GamePredictionEditControls({
                         input: {
                           ref: awayPenaltyCheckboxRef,
                           'aria-label': `${awayTeamShortName || awayTeamName} penalty winner`
+                        }
+                      }}
+                      sx={{
+                        '&:focus-visible': {
+                          outline: '2px solid',
+                          outlineColor: 'primary.main',
+                          outlineOffset: '2px'
                         }
                       }}
                     />
@@ -631,6 +645,13 @@ export default function GamePredictionEditControls({
                       'aria-label': `${homeTeamName} penalty winner`
                     }
                   }}
+                  sx={{
+                    '&:focus-visible': {
+                      outline: '2px solid',
+                      outlineColor: 'primary.main',
+                      outlineOffset: '2px'
+                    }
+                  }}
                 />
               }
               label={homeTeamName}
@@ -647,6 +668,13 @@ export default function GamePredictionEditControls({
                   slotProps={{
                     input: {
                       'aria-label': `${awayTeamName} penalty winner`
+                    }
+                  }}
+                  sx={{
+                    '&:focus-visible': {
+                      outline: '2px solid',
+                      outlineColor: 'primary.main',
+                      outlineOffset: '2px'
                     }
                   }}
                 />
@@ -723,7 +751,13 @@ export default function GamePredictionEditControls({
               size="small"
               sx={{ flexShrink: 0 }}
             >
-              <ToggleButton value="" aria-label="No boost" sx={{ py: 0.5, px: 1, fontSize: '0.75rem' }}>
+              <ToggleButton
+                value=""
+                aria-label="No boost"
+                onKeyDown={(e) => handleKeyDown(e, 'boost')}
+                onFocus={() => setCurrentField('boost')}
+                sx={{ py: 0.5, px: 1, fontSize: '0.75rem' }}
+              >
                 Ninguno
               </ToggleButton>
               {silverMax > 0 && (
@@ -828,7 +862,12 @@ export default function GamePredictionEditControls({
               size="medium"
               fullWidth
             >
-              <ToggleButton value="" aria-label="No boost">
+              <ToggleButton
+                value=""
+                aria-label="No boost"
+                onKeyDown={(e) => handleKeyDown(e, 'boost')}
+                onFocus={() => setCurrentField('boost')}
+              >
                 Ninguno
               </ToggleButton>
               {silverMax > 0 && (
