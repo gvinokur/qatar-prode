@@ -1,11 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import GamePredictionEditControls from '../../app/components/game-prediction-edit-controls';
 
 // Mock next-auth
 vi.mock('../../auth', () => ({
   auth: vi.fn(),
 }));
+
+// Create a mock theme with accent colors
+const mockTheme = createTheme({
+  palette: {
+    accent: {
+      silver: {
+        main: '#C0C0C0',
+      },
+      gold: {
+        main: '#FFD700',
+      },
+    },
+  } as any,
+});
 
 describe('GamePredictionEditControls', () => {
   const defaultProps = {
@@ -38,20 +53,24 @@ describe('GamePredictionEditControls', () => {
     onCancel: vi.fn(),
   };
 
+  const renderWithTheme = (ui: React.ReactElement) => {
+    return render(<ThemeProvider theme={mockTheme}>{ui}</ThemeProvider>);
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe('Score Inputs', () => {
     it('renders home and away score inputs', () => {
-      render(<GamePredictionEditControls {...defaultProps} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} />);
 
       expect(screen.getByLabelText(/Mexico score/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/Qatar score/i)).toBeInTheDocument();
     });
 
     it('displays current scores when provided', () => {
-      render(<GamePredictionEditControls {...defaultProps} homeScore={2} awayScore={1} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} homeScore={2} awayScore={1} />);
 
       const homeInput = screen.getByLabelText(/Mexico score/i) as HTMLInputElement;
       const awayInput = screen.getByLabelText(/Qatar score/i) as HTMLInputElement;
@@ -61,7 +80,7 @@ describe('GamePredictionEditControls', () => {
     });
 
     it('calls onHomeScoreChange when home score changes', () => {
-      render(<GamePredictionEditControls {...defaultProps} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} />);
 
       const homeInput = screen.getByLabelText(/Mexico score/i);
       fireEvent.change(homeInput, { target: { value: '3' } });
@@ -70,7 +89,7 @@ describe('GamePredictionEditControls', () => {
     });
 
     it('calls onAwayScoreChange when away score changes', () => {
-      render(<GamePredictionEditControls {...defaultProps} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} />);
 
       const awayInput = screen.getByLabelText(/Qatar score/i);
       fireEvent.change(awayInput, { target: { value: '2' } });
@@ -79,7 +98,7 @@ describe('GamePredictionEditControls', () => {
     });
 
     it('calls onChange with undefined when input is cleared', () => {
-      render(<GamePredictionEditControls {...defaultProps} homeScore={2} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} homeScore={2} />);
 
       const homeInput = screen.getByLabelText(/Mexico score/i);
       fireEvent.change(homeInput, { target: { value: '' } });
@@ -88,7 +107,7 @@ describe('GamePredictionEditControls', () => {
     });
 
     it('does not accept negative values', () => {
-      render(<GamePredictionEditControls {...defaultProps} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} />);
 
       const homeInput = screen.getByLabelText(/Mexico score/i) as HTMLInputElement;
       expect(homeInput.min).toBe('0');
@@ -97,25 +116,25 @@ describe('GamePredictionEditControls', () => {
 
   describe('Penalty Selection', () => {
     it('does not show penalty checkboxes for non-playoff games', () => {
-      render(<GamePredictionEditControls {...defaultProps} isPlayoffGame={false} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} isPlayoffGame={false} />);
 
       expect(screen.queryByText(/Ganador por penales/i)).not.toBeInTheDocument();
     });
 
     it('does not show penalty checkboxes for playoff games when scores are different', () => {
-      render(<GamePredictionEditControls {...defaultProps} isPlayoffGame={true} homeScore={2} awayScore={1} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} isPlayoffGame={true} homeScore={2} awayScore={1} />);
 
       expect(screen.queryByText(/Ganador por penales/i)).not.toBeInTheDocument();
     });
 
     it('shows penalty checkboxes for playoff games with tied scores', () => {
-      render(<GamePredictionEditControls {...defaultProps} isPlayoffGame={true} homeScore={2} awayScore={2} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} isPlayoffGame={true} homeScore={2} awayScore={2} />);
 
       expect(screen.getByText(/Ganador por penales/i)).toBeInTheDocument();
     });
 
     it('calls onHomePenaltyWinnerChange when home penalty checkbox changes', () => {
-      render(<GamePredictionEditControls {...defaultProps} isPlayoffGame={true} homeScore={2} awayScore={2} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} isPlayoffGame={true} homeScore={2} awayScore={2} />);
 
       const checkboxes = screen.getAllByRole('checkbox');
       const homeCheckbox = checkboxes[0]; // First checkbox is home team
@@ -125,7 +144,7 @@ describe('GamePredictionEditControls', () => {
     });
 
     it('calls onAwayPenaltyWinnerChange when away penalty checkbox changes', () => {
-      render(<GamePredictionEditControls {...defaultProps} isPlayoffGame={true} homeScore={2} awayScore={2} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} isPlayoffGame={true} homeScore={2} awayScore={2} />);
 
       const checkboxes = screen.getAllByRole('checkbox');
       const awayCheckbox = checkboxes[1]; // Second checkbox is away team
@@ -137,35 +156,35 @@ describe('GamePredictionEditControls', () => {
 
   describe('Boost Selection', () => {
     it('renders boost selector with silver and golden options', () => {
-      render(<GamePredictionEditControls {...defaultProps} tournamentId="tournament1" />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} tournamentId="tournament1" />);
 
       expect(screen.getByLabelText(/Silver boost/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/Golden boost/i)).toBeInTheDocument();
     });
 
     it('disables silver boost when limit reached', () => {
-      render(<GamePredictionEditControls {...defaultProps} tournamentId="tournament1" silverUsed={5} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} tournamentId="tournament1" silverUsed={5} />);
 
       const silverButton = screen.getByLabelText(/Silver boost/i);
       expect(silverButton).toBeDisabled();
     });
 
     it('disables golden boost when limit reached', () => {
-      render(<GamePredictionEditControls {...defaultProps} tournamentId="tournament1" goldenUsed={2} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} tournamentId="tournament1" goldenUsed={2} />);
 
       const goldenButton = screen.getByLabelText(/Golden boost/i);
       expect(goldenButton).toBeDisabled();
     });
 
     it('allows switching from silver to golden even when golden limit reached', () => {
-      render(<GamePredictionEditControls {...defaultProps} tournamentId="tournament1" boostType="silver" goldenUsed={2} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} tournamentId="tournament1" boostType="silver" goldenUsed={2} />);
 
       const goldenButton = screen.getByLabelText(/Golden boost/i);
       expect(goldenButton).not.toBeDisabled();
     });
 
     it('calls onBoostTypeChange when silver is selected', () => {
-      render(<GamePredictionEditControls {...defaultProps} tournamentId="tournament1" />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} tournamentId="tournament1" />);
 
       const silverButton = screen.getByLabelText(/Silver boost/i);
       fireEvent.click(silverButton);
@@ -174,7 +193,7 @@ describe('GamePredictionEditControls', () => {
     });
 
     it('calls onBoostTypeChange when golden is selected', () => {
-      render(<GamePredictionEditControls {...defaultProps} tournamentId="tournament1" />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} tournamentId="tournament1" />);
 
       const goldenButton = screen.getByLabelText(/Golden boost/i);
       fireEvent.click(goldenButton);
@@ -183,7 +202,7 @@ describe('GamePredictionEditControls', () => {
     });
 
     it('calls onBoostTypeChange with null when deselecting', () => {
-      render(<GamePredictionEditControls {...defaultProps} tournamentId="tournament1" boostType="silver" />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} tournamentId="tournament1" boostType="silver" />);
 
       // Click "No boost" button
       const noneButton = screen.getByLabelText(/No boost/i);
@@ -193,7 +212,7 @@ describe('GamePredictionEditControls', () => {
     });
 
     it('shows correct boost counts in chips', () => {
-      render(<GamePredictionEditControls {...defaultProps} tournamentId="tournament1" silverUsed={2} silverMax={5} goldenUsed={1} goldenMax={2} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} tournamentId="tournament1" silverUsed={2} silverMax={5} goldenUsed={1} goldenMax={2} />);
 
       // Chips show available/max counts
       expect(screen.getByText('3/5')).toBeInTheDocument(); // 5-2 available
@@ -203,14 +222,14 @@ describe('GamePredictionEditControls', () => {
 
   describe('Action Buttons', () => {
     it('renders save and cancel buttons', () => {
-      render(<GamePredictionEditControls {...defaultProps} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} />);
 
       expect(screen.getByText(/Guardar/i)).toBeInTheDocument();
       expect(screen.getByText(/Cancelar/i)).toBeInTheDocument();
     });
 
     it('calls onSave when save button is clicked', () => {
-      render(<GamePredictionEditControls {...defaultProps} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} />);
 
       const saveButton = screen.getByText(/Guardar/i);
       fireEvent.click(saveButton);
@@ -219,7 +238,7 @@ describe('GamePredictionEditControls', () => {
     });
 
     it('calls onCancel when cancel button is clicked', () => {
-      render(<GamePredictionEditControls {...defaultProps} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} />);
 
       const cancelButton = screen.getByText(/Cancelar/i);
       fireEvent.click(cancelButton);
@@ -228,7 +247,7 @@ describe('GamePredictionEditControls', () => {
     });
 
     it('disables buttons when loading', () => {
-      render(<GamePredictionEditControls {...defaultProps} loading={true} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} loading={true} />);
 
       const saveButton = screen.getByText(/Guardar/i).closest('button');
       const cancelButton = screen.getByText(/Cancelar/i).closest('button');
@@ -238,7 +257,7 @@ describe('GamePredictionEditControls', () => {
     });
 
     it('shows loading indicator when loading', () => {
-      render(<GamePredictionEditControls {...defaultProps} loading={true} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} loading={true} />);
 
       expect(screen.getByRole('progressbar')).toBeInTheDocument();
     });
@@ -246,13 +265,13 @@ describe('GamePredictionEditControls', () => {
 
   describe('Error Display', () => {
     it('does not show error alert when error is null', () => {
-      render(<GamePredictionEditControls {...defaultProps} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} />);
 
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
 
     it('shows error alert when error is provided', () => {
-      render(<GamePredictionEditControls {...defaultProps} error="Network error" />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} error="Network error" />);
 
       expect(screen.getByRole('alert')).toBeInTheDocument();
       expect(screen.getByText('Network error')).toBeInTheDocument();
@@ -260,7 +279,7 @@ describe('GamePredictionEditControls', () => {
 
     it('shows retry button when retryCallback is provided', () => {
       const retryCallback = vi.fn();
-      render(<GamePredictionEditControls {...defaultProps} error="Network error" retryCallback={retryCallback} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} error="Network error" retryCallback={retryCallback} />);
 
       const retryButton = screen.getByText(/Reintentar/i);
       fireEvent.click(retryButton);
@@ -271,21 +290,21 @@ describe('GamePredictionEditControls', () => {
 
   describe('Layout', () => {
     it('renders horizontal layout when specified', () => {
-      const { container } = render(<GamePredictionEditControls {...defaultProps} layout="horizontal" />);
+      const { container } = renderWithTheme(<GamePredictionEditControls {...defaultProps} layout="horizontal" />);
 
       const grid = container.querySelector('.MuiGrid-container');
       expect(grid).toBeInTheDocument();
     });
 
     it('renders vertical layout when specified', () => {
-      const { container } = render(<GamePredictionEditControls {...defaultProps} layout="vertical" />);
+      const { container } = renderWithTheme(<GamePredictionEditControls {...defaultProps} layout="vertical" />);
 
       const stack = container.querySelector('.MuiStack-root');
       expect(stack).toBeInTheDocument();
     });
 
     it('uses compact spacing when compact is true', () => {
-      render(<GamePredictionEditControls {...defaultProps} compact={true} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} compact={true} />);
 
       // Compact mode should render (testing by checking component renders without error)
       expect(screen.getByLabelText(/MEX/)).toBeInTheDocument();
@@ -295,7 +314,7 @@ describe('GamePredictionEditControls', () => {
   describe('Keyboard Navigation', () => {
     it('focuses on save button when Tab is pressed from last field', () => {
       const onSaveAndAdvance = vi.fn();
-      render(<GamePredictionEditControls {...defaultProps} onSaveAndAdvance={onSaveAndAdvance} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} onSaveAndAdvance={onSaveAndAdvance} />);
 
       const saveButton = screen.getByText(/Guardar/i);
 
@@ -305,7 +324,7 @@ describe('GamePredictionEditControls', () => {
 
     it('calls onEscapePressed when Escape is pressed', () => {
       const onEscapePressed = vi.fn();
-      render(<GamePredictionEditControls {...defaultProps} onEscapePressed={onEscapePressed} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} onEscapePressed={onEscapePressed} />);
 
       const homeInput = screen.getByLabelText(/Mexico score/i);
       fireEvent.keyDown(homeInput, { key: 'Escape', code: 'Escape' });
@@ -316,21 +335,21 @@ describe('GamePredictionEditControls', () => {
 
   describe('Accessibility', () => {
     it('has proper ARIA labels for inputs', () => {
-      render(<GamePredictionEditControls {...defaultProps} />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} />);
 
       expect(screen.getByLabelText(/Mexico score/i)).toHaveAttribute('type', 'number');
       expect(screen.getByLabelText(/Qatar score/i)).toHaveAttribute('type', 'number');
     });
 
     it('has proper ARIA labels for boost buttons', () => {
-      render(<GamePredictionEditControls {...defaultProps} tournamentId="tournament1" />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} tournamentId="tournament1" />);
 
       expect(screen.getByLabelText(/Silver boost/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/Golden boost/i)).toBeInTheDocument();
     });
 
     it('marks error alert with proper role', () => {
-      render(<GamePredictionEditControls {...defaultProps} error="Test error" />);
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} error="Test error" />);
 
       const alert = screen.getByRole('alert');
       expect(alert).toHaveTextContent('Test error');
