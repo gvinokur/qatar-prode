@@ -282,10 +282,14 @@ export default function FlippableGameCard({
         <Box
           sx={{
             backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden', // Safari fix
             position: isEditing ? 'absolute' : 'relative',
             width: '100%',
             top: 0,
-            left: 0
+            left: 0,
+            zIndex: isEditing ? 0 : 1, // Ensure front is behind when editing
+            pointerEvents: isEditing ? 'none' : 'auto', // Disable clicks when hidden
+            visibility: isEditing ? 'hidden' : 'visible', // Extra Safari fix
           }}
         >
           <GameView
@@ -300,11 +304,15 @@ export default function FlippableGameCard({
         <Box
           sx={{
             backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden', // Safari fix
             transform: 'rotateY(180deg)',
             position: isEditing ? 'relative' : 'absolute',
             width: '100%',
             top: 0,
-            left: 0
+            left: 0,
+            zIndex: isEditing ? 1 : 0, // Ensure back is in front when editing
+            pointerEvents: isEditing ? 'auto' : 'none', // Disable clicks when hidden
+            visibility: isEditing ? 'visible' : 'hidden', // Extra Safari fix
           }}
         >
           {isEditing && (
