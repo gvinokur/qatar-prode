@@ -228,9 +228,19 @@ export default function GamePredictionEditControls({
     // Calculate next index (S3358 - extract nested ternary)
     let nextIndex: number;
     if (e.key === 'ArrowLeft') {
-      nextIndex = currentIndex <= 0 ? lastIndex : currentIndex - 1;
+      // Wrap around to end if at beginning
+      if (currentIndex <= 0) {
+        nextIndex = lastIndex;
+      } else {
+        nextIndex = currentIndex - 1;
+      }
     } else {
-      nextIndex = currentIndex >= lastIndex ? 0 : currentIndex + 1;
+      // Wrap around to beginning if at end
+      if (currentIndex >= lastIndex) {
+        nextIndex = 0;
+      } else {
+        nextIndex = currentIndex + 1;
+      }
     }
 
     buttons[nextIndex].focus();
