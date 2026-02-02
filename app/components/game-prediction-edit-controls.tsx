@@ -234,13 +234,11 @@ export default function GamePredictionEditControls({
       } else {
         nextIndex = currentIndex - 1;
       }
-    } else {
+    } else if (currentIndex >= lastIndex) {
       // Wrap around to beginning if at end
-      if (currentIndex >= lastIndex) {
-        nextIndex = 0;
-      } else {
-        nextIndex = currentIndex + 1;
-      }
+      nextIndex = 0;
+    } else {
+      nextIndex = currentIndex + 1;
     }
 
     buttons[nextIndex].focus();
@@ -363,8 +361,9 @@ export default function GamePredictionEditControls({
     }
   };
 
-  // Helper: Navigate from away field (SonarQube S3776)
-  const navigateFromAway = (hasBoostSection: boolean) => {
+  // Helper: Navigate from away field (SonarQube S3776, S2301)
+  const navigateFromAway = () => {
+    const hasBoostSection = !!tournamentId && (silverMax > 0 || goldenMax > 0);
     if (isPenaltyShootout && homePenaltyCheckboxRef?.current) {
       homePenaltyCheckboxRef.current.focus();
       setCurrentField('homePenalty');
@@ -376,8 +375,9 @@ export default function GamePredictionEditControls({
     }
   };
 
-  // Helper: Navigate from penalty field (SonarQube S3776)
-  const navigateFromPenalty = (hasBoostSection: boolean) => {
+  // Helper: Navigate from penalty field (SonarQube S3776, S2301)
+  const navigateFromPenalty = () => {
+    const hasBoostSection = !!tournamentId && (silverMax > 0 || goldenMax > 0);
     if (hasBoostSection && boostButtonGroupRef?.current) {
       focusBoostButtonGroup();
       setCurrentField('boost');
@@ -388,22 +388,20 @@ export default function GamePredictionEditControls({
 
   // Helper: Handle mobile next button click (SonarQube S3776)
   const handleMobileNextClick = () => {
-    const hasBoostSection = !!tournamentId && (silverMax > 0 || goldenMax > 0);
-
     switch (currentField) {
       case 'home':
         awayScoreInputRef?.current?.focus();
         setCurrentField('away');
         break;
       case 'away':
-        navigateFromAway(hasBoostSection);
+        navigateFromAway();
         break;
       case 'homePenalty':
         awayPenaltyCheckboxRef?.current?.focus();
         setCurrentField('awayPenalty');
         break;
       case 'awayPenalty':
-        navigateFromPenalty(hasBoostSection);
+        navigateFromPenalty();
         break;
       default:
         performSave();
