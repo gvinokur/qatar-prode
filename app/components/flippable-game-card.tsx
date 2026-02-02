@@ -8,7 +8,7 @@ import GameView from './game-view';
 import { ExtendedGameData } from '../definitions';
 import { Team } from '../db/tables-definition';
 import { GuessesContext } from './context-providers/guesses-context-provider';
-import { getTeamDescription } from '../utils/playoffs-rule-helper';
+import { getTeamNames } from '../utils/team-name-helper';
 
 interface FlippableGameCardProps {
   // Game data
@@ -89,25 +89,13 @@ export default function FlippableGameCard({
   const saveButtonRef = useRef<HTMLButtonElement | null>(null);
   const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  // Get team info (check both game and guess, like GameView does)
-  // Use same pattern as GameView - homeTeam/awayTeam are the team IDs (strings), not objects
+  // Get team info using shared utility
   const gameGuess = groupContext.gameGuesses[game.id];
-  const homeTeamString = game.home_team || gameGuess?.home_team;
-  const awayTeamString = game.away_team || gameGuess?.away_team;
-
-  // Match GameView exactly: if team ID exists AND is in map, use name; otherwise use rule description
-  const homeTeamName = (homeTeamString && teamsMap[homeTeamString])
-    ? teamsMap[homeTeamString].name
-    : (getTeamDescription(game.home_team_rule) || 'TBD');
-  const awayTeamName = (awayTeamString && teamsMap[awayTeamString])
-    ? teamsMap[awayTeamString].name
-    : (getTeamDescription(game.away_team_rule) || 'TBD');
-  const homeTeamShortName = (homeTeamString && teamsMap[homeTeamString])
-    ? teamsMap[homeTeamString].short_name
-    : (getTeamDescription(game.home_team_rule, true) || 'TBD');
-  const awayTeamShortName = (awayTeamString && teamsMap[awayTeamString])
-    ? teamsMap[awayTeamString].short_name
-    : (getTeamDescription(game.away_team_rule, true) || 'TBD');
+  const { homeTeamName, awayTeamName, homeTeamShortName, awayTeamShortName } = getTeamNames(
+    game,
+    gameGuess,
+    teamsMap
+  );
 
   // Flip animation duration (slightly slower on mobile)
   const flipDuration = isMobile ? 0.5 : 0.4;
