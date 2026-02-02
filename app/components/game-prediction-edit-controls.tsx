@@ -200,6 +200,13 @@ export default function GamePredictionEditControls({
     }
   };
 
+  // Handle boost type changes
+  const handleBoostChange = (_event: React.MouseEvent<HTMLElement>, newValue: string | null) => {
+    // Convert empty string to null (for "Ninguno" button)
+    const boostValue = newValue === '' ? null : (newValue as BoostType);
+    onBoostTypeChange(boostValue);
+  };
+
   // Handle keyboard navigation
   // Helper function to focus on the selected boost button, or first if none selected
   const focusBoostButtonGroup = () => {
@@ -424,6 +431,522 @@ export default function GamePredictionEditControls({
     }
   }, [homeScoreInputRef, layout]);
 
+  // Helper: Render score inputs (SonarQube S3776 - extract rendering logic)
+  const renderScoreInputs = () => {
+    if (layout === 'horizontal') {
+      return (
+        <Box>
+          {/* Home team row */}
+          <Grid container spacing={1} alignItems="center" sx={{ mb: 1 }}>
+            <Grid size={7}>
+              <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
+                {homeTeamName}
+              </Typography>
+            </Grid>
+            <Grid size={5}>
+              <TextField
+                inputRef={homeScoreInputRef}
+                type="number"
+                value={homeScore ?? ''}
+                onChange={handleHomeScoreChange}
+                onKeyDown={(e) => handleKeyDown(e, 'home')}
+                onFocus={() => setCurrentField('home')}
+                slotProps={{
+                  htmlInput: {
+                    min: 0,
+                    style: { textAlign: 'center' },
+                    'aria-label': `${homeTeamName} score`
+                  }
+                }}
+                disabled={loading}
+                size="small"
+                fullWidth
+              />
+            </Grid>
+          </Grid>
+
+          {/* Away team row */}
+          <Grid container spacing={1} alignItems="center">
+            <Grid size={7}>
+              <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
+                {awayTeamName}
+              </Typography>
+            </Grid>
+            <Grid size={5}>
+              <TextField
+                inputRef={awayScoreInputRef}
+                type="number"
+                value={awayScore ?? ''}
+                onChange={handleAwayScoreChange}
+                onKeyDown={(e) => handleKeyDown(e, 'away')}
+                onFocus={() => setCurrentField('away')}
+                slotProps={{
+                  htmlInput: {
+                    min: 0,
+                    style: { textAlign: 'center' },
+                    'aria-label': `${awayTeamName} score`
+                  }
+                }}
+                disabled={loading}
+                size="small"
+                fullWidth
+              />
+            </Grid>
+          </Grid>
+
+          {/* Penalty shootout selector - single line below scores */}
+          {compact && isPenaltyShootout && (
+            <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0, minWidth: 'fit-content' }}>
+                Ganador Penales
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 0.5, flex: 1, minWidth: 0 }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={homePenaltyWinner}
+                      onChange={handleHomePenaltyWinnerChange}
+                      onKeyDown={(e) => handleKeyDown(e, 'homePenalty')}
+                      onFocus={() => setCurrentField('homePenalty')}
+                      disabled={loading}
+                      size="small"
+                      slotProps={{
+                        input: {
+                          ref: homePenaltyCheckboxRef,
+                          'aria-label': `${homeTeamShortName || homeTeamName} penalty winner`
+                        }
+                      }}
+                    />
+                  }
+                  label={<Typography variant="caption">{homeTeamShortName || homeTeamName}</Typography>}
+                  sx={{ mr: 0, minWidth: 0, flex: '0 1 auto' }}
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={awayPenaltyWinner}
+                      onChange={handleAwayPenaltyWinnerChange}
+                      onKeyDown={(e) => handleKeyDown(e, 'awayPenalty')}
+                      onFocus={() => setCurrentField('awayPenalty')}
+                      disabled={loading}
+                      size="small"
+                      slotProps={{
+                        input: {
+                          ref: awayPenaltyCheckboxRef,
+                          'aria-label': `${awayTeamShortName || awayTeamName} penalty winner`
+                        }
+                      }}
+                    />
+                  }
+                  label={<Typography variant="caption">{awayTeamShortName || awayTeamName}</Typography>}
+                  sx={{ mr: 0, minWidth: 0, flex: '0 1 auto' }}
+                />
+              </Box>
+            </Box>
+          )}
+        </Box>
+      );
+    }
+
+    // Vertical layout
+    return (
+      <Grid container spacing={2} alignItems="center">
+        <Grid size={8}>
+          <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
+            {homeTeamName}
+          </Typography>
+        </Grid>
+        <Grid size={4}>
+          <TextField
+            inputRef={homeScoreInputRef}
+            type="number"
+            value={homeScore ?? ''}
+            onChange={handleHomeScoreChange}
+            onKeyDown={(e) => handleKeyDown(e, 'home')}
+            onFocus={() => setCurrentField('home')}
+            slotProps={{
+              htmlInput: {
+                min: 0,
+                style: { textAlign: 'center' },
+                'aria-label': `${homeTeamName} score`
+              }
+            }}
+            disabled={loading}
+            size="small"
+            fullWidth
+          />
+        </Grid>
+        <Grid size={12} sx={{ textAlign: 'center' }}>
+          <Typography variant="body2" color="text.secondary">vs</Typography>
+        </Grid>
+        <Grid size={8}>
+          <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
+            {awayTeamName}
+          </Typography>
+        </Grid>
+        <Grid size={4}>
+          <TextField
+            inputRef={awayScoreInputRef}
+            type="number"
+            value={awayScore ?? ''}
+            onChange={handleAwayScoreChange}
+            onKeyDown={(e) => handleKeyDown(e, 'away')}
+            onFocus={() => setCurrentField('away')}
+            slotProps={{
+              htmlInput: {
+                min: 0,
+                style: { textAlign: 'center' },
+                'aria-label': `${awayTeamName} score`
+              }
+            }}
+            disabled={loading}
+            size="small"
+            fullWidth
+          />
+        </Grid>
+      </Grid>
+    );
+  };
+
+  // Helper: Render penalty selection (SonarQube S3776 - extract rendering logic)
+  const renderPenaltySelection = () => {
+    if (!isPenaltyShootout || compact) return null;
+
+    return (
+      <Box sx={{ mt: 3 }}>
+        <Typography variant="subtitle2" gutterBottom>
+          Ganador de la tanda de penales
+        </Typography>
+
+        <Grid container spacing={2}>
+          <Grid size={6}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={homePenaltyWinner}
+                  onChange={handleHomePenaltyWinnerChange}
+                  disabled={loading}
+                  slotProps={{
+                    input: {
+                      'aria-label': `${homeTeamName} penalty winner`
+                    }
+                  }}
+                />
+              }
+              label={homeTeamName}
+            />
+          </Grid>
+
+          <Grid size={6}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={awayPenaltyWinner}
+                  onChange={handleAwayPenaltyWinnerChange}
+                  disabled={loading}
+                  slotProps={{
+                    input: {
+                      'aria-label': `${awayTeamName} penalty winner`
+                    }
+                  }}
+                />
+              }
+              label={awayTeamName}
+            />
+          </Grid>
+        </Grid>
+
+        <Typography variant="caption" color="text.secondary">
+          Dado que el pártido terminó empatado, por favor seleccione el ganador de la tanda de penales.
+        </Typography>
+      </Box>
+    );
+  };
+
+  // Helper: Render boost selection (SonarQube S3776 - extract rendering logic)
+  const renderBoostSelection = () => {
+    if (!tournamentId || (silverMax === 0 && goldenMax === 0)) return null;
+
+    return (
+      <Box sx={{ mt: compact ? 1.5 : 3 }}>
+        <Divider sx={{ mb: compact ? 1.5 : 2 }} />
+        {compact ? (
+          // Compact mode: single line with label, counters, and buttons
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography variant="body2" fontWeight="medium" sx={{ flexShrink: 0 }}>
+              Boost
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0 }}>
+              {silverMax > 0 && (
+                <Chip
+                  icon={<StarIcon sx={{ fontSize: 12 }} />}
+                  label={`${effectiveBoostCounts.silver.max - effectiveBoostCounts.silver.used}/${effectiveBoostCounts.silver.max}`}
+                  size="small"
+                  sx={{
+                    height: '20px',
+                    fontSize: '0.7rem',
+                    color: theme.palette.accent.silver.main,
+                    borderColor: theme.palette.accent.silver.main,
+                    '& .MuiChip-icon': {
+                      color: theme.palette.accent.silver.main,
+                      fontSize: '0.7rem'
+                    }
+                  }}
+                  variant="outlined"
+                />
+              )}
+              {goldenMax > 0 && (
+                <Chip
+                  icon={<TrophyIcon sx={{ fontSize: 12 }} />}
+                  label={`${effectiveBoostCounts.golden.max - effectiveBoostCounts.golden.used}/${effectiveBoostCounts.golden.max}`}
+                  size="small"
+                  sx={{
+                    height: '20px',
+                    fontSize: '0.7rem',
+                    color: theme.palette.accent.gold.main,
+                    borderColor: theme.palette.accent.gold.main,
+                    '& .MuiChip-icon': {
+                      color: theme.palette.accent.gold.main,
+                      fontSize: '0.7rem'
+                    }
+                  }}
+                  variant="outlined"
+                />
+              )}
+            </Box>
+            <ToggleButtonGroup
+              ref={boostButtonGroupRef}
+              value={boostType}
+              exclusive
+              onChange={handleBoostChange}
+              aria-label="game boost selection"
+              size="small"
+              sx={{ flexShrink: 0 }}
+            >
+              <ToggleButton value="" aria-label="No boost" sx={{ py: 0.5, px: 1, fontSize: '0.75rem' }}>
+                Ninguno
+              </ToggleButton>
+              {silverMax > 0 && (
+                <ToggleButton
+                  value="silver"
+                  aria-label="silver boost"
+                  disabled={loading || (boostType !== 'silver' && effectiveBoostCounts.silver.used >= effectiveBoostCounts.silver.max)}
+                  onKeyDown={(e) => handleKeyDown(e, 'boost')}
+                  onFocus={() => setCurrentField('boost')}
+                  sx={{
+                    px: 1,
+                    py: 0.25,
+                    minWidth: '50px',
+                    fontSize: '0.75rem',
+                    '&.Mui-selected': {
+                      backgroundColor: alpha(theme.palette.accent.silver.main, 0.2),
+                      color: theme.palette.accent.silver.main,
+                      '&:hover': {
+                        backgroundColor: alpha(theme.palette.accent.silver.main, 0.3),
+                      }
+                    }
+                  }}
+                >
+                  <StarIcon sx={{ mr: 0.5, fontSize: 14 }} />
+                  2x
+                </ToggleButton>
+              )}
+              {goldenMax > 0 && (
+                <ToggleButton
+                  value="golden"
+                  aria-label="golden boost"
+                  disabled={loading || (boostType !== 'golden' && effectiveBoostCounts.golden.used >= effectiveBoostCounts.golden.max)}
+                  onKeyDown={(e) => handleKeyDown(e, 'boost')}
+                  onFocus={() => setCurrentField('boost')}
+                  sx={{
+                    px: 1,
+                    py: 0.25,
+                    minWidth: '50px',
+                    fontSize: '0.75rem',
+                    '&.Mui-selected': {
+                      backgroundColor: alpha(theme.palette.accent.gold.main, 0.2),
+                      color: theme.palette.accent.gold.main,
+                      '&:hover': {
+                        backgroundColor: alpha(theme.palette.accent.gold.main, 0.3),
+                      }
+                    }
+                  }}
+                >
+                  <TrophyIcon sx={{ mr: 0.5, fontSize: 14 }} />
+                  3x
+                </ToggleButton>
+              )}
+            </ToggleButtonGroup>
+          </Box>
+        ) : (
+          // Full mode: label + counters on one line, buttons below
+          <>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="subtitle2">
+                Boost Selection
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                {silverMax > 0 && (
+                  <Chip
+                    icon={<StarIcon />}
+                    label={`${effectiveBoostCounts.silver.max - effectiveBoostCounts.silver.used}/${effectiveBoostCounts.silver.max} Silver`}
+                    size="small"
+                    sx={{
+                      color: theme.palette.accent.silver.main,
+                      borderColor: theme.palette.accent.silver.main,
+                      '& .MuiChip-icon': {
+                        color: theme.palette.accent.silver.main
+                      }
+                    }}
+                    variant="outlined"
+                  />
+                )}
+                {goldenMax > 0 && (
+                  <Chip
+                    icon={<TrophyIcon />}
+                    label={`${effectiveBoostCounts.golden.max - effectiveBoostCounts.golden.used}/${effectiveBoostCounts.golden.max} Golden`}
+                    size="small"
+                    sx={{
+                      color: theme.palette.accent.gold.main,
+                      borderColor: theme.palette.accent.gold.main,
+                      '& .MuiChip-icon': {
+                        color: theme.palette.accent.gold.main
+                      }
+                    }}
+                    variant="outlined"
+                  />
+                )}
+              </Box>
+            </Box>
+
+            <ToggleButtonGroup
+              ref={boostButtonGroupRef}
+              value={boostType}
+              exclusive
+              onChange={handleBoostChange}
+              aria-label="game boost selection"
+              size="medium"
+              fullWidth
+            >
+              <ToggleButton value="" aria-label="No boost">
+                Ninguno
+              </ToggleButton>
+              {silverMax > 0 && (
+                <ToggleButton
+                  value="silver"
+                  aria-label="silver boost"
+                  disabled={loading || (boostType !== 'silver' && effectiveBoostCounts.silver.used >= effectiveBoostCounts.silver.max)}
+                  onKeyDown={(e) => handleKeyDown(e, 'boost')}
+                  onFocus={() => setCurrentField('boost')}
+                  sx={{
+                    '&.Mui-selected': {
+                      backgroundColor: alpha(theme.palette.accent.silver.main, 0.2),
+                      color: theme.palette.accent.silver.main,
+                      '&:hover': {
+                        backgroundColor: alpha(theme.palette.accent.silver.main, 0.3),
+                      }
+                    }
+                  }}
+                >
+                  <StarIcon sx={{ mr: 0.5, fontSize: 16 }} />
+                  2x
+                </ToggleButton>
+              )}
+              {goldenMax > 0 && (
+                <ToggleButton
+                  value="golden"
+                  aria-label="golden boost"
+                  disabled={loading || (boostType !== 'golden' && effectiveBoostCounts.golden.used >= effectiveBoostCounts.golden.max)}
+                  onKeyDown={(e) => handleKeyDown(e, 'boost')}
+                  onFocus={() => setCurrentField('boost')}
+                  sx={{
+                    '&.Mui-selected': {
+                      backgroundColor: alpha(theme.palette.accent.gold.main, 0.2),
+                      color: theme.palette.accent.gold.main,
+                      '&:hover': {
+                        backgroundColor: alpha(theme.palette.accent.gold.main, 0.3),
+                      }
+                    }
+                  }}
+                >
+                  <TrophyIcon sx={{ mr: 0.5, fontSize: 16 }} />
+                  3x
+                </ToggleButton>
+              )}
+            </ToggleButtonGroup>
+          </>
+        )}
+      </Box>
+    );
+  };
+
+  // Helper: Render action buttons (SonarQube S3776 - extract rendering logic)
+  const renderActionButtons = () => {
+    if (isMobile && layout === 'horizontal') {
+      return (
+        <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              if (onCancel) {
+                onCancel();
+              } else if (onEscapePressed) {
+                onEscapePressed();
+              }
+            }}
+            disabled={loading}
+            sx={{ minHeight: '44px' }}
+            fullWidth
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleMobileNextClick}
+            disabled={loading}
+            sx={{ minHeight: '44px' }}
+            fullWidth
+          >
+            {getMobileButtonLabel()}
+          </Button>
+        </Box>
+      );
+    }
+
+    if (!isMobile && onSave && onCancel) {
+      return (
+        <Box sx={{ display: 'flex', gap: 1, mt: compact ? 2 : 3 }}>
+          <Button
+            ref={cancelButtonRef}
+            variant="outlined"
+            onClick={onCancel}
+            onKeyDown={(e) => handleKeyDown(e, 'cancel')}
+            onFocus={() => setCurrentField('save')}
+            disabled={loading}
+            size={compact ? 'small' : 'medium'}
+            fullWidth
+          >
+            Cancelar
+          </Button>
+          <Button
+            ref={saveButtonRef}
+            variant="contained"
+            onClick={onSave}
+            onKeyDown={(e) => handleKeyDown(e, 'save')}
+            onFocus={() => setCurrentField('save')}
+            disabled={loading}
+            size={compact ? 'small' : 'medium'}
+            fullWidth
+          >
+            {loading ? 'Guardando...' : 'Guardar'}
+          </Button>
+        </Box>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <Box>
       {/* Error display */}
@@ -453,480 +976,17 @@ export default function GamePredictionEditControls({
 
       {/* Scores */}
       <Box sx={{ mb: compact ? 1.5 : 3 }}>
-        {layout === 'horizontal' ? (
-          // Horizontal layout: each team on its own row
-          <Box>
-            {/* Home team row */}
-            <Grid container spacing={1} alignItems="center" sx={{ mb: 1 }}>
-              <Grid size={7}>
-                <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
-                  {homeTeamName}
-                </Typography>
-              </Grid>
-              <Grid size={5}>
-                <TextField
-                  inputRef={homeScoreInputRef}
-                  type="number"
-                  value={homeScore ?? ''}
-                  onChange={handleHomeScoreChange}
-                  onKeyDown={(e) => handleKeyDown(e, 'home')}
-                  onFocus={() => setCurrentField('home')}
-                  slotProps={{
-                    htmlInput: {
-                      min: 0,
-                      style: { textAlign: 'center' },
-                      'aria-label': `${homeTeamName} score`
-                    }
-                  }}
-                  disabled={loading}
-                  size="small"
-                  fullWidth
-                />
-              </Grid>
-            </Grid>
-
-            {/* Away team row */}
-            <Grid container spacing={1} alignItems="center">
-              <Grid size={7}>
-                <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
-                  {awayTeamName}
-                </Typography>
-              </Grid>
-              <Grid size={5}>
-                <TextField
-                  inputRef={awayScoreInputRef}
-                  type="number"
-                  value={awayScore ?? ''}
-                  onChange={handleAwayScoreChange}
-                  onKeyDown={(e) => handleKeyDown(e, 'away')}
-                  onFocus={() => setCurrentField('away')}
-                  slotProps={{
-                    htmlInput: {
-                      min: 0,
-                      style: { textAlign: 'center' },
-                      'aria-label': `${awayTeamName} score`
-                    }
-                  }}
-                  disabled={loading}
-                  size="small"
-                  fullWidth
-                />
-              </Grid>
-            </Grid>
-
-            {/* Penalty shootout selector - single line below scores */}
-            {compact && isPenaltyShootout && (
-              <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
-                  Ganador Penales
-                </Typography>
-                <Typography variant="caption" sx={{ flexShrink: 0 }}>
-                  -
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <Typography variant="caption" fontWeight="medium">
-                    {homeTeamShortName || homeTeamName.substring(0, 3).toUpperCase()}
-                  </Typography>
-                  <Checkbox
-                    checked={homePenaltyWinner}
-                    onChange={handleHomePenaltyWinnerChange}
-                    onKeyDown={(e) => handleKeyDown(e, 'homePenalty')}
-                    onFocus={() => setCurrentField('homePenalty')}
-                    disabled={loading}
-                    size="small"
-                    sx={{ p: 0.5 }}
-                    slotProps={{
-                      input: {
-                        ref: homePenaltyCheckboxRef,
-                        'aria-label': `${homeTeamName} penalty winner`
-                      }
-                    }}
-                  />
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <Typography variant="caption" fontWeight="medium">
-                    {awayTeamShortName || awayTeamName.substring(0, 3).toUpperCase()}
-                  </Typography>
-                  <Checkbox
-                    checked={awayPenaltyWinner}
-                    onChange={handleAwayPenaltyWinnerChange}
-                    onKeyDown={(e) => handleKeyDown(e, 'awayPenalty')}
-                    onFocus={() => setCurrentField('awayPenalty')}
-                    disabled={loading}
-                    size="small"
-                    sx={{ p: 0.5 }}
-                    slotProps={{
-                      input: {
-                        ref: awayPenaltyCheckboxRef,
-                        'aria-label': `${awayTeamName} penalty winner`
-                      }
-                    }}
-                  />
-                </Box>
-              </Box>
-            )}
-          </Box>
-        ) : (
-          // Vertical layout with "vs" separator
-          <Grid container spacing={2} alignItems="center">
-            <Grid size={8}>
-              <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
-                {homeTeamName}
-              </Typography>
-            </Grid>
-            <Grid size={4}>
-              <TextField
-                inputRef={homeScoreInputRef}
-                type="number"
-                value={homeScore ?? ''}
-                onChange={handleHomeScoreChange}
-                onKeyDown={(e) => handleKeyDown(e, 'home')}
-                onFocus={() => setCurrentField('home')}
-                slotProps={{
-                  htmlInput: {
-                    min: 0,
-                    style: { textAlign: 'center' },
-                    'aria-label': `${homeTeamName} score`
-                  }
-                }}
-                disabled={loading}
-                size="small"
-                fullWidth
-              />
-            </Grid>
-            <Grid size={12} sx={{ textAlign: 'center' }}>
-              <Typography variant="body2" color="text.secondary">vs</Typography>
-            </Grid>
-            <Grid size={8}>
-              <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
-                {awayTeamName}
-              </Typography>
-            </Grid>
-            <Grid size={4}>
-              <TextField
-                inputRef={awayScoreInputRef}
-                type="number"
-                value={awayScore ?? ''}
-                onChange={handleAwayScoreChange}
-                onKeyDown={(e) => handleKeyDown(e, 'away')}
-                onFocus={() => setCurrentField('away')}
-                slotProps={{
-                  htmlInput: {
-                    min: 0,
-                    style: { textAlign: 'center' },
-                    'aria-label': `${awayTeamName} score`
-                  }
-                }}
-                disabled={loading}
-                size="small"
-                fullWidth
-              />
-            </Grid>
-          </Grid>
-        )}
+        {renderScoreInputs()}
       </Box>
 
-      {/* Penalty information for playoff games (non-compact mode only) */}
-      {isPenaltyShootout && !compact && (
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="subtitle2" gutterBottom>
-            Ganador de la tanda de penales
-          </Typography>
-
-          <Grid container spacing={2}>
-            <Grid size={6}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={homePenaltyWinner}
-                    onChange={handleHomePenaltyWinnerChange}
-                    disabled={loading}
-                    slotProps={{
-                      input: {
-                        'aria-label': `${homeTeamName} penalty winner`
-                      }
-                    }}
-                  />
-                }
-                label={homeTeamName}
-              />
-            </Grid>
-
-            <Grid size={6}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={awayPenaltyWinner}
-                    onChange={handleAwayPenaltyWinnerChange}
-                    disabled={loading}
-                    slotProps={{
-                      input: {
-                        'aria-label': `${awayTeamName} penalty winner`
-                      }
-                    }}
-                  />
-                }
-                label={awayTeamName}
-              />
-            </Grid>
-          </Grid>
-
-          <Typography variant="caption" color="text.secondary">
-            Dado que el pártido terminó empatado, por favor seleccione el ganador de la tanda de penales.
-          </Typography>
-        </Box>
-      )}
+      {/* Penalty information */}
+      {renderPenaltySelection()}
 
       {/* Boost Selection */}
-      {tournamentId && (silverMax > 0 || goldenMax > 0) && (
-        <Box sx={{ mt: compact ? 1.5 : 3 }}>
-          <Divider sx={{ mb: compact ? 1.5 : 2 }} />
-          {compact ? (
-            // Compact mode: single line with label, counters, and buttons
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', justifyContent: 'space-between' }}>
-              <Typography variant="body2" fontWeight="medium" sx={{ flexShrink: 0 }}>
-                Boost
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0 }}>
-                {silverMax > 0 && (
-                  <Chip
-                    icon={<StarIcon sx={{ fontSize: 12 }} />}
-                    label={`${effectiveBoostCounts.silver.max - effectiveBoostCounts.silver.used}/${effectiveBoostCounts.silver.max}`}
-                    size="small"
-                    sx={{
-                      height: '20px',
-                      fontSize: '0.7rem',
-                      color: theme.palette.accent.silver.main,
-                      borderColor: theme.palette.accent.silver.main,
-                      '& .MuiChip-icon': { color: theme.palette.accent.silver.main }
-                    }}
-                  />
-                )}
-                {goldenMax > 0 && (
-                  <Chip
-                    icon={<TrophyIcon sx={{ fontSize: 12 }} />}
-                    label={`${effectiveBoostCounts.golden.max - effectiveBoostCounts.golden.used}/${effectiveBoostCounts.golden.max}`}
-                    size="small"
-                    sx={{
-                      height: '20px',
-                      fontSize: '0.7rem',
-                      color: theme.palette.accent.gold.main,
-                      borderColor: theme.palette.accent.gold.main,
-                      '& .MuiChip-icon': { color: theme.palette.accent.gold.main }
-                    }}
-                  />
-                )}
-              </Box>
-              <ToggleButtonGroup
-                ref={boostButtonGroupRef}
-                value={boostType || ''}
-                exclusive
-                onChange={(_, newValue) => onBoostTypeChange(newValue === '' ? null : newValue as 'silver' | 'golden')}
-                onKeyDown={(e) => handleKeyDown(e, 'boost')}
-                onFocus={() => setCurrentField('boost')}
-                disabled={loading}
-                size="small"
-                aria-label="Boost selection"
-                sx={{ flexShrink: 0 }}
-              >
-                <ToggleButton value="" aria-label="No boost" sx={{ py: 0.5, px: 1, fontSize: '0.75rem' }}>
-                  Ninguno
-                </ToggleButton>
-                {silverMax > 0 && (
-                  <ToggleButton
-                    value="silver"
-                    disabled={boostType !== 'silver' && effectiveBoostCounts.silver.used >= effectiveBoostCounts.silver.max}
-                    aria-label="Silver boost (2x)"
-                    sx={{
-                      py: 0.5, px: 1, fontSize: '0.75rem',
-                      '&.Mui-selected': {
-                        backgroundColor: alpha(theme.palette.accent.silver.main, 0.2),
-                        color: theme.palette.accent.silver.main,
-                        '&:hover': {
-                          backgroundColor: alpha(theme.palette.accent.silver.main, 0.3),
-                        }
-                      }
-                    }}
-                  >
-                    2x
-                  </ToggleButton>
-                )}
-                {goldenMax > 0 && (
-                  <ToggleButton
-                    value="golden"
-                    disabled={boostType !== 'golden' && effectiveBoostCounts.golden.used >= effectiveBoostCounts.golden.max}
-                    aria-label="Golden boost (3x)"
-                    sx={{
-                      py: 0.5, px: 1, fontSize: '0.75rem',
-                      '&.Mui-selected': {
-                        backgroundColor: alpha(theme.palette.accent.gold.main, 0.2),
-                        color: theme.palette.accent.gold.main,
-                        '&:hover': {
-                          backgroundColor: alpha(theme.palette.accent.gold.main, 0.3),
-                        }
-                      }
-                    }}
-                  >
-                    3x
-                  </ToggleButton>
-                )}
-              </ToggleButtonGroup>
-            </Box>
-          ) : (
-            // Non-compact mode: original layout with label/counters on top, buttons below
-            <>
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant="subtitle2">
-                  Aplicar Boost
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 0.5 }}>
-                  {silverMax > 0 && (
-                    <Chip
-                      icon={<StarIcon sx={{ fontSize: 14 }} />}
-                      label={`${effectiveBoostCounts.silver.max - effectiveBoostCounts.silver.used}/${effectiveBoostCounts.silver.max}`}
-                      size="small"
-                      sx={{
-                        height: '22px',
-                        color: theme.palette.accent.silver.main,
-                        borderColor: theme.palette.accent.silver.main,
-                        '& .MuiChip-icon': { color: theme.palette.accent.silver.main }
-                      }}
-                    />
-                  )}
-                  {goldenMax > 0 && (
-                    <Chip
-                      icon={<TrophyIcon sx={{ fontSize: 14 }} />}
-                      label={`${effectiveBoostCounts.golden.max - effectiveBoostCounts.golden.used}/${effectiveBoostCounts.golden.max}`}
-                      size="small"
-                      sx={{
-                        height: '22px',
-                        color: theme.palette.accent.gold.main,
-                        borderColor: theme.palette.accent.gold.main,
-                        '& .MuiChip-icon': { color: theme.palette.accent.gold.main }
-                      }}
-                    />
-                  )}
-                </Box>
-              </Box>
-              <ToggleButtonGroup
-                ref={boostButtonGroupRef}
-                value={boostType || ''}
-                exclusive
-                onChange={(_, newValue) => onBoostTypeChange(newValue === '' ? null : newValue as 'silver' | 'golden')}
-                onKeyDown={(e) => handleKeyDown(e, 'boost')}
-                onFocus={() => setCurrentField('boost')}
-                fullWidth
-                disabled={loading}
-                size="small"
-                aria-label="Boost selection"
-              >
-                <ToggleButton value="" aria-label="No boost">
-                  Ninguno
-                </ToggleButton>
-                {silverMax > 0 && (
-                  <ToggleButton
-                    value="silver"
-                    disabled={boostType !== 'silver' && effectiveBoostCounts.silver.used >= effectiveBoostCounts.silver.max}
-                    aria-label="Silver boost (2x)"
-                    sx={{
-                      '&.Mui-selected': {
-                        backgroundColor: alpha(theme.palette.accent.silver.main, 0.2),
-                        color: theme.palette.accent.silver.main,
-                        '&:hover': {
-                          backgroundColor: alpha(theme.palette.accent.silver.main, 0.3),
-                        }
-                      }
-                    }}
-                  >
-                    <StarIcon sx={{ mr: 0.5, fontSize: 16 }} />
-                    2x
-                  </ToggleButton>
-                )}
-                {goldenMax > 0 && (
-                  <ToggleButton
-                    value="golden"
-                    disabled={boostType !== 'golden' && effectiveBoostCounts.golden.used >= effectiveBoostCounts.golden.max}
-                    aria-label="Golden boost (3x)"
-                    sx={{
-                      '&.Mui-selected': {
-                        backgroundColor: alpha(theme.palette.accent.gold.main, 0.2),
-                        color: theme.palette.accent.gold.main,
-                        '&:hover': {
-                          backgroundColor: alpha(theme.palette.accent.gold.main, 0.3),
-                        }
-                      }
-                    }}
-                  >
-                    <TrophyIcon sx={{ mr: 0.5, fontSize: 16 }} />
-                    3x
-                  </ToggleButton>
-                )}
-              </ToggleButtonGroup>
-            </>
-          )}
-        </Box>
-      )}
+      {renderBoostSelection()}
 
-
-      {/* Mobile-specific controls */}
-      {isMobile && layout === 'horizontal' && (
-        <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
-          <Button
-            variant="outlined"
-            onClick={() => {
-              if (onCancel) {
-                onCancel();
-              } else if (onEscapePressed) {
-                onEscapePressed();
-              }
-            }}
-            disabled={loading}
-            sx={{ minHeight: '44px' }}
-            fullWidth
-          >
-            Cancelar
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleMobileNextClick}
-            disabled={loading}
-            sx={{ minHeight: '44px' }}
-            fullWidth
-          >
-            {getMobileButtonLabel()}
-          </Button>
-        </Box>
-      )}
-
-      {/* Desktop Save/Cancel buttons */}
-      {!isMobile && onSave && onCancel && (
-        <Box sx={{ display: 'flex', gap: 1, mt: compact ? 2 : 3 }}>
-          <Button
-            ref={cancelButtonRef}
-            variant="outlined"
-            onClick={onCancel}
-            onKeyDown={(e) => handleKeyDown(e, 'cancel')}
-            onFocus={() => setCurrentField('save')}
-            disabled={loading}
-            size={compact ? 'small' : 'medium'}
-            fullWidth
-          >
-            Cancelar
-          </Button>
-          <Button
-            ref={saveButtonRef}
-            variant="contained"
-            onClick={onSave}
-            onKeyDown={(e) => handleKeyDown(e, 'save')}
-            onFocus={() => setCurrentField('save')}
-            disabled={loading}
-            size={compact ? 'small' : 'medium'}
-            fullWidth
-          >
-            {loading ? 'Guardando...' : 'Guardar'}
-          </Button>
-        </Box>
-      )}
+      {/* Action buttons */}
+      {renderActionButtons()}
     </Box>
   );
 }
