@@ -226,7 +226,7 @@ describe('FlippableGameCard', () => {
     it('calls onEditEnd when cancel button is clicked', () => {
       renderWithContext({ ...defaultProps, isEditing: true });
 
-      const cancelButton = screen.getByText(/Cancel/i);
+      const cancelButton = screen.getByText(/Cancelar/i);
       fireEvent.click(cancelButton);
 
       expect(defaultProps.onEditEnd).toHaveBeenCalled();

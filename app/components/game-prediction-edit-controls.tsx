@@ -341,7 +341,7 @@ export default function GamePredictionEditControls({
                   sx={{ cursor: 'pointer', color: 'inherit' }}
                   onClick={retryCallback}
                 >
-                  Retry
+                  Reintentar
                 </Typography>
               </Box>
             ) : undefined
@@ -615,7 +615,7 @@ export default function GamePredictionEditControls({
                 sx={{ flexShrink: 0 }}
               >
                 <ToggleButton value="" aria-label="No boost" sx={{ py: 0.5, px: 1, fontSize: '0.75rem' }}>
-                  None
+                  Ninguno
                 </ToggleButton>
                 {silverMax > 0 && (
                   <ToggleButton
@@ -662,7 +662,7 @@ export default function GamePredictionEditControls({
             <>
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                 <Typography variant="subtitle2">
-                  Apply Boost
+                  Aplicar Boost
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 0.5 }}>
                   {silverMax > 0 && (
@@ -706,7 +706,7 @@ export default function GamePredictionEditControls({
                 aria-label="Boost selection"
               >
                 <ToggleButton value="" aria-label="No boost">
-                  None
+                  Ninguno
                 </ToggleButton>
                 {silverMax > 0 && (
                   <ToggleButton
@@ -769,7 +769,7 @@ export default function GamePredictionEditControls({
             sx={{ minHeight: '44px' }}
             fullWidth
           >
-            Cancel
+            Cancelar
           </Button>
           <Button
             variant="contained"
@@ -831,7 +831,7 @@ export default function GamePredictionEditControls({
             sx={{ minHeight: '44px' }}
             fullWidth
           >
-            {currentField === 'boost' ? 'Save' : ((currentField === 'away' || currentField === 'awayPenalty') && !(tournamentId && (silverMax > 0 || goldenMax > 0)) ? 'Save' : 'Next')}
+            {currentField === 'boost' ? 'Guardar' : ((currentField === 'away' || currentField === 'awayPenalty') && !(tournamentId && (silverMax > 0 || goldenMax > 0)) ? 'Guardar' : 'Siguiente')}
           </Button>
         </Box>
       )}
@@ -849,7 +849,7 @@ export default function GamePredictionEditControls({
             size={compact ? 'small' : 'medium'}
             fullWidth
           >
-            Cancel
+            Cancelar
           </Button>
           <Button
             ref={saveButtonRef}
@@ -861,7 +861,7 @@ export default function GamePredictionEditControls({
             size={compact ? 'small' : 'medium'}
             fullWidth
           >
-            {loading ? 'Saving...' : 'Save'}
+            {loading ? 'Guardando...' : 'Guardar'}
           </Button>
         </Box>
       )}

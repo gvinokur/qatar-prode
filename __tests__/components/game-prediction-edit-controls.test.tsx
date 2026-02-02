@@ -206,7 +206,7 @@ describe('GamePredictionEditControls', () => {
       render(<GamePredictionEditControls {...defaultProps} />);
 
       expect(screen.getByText(/Guardar/i)).toBeInTheDocument();
-      expect(screen.getByText(/Cancel/i)).toBeInTheDocument();
+      expect(screen.getByText(/Cancelar/i)).toBeInTheDocument();
     });
 
     it('calls onSave when save button is clicked', () => {
@@ -221,7 +221,7 @@ describe('GamePredictionEditControls', () => {
     it('calls onCancel when cancel button is clicked', () => {
       render(<GamePredictionEditControls {...defaultProps} />);
 
-      const cancelButton = screen.getByText(/Cancel/i);
+      const cancelButton = screen.getByText(/Cancelar/i);
       fireEvent.click(cancelButton);
 
       expect(defaultProps.onCancel).toHaveBeenCalled();
@@ -231,7 +231,7 @@ describe('GamePredictionEditControls', () => {
       render(<GamePredictionEditControls {...defaultProps} loading={true} />);
 
       const saveButton = screen.getByText(/Guardar/i).closest('button');
-      const cancelButton = screen.getByText(/Cancel/i).closest('button');
+      const cancelButton = screen.getByText(/Cancelar/i).closest('button');
 
       expect(saveButton).toBeDisabled();
       expect(cancelButton).toBeDisabled();
@@ -262,7 +262,7 @@ describe('GamePredictionEditControls', () => {
       const retryCallback = vi.fn();
       render(<GamePredictionEditControls {...defaultProps} error="Network error" retryCallback={retryCallback} />);
 
-      const retryButton = screen.getByText(/Retry/i);
+      const retryButton = screen.getByText(/Reintentar/i);
       fireEvent.click(retryButton);
 
       expect(retryCallback).toHaveBeenCalled();
