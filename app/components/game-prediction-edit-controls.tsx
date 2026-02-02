@@ -327,10 +327,17 @@ export default function GamePredictionEditControls({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent, field: FieldType) => {
-    // Enter key ALWAYS saves
-    if (e.key === 'Enter' && onSave) {
+    // Enter key triggers the focused button's action
+    if (e.key === 'Enter') {
       e.preventDefault();
-      onSave();
+      if (field === 'cancel' && onCancel) {
+        onCancel();
+      } else if (field === 'save' && onSave) {
+        onSave();
+      } else if (onSave) {
+        // Default to save for other fields (inputs, checkboxes, boost)
+        onSave();
+      }
       return;
     }
 
@@ -531,7 +538,7 @@ export default function GamePredictionEditControls({
                         }
                       }}
                       sx={{
-                        '&:focus-visible': {
+                        '&:focus': {
                           outline: '2px solid',
                           outlineColor: 'primary.main',
                           outlineOffset: '2px'
@@ -559,7 +566,7 @@ export default function GamePredictionEditControls({
                         }
                       }}
                       sx={{
-                        '&:focus-visible': {
+                        '&:focus': {
                           outline: '2px solid',
                           outlineColor: 'primary.main',
                           outlineOffset: '2px'
@@ -778,7 +785,16 @@ export default function GamePredictionEditControls({
                 onKeyDown={(e) => handleKeyDown(e, 'boost')}
                 onFocus={() => setCurrentField('boost')}
                 onClick={() => setCurrentField('boost')}
-                sx={{ py: 0.5, px: 1, fontSize: '0.75rem' }}
+                sx={{
+                  py: 0.5,
+                  px: 1,
+                  fontSize: '0.75rem',
+                  '&:focus': {
+                    outline: '2px solid',
+                    outlineColor: 'primary.main',
+                    outlineOffset: '2px'
+                  }
+                }}
               >
                 Ninguno
               </ToggleButton>
@@ -801,6 +817,11 @@ export default function GamePredictionEditControls({
                       '&:hover': {
                         backgroundColor: alpha(theme.palette.accent.silver.main, 0.3),
                       }
+                    },
+                    '&:focus': {
+                      outline: '2px solid',
+                      outlineColor: 'primary.main',
+                      outlineOffset: '2px'
                     }
                   }}
                 >
@@ -827,6 +848,11 @@ export default function GamePredictionEditControls({
                       '&:hover': {
                         backgroundColor: alpha(theme.palette.accent.gold.main, 0.3),
                       }
+                    },
+                    '&:focus': {
+                      outline: '2px solid',
+                      outlineColor: 'primary.main',
+                      outlineOffset: '2px'
                     }
                   }}
                 >
@@ -892,6 +918,13 @@ export default function GamePredictionEditControls({
                 onKeyDown={(e) => handleKeyDown(e, 'boost')}
                 onFocus={() => setCurrentField('boost')}
                 onClick={() => setCurrentField('boost')}
+                sx={{
+                  '&:focus': {
+                    outline: '2px solid',
+                    outlineColor: 'primary.main',
+                    outlineOffset: '2px'
+                  }
+                }}
               >
                 Ninguno
               </ToggleButton>
@@ -910,6 +943,11 @@ export default function GamePredictionEditControls({
                       '&:hover': {
                         backgroundColor: alpha(theme.palette.accent.silver.main, 0.3),
                       }
+                    },
+                    '&:focus': {
+                      outline: '2px solid',
+                      outlineColor: 'primary.main',
+                      outlineOffset: '2px'
                     }
                   }}
                 >
@@ -932,6 +970,11 @@ export default function GamePredictionEditControls({
                       '&:hover': {
                         backgroundColor: alpha(theme.palette.accent.gold.main, 0.3),
                       }
+                    },
+                    '&:focus': {
+                      outline: '2px solid',
+                      outlineColor: 'primary.main',
+                      outlineOffset: '2px'
                     }
                   }}
                 >
