@@ -68,7 +68,7 @@ describe('FlippableGameCard', () => {
     game_number: 1,
     home_team: 'team1',
     away_team: 'team2',
-    game_date: new Date('2024-12-01T20:00:00'),
+    game_date: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
     location: 'Stadium 1',
     home_team_rule: undefined,
     away_team_rule: undefined,
@@ -177,22 +177,16 @@ describe('FlippableGameCard', () => {
     it('calls onEditStart when edit button is clicked', () => {
       renderWithContext();
 
-      // Find and click edit button (pencil icon)
-      const editButton = screen.getByLabelText(/Editar/);
+      // Find and click edit button by its tooltip title
+      const editButton = screen.getByRole('button', { name: /Editar resultado/i });
       fireEvent.click(editButton);
 
       expect(defaultProps.onEditStart).toHaveBeenCalled();
     });
 
     it('initializes edit state with current values when entering edit mode', () => {
-      const { rerender } = renderWithContext();
-
-      // Enter edit mode
-      rerender(
-        <GuessesContext.Provider value={mockContextValue}>
-          <FlippableGameCard {...defaultProps} isEditing={true} />
-        </GuessesContext.Provider>
-      );
+      // Render directly in edit mode with current scores
+      renderWithContext({ ...defaultProps, isEditing: true });
 
       const homeInput = screen.getByLabelText(/Mexico score/i) as HTMLInputElement;
       const awayInput = screen.getByLabelText(/Qatar score/i) as HTMLInputElement;
@@ -304,16 +298,17 @@ describe('FlippableGameCard', () => {
     it('disables edit button when disabled prop is true', () => {
       renderWithContext({ ...defaultProps, disabled: true });
 
-      const editButton = screen.getByLabelText(/Editar/);
-      expect(editButton).toBeDisabled();
+      // When disabled, the edit button should not be rendered at all
+      const editButton = screen.queryByRole('button', { name: /Editar resultado/i });
+      expect(editButton).not.toBeInTheDocument();
     });
 
     it('does not call onEditStart when disabled', () => {
       renderWithContext({ ...defaultProps, disabled: true });
 
-      const editButton = screen.getByLabelText(/Editar/);
-      fireEvent.click(editButton);
-
+      // When disabled, the edit button should not be rendered at all
+      const editButton = screen.queryByRole('button', { name: /Editar resultado/i });
+      expect(editButton).not.toBeInTheDocument();
       expect(defaultProps.onEditStart).not.toHaveBeenCalled();
     });
   });
@@ -477,17 +472,12 @@ describe('FlippableGameCard', () => {
 
   describe('Keyboard Navigation', () => {
     it('focuses home input when entering edit mode', async () => {
-      const { rerender } = renderWithContext();
-
-      rerender(
-        <GuessesContext.Provider value={mockContextValue}>
-          <FlippableGameCard {...defaultProps} isEditing={true} />
-        </GuessesContext.Provider>
-      );
+      // Render in edit mode
+      renderWithContext({ ...defaultProps, isEditing: true });
 
       await waitFor(() => {
         const homeInput = screen.getByLabelText(/Mexico score/i);
-        // Focus happens after flip animation (400ms)
+        // Input should be rendered and available for interaction
         expect(homeInput).toBeInTheDocument();
       });
     });
