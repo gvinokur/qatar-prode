@@ -574,7 +574,7 @@ export default function GamePredictionEditControls({
                   />
                 )}
               </Box>
-              <Box sx={{ display: 'flex', gap: 1.5, flex: 1, minWidth: 0, justifyContent: 'flex-end' }}>
+              <Box sx={{ display: 'flex', gap: 3, flex: 1, minWidth: 0, justifyContent: 'flex-end' }}>
                 <FormControlLabel
                   control={
                     <Checkbox
