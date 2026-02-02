@@ -8,6 +8,7 @@ import GameView from './game-view';
 import { ExtendedGameData } from '../definitions';
 import { Team } from '../db/tables-definition';
 import { GuessesContext } from './context-providers/guesses-context-provider';
+import { getTeamDescription } from '../utils/playoffs-rule-helper';
 
 interface FlippableGameCardProps {
   // Game data
@@ -88,13 +89,16 @@ export default function FlippableGameCard({
   const saveButtonRef = useRef<HTMLButtonElement | null>(null);
   const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  // Get team info
-  const homeTeam = game.home_team ? teamsMap[game.home_team] : null;
-  const awayTeam = game.away_team ? teamsMap[game.away_team] : null;
-  const homeTeamName = homeTeam?.name || game.home_team || 'TBD';
-  const awayTeamName = awayTeam?.name || game.away_team || 'TBD';
-  const homeTeamShortName = homeTeam?.short_name;
-  const awayTeamShortName = awayTeam?.short_name;
+  // Get team info (check both game and guess, like GameView does)
+  const gameGuess = groupContext.gameGuesses[game.id];
+  const homeTeamId = game.home_team || gameGuess?.home_team;
+  const awayTeamId = game.away_team || gameGuess?.away_team;
+  const homeTeam = homeTeamId ? teamsMap[homeTeamId] : null;
+  const awayTeam = awayTeamId ? teamsMap[awayTeamId] : null;
+  const homeTeamName = homeTeam?.name || getTeamDescription(game.home_team_rule);
+  const awayTeamName = awayTeam?.name || getTeamDescription(game.away_team_rule);
+  const homeTeamShortName = homeTeam?.short_name || getTeamDescription(game.home_team_rule, true);
+  const awayTeamShortName = awayTeam?.short_name || getTeamDescription(game.away_team_rule, true);
 
   // Flip animation duration (slightly slower on mobile)
   const flipDuration = isMobile ? 0.5 : 0.4;

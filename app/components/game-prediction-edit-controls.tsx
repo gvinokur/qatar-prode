@@ -774,25 +774,48 @@ export default function GamePredictionEditControls({
           <Button
             variant="contained"
             onClick={() => {
-              // Navigate through fields: home → away → (penalty if needed) → boost → done
+              // Navigate through fields: home → away → (penalty if needed) → boost (if available) → done
+              const hasBoostSection = tournamentId && (silverMax > 0 || goldenMax > 0);
+
               if (currentField === 'home') {
                 awayScoreInputRef?.current?.focus();
                 setCurrentField('away');
               } else if (currentField === 'away') {
-                // away → homePenalty (if penalty shootout) OR boost
+                // away → homePenalty (if penalty shootout) OR boost (if available) OR save
                 if (isPenaltyShootout && homePenaltyCheckboxRef?.current) {
                   homePenaltyCheckboxRef.current.focus();
                   setCurrentField('homePenalty');
-                } else {
+                } else if (hasBoostSection && boostButtonGroupRef?.current) {
                   focusBoostButtonGroup();
                   setCurrentField('boost');
+                } else {
+                  // No boost section - go straight to save
+                  if (onSave) {
+                    onSave();
+                  } else if (onSaveAndAdvance) {
+                    onSaveAndAdvance();
+                  } else if (onEscapePressed) {
+                    onEscapePressed();
+                  }
                 }
               } else if (currentField === 'homePenalty') {
                 awayPenaltyCheckboxRef?.current?.focus();
                 setCurrentField('awayPenalty');
               } else if (currentField === 'awayPenalty') {
-                focusBoostButtonGroup();
-                setCurrentField('boost');
+                // awayPenalty → boost (if available) OR save
+                if (hasBoostSection && boostButtonGroupRef?.current) {
+                  focusBoostButtonGroup();
+                  setCurrentField('boost');
+                } else {
+                  // No boost section - go straight to save
+                  if (onSave) {
+                    onSave();
+                  } else if (onSaveAndAdvance) {
+                    onSaveAndAdvance();
+                  } else if (onEscapePressed) {
+                    onEscapePressed();
+                  }
+                }
               } else {
                 // Last field - save
                 if (onSave) {
@@ -808,7 +831,7 @@ export default function GamePredictionEditControls({
             sx={{ minHeight: '44px' }}
             fullWidth
           >
-            {currentField === 'boost' ? 'Save' : 'Next'}
+            {currentField === 'boost' ? 'Save' : ((currentField === 'away' || currentField === 'awayPenalty') && !(tournamentId && (silverMax > 0 || goldenMax > 0)) ? 'Save' : 'Next')}
           </Button>
         </Box>
       )}
