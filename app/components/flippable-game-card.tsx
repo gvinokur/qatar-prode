@@ -95,10 +95,10 @@ export default function FlippableGameCard({
   const awayTeamId = game.away_team || gameGuess?.away_team;
   const homeTeam = homeTeamId ? teamsMap[homeTeamId] : null;
   const awayTeam = awayTeamId ? teamsMap[awayTeamId] : null;
-  const homeTeamName = homeTeam?.name || getTeamDescription(game.home_team_rule);
-  const awayTeamName = awayTeam?.name || getTeamDescription(game.away_team_rule);
-  const homeTeamShortName = homeTeam?.short_name || getTeamDescription(game.home_team_rule, true);
-  const awayTeamShortName = awayTeam?.short_name || getTeamDescription(game.away_team_rule, true);
+  const homeTeamName = homeTeam?.name || getTeamDescription(game.home_team_rule) || 'TBD';
+  const awayTeamName = awayTeam?.name || getTeamDescription(game.away_team_rule) || 'TBD';
+  const homeTeamShortName = homeTeam?.short_name || getTeamDescription(game.home_team_rule, true) || 'TBD';
+  const awayTeamShortName = awayTeam?.short_name || getTeamDescription(game.away_team_rule, true) || 'TBD';
 
   // Flip animation duration (slightly slower on mobile)
   const flipDuration = isMobile ? 0.5 : 0.4;
