@@ -282,10 +282,8 @@ export default function GamePredictionEditControls({
         focusPreviousFromBoost();
         break;
       case 'save':
-        cancelButtonRef?.current?.focus();
-        break;
       case 'cancel':
-        // Go back to last input field (boost or penalty or away score)
+        // Shift+Tab from either button goes back to boost (or last input field)
         if (boostButtonGroupRef?.current && tournamentId && (silverMax > 0 || goldenMax > 0)) {
           focusBoostButtonGroup();
         } else if (isPenaltyShootout && awayPenaltyCheckboxRef?.current) {
@@ -324,13 +322,15 @@ export default function GamePredictionEditControls({
         focusBoostButtonGroup();
         break;
       case 'boost':
-        cancelButtonRef?.current?.focus();
-        break;
-      case 'cancel':
         saveButtonRef?.current?.focus();
         break;
       case 'save':
+        // Tab from Save goes to next card or does nothing
         if (onSaveAndAdvance) onSaveAndAdvance();
+        break;
+      case 'cancel':
+        // Tab from Cancel should go to Save (though Cancel shouldn't be in normal tab flow)
+        saveButtonRef?.current?.focus();
         break;
     }
   };
@@ -690,7 +690,7 @@ export default function GamePredictionEditControls({
                     }
                   }}
                   sx={{
-                    '&:focus-visible': {
+                    '&:focus': {
                       outline: '2px solid',
                       outlineColor: 'primary.main',
                       outlineOffset: '2px'
@@ -718,7 +718,7 @@ export default function GamePredictionEditControls({
                     }
                   }}
                   sx={{
-                    '&:focus-visible': {
+                    '&:focus': {
                       outline: '2px solid',
                       outlineColor: 'primary.main',
                       outlineOffset: '2px'
