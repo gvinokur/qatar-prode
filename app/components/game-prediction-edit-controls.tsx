@@ -71,8 +71,8 @@ interface GamePredictionEditControlsProps {
   // Refs for keyboard navigation (readonly per SonarQube)
   readonly homeScoreInputRef?: React.RefObject<HTMLInputElement | null>;
   readonly awayScoreInputRef?: React.RefObject<HTMLInputElement | null>;
-  readonly homePenaltyCheckboxRef?: React.RefObject<HTMLButtonElement | null>;
-  readonly awayPenaltyCheckboxRef?: React.RefObject<HTMLButtonElement | null>;
+  readonly homePenaltyCheckboxRef?: React.RefObject<HTMLInputElement | null>;
+  readonly awayPenaltyCheckboxRef?: React.RefObject<HTMLInputElement | null>;
   readonly boostButtonGroupRef?: React.RefObject<HTMLDivElement | null>;
 
   // Keyboard callbacks (readonly per SonarQube)
@@ -547,7 +547,7 @@ export default function GamePredictionEditControls({
                 <FormControlLabel
                   control={
                     <Checkbox
-                      ref={homePenaltyCheckboxRef}
+                      inputRef={homePenaltyCheckboxRef}
                       checked={homePenaltyWinner}
                       onChange={handleHomePenaltyWinnerChange}
                       onKeyDown={(e) => handleKeyDown(e, 'homePenalty')}
@@ -580,7 +580,7 @@ export default function GamePredictionEditControls({
                 <FormControlLabel
                   control={
                     <Checkbox
-                      ref={awayPenaltyCheckboxRef}
+                      inputRef={awayPenaltyCheckboxRef}
                       checked={awayPenaltyWinner}
                       onChange={handleAwayPenaltyWinnerChange}
                       onKeyDown={(e) => handleKeyDown(e, 'awayPenalty')}
@@ -709,7 +709,7 @@ export default function GamePredictionEditControls({
             <FormControlLabel
               control={
                 <Checkbox
-                  ref={homePenaltyCheckboxRef}
+                  inputRef={homePenaltyCheckboxRef}
                   checked={homePenaltyWinner}
                   onChange={handleHomePenaltyWinnerChange}
                   onKeyDown={(e) => handleKeyDown(e, 'homePenalty')}
@@ -739,7 +739,7 @@ export default function GamePredictionEditControls({
             <FormControlLabel
               control={
                 <Checkbox
-                  ref={awayPenaltyCheckboxRef}
+                  inputRef={awayPenaltyCheckboxRef}
                   checked={awayPenaltyWinner}
                   onChange={handleAwayPenaltyWinnerChange}
                   onKeyDown={(e) => handleKeyDown(e, 'awayPenalty')}
