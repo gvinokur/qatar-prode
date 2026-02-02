@@ -282,10 +282,17 @@ export default function GamePredictionEditControls({
         focusPreviousFromBoost();
         break;
       case 'save':
-        focusBoostButtonGroup();
+        cancelButtonRef?.current?.focus();
         break;
       case 'cancel':
-        saveButtonRef?.current?.focus();
+        // Go back to last input field (boost or penalty or away score)
+        if (boostButtonGroupRef?.current && tournamentId && (silverMax > 0 || goldenMax > 0)) {
+          focusBoostButtonGroup();
+        } else if (isPenaltyShootout && awayPenaltyCheckboxRef?.current) {
+          awayPenaltyCheckboxRef.current.focus();
+        } else {
+          awayScoreInputRef?.current?.focus();
+        }
         break;
     }
   };
@@ -317,7 +324,9 @@ export default function GamePredictionEditControls({
         focusBoostButtonGroup();
         break;
       case 'boost':
-      case 'cancel': // S1871 - same action for both
+        cancelButtonRef?.current?.focus();
+        break;
+      case 'cancel':
         saveButtonRef?.current?.focus();
         break;
       case 'save':
@@ -538,7 +547,12 @@ export default function GamePredictionEditControls({
                         }
                       }}
                       sx={{
-                        '&:focus': {
+                        '& .MuiButtonBase-root:focus': {
+                          outline: '2px solid',
+                          outlineColor: 'primary.main',
+                          outlineOffset: '2px'
+                        },
+                        '& .MuiButtonBase-root.Mui-focusVisible': {
                           outline: '2px solid',
                           outlineColor: 'primary.main',
                           outlineOffset: '2px'
@@ -566,7 +580,12 @@ export default function GamePredictionEditControls({
                         }
                       }}
                       sx={{
-                        '&:focus': {
+                        '& .MuiButtonBase-root:focus': {
+                          outline: '2px solid',
+                          outlineColor: 'primary.main',
+                          outlineOffset: '2px'
+                        },
+                        '& .MuiButtonBase-root.Mui-focusVisible': {
                           outline: '2px solid',
                           outlineColor: 'primary.main',
                           outlineOffset: '2px'
@@ -1030,10 +1049,17 @@ export default function GamePredictionEditControls({
             variant="outlined"
             onClick={onCancel}
             onKeyDown={(e) => handleKeyDown(e, 'cancel')}
-            onFocus={() => setCurrentField('save')}
+            onFocus={() => setCurrentField('cancel')}
             disabled={loading}
             size={compact ? 'small' : 'medium'}
             fullWidth
+            sx={{
+              '&:focus': {
+                outline: '2px solid',
+                outlineColor: 'primary.main',
+                outlineOffset: '2px'
+              }
+            }}
           >
             Cancelar
           </Button>
@@ -1046,6 +1072,13 @@ export default function GamePredictionEditControls({
             disabled={loading}
             size={compact ? 'small' : 'medium'}
             fullWidth
+            sx={{
+              '&:focus': {
+                outline: '2px solid',
+                outlineColor: 'primary.main',
+                outlineOffset: '2px'
+              }
+            }}
           >
             {loading ? 'Guardando...' : 'Guardar'}
           </Button>
