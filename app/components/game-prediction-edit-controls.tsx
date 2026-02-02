@@ -388,7 +388,7 @@ export default function GamePredictionEditControls({
 
   // Helper: Handle mobile next button click (SonarQube S3776)
   const handleMobileNextClick = () => {
-    const hasBoostSection = tournamentId && (silverMax > 0 || goldenMax > 0);
+    const hasBoostSection = !!tournamentId && (silverMax > 0 || goldenMax > 0);
 
     switch (currentField) {
       case 'home':
@@ -414,7 +414,7 @@ export default function GamePredictionEditControls({
   // Helper: Get mobile button label (SonarQube S3358 - extract nested ternary)
   const getMobileButtonLabel = () => {
     if (currentField === 'boost') return 'Guardar';
-    const hasBoostSection = tournamentId && (silverMax > 0 || goldenMax > 0);
+    const hasBoostSection = !!tournamentId && (silverMax > 0 || goldenMax > 0);
     const isLastFieldBeforeSave = (currentField === 'away' || currentField === 'awayPenalty') && !hasBoostSection;
     return isLastFieldBeforeSave ? 'Guardar' : 'Siguiente';
   };
