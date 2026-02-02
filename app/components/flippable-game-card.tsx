@@ -90,15 +90,24 @@ export default function FlippableGameCard({
   const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
 
   // Get team info (check both game and guess, like GameView does)
+  // Use same pattern as GameView - homeTeam/awayTeam are the team IDs (strings), not objects
   const gameGuess = groupContext.gameGuesses[game.id];
-  const homeTeamId = game.home_team || gameGuess?.home_team;
-  const awayTeamId = game.away_team || gameGuess?.away_team;
-  const homeTeam = homeTeamId ? teamsMap[homeTeamId] : null;
-  const awayTeam = awayTeamId ? teamsMap[awayTeamId] : null;
-  const homeTeamName = homeTeam?.name || getTeamDescription(game.home_team_rule) || 'TBD';
-  const awayTeamName = awayTeam?.name || getTeamDescription(game.away_team_rule) || 'TBD';
-  const homeTeamShortName = homeTeam?.short_name || getTeamDescription(game.home_team_rule, true) || 'TBD';
-  const awayTeamShortName = awayTeam?.short_name || getTeamDescription(game.away_team_rule, true) || 'TBD';
+  const homeTeamString = game.home_team || gameGuess?.home_team;
+  const awayTeamString = game.away_team || gameGuess?.away_team;
+
+  // Match GameView exactly: if team ID exists AND is in map, use name; otherwise use rule description
+  const homeTeamName = (homeTeamString && teamsMap[homeTeamString])
+    ? teamsMap[homeTeamString].name
+    : (getTeamDescription(game.home_team_rule) || 'TBD');
+  const awayTeamName = (awayTeamString && teamsMap[awayTeamString])
+    ? teamsMap[awayTeamString].name
+    : (getTeamDescription(game.away_team_rule) || 'TBD');
+  const homeTeamShortName = (homeTeamString && teamsMap[homeTeamString])
+    ? teamsMap[homeTeamString].short_name
+    : (getTeamDescription(game.home_team_rule, true) || 'TBD');
+  const awayTeamShortName = (awayTeamString && teamsMap[awayTeamString])
+    ? teamsMap[awayTeamString].short_name
+    : (getTeamDescription(game.away_team_rule, true) || 'TBD');
 
   // Flip animation duration (slightly slower on mobile)
   const flipDuration = isMobile ? 0.5 : 0.4;
