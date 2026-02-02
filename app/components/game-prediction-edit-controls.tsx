@@ -24,6 +24,10 @@ import {
   Star as StarIcon
 } from '@mui/icons-material';
 
+// Type aliases for union types (SonarQube S4323)
+type BoostType = 'silver' | 'golden' | null;
+type FieldType = 'home' | 'away' | 'homePenalty' | 'awayPenalty' | 'boost' | 'save' | 'cancel';
+
 interface GamePredictionEditControlsProps {
   // Game info (readonly per SonarQube)
   readonly gameId: string;
@@ -39,8 +43,8 @@ interface GamePredictionEditControlsProps {
   readonly awayScore?: number;
   readonly homePenaltyWinner?: boolean;
   readonly awayPenaltyWinner?: boolean;
-  readonly boostType?: 'silver' | 'golden' | null;
-  readonly initialBoostType?: 'silver' | 'golden' | null;
+  readonly boostType?: BoostType;
+  readonly initialBoostType?: BoostType;
 
   // Boost counts (readonly, passed from parent to avoid stale data)
   readonly silverUsed: number;
@@ -53,7 +57,7 @@ interface GamePredictionEditControlsProps {
   readonly onAwayScoreChange: (_value?: number) => void;
   readonly onHomePenaltyWinnerChange: (_checked: boolean) => void;
   readonly onAwayPenaltyWinnerChange: (_checked: boolean) => void;
-  readonly onBoostTypeChange: (_type: 'silver' | 'golden' | null) => void;
+  readonly onBoostTypeChange: (_type: BoostType) => void;
 
   // State (readonly per SonarQube)
   readonly loading?: boolean;
@@ -69,7 +73,6 @@ interface GamePredictionEditControlsProps {
   readonly homePenaltyCheckboxRef?: React.RefObject<HTMLInputElement | null>;
   readonly awayPenaltyCheckboxRef?: React.RefObject<HTMLInputElement | null>;
   readonly boostButtonGroupRef?: React.RefObject<HTMLDivElement | null>;
-  readonly editButtonRef?: React.RefObject<HTMLButtonElement | null>; // For focus restoration after save
 
   // Keyboard callbacks (readonly per SonarQube)
   readonly onSaveAndAdvance?: () => Promise<void>; // Save current card and advance to next
@@ -212,7 +215,84 @@ export default function GamePredictionEditControls({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent, field: 'home' | 'away' | 'homePenalty' | 'awayPenalty' | 'boost' | 'save' | 'cancel') => {
+  // Helper: Handle arrow key navigation for boost selector (SonarQube S3776)
+  const handleArrowKeyNavigation = (e: React.KeyboardEvent) => {
+    e.preventDefault();
+    const buttons = boostButtonGroupRef?.current?.querySelectorAll<HTMLButtonElement>('button:not([disabled])');
+    if (!buttons || buttons.length === 0) return;
+
+    const buttonsArray = Array.from(buttons);
+    const currentIndex = buttonsArray.indexOf(document.activeElement as HTMLButtonElement);
+
+    const nextIndex = e.key === 'ArrowLeft'
+      ? (currentIndex <= 0 ? buttons.length - 1 : currentIndex - 1)
+      : (currentIndex >= buttons.length - 1 ? 0 : currentIndex + 1);
+
+    buttons[nextIndex].focus();
+    buttons[nextIndex].click();
+  };
+
+  // Helper: Handle Shift+Tab navigation (backward) (SonarQube S3776)
+  const handleShiftTab = (e: React.KeyboardEvent, field: FieldType) => {
+    if (field === 'home' && onShiftTabFromFirstField) {
+      e.preventDefault();
+      onShiftTabFromFirstField();
+    } else if (field === 'away' && homeScoreInputRef?.current) {
+      e.preventDefault();
+      homeScoreInputRef.current.focus();
+    } else if (field === 'homePenalty' && awayScoreInputRef?.current) {
+      e.preventDefault();
+      awayScoreInputRef.current.focus();
+    } else if (field === 'awayPenalty' && homePenaltyCheckboxRef?.current) {
+      e.preventDefault();
+      homePenaltyCheckboxRef.current.focus();
+    } else if (field === 'boost') {
+      e.preventDefault();
+      if (isPenaltyShootout && awayPenaltyCheckboxRef?.current) {
+        awayPenaltyCheckboxRef.current.focus();
+      } else if (awayScoreInputRef?.current) {
+        awayScoreInputRef.current.focus();
+      }
+    } else if (field === 'save') {
+      e.preventDefault();
+      focusBoostButtonGroup();
+    } else if (field === 'cancel' && saveButtonRef?.current) {
+      e.preventDefault();
+      saveButtonRef.current.focus();
+    }
+  };
+
+  // Helper: Handle Tab navigation (forward) (SonarQube S3776)
+  const handleForwardTab = (e: React.KeyboardEvent, field: FieldType) => {
+    if (field === 'home' && awayScoreInputRef?.current) {
+      e.preventDefault();
+      awayScoreInputRef.current.focus();
+    } else if (field === 'away') {
+      e.preventDefault();
+      if (isPenaltyShootout && homePenaltyCheckboxRef?.current) {
+        homePenaltyCheckboxRef.current.focus();
+      } else {
+        focusBoostButtonGroup();
+      }
+    } else if (field === 'homePenalty' && awayPenaltyCheckboxRef?.current) {
+      e.preventDefault();
+      awayPenaltyCheckboxRef.current.focus();
+    } else if (field === 'awayPenalty') {
+      e.preventDefault();
+      focusBoostButtonGroup();
+    } else if (field === 'boost' && saveButtonRef?.current) {
+      e.preventDefault();
+      saveButtonRef.current.focus();
+    } else if (field === 'save' && onSaveAndAdvance) {
+      e.preventDefault();
+      onSaveAndAdvance();
+    } else if (field === 'cancel' && saveButtonRef?.current) {
+      e.preventDefault();
+      saveButtonRef.current.focus();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, field: FieldType) => {
     // Enter key ALWAYS saves
     if (e.key === 'Enter' && onSave) {
       e.preventDefault();
@@ -229,93 +309,69 @@ export default function GamePredictionEditControls({
 
     // Arrow key navigation for boost selection
     if (field === 'boost' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
-      e.preventDefault();
-      const buttons = boostButtonGroupRef?.current?.querySelectorAll<HTMLButtonElement>('button:not([disabled])');
-      if (!buttons || buttons.length === 0) return;
-
-      const currentIndex = Array.from(buttons).findIndex(btn => btn === document.activeElement);
-      let nextIndex: number;
-
-      if (e.key === 'ArrowLeft') {
-        nextIndex = currentIndex <= 0 ? buttons.length - 1 : currentIndex - 1;
-      } else {
-        nextIndex = currentIndex >= buttons.length - 1 ? 0 : currentIndex + 1;
-      }
-
-      buttons[nextIndex].focus();
-      buttons[nextIndex].click(); // Select the boost option
+      handleArrowKeyNavigation(e);
       return;
     }
 
     // Tab key navigation
     if (e.key === 'Tab') {
       if (e.shiftKey) {
-        // Shift+Tab: Backward navigation
-        if (field === 'home' && onShiftTabFromFirstField) {
-          // First field - go to previous card (no save)
-          e.preventDefault();
-          onShiftTabFromFirstField();
-        } else if (field === 'away' && homeScoreInputRef?.current) {
-          e.preventDefault();
-          homeScoreInputRef.current.focus();
-        } else if (field === 'homePenalty' && awayScoreInputRef?.current) {
-          // Penalty shootout: homePenalty → away
-          e.preventDefault();
-          awayScoreInputRef.current.focus();
-        } else if (field === 'awayPenalty' && homePenaltyCheckboxRef?.current) {
-          // Penalty shootout: awayPenalty → homePenalty
-          e.preventDefault();
-          homePenaltyCheckboxRef.current.focus();
-        } else if (field === 'boost') {
-          e.preventDefault();
-          // boost → awayPenalty (if penalty shootout) OR away
-          if (isPenaltyShootout && awayPenaltyCheckboxRef?.current) {
-            awayPenaltyCheckboxRef.current.focus();
-          } else if (awayScoreInputRef?.current) {
-            awayScoreInputRef.current.focus();
-          }
-        } else if (field === 'save') {
-          e.preventDefault();
-          focusBoostButtonGroup();
-        } else if (field === 'cancel' && saveButtonRef?.current) {
-          e.preventDefault();
-          saveButtonRef.current.focus();
-        }
+        handleShiftTab(e, field);
       } else {
-        // Forward Tab: home → away → (penalty if needed) → boost → save → advance
-        if (field === 'home' && awayScoreInputRef?.current) {
-          e.preventDefault();
-          awayScoreInputRef.current.focus();
-        } else if (field === 'away') {
-          e.preventDefault();
-          // away → homePenalty (if penalty shootout) OR boost
-          if (isPenaltyShootout && homePenaltyCheckboxRef?.current) {
-            homePenaltyCheckboxRef.current.focus();
-          } else {
-            focusBoostButtonGroup();
-          }
-        } else if (field === 'homePenalty' && awayPenaltyCheckboxRef?.current) {
-          // Penalty shootout: homePenalty → awayPenalty
-          e.preventDefault();
-          awayPenaltyCheckboxRef.current.focus();
-        } else if (field === 'awayPenalty') {
-          // Penalty shootout: awayPenalty → boost
-          e.preventDefault();
-          focusBoostButtonGroup();
-        } else if (field === 'boost' && saveButtonRef?.current) {
-          // Tab from boost → Save button
-          e.preventDefault();
-          saveButtonRef.current.focus();
-        } else if (field === 'save' && onSaveAndAdvance) {
-          // Tab from Save button → save and advance to next card
-          e.preventDefault();
-          onSaveAndAdvance();
-        } else if (field === 'cancel' && saveButtonRef?.current) {
-          e.preventDefault();
-          saveButtonRef.current.focus();
-        }
+        handleForwardTab(e, field);
       }
     }
+  };
+
+  // Helper: Handle save action (SonarQube S6660 - avoid duplicate save logic)
+  const performSave = () => {
+    if (onSave) {
+      onSave();
+    } else if (onSaveAndAdvance) {
+      onSaveAndAdvance();
+    } else if (onEscapePressed) {
+      onEscapePressed();
+    }
+  };
+
+  // Helper: Handle mobile next button click (SonarQube S3776)
+  const handleMobileNextClick = () => {
+    const hasBoostSection = tournamentId && (silverMax > 0 || goldenMax > 0);
+
+    if (currentField === 'home') {
+      awayScoreInputRef?.current?.focus();
+      setCurrentField('away');
+    } else if (currentField === 'away') {
+      if (isPenaltyShootout && homePenaltyCheckboxRef?.current) {
+        homePenaltyCheckboxRef.current.focus();
+        setCurrentField('homePenalty');
+      } else if (hasBoostSection && boostButtonGroupRef?.current) {
+        focusBoostButtonGroup();
+        setCurrentField('boost');
+      } else {
+        performSave();
+      }
+    } else if (currentField === 'homePenalty') {
+      awayPenaltyCheckboxRef?.current?.focus();
+      setCurrentField('awayPenalty');
+    } else if (currentField === 'awayPenalty') {
+      if (hasBoostSection && boostButtonGroupRef?.current) {
+        focusBoostButtonGroup();
+        setCurrentField('boost');
+      } else {
+        performSave();
+      }
+    } else {
+      performSave();
+    }
+  };
+
+  // Helper: Get mobile button label (SonarQube S3358 - extract nested ternary)
+  const getMobileButtonLabel = () => {
+    if (currentField === 'boost') return 'Guardar';
+    const hasBoostSection = tournamentId && (silverMax > 0 || goldenMax > 0);
+    const isLastFieldBeforeSave = (currentField === 'away' || currentField === 'awayPenalty') && !hasBoostSection;
+    return isLastFieldBeforeSave ? 'Guardar' : 'Siguiente';
   };
 
   // Auto-focus home input when component mounts (for inline editing)
@@ -429,7 +485,6 @@ export default function GamePredictionEditControls({
                     {homeTeamShortName || homeTeamName.substring(0, 3).toUpperCase()}
                   </Typography>
                   <Checkbox
-                    inputRef={homePenaltyCheckboxRef}
                     checked={homePenaltyWinner}
                     onChange={handleHomePenaltyWinnerChange}
                     onKeyDown={(e) => handleKeyDown(e, 'homePenalty')}
@@ -437,7 +492,12 @@ export default function GamePredictionEditControls({
                     disabled={loading}
                     size="small"
                     sx={{ p: 0.5 }}
-                    inputProps={{ 'aria-label': `${homeTeamName} penalty winner` }}
+                    slotProps={{
+                      input: {
+                        ref: homePenaltyCheckboxRef,
+                        'aria-label': `${homeTeamName} penalty winner`
+                      }
+                    }}
                   />
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -445,7 +505,6 @@ export default function GamePredictionEditControls({
                     {awayTeamShortName || awayTeamName.substring(0, 3).toUpperCase()}
                   </Typography>
                   <Checkbox
-                    inputRef={awayPenaltyCheckboxRef}
                     checked={awayPenaltyWinner}
                     onChange={handleAwayPenaltyWinnerChange}
                     onKeyDown={(e) => handleKeyDown(e, 'awayPenalty')}
@@ -453,7 +512,12 @@ export default function GamePredictionEditControls({
                     disabled={loading}
                     size="small"
                     sx={{ p: 0.5 }}
-                    inputProps={{ 'aria-label': `${awayTeamName} penalty winner` }}
+                    slotProps={{
+                      input: {
+                        ref: awayPenaltyCheckboxRef,
+                        'aria-label': `${awayTeamName} penalty winner`
+                      }
+                    }}
                   />
                 </Box>
               </Box>
@@ -534,7 +598,11 @@ export default function GamePredictionEditControls({
                     checked={homePenaltyWinner}
                     onChange={handleHomePenaltyWinnerChange}
                     disabled={loading}
-                    inputProps={{ 'aria-label': `${homeTeamName} penalty winner` }}
+                    slotProps={{
+                      input: {
+                        'aria-label': `${homeTeamName} penalty winner`
+                      }
+                    }}
                   />
                 }
                 label={homeTeamName}
@@ -548,7 +616,11 @@ export default function GamePredictionEditControls({
                     checked={awayPenaltyWinner}
                     onChange={handleAwayPenaltyWinnerChange}
                     disabled={loading}
-                    inputProps={{ 'aria-label': `${awayTeamName} penalty winner` }}
+                    slotProps={{
+                      input: {
+                        'aria-label': `${awayTeamName} penalty winner`
+                      }
+                    }}
                   />
                 }
                 label={awayTeamName}
@@ -773,65 +845,12 @@ export default function GamePredictionEditControls({
           </Button>
           <Button
             variant="contained"
-            onClick={() => {
-              // Navigate through fields: home → away → (penalty if needed) → boost (if available) → done
-              const hasBoostSection = tournamentId && (silverMax > 0 || goldenMax > 0);
-
-              if (currentField === 'home') {
-                awayScoreInputRef?.current?.focus();
-                setCurrentField('away');
-              } else if (currentField === 'away') {
-                // away → homePenalty (if penalty shootout) OR boost (if available) OR save
-                if (isPenaltyShootout && homePenaltyCheckboxRef?.current) {
-                  homePenaltyCheckboxRef.current.focus();
-                  setCurrentField('homePenalty');
-                } else if (hasBoostSection && boostButtonGroupRef?.current) {
-                  focusBoostButtonGroup();
-                  setCurrentField('boost');
-                } else {
-                  // No boost section - go straight to save
-                  if (onSave) {
-                    onSave();
-                  } else if (onSaveAndAdvance) {
-                    onSaveAndAdvance();
-                  } else if (onEscapePressed) {
-                    onEscapePressed();
-                  }
-                }
-              } else if (currentField === 'homePenalty') {
-                awayPenaltyCheckboxRef?.current?.focus();
-                setCurrentField('awayPenalty');
-              } else if (currentField === 'awayPenalty') {
-                // awayPenalty → boost (if available) OR save
-                if (hasBoostSection && boostButtonGroupRef?.current) {
-                  focusBoostButtonGroup();
-                  setCurrentField('boost');
-                } else {
-                  // No boost section - go straight to save
-                  if (onSave) {
-                    onSave();
-                  } else if (onSaveAndAdvance) {
-                    onSaveAndAdvance();
-                  } else if (onEscapePressed) {
-                    onEscapePressed();
-                  }
-                }
-              } else {
-                // Last field - save
-                if (onSave) {
-                  onSave();
-                } else if (onSaveAndAdvance) {
-                  onSaveAndAdvance();
-                } else if (onEscapePressed) {
-                  onEscapePressed();
-                }
-              }
-            }}
+            onClick={handleMobileNextClick}
             disabled={loading}
             sx={{ minHeight: '44px' }}
             fullWidth
           >
-            {currentField === 'boost' ? 'Guardar' : ((currentField === 'away' || currentField === 'awayPenalty') && !(tournamentId && (silverMax > 0 || goldenMax > 0)) ? 'Guardar' : 'Siguiente')}
+            {getMobileButtonLabel()}
           </Button>
         </Box>
       )}

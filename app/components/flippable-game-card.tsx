@@ -10,38 +10,41 @@ import { Team } from '../db/tables-definition';
 import { GuessesContext } from './context-providers/guesses-context-provider';
 import { getTeamNames } from '../utils/team-name-helper';
 
+// Type alias for boost type (SonarQube S4323)
+type BoostType = 'silver' | 'golden' | null;
+
 interface FlippableGameCardProps {
-  // Game data
-  game: ExtendedGameData;
-  teamsMap: Record<string, Team>;
-  isPlayoffs: boolean;
-  tournamentId?: string;
+  // Game data (readonly per SonarQube S6759)
+  readonly game: ExtendedGameData;
+  readonly teamsMap: Record<string, Team>;
+  readonly isPlayoffs: boolean;
+  readonly tournamentId?: string;
 
   // Current guess values (from parent's context)
-  homeScore?: number;
-  awayScore?: number;
-  homePenaltyWinner?: boolean;
-  awayPenaltyWinner?: boolean;
-  boostType?: 'silver' | 'golden' | null;
-  initialBoostType?: 'silver' | 'golden' | null;
+  readonly homeScore?: number;
+  readonly awayScore?: number;
+  readonly homePenaltyWinner?: boolean;
+  readonly awayPenaltyWinner?: boolean;
+  readonly boostType?: BoostType;
+  readonly initialBoostType?: BoostType;
 
   // Edit state
-  isEditing: boolean;
-  onEditStart: () => void;
-  onEditEnd: () => void;
+  readonly isEditing: boolean;
+  readonly onEditStart: () => void;
+  readonly onEditEnd: () => void;
 
   // Boost counts for edit controls
-  silverUsed: number;
-  silverMax: number;
-  goldenUsed: number;
-  goldenMax: number;
+  readonly silverUsed: number;
+  readonly silverMax: number;
+  readonly goldenUsed: number;
+  readonly goldenMax: number;
 
   // Disabled state
-  disabled?: boolean;
+  readonly disabled?: boolean;
 
   // Auto-advance / Auto-previous
-  onAutoAdvanceNext?: () => void;
-  onAutoGoPrevious?: () => void;
+  readonly onAutoAdvanceNext?: () => void;
+  readonly onAutoGoPrevious?: () => void;
 }
 
 export default function FlippableGameCard({
@@ -76,7 +79,7 @@ export default function FlippableGameCard({
   const [editAwayScore, setEditAwayScore] = useState<number | undefined>(awayScore);
   const [editHomePenaltyWinner, setEditHomePenaltyWinner] = useState<boolean>(homePenaltyWinner || false);
   const [editAwayPenaltyWinner, setEditAwayPenaltyWinner] = useState<boolean>(awayPenaltyWinner || false);
-  const [editBoostType, setEditBoostType] = useState<'silver' | 'golden' | null>(boostType || null);
+  const [editBoostType, setEditBoostType] = useState<BoostType>(boostType || null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 

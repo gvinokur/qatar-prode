@@ -82,30 +82,6 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
 
   const isPenaltyShootout = homeScore !== undefined && awayScore !== undefined && homeScore === awayScore && isPlayoffGame;
 
-  // Calculate effective boost counts based on current selection
-  const getEffectiveBoostCounts = () => {
-    if (!boostCounts || !props.isGameGuess) return null;
-
-    const initialBoost = props.initialBoostType;
-    const currentBoost = boostType;
-
-    let silverUsed = boostCounts.silver.used;
-    let goldenUsed = boostCounts.golden.used;
-
-    // If initial boost was set, free it up first
-    if (initialBoost === 'silver') silverUsed--;
-    if (initialBoost === 'golden') goldenUsed--;
-
-    // Then apply current selection
-    if (currentBoost === 'silver') silverUsed++;
-    if (currentBoost === 'golden') goldenUsed++;
-
-    return {
-      silver: { used: silverUsed, max: boostCounts.silver.max },
-      golden: { used: goldenUsed, max: boostCounts.golden.max }
-    };
-  };
-
   // Initialize form when dialog opens or props change
   useEffect(() => {
     if (open) {
