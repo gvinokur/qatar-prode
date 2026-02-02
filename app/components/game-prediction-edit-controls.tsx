@@ -576,17 +576,20 @@ export default function GamePredictionEditControls({
                           'aria-label': `${homeTeamShortName || homeTeamName} penalty winner`
                         }
                       }}
-                      sx={{
-                        '&:focus-within': {
-                          outline: '2px solid',
-                          outlineColor: 'primary.main',
-                          outlineOffset: '2px'
-                        }
-                      }}
                     />
                   }
                   label={<Typography variant="caption">{homeTeamShortName || homeTeamName}</Typography>}
-                  sx={{ mr: 0, minWidth: 0, flex: '0 1 auto' }}
+                  sx={{
+                    mr: 0,
+                    minWidth: 0,
+                    flex: '0 1 auto',
+                    '&:focus-within': {
+                      outline: '2px solid',
+                      outlineColor: 'primary.main',
+                      outlineOffset: '2px',
+                      borderRadius: '4px'
+                    }
+                  }}
                 />
                 <FormControlLabel
                   control={
@@ -604,17 +607,20 @@ export default function GamePredictionEditControls({
                           'aria-label': `${awayTeamShortName || awayTeamName} penalty winner`
                         }
                       }}
-                      sx={{
-                        '&:focus-within': {
-                          outline: '2px solid',
-                          outlineColor: 'primary.main',
-                          outlineOffset: '2px'
-                        }
-                      }}
                     />
                   }
                   label={<Typography variant="caption">{awayTeamShortName || awayTeamName}</Typography>}
-                  sx={{ mr: 0, minWidth: 0, flex: '0 1 auto' }}
+                  sx={{
+                    mr: 0,
+                    minWidth: 0,
+                    flex: '0 1 auto',
+                    '&:focus-within': {
+                      outline: '2px solid',
+                      outlineColor: 'primary.main',
+                      outlineOffset: '2px',
+                      borderRadius: '4px'
+                    }
+                  }}
                 />
               </Box>
             </Box>
@@ -727,17 +733,20 @@ export default function GamePredictionEditControls({
                       'aria-label': `${homeTeamName} penalty winner`
                     }
                   }}
-                  sx={{
-                    '&:focus-within': {
-                      outline: '2px solid',
-                      outlineColor: 'primary.main',
-                      outlineOffset: '2px'
-                    }
-                  }}
                 />
               }
               label={homeTeamName}
-              sx={{ display: 'flex', justifyContent: 'flex-end', margin: 0 }}
+              sx={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                margin: 0,
+                '&:focus-within': {
+                  outline: '2px solid',
+                  outlineColor: 'primary.main',
+                  outlineOffset: '2px',
+                  borderRadius: '4px'
+                }
+              }}
             />
           </Grid>
 
@@ -757,17 +766,20 @@ export default function GamePredictionEditControls({
                       'aria-label': `${awayTeamName} penalty winner`
                     }
                   }}
-                  sx={{
-                    '&:focus-within': {
-                      outline: '2px solid',
-                      outlineColor: 'primary.main',
-                      outlineOffset: '2px'
-                    }
-                  }}
                 />
               }
               label={awayTeamName}
-              sx={{ display: 'flex', justifyContent: 'flex-end', margin: 0 }}
+              sx={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                margin: 0,
+                '&:focus-within': {
+                  outline: '2px solid',
+                  outlineColor: 'primary.main',
+                  outlineOffset: '2px',
+                  borderRadius: '4px'
+                }
+              }}
             />
           </Grid>
         </Grid>
