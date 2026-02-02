@@ -134,7 +134,7 @@ export default function GamePredictionEditControls({
 }: GamePredictionEditControlsProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const [currentField, setCurrentField] = useState<'home' | 'away' | 'homePenalty' | 'awayPenalty' | 'boost' | 'save'>('home');
+  const [currentField, setCurrentField] = useState<'home' | 'away' | 'homePenalty' | 'awayPenalty' | 'boost' | 'save' | 'cancel'>('home');
 
   // Calculate effective boost counts (account for switching types)
   const getEffectiveBoostCounts = () => {
