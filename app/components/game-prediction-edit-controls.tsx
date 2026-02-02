@@ -859,7 +859,7 @@ export default function GamePredictionEditControls({
             </Box>
             <ToggleButtonGroup
               ref={boostButtonGroupRef}
-              value={boostType === null ? '' : boostType}
+              value={boostType ?? ''}
               exclusive
               onChange={handleBoostChange}
               aria-label="game boost selection"
@@ -992,7 +992,7 @@ export default function GamePredictionEditControls({
 
             <ToggleButtonGroup
               ref={boostButtonGroupRef}
-              value={boostType === null ? '' : boostType}
+              value={boostType ?? ''}
               exclusive
               onChange={handleBoostChange}
               aria-label="game boost selection"
