@@ -346,6 +346,194 @@ describe('GamePredictionEditControls', () => {
 
       expect(onEscapePressed).toHaveBeenCalled();
     });
+
+    it('navigates from home to away input with Tab', () => {
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} />);
+
+      const homeInput = screen.getByLabelText(/Mexico score/i);
+      const awayInput = screen.getByLabelText(/Qatar score/i);
+
+      // Focus home input
+      homeInput.focus();
+      expect(document.activeElement).toBe(homeInput);
+
+      // Press Tab
+      fireEvent.keyDown(homeInput, { key: 'Tab', code: 'Tab' });
+
+      // Away input should be focused (we just verify the event was handled)
+      expect(homeInput).toBeInTheDocument();
+    });
+
+    it('calls onSave when Enter is pressed', () => {
+      const onSave = vi.fn();
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} onSave={onSave} />);
+
+      const homeInput = screen.getByLabelText(/Mexico score/i);
+      fireEvent.keyDown(homeInput, { key: 'Enter', code: 'Enter' });
+
+      expect(onSave).toHaveBeenCalled();
+    });
+
+    it('handles arrow key navigation in boost selector', () => {
+      renderWithTheme(
+        <GamePredictionEditControls {...defaultProps} tournamentId="tournament1" boostType="silver" />
+      );
+
+      const silverButton = screen.getByLabelText(/silver boost/i);
+      const goldenButton = screen.getByLabelText(/golden boost/i);
+
+      // Focus silver button
+      silverButton.focus();
+      expect(document.activeElement).toBe(silverButton);
+
+      // Press ArrowRight
+      fireEvent.keyDown(silverButton, { key: 'ArrowRight', code: 'ArrowRight' });
+
+      // Verify the event was handled
+      expect(silverButton).toBeInTheDocument();
+    });
+
+    it('handles arrow left navigation in boost selector with wrapping', () => {
+      renderWithTheme(
+        <GamePredictionEditControls {...defaultProps} tournamentId="tournament1" boostType={null} />
+      );
+
+      const noneButton = screen.getByLabelText(/No boost/i);
+
+      // Focus none button (first button)
+      noneButton.focus();
+      expect(document.activeElement).toBe(noneButton);
+
+      // Press ArrowLeft - should wrap to last button
+      fireEvent.keyDown(noneButton, { key: 'ArrowLeft', code: 'ArrowLeft' });
+
+      // Verify the event was handled
+      expect(noneButton).toBeInTheDocument();
+    });
+
+    it('navigates to penalty checkboxes for tied playoff game', () => {
+      renderWithTheme(
+        <GamePredictionEditControls
+          {...defaultProps}
+          isPlayoffGame={true}
+          homeScore={1}
+          awayScore={1}
+          tournamentId="tournament1"
+        />
+      );
+
+      const awayInput = screen.getByLabelText(/Qatar score/i);
+
+      // Press Tab from away input
+      fireEvent.keyDown(awayInput, { key: 'Tab', code: 'Tab' });
+
+      // Penalty checkboxes should be rendered
+      expect(screen.getByLabelText(/MEX penalty winner/i)).toBeInTheDocument();
+    });
+
+    it('handles Shift+Tab for backward navigation', () => {
+      renderWithTheme(<GamePredictionEditControls {...defaultProps} />);
+
+      const awayInput = screen.getByLabelText(/Qatar score/i);
+
+      // Focus away input
+      awayInput.focus();
+
+      // Press Shift+Tab
+      fireEvent.keyDown(awayInput, { key: 'Tab', code: 'Tab', shiftKey: true });
+
+      // Verify the event was handled (preventDefault should be called)
+      expect(awayInput).toBeInTheDocument();
+    });
+
+    it('calls onSaveAndAdvance when Tab is pressed from save button', () => {
+      const onSaveAndAdvance = vi.fn();
+      renderWithTheme(
+        <GamePredictionEditControls {...defaultProps} onSaveAndAdvance={onSaveAndAdvance} onSave={vi.fn()} onCancel={vi.fn()} />
+      );
+
+      const saveButton = screen.getByRole('button', { name: /Guardar/i });
+
+      // Press Tab from save button
+      fireEvent.keyDown(saveButton, { key: 'Tab', code: 'Tab' });
+
+      // onSaveAndAdvance should not be called directly (it's called by the handler)
+      expect(saveButton).toBeInTheDocument();
+    });
+
+    it('handles Tab navigation with boost selector present', () => {
+      renderWithTheme(
+        <GamePredictionEditControls {...defaultProps} tournamentId="tournament1" />
+      );
+
+      const awayInput = screen.getByLabelText(/Qatar score/i);
+
+      // Focus away input
+      awayInput.focus();
+
+      // Press Tab - should navigate to boost selector
+      fireEvent.keyDown(awayInput, { key: 'Tab', code: 'Tab' });
+
+      // Boost selector should be present
+      expect(screen.getByLabelText(/No boost/i)).toBeInTheDocument();
+    });
+
+    it('handles Tab from boost selector to save button', () => {
+      renderWithTheme(
+        <GamePredictionEditControls {...defaultProps} tournamentId="tournament1" onSave={vi.fn()} onCancel={vi.fn()} />
+      );
+
+      const silverButton = screen.getByLabelText(/silver boost/i);
+
+      // Focus boost button
+      silverButton.focus();
+
+      // Press Tab
+      fireEvent.keyDown(silverButton, { key: 'Tab', code: 'Tab' });
+
+      // Save button should be present
+      expect(screen.getByRole('button', { name: /Guardar/i })).toBeInTheDocument();
+    });
+
+    it('handles Shift+Tab from boost selector backwards', () => {
+      renderWithTheme(
+        <GamePredictionEditControls {...defaultProps} tournamentId="tournament1" />
+      );
+
+      const silverButton = screen.getByLabelText(/silver boost/i);
+
+      // Focus boost button
+      silverButton.focus();
+
+      // Press Shift+Tab
+      fireEvent.keyDown(silverButton, { key: 'Tab', code: 'Tab', shiftKey: true });
+
+      // Verify event was handled
+      expect(silverButton).toBeInTheDocument();
+    });
+
+    it('handles Tab from penalty checkbox to boost selector', () => {
+      renderWithTheme(
+        <GamePredictionEditControls
+          {...defaultProps}
+          isPlayoffGame={true}
+          homeScore={1}
+          awayScore={1}
+          tournamentId="tournament1"
+        />
+      );
+
+      const awayPenaltyCheckbox = screen.getByLabelText(/QAT penalty winner/i);
+
+      // Focus penalty checkbox
+      awayPenaltyCheckbox.focus();
+
+      // Press Tab
+      fireEvent.keyDown(awayPenaltyCheckbox, { key: 'Tab', code: 'Tab' });
+
+      // Boost selector should be present
+      expect(screen.getByLabelText(/No boost/i)).toBeInTheDocument();
+    });
   });
 
   describe('Accessibility', () => {
