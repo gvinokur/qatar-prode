@@ -186,7 +186,7 @@ describe('Guesses Actions', () => {
         ...mockGameGuess,
         user_id: mockUser.id
       });
-      expect(result).toBeUndefined();
+      expect(result).toEqual({ success: true });
     });
 
     it('returns unauthorized when user is not logged in', async () => {
@@ -195,7 +195,7 @@ describe('Guesses Actions', () => {
 
       const result = await updateOrCreateGameGuesses(gameGuesses);
 
-      expect(result).toBe('Unauthorized action');
+      expect(result).toEqual({ success: false, error: 'Unauthorized action' });
       expect(mockUpdateOrCreateGuess).not.toHaveBeenCalled();
     });
 
@@ -210,8 +210,9 @@ describe('Guesses Actions', () => {
       mockUpdateOrCreateGuess.mockRejectedValue(new Error('Database error'));
       const gameGuesses = [mockGameGuess];
 
-      await expect(updateOrCreateGameGuesses(gameGuesses))
-        .rejects.toThrow('Database error');
+      const result = await updateOrCreateGameGuesses(gameGuesses);
+
+      expect(result).toEqual({ success: false, error: 'Database error' });
     });
   });
 

@@ -49,11 +49,11 @@ interface GamePredictionEditControlsProps {
   readonly goldenMax: number;
 
   // Callbacks
-  readonly onHomeScoreChange: (value?: number) => void;
-  readonly onAwayScoreChange: (value?: number) => void;
-  readonly onHomePenaltyWinnerChange: (checked: boolean) => void;
-  readonly onAwayPenaltyWinnerChange: (checked: boolean) => void;
-  readonly onBoostTypeChange: (type: 'silver' | 'golden' | null) => void;
+  readonly onHomeScoreChange: (_value?: number) => void;
+  readonly onAwayScoreChange: (_value?: number) => void;
+  readonly onHomePenaltyWinnerChange: (_checked: boolean) => void;
+  readonly onAwayPenaltyWinnerChange: (_checked: boolean) => void;
+  readonly onBoostTypeChange: (_type: 'silver' | 'golden' | null) => void;
 
   // State (readonly per SonarQube)
   readonly loading?: boolean;
