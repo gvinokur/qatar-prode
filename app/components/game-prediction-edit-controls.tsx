@@ -540,10 +540,26 @@ export default function GamePredictionEditControls({
           {/* Penalty shootout selector - single line below scores */}
           {compact && isPenaltyShootout && (
             <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0, minWidth: 'fit-content' }}>
-                Ganador Penales
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 0.5, flex: 1, minWidth: 0 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: (!homePenaltyWinner && !awayPenaltyWinner) ? 'warning.main' : 'text.secondary',
+                    minWidth: 'fit-content'
+                  }}
+                >
+                  Ganador Penales
+                </Typography>
+                {(!homePenaltyWinner && !awayPenaltyWinner) && (
+                  <WarningIcon
+                    sx={{
+                      fontSize: 14,
+                      color: 'warning.main'
+                    }}
+                  />
+                )}
+              </Box>
+              <Box sx={{ display: 'flex', gap: 0.5, flex: 1, minWidth: 0, justifyContent: 'flex-end' }}>
                 <FormControlLabel
                   control={
                     <Checkbox
@@ -561,12 +577,7 @@ export default function GamePredictionEditControls({
                         }
                       }}
                       sx={{
-                        '& .MuiButtonBase-root:focus': {
-                          outline: '2px solid',
-                          outlineColor: 'primary.main',
-                          outlineOffset: '2px'
-                        },
-                        '& .MuiButtonBase-root.Mui-focusVisible': {
+                        '&:focus-within': {
                           outline: '2px solid',
                           outlineColor: 'primary.main',
                           outlineOffset: '2px'
@@ -594,12 +605,7 @@ export default function GamePredictionEditControls({
                         }
                       }}
                       sx={{
-                        '& .MuiButtonBase-root:focus': {
-                          outline: '2px solid',
-                          outlineColor: 'primary.main',
-                          outlineOffset: '2px'
-                        },
-                        '& .MuiButtonBase-root.Mui-focusVisible': {
+                        '&:focus-within': {
                           outline: '2px solid',
                           outlineColor: 'primary.main',
                           outlineOffset: '2px'
@@ -722,7 +728,7 @@ export default function GamePredictionEditControls({
                     }
                   }}
                   sx={{
-                    '& .MuiButtonBase-root:focus': {
+                    '&:focus-within': {
                       outline: '2px solid',
                       outlineColor: 'primary.main',
                       outlineOffset: '2px'
@@ -752,7 +758,7 @@ export default function GamePredictionEditControls({
                     }
                   }}
                   sx={{
-                    '& .MuiButtonBase-root:focus': {
+                    '&:focus-within': {
                       outline: '2px solid',
                       outlineColor: 'primary.main',
                       outlineOffset: '2px'
