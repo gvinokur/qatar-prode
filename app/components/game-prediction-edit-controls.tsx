@@ -21,7 +21,8 @@ import {
 } from '@mui/material';
 import {
   EmojiEvents as TrophyIcon,
-  Star as StarIcon
+  Star as StarIcon,
+  Warning as WarningIcon
 } from '@mui/icons-material';
 
 // Type aliases for union types (SonarQube S4323)
@@ -363,6 +364,19 @@ export default function GamePredictionEditControls({
       return;
     }
 
+    // Arrow key navigation between penalty winner checkboxes
+    if ((field === 'homePenalty' || field === 'awayPenalty') && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+      e.preventDefault();
+      if (field === 'homePenalty') {
+        // From Home: Left/Right → Away
+        awayPenaltyCheckboxRef?.current?.focus();
+      } else {
+        // From Away: Left/Right → Home
+        homePenaltyCheckboxRef?.current?.focus();
+      }
+      return;
+    }
+
     // Arrow key navigation between Save and Cancel buttons
     if ((field === 'save' || field === 'cancel') && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
       e.preventDefault();
@@ -667,17 +681,35 @@ export default function GamePredictionEditControls({
   const renderPenaltySelection = () => {
     if (!isPenaltyShootout || compact) return null;
 
+    const noPenaltyWinnerSelected = !homePenaltyWinner && !awayPenaltyWinner;
+
     return (
       <Box sx={{ mt: 3 }}>
-        <Typography variant="subtitle2" gutterBottom>
-          Ganador de la tanda de penales
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
+          <Typography
+            variant="subtitle2"
+            sx={{
+              color: noPenaltyWinnerSelected ? 'warning.main' : 'text.primary'
+            }}
+          >
+            Ganador de la tanda de penales
+          </Typography>
+          {noPenaltyWinnerSelected && (
+            <WarningIcon
+              sx={{
+                fontSize: 18,
+                color: 'warning.main'
+              }}
+            />
+          )}
+        </Box>
 
         <Grid container spacing={2}>
           <Grid size={6}>
             <FormControlLabel
               control={
                 <Checkbox
+                  ref={homePenaltyCheckboxRef}
                   checked={homePenaltyWinner}
                   onChange={handleHomePenaltyWinnerChange}
                   onKeyDown={(e) => handleKeyDown(e, 'homePenalty')}
@@ -690,7 +722,7 @@ export default function GamePredictionEditControls({
                     }
                   }}
                   sx={{
-                    '&:focus': {
+                    '& .MuiButtonBase-root:focus': {
                       outline: '2px solid',
                       outlineColor: 'primary.main',
                       outlineOffset: '2px'
@@ -699,6 +731,7 @@ export default function GamePredictionEditControls({
                 />
               }
               label={homeTeamName}
+              sx={{ display: 'flex', justifyContent: 'flex-end', margin: 0 }}
             />
           </Grid>
 
@@ -706,6 +739,7 @@ export default function GamePredictionEditControls({
             <FormControlLabel
               control={
                 <Checkbox
+                  ref={awayPenaltyCheckboxRef}
                   checked={awayPenaltyWinner}
                   onChange={handleAwayPenaltyWinnerChange}
                   onKeyDown={(e) => handleKeyDown(e, 'awayPenalty')}
@@ -718,7 +752,7 @@ export default function GamePredictionEditControls({
                     }
                   }}
                   sx={{
-                    '&:focus': {
+                    '& .MuiButtonBase-root:focus': {
                       outline: '2px solid',
                       outlineColor: 'primary.main',
                       outlineOffset: '2px'
@@ -727,6 +761,7 @@ export default function GamePredictionEditControls({
                 />
               }
               label={awayTeamName}
+              sx={{ display: 'flex', justifyContent: 'flex-end', margin: 0 }}
             />
           </Grid>
         </Grid>
