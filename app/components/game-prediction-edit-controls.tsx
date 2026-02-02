@@ -223,72 +223,91 @@ export default function GamePredictionEditControls({
 
     const buttonsArray = Array.from(buttons);
     const currentIndex = buttonsArray.indexOf(document.activeElement as HTMLButtonElement);
+    const lastIndex = buttons.length - 1;
 
-    const nextIndex = e.key === 'ArrowLeft'
-      ? (currentIndex <= 0 ? buttons.length - 1 : currentIndex - 1)
-      : (currentIndex >= buttons.length - 1 ? 0 : currentIndex + 1);
+    // Calculate next index (S3358 - extract nested ternary)
+    let nextIndex: number;
+    if (e.key === 'ArrowLeft') {
+      nextIndex = currentIndex <= 0 ? lastIndex : currentIndex - 1;
+    } else {
+      nextIndex = currentIndex >= lastIndex ? 0 : currentIndex + 1;
+    }
 
     buttons[nextIndex].focus();
     buttons[nextIndex].click();
   };
 
-  // Helper: Handle Shift+Tab navigation (backward) (SonarQube S3776)
-  const handleShiftTab = (e: React.KeyboardEvent, field: FieldType) => {
-    if (field === 'home' && onShiftTabFromFirstField) {
-      e.preventDefault();
-      onShiftTabFromFirstField();
-    } else if (field === 'away' && homeScoreInputRef?.current) {
-      e.preventDefault();
-      homeScoreInputRef.current.focus();
-    } else if (field === 'homePenalty' && awayScoreInputRef?.current) {
-      e.preventDefault();
+  // Helper: Focus previous field from boost (SonarQube S3776)
+  const focusPreviousFromBoost = () => {
+    if (isPenaltyShootout && awayPenaltyCheckboxRef?.current) {
+      awayPenaltyCheckboxRef.current.focus();
+    } else if (awayScoreInputRef?.current) {
       awayScoreInputRef.current.focus();
-    } else if (field === 'awayPenalty' && homePenaltyCheckboxRef?.current) {
-      e.preventDefault();
-      homePenaltyCheckboxRef.current.focus();
-    } else if (field === 'boost') {
-      e.preventDefault();
-      if (isPenaltyShootout && awayPenaltyCheckboxRef?.current) {
-        awayPenaltyCheckboxRef.current.focus();
-      } else if (awayScoreInputRef?.current) {
-        awayScoreInputRef.current.focus();
-      }
-    } else if (field === 'save') {
-      e.preventDefault();
-      focusBoostButtonGroup();
-    } else if (field === 'cancel' && saveButtonRef?.current) {
-      e.preventDefault();
-      saveButtonRef.current.focus();
     }
   };
 
-  // Helper: Handle Tab navigation (forward) (SonarQube S3776)
-  const handleForwardTab = (e: React.KeyboardEvent, field: FieldType) => {
-    if (field === 'home' && awayScoreInputRef?.current) {
-      e.preventDefault();
-      awayScoreInputRef.current.focus();
-    } else if (field === 'away') {
-      e.preventDefault();
-      if (isPenaltyShootout && homePenaltyCheckboxRef?.current) {
-        homePenaltyCheckboxRef.current.focus();
-      } else {
+  // Helper: Handle Shift+Tab navigation (backward) (SonarQube S3776)
+  const handleShiftTab = (e: React.KeyboardEvent, field: FieldType) => {
+    e.preventDefault();
+
+    switch (field) {
+      case 'home':
+        if (onShiftTabFromFirstField) onShiftTabFromFirstField();
+        break;
+      case 'away':
+        homeScoreInputRef?.current?.focus();
+        break;
+      case 'homePenalty':
+        awayScoreInputRef?.current?.focus();
+        break;
+      case 'awayPenalty':
+        homePenaltyCheckboxRef?.current?.focus();
+        break;
+      case 'boost':
+        focusPreviousFromBoost();
+        break;
+      case 'save':
         focusBoostButtonGroup();
-      }
-    } else if (field === 'homePenalty' && awayPenaltyCheckboxRef?.current) {
-      e.preventDefault();
-      awayPenaltyCheckboxRef.current.focus();
-    } else if (field === 'awayPenalty') {
-      e.preventDefault();
+        break;
+      case 'cancel':
+        saveButtonRef?.current?.focus();
+        break;
+    }
+  };
+
+  // Helper: Focus next field from away (SonarQube S3776)
+  const focusNextFromAway = () => {
+    if (isPenaltyShootout && homePenaltyCheckboxRef?.current) {
+      homePenaltyCheckboxRef.current.focus();
+    } else {
       focusBoostButtonGroup();
-    } else if (field === 'boost' && saveButtonRef?.current) {
-      e.preventDefault();
-      saveButtonRef.current.focus();
-    } else if (field === 'save' && onSaveAndAdvance) {
-      e.preventDefault();
-      onSaveAndAdvance();
-    } else if (field === 'cancel' && saveButtonRef?.current) {
-      e.preventDefault();
-      saveButtonRef.current.focus();
+    }
+  };
+
+  // Helper: Handle Tab navigation (forward) (SonarQube S3776, S1871)
+  const handleForwardTab = (e: React.KeyboardEvent, field: FieldType) => {
+    e.preventDefault();
+
+    switch (field) {
+      case 'home':
+        awayScoreInputRef?.current?.focus();
+        break;
+      case 'away':
+        focusNextFromAway();
+        break;
+      case 'homePenalty':
+        awayPenaltyCheckboxRef?.current?.focus();
+        break;
+      case 'awayPenalty':
+        focusBoostButtonGroup();
+        break;
+      case 'boost':
+      case 'cancel': // S1871 - same action for both
+        saveButtonRef?.current?.focus();
+        break;
+      case 'save':
+        if (onSaveAndAdvance) onSaveAndAdvance();
+        break;
     }
   };
 
@@ -334,35 +353,51 @@ export default function GamePredictionEditControls({
     }
   };
 
+  // Helper: Navigate from away field (SonarQube S3776)
+  const navigateFromAway = (hasBoostSection: boolean) => {
+    if (isPenaltyShootout && homePenaltyCheckboxRef?.current) {
+      homePenaltyCheckboxRef.current.focus();
+      setCurrentField('homePenalty');
+    } else if (hasBoostSection && boostButtonGroupRef?.current) {
+      focusBoostButtonGroup();
+      setCurrentField('boost');
+    } else {
+      performSave();
+    }
+  };
+
+  // Helper: Navigate from penalty field (SonarQube S3776)
+  const navigateFromPenalty = (hasBoostSection: boolean) => {
+    if (hasBoostSection && boostButtonGroupRef?.current) {
+      focusBoostButtonGroup();
+      setCurrentField('boost');
+    } else {
+      performSave();
+    }
+  };
+
   // Helper: Handle mobile next button click (SonarQube S3776)
   const handleMobileNextClick = () => {
     const hasBoostSection = tournamentId && (silverMax > 0 || goldenMax > 0);
 
-    if (currentField === 'home') {
-      awayScoreInputRef?.current?.focus();
-      setCurrentField('away');
-    } else if (currentField === 'away') {
-      if (isPenaltyShootout && homePenaltyCheckboxRef?.current) {
-        homePenaltyCheckboxRef.current.focus();
-        setCurrentField('homePenalty');
-      } else if (hasBoostSection && boostButtonGroupRef?.current) {
-        focusBoostButtonGroup();
-        setCurrentField('boost');
-      } else {
+    switch (currentField) {
+      case 'home':
+        awayScoreInputRef?.current?.focus();
+        setCurrentField('away');
+        break;
+      case 'away':
+        navigateFromAway(hasBoostSection);
+        break;
+      case 'homePenalty':
+        awayPenaltyCheckboxRef?.current?.focus();
+        setCurrentField('awayPenalty');
+        break;
+      case 'awayPenalty':
+        navigateFromPenalty(hasBoostSection);
+        break;
+      default:
         performSave();
-      }
-    } else if (currentField === 'homePenalty') {
-      awayPenaltyCheckboxRef?.current?.focus();
-      setCurrentField('awayPenalty');
-    } else if (currentField === 'awayPenalty') {
-      if (hasBoostSection && boostButtonGroupRef?.current) {
-        focusBoostButtonGroup();
-        setCurrentField('boost');
-      } else {
-        performSave();
-      }
-    } else {
-      performSave();
+        break;
     }
   };
 
