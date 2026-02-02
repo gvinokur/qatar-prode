@@ -347,6 +347,19 @@ export default function GamePredictionEditControls({
       return;
     }
 
+    // Arrow key navigation between Save and Cancel buttons
+    if ((field === 'save' || field === 'cancel') && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+      e.preventDefault();
+      if (field === 'save') {
+        // From Save: Left/Right → Cancel
+        cancelButtonRef?.current?.focus();
+      } else {
+        // From Cancel: Left/Right → Save
+        saveButtonRef?.current?.focus();
+      }
+      return;
+    }
+
     // Tab key navigation
     if (e.key === 'Tab') {
       if (e.shiftKey) {
@@ -508,6 +521,7 @@ export default function GamePredictionEditControls({
                       onChange={handleHomePenaltyWinnerChange}
                       onKeyDown={(e) => handleKeyDown(e, 'homePenalty')}
                       onFocus={() => setCurrentField('homePenalty')}
+                      onClick={() => setCurrentField('homePenalty')}
                       disabled={loading}
                       size="small"
                       slotProps={{
@@ -535,6 +549,7 @@ export default function GamePredictionEditControls({
                       onChange={handleAwayPenaltyWinnerChange}
                       onKeyDown={(e) => handleKeyDown(e, 'awayPenalty')}
                       onFocus={() => setCurrentField('awayPenalty')}
+                      onClick={() => setCurrentField('awayPenalty')}
                       disabled={loading}
                       size="small"
                       slotProps={{
@@ -639,6 +654,9 @@ export default function GamePredictionEditControls({
                 <Checkbox
                   checked={homePenaltyWinner}
                   onChange={handleHomePenaltyWinnerChange}
+                  onKeyDown={(e) => handleKeyDown(e, 'homePenalty')}
+                  onFocus={() => setCurrentField('homePenalty')}
+                  onClick={() => setCurrentField('homePenalty')}
                   disabled={loading}
                   slotProps={{
                     input: {
@@ -664,6 +682,9 @@ export default function GamePredictionEditControls({
                 <Checkbox
                   checked={awayPenaltyWinner}
                   onChange={handleAwayPenaltyWinnerChange}
+                  onKeyDown={(e) => handleKeyDown(e, 'awayPenalty')}
+                  onFocus={() => setCurrentField('awayPenalty')}
+                  onClick={() => setCurrentField('awayPenalty')}
                   disabled={loading}
                   slotProps={{
                     input: {
@@ -744,7 +765,7 @@ export default function GamePredictionEditControls({
             </Box>
             <ToggleButtonGroup
               ref={boostButtonGroupRef}
-              value={boostType}
+              value={boostType === null ? '' : boostType}
               exclusive
               onChange={handleBoostChange}
               aria-label="game boost selection"
@@ -756,6 +777,7 @@ export default function GamePredictionEditControls({
                 aria-label="No boost"
                 onKeyDown={(e) => handleKeyDown(e, 'boost')}
                 onFocus={() => setCurrentField('boost')}
+                onClick={() => setCurrentField('boost')}
                 sx={{ py: 0.5, px: 1, fontSize: '0.75rem' }}
               >
                 Ninguno
@@ -767,6 +789,7 @@ export default function GamePredictionEditControls({
                   disabled={loading || (boostType !== 'silver' && effectiveBoostCounts.silver.used >= effectiveBoostCounts.silver.max)}
                   onKeyDown={(e) => handleKeyDown(e, 'boost')}
                   onFocus={() => setCurrentField('boost')}
+                  onClick={() => setCurrentField('boost')}
                   sx={{
                     px: 1,
                     py: 0.25,
@@ -792,6 +815,7 @@ export default function GamePredictionEditControls({
                   disabled={loading || (boostType !== 'golden' && effectiveBoostCounts.golden.used >= effectiveBoostCounts.golden.max)}
                   onKeyDown={(e) => handleKeyDown(e, 'boost')}
                   onFocus={() => setCurrentField('boost')}
+                  onClick={() => setCurrentField('boost')}
                   sx={{
                     px: 1,
                     py: 0.25,
@@ -855,7 +879,7 @@ export default function GamePredictionEditControls({
 
             <ToggleButtonGroup
               ref={boostButtonGroupRef}
-              value={boostType}
+              value={boostType === null ? '' : boostType}
               exclusive
               onChange={handleBoostChange}
               aria-label="game boost selection"
@@ -867,6 +891,7 @@ export default function GamePredictionEditControls({
                 aria-label="No boost"
                 onKeyDown={(e) => handleKeyDown(e, 'boost')}
                 onFocus={() => setCurrentField('boost')}
+                onClick={() => setCurrentField('boost')}
               >
                 Ninguno
               </ToggleButton>
@@ -877,6 +902,7 @@ export default function GamePredictionEditControls({
                   disabled={loading || (boostType !== 'silver' && effectiveBoostCounts.silver.used >= effectiveBoostCounts.silver.max)}
                   onKeyDown={(e) => handleKeyDown(e, 'boost')}
                   onFocus={() => setCurrentField('boost')}
+                  onClick={() => setCurrentField('boost')}
                   sx={{
                     '&.Mui-selected': {
                       backgroundColor: alpha(theme.palette.accent.silver.main, 0.2),
@@ -898,6 +924,7 @@ export default function GamePredictionEditControls({
                   disabled={loading || (boostType !== 'golden' && effectiveBoostCounts.golden.used >= effectiveBoostCounts.golden.max)}
                   onKeyDown={(e) => handleKeyDown(e, 'boost')}
                   onFocus={() => setCurrentField('boost')}
+                  onClick={() => setCurrentField('boost')}
                   sx={{
                     '&.Mui-selected': {
                       backgroundColor: alpha(theme.palette.accent.gold.main, 0.2),
