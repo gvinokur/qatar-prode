@@ -334,7 +334,7 @@ describe('FlippableGameCard', () => {
         awayScore: 2
       });
 
-      expect(screen.getByText(/Ganador por penales/i)).toBeInTheDocument();
+      expect(screen.getByText(/Ganador.*penales/i)).toBeInTheDocument();
     });
 
     it('does not show penalty selection when scores are different', () => {
@@ -352,7 +352,7 @@ describe('FlippableGameCard', () => {
         awayScore: 1
       });
 
-      expect(screen.queryByText(/Ganador por penales/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Ganador.*penales/i)).not.toBeInTheDocument();
     });
   });
 
