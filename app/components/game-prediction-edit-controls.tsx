@@ -225,7 +225,7 @@ export default function GamePredictionEditControls({
     const currentIndex = buttonsArray.indexOf(document.activeElement as HTMLButtonElement);
     const lastIndex = buttons.length - 1;
 
-    // Calculate next index (S3358 - extract nested ternary)
+    // Calculate next index using explicit conditionals
     let nextIndex: number;
     if (e.key === 'ArrowLeft') {
       // Wrap around to end if at beginning
