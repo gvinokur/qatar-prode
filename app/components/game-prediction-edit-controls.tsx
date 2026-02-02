@@ -336,57 +336,72 @@ export default function GamePredictionEditControls({
     }
   };
 
+  // Helper: Handle Enter key press (SonarQube S3776 - reduce cognitive complexity)
+  const handleEnterKey = (e: React.KeyboardEvent, field: FieldType) => {
+    e.preventDefault();
+    if (field === 'cancel' && onCancel) {
+      onCancel();
+    } else if (field === 'save' && onSave) {
+      onSave();
+    } else if (onSave) {
+      // Default to save for other fields (inputs, checkboxes, boost)
+      onSave();
+    }
+  };
+
+  // Helper: Handle Escape key press (SonarQube S3776 - reduce cognitive complexity)
+  const handleEscapeKey = (e: React.KeyboardEvent) => {
+    if (onEscapePressed) {
+      e.preventDefault();
+      onEscapePressed();
+    }
+  };
+
+  // Helper: Handle arrow key navigation (SonarQube S3776 - reduce cognitive complexity)
+  const handleArrowKeys = (e: React.KeyboardEvent, field: FieldType) => {
+    const isArrowKey = e.key === 'ArrowLeft' || e.key === 'ArrowRight';
+    if (!isArrowKey) return false;
+
+    // Boost selector arrow navigation
+    if (field === 'boost') {
+      handleArrowKeyNavigation(e);
+      return true;
+    }
+
+    // Penalty checkbox arrow navigation
+    if (field === 'homePenalty' || field === 'awayPenalty') {
+      e.preventDefault();
+      const targetRef = field === 'homePenalty' ? awayPenaltyCheckboxRef : homePenaltyCheckboxRef;
+      targetRef?.current?.focus();
+      return true;
+    }
+
+    // Save/Cancel button arrow navigation
+    if (field === 'save' || field === 'cancel') {
+      e.preventDefault();
+      const targetRef = field === 'save' ? cancelButtonRef : saveButtonRef;
+      targetRef?.current?.focus();
+      return true;
+    }
+
+    return false;
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent, field: FieldType) => {
     // Enter key triggers the focused button's action
     if (e.key === 'Enter') {
-      e.preventDefault();
-      if (field === 'cancel' && onCancel) {
-        onCancel();
-      } else if (field === 'save' && onSave) {
-        onSave();
-      } else if (onSave) {
-        // Default to save for other fields (inputs, checkboxes, boost)
-        onSave();
-      }
+      handleEnterKey(e, field);
       return;
     }
 
     // Escape key cancels/exits
-    if (e.key === 'Escape' && onEscapePressed) {
-      e.preventDefault();
-      onEscapePressed();
+    if (e.key === 'Escape') {
+      handleEscapeKey(e);
       return;
     }
 
-    // Arrow key navigation for boost selection
-    if (field === 'boost' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
-      handleArrowKeyNavigation(e);
-      return;
-    }
-
-    // Arrow key navigation between penalty winner checkboxes
-    if ((field === 'homePenalty' || field === 'awayPenalty') && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
-      e.preventDefault();
-      if (field === 'homePenalty') {
-        // From Home: Left/Right → Away
-        awayPenaltyCheckboxRef?.current?.focus();
-      } else {
-        // From Away: Left/Right → Home
-        homePenaltyCheckboxRef?.current?.focus();
-      }
-      return;
-    }
-
-    // Arrow key navigation between Save and Cancel buttons
-    if ((field === 'save' || field === 'cancel') && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
-      e.preventDefault();
-      if (field === 'save') {
-        // From Save: Left/Right → Cancel
-        cancelButtonRef?.current?.focus();
-      } else {
-        // From Cancel: Left/Right → Save
-        saveButtonRef?.current?.focus();
-      }
+    // Arrow key navigation
+    if (handleArrowKeys(e, field)) {
       return;
     }
 
@@ -563,7 +578,6 @@ export default function GamePredictionEditControls({
                 <FormControlLabel
                   control={
                     <Checkbox
-                      inputRef={homePenaltyCheckboxRef}
                       checked={homePenaltyWinner}
                       onChange={handleHomePenaltyWinnerChange}
                       onKeyDown={(e) => handleKeyDown(e, 'homePenalty')}
@@ -573,12 +587,13 @@ export default function GamePredictionEditControls({
                       size="small"
                       slotProps={{
                         input: {
-                          'aria-label': `${homeTeamShortName || homeTeamName} penalty winner`
+                          'aria-label': `${homeTeamShortName ?? homeTeamName} penalty winner`,
+                          ref: homePenaltyCheckboxRef
                         }
                       }}
                     />
                   }
-                  label={<Typography variant="caption">{homeTeamShortName || homeTeamName}</Typography>}
+                  label={<Typography variant="caption">{homeTeamShortName ?? homeTeamName}</Typography>}
                   sx={{
                     mr: 0,
                     minWidth: 0,
@@ -594,7 +609,6 @@ export default function GamePredictionEditControls({
                 <FormControlLabel
                   control={
                     <Checkbox
-                      inputRef={awayPenaltyCheckboxRef}
                       checked={awayPenaltyWinner}
                       onChange={handleAwayPenaltyWinnerChange}
                       onKeyDown={(e) => handleKeyDown(e, 'awayPenalty')}
@@ -604,12 +618,13 @@ export default function GamePredictionEditControls({
                       size="small"
                       slotProps={{
                         input: {
-                          'aria-label': `${awayTeamShortName || awayTeamName} penalty winner`
+                          'aria-label': `${awayTeamShortName ?? awayTeamName} penalty winner`,
+                          ref: awayPenaltyCheckboxRef
                         }
                       }}
                     />
                   }
-                  label={<Typography variant="caption">{awayTeamShortName || awayTeamName}</Typography>}
+                  label={<Typography variant="caption">{awayTeamShortName ?? awayTeamName}</Typography>}
                   sx={{
                     mr: 0,
                     minWidth: 0,
@@ -721,7 +736,6 @@ export default function GamePredictionEditControls({
             <FormControlLabel
               control={
                 <Checkbox
-                  inputRef={homePenaltyCheckboxRef}
                   checked={homePenaltyWinner}
                   onChange={handleHomePenaltyWinnerChange}
                   onKeyDown={(e) => handleKeyDown(e, 'homePenalty')}
@@ -730,7 +744,8 @@ export default function GamePredictionEditControls({
                   disabled={loading}
                   slotProps={{
                     input: {
-                      'aria-label': `${homeTeamName} penalty winner`
+                      'aria-label': `${homeTeamName} penalty winner`,
+                      ref: homePenaltyCheckboxRef
                     }
                   }}
                 />
@@ -754,7 +769,6 @@ export default function GamePredictionEditControls({
             <FormControlLabel
               control={
                 <Checkbox
-                  inputRef={awayPenaltyCheckboxRef}
                   checked={awayPenaltyWinner}
                   onChange={handleAwayPenaltyWinnerChange}
                   onKeyDown={(e) => handleKeyDown(e, 'awayPenalty')}
@@ -763,7 +777,8 @@ export default function GamePredictionEditControls({
                   disabled={loading}
                   slotProps={{
                     input: {
-                      'aria-label': `${awayTeamName} penalty winner`
+                      'aria-label': `${awayTeamName} penalty winner`,
+                      ref: awayPenaltyCheckboxRef
                     }
                   }}
                 />
