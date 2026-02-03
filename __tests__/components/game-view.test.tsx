@@ -1,11 +1,10 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
 import GameView from '../../app/components/game-view';
-import { GuessesContext } from '../../app/components/context-providers/guesses-context-provider';
 import { ExtendedGameData } from '../../app/definitions';
 import { Team, GameGuessNew } from '../../app/db/tables-definition';
-import { TimezoneProvider } from '../../app/components/context-providers/timezone-context-provider';
+import { renderWithProviders, createMockGuessesContext } from '../utils/test-utils';
 
 // Mock next-auth dependencies
 vi.mock('next-auth', () => ({
@@ -69,16 +68,6 @@ const mockGameGuesses: { [k: string]: GameGuessNew } = {
     },
 };
 
-const mockContext = {
-    gameGuesses: mockGameGuesses,
-    guessedPositions: [],
-    updateGameGuess: vi.fn(),
-    pendingSaves: new Set<string>(),
-    saveErrors: {},
-    clearSaveError: vi.fn(),
-    flushPendingSave: vi.fn(),
-};
-
 const mockTeamsMap: { [k: string]: Team } = {
     'team1': {
         id: 'team1',
@@ -125,17 +114,17 @@ const renderGameView = (
     disabled = false,
     gameGuesses = mockGameGuesses
 ) => {
-    return render(
-        <TimezoneProvider>
-            <GuessesContext.Provider value={{ ...mockContext, gameGuesses }}>
-                <GameView
-                    game={game}
-                    teamsMap={teamsMap}
-                    handleEditClick={handleEditClick}
-                    disabled={disabled}
-                />
-            </GuessesContext.Provider>
-        </TimezoneProvider>
+    return renderWithProviders(
+        <GameView
+            game={game}
+            teamsMap={teamsMap}
+            handleEditClick={handleEditClick}
+            disabled={disabled}
+        />,
+        {
+            guessesContext: createMockGuessesContext({ gameGuesses }),
+            timezone: true
+        }
     );
 };
 
