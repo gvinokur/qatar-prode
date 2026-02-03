@@ -123,7 +123,7 @@ export default async function TournamentLandingPage(props: Props) {
               </Grid>
               {user && (
                   <Grid size={12}>
-                    <UserTournamentStatistics userGameStatistics={userGameStatistics} tournamentGuess={tournamentGuesses} />
+                    <UserTournamentStatistics userGameStatistics={userGameStatistics} tournamentGuess={tournamentGuesses} tournamentId={tournamentId} />
                   </Grid>
               )}
               {prodeGroups && (
