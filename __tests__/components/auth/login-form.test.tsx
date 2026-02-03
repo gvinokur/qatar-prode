@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import LoginForm from '../../../app/components/auth/login-form';
+import { setupTestMocks } from '../../mocks/setup-helpers';
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
@@ -24,28 +25,27 @@ vi.mock('validator', () => ({
   },
 }));
 
-const mockRouter = {
-  push: vi.fn(),
-  refresh: vi.fn(),
-};
-
-const mockSearchParams = {
-  get: vi.fn(),
-};
-
 describe('LoginForm', () => {
   const mockOnSuccess = vi.fn();
   const user = userEvent.setup();
 
+  let mockRouter: ReturnType<typeof setupTestMocks>['router'];
+  let mockSearchParams: ReturnType<typeof setupTestMocks>['searchParams'];
+  let mockSignIn: ReturnType<typeof setupTestMocks>['signIn'];
+
   beforeEach(() => {
     vi.clearAllMocks();
-    
-    (useRouter as any).mockReturnValue(mockRouter);
-    (useSearchParams as any).mockReturnValue(mockSearchParams);
-    (signIn as any).mockResolvedValue({ ok: true });
-    
-    // Reset search params mock
-    mockSearchParams.get.mockReturnValue(null);
+
+    // Setup all required mocks with single helper
+    const mocks = setupTestMocks({
+      navigation: true,
+      signIn: true,
+      signInDefaults: { ok: true },
+    });
+
+    mockRouter = mocks.router!;
+    mockSearchParams = mocks.searchParams!;
+    mockSignIn = mocks.signIn!;
   });
 
   afterEach(() => {

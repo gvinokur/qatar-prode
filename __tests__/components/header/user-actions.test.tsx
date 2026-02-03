@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { User } from 'next-auth';
 import UserActions from '../../../app/components/header/user-actions';
+import { setupTestMocks } from '../../mocks/setup-helpers';
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
@@ -66,25 +67,19 @@ vi.mock('../../../app/components/auth/user-settings-dialog', () => ({
   ),
 }));
 
-const mockRouter = {
-  push: vi.fn(),
-  refresh: vi.fn(),
-};
-
-const mockSearchParams = {
-  get: vi.fn(),
-};
-
 describe('UserActions', () => {
+  let mockRouter: ReturnType<typeof setupTestMocks>['router'];
+  let mockSearchParams: ReturnType<typeof setupTestMocks>['searchParams'];
+
   beforeEach(() => {
     vi.clearAllMocks();
-    
-    (useRouter as any).mockReturnValue(mockRouter);
-    (useSearchParams as any).mockReturnValue(mockSearchParams);
-    (signOut as any).mockResolvedValue({});
-    
-    // Reset search params mock
-    mockSearchParams.get.mockReturnValue(null);
+
+    // Setup mocks with helper
+    const mocks = setupTestMocks({ navigation: true });
+    mockRouter = mocks.router!;
+    mockSearchParams = mocks.searchParams!;
+
+    vi.mocked(signOut).mockResolvedValue({});
   });
 
   afterEach(() => {

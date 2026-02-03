@@ -5,6 +5,7 @@ import DeleteAccountButton from '../../app/components/delete-account-button';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { deleteAccount } from '../../app/actions/user-actions';
+import { setupTestMocks } from '../mocks/setup-helpers';
 
 // Mock next-auth/react
 vi.mock('next-auth/react', () => ({
@@ -15,6 +16,7 @@ vi.mock('next-auth/react', () => ({
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
   useRouter: vi.fn(),
+  useSearchParams: vi.fn(),
 }));
 
 // Mock user-actions
@@ -30,25 +32,21 @@ describe('DeleteAccountButton', () => {
     emailVerified: new Date(),
   };
 
-  const mockRouter = {
-    push: vi.fn(),
-    replace: vi.fn(),
-    refresh: vi.fn(),
-    back: vi.fn(),
-    forward: vi.fn(),
-    prefetch: vi.fn(),
-  };
+  let mockRouter: ReturnType<typeof setupTestMocks>['router'];
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
+    // Setup mocks with helper
+    const mocks = setupTestMocks({ navigation: true });
+    mockRouter = mocks.router!;
+
     vi.mocked(useSession).mockReturnValue({
       data: { user: mockUser, expires: '2099-12-31' },
       status: 'authenticated',
       update: vi.fn(),
     });
     vi.mocked(signOut).mockResolvedValue({ url: '/' } as any);
-    vi.mocked(useRouter).mockReturnValue(mockRouter);
     vi.mocked(deleteAccount).mockResolvedValue({ success: true });
   });
 
