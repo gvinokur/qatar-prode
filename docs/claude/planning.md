@@ -46,26 +46,54 @@ Every story must go through a planning phase before implementation. The plan is 
 
 **🛑 BEFORE DOING ANYTHING - READ THIS ENTIRE GUIDE 🛑**
 
-Before entering plan mode or creating any plan:
-1. **Read this file completely**: `docs/claude/planning.md`
-2. **Understand the workflow**: All 7 steps below
-3. **Note the STOP points**: Where you MUST wait for user
-4. **Understand exit rules**: NEVER exit until "execute the plan"
+## This Project Has a Custom Planning Workflow
 
-**Why this is critical:**
-- You MUST follow the exact workflow below
-- Skipping steps or rushing to implementation causes problems
-- The user has reported issues with agents jumping ahead
-- Reading this first ensures you follow the process correctly
+**Standard Claude planning workflow:**
+- Think through the plan
+- Propose it to the user
+- User approves
+- Start coding
 
-**Checklist before proceeding:**
+**THIS PROJECT's planning workflow (different - uses specific tools):**
+- Think through the plan → **WRITE to file** (required)
+- **LAUNCH Plan Reviewer subagent** (required)
+- **LAUNCH Bash subagent** to commit and create PR (required)
+- User reviews PR → Provides feedback or approves
+- Start coding
+
+**Why this project's workflow is different:**
+1. **Plans must be in files** (not just in your memory) → Reviewable in PRs
+2. **Plans must be validated by subagent** (not just self-review) → Quality gate
+3. **Git operations must use subagent** (can't exit plan mode) → Stay in planning state
+
+**If you follow standard Claude planning, you've failed this project's requirements.**
+
+---
+
+## Tool Commitment Checklist
+
+**Before proceeding, acknowledge you WILL use these tools during planning:**
+
+**Required tools (non-negotiable):**
+- [ ] **Write tool** - to create plan file at `plans/STORY-N-plan.md` (not just think about it)
+- [ ] **Task tool with subagent_type: "general-purpose"** - for Plan Reviewer subagent (2-3 cycles)
+- [ ] **Task tool with subagent_type: "Bash"** - for ALL git operations (commit, push, PR creation)
+
+**These tools are MANDATORY. If you skip any tool, you've violated the workflow.**
+
+---
+
+## Complete This Guide Checklist
+
+Before proceeding to Step 1:
 - [ ] I have read this planning.md guide completely
+- [ ] I understand this project requires Write tool, Task tool (reviewer), Task tool (bash)
 - [ ] I understand I stay in plan mode until user says "execute the plan"
-- [ ] I understand I use subagents for git operations
+- [ ] I understand I use subagents for git operations (never exit plan mode to commit)
 - [ ] I understand the plan review loop (2-3 cycles)
 - [ ] I understand I STOP and WAIT after creating PR
 
-**Only proceed to Step 1 after completing this checklist.**
+**Only proceed to Step 1 after completing both checklists above.**
 
 ---
 
@@ -223,11 +251,38 @@ Add a "Visual Prototypes" section after "Technical Approach" with:
 - User can approve design before implementation
 - Reduces back-and-forth during implementation
 
+---
+
+**✋ CHECKPOINT: Have you used the Write tool?**
+
+After creating the plan content, verify:
+- [ ] I used the Write tool to create `plans/STORY-${STORY_NUMBER}-plan.md`
+- [ ] The file exists (not just in my memory)
+- [ ] The file contains the complete plan with all sections
+
+**Verification command:**
+```bash
+ls -la ${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-plan.md
+```
+
+**If the file doesn't exist:** You forgot to use Write tool. Use it NOW:
+```typescript
+Write({
+  file_path: `${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-plan.md`,
+  content: `[Your plan content here]`
+})
+```
+
+**Do NOT proceed to Step 4 without using Write tool to create the plan file.**
+
+---
+
 ### 4. Pre-Review Checklist (MANDATORY)
 
 **🛑 STOP - Complete this checklist before launching plan review 🛑**
 
 Before launching the plan reviewer subagent:
+- [ ] **I used Write tool** to create `plans/STORY-N-plan.md` (file exists, not just in memory)
 - [ ] Plan document is complete with all sections
 - [ ] Visual prototypes included (if UI changes)
 - [ ] Technical approach is detailed
@@ -509,6 +564,7 @@ You have just committed the plan and created a PR. This is a **CRITICAL CHECKPOI
 - ✅ You remained in plan mode the entire time
 
 **VERIFICATION CHECKLIST - You MUST answer these questions to yourself:**
+- [ ] Did I use Task tool with subagent_type: "Bash" to commit and create PR? (Answer MUST be YES - Type to yourself: "I used Bash subagent")
 - [ ] Did I exit plan mode? (Answer MUST be NO - Type to yourself: "I did not exit plan mode")
 - [ ] Am I still in plan mode? (Answer MUST be YES - Type to yourself: "I am in plan mode")
 - [ ] Did the user say "execute the plan"? (Answer MUST be NO - Type to yourself: "User has not approved")

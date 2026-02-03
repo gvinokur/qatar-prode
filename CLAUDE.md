@@ -10,92 +10,50 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **If user says "implement story #42" or similar, you MUST follow this EXACT sequence:**
 
-### THE ONLY VALID WORKFLOW:
+### THIS PROJECT'S PLANNING WORKFLOW (Tool-First):
+
+**Standard Claude planning:** Think → Propose plan → Code
+
+**THIS PROJECT's planning (different - you MUST use these tools):**
 
 ```
-1. READ docs/claude/planning.md COMPLETELY - NOT OPTIONAL
-   ↓
-   MUST pay particular attention to:
-   - Step 5: Plan Reviewer subagent (MANDATORY - exact Task tool usage)
-   - Step 7: Bash subagent for commits (MANDATORY - exact Task tool usage)
-   - Step 7: CRITICAL CHECKPOINT (STOP and WAIT after PR)
-   - Step 8: Iteration with Bash subagent
-   - NEVER EXIT rule (stay in plan mode entire time)
-   ↓
-2. EnterPlanMode (NEVER exit until user says "execute the plan")
-   ↓
-3. Create plan + visual prototypes (if UI changes)
-   ↓
-4. 🛑 STOP - Before proceeding, launch Plan Reviewer SUBAGENT 🛑
-   ⚠️ MANDATORY: Use Task tool with subagent_type: "general-purpose" ⚠️
-   - DO NOT skip this step
-   - DO NOT try to review the plan manually
-   - MUST run 2-3 review cycles
-   - MUST continue until "no significant concerns" OR 3 cycles
-   - This is NOT optional - every plan MUST be reviewed by subagent
-   - See planning.md Step 5 for exact Task tool implementation
-   - IF you skip this, you have violated the workflow
-   ↓
-5. 🛑 STOP - Before committing, launch BASH SUBAGENT 🛑
-   ⚠️ MANDATORY: Use Task tool with subagent_type: "Bash" ⚠️
-   - DO NOT skip this step
-   - DO NOT exit plan mode to commit
-   - DO NOT commit manually with git commands
-   - MUST handle: git add, commit, push, gh pr create
-   - You STAY in plan mode while subagent runs
-   - This is NOT optional - never exit plan mode to commit
-   - See planning.md Step 7 for exact Task tool implementation
-   - IF you skip this, you have violated the workflow
-   ↓
-6. 🛑 STOP ⛔ STAY IN PLAN MODE ⛔ WAIT FOR USER 🛑
-   Complete CRITICAL CHECKPOINT verification checklist
-   Do NOT proceed, do NOT exit plan mode, WAIT
-   ↓
-7. Iterate on feedback (if user provides feedback):
-   - Update plan document (while in plan mode)
-   - 🛑 MUST launch BASH SUBAGENT to commit updates 🛑
-   - DO NOT exit plan mode to commit
-   - You stay in plan mode for ALL iterations
-   - See planning.md Step 8
-   ↓
-8. User says "execute the plan" (ONLY THEN proceed)
-   ↓
-9. READ docs/claude/implementation.md COMPLETELY
-   ↓
-10. ExitPlanMode (ONLY exit in entire planning phase)
-   ↓
-11. Use TaskCreate to define tasks
-   ↓
-12. Implement
+1. Read → planning.md (complete file)
+2. EnterPlanMode() → enter plan mode
+3. [Research with Explore subagent - you do this naturally]
+4. Write({ file_path: "plans/STORY-N-plan.md", content: "..." }) → create plan file
+5. Task({ subagent_type: "general-purpose", model: "haiku" }) → review plan (2-3 cycles)
+6. Task({ subagent_type: "Bash" }) → commit plan and create PR
+7. WAIT → stay in plan mode for user feedback
+8. [If feedback] → Update plan + Task({ subagent_type: "Bash" }) → commit updates
+9. User says "execute the plan" → ExitPlanMode()
+10. READ implementation.md → Define tasks → Implement
 ```
 
-### CRITICAL - SUBAGENTS ARE MANDATORY, NOT OPTIONAL
+**🚨 IF YOU SKIP TOOLS #4, #5, OR #6, YOU'VE VIOLATED THE WORKFLOW 🚨**
 
-**You MUST use the Task tool with subagents at Steps 4, 5, and 7:**
-- ⚠️ **Step 4: Plan Reviewer** - Task tool with subagent_type "general-purpose", model "haiku"
-  - IF you skip this, you have violated the workflow
-  - IF you try to review manually, you have violated the workflow
-- ⚠️ **Step 5: Git Operations** - Task tool with subagent_type "Bash"
-  - IF you exit plan mode to commit, you have violated the workflow
-  - IF you run git commands directly, you have violated the workflow
-- ⚠️ **Step 7: Iteration Commits** - Task tool with subagent_type "Bash"
-  - IF you exit plan mode during iteration, you have violated the workflow
-  - IF you commit manually, you have violated the workflow
+**Why these tools are required in THIS project:**
+- **Write tool (#4)**: Plans must be reviewable in PRs (not just in your memory)
+- **Task tool - Plan Reviewer (#5)**: Quality gate before user review (required validation)
+- **Task tool - Bash (#6, #8)**: Git operations without exiting plan mode (stay in planning state)
 
-**Why subagents are mandatory:**
-- You NEVER exit plan mode during planning (subagents handle git while you stay in plan mode)
-- Plan review catches issues early (improves quality before user review)
-- Clear separation of concerns (planning vs git operations)
-- Prevents premature implementation (exit plan mode = start coding)
+**This isn't "remember extra steps" - this IS how planning works in this project.**
 
-**Before launching any subagent:**
-- Read the verification questions in planning.md (Steps 5 and 7)
-- Answer each question to yourself
-- If any answer is wrong, STOP and fix it
+### CRITICAL - What Makes This Project Different
 
-**planning.md contains the exact Task tool calls, prompts, and parameters.**
-**Do NOT try to figure it out yourself - READ planning.md and follow it exactly.**
-**If you skip subagents or try to do it manually, you have FAILED to follow the workflow.**
+| Default Claude Behavior | This Project's Requirement | Why |
+|------------------------|---------------------------|-----|
+| Think through plan mentally | ✅ PLUS: Use Write tool to create file | Plans must be in PRs for review |
+| Self-review the plan | ✅ PLUS: Use Task tool (Plan Reviewer) | Quality gate before user sees it |
+| Exit plan mode to commit | ❌ WRONG: Use Task tool (Bash subagent) | Must stay in plan mode throughout |
+
+**The three required tools aren't "extras" - they're how planning works in this project.**
+
+**Tool usage violations:**
+- ❌ Create plan mentally but don't Write to file → Workflow violated
+- ❌ Self-review instead of launching Plan Reviewer subagent → Workflow violated
+- ❌ Exit plan mode or run git directly instead of Bash subagent → Workflow violated
+
+**See planning.md for exact tool calls, prompts, and parameters.**
 
 ### CRITICAL - YOU MUST STOP AFTER CREATING PR (STEP 6)
 
