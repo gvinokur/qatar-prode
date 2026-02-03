@@ -128,7 +128,11 @@ export default async function TournamentLandingPage(props: Props) {
               )}
               {prodeGroups && (
                 <Grid size={12}>
-                  <FriendGroupsList userGroups={prodeGroups.userGroups} participantGroups={prodeGroups.participantGroups}/>
+                  <FriendGroupsList
+                    userGroups={prodeGroups.userGroups}
+                    participantGroups={prodeGroups.participantGroups}
+                    tournamentId={tournamentId}
+                  />
                 </Grid>
               )}
             </Grid>
