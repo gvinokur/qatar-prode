@@ -141,14 +141,18 @@ All required data can be fetched using existing repository functions:
 ### Styling & Layout
 
 **Responsive Grid Layout:**
+
+Following the existing tournament page pattern (see `/app/tournaments/[id]/page.tsx`):
+
 ```
-Desktop (≥900px):
-┌─────────────────────────────────────┐
-│  Performance Overview (full width)  │
-├──────────────────┬──────────────────┤
-│ Prediction       │ Boost Analysis   │
-│ Accuracy         │                  │
-└──────────────────┴──────────────────┘
+Desktop (≥900px) - 868px max-width container, centered:
+┌────────────────────────────┬─────────────┐
+│ Main Content (md: 8)       │ Sidebar     │
+│                            │ (md: 4)     │
+│ • Performance Overview     │             │
+│ • Prediction Accuracy      │ • (Future)  │
+│ • Boost Analysis           │             │
+└────────────────────────────┴─────────────┘
 
 Mobile (<900px):
 ┌─────────────────────────────────────┐
@@ -160,8 +164,14 @@ Mobile (<900px):
 └─────────────────────────────────────┘
 ```
 
+**Layout Implementation:**
+- Container: `Grid container maxWidth={'868px'} mx={{md: 'auto'}}`
+- Main column: `size={{ xs: 12, md: 8 }}` - All stats cards stacked vertically
+- Sidebar: `size={{ xs: 12, md: 4 }}` - Reserved for future enhancements
+- All cards within main column use `size={12}` with `rowSpacing={2}`
+
 **MUI Components:**
-- Grid2 with `size={{ xs: 12, md: 6 }}`
+- Grid2 with 8-4 layout (matches tournament home pattern)
 - Card + CardHeader + CardContent
 - Typography with variants (h4, h6, body1, body2)
 - Theme colors: `primary.main`, `primary.light`, `success.main`
@@ -297,12 +307,13 @@ Mobile (<900px):
 ### Responsive Behavior
 
 **Desktop (≥900px):**
-- 3-column grid layout
-- Performance overview spans full width
-- Prediction accuracy and boost analysis side-by-side
+- 868px max-width container, centered (`mx={{md: 'auto'}}`)
+- 8-4 column layout (main content + sidebar)
+- All three stats cards stacked vertically in main column (md: 8)
+- Sidebar reserved for future enhancements (md: 4)
 
 **Mobile (<900px):**
-- Single column layout
+- Single column layout (xs: 12)
 - Cards stack vertically
 - Maintain readability with proper spacing
 - Touch-friendly tap targets
