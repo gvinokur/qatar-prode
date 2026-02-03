@@ -21,17 +21,64 @@ import {
 
 /**
  * Type-safe test data factories for Kysely database tables.
- * Each factory creates a valid object with sensible defaults that can be overridden.
  *
- * Usage:
- * ```typescript
- * const tournament = testFactories.tournament({ long_name: 'Custom Name' });
- * const game = testFactories.game({ tournament_id: tournament.id });
- * ```
+ * Each factory creates a valid object with sensible defaults that can be overridden.
+ * All factories support partial overrides for customizing specific properties while
+ * keeping default values for others.
+ *
+ * **Benefits:**
+ * - **Type safety**: Full TypeScript support with autocomplete
+ * - **Consistency**: All tests use same default values
+ * - **Less boilerplate**: No need to specify every field
+ * - **Maintainability**: Update defaults in one place
+ *
+ * @example
+ * // Use defaults
+ * const tournament = testFactories.tournament();
+ * // { id: 'tournament-1', short_name: 'TEST', long_name: 'Test Tournament 2024', ... }
+ *
+ * @example
+ * // Override specific properties
+ * const tournament = testFactories.tournament({
+ *   id: 'world-cup-2026',
+ *   long_name: 'FIFA World Cup 2026'
+ * });
+ *
+ * @example
+ * // Create related entities
+ * const tournament = testFactories.tournament({ id: 'euro-2024' });
+ * const game = testFactories.game({
+ *   tournament_id: tournament.id,
+ *   home_team: 'germany',
+ *   away_team: 'spain'
+ * });
+ *
+ * @see {@link createMany} for bulk creation with sequential IDs
  */
 export const testFactories = {
   /**
-   * Tournament factory
+   * Creates a Tournament with default values.
+   *
+   * Default values include:
+   * - Basic info: short_name='TEST', long_name='Test Tournament 2024'
+   * - Status: is_active=true, dev_only=false
+   * - Points: exact score (10), correct outcome (5), champion (15), etc.
+   * - Boost limits: max_silver_games (5), max_golden_games (3)
+   * - All award IDs: null or undefined
+   *
+   * @param overrides - Partial tournament object to override defaults
+   * @returns Complete Tournament object
+   *
+   * @example
+   * const tournament = testFactories.tournament();
+   *
+   * @example
+   * const worldCup = testFactories.tournament({
+   *   id: 'wc-2026',
+   *   short_name: 'WC26',
+   *   long_name: 'FIFA World Cup 2026',
+   *   game_exact_score_points: 15
+   * });
    */
   tournament: (overrides?: Partial<Tournament>): Tournament => ({
     id: 'tournament-1',
@@ -62,7 +109,24 @@ export const testFactories = {
   }),
 
   /**
-   * User factory
+   * Creates a User with default values.
+   *
+   * Default values:
+   * - email: 'test@example.com'
+   * - nickname: 'TestUser'
+   * - password_hash: 'hashed_password_123' (pre-hashed for testing)
+   * - is_admin: false
+   * - email_verified: true
+   * - All reset/verification tokens: null
+   *
+   * @param overrides - Partial user object to override defaults
+   * @returns Complete User object
+   *
+   * @example
+   * const user = testFactories.user({ email: 'john@example.com', nickname: 'John' });
+   *
+   * @example
+   * const adminUser = testFactories.user({ is_admin: true, nickname: 'Admin' });
    */
   user: (overrides?: Partial<User>): User => ({
     id: 'user-1',
@@ -80,7 +144,20 @@ export const testFactories = {
   }),
 
   /**
-   * Team factory
+   * Creates a Team with default values.
+   *
+   * @param overrides - Partial team object to override defaults
+   * @returns Complete Team object
+   *
+   * @example
+   * const team = testFactories.team({ id: 'argentina', name: 'Argentina', short_name: 'ARG' });
+   *
+   * @example
+   * // Create multiple teams with createMany
+   * const teams = createMany(testFactories.team, 4, (i) => ({
+   *   id: `team-${i}`,
+   *   name: `Team ${i}`
+   * }));
    */
   team: (overrides?: Partial<Team>): Team => ({
     id: 'team-1',
@@ -91,7 +168,25 @@ export const testFactories = {
   }),
 
   /**
-   * Game factory
+   * Creates a Game (match) with default values.
+   *
+   * Default values:
+   * - tournament_id: 'tournament-1'
+   * - home_team: 'team-1', away_team: 'team-2'
+   * - game_date: '2024-06-14T18:00:00Z'
+   * - game_type: 'group'
+   * - game_local_timezone: 'America/New_York'
+   *
+   * @param overrides - Partial game object to override defaults
+   * @returns Complete Game object
+   *
+   * @example
+   * const game = testFactories.game({
+   *   tournament_id: 'euro-2024',
+   *   home_team: 'germany',
+   *   away_team: 'spain',
+   *   game_date: new Date('2024-07-14T20:00:00Z')
+   * });
    */
   game: (overrides?: Partial<Game>): Game => ({
     id: 'game-1',
@@ -109,7 +204,26 @@ export const testFactories = {
   }),
 
   /**
-   * Game Guess factory
+   * Creates a GameGuess (user's prediction for a game) with default values.
+   *
+   * Default values:
+   * - game_id: 'game-1', user_id: 'user-1'
+   * - home_team: 'team-1', away_team: 'team-2'
+   * - home_score: 2, away_score: 1
+   * - boost_multiplier: 1.0 (no boost)
+   *
+   * @param overrides - Partial game guess object to override defaults
+   * @returns Complete GameGuess object
+   *
+   * @example
+   * const guess = testFactories.gameGuess({
+   *   user_id: 'user-123',
+   *   game_id: 'game-1',
+   *   home_score: 3,
+   *   away_score: 2,
+   *   boost_type: 'golden',
+   *   boost_multiplier: 2.0
+   * });
    */
   gameGuess: (overrides?: Partial<GameGuess>): GameGuess => ({
     id: 'guess-1',
@@ -316,15 +430,49 @@ export const testFactories = {
 };
 
 /**
- * Helper to create multiple instances with sequential IDs
+ * Creates multiple instances with sequential IDs using a function to customize each instance.
  *
- * Usage:
- * ```typescript
+ * The overridesFn receives the index (starting from 1) and returns partial overrides
+ * for that specific instance. This is useful for creating sequential test data.
+ *
+ * @template T - The type of entity being created
+ * @param factory - Factory function from testFactories (e.g., testFactories.team)
+ * @param count - Number of instances to create
+ * @param overridesFn - Optional function that receives index (1-based) and returns overrides for that instance
+ * @returns Array of created instances
+ *
+ * @example
+ * // Simple: Create 4 teams with default values
+ * const teams = createMany(testFactories.team, 4);
+ * // [{ id: 'team-1', ...}, { id: 'team-2', ...}, { id: 'team-3', ...}, { id: 'team-4', ...}]
+ *
+ * @example
+ * // With custom sequential IDs and names
  * const teams = createMany(testFactories.team, 4, (i) => ({
  *   id: `team-${i}`,
- *   name: `Team ${i}`
+ *   name: `Team ${i}`,
+ *   short_name: `T${i}`
  * }));
- * ```
+ *
+ * @example
+ * // Create users with sequential emails
+ * const users = createMany(testFactories.user, 10, (i) => ({
+ *   id: `user-${i}`,
+ *   email: `user${i}@example.com`,
+ *   nickname: `User${i}`
+ * }));
+ *
+ * @example
+ * // Create games for a tournament
+ * const tournament = testFactories.tournament({ id: 'euro-2024' });
+ * const games = createMany(testFactories.game, 6, (i) => ({
+ *   id: `game-${i}`,
+ *   tournament_id: tournament.id,
+ *   game_number: i,
+ *   game_date: new Date(`2024-06-${14 + i}T18:00:00Z`)
+ * }));
+ *
+ * @see testFactories for available factory functions
  */
 export function createMany<T>(
   factory: (overrides?: Partial<T>) => T,
