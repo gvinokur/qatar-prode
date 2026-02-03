@@ -51,10 +51,10 @@ Without this documentation:
 - `renderWithProviders()` complete guide with examples (Story 4)
 - `createMockGuessesContext()` usage guide
 - When to use what (decision tree)
-- Before/after migration examples
+- **DO NOT DO section** - Common antipatterns to avoid
 - Composition patterns (theme + context + timezone)
 
-**Estimated:** 300-400 lines
+**Estimated:** 250-300 lines (compact, focused on correct usage)
 
 ---
 
@@ -72,11 +72,11 @@ Without this documentation:
   - `setupAuthenticatedSession()` - Mock logged-in state
   - `setupUnauthenticatedSession()` - Mock logged-out state
   - `setupSignInMock()` - Mock signIn function
+- **DO NOT DO section** - Antipatterns to avoid (inline mocking, `as any`, etc.)
 - Type safety benefits explanation
-- Before/after migration examples
 - Common patterns and use cases
 
-**Estimated:** 250-350 lines
+**Estimated:** 200-250 lines (compact, focused on correct usage)
 
 ---
 
@@ -112,12 +112,13 @@ Without this documentation:
 **Major Updates:**
 - Emphasize **mandatory** usage of test utilities (not optional)
 - Update all code examples to use new utilities
-- Add before/after comparisons showing improvement
+- Add **DO NOT DO sections** with clear antipatterns (instead of before/after)
 - Link to detailed utility READMEs for deep dives
 - Update common patterns to reflect new utilities
+- Keep it compact and focused on correct usage
 
 **Current:** ~656 lines
-**After:** ~920+ lines (significant expansion)
+**After:** ~750-800 lines (moderate expansion, not bloated)
 
 ---
 
@@ -174,16 +175,18 @@ Create three new README files with comprehensive guides for each utility categor
 - Document `renderWithProviders()` signature, options, return value
 - Document `createMockGuessesContext()` for context mocking
 - Show composition patterns (theme + context + timezone)
-- Provide before/after examples for migration
+- **Add DO NOT DO section** - Clear antipatterns (no local theme setup, etc.)
 - Include decision tree: when to use which utility
+- Focus on correct usage examples only
 
 **File 2: Mock Utilities Guide** (`__tests__/mocks/README.md`)
 - Document router mocking utilities from Story 2
 - Document SearchParams mocking from Story 2
 - Document auth mocking from Story 2
+- **Add DO NOT DO section** - Antipatterns (inline mocking, `as any` casts, etc.)
 - Explain type safety benefits (no `as any` needed)
-- Provide before/after examples
 - Common patterns and use cases
+- Focus on correct usage examples only
 
 **File 3: Verify DB Guide** (`__tests__/db/README.md`)
 - Already comprehensive (2,194 lines)
