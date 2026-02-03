@@ -10,6 +10,8 @@ import {
   subscribeToNotifications,
   unsubscribeFromNotifications
 } from '../../../app/utils/notifications-utils';
+import { setupTestMocks } from '../../mocks/setup-helpers';
+import { createAuthenticatedSessionValue } from '../../mocks/next-auth.mocks';
 
 // Mock next-auth/react
 vi.mock('next-auth/react', () => ({
@@ -30,32 +32,34 @@ vi.mock('../../../app/utils/notifications-utils', () => ({
 }));
 
 describe('UserSettingsDialog', () => {
-  const mockUpdate = vi.fn();
   const mockOnClose = vi.fn();
-  
-  const mockSession = {
-    user: {
-      id: '1',
-      email: 'test@example.com',
-      nickname: 'testuser',
-      name: 'Test User',
-    },
-  };
+
+  let mockSessionValue: ReturnType<typeof setupTestMocks>['session'];
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
-    // Default mocks
-    (useSession as any).mockReturnValue({
-      data: mockSession,
-      update: mockUpdate,
+
+    // Setup session mock with helper
+    const mocks = setupTestMocks({
+      session: true,
+      sessionDefaults: {
+        id: '1',
+        email: 'test@example.com',
+        name: 'Test User',
+      },
     });
-    
-    (isNotificationSupported as any).mockReturnValue(true);
-    (checkExistingSubscription as any).mockResolvedValue(false);
-    (updateNickname as any).mockResolvedValue(undefined);
-    (subscribeToNotifications as any).mockResolvedValue(undefined);
-    (unsubscribeFromNotifications as any).mockResolvedValue(undefined);
+
+    mockSessionValue = mocks.session!;
+    // Add nickname to the session (User type has nickname field)
+    if (mockSessionValue.data?.user) {
+      (mockSessionValue.data.user as any).nickname = 'testuser';
+    }
+
+    vi.mocked(isNotificationSupported).mockReturnValue(true);
+    vi.mocked(checkExistingSubscription).mockResolvedValue(false);
+    vi.mocked(updateNickname).mockResolvedValue(undefined);
+    vi.mocked(subscribeToNotifications).mockResolvedValue(undefined);
+    vi.mocked(unsubscribeFromNotifications).mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -84,37 +88,31 @@ describe('UserSettingsDialog', () => {
     });
 
     it('renders nickname text field with user name as fallback when nickname is not available', () => {
-      const sessionWithoutNickname = {
-        user: {
-          id: '1',
-          email: 'test@example.com',
-          name: 'Test User',
-        },
-      };
-      
-      (useSession as any).mockReturnValue({
-        data: sessionWithoutNickname,
-        update: mockUpdate,
+      const sessionValueWithoutNickname = createAuthenticatedSessionValue({
+        id: '1',
+        email: 'test@example.com',
+        name: 'Test User',
       });
-      
+
+      vi.mocked(useSession).mockReturnValue(sessionValueWithoutNickname);
+
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
-      
+
       const nicknameField = screen.getByLabelText('Apodo');
       expect(nicknameField).toHaveValue('Test User');
     });
 
     it('renders empty nickname field when neither nickname nor name is available', () => {
-      const sessionWithoutNameOrNickname = {
-        user: {
-          id: '1',
-          email: 'test@example.com',
-        },
-      };
-      
-      (useSession as any).mockReturnValue({
-        data: sessionWithoutNameOrNickname,
-        update: mockUpdate,
+      const sessionValueWithoutName = createAuthenticatedSessionValue({
+        id: '1',
+        email: 'test@example.com',
       });
+      // Remove name from user
+      if (sessionValueWithoutName.data?.user) {
+        delete (sessionValueWithoutName.data.user as any).name;
+      }
+
+      vi.mocked(useSession).mockReturnValue(sessionValueWithoutName);
       
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
       
@@ -243,7 +241,7 @@ describe('UserSettingsDialog', () => {
         expect(updateNickname).toHaveBeenCalledWith('newuser');
       });
       
-      expect(mockUpdate).toHaveBeenCalledWith({
+      expect(mockSessionValue.update).toHaveBeenCalledWith({
         name: 'newuser',
         nickname: 'newuser',
       });
@@ -284,7 +282,7 @@ describe('UserSettingsDialog', () => {
         expect(updateNickname).toHaveBeenCalledWith('newuser');
       });
       
-      expect(mockUpdate).toHaveBeenCalledWith({
+      expect(mockSessionValue.update).toHaveBeenCalledWith({
         name: 'newuser',
         nickname: 'newuser',
       });
@@ -333,25 +331,31 @@ describe('UserSettingsDialog', () => {
 
   describe('edge cases', () => {
     it('handles null session gracefully', () => {
-      (useSession as any).mockReturnValue({
+      const nullSessionValue = {
         data: null,
-        update: mockUpdate,
-      });
-      
+        status: 'unauthenticated' as const,
+        update: vi.fn(),
+      };
+
+      vi.mocked(useSession).mockReturnValue(nullSessionValue);
+
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
-      
+
       const nicknameField = screen.getByLabelText('Apodo');
       expect(nicknameField).toHaveValue('');
     });
 
     it('handles session with empty user object gracefully', () => {
-      (useSession as any).mockReturnValue({
-        data: { user: {} },
-        update: mockUpdate,
-      });
-      
+      const emptyUserSessionValue = {
+        data: { user: {} } as any,
+        status: 'authenticated' as const,
+        update: vi.fn(),
+      };
+
+      vi.mocked(useSession).mockReturnValue(emptyUserSessionValue);
+
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
-      
+
       const nicknameField = screen.getByLabelText('Apodo');
       expect(nicknameField).toHaveValue('');
     });

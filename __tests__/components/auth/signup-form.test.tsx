@@ -6,10 +6,12 @@ import { signIn } from 'next-auth/react';
 import SignupForm, { SignupFormData } from '../../../app/components/auth/signup-form';
 import { signupUser } from '../../../app/actions/user-actions';
 import { User } from '../../../app/db/tables-definition';
+import { setupTestMocks } from '../../mocks/setup-helpers';
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
   useRouter: vi.fn(),
+  useSearchParams: vi.fn(),
 }));
 
 // Mock next-auth/react
@@ -32,11 +34,6 @@ vi.mock('validator', () => ({
 // Import the mocked validator
 import validator from 'validator';
 
-const mockRouter = {
-  push: vi.fn(),
-  refresh: vi.fn(),
-};
-
 const mockUser: User = {
   id: '1',
   email: 'test@example.com',
@@ -55,16 +52,26 @@ const mockUser: User = {
 };
 
 describe('SignupForm', () => {
-  const mockOnSuccess = vi.fn();
+  let mockOnSuccess: ReturnType<typeof vi.fn>;
+  let mockRouter: ReturnType<typeof setupTestMocks>['router'];
+  let mockSignIn: ReturnType<typeof setupTestMocks>['signIn'];
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useRouter as any).mockReturnValue(mockRouter);
-    (signIn as any).mockResolvedValue({ error: null });
-    (signupUser as any).mockResolvedValue(mockUser);
-    
-    // Mock validator.isEmail to return true by default
-    (validator.isEmail as any).mockReturnValue(true);
+    mockOnSuccess = vi.fn();
+
+    // Setup mocks with single helper
+    const mocks = setupTestMocks({
+      navigation: true,
+      signIn: true,
+      signInDefaults: { error: null },
+    });
+
+    mockRouter = mocks.router!;
+    mockSignIn = mocks.signIn!;
+
+    vi.mocked(signupUser).mockResolvedValue(mockUser);
+    vi.mocked(validator.isEmail).mockReturnValue(true);
   });
 
   afterEach(() => {
