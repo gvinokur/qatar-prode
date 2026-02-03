@@ -1,6 +1,19 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
+// Mock next-auth globally for all tests
+vi.mock('next-auth', () => ({
+  __esModule: true,
+  default: () => ({})
+}));
+
+vi.mock('next-auth/react', () => ({
+  useSession: () => ({
+    data: { user: { id: '1', email: 'test@example.com' } },
+    status: 'authenticated'
+  })
+}));
+
 // Mock the database connection to avoid VercelPostgresError
 // Enhanced mock with full Kysely method chain support
 vi.mock('./app/db/database', () => ({
