@@ -1,10 +1,9 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { ThemeProvider } from '@mui/material/styles';
-import { createTheme } from '@mui/material/styles';
+import { screen, fireEvent } from '@testing-library/react';
 import { useTheme } from 'next-themes';
 import ThemeSwitcher from '../../../app/components/header/theme-switcher';
+import { renderWithTheme } from '../../utils/test-utils';
 
 // Mock next-themes
 vi.mock('next-themes', () => ({
@@ -24,24 +23,6 @@ vi.mock('@mui/icons-material', () => ({
 describe('ThemeSwitcher', () => {
   const mockSetTheme = vi.fn();
   const mockUseTheme = vi.mocked(useTheme);
-
-  // Create a test theme for MUI
-  const testTheme = createTheme({
-    palette: {
-      primary: {
-        main: '#1976d2',
-        contrastText: '#ffffff',
-      },
-    },
-  });
-
-  const renderWithTheme = (component: React.ReactElement) => {
-    return render(
-      <ThemeProvider theme={testTheme}>
-        {component}
-      </ThemeProvider>
-    );
-  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -393,7 +374,7 @@ describe('ThemeSwitcher', () => {
     });
 
     it('updates icon when theme changes', () => {
-      const { rerender } = renderWithTheme(<ThemeSwitcher />);
+      const { rerenderWithTheme } = renderWithTheme(<ThemeSwitcher />);
       
       expect(screen.getByTestId('dark-mode-icon')).toBeInTheDocument();
       
@@ -407,18 +388,14 @@ describe('ThemeSwitcher', () => {
         forcedTheme: undefined,
       });
 
-      rerender(
-        <ThemeProvider theme={testTheme}>
-          <ThemeSwitcher />
-        </ThemeProvider>
-      );
-      
+      rerenderWithTheme(<ThemeSwitcher />);
+
       expect(screen.getByTestId('light-mode-icon')).toBeInTheDocument();
       expect(screen.queryByTestId('dark-mode-icon')).not.toBeInTheDocument();
     });
 
     it('updates title when theme changes', () => {
-      const { rerender } = renderWithTheme(<ThemeSwitcher />);
+      const { rerenderWithTheme } = renderWithTheme(<ThemeSwitcher />);
       
       expect(screen.getByRole('button')).toHaveAttribute('title', 'Switch to dark mode');
       
@@ -432,12 +409,8 @@ describe('ThemeSwitcher', () => {
         forcedTheme: undefined,
       });
 
-      rerender(
-        <ThemeProvider theme={testTheme}>
-          <ThemeSwitcher />
-        </ThemeProvider>
-      );
-      
+      rerenderWithTheme(<ThemeSwitcher />);
+
       expect(screen.getByRole('button')).toHaveAttribute('title', 'Switch to light mode');
     });
 

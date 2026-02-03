@@ -1,25 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import FlippableGameCard from '../../app/components/flippable-game-card';
 import { GuessesContext } from '../../app/components/context-providers/guesses-context-provider';
 import { CountdownProvider } from '../../app/components/context-providers/countdown-context-provider';
 import { ExtendedGameData } from '../../app/definitions';
 import { Team } from '../../app/db/tables-definition';
-
-// Create a mock theme with accent colors
-const mockTheme = createTheme({
-  palette: {
-    accent: {
-      silver: {
-        main: '#C0C0C0',
-      },
-      gold: {
-        main: '#FFD700',
-      },
-    },
-  } as any,
-});
+import { renderWithTheme } from '../utils/test-utils';
 
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
@@ -127,14 +113,12 @@ describe('FlippableGameCard', () => {
   };
 
   const renderWithContext = (props = defaultProps, contextValue = mockContextValue) => {
-    return render(
-      <ThemeProvider theme={mockTheme}>
-        <CountdownProvider>
-          <GuessesContext.Provider value={contextValue}>
-            <FlippableGameCard {...props} />
-          </GuessesContext.Provider>
-        </CountdownProvider>
-      </ThemeProvider>
+    return renderWithTheme(
+      <CountdownProvider>
+        <GuessesContext.Provider value={contextValue}>
+          <FlippableGameCard {...props} />
+        </GuessesContext.Provider>
+      </CountdownProvider>
     );
   };
 

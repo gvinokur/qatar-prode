@@ -1,37 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { ThemeProvider, createTheme } from '@mui/material';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import GameCardPointOverlay from '../../app/components/game-card-point-overlay';
-
-// Create test theme with accent colors
-const testTheme = createTheme({
-  palette: {
-    mode: 'light',
-    accent: {
-      gold: {
-        main: '#ffc107',
-        light: '#ffd54f',
-        dark: '#ffa000',
-        contrastText: '#000000'
-      },
-      silver: {
-        main: '#C0C0C0',
-        light: '#E0E0E0',
-        dark: '#A0A0A0',
-        contrastText: '#000000'
-      }
-    }
-  }
-});
-
-// Wrapper component for theme provider
-const renderWithTheme = (component: React.ReactElement) => {
-  return render(
-    <ThemeProvider theme={testTheme}>
-      {component}
-    </ThemeProvider>
-  );
-};
+import { renderWithTheme } from '../utils/test-utils';
 
 // Mock framer-motion to avoid animation complexities in tests
 vi.mock('framer-motion', () => ({
@@ -161,33 +131,27 @@ describe('GameCardPointOverlay', () => {
 
   describe('Round 2 refinements', () => {
     it('should render all chips with consistent 24px height', () => {
-      const { rerender, container } = renderWithTheme(<GameCardPointOverlay {...defaultProps} points={0} />);
+      const { rerenderWithTheme, container } = renderWithTheme(<GameCardPointOverlay {...defaultProps} points={0} />);
       let chip = container.querySelector('.MuiChip-root');
       expect(chip).toHaveStyle({ height: '24px' });
 
       // Regular win (no boost)
-      rerender(
-        <ThemeProvider theme={testTheme}>
-          <GameCardPointOverlay {...defaultProps} points={2} boostType={null} />
-        </ThemeProvider>
+      rerenderWithTheme(
+        <GameCardPointOverlay {...defaultProps} points={2} boostType={null} />
       );
       chip = container.querySelector('.MuiChip-root');
       expect(chip).toHaveStyle({ height: '24px' });
 
       // Silver boost
-      rerender(
-        <ThemeProvider theme={testTheme}>
-          <GameCardPointOverlay {...defaultProps} points={4} boostType="silver" />
-        </ThemeProvider>
+      rerenderWithTheme(
+        <GameCardPointOverlay {...defaultProps} points={4} boostType="silver" />
       );
       chip = container.querySelector('.MuiChip-root');
       expect(chip).toHaveStyle({ height: '24px' });
 
       // Golden boost
-      rerender(
-        <ThemeProvider theme={testTheme}>
-          <GameCardPointOverlay {...defaultProps} points={6} boostType="golden" />
-        </ThemeProvider>
+      rerenderWithTheme(
+        <GameCardPointOverlay {...defaultProps} points={6} boostType="golden" />
       );
       chip = container.querySelector('.MuiChip-root');
       expect(chip).toHaveStyle({ height: '24px' });

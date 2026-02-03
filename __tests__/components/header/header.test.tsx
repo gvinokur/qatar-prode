@@ -1,10 +1,9 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import Header from '../../../app/components/header/header';
 import { User } from 'next-auth';
-import { ThemeProvider } from '@mui/material/styles';
-import { createTheme } from '@mui/material/styles';
+import { renderWithTheme } from '../../utils/test-utils';
 
 // Mock next-auth
 vi.mock('next-auth', () => ({
@@ -78,8 +77,6 @@ vi.mock('../../../app/components/header/theme-switcher', () => ({
     ),
 }));
 
-const mockTheme = createTheme();
-
 const mockUser: User = {
     id: '1',
     email: 'test@example.com',
@@ -97,11 +94,7 @@ const mockAdminUser: User = {
 const renderHeader = async (user?: User) => {
     // Since Header is an async server component, we need to handle the Promise
     const HeaderComponent = await Header({ user });
-    return render(
-        <ThemeProvider theme={mockTheme}>
-            {HeaderComponent}
-        </ThemeProvider>
-    );
+    return renderWithTheme(HeaderComponent);
 };
 
 describe('Header', () => {

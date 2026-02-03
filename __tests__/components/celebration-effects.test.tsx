@@ -1,37 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render } from '@testing-library/react';
-import { ThemeProvider, createTheme } from '@mui/material';
 import { CheckEffect, TrophyBounce, SobEffect } from '../../app/components/celebration-effects';
-
-// Create test theme with accent colors
-const testTheme = createTheme({
-  palette: {
-    mode: 'light',
-    accent: {
-      gold: {
-        main: '#ffc107',
-        light: '#ffd54f',
-        dark: '#ffa000',
-        contrastText: '#000000'
-      },
-      silver: {
-        main: '#C0C0C0',
-        light: '#E0E0E0',
-        dark: '#A0A0A0',
-        contrastText: '#000000'
-      }
-    }
-  }
-});
-
-// Wrapper component for theme provider
-const renderWithTheme = (component: React.ReactElement) => {
-  return render(
-    <ThemeProvider theme={testTheme}>
-      {component}
-    </ThemeProvider>
-  );
-};
+import { renderWithTheme } from '../utils/test-utils';
 
 // Mock framer-motion to avoid animation complexities in tests
 vi.mock('framer-motion', () => ({

@@ -1,11 +1,10 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
-import { ThemeProvider } from '@mui/material/styles';
-import { createTheme } from '@mui/material/styles';
 import ProdeGroupThemer from '../../../app/components/friend-groups/friend-groups-themer';
 import { ProdeGroup } from '../../../app/db/tables-definition';
+import { renderWithTheme } from '../../utils/test-utils';
 
 // Mock the dependencies
 vi.mock('../../../app/actions/prode-group-actions', () => ({
@@ -34,17 +33,6 @@ vi.mock('../../../app/components/friend-groups/image-picker', () => ({
     />
   ))
 }));
-
-// Create a theme for the ThemeProvider
-const theme = createTheme();
-
-const renderWithTheme = (component: React.ReactElement) => {
-  return render(
-    <ThemeProvider theme={theme}>
-      {component}
-    </ThemeProvider>
-  );
-};
 
 const mockGroup: ProdeGroup = {
   id: 'group1',

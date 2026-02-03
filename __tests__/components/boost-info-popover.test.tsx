@@ -1,7 +1,7 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ThemeProvider, createTheme } from '@mui/material';
 import BoostInfoPopover from '../../app/components/boost-info-popover';
+import { renderWithTheme } from '../utils/test-utils';
 
 // Mock the server action
 vi.mock('../../app/actions/game-boost-actions', () => ({
@@ -11,22 +11,6 @@ vi.mock('../../app/actions/game-boost-actions', () => ({
 import { getBoostAllocationBreakdownAction } from '../../app/actions/game-boost-actions';
 
 const mockGetBoostAllocationBreakdownAction = vi.mocked(getBoostAllocationBreakdownAction);
-
-// Create test theme
-const testTheme = createTheme({
-  palette: {
-    mode: 'light',
-  },
-});
-
-// Wrapper component for theme provider
-const renderWithTheme = (component: React.ReactElement) => {
-  return render(
-    <ThemeProvider theme={testTheme}>
-      {component}
-    </ThemeProvider>
-  );
-};
 
 // Mock anchor element for popover positioning
 const mockAnchorEl = document.createElement('div');

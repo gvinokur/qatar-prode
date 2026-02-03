@@ -1,21 +1,9 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
-import { ThemeProvider } from '@mui/material/styles';
-import { createTheme } from '@mui/material/styles';
 import JoinMessage from '../../../app/components/friend-groups/friend-groups-join-message';
-
-// Create a theme for the ThemeProvider
-const theme = createTheme();
-
-const renderWithTheme = (component: React.ReactElement) => {
-  return render(
-    <ThemeProvider theme={theme}>
-      {component}
-    </ThemeProvider>
-  );
-};
+import { renderWithTheme } from '../../utils/test-utils';
 
 describe('JoinMessage', () => {
   beforeEach(() => {

@@ -1,38 +1,8 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ThemeProvider, createTheme } from '@mui/material';
 import userEvent from '@testing-library/user-event';
 import GameBoostSelector from '../../app/components/game-boost-selector';
-
-// Create test theme with accent colors
-const testTheme = createTheme({
-  palette: {
-    mode: 'light',
-    accent: {
-      gold: {
-        main: '#ffc107',
-        light: '#ffd54f',
-        dark: '#ffa000',
-        contrastText: '#000000'
-      },
-      silver: {
-        main: '#C0C0C0',
-        light: '#E0E0E0',
-        dark: '#A0A0A0',
-        contrastText: '#000000'
-      }
-    }
-  }
-});
-
-// Wrapper component for theme provider
-const renderWithTheme = (component: React.ReactElement) => {
-  return render(
-    <ThemeProvider theme={testTheme}>
-      {component}
-    </ThemeProvider>
-  );
-};
+import { renderWithTheme } from '../utils/test-utils';
 
 // Mock Server Actions using vi.hoisted to avoid hoisting issues
 const { mockSetGameBoostAction, mockGetBoostCountsAction } = vi.hoisted(() => ({
@@ -497,17 +467,13 @@ describe('GameBoostSelector', () => {
 
   describe('useEffect Hooks', () => {
     it('updates boost type when currentBoostType prop changes', async () => {
-      const { rerender } = renderWithTheme(<GameBoostSelector {...mockProps} currentBoostType="silver" />);
+      const { rerenderWithTheme } = renderWithTheme(<GameBoostSelector {...mockProps} currentBoostType="silver" />);
 
       await screen.findByTestId('boost-badge-silver');
 
       expect(screen.getByTestId('boost-badge-silver')).toBeInTheDocument();
 
-      rerender(
-        <ThemeProvider theme={testTheme}>
-          <GameBoostSelector {...mockProps} currentBoostType="golden" />
-        </ThemeProvider>
-      );
+      rerenderWithTheme(<GameBoostSelector {...mockProps} currentBoostType="golden" />);
 
       await screen.findByTestId('boost-badge-golden');
 

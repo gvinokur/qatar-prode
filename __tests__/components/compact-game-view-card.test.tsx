@@ -1,42 +1,19 @@
 import { vi, describe, it, expect } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { ThemeProvider, createTheme } from '@mui/material';
+import { screen, fireEvent } from '@testing-library/react';
 import CompactGameViewCard from '../../app/components/compact-game-view-card';
 import { TimezoneProvider } from '../../app/components/context-providers/timezone-context-provider';
 import { CountdownProvider } from '../../app/components/context-providers/countdown-context-provider';
-
-// Create test theme with accent colors
-const testTheme = createTheme({
-  palette: {
-    mode: 'light',
-    accent: {
-      gold: {
-        main: '#ffc107',
-        light: '#ffd54f',
-        dark: '#ffa000',
-        contrastText: '#000000'
-      },
-      silver: {
-        main: '#C0C0C0',
-        light: '#E0E0E0',
-        dark: '#A0A0A0',
-        contrastText: '#000000'
-      }
-    }
-  }
-});
+import { renderWithTheme } from '../utils/test-utils';
 
 // Wrapper component for all required providers
 function TestWrapper({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider theme={testTheme}>
-      <TimezoneProvider>
-        <CountdownProvider>
-          {children}
-        </CountdownProvider>
-      </TimezoneProvider>
-    </ThemeProvider>
+    <TimezoneProvider>
+      <CountdownProvider>
+        {children}
+      </CountdownProvider>
+    </TimezoneProvider>
   );
 }
 
@@ -72,7 +49,7 @@ const guessProps = {
 
 describe('CompactGameViewCard', () => {
   it('renders game info (result mode)', () => {
-    render(
+    renderWithTheme(
       <TestWrapper>
         <CompactGameViewCard {...resultProps} />
       </TestWrapper>
@@ -83,7 +60,7 @@ describe('CompactGameViewCard', () => {
   });
 
   it('renders game info (guess mode)', () => {
-    render(
+    renderWithTheme(
       <TestWrapper>
         <CompactGameViewCard {...guessProps} />
       </TestWrapper>
@@ -95,7 +72,7 @@ describe('CompactGameViewCard', () => {
 
   it('calls onEditClick when edit button is clicked', () => {
     const onEditClick = vi.fn();
-    render(
+    renderWithTheme(
       <TestWrapper>
         <CompactGameViewCard {...resultProps} onEditClick={onEditClick} />
       </TestWrapper>
@@ -109,7 +86,7 @@ describe('CompactGameViewCard', () => {
   });
 
   it('should not display game number', () => {
-    render(
+    renderWithTheme(
       <TestWrapper>
         <CompactGameViewCard {...resultProps} />
       </TestWrapper>
@@ -128,7 +105,7 @@ describe('CompactGameViewCard', () => {
         scoreForGame: undefined,
       };
 
-      render(
+      renderWithTheme(
         <TestWrapper>
           <CompactGameViewCard {...propsWithBoostNoResults} />
         </TestWrapper>
@@ -148,7 +125,7 @@ describe('CompactGameViewCard', () => {
         awayScore: 1,
       };
 
-      render(
+      renderWithTheme(
         <TestWrapper>
           <CompactGameViewCard {...propsWithBoostAndResults} />
         </TestWrapper>
@@ -166,7 +143,7 @@ describe('CompactGameViewCard', () => {
         scoreForGame: undefined,
       };
 
-      render(
+      renderWithTheme(
         <TestWrapper>
           <CompactGameViewCard {...propsWithGoldenBoostNoResults} />
         </TestWrapper>
@@ -186,7 +163,7 @@ describe('CompactGameViewCard', () => {
         awayScore: 1,
       };
 
-      render(
+      renderWithTheme(
         <TestWrapper>
           <CompactGameViewCard {...propsWithGoldenBoostAndResults} />
         </TestWrapper>
@@ -197,7 +174,7 @@ describe('CompactGameViewCard', () => {
     });
 
     it('should use TrophyIcon for both silver and golden boosts', () => {
-      const { rerender } = render(
+      const { rerenderWithTheme } = renderWithTheme(
         <TestWrapper>
           <CompactGameViewCard
             {...guessProps}
@@ -212,7 +189,7 @@ describe('CompactGameViewCard', () => {
       expect(screen.getByText('2x')).toBeInTheDocument();
 
       // Golden boost should also use TrophyIcon with 3x label
-      rerender(
+      rerenderWithTheme(
         <TestWrapper>
           <CompactGameViewCard
             {...guessProps}

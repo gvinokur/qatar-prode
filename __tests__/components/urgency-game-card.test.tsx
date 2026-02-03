@@ -1,11 +1,11 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ThemeProvider, createTheme } from '@mui/material';
 import { UrgencyGameCard } from '../../app/components/urgency-game-card';
 import type { ExtendedGameData } from '../../app/definitions';
 import type { Team } from '../../app/db/tables-definition';
+import { renderWithTheme } from '../utils/test-utils';
 
 // Mock GameCountdownDisplay
 vi.mock('../../app/components/game-countdown-display', () => ({
@@ -30,16 +30,6 @@ vi.mock('../../app/utils/playoffs-rule-helper', () => ({
 vi.mock('../../app/utils/theme-utils', () => ({
   getThemeLogoUrl: (theme: any) => theme ? `https://example.com/${theme}.png` : null
 }));
-
-const theme = createTheme();
-
-const renderWithTheme = (component: React.ReactElement) => {
-  return render(
-    <ThemeProvider theme={theme}>
-      {component}
-    </ThemeProvider>
-  );
-};
 
 describe('UrgencyGameCard', () => {
   const mockTeamsMap: Record<string, Team> = {
