@@ -461,7 +461,28 @@ All files that currently have local theme setup:
 - (Plus 13+ more identified during migration)
 
 ### No Application Code Changes
-This is a test-only refactoring. No application code is modified.
+
+**CRITICAL: This is a test-only refactoring. ZERO application code is modified.**
+
+**What we are NOT changing:**
+- ❌ No changes to any files in `app/` directory
+- ❌ No changes to any production components
+- ❌ No changes to any server actions
+- ❌ No changes to any database code
+- ❌ No changes to any utility functions
+- ❌ No changes to any API routes
+- ❌ No changes to any configuration files
+- ❌ No changes to any dependencies in `package.json`
+
+**What we ARE changing:**
+- ✅ Only files in `__tests__/` directory
+- ✅ Create 2 new test utility files: `__tests__/utils/test-theme.ts` and `__tests__/utils/test-utils.tsx`
+- ✅ Update 16+ existing test files to use new utilities (remove duplication, add imports)
+
+**Scope verification:**
+- All modified files MUST be in `__tests__/` directory
+- If any file outside `__tests__/` is touched, STOP immediately and reassess
+- This is purely test infrastructure - no user-facing changes whatsoever
 
 ## Rollback Plan
 
