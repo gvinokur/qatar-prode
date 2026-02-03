@@ -124,18 +124,25 @@ describe('Tournament Group Repository', () => {
         const mockQuery = createMockInsertQuery(mockGroupTeam);
         mockDb.insertInto.mockReturnValue(mockQuery as any);
 
-        const result = await createTournamentGroupTeam({
+        const input = {
           tournament_group_id: 'group-1',
           team_id: 'team-1',
           position: 1,
-        });
+          games_played: 0,
+          points: 0,
+          win: 0,
+          draw: 0,
+          loss: 0,
+          goals_for: 0,
+          goals_against: 0,
+          goal_difference: 0,
+          conduct_score: 0,
+          is_complete: false,
+        };
+        const result = await createTournamentGroupTeam(input);
 
         expect(mockDb.insertInto).toHaveBeenCalledWith('tournament_group_teams');
-        expect(mockQuery.values).toHaveBeenCalledWith({
-          tournament_group_id: 'group-1',
-          team_id: 'team-1',
-          position: 1,
-        });
+        expect(mockQuery.values).toHaveBeenCalledWith(input);
         expect(mockQuery.returningAll).toHaveBeenCalled();
         expect(mockQuery.executeTakeFirstOrThrow).toHaveBeenCalled();
         expect(result).toEqual(mockGroupTeam);
@@ -153,6 +160,16 @@ describe('Tournament Group Repository', () => {
           tournament_group_id: 'group-1',
           team_id: 'team-1',
           position: 1,
+          games_played: 0,
+          points: 0,
+          win: 0,
+          draw: 0,
+          loss: 0,
+          goals_for: 0,
+          goals_against: 0,
+          goal_difference: 0,
+          conduct_score: 0,
+          is_complete: false,
         })).rejects.toThrow('Insert failed');
       });
     });
@@ -514,17 +531,24 @@ describe('Tournament Group Repository', () => {
       const mockQuery = createMockInsertQuery(mockGroupTeam);
       mockDb.insertInto.mockReturnValue(mockQuery as any);
 
-      await createTournamentGroupTeam({
+      const input = {
         tournament_group_id: 'group-1',
         team_id: 'team-1',
         position: 0,
-      });
+        games_played: 0,
+        points: 0,
+        win: 0,
+        draw: 0,
+        loss: 0,
+        goals_for: 0,
+        goals_against: 0,
+        goal_difference: 0,
+        conduct_score: 0,
+        is_complete: false,
+      };
+      await createTournamentGroupTeam(input);
 
-      expect(mockQuery.values).toHaveBeenCalledWith({
-        tournament_group_id: 'group-1',
-        team_id: 'team-1',
-        position: 0,
-      });
+      expect(mockQuery.values).toHaveBeenCalledWith(input);
     });
 
     it('should handle large conduct score values', async () => {

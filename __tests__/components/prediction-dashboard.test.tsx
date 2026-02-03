@@ -45,14 +45,20 @@ vi.mock('../../app/components/games-grid', () => ({
 describe('PredictionDashboard', () => {
   const mockTournament: Tournament = {
     id: 'tournament-1',
-    name: 'Test Tournament',
+    short_name: 'TT',
+    long_name: 'Test Tournament',
+    is_active: true,
+    champion_team_id: null,
+    runner_up_team_id: null,
+    third_place_team_id: null,
+    theme: null,
     max_silver_games: 20,
     max_golden_games: 10,
   } as Tournament;
 
   const mockTeamsMap = {
-    'team-1': { id: 'team-1', name: 'Team A' },
-    'team-2': { id: 'team-2', name: 'Team B' },
+    'team-1': { id: 'team-1', name: 'Team A', short_name: 'TA', theme: null },
+    'team-2': { id: 'team-2', name: 'Team B', short_name: 'TB', theme: null },
   };
 
   const createMockGame = (id: string, dateOffset: number): ExtendedGameData => ({
@@ -67,6 +73,12 @@ describe('PredictionDashboard', () => {
   const mockContextValue = {
     gameGuesses: {},
     setGameGuesses: vi.fn(),
+    guessedPositions: [],
+    updateGameGuess: vi.fn(),
+    pendingSaves: new Set<string>(),
+    saveErrors: {},
+    clearSaveError: vi.fn(),
+    flushPendingSave: vi.fn(),
   };
 
   const renderWithContext = (ui: React.ReactElement, contextValue = mockContextValue) => {
@@ -108,12 +120,9 @@ describe('PredictionDashboard', () => {
             predictedGames: 2,
             silverUsed: 0,
             goldenUsed: 0,
-            urgentGames: 0,
-            warningGames: 0,
-            noticeGames: 0,
           }}
         />,
-        { gameGuesses, setGameGuesses: vi.fn() }
+        { ...mockContextValue, gameGuesses }
       );
 
       expect(screen.getByTestId('total-games')).toHaveTextContent('3');
@@ -144,12 +153,9 @@ describe('PredictionDashboard', () => {
             predictedGames: 0,
             silverUsed: 0,
             goldenUsed: 0,
-            urgentGames: 0,
-            warningGames: 0,
-            noticeGames: 0,
           }}
         />,
-        { gameGuesses, setGameGuesses: vi.fn() }
+        { ...mockContextValue, gameGuesses }
       );
 
       expect(screen.getByTestId('predicted-games')).toHaveTextContent('0');
@@ -175,12 +181,9 @@ describe('PredictionDashboard', () => {
             predictedGames: 0,
             silverUsed: 0,
             goldenUsed: 0,
-            urgentGames: 0,
-            warningGames: 0,
-            noticeGames: 0,
           }}
         />,
-        { gameGuesses, setGameGuesses: vi.fn() }
+        { ...mockContextValue, gameGuesses }
       );
 
       expect(screen.getByTestId('predicted-games')).toHaveTextContent('0');
@@ -206,12 +209,9 @@ describe('PredictionDashboard', () => {
             predictedGames: 1,
             silverUsed: 0,
             goldenUsed: 0,
-            urgentGames: 0,
-            warningGames: 0,
-            noticeGames: 0,
           }}
         />,
-        { gameGuesses, setGameGuesses: vi.fn() }
+        { ...mockContextValue, gameGuesses }
       );
 
       expect(screen.getByTestId('predicted-games')).toHaveTextContent('1');
@@ -241,12 +241,9 @@ describe('PredictionDashboard', () => {
             predictedGames: 1,
             silverUsed: 2,
             goldenUsed: 0,
-            urgentGames: 0,
-            warningGames: 0,
-            noticeGames: 0,
           }}
         />,
-        { gameGuesses, setGameGuesses: vi.fn() }
+        { ...mockContextValue, gameGuesses }
       );
 
       // Should count 2 silver boosts (including game-2 not in current view)
@@ -275,12 +272,9 @@ describe('PredictionDashboard', () => {
             predictedGames: 1,
             silverUsed: 0,
             goldenUsed: 3,
-            urgentGames: 0,
-            warningGames: 0,
-            noticeGames: 0,
           }}
         />,
-        { gameGuesses, setGameGuesses: vi.fn() }
+        { ...mockContextValue, gameGuesses }
       );
 
       // Should count 3 golden boosts (including games not in current view)
@@ -309,9 +303,6 @@ describe('PredictionDashboard', () => {
             predictedGames: 0,
             silverUsed: 0,
             goldenUsed: 0,
-            urgentGames: 0,
-            warningGames: 0,
-            noticeGames: 0,
           }}
         />,
         mockContextValue
@@ -336,9 +327,6 @@ describe('PredictionDashboard', () => {
             predictedGames: 0,
             silverUsed: 0,
             goldenUsed: 0,
-            urgentGames: 0,
-            warningGames: 0,
-            noticeGames: 0,
           }}
         />,
         mockContextValue

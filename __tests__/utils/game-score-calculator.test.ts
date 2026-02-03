@@ -5,19 +5,27 @@ import { GameGuessNew } from '../../app/db/tables-definition';
 describe('game-score-calculator', () => {
   describe('calculateScoreForGame', () => {
     const createGame = (overrides: Partial<ExtendedGameData> = {}): ExtendedGameData => ({
-      game_id: '1',
+      id: '1',
       tournament_id: 'tournament-1',
       game_number: 1,
       home_team: 'team-1',
       away_team: 'team-2',
+      home_team_rule: undefined,
+      away_team_rule: undefined,
       game_type: 'group',
+      game_local_timezone: undefined,
+      game_date: new Date(),
+      location: 'test-location',
       gameResult: {
         game_id: '1',
         home_score: 2,
         away_score: 1,
         home_penalty_score: 0,
-        away_penalty_score: 0
+        away_penalty_score: 0,
+        is_draft: false
       },
+      group: undefined,
+      playoffStage: undefined,
       ...overrides
     });
 
@@ -41,7 +49,8 @@ describe('game-score-calculator', () => {
         const game = createGame({
           gameResult: {
             game_id: '1',
-            home_score: null as any,
+            is_draft: false,
+            home_score:null as any,
             away_score: 1,
             home_penalty_score: 0,
             away_penalty_score: 0
@@ -55,7 +64,8 @@ describe('game-score-calculator', () => {
         const game = createGame({
           gameResult: {
             game_id: '1',
-            home_score: 2.5,
+            is_draft: false,
+            home_score:2.5,
             away_score: 1,
             home_penalty_score: 0,
             away_penalty_score: 0
@@ -69,7 +79,8 @@ describe('game-score-calculator', () => {
         const game = createGame({
           gameResult: {
             game_id: '1',
-            home_score: 2,
+            is_draft: false,
+            home_score:2,
             away_score: null as any,
             home_penalty_score: 0,
             away_penalty_score: 0
@@ -109,7 +120,8 @@ describe('game-score-calculator', () => {
         const game = createGame({
           gameResult: {
             game_id: '1',
-            home_score: 3,
+            is_draft: false,
+            home_score:3,
             away_score: 1,
             home_penalty_score: 0,
             away_penalty_score: 0
@@ -124,7 +136,8 @@ describe('game-score-calculator', () => {
           game_type: 'playoff',
           gameResult: {
             game_id: '1',
-            home_score: 2,
+            is_draft: false,
+            home_score:2,
             away_score: 0,
             home_penalty_score: 0,
             away_penalty_score: 0
@@ -139,7 +152,8 @@ describe('game-score-calculator', () => {
           game_type: 'playoff',
           gameResult: {
             game_id: '1',
-            home_score: 1,
+            is_draft: false,
+            home_score:1,
             away_score: 1,
             home_penalty_score: 4,
             away_penalty_score: 2
@@ -158,7 +172,8 @@ describe('game-score-calculator', () => {
           game_type: 'playoff',
           gameResult: {
             game_id: '1',
-            home_score: 1,
+            is_draft: false,
+            home_score:1,
             away_score: 1,
             home_penalty_score: 4,
             away_penalty_score: 2
@@ -177,7 +192,8 @@ describe('game-score-calculator', () => {
           game_type: 'playoff',
           gameResult: {
             game_id: '1',
-            home_score: 2,
+            is_draft: false,
+            home_score:2,
             away_score: 2,
             home_penalty_score: 5,
             away_penalty_score: 3
@@ -196,7 +212,8 @@ describe('game-score-calculator', () => {
           game_type: 'playoff',
           gameResult: {
             game_id: '1',
-            home_score: 0,
+            is_draft: false,
+            home_score:0,
             away_score: 0,
             home_penalty_score: 2,
             away_penalty_score: 4
@@ -216,7 +233,8 @@ describe('game-score-calculator', () => {
         const game = createGame({
           gameResult: {
             game_id: '1',
-            home_score: 3,
+            is_draft: false,
+            home_score:3,
             away_score: 1,
             home_penalty_score: 0,
             away_penalty_score: 0
@@ -230,7 +248,8 @@ describe('game-score-calculator', () => {
         const game = createGame({
           gameResult: {
             game_id: '1',
-            home_score: 0,
+            is_draft: false,
+            home_score:0,
             away_score: 2,
             home_penalty_score: 0,
             away_penalty_score: 0
@@ -244,7 +263,8 @@ describe('game-score-calculator', () => {
         const game = createGame({
           gameResult: {
             game_id: '1',
-            home_score: 2,
+            is_draft: false,
+            home_score:2,
             away_score: 2,
             home_penalty_score: 0,
             away_penalty_score: 0
@@ -259,7 +279,8 @@ describe('game-score-calculator', () => {
           game_type: 'playoff',
           gameResult: {
             game_id: '1',
-            home_score: 1,
+            is_draft: false,
+            home_score:1,
             away_score: 1,
             home_penalty_score: 3,
             away_penalty_score: 1
@@ -278,7 +299,8 @@ describe('game-score-calculator', () => {
           game_type: 'playoff',
           gameResult: {
             game_id: '1',
-            home_score: 1,
+            is_draft: false,
+            home_score:1,
             away_score: 1,
             home_penalty_score: 4,
             away_penalty_score: 2
@@ -297,7 +319,8 @@ describe('game-score-calculator', () => {
           game_type: 'playoff',
           gameResult: {
             game_id: '1',
-            home_score: 0,
+            is_draft: false,
+            home_score:0,
             away_score: 0,
             home_penalty_score: 1,
             away_penalty_score: 3
@@ -318,7 +341,8 @@ describe('game-score-calculator', () => {
           game_type: 'playoff',
           gameResult: {
             game_id: '1',
-            home_score: 1,
+            is_draft: false,
+            home_score:1,
             away_score: 1,
             home_penalty_score: 4,
             away_penalty_score: 2
@@ -337,7 +361,8 @@ describe('game-score-calculator', () => {
           game_type: 'playoff',
           gameResult: {
             game_id: '1',
-            home_score: 1,
+            is_draft: false,
+            home_score:1,
             away_score: 1,
             home_penalty_score: 4,
             away_penalty_score: 2
@@ -355,7 +380,8 @@ describe('game-score-calculator', () => {
           game_type: 'playoff',
           gameResult: {
             game_id: '1',
-            home_score: 1,
+            is_draft: false,
+            home_score:1,
             away_score: 1,
             home_penalty_score: 2,
             away_penalty_score: 4
@@ -374,7 +400,8 @@ describe('game-score-calculator', () => {
           game_type: 'playoff',
           gameResult: {
             game_id: '1',
-            home_score: 1,
+            is_draft: false,
+            home_score:1,
             away_score: 1,
             home_penalty_score: 2,
             away_penalty_score: 4
@@ -392,7 +419,8 @@ describe('game-score-calculator', () => {
           game_type: 'playoff',
           gameResult: {
             game_id: '1',
-            home_score: 2,
+            is_draft: false,
+            home_score:2,
             away_score: 1,
             home_penalty_score: 0,
             away_penalty_score: 0
@@ -411,7 +439,8 @@ describe('game-score-calculator', () => {
           game_type: 'playoff',
           gameResult: {
             game_id: '1',
-            home_score: 1,
+            is_draft: false,
+            home_score:1,
             away_score: 2,
             home_penalty_score: 0,
             away_penalty_score: 0
@@ -431,7 +460,8 @@ describe('game-score-calculator', () => {
         const game = createGame({
           gameResult: {
             game_id: '1',
-            home_score: 3,
+            is_draft: false,
+            home_score:3,
             away_score: 1,
             home_penalty_score: 0,
             away_penalty_score: 0
@@ -446,7 +476,8 @@ describe('game-score-calculator', () => {
           game_type: 'playoff',
           gameResult: {
             game_id: '1',
-            home_score: 1,
+            is_draft: false,
+            home_score:1,
             away_score: 1,
             home_penalty_score: 4,
             away_penalty_score: 2
@@ -466,7 +497,8 @@ describe('game-score-calculator', () => {
         const game = createGame({
           gameResult: {
             game_id: '1',
-            home_score: 10,
+            is_draft: false,
+            home_score:10,
             away_score: 9,
             home_penalty_score: 0,
             away_penalty_score: 0
@@ -480,7 +512,8 @@ describe('game-score-calculator', () => {
         const game = createGame({
           gameResult: {
             game_id: '1',
-            home_score: 0,
+            is_draft: false,
+            home_score:0,
             away_score: 0,
             home_penalty_score: 0,
             away_penalty_score: 0
@@ -495,7 +528,8 @@ describe('game-score-calculator', () => {
           game_type: 'playoff',
           gameResult: {
             game_id: '1',
-            home_score: 2,
+            is_draft: false,
+            home_score:2,
             away_score: 1,
             home_penalty_score: 0,
             away_penalty_score: 0
@@ -510,7 +544,8 @@ describe('game-score-calculator', () => {
           game_type: 'group',
           gameResult: {
             game_id: '1',
-            home_score: 1,
+            is_draft: false,
+            home_score:1,
             away_score: 1,
             home_penalty_score: 0,
             away_penalty_score: 0

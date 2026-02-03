@@ -17,18 +17,24 @@ import {toMap} from "../utils/ObjectUtils";
 import {db} from "../db/database";
 
 export async function updateOrCreateGameGuesses(gameGuesses: GameGuessNew[]) {
-  const user = await getLoggedInUser()
-  if(!user) {
-    return 'Unauthorized action'
-  }
-  const _createdGameGuesses = await Promise.all(
-    gameGuesses.map(gameGuess => {
-      return updateOrCreateGuess({
-        ...gameGuess,
-        user_id: user.id
+  try {
+    const user = await getLoggedInUser()
+    if(!user) {
+      throw new Error('Unauthorized action')
+    }
+    const _createdGameGuesses = await Promise.all(
+      gameGuesses.map(gameGuess => {
+        return updateOrCreateGuess({
+          ...gameGuess,
+          user_id: user.id
+        })
       })
-    })
-  )
+    )
+    return { success: true }
+  } catch (error: any) {
+    // Return error message so client can display it
+    return { success: false, error: error.message || 'Failed to save prediction' }
+  }
 }
 
 export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew) {

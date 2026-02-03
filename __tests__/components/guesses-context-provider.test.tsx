@@ -33,7 +33,7 @@ const mockGroupCompleteReducer = vi.mocked(teamStatsUtils.groupCompleteReducer);
 // Test component to consume the context
 const TestConsumer = () => {
   const context = React.useContext(GuessesContext);
-  
+
   return (
     <div>
       <div data-testid="game-guesses-count">
@@ -42,14 +42,14 @@ const TestConsumer = () => {
       <div data-testid="guessed-positions-count">
         {context.guessedPositions.length}
       </div>
-      <button 
+      <button
         data-testid="update-guess"
-        onClick={() => context.updateGameGuess('game1', { 
+        onClick={() => context.updateGameGuess('game1', {
           game_id: 'game1',
           game_number: 1,
-          user_id: 'user1', 
-          home_score: 2, 
-          away_score: 1 
+          user_id: 'user1',
+          home_score: 2,
+          away_score: 1
         })}
       >
         Update Guess
@@ -99,6 +99,7 @@ describe('GuessesContextProvider', () => {
       win: 1,
       draw: 0,
       loss: 0,
+      conduct_score: 0,
       is_complete: false
     },
     {
@@ -114,6 +115,7 @@ describe('GuessesContextProvider', () => {
       win: 0,
       draw: 0,
       loss: 1,
+      conduct_score: 0,
       is_complete: false
     }
   ];
@@ -124,28 +126,30 @@ describe('GuessesContextProvider', () => {
     mockUpdateOrCreateTournamentGroupTeamGuesses.mockResolvedValue([]);
     mockUpdatePlayoffGameGuesses.mockResolvedValue(undefined);
     mockCalculateGroupPosition.mockReturnValue([
-      { 
-        team_id: 'team1', 
-        points: 3, 
-        goals_for: 2, 
-        goals_against: 1, 
-        goal_difference: 1, 
+      {
+        team_id: 'team1',
+        points: 3,
+        goals_for: 2,
+        goals_against: 1,
+        goal_difference: 1,
         games_played: 1,
         win: 1,
         draw: 0,
         loss: 0,
+        conduct_score: 0,
         is_complete: false
       },
-      { 
-        team_id: 'team2', 
-        points: 0, 
-        goals_for: 1, 
-        goals_against: 2, 
-        goal_difference: -1, 
+      {
+        team_id: 'team2',
+        points: 0,
+        goals_for: 1,
+        goals_against: 2,
+        goal_difference: -1,
         games_played: 1,
         win: 0,
         draw: 0,
         loss: 1,
+        conduct_score: 0,
         is_complete: false
       }
     ]);
@@ -175,7 +179,7 @@ describe('GuessesContextProvider', () => {
 
   it('initializes with server guessed positions', () => {
     render(
-      <GuessesContextProvider 
+      <GuessesContextProvider
         gameGuesses={mockGameGuesses}
         guessedPositions={mockGuessedPositions}
       >
@@ -188,7 +192,7 @@ describe('GuessesContextProvider', () => {
 
   it('updates game guess when updateGameGuess is called', async () => {
     const user = userEvent.setup();
-    
+
     render(
       <GuessesContextProvider gameGuesses={mockGameGuesses}>
         <TestConsumer />
@@ -196,17 +200,17 @@ describe('GuessesContextProvider', () => {
     );
 
     expect(screen.getByTestId('game-guesses-count')).toHaveTextContent('1');
-    
+
     await user.click(screen.getByTestId('update-guess'));
-    
+
     await waitFor(() => {
       expect(screen.getByTestId('game-guesses-count')).toHaveTextContent('1');
     });
   });
 
-  it('does not auto-save when autoSave is false', async () => {
+  it('does not save when autoSave is false', async () => {
     const user = userEvent.setup();
-    
+
     render(
       <GuessesContextProvider gameGuesses={mockGameGuesses} autoSave={false}>
         <TestConsumer />
@@ -214,15 +218,15 @@ describe('GuessesContextProvider', () => {
     );
 
     await user.click(screen.getByTestId('update-guess'));
-    
+
     await waitFor(() => {
       expect(mockUpdateOrCreateGameGuesses).not.toHaveBeenCalled();
     });
   });
 
-  it('auto-saves game guesses when autoSave is true', async () => {
+  it('saves immediately when autoSave is true', async () => {
     const user = userEvent.setup();
-    
+
     render(
       <GuessesContextProvider gameGuesses={mockGameGuesses} autoSave={true}>
         <TestConsumer />
@@ -230,24 +234,26 @@ describe('GuessesContextProvider', () => {
     );
 
     await user.click(screen.getByTestId('update-guess'));
-    
+
     await waitFor(() => {
-      expect(mockUpdateOrCreateGameGuesses).toHaveBeenCalledWith([
-        expect.objectContaining({
-          game_id: 'game1',
-          user_id: 'user1',
-          home_score: 2,
-          away_score: 1
-        })
-      ]);
+      expect(mockUpdateOrCreateGameGuesses).toHaveBeenCalled();
     });
+
+    expect(mockUpdateOrCreateGameGuesses).toHaveBeenCalledWith([
+      expect.objectContaining({
+        game_id: 'game1',
+        user_id: 'user1',
+        home_score: 2,
+        away_score: 1
+      })
+    ]);
   });
 
   it('calculates group positions when group games and guessed positions are provided', async () => {
     const user = userEvent.setup();
-    
+
     render(
-      <GuessesContextProvider 
+      <GuessesContextProvider
         gameGuesses={mockGameGuesses}
         groupGames={mockGroupGames}
         guessedPositions={mockGuessedPositions}
@@ -258,7 +264,7 @@ describe('GuessesContextProvider', () => {
     );
 
     await user.click(screen.getByTestId('update-guess'));
-    
+
     await waitFor(() => {
       expect(mockCalculateGroupPosition).toHaveBeenCalledWith(
         ['team1', 'team2'],
@@ -279,9 +285,9 @@ describe('GuessesContextProvider', () => {
 
   it('updates guessed positions after group position calculation', async () => {
     const user = userEvent.setup();
-    
+
     render(
-      <GuessesContextProvider 
+      <GuessesContextProvider
         gameGuesses={mockGameGuesses}
         groupGames={mockGroupGames}
         guessedPositions={mockGuessedPositions}
@@ -292,7 +298,7 @@ describe('GuessesContextProvider', () => {
     );
 
     await user.click(screen.getByTestId('update-guess'));
-    
+
     await waitFor(() => {
       expect(mockUpdateOrCreateTournamentGroupTeamGuesses).toHaveBeenCalledWith(
         expect.arrayContaining([
@@ -316,9 +322,9 @@ describe('GuessesContextProvider', () => {
   it('updates playoff game guesses when group is complete', async () => {
     const user = userEvent.setup();
     mockGroupCompleteReducer.mockReturnValue(true);
-    
+
     render(
-      <GuessesContextProvider 
+      <GuessesContextProvider
         gameGuesses={mockGameGuesses}
         groupGames={mockGroupGames}
         guessedPositions={mockGuessedPositions}
@@ -329,7 +335,7 @@ describe('GuessesContextProvider', () => {
     );
 
     await user.click(screen.getByTestId('update-guess'));
-    
+
     await waitFor(() => {
       expect(mockUpdatePlayoffGameGuesses).toHaveBeenCalledWith('tournament1');
     });
@@ -338,9 +344,9 @@ describe('GuessesContextProvider', () => {
   it('does not update playoff game guesses when group is not complete', async () => {
     const user = userEvent.setup();
     mockGroupCompleteReducer.mockReturnValue(false);
-    
+
     render(
-      <GuessesContextProvider 
+      <GuessesContextProvider
         gameGuesses={mockGameGuesses}
         groupGames={mockGroupGames}
         guessedPositions={mockGuessedPositions}
@@ -351,7 +357,7 @@ describe('GuessesContextProvider', () => {
     );
 
     await user.click(screen.getByTestId('update-guess'));
-    
+
     await waitFor(() => {
       expect(mockUpdatePlayoffGameGuesses).not.toHaveBeenCalled();
     });
@@ -359,9 +365,9 @@ describe('GuessesContextProvider', () => {
 
   it('handles sortByGamesBetweenTeams parameter', async () => {
     const user = userEvent.setup();
-    
+
     render(
-      <GuessesContextProvider 
+      <GuessesContextProvider
         gameGuesses={mockGameGuesses}
         groupGames={mockGroupGames}
         guessedPositions={mockGuessedPositions}
@@ -373,7 +379,7 @@ describe('GuessesContextProvider', () => {
     );
 
     await user.click(screen.getByTestId('update-guess'));
-    
+
     await waitFor(() => {
       expect(mockCalculateGroupPosition).toHaveBeenCalledWith(
         ['team1', 'team2'],
@@ -385,9 +391,9 @@ describe('GuessesContextProvider', () => {
 
   it('does not calculate group positions when no group games provided', async () => {
     const user = userEvent.setup();
-    
+
     render(
-      <GuessesContextProvider 
+      <GuessesContextProvider
         gameGuesses={mockGameGuesses}
         guessedPositions={mockGuessedPositions}
         autoSave={true}
@@ -397,7 +403,7 @@ describe('GuessesContextProvider', () => {
     );
 
     await user.click(screen.getByTestId('update-guess'));
-    
+
     await waitFor(() => {
       expect(mockCalculateGroupPosition).not.toHaveBeenCalled();
     });
@@ -405,9 +411,9 @@ describe('GuessesContextProvider', () => {
 
   it('does not calculate group positions when guessed positions length is 1 or less', async () => {
     const user = userEvent.setup();
-    
+
     render(
-      <GuessesContextProvider 
+      <GuessesContextProvider
         gameGuesses={mockGameGuesses}
         groupGames={mockGroupGames}
         guessedPositions={[mockGuessedPositions[0]]}
@@ -418,7 +424,7 @@ describe('GuessesContextProvider', () => {
     );
 
     await user.click(screen.getByTestId('update-guess'));
-    
+
     await waitFor(() => {
       expect(mockCalculateGroupPosition).not.toHaveBeenCalled();
     });
@@ -446,31 +452,31 @@ describe('GuessesContextProvider', () => {
 
   it('updates multiple game guesses correctly', async () => {
     const user = userEvent.setup();
-    
+
     const TestMultipleUpdates = () => {
       const context = React.useContext(GuessesContext);
-      
+
       return (
         <div>
           <div data-testid="game-guesses-count">
             {Object.keys(context.gameGuesses).length}
           </div>
-          <button 
+          <button
             data-testid="update-multiple"
             onClick={async () => {
-              await context.updateGameGuess('game1', { 
+              await context.updateGameGuess('game1', {
                 game_id: 'game1',
                 game_number: 1,
-                user_id: 'user1', 
-                home_score: 2, 
-                away_score: 1 
+                user_id: 'user1',
+                home_score: 2,
+                away_score: 1
               });
-              await context.updateGameGuess('game2', { 
+              await context.updateGameGuess('game2', {
                 game_id: 'game2',
                 game_number: 2,
-                user_id: 'user1', 
-                home_score: 0, 
-                away_score: 0 
+                user_id: 'user1',
+                home_score: 0,
+                away_score: 0
               });
             }}
           >
@@ -487,9 +493,9 @@ describe('GuessesContextProvider', () => {
     );
 
     await user.click(screen.getByTestId('update-multiple'));
-    
+
     await waitFor(() => {
       expect(screen.getByTestId('game-guesses-count')).toHaveTextContent('2');
     });
   });
-}); 
+});

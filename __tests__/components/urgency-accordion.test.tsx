@@ -32,17 +32,13 @@ describe('UrgencyAccordion', () => {
       id: 'team1',
       name: 'Argentina',
       short_name: 'ARG',
-      tournament_id: 'tournament1',
-      theme: 'argentina',
-      group_id: null
+      theme: { primary_color: '#74ACDF', secondary_color: '#FFFFFF' }
     },
     'team2': {
       id: 'team2',
       name: 'Brasil',
       short_name: 'BRA',
-      tournament_id: 'tournament1',
-      theme: 'brasil',
-      group_id: null
+      theme: { primary_color: '#009B3A', secondary_color: '#FEDF00' }
     }
   };
 
@@ -377,8 +373,8 @@ describe('UrgencyAccordion', () => {
           game_id: 'game1',
           game_number: 1,
           user_id: 'user1',
-          home_score: null,
-          away_score: null,
+          home_score: undefined,
+          away_score: undefined,
           home_penalty_winner: false,
           away_penalty_winner: false,
           boost_type: null,

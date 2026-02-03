@@ -80,7 +80,15 @@ const createMockGame = (id: string, dateOffset: number): ExtendedGameData => ({
 const renderWithContext = (ui: React.ReactElement, gameGuesses = {}) => {
   return render(
     <ThemeProvider theme={testTheme}>
-      <GuessesContext.Provider value={{ gameGuesses, updateGameGuess: vi.fn() }}>
+      <GuessesContext.Provider value={{
+        gameGuesses,
+        updateGameGuess: vi.fn(),
+        guessedPositions: [],
+        pendingSaves: new Set<string>(),
+        saveErrors: {},
+        clearSaveError: vi.fn(),
+        flushPendingSave: vi.fn(),
+      }}>
         {ui}
       </GuessesContext.Provider>
     </ThemeProvider>
@@ -327,9 +335,11 @@ describe('PredictionStatusBar', () => {
           goldenUsed={0}
           goldenMax={0}
           tournamentPredictions={{
-            finalStandings: { completed: 2, total: 3 },
-            awards: { completed: 1, total: 5 },
+            finalStandings: { completed: 2, total: 3, champion: true, runnerUp: true, thirdPlace: false },
+            awards: { completed: 1, total: 5, bestPlayer: true, topGoalscorer: false, bestGoalkeeper: false, bestYoungPlayer: false },
             qualifiers: { completed: 4, total: 8 },
+            overallCompleted: 7,
+            overallTotal: 16,
             overallPercentage: 50,
             isPredictionLocked: false
           }}
@@ -353,9 +363,11 @@ describe('PredictionStatusBar', () => {
           goldenUsed={0}
           goldenMax={0}
           tournamentPredictions={{
-            finalStandings: { completed: 2, total: 3 },
-            awards: { completed: 1, total: 5 },
+            finalStandings: { completed: 2, total: 3, champion: true, runnerUp: true, thirdPlace: false },
+            awards: { completed: 1, total: 5, bestPlayer: true, topGoalscorer: false, bestGoalkeeper: false, bestYoungPlayer: false },
             qualifiers: { completed: 0, total: 0 },
+            overallCompleted: 3,
+            overallTotal: 8,
             overallPercentage: 50,
             isPredictionLocked: false
           }}

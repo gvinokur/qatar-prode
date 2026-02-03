@@ -27,22 +27,27 @@ describe('DeleteAccountButton', () => {
     id: 'user-123',
     email: 'test@example.com',
     name: 'Test User',
+    emailVerified: new Date(),
   };
 
   const mockRouter = {
     push: vi.fn(),
     replace: vi.fn(),
     refresh: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    prefetch: vi.fn(),
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
     
     vi.mocked(useSession).mockReturnValue({
-      data: { user: mockUser },
+      data: { user: mockUser, expires: '2099-12-31' },
       status: 'authenticated',
+      update: vi.fn(),
     });
-    vi.mocked(signOut).mockResolvedValue(undefined);
+    vi.mocked(signOut).mockResolvedValue({ url: '/' } as any);
     vi.mocked(useRouter).mockReturnValue(mockRouter);
     vi.mocked(deleteAccount).mockResolvedValue({ success: true });
   });
@@ -58,6 +63,7 @@ describe('DeleteAccountButton', () => {
       vi.mocked(useSession).mockReturnValue({
         data: null,
         status: 'unauthenticated',
+        update: vi.fn(),
       });
 
       render(<DeleteAccountButton />);
@@ -68,8 +74,9 @@ describe('DeleteAccountButton', () => {
 
     it('renders warning message when session user is undefined', () => {
       vi.mocked(useSession).mockReturnValue({
-        data: { user: undefined },
+        data: { user: undefined as any, expires: '2099-12-31' },
         status: 'authenticated',
+        update: vi.fn(),
       });
 
       render(<DeleteAccountButton />);

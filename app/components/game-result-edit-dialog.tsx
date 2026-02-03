@@ -11,26 +11,15 @@ import {
   Box,
   Typography,
   Grid,
-  FormControlLabel,
-  Checkbox,
   CircularProgress,
-  Alert,
-  Divider,
-  ToggleButtonGroup,
-  ToggleButton,
-  Chip,
-  useTheme,
-  alpha
+  Alert
 } from '@mui/material';
-import {
-  EmojiEvents as TrophyIcon,
-  Star as StarIcon
-} from '@mui/icons-material';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import { getBoostCountsAction } from '../actions/game-boost-actions';
+import GamePredictionEditControls from './game-prediction-edit-controls';
 
 interface SharedProps {
   open: boolean;
@@ -66,7 +55,6 @@ interface GameResultEditProps extends SharedProps {
 type GameResultEditDialogProps = GameGuessEditProps | GameResultEditProps;
 
 export default function GameResultEditDialog(props: GameResultEditDialogProps) {
-  const theme = useTheme();
   const {
     open,
     onClose,
@@ -93,32 +81,6 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
   const [error, setError] = useState<string | null>(null);
 
   const isPenaltyShootout = homeScore !== undefined && awayScore !== undefined && homeScore === awayScore && isPlayoffGame;
-
-  // Calculate effective boost counts based on current selection
-  const getEffectiveBoostCounts = () => {
-    if (!boostCounts || !props.isGameGuess) return null;
-
-    const initialBoost = props.initialBoostType;
-    const currentBoost = boostType;
-
-    let silverUsed = boostCounts.silver.used;
-    let goldenUsed = boostCounts.golden.used;
-
-    // If initial boost was set, free it up first
-    if (initialBoost === 'silver') silverUsed--;
-    if (initialBoost === 'golden') goldenUsed--;
-
-    // Then apply current selection
-    if (currentBoost === 'silver') silverUsed++;
-    if (currentBoost === 'golden') goldenUsed++;
-
-    return {
-      silver: { used: silverUsed, max: boostCounts.silver.max },
-      golden: { used: goldenUsed, max: boostCounts.golden.max }
-    };
-  };
-
-  const effectiveBoostCounts = getEffectiveBoostCounts();
 
   // Initialize form when dialog opens or props change
   useEffect(() => {
@@ -190,21 +152,6 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
     }
   };
 
-  const handleHomePenaltyWinnerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const checked = e.target.checked;
-    setHomePenaltyWinner(checked);
-    if (checked) {
-      setAwayPenaltyWinner(false);
-    }
-  };
-
-  const handleAwayPenaltyWinnerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const checked = e.target.checked;
-    setAwayPenaltyWinner(checked);
-    if (checked) {
-      setHomePenaltyWinner(false);
-    }
-  };
 
   const handleHomePenaltyScoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value === '' ? undefined : Number(e.target.value);
@@ -311,100 +258,51 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
           </Box>
         )}
 
-        {/* Scores */}
-        <Box sx={{ mb: 3 }}>
-          <Grid container spacing={2} alignItems="center">
-            <Grid size={8}>
-              <Typography variant="body1" fontWeight="medium">
-                {homeTeamName}
-              </Typography>
-            </Grid>
+        {/* Game Guess Edit Controls (shared component) */}
+        {props.isGameGuess && boostCounts ? (
+          <GamePredictionEditControls
+            gameId={gameId}
+            homeTeamName={homeTeamName}
+            awayTeamName={awayTeamName}
+            isPlayoffGame={isPlayoffGame}
+            tournamentId={tournamentId}
+            homeScore={homeScore}
+            awayScore={awayScore}
+            homePenaltyWinner={homePenaltyWinner}
+            awayPenaltyWinner={awayPenaltyWinner}
+            boostType={boostType}
+            initialBoostType={props.initialBoostType}
+            silverUsed={boostCounts.silver.used}
+            silverMax={boostCounts.silver.max}
+            goldenUsed={boostCounts.golden.used}
+            goldenMax={boostCounts.golden.max}
+            onHomeScoreChange={setHomeScore}
+            onAwayScoreChange={setAwayScore}
+            onHomePenaltyWinnerChange={setHomePenaltyWinner}
+            onAwayPenaltyWinnerChange={setAwayPenaltyWinner}
+            onBoostTypeChange={setBoostType}
+            loading={loading}
+            error={error}
+            layout="vertical"
+          />
+        ) : null}
 
-            <Grid size={4}>
-              <TextField
-                type="number"
-                value={homeScore ?? ''}
-                onChange={handleHomeScoreChange}
-                slotProps={{ htmlInput: { min: 0, style: { textAlign: 'center' } } }}
-                disabled={loading}
-                size="small"
-                fullWidth
-              />
-            </Grid>
-            <Grid size={8}>
-              <Typography variant="body1" fontWeight="medium">
-                {awayTeamName}
-              </Typography>
-            </Grid>
-
-            <Grid size={4}>
-              <TextField
-                type="number"
-                value={awayScore ?? ''}
-                onChange={handleAwayScoreChange}
-                slotProps={{ htmlInput: { min: 0, style: { textAlign: 'center' } } }}
-                disabled={loading}
-                size="small"
-                fullWidth
-              />
-            </Grid>
-          </Grid>
-        </Box>
-
-        {/* Penalty information for playoff games */}
-        {isPlayoffGame && isPenaltyShootout && (
-          <Box sx={{ mt: 3 }}>
-            <Typography variant="subtitle2" gutterBottom>
-              {props.isGameGuess ? 'Ganador de la tanda de penales' : 'Penalty Shootout Scores'}
-            </Typography>
-
-            {props.isGameGuess ? (
-              // Penalty winner checkboxes for game guesses
-              (<Box>
-                <Grid container spacing={2}>
-                  <Grid size={6}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={homePenaltyWinner}
-                          onChange={handleHomePenaltyWinnerChange}
-                          disabled={loading}
-                        />
-                      }
-                      label={homeTeamName}
-                    />
-                  </Grid>
-
-                  <Grid size={6}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={awayPenaltyWinner}
-                          onChange={handleAwayPenaltyWinnerChange}
-                          disabled={loading}
-                        />
-                      }
-                      label={awayTeamName}
-                    />
-                  </Grid>
-                </Grid>
-                <Typography variant="caption" color="text.secondary">
-                  Dado que el pártido terminó empatado, por favor seleccione el ganador de la tanda de penales.
-                </Typography>
-              </Box>)
-            ) : (
-              // Penalty score inputs for game results
-              (<Grid container spacing={2} alignItems="center">
+        {/* Game Results: Scores and Penalty Scores (for non-guesses) */}
+        {!props.isGameGuess && (
+          <>
+            <Box sx={{ mb: 3 }}>
+              <Grid container spacing={2} alignItems="center">
                 <Grid size={8}>
-                  <Typography variant="body2">
-                    {homeTeamName} (Penalty Score)
+                  <Typography variant="body1" fontWeight="medium">
+                    {homeTeamName}
                   </Typography>
                 </Grid>
+
                 <Grid size={4}>
                   <TextField
                     type="number"
-                    value={homePenaltyScore ?? ''}
-                    onChange={handleHomePenaltyScoreChange}
+                    value={homeScore ?? ''}
+                    onChange={handleHomeScoreChange}
                     slotProps={{ htmlInput: { min: 0, style: { textAlign: 'center' } } }}
                     disabled={loading}
                     size="small"
@@ -412,112 +310,68 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
                   />
                 </Grid>
                 <Grid size={8}>
-                  <Typography variant="body2">
-                    {awayTeamName} (Penalty Score)
+                  <Typography variant="body1" fontWeight="medium">
+                    {awayTeamName}
                   </Typography>
                 </Grid>
+
                 <Grid size={4}>
                   <TextField
                     type="number"
-                    value={awayPenaltyScore ?? ''}
-                    onChange={handleAwayPenaltyScoreChange}
+                    value={awayScore ?? ''}
+                    onChange={handleAwayScoreChange}
                     slotProps={{ htmlInput: { min: 0, style: { textAlign: 'center' } } }}
                     disabled={loading}
                     size="small"
                     fullWidth
                   />
                 </Grid>
-              </Grid>)
-            )}
-          </Box>
-        )}
-
-        {/* Boost Selection (only for game guesses) */}
-        {props.isGameGuess && props.tournamentId && effectiveBoostCounts && (effectiveBoostCounts.silver.max > 0 || effectiveBoostCounts.golden.max > 0) && (
-          <Box sx={{ mt: 3 }}>
-            <Divider sx={{ mb: 2 }} />
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-              <Typography variant="subtitle2">
-                Apply Boost
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 0.5 }}>
-                {effectiveBoostCounts.silver.max > 0 && (
-                  <Chip
-                    icon={<StarIcon sx={{ fontSize: 14 }} />}
-                    label={`${effectiveBoostCounts.silver.max - effectiveBoostCounts.silver.used}/${effectiveBoostCounts.silver.max}`}
-                    size="small"
-                    sx={{
-                      height: '22px',
-                      color: theme.palette.accent.silver.main,
-                      borderColor: theme.palette.accent.silver.main,
-                      '& .MuiChip-icon': { color: theme.palette.accent.silver.main }
-                    }}
-                  />
-                )}
-                {effectiveBoostCounts.golden.max > 0 && (
-                  <Chip
-                    icon={<TrophyIcon sx={{ fontSize: 14 }} />}
-                    label={`${effectiveBoostCounts.golden.max - effectiveBoostCounts.golden.used}/${effectiveBoostCounts.golden.max}`}
-                    size="small"
-                    sx={{
-                      height: '22px',
-                      color: theme.palette.accent.gold.main,
-                      borderColor: theme.palette.accent.gold.main,
-                      '& .MuiChip-icon': { color: theme.palette.accent.gold.main }
-                    }}
-                  />
-                )}
-              </Box>
+              </Grid>
             </Box>
-            <ToggleButtonGroup
-              value={boostType || ''}
-              exclusive
-              onChange={(_, newValue) => setBoostType(newValue === '' ? null : newValue as 'silver' | 'golden')}
-              fullWidth
-              disabled={loading}
-              size="small"
-            >
-              <ToggleButton value="">
-                None
-              </ToggleButton>
-              {effectiveBoostCounts.silver.max > 0 && (
-                <ToggleButton
-                  value="silver"
-                  disabled={boostType !== 'silver' && effectiveBoostCounts.silver.used >= effectiveBoostCounts.silver.max}
-                  sx={{
-                    '&.Mui-selected': {
-                      backgroundColor: alpha(theme.palette.accent.silver.main, 0.2),
-                      color: theme.palette.accent.silver.main,
-                      '&:hover': {
-                        backgroundColor: alpha(theme.palette.accent.silver.main, 0.3),
-                      }
-                    }
-                  }}
-                >
-                  <StarIcon sx={{ mr: 0.5, fontSize: 16 }} />
-                  2x
-                </ToggleButton>
-              )}
-              {effectiveBoostCounts.golden.max > 0 && (
-                <ToggleButton
-                  value="golden"
-                  disabled={boostType !== 'golden' && effectiveBoostCounts.golden.used >= effectiveBoostCounts.golden.max}
-                  sx={{
-                    '&.Mui-selected': {
-                      backgroundColor: alpha(theme.palette.accent.gold.main, 0.2),
-                      color: theme.palette.accent.gold.main,
-                      '&:hover': {
-                        backgroundColor: alpha(theme.palette.accent.gold.main, 0.3),
-                      }
-                    }
-                  }}
-                >
-                  <TrophyIcon sx={{ mr: 0.5, fontSize: 16 }} />
-                  3x
-                </ToggleButton>
-              )}
-            </ToggleButtonGroup>
-          </Box>
+
+            {/* Penalty scores for playoff games */}
+            {isPlayoffGame && isPenaltyShootout && (
+              <Box sx={{ mt: 3 }}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Penalty Shootout Scores
+                </Typography>
+                <Grid container spacing={2} alignItems="center">
+                  <Grid size={8}>
+                    <Typography variant="body2">
+                      {homeTeamName} (Penalty Score)
+                    </Typography>
+                  </Grid>
+                  <Grid size={4}>
+                    <TextField
+                      type="number"
+                      value={homePenaltyScore ?? ''}
+                      onChange={handleHomePenaltyScoreChange}
+                      slotProps={{ htmlInput: { min: 0, style: { textAlign: 'center' } } }}
+                      disabled={loading}
+                      size="small"
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid size={8}>
+                    <Typography variant="body2">
+                      {awayTeamName} (Penalty Score)
+                    </Typography>
+                  </Grid>
+                  <Grid size={4}>
+                    <TextField
+                      type="number"
+                      value={awayPenaltyScore ?? ''}
+                      onChange={handleAwayPenaltyScoreChange}
+                      slotProps={{ htmlInput: { min: 0, style: { textAlign: 'center' } } }}
+                      disabled={loading}
+                      size="small"
+                      fullWidth
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+            )}
+          </>
         )}
       </DialogContent>
       <DialogActions>

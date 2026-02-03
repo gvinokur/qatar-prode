@@ -46,6 +46,12 @@ const mockUser: User = {
   email_verified: false,
   verification_token: 'token123',
   verification_token_expiration: new Date(),
+  reset_token: null,
+  reset_token_expiration: null,
+  notification_subscriptions: null,
+  onboarding_completed: false,
+  onboarding_completed_at: null,
+  onboarding_data: null,
 };
 
 describe('SignupForm', () => {

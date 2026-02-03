@@ -58,6 +58,16 @@ describe('TournamentBackofficeTab', () => {
     top_goalscorer_player_id: undefined,
     best_goalkeeper_player_id: undefined,
     best_young_player_id: undefined,
+    game_exact_score_points: 3,
+    game_correct_outcome_points: 1,
+    champion_points: 10,
+    runner_up_points: 5,
+    third_place_points: 3,
+    individual_award_points: 5,
+    qualified_team_points: 1,
+    exact_position_qualified_points: 1,
+    max_silver_games: 3,
+    max_golden_games: 1,
   };
 
   const mockInactiveTournament: Tournament = {
@@ -103,7 +113,7 @@ describe('TournamentBackofficeTab', () => {
   describe('Action Buttons', () => {
     it('should call generateDbTournamentTeamPlayers when Import Players is clicked', async () => {
       const user = userEvent.setup();
-      vi.mocked(backofficeActions.generateDbTournamentTeamPlayers).mockResolvedValue(['Success']);
+      vi.mocked(backofficeActions.generateDbTournamentTeamPlayers).mockResolvedValue(['All players created']);
 
       render(<TournamentBackofficeTab tournament={mockActiveTournament} />);
 
@@ -132,7 +142,7 @@ describe('TournamentBackofficeTab', () => {
 
     it('should call calculateGameScores when button is clicked', async () => {
       const user = userEvent.setup();
-      vi.mocked(backofficeActions.calculateGameScores).mockResolvedValue([]);
+      vi.mocked(backofficeActions.calculateGameScores).mockResolvedValue({ updatedGameGuesses: [], cleanedGameGuesses: [] });
 
       render(<TournamentBackofficeTab tournament={mockActiveTournament} />);
 
@@ -220,7 +230,7 @@ describe('TournamentBackofficeTab', () => {
 
     it('should call deactivateTournament and refresh when confirmed', async () => {
       const user = userEvent.setup();
-      vi.mocked(tournamentActions.deactivateTournament).mockResolvedValue(undefined);
+      vi.mocked(tournamentActions.deactivateTournament).mockResolvedValue(mockActiveTournament);
 
       render(<TournamentBackofficeTab tournament={mockActiveTournament} />);
 
@@ -368,7 +378,7 @@ describe('TournamentBackofficeTab', () => {
     it('should disable buttons while action is loading', async () => {
       const user = userEvent.setup();
       vi.mocked(backofficeActions.generateDbTournamentTeamPlayers).mockImplementation(
-        () => new Promise(resolve => setTimeout(() => resolve(['Success']), 100))
+        () => new Promise(resolve => setTimeout(() => resolve(['All players created']), 100))
       );
 
       render(<TournamentBackofficeTab tournament={mockActiveTournament} />);
@@ -384,7 +394,7 @@ describe('TournamentBackofficeTab', () => {
   describe('Snackbar Notifications', () => {
     it('should close deactivate success snackbar when close is clicked', async () => {
       const user = userEvent.setup();
-      vi.mocked(tournamentActions.deactivateTournament).mockResolvedValue(undefined);
+      vi.mocked(tournamentActions.deactivateTournament).mockResolvedValue(mockActiveTournament);
 
       render(<TournamentBackofficeTab tournament={mockActiveTournament} />);
 

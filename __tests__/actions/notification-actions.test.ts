@@ -68,6 +68,9 @@ describe('Notification Actions', () => {
     email_verified: true,
     verification_token: null,
     verification_token_expiration: null,
+    onboarding_completed: false,
+    onboarding_completed_at: null,
+    onboarding_data: null,
     notification_subscriptions: [mockSubscription]
   };
 
@@ -82,6 +85,9 @@ describe('Notification Actions', () => {
     email_verified: true,
     verification_token: null,
     verification_token_expiration: null,
+    onboarding_completed: false,
+    onboarding_completed_at: null,
+    onboarding_data: null,
     notification_subscriptions: []
   };
 

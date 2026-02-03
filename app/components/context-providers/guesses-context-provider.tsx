@@ -16,7 +16,13 @@ import {groupCompleteReducer} from "../../utils/team-stats-utils";
 
 type GameGuessMap = {[k:string]: GameGuessNew}
 
-export const GuessesContext = React.createContext({
+interface GuessesContextValue {
+  gameGuesses: GameGuessMap;
+  guessedPositions: TournamentGroupTeamStatsGuessNew[];
+  updateGameGuess: (gameId: string, gameGuess: GameGuessNew) => Promise<void>;
+}
+
+export const GuessesContext = React.createContext<GuessesContextValue>({
   gameGuesses: {} as GameGuessMap,
   guessedPositions: [] as TournamentGroupTeamStatsGuessNew[],
   updateGameGuess: async (_gameId:string, _gameGuess: GameGuessNew) => {},
@@ -41,20 +47,19 @@ export function GuessesContextProvider ({children,
   const [gameGuesses, setGameGuesses] = useState(serverGameGuesses)
   const [guessedPositions, setGuessedPositions] = useState<TournamentGroupTeamStatsGuessNew[]>(serverGuessedPositions || [])
 
-  const autoSaveGameGuesses = useCallback(async (gameGuesses: GameGuessMap) => {
-    await updateOrCreateGameGuesses(Object.values(gameGuesses))
-  }, [])
-
-  const updateGameGuess = useCallback(async (gameId:string, gameGuess: GameGuessNew) => {
+  const updateGameGuess = useCallback(async (
+    gameId: string,
+    gameGuess: GameGuessNew
+  ) => {
+    // Optimistic update
     const newGameGuesses = {
       ...gameGuesses,
       [gameId]: gameGuess
     }
     setGameGuesses(newGameGuesses)
-    if(autoSave) {
-      await autoSaveGameGuesses(newGameGuesses)
-    }
-    if(groupGames && guessedPositions.length >1) {
+
+    // Update group positions if needed
+    if(groupGames && guessedPositions.length > 1) {
       const user_id = guessedPositions[0].user_id
       const tournament_group_id = guessedPositions[0].tournament_group_id
       const teamIds = guessedPositions.map(position => position.team_id)
@@ -75,12 +80,22 @@ export function GuessesContextProvider ({children,
         await updateOrCreateTournamentGroupTeamGuesses(guessedGroupPositions)
         if (groupCompleteReducer(guessedGroupPositions)) {
           // Update playoff game guesses when group is complete
-          // Note: If group results are deleted after completion, playoff games may need manual re-evaluation
           await updatePlayoffGameGuesses(groupGames[0].tournament_id)
         }
       }
     }
-  }, [gameGuesses, autoSave, autoSaveGameGuesses, groupGames, guessedPositions, sortByGamesBetweenTeams])
+
+    if (!autoSave) return
+
+    // Save to server
+    const result = await updateOrCreateGameGuesses([gameGuess])
+
+    // Check if save failed
+    if (result && 'success' in result && !result.success) {
+      console.error('[GuessesContext] Save failed:', result.error)
+      throw new Error(result.error || 'Failed to save prediction')
+    }
+  }, [autoSave, gameGuesses, groupGames, guessedPositions, sortByGamesBetweenTeams])
 
   const context = useMemo(() => ({
     gameGuesses,
@@ -94,4 +109,3 @@ export function GuessesContextProvider ({children,
     </GuessesContext.Provider>
   )
 }
-

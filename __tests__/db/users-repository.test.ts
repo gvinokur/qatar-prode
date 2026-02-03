@@ -51,7 +51,10 @@ describe('Users Repository', () => {
     email_verified: false,
     verification_token: 'verification-token',
     verification_token_expiration: new Date(Date.now() + 24 * 60 * 60 * 1000),
-    notification_subscriptions: null
+    notification_subscriptions: null,
+    onboarding_completed: false,
+    onboarding_completed_at: null,
+    onboarding_data: null
   };
 
   const mockNewUser: UserNew = {

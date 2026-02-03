@@ -92,6 +92,8 @@ export function PredictionDashboard({
         isLoggedIn={isLoggedIn}
         tournamentId={tournamentId}
         isAwardsPredictionLocked={isAwardsPredictionLocked}
+        dashboardStats={currentStats}
+        tournament={tournament}
       />
     </>
   );

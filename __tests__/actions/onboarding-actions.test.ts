@@ -51,7 +51,7 @@ describe('onboarding-actions', () => {
     })
 
     it('returns null when user is not logged in', async () => {
-      vi.mocked(userActions.getLoggedInUser).mockResolvedValue(null)
+      vi.mocked(userActions.getLoggedInUser).mockResolvedValue(undefined)
 
       const result = await getOnboardingData()
 
@@ -73,7 +73,7 @@ describe('onboarding-actions', () => {
     })
 
     it('does nothing when user is not logged in', async () => {
-      vi.mocked(userActions.getLoggedInUser).mockResolvedValue(null)
+      vi.mocked(userActions.getLoggedInUser).mockResolvedValue(undefined)
 
       await saveOnboardingStep(3)
 
@@ -91,7 +91,7 @@ describe('onboarding-actions', () => {
     })
 
     it('does nothing when user is not logged in', async () => {
-      vi.mocked(userActions.getLoggedInUser).mockResolvedValue(null)
+      vi.mocked(userActions.getLoggedInUser).mockResolvedValue(undefined)
 
       await markOnboardingComplete()
 
@@ -109,7 +109,7 @@ describe('onboarding-actions', () => {
     })
 
     it('does nothing when user is not logged in', async () => {
-      vi.mocked(userActions.getLoggedInUser).mockResolvedValue(null)
+      vi.mocked(userActions.getLoggedInUser).mockResolvedValue(undefined)
 
       await skipOnboardingFlow()
 
@@ -127,7 +127,7 @@ describe('onboarding-actions', () => {
     })
 
     it('does nothing when user is not logged in', async () => {
-      vi.mocked(userActions.getLoggedInUser).mockResolvedValue(null)
+      vi.mocked(userActions.getLoggedInUser).mockResolvedValue(undefined)
 
       await dismissTooltip('tooltip-123')
 
@@ -149,7 +149,7 @@ describe('onboarding-actions', () => {
     })
 
     it('does nothing when user is not logged in', async () => {
-      vi.mocked(userActions.getLoggedInUser).mockResolvedValue(null)
+      vi.mocked(userActions.getLoggedInUser).mockResolvedValue(undefined)
 
       await updateChecklistItem('item-123', true)
 

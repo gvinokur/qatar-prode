@@ -85,6 +85,7 @@ export default function GameCountdownDisplay({
               component="button"
               variant={compact ? 'caption' : 'body2'}
               onClick={toggleTimezone}
+              tabIndex={-1}
               sx={{
                 textDecoration: 'underline',
                 cursor: 'pointer',

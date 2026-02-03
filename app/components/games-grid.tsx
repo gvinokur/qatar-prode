@@ -2,10 +2,12 @@
 
 import { Grid} from "./mui-wrappers";
 import GameView from "./game-view";
+import FlippableGameCard from "./flippable-game-card";
 import {ExtendedGameData} from "../definitions";
-import {Game, GameGuessNew, Team} from "../db/tables-definition";
-import {useContext, useEffect, useState} from "react";
+import {Game, GameGuessNew, Team, Tournament} from "../db/tables-definition";
+import {useContext, useEffect, useState, useCallback} from "react";
 import {GuessesContext} from "./context-providers/guesses-context-provider";
+import {useEditMode} from "./context-providers/edit-mode-context-provider";
 import GameResultEditDialog from "./game-result-edit-dialog";
 import {getTeamDescription} from "../utils/playoffs-rule-helper";
 import {useSession} from "next-auth/react";
@@ -20,6 +22,11 @@ type GamesGridProps =  {
   readonly isLoggedIn?: boolean
   readonly isAwardsPredictionLocked?: boolean
   readonly tournamentId?: string
+  readonly dashboardStats?: {
+    silverUsed: number;
+    goldenUsed: number;
+  } | null
+  readonly tournament?: Tournament
 }
 
 const buildGameGuess = (game: Game, userId: string): GameGuessNew => ({
@@ -35,12 +42,26 @@ const buildGameGuess = (game: Game, userId: string): GameGuessNew => ({
   score: undefined
 })
 
-export default function GamesGrid({ teamsMap, games, isPlayoffs, isLoggedIn = true, isAwardsPredictionLocked = false, tournamentId }: GamesGridProps) {
+export default function GamesGrid({
+  teamsMap,
+  games,
+  isPlayoffs,
+  isLoggedIn = true,
+  isAwardsPredictionLocked = false,
+  tournamentId,
+  dashboardStats,
+  tournament
+}: GamesGridProps) {
   const groupContext = useContext(GuessesContext)
+  const editMode = useEditMode()
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState<ExtendedGameData | null>(null);
+  const [editingGameId, setEditingGameId] = useState<string | null>(null);
   const gameGuesses = groupContext.gameGuesses
   const {data} = useSession()
+
+  // Check if inline editing is enabled (has dashboardStats and tournament info)
+  const inlineEditingEnabled = Boolean(dashboardStats && tournament)
 
   useEffect(() => {
     if(isPlayoffs && data?.user) {
@@ -70,10 +91,33 @@ export default function GamesGrid({ teamsMap, games, isPlayoffs, isLoggedIn = tr
     if (!isLoggedIn) return;
     const game = games.find(game => game.game_number === gameNumber);
     if(game) {
-      setSelectedGame(game);
-      setEditDialogOpen(true);
+      if (inlineEditingEnabled) {
+        // Use inline editing
+        handleEditStart(game.id)
+      } else {
+        // Use dialog (fallback for urgency accordions or missing data)
+        setSelectedGame(game);
+        setEditDialogOpen(true);
+      }
     }
   };
+
+  const handleEditStart = useCallback(async (gameId: string) => {
+    // No need to flush - saves happen immediately when card closes
+
+    // Use EditModeContext if available, otherwise use local state
+    if (editMode) {
+      await editMode.startEdit(gameId, 'inline');
+    }
+    setEditingGameId(gameId);
+  }, [editMode]);
+
+  const handleEditEnd = useCallback(() => {
+    if (editMode) {
+      editMode.endEdit();
+    }
+    setEditingGameId(null);
+  }, [editMode]);
 
   const handleGameResultSave = async (
     gameId: string,
@@ -122,6 +166,56 @@ export default function GamesGrid({ teamsMap, games, isPlayoffs, isLoggedIn = tr
     }
   };
 
+  const handleAutoAdvanceNext = useCallback((currentGameId: string) => {
+    const idx = games.findIndex(g => g.id === currentGameId);
+
+    // Find next enabled game (skip disabled games)
+    for (let i = idx + 1; i < games.length; i++) {
+      const nextGame = games[i];
+      const ONE_HOUR = 60 * 60 * 1000;
+      const isDisabled = Date.now() + ONE_HOUR > nextGame.game_date.getTime();
+
+      if (!isDisabled) {
+        handleEditStart(nextGame.id);
+
+        // Scroll to next card
+        setTimeout(() => {
+          const cardElement = document.querySelector(`[data-game-id="${nextGame.id}"]`);
+          cardElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100); // Delay for flip animation to start
+
+        return;
+      }
+    }
+
+    // No next enabled game - stay in current card (user can manually close)
+  }, [games, handleEditStart]);
+
+  const handleAutoGoPrevious = useCallback((currentGameId: string) => {
+    const idx = games.findIndex(g => g.id === currentGameId);
+
+    // Find previous enabled game (skip disabled games)
+    for (let i = idx - 1; i >= 0; i--) {
+      const prevGame = games[i];
+      const ONE_HOUR = 60 * 60 * 1000;
+      const isDisabled = Date.now() + ONE_HOUR > prevGame.game_date.getTime();
+
+      if (!isDisabled) {
+        handleEditStart(prevGame.id);
+
+        // Scroll to previous card
+        setTimeout(() => {
+          const cardElement = document.querySelector(`[data-game-id="${prevGame.id}"]`);
+          cardElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100); // Delay for flip animation to start
+
+        return;
+      }
+    }
+
+    // No previous enabled game - stay in current card (user can manually close)
+  }, [games, handleEditStart]);
+
   const getTeamNames = () => {
     if (!selectedGame) return ({
       homeTeamName: 'Unknown',
@@ -143,11 +237,45 @@ export default function GamesGrid({ teamsMap, games, isPlayoffs, isLoggedIn = tr
     <>
       <Grid container spacing={2}>
         {games
-          .map(game => (
-            <Grid key={game.game_number} size={{xs:12, sm:6 }}>
-              <GameView game={game} teamsMap={teamsMap} handleEditClick={handleEditClick} disabled={!isLoggedIn}/>
-            </Grid>
-          ))
+          .map(game => {
+            const gameGuess = gameGuesses[game.id]
+
+            return (
+              <Grid key={game.game_number} size={{xs:12, sm:6 }}>
+                {inlineEditingEnabled ? (
+                  <FlippableGameCard
+                    game={game}
+                    teamsMap={teamsMap}
+                    isPlayoffs={isPlayoffs}
+                    tournamentId={tournamentId}
+                    homeScore={gameGuess?.home_score}
+                    awayScore={gameGuess?.away_score}
+                    homePenaltyWinner={gameGuess?.home_penalty_winner}
+                    awayPenaltyWinner={gameGuess?.away_penalty_winner}
+                    boostType={gameGuess?.boost_type}
+                    initialBoostType={gameGuess?.boost_type}
+                    isEditing={editingGameId === game.id}
+                    onEditStart={() => handleEditStart(game.id)}
+                    onEditEnd={handleEditEnd}
+                    silverUsed={dashboardStats?.silverUsed || 0}
+                    silverMax={tournament?.max_silver_games || 0}
+                    goldenUsed={dashboardStats?.goldenUsed || 0}
+                    goldenMax={tournament?.max_golden_games || 0}
+                    disabled={!isLoggedIn}
+                    onAutoAdvanceNext={() => handleAutoAdvanceNext(game.id)}
+                    onAutoGoPrevious={() => handleAutoGoPrevious(game.id)}
+                  />
+                ) : (
+                  <GameView
+                    game={game}
+                    teamsMap={teamsMap}
+                    handleEditClick={handleEditClick}
+                    disabled={!isLoggedIn}
+                  />
+                )}
+              </Grid>
+            )
+          })
         }
       </Grid>
       {isLoggedIn && (

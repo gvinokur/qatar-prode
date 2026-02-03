@@ -51,6 +51,7 @@ export async function updateOrCreateGuess(guess: GameGuessNew) {
      //Always recreate the guess
      await deleteGameGuess(existingGuess.id)
    }
+
    return createGameGuess(guess)
 
 }
