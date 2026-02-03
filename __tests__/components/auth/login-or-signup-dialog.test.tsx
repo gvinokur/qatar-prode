@@ -1,10 +1,9 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { ThemeProvider } from '@mui/material/styles';
-import { createTheme } from '@mui/material/styles';
+import { screen, fireEvent } from '@testing-library/react';
 import LoginOrSignupDialog from '../../../app/components/auth/login-or-signup-dialog';
 import { User } from '../../../app/db/tables-definition';
+import { renderWithTheme } from '../../utils/test-utils';
 
 // Mock MUI components
 vi.mock('@mui/material', async () => {
@@ -103,8 +102,6 @@ vi.mock('../../../app/components/auth/verification-sent-view', () => ({
   ),
 }));
 
-const mockTheme = createTheme();
-
 const mockUser: User = {
   id: '1',
   email: 'test@example.com',
@@ -128,11 +125,7 @@ const mockProps = {
 };
 
 const renderDialog = (props = mockProps) => {
-  return render(
-    <ThemeProvider theme={mockTheme}>
-      <LoginOrSignupDialog {...props} />
-    </ThemeProvider>
-  );
+  return renderWithTheme(<LoginOrSignupDialog {...props} />);
 };
 
 describe('LoginOrSignupDialog', () => {

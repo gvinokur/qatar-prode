@@ -1,31 +1,10 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
-import { ThemeProvider, createTheme } from '@mui/material';
 import { PredictionStatusBar } from '../../app/components/prediction-status-bar';
 import type { ExtendedGameData } from '../../app/definitions';
 import type { Team, GameGuessNew } from '../../app/db/tables-definition';
-
-// Create test theme with accent colors
-const testTheme = createTheme({
-  palette: {
-    mode: 'light',
-    accent: {
-      gold: {
-        main: '#ffc107',
-        light: '#ffd54f',
-        dark: '#ffa000',
-        contrastText: '#000000'
-      },
-      silver: {
-        main: '#C0C0C0',
-        light: '#E0E0E0',
-        dark: '#A0A0A0',
-        contrastText: '#000000'
-      }
-    }
-  }
-});
+import { renderWithTheme } from '../utils/test-utils';
 
 // Mock GuessesContext
 vi.mock('../../app/components/context-providers/guesses-context-provider', () => {
@@ -78,20 +57,18 @@ const createMockGame = (id: string, dateOffset: number): ExtendedGameData => ({
 } as ExtendedGameData);
 
 const renderWithContext = (ui: React.ReactElement, gameGuesses = {}) => {
-  return render(
-    <ThemeProvider theme={testTheme}>
-      <GuessesContext.Provider value={{
-        gameGuesses,
-        updateGameGuess: vi.fn(),
-        guessedPositions: [],
-        pendingSaves: new Set<string>(),
-        saveErrors: {},
-        clearSaveError: vi.fn(),
-        flushPendingSave: vi.fn(),
-      }}>
-        {ui}
-      </GuessesContext.Provider>
-    </ThemeProvider>
+  return renderWithTheme(
+    <GuessesContext.Provider value={{
+      gameGuesses,
+      updateGameGuess: vi.fn(),
+      guessedPositions: [],
+      pendingSaves: new Set<string>(),
+      saveErrors: {},
+      clearSaveError: vi.fn(),
+      flushPendingSave: vi.fn(),
+    }}>
+      {ui}
+    </GuessesContext.Provider>
   );
 };
 

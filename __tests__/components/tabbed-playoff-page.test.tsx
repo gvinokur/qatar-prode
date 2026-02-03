@@ -1,7 +1,7 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import TabbedPlayoffsPage, { Section } from '../../app/components/playoffs/tabbed-playoff-page';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { renderWithTheme } from '../utils/test-utils';
 
 // Mock the GamesGrid component
 vi.mock('../../app/components/games-grid', () => ({
@@ -34,16 +34,6 @@ vi.mock('../../app/components/mui-wrappers', () => ({
     return <div data-testid={testId} {...props}>{children}</div>;
   },
 }));
-
-const mockTheme = createTheme();
-
-const renderWithTheme = (component: React.ReactElement) => {
-  return render(
-    <ThemeProvider theme={mockTheme}>
-      {component}
-    </ThemeProvider>
-  );
-};
 
 describe('TabbedPlayoffsPage', () => {
   const mockTeamsMap = {

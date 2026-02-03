@@ -1,26 +1,14 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
-import { ThemeProvider } from '@mui/material/styles';
-import { createTheme } from '@mui/material/styles';
 import NotificationDialog from '../../../app/components/friend-groups/notification-dialog';
+import { renderWithTheme } from '../../utils/test-utils';
 
 // Mock the notification action
 vi.mock('../../../app/actions/notifiaction-actions', () => ({
   sendGroupNotification: vi.fn()
 }));
-
-// Create a theme for the ThemeProvider
-const theme = createTheme();
-
-const renderWithTheme = (component: React.ReactElement) => {
-  return render(
-    <ThemeProvider theme={theme}>
-      {component}
-    </ThemeProvider>
-  );
-};
 
 const defaultProps = {
   open: true,

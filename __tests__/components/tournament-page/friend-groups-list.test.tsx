@@ -1,8 +1,8 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { ThemeProvider, createTheme } from '@mui/material';
+import { screen } from '@testing-library/react';
 import FriendGroupsList from '../../../app/components/tournament-page/friend-groups-list';
+import { renderWithTheme } from '../../utils/test-utils';
 
 // Mock the actions
 vi.mock('../../../app/actions/prode-group-actions', () => ({
@@ -19,16 +19,6 @@ vi.mock('../../../app/components/invite-friends-dialog', () => ({
 vi.mock('next/link', () => ({
   default: ({ children, href }: any) => <a href={href}>{children}</a>
 }));
-
-const theme = createTheme();
-
-const renderWithTheme = (component: React.ReactElement) => {
-  return render(
-    <ThemeProvider theme={theme}>
-      {component}
-    </ThemeProvider>
-  );
-};
 
 describe('FriendGroupsList', () => {
   const mockUserGroups = [

@@ -1,9 +1,9 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ThemeProvider, createTheme } from '@mui/material';
 import GameResultEditDialog from '../../app/components/game-result-edit-dialog';
+import { renderWithTheme } from '../utils/test-utils';
 
 // Mock next-auth
 vi.mock('next-auth/react', () => ({
@@ -21,28 +21,6 @@ vi.mock('../../app/actions/game-boost-actions', () => ({
   })),
   setGameBoostAction: vi.fn(() => Promise.resolve(undefined)),
 }));
-
-// Create a theme with accent colors for testing
-const testTheme = createTheme({
-  palette: {
-    accent: {
-      silver: {
-        main: '#C0C0C0',
-      },
-      gold: {
-        main: '#FFD700',
-      },
-    },
-  } as any,
-});
-
-const renderWithTheme = (component: React.ReactElement) => {
-  return render(
-    <ThemeProvider theme={testTheme}>
-      {component}
-    </ThemeProvider>
-  );
-};
 
 describe('GameResultEditDialog', () => {
   const baseProps = {

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { screen, fireEvent, within } from '@testing-library/react';
 import GamePredictionEditControls from '../../app/components/game-prediction-edit-controls';
+import { renderWithTheme } from '../utils/test-utils';
 
 // Mock next-auth
 vi.mock('../../auth', () => ({
@@ -15,20 +15,6 @@ vi.mock('@mui/material', async () => {
     ...actual,
     useMediaQuery: () => false, // Not mobile
   };
-});
-
-// Create a mock theme with accent colors
-const mockTheme = createTheme({
-  palette: {
-    accent: {
-      silver: {
-        main: '#C0C0C0',
-      },
-      gold: {
-        main: '#FFD700',
-      },
-    },
-  } as any,
 });
 
 describe('GamePredictionEditControls', () => {
@@ -60,10 +46,6 @@ describe('GamePredictionEditControls', () => {
     compact: true,
     onSave: vi.fn(),
     onCancel: vi.fn(),
-  };
-
-  const renderWithTheme = (ui: React.ReactElement) => {
-    return render(<ThemeProvider theme={mockTheme}>{ui}</ThemeProvider>);
   };
 
   beforeEach(() => {
