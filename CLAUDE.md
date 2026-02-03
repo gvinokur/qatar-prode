@@ -8,52 +8,42 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## BEFORE YOU DO ANYTHING - READ THIS SECTION COMPLETELY
 
-**If user says "implement story #42" or similar, you MUST follow this EXACT sequence:**
+**If user says "implement story #42" or similar:**
 
-### THIS PROJECT'S PLANNING WORKFLOW (Tool-First):
+### YOUR ONLY FIRST ACTION:
 
-**Standard Claude planning:** Think → Propose plan → Code
-
-**THIS PROJECT's planning (different - you MUST use these tools):**
-
-```
-1. Read → planning.md (complete file)
-2. EnterPlanMode() → enter plan mode
-3. [Research with Explore subagent - you do this naturally]
-4. Write({ file_path: "plans/STORY-N-plan.md", content: "..." }) → create plan file
-5. Task({ subagent_type: "general-purpose", model: "haiku" }) → review plan (2-3 cycles)
-6. Task({ subagent_type: "Bash" }) → commit plan and create PR
-7. WAIT → stay in plan mode for user feedback
-8. [If feedback] → Update plan + Task({ subagent_type: "Bash" }) → commit updates
-9. User says "execute the plan" → ExitPlanMode()
-10. READ implementation.md → Define tasks → Implement
+```typescript
+Read({
+  file_path: "/Users/gvinokur/Personal/qatar-prode/docs/claude/planning.md"
+})
 ```
 
-**🚨 IF YOU SKIP TOOLS #4, #5, OR #6, YOU'VE VIOLATED THE WORKFLOW 🚨**
+**That's it. Read the file. Don't do anything else yet.**
 
-**Why these tools are required in THIS project:**
-- **Write tool (#4)**: Plans must be reviewable in PRs (not just in your memory)
-- **Task tool - Plan Reviewer (#5)**: Quality gate before user review (required validation)
-- **Task tool - Bash (#6, #8)**: Git operations without exiting plan mode (stay in planning state)
+After reading planning.md completely, you'll know:
+- ✅ Exactly which tools to use (Write, Task with specific subagent types)
+- ✅ Exactly when to use them
+- ✅ Exactly what NOT to do
+- ✅ This project's custom planning workflow
 
-**This isn't "remember extra steps" - this IS how planning works in this project.**
+**DO NOT:**
+- ❌ Start planning before reading planning.md
+- ❌ Think you understand the workflow from this file
+- ❌ Use EnterPlanMode before reading planning.md
+- ❌ Try to remember steps from this summary
+- ❌ Follow "standard Claude planning" behavior
 
-### CRITICAL - What Makes This Project Different
+**The complete workflow is IN planning.md. Read it first. Nothing else.**
 
-| Default Claude Behavior | This Project's Requirement | Why |
-|------------------------|---------------------------|-----|
-| Think through plan mentally | ✅ PLUS: Use Write tool to create file | Plans must be in PRs for review |
-| Self-review the plan | ✅ PLUS: Use Task tool (Plan Reviewer) | Quality gate before user sees it |
-| Exit plan mode to commit | ❌ WRONG: Use Task tool (Bash subagent) | Must stay in plan mode throughout |
+---
 
-**The three required tools aren't "extras" - they're how planning works in this project.**
+**Why you must read planning.md first:**
 
-**Tool usage violations:**
-- ❌ Create plan mentally but don't Write to file → Workflow violated
-- ❌ Self-review instead of launching Plan Reviewer subagent → Workflow violated
-- ❌ Exit plan mode or run git directly instead of Bash subagent → Workflow violated
+This project has a **custom planning workflow** that's different from standard Claude Code planning. You MUST use specific tools (Write, Task) at specific times.
 
-**See planning.md for exact tool calls, prompts, and parameters.**
+**The workflow details are ONLY in planning.md, not here.**
+
+If you start planning before reading planning.md, you WILL do it wrong.
 
 ### CRITICAL - YOU MUST STOP AFTER CREATING PR (STEP 6)
 
@@ -117,51 +107,33 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Planning Phase (MANDATORY before implementation)
 
-### 🛑 FIRST ACTION: Use Read Tool to Load Planning Guide
+### 🛑 FIRST ACTION: Read Planning Guide
 
 **YOUR FIRST ACTION when user says "implement story":**
 
 ```typescript
-// Before doing ANYTHING else, read the planning guide
 Read({
   file_path: "/Users/gvinokur/Personal/qatar-prode/docs/claude/planning.md"
 })
 ```
 
-**CRITICAL: When reading planning.md, you MUST pay particular attention to:**
+**After reading planning.md, you'll know the complete workflow.**
 
-1. **The complete 10-step workflow** - You need ALL steps, in order, no skipping
-2. **Step 5: Plan Reviewer Subagent (MANDATORY)** - Must use Task tool with subagent_type "general-purpose" for 2-3 review cycles
-3. **Step 7: Bash Subagent for Commits (MANDATORY)** - Must use Task tool with subagent_type "Bash" to commit and create PR
-4. **The NEVER EXIT rule** - You stay in plan mode the ENTIRE planning phase, subagents handle git operations
-5. **Step 7 CRITICAL CHECKPOINT** - After creating PR, you STOP and WAIT, do NOT proceed
-6. **The iteration loop (Step 8)** - How to handle feedback using Bash subagent while staying in plan mode
-7. **Mandatory checklists (Steps 4, 6, 9)** - Complete these at each transition point
+**Do NOT try to learn the workflow from this file. It's ALL in planning.md.**
 
-**These are NOT suggestions - they are MANDATORY workflow steps.**
+---
 
-**Planning.md contains the exact implementation for:**
-- ✅ Complete subagent prompts and parameters (Steps 5, 7)
-- ✅ Review loop logic (2-3 cycles until "no significant concerns")
-- ✅ Git subagent commands (add, commit, push, PR creation)
-- ✅ Verification checklists at each checkpoint
-- ✅ PR title format with proper issue linking
+### Quick Reference (AFTER you've read planning.md)
 
-**Without reading and following planning.md, you WILL:**
-- ❌ Skip mandatory subagents (plan reviewer, bash subagent)
-- ❌ Exit plan mode when you shouldn't
-- ❌ Not know when to STOP and WAIT
-- ❌ Start implementing before approval
-- ❌ Skip critical verification checkpoints
+This project requires using specific tools during planning:
+- **Write tool** - Create plan file (planning.md Step 3)
+- **Task tool (Plan Reviewer subagent)** - Review plan 2-3 cycles (planning.md Step 5)
+- **Task tool (Bash subagent)** - Commit and create PR (planning.md Step 7)
+- **Task tool (Bash subagent)** - Commit plan updates (planning.md Step 8)
 
-### Critical Rules - NON-NEGOTIABLE
+**Never exit plan mode until user says "execute the plan"**
 
-1. **ALWAYS read planning.md Step 0 first** - Before entering plan mode
-2. **ALWAYS create plan** at `/plans/STORY-{N}-plan.md` - See planning.md Step 3
-3. **ALWAYS include visual prototypes** for UI changes - See planning.md Step 3.1 (MANDATORY for UI Changes)
-4. **MUST use Plan Reviewer SUBAGENT for 2-3 cycles** - See planning.md Step 5 for exact Task tool usage (MANDATORY, NOT optional)
-5. **MUST use Bash SUBAGENT to commit plan and create PR** - See planning.md Step 7 for exact Task tool usage (MANDATORY, NOT optional)
-6. **NEVER EXIT PLAN MODE** until user says "execute the plan" - Subagents handle ALL git operations while you stay in plan mode
+**See planning.md for complete workflow, exact tool calls, and all checkpoints.**
 7. **MUST complete verification checklist after creating PR** - See planning.md Step 7 "CRITICAL CHECKPOINT" - STOP and WAIT
 8. **MUST use Bash SUBAGENT for all plan iterations** - See planning.md Step 8 (stay in plan mode, subagent commits updates)
 9. **COMPLETE ALL CHECKLISTS** at each checkpoint - See planning.md Steps 4, 6, 9 (Pre-Review, Pre-Commit, Pre-Execution)
