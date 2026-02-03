@@ -254,11 +254,27 @@ Read({
 **Critical rules:**
 1. **ALWAYS create tests** - Every story requires unit tests
 2. **80% coverage on new code** - SonarCloud enforces this
-3. **Parallelize test creation** - Use subagents for independent test files (see testing.md "Parallel Test Creation")
-4. **Follow testing conventions** - See testing.md for patterns and best practices
+3. **ALWAYS use test utilities** - Don't duplicate setup code (MANDATORY)
+4. **Parallelize test creation** - Use subagents for independent test files (see testing.md "Parallel Test Creation")
+5. **Follow testing guidelines** - See testing.md for complete patterns
+
+**Test utilities (MANDATORY):**
+- **Theme/Context:** Use `renderWithTheme()` or `renderWithProviders()` from `@/__tests__/utils/test-utils`
+- **Next.js mocks:** Use utilities from `@/__tests__/mocks/next-navigation.mocks` and `next-auth.mocks`
+- **Database mocking:** ALWAYS use helpers from `@/__tests__/db/mock-helpers` (never build chains manually)
+- **Mock data:** ALWAYS use factories from `@/__tests__/db/test-factories` (never create mock data manually)
+
+**DO NOT:**
+- ❌ Create local theme setup (use `renderWithTheme()`)
+- ❌ Create local context wrappers (use `renderWithProviders()`)
+- ❌ Mock Next.js inline with `as any` (use mock utilities)
+- ❌ Build Kysely query chains manually (use `createMockSelectQuery()` etc.)
+- ❌ Create mock data objects manually (use `testFactories.*`)
 
 **Parallel test creation example:**
 Launch multiple subagents in parallel (single message, multiple Task calls) to create tests for independent features. See testing.md for detailed workflow.
+
+**See testing.md for complete guide with examples and all utilities.**
 
 ## Validation & Quality Gates (MANDATORY before merge)
 
