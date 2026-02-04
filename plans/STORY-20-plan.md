@@ -543,7 +543,7 @@ export default function Footer() {
    - Verify bottom nav appears in tournament context
    - Test all 4 navigation actions
    - Verify active tab highlights correctly
-   - Test back button behavior
+   - Test navigation behavior
    - Verify bottom nav hidden on desktop
    - Test footer behavior on main home page
 
@@ -565,6 +565,70 @@ export default function Footer() {
    - Test in light mode
    - Test in dark mode
    - Verify colors match theme
+
+5. **Navigation Density Assessment:**
+   - Measure total chrome height on mobile (headers + bottom nav)
+   - Document available content space
+   - Take screenshots of navigation layers
+   - Gather user feedback on usability
+   - Document findings for follow-up story
+
+### Step 5: Create Follow-Up Story
+
+**Create new GitHub issue for header optimization:**
+
+**Title:** `[UXI-XXX] Mobile Header Optimization for Tournament Context`
+
+**Description:**
+```markdown
+## Problem
+After implementing mobile bottom navigation (UXI-008), mobile screens have significant navigation chrome:
+- Global header (~70px): Logo, title, theme switcher, user settings
+- Tournament header (~90px): Tournament name + GroupSelector tabs
+- Bottom navigation (56px): Home, Tournament, Friend Groups, Stats
+- **Total chrome:** ~216px on typical mobile screen (360px height = 60% content, 40% navigation)
+
+## Solution Options to Explore
+
+### Option A: Hide Global Header on Mobile in Tournaments
+- Hide logo, "La Maquina Prode" title on mobile within tournament context
+- Keep theme switcher and user settings accessible via:
+  - Add to bottom navigation as 5th tab
+  - Add as overlay/drawer triggered by bottom nav button
+  - Add to tournament header
+
+### Option B: Collapsible Headers
+- Auto-hide headers on scroll (show on scroll up)
+- Collapse tournament name to icon/badge
+- Merge global and tournament headers on mobile
+
+### Option C: Compact Tournament Header
+- Reduce tournament header height
+- Move GroupSelector tabs below tournament name (vertical stack)
+- Use smaller font sizes and tighter spacing
+
+## Dependencies
+- UXI-008 (Mobile Bottom Navigation) - MUST be complete
+
+## Acceptance Criteria
+- Increase content area by 20-30% on mobile in tournaments
+- Maintain access to user settings and theme switcher
+- Maintain access to all GroupSelector tabs
+- No loss of functionality
+- Improved one-handed usability
+
+## Testing Requirements
+- Test on multiple screen sizes (320px - 767px width)
+- A/B test different approaches with users
+- Measure content area improvement
+- Verify all functionality remains accessible
+```
+
+**Labels:** `type/ux-improvement`, `priority/medium`, `mobile`
+
+**Milestone:** Assign to appropriate sprint
+
+**Link to UXI-008:** Add comment: "Follow-up to #20 (UXI-008 Mobile Bottom Navigation)"
 
 ## Testing Strategy
 
@@ -788,6 +852,44 @@ describe('TournamentBottomNav', () => {
 
 Both dependencies are satisfied. All required routes exist and are functional.
 
+## Navigation Density Concern & Follow-Up Story
+
+**Issue Identified:** Mobile navigation will have significant chrome:
+1. Global header (logo, title, theme, user settings) - sticky
+2. Tournament header (name + GroupSelector tabs) - sticky
+3. Bottom navigation (new) - fixed
+4. Content area - squeezed between headers and bottom nav
+
+**Decision:** Implement bottom navigation in this story, defer header optimization to follow-up story.
+
+**Rationale:**
+- Allows testing bottom nav functionality independently
+- Header optimization is a separate UX concern
+- Iterative approach reduces risk
+
+**Follow-Up Story Requirements:**
+
+Create new UXI story: **"Mobile Header Optimization for Tournament Context"**
+
+**Scope:**
+- Investigate hiding/collapsing global header on mobile within tournaments
+- Explore moving user settings (theme, avatar menu) to alternate location
+- Consider merging tournament name into condensed header
+- Test content space vs navigation trade-offs
+- Maintain access to essential functions (settings, theme, logout)
+
+**Acceptance Criteria for THIS Story:**
+- ✅ Bottom navigation implemented and functional
+- ✅ Documentation added about navigation density concern
+- ✅ Follow-up UXI story created in backlog with detailed requirements
+- ✅ Follow-up story linked to this story for context
+
+**Documentation to Include:**
+- Visual diagram showing all navigation layers on mobile
+- Measurements of vertical space consumed by navigation
+- User testing feedback on navigation density
+- Recommendations for follow-up optimization
+
 ## Risk Assessment
 
 **Low Risk:**
@@ -800,11 +902,19 @@ Both dependencies are satisfied. All required routes exist and are functional.
 - Responsive behavior interaction with existing components
 - Footer replacement on mobile may affect other features
 - Need to test across devices and browsers
+- **Navigation density** - Multiple sticky/fixed elements reduce content space
+
+**High Risk (Deferred to Follow-Up):**
+- Header optimization requires careful UX consideration
+- Moving user settings requires additional design work
+- Global header changes affect entire app, not just tournaments
 
 **Mitigation:**
 - Thorough testing on multiple devices
 - Incremental rollout (test on staging first)
 - Keep footer as fallback (conditional rendering)
+- Create follow-up story before completing this one
+- Document navigation density issue for future optimization
 
 ## Timeline Estimate
 
@@ -817,12 +927,28 @@ Both dependencies are satisfied. All required routes exist and are functional.
 
 ## Success Criteria
 
+### Functional Requirements
 - ✅ Bottom navigation appears only in tournament context on mobile
-- ✅ All 4 tabs navigate correctly
+- ✅ All 4 tabs navigate correctly (Home, Tournament, Friend Groups, Stats)
 - ✅ Active tab highlights based on current route
 - ✅ Footer hidden on mobile within tournaments
 - ✅ Desktop navigation unchanged
+- ✅ GroupSelector tabs remain visible and functional on mobile
+
+### Quality Requirements
 - ✅ 80% test coverage on new code
 - ✅ 0 new SonarCloud issues
 - ✅ Passes all quality gates
 - ✅ User approval after Vercel Preview testing
+
+### Documentation Requirements
+- ✅ Navigation density concern documented in plan
+- ✅ Visual diagrams of navigation layers included
+- ✅ Follow-up story created for header optimization
+- ✅ Follow-up story linked to this story
+
+### Post-Implementation
+- ✅ Screenshots of mobile navigation with all layers
+- ✅ Measurements of content area vs navigation chrome
+- ✅ User feedback collected on navigation density
+- ✅ Recommendations documented for follow-up story
