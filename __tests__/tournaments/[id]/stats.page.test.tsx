@@ -12,7 +12,7 @@ import {
 import { findTournamentGuessByUserIdTournament } from '../../../app/db/tournament-guess-repository';
 import { getTournamentPredictionCompletion } from '../../../app/db/tournament-prediction-completion-repository';
 import { findTournamentById } from '../../../app/db/tournament-repository';
-import { getGamesAroundMyTime } from '../../../app/actions/tournament-actions';
+import { findGamesInTournament } from '../../../app/db/game-repository';
 import { testFactories } from '../../db/test-factories';
 import type { GameStatisticForUser, BoostAllocationBreakdown } from '../../../types/definitions';
 
@@ -47,8 +47,8 @@ vi.mock('../../../app/db/tournament-repository', () => ({
   findTournamentById: vi.fn(),
 }));
 
-vi.mock('../../../app/actions/tournament-actions', () => ({
-  getGamesAroundMyTime: vi.fn(),
+vi.mock('../../../app/db/game-repository', () => ({
+  findGamesInTournament: vi.fn(),
 }));
 
 describe('TournamentStatsPage', () => {
@@ -141,7 +141,7 @@ describe('TournamentStatsPage', () => {
     const mockGames = Array.from({ length: 38 }, (_, i) =>
       testFactories.game({ id: `game-${i + 1}`, tournament_id: mockTournamentId })
     );
-    vi.mocked(getGamesAroundMyTime).mockResolvedValue(mockGames as any);
+    vi.mocked(findGamesInTournament).mockResolvedValue(mockGames as any);
   });
 
   describe('Authentication', () => {
