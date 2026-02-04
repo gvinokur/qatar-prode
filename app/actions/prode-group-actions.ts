@@ -19,7 +19,8 @@ import {createS3Client, deleteThemeLogoFromS3} from "./s3";
 import { getGameGuessStatisticsForUsers } from '../db/game-guess-repository';
 import { findTournamentGuessByUserIdsTournament } from '../db/tournament-guess-repository';
 import { customToMap } from "../utils/ObjectUtils";
-import { UserScore } from "../definitions";
+import { TournamentGroupStats, UserScore } from "../definitions";
+import { findUsersByIds } from "../db/users-repository";
 
 export async function createDbGroup( groupName: string) {
   const user = await getLoggedInUser()
@@ -220,4 +221,54 @@ export async function getUserScoresForTournament(userIds: string[], tournamentId
         (tournamentGuess?.group_position_score || 0)
     };
   }) as UserScore[];
+}
+
+/**
+ * Calculate tournament-specific statistics for a friend group
+ * @param groupId - Friend group ID
+ * @param tournamentId - Tournament ID
+ * @param userId - Current user ID
+ * @returns TournamentGroupStats with position, points, leader info
+ */
+export async function calculateTournamentGroupStats(
+  groupId: string,
+  tournamentId: string,
+  userId: string
+): Promise<TournamentGroupStats> {
+  // Get group info
+  const group = await findProdeGroupById(groupId);
+  if (!group) {
+    throw new Error('Group not found');
+  }
+
+  // Get all participants (owner + participants)
+  const participants = await findParticipantsInGroup(groupId);
+  const userIds = [group.owner_user_id, ...participants.map(p => p.user_id)];
+
+  // Get tournament scores for all users
+  const scores = await getUserScoresForTournament(userIds, tournamentId);
+
+  // Sort by total points descending to get positions
+  const sortedScores = [...scores].sort((a, b) => b.totalPoints - a.totalPoints);
+
+  // Find user's score and position
+  const userScore = sortedScores.find(s => s.userId === userId);
+  const userPosition = sortedScores.findIndex(s => s.userId === userId) + 1; // 1-indexed
+
+  // Get leader info
+  const leader = sortedScores[0];
+  const users = await findUsersByIds([leader.userId]);
+  const leaderUser = users.find(u => u.id === leader.userId);
+
+  return {
+    groupId: group.id,
+    groupName: group.name,
+    isOwner: group.owner_user_id === userId,
+    totalParticipants: userIds.length,
+    userPosition,
+    userPoints: userScore?.totalPoints || 0,
+    leaderName: leaderUser?.nickname || leaderUser?.email || 'Unknown',
+    leaderPoints: leader.totalPoints,
+    themeColor: group.theme?.primary_color || null
+  };
 }

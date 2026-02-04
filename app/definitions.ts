@@ -82,3 +82,19 @@ export interface UserScore {
 export interface ExtendedPlayerData extends Player{
   team: Team
 }
+
+/**
+ * Tournament-specific statistics for a friend group
+ * Used to display group performance on tournament groups overview page
+ */
+export interface TournamentGroupStats {
+  groupId: string
+  groupName: string
+  isOwner: boolean
+  totalParticipants: number
+  userPosition: number  // 1-indexed position in the group
+  userPoints: number
+  leaderName: string
+  leaderPoints: number
+  themeColor?: string | null
+}

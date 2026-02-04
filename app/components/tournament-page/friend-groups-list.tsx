@@ -21,6 +21,7 @@ import Link from "next/link";
 type Props = {
   userGroups: { id: string, name: string}[]
   participantGroups: {id: string, name: string}[]
+  tournamentId?: string
 }
 
 type GroupForm = {
@@ -30,6 +31,7 @@ type GroupForm = {
 export default function FriendGroupsList({
   userGroups:initialUserGroups,
   participantGroups,
+  tournamentId,
 } : Props) {
   const theme = useTheme();
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
@@ -103,6 +105,11 @@ export default function FriendGroupsList({
         </CardContent>
         <CardActions>
           <Button onClick={() => setOpenCreateDialog(true)}>Crear Nuevo Grupo</Button>
+          {tournamentId && (userGroups.length + participantGroups.length) > 1 && (
+            <Button component={Link} href={`/tournaments/${tournamentId}/groups`}>
+              Ver Todos los Grupos
+            </Button>
+          )}
         </CardActions>
       </Card>
       <Dialog open={openCreateDialog} onClose={handleCloseCreateDialog}

@@ -86,10 +86,11 @@ type Props = {
   readonly ownerId: string,
   readonly members: { id: string, nombre: string, is_admin?: boolean }[],
   readonly bettingData: { [tournamentId: string]: { config: any, payments: any[] } }
+  readonly selectedTournamentId?: string
 }
 
-export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, ownerId, members, bettingData}: Props) {
-  const [selectedTab, setSelectedTab] = useState<string>(tournaments[0]?.id || '')
+export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, ownerId, members, bettingData, selectedTournamentId}: Props) {
+  const [selectedTab, setSelectedTab] = useState<string>(selectedTournamentId || tournaments[0]?.id || '')
   const isNotExtraSmallScreen = useMediaQuery('(min-width:600px)')
   const [loadingUserId, setLoadingUserId] = useState<string | null>(null);
   const [snackbar, setSnackbar] = useState<{open: boolean, message: string, severity: 'success' | 'error'}>({open: false, message: '', severity: 'success'});
