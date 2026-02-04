@@ -7,10 +7,12 @@ import { getLoggedInUser } from '../../../app/actions/user-actions';
 import {
   getGameGuessStatisticsForUsers,
   getBoostAllocationBreakdown,
+  findGameGuessesByUserId,
 } from '../../../app/db/game-guess-repository';
 import { findTournamentGuessByUserIdTournament } from '../../../app/db/tournament-guess-repository';
 import { getTournamentPredictionCompletion } from '../../../app/db/tournament-prediction-completion-repository';
 import { findTournamentById } from '../../../app/db/tournament-repository';
+import { getGamesAroundMyTime } from '../../../app/actions/tournament-actions';
 import { testFactories } from '../../db/test-factories';
 import type { GameStatisticForUser, BoostAllocationBreakdown } from '../../../types/definitions';
 
@@ -30,6 +32,7 @@ vi.mock('../../../app/actions/user-actions', () => ({
 vi.mock('../../../app/db/game-guess-repository', () => ({
   getGameGuessStatisticsForUsers: vi.fn(),
   getBoostAllocationBreakdown: vi.fn(),
+  findGameGuessesByUserId: vi.fn(),
 }));
 
 vi.mock('../../../app/db/tournament-guess-repository', () => ({
@@ -42,6 +45,10 @@ vi.mock('../../../app/db/tournament-prediction-completion-repository', () => ({
 
 vi.mock('../../../app/db/tournament-repository', () => ({
   findTournamentById: vi.fn(),
+}));
+
+vi.mock('../../../app/actions/tournament-actions', () => ({
+  getGamesAroundMyTime: vi.fn(),
 }));
 
 describe('TournamentStatsPage', () => {
@@ -123,6 +130,18 @@ describe('TournamentStatsPage', () => {
       .mockResolvedValueOnce(mockSilverBoostData)
       .mockResolvedValueOnce(mockGoldenBoostData);
     vi.mocked(getTournamentPredictionCompletion).mockResolvedValue(mockPredictionCompletion);
+
+    // Mock game guesses (32 predictions)
+    const mockGameGuesses = Array.from({ length: 32 }, (_, i) =>
+      testFactories.gameGuess({ id: `guess-${i + 1}`, user_id: mockUser.id })
+    );
+    vi.mocked(findGameGuessesByUserId).mockResolvedValue(mockGameGuesses);
+
+    // Mock all games (38 total)
+    const mockGames = Array.from({ length: 38 }, (_, i) =>
+      testFactories.game({ id: `game-${i + 1}`, tournament_id: mockTournamentId })
+    );
+    vi.mocked(getGamesAroundMyTime).mockResolvedValue(mockGames as any);
   });
 
   describe('Authentication', () => {

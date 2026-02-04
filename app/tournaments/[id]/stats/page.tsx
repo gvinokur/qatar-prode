@@ -7,6 +7,8 @@ import { getGameGuessStatisticsForUsers, getBoostAllocationBreakdown } from "../
 import { findTournamentGuessByUserIdTournament } from "../../../db/tournament-guess-repository";
 import { getTournamentPredictionCompletion } from "../../../db/tournament-prediction-completion-repository";
 import { findTournamentById } from "../../../db/tournament-repository";
+import { findGameGuessesByUserId } from "../../../db/game-guess-repository";
+import { getGamesAroundMyTime } from "../../../actions/tournament-actions";
 import { PerformanceOverviewCard } from "../../../components/tournament-stats/performance-overview-card";
 import { PredictionAccuracyCard } from "../../../components/tournament-stats/prediction-accuracy-card";
 import { BoostAnalysisCard } from "../../../components/tournament-stats/boost-analysis-card";
@@ -125,8 +127,13 @@ export default async function TournamentStatsPage(props: Props) {
     performanceStats.playoffStagePoints
 
   // Calculate Prediction Accuracy stats
-  const totalPredictionsMade = predictionCompletion?.overallCompleted ?? 0
-  const totalGamesAvailable = predictionCompletion?.overallTotal ?? 0
+  // Get actual game prediction count from game guesses
+  const gameGuessesArray = user ? await findGameGuessesByUserId(user.id, tournamentId) : []
+  const totalPredictionsMade = gameGuessesArray.length
+
+  // Get total games in tournament
+  const allGames = await getGamesAroundMyTime(tournamentId)
+  const totalGamesAvailable = allGames.length
 
   const accuracyStats: AccuracyStats = {
     totalPredictionsMade,
