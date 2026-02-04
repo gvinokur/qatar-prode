@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react';
 import { Box, Stack, Skeleton } from "@mui/material";
 import { getSkeletonA11yProps } from './skeleton-utils';
 
@@ -8,6 +9,12 @@ interface StatsCardSkeletonProps {
 }
 
 export default function StatsCardSkeleton({ rows = 3 }: StatsCardSkeletonProps) {
+  // Generate stable unique keys for skeleton rows
+  const rowKeys = useMemo(
+    () => Array.from({ length: rows }, () => crypto.randomUUID()),
+    [rows]
+  );
+
   return (
     <Box
       sx={{
@@ -29,8 +36,8 @@ export default function StatsCardSkeleton({ rows = 3 }: StatsCardSkeletonProps) 
 
       {/* Stat rows */}
       <Stack spacing={2.5}>
-        {Array.from({ length: rows }).map((_, index) => (
-          <Box key={`stat-row-${index}`}>
+        {rowKeys.map((key) => (
+          <Box key={key}>
             <Skeleton
               variant="rectangular"
               width="60%"

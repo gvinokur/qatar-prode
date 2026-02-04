@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react';
 import { Box, Grid, Skeleton } from "@mui/material";
 import TournamentGroupCardSkeleton from "./tournament-group-card-skeleton";
 import { getSkeletonA11yProps } from './skeleton-utils';
@@ -9,6 +10,12 @@ interface FriendGroupListSkeletonProps {
 }
 
 export default function FriendGroupListSkeleton({ count = 3 }: FriendGroupListSkeletonProps) {
+  // Generate stable unique keys for skeleton elements
+  const skeletonKeys = useMemo(
+    () => Array.from({ length: count }, () => crypto.randomUUID()),
+    [count]
+  );
+
   return (
     <Box
       sx={{ py: 3, px: { xs: 2, sm: 3 } }}
@@ -24,8 +31,8 @@ export default function FriendGroupListSkeleton({ count = 3 }: FriendGroupListSk
 
       {/* Grid of group cards */}
       <Grid container spacing={3}>
-        {Array.from({ length: count }).map((_, index) => (
-          <Grid size={{ xs: 12, sm: 12, md: 6 }} key={`group-skeleton-${index}`}>
+        {skeletonKeys.map((key) => (
+          <Grid size={{ xs: 12, sm: 12, md: 6 }} key={key}>
             <TournamentGroupCardSkeleton />
           </Grid>
         ))}

@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Skeleton } from "@mui/material";
 import { getSkeletonA11yProps } from './skeleton-utils';
 
@@ -8,6 +9,12 @@ interface LeaderboardSkeletonProps {
 }
 
 export default function LeaderboardSkeleton({ rows = 10 }: LeaderboardSkeletonProps) {
+  // Generate stable unique keys for skeleton rows
+  const rowKeys = useMemo(
+    () => Array.from({ length: rows }, () => crypto.randomUUID()),
+    [rows]
+  );
+
   return (
     <TableContainer
       sx={{
@@ -28,8 +35,8 @@ export default function LeaderboardSkeleton({ rows = 10 }: LeaderboardSkeletonPr
           </TableRow>
         </TableHead>
         <TableBody>
-          {Array.from({ length: rows }).map((_, index) => (
-            <TableRow key={`leaderboard-row-${index}`}>
+          {rowKeys.map((key) => (
+            <TableRow key={key}>
               <TableCell>
                 <Skeleton variant="rectangular" width="10%" height={20} />
               </TableCell>
