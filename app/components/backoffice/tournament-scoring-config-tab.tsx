@@ -2,12 +2,10 @@
 
 import { Box } from "../mui-wrappers";
 import {
-  Backdrop,
   Button,
   Card,
   CardContent,
   CardHeader,
-  CircularProgress,
   Grid,
   TextField,
   Typography,
@@ -57,7 +55,7 @@ export default function TournamentScoringConfigTab({ tournamentId }: Props) {
         // Fetch recommended values
         const recommendedData = await getRecommendedScoringValues(tournamentId);
         setRecommended(recommendedData);
-      } catch (error) {
+      } catch (_error) {
         setErrorMessage('Error loading scoring configuration');
       } finally {
         setLoading(false);
@@ -89,7 +87,7 @@ export default function TournamentScoringConfigTab({ tournamentId }: Props) {
       await updateTournamentScoringConfigAction(tournamentId, config);
 
       setSuccessMessage('Scoring configuration saved successfully!');
-    } catch (error) {
+    } catch (_error) {
       setErrorMessage('Error saving configuration');
     } finally {
       setSaving(false);
@@ -116,7 +114,8 @@ export default function TournamentScoringConfigTab({ tournamentId }: Props) {
     <Box pt={2}>
       {loading ? (
         <BackofficeTabsSkeleton />
-      ) : config ? (
+      ) : (
+        config && (
         <Box sx={{ maxWidth: '1000px', mx: 'auto' }}>
           {successMessage && (
             <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage('')}>
@@ -236,6 +235,7 @@ export default function TournamentScoringConfigTab({ tournamentId }: Props) {
             </CardContent>
           </Card>
         </Box>
+        )
       )}
     </Box>
   );

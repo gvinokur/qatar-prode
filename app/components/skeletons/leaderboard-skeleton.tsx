@@ -1,6 +1,6 @@
 'use client'
 
-import { Box, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
 import { Skeleton } from "@mui/material";
 
 interface LeaderboardSkeletonProps {

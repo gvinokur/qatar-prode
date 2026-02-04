@@ -60,7 +60,7 @@ describe('Skeleton Components', () => {
 
   describe('FriendGroupListSkeleton', () => {
     it('renders with default count of 3 cards', () => {
-      const { container } = renderWithTheme(<FriendGroupListSkeleton />)
+      renderWithTheme(<FriendGroupListSkeleton />)
 
       // Check for parent container with specific aria-label
       const parentSkeleton = screen.getByLabelText('Loading tournament groups')

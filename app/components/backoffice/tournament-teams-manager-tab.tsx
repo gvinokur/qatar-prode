@@ -6,7 +6,6 @@ import {
   Button,
   Card,
   CardMedia,
-  CircularProgress,
   Grid,
   IconButton,
   Paper,

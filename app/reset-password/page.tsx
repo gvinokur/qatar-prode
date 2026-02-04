@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Alert, Box, Button, Card, CardContent, CircularProgress, Container, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Container, TextField, Typography } from '@mui/material';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import { verifyResetToken, updateUserPassword } from '../actions/user-actions';
 import { AuthPageSkeleton } from '../components/skeletons';
