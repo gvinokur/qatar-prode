@@ -1,6 +1,7 @@
 'use client'
 
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Skeleton } from "@mui/material";
+import { getSkeletonA11yProps } from './skeleton-utils';
 
 interface LeaderboardSkeletonProps {
   readonly rows?: number
@@ -9,15 +10,13 @@ interface LeaderboardSkeletonProps {
 export default function LeaderboardSkeleton({ rows = 10 }: LeaderboardSkeletonProps) {
   return (
     <TableContainer
-      role="status"
-      aria-busy="true"
-      aria-label="Loading leaderboard"
       sx={{
         borderRadius: 1,
         bgcolor: 'background.paper',
         border: 1,
         borderColor: 'divider'
       }}
+      {...getSkeletonA11yProps('Loading leaderboard')}
     >
       <Table>
         <TableHead>

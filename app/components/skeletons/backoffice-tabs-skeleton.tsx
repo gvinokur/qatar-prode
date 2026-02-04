@@ -1,14 +1,13 @@
 'use client'
 
 import { Box, Card, CardHeader, CardContent, Grid, Skeleton } from "@mui/material";
+import { getSkeletonA11yProps } from './skeleton-utils';
 
 export default function BackofficeTabsSkeleton() {
   return (
     <Box
       pt={2}
-      role="status"
-      aria-busy="true"
-      aria-label="Loading backoffice data"
+      {...getSkeletonA11yProps('Loading backoffice data')}
     >
       <Card sx={{ maxWidth: '1200px', mx: 'auto' }}>
         <CardHeader

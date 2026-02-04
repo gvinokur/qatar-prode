@@ -2,6 +2,7 @@
 
 import { Box, Grid, Skeleton } from "@mui/material";
 import TournamentGroupCardSkeleton from "./tournament-group-card-skeleton";
+import { getSkeletonA11yProps } from './skeleton-utils';
 
 interface FriendGroupListSkeletonProps {
   readonly count?: number
@@ -10,10 +11,8 @@ interface FriendGroupListSkeletonProps {
 export default function FriendGroupListSkeleton({ count = 3 }: FriendGroupListSkeletonProps) {
   return (
     <Box
-      role="status"
-      aria-busy="true"
-      aria-label="Loading tournament groups"
       sx={{ py: 3, px: { xs: 2, sm: 3 } }}
+      {...getSkeletonA11yProps('Loading tournament groups')}
     >
       {/* Title */}
       <Skeleton

@@ -1,6 +1,7 @@
 'use client'
 
 import { Box, Stack, DialogContent, Skeleton } from "@mui/material";
+import { getSkeletonA11yProps } from './skeleton-utils';
 
 interface GameDialogSkeletonProps {
   readonly isGameGuess?: boolean
@@ -9,10 +10,8 @@ interface GameDialogSkeletonProps {
 export default function GameDialogSkeleton({ isGameGuess = false }: GameDialogSkeletonProps) {
   return (
     <DialogContent
-      role="status"
-      aria-busy="true"
-      aria-label="Loading game dialog"
       sx={{ py: 3 }}
+      {...getSkeletonA11yProps('Loading game dialog')}
     >
       <Stack spacing={3} alignItems="center">
         {/* Team names (vs format) */}

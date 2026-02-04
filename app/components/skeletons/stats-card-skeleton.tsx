@@ -1,6 +1,7 @@
 'use client'
 
 import { Box, Stack, Skeleton } from "@mui/material";
+import { getSkeletonA11yProps } from './skeleton-utils';
 
 interface StatsCardSkeletonProps {
   readonly rows?: number
@@ -9,9 +10,6 @@ interface StatsCardSkeletonProps {
 export default function StatsCardSkeleton({ rows = 3 }: StatsCardSkeletonProps) {
   return (
     <Box
-      role="status"
-      aria-busy="true"
-      aria-label="Loading statistics"
       sx={{
         p: 3,
         borderRadius: 2,
@@ -19,6 +17,7 @@ export default function StatsCardSkeleton({ rows = 3 }: StatsCardSkeletonProps) 
         border: 1,
         borderColor: 'divider'
       }}
+      {...getSkeletonA11yProps('Loading statistics')}
     >
       {/* Title */}
       <Skeleton

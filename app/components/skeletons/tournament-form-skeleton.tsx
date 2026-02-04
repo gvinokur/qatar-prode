@@ -1,15 +1,14 @@
 'use client'
 
 import { Box, Paper, Grid, Skeleton } from "@mui/material";
+import { getSkeletonA11yProps } from './skeleton-utils';
 
 export default function TournamentFormSkeleton() {
   return (
     <Box
       component="form"
       sx={{ mt: 2 }}
-      role="status"
-      aria-busy="true"
-      aria-label="Loading tournament form"
+      {...getSkeletonA11yProps('Loading tournament form')}
     >
       <Paper sx={{ p: 3, mb: 3 }}>
         {/* Title */}

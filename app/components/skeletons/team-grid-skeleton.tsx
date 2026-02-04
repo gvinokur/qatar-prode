@@ -1,14 +1,13 @@
 'use client'
 
 import { Box, Paper, Grid, Card, Skeleton } from "@mui/material";
+import { getSkeletonA11yProps } from './skeleton-utils';
 
 export default function TeamGridSkeleton() {
   return (
     <Box
       sx={{ mt: 2 }}
-      role="status"
-      aria-busy="true"
-      aria-label="Loading teams"
+      {...getSkeletonA11yProps('Loading teams')}
     >
       <Paper sx={{ p: 3, mb: 3 }}>
         {/* Header with title and button */}

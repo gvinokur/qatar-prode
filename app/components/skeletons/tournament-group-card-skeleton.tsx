@@ -1,13 +1,11 @@
 'use client'
 
 import { Box, Stack, Skeleton } from "@mui/material";
+import { getSkeletonA11yProps } from './skeleton-utils';
 
 export default function TournamentGroupCardSkeleton() {
   return (
     <Box
-      role="status"
-      aria-busy="true"
-      aria-label="Loading tournament group"
       sx={{
         p: 3,
         borderRadius: 2,
@@ -16,6 +14,7 @@ export default function TournamentGroupCardSkeleton() {
         borderColor: 'divider',
         height: '100%'
       }}
+      {...getSkeletonA11yProps('Loading tournament group')}
     >
       {/* Group name */}
       <Skeleton

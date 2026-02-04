@@ -1,6 +1,7 @@
 'use client'
 
 import { Box, Divider, Stack, Skeleton } from "@mui/material";
+import { getSkeletonA11yProps } from './skeleton-utils';
 
 interface GameCardSkeletonProps {
   readonly variant?: 'compact' | 'full'
@@ -11,9 +12,6 @@ export default function GameCardSkeleton({ variant = 'full' }: GameCardSkeletonP
 
   return (
     <Box
-      role="status"
-      aria-busy="true"
-      aria-label="Loading game card"
       sx={{
         p: 2,
         borderRadius: 1,
@@ -21,6 +19,7 @@ export default function GameCardSkeleton({ variant = 'full' }: GameCardSkeletonP
         border: 1,
         borderColor: 'divider'
       }}
+      {...getSkeletonA11yProps('Loading game card')}
     >
       {/* Game number/stage */}
       <Skeleton

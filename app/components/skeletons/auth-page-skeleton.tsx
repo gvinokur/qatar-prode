@@ -1,15 +1,14 @@
 'use client'
 
 import { Box, Card, CardContent, Container, Skeleton } from "@mui/material";
+import { getSkeletonA11yProps } from './skeleton-utils';
 
 export default function AuthPageSkeleton() {
   return (
     <Container
       maxWidth="sm"
       sx={{ mt: 8 }}
-      role="status"
-      aria-busy="true"
-      aria-label="Loading authentication page"
+      {...getSkeletonA11yProps('Loading authentication page')}
     >
       <Card>
         <CardContent sx={{ p: 4 }}>
