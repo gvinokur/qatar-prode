@@ -12,15 +12,19 @@ import BackofficeTabsSkeleton from '../backoffice-tabs-skeleton'
 import TournamentFormSkeleton from '../tournament-form-skeleton'
 import TeamGridSkeleton from '../team-grid-skeleton'
 
+// Helper to test skeleton accessibility attributes
+function expectSkeletonA11y(ariaLabel: string) {
+  const skeleton = screen.getByRole('status')
+  expect(skeleton).toBeInTheDocument()
+  expect(skeleton).toHaveAttribute('aria-busy', 'true')
+  expect(skeleton).toHaveAttribute('aria-label', ariaLabel)
+}
+
 describe('Skeleton Components', () => {
   describe('GameCardSkeleton', () => {
     it('renders with default full variant', () => {
       renderWithTheme(<GameCardSkeleton />)
-
-      const skeleton = screen.getByRole('status')
-      expect(skeleton).toBeInTheDocument()
-      expect(skeleton).toHaveAttribute('aria-busy', 'true')
-      expect(skeleton).toHaveAttribute('aria-label', 'Loading game card')
+      expectSkeletonA11y('Loading game card')
     })
 
     it('renders with compact variant', () => {
@@ -42,11 +46,7 @@ describe('Skeleton Components', () => {
   describe('TournamentGroupCardSkeleton', () => {
     it('renders with proper accessibility attributes', () => {
       renderWithTheme(<TournamentGroupCardSkeleton />)
-
-      const skeleton = screen.getByRole('status')
-      expect(skeleton).toBeInTheDocument()
-      expect(skeleton).toHaveAttribute('aria-busy', 'true')
-      expect(skeleton).toHaveAttribute('aria-label', 'Loading tournament group')
+      expectSkeletonA11y('Loading tournament group')
     })
 
     it('renders all stat sections', () => {
@@ -118,10 +118,7 @@ describe('Skeleton Components', () => {
     it('renders with default 3 rows', () => {
       const { container } = renderWithTheme(<StatsCardSkeleton />)
 
-      const skeleton = screen.getByRole('status')
-      expect(skeleton).toBeInTheDocument()
-      expect(skeleton).toHaveAttribute('aria-busy', 'true')
-      expect(skeleton).toHaveAttribute('aria-label', 'Loading statistics')
+      expectSkeletonA11y('Loading statistics')
 
       // Title skeleton + 3 stat rows (each has 2 skeletons: label + value) = 7 total
       const skeletons = container.querySelectorAll('.MuiSkeleton-root')
@@ -141,10 +138,7 @@ describe('Skeleton Components', () => {
     it('renders without boost info by default', () => {
       const { container } = renderWithTheme(<GameDialogSkeleton />)
 
-      const skeleton = screen.getByRole('status')
-      expect(skeleton).toBeInTheDocument()
-      expect(skeleton).toHaveAttribute('aria-busy', 'true')
-      expect(skeleton).toHaveAttribute('aria-label', 'Loading game dialog')
+      expectSkeletonA11y('Loading game dialog')
 
       // Team names + home score + away score + 2 buttons = 5 skeletons
       const skeletons = container.querySelectorAll('.MuiSkeleton-root')
@@ -164,10 +158,7 @@ describe('Skeleton Components', () => {
     it('renders with proper accessibility attributes', () => {
       renderWithTheme(<AuthPageSkeleton />)
 
-      const skeleton = screen.getByRole('status')
-      expect(skeleton).toBeInTheDocument()
-      expect(skeleton).toHaveAttribute('aria-busy', 'true')
-      expect(skeleton).toHaveAttribute('aria-label', 'Loading authentication page')
+      expectSkeletonA11y('Loading authentication page')
     })
 
     it('renders card with form elements', () => {
@@ -183,10 +174,7 @@ describe('Skeleton Components', () => {
     it('renders with proper accessibility attributes', () => {
       renderWithTheme(<BackofficeTabsSkeleton />)
 
-      const skeleton = screen.getByRole('status')
-      expect(skeleton).toBeInTheDocument()
-      expect(skeleton).toHaveAttribute('aria-busy', 'true')
-      expect(skeleton).toHaveAttribute('aria-label', 'Loading backoffice data')
+      expectSkeletonA11y('Loading backoffice data')
     })
 
     it('renders card with grid of form fields', () => {
@@ -202,10 +190,7 @@ describe('Skeleton Components', () => {
     it('renders with proper accessibility attributes', () => {
       renderWithTheme(<TournamentFormSkeleton />)
 
-      const skeleton = screen.getByRole('status')
-      expect(skeleton).toBeInTheDocument()
-      expect(skeleton).toHaveAttribute('aria-busy', 'true')
-      expect(skeleton).toHaveAttribute('aria-label', 'Loading tournament form')
+      expectSkeletonA11y('Loading tournament form')
     })
 
     it('renders form with 6 field skeletons', () => {
@@ -221,10 +206,7 @@ describe('Skeleton Components', () => {
     it('renders with proper accessibility attributes', () => {
       renderWithTheme(<TeamGridSkeleton />)
 
-      const skeleton = screen.getByRole('status')
-      expect(skeleton).toBeInTheDocument()
-      expect(skeleton).toHaveAttribute('aria-busy', 'true')
-      expect(skeleton).toHaveAttribute('aria-label', 'Loading teams')
+      expectSkeletonA11y('Loading teams')
     })
 
     it('renders grid with 8 team card skeletons', () => {
