@@ -1,15 +1,17 @@
 'use client'
 
-import {Card, CardContent, CardHeader, Grid, Typography, useTheme} from "@mui/material";
+import {Card, CardContent, CardHeader, Grid, Typography, useTheme, Box, Button} from "@mui/material";
 import {GameStatisticForUser} from "../../../types/definitions";
 import {TournamentGuess} from "../../db/tables-definition";
+import Link from "next/link";
 
 type Props = {
-  userGameStatistics?: GameStatisticForUser
-  tournamentGuess?: TournamentGuess
+  readonly userGameStatistics?: GameStatisticForUser
+  readonly tournamentGuess?: TournamentGuess
+  readonly tournamentId?: string
 }
 
-export function UserTournamentStatistics({userGameStatistics, tournamentGuess} : Props) {
+export function UserTournamentStatistics({userGameStatistics, tournamentGuess, tournamentId} : Props) {
   const theme = useTheme()
 
   const groupScoreData = {
@@ -96,6 +98,23 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess} :
           <Grid size={4}><Typography variant={'body1'} fontWeight={700}>
             {tournamentGuess?.individual_awards_score || 0}
           </Typography></Grid>
+
+          {/* Link to detailed stats page */}
+          {tournamentId && (
+            <Grid size={12} mt={2}>
+              <Box display="flex" justifyContent="center">
+                <Button
+                  component={Link}
+                  href={`/tournaments/${tournamentId}/stats`}
+                  variant="outlined"
+                  size="small"
+                  sx={{ textTransform: 'none' }}
+                >
+                  Ver Estadísticas Detalladas
+                </Button>
+              </Box>
+            </Grid>
+          )}
         </Grid>
       </CardContent>
     </Card>
