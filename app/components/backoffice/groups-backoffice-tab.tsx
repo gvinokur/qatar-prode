@@ -8,6 +8,7 @@ import {ExtendedGroupData} from "../../definitions";
 import PlayoffTab from "./playoff-tab";
 import {getGroupDataWithGamesAndTeams} from "../../actions/backoffice-actions";
 import {createTab} from "./backoffice-tab-utils";
+import { BackofficeTabsSkeleton } from "../skeletons";
 
 type Props = {
   tournamentId: string
@@ -30,13 +31,9 @@ export default function GroupsTab({tournamentId}:Props) {
 
   return (
     <Box>
-      <Backdrop
-        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={loading}
-      >
-        <CircularProgress color="inherit" />
-      </Backdrop>
-      {!loading && (
+      {loading ? (
+        <BackofficeTabsSkeleton />
+      ) : (
         <BackofficeTabs tabIdParam="group" tabs={[
           ...(groups || []).map(group =>
               createTab(

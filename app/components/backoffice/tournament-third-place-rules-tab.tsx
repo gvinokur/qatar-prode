@@ -24,6 +24,7 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { BackofficeTabsSkeleton } from '../skeletons';
 import {
   getThirdPlaceRulesForTournament,
   upsertThirdPlaceRuleAction,
@@ -136,11 +137,7 @@ const TournamentThirdPlaceRulesTab: React.FC<TournamentThirdPlaceRulesTabProps> 
   };
 
   if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress />
-      </Box>
-    );
+    return <BackofficeTabsSkeleton />;
   }
 
   return (

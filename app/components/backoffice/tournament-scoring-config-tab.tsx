@@ -20,6 +20,7 @@ import {
   updateTournamentScoringConfigAction,
   getRecommendedScoringValues
 } from "../../actions/tournament-scoring-actions";
+import { BackofficeTabsSkeleton } from "../skeletons";
 
 type Props = {
   readonly tournamentId: string
@@ -113,14 +114,9 @@ export default function TournamentScoringConfigTab({ tournamentId }: Props) {
 
   return (
     <Box pt={2}>
-      <Backdrop
-        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={loading}
-      >
-        <CircularProgress color="inherit" />
-      </Backdrop>
-
-      {config && (
+      {loading ? (
+        <BackofficeTabsSkeleton />
+      ) : config ? (
         <Box sx={{ maxWidth: '1000px', mx: 'auto' }}>
           {successMessage && (
             <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage('')}>

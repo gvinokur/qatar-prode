@@ -23,6 +23,7 @@ import { MuiColorInput } from 'mui-color-input';
 import LinkIcon from '@mui/icons-material/Link';
 import ImagePicker from "../friend-groups/image-picker";
 import AddIcon from '@mui/icons-material/Add';
+import { TournamentFormSkeleton } from '../skeletons';
 import EditIcon from '@mui/icons-material/Edit';
 import PlayoffRoundDialog from './internal/playoff-round-dialog';
 import {getThemeLogoUrl} from "../../utils/theme-utils";
@@ -311,11 +312,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
 
   // Show loading state while fetching data
   if (loadingData) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px' }}>
-        <CircularProgress />
-      </Box>
-    );
+    return <TournamentFormSkeleton />;
   }
 
   // Show error if data loading failed

@@ -4,3 +4,7 @@ export { default as FriendGroupListSkeleton } from './friend-group-list-skeleton
 export { default as LeaderboardSkeleton } from './leaderboard-skeleton'
 export { default as StatsCardSkeleton } from './stats-card-skeleton'
 export { default as GameDialogSkeleton } from './game-dialog-skeleton'
+export { default as AuthPageSkeleton } from './auth-page-skeleton'
+export { default as BackofficeTabsSkeleton } from './backoffice-tabs-skeleton'
+export { default as TournamentFormSkeleton } from './tournament-form-skeleton'
+export { default as TeamGridSkeleton } from './team-grid-skeleton'

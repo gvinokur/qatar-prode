@@ -7,6 +7,10 @@ import FriendGroupListSkeleton from '../friend-group-list-skeleton'
 import LeaderboardSkeleton from '../leaderboard-skeleton'
 import StatsCardSkeleton from '../stats-card-skeleton'
 import GameDialogSkeleton from '../game-dialog-skeleton'
+import AuthPageSkeleton from '../auth-page-skeleton'
+import BackofficeTabsSkeleton from '../backoffice-tabs-skeleton'
+import TournamentFormSkeleton from '../tournament-form-skeleton'
+import TeamGridSkeleton from '../team-grid-skeleton'
 
 describe('Skeleton Components', () => {
   describe('GameCardSkeleton', () => {
@@ -153,6 +157,82 @@ describe('Skeleton Components', () => {
       // Team names + home score + away score + 2 boost info + 2 buttons = 7 skeletons
       const skeletons = container.querySelectorAll('.MuiSkeleton-root')
       expect(skeletons.length).toBe(7)
+    })
+  })
+
+  describe('AuthPageSkeleton', () => {
+    it('renders with proper accessibility attributes', () => {
+      renderWithTheme(<AuthPageSkeleton />)
+
+      const skeleton = screen.getByRole('status')
+      expect(skeleton).toBeInTheDocument()
+      expect(skeleton).toHaveAttribute('aria-busy', 'true')
+      expect(skeleton).toHaveAttribute('aria-label', 'Loading authentication page')
+    })
+
+    it('renders card with form elements', () => {
+      const { container } = renderWithTheme(<AuthPageSkeleton />)
+
+      // Title + 2 input fields + button = 4 skeletons
+      const skeletons = container.querySelectorAll('.MuiSkeleton-root')
+      expect(skeletons.length).toBe(4)
+    })
+  })
+
+  describe('BackofficeTabsSkeleton', () => {
+    it('renders with proper accessibility attributes', () => {
+      renderWithTheme(<BackofficeTabsSkeleton />)
+
+      const skeleton = screen.getByRole('status')
+      expect(skeleton).toBeInTheDocument()
+      expect(skeleton).toHaveAttribute('aria-busy', 'true')
+      expect(skeleton).toHaveAttribute('aria-label', 'Loading backoffice data')
+    })
+
+    it('renders card with grid of form fields', () => {
+      const { container } = renderWithTheme(<BackofficeTabsSkeleton />)
+
+      // Title + 4 form fields = 5 skeletons
+      const skeletons = container.querySelectorAll('.MuiSkeleton-root')
+      expect(skeletons.length).toBe(5)
+    })
+  })
+
+  describe('TournamentFormSkeleton', () => {
+    it('renders with proper accessibility attributes', () => {
+      renderWithTheme(<TournamentFormSkeleton />)
+
+      const skeleton = screen.getByRole('status')
+      expect(skeleton).toBeInTheDocument()
+      expect(skeleton).toHaveAttribute('aria-busy', 'true')
+      expect(skeleton).toHaveAttribute('aria-label', 'Loading tournament form')
+    })
+
+    it('renders form with 6 field skeletons', () => {
+      const { container } = renderWithTheme(<TournamentFormSkeleton />)
+
+      // Title + 6 form fields = 7 skeletons
+      const skeletons = container.querySelectorAll('.MuiSkeleton-root')
+      expect(skeletons.length).toBe(7)
+    })
+  })
+
+  describe('TeamGridSkeleton', () => {
+    it('renders with proper accessibility attributes', () => {
+      renderWithTheme(<TeamGridSkeleton />)
+
+      const skeleton = screen.getByRole('status')
+      expect(skeleton).toBeInTheDocument()
+      expect(skeleton).toHaveAttribute('aria-busy', 'true')
+      expect(skeleton).toHaveAttribute('aria-label', 'Loading teams')
+    })
+
+    it('renders grid with 8 team card skeletons', () => {
+      const { container } = renderWithTheme(<TeamGridSkeleton />)
+
+      // Header title + button + 8 team cards = 10 skeletons
+      const skeletons = container.querySelectorAll('.MuiSkeleton-root')
+      expect(skeletons.length).toBe(10)
     })
   })
 })

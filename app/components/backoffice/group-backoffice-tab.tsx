@@ -4,6 +4,7 @@ import {Alert, Backdrop, Box, Button, CircularProgress, Grid, Snackbar} from "@m
 import { useEffect, useState} from "react";
 import {ExtendedGameData, ExtendedGroupData} from "../../definitions";
 import {getCompleteGroupData} from "../../actions/tournament-actions";
+import { BackofficeTabsSkeleton } from "../skeletons";
 import {
   GameResultNew,
   Team,
@@ -162,13 +163,9 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
 
   return (
     <Box>
-      <Backdrop
-        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={loading}
-        >
-          <CircularProgress color="inherit" />
-      </Backdrop>
-      {!loading && (
+      {loading ? (
+        <BackofficeTabsSkeleton />
+      ) : (
         <>
           <Grid container spacing={2} size={12}>
             <Grid

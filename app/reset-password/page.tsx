@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Alert, Box, Button, Card, CardContent, CircularProgress, Container, TextField, Typography } from '@mui/material';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import { verifyResetToken, updateUserPassword } from '../actions/user-actions';
+import { AuthPageSkeleton } from '../components/skeletons';
 
 type ResetPasswordFormData = {
   password: string;
@@ -96,11 +97,7 @@ export default function ResetPasswordPage() {
 
   // Show loading state
   if (loading) {
-    return (
-      <Container maxWidth="sm" sx={{ mt: 8, display: 'flex', justifyContent: 'center' }}>
-        <CircularProgress />
-      </Container>
-    );
+    return <AuthPageSkeleton />;
   }
 
   return (

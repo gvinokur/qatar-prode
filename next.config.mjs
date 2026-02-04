@@ -16,10 +16,6 @@ const withSerwist = withSerwistInit({
 /** @type {import("next").NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
-    eslint: {
-        // Temporarily ignore ESLint during builds due to pre-existing warnings
-        ignoreDuringBuilds: true,
-    },
     experimental: {
         viewTransition: true,
         serverActions: {

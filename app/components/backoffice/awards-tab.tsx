@@ -17,6 +17,7 @@ import {awardsDefinition, AwardTypes} from "../../utils/award-utils";
 import { TournamentUpdate} from "../../db/tables-definition";
 import {ExtendedPlayerData} from "../../definitions";
 import {findDataForAwards, updateTournamentAwards} from "../../actions/backoffice-actions";
+import { BackofficeTabsSkeleton } from "../skeletons";
 
 type Props = {
   readonly tournamentId: string
@@ -54,13 +55,9 @@ export default function BackofficeAwardsTab({ tournamentId}: Props) {
 
   return (
     <Box pt={2}>
-      <Backdrop
-        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={!tournament}
-      >
-        <CircularProgress color="inherit" />
-      </Backdrop>
-      {tournament && (
+      {!tournament ? (
+        <BackofficeTabsSkeleton />
+      ) : (
         <>
           <Card sx={{ maxWidth: '900px', mr: 'auto', ml: 'auto'}}>
             <CardHeader title={'Premios Individuales'}/>

@@ -20,6 +20,7 @@ import { Team } from '../../db/tables-definition';
 import { getTeamsMap } from '../../actions/tournament-actions';
 import TeamDialog from './internal/team-dialog';
 import {getThemeLogoUrl} from "../../utils/theme-utils";
+import { TeamGridSkeleton } from '../skeletons';
 
 interface TournamentTeamsManagerProps {
   readonly tournamentId: string;
@@ -88,11 +89,7 @@ export default function TournamentTeamsManagerTab({ tournamentId }: TournamentTe
 
   // Show loading state
   if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-        <CircularProgress />
-      </Box>
-    );
+    return <TeamGridSkeleton />;
   }
 
   // Show error state
