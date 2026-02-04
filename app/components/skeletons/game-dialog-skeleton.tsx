@@ -1,10 +1,9 @@
 'use client'
 
-import { Box, Stack, DialogContent } from "@mui/material";
-import { Skeleton } from "@mui/material";
+import { Box, Stack, DialogContent, Skeleton } from "@mui/material";
 
 interface GameDialogSkeletonProps {
-  isGameGuess?: boolean
+  readonly isGameGuess?: boolean
 }
 
 export default function GameDialogSkeleton({ isGameGuess = false }: GameDialogSkeletonProps) {

@@ -1,10 +1,9 @@
 'use client'
 
-import { Box, Stack } from "@mui/material";
-import { Skeleton } from "@mui/material";
+import { Box, Stack, Skeleton } from "@mui/material";
 
 interface StatsCardSkeletonProps {
-  rows?: number
+  readonly rows?: number
 }
 
 export default function StatsCardSkeleton({ rows = 3 }: StatsCardSkeletonProps) {
@@ -32,7 +31,7 @@ export default function StatsCardSkeleton({ rows = 3 }: StatsCardSkeletonProps) 
       {/* Stat rows */}
       <Stack spacing={2.5}>
         {Array.from({ length: rows }).map((_, index) => (
-          <Box key={index}>
+          <Box key={`stat-row-${index}`}>
             <Skeleton
               variant="rectangular"
               width="60%"

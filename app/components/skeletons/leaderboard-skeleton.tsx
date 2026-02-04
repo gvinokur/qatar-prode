@@ -1,10 +1,9 @@
 'use client'
 
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
-import { Skeleton } from "@mui/material";
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Skeleton } from "@mui/material";
 
 interface LeaderboardSkeletonProps {
-  rows?: number
+  readonly rows?: number
 }
 
 export default function LeaderboardSkeleton({ rows = 10 }: LeaderboardSkeletonProps) {
@@ -31,7 +30,7 @@ export default function LeaderboardSkeleton({ rows = 10 }: LeaderboardSkeletonPr
         </TableHead>
         <TableBody>
           {Array.from({ length: rows }).map((_, index) => (
-            <TableRow key={index}>
+            <TableRow key={`leaderboard-row-${index}`}>
               <TableCell>
                 <Skeleton variant="rectangular" width="10%" height={20} />
               </TableCell>

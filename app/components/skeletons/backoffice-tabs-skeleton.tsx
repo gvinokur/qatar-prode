@@ -1,7 +1,6 @@
 'use client'
 
-import { Box, Card, CardHeader, CardContent, Grid } from "@mui/material";
-import { Skeleton } from "@mui/material";
+import { Box, Card, CardHeader, CardContent, Grid, Skeleton } from "@mui/material";
 
 export default function BackofficeTabsSkeleton() {
   return (

@@ -1,7 +1,6 @@
 'use client'
 
-import { Box, Paper, Grid } from "@mui/material";
-import { Skeleton } from "@mui/material";
+import { Box, Paper, Grid, Skeleton } from "@mui/material";
 
 export default function TournamentFormSkeleton() {
   return (

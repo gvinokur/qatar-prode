@@ -54,9 +54,7 @@ export default function BackofficeAwardsTab({ tournamentId}: Props) {
 
   return (
     <Box pt={2}>
-      {!tournament ? (
-        <BackofficeTabsSkeleton />
-      ) : (
+      {tournament ? (
         <>
           <Card sx={{ maxWidth: '900px', mr: 'auto', ml: 'auto'}}>
             <CardHeader title={'Premios Individuales'}/>
@@ -117,6 +115,8 @@ export default function BackofficeAwardsTab({ tournamentId}: Props) {
           </Card>
           <Button loading={saving} variant='contained' size='large' onClick={saveTournament} sx={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translate(-50%, 0)' }}>Guardar Premios</Button>
         </>
+      ) : (
+        <BackofficeTabsSkeleton />
       )}
     </Box>
   );

@@ -1,11 +1,10 @@
 'use client'
 
-import { Box, Grid } from "@mui/material";
-import { Skeleton } from "@mui/material";
+import { Box, Grid, Skeleton } from "@mui/material";
 import TournamentGroupCardSkeleton from "./tournament-group-card-skeleton";
 
 interface FriendGroupListSkeletonProps {
-  count?: number
+  readonly count?: number
 }
 
 export default function FriendGroupListSkeleton({ count = 3 }: FriendGroupListSkeletonProps) {
@@ -27,7 +26,7 @@ export default function FriendGroupListSkeleton({ count = 3 }: FriendGroupListSk
       {/* Grid of group cards */}
       <Grid container spacing={3}>
         {Array.from({ length: count }).map((_, index) => (
-          <Grid size={{ xs: 12, sm: 12, md: 6 }} key={index}>
+          <Grid size={{ xs: 12, sm: 12, md: 6 }} key={`group-skeleton-${index}`}>
             <TournamentGroupCardSkeleton />
           </Grid>
         ))}

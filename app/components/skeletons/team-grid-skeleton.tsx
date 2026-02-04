@@ -1,7 +1,6 @@
 'use client'
 
-import { Box, Paper, Grid, Card } from "@mui/material";
-import { Skeleton } from "@mui/material";
+import { Box, Paper, Grid, Card, Skeleton } from "@mui/material";
 
 export default function TeamGridSkeleton() {
   return (

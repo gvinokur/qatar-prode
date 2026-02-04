@@ -1,7 +1,6 @@
 'use client'
 
-import { Box, Card, CardContent, Container } from "@mui/material";
-import { Skeleton } from "@mui/material";
+import { Box, Card, CardContent, Container, Skeleton } from "@mui/material";
 
 export default function AuthPageSkeleton() {
   return (

@@ -55,7 +55,8 @@ export default function TournamentScoringConfigTab({ tournamentId }: Props) {
         // Fetch recommended values
         const recommendedData = await getRecommendedScoringValues(tournamentId);
         setRecommended(recommendedData);
-      } catch (_error) {
+      } catch (error) {
+        console.error('Error loading scoring configuration:', error);
         setErrorMessage('Error loading scoring configuration');
       } finally {
         setLoading(false);
@@ -87,7 +88,8 @@ export default function TournamentScoringConfigTab({ tournamentId }: Props) {
       await updateTournamentScoringConfigAction(tournamentId, config);
 
       setSuccessMessage('Scoring configuration saved successfully!');
-    } catch (_error) {
+    } catch (error) {
+      console.error('Error saving configuration:', error);
       setErrorMessage('Error saving configuration');
     } finally {
       setSaving(false);

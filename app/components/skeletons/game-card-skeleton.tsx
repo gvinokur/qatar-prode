@@ -1,10 +1,9 @@
 'use client'
 
-import { Box, Divider, Stack } from "@mui/material";
-import { Skeleton } from "@mui/material";
+import { Box, Divider, Stack, Skeleton } from "@mui/material";
 
 interface GameCardSkeletonProps {
-  variant?: 'compact' | 'full'
+  readonly variant?: 'compact' | 'full'
 }
 
 export default function GameCardSkeleton({ variant = 'full' }: GameCardSkeletonProps) {
