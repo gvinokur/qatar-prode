@@ -134,6 +134,7 @@ export default async function FriendsGroup(props : Props){
             ownerId={prodeGroup.owner_user_id}
             members={members}
             bettingData={bettingData}
+            selectedTournamentId={searchParams.tournament}
           />
         </Grid>
         {(prodeGroup.owner_user_id === user.id || members.find(m => m.id === user.id)?.is_admin) && (

@@ -32,7 +32,8 @@ export default function TournamentGroupCard({ group, tournamentId }: TournamentG
           borderColor: 'primary.main',
           borderWidth: 2
         }),
-        ...(group.themeColor && {
+        // Show theme color accent only for non-leader cards
+        ...(!isLeader && group.themeColor && {
           borderLeft: `4px solid ${group.themeColor}`
         })
       }}
