@@ -34,6 +34,7 @@ Content-aware skeleton screens that:
    - Friend group lists
    - Leaderboard tables
    - Stats cards
+   - Game result/guess dialogs
 6. ✅ 80%+ test coverage on new skeleton components
 7. ✅ Zero new SonarCloud issues
 8. ✅ Accessibility: All skeletons have aria-busy, aria-label, and role attributes
@@ -51,6 +52,7 @@ Create reusable skeleton components in `app/components/skeletons/`:
 - `friend-group-list-skeleton.tsx` - Skeleton for friend group lists
 - `leaderboard-skeleton.tsx` - Skeleton for table rows
 - `stats-card-skeleton.tsx` - Skeleton for stats cards
+- `game-dialog-skeleton.tsx` - Skeleton for game result/guess dialogs
 - `index.ts` - Barrel export for all skeletons
 
 ### 2. Implementation Strategy
@@ -319,6 +321,49 @@ interface StatsCardSkeletonProps {
 }
 ```
 
+#### Game Dialog Skeleton
+
+**Matches:** GameResultEditDialog (game result/guess edit)
+
+**Layout:**
+```
+┌────────────────────────────────────────┐
+│ Edit Game Result / Guess               │
+├────────────────────────────────────────┤
+│                                        │
+│ ──────────── vs ────────────          │
+│                                        │
+│ Home Score:  [──]                     │
+│                                        │
+│ Away Score:  [──]                     │
+│                                        │
+│ ─────────────────                     │
+│ ─────────────────                     │
+│                                        │
+│              [──────] [──────]        │
+└────────────────────────────────────────┘
+```
+
+**Elements:**
+- Rectangle for team names (width: 80%, height: 20px, centered)
+- Rectangles for score labels and inputs (width: 60%, height: 40px)
+- Rectangles for boost info (width: 70%, height: 16px) - if game guess
+- Rectangle for action buttons (width: 40%, height: 36px each)
+
+**Usage:** Shows while boost counts are loading in GameResultEditDialog
+
+**Responsive:** Dialog is fixed width on desktop, full-screen on mobile
+
+**Accessibility:**
+- Container: `aria-busy="true"`, `aria-label="Loading game dialog"`, `role="status"`
+
+**Props:**
+```tsx
+interface GameDialogSkeletonProps {
+  isGameGuess?: boolean // Shows boost info skeleton if true
+}
+```
+
 ## Files to Create
 
 ### New Files
@@ -352,7 +397,13 @@ interface StatsCardSkeletonProps {
    - Props: `rows` (number of stat rows, default 3)
    - Responsive widths, accessibility
 
-6. **`/app/components/skeletons/index.ts`**
+6. **`/app/components/skeletons/game-dialog-skeleton.tsx`**
+   - GameDialogSkeleton component
+   - Matches GameResultEditDialog layout
+   - Props: `isGameGuess` (shows boost info if true)
+   - Dialog-appropriate dimensions, accessibility
+
+7. **`/app/components/skeletons/index.ts`**
    - Barrel export for all skeletons
 
 ### Files to Modify
@@ -362,7 +413,22 @@ interface StatsCardSkeletonProps {
    - Small spinner in button while saving is context-appropriate
    - No skeleton replacement needed
 
-2. **`/app/components/tournament-page/tournament-groups-list.tsx`** (Client Component)
+2. **`/app/components/game-result-edit-dialog.tsx`** (Client Component - Dialog)
+   - **Pattern:** Add conditional render for loading state
+   - **Integration:**
+     ```tsx
+     <Dialog open={open} onClose={onClose}>
+       {loading ? (
+         <GameDialogSkeleton isGameGuess={props.isGameGuess} />
+       ) : (
+         // ... dialog content ...
+       )}
+     </Dialog>
+     ```
+   - Loading state triggers when fetching boost counts (useEffect)
+   - Currently shows no loading indicator (user feedback: "does not even use a spinner")
+
+3. **`/app/components/tournament-page/tournament-groups-list.tsx`** (Client Component)
    - **Pattern:** Add `isLoading` state prop
    - **Integration:**
      ```tsx
@@ -374,12 +440,12 @@ interface StatsCardSkeletonProps {
      ```
    - Parent component (page.tsx) manages loading state
 
-3. **`/app/components/tournament-page/friend-groups-list.tsx`** (Client Component)
+4. **`/app/components/tournament-page/friend-groups-list.tsx`** (Client Component)
    - **Pattern:** Same as tournament-groups-list (isLoading prop)
    - **Integration:** Conditional render skeleton vs groups list
    - Parent manages loading
 
-4. **`/app/friend-groups/[id]/page.tsx`** (Server Component)
+5. **`/app/friend-groups/[id]/page.tsx`** (Server Component)
    - **Pattern:** Wrap ProdeGroupTable in Suspense
    - **Integration:**
      ```tsx
@@ -391,7 +457,7 @@ interface StatsCardSkeletonProps {
    - ProdeGroupTable data fetching triggers Suspense
    - **Error Handling:** Add page-level error boundary to catch data fetch errors
 
-5. **`/app/tournaments/[id]/stats/page.tsx`** (Server Component)
+6. **`/app/tournaments/[id]/stats/page.tsx`** (Server Component)
    - **Pattern:** Multiple Suspense boundaries (one per stats card)
    - **Integration:**
      ```tsx
@@ -410,7 +476,7 @@ interface StatsCardSkeletonProps {
    - Independent Suspense per card (parallel loading)
    - **Error Handling:** Add page-level error boundary
 
-6. **Other CircularProgress instances** (22 files found)
+7. **Other CircularProgress instances** (22 files found)
    - **Audit Required:** Categorize all 22 instances before implementation
    - **Categories:**
      - Button/inline loading: Keep CircularProgress
@@ -455,14 +521,23 @@ interface StatsCardSkeletonProps {
    - Card layout with stat rows
    - Responsive widths
    - Accessibility
-7. Create barrel export `index.ts`
+7. Implement `game-dialog-skeleton.tsx`:
+   - Props: `isGameGuess` (default false)
+   - Dialog layout with form fields
+   - Fixed dialog dimensions
+   - Accessibility
+8. Create barrel export `index.ts`
 
 ### Step 2: Integrate Skeletons in Client Components (1-2 hours)
-1. **tournament-groups-list.tsx:**
+1. **game-result-edit-dialog.tsx:**
+   - Add GameDialogSkeleton for boost counts loading
+   - Conditional render: `{loading ? <GameDialogSkeleton /> : <DialogContent />}`
+   - Addresses user feedback: currently no loading indicator
+2. **tournament-groups-list.tsx:**
    - Add `isLoading` prop to component
    - Conditional render: `{isLoading ? <FriendGroupListSkeleton /> : <Groups />}`
    - Parent page manages loading state
-2. **friend-groups-list.tsx:**
+3. **friend-groups-list.tsx:**
    - Same pattern as tournament-groups-list
    - Add `isLoading` prop
    - Conditional render skeleton vs content
@@ -484,7 +559,7 @@ interface StatsCardSkeletonProps {
 4. Remove unused CircularProgress imports from converted files
 
 ### Step 5: Testing & Validation (2-3 hours)
-1. Unit test each skeleton component (5 test files)
+1. Unit test each skeleton component (6 test files)
 2. Test Client Component loading transitions (isLoading toggle)
 3. Test Server Component Suspense boundaries
 4. Visual regression: Verify skeleton dimensions match content
@@ -537,21 +612,33 @@ interface StatsCardSkeletonProps {
    - Custom row count prop works
    - Has correct accessibility attributes
 
+6. **`__tests__/components/skeletons/game-dialog-skeleton.test.tsx`**
+   - Renders dialog structure
+   - Shows boost info when isGameGuess=true
+   - Hides boost info when isGameGuess=false
+   - Has correct accessibility attributes
+
 ### Integration Tests
 
-1. **Tournament groups list (Client Component):**
+1. **Game result dialog (Client Component - Dialog):**
+   - Shows skeleton while loading boost counts
+   - Shows dialog content after boost counts load
+   - Smooth transition (no layout shift)
+   - Addresses user feedback: currently no loading indicator
+
+2. **Tournament groups list (Client Component):**
    - Shows skeleton while loading (isLoading=true)
    - Shows actual groups after load (isLoading=false)
    - Smooth transition (no layout shift)
    - Parent component manages loading state correctly
 
-2. **Friend groups page (Server Component):**
+3. **Friend groups page (Server Component):**
    - Shows leaderboard skeleton while Suspense is active
    - Shows actual leaderboard after Suspense resolves
    - Smooth transition (no layout shift)
    - Error boundary catches errors correctly
 
-3. **Tournament stats page (Server Component):**
+4. **Tournament stats page (Server Component):**
    - Shows stats card skeletons while Suspense is active
    - Shows actual stats after Suspense resolves
    - Multiple independent Suspense boundaries work
