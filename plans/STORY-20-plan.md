@@ -22,7 +22,7 @@ Current top-heavy navigation within tournaments is hard to reach with thumb on m
 2. ✅ Bottom navigation displays 4 tabs with icons and labels:
    - 🏠 **Home**: Exit to main app home (`/`)
    - 🏆 **Tournament**: Tournament home (`/tournaments/[id]`)
-   - 👥 **Friend Groups**: User's prode groups overview (`/tournaments/[id]/groups`)
+   - 👥 **Friend Groups**: User's prode groups overview (`/tournaments/[id]/friend-groups`)
    - 👤 **Stats**: Tournament user stats (`/tournaments/[id]/stats`)
 3. ✅ Active tab is highlighted based on current route
 4. ✅ Smooth transitions between tabs using Next.js navigation
@@ -121,8 +121,10 @@ Mobile (<900px):
    - **Fixed position:** Always visible at bottom
 
 **Key distinction:**
-- **"Friend Groups"** (bottom nav) = Social/competition groups (`/tournaments/[id]/groups`)
+- **"Friend Groups"** (bottom nav) = Social/competition groups (`/tournaments/[id]/friend-groups`)
 - **"Tournament Groups"** (GroupSelector) = Game structure groups (`/tournaments/[id]/groups/[group_id]`)
+
+**URL Change:** This story includes renaming the route from `/tournaments/[id]/groups` to `/tournaments/[id]/friend-groups` for clarity.
 ```
 
 ### State Variations
@@ -135,7 +137,7 @@ Mobile (<900px):
 **Navigation Behavior:**
 - Tap "Home" → Navigate to `/` (main app home)
 - Tap "Tournament" → Navigate to `/tournaments/[id]` (tournament home)
-- Tap "Friend Groups" → Navigate to `/tournaments/[id]/groups` (user's prode groups)
+- Tap "Friend Groups" → Navigate to `/tournaments/[id]/friend-groups` (user's prode groups)
 - Tap "Stats" → Navigate to `/tournaments/[id]/stats`
 
 **Route Detection Logic:**
@@ -146,7 +148,7 @@ if (pathname === '/') {
   activeTab = 'main-home';
 } else if (pathname === `/tournaments/${tournamentId}`) {
   activeTab = 'tournament-home';
-} else if (pathname === `/tournaments/${tournamentId}/groups`) {
+} else if (pathname === `/tournaments/${tournamentId}/friend-groups`) {
   // Exact match for friend groups overview
   activeTab = 'friend-groups';
 } else if (pathname.startsWith(`/tournaments/${tournamentId}/stats`)) {
@@ -249,7 +251,7 @@ sx={{
 **Navigation Targets:**
 - Home: `/` (main app home)
 - Tournament: `/tournaments/${tournamentId}` (tournament home)
-- Friend Groups: `/tournaments/${tournamentId}/groups` (user's prode groups overview)
+- Friend Groups: `/tournaments/${tournamentId}/friend-groups` (user's prode groups overview)
 - Stats: `/tournaments/${tournamentId}/stats`
 
 **Active Tab Detection:**
@@ -257,15 +259,14 @@ sx={{
 const getActiveTab = (pathname: string, tournamentId: string): string => {
   if (pathname === '/') return 'main-home';
   if (pathname === `/tournaments/${tournamentId}`) return 'tournament-home';
-  // EXACT match for friend groups overview (not startsWith)
-  // startsWith would incorrectly match /tournaments/[id]/groups/[group_id]
-  if (pathname === `/tournaments/${tournamentId}/groups`) return 'friend-groups';
+  // EXACT match for friend groups overview
+  if (pathname === `/tournaments/${tournamentId}/friend-groups`) return 'friend-groups';
   if (pathname.startsWith(`/tournaments/${tournamentId}/stats`)) return 'stats';
   return 'tournament-home';
 };
 ```
 
-**Important:** The "Friend Groups" tab should ONLY be active on the exact route `/tournaments/[id]/groups` (overview page). When user is on `/tournaments/[id]/groups/[group_id]` (individual game group), no bottom nav tab should be active (or default to tournament-home), because that navigation is handled by GroupSelector tabs.
+**Important:** The "Friend Groups" tab should ONLY be active on the exact route `/tournaments/[id]/friend-groups` (overview page). Game groups remain at `/tournaments/[id]/groups/[group_id]` and are handled by GroupSelector tabs.
 
 ### 5. Footer Integration
 
@@ -319,6 +320,13 @@ const getActiveTab = (pathname: string, tournamentId: string): string => {
    - Handles route detection and navigation
    - Responsive styling with theme integration
 
+### Files to Move/Rename
+
+1. **`/app/tournaments/[id]/groups/page.tsx`** → **`/app/tournaments/[id]/friend-groups/page.tsx`** (MOVE)
+   - Rename directory from `groups/` to `friend-groups/`
+   - Move the page file to new location
+   - Update any relative imports if needed
+
 ### Files to Modify
 
 1. **`/app/tournaments/[id]/layout.tsx`** (MODIFY)
@@ -332,6 +340,19 @@ const getActiveTab = (pathname: string, tournamentId: string): string => {
    - Use `usePathname()` and `useMediaQuery()` for detection
    - Return `null` when bottom nav should take over
 
+3. **`next.config.js` or create `/app/tournaments/[id]/groups/page.tsx` as redirect** (MODIFY/CREATE)
+   - Add redirect from old URL (`/tournaments/[id]/groups`) to new URL (`/tournaments/[id]/friend-groups`)
+   - Preserve backward compatibility for bookmarks/links
+
+4. **Search and update all links** (MODIFY MULTIPLE)
+   - Find all instances of `href="/tournaments/${id}/groups"` or `href={`/tournaments/${tournamentId}/groups`}`
+   - Update to `href="/tournaments/${id}/friend-groups"` or `href={`/tournaments/${tournamentId}/friend-groups`}`
+   - Common locations:
+     - Navigation components
+     - Button/link components
+     - Server actions that return redirect URLs
+     - Test files
+
 ### Files to Reference (Read-Only)
 
 1. **`/app/components/groups-page/group-selector.tsx`**
@@ -342,6 +363,87 @@ const getActiveTab = (pathname: string, tournamentId: string): string => {
    - Verify existing padding-bottom handling
 
 ## Implementation Steps
+
+### Step 0: Rename Friend Groups Route
+
+**Goal:** Rename `/tournaments/[id]/groups` to `/tournaments/[id]/friend-groups` for clarity.
+
+**Steps:**
+
+1. **Move the page file:**
+   ```bash
+   # In worktree root
+   mkdir -p app/tournaments/[id]/friend-groups
+   mv app/tournaments/[id]/groups/page.tsx app/tournaments/[id]/friend-groups/page.tsx
+   rmdir app/tournaments/[id]/groups
+   ```
+
+2. **Search for all references to the old URL:**
+   ```bash
+   # Use grep to find all occurrences
+   grep -r "tournaments/.*}/groups" app/
+   grep -r 'tournaments/${.*}/groups' app/
+   grep -r "tournaments/['\"\`].*['\"\`]/groups" app/
+   ```
+
+3. **Update all found references:**
+   - Change `/tournaments/${id}/groups` → `/tournaments/${id}/friend-groups`
+   - Change `/tournaments/${tournamentId}/groups` → `/tournaments/${tournamentId}/friend-groups`
+   - Common files to check:
+     - Navigation components
+     - Link components
+     - Server actions with redirects
+     - Test files
+
+4. **Add redirect for backward compatibility:**
+
+   **Option A: Using Next.js middleware** (recommended):
+   Create or update `middleware.ts`:
+   ```typescript
+   import { NextResponse } from 'next/server';
+   import type { NextRequest } from 'next/server';
+
+   export function middleware(request: NextRequest) {
+     const { pathname } = request.nextUrl;
+
+     // Redirect old friend groups URL to new URL
+     const groupsMatch = pathname.match(/^\/tournaments\/(\d+)\/groups$/);
+     if (groupsMatch) {
+       const tournamentId = groupsMatch[1];
+       return NextResponse.redirect(
+         new URL(`/tournaments/${tournamentId}/friend-groups`, request.url)
+       );
+     }
+
+     return NextResponse.next();
+   }
+   ```
+
+   **Option B: Using next.config.js redirects**:
+   ```javascript
+   // In next.config.js
+   async redirects() {
+     return [
+       {
+         source: '/tournaments/:id/groups',
+         destination: '/tournaments/:id/friend-groups',
+         permanent: true, // 301 redirect
+       },
+     ];
+   }
+   ```
+
+5. **Update tests:**
+   - Update any test files that reference `/tournaments/[id]/groups`
+   - Update mock data with new URLs
+   - Update navigation test assertions
+
+6. **Verify changes:**
+   ```bash
+   # Ensure no remaining references to old URL (except redirects)
+   grep -r "tournaments/.*}/groups\"" app/
+   grep -r 'tournaments/${.*}/groups"' app/
+   ```
 
 ### Step 1: Create TournamentBottomNav Component
 
@@ -394,7 +496,7 @@ export default function TournamentBottomNav({ tournamentId, currentPath }: Props
       setValue('main-home');
     } else if (currentPath === `/tournaments/${tournamentId}`) {
       setValue('tournament-home');
-    } else if (currentPath === `/tournaments/${tournamentId}/groups`) {
+    } else if (currentPath === `/tournaments/${tournamentId}/friend-groups`) {
       // EXACT match for friend groups overview
       setValue('friend-groups');
     } else if (currentPath.startsWith(`/tournaments/${tournamentId}/stats`)) {
@@ -415,7 +517,7 @@ export default function TournamentBottomNav({ tournamentId, currentPath }: Props
         router.push(`/tournaments/${tournamentId}`);
         break;
       case 'friend-groups':
-        router.push(`/tournaments/${tournamentId}/groups`);
+        router.push(`/tournaments/${tournamentId}/friend-groups`);
         break;
       case 'stats':
         router.push(`/tournaments/${tournamentId}/stats`);
@@ -549,11 +651,12 @@ export default function Footer() {
 
 2. **Route Testing:**
    - Navigate to `/tournaments/1` → Bottom nav shows, "Tournament" active
-   - Navigate to `/tournaments/1/groups` → "Friend Groups" active
+   - Navigate to `/tournaments/1/friend-groups` → "Friend Groups" active
    - Navigate to `/tournaments/1/groups/abc123` → No tab active (GroupSelector handles this)
    - Navigate to `/tournaments/1/stats` → "Stats" active
    - Tap "Home" → Navigate to `/`
    - Navigate to `/` → No bottom nav (outside tournament context)
+   - **Redirect test:** Navigate to old URL `/tournaments/1/groups` → Redirects to `/tournaments/1/friend-groups`
 
 3. **Responsive Testing:**
    - Resize browser from desktop to mobile
@@ -646,7 +749,7 @@ After implementing mobile bottom navigation (UXI-008), mobile screens have signi
 2. **Active Tab Detection:**
    - ✅ Sets "main-home" as active when currentPath is `/`
    - ✅ Sets "tournament-home" as active when currentPath is `/tournaments/1`
-   - ✅ Sets "friend-groups" as active when currentPath is EXACTLY `/tournaments/1/groups` (not startsWith)
+   - ✅ Sets "friend-groups" as active when currentPath is EXACTLY `/tournaments/1/friend-groups`
    - ✅ Does NOT set "friend-groups" as active when on `/tournaments/1/groups/abc123` (individual game group)
    - ✅ Sets "stats" as active when currentPath starts with `/tournaments/1/stats`
    - ✅ Defaults to "tournament-home" for unknown tournament paths
@@ -654,14 +757,19 @@ After implementing mobile bottom navigation (UXI-008), mobile screens have signi
 3. **Navigation Behavior:**
    - ✅ Clicking "Home" navigates to `/`
    - ✅ Clicking "Tournament" navigates to `/tournaments/${tournamentId}`
-   - ✅ Clicking "Friend Groups" navigates to `/tournaments/${tournamentId}/groups`
+   - ✅ Clicking "Friend Groups" navigates to `/tournaments/${tournamentId}/friend-groups`
    - ✅ Clicking "Stats" navigates to `/tournaments/${tournamentId}/stats`
    - ✅ Mock `useRouter().push()` to verify navigation calls
 
 4. **Route Specificity Tests:**
-   - ✅ Friend Groups tab active on `/tournaments/1/groups` (exact match)
+   - ✅ Friend Groups tab active on `/tournaments/1/friend-groups` (exact match)
    - ✅ Friend Groups tab NOT active on `/tournaments/1/groups/abc123` (game group)
    - ✅ This ensures GroupSelector tabs remain primary navigation for game groups
+
+5. **Redirect Tests:**
+   - ✅ Old URL `/tournaments/1/groups` redirects to `/tournaments/1/friend-groups`
+   - ✅ Redirect preserves query parameters if present
+   - ✅ Redirect uses 301 (permanent) status code
 
 4. **Theme Integration:**
    - ✅ Uses theme colors for active/inactive states
@@ -703,6 +811,16 @@ describe('TournamentBottomNav', () => {
     fireEvent.click(screen.getByText('Home'));
 
     expect(mockPush).toHaveBeenCalledWith('/');
+  });
+
+  it('navigates to friend groups when Friend Groups is clicked', () => {
+    const mockPush = vi.fn();
+    mockUseRouter({ push: mockPush });
+
+    renderWithTheme(<TournamentBottomNav {...defaultProps} />);
+    fireEvent.click(screen.getByText('Friend Groups'));
+
+    expect(mockPush).toHaveBeenCalledWith('/tournaments/1/friend-groups');
   });
 
   // ... more tests
