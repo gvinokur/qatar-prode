@@ -22,7 +22,7 @@ Current top-heavy navigation within tournaments is hard to reach with thumb on m
 2. ✅ Bottom navigation displays 4 tabs with icons and labels:
    - 🏠 **Home**: Exit to main app home (`/`)
    - 🏆 **Tournament**: Tournament home (`/tournaments/[id]`)
-   - 👥 **Groups**: Tournament groups overview (`/tournaments/[id]/groups`)
+   - 👥 **Friend Groups**: User's prode groups overview (`/tournaments/[id]/groups`)
    - 👤 **Stats**: Tournament user stats (`/tournaments/[id]/stats`)
 3. ✅ Active tab is highlighted based on current route
 4. ✅ Smooth transitions between tabs using Next.js navigation
@@ -37,15 +37,18 @@ Current top-heavy navigation within tournaments is hard to reach with thumb on m
 
 ```
 ┌─────────────────────────────────────────┐
-│                                         │
-│        TOURNAMENT CONTENT               │
+│ 🏆  GRUPO A  GRUPO B  PLAYOFFS  PREMIOS │  ← GroupSelector Tabs
+├─────────────────────────────────────────┤   (Always visible - needed
+│                                         │    for tournament structure
+│        TOURNAMENT CONTENT               │    navigation)
 │        (Groups, Stats, etc.)            │
 │                                         │
 │                                         │
 │                                         │
 └─────────────────────────────────────────┘
-│  🏠      🏆       👥        👤         │  ← 56px height
-│ Home  Tournament Groups   Stats        │
+│  🏠      🏆       👥          👤       │  ← 56px height
+│ Home  Tournament  Friend    Stats      │  ← Bottom Navigation
+│                   Groups               │    (Mobile only)
 │ (active tab highlighted with primary)   │
 └─────────────────────────────────────────┘
 ```
@@ -65,9 +68,9 @@ Current top-heavy navigation within tournaments is hard to reach with thumb on m
     value="tournament-home"
   />
   <BottomNavigationAction
-    label="Groups"
+    label="Friend Groups"
     icon={<GroupsIcon />}
-    value="groups"
+    value="friend-groups"
   />
   <BottomNavigationAction
     label="Stats"
@@ -81,13 +84,45 @@ Current top-heavy navigation within tournaments is hard to reach with thumb on m
 ```
 Desktop (≥900px):
 - Bottom navigation: HIDDEN
-- Current horizontal tabs (GroupSelector): SHOWN
+- GroupSelector tabs: SHOWN (tournament structure navigation)
 - Footer: Standard footer content
 
 Mobile (<900px):
-- Bottom navigation: SHOWN (when in tournament context)
-- Current horizontal tabs: Can remain or be hidden (discuss with user)
+- Bottom navigation: SHOWN (main tournament navigation)
+- GroupSelector tabs: SHOWN (tournament structure navigation)
+- Both navigation systems coexist on mobile
 - Footer: Replaced by bottom navigation
+```
+
+### Navigation System Architecture
+
+**Two distinct navigation layers on mobile:**
+
+1. **GroupSelector Tabs (Horizontal, at top):**
+   - **Purpose:** Tournament structure navigation
+   - **Items:** Trophy icon (home), GRUPO A, GRUPO B, ..., PLAYOFFS, PREMIOS
+   - **Routes:**
+     - `/tournaments/[id]` (trophy icon)
+     - `/tournaments/[id]/groups/[group_id]` (game groups)
+     - `/tournaments/[id]/playoffs`
+     - `/tournaments/[id]/awards`
+   - **Must remain visible:** Provides access to tournament structure
+   - **Scrollable:** Horizontal scroll for many groups
+
+2. **Bottom Navigation (Fixed, at bottom):**
+   - **Purpose:** Main tournament section navigation
+   - **Items:** Home, Tournament, Friend Groups, Stats
+   - **Routes:**
+     - `/` (main app home)
+     - `/tournaments/[id]` (tournament home)
+     - `/tournaments/[id]/groups` (user's prode/friend groups overview)
+     - `/tournaments/[id]/stats` (user statistics)
+   - **Mobile only:** Hidden on desktop (≥900px)
+   - **Fixed position:** Always visible at bottom
+
+**Key distinction:**
+- **"Friend Groups"** (bottom nav) = Social/competition groups (`/tournaments/[id]/groups`)
+- **"Tournament Groups"** (GroupSelector) = Game structure groups (`/tournaments/[id]/groups/[group_id]`)
 ```
 
 ### State Variations
@@ -100,7 +135,7 @@ Mobile (<900px):
 **Navigation Behavior:**
 - Tap "Home" → Navigate to `/` (main app home)
 - Tap "Tournament" → Navigate to `/tournaments/[id]` (tournament home)
-- Tap "Groups" → Navigate to `/tournaments/[id]/groups`
+- Tap "Friend Groups" → Navigate to `/tournaments/[id]/groups` (user's prode groups)
 - Tap "Stats" → Navigate to `/tournaments/[id]/stats`
 
 **Route Detection Logic:**
@@ -111,8 +146,9 @@ if (pathname === '/') {
   activeTab = 'main-home';
 } else if (pathname === `/tournaments/${tournamentId}`) {
   activeTab = 'tournament-home';
-} else if (pathname.startsWith(`/tournaments/${tournamentId}/groups`)) {
-  activeTab = 'groups';
+} else if (pathname === `/tournaments/${tournamentId}/groups`) {
+  // Exact match for friend groups overview
+  activeTab = 'friend-groups';
 } else if (pathname.startsWith(`/tournaments/${tournamentId}/stats`)) {
   activeTab = 'stats';
 } else {
@@ -213,7 +249,7 @@ sx={{
 **Navigation Targets:**
 - Home: `/` (main app home)
 - Tournament: `/tournaments/${tournamentId}` (tournament home)
-- Groups: `/tournaments/${tournamentId}/groups`
+- Friend Groups: `/tournaments/${tournamentId}/groups` (user's prode groups overview)
 - Stats: `/tournaments/${tournamentId}/stats`
 
 **Active Tab Detection:**
@@ -221,12 +257,15 @@ sx={{
 const getActiveTab = (pathname: string, tournamentId: string): string => {
   if (pathname === '/') return 'main-home';
   if (pathname === `/tournaments/${tournamentId}`) return 'tournament-home';
-  // Use startsWith to avoid false positives with future routes
-  if (pathname.startsWith(`/tournaments/${tournamentId}/groups`)) return 'groups';
+  // EXACT match for friend groups overview (not startsWith)
+  // startsWith would incorrectly match /tournaments/[id]/groups/[group_id]
+  if (pathname === `/tournaments/${tournamentId}/groups`) return 'friend-groups';
   if (pathname.startsWith(`/tournaments/${tournamentId}/stats`)) return 'stats';
   return 'tournament-home';
 };
 ```
+
+**Important:** The "Friend Groups" tab should ONLY be active on the exact route `/tournaments/[id]/groups` (overview page). When user is on `/tournaments/[id]/groups/[group_id]` (individual game group), no bottom nav tab should be active (or default to tournament-home), because that navigation is handled by GroupSelector tabs.
 
 ### 5. Footer Integration
 
@@ -355,11 +394,13 @@ export default function TournamentBottomNav({ tournamentId, currentPath }: Props
       setValue('main-home');
     } else if (currentPath === `/tournaments/${tournamentId}`) {
       setValue('tournament-home');
-    } else if (currentPath.startsWith(`/tournaments/${tournamentId}/groups`)) {
-      setValue('groups');
+    } else if (currentPath === `/tournaments/${tournamentId}/groups`) {
+      // EXACT match for friend groups overview
+      setValue('friend-groups');
     } else if (currentPath.startsWith(`/tournaments/${tournamentId}/stats`)) {
       setValue('stats');
     }
+    // Note: Individual game groups (/tournaments/[id]/groups/[group_id]) don't activate any bottom nav tab
   }, [currentPath, tournamentId]);
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
@@ -373,7 +414,7 @@ export default function TournamentBottomNav({ tournamentId, currentPath }: Props
       case 'tournament-home':
         router.push(`/tournaments/${tournamentId}`);
         break;
-      case 'groups':
+      case 'friend-groups':
         router.push(`/tournaments/${tournamentId}/groups`);
         break;
       case 'stats':
@@ -399,7 +440,7 @@ export default function TournamentBottomNav({ tournamentId, currentPath }: Props
     >
       <BottomNavigationAction label="Home" value="main-home" icon={<Home />} />
       <BottomNavigationAction label="Tournament" value="tournament-home" icon={<EmojiEvents />} />
-      <BottomNavigationAction label="Groups" value="groups" icon={<Groups />} />
+      <BottomNavigationAction label="Friend Groups" value="friend-groups" icon={<Groups />} />
       <BottomNavigationAction label="Stats" value="stats" icon={<Person />} />
     </BottomNavigation>
   );
@@ -508,7 +549,8 @@ export default function Footer() {
 
 2. **Route Testing:**
    - Navigate to `/tournaments/1` → Bottom nav shows, "Tournament" active
-   - Navigate to `/tournaments/1/groups` → "Groups" active
+   - Navigate to `/tournaments/1/groups` → "Friend Groups" active
+   - Navigate to `/tournaments/1/groups/abc123` → No tab active (GroupSelector handles this)
    - Navigate to `/tournaments/1/stats` → "Stats" active
    - Tap "Home" → Navigate to `/`
    - Navigate to `/` → No bottom nav (outside tournament context)
@@ -532,7 +574,7 @@ export default function Footer() {
 
 **Test Cases:**
 1. **Rendering Tests:**
-   - ✅ Renders 4 navigation actions with correct labels (Home, Tournament, Groups, Stats)
+   - ✅ Renders 4 navigation actions with correct labels (Home, Tournament, Friend Groups, Stats)
    - ✅ Renders correct icons (Home, EmojiEvents, Groups, Person)
    - ✅ Applies responsive styling (hidden on desktop)
    - ✅ Shows on mobile screens
@@ -540,16 +582,22 @@ export default function Footer() {
 2. **Active Tab Detection:**
    - ✅ Sets "main-home" as active when currentPath is `/`
    - ✅ Sets "tournament-home" as active when currentPath is `/tournaments/1`
-   - ✅ Sets "groups" as active when currentPath starts with `/tournaments/1/groups`
+   - ✅ Sets "friend-groups" as active when currentPath is EXACTLY `/tournaments/1/groups` (not startsWith)
+   - ✅ Does NOT set "friend-groups" as active when on `/tournaments/1/groups/abc123` (individual game group)
    - ✅ Sets "stats" as active when currentPath starts with `/tournaments/1/stats`
    - ✅ Defaults to "tournament-home" for unknown tournament paths
 
 3. **Navigation Behavior:**
    - ✅ Clicking "Home" navigates to `/`
    - ✅ Clicking "Tournament" navigates to `/tournaments/${tournamentId}`
-   - ✅ Clicking "Groups" navigates to `/tournaments/${tournamentId}/groups`
+   - ✅ Clicking "Friend Groups" navigates to `/tournaments/${tournamentId}/groups`
    - ✅ Clicking "Stats" navigates to `/tournaments/${tournamentId}/stats`
    - ✅ Mock `useRouter().push()` to verify navigation calls
+
+4. **Route Specificity Tests:**
+   - ✅ Friend Groups tab active on `/tournaments/1/groups` (exact match)
+   - ✅ Friend Groups tab NOT active on `/tournaments/1/groups/abc123` (game group)
+   - ✅ This ensures GroupSelector tabs remain primary navigation for game groups
 
 4. **Theme Integration:**
    - ✅ Uses theme colors for active/inactive states
@@ -579,7 +627,7 @@ describe('TournamentBottomNav', () => {
     renderWithTheme(<TournamentBottomNav {...defaultProps} />);
     expect(screen.getByText('Home')).toBeInTheDocument();
     expect(screen.getByText('Tournament')).toBeInTheDocument();
-    expect(screen.getByText('Groups')).toBeInTheDocument();
+    expect(screen.getByText('Friend Groups')).toBeInTheDocument();
     expect(screen.getByText('Stats')).toBeInTheDocument();
   });
 
@@ -686,13 +734,18 @@ describe('TournamentBottomNav', () => {
 3. ✅ Navigation button labels: RESOLVED (Home, Tournament, Groups, Stats)
 4. ✅ Breakpoint consistency: Using `md` (900px) throughout plan
 5. ✅ Icon choices: RESOLVED (Home, EmojiEvents/Trophy, Groups, Person)
+6. ✅ GroupSelector visibility: RESOLVED (must remain visible on mobile for tournament structure access)
+7. ✅ Routing specificity: Use EXACT match for friend groups (`===`), not startsWith, to avoid conflicts with game groups
 
 ## Open Questions
 
-1. **GroupSelector Tabs on Mobile:**
-   - Should the current horizontal tabs (GroupSelector) remain visible on mobile when bottom nav is present?
-   - Or should we hide GroupSelector on mobile and rely solely on bottom nav?
-   - **Recommendation:** Keep GroupSelector for group-specific navigation, use bottom nav for main tournament sections
+1. **GroupSelector Tabs on Mobile:** ✅ **RESOLVED**
+   - GroupSelector MUST remain visible on mobile
+   - **Reason:** Provides access to tournament structure (GRUPO A/B/C, Playoffs, Awards)
+   - **Decision:** Both navigation systems coexist on mobile
+     - GroupSelector: Tournament structure navigation (top)
+     - Bottom Nav: Main section navigation (bottom)
+   - No overlap in functionality - they serve different purposes
 
 2. **Navigation Button Labels:** ✅ **RESOLVED**
    - Original story used "Back" to exit to main home, which was semantically confusing
@@ -704,10 +757,12 @@ describe('TournamentBottomNav', () => {
      - Stats (👤): User stats (`/tournaments/[id]/stats`)
    - This makes the navigation semantics clearer and matches user expectations
 
-3. **Animation/Transition:**
+3. **Animation/Transition:** ⚠️ **DEFERRED**
    - Should bottom nav slide in/out on route changes?
    - Should it hide on scroll for more screen space (as mentioned in story)?
-   - **Recommendation:** Start with static bottom nav, add scroll-hide as enhancement later
+   - **Decision:** Start with static bottom nav (always visible on mobile)
+   - **Rationale:** Simpler implementation, test usability first
+   - **Future enhancement:** Add scroll-hide behavior if user testing shows need for more screen space
 
 4. **Badge Counts (Future):**
    - Story mentions "Consider showing notification badges (future)"
