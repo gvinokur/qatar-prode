@@ -103,7 +103,7 @@ export default function TournamentGroupCard({ group, tournamentId }: TournamentG
       <CardActions sx={{ pt: 0, pb: 2, px: 2 }}>
         <Button
           component={Link}
-          href={`/friend-groups/${group.groupId}?tournament=${tournamentId}`}
+          href={`/tournaments/${tournamentId}/friend-groups/${group.groupId}`}
           variant="text"
           color="primary"
           size="small"
