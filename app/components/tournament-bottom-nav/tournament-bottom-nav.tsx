@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
 interface TournamentBottomNavProps {
-  tournamentId: string;
-  currentPath: string;
+  readonly tournamentId: string;
+  readonly currentPath: string;
 }
 
 export default function TournamentBottomNav({ tournamentId, currentPath }: TournamentBottomNavProps) {

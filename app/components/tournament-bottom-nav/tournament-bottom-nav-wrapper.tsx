@@ -5,7 +5,7 @@ import { useMediaQuery, useTheme } from '@mui/material';
 import TournamentBottomNav from './tournament-bottom-nav';
 
 interface TournamentBottomNavWrapperProps {
-  tournamentId: string;
+  readonly tournamentId: string;
 }
 
 export default function TournamentBottomNavWrapper({ tournamentId }: TournamentBottomNavWrapperProps) {
