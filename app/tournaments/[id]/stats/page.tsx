@@ -205,24 +205,17 @@ export default async function TournamentStatsPage(props: Props) {
   return (
     <Box pt={2}>
       <Grid container maxWidth={'868px'} mx={{md: 'auto'}} spacing={2}>
-        <Grid size={{ xs: 12, md: 8 }}>
-          <Grid container rowSpacing={2}>
-            <Grid size={12}>
-              <PerformanceOverviewCard {...performanceStats} />
-            </Grid>
-            <Grid size={12}>
-              <PredictionAccuracyCard {...accuracyStats} />
-            </Grid>
-            <Grid size={12}>
-              <BoostAnalysisCard
-                silverBoost={silverBoostStats}
-                goldenBoost={goldenBoostStats}
-              />
-            </Grid>
-          </Grid>
+        <Grid size={{ xs: 12, md: 4 }}>
+          <PerformanceOverviewCard {...performanceStats} />
         </Grid>
         <Grid size={{ xs: 12, md: 4 }}>
-          {/* Reserved for future enhancements */}
+          <PredictionAccuracyCard {...accuracyStats} />
+        </Grid>
+        <Grid size={{ xs: 12, md: 4 }}>
+          <BoostAnalysisCard
+            silverBoost={silverBoostStats}
+            goldenBoost={goldenBoostStats}
+          />
         </Grid>
       </Grid>
     </Box>
