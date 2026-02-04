@@ -4,8 +4,8 @@ import { Box, Typography, Button } from "../mui-wrappers/";
 import { Stack } from "@mui/material";
 
 interface EmptyGroupsStateProps {
-  onCreateGroup: () => void;
-  onJoinGroup: () => void;
+  readonly onCreateGroup: () => void;
+  readonly onJoinGroup: () => void;
 }
 
 export default function EmptyGroupsState({ onCreateGroup, onJoinGroup }: EmptyGroupsStateProps) {

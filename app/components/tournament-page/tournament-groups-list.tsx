@@ -19,8 +19,8 @@ import JoinGroupDialog from "./join-group-dialog";
 import { createDbGroup } from "../../actions/prode-group-actions";
 
 interface TournamentGroupsListProps {
-  groups: TournamentGroupStats[];
-  tournamentId: string;
+  readonly groups: TournamentGroupStats[];
+  readonly tournamentId: string;
 }
 
 type GroupForm = {
@@ -43,7 +43,7 @@ export default function TournamentGroupsList({ groups, tournamentId }: Tournamen
     try {
       await createDbGroup(group.name);
       // Refresh the page to show the new group
-      window.location.reload();
+      globalThis.location.reload();
     } catch (error) {
       console.error('Error creating group:', error);
     } finally {

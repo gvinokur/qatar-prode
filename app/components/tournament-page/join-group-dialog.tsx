@@ -12,8 +12,8 @@ import {
 } from "@mui/material";
 
 interface JoinGroupDialogProps {
-  open: boolean;
-  onClose: () => void;
+  readonly open: boolean;
+  readonly onClose: () => void;
 }
 
 export default function JoinGroupDialog({ open, onClose }: JoinGroupDialogProps) {

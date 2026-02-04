@@ -11,8 +11,8 @@ import {
 import type { TournamentGroupStats } from "../../definitions";
 
 interface TournamentGroupCardProps {
-  group: TournamentGroupStats;
-  tournamentId: string;
+  readonly group: TournamentGroupStats;
+  readonly tournamentId: string;
 }
 
 export default function TournamentGroupCard({ group, tournamentId }: TournamentGroupCardProps) {
