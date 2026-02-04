@@ -1,6 +1,6 @@
 'use server'
 
-import { Box, Grid } from "../../../components/mui-wrappers";
+import { Box } from "../../../components/mui-wrappers";
 import { getLoggedInUser } from "../../../actions/user-actions";
 import { redirect } from "next/navigation";
 import { getGameGuessStatisticsForUsers, getBoostAllocationBreakdown } from "../../../db/game-guess-repository";
@@ -10,6 +10,7 @@ import { findTournamentById } from "../../../db/tournament-repository";
 import { PerformanceOverviewCard } from "../../../components/tournament-stats/performance-overview-card";
 import { PredictionAccuracyCard } from "../../../components/tournament-stats/prediction-accuracy-card";
 import { BoostAnalysisCard } from "../../../components/tournament-stats/boost-analysis-card";
+import { StatsTabs } from "../../../components/tournament-stats/stats-tabs";
 
 type Props = {
   readonly params: Promise<{
@@ -203,21 +204,17 @@ export default async function TournamentStatsPage(props: Props) {
   }
 
   return (
-    <Box pt={2}>
-      <Grid container maxWidth={'868px'} mx={{md: 'auto'}} spacing={2}>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <PerformanceOverviewCard {...performanceStats} />
-        </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <PredictionAccuracyCard {...accuracyStats} />
-        </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
+    <Box pt={2} maxWidth={'868px'} mx={{md: 'auto'}}>
+      <StatsTabs
+        performanceTab={<PerformanceOverviewCard {...performanceStats} />}
+        precisionTab={<PredictionAccuracyCard {...accuracyStats} />}
+        boostsTab={
           <BoostAnalysisCard
             silverBoost={silverBoostStats}
             goldenBoost={goldenBoostStats}
           />
-        </Grid>
-      </Grid>
+        }
+      />
     </Box>
   )
 }

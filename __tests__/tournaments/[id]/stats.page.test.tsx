@@ -308,11 +308,10 @@ describe('TournamentStatsPage', () => {
       const result = await TournamentStatsPage(props);
       render(result);
 
-      // Empty states (verify cards render with empty state messages)
-      // The specific empty state messages are tested in component tests
+      // Verify tabs are rendered and first tab (Performance) shows empty state
+      expect(screen.getByRole('tab', { name: /rendimiento/i })).toBeInTheDocument();
       expect(screen.getByText('Rendimiento General')).toBeInTheDocument();
-      expect(screen.getByText('Precisión de Predicciones')).toBeInTheDocument();
-      expect(screen.getByText('Análisis de Boosts')).toBeInTheDocument();
+      // Empty state message is tested in component tests
     });
 
     it('handles division by zero in percentage calculations', async () => {
@@ -349,7 +348,7 @@ describe('TournamentStatsPage', () => {
   });
 
   describe('Layout', () => {
-    it('renders with proper layout structure', async () => {
+    it('renders with tabbed interface', async () => {
       const props = {
         params: Promise.resolve({ id: mockTournamentId }),
         searchParams: Promise.resolve({}),
@@ -358,10 +357,13 @@ describe('TournamentStatsPage', () => {
       const result = await TournamentStatsPage(props);
       render(result);
 
-      // Check that main cards are rendered (indicates proper layout)
+      // Check that tabs are rendered
+      expect(screen.getByRole('tab', { name: /rendimiento/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /precisión/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /análisis de boosts/i })).toBeInTheDocument();
+
+      // Check that the first tab content is visible by default
       expect(screen.getByText('Rendimiento General')).toBeInTheDocument();
-      expect(screen.getByText('Precisión de Predicciones')).toBeInTheDocument();
-      expect(screen.getByText('Análisis de Boosts')).toBeInTheDocument();
     });
   });
 });
