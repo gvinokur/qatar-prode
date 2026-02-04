@@ -1,9 +1,16 @@
 'use client'
 
+import { useMemo } from 'react';
 import { Box, Stack, Skeleton } from "@mui/material";
 import { getSkeletonA11yProps } from './skeleton-utils';
 
 export default function TournamentGroupCardSkeleton() {
+  // Generate stable unique keys for skeleton stat sections
+  const statKeys = useMemo(
+    () => Array.from({ length: 4 }, () => crypto.randomUUID()),
+    []
+  );
+
   return (
     <Box
       sx={{
@@ -26,65 +33,21 @@ export default function TournamentGroupCardSkeleton() {
 
       {/* Stats sections */}
       <Stack spacing={2.5}>
-        {/* Your Position */}
-        <Box>
-          <Skeleton
-            variant="rectangular"
-            width="60%"
-            height={16}
-            sx={{ mb: 0.5 }}
-          />
-          <Skeleton
-            variant="rectangular"
-            width="40%"
-            height={24}
-          />
-        </Box>
-
-        {/* Your Points */}
-        <Box>
-          <Skeleton
-            variant="rectangular"
-            width="60%"
-            height={16}
-            sx={{ mb: 0.5 }}
-          />
-          <Skeleton
-            variant="rectangular"
-            width="40%"
-            height={24}
-          />
-        </Box>
-
-        {/* Current Leader */}
-        <Box>
-          <Skeleton
-            variant="rectangular"
-            width="60%"
-            height={16}
-            sx={{ mb: 0.5 }}
-          />
-          <Skeleton
-            variant="rectangular"
-            width="40%"
-            height={24}
-          />
-        </Box>
-
-        {/* Members */}
-        <Box>
-          <Skeleton
-            variant="rectangular"
-            width="60%"
-            height={16}
-            sx={{ mb: 0.5 }}
-          />
-          <Skeleton
-            variant="rectangular"
-            width="40%"
-            height={24}
-          />
-        </Box>
+        {statKeys.map((key) => (
+          <Box key={key}>
+            <Skeleton
+              variant="rectangular"
+              width="60%"
+              height={16}
+              sx={{ mb: 0.5 }}
+            />
+            <Skeleton
+              variant="rectangular"
+              width="40%"
+              height={24}
+            />
+          </Box>
+        ))}
       </Stack>
 
       {/* Button */}
