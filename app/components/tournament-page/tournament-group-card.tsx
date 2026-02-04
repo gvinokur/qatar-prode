@@ -12,10 +12,9 @@ import type { TournamentGroupStats } from "../../definitions";
 
 interface TournamentGroupCardProps {
   group: TournamentGroupStats;
-  tournamentId: string;
 }
 
-export default function TournamentGroupCard({ group, tournamentId }: TournamentGroupCardProps) {
+export default function TournamentGroupCard({ group }: TournamentGroupCardProps) {
   const isLeader = group.userPosition === 1;
   const leaderDisplay = isLeader ? "You!" : group.leaderName;
 
@@ -99,7 +98,7 @@ export default function TournamentGroupCard({ group, tournamentId }: TournamentG
       <CardActions sx={{ pt: 0, pb: 2, px: 2 }}>
         <Button
           component={Link}
-          href={`/tournaments/${tournamentId}/groups/${group.groupId}`}
+          href={`/friend-groups/${group.groupId}`}
           variant="text"
           color="primary"
           size="small"

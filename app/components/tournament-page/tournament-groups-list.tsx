@@ -56,10 +56,14 @@ export default function TournamentGroupsList({ groups, tournamentId }: Tournamen
   if (groups.length === 0) {
     return (
       <>
-        <EmptyGroupsState
-          onCreateGroup={() => setOpenCreateDialog(true)}
-          onJoinGroup={() => setOpenJoinDialog(true)}
-        />
+        <Grid container maxWidth={'868px'} mt={1} mx={{ md: 'auto' }}>
+          <Grid size={12}>
+            <EmptyGroupsState
+              onCreateGroup={() => setOpenCreateDialog(true)}
+              onJoinGroup={() => setOpenJoinDialog(true)}
+            />
+          </Grid>
+        </Grid>
         {/* Create Dialog */}
         <Dialog
           open={openCreateDialog}
@@ -118,45 +122,51 @@ export default function TournamentGroupsList({ groups, tournamentId }: Tournamen
   }
 
   return (
-    <Box sx={{ py: 3, px: { xs: 2, sm: 3 } }}>
-      {/* Header with Actions */}
-      <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        justifyContent="space-between"
-        alignItems={{ xs: 'stretch', sm: 'center' }}
-        spacing={2}
-        sx={{ mb: 3 }}
-      >
-        <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
-          Tournament Groups
-        </Typography>
-        <Stack direction="row" spacing={1}>
-          <Button
-            variant="contained"
-            color="primary"
-            size="small"
-            onClick={() => setOpenCreateDialog(true)}
-          >
-            Create
-          </Button>
-          <Button
-            variant="outlined"
-            color="primary"
-            size="small"
-            onClick={() => setOpenJoinDialog(true)}
-          >
-            Join
-          </Button>
-        </Stack>
-      </Stack>
+    <>
+      <Grid container maxWidth={'868px'} mt={1} mx={{ md: 'auto' }} spacing={2}>
+        <Grid size={12}>
+          <Box sx={{ py: 3, px: { xs: 2, sm: 3 } }}>
+            {/* Header with Actions */}
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              justifyContent="space-between"
+              alignItems={{ xs: 'stretch', sm: 'center' }}
+              spacing={2}
+              sx={{ mb: 3 }}
+            >
+              <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
+                Tournament Groups
+              </Typography>
+              <Stack direction="row" spacing={1}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="small"
+                  onClick={() => setOpenCreateDialog(true)}
+                >
+                  Create
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  size="small"
+                  onClick={() => setOpenJoinDialog(true)}
+                >
+                  Join
+                </Button>
+              </Stack>
+            </Stack>
 
-      {/* Groups Grid */}
-      <Grid container spacing={3}>
-        {groups.map((group) => (
-          <Grid size={{ xs: 12, sm: 12, md: 6 }} key={group.groupId}>
-            <TournamentGroupCard group={group} tournamentId={tournamentId} />
-          </Grid>
-        ))}
+            {/* Groups Grid */}
+            <Grid container spacing={3}>
+              {groups.map((group) => (
+                <Grid size={{ xs: 12, sm: 12, md: 6 }} key={group.groupId}>
+                  <TournamentGroupCard group={group} />
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+        </Grid>
       </Grid>
 
       {/* Create Dialog */}
@@ -213,6 +223,6 @@ export default function TournamentGroupsList({ groups, tournamentId }: Tournamen
 
       {/* Join Dialog */}
       <JoinGroupDialog open={openJoinDialog} onClose={() => setOpenJoinDialog(false)} />
-    </Box>
+    </>
   );
 }
