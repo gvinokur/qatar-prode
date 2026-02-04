@@ -3,17 +3,17 @@
 import { Card, CardContent, CardHeader, Grid, Typography, useTheme } from "@mui/material";
 
 type Props = {
-  totalPoints: number
-  groupStagePoints: number
-  groupGamePoints: number
-  groupBoostBonus: number
-  groupQualifiedTeamsPoints: number
-  groupPositionPoints: number
-  playoffStagePoints: number
-  playoffGamePoints: number
-  playoffBoostBonus: number
-  honorRollPoints: number
-  individualAwardsPoints: number
+  readonly totalPoints: number
+  readonly groupStagePoints: number
+  readonly groupGamePoints: number
+  readonly groupBoostBonus: number
+  readonly groupQualifiedTeamsPoints: number
+  readonly groupPositionPoints: number
+  readonly playoffStagePoints: number
+  readonly playoffGamePoints: number
+  readonly playoffBoostBonus: number
+  readonly honorRollPoints: number
+  readonly individualAwardsPoints: number
 }
 
 export function PerformanceOverviewCard(props: Props) {

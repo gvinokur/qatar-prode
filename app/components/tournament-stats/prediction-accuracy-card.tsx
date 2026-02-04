@@ -3,23 +3,23 @@
 import { Card, CardContent, CardHeader, Grid, Typography, useTheme } from "@mui/material";
 
 type Props = {
-  totalPredictionsMade: number
-  totalGamesAvailable: number
-  completionPercentage: number
-  overallCorrect: number
-  overallCorrectPercentage: number
-  overallExact: number
-  overallExactPercentage: number
-  overallMissed: number
-  overallMissedPercentage: number
-  groupCorrect: number
-  groupCorrectPercentage: number
-  groupExact: number
-  groupExactPercentage: number
-  playoffCorrect: number
-  playoffCorrectPercentage: number
-  playoffExact: number
-  playoffExactPercentage: number
+  readonly totalPredictionsMade: number
+  readonly totalGamesAvailable: number
+  readonly completionPercentage: number
+  readonly overallCorrect: number
+  readonly overallCorrectPercentage: number
+  readonly overallExact: number
+  readonly overallExactPercentage: number
+  readonly overallMissed: number
+  readonly overallMissedPercentage: number
+  readonly groupCorrect: number
+  readonly groupCorrectPercentage: number
+  readonly groupExact: number
+  readonly groupExactPercentage: number
+  readonly playoffCorrect: number
+  readonly playoffCorrectPercentage: number
+  readonly playoffExact: number
+  readonly playoffExactPercentage: number
 }
 
 export function PredictionAccuracyCard(props: Props) {

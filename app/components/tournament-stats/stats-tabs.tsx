@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { Box, Tabs, Tab } from '@mui/material';
 
 interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
+  readonly children?: React.ReactNode;
+  readonly index: number;
+  readonly value: number;
 }
 
 function TabPanel(props: TabPanelProps) {
@@ -37,9 +37,9 @@ function a11yProps(index: number) {
 }
 
 type Props = {
-  performanceTab: React.ReactNode
-  precisionTab: React.ReactNode
-  boostsTab: React.ReactNode
+  readonly performanceTab: React.ReactNode
+  readonly precisionTab: React.ReactNode
+  readonly boostsTab: React.ReactNode
 }
 
 export function StatsTabs({ performanceTab, precisionTab, boostsTab }: Props) {

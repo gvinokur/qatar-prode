@@ -8,27 +8,27 @@ type BoostAllocation = {
 }
 
 type Props = {
-  silverBoost: {
-    available: number
-    used: number
-    usedPercentage: number
-    scoredGames: number
-    successRate: number
-    pointsEarned: number
-    roi: number
-    allocationByGroup: BoostAllocation[]
-    allocationPlayoffs: number
+  readonly silverBoost: {
+    readonly available: number
+    readonly used: number
+    readonly usedPercentage: number
+    readonly scoredGames: number
+    readonly successRate: number
+    readonly pointsEarned: number
+    readonly roi: number
+    readonly allocationByGroup: BoostAllocation[]
+    readonly allocationPlayoffs: number
   }
-  goldenBoost: {
-    available: number
-    used: number
-    usedPercentage: number
-    scoredGames: number
-    successRate: number
-    pointsEarned: number
-    roi: number
-    allocationByGroup: BoostAllocation[]
-    allocationPlayoffs: number
+  readonly goldenBoost: {
+    readonly available: number
+    readonly used: number
+    readonly usedPercentage: number
+    readonly scoredGames: number
+    readonly successRate: number
+    readonly pointsEarned: number
+    readonly roi: number
+    readonly allocationByGroup: BoostAllocation[]
+    readonly allocationPlayoffs: number
   }
 }
 

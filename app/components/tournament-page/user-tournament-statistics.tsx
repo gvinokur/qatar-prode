@@ -6,9 +6,9 @@ import {TournamentGuess} from "../../db/tables-definition";
 import Link from "next/link";
 
 type Props = {
-  userGameStatistics?: GameStatisticForUser
-  tournamentGuess?: TournamentGuess
-  tournamentId?: string
+  readonly userGameStatistics?: GameStatisticForUser
+  readonly tournamentGuess?: TournamentGuess
+  readonly tournamentId?: string
 }
 
 export function UserTournamentStatistics({userGameStatistics, tournamentGuess, tournamentId} : Props) {
