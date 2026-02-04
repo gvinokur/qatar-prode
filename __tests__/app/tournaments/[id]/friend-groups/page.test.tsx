@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import TournamentGroupsPage from '@/app/tournaments/[id]/groups/page';
+import TournamentGroupsPage from '@/app/tournaments/[id]/friend-groups/page';
 import { getGroupsForUser, calculateTournamentGroupStats } from '@/app/actions/prode-group-actions';
 import { getLoggedInUser } from '@/app/actions/user-actions';
 import { redirect } from 'next/navigation';
@@ -50,7 +50,7 @@ describe('TournamentGroupsPage', () => {
     const params = Promise.resolve({ id: 'tournament-1' });
     await TournamentGroupsPage({ params });
 
-    expect(redirect).toHaveBeenCalledWith('/login?redirect=/tournaments/tournament-1/groups');
+    expect(redirect).toHaveBeenCalledWith('/login?redirect=/tournaments/tournament-1/friend-groups');
   });
 
   it('redirects to tournament page if no groups data', async () => {

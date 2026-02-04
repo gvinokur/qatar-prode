@@ -15,6 +15,7 @@ import { isDevelopmentMode } from '../../utils/environment-utils';
 import { hasUserPermission } from '../../db/tournament-view-permission-repository';
 import { redirect, notFound } from 'next/navigation';
 import { DevTournamentBadge } from '../../components/common/dev-tournament-badge';
+import TournamentBottomNavWrapper from '../../components/tournament-bottom-nav/tournament-bottom-nav-wrapper';
 
 type TournamentLayoutProps = {
   readonly params: Promise<{
@@ -152,6 +153,9 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
         <EmptyAwardsSnackbar tournamentId={params.id}/>
       )}
       <EnvironmentIndicator isDev={layoutData.tournament?.dev_only || false}/>
+
+      {/* Mobile bottom navigation - only shown on mobile within tournament context */}
+      <TournamentBottomNavWrapper tournamentId={params.id} />
     </Box>
   )
  }
