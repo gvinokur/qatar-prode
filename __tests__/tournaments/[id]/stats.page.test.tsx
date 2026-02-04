@@ -10,7 +10,6 @@ import {
   findGameGuessesByUserId,
 } from '../../../app/db/game-guess-repository';
 import { findTournamentGuessByUserIdTournament } from '../../../app/db/tournament-guess-repository';
-import { getTournamentPredictionCompletion } from '../../../app/db/tournament-prediction-completion-repository';
 import { findTournamentById } from '../../../app/db/tournament-repository';
 import { findGamesInTournament } from '../../../app/db/game-repository';
 import { testFactories } from '../../db/test-factories';
@@ -37,10 +36,6 @@ vi.mock('../../../app/db/game-guess-repository', () => ({
 
 vi.mock('../../../app/db/tournament-guess-repository', () => ({
   findTournamentGuessByUserIdTournament: vi.fn(),
-}));
-
-vi.mock('../../../app/db/tournament-prediction-completion-repository', () => ({
-  getTournamentPredictionCompletion: vi.fn(),
 }));
 
 vi.mock('../../../app/db/tournament-repository', () => ({
@@ -108,12 +103,6 @@ describe('TournamentStatsPage', () => {
     allocationPlayoffs: 1,
   };
 
-  const mockPredictionCompletion = {
-    total_games: 38,
-    predicted_games: 32,
-    completion_percentage: 84.2,
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
 
@@ -129,7 +118,6 @@ describe('TournamentStatsPage', () => {
     vi.mocked(getBoostAllocationBreakdown)
       .mockResolvedValueOnce(mockSilverBoostData)
       .mockResolvedValueOnce(mockGoldenBoostData);
-    vi.mocked(getTournamentPredictionCompletion).mockResolvedValue(mockPredictionCompletion);
 
     // Mock game guesses (32 predictions)
     const mockGameGuesses = Array.from({ length: 32 }, (_, i) =>
@@ -186,11 +174,8 @@ describe('TournamentStatsPage', () => {
       expect(findTournamentGuessByUserIdTournament).toHaveBeenCalledWith(mockUser.id, mockTournamentId);
       expect(getBoostAllocationBreakdown).toHaveBeenCalledWith(mockUser.id, mockTournamentId, 'silver');
       expect(getBoostAllocationBreakdown).toHaveBeenCalledWith(mockUser.id, mockTournamentId, 'golden');
-      expect(getTournamentPredictionCompletion).toHaveBeenCalledWith(
-        mockUser.id,
-        mockTournamentId,
-        mockTournament
-      );
+      expect(findGameGuessesByUserId).toHaveBeenCalledWith(mockUser.id, mockTournamentId);
+      expect(findGamesInTournament).toHaveBeenCalledWith(mockTournamentId);
     });
   });
 
@@ -348,11 +333,6 @@ describe('TournamentStatsPage', () => {
       };
 
       vi.mocked(getGameGuessStatisticsForUsers).mockResolvedValue([statsWithZero]);
-      vi.mocked(getTournamentPredictionCompletion).mockResolvedValue({
-        total_games: 38,
-        predicted_games: 0,
-        completion_percentage: 0,
-      });
 
       const props = {
         params: Promise.resolve({ id: mockTournamentId }),

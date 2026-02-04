@@ -3,11 +3,9 @@
 import { Box } from "../../../components/mui-wrappers";
 import { getLoggedInUser } from "../../../actions/user-actions";
 import { redirect } from "next/navigation";
-import { getGameGuessStatisticsForUsers, getBoostAllocationBreakdown } from "../../../db/game-guess-repository";
+import { getGameGuessStatisticsForUsers, getBoostAllocationBreakdown, findGameGuessesByUserId } from "../../../db/game-guess-repository";
 import { findTournamentGuessByUserIdTournament } from "../../../db/tournament-guess-repository";
-import { getTournamentPredictionCompletion } from "../../../db/tournament-prediction-completion-repository";
 import { findTournamentById } from "../../../db/tournament-repository";
-import { findGameGuessesByUserId } from "../../../db/game-guess-repository";
 import { findGamesInTournament } from "../../../db/game-repository";
 import { PerformanceOverviewCard } from "../../../components/tournament-stats/performance-overview-card";
 import { PredictionAccuracyCard } from "../../../components/tournament-stats/prediction-accuracy-card";
@@ -22,50 +20,111 @@ type Props = {
 
 // Type for calculated stats passed to components
 type PerformanceStats = {
-  totalPoints: number
-  groupStagePoints: number
-  groupGamePoints: number
-  groupBoostBonus: number
-  groupQualifiedTeamsPoints: number
-  groupPositionPoints: number
-  playoffStagePoints: number
-  playoffGamePoints: number
-  playoffBoostBonus: number
-  honorRollPoints: number
-  individualAwardsPoints: number
+  readonly totalPoints: number
+  readonly groupStagePoints: number
+  readonly groupGamePoints: number
+  readonly groupBoostBonus: number
+  readonly groupQualifiedTeamsPoints: number
+  readonly groupPositionPoints: number
+  readonly playoffStagePoints: number
+  readonly playoffGamePoints: number
+  readonly playoffBoostBonus: number
+  readonly honorRollPoints: number
+  readonly individualAwardsPoints: number
 }
 
 type AccuracyStats = {
-  totalPredictionsMade: number
-  totalGamesAvailable: number
-  completionPercentage: number
-  overallCorrect: number
-  overallCorrectPercentage: number
-  overallExact: number
-  overallExactPercentage: number
-  overallMissed: number
-  overallMissedPercentage: number
-  groupCorrect: number
-  groupCorrectPercentage: number
-  groupExact: number
-  groupExactPercentage: number
-  playoffCorrect: number
-  playoffCorrectPercentage: number
-  playoffExact: number
-  playoffExactPercentage: number
+  readonly totalPredictionsMade: number
+  readonly totalGamesAvailable: number
+  readonly completionPercentage: number
+  readonly overallCorrect: number
+  readonly overallCorrectPercentage: number
+  readonly overallExact: number
+  readonly overallExactPercentage: number
+  readonly overallMissed: number
+  readonly overallMissedPercentage: number
+  readonly groupCorrect: number
+  readonly groupCorrectPercentage: number
+  readonly groupExact: number
+  readonly groupExactPercentage: number
+  readonly playoffCorrect: number
+  readonly playoffCorrectPercentage: number
+  readonly playoffExact: number
+  readonly playoffExactPercentage: number
 }
 
 type BoostStats = {
+  readonly boostType: 'silver' | 'golden'
+  readonly available: number
+  readonly used: number
+  readonly usedPercentage: number
+  readonly scoredGames: number
+  readonly successRate: number
+  readonly pointsEarned: number
+  readonly roi: number
+  readonly allocationByGroup: { groupLetter: string, count: number }[]
+  readonly allocationPlayoffs: number
+}
+
+// Helper function to calculate percentage with proper rounding
+function calculatePercentage(numerator: number, denominator: number, decimalPlaces: number = 1): number {
+  if (denominator === 0) return 0
+  const multiplier = decimalPlaces === 1 ? 1000 : 100
+  const divisor = decimalPlaces === 1 ? 10 : 1
+  return Math.round((numerator / denominator) * multiplier) / divisor
+}
+
+// Helper function to calculate accuracy stats
+function calculateAccuracyStats(
+  userGameStats: { total_correct_guesses?: number, total_exact_guesses?: number, group_correct_guesses?: number, group_exact_guesses?: number, playoff_correct_guesses?: number, playoff_exact_guesses?: number } | null,
+  totalPredictionsMade: number,
+  totalGamesAvailable: number
+): AccuracyStats {
+  const overallCorrect = userGameStats?.total_correct_guesses ?? 0
+  const overallExact = userGameStats?.total_exact_guesses ?? 0
+
+  return {
+    totalPredictionsMade,
+    totalGamesAvailable,
+    completionPercentage: calculatePercentage(totalPredictionsMade, totalGamesAvailable),
+    overallCorrect,
+    overallCorrectPercentage: calculatePercentage(overallCorrect, totalPredictionsMade),
+    overallExact,
+    overallExactPercentage: calculatePercentage(overallExact, totalPredictionsMade),
+    overallMissed: totalPredictionsMade - overallCorrect,
+    overallMissedPercentage: calculatePercentage(totalPredictionsMade - overallCorrect, totalPredictionsMade),
+    groupCorrect: userGameStats?.group_correct_guesses ?? 0,
+    groupCorrectPercentage: calculatePercentage(userGameStats?.group_correct_guesses ?? 0, totalPredictionsMade),
+    groupExact: userGameStats?.group_exact_guesses ?? 0,
+    groupExactPercentage: calculatePercentage(userGameStats?.group_exact_guesses ?? 0, totalPredictionsMade),
+    playoffCorrect: userGameStats?.playoff_correct_guesses ?? 0,
+    playoffCorrectPercentage: calculatePercentage(userGameStats?.playoff_correct_guesses ?? 0, totalPredictionsMade),
+    playoffExact: userGameStats?.playoff_exact_guesses ?? 0,
+    playoffExactPercentage: calculatePercentage(userGameStats?.playoff_exact_guesses ?? 0, totalPredictionsMade),
+  }
+}
+
+// Helper function to calculate boost stats
+function calculateBoostStats(
+  boostData: { totalBoosts: number, scoredGamesCount: number, totalPointsEarned: number, byGroup: { groupLetter: string, count: number }[], playoffCount: number },
+  maxGames: number | null | undefined,
   boostType: 'silver' | 'golden'
-  available: number
-  used: number
-  usedPercentage: number
-  scoredGames: number
-  successRate: number
-  pointsEarned: number
-  roi: number
-  allocationByGroup: { groupLetter: string, count: number }[]
-  allocationPlayoffs: number
+): BoostStats {
+  const available = maxGames ?? 0
+  const { totalBoosts, scoredGamesCount, totalPointsEarned, byGroup, playoffCount } = boostData
+
+  return {
+    boostType,
+    available,
+    used: totalBoosts,
+    usedPercentage: calculatePercentage(totalBoosts, available),
+    scoredGames: scoredGamesCount,
+    successRate: calculatePercentage(scoredGamesCount, totalBoosts),
+    pointsEarned: totalPointsEarned,
+    roi: totalBoosts > 0 ? Math.round((totalPointsEarned / totalBoosts) * 10) / 10 : 0,
+    allocationByGroup: byGroup,
+    allocationPlayoffs: playoffCount
+  }
 }
 
 export default async function TournamentStatsPage(props: Props) {
@@ -92,39 +151,33 @@ export default async function TournamentStatsPage(props: Props) {
   const silverBoostData = await getBoostAllocationBreakdown(user.id, tournamentId, 'silver')
   const goldenBoostData = await getBoostAllocationBreakdown(user.id, tournamentId, 'golden')
 
-  const predictionCompletion = await getTournamentPredictionCompletion(user.id, tournamentId, tournament)
-
   // Calculate derived metrics for Performance Overview
+  const groupGamePoints = userGameStats?.group_score ?? 0
+  const groupBoostBonus = userGameStats?.group_boost_bonus ?? 0
+  const groupQualifiedTeamsPoints = tournamentGuess?.qualified_teams_score ?? 0
+  const groupPositionPoints = tournamentGuess?.group_position_score ?? 0
+  const playoffGamePoints = userGameStats?.playoff_score ?? 0
+  const playoffBoostBonus = userGameStats?.playoff_boost_bonus ?? 0
+  const honorRollPoints = tournamentGuess?.honor_roll_score ?? 0
+  const individualAwardsPoints = tournamentGuess?.individual_awards_score ?? 0
+
+  const groupStagePoints = groupGamePoints + groupBoostBonus + groupQualifiedTeamsPoints + groupPositionPoints
+  const playoffStagePoints = playoffGamePoints + playoffBoostBonus + honorRollPoints + individualAwardsPoints
+  const totalPoints = groupStagePoints + playoffStagePoints
+
   const performanceStats: PerformanceStats = {
-    totalPoints: 0,
-    groupStagePoints: 0,
-    groupGamePoints: userGameStats?.group_score ?? 0,
-    groupBoostBonus: userGameStats?.group_boost_bonus ?? 0,
-    groupQualifiedTeamsPoints: tournamentGuess?.qualified_teams_score ?? 0,
-    groupPositionPoints: tournamentGuess?.group_position_score ?? 0,
-    playoffStagePoints: 0,
-    playoffGamePoints: userGameStats?.playoff_score ?? 0,
-    playoffBoostBonus: userGameStats?.playoff_boost_bonus ?? 0,
-    honorRollPoints: tournamentGuess?.honor_roll_score ?? 0,
-    individualAwardsPoints: tournamentGuess?.individual_awards_score ?? 0
+    totalPoints,
+    groupStagePoints,
+    groupGamePoints,
+    groupBoostBonus,
+    groupQualifiedTeamsPoints,
+    groupPositionPoints,
+    playoffStagePoints,
+    playoffGamePoints,
+    playoffBoostBonus,
+    honorRollPoints,
+    individualAwardsPoints
   }
-
-  // Calculate stage totals
-  performanceStats.groupStagePoints =
-    performanceStats.groupGamePoints +
-    performanceStats.groupBoostBonus +
-    performanceStats.groupQualifiedTeamsPoints +
-    performanceStats.groupPositionPoints
-
-  performanceStats.playoffStagePoints =
-    performanceStats.playoffGamePoints +
-    performanceStats.playoffBoostBonus +
-    performanceStats.honorRollPoints +
-    performanceStats.individualAwardsPoints
-
-  performanceStats.totalPoints =
-    performanceStats.groupStagePoints +
-    performanceStats.playoffStagePoints
 
   // Calculate Prediction Accuracy stats
   // Get actual game prediction count from game guesses
@@ -135,80 +188,11 @@ export default async function TournamentStatsPage(props: Props) {
   const allGames = await findGamesInTournament(tournamentId)
   const totalGamesAvailable = allGames.length
 
-  const accuracyStats: AccuracyStats = {
-    totalPredictionsMade,
-    totalGamesAvailable,
-    completionPercentage: totalGamesAvailable > 0
-      ? Math.round((totalPredictionsMade / totalGamesAvailable) * 1000) / 10
-      : 0,
-    overallCorrect: userGameStats?.total_correct_guesses ?? 0,
-    overallCorrectPercentage: totalPredictionsMade > 0
-      ? Math.round((userGameStats?.total_correct_guesses ?? 0) / totalPredictionsMade * 1000) / 10
-      : 0,
-    overallExact: userGameStats?.total_exact_guesses ?? 0,
-    overallExactPercentage: totalPredictionsMade > 0
-      ? Math.round((userGameStats?.total_exact_guesses ?? 0) / totalPredictionsMade * 1000) / 10
-      : 0,
-    overallMissed: totalPredictionsMade - (userGameStats?.total_correct_guesses ?? 0),
-    overallMissedPercentage: totalPredictionsMade > 0
-      ? Math.round((totalPredictionsMade - (userGameStats?.total_correct_guesses ?? 0)) / totalPredictionsMade * 1000) / 10
-      : 0,
-    groupCorrect: userGameStats?.group_correct_guesses ?? 0,
-    groupCorrectPercentage: totalPredictionsMade > 0
-      ? Math.round((userGameStats?.group_correct_guesses ?? 0) / totalPredictionsMade * 1000) / 10
-      : 0,
-    groupExact: userGameStats?.group_exact_guesses ?? 0,
-    groupExactPercentage: totalPredictionsMade > 0
-      ? Math.round((userGameStats?.group_exact_guesses ?? 0) / totalPredictionsMade * 1000) / 10
-      : 0,
-    playoffCorrect: userGameStats?.playoff_correct_guesses ?? 0,
-    playoffCorrectPercentage: totalPredictionsMade > 0
-      ? Math.round((userGameStats?.playoff_correct_guesses ?? 0) / totalPredictionsMade * 1000) / 10
-      : 0,
-    playoffExact: userGameStats?.playoff_exact_guesses ?? 0,
-    playoffExactPercentage: totalPredictionsMade > 0
-      ? Math.round((userGameStats?.playoff_exact_guesses ?? 0) / totalPredictionsMade * 1000) / 10
-      : 0,
-  }
+  const accuracyStats = calculateAccuracyStats(userGameStats, totalPredictionsMade, totalGamesAvailable)
 
   // Calculate Boost stats
-  const silverBoostStats: BoostStats = {
-    boostType: 'silver',
-    available: tournament.max_silver_games ?? 0,
-    used: silverBoostData.totalBoosts,
-    usedPercentage: (tournament.max_silver_games ?? 0) > 0
-      ? Math.round((silverBoostData.totalBoosts / (tournament.max_silver_games ?? 1)) * 1000) / 10
-      : 0,
-    scoredGames: silverBoostData.scoredGamesCount,
-    successRate: silverBoostData.totalBoosts > 0
-      ? Math.round((silverBoostData.scoredGamesCount / silverBoostData.totalBoosts) * 1000) / 10
-      : 0,
-    pointsEarned: silverBoostData.totalPointsEarned,
-    roi: silverBoostData.totalBoosts > 0
-      ? Math.round((silverBoostData.totalPointsEarned / silverBoostData.totalBoosts) * 10) / 10
-      : 0,
-    allocationByGroup: silverBoostData.byGroup,
-    allocationPlayoffs: silverBoostData.playoffCount
-  }
-
-  const goldenBoostStats: BoostStats = {
-    boostType: 'golden',
-    available: tournament.max_golden_games ?? 0,
-    used: goldenBoostData.totalBoosts,
-    usedPercentage: (tournament.max_golden_games ?? 0) > 0
-      ? Math.round((goldenBoostData.totalBoosts / (tournament.max_golden_games ?? 1)) * 1000) / 10
-      : 0,
-    scoredGames: goldenBoostData.scoredGamesCount,
-    successRate: goldenBoostData.totalBoosts > 0
-      ? Math.round((goldenBoostData.scoredGamesCount / goldenBoostData.totalBoosts) * 1000) / 10
-      : 0,
-    pointsEarned: goldenBoostData.totalPointsEarned,
-    roi: goldenBoostData.totalBoosts > 0
-      ? Math.round((goldenBoostData.totalPointsEarned / goldenBoostData.totalBoosts) * 10) / 10
-      : 0,
-    allocationByGroup: goldenBoostData.byGroup,
-    allocationPlayoffs: goldenBoostData.playoffCount
-  }
+  const silverBoostStats = calculateBoostStats(silverBoostData, tournament.max_silver_games, 'silver')
+  const goldenBoostStats = calculateBoostStats(goldenBoostData, tournament.max_golden_games, 'golden')
 
   return (
     <Box pt={2} maxWidth={'868px'} mx={{md: 'auto'}}>
