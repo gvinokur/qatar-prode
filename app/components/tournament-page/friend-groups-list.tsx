@@ -90,14 +90,20 @@ export default function FriendGroupsList({
                               groupName={userGroup.name} />
                           </>
                         }>
-                <ListItemText><Link href={`/friend-groups/${userGroup.id}`}>{userGroup.name}</Link></ListItemText>
+                <ListItemText>
+                  <Link href={tournamentId ? `/tournaments/${tournamentId}/friend-groups/${userGroup.id}` : `/friend-groups/${userGroup.id}`}>
+                    {userGroup.name}
+                  </Link>
+                </ListItemText>
               </ListItem>
             ))}
             {(userGroups.length > 0 && participantGroups.length > 0) &&  <ListItem divider/>}
             {participantGroups.map(participantGroup => (
               <ListItem key={participantGroup.id} disableGutters>
                 <ListItemText>
-                  <Link href={`/friend-groups/${participantGroup.id}`}>{participantGroup.name}</Link>
+                  <Link href={tournamentId ? `/tournaments/${tournamentId}/friend-groups/${participantGroup.id}` : `/friend-groups/${participantGroup.id}`}>
+                    {participantGroup.name}
+                  </Link>
                 </ListItemText>
               </ListItem>
             ))}
@@ -106,7 +112,7 @@ export default function FriendGroupsList({
         <CardActions>
           <Button onClick={() => setOpenCreateDialog(true)}>Crear Nuevo Grupo</Button>
           {tournamentId && (userGroups.length + participantGroups.length) > 1 && (
-            <Button component={Link} href={`/tournaments/${tournamentId}/groups`}>
+            <Button component={Link} href={`/tournaments/${tournamentId}/friend-groups`}>
               Ver Todos los Grupos
             </Button>
           )}

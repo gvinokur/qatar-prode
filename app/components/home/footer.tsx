@@ -5,6 +5,8 @@ import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import { useMediaQuery, useTheme } from '@mui/material';
+import { usePathname } from 'next/navigation';
 import { getLoggedInUser } from '../../actions/user-actions';
 import { getUserScoresForTournament, getUsersForGroup } from '../../actions/prode-group-actions';
 
@@ -18,6 +20,11 @@ const TEASING_FOOTER_GROUP_ID = process.env.NEXT_PUBLIC_TEASING_FOOTER_GROUP_ID;
 const TEASING_FOOTER_TOURNAMENT_ID = process.env.NEXT_PUBLIC_TEASING_FOOTER_TOURNAMENT_ID;
 
 function Footer({ imageUrl, message }: FooterProps) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const pathname = usePathname();
+  const isInTournamentContext = pathname.startsWith('/tournaments/');
+
   const [infoMessage, setInfoMessage] = useState<React.ReactNode | null>(null);
 
   useEffect(() => {
@@ -48,6 +55,11 @@ function Footer({ imageUrl, message }: FooterProps) {
 
     fetchUserInfo();
   }, []);
+
+  // Hide footer on mobile when in tournament context (bottom nav takes precedence)
+  if (isMobile && isInTournamentContext) {
+    return null;
+  }
 
   return (
     <AppBar

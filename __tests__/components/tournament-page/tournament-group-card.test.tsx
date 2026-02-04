@@ -64,10 +64,10 @@ describe('TournamentGroupCard', () => {
     expect(screen.queryByText('Owner')).not.toBeInTheDocument();
   });
 
-  it('has link to friend group detail page with tournament parameter', () => {
+  it('has link to tournament-scoped friend group detail page', () => {
     renderWithTheme(<TournamentGroupCard group={mockGroup} tournamentId={tournamentId} />);
     const link = screen.getByRole('link', { name: /View Details/ });
-    expect(link).toHaveAttribute('href', `/friend-groups/${mockGroup.groupId}?tournament=${tournamentId}`);
+    expect(link).toHaveAttribute('href', `/tournaments/${tournamentId}/friend-groups/${mockGroup.groupId}`);
   });
 
   it('applies theme color as left border when present', () => {
