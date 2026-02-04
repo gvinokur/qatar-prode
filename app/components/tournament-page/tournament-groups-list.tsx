@@ -161,7 +161,7 @@ export default function TournamentGroupsList({ groups, tournamentId }: Tournamen
             <Grid container spacing={3}>
               {groups.map((group) => (
                 <Grid size={{ xs: 12, sm: 12, md: 6 }} key={group.groupId}>
-                  <TournamentGroupCard group={group} />
+                  <TournamentGroupCard group={group} tournamentId={tournamentId} />
                 </Grid>
               ))}
             </Grid>

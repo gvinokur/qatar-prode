@@ -12,9 +12,10 @@ import type { TournamentGroupStats } from "../../definitions";
 
 interface TournamentGroupCardProps {
   group: TournamentGroupStats;
+  tournamentId: string;
 }
 
-export default function TournamentGroupCard({ group }: TournamentGroupCardProps) {
+export default function TournamentGroupCard({ group, tournamentId }: TournamentGroupCardProps) {
   const isLeader = group.userPosition === 1;
   const leaderDisplay = isLeader ? "You!" : group.leaderName;
 
@@ -25,11 +26,14 @@ export default function TournamentGroupCard({ group }: TournamentGroupCardProps)
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
-        border: isLeader ? 2 : 1,
-        borderColor: isLeader ? 'primary.main' : 'divider',
+        border: 1,
+        borderColor: 'divider',
+        ...(isLeader && {
+          borderColor: 'primary.main',
+          borderWidth: 2
+        }),
         ...(group.themeColor && {
-          borderTopColor: group.themeColor,
-          borderTopWidth: 4
+          borderLeft: `4px solid ${group.themeColor}`
         })
       }}
     >
@@ -98,7 +102,7 @@ export default function TournamentGroupCard({ group }: TournamentGroupCardProps)
       <CardActions sx={{ pt: 0, pb: 2, px: 2 }}>
         <Button
           component={Link}
-          href={`/friend-groups/${group.groupId}`}
+          href={`/friend-groups/${group.groupId}?tournament=${tournamentId}`}
           variant="text"
           color="primary"
           size="small"
