@@ -56,6 +56,15 @@ vi.mock('../../app/utils/theme-utils', () => ({
   getThemeLogoUrl: vi.fn().mockReturnValue('https://example.com/logo.png'),
 }));
 
+// Mock notification utils to avoid VAPID setup issues
+vi.mock('../../app/utils/notifications-utils', () => ({
+  sendGroupInviteNotification: vi.fn(),
+  sendGameUpdateNotification: vi.fn(),
+  isNotificationSupported: vi.fn(() => false),
+  checkExistingSubscription: vi.fn(() => Promise.resolve(false)),
+  requestNotificationPermission: vi.fn(() => Promise.resolve(false))
+}));
+
 // Mock @mui/material hooks
 vi.mock('@mui/material', async () => {
   const actual = await vi.importActual('@mui/material');
