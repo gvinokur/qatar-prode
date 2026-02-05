@@ -8,16 +8,25 @@
 **Related:** UXI-008 (Mobile Bottom Navigation - Completed)
 
 ### Objective
-Reduce vertical space consumption on mobile by optimizing the tournament header layout to complement the new mobile bottom navigation, maximizing content viewport area on mobile devices.
+Reduce vertical space consumption on mobile by addressing the double sticky header problem on tournament pages, maximizing content viewport area on mobile devices.
 
-### Problem Statement
-The current tournament header (logo + name + GroupSelector tabs) consumes significant vertical space (~100px) on mobile. Combined with the fixed bottom navigation from UXI-008, this reduces the available content area significantly on small screens.
+### Problem Statement (Revised)
+Tournament pages currently have **TWO sticky headers** stacking on top of each other:
+1. **App Header** (~76px) - Global navigation with app logo, app name, theme switcher, user actions
+2. **Tournament Header** (~100px) - Tournament logo + name + GroupSelector tabs
+
+**Total:** ~176px of sticky headers + ~56px bottom navigation = **232px of chrome**
+- On iPhone SE (667px): **35% of screen** consumed by navigation!
+- On iPhone 14 (844px): **27% of screen** consumed by navigation!
+
+The tournament header already has a reasonable layout. The problem is the **double sticky header architecture**.
 
 ### Success Criteria
-- ✅ Header height reduced by at least 30% on mobile during typical usage
+- ✅ Header height reduced by at least 30% on mobile (~76px saved by removing App Header)
+- ✅ All user actions remain accessible (theme switcher, user menu, home link)
 - ✅ Tournament branding remains prominent and recognizable
 - ✅ Group navigation is accessible within 2 taps/interactions
-- ✅ Smooth scroll behavior with no performance degradation
+- ✅ Smooth transitions with no performance degradation
 - ✅ User testing shows positive feedback (no usability regressions)
 - ✅ Lighthouse mobile score remains high (90+)
 
@@ -25,275 +34,287 @@ The current tournament header (logo + name + GroupSelector tabs) consumes signif
 
 ## Technical Approach
 
-### Chosen Solution: Hybrid Approach (Option 4)
+### Chosen Solution: Merge Headers on Tournament Pages
 
-After analyzing all four proposed options, I recommend a **hybrid approach** that combines:
+**Strategy:** On tournament pages (mobile only), hide the global App Header and integrate its functionality into the Tournament Header.
 
-1. **Static Layout Optimization** (Phase 1 - MVP):
-   - Horizontal logo + name layout on mobile (side-by-side instead of stacked)
-   - Reduced logo size (48px → 36px) on mobile only
-   - Tighter padding and margins
-   - Single-line header layout
-   - **Estimated savings:** 20-25% reduction (~25px saved)
+**What this achieves:**
+- **Space savings:** ~76px (entire App Header removed)
+- **All functionality preserved:** User actions, theme switcher, home navigation all available in Tournament Header
+- **Clean UX:** Single unified header for tournament context
+- **Desktop unchanged:** Keep both headers on desktop (plenty of screen real estate)
 
-2. **Progressive Enhancement - Scroll-based Collapsing** (Phase 2 - Optional):
-   - Hide logo and name when scrolling down
-   - Show only GroupSelector tabs in collapsed state
-   - Expand back to full header when scrolling up
-   - Smooth animations using MUI's `useScrollTrigger`
-   - **Additional savings:** 40-50% reduction when scrolling (~40-50px total saved)
+### Architecture Changes
 
-### Why This Approach?
+**Before (Mobile):**
+```
+┌─────────────────────────────────────────┐
+│ [App Logo] La Maquina | [Theme] [User] │ ← App Header (~76px)
+├─────────────────────────────────────────┤
+│         [Tournament Logo]               │
+│          Tournament Name                │ ← Tournament Header (~100px)
+├─────────────────────────────────────────┤
+│  [🏆] [GRUPO A] [GRUPO B] [PLAYOFFS]   │
+└─────────────────────────────────────────┘
+Total: ~176px
+```
 
-**Advantages:**
-- ✅ Progressive enhancement: Works without JS
-- ✅ Immediate space savings from layout optimization
-- ✅ Additional space savings from scroll behavior
-- ✅ Maintains easy group navigation (tabs always visible)
-- ✅ Tournament branding visible when at top of page
-- ✅ Smooth, modern UX that feels natural
-- ✅ No hamburger menu = no extra interaction required
+**After (Mobile):**
+```
+┌─────────────────────────────────────────┐
+│ [🏠] [Tnmt Logo] Name | [Theme] [User] │ ← Merged Header (~56px)
+├─────────────────────────────────────────┤
+│  [🏆] [GRUPO A] [GRUPO B] [PLAYOFFS]   │ ← Tabs (~44px)
+└─────────────────────────────────────────┘
+Total: ~100px (43% reduction!)
+```
 
-**Alternatives Considered:**
-- **Option 1 (Scroll-only):** Doesn't save space when at top of page
-- **Option 2 (Layout-only):** Limited space savings (~20-25%)
-- **Option 3 (Hamburger):** Violates "max 2 taps" requirement, reduces discoverability
+**Desktop (unchanged):**
+```
+┌─────────────────────────────────────────────────────┐
+│ [App Logo] La Maquina    [Theme] [User]            │ ← App Header
+├─────────────────────────────────────────────────────┤
+│ [Logo] Name              [Tabs........................] │ ← Tournament
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+## Implementation Strategy
+
+### Phase 1: Hide App Header on Tournament Pages (MVP)
+
+**Goal:** Conditionally hide the App Header when on tournament pages (mobile only).
+
+**Changes:**
+1. Update `app/layout.tsx` to conditionally render Header based on route
+2. Detect if current route is a tournament page (`/tournaments/*`)
+3. Hide Header on mobile (`< 900px`) for tournament routes
+4. Keep Header on desktop for all routes
+
+**Space savings:** ~76px immediately
+
+### Phase 2: Add User Actions to Tournament Header
+
+**Goal:** Integrate App Header functionality into Tournament Header.
+
+**Changes:**
+1. Add home button (icon link to `/`) to Tournament Header
+2. Add ThemeSwitcher component to Tournament Header
+3. Add UserActions component to Tournament Header
+4. Optimize Tournament Header layout for mobile:
+   - Horizontal flex layout: [Home] [Logo] [Name] | [Theme] [User]
+   - Reduce logo size: 36px (from 48px)
+   - Tighter padding
+5. Responsive: Only show integrated actions on mobile, desktop keeps original layout
+
+**Result:** Fully functional single header on mobile tournament pages
+
+### Phase 3: Visual Polish & Optimization
+
+**Goal:** Fine-tune layout, transitions, and responsive behavior.
+
+**Changes:**
+1. Add smooth transition when switching between pages (header show/hide)
+2. Optimize spacing and alignment for different screen sizes
+3. Ensure tournament name truncates properly with actions present
+4. Test with different tournaments (long names, different logo sizes)
 
 ---
 
 ## Visual Prototypes
 
-### Current Mobile Header Layout (Before)
+### Mobile Tournament Header - Before (Current State)
 
 ```
-┌─────────────────────────────────────────┐
-│                                         │
-│         [Tournament Logo]               │ ← 48px height
-│          Tournament Name                │ ← Centered
-│                                         │
-├─────────────────────────────────────────┤
-│                                         │
-│  [🏆] [GRUPO A] [GRUPO B] [PLAYOFFS]   │ ← 36px height + padding
-│                                         │
-└─────────────────────────────────────────┘
-Total: ~100px (logo section + tabs section)
+┌───────────────────────────────────────────┐
+│                                           │
+│  [60px    ] La Maquina Prode              │ ← App Header
+│  App Logo                    [🌙] [👤]    │   (~76px)
+│                                           │
+├───────────────────────────────────────────┤
+│                                           │
+│         [48px Tournament Logo]            │
+│          Qatar World Cup 2022             │ ← Tournament Header
+│                                           │   Logo + Name (~64px)
+├───────────────────────────────────────────┤
+│                                           │
+│  [🏆] [GRUPO A] [GRUPO B] [PLAYOFFS]     │ ← Tabs (~44px)
+│                                           │
+└───────────────────────────────────────────┘
+Total: ~184px (3 rows)
 ```
 
-### Phase 1: Optimized Horizontal Layout (Static)
+### Mobile Tournament Header - After (Merged)
 
 ```
-┌─────────────────────────────────────────┐
-│ [Logo] Tournament Name                  │ ← 36px height, side-by-side
-├─────────────────────────────────────────┤
-│ [🏆] [GRUPO A] [GRUPO B] [PLAYOFFS]    │ ← 36px height
-└─────────────────────────────────────────┘
-Total: ~72px (20-25% reduction)
+┌───────────────────────────────────────────┐
+│ [🏠] [36px] Qatar WC | [🌙] [👤]         │ ← Merged Header
+│       Logo  2022                          │   (~56px)
+├───────────────────────────────────────────┤
+│ [🏆] [GRUPO A] [GRUPO B] [PLAYOFFS]      │ ← Tabs (~44px)
+└───────────────────────────────────────────┘
+Total: ~100px (2 rows, 46% reduction)
 ```
 
-**Layout Changes:**
-- Logo and name on same line (horizontal flex layout)
-- Logo reduced from 48px to 36px (mobile only)
-- Reduced padding: `pt={1} pb={0.5}` instead of `pt={2} pb={1}`
-- Left-aligned instead of centered
-- Tournament name truncated with ellipsis if needed
+**Layout Details:**
+- **Home icon:** 32x32px IconButton with HomeIcon
+- **Tournament logo:** 36px height (reduced from 48px)
+- **Tournament name:** Truncated with ellipsis, `noWrap`
+- **Theme switcher:** Existing ThemeSwitcher component
+- **User actions:** Existing UserActions component
+- **Spacing:** `gap={1}` (8px) between elements
+- **Padding:** `px={1.5} py={0.75}` (12px horizontal, 6px vertical)
 
-### Phase 2: Collapsed State (Scrolling Down)
-
-```
-┌─────────────────────────────────────────┐
-│ [🏆] [GRUPO A] [GRUPO B] [PLAYOFFS]    │ ← Only tabs visible (36px)
-└─────────────────────────────────────────┘
-Total: ~44px (50% reduction from original)
-```
-
-**Scroll Behavior:**
-- When scrolling down: Logo and name slide up and fade out
-- When scrolling up: Logo and name slide down and fade in
-- Smooth transitions (250ms ease-in-out)
-- Uses MUI `useScrollTrigger` with threshold (50px scroll)
-
-### Phase 2: Expanded State (At Top or Scrolling Up)
+### Desktop Tournament Header - Unchanged
 
 ```
-┌─────────────────────────────────────────┐
-│ [Logo] Tournament Name                  │ ← Visible again (36px)
-├─────────────────────────────────────────┤
-│ [🏆] [GRUPO A] [GRUPO B] [PLAYOFFS]    │ ← Always visible (36px)
-└─────────────────────────────────────────┘
-Total: ~72px
-```
-
-### Component Structure
-
-**Material-UI Components:**
-- **AppBar** with `position="sticky"` (keep current)
-- **Grid v2** for responsive layout (keep current)
-- **Slide** component for smooth logo/name transitions (Phase 2)
-- **useScrollTrigger** hook for scroll detection (Phase 2)
-- **Tabs** component (GroupSelector - no changes needed)
-
-### Responsive Behavior
-
-**Mobile (xs < 900px):**
-- Phase 1: Horizontal logo + name layout, reduced sizes
-- Phase 2: Scroll-based collapsing enabled
-
-**Desktop (md ≥ 900px):**
-- No changes - keep current side-by-side layout (logo left, tabs right)
-- No scroll-based behavior (plenty of screen real estate)
-
-### State Management
-
-**For Phase 2 (Client Component):**
-```tsx
-const trigger = useScrollTrigger({
-  threshold: 50, // Start collapsing after 50px scroll
-  disableHysteresis: false, // Smooth transitions
-});
-
-// trigger = true when scrolled past threshold
-// trigger = false when at top or scrolling up
+┌───────────────────────────────────────────────────────────┐
+│  [App Logo] La Maquina Prode         [🌙] [👤]           │ ← App Header
+├───────────────────────────────────────────────────────────┤
+│  [Logo] Qatar WC 2022      [🏆] [GRUPO A] [GRUPO B] ...  │ ← Tournament
+└───────────────────────────────────────────────────────────┘
+Both headers visible, side-by-side layouts
 ```
 
 ---
 
 ## Files to Create/Modify
 
-### Phase 1: Static Layout Optimization
+### Phase 1: Hide App Header on Tournament Pages
 
 **Files to Modify:**
 
-1. **`/app/tournaments/[id]/layout.tsx`** (Primary Changes)
-   - **Lines 70-123:** Logo + name Grid section
-     - **KEEP Grid sizing:** `size={{ xs: 12, md: 3 }}` (unchanged - horizontal layout achieved via inner Box flex)
-     - Update padding: `pt={1} pb={0.5} pl={1.5}` (mobile), keep `pt={2} pb={1} pl={2}` (desktop)
-     - **Change INNER Box layout** from centered to horizontal flex:
-       - `display: 'flex'`
-       - `flexDirection: 'row'`
-       - `gap: 1` (8px between logo and name)
-       - `alignItems: 'center'`
-     - Add mobile-specific logo size: `maxHeight: { xs: '36px', md: '48px' }`
-     - Update text alignment: `textAlign: 'left'` (remove center on mobile)
-     - Add `Typography` `noWrap` for name truncation
-     - **Note:** Grid item stays full-width (xs: 12), but inner content is horizontal flex
-
-   - **Lines 124-135:** GroupSelector Grid section
-     - Update padding: `pt={0.5} pb={0.5}` (mobile), keep `pt={2} pb={1}` (desktop)
-     - **KEEP Grid sizing:** `size={{ xs: 12, md: 9 }}` (unchanged)
-
-   - **Result:** Two stacked rows on mobile:
-     - Row 1: Logo + name (horizontal flex within Grid item)
-     - Row 2: Group tabs (full width)
-
-2. **No Changes Needed:**
-   - `/app/components/groups-page/group-selector.tsx` - Already responsive
-   - `/app/components/common/dev-tournament-badge.tsx` - Stays inline with name
-
-### Phase 2: Scroll-based Collapsing (Progressive Enhancement)
+1. **`/app/layout.tsx`**
+   - Add route detection logic to check if current path starts with `/tournaments/`
+   - Conditionally render `<Header>` based on route and screen size
+   - Use `usePathname()` from `next/navigation` (client-side hook)
+   - **Problem:** layout.tsx is a Server Component - can't use client hooks directly
+   - **Solution:** Create a client wrapper component for conditional rendering
 
 **Files to Create:**
 
-3. **`/app/components/tournament/collapsible-tournament-header.tsx`** (New Client Component)
-   - **Purpose:** Wraps logo+name section with scroll-based visibility
+2. **`/app/components/header/conditional-header.tsx`** (New Client Component)
+   - **Purpose:** Wrap Header with route-based visibility logic
    - **Props:**
-     - `children: React.ReactNode` (logo + name content)
-     - `backgroundColor?: string` (theme primary color)
-     - `threshold?: number` (default 50px)
+     - `children: React.ReactNode` (Header component)
+     - `hideOnMobile?: boolean` (whether to hide on mobile)
    - **Behavior:**
-     - Uses `useScrollTrigger` to detect scroll
-     - Wraps children in `Slide` component (direction="down")
-     - Shows children when `!trigger` (at top or scrolling up)
-     - Hides children when `trigger` (scrolling down past threshold)
-   - **Animation:**
-     - Smooth slide + fade transitions (250ms)
-     - **Layout shift prevention:**
-       - Use `visibility: hidden` instead of unmounting when collapsed
-       - OR: Set fixed `min-height` on parent Grid to prevent height changes
-       - Measure CLS (Cumulative Layout Shift) in Lighthouse to verify
-   - **Performance:**
-     - Scroll listener uses MUI's optimized `useScrollTrigger` (built-in throttling)
-     - Test on slow devices to verify 60fps maintained
+     - Uses `usePathname()` to detect current route
+     - Uses `useMediaQuery()` to detect mobile breakpoint
+     - Returns null if on tournament route AND on mobile
+     - Returns children otherwise
+   - Client component with `'use client'` directive
+
+### Phase 2: Add User Actions to Tournament Header
 
 **Files to Modify:**
 
-4. **`/app/tournaments/[id]/layout.tsx`** (Phase 2 Updates)
-   - Import `CollapsibleTournamentHeader` (dynamic import for client-side only)
-   - Wrap logo+name Grid section with collapsible wrapper
-   - Add `'use client'` directive if needed (or keep Server Component and use dynamic import)
-   - Pass tournament theme colors to wrapper
+3. **`/app/tournaments/[id]/layout.tsx`**
+   - Import `ThemeSwitcher` and `UserActions` components
+   - Import `HomeIcon` from MUI icons
+   - Update logo + name Grid section (lines 70-123):
+     - Add home icon button (links to `/`)
+     - Add ThemeSwitcher component
+     - Add UserActions component
+     - Change to horizontal flex layout
+     - Reduce logo size to 36px on mobile
+     - Tighter padding: `px={1.5} py={0.75}`
+     - Responsive: Show actions only on mobile (`display: { xs: 'flex', md: 'none' }`)
+   - Update GroupSelector Grid section:
+     - Tighter padding: `py={0.5}`
 
-**Server/Client Boundary:**
-- **Current:** `layout.tsx` is a Server Component by default (Next.js App Router convention)
-  - Note: The `'use server'` directive at top of file is for Server Actions, not the component itself
-  - The layout performs server-side data fetching and remains a Server Component
-- **Solution:** Use dynamic import to load client component for Phase 2:
-  ```tsx
-  const CollapsibleHeader = dynamic(() => import('@/components/tournament/collapsible-tournament-header'), {
-    ssr: false // Client-side only, no SSR to avoid hydration mismatches
-  });
-  ```
-- This keeps the layout as a Server Component while adding progressive enhancement
-- **Hydration:** With `ssr: false`, the collapsible wrapper mounts only on client side
-  - No hydration warnings expected (client-only component)
-  - Logo/name content rendered on server, wrapped by client component post-mount
-  - Minimal layout shift during mount (component appears instantly)
+4. **`/app/components/header/theme-switcher.tsx`**
+   - (Review) May need size prop for smaller icon in tournament header
+   - If current size is too large, add optional `size` prop
+
+5. **`/app/components/header/user-actions.tsx`**
+   - (Review) May need compact mode for tournament header
+   - If current layout is too wide, add optional `compact` prop
 
 ---
 
 ## Implementation Steps
 
-### Phase 1: Static Layout Optimization (MVP)
+### Phase 1: Hide App Header on Tournament Pages
 
-**Step 1.1: Update Logo + Name Grid Section**
-- Modify `/app/tournaments/[id]/layout.tsx` lines 70-123
-- Change to horizontal flex layout on mobile
-- Reduce logo size to 36px on mobile
-- Tighten padding to `pt={1} pb={0.5}`
-- Add `noWrap` to tournament name Typography
-- Test: Verify header is shorter, logo and name are side-by-side
+**Step 1.1: Create Conditional Header Wrapper**
+- Create `/app/components/header/conditional-header.tsx`
+- Implement route detection with `usePathname()`
+- Implement breakpoint detection with `useMediaQuery(theme.breakpoints.down('md'))`
+- Logic: Hide if path starts with `/tournaments/` AND mobile
+- Export as client component
 
-**Step 1.2: Update GroupSelector Grid Section**
-- Modify `/app/tournaments/[id]/layout.tsx` lines 124-135
-- Reduce padding to `pt={0.5} pb={0.5}` on mobile
-- Test: Verify tabs are closer to logo section
+**Step 1.2: Integrate Conditional Header in Root Layout**
+- Update `/app/layout.tsx`
+- Wrap `<Header>` with `<ConditionalHeader>`
+- Test: App Header should disappear on tournament pages (mobile only)
+- Test: App Header should remain on home page (all screen sizes)
+- Test: App Header should remain on desktop tournament pages
 
-**Step 1.3: Responsive Breakpoint Verification**
-- Test on mobile (< 900px): Horizontal layout, reduced sizes
-- Test on desktop (≥ 900px): Original layout unchanged
-- Test with different tournament themes (colors, logos)
+**Step 1.3: Test Route Detection**
+- Test `/tournaments/123` - Header should hide on mobile
+- Test `/tournaments/123/groups/A` - Header should hide on mobile
+- Test `/` - Header should show
+- Test `/profile` - Header should show
+- Test on desktop - Header should always show
+
+### Phase 2: Add User Actions to Tournament Header
+
+**Step 2.1: Add Home Icon to Tournament Header**
+- Import `HomeIcon` from `@mui/icons-material`
+- Add `IconButton` with `HomeIcon` as first element in logo section
+- Link to `/` using Next.js `Link`
+- Size: 32x32px
+- Test: Click navigates to home
+
+**Step 2.2: Add Theme Switcher to Tournament Header**
+- Import `ThemeSwitcher` from `@/app/components/header/theme-switcher`
+- Add after tournament name, before UserActions
+- Use responsive display: `sx={{ display: { xs: 'flex', md: 'none' } }}`
+- Test: Theme switching works correctly
+
+**Step 2.3: Add User Actions to Tournament Header**
+- Import `UserActions` from `@/app/components/header/user-actions`
+- Pass `user` prop from layout props
+- Add as last element in logo section
+- Use responsive display: `sx={{ display: { xs: 'flex', md: 'none' } }}`
+- Test: User menu works (login, logout, profile)
+
+**Step 2.4: Optimize Layout for Integrated Actions**
+- Update Grid section to horizontal flex:
+  - `display: 'flex'`
+  - `flexDirection: 'row'`
+  - `justifyContent: 'space-between'`
+  - `alignItems: 'center'`
+  - `gap: 1` (8px)
+- Reduce logo size: `maxHeight: { xs: '36px', md: '48px' }`
+- Update padding: `px={{ xs: 1.5, md: 2 }} py={{ xs: 0.75, md: 2 }}`
+- Add name truncation: `noWrap` on Typography
+
+**Step 2.5: Responsive Behavior**
+- Actions visible only on mobile: `display: { xs: 'flex', md: 'none' }`
+- Desktop keeps original layout (no actions in tournament header)
+- Test on 320px, 375px, 600px, 900px widths
+
+### Phase 3: Visual Polish
+
+**Step 3.1: Spacing & Alignment**
+- Fine-tune gaps between elements
+- Ensure vertical centering of all elements
+- Test with short and long tournament names
 - Test with dev tournament badges
 
-**Step 1.4: Visual Regression Testing**
-- Compare before/after screenshots
-- Measure header heights (should be ~72px on mobile, down from ~100px)
-- Verify 20-25% space savings
+**Step 3.2: Transition Effects (Optional)**
+- Add smooth fade-in/out for header visibility changes
+- Use CSS transitions for route changes
+- Target: 200ms fade transition
 
-### Phase 2: Scroll-based Collapsing (Progressive Enhancement)
-
-**Step 2.1: Create Collapsible Header Component**
-- Create `/app/components/tournament/collapsible-tournament-header.tsx`
-- Implement `useScrollTrigger` logic (threshold: 50px)
-- Wrap children in `Slide` component
-- Add smooth transitions (250ms ease-in-out)
-- Export as client component with `'use client'` directive
-
-**Step 2.2: Integrate into Layout**
-- Add dynamic import to `/app/tournaments/[id]/layout.tsx`
-- Wrap logo+name Grid section with `CollapsibleHeader`
-- Pass theme colors and threshold props
-- Test: Verify scroll behavior works smoothly
-
-**Step 2.3: Animation Tuning**
-- Test scroll performance (should maintain 60fps)
-- Adjust threshold if needed (50px may need tuning)
-- Verify no layout shifts or jank
-- Test on slower devices and throttled CPU
-
-**Step 2.4: Edge Case Testing**
-- Test with short pages (no scroll)
-- Test with rapid scroll up/down
-- Test with touch vs. mouse scroll
-- Test on iOS Safari, Chrome Mobile, Firefox Mobile
+**Step 3.3: Edge Cases**
+- Test with very long tournament names (truncation)
+- Test with different logo aspect ratios
+- Test with user not logged in (no user menu)
+- Test theme switching on tournament page
 
 ---
 
@@ -301,130 +322,118 @@ const trigger = useScrollTrigger({
 
 ### Unit Tests
 
-**File:** `/app/components/tournament/__tests__/collapsible-tournament-header.test.tsx`
+**File:** `/app/components/header/__tests__/conditional-header.test.tsx`
 
 **Test Cases:**
-1. **Renders children when not scrolled:**
-   - Mock `useScrollTrigger` to return `false`
-   - Verify children are visible
+1. **Shows header on home page:**
+   - Mock `usePathname()` to return `/`
+   - Mock `useMediaQuery()` to return `true` (mobile)
+   - Verify children are rendered
 
-2. **Hides children when scrolled past threshold:**
-   - Mock `useScrollTrigger` to return `true`
-   - Verify `Slide` component has `in={false}`
+2. **Hides header on tournament page (mobile):**
+   - Mock `usePathname()` to return `/tournaments/123`
+   - Mock `useMediaQuery()` to return `true` (mobile)
+   - Verify children are NOT rendered (null)
 
-3. **Respects custom threshold prop:**
-   - Pass custom threshold (e.g., 100px)
-   - Verify it's passed to `useScrollTrigger`
+3. **Shows header on tournament page (desktop):**
+   - Mock `usePathname()` to return `/tournaments/123`
+   - Mock `useMediaQuery()` to return `false` (desktop)
+   - Verify children are rendered
 
-4. **Applies background color correctly:**
-   - Pass custom `backgroundColor` prop
-   - Verify it's applied to wrapper
-
-5. **Smooth transition timing:**
-   - Verify transition duration is 250ms
-   - Verify easing function is `ease-in-out`
+4. **Handles nested tournament routes:**
+   - Mock paths: `/tournaments/123/groups/A`, `/tournaments/123/stats`
+   - Verify header hides on mobile for all
 
 **Test Utilities:**
-- Use `@testing-library/react` with `renderWithTheme()` from test utils
-- **Mock `@mui/material/useScrollTrigger`** for unit tests (see existing patterns in codebase)
-- Use `screen.getByText()` to verify children visibility
-- **For integration tests:** Use `fireEvent.scroll()` to simulate scroll events:
-  ```tsx
-  fireEvent.scroll(window, { target: { scrollY: 100 } });
-  ```
-- Test realistic scroll distances (50px, 100px, 200px) to verify threshold behavior
+- Mock `next/navigation` `usePathname()` hook
+- Mock MUI `useMediaQuery()` hook
+- Use `renderWithTheme()` from test utils
 
 ### Integration Tests
 
 **File:** `/app/tournaments/[id]/__tests__/layout.test.tsx`
 
 **Test Cases:**
-1. **Phase 1 - Mobile layout is horizontal:**
-   - Render layout with mobile viewport
-   - Verify logo and name are in same Grid row
-   - Verify logo max-height is 36px on mobile
+1. **Mobile tournament header includes all actions:**
+   - Render with mobile viewport
+   - Verify home icon button present
+   - Verify theme switcher present
+   - Verify user actions present (if logged in)
 
-2. **Phase 1 - Desktop layout unchanged:**
-   - Render layout with desktop viewport
-   - Verify logo section is md=3, tabs section is md=9
-   - Verify logo max-height is 48px on desktop
+2. **Desktop tournament header excludes actions:**
+   - Render with desktop viewport
+   - Verify actions NOT present in tournament header
+   - Verify original layout preserved
 
-3. **Phase 2 - Collapsible header integrates correctly:**
-   - Mock dynamic import to return test component
-   - Verify logo+name section is wrapped
-   - Verify theme colors are passed correctly
+3. **Tournament logo size reduced on mobile:**
+   - Render with mobile viewport
+   - Verify logo max-height is 36px
 
-4. **Dev tournament badge positioning:**
-   - Render with dev tournament data
-   - Verify badge appears inline with name
-   - Verify layout doesn't break
+4. **Tournament name truncates when too long:**
+   - Render with very long tournament name
+   - Verify Typography has `noWrap`
+   - Verify text truncates with ellipsis
+
+5. **Home button navigates correctly:**
+   - Render tournament header
+   - Click home icon button
+   - Verify Link href is `/`
 
 **Test Data:**
 - Use `testFactories.createTournament()` with custom theme
-- Mock `getTournamentAndGroupsData()` with tournament + groups data
-- Mock user authentication state
+- Mock `getTournamentAndGroupsData()`
+- Mock user authentication state (logged in/out)
 
 ### Manual Testing Checklist
 
 **Phase 1:**
-- [ ] Measure header height on mobile (iPhone, Android)
-- [ ] Verify 20-25% space savings (target: ~72px)
-- [ ] Test with different screen sizes (320px to 900px)
-  - [ ] 320px (iPhone SE)
-  - [ ] 375px (iPhone 12/13)
-  - [ ] 390px (iPhone 14)
-  - [ ] 600px (tablet breakpoint)
-  - [ ] 900px (desktop breakpoint)
-- [ ] Test with different tournament themes (colors, logos)
-- [ ] **CRITICAL: Logo branding validation at 36px**
-  - [ ] Screenshot all tournament logos at 36px on real mobile device
-  - [ ] Verify logos remain recognizable and not pixelated
-  - [ ] Get stakeholder approval on 36px sizing before commit
-  - [ ] If 36px too small, try 40px as fallback
-- [ ] Test tournament name truncation with long names
-- [ ] Test dev tournament badge positioning
-- [ ] Verify desktop layout unchanged (≥ 900px)
+- [ ] App Header hidden on tournament pages (mobile)
+- [ ] App Header visible on home page (mobile)
+- [ ] App Header visible on all pages (desktop)
+- [ ] No layout shift when navigating between pages
+- [ ] Test on different tournament routes:
+  - [ ] `/tournaments/123`
+  - [ ] `/tournaments/123/groups/A`
+  - [ ] `/tournaments/123/stats`
+  - [ ] `/tournaments/123/playoffs`
 
 **Phase 2:**
-- [ ] Scroll down slowly - verify smooth collapse
-- [ ] Scroll up slowly - verify smooth expand
-- [ ] Rapid scroll up/down - verify no jank
-- [ ] Test on short pages (no scroll available)
-- [ ] Test on long pages (extensive scrolling)
-- [ ] Measure FPS during scroll (should be 60fps)
-- [ ] Test on iOS Safari (iPhone)
-- [ ] Test on Chrome Mobile (Android)
-- [ ] Test on Firefox Mobile
-- [ ] Test with touch gestures vs. mouse wheel
+- [ ] Home icon appears in tournament header (mobile only)
+- [ ] Home icon navigates to home page
+- [ ] Theme switcher appears in tournament header (mobile only)
+- [ ] Theme switching works correctly
+- [ ] User actions appear in tournament header (mobile only)
+- [ ] User menu works (login, logout, profile)
+- [ ] Tournament logo reduced to 36px (mobile)
+- [ ] Tournament name truncates when too long
+- [ ] Layout fits within viewport (no horizontal scroll)
+- [ ] Test with logged out user:
+  - [ ] Login button appears in tournament header
+- [ ] Test with different tournaments:
+  - [ ] Short names, long names
+  - [ ] Different logos and colors
+  - [ ] Dev tournament badges
+
+**Responsive Testing:**
+- [ ] 320px (iPhone SE): All elements fit, no overlap
+- [ ] 375px (iPhone 12/13): Comfortable spacing
+- [ ] 390px (iPhone 14): Comfortable spacing
+- [ ] 600px (tablet): Transition to desktop behavior
+- [ ] 900px+ (desktop): Original layout, no actions in tournament header
 
 **Accessibility:**
-- [ ] Keyboard navigation works (tab through header elements)
-- [ ] Screen reader announces tournament name correctly
-- [ ] **Screen reader support for collapsed state (Phase 2):**
-  - [ ] Test with VoiceOver (Mac/iOS) and NVDA/JAWS (Windows)
-  - [ ] Verify collapsed/expanded state is announced
-  - [ ] Add ARIA attributes if needed (aria-hidden, aria-expanded)
-- [ ] **Focus management during collapse (Phase 2):**
-  - [ ] Test Tab key navigation before/after collapse
-  - [ ] Verify focus doesn't get lost when header collapses
-  - [ ] Ensure focus indicator remains visible during animation
-- [ ] Focus indicators are visible
-- [ ] No accessibility warnings in browser console
-- [ ] Test with keyboard-only navigation (no mouse)
+- [ ] Home icon button has accessible label
+- [ ] Keyboard navigation works (Tab through all elements)
+- [ ] Screen reader announces home button correctly
+- [ ] Focus indicators visible on all interactive elements
+- [ ] Theme switcher remains accessible
+- [ ] User menu remains accessible
 
 **Performance:**
-- [ ] Run Lighthouse mobile audit (target: 90+)
-  - [ ] **Measure CLS (Cumulative Layout Shift)** - should be < 0.1
-  - [ ] Verify no layout shifts during scroll collapse (Phase 2)
-- [ ] Check Performance tab in DevTools (no dropped frames)
-- [ ] **Scroll performance profiling (Phase 2):**
-  - [ ] Record scroll interaction in DevTools Performance tab
-  - [ ] Verify 60fps maintained during scroll (16ms per frame)
-  - [ ] Check for scroll listener bottlenecks
-  - [ ] Test on slow 3G + CPU throttle (4x slowdown)
-  - [ ] Monitor battery drain on mobile device (extensive scrolling)
-- [ ] Verify no unnecessary re-renders
-- [ ] **Consider debouncing if jank detected** (add to implementation if needed)
+- [ ] No layout shifts (CLS < 0.1)
+- [ ] Smooth route transitions
+- [ ] No unnecessary re-renders
+- [ ] Lighthouse mobile score ≥ 90
 
 ---
 
@@ -437,43 +446,40 @@ const trigger = useScrollTrigger({
 1. **Tests:** `npm test`
    - All unit tests pass
    - All integration tests pass
-   - No skipped or failing tests
+   - Coverage ≥ 80% on new code
 
 2. **Linter:** `npm run lint`
    - No ESLint errors
    - No unused imports
-   - Code style consistent
 
 3. **Build:** `npm run build`
    - Production build succeeds
    - No TypeScript errors
-   - No build warnings
 
 4. **Manual Visual Check:**
    - View on mobile device or simulator
-   - Verify header looks correct
-   - Verify scroll behavior is smooth (Phase 2)
+   - Verify header merged correctly
+   - Verify all actions work
 
 ### Post-Deployment Validation
 
 **After deploying to Vercel Preview:**
 
 1. **User Testing:**
-   - Ask user to test on real mobile device
-   - Gather feedback on space savings
-   - Verify no usability regressions
+   - Test on real mobile device (iPhone, Android)
+   - Gather feedback on space savings and usability
+   - Verify no confusion about missing App Header
 
 2. **Lighthouse Audit:**
    - Run on Vercel Preview URL
    - Verify mobile score ≥ 90
-   - Verify performance metrics meet baseline
+   - Verify CLS < 0.1
 
 3. **SonarCloud Checks:**
    - Wait for CI/CD to complete
-   - Analyze SonarCloud results: `./scripts/github-projects-helper pr sonar-issues <PR_NUMBER>`
+   - Analyze: `./scripts/github-projects-helper pr sonar-issues <PR_NUMBER>`
    - **Must have:** 0 new issues of ANY severity
    - **Must have:** ≥80% coverage on new code
-   - Fix any issues before merging
 
 ---
 
@@ -481,21 +487,21 @@ const trigger = useScrollTrigger({
 
 ### For User Review:
 
-1. **Phase 1 Logo Size:** Is 36px acceptable for mobile logo, or should we try 40px first?
-   - 36px: More space savings, but may look too small
-   - 40px: Less savings, but safer for branding
+1. **Should the home icon be visible on desktop as well?**
+   - Current plan: Mobile only (desktop has App Header with home link)
+   - Alternative: Show on desktop too for consistency
 
-2. **Phase 2 Scroll Threshold:** Should we use 50px or 100px scroll before collapsing?
-   - 50px: Collapses quickly, maximizes space
-   - 100px: More conservative, less aggressive
+2. **Tournament logo size: 36px or 40px on mobile?**
+   - 36px: More space savings
+   - 40px: Better branding, less aggressive
 
-3. **Progressive Rollout:** Should we deploy Phase 1 first and gather feedback before implementing Phase 2?
-   - Advantage: Iterative, less risk
-   - Disadvantage: Longer timeline to full space savings
+3. **Should we add a transition animation when hiding/showing App Header?**
+   - Fade transition (200ms) when navigating between pages
+   - Or instant hide/show for snappier feel?
 
-4. **Desktop Behavior:** Should Phase 2 scroll behavior apply to desktop as well, or keep it mobile-only?
-   - Current plan: Mobile-only (desktop has plenty of space)
-   - Alternative: Apply to all screen sizes for consistency
+4. **What about other non-tournament pages (profile, settings, etc.)?**
+   - Current plan: Keep App Header on all non-tournament pages
+   - Should any other pages hide App Header?
 
 ---
 
@@ -505,82 +511,77 @@ const trigger = useScrollTrigger({
 - ✅ Material-UI v7 with Grid v2 - Already in use
 - ✅ Next.js 15.3 with App Router - Already in use
 - ✅ Tournament layout structure - Already in place
+- ✅ ThemeSwitcher component - Already exists
+- ✅ UserActions component - Already exists
 
 ---
 
 ## Migration & Rollback Plan
 
 ### Migration Strategy
-- **Phase 1:** Simple prop changes, backward compatible
-  - Can be deployed independently without Phase 2
-  - No breaking changes to GroupSelector component
-  - No database changes needed
-  - Safe to deploy to production immediately after testing
-- **Phase 2:** Progressive enhancement, works without JS
-  - **Requires Phase 1 to be deployed first** (depends on Phase 1 layout changes)
-  - Can be deployed separately after Phase 1 is validated by users
-  - Fails gracefully if JS disabled (reverts to Phase 1 static layout)
-  - No database changes needed
-- **Deployment Timeline:**
-  - Option A: Deploy Phase 1, gather feedback, then deploy Phase 2 (recommended)
-  - Option B: Deploy both phases together if Phase 1 testing shows no issues
+
+**Phase 1:** Hide App Header (non-breaking)
+- Conditionally hide App Header on tournament pages
+- No functionality loss (actions still in App Header on desktop)
+- Safe to deploy, test, and rollback easily
+
+**Phase 2:** Add actions to Tournament Header (additive)
+- Add components to Tournament Header
+- Actions duplicated in both headers temporarily
+- Can deploy and test before Phase 3
+
+**Phase 3:** Finalize (cleanup)
+- No additional changes, just testing and polish
+
+**Deployment:**
+- Deploy Phase 1 first, gather feedback
+- Deploy Phase 2 after Phase 1 validated
+- All phases can be deployed independently
 
 ### Rollback Plan
+
 If issues arise:
-1. **Phase 1 rollback:**
-   - Revert padding and layout changes (simple Git revert)
-   - No data loss risk (no DB changes)
-   - Restore original header spacing immediately
-2. **Phase 2 rollback:**
-   - Remove dynamic import and collapsible wrapper (Git revert)
-   - Phase 1 changes remain intact (static layout optimization stays)
-   - No data loss risk (no DB changes)
-3. **Full rollback:**
-   - Revert both Phase 1 and Phase 2 commits
-   - Returns to original header layout
-   - No cleanup required (no DB schema changes)
 
----
+**Phase 1 rollback:**
+1. Remove ConditionalHeader wrapper from layout.tsx
+2. Restore direct `<Header>` rendering
+3. App Header visible on all pages again
 
-## Timeline Estimate
+**Phase 2 rollback:**
+1. Remove added components from Tournament Header layout
+2. Tournament Header returns to original state
+3. App Header remains hidden if Phase 1 not rolled back
+4. OR rollback Phase 1 as well for full restoration
 
-**Phase 1 (MVP):**
-- Implementation: ~2-3 hours
-- Testing: ~1 hour
-- Review & deployment: ~1 hour
-- **Total:** ~4-5 hours
-
-**Phase 2 (Enhancement):**
-- Implementation: ~3-4 hours
-- Testing: ~2 hours
-- Performance tuning: ~1 hour
-- Review & deployment: ~1 hour
-- **Total:** ~7-8 hours
-
-**Grand Total:** ~11-13 hours (if both phases)
+**No data loss risk:**
+- No database changes
+- No breaking changes to data structures
+- Pure UI changes
 
 ---
 
 ## Success Metrics
 
 **Quantitative:**
-- Header height reduced from ~100px to ~72px (Phase 1) or ~44px when scrolling (Phase 2)
-- 28-56% space savings achieved
+- Header height reduced from ~176px to ~100px (43% reduction!)
+- Space savings: ~76px on mobile
 - Lighthouse mobile score maintains ≥90
-- 60fps scroll performance maintained
+- CLS (Cumulative Layout Shift) < 0.1
 
 **Qualitative:**
 - User testing shows positive feedback
 - No increase in support tickets about navigation
-- No accessibility regressions
+- Users don't report missing functionality
 - Tournament branding remains recognizable
+- Navigation feels intuitive
 
 ---
 
 ## Notes
 
-- Focus on mobile experience first (< 900px breakpoint)
-- Desktop experience remains unchanged (plenty of screen space)
-- Consider creating separate PRs for Phase 1 and Phase 2 for easier review
-- Material-UI's `useScrollTrigger` is well-tested and performant
-- Progressive enhancement ensures functionality even if JS fails/is disabled
+- This approach addresses the root cause: double sticky headers
+- Desktop experience unchanged (plenty of screen space)
+- Mobile gets significant space savings while maintaining functionality
+- Tournament pages feel more focused and immersive
+- Consider A/B testing with real users before full rollout
+- May want to add analytics to track header interaction patterns
