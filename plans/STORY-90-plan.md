@@ -888,22 +888,85 @@ app/components/groups-page/
 5. Write unit tests (various scoring scenarios)
 
 **Phase 8.5: Backoffice Tournament Configuration (Day 9 afternoon)**
-1. **Add form fields to tournament create/edit page:**
-   - Checkbox: "Allow third place qualification" (`allows_third_place_qualification`)
-   - Number input: "Max third place qualifiers" (`max_third_place_qualifiers`)
-   - Show number input only when checkbox is checked
-   - Default values: `false` and `0`
-2. **Update tournament form schema (Zod):**
-   - Add validation: `max_third_place_qualifiers >= 0`
-   - Add validation: If `allows_third_place_qualification = true`, require `max_third_place_qualifiers > 0`
-3. **Update Server Action:**
-   - Modify `createTournament` or `updateTournament` to accept new fields
-   - Save to database
-4. **Display in tournament details:**
-   - Show configuration in backoffice tournament view
-   - Format: "Third place qualifiers: Allowed (max 8)" or "Third place qualifiers: Not allowed"
-5. **Write unit tests:**
-   - Form validation rules
+
+**Location: Tournament Data Tab in Backoffice**
+
+**1. Add fields to database table definition:**
+   - **File:** `app/db/tables-definition.ts` (lines 23-53, `TournamentTable` interface)
+   - Add fields:
+     ```typescript
+     allows_third_place_qualification?: boolean | null;
+     max_third_place_qualifiers?: number | null;
+     ```
+
+**2. Add form fields to Tournament Main Data Tab:**
+   - **File:** `app/components/backoffice/tournament-main-data-tab.tsx`
+   - **Add state variables** (around line 54-72):
+     ```typescript
+     const [allowsThirdPlaceQualification, setAllowsThirdPlaceQualification] = useState<boolean>(false);
+     const [maxThirdPlaceQualifiers, setMaxThirdPlaceQualifiers] = useState<number>(0);
+     ```
+   - **Initialize from tournament data** (in useEffect, around line 82-131):
+     ```typescript
+     setAllowsThirdPlaceQualification(tournament?.allows_third_place_qualification ?? false);
+     setMaxThirdPlaceQualifiers(tournament?.max_third_place_qualifiers ?? 0);
+     ```
+   - **Add form fields in Grid container** (around line 352-525, before submit button):
+     ```typescript
+     <Grid size={12}>
+       <FormControlLabel
+         control={
+           <Switch
+             checked={allowsThirdPlaceQualification}
+             onChange={(e) => setAllowsThirdPlaceQualification(e.target.checked)}
+           />
+         }
+         label="Allow third place qualification"
+       />
+     </Grid>
+
+     {allowsThirdPlaceQualification && (
+       <Grid size={{ xs: 12, md: 6 }}>
+         <TextField
+           label="Max third place qualifiers"
+           type="number"
+           value={maxThirdPlaceQualifiers}
+           onChange={(e) => setMaxThirdPlaceQualifiers(parseInt(e.target.value) || 0)}
+           required
+           fullWidth
+           inputProps={{ min: 1 }}
+           helperText="E.g., 8 for FIFA 2026 (best 3rd place teams across groups)"
+         />
+       </Grid>
+     )}
+     ```
+   - **Include in formData submission** (around line 165-171):
+     ```typescript
+     formData.append('tournament', JSON.stringify({
+       // ... existing fields ...
+       allows_third_place_qualification: allowsThirdPlaceQualification,
+       max_third_place_qualifiers: allowsThirdPlaceQualification ? maxThirdPlaceQualifiers : 0,
+     }));
+     ```
+
+**3. Server Action (NO CHANGES NEEDED):**
+   - **File:** `app/actions/tournament-actions.ts`
+   - `createOrUpdateTournament` already accepts any tournament data generically via JSON
+   - No modifications required
+
+**4. Repository (NO CHANGES NEEDED):**
+   - **File:** `app/db/tournament-repository.ts`
+   - Uses base functions (`update`, `create`) which automatically handle new fields
+   - No modifications required
+
+**5. Display configuration in backoffice:**
+   - Add read-only display in Tournament Main Data Tab (above form or in separate section)
+   - Format: "Third place qualifiers: Allowed (max 8)" or "Not allowed"
+   - Show when viewing existing tournament
+
+**6. Write unit tests:**
+   - Form validation rules (conditional required field)
+   - Form state updates when checkbox toggled
    - Server Action saves values correctly
    - Display renders configuration
    - **Target: 80% coverage**
@@ -1044,10 +1107,11 @@ app/components/groups-page/
 ## Files to Modify
 
 1. `/package.json` - Add dnd-kit dependencies (Phase 0)
-2. `/app/db/tables-definition.ts` - Add QualifiedTeamPredictionTable interface
+2. `/app/db/tables-definition.ts` - Add QualifiedTeamPredictionTable interface + add tournament config fields to TournamentTable
 3. `/app/db/database.ts` - Register new table
 4. `/__tests__/db/test-factories.ts` - Add `qualifiedTeamPrediction()` factory
 5. `/app/components/groups-page/group-selector.tsx` - Add "CLASIFICADOS" tab
+6. `/app/components/backoffice/tournament-main-data-tab.tsx` - Add form fields for third place configuration (Phase 8.5)
 
 ## Testing Strategy
 
