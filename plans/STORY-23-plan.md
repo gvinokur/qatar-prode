@@ -195,7 +195,7 @@ sx={{
 │  │ Knockout Points:           342 pts                    ││
 │  │ Boosts Used:               3/5                        ││
 │  │ Correct Predictions:       41/50                      ││
-│  │ Accuracy:                  82%                        ││
+│  │ Accuracy:                  82% (41 played)            ││
 │  │                                                        ││
 │  └────────────────────────────────────────────────────────┘│
 │  [Tap to collapse]                                          │
@@ -378,8 +378,8 @@ sx={{
      boostsUsed: number
      totalBoosts: number
      correctPredictions: number
-     totalPredictions: number
-     accuracy: number
+     playedGames: number // Only games already played/decided, NOT future predictions
+     accuracy: number // correctPredictions / playedGames (%)
      rankChange: number // positive = up, negative = down, 0 = no change
    }
 
@@ -662,8 +662,8 @@ const createMockLeaderboardUser = (overrides?: Partial<LeaderboardUser>): Leader
   boostsUsed: 3,
   totalBoosts: 5,
   correctPredictions: 40,
-  totalPredictions: 50,
-  accuracy: 80, // percentage, not decimal
+  playedGames: 50, // Only completed games
+  accuracy: 80, // percentage, not decimal (correctPredictions / playedGames)
   rankChange: 2,
   ...overrides
 })
@@ -802,7 +802,7 @@ interface UserScore {
   knockoutPoints?: number
   boostsUsed: number
   correctPredictions: number
-  totalPredictions: number
+  playedGames: number // Games already completed/decided (NOT future predictions)
 }
 
 // Transform to LeaderboardUser
@@ -818,9 +818,9 @@ const transformToLeaderboardUser = (
   boostsUsed: score.boostsUsed,
   totalBoosts: 5, // Tournament default
   correctPredictions: score.correctPredictions,
-  totalPredictions: score.totalPredictions,
-  accuracy: score.totalPredictions > 0
-    ? Math.round((score.correctPredictions / score.totalPredictions) * 100)
+  playedGames: score.playedGames,
+  accuracy: score.playedGames > 0
+    ? Math.round((score.correctPredictions / score.playedGames) * 100)
     : 0,
   rankChange
 })
@@ -829,8 +829,18 @@ const transformToLeaderboardUser = (
 **Null/Undefined Handling:**
 - `groupStagePoints` undefined → default to 0
 - `knockoutPoints` undefined → default to 0
-- `totalPredictions` = 0 → accuracy = 0 (avoid division by zero)
+- `playedGames` = 0 → accuracy = 0 (avoid division by zero)
 - `userName` empty → fallback to "Unknown User"
+
+**Important Note on Accuracy:**
+- **Accuracy is calculated ONLY from games already played/decided**, not from total predictions
+- `playedGames` includes:
+  - Completed matches (final score known)
+  - Decided outcomes (e.g., qualified teams for knockout stage)
+- `playedGames` excludes:
+  - Future matches (not yet played)
+  - Pending predictions (match in progress but not finalized)
+- This ensures accuracy reflects actual performance, not diluted by pending predictions
 
 ## Open Questions
 
