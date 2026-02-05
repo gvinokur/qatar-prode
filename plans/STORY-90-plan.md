@@ -1,5 +1,16 @@
 # Implementation Plan: Story #90 - Visual Qualification Prediction Interface
 
+## Changes from User Feedback (Iteration 1)
+
+**User feedback incorporated:**
+
+1. **Schema redesign** - Changed `qualifies_as_third_place` → `predicted_to_qualify` for clarity
+2. **Flexible position constraint** - Changed `CHECK (BETWEEN 1 AND 4)` → `CHECK (>= 1)` to support future tournaments with 5+ teams per group
+3. **Position 3 color logic** - Position 3 is now GREEN when checkbox checked (like positions 1-2), YELLOW when unchecked
+4. **Group header counts** - Added qualified team count display in group headers (e.g., "GRUPO A (2 qual)")
+5. **Mobile collapsible groups** - Added expand/collapse functionality for group cards on mobile
+6. **Follow-up stories documented** - Listed 2 out-of-scope stories (onboarding tutorial, prediction dashboard links)
+
 ## Story Context
 
 **Issue:** #90 - [UXI] Implement Visual Qualification Prediction Interface with Card-Based UI
@@ -19,7 +30,7 @@
 ## Acceptance Criteria Summary
 
 - AC1: New "Qualified Teams" tab and page route
-- AC2: Card-based group display (responsive: 4/3/1 per row)
+- AC2: Card-based group display (responsive: 4/3/1 per row, collapsible on mobile)
 - AC3: Drag-and-drop ranking within groups
 - AC4: Third place qualification checkbox with validation
 - AC5: Real-time auto-save (debounced 500ms)
@@ -30,6 +41,13 @@
 - AC10: Integration with existing navigation and permissions
 - AC11: Full accessibility (keyboard nav, ARIA, screen reader)
 - AC12: Error states and edge cases
+
+## Follow-Up Stories (Out of Scope for This Story)
+
+**These will be created as separate stories after this implementation:**
+
+1. **Update Onboarding Tutorial** - Modify tutorial to show new qualified teams page and explain decoupled prediction flow
+2. **Update Prediction Dashboard Links** - Change "missing qualified teams" warning to link to new qualified teams page instead of group pages
 
 ## Visual Prototypes
 
@@ -84,7 +102,7 @@
 │  ⚠️ Select 8 more           │
 ├─────────────────────────────┤
 │  ┌───────────────────────┐  │
-│  │     GRUPO A           │  │
+│  │ [▼] GRUPO A  (2 qual) │  │  ← Collapsible header with count
 │  ├───────────────────────┤  │
 │  │ [⋮⋮] 1 🇦🇷 Argentina  │  │
 │  │      ✓ Qualified      │  │
@@ -96,16 +114,14 @@
 │  ├───────────────────────┤  │
 │  │ [⋮⋮] 3 🇨🇴 Colombia   │  │
 │  │ [✓] Clasificar 3er?   │  │
-│  │      (yellow bg)      │  │
+│  │      (green bg)       │  │  ← GREEN when checkbox selected!
 │  ├───────────────────────┤  │
 │  │ [⋮⋮] 4 🇨🇱 Chile      │  │
 │  │      (gray bg)        │  │
 │  └───────────────────────┘  │
 │                              │
 │  ┌───────────────────────┐  │
-│  │     GRUPO B           │  │
-│  ├───────────────────────┤  │
-│  │ [...similar layout]   │  │
+│  │ [▶] GRUPO B  (2 qual) │  │  ← Collapsed group
 │  └───────────────────────┘  │
 │                              │
 │  [Vertical scroll...]        │
@@ -118,6 +134,13 @@
 │  [Guardando... ⏳]          │
 └─────────────────────────────┘
 ```
+
+**Mobile Collapsible Groups:**
+- Default: All groups expanded on initial load
+- User can tap group header to collapse/expand
+- Collapsed: Shows only header with group name and qualified count
+- Expanded: Shows all 4 team cards
+- State persists during session (not saved to backend)
 
 ### Team Card Component States
 
@@ -135,7 +158,7 @@
 └─────────────────────────────────────┘
 
 ┌─────────────────────────────────────┐
-│  POSITION 3 (YELLOW/AMBER BG)       │
+│  POSITION 3 - UNCHECKED (YELLOW BG) │
 ├─────────────────────────────────────┤
 │  [⋮⋮]  3  🇨🇴  Colombia             │
 │  [ ] Clasificar como 3er lugar?     │
@@ -143,6 +166,18 @@
 │  • Yellow background (#ffc107)      │
 │  • Checkbox for 3rd place selection │
 │  • Shows validation if max reached  │
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│  POSITION 3 - CHECKED (GREEN BG)    │
+├─────────────────────────────────────┤
+│  [⋮⋮]  3  🇨🇴  Colombia             │
+│  [✓] Clasificar como 3er lugar      │
+│             ✓ Qualified              │
+│                                      │
+│  • Green background (#4caf50)       │
+│  • Same as positions 1-2            │
+│  • Shows "Qualified" chip           │
 └─────────────────────────────────────┘
 
 ┌─────────────────────────────────────┐
@@ -190,12 +225,23 @@ Mobile (<768px):     1 group per row (vertical scroll)
 
 ### Color Scheme (Material-UI Theme)
 
-- **Position 1-2 (Qualified):** Green (#4caf50 / theme.palette.success.main)
-- **Position 3 (Potential 3rd):** Yellow/Amber (#ffc107 / theme.palette.warning.main)
-- **Position 4 (Not qualified):** Gray (#9e9e9e / theme.palette.grey[500])
+- **Position 1-2 (Always qualified):** Green (#4caf50 / theme.palette.success.main)
+- **Position 3 - Checkbox CHECKED (Qualified):** Green (#4caf50 / theme.palette.success.main)
+- **Position 3 - Checkbox UNCHECKED (Potential):** Yellow/Amber (#ffc107 / theme.palette.warning.main)
+- **Position 4+ (Not qualified):** Gray (#9e9e9e / theme.palette.grey[500])
 - **Drag indicator:** Blue (#2196f3 / theme.palette.primary.main)
 - **Focus outline:** Blue 2px solid
 - **Error text:** Red (#f44336 / theme.palette.error.main)
+
+**Color Logic:**
+```typescript
+const getCardColor = (position: number, predictedToQualify: boolean) => {
+  if (position === 1 || position === 2) return 'green'; // Always qualify
+  if (position === 3 && predictedToQualify) return 'green'; // Checkbox checked
+  if (position === 3 && !predictedToQualify) return 'yellow'; // Checkbox unchecked
+  return 'gray'; // Position 4+
+};
+```
 
 ### Animation Specifications
 
@@ -270,8 +316,8 @@ CREATE TABLE tournament_qualified_teams_predictions (
   group_id UUID NOT NULL REFERENCES tournament_groups(id) ON DELETE CASCADE,
   team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
 
-  predicted_position INT NOT NULL CHECK (predicted_position BETWEEN 1 AND 4),
-  qualifies_as_third_place BOOLEAN DEFAULT FALSE,
+  predicted_position INT NOT NULL CHECK (predicted_position >= 1),
+  predicted_to_qualify BOOLEAN DEFAULT FALSE,
 
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
@@ -284,15 +330,22 @@ CREATE TABLE tournament_qualified_teams_predictions (
   INDEX idx_qualified_predictions_user_tournament (user_id, tournament_id),
   INDEX idx_qualified_predictions_tournament_group (tournament_id, group_id)
 );
-
--- Constraint: Only position 3 can have qualifies_as_third_place = true
-ALTER TABLE tournament_qualified_teams_predictions
-  ADD CONSTRAINT check_third_place_position
-  CHECK (
-    (qualifies_as_third_place = FALSE) OR
-    (qualifies_as_third_place = TRUE AND predicted_position = 3)
-  );
 ```
+
+**Schema Design Rationale:**
+
+1. **`predicted_position >= 1`**: Flexible constraint supports future tournaments with more than 4 teams per group (e.g., 6-team groups, 8-team groups). No upper bound hardcoded.
+
+2. **`predicted_to_qualify BOOLEAN`**: Single flag for qualification prediction. Simpler than previous `qualifies_as_third_place`:
+   - Positions 1-2: Always qualify → `predicted_to_qualify = TRUE` (auto-set)
+   - Position 3+: User decides → checkbox controls `predicted_to_qualify`
+   - No constraint tying qualification to specific position → flexible for different tournament formats
+
+3. **Backward Compatibility**: Removed CHECK constraint that limited third-place logic to position 3 only. Now supports:
+   - Tournaments where top 2 qualify (positions 1-2 only)
+   - Tournaments where top 3 qualify (positions 1-3)
+   - Tournaments with "best 3rd place" across groups (position 3 with checkbox)
+   - Future: Tournaments with different qualification rules
 
 **Tournament Configuration (existing table):**
 
@@ -532,7 +585,7 @@ useEffect(() => {
        t.max_third_place_qualifiers
      FROM tournament_qualified_teams_predictions tq
      JOIN tournaments t ON t.id = tq.tournament_id
-     WHERE tq.qualifies_as_third_place = TRUE
+     WHERE tq.predicted_to_qualify = TRUE
        AND tq.predicted_position = 3
    )
    DELETE FROM tournament_qualified_teams_predictions
@@ -560,7 +613,7 @@ useEffect(() => {
 
      // Count new third place selections being added
      const newThirdPlaceCount = predictions.filter(
-       p => p.qualifies_as_third_place && p.predicted_position === 3
+       p => p.predicted_to_qualify && p.predicted_position === 3
      ).length;
 
      // Validate
@@ -602,7 +655,8 @@ app/components/qualified-teams/
 │   - Map groups to GroupCard components
 │
 ├── group-card.tsx                        [Client Component]
-│   - Group header with letter
+│   - Group header with letter + qualified count (e.g., "GRUPO A (2 qual)")
+│   - Collapsible on mobile (expand/collapse icon)
 │   - SortableContext for team cards
 │   - Handle drag events
 │
@@ -720,7 +774,18 @@ app/components/groups-page/
 2. Implement useSortable hook from dnd-kit
 3. Add visual elements: drag handle, position number, flag, team name
 4. Add third place checkbox (conditional on position === 3)
-5. Add background color logic (green/yellow/gray based on position)
+5. **Add background color logic:**
+   - Position 1-2: Always green (always qualify)
+   - Position 3 unchecked: Yellow (potential third)
+   - Position 3 checked: Green (user predicts will qualify)
+   - Position 4+: Gray (not qualifying)
+   ```typescript
+   const bgColor =
+     position <= 2 ? 'green' :
+     position === 3 && predictedToQualify ? 'green' :
+     position === 3 && !predictedToQualify ? 'yellow' :
+     'gray';
+   ```
 6. **Add keyboard accessibility:**
    - Tab navigation with proper focus indicators (2px blue outline)
    - Move up/down buttons (visible on focus, hidden otherwise)
@@ -741,13 +806,26 @@ app/components/groups-page/
 
 **Phase 5: UI Components - Group Card (Day 5)**
 1. Create `group-card.tsx`
-2. Implement SortableContext for team cards (dnd-kit)
-3. Add hidden instructions div for screen readers (`sr-only` class)
-4. Handle drag events (onDragEnd)
-5. Update context state on reorder
-6. **Set announcement** in ARIA live region on drag complete
-7. Write unit tests:
+2. **Add group header:**
+   - Display group name (e.g., "GRUPO A")
+   - Calculate and show qualified count (e.g., "(2 qual)")
+   - Count logic: positions 1-2 always qualify + position 3 if checkbox checked
+3. **Add collapsible functionality (mobile only):**
+   - Use `useMediaQuery(theme.breakpoints.down('sm'))` to detect mobile
+   - Local state: `const [expanded, setExpanded] = useState(true)`
+   - Icon: `▼` when expanded, `▶` when collapsed
+   - Click header to toggle
+   - Collapsed: Hide team cards, show only header
+   - State NOT persisted (resets on page reload)
+4. Implement SortableContext for team cards (dnd-kit)
+5. Add hidden instructions div for screen readers (`sr-only` class)
+6. Handle drag events (onDragEnd)
+7. Update context state on reorder
+8. **Set announcement** in ARIA live region on drag complete
+9. Write unit tests:
    - Renders all 4 team cards in correct order
+   - Group header shows correct qualified count
+   - Collapsible works on mobile (toggle state)
    - Drag reorder updates positions correctly
    - Context state updates called with correct data
    - **Target: 80% coverage**
@@ -1001,10 +1079,12 @@ app/components/groups-page/
 
 **Component Tests:** `team-card-draggable.test.tsx`
 - Test renders team name, flag, position number
-- Test green background for position 1-2
-- Test yellow background for position 3
-- Test gray background for position 4
+- Test green background for position 1-2 (always)
+- Test yellow background for position 3 unchecked
+- Test green background for position 3 checked (predictedToQualify = true)
+- Test gray background for position 4+
 - Test checkbox only visible for position 3
+- Test checkbox toggles predictedToQualify state
 - Test drag handle visible on hover (desktop)
 - Test keyboard move buttons visible on focus
 - Use `renderWithTheme()` from test-utils
