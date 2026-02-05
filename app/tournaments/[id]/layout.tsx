@@ -9,13 +9,15 @@ import Link from "next/link";
 import EmptyAwardsSnackbar from "../../components/awards/empty-award-notification";
 import {getPlayersInTournament} from "../../db/player-repository";
 import EnvironmentIndicator from "../../components/environment-indicator";
-import {Typography} from "@mui/material";
+import {Typography, Avatar} from "@mui/material";
 import {getThemeLogoUrl} from "../../utils/theme-utils";
 import { isDevelopmentMode } from '../../utils/environment-utils';
 import { hasUserPermission } from '../../db/tournament-view-permission-repository';
 import { redirect, notFound } from 'next/navigation';
 import { DevTournamentBadge } from '../../components/common/dev-tournament-badge';
 import TournamentBottomNavWrapper from '../../components/tournament-bottom-nav/tournament-bottom-nav-wrapper';
+import ThemeSwitcher from '../../components/header/theme-switcher';
+import UserActions from '../../components/header/user-actions';
 
 type TournamentLayoutProps = {
   readonly params: Promise<{
@@ -68,13 +70,32 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
     <Box>
       <AppBar position={'sticky'}>
         <Grid container>
-          <Grid size={{ xs:12, md: 3}} pt={2} pb={1} pl={2} sx={{
+          <Grid size={{ xs:12, md: 3}} pt={2} pb={1} pl={2} pr={2} sx={{
             backgroundColor: layoutData.tournament?.theme?.primary_color,
-            textAlign: {
-              xs: 'center',
-              md: 'left'
-            }
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: {
+              xs: 'space-between',
+              md: 'flex-start'
+            },
+            gap: 1
           }}>
+            {/* La Maquina logo button (home navigation) - mobile only */}
+            <Link href="/" style={{ display: 'inline-flex', alignItems: 'center' }}>
+              <Avatar
+                variant="rounded"
+                src="/logo.webp"
+                alt="La Maquina"
+                sx={{
+                  width: 32,
+                  height: 32,
+                  backgroundColor: 'white',
+                  display: { xs: 'flex', md: 'none' },
+                  mr: 1
+                }}
+              />
+            </Link>
             <Link
               href={`/tournaments/${layoutData.tournament?.id}`}
             >
@@ -84,24 +105,25 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                   alignItems: 'center',
                   textDecoration: 'none',
                   color: 'inherit',
-                  alignContent: 'center',
-                  height: '100%',
-                  margin: {
-                    xs: 'auto',
-                    md: '0'
+                  flex: {
+                    xs: '1 1 auto',
+                    md: '0 0 auto'
                   },
-                  width: {
-                    xs: 'auto',
-                    md: '100%'
-                  },
+                  minWidth: 0,
                   justifyContent: {
-                    xs: 'center',
+                    xs: 'flex-start',
                     md: 'flex-start'
                   }
                 }}>
-                <img src={logoUrl || ''} alt={layoutData.tournament?.long_name} style={{
-                  maxHeight: '48px'
-                }}/>
+                <img
+                  src={logoUrl || ''}
+                  alt={layoutData.tournament?.long_name}
+                  style={{
+                    maxHeight: '48px',
+                    maxWidth: '48px',
+                    objectFit: 'contain'
+                  }}
+                />
                 {(layoutData.tournament?.display_name && layoutData.tournament.long_name) && (
                   <Box display="flex" alignItems="center" gap={1}>
                     {layoutData.tournament.dev_only && (
@@ -121,6 +143,17 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
               </Box>
 
             </Link>
+            {/* User actions container - mobile only */}
+            <Box sx={{
+              display: { xs: 'flex', md: 'none' },
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 1,
+              flexShrink: 0
+            }}>
+              <ThemeSwitcher />
+              <UserActions user={user} />
+            </Box>
           </Grid>
           <Grid size={{ xs:12, md: 9}} pt={2} pb={1} pl={1} pr={1}
             sx={{
