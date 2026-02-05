@@ -115,12 +115,13 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                     md: 'flex-start'
                   }
                 }}>
-                <img
+                <Box
+                  component="img"
                   src={logoUrl || ''}
                   alt={layoutData.tournament?.long_name}
-                  style={{
-                    maxHeight: '48px',
-                    maxWidth: '48px',
+                  sx={{
+                    maxHeight: { xs: '32px', md: '48px' },
+                    maxWidth: { xs: '32px', md: '48px' },
                     objectFit: 'contain'
                   }}
                 />
