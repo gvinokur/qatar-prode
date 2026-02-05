@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { Container, Typography, Box, Alert, CircularProgress } from '@mui/material';
+import { Container, Typography, Alert } from '@mui/material';
 import {
   QualifiedTeamsContextProvider,
   useQualifiedTeamsContext,
@@ -34,40 +34,6 @@ interface QualifiedTeamsClientPageProps {
   readonly allowsThirdPlace: boolean;
   /** Maximum allowed third place qualifiers */
   readonly maxThirdPlace: number;
-}
-
-/** Save state indicator component */
-function SaveStateIndicator() {
-  const { saveState, lastSaved, error } = useQualifiedTeamsContext();
-
-  if (saveState === 'saving' || saveState === 'pending') {
-    return (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-        <CircularProgress size={20} />
-        <Typography variant="body2" color="text.secondary">
-          Saving...
-        </Typography>
-      </Box>
-    );
-  }
-
-  if (saveState === 'saved' && lastSaved) {
-    return (
-      <Alert severity="success" sx={{ mb: 2 }}>
-        Saved successfully at {lastSaved.toLocaleTimeString()}
-      </Alert>
-    );
-  }
-
-  if (saveState === 'error' && error) {
-    return (
-      <Alert severity="error" sx={{ mb: 2 }}>
-        {error}
-      </Alert>
-    );
-  }
-
-  return null;
 }
 
 /** Handle drag end event */
@@ -165,8 +131,6 @@ function QualifiedTeamsUI({
           Predictions are locked for this tournament. You can view your predictions but cannot make changes.
         </Alert>
       )}
-
-      <SaveStateIndicator />
 
       {allowsThirdPlace && (
         <ThirdPlaceSummary
