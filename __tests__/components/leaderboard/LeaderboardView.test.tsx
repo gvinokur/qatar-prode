@@ -1,17 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect } from 'vitest'
+import { screen } from '@testing-library/react'
 import { renderWithTheme } from '@/__tests__/utils/test-utils'
 import LeaderboardView from '@/app/components/leaderboard/LeaderboardView'
-import * as MUI from '@mui/material'
-
-// Mock useMediaQuery
-vi.mock('@mui/material', async () => {
-  const actual = await vi.importActual('@mui/material')
-  return {
-    ...actual,
-    useMediaQuery: vi.fn()
-  }
-})
 
 const mockScores = [
   {
@@ -42,14 +32,7 @@ const mockTournament = {
 }
 
 describe('LeaderboardView', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
-  it('renders cards on mobile', () => {
-    // Mock mobile viewport
-    vi.mocked(MUI.useMediaQuery).mockReturnValue(true)
-
+  it('renders cards for all screen sizes', () => {
     renderWithTheme(
       <LeaderboardView
         scores={mockScores}
@@ -64,30 +47,10 @@ describe('LeaderboardView', () => {
 
     // Should have card roles
     const cards = screen.getAllByRole('button')
-    expect(cards.length).toBeGreaterThan(0)
+    expect(cards.length).toBe(2)
   })
 
-  it('renders table on desktop', () => {
-    // Mock desktop viewport
-    vi.mocked(MUI.useMediaQuery).mockReturnValue(false)
-
-    renderWithTheme(
-      <LeaderboardView
-        scores={mockScores}
-        currentUserId="user-1"
-        tournament={mockTournament}
-      />
-    )
-
-    // LeaderboardTable should render (check for table elements)
-    expect(screen.getByRole('table')).toBeInTheDocument()
-    expect(screen.getByText('Player')).toBeInTheDocument() // table header
-    expect(screen.getByText('Total Points')).toBeInTheDocument()
-  })
-
-  it('passes scores to child components', () => {
-    vi.mocked(MUI.useMediaQuery).mockReturnValue(true)
-
+  it('passes scores correctly', () => {
     renderWithTheme(
       <LeaderboardView
         scores={mockScores}
@@ -101,9 +64,7 @@ describe('LeaderboardView', () => {
     expect(screen.getByText('1,000 pts')).toBeInTheDocument()
   })
 
-  it('passes currentUserId to child components', () => {
-    vi.mocked(MUI.useMediaQuery).mockReturnValue(true)
-
+  it('highlights current user correctly', () => {
     renderWithTheme(
       <LeaderboardView
         scores={mockScores}
@@ -118,8 +79,6 @@ describe('LeaderboardView', () => {
   })
 
   it('handles empty scores', () => {
-    vi.mocked(MUI.useMediaQuery).mockReturnValue(true)
-
     renderWithTheme(
       <LeaderboardView
         scores={[]}
@@ -129,41 +88,5 @@ describe('LeaderboardView', () => {
     )
 
     expect(screen.getByText(/no leaderboard data/i)).toBeInTheDocument()
-  })
-
-  it('adapts to viewport changes', () => {
-    const { rerender } = renderWithTheme(
-      <LeaderboardView
-        scores={mockScores}
-        currentUserId="user-1"
-        tournament={mockTournament}
-      />
-    )
-
-    // Start with mobile
-    vi.mocked(MUI.useMediaQuery).mockReturnValue(true)
-    rerender(
-      <LeaderboardView
-        scores={mockScores}
-        currentUserId="user-1"
-        tournament={mockTournament}
-      />
-    )
-
-    // Should show cards (buttons)
-    expect(screen.getAllByRole('button').length).toBeGreaterThan(0)
-
-    // Switch to desktop
-    vi.mocked(MUI.useMediaQuery).mockReturnValue(false)
-    rerender(
-      <LeaderboardView
-        scores={mockScores}
-        currentUserId="user-1"
-        tournament={mockTournament}
-      />
-    )
-
-    // Should show table
-    expect(screen.getByRole('table')).toBeInTheDocument()
   })
 })

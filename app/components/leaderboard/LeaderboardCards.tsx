@@ -139,9 +139,9 @@ export default function LeaderboardCards({
       role="list"
       aria-label="Leaderboard"
       sx={{
-        maxWidth: '868px',
+        maxWidth: '1000px',
         mx: { md: 'auto' },
-        px: { xs: 2, sm: 3 }
+        px: { xs: 2, sm: 3, md: 4 }
       }}
     >
       {leaderboardUsers.map((user, index) => {
