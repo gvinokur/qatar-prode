@@ -6,6 +6,7 @@ import {
   PlayoffRoundTable,
   ProdeGroupParticipantTable,
   ProdeGroupTable,
+  QualifiedTeamPredictionTable,
   TeamTable,
   TournamentGroupGameTable,
   TournamentGroupTable, TournamentGroupTeamStatsGuessTable,
@@ -44,6 +45,7 @@ export interface Database {
   game_results: GameResultTable
 
   tournament_guesses: TournamentGuessTable
+  tournament_qualified_teams_predictions: QualifiedTeamPredictionTable
   tournament_venues: TournamentVenueTable
   tournament_third_place_rules: TournamentThirdPlaceRulesTable
 

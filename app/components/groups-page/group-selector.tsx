@@ -12,31 +12,41 @@ type Props = {
   readonly textColor?: string;
 };
 
+/** Get tab styling */
+const getTabSx = (backgroundColor: string | undefined, textColor: string | undefined, theme: any) => ({
+  color: textColor || theme.palette.text.primary,
+  '&.Mui-selected': {
+    color: backgroundColor || theme.palette.primary.contrastText,
+    backgroundColor: textColor || theme.palette.primary.main,
+    borderRadius: '4px',
+    borderWidth: '1px',
+    borderStyle: 'solid',
+  },
+});
+
+/** Get selected tab value from pathname */
+const getSelectedTab = (pathname: string): string => {
+  if (pathname.includes('/groups/')) {
+    const match = pathname.match(/groups\/([^/]+)/);
+    return match ? match[1] : '';
+  }
+  if (pathname.includes('/qualified-teams')) {
+    return 'qualified-teams';
+  }
+  if (pathname.includes('/playoffs')) {
+    return 'playoffs';
+  }
+  if (pathname.includes('/awards')) {
+    return 'individual_awards';
+  }
+  return '';
+};
+
 const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Props) => {
   const pathname = usePathname();
   const theme = useTheme();
-
-  // Determine selected tab from pathname
-  let selected = '';
-  if (pathname.includes('/groups/')) {
-    const match = pathname.match(/groups\/([^/]+)/);
-    selected = match ? match[1] : '';
-  } else if (pathname.includes('/playoffs')) {
-    selected = 'playoffs';
-  } else if (pathname.includes('/awards')) {
-    selected = 'individual_awards';
-  }
-
-  const tabSx = (backgroundColor: string | undefined, textColor: string | undefined, theme: any) => ({
-    color: textColor || theme.palette.text.primary,
-    '&.Mui-selected': {
-      color: backgroundColor || theme.palette.primary.contrastText,
-      backgroundColor: textColor || theme.palette.primary.main,
-      borderRadius: '4px',
-      borderWidth: '1px',
-      borderStyle: 'solid',
-    },
-  });
+  const selected = getSelectedTab(pathname);
+  const tabSx = getTabSx(backgroundColor, textColor, theme);
 
   return (
     <Tabs
@@ -78,7 +88,7 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
         value=""
         component={Link}
         href={`/tournaments/${tournamentId}`}
-        sx={tabSx(backgroundColor, textColor, theme)}
+        sx={tabSx}
       />
       {groups.map(({ group_letter, id }) => (
         <Tab
@@ -87,22 +97,29 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
           value={id}
           component={Link}
           href={`/tournaments/${tournamentId}/groups/${id}`}
-          sx={tabSx(backgroundColor, textColor, theme)}
+          sx={tabSx}
         />
       ))}
+      <Tab
+        label="CLASIFICADOS"
+        value="qualified-teams"
+        component={Link}
+        href={`/tournaments/${tournamentId}/qualified-teams`}
+        sx={tabSx}
+      />
       <Tab
         label="PLAYOFFS"
         value="playoffs"
         component={Link}
         href={`/tournaments/${tournamentId}/playoffs`}
-        sx={tabSx(backgroundColor, textColor, theme)}
+        sx={tabSx}
       />
       <Tab
         label="PREMIOS"
         value="individual_awards"
         component={Link}
         href={`/tournaments/${tournamentId}/awards`}
-        sx={tabSx(backgroundColor, textColor, theme)}
+        sx={tabSx}
       />
     </Tabs>
   );

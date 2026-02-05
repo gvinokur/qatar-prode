@@ -50,6 +50,10 @@ export interface TournamentTable extends Identifiable{
   exact_position_qualified_points?: number
   max_silver_games?: number
   max_golden_games?: number
+
+  // Third place qualification configuration
+  allows_third_place_qualification?: boolean | null
+  max_third_place_qualifiers?: number | null
 }
 
 export type Tournament = Selectable<TournamentTable>
@@ -290,11 +294,31 @@ export interface TournamentGuessTable extends Identifiable{
    * 1 point for each exact group position guessed
    */
   group_position_score?: number
+  /**
+   * undefined - no qualification predictions yet
+   * 1 point for correct qualification + 1 point for exact position
+   */
+  qualification_score?: number
 }
 
 export type TournamentGuess = Selectable<TournamentGuessTable>
 export type TournamentGuessNew = Insertable<TournamentGuessTable>
 export type TournamentGuessUpdate = Updateable<TournamentGuessTable>
+
+export interface QualifiedTeamPredictionTable extends Identifiable {
+  user_id: string
+  tournament_id: string
+  group_id: string
+  team_id: string
+  predicted_position: number
+  predicted_to_qualify: boolean
+  created_at?: Date
+  updated_at?: Date
+}
+
+export type QualifiedTeamPrediction = Selectable<QualifiedTeamPredictionTable>
+export type QualifiedTeamPredictionNew = Insertable<QualifiedTeamPredictionTable>
+export type QualifiedTeamPredictionUpdate = Updateable<QualifiedTeamPredictionTable>
 
 // Tournament Prediction Completion Tracking
 export interface TournamentPredictionCompletion {

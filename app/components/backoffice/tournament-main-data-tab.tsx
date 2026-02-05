@@ -70,6 +70,10 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
   //active state
   const [isActive, setIsActive] = useState<boolean>(false);
 
+  // Third place qualification settings
+  const [allowsThirdPlaceQualification, setAllowsThirdPlaceQualification] = useState<boolean>(false);
+  const [maxThirdPlaceQualifiers, setMaxThirdPlaceQualifiers] = useState<number>(4);
+
   // Fetch playoff rounds
   const fetchPlayoffRounds = useCallback(async () => {
     setLoadingPlayoffRounds(true);
@@ -112,6 +116,8 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
           s3_logo_key: tournamentData.theme?.s3_logo_key || ''
         });
         setIsActive(tournamentData.is_active);
+        setAllowsThirdPlaceQualification(tournamentData.allows_third_place_qualification || false);
+        setMaxThirdPlaceQualifiers(tournamentData.max_third_place_qualifiers || 4);
 
         // Fetch playoff rounds
         await fetchPlayoffRounds();
@@ -168,6 +174,8 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
         theme: theme,
         dev_only: devOnly,
         display_name: displayName,
+        allows_third_place_qualification: allowsThirdPlaceQualification,
+        max_third_place_qualifiers: maxThirdPlaceQualifiers,
       }));
 
       if (logoFile) {
@@ -574,6 +582,46 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
                   ))}
                 </List>
               </Paper>
+            )}
+          </Grid>
+
+          <Grid
+            size={{
+              xs: 12,
+              md: 6
+            }}>
+            <Typography variant="subtitle2" gutterBottom>
+              Third Place Qualification Settings
+            </Typography>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={allowsThirdPlaceQualification}
+                  onChange={(e) => setAllowsThirdPlaceQualification(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label={
+                <Box>
+                  <Typography variant="body2">Enable Third Place Qualification</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Allow users to predict which 3rd place teams will advance
+                  </Typography>
+                </Box>
+              }
+            />
+            {allowsThirdPlaceQualification && (
+              <TextField
+                label="Max Third Place Qualifiers"
+                type="number"
+                fullWidth
+                value={maxThirdPlaceQualifiers}
+                onChange={(e) => setMaxThirdPlaceQualifiers(Number(e.target.value))}
+                required
+                margin="normal"
+                inputProps={{ min: 0, max: 16 }}
+                helperText="Maximum number of third place teams that can qualify (e.g., 4 for best 4 third-place teams)"
+              />
             )}
           </Grid>
         </Grid>

@@ -13,6 +13,7 @@ import {
   PlayoffRound,
   ProdeGroup,
   TournamentGuess,
+  QualifiedTeamPrediction,
   TournamentVenue,
   TournamentThirdPlaceRules,
   ProdeGroupTournamentBetting,
@@ -425,6 +426,65 @@ export const testFactories = {
     group_tournament_betting_id: 'betting-1',
     user_id: 'user-1',
     has_paid: false,
+    ...overrides,
+  }),
+
+  /**
+   * Qualified Team Prediction factory
+   *
+   * Creates a prediction for which teams qualify from tournament groups and their final positions.
+   *
+   * Default values:
+   * - user_id: 'user-1', tournament_id: 'tournament-1'
+   * - group_id: 'group-1', team_id: 'team-1'
+   * - predicted_position: 1 (first place)
+   * - predicted_to_qualify: true
+   *
+   * @param overrides - Partial qualified team prediction object to override defaults
+   * @returns Complete QualifiedTeamPrediction object
+   *
+   * @example
+   * // Position 1 or 2 (always qualify)
+   * const prediction = testFactories.qualifiedTeamPrediction({
+   *   team_id: 'argentina',
+   *   predicted_position: 1,
+   *   predicted_to_qualify: true
+   * });
+   *
+   * @example
+   * // Position 3 with third-place qualifier checkbox checked
+   * const thirdPlacePrediction = testFactories.qualifiedTeamPrediction({
+   *   team_id: 'colombia',
+   *   predicted_position: 3,
+   *   predicted_to_qualify: true  // User predicts this 3rd place team will qualify
+   * });
+   *
+   * @example
+   * // Position 3 without third-place qualifier (potential but not selected)
+   * const potentialThirdPlace = testFactories.qualifiedTeamPrediction({
+   *   team_id: 'chile',
+   *   predicted_position: 3,
+   *   predicted_to_qualify: false  // User thinks they won't make it as 3rd place
+   * });
+   *
+   * @example
+   * // Position 4 (not qualifying)
+   * const fourthPlace = testFactories.qualifiedTeamPrediction({
+   *   team_id: 'peru',
+   *   predicted_position: 4,
+   *   predicted_to_qualify: false
+   * });
+   */
+  qualifiedTeamPrediction: (overrides?: Partial<QualifiedTeamPrediction>): QualifiedTeamPrediction => ({
+    id: 'qualified-prediction-1',
+    user_id: 'user-1',
+    tournament_id: 'tournament-1',
+    group_id: 'group-1',
+    team_id: 'team-1',
+    predicted_position: 1,
+    predicted_to_qualify: true,
+    created_at: new Date(),
+    updated_at: new Date(),
     ...overrides,
   }),
 };
