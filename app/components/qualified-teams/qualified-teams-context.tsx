@@ -37,6 +37,8 @@ interface QualifiedTeamsContextValue {
   predictions: Map<string, QualifiedTeamPrediction>;
   /** Save state for UI feedback */
   saveState: SaveState;
+  /** Whether actively saving (locks UI) */
+  isSaving: boolean;
   /** Last save timestamp */
   lastSaved: Date | null;
   /** Error message if any */
@@ -167,22 +169,29 @@ export function QualifiedTeamsContextProvider({
    */
   const debouncedSave = useCallback(
     (changes: QualifiedTeamPredictionNew[]) => {
-      // Clear existing timeout
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
+      setState((prev) => {
+        // Don't start new debounce if currently saving
+        if (prev.saveState === 'saving') {
+          return prev;
+        }
 
-      // Set state to pending
-      setState((prev) => ({
-        ...prev,
-        saveState: 'pending',
-        pendingChanges: changes,
-      }));
+        // Clear existing timeout
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+        }
 
-      // Set new timeout for 500ms
-      saveTimeoutRef.current = setTimeout(() => {
-        savePredictions(changes);
-      }, 500);
+        // Set new timeout for 500ms
+        saveTimeoutRef.current = setTimeout(() => {
+          savePredictions(changes);
+        }, 500);
+
+        // Set state to pending
+        return {
+          ...prev,
+          saveState: 'pending',
+          pendingChanges: changes,
+        };
+      });
     },
     [savePredictions]
   );
@@ -193,7 +202,8 @@ export function QualifiedTeamsContextProvider({
    */
   const updatePosition = useCallback(
     (groupId: string, teamId: string, newPosition: number) => {
-      if (isLocked) return;
+      // Prevent changes while locked or saving
+      if (isLocked || state.saveState === 'saving') return;
 
       setState((prev) => {
         const prediction = prev.predictions.get(teamId);
@@ -229,7 +239,7 @@ export function QualifiedTeamsContextProvider({
         };
       });
     },
-    [userId, tournamentId, isLocked, debouncedSave]
+    [userId, tournamentId, isLocked, state.saveState, debouncedSave]
   );
 
   /**
@@ -238,7 +248,8 @@ export function QualifiedTeamsContextProvider({
    */
   const toggleThirdPlace = useCallback(
     (groupId: string, teamId: string) => {
-      if (isLocked) return;
+      // Prevent changes while locked or saving
+      if (isLocked || state.saveState === 'saving') return;
 
       setState((prev) => {
         const prediction = prev.predictions.get(teamId);
@@ -274,7 +285,7 @@ export function QualifiedTeamsContextProvider({
         };
       });
     },
-    [userId, tournamentId, isLocked, debouncedSave]
+    [userId, tournamentId, isLocked, state.saveState, debouncedSave]
   );
 
   /**
@@ -334,6 +345,7 @@ export function QualifiedTeamsContextProvider({
     () => ({
       predictions: state.predictions,
       saveState: state.saveState,
+      isSaving: state.saveState === 'saving' || state.saveState === 'pending',
       lastSaved: state.lastSaved,
       error: state.error,
       updatePosition,

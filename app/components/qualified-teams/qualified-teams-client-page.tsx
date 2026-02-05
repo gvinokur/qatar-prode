@@ -133,7 +133,7 @@ function QualifiedTeamsUI({
   maxThirdPlace,
   isLocked,
 }: Omit<QualifiedTeamsClientPageProps, 'initialPredictions' | 'userId'>) {
-  const { predictions, updatePosition, toggleThirdPlace } = useQualifiedTeamsContext();
+  const { predictions, isSaving, updatePosition, toggleThirdPlace } = useQualifiedTeamsContext();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -181,7 +181,7 @@ function QualifiedTeamsUI({
         <QualifiedTeamsGrid
           groups={groups}
           predictions={predictions}
-          isLocked={isLocked}
+          isLocked={isLocked || isSaving}
           allowsThirdPlace={allowsThirdPlace}
           onToggleThirdPlace={toggleThirdPlace}
         />
