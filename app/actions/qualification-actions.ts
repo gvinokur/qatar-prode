@@ -1,10 +1,7 @@
 'use server';
 
 import { getLoggedInUser } from './user-actions';
-import {
-  batchUpsertQualificationPredictions,
-  countThirdPlaceQualifiers,
-} from '../db/qualified-teams-repository';
+import { batchUpsertQualificationPredictions } from '../db/qualified-teams-repository';
 import { QualifiedTeamPredictionNew } from '../db/tables-definition';
 import { db } from '../db/database';
 import { QualificationPredictionError } from './qualification-errors';
