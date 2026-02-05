@@ -1,6 +1,6 @@
 'use client'
 
-import {Backdrop, Box, CircularProgress} from "@mui/material";
+import {Box} from "@mui/material";
 import GroupBackoffice from "./group-backoffice-tab";
 import {useEffect, useState} from "react";
 import {BackofficeTabs} from "./backoffice-tabs";
@@ -8,6 +8,7 @@ import {ExtendedGroupData} from "../../definitions";
 import PlayoffTab from "./playoff-tab";
 import {getGroupDataWithGamesAndTeams} from "../../actions/backoffice-actions";
 import {createTab} from "./backoffice-tab-utils";
+import { BackofficeTabsSkeleton } from "../skeletons";
 
 type Props = {
   tournamentId: string
@@ -30,13 +31,9 @@ export default function GroupsTab({tournamentId}:Props) {
 
   return (
     <Box>
-      <Backdrop
-        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={loading}
-      >
-        <CircularProgress color="inherit" />
-      </Backdrop>
-      {!loading && (
+      {loading ? (
+        <BackofficeTabsSkeleton />
+      ) : (
         <BackofficeTabs tabIdParam="group" tabs={[
           ...(groups || []).map(group =>
               createTab(

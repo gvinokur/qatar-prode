@@ -2,12 +2,10 @@
 
 import { Box } from "../mui-wrappers";
 import {
-  Backdrop,
   Button,
   Card,
   CardContent,
   CardHeader,
-  CircularProgress,
   Grid,
   TextField,
   Typography,
@@ -20,6 +18,7 @@ import {
   updateTournamentScoringConfigAction,
   getRecommendedScoringValues
 } from "../../actions/tournament-scoring-actions";
+import { BackofficeTabsSkeleton } from "../skeletons";
 
 type Props = {
   readonly tournamentId: string
@@ -57,6 +56,7 @@ export default function TournamentScoringConfigTab({ tournamentId }: Props) {
         const recommendedData = await getRecommendedScoringValues(tournamentId);
         setRecommended(recommendedData);
       } catch (error) {
+        console.error('Error loading scoring configuration:', error);
         setErrorMessage('Error loading scoring configuration');
       } finally {
         setLoading(false);
@@ -89,6 +89,7 @@ export default function TournamentScoringConfigTab({ tournamentId }: Props) {
 
       setSuccessMessage('Scoring configuration saved successfully!');
     } catch (error) {
+      console.error('Error saving configuration:', error);
       setErrorMessage('Error saving configuration');
     } finally {
       setSaving(false);
@@ -113,14 +114,10 @@ export default function TournamentScoringConfigTab({ tournamentId }: Props) {
 
   return (
     <Box pt={2}>
-      <Backdrop
-        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={loading}
-      >
-        <CircularProgress color="inherit" />
-      </Backdrop>
-
-      {config && (
+      {loading ? (
+        <BackofficeTabsSkeleton />
+      ) : (
+        config && (
         <Box sx={{ maxWidth: '1000px', mx: 'auto' }}>
           {successMessage && (
             <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage('')}>
@@ -240,6 +237,7 @@ export default function TournamentScoringConfigTab({ tournamentId }: Props) {
             </CardContent>
           </Card>
         </Box>
+        )
       )}
     </Box>
   );

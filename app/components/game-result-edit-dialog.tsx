@@ -20,6 +20,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import { getBoostCountsAction } from '../actions/game-boost-actions';
 import GamePredictionEditControls from './game-prediction-edit-controls';
+import { GameDialogSkeleton } from './skeletons';
 
 interface SharedProps {
   open: boolean;
@@ -258,8 +259,13 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
           </Box>
         )}
 
+        {/* Game Guess: Loading state */}
+        {props.isGameGuess && !boostCounts && (
+          <GameDialogSkeleton isGameGuess={true} />
+        )}
+
         {/* Game Guess Edit Controls (shared component) */}
-        {props.isGameGuess && boostCounts ? (
+        {props.isGameGuess && boostCounts && (
           <GamePredictionEditControls
             gameId={gameId}
             homeTeamName={homeTeamName}
@@ -285,7 +291,7 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
             error={error}
             layout="vertical"
           />
-        ) : null}
+        )}
 
         {/* Game Results: Scores and Penalty Scores (for non-guesses) */}
         {!props.isGameGuess && (

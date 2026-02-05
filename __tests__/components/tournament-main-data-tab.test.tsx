@@ -154,13 +154,15 @@ describe('TournamentMainDataTab', () => {
   });
 
   describe('Loading States', () => {
-    it('should show loading spinner when fetching data', () => {
+    it('should show loading skeleton when fetching data', () => {
       mockGetTournamentById.mockImplementation(() => new Promise(() => {})); // Never resolves
       mockGetPlayoffRounds.mockResolvedValue([]);
 
       render(<TournamentMainDataTab tournamentId="test-id" />);
 
-      expect(screen.getByRole('progressbar')).toBeInTheDocument();
+      const skeleton = screen.getByRole('status');
+      expect(skeleton).toBeInTheDocument();
+      expect(skeleton).toHaveAttribute('aria-label', 'Loading tournament form');
     });
 
     it('should show error when tournament data fails to load', async () => {

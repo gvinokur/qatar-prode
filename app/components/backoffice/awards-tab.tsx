@@ -2,11 +2,10 @@
 
 import {Box} from "../mui-wrappers";
 import {
-  Autocomplete, Backdrop,
+  Autocomplete,
   Card,
   CardContent,
   CardHeader,
-  CircularProgress,
   Grid,
   Button,
   TextField,
@@ -17,6 +16,7 @@ import {awardsDefinition, AwardTypes} from "../../utils/award-utils";
 import { TournamentUpdate} from "../../db/tables-definition";
 import {ExtendedPlayerData} from "../../definitions";
 import {findDataForAwards, updateTournamentAwards} from "../../actions/backoffice-actions";
+import { BackofficeTabsSkeleton } from "../skeletons";
 
 type Props = {
   readonly tournamentId: string
@@ -54,13 +54,7 @@ export default function BackofficeAwardsTab({ tournamentId}: Props) {
 
   return (
     <Box pt={2}>
-      <Backdrop
-        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={!tournament}
-      >
-        <CircularProgress color="inherit" />
-      </Backdrop>
-      {tournament && (
+      {tournament ? (
         <>
           <Card sx={{ maxWidth: '900px', mr: 'auto', ml: 'auto'}}>
             <CardHeader title={'Premios Individuales'}/>
@@ -121,6 +115,8 @@ export default function BackofficeAwardsTab({ tournamentId}: Props) {
           </Card>
           <Button loading={saving} variant='contained' size='large' onClick={saveTournament} sx={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translate(-50%, 0)' }}>Guardar Premios</Button>
         </>
+      ) : (
+        <BackofficeTabsSkeleton />
       )}
     </Box>
   );
