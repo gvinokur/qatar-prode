@@ -86,61 +86,77 @@ async function initializePredictions(
 export default async function QualifiedTeamsPage({ params }: PageProps) {
   const { id: tournamentId } = await params;
 
-  // Check authentication
-  const user = await getLoggedInUser();
-  if (!user?.id) {
-    redirect(`/auth/login?redirect=/tournaments/${tournamentId}/qualified-teams`);
+  try {
+    // Check authentication
+    const user = await getLoggedInUser();
+    if (!user?.id) {
+      redirect(`/auth/login?redirect=/tournaments/${tournamentId}/qualified-teams`);
+    }
+
+    console.log('[QualifiedTeams] User authenticated:', user.id);
+
+    // Fetch tournament
+    const tournament = await db
+      .selectFrom('tournaments')
+      .where('id', '=', tournamentId)
+      .select(['id', 'short_name', 'is_active'])
+      .executeTakeFirst();
+
+    if (!tournament) {
+      console.error('[QualifiedTeams] Tournament not found:', tournamentId);
+      notFound();
+    }
+
+    console.log('[QualifiedTeams] Tournament found:', tournament.id);
+
+    // Get tournament qualification configuration
+    const config = await getTournamentQualificationConfig(tournamentId);
+    console.log('[QualifiedTeams] Config loaded:', config);
+
+    // Fetch groups with their teams
+    const groupsWithTeams = await fetchGroupsWithTeams(tournamentId);
+    console.log('[QualifiedTeams] Groups loaded:', groupsWithTeams.length);
+
+    // Fetch user's predictions
+    let predictions = await db
+      .selectFrom('tournament_qualified_teams_predictions')
+      .where('user_id', '=', user.id)
+      .where('tournament_id', '=', tournamentId)
+      .select([
+        'id',
+        'user_id',
+        'tournament_id',
+        'group_id',
+        'team_id',
+        'predicted_position',
+        'predicted_to_qualify',
+        'created_at',
+        'updated_at',
+      ])
+      .execute();
+
+    console.log('[QualifiedTeams] Predictions loaded:', predictions.length);
+
+    // Initialize predictions if none exist
+    if (predictions.length === 0) {
+      console.log('[QualifiedTeams] Initializing predictions...');
+      predictions = await initializePredictions(user.id, tournamentId, groupsWithTeams);
+      console.log('[QualifiedTeams] Predictions initialized:', predictions.length);
+    }
+
+    return (
+      <QualifiedTeamsClientPage
+        tournament={tournament}
+        groups={groupsWithTeams}
+        initialPredictions={predictions}
+        userId={user.id}
+        isLocked={config.isLocked}
+        allowsThirdPlace={config.allowsThirdPlace}
+        maxThirdPlace={config.maxThirdPlace}
+      />
+    );
+  } catch (error) {
+    console.error('[QualifiedTeams] Error loading page:', error);
+    throw error;
   }
-
-  // Fetch tournament
-  const tournament = await db
-    .selectFrom('tournaments')
-    .where('id', '=', tournamentId)
-    .select(['id', 'short_name', 'is_active'])
-    .executeTakeFirst();
-
-  if (!tournament) {
-    notFound();
-  }
-
-  // Get tournament qualification configuration
-  const config = await getTournamentQualificationConfig(tournamentId);
-
-  // Fetch groups with their teams
-  const groupsWithTeams = await fetchGroupsWithTeams(tournamentId);
-
-  // Fetch user's predictions
-  let predictions = await db
-    .selectFrom('tournament_qualified_teams_predictions')
-    .where('user_id', '=', user.id)
-    .where('tournament_id', '=', tournamentId)
-    .select([
-      'id',
-      'user_id',
-      'tournament_id',
-      'group_id',
-      'team_id',
-      'predicted_position',
-      'predicted_to_qualify',
-      'created_at',
-      'updated_at',
-    ])
-    .execute();
-
-  // Initialize predictions if none exist
-  if (predictions.length === 0) {
-    predictions = await initializePredictions(user.id, tournamentId, groupsWithTeams);
-  }
-
-  return (
-    <QualifiedTeamsClientPage
-      tournament={tournament}
-      groups={groupsWithTeams}
-      initialPredictions={predictions}
-      userId={user.id}
-      isLocked={config.isLocked}
-      allowsThirdPlace={config.allowsThirdPlace}
-      maxThirdPlace={config.maxThirdPlace}
-    />
-  );
 }
