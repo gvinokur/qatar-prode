@@ -8,13 +8,7 @@ import {
   CardContent,
   CardHeader,
   Tab,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
   Typography,
-  useMediaQuery,
 } from "@mui/material";
 import {useState} from "react";
 import GroupTournamentBettingAdmin from './group-tournament-betting-admin';
@@ -23,10 +17,8 @@ import { promoteParticipantToAdmin, demoteParticipantFromAdmin } from '../../act
 import Snackbar from '@mui/material/Snackbar';
 import Button from '@mui/material/Button';
 import MuiAlert from '@mui/material/Alert';
-import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
-import PersonIcon from '@mui/icons-material/Person';
-import Tooltip from '@mui/material/Tooltip';
 import NotificationDialog from "./notification-dialog";
+import LeaderboardView from '../leaderboard/LeaderboardView';
 
 interface AdminActionButtonProps {
   readonly member?: { id: string, nombre: string, is_admin?: boolean };
@@ -91,7 +83,6 @@ type Props = {
 
 export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, ownerId, members, bettingData, selectedTournamentId}: Props) {
   const [selectedTab, setSelectedTab] = useState<string>(selectedTournamentId || tournaments[0]?.id || '')
-  const isNotExtraSmallScreen = useMediaQuery('(min-width:600px)')
   const [loadingUserId, setLoadingUserId] = useState<string | null>(null);
   const [snackbar, setSnackbar] = useState<{open: boolean, message: string, severity: 'success' | 'error'}>({open: false, message: '', severity: 'success'});
   const [membersState, setMembersState] = useState(members);
@@ -160,124 +151,43 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
               <Tab label={tournament.short_name} key={tournament.id} value={tournament.id}/>
             ))}
           </TabList>
-          {tournaments.map((tournament) => (
-            <TabPanel value={tournament.id} key={tournament.id} keepMounted={true}>
-              <Box sx={{ width: '100%', overflowX: 'auto' }}>
-                <Table sx={{ minWidth: 650 }}>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>#</TableCell>
-                      <TableCell>Usuario</TableCell>
-                      <TableCell>Puntos Totales</TableCell>
-                      <TableCell>Puntos Partidos</TableCell>
-                      {isNotExtraSmallScreen && <TableCell>Bonus Grupos</TableCell>}
-                      {isNotExtraSmallScreen && <TableCell>Puntos Clasificados</TableCell>}
-                      {isNotExtraSmallScreen && <TableCell>Posiciones Grupo</TableCell>}
-                      <TableCell>Puntos Playoffs</TableCell>
-                      {isNotExtraSmallScreen && <TableCell>Bonus Playoffs</TableCell>}
-                      {!isNotExtraSmallScreen && <TableCell>Total Bonus</TableCell>}
-                      {isNotExtraSmallScreen && <TableCell>Cuadro de Honor</TableCell>}
-                      {isNotExtraSmallScreen && <TableCell>Premios</TableCell>}
-                      {ownerId === loggedInUser && <TableCell>Actions</TableCell>}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {userScoresByTournament[tournament.id]
-                      .sort((usa, usb) => usb.totalPoints - usa.totalPoints)
-                      .map((userScore, index) => {
-                        const member = membersState.find(m => m.id === userScore.userId);
-                        return (
-                          <TableRow key={userScore.userId} selected={userScore.userId === loggedInUser}>
-                            <TableCell>{index+1}</TableCell>
-                            <TableCell sx={{
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              maxWidth: '140px',
-                            }}>
-                              <Box display="flex" alignItems="center">
-                                {member?.is_admin && (
-                                  <Tooltip title="Administrador del grupo">
-                                    <ManageAccountsIcon color="secondary" fontSize="small" />
-                                  </Tooltip>
-                                )}
-                                {ownerId === userScore.userId && (
-                                  <Tooltip title="Dueño del grupo">
-                                    <PersonIcon color="primary" fontSize="small" />
-                                  </Tooltip>
-                                )}
-                                <span
-                                  style={{
-                                    marginLeft: 8,
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap',
-                                    minWidth: 0,
-                                    flex: 1
-                                  }}
-                                >
-                                  {users[userScore.userId]?.nickname || users[userScore.userId]?.email}
-                                </span>
-                              </Box>
-                            </TableCell>
-                            <TableCell>{userScore.totalPoints}</TableCell>
-                            <TableCell>{userScore.groupStageScore}</TableCell>
-                            {isNotExtraSmallScreen && (
-                              <TableCell sx={{ color: userScore.groupBoostBonus > 0 ? 'success.main' : 'inherit' }}>
-                                {userScore.groupBoostBonus}
-                              </TableCell>
-                            )}
-                            {isNotExtraSmallScreen && <TableCell>{userScore.groupStageQualifiersScore}</TableCell>}
-                            {isNotExtraSmallScreen && <TableCell>{userScore.groupPositionScore || 0}</TableCell>}
-                            <TableCell>{userScore.playoffScore}</TableCell>
-                            {isNotExtraSmallScreen && (
-                              <TableCell sx={{ color: userScore.playoffBoostBonus > 0 ? 'success.main' : 'inherit' }}>
-                                {userScore.playoffBoostBonus}
-                              </TableCell>
-                            )}
-                            {!isNotExtraSmallScreen && (
-                              <TableCell sx={{ color: userScore.totalBoostBonus > 0 ? 'success.main' : 'inherit' }}>
-                                {userScore.totalBoostBonus}
-                              </TableCell>
-                            )}
-                            {isNotExtraSmallScreen && <TableCell>{userScore.honorRollScore}</TableCell>}
-                            {isNotExtraSmallScreen && <TableCell>{userScore.individualAwardsScore}</TableCell>}
-                            {ownerId === loggedInUser && (
-                              <TableCell>
-                                <AdminActionButton 
-                                  member={member}
-                                  ownerId={ownerId}
-                                  groupId={groupId}
-                                  userId={userScore.userId}
-                                  loadingUserId={loadingUserId}
-                                  onPromote={handlePromoteAdmin}
-                                  onDemote={handleDemoteAdmin}
-                                />
-                              </TableCell>
-                            )}
-                          </TableRow>
-                        )
-                      })}
-                  </TableBody>
-                </Table>
-              </Box>
-              {isAdmin && (
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 2 }}>
-                  <Button variant="contained" color="primary" onClick={() => setNotificationDialogOpen(true)}>
-                    Enviar Notificación
-                  </Button>
-                </Box>
-              )}
-              <GroupTournamentBettingAdmin
-                groupId={groupId}
-                tournamentId={tournament.id}
-                isAdmin={ownerId === loggedInUser || !!membersState.find(m => m.id === loggedInUser)?.is_admin}
-                members={membersState}
-                config={bettingData[tournament.id]?.config}
-                payments={bettingData[tournament.id]?.payments}
-              />
-            </TabPanel>
-          ))}
+          {tournaments.map((tournament) => {
+            // Transform UserScore to include userName and missing fields
+            const transformedScores = (userScoresByTournament[tournament.id] || []).map(score => ({
+              ...score,
+              userName: users[score.userId]?.nickname || users[score.userId]?.email || 'Unknown User',
+              groupStagePoints: score.groupStageScore + score.groupStageQualifiersScore,
+              knockoutPoints: score.playoffScore,
+              boostsUsed: 0, // Not available in current UserScore
+              correctPredictions: 0, // Not available in current UserScore - needs backend update
+              playedGames: 0, // Not available in current UserScore - needs backend update
+            }))
+
+            return (
+              <TabPanel value={tournament.id} key={tournament.id} keepMounted={true}>
+                <LeaderboardView
+                  scores={transformedScores}
+                  currentUserId={loggedInUser}
+                  tournament={tournament}
+                />
+                {isAdmin && (
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 2 }}>
+                    <Button variant="contained" color="primary" onClick={() => setNotificationDialogOpen(true)}>
+                      Enviar Notificación
+                    </Button>
+                  </Box>
+                )}
+                <GroupTournamentBettingAdmin
+                  groupId={groupId}
+                  tournamentId={tournament.id}
+                  isAdmin={ownerId === loggedInUser || !!membersState.find(m => m.id === loggedInUser)?.is_admin}
+                  members={membersState}
+                  config={bettingData[tournament.id]?.config}
+                  payments={bettingData[tournament.id]?.payments}
+                />
+              </TabPanel>
+            )
+          })}
         </TabContext>
         <Snackbar
           open={snackbar.open}
