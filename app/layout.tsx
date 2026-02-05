@@ -8,6 +8,7 @@ import {Metadata} from "next";
 import InstallPwa from "./components/Install-pwa";
 import OfflineDetection from "./components/offline-detection";
 import Header from "./components/header/header";
+import ConditionalHeader from "./components/header/conditional-header";
 import {getLoggedInUser} from "./actions/user-actions";
 import { unstable_ViewTransition as ViewTransition } from 'react'
 import { TimezoneProvider } from './components/context-providers/timezone-context-provider';
@@ -53,7 +54,9 @@ export default async function RootLayout({
             <NextThemeProvider defaultTheme={'system'} enableSystem={true}>
               <ThemeProvider>
                 <SessionWrapper>
-                  <Header user={user}/>
+                  <ConditionalHeader>
+                    <Header user={user}/>
+                  </ConditionalHeader>
                   <ViewTransition
                     name={'main'}
                     enter={'page-enter'}
