@@ -1,6 +1,6 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import ConditionalHeader from '../conditional-header'
 import { renderWithTheme } from '@/__tests__/utils/test-utils'
 
