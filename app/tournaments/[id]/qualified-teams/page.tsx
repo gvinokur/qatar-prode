@@ -93,7 +93,7 @@ export default async function QualifiedTeamsPage({ params }: PageProps) {
       redirect(`/auth/login?redirect=/tournaments/${tournamentId}/qualified-teams`);
     }
 
-    console.log('[QualifiedTeams] User authenticated:', user.id);
+    console.error('[QualifiedTeams] User authenticated:', user.id);
 
     // Fetch tournament
     const tournament = await db
@@ -107,15 +107,15 @@ export default async function QualifiedTeamsPage({ params }: PageProps) {
       notFound();
     }
 
-    console.log('[QualifiedTeams] Tournament found:', tournament.id);
+    console.error('[QualifiedTeams] Tournament found:', tournament.id);
 
     // Get tournament qualification configuration
     const config = await getTournamentQualificationConfig(tournamentId);
-    console.log('[QualifiedTeams] Config loaded:', config);
+    console.error('[QualifiedTeams] Config loaded:', config);
 
     // Fetch groups with their teams
     const groupsWithTeams = await fetchGroupsWithTeams(tournamentId);
-    console.log('[QualifiedTeams] Groups loaded:', groupsWithTeams.length);
+    console.error('[QualifiedTeams] Groups loaded:', groupsWithTeams.length);
 
     // Fetch user's predictions
     let predictions = await db
@@ -135,13 +135,13 @@ export default async function QualifiedTeamsPage({ params }: PageProps) {
       ])
       .execute();
 
-    console.log('[QualifiedTeams] Predictions loaded:', predictions.length);
+    console.error('[QualifiedTeams] Predictions loaded:', predictions.length);
 
     // Initialize predictions if none exist
     if (predictions.length === 0) {
-      console.log('[QualifiedTeams] Initializing predictions...');
+      console.error('[QualifiedTeams] Initializing predictions...');
       predictions = await initializePredictions(user.id, tournamentId, groupsWithTeams);
-      console.log('[QualifiedTeams] Predictions initialized:', predictions.length);
+      console.error('[QualifiedTeams] Predictions initialized:', predictions.length);
     }
 
     return (
