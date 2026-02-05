@@ -62,11 +62,12 @@ Total: ~176px
 **After (Mobile):**
 ```
 ┌─────────────────────────────────────────┐
-│ [🏠] [Tnmt Logo] Name | [Theme] [User] │ ← Merged Header (~56px)
+│ [LM] [Tnmt Logo] Name | [Theme] [User] │ ← Merged Header (~56px)
 ├─────────────────────────────────────────┤
 │  [🏆] [GRUPO A] [GRUPO B] [PLAYOFFS]   │ ← Tabs (~44px)
 └─────────────────────────────────────────┘
 Total: ~100px (43% reduction!)
+Note: [LM] = La Maquina logo button (32x32px, links to home)
 ```
 
 **Desktop (unchanged):**
@@ -99,12 +100,13 @@ Total: ~100px (43% reduction!)
 **Goal:** Integrate App Header functionality into Tournament Header.
 
 **Changes:**
-1. Add home button (icon link to `/`) to Tournament Header
+1. Add "La Maquina" logo button (links to `/`) to Tournament Header as home navigation
 2. Add ThemeSwitcher component to Tournament Header
 3. Add UserActions component to Tournament Header
 4. Optimize Tournament Header layout for mobile:
-   - Horizontal flex layout: [Home] [Logo] [Name] | [Theme] [User]
-   - Reduce logo size: 36px (from 48px)
+   - Horizontal flex layout: [La Maquina Logo] [Tournament Logo] [Name] | [Theme] [User]
+   - La Maquina logo size: 32x32px (compact)
+   - Tournament logo size: 36px (reduced from 48px)
    - Tighter padding
 5. Responsive: Only show integrated actions on mobile, desktop keeps original layout
 
@@ -149,8 +151,8 @@ Total: ~184px (3 rows)
 
 ```
 ┌───────────────────────────────────────────┐
-│ [🏠] [36px] Qatar WC | [🌙] [👤]         │ ← Merged Header
-│       Logo  2022                          │   (~56px)
+│ [LM] [36px] Qatar WC | [🌙] [👤]         │ ← Merged Header
+│ 32px  Logo  2022                          │   (~56px)
 ├───────────────────────────────────────────┤
 │ [🏆] [GRUPO A] [GRUPO B] [PLAYOFFS]      │ ← Tabs (~44px)
 └───────────────────────────────────────────┘
@@ -158,7 +160,7 @@ Total: ~100px (2 rows, 46% reduction)
 ```
 
 **Layout Details:**
-- **Home icon:** 32x32px IconButton with HomeIcon
+- **La Maquina logo button:** 32x32px Avatar/Logo, links to `/` (home navigation)
 - **Tournament logo:** 36px height (reduced from 48px)
 - **Tournament name:** Truncated with ellipsis, `noWrap`
 - **Theme switcher:** Existing ThemeSwitcher component
@@ -212,13 +214,13 @@ Both headers visible, side-by-side layouts
 
 3. **`/app/tournaments/[id]/layout.tsx`**
    - Import `ThemeSwitcher` and `UserActions` components
-   - Import `HomeIcon` from MUI icons
+   - Import `Avatar` from MUI for La Maquina logo
    - Update logo + name Grid section (lines 70-123):
-     - Add home icon button (links to `/`)
+     - Add La Maquina logo button (32x32px Avatar, links to `/`)
      - Add ThemeSwitcher component
      - Add UserActions component
      - Change to horizontal flex layout
-     - Reduce logo size to 36px on mobile
+     - Reduce tournament logo size to 36px on mobile
      - Tighter padding: `px={1.5} py={0.75}`
      - Responsive: Show actions only on mobile (`display: { xs: 'flex', md: 'none' }`)
    - Update GroupSelector Grid section:
@@ -261,12 +263,12 @@ Both headers visible, side-by-side layouts
 
 ### Phase 2: Add User Actions to Tournament Header
 
-**Step 2.1: Add Home Icon to Tournament Header**
-- Import `HomeIcon` from `@mui/icons-material`
-- Add `IconButton` with `HomeIcon` as first element in logo section
-- Link to `/` using Next.js `Link`
-- Size: 32x32px
-- Test: Click navigates to home
+**Step 2.1: Add La Maquina Logo Button to Tournament Header**
+- Add Avatar/Logo component displaying La Maquina logo (`/logo.webp`)
+- Wrap in Link component pointing to `/` (home navigation)
+- Size: 32x32px (compact for space savings)
+- Use `variant="rounded"` for consistency with main header
+- Test: Click navigates to home page
 
 **Step 2.2: Add Theme Switcher to Tournament Header**
 - Import `ThemeSwitcher` from `@/app/components/header/theme-switcher`
@@ -356,7 +358,7 @@ Both headers visible, side-by-side layouts
 **Test Cases:**
 1. **Mobile tournament header includes all actions:**
    - Render with mobile viewport
-   - Verify home icon button present
+   - Verify La Maquina logo button present
    - Verify theme switcher present
    - Verify user actions present (if logged in)
 
@@ -374,9 +376,9 @@ Both headers visible, side-by-side layouts
    - Verify Typography has `noWrap`
    - Verify text truncates with ellipsis
 
-5. **Home button navigates correctly:**
+5. **La Maquina logo button navigates correctly:**
    - Render tournament header
-   - Click home icon button
+   - Click La Maquina logo button
    - Verify Link href is `/`
 
 **Test Data:**
@@ -398,8 +400,8 @@ Both headers visible, side-by-side layouts
   - [ ] `/tournaments/123/playoffs`
 
 **Phase 2:**
-- [ ] Home icon appears in tournament header (mobile only)
-- [ ] Home icon navigates to home page
+- [ ] La Maquina logo appears in tournament header (mobile only)
+- [ ] La Maquina logo button navigates to home page
 - [ ] Theme switcher appears in tournament header (mobile only)
 - [ ] Theme switching works correctly
 - [ ] User actions appear in tournament header (mobile only)
@@ -422,7 +424,7 @@ Both headers visible, side-by-side layouts
 - [ ] 900px+ (desktop): Original layout, no actions in tournament header
 
 **Accessibility:**
-- [ ] Home icon button has accessible label
+- [ ] La Maquina logo button has accessible label (aria-label="Home")
 - [ ] Keyboard navigation works (Tab through all elements)
 - [ ] Screen reader announces home button correctly
 - [ ] Focus indicators visible on all interactive elements
@@ -487,8 +489,8 @@ Both headers visible, side-by-side layouts
 
 ### For User Review:
 
-1. **Should the home icon be visible on desktop as well?**
-   - Current plan: Mobile only (desktop has App Header with home link)
+1. **Should the La Maquina logo be visible on desktop as well?**
+   - Current plan: Mobile only (desktop has App Header with La Maquina branding)
    - Alternative: Show on desktop too for consistency
 
 2. **Tournament logo size: 36px or 40px on mobile?**
