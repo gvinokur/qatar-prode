@@ -1,8 +1,8 @@
 # Implementation Plan: Story #90 - Visual Qualification Prediction Interface
 
-## Changes from User Feedback (Iteration 1)
+## Changes from User Feedback
 
-**User feedback incorporated:**
+### Iteration 1
 
 1. **Schema redesign** - Changed `qualifies_as_third_place` → `predicted_to_qualify` for clarity
 2. **Flexible position constraint** - Changed `CHECK (BETWEEN 1 AND 4)` → `CHECK (>= 1)` to support future tournaments with 5+ teams per group
@@ -10,6 +10,13 @@
 4. **Group header counts** - Added qualified team count display in group headers (e.g., "GRUPO A (2 qual)")
 5. **Mobile collapsible groups** - Added expand/collapse functionality for group cards on mobile
 6. **Follow-up stories documented** - Listed 2 out-of-scope stories (onboarding tutorial, prediction dashboard links)
+
+### Iteration 2
+
+1. **Removed data migration** - Not needed since no existing qualified team predictions exist yet
+2. **Added backoffice implementation** - Phase 8.5 adds UI for admins to configure `max_third_place_qualifiers` and `allows_third_place_qualification` in tournament settings
+3. **Configuration via backoffice** - Values are set when tournament is created/edited, not via external migration
+4. **Added follow-up story** - Backoffice validation of game configuration using the new tournament settings
 
 ## Story Context
 
@@ -35,12 +42,13 @@
 - AC4: Third place qualification checkbox with validation
 - AC5: Real-time auto-save (debounced 500ms)
 - AC6: New database table `tournament_qualified_teams_predictions`
-- AC7: Tournament configuration (allows_third_place_qualification, max_third_place_qualifiers)
-- AC8: Scoring system implementation
-- AC9: Predictions lock timing (same as tournament)
-- AC10: Integration with existing navigation and permissions
-- AC11: Full accessibility (keyboard nav, ARIA, screen reader)
-- AC12: Error states and edge cases
+- AC7: Tournament configuration columns (allows_third_place_qualification, max_third_place_qualifiers)
+- AC8: Backoffice UI for tournament configuration (admin can set the two new columns)
+- AC9: Scoring system implementation
+- AC10: Predictions lock timing (same as tournament)
+- AC11: Integration with existing navigation and permissions
+- AC12: Full accessibility (keyboard nav, ARIA, screen reader)
+- AC13: Error states and edge cases
 
 ## Follow-Up Stories (Out of Scope for This Story)
 
@@ -48,6 +56,7 @@
 
 1. **Update Onboarding Tutorial** - Modify tutorial to show new qualified teams page and explain decoupled prediction flow
 2. **Update Prediction Dashboard Links** - Change "missing qualified teams" warning to link to new qualified teams page instead of group pages
+3. **Backoffice: Validate Game Configuration** - Use `max_third_place_qualifiers` and `allows_third_place_qualification` to validate first round playoffs and third_place_configuration_rules in tournament setup
 
 ## Visual Prototypes
 
@@ -562,76 +571,47 @@ useEffect(() => {
 - [ ] Drag mode announced when activated
 - [ ] Error messages announced with `aria-live="assertive"`
 
-### Third-Place Backward Compatibility (DATA INTEGRITY)
+### Tournament Configuration Management
 
-**Problem:** If tournament config changes from `max_third_place_qualifiers = 8` to `max_third_place_qualifiers = 4`, existing predictions might violate the new constraint.
+**Note:** Data migration is NOT needed since we don't have existing qualified team predictions yet.
 
-**Solution - Data Migration Strategy:**
+**Configuration happens via backoffice:**
+- Admins set `max_third_place_qualifiers` and `allows_third_place_qualification` when creating/editing tournament
+- These values are stored in the `tournaments` table
+- Application-level validation prevents users from exceeding limits
 
-1. **Migration File:** `202602XX000001_cleanup_excess_third_place.sql`
-   ```sql
-   -- Run AFTER tournament config is updated
-   -- Remove excess third-place selections for users exceeding new max
+**Application-Level Validation:**
+```typescript
+// qualification-actions.ts
+export async function updateQualificationPredictions(
+  predictions: QualifiedTeamPredictionNew[]
+) {
+  // Get tournament config
+  const tournament = await getTournament(predictions[0].tournament_id);
+  const maxThirdPlace = tournament.max_third_place_qualifiers || 0;
 
-   WITH ranked_thirds AS (
-     SELECT
-       id,
-       user_id,
-       tournament_id,
-       ROW_NUMBER() OVER (
-         PARTITION BY user_id, tournament_id
-         ORDER BY updated_at DESC
-       ) as row_num,
-       t.max_third_place_qualifiers
-     FROM tournament_qualified_teams_predictions tq
-     JOIN tournaments t ON t.id = tq.tournament_id
-     WHERE tq.predicted_to_qualify = TRUE
-       AND tq.predicted_position = 3
-   )
-   DELETE FROM tournament_qualified_teams_predictions
-   WHERE id IN (
-     SELECT id FROM ranked_thirds
-     WHERE row_num > max_third_place_qualifiers
-   );
-   ```
+  // Count current third place selections
+  const currentCount = await countThirdPlaceQualifiers(
+    userId,
+    tournamentId
+  );
 
-2. **Application-Level Check:**
-   ```typescript
-   // qualification-actions.ts
-   export async function updateQualificationPredictions(
-     predictions: QualifiedTeamPredictionNew[]
-   ) {
-     // Get tournament config
-     const tournament = await getTournament(predictions[0].tournament_id);
-     const maxThirdPlace = tournament.max_third_place_qualifiers;
+  // Count new third place selections being added
+  const newThirdPlaceCount = predictions.filter(
+    p => p.predicted_to_qualify && p.predicted_position === 3
+  ).length;
 
-     // Count current third place selections
-     const currentCount = await countThirdPlaceQualifiers(
-       userId,
-       tournamentId
-     );
+  // Validate
+  if (currentCount + newThirdPlaceCount > maxThirdPlace) {
+    throw new Error(
+      `Maximum ${maxThirdPlace} third place qualifiers allowed. ` +
+      `You currently have ${currentCount} selected.`
+    );
+  }
 
-     // Count new third place selections being added
-     const newThirdPlaceCount = predictions.filter(
-       p => p.predicted_to_qualify && p.predicted_position === 3
-     ).length;
-
-     // Validate
-     if (currentCount + newThirdPlaceCount > maxThirdPlace) {
-       throw new Error(
-         `Maximum ${maxThirdPlace} third place qualifiers allowed. ` +
-         `You currently have ${currentCount} selected.`
-       );
-     }
-
-     // Proceed with upsert...
-   }
-   ```
-
-3. **UI Warning for Users:**
-   - If user has excess third-place selections after config change, show banner:
-   - "Tournament rules changed - you have too many third-place teams selected. Please remove {N} teams."
-   - Disable saving until user compliance
+  // Proceed with upsert...
+}
+```
 
 ### Component Structure
 
@@ -907,6 +887,27 @@ app/components/groups-page/
 4. Store in `tournament_guesses.qualification_score`
 5. Write unit tests (various scoring scenarios)
 
+**Phase 8.5: Backoffice Tournament Configuration (Day 9 afternoon)**
+1. **Add form fields to tournament create/edit page:**
+   - Checkbox: "Allow third place qualification" (`allows_third_place_qualification`)
+   - Number input: "Max third place qualifiers" (`max_third_place_qualifiers`)
+   - Show number input only when checkbox is checked
+   - Default values: `false` and `0`
+2. **Update tournament form schema (Zod):**
+   - Add validation: `max_third_place_qualifiers >= 0`
+   - Add validation: If `allows_third_place_qualification = true`, require `max_third_place_qualifiers > 0`
+3. **Update Server Action:**
+   - Modify `createTournament` or `updateTournament` to accept new fields
+   - Save to database
+4. **Display in tournament details:**
+   - Show configuration in backoffice tournament view
+   - Format: "Third place qualifiers: Allowed (max 8)" or "Third place qualifiers: Not allowed"
+5. **Write unit tests:**
+   - Form validation rules
+   - Server Action saves values correctly
+   - Display renders configuration
+   - **Target: 80% coverage**
+
 **Phase 9a: ARIA & Screen Reader (Day 10 morning)**
 1. Verify all ARIA labels implemented (from Phase 4-6)
 2. Test ARIA live regions announce correctly
@@ -1023,23 +1024,22 @@ app/components/groups-page/
 
 **New Files:**
 1. `/migrations/202602XX000000_create_qualified_teams_predictions.sql`
-2. `/migrations/202602XX000001_cleanup_excess_third_place.sql` (backward compatibility)
-3. `/app/db/qualified-teams-repository.ts`
-4. `/app/actions/qualification-actions.ts`
-5. `/app/utils/qualification-scoring.ts`
-6. `/app/tournaments/[id]/qualified-teams/page.tsx`
-7. `/app/tournaments/[id]/qualified-teams/qualified-teams-client.tsx`
-8. `/app/components/qualified-teams/group-grid.tsx`
-9. `/app/components/qualified-teams/group-card.tsx`
-10. `/app/components/qualified-teams/team-card-draggable.tsx`
-11. `/app/components/qualified-teams/third-place-summary.tsx`
-12. `/app/components/qualified-teams/qualified-teams-context.tsx`
-13. `/__tests__/db/qualified-teams-repository.test.ts`
-14. `/__tests__/actions/qualification-actions.test.ts`
-15. `/__tests__/utils/qualification-scoring.test.ts`
-16. `/__tests__/components/qualified-teams/team-card-draggable.test.tsx`
-17. `/__tests__/components/qualified-teams/group-card.test.tsx`
-18. `/__tests__/components/qualified-teams/third-place-summary.test.tsx`
+2. `/app/db/qualified-teams-repository.ts`
+3. `/app/actions/qualification-actions.ts`
+4. `/app/utils/qualification-scoring.ts`
+5. `/app/tournaments/[id]/qualified-teams/page.tsx`
+6. `/app/tournaments/[id]/qualified-teams/qualified-teams-client.tsx`
+7. `/app/components/qualified-teams/group-grid.tsx`
+8. `/app/components/qualified-teams/group-card.tsx`
+9. `/app/components/qualified-teams/team-card-draggable.tsx`
+10. `/app/components/qualified-teams/third-place-summary.tsx`
+11. `/app/components/qualified-teams/qualified-teams-context.tsx`
+12. `/__tests__/db/qualified-teams-repository.test.ts`
+13. `/__tests__/actions/qualification-actions.test.ts`
+14. `/__tests__/utils/qualification-scoring.test.ts`
+15. `/__tests__/components/qualified-teams/team-card-draggable.test.tsx`
+16. `/__tests__/components/qualified-teams/group-card.test.tsx`
+17. `/__tests__/components/qualified-teams/third-place-summary.test.tsx`
 
 ## Files to Modify
 
