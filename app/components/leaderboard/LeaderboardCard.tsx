@@ -98,7 +98,7 @@ export default function LeaderboardCard({
             >
               #{rank}
             </Typography>
-            {rankChange !== 0 && <RankChangeIndicator rankChange={rankChange} size="small" />}
+            <RankChangeIndicator rankChange={rankChange} size="small" />
           </Box>
 
           {/* Avatar */}
