@@ -199,15 +199,17 @@ for (let i = 0; i < sortedByTotal.length; i++) {
     │ getGameGuess       │                │ findTournament     │
     │ StatisticsForUsers │                │ GuessByUserIds     │
     │                    │                │ Tournament         │
-    │ ⚡ Called TWICE:    │                │                    │
-    │ 1. All games       │                │ Returns:           │
-    │ 2. Games before    │                │ - honor_roll_score │
-    │    today (filter   │                │ - awards_score     │
-    │    by game_date)   │                │ - qualifiers_score │
-    │                    │                │ ⚡ yesterday_       │
-    │ Returns:           │                │   tournament_score │
-    │ - current scores   │                │   (NEW FIELD)      │
-    │ - yesterday scores │                └────────────────────┘
+    │ ⚡ EXTENDED with    │                │                    │
+    │ subquery to return │                │ Returns:           │
+    │ BOTH:              │                │ - honor_roll_score │
+    │ 1. total_score     │                │ - awards_score     │
+    │    (all games)     │                │ - qualifiers_score │
+    │ 2. yesterday_score │                │ ⚡ yesterday_       │
+    │    (games where    │                │   tournament_score │
+    │    game_date<today)│                │   (NEW FIELD)      │
+    │                    │                └────────────────────┘
+    │ Single DB call!    │
+    └────────────────────┘
     └────────────────────┘
                 │                                       │
                 └─────────────┬─────────────────────────┘
@@ -296,7 +298,7 @@ for (let i = 0; i < sortedByTotal.length; i++) {
 
 | Aspect | Current | New |
 |--------|---------|-----|
-| **DB Queries** | 2 queries per tournament | 3 queries per tournament (+1 for yesterday game scores) |
+| **DB Queries** | 2 queries per tournament | 2 queries per tournament (same number, extended with subquery) |
 | **UserScore Type** | totalPoints only | totalPoints + yesterdayTotalPoints |
 | **Rank Calculation** | Simple index+1 | Client-side with tie handling + history comparison |
 | **Component Changes** | Page: none, Table: none | Page: none, Table: extended sorting logic |
@@ -503,13 +505,40 @@ Components to create:
    - Use `motion.tr` with entrance animation
    - Delay based on index for cascade effect
 
-#### Step 6: Extend getUserScoresForTournament Action
+#### Step 6: Extend Game Guess Repository
+1. Open `app/db/game-guess-repository.ts`
+2. Modify `getGameGuessStatisticsForUsers` to return BOTH current and yesterday scores in a SINGLE query:
+   ```typescript
+   // Add subquery for yesterday scores
+   .select((eb) => [
+     // ... existing selections (total_score, boost_bonus, etc.)
+
+     // NEW: Yesterday's score (games before today)
+     eb.fn.sum<number>(
+       eb.case()
+         .when(eb.ref('games.game_date'), '<', eb.val(new Date()))
+         .then(eb.ref('game_guesses.final_score'))
+         .else(0)
+         .end()
+     ).as('yesterday_total_score'),
+
+     eb.fn.sum<number>(
+       eb.case()
+         .when(eb.ref('games.game_date'), '<', eb.val(new Date()))
+         .then(eb.ref('game_guesses.boost_bonus'))
+         .else(0)
+         .end()
+     ).as('yesterday_boost_bonus')
+   ])
+   ```
+3. Update return type to include `yesterday_total_score` and `yesterday_boost_bonus`
+4. This returns both current and yesterday scores in ONE database roundtrip
+
+#### Step 7: Extend getUserScoresForTournament Action
 1. Open `app/actions/prode-group-actions.ts`
-2. Modify `getGameGuessStatisticsForUsers` call to include yesterday filter:
-   - Call it twice: once for all games, once for games before today
-   - Or extend the repository function to return both
+2. Access the new fields from `getGameGuessStatisticsForUsers` (no additional DB call needed)
 3. Access `yesterday_tournament_score` from tournament guesses (already in DB after Step 2)
-4. Calculate `yesterdayTotalPoints` in the same pattern as `totalPoints`:
+4. Calculate `yesterdayTotalPoints` using the new fields from game stats:
    ```typescript
    return {
      userId,
@@ -522,10 +551,10 @@ Components to create:
        (tournamentGuess?.individual_awards_score || 0) +
        (tournamentGuess?.group_position_score || 0),
 
-     // NEW: Yesterday's total points
+     // NEW: Yesterday's total points (from single query!)
      yesterdayTotalPoints:
-       (yesterdayGameStats?.total_score || 0) +
-       (yesterdayGameStats?.total_boost_bonus || 0) +
+       (gameStats?.yesterday_total_score || 0) +
+       (gameStats?.yesterday_boost_bonus || 0) +
        (tournamentGuess?.yesterday_tournament_score || 0)
    }
    ```
@@ -538,7 +567,7 @@ Components to create:
    }
    ```
 
-#### Step 7: Extend Rank Calculation in Table Component
+#### Step 8: Extend Rank Calculation in Table Component
 1. Open `app/components/friend-groups/friends-group-table.tsx`
 2. Import rank calculation utility and animation components
 3. Extend existing sorting logic (line 186-190) to calculate ranks:
@@ -605,7 +634,7 @@ Components to create:
    </StaggeredLeaderboardRow>
    ```
 
-#### Step 8: Add Haptic Feedback (Mobile)
+#### Step 9: Add Haptic Feedback (Mobile)
 1. Create utility function in `app/utils/haptics.ts`:
    ```typescript
    export function triggerRankUpHaptic() {
@@ -626,7 +655,7 @@ Components to create:
    ```
 3. Only trigger for logged-in user's rank improvement (not all users)
 
-#### Step 9: Update Type Definitions
+#### Step 10: Update Type Definitions
 1. Open `app/db/tables-definition.ts`
 2. Update `TournamentGuessTable` interface (line 261):
    ```typescript
@@ -659,7 +688,7 @@ Components to create:
    - If TypeScript errors: The mapped types didn't work, manually add fields to `TournamentGuessUpdate`
    - Remove test code after verification
 
-#### Step 10: Verify Repository Wrapper Integration
+#### Step 11: Verify Repository Wrapper Integration
 1. After Step 3 (updating backoffice-actions.ts), verify all 4 locations:
    - Search for all `updateTournamentGuess(` calls in backoffice-actions.ts
    - Confirm each is replaced with `updateTournamentGuessWithSnapshot(`
