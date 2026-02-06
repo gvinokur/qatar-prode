@@ -6,9 +6,10 @@ import GroupCard from '../../../app/components/qualified-teams/group-card';
 import { renderWithTheme } from '../../utils/test-utils';
 import { testFactories } from '../../db/test-factories';
 
-// Mock useMediaQuery to return false (desktop view)
+// Mock useMediaQuery - default to desktop, can be overridden per test
+const mockUseMediaQuery = vi.fn(() => false);
 vi.mock('@mui/material/useMediaQuery', () => ({
-  default: () => false,
+  default: mockUseMediaQuery,
 }));
 
 describe('GroupCard', () => {

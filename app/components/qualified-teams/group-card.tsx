@@ -48,23 +48,6 @@ function GroupHeader({ groupLetter }: { readonly groupLetter: string }) {
   );
 }
 
-/** Qualification instructions component */
-function QualificationInstructions({ allowsThirdPlace }: { readonly allowsThirdPlace: boolean }) {
-  return (
-    <Alert severity="info" sx={{ mb: 2 }}>
-      <Typography variant="body2">
-        <strong>Posiciones 1-2:</strong> Clasifican automáticamente a la siguiente ronda
-        {allowsThirdPlace && (
-          <>
-            <br />
-            <strong>Posición 3:</strong> Selecciona los equipos que predices que clasificarán
-          </>
-        )}
-      </Typography>
-    </Alert>
-  );
-}
-
 /**
  * Group card component that displays a tournament group with draggable team cards
  * Handles drag-and-drop reordering and third place qualification selection
