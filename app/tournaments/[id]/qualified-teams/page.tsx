@@ -53,7 +53,7 @@ async function initializePredictions(
     const teamPositions: TeamPositionPrediction[] = teams.map((team, index) => ({
       team_id: team.id,
       predicted_position: index + 1,
-      predicted_to_qualify: index < 2, // Top 2 auto-qualify
+      predicted_to_qualify: false, // User must explicitly select qualified teams
     }));
 
     return {

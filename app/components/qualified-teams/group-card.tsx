@@ -97,6 +97,14 @@ export default function GroupCard({
   // Extract team IDs for SortableContext
   const teamIds = useMemo(() => sortedTeams.map((team) => team.id), [sortedTeams]);
 
+  // Count qualified teams for accordion summary
+  const qualifiedCount = useMemo(() => {
+    return sortedTeams.filter((team) => {
+      const prediction = predictions.get(team.id);
+      return prediction?.predicted_to_qualify === true;
+    }).length;
+  }, [sortedTeams, predictions]);
+
   // Content to render (shared between accordion and card)
   const content = (
     <>
@@ -154,7 +162,7 @@ export default function GroupCard({
           }}
         >
           <Typography variant="h6" component="h2" sx={{ fontWeight: 600 }}>
-            GRUPO {group.group_letter.toUpperCase()}
+            GRUPO {group.group_letter.toUpperCase()} - {qualifiedCount} seleccionado{qualifiedCount !== 1 ? 's' : ''}
           </Typography>
         </AccordionSummary>
 
