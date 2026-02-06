@@ -4,6 +4,7 @@ export interface LeaderboardUser {
   id: string
   name: string
   totalPoints: number
+  yesterdayTotalPoints?: number    // Previous day's total points (for rank change tracking)
 
   // Group Stage breakdown
   groupPoints: number              // Total group stage points (for sorting/display)
@@ -37,6 +38,7 @@ export interface LeaderboardCardsProps {
 export interface LeaderboardCardProps {
   readonly user: LeaderboardUser
   readonly rank: number
+  readonly rankChange?: number     // Positive = moved up, negative = moved down, 0 = no change
   readonly isCurrentUser: boolean
   readonly isExpanded: boolean
   readonly onToggle: () => void

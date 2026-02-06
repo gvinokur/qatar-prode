@@ -13,6 +13,7 @@ import {
   useTheme
 } from '@mui/material'
 import type { LeaderboardCardProps } from './types'
+import { RankChangeIndicator } from './rank-change-animations'
 
 // Helper function to get avatar color from user ID
 function getAvatarColor(userId: string): string {
@@ -36,6 +37,7 @@ function getUserInitials(name: string): string {
 export default function LeaderboardCard({
   user,
   rank,
+  rankChange = 0,
   isCurrentUser,
   isExpanded,
   onToggle
@@ -84,18 +86,20 @@ export default function LeaderboardCard({
     >
       <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          {/* Rank Badge */}
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{
-              minWidth: '32px',
-              fontWeight: 'bold',
-              color: theme.palette.text.primary
-            }}
-          >
-            #{rank}
-          </Typography>
+          {/* Rank Badge with Change Indicator */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: '60px' }}>
+            <Typography
+              variant="h6"
+              component="div"
+              sx={{
+                fontWeight: 'bold',
+                color: theme.palette.text.primary
+              }}
+            >
+              #{rank}
+            </Typography>
+            {rankChange !== 0 && <RankChangeIndicator rankChange={rankChange} size="small" />}
+          </Box>
 
           {/* Avatar */}
           <Avatar
