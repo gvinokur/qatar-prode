@@ -2,6 +2,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import {
   updateQualificationPredictions,
   getTournamentQualificationConfig,
+  updateGroupPositionsJsonb,
   QualificationPredictionError,
 } from '../../app/actions/qualification-actions';
 import { QualifiedTeamPredictionNew } from '../../app/db/tables-definition';
@@ -556,6 +557,66 @@ describe('Qualification Actions', () => {
       const result = await getTournamentQualificationConfig('tournament-1');
 
       expect(result.isLocked).toBe(false); // Should not be locked (less than 5 days)
+    });
+  });
+
+  describe('updateGroupPositionsJsonb', () => {
+    const positionUpdates = [
+      { teamId: 'team-1', position: 1, qualifies: true },
+      { teamId: 'team-2', position: 2, qualifies: true },
+      { teamId: 'team-3', position: 3, qualifies: false },
+    ];
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+      mockGetLoggedInUser.mockResolvedValue(mockUser);
+    });
+
+    it('should reject unauthenticated users', async () => {
+      mockGetLoggedInUser.mockResolvedValue(null);
+
+      await expect(
+        updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
+      ).rejects.toThrow(QualificationPredictionError);
+      await expect(
+        updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
+      ).rejects.toThrow('Debes iniciar sesión para actualizar predicciones');
+    });
+
+    it('should handle empty updates array', async () => {
+      const result = await updateGroupPositionsJsonb('group-1', 'tournament-1', []);
+
+      expect(result.success).toBe(true);
+      expect(result.message).toBe('No hay predicciones para actualizar');
+    });
+
+    it('should reject if tournament not found', async () => {
+      const mockQuery = {
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(undefined),
+      };
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      await expect(
+        updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
+      ).rejects.toThrow('Torneo no encontrado');
+    });
+
+    it('should reject if tournament is locked', async () => {
+      const mockQuery = {
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue({
+          ...mockTournament,
+          is_active: false,
+        }),
+      };
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      await expect(
+        updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
+      ).rejects.toThrow('Las predicciones están bloqueadas para este torneo');
     });
   });
 });
