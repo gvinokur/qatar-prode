@@ -152,15 +152,14 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
             ))}
           </TabList>
           {tournaments.map((tournament) => {
-            // Transform UserScore to include userName and missing fields
+            // Transform UserScore to include userName and boost bonuses
             const transformedScores = (userScoresByTournament[tournament.id] || []).map(score => ({
               ...score,
               userName: users[score.userId]?.nickname || users[score.userId]?.email || 'Unknown User',
               groupStagePoints: score.groupStageScore + score.groupStageQualifiersScore,
               knockoutPoints: score.playoffScore,
-              boostsUsed: 0, // Not available in current UserScore
-              correctPredictions: 0, // Not available in current UserScore - needs backend update
-              playedGames: 0, // Not available in current UserScore - needs backend update
+              groupBoostBonus: score.groupBoostBonus || 0,
+              playoffBoostBonus: score.playoffBoostBonus || 0
             }))
 
             return (

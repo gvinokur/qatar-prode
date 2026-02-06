@@ -10,7 +10,6 @@ import {
   useMediaQuery,
 } from "@mui/material"
 import type { LeaderboardUser } from './types'
-import RankChangeIndicator from './RankChangeIndicator'
 
 interface LeaderboardTableProps {
   scores: LeaderboardUser[]
@@ -38,13 +37,10 @@ export default function LeaderboardTable({
         <TableHead>
           <TableRow>
             <TableCell>#</TableCell>
-            <TableCell>Rank Change</TableCell>
             <TableCell>Player</TableCell>
             <TableCell>Total Points</TableCell>
             {isNotExtraSmallScreen && <TableCell>Group Stage</TableCell>}
             {isNotExtraSmallScreen && <TableCell>Knockout</TableCell>}
-            {isNotExtraSmallScreen && <TableCell>Boosts Used</TableCell>}
-            <TableCell>Accuracy</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -67,9 +63,6 @@ export default function LeaderboardTable({
               >
                 <TableCell sx={{ fontWeight: isCurrentUser ? 'bold' : 'normal' }}>
                   {rank}
-                </TableCell>
-                <TableCell>
-                  <RankChangeIndicator change={userScore.rankChange} size="small" />
                 </TableCell>
                 <TableCell
                   sx={{
@@ -95,14 +88,6 @@ export default function LeaderboardTable({
                     {userScore.knockoutPoints}
                   </TableCell>
                 )}
-                {isNotExtraSmallScreen && (
-                  <TableCell sx={{ fontWeight: isCurrentUser ? 'bold' : 'normal' }}>
-                    {userScore.boostsUsed}/{userScore.totalBoosts}
-                  </TableCell>
-                )}
-                <TableCell sx={{ fontWeight: isCurrentUser ? 'bold' : 'normal' }}>
-                  {userScore.accuracy}%
-                </TableCell>
               </TableRow>
             )
           })}

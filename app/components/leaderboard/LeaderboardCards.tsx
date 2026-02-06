@@ -5,79 +5,16 @@ import { useState, useMemo } from 'react'
 import type { LeaderboardCardsProps, LeaderboardUser } from './types'
 import LeaderboardCard from './LeaderboardCard'
 
-// Helper function to calculate rank changes
-function calculateRankChanges(
-  currentScores: any[],
-  previousScores?: any[]
-): Map<string, number> {
-  const rankChanges = new Map<string, number>()
-
-  // Sort current scores by total points (descending) with tie-breaking
-  const currentRanked = [...currentScores].sort((a, b) => {
-    if (b.totalPoints !== a.totalPoints) {
-      return b.totalPoints - a.totalPoints
-    }
-    // Tie-breaking: sort by user ID alphabetically (deterministic)
-    return a.userId.localeCompare(b.userId)
-  })
-
-  // If no previous data, all rank changes are 0
-  if (!previousScores || previousScores.length === 0) {
-    currentRanked.forEach(user => rankChanges.set(user.userId, 0))
-    return rankChanges
-  }
-
-  // Sort previous scores by total points (descending) with tie-breaking
-  const previousRanked = [...previousScores].sort((a, b) => {
-    if (b.totalPoints !== a.totalPoints) {
-      return b.totalPoints - a.totalPoints
-    }
-    return a.userId.localeCompare(b.userId)
-  })
-
-  // Build previous rank map
-  const previousRankMap = new Map<string, number>()
-  previousRanked.forEach((user, index) => {
-    previousRankMap.set(user.userId, index + 1)
-  })
-
-  // Calculate rank change for each user
-  currentRanked.forEach((user, currentIndex) => {
-    const currentRank = currentIndex + 1
-    const previousRank = previousRankMap.get(user.userId)
-
-    if (previousRank === undefined) {
-      // New user - no rank change
-      rankChanges.set(user.userId, 0)
-    } else {
-      // Rank change = previous - current (positive = improved)
-      rankChanges.set(user.userId, previousRank - currentRank)
-    }
-  })
-
-  return rankChanges
-}
-
 // Helper function to transform UserScore to LeaderboardUser
-function transformToLeaderboardUser(
-  score: any,
-  rankChange: number
-): LeaderboardUser {
+function transformToLeaderboardUser(score: any): LeaderboardUser {
   return {
     id: score.userId,
     name: score.userName || 'Unknown User',
     totalPoints: score.totalPoints || 0,
     groupPoints: score.groupStagePoints ?? 0,
     knockoutPoints: score.knockoutPoints ?? 0,
-    boostsUsed: score.boostsUsed || 0,
-    totalBoosts: 5, // Tournament default
-    correctPredictions: score.correctPredictions || 0,
-    playedGames: score.playedGames || 0,
-    accuracy:
-      score.playedGames > 0
-        ? Math.round((score.correctPredictions / score.playedGames) * 100)
-        : 0,
-    rankChange
+    groupBoostBonus: score.groupBoostBonus || 0,
+    playoffBoostBonus: score.playoffBoostBonus || 0
   }
 }
 
@@ -88,18 +25,10 @@ export default function LeaderboardCards({
 }: LeaderboardCardsProps) {
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null)
 
-  // Calculate rank changes
-  const rankChangesMap = useMemo(
-    () => calculateRankChanges(scores, previousScores),
-    [scores, previousScores]
-  )
-
   // Transform and sort scores
   const leaderboardUsers = useMemo(() => {
     return scores
-      .map(score =>
-        transformToLeaderboardUser(score, rankChangesMap.get((score as any).userId) || 0)
-      )
+      .map(score => transformToLeaderboardUser(score))
       .sort((a, b) => {
         if (b.totalPoints !== a.totalPoints) {
           return b.totalPoints - a.totalPoints
@@ -107,7 +36,7 @@ export default function LeaderboardCards({
         // Tie-breaking: sort by user ID alphabetically (deterministic)
         return a.id.localeCompare(b.id)
       })
-  }, [scores, rankChangesMap])
+  }, [scores])
 
   // Handle card toggle (mutual exclusion - only one card expanded at a time)
   const handleCardToggle = (userId: string) => {

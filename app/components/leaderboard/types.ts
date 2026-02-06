@@ -6,12 +6,8 @@ export interface LeaderboardUser {
   totalPoints: number
   groupPoints: number
   knockoutPoints: number
-  boostsUsed: number
-  totalBoosts: number
-  correctPredictions: number
-  playedGames: number // Only games already played/decided, NOT future predictions
-  accuracy: number // correctPredictions / playedGames (%)
-  rankChange: number // positive = up, negative = down, 0 = no change
+  groupBoostBonus: number
+  playoffBoostBonus: number
 }
 
 export interface LeaderboardViewProps {
