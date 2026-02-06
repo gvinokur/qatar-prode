@@ -69,8 +69,8 @@ function validatePositionConstraints(predictions: QualifiedTeamPredictionNew[]):
 async function validateThirdPlaceQualifiers(
   predictions: QualifiedTeamPredictionNew[],
   tournament: {
-    allows_third_place_qualification: boolean | null;
-    max_third_place_qualifiers: number | null;
+    allows_third_place_qualification: boolean | null | undefined;
+    max_third_place_qualifiers: number | null | undefined;
   },
   userId: string,
   tournamentId: string
