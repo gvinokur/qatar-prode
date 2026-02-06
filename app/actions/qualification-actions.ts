@@ -137,13 +137,19 @@ export async function updateQualificationPredictions(
       .map((p) => p.team_id);
 
     // Count existing third place qualifiers NOT in the current batch
-    const existingNotInBatch = await db
+    let countQuery = db
       .selectFrom('tournament_qualified_teams_predictions')
       .where('user_id', '=', userId)
       .where('tournament_id', '=', tournamentId)
       .where('predicted_position', '=', 3)
-      .where('predicted_to_qualify', '=', true)
-      .where('team_id', 'not in', batchTeamIds.length > 0 ? batchTeamIds : [''])
+      .where('predicted_to_qualify', '=', true);
+
+    // Only add 'not in' clause if there are team IDs to exclude
+    if (batchTeamIds.length > 0) {
+      countQuery = countQuery.where('team_id', 'not in', batchTeamIds);
+    }
+
+    const existingNotInBatch = await countQuery
       .select((eb) => eb.fn.countAll<number>().as('count'))
       .executeTakeFirst();
 
