@@ -619,7 +619,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
                 onChange={(e) => setMaxThirdPlaceQualifiers(Number(e.target.value))}
                 required
                 margin="normal"
-                inputProps={{ min: 0, max: 16 }}
+                slotProps={{ htmlInput: { min: 0, max: 16 } }}
                 helperText="Maximum number of third place teams that can qualify (e.g., 4 for best 4 third-place teams)"
               />
             )}
