@@ -62,10 +62,15 @@ function createDragEndHandler(
 
     const { group, teams } = groupWithTeams;
 
-    // Check if the drop target (over team) is at position 3 and is qualified
-    const overPrediction = predictions.get(overTeamId);
-    const shouldInheritQualification =
-      overPrediction?.predicted_position === 3 && overPrediction?.predicted_to_qualify === true;
+    // Before the drag, find the current team at position 3 and remember its qualification status
+    // This will be inherited by whoever ends up at position 3 after the drag
+    const currentThirdPlaceTeam = teams.find((team) => {
+      const prediction = predictions.get(team.id);
+      return prediction?.predicted_position === 3;
+    });
+    const thirdPlaceQualificationStatus = currentThirdPlaceTeam
+      ? predictions.get(currentThirdPlaceTeam.id)?.predicted_to_qualify ?? false
+      : false;
 
     // Get current team order by position
     const teamOrder = teams
@@ -90,19 +95,15 @@ function createDragEndHandler(
     // Build batch update for all teams in the group
     const updates = newOrder.map((teamId, index) => {
       const newPosition = index + 1;
-      const currentPrediction = predictions.get(teamId);
 
       // Determine qualification status
       let qualifies: boolean;
       if (newPosition <= 2) {
         // Positions 1-2 always qualify
         qualifies = true;
-      } else if (teamId === activeTeamId && newPosition === 3 && shouldInheritQualification) {
-        // Active team moved to position 3 and should inherit qualification from drop target
-        qualifies = true;
-      } else if (newPosition === 3 && currentPrediction) {
-        // Position 3: preserve current qualification status
-        qualifies = currentPrediction.predicted_to_qualify;
+      } else if (newPosition === 3) {
+        // ANY team moving to position 3 inherits the old 3rd place qualification status
+        qualifies = thirdPlaceQualificationStatus;
       } else {
         // Position 4+: not qualified
         qualifies = false;
