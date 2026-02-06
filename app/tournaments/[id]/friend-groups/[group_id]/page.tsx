@@ -77,6 +77,7 @@ export default async function TournamentScopedFriendGroup(props : Props){
         }}/>
       )}
       <Grid container spacing={2}
+            mx={-2}
             pl={2}
             pt={1}
             bgcolor={prodeGroup.theme?.primary_color || ''}

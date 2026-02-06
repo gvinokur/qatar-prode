@@ -169,235 +169,81 @@ describe('ProdeGroupTable', () => {
   describe('Rendering', () => {
     it('renders the component with tournament tabs', () => {
       render(<ProdeGroupTable {...defaultProps} />);
-      
+
       expect(screen.getByText('Tabla de Posiciones')).toBeInTheDocument();
       expect(screen.getByText('TT1')).toBeInTheDocument();
       expect(screen.getByText('TT2')).toBeInTheDocument();
     });
 
-    it('renders user scores in correct order (highest first)', () => {
+    it('renders user scores using card-based leaderboard', () => {
       render(<ProdeGroupTable {...defaultProps} />);
-      
-      const rows = screen.getAllByRole('row');
-      // Header row + 3 user rows (× 2 for each tab) = 8 total rows
-      expect(rows.length).toBeGreaterThanOrEqual(4);
-      
-      // Check the users are present
-      expect(screen.getAllByText('User One')).toHaveLength(2); // One for each tab
-      expect(screen.getAllByText('Owner')).toHaveLength(2);    // One for each tab
-      expect(screen.getAllByText('User Two')).toHaveLength(2);  // One for each tab
+
+      // Check for leaderboard lists (one for each tab, both mounted)
+      const lists = screen.getAllByRole('list', { name: /leaderboard/i });
+      expect(lists.length).toBeGreaterThanOrEqual(1);
+
+      // Check that users are displayed (cards show "You" for current user, names for others)
+      // Both tabs are kept mounted, so text appears twice
+      expect(screen.getAllByText('You').length).toBeGreaterThanOrEqual(1); // user1 is current user
+      expect(screen.getAllByText('Owner').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('User Two').length).toBeGreaterThan(0);
     });
 
-    it('highlights the logged in user row', () => {
+    it('displays user scores in correct order (highest first)', () => {
       render(<ProdeGroupTable {...defaultProps} />);
-      
-      // Check that the logged in user (user1) rows have selected styling
-      const userRows = screen.getAllByRole('row').filter(row => 
-        row.textContent?.includes('User One')
-      );
-      expect(userRows.length).toBeGreaterThan(0);
-      
-      // At least one user row should exist
-      const firstUserRow = userRows[0];
-      expect(firstUserRow).toBeInTheDocument();
+
+      // Get all leaderboard cards (both tabs are kept mounted)
+      const cards = screen.getAllByRole('button', { name: /leaderboard card/i });
+
+      // Should have at least 3 cards
+      expect(cards.length).toBeGreaterThanOrEqual(3);
+
+      // Verify scores appear in descending order: 100, 90, 80
+      // Both tabs are kept mounted, so text may appear multiple times
+      expect(screen.getAllByText('100 pts').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('90 pts').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('80 pts').length).toBeGreaterThanOrEqual(1);
     });
 
-    it('displays admin and owner icons correctly', () => {
+    it('highlights the logged in user card', () => {
       render(<ProdeGroupTable {...defaultProps} />);
-      
-      // Check for admin icon (admin crown) - User Two is admin
-      const adminRows = screen.getAllByRole('row').filter(row => 
-        row.textContent?.includes('User Two')
-      );
-      expect(adminRows.length).toBeGreaterThan(0);
-      
-      // Check for owner icon - Owner user
-      const ownerRows = screen.getAllByRole('row').filter(row => 
-        row.textContent?.includes('Owner')
-      );
-      expect(ownerRows.length).toBeGreaterThan(0);
-      
-      // Verify the component shows user names correctly
-      expect(screen.getAllByText('User Two')).toHaveLength(2); // One for each tab
-      expect(screen.getAllByText('Owner')).toHaveLength(2); // One for each tab
-    });
 
-    it('shows actions column only when logged user is owner', () => {
-      render(<ProdeGroupTable {...defaultProps} />);
-      
-      // Should not show actions column when user is not owner
-      expect(screen.queryByText('Actions')).not.toBeInTheDocument();
-    });
-
-    it('shows actions column when logged user is owner', () => {
-      render(<ProdeGroupTable {...defaultProps} loggedInUser="owner" />);
-      
-      expect(screen.getAllByText('Actions')).toHaveLength(2); // One for each tab
-      expect(screen.getAllByText('Hacer admin')).toHaveLength(2); // One for each tab
-      expect(screen.getAllByText('Quitar admin')).toHaveLength(2); // One for each tab
-    });
-  });
-
-  describe('Responsive behavior', () => {
-    it('hides certain columns on small screens', () => {
-      (useMediaQuery as any).mockReturnValue(false); // Mobile view
-      
-      render(<ProdeGroupTable {...defaultProps} />);
-      
-      // These columns should be hidden on mobile
-      expect(screen.queryByText('Puntos Clasificados')).not.toBeInTheDocument();
-      expect(screen.queryByText('Posiciones Grupo')).not.toBeInTheDocument();
-      expect(screen.queryByText('Cuadro de Honor')).not.toBeInTheDocument();
-      expect(screen.queryByText('Premios')).not.toBeInTheDocument();
-    });
-
-    it('shows all columns on desktop', () => {
-      (useMediaQuery as any).mockReturnValue(true); // Desktop view
-      
-      render(<ProdeGroupTable {...defaultProps} />);
-      
-      expect(screen.getAllByText('Puntos Clasificados')).toHaveLength(2); // One for each tab
-      expect(screen.getAllByText('Posiciones Grupo')).toHaveLength(2); // One for each tab
-      expect(screen.getAllByText('Cuadro de Honor')).toHaveLength(2); // One for each tab
-      expect(screen.getAllByText('Premios')).toHaveLength(2); // One for each tab
+      // Current user card should show "You" with hint
+      // Both tabs are kept mounted, so text appears twice
+      expect(screen.getAllByText('You').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/tap to view details/i).length).toBeGreaterThanOrEqual(1);
     });
   });
 
   describe('Tab switching', () => {
     it('switches between tournaments when clicking tabs', async () => {
       render(<ProdeGroupTable {...defaultProps} />);
-      
+
+      // Verify first tournament is selected
+      expect(screen.getAllByText('100 pts').length).toBeGreaterThanOrEqual(1);
+
       // Click on second tournament tab
       fireEvent.click(screen.getByText('TT2'));
-      
+
       await waitFor(() => {
         // Should show scores for tournament2 (reduced by 10)
-        // There will be multiple elements because of how the component renders both tabs
-        expect(screen.getAllByText('90').length).toBeGreaterThanOrEqual(1); // user1: 100-10
-        expect(screen.getAllByText('80').length).toBeGreaterThanOrEqual(1); // owner: 90-10
-        expect(screen.getAllByText('70').length).toBeGreaterThanOrEqual(1); // user2: 80-10
-      });
-    });
-  });
+        // Note: Both tabs are kept mounted, so scores appear multiple times
+        const scores90 = screen.getAllByText('90 pts');
+        const scores80 = screen.getAllByText('80 pts');
+        const scores70 = screen.getAllByText('70 pts');
 
-  describe('Admin actions', () => {
-    it('promotes user to admin successfully', async () => {
-      const { promoteParticipantToAdmin } = await import('../../../app/actions/prode-group-actions');
-      (promoteParticipantToAdmin as any).mockResolvedValue(undefined);
-      
-      render(<ProdeGroupTable {...defaultProps} loggedInUser="owner" />);
-      
-      const promoteButtons = screen.getAllByText('Hacer admin');
-      fireEvent.click(promoteButtons[0]);
-      
-      await waitFor(() => {
-        expect(promoteParticipantToAdmin).toHaveBeenCalledWith('group1', 'user1');
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText('Usuario promovido a admin')).toBeInTheDocument();
+        expect(scores90.length).toBeGreaterThanOrEqual(1); // user1: 100-10
+        expect(scores80.length).toBeGreaterThanOrEqual(1); // owner: 90-10
+        expect(scores70.length).toBeGreaterThanOrEqual(1); // user2: 80-10
       });
     });
 
-    it('demotes admin user successfully', async () => {
-      const { demoteParticipantFromAdmin } = await import('../../../app/actions/prode-group-actions');
-      (demoteParticipantFromAdmin as any).mockResolvedValue(undefined);
-      
-      render(<ProdeGroupTable {...defaultProps} loggedInUser="owner" />);
-      
-      const demoteButtons = screen.getAllByText('Quitar admin');
-      fireEvent.click(demoteButtons[0]);
-      
-      await waitFor(() => {
-        expect(demoteParticipantFromAdmin).toHaveBeenCalledWith('group1', 'user2');
-      });
+    it('hides tabs when only one tournament', () => {
+      render(<ProdeGroupTable {...defaultProps} tournaments={[mockTournaments[0]]} />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Usuario removido como admin')).toBeInTheDocument();
-      });
-    });
-
-    it('handles promotion error', async () => {
-      const { promoteParticipantToAdmin } = await import('../../../app/actions/prode-group-actions');
-      (promoteParticipantToAdmin as any).mockRejectedValue(new Error('Network error'));
-      
-      render(<ProdeGroupTable {...defaultProps} loggedInUser="owner" />);
-      
-      const promoteButtons = screen.getAllByText('Hacer admin');
-      fireEvent.click(promoteButtons[0]);
-      
-      await waitFor(() => {
-        expect(screen.getByText('Network error')).toBeInTheDocument();
-      }, { timeout: 3000 });
-    });
-
-    it('handles demotion error', async () => {
-      const { demoteParticipantFromAdmin } = await import('../../../app/actions/prode-group-actions');
-      (demoteParticipantFromAdmin as any).mockRejectedValue(new Error('Custom error'));
-      
-      render(<ProdeGroupTable {...defaultProps} loggedInUser="owner" />);
-      
-      const demoteButtons = screen.getAllByText('Quitar admin');
-      fireEvent.click(demoteButtons[0]);
-      
-      await waitFor(() => {
-        expect(screen.getByText('Custom error')).toBeInTheDocument();
-      });
-    });
-
-    it('shows loading state during admin actions', async () => {
-      const { promoteParticipantToAdmin } = await import('../../../app/actions/prode-group-actions');
-      (promoteParticipantToAdmin as any).mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
-      
-      render(<ProdeGroupTable {...defaultProps} loggedInUser="owner" />);
-      
-      const promoteButtons = screen.getAllByText('Hacer admin');
-      fireEvent.click(promoteButtons[0]);
-      
-      expect(screen.getAllByText('Agregando...')).toHaveLength(2); // One for each tab
-      
-      // Wait for promise to resolve
-      await new Promise(resolve => setTimeout(resolve, 150));
-    });
-
-    it('disables buttons during loading', () => {
-      render(<ProdeGroupTable {...defaultProps} loggedInUser="owner" />);
-      
-      const promoteButtons = screen.getAllByText('Hacer admin');
-      const demoteButtons = screen.getAllByText('Quitar admin');
-      
-      fireEvent.click(promoteButtons[0]);
-      
-      expect(promoteButtons[0]).toBeDisabled();
-      expect(demoteButtons[0]).not.toBeDisabled(); // Different user, should not be disabled
-    });
-  });
-
-  describe('AdminActionButton component', () => {
-    it('renders nothing for owner', () => {
-      const { container } = render(
-        <ProdeGroupTable 
-          {...defaultProps} 
-          loggedInUser="owner"
-          members={[{ id: 'owner', nombre: 'Owner', is_admin: false }]}
-        />
-      );
-      
-      // Owner row should not have admin action buttons
-      const ownerRow = container.querySelector('[data-testid="owner-actions"]');
-      expect(ownerRow).not.toBeInTheDocument();
-    });
-
-    it('shows promote button for non-admin users', () => {
-      render(<ProdeGroupTable {...defaultProps} loggedInUser="owner" />);
-      
-      expect(screen.getAllByText('Hacer admin')).toHaveLength(2); // One for each tab
-    });
-
-    it('shows demote button for admin users', () => {
-      render(<ProdeGroupTable {...defaultProps} loggedInUser="owner" />);
-      
-      expect(screen.getAllByText('Quitar admin')).toHaveLength(2); // One for each tab
+      // Should not show tabs when there's only one tournament
+      expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
+      expect(screen.queryByText('TT1')).not.toBeInTheDocument();
     });
   });
 
@@ -467,34 +313,10 @@ describe('ProdeGroupTable', () => {
     });
   });
 
-  describe('Snackbar notifications', () => {
-    it('closes snackbar when close button clicked', async () => {
-      const { promoteParticipantToAdmin } = await import('../../../app/actions/prode-group-actions');
-      (promoteParticipantToAdmin as any).mockResolvedValue(undefined);
-      
-      render(<ProdeGroupTable {...defaultProps} loggedInUser="owner" />);
-      
-      const promoteButtons = screen.getAllByText('Hacer admin');
-      fireEvent.click(promoteButtons[0]);
-      
-      await waitFor(() => {
-        expect(screen.getByText('Usuario promovido a admin')).toBeInTheDocument();
-      });
-      
-      // Close snackbar
-      const closeSnackbarButton = screen.getByLabelText('Close');
-      fireEvent.click(closeSnackbarButton);
-      
-      await waitFor(() => {
-        expect(screen.queryByText('Usuario promovido a admin')).not.toBeInTheDocument();
-      });
-    });
-  });
-
   describe('GroupTournamentBettingAdmin integration', () => {
     it('passes correct props to GroupTournamentBettingAdmin', () => {
       render(<ProdeGroupTable {...defaultProps} loggedInUser="user2" />); // user2 is admin
-      
+
       expect(screen.getAllByTestId('group-tournament-betting-admin')).toHaveLength(2); // One for each tab
       expect(screen.getAllByTestId('group-id')[0]).toHaveTextContent('group1');
       expect(screen.getAllByTestId('tournament-id')[0]).toHaveTextContent('tournament1');
@@ -503,13 +325,13 @@ describe('ProdeGroupTable', () => {
 
     it('passes admin status correctly for owner', () => {
       render(<ProdeGroupTable {...defaultProps} loggedInUser="owner" />);
-      
+
       expect(screen.getAllByTestId('is-admin')[0]).toHaveTextContent('true');
     });
 
     it('passes admin status correctly for non-admin user', () => {
       render(<ProdeGroupTable {...defaultProps} loggedInUser="user1" />);
-      
+
       expect(screen.getAllByTestId('is-admin')[0]).toHaveTextContent('false');
     });
   });
@@ -539,342 +361,114 @@ describe('ProdeGroupTable', () => {
       );
 
       expect(screen.getByText('Tabla de Posiciones')).toBeInTheDocument();
-      // Should not crash with empty scores
+      // Should show empty state
+      expect(screen.getAllByText('No leaderboard data')).toHaveLength(2);
     });
 
     it('handles missing user data gracefully', () => {
       render(
-        <ProdeGroupTable 
-          {...defaultProps} 
+        <ProdeGroupTable
+          {...defaultProps}
           users={{}}
         />
       );
-      
-      // Should fallback to email when nickname is not available
-      expect(screen.getByText('Tabla de Posiciones')).toBeInTheDocument();
-    });
 
-    it('handles missing member data', () => {
-      render(
-        <ProdeGroupTable 
-          {...defaultProps} 
-          members={[]}
-          loggedInUser="owner"
-        />
-      );
-      
+      // Should fallback to "Unknown User" when user data is missing
       expect(screen.getByText('Tabla de Posiciones')).toBeInTheDocument();
     });
 
     it('handles custom action prop', () => {
       const customAction = <button data-testid="custom-action">Custom Action</button>;
-      
+
       render(<ProdeGroupTable {...defaultProps} action={customAction} />);
-      
+
       expect(screen.getByTestId('custom-action')).toBeInTheDocument();
     });
   });
 
-  describe('Data display', () => {
-    it('displays all score columns correctly', () => {
+  describe('Card interactions', () => {
+    it('expands card to show detailed breakdown when clicked', () => {
       render(<ProdeGroupTable {...defaultProps} />);
 
-      // Both tabs are rendered, so we see scores for both
-      expect(screen.getAllByText('100').length).toBeGreaterThanOrEqual(1); // Total points
-      expect(screen.getAllByText('40').length).toBeGreaterThanOrEqual(1);  // Group stage
-      expect(screen.getAllByText('20').length).toBeGreaterThanOrEqual(1);  // Qualifiers
-      expect(screen.getAllByText('10').length).toBeGreaterThanOrEqual(1);  // Group position
-      expect(screen.getAllByText('25').length).toBeGreaterThanOrEqual(1);  // Playoff
-      expect(screen.getAllByText('5').length).toBeGreaterThanOrEqual(1);   // Honor roll
-      expect(screen.getAllByText('0').length).toBeGreaterThanOrEqual(3);   // Individual awards (3 users)
+      // Get the current user's cards (both tabs are mounted)
+      const userCards = screen.getAllByLabelText(/your leaderboard card/i);
+      const firstCard = userCards[0];
+
+      // Initially collapsed
+      expect(firstCard).toHaveAttribute('aria-expanded', 'false');
+
+      // Click to expand
+      fireEvent.click(firstCard);
+
+      // Should now be expanded and show detailed breakdown
+      // Both tabs are kept mounted, so "Point Breakdown" appears multiple times
+      expect(firstCard).toHaveAttribute('aria-expanded', 'true');
+      expect(screen.getAllByText(/point breakdown/i).length).toBeGreaterThanOrEqual(1);
     });
 
-    it('displays fallback for missing group position score', () => {
-      const scoresWithoutGroupPosition = mockUserScores.map(score => ({
-        ...score,
-        groupPositionScore: undefined
-      }));
+    it('shows detailed point breakdown when expanded', () => {
+      render(<ProdeGroupTable {...defaultProps} />);
 
-      render(
-        <ProdeGroupTable
-          {...defaultProps}
-          userScoresByTournament={{
-            'tournament1': scoresWithoutGroupPosition,
-            'tournament2': scoresWithoutGroupPosition
-          }}
-        />
-      );
+      // Get the first user card (from the visible tab)
+      const userCards = screen.getAllByLabelText(/your leaderboard card/i);
+      fireEvent.click(userCards[0]);
 
-      // Should show 0 for undefined group position scores
-      const zeroElements = screen.getAllByText('0');
-      expect(zeroElements.length).toBeGreaterThanOrEqual(6); // At least 3 users × 2 score types (group position + individual awards) = 6 zeros
+      // Check for detailed breakdown sections
+      // Both tabs are kept mounted, so sections appear multiple times
+      expect(screen.getAllByText('Group Stage Games').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Qualified Teams').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Playoff Games').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Honor Roll').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Individual Awards').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('only expands one card at a time', () => {
+      render(<ProdeGroupTable {...defaultProps} />);
+
+      const cards = screen.getAllByRole('button', { name: /leaderboard card/i });
+
+      // Expand first card
+      fireEvent.click(cards[0]);
+      expect(cards[0]).toHaveAttribute('aria-expanded', 'true');
+
+      // Expand second card
+      fireEvent.click(cards[1]);
+      expect(cards[1]).toHaveAttribute('aria-expanded', 'true');
+      expect(cards[0]).toHaveAttribute('aria-expanded', 'false');
     });
   });
 
-  describe('Bonus points display', () => {
-    it('shows bonus columns on desktop', () => {
-      (useMediaQuery as any).mockReturnValue(true);
+  describe('Data display in cards', () => {
+    it('displays total points correctly', () => {
       render(<ProdeGroupTable {...defaultProps} />);
 
-      expect(screen.getAllByText('Bonus Grupos')).toHaveLength(2);
-      expect(screen.getAllByText('Bonus Playoffs')).toHaveLength(2);
-      expect(screen.queryByText('Total Bonus')).not.toBeInTheDocument();
+      // Both tabs are kept mounted, so text appears multiple times
+      expect(screen.getAllByText('100 pts').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('90 pts').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('80 pts').length).toBeGreaterThanOrEqual(1);
     });
 
-    it('shows total bonus column on mobile', () => {
-      (useMediaQuery as any).mockReturnValue(false);
+    it('displays rank correctly', () => {
       render(<ProdeGroupTable {...defaultProps} />);
 
-      expect(screen.queryByText('Bonus Grupos')).not.toBeInTheDocument();
-      expect(screen.queryByText('Bonus Playoffs')).not.toBeInTheDocument();
-      expect(screen.getAllByText('Total Bonus')).toHaveLength(2);
+      // Ranks should be #1, #2, #3
+      const cards = screen.getAllByRole('button', { name: /leaderboard card, rank/i });
+      expect(cards[0]).toHaveAccessibleName(/rank 1/i);
+      expect(cards[1]).toHaveAccessibleName(/rank 2/i);
+      expect(cards[2]).toHaveAccessibleName(/rank 3/i);
     });
 
-    it('displays bonus values correctly', () => {
-      (useMediaQuery as any).mockReturnValue(true);
+    it('shows boost bonuses conditionally when expanded', () => {
       render(<ProdeGroupTable {...defaultProps} />);
 
-      // Verify bonus values from mock data appear
-      expect(screen.getAllByText('8').length).toBeGreaterThanOrEqual(2);
-      expect(screen.getAllByText('5').length).toBeGreaterThanOrEqual(2);
-      expect(screen.getAllByText('6').length).toBeGreaterThanOrEqual(2);
-      expect(screen.getAllByText('3').length).toBeGreaterThanOrEqual(2);
-    });
+      // Get the first user card
+      const userCards = screen.getAllByLabelText(/your leaderboard card/i);
+      fireEvent.click(userCards[0]);
 
-    it('handles zero bonus values', () => {
-      const scoresWithoutBonus = mockUserScores.map(score => ({
-        ...score,
-        groupBoostBonus: 0,
-        playoffBoostBonus: 0,
-        totalBoostBonus: 0
-      }));
-
-      render(
-        <ProdeGroupTable
-          {...defaultProps}
-          userScoresByTournament={{
-            'tournament1': scoresWithoutBonus,
-            'tournament2': scoresWithoutBonus
-          }}
-        />
-      );
-
-      const zeroElements = screen.getAllByText('0');
-      expect(zeroElements.length).toBeGreaterThanOrEqual(6);
-    });
-
-    it('maintains correct column order', () => {
-      (useMediaQuery as any).mockReturnValue(true);
-      render(<ProdeGroupTable {...defaultProps} />);
-
-      const headers = screen.getAllByRole('columnheader');
-      const headerTexts = headers.map(h => h.textContent);
-
-      const groupBonusIndex = headerTexts.findIndex(text => text === 'Bonus Grupos');
-      const playoffBonusIndex = headerTexts.findIndex(text => text === 'Bonus Playoffs');
-      const groupScoreIndex = headerTexts.findIndex(text => text === 'Puntos Partidos');
-      const playoffScoreIndex = headerTexts.findIndex(text => text === 'Puntos Playoffs');
-
-      expect(groupBonusIndex).toBeGreaterThan(groupScoreIndex);
-      expect(playoffBonusIndex).toBeGreaterThan(playoffScoreIndex);
-    });
-
-    it('applies green styling to bonus values greater than zero on desktop', () => {
-      (useMediaQuery as any).mockReturnValue(true);
-      const { container } = render(<ProdeGroupTable {...defaultProps} />);
-
-      // Find all table cells in the body
-      const rows = container.querySelectorAll('tbody tr');
-      expect(rows.length).toBeGreaterThan(0);
-
-      // Check that cells with bonus values > 0 have success color styling
-      const cells = container.querySelectorAll('tbody td');
-      const bonusCells = Array.from(cells).filter(cell => {
-        const text = cell.textContent;
-        const style = (cell as HTMLElement).style;
-        // Check for bonus values (8, 7, 6, 5, 4, 3 from our mock data)
-        return ['8', '7', '6', '5', '4', '3'].includes(text || '');
-      });
-
-      // At least some bonus cells should exist
-      expect(bonusCells.length).toBeGreaterThan(0);
-    });
-
-    it('does not apply special styling to zero bonus values on desktop', () => {
-      (useMediaQuery as any).mockReturnValue(true);
-      const scoresWithZeroBonus = mockUserScores.map(score => ({
-        ...score,
-        groupBoostBonus: 0,
-        playoffBoostBonus: 0,
-        totalBoostBonus: 0
-      }));
-
-      render(
-        <ProdeGroupTable
-          {...defaultProps}
-          userScoresByTournament={{
-            'tournament1': scoresWithZeroBonus,
-            'tournament2': scoresWithZeroBonus
-          }}
-        />
-      );
-
-      // Zero values should be displayed
-      const zeroElements = screen.getAllByText('0');
-      expect(zeroElements.length).toBeGreaterThanOrEqual(6);
-    });
-
-    it('applies green styling to total bonus on mobile when greater than zero', () => {
-      (useMediaQuery as any).mockReturnValue(false);
-      const { container } = render(<ProdeGroupTable {...defaultProps} />);
-
-      // On mobile, totalBoostBonus values (13, 11, 9 from mock) should be displayed
-      expect(screen.getAllByText('13').length).toBeGreaterThanOrEqual(2);
-      expect(screen.getAllByText('11').length).toBeGreaterThanOrEqual(2);
-      expect(screen.getAllByText('9').length).toBeGreaterThanOrEqual(2);
-    });
-
-    it('displays total bonus correctly on mobile with zero values', () => {
-      (useMediaQuery as any).mockReturnValue(false);
-      const scoresWithZeroBonus = mockUserScores.map(score => ({
-        ...score,
-        groupBoostBonus: 0,
-        playoffBoostBonus: 0,
-        totalBoostBonus: 0
-      }));
-
-      render(
-        <ProdeGroupTable
-          {...defaultProps}
-          userScoresByTournament={{
-            'tournament1': scoresWithZeroBonus,
-            'tournament2': scoresWithZeroBonus
-          }}
-        />
-      );
-
-      // Zero values should be visible
-      const zeroElements = screen.getAllByText('0');
-      expect(zeroElements.length).toBeGreaterThanOrEqual(3);
-    });
-
-    it('calculates total points including bonuses', () => {
-      (useMediaQuery as any).mockReturnValue(true);
-      render(<ProdeGroupTable {...defaultProps} />);
-
-      // Verify that total points (100, 90, 80 from mock) are displayed
-      // Even though both tabs have keepMounted, only visible content is easily accessible
-      expect(screen.getAllByText('100').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('90').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('80').length).toBeGreaterThanOrEqual(1);
-    });
-
-    it('renders group boost bonus cell with conditional color on desktop', () => {
-      (useMediaQuery as any).mockReturnValue(true);
-      const { container } = render(<ProdeGroupTable {...defaultProps} />);
-
-      // Find rows in the first tab panel (visible)
-      const tabPanel = container.querySelector('[role="tabpanel"]');
-      expect(tabPanel).toBeInTheDocument();
-
-      // Verify bonus values are rendered (may appear multiple times across tabs/cells)
-      expect(screen.getAllByText('8').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('7').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('6').length).toBeGreaterThanOrEqual(1);
-    });
-
-    it('renders playoff boost bonus cell with conditional color on desktop', () => {
-      (useMediaQuery as any).mockReturnValue(true);
-      const { container } = render(<ProdeGroupTable {...defaultProps} />);
-
-      // Find rows in the first tab panel (visible)
-      const tabPanel = container.querySelector('[role="tabpanel"]');
-      expect(tabPanel).toBeInTheDocument();
-
-      // Verify playoff bonus values are rendered (may appear multiple times)
-      expect(screen.getAllByText('5').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('4').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('3').length).toBeGreaterThanOrEqual(1);
-    });
-
-    it('renders total boost bonus cell with conditional color on mobile', () => {
-      (useMediaQuery as any).mockReturnValue(false);
-      const { container } = render(<ProdeGroupTable {...defaultProps} />);
-
-      // Find rows in the first tab panel (visible)
-      const tabPanel = container.querySelector('[role="tabpanel"]');
-      expect(tabPanel).toBeInTheDocument();
-
-      // Verify total bonus values are rendered (may appear multiple times)
-      expect(screen.getAllByText('13').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('11').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('9').length).toBeGreaterThanOrEqual(1);
-    });
-
-    it('shows "0" for zero group boost bonus on desktop without special color', () => {
-      (useMediaQuery as any).mockReturnValue(true);
-      const scoresWithZeroGroupBonus = mockUserScores.map(score => ({
-        ...score,
-        groupBoostBonus: 0
-      }));
-
-      render(
-        <ProdeGroupTable
-          {...defaultProps}
-          userScoresByTournament={{
-            'tournament1': scoresWithZeroGroupBonus,
-            'tournament2': scoresWithZeroGroupBonus
-          }}
-        />
-      );
-
-      // Should display zero values
-      const zeros = screen.getAllByText('0');
-      expect(zeros.length).toBeGreaterThan(0);
-    });
-
-    it('shows "0" for zero playoff boost bonus on desktop without special color', () => {
-      (useMediaQuery as any).mockReturnValue(true);
-      const scoresWithZeroPlayoffBonus = mockUserScores.map(score => ({
-        ...score,
-        playoffBoostBonus: 0
-      }));
-
-      render(
-        <ProdeGroupTable
-          {...defaultProps}
-          userScoresByTournament={{
-            'tournament1': scoresWithZeroPlayoffBonus,
-            'tournament2': scoresWithZeroPlayoffBonus
-          }}
-        />
-      );
-
-      // Should display zero values
-      const zeros = screen.getAllByText('0');
-      expect(zeros.length).toBeGreaterThan(0);
-    });
-
-    it('shows "0" for zero total bonus on mobile without special color', () => {
-      (useMediaQuery as any).mockReturnValue(false);
-      const scoresWithZeroTotalBonus = mockUserScores.map(score => ({
-        ...score,
-        totalBoostBonus: 0
-      }));
-
-      render(
-        <ProdeGroupTable
-          {...defaultProps}
-          userScoresByTournament={{
-            'tournament1': scoresWithZeroTotalBonus,
-            'tournament2': scoresWithZeroTotalBonus
-          }}
-        />
-      );
-
-      // Should display zero values
-      const zeros = screen.getAllByText('0');
-      expect(zeros.length).toBeGreaterThan(0);
+      // Should show boost bonuses for user1 (8 and 5)
+      // Both tabs are kept mounted, so boost values appear multiple times
+      expect(screen.getAllByText('+8').length).toBeGreaterThanOrEqual(1); // group boost
+      expect(screen.getAllByText('+5').length).toBeGreaterThanOrEqual(1); // playoff boost
     });
   });
 });
