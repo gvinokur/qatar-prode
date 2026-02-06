@@ -104,6 +104,206 @@ for (let i = 0; i < sortedByTotal.length; i++) {
 }
 ```
 
+### Current Flow vs New Flow
+
+#### Current Flow (Before Changes)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Page: /friend-groups/[id]/page.tsx (Server Component)         │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ For each tournament:
+                              ▼
+         ┌─────────────────────────────────────────────┐
+         │  getUserScoresForTournament(userIds, tid)   │
+         │  app/actions/prode-group-actions.ts         │
+         └─────────────────────────────────────────────┘
+                              │
+                ┌─────────────┴─────────────┐
+                │                           │
+                ▼                           ▼
+    ┌────────────────────┐      ┌────────────────────┐
+    │ getGameGuess       │      │ findTournament     │
+    │ StatisticsForUsers │      │ GuessByUserIds     │
+    │                    │      │ Tournament         │
+    │ Returns:           │      │                    │
+    │ - total_score      │      │ Returns:           │
+    │ - boost_bonus      │      │ - honor_roll_score │
+    │ - group/playoff    │      │ - awards_score     │
+    │   scores           │      │ - qualifiers_score │
+    └────────────────────┘      └────────────────────┘
+                │                           │
+                └─────────────┬─────────────┘
+                              │
+                              │ Maps & combines into:
+                              ▼
+                    ┌──────────────────┐
+                    │   UserScore[]    │
+                    │                  │
+                    │ - userId         │
+                    │ - totalPoints    │
+                    │ - gameScores     │
+                    │ - tournamentScrs │
+                    └──────────────────┘
+                              │
+                              │ Passed as props
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  ProdeGroupTable (Client Component)                             │
+│  app/components/friend-groups/friends-group-table.tsx           │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ Line 186:
+                              ▼
+            .sort((a, b) => b.totalPoints - a.totalPoints)
+                              │
+                              │ Line 187-191:
+                              ▼
+                .map((userScore, index) => {
+                  // Rank = index + 1
+                  <TableCell>{index+1}</TableCell>
+                })
+                              │
+                              ▼
+              ┌─────────────────────────┐
+              │  Static Table Display   │
+              │  - Rank (1, 2, 3...)    │
+              │  - User name            │
+              │  - Total points         │
+              │  - No animations        │
+              │  - No rank changes      │
+              └─────────────────────────┘
+```
+
+#### New Flow (After Changes)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Page: /friend-groups/[id]/page.tsx (Server Component)         │
+│  NO CHANGES - Still calls same action                           │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ For each tournament:
+                              ▼
+         ┌─────────────────────────────────────────────┐
+         │  getUserScoresForTournament(userIds, tid)   │
+         │  app/actions/prode-group-actions.ts         │
+         │  ⚡ EXTENDED TO INCLUDE YESTERDAY DATA       │
+         └─────────────────────────────────────────────┘
+                              │
+                ┌─────────────┴─────────────────────────┐
+                │                                       │
+                ▼                                       ▼
+    ┌────────────────────┐                ┌────────────────────┐
+    │ getGameGuess       │                │ findTournament     │
+    │ StatisticsForUsers │                │ GuessByUserIds     │
+    │                    │                │ Tournament         │
+    │ ⚡ Called TWICE:    │                │                    │
+    │ 1. All games       │                │ Returns:           │
+    │ 2. Games before    │                │ - honor_roll_score │
+    │    today (filter   │                │ - awards_score     │
+    │    by game_date)   │                │ - qualifiers_score │
+    │                    │                │ ⚡ yesterday_       │
+    │ Returns:           │                │   tournament_score │
+    │ - current scores   │                │   (NEW FIELD)      │
+    │ - yesterday scores │                └────────────────────┘
+    └────────────────────┘
+                │                                       │
+                └─────────────┬─────────────────────────┘
+                              │
+                              │ Maps & combines into:
+                              ▼
+                    ┌──────────────────────┐
+                    │   UserScore[]        │
+                    │                      │
+                    │ - userId             │
+                    │ - totalPoints        │
+                    │ - gameScores         │
+                    │ - tournamentScores   │
+                    │ ⚡ yesterdayTotal     │
+                    │   Points (NEW)       │
+                    └──────────────────────┘
+                              │
+                              │ Passed as props
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  ProdeGroupTable (Client Component)                             │
+│  app/components/friend-groups/friends-group-table.tsx           │
+│  ⚡ EXTENDED WITH RANK CALCULATION                               │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+         ┌─────────────────────────────────────┐
+         │ .sort((a, b) => b.totalPoints - a.totalPoints) │
+         │              (existing)             │
+         └─────────────────────────────────────┘
+                              │
+                              ▼
+         ┌────────────────────────────────────────┐
+         │ ⚡ calculateRanks(sorted, 'totalPoints') │
+         │    (NEW - from utils/rank-calculator)  │
+         │                                        │
+         │    Assigns ranks with tie handling:   │
+         │    [100, 95, 95, 90] → [1, 2, 2, 4]   │
+         └────────────────────────────────────────┘
+                              │
+                              ▼
+         ┌──────────────────────────────────────────────┐
+         │ ⚡ calculateRanksWithChange(users,            │
+         │    'yesterdayTotalPoints') (NEW)             │
+         │                                              │
+         │    - Calculates yesterday ranks              │
+         │    - Compares with current ranks             │
+         │    - Returns: currentRank, previousRank,     │
+         │               rankChange                     │
+         └──────────────────────────────────────────────┘
+                              │
+                              ▼
+                .map((userScore, index) => {
+                  // ⚡ Now has rank data
+                  <StaggeredLeaderboardRow>
+                    <AnimatedRankCell
+                      rank={userScore.currentRank}
+                      previousRank={userScore.previousRank}
+                    />
+                    <RankChangeIndicator
+                      change={userScore.rankChange}
+                    />
+                    <AnimatedPointsCounter
+                      value={userScore.totalPoints}
+                      previousValue={userScore.yesterdayTotalPoints}
+                    />
+                    {userScore.rankChange > 0 && (
+                      <RankUpCelebration />
+                    )}
+                  </StaggeredLeaderboardRow>
+                })
+                              │
+                              ▼
+              ┌─────────────────────────────────┐
+              │  ⚡ Animated Table Display       │
+              │  - Animated rank transitions    │
+              │  - Rank change indicators (↑↓)  │
+              │  - Animated point counters      │
+              │  - Confetti for rank ups        │
+              │  - Staggered row animations     │
+              │  - Haptic feedback (mobile)     │
+              └─────────────────────────────────┘
+```
+
+#### Key Differences Summary
+
+| Aspect | Current | New |
+|--------|---------|-----|
+| **DB Queries** | 2 queries per tournament | 3 queries per tournament (+1 for yesterday game scores) |
+| **UserScore Type** | totalPoints only | totalPoints + yesterdayTotalPoints |
+| **Rank Calculation** | Simple index+1 | Client-side with tie handling + history comparison |
+| **Component Changes** | Page: none, Table: none | Page: none, Table: extended sorting logic |
+| **New Files** | 0 | 3 (rank-calculator, animations, haptics) |
+| **Animation** | None | Framer Motion components |
+| **Migration** | None | 2 columns to tournament_guesses |
+
 ### Architecture: Extend Existing Pattern
 
 **Server-Side (Database Access):**
