@@ -44,7 +44,7 @@ interface QualifiedTeamsContextValue {
   /** Error message if any */
   error: string | null;
   /** Update a team's position within a group */
-  updatePosition: (_groupId: string, _teamId: string, _newPosition: number) => void;
+  updatePosition: (_groupId: string, _teamId: string, _newPosition: number, _overrideQualify?: boolean) => void;
   /** Toggle third place qualification for a team */
   toggleThirdPlace: (_groupId: string, _teamId: string) => void;
   /** Retry failed save */
@@ -201,7 +201,7 @@ export function QualifiedTeamsContextProvider({
    * Triggers optimistic update + debounced save
    */
   const updatePosition = useCallback(
-    (groupId: string, teamId: string, newPosition: number) => {
+    (groupId: string, teamId: string, newPosition: number, overrideQualify?: boolean) => {
       // Prevent changes while locked or saving
       if (isLocked || state.saveState === 'saving') return;
 
@@ -209,11 +209,16 @@ export function QualifiedTeamsContextProvider({
         const prediction = prev.predictions.get(teamId);
         if (!prediction) return prev;
 
-        // Auto-uncheck qualification when moving to position 3
+        // Determine qualification status
         // Position 1-2: auto-qualify (true)
-        // Position 3: default to not qualified (false) - user can check manually
+        // Position 3: use override if provided, otherwise default to false
         // Position 4+: not qualified (false)
-        const shouldQualify = newPosition === 1 || newPosition === 2;
+        let shouldQualify: boolean;
+        if (overrideQualify !== undefined) {
+          shouldQualify = overrideQualify;
+        } else {
+          shouldQualify = newPosition === 1 || newPosition === 2;
+        }
 
         // Create updated prediction
         const updatedPrediction: QualifiedTeamPrediction = {

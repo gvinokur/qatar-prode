@@ -40,8 +40,7 @@ interface QualifiedTeamsClientPageProps {
 function createDragEndHandler(
   groups: Array<{ group: TournamentGroup; teams: Team[] }>,
   predictions: Map<string, QualifiedTeamPrediction>,
-  updatePosition: (_groupId: string, _teamId: string, _newPosition: number) => void,
-  toggleThirdPlace: (_groupId: string, _teamId: string) => void
+  updatePosition: (_groupId: string, _teamId: string, _newPosition: number, _overrideQualify?: boolean) => void
 ) {
   return (event: DragEndEvent) => {
     const { active, over } = event;
@@ -91,20 +90,12 @@ function createDragEndHandler(
       const currentPrediction = predictions.get(teamId);
 
       if (currentPrediction && currentPrediction.predicted_position !== newPosition) {
-        updatePosition(group.id, teamId, newPosition);
+        // If this is the active team moving to position 3 and should inherit qualification
+        const overrideQualify =
+          teamId === activeTeamId && newPosition === 3 && shouldInheritQualification ? true : undefined;
+        updatePosition(group.id, teamId, newPosition, overrideQualify);
       }
     });
-
-    // If the active team moved to position 3 and should inherit qualification, toggle it
-    if (shouldInheritQualification) {
-      const activeNewPosition = newOrder.indexOf(activeTeamId) + 1;
-      if (activeNewPosition === 3) {
-        // Use setTimeout to ensure position update completes first
-        setTimeout(() => {
-          toggleThirdPlace(group.id, activeTeamId);
-        }, 0);
-      }
-    }
   };
 }
 
@@ -145,8 +136,8 @@ function QualifiedTeamsUI({
   const allTeams = useMemo(() => groups.flatMap(({ teams }) => teams), [groups]);
 
   const handleDragEnd = useMemo(
-    () => createDragEndHandler(groups, predictions, updatePosition, toggleThirdPlace),
-    [groups, predictions, updatePosition, toggleThirdPlace]
+    () => createDragEndHandler(groups, predictions, updatePosition),
+    [groups, predictions, updatePosition]
   );
 
   return (
