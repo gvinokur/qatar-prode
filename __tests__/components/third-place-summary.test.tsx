@@ -41,7 +41,7 @@ describe('ThirdPlaceSummary', () => {
         />
       );
 
-      expect(screen.getByText('Third Place Qualifiers')).toBeInTheDocument();
+      expect(screen.getByText('Clasificados en Tercer Lugar')).toBeInTheDocument();
     });
 
     it('should render as Material-UI Card', () => {
@@ -72,7 +72,7 @@ describe('ThirdPlaceSummary', () => {
         />
       );
 
-      expect(screen.getByText('Selected: 0 of 4')).toBeInTheDocument();
+      expect(screen.getByText('0 / 4')).toBeInTheDocument();
       expect(screen.getByText('0%')).toBeInTheDocument();
     });
 
@@ -105,7 +105,7 @@ describe('ThirdPlaceSummary', () => {
         />
       );
 
-      expect(screen.getByText('Selected: 2 of 4')).toBeInTheDocument();
+      expect(screen.getByText('2 / 4')).toBeInTheDocument();
       expect(screen.getByText('50%')).toBeInTheDocument();
     });
 
@@ -154,7 +154,7 @@ describe('ThirdPlaceSummary', () => {
         />
       );
 
-      expect(screen.getByText('Selected: 4 of 4')).toBeInTheDocument();
+      expect(screen.getByText('4 / 4')).toBeInTheDocument();
       expect(screen.getByText('100%')).toBeInTheDocument();
     });
 
@@ -186,8 +186,8 @@ describe('ThirdPlaceSummary', () => {
         />
       );
 
-      expect(screen.getByText(/No third place teams selected yet/)).toBeInTheDocument();
-      expect(screen.getByText(/Select teams from position 3/)).toBeInTheDocument();
+      expect(screen.getByText(/Aún no has seleccionado equipos de tercer lugar/)).toBeInTheDocument();
+      expect(screen.getByText(/Selecciona equipos desde la posición 3/)).toBeInTheDocument();
     });
 
     it('should display team chips when teams are selected', () => {
@@ -321,7 +321,7 @@ describe('ThirdPlaceSummary', () => {
         />
       );
 
-      expect(screen.queryByText(/You have selected/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Has seleccionado/)).not.toBeInTheDocument();
     });
 
     it('should show error alert when over limit', () => {
@@ -361,8 +361,8 @@ describe('ThirdPlaceSummary', () => {
         />
       );
 
-      expect(screen.getByText(/You have selected 3 teams, but only 2 can qualify/)).toBeInTheDocument();
-      expect(screen.getByText(/Please deselect 1 team/)).toBeInTheDocument();
+      expect(screen.getByText(/Has seleccionado 3 equipos, pero solo 2 pueden clasificar/)).toBeInTheDocument();
+      expect(screen.getByText(/Deselecciona 1 equipo/)).toBeInTheDocument();
     });
 
     it('should show correct pluralization for multiple teams over limit', () => {
@@ -410,8 +410,8 @@ describe('ThirdPlaceSummary', () => {
         />
       );
 
-      expect(screen.getByText(/You have selected 4 teams, but only 2 can qualify/)).toBeInTheDocument();
-      expect(screen.getByText(/Please deselect 2 teams/)).toBeInTheDocument();
+      expect(screen.getByText(/Has seleccionado 4 equipos, pero solo 2 pueden clasificar/)).toBeInTheDocument();
+      expect(screen.getByText(/Deselecciona 2 equipos/)).toBeInTheDocument();
     });
 
     it('should show singular form for one team over limit', () => {
@@ -451,7 +451,7 @@ describe('ThirdPlaceSummary', () => {
         />
       );
 
-      expect(screen.getByText(/Please deselect 1 team\./)).toBeInTheDocument();
+      expect(screen.getByText(/Deselecciona 1 equipo./)).toBeInTheDocument();
     });
   });
 
@@ -467,8 +467,8 @@ describe('ThirdPlaceSummary', () => {
         />
       );
 
-      expect(screen.getByText('Third Place Qualifiers')).toBeInTheDocument();
-      expect(screen.getByText(/No third place teams selected yet/)).toBeInTheDocument();
+      expect(screen.getByText('Clasificados en Tercer Lugar')).toBeInTheDocument();
+      expect(screen.getByText(/Aún no has seleccionado equipos de tercer lugar/)).toBeInTheDocument();
     });
 
     it('should handle empty predictions map', () => {
@@ -481,11 +481,11 @@ describe('ThirdPlaceSummary', () => {
         />
       );
 
-      expect(screen.getByText('Third Place Qualifiers')).toBeInTheDocument();
-      expect(screen.getByText(/No third place teams selected yet/)).toBeInTheDocument();
+      expect(screen.getByText('Clasificados en Tercer Lugar')).toBeInTheDocument();
+      expect(screen.getByText(/Aún no has seleccionado equipos de tercer lugar/)).toBeInTheDocument();
     });
 
-    it('should handle maxThirdPlace of 0', () => {
+    it('should handle maxThirdPlace /0', () => {
       const predictions = new Map();
       renderWithTheme(
         <ThirdPlaceSummary
@@ -496,7 +496,7 @@ describe('ThirdPlaceSummary', () => {
         />
       );
 
-      expect(screen.getByText('Selected: 0 of 0')).toBeInTheDocument();
+      expect(screen.getByText('0 / 0')).toBeInTheDocument();
     });
 
     it('should handle team not found in teams array', () => {
@@ -520,7 +520,7 @@ describe('ThirdPlaceSummary', () => {
         />
       );
 
-      expect(screen.getByText(/No third place teams selected yet/)).toBeInTheDocument();
+      expect(screen.getByText(/Aún no has seleccionado equipos de tercer lugar/)).toBeInTheDocument();
     });
   });
 });

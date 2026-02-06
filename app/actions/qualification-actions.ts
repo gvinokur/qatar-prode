@@ -24,14 +24,14 @@ export async function updateQualificationPredictions(
 ): Promise<{ success: boolean; message: string }> {
   // Validation: Empty array
   if (predictions.length === 0) {
-    return { success: true, message: 'No predictions to update' };
+    return { success: true, message: 'No hay predicciones para actualizar' };
   }
 
   // Validation: User authentication
   const user = await getLoggedInUser();
   if (!user?.id) {
     throw new QualificationPredictionError(
-      'You must be logged in to update predictions',
+      'Debes iniciar sesión para actualizar predicciones',
       'UNAUTHORIZED'
     );
   }
@@ -45,7 +45,7 @@ export async function updateQualificationPredictions(
   );
   if (invalidPredictions.length > 0) {
     throw new QualificationPredictionError(
-      'All predictions must be for the same user and tournament',
+      'Todas las predicciones deben ser para el mismo usuario y torneo',
       'INVALID_DATA'
     );
   }
@@ -59,7 +59,7 @@ export async function updateQualificationPredictions(
 
   if (!tournament) {
     throw new QualificationPredictionError(
-      'Tournament not found',
+      'Torneo no encontrado',
       'TOURNAMENT_NOT_FOUND'
     );
   }
@@ -68,7 +68,7 @@ export async function updateQualificationPredictions(
   // Note: Full lock check would need to verify game dates, but for now we check is_active
   if (!tournament.is_active) {
     throw new QualificationPredictionError(
-      'Predictions are locked for this tournament',
+      'Las predicciones están bloqueadas para este torneo',
       'TOURNAMENT_LOCKED'
     );
   }
@@ -89,7 +89,7 @@ export async function updateQualificationPredictions(
 
     if (!teamInGroup) {
       throw new QualificationPredictionError(
-        `Team ${teamId} does not belong to group ${groupId}`,
+        `El equipo ${teamId} no pertenece al grupo ${groupId}`,
         'INVALID_TEAM_GROUP'
       );
     }
@@ -100,7 +100,7 @@ export async function updateQualificationPredictions(
   const invalidPositions = predictions.filter((p) => p.predicted_position < 1);
   if (invalidPositions.length > 0) {
     throw new QualificationPredictionError(
-      'Predicted position must be at least 1',
+      'La posición predicha debe ser al menos 1',
       'INVALID_POSITION'
     );
   }
@@ -115,7 +115,7 @@ export async function updateQualificationPredictions(
     const positions = groupPositions.get(key)!;
     if (positions.has(prediction.predicted_position)) {
       throw new QualificationPredictionError(
-        `Position ${prediction.predicted_position} is assigned to multiple teams in the same group`,
+        `La posición ${prediction.predicted_position} está asignada a múltiples equipos en el mismo grupo`,
         'DUPLICATE_POSITION'
       );
     }
@@ -152,7 +152,7 @@ export async function updateQualificationPredictions(
 
     if (totalThirdPlace > maxThirdPlace) {
       throw new QualificationPredictionError(
-        `Maximum ${maxThirdPlace} third place qualifiers allowed. You currently have ${existingCount} selected. Adding ${newThirdPlaceCount} would exceed the limit.`,
+        `Máximo ${maxThirdPlace} clasificados de tercer lugar permitidos. Actualmente tienes ${existingCount} seleccionados. Agregar ${newThirdPlaceCount} excedería el límite.`,
         'MAX_THIRD_PLACE_EXCEEDED'
       );
     }
@@ -166,7 +166,7 @@ export async function updateQualificationPredictions(
   );
   if (invalidQualificationFlags.length > 0) {
     throw new QualificationPredictionError(
-      'Teams in positions 1-2 must be marked as qualifying',
+      'Los equipos en posiciones 1-2 deben estar marcados como clasificados',
       'INVALID_QUALIFICATION_FLAG'
     );
   }
@@ -177,12 +177,12 @@ export async function updateQualificationPredictions(
 
     return {
       success: true,
-      message: `Successfully updated ${predictions.length} prediction${predictions.length === 1 ? '' : 's'}`,
+      message: `Actualizado${predictions.length === 1 ? '' : 's'} exitosamente ${predictions.length} predicción${predictions.length === 1 ? '' : 'es'}`,
     };
   } catch (error) {
     console.error('Error updating qualification predictions:', error);
     throw new QualificationPredictionError(
-      'Failed to save predictions. Please try again.',
+      'Error al guardar las predicciones. Por favor intenta de nuevo.',
       'DATABASE_ERROR'
     );
   }
@@ -204,7 +204,7 @@ export async function getTournamentQualificationConfig(tournamentId: string): Pr
     .executeTakeFirst();
 
   if (!tournament) {
-    throw new QualificationPredictionError('Tournament not found', 'TOURNAMENT_NOT_FOUND');
+    throw new QualificationPredictionError('Torneo no encontrado', 'TOURNAMENT_NOT_FOUND');
   }
 
   return {

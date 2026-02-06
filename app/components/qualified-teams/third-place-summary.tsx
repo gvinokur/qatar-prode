@@ -20,11 +20,11 @@ export interface ThirdPlaceSummaryProps {
 function TeamChip({ teamName }: { teamName: string }) {
   return (
     <Chip
-      icon={<CheckCircleIcon />}
+      icon={<CheckCircleIcon sx={{ fontSize: '1rem' }} />}
       label={teamName}
       color="success"
       variant="outlined"
-      sx={{ m: 0.5 }}
+      size="small"
     />
   );
 }
@@ -36,25 +36,24 @@ function ProgressIndicator({ count, max }: { count: number; max: number }) {
   const isOverLimit = count > max;
 
   return (
-    <Box sx={{ mb: 2 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-        <Typography variant="body2" color="text.secondary">
-          Selected: {count} of {max}
-        </Typography>
-        <Typography
-          variant="body2"
-          fontWeight="bold"
-          color={isOverLimit ? 'error' : isComplete ? 'success.main' : 'text.secondary'}
-        >
-          {percentage.toFixed(0)}%
-        </Typography>
-      </Box>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Typography variant="body2" color="text.secondary" sx={{ minWidth: 'fit-content' }}>
+        {count} / {max}
+      </Typography>
       <LinearProgress
         variant="determinate"
         value={Math.min(percentage, 100)}
         color={isOverLimit ? 'error' : isComplete ? 'success' : 'primary'}
-        sx={{ height: 8, borderRadius: 1 }}
+        sx={{ flex: 1, height: 6, borderRadius: 1 }}
       />
+      <Typography
+        variant="body2"
+        fontWeight="bold"
+        color={isOverLimit ? 'error' : isComplete ? 'success.main' : 'text.secondary'}
+        sx={{ minWidth: '40px', textAlign: 'right' }}
+      >
+        {percentage.toFixed(0)}%
+      </Typography>
     </Box>
   );
 }
@@ -93,28 +92,32 @@ export default function ThirdPlaceSummary({
   const isOverLimit = count > maxThirdPlace;
 
   return (
-    <Card sx={{ mb: 3 }}>
-      <CardContent>
-        <Typography variant="h6" component="h2" sx={{ mb: 2, fontWeight: 600 }}>
-          Third Place Qualifiers
-        </Typography>
-
-        <ProgressIndicator count={count} max={maxThirdPlace} />
+    <Card sx={{ mb: 2 }}>
+      <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+          <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 600 }}>
+            Clasificados en Tercer Lugar
+          </Typography>
+          <ProgressIndicator count={count} max={maxThirdPlace} />
+        </Box>
 
         {isOverLimit && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            You have selected {count} teams, but only {maxThirdPlace} can qualify. Please deselect{' '}
-            {count - maxThirdPlace} team{count - maxThirdPlace > 1 ? 's' : ''}.
+          <Alert severity="error" sx={{ py: 0.5, mb: 1 }}>
+            <Typography variant="body2">
+              Has seleccionado {count} equipos, pero solo {maxThirdPlace} pueden clasificar. Deselecciona{' '}
+              {count - maxThirdPlace} equipo{count - maxThirdPlace > 1 ? 's' : ''}.
+            </Typography>
           </Alert>
         )}
 
         {count === 0 ? (
-          <Alert severity="info">
-            No third place teams selected yet. Select teams from position 3 in each group to predict which will
-            qualify.
+          <Alert severity="info" sx={{ py: 0.5 }}>
+            <Typography variant="body2">
+              Aún no has seleccionado equipos de tercer lugar. Selecciona equipos desde la posición 3 en cada grupo para predecir cuáles clasificarán.
+            </Typography>
           </Alert>
         ) : (
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', mt: 1 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
             {selectedThirdPlace.map(({ team }) => (
               <TeamChip key={team.id} teamName={team.name} />
             ))}

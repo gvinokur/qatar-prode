@@ -106,7 +106,7 @@ export function QualifiedTeamsContextProvider({
         setState((prev) => ({
           ...prev,
           saveState: 'error',
-          error: 'Predictions are locked for this tournament',
+          error: 'Las predicciones están bloqueadas para este torneo',
         }));
         return;
       }
@@ -143,7 +143,7 @@ export function QualifiedTeamsContextProvider({
             }
           }, 2000);
         } else {
-          throw new Error(result.message || 'Failed to save predictions');
+          throw new Error(result.message || 'Error al guardar las predicciones');
         }
       } catch (error: any) {
         if (!isMountedRef.current) return;
@@ -155,7 +155,7 @@ export function QualifiedTeamsContextProvider({
           ...prev,
           predictions: new Map(prev.serverStateSnapshot),
           saveState: 'error',
-          error: error.message || 'Failed to save predictions. Please try again.',
+          error: error.message || 'Error al guardar las predicciones. Por favor intenta de nuevo.',
           pendingChanges: [],
         }));
       }
@@ -209,10 +209,17 @@ export function QualifiedTeamsContextProvider({
         const prediction = prev.predictions.get(teamId);
         if (!prediction) return prev;
 
+        // Auto-uncheck qualification when moving to position 3
+        // Position 1-2: auto-qualify (true)
+        // Position 3: default to not qualified (false) - user can check manually
+        // Position 4+: not qualified (false)
+        const shouldQualify = newPosition === 1 || newPosition === 2;
+
         // Create updated prediction
         const updatedPrediction: QualifiedTeamPrediction = {
           ...prediction,
           predicted_position: newPosition,
+          predicted_to_qualify: shouldQualify,
           updated_at: new Date(),
         };
 
@@ -227,7 +234,7 @@ export function QualifiedTeamsContextProvider({
           group_id: groupId,
           team_id: teamId,
           predicted_position: newPosition,
-          predicted_to_qualify: updatedPrediction.predicted_to_qualify,
+          predicted_to_qualify: shouldQualify,
         };
 
         // Debounced save

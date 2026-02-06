@@ -151,8 +151,8 @@ describe('GroupCard', () => {
         />
       );
 
-      expect(screen.getByText(/Positions 1-2:/)).toBeInTheDocument();
-      expect(screen.getByText(/Auto-qualify to next round/)).toBeInTheDocument();
+      expect(screen.getByText(/Posiciones 1-2:/)).toBeInTheDocument();
+      expect(screen.getByText(/Clasifican automáticamente a la siguiente ronda/)).toBeInTheDocument();
     });
 
     it('should render third place instructions when enabled', () => {
@@ -166,8 +166,8 @@ describe('GroupCard', () => {
         />
       );
 
-      expect(screen.getByText(/Position 3:/)).toBeInTheDocument();
-      expect(screen.getByText(/Select teams you predict will qualify/)).toBeInTheDocument();
+      expect(screen.getByText(/Posición 3:/)).toBeInTheDocument();
+      expect(screen.getByText(/Selecciona los equipos que predices que clasificarán/)).toBeInTheDocument();
     });
 
     it('should not render third place instructions when disabled', () => {
@@ -181,7 +181,7 @@ describe('GroupCard', () => {
         />
       );
 
-      expect(screen.queryByText(/Position 3:/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Posición 3:/)).not.toBeInTheDocument();
     });
   });
 

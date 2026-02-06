@@ -149,7 +149,7 @@ describe('DraggableTeamCard', () => {
       );
 
       expect(screen.getByRole('checkbox')).toBeInTheDocument();
-      expect(screen.getByText('Qualifies')).toBeInTheDocument();
+      expect(screen.getByText('Clasifica')).toBeInTheDocument();
     });
 
     it('should not show checkbox for position 1', () => {

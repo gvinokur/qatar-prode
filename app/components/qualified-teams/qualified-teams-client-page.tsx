@@ -40,7 +40,8 @@ interface QualifiedTeamsClientPageProps {
 function createDragEndHandler(
   groups: Array<{ group: TournamentGroup; teams: Team[] }>,
   predictions: Map<string, QualifiedTeamPrediction>,
-  updatePosition: (_groupId: string, _teamId: string, _newPosition: number) => void
+  updatePosition: (_groupId: string, _teamId: string, _newPosition: number) => void,
+  toggleThirdPlace: (_groupId: string, _teamId: string) => void
 ) {
   return (event: DragEndEvent) => {
     const { active, over } = event;
@@ -61,6 +62,11 @@ function createDragEndHandler(
     }
 
     const { group, teams } = groupWithTeams;
+
+    // Check if the drop target (over team) is at position 3 and is qualified
+    const overPrediction = predictions.get(overTeamId);
+    const shouldInheritQualification =
+      overPrediction?.predicted_position === 3 && overPrediction?.predicted_to_qualify === true;
 
     const teamOrder = teams
       .map((team) => {
@@ -88,6 +94,17 @@ function createDragEndHandler(
         updatePosition(group.id, teamId, newPosition);
       }
     });
+
+    // If the active team moved to position 3 and should inherit qualification, toggle it
+    if (shouldInheritQualification) {
+      const activeNewPosition = newOrder.indexOf(activeTeamId) + 1;
+      if (activeNewPosition === 3) {
+        // Use setTimeout to ensure position update completes first
+        setTimeout(() => {
+          toggleThirdPlace(group.id, activeTeamId);
+        }, 0);
+      }
+    }
   };
 }
 
@@ -128,23 +145,23 @@ function QualifiedTeamsUI({
   const allTeams = useMemo(() => groups.flatMap(({ teams }) => teams), [groups]);
 
   const handleDragEnd = useMemo(
-    () => createDragEndHandler(groups, predictions, updatePosition),
-    [groups, predictions, updatePosition]
+    () => createDragEndHandler(groups, predictions, updatePosition, toggleThirdPlace),
+    [groups, predictions, updatePosition, toggleThirdPlace]
   );
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
-        {tournament.short_name} - Qualified Teams Predictions
+        {tournament.short_name} - Predicciones de Equipos Clasificados
       </Typography>
 
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        Predict which teams will qualify from each group by dragging them into your preferred order.
+        Predice qué equipos clasificarán de cada grupo arrastrándolos en tu orden preferido.
       </Typography>
 
       {isLocked && (
         <Alert severity="warning" sx={{ mb: 3 }}>
-          Predictions are locked for this tournament. You can view your predictions but cannot make changes.
+          Las predicciones están bloqueadas para este torneo. Puedes ver tus predicciones pero no puedes hacer cambios.
         </Alert>
       )}
 
@@ -174,7 +191,7 @@ function QualifiedTeamsUI({
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
-          Predictions saved successfully
+          Predicciones guardadas exitosamente
         </Alert>
       </Snackbar>
 
@@ -185,7 +202,7 @@ function QualifiedTeamsUI({
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert onClose={handleCloseErrorSnackbar} severity="error" sx={{ width: '100%' }}>
-          {error || 'Failed to save predictions'}
+          {error || 'Error al guardar las predicciones'}
         </Alert>
       </Snackbar>
     </Container>

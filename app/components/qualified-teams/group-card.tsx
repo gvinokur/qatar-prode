@@ -40,11 +40,11 @@ function QualificationInstructions({ allowsThirdPlace }: { allowsThirdPlace: boo
   return (
     <Alert severity="info" sx={{ mb: 2 }}>
       <Typography variant="body2">
-        <strong>Positions 1-2:</strong> Auto-qualify to next round
+        <strong>Posiciones 1-2:</strong> Clasifican automáticamente a la siguiente ronda
         {allowsThirdPlace && (
           <>
             <br />
-            <strong>Position 3:</strong> Select teams you predict will qualify
+            <strong>Posición 3:</strong> Selecciona los equipos que predices que clasificarán
           </>
         )}
       </Typography>

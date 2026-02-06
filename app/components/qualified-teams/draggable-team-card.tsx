@@ -31,13 +31,12 @@ function getPositionSuffix(pos: number): string {
 /** Get background color based on qualification status */
 function getBackgroundColor(theme: Theme, position: number, predictedToQualify: boolean): string {
   if (position === 1 || position === 2) return theme.palette.success.light;
-  if (position === 3) return predictedToQualify ? theme.palette.info.light : theme.palette.grey[200];
+  if (position === 3) return predictedToQualify ? theme.palette.success.light : theme.palette.warning.light;
   return theme.palette.grey[100];
 }
 
 /** Drag handle component */
 function DragHandle({ disabled, attributes, listeners }: { disabled: boolean; attributes: any; listeners: any }) {
-  const theme = useTheme();
   return (
     <Box
       {...attributes}
@@ -45,7 +44,7 @@ function DragHandle({ disabled, attributes, listeners }: { disabled: boolean; at
       sx={{
         display: 'flex',
         alignItems: 'center',
-        color: disabled ? theme.palette.action.disabled : theme.palette.action.active,
+        opacity: disabled ? 0.38 : 0.54,
         cursor: disabled ? 'not-allowed' : 'grab',
         '&:active': { cursor: disabled ? 'not-allowed' : 'grabbing' },
       }}
@@ -64,13 +63,14 @@ function PositionBadge({ position }: { position: number }) {
         minWidth: 48,
         height: 48,
         borderRadius: '50%',
-        backgroundColor: theme.palette.primary.main,
-        color: theme.palette.primary.contrastText,
+        backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[300],
+        color: theme.palette.mode === 'dark' ? theme.palette.grey[100] : theme.palette.grey[800],
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         fontWeight: 'bold',
         fontSize: '1.1rem',
+        border: `2px solid ${theme.palette.mode === 'dark' ? theme.palette.grey[700] : theme.palette.grey[400]}`,
       }}
     >
       {position}
@@ -88,7 +88,7 @@ function TeamInfo({ team }: { team: Team }) {
       <Typography variant="h6" component="div" sx={{ fontWeight: 500 }}>
         {team.name}
       </Typography>
-      <Typography variant="body2" color="text.secondary">
+      <Typography variant="body2" sx={{ opacity: 0.7 }}>
         {team.short_name}
       </Typography>
     </Box>
@@ -110,7 +110,7 @@ function ThirdPlaceCheckbox({
       control={<Checkbox checked={checked} onChange={onChange} disabled={disabled} color="primary" />}
       label={
         <Typography variant="body2" sx={{ fontWeight: 500 }}>
-          Qualifies
+          Clasifica
         </Typography>
       }
       sx={{ mr: 0 }}
@@ -149,6 +149,8 @@ export default function DraggableTeamCard({
     opacity: isDragging ? 0.5 : disabled ? 0.6 : 1,
   };
 
+  const backgroundColor = getBackgroundColor(theme, position, predictedToQualify);
+
   return (
     <Card
       ref={setNodeRef}
@@ -156,7 +158,7 @@ export default function DraggableTeamCard({
       sx={{
         mb: 1,
         cursor: disabled ? 'default' : 'grab',
-        backgroundColor: getBackgroundColor(theme, position, predictedToQualify),
+        backgroundColor,
         border: isDragging ? `2px dashed ${theme.palette.primary.main}` : '1px solid',
         borderColor: theme.palette.divider,
         '&:active': {
@@ -164,7 +166,17 @@ export default function DraggableTeamCard({
         },
       }}
     >
-      <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, '&:last-child': { pb: 2 } }}>
+      <CardContent
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+          p: 2,
+          '&:last-child': { pb: 2 },
+          // Ensure good contrast on colored backgrounds
+          color: theme.palette.getContrastText(backgroundColor),
+        }}
+      >
         <DragHandle disabled={disabled} attributes={attributes} listeners={listeners} />
         <PositionBadge position={position} />
         <TeamInfo team={team} />

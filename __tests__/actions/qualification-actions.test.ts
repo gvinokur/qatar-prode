@@ -79,7 +79,7 @@ describe('Qualification Actions', () => {
         const result = await updateQualificationPredictions([]);
 
         expect(result.success).toBe(true);
-        expect(result.message).toBe('No predictions to update');
+        expect(result.message).toBe('No hay predicciones para actualizar');
         expect(mockBatchUpsert).not.toHaveBeenCalled();
       });
     });
@@ -94,7 +94,7 @@ describe('Qualification Actions', () => {
           QualificationPredictionError
         );
         await expect(updateQualificationPredictions(predictions)).rejects.toThrow(
-          'You must be logged in to update predictions'
+          'Debes iniciar sesión para actualizar predicciones'
         );
       });
 
@@ -117,7 +117,7 @@ describe('Qualification Actions', () => {
         ];
 
         await expect(updateQualificationPredictions(predictions)).rejects.toThrow(
-          'All predictions must be for the same user and tournament'
+          'Todas las predicciones deben ser para el mismo usuario y torneo'
         );
       });
 
@@ -128,7 +128,7 @@ describe('Qualification Actions', () => {
         ];
 
         await expect(updateQualificationPredictions(predictions)).rejects.toThrow(
-          'All predictions must be for the same user and tournament'
+          'Todas las predicciones deben ser para el mismo usuario y torneo'
         );
       });
     });
@@ -146,7 +146,7 @@ describe('Qualification Actions', () => {
         mockDb.selectFrom.mockReturnValue(mockQuery as any);
 
         await expect(updateQualificationPredictions(predictions)).rejects.toThrow(
-          'Tournament not found'
+          'Torneo no encontrado'
         );
       });
 
@@ -165,7 +165,7 @@ describe('Qualification Actions', () => {
         mockDb.selectFrom.mockReturnValue(mockQuery as any);
 
         await expect(updateQualificationPredictions(predictions)).rejects.toThrow(
-          'Predictions are locked for this tournament'
+          'Las predicciones están bloqueadas para este torneo'
         );
       });
     });
@@ -195,7 +195,7 @@ describe('Qualification Actions', () => {
         });
 
         await expect(updateQualificationPredictions(predictions)).rejects.toThrow(
-          /Team .* does not belong to group/
+          /El equipo .* no pertenece al grupo/
         );
       });
 
@@ -252,7 +252,7 @@ describe('Qualification Actions', () => {
         mockDb.selectFrom.mockReturnValue(mockQuery as any);
 
         await expect(updateQualificationPredictions(predictions)).rejects.toThrow(
-          'Predicted position must be at least 1'
+          'La posición predicha debe ser al menos 1'
         );
       });
 
@@ -283,7 +283,7 @@ describe('Qualification Actions', () => {
         });
 
         await expect(updateQualificationPredictions(predictions)).rejects.toThrow(
-          /Position .* is assigned to multiple teams/
+          /La posición .* está asignada a múltiples equipos/
         );
       });
     });
@@ -321,7 +321,7 @@ describe('Qualification Actions', () => {
         });
 
         await expect(updateQualificationPredictions(predictions)).rejects.toThrow(
-          /Maximum .* third place qualifiers allowed/
+          /Máximo .* clasificados de tercer lugar permitidos/
         );
       });
 
@@ -398,7 +398,7 @@ describe('Qualification Actions', () => {
         });
 
         await expect(updateQualificationPredictions(predictions)).rejects.toThrow(
-          'Teams in positions 1-2 must be marked as qualifying'
+          'Los equipos en posiciones 1-2 deben estar marcados como clasificados'
         );
       });
     });
@@ -441,7 +441,9 @@ describe('Qualification Actions', () => {
         const result = await updateQualificationPredictions(predictions);
 
         expect(result.success).toBe(true);
-        expect(result.message).toBe('Successfully updated 2 predictions');
+        expect(result.message).toMatch(/Actualizado/);
+        expect(result.message).toMatch(/predicci/);
+        expect(result.message).toContain('2');
         expect(mockBatchUpsert).toHaveBeenCalledWith(predictions);
       });
 
@@ -478,7 +480,7 @@ describe('Qualification Actions', () => {
         mockBatchUpsert.mockRejectedValue(new Error('Database connection failed'));
 
         await expect(updateQualificationPredictions(predictions)).rejects.toThrow(
-          'Failed to save predictions'
+          'Error al guardar las predicciones'
         );
       });
     });
@@ -508,7 +510,7 @@ describe('Qualification Actions', () => {
       };
       mockDb.selectFrom.mockReturnValue(mockQuery as any);
 
-      await expect(getTournamentQualificationConfig('tournament-1')).rejects.toThrow('Tournament not found');
+      await expect(getTournamentQualificationConfig('tournament-1')).rejects.toThrow('Torneo no encontrado');
     });
 
     it('should return correct lock status', async () => {
