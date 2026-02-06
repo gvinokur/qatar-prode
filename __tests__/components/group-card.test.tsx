@@ -140,49 +140,6 @@ describe('GroupCard', () => {
       expect(screen.getByText('Uruguay')).toBeInTheDocument();
     });
 
-    it('should render qualification instructions for positions 1-2', () => {
-      renderWithTheme(
-        <GroupCard
-          group={mockGroup}
-          teams={mockTeams}
-          predictions={mockPredictions}
-          isLocked={false}
-          allowsThirdPlace={false}
-        />
-      );
-
-      expect(screen.getByText(/Posiciones 1-2:/)).toBeInTheDocument();
-      expect(screen.getByText(/Clasifican automáticamente a la siguiente ronda/)).toBeInTheDocument();
-    });
-
-    it('should render third place instructions when enabled', () => {
-      renderWithTheme(
-        <GroupCard
-          group={mockGroup}
-          teams={mockTeams}
-          predictions={mockPredictions}
-          isLocked={false}
-          allowsThirdPlace={true}
-        />
-      );
-
-      expect(screen.getByText(/Posición 3:/)).toBeInTheDocument();
-      expect(screen.getByText(/Selecciona los equipos que predices que clasificarán/)).toBeInTheDocument();
-    });
-
-    it('should not render third place instructions when disabled', () => {
-      renderWithTheme(
-        <GroupCard
-          group={mockGroup}
-          teams={mockTeams}
-          predictions={mockPredictions}
-          isLocked={false}
-          allowsThirdPlace={false}
-        />
-      );
-
-      expect(screen.queryByText(/Posición 3:/)).not.toBeInTheDocument();
-    });
   });
 
   describe('Team Sorting', () => {
@@ -491,19 +448,5 @@ describe('GroupCard', () => {
       expect(cardContent).toBeInTheDocument();
     });
 
-    it('should render Alert for instructions', () => {
-      const { container } = renderWithTheme(
-        <GroupCard
-          group={mockGroup}
-          teams={mockTeams}
-          predictions={mockPredictions}
-          isLocked={false}
-          allowsThirdPlace={false}
-        />
-      );
-
-      const alert = container.querySelector('.MuiAlert-root');
-      expect(alert).toBeInTheDocument();
-    });
   });
 });

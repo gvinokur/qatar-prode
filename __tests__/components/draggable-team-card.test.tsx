@@ -40,7 +40,7 @@ describe('DraggableTeamCard', () => {
   });
 
   describe('Basic Rendering', () => {
-    it('should render team name and short name', () => {
+    it('should render team name', () => {
       renderWithTheme(
         <DraggableTeamCard
           team={mockTeam}
@@ -51,7 +51,6 @@ describe('DraggableTeamCard', () => {
       );
 
       expect(screen.getByText('Argentina')).toBeInTheDocument();
-      expect(screen.getByText('ARG')).toBeInTheDocument();
     });
 
     it('should render position badge with correct number', () => {

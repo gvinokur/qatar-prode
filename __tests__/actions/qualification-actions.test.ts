@@ -488,18 +488,34 @@ describe('Qualification Actions', () => {
 
   describe('getTournamentQualificationConfig', () => {
     it('should return tournament configuration', async () => {
-      const mockQuery = {
+      // Mock for tournament query (first call)
+      const tournamentQuery = {
         where: vi.fn().mockReturnThis(),
         select: vi.fn().mockReturnThis(),
         executeTakeFirst: vi.fn().mockResolvedValue(mockTournament),
       };
-      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      // Mock for game query (second call)
+      const gameQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue({
+          id: 'game-1',
+          game_date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
+        }),
+      };
+
+      // Return different mocks for each selectFrom call
+      mockDb.selectFrom
+        .mockReturnValueOnce(tournamentQuery as any)
+        .mockReturnValueOnce(gameQuery as any);
 
       const result = await getTournamentQualificationConfig('tournament-1');
 
       expect(result.allowsThirdPlace).toBe(true);
       expect(result.maxThirdPlace).toBe(8);
-      expect(result.isLocked).toBe(false);
+      expect(result.isLocked).toBe(true); // Should be locked (more than 5 days after start)
     });
 
     it('should handle tournament not found', async () => {
@@ -514,19 +530,32 @@ describe('Qualification Actions', () => {
     });
 
     it('should return correct lock status', async () => {
-      const mockQuery = {
+      // Mock for tournament query (first call)
+      const tournamentQuery = {
         where: vi.fn().mockReturnThis(),
         select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(mockTournament),
+      };
+
+      // Mock for game query (second call)
+      const gameQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
         executeTakeFirst: vi.fn().mockResolvedValue({
-          ...mockTournament,
-          is_active: false,
+          id: 'game-1',
+          game_date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
         }),
       };
-      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      // Return different mocks for each selectFrom call
+      mockDb.selectFrom
+        .mockReturnValueOnce(tournamentQuery as any)
+        .mockReturnValueOnce(gameQuery as any);
 
       const result = await getTournamentQualificationConfig('tournament-1');
 
-      expect(result.isLocked).toBe(true);
+      expect(result.isLocked).toBe(false); // Should not be locked (less than 5 days)
     });
   });
 });
