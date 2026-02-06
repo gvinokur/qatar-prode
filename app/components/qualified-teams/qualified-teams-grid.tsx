@@ -26,9 +26,10 @@ export interface QualifiedTeamsGridProps {
 /**
  * Responsive grid layout for displaying tournament group cards
  * Adapts to different screen sizes:
- * - Mobile (xs): 1 column
- * - Tablet (sm): 2 columns
- * - Desktop (md+): 3 columns
+ * - Mobile (xs): 1 column (<600px)
+ * - Small tablet (sm): 1 column (600-900px)
+ * - Medium tablet (md): 2 columns (900-1200px)
+ * - Desktop (lg+): 3 columns (1200px+)
  */
 export default function QualifiedTeamsGrid({
   groups,
@@ -42,7 +43,7 @@ export default function QualifiedTeamsGrid({
     <Box sx={{ width: '100%', p: 2 }}>
       <Grid container spacing={3}>
         {groups.map(({ group, teams }) => (
-          <Grid key={group.id} size={{ xs: 12, sm: 6, md: 4 }}>
+          <Grid key={group.id} size={{ xs: 12, sm: 12, md: 6, lg: 4 }}>
             <GroupCard
               group={group}
               teams={teams}

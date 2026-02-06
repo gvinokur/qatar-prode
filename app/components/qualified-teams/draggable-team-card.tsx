@@ -91,12 +91,9 @@ function PositionBadge({ position }: { position: number }) {
 /** Team info component */
 function TeamInfo({ team }: { team: Team }) {
   return (
-    <Box sx={{ flex: 1 }}>
-      <Typography variant="h6" component="div" sx={{ fontWeight: 500 }}>
+    <Box sx={{ flex: 1, minWidth: 0 }}>
+      <Typography variant="h6" component="div" sx={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis' }}>
         {team.name}
-      </Typography>
-      <Typography variant="body2" sx={{ opacity: 0.7 }}>
-        {team.short_name}
       </Typography>
     </Box>
   );
@@ -116,11 +113,11 @@ function ThirdPlaceCheckbox({
     <FormControlLabel
       control={<Checkbox checked={checked} onChange={onChange} disabled={disabled} color="primary" />}
       label={
-        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+        <Typography variant="body2" sx={{ fontWeight: 500, whiteSpace: 'nowrap' }}>
           Clasifica
         </Typography>
       }
-      sx={{ mr: 0 }}
+      sx={{ mr: 0, flexShrink: 0 }}
     />
   );
 }
