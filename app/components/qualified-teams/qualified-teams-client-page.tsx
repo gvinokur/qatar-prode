@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { Container, Typography, Alert } from '@mui/material';
+import { Container, Typography, Alert, Snackbar } from '@mui/material';
 import {
   QualifiedTeamsContextProvider,
   useQualifiedTeamsContext,
@@ -99,7 +99,19 @@ function QualifiedTeamsUI({
   maxThirdPlace,
   isLocked,
 }: Omit<QualifiedTeamsClientPageProps, 'initialPredictions' | 'userId'>) {
-  const { predictions, isSaving, updatePosition, toggleThirdPlace } = useQualifiedTeamsContext();
+  const { predictions, isSaving, saveState, updatePosition, toggleThirdPlace } = useQualifiedTeamsContext();
+  const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
+
+  // Show snackbar when save succeeds
+  useEffect(() => {
+    if (saveState === 'saved') {
+      setShowSuccessSnackbar(true);
+    }
+  }, [saveState]);
+
+  const handleCloseSnackbar = () => {
+    setShowSuccessSnackbar(false);
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -150,6 +162,17 @@ function QualifiedTeamsUI({
           onToggleThirdPlace={toggleThirdPlace}
         />
       </DndContext>
+
+      <Snackbar
+        open={showSuccessSnackbar}
+        autoHideDuration={4000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+          Predictions saved successfully
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }
