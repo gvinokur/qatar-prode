@@ -196,11 +196,12 @@ export async function getGameGuessStatisticsForUsers(userIds: string[], tourname
         'integer'
       ).as('playoff_boost_bonus'),
       // Yesterday's total score (for rank change tracking)
+      // Use 'score' (base points) not 'final_score' to avoid double-counting boost
       eb.cast<number>(
         eb.fn.sum(
           eb.case()
             .when('games.game_date', '<', sql<Date>`CURRENT_DATE`)
-            .then(eb.ref('game_guesses.final_score'))
+            .then(eb.ref('game_guesses.score'))
             .else(0)
             .end()
         ),
