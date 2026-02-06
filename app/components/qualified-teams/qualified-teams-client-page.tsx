@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { DndContext, DragEndEvent, PointerSensor, TouchSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, MouseSensor, TouchSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { Container, Typography, Alert, Snackbar } from '@mui/material';
 import {
@@ -148,15 +148,15 @@ function QualifiedTeamsUI({
   };
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
       activationConstraint: {
         distance: 8,
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 250,
-        tolerance: 5,
+        delay: 200,
+        tolerance: 8,
       },
     })
   );

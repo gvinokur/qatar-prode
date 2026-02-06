@@ -165,6 +165,7 @@ export default function DraggableTeamCard({
       sx={{
         mb: 1,
         cursor: disabled ? 'default' : 'grab',
+        touchAction: disabled ? 'auto' : 'none',
         backgroundColor,
         border: isDragging ? `2px dashed ${theme.palette.primary.main}` : '1px solid',
         borderColor: theme.palette.divider,
