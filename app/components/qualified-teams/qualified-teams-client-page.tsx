@@ -99,7 +99,7 @@ function QualifiedTeamsUI({
   maxThirdPlace,
   isLocked,
 }: Omit<QualifiedTeamsClientPageProps, 'initialPredictions' | 'userId'>) {
-  const { predictions, isSaving, saveState, updatePosition, toggleThirdPlace } = useQualifiedTeamsContext();
+  const { predictions, isSaving, saveState, error, clearError, updatePosition, toggleThirdPlace } = useQualifiedTeamsContext();
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
 
   // Show snackbar when save succeeds
@@ -111,6 +111,10 @@ function QualifiedTeamsUI({
 
   const handleCloseSnackbar = () => {
     setShowSuccessSnackbar(false);
+  };
+
+  const handleCloseErrorSnackbar = () => {
+    clearError();
   };
 
   const sensors = useSensors(
@@ -171,6 +175,17 @@ function QualifiedTeamsUI({
       >
         <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
           Predictions saved successfully
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={saveState === 'error' && !!error}
+        autoHideDuration={6000}
+        onClose={handleCloseErrorSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseErrorSnackbar} severity="error" sx={{ width: '100%' }}>
+          {error || 'Failed to save predictions'}
         </Alert>
       </Snackbar>
     </Container>
