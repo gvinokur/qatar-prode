@@ -409,6 +409,108 @@ export async function updateGroupPositionsBatch(
   }
 }
 
+/** Helper: Validate teams belong to group */
+async function validateTeamsInGroup(teamIds: string[], groupId: string): Promise<void> {
+  const teamsInGroup = await db
+    .selectFrom('tournament_group_teams')
+    .where('tournament_group_id', '=', groupId)
+    .where('team_id', 'in', teamIds)
+    .select('team_id')
+    .execute();
+
+  if (teamsInGroup.length !== teamIds.length) {
+    throw new QualificationPredictionError(
+      'Uno o más equipos no pertenecen al grupo especificado',
+      'INVALID_TEAM_GROUP'
+    );
+  }
+}
+
+/** Helper: Validate no duplicate teams */
+function validateNoDuplicateTeams(teamIds: string[]): void {
+  const uniqueTeamIds = new Set(teamIds);
+  if (uniqueTeamIds.size !== teamIds.length) {
+    throw new QualificationPredictionError(
+      'No se puede asignar el mismo equipo a múltiples posiciones',
+      'DUPLICATE_TEAM'
+    );
+  }
+}
+
+/** Helper: Validate positions are valid and unique */
+function validatePositionsValidAndUnique(positions: number[]): void {
+  if (positions.some((p) => p < 1)) {
+    throw new QualificationPredictionError(
+      'La posición predicha debe ser al menos 1',
+      'INVALID_POSITION'
+    );
+  }
+
+  const uniquePositions = new Set(positions);
+  if (uniquePositions.size !== positions.length) {
+    throw new QualificationPredictionError(
+      'Las posiciones deben ser únicas dentro del grupo',
+      'DUPLICATE_POSITION'
+    );
+  }
+}
+
+/** Helper: Validate qualification flags for positions */
+function validateQualificationFlagsForPositions(
+  positionUpdates: Array<{ position: number; qualifies: boolean }>
+): void {
+  const invalidQualification = positionUpdates.find(
+    (u) => u.position <= 2 && !u.qualifies
+  );
+  if (invalidQualification) {
+    throw new QualificationPredictionError(
+      'Los equipos en posiciones 1-2 deben estar marcados como clasificados',
+      'INVALID_QUALIFICATION_FLAG'
+    );
+  }
+}
+
+/** Helper: Validate third place qualifiers for group */
+async function validateThirdPlaceForGroup(
+  positionUpdates: Array<{ position: number; qualifies: boolean }>,
+  tournament: {
+    allows_third_place_qualification: boolean | null | undefined;
+    max_third_place_qualifiers: number | null | undefined;
+  },
+  userId: string,
+  tournamentId: string,
+  groupId: string
+): Promise<void> {
+  if (!tournament.allows_third_place_qualification) return;
+
+  const maxThirdPlace = tournament.max_third_place_qualifiers || 0;
+  const newThirdPlaceCount = positionUpdates.filter(
+    (u) => u.position === 3 && u.qualifies
+  ).length;
+
+  const allGroupPredictions = await getAllUserGroupPositionsPredictions(userId, tournamentId);
+
+  let existingThirdPlaceCount = 0;
+  for (const groupPrediction of allGroupPredictions) {
+    if (groupPrediction.group_id !== groupId) {
+      const groupPositions = groupPrediction.team_predicted_positions as unknown as TeamPositionPrediction[];
+      const thirdPlaceQualifiers = groupPositions.filter(
+        (p) => p.predicted_position === 3 && p.predicted_to_qualify
+      );
+      existingThirdPlaceCount += thirdPlaceQualifiers.length;
+    }
+  }
+
+  const totalThirdPlace = existingThirdPlaceCount + newThirdPlaceCount;
+
+  if (totalThirdPlace > maxThirdPlace) {
+    throw new QualificationPredictionError(
+      `Máximo ${maxThirdPlace} clasificados de tercer lugar permitidos. Otros grupos tienen ${existingThirdPlaceCount} seleccionados. Este grupo intenta agregar ${newThirdPlaceCount}, lo cual excedería el límite.`,
+      'MAX_THIRD_PLACE_EXCEEDED'
+    );
+  }
+}
+
 /**
  * Update all team positions for a group using JSONB atomic batch update
  * This is the preferred approach as it ensures atomic updates at the database level
@@ -457,90 +559,15 @@ export async function updateGroupPositionsJsonb(
     );
   }
 
-  // Validation: All teams belong to the specified group
   const teamIds = positionUpdates.map((u) => u.teamId);
-  const teamsInGroup = await db
-    .selectFrom('tournament_group_teams')
-    .where('tournament_group_id', '=', groupId)
-    .where('team_id', 'in', teamIds)
-    .select('team_id')
-    .execute();
-
-  if (teamsInGroup.length !== teamIds.length) {
-    throw new QualificationPredictionError(
-      'Uno o más equipos no pertenecen al grupo especificado',
-      'INVALID_TEAM_GROUP'
-    );
-  }
-
-  // Validation: No duplicate team_ids
-  const uniqueTeamIds = new Set(teamIds);
-  if (uniqueTeamIds.size !== teamIds.length) {
-    throw new QualificationPredictionError(
-      'No se puede asignar el mismo equipo a múltiples posiciones',
-      'DUPLICATE_TEAM'
-    );
-  }
-
-  // Validation: Positions are valid and unique
   const positionNumbers = positionUpdates.map((u) => u.position);
-  if (positionNumbers.some((p) => p < 1)) {
-    throw new QualificationPredictionError(
-      'La posición predicha debe ser al menos 1',
-      'INVALID_POSITION'
-    );
-  }
 
-  const uniquePositions = new Set(positionNumbers);
-  if (uniquePositions.size !== positionNumbers.length) {
-    throw new QualificationPredictionError(
-      'Las posiciones deben ser únicas dentro del grupo',
-      'DUPLICATE_POSITION'
-    );
-  }
-
-  // Validation: Qualification flags are correct for positions
-  const invalidQualification = positionUpdates.find(
-    (u) => u.position <= 2 && !u.qualifies
-  );
-  if (invalidQualification) {
-    throw new QualificationPredictionError(
-      'Los equipos en posiciones 1-2 deben estar marcados como clasificados',
-      'INVALID_QUALIFICATION_FLAG'
-    );
-  }
-
-  // Validation: Max third place qualifiers
-  if (tournament.allows_third_place_qualification) {
-    const maxThirdPlace = tournament.max_third_place_qualifiers || 0;
-    const newThirdPlaceCount = positionUpdates.filter(
-      (u) => u.position === 3 && u.qualifies
-    ).length;
-
-    // Get all other groups' predictions to count existing third place qualifiers
-    const allGroupPredictions = await getAllUserGroupPositionsPredictions(userId, tournamentId);
-
-    // Count third place qualifiers from OTHER groups (exclude current group)
-    let existingThirdPlaceCount = 0;
-    for (const groupPrediction of allGroupPredictions) {
-      if (groupPrediction.group_id !== groupId) {
-        const groupPositions = groupPrediction.team_predicted_positions as unknown as TeamPositionPrediction[];
-        const thirdPlaceQualifiers = groupPositions.filter(
-          (p) => p.predicted_position === 3 && p.predicted_to_qualify
-        );
-        existingThirdPlaceCount += thirdPlaceQualifiers.length;
-      }
-    }
-
-    const totalThirdPlace = existingThirdPlaceCount + newThirdPlaceCount;
-
-    if (totalThirdPlace > maxThirdPlace) {
-      throw new QualificationPredictionError(
-        `Máximo ${maxThirdPlace} clasificados de tercer lugar permitidos. Otros grupos tienen ${existingThirdPlaceCount} seleccionados. Este grupo intenta agregar ${newThirdPlaceCount}, lo cual excedería el límite.`,
-        'MAX_THIRD_PLACE_EXCEEDED'
-      );
-    }
-  }
+  // Run all validations
+  await validateTeamsInGroup(teamIds, groupId);
+  validateNoDuplicateTeams(teamIds);
+  validatePositionsValidAndUnique(positionNumbers);
+  validateQualificationFlagsForPositions(positionUpdates);
+  await validateThirdPlaceForGroup(positionUpdates, tournament, userId, tournamentId, groupId);
 
   // Build TeamPositionPrediction array for JSONB
   const positions: TeamPositionPrediction[] = positionUpdates.map((update) => ({
