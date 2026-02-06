@@ -49,15 +49,15 @@ interface QualifiedTeamsContextValue {
 const QualifiedTeamsContext = createContext<QualifiedTeamsContextValue | undefined>(undefined);
 
 export interface QualifiedTeamsContextProviderProps {
-  children: React.ReactNode;
+  readonly children: React.ReactNode;
   /** Initial predictions from server */
-  initialPredictions: QualifiedTeamPrediction[];
+  readonly initialPredictions: QualifiedTeamPrediction[];
   /** Tournament ID for validation */
-  tournamentId: string;
+  readonly tournamentId: string;
   /** User ID for validation */
-  userId: string;
+  readonly userId: string;
   /** Whether predictions are locked */
-  isLocked: boolean;
+  readonly isLocked: boolean;
 }
 
 export function QualifiedTeamsContextProvider({

@@ -10,6 +10,126 @@ import { QualifiedTeamPredictionNew, TeamPositionPrediction } from '../db/tables
 import { db } from '../db/database';
 import { QualificationPredictionError } from './qualification-errors';
 
+/** Helper: Validate teams belong to their specified groups */
+async function validateTeamsBelongToGroups(
+  predictions: QualifiedTeamPredictionNew[]
+): Promise<void> {
+  const teamGroupPairs = predictions.map((p) => ({
+    teamId: p.team_id,
+    groupId: p.group_id,
+  }));
+
+  for (const { teamId, groupId } of teamGroupPairs) {
+    const teamInGroup = await db
+      .selectFrom('tournament_group_teams')
+      .where('tournament_group_id', '=', groupId)
+      .where('team_id', '=', teamId)
+      .select('id')
+      .executeTakeFirst();
+
+    if (!teamInGroup) {
+      throw new QualificationPredictionError(
+        `El equipo ${teamId} no pertenece al grupo ${groupId}`,
+        'INVALID_TEAM_GROUP'
+      );
+    }
+  }
+}
+
+/** Helper: Validate position constraints (>= 1 and unique within group) */
+function validatePositionConstraints(predictions: QualifiedTeamPredictionNew[]): void {
+  // Check positions >= 1
+  const invalidPositions = predictions.filter((p) => p.predicted_position < 1);
+  if (invalidPositions.length > 0) {
+    throw new QualificationPredictionError(
+      'La posición predicha debe ser al menos 1',
+      'INVALID_POSITION'
+    );
+  }
+
+  // Check unique positions within each group
+  const groupPositions = new Map<string, Set<number>>();
+  for (const prediction of predictions) {
+    const key = `${prediction.group_id}`;
+    if (!groupPositions.has(key)) {
+      groupPositions.set(key, new Set());
+    }
+    const positions = groupPositions.get(key)!;
+    if (positions.has(prediction.predicted_position)) {
+      throw new QualificationPredictionError(
+        `La posición ${prediction.predicted_position} está asignada a múltiples equipos en el mismo grupo`,
+        'DUPLICATE_POSITION'
+      );
+    }
+    positions.add(prediction.predicted_position);
+  }
+}
+
+/** Helper: Validate third place qualifiers don't exceed max */
+async function validateThirdPlaceQualifiers(
+  predictions: QualifiedTeamPredictionNew[],
+  tournament: {
+    allows_third_place_qualification: boolean | null;
+    max_third_place_qualifiers: number | null;
+  },
+  userId: string,
+  tournamentId: string
+): Promise<void> {
+  if (!tournament.allows_third_place_qualification) return;
+
+  const maxThirdPlace = tournament.max_third_place_qualifiers || 0;
+
+  // Count third place qualifiers in the current batch
+  const newThirdPlaceCount = predictions.filter(
+    (p) => p.predicted_position === 3 && p.predicted_to_qualify
+  ).length;
+
+  // Get team IDs from current batch to exclude from existing count
+  const batchTeamIds = predictions
+    .filter((p) => p.predicted_position === 3)
+    .map((p) => p.team_id);
+
+  // Count existing third place qualifiers NOT in the current batch
+  let countQuery = db
+    .selectFrom('tournament_qualified_teams_predictions')
+    .where('user_id', '=', userId)
+    .where('tournament_id', '=', tournamentId)
+    .where('predicted_position', '=', 3)
+    .where('predicted_to_qualify', '=', true);
+
+  // Only add 'not in' clause if there are team IDs to exclude
+  if (batchTeamIds.length > 0) {
+    countQuery = countQuery.where('team_id', 'not in', batchTeamIds);
+  }
+
+  const existingNotInBatch = await countQuery
+    .select((eb) => eb.fn.countAll<number>().as('count'))
+    .executeTakeFirst();
+
+  const existingCount = Number(existingNotInBatch?.count || 0);
+  const totalThirdPlace = existingCount + newThirdPlaceCount;
+
+  if (totalThirdPlace > maxThirdPlace) {
+    throw new QualificationPredictionError(
+      `Máximo ${maxThirdPlace} clasificados de tercer lugar permitidos. Actualmente tienes ${existingCount} seleccionados. Agregar ${newThirdPlaceCount} excedería el límite.`,
+      'MAX_THIRD_PLACE_EXCEEDED'
+    );
+  }
+}
+
+/** Helper: Validate qualification flags (positions 1-2 must be qualified) */
+function validateQualificationFlags(predictions: QualifiedTeamPredictionNew[]): void {
+  const invalidQualificationFlags = predictions.filter(
+    (p) => p.predicted_position <= 2 && !p.predicted_to_qualify
+  );
+  if (invalidQualificationFlags.length > 0) {
+    throw new QualificationPredictionError(
+      'Los equipos en posiciones 1-2 deben estar marcados como clasificados',
+      'INVALID_QUALIFICATION_FLAG'
+    );
+  }
+}
+
 /**
  * Validate and update qualification predictions for a user
  *
@@ -78,108 +198,16 @@ export async function updateQualificationPredictions(
   }
 
   // Validation: Teams belong to their specified groups
-  const teamGroupPairs = predictions.map((p) => ({
-    teamId: p.team_id,
-    groupId: p.group_id,
-  }));
+  await validateTeamsBelongToGroups(predictions);
 
-  for (const { teamId, groupId } of teamGroupPairs) {
-    const teamInGroup = await db
-      .selectFrom('tournament_group_teams')
-      .where('tournament_group_id', '=', groupId)
-      .where('team_id', '=', teamId)
-      .select('id')
-      .executeTakeFirst();
-
-    if (!teamInGroup) {
-      throw new QualificationPredictionError(
-        `El equipo ${teamId} no pertenece al grupo ${groupId}`,
-        'INVALID_TEAM_GROUP'
-      );
-    }
-  }
-
-  // Validation: Position constraints
-  // Each position must be >= 1
-  const invalidPositions = predictions.filter((p) => p.predicted_position < 1);
-  if (invalidPositions.length > 0) {
-    throw new QualificationPredictionError(
-      'La posición predicha debe ser al menos 1',
-      'INVALID_POSITION'
-    );
-  }
-
-  // Validation: Unique positions within each group
-  const groupPositions = new Map<string, Set<number>>();
-  for (const prediction of predictions) {
-    const key = `${prediction.group_id}`;
-    if (!groupPositions.has(key)) {
-      groupPositions.set(key, new Set());
-    }
-    const positions = groupPositions.get(key)!;
-    if (positions.has(prediction.predicted_position)) {
-      throw new QualificationPredictionError(
-        `La posición ${prediction.predicted_position} está asignada a múltiples equipos en el mismo grupo`,
-        'DUPLICATE_POSITION'
-      );
-    }
-    positions.add(prediction.predicted_position);
-  }
+  // Validation: Position constraints (>= 1 and unique within group)
+  validatePositionConstraints(predictions);
 
   // Validation: Max third place qualifiers
-  if (tournament.allows_third_place_qualification) {
-    const maxThirdPlace = tournament.max_third_place_qualifiers || 0;
+  await validateThirdPlaceQualifiers(predictions, tournament, userId, tournamentId);
 
-    // Count third place qualifiers in the current batch
-    const newThirdPlaceCount = predictions.filter(
-      (p) => p.predicted_position === 3 && p.predicted_to_qualify
-    ).length;
-
-    // Get team IDs from current batch to exclude from existing count
-    const batchTeamIds = predictions
-      .filter((p) => p.predicted_position === 3)
-      .map((p) => p.team_id);
-
-    // Count existing third place qualifiers NOT in the current batch
-    let countQuery = db
-      .selectFrom('tournament_qualified_teams_predictions')
-      .where('user_id', '=', userId)
-      .where('tournament_id', '=', tournamentId)
-      .where('predicted_position', '=', 3)
-      .where('predicted_to_qualify', '=', true);
-
-    // Only add 'not in' clause if there are team IDs to exclude
-    if (batchTeamIds.length > 0) {
-      countQuery = countQuery.where('team_id', 'not in', batchTeamIds);
-    }
-
-    const existingNotInBatch = await countQuery
-      .select((eb) => eb.fn.countAll<number>().as('count'))
-      .executeTakeFirst();
-
-    const existingCount = Number(existingNotInBatch?.count || 0);
-    const totalThirdPlace = existingCount + newThirdPlaceCount;
-
-    if (totalThirdPlace > maxThirdPlace) {
-      throw new QualificationPredictionError(
-        `Máximo ${maxThirdPlace} clasificados de tercer lugar permitidos. Actualmente tienes ${existingCount} seleccionados. Agregar ${newThirdPlaceCount} excedería el límite.`,
-        'MAX_THIRD_PLACE_EXCEEDED'
-      );
-    }
-  }
-
-  // Validation: predicted_to_qualify logic
-  // Positions 1-2 should always have predicted_to_qualify = true (auto-qualify)
-  // Position 3+ can be true or false based on user selection
-  const invalidQualificationFlags = predictions.filter(
-    (p) => p.predicted_position <= 2 && !p.predicted_to_qualify
-  );
-  if (invalidQualificationFlags.length > 0) {
-    throw new QualificationPredictionError(
-      'Los equipos en posiciones 1-2 deben estar marcados como clasificados',
-      'INVALID_QUALIFICATION_FLAG'
-    );
-  }
+  // Validation: predicted_to_qualify logic (positions 1-2 must be qualified)
+  validateQualificationFlags(predictions);
 
   // All validations passed - proceed with upsert
   try {

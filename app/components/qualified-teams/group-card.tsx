@@ -37,7 +37,7 @@ export interface GroupCardProps {
 }
 
 /** Group header component */
-function GroupHeader({ groupLetter }: { groupLetter: string }) {
+function GroupHeader({ groupLetter }: { readonly groupLetter: string }) {
   return (
     <Box sx={{ mb: 2 }}>
       <Typography variant="h5" component="h2" sx={{ fontWeight: 600, mb: 1 }}>
@@ -49,7 +49,7 @@ function GroupHeader({ groupLetter }: { groupLetter: string }) {
 }
 
 /** Qualification instructions component */
-function QualificationInstructions({ allowsThirdPlace }: { allowsThirdPlace: boolean }) {
+function QualificationInstructions({ allowsThirdPlace }: { readonly allowsThirdPlace: boolean }) {
   return (
     <Alert severity="info" sx={{ mb: 2 }}>
       <Typography variant="body2">
@@ -161,7 +161,7 @@ export default function GroupCard({
           }}
         >
           <Typography variant="h6" component="h2" sx={{ fontWeight: 600 }}>
-            GRUPO {group.group_letter.toUpperCase()} - {qualifiedCount} seleccionado{qualifiedCount !== 1 ? 's' : ''}
+            GRUPO {group.group_letter.toUpperCase()} - {qualifiedCount} seleccionado{qualifiedCount === 1 ? '' : 's'}
           </Typography>
         </AccordionSummary>
 

@@ -43,7 +43,7 @@ function getBackgroundColor(theme: Theme, position: number, predictedToQualify: 
 }
 
 /** Drag handle component */
-function DragHandle({ disabled, attributes, listeners }: { disabled: boolean; attributes: any; listeners: any }) {
+function DragHandle({ disabled, attributes, listeners }: { readonly disabled: boolean; readonly attributes: any; readonly listeners: any }) {
   return (
     <Box
       {...attributes}
@@ -62,7 +62,7 @@ function DragHandle({ disabled, attributes, listeners }: { disabled: boolean; at
 }
 
 /** Position badge component */
-function PositionBadge({ position }: { position: number }) {
+function PositionBadge({ position }: { readonly position: number }) {
   const theme = useTheme();
   return (
     <Box
@@ -89,7 +89,7 @@ function PositionBadge({ position }: { position: number }) {
 }
 
 /** Team info component */
-function TeamInfo({ team }: { team: Team }) {
+function TeamInfo({ team }: { readonly team: Team }) {
   return (
     <Box sx={{ flex: 1, minWidth: 0 }}>
       <Typography variant="h6" component="div" sx={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -105,9 +105,9 @@ function ThirdPlaceCheckbox({
   disabled,
   onChange,
 }: {
-  checked: boolean;
-  disabled: boolean;
-  onChange?: () => void;
+  readonly checked: boolean;
+  readonly disabled: boolean;
+  readonly onChange?: () => void;
 }) {
   return (
     <FormControlLabel
@@ -147,10 +147,17 @@ export default function DraggableTeamCard({
     disabled,
   });
 
+  // Calculate opacity based on dragging and disabled states
+  const getOpacity = () => {
+    if (isDragging) return 0.5;
+    if (disabled) return 0.6;
+    return 1;
+  };
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : disabled ? 0.6 : 1,
+    opacity: getOpacity(),
   };
 
   const backgroundColor = getBackgroundColor(theme, position, predictedToQualify);

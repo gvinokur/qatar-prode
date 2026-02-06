@@ -17,7 +17,7 @@ export interface ThirdPlaceSummaryProps {
 }
 
 /** Team chip component */
-function TeamChip({ teamName }: { teamName: string }) {
+function TeamChip({ teamName }: { readonly teamName: string }) {
   return (
     <Chip
       icon={<CheckCircleIcon sx={{ fontSize: '1rem' }} />}
@@ -30,10 +30,24 @@ function TeamChip({ teamName }: { teamName: string }) {
 }
 
 /** Progress indicator component */
-function ProgressIndicator({ count, max }: { count: number; max: number }) {
+function ProgressIndicator({ count, max }: { readonly count: number; readonly max: number }) {
   const percentage = (count / max) * 100;
   const isComplete = count === max;
   const isOverLimit = count > max;
+
+  // Get progress bar color based on state
+  const getProgressColor = () => {
+    if (isOverLimit) return 'error';
+    if (isComplete) return 'success';
+    return 'primary';
+  };
+
+  // Get text color based on state
+  const getTextColor = () => {
+    if (isOverLimit) return 'error';
+    if (isComplete) return 'success.main';
+    return 'text.secondary';
+  };
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -43,13 +57,13 @@ function ProgressIndicator({ count, max }: { count: number; max: number }) {
       <LinearProgress
         variant="determinate"
         value={Math.min(percentage, 100)}
-        color={isOverLimit ? 'error' : isComplete ? 'success' : 'primary'}
+        color={getProgressColor()}
         sx={{ flex: 1, height: 6, borderRadius: 1 }}
       />
       <Typography
         variant="body2"
         fontWeight="bold"
-        color={isOverLimit ? 'error' : isComplete ? 'success.main' : 'text.secondary'}
+        color={getTextColor()}
         sx={{ minWidth: '40px', textAlign: 'right' }}
       >
         {percentage.toFixed(0)}%

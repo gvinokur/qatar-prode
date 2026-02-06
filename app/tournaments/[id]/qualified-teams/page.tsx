@@ -11,8 +11,8 @@ import {
 import QualifiedTeamsClientPage from '../../../components/qualified-teams/qualified-teams-client-page';
 
 interface PageProps {
-  params: Promise<{
-    id: string;
+  readonly params: Promise<{
+    readonly id: string;
   }>;
 }
 
