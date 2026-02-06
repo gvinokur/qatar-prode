@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, PointerSensor, TouchSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { Container, Typography, Alert, Snackbar } from '@mui/material';
 import {
@@ -152,6 +152,12 @@ function QualifiedTeamsUI({
       activationConstraint: {
         distance: 8,
       },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
     })
   );
 
@@ -164,6 +170,7 @@ function QualifiedTeamsUI({
 
   /**
    * Handle third place toggle - batch update entire group
+   * Auto-qualifies positions 1-2 to prevent server validation errors
    */
   const handleToggleThirdPlace = useCallback(
     (groupId: string, teamId: string) => {
@@ -184,6 +191,15 @@ function QualifiedTeamsUI({
               teamId: team.id,
               position: prediction.predicted_position,
               qualifies: !prediction.predicted_to_qualify,
+            };
+          }
+
+          // Auto-qualify positions 1-2 (always qualify)
+          if (prediction.predicted_position === 1 || prediction.predicted_position === 2) {
+            return {
+              teamId: team.id,
+              position: prediction.predicted_position,
+              qualifies: true,
             };
           }
 

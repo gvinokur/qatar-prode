@@ -217,10 +217,18 @@ export async function getTournamentQualificationConfig(tournamentId: string): Pr
     throw new QualificationPredictionError('Torneo no encontrado', 'TOURNAMENT_NOT_FOUND');
   }
 
+  // Check if predictions are locked (5 days after tournament starts)
+  // Same logic as tournament awards (honor roll, individual awards)
+  const { getTournamentStartDate } = await import('./tournament-actions');
+  const tournamentStartDate = await getTournamentStartDate(tournamentId);
+  const isPredictionLocked = tournamentStartDate
+    ? Date.now() > tournamentStartDate.getTime() + 5 * 24 * 60 * 60 * 1000
+    : false;
+
   return {
     allowsThirdPlace: tournament.allows_third_place_qualification || false,
     maxThirdPlace: tournament.max_third_place_qualifiers || 0,
-    isLocked: !tournament.is_active,
+    isLocked: isPredictionLocked,
   };
 }
 
