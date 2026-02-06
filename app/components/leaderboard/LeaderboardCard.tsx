@@ -158,14 +158,21 @@ export default function LeaderboardCard({
               Point Breakdown
             </Typography>
             <Grid container spacing={1.5}>
+              {/* Group Stage Section */}
+              <Grid size={{ xs: 12 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'primary.light' }}>
+                  Group Stage
+                </Typography>
+              </Grid>
+
               <Grid size={{ xs: 8 }}>
                 <Typography variant="body1" color="text.secondary">
-                  Group Stage Points
+                  Group Stage Games
                 </Typography>
               </Grid>
               <Grid size={{ xs: 4 }}>
                 <Typography variant="body1" sx={{ fontWeight: 'bold', textAlign: 'right' }}>
-                  {user.groupPoints}
+                  {user.groupStageScore}
                 </Typography>
               </Grid>
 
@@ -186,12 +193,45 @@ export default function LeaderboardCard({
 
               <Grid size={{ xs: 8 }}>
                 <Typography variant="body1" color="text.secondary">
-                  Knockout Points
+                  Qualified Teams
                 </Typography>
               </Grid>
               <Grid size={{ xs: 4 }}>
                 <Typography variant="body1" sx={{ fontWeight: 'bold', textAlign: 'right' }}>
-                  {user.knockoutPoints}
+                  {user.groupStageQualifiersScore}
+                </Typography>
+              </Grid>
+
+              {user.groupPositionScore !== undefined && user.groupPositionScore > 0 && (
+                <>
+                  <Grid size={{ xs: 8 }}>
+                    <Typography variant="body1" color="text.secondary">
+                      Group Positions
+                    </Typography>
+                  </Grid>
+                  <Grid size={{ xs: 4 }}>
+                    <Typography variant="body1" sx={{ fontWeight: 'bold', textAlign: 'right' }}>
+                      {user.groupPositionScore}
+                    </Typography>
+                  </Grid>
+                </>
+              )}
+
+              {/* Knockout Section */}
+              <Grid size={{ xs: 12 }} sx={{ mt: 1.5 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'primary.light' }}>
+                  Knockout
+                </Typography>
+              </Grid>
+
+              <Grid size={{ xs: 8 }}>
+                <Typography variant="body1" color="text.secondary">
+                  Playoff Games
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 4 }}>
+                <Typography variant="body1" sx={{ fontWeight: 'bold', textAlign: 'right' }}>
+                  {user.playoffScore}
                 </Typography>
               </Grid>
 
@@ -209,6 +249,35 @@ export default function LeaderboardCard({
                   </Grid>
                 </>
               )}
+
+              {/* Tournament Section */}
+              <Grid size={{ xs: 12 }} sx={{ mt: 1.5 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'primary.light' }}>
+                  Tournament
+                </Typography>
+              </Grid>
+
+              <Grid size={{ xs: 8 }}>
+                <Typography variant="body1" color="text.secondary">
+                  Honor Roll
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 4 }}>
+                <Typography variant="body1" sx={{ fontWeight: 'bold', textAlign: 'right' }}>
+                  {user.honorRollScore}
+                </Typography>
+              </Grid>
+
+              <Grid size={{ xs: 8 }}>
+                <Typography variant="body1" color="text.secondary">
+                  Individual Awards
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 4 }}>
+                <Typography variant="body1" sx={{ fontWeight: 'bold', textAlign: 'right' }}>
+                  {user.individualAwardsScore}
+                </Typography>
+              </Grid>
             </Grid>
           </Box>
           <Typography

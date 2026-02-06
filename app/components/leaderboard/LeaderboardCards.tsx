@@ -13,8 +13,14 @@ function transformToLeaderboardUser(score: any): LeaderboardUser {
     totalPoints: score.totalPoints || 0,
     groupPoints: score.groupStagePoints ?? 0,
     knockoutPoints: score.knockoutPoints ?? 0,
+    groupStageScore: score.groupStageScore || 0,
+    groupStageQualifiersScore: score.groupStageQualifiersScore || 0,
+    groupPositionScore: score.groupPositionScore,
+    playoffScore: score.playoffScore || 0,
     groupBoostBonus: score.groupBoostBonus || 0,
-    playoffBoostBonus: score.playoffBoostBonus || 0
+    playoffBoostBonus: score.playoffBoostBonus || 0,
+    honorRollScore: score.honorRollScore || 0,
+    individualAwardsScore: score.individualAwardsScore || 0
   }
 }
 

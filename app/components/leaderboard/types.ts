@@ -4,10 +4,22 @@ export interface LeaderboardUser {
   id: string
   name: string
   totalPoints: number
-  groupPoints: number
-  knockoutPoints: number
-  groupBoostBonus: number
-  playoffBoostBonus: number
+
+  // Group Stage breakdown
+  groupPoints: number              // Total group stage points (for sorting/display)
+  groupStageScore: number          // Points from group stage games only
+  groupStageQualifiersScore: number // Points from qualified teams
+  groupPositionScore?: number      // Points from exact group positions (optional)
+  groupBoostBonus: number          // Bonus from boosted group games
+
+  // Knockout breakdown
+  knockoutPoints: number           // Total knockout points (for sorting/display)
+  playoffScore: number             // Points from playoff games
+  playoffBoostBonus: number        // Bonus from boosted playoff games
+
+  // Tournament awards
+  honorRollScore: number           // Honor roll points
+  individualAwardsScore: number    // Individual awards points
 }
 
 export interface LeaderboardViewProps {
