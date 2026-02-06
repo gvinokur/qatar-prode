@@ -141,16 +141,18 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
       />
       <CardContent>
         <TabContext value={selectedTab || tournaments[0]?.id || ''}>
-          <TabList
-            onChange={(event, tabSelected) => setSelectedTab(tabSelected)}
-            variant="scrollable"
-            scrollButtons="auto"
-            aria-label="scrollable auto tabs example"
-          >
-            {tournaments.map(tournament=> (
-              <Tab label={tournament.short_name} key={tournament.id} value={tournament.id}/>
-            ))}
-          </TabList>
+          {tournaments.length > 1 && (
+            <TabList
+              onChange={(event, tabSelected) => setSelectedTab(tabSelected)}
+              variant="scrollable"
+              scrollButtons="auto"
+              aria-label="scrollable auto tabs example"
+            >
+              {tournaments.map(tournament=> (
+                <Tab label={tournament.short_name} key={tournament.id} value={tournament.id}/>
+              ))}
+            </TabList>
+          )}
           {tournaments.map((tournament) => {
             // Transform UserScore to include userName and detailed point breakdown
             const transformedScores = (userScoresByTournament[tournament.id] || []).map(score => ({
