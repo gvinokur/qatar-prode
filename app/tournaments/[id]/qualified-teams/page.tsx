@@ -2,7 +2,12 @@ import { notFound, redirect } from 'next/navigation';
 import { getLoggedInUser } from '../../../actions/user-actions';
 import { getTournamentQualificationConfig } from '../../../actions/qualification-actions';
 import { db } from '../../../db/database';
-import { Team, TournamentGroup } from '../../../db/tables-definition';
+import {
+  Team,
+  TournamentGroup,
+  QualifiedTeamPrediction,
+  TeamPositionPrediction,
+} from '../../../db/tables-definition';
 import QualifiedTeamsClientPage from '../../../components/qualified-teams/qualified-teams-client-page';
 
 interface PageProps {
@@ -37,45 +42,75 @@ async function fetchGroupsWithTeams(tournamentId: string) {
   );
 }
 
-/** Initialize predictions for user if none exist */
+/** Initialize predictions for user if none exist - using JSONB format */
 async function initializePredictions(
   userId: string,
   tournamentId: string,
   groupsWithTeams: Array<{ group: TournamentGroup; teams: Team[] }>
-) {
-  const initialPredictions = groupsWithTeams.flatMap(({ group, teams }) =>
-    teams.map((team, index) => ({
-      user_id: userId,
-      tournament_id: tournamentId,
-      group_id: group.id,
+): Promise<QualifiedTeamPrediction[]> {
+  // Create JSONB row for each group
+  const jsonbRows = groupsWithTeams.map(({ group, teams }) => {
+    const teamPositions: TeamPositionPrediction[] = teams.map((team, index) => ({
       team_id: team.id,
       predicted_position: index + 1,
       predicted_to_qualify: index < 2, // Top 2 auto-qualify
-    }))
-  );
+    }));
 
-  if (initialPredictions.length > 0) {
-    await db.insertInto('tournament_qualified_teams_predictions').values(initialPredictions).execute();
+    return {
+      user_id: userId,
+      tournament_id: tournamentId,
+      group_id: group.id,
+      team_predicted_positions: JSON.stringify(teamPositions),
+    };
+  });
 
-    return db
-      .selectFrom('tournament_qualified_teams_predictions')
-      .where('user_id', '=', userId)
-      .where('tournament_id', '=', tournamentId)
-      .select([
-        'id',
-        'user_id',
-        'tournament_id',
-        'group_id',
-        'team_id',
-        'predicted_position',
-        'predicted_to_qualify',
-        'created_at',
-        'updated_at',
-      ])
+  if (jsonbRows.length > 0) {
+    await db
+      .insertInto('tournament_user_group_positions_predictions')
+      .values(jsonbRows as any)
       .execute();
   }
 
-  return [];
+  // Fetch and flatten for client
+  return fetchAndFlattenPredictions(userId, tournamentId);
+}
+
+/**
+ * Fetch JSONB predictions and flatten them into array format for client
+ */
+async function fetchAndFlattenPredictions(
+  userId: string,
+  tournamentId: string
+): Promise<QualifiedTeamPrediction[]> {
+  const jsonbRows = await db
+    .selectFrom('tournament_user_group_positions_predictions')
+    .where('user_id', '=', userId)
+    .where('tournament_id', '=', tournamentId)
+    .select(['id', 'user_id', 'tournament_id', 'group_id', 'team_predicted_positions', 'created_at', 'updated_at'])
+    .execute();
+
+  // Flatten JSONB arrays into individual prediction objects
+  const predictions: QualifiedTeamPrediction[] = [];
+
+  for (const row of jsonbRows) {
+    const positions = row.team_predicted_positions as unknown as TeamPositionPrediction[];
+
+    for (const pos of positions) {
+      predictions.push({
+        id: `${row.id}-${pos.team_id}`, // Synthetic ID for client
+        user_id: row.user_id,
+        tournament_id: row.tournament_id,
+        group_id: row.group_id,
+        team_id: pos.team_id,
+        predicted_position: pos.predicted_position,
+        predicted_to_qualify: pos.predicted_to_qualify,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+      });
+    }
+  }
+
+  return predictions;
 }
 
 /**
@@ -117,24 +152,8 @@ export default async function QualifiedTeamsPage({ params }: PageProps) {
     const groupsWithTeams = await fetchGroupsWithTeams(tournamentId);
     console.error('[QualifiedTeams] Groups loaded:', groupsWithTeams.length);
 
-    // Fetch user's predictions
-    let predictions = await db
-      .selectFrom('tournament_qualified_teams_predictions')
-      .where('user_id', '=', user.id)
-      .where('tournament_id', '=', tournamentId)
-      .select([
-        'id',
-        'user_id',
-        'tournament_id',
-        'group_id',
-        'team_id',
-        'predicted_position',
-        'predicted_to_qualify',
-        'created_at',
-        'updated_at',
-      ])
-      .execute();
-
+    // Fetch user's predictions from JSONB table and flatten
+    let predictions = await fetchAndFlattenPredictions(user.id, tournamentId);
     console.error('[QualifiedTeams] Predictions loaded:', predictions.length);
 
     // Initialize predictions if none exist

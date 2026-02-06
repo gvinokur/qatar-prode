@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { Container, Typography, Alert, Snackbar } from '@mui/material';
@@ -36,11 +36,11 @@ interface QualifiedTeamsClientPageProps {
   readonly maxThirdPlace: number;
 }
 
-/** Handle drag end event */
+/** Handle drag end event - batch updates for entire group */
 function createDragEndHandler(
   groups: Array<{ group: TournamentGroup; teams: Team[] }>,
   predictions: Map<string, QualifiedTeamPrediction>,
-  updatePosition: (_groupId: string, _teamId: string, _newPosition: number, _overrideQualify?: boolean) => void
+  updateGroupPositions: (_groupId: string, _updates: Array<{ teamId: string; position: number; qualifies: boolean }>) => Promise<void>
 ) {
   return (event: DragEndEvent) => {
     const { active, over } = event;
@@ -67,6 +67,7 @@ function createDragEndHandler(
     const shouldInheritQualification =
       overPrediction?.predicted_position === 3 && overPrediction?.predicted_to_qualify === true;
 
+    // Get current team order by position
     const teamOrder = teams
       .map((team) => {
         const prediction = predictions.get(team.id);
@@ -83,19 +84,39 @@ function createDragEndHandler(
       return;
     }
 
+    // Calculate new order after drag
     const newOrder = arrayMove(teamOrder, oldIndex, newIndex);
 
-    newOrder.forEach((teamId, index) => {
+    // Build batch update for all teams in the group
+    const updates = newOrder.map((teamId, index) => {
       const newPosition = index + 1;
       const currentPrediction = predictions.get(teamId);
 
-      if (currentPrediction && currentPrediction.predicted_position !== newPosition) {
-        // If this is the active team moving to position 3 and should inherit qualification
-        const overrideQualify =
-          teamId === activeTeamId && newPosition === 3 && shouldInheritQualification ? true : undefined;
-        updatePosition(group.id, teamId, newPosition, overrideQualify);
+      // Determine qualification status
+      let qualifies: boolean;
+      if (newPosition <= 2) {
+        // Positions 1-2 always qualify
+        qualifies = true;
+      } else if (teamId === activeTeamId && newPosition === 3 && shouldInheritQualification) {
+        // Active team moved to position 3 and should inherit qualification from drop target
+        qualifies = true;
+      } else if (newPosition === 3 && currentPrediction) {
+        // Position 3: preserve current qualification status
+        qualifies = currentPrediction.predicted_to_qualify;
+      } else {
+        // Position 4+: not qualified
+        qualifies = false;
       }
+
+      return {
+        teamId,
+        position: newPosition,
+        qualifies,
+      };
     });
+
+    // Send batch update to server
+    updateGroupPositions(group.id, updates);
   };
 }
 
@@ -107,7 +128,7 @@ function QualifiedTeamsUI({
   maxThirdPlace,
   isLocked,
 }: Omit<QualifiedTeamsClientPageProps, 'initialPredictions' | 'userId'>) {
-  const { predictions, isSaving, saveState, error, clearError, updatePosition, toggleThirdPlace } = useQualifiedTeamsContext();
+  const { predictions, isSaving, saveState, error, clearError, updateGroupPositions } = useQualifiedTeamsContext();
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
 
   // Show snackbar when save succeeds
@@ -136,8 +157,48 @@ function QualifiedTeamsUI({
   const allTeams = useMemo(() => groups.flatMap(({ teams }) => teams), [groups]);
 
   const handleDragEnd = useMemo(
-    () => createDragEndHandler(groups, predictions, updatePosition),
-    [groups, predictions, updatePosition]
+    () => createDragEndHandler(groups, predictions, updateGroupPositions),
+    [groups, predictions, updateGroupPositions]
+  );
+
+  /**
+   * Handle third place toggle - batch update entire group
+   */
+  const handleToggleThirdPlace = useCallback(
+    (groupId: string, teamId: string) => {
+      // Find the group
+      const groupWithTeams = groups.find((g) => g.group.id === groupId);
+      if (!groupWithTeams) return;
+
+      // Get all team predictions for this group
+      const { teams } = groupWithTeams;
+      const updates = teams
+        .map((team) => {
+          const prediction = predictions.get(team.id);
+          if (!prediction) return null;
+
+          // Toggle qualification for the target team at position 3
+          if (team.id === teamId && prediction.predicted_position === 3) {
+            return {
+              teamId: team.id,
+              position: prediction.predicted_position,
+              qualifies: !prediction.predicted_to_qualify,
+            };
+          }
+
+          // Keep other teams as-is
+          return {
+            teamId: team.id,
+            position: prediction.predicted_position,
+            qualifies: prediction.predicted_to_qualify,
+          };
+        })
+        .filter((update): update is { teamId: string; position: number; qualifies: boolean } => update !== null);
+
+      // Send batch update
+      updateGroupPositions(groupId, updates);
+    },
+    [groups, predictions, updateGroupPositions]
   );
 
   return (
@@ -171,7 +232,7 @@ function QualifiedTeamsUI({
           predictions={predictions}
           isLocked={isLocked || isSaving}
           allowsThirdPlace={allowsThirdPlace}
-          onToggleThirdPlace={toggleThirdPlace}
+          onToggleThirdPlace={handleToggleThirdPlace}
         />
       </DndContext>
 

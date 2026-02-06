@@ -320,6 +320,26 @@ export type QualifiedTeamPrediction = Selectable<QualifiedTeamPredictionTable>
 export type QualifiedTeamPredictionNew = Insertable<QualifiedTeamPredictionTable>
 export type QualifiedTeamPredictionUpdate = Updateable<QualifiedTeamPredictionTable>
 
+// JSONB-based group positions prediction (atomic batch updates)
+export interface TeamPositionPrediction {
+  team_id: string
+  predicted_position: number
+  predicted_to_qualify: boolean
+}
+
+export interface TournamentUserGroupPositionsPredictionTable extends Identifiable {
+  user_id: string
+  tournament_id: string
+  group_id: string
+  team_predicted_positions: JSONColumnType<TeamPositionPrediction[]>
+  created_at?: Date
+  updated_at?: Date
+}
+
+export type TournamentUserGroupPositionsPrediction = Selectable<TournamentUserGroupPositionsPredictionTable>
+export type TournamentUserGroupPositionsPredictionNew = Insertable<TournamentUserGroupPositionsPredictionTable>
+export type TournamentUserGroupPositionsPredictionUpdate = Updateable<TournamentUserGroupPositionsPredictionTable>
+
 // Tournament Prediction Completion Tracking
 export interface TournamentPredictionCompletion {
   // Final standings (3 items: champion, runner-up, third place)

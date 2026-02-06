@@ -10,21 +10,22 @@ import * as qualificationActions from '../../app/actions/qualification-actions';
 
 // Mock qualification actions
 vi.mock('../../app/actions/qualification-actions', () => ({
-  updateQualificationPredictions: vi.fn(),
+  updateGroupPositionsJsonb: vi.fn(),
 }));
 
-const mockUpdatePredictions = vi.mocked(qualificationActions.updateQualificationPredictions);
+const mockUpdateGroupPositions = vi.mocked(qualificationActions.updateGroupPositionsJsonb);
 
 describe('QualifiedTeamsContext', () => {
   const mockUserId = 'user-1';
   const mockTournamentId = 'tournament-1';
+  const mockGroupId = 'group-1';
 
   const mockPredictions = [
     testFactories.qualifiedTeamPrediction({
       id: 'pred-1',
       user_id: mockUserId,
       tournament_id: mockTournamentId,
-      group_id: 'group-1',
+      group_id: mockGroupId,
       team_id: 'team-1',
       predicted_position: 1,
       predicted_to_qualify: true,
@@ -33,7 +34,7 @@ describe('QualifiedTeamsContext', () => {
       id: 'pred-2',
       user_id: mockUserId,
       tournament_id: mockTournamentId,
-      group_id: 'group-1',
+      group_id: mockGroupId,
       team_id: 'team-2',
       predicted_position: 2,
       predicted_to_qualify: true,
@@ -42,7 +43,7 @@ describe('QualifiedTeamsContext', () => {
       id: 'pred-3',
       user_id: mockUserId,
       tournament_id: mockTournamentId,
-      group_id: 'group-1',
+      group_id: mockGroupId,
       team_id: 'team-3',
       predicted_position: 3,
       predicted_to_qualify: false,
@@ -64,11 +65,10 @@ describe('QualifiedTeamsContext', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUpdatePredictions.mockResolvedValue({ success: true, message: 'Saved' });
+    mockUpdateGroupPositions.mockResolvedValue({ success: true, message: 'Actualizadas 3 predicciones exitosamente' });
   });
 
   afterEach(() => {
-    // Clean up any pending timers
     vi.clearAllTimers();
   });
 
@@ -85,7 +85,6 @@ describe('QualifiedTeamsContext', () => {
     });
 
     it('should throw error when used outside provider', () => {
-      // Suppress console.error for this test
       const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       expect(() => {
@@ -96,346 +95,227 @@ describe('QualifiedTeamsContext', () => {
     });
   });
 
-  describe('State Machine Transitions', () => {
-    it('should trigger debounced save on change', async () => {
+  describe('updateGroupPositions - Batch Updates', () => {
+    it('should update all positions in a single batch', async () => {
       const { result } = renderHook(() => useQualifiedTeamsContext(), {
         wrapper: createWrapper(),
       });
 
-      act(() => {
-        result.current.updatePosition('group-1', 'team-1', 2);
+      const updates = [
+        { teamId: 'team-1', position: 2, qualifies: true },
+        { teamId: 'team-2', position: 1, qualifies: true },
+        { teamId: 'team-3', position: 3, qualifies: false },
+      ];
+
+      await act(async () => {
+        await result.current.updateGroupPositions(mockGroupId, updates);
       });
 
-      // Wait for debounce and save to complete
-      await waitFor(
-        () => {
-          expect(result.current.saveState).toBe('saved');
-          expect(mockUpdatePredictions).toHaveBeenCalledTimes(1);
-        },
-        { timeout: 2000 }
-      );
+      expect(mockUpdateGroupPositions).toHaveBeenCalledTimes(1);
+      expect(mockUpdateGroupPositions).toHaveBeenCalledWith(mockGroupId, mockTournamentId, updates);
+    });
+
+    it('should apply optimistic update immediately', async () => {
+      const { result } = renderHook(() => useQualifiedTeamsContext(), {
+        wrapper: createWrapper(),
+      });
+
+      const updates = [
+        { teamId: 'team-1', position: 3, qualifies: false },
+        { teamId: 'team-2', position: 2, qualifies: true },
+        { teamId: 'team-3', position: 1, qualifies: true },
+      ];
+
+      await act(async () => {
+        await result.current.updateGroupPositions(mockGroupId, updates);
+      });
+
+      // Check optimistic update applied
+      const team1 = result.current.predictions.get('team-1');
+      const team3 = result.current.predictions.get('team-3');
+
+      expect(team1?.predicted_position).toBe(3);
+      expect(team1?.predicted_to_qualify).toBe(false);
+      expect(team3?.predicted_position).toBe(1);
+      expect(team3?.predicted_to_qualify).toBe(true);
+    });
+
+    it('should transition to saving state during save', async () => {
+      const { result } = renderHook(() => useQualifiedTeamsContext(), {
+        wrapper: createWrapper(),
+      });
+
+      const updates = [{ teamId: 'team-1', position: 2, qualifies: true }];
+
+      // Create a promise that we control
+      let resolveUpdate: any;
+      const updatePromise = new Promise((resolve) => {
+        resolveUpdate = resolve;
+      });
+      mockUpdateGroupPositions.mockReturnValue(updatePromise as any);
+
+      act(() => {
+        result.current.updateGroupPositions(mockGroupId, updates);
+      });
+
+      // Should be in saving state
+      expect(result.current.saveState).toBe('saving');
+      expect(result.current.isSaving).toBe(true);
+
+      // Resolve the update
+      await act(async () => {
+        resolveUpdate({ success: true, message: 'Saved' });
+        await updatePromise;
+      });
     });
 
     it('should transition to saved on successful save', async () => {
-      const { result } = renderHook(() => useQualifiedTeamsContext(), {
-        wrapper: createWrapper(),
-      });
-
-      act(() => {
-        result.current.updatePosition('group-1', 'team-1', 2);
-      });
-
-      // Wait for save to complete
-      await waitFor(
-        () => {
-          expect(result.current.saveState).toBe('saved');
-          expect(result.current.lastSaved).toBeInstanceOf(Date);
-          expect(result.current.error).toBeNull();
-        },
-        { timeout: 2000 }
-      );
-    });
-
-    // Skip: With real timers, the 2-second timeout is flaky in test environment
-    it.skip('should return to idle after 2 seconds in saved state', async () => {
-      const { result } = renderHook(() => useQualifiedTeamsContext(), {
-        wrapper: createWrapper(),
-      });
-
-      act(() => {
-        result.current.updatePosition('group-1', 'team-1', 2);
-      });
-
-      // Wait for save to complete
-      await waitFor(
-        () => {
-          expect(result.current.saveState).toBe('saved');
-        },
-        { timeout: 2000 }
-      );
-
-      // Wait for auto-return to idle (2 seconds from saved state)
-      await waitFor(
-        () => {
-          expect(result.current.saveState).toBe('idle');
-        },
-        { timeout: 4000 } // Increased timeout
-      );
-    }, 15000); // Increase test timeout to 15 seconds
-
-
-    it('should transition to error on save failure', async () => {
-      mockUpdatePredictions.mockRejectedValue(new Error('Network error'));
-
-      const { result } = renderHook(() => useQualifiedTeamsContext(), {
-        wrapper: createWrapper(),
-      });
-
-      act(() => {
-        result.current.updatePosition('group-1', 'team-1', 2);
-      });
-
-      // Wait for save to fail
-      await waitFor(
-        () => {
-          expect(result.current.saveState).toBe('error');
-          expect(result.current.error).toContain('Network error');
-        },
-        { timeout: 2000 }
-      );
-    });
-  });
-
-  describe('Debounce Logic', () => {
-    beforeEach(() => {
       vi.useFakeTimers();
-    });
+      const { result } = renderHook(() => useQualifiedTeamsContext(), {
+        wrapper: createWrapper(),
+      });
 
-    afterEach(() => {
+      const updates = [{ teamId: 'team-1', position: 2, qualifies: true }];
+
+      await act(async () => {
+        await result.current.updateGroupPositions(mockGroupId, updates);
+      });
+
+      expect(result.current.saveState).toBe('saved');
+      expect(result.current.lastSaved).not.toBeNull();
+      expect(result.current.error).toBeNull();
+
       vi.useRealTimers();
     });
 
-    // Skip: debouncedSave is called inside setState updater, causing deferred setState
-    // that doesn't work reliably with fake timers. Core debounce functionality is verified
-    // by the state transition tests with real timers.
-    it.skip('should reset debounce timer on rapid changes', async () => {
+    it('should return to idle after 2 seconds in saved state', async () => {
+      vi.useFakeTimers();
       const { result } = renderHook(() => useQualifiedTeamsContext(), {
         wrapper: createWrapper(),
       });
 
-      // First change
+      const updates = [{ teamId: 'team-1', position: 2, qualifies: true }];
+
       await act(async () => {
-        result.current.updatePosition('group-1', 'team-1', 2);
-        await Promise.resolve(); // Flush microtasks
+        await result.current.updateGroupPositions(mockGroupId, updates);
       });
 
-      // Wait 400ms (not enough to trigger save)
+      expect(result.current.saveState).toBe('saved');
+
+      // Fast-forward 2 seconds
       await act(async () => {
-        await vi.advanceTimersByTimeAsync(400);
+        vi.advanceTimersByTime(2000);
       });
 
-      expect(mockUpdatePredictions).not.toHaveBeenCalled();
+      expect(result.current.saveState).toBe('idle');
 
-      // Second change (resets timer)
-      await act(async () => {
-        result.current.updatePosition('group-1', 'team-2', 1);
-        await Promise.resolve(); // Flush microtasks
-      });
-
-      // Wait another 400ms (still not enough)
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(400);
-      });
-
-      expect(mockUpdatePredictions).not.toHaveBeenCalled();
-
-      // Wait final 100ms (500ms from last change)
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(100);
-        await vi.runAllTimersAsync();
-      });
-
-      // Should only save once after final debounce
-      expect(mockUpdatePredictions).toHaveBeenCalledTimes(1);
+      vi.useRealTimers();
     });
 
-    // Skip: Same issue as above - deferred setState with fake timers
-    it.skip('should batch multiple rapid changes into single save', async () => {
+    it('should not update when tournament is locked', async () => {
+      const { result } = renderHook(() => useQualifiedTeamsContext(), {
+        wrapper: createWrapper(true), // locked
+      });
+
+      const updates = [{ teamId: 'team-1', position: 2, qualifies: true }];
+
+      await act(async () => {
+        await result.current.updateGroupPositions(mockGroupId, updates);
+      });
+
+      expect(mockUpdateGroupPositions).not.toHaveBeenCalled();
+    });
+
+    it('should not allow updates while saving', async () => {
       const { result } = renderHook(() => useQualifiedTeamsContext(), {
         wrapper: createWrapper(),
       });
 
-      // Multiple rapid changes
-      await act(async () => {
-        result.current.updatePosition('group-1', 'team-1', 2);
-        result.current.updatePosition('group-1', 'team-2', 1);
-        result.current.toggleThirdPlace('group-1', 'team-3');
-        await Promise.resolve(); // Flush microtasks
+      const updates1 = [{ teamId: 'team-1', position: 2, qualifies: true }];
+      const updates2 = [{ teamId: 'team-2', position: 3, qualifies: false }];
+
+      // Start first save (don't await)
+      let resolveFirstUpdate: any;
+      const firstUpdatePromise = new Promise((resolve) => {
+        resolveFirstUpdate = resolve;
+      });
+      mockUpdateGroupPositions.mockReturnValue(firstUpdatePromise as any);
+
+      act(() => {
+        result.current.updateGroupPositions(mockGroupId, updates1);
       });
 
-      // Advance timers to trigger debounced save
+      expect(result.current.saveState).toBe('saving');
+
+      // Try second save while first is in progress
       await act(async () => {
-        await vi.advanceTimersByTimeAsync(500);
-        await vi.runAllTimersAsync();
+        await result.current.updateGroupPositions(mockGroupId, updates2);
       });
 
-      // Only last change should be saved (debounce batching)
-      expect(mockUpdatePredictions).toHaveBeenCalledTimes(1);
+      // Second save should be ignored
+      expect(mockUpdateGroupPositions).toHaveBeenCalledTimes(1);
+
+      // Resolve first save
+      await act(async () => {
+        resolveFirstUpdate({ success: true, message: 'Saved' });
+        await firstUpdatePromise;
+      });
     });
   });
 
-  describe('Optimistic Updates', () => {
-    it('should update UI immediately before server save', () => {
-      const { result } = renderHook(() => useQualifiedTeamsContext(), {
-        wrapper: createWrapper(),
-      });
-
-      const originalPrediction = result.current.predictions.get('team-1');
-      expect(originalPrediction?.predicted_position).toBe(1);
-
-      act(() => {
-        result.current.updatePosition('group-1', 'team-1', 2);
-      });
-
-      // UI updated immediately
-      const updatedPrediction = result.current.predictions.get('team-1');
-      expect(updatedPrediction?.predicted_position).toBe(2);
-
-      // But server not called yet
-      expect(mockUpdatePredictions).not.toHaveBeenCalled();
-    });
-
+  describe('Error Handling', () => {
     it('should rollback on save error', async () => {
-      mockUpdatePredictions.mockRejectedValue(new Error('Save failed'));
-
       const { result } = renderHook(() => useQualifiedTeamsContext(), {
         wrapper: createWrapper(),
       });
 
-      const originalPosition = result.current.predictions.get('team-1')?.predicted_position;
+      // Mock error response
+      mockUpdateGroupPositions.mockRejectedValueOnce(new Error('Network error'));
 
-      act(() => {
-        result.current.updatePosition('group-1', 'team-1', 2);
+      const updates = [
+        { teamId: 'team-1', position: 3, qualifies: false },
+        { teamId: 'team-2', position: 1, qualifies: true },
+      ];
+
+      await act(async () => {
+        try {
+          await result.current.updateGroupPositions(mockGroupId, updates);
+        } catch (e) {
+          // Expected error
+        }
       });
 
-      // Optimistic update
-      expect(result.current.predictions.get('team-1')?.predicted_position).toBe(2);
+      // Should rollback to original state
+      expect(result.current.saveState).toBe('error');
+      expect(result.current.error).toBeTruthy();
 
-      // Wait for save to fail and rollback
-      await waitFor(
-        () => {
-          expect(result.current.predictions.get('team-1')?.predicted_position).toBe(originalPosition);
-          expect(result.current.saveState).toBe('error');
-        },
-        { timeout: 2000 }
-      );
-    });
-  });
+      // Check predictions rolled back
+      const team1 = result.current.predictions.get('team-1');
+      const team2 = result.current.predictions.get('team-2');
 
-  describe('updatePosition', () => {
-    it('should update team position', () => {
-      const { result } = renderHook(() => useQualifiedTeamsContext(), {
-        wrapper: createWrapper(),
-      });
-
-      act(() => {
-        result.current.updatePosition('group-1', 'team-1', 3);
-      });
-
-      const prediction = result.current.predictions.get('team-1');
-      expect(prediction?.predicted_position).toBe(3);
-    });
-
-    it('should not update when tournament is locked', () => {
-      const { result } = renderHook(() => useQualifiedTeamsContext(), {
-        wrapper: createWrapper(true), // locked
-      });
-
-      const originalPosition = result.current.predictions.get('team-1')?.predicted_position;
-
-      act(() => {
-        result.current.updatePosition('group-1', 'team-1', 2);
-      });
-
-      expect(result.current.predictions.get('team-1')?.predicted_position).toBe(originalPosition);
-      expect(result.current.saveState).toBe('idle');
-    });
-  });
-
-  describe('toggleThirdPlace', () => {
-    it('should toggle predicted_to_qualify for position 3', () => {
-      const { result } = renderHook(() => useQualifiedTeamsContext(), {
-        wrapper: createWrapper(),
-      });
-
-      const originalQualify = result.current.predictions.get('team-3')?.predicted_to_qualify;
-
-      act(() => {
-        result.current.toggleThirdPlace('group-1', 'team-3');
-      });
-
-      const updatedQualify = result.current.predictions.get('team-3')?.predicted_to_qualify;
-      expect(updatedQualify).toBe(!originalQualify);
-    });
-
-    it('should not toggle for non-position-3 teams', () => {
-      const { result } = renderHook(() => useQualifiedTeamsContext(), {
-        wrapper: createWrapper(),
-      });
-
-      const originalQualify = result.current.predictions.get('team-1')?.predicted_to_qualify;
-
-      act(() => {
-        result.current.toggleThirdPlace('group-1', 'team-1'); // Position 1, not 3
-      });
-
-      // Should not change
-      expect(result.current.predictions.get('team-1')?.predicted_to_qualify).toBe(originalQualify);
-    });
-
-    it('should not toggle when tournament is locked', () => {
-      const { result } = renderHook(() => useQualifiedTeamsContext(), {
-        wrapper: createWrapper(true), // locked
-      });
-
-      const originalQualify = result.current.predictions.get('team-3')?.predicted_to_qualify;
-
-      act(() => {
-        result.current.toggleThirdPlace('group-1', 'team-3');
-      });
-
-      expect(result.current.predictions.get('team-3')?.predicted_to_qualify).toBe(originalQualify);
-    });
-  });
-
-  describe('Error Recovery', () => {
-    it('should clear error and return to idle when no pending changes', async () => {
-      mockUpdatePredictions.mockRejectedValue(new Error('First attempt failed'));
-
-      const { result } = renderHook(() => useQualifiedTeamsContext(), {
-        wrapper: createWrapper(),
-      });
-
-      act(() => {
-        result.current.updatePosition('group-1', 'team-1', 2);
-      });
-
-      // Wait for save to fail
-      await waitFor(
-        () => {
-          expect(result.current.saveState).toBe('error');
-        },
-        { timeout: 2000 }
-      );
-
-      // Retry when no pending changes (cleared on error) returns to idle
-      act(() => {
-        result.current.retrySave();
-      });
-
-      expect(result.current.saveState).toBe('idle');
-      expect(result.current.error).toBeNull();
+      expect(team1?.predicted_position).toBe(1); // Original position
+      expect(team2?.predicted_position).toBe(2); // Original position
     });
 
     it('should clear error state', async () => {
-      mockUpdatePredictions.mockRejectedValue(new Error('Save failed'));
-
       const { result } = renderHook(() => useQualifiedTeamsContext(), {
         wrapper: createWrapper(),
       });
 
-      act(() => {
-        result.current.updatePosition('group-1', 'team-1', 2);
+      mockUpdateGroupPositions.mockRejectedValueOnce(new Error('Error'));
+
+      const updates = [{ teamId: 'team-1', position: 2, qualifies: true }];
+
+      await act(async () => {
+        try {
+          await result.current.updateGroupPositions(mockGroupId, updates);
+        } catch (e) {
+          // Expected
+        }
       });
 
-      // Wait for save to fail
-      await waitFor(
-        () => {
-          expect(result.current.saveState).toBe('error');
-          expect(result.current.error).toBeTruthy();
-        },
-        { timeout: 2000 }
-      );
+      expect(result.current.saveState).toBe('error');
+      expect(result.current.error).toBeTruthy();
 
       act(() => {
         result.current.clearError();
@@ -446,54 +326,35 @@ describe('QualifiedTeamsContext', () => {
     });
   });
 
-  describe('Component Unmount', () => {
-    it('should flush pending changes on unmount', async () => {
-      const { result, unmount } = renderHook(() => useQualifiedTeamsContext(), {
-        wrapper: createWrapper(),
-      });
-
-      act(() => {
-        result.current.updatePosition('group-1', 'team-1', 2);
-      });
-
-      // Unmount before debounce completes (don't advance timers)
-      unmount();
-
-      // Should have attempted to flush pending changes
-      // Note: The actual API call happens async in cleanup, so we can't reliably test it was called
-      // The important thing is no errors are thrown on unmount
-      expect(true).toBe(true);
-    });
-  });
-
-  describe('Force Save', () => {
-    // Skip: forceSave depends on pendingChanges being set, which requires the deferred
-    // setState from debouncedSave to complete. This doesn't work reliably in tests.
-    it.skip('should save immediately without debounce', async () => {
+  describe('Server State Snapshot', () => {
+    it('should update server snapshot on successful save', async () => {
       const { result } = renderHook(() => useQualifiedTeamsContext(), {
         wrapper: createWrapper(),
       });
 
+      const updates = [{ teamId: 'team-1', position: 2, qualifies: true }];
+
       await act(async () => {
-        result.current.updatePosition('group-1', 'team-1', 2);
-        // Flush microtasks to let deferred setState complete
-        await Promise.resolve();
-        await Promise.resolve();
+        await result.current.updateGroupPositions(mockGroupId, updates);
       });
 
-      // Force save immediately (bypasses debounce)
+      // After successful save, optimistic state becomes server state
+      // If we now trigger an error, rollback should go to the new state (not original)
+      mockUpdateGroupPositions.mockRejectedValueOnce(new Error('Error after first save'));
+
+      const updates2 = [{ teamId: 'team-1', position: 3, qualifies: false }];
+
       await act(async () => {
-        await result.current.forceSave();
+        try {
+          await result.current.updateGroupPositions(mockGroupId, updates2);
+        } catch (e) {
+          // Expected
+        }
       });
 
-      // Should have saved without waiting for full debounce delay
-      await waitFor(
-        () => {
-          expect(mockUpdatePredictions).toHaveBeenCalledTimes(1);
-          expect(result.current.saveState).toBe('saved');
-        },
-        { timeout: 1000 }
-      );
+      // Should rollback to state after first save (position 2), not original (position 1)
+      const team1 = result.current.predictions.get('team-1');
+      expect(team1?.predicted_position).toBe(2);
     });
   });
 });

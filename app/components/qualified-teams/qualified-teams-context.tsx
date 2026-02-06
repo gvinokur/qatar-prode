@@ -1,18 +1,17 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { QualifiedTeamPrediction, QualifiedTeamPredictionNew } from '../../db/tables-definition';
-import { updateQualificationPredictions } from '../../actions/qualification-actions';
+import { QualifiedTeamPrediction } from '../../db/tables-definition';
+import { updateGroupPositionsJsonb } from '../../actions/qualification-actions';
 
 /**
- * Auto-save state machine states
- * - idle: No pending changes
- * - pending: Changes made, waiting for debounce timer
+ * Simplified save state machine
+ * - idle: No active save operation
  * - saving: Actively saving to server
  * - saved: Successfully saved (temporary state, returns to idle after 2s)
  * - error: Save failed, showing error message with retry option
  */
-export type SaveState = 'idle' | 'pending' | 'saving' | 'saved' | 'error';
+export type SaveState = 'idle' | 'saving' | 'saved' | 'error';
 
 /**
  * Prediction state management
@@ -26,8 +25,6 @@ interface PredictionState {
   lastSaved: Date | null;
   /** Error message if save failed */
   error: string | null;
-  /** Pending changes to be saved */
-  pendingChanges: QualifiedTeamPredictionNew[];
   /** Server state snapshot for rollback on error */
   serverStateSnapshot: Map<string, QualifiedTeamPrediction>;
 }
@@ -43,16 +40,10 @@ interface QualifiedTeamsContextValue {
   lastSaved: Date | null;
   /** Error message if any */
   error: string | null;
-  /** Update a team's position within a group */
-  updatePosition: (_groupId: string, _teamId: string, _newPosition: number, _overrideQualify?: boolean) => void;
-  /** Toggle third place qualification for a team */
-  toggleThirdPlace: (_groupId: string, _teamId: string) => void;
-  /** Retry failed save */
-  retrySave: () => void;
+  /** Update positions for entire group (batch) */
+  updateGroupPositions: (_groupId: string, _updates: Array<{ teamId: string; position: number; qualifies: boolean }>) => Promise<void>;
   /** Clear error state */
   clearError: () => void;
-  /** Force immediate save (for testing or manual save) */
-  forceSave: () => Promise<void>;
 }
 
 const QualifiedTeamsContext = createContext<QualifiedTeamsContextValue | undefined>(undefined);
@@ -89,37 +80,48 @@ export function QualifiedTeamsContextProvider({
     saveState: 'idle',
     lastSaved: null,
     error: null,
-    pendingChanges: [],
     serverStateSnapshot: initialPredictionsMap,
   });
 
-  // Refs for debounce timer and cleanup
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Ref for cleanup
   const isMountedRef = useRef(true);
 
   /**
-   * Save pending changes to server
+   * Update positions for an entire group in a single atomic batch operation
+   * This triggers immediate save with optimistic update
    */
-  const savePredictions = useCallback(
-    async (predictions: QualifiedTeamPredictionNew[]) => {
-      if (isLocked) {
-        setState((prev) => ({
+  const updateGroupPositions = useCallback(
+    async (groupId: string, updates: Array<{ teamId: string; position: number; qualifies: boolean }>) => {
+      // Prevent changes while locked or already saving
+      if (isLocked || state.saveState === 'saving') return;
+
+      // Optimistic update: Apply changes immediately to UI
+      setState((prev) => {
+        const newPredictions = new Map(prev.predictions);
+
+        updates.forEach(({ teamId, position, qualifies }) => {
+          const prediction = prev.predictions.get(teamId);
+          if (prediction) {
+            newPredictions.set(teamId, {
+              ...prediction,
+              predicted_position: position,
+              predicted_to_qualify: qualifies,
+              updated_at: new Date(),
+            });
+          }
+        });
+
+        return {
           ...prev,
-          saveState: 'error',
-          error: 'Las predicciones están bloqueadas para este torneo',
-        }));
-        return;
-      }
+          predictions: newPredictions,
+          saveState: 'saving' as const,
+          error: null,
+        };
+      });
 
-      if (predictions.length === 0) {
-        setState((prev) => ({ ...prev, saveState: 'idle', pendingChanges: [] }));
-        return;
-      }
-
-      setState((prev) => ({ ...prev, saveState: 'saving' }));
-
+      // Save to server
       try {
-        const result = await updateQualificationPredictions(predictions);
+        const result = await updateGroupPositionsJsonb(groupId, tournamentId, updates);
 
         if (!isMountedRef.current) return;
 
@@ -129,7 +131,6 @@ export function QualifiedTeamsContextProvider({
             saveState: 'saved',
             lastSaved: new Date(),
             error: null,
-            pendingChanges: [],
             serverStateSnapshot: new Map(prev.predictions),
           }));
 
@@ -156,160 +157,11 @@ export function QualifiedTeamsContextProvider({
           predictions: new Map(prev.serverStateSnapshot),
           saveState: 'error',
           error: error.message || 'Error al guardar las predicciones. Por favor intenta de nuevo.',
-          pendingChanges: [],
         }));
       }
     },
-    [tournamentId, userId, isLocked]
+    [tournamentId, userId, isLocked, state.saveState]
   );
-
-  /**
-   * Debounced save with 500ms delay
-   * Resets timer on rapid changes
-   */
-  const debouncedSave = useCallback(
-    (changes: QualifiedTeamPredictionNew[]) => {
-      setState((prev) => {
-        // Don't start new debounce if currently saving
-        if (prev.saveState === 'saving') {
-          return prev;
-        }
-
-        // Clear existing timeout
-        if (saveTimeoutRef.current) {
-          clearTimeout(saveTimeoutRef.current);
-        }
-
-        // Set new timeout for 500ms
-        saveTimeoutRef.current = setTimeout(() => {
-          savePredictions(changes);
-        }, 500);
-
-        // Set state to pending
-        return {
-          ...prev,
-          saveState: 'pending',
-          pendingChanges: changes,
-        };
-      });
-    },
-    [savePredictions]
-  );
-
-  /**
-   * Update a team's position within a group
-   * Triggers optimistic update + debounced save
-   */
-  const updatePosition = useCallback(
-    (groupId: string, teamId: string, newPosition: number, overrideQualify?: boolean) => {
-      // Prevent changes while locked or saving
-      if (isLocked || state.saveState === 'saving') return;
-
-      setState((prev) => {
-        const prediction = prev.predictions.get(teamId);
-        if (!prediction) return prev;
-
-        // Determine qualification status
-        // Position 1-2: auto-qualify (true)
-        // Position 3: use override if provided, otherwise default to false
-        // Position 4+: not qualified (false)
-        let shouldQualify: boolean;
-        if (overrideQualify !== undefined) {
-          shouldQualify = overrideQualify;
-        } else {
-          shouldQualify = newPosition === 1 || newPosition === 2;
-        }
-
-        // Create updated prediction
-        const updatedPrediction: QualifiedTeamPrediction = {
-          ...prediction,
-          predicted_position: newPosition,
-          predicted_to_qualify: shouldQualify,
-          updated_at: new Date(),
-        };
-
-        // Optimistic update
-        const newPredictions = new Map(prev.predictions);
-        newPredictions.set(teamId, updatedPrediction);
-
-        // Prepare change for server
-        const change: QualifiedTeamPredictionNew = {
-          user_id: userId,
-          tournament_id: tournamentId,
-          group_id: groupId,
-          team_id: teamId,
-          predicted_position: newPosition,
-          predicted_to_qualify: shouldQualify,
-        };
-
-        // Debounced save
-        debouncedSave([change]);
-
-        return {
-          ...prev,
-          predictions: newPredictions,
-        };
-      });
-    },
-    [userId, tournamentId, isLocked, state.saveState, debouncedSave]
-  );
-
-  /**
-   * Toggle third place qualification for a team
-   * Only applicable for position 3
-   */
-  const toggleThirdPlace = useCallback(
-    (groupId: string, teamId: string) => {
-      // Prevent changes while locked or saving
-      if (isLocked || state.saveState === 'saving') return;
-
-      setState((prev) => {
-        const prediction = prev.predictions.get(teamId);
-        if (!prediction || prediction.predicted_position !== 3) return prev;
-
-        // Toggle qualification
-        const updatedPrediction: QualifiedTeamPrediction = {
-          ...prediction,
-          predicted_to_qualify: !prediction.predicted_to_qualify,
-          updated_at: new Date(),
-        };
-
-        // Optimistic update
-        const newPredictions = new Map(prev.predictions);
-        newPredictions.set(teamId, updatedPrediction);
-
-        // Prepare change for server
-        const change: QualifiedTeamPredictionNew = {
-          user_id: userId,
-          tournament_id: tournamentId,
-          group_id: groupId,
-          team_id: teamId,
-          predicted_position: prediction.predicted_position,
-          predicted_to_qualify: updatedPrediction.predicted_to_qualify,
-        };
-
-        // Debounced save
-        debouncedSave([change]);
-
-        return {
-          ...prev,
-          predictions: newPredictions,
-        };
-      });
-    },
-    [userId, tournamentId, isLocked, state.saveState, debouncedSave]
-  );
-
-  /**
-   * Retry failed save
-   */
-  const retrySave = useCallback(() => {
-    if (state.pendingChanges.length > 0) {
-      savePredictions(state.pendingChanges);
-    } else {
-      setState((prev) => ({ ...prev, saveState: 'idle', error: null }));
-    }
-  }, [state.pendingChanges, savePredictions]);
 
   /**
    * Clear error state
@@ -319,54 +171,25 @@ export function QualifiedTeamsContextProvider({
   }, []);
 
   /**
-   * Force immediate save (for testing or manual save button)
-   */
-  const forceSave = useCallback(async () => {
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = null;
-    }
-
-    if (state.pendingChanges.length > 0) {
-      await savePredictions(state.pendingChanges);
-    }
-  }, [state.pendingChanges, savePredictions]);
-
-  /**
-   * Cleanup: Flush pending saves on unmount
+   * Cleanup: Mark component as unmounted
    */
   useEffect(() => {
     return () => {
       isMountedRef.current = false;
-
-      // Flush pending changes immediately on unmount
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-
-      if (state.pendingChanges.length > 0 && !isLocked) {
-        // Fire and forget - don't wait for response
-        updateQualificationPredictions(state.pendingChanges).catch((error) => {
-          console.error('Failed to flush pending changes on unmount:', error);
-        });
-      }
     };
-  }, [state.pendingChanges, isLocked]);
+  }, []);
 
   const contextValue = useMemo<QualifiedTeamsContextValue>(
     () => ({
       predictions: state.predictions,
       saveState: state.saveState,
-      isSaving: state.saveState === 'saving' || state.saveState === 'pending',
+      isSaving: state.saveState === 'saving',
       lastSaved: state.lastSaved,
       error: state.error,
-      updatePosition,
-      toggleThirdPlace,
-      retrySave,
+      updateGroupPositions,
       clearError,
-      forceSave,
     }),
-    [state, updatePosition, toggleThirdPlace, retrySave, clearError, forceSave]
+    [state, updateGroupPositions, clearError]
   );
 
   return <QualifiedTeamsContext.Provider value={contextValue}>{children}</QualifiedTeamsContext.Provider>;

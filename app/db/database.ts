@@ -15,6 +15,7 @@ import {
   TournamentTeamTable, TournamentVenueTable,
   TournamentViewPermissionTable,
   TournamentThirdPlaceRulesTable,
+  TournamentUserGroupPositionsPredictionTable,
   UserTable,
   ProdeGroupTournamentBettingTable,
   ProdeGroupTournamentBettingPaymentTable
@@ -46,6 +47,7 @@ export interface Database {
 
   tournament_guesses: TournamentGuessTable
   tournament_qualified_teams_predictions: QualifiedTeamPredictionTable
+  tournament_user_group_positions_predictions: TournamentUserGroupPositionsPredictionTable
   tournament_venues: TournamentVenueTable
   tournament_third_place_rules: TournamentThirdPlaceRulesTable
 
