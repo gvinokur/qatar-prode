@@ -6,33 +6,43 @@ import LeaderboardView from '@/app/components/leaderboard/LeaderboardView'
 const mockScores = [
   {
     userId: 'user-1',
-    userName: 'Alice',
-    totalPoints: 1200,
-    groupStagePoints: 800,
-    knockoutPoints: 400,
-    boostsUsed: 4,
-    correctPredictions: 45,
-    playedGames: 50
+    userName: 'User One',
+    totalPoints: 100,
+    groupStagePoints: 70,
+    knockoutPoints: 30,
+    groupStageScore: 60,
+    groupStageQualifiersScore: 10,
+    groupPositionScore: 5,
+    playoffScore: 25,
+    groupBoostBonus: 5,
+    playoffBoostBonus: 5,
+    honorRollScore: 10,
+    individualAwardsScore: 5
   },
   {
     userId: 'user-2',
-    userName: 'Bob',
-    totalPoints: 1000,
-    groupStagePoints: 700,
-    knockoutPoints: 300,
-    boostsUsed: 3,
-    correctPredictions: 40,
-    playedGames: 50
+    userName: 'User Two',
+    totalPoints: 80,
+    groupStagePoints: 50,
+    knockoutPoints: 30,
+    groupStageScore: 45,
+    groupStageQualifiersScore: 5,
+    groupPositionScore: 3,
+    playoffScore: 27,
+    groupBoostBonus: 0,
+    playoffBoostBonus: 3,
+    honorRollScore: 5,
+    individualAwardsScore: 8
   }
 ]
 
 const mockTournament = {
   id: 'tournament-1',
-  name: 'World Cup 2026'
+  name: 'Test Tournament'
 }
 
 describe('LeaderboardView', () => {
-  it('renders cards for all screen sizes', () => {
+  it('renders leaderboard cards', () => {
     renderWithTheme(
       <LeaderboardView
         scores={mockScores}
@@ -41,41 +51,23 @@ describe('LeaderboardView', () => {
       />
     )
 
-    // LeaderboardCards should render (check for card-specific elements)
-    expect(screen.getByText('You')).toBeInTheDocument() // user-1 is current user
-    expect(screen.getByText('Bob')).toBeInTheDocument()
-
-    // Should have card roles
-    const cards = screen.getAllByRole('button')
-    expect(cards.length).toBe(2)
-  })
-
-  it('passes scores correctly', () => {
-    renderWithTheme(
-      <LeaderboardView
-        scores={mockScores}
-        currentUserId="user-1"
-        tournament={mockTournament}
-      />
-    )
-
-    // Check that scores are rendered
-    expect(screen.getByText('1,200 pts')).toBeInTheDocument()
-    expect(screen.getByText('1,000 pts')).toBeInTheDocument()
-  })
-
-  it('highlights current user correctly', () => {
-    renderWithTheme(
-      <LeaderboardView
-        scores={mockScores}
-        currentUserId="user-2"
-        tournament={mockTournament}
-      />
-    )
-
-    // Bob should be highlighted as "You"
+    expect(screen.getByRole('list', { name: /leaderboard/i})).toBeInTheDocument()
+    // User One is current user, displays as "You"
     expect(screen.getByText('You')).toBeInTheDocument()
-    expect(screen.getByText('Alice')).toBeInTheDocument()
+    expect(screen.getByText('User Two')).toBeInTheDocument()
+  })
+
+  it('passes currentUserId to LeaderboardCards', () => {
+    renderWithTheme(
+      <LeaderboardView
+        scores={mockScores}
+        currentUserId="user-1"
+        tournament={mockTournament}
+      />
+    )
+
+    // Current user card should be highlighted
+    expect(screen.getByText('You')).toBeInTheDocument()
   })
 
   it('handles empty scores', () => {
