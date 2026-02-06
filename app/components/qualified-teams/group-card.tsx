@@ -109,7 +109,6 @@ export default function GroupCard({
   const content = (
     <>
       {!isMobile && <GroupHeader groupLetter={group.group_letter} />}
-      <QualificationInstructions allowsThirdPlace={allowsThirdPlace} />
 
       <Box sx={{ flex: 1 }}>
         <SortableContext items={teamIds} strategy={verticalListSortingStrategy}>

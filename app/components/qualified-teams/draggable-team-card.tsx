@@ -30,8 +30,15 @@ function getPositionSuffix(pos: number): string {
 
 /** Get background color based on qualification status */
 function getBackgroundColor(theme: Theme, position: number, predictedToQualify: boolean): string {
-  if (position === 1 || position === 2) return theme.palette.success.light;
-  if (position === 3) return predictedToQualify ? theme.palette.success.light : theme.palette.warning.light;
+  // Positions 1-2: Yellow if not explicitly marked as qualified (initial state), green once qualified
+  if (position === 1 || position === 2) {
+    return predictedToQualify ? theme.palette.success.light : theme.palette.warning.light;
+  }
+  // Position 3: Green if qualified, yellow if can qualify but not selected
+  if (position === 3) {
+    return predictedToQualify ? theme.palette.success.light : theme.palette.warning.light;
+  }
+  // Position 4+: Gray (cannot qualify)
   return theme.palette.grey[100];
 }
 

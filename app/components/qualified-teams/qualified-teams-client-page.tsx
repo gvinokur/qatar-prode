@@ -212,6 +212,18 @@ function QualifiedTeamsUI({
         Predice qué equipos clasificarán de cada grupo arrastrándolos en tu orden preferido.
       </Typography>
 
+      <Alert severity="info" sx={{ mb: 3 }}>
+        <Typography variant="body2">
+          <strong>Posiciones 1-2:</strong> Clasifican automáticamente a la siguiente ronda
+          {allowsThirdPlace && (
+            <>
+              <br />
+              <strong>Posición 3:</strong> Selecciona los equipos que predices que clasificarán
+            </>
+          )}
+        </Typography>
+      </Alert>
+
       {isLocked && (
         <Alert severity="warning" sx={{ mb: 3 }}>
           Las predicciones están bloqueadas para este torneo. Puedes ver tus predicciones pero no puedes hacer cambios.
