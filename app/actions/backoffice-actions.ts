@@ -84,8 +84,8 @@ import {db} from "../db/database";
 import {calculateScoreForGame} from "../utils/game-score-calculator";
 import {
   findTournamentGuessByTournament,
-  updateTournamentGuess,
-  updateTournamentGuessByUserIdTournament,
+  updateTournamentGuessWithSnapshot,
+  updateTournamentGuessByUserIdTournamentWithSnapshot,
   deleteAllTournamentGuessesByTournamentId
 } from "../db/tournament-guess-repository";
 import {awardsDefinition} from "../utils/award-utils";
@@ -518,7 +518,7 @@ export async function calculateAndStoreQualifiedTeamsPoints(tournamentId: string
         // console.log(allQualifiedTeams) - removed for production
       }
       const correctGuesses = userQualifiedTeams.filter(team => allQualifiedTeams.find(allTeam => allTeam.id === team.id))
-      const updatedTournamentGuess = await updateTournamentGuessByUserIdTournament(user.id, tournamentId, {
+      const updatedTournamentGuess = await updateTournamentGuessByUserIdTournamentWithSnapshot(user.id, tournamentId, {
         qualified_teams_score: correctGuesses.length
       })
       
@@ -565,7 +565,7 @@ export async function updateTournamentAwards(tournamentId: string, withUpdate: T
       }
       return accumScore
     }, 0)
-    return await updateTournamentGuess(tournamentGuess.id, {
+    return await updateTournamentGuessWithSnapshot(tournamentGuess.id, {
       individual_awards_score: awardsScore
     })
   }))
@@ -601,7 +601,7 @@ export async function updateTournamentHonorRoll(tournamentId: string, withUpdate
         tournamentGuess.third_place_team_id === withUpdate.third_place_team_id) {
         honorRollScore += third_place_points
       }
-      return await updateTournamentGuess(tournamentGuess.id, {
+      return await updateTournamentGuessWithSnapshot(tournamentGuess.id, {
         honor_roll_score: honorRollScore
       })
     }))
@@ -902,7 +902,7 @@ export async function calculateAndStoreGroupPositionScores(tournamentId: string)
       }
     }
     // Store the score in tournament_guesses
-    await updateTournamentGuessByUserIdTournament(user.id, tournamentId, {
+    await updateTournamentGuessByUserIdTournamentWithSnapshot(user.id, tournamentId, {
       group_position_score: totalScore
     });
   }));

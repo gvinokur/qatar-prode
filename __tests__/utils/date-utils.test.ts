@@ -1,5 +1,5 @@
-import { vi, describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { getLocalGameTime, getUserLocalTime, getCompactGameTime, getCompactUserTime } from '../../app/utils/date-utils';
+import { vi, describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
+import { getLocalGameTime, getUserLocalTime, getCompactGameTime, getCompactUserTime, getTodayYYYYMMDD } from '../../app/utils/date-utils';
 
 // Store original dayjs module
 let originalDayjs: any;
@@ -150,4 +150,4 @@ describe('date-utils', () => {
       expect(result2).toContain('(Tu Horario)');
     });
   });
-}); 
+});

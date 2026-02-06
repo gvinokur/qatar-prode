@@ -218,7 +218,11 @@ export async function getUserScoresForTournament(userIds: string[], tournamentId
         (tournamentGuess?.qualified_teams_score || 0) +
         (tournamentGuess?.honor_roll_score || 0) +
         (tournamentGuess?.individual_awards_score || 0) +
-        (tournamentGuess?.group_position_score || 0)
+        (tournamentGuess?.group_position_score || 0),
+      yesterdayTotalPoints:
+        (gameStats?.yesterday_total_score || 0) +
+        (gameStats?.yesterday_boost_bonus || 0) +
+        (tournamentGuess?.yesterday_tournament_score || 0)
     };
   }) as UserScore[];
 }

@@ -44,3 +44,12 @@ export function getCompactGameTime(date: Date, gameTimezone?: string): string {
 export function getCompactUserTime(date: Date): string {
   return `${dayjs(date).format('D MMM HH:mm')} (Tu Horario)`;
 }
+
+/**
+ * Get today's date as YYYYMMDD integer for daily rank tracking
+ * Example: February 6, 2026 → 20260206
+ * @returns Integer representing today's date in YYYYMMDD format
+ */
+export function getTodayYYYYMMDD(): number {
+  return parseInt(dayjs().format('YYYYMMDD'), 10);
+}
