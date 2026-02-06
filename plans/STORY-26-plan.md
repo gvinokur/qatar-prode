@@ -104,33 +104,42 @@ for (let i = 0; i < sortedByTotal.length; i++) {
 }
 ```
 
-### Architecture: Server vs Client Components
+### Architecture: Extend Existing Pattern
 
 **Server-Side (Database Access):**
-- `app/actions/rank-calculation-actions.ts` - Server action for rank calculations
-- `app/utils/rank-calculator.ts` - Pure calculation logic (can be used server or client)
-- Parent page components that fetch rank data
+- `app/actions/prode-group-actions.ts` - Extend existing `getUserScoresForTournament`
+- Add yesterday's scores to same DB queries (single roundtrip)
+- Return extended `UserScore` type with yesterday fields
 
-**Client-Side (Animations):**
-- `app/components/leaderboard/rank-change-animations.tsx` - All animation components
-- `app/components/friend-groups/friends-group-table.tsx` - Remains client component
+**Client-Side (Calculations & Animations):**
+- `app/utils/rank-calculator.ts` - Pure rank calculation logic (client-side)
+- `app/components/friend-groups/friends-group-table.tsx` - Extend existing sorting logic
+- `app/components/leaderboard/rank-change-animations.tsx` - Animation components
 
 **Data Flow:**
 ```
 Parent Page (Server Component)
-  ↓ (calls server action)
-calculateUserRanksWithHistory() [Server Action]
-  ↓ (fetches from DB)
-Database queries
-  ↓ (calculates)
-Rank calculation utility
-  ↓ (returns data)
-Parent Page
-  ↓ (passes as props)
+  ↓ (calls existing action)
+getUserScoresForTournament() [Extended]
+  ↓ (fetches in single call)
+- getGameGuessStatisticsForUsers (current + yesterday)
+- findTournamentGuessByUserIdsTournament (with snapshots)
+  ↓ (returns extended UserScore)
+UserScore[] with yesterday fields
+  ↓ (passed as props)
 ProdeGroupTable [Client Component]
+  ↓ (calculates ranks client-side)
+Rank calculation (where sorting already happens)
   ↓ (renders with)
 Animation Components [Client Components]
 ```
+
+**Why This Approach:**
+- ✅ Reuses existing `getUserScoresForTournament` pattern
+- ✅ Single DB roundtrip (efficient)
+- ✅ Rank calculation stays where sorting logic already exists
+- ✅ No new server action needed
+- ✅ Simpler architecture
 
 ### Files to Create
 
@@ -169,13 +178,7 @@ export function calculateRankChanges(...)
 export async function getYesterdayGameScores(...)
 ```
 
-#### 3. Server Action for Rank Calculation
-**Path:** `app/actions/rank-calculation-actions.ts`
-- Server action: `calculateUserRanksWithHistory()`
-- Includes error handling with graceful degradation
-- Returns rank data for client consumption
-
-#### 4. Animation Components
+#### 3. Animation Components
 **Path:** `app/components/leaderboard/rank-change-animations.tsx`
 
 Components to create:
@@ -188,6 +191,11 @@ Components to create:
 - Server-side function to calculate ranks with yesterday comparison
 - Fetches yesterday game scores and tournament snapshots
 - Returns fully calculated rank data for client consumption
+
+#### 4. Extended UserScore Type
+**Path:** `app/definitions.ts`
+- Add yesterday fields to `UserScore` interface
+- `yesterdayTotalPoints?: number`
 
 #### 5. Updated Table Component
 **Path:** `app/components/friend-groups/friends-group-table.tsx`
@@ -295,99 +303,63 @@ Components to create:
    - Use `motion.tr` with entrance animation
    - Delay based on index for cascade effect
 
-#### Step 6: Create Server Action for Rank Calculation
-1. Create `app/actions/rank-calculation-actions.ts`
-2. Define complete return type structure:
+#### Step 6: Extend getUserScoresForTournament Action
+1. Open `app/actions/prode-group-actions.ts`
+2. Modify `getGameGuessStatisticsForUsers` call to include yesterday filter:
+   - Call it twice: once for all games, once for games before today
+   - Or extend the repository function to return both
+3. Access `yesterday_tournament_score` from tournament guesses (already in DB after Step 2)
+4. Calculate `yesterdayTotalPoints` in the same pattern as `totalPoints`:
    ```typescript
-   'use server'
+   return {
+     userId,
+     // ... existing fields ...
+     totalPoints:
+       (gameStats?.total_score || 0) +
+       (gameStats?.total_boost_bonus || 0) +
+       (tournamentGuess?.qualified_teams_score || 0) +
+       (tournamentGuess?.honor_roll_score || 0) +
+       (tournamentGuess?.individual_awards_score || 0) +
+       (tournamentGuess?.group_position_score || 0),
 
-   export type RankData = {
-     userId: string
-     currentRank: number
-     previousRank?: number
-     rankChange: number
-     currentPoints: number
-     previousPoints?: number
-   }
-
-   export type RankCalculationResult = {
-     users: RankData[]
-     hasRankChanges: boolean
-     error?: boolean
+     // NEW: Yesterday's total points
+     yesterdayTotalPoints:
+       (yesterdayGameStats?.total_score || 0) +
+       (yesterdayGameStats?.total_boost_bonus || 0) +
+       (tournamentGuess?.yesterday_tournament_score || 0)
    }
    ```
-3. Implement server action:
+5. Update `UserScore` type in `app/definitions.ts`:
    ```typescript
-   export async function calculateUserRanksWithHistory(
-     tournamentId: string,
-     userIds: string[]
-   ): Promise<RankCalculationResult> {
-     try {
-       // Fetch yesterday's game scores
-       const yesterdayGameScores = await getYesterdayGameScores(
-         tournamentId,
-         userIds
-       )
-
-       // Fetch current data
-       const currentGameScores = await getCurrentGameScores(
-         tournamentId,
-         userIds
-       )
-
-       const tournamentGuesses = await findTournamentGuessByUserIdsTournament(
-         userIds,
-         tournamentId
-       )
-
-       // Calculate ranks
-       const result = calculateRankChanges(
-         currentGameScores,
-         yesterdayGameScores,
-         tournamentGuesses
-       )
-
-       return {
-         users: result,
-         hasRankChanges: result.some(u => u.rankChange !== 0)
-       }
-     } catch (error) {
-       console.error('Failed to calculate ranks:', error)
-       // Return empty data on error (graceful degradation)
-       return {
-         users: [],
-         hasRankChanges: false,
-         error: true
-       }
-     }
+   export interface UserScore {
+     // ... existing fields ...
+     totalPoints: number
+     yesterdayTotalPoints?: number  // NEW
    }
    ```
-4. Export the function and types
 
-#### Step 7: Integrate Animations into Leaderboard
+#### Step 7: Extend Rank Calculation in Table Component
 1. Open `app/components/friend-groups/friends-group-table.tsx`
-2. Import animation components only (data comes from props)
-3. Update component props to accept rank data:
+2. Import rank calculation utility and animation components
+3. Extend existing sorting logic (line 186-190) to calculate ranks:
    ```typescript
-   import type { RankCalculationResult } from '@/app/actions/rank-calculation-actions'
+   // Existing sort
+   const sortedUsers = userScoresByTournament[tournament.id]
+     .sort((usa, usb) => usb.totalPoints - usa.totalPoints)
 
-   type Props = {
-     // ... existing props
-     rankData?: RankCalculationResult
-   }
+   // NEW: Calculate current ranks with tie handling
+   const usersWithCurrentRank = calculateRanks(sortedUsers, 'totalPoints')
+
+   // NEW: Calculate yesterday ranks if data exists
+   const usersWithRanks = sortedUsers[0]?.yesterdayTotalPoints !== undefined
+     ? calculateRanksWithChange(usersWithCurrentRank, 'yesterdayTotalPoints')
+     : usersWithCurrentRank.map(u => ({ ...u, rankChange: 0 }))
+
+   const hasHistory = usersWithRanks.some(u => u.yesterdayTotalPoints !== undefined)
    ```
-4. In parent component (page that renders ProdeGroupTable):
-   - Call server action to get rank data
-   - Pass rank data as prop
-5. Use rank data in table rendering (no async in render)
-4. Handle "no previous data" scenario and find rank data:
+4. Use `usersWithRanks` instead of sorted array in `.map()`
+5. Handle "no previous data" scenario:
    ```typescript
-   // Check if we have any rank history
-   const hasHistory = rankData && !rankData.error && rankData.hasRankChanges
-
-   // Find rank data for current user
-   const userRankData = rankData?.users.find(r => r.userId === userScore.userId)
-
    // Display message on first viewing (no history yet)
    {!hasHistory && (
      <Typography variant="caption" color="text.secondary">
@@ -395,28 +367,28 @@ Components to create:
      </Typography>
    )}
    ```
-5. Replace static rank cell (line 191):
+6. Replace static rank cell (line 191):
    ```typescript
    <TableCell>
      <AnimatedRankCell
-       rank={userRankData?.currentRank || index + 1}
-       previousRank={userRankData?.previousRank}
+       rank={userScore.currentRank || index + 1}
+       previousRank={userScore.previousRank}
      />
-     {userRankData && (
-       <RankChangeIndicator rankChange={userRankData.rankChange} />
+     {userScore.rankChange !== 0 && (
+       <RankChangeIndicator rankChange={userScore.rankChange} />
      )}
    </TableCell>
    ```
-6. Replace static points cell (line 223):
+7. Replace static points cell (line 223):
    ```typescript
    <TableCell>
      <AnimatedPointsCounter
        value={userScore.totalPoints}
-       previousValue={userRankData?.previousPoints}
+       previousValue={userScore.yesterdayTotalPoints}
      />
    </TableCell>
    ```
-7. Replace `<TableRow>` (line 190) with `<StaggeredLeaderboardRow>`:
+8. Replace `<TableRow>` (line 190) with `<StaggeredLeaderboardRow>`:
    ```typescript
    <StaggeredLeaderboardRow
      key={userScore.userId}
@@ -424,10 +396,10 @@ Components to create:
      selected={userScore.userId === loggedInUser}
    >
      {/* existing cells */}
-     {userRankData && userRankData.rankChange > 0 && (
+     {userScore.rankChange > 0 && (
        <RankUpCelebration
          show={true}
-         rank={userRankData.currentRank}
+         rank={userScore.currentRank}
        />
      )}
    </StaggeredLeaderboardRow>
@@ -678,11 +650,11 @@ Enter animation:
 
 #### Integration Tests
 
-**4. Server Action Tests** (`__tests__/actions/rank-calculation-actions.test.ts`)
-- Test rank calculation server action with valid data
-- Test graceful degradation on database errors
-- Test return format matches expected structure
-- Mock database queries for isolated testing
+**4. Prode Group Actions Tests** (`__tests__/actions/prode-group-actions.test.ts`)
+- Test extended `getUserScoresForTournament` returns yesterday fields
+- Test yesterday scores calculation matches expected values
+- Test graceful handling when no yesterday data exists
+- Mock `getGameGuessStatisticsForUsers` for both current and yesterday
 
 **5. Backoffice Actions Tests** (`__tests__/actions/backoffice-actions.test.ts`)
 - Test honor roll score update triggers snapshot on new day
