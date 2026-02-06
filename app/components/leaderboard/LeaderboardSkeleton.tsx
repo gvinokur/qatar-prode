@@ -3,10 +3,13 @@
 import { Box, Card, CardContent, Skeleton } from '@mui/material'
 
 interface LeaderboardSkeletonProps {
-  count?: number
+  readonly count?: number
 }
 
 export default function LeaderboardSkeleton({ count = 5 }: LeaderboardSkeletonProps) {
+  // Generate stable keys based on the count to avoid using array indices
+  const skeletonKeys = Array.from({ length: count }, (_, i) => `skeleton-card-${count}-${i}`)
+
   return (
     <Box
       sx={{
@@ -15,9 +18,9 @@ export default function LeaderboardSkeleton({ count = 5 }: LeaderboardSkeletonPr
         px: { xs: 2, sm: 3 }
       }}
     >
-      {Array.from({ length: count }).map((_, index) => (
+      {skeletonKeys.map((key) => (
         <Card
-          key={index}
+          key={key}
           sx={{
             py: 1.5,
             px: 2,

@@ -12,8 +12,8 @@ import {
 import type { LeaderboardUser } from './types'
 
 interface LeaderboardTableProps {
-  scores: LeaderboardUser[]
-  currentUserId: string
+  readonly scores: LeaderboardUser[]
+  readonly currentUserId: string
 }
 
 export default function LeaderboardTable({

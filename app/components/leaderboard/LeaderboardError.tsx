@@ -4,7 +4,7 @@ import { Box, Button, Typography } from '@mui/material'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 
 interface LeaderboardErrorProps {
-  onRetry?: () => void
+  readonly onRetry?: () => void
 }
 
 export default function LeaderboardError({ onRetry }: LeaderboardErrorProps) {

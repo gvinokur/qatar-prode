@@ -23,26 +23,26 @@ export interface LeaderboardUser {
 }
 
 export interface LeaderboardViewProps {
-  scores: unknown[] // Will be typed as UserScore from DB when integrated
-  currentUserId: string
-  tournament: unknown // Will be typed as Tournament when integrated
+  readonly scores: unknown[] // Will be typed as UserScore from DB when integrated
+  readonly currentUserId: string
+  readonly tournament: unknown // Will be typed as Tournament when integrated
 }
 
 export interface LeaderboardCardsProps {
-  scores: unknown[]
-  currentUserId: string
-  previousScores?: unknown[]
+  readonly scores: unknown[]
+  readonly currentUserId: string
+  readonly previousScores?: unknown[]
 }
 
 export interface LeaderboardCardProps {
-  user: LeaderboardUser
-  rank: number
-  isCurrentUser: boolean
-  isExpanded: boolean
-  onToggle: () => void
+  readonly user: LeaderboardUser
+  readonly rank: number
+  readonly isCurrentUser: boolean
+  readonly isExpanded: boolean
+  readonly onToggle: () => void
 }
 
 export interface RankChangeIndicatorProps {
-  change: number
-  size?: 'small' | 'medium'
+  readonly change: number
+  readonly size?: 'small' | 'medium'
 }
