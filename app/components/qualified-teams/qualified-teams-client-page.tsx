@@ -3,7 +3,8 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { DndContext, DragEndEvent, MouseSensor, TouchSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { Container, Typography, Alert, Snackbar } from '@mui/material';
+import { Container, Typography, Alert, Snackbar, Box, IconButton, Popover } from '@mui/material';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import {
   QualifiedTeamsContextProvider,
   useQualifiedTeamsContext,
@@ -218,27 +219,62 @@ function QualifiedTeamsUI({
     [groups, predictions, updateGroupPositions]
   );
 
+  const [infoAnchorEl, setInfoAnchorEl] = useState<HTMLElement | null>(null);
+
+  const handleInfoClick = (event: React.MouseEvent<HTMLElement>) => {
+    setInfoAnchorEl(event.currentTarget);
+  };
+
+  const handleInfoClose = () => {
+    setInfoAnchorEl(null);
+  };
+
+  const infoOpen = Boolean(infoAnchorEl);
+
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        {tournament.short_name} - Predicciones de Equipos Clasificados
-      </Typography>
-
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        Predice qué equipos clasificarán de cada grupo arrastrándolos en tu orden preferido.
-      </Typography>
-
-      <Alert severity="info" sx={{ mb: 3 }}>
-        <Typography variant="body2">
-          <strong>Posiciones 1-2:</strong> Clasifican automáticamente a la siguiente ronda
-          {allowsThirdPlace && (
-            <>
-              <br />
-              <strong>Posición 3:</strong> Selecciona los equipos que predices que clasificarán
-            </>
-          )}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+        <Typography variant="h4" component="h1">
+          Prediccion de Clasificados
         </Typography>
-      </Alert>
+        <IconButton onClick={handleInfoClick} size="small" sx={{ color: 'text.secondary' }}>
+          <InfoOutlinedIcon />
+        </IconButton>
+      </Box>
+
+      <Popover
+        open={infoOpen}
+        anchorEl={infoAnchorEl}
+        onClose={handleInfoClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}
+      >
+        <Box sx={{ p: 2, maxWidth: 400 }}>
+          <Typography variant="body2" sx={{ mb: 1.5 }}>
+            <strong>Cómo hacer predicciones:</strong>
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 1 }}>
+            • Arrastra los equipos para cambiar su posición en el grupo
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 1.5 }}>
+            • Los equipos en posiciones 1-2 clasifican automáticamente
+          </Typography>
+          {allowsThirdPlace && (
+            <Typography variant="body2" sx={{ mb: 1.5 }}>
+              • Para el 3er puesto: usa el checkbox &ldquo;Clasifica&rdquo; para seleccionar qué equipos predices que clasificarán
+            </Typography>
+          )}
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
+            Tus cambios se guardan automáticamente.
+          </Typography>
+        </Box>
+      </Popover>
 
       {isLocked && (
         <Alert severity="warning" sx={{ mb: 3 }}>
