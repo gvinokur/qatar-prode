@@ -14,6 +14,10 @@ export const deleteTournamentGuess = baseFunctions.delete
  * Update tournament guess with automatic daily snapshot for rank tracking
  * On first update each day, snapshots current tournament score to yesterday_tournament_score
  *
+ * Note: Uses Argentina timezone for determining "today" (via getTodayYYYYMMDD).
+ * This provides daily granularity for tournament score snapshots, while game scores
+ * use a rolling 24-hour window for more dynamic rank changes.
+ *
  * @param guessId - ID of the tournament guess to update
  * @param updates - Fields to update
  * @returns Updated tournament guess or undefined if not found
