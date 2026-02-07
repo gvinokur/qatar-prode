@@ -36,7 +36,7 @@ export default function LeaderboardCards({
   const [sortBy, setSortBy] = useState<'yesterday' | 'today'>('yesterday')
 
   // Check if we have yesterday data to enable animation
-  const hasYesterdayData = scores.some(s => s.yesterdayTotalPoints !== undefined && s.yesterdayTotalPoints !== null)
+  const hasYesterdayData = scores.some((s: any) => s.yesterdayTotalPoints !== undefined && s.yesterdayTotalPoints !== null)
 
   // After initial render, animate to today's scores
   useEffect(() => {
