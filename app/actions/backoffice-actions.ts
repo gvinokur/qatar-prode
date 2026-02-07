@@ -481,13 +481,12 @@ export async function calculateGameScores(forceDrafts: boolean, forceAllGuesses:
   }))
 
   const cleanedGameGuesses = await Promise.all(gameGuessesToClean.map(async (gameGuess) => {
+    // Clear score, final_score, and boost_multiplier to avoid orphaned boost points
     return updateGameGuess(gameGuess.id, {
-      // @ts-ignore - setting to null to remove value
       score: null,
-      // @ts-ignore - also clear final_score and boost_multiplier to avoid orphaned boost points
       final_score: null,
       boost_multiplier: null
-    })
+    } as any)
   }))
 
   return {updatedGameGuesses, cleanedGameGuesses}
