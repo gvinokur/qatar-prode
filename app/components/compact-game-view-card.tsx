@@ -105,8 +105,11 @@ export default function CompactGameViewCard({
   const handleDraftChange = async () => {
     if (!specificProps.isGameGuess && !specificProps.isGameFixture && specificProps.onPublishClick) {
       setPublishing(true)
-      await specificProps.onPublishClick(gameNumber);
-      setPublishing(false)
+      try {
+        await specificProps.onPublishClick(gameNumber);
+      } finally {
+        setPublishing(false)
+      }
     }
   };
 

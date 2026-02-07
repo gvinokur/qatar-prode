@@ -1,6 +1,6 @@
 import { vi, describe, it, expect } from 'vitest';
 import React from 'react';
-import { screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import CompactGameViewCard from '../../app/components/compact-game-view-card';
 import { TimezoneProvider } from '../../app/components/context-providers/timezone-context-provider';
 import { CountdownProvider } from '../../app/components/context-providers/countdown-context-provider';
@@ -201,6 +201,79 @@ describe('CompactGameViewCard', () => {
       );
 
       expect(screen.getByText('3x')).toBeInTheDocument();
+    });
+  });
+
+  describe('Draft/Publish toggle error handling', () => {
+    it('should recover publishing state when onPublishClick succeeds', async () => {
+      const onPublishClick = vi.fn().mockResolvedValue(undefined);
+      const propsWithPublish = {
+        ...resultProps,
+        isDraft: true,
+        onPublishClick,
+      };
+
+      const { container } = renderWithTheme(
+        <TestWrapper>
+          <CompactGameViewCard {...propsWithPublish} />
+        </TestWrapper>
+      );
+
+      // Find the checkbox (draft/publish toggle)
+      const checkbox = container.querySelector('input[type="checkbox"]') as HTMLInputElement;
+      expect(checkbox).toBeInTheDocument();
+
+      // Click the checkbox to toggle
+      fireEvent.click(checkbox);
+
+      // Wait for async operation to complete
+      await waitFor(() => {
+        expect(onPublishClick).toHaveBeenCalledWith(1); // gameNumber is 1
+      });
+
+      // Wait for state to update (publishing = false)
+      await waitFor(() => {
+        expect(checkbox).not.toBeDisabled();
+      });
+    });
+
+    it('should recover publishing state when onPublishClick fails', async () => {
+      // Mock console.error to suppress error output
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      const onPublishClick = vi.fn().mockRejectedValue(new Error('Test error'));
+      const propsWithPublish = {
+        ...resultProps,
+        isDraft: true,
+        onPublishClick,
+      };
+
+      const { container } = renderWithTheme(
+        <TestWrapper>
+          <CompactGameViewCard {...propsWithPublish} />
+        </TestWrapper>
+      );
+
+      // Find the checkbox
+      const checkbox = container.querySelector('input[type="checkbox"]') as HTMLInputElement;
+      expect(checkbox).toBeInTheDocument();
+
+      // Click the checkbox (will trigger async error, but component handles it)
+      fireEvent.click(checkbox);
+
+      // Verify the async function was called
+      await waitFor(() => {
+        expect(onPublishClick).toHaveBeenCalledWith(1);
+      });
+
+      // Give enough time for the finally block to execute
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // The key assertion: checkbox should be enabled (not stuck)
+      // The finally block in handleDraftChange ensures this
+      expect(checkbox).not.toBeDisabled();
+
+      consoleSpy.mockRestore();
     });
   });
 }); // test comment
