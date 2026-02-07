@@ -91,9 +91,9 @@ export function calculateRanksWithChange<T extends RankableUser>(
     const yesterdayRank = yesterdayRankMap.get(userId);
 
     // If no yesterday rank, treat as no change (user is new or no history)
-    const rankChange = yesterdayRank !== undefined
-      ? yesterdayRank - user.currentRank  // Positive means moved up (lower rank number)
-      : 0;
+    const rankChange = yesterdayRank === undefined
+      ? 0
+      : yesterdayRank - user.currentRank;  // Positive means moved up (lower rank number)
 
     return {
       ...user,

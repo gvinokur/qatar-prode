@@ -9,12 +9,16 @@
  * Only works on mobile devices with vibration support
  */
 export function triggerRankUpHaptic(): void {
-  if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+  if (typeof globalThis.window !== 'undefined' && 'vibrate' in navigator) {
     try {
       // Pattern: vibrate for 50ms, pause 100ms, vibrate for 50ms
       navigator.vibrate([50, 100, 50]);
-    } catch (_error) {
-      // Silently fail - vibration is a progressive enhancement
+    } catch (error) {
+      // Intentionally ignoring errors - vibration is a progressive enhancement
+      // that should fail gracefully without disrupting user experience
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Vibration API failed:', error);
+      }
     }
   }
 }
@@ -24,11 +28,15 @@ export function triggerRankUpHaptic(): void {
  * Pattern: single short vibration (30ms)
  */
 export function triggerRankChangeHaptic(): void {
-  if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+  if (typeof globalThis.window !== 'undefined' && 'vibrate' in navigator) {
     try {
       navigator.vibrate(30);
-    } catch (_error) {
-      // Silently fail - vibration is a progressive enhancement
+    } catch (error) {
+      // Intentionally ignoring errors - vibration is a progressive enhancement
+      // that should fail gracefully without disrupting user experience
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Vibration API failed:', error);
+      }
     }
   }
 }
@@ -38,5 +46,5 @@ export function triggerRankChangeHaptic(): void {
  * @returns true if the Vibration API is available
  */
 export function isHapticSupported(): boolean {
-  return typeof window !== 'undefined' && 'vibrate' in navigator;
+  return typeof globalThis.window !== 'undefined' && 'vibrate' in navigator;
 }

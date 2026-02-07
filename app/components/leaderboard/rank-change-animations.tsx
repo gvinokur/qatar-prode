@@ -20,12 +20,23 @@ export function RankChangeIndicator({ rankChange, size = 'medium' }: Readonly<Ra
   const theme = useTheme();
 
   // Determine icon and color based on rank change
-  const Icon = rankChange === 0 ? Remove : rankChange > 0 ? ArrowUpward : ArrowDownward;
-  const color = rankChange === 0
-    ? theme.palette.text.disabled
-    : rankChange > 0
-      ? theme.palette.success.main
-      : theme.palette.error.main;
+  let Icon;
+  if (rankChange === 0) {
+    Icon = Remove;
+  } else if (rankChange > 0) {
+    Icon = ArrowUpward;
+  } else {
+    Icon = ArrowDownward;
+  }
+
+  let color;
+  if (rankChange === 0) {
+    color = theme.palette.text.disabled;
+  } else if (rankChange > 0) {
+    color = theme.palette.success.main;
+  } else {
+    color = theme.palette.error.main;
+  }
 
   return (
     <AnimatePresence mode="wait">
@@ -72,15 +83,34 @@ interface AnimatedRankCellProps {
  * Animates rank cell with slide effect when rank changes
  */
 export function AnimatedRankCell({ rank, rankChange = 0, children }: Readonly<AnimatedRankCellProps>) {
+  // Determine initial and exit positions based on rank change
+  let initialY;
+  if (rankChange > 0) {
+    initialY = 10;
+  } else if (rankChange < 0) {
+    initialY = -10;
+  } else {
+    initialY = 0;
+  }
+
+  let exitY;
+  if (rankChange > 0) {
+    exitY = -10;
+  } else if (rankChange < 0) {
+    exitY = 10;
+  } else {
+    exitY = 0;
+  }
+
   return (
     <TableCell>
       <Box display="flex" alignItems="center" gap={1}>
         <AnimatePresence mode="wait">
           <motion.div
             key={`rank-${rank}`}
-            initial={{ y: rankChange > 0 ? 10 : rankChange < 0 ? -10 : 0, opacity: 0 }}
+            initial={{ y: initialY, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: rankChange > 0 ? -10 : rankChange < 0 ? 10 : 0, opacity: 0 }}
+            exit={{ y: exitY, opacity: 0 }}
             transition={{ duration: 0.4, ease: 'easeOut' }}
           >
             {rank}
@@ -139,7 +169,7 @@ export function AnimatedPointsCounter({
     requestAnimationFrame(animate);
   }, [value, previousValue, duration]);
 
-  const difference = previousValue !== undefined ? value - previousValue : 0;
+  const difference = previousValue === undefined ? 0 : value - previousValue;
   const hasIncrease = difference > 0;
 
   return (

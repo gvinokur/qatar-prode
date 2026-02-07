@@ -55,7 +55,7 @@ export default function LeaderboardCards({
 
     // Sort based on current sortBy state
     const scoreField = sortBy === 'yesterday' ? 'yesterdayTotalPoints' : 'totalPoints'
-    const sorted = transformed.sort((a, b) => {
+    const sorted = transformed.toSorted((a, b) => {
       const scoreA = a[scoreField] ?? 0
       const scoreB = b[scoreField] ?? 0
 
