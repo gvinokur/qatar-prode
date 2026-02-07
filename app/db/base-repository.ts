@@ -15,6 +15,7 @@ type IdentifiableTables =
   'game_guesses' |
   'game_results' |
   'tournament_guesses' |
+  'tournament_qualified_teams_predictions' |
   'players' |
   'tournament_venues' |
   'tournament_third_place_rules'
