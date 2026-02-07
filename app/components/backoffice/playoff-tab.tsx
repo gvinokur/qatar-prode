@@ -108,7 +108,10 @@ export default function PlayoffTab({ tournamentId } :Props) {
       const thirdPlaceGame = newGamesMap[thirdPlaceStage.games[0].game_id];
       third_place_team_id = getGameWinner(thirdPlaceGame)
     }
-    await updateTournamentHonorRoll(tournamentId, { champion_team_id, runner_up_team_id, third_place_team_id })
+    // Only update honor roll if at least one value is a non-empty team ID
+    if (champion_team_id || runner_up_team_id || third_place_team_id) {
+      await updateTournamentHonorRoll(tournamentId, { champion_team_id, runner_up_team_id, third_place_team_id })
+    }
     setGamesMap(newGamesMap)
     setSaved(true)
   }
