@@ -12,6 +12,7 @@ import {
   alpha,
   useTheme
 } from '@mui/material'
+import { motion } from 'framer-motion'
 import type { LeaderboardCardProps } from './types'
 import { RankChangeIndicator } from './rank-change-animations'
 
@@ -50,8 +51,17 @@ export default function LeaderboardCard({
     : user.name
 
   return (
-    <Card
-      onClick={onToggle}
+    <motion.div
+      layout
+      transition={{
+        layout: {
+          duration: 0.6,
+          ease: 'easeInOut'
+        }
+      }}
+    >
+      <Card
+        onClick={onToggle}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
@@ -294,5 +304,6 @@ export default function LeaderboardCard({
         </Collapse>
       </CardContent>
     </Card>
+    </motion.div>
   )
 }

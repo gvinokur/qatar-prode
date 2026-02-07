@@ -1,7 +1,8 @@
 'use client'
 
 import { Box, Typography } from '@mui/material'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { LayoutGroup } from 'framer-motion'
 import type { LeaderboardCardsProps, LeaderboardUser } from './types'
 import LeaderboardCard from './LeaderboardCard'
 import { calculateRanks, calculateRanksWithChange } from '../../utils/rank-calculator'
@@ -32,37 +33,55 @@ export default function LeaderboardCards({
   previousScores
 }: LeaderboardCardsProps) {
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null)
+  const [sortBy, setSortBy] = useState<'yesterday' | 'today'>('yesterday')
+
+  // Check if we have yesterday data to enable animation
+  const hasYesterdayData = scores.some(s => s.yesterdayTotalPoints !== undefined && s.yesterdayTotalPoints !== null)
+
+  // After initial render, animate to today's scores
+  useEffect(() => {
+    if (hasYesterdayData) {
+      const timer = setTimeout(() => setSortBy('today'), 800)
+      return () => clearTimeout(timer)
+    } else {
+      // If no yesterday data, immediately show today's scores
+      setSortBy('today')
+    }
+  }, [hasYesterdayData])
 
   // Transform, sort, and calculate ranks with changes
   const leaderboardUsers = useMemo(() => {
     const transformed = scores.map(score => transformToLeaderboardUser(score))
-    console.warn('🔍 Transformed users:', transformed.map(u => ({ id: u.id, name: u.name, totalPoints: u.totalPoints, type: typeof u.totalPoints })))
+    console.warn('🔍 Transformed users:', transformed.map(u => ({ id: u.id, name: u.name, totalPoints: u.totalPoints, yesterdayTotalPoints: u.yesterdayTotalPoints, sortBy })))
 
-    // Sort by total points
+    // Sort based on current sortBy state
+    const scoreField = sortBy === 'yesterday' ? 'yesterdayTotalPoints' : 'totalPoints'
     const sorted = transformed.sort((a, b) => {
-      if (b.totalPoints !== a.totalPoints) {
-        return b.totalPoints - a.totalPoints
+      const scoreA = a[scoreField] ?? 0
+      const scoreB = b[scoreField] ?? 0
+
+      if (scoreB !== scoreA) {
+        return scoreB - scoreA
       }
       // Tie-breaking: sort by user ID alphabetically (deterministic)
       return a.id.localeCompare(b.id)
     })
-    console.warn('🔍 Sorted users:', sorted.map(u => ({ id: u.id, name: u.name, totalPoints: u.totalPoints })))
+    console.warn('🔍 Sorted users:', sorted.map(u => ({ id: u.id, name: u.name, score: u[scoreField], sortBy })))
 
-    // Calculate current ranks using competition ranking (1-2-2-4)
-    const usersWithCurrentRank = calculateRanks(sorted, 'totalPoints')
-    console.warn('🔍 Users with current rank:', usersWithCurrentRank.map(u => ({ id: u.id, name: u.name, totalPoints: u.totalPoints, currentRank: (u as any).currentRank })))
+    // Calculate ranks based on current sort field
+    const usersWithCurrentRank = calculateRanks(sorted, scoreField)
+    console.warn('🔍 Users with current rank:', usersWithCurrentRank.map(u => ({ id: u.id, name: u.name, currentRank: (u as any).currentRank, sortBy })))
 
-    // Calculate rank changes if yesterday data is available
-    const hasYesterdayData = sorted.some(u => u.yesterdayTotalPoints !== undefined)
-    if (hasYesterdayData) {
+    // Calculate rank changes only when showing today's scores
+    if (sortBy === 'today' && hasYesterdayData) {
       const withChanges = calculateRanksWithChange(usersWithCurrentRank, 'yesterdayTotalPoints')
       console.warn('🔍 Users with rank changes:', withChanges.map(u => ({ id: u.id, name: u.name, totalPoints: u.totalPoints, yesterdayTotalPoints: u.yesterdayTotalPoints, currentRank: (u as any).currentRank, rankChange: (u as any).rankChange })))
       return withChanges
     }
 
-    // No yesterday data, return with rankChange: 0
+    // When showing yesterday's scores or no yesterday data, no rank change indicators
     return usersWithCurrentRank.map(u => ({ ...u, rankChange: 0 }))
-  }, [scores])
+  }, [scores, sortBy, hasYesterdayData])
 
   // Handle card toggle (mutual exclusion - only one card expanded at a time)
   const handleCardToggle = (userId: string) => {
@@ -90,31 +109,33 @@ export default function LeaderboardCards({
   }
 
   return (
-    <Box
-      role="list"
-      aria-label="Leaderboard"
-      sx={{
-        maxWidth: '1000px',
-        mx: { md: 'auto' },
-        px: { xs: 2, sm: 3, md: 4 }
-      }}
-    >
-      {leaderboardUsers.map((user) => {
-        const isCurrentUser = user.id === currentUserId
-        const isExpanded = expandedCardId === user.id
+    <LayoutGroup>
+      <Box
+        role="list"
+        aria-label="Leaderboard"
+        sx={{
+          maxWidth: '1000px',
+          mx: { md: 'auto' },
+          px: { xs: 2, sm: 3, md: 4 }
+        }}
+      >
+        {leaderboardUsers.map((user) => {
+          const isCurrentUser = user.id === currentUserId
+          const isExpanded = expandedCardId === user.id
 
-        return (
-          <LeaderboardCard
-            key={user.id}
-            user={user}
-            rank={(user as any).currentRank}
-            rankChange={(user as any).rankChange}
-            isCurrentUser={isCurrentUser}
-            isExpanded={isExpanded}
-            onToggle={() => handleCardToggle(user.id)}
-          />
-        )
-      })}
-    </Box>
+          return (
+            <LeaderboardCard
+              key={user.id}
+              user={user}
+              rank={(user as any).currentRank}
+              rankChange={(user as any).rankChange}
+              isCurrentUser={isCurrentUser}
+              isExpanded={isExpanded}
+              onToggle={() => handleCardToggle(user.id)}
+            />
+          )
+        })}
+      </Box>
+    </LayoutGroup>
   )
 }
