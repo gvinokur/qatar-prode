@@ -241,7 +241,21 @@ describe('CompactGameViewCard', () => {
       // Mock console.error to suppress error output
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      const onPublishClick = vi.fn().mockRejectedValue(new Error('Test error'));
+      // Create a promise that we can track
+      let rejectFn: ((reason?: any) => void) | null = null;
+      const errorPromise = new Promise((_, reject) => {
+        rejectFn = reject;
+      });
+
+      const onPublishClick = vi.fn().mockImplementation(() => {
+        // Return the promise and trigger rejection
+        const error = new Error('Test error');
+        if (rejectFn) rejectFn(error);
+        return errorPromise.catch(() => {
+          // Catch the error to prevent unhandled rejection
+        });
+      });
+
       const propsWithPublish = {
         ...resultProps,
         isDraft: true,
