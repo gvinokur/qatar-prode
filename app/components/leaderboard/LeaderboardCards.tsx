@@ -52,7 +52,6 @@ export default function LeaderboardCards({
   // Transform, sort, and calculate ranks with changes
   const leaderboardUsers = useMemo(() => {
     const transformed = scores.map(score => transformToLeaderboardUser(score))
-    console.warn('🔍 Transformed users:', transformed.map(u => ({ id: u.id, name: u.name, totalPoints: u.totalPoints, yesterdayTotalPoints: u.yesterdayTotalPoints, sortBy })))
 
     // Sort based on current sortBy state
     const scoreField = sortBy === 'yesterday' ? 'yesterdayTotalPoints' : 'totalPoints'
@@ -66,17 +65,13 @@ export default function LeaderboardCards({
       // Tie-breaking: sort by user ID alphabetically (deterministic)
       return a.id.localeCompare(b.id)
     })
-    console.warn('🔍 Sorted users:', sorted.map(u => ({ id: u.id, name: u.name, score: u[scoreField], sortBy })))
 
     // Calculate ranks based on current sort field
     const usersWithCurrentRank = calculateRanks(sorted, scoreField)
-    console.warn('🔍 Users with current rank:', usersWithCurrentRank.map(u => ({ id: u.id, name: u.name, currentRank: (u as any).currentRank, sortBy })))
 
     // Calculate rank changes only when showing today's scores
     if (sortBy === 'today' && hasYesterdayData) {
-      const withChanges = calculateRanksWithChange(usersWithCurrentRank, 'yesterdayTotalPoints')
-      console.warn('🔍 Users with rank changes:', withChanges.map(u => ({ id: u.id, name: u.name, totalPoints: u.totalPoints, yesterdayTotalPoints: u.yesterdayTotalPoints, currentRank: (u as any).currentRank, rankChange: (u as any).rankChange })))
-      return withChanges
+      return calculateRanksWithChange(usersWithCurrentRank, 'yesterdayTotalPoints')
     }
 
     // When showing yesterday's scores or no yesterday data, no rank change indicators
