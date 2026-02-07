@@ -19,47 +19,46 @@ interface RankChangeIndicatorProps {
 export function RankChangeIndicator({ rankChange, size = 'medium' }: Readonly<RankChangeIndicatorProps>) {
   const theme = useTheme();
 
-  if (rankChange === 0) {
-    return (
-      <Remove
-        sx={{
-          fontSize: size === 'small' ? 14 : 16,
-          color: theme.palette.text.disabled,
-          verticalAlign: 'middle',
-        }}
-      />
-    );
-  }
-
-  const Icon = rankChange > 0 ? ArrowUpward : ArrowDownward;
-  const color = rankChange > 0 ? theme.palette.success.main : theme.palette.error.main;
+  // Determine icon and color based on rank change
+  const Icon = rankChange === 0 ? Remove : rankChange > 0 ? ArrowUpward : ArrowDownward;
+  const color = rankChange === 0
+    ? theme.palette.text.disabled
+    : rankChange > 0
+      ? theme.palette.success.main
+      : theme.palette.error.main;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.3, ease: 'backOut' }}
-      style={{ display: 'inline-flex', alignItems: 'center' }}
-    >
-      <Icon
-        sx={{
-          fontSize: size === 'small' ? 14 : 16,
-          color,
-          verticalAlign: 'middle',
-        }}
-      />
-      <Box
-        component="span"
-        sx={{
-          fontSize: size === 'small' ? '0.75rem' : '0.875rem',
-          color,
-          fontWeight: 'bold',
-          ml: 0.25,
-        }}
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={`rank-change-${rankChange}`}
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0 }}
+        transition={{ duration: 0.3, ease: 'backOut' }}
+        style={{ display: 'inline-flex', alignItems: 'center' }}
       >
-        {Math.abs(rankChange)}
-      </Box>
-    </motion.div>
+        <Icon
+          sx={{
+            fontSize: size === 'small' ? 14 : 16,
+            color,
+            verticalAlign: 'middle',
+          }}
+        />
+        {rankChange !== 0 && (
+          <Box
+            component="span"
+            sx={{
+              fontSize: size === 'small' ? '0.75rem' : '0.875rem',
+              color,
+              fontWeight: 'bold',
+              ml: 0.25,
+            }}
+          >
+            {Math.abs(rankChange)}
+          </Box>
+        )}
+      </motion.div>
+    </AnimatePresence>
   );
 }
 
