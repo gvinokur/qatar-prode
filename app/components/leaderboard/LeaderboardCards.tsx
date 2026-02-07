@@ -36,6 +36,7 @@ export default function LeaderboardCards({
   // Transform, sort, and calculate ranks with changes
   const leaderboardUsers = useMemo(() => {
     const transformed = scores.map(score => transformToLeaderboardUser(score))
+    console.warn('🔍 Transformed users:', transformed.map(u => ({ id: u.id, name: u.name, totalPoints: u.totalPoints, type: typeof u.totalPoints })))
 
     // Sort by total points
     const sorted = transformed.sort((a, b) => {
@@ -45,14 +46,18 @@ export default function LeaderboardCards({
       // Tie-breaking: sort by user ID alphabetically (deterministic)
       return a.id.localeCompare(b.id)
     })
+    console.warn('🔍 Sorted users:', sorted.map(u => ({ id: u.id, name: u.name, totalPoints: u.totalPoints })))
 
     // Calculate current ranks using competition ranking (1-2-2-4)
     const usersWithCurrentRank = calculateRanks(sorted, 'totalPoints')
+    console.warn('🔍 Users with current rank:', usersWithCurrentRank.map(u => ({ id: u.id, name: u.name, totalPoints: u.totalPoints, currentRank: (u as any).currentRank })))
 
     // Calculate rank changes if yesterday data is available
     const hasYesterdayData = sorted.some(u => u.yesterdayTotalPoints !== undefined)
     if (hasYesterdayData) {
-      return calculateRanksWithChange(usersWithCurrentRank, 'yesterdayTotalPoints')
+      const withChanges = calculateRanksWithChange(usersWithCurrentRank, 'yesterdayTotalPoints')
+      console.warn('🔍 Users with rank changes:', withChanges.map(u => ({ id: u.id, name: u.name, totalPoints: u.totalPoints, yesterdayTotalPoints: u.yesterdayTotalPoints, currentRank: (u as any).currentRank, rankChange: (u as any).rankChange })))
+      return withChanges
     }
 
     // No yesterday data, return with rankChange: 0
