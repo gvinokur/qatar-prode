@@ -82,29 +82,15 @@
 ```
 ┌─────────────────────────────────────────────┐
 │                                             │
-│  Argentina                                  │
-│  ┌──────────────────────────────────────┐  │
-│  │              2                       │  │ ← Home score input (large)
-│  └──────────────────────────────────────┘  │
+│  Argentina               [    2    ]        │ ← Home: name + input (same row)
 │                                             │
-│  Brazil                                     │
-│  ┌──────────────────────────────────────┐  │
-│  │              1                       │  │ ← Away score input (large)
-│  └──────────────────────────────────────┘  │
+│  Brazil                  [    1    ]        │ ← Away: name + input (same row)
 │                                             │
 │  [IF playoff & tied scores:]                │
 │                                             │
 │  Penalty Shootout Scores                    │
-│                                             │
-│  Argentina (Penalty Score)                  │
-│  ┌──────────────────────────────────────┐  │
-│  │              4                       │  │ ← Home penalty score
-│  └──────────────────────────────────────┘  │
-│                                             │
-│  Brazil (Penalty Score)                     │
-│  ┌──────────────────────────────────────┐  │
-│  │              2                       │  │ ← Away penalty score
-│  └──────────────────────────────────────┘  │
+│  Argentina (Penalty)     [    4    ]        │ ← Home penalty score
+│  Brazil (Penalty)        [    2    ]        │ ← Away penalty score
 │                                             │
 │          [Cancelar]     [Guardar]           │ ← Action buttons (Spanish)
 │                                             │
@@ -113,10 +99,10 @@
 
 **Layout Details:**
 - Same card dimensions as front
-- Follows layout of existing `GamePredictionEditControls` component
-- Score inputs: Large number inputs (60px font size, centered)
-- Vertical layout with team name above each input
-- Penalty section: Number inputs for penalty scores (not winner selection)
+- Follows **horizontal layout** from `GamePredictionEditControls` component
+- Team name and score input **on same row** (Grid: 7 cols for name, 5 cols for input)
+- Score inputs: Small size, centered text alignment
+- Penalty section: Same horizontal layout (name + input on same row)
 - Buttons: "Cancelar" (text button) + "Guardar" (contained button) in Spanish
 
 **Animation:**
@@ -129,11 +115,24 @@
 
 ### Prototype 2: Auto-fill & Clear Buttons Layout
 
-#### Groups Tab Header (Example: Group A)
+#### Groups Tab - Above Standings Table (Example: Group A)
 ```
-┌───────────────────────────────────────────────────────────┐
-│  Group A                            [⚙️ Bulk Actions ▾]   │ ← Dropdown menu
-└───────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────┐
+│  Game Cards (left side)                              │
+│  ...                                                 │
+└──────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────┐ ← Right side: Standings
+│                                                      │
+│  [Edit Conduct Scores]  [⚙️ Bulk Actions ▾]         │ ← Buttons above table
+│                                                      │
+│  ┌─────────────────────────────────────────────┐   │
+│  │  Team         │  W │  L │  Pts │  ...       │   │ ← Group table
+│  ├─────────────────────────────────────────────┤   │
+│  │  Argentina    │  2 │  1 │  6   │  ...       │   │
+│  │  ...                                         │   │
+│  └─────────────────────────────────────────────┘   │
+└──────────────────────────────────────────────────────┘
 
 [Dropdown expanded:]
 ┌────────────────────────────┐
@@ -142,20 +141,24 @@
 └────────────────────────────┘
 ```
 
-#### Playoff Tab Header (Example: Quarterfinals)
+#### Playoff Tab - Per Round Section (Example: Quarterfinals)
 ```
 ┌───────────────────────────────────────────────────────────┐
-│  Quarterfinals                      [⚙️ Bulk Actions ▾]   │ ← Dropdown menu
+│  Quarterfinals        [Edit Dependent]  [⚙️ Bulk Actions ▾]│ ← Section header
+├───────────────────────────────────────────────────────────┤
+│                                                           │
+│  [Game Card 1]  [Game Card 2]  [Game Card 3]  [Game Card 4]
+│                                                           │
 └───────────────────────────────────────────────────────────┘
 
 [Same dropdown with Auto-fill + Clear options]
 ```
 
 **UI Placement:**
-- Dropdown button in section header (top-right corner)
+- **Groups tab**: Next to "Edit Conduct Scores" button, above standings table (right side)
+- **Playoff tab**: In section header, next to "Edit Dependent" button
 - Icon: Settings gear + down arrow
 - Menu items with icons for visual clarity
-- Separated by divider if needed
 
 **States:**
 - **Normal**: Outlined button, neutral color
