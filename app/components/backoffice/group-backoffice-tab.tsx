@@ -1,6 +1,6 @@
 'use client'
 
-import {Alert, Box, Button, Grid, Snackbar} from "@mui/material";
+import {Alert, Box, Button, Grid, Paper, Snackbar, Typography} from "@mui/material";
 import { useEffect, useState} from "react";
 import {ExtendedGameData, ExtendedGroupData} from "../../definitions";
 import {getCompleteGroupData} from "../../actions/tournament-actions";
@@ -20,7 +20,7 @@ import {
   saveGamesData,
   updateGroupTeamConductScores,
 } from "../../actions/backoffice-actions";
-import GroupTable from "../groups-page/group-table";
+import TeamStandingsCards from "../groups-page/team-standings-cards";
 import {calculateGroupPosition} from "../../utils/group-position-calculator";
 import TeamStatsEditDialog from "./internal/team-stats-edit-dialog";
 import EditIcon from "@mui/icons-material/Edit";
@@ -198,7 +198,16 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
                   onComplete={handleBulkActionsComplete}
                 />
               </Box>
-              <GroupTable teamStats={positions} teamsMap={teamsMap} />
+              <Paper elevation={2} sx={{ p: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  Tabla de Posiciones
+                </Typography>
+                <TeamStandingsCards
+                  teamStats={positions}
+                  teamsMap={teamsMap}
+                  qualifiedTeams={[]}
+                />
+              </Paper>
             </Grid>
           </Grid>
           <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center'}} open={saved} autoHideDuration={2000} onClose={() => setSaved(false)}>
