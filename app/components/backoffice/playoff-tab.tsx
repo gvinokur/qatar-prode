@@ -115,7 +115,7 @@ export default function PlayoffTab({ tournamentId } :Props) {
 
   const handlePublishToggle = async (gameId: string, isPublished: boolean) => {
     const game = gamesMap[gameId];
-    if (game && game.gameResult) {
+    if (game?.gameResult) {
       try {
         const newGame = {
           ...game,

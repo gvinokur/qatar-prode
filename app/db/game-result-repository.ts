@@ -14,7 +14,7 @@ export function updateGameResult(gameId: string, result: GameResultUpdate) {
   // Convert undefined values to SQL NULL (Kysely skips undefined by default)
   const processedResult: Record<string, any> = {};
   for (const [key, value] of Object.entries(result)) {
-    processedResult[key] = value === undefined ? sql`NULL` : value;
+    processedResult[key] = value ?? sql`NULL`;
   }
 
   return db.updateTable('game_results')

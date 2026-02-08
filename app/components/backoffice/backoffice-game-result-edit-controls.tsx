@@ -69,22 +69,22 @@ export default function BackofficeGameResultEditControls({
 
   const handleHomeScoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    onHomeScoreChange(value === '' ? undefined : parseInt(value, 10));
+    onHomeScoreChange(value === '' ? undefined : Number.parseInt(value, 10));
   };
 
   const handleAwayScoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    onAwayScoreChange(value === '' ? undefined : parseInt(value, 10));
+    onAwayScoreChange(value === '' ? undefined : Number.parseInt(value, 10));
   };
 
   const handleHomePenaltyScoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    onHomePenaltyScoreChange(value === '' ? undefined : parseInt(value, 10));
+    onHomePenaltyScoreChange(value === '' ? undefined : Number.parseInt(value, 10));
   };
 
   const handleAwayPenaltyScoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    onAwayPenaltyScoreChange(value === '' ? undefined : parseInt(value, 10));
+    onAwayPenaltyScoreChange(value === '' ? undefined : Number.parseInt(value, 10));
   };
 
   return (

@@ -36,9 +36,11 @@ export default function ConfirmDialog({
 }: ConfirmDialogProps) {
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape' && !loading) {
+    if (loading) return;
+
+    if (e.key === 'Escape') {
       onCancel();
-    } else if (e.key === 'Enter' && !loading) {
+    } else if (e.key === 'Enter') {
       onConfirm();
     }
   };

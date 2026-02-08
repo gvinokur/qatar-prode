@@ -78,7 +78,8 @@ export default function BulkActionsMenu({
         setSnackbarSeverity('error');
         setSnackbarOpen(true);
       }
-    } catch (_error) {
+    } catch (error) {
+      console.error('Error auto-filling scores:', error);
       setSnackbarMessage('An unexpected error occurred');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
@@ -114,7 +115,8 @@ export default function BulkActionsMenu({
         setSnackbarSeverity('error');
         setSnackbarOpen(true);
       }
-    } catch (_error) {
+    } catch (error) {
+      console.error('Error clearing scores:', error);
       setSnackbarMessage('An unexpected error occurred');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
