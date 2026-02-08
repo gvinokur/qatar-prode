@@ -1,7 +1,7 @@
 import { db } from '../db/database';
 import { getAllUserGroupPositionsPredictions } from '../db/qualified-teams-repository';
 import { findTournamentById } from '../db/tournament-repository';
-import { findQualifiedTeams, QualifiedTeamWithPosition } from '../db/team-repository';
+import { findQualifiedTeams } from '../db/team-repository';
 import { TeamPositionPrediction } from '../db/tables-definition';
 
 /**

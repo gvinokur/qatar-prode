@@ -7,7 +7,7 @@ import TeamStandingsCards from './team-standings-cards'
 type Props = {
   readonly teamStats: TeamStats[]
   readonly teamsMap: { [k: string]: Team }
-  readonly qualifiedTeams?: Team[]
+  readonly qualifiedTeams?: { id: string }[]
 }
 
 export default function GroupTable({
