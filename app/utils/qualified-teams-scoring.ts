@@ -50,24 +50,33 @@ function calculateTeamPoints(
   actualPosition: number | null,
   scoringConfig: ScoringConfig
 ): { points: number; reason: string } {
-  if (!actuallyQualified) {
+  // If user didn't predict this team to qualify (predictedToQualify = false),
+  // they get 0 points regardless of actual outcome
+  // This handles initialization state where all teams have qualify=false by default
+  if (!predictedToQualify) {
     return {
       points: 0,
-      reason: actualPosition === null ? 'group not complete' : 'not qualified'
+      reason: actuallyQualified
+        ? 'qualified, but user did not predict qualification'
+        : 'user did not predict qualification'
     };
   }
 
-  // Team qualified
+  // User predicted this team to qualify (predictedToQualify = true)
+  // Now check if the team actually qualified
+  if (!actuallyQualified) {
+    return {
+      points: 0,
+      reason: actualPosition === null ? 'group not complete' : 'predicted qualification, but did not qualify'
+    };
+  }
+
+  // Team qualified AND user predicted it
   if (actualPosition === null) {
     return { points: 0, reason: 'qualified, but no position data' };
   }
 
-  // Special case: Position 3 with qualify=false → 0 points
-  // Check this BEFORE exact position match to ensure correct behavior
-  if (predictedPosition === 3 && !predictedToQualify) {
-    return { points: 0, reason: 'qualified, but user did not predict qualification' };
-  }
-
+  // Check for exact position match
   if (predictedPosition === actualPosition) {
     return {
       points: scoringConfig.qualified_team_points + scoringConfig.exact_position_qualified_points,
@@ -86,13 +95,15 @@ function calculateTeamPoints(
  * Calculate qualified teams score for a user in a tournament
  *
  * Scoring Rules:
- * 1. Direct Qualifier (pos 1-2) qualifies → 1 point (qualified_team_points)
- * 2. Exact Position Match + qualifies → +1 bonus point (exact_position_qualified_points)
- * 3. Third Place with qualify=true + actually qualifies → 1 point (qualified_team_points)
- * 4. Team doesn't qualify → 0 points (regardless of position accuracy)
+ * 0. **User must explicitly set predicted_to_qualify = true** to earn points (default is false)
+ * 1. predicted_to_qualify = false → 0 points (initialization state, no prediction made)
+ * 2. predicted_to_qualify = true + team qualifies → 1 point (qualified_team_points)
+ * 3. predicted_to_qualify = true + team qualifies + exact position → +1 bonus (exact_position_qualified_points)
+ * 4. predicted_to_qualify = true + team doesn't qualify → 0 points
  * 5. Wrong position but qualified → 1 point only (qualified_team_points, no bonus)
  *
  * Maximum: 2 points per team (1 for qualification + 1 for exact position)
+ * Minimum: 0 points (either no prediction made or prediction was wrong)
  *
  * @param userId - User ID to calculate score for
  * @param tournamentId - Tournament ID

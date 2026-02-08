@@ -307,7 +307,7 @@ describe('calculateQualifiedTeamsScore', () => {
         predictedToQualify: false,
         actuallyQualified: false,
         pointsAwarded: 0,
-        reason: 'group not complete',
+        reason: 'user did not predict qualification', // predictedToQualify=false → no prediction made
       });
     });
 
