@@ -9,7 +9,7 @@
  * Only works on mobile devices with vibration support
  */
 export function triggerRankUpHaptic(): void {
-  if (typeof globalThis.window !== 'undefined' && 'vibrate' in navigator) {
+  if (globalThis.window !== undefined && 'vibrate' in navigator) {
     try {
       // Pattern: vibrate for 50ms, pause 100ms, vibrate for 50ms
       navigator.vibrate([50, 100, 50]);
@@ -28,7 +28,7 @@ export function triggerRankUpHaptic(): void {
  * Pattern: single short vibration (30ms)
  */
 export function triggerRankChangeHaptic(): void {
-  if (typeof globalThis.window !== 'undefined' && 'vibrate' in navigator) {
+  if (globalThis.window !== undefined && 'vibrate' in navigator) {
     try {
       navigator.vibrate(30);
     } catch (error) {
@@ -46,5 +46,5 @@ export function triggerRankChangeHaptic(): void {
  * @returns true if the Vibration API is available
  */
 export function isHapticSupported(): boolean {
-  return typeof globalThis.window !== 'undefined' && 'vibrate' in navigator;
+  return globalThis.window !== undefined && 'vibrate' in navigator;
 }
