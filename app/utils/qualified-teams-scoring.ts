@@ -1,7 +1,7 @@
 import { db } from '../db/database';
 import { getAllUserGroupPositionsPredictions } from '../db/qualified-teams-repository';
 import { findTournamentById } from '../db/tournament-repository';
-import { findQualifiedTeams } from '../db/team-repository';
+import { findQualifiedTeams, QualifiedTeamWithPosition } from '../db/team-repository';
 import { TeamPositionPrediction } from '../db/tables-definition';
 
 /**
@@ -75,52 +75,34 @@ export async function calculateQualifiedTeamsScore(
   // 2. Fetch user's JSONB predictions
   const userPredictions = await getAllUserGroupPositionsPredictions(userId, tournamentId);
 
-  // 3. Fetch actual group standings with team names
-  const groupStandings = await db
-    .selectFrom('tournament_group_teams')
-    .innerJoin('teams', 'teams.id', 'tournament_group_teams.team_id')
-    .innerJoin('tournament_groups', 'tournament_groups.id', 'tournament_group_teams.tournament_group_id')
-    .where('tournament_groups.tournament_id', '=', tournamentId)
-    .select([
-      'tournament_group_teams.team_id',
-      'tournament_group_teams.tournament_group_id as group_id',
-      'tournament_group_teams.position',
-      'tournament_group_teams.is_complete',
-      'teams.name as team_name',
-      'tournament_groups.group_letter as group_name',
-    ])
-    .execute();
-
-  // 4. Validate ALL groups are complete (fail fast)
-  const incompleteGroups = groupStandings.filter((s) => !s.is_complete);
-  if (incompleteGroups.length > 0) {
-    const uniqueIncompleteGroups = [...new Set(incompleteGroups.map((s) => s.group_name))];
-    throw new Error(
-      `Cannot calculate scores: Groups ${uniqueIncompleteGroups.join(', ')} are not complete. ` +
-        `All groups must be finalized before scoring.`
-    );
-  }
-
-  // 5. Fetch teams that actually qualified (in playoff bracket)
+  // 3. Fetch qualified teams with their positions
+  // This returns progressive results: 1st/2nd from complete groups + 3rd place when playoff bracket exists
   const qualifiedTeams = await findQualifiedTeams(tournamentId);
-  const qualifiedTeamIds = new Set(qualifiedTeams.map((t) => t.id));
 
   // Build lookup maps for efficient querying
-  const standingsMap = new Map(
-    groupStandings.map((s) => [
-      s.team_id,
+  const qualifiedTeamsMap = new Map(
+    qualifiedTeams.map((t) => [
+      t.id,
       {
-        position: s.position,
-        groupId: s.group_id,
-        teamName: s.team_name,
-        groupName: s.group_name,
+        position: t.final_position,
+        groupId: t.group_id,
+        teamName: t.name,
       },
     ])
   );
 
-  const groupNamesMap = new Map(groupStandings.map((s) => [s.group_id, s.group_name]));
+  const qualifiedTeamIds = new Set(qualifiedTeams.map((t) => t.id));
 
-  // 6. Calculate scores for each group
+  // Get group names for display
+  const groupNames = await db
+    .selectFrom('tournament_groups')
+    .where('tournament_id', '=', tournamentId)
+    .select(['id', 'group_letter'])
+    .execute();
+
+  const groupNamesMap = new Map(groupNames.map((g) => [g.id, g.group_letter]));
+
+  // 4. Calculate scores for each group (progressive scoring)
   const breakdown: QualifiedTeamsScoringResult['breakdown'] = [];
   let totalScore = 0;
 
@@ -137,26 +119,24 @@ export async function calculateQualifiedTeamsScore(
       const predictedPosition = prediction.predicted_position;
       const predictedToQualify = prediction.predicted_to_qualify;
 
-      // Get actual standings for this team
-      const actualStanding = standingsMap.get(teamId);
-      const actualPosition = actualStanding?.position ?? null;
-      const teamName = actualStanding?.teamName ?? 'Unknown Team';
-
-      // Check if team actually qualified
+      // Check if team qualified and get their actual position
+      const qualifiedTeamData = qualifiedTeamsMap.get(teamId);
       const actuallyQualified = qualifiedTeamIds.has(teamId);
+      const actualPosition = qualifiedTeamData?.position ?? null;
+      const teamName = qualifiedTeamData?.teamName ?? 'Unknown Team';
 
       // Calculate points based on rules
       let pointsAwarded = 0;
       let reason = '';
 
       if (!actuallyQualified) {
-        // Rule 4: Team didn't qualify → 0 points
+        // Rule 4: Team didn't qualify (or group not complete yet) → 0 points
         pointsAwarded = 0;
-        reason = 'not qualified';
+        reason = actualPosition === null ? 'group not complete' : 'not qualified';
       } else {
         // Team qualified
         if (actualPosition === null) {
-          // Edge case: qualified but no position data
+          // Edge case: qualified but no position data (shouldn't happen with new logic)
           pointsAwarded = 0;
           reason = 'qualified, but no position data';
         } else if (predictedPosition === actualPosition) {
