@@ -114,7 +114,8 @@ export async function autoFillGameScores(
 
     // Generate scores and save (non-transactional, partial success is acceptable)
     for (const game of gamesToFill) {
-      const matchScore = generateMatchScore(1.35);
+      const isPlayoff = !!game.playoffStage;
+      const matchScore = generateMatchScore(1.35, isPlayoff);
       const existingResult = resultsMap.get(game.id);
 
       if (existingResult) {

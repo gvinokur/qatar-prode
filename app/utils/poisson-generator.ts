@@ -56,13 +56,14 @@ interface MatchScore {
  * Generates realistic match scores for both teams
  *
  * @param lambda - The average number of goals per team (default: 1.35)
+ * @param isPlayoff - Whether this is a playoff game (enables penalty shootouts for ties)
  * @returns Match score object with home/away scores and penalty scores if tied in playoffs
  *
  * @example
  * generateMatchScore() // { homeScore: 2, awayScore: 1 }
- * generateMatchScore(1.35) // { homeScore: 0, awayScore: 0, homePenaltyScore: 4, awayPenaltyScore: 3 }
+ * generateMatchScore(1.35, true) // { homeScore: 0, awayScore: 0, homePenaltyScore: 4, awayPenaltyScore: 3 }
  */
-export function generateMatchScore(lambda: number = 1.35): MatchScore {
+export function generateMatchScore(lambda: number = 1.35, isPlayoff: boolean = false): MatchScore {
   // Validate input
   if (lambda <= 0) {
     throw new Error('Lambda must be greater than 0');
@@ -74,7 +75,7 @@ export function generateMatchScore(lambda: number = 1.35): MatchScore {
 
   // For playoff games with tied scores, generate penalty shootout scores
   // Ties occur naturally from the Poisson distribution (~20-25% of games with λ=1.35)
-  if (homeScore === awayScore) {
+  if (isPlayoff && homeScore === awayScore) {
     // Generate penalty shootout scores
     // Use λ=3 for realistic penalty shootout (typically 3-5 penalties per team)
     const penaltyLambda = 3;
