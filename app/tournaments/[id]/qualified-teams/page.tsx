@@ -9,6 +9,9 @@ import {
   TeamPositionPrediction,
 } from '../../../db/tables-definition';
 import QualifiedTeamsClientPage from '../../../components/qualified-teams/qualified-teams-client-page';
+import { DebugObject } from '../../../components/debug';
+import { findQualifiedTeams } from '../../../db/team-repository';
+import { calculateQualifiedTeamsScore } from '../../../utils/qualified-teams-scoring';
 
 interface PageProps {
   readonly params: Promise<{
@@ -174,16 +177,37 @@ export default async function QualifiedTeamsPage({ params, searchParams }: PageP
       console.error('[QualifiedTeams] Predictions initialized:', predictions.length);
     }
 
+    // Debug data (only fetched when ?debug is present)
+    let debugData = null;
+    if (searchParamsResolved.hasOwnProperty('debug')) {
+      const actualQualifiedTeams = await findQualifiedTeams(tournamentId);
+      const scoringResult = await calculateQualifiedTeamsScore(user.id, tournamentId);
+
+      debugData = {
+        tournament,
+        config,
+        isLocked,
+        allowEditing,
+        groupsWithTeams,
+        predictions,
+        actualQualifiedTeams,
+        scoringResult,
+      };
+    }
+
     return (
-      <QualifiedTeamsClientPage
-        tournament={tournament}
-        groups={groupsWithTeams}
-        initialPredictions={predictions}
-        userId={user.id}
-        isLocked={isLocked}
-        allowsThirdPlace={config.allowsThirdPlace}
-        maxThirdPlace={config.maxThirdPlace}
-      />
+      <>
+        {debugData && <DebugObject object={debugData} />}
+        <QualifiedTeamsClientPage
+          tournament={tournament}
+          groups={groupsWithTeams}
+          initialPredictions={predictions}
+          userId={user.id}
+          isLocked={isLocked}
+          allowsThirdPlace={config.allowsThirdPlace}
+          maxThirdPlace={config.maxThirdPlace}
+        />
+      </>
     );
   } catch (error) {
     console.error('[QualifiedTeams] Error loading page:', error);
