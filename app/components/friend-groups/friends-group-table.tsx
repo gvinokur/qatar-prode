@@ -81,6 +81,7 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
             const transformedScores = (userScoresByTournament[tournament.id] || []).map(score => ({
               ...score,
               userName: users[score.userId]?.nickname || users[score.userId]?.email || 'Unknown User',
+              yesterdayTotalPoints: score.yesterdayTotalPoints,
               groupStagePoints: score.groupStageScore + score.groupStageQualifiersScore,
               knockoutPoints: score.playoffScore,
               groupStageScore: score.groupStageScore,

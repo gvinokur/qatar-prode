@@ -195,6 +195,35 @@ export async function getGameGuessStatisticsForUsers(userIds: string[], tourname
         ),
         'integer'
       ).as('playoff_boost_bonus'),
+      // Yesterday's total score (for rank change tracking)
+      // Use 'score' (base points) not 'final_score' to avoid double-counting boost
+      // Uses last 24 hours approach for timezone-agnostic, dynamic rank changes
+      eb.cast<number>(
+        eb.fn.sum(
+          eb.case()
+            .when(sql`games.game_date < NOW() - INTERVAL '24 hours'`)
+            .then(eb.ref('game_guesses.score'))
+            .else(0)
+            .end()
+        ),
+        'integer'
+      ).as('yesterday_total_score'),
+      // Yesterday's boost bonus (for rank change tracking)
+      // Uses last 24 hours approach for timezone-agnostic, dynamic rank changes
+      eb.cast<number>(
+        eb.fn.sum(
+          eb.case()
+            .when(
+              sql`games.game_date < NOW() - INTERVAL '24 hours' AND game_guesses.final_score IS NOT NULL`
+            )
+            .then(
+              sql<number>`COALESCE(game_guesses.final_score, 0) - COALESCE(game_guesses.score, 0)`
+            )
+            .else(0)
+            .end()
+        ),
+        'integer'
+      ).as('yesterday_boost_bonus'),
     ])
     .groupBy('game_guesses.user_id')
     .execute()

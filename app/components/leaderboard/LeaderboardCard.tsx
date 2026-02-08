@@ -12,7 +12,9 @@ import {
   alpha,
   useTheme
 } from '@mui/material'
+import { motion } from 'framer-motion'
 import type { LeaderboardCardProps } from './types'
+import { RankChangeIndicator } from './rank-change-animations'
 
 // Helper function to get avatar color from user ID
 function getAvatarColor(userId: string): string {
@@ -36,6 +38,7 @@ function getUserInitials(name: string): string {
 export default function LeaderboardCard({
   user,
   rank,
+  rankChange = 0,
   isCurrentUser,
   isExpanded,
   onToggle
@@ -48,8 +51,17 @@ export default function LeaderboardCard({
     : user.name
 
   return (
-    <Card
-      onClick={onToggle}
+    <motion.div
+      layout
+      transition={{
+        layout: {
+          duration: 0.6,
+          ease: 'easeInOut'
+        }
+      }}
+    >
+      <Card
+        onClick={onToggle}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
@@ -84,18 +96,20 @@ export default function LeaderboardCard({
     >
       <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          {/* Rank Badge */}
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{
-              minWidth: '32px',
-              fontWeight: 'bold',
-              color: theme.palette.text.primary
-            }}
-          >
-            #{rank}
-          </Typography>
+          {/* Rank Badge with Change Indicator */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: '60px' }}>
+            <Typography
+              variant="h6"
+              component="div"
+              sx={{
+                fontWeight: 'bold',
+                color: theme.palette.text.primary
+              }}
+            >
+              #{rank}
+            </Typography>
+            <RankChangeIndicator rankChange={rankChange} size="small" />
+          </Box>
 
           {/* Avatar */}
           <Avatar
@@ -290,5 +304,6 @@ export default function LeaderboardCard({
         </Collapse>
       </CardContent>
     </Card>
+    </motion.div>
   )
 }

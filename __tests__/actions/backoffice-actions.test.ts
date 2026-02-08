@@ -187,10 +187,20 @@ vi.mock('../../app/db/game-guess-repository', () => ({
   deleteAllGameGuessesByTournamentId: vi.fn(),
 }));
 
+vi.mock('../../app/utils/date-utils', () => ({
+  getTodayYYYYMMDD: vi.fn(() => 20260206),
+  getLocalGameTime: vi.fn((date: Date) => date.toISOString()),
+  getUserLocalTime: vi.fn((date: Date) => date.toISOString()),
+  getCompactGameTime: vi.fn((date: Date) => date.toISOString()),
+  getCompactUserTime: vi.fn((date: Date) => date.toISOString()),
+}));
+
 vi.mock('../../app/db/tournament-guess-repository', () => ({
   findTournamentGuessByTournament: vi.fn(),
   updateTournamentGuess: vi.fn(),
+  updateTournamentGuessWithSnapshot: vi.fn(),
   updateTournamentGuessByUserIdTournament: vi.fn(),
+  updateTournamentGuessByUserIdTournamentWithSnapshot: vi.fn(),
   deleteAllTournamentGuessesByTournamentId: vi.fn(),
 }));
 
@@ -351,7 +361,9 @@ const mockFindAllGuessesForGamesWithResultsInDraft = vi.mocked(gameGuessReposito
 
 const mockFindTournamentGuessByTournament = vi.mocked(tournamentGuessRepository.findTournamentGuessByTournament);
 const mockUpdateTournamentGuess = vi.mocked(tournamentGuessRepository.updateTournamentGuess);
+const mockUpdateTournamentGuessWithSnapshot = vi.mocked(tournamentGuessRepository.updateTournamentGuessWithSnapshot);
 const mockUpdateTournamentGuessByUserIdTournament = vi.mocked(tournamentGuessRepository.updateTournamentGuessByUserIdTournament);
+const mockUpdateTournamentGuessByUserIdTournamentWithSnapshot = vi.mocked(tournamentGuessRepository.updateTournamentGuessByUserIdTournamentWithSnapshot);
 
 const mockGetLoggedInUser = vi.mocked(userActions.getLoggedInUser);
 
@@ -898,7 +910,11 @@ describe('Backoffice Actions', () => {
 
       expect(mockCalculateScoreForGame).toHaveBeenCalled();
       expect(mockUpdateGameGuessWithBoost).toHaveBeenCalledWith('guess1', 2, null);
-      expect(mockUpdateGameGuess).toHaveBeenCalledWith('guess2', { score: null });
+      expect(mockUpdateGameGuess).toHaveBeenCalledWith('guess2', {
+        score: null,
+        final_score: null,
+        boost_multiplier: null
+      });
       expect(result).toEqual({
         updatedGameGuesses: expect.arrayContaining([expect.arrayContaining([expect.any(Object)])]),
         cleanedGameGuesses: expect.any(Array)
@@ -937,7 +953,7 @@ describe('Backoffice Actions', () => {
     it('calculates qualified teams points correctly', async () => {
       const result = await calculateAndStoreQualifiedTeamsPoints('tournament1');
 
-      expect(mockUpdateTournamentGuessByUserIdTournament).toHaveBeenCalledWith('user1', 'tournament1', {
+      expect(mockUpdateTournamentGuessByUserIdTournamentWithSnapshot).toHaveBeenCalledWith('user1', 'tournament1', {
         qualified_teams_score: 1
       });
       expect(result).toHaveLength(2);
@@ -1055,7 +1071,7 @@ describe('Backoffice Actions', () => {
       const result = await updateTournamentAwards('tournament1', mockTournamentUpdate);
 
       expect(mockUpdateTournament).toHaveBeenCalledWith('tournament1', mockTournamentUpdate);
-      expect(mockUpdateTournamentGuess).toHaveBeenCalledWith('guess1', {
+      expect(mockUpdateTournamentGuessWithSnapshot).toHaveBeenCalledWith('guess1', {
         individual_awards_score: 5 // Only best_player_id matches (5 points from tournament config)
       });
       expect(result).toHaveLength(1);
@@ -1083,7 +1099,7 @@ describe('Backoffice Actions', () => {
 
       await updateTournamentAwards('tournament1', mockTournamentUpdate);
 
-      expect(mockUpdateTournamentGuess).toHaveBeenCalledWith('guess1', {
+      expect(mockUpdateTournamentGuessWithSnapshot).toHaveBeenCalledWith('guess1', {
         individual_awards_score: 0
       });
     });
@@ -1139,7 +1155,7 @@ describe('Backoffice Actions', () => {
       const result = await updateTournamentHonorRoll('tournament1', mockTournamentUpdate);
 
       expect(mockUpdateTournament).toHaveBeenCalledWith('tournament1', mockTournamentUpdate);
-      expect(mockUpdateTournamentGuess).toHaveBeenCalledWith('guess1', {
+      expect(mockUpdateTournamentGuessWithSnapshot).toHaveBeenCalledWith('guess1', {
         honor_roll_score: 15 // 10 (champion) + 5 (runner-up) + 0 (third place) from tournament config
       });
       expect(result).toHaveLength(1);
@@ -1333,7 +1349,7 @@ describe('Backoffice Actions', () => {
       // With new qualification-aware logic:
       // team1: qualified (in qualifiedTeams) + position 1 matches = 1 point (exact_position_qualified_points default is 1)
       // team2: NOT qualified (not in qualifiedTeams) + position doesn't match = 0 points
-      expect(mockUpdateTournamentGuessByUserIdTournament).toHaveBeenCalledWith('user1', 'tournament1', {
+      expect(mockUpdateTournamentGuessByUserIdTournamentWithSnapshot).toHaveBeenCalledWith('user1', 'tournament1', {
         group_position_score: 1
       });
     });
@@ -1345,7 +1361,7 @@ describe('Backoffice Actions', () => {
 
       await calculateAndStoreGroupPositionScores('tournament1');
 
-      expect(mockUpdateTournamentGuessByUserIdTournament).toHaveBeenCalledWith('user1', 'tournament1', {
+      expect(mockUpdateTournamentGuessByUserIdTournamentWithSnapshot).toHaveBeenCalledWith('user1', 'tournament1', {
         group_position_score: 0
       });
     });
@@ -1357,7 +1373,7 @@ describe('Backoffice Actions', () => {
 
       await calculateAndStoreGroupPositionScores('tournament1');
 
-      expect(mockUpdateTournamentGuessByUserIdTournament).toHaveBeenCalledWith('user1', 'tournament1', {
+      expect(mockUpdateTournamentGuessByUserIdTournamentWithSnapshot).toHaveBeenCalledWith('user1', 'tournament1', {
         group_position_score: 0
       });
     });
@@ -1367,7 +1383,7 @@ describe('Backoffice Actions', () => {
 
       await calculateAndStoreGroupPositionScores('tournament1');
 
-      expect(mockUpdateTournamentGuessByUserIdTournament).toHaveBeenCalledWith('user1', 'tournament1', {
+      expect(mockUpdateTournamentGuessByUserIdTournamentWithSnapshot).toHaveBeenCalledWith('user1', 'tournament1', {
         group_position_score: 0
       });
     });

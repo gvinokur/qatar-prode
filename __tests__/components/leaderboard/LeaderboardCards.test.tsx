@@ -76,9 +76,10 @@ describe('LeaderboardCards', () => {
     )
 
     const cards = screen.getAllByRole('button', { name: /leaderboard card/i })
-    // Alice and Bob tie at 100 points, Alice comes first alphabetically (user-1 < user-2)
+    // Alice and Bob tie at 100 points (both rank 1), Alice comes first alphabetically (user-1 < user-2)
+    // Charlie has 80 points (rank 3, using competition ranking)
     expect(cards[0]).toHaveAccessibleName(/alice.*rank 1/i)
-    expect(cards[1]).toHaveAccessibleName(/bob.*rank 2/i)
+    expect(cards[1]).toHaveAccessibleName(/bob.*rank 1/i)
     expect(cards[2]).toHaveAccessibleName(/charlie.*rank 3/i)
   })
 
@@ -232,9 +233,10 @@ describe('LeaderboardCards', () => {
     )
 
     const cards = screen.getAllByRole('button', { name: /leaderboard card/i })
-    // Should be sorted alphabetically by user ID: user-a, user-b, user-c
+    // All three users tied at 100 points (all rank 1 with competition ranking)
+    // Sorted alphabetically by user ID: user-a, user-b, user-c
     expect(cards[0]).toHaveAccessibleName(/alice.*rank 1/i)
-    expect(cards[1]).toHaveAccessibleName(/bob.*rank 2/i)
-    expect(cards[2]).toHaveAccessibleName(/charlie.*rank 3/i)
+    expect(cards[1]).toHaveAccessibleName(/bob.*rank 1/i)
+    expect(cards[2]).toHaveAccessibleName(/charlie.*rank 1/i)
   })
 })

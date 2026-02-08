@@ -299,6 +299,17 @@ export interface TournamentGuessTable extends Identifiable{
    * 1 point for correct qualification + 1 point for exact position
    */
   qualification_score?: number
+  /**
+   * Date when tournament scores were last updated, in YYYYMMDD format (e.g., 20260206)
+   * Used for daily rank change tracking
+   */
+  last_score_update_date?: number
+  /**
+   * Snapshot of previous day's total tournament score
+   * Sum of: qualified_teams_score + honor_roll_score + individual_awards_score + group_position_score
+   * Updated on first score change each day
+   */
+  yesterday_tournament_score?: number
 }
 
 export type TournamentGuess = Selectable<TournamentGuessTable>

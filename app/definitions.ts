@@ -72,6 +72,7 @@ export interface UserScore {
   playoffScore: number,
   honorRollScore: number,
   totalPoints: number,
+  yesterdayTotalPoints?: number, // Previous day's total points (for rank change tracking)
   individualAwardsScore: number,
   groupPositionScore?: number // 1 point for each exact group position guessed
   groupBoostBonus: number,      // Bonus from boosted group stage games

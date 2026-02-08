@@ -6,6 +6,13 @@ import GameDialog from '../../app/components/backoffice/internal/game-dialog';
 import { createOrUpdateGame } from '../../app/actions/game-actions';
 
 // Mock dependencies
+vi.mock('../../app/utils/date-utils', () => ({
+  getTodayYYYYMMDD: vi.fn(() => 20260206),
+  getLocalGameTime: vi.fn((date: Date) => date.toISOString()),
+  getUserLocalTime: vi.fn((date: Date) => date.toISOString()),
+  getCompactGameTime: vi.fn((date: Date) => date.toISOString()),
+  getCompactUserTime: vi.fn((date: Date) => date.toISOString()),
+}));
 vi.mock('../../app/actions/game-actions');
 vi.mock('@mui/x-date-pickers/DateTimePicker', () => ({
   DateTimePicker: ({ value, onChange, slotProps, label }: any) => (
