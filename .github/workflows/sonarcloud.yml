@@ -4,12 +4,20 @@ on:
   push:
     branches: [ main ]
   pull_request:
+    types: [ opened, reopened, ready_for_review, synchronize ]
     branches: [ main ]
+
+# Cancel in-progress runs when new commits are pushed
+concurrency:
+  group: sonarcloud-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   sonarcloud:
     name: SonarCloud Analysis
     runs-on: ubuntu-latest
+    # Skip if PR is in draft mode
+    if: github.event.pull_request.draft == false
     
     steps:
     - name: Checkout code
