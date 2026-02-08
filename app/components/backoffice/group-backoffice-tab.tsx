@@ -6,11 +6,11 @@ import {ExtendedGameData, ExtendedGroupData} from "../../definitions";
 import {getCompleteGroupData} from "../../actions/tournament-actions";
 import { BackofficeTabsSkeleton } from "../skeletons";
 import {
-  GameResultNew,
   Team,
   TeamStats
 } from "../../db/tables-definition";
-import BackofficeGameView from "./internal/backoffice-game-view";
+import BackofficeFlippableGameCard from "./backoffice-flippable-game-card";
+import BulkActionsMenu from "./bulk-actions-menu";
 import {
   calculateAndSavePlayoffGamesForTournament,
   calculateAndStoreGroupPosition,
@@ -22,20 +22,12 @@ import {
 } from "../../actions/backoffice-actions";
 import GroupTable from "../groups-page/group-table";
 import {calculateGroupPosition} from "../../utils/group-position-calculator";
-import GameResultEditDialog from "../game-result-edit-dialog";
 import TeamStatsEditDialog from "./internal/team-stats-edit-dialog";
 import EditIcon from "@mui/icons-material/Edit";
 
 type Props = {
   group: ExtendedGroupData
   tournamentId: string
-}
-
-const buildGameResult = (game: ExtendedGameData):GameResultNew => {
-  return {
-    game_id: game.id,
-    is_draft: true,
-  }
 }
 
 export default function GroupBackoffice({group, tournamentId} :Props) {
@@ -45,8 +37,6 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
   const [loading, setLoading] = useState<boolean>(true)
   const [saved, setSaved] = useState<boolean>(false)
   const [positions, setPositions] = useState<TeamStats[]>([])
-  const [editResultDialogOpened, setEditResultDialogOpened] = useState(false)
-  const [selectedGame, setSelectedGame] = useState<ExtendedGameData>()
   const [editStatsDialogOpened, setEditStatsDialogOpened] = useState(false)
   const [conductScores, setConductScores] = useState<{ [teamId: string]: number }>({})
 
@@ -96,49 +86,44 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
     setSaved(false)
   }
 
-  const handleGameEditStarted = (gameNumber: number) => {
-    setSelectedGame(Object.values(gamesMap).find(game => game.game_number === gameNumber))
-    setEditResultDialogOpened(true)
-  }
+  const handleSave = async (updatedGame: ExtendedGameData) => {
+    const newGamesMap = {
+      ...gamesMap,
+      [updatedGame.id]: updatedGame
+    };
+    await saveGamesAndRecalculate(newGamesMap);
+    setGamesMap(newGamesMap);
+  };
 
-  const handleGamePublishedStatusChanged = async (gameNumber: number) => {
-    const game = Object.values(gamesMap).find(game => game.game_number === gameNumber)
-    if(game && game.gameResult) {
-      const is_draft = !game.gameResult.is_draft
-      const newGamesMap = {
-        ...gamesMap,
-        [game.id]: {
-          ...game,
-          gameResult: {
-            ...game.gameResult,
-            is_draft
-          }
-        }
-      }
-      await saveGamesAndRecalculate(newGamesMap)
-      setGamesMap(newGamesMap)
-    }
-  }
-
-  const handleSaveGameResult = async (gameId: string, homeScore?: number | null, awayScore?: number | null, homePenaltyScore?: number, awayPenaltyScore?: number, gameDate?: Date) => {
-    const game = gamesMap[gameId]
-    if (game) {
-      const gameResult: GameResultNew = game.gameResult || buildGameResult(game)
+  const handlePublishToggle = async (gameId: string, isPublished: boolean) => {
+    const game = gamesMap[gameId];
+    if (game && game.gameResult) {
       const newGamesMap = {
         ...gamesMap,
         [gameId]: {
           ...game,
-          game_date: gameDate || game.game_date,
           gameResult: {
-            ...gameResult,
-            home_score: homeScore !== null ? homeScore : undefined,
-            away_score: awayScore !== null ? awayScore : undefined,
+            ...game.gameResult,
+            is_draft: !isPublished
           }
         }
-      }
-      await saveGamesAndRecalculate(newGamesMap)
-      setGamesMap(newGamesMap)
+      };
+      await saveGamesAndRecalculate(newGamesMap);
+      setGamesMap(newGamesMap);
     }
+  };
+
+  const handleBulkActionsComplete = async () => {
+    // Refresh group data after bulk operations
+    setLoading(true);
+    const completeGroupData = await getCompleteGroupData(group.id, true);
+    setGamesMap(completeGroupData.gamesMap);
+    setSortedGameIds(
+      Object.values(completeGroupData.gamesMap)
+        .sort((a, b) => a.game_number - b.game_number)
+        .map(game => game.id)
+    );
+    setLoading(false);
   };
 
   const handleOpenStatsDialog = () => {
@@ -182,11 +167,12 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
                         xs: 12,
                         md: 6
                       }}>
-                      <BackofficeGameView
+                      <BackofficeFlippableGameCard
                         game={gamesMap[gameId]}
                         teamsMap={teamsMap}
-                        onEditClick={handleGameEditStarted}
-                        onPublishClick={handleGamePublishedStatusChanged}
+                        isPlayoffs={false}
+                        onSave={handleSave}
+                        onPublishToggle={handlePublishToggle}
                       />
                     </Grid>
                   ))}
@@ -197,7 +183,7 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
                 xs: 12,
                 md: 6
               }}>
-              <Box mb={2}>
+              <Box mb={2} sx={{ display: 'flex', gap: 1 }}>
                 <Button
                   variant="outlined"
                   startIcon={<EditIcon />}
@@ -206,6 +192,11 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
                 >
                   Edit Conduct Scores
                 </Button>
+                <BulkActionsMenu
+                  groupId={group.id}
+                  sectionName={`Group ${group.group_letter}`}
+                  onComplete={handleBulkActionsComplete}
+                />
               </Box>
               <GroupTable teamsMap={teamsMap} isPredictions={false} realPositions={positions}/>
             </Grid>
@@ -217,20 +208,6 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
           </Snackbar>
         </>
       )}
-      <GameResultEditDialog
-        isGameGuess={false}
-        onGameResultSave={handleSaveGameResult}
-        open={editResultDialogOpened}
-        onClose={() => setEditResultDialogOpened(false)}
-        gameId={selectedGame?.id || ''}
-        gameNumber={selectedGame?.game_number || 0}
-        isPlayoffGame={false}
-        homeTeamName={selectedGame?.home_team && teamsMap[selectedGame.home_team].name || 'Unknown team'}
-        awayTeamName={selectedGame?.away_team && teamsMap[selectedGame.away_team].name || 'Unknown team'}
-        initialHomeScore={selectedGame?.gameResult?.home_score}
-        initialAwayScore={selectedGame?.gameResult?.away_score}
-        initialGameDate={selectedGame?.game_date || new Date()}
-      />
       <TeamStatsEditDialog
         open={editStatsDialogOpened}
         onClose={() => setEditStatsDialogOpened(false)}

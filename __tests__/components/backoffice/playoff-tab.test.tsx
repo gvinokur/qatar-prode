@@ -1,307 +1,1068 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { waitFor } from '@testing-library/react';
-import PlayoffTab from '@/app/components/backoffice/playoff-tab';
+import { screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { renderWithTheme } from '@/__tests__/utils/test-utils';
-import { CountdownProvider } from '@/app/components/context-providers/countdown-context-provider';
-import * as tournamentActions from '@/app/actions/tournament-actions';
-import * as backofficeActions from '@/app/actions/backoffice-actions';
+import { testFactories } from '@/__tests__/db/test-factories';
+import PlayoffTab from '@/app/components/backoffice/playoff-tab';
+import { ExtendedGameData, ExtendedPlayoffRoundData } from '@/app/definitions';
+import { Team } from '@/app/db/tables-definition';
 
-// Mock the actions
-vi.mock('@/app/actions/tournament-actions');
-vi.mock('@/app/actions/backoffice-actions');
+// Mock tournament actions
+vi.mock('@/app/actions/tournament-actions', () => ({
+  getCompletePlayoffData: vi.fn()
+}));
 
-describe('PlayoffTab', () => {
-  const mockTournamentId = 'tournament-1';
+// Mock backoffice actions
+vi.mock('@/app/actions/backoffice-actions', () => ({
+  saveGameResults: vi.fn(),
+  saveGamesData: vi.fn(),
+  calculateGameScores: vi.fn(),
+  updateTournamentHonorRoll: vi.fn()
+}));
 
-  const renderPlayoffTab = (tournamentId: string) => {
-    return renderWithTheme(
-      <CountdownProvider>
-        <PlayoffTab tournamentId={tournamentId} />
-      </CountdownProvider>
-    );
-  };
+// Mock the child components
+vi.mock('@/app/components/backoffice/backoffice-flippable-game-card', () => ({
+  default: ({ game, onSave, onPublishToggle }: {
+    game: ExtendedGameData;
+    onSave: (game: ExtendedGameData) => Promise<void>;
+    onPublishToggle: (gameId: string, isPublished: boolean) => Promise<void>;
+  }) => (
+    <div data-testid={`game-card-${game.id}`}>
+      <div>Game {game.game_number}</div>
+      <button onClick={() => onSave(game).catch(() => {})}>Save</button>
+      <button onClick={() => onPublishToggle(game.id, true).catch(() => {})}>Publish</button>
+      <button onClick={() => onPublishToggle(game.id, false).catch(() => {})}>Unpublish</button>
+    </div>
+  )
+}));
 
-  const mockPlayoffData = {
-    gamesMap: {
-      'game-1': {
-        id: 'game-1',
-        game_number: 1,
-        tournament_id: mockTournamentId,
-        home_team: 'team-1',
-        away_team: 'team-2',
-        game_date: new Date('2024-01-01'),
-        playoffStage: 'stage-1',
-        gameResult: {
-          game_id: 'game-1',
-          is_draft: false,
-          home_score: 2,
-          away_score: 1,
-        },
-      },
-    },
-    teamsMap: {
-      'team-1': { id: 'team-1', name: 'Team 1', country_code: 'T1' },
-      'team-2': { id: 'team-2', name: 'Team 2', country_code: 'T2' },
-    },
-    playoffStages: [
-      {
-        id: 'stage-1',
-        round_name: 'Final',
-        is_final: true,
-        is_third_place: false,
-        games: [{ game_id: 'game-1' }],
-      },
-    ],
-  };
+vi.mock('@/app/components/backoffice/bulk-actions-menu', () => ({
+  default: ({ playoffRoundId, sectionName, onComplete }: {
+    playoffRoundId: string;
+    sectionName: string;
+    onComplete?: () => void;
+  }) => (
+    <div data-testid={`bulk-actions-${playoffRoundId}`}>
+      <div>Bulk Actions for {sectionName}</div>
+      <button onClick={() => onComplete?.()}>Complete Bulk Action</button>
+    </div>
+  )
+}));
+
+// Import mocked functions
+import { getCompletePlayoffData } from '@/app/actions/tournament-actions';
+import {
+  saveGameResults,
+  saveGamesData,
+  calculateGameScores,
+  updateTournamentHonorRoll
+} from '@/app/actions/backoffice-actions';
+
+describe('PlayoffTab Integration Tests', () => {
+  const tournamentId = 'tournament-1';
+
+  // Test data
+  let team1: Team;
+  let team2: Team;
+  let team3: Team;
+  let team4: Team;
+  let finalGame: ExtendedGameData;
+  let thirdPlaceGame: ExtendedGameData;
+  let quarterfinalGame: ExtendedGameData;
+  let finalStage: ExtendedPlayoffRoundData;
+  let thirdPlaceStage: ExtendedPlayoffRoundData;
+  let quarterfinalStage: ExtendedPlayoffRoundData;
+  let teamsMap: Record<string, Team>;
+  let gamesMap: Record<string, ExtendedGameData>;
+  let playoffStages: ExtendedPlayoffRoundData[];
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(tournamentActions.getCompletePlayoffData).mockResolvedValue(mockPlayoffData);
-    vi.mocked(backofficeActions.saveGameResults).mockResolvedValue(undefined);
-    vi.mocked(backofficeActions.saveGamesData).mockResolvedValue(undefined);
-    vi.mocked(backofficeActions.calculateGameScores).mockResolvedValue(undefined);
-    vi.mocked(backofficeActions.updateTournamentHonorRoll).mockResolvedValue(undefined);
-  });
+    // Create test teams
+    team1 = testFactories.team({ id: 'team-1', name: 'Team A', short_name: 'TMA' });
+    team2 = testFactories.team({ id: 'team-2', name: 'Team B', short_name: 'TMB' });
+    team3 = testFactories.team({ id: 'team-3', name: 'Team C', short_name: 'TMC' });
+    team4 = testFactories.team({ id: 'team-4', name: 'Team D', short_name: 'TMD' });
 
-  describe('Honor Roll Update Logic', () => {
-    it('should update honor roll when champion is determined', async () => {
-      const dataWithFinalGame = {
-        ...mockPlayoffData,
-        playoffStages: [
-          {
-            id: 'stage-1',
-            round_name: 'Final',
-            is_final: true,
-            is_third_place: false,
-            games: [{ game_id: 'game-1' }],
-          },
-        ],
-      };
+    teamsMap = {
+      [team1.id]: team1,
+      [team2.id]: team2,
+      [team3.id]: team3,
+      [team4.id]: team4
+    };
 
-      vi.mocked(tournamentActions.getCompletePlayoffData).mockResolvedValue(dataWithFinalGame);
+    // Create playoff games
+    finalGame = {
+      ...testFactories.game({
+        id: 'game-final',
+        game_number: 64,
+        tournament_id: tournamentId,
+        home_team: team1.id,
+        away_team: team2.id,
+        game_type: 'final'
+      }),
+      playoffStage: {
+        tournament_playoff_round_id: 'round-final',
+        round_name: 'Final',
+        is_final: true,
+        is_third_place: false
+      },
+      gameResult: testFactories.gameResult({
+        game_id: 'game-final',
+        home_score: 2,
+        away_score: 1,
+        is_draft: true
+      })
+    };
 
-      renderPlayoffTab(mockTournamentId);
+    thirdPlaceGame = {
+      ...testFactories.game({
+        id: 'game-third-place',
+        game_number: 63,
+        tournament_id: tournamentId,
+        home_team: team3.id,
+        away_team: team4.id,
+        game_type: 'third_place'
+      }),
+      playoffStage: {
+        tournament_playoff_round_id: 'round-third-place',
+        round_name: 'Third Place',
+        is_final: false,
+        is_third_place: true
+      },
+      gameResult: testFactories.gameResult({
+        game_id: 'game-third-place',
+        home_score: 1,
+        away_score: 0,
+        is_draft: true
+      })
+    };
 
-      await waitFor(() => {
-        expect(tournamentActions.getCompletePlayoffData).toHaveBeenCalledWith(mockTournamentId);
-      });
+    quarterfinalGame = {
+      ...testFactories.game({
+        id: 'game-qf-1',
+        game_number: 57,
+        tournament_id: tournamentId,
+        home_team: team1.id,
+        away_team: team4.id,
+        game_type: 'quarterfinal'
+      }),
+      playoffStage: {
+        tournament_playoff_round_id: 'round-quarterfinal',
+        round_name: 'Quarterfinals',
+        is_final: false,
+        is_third_place: false
+      },
+      gameResult: null
+    };
+
+    gamesMap = {
+      [finalGame.id]: finalGame,
+      [thirdPlaceGame.id]: thirdPlaceGame,
+      [quarterfinalGame.id]: quarterfinalGame
+    };
+
+    // Create playoff stages
+    finalStage = testFactories.playoffRound({
+      id: 'round-final',
+      tournament_id: tournamentId,
+      round_name: 'Final',
+      round_order: 3,
+      total_games: 1,
+      is_final: true,
+      is_third_place: false,
+      is_first_stage: false,
+      games: [{ game_id: finalGame.id }]
     });
 
-    it('should not update honor roll when all values are null', async () => {
-      const dataWithDraftGame = {
-        ...mockPlayoffData,
-        gamesMap: {
-          'game-1': {
-            ...mockPlayoffData.gamesMap['game-1'],
-            gameResult: {
-              game_id: 'game-1',
-              is_draft: true,
-            },
-          },
-        },
-      };
-
-      vi.mocked(tournamentActions.getCompletePlayoffData).mockResolvedValue(dataWithDraftGame);
-
-      renderPlayoffTab(mockTournamentId);
-
-      await waitFor(() => {
-        expect(tournamentActions.getCompletePlayoffData).toHaveBeenCalledWith(mockTournamentId);
-      });
-
-      // Verify updateTournamentHonorRoll is NOT called when game is draft
-      expect(backofficeActions.updateTournamentHonorRoll).not.toHaveBeenCalled();
+    thirdPlaceStage = testFactories.playoffRound({
+      id: 'round-third-place',
+      tournament_id: tournamentId,
+      round_name: 'Third Place',
+      round_order: 2,
+      total_games: 1,
+      is_final: false,
+      is_third_place: true,
+      is_first_stage: false,
+      games: [{ game_id: thirdPlaceGame.id }]
     });
 
-    it('should not update honor roll when all values are undefined', async () => {
-      const dataWithUndefinedWinner = {
-        ...mockPlayoffData,
-        gamesMap: {
-          'game-1': {
-            ...mockPlayoffData.gamesMap['game-1'],
-            home_team: null,
-            away_team: null,
-            gameResult: {
-              game_id: 'game-1',
-              is_draft: false,
-            },
-          },
-        },
-      };
-
-      vi.mocked(tournamentActions.getCompletePlayoffData).mockResolvedValue(dataWithUndefinedWinner);
-
-      renderPlayoffTab(mockTournamentId);
-
-      await waitFor(() => {
-        expect(tournamentActions.getCompletePlayoffData).toHaveBeenCalledWith(mockTournamentId);
-      });
-
-      // Verify updateTournamentHonorRoll is NOT called when teams are null
-      expect(backofficeActions.updateTournamentHonorRoll).not.toHaveBeenCalled();
+    quarterfinalStage = testFactories.playoffRound({
+      id: 'round-quarterfinal',
+      tournament_id: tournamentId,
+      round_name: 'Quarterfinals',
+      round_order: 1,
+      total_games: 1,
+      is_final: false,
+      is_third_place: false,
+      is_first_stage: true,
+      games: [{ game_id: quarterfinalGame.id }]
     });
 
-    it('should update honor roll when third place is determined', async () => {
-      const dataWithThirdPlace = {
-        ...mockPlayoffData,
-        playoffStages: [
-          {
-            id: 'stage-1',
-            round_name: 'Final',
-            is_final: true,
-            is_third_place: false,
-            games: [{ game_id: 'game-1' }],
-          },
-          {
-            id: 'stage-2',
-            round_name: 'Third Place',
-            is_final: false,
-            is_third_place: true,
-            games: [{ game_id: 'game-2' }],
-          },
-        ],
-        gamesMap: {
-          ...mockPlayoffData.gamesMap,
-          'game-2': {
-            id: 'game-2',
-            game_number: 2,
-            tournament_id: mockTournamentId,
-            home_team: 'team-3',
-            away_team: 'team-4',
-            game_date: new Date('2024-01-02'),
-            playoffStage: 'stage-2',
-            gameResult: {
-              game_id: 'game-2',
-              is_draft: false,
-              home_score: 3,
-              away_score: 1,
-            },
-          },
-        },
-        teamsMap: {
-          ...mockPlayoffData.teamsMap,
-          'team-3': { id: 'team-3', name: 'Team 3', country_code: 'T3' },
-          'team-4': { id: 'team-4', name: 'Team 4', country_code: 'T4' },
-        },
-      };
+    playoffStages = [quarterfinalStage, thirdPlaceStage, finalStage];
 
-      vi.mocked(tournamentActions.getCompletePlayoffData).mockResolvedValue(dataWithThirdPlace);
-
-      renderPlayoffTab(mockTournamentId);
-
-      await waitFor(() => {
-        expect(tournamentActions.getCompletePlayoffData).toHaveBeenCalledWith(mockTournamentId);
-      });
+    // Mock getCompletePlayoffData
+    vi.mocked(getCompletePlayoffData).mockResolvedValue({
+      playoffStages,
+      teamsMap,
+      gamesMap,
+      tournamentStartDate: new Date('2024-06-14T18:00:00Z')
     });
 
-    it('should skip honor roll update when game is being set to draft', async () => {
-      // Start with a finalized game
-      const dataWithFinalizedGame = {
-        ...mockPlayoffData,
-        gamesMap: {
-          'game-1': {
-            ...mockPlayoffData.gamesMap['game-1'],
-            gameResult: {
-              game_id: 'game-1',
-              is_draft: false,
-              home_score: 2,
-              away_score: 1,
-            },
-          },
-        },
-      };
-
-      vi.mocked(tournamentActions.getCompletePlayoffData).mockResolvedValue(dataWithFinalizedGame);
-
-      renderPlayoffTab(mockTournamentId);
-
-      await waitFor(() => {
-        expect(tournamentActions.getCompletePlayoffData).toHaveBeenCalledWith(mockTournamentId);
-      });
-
-      // When we toggle the game back to draft, the honor roll should not be updated
-      // because the conditional checks if any team ID is present
-      // This tests the "if (champion_team_id || runner_up_team_id || third_place_team_id)" logic
-    });
-
-    it('should handle when getGameWinner returns undefined', async () => {
-      // Test the case where getGameWinner returns undefined (draw without penalties)
-      const dataWithDraw = {
-        ...mockPlayoffData,
-        gamesMap: {
-          'game-1': {
-            ...mockPlayoffData.gamesMap['game-1'],
-            gameResult: {
-              game_id: 'game-1',
-              is_draft: false,
-              home_score: 1,
-              away_score: 1,
-              // No penalty scores, so getGameWinner will return undefined
-            },
-          },
-        },
-      };
-
-      vi.mocked(tournamentActions.getCompletePlayoffData).mockResolvedValue(dataWithDraw);
-
-      renderPlayoffTab(mockTournamentId);
-
-      await waitFor(() => {
-        expect(tournamentActions.getCompletePlayoffData).toHaveBeenCalledWith(mockTournamentId);
-      });
-
-      // This exercises the code path where getGameWinner returns undefined
-      // and the conditional should skip the updateTournamentHonorRoll call
-    });
-  });
-
-  describe('Loading States', () => {
-    it('should show loading spinner initially', () => {
-      vi.mocked(tournamentActions.getCompletePlayoffData).mockImplementation(
-        () => new Promise(() => {}) // Never resolves
-      );
-
-      const { container } = renderPlayoffTab(mockTournamentId);
-
-      expect(container.querySelector('.MuiBackdrop-root')).toBeInTheDocument();
-    });
-
-    it('should hide loading spinner after data loads', async () => {
-      const { getByText } = renderPlayoffTab(mockTournamentId);
-
-      // Verify content appears (which means loading is complete)
-      await waitFor(() => {
-        expect(getByText('Final')).toBeInTheDocument();
-      });
-
-      // If content is visible, loading must be complete
-      expect(getByText('Final')).toBeVisible();
-    });
+    // Mock backoffice actions
+    vi.mocked(saveGameResults).mockResolvedValue();
+    vi.mocked(saveGamesData).mockResolvedValue();
+    vi.mocked(calculateGameScores).mockResolvedValue();
+    vi.mocked(updateTournamentHonorRoll).mockResolvedValue();
   });
 
   describe('Rendering', () => {
-    it('should render playoff stages', async () => {
-      const { getByText } = renderPlayoffTab(mockTournamentId);
+    it('should show loading backdrop initially', () => {
+      const { container } = renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
+      // MUI Backdrop has aria-hidden="true", so we need to query by class or wait for it to disappear
+      const backdrop = container.querySelector('.MuiBackdrop-root');
+      expect(backdrop).toBeInTheDocument();
+    });
+
+    it('should render BackofficeFlippableGameCard for each game', async () => {
+      renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
 
       await waitFor(() => {
-        expect(getByText('Final')).toBeInTheDocument();
+        expect(screen.getByTestId(`game-card-${finalGame.id}`)).toBeInTheDocument();
+      });
+
+      expect(screen.getByTestId(`game-card-${finalGame.id}`)).toBeInTheDocument();
+      expect(screen.getByTestId(`game-card-${thirdPlaceGame.id}`)).toBeInTheDocument();
+      expect(screen.getByTestId(`game-card-${quarterfinalGame.id}`)).toBeInTheDocument();
+    });
+
+    it('should render BulkActionsMenu in each playoff round header', async () => {
+      renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId(`bulk-actions-${finalStage.id}`)).toBeInTheDocument();
+      });
+
+      expect(screen.getByTestId(`bulk-actions-${finalStage.id}`)).toBeInTheDocument();
+      expect(screen.getByTestId(`bulk-actions-${thirdPlaceStage.id}`)).toBeInTheDocument();
+      expect(screen.getByTestId(`bulk-actions-${quarterfinalStage.id}`)).toBeInTheDocument();
+    });
+
+    it('should render playoff stage names as headers', async () => {
+      renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Final')).toBeInTheDocument();
+      });
+
+      expect(screen.getByText('Final')).toBeInTheDocument();
+      expect(screen.getByText('Third Place')).toBeInTheDocument();
+      expect(screen.getByText('Quarterfinals')).toBeInTheDocument();
+    });
+
+    it('should hide loading backdrop after data loads', async () => {
+      renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
+      await waitFor(() => {
+        expect(screen.queryByRole('presentation')).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('handleSave', () => {
+    it('should update game and trigger commitGameResults', async () => {
+      const user = userEvent.setup();
+      renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId(`game-card-${finalGame.id}`)).toBeInTheDocument();
+      });
+
+      // Find and click save button for final game
+      const finalGameCard = screen.getByTestId(`game-card-${finalGame.id}`);
+      const saveButton = within(finalGameCard).getByText('Save');
+
+      await user.click(saveButton);
+
+      await waitFor(() => {
+        expect(saveGameResults).toHaveBeenCalled();
+      });
+
+      expect(saveGameResults).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: finalGame.id
+          })
+        ])
+      );
+      expect(saveGamesData).toHaveBeenCalled();
+      expect(calculateGameScores).toHaveBeenCalledWith(false, false);
+    });
+
+    it('should show success snackbar after successful save', async () => {
+      const user = userEvent.setup();
+      renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId(`game-card-${finalGame.id}`)).toBeInTheDocument();
+      });
+
+      const finalGameCard = screen.getByTestId(`game-card-${finalGame.id}`);
+      const saveButton = within(finalGameCard).getByText('Save');
+
+      await user.click(saveButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Los Partidos se guardaron correctamente!')).toBeInTheDocument();
       });
     });
 
-    it('should have success and error snackbars in component tree', async () => {
-      const { getByText, container } = renderPlayoffTab(mockTournamentId);
+    it('should show error snackbar when save fails', async () => {
+      const user = userEvent.setup();
+      const errorMessage = 'Database connection failed';
 
-      // Wait for initial load
+      // Need to wait for initial load first
+      renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
       await waitFor(() => {
-        expect(getByText('Final')).toBeInTheDocument();
+        expect(screen.getByTestId(`game-card-${finalGame.id}`)).toBeInTheDocument();
       });
 
-      // Both Snackbar components should be rendered (even if not open/visible)
-      // This exercises the JSX rendering of both Snackbars
-      const snackbars = container.querySelectorAll('[class*="MuiSnackbar-root"]');
-      // Should have 2 Snackbars (success and error)
-      expect(snackbars.length).toBeGreaterThanOrEqual(0); // At least the structure is there
+      // Suppress console.error for this test since we expect an error
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      // Now mock the rejection for the next call
+      vi.mocked(saveGameResults).mockRejectedValueOnce(new Error(errorMessage));
+
+      const finalGameCard = screen.getByTestId(`game-card-${finalGame.id}`);
+      const saveButton = within(finalGameCard).getByText('Save');
+
+      // Click and immediately catch the expected error
+      const clickPromise = user.click(saveButton);
+
+      // Wait for the error message to appear (this ensures the promise rejection is handled)
+      await waitFor(() => {
+        expect(screen.getByText(errorMessage)).toBeInTheDocument();
+      });
+
+      // Make sure the click operation completes (it should reject but be caught)
+      await clickPromise.catch(() => {
+        // Expected to fail, ignore the error
+      });
+
+      consoleErrorSpy.mockRestore();
+    });
+  });
+
+  describe('handlePublishToggle', () => {
+    it('should update draft status when publishing', async () => {
+      const user = userEvent.setup();
+      renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId(`game-card-${finalGame.id}`)).toBeInTheDocument();
+      });
+
+      const finalGameCard = screen.getByTestId(`game-card-${finalGame.id}`);
+      const publishButton = within(finalGameCard).getByText('Publish');
+
+      await user.click(publishButton);
+
+      await waitFor(() => {
+        expect(saveGameResults).toHaveBeenCalled();
+      });
+
+      // Verify the game result is updated to is_draft: false
+      const callArgs = vi.mocked(saveGameResults).mock.calls[0][0];
+      const updatedGame = callArgs.find((g: ExtendedGameData) => g.id === finalGame.id);
+      expect(updatedGame?.gameResult?.is_draft).toBe(false);
+    });
+
+    it('should trigger full commit workflow on publish', async () => {
+      const user = userEvent.setup();
+      renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId(`game-card-${finalGame.id}`)).toBeInTheDocument();
+      });
+
+      const finalGameCard = screen.getByTestId(`game-card-${finalGame.id}`);
+      const publishButton = within(finalGameCard).getByText('Publish');
+
+      await user.click(publishButton);
+
+      await waitFor(() => {
+        expect(saveGameResults).toHaveBeenCalled();
+      });
+
+      expect(saveGamesData).toHaveBeenCalled();
+      expect(calculateGameScores).toHaveBeenCalledWith(false, false);
+    });
+
+    it('should show error snackbar when publish fails', async () => {
+      const user = userEvent.setup();
+      const errorMessage = 'Failed to publish game';
+
+      renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId(`game-card-${finalGame.id}`)).toBeInTheDocument();
+      });
+
+      // Suppress console.error for this test since we expect an error
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      // Now mock the rejection for the next call
+      vi.mocked(saveGameResults).mockRejectedValueOnce(new Error(errorMessage));
+
+      const finalGameCard = screen.getByTestId(`game-card-${finalGame.id}`);
+      const publishButton = within(finalGameCard).getByText('Publish');
+
+      // Click and immediately catch the expected error
+      const clickPromise = user.click(publishButton);
+
+      // Wait for the error message to appear (this ensures the promise rejection is handled)
+      await waitFor(() => {
+        expect(screen.getByText(errorMessage)).toBeInTheDocument();
+      });
+
+      // Make sure the click operation completes (it should reject but be caught)
+      await clickPromise.catch(() => {
+        // Expected to fail, ignore the error
+      });
+
+      consoleErrorSpy.mockRestore();
+    });
+  });
+
+  describe('handleBulkActionsComplete', () => {
+    it('should refresh playoff data after bulk actions', async () => {
+      const user = userEvent.setup();
+      renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId(`bulk-actions-${finalStage.id}`)).toBeInTheDocument();
+      });
+
+      // Clear the initial call
+      vi.mocked(getCompletePlayoffData).mockClear();
+
+      const bulkActionsMenu = screen.getByTestId(`bulk-actions-${finalStage.id}`);
+      const completeButton = within(bulkActionsMenu).getByText('Complete Bulk Action');
+
+      await user.click(completeButton);
+
+      await waitFor(() => {
+        expect(getCompletePlayoffData).toHaveBeenCalledWith(tournamentId);
+      });
+
+      expect(getCompletePlayoffData).toHaveBeenCalledTimes(1);
+    });
+
+    it('should show loading backdrop during data refresh', async () => {
+      const user = userEvent.setup();
+
+      // Make the second call delay to observe loading state
+      vi.mocked(getCompletePlayoffData).mockImplementationOnce(() =>
+        Promise.resolve({
+          playoffStages,
+          teamsMap,
+          gamesMap,
+          tournamentStartDate: new Date('2024-06-14T18:00:00Z')
+        })
+      ).mockImplementationOnce(() =>
+        new Promise(resolve => setTimeout(() => resolve({
+          playoffStages,
+          teamsMap,
+          gamesMap,
+          tournamentStartDate: new Date('2024-06-14T18:00:00Z')
+        }), 100))
+      );
+
+      const { container } = renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId(`bulk-actions-${finalStage.id}`)).toBeInTheDocument();
+      });
+
+      const bulkActionsMenu = screen.getByTestId(`bulk-actions-${finalStage.id}`);
+      const completeButton = within(bulkActionsMenu).getByText('Complete Bulk Action');
+
+      await user.click(completeButton);
+
+      // Loading backdrop should appear (check for visible backdrop with opacity > 0)
+      await waitFor(() => {
+        const backdrop = container.querySelector('.MuiBackdrop-root');
+        expect(backdrop).toBeInTheDocument();
+        // Check that it's visible (not hidden)
+        const style = backdrop ? window.getComputedStyle(backdrop) : null;
+        expect(style?.visibility).not.toBe('hidden');
+      });
+
+      // And then disappear after data loads
+      await waitFor(() => {
+        const backdrop = container.querySelector('.MuiBackdrop-root');
+        const style = backdrop ? window.getComputedStyle(backdrop) : null;
+        expect(style?.visibility).toBe('hidden');
+      });
+    });
+  });
+
+  describe('commitGameResults', () => {
+    describe('Winner/Loser propagation', () => {
+      it('should propagate winner to dependent games', async () => {
+        const user = userEvent.setup();
+
+        // Create a semifinal game that feeds into the final
+        const semifinalGame: ExtendedGameData = {
+          ...testFactories.game({
+            id: 'game-sf-1',
+            game_number: 61,
+            tournament_id: tournamentId,
+            home_team: team1.id,
+            away_team: team2.id,
+            game_type: 'semifinal'
+          }),
+          playoffStage: {
+            tournament_playoff_round_id: 'round-semifinal',
+            round_name: 'Semifinals',
+            is_final: false,
+            is_third_place: false
+          },
+          gameResult: testFactories.gameResult({
+            game_id: 'game-sf-1',
+            home_score: 2,
+            away_score: 1,
+            is_draft: false
+          })
+        };
+
+        // Final game has a rule: home team is winner of game 61
+        const finalWithRule: ExtendedGameData = {
+          ...finalGame,
+          home_team: null,
+          home_team_rule: { game: 61, winner: true }
+        };
+
+        const updatedGamesMap = {
+          [semifinalGame.id]: semifinalGame,
+          [finalWithRule.id]: finalWithRule,
+          [thirdPlaceGame.id]: thirdPlaceGame
+        };
+
+        const updatedFinalStage = { ...finalStage, games: [{ game_id: finalWithRule.id }] };
+        const semifinalStage = testFactories.playoffRound({
+          id: 'round-semifinal',
+          tournament_id: tournamentId,
+          round_name: 'Semifinals',
+          round_order: 2,
+          total_games: 1,
+          is_final: false,
+          is_third_place: false,
+          is_first_stage: false,
+          games: [{ game_id: semifinalGame.id }]
+        });
+
+        vi.mocked(getCompletePlayoffData).mockResolvedValue({
+          playoffStages: [semifinalStage, updatedFinalStage, thirdPlaceStage],
+          teamsMap,
+          gamesMap: updatedGamesMap,
+          tournamentStartDate: new Date('2024-06-14T18:00:00Z')
+        });
+
+        renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
+        await waitFor(() => {
+          expect(screen.getByTestId(`game-card-${semifinalGame.id}`)).toBeInTheDocument();
+        });
+
+        const semifinalCard = screen.getByTestId(`game-card-${semifinalGame.id}`);
+        const saveButton = within(semifinalCard).getByText('Save');
+
+        await user.click(saveButton);
+
+        await waitFor(() => {
+          expect(saveGamesData).toHaveBeenCalled();
+        });
+
+        // Verify that saveGamesData was called with the final game having the winner propagated
+        const savedGames = vi.mocked(saveGamesData).mock.calls[0][0];
+        const updatedFinalGame = savedGames.find((g: ExtendedGameData) => g.id === finalWithRule.id);
+        expect(updatedFinalGame?.home_team).toBe(team1.id); // Winner of semifinal
+      });
+
+      it('should propagate loser to third place game', async () => {
+        const user = userEvent.setup();
+
+        // Create semifinals that feed losers to third place game
+        const semifinal1: ExtendedGameData = {
+          ...testFactories.game({
+            id: 'game-sf-1',
+            game_number: 61,
+            tournament_id: tournamentId,
+            home_team: team1.id,
+            away_team: team3.id,
+            game_type: 'semifinal'
+          }),
+          playoffStage: {
+            tournament_playoff_round_id: 'round-semifinal',
+            round_name: 'Semifinals',
+            is_final: false,
+            is_third_place: false
+          },
+          gameResult: testFactories.gameResult({
+            game_id: 'game-sf-1',
+            home_score: 2,
+            away_score: 1,
+            is_draft: false
+          })
+        };
+
+        // Third place game has a rule: home team is loser of game 61
+        const thirdPlaceWithRule: ExtendedGameData = {
+          ...thirdPlaceGame,
+          home_team: null,
+          home_team_rule: { game: 61, winner: false }
+        };
+
+        const updatedGamesMap = {
+          [semifinal1.id]: semifinal1,
+          [thirdPlaceWithRule.id]: thirdPlaceWithRule,
+          [finalGame.id]: finalGame
+        };
+
+        const semifinalStage = testFactories.playoffRound({
+          id: 'round-semifinal',
+          tournament_id: tournamentId,
+          round_name: 'Semifinals',
+          round_order: 2,
+          total_games: 1,
+          is_final: false,
+          is_third_place: false,
+          is_first_stage: false,
+          games: [{ game_id: semifinal1.id }]
+        });
+
+        const updatedThirdPlaceStage = { ...thirdPlaceStage, games: [{ game_id: thirdPlaceWithRule.id }] };
+
+        vi.mocked(getCompletePlayoffData).mockResolvedValue({
+          playoffStages: [semifinalStage, updatedThirdPlaceStage, finalStage],
+          teamsMap,
+          gamesMap: updatedGamesMap,
+          tournamentStartDate: new Date('2024-06-14T18:00:00Z')
+        });
+
+        renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
+        await waitFor(() => {
+          expect(screen.getByTestId(`game-card-${semifinal1.id}`)).toBeInTheDocument();
+        });
+
+        const semifinalCard = screen.getByTestId(`game-card-${semifinal1.id}`);
+        const saveButton = within(semifinalCard).getByText('Save');
+
+        await user.click(saveButton);
+
+        await waitFor(() => {
+          expect(saveGamesData).toHaveBeenCalled();
+        });
+
+        // Verify that saveGamesData was called with third place game having the loser propagated
+        const savedGames = vi.mocked(saveGamesData).mock.calls[0][0];
+        const updatedThirdPlace = savedGames.find((g: ExtendedGameData) => g.id === thirdPlaceWithRule.id);
+        expect(updatedThirdPlace?.home_team).toBe(team3.id); // Loser of semifinal
+      });
+
+      it('should clear dependent team when game result is draft', async () => {
+        const user = userEvent.setup();
+
+        // Create a published semifinal
+        const semifinalGame: ExtendedGameData = {
+          ...testFactories.game({
+            id: 'game-sf-1',
+            game_number: 61,
+            tournament_id: tournamentId,
+            home_team: team1.id,
+            away_team: team2.id,
+            game_type: 'semifinal'
+          }),
+          playoffStage: {
+            tournament_playoff_round_id: 'round-semifinal',
+            round_name: 'Semifinals',
+            is_final: false,
+            is_third_place: false
+          },
+          gameResult: testFactories.gameResult({
+            game_id: 'game-sf-1',
+            home_score: 2,
+            away_score: 1,
+            is_draft: false
+          })
+        };
+
+        // Final game has winner propagated from semifinal
+        const finalWithTeam: ExtendedGameData = {
+          ...finalGame,
+          home_team: team1.id,
+          home_team_rule: { game: 61, winner: true }
+        };
+
+        const updatedGamesMap = {
+          [semifinalGame.id]: semifinalGame,
+          [finalWithTeam.id]: finalWithTeam,
+          [thirdPlaceGame.id]: thirdPlaceGame
+        };
+
+        const semifinalStage = testFactories.playoffRound({
+          id: 'round-semifinal',
+          tournament_id: tournamentId,
+          round_name: 'Semifinals',
+          round_order: 2,
+          total_games: 1,
+          is_final: false,
+          is_third_place: false,
+          is_first_stage: false,
+          games: [{ game_id: semifinalGame.id }]
+        });
+
+        const updatedFinalStage = { ...finalStage, games: [{ game_id: finalWithTeam.id }] };
+
+        vi.mocked(getCompletePlayoffData).mockResolvedValue({
+          playoffStages: [semifinalStage, updatedFinalStage, thirdPlaceStage],
+          teamsMap,
+          gamesMap: updatedGamesMap,
+          tournamentStartDate: new Date('2024-06-14T18:00:00Z')
+        });
+
+        renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
+        await waitFor(() => {
+          expect(screen.getByTestId(`game-card-${semifinalGame.id}`)).toBeInTheDocument();
+        });
+
+        // Unpublish the semifinal (set to draft) using the Unpublish button
+        const semifinalCard = screen.getByTestId(`game-card-${semifinalGame.id}`);
+        const unpublishButton = within(semifinalCard).getByText('Unpublish');
+
+        await user.click(unpublishButton);
+
+        await waitFor(() => {
+          expect(saveGamesData).toHaveBeenCalled();
+        });
+
+        // Verify that the final game's home_team is cleared
+        const savedGames = vi.mocked(saveGamesData).mock.calls[0][0];
+        const clearedFinalGame = savedGames.find((g: ExtendedGameData) => g.id === finalWithTeam.id);
+        expect(clearedFinalGame?.home_team).toBeNull();
+      });
+    });
+
+    describe('Honor roll updates', () => {
+      it('should update honor roll for final game when published', async () => {
+        const user = userEvent.setup();
+        renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
+        await waitFor(() => {
+          expect(screen.getByTestId(`game-card-${finalGame.id}`)).toBeInTheDocument();
+        });
+
+        const finalGameCard = screen.getByTestId(`game-card-${finalGame.id}`);
+        const publishButton = within(finalGameCard).getByText('Publish');
+
+        await user.click(publishButton);
+
+        await waitFor(() => {
+          expect(updateTournamentHonorRoll).toHaveBeenCalled();
+        });
+
+        expect(updateTournamentHonorRoll).toHaveBeenCalledWith(
+          tournamentId,
+          expect.objectContaining({
+            champion_team_id: team1.id, // Home team won 2-1
+            runner_up_team_id: team2.id
+          })
+        );
+      });
+
+      it('should update honor roll for third place game when published', async () => {
+        const user = userEvent.setup();
+        renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
+        await waitFor(() => {
+          expect(screen.getByTestId(`game-card-${thirdPlaceGame.id}`)).toBeInTheDocument();
+        });
+
+        const thirdPlaceCard = screen.getByTestId(`game-card-${thirdPlaceGame.id}`);
+        const publishButton = within(thirdPlaceCard).getByText('Publish');
+
+        await user.click(publishButton);
+
+        await waitFor(() => {
+          expect(updateTournamentHonorRoll).toHaveBeenCalled();
+        });
+
+        expect(updateTournamentHonorRoll).toHaveBeenCalledWith(
+          tournamentId,
+          expect.objectContaining({
+            third_place_team_id: team3.id // Home team won 1-0
+          })
+        );
+      });
+
+      it('should update honor roll with all three positions when both games are published', async () => {
+        const user = userEvent.setup();
+
+        // Set both games as published
+        const publishedFinal = {
+          ...finalGame,
+          gameResult: {
+            ...finalGame.gameResult!,
+            is_draft: false
+          }
+        };
+
+        const publishedThirdPlace = {
+          ...thirdPlaceGame,
+          gameResult: {
+            ...thirdPlaceGame.gameResult!,
+            is_draft: false
+          }
+        };
+
+        vi.mocked(getCompletePlayoffData).mockResolvedValue({
+          playoffStages,
+          teamsMap,
+          gamesMap: {
+            [publishedFinal.id]: publishedFinal,
+            [publishedThirdPlace.id]: publishedThirdPlace,
+            [quarterfinalGame.id]: quarterfinalGame
+          },
+          tournamentStartDate: new Date('2024-06-14T18:00:00Z')
+        });
+
+        renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
+        await waitFor(() => {
+          expect(screen.getByTestId(`game-card-${finalGame.id}`)).toBeInTheDocument();
+        });
+
+        // Save any game to trigger commit
+        const finalGameCard = screen.getByTestId(`game-card-${finalGame.id}`);
+        const saveButton = within(finalGameCard).getByText('Save');
+
+        await user.click(saveButton);
+
+        await waitFor(() => {
+          expect(updateTournamentHonorRoll).toHaveBeenCalled();
+        });
+
+        expect(updateTournamentHonorRoll).toHaveBeenCalledWith(
+          tournamentId,
+          expect.objectContaining({
+            champion_team_id: team1.id,
+            runner_up_team_id: team2.id,
+            third_place_team_id: team3.id
+          })
+        );
+      });
+
+      it('should not update honor roll when final game is still draft', async () => {
+        const user = userEvent.setup();
+        renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
+        await waitFor(() => {
+          expect(screen.getByTestId(`game-card-${finalGame.id}`)).toBeInTheDocument();
+        });
+
+        // Save without publishing (is_draft remains true)
+        const finalGameCard = screen.getByTestId(`game-card-${finalGame.id}`);
+        const saveButton = within(finalGameCard).getByText('Save');
+
+        await user.click(saveButton);
+
+        await waitFor(() => {
+          expect(saveGameResults).toHaveBeenCalled();
+        });
+
+        // Honor roll should not be updated for draft games
+        expect(updateTournamentHonorRoll).not.toHaveBeenCalled();
+      });
+
+      it('should not update honor roll for non-final non-third-place games', async () => {
+        const user = userEvent.setup();
+        renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
+        await waitFor(() => {
+          expect(screen.getByTestId(`game-card-${quarterfinalGame.id}`)).toBeInTheDocument();
+        });
+
+        const quarterfinalCard = screen.getByTestId(`game-card-${quarterfinalGame.id}`);
+        const saveButton = within(quarterfinalCard).getByText('Save');
+
+        await user.click(saveButton);
+
+        await waitFor(() => {
+          expect(saveGameResults).toHaveBeenCalled();
+        });
+
+        expect(updateTournamentHonorRoll).not.toHaveBeenCalled();
+      });
+
+      it('should clear honor roll values when final game is set to draft', async () => {
+        const user = userEvent.setup();
+
+        // Start with published final (not draft)
+        const publishedFinal = {
+          ...finalGame,
+          gameResult: {
+            ...finalGame.gameResult!,
+            is_draft: false
+          }
+        };
+
+        // Start with published third place too
+        const publishedThirdPlace = {
+          ...thirdPlaceGame,
+          gameResult: {
+            ...thirdPlaceGame.gameResult!,
+            is_draft: false
+          }
+        };
+
+        vi.mocked(getCompletePlayoffData).mockResolvedValueOnce({
+          playoffStages,
+          teamsMap,
+          gamesMap: {
+            [publishedFinal.id]: publishedFinal,
+            [publishedThirdPlace.id]: publishedThirdPlace,
+            [quarterfinalGame.id]: quarterfinalGame
+          },
+          tournamentStartDate: new Date('2024-06-14T18:00:00Z')
+        });
+
+        renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
+        await waitFor(() => {
+          expect(screen.getByTestId(`game-card-${finalGame.id}`)).toBeInTheDocument();
+        });
+
+        // "Unpublish" by clicking unpublish button (sets to draft)
+        const finalGameCard = screen.getByTestId(`game-card-${finalGame.id}`);
+        const unpublishButton = within(finalGameCard).getByText('Unpublish');
+
+        await user.click(unpublishButton);
+
+        await waitFor(() => {
+          expect(updateTournamentHonorRoll).toHaveBeenCalled();
+        });
+
+        // When final game is set to draft, champion/runner_up should be null
+        // but third_place_team_id should still be team3 since that game is still published
+        expect(updateTournamentHonorRoll).toHaveBeenCalledWith(
+          tournamentId,
+          expect.objectContaining({
+            champion_team_id: null,
+            runner_up_team_id: null,
+            third_place_team_id: team3.id
+          })
+        );
+      });
+    });
+  });
+
+  describe('Data refresh', () => {
+    it('should fetch playoff data on mount', async () => {
+      renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
+      await waitFor(() => {
+        expect(getCompletePlayoffData).toHaveBeenCalledWith(tournamentId);
+      });
+    });
+
+    it('should update internal state after data loads', async () => {
+      renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId(`game-card-${finalGame.id}`)).toBeInTheDocument();
+      });
+
+      // Verify all games are rendered (proves state was updated)
+      expect(screen.getByTestId(`game-card-${finalGame.id}`)).toBeInTheDocument();
+      expect(screen.getByTestId(`game-card-${thirdPlaceGame.id}`)).toBeInTheDocument();
+      expect(screen.getByTestId(`game-card-${quarterfinalGame.id}`)).toBeInTheDocument();
+    });
+  });
+
+  describe('Error handling', () => {
+    it('should handle API errors gracefully on initial load', async () => {
+      // Add a global unhandledrejection handler to catch the expected error
+      const unhandledRejectionHandler = vi.fn();
+      const originalHandler = process.listeners('unhandledRejection')[0];
+      process.removeAllListeners('unhandledRejection');
+      process.on('unhandledRejection', unhandledRejectionHandler);
+
+      // Mock the rejection
+      vi.mocked(getCompletePlayoffData).mockRejectedValueOnce(new Error('API Error'));
+
+      // Render component - it will fail to load data but shouldn't crash
+      const { container } = renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
+      // Wait for the API call to be made
+      await waitFor(() => {
+        expect(getCompletePlayoffData).toHaveBeenCalled();
+      });
+
+      // Give time for any unhandled rejections to be caught
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Component should still render with loading state
+      const backdrop = container.querySelector('.MuiBackdrop-root');
+      expect(backdrop).toBeInTheDocument();
+
+      // Verify no games are rendered (since data fetch failed)
+      expect(screen.queryByTestId(`game-card-${finalGame.id}`)).not.toBeInTheDocument();
+
+      // Restore original handler
+      process.removeListener('unhandledRejection', unhandledRejectionHandler);
+      if (originalHandler) {
+        process.on('unhandledRejection', originalHandler as any);
+      }
+    });
+
+    it('should show error message when save fails', async () => {
+      const user = userEvent.setup();
+
+      renderWithTheme(<PlayoffTab tournamentId={tournamentId} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId(`game-card-${finalGame.id}`)).toBeInTheDocument();
+      });
+
+      // Suppress console.error for this test since we expect an error
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      // Mock rejection for next call
+      vi.mocked(saveGameResults).mockRejectedValueOnce(new Error('Save failed'));
+
+      const finalGameCard = screen.getByTestId(`game-card-${finalGame.id}`);
+      const saveButton = within(finalGameCard).getByText('Save');
+
+      // Click and immediately catch the expected error
+      const clickPromise = user.click(saveButton);
+
+      // Wait for the error message to appear (this ensures the promise rejection is handled)
+      await waitFor(() => {
+        expect(screen.getByText('Save failed')).toBeInTheDocument();
+      });
+
+      // Make sure the click operation completes (it should reject but be caught)
+      await clickPromise.catch(() => {
+        // Expected to fail, ignore the error
+      });
+
+      consoleErrorSpy.mockRestore();
     });
   });
 });

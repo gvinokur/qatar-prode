@@ -1,0 +1,1190 @@
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+import {
+  autoFillGameScores,
+  clearGameScores
+} from '../../app/actions/game-score-generator-actions';
+import { testFactories } from '../db/test-factories';
+import { ExtendedGameData } from '../../app/definitions';
+
+// Mock the auth module
+vi.mock('../../auth', () => ({
+  auth: vi.fn(),
+}));
+
+// Mock database repositories
+vi.mock('../../app/db/game-repository', () => ({
+  findGamesInGroup: vi.fn(),
+  findGamesInTournament: vi.fn(),
+}));
+
+vi.mock('../../app/db/game-result-repository', () => ({
+  findGameResultByGameIds: vi.fn(),
+  createGameResult: vi.fn(),
+  updateGameResult: vi.fn(),
+}));
+
+vi.mock('../../app/db/tournament-group-repository', () => ({
+  findTournamentgroupById: vi.fn(),
+  findTeamsInGroup: vi.fn(),
+}));
+
+vi.mock('../../app/db/database', () => ({
+  db: {
+    selectFrom: vi.fn(),
+    transaction: vi.fn(),
+  },
+}));
+
+// Mock the Poisson generator
+vi.mock('../../app/utils/poisson-generator', () => ({
+  generateMatchScore: vi.fn(),
+}));
+
+// Mock backoffice actions (recalculation pipeline)
+vi.mock('../../app/actions/backoffice-actions', () => ({
+  calculateAndSavePlayoffGamesForTournament: vi.fn(),
+  calculateAndStoreGroupPosition: vi.fn(),
+  calculateAndStoreQualifiedTeamsPoints: vi.fn(),
+  calculateGameScores: vi.fn(),
+}));
+
+import { auth } from '../../auth';
+import * as gameRepository from '../../app/db/game-repository';
+import * as gameResultRepository from '../../app/db/game-result-repository';
+import * as tournamentGroupRepository from '../../app/db/tournament-group-repository';
+import { db } from '../../app/db/database';
+import { generateMatchScore } from '../../app/utils/poisson-generator';
+import * as backofficeActions from '../../app/actions/backoffice-actions';
+
+const mockAuth = vi.mocked(auth);
+const mockFindGamesInGroup = vi.mocked(gameRepository.findGamesInGroup);
+const mockFindGamesInTournament = vi.mocked(gameRepository.findGamesInTournament);
+const mockFindGameResultByGameIds = vi.mocked(gameResultRepository.findGameResultByGameIds);
+const mockFindTournamentgroupById = vi.mocked(tournamentGroupRepository.findTournamentgroupById);
+const mockFindTeamsInGroup = vi.mocked(tournamentGroupRepository.findTeamsInGroup);
+const mockDb = vi.mocked(db);
+const mockGenerateMatchScore = vi.mocked(generateMatchScore);
+const mockCalculateAndSavePlayoffGamesForTournament = vi.mocked(backofficeActions.calculateAndSavePlayoffGamesForTournament);
+const mockCalculateAndStoreGroupPosition = vi.mocked(backofficeActions.calculateAndStoreGroupPosition);
+const mockCalculateAndStoreQualifiedTeamsPoints = vi.mocked(backofficeActions.calculateAndStoreQualifiedTeamsPoints);
+const mockCalculateGameScores = vi.mocked(backofficeActions.calculateGameScores);
+
+describe('Game Score Generator Actions', () => {
+  const mockAdminUser = {
+    id: 'admin-1',
+    email: 'admin@example.com',
+    emailVerified: new Date(),
+    isAdmin: true,
+  };
+
+  const mockRegularUser = {
+    id: 'user-1',
+    email: 'user@example.com',
+    emailVerified: new Date(),
+    isAdmin: false,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    // Default: Admin user
+    mockAuth.mockResolvedValue({
+      user: mockAdminUser,
+      expires: '2024-12-31',
+    } as any);
+
+    // Mock generateMatchScore with default values
+    mockGenerateMatchScore.mockReturnValue({
+      homeScore: 2,
+      awayScore: 1,
+    });
+
+    // Mock recalculation functions
+    mockCalculateAndSavePlayoffGamesForTournament.mockResolvedValue(undefined as any);
+    mockCalculateAndStoreGroupPosition.mockResolvedValue(undefined as any);
+    mockCalculateAndStoreQualifiedTeamsPoints.mockResolvedValue(undefined as any);
+    mockCalculateGameScores.mockResolvedValue(undefined as any);
+  });
+
+  describe('autoFillGameScores', () => {
+    describe('Authorization', () => {
+      it('allows admin user to auto-fill scores', async () => {
+        // Setup: Group with games but no results
+        const mockGroup = testFactories.tournamentGroup({
+          id: 'group-1',
+          tournament_id: 'tournament-1',
+        });
+        const mockGames: ExtendedGameData[] = [
+          {
+            ...testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' }),
+            homeTeam: testFactories.team({ id: 'team-1' }),
+            awayTeam: testFactories.team({ id: 'team-2' }),
+          } as ExtendedGameData,
+        ];
+
+        mockFindTournamentgroupById.mockResolvedValue(mockGroup);
+        mockFindGamesInGroup.mockResolvedValue(mockGames);
+        mockFindGameResultByGameIds.mockResolvedValue([]);
+        mockFindTeamsInGroup.mockResolvedValue([]);
+
+        // Mock transaction
+        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
+          const mockTrx = {
+            insertInto: vi.fn().mockReturnValue({
+              values: vi.fn().mockReturnValue({
+                execute: vi.fn().mockResolvedValue(undefined),
+              }),
+            }),
+            updateTable: vi.fn().mockReturnValue({
+              set: vi.fn().mockReturnValue({
+                where: vi.fn().mockReturnValue({
+                  execute: vi.fn().mockResolvedValue(undefined),
+                }),
+              }),
+            }),
+          };
+          return callback(mockTrx);
+        });
+        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
+
+        const result = await autoFillGameScores('group-1');
+
+        expect(result.success).toBe(true);
+        expect(result.filledCount).toBe(1);
+        expect(result.error).toBeUndefined();
+      });
+
+      it('rejects non-admin user', async () => {
+        mockAuth.mockResolvedValue({
+          user: mockRegularUser,
+          expires: '2024-12-31',
+        } as any);
+
+        const result = await autoFillGameScores('group-1');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Unauthorized: Admin access required');
+        expect(mockFindGamesInGroup).not.toHaveBeenCalled();
+      });
+
+      it('rejects when user is not logged in', async () => {
+        mockAuth.mockResolvedValue(null);
+
+        const result = await autoFillGameScores('group-1');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Unauthorized: Admin access required');
+        expect(mockFindGamesInGroup).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('Input Validation', () => {
+      it('requires either groupId or playoffRoundId', async () => {
+        const result = await autoFillGameScores();
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Must provide either groupId or playoffRoundId');
+        expect(mockFindGamesInGroup).not.toHaveBeenCalled();
+      });
+
+      it('returns error when group not found', async () => {
+        mockFindTournamentgroupById.mockResolvedValue(null);
+
+        const result = await autoFillGameScores('non-existent-group');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Group not found');
+      });
+
+      it('returns error when playoff round not found', async () => {
+        const mockQuery = {
+          selectAll: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          executeTakeFirst: vi.fn().mockResolvedValue(null),
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        const result = await autoFillGameScores(undefined, 'non-existent-round');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Playoff round not found');
+      });
+    });
+
+    describe('Game Filtering', () => {
+      it('fills only unpublished games (no result)', async () => {
+        const mockGroup = testFactories.tournamentGroup({
+          id: 'group-1',
+          tournament_id: 'tournament-1',
+        });
+        const mockGames: ExtendedGameData[] = [
+          {
+            ...testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' }),
+            homeTeam: testFactories.team({ id: 'team-1' }),
+            awayTeam: testFactories.team({ id: 'team-2' }),
+          } as ExtendedGameData,
+          {
+            ...testFactories.game({ id: 'game-2', tournament_id: 'tournament-1' }),
+            homeTeam: testFactories.team({ id: 'team-3' }),
+            awayTeam: testFactories.team({ id: 'team-4' }),
+          } as ExtendedGameData,
+        ];
+
+        mockFindTournamentgroupById.mockResolvedValue(mockGroup);
+        mockFindGamesInGroup.mockResolvedValue(mockGames);
+        mockFindGameResultByGameIds.mockResolvedValue([]);
+        mockFindTeamsInGroup.mockResolvedValue([]);
+
+        // Mock transaction
+        const mockInsertions: string[] = [];
+        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
+          const mockTrx = {
+            insertInto: vi.fn().mockReturnValue({
+              values: vi.fn().mockImplementation((values: any) => {
+                mockInsertions.push(values.game_id);
+                return {
+                  execute: vi.fn().mockResolvedValue(undefined),
+                };
+              }),
+            }),
+            updateTable: vi.fn().mockReturnValue({
+              set: vi.fn().mockReturnValue({
+                where: vi.fn().mockReturnValue({
+                  execute: vi.fn().mockResolvedValue(undefined),
+                }),
+              }),
+            }),
+          };
+          return callback(mockTrx);
+        });
+        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
+
+        const result = await autoFillGameScores('group-1');
+
+        expect(result.success).toBe(true);
+        expect(result.filledCount).toBe(2);
+        expect(result.skippedCount).toBe(0);
+        expect(mockInsertions).toEqual(['game-1', 'game-2']);
+      });
+
+      it('fills only draft games (unpublished result)', async () => {
+        const mockGroup = testFactories.tournamentGroup({
+          id: 'group-1',
+          tournament_id: 'tournament-1',
+        });
+        const mockGames: ExtendedGameData[] = [
+          {
+            ...testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' }),
+            homeTeam: testFactories.team({ id: 'team-1' }),
+            awayTeam: testFactories.team({ id: 'team-2' }),
+          } as ExtendedGameData,
+        ];
+
+        // Game has draft result
+        const draftResult = testFactories.gameResult({
+          game_id: 'game-1',
+          is_draft: true,
+        });
+
+        mockFindTournamentgroupById.mockResolvedValue(mockGroup);
+        mockFindGamesInGroup.mockResolvedValue(mockGames);
+        mockFindGameResultByGameIds.mockResolvedValue([draftResult]);
+        mockFindTeamsInGroup.mockResolvedValue([]);
+
+        // Mock transaction
+        const mockUpdates: string[] = [];
+        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
+          const mockTrx = {
+            insertInto: vi.fn().mockReturnValue({
+              values: vi.fn().mockReturnValue({
+                execute: vi.fn().mockResolvedValue(undefined),
+              }),
+            }),
+            updateTable: vi.fn().mockReturnValue({
+              set: vi.fn().mockReturnValue({
+                where: vi.fn().mockImplementation((field: string, op: string, value: string) => {
+                  mockUpdates.push(value);
+                  return {
+                    execute: vi.fn().mockResolvedValue(undefined),
+                  };
+                }),
+              }),
+            }),
+          };
+          return callback(mockTrx);
+        });
+        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
+
+        const result = await autoFillGameScores('group-1');
+
+        expect(result.success).toBe(true);
+        expect(result.filledCount).toBe(1);
+        expect(mockUpdates).toContain('game-1');
+      });
+
+      it('skips published games', async () => {
+        const mockGroup = testFactories.tournamentGroup({
+          id: 'group-1',
+          tournament_id: 'tournament-1',
+        });
+        const mockGames: ExtendedGameData[] = [
+          {
+            ...testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' }),
+            homeTeam: testFactories.team({ id: 'team-1' }),
+            awayTeam: testFactories.team({ id: 'team-2' }),
+          } as ExtendedGameData,
+          {
+            ...testFactories.game({ id: 'game-2', tournament_id: 'tournament-1' }),
+            homeTeam: testFactories.team({ id: 'team-3' }),
+            awayTeam: testFactories.team({ id: 'team-4' }),
+          } as ExtendedGameData,
+        ];
+
+        // game-1 has published result, game-2 has no result
+        const publishedResult = testFactories.gameResult({
+          game_id: 'game-1',
+          is_draft: false,
+        });
+
+        mockFindTournamentgroupById.mockResolvedValue(mockGroup);
+        mockFindGamesInGroup.mockResolvedValue(mockGames);
+        mockFindGameResultByGameIds.mockResolvedValue([publishedResult]);
+        mockFindTeamsInGroup.mockResolvedValue([]);
+
+        // Mock transaction
+        const mockInsertions: string[] = [];
+        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
+          const mockTrx = {
+            insertInto: vi.fn().mockReturnValue({
+              values: vi.fn().mockImplementation((values: any) => {
+                mockInsertions.push(values.game_id);
+                return {
+                  execute: vi.fn().mockResolvedValue(undefined),
+                };
+              }),
+            }),
+            updateTable: vi.fn().mockReturnValue({
+              set: vi.fn().mockReturnValue({
+                where: vi.fn().mockReturnValue({
+                  execute: vi.fn().mockResolvedValue(undefined),
+                }),
+              }),
+            }),
+          };
+          return callback(mockTrx);
+        });
+        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
+
+        const result = await autoFillGameScores('group-1');
+
+        expect(result.success).toBe(true);
+        expect(result.filledCount).toBe(1);
+        expect(result.skippedCount).toBe(1);
+        expect(mockInsertions).toEqual(['game-2']); // Only game-2 filled
+      });
+
+      it('returns success with zero filled when all games are published', async () => {
+        const mockGroup = testFactories.tournamentGroup({
+          id: 'group-1',
+          tournament_id: 'tournament-1',
+        });
+        const mockGames: ExtendedGameData[] = [
+          {
+            ...testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' }),
+            homeTeam: testFactories.team({ id: 'team-1' }),
+            awayTeam: testFactories.team({ id: 'team-2' }),
+          } as ExtendedGameData,
+        ];
+
+        const publishedResult = testFactories.gameResult({
+          game_id: 'game-1',
+          is_draft: false,
+        });
+
+        mockFindTournamentgroupById.mockResolvedValue(mockGroup);
+        mockFindGamesInGroup.mockResolvedValue(mockGames);
+        mockFindGameResultByGameIds.mockResolvedValue([publishedResult]);
+
+        const result = await autoFillGameScores('group-1');
+
+        expect(result.success).toBe(true);
+        expect(result.filledCount).toBe(0);
+        expect(result.skippedCount).toBe(1);
+        expect(mockDb.transaction).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('Score Generation', () => {
+      it('creates new game results with generated scores', async () => {
+        const mockGroup = testFactories.tournamentGroup({
+          id: 'group-1',
+          tournament_id: 'tournament-1',
+        });
+        const mockGames: ExtendedGameData[] = [
+          {
+            ...testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' }),
+            homeTeam: testFactories.team({ id: 'team-1' }),
+            awayTeam: testFactories.team({ id: 'team-2' }),
+          } as ExtendedGameData,
+        ];
+
+        mockFindTournamentgroupById.mockResolvedValue(mockGroup);
+        mockFindGamesInGroup.mockResolvedValue(mockGames);
+        mockFindGameResultByGameIds.mockResolvedValue([]);
+        mockFindTeamsInGroup.mockResolvedValue([]);
+
+        mockGenerateMatchScore.mockReturnValue({
+          homeScore: 3,
+          awayScore: 2,
+        });
+
+        // Mock transaction
+        const insertedResults: any[] = [];
+        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
+          const mockTrx = {
+            insertInto: vi.fn().mockReturnValue({
+              values: vi.fn().mockImplementation((values: any) => {
+                insertedResults.push(values);
+                return {
+                  execute: vi.fn().mockResolvedValue(undefined),
+                };
+              }),
+            }),
+            updateTable: vi.fn().mockReturnValue({
+              set: vi.fn().mockReturnValue({
+                where: vi.fn().mockReturnValue({
+                  execute: vi.fn().mockResolvedValue(undefined),
+                }),
+              }),
+            }),
+          };
+          return callback(mockTrx);
+        });
+        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
+
+        const result = await autoFillGameScores('group-1');
+
+        expect(result.success).toBe(true);
+        expect(insertedResults).toHaveLength(1);
+        expect(insertedResults[0]).toMatchObject({
+          game_id: 'game-1',
+          home_score: 3,
+          away_score: 2,
+          is_draft: false,
+        });
+      });
+
+      it('updates existing draft results with generated scores', async () => {
+        const mockGroup = testFactories.tournamentGroup({
+          id: 'group-1',
+          tournament_id: 'tournament-1',
+        });
+        const mockGames: ExtendedGameData[] = [
+          {
+            ...testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' }),
+            homeTeam: testFactories.team({ id: 'team-1' }),
+            awayTeam: testFactories.team({ id: 'team-2' }),
+          } as ExtendedGameData,
+        ];
+
+        const draftResult = testFactories.gameResult({
+          game_id: 'game-1',
+          home_score: 0,
+          away_score: 0,
+          is_draft: true,
+        });
+
+        mockFindTournamentgroupById.mockResolvedValue(mockGroup);
+        mockFindGamesInGroup.mockResolvedValue(mockGames);
+        mockFindGameResultByGameIds.mockResolvedValue([draftResult]);
+        mockFindTeamsInGroup.mockResolvedValue([]);
+
+        mockGenerateMatchScore.mockReturnValue({
+          homeScore: 2,
+          awayScore: 1,
+        });
+
+        // Mock transaction
+        const updatedResults: any[] = [];
+        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
+          const mockTrx = {
+            insertInto: vi.fn().mockReturnValue({
+              values: vi.fn().mockReturnValue({
+                execute: vi.fn().mockResolvedValue(undefined),
+              }),
+            }),
+            updateTable: vi.fn().mockReturnValue({
+              set: vi.fn().mockImplementation((values: any) => {
+                updatedResults.push(values);
+                return {
+                  where: vi.fn().mockReturnValue({
+                    execute: vi.fn().mockResolvedValue(undefined),
+                  }),
+                };
+              }),
+            }),
+          };
+          return callback(mockTrx);
+        });
+        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
+
+        const result = await autoFillGameScores('group-1');
+
+        expect(result.success).toBe(true);
+        expect(updatedResults).toHaveLength(1);
+        expect(updatedResults[0]).toMatchObject({
+          home_score: 2,
+          away_score: 1,
+          is_draft: false,
+        });
+      });
+
+      it('publishes scores immediately (is_draft=false)', async () => {
+        const mockGroup = testFactories.tournamentGroup({
+          id: 'group-1',
+          tournament_id: 'tournament-1',
+        });
+        const mockGames: ExtendedGameData[] = [
+          {
+            ...testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' }),
+            homeTeam: testFactories.team({ id: 'team-1' }),
+            awayTeam: testFactories.team({ id: 'team-2' }),
+          } as ExtendedGameData,
+        ];
+
+        mockFindTournamentgroupById.mockResolvedValue(mockGroup);
+        mockFindGamesInGroup.mockResolvedValue(mockGames);
+        mockFindGameResultByGameIds.mockResolvedValue([]);
+        mockFindTeamsInGroup.mockResolvedValue([]);
+
+        // Mock transaction
+        const insertedResults: any[] = [];
+        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
+          const mockTrx = {
+            insertInto: vi.fn().mockReturnValue({
+              values: vi.fn().mockImplementation((values: any) => {
+                insertedResults.push(values);
+                return {
+                  execute: vi.fn().mockResolvedValue(undefined),
+                };
+              }),
+            }),
+            updateTable: vi.fn().mockReturnValue({
+              set: vi.fn().mockReturnValue({
+                where: vi.fn().mockReturnValue({
+                  execute: vi.fn().mockResolvedValue(undefined),
+                }),
+              }),
+            }),
+          };
+          return callback(mockTrx);
+        });
+        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
+
+        await autoFillGameScores('group-1');
+
+        expect(insertedResults[0].is_draft).toBe(false);
+      });
+    });
+
+    describe('Recalculation Pipeline', () => {
+      it('triggers full recalculation pipeline after filling scores', async () => {
+        const mockGroup = testFactories.tournamentGroup({
+          id: 'group-1',
+          tournament_id: 'tournament-1',
+        });
+        const mockGames: ExtendedGameData[] = [
+          {
+            ...testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' }),
+            homeTeam: testFactories.team({ id: 'team-1' }),
+            awayTeam: testFactories.team({ id: 'team-2' }),
+          } as ExtendedGameData,
+        ];
+
+        mockFindTournamentgroupById
+          .mockResolvedValueOnce(mockGroup) // First call
+          .mockResolvedValueOnce(mockGroup); // Second call in recalculation
+        mockFindGamesInGroup
+          .mockResolvedValueOnce(mockGames) // First call
+          .mockResolvedValueOnce(mockGames); // Second call in recalculation
+        mockFindGameResultByGameIds.mockResolvedValue([]);
+        mockFindTeamsInGroup.mockResolvedValue([]);
+
+        // Mock transaction
+        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
+          const mockTrx = {
+            insertInto: vi.fn().mockReturnValue({
+              values: vi.fn().mockReturnValue({
+                execute: vi.fn().mockResolvedValue(undefined),
+              }),
+            }),
+            updateTable: vi.fn().mockReturnValue({
+              set: vi.fn().mockReturnValue({
+                where: vi.fn().mockReturnValue({
+                  execute: vi.fn().mockResolvedValue(undefined),
+                }),
+              }),
+            }),
+          };
+          return callback(mockTrx);
+        });
+        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
+
+        await autoFillGameScores('group-1');
+
+        expect(mockCalculateAndSavePlayoffGamesForTournament).toHaveBeenCalledWith('tournament-1');
+        expect(mockCalculateAndStoreGroupPosition).toHaveBeenCalled();
+        expect(mockCalculateGameScores).toHaveBeenCalledWith(false, false);
+        expect(mockCalculateAndStoreQualifiedTeamsPoints).toHaveBeenCalledWith('tournament-1');
+      });
+
+      it('recalculates group standings for group stage games', async () => {
+        const mockGroup = testFactories.tournamentGroup({
+          id: 'group-1',
+          tournament_id: 'tournament-1',
+          sort_by_games_between_teams: true,
+        });
+        const mockGames: ExtendedGameData[] = [
+          {
+            ...testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' }),
+            homeTeam: testFactories.team({ id: 'team-1' }),
+            awayTeam: testFactories.team({ id: 'team-2' }),
+          } as ExtendedGameData,
+        ];
+        const mockTeams = [
+          testFactories.tournamentGroupTeam({ team_id: 'team-1' }),
+          testFactories.tournamentGroupTeam({ team_id: 'team-2' }),
+        ];
+
+        mockFindTournamentgroupById
+          .mockResolvedValueOnce(mockGroup)
+          .mockResolvedValueOnce(mockGroup);
+        mockFindGamesInGroup
+          .mockResolvedValueOnce(mockGames)
+          .mockResolvedValueOnce(mockGames);
+        mockFindGameResultByGameIds.mockResolvedValue([]);
+        mockFindTeamsInGroup.mockResolvedValue(mockTeams);
+
+        // Mock transaction
+        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
+          const mockTrx = {
+            insertInto: vi.fn().mockReturnValue({
+              values: vi.fn().mockReturnValue({
+                execute: vi.fn().mockResolvedValue(undefined),
+              }),
+            }),
+            updateTable: vi.fn().mockReturnValue({
+              set: vi.fn().mockReturnValue({
+                where: vi.fn().mockReturnValue({
+                  execute: vi.fn().mockResolvedValue(undefined),
+                }),
+              }),
+            }),
+          };
+          return callback(mockTrx);
+        });
+        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
+
+        await autoFillGameScores('group-1');
+
+        expect(mockCalculateAndStoreGroupPosition).toHaveBeenCalledWith(
+          'group-1',
+          ['team-1', 'team-2'],
+          mockGames,
+          true
+        );
+      });
+
+      it('skips group recalculation for playoff games', async () => {
+        const mockRound = testFactories.playoffRound({
+          id: 'round-1',
+          tournament_id: 'tournament-1',
+        });
+        const mockGames: ExtendedGameData[] = [
+          {
+            ...testFactories.game({
+              id: 'game-1',
+              tournament_id: 'tournament-1',
+              game_type: 'playoff',
+            }),
+            homeTeam: testFactories.team({ id: 'team-1' }),
+            awayTeam: testFactories.team({ id: 'team-2' }),
+            playoffStage: {
+              tournament_playoff_round_id: 'round-1',
+              round_name: 'Round 1',
+              is_final: false,
+              is_third_place: false,
+            },
+          } as ExtendedGameData,
+        ];
+
+        const mockQuery = {
+          selectAll: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          executeTakeFirst: vi.fn().mockResolvedValue(mockRound),
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+        mockFindGamesInTournament.mockResolvedValue(mockGames);
+        mockFindGameResultByGameIds.mockResolvedValue([]);
+
+        // Mock recalculation functions
+        mockCalculateAndSavePlayoffGamesForTournament.mockResolvedValue(undefined);
+        mockCalculateGameScores.mockResolvedValue(undefined);
+        mockCalculateAndStoreQualifiedTeamsPoints.mockResolvedValue(undefined);
+
+        // Mock transaction
+        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
+          const mockTrx = {
+            insertInto: vi.fn().mockReturnValue({
+              values: vi.fn().mockReturnValue({
+                execute: vi.fn().mockResolvedValue(undefined),
+              }),
+            }),
+            updateTable: vi.fn().mockReturnValue({
+              set: vi.fn().mockReturnValue({
+                where: vi.fn().mockReturnValue({
+                  execute: vi.fn().mockResolvedValue(undefined),
+                }),
+              }),
+            }),
+          };
+          return callback(mockTrx);
+        });
+        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
+
+        await autoFillGameScores(undefined, 'round-1');
+
+        // Group position should NOT be called for playoff games
+        expect(mockCalculateAndStoreGroupPosition).not.toHaveBeenCalled();
+        // But other recalculations should still run
+        expect(mockCalculateAndSavePlayoffGamesForTournament).toHaveBeenCalled();
+        expect(mockCalculateGameScores).toHaveBeenCalled();
+      });
+    });
+
+    describe('Error Handling', () => {
+      it('returns error when transaction fails', async () => {
+        const mockGroup = testFactories.tournamentGroup({
+          id: 'group-1',
+          tournament_id: 'tournament-1',
+        });
+        const mockGames: ExtendedGameData[] = [
+          {
+            ...testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' }),
+            homeTeam: testFactories.team({ id: 'team-1' }),
+            awayTeam: testFactories.team({ id: 'team-2' }),
+          } as ExtendedGameData,
+        ];
+
+        mockFindTournamentgroupById.mockResolvedValue(mockGroup);
+        mockFindGamesInGroup.mockResolvedValue(mockGames);
+        mockFindGameResultByGameIds.mockResolvedValue([]);
+
+        // Mock transaction to throw error
+        const mockTrxExecute = vi.fn().mockRejectedValue(new Error('Database connection failed'));
+        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
+
+        const result = await autoFillGameScores('group-1');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Database connection failed');
+      });
+    });
+  });
+
+  describe('clearGameScores', () => {
+    describe('Authorization', () => {
+      it('allows admin user to clear scores', async () => {
+        const mockGroup = testFactories.tournamentGroup({
+          id: 'group-1',
+          tournament_id: 'tournament-1',
+        });
+        const mockGames: ExtendedGameData[] = [
+          {
+            ...testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' }),
+            homeTeam: testFactories.team({ id: 'team-1' }),
+            awayTeam: testFactories.team({ id: 'team-2' }),
+            gameResult: testFactories.gameResult({ game_id: 'game-1' }),
+          } as ExtendedGameData,
+        ];
+
+        mockFindTournamentgroupById.mockResolvedValue(mockGroup);
+        mockFindGamesInGroup.mockResolvedValue(mockGames);
+
+        // Mock transaction
+        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
+          const mockTrx = {
+            deleteFrom: vi.fn().mockReturnValue({
+              where: vi.fn().mockReturnValue({
+                execute: vi.fn().mockResolvedValue(undefined),
+              }),
+            }),
+          };
+          return callback(mockTrx);
+        });
+        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
+
+        const result = await clearGameScores('group-1');
+
+        expect(result.success).toBe(true);
+        expect(result.clearedCount).toBe(1);
+        expect(result.error).toBeUndefined();
+      });
+
+      it('rejects non-admin user', async () => {
+        mockAuth.mockResolvedValue({
+          user: mockRegularUser,
+          expires: '2024-12-31',
+        } as any);
+
+        const result = await clearGameScores('group-1');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Unauthorized: Admin access required');
+        expect(mockFindGamesInGroup).not.toHaveBeenCalled();
+      });
+
+      it('rejects when user is not logged in', async () => {
+        mockAuth.mockResolvedValue(null);
+
+        const result = await clearGameScores('group-1');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Unauthorized: Admin access required');
+        expect(mockFindGamesInGroup).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('Input Validation', () => {
+      it('requires either groupId or playoffRoundId', async () => {
+        const result = await clearGameScores();
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Must provide either groupId or playoffRoundId');
+        expect(mockFindGamesInGroup).not.toHaveBeenCalled();
+      });
+
+      it('returns error when group not found', async () => {
+        mockFindTournamentgroupById.mockResolvedValue(null);
+
+        const result = await clearGameScores('non-existent-group');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Group not found');
+      });
+
+      it('returns error when playoff round not found', async () => {
+        const mockQuery = {
+          selectAll: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          executeTakeFirst: vi.fn().mockResolvedValue(null),
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        const result = await clearGameScores(undefined, 'non-existent-round');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Playoff round not found');
+      });
+    });
+
+    describe('Game Result Deletion', () => {
+      it('deletes game results for games with results', async () => {
+        const mockGroup = testFactories.tournamentGroup({
+          id: 'group-1',
+          tournament_id: 'tournament-1',
+        });
+        const mockGames: ExtendedGameData[] = [
+          {
+            ...testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' }),
+            homeTeam: testFactories.team({ id: 'team-1' }),
+            awayTeam: testFactories.team({ id: 'team-2' }),
+            gameResult: testFactories.gameResult({ game_id: 'game-1' }),
+          } as ExtendedGameData,
+          {
+            ...testFactories.game({ id: 'game-2', tournament_id: 'tournament-1' }),
+            homeTeam: testFactories.team({ id: 'team-3' }),
+            awayTeam: testFactories.team({ id: 'team-4' }),
+            gameResult: testFactories.gameResult({ game_id: 'game-2' }),
+          } as ExtendedGameData,
+        ];
+
+        mockFindTournamentgroupById.mockResolvedValue(mockGroup);
+        mockFindGamesInGroup.mockResolvedValue(mockGames);
+
+        // Mock transaction
+        const deletedGameIds: string[] = [];
+        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
+          const mockTrx = {
+            deleteFrom: vi.fn().mockReturnValue({
+              where: vi.fn().mockImplementation((field: string, op: string, values: string[]) => {
+                deletedGameIds.push(...values);
+                return {
+                  execute: vi.fn().mockResolvedValue(undefined),
+                };
+              }),
+            }),
+          };
+          return callback(mockTrx);
+        });
+        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
+
+        const result = await clearGameScores('group-1');
+
+        expect(result.success).toBe(true);
+        expect(result.clearedCount).toBe(2);
+        expect(deletedGameIds).toEqual(['game-1', 'game-2']);
+      });
+
+      it('returns success with zero cleared when no games have results', async () => {
+        const mockGroup = testFactories.tournamentGroup({
+          id: 'group-1',
+          tournament_id: 'tournament-1',
+        });
+        const mockGames: ExtendedGameData[] = [
+          {
+            ...testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' }),
+            homeTeam: testFactories.team({ id: 'team-1' }),
+            awayTeam: testFactories.team({ id: 'team-2' }),
+            // No gameResult
+          } as ExtendedGameData,
+        ];
+
+        mockFindTournamentgroupById.mockResolvedValue(mockGroup);
+        mockFindGamesInGroup.mockResolvedValue(mockGames);
+
+        const result = await clearGameScores('group-1');
+
+        expect(result.success).toBe(true);
+        expect(result.clearedCount).toBe(0);
+        expect(mockDb.transaction).not.toHaveBeenCalled();
+      });
+
+      it('only deletes results for games that have them', async () => {
+        const mockGroup = testFactories.tournamentGroup({
+          id: 'group-1',
+          tournament_id: 'tournament-1',
+        });
+        const mockGames: ExtendedGameData[] = [
+          {
+            ...testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' }),
+            homeTeam: testFactories.team({ id: 'team-1' }),
+            awayTeam: testFactories.team({ id: 'team-2' }),
+            gameResult: testFactories.gameResult({ game_id: 'game-1' }),
+          } as ExtendedGameData,
+          {
+            ...testFactories.game({ id: 'game-2', tournament_id: 'tournament-1' }),
+            homeTeam: testFactories.team({ id: 'team-3' }),
+            awayTeam: testFactories.team({ id: 'team-4' }),
+            // No gameResult
+          } as ExtendedGameData,
+        ];
+
+        mockFindTournamentgroupById.mockResolvedValue(mockGroup);
+        mockFindGamesInGroup.mockResolvedValue(mockGames);
+
+        // Mock transaction
+        const deletedGameIds: string[] = [];
+        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
+          const mockTrx = {
+            deleteFrom: vi.fn().mockReturnValue({
+              where: vi.fn().mockImplementation((field: string, op: string, values: string[]) => {
+                deletedGameIds.push(...values);
+                return {
+                  execute: vi.fn().mockResolvedValue(undefined),
+                };
+              }),
+            }),
+          };
+          return callback(mockTrx);
+        });
+        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
+
+        const result = await clearGameScores('group-1');
+
+        expect(result.success).toBe(true);
+        expect(result.clearedCount).toBe(1);
+        expect(deletedGameIds).toEqual(['game-1']); // Only game-1 has result
+      });
+    });
+
+    describe('Recalculation Pipeline', () => {
+      it('triggers recalculation after deleting scores', async () => {
+        const mockGroup = testFactories.tournamentGroup({
+          id: 'group-1',
+          tournament_id: 'tournament-1',
+        });
+        const mockGames: ExtendedGameData[] = [
+          {
+            ...testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' }),
+            homeTeam: testFactories.team({ id: 'team-1' }),
+            awayTeam: testFactories.team({ id: 'team-2' }),
+            gameResult: testFactories.gameResult({ game_id: 'game-1' }),
+          } as ExtendedGameData,
+        ];
+
+        mockFindTournamentgroupById
+          .mockResolvedValueOnce(mockGroup)
+          .mockResolvedValueOnce(mockGroup);
+        mockFindGamesInGroup
+          .mockResolvedValueOnce(mockGames)
+          .mockResolvedValueOnce(mockGames);
+        mockFindTeamsInGroup.mockResolvedValue([]);
+
+        // Mock transaction
+        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
+          const mockTrx = {
+            deleteFrom: vi.fn().mockReturnValue({
+              where: vi.fn().mockReturnValue({
+                execute: vi.fn().mockResolvedValue(undefined),
+              }),
+            }),
+          };
+          return callback(mockTrx);
+        });
+        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
+
+        await clearGameScores('group-1');
+
+        expect(mockCalculateGameScores).toHaveBeenCalledWith(false, false);
+        expect(mockCalculateAndStoreQualifiedTeamsPoints).toHaveBeenCalledWith('tournament-1');
+      });
+
+      it('recalculates group standings for group stage games', async () => {
+        const mockGroup = testFactories.tournamentGroup({
+          id: 'group-1',
+          tournament_id: 'tournament-1',
+          sort_by_games_between_teams: false,
+        });
+        const mockGames: ExtendedGameData[] = [
+          {
+            ...testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' }),
+            homeTeam: testFactories.team({ id: 'team-1' }),
+            awayTeam: testFactories.team({ id: 'team-2' }),
+            gameResult: testFactories.gameResult({ game_id: 'game-1' }),
+          } as ExtendedGameData,
+        ];
+        const mockTeams = [
+          testFactories.tournamentGroupTeam({ team_id: 'team-1' }),
+          testFactories.tournamentGroupTeam({ team_id: 'team-2' }),
+        ];
+
+        mockFindTournamentgroupById
+          .mockResolvedValueOnce(mockGroup)
+          .mockResolvedValueOnce(mockGroup);
+        mockFindGamesInGroup
+          .mockResolvedValueOnce(mockGames)
+          .mockResolvedValueOnce(mockGames);
+        mockFindTeamsInGroup.mockResolvedValue(mockTeams);
+
+        // Mock transaction
+        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
+          const mockTrx = {
+            deleteFrom: vi.fn().mockReturnValue({
+              where: vi.fn().mockReturnValue({
+                execute: vi.fn().mockResolvedValue(undefined),
+              }),
+            }),
+          };
+          return callback(mockTrx);
+        });
+        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
+
+        await clearGameScores('group-1');
+
+        expect(mockCalculateAndStoreGroupPosition).toHaveBeenCalledWith(
+          'group-1',
+          ['team-1', 'team-2'],
+          mockGames,
+          false
+        );
+      });
+
+      it('skips group recalculation for playoff games', async () => {
+        const mockRound = testFactories.playoffRound({
+          id: 'round-1',
+          tournament_id: 'tournament-1',
+        });
+        const mockGames: ExtendedGameData[] = [
+          {
+            ...testFactories.game({
+              id: 'game-1',
+              tournament_id: 'tournament-1',
+              game_type: 'playoff',
+            }),
+            homeTeam: testFactories.team({ id: 'team-1' }),
+            awayTeam: testFactories.team({ id: 'team-2' }),
+            gameResult: testFactories.gameResult({ game_id: 'game-1' }),
+            playoffStage: {
+              tournament_playoff_round_id: 'round-1',
+              round_name: 'Round 1',
+              is_final: false,
+              is_third_place: false,
+            },
+          } as ExtendedGameData,
+        ];
+
+        const mockQuery = {
+          selectAll: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          executeTakeFirst: vi.fn().mockResolvedValue(mockRound),
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+        mockFindGamesInTournament.mockResolvedValue(mockGames);
+
+        // Mock recalculation functions
+        mockCalculateGameScores.mockResolvedValue(undefined);
+        mockCalculateAndStoreQualifiedTeamsPoints.mockResolvedValue(undefined);
+
+        // Mock transaction
+        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
+          const mockTrx = {
+            deleteFrom: vi.fn().mockReturnValue({
+              where: vi.fn().mockReturnValue({
+                execute: vi.fn().mockResolvedValue(undefined),
+              }),
+            }),
+          };
+          return callback(mockTrx);
+        });
+        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
+
+        await clearGameScores(undefined, 'round-1');
+
+        // Group position should NOT be called for playoff games
+        expect(mockCalculateAndStoreGroupPosition).not.toHaveBeenCalled();
+        // But other recalculations should still run
+        expect(mockCalculateGameScores).toHaveBeenCalled();
+      });
+    });
+
+    describe('Error Handling', () => {
+      it('returns error when transaction fails', async () => {
+        const mockGroup = testFactories.tournamentGroup({
+          id: 'group-1',
+          tournament_id: 'tournament-1',
+        });
+        const mockGames: ExtendedGameData[] = [
+          {
+            ...testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' }),
+            homeTeam: testFactories.team({ id: 'team-1' }),
+            awayTeam: testFactories.team({ id: 'team-2' }),
+            gameResult: testFactories.gameResult({ game_id: 'game-1' }),
+          } as ExtendedGameData,
+        ];
+
+        mockFindTournamentgroupById.mockResolvedValue(mockGroup);
+        mockFindGamesInGroup.mockResolvedValue(mockGames);
+
+        // Mock transaction to throw error
+        const mockTrxExecute = vi.fn().mockRejectedValue(new Error('Database connection failed'));
+        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
+
+        const result = await clearGameScores('group-1');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Database connection failed');
+      });
+    });
+  });
+});
