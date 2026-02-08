@@ -112,11 +112,10 @@ export default async function GroupComponent(props : Props) {
             </Grid>
             <Grid size={12} justifyContent={'center'}>
               <GroupTable
+                teamStats={completeGroupData.teamPositions}
                 teamsMap={completeGroupData.teamsMap}
-                qualifiedTeamGuesses={qualifiedTeamGuesses}
                 qualifiedTeams={qualifiedTeams}
-                realPositions={completeGroupData.teamPositions}
-                isPredictions={true}/>
+              />
             </Grid>
           </Grid>
         </ViewTransition>
