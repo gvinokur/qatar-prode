@@ -92,36 +92,20 @@ export async function calculateAndStoreQualifiedTeamsScores(
         const scoringResult = await calculateQualifiedTeamsScore(userId, tournamentId);
 
         // Update tournament_guesses with the calculated score
-        // Use transaction for atomicity
-        await db.transaction().execute(async (trx) => {
-          // Check if tournament_guess exists
-          const existing = await trx
-            .selectFrom('tournament_guesses')
-            .where('user_id', '=', userId)
-            .where('tournament_id', '=', tournamentId)
-            .select('id')
-            .executeTakeFirst();
-
-          if (existing) {
-            // Update existing
-            await trx
-              .updateTable('tournament_guesses')
-              .set({ qualified_teams_score: scoringResult.totalScore })
-              .where('user_id', '=', userId)
-              .where('tournament_id', '=', tournamentId)
-              .execute();
-          } else {
-            // Insert new tournament_guess
-            await trx
-              .insertInto('tournament_guesses')
-              .values({
-                user_id: userId,
-                tournament_id: tournamentId,
-                qualified_teams_score: scoringResult.totalScore,
-              })
-              .execute();
-          }
-        });
+        // Use atomic upsert (no transaction needed - supported by PostgreSQL)
+        await db
+          .insertInto('tournament_guesses')
+          .values({
+            user_id: userId,
+            tournament_id: tournamentId,
+            qualified_teams_score: scoringResult.totalScore,
+          })
+          .onConflict((oc) =>
+            oc.columns(['user_id', 'tournament_id']).doUpdateSet({
+              qualified_teams_score: scoringResult.totalScore,
+            })
+          )
+          .execute();
 
         usersProcessed++;
         totalScoreSum += scoringResult.totalScore;
