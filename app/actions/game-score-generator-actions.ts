@@ -259,8 +259,8 @@ export async function clearGameScores(
       });
     }
 
-    // Trigger recalculation to clean up guess scores
-    await calculateGameScores(false, false);
+    // Trigger full recalculation pipeline
+    await calculateAndSavePlayoffGamesForTournament(tournamentId);
 
     if (groupId) {
       // Recalculate group standings (without these results)
@@ -278,6 +278,7 @@ export async function clearGameScores(
       }
     }
 
+    await calculateGameScores(false, false);
     await calculateAndStoreQualifiedTeamsPoints(tournamentId);
 
     return {
