@@ -20,6 +20,7 @@ export interface TeamStanding {
   losses: number          // loss
   goalsFor: number        // goals_for
   goalsAgainst: number    // goals_against
+  conductScore: number    // conduct_score
 
   // Future rank change support
   previousPosition?: number

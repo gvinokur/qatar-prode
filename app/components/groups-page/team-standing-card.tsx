@@ -190,6 +190,11 @@ export default function TeamStandingCard({
                     • Diferencia de Gol: {standing.goalDifference >= 0 ? '+' : ''}{standing.goalDifference}
                   </Typography>
                 </Box>
+
+                {/* Conduct Score */}
+                <Typography variant="body2" color="text.secondary">
+                  Puntos de Conducta: {standing.conductScore}
+                </Typography>
               </Box>
             </Box>
           </Collapse>

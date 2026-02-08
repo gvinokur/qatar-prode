@@ -60,6 +60,7 @@ export default function TeamStandingsCards({
         losses: stats.loss,
         goalsFor: stats.goals_for,
         goalsAgainst: stats.goals_against,
+        conductScore: stats.conduct_score,
         previousPosition
       }
     })
