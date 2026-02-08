@@ -507,8 +507,8 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 3. Push to remote:
 git -C ${WORKTREE_PATH} push -u origin ${BRANCH_NAME}
 
-4. Create PR with proper issue linking:
-gh pr create --base main --head ${BRANCH_NAME} \\
+4. Create DRAFT PR with proper issue linking:
+gh pr create --draft --base main --head ${BRANCH_NAME} \\
   --title "Plan: ${issueTitle} #${STORY_NUMBER}" \\
   --body "Fixes #${STORY_NUMBER}
 

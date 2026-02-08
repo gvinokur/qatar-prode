@@ -88,7 +88,8 @@ If you start planning before reading planning.md, you WILL do it wrong.
 5. **NEVER commit without running validation checks** - MUST run tests, lint, and build before ANY commit (see implementation.md Section 8)
 6. **ALWAYS ask permission before running migrations** - NEVER run database migrations without explicit user approval (see implementation.md Section 8 Step 4)
 7. **Default: Deploy to Vercel Preview for user testing** - User tests in Vercel Preview (NOT locally) unless they explicitly request local testing (see implementation.md Section 8)
-7. **NEVER ask "would you like to proceed?" after creating plan PR** - Just WAIT for user (see planning.md Step 7 "CRITICAL CHECKPOINT")
+8. **NEVER ask "would you like to proceed?" after creating plan PR** - Just WAIT for user (see planning.md Step 7 "CRITICAL CHECKPOINT")
+9. **ALWAYS create PRs as DRAFT** - Only mark as ready for review when user explicitly requests it or asks to merge (see planning.md Step 7 and validation.md Section 10)
 
 ## Permissions Configuration
 

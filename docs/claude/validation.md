@@ -16,6 +16,7 @@ After implementation is complete, code is committed/pushed, and user has tested 
 4. **80% coverage on new code** - SonarCloud enforces this automatically
 5. **NEVER auto-fix issues** - Always show user and ask permission
 6. **All checks must pass** - CI/CD, SonarCloud quality gates
+7. **Keep PR in DRAFT until ready to merge** - Only mark as ready for review when user explicitly requests it or asks to merge
 
 ## When to Run Validation
 
@@ -239,9 +240,37 @@ gh pr view ${PR_NUMBER} --json statusCheckRollup --jq '.statusCheckRollup[] | se
 - Fix build/runtime errors
 - Commit, push, re-validate
 
-### 10. Final Quality Gate Confirmation
+### 10. Mark PR as Ready for Review
 
-**Present summary to user:**
+**CRITICAL: PRs should remain in DRAFT mode throughout planning and implementation.**
+
+**Only mark PR as ready for review when:**
+1. ✅ All implementation is complete
+2. ✅ All tests pass
+3. ✅ All lint/build checks pass
+4. ✅ SonarCloud quality gates pass (0 new issues, ≥80% coverage)
+5. ✅ User has tested in Vercel Preview and is satisfied
+6. ✅ No more feedback or changes expected
+
+**When to mark as ready:**
+- User explicitly says "mark as ready for review"
+- User says "ready to merge" and PR is still in draft
+- User says "merge this" and PR is still in draft
+
+**Command to mark PR as ready:**
+```bash
+gh pr ready ${PR_NUMBER}
+```
+
+**DO NOT mark as ready for review:**
+- ❌ During planning phase (even after plan is approved)
+- ❌ During implementation phase (even if code works)
+- ❌ After user testing if more changes are expected
+- ❌ Automatically without user's explicit instruction
+
+### 11. Final Quality Gate Confirmation
+
+**After marking as ready for review, present summary to user:**
 ```
 ✅ All Quality Gates Passed!
 
@@ -253,7 +282,7 @@ Vercel: ✓ Deployed successfully
 Preview URL: [URL]
 SonarCloud Report: [URL]
 
-Ready to merge PR #${PR_NUMBER}
+PR #${PR_NUMBER} marked as ready for review and ready to merge
 ```
 
 **Commands used:**
@@ -264,7 +293,10 @@ Ready to merge PR #${PR_NUMBER}
 # 2. Get detailed SonarCloud results
 ./scripts/github-projects-helper pr sonar-issues ${PR_NUMBER}
 
-# 3. If all passes, complete story
+# 3. Mark PR as ready for review (ONLY when user explicitly requests it)
+gh pr ready ${PR_NUMBER}
+
+# 4. If all passes, complete story
 ./scripts/github-projects-helper story complete ${STORY_NUMBER} --project ${PROJECT_NUMBER}
 ```
 
