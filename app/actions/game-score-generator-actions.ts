@@ -140,10 +140,8 @@ export async function autoFillGameScores(
     }
 
     // Trigger full recalculation pipeline
-    await calculateAndSavePlayoffGamesForTournament(tournamentId);
-
+    // First recalculate group standings (playoff calculation depends on this)
     if (groupId) {
-      // Recalculate group standings
       const group = await findTournamentgroupById(groupId);
       if (group) {
         const teams = await findTeamsInGroup(groupId);
@@ -157,6 +155,9 @@ export async function autoFillGameScores(
         );
       }
     }
+
+    // Then recalculate playoff teams (uses updated group standings)
+    await calculateAndSavePlayoffGamesForTournament(tournamentId);
 
     await calculateGameScores(false, false);
     await calculateAndStoreQualifiedTeamsPoints(tournamentId);
@@ -260,10 +261,8 @@ export async function clearGameScores(
     }
 
     // Trigger full recalculation pipeline
-    await calculateAndSavePlayoffGamesForTournament(tournamentId);
-
+    // First recalculate group standings (playoff calculation depends on this)
     if (groupId) {
-      // Recalculate group standings (without these results)
       const group = await findTournamentgroupById(groupId);
       if (group) {
         const teams = await findTeamsInGroup(groupId);
@@ -277,6 +276,9 @@ export async function clearGameScores(
         );
       }
     }
+
+    // Then recalculate playoff teams (uses updated group standings)
+    await calculateAndSavePlayoffGamesForTournament(tournamentId);
 
     await calculateGameScores(false, false);
     await calculateAndStoreQualifiedTeamsPoints(tournamentId);
