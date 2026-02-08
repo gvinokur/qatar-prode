@@ -2,10 +2,10 @@
 
 import { auth } from '../../auth';
 import { findGamesInGroup, findGamesInTournament } from '../db/game-repository';
-import { findGameResultByGameIds } from '../db/game-result-repository';
+import { findGameResultByGameIds, createGameResult, updateGameResult } from '../db/game-result-repository';
 import { generateMatchScore } from '../utils/poisson-generator';
 import { ExtendedGameData } from '../definitions';
-import { db } from '../db/database';
+import { db } from '../db/database'; // Used for playoff round queries
 import {
   calculateAndSavePlayoffGamesForTournament,
   calculateAndStoreGroupPosition,
@@ -112,40 +112,32 @@ export async function autoFillGameScores(
       };
     }
 
-    // Generate scores and save (transactional)
-    await db.transaction().execute(async (trx) => {
-      for (const game of gamesToFill) {
-        const matchScore = generateMatchScore(1.35);
+    // Generate scores and save (non-transactional, partial success is acceptable)
+    for (const game of gamesToFill) {
+      const matchScore = generateMatchScore(1.35);
+      const existingResult = resultsMap.get(game.id);
 
-        const existingResult = resultsMap.get(game.id);
-
-        if (existingResult) {
-          // Update existing draft result
-          await trx.updateTable('game_results')
-            .set({
-              home_score: matchScore.homeScore,
-              away_score: matchScore.awayScore,
-              home_penalty_score: matchScore.homePenaltyScore ?? undefined,
-              away_penalty_score: matchScore.awayPenaltyScore ?? undefined,
-              is_draft: false // Publish immediately
-            })
-            .where('game_id', '=', game.id)
-            .execute();
-        } else {
-          // Create new result
-          await trx.insertInto('game_results')
-            .values({
-              game_id: game.id,
-              home_score: matchScore.homeScore,
-              away_score: matchScore.awayScore,
-              home_penalty_score: matchScore.homePenaltyScore ?? undefined,
-              away_penalty_score: matchScore.awayPenaltyScore ?? undefined,
-              is_draft: false // Publish immediately
-            })
-            .execute();
-        }
+      if (existingResult) {
+        // Update existing draft result
+        await updateGameResult(game.id, {
+          home_score: matchScore.homeScore,
+          away_score: matchScore.awayScore,
+          home_penalty_score: matchScore.homePenaltyScore ?? undefined,
+          away_penalty_score: matchScore.awayPenaltyScore ?? undefined,
+          is_draft: false // Publish immediately
+        });
+      } else {
+        // Create new result
+        await createGameResult({
+          game_id: game.id,
+          home_score: matchScore.homeScore,
+          away_score: matchScore.awayScore,
+          home_penalty_score: matchScore.homePenaltyScore ?? undefined,
+          away_penalty_score: matchScore.awayPenaltyScore ?? undefined,
+          is_draft: false // Publish immediately
+        });
       }
-    });
+    }
 
     // Trigger full recalculation pipeline
     await calculateAndSavePlayoffGamesForTournament(tournamentId);
@@ -255,14 +247,17 @@ export async function clearGameScores(
       };
     }
 
-    const gameIds = gamesWithResults.map(g => g.id);
-
-    // Delete game results (transactional)
-    await db.transaction().execute(async (trx) => {
-      await trx.deleteFrom('game_results')
-        .where('game_id', 'in', gameIds)
-        .execute();
-    });
+    // Clear game results (non-transactional, partial success is acceptable)
+    // Set scores back to undefined and mark as draft
+    for (const game of gamesWithResults) {
+      await updateGameResult(game.id, {
+        home_score: undefined,
+        away_score: undefined,
+        home_penalty_score: undefined,
+        away_penalty_score: undefined,
+        is_draft: true
+      });
+    }
 
     // Trigger recalculation to clean up guess scores
     await calculateGameScores(false, false);

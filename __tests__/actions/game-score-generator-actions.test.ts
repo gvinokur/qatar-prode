@@ -19,8 +19,8 @@ vi.mock('../../app/db/game-repository', () => ({
 
 vi.mock('../../app/db/game-result-repository', () => ({
   findGameResultByGameIds: vi.fn(),
-  createGameResult: vi.fn(),
-  updateGameResult: vi.fn(),
+  createGameResult: vi.fn().mockResolvedValue(undefined),
+  updateGameResult: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('../../app/db/tournament-group-repository', () => ({
@@ -31,7 +31,6 @@ vi.mock('../../app/db/tournament-group-repository', () => ({
 vi.mock('../../app/db/database', () => ({
   db: {
     selectFrom: vi.fn(),
-    transaction: vi.fn(),
   },
 }));
 
@@ -60,6 +59,8 @@ const mockAuth = vi.mocked(auth);
 const mockFindGamesInGroup = vi.mocked(gameRepository.findGamesInGroup);
 const mockFindGamesInTournament = vi.mocked(gameRepository.findGamesInTournament);
 const mockFindGameResultByGameIds = vi.mocked(gameResultRepository.findGameResultByGameIds);
+const mockCreateGameResult = vi.mocked(gameResultRepository.createGameResult);
+const mockUpdateGameResult = vi.mocked(gameResultRepository.updateGameResult);
 const mockFindTournamentgroupById = vi.mocked(tournamentGroupRepository.findTournamentgroupById);
 const mockFindTeamsInGroup = vi.mocked(tournamentGroupRepository.findTeamsInGroup);
 const mockDb = vi.mocked(db);
@@ -126,26 +127,6 @@ describe('Game Score Generator Actions', () => {
         mockFindGamesInGroup.mockResolvedValue(mockGames);
         mockFindGameResultByGameIds.mockResolvedValue([]);
         mockFindTeamsInGroup.mockResolvedValue([]);
-
-        // Mock transaction
-        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
-          const mockTrx = {
-            insertInto: vi.fn().mockReturnValue({
-              values: vi.fn().mockReturnValue({
-                execute: vi.fn().mockResolvedValue(undefined),
-              }),
-            }),
-            updateTable: vi.fn().mockReturnValue({
-              set: vi.fn().mockReturnValue({
-                where: vi.fn().mockReturnValue({
-                  execute: vi.fn().mockResolvedValue(undefined),
-                }),
-              }),
-            }),
-          };
-          return callback(mockTrx);
-        });
-        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
 
         const result = await autoFillGameScores('group-1');
 
@@ -235,36 +216,30 @@ describe('Game Score Generator Actions', () => {
         mockFindGameResultByGameIds.mockResolvedValue([]);
         mockFindTeamsInGroup.mockResolvedValue([]);
 
-        // Mock transaction
-        const mockInsertions: string[] = [];
-        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
-          const mockTrx = {
-            insertInto: vi.fn().mockReturnValue({
-              values: vi.fn().mockImplementation((values: any) => {
-                mockInsertions.push(values.game_id);
-                return {
-                  execute: vi.fn().mockResolvedValue(undefined),
-                };
-              }),
-            }),
-            updateTable: vi.fn().mockReturnValue({
-              set: vi.fn().mockReturnValue({
-                where: vi.fn().mockReturnValue({
-                  execute: vi.fn().mockResolvedValue(undefined),
-                }),
-              }),
-            }),
-          };
-          return callback(mockTrx);
-        });
-        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
-
         const result = await autoFillGameScores('group-1');
 
         expect(result.success).toBe(true);
         expect(result.filledCount).toBe(2);
         expect(result.skippedCount).toBe(0);
-        expect(mockInsertions).toEqual(['game-1', 'game-2']);
+
+        // Verify createGameResult was called for both games
+        expect(mockCreateGameResult).toHaveBeenCalledTimes(2);
+        expect(mockCreateGameResult).toHaveBeenCalledWith({
+          game_id: 'game-1',
+          home_score: 2,
+          away_score: 1,
+          home_penalty_score: undefined,
+          away_penalty_score: undefined,
+          is_draft: false,
+        });
+        expect(mockCreateGameResult).toHaveBeenCalledWith({
+          game_id: 'game-2',
+          home_score: 2,
+          away_score: 1,
+          home_penalty_score: undefined,
+          away_penalty_score: undefined,
+          is_draft: false,
+        });
       });
 
       it('fills only draft games (unpublished result)', async () => {
@@ -291,35 +266,20 @@ describe('Game Score Generator Actions', () => {
         mockFindGameResultByGameIds.mockResolvedValue([draftResult]);
         mockFindTeamsInGroup.mockResolvedValue([]);
 
-        // Mock transaction
-        const mockUpdates: string[] = [];
-        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
-          const mockTrx = {
-            insertInto: vi.fn().mockReturnValue({
-              values: vi.fn().mockReturnValue({
-                execute: vi.fn().mockResolvedValue(undefined),
-              }),
-            }),
-            updateTable: vi.fn().mockReturnValue({
-              set: vi.fn().mockReturnValue({
-                where: vi.fn().mockImplementation((field: string, op: string, value: string) => {
-                  mockUpdates.push(value);
-                  return {
-                    execute: vi.fn().mockResolvedValue(undefined),
-                  };
-                }),
-              }),
-            }),
-          };
-          return callback(mockTrx);
-        });
-        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
-
         const result = await autoFillGameScores('group-1');
 
         expect(result.success).toBe(true);
         expect(result.filledCount).toBe(1);
-        expect(mockUpdates).toContain('game-1');
+
+        // Verify updateGameResult was called for game-1
+        expect(mockUpdateGameResult).toHaveBeenCalledTimes(1);
+        expect(mockUpdateGameResult).toHaveBeenCalledWith('game-1', {
+          home_score: 2,
+          away_score: 1,
+          home_penalty_score: undefined,
+          away_penalty_score: undefined,
+          is_draft: false,
+        });
       });
 
       it('skips published games', async () => {
@@ -351,36 +311,22 @@ describe('Game Score Generator Actions', () => {
         mockFindGameResultByGameIds.mockResolvedValue([publishedResult]);
         mockFindTeamsInGroup.mockResolvedValue([]);
 
-        // Mock transaction
-        const mockInsertions: string[] = [];
-        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
-          const mockTrx = {
-            insertInto: vi.fn().mockReturnValue({
-              values: vi.fn().mockImplementation((values: any) => {
-                mockInsertions.push(values.game_id);
-                return {
-                  execute: vi.fn().mockResolvedValue(undefined),
-                };
-              }),
-            }),
-            updateTable: vi.fn().mockReturnValue({
-              set: vi.fn().mockReturnValue({
-                where: vi.fn().mockReturnValue({
-                  execute: vi.fn().mockResolvedValue(undefined),
-                }),
-              }),
-            }),
-          };
-          return callback(mockTrx);
-        });
-        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
-
         const result = await autoFillGameScores('group-1');
 
         expect(result.success).toBe(true);
         expect(result.filledCount).toBe(1);
         expect(result.skippedCount).toBe(1);
-        expect(mockInsertions).toEqual(['game-2']); // Only game-2 filled
+
+        // Verify createGameResult was called only for game-2
+        expect(mockCreateGameResult).toHaveBeenCalledTimes(1);
+        expect(mockCreateGameResult).toHaveBeenCalledWith({
+          game_id: 'game-2',
+          home_score: 2,
+          away_score: 1,
+          home_penalty_score: undefined,
+          away_penalty_score: undefined,
+          is_draft: false,
+        });
       });
 
       it('returns success with zero filled when all games are published', async () => {
@@ -410,7 +356,8 @@ describe('Game Score Generator Actions', () => {
         expect(result.success).toBe(true);
         expect(result.filledCount).toBe(0);
         expect(result.skippedCount).toBe(1);
-        expect(mockDb.transaction).not.toHaveBeenCalled();
+        expect(mockCreateGameResult).not.toHaveBeenCalled();
+        expect(mockUpdateGameResult).not.toHaveBeenCalled();
       });
     });
 
@@ -438,38 +385,18 @@ describe('Game Score Generator Actions', () => {
           awayScore: 2,
         });
 
-        // Mock transaction
-        const insertedResults: any[] = [];
-        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
-          const mockTrx = {
-            insertInto: vi.fn().mockReturnValue({
-              values: vi.fn().mockImplementation((values: any) => {
-                insertedResults.push(values);
-                return {
-                  execute: vi.fn().mockResolvedValue(undefined),
-                };
-              }),
-            }),
-            updateTable: vi.fn().mockReturnValue({
-              set: vi.fn().mockReturnValue({
-                where: vi.fn().mockReturnValue({
-                  execute: vi.fn().mockResolvedValue(undefined),
-                }),
-              }),
-            }),
-          };
-          return callback(mockTrx);
-        });
-        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
-
         const result = await autoFillGameScores('group-1');
 
         expect(result.success).toBe(true);
-        expect(insertedResults).toHaveLength(1);
-        expect(insertedResults[0]).toMatchObject({
+
+        // Verify createGameResult was called with generated scores
+        expect(mockCreateGameResult).toHaveBeenCalledTimes(1);
+        expect(mockCreateGameResult).toHaveBeenCalledWith({
           game_id: 'game-1',
           home_score: 3,
           away_score: 2,
+          home_penalty_score: undefined,
+          away_penalty_score: undefined,
           is_draft: false,
         });
       });
@@ -504,37 +431,17 @@ describe('Game Score Generator Actions', () => {
           awayScore: 1,
         });
 
-        // Mock transaction
-        const updatedResults: any[] = [];
-        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
-          const mockTrx = {
-            insertInto: vi.fn().mockReturnValue({
-              values: vi.fn().mockReturnValue({
-                execute: vi.fn().mockResolvedValue(undefined),
-              }),
-            }),
-            updateTable: vi.fn().mockReturnValue({
-              set: vi.fn().mockImplementation((values: any) => {
-                updatedResults.push(values);
-                return {
-                  where: vi.fn().mockReturnValue({
-                    execute: vi.fn().mockResolvedValue(undefined),
-                  }),
-                };
-              }),
-            }),
-          };
-          return callback(mockTrx);
-        });
-        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
-
         const result = await autoFillGameScores('group-1');
 
         expect(result.success).toBe(true);
-        expect(updatedResults).toHaveLength(1);
-        expect(updatedResults[0]).toMatchObject({
+
+        // Verify updateGameResult was called with generated scores
+        expect(mockUpdateGameResult).toHaveBeenCalledTimes(1);
+        expect(mockUpdateGameResult).toHaveBeenCalledWith('game-1', {
           home_score: 2,
           away_score: 1,
+          home_penalty_score: undefined,
+          away_penalty_score: undefined,
           is_draft: false,
         });
       });
@@ -557,33 +464,14 @@ describe('Game Score Generator Actions', () => {
         mockFindGameResultByGameIds.mockResolvedValue([]);
         mockFindTeamsInGroup.mockResolvedValue([]);
 
-        // Mock transaction
-        const insertedResults: any[] = [];
-        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
-          const mockTrx = {
-            insertInto: vi.fn().mockReturnValue({
-              values: vi.fn().mockImplementation((values: any) => {
-                insertedResults.push(values);
-                return {
-                  execute: vi.fn().mockResolvedValue(undefined),
-                };
-              }),
-            }),
-            updateTable: vi.fn().mockReturnValue({
-              set: vi.fn().mockReturnValue({
-                where: vi.fn().mockReturnValue({
-                  execute: vi.fn().mockResolvedValue(undefined),
-                }),
-              }),
-            }),
-          };
-          return callback(mockTrx);
-        });
-        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
-
         await autoFillGameScores('group-1');
 
-        expect(insertedResults[0].is_draft).toBe(false);
+        // Verify is_draft is false
+        expect(mockCreateGameResult).toHaveBeenCalledWith(
+          expect.objectContaining({
+            is_draft: false,
+          })
+        );
       });
     });
 
@@ -609,26 +497,6 @@ describe('Game Score Generator Actions', () => {
           .mockResolvedValueOnce(mockGames); // Second call in recalculation
         mockFindGameResultByGameIds.mockResolvedValue([]);
         mockFindTeamsInGroup.mockResolvedValue([]);
-
-        // Mock transaction
-        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
-          const mockTrx = {
-            insertInto: vi.fn().mockReturnValue({
-              values: vi.fn().mockReturnValue({
-                execute: vi.fn().mockResolvedValue(undefined),
-              }),
-            }),
-            updateTable: vi.fn().mockReturnValue({
-              set: vi.fn().mockReturnValue({
-                where: vi.fn().mockReturnValue({
-                  execute: vi.fn().mockResolvedValue(undefined),
-                }),
-              }),
-            }),
-          };
-          return callback(mockTrx);
-        });
-        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
 
         await autoFillGameScores('group-1');
 
@@ -664,26 +532,6 @@ describe('Game Score Generator Actions', () => {
           .mockResolvedValueOnce(mockGames);
         mockFindGameResultByGameIds.mockResolvedValue([]);
         mockFindTeamsInGroup.mockResolvedValue(mockTeams);
-
-        // Mock transaction
-        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
-          const mockTrx = {
-            insertInto: vi.fn().mockReturnValue({
-              values: vi.fn().mockReturnValue({
-                execute: vi.fn().mockResolvedValue(undefined),
-              }),
-            }),
-            updateTable: vi.fn().mockReturnValue({
-              set: vi.fn().mockReturnValue({
-                where: vi.fn().mockReturnValue({
-                  execute: vi.fn().mockResolvedValue(undefined),
-                }),
-              }),
-            }),
-          };
-          return callback(mockTrx);
-        });
-        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
 
         await autoFillGameScores('group-1');
 
@@ -732,26 +580,6 @@ describe('Game Score Generator Actions', () => {
         mockCalculateGameScores.mockResolvedValue(undefined);
         mockCalculateAndStoreQualifiedTeamsPoints.mockResolvedValue(undefined);
 
-        // Mock transaction
-        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
-          const mockTrx = {
-            insertInto: vi.fn().mockReturnValue({
-              values: vi.fn().mockReturnValue({
-                execute: vi.fn().mockResolvedValue(undefined),
-              }),
-            }),
-            updateTable: vi.fn().mockReturnValue({
-              set: vi.fn().mockReturnValue({
-                where: vi.fn().mockReturnValue({
-                  execute: vi.fn().mockResolvedValue(undefined),
-                }),
-              }),
-            }),
-          };
-          return callback(mockTrx);
-        });
-        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
-
         await autoFillGameScores(undefined, 'round-1');
 
         // Group position should NOT be called for playoff games
@@ -763,7 +591,7 @@ describe('Game Score Generator Actions', () => {
     });
 
     describe('Error Handling', () => {
-      it('returns error when transaction fails', async () => {
+      it('returns error when repository function fails', async () => {
         const mockGroup = testFactories.tournamentGroup({
           id: 'group-1',
           tournament_id: 'tournament-1',
@@ -780,9 +608,8 @@ describe('Game Score Generator Actions', () => {
         mockFindGamesInGroup.mockResolvedValue(mockGames);
         mockFindGameResultByGameIds.mockResolvedValue([]);
 
-        // Mock transaction to throw error
-        const mockTrxExecute = vi.fn().mockRejectedValue(new Error('Database connection failed'));
-        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
+        // Mock createGameResult to throw error
+        mockCreateGameResult.mockRejectedValueOnce(new Error('Database connection failed'));
 
         const result = await autoFillGameScores('group-1');
 
@@ -810,19 +637,6 @@ describe('Game Score Generator Actions', () => {
 
         mockFindTournamentgroupById.mockResolvedValue(mockGroup);
         mockFindGamesInGroup.mockResolvedValue(mockGames);
-
-        // Mock transaction
-        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
-          const mockTrx = {
-            deleteFrom: vi.fn().mockReturnValue({
-              where: vi.fn().mockReturnValue({
-                execute: vi.fn().mockResolvedValue(undefined),
-              }),
-            }),
-          };
-          return callback(mockTrx);
-        });
-        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
 
         const result = await clearGameScores('group-1');
 
@@ -912,28 +726,27 @@ describe('Game Score Generator Actions', () => {
         mockFindTournamentgroupById.mockResolvedValue(mockGroup);
         mockFindGamesInGroup.mockResolvedValue(mockGames);
 
-        // Mock transaction
-        const deletedGameIds: string[] = [];
-        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
-          const mockTrx = {
-            deleteFrom: vi.fn().mockReturnValue({
-              where: vi.fn().mockImplementation((field: string, op: string, values: string[]) => {
-                deletedGameIds.push(...values);
-                return {
-                  execute: vi.fn().mockResolvedValue(undefined),
-                };
-              }),
-            }),
-          };
-          return callback(mockTrx);
-        });
-        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
-
         const result = await clearGameScores('group-1');
 
         expect(result.success).toBe(true);
         expect(result.clearedCount).toBe(2);
-        expect(deletedGameIds).toEqual(['game-1', 'game-2']);
+
+        // Verify updateGameResult was called for both games to clear scores
+        expect(mockUpdateGameResult).toHaveBeenCalledTimes(2);
+        expect(mockUpdateGameResult).toHaveBeenCalledWith('game-1', {
+          home_score: undefined,
+          away_score: undefined,
+          home_penalty_score: undefined,
+          away_penalty_score: undefined,
+          is_draft: true,
+        });
+        expect(mockUpdateGameResult).toHaveBeenCalledWith('game-2', {
+          home_score: undefined,
+          away_score: undefined,
+          home_penalty_score: undefined,
+          away_penalty_score: undefined,
+          is_draft: true,
+        });
       });
 
       it('returns success with zero cleared when no games have results', async () => {
@@ -957,7 +770,7 @@ describe('Game Score Generator Actions', () => {
 
         expect(result.success).toBe(true);
         expect(result.clearedCount).toBe(0);
-        expect(mockDb.transaction).not.toHaveBeenCalled();
+        expect(mockUpdateGameResult).not.toHaveBeenCalled();
       });
 
       it('only deletes results for games that have them', async () => {
@@ -983,28 +796,20 @@ describe('Game Score Generator Actions', () => {
         mockFindTournamentgroupById.mockResolvedValue(mockGroup);
         mockFindGamesInGroup.mockResolvedValue(mockGames);
 
-        // Mock transaction
-        const deletedGameIds: string[] = [];
-        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
-          const mockTrx = {
-            deleteFrom: vi.fn().mockReturnValue({
-              where: vi.fn().mockImplementation((field: string, op: string, values: string[]) => {
-                deletedGameIds.push(...values);
-                return {
-                  execute: vi.fn().mockResolvedValue(undefined),
-                };
-              }),
-            }),
-          };
-          return callback(mockTrx);
-        });
-        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
-
         const result = await clearGameScores('group-1');
 
         expect(result.success).toBe(true);
         expect(result.clearedCount).toBe(1);
-        expect(deletedGameIds).toEqual(['game-1']); // Only game-1 has result
+
+        // Verify updateGameResult was called only for game-1
+        expect(mockUpdateGameResult).toHaveBeenCalledTimes(1);
+        expect(mockUpdateGameResult).toHaveBeenCalledWith('game-1', {
+          home_score: undefined,
+          away_score: undefined,
+          home_penalty_score: undefined,
+          away_penalty_score: undefined,
+          is_draft: true,
+        });
       });
     });
 
@@ -1030,19 +835,6 @@ describe('Game Score Generator Actions', () => {
           .mockResolvedValueOnce(mockGames)
           .mockResolvedValueOnce(mockGames);
         mockFindTeamsInGroup.mockResolvedValue([]);
-
-        // Mock transaction
-        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
-          const mockTrx = {
-            deleteFrom: vi.fn().mockReturnValue({
-              where: vi.fn().mockReturnValue({
-                execute: vi.fn().mockResolvedValue(undefined),
-              }),
-            }),
-          };
-          return callback(mockTrx);
-        });
-        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
 
         await clearGameScores('group-1');
 
@@ -1076,19 +868,6 @@ describe('Game Score Generator Actions', () => {
           .mockResolvedValueOnce(mockGames)
           .mockResolvedValueOnce(mockGames);
         mockFindTeamsInGroup.mockResolvedValue(mockTeams);
-
-        // Mock transaction
-        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
-          const mockTrx = {
-            deleteFrom: vi.fn().mockReturnValue({
-              where: vi.fn().mockReturnValue({
-                execute: vi.fn().mockResolvedValue(undefined),
-              }),
-            }),
-          };
-          return callback(mockTrx);
-        });
-        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
 
         await clearGameScores('group-1');
 
@@ -1136,19 +915,6 @@ describe('Game Score Generator Actions', () => {
         mockCalculateGameScores.mockResolvedValue(undefined);
         mockCalculateAndStoreQualifiedTeamsPoints.mockResolvedValue(undefined);
 
-        // Mock transaction
-        const mockTrxExecute = vi.fn().mockImplementation(async (callback: any) => {
-          const mockTrx = {
-            deleteFrom: vi.fn().mockReturnValue({
-              where: vi.fn().mockReturnValue({
-                execute: vi.fn().mockResolvedValue(undefined),
-              }),
-            }),
-          };
-          return callback(mockTrx);
-        });
-        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
-
         await clearGameScores(undefined, 'round-1');
 
         // Group position should NOT be called for playoff games
@@ -1176,9 +942,8 @@ describe('Game Score Generator Actions', () => {
         mockFindTournamentgroupById.mockResolvedValue(mockGroup);
         mockFindGamesInGroup.mockResolvedValue(mockGames);
 
-        // Mock transaction to throw error
-        const mockTrxExecute = vi.fn().mockRejectedValue(new Error('Database connection failed'));
-        mockDb.transaction.mockReturnValue({ execute: mockTrxExecute } as any);
+        // Mock updateGameResult to throw error
+        mockUpdateGameResult.mockRejectedValueOnce(new Error('Database connection failed'));
 
         const result = await clearGameScores('group-1');
 
