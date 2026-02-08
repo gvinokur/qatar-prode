@@ -3,12 +3,12 @@
 import {Alert, Backdrop, Box, CircularProgress, Grid, Snackbar, Typography} from "@mui/material";
 import { useEffect, useState} from "react";
 import {ExtendedGameData, ExtendedPlayoffRoundData} from "../../definitions";
-import {GameResultNew, Team} from "../../db/tables-definition";
+import {Team} from "../../db/tables-definition";
 import {getCompletePlayoffData} from "../../actions/tournament-actions";
-import BackofficeGameView from "./internal/backoffice-game-view";
+import BackofficeFlippableGameCard from "./backoffice-flippable-game-card";
+import BulkActionsMenu from "./bulk-actions-menu";
 import {isTeamWinnerRule} from "../../utils/playoffs-rule-helper";
 import {getGameWinner, getGameLoser} from "../../utils/score-utils";
-import GameResultEditDialog from '../game-result-edit-dialog';
 import {
   calculateGameScores,
   saveGameResults,
@@ -17,13 +17,6 @@ import {
 
 type Props = {
   tournamentId: string
-}
-
-const buildGameResult = (game: ExtendedGameData):GameResultNew => {
-  return {
-    game_id: game.id,
-    is_draft: true,
-  }
 }
 
 const modifyAffectedTeams = (newGame:ExtendedGameData, newGamesMap: {[k: string]: ExtendedGameData}, gamesMap: {[k: string]: ExtendedGameData}) => {
@@ -62,8 +55,6 @@ export default function PlayoffTab({ tournamentId } :Props) {
   const [gamesMap, setGamesMap] = useState<{[k: string]: ExtendedGameData}>({})
   const [teamsMap, setTeamsMap] = useState<{[k:string]:Team}>({})
   const [loading, setLoading] = useState<boolean>(true)
-  const [editDialogOpen, setEditDialogOpen] = useState<boolean>(false);
-  const [selectedGame, setSelectedGame] = useState<ExtendedGameData | null>(null);
   const [saved, setSaved] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -78,14 +69,6 @@ export default function PlayoffTab({ tournamentId } :Props) {
     }
     fetchTournamentData()
   }, [tournamentId, setGamesMap, setTeamsMap, setLoading, setPlayoffStages]);
-
-  const handleEditGame = (gameNumber: number) => {
-    const gameToEdit = Object.values(gamesMap).find(game => game.game_number === gameNumber);
-    if (gameToEdit) {
-      setSelectedGame(gameToEdit);
-      setEditDialogOpen(true);
-    }
-  };
 
   const commitGameResults = async (newGame: ExtendedGameData, newGamesMap: {[k: string]: ExtendedGameData}) => {
     await saveGameResults(Object.values(newGamesMap))
@@ -116,72 +99,52 @@ export default function PlayoffTab({ tournamentId } :Props) {
     setSaved(true)
   }
 
-  const handleDraftStatusChanged = async (gameNumber: number) => {
-    const game = Object.values(gamesMap).find(game => game.game_number === gameNumber);
-    if(game) {
+  const handleSave = async (updatedGame: ExtendedGameData) => {
+    try {
+      const newGamesMap = {
+        ...gamesMap,
+        [updatedGame.id]: updatedGame
+      };
+      await commitGameResults(updatedGame, newGamesMap);
+    } catch (error) {
+      console.error('Error saving game result:', error);
+      setError(error instanceof Error ? error.message : 'Error al guardar el partido');
+      throw error;
+    }
+  };
+
+  const handlePublishToggle = async (gameId: string, isPublished: boolean) => {
+    const game = gamesMap[gameId];
+    if (game?.gameResult) {
       try {
-        const gameResult: GameResultNew = game.gameResult || buildGameResult(game)
         const newGame = {
           ...game,
           gameResult: {
-            ...gameResult,
-            is_draft: !gameResult.is_draft
+            ...game.gameResult,
+            is_draft: !isPublished
           }
-        }
+        };
         const newGamesMap = {
           ...gamesMap,
-          [game.id]: newGame
-        }
-
-        await commitGameResults(newGame, newGamesMap)
+          [gameId]: newGame
+        };
+        await commitGameResults(newGame, newGamesMap);
       } catch (err) {
-        console.error(`Error changing draft status for game ${gameNumber}:`, err);
-        setError(err instanceof Error ? err.message : `Error al cambiar el estado de publicación del partido ${gameNumber}`);
-        throw err; // Re-throw so component knows it failed
+        console.error(`Error changing draft status for game ${gameId}:`, err);
+        setError(err instanceof Error ? err.message : 'Error al cambiar el estado de publicación');
+        throw err;
       }
     }
-  }
+  };
 
-  const handleGameResultSave = async (
-    gameId: string,
-    homeScore?: number | null,
-    awayScore?: number | null,
-    homePenaltyScore?: number,
-    awayPenaltyScore?: number,
-    gameDate?: Date
-  ) => {
-
-    try {
-      const game = gamesMap[gameId];
-      if (!game) return;
-
-      const gameResult = game.gameResult || buildGameResult(game);
-      const newGame: ExtendedGameData = {
-        ...game,
-        gameResult: {
-          ...gameResult,
-          home_score: homeScore !== null ? homeScore : undefined,
-          away_score: awayScore !== null ? awayScore : undefined,
-          home_penalty_score: homePenaltyScore,
-          away_penalty_score: awayPenaltyScore
-        }
-      };
-
-      // Update game date if provided
-      if (gameDate) {
-        newGame.game_date = gameDate;
-      }
-
-      const newGamesMap = {
-        ...gamesMap,
-        [gameId]: newGame
-      };
-
-      // Save changes immediately
-      await commitGameResults(newGame, newGamesMap)
-    } catch (error) {
-      console.error('Error saving game result:', error);
-    }
+  const handleBulkActionsComplete = async () => {
+    // Refresh playoff data after bulk operations
+    setLoading(true);
+    const completePlayoffData = await getCompletePlayoffData(tournamentId);
+    setGamesMap(completePlayoffData.gamesMap);
+    setTeamsMap(completePlayoffData.teamsMap);
+    setPlayoffStages(completePlayoffData.playoffStages);
+    setLoading(false);
   };
 
   return (
@@ -195,7 +158,14 @@ export default function PlayoffTab({ tournamentId } :Props) {
       {!loading && playoffStages?.map(playoffStage => (
         <Grid container spacing={1} key={playoffStage.id} size={12}>
           <Grid textAlign={'center'} m={3} size={12}>
-            <Typography variant={'h5'}>{playoffStage.round_name}</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+              <Typography variant={'h5'}>{playoffStage.round_name}</Typography>
+              <BulkActionsMenu
+                playoffRoundId={playoffStage.id}
+                sectionName={playoffStage.round_name}
+                onComplete={handleBulkActionsComplete}
+              />
+            </Box>
           </Grid>
           {playoffStage.games.map(({game_id}) => (
             <Grid
@@ -205,11 +175,12 @@ export default function PlayoffTab({ tournamentId } :Props) {
                 md: 6,
                 lg: 4
               }}>
-              <BackofficeGameView
+              <BackofficeFlippableGameCard
                 game={gamesMap[game_id]}
                 teamsMap={teamsMap}
-                onEditClick={handleEditGame}
-                onPublishClick={handleDraftStatusChanged}
+                isPlayoffs={true}
+                onSave={handleSave}
+                onPublishToggle={handlePublishToggle}
               />
             </Grid>
           ))}
@@ -217,22 +188,6 @@ export default function PlayoffTab({ tournamentId } :Props) {
       ))}
       {!loading && (
         <>
-          <GameResultEditDialog
-            open={editDialogOpen}
-            onClose={() => setEditDialogOpen(false)}
-            isGameGuess={false}
-            gameId={selectedGame?.id || ''}
-            gameNumber={selectedGame?.game_number || 0}
-            isPlayoffGame={!!selectedGame?.playoffStage}
-            homeTeamName={selectedGame?.home_team ? teamsMap[selectedGame.home_team]?.name || 'Home Team' : 'Home Team'}
-            awayTeamName={selectedGame?.away_team ? teamsMap[selectedGame.away_team]?.name || 'Away Team' : 'Away Team'}
-            initialHomeScore={selectedGame?.gameResult?.home_score}
-            initialAwayScore={selectedGame?.gameResult?.away_score}
-            initialHomePenaltyScore={selectedGame?.gameResult?.home_penalty_score}
-            initialAwayPenaltyScore={selectedGame?.gameResult?.away_penalty_score}
-            initialGameDate={selectedGame?.game_date || new Date()}
-            onGameResultSave={handleGameResultSave}
-          />
           <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center'}} open={saved} autoHideDuration={2000} onClose={() => setSaved(false)}>
             <Alert onClose={() => setSaved(false)} severity="success" sx={{ width: '100%' }}>
               Los Partidos se guardaron correctamente!
