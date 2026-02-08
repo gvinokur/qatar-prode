@@ -14,6 +14,7 @@ interface PageProps {
   readonly params: Promise<{
     readonly id: string;
   }>;
+  readonly searchParams: Promise<{ [k: string]: string }>;
 }
 
 /** Fetch groups with their teams */
@@ -118,8 +119,9 @@ async function fetchAndFlattenPredictions(
  * Fetches tournament data, groups, teams, and user predictions
  * Passes data to client component for drag-and-drop interaction
  */
-export default async function QualifiedTeamsPage({ params }: PageProps) {
+export default async function QualifiedTeamsPage({ params, searchParams }: PageProps) {
   const { id: tournamentId } = await params;
+  const searchParamsResolved = await searchParams;
 
   try {
     // Check authentication
@@ -130,11 +132,11 @@ export default async function QualifiedTeamsPage({ params }: PageProps) {
 
     console.error('[QualifiedTeams] User authenticated:', user.id);
 
-    // Fetch tournament
+    // Fetch tournament (including dev_only field)
     const tournament = await db
       .selectFrom('tournaments')
       .where('id', '=', tournamentId)
-      .select(['id', 'short_name', 'is_active'])
+      .select(['id', 'short_name', 'is_active', 'dev_only'])
       .executeTakeFirst();
 
     if (!tournament) {
@@ -147,6 +149,15 @@ export default async function QualifiedTeamsPage({ params }: PageProps) {
     // Get tournament qualification configuration
     const config = await getTournamentQualificationConfig(tournamentId);
     console.error('[QualifiedTeams] Config loaded:', config);
+
+    // Check if editing should be allowed via search param (dev/preview + dev tournament only)
+    const isDevelopmentEnvironment = process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'preview';
+    const isDevTournament = tournament?.dev_only === true;
+    const editPlayoffsRequested = searchParamsResolved.editPlayoffs === 'true';
+    const allowEditing = editPlayoffsRequested && isDevelopmentEnvironment && isDevTournament;
+
+    // Override isLocked if all conditions are met
+    const isLocked = allowEditing ? false : config.isLocked;
 
     // Fetch groups with their teams
     const groupsWithTeams = await fetchGroupsWithTeams(tournamentId);
@@ -169,7 +180,7 @@ export default async function QualifiedTeamsPage({ params }: PageProps) {
         groups={groupsWithTeams}
         initialPredictions={predictions}
         userId={user.id}
-        isLocked={config.isLocked}
+        isLocked={isLocked}
         allowsThirdPlace={config.allowsThirdPlace}
         maxThirdPlace={config.maxThirdPlace}
       />
