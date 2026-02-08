@@ -2,7 +2,6 @@ import { db } from '../db/database';
 import { getAllUserGroupPositionsPredictions } from '../db/qualified-teams-repository';
 import { findTournamentById } from '../db/tournament-repository';
 import { findQualifiedTeams } from '../db/team-repository';
-import { TeamPositionPrediction } from '../db/tables-definition';
 
 /**
  * Result of scoring calculation for a single team
@@ -39,6 +38,48 @@ export interface QualifiedTeamsScoringResult {
 interface ScoringConfig {
   qualified_team_points: number;
   exact_position_qualified_points: number;
+}
+
+/**
+ * Helper: Calculate points and reason for a single team prediction
+ */
+function calculateTeamPoints(
+  predictedPosition: number,
+  predictedToQualify: boolean,
+  actuallyQualified: boolean,
+  actualPosition: number | null,
+  scoringConfig: ScoringConfig
+): { points: number; reason: string } {
+  if (!actuallyQualified) {
+    return {
+      points: 0,
+      reason: actualPosition === null ? 'group not complete' : 'not qualified'
+    };
+  }
+
+  // Team qualified
+  if (actualPosition === null) {
+    return { points: 0, reason: 'qualified, but no position data' };
+  }
+
+  // Special case: Position 3 with qualify=false → 0 points
+  // Check this BEFORE exact position match to ensure correct behavior
+  if (predictedPosition === 3 && !predictedToQualify) {
+    return { points: 0, reason: 'qualified, but user did not predict qualification' };
+  }
+
+  if (predictedPosition === actualPosition) {
+    return {
+      points: scoringConfig.qualified_team_points + scoringConfig.exact_position_qualified_points,
+      reason: 'qualified + exact position'
+    };
+  }
+
+  // Wrong position but qualified
+  return {
+    points: scoringConfig.qualified_team_points,
+    reason: 'qualified, wrong position'
+  };
 }
 
 /**
@@ -112,7 +153,7 @@ export async function calculateQualifiedTeamsScore(
     const teamResults: TeamScoringResult[] = [];
 
     // Parse JSONB predictions array
-    const predictions = groupPrediction.team_predicted_positions as TeamPositionPrediction[];
+    const predictions = groupPrediction.team_predicted_positions;
 
     for (const prediction of predictions) {
       const teamId = prediction.team_id;
@@ -125,41 +166,14 @@ export async function calculateQualifiedTeamsScore(
       const actualPosition = qualifiedTeamData?.position ?? null;
       const teamName = qualifiedTeamData?.teamName ?? 'Unknown Team';
 
-      // Calculate points based on rules
-      let pointsAwarded = 0;
-      let reason = '';
-
-      if (!actuallyQualified) {
-        // Rule 4: Team didn't qualify (or group not complete yet) → 0 points
-        pointsAwarded = 0;
-        reason = actualPosition === null ? 'group not complete' : 'not qualified';
-      } else {
-        // Team qualified
-        if (actualPosition === null) {
-          // Edge case: qualified but no position data (shouldn't happen with new logic)
-          pointsAwarded = 0;
-          reason = 'qualified, but no position data';
-        } else if (predictedPosition === actualPosition) {
-          // Rule 2: Exact position match + qualified → base + bonus
-          pointsAwarded =
-            scoringConfig.qualified_team_points + scoringConfig.exact_position_qualified_points;
-          reason = 'qualified + exact position';
-        } else {
-          // Rule 1, 3, or 5: Qualified but wrong position → base points only
-          // This applies to:
-          // - Positions 1-2 that qualified but wrong position (Rule 5)
-          // - Position 3 with qualify=true that qualified (Rule 3)
-          pointsAwarded = scoringConfig.qualified_team_points;
-          reason = 'qualified, wrong position';
-        }
-
-        // Special case: Position 3 with qualify=false → 0 points
-        // User didn't predict qualification even if team qualified
-        if (predictedPosition === 3 && !predictedToQualify) {
-          pointsAwarded = 0;
-          reason = 'qualified, but user did not predict qualification';
-        }
-      }
+      // Calculate points and reason using helper function
+      const { points: pointsAwarded, reason } = calculateTeamPoints(
+        predictedPosition,
+        predictedToQualify,
+        actuallyQualified,
+        actualPosition,
+        scoringConfig
+      );
 
       totalScore += pointsAwarded;
 
