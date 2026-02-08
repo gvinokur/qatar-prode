@@ -65,6 +65,7 @@ export default function PlayoffTab({ tournamentId } :Props) {
   const [editDialogOpen, setEditDialogOpen] = useState<boolean>(false);
   const [selectedGame, setSelectedGame] = useState<ExtendedGameData | null>(null);
   const [saved, setSaved] = useState<boolean>(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchTournamentData = async () => {
@@ -107,7 +108,10 @@ export default function PlayoffTab({ tournamentId } :Props) {
       const thirdPlaceGame = newGamesMap[thirdPlaceStage.games[0].game_id];
       third_place_team_id = getGameWinner(thirdPlaceGame)
     }
-    await updateTournamentHonorRoll(tournamentId, { champion_team_id, runner_up_team_id, third_place_team_id })
+    // Only update honor roll if at least one value is a non-empty team ID
+    if (champion_team_id || runner_up_team_id || third_place_team_id) {
+      await updateTournamentHonorRoll(tournamentId, { champion_team_id, runner_up_team_id, third_place_team_id })
+    }
     setGamesMap(newGamesMap)
     setSaved(true)
   }
@@ -115,20 +119,26 @@ export default function PlayoffTab({ tournamentId } :Props) {
   const handleDraftStatusChanged = async (gameNumber: number) => {
     const game = Object.values(gamesMap).find(game => game.game_number === gameNumber);
     if(game) {
-      const gameResult: GameResultNew = game.gameResult || buildGameResult(game)
-      const newGame = {
-        ...game,
-        gameResult: {
-          ...gameResult,
-          is_draft: !gameResult.is_draft
+      try {
+        const gameResult: GameResultNew = game.gameResult || buildGameResult(game)
+        const newGame = {
+          ...game,
+          gameResult: {
+            ...gameResult,
+            is_draft: !gameResult.is_draft
+          }
         }
-      }
-      const newGamesMap = {
-        ...gamesMap,
-        [game.id]: newGame
-      }
+        const newGamesMap = {
+          ...gamesMap,
+          [game.id]: newGame
+        }
 
-      await commitGameResults(newGame, newGamesMap)
+        await commitGameResults(newGame, newGamesMap)
+      } catch (err) {
+        console.error(`Error changing draft status for game ${gameNumber}:`, err);
+        setError(err instanceof Error ? err.message : `Error al cambiar el estado de publicación del partido ${gameNumber}`);
+        throw err; // Re-throw so component knows it failed
+      }
     }
   }
 
@@ -226,6 +236,11 @@ export default function PlayoffTab({ tournamentId } :Props) {
           <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center'}} open={saved} autoHideDuration={2000} onClose={() => setSaved(false)}>
             <Alert onClose={() => setSaved(false)} severity="success" sx={{ width: '100%' }}>
               Los Partidos se guardaron correctamente!
+            </Alert>
+          </Snackbar>
+          <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center'}} open={!!error} autoHideDuration={5000} onClose={() => setError(null)}>
+            <Alert onClose={() => setError(null)} severity="error" sx={{ width: '100%' }}>
+              {error || 'Error al guardar los partidos'}
             </Alert>
           </Snackbar>
         </>
