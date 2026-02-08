@@ -161,17 +161,6 @@ export const findQualifiedTeams = cache(async (tournamentId: string, inGroupId?:
     ])
     .execute();
 
-  // Debug logging
-  if (inGroupId) {
-    console.log('[findQualifiedTeams] Group standings for groupId:', inGroupId);
-    console.log('[findQualifiedTeams] Standings:', JSON.stringify(groupStandings.map(s => ({
-      id: s.id,
-      name: s.name,
-      position: s.position,
-      is_complete: s.is_complete
-    })), null, 2));
-  }
-
   const results: QualifiedTeamWithPosition[] = [];
 
   // 2. Group standings by group_id
@@ -200,15 +189,6 @@ export const findQualifiedTeams = cache(async (tournamentId: string, inGroupId?:
     });
 
     addThirdPlaceQualifiers(groupedStandings, playoffTeamIds, results);
-  }
-
-  // Debug logging
-  if (inGroupId) {
-    console.log('[findQualifiedTeams] Final qualified teams:', JSON.stringify(results.map(r => ({
-      id: r.id,
-      name: r.name,
-      final_position: r.final_position
-    })), null, 2));
   }
 
   return results;
