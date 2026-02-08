@@ -1,6 +1,7 @@
 import {db} from './database'
 import {GameResultNew, GameResultUpdate} from "./tables-definition";
 import {cache} from "react";
+import {sql} from "kysely";
 
 export function createGameResult(result: GameResultNew) {
   return db.insertInto('game_results')
@@ -10,9 +11,15 @@ export function createGameResult(result: GameResultNew) {
 }
 
 export function updateGameResult(gameId: string, result: GameResultUpdate) {
+  // Convert undefined values to SQL NULL (Kysely skips undefined by default)
+  const processedResult: Record<string, any> = {};
+  for (const [key, value] of Object.entries(result)) {
+    processedResult[key] = value === undefined ? sql`NULL` : value;
+  }
+
   return db.updateTable('game_results')
     .where('game_id', '=', gameId)
-    .set(result)
+    .set(processedResult)
     .returningAll()
     .executeTakeFirst()
 }

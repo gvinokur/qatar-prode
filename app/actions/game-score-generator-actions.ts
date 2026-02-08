@@ -249,7 +249,7 @@ export async function clearGameScores(
     }
 
     // Clear game results (non-transactional, partial success is acceptable)
-    // Set scores back to undefined and mark as draft
+    // Set scores to undefined (repository will convert to SQL NULL)
     for (const game of gamesWithResults) {
       await updateGameResult(game.id, {
         home_score: undefined,
