@@ -150,10 +150,9 @@ interface TeamStandingsCardsProps {
 
 **Visual Structure:**
 ```
-┌─────────────────────────────────────────────────┐
-│  [#1] [Team Logo] Team Name   24 pts (3 PJ, +5 DG) │
-│         ↑ +2 (rank change - only if previous data) │
-│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+┌──────────────────────────────────────────────────┐
+│  [#1 ↑+2] [Team Logo] Team Name  24 pts (3 PJ, +5 DG) │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
 │  Tap to view details                            │
 │                                                  │
 │  [Expanded - only when clicked]                 │
@@ -162,12 +161,15 @@ interface TeamStandingsCardsProps {
 │  │ Wins: 2 | Draws: 1 | Losses: 0            │  │
 │  │ Goals For: 7 | Goals Against: 2           │  │
 │  └──────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────┘
+└──────────────────────────────────────────────────┘
 
-Note: When collapsed, show "X pts (Y PJ, ±Z DG)" format
-      PJ = Partidos Jugados (games played)
-      DG = Diferencia de Gol (goal difference)
-      Remove PJ and DG from collapsed view when expanded
+Note: Layout matches LeaderboardCard pattern
+      - Rank badge + change indicator at START (left)
+      - Then team logo and name
+      - Then points with PJ/DG at END (right)
+      - When collapsed: show "X pts (Y PJ, ±Z DG)"
+      - When expanded: remove PJ/DG from header (show in details)
+      - Rank change only shown if previousTeamStats exists
 ```
 
 **Key Features:**
@@ -274,15 +276,18 @@ Use CSS container queries or element width detection, NOT media queries.
 
 - **< 400px (Ultra-Compact - Sidebar):**
   - Minimal card layout for narrow sidebars
-  - Abbreviated team names if needed
+  - Use 3-letter team code (team.code: "ENG", "USA", "ARG")
   - Smaller typography
-  - Single row: [#] Team pts (PJ, DG) [rank]
-  - Hide rank change indicator if no space
+  - Single row: [#rank] CODE pts
+  - Omit PJ and DG completely (not enough space)
+  - Hide rank change indicator (only show rank number)
+  - Minimal padding (py: 1, px: 1.5)
 
 - **400px - 600px (Compact):**
   - Compact card layout
+  - Team name with ellipsis if too long (text-overflow: ellipsis, white-space: nowrap)
   - All essential info in one row
-  - Format: [#] Team Name  X pts (Y PJ, ±Z DG)  [rank change]
+  - Layout: [#rank + change] Team  X pts (Y PJ, ±Z DG)
   - Smaller padding (py: 1.5, px: 1.5)
 
 - **> 600px (Full):**
@@ -334,29 +339,26 @@ interface GroupTableProps {
 
 ## Visual Prototypes
 
-### Compact View (Container < 600px width)
+### Compact View (Container 400-600px width)
 
 ```
-┌─────────────────────────────────┐
-│  ┌───────────────────────────┐  │
-│  │ [1] 🏴 England            │  │
-│  │ 7 pts (3 PJ, +5 DG)   ━   │  │
-│  └───────────────────────────┘  │
-│                                 │
-│  ┌───────────────────────────┐  │
-│  │ [2] 🇺🇸 USA               │  │
-│  │ 4 pts (3 PJ, +1 DG)   ━   │  │
-│  └───────────────────────────┘  │
-│                                 │
-│  ┌───────────────────────────┐  │
-│  │ [3] 🇦🇷 Argentina         │  │
-│  │ 3 pts (3 PJ, 0 DG)    ━   │  │
-│  └───────────────────────────┘  │
-└─────────────────────────────────┘
+┌──────────────────────────────────────────────┐
+│  ┌──────────────────────────────────────┐  │
+│  │ [#1 ━] 🏴 England  7 pts (3 PJ, +5 DG) │  │
+│  └──────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────┐  │
+│  │ [#2 ━] 🇺🇸 USA    4 pts (3 PJ, +1 DG) │  │
+│  └──────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────┐  │
+│  │ [#3 ━] 🇦🇷 Argent... 3 pts (3 PJ, 0 DG) │  │
+│  └──────────────────────────────────────┘  │
+└──────────────────────────────────────────────┘
 ```
 
 **Compact Features:**
-- All info in same row: position, team, points, PJ, DG, rank change
+- **Single line per card**: [rank + change] team points (PJ, DG)
+- Rank and change indicator at START (left side)
+- Team name with ellipsis if too long (text-overflow: ellipsis, white-space: nowrap)
 - Qualified status via background color (not text badge)
 - 100% container width
 - Tap to expand for W/D/L and GF/GA details
@@ -367,19 +369,19 @@ interface GroupTableProps {
 ```
 ┌──────────────────────────────────────────────────────────┐
 │  ┌────────────────────────────────────────────────────┐  │
-│  │  [1] 🏴 England    7 pts (3 PJ, +5 DG)    ↑ +2     │  │
+│  │  [#1 ↑+2] 🏴 England         7 pts (3 PJ, +5 DG)   │  │
 │  │  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │  │
 │  │  Tap to view detailed stats                         │  │
 │  └────────────────────────────────────────────────────┘  │
 │                                                           │
 │  ┌────────────────────────────────────────────────────┐  │
-│  │  [2] 🇺🇸 USA       4 pts (3 PJ, +1 DG)    ⬆ +1     │  │
+│  │  [#2 ⬆+1] 🇺🇸 USA            4 pts (3 PJ, +1 DG)   │  │
 │  │  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │  │
 │  │  Tap to view detailed stats                         │  │
 │  └────────────────────────────────────────────────────┘  │
 │                                                           │
 │  ┌────────────────────────────────────────────────────┐  │
-│  │  [3] 🇦🇷 Argentina  3 pts (3 PJ, 0 DG)     ━       │  │
+│  │  [#3 ━] 🇦🇷 Argentina         3 pts (3 PJ, 0 DG)   │  │
 │  │  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │  │
 │  │  Tap to view detailed stats                         │  │
 │  └────────────────────────────────────────────────────┘  │
@@ -387,17 +389,19 @@ interface GroupTableProps {
 ```
 
 **Full View Features:**
-- All main data in single row: position, team, points, PJ, DG, rank change
+- **Layout**: [#rank + change] team....... points (PJ, DG)
+- Rank and change indicator at START (matches LeaderboardCard)
+- Team name with flex: 1 (fills available space)
+- Points with PJ/DG at END (right side)
 - Qualified status shown via background color (success.light with alpha)
 - Optional: Could add '(C)' icon with popover for extra qualification indication
 - Wider cards with more spacing
-- Horizontal layout maximizes space efficiency
 
 ### Expanded Card State
 
 ```
 ┌────────────────────────────────────────────────────┐
-│  [1] 🏴 England           7 points      ↑ +2       │
+│  [#1 ↑+2] 🏴 England              7 points         │
 │  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
 │  Tap to collapse                                    │
 │                                                      │
@@ -421,38 +425,39 @@ interface GroupTableProps {
 
 **Expanded Features:**
 - PJ and DG removed from header when expanded (shown in detail section)
-- Header shows only: position, team, points, rank change
+- Header layout: [#rank + change] team........... points
+- Rank and change at START (left), points at END (right)
 - Smooth 300ms collapse animation
 - Organized sections: Games Played, Record, Goals
 - Only one card expanded at a time
 - Click card or press Enter/Space to toggle
 
-### Responsive Container (Sidebar Context)
+### Responsive Container (Sidebar Context - Ultra-Compact)
 
 ```
-Sidebar (350px width):
+Sidebar (< 400px width):
 ┌─────────────────┐
 │ Group A         │
 │ ┌─────────────┐ │
-│ │ [1] ENG     │ │
-│ │ 7 pts  ━    │ │
+│ │ [#1] ENG  7 │ │
 │ └─────────────┘ │
 │ ┌─────────────┐ │
-│ │ [2] USA     │ │
-│ │ 4 pts  ━    │ │
+│ │ [#2] USA  4 │ │
 │ └─────────────┘ │
 │ ┌─────────────┐ │
-│ │ [3] ARG     │ │
-│ │ 3 pts  ━    │ │
+│ │ [#3] ARG  3 │ │
 │ └─────────────┘ │
 └─────────────────┘
 ```
 
-**Sidebar Adaptations:**
-- Ultra-compact card layout
-- Abbreviated team names
+**Sidebar Adaptations (Ultra-Compact):**
+- Minimal card layout
+- Use 3-letter team code (team.code: "ENG", "USA", "ARG")
+- Omit PJ and DG completely (not enough space)
+- Hide rank change indicator (only show rank number)
+- Layout: [#rank] CODE points
+- Essential info only: position, team code, points
 - Minimal spacing
-- Essential info only
 - Scrollable if many teams
 
 ---
@@ -549,7 +554,10 @@ These files provide patterns and utilities to follow:
 1. Create functional component with TeamStandingCardProps
 2. Implement card structure with motion.div wrapper
 3. Add rank badge with position number
-4. Add team display (logo/flag + name)
+4. Add team display (logo/flag + name/code)
+   - Ultra-compact (<400px): Use team.code (3 letters: "ENG", "USA")
+   - Compact/Full (≥400px): Use team.name with ellipsis
+   - Ellipsis styles: `textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden'`
 5. Add points display with PJ and DG in parentheses (when collapsed)
    - Format: "X pts (Y PJ, ±Z DG)"
    - PJ = Partidos Jugados (games played)
