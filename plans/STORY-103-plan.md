@@ -17,8 +17,9 @@
 
 ### Feature 1: Flippable Game Cards in Backoffice
 - [ ] Backoffice game cards have the same flip interaction as end-user game cards
+- [ ] Reuse as much code as possible from existing flippable card implementation
 - [ ] Front shows basic game info (teams, time, status)
-- [ ] Back shows score editing interface
+- [ ] Back shows score editing interface (following end-user card layout)
 - [ ] Animation is smooth and consistent with end-user experience
 - [ ] Works for both group stage and playoff games
 - [ ] Maintains existing publish/unpublish toggle functionality
@@ -80,32 +81,43 @@
 #### Back Side (Edit View - Click Edit to Flip)
 ```
 ┌─────────────────────────────────────────────┐
-│            Edit Game Result                 │ ← Header
-├─────────────────────────────────────────────┤
 │                                             │
-│  Argentina                          Brazil  │
-│  ┌─────────┐                      ┌─────────┐
-│  │    2    │                      │    1    │ ← Score inputs
-│  └─────────┘                      └─────────┘
+│  Argentina                                  │
+│  ┌──────────────────────────────────────┐  │
+│  │              2                       │  │ ← Home score input (large)
+│  └──────────────────────────────────────┘  │
+│                                             │
+│  Brazil                                     │
+│  ┌──────────────────────────────────────┐  │
+│  │              1                       │  │ ← Away score input (large)
+│  └──────────────────────────────────────┘  │
 │                                             │
 │  [IF playoff & tied scores:]                │
 │                                             │
-│  Penalty Shootout Winner:                   │
-│  ○ Argentina    ○ Brazil                    │ ← Radio selection
+│  Penalty Shootout Scores                    │
 │                                             │
-│  📅 Dec 18, 2025  ⏰ 18:00 (Local)         │ ← Date/time display
+│  Argentina (Penalty Score)                  │
+│  ┌──────────────────────────────────────┐  │
+│  │              4                       │  │ ← Home penalty score
+│  └──────────────────────────────────────┘  │
 │                                             │
-│          [Cancel]        [Save Result]      │ ← Action buttons
+│  Brazil (Penalty Score)                     │
+│  ┌──────────────────────────────────────┐  │
+│  │              2                       │  │ ← Away penalty score
+│  └──────────────────────────────────────┘  │
+│                                             │
+│          [Cancelar]     [Guardar]           │ ← Action buttons (Spanish)
 │                                             │
 └─────────────────────────────────────────────┘
 ```
 
 **Layout Details:**
 - Same card dimensions as front
-- Score inputs: Large number inputs (centered, 60px font size)
-- Penalty section: Only visible when playoff game with tied scores
-- Date/time: Read-only display at bottom
-- Buttons: Cancel (text button) + Save Result (contained button)
+- Follows layout of existing `GamePredictionEditControls` component
+- Score inputs: Large number inputs (60px font size, centered)
+- Vertical layout with team name above each input
+- Penalty section: Number inputs for penalty scores (not winner selection)
+- Buttons: "Cancelar" (text button) + "Guardar" (contained button) in Spanish
 
 **Animation:**
 - Same 3D flip as end-user cards (0.4s ease-in-out)
@@ -215,12 +227,17 @@
 1. Create new component: `BackofficeFlippableGameCard`
 2. Reuse flip animation logic from `FlippableGameCard`
 3. Front side: Adapt `CompactGameViewCard` (keep publish toggle, remove dialog trigger)
-4. Back side: Create `BackofficeGameResultEditControls` (inline editing like end-user, but for game results)
+4. Back side: Create `BackofficeGameResultEditControls` following `GamePredictionEditControls` pattern
+   - Reuse layout structure from `GamePredictionEditControls`
+   - Adapt for game results instead of guesses (remove boost selection, no date/time)
+   - Use penalty scores (number inputs) not penalty winner selection
+   - Spanish labels ("Cancelar", "Guardar")
 5. Replace `BackofficeGameView` usage in `group-backoffice-tab.tsx` and `playoff-tab.tsx`
 
 **Key Differences from End-User Card:**
-- Front: Show publish/draft status (checkbox)
-- Back: Edit game results (not guesses), include date/time picker
+- Front: Show publish/draft status (checkbox) instead of guess status
+- Back: Edit game results (not guesses), no boost selection, no date/time picker
+- Penalty handling: Penalty scores (homePenaltyScore, awayPenaltyScore) not winner flags
 - Admin-only component (no auth checks needed in component)
 
 **Animation Details:**
@@ -335,7 +352,9 @@ function generatePoissonScore(lambda: number): number {
 
 2. **`/app/components/backoffice/backoffice-game-result-edit-controls.tsx`**
    - Inline edit controls (back side of card)
-   - Score inputs, penalty selection, date/time, save/cancel
+   - Follows `GamePredictionEditControls` layout pattern
+   - Score inputs, penalty score inputs (when tied), save/cancel buttons
+   - Spanish labels, no date/time picker, no boost selection
 
 3. **`/app/components/backoffice/bulk-actions-menu.tsx`**
    - Dropdown menu for auto-fill and clear actions
@@ -402,12 +421,14 @@ function generatePoissonScore(lambda: number): number {
 
 ### Phase 2: Flippable Game Card Components
 4. Create `BackofficeGameResultEditControls` component
-   - Score input fields (number inputs with large font)
-   - Penalty selection (radio buttons for playoff ties)
-   - Date/time picker (from existing dialog)
-   - Save/Cancel buttons
+   - Follow layout pattern from `GamePredictionEditControls` (vertical layout)
+   - Score input fields (number inputs with large font, 60px)
+   - Penalty score inputs (number inputs for homePenaltyScore/awayPenaltyScore when tied)
+   - Save/Cancel buttons in Spanish ("Cancelar", "Guardar")
    - Form validation
    - Loading states during save
+   - No date/time picker (not needed for quick edits)
+   - No boost selection (game results don't have boosts)
 
 5. Create `BackofficeFlippableGameCard` component
    - Reuse flip animation logic from `FlippableGameCard`
@@ -541,10 +562,12 @@ function generatePoissonScore(lambda: number): number {
 
 **Edit Controls (`backoffice-game-result-edit-controls.test.ts`):**
 - Test score inputs accept numbers
-- Test penalty selection shows for playoff ties
+- Test penalty score inputs show for playoff ties (not penalty winner selection)
+- Test penalty scores are number inputs (homePenaltyScore, awayPenaltyScore)
 - Test save button validates inputs
 - Test cancel button discards changes
 - Test form validation (required fields)
+- Test Spanish button labels ("Cancelar", "Guardar")
 
 ### Integration Tests
 
