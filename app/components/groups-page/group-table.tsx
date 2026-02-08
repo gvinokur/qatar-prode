@@ -18,7 +18,7 @@ export default function GroupTable({
   return (
     <Paper elevation={2} sx={{ p: 2 }}>
       <Typography variant="h6" gutterBottom>
-        Standings
+        Tabla de Posiciones
       </Typography>
       <TeamStandingsCards
         teamStats={teamStats}

@@ -150,44 +150,44 @@ export default function TeamStandingCard({
               <Divider sx={{ mb: 2 }} />
 
               <Typography variant="subtitle2" gutterBottom>
-                Detailed Stats
+                Estadísticas Detalladas
               </Typography>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {/* Games Played */}
                 <Typography variant="body2" color="text.secondary">
-                  Games Played: {standing.gamesPlayed}
+                  Partidos Jugados: {standing.gamesPlayed}
                 </Typography>
 
                 {/* Record */}
                 <Box>
                   <Typography variant="caption" color="text.secondary" display="block">
-                    Record
+                    Récord
                   </Typography>
                   <Typography variant="body2">
-                    • Wins: {standing.wins}
+                    • Ganados: {standing.wins}
                   </Typography>
                   <Typography variant="body2">
-                    • Draws: {standing.draws}
+                    • Empatados: {standing.draws}
                   </Typography>
                   <Typography variant="body2">
-                    • Losses: {standing.losses}
+                    • Perdidos: {standing.losses}
                   </Typography>
                 </Box>
 
                 {/* Goals */}
                 <Box>
                   <Typography variant="caption" color="text.secondary" display="block">
-                    Goals
+                    Goles
                   </Typography>
                   <Typography variant="body2">
-                    • Goals For: {standing.goalsFor}
+                    • Goles a Favor: {standing.goalsFor}
                   </Typography>
                   <Typography variant="body2">
-                    • Goals Against: {standing.goalsAgainst}
+                    • Goles en Contra: {standing.goalsAgainst}
                   </Typography>
                   <Typography variant="body2">
-                    • Goal Difference: {standing.goalDifference >= 0 ? '+' : ''}{standing.goalDifference}
+                    • Diferencia de Gol: {standing.goalDifference >= 0 ? '+' : ''}{standing.goalDifference}
                   </Typography>
                 </Box>
               </Box>
