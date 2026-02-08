@@ -277,15 +277,15 @@ describe('Team Repository', () => {
 
     describe('findQualifiedTeams', () => {
       it('should find qualified teams for tournament', async () => {
-        // Mock group standings query
+        // Mock group standings query (positions are 0-indexed in DB)
         const mockStandingsQuery = {
           innerJoin: vi.fn().mockReturnThis(),
           where: vi.fn().mockReturnThis(),
           $if: vi.fn().mockReturnThis(),
           select: vi.fn().mockReturnThis(),
           execute: vi.fn().mockResolvedValue([
-            { id: 'team-1', name: 'Team 1', short_name: 'T1', group_id: 'group-1', position: 1, is_complete: true },
-            { id: 'team-2', name: 'Team 2', short_name: 'T2', group_id: 'group-1', position: 2, is_complete: true },
+            { id: 'team-1', name: 'Team 1', short_name: 'T1', group_id: 'group-1', position: 0, is_complete: true },
+            { id: 'team-2', name: 'Team 2', short_name: 'T2', group_id: 'group-1', position: 1, is_complete: true },
           ]),
         };
 
@@ -311,14 +311,14 @@ describe('Team Repository', () => {
       });
 
       it('should find qualified teams with group filter', async () => {
-        // Mock group standings query with group filter
+        // Mock group standings query with group filter (positions are 0-indexed in DB)
         const mockStandingsQuery = {
           innerJoin: vi.fn().mockReturnThis(),
           where: vi.fn().mockReturnThis(),
           $if: vi.fn().mockReturnThis(),
           select: vi.fn().mockReturnThis(),
           execute: vi.fn().mockResolvedValue([
-            { id: 'team-1', name: 'Team 1', short_name: 'T1', group_id: 'group-1', position: 1, is_complete: true },
+            { id: 'team-1', name: 'Team 1', short_name: 'T1', group_id: 'group-1', position: 0, is_complete: true },
           ]),
         };
 

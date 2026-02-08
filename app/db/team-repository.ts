@@ -106,8 +106,9 @@ function addTopTwoFromCompleteGroups(
     const groupComplete = standings.every(s => s.is_complete);
     if (!groupComplete) continue;
 
-    const first = standings.find(s => s.position === 1);
-    const second = standings.find(s => s.position === 2);
+    // DB positions are 0-indexed: 0 = 1st place, 1 = 2nd place
+    const first = standings.find(s => s.position === 0);
+    const second = standings.find(s => s.position === 1);
 
     if (first) results.push(createQualifiedTeam(first, 1));
     if (second) results.push(createQualifiedTeam(second, 2));
@@ -123,7 +124,8 @@ function addThirdPlaceQualifiers(
   results: QualifiedTeamWithPosition[]
 ): void {
   for (const standings of Object.values(groupedStandings)) {
-    const third = standings.find(s => s.position === 3);
+    // DB positions are 0-indexed: 2 = 3rd place
+    const third = standings.find(s => s.position === 2);
     if (third && third.is_complete && playoffTeamIds.has(third.id)) {
       results.push(createQualifiedTeam(third, 3));
     }
