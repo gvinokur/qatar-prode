@@ -151,30 +151,32 @@ interface TeamStandingsCardsProps {
 **Visual Structure:**
 ```
 ┌─────────────────────────────────────────────────┐
-│  [#1] [Team Logo] Team Name            24 pts   │
-│         ↑ +2 (rank change indicator)            │
+│  [#1] [Team Logo] Team Name   24 pts (3 PJ, +5 DG) │
+│         ↑ +2 (rank change - only if previous data) │
 │  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
-│  Goal Difference: +5                            │
 │  Tap to view details                            │
 │                                                  │
 │  [Expanded - only when clicked]                 │
 │  ┌──────────────────────────────────────────┐  │
 │  │ Stats                                     │  │
-│  │ Games Played: 3                           │  │
 │  │ Wins: 2 | Draws: 1 | Losses: 0            │  │
 │  │ Goals For: 7 | Goals Against: 2           │  │
 │  └──────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────┘
+
+Note: When collapsed, show "X pts (Y PJ, ±Z DG)" format
+      PJ = Partidos Jugados (games played)
+      DG = Diferencia de Gol (goal difference)
+      Remove PJ and DG from collapsed view when expanded
 ```
 
 **Key Features:**
 - Card with motion animations (Framer Motion)
-- Rank badge with RankChangeIndicator
+- Rank badge with RankChangeIndicator (only shown if previousTeamStats provided)
 - Team logo/flag display
-- Primary: Team name, position, points
-- Secondary: Goal difference (always visible)
-- Qualified teams: Semi-transparent success background
-- Expandable details: Games, W/D/L, GF/GA
+- Primary: Team name, position, points, PJ, DG (when collapsed)
+- Qualified teams: Color-based indication (success background)
+- Expandable details: W/D/L, GF/GA (PJ and DG removed from header when expanded)
 - Hover effect: slight lift, shadow increase
 - Keyboard accessible (Enter/Space to expand)
 
@@ -185,6 +187,7 @@ interface TeamStandingCardProps {
   isExpanded: boolean
   onToggleExpand: () => void
   rankChange?: number  // Positive = improved, negative = declined, 0 = no change
+  showRankChange: boolean  // True only if previousTeamStats was provided (not based on values)
 }
 ```
 
@@ -257,38 +260,41 @@ export default function GroupTable({
 - Use `calculateRanksWithChange()` from rank-calculator.ts
 - RankChangeIndicator automatically displays up/down arrows with numbers
 
-### Responsive Breakpoints (Clarified)
+### Responsive Strategy (Container Width Based)
+
+**IMPORTANT: Responsive behavior based on CONTAINER WIDTH, not screen size.**
 
 **Container Strategy:**
 - Container fills available width (100%)
 - Max-width constraint: 1000px (matches LeaderboardCards)
 - Centered with auto margins when width > 1000px
 
-**Breakpoints:**
-- **< 600px (Mobile):**
+**Container Width Breakpoints:**
+Use CSS container queries or element width detection, NOT media queries.
+
+- **< 400px (Ultra-Compact - Sidebar):**
+  - Minimal card layout for narrow sidebars
+  - Abbreviated team names if needed
+  - Smaller typography
+  - Single row: [#] Team pts (PJ, DG) [rank]
+  - Hide rank change indicator if no space
+
+- **400px - 600px (Compact):**
   - Compact card layout
-  - Essential info: position, team, points, goal difference
-  - Hide secondary details in card header
-  - Stack all elements vertically
-  - Smaller typography and spacing
+  - All essential info in one row
+  - Format: [#] Team Name  X pts (Y PJ, ±Z DG)  [rank change]
+  - Smaller padding (py: 1.5, px: 1.5)
 
-- **600px - 960px (Tablet):**
-  - Medium card layout
-  - Show more details inline
-  - Slightly larger spacing
-  - Hybrid horizontal/vertical layout
+- **> 600px (Full):**
+  - Full card layout with generous spacing
+  - All data in single row with breathing room
+  - Larger typography and padding (py: 2, px: 2.5)
+  - More descriptive labels and clear hierarchy
 
-- **> 960px (Desktop):**
-  - Full card layout with all details
-  - Horizontal layout for primary info
-  - Maximum spacing and typography sizes
-  - Descriptive labels
-
-**Sidebar Context (<400px):**
-- Ultra-compact mode triggered by container width
-- Abbreviated team names (first 3-4 chars)
-- Minimal padding (py: 1, px: 1)
-- Hide rank change indicators (only show dash)
+**Qualified Status:**
+- Always color-based via background (alpha(success.main, 0.1))
+- Optional: Add '(C)' or small icon with tooltip/popover for extra clarity
+- Never use text badge that takes up space
 
 ### Current GroupTable API (Verified)
 
@@ -328,79 +334,71 @@ interface GroupTableProps {
 
 ## Visual Prototypes
 
-### Mobile View (< 600px)
+### Compact View (Container < 600px width)
 
 ```
-┌─────────────────────────┐
-│  ┌───────────────────┐  │
-│  │ [1] 🏴 England     │  │
-│  │ 7 pts    ━ GD: +5 │  │
-│  │ (Qualified)        │  │
-│  └───────────────────┘  │
-│                         │
-│  ┌───────────────────┐  │
-│  │ [2] 🇺🇸 USA        │  │
-│  │ 4 pts    ━ GD: +1 │  │
-│  │ (Qualified)        │  │
-│  └───────────────────┘  │
-│                         │
-│  ┌───────────────────┐  │
-│  │ [3] 🇦🇷 Argentina  │  │
-│  │ 3 pts    ━ GD: 0  │  │
-│  └───────────────────┘  │
-└─────────────────────────┘
+┌─────────────────────────────────┐
+│  ┌───────────────────────────┐  │
+│  │ [1] 🏴 England            │  │
+│  │ 7 pts (3 PJ, +5 DG)   ━   │  │
+│  └───────────────────────────┘  │
+│                                 │
+│  ┌───────────────────────────┐  │
+│  │ [2] 🇺🇸 USA               │  │
+│  │ 4 pts (3 PJ, +1 DG)   ━   │  │
+│  └───────────────────────────┘  │
+│                                 │
+│  ┌───────────────────────────┐  │
+│  │ [3] 🇦🇷 Argentina         │  │
+│  │ 3 pts (3 PJ, 0 DG)    ━   │  │
+│  └───────────────────────────┘  │
+└─────────────────────────────────┘
 ```
 
-**Mobile Features:**
-- Compact card layout, 100% width
-- Essential info only: position, team, points, GD
-- Qualified badge below name
-- Tap to expand for detailed stats
+**Compact Features:**
+- All info in same row: position, team, points, PJ, DG, rank change
+- Qualified status via background color (not text badge)
+- 100% container width
+- Tap to expand for W/D/L and GF/GA details
 - Stack cards vertically with small gaps
 
-### Desktop View (> 960px)
+### Full View (Container > 600px width)
 
 ```
 ┌──────────────────────────────────────────────────────────┐
 │  ┌────────────────────────────────────────────────────┐  │
-│  │  [1] 🏴 England                         7 points    │  │
-│  │      ↑ +2 (since last matchday)                     │  │
+│  │  [1] 🏴 England    7 pts (3 PJ, +5 DG)    ↑ +2     │  │
 │  │  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │  │
-│  │  Goal Difference: +5  •  Qualified                  │  │
 │  │  Tap to view detailed stats                         │  │
 │  └────────────────────────────────────────────────────┘  │
 │                                                           │
 │  ┌────────────────────────────────────────────────────┐  │
-│  │  [2] 🇺🇸 USA                            4 points    │  │
-│  │      ⬆ +1                                            │  │
+│  │  [2] 🇺🇸 USA       4 pts (3 PJ, +1 DG)    ⬆ +1     │  │
 │  │  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │  │
-│  │  Goal Difference: +1  •  Qualified                  │  │
+│  │  Tap to view detailed stats                         │  │
 │  └────────────────────────────────────────────────────┘  │
 │                                                           │
 │  ┌────────────────────────────────────────────────────┐  │
-│  │  [3] 🇦🇷 Argentina                      3 points    │  │
-│  │      ━ 0                                             │  │
+│  │  [3] 🇦🇷 Argentina  3 pts (3 PJ, 0 DG)     ━       │  │
 │  │  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │  │
-│  │  Goal Difference: 0                                 │  │
+│  │  Tap to view detailed stats                         │  │
 │  └────────────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────┘
 ```
 
-**Desktop Features:**
-- Wider cards with more breathing room
-- Rank change indicator with label
-- Qualified badge inline with GD
-- Horizontal layout for primary info
-- More descriptive labels
+**Full View Features:**
+- All main data in single row: position, team, points, PJ, DG, rank change
+- Qualified status shown via background color (success.light with alpha)
+- Optional: Could add '(C)' icon with popover for extra qualification indication
+- Wider cards with more spacing
+- Horizontal layout maximizes space efficiency
 
 ### Expanded Card State
 
 ```
 ┌────────────────────────────────────────────────────┐
-│  [1] 🏴 England                         7 points    │
-│      ↑ +2 (since last matchday)                     │
+│  [1] 🏴 England           7 points      ↑ +2       │
 │  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
-│  Goal Difference: +5  •  Qualified                  │
 │  Tap to collapse                                    │
 │                                                      │
 │  ┌────────────────────────────────────────────────┐ │
@@ -416,13 +414,16 @@ interface GroupTableProps {
 │  │ Goals                                           │ │
 │  │ • Goals For: 7                                  │ │
 │  │ • Goals Against: 2                              │ │
+│  │ • Goal Difference: +5                           │ │
 │  └────────────────────────────────────────────────┘ │
 └────────────────────────────────────────────────────┘
 ```
 
 **Expanded Features:**
+- PJ and DG removed from header when expanded (shown in detail section)
+- Header shows only: position, team, points, rank change
 - Smooth 300ms collapse animation
-- Organized sections: Record, Goals
+- Organized sections: Games Played, Record, Goals
 - Only one card expanded at a time
 - Click card or press Enter/Space to toggle
 
@@ -549,20 +550,33 @@ These files provide patterns and utilities to follow:
 2. Implement card structure with motion.div wrapper
 3. Add rank badge with position number
 4. Add team display (logo/flag + name)
-5. Add points display (prominent h6 typography)
-6. Add RankChangeIndicator (pass previousPosition)
-7. Add goal difference display (always visible)
-8. Add qualified team highlighting (success background with alpha)
-9. Implement Collapse component for expandable details
-10. Add detailed stats section (games, W/D/L, GF/GA)
-11. Add hover animation (translateY, elevation)
-12. Add keyboard accessibility (onKeyDown for Enter/Space)
-13. Add responsive styling (mobile vs desktop)
+5. Add points display with PJ and DG in parentheses (when collapsed)
+   - Format: "X pts (Y PJ, ±Z DG)"
+   - PJ = Partidos Jugados (games played)
+   - DG = Diferencia de Gol (goal difference)
+6. Add RankChangeIndicator (only render if showRankChange is true)
+   - Check: `showRankChange && <RankChangeIndicator change={rankChange ?? 0} />`
+7. Add qualified team highlighting (success background with alpha)
+8. Implement Collapse component for expandable details
+9. Add detailed stats section:
+   - Games Played (PJ)
+   - Record: W/D/L
+   - Goals: GF/GA and GD
+   - Remove PJ and DG from header when expanded
+10. Add hover animation (translateY, elevation)
+11. Add keyboard accessibility (onKeyDown for Enter/Space)
+12. Add responsive styling based on CONTAINER WIDTH (not screen size)
+    - Use CSS container queries or useRef + ResizeObserver
+    - <400px: ultra-compact
+    - 400-600px: compact
+    - >600px: full
 
 **Testing:**
 - Render in isolation with mock data
-- Test expand/collapse interaction
+- Test with showRankChange true/false
+- Test expand/collapse (verify PJ/DG appear/disappear)
 - Test keyboard navigation
+- Test container width responsive behavior
 - Verify qualified team styling
 
 ---
@@ -582,7 +596,10 @@ These files provide patterns and utilities to follow:
    - Calculate rank change if previousTeamStats provided
 5. Wrap in LayoutGroup from Framer Motion
 6. Map over standings to render TeamStandingCard components
-7. Pass isExpanded, onToggleExpand, and rankChange to each card
+7. Pass props to each card:
+   - isExpanded, onToggleExpand
+   - rankChange (calculated value or undefined)
+   - showRankChange: Boolean(previousTeamStats) - true only if previous data provided
 8. Add responsive container styling (width: 100%, max-width: 1000px)
 9. Handle empty state (no teams) with message
 10. Add mutual exclusion (only one card expanded at a time)
