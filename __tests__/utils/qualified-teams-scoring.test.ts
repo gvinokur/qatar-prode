@@ -42,7 +42,7 @@ describe('calculateQualifiedTeamsScore', () => {
   // Test data
   const tournament = testFactories.tournament({
     id: tournamentId,
-    qualified_team_points: 2, // Base points for qualification
+    qualified_team_points: 1, // Base points for qualification
     exact_position_qualified_points: 1, // Bonus for exact position
   });
 
@@ -143,7 +143,7 @@ describe('calculateQualifiedTeamsScore', () => {
 
       const result = await calculateQualifiedTeamsScore(userId, tournamentId);
 
-      expect(result.totalScore).toBe(3); // 2 (base) + 1 (bonus)
+      expect(result.totalScore).toBe(2); // 1 (base) + 1 (bonus)
       expect(result.breakdown).toHaveLength(1);
       expect(result.breakdown[0].teams[0]).toMatchObject({
         teamId: 'team-1',
@@ -151,7 +151,7 @@ describe('calculateQualifiedTeamsScore', () => {
         actualPosition: 1,
         predictedToQualify: true,
         actuallyQualified: true,
-        pointsAwarded: 3,
+        pointsAwarded: 2,
         reason: 'qualified + exact position',
       });
     });
@@ -190,8 +190,8 @@ describe('calculateQualifiedTeamsScore', () => {
 
       const result = await calculateQualifiedTeamsScore(userId, tournamentId);
 
-      expect(result.totalScore).toBe(3); // 2 (base) + 1 (bonus)
-      expect(result.breakdown[0].teams[0].pointsAwarded).toBe(3);
+      expect(result.totalScore).toBe(2); // 1 (base) + 1 (bonus)
+      expect(result.breakdown[0].teams[0].pointsAwarded).toBe(2);
       expect(result.breakdown[0].teams[0].reason).toBe('qualified + exact position');
     });
 
@@ -229,8 +229,8 @@ describe('calculateQualifiedTeamsScore', () => {
 
       const result = await calculateQualifiedTeamsScore(userId, tournamentId);
 
-      expect(result.totalScore).toBe(2); // Only base points
-      expect(result.breakdown[0].teams[0].pointsAwarded).toBe(2);
+      expect(result.totalScore).toBe(1); // Only base points
+      expect(result.breakdown[0].teams[0].pointsAwarded).toBe(1);
       expect(result.breakdown[0].teams[0].reason).toBe('qualified, wrong position');
     });
   });
@@ -270,14 +270,14 @@ describe('calculateQualifiedTeamsScore', () => {
 
       const result = await calculateQualifiedTeamsScore(userId, tournamentId);
 
-      expect(result.totalScore).toBe(3); // 2 (base) + 1 (bonus)
+      expect(result.totalScore).toBe(2); // 1 (base) + 1 (bonus)
       expect(result.breakdown[0].teams[0]).toMatchObject({
         teamId: 'team-3',
         predictedPosition: 3,
         actualPosition: 3,
         predictedToQualify: true,
         actuallyQualified: true,
-        pointsAwarded: 3,
+        pointsAwarded: 2,
         reason: 'qualified + exact position',
       });
     });
@@ -316,8 +316,8 @@ describe('calculateQualifiedTeamsScore', () => {
 
       const result = await calculateQualifiedTeamsScore(userId, tournamentId);
 
-      expect(result.totalScore).toBe(2); // Only base points
-      expect(result.breakdown[0].teams[0].pointsAwarded).toBe(2);
+      expect(result.totalScore).toBe(1); // Only base points
+      expect(result.breakdown[0].teams[0].pointsAwarded).toBe(1);
       expect(result.breakdown[0].teams[0].reason).toBe('qualified, wrong position');
     });
 
@@ -512,7 +512,7 @@ describe('calculateQualifiedTeamsScore', () => {
 
       const result = await calculateQualifiedTeamsScore(userId, tournamentId);
 
-      expect(result.totalScore).toBe(6); // 3 points per group (exact position + qualified)
+      expect(result.totalScore).toBe(4); // 2 points per group (exact position + qualified)
       expect(result.breakdown).toHaveLength(2);
       expect(result.breakdown[0].groupId).toBe(groupA);
       expect(result.breakdown[1].groupId).toBe(groupB);
@@ -550,12 +550,12 @@ describe('calculateQualifiedTeamsScore', () => {
 
       const result = await calculateQualifiedTeamsScore(userId, tournamentId);
 
-      // team-1: 3 (exact), team-2: 2 (qualified, wrong pos), team-3: 2 (qualified, wrong pos), team-4: 0
-      expect(result.totalScore).toBe(7);
+      // team-1: 2 (exact), team-2: 1 (qualified, wrong pos), team-3: 1 (qualified, wrong pos), team-4: 0
+      expect(result.totalScore).toBe(4);
       expect(result.breakdown[0].teams).toHaveLength(4);
-      expect(result.breakdown[0].teams[0].pointsAwarded).toBe(3);
-      expect(result.breakdown[0].teams[1].pointsAwarded).toBe(2);
-      expect(result.breakdown[0].teams[2].pointsAwarded).toBe(2);
+      expect(result.breakdown[0].teams[0].pointsAwarded).toBe(2);
+      expect(result.breakdown[0].teams[1].pointsAwarded).toBe(1);
+      expect(result.breakdown[0].teams[2].pointsAwarded).toBe(1);
       expect(result.breakdown[0].teams[3].pointsAwarded).toBe(0);
     });
   });
@@ -609,8 +609,8 @@ describe('calculateQualifiedTeamsScore', () => {
     it('should use custom scoring points from tournament config', async () => {
       const customTournament = testFactories.tournament({
         id: tournamentId,
-        qualified_team_points: 5, // Custom base points
-        exact_position_qualified_points: 3, // Custom bonus
+        qualified_team_points: 3, // Custom base points
+        exact_position_qualified_points: 2, // Custom bonus
       });
 
       mockFindTournamentById.mockResolvedValue(customTournament);
@@ -647,7 +647,7 @@ describe('calculateQualifiedTeamsScore', () => {
 
       const result = await calculateQualifiedTeamsScore(userId, tournamentId);
 
-      expect(result.totalScore).toBe(8); // 5 (base) + 3 (bonus)
+      expect(result.totalScore).toBe(5); // 3 (base) + 2 (bonus)
     });
 
     it('should use default scoring points when tournament config is null', async () => {

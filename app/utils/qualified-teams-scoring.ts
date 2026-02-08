@@ -45,11 +45,13 @@ interface ScoringConfig {
  * Calculate qualified teams score for a user in a tournament
  *
  * Scoring Rules:
- * 1. Direct Qualifier (pos 1-2) qualifies → qualified_team_points (default 1)
- * 2. Exact Position Match + qualifies → +exact_position_qualified_points (default 1) bonus
- * 3. Third Place with qualify=true + actually qualifies → qualified_team_points
+ * 1. Direct Qualifier (pos 1-2) qualifies → 1 point (qualified_team_points)
+ * 2. Exact Position Match + qualifies → +1 bonus point (exact_position_qualified_points)
+ * 3. Third Place with qualify=true + actually qualifies → 1 point (qualified_team_points)
  * 4. Team doesn't qualify → 0 points (regardless of position accuracy)
- * 5. Wrong position but qualified → qualified_team_points only (no bonus)
+ * 5. Wrong position but qualified → 1 point only (qualified_team_points, no bonus)
+ *
+ * Maximum: 2 points per team (1 for qualification + 1 for exact position)
  *
  * @param userId - User ID to calculate score for
  * @param tournamentId - Tournament ID
