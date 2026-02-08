@@ -14,6 +14,48 @@ import {
 import { motion } from 'framer-motion'
 import RankChangeIndicator from '@/app/components/leaderboard/RankChangeIndicator'
 import type { TeamStandingCardProps } from './types'
+import type { Team } from '@/app/db/tables-definition'
+
+// Helper function to calculate card padding based on screen size
+function getCardPadding(isUltraCompact: boolean, isCompact: boolean) {
+  if (isUltraCompact) return { py: 1, px: 1.5 }
+  if (isCompact) return { py: 1.5, px: 1.5 }
+  return { py: 2, px: 2.5 }
+}
+
+// Helper function to get team display name based on screen size
+function getTeamDisplay(team: Team, isUltraCompact: boolean) {
+  if (isUltraCompact) {
+    return team.short_name || team.name.substring(0, 3).toUpperCase()
+  }
+  return team.name
+}
+
+// Helper function to generate accessible aria-label
+function getAriaLabel(
+  teamName: string,
+  position: number,
+  points: number,
+  isExpanded: boolean
+): string {
+  const expandState = isExpanded ? 'Expanded' : 'Collapsed'
+  const action = isExpanded ? 'collapse' : 'expand'
+  return `${teamName}, rank ${position}, ${points} points. ${expandState}. Press Enter or Space to ${action}.`
+}
+
+// Helper function to format points display text
+function getPointsDisplayText(
+  points: number,
+  gamesPlayed: number,
+  goalDifference: number,
+  isUltraCompact: boolean
+): string {
+  if (isUltraCompact) {
+    return `${points} pts`
+  }
+  const gdSign = goalDifference >= 0 ? '+' : ''
+  return `${points} pts (${gamesPlayed} PJ, ${gdSign}${goalDifference} DG)`
+}
 
 export default function TeamStandingCard({
   standing,
@@ -28,10 +70,11 @@ export default function TeamStandingCard({
   const isUltraCompact = useMediaQuery('(max-width:400px)')
   const isCompact = useMediaQuery('(max-width:600px)')
 
-  // Determine team display based on layout
-  const teamDisplay = isUltraCompact
-    ? standing.team.short_name || standing.team.name.substring(0, 3).toUpperCase()
-    : standing.team.name
+  // Calculate responsive values
+  const cardPadding = getCardPadding(isUltraCompact, isCompact)
+  const teamDisplay = getTeamDisplay(standing.team, isUltraCompact)
+  const ariaLabel = getAriaLabel(standing.team.name, standing.position, standing.points, isExpanded)
+  const pointsText = getPointsDisplayText(standing.points, standing.gamesPlayed, standing.goalDifference, isUltraCompact)
 
   return (
     <motion.div
@@ -53,11 +96,10 @@ export default function TeamStandingCard({
         }}
         tabIndex={0}
         role="button"
-        aria-label={`${standing.team.name}, rank ${standing.position}, ${standing.points} points. ${isExpanded ? 'Expanded' : 'Collapsed'}. Press Enter or Space to ${isExpanded ? 'collapse' : 'expand'}.`}
+        aria-label={ariaLabel}
         aria-expanded={isExpanded}
         sx={{
-          py: isUltraCompact ? 1 : (isCompact ? 1.5 : 2),
-          px: isUltraCompact ? 1.5 : (isCompact ? 1.5 : 2.5),
+          ...cardPadding,
           mb: 1.5,
           borderRadius: 2,
           cursor: 'pointer',
@@ -125,7 +167,7 @@ export default function TeamStandingCard({
                   fontSize: isUltraCompact ? '0.875rem' : undefined
                 }}
               >
-                {standing.points} {isUltraCompact ? 'pts' : `pts ${!isUltraCompact ? `(${standing.gamesPlayed} PJ, ${standing.goalDifference >= 0 ? '+' : ''}${standing.goalDifference} DG)` : ''}`}
+                {pointsText}
               </Typography>
             )}
 

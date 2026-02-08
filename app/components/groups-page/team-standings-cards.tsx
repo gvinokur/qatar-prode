@@ -95,9 +95,9 @@ export default function TeamStandingsCards({
           const isExpanded = expandedCardId === standing.id
 
           // Calculate rank change
-          const rankChange = standing.previousPosition !== undefined
-            ? standing.previousPosition - standing.position
-            : 0
+          const rankChange = standing.previousPosition === undefined
+            ? 0
+            : standing.previousPosition - standing.position
 
           return (
             <TeamStandingCard

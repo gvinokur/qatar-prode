@@ -30,20 +30,20 @@ export interface TeamStanding {
  * Props for TeamStandingsCards container component
  */
 export interface TeamStandingsCardsProps {
-  teamStats: TeamStats[]
-  teamsMap: { [key: string]: Team }
-  qualifiedTeams: Team[]  // Array of qualified Team objects
+  readonly teamStats: TeamStats[]
+  readonly teamsMap: { [key: string]: Team }
+  readonly qualifiedTeams: Team[]  // Array of qualified Team objects
   // Future rank change support
-  previousTeamStats?: TeamStats[]
+  readonly previousTeamStats?: TeamStats[]
 }
 
 /**
  * Props for individual TeamStandingCard component
  */
 export interface TeamStandingCardProps {
-  standing: TeamStanding
-  isExpanded: boolean
-  onToggleExpand: () => void
-  rankChange?: number     // Positive = improved, negative = declined, 0 = no change
-  showRankChange: boolean // True only if previousTeamStats was provided
+  readonly standing: TeamStanding
+  readonly isExpanded: boolean
+  readonly onToggleExpand: () => void
+  readonly rankChange?: number     // Positive = improved, negative = declined, 0 = no change
+  readonly showRankChange: boolean // True only if previousTeamStats was provided
 }
