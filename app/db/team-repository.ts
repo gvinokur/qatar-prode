@@ -174,28 +174,14 @@ export const findQualifiedTeams = cache(async (tournamentId: string, inGroupId?:
   addTopTwoFromCompleteGroups(groupedStandings, results);
 
   // 4. Add 3rd place qualifiers (determined by playoff bracket)
+  // Query all playoff games (game_type can be 'playoff', 'first_round', or 'other_round')
   const playoffTeams = await db
     .selectFrom('games')
-    .where('game_type', '=', 'first_round')
     .where('tournament_id', '=', tournamentId)
+    .where('game_type', '!=', 'group')
+    .where('game_type', 'is not', null)
     .select(['home_team', 'away_team'])
     .execute();
-
-  if (process.env.NODE_ENV === 'development' && inGroupId) {
-    console.error('[findQualifiedTeams] Playoff teams found:', playoffTeams.length);
-    console.error('[findQualifiedTeams] Checking 3rd place from groupedStandings');
-    Object.entries(groupedStandings).forEach(([groupId, standings]) => {
-      const third = standings.find(s => s.position === 2);
-      if (third) {
-        console.error(`[findQualifiedTeams] Group ${groupId} 3rd place:`, {
-          id: third.id,
-          name: third.name,
-          is_complete: third.is_complete,
-          inPlayoffs: playoffTeams.some(g => g.home_team === third.id || g.away_team === third.id)
-        });
-      }
-    });
-  }
 
   if (playoffTeams.length > 0) {
     const playoffTeamIds = new Set<string>();
