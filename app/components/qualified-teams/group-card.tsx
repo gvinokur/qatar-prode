@@ -175,6 +175,7 @@ export default function GroupCard({
                 }
                 result={result}
                 isGroupComplete={isGroupComplete}
+                allGroupsComplete={allGroupsComplete}
                 isPending3rdPlace={isPending}
               />
             );

@@ -33,6 +33,7 @@ describe('DraggableTeamCard', () => {
         predictedToQualify={true}
         disabled={false}
         isGroupComplete={false}
+        allGroupsComplete={false}
         isPending3rdPlace={false}
       />
     );
@@ -48,6 +49,7 @@ describe('DraggableTeamCard', () => {
         predictedToQualify={true}
         disabled={false}
         isGroupComplete={false}
+        allGroupsComplete={false}
         isPending3rdPlace={false}
       />
     );
@@ -63,6 +65,7 @@ describe('DraggableTeamCard', () => {
         predictedToQualify={false}
         disabled={false}
         isGroupComplete={false}
+        allGroupsComplete={false}
         isPending3rdPlace={false}
       />
     );
@@ -80,6 +83,7 @@ describe('DraggableTeamCard', () => {
         predictedToQualify={true}
         disabled={false}
         isGroupComplete={false}
+        allGroupsComplete={false}
         isPending3rdPlace={false}
       />
     );
@@ -99,6 +103,7 @@ describe('DraggableTeamCard', () => {
         disabled={false}
         onToggleThirdPlace={onToggleThirdPlace}
         isGroupComplete={false}
+        allGroupsComplete={false}
         isPending3rdPlace={false}
       />
     );
@@ -117,6 +122,7 @@ describe('DraggableTeamCard', () => {
         predictedToQualify={false}
         disabled={true}
         isGroupComplete={false}
+        allGroupsComplete={false}
         isPending3rdPlace={false}
       />
     );
@@ -133,6 +139,7 @@ describe('DraggableTeamCard', () => {
         predictedToQualify={true}
         disabled={false}
         isGroupComplete={false}
+        allGroupsComplete={false}
         isPending3rdPlace={false}
       />
     );
@@ -148,6 +155,7 @@ describe('DraggableTeamCard', () => {
         predictedToQualify={false}
         disabled={false}
         isGroupComplete={false}
+        allGroupsComplete={false}
         isPending3rdPlace={false}
       />
     );
@@ -163,6 +171,7 @@ describe('DraggableTeamCard', () => {
         predictedToQualify={true}
         disabled={false}
         isGroupComplete={false}
+        allGroupsComplete={false}
         isPending3rdPlace={false}
       />
     );
@@ -180,6 +189,7 @@ describe('DraggableTeamCard', () => {
         predictedToQualify={true}
         disabled={true}
         isGroupComplete={false}
+        allGroupsComplete={false}
         isPending3rdPlace={false}
       />
     );
@@ -201,6 +211,94 @@ describe('DraggableTeamCard', () => {
       reason: 'qualified + exact position',
     };
 
+    it('should show pending overlay for position 1 when locked and group not complete', () => {
+      renderWithDndContext(
+        <DraggableTeamCard
+          team={mockTeam}
+          position={1}
+          predictedToQualify={true}
+          disabled={true}
+          result={null}
+          isGroupComplete={false}
+          allGroupsComplete={false}
+          isPending3rdPlace={false}
+        />
+      );
+
+      expect(screen.getByText('Pendiente')).toBeInTheDocument();
+      expect(screen.getByTestId('HourglassEmptyIcon')).toBeInTheDocument();
+    });
+
+    it('should show pending overlay for position 2 when locked and group not complete', () => {
+      renderWithDndContext(
+        <DraggableTeamCard
+          team={mockTeam}
+          position={2}
+          predictedToQualify={true}
+          disabled={true}
+          result={null}
+          isGroupComplete={false}
+          allGroupsComplete={false}
+          isPending3rdPlace={false}
+        />
+      );
+
+      expect(screen.getByText('Pendiente')).toBeInTheDocument();
+      expect(screen.getByTestId('HourglassEmptyIcon')).toBeInTheDocument();
+    });
+
+    it('should show pending overlay for position 3 when locked and all groups not complete', () => {
+      renderWithDndContext(
+        <DraggableTeamCard
+          team={mockTeam}
+          position={3}
+          predictedToQualify={true}
+          disabled={true}
+          result={null}
+          isGroupComplete={true}
+          allGroupsComplete={false}
+          isPending3rdPlace={false}
+        />
+      );
+
+      expect(screen.getByText('Pendiente')).toBeInTheDocument();
+      expect(screen.getByTestId('HourglassEmptyIcon')).toBeInTheDocument();
+    });
+
+    it('should not show pending overlay when not locked', () => {
+      renderWithDndContext(
+        <DraggableTeamCard
+          team={mockTeam}
+          position={1}
+          predictedToQualify={true}
+          disabled={false}
+          result={null}
+          isGroupComplete={false}
+          allGroupsComplete={false}
+          isPending3rdPlace={false}
+        />
+      );
+
+      expect(screen.queryByText('Pendiente')).not.toBeInTheDocument();
+    });
+
+    it('should not show pending overlay when not predicted to qualify', () => {
+      renderWithDndContext(
+        <DraggableTeamCard
+          team={mockTeam}
+          position={1}
+          predictedToQualify={false}
+          disabled={true}
+          result={null}
+          isGroupComplete={false}
+          allGroupsComplete={false}
+          isPending3rdPlace={false}
+        />
+      );
+
+      expect(screen.queryByText('Pendiente')).not.toBeInTheDocument();
+    });
+
     it('should not show results overlay when group is not complete', () => {
       renderWithDndContext(
         <DraggableTeamCard
@@ -210,6 +308,7 @@ describe('DraggableTeamCard', () => {
           disabled={false}
           result={mockResult}
           isGroupComplete={false}
+          allGroupsComplete={false}
           isPending3rdPlace={false}
         />
       );
@@ -226,6 +325,7 @@ describe('DraggableTeamCard', () => {
           disabled={false}
           result={null}
           isGroupComplete={true}
+          allGroupsComplete={true}
           isPending3rdPlace={false}
         />
       );
@@ -242,6 +342,7 @@ describe('DraggableTeamCard', () => {
           disabled={false}
           result={mockResult}
           isGroupComplete={true}
+          allGroupsComplete={true}
           isPending3rdPlace={false}
         />
       );
@@ -267,6 +368,7 @@ describe('DraggableTeamCard', () => {
           disabled={false}
           result={partialResult}
           isGroupComplete={true}
+          allGroupsComplete={true}
           isPending3rdPlace={false}
         />
       );
@@ -292,6 +394,7 @@ describe('DraggableTeamCard', () => {
           disabled={false}
           result={wrongResult}
           isGroupComplete={true}
+          allGroupsComplete={true}
           isPending3rdPlace={false}
         />
       );
@@ -318,6 +421,7 @@ describe('DraggableTeamCard', () => {
           disabled={false}
           result={pendingResult}
           isGroupComplete={true}
+          allGroupsComplete={false}
           isPending3rdPlace={true}
         />
       );
@@ -335,6 +439,7 @@ describe('DraggableTeamCard', () => {
           disabled={false}
           result={mockResult}
           isGroupComplete={true}
+          allGroupsComplete={true}
           isPending3rdPlace={false}
         />
       );
@@ -359,6 +464,7 @@ describe('DraggableTeamCard', () => {
           disabled={false}
           result={partialResult}
           isGroupComplete={true}
+          allGroupsComplete={true}
           isPending3rdPlace={false}
         />
       );
@@ -382,7 +488,27 @@ describe('DraggableTeamCard', () => {
           disabled={false}
           result={pendingResult}
           isGroupComplete={true}
+          allGroupsComplete={false}
           isPending3rdPlace={true}
+        />
+      );
+
+      // Blue background for pending
+      const card = container.querySelector('[class*="MuiCard"]');
+      expect(card).toHaveStyle({ backgroundColor: expect.stringMatching(/rgb.*|#.*/) });
+    });
+
+    it('should apply blue background for pending state before group completion', () => {
+      const { container } = renderWithDndContext(
+        <DraggableTeamCard
+          team={mockTeam}
+          position={1}
+          predictedToQualify={true}
+          disabled={true}
+          result={null}
+          isGroupComplete={false}
+          allGroupsComplete={false}
+          isPending3rdPlace={false}
         />
       );
 

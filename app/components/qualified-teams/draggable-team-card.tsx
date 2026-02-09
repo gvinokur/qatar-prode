@@ -26,6 +26,8 @@ export interface DraggableTeamCardProps {
   readonly result?: TeamScoringResult | null;
   /** Whether the group is complete (results can be shown) */
   readonly isGroupComplete: boolean;
+  /** Whether all groups in the tournament are complete */
+  readonly allGroupsComplete: boolean;
   /** Whether this team is in pending 3rd place state */
   readonly isPending3rdPlace: boolean;
 }
@@ -46,8 +48,21 @@ function getBackgroundColor(
   disabled: boolean,
   result?: TeamScoringResult | null,
   isGroupComplete?: boolean,
+  allGroupsComplete?: boolean,
   isPending3rdPlace?: boolean
 ): string {
+  // If locked and predicted to qualify, check for pending state BEFORE results
+  if (disabled && predictedToQualify) {
+    // Positions 1-2: Pending until their group completes
+    if ((position === 1 || position === 2) && !isGroupComplete) {
+      return theme.palette.info.light;
+    }
+    // Position 3: Pending until all groups complete
+    if (position === 3 && !allGroupsComplete) {
+      return theme.palette.info.light;
+    }
+  }
+
   // If group is complete and we have a result AND user predicted to qualify, use result-based colors
   // Don't show result colors for teams user didn't predict to qualify
   if (isGroupComplete && result && predictedToQualify) {
@@ -168,9 +183,11 @@ function ThirdPlaceCheckbox({
 function ResultsOverlay({
   result,
   isPending3rdPlace,
+  isPendingBeforeResults,
 }: {
-  readonly result: TeamScoringResult;
+  readonly result?: TeamScoringResult | null;
   readonly isPending3rdPlace: boolean;
+  readonly isPendingBeforeResults: boolean;
 }) {
   const theme = useTheme();
 
@@ -181,21 +198,21 @@ function ResultsOverlay({
   let chipBackgroundColor: string;
   let chipTextColor: string;
 
-  if (isPending3rdPlace) {
-    // Pending 3rd place: blue theme
+  if (isPendingBeforeResults || isPending3rdPlace) {
+    // Pending state (waiting for group/all groups to complete, or 3rd place playoff)
     icon = <HourglassEmptyIcon sx={{ fontSize: '1.25rem' }} />;
     chipLabel = 'Pendiente';
     iconColor = theme.palette.info.main;
     chipBackgroundColor = theme.palette.info.light;
     chipTextColor = 'white';
-  } else if (result.pointsAwarded === 2) {
+  } else if (result && result.pointsAwarded === 2) {
     // Perfect match (2 pts): gold (like game cards with golden boost)
     icon = <CheckCircleIcon sx={{ fontSize: '1.25rem' }} />;
     chipLabel = '+2 pts';
     iconColor = theme.palette.accent.gold.main;
     chipBackgroundColor = alpha(theme.palette.accent.gold.main, 0.2);
     chipTextColor = theme.palette.accent.gold.main;
-  } else if (result.pointsAwarded === 1) {
+  } else if (result && result.pointsAwarded === 1) {
     // Partial match (1 pt): silver (like game cards with silver boost)
     icon = <CheckCircleIcon sx={{ fontSize: '1.25rem' }} />;
     chipLabel = '+1 pt';
@@ -242,6 +259,7 @@ export default function DraggableTeamCard({
   onToggleThirdPlace,
   result,
   isGroupComplete,
+  allGroupsComplete,
   isPending3rdPlace,
 }: DraggableTeamCardProps) {
   const theme = useTheme();
@@ -271,13 +289,24 @@ export default function DraggableTeamCard({
     opacity: getOpacity(),
   };
 
-  const backgroundColor = getBackgroundColor(theme, position, predictedToQualify, disabled, result, isGroupComplete, isPending3rdPlace);
+  const backgroundColor = getBackgroundColor(theme, position, predictedToQualify, disabled, result, isGroupComplete, allGroupsComplete, isPending3rdPlace);
 
-  // Show results overlay only when:
-  // 1. Group is complete
-  // 2. Result exists
-  // 3. User predicted this team to qualify (predictedToQualify = true)
-  const showResults = isGroupComplete && result && predictedToQualify;
+  // Determine if this team is in a pending state (waiting for results)
+  const isPendingBeforeResults = disabled && predictedToQualify && (
+    // Positions 1-2: Pending until their group completes
+    ((position === 1 || position === 2) && !isGroupComplete) ||
+    // Position 3: Pending until all groups complete
+    (position === 3 && !allGroupsComplete)
+  );
+
+  // Show results overlay when:
+  // 1. Locked AND predicted to qualify AND pending (waiting for results)
+  // 2. Group is complete AND result exists AND predicted to qualify (showing actual results)
+  const showResults = predictedToQualify && (
+    isPendingBeforeResults ||
+    isPending3rdPlace ||
+    (isGroupComplete && result)
+  );
 
   return (
     <Card
@@ -312,7 +341,7 @@ export default function DraggableTeamCard({
             onChange={onToggleThirdPlace}
           />
         )}
-        {showResults && <ResultsOverlay result={result} isPending3rdPlace={isPending3rdPlace} />}
+        {showResults && <ResultsOverlay result={result} isPending3rdPlace={isPending3rdPlace} isPendingBeforeResults={isPendingBeforeResults} />}
       </CardContent>
     </Card>
   );
