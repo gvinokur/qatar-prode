@@ -167,11 +167,11 @@ export default async function QualifiedTeamsPage({ params, searchParams }: PageP
       predictions = await initializePredictions(user.id, tournamentId, groupsWithTeams);
     }
 
-    // Fetch actual qualified teams (progressive results)
-    const actualQualifiedTeams = await findQualifiedTeams(tournamentId);
+    // Fetch actual qualified teams with group completion metadata
+    const qualifiedTeamsResult = await findQualifiedTeams(tournamentId);
 
     // Calculate scoring breakdown when results are available
-    const scoringResult = actualQualifiedTeams.length > 0
+    const scoringResult = qualifiedTeamsResult.teams.length > 0
       ? await calculateQualifiedTeamsScore(user.id, tournamentId)
       : null;
 
@@ -185,7 +185,7 @@ export default async function QualifiedTeamsPage({ params, searchParams }: PageP
         allowEditing,
         groupsWithTeams,
         predictions,
-        actualQualifiedTeams,
+        qualifiedTeamsResult,
         scoringResult,
       };
     }
@@ -201,7 +201,9 @@ export default async function QualifiedTeamsPage({ params, searchParams }: PageP
           isLocked={isLocked}
           allowsThirdPlace={config.allowsThirdPlace}
           maxThirdPlace={config.maxThirdPlace}
-          actualResults={actualQualifiedTeams}
+          actualResults={qualifiedTeamsResult.teams}
+          completeGroupIds={qualifiedTeamsResult.completeGroupIds}
+          allGroupsComplete={qualifiedTeamsResult.allGroupsComplete}
           scoringBreakdown={scoringResult}
         />
       </>

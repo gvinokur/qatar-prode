@@ -38,6 +38,10 @@ interface QualifiedTeamsClientPageProps {
   readonly maxThirdPlace: number;
   /** Actual qualified teams (progressive results) */
   readonly actualResults?: Array<{ id: string; group_id: string }>;
+  /** Set of group IDs that are complete (have positions determined) */
+  readonly completeGroupIds: Set<string>;
+  /** Whether all groups in the tournament are complete */
+  readonly allGroupsComplete: boolean;
   /** Scoring breakdown for user's predictions */
   readonly scoringBreakdown?: QualifiedTeamsScoringResult | null;
 }
@@ -135,39 +139,12 @@ function QualifiedTeamsUI({
   maxThirdPlace,
   isLocked,
   actualResults,
+  completeGroupIds,
+  allGroupsComplete,
   scoringBreakdown,
 }: Omit<QualifiedTeamsClientPageProps, 'initialPredictions' | 'userId'>) {
   const { predictions, isSaving, saveState, error, clearError, updateGroupPositions } = useQualifiedTeamsContext();
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
-
-  // Determine which groups are complete based on actualResults
-  const completeGroupIds = useMemo(() => {
-    if (!actualResults || actualResults.length === 0) return new Set<string>();
-
-    const groupTeamCounts = new Map<string, number>();
-
-    // Count qualified teams per group
-    actualResults.forEach((team) => {
-      const count = groupTeamCounts.get(team.group_id) || 0;
-      groupTeamCounts.set(team.group_id, count + 1);
-    });
-
-    // A group is complete if it has at least 2 qualified teams (1st and 2nd place)
-    // Note: 3rd place teams may still be pending if best 3rds not determined
-    const completeGroups = new Set<string>();
-    groupTeamCounts.forEach((count, groupId) => {
-      if (count >= 2) {
-        completeGroups.add(groupId);
-      }
-    });
-
-    return completeGroups;
-  }, [actualResults]);
-
-  // Check if all groups are complete
-  const allGroupsComplete = useMemo(() => {
-    return completeGroupIds.size === groups.length && groups.length > 0;
-  }, [completeGroupIds, groups.length]);
 
   // Show snackbar when save succeeds
   useEffect(() => {

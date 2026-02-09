@@ -510,7 +510,8 @@ export async function calculateAndStoreGroupPosition(group_id: string, teamIds: 
 
 export async function calculateAndStoreQualifiedTeamsPoints(tournamentId: string) {
   const users = await db.selectFrom('users').select('id').execute();
-  const allQualifiedTeams = await findQualifiedTeams(tournamentId)
+  const qualifiedTeamsResult = await findQualifiedTeams(tournamentId);
+  const allQualifiedTeams = qualifiedTeamsResult.teams;
 
   return Promise.all(users.map(async (user) => {
     try{
@@ -867,7 +868,8 @@ export async function calculateAndStoreGroupPositionScores(tournamentId: string)
   const exact_position_qualified_points = tournament.exact_position_qualified_points ?? 1;
 
   // Get ALL qualified teams for this tournament
-  const qualifiedTeams = await findQualifiedTeams(tournamentId);
+  const qualifiedTeamsResult = await findQualifiedTeams(tournamentId);
+  const qualifiedTeams = qualifiedTeamsResult.teams;
   const qualifiedTeamIds = new Set(qualifiedTeams.map(t => t.id));
 
   // For each user, calculate their score

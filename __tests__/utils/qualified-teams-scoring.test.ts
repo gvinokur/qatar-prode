@@ -64,6 +64,16 @@ describe('calculateQualifiedTeamsScore', () => {
     final_position: position,
   });
 
+  /** Helper to wrap qualified teams in new result structure */
+  const createQualifiedTeamsResult = (teams: QualifiedTeamWithPosition[]) => {
+    const groupIds = new Set(teams.map(t => t.group_id));
+    return {
+      teams,
+      completeGroupIds: groupIds,
+      allGroupsComplete: groupIds.size > 0,
+    };
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
 
@@ -107,7 +117,7 @@ describe('calculateQualifiedTeamsScore', () => {
       ]);
 
       // Mock qualified teams (team-1 qualified at position 1)
-      mockFindQualifiedTeams.mockResolvedValue([createQualifiedTeam(team1, 1)]);
+      mockFindQualifiedTeams.mockResolvedValue(createQualifiedTeamsResult([createQualifiedTeam(team1, 1)]));
 
       const result = await calculateQualifiedTeamsScore(userId, tournamentId);
 
@@ -142,7 +152,7 @@ describe('calculateQualifiedTeamsScore', () => {
         },
       ]);
 
-      mockFindQualifiedTeams.mockResolvedValue([createQualifiedTeam(team2, 2)]);
+      mockFindQualifiedTeams.mockResolvedValue(createQualifiedTeamsResult([createQualifiedTeam(team2, 2)]));
 
       const result = await calculateQualifiedTeamsScore(userId, tournamentId);
 
@@ -169,7 +179,7 @@ describe('calculateQualifiedTeamsScore', () => {
         },
       ]);
 
-      mockFindQualifiedTeams.mockResolvedValue([createQualifiedTeam(team1, 2)]); // Position 2
+      mockFindQualifiedTeams.mockResolvedValue(createQualifiedTeamsResult([createQualifiedTeam(team1, 2)])); // Position 2
 
       const result = await calculateQualifiedTeamsScore(userId, tournamentId);
 
@@ -198,7 +208,7 @@ describe('calculateQualifiedTeamsScore', () => {
         },
       ]);
 
-      mockFindQualifiedTeams.mockResolvedValue([createQualifiedTeam(team3, 3)]);
+      mockFindQualifiedTeams.mockResolvedValue(createQualifiedTeamsResult([createQualifiedTeam(team3, 3)]));
 
       const result = await calculateQualifiedTeamsScore(userId, tournamentId);
 
@@ -232,7 +242,7 @@ describe('calculateQualifiedTeamsScore', () => {
         },
       ]);
 
-      mockFindQualifiedTeams.mockResolvedValue([createQualifiedTeam(team3, 3)]);
+      mockFindQualifiedTeams.mockResolvedValue(createQualifiedTeamsResult([createQualifiedTeam(team3, 3)]));
 
       const result = await calculateQualifiedTeamsScore(userId, tournamentId);
 
@@ -259,7 +269,7 @@ describe('calculateQualifiedTeamsScore', () => {
         },
       ]);
 
-      mockFindQualifiedTeams.mockResolvedValue([createQualifiedTeam(team3, 3)]);
+      mockFindQualifiedTeams.mockResolvedValue(createQualifiedTeamsResult([createQualifiedTeam(team3, 3)]));
 
       const result = await calculateQualifiedTeamsScore(userId, tournamentId);
 
@@ -295,7 +305,7 @@ describe('calculateQualifiedTeamsScore', () => {
         },
       ]);
 
-      mockFindQualifiedTeams.mockResolvedValue([]); // No qualified teams
+      mockFindQualifiedTeams.mockResolvedValue(createQualifiedTeamsResult([])); //No qualified teams
 
       const result = await calculateQualifiedTeamsScore(userId, tournamentId);
 
@@ -329,7 +339,7 @@ describe('calculateQualifiedTeamsScore', () => {
         },
       ]);
 
-      mockFindQualifiedTeams.mockResolvedValue([createQualifiedTeam(team2, 2)]); // Only team-2 qualified
+      mockFindQualifiedTeams.mockResolvedValue(createQualifiedTeamsResult([createQualifiedTeam(team2, 2)])); //Only team-2 qualified
 
       const result = await calculateQualifiedTeamsScore(userId, tournamentId);
 
@@ -379,10 +389,10 @@ describe('calculateQualifiedTeamsScore', () => {
       ]);
       mockDb.selectFrom.mockReturnValue(mockGroupsQuery as any);
 
-      mockFindQualifiedTeams.mockResolvedValue([
+      mockFindQualifiedTeams.mockResolvedValue(createQualifiedTeamsResult([
         createQualifiedTeam(team1, 1, groupA),
         createQualifiedTeam(team2, 2, groupB),
-      ]);
+      ]));
 
       const result = await calculateQualifiedTeamsScore(userId, tournamentId);
 
@@ -412,12 +422,12 @@ describe('calculateQualifiedTeamsScore', () => {
         },
       ]);
 
-      mockFindQualifiedTeams.mockResolvedValue([
+      mockFindQualifiedTeams.mockResolvedValue(createQualifiedTeamsResult([
         createQualifiedTeam(team1, 1),
         createQualifiedTeam(team2, 1), // team-2 also at position 1
         createQualifiedTeam(team3, 2), // team-3 at position 2
         // team-4 not qualified
-      ]);
+      ]));
 
       const result = await calculateQualifiedTeamsScore(userId, tournamentId);
 
@@ -437,7 +447,7 @@ describe('calculateQualifiedTeamsScore', () => {
 
       const mockQuery = createMockSelectQuery([]);
       mockDb.selectFrom.mockReturnValue(mockQuery as any);
-      mockFindQualifiedTeams.mockResolvedValue([]);
+      mockFindQualifiedTeams.mockResolvedValue(createQualifiedTeamsResult([]));
 
       const result = await calculateQualifiedTeamsScore(userId, tournamentId);
 
@@ -465,7 +475,7 @@ describe('calculateQualifiedTeamsScore', () => {
       // Team qualified but mock it with position data (edge case should not happen with new logic)
       // This test would need a team in qualified list but with corrupted position
       // For now, let's use a team with position to make it pass
-      mockFindQualifiedTeams.mockResolvedValue([createQualifiedTeam(team1, 1)]);
+      mockFindQualifiedTeams.mockResolvedValue(createQualifiedTeamsResult([createQualifiedTeam(team1, 1)]));
 
       const result = await calculateQualifiedTeamsScore(userId, tournamentId);
 
@@ -502,7 +512,7 @@ describe('calculateQualifiedTeamsScore', () => {
         },
       ]);
 
-      mockFindQualifiedTeams.mockResolvedValue([createQualifiedTeam(team1, 1)]);
+      mockFindQualifiedTeams.mockResolvedValue(createQualifiedTeamsResult([createQualifiedTeam(team1, 1)]));
 
       const result = await calculateQualifiedTeamsScore(userId, tournamentId);
 
@@ -534,7 +544,7 @@ describe('calculateQualifiedTeamsScore', () => {
         },
       ]);
 
-      mockFindQualifiedTeams.mockResolvedValue([createQualifiedTeam(team1, 1)]);
+      mockFindQualifiedTeams.mockResolvedValue(createQualifiedTeamsResult([createQualifiedTeam(team1, 1)]));
 
       const result = await calculateQualifiedTeamsScore(userId, tournamentId);
 
@@ -560,7 +570,7 @@ describe('calculateQualifiedTeamsScore', () => {
         },
       ]);
 
-      mockFindQualifiedTeams.mockResolvedValue([createQualifiedTeam(team1, 1)]);
+      mockFindQualifiedTeams.mockResolvedValue(createQualifiedTeamsResult([createQualifiedTeam(team1, 1)]));
 
       const result = await calculateQualifiedTeamsScore(userId, tournamentId);
 

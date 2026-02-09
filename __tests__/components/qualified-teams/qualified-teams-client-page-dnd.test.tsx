@@ -91,6 +91,8 @@ describe('QualifiedTeamsClientPage - Drag and Drop', () => {
     allowsThirdPlace: true,
     maxThirdPlace: 4,
     initialPredictions: [mockPrediction1, mockPrediction2, mockPrediction3, mockPrediction4],
+    completeGroupIds: new Set<string>(),
+    allGroupsComplete: false,
   };
 
   beforeEach(() => {

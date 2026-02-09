@@ -129,7 +129,8 @@ export async function calculateQualifiedTeamsScore(
 
   // 3. Fetch qualified teams with their positions
   // This returns progressive results: 1st/2nd from complete groups + 3rd place when playoff bracket exists
-  const qualifiedTeams = await findQualifiedTeams(tournamentId);
+  const qualifiedTeamsResult = await findQualifiedTeams(tournamentId);
+  const qualifiedTeams = qualifiedTeamsResult.teams;
 
   // Build lookup maps for efficient querying
   const qualifiedTeamsMap = new Map(
