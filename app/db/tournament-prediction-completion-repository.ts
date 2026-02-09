@@ -2,6 +2,7 @@ import { db } from './database';
 import { TournamentPredictionCompletion, Tournament } from './tables-definition';
 import { findTournamentGuessByUserIdTournament } from './tournament-guess-repository';
 import { getTournamentStartDate } from '../actions/tournament-actions';
+import { getQualificationPredictions } from './qualified-teams-repository';
 
 /**
  * Get tournament prediction completion status for a user
@@ -59,17 +60,11 @@ export async function getTournamentPredictionCompletion(
   const totalGroups = Number(totalGroupsResult?.count ?? 0);
 
   // Count how many teams the user has predicted to qualify
+  // Use the working repository function instead of direct query
   // Simply count all entries where predicted_to_qualify = true for this user/tournament
   // No need to track "complete groups" - users can select third-place qualifiers directly
-  const qualifiersCompletedResult = await db
-    .selectFrom('tournament_qualified_teams_predictions')
-    .select((eb) => eb.fn.countAll<number>().as('count'))
-    .where('tournament_id', '=', tournamentId)
-    .where('user_id', '=', userId)
-    .where('predicted_to_qualify', '=', true)
-    .executeTakeFirst();
-
-  const qualifiersCompleted = Number(qualifiersCompletedResult?.count ?? 0);
+  const qualificationPredictions = await getQualificationPredictions(userId, tournamentId);
+  const qualifiersCompleted = qualificationPredictions.filter(p => p.predicted_to_qualify).length;
 
   // Calculate overall metrics
   const overallTotal = 3 + 4 + totalQualifierSlots; // finalStandings + awards + qualifiers
