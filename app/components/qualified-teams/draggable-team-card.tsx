@@ -43,6 +43,7 @@ function getBackgroundColor(
   theme: Theme,
   position: number,
   predictedToQualify: boolean,
+  disabled: boolean,
   result?: TeamScoringResult | null,
   isGroupComplete?: boolean,
   isPending3rdPlace?: boolean
@@ -69,8 +70,14 @@ function getBackgroundColor(
   if (position === 1 || position === 2) {
     return predictedToQualify ? theme.palette.success.light : theme.palette.warning.light;
   }
-  // Position 3: Green if qualified, yellow if can qualify but not selected
+  // Position 3:
+  // - If locked and NOT predicted to qualify: gray (non-important, like position 4+)
+  // - If predicted to qualify: green (will show pending/results)
+  // - If not locked and not predicted: yellow (can still select)
   if (position === 3) {
+    if (disabled && !predictedToQualify) {
+      return theme.palette.grey[100]; // Non-important when locked
+    }
     return predictedToQualify ? theme.palette.success.light : theme.palette.warning.light;
   }
   // Position 4+: Gray (cannot qualify)
@@ -264,7 +271,7 @@ export default function DraggableTeamCard({
     opacity: getOpacity(),
   };
 
-  const backgroundColor = getBackgroundColor(theme, position, predictedToQualify, result, isGroupComplete, isPending3rdPlace);
+  const backgroundColor = getBackgroundColor(theme, position, predictedToQualify, disabled, result, isGroupComplete, isPending3rdPlace);
 
   // Show results overlay only when:
   // 1. Group is complete
@@ -298,7 +305,7 @@ export default function DraggableTeamCard({
         {!disabled && <DragHandle disabled={disabled} attributes={attributes} listeners={listeners} />}
         <PositionBadge position={position} />
         <TeamInfo team={team} />
-        {position === 3 && (
+        {position === 3 && !disabled && (
           <ThirdPlaceCheckbox
             checked={predictedToQualify}
             disabled={disabled}

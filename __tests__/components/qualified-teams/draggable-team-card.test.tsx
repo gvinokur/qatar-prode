@@ -109,7 +109,7 @@ describe('DraggableTeamCard', () => {
     expect(onToggleThirdPlace).toHaveBeenCalledTimes(1);
   });
 
-  it('should disable checkbox when disabled prop is true', () => {
+  it('should not render checkbox when disabled prop is true', () => {
     renderWithDndContext(
       <DraggableTeamCard
         team={mockTeam}
@@ -121,8 +121,8 @@ describe('DraggableTeamCard', () => {
       />
     );
 
-    const checkbox = screen.getByRole('checkbox');
-    expect(checkbox).toBeDisabled();
+    const checkbox = screen.queryByRole('checkbox');
+    expect(checkbox).not.toBeInTheDocument();
   });
 
   it('should not render checkbox for positions 1-2', () => {

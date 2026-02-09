@@ -237,7 +237,7 @@ describe('DraggableTeamCard', () => {
       expect(onToggleThirdPlace).toHaveBeenCalledTimes(1);
     });
 
-    it('should disable checkbox when disabled prop is true', () => {
+    it('should not render checkbox when disabled prop is true', () => {
       renderWithTheme(
         <DraggableTeamCard
           team={mockTeam}
@@ -247,8 +247,8 @@ describe('DraggableTeamCard', () => {
         />
       );
 
-      const checkbox = screen.getByRole('checkbox') as HTMLInputElement;
-      expect(checkbox.disabled).toBe(true);
+      const checkbox = screen.queryByRole('checkbox');
+      expect(checkbox).not.toBeInTheDocument();
     });
   });
 
