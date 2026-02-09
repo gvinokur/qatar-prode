@@ -76,6 +76,7 @@ export default async function PlayoffPage(props: Props) {
             goals_for: 0,
             goals_against: 0,
             goal_difference: 0,
+            is_complete: true, // Mark as complete so playoff calculator accepts this group
           }))
 
         return [group.group_letter, standings]
