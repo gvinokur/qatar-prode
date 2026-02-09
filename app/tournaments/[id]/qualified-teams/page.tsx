@@ -133,8 +133,6 @@ export default async function QualifiedTeamsPage({ params, searchParams }: PageP
       redirect(`/auth/login?redirect=/tournaments/${tournamentId}/qualified-teams`);
     }
 
-    console.error('[QualifiedTeams] User authenticated:', user.id);
-
     // Fetch tournament (including dev_only field)
     const tournament = await db
       .selectFrom('tournaments')
@@ -143,15 +141,11 @@ export default async function QualifiedTeamsPage({ params, searchParams }: PageP
       .executeTakeFirst();
 
     if (!tournament) {
-      console.error('[QualifiedTeams] Tournament not found:', tournamentId);
       notFound();
     }
 
-    console.error('[QualifiedTeams] Tournament found:', tournament.id);
-
     // Get tournament qualification configuration
     const config = await getTournamentQualificationConfig(tournamentId);
-    console.error('[QualifiedTeams] Config loaded:', config);
 
     // Check if editing should be allowed via search param (dev/preview + dev tournament only)
     const isDevelopmentEnvironment = process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'preview';
@@ -164,17 +158,13 @@ export default async function QualifiedTeamsPage({ params, searchParams }: PageP
 
     // Fetch groups with their teams
     const groupsWithTeams = await fetchGroupsWithTeams(tournamentId);
-    console.error('[QualifiedTeams] Groups loaded:', groupsWithTeams.length);
 
     // Fetch user's predictions from JSONB table and flatten
     let predictions = await fetchAndFlattenPredictions(user.id, tournamentId);
-    console.error('[QualifiedTeams] Predictions loaded:', predictions.length);
 
     // Initialize predictions if none exist
     if (predictions.length === 0) {
-      console.error('[QualifiedTeams] Initializing predictions...');
       predictions = await initializePredictions(user.id, tournamentId, groupsWithTeams);
-      console.error('[QualifiedTeams] Predictions initialized:', predictions.length);
     }
 
     // Debug data (only fetched when ?debug is present)
