@@ -294,14 +294,19 @@ export async function updateGroupPositionsBatch(
   const tournament = await db
     .selectFrom('tournaments')
     .where('id', '=', tournamentId)
-    .select(['id', 'is_active', 'allows_third_place_qualification', 'max_third_place_qualifiers'])
+    .select(['id', 'is_active', 'allows_third_place_qualification', 'max_third_place_qualifiers', 'dev_only'])
     .executeTakeFirst();
 
   if (!tournament) {
     throw new QualificationPredictionError('Torneo no encontrado', 'TOURNAMENT_NOT_FOUND');
   }
 
-  if (!tournament.is_active) {
+  // Check if editing is allowed via dev override (dev/preview environment + dev tournament)
+  const isDevelopmentEnvironment = process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'preview';
+  const isDevTournament = tournament.dev_only === true;
+  const allowDevOverride = isDevelopmentEnvironment && isDevTournament;
+
+  if (!tournament.is_active && !allowDevOverride) {
     throw new QualificationPredictionError(
       'Las predicciones están bloqueadas para este torneo',
       'TOURNAMENT_LOCKED'
@@ -545,14 +550,19 @@ export async function updateGroupPositionsJsonb(
   const tournament = await db
     .selectFrom('tournaments')
     .where('id', '=', tournamentId)
-    .select(['id', 'is_active', 'allows_third_place_qualification', 'max_third_place_qualifiers'])
+    .select(['id', 'is_active', 'allows_third_place_qualification', 'max_third_place_qualifiers', 'dev_only'])
     .executeTakeFirst();
 
   if (!tournament) {
     throw new QualificationPredictionError('Torneo no encontrado', 'TOURNAMENT_NOT_FOUND');
   }
 
-  if (!tournament.is_active) {
+  // Check if editing is allowed via dev override (dev/preview environment + dev tournament)
+  const isDevelopmentEnvironment = process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'preview';
+  const isDevTournament = tournament.dev_only === true;
+  const allowDevOverride = isDevelopmentEnvironment && isDevTournament;
+
+  if (!tournament.is_active && !allowDevOverride) {
     throw new QualificationPredictionError(
       'Las predicciones están bloqueadas para este torneo',
       'TOURNAMENT_LOCKED'

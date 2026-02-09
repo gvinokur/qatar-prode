@@ -206,7 +206,8 @@ describe('QualifiedTeamsPage', () => {
     });
 
     const params = Promise.resolve({ id: 'tournament-1' });
-    const result = await QualifiedTeamsPage({ params });
+    const searchParams = Promise.resolve({});
+    const result = await QualifiedTeamsPage({ params, searchParams });
 
     expect(result).toBeDefined();
     expect(mockGetLoggedInUser).toHaveBeenCalled();
@@ -244,7 +245,8 @@ describe('QualifiedTeamsPage', () => {
     });
 
     const params = Promise.resolve({ id: 'tournament-1' });
-    const result = await QualifiedTeamsPage({ params });
+    const searchParams = Promise.resolve({});
+    const result = await QualifiedTeamsPage({ params, searchParams });
 
     expect(result).toBeDefined();
   });
@@ -284,7 +286,8 @@ describe('QualifiedTeamsPage', () => {
     });
 
     const params = Promise.resolve({ id: 'tournament-1' });
-    await QualifiedTeamsPage({ params });
+    const searchParams = Promise.resolve({});
+    await QualifiedTeamsPage({ params, searchParams });
 
     expect(mockGetTournamentConfig).toHaveBeenCalledWith('tournament-1');
   });

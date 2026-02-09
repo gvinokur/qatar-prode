@@ -198,7 +198,7 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
                   onComplete={handleBulkActionsComplete}
                 />
               </Box>
-              <Paper elevation={2} sx={{ p: 2 }}>
+              <Paper elevation={2} sx={{ p: 2 }} data-testid="group-table">
                 <Typography variant="h6" gutterBottom>
                   Tabla de Posiciones
                 </Typography>

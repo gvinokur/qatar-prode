@@ -9,11 +9,15 @@ import {
   TeamPositionPrediction,
 } from '../../../db/tables-definition';
 import QualifiedTeamsClientPage from '../../../components/qualified-teams/qualified-teams-client-page';
+import { DebugObject } from '../../../components/debug';
+import { findQualifiedTeams } from '../../../db/team-repository';
+import { calculateQualifiedTeamsScore } from '../../../utils/qualified-teams-scoring';
 
 interface PageProps {
   readonly params: Promise<{
     readonly id: string;
   }>;
+  readonly searchParams: Promise<{ [k: string]: string }>;
 }
 
 /** Fetch groups with their teams */
@@ -118,8 +122,9 @@ async function fetchAndFlattenPredictions(
  * Fetches tournament data, groups, teams, and user predictions
  * Passes data to client component for drag-and-drop interaction
  */
-export default async function QualifiedTeamsPage({ params }: PageProps) {
+export default async function QualifiedTeamsPage({ params, searchParams }: PageProps) {
   const { id: tournamentId } = await params;
+  const searchParamsResolved = await searchParams;
 
   try {
     // Check authentication
@@ -128,51 +133,71 @@ export default async function QualifiedTeamsPage({ params }: PageProps) {
       redirect(`/auth/login?redirect=/tournaments/${tournamentId}/qualified-teams`);
     }
 
-    console.error('[QualifiedTeams] User authenticated:', user.id);
-
-    // Fetch tournament
+    // Fetch tournament (including dev_only field)
     const tournament = await db
       .selectFrom('tournaments')
       .where('id', '=', tournamentId)
-      .select(['id', 'short_name', 'is_active'])
+      .select(['id', 'short_name', 'is_active', 'dev_only'])
       .executeTakeFirst();
 
     if (!tournament) {
-      console.error('[QualifiedTeams] Tournament not found:', tournamentId);
       notFound();
     }
 
-    console.error('[QualifiedTeams] Tournament found:', tournament.id);
-
     // Get tournament qualification configuration
     const config = await getTournamentQualificationConfig(tournamentId);
-    console.error('[QualifiedTeams] Config loaded:', config);
+
+    // Check if editing should be allowed via search param (dev/preview + dev tournament only)
+    const isDevelopmentEnvironment = process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'preview';
+    const isDevTournament = tournament?.dev_only === true;
+    const editPlayoffsRequested = searchParamsResolved.editPlayoffs === 'true';
+    const allowEditing = editPlayoffsRequested && isDevelopmentEnvironment && isDevTournament;
+
+    // Override isLocked if all conditions are met
+    const isLocked = allowEditing ? false : config.isLocked;
 
     // Fetch groups with their teams
     const groupsWithTeams = await fetchGroupsWithTeams(tournamentId);
-    console.error('[QualifiedTeams] Groups loaded:', groupsWithTeams.length);
 
     // Fetch user's predictions from JSONB table and flatten
     let predictions = await fetchAndFlattenPredictions(user.id, tournamentId);
-    console.error('[QualifiedTeams] Predictions loaded:', predictions.length);
 
     // Initialize predictions if none exist
     if (predictions.length === 0) {
-      console.error('[QualifiedTeams] Initializing predictions...');
       predictions = await initializePredictions(user.id, tournamentId, groupsWithTeams);
-      console.error('[QualifiedTeams] Predictions initialized:', predictions.length);
+    }
+
+    // Debug data (only fetched when ?debug is present)
+    let debugData = null;
+    if (searchParamsResolved.hasOwnProperty('debug')) {
+      const actualQualifiedTeams = await findQualifiedTeams(tournamentId);
+      const scoringResult = await calculateQualifiedTeamsScore(user.id, tournamentId);
+
+      debugData = {
+        tournament,
+        config,
+        isLocked,
+        allowEditing,
+        groupsWithTeams,
+        predictions,
+        actualQualifiedTeams,
+        scoringResult,
+      };
     }
 
     return (
-      <QualifiedTeamsClientPage
-        tournament={tournament}
-        groups={groupsWithTeams}
-        initialPredictions={predictions}
-        userId={user.id}
-        isLocked={config.isLocked}
-        allowsThirdPlace={config.allowsThirdPlace}
-        maxThirdPlace={config.maxThirdPlace}
-      />
+      <>
+        {debugData && <DebugObject object={debugData} />}
+        <QualifiedTeamsClientPage
+          tournament={tournament}
+          groups={groupsWithTeams}
+          initialPredictions={predictions}
+          userId={user.id}
+          isLocked={isLocked}
+          allowsThirdPlace={config.allowsThirdPlace}
+          maxThirdPlace={config.maxThirdPlace}
+        />
+      </>
     );
   } catch (error) {
     console.error('[QualifiedTeams] Error loading page:', error);

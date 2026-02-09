@@ -10,6 +10,7 @@ import {
   calculateAndStoreGroupPositionScores,
   deleteDBTournamentTree
 } from "../../actions/backoffice-actions";
+import { triggerQualifiedTeamsScoringAction } from "../../actions/qualified-teams-scoring-actions";
 import {DebugObject} from "../debug";
 import {deactivateTournament} from "../../actions/tournament-actions";
 import {useRouter} from "next/navigation";
@@ -67,6 +68,13 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
     setLoading(true);
     await calculateAndStoreGroupPositionScores(tournament.id);
     setActionResults({ success: true });
+    setLoading(false);
+  };
+
+  const calculateQualifiedTeamsPredictionScores = async () => {
+    setLoading(true);
+    const result = await triggerQualifiedTeamsScoringAction(tournament.id);
+    setActionResults(result);
     setLoading(false);
   };
 
@@ -209,6 +217,17 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
           }}>
           <Button loading={loading} variant={'contained'} size={'large'} fullWidth={true} sx={{height: '100%'}} onClick={calculateGroupPositionScores}>
             Calculate Group Position Scores
+          </Button>
+        </Grid>
+        <Grid
+          textAlign={'center'}
+          size={{
+            xs: 6,
+            md: 3,
+            lg: 2
+          }}>
+          <Button loading={loading} variant={'contained'} size={'large'} fullWidth={true} sx={{height: '100%'}} onClick={calculateQualifiedTeamsPredictionScores}>
+            Calculate Qualified Teams Predictions Scores
           </Button>
         </Grid>
         <Grid

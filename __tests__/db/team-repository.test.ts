@@ -277,48 +277,90 @@ describe('Team Repository', () => {
 
     describe('findQualifiedTeams', () => {
       it('should find qualified teams for tournament', async () => {
-        const mockQuery = {
-          selectAll: vi.fn().mockReturnThis(),
+        // Mock group standings query (positions are 0-indexed in DB)
+        const mockStandingsQuery = {
+          innerJoin: vi.fn().mockReturnThis(),
           where: vi.fn().mockReturnThis(),
           $if: vi.fn().mockReturnThis(),
-          execute: vi.fn().mockResolvedValue(mockTeams),
+          select: vi.fn().mockReturnThis(),
+          execute: vi.fn().mockResolvedValue([
+            { id: 'team-1', name: 'Team 1', short_name: 'T1', group_id: 'group-1', position: 0, is_complete: true },
+            { id: 'team-2', name: 'Team 2', short_name: 'T2', group_id: 'group-1', position: 1, is_complete: true },
+          ]),
         };
-        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        // Mock playoff teams query (no playoffs yet)
+        const mockPlayoffQuery = {
+          where: vi.fn().mockReturnThis(),
+          select: vi.fn().mockReturnThis(),
+          execute: vi.fn().mockResolvedValue([]),
+        };
+
+        mockDb.selectFrom
+          .mockReturnValueOnce(mockStandingsQuery as any)
+          .mockReturnValueOnce(mockPlayoffQuery as any);
 
         const result = await findQualifiedTeams('tournament-1');
 
-        expect(mockDb.selectFrom).toHaveBeenCalledWith('teams');
-        expect(mockQuery.selectAll).toHaveBeenCalled();
-        expect(mockQuery.where).toHaveBeenCalledWith(expect.any(Function));
-        expect(mockQuery.$if).toHaveBeenCalledWith(false, expect.any(Function));
-        expect(mockQuery.execute).toHaveBeenCalled();
-        expect(result).toEqual(mockTeams);
+        expect(mockDb.selectFrom).toHaveBeenCalledWith('tournament_group_teams');
+        expect(mockDb.selectFrom).toHaveBeenCalledWith('games');
+        expect(result).toEqual([
+          { id: 'team-1', name: 'Team 1', short_name: 'T1', group_id: 'group-1', final_position: 1 },
+          { id: 'team-2', name: 'Team 2', short_name: 'T2', group_id: 'group-1', final_position: 2 },
+        ]);
       });
 
       it('should find qualified teams with group filter', async () => {
-        const mockQuery = {
-          selectAll: vi.fn().mockReturnThis(),
+        // Mock group standings query with group filter (positions are 0-indexed in DB)
+        const mockStandingsQuery = {
+          innerJoin: vi.fn().mockReturnThis(),
           where: vi.fn().mockReturnThis(),
           $if: vi.fn().mockReturnThis(),
-          execute: vi.fn().mockResolvedValue(mockTeams),
+          select: vi.fn().mockReturnThis(),
+          execute: vi.fn().mockResolvedValue([
+            { id: 'team-1', name: 'Team 1', short_name: 'T1', group_id: 'group-1', position: 0, is_complete: true },
+          ]),
         };
-        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        // Mock playoff teams query
+        const mockPlayoffQuery = {
+          where: vi.fn().mockReturnThis(),
+          select: vi.fn().mockReturnThis(),
+          execute: vi.fn().mockResolvedValue([]),
+        };
+
+        mockDb.selectFrom
+          .mockReturnValueOnce(mockStandingsQuery as any)
+          .mockReturnValueOnce(mockPlayoffQuery as any);
 
         const result = await findQualifiedTeams('tournament-1', 'group-1');
 
-        expect(mockDb.selectFrom).toHaveBeenCalledWith('teams');
-        expect(mockQuery.$if).toHaveBeenCalledWith(true, expect.any(Function));
-        expect(result).toEqual(mockTeams);
+        expect(mockStandingsQuery.$if).toHaveBeenCalledWith(true, expect.any(Function));
+        expect(result).toEqual([
+          { id: 'team-1', name: 'Team 1', short_name: 'T1', group_id: 'group-1', final_position: 1 },
+        ]);
       });
 
       it('should return empty array when no qualified teams', async () => {
-        const mockQuery = {
-          selectAll: vi.fn().mockReturnThis(),
+        // Mock group standings query (no complete groups)
+        const mockStandingsQuery = {
+          innerJoin: vi.fn().mockReturnThis(),
           where: vi.fn().mockReturnThis(),
           $if: vi.fn().mockReturnThis(),
+          select: vi.fn().mockReturnThis(),
           execute: vi.fn().mockResolvedValue([]),
         };
-        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        // Mock playoff teams query
+        const mockPlayoffQuery = {
+          where: vi.fn().mockReturnThis(),
+          select: vi.fn().mockReturnThis(),
+          execute: vi.fn().mockResolvedValue([]),
+        };
+
+        mockDb.selectFrom
+          .mockReturnValueOnce(mockStandingsQuery as any)
+          .mockReturnValueOnce(mockPlayoffQuery as any);
 
         const result = await findQualifiedTeams('tournament-1');
 
