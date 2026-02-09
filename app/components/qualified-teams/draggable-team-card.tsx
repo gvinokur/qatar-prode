@@ -47,8 +47,9 @@ function getBackgroundColor(
   isGroupComplete?: boolean,
   isPending3rdPlace?: boolean
 ): string {
-  // If group is complete and we have a result, use result-based colors
-  if (isGroupComplete && result) {
+  // If group is complete and we have a result AND user predicted to qualify, use result-based colors
+  // Don't show result colors for teams user didn't predict to qualify
+  if (isGroupComplete && result && predictedToQualify) {
     if (isPending3rdPlace) {
       // Pending 3rd place: blue
       return theme.palette.info.light;
