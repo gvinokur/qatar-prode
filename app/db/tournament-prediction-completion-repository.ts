@@ -72,7 +72,7 @@ export async function getTournamentPredictionCompletion(
           .whereRef('tournament_group_teams.tournament_group_id', '=', 'tournament_groups.id')
           .where('tournament_qualified_teams_predictions.user_id', '=', userId)
           .where('tournament_qualified_teams_predictions.tournament_id', '=', tournamentId)
-          .where('tournament_qualified_teams_predictions.qualified', '=', true)
+          .where('tournament_qualified_teams_predictions.predicted_to_qualify', '=', true)
           .having((eb) => eb.fn.countAll(), '>=', 2) // At least 2 qualifiers predicted
       )
     )

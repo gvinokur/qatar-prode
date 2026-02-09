@@ -4,10 +4,9 @@ import {Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogContentT
 import {useState} from "react";
 import {Tournament} from "../../db/tables-definition";
 import {
-  calculateAllUsersGroupPositions, calculateAndStoreQualifiedTeamsPoints, calculateGameScores,
+  calculateAndStoreQualifiedTeamsPoints, calculateGameScores,
   generateDbTournamentTeamPlayers,
   recalculateAllPlayoffFirstRoundGameGuesses,
-  calculateAndStoreGroupPositionScores,
   deleteDBTournamentTree
 } from "../../actions/backoffice-actions";
 import { triggerQualifiedTeamsScoringAction } from "../../actions/qualified-teams-scoring-actions";

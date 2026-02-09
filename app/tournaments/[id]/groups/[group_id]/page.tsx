@@ -9,7 +9,6 @@ import GroupTable from "../../../../components/groups-page/group-table";
 import {findGameGuessesByUserId, getPredictionDashboardStats} from "../../../../db/game-guess-repository";
 import {getLoggedInUser} from "../../../../actions/user-actions";
 import {findGuessedQualifiedTeams, findQualifiedTeams} from "../../../../db/team-repository";
-import {calculateGroupPosition} from "../../../../utils/group-position-calculator";
 import {customToMap} from "../../../../utils/ObjectUtils";
 import GamesGrid from "../../../../components/games-grid";
 import { PredictionDashboard } from "../../../../components/prediction-dashboard";
@@ -45,22 +44,6 @@ export default async function GroupComponent(props : Props) {
   const qualifiedTeams = qualifiedTeamsResult.teams;
 
   const gameGuesses:{[k: string]: GameGuess} = customToMap(userGameGuesses, (gameGuess) => gameGuess.game_id)
-
-  const teamIds = Object.keys(completeGroupData.teamsMap)
-  // Calculate group positions from game guesses (actual standings calculation)
-  const guessedGroupPositions = calculateGroupPosition(
-    teamIds,
-    Object.values(completeGroupData.gamesMap).map(game => ({
-      ...game,
-      resultOrGuess: gameGuesses[game.id]
-    })),
-    completeGroupData.group.sort_by_games_between_teams
-  ).map((teamStat, index) => ({
-    user_id: user?.id || '',
-    tournament_group_id: params.group_id,
-    position: index,
-    ...teamStat
-  }))
 
   return(
     <>

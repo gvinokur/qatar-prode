@@ -10,7 +10,6 @@ import {
 import {
   createTeam,
   findQualifiedTeams,
-  findTeamInGroup,
   findTeamInTournament,
   getTeamByName
 } from "../db/team-repository";
@@ -19,8 +18,7 @@ import {
   createTournamentGroupGame,
   createTournamentGroupTeam,
   deleteAllGroupsFromTournament,
-  findGroupsInTournament,
-  findGroupsWithGamesAndTeamsInTournament, findTournamentgroupById, updateTournamentGroupTeams, findTeamsInGroup
+  findGroupsWithGamesAndTeamsInTournament, updateTournamentGroupTeams
 } from "../db/tournament-group-repository";
 import {
   createPlayoffRound,
@@ -28,18 +26,15 @@ import {
   deleteAllPlayoffRoundsInTournament, findPlayoffStagesWithGamesInTournament
 } from "../db/tournament-playoff-repository";
 import {
-  Game,
-  GameGuess,
   GameNew,
   PlayerNew,
   Team,
-  Tournament, TournamentGroup,
+  Tournament,
   TournamentGroupTeamNew, TournamentUpdate
 } from "../db/tables-definition";
 import {
   createGame,
   deleteAllGamesFromTournament, findAllGamesWithPublishedResultsAndGameGuesses,
-  findGamesInGroup,
   findGamesInTournament,
   updateGame
 } from "../db/game-repository";
@@ -71,7 +66,6 @@ import {
 import {calculatePlayoffTeams} from "../utils/playoff-teams-calculator";
 import {
   findAllGuessesForGamesWithResultsInDraft,
-  findGameGuessesByUserId,
   updateGameGuess,
   updateGameGuessWithBoost,
   deleteAllGameGuessesByTournamentId
