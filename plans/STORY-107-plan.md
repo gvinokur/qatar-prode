@@ -32,99 +32,110 @@
 
 ## Visual Prototypes
 
-### Integration Point: Stats Page - Performance Tab
+### Integration Point: Qualified Teams Page (Inline with Predictions)
 
-**Decision:** Add expandable section within the existing `PerformanceOverviewCard` component below the "Equipos Clasificados" summary line.
+**Decision:** Show results INLINE with existing prediction cards on `/tournaments/[id]/qualified-teams` page.
 
-**Reasoning:**
-- Keeps qualified teams in Performance tab (logical grouping)
-- Uses existing card structure (minimally invasive)
-- Matches boost analysis pattern (summary + detailed breakdown)
-- Users see summary first, expand for details
-- No new tab required (avoids cognitive load)
+**Reasoning (based on user feedback):**
+- Users already see their predictions on the qualified teams page
+- More intuitive to show results where predictions were made
+- Avoids data duplication between prediction page and stats page
+- Simpler implementation - no new components needed
+- Better UX - immediate feedback on the same screen
 
-### Prototype 1: Collapsed State (Default)
+**Current UI Structure:**
+- **Page:** `/tournaments/[id]/qualified-teams` - Drag-and-drop prediction interface
+- **Components:** `DraggableTeamCard` (team cards), `GroupCard` (group container)
+- **Existing Features:** Position badges, drag handles, "Clasifica" checkbox for 3rd place
+- **Background Colors:** Green (qualified), Yellow (can qualify), Gray (cannot qualify)
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│ Equipos Clasificados                                 12 pts │
-│   [▼ Ver desglose detallado]                               │
-└─────────────────────────────────────────────────────────────┘
-```
-
-**Implementation:**
-- Existing "Equipos Clasificados" row with points
-- Add expand button/link below (IconButton with ExpandMore icon)
-- Uses MUI Collapse component to toggle visibility
-
-### Prototype 2: Expanded State - Group Breakdown
+### Prototype 1: Before Tournament Results (Current State)
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│ Equipos Clasificados                                 12 pts │
-│   [▲ Ocultar desglose]                                     │
-│                                                             │
-│ ┌───────────────────────────────────────────────────────┐  │
-│ │ Grupo A                                        4 pts  │  │
-│ ├───────────────────────────────────────────────────────┤  │
-│ │ Posición 1 - Argentina                               │  │
-│ │   ✓ Tu predicción: Argentina (Pos 1)      +2 pts    │  │
-│ │   Estado: Correcto (equipo + posición exacta)       │  │
-│ │                                                       │  │
-│ │ Posición 2 - México                                  │  │
-│ │   ~ Tu predicción: México (Pos 3)          +1 pt     │  │
-│ │   Estado: Parcialmente correcto (posición incorrecta)│  │
-│ │                                                       │  │
-│ │ Posición 3 - Polonia                                 │  │
-│ │   ✗ Tu predicción: Arabia Saudita         +0 pts    │  │
-│ │   Estado: Incorrecto (equipo no clasificó)          │  │
-│ └───────────────────────────────────────────────────────┘  │
-│                                                             │
-│ ┌───────────────────────────────────────────────────────┐  │
-│ │ Grupo B                                        3 pts  │  │
-│ ├───────────────────────────────────────────────────────┤  │
-│ │ [... teams ...]                                       │  │
-│ └───────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+GRUPO A
+┌───────────────────────────────────────────────┐
+│ [≡] (1st) Argentina                           │  ← Green background
+│                                               │
+├───────────────────────────────────────────────┤
+│ [≡] (2nd) México                              │  ← Green background
+│                                               │
+├───────────────────────────────────────────────┤
+│ [≡] (3rd) Polonia              [✓] Clasifica  │  ← Green (checked)
+│                                               │
+├───────────────────────────────────────────────┤
+│ [≡] (4th) Arabia Saudita                      │  ← Gray (cannot qualify)
+└───────────────────────────────────────────────┘
 ```
 
-**NOTE:** Team flags (🇦🇷, 🇲🇽, etc.) are OUT OF SCOPE for this story. The database does not store country codes or flag information. This feature will display team names only.
+**Current:** Drag-and-drop interface for making predictions. Background colors show qualification status.
+
+### Prototype 2: After Tournament Results - Inline Results Display
+
+```
+GRUPO A                                    Total: 4 pts ✓
+┌────────────────────────────────────────────────────────┐
+│ [≡] (1st) Argentina                                    │
+│     Actual: 1st ✓  +2 pts                             │  ← Green background + success icon
+│                                                        │
+├────────────────────────────────────────────────────────┤
+│ [≡] (2nd) México                                       │
+│     Actual: 2nd ✓  +2 pts                             │  ← Green background + success icon
+│                                                        │
+├────────────────────────────────────────────────────────┤
+│ [≡] (3rd) Polonia                      [✓] Clasifica   │
+│     Actual: 3rd ✓  +2 pts                             │  ← Green background + success icon
+│                                                        │
+├────────────────────────────────────────────────────────┤
+│ [≡] (4th) Arabia Saudita                               │
+│     Did not qualify                                    │  ← Gray (no points, not predicted)
+└────────────────────────────────────────────────────────┘
+```
+
+**When Prediction is Wrong:**
+```
+GRUPO B                                    Total: 1 pt ~
+┌────────────────────────────────────────────────────────┐
+│ [≡] (1st) España                                       │
+│     Actual: 2nd ~  +1 pt                              │  ← Orange/warning background
+│     (Predicted 1st, finished 2nd)                      │
+│                                                        │
+├────────────────────────────────────────────────────────┤
+│ [≡] (2nd) Alemania                                     │
+│     Actual: 1st ~  +1 pt                              │  ← Orange/warning background
+│     (Predicted 2nd, finished 1st)                      │
+│                                                        │
+├────────────────────────────────────────────────────────┤
+│ [≡] (3rd) Italia                       [✓] Clasifica   │
+│     Actual: Did not qualify ✗  +0 pts                 │  ← Red/error background
+│     (Predicted to qualify, did not)                    │
+└────────────────────────────────────────────────────────┘
+```
 
 **Visual Elements:**
-- **Group sections** - MUI Paper/Box with border, stacked vertically with gap
-- **Group header** - Bold group name + total points earned for group (right-aligned)
-- **Team rows** - 3 rows per group (positions 1, 2, 3)
-  - Actual result (position + flag + team name)
-  - User's prediction with visual indicator (✓, ~, ✗)
-  - Points earned for that prediction
-  - Status explanation text (secondary color)
+- **Results overlay** - Added below team name in each card
+- **Icon indicators:** CheckCircleIcon (✓), WarningAmberIcon (~), CancelIcon (✗)
+- **Points display:** "+2 pts", "+1 pt", "+0 pts" on each card
+- **Status text:** Brief explanation below icon (e.g., "Predicted 1st, finished 2nd")
+- **Group total:** In group header showing total points for that group
+- **Background colors:** Existing green/yellow/gray system, enhanced with success/warning/error overlays
 
-**Color Coding:**
-- ✓ (Correct): `success.main` (green)
-- ~ (Partial): `warning.main` (orange)
-- ✗ (Wrong): `error.main` (red)
-- Background tints: `alpha(color, 0.1)` for subtle emphasis
-
-**Responsive Behavior:**
-- Desktop (md+): Two-column grid (Group A | Group B, Group C | Group D, etc.)
-- Mobile (xs-sm): Single column, stacked groups
-- Typography scales down on smaller screens (`body2` → `caption`)
-
-### Prototype 3: Alternative - Compact Side-by-Side Layout
+### Prototype 3: Optional Summary Section (Top of Page)
 
 ```
-┌───────────────────────────────────────────────────────────┐
-│ Grupo A                                          4 pts    │
-├─────────────────────────┬─────────────────────────────────┤
-│  Tu Predicción          │   Resultado Real               │
-├─────────────────────────┼─────────────────────────────────┤
-│ 1. Argentina  ✓         │ 1. Argentina           +2 pts  │
-│ 2. Polonia     ~        │ 2. México              +1 pt   │
-│ 3. México      ✗        │ 3. Polonia             +0 pts  │
-└─────────────────────────┴─────────────────────────────────┘
+┌────────────────────────────────────────────────────────┐
+│ TUS RESULTADOS - EQUIPOS CLASIFICADOS                  │
+├────────────────────────────────────────────────────────┤
+│ Total de Puntos: 12 pts                                │
+│                                                        │
+│ ✓ Correctos (equipo + posición): 6 equipos (12 pts)   │
+│ ~ Parciales (equipo correcto): 2 equipos (2 pts)      │
+│ ✗ Incorrectos: 4 equipos (0 pts)                      │
+└────────────────────────────────────────────────────────┘
 ```
 
-**Design Decision:** Using Prototype 2 (vertical stacked layout) as primary approach. More detailed, shows explanation text, better for mobile, consistent with existing game prediction patterns.
+**Optional:** Summary card at top of page showing aggregate results. Simple stats without detailed breakdown.
+
+**Design Decision:** Focus on Prototype 2 (inline results). Prototype 3 (summary) is optional and can be added in future iteration if needed.
 
 ### Material-UI Components to Use
 
@@ -154,140 +165,163 @@ Based on existing patterns:
 
 **✅ VERIFIED:** Data structure and functions exist in codebase.
 
-**Server Component Integration (stats/page.tsx, after line 157):**
+**Server Component Integration (qualified-teams/page.tsx):**
 ```typescript
-// app/tournaments/[id]/stats/page.tsx
+// app/tournaments/[id]/qualified-teams/page.tsx
 
-// EXISTING (line 157):
-const groupQualifiedTeamsPoints = tournamentGuess?.qualified_teams_score ?? 0
+// EXISTING (line 173-174):
+const actualQualifiedTeams = await findQualifiedTeams(tournamentId);
+const scoringResult = await calculateQualifiedTeamsScore(user.id, tournamentId);
 
-// ADD AFTER LINE 157:
-// Import at top: import { calculateQualifiedTeamsScore } from '../../../utils/qualified-teams-scoring'
-const qualifiedTeamsBreakdown = user && groupQualifiedTeamsPoints > 0
+// CURRENT: Only fetched when ?debug param present
+// NEW: Fetch for all authenticated users when results are available
+
+// After line 168 (after predictions fetch), ADD:
+// Fetch actual results if any groups have completed
+const actualQualifiedTeams = await findQualifiedTeams(tournamentId);
+
+// Calculate scoring breakdown (returns null-safe result)
+const scoringResult = actualQualifiedTeams.length > 0
   ? await calculateQualifiedTeamsScore(user.id, tournamentId)
   : null;
 
-// Later in performanceStats object (line 168-180), add:
-// ...existing props...
-qualifiedTeamsBreakdown  // NEW
-```
-
-**Update PerformanceOverviewCard props (line 200+):**
-```typescript
-<PerformanceOverviewCard
-  {...performanceStats}
-  qualifiedTeamsBreakdown={qualifiedTeamsBreakdown}  // NEW
+// Pass to client component (line 191-199):
+<QualifiedTeamsClientPage
+  tournament={tournament}
+  groups={groupsWithTeams}
+  initialPredictions={predictions}
+  userId={user.id}
+  isLocked={isLocked}
+  allowsThirdPlace={config.allowsThirdPlace}
+  maxThirdPlace={config.maxThirdPlace}
+  actualResults={actualQualifiedTeams}        // NEW
+  scoringBreakdown={scoringResult}             // NEW
 />
 ```
 
-**Existing Function (verified at app/utils/qualified-teams-scoring.ts):**
-- `calculateQualifiedTeamsScore(userId, tournamentId): Promise<QualifiedTeamsScoringResult>`
-- Returns exact structure needed:
-  ```typescript
-  {
-    userId: string
-    tournamentId: string
-    totalScore: number
-    breakdown: {
-      groupId: string
-      groupName: string  // e.g., "A", "B", "C"
-      teams: TeamScoringResult[]  // All predicted teams with scoring results
-    }[]
-  }
-  ```
-- `TeamScoringResult` contains: `teamId`, `teamName`, `groupId`, `predictedPosition`, `actualPosition`, `predictedToQualify`, `actuallyQualified`, `pointsAwarded`, `reason`
+**Existing Functions (verified):**
+- `findQualifiedTeams(tournamentId)` - Returns qualified teams with positions
+  - Returns: `Array<{ id, name, short_name, group_id, final_position }>`
+- `calculateQualifiedTeamsScore(userId, tournamentId)` - Returns detailed scoring
+  - Returns: `QualifiedTeamsScoringResult` with breakdown by group
 
 ### 2. Component Structure
 
-**New Component: `qualified-teams-breakdown.tsx`**
-- Client component (`'use client'`)
-- Props: `breakdown: QualifiedTeamsScoringResult | null`
-- Manages expand/collapse state with `useState`
-- Renders group-by-group breakdown
-- Responsive grid layout
+**Modified Component: `qualified-teams-client-page.tsx`**
+- Add new props: `actualResults?: QualifiedTeam[]`, `scoringBreakdown?: QualifiedTeamsScoringResult | null`
+- Pass down to `GroupCard` components
+- No new components needed - enhance existing ones
 
-**Modified Component: `performance-overview-card.tsx`**
-- Add new prop: `qualifiedTeamsBreakdown?: QualifiedTeamsScoringResult | null`
-- Pass to new `QualifiedTeamsBreakdown` component
-- Render below existing "Equipos Clasificados" row
+**Modified Component: `group-card.tsx`**
+- Add new prop: `scoringForGroup?: { teams: TeamScoringResult[], totalPoints: number } | null`
+- Extract scoring data for current group from breakdown
+- Display group total points in header when results available
+- Pass scoring data to `DraggableTeamCard`
+
+**Modified Component: `draggable-team-card.tsx`**
+- Add new prop: `result?: TeamScoringResult | null`
+- When `result` exists: Show actual position, points earned, visual indicator
+- Keep existing UI (position badge, team name, drag handle, checkbox)
+- Add results overlay below team name (conditional rendering)
 
 ### 3. Implementation Steps
 
-#### Phase 1: Create New Component
-1. Create `app/components/tournament-stats/qualified-teams-breakdown.tsx`
-2. Implement expand/collapse state management
-3. Create group section rendering logic
-4. Add visual indicators (icons + colors)
-5. Implement responsive grid (2 columns desktop, 1 mobile)
+#### Phase 1: Server Component Data Fetching
+1. Update `app/tournaments/[id]/qualified-teams/page.tsx`:
+   - Move `findQualifiedTeams()` call outside of debug block (line 173)
+   - Move `calculateQualifiedTeamsScore()` call outside of debug block (line 174)
+   - Only fetch when tournament has results (`actualQualifiedTeams.length > 0`)
+   - Pass `actualResults` and `scoringBreakdown` to client component
 
-#### Phase 2: Create Helper Components
-1. Create `qualified-teams-group-section.tsx` for individual group display
-2. Create `qualified-team-result-row.tsx` for team prediction result
-3. Ensure proper TypeScript types for all props
+#### Phase 2: Update DraggableTeamCard Component
+1. Modify `app/components/qualified-teams/draggable-team-card.tsx`:
+   - Add prop: `result?: TeamScoringResult | null`
+   - Add results overlay section (conditional - only when `result` exists)
+   - Show: Visual indicator icon, actual position text, points earned
+   - Show: Brief status text (e.g., "Predicted 1st, finished 2nd")
+   - Keep existing drag-and-drop, position badge, checkbox functionality
+   - Enhance background color based on result accuracy (green✓/orange~/red✗)
 
-#### Phase 3: Integration
-1. Update `performance-overview-card.tsx` props interface
-2. Add `QualifiedTeamsBreakdown` component below summary line
-3. Pass breakdown data from server component
-4. Handle null/undefined cases (no predictions, no results yet)
+#### Phase 3: Update GroupCard Component
+1. Modify `app/components/qualified-teams/group-card.tsx`:
+   - Add prop: `scoringForGroup?: { teams: TeamScoringResult[], totalPoints: number } | null`
+   - Extract scoring data for current group from breakdown
+   - Update header to show group total points when results available
+   - Pass `result` prop to each `DraggableTeamCard` (match by team ID)
+   - Handle case where some teams have results, some don't (progressive results)
 
-#### Phase 4: Internationalization
+#### Phase 4: Update QualifiedTeamsClientPage Component
+1. Modify `app/components/qualified-teams/qualified-teams-client-page.tsx`:
+   - Add props: `actualResults`, `scoringBreakdown`
+   - Create lookup map for scoring results by group ID
+   - Pass scoring data to each `GroupCard`
+   - No state management changes needed (results are read-only)
+
+#### Phase 5: Internationalization
 1. Add i18n keys to `locales/es.json` and `locales/en.json`:
-   - "stats.qualifiedTeams.showBreakdown" / "Show detailed breakdown"
-   - "stats.qualifiedTeams.hideBreakdown" / "Hide breakdown"
-   - "stats.qualifiedTeams.group" / "Group"
-   - "stats.qualifiedTeams.position" / "Position"
-   - "stats.qualifiedTeams.yourPrediction" / "Your prediction"
-   - "stats.qualifiedTeams.actualResult" / "Actual result"
-   - "stats.qualifiedTeams.points" / "point" | "points" (singular/plural)
-   - "stats.qualifiedTeams.status.correctFull" / "Correct (team + exact position)"
-   - "stats.qualifiedTeams.status.correctPartial" / "Partially correct (wrong position)"
-   - "stats.qualifiedTeams.status.incorrect" / "Incorrect (team did not qualify)"
-   - "stats.qualifiedTeams.status.noPrediction" / "No prediction made"
-   - "stats.qualifiedTeams.status.pending" / "Results pending"
-   - "stats.qualifiedTeams.emptyState" / "No predictions made yet"
-   - "stats.qualifiedTeams.groupTotal" / "Group total"
-2. Use `useTranslations()` hook in components
-3. Handle pluralization for points: `t('stats.qualifiedTeams.points', { count: pointsAwarded })`
+   - "qualifiedTeams.results.actual" / "Actual"
+   - "qualifiedTeams.results.predicted" / "Predicted"
+   - "qualifiedTeams.results.finished" / "finished"
+   - "qualifiedTeams.results.groupTotal" / "Total"
+   - "qualifiedTeams.results.didNotQualify" / "Did not qualify"
+   - "qualifiedTeams.results.notPredicted" / "Not predicted to qualify"
+   - "qualifiedTeams.results.statusCorrect" / "Correct"
+   - "qualifiedTeams.results.statusPartial" / "Qualified, wrong position"
+   - "qualifiedTeams.results.statusIncorrect" / "Did not qualify"
+   - "qualifiedTeams.results.points" / "pt" | "pts" (singular/plural)
+   - "qualifiedTeams.results.position1st" / "1st"
+   - "qualifiedTeams.results.position2nd" / "2nd"
+   - "qualifiedTeams.results.position3rd" / "3rd"
+2. Use `useTranslations()` hook in modified components
+3. Handle pluralization for points display
 
-#### Phase 5: Conditional Display Logic & Empty States
-1. **Show breakdown button when:**
-   - User has predictions (`breakdown !== null`)
-   - At least one group has qualified teams (`breakdown.breakdown.some(g => g.teams.some(t => t.actuallyQualified))`)
+#### Phase 6: Conditional Display Logic
+1. **Show results overlay when:**
+   - User has made predictions (always true on this page)
+   - At least one team has `actualPosition !== null` (results are available)
+   - Component receives `result` prop from parent
 
-2. **Empty state scenarios:**
-   - **No predictions made:** Don't show breakdown section at all (breakdown === null)
-   - **Predictions made but no results yet:** Show expand button, but when expanded show "Results pending" message per group
-   - **Partial results:** Show groups with results, show "Results pending" for incomplete groups
+2. **Conditional rendering scenarios:**
+   - **No results yet:** Don't show overlay, card displays normally (current behavior)
+   - **Results available:** Show overlay with actual position, icon, points
+   - **Progressive results:** Some groups complete, others pending
+     - Completed groups: Show full results overlay
+     - Pending groups: No overlay (normal display)
+   - **Team not predicted to qualify (`!predictedToQualify`):**
+     - If actually qualified: Show "Did not predict, team qualified" message (no points)
+     - If did not qualify: No results overlay needed
 
-3. **Conditional rendering per team:**
-   - If `actualPosition === null`: Show "Results pending" instead of actual position
-   - If `!predictedToQualify`: Show "No prediction made" status with gray color
-   - If `actuallyQualified` but `actualPosition === null`: Show qualified but position pending
+3. **Background color enhancement:**
+   - Keep existing green/yellow/gray base colors
+   - When results available, enhance with result accuracy:
+     - Correct (✓): Brighter green or success.light tint
+     - Partial (~): Warning orange tint
+     - Incorrect (✗): Error red tint
 
-4. **Accessibility for empty states:**
-   - Use `role="status"` for pending messages
-   - Clear aria-labels for conditional states
+4. **Accessibility:**
+   - Visual indicators must have text alternatives (aria-label)
+   - Results overlay has semantic HTML (not just styled divs)
+   - Screen reader announces results when present
 
 ### 4. Files to Create/Modify
 
-**New Files:**
-- `app/components/tournament-stats/qualified-teams-breakdown.tsx` - Main breakdown component
-- `app/components/tournament-stats/qualified-teams-group-section.tsx` - Individual group display
-- `app/components/tournament-stats/qualified-team-result-row.tsx` - Single team result
+**No New Files** - Enhancing existing components only ✅
 
 **Modified Files:**
-- `app/components/tournament-stats/performance-overview-card.tsx` - Add breakdown integration
-- `app/tournaments/[id]/stats/page.tsx` - Fetch breakdown data
-- `locales/es.json` - Add Spanish translations
-- `locales/en.json` - Add English translations
+- `app/tournaments/[id]/qualified-teams/page.tsx` - Fetch actual results and scoring data
+- `app/components/qualified-teams/qualified-teams-client-page.tsx` - Accept and pass down results
+- `app/components/qualified-teams/group-card.tsx` - Show group total points in header
+- `app/components/qualified-teams/draggable-team-card.tsx` - Show inline results overlay
+- `locales/es.json` - Add Spanish translations (~13 keys)
+- `locales/en.json` - Add English translations (~13 keys)
 
-**Test Files to Create:**
-- `__tests__/components/tournament-stats/qualified-teams-breakdown.test.tsx`
-- `__tests__/components/tournament-stats/qualified-teams-group-section.test.tsx`
-- `__tests__/components/tournament-stats/qualified-team-result-row.test.tsx`
+**Test Files to Update:**
+- `__tests__/components/qualified-teams/draggable-team-card.test.tsx` - Add result overlay tests
+- `__tests__/components/qualified-teams/group-card.test.tsx` - Add group total tests
+- `__tests__/components/qualified-teams/qualified-teams-client-page-smoke.test.tsx` - Add results prop tests
+- `__tests__/app/tournaments/[id]/qualified-teams/page.test.tsx` - Add server data fetching tests
 
-### 5. Database Queries
+### 5. Database Queries & Data Storage Concerns
 
 **No new queries needed!** ✅
 
@@ -296,6 +330,34 @@ qualifiedTeamsBreakdown  // NEW
   - User predictions from `tournament_user_group_positions_predictions`
   - Qualified teams from `findQualifiedTeams()`
   - Tournament scoring config
+
+**Addressing Data Intensity Concerns:**
+
+**User Concern:** "May be too data intensive if we don't store the actual detailed summary in the DB"
+
+**Analysis:**
+- `calculateQualifiedTeamsScore()` is **already used** in the codebase (debug mode, scoring calculation)
+- Performance characteristics:
+  - Fetches user's predictions (1 query with JSONB, cached)
+  - Fetches qualified teams (1 query, progressive results)
+  - Calculation is in-memory (O(n) where n = number of predictions ~24 teams max)
+  - No N+1 queries, no complex joins
+
+**Decision: Do NOT store detailed summary in DB** ✅
+
+**Rationale:**
+1. **Not a performance bottleneck:** Calculation is fast (<50ms for typical tournament)
+2. **Data freshness:** Calculated on-demand means always current (no stale cache)
+3. **Simplicity:** No sync issues between stored summary and actual data
+4. **Storage efficiency:** Avoids duplicating data already in database
+5. **Flexibility:** Easy to change scoring rules without data migration
+
+**If performance becomes an issue later:**
+- Option 1: Add Redis caching layer (cache calculated results for 5-10 minutes)
+- Option 2: Materialize summary in DB only after tournament complete (one-time calculation)
+- Option 3: Background job to pre-calculate summaries
+
+**For now:** Keep it simple, calculate on-demand. Monitor performance in production.
 
 ### 6. Type Definitions
 
@@ -349,46 +411,47 @@ interface QualifiedTeamResultRowProps {
 
 **Component Tests (Vitest + React Testing Library):**
 
-1. **`qualified-teams-breakdown.test.tsx`:**
-   - Renders expand button when collapsed
-   - Expands/collapses on button click
-   - Shows all groups in breakdown
-   - **Handles null breakdown (no predictions)** - Component doesn't render
-   - **Handles empty breakdown array** - Shows empty state message
-   - **Handles partial results** - Shows "Results pending" for groups without qualified teams
-   - **Handles progressive results** - Shows actual results for complete groups, pending for incomplete
-   - Responsive layout (mobile vs desktop) - Grid changes from 2 columns to 1 on mobile
-   - Uses i18n translations correctly - All text uses translation keys
-   - **Accessibility:** ARIA labels on expand button, role="region" on breakdown section
+1. **`draggable-team-card.test.tsx` (update existing):**
+   - Existing tests: Drag-and-drop, position badge, checkbox
+   - **NEW: Results overlay tests:**
+     - Shows results overlay when `result` prop provided
+     - Shows correct visual indicator (✓ CheckCircleIcon, ~ WarningAmberIcon, ✗ CancelIcon)
+     - Displays points earned with correct pluralization (1 pt vs 2 pts)
+     - Shows actual position text with i18n ("Actual: 1st", "Actual: 2nd")
+     - Shows status message when prediction wrong ("Predicted 1st, finished 2nd")
+     - Hides overlay when `result` prop is null/undefined
+     - **Edge cases:**
+       - `predictedToQualify === false` → Shows "Did not predict" when team qualified
+       - `actuallyQualified === false` → Shows "Did not qualify" with red icon
+       - `actualPosition === predictedPosition` → Shows green check with "+2 pts"
+       - `actualPosition !== predictedPosition` but qualified → Shows orange warning with "+1 pt"
+     - **Accessibility:** Icons have aria-labels, results overlay has semantic HTML
 
-2. **`qualified-teams-group-section.test.tsx`:**
-   - Renders group name and total score
-   - Shows all team results
-   - Applies correct styling for group container
+2. **`group-card.test.tsx` (update existing):**
+   - Existing tests: Group rendering, team sorting, accordion behavior
+   - **NEW: Group total points tests:**
+     - Shows group total in header when `scoringForGroup` provided
+     - Formats points correctly ("Total: 4 pts ✓")
+     - Hides total when no results available
+     - Passes correct `result` prop to each DraggableTeamCard
 
-3. **`qualified-team-result-row.test.tsx`:**
-   - Shows correct visual indicator (✓, ~, ✗) based on result
-   - Displays points earned with correct pluralization (1 pt vs 2 pts)
-   - Shows status explanation with i18n
-   - Applies correct color coding (green/orange/red)
-   - **Handles edge cases:**
-     - `actualPosition === null` → Shows "Results pending"
-     - `!predictedToQualify` → Shows "No prediction made" with gray color
-     - `predictedToQualify && !actuallyQualified` → Shows wrong prediction icon
-     - `actuallyQualified && actualPosition === null` → Shows qualified but position pending
-   - **Accessibility:** Screen reader text for icons (aria-label or visually-hidden text)
+3. **`qualified-teams-client-page-smoke.test.tsx` (update existing):**
+   - Existing tests: Renders groups, handles predictions
+   - **NEW: Results integration tests:**
+     - Accepts `actualResults` and `scoringBreakdown` props
+     - Creates lookup map for scoring by group
+     - Passes scoring data to GroupCard components
+     - Handles null scoring breakdown gracefully
 
-**Integration Tests:**
+**Server Component Tests:**
 
-4. **`performance-overview-card.test.tsx` (update existing):**
-   - Passes breakdown prop to QualifiedTeamsBreakdown
-   - Shows breakdown component when prop provided
-   - Hides breakdown when prop is null
-
-5. **Stats page integration test:**
-   - Server component fetches breakdown data
-   - Data flows to PerformanceOverviewCard
-   - Breakdown renders correctly with real data structure
+4. **`qualified-teams/page.test.tsx` (update existing):**
+   - Existing tests: Auth, tournament fetch, predictions initialization
+   - **NEW: Results fetching tests:**
+     - Calls `findQualifiedTeams()` outside debug mode
+     - Calls `calculateQualifiedTeamsScore()` when qualified teams exist
+     - Passes `actualResults` and `scoringBreakdown` to client component
+     - Handles case when no qualified teams yet (returns null)
 
 ### Test Data Factories
 
@@ -415,12 +478,19 @@ createMockTeamScoringResult(overrides?: Partial<TeamScoringResult>): TeamScoring
 - Mock i18n with `next-intl/navigation` mocks
 - `testFactories` for creating mock data (verified)
 
-### Integration Test Details
+### Integration Test Mock Data Example
 
-**Stats page integration test (`__tests__/app/tournaments/[id]/stats/page.test.tsx`):**
+**Qualified teams page test (`__tests__/app/tournaments/[id]/qualified-teams/page.test.tsx`):**
 ```typescript
-// Mock setup
-const mockBreakdown: QualifiedTeamsScoringResult = {
+// Mock qualified teams (from findQualifiedTeams)
+const mockQualifiedTeams = [
+  { id: 'team-1', name: 'Argentina', short_name: 'ARG', group_id: 'group-a', final_position: 1 },
+  { id: 'team-2', name: 'Mexico', short_name: 'MEX', group_id: 'group-a', final_position: 2 },
+  // ...
+]
+
+// Mock scoring breakdown (from calculateQualifiedTeamsScore)
+const mockScoringResult: QualifiedTeamsScoringResult = {
   userId: 'user-1',
   tournamentId: 'tournament-1',
   totalScore: 12,
@@ -429,26 +499,28 @@ const mockBreakdown: QualifiedTeamsScoringResult = {
       groupId: 'group-a',
       groupName: 'A',
       teams: [
-        testFactories.createMockTeamScoringResult({
+        {
+          teamId: 'team-1',
           teamName: 'Argentina',
+          groupId: 'group-a',
           predictedPosition: 1,
           actualPosition: 1,
+          predictedToQualify: true,
+          actuallyQualified: true,
           pointsAwarded: 2,
           reason: 'qualified + exact position'
-        }),
+        },
         // ... more teams
       ]
-    },
-    // ... more groups
+    }
   ]
 }
 
 // Test cases:
-1. Fetches breakdown when user has predictions
-2. Passes breakdown to PerformanceOverviewCard
-3. Breakdown renders correctly with mock data
-4. Handles null breakdown (no predictions)
-5. Handles server error gracefully (try-catch on calculateQualifiedTeamsScore)
+1. Fetches actualResults when qualified teams exist
+2. Calculates scoringBreakdown when results available
+3. Passes both props to QualifiedTeamsClientPage
+4. Handles case when no qualified teams yet (null scoringBreakdown)
 ```
 
 ### Coverage Goals
@@ -565,73 +637,106 @@ const mockBreakdown: QualifiedTeamsScoringResult = {
 4. Test expand/collapse interactions
 5. Validate visual indicators and colors
 
-## Design Decisions (Finalized)
+## Design Decisions (Finalized - Based on User Feedback)
 
-### 1. Layout: Vertical Stacked (Prototype 2) ✅
-**Rationale:** More detailed, shows explanation text, better for mobile, consistent with existing patterns
+### 1. Integration Point: Inline with Predictions ✅
+**Rationale:** Show results where predictions were made (qualified teams page), not in stats page
+**User Feedback:** "We already have a qualified tab with the predictions of the user. I believe we should implement the visual indicator inline with those predictions"
 
-### 2. Visual Indicators: MUI Icons ✅
-**Rationale:** Consistent with game prediction displays, better accessibility with aria-labels
-- `CheckCircleIcon` (green) for correct
-- `WarningAmberIcon` (orange) for partial
-- `CancelIcon` (red) for incorrect
+### 2. Display Pattern: Results Overlay on Team Cards ✅
+**Rationale:** Enhance existing `DraggableTeamCard` components with results overlay
+- No new components needed
+- Simpler implementation
+- Better UX - results appear directly on prediction cards
 
-### 3. Display Timing: Progressive ✅
-**Rationale:** Matches existing qualified teams scoring behavior from `calculateQualifiedTeamsScore()`
-- Show results for complete groups immediately
-- Show "Results pending" for incomplete groups
-- Update progressively as more groups complete
+### 3. Visual Indicators: MUI Icons ✅
+**Rationale:** Consistent with game prediction displays
+- `CheckCircleIcon` (green) for correct prediction
+- `WarningAmberIcon` (orange) for qualified but wrong position
+- `CancelIcon` (red) for did not qualify
 
-### 4. Default State: Collapsed ✅
-**Rationale:** Keeps stats page scannable, follows boost analysis pattern, user opts in to details
+### 4. Display Timing: Progressive ✅
+**Rationale:** Matches existing qualified teams scoring behavior
+- Show results as groups complete
+- No overlay when no results yet (normal prediction UI)
+- Progressive enhancement as tournament progresses
 
-### 5. Team Flags: OUT OF SCOPE ✅
-**Rationale:** Database does not store country codes or flag emoji data. Show team names only.
+### 5. Optional Summary Section: OUT OF SCOPE (for now) ✅
+**Rationale:** User mentioned "may be too data intensive" and summary is "somewhat of an overkill"
+**Decision:** Focus on inline results only. Summary can be added in future iteration if needed.
 
-## Open Questions for User
+### 6. Data Storage: Calculate On-Demand ✅
+**Rationale:** User concern about data intensity if we store detailed summary in DB
+**Decision:** Do NOT store in DB. Calculate on-demand using existing `calculateQualifiedTeamsScore()` function.
+**Performance:** Fast enough (<50ms), keeps data fresh, avoids complexity.
 
-### Question 1: Performance Considerations
-**Context:** Large tournaments could have 8+ groups × 3 teams = 24+ prediction rows
+## Resolved Questions (Based on User Feedback)
+
+### ✅ Where to show results?
+**Original plan:** Stats page with expandable breakdown
+**User feedback:** "I believe we should implement the visual indicator inline with those predictions"
+**Decision:** Show inline on qualified teams prediction page ✅
+
+### ✅ Should we create separate components?
+**Original plan:** New breakdown components in tournament-stats/
+**User feedback:** Show inline with existing predictions
+**Decision:** Enhance existing components (DraggableTeamCard, GroupCard) ✅
+
+### ✅ Should we add detailed summaries everywhere?
+**User feedback:** "I think this is somewhat of an overkill and may be too data intensive"
+**Decision:** Focus on inline results only. Summary sections OUT OF SCOPE for this story. ✅
+
+### ✅ Should we store detailed summary in DB?
+**User feedback:** "may be too data intensive if we don't store the actual detailed summary in the DB"
+**Decision:** Calculate on-demand, do NOT store in DB. Fast enough, keeps data fresh. ✅
+
+## Remaining Open Questions
+
+### Question 1: Status Text Level of Detail
+**Context:** When showing wrong predictions, how much detail?
 
 **Options:**
-- **Option A:** Render all groups at once (simpler implementation)
-- **Option B:** Add virtualization for very long lists (more complex, better performance)
+- **Option A:** Just icon + points ("+1 pt ~")
+- **Option B:** Brief text ("Wrong position")
+- **Option C:** Detailed text ("Predicted 1st, finished 2nd")
 
-**Recommendation:** Option A for this story. Performance optimization can be added later if needed.
+**Recommendation:** Option B for mobile (space constrained), Option C for desktop (more space)
 
-### Question 2: Mobile Breakpoint for Grid
-**Context:** Responsive layout switches from 2-column to 1-column
+### Question 2: Animation/Transition
+**Context:** Should results overlay have entrance animation?
 
 **Options:**
-- **Option A:** Switch at `md` breakpoint (960px) - More conservative
-- **Option B:** Switch at `sm` breakpoint (600px) - Shows 2 columns on tablets
+- **Option A:** No animation (instant display)
+- **Option B:** Fade in animation (Material-UI Fade component)
 
-**Recommendation:** Option A (`md` breakpoint) to ensure readability on tablets.
+**Recommendation:** Option A (simpler, no animation needed)
 
 ## Risk Assessment
 
-### Low Risk ✅
+### Low Risk ✅ (Simpler Implementation = Lower Risk)
+- ✅ **No new components** - Enhancing existing components only
 - ✅ **No database changes needed** - Uses existing `calculateQualifiedTeamsScore()` function
-- ✅ **Scoring logic already implemented and tested** - Verified in `app/utils/qualified-teams-scoring.ts`
-- ✅ **Similar patterns exist in codebase** - Boost breakdown in BoostAnalysisCard, game predictions in GameCard
-- ✅ **Pure presentation layer** - No mutations, only display
-- ✅ **Test utilities verified** - `renderWithTheme()`, `renderWithProviders()`, `testFactories` all exist
-- ✅ **Clear data structure** - `QualifiedTeamsScoringResult` interface well-defined
-- ✅ **Integration point verified** - Stats page structure confirmed (line 157 for data fetch)
+- ✅ **Scoring logic already implemented** - Verified in `app/utils/qualified-teams-scoring.ts`
+- ✅ **Existing UI patterns** - Building on top of DraggableTeamCard (already tested, working)
+- ✅ **Pure presentation layer** - No mutations, only display overlay
+- ✅ **Test utilities verified** - Existing test suite for qualified-teams components
+- ✅ **Clear data structure** - `QualifiedTeamsScoringResult` and `TeamScoringResult` interfaces
+- ✅ **Performance acceptable** - On-demand calculation (<50ms), no DB storage needed
+- ✅ **Responsive already handled** - Existing components are responsive (accordion on mobile)
 
 ### Medium Risk ⚠️
-- ⚠️ **Responsive behavior** - Need thorough mobile/tablet testing in Vercel Preview
-- ⚠️ **i18n completeness** - 15+ translation keys, need complete coverage
-- ⚠️ **Accessibility** - Multiple WCAG requirements, need manual testing
-- ⚠️ **Edge cases** - Many conditional states (no predictions, partial results, pending)
+- ⚠️ **Results overlay layout** - Need to fit results text without breaking card layout
+- ⚠️ **i18n completeness** - ~13 translation keys (reduced from 15)
+- ⚠️ **Progressive results** - Handle partial tournament completion gracefully
+- ⚠️ **Background color conflicts** - Enhanced colors must maintain text contrast
 
 ### Mitigation Strategies
-1. ✅ Visual prototypes finalized - Using Prototype 2 (vertical stacked)
-2. Test responsive behavior on multiple screen sizes in Vercel Preview (mobile, tablet, desktop)
-3. Complete i18n key list documented (15 keys for Spanish + English)
-4. Accessibility requirements clearly defined with test cases
-5. Comprehensive edge case testing (null breakdown, empty results, pending states)
-6. Use existing MUI theme colors (already WCAG compliant)
+1. ✅ Use inline overlay below team name (doesn't break existing layout)
+2. ✅ Fewer translation keys (13 vs 15) due to simpler UI
+3. ✅ Conditional rendering - only show overlay when results exist
+4. ✅ Test color contrast with existing green/yellow/gray backgrounds
+5. Test on mobile (accordion layout) and desktop (card layout) in Vercel Preview
+6. Use MUI Typography components (automatic color contrast handling)
 
 ## Implementation Timeline Estimate
 
@@ -646,15 +751,18 @@ const mockBreakdown: QualifiedTeamsScoringResult = {
 ## Success Metrics
 
 **Definition of Done:**
-- [ ] User can expand/collapse breakdown in stats page
-- [ ] Visual indicators clearly show correct/partial/incorrect predictions
-- [ ] Points per team and per group displayed accurately
-- [ ] Responsive on mobile/tablet/desktop
-- [ ] All text internationalized (ES + EN)
-- [ ] Tests pass with ≥80% coverage
+- [ ] Results overlay shows on each team card when results available
+- [ ] Visual indicators clearly show correct/partial/incorrect predictions (✓/~/✗ icons)
+- [ ] Points per team displayed accurately (+2 pts, +1 pt, +0 pts)
+- [ ] Group total points displayed in group header
+- [ ] Results only show when tournament data available (progressive display)
+- [ ] Responsive on mobile (accordion) and desktop (card layout)
+- [ ] All text internationalized (ES + EN, ~13 keys)
+- [ ] Tests pass with ≥80% coverage on modified code
 - [ ] 0 new SonarCloud issues
 - [ ] Linter passes
 - [ ] Build succeeds
+- [ ] No performance regression (calculation <50ms)
 - [ ] User approval in Vercel Preview
 
 ## Related Documentation
