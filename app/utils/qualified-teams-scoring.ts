@@ -127,10 +127,11 @@ export async function calculateQualifiedTeamsScore(
   // 2. Fetch user's JSONB predictions
   const userPredictions = await getAllUserGroupPositionsPredictions(userId, tournamentId);
 
-  // 3. Fetch qualified teams with their positions
+  // 3. Fetch qualified teams with their positions and group completion metadata
   // This returns progressive results: 1st/2nd from complete groups + 3rd place when playoff bracket exists
   const qualifiedTeamsResult = await findQualifiedTeams(tournamentId);
   const qualifiedTeams = qualifiedTeamsResult.teams;
+  const completeGroupIds = qualifiedTeamsResult.completeGroupIds;
 
   // Build lookup maps for efficient querying
   const qualifiedTeamsMap = new Map(
@@ -146,6 +147,33 @@ export async function calculateQualifiedTeamsScore(
 
   const qualifiedTeamIds = new Set(qualifiedTeams.map((t) => t.id));
 
+  // 4. Fetch actual positions for ALL teams in complete groups (for pending 3rd place detection)
+  // This is needed to show "pending" state for 3rd place teams that haven't been determined yet
+  const allTeamPositions = new Map<string, { position: number; teamName: string }>();
+
+  if (completeGroupIds.size > 0) {
+    const completeGroupTeams = await db
+      .selectFrom('tournament_group_teams')
+      .innerJoin('teams', 'teams.id', 'tournament_group_teams.team_id')
+      .where('tournament_group_teams.tournament_group_id', 'in', Array.from(completeGroupIds))
+      .where('tournament_group_teams.is_complete', '=', true)
+      .select([
+        'tournament_group_teams.team_id',
+        'tournament_group_teams.position',
+        'teams.name as team_name',
+      ])
+      .execute();
+
+    completeGroupTeams.forEach((team) => {
+      if (team.position !== null) {
+        allTeamPositions.set(team.team_id, {
+          position: team.position + 1, // Convert 0-indexed to 1-indexed
+          teamName: team.team_name,
+        });
+      }
+    });
+  }
+
   // Get group names for display
   const groupNames = await db
     .selectFrom('tournament_groups')
@@ -155,7 +183,7 @@ export async function calculateQualifiedTeamsScore(
 
   const groupNamesMap = new Map(groupNames.map((g) => [g.id, g.group_letter]));
 
-  // 4. Calculate scores for each group (progressive scoring)
+  // 5. Calculate scores for each group (progressive scoring)
   const breakdown: QualifiedTeamsScoringResult['breakdown'] = [];
   let totalScore = 0;
 
@@ -175,8 +203,11 @@ export async function calculateQualifiedTeamsScore(
       // Check if team qualified and get their actual position
       const qualifiedTeamData = qualifiedTeamsMap.get(teamId);
       const actuallyQualified = qualifiedTeamIds.has(teamId);
-      const actualPosition = qualifiedTeamData?.position ?? null;
-      const teamName = qualifiedTeamData?.teamName ?? 'Unknown Team';
+
+      // Get actual position: prioritize qualified teams map, then all positions map (for complete groups)
+      const teamPositionData = allTeamPositions.get(teamId);
+      const actualPosition = qualifiedTeamData?.position ?? teamPositionData?.position ?? null;
+      const teamName = qualifiedTeamData?.teamName ?? teamPositionData?.teamName ?? 'Unknown Team';
 
       // Calculate points and reason using helper function
       const { points: pointsAwarded, reason } = calculateTeamPoints(
