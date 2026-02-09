@@ -3,7 +3,7 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Card, CardContent, Typography, Box, Checkbox, FormControlLabel, useTheme, Theme, Chip } from '@mui/material';
+import { Card, CardContent, Typography, Box, Checkbox, FormControlLabel, useTheme, Theme, Chip, alpha } from '@mui/material';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -167,31 +167,41 @@ function ResultsOverlay({
 }) {
   const theme = useTheme();
 
-  // Determine icon, color, and label based on result
+  // Determine icon, color, label, and chip styling based on result
   let icon: React.ReactNode;
   let chipLabel: string;
   let iconColor: string;
+  let chipBackgroundColor: string;
+  let chipTextColor: string;
 
   if (isPending3rdPlace) {
-    // Pending 3rd place
+    // Pending 3rd place: blue theme
     icon = <HourglassEmptyIcon sx={{ fontSize: '1.25rem' }} />;
     chipLabel = 'Pendiente';
     iconColor = theme.palette.info.main;
+    chipBackgroundColor = theme.palette.info.light;
+    chipTextColor = 'white';
   } else if (result.pointsAwarded === 2) {
-    // Perfect match (2 pts): gold check (like game cards with golden boost)
+    // Perfect match (2 pts): gold (like game cards with golden boost)
     icon = <CheckCircleIcon sx={{ fontSize: '1.25rem' }} />;
     chipLabel = '+2 pts';
     iconColor = theme.palette.accent.gold.main;
+    chipBackgroundColor = alpha(theme.palette.accent.gold.main, 0.2);
+    chipTextColor = theme.palette.accent.gold.main;
   } else if (result.pointsAwarded === 1) {
-    // Partial match (1 pt): silver check (like game cards with silver boost)
+    // Partial match (1 pt): silver (like game cards with silver boost)
     icon = <CheckCircleIcon sx={{ fontSize: '1.25rem' }} />;
     chipLabel = '+1 pt';
     iconColor = theme.palette.accent.silver.main;
+    chipBackgroundColor = alpha(theme.palette.accent.silver.main, 0.2);
+    chipTextColor = theme.palette.accent.silver.main;
   } else {
-    // Wrong prediction (0 pts): red X
+    // Wrong prediction (0 pts): red
     icon = <CancelIcon sx={{ fontSize: '1.25rem' }} />;
     chipLabel = '+0 pts';
     iconColor = theme.palette.error.main;
+    chipBackgroundColor = theme.palette.error.light;
+    chipTextColor = 'white';
   }
 
   return (
@@ -205,6 +215,8 @@ function ResultsOverlay({
         sx={{
           fontWeight: 600,
           fontSize: '0.75rem',
+          backgroundColor: chipBackgroundColor,
+          color: chipTextColor,
         }}
       />
     </Box>
