@@ -7,9 +7,12 @@ import { getTournamentStartDate } from '../actions/tournament-actions';
  * Get tournament prediction completion status for a user
  * Tracks completion across 3 categories: final standings, awards, and qualifiers
  *
- * Uses new qualification prediction system (tournament_qualified_teams_predictions)
- * to track group qualifier predictions. A group is complete when user has predicted
- * at least 2 qualified teams (1st and 2nd place) for that group.
+ * TODO (Story #91 follow-up): Qualifier completion tracking still uses old table
+ * (tournament_group_team_stats_guess) which is deprecated. Need to design new
+ * completion logic for the new qualification checkbox system since:
+ * - Old system: Complete standings predictions (positions 1-4)
+ * - New system: Qualification checkboxes (which teams qualify)
+ * These have different completion semantics that need proper planning.
  *
  * CRITICAL FIX: Uses proper JOIN through playoff_round_games -> tournament_playoff_rounds
  * to check is_first_stage = true (NOT game_type = 'first_round')
@@ -58,34 +61,19 @@ export async function getTournamentPredictionCompletion(
 
   const totalGroups = Number(totalGroupsResult?.count ?? 0);
 
-  // Count how many groups the user has completed
-  // A group is complete when user has predicted qualified teams for that group
-  // Typically 2 qualifiers per group (1st and 2nd place)
-  const completeGroupsResult = await db
-    .selectFrom('tournament_groups')
-    .select((eb) => eb.fn.countAll<number>().as('count'))
-    .where('tournament_groups.tournament_id', '=', tournamentId)
-    .where((eb) =>
-      eb.exists(
-        eb.selectFrom('tournament_qualified_teams_predictions')
-          .innerJoin('tournament_group_teams', 'tournament_group_teams.team_id', 'tournament_qualified_teams_predictions.team_id')
-          .whereRef('tournament_group_teams.tournament_group_id', '=', 'tournament_groups.id')
-          .where('tournament_qualified_teams_predictions.user_id', '=', userId)
-          .where('tournament_qualified_teams_predictions.tournament_id', '=', tournamentId)
-          .where('tournament_qualified_teams_predictions.predicted_to_qualify', '=', true)
-          .having((eb) => eb.fn.countAll(), '>=', 2) // At least 2 qualifiers predicted
-      )
-    )
-    .executeTakeFirst();
-
-  const completeGroups = Number(completeGroupsResult?.count ?? 0);
-
-  // Calculate qualifiers completed:
-  // - Each complete group contributes 2 qualifiers (1st and 2nd place)
-  // - Third-place qualifiers only count when ALL groups are complete
-  const allGroupsComplete = completeGroups === totalGroups && totalGroups > 0;
-  const thirdPlaceQualifiers = allGroupsComplete ? (totalQualifierSlots - (totalGroups * 2)) : 0;
-  const qualifiersCompleted = (completeGroups * 2) + thirdPlaceQualifiers;
+  // TODO: Stub for qualifier completion tracking
+  // Story #91 removed the old group prediction table (tournament_group_team_stats_guess).
+  // The new qualification system (tournament_qualified_teams_predictions) tracks different
+  // data (checkbox-based qualification vs complete standings).
+  //
+  // Need follow-up story to design proper completion logic for new system:
+  // - Should we track: game guess completion? qualification checkbox completion? both?
+  // - How do we define "complete" for qualification predictions?
+  // - Different semantics between old (positions 1-4) and new (which teams qualify)
+  //
+  // For now: Return 0 qualifiers completed to avoid breaking the page
+  const completeGroups = 0;
+  const qualifiersCompleted = 0;
 
   // Calculate overall metrics
   const overallTotal = 3 + 4 + totalQualifierSlots; // finalStandings + awards + qualifiers
