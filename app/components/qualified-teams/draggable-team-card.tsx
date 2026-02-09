@@ -58,7 +58,9 @@ function getBackgroundColor(
       return theme.palette.info.light;
     }
     // Position 3: Pending until all groups complete
-    if (position === 3 && !allGroupsComplete) {
+    // Only show pending if group is NOT complete (no results available yet)
+    // If group IS complete, we have results and should show them instead
+    if (position === 3 && !allGroupsComplete && !isGroupComplete) {
       return theme.palette.info.light;
     }
   }
@@ -295,8 +297,8 @@ export default function DraggableTeamCard({
   const isPendingBeforeResults = disabled && predictedToQualify && (
     // Positions 1-2: Pending until their group completes
     ((position === 1 || position === 2) && !isGroupComplete) ||
-    // Position 3: Pending until all groups complete
-    (position === 3 && !allGroupsComplete)
+    // Position 3: Pending until all groups complete (but only if group not complete yet)
+    (position === 3 && !allGroupsComplete && !isGroupComplete)
   );
 
   // Show results overlay when:

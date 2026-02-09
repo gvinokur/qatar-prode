@@ -247,7 +247,7 @@ describe('DraggableTeamCard', () => {
       expect(screen.getByTestId('HourglassEmptyIcon')).toBeInTheDocument();
     });
 
-    it('should show pending overlay for position 3 when locked and all groups not complete', () => {
+    it('should show pending overlay for position 3 when locked and group not complete', () => {
       renderWithDndContext(
         <DraggableTeamCard
           team={mockTeam}
@@ -255,7 +255,7 @@ describe('DraggableTeamCard', () => {
           predictedToQualify={true}
           disabled={true}
           result={null}
-          isGroupComplete={true}
+          isGroupComplete={false}
           allGroupsComplete={false}
           isPending3rdPlace={false}
         />
@@ -263,6 +263,40 @@ describe('DraggableTeamCard', () => {
 
       expect(screen.getByText('Pendiente')).toBeInTheDocument();
       expect(screen.getByTestId('HourglassEmptyIcon')).toBeInTheDocument();
+    });
+
+    it('should show result (not pending) for position 3 team when group is complete', () => {
+      // Scenario: Team predicted in position 3, but actually qualified in position 2
+      // Group is complete, so we have results - should show green result, not pending
+      const resultFor3rdTeamQualifiedIn2nd: TeamScoringResult = {
+        teamId: 'team-1',
+        teamName: 'Argentina',
+        groupId: 'group-a',
+        predictedPosition: 3,
+        actualPosition: 2,
+        predictedToQualify: true,
+        actuallyQualified: true,
+        pointsAwarded: 1,
+        reason: 'qualified, wrong position',
+      };
+
+      renderWithDndContext(
+        <DraggableTeamCard
+          team={mockTeam}
+          position={3}
+          predictedToQualify={true}
+          disabled={true}
+          result={resultFor3rdTeamQualifiedIn2nd}
+          isGroupComplete={true}
+          allGroupsComplete={false}
+          isPending3rdPlace={false}
+        />
+      );
+
+      // Should show result chip (1 pt), not pending
+      expect(screen.getByText('+1 pt')).toBeInTheDocument();
+      expect(screen.getByTestId('CheckCircleIcon')).toBeInTheDocument();
+      expect(screen.queryByText('Pendiente')).not.toBeInTheDocument();
     });
 
     it('should not show pending overlay when not locked', () => {
