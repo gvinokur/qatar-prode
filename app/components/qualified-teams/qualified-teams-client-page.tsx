@@ -12,6 +12,7 @@ import {
 import { Team, TournamentGroup, QualifiedTeamPrediction } from '../../db/tables-definition';
 import QualifiedTeamsGrid from './qualified-teams-grid';
 import ThirdPlaceSummary from './third-place-summary';
+import { QualifiedTeamsScoringResult } from '../../utils/qualified-teams-scoring';
 
 interface QualifiedTeamsClientPageProps {
   /** Tournament data */
@@ -35,6 +36,10 @@ interface QualifiedTeamsClientPageProps {
   readonly allowsThirdPlace: boolean;
   /** Maximum allowed third place qualifiers */
   readonly maxThirdPlace: number;
+  /** Actual qualified teams (progressive results) */
+  readonly actualResults?: Array<{ id: string; group_id: string }>;
+  /** Scoring breakdown for user's predictions */
+  readonly scoringBreakdown?: QualifiedTeamsScoringResult | null;
 }
 
 /** Handle drag end event - batch updates for entire group */
@@ -129,9 +134,35 @@ function QualifiedTeamsUI({
   allowsThirdPlace,
   maxThirdPlace,
   isLocked,
+  actualResults,
+  scoringBreakdown,
 }: Omit<QualifiedTeamsClientPageProps, 'initialPredictions' | 'userId'>) {
   const { predictions, isSaving, saveState, error, clearError, updateGroupPositions } = useQualifiedTeamsContext();
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
+
+  // Determine which groups are complete based on actualResults
+  const completeGroupIds = useMemo(() => {
+    if (!actualResults || actualResults.length === 0) return new Set<string>();
+
+    const groupTeamCounts = new Map<string, number>();
+
+    // Count qualified teams per group
+    actualResults.forEach((team) => {
+      const count = groupTeamCounts.get(team.group_id) || 0;
+      groupTeamCounts.set(team.group_id, count + 1);
+    });
+
+    // A group is complete if it has at least 2 qualified teams (1st and 2nd place)
+    // Note: 3rd place teams may still be pending if best 3rds not determined
+    const completeGroups = new Set<string>();
+    groupTeamCounts.forEach((count, groupId) => {
+      if (count >= 2) {
+        completeGroups.add(groupId);
+      }
+    });
+
+    return completeGroups;
+  }, [actualResults]);
 
   // Show snackbar when save succeeds
   useEffect(() => {
@@ -298,6 +329,8 @@ function QualifiedTeamsUI({
           isLocked={isLocked || isSaving}
           allowsThirdPlace={allowsThirdPlace}
           onToggleThirdPlace={handleToggleThirdPlace}
+          scoringBreakdown={scoringBreakdown}
+          completeGroupIds={completeGroupIds}
         />
       </DndContext>
 

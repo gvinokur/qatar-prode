@@ -3,9 +3,13 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Card, CardContent, Typography, Box, Checkbox, FormControlLabel, useTheme, Theme } from '@mui/material';
+import { Card, CardContent, Typography, Box, Checkbox, FormControlLabel, useTheme, Theme, Chip } from '@mui/material';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import { Team } from '../../db/tables-definition';
+import { TeamScoringResult } from '../../utils/qualified-teams-scoring';
 
 export interface DraggableTeamCardProps {
   /** Team data */
@@ -18,6 +22,12 @@ export interface DraggableTeamCardProps {
   readonly disabled: boolean;
   /** Callback when third place qualification is toggled */
   readonly onToggleThirdPlace?: () => void;
+  /** Scoring result for this team (if available) */
+  readonly result?: TeamScoringResult | null;
+  /** Whether the group is complete (results can be shown) */
+  readonly isGroupComplete: boolean;
+  /** Whether this team is in pending 3rd place state */
+  readonly isPending3rdPlace: boolean;
 }
 
 /** Get position suffix (1st, 2nd, 3rd, 4th, etc.) */
@@ -28,8 +38,36 @@ function getPositionSuffix(pos: number): string {
   return 'th';
 }
 
-/** Get background color based on qualification status */
-function getBackgroundColor(theme: Theme, position: number, predictedToQualify: boolean): string {
+/** Get background color based on qualification status and result */
+function getBackgroundColor(
+  theme: Theme,
+  position: number,
+  predictedToQualify: boolean,
+  result?: TeamScoringResult | null,
+  isGroupComplete?: boolean,
+  isPending3rdPlace?: boolean
+): string {
+  // If group is complete and we have a result, use result-based colors
+  if (isGroupComplete && result) {
+    if (isPending3rdPlace) {
+      // Pending 3rd place: blue
+      return theme.palette.info.light;
+    }
+    if (result.pointsAwarded === 2) {
+      // Perfect match (2 pts): gold/yellow
+      return theme.palette.warning.main;
+    }
+    if (result.pointsAwarded === 1) {
+      // Partial match (1 pt): lighter green
+      return theme.palette.success.light;
+    }
+    if (result.pointsAwarded === 0) {
+      // Wrong prediction (0 pts): light red
+      return theme.palette.error.light;
+    }
+  }
+
+  // Default prediction colors (before results available)
   // Positions 1-2: Yellow if not explicitly marked as qualified (initial state), green once qualified
   if (position === 1 || position === 2) {
     return predictedToQualify ? theme.palette.success.light : theme.palette.warning.light;
@@ -122,6 +160,60 @@ function ThirdPlaceCheckbox({
   );
 }
 
+/** Results overlay showing points and qualification status */
+function ResultsOverlay({
+  result,
+  isPending3rdPlace,
+}: {
+  readonly result: TeamScoringResult;
+  readonly isPending3rdPlace: boolean;
+}) {
+  const theme = useTheme();
+
+  // Determine icon, color, and label based on result
+  let icon: React.ReactNode;
+  let chipLabel: string;
+  let iconColor: string;
+
+  if (isPending3rdPlace) {
+    // Pending 3rd place
+    icon = <HourglassEmptyIcon sx={{ fontSize: '1.25rem' }} />;
+    chipLabel = 'Pendiente';
+    iconColor = theme.palette.info.main;
+  } else if (result.pointsAwarded === 2) {
+    // Perfect match (2 pts): gold check
+    icon = <CheckCircleIcon sx={{ fontSize: '1.25rem' }} />;
+    chipLabel = '+2 pts';
+    iconColor = theme.palette.warning.dark;
+  } else if (result.pointsAwarded === 1) {
+    // Partial match (1 pt): green check
+    icon = <CheckCircleIcon sx={{ fontSize: '1.25rem' }} />;
+    chipLabel = '+1 pt';
+    iconColor = theme.palette.success.main;
+  } else {
+    // Wrong prediction (0 pts): red X
+    icon = <CancelIcon sx={{ fontSize: '1.25rem' }} />;
+    chipLabel = '+0 pts';
+    iconColor = theme.palette.error.main;
+  }
+
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+      <Box sx={{ color: iconColor, display: 'flex', alignItems: 'center' }}>
+        {icon}
+      </Box>
+      <Chip
+        label={chipLabel}
+        size="small"
+        sx={{
+          fontWeight: 600,
+          fontSize: '0.75rem',
+        }}
+      />
+    </Box>
+  );
+}
+
 /**
  * Draggable team card component for group qualification predictions
  * Uses dnd-kit for drag-and-drop reordering
@@ -132,6 +224,9 @@ export default function DraggableTeamCard({
   predictedToQualify,
   disabled,
   onToggleThirdPlace,
+  result,
+  isGroupComplete,
+  isPending3rdPlace,
 }: DraggableTeamCardProps) {
   const theme = useTheme();
 
@@ -160,7 +255,10 @@ export default function DraggableTeamCard({
     opacity: getOpacity(),
   };
 
-  const backgroundColor = getBackgroundColor(theme, position, predictedToQualify);
+  const backgroundColor = getBackgroundColor(theme, position, predictedToQualify, result, isGroupComplete, isPending3rdPlace);
+
+  // Show results overlay only when group is complete AND result exists
+  const showResults = isGroupComplete && result;
 
   return (
     <Card
@@ -195,6 +293,7 @@ export default function DraggableTeamCard({
             onChange={onToggleThirdPlace}
           />
         )}
+        {showResults && <ResultsOverlay result={result} isPending3rdPlace={isPending3rdPlace} />}
       </CardContent>
     </Card>
   );

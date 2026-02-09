@@ -7,10 +7,12 @@ import { testFactories } from '../db/test-factories';
 
 // Mock GroupCard
 vi.mock('../../app/components/qualified-teams/group-card', () => ({
-  default: ({ group, teams, onPositionChange, onToggleThirdPlace }: any) => (
+  default: ({ group, teams, onPositionChange, onToggleThirdPlace, groupResults, isGroupComplete }: any) => (
     <div data-testid={`group-card-${group.id}`}>
       <span>{group.name}</span>
       <span>Teams: {teams.length}</span>
+      {isGroupComplete && <span data-testid={`group-complete-${group.id}`}>Complete</span>}
+      {groupResults && <span data-testid={`group-results-${group.id}`}>Has Results</span>}
       {onPositionChange && (
         <button
           onClick={() => onPositionChange('team-1', 2)}
@@ -82,6 +84,7 @@ describe('QualifiedTeamsGrid', () => {
           predictions={mockPredictions}
           isLocked={false}
           allowsThirdPlace={false}
+          completeGroupIds={new Set()}
         />
       );
 
@@ -96,6 +99,7 @@ describe('QualifiedTeamsGrid', () => {
           predictions={mockPredictions}
           isLocked={false}
           allowsThirdPlace={false}
+          completeGroupIds={new Set()}
         />
       );
 
@@ -110,6 +114,7 @@ describe('QualifiedTeamsGrid', () => {
           predictions={mockPredictions}
           isLocked={false}
           allowsThirdPlace={false}
+          completeGroupIds={new Set()}
         />
       );
 
@@ -126,6 +131,7 @@ describe('QualifiedTeamsGrid', () => {
           predictions={mockPredictions}
           isLocked={false}
           allowsThirdPlace={false}
+          completeGroupIds={new Set()}
         />
       );
 
@@ -140,6 +146,7 @@ describe('QualifiedTeamsGrid', () => {
           predictions={mockPredictions}
           isLocked={false}
           allowsThirdPlace={false}
+          completeGroupIds={new Set()}
         />
       );
 
@@ -157,6 +164,7 @@ describe('QualifiedTeamsGrid', () => {
           predictions={mockPredictions}
           isLocked={false}
           allowsThirdPlace={false}
+          completeGroupIds={new Set()}
         />
       );
 
@@ -171,6 +179,7 @@ describe('QualifiedTeamsGrid', () => {
           predictions={mockPredictions}
           isLocked={true}
           allowsThirdPlace={false}
+          completeGroupIds={new Set()}
         />
       );
 
@@ -185,6 +194,7 @@ describe('QualifiedTeamsGrid', () => {
           predictions={mockPredictions}
           isLocked={false}
           allowsThirdPlace={true}
+          completeGroupIds={new Set()}
         />
       );
 
@@ -204,6 +214,7 @@ describe('QualifiedTeamsGrid', () => {
           isLocked={false}
           allowsThirdPlace={false}
           onPositionChange={onPositionChange}
+          completeGroupIds={new Set()}
         />
       );
 
@@ -223,6 +234,7 @@ describe('QualifiedTeamsGrid', () => {
           isLocked={false}
           allowsThirdPlace={true}
           onToggleThirdPlace={onToggleThirdPlace}
+          completeGroupIds={new Set()}
         />
       );
 
@@ -242,6 +254,7 @@ describe('QualifiedTeamsGrid', () => {
           isLocked={false}
           allowsThirdPlace={false}
           onPositionChange={onPositionChange}
+          completeGroupIds={new Set()}
         />
       );
 
@@ -264,6 +277,7 @@ describe('QualifiedTeamsGrid', () => {
           predictions={mockPredictions}
           isLocked={false}
           allowsThirdPlace={false}
+          completeGroupIds={new Set()}
         />
       );
 
@@ -280,6 +294,7 @@ describe('QualifiedTeamsGrid', () => {
           predictions={mockPredictions}
           isLocked={false}
           allowsThirdPlace={false}
+          completeGroupIds={new Set()}
         />
       );
 
@@ -293,6 +308,7 @@ describe('QualifiedTeamsGrid', () => {
           predictions={mockPredictions}
           isLocked={false}
           allowsThirdPlace={false}
+          completeGroupIds={new Set()}
         />
       );
 
@@ -327,6 +343,7 @@ describe('QualifiedTeamsGrid', () => {
           predictions={mockPredictions}
           isLocked={false}
           allowsThirdPlace={false}
+          completeGroupIds={new Set()}
         />
       );
 
@@ -355,6 +372,7 @@ describe('QualifiedTeamsGrid', () => {
           predictions={mockPredictions}
           isLocked={false}
           allowsThirdPlace={false}
+          completeGroupIds={new Set()}
         />
       );
 
@@ -369,6 +387,7 @@ describe('QualifiedTeamsGrid', () => {
           predictions={new Map()}
           isLocked={false}
           allowsThirdPlace={false}
+          completeGroupIds={new Set()}
         />
       );
 

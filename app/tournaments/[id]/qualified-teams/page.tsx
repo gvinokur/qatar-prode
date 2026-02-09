@@ -167,12 +167,17 @@ export default async function QualifiedTeamsPage({ params, searchParams }: PageP
       predictions = await initializePredictions(user.id, tournamentId, groupsWithTeams);
     }
 
+    // Fetch actual qualified teams (progressive results)
+    const actualQualifiedTeams = await findQualifiedTeams(tournamentId);
+
+    // Calculate scoring breakdown when results are available
+    const scoringResult = actualQualifiedTeams.length > 0
+      ? await calculateQualifiedTeamsScore(user.id, tournamentId)
+      : null;
+
     // Debug data (only fetched when ?debug is present)
     let debugData = null;
     if (searchParamsResolved.hasOwnProperty('debug')) {
-      const actualQualifiedTeams = await findQualifiedTeams(tournamentId);
-      const scoringResult = await calculateQualifiedTeamsScore(user.id, tournamentId);
-
       debugData = {
         tournament,
         config,
@@ -196,6 +201,8 @@ export default async function QualifiedTeamsPage({ params, searchParams }: PageP
           isLocked={isLocked}
           allowsThirdPlace={config.allowsThirdPlace}
           maxThirdPlace={config.maxThirdPlace}
+          actualResults={actualQualifiedTeams}
+          scoringBreakdown={scoringResult}
         />
       </>
     );
