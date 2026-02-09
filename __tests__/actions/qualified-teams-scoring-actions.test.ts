@@ -24,6 +24,7 @@ vi.mock('../../app/db/database', () => ({
   db: {
     selectFrom: vi.fn(),
     updateTable: vi.fn(),
+    insertInto: vi.fn(),
     transaction: vi.fn(),
   },
 }));
@@ -94,27 +95,13 @@ describe('qualified-teams-scoring-actions', () => {
       const mockClearQuery = createMockUpdateQuery({ qualified_teams_score: 0 });
       mockDb.updateTable.mockReturnValue(mockClearQuery as any);
 
-      // Mock transaction for individual updates
-      const mockTransaction = vi.fn().mockImplementation((callback) => {
-        return callback({
-          selectFrom: vi.fn().mockReturnValue({
-            where: vi.fn().mockReturnThis(),
-            select: vi.fn().mockReturnThis(),
-            executeTakeFirst: vi.fn().mockResolvedValue({ id: 'guess-1' }),
-          }),
-          updateTable: vi.fn().mockReturnValue({
-            set: vi.fn().mockReturnThis(),
-            where: vi.fn().mockReturnThis(),
-            execute: vi.fn().mockResolvedValue(undefined),
-          }),
-          insertInto: vi.fn().mockReturnValue({
-            values: vi.fn().mockReturnThis(),
-            execute: vi.fn().mockResolvedValue(undefined),
-          }),
-        });
-      });
-
-      mockDb.transaction.mockReturnValue({ execute: mockTransaction } as any);
+      // Mock the upsert query (INSERT...ON CONFLICT DO UPDATE)
+      const mockInsertQuery = {
+        values: vi.fn().mockReturnThis(),
+        onConflict: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue(undefined),
+      };
+      mockDb.insertInto.mockReturnValue(mockInsertQuery as any);
 
       const result = await calculateAndStoreQualifiedTeamsScores(tournamentId);
 
@@ -210,22 +197,13 @@ describe('qualified-teams-scoring-actions', () => {
       const mockClearQuery = createMockUpdateQuery({ qualified_teams_score: 0 });
       mockDb.updateTable.mockReturnValue(mockClearQuery as any);
 
-      const mockTransaction = vi.fn().mockImplementation((callback) => {
-        return callback({
-          selectFrom: vi.fn().mockReturnValue({
-            where: vi.fn().mockReturnThis(),
-            select: vi.fn().mockReturnThis(),
-            executeTakeFirst: vi.fn().mockResolvedValue({ id: 'guess-2' }),
-          }),
-          updateTable: vi.fn().mockReturnValue({
-            set: vi.fn().mockReturnThis(),
-            where: vi.fn().mockReturnThis(),
-            execute: vi.fn().mockResolvedValue(undefined),
-          }),
-        });
-      });
-
-      mockDb.transaction.mockReturnValue({ execute: mockTransaction } as any);
+      // Mock the upsert query (INSERT...ON CONFLICT DO UPDATE)
+      const mockInsertQuery = {
+        values: vi.fn().mockReturnThis(),
+        onConflict: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue(undefined),
+      };
+      mockDb.insertInto.mockReturnValue(mockInsertQuery as any);
 
       const result = await calculateAndStoreQualifiedTeamsScores(tournamentId);
 
@@ -250,29 +228,21 @@ describe('qualified-teams-scoring-actions', () => {
       const mockClearQuery = createMockUpdateQuery({ qualified_teams_score: 0 });
       mockDb.updateTable.mockReturnValue(mockClearQuery as any);
 
-      // Mock transaction where tournament_guess does NOT exist
-      const mockInsertQuery = vi.fn().mockResolvedValue(undefined);
-      const mockTransaction = vi.fn().mockImplementation((callback) => {
-        return callback({
-          selectFrom: vi.fn().mockReturnValue({
-            where: vi.fn().mockReturnThis(),
-            select: vi.fn().mockReturnThis(),
-            executeTakeFirst: vi.fn().mockResolvedValue(null), // No existing guess
-          }),
-          insertInto: vi.fn().mockReturnValue({
-            values: vi.fn().mockReturnThis(),
-            execute: mockInsertQuery,
-          }),
-        });
-      });
-
-      mockDb.transaction.mockReturnValue({ execute: mockTransaction } as any);
+      // Mock the upsert query (INSERT...ON CONFLICT DO UPDATE)
+      // This handles both insert and update cases
+      const mockExecute = vi.fn().mockResolvedValue(undefined);
+      const mockInsertQuery = {
+        values: vi.fn().mockReturnThis(),
+        onConflict: vi.fn().mockReturnThis(),
+        execute: mockExecute,
+      };
+      mockDb.insertInto.mockReturnValue(mockInsertQuery as any);
 
       const result = await calculateAndStoreQualifiedTeamsScores(tournamentId);
 
       expect(result.success).toBe(true);
       expect(result.usersProcessed).toBe(1);
-      expect(mockInsertQuery).toHaveBeenCalled();
+      expect(mockExecute).toHaveBeenCalled();
     });
 
     it('should handle top-level errors', async () => {
@@ -366,22 +336,13 @@ describe('qualified-teams-scoring-actions', () => {
       const mockClearQuery = createMockUpdateQuery({ qualified_teams_score: 0 });
       mockDb.updateTable.mockReturnValue(mockClearQuery as any);
 
-      const mockTransaction = vi.fn().mockImplementation((callback) => {
-        return callback({
-          selectFrom: vi.fn().mockReturnValue({
-            where: vi.fn().mockReturnThis(),
-            select: vi.fn().mockReturnThis(),
-            executeTakeFirst: vi.fn().mockResolvedValue({ id: 'guess-1' }),
-          }),
-          updateTable: vi.fn().mockReturnValue({
-            set: vi.fn().mockReturnThis(),
-            where: vi.fn().mockReturnThis(),
-            execute: vi.fn().mockResolvedValue(undefined),
-          }),
-        });
-      });
-
-      mockDb.transaction.mockReturnValue({ execute: mockTransaction } as any);
+      // Mock the upsert query (INSERT...ON CONFLICT DO UPDATE)
+      const mockInsertQuery = {
+        values: vi.fn().mockReturnThis(),
+        onConflict: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue(undefined),
+      };
+      mockDb.insertInto.mockReturnValue(mockInsertQuery as any);
 
       const result = await triggerQualifiedTeamsScoringAction(tournamentId);
 

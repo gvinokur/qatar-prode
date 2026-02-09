@@ -16,7 +16,7 @@ export default function GroupTable({
   qualifiedTeams = []
 }: Props) {
   return (
-    <Paper elevation={2} sx={{ p: 2 }}>
+    <Paper elevation={2} sx={{ p: 2 }} data-testid="group-table">
       <Typography variant="h6" gutterBottom>
         Tabla de Posiciones
       </Typography>

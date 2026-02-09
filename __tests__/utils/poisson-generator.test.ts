@@ -2,6 +2,15 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { generatePoissonScore, generateMatchScore } from '../../app/utils/poisson-generator';
 
 describe('poisson-generator', () => {
+  // Ensure clean state before and after each test
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   describe('generatePoissonScore', () => {
     describe('validation', () => {
       it('throws error when lambda is 0', () => {
@@ -212,7 +221,7 @@ describe('poisson-generator', () => {
         const maxAttempts = 100;
 
         do {
-          match = generateMatchScore(1.35);
+          match = generateMatchScore(1.35, true); // Enable playoff mode for penalties
           attempts++;
         } while (match.homeScore !== match.awayScore && attempts < maxAttempts);
 
@@ -241,7 +250,7 @@ describe('poisson-generator', () => {
         // We can't easily mock the imported function, so test the behavior instead
         const matches: any[] = [];
         for (let i = 0; i < 50; i++) {
-          const match = generateMatchScore(1.35);
+          const match = generateMatchScore(1.35, true); // Enable playoff mode for penalties
           if (match.homeScore === match.awayScore) {
             matches.push(match);
           }
@@ -253,8 +262,6 @@ describe('poisson-generator', () => {
           expect(match.awayPenaltyScore).toBeDefined();
           expect(match.homePenaltyScore).not.toBe(match.awayPenaltyScore);
         });
-
-        vi.restoreAllMocks();
       });
 
       it('does not generate penalty scores when match is not tied', () => {
@@ -279,7 +286,7 @@ describe('poisson-generator', () => {
         // Generate many tied matches and check penalty caps
         const tiedMatches: any[] = [];
         for (let i = 0; i < 100; i++) {
-          const match = generateMatchScore(1.35);
+          const match = generateMatchScore(1.35, true); // Enable playoff mode for penalties
           if (match.homeScore === match.awayScore) {
             tiedMatches.push(match);
           }
