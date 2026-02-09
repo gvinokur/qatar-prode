@@ -3,7 +3,7 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Card, CardContent, Typography, Box, Checkbox, FormControlLabel, useTheme, Theme, Chip, alpha } from '@mui/material';
+import { Card, CardContent, Typography, Box, Checkbox, FormControlLabel, useTheme, Theme, Chip } from '@mui/material';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -211,20 +211,14 @@ function ResultsOverlay({
     iconColor = theme.palette.info.main;
     chipBackgroundColor = theme.palette.info.light;
     chipTextColor = 'white';
-  } else if (result && result.pointsAwarded === 2) {
-    // Perfect match (2 pts): gold (like game cards with golden boost)
+  } else if (result && result.pointsAwarded > 0) {
+    // Correct predictions (1 or 2 pts): green chip like regular game cards
+    // Border color already indicates success, chip shows points
     icon = <CheckCircleIcon sx={{ fontSize: '1.25rem' }} />;
-    chipLabel = '+2 pts';
-    iconColor = theme.palette.accent.gold.main;
-    chipBackgroundColor = alpha(theme.palette.accent.gold.main, 0.2);
-    chipTextColor = theme.palette.accent.gold.main;
-  } else if (result && result.pointsAwarded === 1) {
-    // Partial match (1 pt): silver (like game cards with silver boost)
-    icon = <CheckCircleIcon sx={{ fontSize: '1.25rem' }} />;
-    chipLabel = '+1 pt';
-    iconColor = theme.palette.accent.silver.main;
-    chipBackgroundColor = alpha(theme.palette.accent.silver.main, 0.2);
-    chipTextColor = theme.palette.accent.silver.main;
+    chipLabel = result.pointsAwarded === 1 ? '+1 pt' : '+2 pts';
+    iconColor = theme.palette.success.main;
+    chipBackgroundColor = theme.palette.success.light;
+    chipTextColor = 'white';
   } else {
     // Wrong prediction (0 pts): red
     icon = <CancelIcon sx={{ fontSize: '1.25rem' }} />;
