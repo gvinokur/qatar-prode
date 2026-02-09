@@ -810,6 +810,8 @@ describe('GroupBackoffice Integration Tests', () => {
       expect(typeof loadedCall![0].onSave).toBe('function');
     });
 
+    // Skipped: GroupTable component is no longer used in GroupBackoffice implementation.
+    // The component now renders TeamStandingsCards directly inline instead of through GroupTable.
     it.skip('should pass correct props to GroupTable', async () => {
       const GroupTable = await import(
         '@/app/components/groups-page/group-table'
