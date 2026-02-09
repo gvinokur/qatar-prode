@@ -72,6 +72,7 @@ export default async function PlayoffPage(props: Props) {
         })
       ))
   }
+
   const gameGuessesMap = customToMap(userGameGuesses, (gameGuess) => gameGuess.game_id)
 
   const playoffTeamsByGuess = await calculatePlayoffTeamsFromPositions(
