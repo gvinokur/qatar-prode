@@ -40,8 +40,14 @@ function getPositionSuffix(pos: number): string {
   return 'th';
 }
 
-/** Get background color based on qualification status and result */
-function getBackgroundColor(
+/** Get background color - now using gray for cleaner design */
+function getBackgroundColor(theme: Theme): string {
+  // Use consistent gray background for all cards
+  return theme.palette.mode === 'dark' ? theme.palette.grey[900] : theme.palette.grey[50];
+}
+
+/** Get border color based on qualification status and result */
+function getBorderColor(
   theme: Theme,
   position: number,
   predictedToQualify: boolean,
@@ -51,54 +57,52 @@ function getBackgroundColor(
   allGroupsComplete?: boolean,
   isPending3rdPlace?: boolean
 ): string {
+  // Position 4+ or non-predicted 3rd place: no colored border
+  if (position >= 4 || (position === 3 && disabled && !predictedToQualify)) {
+    return 'transparent';
+  }
+
   // If locked and predicted to qualify, check for pending state BEFORE results
   if (disabled && predictedToQualify) {
     // Positions 1-2: Pending until their group completes
     if ((position === 1 || position === 2) && !isGroupComplete) {
-      return theme.palette.info.light;
+      return theme.palette.info.main;
     }
     // Position 3: Pending until all groups complete
-    // Only show pending if group is NOT complete (no results available yet)
-    // If group IS complete, we have results and should show them instead
     if (position === 3 && !allGroupsComplete && !isGroupComplete) {
-      return theme.palette.info.light;
+      return theme.palette.info.main;
     }
   }
 
   // If group is complete and we have a result AND user predicted to qualify, use result-based colors
-  // Don't show result colors for teams user didn't predict to qualify
   if (isGroupComplete && result && predictedToQualify) {
     if (isPending3rdPlace) {
       // Pending 3rd place: blue
-      return theme.palette.info.light;
+      return theme.palette.info.main;
     }
     if (result.pointsAwarded === 2 || result.pointsAwarded === 1) {
-      // Both exact and partial matches: green background (differentiate with icon colors)
-      return theme.palette.success.light;
+      // Correct predictions (1 or 2 pts): green border
+      return theme.palette.success.main;
     }
     if (result.pointsAwarded === 0) {
-      // Wrong prediction (0 pts): light red
-      return theme.palette.error.light;
+      // Wrong prediction (0 pts): red border
+      return theme.palette.error.main;
     }
   }
 
   // Default prediction colors (before results available)
-  // Positions 1-2: Yellow if not explicitly marked as qualified (initial state), green once qualified
-  if (position === 1 || position === 2) {
-    return predictedToQualify ? theme.palette.success.light : theme.palette.warning.light;
+  // Positions 1-2-3 in selection mode: yellow border
+  if (!disabled && (position === 1 || position === 2 || (position === 3 && predictedToQualify))) {
+    return theme.palette.warning.main;
   }
-  // Position 3:
-  // - If locked and NOT predicted to qualify: gray (non-important, like position 4+)
-  // - If predicted to qualify: green (will show pending/results)
-  // - If not locked and not predicted: yellow (can still select)
-  if (position === 3) {
-    if (disabled && !predictedToQualify) {
-      return theme.palette.grey[100]; // Non-important when locked
-    }
-    return predictedToQualify ? theme.palette.success.light : theme.palette.warning.light;
+
+  // Position 3 qualified (locked): green border
+  if (position === 3 && disabled && predictedToQualify) {
+    return theme.palette.success.main;
   }
-  // Position 4+: Gray (cannot qualify)
-  return theme.palette.grey[100];
+
+  // Default: no border color
+  return 'transparent';
 }
 
 /** Drag handle component */
@@ -291,7 +295,8 @@ export default function DraggableTeamCard({
     opacity: getOpacity(),
   };
 
-  const backgroundColor = getBackgroundColor(theme, position, predictedToQualify, disabled, result, isGroupComplete, allGroupsComplete, isPending3rdPlace);
+  const backgroundColor = getBackgroundColor(theme);
+  const borderColor = getBorderColor(theme, position, predictedToQualify, disabled, result, isGroupComplete, allGroupsComplete, isPending3rdPlace);
 
   // Determine if this team is in a pending state (waiting for results)
   const isPendingBeforeResults = disabled && predictedToQualify && (
@@ -319,7 +324,8 @@ export default function DraggableTeamCard({
         touchAction: disabled ? 'auto' : 'none',
         backgroundColor,
         border: isDragging ? `2px dashed ${theme.palette.primary.main}` : '1px solid',
-        borderColor: theme.palette.divider,
+        borderColor: isDragging ? theme.palette.primary.main : theme.palette.divider,
+        borderLeft: borderColor !== 'transparent' ? `4px solid ${borderColor}` : undefined,
       }}
     >
       <CardContent
@@ -329,8 +335,6 @@ export default function DraggableTeamCard({
           gap: 2,
           p: 2,
           '&:last-child': { pb: 2 },
-          // Ensure good contrast on colored backgrounds
-          color: theme.palette.getContrastText(backgroundColor),
         }}
       >
         {!disabled && <DragHandle disabled={disabled} attributes={attributes} listeners={listeners} />}
