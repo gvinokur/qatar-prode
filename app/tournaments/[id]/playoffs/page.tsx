@@ -7,13 +7,11 @@ import {findGameGuessesByUserId, getPredictionDashboardStats} from "../../../db/
 import {GameGuess} from "../../../db/tables-definition";
 import {GuessesContextProvider} from "../../../components/context-providers/guesses-context-provider";
 import {calculatePlayoffTeamsFromPositions} from "../../../utils/playoff-teams-calculator";
-import {findGroupsInTournament, findTournamentgroupById} from "../../../db/tournament-group-repository";
+import {findGroupsInTournament} from "../../../db/tournament-group-repository";
 import {customToMap} from "../../../utils/ObjectUtils";
 import {default as React, unstable_ViewTransition as ViewTransition} from "react";
 import TabbedPlayoffsPage from '../../../components/playoffs/tabbed-playoff-page';
 import { findTournamentById } from "../../../db/tournament-repository";
-import {findGamesInGroup} from "../../../db/game-repository";
-import {calculateGroupPosition} from "../../../utils/group-position-calculator";
 
 type Props = {
   readonly params: Promise<{
@@ -43,34 +41,46 @@ export default async function PlayoffPage(props: Props) {
     dashboardStats = await getPredictionDashboardStats(user.id, params.id)
     const groups = await findGroupsInTournament(params.id)
 
-    // Calculate group positions from game guesses for each group
-    const gameGuessesMap = customToMap(userGameGuesses, (gameGuess) => gameGuess.game_id)
+    // Get user's qualification predictions (JSONB table)
+    const { getAllUserGroupPositionsPredictions } = await import('../../../db/qualified-teams-repository')
+    const qualificationPredictions = await getAllUserGroupPositionsPredictions(user.id, params.id)
 
+    // Build guessedPositionsByGroup from qualification predictions
     guessedPositionsByGroup = Object.fromEntries(
-      await Promise.all(
-        groups.map(async (group) => {
-          const groupGames = await findGamesInGroup(group.id)
-          const groupData = await findTournamentgroupById(group.id)
+      groups.map((group) => {
+        const groupPrediction = qualificationPredictions.find(p => p.group_id === group.id)
 
-          // Calculate standings from game guesses
-          const teamIds = groupGames.reduce((ids, game) => {
-            if (game.home_team && !ids.includes(game.home_team)) ids.push(game.home_team)
-            if (game.away_team && !ids.includes(game.away_team)) ids.push(game.away_team)
-            return ids
-          }, [] as string[])
+        if (!groupPrediction) {
+          return [group.group_letter, []]
+        }
 
-          const standings = calculateGroupPosition(
-            teamIds,
-            groupGames.map(game => ({
-              ...game,
-              resultOrGuess: gameGuessesMap[game.id]
-            })),
-            groupData?.sort_by_games_between_teams
-          )
+        // Extract team positions from JSONB and convert to standings format
+        const positions = groupPrediction.team_predicted_positions as unknown as Array<{
+          team_id: string
+          predicted_position: number
+          predicted_to_qualify: boolean
+        }>
 
-          return [group.group_letter, standings]
-        })
-      ))
+        // Sort by predicted position and convert to standings format
+        const standings = positions
+          .sort((a, b) => a.predicted_position - b.predicted_position)
+          .map(p => ({
+            team_id: p.team_id,
+            position: p.predicted_position,
+            // These fields aren't used by playoff calculation, but include for compatibility
+            points: 0,
+            games_played: 0,
+            win: 0,
+            draw: 0,
+            loss: 0,
+            goals_for: 0,
+            goals_against: 0,
+            goal_difference: 0,
+          }))
+
+        return [group.group_letter, standings]
+      })
+    )
   }
 
   const gameGuessesMap = customToMap(userGameGuesses, (gameGuess) => gameGuess.game_id)
