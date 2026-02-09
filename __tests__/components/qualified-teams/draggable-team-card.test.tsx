@@ -185,7 +185,7 @@ describe('DraggableTeamCard', () => {
     );
 
     const card = container.firstChild;
-    expect(card).toHaveStyle({ opacity: '0.6' });
+    expect(card).toHaveStyle({ opacity: '1' });
   });
 
   describe('Results Overlay', () => {

@@ -239,10 +239,10 @@ export default function DraggableTeamCard({
     disabled,
   });
 
-  // Calculate opacity based on dragging and disabled states
+  // Calculate opacity based on dragging state only
+  // Don't reduce opacity for read-only/locked state (better contrast)
   const getOpacity = () => {
     if (isDragging) return 0.5;
-    if (disabled) return 0.6;
     return 1;
   };
 
@@ -283,7 +283,7 @@ export default function DraggableTeamCard({
           color: theme.palette.getContrastText(backgroundColor),
         }}
       >
-        <DragHandle disabled={disabled} attributes={attributes} listeners={listeners} />
+        {!disabled && <DragHandle disabled={disabled} attributes={attributes} listeners={listeners} />}
         <PositionBadge position={position} />
         <TeamInfo team={team} />
         {position === 3 && (
