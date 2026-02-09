@@ -164,6 +164,11 @@ function QualifiedTeamsUI({
     return completeGroups;
   }, [actualResults]);
 
+  // Check if all groups are complete
+  const allGroupsComplete = useMemo(() => {
+    return completeGroupIds.size === groups.length && groups.length > 0;
+  }, [completeGroupIds, groups.length]);
+
   // Show snackbar when save succeeds
   useEffect(() => {
     if (saveState === 'saved') {
@@ -331,6 +336,7 @@ function QualifiedTeamsUI({
           onToggleThirdPlace={handleToggleThirdPlace}
           scoringBreakdown={scoringBreakdown}
           completeGroupIds={completeGroupIds}
+          allGroupsComplete={allGroupsComplete}
         />
       </DndContext>
 

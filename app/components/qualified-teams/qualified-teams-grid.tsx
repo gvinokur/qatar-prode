@@ -26,6 +26,8 @@ export interface QualifiedTeamsGridProps {
   readonly scoringBreakdown?: QualifiedTeamsScoringResult | null;
   /** Set of group IDs that are complete (have results available) */
   readonly completeGroupIds: Set<string>;
+  /** Whether all groups in the tournament are complete */
+  readonly allGroupsComplete: boolean;
 }
 
 /**
@@ -45,6 +47,7 @@ export default function QualifiedTeamsGrid({
   onToggleThirdPlace,
   scoringBreakdown,
   completeGroupIds,
+  allGroupsComplete,
 }: QualifiedTeamsGridProps) {
   // Create lookup map: groupId -> team scoring results
   const groupResultsMap = useMemo(() => {
@@ -82,6 +85,7 @@ export default function QualifiedTeamsGrid({
                 }
                 groupResults={groupResults}
                 isGroupComplete={isGroupComplete}
+                allGroupsComplete={allGroupsComplete}
               />
             </Grid>
           );

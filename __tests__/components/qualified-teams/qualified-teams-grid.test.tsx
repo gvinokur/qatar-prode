@@ -75,6 +75,7 @@ describe('QualifiedTeamsGrid', () => {
         isLocked={false}
         allowsThirdPlace={false}
         completeGroupIds={new Set()}
+          allGroupsComplete={false}
       />
     );
 
@@ -99,6 +100,7 @@ describe('QualifiedTeamsGrid', () => {
         isLocked={false}
         allowsThirdPlace={false}
         completeGroupIds={new Set()}
+          allGroupsComplete={false}
       />
     );
 
@@ -114,6 +116,7 @@ describe('QualifiedTeamsGrid', () => {
         isLocked={false}
         allowsThirdPlace={false}
         completeGroupIds={new Set()}
+          allGroupsComplete={false}
       />
     );
 
@@ -136,6 +139,7 @@ describe('QualifiedTeamsGrid', () => {
         isLocked={true}
         allowsThirdPlace={false}
         completeGroupIds={new Set()}
+          allGroupsComplete={false}
       />
     );
 
@@ -166,6 +170,7 @@ describe('QualifiedTeamsGrid', () => {
         isLocked={false}
         allowsThirdPlace={true}
         completeGroupIds={new Set()}
+          allGroupsComplete={false}
       />
     );
 
@@ -192,6 +197,7 @@ describe('QualifiedTeamsGrid', () => {
         allowsThirdPlace={false}
         onPositionChange={onPositionChange}
         completeGroupIds={new Set()}
+          allGroupsComplete={false}
       />
     );
 
@@ -224,6 +230,7 @@ describe('QualifiedTeamsGrid', () => {
         allowsThirdPlace={true}
         onToggleThirdPlace={onToggleThirdPlace}
         completeGroupIds={new Set()}
+          allGroupsComplete={false}
       />
     );
 
@@ -248,6 +255,7 @@ describe('QualifiedTeamsGrid', () => {
         isLocked={false}
         allowsThirdPlace={false}
         completeGroupIds={new Set()}
+          allGroupsComplete={false}
       />
     );
 
@@ -273,6 +281,7 @@ describe('QualifiedTeamsGrid', () => {
         isLocked={false}
         allowsThirdPlace={false}
         completeGroupIds={new Set()}
+          allGroupsComplete={false}
       />
     );
 

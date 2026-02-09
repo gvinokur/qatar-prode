@@ -53,12 +53,8 @@ function getBackgroundColor(
       // Pending 3rd place: blue
       return theme.palette.info.light;
     }
-    if (result.pointsAwarded === 2) {
-      // Perfect match (2 pts): gold/yellow
-      return theme.palette.warning.main;
-    }
-    if (result.pointsAwarded === 1) {
-      // Partial match (1 pt): lighter green
+    if (result.pointsAwarded === 2 || result.pointsAwarded === 1) {
+      // Both exact and partial matches: green background (differentiate with icon colors)
       return theme.palette.success.light;
     }
     if (result.pointsAwarded === 0) {
@@ -181,15 +177,15 @@ function ResultsOverlay({
     chipLabel = 'Pendiente';
     iconColor = theme.palette.info.main;
   } else if (result.pointsAwarded === 2) {
-    // Perfect match (2 pts): gold check
+    // Perfect match (2 pts): gold check (like game cards with golden boost)
     icon = <CheckCircleIcon sx={{ fontSize: '1.25rem' }} />;
     chipLabel = '+2 pts';
-    iconColor = theme.palette.warning.dark;
+    iconColor = theme.palette.accent.gold.main;
   } else if (result.pointsAwarded === 1) {
-    // Partial match (1 pt): green check
+    // Partial match (1 pt): silver check (like game cards with silver boost)
     icon = <CheckCircleIcon sx={{ fontSize: '1.25rem' }} />;
     chipLabel = '+1 pt';
-    iconColor = theme.palette.success.main;
+    iconColor = theme.palette.accent.silver.main;
   } else {
     // Wrong prediction (0 pts): red X
     icon = <CancelIcon sx={{ fontSize: '1.25rem' }} />;
@@ -257,8 +253,11 @@ export default function DraggableTeamCard({
 
   const backgroundColor = getBackgroundColor(theme, position, predictedToQualify, result, isGroupComplete, isPending3rdPlace);
 
-  // Show results overlay only when group is complete AND result exists
-  const showResults = isGroupComplete && result;
+  // Show results overlay only when:
+  // 1. Group is complete
+  // 2. Result exists
+  // 3. User predicted this team to qualify (predictedToQualify = true)
+  const showResults = isGroupComplete && result && predictedToQualify;
 
   return (
     <Card

@@ -38,6 +38,8 @@ export interface GroupCardProps {
   readonly groupResults?: TeamScoringResult[];
   /** Whether this group is complete (results can be shown) */
   readonly isGroupComplete: boolean;
+  /** Whether all groups in the tournament are complete */
+  readonly allGroupsComplete: boolean;
 }
 
 /** Group header component */
@@ -81,6 +83,7 @@ export default function GroupCard({
   onToggleThirdPlace,
   groupResults = [],
   isGroupComplete,
+  allGroupsComplete,
 }: GroupCardProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -120,25 +123,28 @@ export default function GroupCard({
 
   /**
    * Determine if a team is in pending 3rd place state:
+   * - User predicted this team to qualify (in any position)
+   * - Team is currently 3rd in actual tournament standings (not user's prediction)
+   * - This group is complete
+   * - NOT all groups are complete (so best 3rds haven't been determined yet)
    * - Tournament allows 3rd place qualification
-   * - Team is in position 3
-   * - User predicted this team to qualify
-   * - Team has not actually qualified yet (actuallyQualified = false)
-   * - Group is complete
    */
   const isPending3rdPlace = (teamId: string): boolean => {
-    if (!allowsThirdPlace || !isGroupComplete) return false;
+    // Must allow 3rd place, group complete, but NOT all groups complete
+    if (!allowsThirdPlace || !isGroupComplete || allGroupsComplete) return false;
 
     const prediction = predictions.get(teamId);
-    if (!prediction || prediction.predicted_position !== 3 || !prediction.predicted_to_qualify) {
+    // User must have predicted this team to qualify (in any position)
+    if (!prediction || !prediction.predicted_to_qualify) {
       return false;
     }
 
     const result = resultsMap.get(teamId);
     if (!result) return false;
 
-    // Pending if user predicted qualification but team hasn't actually qualified
-    return result.predictedToQualify && !result.actuallyQualified;
+    // Team must be 3rd in ACTUAL standings (not predicted)
+    // and not yet qualified (because best 3rds haven't been determined)
+    return result.actualPosition === 3 && !result.actuallyQualified;
   };
 
   // Content to render (shared between accordion and card)
