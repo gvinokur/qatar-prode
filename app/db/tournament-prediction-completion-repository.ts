@@ -7,6 +7,10 @@ import { getTournamentStartDate } from '../actions/tournament-actions';
  * Get tournament prediction completion status for a user
  * Tracks completion across 3 categories: final standings, awards, and qualifiers
  *
+ * Uses new qualification prediction system (tournament_qualified_teams_predictions)
+ * to track group qualifier predictions. A group is complete when user has predicted
+ * at least 2 qualified teams (1st and 2nd place) for that group.
+ *
  * CRITICAL FIX: Uses proper JOIN through playoff_round_games -> tournament_playoff_rounds
  * to check is_first_stage = true (NOT game_type = 'first_round')
  */
@@ -55,26 +59,21 @@ export async function getTournamentPredictionCompletion(
   const totalGroups = Number(totalGroupsResult?.count ?? 0);
 
   // Count how many groups the user has completed
-  // A group is complete when ALL team predictions in that group have is_complete = true
+  // A group is complete when user has predicted qualified teams for that group
+  // Typically 2 qualifiers per group (1st and 2nd place)
   const completeGroupsResult = await db
     .selectFrom('tournament_groups')
     .select((eb) => eb.fn.countAll<number>().as('count'))
     .where('tournament_groups.tournament_id', '=', tournamentId)
     .where((eb) =>
-      eb.not(
-        eb.exists(
-          eb.selectFrom('tournament_group_team_stats_guess')
-            .whereRef('tournament_group_team_stats_guess.tournament_group_id', '=', 'tournament_groups.id')
-            .where('tournament_group_team_stats_guess.user_id', '=', userId)
-            .where('tournament_group_team_stats_guess.is_complete', '=', false)
-        )
-      )
-    )
-    .where((eb) =>
       eb.exists(
-        eb.selectFrom('tournament_group_team_stats_guess')
-          .whereRef('tournament_group_team_stats_guess.tournament_group_id', '=', 'tournament_groups.id')
-          .where('tournament_group_team_stats_guess.user_id', '=', userId)
+        eb.selectFrom('tournament_qualified_teams_predictions')
+          .innerJoin('tournament_group_teams', 'tournament_group_teams.team_id', 'tournament_qualified_teams_predictions.team_id')
+          .whereRef('tournament_group_teams.tournament_group_id', '=', 'tournament_groups.id')
+          .where('tournament_qualified_teams_predictions.user_id', '=', userId)
+          .where('tournament_qualified_teams_predictions.tournament_id', '=', tournamentId)
+          .where('tournament_qualified_teams_predictions.qualified', '=', true)
+          .having((eb) => eb.fn.countAll(), '>=', 2) // At least 2 qualifiers predicted
       )
     )
     .executeTakeFirst();

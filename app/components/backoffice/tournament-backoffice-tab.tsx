@@ -36,13 +36,6 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
     setLoading(false)
   }
 
-  const calculateGroupPositionForPlayers = async () => {
-    setLoading(true)
-    const result = await calculateAllUsersGroupPositions(tournament.id)
-    setActionResults(result)
-    setLoading(false)
-  }
-
   const calculateFirstPlayoffStageTeams = async () => {
     setLoading(true)
     const result = await recalculateAllPlayoffFirstRoundGameGuesses(tournament.id)
@@ -63,13 +56,6 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
     setActionResults({results: qualifiedTeamScores})
     setLoading(false)
   }
-
-  const calculateGroupPositionScores = async () => {
-    setLoading(true);
-    await calculateAndStoreGroupPositionScores(tournament.id);
-    setActionResults({ success: true });
-    setLoading(false);
-  };
 
   const calculateQualifiedTeamsPredictionScores = async () => {
     setLoading(true);
@@ -171,17 +157,6 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
             md: 3,
             lg: 2
           }}>
-          <Button loading={loading} variant={'contained'} size={'large'} fullWidth={true} sx={{height: '100%'}} onClick={calculateGroupPositionForPlayers}>
-            Calculate Group Positions for players
-          </Button>
-        </Grid>
-        <Grid
-          textAlign={'center'}
-          size={{
-            xs: 6,
-            md: 3,
-            lg: 2
-          }}>
           <Button loading={loading} variant={'contained'} size={'large'} fullWidth={true} sx={{height: '100%'}} onClick={calculateFirstPlayoffStageTeams}>
             Calculate First Playoff Stage teams
           </Button>
@@ -215,17 +190,6 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
             md: 3,
             lg: 2
           }}>
-          <Button loading={loading} variant={'contained'} size={'large'} fullWidth={true} sx={{height: '100%'}} onClick={calculateGroupPositionScores}>
-            Calculate Group Position Scores
-          </Button>
-        </Grid>
-        <Grid
-          textAlign={'center'}
-          size={{
-            xs: 6,
-            md: 3,
-            lg: 2
-          }}>
           <Button loading={loading} variant={'contained'} size={'large'} fullWidth={true} sx={{height: '100%'}} onClick={calculateQualifiedTeamsPredictionScores}>
             Calculate Qualified Teams Predictions Scores
           </Button>
@@ -237,6 +201,7 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
             md: 3,
             lg: 2
           }}>
+
           <Button
             loading={loading}
             variant={'outlined'}

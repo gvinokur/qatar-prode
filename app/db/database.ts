@@ -9,7 +9,7 @@ import {
   QualifiedTeamPredictionTable,
   TeamTable,
   TournamentGroupGameTable,
-  TournamentGroupTable, TournamentGroupTeamStatsGuessTable,
+  TournamentGroupTable,
   TournamentGroupTeamTable, TournamentGuessTable,
   TournamentTable,
   TournamentTeamTable, TournamentVenueTable,
@@ -34,7 +34,6 @@ export interface Database {
   tournament_groups: TournamentGroupTable
   tournament_group_games: TournamentGroupGameTable
   tournament_group_teams: TournamentGroupTeamTable
-  tournament_group_team_stats_guess: TournamentGroupTeamStatsGuessTable
 
   tournament_playoff_rounds: PlayoffRoundTable
   tournament_playoff_round_games: PlayoffRoundGameTable

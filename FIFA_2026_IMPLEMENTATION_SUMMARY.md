@@ -36,7 +36,7 @@ This document summarizes the implementation of new features to support the 2026 
 **Schema Updates:**
 - Added `conduct_score` (INTEGER, default 0) to:
   - `tournament_group_teams` (actual scores)
-  - `tournament_group_team_stats_guess` (predicted scores)
+  - `tournament_group_team_stats_guess` (predicted scores) *(deprecated in Feb 2026, replaced by `tournament_qualified_teams_predictions`)*
 
 **Migrations:**
 - `migrations/20260113000000_add_third_place_rules_table.sql`

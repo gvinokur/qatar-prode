@@ -1,20 +1,17 @@
 'use server'
 
 import {getLoggedInUser} from "./user-actions";
-import {GameGuessNew, TournamentGroupTeamStatsGuessNew, TournamentGuessNew, UserUpdate} from "../db/tables-definition";
-import { updateGameGuessByGameId, updateOrCreateGuess} from "../db/game-guess-repository";
+import {GameGuessNew, TournamentGuessNew, UserUpdate} from "../db/tables-definition";
+import { updateGameGuessByGameId, updateOrCreateGuess, findGameGuessesByUserId} from "../db/game-guess-repository";
 import {updateOrCreateTournamentGuess as dbUpdateOrCreateTournamentGuess} from "../db/tournament-guess-repository";
-import {
-  findAllTournamentGroupTeamGuessInGroup,
-  upsertTournamentGroupTeamGuesses
-} from "../db/tournament-group-team-guess-repository";
-import {findGroupsInTournament} from "../db/tournament-group-repository";
+import {findGroupsInTournament, findTournamentgroupById} from "../db/tournament-group-repository";
 import {calculatePlayoffTeamsFromPositions} from "../utils/playoff-teams-calculator";
 import {ExtendedPlayoffRoundData} from "../definitions";
 import {findPlayoffStagesWithGamesInTournament} from "../db/tournament-playoff-repository";
-import {findGamesInTournament} from "../db/game-repository";
+import {findGamesInTournament, findGamesInGroup} from "../db/game-repository";
 import {toMap} from "../utils/ObjectUtils";
 import {db} from "../db/database";
+import {calculateGroupPosition} from "../utils/group-position-calculator";
 
 export async function updateOrCreateGameGuesses(gameGuesses: GameGuessNew[]) {
   try {
@@ -45,10 +42,6 @@ export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew) {
   }
 }
 
-export async function updateOrCreateTournamentGroupTeamGuesses(groupTeamGuesses: TournamentGroupTeamStatsGuessNew[]) {
-  return upsertTournamentGroupTeamGuesses(groupTeamGuesses)
-}
-
 export async function updatePlayoffGameGuesses(tournamentId: string, user?: UserUpdate) {
   const userId = (user || (await getLoggedInUser()))?.id
   const playoffStages:ExtendedPlayoffRoundData[] = await findPlayoffStagesWithGamesInTournament(tournamentId)
@@ -59,12 +52,37 @@ export async function updatePlayoffGameGuesses(tournamentId: string, user?: User
   }
   const gamesMap = toMap(games)
 
+  // Calculate group positions from game guesses for each group
+  const userGameGuesses = await findGameGuessesByUserId(userId, tournamentId)
+  const gameGuessesMap = userGameGuesses.reduce((map, guess) => {
+    map[guess.game_id] = guess
+    return map
+  }, {} as Record<string, any>)
+
   const guessedPositionsByGroup = Object.fromEntries(
     await Promise.all(
-      groups.map(async (group) => [
-        group.group_letter,
-        await findAllTournamentGroupTeamGuessInGroup(userId, group.id)
-      ])
+      groups.map(async (group) => {
+        const groupGames = await findGamesInGroup(group.id)
+        const groupData = await findTournamentgroupById(group.id)
+
+        // Calculate standings from game guesses
+        const teamIds = groupGames.reduce((ids, game) => {
+          if (game.home_team && !ids.includes(game.home_team)) ids.push(game.home_team)
+          if (game.away_team && !ids.includes(game.away_team)) ids.push(game.away_team)
+          return ids
+        }, [] as string[])
+
+        const standings = calculateGroupPosition(
+          teamIds,
+          groupGames.map(game => ({
+            ...game,
+            resultOrGuess: gameGuessesMap[game.id]
+          })),
+          groupData?.sort_by_games_between_teams
+        )
+
+        return [group.group_letter, standings]
+      })
     ))
 
   const playoffTeamsByGuess = await calculatePlayoffTeamsFromPositions(

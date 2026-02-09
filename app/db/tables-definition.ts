@@ -141,16 +141,6 @@ export type TournamentGroupTeam = Selectable<TournamentGroupTeamTable>
 export type TournamentGroupTeamNew = Insertable<TournamentGroupTeamTable>
 export type TournamentGroupTeamUpdate = Updateable<TournamentGroupTeamTable>
 
-export interface TournamentGroupTeamStatsGuessTable extends TeamStats, Identifiable {
-  tournament_group_id: string
-  user_id: string
-  position: number
-}
-
-export type TournamentGroupTeamStatsGuess = Selectable<TournamentGroupTeamStatsGuessTable>
-export type TournamentGroupTeamStatsGuessNew = Insertable<TournamentGroupTeamStatsGuessTable>
-export type TournamentGroupTeamStatsGuessUpdate = Updateable<TournamentGroupTeamStatsGuessTable>
-
 export interface PlayoffRoundTable extends Identifiable {
   tournament_id: string
   round_name: string

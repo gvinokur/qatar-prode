@@ -44,7 +44,7 @@ Creates `tournament_third_place_rules` table to store the 495 combinations.
 #### Migration 2: Conduct Score Fields
 Adds `conduct_score` column to:
 - `tournament_group_teams`
-- `tournament_group_team_stats_guess`
+- `tournament_group_team_stats_guess` *(deprecated in Feb 2026)*
 
 #### Run Migrations
 
@@ -123,7 +123,7 @@ SELECT COUNT(*) FROM tournament_third_place_rules;
 
 -- Verify conduct_score columns exist
 SELECT conduct_score FROM tournament_group_teams LIMIT 1;
-SELECT conduct_score FROM tournament_group_team_stats_guess LIMIT 1;
+-- Note: tournament_group_team_stats_guess table was deprecated in Feb 2026
 
 -- Verify a sample third-place rule
 SELECT * FROM tournament_third_place_rules

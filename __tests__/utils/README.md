@@ -291,12 +291,7 @@ function createMockGuessesContext(
 
 interface GuessesContextValue {
   gameGuesses: GameGuessMap;
-  guessedPositions: TournamentGroupTeamStatsGuessNew[];
   updateGameGuess: (gameId: string, gameGuess: GameGuessNew) => Promise<void>;
-  pendingSaves: Set<string>;
-  saveErrors: Record<string, string>;
-  clearSaveError: (gameId: string) => void;
-  flushPendingSave: (gameId: string) => Promise<void>;
 }
 ```
 

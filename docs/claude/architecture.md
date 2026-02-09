@@ -230,8 +230,8 @@ Use Server Components by default. Add `'use client'` only when needed for:
 **Predictions**:
 - `game_guesses` (individual game predictions)
 - `game_results` (actual outcomes)
-- `tournament_guesses` (tournament-level predictions: awards, qualifiers)
-- `tournament_group_team_stats_guess` (group position predictions)
+- `tournament_guesses` (tournament-level predictions: awards, final positions, maintains historical `group_position_score`)
+- `tournament_qualified_teams_predictions` (team qualification predictions)
 
 **Social features**:
 - `prode_groups` + `prode_group_participants`

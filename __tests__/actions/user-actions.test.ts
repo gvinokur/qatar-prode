@@ -17,7 +17,6 @@ import * as email from '../../app/utils/email';
 import * as prodeGroupRepository from '../../app/db/prode-group-repository';
 import * as tournamentGuessRepository from '../../app/db/tournament-guess-repository';
 import * as gameGuessRepository from '../../app/db/game-guess-repository';
-import * as tournamentGroupTeamGuessRepository from '../../app/db/tournament-group-team-guess-repository';
 import { auth } from '../../auth';
 
 // Mock the crypto module
@@ -59,10 +58,6 @@ vi.mock('../../app/db/tournament-guess-repository', () => ({
 
 vi.mock('../../app/db/game-guess-repository', () => ({
   deleteAllUserGameGuesses: vi.fn(),
-}));
-
-vi.mock('../../app/db/tournament-group-team-guess-repository', () => ({
-  deleteAllUserTournamentStatsGuesses: vi.fn(),
 }));
 
 // Mock email utilities
@@ -436,7 +431,6 @@ describe('User Actions', () => {
       vi.mocked(prodeGroupRepository.deleteParticipantFromAllGroups).mockResolvedValue([]);
       vi.mocked(tournamentGuessRepository.deleteAllUserTournamentGuesses).mockResolvedValue([]);
       vi.mocked(gameGuessRepository.deleteAllUserGameGuesses).mockResolvedValue([]);
-      vi.mocked(tournamentGroupTeamGuessRepository.deleteAllUserTournamentStatsGuesses).mockResolvedValue([]);
       vi.mocked(usersRepository.deleteUser).mockResolvedValue(mockUser as any);
 
       const result = await deleteAccount();
@@ -447,7 +441,6 @@ describe('User Actions', () => {
       expect(prodeGroupRepository.deleteParticipantFromAllGroups).toHaveBeenCalledWith(mockUser.id);
       expect(tournamentGuessRepository.deleteAllUserTournamentGuesses).toHaveBeenCalledWith(mockUser.id);
       expect(gameGuessRepository.deleteAllUserGameGuesses).toHaveBeenCalledWith(mockUser.id);
-      expect(tournamentGroupTeamGuessRepository.deleteAllUserTournamentStatsGuesses).toHaveBeenCalledWith(mockUser.id);
       expect(usersRepository.deleteUser).toHaveBeenCalledWith(mockUser.id);
       expect(result).toEqual({ success: true });
     });
@@ -490,7 +483,6 @@ describe('User Actions', () => {
       vi.mocked(prodeGroupRepository.deleteParticipantFromAllGroups).mockResolvedValue([]);
       vi.mocked(tournamentGuessRepository.deleteAllUserTournamentGuesses).mockResolvedValue([]);
       vi.mocked(gameGuessRepository.deleteAllUserGameGuesses).mockResolvedValue([]);
-      vi.mocked(tournamentGroupTeamGuessRepository.deleteAllUserTournamentStatsGuesses).mockResolvedValue([]);
       vi.mocked(usersRepository.deleteUser).mockResolvedValue(mockUser as any);
 
       const result = await deleteAccount();

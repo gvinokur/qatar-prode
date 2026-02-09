@@ -2,7 +2,6 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import * as userActions from '../../app/actions/user-actions';
 import * as gameGuessRepository from '../../app/db/game-guess-repository';
 import * as tournamentGuessRepository from '../../app/db/tournament-guess-repository';
-import * as tournamentGroupTeamGuessRepository from '../../app/db/tournament-group-team-guess-repository';
 import * as tournamentGroupRepository from '../../app/db/tournament-group-repository';
 import * as playoffTeamsCalculator from '../../app/utils/playoff-teams-calculator';
 import * as tournamentPlayoffRepository from '../../app/db/tournament-playoff-repository';
@@ -10,10 +9,9 @@ import * as gameRepository from '../../app/db/game-repository';
 import {
   updateOrCreateGameGuesses,
   updateOrCreateTournamentGuess,
-  updateOrCreateTournamentGroupTeamGuesses,
   updatePlayoffGameGuesses,
 } from '../../app/actions/guesses-actions';
-import { GameGuessNew, TournamentGuessNew, TournamentGroupTeamStatsGuessNew, UserUpdate, GameGuess, TournamentGuess, TournamentGroupTeamStatsGuess } from '../../app/db/tables-definition';
+import { GameGuessNew, TournamentGuessNew, UserUpdate, GameGuess, TournamentGuess } from '../../app/db/tables-definition';
 import { ExtendedGameData, ExtendedPlayoffRoundData } from '../../app/definitions';
 
 // Mock the auth module to prevent Next-auth module resolution errors
@@ -50,7 +48,6 @@ vi.mock('../../app/db/database', () => ({
 vi.mock('../../app/actions/user-actions');
 vi.mock('../../app/db/game-guess-repository');
 vi.mock('../../app/db/tournament-guess-repository');
-vi.mock('../../app/db/tournament-group-team-guess-repository');
 vi.mock('../../app/db/tournament-group-repository');
 vi.mock('../../app/utils/playoff-teams-calculator');
 vi.mock('../../app/db/tournament-playoff-repository');
@@ -60,8 +57,6 @@ const mockGetLoggedInUser = vi.mocked(userActions.getLoggedInUser);
 const mockUpdateGameGuessByGameId = vi.mocked(gameGuessRepository.updateGameGuessByGameId);
 const mockUpdateOrCreateGuess = vi.mocked(gameGuessRepository.updateOrCreateGuess);
 const mockDbUpdateOrCreateTournamentGuess = vi.mocked(tournamentGuessRepository.updateOrCreateTournamentGuess);
-const mockUpsertTournamentGroupTeamGuesses = vi.mocked(tournamentGroupTeamGuessRepository.upsertTournamentGroupTeamGuesses);
-const mockFindAllTournamentGroupTeamGuessInGroup = vi.mocked(tournamentGroupTeamGuessRepository.findAllTournamentGroupTeamGuessInGroup);
 const mockFindGroupsInTournament = vi.mocked(tournamentGroupRepository.findGroupsInTournament);
 const mockCalculatePlayoffTeamsFromPositions = vi.mocked(playoffTeamsCalculator.calculatePlayoffTeamsFromPositions);
 const mockFindPlayoffStagesWithGamesInTournament = vi.mocked(tournamentPlayoffRepository.findPlayoffStagesWithGamesInTournament);
@@ -127,48 +122,11 @@ describe('Guesses Actions', () => {
     group_position_score: undefined
   };
 
-  const mockGroupTeamGuess: TournamentGroupTeamStatsGuessNew = {
-    tournament_group_id: 'group1',
-    user_id: 'user1',
-    team_id: 'team1',
-    position: 1,
-    games_played: 3,
-    points: 9,
-    win: 3,
-    draw: 0,
-    loss: 0,
-    goals_for: 6,
-    goals_against: 1,
-    goal_difference: 5,
-    conduct_score: 0,
-    is_complete: true
-  };
-
-  const mockGroupTeamGuessResult: TournamentGroupTeamStatsGuess = {
-    id: 'group-guess1',
-    tournament_group_id: 'group1',
-    user_id: 'user1',
-    team_id: 'team1',
-    position: 1,
-    games_played: 3,
-    points: 9,
-    win: 3,
-    draw: 0,
-    loss: 0,
-    goals_for: 6,
-    goals_against: 1,
-    goal_difference: 5,
-    conduct_score: 0,
-    is_complete: true
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetLoggedInUser.mockResolvedValue(mockUser);
     mockUpdateOrCreateGuess.mockResolvedValue(mockGameGuessResult);
     mockDbUpdateOrCreateTournamentGuess.mockResolvedValue(mockTournamentGuessResult);
-    mockUpsertTournamentGroupTeamGuesses.mockResolvedValue([mockGroupTeamGuessResult]);
-    mockFindAllTournamentGroupTeamGuessInGroup.mockResolvedValue([]);
     mockFindGroupsInTournament.mockResolvedValue([]);
     mockFindPlayoffStagesWithGamesInTournament.mockResolvedValue([]);
     mockFindGamesInTournament.mockResolvedValue([]);
@@ -228,26 +186,8 @@ describe('Guesses Actions', () => {
       mockDbUpdateOrCreateTournamentGuess.mockRejectedValue(new Error('Database error'));
 
       const result = await updateOrCreateTournamentGuess(mockTournamentGuess);
-      
+
       expect(result).toEqual({ success: false, error: 'Failed to update tournament guess' });
-    });
-  });
-
-  describe('updateOrCreateTournamentGroupTeamGuesses', () => {
-    it('creates or updates tournament group team guesses', async () => {
-      const groupTeamGuesses = [mockGroupTeamGuess];
-      const result = await updateOrCreateTournamentGroupTeamGuesses(groupTeamGuesses);
-
-      expect(mockUpsertTournamentGroupTeamGuesses).toHaveBeenCalledWith(groupTeamGuesses);
-      expect(result).toEqual([mockGroupTeamGuessResult]);
-    });
-
-    it('handles repository errors', async () => {
-      mockUpsertTournamentGroupTeamGuesses.mockRejectedValue(new Error('Database error'));
-      const groupTeamGuesses = [mockGroupTeamGuess];
-
-      await expect(updateOrCreateTournamentGroupTeamGuesses(groupTeamGuesses))
-        .rejects.toThrow('Database error');
     });
   });
 
