@@ -18,16 +18,22 @@
 
 ## Acceptance Criteria
 
-- [ ] Users can view their qualified teams predictions alongside actual results
+- [ ] Users can view their qualified teams predictions alongside actual results **inline on prediction page**
 - [ ] Visual indicators clearly distinguish between:
-  - ✓ Correct team + exact position (full points)
-  - ~ Correct team + wrong position (partial points)
-  - ✗ Wrong team (no points)
-- [ ] Points earned per prediction/group are displayed clearly
+  - ⭐ Correct team + exact position (full points) - **Gold/yellow color** (User Feedback #1)
+  - ✓ Correct team + wrong position (partial points) - **Lighter green color** (User Feedback #1)
+  - ✗ Wrong team (no points) - Red color
+  - ⏳ Pending 3rd place qualification - **Blue hourglass** (User Feedback #4)
+- [ ] Points displayed in **Chip component** like game cards (User Feedback #2)
+- [ ] Results show **progressively as groups complete** (User Feedback #3)
+- [ ] Pending 3rd place state works correctly (User Feedback #4):
+  - [ ] When group complete but best 3rds not determined
+  - [ ] Shows hourglass icon and "Pendiente" chip
+  - [ ] Updates when best 3rds finalized
+- [ ] Group total points displayed in header
 - [ ] Display is responsive and works on mobile/tablet devices
-- [ ] All text is internationalized (Spanish + English)
-- [ ] Feature only shows when tournament results are finalized
-- [ ] Tests achieve ≥80% coverage on new code
+- [ ] All text in **Spanish only** (no i18n yet) (User Feedback #5)
+- [ ] Tests achieve ≥80% coverage on modified code
 - [ ] 0 new SonarCloud issues
 
 ## Visual Prototypes
@@ -91,25 +97,47 @@ GRUPO A                                    Total: 4 pts ✓
 └────────────────────────────────────────────────────────┘
 ```
 
-**When Prediction is Wrong:**
+**When Prediction is Partial/Wrong:**
 ```
-GRUPO B                                    Total: 1 pt ~
+GRUPO B                                    Total: 2 pts
 ┌────────────────────────────────────────────────────────┐
 │ [≡] (1st) España                                       │
-│     Actual: 2nd ~  +1 pt                              │  ← Orange/warning background
+│     Actual: 2nd ✓  [+1 pt]                            │  ← Lighter green, chip for points
 │     (Predicted 1st, finished 2nd)                      │
 │                                                        │
 ├────────────────────────────────────────────────────────┤
 │ [≡] (2nd) Alemania                                     │
-│     Actual: 1st ~  +1 pt                              │  ← Orange/warning background
+│     Actual: 1st ✓  [+1 pt]                            │  ← Lighter green, chip for points
 │     (Predicted 2nd, finished 1st)                      │
 │                                                        │
 ├────────────────────────────────────────────────────────┤
 │ [≡] (3rd) Italia                       [✓] Clasifica   │
-│     Actual: Did not qualify ✗  +0 pts                 │  ← Red/error background
+│     Actual: Did not qualify ✗  [+0 pts]               │  ← Red/error, chip shows 0 pts
 │     (Predicted to qualify, did not)                    │
 └────────────────────────────────────────────────────────┘
 ```
+
+**Pending 3rd Place Qualification (Point #4):**
+```
+GRUPO C (Group Complete, 3rd place pending)     Total: 4 pts + ? pending
+┌────────────────────────────────────────────────────────┐
+│ [≡] (1st) Brasil                                       │
+│     Actual: 1st ⭐  [+2 pts]                           │  ← Gold/yellow for perfect
+│                                                        │
+├────────────────────────────────────────────────────────┤
+│ [≡] (2nd) Uruguay                                      │
+│     Actual: 2nd ⭐  [+2 pts]                           │  ← Gold/yellow for perfect
+│                                                        │
+├────────────────────────────────────────────────────────┤
+│ [≡] (3rd) Colombia                     [✓] Clasifica   │
+│     Actual: 3rd ⏳  [Pending]                          │  ← Blue hourglass icon
+│     (Could still qualify as best 3rd place)            │  ← Info text
+└────────────────────────────────────────────────────────┘
+```
+
+**User Feedback #2:** Points shown in Chip component (like game cards), not plain text
+**User Feedback #3:** Show results as soon as groups complete (progressive display)
+**User Feedback #4:** Pending state for 3rd place teams when group complete but not all groups finished
 
 **Visual Elements:**
 - **Results overlay** - Added below team name in each card
@@ -151,13 +179,20 @@ Based on existing patterns:
 
 ### Icons/Visual Indicators
 
-**Decision:** Using Material-UI Icons for consistency with game prediction displays:
-- `CheckCircleIcon` - Correct (green) - Full points for qualification + exact position
-- `WarningAmberIcon` - Partial (orange) - Qualified but wrong position
-- `CancelIcon` - Wrong (red) - Did not qualify or no prediction made
+**Decision:** Using Material-UI Icons with enhanced color scheme:
+- `CheckCircleIcon` with **gold/yellow tint** - Perfect prediction (qualification + exact position) - 2 pts
+- `CheckCircleIcon` with **success.light (lighter green)** - Correct team, wrong position - 1 pt
+- `HourglassEmptyIcon` with **info.main (blue)** - Pending 3rd place qualification (see point #4)
+- `CancelIcon` with **error.main (red)** - Did not qualify or wrong prediction - 0 pts
 
-**Icon Size:** `fontSize="small"` for inline display with text
-**Color Application:** Applied via `sx={{ color: 'success.main' }}` pattern
+**Rationale (based on user feedback #1):**
+- "Correct team in wrong position should not be warning, but a lighter green"
+- "Make the exact even better than green (maybe the golden one)"
+- Gold/yellow for perfect match makes it feel more rewarding
+- Lighter green for partial correct feels more positive than orange warning
+
+**Icon Size:** `fontSize="small"` for inline display
+**Color Application:** Applied via `sx={{ color: 'palette.color' }}` pattern
 
 ## Technical Approach
 
@@ -235,20 +270,39 @@ const scoringResult = actualQualifiedTeams.length > 0
 
 #### Phase 2: Update DraggableTeamCard Component
 1. Modify `app/components/qualified-teams/draggable-team-card.tsx`:
-   - Add prop: `result?: TeamScoringResult | null`
-   - Add results overlay section (conditional - only when `result` exists)
-   - Show: Visual indicator icon, actual position text, points earned
-   - Show: Brief status text (e.g., "Predicted 1st, finished 2nd")
+   - Add props: `result?: TeamScoringResult | null`, `isGroupComplete: boolean`, `isPending3rdPlace: boolean`
+   - Add results overlay section (conditional - only when `result` exists AND `isGroupComplete === true`)
+   - Show: Visual indicator icon (gold star for perfect, green check for partial, red X for wrong, blue hourglass for pending)
+   - Show: **Chip component** for points ("+2 pts", "+1 pt", "+0 pts", "Pendiente")
+   - Show: Actual position text ("Actual: 1ro", "Actual: 2do")
+   - Show: Brief status text when position wrong or pending
    - Keep existing drag-and-drop, position badge, checkbox functionality
-   - Enhance background color based on result accuracy (green✓/orange~/red✗)
+   - Enhance background color:
+     - Perfect (2 pts): Gold/yellow tint
+     - Partial (1 pt): success.light (lighter green)
+     - Wrong (0 pts): error.light
+     - Pending: info.light (blue)
+   - Handle pending 3rd place state:
+     - Show hourglass icon + "Pendiente" chip
+     - Show explanation text: "Podría clasificar como mejor tercero"
 
 #### Phase 3: Update GroupCard Component
 1. Modify `app/components/qualified-teams/group-card.tsx`:
-   - Add prop: `scoringForGroup?: { teams: TeamScoringResult[], totalPoints: number } | null`
-   - Extract scoring data for current group from breakdown
+   - Add props:
+     - `scoringForGroup?: { teams: TeamScoringResult[], totalPoints: number, pendingPoints?: number } | null`
+     - `isGroupComplete: boolean`
+     - `hasPending3rdPlace: boolean`
    - Update header to show group total points when results available
-   - Pass `result` prop to each `DraggableTeamCard` (match by team ID)
-   - Handle case where some teams have results, some don't (progressive results)
+     - Format: "Total: 4 pts" (when all finalized)
+     - Format: "Total: 4 pts + ? pendiente" (when 3rd place pending)
+   - Pass props to each `DraggableTeamCard`:
+     - `result` (match by team ID)
+     - `isGroupComplete`
+     - `isPending3rdPlace` (true if team is 3rd AND could still qualify)
+   - Calculate pending state:
+     - Check if team is in 3rd position
+     - Check if user predicted to qualify
+     - Check if best 3rd places not yet determined (not all groups complete)
 
 #### Phase 4: Update QualifiedTeamsClientPage Component
 1. Modify `app/components/qualified-teams/qualified-teams-client-page.tsx`:
@@ -257,63 +311,101 @@ const scoringResult = actualQualifiedTeams.length > 0
    - Pass scoring data to each `GroupCard`
    - No state management changes needed (results are read-only)
 
-#### Phase 5: Internationalization
-1. Add i18n keys to `locales/es.json` and `locales/en.json`:
-   - "qualifiedTeams.results.actual" / "Actual"
-   - "qualifiedTeams.results.predicted" / "Predicted"
-   - "qualifiedTeams.results.finished" / "finished"
-   - "qualifiedTeams.results.groupTotal" / "Total"
-   - "qualifiedTeams.results.didNotQualify" / "Did not qualify"
-   - "qualifiedTeams.results.notPredicted" / "Not predicted to qualify"
-   - "qualifiedTeams.results.statusCorrect" / "Correct"
-   - "qualifiedTeams.results.statusPartial" / "Qualified, wrong position"
-   - "qualifiedTeams.results.statusIncorrect" / "Did not qualify"
-   - "qualifiedTeams.results.points" / "pt" | "pts" (singular/plural)
-   - "qualifiedTeams.results.position1st" / "1st"
-   - "qualifiedTeams.results.position2nd" / "2nd"
-   - "qualifiedTeams.results.position3rd" / "3rd"
-2. Use `useTranslations()` hook in modified components
-3. Handle pluralization for points display
+#### Phase 5: Spanish Localization (No i18n Yet)
 
-#### Phase 6: Conditional Display Logic
+**User Feedback #5:** "We only have Latam spanish as language, no i18n yet"
+
+**Decision:** Hardcode Spanish strings directly in components (no i18n library needed for this story).
+
+**Strings needed (Spanish only):**
+- "Actual:" - Actual result label
+- "Total:" - Group total label
+- "No clasificó" - Did not qualify
+- "Predicción correcta" - Correct prediction (tooltip/aria-label)
+- "Equipo correcto, posición incorrecta" - Right team, wrong position
+- "Equipo incorrecto" - Wrong team
+- "Pendiente de clasificación" - Pending qualification (3rd place)
+- "Podría clasificar como mejor tercero" - Could qualify as best 3rd place
+- "pt" / "pts" - Point/points (singular/plural)
+- "1ro", "2do", "3ro" - Position labels (1st, 2nd, 3rd)
+
+**Implementation:**
+- No `useTranslations()` hook needed
+- No `locales/es.json` or `locales/en.json` updates
+- Hardcode Spanish strings directly in JSX
+- If i18n is added later, these can be extracted to translation files
+
+**Note:** This simplifies implementation significantly - no translation key management needed.
+
+#### Phase 6: Conditional Display Logic (Progressive Results)
+
+**User Feedback #3:** "Start showing results as soon as something is calculated, which is when groups start to finish"
+
 1. **Show results overlay when:**
-   - User has made predictions (always true on this page)
-   - At least one team has `actualPosition !== null` (results are available)
+   - Group is complete (`group_complete === true` from standings)
+   - Team has `actualPosition !== null` OR team did not qualify
    - Component receives `result` prop from parent
 
-2. **Conditional rendering scenarios:**
-   - **No results yet:** Don't show overlay, card displays normally (current behavior)
-   - **Results available:** Show overlay with actual position, icon, points
-   - **Progressive results:** Some groups complete, others pending
-     - Completed groups: Show full results overlay
-     - Pending groups: No overlay (normal display)
-   - **Team not predicted to qualify (`!predictedToQualify`):**
-     - If actually qualified: Show "Did not predict, team qualified" message (no points)
-     - If did not qualify: No results overlay needed
+2. **Progressive display scenarios:**
 
-3. **Background color enhancement:**
-   - Keep existing green/yellow/gray base colors
-   - When results available, enhance with result accuracy:
-     - Correct (✓): Brighter green or success.light tint
-     - Partial (~): Warning orange tint
-     - Incorrect (✗): Error red tint
+   **A. Group NOT complete:**
+   - No results overlay
+   - Card displays normally (current prediction UI)
 
-4. **Accessibility:**
-   - Visual indicators must have text alternatives (aria-label)
-   - Results overlay has semantic HTML (not just styled divs)
-   - Screen reader announces results when present
+   **B. Group complete, all positions finalized:**
+   - Show full results overlay for all teams
+   - 1st/2nd: Gold/green icons with points chip
+   - 3rd: Shows qualified or not qualified status
+
+   **C. Group complete, 3rd place PENDING (User Feedback #4):**
+   - **Tournament allows 3rd place qualification:** `allowsThirdPlace === true`
+   - **Group is complete:** Top 2 teams finalized
+   - **Best 3rd places not yet determined:** Not all groups finished
+   - **Team is in 3rd position:** `actualPosition === 3`
+   - **User predicted this team to qualify:** `predictedToQualify === true`
+
+   **In this case:**
+   - Show **pending icon** (⏳ HourglassEmptyIcon, blue/info color)
+   - Show **"Pendiente" chip** instead of points chip
+   - Show explanation: "Podría clasificar como mejor tercero"
+   - Background: Info color tint (light blue)
+
+   **When best 3rd places are finalized:**
+   - Pending icon changes to ✓ (qualified) or ✗ (not qualified)
+   - "Pendiente" chip changes to "+2 pts" or "+0 pts"
+
+3. **Points display (User Feedback #2):**
+   - Use MUI `Chip` component (like game cards)
+   - Format: "+2 pts", "+1 pt", "+0 pts", "Pendiente"
+   - Size: `size="small"`
+   - Colors:
+     - Gold/yellow background for +2 pts (perfect match)
+     - Success.light background for +1 pt (partial)
+     - Error.light background for +0 pts (incorrect)
+     - Info.light background for "Pendiente" (pending)
+
+4. **Background color enhancement:**
+   - Perfect match (2 pts): Gold/yellow tint
+   - Partial match (1 pt): success.light (lighter green)
+   - Wrong (0 pts): error.light (light red)
+   - Pending: info.light (light blue)
+
+5. **Accessibility:**
+   - Icons have aria-labels: "Predicción correcta", "Equipo correcto", "Predicción incorrecta", "Pendiente de clasificación"
+   - Chip component is semantic (announces points to screen readers)
+   - Results overlay uses semantic HTML
 
 ### 4. Files to Create/Modify
 
 **No New Files** - Enhancing existing components only ✅
 
 **Modified Files:**
-- `app/tournaments/[id]/qualified-teams/page.tsx` - Fetch actual results and scoring data
-- `app/components/qualified-teams/qualified-teams-client-page.tsx` - Accept and pass down results
-- `app/components/qualified-teams/group-card.tsx` - Show group total points in header
-- `app/components/qualified-teams/draggable-team-card.tsx` - Show inline results overlay
-- `locales/es.json` - Add Spanish translations (~13 keys)
-- `locales/en.json` - Add English translations (~13 keys)
+- `app/tournaments/[id]/qualified-teams/page.tsx` - Fetch actual results, scoring data, and group completion status
+- `app/components/qualified-teams/qualified-teams-client-page.tsx` - Accept and pass down results with group states
+- `app/components/qualified-teams/group-card.tsx` - Show group total points in header, handle pending state
+- `app/components/qualified-teams/draggable-team-card.tsx` - Show inline results overlay with Chip, icons, pending state
+- ~~`locales/es.json`~~ - **Not needed** (no i18n yet, hardcode Spanish strings)
+- ~~`locales/en.json`~~ - **Not needed** (no i18n yet)
 
 **Test Files to Update:**
 - `__tests__/components/qualified-teams/draggable-team-card.test.tsx` - Add result overlay tests
@@ -414,26 +506,50 @@ interface QualifiedTeamResultRowProps {
 1. **`draggable-team-card.test.tsx` (update existing):**
    - Existing tests: Drag-and-drop, position badge, checkbox
    - **NEW: Results overlay tests:**
-     - Shows results overlay when `result` prop provided
-     - Shows correct visual indicator (✓ CheckCircleIcon, ~ WarningAmberIcon, ✗ CancelIcon)
-     - Displays points earned with correct pluralization (1 pt vs 2 pts)
-     - Shows actual position text with i18n ("Actual: 1st", "Actual: 2nd")
-     - Shows status message when prediction wrong ("Predicted 1st, finished 2nd")
-     - Hides overlay when `result` prop is null/undefined
-     - **Edge cases:**
-       - `predictedToQualify === false` → Shows "Did not predict" when team qualified
-       - `actuallyQualified === false` → Shows "Did not qualify" with red icon
-       - `actualPosition === predictedPosition` → Shows green check with "+2 pts"
-       - `actualPosition !== predictedPosition` but qualified → Shows orange warning with "+1 pt"
-     - **Accessibility:** Icons have aria-labels, results overlay has semantic HTML
+     - Shows results overlay when `result` prop provided AND `isGroupComplete === true`
+     - Hides overlay when `isGroupComplete === false` (progressive display)
+     - **Visual indicators:**
+       - Perfect match (2 pts): Gold/yellow star icon (⭐ CheckCircleIcon with gold color)
+       - Partial match (1 pt): Green check icon (✓ CheckCircleIcon with success.light)
+       - Wrong (0 pts): Red X icon (✗ CancelIcon with error.main)
+       - Pending 3rd place: Blue hourglass icon (⏳ HourglassEmptyIcon with info.main)
+     - **Points Chip (User Feedback #2):**
+       - Renders MUI Chip component (not plain text)
+       - Shows "+2 pts" with gold background (perfect)
+       - Shows "+1 pt" with success.light background (partial)
+       - Shows "+0 pts" with error.light background (wrong)
+       - Shows "Pendiente" with info.light background (pending 3rd)
+       - Correct pluralization (1 pt vs 2 pts)
+     - **Actual position display:**
+       - Shows "Actual: 1ro", "Actual: 2do", "Actual: 3ro" (Spanish only)
+       - Status text when position wrong
+     - **Pending 3rd place state (User Feedback #4):**
+       - `isPending3rdPlace === true` → Shows hourglass icon
+       - Shows "Pendiente" chip
+       - Shows "Podría clasificar como mejor tercero" text
+       - Background: info.light (light blue tint)
+     - **Background colors (User Feedback #1):**
+       - Perfect: Gold/yellow tint
+       - Partial: success.light (lighter green, NOT orange)
+       - Wrong: error.light
+       - Pending: info.light
+     - **Accessibility:** Icons have aria-labels in Spanish, Chip is semantic
 
 2. **`group-card.test.tsx` (update existing):**
    - Existing tests: Group rendering, team sorting, accordion behavior
    - **NEW: Group total points tests:**
-     - Shows group total in header when `scoringForGroup` provided
-     - Formats points correctly ("Total: 4 pts ✓")
-     - Hides total when no results available
-     - Passes correct `result` prop to each DraggableTeamCard
+     - Shows group total in header when `scoringForGroup` provided AND `isGroupComplete === true`
+     - Formats points correctly:
+       - "Total: 4 pts" (all finalized)
+       - "Total: 4 pts + ? pendiente" (3rd place pending)
+     - Hides total when group not complete
+     - Passes correct props to each DraggableTeamCard:
+       - `result` (matched by team ID)
+       - `isGroupComplete`
+       - `isPending3rdPlace` (calculated per team)
+     - **Pending 3rd place logic:**
+       - Calculates correctly when team is 3rd AND user predicted to qualify AND best 3rds not finalized
+       - Shows pending indicator only for applicable teams
 
 3. **`qualified-teams-client-page-smoke.test.tsx` (update existing):**
    - Existing tests: Renders groups, handles predictions
@@ -751,13 +867,25 @@ const mockScoringResult: QualifiedTeamsScoringResult = {
 ## Success Metrics
 
 **Definition of Done:**
-- [ ] Results overlay shows on each team card when results available
-- [ ] Visual indicators clearly show correct/partial/incorrect predictions (✓/~/✗ icons)
-- [ ] Points per team displayed accurately (+2 pts, +1 pt, +0 pts)
-- [ ] Group total points displayed in group header
-- [ ] Results only show when tournament data available (progressive display)
+- [ ] Results overlay shows on each team card when **group is complete** (User Feedback #3)
+- [ ] Visual indicators use correct colors (User Feedback #1):
+  - [ ] Perfect match (2 pts): Gold/yellow star icon
+  - [ ] Partial match (1 pt): Lighter green check icon (NOT orange)
+  - [ ] Wrong (0 pts): Red X icon
+  - [ ] Pending 3rd place: Blue hourglass icon (User Feedback #4)
+- [ ] Points displayed in **Chip component** like game cards (User Feedback #2)
+  - [ ] "+2 pts", "+1 pt", "+0 pts" format
+  - [ ] "Pendiente" for pending 3rd place teams
+  - [ ] Colored backgrounds (gold, light green, light red, light blue)
+- [ ] Pending 3rd place state working correctly (User Feedback #4):
+  - [ ] Shows when group complete but best 3rds not determined
+  - [ ] Shows hourglass icon and "Pendiente" chip
+  - [ ] Shows explanation text
+  - [ ] Updates to ✓ or ✗ when best 3rds finalized
+- [ ] Group total points displayed in header
+- [ ] Progressive display: Results show as groups complete (User Feedback #3)
 - [ ] Responsive on mobile (accordion) and desktop (card layout)
-- [ ] All text internationalized (ES + EN, ~13 keys)
+- [ ] All text in Spanish only (User Feedback #5) - No i18n needed
 - [ ] Tests pass with ≥80% coverage on modified code
 - [ ] 0 new SonarCloud issues
 - [ ] Linter passes
