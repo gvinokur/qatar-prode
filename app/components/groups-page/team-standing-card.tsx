@@ -8,8 +8,7 @@ import {
   Divider,
   Typography,
   alpha,
-  useTheme,
-  useMediaQuery
+  useTheme
 } from '@mui/material'
 import { motion } from 'framer-motion'
 import RankChangeIndicator from '@/app/components/leaderboard/RankChangeIndicator'
@@ -69,9 +68,9 @@ export default function TeamStandingCard({
 }: TeamStandingCardProps) {
   const theme = useTheme()
 
-  // Responsive breakpoints based on viewport (approximates container width)
-  const isUltraCompact = useMediaQuery('(max-width:400px)')
-  const isCompact = useMediaQuery('(max-width:600px)')
+  // Use compact prop for sizing (container-aware, not viewport-aware)
+  const isUltraCompact = compact
+  const isCompact = compact
 
   // Calculate responsive values
   const cardPadding = getCardPadding(isUltraCompact, isCompact, compact)
@@ -127,7 +126,7 @@ export default function TeamStandingCard({
             {/* Rank Badge with Change Indicator */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: compact ? '35px' : (isUltraCompact ? '40px' : '60px') }}>
               <Typography
-                variant={isUltraCompact ? 'body1' : 'h6'}
+                variant={compact ? 'body1' : 'h6'}
                 component="div"
                 sx={{
                   fontWeight: 'bold',
@@ -143,7 +142,7 @@ export default function TeamStandingCard({
 
             {/* Team Name/Code */}
             <Typography
-              variant={isUltraCompact ? 'body1' : 'h6'}
+              variant={compact ? 'body1' : 'h6'}
               component="div"
               sx={{
                 flex: 1,
@@ -160,7 +159,7 @@ export default function TeamStandingCard({
             {/* Points with PJ/DG (when collapsed) */}
             {!isExpanded && (
               <Typography
-                variant={isUltraCompact ? 'body1' : 'h6'}
+                variant={compact ? 'body1' : 'h6'}
                 component="div"
                 sx={{
                   fontWeight: 'bold',
@@ -174,7 +173,7 @@ export default function TeamStandingCard({
             {/* Points only (when expanded) */}
             {isExpanded && (
               <Typography
-                variant={isUltraCompact ? 'body1' : 'h6'}
+                variant={compact ? 'body1' : 'h6'}
                 component="div"
                 sx={{
                   fontWeight: 'bold',
