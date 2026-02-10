@@ -28,6 +28,31 @@ interface SingleUserScoringResult {
 }
 
 /**
+ * Helper function to calculate correct and exact counts from breakdown
+ * Reduces cognitive complexity by extracting nested loops
+ */
+function calculateCountsFromBreakdown(breakdown: any[]): { correctCount: number; exactCount: number } {
+  let correctCount = 0;
+  let exactCount = 0;
+
+  for (const group of breakdown) {
+    for (const team of group.teams) {
+      // Count teams that qualified and user predicted to qualify
+      if (team.predictedToQualify && team.actuallyQualified) {
+        correctCount++;
+
+        // Check if it was exact position match
+        if (team.predictedPosition === team.actualPosition) {
+          exactCount++;
+        }
+      }
+    }
+  }
+
+  return { correctCount, exactCount };
+}
+
+/**
  * Calculate and store qualified teams scores for ALL users in a tournament
  *
  * Process:
@@ -92,22 +117,7 @@ export async function calculateAndStoreQualifiedTeamsScores(
         const scoringResult = await calculateQualifiedTeamsScore(userId, tournamentId);
 
         // Calculate counts from breakdown
-        let correctCount = 0;
-        let exactCount = 0;
-
-        for (const group of scoringResult.breakdown) {
-          for (const team of group.teams) {
-            // Count teams that qualified and user predicted to qualify
-            if (team.predictedToQualify && team.actuallyQualified) {
-              correctCount++;
-
-              // Check if it was exact position match
-              if (team.predictedPosition === team.actualPosition) {
-                exactCount++;
-              }
-            }
-          }
-        }
+        const { correctCount, exactCount } = calculateCountsFromBreakdown(scoringResult.breakdown);
 
         // Update tournament_guesses with the calculated score and counts
         // Use atomic upsert (no transaction needed - supported by PostgreSQL)

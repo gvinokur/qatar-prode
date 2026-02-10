@@ -80,18 +80,6 @@ describe('TournamentBackofficeTab', () => {
   });
 
   describe('Rendering', () => {
-    it.skip('should render all action buttons', () => {
-      render(<TournamentBackofficeTab tournament={mockActiveTournament} />);
-
-      expect(screen.getByText('Import Players')).toBeInTheDocument();
-      expect(screen.getByText('Calculate Group Positions for players')).toBeInTheDocument();
-      expect(screen.getByText('Calculate First Playoff Stage teams')).toBeInTheDocument();
-      expect(screen.getByText('Calculate Game Scores')).toBeInTheDocument();
-      expect(screen.getByText('Calculate Qualified Team Scores')).toBeInTheDocument();
-      expect(screen.getByText('Calculate Group Position Scores')).toBeInTheDocument();
-      expect(screen.getByText('Deactivate Tournament')).toBeInTheDocument();
-    });
-
     it('should show delete button only for inactive tournaments', () => {
       const { rerender } = render(<TournamentBackofficeTab tournament={mockActiveTournament} />);
 
@@ -125,21 +113,6 @@ describe('TournamentBackofficeTab', () => {
       });
     });
 
-    it.skip('should call calculateAllUsersGroupPositions when button is clicked', async () => {
-      const user = userEvent.setup();
-      const mockResult = { success: true };
-      vi.mocked(backofficeActions.calculateAllUsersGroupPositions).mockResolvedValue(mockResult as any);
-
-      render(<TournamentBackofficeTab tournament={mockActiveTournament} />);
-
-      const button = screen.getByText('Calculate Group Positions for players');
-      await user.click(button);
-
-      await waitFor(() => {
-        expect(backofficeActions.calculateAllUsersGroupPositions).toHaveBeenCalledWith(mockActiveTournament.id);
-      });
-    });
-
     it('should call calculateGameScores when button is clicked', async () => {
       const user = userEvent.setup();
       vi.mocked(backofficeActions.calculateGameScores).mockResolvedValue({ updatedGameGuesses: [], cleanedGameGuesses: [] });
@@ -151,44 +124,6 @@ describe('TournamentBackofficeTab', () => {
 
       await waitFor(() => {
         expect(backofficeActions.calculateGameScores).toHaveBeenCalledWith(false, false);
-      });
-    });
-
-    it.skip('should display action results after button click', async () => {
-      const user = userEvent.setup();
-      const mockResult = { users: 10, updated: 5 };
-      vi.mocked(backofficeActions.calculateAllUsersGroupPositions).mockResolvedValue(mockResult as any);
-
-      render(<TournamentBackofficeTab tournament={mockActiveTournament} />);
-
-      const button = screen.getByText('Calculate Group Positions for players');
-      await user.click(button);
-
-      await waitFor(() => {
-        expect(screen.getByTestId('debug-object')).toBeInTheDocument();
-        expect(screen.getByText('Clear Results')).toBeInTheDocument();
-      });
-    });
-
-    it.skip('should clear action results when Clear Results is clicked', async () => {
-      const user = userEvent.setup();
-      const mockResult = { success: true };
-      vi.mocked(backofficeActions.calculateAllUsersGroupPositions).mockResolvedValue(mockResult as any);
-
-      render(<TournamentBackofficeTab tournament={mockActiveTournament} />);
-
-      const button = screen.getByText('Calculate Group Positions for players');
-      await user.click(button);
-
-      await waitFor(() => {
-        expect(screen.getByText('Clear Results')).toBeInTheDocument();
-      });
-
-      const clearButton = screen.getByText('Clear Results');
-      await user.click(clearButton);
-
-      await waitFor(() => {
-        expect(screen.queryByTestId('debug-object')).not.toBeInTheDocument();
       });
     });
   });

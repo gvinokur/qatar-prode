@@ -152,26 +152,6 @@ describe('GuessesContextProvider', () => {
     ]);
   });
 
-  it.skip('updates playoff game guesses when all group games are guessed', async () => {
-    const user = userEvent.setup();
-
-    render(
-      <GuessesContextProvider
-        gameGuesses={mockGameGuesses}
-        groupGames={mockGroupGames}
-        autoSave={true}
-      >
-        <TestConsumer />
-      </GuessesContextProvider>
-    );
-
-    await user.click(screen.getByTestId('update-guess'));
-
-    await waitFor(() => {
-      expect(mockUpdatePlayoffGameGuesses).toHaveBeenCalledWith('tournament1');
-    });
-  });
-
   it('does not update playoff game guesses when not all games are guessed', async () => {
     const user = userEvent.setup();
     const multipleGames: Game[] = [

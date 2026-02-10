@@ -10,7 +10,6 @@ type Props = {
   readonly groupQualifiedTeamsPoints: number
   readonly groupQualifiedTeamsCorrect: number
   readonly groupQualifiedTeamsExact: number
-  readonly groupPositionPoints: number
   readonly playoffStagePoints: number
   readonly playoffGamePoints: number
   readonly playoffBoostBonus: number

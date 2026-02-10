@@ -57,8 +57,6 @@ export async function getTournamentPredictionCompletion(
     .where('tournament_id', '=', tournamentId)
     .executeTakeFirst();
 
-  const totalGroups = Number(totalGroupsResult?.count ?? 0);
-
   // Count how many teams the user has predicted to qualify
   // Use the working JSONB-based repository function
   const groupPredictions = await getAllUserGroupPositionsPredictions(userId, tournamentId);

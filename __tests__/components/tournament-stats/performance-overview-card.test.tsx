@@ -31,16 +31,6 @@ describe('PerformanceOverviewCard', () => {
       expect(screen.getByText('Puntos Totales en Torneo')).toBeInTheDocument();
     });
 
-    it.skip('displays group stage breakdown', () => {
-      renderWithTheme(<PerformanceOverviewCard {...mockProps} />);
-
-      expect(screen.getByText('Fase de Grupos')).toBeInTheDocument();
-      expect(screen.getByText('92')).toBeInTheDocument(); // group game points
-      expect(screen.getByText('8')).toBeInTheDocument(); // qualified teams
-      expect(screen.getByText('27')).toBeInTheDocument(); // group positions
-      expect(screen.getByText('142')).toBeInTheDocument(); // group stage total
-    });
-
     it('displays boost bonus with success color when present', () => {
       renderWithTheme(<PerformanceOverviewCard {...mockProps} />);
 

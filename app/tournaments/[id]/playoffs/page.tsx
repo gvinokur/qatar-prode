@@ -63,7 +63,7 @@ export default async function PlayoffPage(props: Props) {
 
         // Sort by predicted position and convert to standings format
         const standings = positions
-          .sort((a, b) => a.predicted_position - b.predicted_position)
+          .toSorted((a, b) => a.predicted_position - b.predicted_position)
           .map(p => ({
             team_id: p.team_id,
             position: p.predicted_position,
