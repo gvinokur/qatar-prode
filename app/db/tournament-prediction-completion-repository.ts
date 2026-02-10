@@ -50,13 +50,6 @@ export async function getTournamentPredictionCompletion(
   const totalFirstRoundGames = Number(totalFirstRoundGamesResult?.count ?? 0);
   const totalQualifierSlots = totalFirstRoundGames * 2; // Each game has 2 teams
 
-  // Count total groups in tournament
-  const totalGroupsResult = await db
-    .selectFrom('tournament_groups')
-    .select((eb) => eb.fn.countAll<number>().as('count'))
-    .where('tournament_id', '=', tournamentId)
-    .executeTakeFirst();
-
   // Count how many teams the user has predicted to qualify
   // Use the working JSONB-based repository function
   const groupPredictions = await getAllUserGroupPositionsPredictions(userId, tournamentId);
