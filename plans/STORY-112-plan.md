@@ -9,7 +9,9 @@
 ### Current Problem
 Desktop shows two separate headers on tournament pages:
 1. Main app header (logo, title, theme, user menu) - always visible
-2. Tournament-specific header (tournament logo, group selector) - on tournament pages
+2. Tournament-specific header (tournament logo, name) - on tournament pages
+
+**Note:** Tab selection for tournament sections (groups, playoffs, qualified teams, etc.) is separate from the header and should follow mobile pattern with sub menu navigation.
 
 Mobile has a cleaner experience by hiding the main header on tournament pages, showing only the tournament header. This creates:
 - More screen space for content
@@ -116,11 +118,12 @@ Change user actions container from mobile-only to always visible:
 - Consistent action placement across viewports
 
 **Layout Implications:**
-- Tournament header becomes 3-column layout on desktop:
+- Tournament header layout on desktop:
   - Left: Home link (La Maquina logo)
   - Center: Tournament logo + name
   - Right: Theme switcher + User actions (NEW on desktop)
 - Mobile layout unchanged (already has these actions)
+- Tab navigation for sections (groups, playoffs, qualified teams) is separate from header and follows mobile sub menu pattern
 
 ### Alternative Approaches Considered
 
@@ -130,7 +133,7 @@ Change user actions container from mobile-only to always visible:
 #### Alternative 2: Only hide on specific tournament sub-routes
 **Rejected:** Inconsistent experience. Better to hide on all tournament pages for simplicity.
 
-#### Alternative 3: Add user actions to group selector area
+#### Alternative 3: Add user actions to a different location
 **Rejected:** Tournament header already has proper structure with user actions. Just need to make them visible on desktop.
 
 ## Visual Prototypes
@@ -141,11 +144,12 @@ Change user actions container from mobile-only to always visible:
 │ [Logo] La Maquina Prode          [🌙 Theme]  [👤 User Menu]    │ ← Main Header (Always visible)
 └─────────────────────────────────────────────────────────────────┘
 ┌─────────────────────────────────────────────────────────────────┐
-│ [Home] [Tournament Logo] Qatar 2022    [Group: All ▼]          │ ← Tournament Header
+│ [Home] [Tournament Logo] Qatar 2022                             │ ← Tournament Header
 └─────────────────────────────────────────────────────────────────┘
 ┌─────────────────────────────────────────────────────────────────┐
 │                                                                 │
 │                    Tournament Content                           │
+│              (with tab navigation below header)                 │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -153,12 +157,14 @@ Change user actions container from mobile-only to always visible:
 ### Proposed Desktop Layout (After - Matches Mobile)
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│ [Home] [Tournament Logo] Qatar 2022    [Group: All ▼]  [🌙] [👤]│ ← Tournament Header (User actions now visible)
+│ [Home] [Tournament Logo] Qatar 2022              [🌙] [👤]     │ ← Tournament Header (User actions now visible)
 └─────────────────────────────────────────────────────────────────┘
 ┌─────────────────────────────────────────────────────────────────┐
 │                                                                 │
 │                    Tournament Content                           │
 │                    (More vertical space!)                       │
+│         (Tab navigation: groups, playoffs, qualified teams      │
+│          shown as sub menu like mobile)                         │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -184,15 +190,17 @@ Change user actions container from mobile-only to always visible:
 │              │                         │                         │
 │ [Home Link]  │ [Logo] Tournament Name  │ [🌙 Theme] [👤 Menu]   │
 │ La Maquina   │                         │                         │
-│              │ Group Selector Below    │                         │
 └──────────────┴─────────────────────────┴─────────────────────────┘
 ```
 
+**Note:** Tab selection for tournament sections (groups, playoffs, qualified teams, etc.) is separate and appears below the header as sub menu navigation, matching mobile pattern.
+
 **Responsive Considerations:**
-- Desktop (≥960px - Material-UI `md` breakpoint): Single-row header with actions on right
-- Mobile (<960px): Stacked layout (identity row, then group selector row)
+- Desktop (≥960px - Material-UI `md` breakpoint): Single-row header with tournament identity and actions
+- Mobile (<960px): Stacked layout (tournament identity row with user actions)
 - Theme switcher: Icon-only button (24x24px)
 - User actions: Avatar (40x40px) with dropdown menu
+- Tab navigation (groups, playoffs, qualified teams): Separate from header, follows mobile sub menu pattern
 - **Note:** Menu positioning may need verification - UserActions component has hardcoded `mt: '45px'` offset designed for main header layout
 
 ## Files to Modify
