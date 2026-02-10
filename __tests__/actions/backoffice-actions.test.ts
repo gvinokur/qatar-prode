@@ -9,7 +9,6 @@ import {
   getGroupDataWithGamesAndTeams,
   recalculateAllPlayoffFirstRoundGameGuesses,
   calculateGameScores,
-  calculateAndStoreQualifiedTeamsPoints,
   findDataForAwards,
   updateTournamentAwards,
   updateTournamentHonorRoll,
@@ -537,7 +536,6 @@ describe('Backoffice Actions', () => {
       expect(mockRevalidatePath).toHaveBeenCalledWith(`/tournaments/${mockTournament.id}/backoffice`);
       expect(mockDeleteAllGameGuessesByTournamentId).toHaveBeenCalledWith(mockTournament.id);
       expect(mockDeleteAllTournamentGuessesByTournamentId).toHaveBeenCalledWith(mockTournament.id);
-      expect(mockDeleteAllTournamentGroupTeamStatGuessesByTournamentId).toHaveBeenCalledWith(mockTournament.id);
       expect(mockDeleteAllPlayersInTournament).toHaveBeenCalledWith(mockTournament.id);
       expect(mockDeleteAllTournamentVenues).toHaveBeenCalledWith(mockTournament.id);
       expect(mockDeleteThirdPlaceRulesByTournament).toHaveBeenCalledWith(mockTournament.id);
@@ -883,66 +881,6 @@ describe('Backoffice Actions', () => {
     });
   });
 
-  describe('calculateAndStoreQualifiedTeamsPoints', () => {
-    beforeEach(() => {
-      mockFindQualifiedTeams.mockResolvedValue({
-        teams: [{ id: 'team1', name: 'Team 1', short_name: 'T1', theme: null }],
-        completeGroupIds: new Set(),
-        allGroupsComplete: false
-      });
-      mockFindGuessedQualifiedTeams.mockResolvedValue([{ id: 'team1', name: 'Team 1', short_name: 'T1', theme: null }]);
-      mockUpdateTournamentGuessByUserIdTournament.mockResolvedValue({ 
-        id: 'guess1', 
-        tournament_id: 'tournament1', 
-        user_id: 'user1', 
-        champion_team_id: null, 
-        runner_up_team_id: null, 
-        third_place_team_id: null, 
-        best_player_id: undefined, 
-        top_goalscorer_player_id: undefined, 
-        best_goalkeeper_player_id: undefined, 
-        best_young_player_id: undefined, 
-        honor_roll_score: undefined, 
-        individual_awards_score: undefined, 
-        qualified_teams_score: undefined, 
-        group_position_score: undefined 
-      });
-    });
-
-    it('calculates qualified teams points correctly', async () => {
-      const result = await calculateAndStoreQualifiedTeamsPoints('tournament1');
-
-      expect(mockUpdateTournamentGuessByUserIdTournamentWithSnapshot).toHaveBeenCalledWith('user1', 'tournament1', {
-        qualified_teams_score: 1
-      });
-      expect(result).toHaveLength(2);
-    });
-
-    it('handles users without tournament guesses', async () => {
-      mockUpdateTournamentGuessByUserIdTournament.mockResolvedValue(undefined);
-
-      const result = await calculateAndStoreQualifiedTeamsPoints('tournament1');
-
-      expect(result[0]).toEqual({ status: 'warning', warning: 'No tournament guess found for user user1' });
-    });
-
-    it('handles calculation errors', async () => {
-      mockFindQualifiedTeams.mockRejectedValue(new Error('Database error'));
-
-      await expect(calculateAndStoreQualifiedTeamsPoints('tournament1'))
-        .rejects.toThrow('Database error');
-    });
-
-    it('handles individual user errors', async () => {
-      mockFindGuessedQualifiedTeams.mockRejectedValue(new Error('User data error'));
-
-      const result = await calculateAndStoreQualifiedTeamsPoints('tournament1');
-
-      expect(result[0]).toEqual({ error: 'Error calculating qualified teams points for user user1' });
-      expect(result[1]).toEqual({ error: 'Error calculating qualified teams points for user user2' });
-    });
-  });
-
   describe('findDataForAwards', () => {
     beforeEach(() => {
       mockFindTournamentById.mockResolvedValue(mockTournament);
@@ -1284,7 +1222,6 @@ describe('Backoffice Actions', () => {
       mockFindGroupsInTournament.mockResolvedValue([{ id: 'group1', tournament_id: 'tournament1', group_letter: 'A', sort_by_games_between_teams: false }]);
       mockFindAllPlayersInTournamentWithTeamData.mockResolvedValue([mockPlayer]);
       mockFindTeamsInGroup.mockResolvedValue([]);
-      mockFindAllTournamentGroupTeamGuessInGroup.mockResolvedValue([]);
       mockUpdateTournamentGuessByUserIdTournament.mockResolvedValue({ 
         id: 'guess1', 
         tournament_id: 'tournament1', 
