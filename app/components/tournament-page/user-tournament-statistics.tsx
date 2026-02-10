@@ -13,10 +13,10 @@ type Props = {
 
 // Internal helper component for label/value pairs
 interface StatRowProps {
-  label: string
-  value: string | number
-  valueColor?: string
-  bold?: boolean
+  readonly label: string
+  readonly value: string | number
+  readonly valueColor?: string
+  readonly bold?: boolean
 }
 
 function StatRow({ label, value, valueColor = 'text.primary', bold = true }: StatRowProps) {
