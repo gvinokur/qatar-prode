@@ -117,7 +117,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                 />
                 {(layoutData.tournament?.display_name || layoutData.tournament?.long_name) && (
                   <Box display="flex" alignItems="center" gap={1}>
-                    {layoutData.tournament.dev_only && (
+                    {layoutData.tournament?.dev_only && (
                       <DevTournamentBadge
                         color={layoutData.tournament.theme?.secondary_color || 'warning.main'}
                       />
@@ -125,22 +125,22 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                     <Typography
                       noWrap
                       variant={'h6'}
-                      ml={layoutData.tournament.dev_only ? 0 : 2}
-                      color={layoutData.tournament.theme?.secondary_color}
+                      ml={layoutData.tournament?.dev_only ? 0 : 2}
+                      color={layoutData.tournament?.theme?.secondary_color}
                       sx={{
                         display: { xs: 'none', md: 'block' }
                       }}>
-                      {layoutData.tournament.long_name || layoutData.tournament.display_name}
+                      {layoutData.tournament?.long_name || layoutData.tournament?.display_name}
                     </Typography>
                     <Typography
                       noWrap
                       variant={'h6'}
-                      ml={layoutData.tournament.dev_only ? 0 : 2}
-                      color={layoutData.tournament.theme?.secondary_color}
+                      ml={layoutData.tournament?.dev_only ? 0 : 2}
+                      color={layoutData.tournament?.theme?.secondary_color}
                       sx={{
                         display: { xs: 'block', md: 'none' }
                       }}>
-                      {layoutData.tournament.display_name || layoutData.tournament.long_name}
+                      {layoutData.tournament?.display_name || layoutData.tournament?.long_name}
                     </Typography>
                   </Box>
                 )}
