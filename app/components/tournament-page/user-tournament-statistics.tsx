@@ -1,6 +1,6 @@
 'use client'
 
-import {Card, CardContent, CardHeader, Grid, Typography, useTheme, Box, Button} from "@mui/material";
+import {Card, CardContent, CardHeader, Stack, Box, Typography, useTheme, Button, Divider} from "@mui/material";
 import {GameStatisticForUser} from "../../../types/definitions";
 import {TournamentGuess} from "../../db/tables-definition";
 import Link from "next/link";
@@ -11,113 +11,87 @@ type Props = {
   readonly tournamentId?: string
 }
 
+// Internal helper component for label/value pairs
+interface StatRowProps {
+  label: string
+  value: string | number
+  valueColor?: string
+  bold?: boolean
+}
+
+function StatRow({ label, value, valueColor = 'text.primary', bold = true }: StatRowProps) {
+  return (
+    <Box display="flex" justifyContent="space-between" alignItems="center">
+      <Typography variant="body2" color="text.secondary">
+        {label}
+      </Typography>
+      <Typography
+        variant="body1"
+        color={valueColor}
+        fontWeight={bold ? 700 : 400}
+      >
+        {value}
+      </Typography>
+    </Box>
+  )
+}
+
 export function UserTournamentStatistics({userGameStatistics, tournamentGuess, tournamentId} : Props) {
   const theme = useTheme()
 
-  const groupScoreData = {
-    correctPredictions: userGameStatistics?.group_correct_guesses || 0,
-    exactPredictions: userGameStatistics?.group_exact_guesses || 0,
-    totalPoints: userGameStatistics?.group_score || 0,
-    boostBonus: userGameStatistics?.group_boost_bonus || 0,
-    qualifiedCorrect: tournamentGuess?.qualified_teams_correct || 0,
-    qualifiedExact: tournamentGuess?.qualified_teams_exact || 0,
-    qualifiers: tournamentGuess?.qualified_teams_score || 0
-  }
+  // Calculate direct totals (boost bonuses are included in the calculations)
+  const groupsTotal = (userGameStatistics?.group_score || 0)
+    + (userGameStatistics?.group_boost_bonus || 0)
+    + (tournamentGuess?.qualified_teams_score || 0)
+    + (tournamentGuess?.group_position_score || 0)
 
-  const playoffScoreData = {
-    correctPredictions: userGameStatistics?.playoff_correct_guesses || 0,
-    exactPredictions: userGameStatistics?.playoff_exact_guesses || 0,
-    totalPoints: userGameStatistics?.playoff_score || 0,
-    boostBonus: userGameStatistics?.playoff_boost_bonus || 0,
-  }
+  const playoffsTotal = (userGameStatistics?.playoff_score || 0)
+    + (userGameStatistics?.playoff_boost_bonus || 0)
+
+  const qualifiedTotal = (tournamentGuess?.qualified_teams_score || 0)
+    + (tournamentGuess?.group_position_score || 0)
+
+  const awardsTotal = (tournamentGuess?.honor_roll_score || 0)
+    + (tournamentGuess?.individual_awards_score || 0)
+
+  const grandTotal = groupsTotal + playoffsTotal + awardsTotal
 
   return (
-    <Card>
+    <Card aria-label="Estadísticas del usuario">
       <CardHeader
-        title='Mis Estadisticas'
+        title='TUS ESTADÍSTICAS'
         sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
       />
-      <CardContent>
-        <Grid container spacing={1}>
-          <Grid size={12}><Typography variant={'h6'} color={'primary.light'}>Fase de Grupos</Typography></Grid>
-          <Grid size={8}><Typography variant={'body1'} color={'primary.light'}>Aciertos (Exactos)</Typography></Grid>
-          <Grid size={4}><Typography variant={'body1'} fontWeight={700}>
-            {groupScoreData.correctPredictions} ({groupScoreData.exactPredictions})
-          </Typography></Grid>
-          <Grid size={8}><Typography variant={'body1'} color={'primary.light'}>Puntos por Partidos</Typography></Grid>
-          <Grid size={4}><Typography variant={'body1'} fontWeight={700}>
-            {groupScoreData.totalPoints}
-          </Typography></Grid>
-          {groupScoreData.boostBonus > 0 && (
-            <>
-              <Grid size={8}><Typography variant={'body2'} color={'primary.light'} sx={{ pl: 2 }}>+ Bonus por Boosts</Typography></Grid>
-              <Grid size={4}><Typography variant={'body2'} fontWeight={700} color={'success.main'}>
-                +{groupScoreData.boostBonus}
-              </Typography></Grid>
-            </>
-          )}
-          <Grid size={8}><Typography variant={'body1'} color={'primary.light'}>Aciertos Clasificados (Exactos)</Typography></Grid>
-          <Grid size={4}><Typography variant={'body1'} fontWeight={700}>
-            {groupScoreData.qualifiedCorrect} ({groupScoreData.qualifiedExact})
-          </Typography></Grid>
-          <Grid size={8}><Typography variant={'body1'} color={'primary.light'}>Puntos por Clasificados</Typography></Grid>
-          <Grid size={4}><Typography variant={'body1'} fontWeight={700}>
-            {groupScoreData.qualifiers}
-          </Typography></Grid>
-          <Grid
-            sx={{borderTop: `${theme.palette.primary.contrastText} 1px solid` }}
-            mt={2}
-            size={12}>
-            <Typography variant={'h6'} color={'primary.light'}>Playoffs</Typography>
-          </Grid>
-          <Grid size={8}><Typography variant={'body1'} color={'primary.light'}>Aciertos (Exactos)</Typography></Grid>
-          <Grid size={4}><Typography variant={'body1'} fontWeight={700}>
-            {playoffScoreData.correctPredictions} ({playoffScoreData.exactPredictions})
-          </Typography></Grid>
-          <Grid size={8}><Typography variant={'body1'} color={'primary.light'}>Puntos por Partidos</Typography></Grid>
-          <Grid size={4}><Typography variant={'body1'} fontWeight={700}>
-            {playoffScoreData.totalPoints}
-          </Typography></Grid>
-          {playoffScoreData.boostBonus > 0 && (
-            <>
-              <Grid size={8}><Typography variant={'body2'} color={'primary.light'} sx={{ pl: 2 }}>+ Bonus por Boosts</Typography></Grid>
-              <Grid size={4}><Typography variant={'body2'} fontWeight={700} color={'success.main'}>
-                +{playoffScoreData.boostBonus}
-              </Typography></Grid>
-            </>
-          )}
-          <Grid
-            sx={{borderTop: `${theme.palette.primary.contrastText} 1px solid` }}
-            mt={2}
-            size={12}>
-            <Typography variant={'h6'} color={'primary.light'}>Torneo</Typography>
-          </Grid>
-          <Grid size={8}><Typography variant={'body1'} color={'primary.light'}>Cuadro de Honor</Typography></Grid>
-          <Grid size={4}><Typography variant={'body1'} fontWeight={700}>
-            {tournamentGuess?.honor_roll_score || 0}
-          </Typography></Grid>
-          <Grid size={8}><Typography variant={'body1'} color={'primary.light'}>Premios</Typography></Grid>
-          <Grid size={4}><Typography variant={'body1'} fontWeight={700}>
-            {tournamentGuess?.individual_awards_score || 0}
-          </Typography></Grid>
+      <CardContent sx={{ p: 2 }}>
+        <Stack spacing={1}>
+          <StatRow label="Grupos:" value={`${groupsTotal} pts`} />
+          <StatRow label="Playoffs:" value={`${playoffsTotal} pts`} />
+          <StatRow label="Clasificados:" value={`${qualifiedTotal} pts`} />
+          <StatRow label="Premios:" value={`${awardsTotal} pts`} />
 
-          {/* Link to detailed stats page */}
+          <Divider sx={{ my: 1.5 }} />
+
+          <StatRow
+            label="Total:"
+            value={`${grandTotal} pts`}
+            valueColor={theme.palette.primary.main}
+          />
+
+          <Divider sx={{ my: 1.5 }} />
+
           {tournamentId && (
-            <Grid size={12} mt={2}>
-              <Box display="flex" justifyContent="center">
-                <Button
-                  component={Link}
-                  href={`/tournaments/${tournamentId}/stats`}
-                  variant="outlined"
-                  size="small"
-                  sx={{ textTransform: 'none' }}
-                >
-                  Ver Estadísticas Detalladas
-                </Button>
-              </Box>
-            </Grid>
+            <Button
+              component={Link}
+              href={`/tournaments/${tournamentId}/stats`}
+              variant="text"
+              size="small"
+              aria-label="Ver página de estadísticas detalladas"
+              sx={{ textTransform: 'none' }}
+            >
+              Ver Estadísticas Detalladas
+            </Button>
           )}
-        </Grid>
+        </Stack>
       </CardContent>
     </Card>
   );
