@@ -85,8 +85,8 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                 src="/logo.webp"
                 alt="La Maquina"
                 sx={{
-                  width: 32,
-                  height: 32,
+                  width: { xs: 32, md: 48 },
+                  height: { xs: 32, md: 48 },
                   backgroundColor: 'white',
                   mr: 1
                 }}
@@ -126,8 +126,21 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                       noWrap
                       variant={'h6'}
                       ml={layoutData.tournament.dev_only ? 0 : 2}
-                      color={layoutData.tournament.theme?.secondary_color}>
+                      color={layoutData.tournament.theme?.secondary_color}
+                      sx={{
+                        display: { xs: 'none', md: 'block' }
+                      }}>
                       {layoutData.tournament.long_name}
+                    </Typography>
+                    <Typography
+                      noWrap
+                      variant={'h6'}
+                      ml={layoutData.tournament.dev_only ? 0 : 2}
+                      color={layoutData.tournament.theme?.secondary_color}
+                      sx={{
+                        display: { xs: 'block', md: 'none' }
+                      }}>
+                      {layoutData.tournament.display_name}
                     </Typography>
                   </Box>
                 )}
