@@ -102,7 +102,7 @@ export async function getGroupStandingsForTournament(tournamentId: string) {
 
   // 2. Fetch qualified teams for entire tournament (returns teams with position and is_complete flags)
   const qualifiedTeamsResult = await findQualifiedTeams(tournamentId) // NO groupId - get ALL groups
-  const qualifiedTeamIds = new Set(qualifiedTeamsResult.teams.map(t => t.id))
+  const qualifiedTeams = qualifiedTeamsResult.teams.map(t => ({ id: t.id })) // Format for TeamStandingsCards
 
   // 3. For each group, fetch team standings using existing calculateGroupPosition utility
   const groupsWithStandings = await Promise.all(
@@ -125,24 +125,13 @@ export async function getGroupStandingsForTournament(tournamentId: string) {
         group.sort_by_games_between_teams // Use group-specific tiebreaker rules
       )
 
-      // Transform TeamStats[] to simplified TeamStanding[] for ultra-compact view
-      const standings = teamStats.map((stats, index) => ({
-        id: stats.team_id,
-        position: index + 1, // 1-based position
-        team: teamsMap[stats.team_id],
-        points: stats.points,
-        goalDifference: stats.goal_difference,
-        gamesPlayed: stats.games_played,
-        // Only show qualified status for teams that are BOTH:
-        // 1. In the qualified teams list
-        // 2. Have is_complete = true (group positions finalized)
-        isQualified: qualifiedTeamIds.has(stats.team_id)
-      }))
-
+      // Return TeamStats[] directly - no transformation needed
+      // TeamStandingsCards component already knows how to render TeamStats
       return {
         id: group.id,
         letter: group.group_letter,
-        standings
+        teamStats: teamStats,  // Pass TeamStats[] directly
+        teamsMap: teamsMap      // Pass teamsMap for component
       }
     })
   )
@@ -154,7 +143,7 @@ export async function getGroupStandingsForTournament(tournamentId: string) {
   return {
     groups: groupsWithStandings,
     defaultGroupId,
-    qualifiedTeamIds
+    qualifiedTeams  // Array format expected by TeamStandingsCards
   }
 }
 ```
@@ -186,31 +175,32 @@ export async function findLatestFinishedGroupGame(tournamentId: string) {
 - **REUSE** `findQualifiedTeams()` from `app/db/team-repository.ts`
   - Returns qualified teams for entire tournament with `is_complete` flag
   - Handles progressive scoring (1st/2nd place immediate, 3rd place after playoff bracket)
-- **TRANSFORM** `TeamStats` → simplified `TeamStanding` for ultra-compact view
+- **NO TRANSFORMATION** needed - pass `TeamStats[]` directly to `TeamStandingsCards` component
 
-### 2. New Client Component: GroupStandingsSidebar
+### 2. New Client Component: GroupStandingsSidebar (Reuses Existing Components)
 
 **File:** `app/components/tournament-page/group-standings-sidebar.tsx`
 
 ```typescript
 'use client'
 
-import { Card, CardHeader, CardContent, Tabs, Tab, Typography, Box, useTheme } from '@mui/material'
+import { Card, CardHeader, CardContent, Tabs, Tab, Typography, useTheme } from '@mui/material'
 import { useState } from 'react'
-import { TeamStandingRow } from './team-standing-row'
-import { CompactTeamStanding } from './types'
+import TeamStandingsCards from '../groups-page/team-standings-cards'
+import { Team, TeamStats } from '@/app/db/tables-definition'
 
 interface GroupStandingsSidebarProps {
   groups: Array<{
     id: string
     letter: string
-    standings: CompactTeamStanding[]
+    teamStats: TeamStats[]      // Use TeamStats directly (from calculateGroupPosition)
+    teamsMap: { [k: string]: Team }
   }>
   defaultGroupId: string
-  qualifiedTeamIds: Set<string>
+  qualifiedTeams: { id: string }[]  // Format expected by TeamStandingsCards
 }
 
-export function GroupStandingsSidebar({ groups, defaultGroupId, qualifiedTeamIds }: GroupStandingsSidebarProps) {
+export function GroupStandingsSidebar({ groups, defaultGroupId, qualifiedTeams }: GroupStandingsSidebarProps) {
   const [selectedGroupId, setSelectedGroupId] = useState(defaultGroupId)
   const theme = useTheme()
 
@@ -234,136 +224,64 @@ export function GroupStandingsSidebar({ groups, defaultGroupId, qualifiedTeamIds
           scrollButtons="auto"
           allowScrollButtonsMobile
           aria-label="Group standings selector"
-          sx={tabsStyles}
+          sx={{
+            mb: 2,
+            '.MuiTab-root': {
+              minWidth: '60px',
+              fontWeight: 600,
+            },
+          }}
+          slotProps={{
+            indicator: {
+              sx: {
+                backgroundColor: theme.palette.primary.main,
+              },
+            },
+          }}
         >
           {groups.map(group => (
             <Tab
               key={group.id}
               label={group.letter.toUpperCase()}
               value={group.id}
-              sx={tabStyles}
             />
           ))}
         </Tabs>
 
         {/* Group name header */}
-        <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
+        <Typography variant="h6" sx={{ mb: 1 }}>
           GRUPO {selectedGroup.letter.toUpperCase()}
         </Typography>
 
-        {/* Standings list */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-          {selectedGroup.standings.map(standing => (
-            <TeamStandingRow
-              key={standing.id}
-              standing={standing}
-              isQualified={qualifiedTeamIds.has(standing.id)}
-            />
-          ))}
-        </Box>
+        {/* REUSE existing TeamStandingsCards component */}
+        <TeamStandingsCards
+          teamStats={selectedGroup.teamStats}
+          teamsMap={selectedGroup.teamsMap}
+          qualifiedTeams={qualifiedTeams}
+        />
       </CardContent>
     </Card>
   )
 }
 ```
 
+**Key Changes (based on user feedback):**
+- **REUSE** existing `TeamStandingsCards` component from `groups-page/`
+  - Already has ultra-compact variant for narrow screens
+  - Already handles qualified team highlighting (green background)
+  - Already uses team short_name with proper fallback
+  - Already tested and battle-proven
+- **NO NEW** TeamStandingRow component needed
+- Pass `TeamStats[]` directly (output of `calculateGroupPosition()`)
+- Pass `teamsMap` for team data lookup
+- Pass `qualifiedTeams` in the format expected by TeamStandingsCards
+
 **Styling details:**
-- Tabs: Follow GroupSelector pattern (scrollable, auto scroll buttons, rounded selection)
-- Card: Follow UserTournamentStatistics pattern (CardHeader with border, primary colors)
-- Compact spacing: `gap: 0.5` between rows
-- Typography: h6 for group name, body1 for team rows
+- Tabs: Scrollable with auto scroll buttons
+- Card: UserTournamentStatistics pattern (CardHeader with border, primary colors)
+- TeamStandingsCards handles all row styling and responsiveness
 
-### 3. New Component: TeamStandingRow (Ultra-Compact)
-
-**File:** `app/components/tournament-page/team-standing-row.tsx`
-
-```typescript
-'use client'
-
-import { Box, Typography, alpha, useTheme } from '@mui/material'
-import { CompactTeamStanding } from './types'
-
-interface TeamStandingRowProps {
-  standing: CompactTeamStanding
-  isQualified: boolean
-}
-
-export function TeamStandingRow({ standing, isQualified }: TeamStandingRowProps) {
-  const theme = useTheme()
-
-  // Handle short_name fallback - check if it exists and is not empty string
-  const displayName = standing.team.short_name?.trim() || standing.team.name
-
-  return (
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 1,
-        py: 0.75,
-        px: 1,
-        backgroundColor: isQualified
-          ? alpha(theme.palette.success.main, 0.1)
-          : 'transparent',
-        borderRadius: 1,
-      }}
-    >
-      {/* Position */}
-      <Typography
-        variant="body1"
-        sx={{
-          minWidth: '24px',
-          fontWeight: 'bold',
-          color: 'text.secondary'
-        }}
-      >
-        {standing.position}.
-      </Typography>
-
-      {/* Team short name */}
-      <Typography
-        variant="body1"
-        sx={{
-          flex: 1,
-          fontWeight: isQualified ? 'bold' : 'normal'
-        }}
-      >
-        {displayName}
-      </Typography>
-
-      {/* Points */}
-      <Typography
-        variant="body1"
-        sx={{
-          fontWeight: 'bold',
-          color: 'text.primary'
-        }}
-      >
-        {standing.points} pts
-      </Typography>
-
-      {/* Qualified indicator (checkmark) */}
-      {isQualified && (
-        <Typography
-          variant="body1"
-          sx={{ color: 'success.main', fontWeight: 'bold' }}
-        >
-          ✓
-        </Typography>
-      )}
-    </Box>
-  )
-}
-```
-
-**Features:**
-- Ultra-compact: Only Position, Team, Points, Qualified indicator
-- Green background for qualified teams (alpha 0.1)
-- Bold font for qualified team names
-- Checkmark icon for qualified teams
-- Responsive padding and gaps
-
-### 4. Integration into Tournament Page
+### 3. Integration into Tournament Page
 
 **File:** `app/tournaments/[id]/page.tsx`
 
@@ -404,7 +322,7 @@ export default async function TournamentLandingPage(props: Props) {
             <GroupStandingsSidebar
               groups={groupStandings.groups}
               defaultGroupId={groupStandings.defaultGroupId}
-              qualifiedTeamIds={groupStandings.qualifiedTeamIds}
+              qualifiedTeams={groupStandings.qualifiedTeams}
             />
           </Grid>
         )}
@@ -422,45 +340,6 @@ export default async function TournamentLandingPage(props: Props) {
 
 **Position in sidebar:** After UserTournamentStatistics, before FriendGroupsList (per story acceptance criteria: "right column, after UserTournamentStatistics")
 
-### 5. Type Definitions
-
-**File:** `app/components/tournament-page/types.ts` (create new file)
-
-```typescript
-import { Team } from '@/app/db/tables-definition'
-
-/**
- * Ultra-compact team standing for sidebar display
- * NOTE: Different from groups-page/types.ts TeamStanding which has full details
- * This version only includes fields needed for ultra-compact view (Position, Team, Points)
- */
-export interface CompactTeamStanding {
-  id: string
-  position: number  // 1-based position (1st, 2nd, 3rd, 4th)
-  team: Team        // Full team object (has name and short_name)
-  points: number    // Total points
-  goalDifference: number  // For sorting/tiebreaking (not displayed in UI)
-  gamesPlayed: number     // For context (not displayed in UI)
-  isQualified: boolean    // Triggers green background
-}
-
-export interface GroupStandingsData {
-  groups: Array<{
-    id: string
-    letter: string
-    standings: CompactTeamStanding[]
-  }>
-  defaultGroupId: string
-  qualifiedTeamIds: Set<string>
-}
-```
-
-**Rationale for new type name:**
-- Existing `TeamStanding` in `groups-page/types.ts` has full details (wins, draws, losses, goalsFor, goalsAgainst, conductScore)
-- Sidebar needs ultra-compact version with minimal fields
-- Named `CompactTeamStanding` to avoid naming conflicts
-- Makes intent clear: "this is for compact display"
-
 ## Implementation Steps
 
 ### Phase 1: Data Layer (Server)
@@ -471,45 +350,46 @@ export interface GroupStandingsData {
 5. ✅ Determine default selected group based on latest finished game
 
 ### Phase 2: UI Components (Client)
-6. ✅ Create `TeamStandingRow` component (ultra-compact variant)
-7. ✅ Create `GroupStandingsSidebar` component (tabs + standings list)
-8. ✅ Implement tab selection state management
-9. ✅ Apply card styling pattern (CardHeader, CardContent)
-10. ✅ Implement qualified team highlighting (green background)
+6. ✅ Create `GroupStandingsSidebar` component (tabs + reuse TeamStandingsCards)
+7. ✅ Implement tab selection state management
+8. ✅ Apply card styling pattern (CardHeader, CardContent)
+9. ✅ Pass data in format expected by TeamStandingsCards (TeamStats[], teamsMap, qualifiedTeams)
 
 ### Phase 3: Integration
-11. ✅ Add component to `tournaments/[id]/page.tsx` sidebar
-12. ✅ Fetch data in server component
-13. ✅ Pass data to client component as props
-14. ✅ Position after Rules and before UserTournamentStatistics
-15. ✅ Verify responsive behavior (desktop/mobile)
+10. ✅ Add component to `tournaments/[id]/page.tsx` sidebar
+11. ✅ Fetch data in server component
+12. ✅ Pass data to client component as props
+13. ✅ Position after UserTournamentStatistics, before FriendGroupsList
+14. ✅ Verify responsive behavior (desktop/mobile)
 
 ### Phase 4: Testing (Parallel with implementation)
-16. ✅ Unit tests for `getGroupStandingsForTournament()` (server action)
-17. ✅ Unit tests for `findLatestFinishedGroupGame()` helper
-18. ✅ Unit tests for `TeamStandingRow` component (qualified highlighting, ultra-compact layout)
-19. ✅ Unit tests for `GroupStandingsSidebar` component (tab switching, default selection)
-20. ✅ Integration test for tournament page rendering with group standings
-21. ✅ Responsive behavior tests (desktop/mobile breakpoints)
-22. ✅ Edge case tests (no groups, no finished games, all playoff games)
+15. ✅ Unit tests for `getGroupStandingsForTournament()` (server action)
+16. ✅ Unit tests for `findLatestFinishedGroupGame()` helper
+17. ✅ Unit tests for `GroupStandingsSidebar` component (tab switching, default selection, TeamStandingsCards integration)
+18. ✅ Integration test for tournament page rendering with group standings
+19. ✅ Responsive behavior tests (desktop/mobile breakpoints)
+20. ✅ Edge case tests (no groups, no finished games, all playoff games)
 
 ### Phase 5: Validation
-23. ✅ Run `npm test` - all tests pass
-24. ✅ Run `npm run lint` - no errors
-25. ✅ Run `npm run build` - successful build
-26. ✅ Verify 80% coverage on new code (SonarCloud)
-27. ✅ Visual testing in browser (desktop/mobile views)
+21. ✅ Run `npm test` - all tests pass
+22. ✅ Run `npm run lint` - no errors
+23. ✅ Run `npm run build` - successful build
+24. ✅ Verify 80% coverage on new code (SonarCloud)
+25. ✅ Visual testing in browser (desktop/mobile views)
 
 ## Files to Create
 
-1. `app/components/tournament-page/group-standings-sidebar.tsx` - Main sidebar component (client)
-2. `app/components/tournament-page/team-standing-row.tsx` - Ultra-compact row component (client)
-3. `app/components/tournament-page/types.ts` - Type definitions (CompactTeamStanding, GroupStandingsData)
+1. `app/components/tournament-page/group-standings-sidebar.tsx` - Main sidebar component (client, reuses TeamStandingsCards)
 
 ## Files to Modify
 
 1. `app/actions/tournament-actions.ts` - Add `getGroupStandingsForTournament()` and `findLatestFinishedGroupGame()` functions
 2. `app/tournaments/[id]/page.tsx` - Add GroupStandingsSidebar to sidebar layout (after UserTournamentStatistics)
+
+## Components Reused (No Changes Needed)
+
+1. `app/components/groups-page/team-standings-cards.tsx` - Used for displaying standings (already has ultra-compact variant)
+2. `app/components/groups-page/team-standing-card.tsx` - Individual card rendering (already has qualified highlighting)
 
 ## Testing Strategy
 
@@ -542,14 +422,7 @@ export interface GroupStandingsData {
 - ✅ Empty state handling (no groups)
 - ✅ Theme colors applied correctly
 
-`team-standing-row.test.tsx`:
-- ✅ Renders position, team name, points
-- ✅ Qualified team has green background
-- ✅ Qualified team has checkmark icon
-- ✅ Qualified team name is bold
-- ✅ Uses team short_name if available, fallback to name
-- ✅ Compact spacing and layout
-- ✅ Accessibility (proper semantic HTML)
+**NOTE:** TeamStandingRow tests not needed - reusing existing TeamStandingsCards which is already tested
 
 **Integration Tests:**
 
@@ -635,8 +508,8 @@ import { createMockSelectQuery, createMockDB } from '@/__tests__/db/mock-helpers
 5. ✅ Default tab: Latest finished GROUP game (not playoff) or Group A
 6. ✅ Qualified teams data: Use tournament-wide `findQualifiedTeams(tournamentId)` - returns all groups' qualified teams
 7. ✅ Group position calculation: Reuse existing `calculateGroupPosition()` utility with FIFA tiebreaker rules
-8. ✅ Type naming: Use `CompactTeamStanding` to avoid conflict with existing `TeamStanding` type
-9. ✅ Team name display: Use `short_name?.trim()` with fallback to `name` to handle empty strings
+8. ✅ **UPDATED (User Feedback):** Reuse existing `TeamStandingsCards` component instead of creating new TeamStandingRow
+9. ✅ **UPDATED (User Feedback):** Pass `TeamStats[]` directly to TeamStandingsCards (no custom types needed)
 
 ### Questions for User (if needed)
 1. ✅ **RESOLVED - Sidebar position:** After UserTournamentStatistics (per acceptance criteria)
@@ -649,11 +522,12 @@ import { createMockSelectQuery, createMockDB } from '@/__tests__/db/mock-helpers
 ## Dependencies & Related Code
 
 ### Existing Code to Reuse
-- ✅ `app/utils/rank-calculator.ts` - Competition ranking logic
+- ✅ `app/utils/group-position-calculator.ts` - Group position calculation with FIFA tiebreaker rules
 - ✅ `app/db/tournament-group-repository.ts` - Group queries
 - ✅ `app/db/team-repository.ts` - Team queries and qualified teams
 - ✅ `app/db/game-repository.ts` - Game queries
-- ✅ `app/components/groups-page/team-standing-card.tsx` - Reference for styling/layout
+- ✅ **`app/components/groups-page/team-standings-cards.tsx`** - **REUSED for displaying standings** (already has ultra-compact variant)
+- ✅ **`app/components/groups-page/team-standing-card.tsx`** - **REUSED for individual rows** (already has qualified highlighting)
 - ✅ `app/components/groups-page/group-selector.tsx` - Reference for tabs pattern
 - ✅ `app/components/tournament-page/user-tournament-statistics.tsx` - Reference for card pattern
 
