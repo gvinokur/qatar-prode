@@ -179,48 +179,6 @@ describe('TournamentStatsPage', () => {
     });
   });
 
-  describe('Performance Overview Card', () => {
-    it('displays total points and breakdown correctly', async () => {
-      const props = {
-        params: Promise.resolve({ id: mockTournamentId }),
-        searchParams: Promise.resolve({}),
-      };
-
-      const result = await TournamentStatsPage(props);
-      render(result);
-
-      // Total points
-      expect(screen.getByText('Rendimiento General')).toBeInTheDocument();
-
-      // Group stage points
-      expect(screen.getByText('92')).toBeInTheDocument(); // group game points
-      expect(screen.getByText('8')).toBeInTheDocument(); // qualified teams
-      expect(screen.getByText('27')).toBeInTheDocument(); // group positions
-
-      // Boost bonuses
-      expect(screen.getByText('+15')).toBeInTheDocument(); // group boost
-      expect(screen.getByText('+10')).toBeInTheDocument(); // playoff boost
-
-      // Playoff stage points
-      expect(screen.getByText('45')).toBeInTheDocument(); // playoff game points
-      expect(screen.getByText('35')).toBeInTheDocument(); // honor roll
-      expect(screen.getByText('15')).toBeInTheDocument(); // individual awards
-    });
-
-    it('calculates total points correctly', async () => {
-      const props = {
-        params: Promise.resolve({ id: mockTournamentId }),
-        searchParams: Promise.resolve({}),
-      };
-
-      const result = await TournamentStatsPage(props);
-      render(result);
-
-      // Total should be: 92 + 15 + 8 + 27 + 45 + 10 + 35 + 15 = 247
-      expect(screen.getByText('247')).toBeInTheDocument();
-    });
-  });
-
   // Note: Detailed rendering of cards is tested in component tests.
   // Page tests focus on integration and data flow.
 

@@ -60,10 +60,6 @@ vi.mock('../../app/db/tournament-guess-repository', () => ({
   getTournamentGuessesForUser: vi.fn(),
 }));
 
-vi.mock('../../app/db/tournament-group-team-guess-repository', () => ({
-  getTournamentGroupTeamGuessesForUser: vi.fn(),
-}));
-
 vi.mock('../../app/db/tournament-playoff-repository', () => ({
   createPlayoffRoundGame: vi.fn(),
   deletePlayoffRoundGame: vi.fn(),

@@ -4,10 +4,9 @@ import {Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogContentT
 import {useState} from "react";
 import {Tournament} from "../../db/tables-definition";
 import {
-  calculateAllUsersGroupPositions, calculateAndStoreQualifiedTeamsPoints, calculateGameScores,
+  calculateGameScores,
   generateDbTournamentTeamPlayers,
   recalculateAllPlayoffFirstRoundGameGuesses,
-  calculateAndStoreGroupPositionScores,
   deleteDBTournamentTree
 } from "../../actions/backoffice-actions";
 import { triggerQualifiedTeamsScoringAction } from "../../actions/qualified-teams-scoring-actions";
@@ -36,13 +35,6 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
     setLoading(false)
   }
 
-  const calculateGroupPositionForPlayers = async () => {
-    setLoading(true)
-    const result = await calculateAllUsersGroupPositions(tournament.id)
-    setActionResults(result)
-    setLoading(false)
-  }
-
   const calculateFirstPlayoffStageTeams = async () => {
     setLoading(true)
     const result = await recalculateAllPlayoffFirstRoundGameGuesses(tournament.id)
@@ -56,20 +48,6 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
     setActionResults(results)
     setLoading(false)
   }
-
-  const calculateQualifiedScoresForTournament = async () => {
-    setLoading(true)
-    const qualifiedTeamScores = await calculateAndStoreQualifiedTeamsPoints(tournament.id)
-    setActionResults({results: qualifiedTeamScores})
-    setLoading(false)
-  }
-
-  const calculateGroupPositionScores = async () => {
-    setLoading(true);
-    await calculateAndStoreGroupPositionScores(tournament.id);
-    setActionResults({ success: true });
-    setLoading(false);
-  };
 
   const calculateQualifiedTeamsPredictionScores = async () => {
     setLoading(true);
@@ -171,17 +149,6 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
             md: 3,
             lg: 2
           }}>
-          <Button loading={loading} variant={'contained'} size={'large'} fullWidth={true} sx={{height: '100%'}} onClick={calculateGroupPositionForPlayers}>
-            Calculate Group Positions for players
-          </Button>
-        </Grid>
-        <Grid
-          textAlign={'center'}
-          size={{
-            xs: 6,
-            md: 3,
-            lg: 2
-          }}>
           <Button loading={loading} variant={'contained'} size={'large'} fullWidth={true} sx={{height: '100%'}} onClick={calculateFirstPlayoffStageTeams}>
             Calculate First Playoff Stage teams
           </Button>
@@ -204,30 +171,8 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
             md: 3,
             lg: 2
           }}>
-          <Button loading={loading} variant={'contained'} size={'large'} fullWidth={true} sx={{height: '100%'}} onClick={calculateQualifiedScoresForTournament}>
-            Calculate Qualified Team Scores
-          </Button>
-        </Grid>
-        <Grid
-          textAlign={'center'}
-          size={{
-            xs: 6,
-            md: 3,
-            lg: 2
-          }}>
-          <Button loading={loading} variant={'contained'} size={'large'} fullWidth={true} sx={{height: '100%'}} onClick={calculateGroupPositionScores}>
-            Calculate Group Position Scores
-          </Button>
-        </Grid>
-        <Grid
-          textAlign={'center'}
-          size={{
-            xs: 6,
-            md: 3,
-            lg: 2
-          }}>
           <Button loading={loading} variant={'contained'} size={'large'} fullWidth={true} sx={{height: '100%'}} onClick={calculateQualifiedTeamsPredictionScores}>
-            Calculate Qualified Teams Predictions Scores
+            Calculate Qualified Teams Scores
           </Button>
         </Grid>
         <Grid
@@ -237,6 +182,7 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
             md: 3,
             lg: 2
           }}>
+
           <Button
             loading={loading}
             variant={'outlined'}

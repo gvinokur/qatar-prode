@@ -8,9 +8,7 @@ import {
   findTournamentByName, updateTournament
 } from "../db/tournament-repository";
 import {
-  createTeam, findGuessedQualifiedTeams,
-  findQualifiedTeams,
-  findTeamInGroup,
+  createTeam,
   findTeamInTournament,
   getTeamByName
 } from "../db/team-repository";
@@ -19,8 +17,7 @@ import {
   createTournamentGroupGame,
   createTournamentGroupTeam,
   deleteAllGroupsFromTournament,
-  findGroupsInTournament,
-  findGroupsWithGamesAndTeamsInTournament, findTournamentgroupById, updateTournamentGroupTeams, findTeamsInGroup
+  findGroupsWithGamesAndTeamsInTournament, updateTournamentGroupTeams
 } from "../db/tournament-group-repository";
 import {
   createPlayoffRound,
@@ -28,18 +25,15 @@ import {
   deleteAllPlayoffRoundsInTournament, findPlayoffStagesWithGamesInTournament
 } from "../db/tournament-playoff-repository";
 import {
-  Game,
-  GameGuess,
   GameNew,
   PlayerNew,
   Team,
-  Tournament, TournamentGroup,
+  Tournament,
   TournamentGroupTeamNew, TournamentUpdate
 } from "../db/tables-definition";
 import {
   createGame,
   deleteAllGamesFromTournament, findAllGamesWithPublishedResultsAndGameGuesses,
-  findGamesInGroup,
   findGamesInTournament,
   updateGame
 } from "../db/game-repository";
@@ -69,23 +63,20 @@ import {
   updateGameResult
 } from "../db/game-result-repository";
 import {calculatePlayoffTeams} from "../utils/playoff-teams-calculator";
-import {findAllUserTournamentGroupsWithoutGuesses, findAllTournamentGroupTeamGuessInGroup, deleteAllTournamentGroupTeamStatGuessesByTournamentId} from "../db/tournament-group-team-guess-repository";
 import {
   findAllGuessesForGamesWithResultsInDraft,
-  findGameGuessesByUserId,
   updateGameGuess,
   updateGameGuessWithBoost,
   deleteAllGameGuessesByTournamentId
 } from "../db/game-guess-repository";
 import {calculateGroupPosition} from "../utils/group-position-calculator";
-import {updateOrCreateTournamentGroupTeamGuesses, updatePlayoffGameGuesses} from "./guesses-actions";
+import {updatePlayoffGameGuesses} from "./guesses-actions";
 import {customToMap, toMap} from "../utils/ObjectUtils";
 import {db} from "../db/database";
 import {calculateScoreForGame} from "../utils/game-score-calculator";
 import {
   findTournamentGuessByTournament,
   updateTournamentGuessWithSnapshot,
-  updateTournamentGuessByUserIdTournamentWithSnapshot,
   deleteAllTournamentGuessesByTournamentId
 } from "../db/tournament-guess-repository";
 import {awardsDefinition} from "../utils/award-utils";
@@ -118,7 +109,6 @@ export async function deleteDBTournamentTree(tournament: Tournament) {
   // User-related data
   await deleteAllGameGuessesByTournamentId(tournament.id);
   await deleteAllTournamentGuessesByTournamentId(tournament.id);
-  await deleteAllTournamentGroupTeamStatGuessesByTournamentId(tournament.id);
 
   // Tournament structure and content
   await deleteAllPlayersInTournament(tournament.id);
@@ -372,68 +362,6 @@ export async function getGroupDataWithGamesAndTeams(tournamentId: string) {
   return findGroupsWithGamesAndTeamsInTournament(tournamentId)
 }
 
-export async function calculateAllUsersGroupPositions(tournamentId: string) {
-  const userGroupPairs = await findAllUserTournamentGroupsWithoutGuesses(tournamentId, false)
-  const userIds = Array.from(new Set(userGroupPairs.map(pair => pair.user_id)))
-  const groupIds = Array.from(new Set(userGroupPairs.map(pair => pair.tournament_group_id)))
-  const guessesByUser: {[k:string]: {[y:string]: GameGuess}} = Object.fromEntries(
-    await Promise.all(
-      userIds.map(async (userId) => {
-        const gameGuesses = await findGameGuessesByUserId(userId, tournamentId)
-        const gameGuessesMap = customToMap(gameGuesses, (gameGuess) => gameGuess.game_id)
-        return [
-          userId,
-          gameGuessesMap
-        ]
-      })
-    ))
-  const gamesByGroup: {[k:string]: Game[]} = Object.fromEntries(
-    await Promise.all(
-      groupIds.map(async (groupId) => [
-        groupId,
-        await findGamesInGroup(groupId, true, false)
-      ])
-    )
-  )
-  const teamsByGroup: {[k:string]: Team[]} = Object.fromEntries(
-    await Promise.all(
-      groupIds.map(async (groupId) => [
-        groupId,
-        await findTeamInGroup(groupId)
-      ])
-    )
-  )
-  const groupsById: { [k: string]: TournamentGroup } = Object.fromEntries(
-    await Promise.all(
-      groupIds.map(async (groupId) => [
-        groupId,
-        await findTournamentgroupById(groupId)
-      ])
-    ))
-  return Promise.all(userGroupPairs
-    .map(async ({user_id, tournament_group_id}) => {
-    const groupGames: Game[] = gamesByGroup[tournament_group_id]
-    const gameGuessesMap: {[k:string]: GameGuess} = guessesByUser[user_id]
-    const teams = teamsByGroup[tournament_group_id]
-    if(groupGames && gameGuessesMap && teams) {
-      const guessedPositions = calculateGroupPosition(
-        teams.map(team => team.id),
-        groupGames.map(game => ({
-          ...game,
-          resultOrGuess: gameGuessesMap[game.id]
-        })),
-        groupsById[tournament_group_id].sort_by_games_between_teams
-        ).map((teamStat, index) => ({
-            user_id,
-            tournament_group_id,
-            position: index,
-            ...teamStat
-          }))
-      return updateOrCreateTournamentGroupTeamGuesses(guessedPositions)
-    }
-  }))
-}
-
 export async function recalculateAllPlayoffFirstRoundGameGuesses(tournamentId: string) {
   const users = await db.selectFrom('users').select('id').execute();
   const updatedPlayoffGamesForUsers = await Promise.all(users.map(async (user) => {
@@ -506,32 +434,6 @@ export async function calculateAndStoreGroupPosition(group_id: string, teamIds: 
         position: index
       }))
   await updateTournamentGroupTeams(groupPositions)
-}
-
-export async function calculateAndStoreQualifiedTeamsPoints(tournamentId: string) {
-  const users = await db.selectFrom('users').select('id').execute();
-  const qualifiedTeamsResult = await findQualifiedTeams(tournamentId);
-  const allQualifiedTeams = qualifiedTeamsResult.teams;
-
-  return Promise.all(users.map(async (user) => {
-    try{
-      const userQualifiedTeams = await findGuessedQualifiedTeams(tournamentId, user.id)
-      if(user.id === '45bd6e70-ed7b-41b6-a860-e05b5a19deb3') {
-        // console.log(userQualifiedTeams) - removed for production
-        // console.log(allQualifiedTeams) - removed for production
-      }
-      const correctGuesses = userQualifiedTeams.filter(team => allQualifiedTeams.find(allTeam => allTeam.id === team.id))
-      const updatedTournamentGuess = await updateTournamentGuessByUserIdTournamentWithSnapshot(user.id, tournamentId, {
-        qualified_teams_score: correctGuesses.length
-      })
-      
-      return updatedTournamentGuess || {status: 'warning', warning: 'No tournament guess found for user ' + user.id}
-
-    } catch (e) {
-      console.error(e)
-      return {error: 'Error calculating qualified teams points for user ' + user.id}
-    }
-  }))
 }
 
 export async function findDataForAwards(tournamentId: string) {
@@ -846,70 +748,6 @@ export async function copyTournament(
 
   // Do not activate the tournament automatically
   return newTournament;
-}
-
-/**
- * Calculates and stores the group position score for each user in a tournament.
- * Awards 1 point for each team whose guessed position matches the real position in a group (when both are complete).
- */
-export async function calculateAndStoreGroupPositionScores(tournamentId: string) {
-  // Get all users who have guesses for this tournament
-  const users = await db.selectFrom('users').select('id').execute();
-  // Get all groups in the tournament
-  const groups = await findGroupsInTournament(tournamentId);
-
-  // Get tournament for scoring config
-  const tournament = await findTournamentById(tournamentId);
-  if (!tournament) {
-    throw new Error(`Tournament ${tournamentId} not found`);
-  }
-
-  const qualified_team_points = tournament.qualified_team_points ?? 1;
-  const exact_position_qualified_points = tournament.exact_position_qualified_points ?? 1;
-
-  // Get ALL qualified teams for this tournament
-  const qualifiedTeamsResult = await findQualifiedTeams(tournamentId);
-  const qualifiedTeams = qualifiedTeamsResult.teams;
-  const qualifiedTeamIds = new Set(qualifiedTeams.map(t => t.id));
-
-  // For each user, calculate their score
-  await Promise.all(users.map(async (user) => {
-    let totalScore = 0;
-    for (const group of groups) {
-      // Get the actual group positions (only if group is complete)
-      const realPositions = await findTeamsInGroup(group.id);
-      const groupIsComplete = realPositions.length > 0 && realPositions.every((t) => t.is_complete);
-      if (!groupIsComplete) continue;
-      // Get the user's guesses for this group (only if guess is complete)
-      const userGuesses = await findAllTournamentGroupTeamGuessInGroup(user.id, group.id);
-      const guessIsComplete = userGuesses.length > 0 && userGuesses.every((t) => t.is_complete);
-      if (!guessIsComplete) continue;
-
-      // NEW SCORING LOGIC: Qualification-aware scoring
-      for (const real of realPositions) {
-        const teamQualified = qualifiedTeamIds.has(real.team_id);
-        const userGuess = userGuesses.find((g: any) => g.team_id === real.team_id);
-
-        if (!userGuess) continue;
-
-        if (teamQualified) {
-          // Team qualified - check position accuracy
-          if (userGuess.position === real.position) {
-            // Exact position + qualified
-            totalScore += exact_position_qualified_points;
-          } else {
-            // Qualified but wrong position
-            totalScore += qualified_team_points;
-          }
-        }
-        // If team didn't qualify: 0 points (even if position was correct)
-      }
-    }
-    // Store the score in tournament_guesses
-    await updateTournamentGuessByUserIdTournamentWithSnapshot(user.id, tournamentId, {
-      group_position_score: totalScore
-    });
-  }));
 }
 
 /**

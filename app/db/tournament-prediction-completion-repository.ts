@@ -1,11 +1,16 @@
 import { db } from './database';
-import { TournamentPredictionCompletion, Tournament } from './tables-definition';
+import { TournamentPredictionCompletion, Tournament, TeamPositionPrediction } from './tables-definition';
 import { findTournamentGuessByUserIdTournament } from './tournament-guess-repository';
 import { getTournamentStartDate } from '../actions/tournament-actions';
+import { getAllUserGroupPositionsPredictions } from './qualified-teams-repository';
 
 /**
  * Get tournament prediction completion status for a user
  * Tracks completion across 3 categories: final standings, awards, and qualifiers
+ *
+ * Qualifier completion uses new qualification prediction system (tournament_qualified_teams_predictions)
+ * and simply counts teams marked with predicted_to_qualify = true. No concept of "complete groups" -
+ * users can select third-place qualifiers directly, so we just count total qualified teams predicted.
  *
  * CRITICAL FIX: Uses proper JOIN through playoff_round_games -> tournament_playoff_rounds
  * to check is_first_stage = true (NOT game_type = 'first_round')
@@ -45,48 +50,15 @@ export async function getTournamentPredictionCompletion(
   const totalFirstRoundGames = Number(totalFirstRoundGamesResult?.count ?? 0);
   const totalQualifierSlots = totalFirstRoundGames * 2; // Each game has 2 teams
 
-  // Count total groups in tournament
-  const totalGroupsResult = await db
-    .selectFrom('tournament_groups')
-    .select((eb) => eb.fn.countAll<number>().as('count'))
-    .where('tournament_id', '=', tournamentId)
-    .executeTakeFirst();
+  // Count how many teams the user has predicted to qualify
+  // Use the working JSONB-based repository function
+  const groupPredictions = await getAllUserGroupPositionsPredictions(userId, tournamentId);
 
-  const totalGroups = Number(totalGroupsResult?.count ?? 0);
-
-  // Count how many groups the user has completed
-  // A group is complete when ALL team predictions in that group have is_complete = true
-  const completeGroupsResult = await db
-    .selectFrom('tournament_groups')
-    .select((eb) => eb.fn.countAll<number>().as('count'))
-    .where('tournament_groups.tournament_id', '=', tournamentId)
-    .where((eb) =>
-      eb.not(
-        eb.exists(
-          eb.selectFrom('tournament_group_team_stats_guess')
-            .whereRef('tournament_group_team_stats_guess.tournament_group_id', '=', 'tournament_groups.id')
-            .where('tournament_group_team_stats_guess.user_id', '=', userId)
-            .where('tournament_group_team_stats_guess.is_complete', '=', false)
-        )
-      )
-    )
-    .where((eb) =>
-      eb.exists(
-        eb.selectFrom('tournament_group_team_stats_guess')
-          .whereRef('tournament_group_team_stats_guess.tournament_group_id', '=', 'tournament_groups.id')
-          .where('tournament_group_team_stats_guess.user_id', '=', userId)
-      )
-    )
-    .executeTakeFirst();
-
-  const completeGroups = Number(completeGroupsResult?.count ?? 0);
-
-  // Calculate qualifiers completed:
-  // - Each complete group contributes 2 qualifiers (1st and 2nd place)
-  // - Third-place qualifiers only count when ALL groups are complete
-  const allGroupsComplete = completeGroups === totalGroups && totalGroups > 0;
-  const thirdPlaceQualifiers = allGroupsComplete ? (totalQualifierSlots - (totalGroups * 2)) : 0;
-  const qualifiersCompleted = (completeGroups * 2) + thirdPlaceQualifiers;
+  // Count teams marked as predicted_to_qualify across all groups
+  const qualifiersCompleted = groupPredictions.reduce((count, group) => {
+    const positions = group.team_predicted_positions as unknown as TeamPositionPrediction[];
+    return count + positions.filter(t => t.predicted_to_qualify).length;
+  }, 0);
 
   // Calculate overall metrics
   const overallTotal = 3 + 4 + totalQualifierSlots; // finalStandings + awards + qualifiers

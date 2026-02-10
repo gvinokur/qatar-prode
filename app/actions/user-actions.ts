@@ -19,7 +19,6 @@ import {
 } from "../db/prode-group-repository";
 import {deleteAllUserTournamentGuesses} from "../db/tournament-guess-repository";
 import {deleteAllUserGameGuesses} from "../db/game-guess-repository";
-import {deleteAllUserTournamentStatsGuesses} from "../db/tournament-group-team-guess-repository";
 
 function generateVerificationToken(): string {
   return crypto.randomBytes(32).toString('hex');
@@ -230,7 +229,6 @@ export async function deleteAccount() {
     // Delete all user guesses
     await deleteAllUserTournamentGuesses(user.id);
     await deleteAllUserGameGuesses(user.id);
-    await deleteAllUserTournamentStatsGuesses(user.id);
 
     // Delete the user record
     await deleteUser(user.id);

@@ -1,13 +1,9 @@
 'use server'
 
 import {getLoggedInUser} from "./user-actions";
-import {GameGuessNew, TournamentGroupTeamStatsGuessNew, TournamentGuessNew, UserUpdate} from "../db/tables-definition";
+import {GameGuessNew, TournamentGuessNew, UserUpdate} from "../db/tables-definition";
 import { updateGameGuessByGameId, updateOrCreateGuess} from "../db/game-guess-repository";
 import {updateOrCreateTournamentGuess as dbUpdateOrCreateTournamentGuess} from "../db/tournament-guess-repository";
-import {
-  findAllTournamentGroupTeamGuessInGroup,
-  upsertTournamentGroupTeamGuesses
-} from "../db/tournament-group-team-guess-repository";
 import {findGroupsInTournament} from "../db/tournament-group-repository";
 import {calculatePlayoffTeamsFromPositions} from "../utils/playoff-teams-calculator";
 import {ExtendedPlayoffRoundData} from "../definitions";
@@ -45,10 +41,6 @@ export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew) {
   }
 }
 
-export async function updateOrCreateTournamentGroupTeamGuesses(groupTeamGuesses: TournamentGroupTeamStatsGuessNew[]) {
-  return upsertTournamentGroupTeamGuesses(groupTeamGuesses)
-}
-
 export async function updatePlayoffGameGuesses(tournamentId: string, user?: UserUpdate) {
   const userId = (user || (await getLoggedInUser()))?.id
   const playoffStages:ExtendedPlayoffRoundData[] = await findPlayoffStagesWithGamesInTournament(tournamentId)
@@ -59,13 +51,48 @@ export async function updatePlayoffGameGuesses(tournamentId: string, user?: User
   }
   const gamesMap = toMap(games)
 
+  // Get user's qualification predictions (JSONB table)
+  const { getAllUserGroupPositionsPredictions } = await import('../db/qualified-teams-repository')
+  const qualificationPredictions = await getAllUserGroupPositionsPredictions(userId, tournamentId)
+
+  // Build guessedPositionsByGroup from qualification predictions
   const guessedPositionsByGroup = Object.fromEntries(
-    await Promise.all(
-      groups.map(async (group) => [
-        group.group_letter,
-        await findAllTournamentGroupTeamGuessInGroup(userId, group.id)
-      ])
-    ))
+    groups.map((group) => {
+      const groupPrediction = qualificationPredictions.find(p => p.group_id === group.id)
+
+      if (!groupPrediction) {
+        return [group.group_letter, []]
+      }
+
+      // Extract team positions from JSONB and convert to standings format
+      const positions = groupPrediction.team_predicted_positions as unknown as Array<{
+        team_id: string
+        predicted_position: number
+        predicted_to_qualify: boolean
+      }>
+
+      // Sort by predicted position and convert to standings format
+      const standings = positions
+        .toSorted((a, b) => a.predicted_position - b.predicted_position)
+        .map(p => ({
+          team_id: p.team_id,
+          position: p.predicted_position,
+          // These fields aren't used by playoff calculation, but include for compatibility
+          points: 0,
+          games_played: 0,
+          win: 0,
+          draw: 0,
+          loss: 0,
+          goals_for: 0,
+          goals_against: 0,
+          goal_difference: 0,
+          conduct_score: 0,
+          is_complete: true, // Mark as complete so playoff calculator accepts this group
+        }))
+
+      return [group.group_letter, standings]
+    })
+  )
 
   const playoffTeamsByGuess = await calculatePlayoffTeamsFromPositions(
     tournamentId,

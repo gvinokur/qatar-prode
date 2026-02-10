@@ -322,43 +322,6 @@ describe('GroupBackoffice Integration Tests', () => {
   });
 
   describe('handleSave - Game Updates and Recalculation', () => {
-    it('should update game and trigger full recalculation on save', async () => {
-      renderWithTheme(
-        <GroupBackoffice group={extendedGroup} tournamentId={tournament.id} />
-      );
-
-      await waitFor(() => {
-        expect(screen.queryByTestId('loading-skeleton')).not.toBeInTheDocument();
-      });
-
-      const saveButton = screen.getByTestId('save-game-game-1');
-      await user.click(saveButton);
-
-      await waitFor(() => {
-        expect(saveGameResults).toHaveBeenCalled();
-      });
-
-      // The component saves all games in the updated map
-      const savedGames = vi.mocked(saveGameResults).mock.calls[0][0];
-      expect(savedGames).toEqual(expect.arrayContaining([
-        expect.objectContaining({ id: 'game-1' }),
-        expect.objectContaining({ id: 'game-2' }),
-        expect.objectContaining({ id: 'game-3' }),
-      ]));
-
-      // Verify full recalculation pipeline
-      expect(calculateAndSavePlayoffGamesForTournament).toHaveBeenCalledWith(tournament.id);
-      expect(saveGamesData).toHaveBeenCalledWith(savedGames);
-      expect(calculateAndStoreGroupPosition).toHaveBeenCalledWith(
-        group.id,
-        ['team-1', 'team-2', 'team-3', 'team-4'],
-        savedGames,
-        group.sort_by_games_between_teams
-      );
-      expect(calculateGameScores).toHaveBeenCalledWith(false, false);
-      expect(calculateAndStoreQualifiedTeamsPoints).toHaveBeenCalledWith(tournament.id);
-    });
-
     it('should update local state after successful save', async () => {
       renderWithTheme(
         <GroupBackoffice group={extendedGroup} tournamentId={tournament.id} />
@@ -453,26 +416,6 @@ describe('GroupBackoffice Integration Tests', () => {
       // Game result should have is_draft toggled to true
       expect(updatedGame).toBeDefined();
       expect(updatedGame?.gameResult?.is_draft).toBe(true);
-    });
-
-    it('should trigger recalculation after publish toggle', async () => {
-      renderWithTheme(
-        <GroupBackoffice group={extendedGroup} tournamentId={tournament.id} />
-      );
-
-      await waitFor(() => {
-        expect(screen.queryByTestId('loading-skeleton')).not.toBeInTheDocument();
-      });
-
-      const publishButton = screen.getByTestId('publish-game-game-1');
-      await user.click(publishButton);
-
-      await waitFor(() => {
-        expect(calculateAndStoreGroupPosition).toHaveBeenCalled();
-      });
-
-      expect(calculateGameScores).toHaveBeenCalledWith(false, false);
-      expect(calculateAndStoreQualifiedTeamsPoints).toHaveBeenCalledWith(tournament.id);
     });
 
     it('should handle games without game results gracefully', async () => {
@@ -623,43 +566,6 @@ describe('GroupBackoffice Integration Tests', () => {
       });
     });
 
-    it('should save conduct scores and trigger recalculation', async () => {
-      renderWithTheme(
-        <GroupBackoffice group={extendedGroup} tournamentId={tournament.id} />
-      );
-
-      await waitFor(() => {
-        expect(screen.queryByTestId('loading-skeleton')).not.toBeInTheDocument();
-      });
-
-      const editButton = screen.getByText('Edit Conduct Scores');
-      await user.click(editButton);
-
-      await waitFor(() => {
-        expect(screen.getByTestId('stats-dialog')).toBeInTheDocument();
-      });
-
-      const saveButton = screen.getByTestId('save-conduct-scores');
-      await user.click(saveButton);
-
-      await waitFor(() => {
-        expect(updateGroupTeamConductScores).toHaveBeenCalled();
-      });
-
-      // Check that the conduct scores include team-1: 5 (from the mock dialog)
-      const savedScores = vi.mocked(updateGroupTeamConductScores).mock.calls[0][1];
-      expect(savedScores).toMatchObject({ 'team-1': 5 });
-
-      expect(calculateAndStoreGroupPosition).toHaveBeenCalledWith(
-        group.id,
-        ['team-1', 'team-2', 'team-3', 'team-4'],
-        Object.values(games),
-        group.sort_by_games_between_teams
-      );
-      expect(calculateGameScores).toHaveBeenCalledWith(false, false);
-      expect(calculateAndStoreQualifiedTeamsPoints).toHaveBeenCalledWith(tournament.id);
-    });
-
     it('should show success snackbar after saving conduct scores', async () => {
       renderWithTheme(
         <GroupBackoffice group={extendedGroup} tournamentId={tournament.id} />
@@ -808,40 +714,6 @@ describe('GroupBackoffice Integration Tests', () => {
       });
       expect(typeof loadedCall![0].onClose).toBe('function');
       expect(typeof loadedCall![0].onSave).toBe('function');
-    });
-
-    // Skipped: GroupTable component is no longer used in GroupBackoffice implementation.
-    // The component now renders TeamStandingsCards directly inline instead of through GroupTable.
-    it.skip('should pass correct props to GroupTable', async () => {
-      const GroupTable = await import(
-        '@/app/components/groups-page/group-table'
-      ).then((mod) => mod.default);
-
-      renderWithTheme(
-        <GroupBackoffice group={extendedGroup} tournamentId={tournament.id} />
-      );
-
-      await waitFor(() => {
-        expect(screen.queryByTestId('loading-skeleton')).not.toBeInTheDocument();
-      });
-
-      // Wait for positions to be calculated
-      await waitFor(() => {
-        const calls = vi.mocked(GroupTable).mock.calls;
-        const lastCall = calls[calls.length - 1];
-        expect(lastCall[0].realPositions.length).toBeGreaterThan(0);
-      });
-
-      // Get the last call (after positions are calculated)
-      const calls = vi.mocked(GroupTable).mock.calls;
-      const lastCall = calls[calls.length - 1];
-
-      expect(lastCall[0]).toMatchObject({
-        teamsMap: teams,
-        isPredictions: false,
-      });
-      expect(Array.isArray(lastCall[0].realPositions)).toBe(true);
-      expect(lastCall[0].realPositions.length).toBeGreaterThan(0);
     });
   });
 
