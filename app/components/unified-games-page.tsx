@@ -57,7 +57,6 @@ export async function UnifiedGamesPage({ tournamentId }: UnifiedGamesPageProps) 
   return (
     <GuessesContextProvider
       gameGuesses={gameGuesses}
-      groupGames={[]}
       autoSave={true}
     >
       <UnifiedGamesPageClient
