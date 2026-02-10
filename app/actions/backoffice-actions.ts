@@ -78,7 +78,6 @@ import {calculateScoreForGame} from "../utils/game-score-calculator";
 import {
   findTournamentGuessByTournament,
   updateTournamentGuessWithSnapshot,
-  updateTournamentGuessByUserIdTournamentWithSnapshot,
   deleteAllTournamentGuessesByTournamentId
 } from "../db/tournament-guess-repository";
 import {awardsDefinition} from "../utils/award-utils";
@@ -436,32 +435,6 @@ export async function calculateAndStoreGroupPosition(group_id: string, teamIds: 
         position: index
       }))
   await updateTournamentGroupTeams(groupPositions)
-}
-
-export async function calculateAndStoreQualifiedTeamsPoints(tournamentId: string) {
-  const users = await db.selectFrom('users').select('id').execute();
-  const qualifiedTeamsResult = await findQualifiedTeams(tournamentId);
-  const allQualifiedTeams = qualifiedTeamsResult.teams;
-
-  return Promise.all(users.map(async (user) => {
-    try{
-      const userQualifiedTeams = await findGuessedQualifiedTeams(tournamentId, user.id)
-      if(user.id === '45bd6e70-ed7b-41b6-a860-e05b5a19deb3') {
-        // console.log(userQualifiedTeams) - removed for production
-        // console.log(allQualifiedTeams) - removed for production
-      }
-      const correctGuesses = userQualifiedTeams.filter(team => allQualifiedTeams.find(allTeam => allTeam.id === team.id))
-      const updatedTournamentGuess = await updateTournamentGuessByUserIdTournamentWithSnapshot(user.id, tournamentId, {
-        qualified_teams_score: correctGuesses.length
-      })
-      
-      return updatedTournamentGuess || {status: 'warning', warning: 'No tournament guess found for user ' + user.id}
-
-    } catch (e) {
-      console.error(e)
-      return {error: 'Error calculating qualified teams points for user ' + user.id}
-    }
-  }))
 }
 
 export async function findDataForAwards(tournamentId: string) {

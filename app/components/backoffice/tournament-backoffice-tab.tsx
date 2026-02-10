@@ -4,7 +4,7 @@ import {Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogContentT
 import {useState} from "react";
 import {Tournament} from "../../db/tables-definition";
 import {
-  calculateAndStoreQualifiedTeamsPoints, calculateGameScores,
+  calculateGameScores,
   generateDbTournamentTeamPlayers,
   recalculateAllPlayoffFirstRoundGameGuesses,
   deleteDBTournamentTree
@@ -46,13 +46,6 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
     setLoading(true)
     const results = await calculateGameScores(false, false)
     setActionResults(results)
-    setLoading(false)
-  }
-
-  const calculateQualifiedScoresForTournament = async () => {
-    setLoading(true)
-    const qualifiedTeamScores = await calculateAndStoreQualifiedTeamsPoints(tournament.id)
-    setActionResults({results: qualifiedTeamScores})
     setLoading(false)
   }
 
@@ -178,19 +171,8 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
             md: 3,
             lg: 2
           }}>
-          <Button loading={loading} variant={'contained'} size={'large'} fullWidth={true} sx={{height: '100%'}} onClick={calculateQualifiedScoresForTournament}>
-            Calculate Qualified Team Scores
-          </Button>
-        </Grid>
-        <Grid
-          textAlign={'center'}
-          size={{
-            xs: 6,
-            md: 3,
-            lg: 2
-          }}>
           <Button loading={loading} variant={'contained'} size={'large'} fullWidth={true} sx={{height: '100%'}} onClick={calculateQualifiedTeamsPredictionScores}>
-            Calculate Qualified Teams Predictions Scores
+            Calculate Qualified Teams Scores
           </Button>
         </Grid>
         <Grid

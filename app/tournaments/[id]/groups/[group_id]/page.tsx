@@ -3,12 +3,12 @@
 import {getCompleteGroupData} from "../../../../actions/tournament-actions";
 import {DebugObject} from "../../../../components/debug";
 import { Grid} from "../../../../components/mui-wrappers";
-import {GameGuess, Team} from "../../../../db/tables-definition";
+import {GameGuess} from "../../../../db/tables-definition";
 import {GuessesContextProvider} from "../../../../components/context-providers/guesses-context-provider";
 import GroupTable from "../../../../components/groups-page/group-table";
 import {findGameGuessesByUserId, getPredictionDashboardStats} from "../../../../db/game-guess-repository";
 import {getLoggedInUser} from "../../../../actions/user-actions";
-import {findGuessedQualifiedTeams, findQualifiedTeams} from "../../../../db/team-repository";
+import {findQualifiedTeams} from "../../../../db/team-repository";
 import {customToMap} from "../../../../utils/ObjectUtils";
 import GamesGrid from "../../../../components/games-grid";
 import { PredictionDashboard } from "../../../../components/prediction-dashboard";
@@ -33,11 +33,9 @@ export default async function GroupComponent(props : Props) {
   const completeGroupData = await getCompleteGroupData(groupId)
   const tournament = await findTournamentById(params.id)
   let userGameGuesses: GameGuess[] = [];
-  let qualifiedTeamGuesses: Team[] = [];
   let dashboardStats = null;
   if (isLoggedIn) {
     userGameGuesses = await findGameGuessesByUserId(user.id, params.id)
-    qualifiedTeamGuesses = await findGuessedQualifiedTeams(params.id, user.id, params.group_id)
     dashboardStats = await getPredictionDashboardStats(user.id, params.id)
   }
   const qualifiedTeamsResult = await findQualifiedTeams(params.id, params.group_id);
@@ -50,7 +48,6 @@ export default async function GroupComponent(props : Props) {
       {searchParams.hasOwnProperty('debug') && (<DebugObject object={{
         completeGroupData,
         gameGuesses,
-        qualifiedTeamGuesses,
         qualifiedTeams
       }}/>)}
       <GuessesContextProvider
