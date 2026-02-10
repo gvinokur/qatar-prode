@@ -12,6 +12,7 @@ import {
 import { Team, TournamentGroup, QualifiedTeamPrediction } from '../../db/tables-definition';
 import QualifiedTeamsGrid from './qualified-teams-grid';
 import ThirdPlaceSummary from './third-place-summary';
+import { QualifiedTeamsScoringResult } from '../../utils/qualified-teams-scoring';
 
 interface QualifiedTeamsClientPageProps {
   /** Tournament data */
@@ -35,6 +36,14 @@ interface QualifiedTeamsClientPageProps {
   readonly allowsThirdPlace: boolean;
   /** Maximum allowed third place qualifiers */
   readonly maxThirdPlace: number;
+  /** Actual qualified teams (progressive results) */
+  readonly actualResults?: Array<{ id: string; group_id: string }>;
+  /** Set of group IDs that are complete (have positions determined) */
+  readonly completeGroupIds: Set<string>;
+  /** Whether all groups in the tournament are complete */
+  readonly allGroupsComplete: boolean;
+  /** Scoring breakdown for user's predictions */
+  readonly scoringBreakdown?: QualifiedTeamsScoringResult | null;
 }
 
 /** Handle drag end event - batch updates for entire group */
@@ -129,6 +138,10 @@ function QualifiedTeamsUI({
   allowsThirdPlace,
   maxThirdPlace,
   isLocked,
+  actualResults,
+  completeGroupIds,
+  allGroupsComplete,
+  scoringBreakdown,
 }: Omit<QualifiedTeamsClientPageProps, 'initialPredictions' | 'userId'>) {
   const { predictions, isSaving, saveState, error, clearError, updateGroupPositions } = useQualifiedTeamsContext();
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
@@ -298,6 +311,9 @@ function QualifiedTeamsUI({
           isLocked={isLocked || isSaving}
           allowsThirdPlace={allowsThirdPlace}
           onToggleThirdPlace={handleToggleThirdPlace}
+          scoringBreakdown={scoringBreakdown}
+          completeGroupIds={completeGroupIds}
+          allGroupsComplete={allGroupsComplete}
         />
       </DndContext>
 

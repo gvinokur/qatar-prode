@@ -304,10 +304,14 @@ describe('Team Repository', () => {
 
         expect(mockDb.selectFrom).toHaveBeenCalledWith('tournament_group_teams');
         expect(mockDb.selectFrom).toHaveBeenCalledWith('games');
-        expect(result).toEqual([
-          { id: 'team-1', name: 'Team 1', short_name: 'T1', group_id: 'group-1', final_position: 1 },
-          { id: 'team-2', name: 'Team 2', short_name: 'T2', group_id: 'group-1', final_position: 2 },
-        ]);
+        expect(result).toEqual({
+          teams: [
+            { id: 'team-1', name: 'Team 1', short_name: 'T1', group_id: 'group-1', final_position: 1 },
+            { id: 'team-2', name: 'Team 2', short_name: 'T2', group_id: 'group-1', final_position: 2 },
+          ],
+          completeGroupIds: new Set(['group-1']),
+          allGroupsComplete: true,
+        });
       });
 
       it('should find qualified teams with group filter', async () => {
@@ -336,9 +340,13 @@ describe('Team Repository', () => {
         const result = await findQualifiedTeams('tournament-1', 'group-1');
 
         expect(mockStandingsQuery.$if).toHaveBeenCalledWith(true, expect.any(Function));
-        expect(result).toEqual([
-          { id: 'team-1', name: 'Team 1', short_name: 'T1', group_id: 'group-1', final_position: 1 },
-        ]);
+        expect(result).toEqual({
+          teams: [
+            { id: 'team-1', name: 'Team 1', short_name: 'T1', group_id: 'group-1', final_position: 1 },
+          ],
+          completeGroupIds: new Set(['group-1']),
+          allGroupsComplete: true,
+        });
       });
 
       it('should return empty array when no qualified teams', async () => {
@@ -364,7 +372,11 @@ describe('Team Repository', () => {
 
         const result = await findQualifiedTeams('tournament-1');
 
-        expect(result).toEqual([]);
+        expect(result).toEqual({
+          teams: [],
+          completeGroupIds: new Set(),
+          allGroupsComplete: false,
+        });
       });
     });
   });

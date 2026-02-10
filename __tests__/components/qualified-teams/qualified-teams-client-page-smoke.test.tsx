@@ -47,6 +47,10 @@ describe('QualifiedTeamsClientPage - Smoke Tests', () => {
     userId: 'user-1',
     isLocked: false,
     initialPredictions: [mockPrediction1],
+    allowsThirdPlace: false,
+    maxThirdPlace: 0,
+    completeGroupIds: new Set<string>(),
+    allGroupsComplete: false,
   };
 
   it('should render without crashing', () => {

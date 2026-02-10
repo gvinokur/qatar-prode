@@ -32,9 +32,23 @@ vi.mock('../../../../../app/db/database', () => ({
   },
 }));
 
+// Mock team repository (findQualifiedTeams)
+vi.mock('../../../../../app/db/team-repository', () => ({
+  findQualifiedTeams: vi.fn().mockResolvedValue({
+    teams: [],
+    completeGroupIds: new Set(),
+    allGroupsComplete: false
+  }),
+}));
+
+// Mock qualified teams scoring utility
+vi.mock('../../../../../app/utils/qualified-teams-scoring', () => ({
+  calculateQualifiedTeamsScore: vi.fn().mockResolvedValue(null),
+}));
+
 // Mock the client component
 vi.mock('../../../../../app/components/qualified-teams/qualified-teams-client-page', () => ({
-  default: ({ tournament, groups, initialPredictions, userId, isLocked, allowsThirdPlace, maxThirdPlace }: any) => (
+  default: ({ tournament, groups, initialPredictions, userId, isLocked, allowsThirdPlace, maxThirdPlace, actualResults, scoringBreakdown }: any) => (
     <div data-testid="qualified-teams-client-page">
       <div data-testid="tournament-id">{tournament.id}</div>
       <div data-testid="groups-count">{groups.length}</div>
@@ -43,6 +57,8 @@ vi.mock('../../../../../app/components/qualified-teams/qualified-teams-client-pa
       <div data-testid="is-locked">{isLocked.toString()}</div>
       <div data-testid="allows-third-place">{allowsThirdPlace.toString()}</div>
       <div data-testid="max-third-place">{maxThirdPlace}</div>
+      <div data-testid="has-actual-results">{actualResults ? 'true' : 'false'}</div>
+      <div data-testid="has-scoring-breakdown">{scoringBreakdown ? 'true' : 'false'}</div>
     </div>
   ),
 }));

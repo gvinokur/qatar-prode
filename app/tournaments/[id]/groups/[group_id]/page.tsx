@@ -42,7 +42,8 @@ export default async function GroupComponent(props : Props) {
     qualifiedTeamGuesses = await findGuessedQualifiedTeams(params.id, user.id, params.group_id)
     dashboardStats = await getPredictionDashboardStats(user.id, params.id)
   }
-  const qualifiedTeams = await findQualifiedTeams(params.id, params.group_id)
+  const qualifiedTeamsResult = await findQualifiedTeams(params.id, params.group_id);
+  const qualifiedTeams = qualifiedTeamsResult.teams;
 
   const gameGuesses:{[k: string]: GameGuess} = customToMap(userGameGuesses, (gameGuess) => gameGuess.game_id)
 

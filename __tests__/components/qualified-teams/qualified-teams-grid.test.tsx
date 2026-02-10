@@ -74,6 +74,8 @@ describe('QualifiedTeamsGrid', () => {
         predictions={predictions}
         isLocked={false}
         allowsThirdPlace={false}
+        completeGroupIds={new Set()}
+          allGroupsComplete={false}
       />
     );
 
@@ -97,6 +99,8 @@ describe('QualifiedTeamsGrid', () => {
         predictions={predictions}
         isLocked={false}
         allowsThirdPlace={false}
+        completeGroupIds={new Set()}
+          allGroupsComplete={false}
       />
     );
 
@@ -111,6 +115,8 @@ describe('QualifiedTeamsGrid', () => {
         predictions={new Map()}
         isLocked={false}
         allowsThirdPlace={false}
+        completeGroupIds={new Set()}
+          allGroupsComplete={false}
       />
     );
 
@@ -132,6 +138,8 @@ describe('QualifiedTeamsGrid', () => {
         predictions={predictions}
         isLocked={true}
         allowsThirdPlace={false}
+        completeGroupIds={new Set()}
+          allGroupsComplete={false}
       />
     );
 
@@ -161,6 +169,8 @@ describe('QualifiedTeamsGrid', () => {
         predictions={predictions}
         isLocked={false}
         allowsThirdPlace={true}
+        completeGroupIds={new Set()}
+          allGroupsComplete={false}
       />
     );
 
@@ -186,6 +196,8 @@ describe('QualifiedTeamsGrid', () => {
         isLocked={false}
         allowsThirdPlace={false}
         onPositionChange={onPositionChange}
+        completeGroupIds={new Set()}
+          allGroupsComplete={false}
       />
     );
 
@@ -217,6 +229,8 @@ describe('QualifiedTeamsGrid', () => {
         isLocked={false}
         allowsThirdPlace={true}
         onToggleThirdPlace={onToggleThirdPlace}
+        completeGroupIds={new Set()}
+          allGroupsComplete={false}
       />
     );
 
@@ -240,6 +254,8 @@ describe('QualifiedTeamsGrid', () => {
         predictions={predictions}
         isLocked={false}
         allowsThirdPlace={false}
+        completeGroupIds={new Set()}
+          allGroupsComplete={false}
       />
     );
 
@@ -264,6 +280,8 @@ describe('QualifiedTeamsGrid', () => {
         predictions={predictions}
         isLocked={false}
         allowsThirdPlace={false}
+        completeGroupIds={new Set()}
+          allGroupsComplete={false}
       />
     );
 

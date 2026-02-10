@@ -16,6 +16,15 @@ export interface QualifiedTeamWithPosition {
   final_position: number; // 1, 2, or 3
 }
 
+export interface QualifiedTeamsResult {
+  /** Array of qualified teams with their positions */
+  teams: QualifiedTeamWithPosition[];
+  /** Set of group IDs that are complete (have positions determined) */
+  completeGroupIds: Set<string>;
+  /** Whether all groups in the tournament are complete */
+  allGroupsComplete: boolean;
+}
+
 const baseFunctions = createBaseFunctions<TeamTable, Team>(tableName);
 export const findTeamById = baseFunctions.findById
 export const updateTeam = baseFunctions.update
@@ -141,7 +150,7 @@ function addThirdPlaceQualifiers(
  * This allows scoring to progress as groups finish rather than blocking
  * until all groups are complete.
  */
-export const findQualifiedTeams = cache(async (tournamentId: string, inGroupId?: string): Promise<QualifiedTeamWithPosition[]> => {
+export const findQualifiedTeams = cache(async (tournamentId: string, inGroupId?: string): Promise<QualifiedTeamsResult> => {
   // 1. Get all group standings with completion status
   const groupStandings = await db
     .selectFrom('tournament_group_teams')
@@ -170,10 +179,24 @@ export const findQualifiedTeams = cache(async (tournamentId: string, inGroupId?:
     return acc;
   }, {} as Record<string, typeof groupStandings>);
 
-  // 3. Add 1st and 2nd place from complete groups
+  // 3. Determine which groups are complete
+  // A group is complete if any team in that group has is_complete = true
+  const completeGroupIds = new Set<string>();
+  Object.entries(groupedStandings).forEach(([groupId, standings]) => {
+    const isComplete = standings.some(standing => standing.is_complete);
+    if (isComplete) {
+      completeGroupIds.add(groupId);
+    }
+  });
+
+  // 4. Check if all groups are complete
+  const totalGroups = Object.keys(groupedStandings).length;
+  const allGroupsComplete = completeGroupIds.size === totalGroups && totalGroups > 0;
+
+  // 5. Add 1st and 2nd place from complete groups
   addTopTwoFromCompleteGroups(groupedStandings, results);
 
-  // 4. Add 3rd place qualifiers (determined by playoff bracket)
+  // 6. Add 3rd place qualifiers (determined by playoff bracket)
   // Query all playoff games (game_type can be 'playoff', 'first_round', or 'other_round')
   const playoffTeams = await db
     .selectFrom('games')
@@ -193,6 +216,10 @@ export const findQualifiedTeams = cache(async (tournamentId: string, inGroupId?:
     addThirdPlaceQualifiers(groupedStandings, playoffTeamIds, results);
   }
 
-  return results;
+  return {
+    teams: results,
+    completeGroupIds,
+    allGroupsComplete,
+  };
 })
 
