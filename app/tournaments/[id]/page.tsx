@@ -95,7 +95,6 @@ export default async function TournamentLandingPage(props: Props) {
             {user && dashboardStats && tournament ? (
               <GuessesContextProvider
                 gameGuesses={gameGuesses}
-                groupGames={[]}
                 autoSave={true}
               >
                 <PredictionStatusBar

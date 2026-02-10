@@ -55,8 +55,6 @@ export default async function GroupComponent(props : Props) {
       }}/>)}
       <GuessesContextProvider
         gameGuesses={gameGuesses}
-        groupGames={Object.values(completeGroupData.gamesMap)}
-        sortByGamesBetweenTeams={completeGroupData.group.sort_by_games_between_teams}
         autoSave={isLoggedIn}
       >
         <ViewTransition

@@ -2,12 +2,10 @@
 
 import React, {useCallback, useMemo, useState} from "react";
 import {
-  Game,
   GameGuessNew,
 } from "../../db/tables-definition";
 import {
-  updateOrCreateGameGuesses,
-  updatePlayoffGameGuesses
+  updateOrCreateGameGuesses
 } from "../../actions/guesses-actions";
 
 type GameGuessMap = {[k:string]: GameGuessNew}
@@ -25,15 +23,11 @@ export const GuessesContext = React.createContext<GuessesContextValue>({
 export interface GuessesContextProviderProps {
   readonly children: React.ReactNode
   readonly gameGuesses: {[k:string]: GameGuessNew}
-  readonly groupGames?: Game[],
-  readonly sortByGamesBetweenTeams?: boolean
   readonly autoSave?: boolean
 }
 
 export function GuessesContextProvider ({children,
                                           gameGuesses: serverGameGuesses,
-                                          groupGames,
-                                          sortByGamesBetweenTeams,
                                           autoSave = false
                                         }: GuessesContextProviderProps) {
   const [gameGuesses, setGameGuesses] = useState(serverGameGuesses)
@@ -59,15 +53,7 @@ export function GuessesContextProvider ({children,
       console.error('[GuessesContext] Save failed:', result.error)
       throw new Error(result.error || 'Failed to save prediction')
     }
-
-    // Update playoff game guesses when all group games are guessed
-    if (groupGames) {
-      const allGamesGuessed = groupGames.every(game => newGameGuesses[game.id])
-      if (allGamesGuessed) {
-        await updatePlayoffGameGuesses(groupGames[0].tournament_id)
-      }
-    }
-  }, [autoSave, gameGuesses, groupGames])
+  }, [autoSave, gameGuesses])
 
   const context = useMemo(() => ({
     gameGuesses,
