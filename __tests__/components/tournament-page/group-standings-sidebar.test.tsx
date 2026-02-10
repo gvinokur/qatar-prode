@@ -83,7 +83,7 @@ describe('GroupStandingsSidebar', () => {
       expect(screen.getByText('Grupos')).toBeInTheDocument();
     });
 
-    it('renders tabs for all groups in alphabetical order', () => {
+    it('renders carousel navigation with arrows', () => {
       renderWithTheme(
         <GroupStandingsSidebar
           groups={mockGroupsData}
@@ -92,9 +92,9 @@ describe('GroupStandingsSidebar', () => {
         />
       );
 
-      // Should render tabs for Group A and Group B (sorted alphabetically)
-      expect(screen.getByRole('tab', { name: /A/i })).toBeInTheDocument();
-      expect(screen.getByRole('tab', { name: /B/i })).toBeInTheDocument();
+      // Should render navigation arrows
+      expect(screen.getByLabelText('Previous group')).toBeInTheDocument();
+      expect(screen.getByLabelText('Next group')).toBeInTheDocument();
     });
 
     it('displays default selected group', () => {
@@ -156,8 +156,8 @@ describe('GroupStandingsSidebar', () => {
     });
   });
 
-  describe('Tab Interaction', () => {
-    it('switches to selected group when tab clicked', async () => {
+  describe('Carousel Navigation', () => {
+    it('navigates to next group when next arrow clicked', async () => {
       renderWithTheme(
         <GroupStandingsSidebar
           groups={mockGroupsData}
@@ -169,12 +169,58 @@ describe('GroupStandingsSidebar', () => {
       // Initially should show Group A
       expect(screen.getByText('GRUPO A')).toBeInTheDocument();
 
-      // Click Group B tab
-      const groupBTab = screen.getByRole('tab', { name: /B/i });
-      fireEvent.click(groupBTab);
+      // Click next arrow
+      const nextButton = screen.getByLabelText('Next group');
+      fireEvent.click(nextButton);
 
       // Should now show Group B
       expect(await screen.findByText('GRUPO B')).toBeInTheDocument();
+    });
+
+    it('navigates to previous group when previous arrow clicked', () => {
+      renderWithTheme(
+        <GroupStandingsSidebar
+          groups={mockGroupsData}
+          defaultGroupId="group-2"
+          qualifiedTeams={mockQualifiedTeams}
+        />
+      );
+
+      // Initially should show Group B
+      expect(screen.getByText('GRUPO B')).toBeInTheDocument();
+
+      // Click previous arrow
+      const prevButton = screen.getByLabelText('Previous group');
+      fireEvent.click(prevButton);
+
+      // Should now show Group A
+      expect(screen.getByText('GRUPO A')).toBeInTheDocument();
+    });
+
+    it('disables previous arrow when on first group', () => {
+      renderWithTheme(
+        <GroupStandingsSidebar
+          groups={mockGroupsData}
+          defaultGroupId="group-1"
+          qualifiedTeams={mockQualifiedTeams}
+        />
+      );
+
+      const prevButton = screen.getByLabelText('Previous group');
+      expect(prevButton).toBeDisabled();
+    });
+
+    it('disables next arrow when on last group', () => {
+      renderWithTheme(
+        <GroupStandingsSidebar
+          groups={mockGroupsData}
+          defaultGroupId="group-2"
+          qualifiedTeams={mockQualifiedTeams}
+        />
+      );
+
+      const nextButton = screen.getByLabelText('Next group');
+      expect(nextButton).toBeDisabled();
     });
 
     it('updates team standings when switching groups', () => {
@@ -186,33 +232,13 @@ describe('GroupStandingsSidebar', () => {
         />
       );
 
-      // Click Group B tab
-      const groupBTab = screen.getByRole('tab', { name: /B/i });
-      fireEvent.click(groupBTab);
+      // Click next arrow
+      const nextButton = screen.getByLabelText('Next group');
+      fireEvent.click(nextButton);
 
       // Should still render team standings (TeamStandingsCards component handles rendering)
       expect(screen.getByText('#1')).toBeInTheDocument();
       expect(screen.getByText('#2')).toBeInTheDocument();
-    });
-
-    it('maintains group selection after switching', () => {
-      renderWithTheme(
-        <GroupStandingsSidebar
-          groups={mockGroupsData}
-          defaultGroupId="group-1"
-          qualifiedTeams={mockQualifiedTeams}
-        />
-      );
-
-      // Switch to Group B
-      const groupBTab = screen.getByRole('tab', { name: /B/i });
-      fireEvent.click(groupBTab);
-      expect(screen.getByText('GRUPO B')).toBeInTheDocument();
-
-      // Switch back to Group A
-      const groupATab = screen.getByRole('tab', { name: /A/i });
-      fireEvent.click(groupATab);
-      expect(screen.getByText('GRUPO A')).toBeInTheDocument();
     });
   });
 
@@ -250,7 +276,7 @@ describe('GroupStandingsSidebar', () => {
   });
 
   describe('Accessibility', () => {
-    it('renders tabs with proper aria-label', () => {
+    it('navigation buttons have proper aria-labels', () => {
       renderWithTheme(
         <GroupStandingsSidebar
           groups={mockGroupsData}
@@ -259,12 +285,12 @@ describe('GroupStandingsSidebar', () => {
         />
       );
 
-      // Tabs should have aria-label for screen readers
-      const tabsList = screen.getByRole('tablist', { name: /Group standings selector/i });
-      expect(tabsList).toBeInTheDocument();
+      // Navigation buttons should have aria-labels for screen readers
+      expect(screen.getByLabelText('Previous group')).toBeInTheDocument();
+      expect(screen.getByLabelText('Next group')).toBeInTheDocument();
     });
 
-    it('tabs are keyboard navigable', () => {
+    it('navigation buttons are keyboard accessible', () => {
       renderWithTheme(
         <GroupStandingsSidebar
           groups={mockGroupsData}
@@ -273,12 +299,12 @@ describe('GroupStandingsSidebar', () => {
         />
       );
 
-      // Tabs should be focusable
-      const groupATab = screen.getByRole('tab', { name: /A/i });
-      const groupBTab = screen.getByRole('tab', { name: /B/i });
+      // Buttons should be focusable and clickable
+      const prevButton = screen.getByLabelText('Previous group');
+      const nextButton = screen.getByLabelText('Next group');
 
-      expect(groupATab).toBeInTheDocument();
-      expect(groupBTab).toBeInTheDocument();
+      expect(prevButton).toBeInTheDocument();
+      expect(nextButton).toBeInTheDocument();
     });
   });
 
@@ -296,7 +322,7 @@ describe('GroupStandingsSidebar', () => {
       expect(screen.getByText('GRUPO A')).toBeInTheDocument();
     });
 
-    it('renders single group without tabs overflow', () => {
+    it('renders single group with disabled navigation arrows', () => {
       const singleGroupData = [mockGroupsData[0]];
 
       renderWithTheme(
@@ -307,12 +333,15 @@ describe('GroupStandingsSidebar', () => {
         />
       );
 
-      // Should render single tab
-      expect(screen.getByRole('tab', { name: /A/i })).toBeInTheDocument();
-      expect(screen.queryByRole('tab', { name: /B/i })).not.toBeInTheDocument();
+      // Should render navigation but both arrows should be disabled
+      const prevButton = screen.getByLabelText('Previous group');
+      const nextButton = screen.getByLabelText('Next group');
+
+      expect(prevButton).toBeDisabled();
+      expect(nextButton).toBeDisabled();
     });
 
-    it('handles many groups with scrollable tabs', () => {
+    it('handles many groups with carousel navigation', () => {
       const manyGroups = Array.from({ length: 8 }, (_, i) => ({
         id: `group-${i + 1}`,
         letter: String.fromCharCode(65 + i), // A, B, C, ..., H
@@ -328,9 +357,11 @@ describe('GroupStandingsSidebar', () => {
         />
       );
 
-      // Should render all tabs (scrollable)
-      expect(screen.getByRole('tab', { name: /A/i })).toBeInTheDocument();
-      expect(screen.getByRole('tab', { name: /H/i })).toBeInTheDocument();
+      // Should render navigation arrows for carousel
+      expect(screen.getByLabelText('Previous group')).toBeInTheDocument();
+      expect(screen.getByLabelText('Next group')).toBeInTheDocument();
+      // Should show first group initially
+      expect(screen.getByText('GRUPO A')).toBeInTheDocument();
     });
   });
 
@@ -349,8 +380,8 @@ describe('GroupStandingsSidebar', () => {
       expect(accordionSummary).toBeInTheDocument();
     });
 
-    it('applies theme to tabs indicator', () => {
-      const { container } = renderWithTheme(
+    it('applies theme to navigation buttons', () => {
+      renderWithTheme(
         <GroupStandingsSidebar
           groups={mockGroupsData}
           defaultGroupId="group-1"
@@ -358,9 +389,12 @@ describe('GroupStandingsSidebar', () => {
         />
       );
 
-      // Tabs should be rendered with MUI components
-      const tabs = container.querySelector('.MuiTabs-root');
-      expect(tabs).toBeInTheDocument();
+      // Navigation buttons should be rendered with MUI components
+      const prevButton = screen.getByLabelText('Previous group');
+      const nextButton = screen.getByLabelText('Next group');
+
+      expect(prevButton).toBeInTheDocument();
+      expect(nextButton).toBeInTheDocument();
     });
   });
 });

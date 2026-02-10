@@ -132,7 +132,7 @@ export default function TeamStandingCard({
                 sx={{
                   fontWeight: 'bold',
                   color: theme.palette.text.primary,
-                  fontSize: compact ? '0.75rem' : (isUltraCompact ? '0.875rem' : undefined)
+                  fontSize: compact ? '0.8rem' : (isUltraCompact ? '0.875rem' : undefined)
                 }}
               >
                 #{standing.position}
@@ -167,7 +167,7 @@ export default function TeamStandingCard({
                 sx={{
                   fontWeight: 'bold',
                   whiteSpace: 'nowrap',
-                  fontSize: compact ? '0.75rem' : (isUltraCompact ? '0.875rem' : undefined)
+                  fontSize: compact ? '0.8rem' : (isUltraCompact ? '0.875rem' : undefined)
                 }}
               >
                 {pointsText}
@@ -181,7 +181,7 @@ export default function TeamStandingCard({
                 component="div"
                 sx={{
                   fontWeight: 'bold',
-                  fontSize: compact ? '0.75rem' : (isUltraCompact ? '0.875rem' : undefined)
+                  fontSize: compact ? '0.8rem' : (isUltraCompact ? '0.875rem' : undefined)
                 }}
               >
                 {standing.points} pts
