@@ -89,12 +89,12 @@ describe('UserTournamentStatistics', () => {
         />
       )
 
-      // Groups = group_score (30) + group_boost_bonus (10) + qualified_teams_score (5) + group_position_score (3) = 48
+      // Groups = group_score (30) + group_boost_bonus (10) = 40 (qualified points are separate)
       // Find the row with "Grupos:" label and check its value
       const rows = container.querySelectorAll('.MuiBox-root')
       const gruposRow = Array.from(rows).find(row => row.textContent?.includes('Grupos:'))
       expect(gruposRow).toBeDefined()
-      expect(gruposRow?.textContent).toContain('48 pts')
+      expect(gruposRow?.textContent).toContain('40 pts')
     })
 
     it('calculates playoffs total correctly', () => {
@@ -169,7 +169,7 @@ describe('UserTournamentStatistics', () => {
         />
       )
 
-      // Grand Total = groups (30+10+12+8=60) + playoffs (25+5=30) + awards (15+10=25) = 115
+      // Grand Total = groups (30+10=40) + playoffs (25+5=30) + qualified (12+8=20) + awards (15+10=25) = 115
       expect(getByText('Total:')).toBeInTheDocument()
       expect(getByText('115 pts')).toBeInTheDocument()
     })
@@ -282,15 +282,15 @@ describe('UserTournamentStatistics', () => {
         />
       )
 
-      // Groups = 45 + 15 + 20 + 12 = 92
-      expect(getByText('92 pts')).toBeInTheDocument()
+      // Groups = 45 + 15 = 60
+      expect(getByText('60 pts')).toBeInTheDocument()
       // Playoffs = 32 + 8 = 40
       expect(getByText('40 pts')).toBeInTheDocument()
       // Qualified = 20 + 12 = 32
       expect(getByText('32 pts')).toBeInTheDocument()
       // Awards = 25 + 18 = 43
       expect(getByText('43 pts')).toBeInTheDocument()
-      // Total = 92 + 40 + 43 = 175
+      // Total = 60 + 40 + 32 + 43 = 175
       expect(getByText('175 pts')).toBeInTheDocument()
     })
   })

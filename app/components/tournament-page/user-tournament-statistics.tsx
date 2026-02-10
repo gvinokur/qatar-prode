@@ -40,21 +40,23 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess, t
   const theme = useTheme()
 
   // Calculate direct totals (boost bonuses are included in the calculations)
+  // Groups: only game predictions from group phase
   const groupsTotal = (userGameStatistics?.group_score || 0)
     + (userGameStatistics?.group_boost_bonus || 0)
-    + (tournamentGuess?.qualified_teams_score || 0)
-    + (tournamentGuess?.group_position_score || 0)
 
+  // Playoffs: game predictions from playoff phase
   const playoffsTotal = (userGameStatistics?.playoff_score || 0)
     + (userGameStatistics?.playoff_boost_bonus || 0)
 
+  // Qualified: qualified teams + group positions predictions
   const qualifiedTotal = (tournamentGuess?.qualified_teams_score || 0)
     + (tournamentGuess?.group_position_score || 0)
 
+  // Awards: honor roll + individual awards predictions
   const awardsTotal = (tournamentGuess?.honor_roll_score || 0)
     + (tournamentGuess?.individual_awards_score || 0)
 
-  const grandTotal = groupsTotal + playoffsTotal + awardsTotal
+  const grandTotal = groupsTotal + playoffsTotal + qualifiedTotal + awardsTotal
 
   return (
     <Card aria-label="Estadísticas del usuario">
