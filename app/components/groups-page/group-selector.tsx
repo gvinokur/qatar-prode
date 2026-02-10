@@ -33,9 +33,6 @@ const getSelectedTab = (pathname: string): string => {
   if (pathname.includes('/qualified-teams')) {
     return 'qualified-teams';
   }
-  if (pathname.includes('/playoffs')) {
-    return 'playoffs';
-  }
   if (pathname.includes('/awards')) {
     return 'individual_awards';
   }
@@ -105,13 +102,6 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
         value="qualified-teams"
         component={Link}
         href={`/tournaments/${tournamentId}/qualified-teams`}
-        sx={tabSx}
-      />
-      <Tab
-        label="PLAYOFFS"
-        value="playoffs"
-        component={Link}
-        href={`/tournaments/${tournamentId}/playoffs`}
         sx={tabSx}
       />
       <Tab

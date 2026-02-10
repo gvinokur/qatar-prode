@@ -1,24 +1,19 @@
 'use server'
 
-import {getGamesAroundMyTime, getTeamsMap, getGamesClosingWithin48Hours, getGroupStandingsForTournament} from "../../actions/tournament-actions";
+import {getTeamsMap} from "../../actions/tournament-actions";
 import {DebugObject} from "../../components/debug";
-import {Fixtures} from "../../components/tournament-page/fixtures";
 import {Grid} from "../../components/mui-wrappers/";
 import Rules from "../../components/tournament-page/rules";
 import FriendGroupsList from "../../components/tournament-page/friend-groups-list";
-import GroupStandingsSidebar from "../../components/tournament-page/group-standings-sidebar";
 import {getGroupsForUser} from "../../actions/prode-group-actions";
 import {getLoggedInUser} from "../../actions/user-actions";
 import {UserTournamentStatistics} from "../../components/tournament-page/user-tournament-statistics";
-import {getPredictionDashboardStats, getGameGuessStatisticsForUsers, findGameGuessesByUserId} from "../../db/game-guess-repository";
+import {getGameGuessStatisticsForUsers} from "../../db/game-guess-repository";
 import {findTournamentGuessByUserIdTournament} from "../../db/tournament-guess-repository";
 import {unstable_ViewTransition as ViewTransition} from "react";
 import {findTournamentById} from "../../db/tournament-repository";
-import {PredictionStatusBar} from "../../components/prediction-status-bar";
 import type {ScoringConfig} from "../../components/tournament-page/rules";
-import {getTournamentPredictionCompletion} from "../../db/tournament-prediction-completion-repository";
-import {GuessesContextProvider} from "../../components/context-providers/guesses-context-provider";
-import {customToMap} from "../../utils/ObjectUtils";
+import {UnifiedGamesPage} from "../../components/unified-games-page";
 
 type Props = {
   readonly params: Promise<{
@@ -35,18 +30,7 @@ export default async function TournamentLandingPage(props: Props) {
   const user = await getLoggedInUser()
   const prodeGroups = await getGroupsForUser()
 
-  const gamesAroundMyTime = await getGamesAroundMyTime(tournamentId);
   const teamsMap = await getTeamsMap(tournamentId)
-
-  // Fetch all games closing within 48 hours for accordion display
-  const closingGames = user ? await getGamesClosingWithin48Hours(tournamentId) : []
-
-  // Fetch dashboard stats for prediction tracking
-  const dashboardStats = user ? await getPredictionDashboardStats(user.id, tournamentId) : null
-
-  // Fetch game guesses for context provider (needed for accordion)
-  const gameGuessesArray = user ? await findGameGuessesByUserId(user.id, tournamentId) : []
-  const gameGuesses = customToMap(gameGuessesArray, (gameGuess) => gameGuess.game_id)
 
   const userGameStatisticList = user ?
     await getGameGuessStatisticsForUsers([user.id], tournamentId) :
@@ -70,23 +54,9 @@ export default async function TournamentLandingPage(props: Props) {
     max_golden_games: tournament.max_golden_games ?? 0,
   } : undefined;
 
-  // Fetch tournament prediction completion
-  const tournamentPredictionCompletion = user && tournament
-    ? await getTournamentPredictionCompletion(user.id, tournamentId, tournament)
-    : null;
-
-  // Get tournament start date (earliest game date) for lock time calculation
-  const tournamentStartDate = gamesAroundMyTime.length > 0
-    ? new Date(Math.min(...gamesAroundMyTime.map(g => new Date(g.game_date).getTime())))
-    : undefined;
-
-  // Fetch group standings for sidebar
-  const groupStandings = await getGroupStandingsForTournament(tournamentId);
-
   return (
     <>
       {searchParams.hasOwnProperty('debug') && (<DebugObject object={{
-        gamesAroundMyTime,
         teamsMap,
         prodeGroups
       }}/>)}
@@ -94,30 +64,9 @@ export default async function TournamentLandingPage(props: Props) {
         name={'group-page'}
         enter={'group-enter'}
         exit={'group-exit'}>
-        <Grid container maxWidth={'868px'} mt={1} mx={{md: 'auto'}} spacing={2}>
-          <Grid size={{ xs:12, md: 8 }}>
-            {user && dashboardStats && tournament ? (
-              <GuessesContextProvider
-                gameGuesses={gameGuesses}
-                autoSave={true}
-              >
-                <PredictionStatusBar
-                  totalGames={dashboardStats.totalGames}
-                  predictedGames={dashboardStats.predictedGames}
-                  silverUsed={dashboardStats.silverUsed}
-                  silverMax={tournament.max_silver_games ?? 0}
-                  goldenUsed={dashboardStats.goldenUsed}
-                  goldenMax={tournament.max_golden_games ?? 0}
-                  tournamentPredictions={tournamentPredictionCompletion ?? undefined}
-                  tournamentId={tournamentId}
-                  tournamentStartDate={tournamentStartDate}
-                  games={closingGames}
-                  teamsMap={teamsMap}
-                  isPlayoffs={false}
-                />
-              </GuessesContextProvider>
-            ) : null}
-            <Fixtures games={gamesAroundMyTime} teamsMap={teamsMap}/>
+        <Grid container maxWidth={'868px'} mt={1} mx={{md: 'auto'}} spacing={2} sx={{ height: '100%' }}>
+          <Grid size={{ xs:12, md: 8 }} sx={{ display: 'flex', flexDirection: 'column', minHeight: 0, height: '100%' }}>
+            <UnifiedGamesPage tournamentId={tournamentId} />
           </Grid>
           <Grid size={{ xs:12, md: 4 }}>
             <Grid container rowSpacing={2}>
@@ -128,16 +77,6 @@ export default async function TournamentLandingPage(props: Props) {
                   <Grid size={12}>
                     <UserTournamentStatistics userGameStatistics={userGameStatistics} tournamentGuess={tournamentGuesses} tournamentId={tournamentId} />
                   </Grid>
-              )}
-              {/* Group Standings Section - After UserTournamentStatistics */}
-              {groupStandings.groups.length > 0 && (
-                <Grid size={12}>
-                  <GroupStandingsSidebar
-                    groups={groupStandings.groups}
-                    defaultGroupId={groupStandings.defaultGroupId}
-                    qualifiedTeams={groupStandings.qualifiedTeams}
-                  />
-                </Grid>
               )}
               {prodeGroups && (
                 <Grid size={12}>
