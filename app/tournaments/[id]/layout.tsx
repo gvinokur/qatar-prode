@@ -115,7 +115,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                     objectFit: 'contain'
                   }}
                 />
-                {(layoutData.tournament?.display_name && layoutData.tournament.long_name) && (
+                {(layoutData.tournament?.display_name || layoutData.tournament?.long_name) && (
                   <Box display="flex" alignItems="center" gap={1}>
                     {layoutData.tournament.dev_only && (
                       <DevTournamentBadge
@@ -130,7 +130,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                       sx={{
                         display: { xs: 'none', md: 'block' }
                       }}>
-                      {layoutData.tournament.long_name}
+                      {layoutData.tournament.long_name || layoutData.tournament.display_name}
                     </Typography>
                     <Typography
                       noWrap
@@ -140,7 +140,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                       sx={{
                         display: { xs: 'block', md: 'none' }
                       }}>
-                      {layoutData.tournament.display_name}
+                      {layoutData.tournament.display_name || layoutData.tournament.long_name}
                     </Typography>
                   </Box>
                 )}
