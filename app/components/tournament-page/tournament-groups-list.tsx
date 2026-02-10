@@ -184,24 +184,24 @@ export default function TournamentGroupsList({ groups, tournamentId }: Tournamen
           }
         }}
       >
-        <DialogTitle>Create Friend Group</DialogTitle>
+        <DialogTitle>Crear Grupo de Amigos</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            A friend group allows you to have a private ranking. Create as many groups as you want,
-            your same predictions will be used to calculate your position in all of them.
+            Un grupo de amigos te permite tener un ranking privado. Crea tantos grupos como quieras,
+            tus mismos pronósticos serán usados para calcular tu posición en todos ellos.
           </DialogContentText>
           <Controller
             control={control}
             name="name"
             rules={{
-              required: 'Group name is required'
+              required: 'El nombre del grupo es obligatorio'
             }}
             render={({ field, fieldState }) => (
               <TextField
                 {...field}
                 autoFocus
                 margin="dense"
-                label="Name"
+                label="Nombre"
                 type="text"
                 fullWidth
                 variant="standard"
@@ -213,10 +213,10 @@ export default function TournamentGroupsList({ groups, tournamentId }: Tournamen
         </DialogContent>
         <DialogActions>
           <Button disabled={loading} onClick={handleCloseCreateDialog}>
-            Cancel
+            Cancelar
           </Button>
           <Button loading={loading} type="submit">
-            Create
+            Crear
           </Button>
         </DialogActions>
       </Dialog>

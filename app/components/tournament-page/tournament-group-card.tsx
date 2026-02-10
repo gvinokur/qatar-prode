@@ -28,19 +28,11 @@ export default function TournamentGroupCard({ group, tournamentId }: TournamentG
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        position: 'relative',
-        ...(isLeader && {
-          border: 2,
-          borderColor: 'primary.main'
-        }),
-        // Show theme color accent only for non-leader cards
-        ...(!isLeader && group.themeColor && {
-          borderLeft: `4px solid ${group.themeColor}`
-        })
+        position: 'relative'
       }}
     >
       <CardContent sx={{ flexGrow: 1, pb: 1 }}>
-        {/* Group Name with Owner Badge */}
+        {/* Group Name with Owner Badge and Share Button */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
           <Typography
             variant="h6"
@@ -56,13 +48,24 @@ export default function TournamentGroupCard({ group, tournamentId }: TournamentG
             🏆 {group.groupName}
           </Typography>
           {group.isOwner && (
-            <Chip
-              label="Dueño"
-              size="small"
-              color="primary"
-              variant="outlined"
-              sx={{ fontSize: '0.7rem' }}
-            />
+            <>
+              <Chip
+                label="Dueño"
+                size="small"
+                color="primary"
+                variant="outlined"
+                sx={{ fontSize: '0.7rem' }}
+              />
+              <InviteFriendsDialog
+                trigger={
+                  <IconButton size="small" aria-label="Compartir grupo">
+                    <ShareIcon fontSize="small" />
+                  </IconButton>
+                }
+                groupId={group.groupId}
+                groupName={group.groupName}
+              />
+            </>
           )}
         </Box>
 
@@ -101,25 +104,13 @@ export default function TournamentGroupCard({ group, tournamentId }: TournamentG
       </CardContent>
 
       {/* Actions */}
-      <CardActions sx={{ pt: 0, pb: 2, px: 2 }}>
-        {group.isOwner && (
-          <InviteFriendsDialog
-            trigger={
-              <IconButton size="small" aria-label="Compartir grupo">
-                <ShareIcon />
-              </IconButton>
-            }
-            groupId={group.groupId}
-            groupName={group.groupName}
-          />
-        )}
+      <CardActions sx={{ pt: 0, pb: 2, px: 2, justifyContent: 'flex-end' }}>
         <Button
           component={Link}
           href={`/tournaments/${tournamentId}/friend-groups/${group.groupId}`}
           variant="text"
           color="primary"
           size="small"
-          sx={{ ml: 'auto' }}
         >
           Ver Detalles
         </Button>

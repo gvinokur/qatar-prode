@@ -1,6 +1,6 @@
 'use client'
 
-import {Card, CardContent, CardHeader, Stack, Box, Typography, useTheme, Button, Divider, Collapse} from "@mui/material";
+import {Card, CardContent, CardHeader, CardActions, Stack, Box, Typography, useTheme, Button, Divider, Collapse} from "@mui/material";
 import {ExpandMore as ExpandMoreIcon} from "@mui/icons-material";
 import {useState} from "react";
 import {GameStatisticForUser} from "../../../types/definitions";
@@ -97,24 +97,22 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess, t
             value={`${grandTotal} pts`}
             valueColor={theme.palette.primary.main}
           />
-
-          <Divider sx={{ my: 1.5 }} />
-
-          {tournamentId && (
-            <Button
-              component={Link}
-              href={`/tournaments/${tournamentId}/stats`}
-              variant="text"
-              size="small"
-              aria-label="Ver página de estadísticas detalladas"
-              sx={{ textTransform: 'none' }}
-            >
-              Ver Detalle
-            </Button>
-          )}
         </Stack>
       </CardContent>
       </Collapse>
+      {tournamentId && (
+        <CardActions sx={{ justifyContent: 'flex-end', px: 2 }}>
+          <Button
+            component={Link}
+            href={`/tournaments/${tournamentId}/stats`}
+            variant="text"
+            color="primary"
+            aria-label="Ver página de estadísticas detalladas"
+          >
+            Ver Detalle
+          </Button>
+        </CardActions>
+      )}
     </Card>
   );
 }

@@ -24,7 +24,7 @@ export default function JoinGroupDialog({ open, onClose }: JoinGroupDialogProps)
   const handleJoin = () => {
     // Validate code
     if (!groupCode.trim()) {
-      setError('Please enter a group code');
+      setError('Por favor ingresa un código de grupo');
       return;
     }
 
@@ -41,7 +41,7 @@ export default function JoinGroupDialog({ open, onClose }: JoinGroupDialogProps)
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Join Group with Code</DialogTitle>
+      <DialogTitle>Unirse a un Grupo</DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -51,7 +51,7 @@ export default function JoinGroupDialog({ open, onClose }: JoinGroupDialogProps)
         <TextField
           autoFocus
           margin="dense"
-          label="Group Code"
+          label="Código de Grupo"
           type="text"
           fullWidth
           variant="outlined"
@@ -60,16 +60,16 @@ export default function JoinGroupDialog({ open, onClose }: JoinGroupDialogProps)
             setGroupCode(e.target.value);
             setError('');
           }}
-          placeholder="Enter the group code"
+          placeholder="Ingresa el código del grupo"
           sx={{ mt: 1 }}
         />
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={handleClose} color="inherit">
-          Cancel
+          Cancelar
         </Button>
         <Button onClick={handleJoin} variant="contained" color="primary">
-          Join Group
+          Unirse al Grupo
         </Button>
       </DialogActions>
     </Dialog>

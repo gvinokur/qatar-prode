@@ -21,35 +21,35 @@ describe('JoinGroupDialog', () => {
 
   it('does not render when open is false', () => {
     renderWithTheme(<JoinGroupDialog open={false} onClose={() => {}} />);
-    expect(screen.queryByText('Join Group with Code')).not.toBeInTheDocument();
+    expect(screen.queryByText('Unirse a un Grupo')).not.toBeInTheDocument();
   });
 
   it('renders when open is true', () => {
     renderWithTheme(<JoinGroupDialog open={true} onClose={() => {}} />);
-    expect(screen.getByText('Join Group with Code')).toBeInTheDocument();
+    expect(screen.getByText('Unirse a un Grupo')).toBeInTheDocument();
   });
 
   it('displays input field for group code', () => {
     renderWithTheme(<JoinGroupDialog open={true} onClose={() => {}} />);
-    expect(screen.getByLabelText('Group Code')).toBeInTheDocument();
+    expect(screen.getByLabelText('Código de Grupo')).toBeInTheDocument();
   });
 
-  it('displays Cancel button', () => {
+  it('displays Cancelar button', () => {
     renderWithTheme(<JoinGroupDialog open={true} onClose={() => {}} />);
-    expect(screen.getByText('Cancel')).toBeInTheDocument();
+    expect(screen.getByText('Cancelar')).toBeInTheDocument();
   });
 
-  it('displays Join Group button', () => {
+  it('displays Unirse al Grupo button', () => {
     renderWithTheme(<JoinGroupDialog open={true} onClose={() => {}} />);
-    expect(screen.getByText('Join Group')).toBeInTheDocument();
+    expect(screen.getByText('Unirse al Grupo')).toBeInTheDocument();
   });
 
-  it('calls onClose when Cancel button is clicked', async () => {
+  it('calls onClose when Cancelar button is clicked', async () => {
     const user = userEvent.setup();
     const onClose = vi.fn();
     renderWithTheme(<JoinGroupDialog open={true} onClose={onClose} />);
 
-    const cancelButton = screen.getByText('Cancel');
+    const cancelButton = screen.getByText('Cancelar');
     await user.click(cancelButton);
 
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -59,11 +59,11 @@ describe('JoinGroupDialog', () => {
     const user = userEvent.setup();
     renderWithTheme(<JoinGroupDialog open={true} onClose={() => {}} />);
 
-    const joinButton = screen.getByText('Join Group');
+    const joinButton = screen.getByText('Unirse al Grupo');
     await user.click(joinButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Please enter a group code')).toBeInTheDocument();
+      expect(screen.getByText('Por favor ingresa un código de grupo')).toBeInTheDocument();
     });
   });
 
@@ -71,7 +71,7 @@ describe('JoinGroupDialog', () => {
     const user = userEvent.setup();
     renderWithTheme(<JoinGroupDialog open={true} onClose={() => {}} />);
 
-    const input = screen.getByLabelText('Group Code');
+    const input = screen.getByLabelText('Código de Grupo');
     await user.type(input, 'ABC123');
 
     expect(input).toHaveValue('ABC123');
@@ -82,10 +82,10 @@ describe('JoinGroupDialog', () => {
     const onClose = vi.fn();
     renderWithTheme(<JoinGroupDialog open={true} onClose={onClose} />);
 
-    const input = screen.getByLabelText('Group Code');
+    const input = screen.getByLabelText('Código de Grupo');
     await user.type(input, 'ABC123');
 
-    const joinButton = screen.getByText('Join Group');
+    const joinButton = screen.getByText('Unirse al Grupo');
     await user.click(joinButton);
 
     await waitFor(() => {
@@ -97,10 +97,10 @@ describe('JoinGroupDialog', () => {
     const user = userEvent.setup();
     renderWithTheme(<JoinGroupDialog open={true} onClose={() => {}} />);
 
-    const input = screen.getByLabelText('Group Code');
+    const input = screen.getByLabelText('Código de Grupo');
     await user.type(input, '  ABC123  ');
 
-    const joinButton = screen.getByText('Join Group');
+    const joinButton = screen.getByText('Unirse al Grupo');
     await user.click(joinButton);
 
     await waitFor(() => {
@@ -113,20 +113,20 @@ describe('JoinGroupDialog', () => {
     renderWithTheme(<JoinGroupDialog open={true} onClose={() => {}} />);
 
     // Trigger error first
-    const joinButton = screen.getByText('Join Group');
+    const joinButton = screen.getByText('Unirse al Grupo');
     await user.click(joinButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Please enter a group code')).toBeInTheDocument();
+      expect(screen.getByText('Por favor ingresa un código de grupo')).toBeInTheDocument();
     });
 
     // Type in input
-    const input = screen.getByLabelText('Group Code');
+    const input = screen.getByLabelText('Código de Grupo');
     await user.type(input, 'A');
 
     // Error should be cleared
     await waitFor(() => {
-      expect(screen.queryByText('Please enter a group code')).not.toBeInTheDocument();
+      expect(screen.queryByText('Por favor ingresa un código de grupo')).not.toBeInTheDocument();
     });
   });
 });

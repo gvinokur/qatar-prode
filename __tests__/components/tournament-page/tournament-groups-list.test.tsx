@@ -55,17 +55,17 @@ describe('TournamentGroupsList', () => {
 
   it('renders page title', () => {
     renderWithTheme(<TournamentGroupsList groups={mockGroups} tournamentId={tournamentId} />);
-    expect(screen.getByText('Tournament Groups')).toBeInTheDocument();
+    expect(screen.getByText('Grupos de Amigos')).toBeInTheDocument();
   });
 
   it('renders Create button', () => {
     renderWithTheme(<TournamentGroupsList groups={mockGroups} tournamentId={tournamentId} />);
-    expect(screen.getByRole('button', { name: /Create/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Crear/i })).toBeInTheDocument();
   });
 
   it('renders Join button', () => {
     renderWithTheme(<TournamentGroupsList groups={mockGroups} tournamentId={tournamentId} />);
-    expect(screen.getByRole('button', { name: /Join/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Unirse/i })).toBeInTheDocument();
   });
 
   it('renders all group cards', () => {
@@ -83,11 +83,11 @@ describe('TournamentGroupsList', () => {
     const user = userEvent.setup();
     renderWithTheme(<TournamentGroupsList groups={mockGroups} tournamentId={tournamentId} />);
 
-    const createButton = screen.getByRole('button', { name: /Create/i });
+    const createButton = screen.getByRole('button', { name: /Crear/i });
     await user.click(createButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Create Friend Group')).toBeInTheDocument();
+      expect(screen.getByText('Crear Grupo de Amigos')).toBeInTheDocument();
     });
   });
 
@@ -95,11 +95,11 @@ describe('TournamentGroupsList', () => {
     const user = userEvent.setup();
     renderWithTheme(<TournamentGroupsList groups={mockGroups} tournamentId={tournamentId} />);
 
-    const joinButton = screen.getByRole('button', { name: /Join/i });
+    const joinButton = screen.getByRole('button', { name: /Unirse/i });
     await user.click(joinButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Join Group with Code')).toBeInTheDocument();
+      expect(screen.getByText('Unirse a un Grupo')).toBeInTheDocument();
     });
   });
 
@@ -110,19 +110,19 @@ describe('TournamentGroupsList', () => {
     renderWithTheme(<TournamentGroupsList groups={mockGroups} tournamentId={tournamentId} />);
 
     // Open create dialog
-    const createButton = screen.getByRole('button', { name: /Create/i });
+    const createButton = screen.getByRole('button', { name: /Crear/i });
     await user.click(createButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Create Friend Group')).toBeInTheDocument();
+      expect(screen.getByText('Crear Grupo de Amigos')).toBeInTheDocument();
     });
 
     // Fill in name
-    const nameInput = screen.getByLabelText('Name');
+    const nameInput = screen.getByLabelText('Nombre');
     await user.type(nameInput, 'My New Group');
 
     // Submit
-    const submitButton = screen.getByRole('button', { name: /Create$/i });
+    const submitButton = screen.getByRole('button', { name: /Crear$/i });
     await user.click(submitButton);
 
     await waitFor(() => {
@@ -135,19 +135,19 @@ describe('TournamentGroupsList', () => {
     renderWithTheme(<TournamentGroupsList groups={mockGroups} tournamentId={tournamentId} />);
 
     // Open dialog
-    const createButton = screen.getByRole('button', { name: /Create/i });
+    const createButton = screen.getByRole('button', { name: /Crear/i });
     await user.click(createButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Create Friend Group')).toBeInTheDocument();
+      expect(screen.getByText('Crear Grupo de Amigos')).toBeInTheDocument();
     });
 
     // Click cancel
-    const cancelButton = screen.getByRole('button', { name: /Cancel/i });
+    const cancelButton = screen.getByRole('button', { name: /Cancelar/i });
     await user.click(cancelButton);
 
     await waitFor(() => {
-      expect(screen.queryByText('Create Friend Group')).not.toBeInTheDocument();
+      expect(screen.queryByText('Crear Grupo de Amigos')).not.toBeInTheDocument();
     });
   });
 

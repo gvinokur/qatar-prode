@@ -129,6 +129,7 @@ export default function FriendGroupsList({
             ))}
           </List>
         </CardContent>
+        </Collapse>
         <CardActions>
           <Button onClick={() => setOpenCreateDialog(true)}>Crear Grupo</Button>
           {tournamentId && (userGroups.length + participantGroups.length) > 1 && (
@@ -137,7 +138,6 @@ export default function FriendGroupsList({
             </Button>
           )}
         </CardActions>
-        </Collapse>
       </Card>
       <Dialog open={openCreateDialog} onClose={handleCloseCreateDialog}
               slotProps={{

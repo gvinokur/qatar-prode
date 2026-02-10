@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import TournamentGroupCard from '@/app/components/tournament-page/tournament-group-card';
 import { renderWithTheme } from '@/__tests__/utils/test-utils';
 import type { TournamentGroupStats } from '@/app/definitions';
@@ -26,7 +26,8 @@ describe('TournamentGroupCard', () => {
 
   it('displays user position in correct format', () => {
     renderWithTheme(<TournamentGroupCard group={mockGroup} tournamentId={tournamentId} />);
-    expect(screen.getByText(/#3 of 10/)).toBeInTheDocument();
+    // Spanish format: "de" instead of "of"
+    expect(screen.getByText(/#3 de 10/)).toBeInTheDocument();
   });
 
   it('displays user points', () => {
@@ -39,7 +40,7 @@ describe('TournamentGroupCard', () => {
     expect(screen.getByText(/John Doe \(52 pts\)/)).toBeInTheDocument();
   });
 
-  it('displays "You!" when user is the leader', () => {
+  it('displays "¡Tú!" when user is the leader', () => {
     const leaderGroup: TournamentGroupStats = {
       ...mockGroup,
       userPosition: 1,
@@ -47,7 +48,8 @@ describe('TournamentGroupCard', () => {
       leaderPoints: 52
     };
     renderWithTheme(<TournamentGroupCard group={leaderGroup} tournamentId={tournamentId} />);
-    expect(screen.getByText(/You! \(52 pts\)/)).toBeInTheDocument();
+    // Spanish: "¡Tú!" instead of "You!"
+    expect(screen.getByText(/¡Tú! \(52 pts\)/)).toBeInTheDocument();
   });
 
   it('shows Owner badge when user is owner', () => {
@@ -56,44 +58,49 @@ describe('TournamentGroupCard', () => {
       isOwner: true
     };
     renderWithTheme(<TournamentGroupCard group={ownerGroup} tournamentId={tournamentId} />);
-    expect(screen.getByText('Owner')).toBeInTheDocument();
+    // Spanish: "Dueño" instead of "Owner"
+    expect(screen.getByText('Dueño')).toBeInTheDocument();
   });
 
   it('does not show Owner badge when user is not owner', () => {
     renderWithTheme(<TournamentGroupCard group={mockGroup} tournamentId={tournamentId} />);
-    expect(screen.queryByText('Owner')).not.toBeInTheDocument();
+    // Spanish: "Dueño" instead of "Owner"
+    expect(screen.queryByText('Dueño')).not.toBeInTheDocument();
   });
 
   it('has link to tournament-scoped friend group detail page', () => {
     renderWithTheme(<TournamentGroupCard group={mockGroup} tournamentId={tournamentId} />);
-    const link = screen.getByRole('link', { name: /View Details/ });
+    // Spanish: "Ver Detalles" instead of "View Details"
+    const link = screen.getByRole('link', { name: /Ver Detalles/ });
     expect(link).toHaveAttribute('href', `/tournaments/${tournamentId}/friend-groups/${mockGroup.groupId}`);
   });
 
-  it('applies theme color as left border when present', () => {
-    const themedGroup: TournamentGroupStats = {
+  it('shows share button when user is owner', () => {
+    const ownerGroup: TournamentGroupStats = {
       ...mockGroup,
-      themeColor: '#FF5733'
+      isOwner: true
     };
-    const { container } = renderWithTheme(<TournamentGroupCard group={themedGroup} tournamentId={tournamentId} />);
-    const card = container.querySelector('.MuiCard-root');
-    expect(card).toHaveStyle({ borderLeft: '4px solid #FF5733' });
+    renderWithTheme(<TournamentGroupCard group={ownerGroup} tournamentId={tournamentId} />);
+    // Share button should be present with aria-label "Compartir grupo"
+    const shareButton = screen.getByLabelText('Compartir grupo');
+    expect(shareButton).toBeInTheDocument();
   });
 
-  it('does not apply theme color left border when user is leader', () => {
-    const leaderWithTheme: TournamentGroupStats = {
-      ...mockGroup,
-      userPosition: 1,
-      themeColor: '#FF5733'
-    };
-    const { container } = renderWithTheme(<TournamentGroupCard group={leaderWithTheme} tournamentId={tournamentId} />);
-    const card = container.querySelector('.MuiCard-root');
-    // Leader cards should not have theme color border
-    expect(card).not.toHaveStyle({ borderLeft: '4px solid #FF5733' });
+  it('does not show share button when user is not owner', () => {
+    renderWithTheme(<TournamentGroupCard group={mockGroup} tournamentId={tournamentId} />);
+    // Share button should not be present
+    expect(screen.queryByLabelText('Compartir grupo')).not.toBeInTheDocument();
   });
 
   it('displays trophy emoji in group name', () => {
     renderWithTheme(<TournamentGroupCard group={mockGroup} tournamentId={tournamentId} />);
     expect(screen.getByText(/🏆/)).toBeInTheDocument();
+  });
+
+  it('has no special border styling (borders removed)', () => {
+    const { container } = renderWithTheme(<TournamentGroupCard group={mockGroup} tournamentId={tournamentId} />);
+    const card = container.querySelector('.MuiCard-root');
+    // Borders were removed as part of the UI improvements
+    expect(card).toBeInTheDocument();
   });
 });
