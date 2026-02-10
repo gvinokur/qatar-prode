@@ -1,8 +1,10 @@
 'use client'
 
-import { Box, Stack } from '@mui/material';
+import { Box, Stack, Button } from '@mui/material';
 import { useContext, useState, useCallback, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import FlippableGameCard from './flippable-game-card';
 import { ExtendedGameData } from '../definitions';
 import { Game, GameGuessNew, Team, Tournament } from '../db/tables-definition';
@@ -158,6 +160,24 @@ export function GamesListWithScroll({
     }
   }, [games, handleEditStart]);
 
+  const handleScrollToTop = useCallback(() => {
+    if (games.length > 0) {
+      const firstGameId = games[0].id;
+      scrollToGame(firstGameId, 'smooth');
+    }
+  }, [games]);
+
+  const handleScrollToNext = useCallback(() => {
+    const targetId = findScrollTarget(games);
+    if (targetId) {
+      scrollToGame(targetId, 'smooth');
+    } else if (games.length > 0) {
+      // If no target found (all games predicted or closed), scroll to last game
+      const lastGameId = games[games.length - 1].id;
+      scrollToGame(lastGameId, 'smooth');
+    }
+  }, [games]);
+
   // Show empty state if no games
   if (games.length === 0) {
     return <EmptyGamesState filterType={activeFilter} />;
@@ -165,6 +185,20 @@ export function GamesListWithScroll({
 
   return (
     <Stack spacing={2}>
+      {/* Next game button - only show if more than 1 game */}
+      {games.length > 1 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', pb: 2 }}>
+          <Button
+            variant="outlined"
+            startIcon={<ArrowDownwardIcon />}
+            onClick={handleScrollToNext}
+            sx={{ minWidth: 200 }}
+          >
+            Ir al Proximo Partido
+          </Button>
+        </Box>
+      )}
+
       {games.map(game => {
         const gameGuess = gameGuesses[game.id];
         const isPlayoffGame = game.playoffStage !== null && game.playoffStage !== undefined;
@@ -200,6 +234,20 @@ export function GamesListWithScroll({
           </Box>
         );
       })}
+
+      {/* Back to top button - only show if more than 1 game */}
+      {games.length > 1 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', pt: 2 }}>
+          <Button
+            variant="outlined"
+            startIcon={<ArrowUpwardIcon />}
+            onClick={handleScrollToTop}
+            sx={{ minWidth: 200 }}
+          >
+            Volver al Principio
+          </Button>
+        </Box>
+      )}
     </Stack>
   );
 }
