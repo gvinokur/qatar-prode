@@ -10,30 +10,18 @@ vi.mock('next/navigation', () => ({
   usePathname: vi.fn(() => mockPathname),
 }))
 
-// Mock MUI components
-let mockIsMobile = false
-vi.mock('@mui/material', async () => {
-  const actual = await vi.importActual('@mui/material')
-  return {
-    ...actual,
-    useMediaQuery: vi.fn(() => mockIsMobile),
-  }
-})
-
 describe('ConditionalHeader', () => {
   beforeEach(() => {
     // Reset to defaults
     mockPathname = '/'
-    mockIsMobile = false
   })
 
   afterEach(() => {
     vi.clearAllMocks()
   })
 
-  it('shows header on home page (mobile)', () => {
+  it('shows header on home page', () => {
     mockPathname = '/'
-    mockIsMobile = true
 
     const { container } = renderWithTheme(
       <ConditionalHeader>
@@ -45,9 +33,8 @@ describe('ConditionalHeader', () => {
     expect(container.textContent).toContain('Header Content')
   })
 
-  it('hides header on tournament page (mobile)', () => {
+  it('hides header on tournament page', () => {
     mockPathname = '/tournaments/123'
-    mockIsMobile = true
 
     const { container } = renderWithTheme(
       <ConditionalHeader>
@@ -59,23 +46,8 @@ describe('ConditionalHeader', () => {
     expect(container.textContent).not.toContain('Header Content')
   })
 
-  it('shows header on tournament page (desktop)', () => {
-    mockPathname = '/tournaments/123'
-    mockIsMobile = false
-
-    const { container } = renderWithTheme(
-      <ConditionalHeader>
-        <div data-testid="test-header">Header Content</div>
-      </ConditionalHeader>
-    )
-
-    expect(screen.getByTestId('test-header')).toBeInTheDocument()
-    expect(container.textContent).toContain('Header Content')
-  })
-
-  it('handles nested tournament route /tournaments/123/groups/A (mobile)', () => {
+  it('handles nested tournament route /tournaments/123/groups/A', () => {
     mockPathname = '/tournaments/123/groups/A'
-    mockIsMobile = true
 
     const { container } = renderWithTheme(
       <ConditionalHeader>
@@ -87,9 +59,8 @@ describe('ConditionalHeader', () => {
     expect(container.textContent).not.toContain('Header Content')
   })
 
-  it('handles nested tournament route /tournaments/123/stats (mobile)', () => {
+  it('handles nested tournament route /tournaments/123/stats', () => {
     mockPathname = '/tournaments/123/stats'
-    mockIsMobile = true
 
     const { container } = renderWithTheme(
       <ConditionalHeader>
@@ -101,9 +72,8 @@ describe('ConditionalHeader', () => {
     expect(container.textContent).not.toContain('Header Content')
   })
 
-  it('shows header on profile page (mobile)', () => {
+  it('shows header on profile page', () => {
     mockPathname = '/profile'
-    mockIsMobile = true
 
     const { container } = renderWithTheme(
       <ConditionalHeader>
@@ -115,9 +85,8 @@ describe('ConditionalHeader', () => {
     expect(container.textContent).toContain('Header Content')
   })
 
-  it('shows header on any non-tournament page (mobile)', () => {
+  it('shows header on any non-tournament page', () => {
     mockPathname = '/some-other-page'
-    mockIsMobile = true
 
     const { container } = renderWithTheme(
       <ConditionalHeader>
@@ -129,9 +98,8 @@ describe('ConditionalHeader', () => {
     expect(container.textContent).toContain('Header Content')
   })
 
-  it('always shows header on desktop regardless of route', () => {
-    mockPathname = '/tournaments/456'
-    mockIsMobile = false
+  it('shows header on non-tournament pages', () => {
+    mockPathname = '/settings'
 
     const { container } = renderWithTheme(
       <ConditionalHeader>

@@ -1,7 +1,6 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { useMediaQuery, useTheme } from '@mui/material'
 import { ReactNode } from 'react'
 
 interface ConditionalHeaderProps {
@@ -9,22 +8,20 @@ interface ConditionalHeaderProps {
 }
 
 /**
- * Wrapper component that conditionally hides the App Header on tournament pages (mobile only).
+ * Wrapper component that conditionally hides the App Header on tournament pages.
  *
  * Logic:
- * - Hides header if current route starts with '/tournaments/' AND viewport is mobile (< 900px)
- * - Shows header otherwise (desktop OR non-tournament pages)
+ * - Hides header if current route starts with '/tournaments/' (all viewports)
+ * - Shows header on non-tournament pages
  */
 export default function ConditionalHeader({ children }: ConditionalHeaderProps) {
   const pathname = usePathname()
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   // Check if current route is a tournament page
   const isTournamentPage = pathname.startsWith('/tournaments/')
 
-  // Hide header if tournament page AND mobile
-  if (isTournamentPage && isMobile) {
+  // Hide header on tournament pages
+  if (isTournamentPage) {
     return null
   }
 

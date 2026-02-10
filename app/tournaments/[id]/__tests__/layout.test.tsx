@@ -69,7 +69,7 @@ describe('TournamentLayout - Mobile Header Integration', () => {
   const mockTournamentData = {
     tournament: {
       id: 'tournament-1',
-      display_name: 'Qatar World Cup',
+      short_name: 'Qatar 2022',
       long_name: 'FIFA World Cup Qatar 2022',
       dev_only: false,
       theme: {
@@ -140,8 +140,11 @@ describe('TournamentLayout - Mobile Header Integration', () => {
     const result = await TournamentLayout({ params, children });
     renderWithTheme(result as React.ReactElement);
 
-    // Verify tournament name is displayed
+    // Verify desktop displays long_name
     expect(screen.getByText('FIFA World Cup Qatar 2022')).toBeInTheDocument();
+
+    // Verify mobile displays short_name
+    expect(screen.getByText('Qatar 2022')).toBeInTheDocument();
 
     // Verify tournament logo
     const tournamentLogo = screen.getByAltText('FIFA World Cup Qatar 2022');

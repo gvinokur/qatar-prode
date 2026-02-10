@@ -70,28 +70,24 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
     <Box>
       <AppBar position={'sticky'}>
         <Grid container>
-          <Grid size={{ xs:12, md: 3}} pt={2} pb={1} pl={2} pr={2} sx={{
+          <Grid size={12} pt={2} pb={1} pl={2} pr={2} sx={{
             backgroundColor: layoutData.tournament?.theme?.primary_color,
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: {
-              xs: 'space-between',
-              md: 'flex-start'
-            },
+            justifyContent: 'space-between',
             gap: 1
           }}>
-            {/* La Maquina logo button (home navigation) - mobile only */}
+            {/* La Maquina logo button (home navigation) */}
             <Link href="/" style={{ display: 'inline-flex', alignItems: 'center' }}>
               <Avatar
                 variant="rounded"
                 src="/logo.webp"
                 alt="La Maquina"
                 sx={{
-                  width: 32,
-                  height: 32,
+                  width: { xs: 32, md: 48 },
+                  height: { xs: 32, md: 48 },
                   backgroundColor: 'white',
-                  display: { xs: 'flex', md: 'none' },
                   mr: 1
                 }}
               />
@@ -105,15 +101,9 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                   alignItems: 'center',
                   textDecoration: 'none',
                   color: 'inherit',
-                  flex: {
-                    xs: '1 1 auto',
-                    md: '0 0 auto'
-                  },
+                  flex: '1 1 auto',
                   minWidth: 0,
-                  justifyContent: {
-                    xs: 'flex-start',
-                    md: 'flex-start'
-                  }
+                  justifyContent: 'flex-start'
                 }}>
                 <Box
                   component="img"
@@ -125,9 +115,9 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                     objectFit: 'contain'
                   }}
                 />
-                {(layoutData.tournament?.display_name && layoutData.tournament.long_name) && (
+                {(layoutData.tournament?.short_name || layoutData.tournament?.long_name) && (
                   <Box display="flex" alignItems="center" gap={1}>
-                    {layoutData.tournament.dev_only && (
+                    {layoutData.tournament?.dev_only && (
                       <DevTournamentBadge
                         color={layoutData.tournament.theme?.secondary_color || 'warning.main'}
                       />
@@ -135,18 +125,31 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                     <Typography
                       noWrap
                       variant={'h6'}
-                      ml={layoutData.tournament.dev_only ? 0 : 2}
-                      color={layoutData.tournament.theme?.secondary_color}>
-                      {layoutData.tournament.long_name}
+                      ml={layoutData.tournament?.dev_only ? 0 : 2}
+                      color={layoutData.tournament?.theme?.secondary_color}
+                      sx={{
+                        display: { xs: 'none', md: 'block' }
+                      }}>
+                      {layoutData.tournament?.long_name || layoutData.tournament?.short_name}
+                    </Typography>
+                    <Typography
+                      noWrap
+                      variant={'h6'}
+                      ml={layoutData.tournament?.dev_only ? 0 : 2}
+                      color={layoutData.tournament?.theme?.secondary_color}
+                      sx={{
+                        display: { xs: 'block', md: 'none' }
+                      }}>
+                      {layoutData.tournament?.short_name || layoutData.tournament?.long_name}
                     </Typography>
                   </Box>
                 )}
               </Box>
 
             </Link>
-            {/* User actions container - mobile only */}
+            {/* User actions container */}
             <Box sx={{
-              display: { xs: 'flex', md: 'none' },
+              display: 'flex',
               flexDirection: 'row',
               alignItems: 'center',
               gap: 1,
@@ -156,7 +159,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
               <UserActions user={user} />
             </Box>
           </Grid>
-          <Grid size={{ xs:12, md: 9}} pt={2} pb={1} pl={1} pr={1}
+          <Grid size={12} pt={2} pb={1} pl={1} pr={1}
             sx={{
               backgroundColor: layoutData.tournament?.theme?.primary_color
             }}>
