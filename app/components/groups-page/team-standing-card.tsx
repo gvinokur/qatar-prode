@@ -127,12 +127,11 @@ export default function TeamStandingCard({
             {/* Rank Badge with Change Indicator */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: compact ? '35px' : (isUltraCompact ? '40px' : '60px') }}>
               <Typography
-                variant={compact || isUltraCompact ? 'body1' : 'h6'}
+                variant={isUltraCompact ? 'body1' : 'h6'}
                 component="div"
                 sx={{
                   fontWeight: 'bold',
                   color: theme.palette.text.primary,
-                  fontSize: compact ? '0.8rem' : (isUltraCompact ? '0.875rem' : undefined)
                 }}
               >
                 #{standing.position}
@@ -144,7 +143,7 @@ export default function TeamStandingCard({
 
             {/* Team Name/Code */}
             <Typography
-              variant="body1"
+              variant={isUltraCompact ? 'body1' : 'h6'}
               component="div"
               sx={{
                 flex: 1,
@@ -152,7 +151,6 @@ export default function TeamStandingCard({
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
-                fontSize: compact ? '0.75rem' : (isUltraCompact ? '0.875rem' : undefined)
               }}
               title={standing.team.name}
             >
@@ -162,12 +160,11 @@ export default function TeamStandingCard({
             {/* Points with PJ/DG (when collapsed) */}
             {!isExpanded && (
               <Typography
-                variant={compact || isUltraCompact ? 'body2' : 'h6'}
+                variant={isUltraCompact ? 'body1' : 'h6'}
                 component="div"
                 sx={{
                   fontWeight: 'bold',
                   whiteSpace: 'nowrap',
-                  fontSize: compact ? '0.8rem' : (isUltraCompact ? '0.875rem' : undefined)
                 }}
               >
                 {pointsText}
@@ -177,11 +174,10 @@ export default function TeamStandingCard({
             {/* Points only (when expanded) */}
             {isExpanded && (
               <Typography
-                variant={compact || isUltraCompact ? 'body2' : 'h6'}
+                variant={isUltraCompact ? 'body1' : 'h6'}
                 component="div"
                 sx={{
                   fontWeight: 'bold',
-                  fontSize: compact ? '0.8rem' : (isUltraCompact ? '0.875rem' : undefined)
                 }}
               >
                 {standing.points} pts
