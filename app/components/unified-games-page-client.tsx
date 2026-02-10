@@ -1,7 +1,7 @@
 'use client'
 
 import { Box, Stack, Fab } from '@mui/material';
-import { useMemo, useContext } from 'react';
+import { useMemo, useContext, useEffect } from 'react';
 import NavigationIcon from '@mui/icons-material/Navigation';
 import { FilterContextProvider, useFilterContext } from './context-providers/filter-context-provider';
 import { GameFilters } from './game-filters';
@@ -46,6 +46,19 @@ function UnifiedGamesPageContent({
     return filterGames(games, activeFilter, groupFilter, roundFilter, guessesContext.gameGuesses);
   }, [games, activeFilter, groupFilter, roundFilter, guessesContext.gameGuesses]);
 
+  // Auto-scroll when filters change
+  useEffect(() => {
+    if (filteredGames.length > 0) {
+      const targetId = findScrollTarget(filteredGames);
+      if (targetId) {
+        // Small delay to ensure DOM is ready
+        setTimeout(() => {
+          scrollToGame(targetId, 'smooth');
+        }, 100);
+      }
+    }
+  }, [activeFilter, groupFilter, roundFilter, filteredGames]);
+
   // Handler to scroll to next/current game
   const handleScrollToNext = () => {
     const targetId = findScrollTarget(filteredGames);
@@ -88,7 +101,6 @@ function UnifiedGamesPageContent({
           flexGrow: 1,
           overflow: 'auto',
           minHeight: 0,
-          px: { xs: 0, sm: 1 },
           position: 'relative'
         }}
       >
