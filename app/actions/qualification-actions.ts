@@ -229,6 +229,11 @@ export async function updateGroupPositionsJsonb(
   try {
     await upsertGroupPositionsPrediction(userId, tournamentId, groupId, positions);
 
+    // Update playoff game guesses based on new qualification predictions
+    // Import dynamically to avoid circular dependencies
+    const { updatePlayoffGameGuesses } = await import('./guesses-actions');
+    await updatePlayoffGameGuesses(tournamentId, { id: userId });
+
     return {
       success: true,
       message: `Actualizadas ${positions.length} predicciones exitosamente`,
