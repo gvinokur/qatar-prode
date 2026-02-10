@@ -1,13 +1,14 @@
 'use server'
 
 import { getLoggedInUser } from '../actions/user-actions';
-import { getTeamsMap } from '../actions/tournament-actions';
+import { getTeamsMap, getGamesClosingWithin48Hours } from '../actions/tournament-actions';
 import { getAllTournamentGames, getTournamentGameCounts } from '../db/game-repository';
 import { findGameGuessesByUserId } from '../db/game-guess-repository';
 import { getPredictionDashboardStats } from '../db/game-guess-repository';
 import { findTournamentById } from '../db/tournament-repository';
 import { findGroupsInTournament } from '../db/tournament-group-repository';
 import { findPlayoffStagesWithGamesInTournament } from '../db/tournament-playoff-repository';
+import { getTournamentPredictionCompletion } from '../db/tournament-prediction-completion-repository';
 import { customToMap } from '../utils/ObjectUtils';
 import { GuessesContextProvider } from './context-providers/guesses-context-provider';
 import { UnifiedGamesPageClient } from './unified-games-page-client';
@@ -35,7 +36,9 @@ export async function UnifiedGamesPage({ tournamentId }: UnifiedGamesPageProps) 
     dashboardStats,
     tournament,
     groups,
-    rounds
+    rounds,
+    closingGames,
+    tournamentPredictionCompletion
   ] = await Promise.all([
     getAllTournamentGames(tournamentId),
     getTournamentGameCounts(user.id, tournamentId),
@@ -44,12 +47,22 @@ export async function UnifiedGamesPage({ tournamentId }: UnifiedGamesPageProps) 
     getPredictionDashboardStats(user.id, tournamentId),
     findTournamentById(tournamentId),
     findGroupsInTournament(tournamentId),
-    findPlayoffStagesWithGamesInTournament(tournamentId)
+    findPlayoffStagesWithGamesInTournament(tournamentId),
+    getGamesClosingWithin48Hours(tournamentId),
+    (async () => {
+      const t = await findTournamentById(tournamentId);
+      return t ? getTournamentPredictionCompletion(user.id, tournamentId, t) : null;
+    })()
   ]);
 
   if (!tournament) {
     return <div>Tournament not found.</div>;
   }
+
+  // Calculate tournament start date (earliest game date)
+  const tournamentStartDate = games.length > 0
+    ? new Date(Math.min(...games.map(g => g.game_date.getTime())))
+    : undefined;
 
   // Convert game guesses array to map
   const gameGuesses = customToMap(gameGuessesArray, (gameGuess) => gameGuess.game_id);
@@ -68,6 +81,9 @@ export async function UnifiedGamesPage({ tournamentId }: UnifiedGamesPageProps) 
         rounds={rounds}
         dashboardStats={dashboardStats}
         tournament={tournament}
+        closingGames={closingGames}
+        tournamentPredictionCompletion={tournamentPredictionCompletion}
+        tournamentStartDate={tournamentStartDate}
       />
     </GuessesContextProvider>
   );
