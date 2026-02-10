@@ -1,14 +1,17 @@
 'use client'
 
-import { Box, Stack, Fab } from '@mui/material';
-import { useMemo, useContext, useEffect } from 'react';
+import { Box, Stack, Fab, IconButton, Collapse, Card, CardHeader } from '@mui/material';
+import { useMemo, useContext, useEffect, useState } from 'react';
 import NavigationIcon from '@mui/icons-material/Navigation';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { FilterContextProvider, useFilterContext } from './context-providers/filter-context-provider';
 import { GameFilters } from './game-filters';
+import { PredictionStatusBar } from './prediction-status-bar';
 import { SecondaryFilters } from './secondary-filters';
 import { GamesListWithScroll } from './games-list-with-scroll';
 import { ExtendedGameData } from '../definitions';
-import { Team, Tournament, TournamentGroup, PlayoffRound } from '../db/tables-definition';
+import { Team, Tournament, TournamentGroup, PlayoffRound, TournamentPredictionCompletion } from '../db/tables-definition';
 import { TournamentGameCounts } from '../db/game-repository';
 import { filterGames } from '../utils/game-filters';
 import { GuessesContext } from './context-providers/guesses-context-provider';
@@ -26,6 +29,9 @@ interface UnifiedGamesPageContentProps {
     goldenUsed: number;
   } | null;
   readonly tournament: Tournament;
+  readonly closingGames: ExtendedGameData[];
+  readonly tournamentPredictionCompletion: TournamentPredictionCompletion | null;
+  readonly tournamentStartDate: Date | undefined;
 }
 
 function UnifiedGamesPageContent({
@@ -36,15 +42,26 @@ function UnifiedGamesPageContent({
   groups,
   rounds,
   dashboardStats,
-  tournament
+  tournament,
+  closingGames,
+  tournamentPredictionCompletion,
+  tournamentStartDate
 }: UnifiedGamesPageContentProps) {
   const { activeFilter, groupFilter, roundFilter, setActiveFilter, setGroupFilter, setRoundFilter } = useFilterContext();
   const guessesContext = useContext(GuessesContext);
+  const [dashboardExpanded, setDashboardExpanded] = useState(true);
 
   // Filter games based on active filters
   const filteredGames = useMemo(() => {
     return filterGames(games, activeFilter, groupFilter, roundFilter, guessesContext.gameGuesses);
   }, [games, activeFilter, groupFilter, roundFilter, guessesContext.gameGuesses]);
+
+  // Calculate progress
+  const totalGames = games.length;
+  const predictedGames = games.filter(game => {
+    const guess = guessesContext.gameGuesses[game.id];
+    return guess && guess.home_score !== null && guess.away_score !== null;
+  }).length;
 
   // Auto-scroll when filters change
   useEffect(() => {
@@ -69,6 +86,47 @@ function UnifiedGamesPageContent({
 
   return (
     <Stack spacing={2} sx={{ height: '100%', overflow: 'hidden' }}>
+      {/* Collapsible Prediction Dashboard */}
+      <Card>
+        <CardHeader
+          title="Dashboard de Predicciones"
+          action={
+            <IconButton
+              onClick={() => setDashboardExpanded(!dashboardExpanded)}
+              aria-label={dashboardExpanded ? 'colapsar' : 'expandir'}
+              size="small"
+            >
+              {dashboardExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            </IconButton>
+          }
+          sx={{
+            py: 1,
+            px: 2,
+            '& .MuiCardHeader-title': {
+              fontSize: '1rem',
+              fontWeight: 600
+            }
+          }}
+        />
+        <Collapse in={dashboardExpanded} timeout="auto" unmountOnExit>
+          <Box sx={{ px: 2, pb: 2 }}>
+            <PredictionStatusBar
+              totalGames={totalGames}
+              predictedGames={predictedGames}
+              silverUsed={dashboardStats?.silverUsed || 0}
+              silverMax={tournament.max_silver_games || 0}
+              goldenUsed={dashboardStats?.goldenUsed || 0}
+              goldenMax={tournament.max_golden_games || 0}
+              tournamentPredictions={tournamentPredictionCompletion || undefined}
+              tournamentId={tournamentId}
+              tournamentStartDate={tournamentStartDate}
+              games={closingGames}
+              teamsMap={teamsMap}
+              isPlayoffs={false}
+            />
+          </Box>
+        </Collapse>
+      </Card>
 
       {/* Filters - Side by side */}
       <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
@@ -146,6 +204,9 @@ interface UnifiedGamesPageClientProps {
     goldenUsed: number;
   } | null;
   readonly tournament: Tournament;
+  readonly closingGames: ExtendedGameData[];
+  readonly tournamentPredictionCompletion: TournamentPredictionCompletion | null;
+  readonly tournamentStartDate: Date | undefined;
 }
 
 export function UnifiedGamesPageClient(props: UnifiedGamesPageClientProps) {
