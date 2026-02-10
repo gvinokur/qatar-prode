@@ -246,5 +246,213 @@ describe('Qualification Actions', () => {
       expect(result.success).toBe(true);
       expect(mockUpsertGroupPositions).toHaveBeenCalled();
     });
+
+    it('should reject duplicate teams', async () => {
+      const mockTournamentQuery = {
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(mockTournament),
+      };
+      mockDb.selectFrom.mockReturnValue(mockTournamentQuery as any);
+
+      const positionUpdates = [
+        { teamId: 'team-1', position: 1, qualifies: true },
+        { teamId: 'team-1', position: 2, qualifies: true }, // Duplicate!
+      ];
+
+      await expect(
+        updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
+      ).rejects.toThrow('Hay equipos duplicados');
+    });
+
+    it('should reject invalid positions (less than 1)', async () => {
+      const mockTournamentQuery = {
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(mockTournament),
+      };
+      mockDb.selectFrom.mockReturnValue(mockTournamentQuery as any);
+
+      const positionUpdates = [
+        { teamId: 'team-1', position: 0, qualifies: true }, // Invalid position!
+      ];
+
+      await expect(
+        updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
+      ).rejects.toThrow('Todas las posiciones deben ser al menos 1');
+    });
+
+    it('should reject duplicate positions', async () => {
+      const mockTournamentQuery = {
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(mockTournament),
+      };
+      mockDb.selectFrom.mockReturnValue(mockTournamentQuery as any);
+
+      const positionUpdates = [
+        { teamId: 'team-1', position: 1, qualifies: true },
+        { teamId: 'team-2', position: 1, qualifies: true }, // Duplicate position!
+      ];
+
+      await expect(
+        updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
+      ).rejects.toThrow('Hay posiciones duplicadas');
+    });
+
+    it('should reject when positions 1-2 are not marked as qualified', async () => {
+      const mockTournamentQuery = {
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(mockTournament),
+      };
+      mockDb.selectFrom.mockReturnValue(mockTournamentQuery as any);
+
+      const positionUpdates = [
+        { teamId: 'team-1', position: 1, qualifies: false }, // Position 1 must qualify!
+        { teamId: 'team-2', position: 2, qualifies: true },
+      ];
+
+      await expect(
+        updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
+      ).rejects.toThrow('Los equipos en posiciones 1 y 2 deben estar calificados');
+    });
+
+    it('should reject third place qualifiers when tournament does not allow them', async () => {
+      const mockTournamentQuery = {
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue({
+          ...mockTournament,
+          allows_third_place_qualification: false,
+        }),
+      };
+      const mockTeamQuery = {
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue({ team_id: 'team-1' }),
+      };
+      const mockGameQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue({
+          game_date: new Date('2026-12-31'),
+        }),
+      };
+
+      mockDb.selectFrom.mockImplementation((table: string) => {
+        if (table === 'tournaments') return mockTournamentQuery as any;
+        if (table === 'tournament_group_teams') return mockTeamQuery as any;
+        if (table === 'games') return mockGameQuery as any;
+        return mockTeamQuery as any;
+      });
+
+      mockGetAllUserGroupPositionsPredictions.mockResolvedValue([]);
+
+      const positionUpdates = [
+        { teamId: 'team-1', position: 1, qualifies: true },
+        { teamId: 'team-2', position: 2, qualifies: true },
+        { teamId: 'team-3', position: 3, qualifies: true }, // Third place not allowed!
+      ];
+
+      await expect(
+        updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
+      ).rejects.toThrow('Este torneo no permite calificar equipos de tercer lugar');
+    });
+
+    it('should reject too many third place qualifiers', async () => {
+      const mockTournamentQuery = {
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue({
+          ...mockTournament,
+          max_third_place_qualifiers: 2, // Only 2 allowed
+        }),
+      };
+      const mockTeamQuery = {
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue({ team_id: 'team-1' }),
+      };
+      const mockGameQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue({
+          game_date: new Date('2026-12-31'),
+        }),
+      };
+
+      mockDb.selectFrom.mockImplementation((table: string) => {
+        if (table === 'tournaments') return mockTournamentQuery as any;
+        if (table === 'tournament_group_teams') return mockTeamQuery as any;
+        if (table === 'games') return mockGameQuery as any;
+        return mockTeamQuery as any;
+      });
+
+      // User already has 2 third place qualifiers in other groups
+      mockGetAllUserGroupPositionsPredictions.mockResolvedValue([
+        {
+          id: 'pred-other',
+          user_id: 'user-1',
+          tournament_id: 'tournament-1',
+          group_id: 'group-other',
+          team_predicted_positions: [
+            { team_id: 'team-x', predicted_position: 3, predicted_to_qualify: true },
+            { team_id: 'team-y', predicted_position: 3, predicted_to_qualify: true },
+          ],
+        },
+      ] as any);
+
+      const positionUpdates = [
+        { teamId: 'team-1', position: 1, qualifies: true },
+        { teamId: 'team-2', position: 2, qualifies: true },
+        { teamId: 'team-3', position: 3, qualifies: true }, // Would exceed limit!
+      ];
+
+      await expect(
+        updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
+      ).rejects.toThrow('Solo puedes seleccionar 2 equipos de tercer lugar en total');
+    });
+
+    it('should reject team not in group', async () => {
+      const mockTournamentQuery = {
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(mockTournament),
+      };
+      // Mock team NOT found in group
+      const mockTeamQuery = {
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(null), // Team not found!
+      };
+      const mockGameQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue({
+          game_date: new Date('2026-12-31'),
+        }),
+      };
+
+      mockDb.selectFrom.mockImplementation((table: string) => {
+        if (table === 'tournaments') return mockTournamentQuery as any;
+        if (table === 'tournament_group_teams') return mockTeamQuery as any;
+        if (table === 'games') return mockGameQuery as any;
+        return mockTeamQuery as any;
+      });
+
+      mockGetAllUserGroupPositionsPredictions.mockResolvedValue([]);
+
+      const positionUpdates = [
+        { teamId: 'team-999', position: 1, qualifies: true }, // Team not in group!
+      ];
+
+      await expect(
+        updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
+      ).rejects.toThrow('El equipo team-999 no pertenece al grupo group-1');
+    });
   });
 });
