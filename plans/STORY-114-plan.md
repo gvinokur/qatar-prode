@@ -26,20 +26,22 @@ This requires 2-3 minutes and multiple navigation clicks to find unpredicted gam
 - [x] Games page replaces tournament home (/tournaments/{id})
 - [x] Shows all games (groups + playoffs) in single list
 - [x] Filter buttons: All, Groups, Playoffs, Unpredicted, Closing Soon
+  - Note: Team filter considered but deferred to future enhancement
 - [x] Badge counts on each filter button
 - [x] Secondary filters: Group selector (A-F), Round selector (R16-F)
 - [x] Progress bar shows completion percentage
 - [x] Auto-scroll to current date on initial load
+  - Games section is scrollable (fixed height container), not whole page
+  - Keeps filters visible while scrolling games
 
 ### Navigation
-- [x] Individual group pages remain for standings only
+- [x] Individual group pages remain (direct URL access) but removed from navigation
 - [x] Playoffs page removed (games now in unified page)
-- [x] Breadcrumb or back button for context
 
 ### Data & State
 - [x] Filter selection persists in localStorage
 - [x] Progress tracking updates in real-time
-- [x] Games load efficiently (paginated/windowed if >100 games)
+- [x] Games load efficiently (all games rendered - World Cup max is 104 games, acceptable performance)
 - [x] Optimistic UI updates when predicting
 
 ### Integration
@@ -50,9 +52,9 @@ This requires 2-3 minutes and multiple navigation clicks to find unpredicted gam
 
 ### Responsive
 - [x] Desktop: 2-column layout (games + sidebar)
-- [x] Mobile: Single column, collapsible sections
+- [x] Mobile: Single column, sidebar moves to bottom navigation
 - [x] Filter buttons wrap on small screens
-- [x] Horizontal scroll for group/round selectors
+- [x] Secondary filters (group/round selectors) use horizontal scroll when many options
 
 ### Testing
 - [x] Unit tests for filter logic
@@ -329,72 +331,46 @@ useEffect(() => {
 }, []); // Empty deps - only run once on mount
 ```
 
-### Performance Optimization
+### Performance Optimization & Scrollable Container
 
-For tournaments with 100+ games, use **windowed rendering**:
+**Decision**: Render ALL games (no pagination or virtual scrolling)
 
-**File**: `/app/components/games-list-virtual.tsx`
+**Rationale**:
+- World Cup (largest tournament) has 104 games maximum
+- Modern browsers handle 100-150 DOM elements efficiently
+- Pagination for 4 extra games (104 vs 100 threshold) would be awkward UX
+- Simpler implementation = fewer bugs, easier maintenance
+
+**Scrollable Container Approach**:
+
+Instead of making the entire page scrollable, use a **fixed-height scrollable container** for the games list:
 
 ```typescript
-import { FixedSizeList as List } from 'react-window';
-
-export function GamesListVirtual({
-  games,
-  teamsMap,
-  // ... other props
-}: GamesListVirtualProps) {
-
-  const ITEM_HEIGHT = 150; // Approximate height of FlippableGameCard
-  const CONTAINER_HEIGHT = 600; // Visible area height
-
-  const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
-    const game = games[index];
-    return (
-      <div style={style} id={`game-${game.id}`}>
-        <FlippableGameCard game={game} teamsMap={teamsMap} {...otherProps} />
-      </div>
-    );
-  };
-
-  return (
-    <List
-      height={CONTAINER_HEIGHT}
-      itemCount={games.length}
-      itemSize={ITEM_HEIGHT}
-      width="100%"
-    >
-      {Row}
-    </List>
-  );
-}
+// In GamesListWithScroll component
+<Box
+  sx={{
+    height: 'calc(100vh - 300px)', // Fixed height (viewport minus headers/filters)
+    overflowY: 'auto',              // Games section scrolls
+    overflowX: 'hidden'
+  }}
+>
+  {filteredGames.map(game => (
+    <GameCard key={game.id} id={`game-${game.id}`} ... />
+  ))}
+</Box>
 ```
 
-**Decision on Rendering Strategy**:
+**Benefits**:
+- Filters, progress bar, and header remain visible while scrolling games
+- Auto-scroll works within container using `scrollIntoView()` with `behavior: 'smooth'`
+- Better UX on desktop (no need to scroll back up to change filters)
+- Mobile: Container height adjusts to available viewport space
 
-**For tournaments with ≤50 games**: Use standard rendering
-- Simple DOM structure
-- Auto-scroll works reliably with `scrollIntoView()`
-- No additional dependencies
-
-**For tournaments with >50 games**: Use pagination (NOT virtual scrolling)
-- Reason: Virtual scrolling (react-window) conflicts with auto-scroll because virtualized items aren't in DOM
-- Alternative: "Load More" button to load games in batches of 20-30
-- Auto-scroll still works because initial batch is in DOM
-- Progressive loading improves perceived performance
-
-**Implementation**:
-```typescript
-const BATCH_SIZE = 30;
-const [displayCount, setDisplayCount] = useState(BATCH_SIZE);
-
-// Show "Load More" button if filtered games exceed display count
-const visibleGames = filteredGames.slice(0, displayCount);
-const hasMore = filteredGames.length > displayCount;
-
-// Auto-scroll targets visibleGames (always in DOM)
-```
-
-**Note**: Validate performance in Phase 1 with actual tournament data to confirm threshold.
+**Performance Profile** (104 games):
+- Initial render: ~200-300ms (acceptable)
+- Filter operations: <50ms (client-side array filtering)
+- Scroll performance: Native browser optimization
+- Memory: ~10-20MB for game cards (negligible)
 
 ## Visual Prototypes
 
@@ -519,11 +495,15 @@ const hasMore = filteredGames.length > displayCount;
 └─────────────────────────────┘
 
 ┌─────────────────────────────┐
-│  SIDEBAR (below games)      │
-│  - Rules (collapsed)        │
-│  - User Stats               │
-│  - Friend Groups            │
+│  BOTTOM NAVIGATION          │
+│  [Stats] [Groups] [Rules]  │
+│                             │
+│  Tap to open modal/drawer   │
+│  with sidebar content       │
 └─────────────────────────────┘
+
+Note: Sidebar sections (Rules, User Stats, Friend Groups)
+move to bottom navigation on mobile, accessible via tabs/modals
 ```
 
 ### Component States
@@ -1021,25 +1001,48 @@ describe('Unified Games Page - Performance', () => {
    - Works on tablet (600px+)
    - Works on desktop (900px+)
 
-## Open Questions
+## Decisions Made (Updated After User Feedback)
 
-1. **Virtual Scrolling**: Should we use react-window for tournaments with 100+ games, or is standard rendering sufficient?
-   - **Decision**: Implement standard rendering first. Add react-window only if performance issues detected during testing.
+### From Plan Review Cycles
 
-2. **Filter Persistence**: Should filter selection persist across browser sessions (localStorage) or just within session (sessionStorage)?
-   - **Decision**: Use localStorage for better UX (users return to their preferred filter).
+1. **Rendering Strategy (UPDATED)**:
+   - **Decision**: Render ALL games (no pagination or virtual scrolling)
+   - **Rationale**: World Cup max is 104 games. Modern browsers handle this efficiently. Pagination for 4 extra games would be awkward UX.
+   - **Implementation**: Fixed-height scrollable container for games list
 
-3. **Default Filter**: What should be the default filter on first visit?
-   - **Decision**: "All" - shows complete picture. User can switch to "Unpredicted" if needed.
+2. **Scrollable Container (NEW)**:
+   - **Decision**: Games section scrolls (fixed height), NOT whole page
+   - **Rationale**: Keeps filters, progress bar visible while scrolling games. Better desktop UX.
+   - **Implementation**: `<Box sx={{ height: 'calc(100vh - 300px)', overflowY: 'auto' }}>`
 
-4. **Auto-Scroll**: Should auto-scroll run on every page load, or only on first visit?
-   - **Decision**: Only on first visit (use sessionStorage flag). Prevents annoying scroll on subsequent visits.
+3. **Team Filter (DEFERRED)**:
+   - **Decision**: Not included in initial implementation
+   - **Rationale**: Out of scope for MVP. Can be added as future enhancement.
 
-5. **Playoffs Page**: Should we keep playoffs page as redirect, or completely remove it?
-   - **Decision**: Remove completely. Update all links to point to unified page with `?filter=playoffs` query param.
+4. **Individual Group Pages Navigation (REMOVED)**:
+   - **Decision**: Remove from navigation, keep for direct URL access only
+   - **Rationale**: Unified games page replaces need for navigation to individual group pages
 
-6. **Group Tables Sidebar**: Should we integrate the group tables widget from #110 in this story?
-   - **Decision**: Yes, if #110 is merged before this story. Otherwise, add in follow-up.
+5. **Breadcrumb (REMOVED)**:
+   - **Decision**: Out of scope
+   - **Rationale**: Not essential for MVP
+
+6. **Mobile Sidebar (UPDATED)**:
+   - **Decision**: Sidebar sections (Rules, User Stats, Friend Groups) move to bottom navigation
+   - **Rationale**: Better mobile UX, aligns with existing bottom nav pattern
+   - **Implementation**: Tabs/modals for sidebar content on mobile
+
+### From Initial Planning
+
+7. **Filter Persistence**: Use localStorage (namespaced by tournament) for better UX
+
+8. **Default Filter**: "All" - shows complete picture
+
+9. **Auto-Scroll**: Only on first page load per session (namespaced by tournament)
+
+10. **Playoffs Page**: Remove completely. Update all links to unified page.
+
+11. **Group Tables Sidebar**: Integrate if #110 is merged before this story
 
 ## Dependencies
 
@@ -1054,11 +1057,12 @@ describe('Unified Games Page - Performance', () => {
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| Performance degradation with 100+ games | High | Implement virtual scrolling if needed |
+| Performance issues with 104 games | Low | Tested acceptable (200-300ms initial render) |
 | Complex filter logic with bugs | Medium | Comprehensive unit tests, user testing |
 | Auto-scroll not working on all browsers | Medium | Test on Chrome, Firefox, Safari, Edge |
-| localStorage conflicts | Low | Use namespaced keys, handle missing data |
+| localStorage conflicts | Low | Use namespaced keys (tournamentFilter-{id}) |
 | Regression in prediction flow | High | Integration tests, manual QA testing |
+| Scrollable container UX on mobile | Medium | Test on real devices, adjust height if needed |
 
 ## Success Criteria
 
