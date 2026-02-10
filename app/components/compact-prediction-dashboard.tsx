@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useContext, useMemo, useState } from 'react';
-import { Box, LinearProgress, Typography, IconButton, Popover, Card } from '@mui/material';
+import React, { useContext, useMemo, useState, useRef } from 'react';
+import { Box, LinearProgress, Typography, IconButton, Popover, Card, Alert } from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningIcon from '@mui/icons-material/Warning';
@@ -137,10 +137,12 @@ export function CompactPredictionDashboard({
   isPlayoffs = false
 }: CompactPredictionDashboardProps) {
   const { gameGuesses } = useContext(GuessesContext);
+  const dashboardRef = useRef<HTMLDivElement>(null);
   const [gamePopoverAnchor, setGamePopoverAnchor] = useState<HTMLElement | null>(null);
   const [tournamentPopoverAnchor, setTournamentPopoverAnchor] = useState<HTMLElement | null>(null);
   const [boostAnchorEl, setBoostAnchorEl] = useState<HTMLElement | null>(null);
   const [activeBoostType, setActiveBoostType] = useState<'silver' | 'golden' | null>(null);
+  const [dashboardWidth, setDashboardWidth] = useState<number>(600);
 
   const gamePercentage = totalGames > 0 ? Math.round((predictedGames / totalGames) * 100) : 0;
   const showBoosts = silverMax > 0 || goldenMax > 0;
@@ -168,8 +170,43 @@ export function CompactPredictionDashboard({
 
   const boostPopoverOpen = Boolean(boostAnchorEl);
 
+  // Check if there are no urgent games (within 48 hours)
+  const hasUrgentGames = useMemo(() => {
+    if (!games || games.length === 0) return false;
+
+    const ONE_HOUR = 60 * 60 * 1000;
+    const now = Date.now();
+
+    return games.some(game => {
+      const guess = gameGuesses[game.id];
+      const isPredicted = guess &&
+        guess.home_score != null &&
+        guess.away_score != null;
+
+      if (isPredicted) return false;
+
+      const deadline = game.game_date.getTime() - ONE_HOUR;
+      const timeUntilClose = deadline - now;
+
+      return timeUntilClose > -ONE_HOUR && timeUntilClose < 48 * ONE_HOUR;
+    });
+  }, [games, gameGuesses]);
+
+  // Get dashboard width on mount and resize
+  React.useEffect(() => {
+    const updateWidth = () => {
+      if (dashboardRef.current) {
+        setDashboardWidth(dashboardRef.current.offsetWidth);
+      }
+    };
+
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
+
   return (
-    <Box sx={{ mb: 2 }}>
+    <Box ref={dashboardRef} sx={{ mb: 2 }}>
       {/* Game Predictions Row */}
       <Box
         onClick={(e) => setGamePopoverAnchor(e.currentTarget)}
@@ -274,10 +311,15 @@ export function CompactPredictionDashboard({
           horizontal: 'left',
         }}
       >
-        <Card sx={{ maxWidth: 600, maxHeight: '80vh', overflow: 'auto', p: 2 }}>
+        <Card sx={{ width: dashboardWidth, maxHeight: '80vh', overflow: 'auto', p: 2 }}>
           <Typography variant="h6" sx={{ mb: 2 }}>
             Predicciones de Partidos
           </Typography>
+          {!hasUrgentGames ? (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              Ningun partido cierra en las proximas 48 horas
+            </Alert>
+          ) : null}
           {games && teamsMap && tournamentId !== undefined && (
             <UrgencyAccordionGroup
               games={games}
@@ -306,7 +348,7 @@ export function CompactPredictionDashboard({
           horizontal: 'left',
         }}
       >
-        <Card sx={{ maxWidth: 600, maxHeight: '80vh', overflow: 'auto', p: 2 }}>
+        <Card sx={{ width: dashboardWidth, maxHeight: '80vh', overflow: 'auto', p: 2 }}>
           <Typography variant="h6" sx={{ mb: 2 }}>
             Predicciones de Torneo
           </Typography>
