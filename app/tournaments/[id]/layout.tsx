@@ -70,18 +70,15 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
     <Box>
       <AppBar position={'sticky'}>
         <Grid container>
-          <Grid size={{ xs:12, md: 3}} pt={2} pb={1} pl={2} pr={2} sx={{
+          <Grid size={12} pt={2} pb={1} pl={2} pr={2} sx={{
             backgroundColor: layoutData.tournament?.theme?.primary_color,
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: {
-              xs: 'space-between',
-              md: 'flex-start'
-            },
+            justifyContent: 'space-between',
             gap: 1
           }}>
-            {/* La Maquina logo button (home navigation) - mobile only */}
+            {/* La Maquina logo button (home navigation) */}
             <Link href="/" style={{ display: 'inline-flex', alignItems: 'center' }}>
               <Avatar
                 variant="rounded"
@@ -91,7 +88,6 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                   width: 32,
                   height: 32,
                   backgroundColor: 'white',
-                  display: { xs: 'flex', md: 'none' },
                   mr: 1
                 }}
               />
@@ -105,15 +101,9 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                   alignItems: 'center',
                   textDecoration: 'none',
                   color: 'inherit',
-                  flex: {
-                    xs: '1 1 auto',
-                    md: '0 0 auto'
-                  },
+                  flex: '1 1 auto',
                   minWidth: 0,
-                  justifyContent: {
-                    xs: 'flex-start',
-                    md: 'flex-start'
-                  }
+                  justifyContent: 'flex-start'
                 }}>
                 <Box
                   component="img"
@@ -156,7 +146,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
               <UserActions user={user} />
             </Box>
           </Grid>
-          <Grid size={{ xs:12, md: 9}} pt={2} pb={1} pl={1} pr={1}
+          <Grid size={12} pt={2} pb={1} pl={1} pr={1}
             sx={{
               backgroundColor: layoutData.tournament?.theme?.primary_color
             }}>
