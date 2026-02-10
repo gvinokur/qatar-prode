@@ -74,7 +74,6 @@ Create a streamlined single-line-per-metric format with simplified labels, visua
 │  ─────────────────────               │ ← Divider
 │                                     │
 │  Total:      102 pts                │ ← Larger, primary color
-│  Boosts:      3/5 used              │ ← Warning/accent color
 │                                     │
 │  ─────────────────────               │
 │                                     │
@@ -96,7 +95,6 @@ Create a streamlined single-line-per-metric format with simplified labels, visua
 │ Awards:      10 pts   │
 │ ───────────────       │
 │ Total:      102 pts   │
-│ Boosts:      3/5      │ ← Shorter on mobile
 │ ───────────────       │
 │ [Ver Stats]           │ ← Shorter label
 └───────────────────────┘
@@ -117,13 +115,11 @@ Create a streamlined single-line-per-metric format with simplified labels, visua
 - Labels: `body2` (14px) - "Groups:", "Playoffs:", etc.
 - Values: `body1` (16px, bold) - Point values
 - Total: `h6` (20px, bold) - Total points row
-- Boosts: `body2` (14px) - Boost usage
 
 **Colors:**
 - Labels: `text.secondary`
 - Values: `text.primary`, bold
 - Total: `primary.main`, bold
-- Boosts: `warning.main` (if < 5), `text.secondary` (if 5/5)
 - Dividers: `divider`
 
 **Spacing:**
@@ -141,13 +137,7 @@ Create a streamlined single-line-per-metric format with simplified labels, visua
 - Display message: "No stats available yet. Start making predictions!"
 - Show link to predictions page
 
-**Boost States:**
-- 0/5 used: `text.secondary` color
-- 1-4 used: `warning.main` color (partial usage)
-- 5/5 used: `success.main` color (all used)
-
 **Conditional Rendering:**
-- If no boosts available: Hide "Boosts" row entirely
 - If no tournament ID: Hide link button
 
 ## Technical Approach
@@ -179,25 +169,9 @@ const awardsTotal = (tournamentGuess?.honor_roll_score || 0)
   + (tournamentGuess?.individual_awards_score || 0)
 
 const grandTotal = groupsTotal + playoffsTotal + awardsTotal
-
-const boostsUsed = calculateBoostsUsed(userGameStatistics)
-const totalBoosts = 5 // Or from tournament config
 ```
 
-**Boost Calculation:**
-```typescript
-function calculateBoostsUsed(stats?: GameStatisticForUser): number {
-  if (!stats) return 0
-
-  // Boost is used if there's a bonus
-  const groupBoosts = stats.group_boost_bonus > 0 ? 1 : 0
-  const playoffBoosts = stats.playoff_boost_bonus > 0 ? 1 : 0
-
-  // Need to query actual boost usage count from database
-  // This is a simplification - actual implementation may differ
-  return groupBoosts + playoffBoosts
-}
-```
+**Note:** Boost bonuses are still included in the totals (group_boost_bonus, playoff_boost_bonus) but the boost usage count is not displayed separately.
 
 ### 2. Layout Implementation
 
@@ -239,7 +213,6 @@ export function UserTournamentStatistics({ userGameStatistics, tournamentGuess, 
   const qualifiedTotal = ...
   const awardsTotal = ...
   const grandTotal = ...
-  const boostsUsed = ...
 
   return (
     <Card>
@@ -260,11 +233,6 @@ export function UserTournamentStatistics({ userGameStatistics, tournamentGuess, 
             label="Total:"
             value={`${grandTotal} pts`}
             valueColor={theme.palette.primary.main}
-          />
-          <StatRow
-            label="Boosts:"
-            value={`${boostsUsed}/5`}
-            valueColor={boostsUsed < 5 ? theme.palette.warning.main : theme.palette.text.secondary}
           />
 
           <Divider sx={{ my: 1.5 }} />
@@ -287,26 +255,6 @@ export function UserTournamentStatistics({ userGameStatistics, tournamentGuess, 
 ```
 
 ### 3. Data Handling Considerations
-
-**Boost Usage Count Challenge:**
-The current implementation calculates boost *bonuses* (extra points), but not the count of boosts *used*. We need to determine:
-
-**Option A: Infer from bonus presence**
-- If `group_boost_bonus > 0`, at least 1 boost used in groups
-- If `playoff_boost_bonus > 0`, at least 1 boost used in playoffs
-- **Limitation:** Doesn't track exact count (user could have used multiple boosts)
-
-**Option B: Query game_guess table**
-- Query `game_guess` table where `user_id = ? AND tournament_id = ? AND boost_applied = true`
-- Count rows to get exact boost usage
-- **Trade-off:** Additional database query
-
-**Option C: Accept inaccuracy for MVP**
-- Show "Boosts usados" without specific count (e.g., "Boosts: Activos")
-- Document as future enhancement
-- **Benefit:** No additional queries needed
-
-**Recommendation:** Start with Option A (infer from bonuses) as it requires no schema changes or new queries. If precise tracking is needed, implement Option B in a follow-up story.
 
 **Qualified vs Groups Breakdown:**
 The story spec says "Qualified: [Z] pts" but the current implementation combines:
@@ -406,11 +354,10 @@ Current component uses Spanish labels hardcoded. To maintain consistency:
 - Replace Grid layout with Stack + Box layout
 - Simplify data aggregation (remove groupScoreData/playoffScoreData objects)
 - Create StatRow helper component for label/value pairs
-- Add calculateBoostsUsed utility function
 - Update typography variants (body2 for labels, body1 for values, h6 for total)
 - Update spacing (spacing={1}, my: 1.5 for dividers)
-- Update colors (text.secondary for labels, primary.main for total, warning.main for boosts)
-- Simplify conditional rendering (boosts, link button)
+- Update colors (text.secondary for labels, primary.main for total)
+- Simplify conditional rendering (link button)
 
 **Estimated Lines Changed:** ~150 lines (replace ~100 lines with ~50 new lines)
 
@@ -420,9 +367,8 @@ Current component uses Spanish labels hardcoded. To maintain consistency:
 **Test Coverage:**
 - Rendering with complete data
 - Rendering with missing data (no stats, no tournament guess)
-- Boost usage calculation (0/5, 3/5, 5/5)
 - Total calculation accuracy
-- Conditional rendering (link button, boosts row)
+- Conditional rendering (link button)
 - Accessibility (ARIA labels)
 - Responsive behavior (mobile vs desktop labels)
 
@@ -440,7 +386,6 @@ Current component uses Spanish labels hardcoded. To maintain consistency:
 1. Remove groupScoreData and playoffScoreData objects
 2. Calculate direct totals: groupsTotal, playoffsTotal, qualifiedTotal, awardsTotal
 3. Calculate grandTotal (sum of all)
-4. Implement calculateBoostsUsed function (Option A: infer from bonuses)
 
 ### Step 3: Update Styling (15 min)
 1. Update typography variants (body2, body1, h6)
@@ -448,10 +393,8 @@ Current component uses Spanish labels hardcoded. To maintain consistency:
 3. Update spacing (Stack spacing={1}, Divider my: 1.5)
 4. Add responsive button text (mobile vs desktop)
 
-### Step 4: Conditional Rendering (10 min)
-1. Hide boosts row if no boost data available
-2. Hide link button if no tournamentId
-3. Apply boost color logic (warning.main if < 5)
+### Step 4: Conditional Rendering (5 min)
+1. Hide link button if no tournamentId
 
 ### Step 5: Accessibility & Semantics (10 min)
 1. Add ARIA labels to Card and Button
@@ -500,7 +443,6 @@ describe('UserTournamentStatistics', () => {
     expect(getByText(/clasificados:/i)).toBeInTheDocument()
     expect(getByText(/premios:/i)).toBeInTheDocument()
     expect(getByText(/total:/i)).toBeInTheDocument()
-    expect(getByText(/boosts:/i)).toBeInTheDocument()
   })
 
   it('renders with no data gracefully', () => {
@@ -533,30 +475,10 @@ describe('Total Calculations', () => {
   })
 })
 
-describe('Boost Usage', () => {
-  it('shows 0/5 when no boosts used', () => {
-    const props = {
-      userGameStatistics: testFactories.gameStatistic({
-        group_boost_bonus: 0,
-        playoff_boost_bonus: 0
-      })
-    }
-    const { getByText } = renderWithTheme(<UserTournamentStatistics {...props} />)
-    expect(getByText(/boosts:\s*0\/5/i)).toBeInTheDocument()
-  })
-
-  it('shows 2/5 when both bonuses present', () => {
-    const props = {
-      userGameStatistics: testFactories.gameStatistic({
-        group_boost_bonus: 5,
-        playoff_boost_bonus: 3
-      })
-    }
-    const { getByText } = renderWithTheme(<UserTournamentStatistics {...props} />)
-    expect(getByText(/boosts:\s*2\/5/i)).toBeInTheDocument()
-  })
 })
 ```
+
+**Note:** Boost usage tests removed as boosts are no longer displayed separately in the UI. Boost bonuses are still included in the total calculations.
 
 #### 3. Conditional Rendering Tests
 ```typescript
@@ -570,14 +492,6 @@ describe('Conditional Rendering', () => {
   it('hides link button when no tournamentId', () => {
     const { queryByRole } = renderWithTheme(<UserTournamentStatistics />)
     expect(queryByRole('link')).not.toBeInTheDocument()
-  })
-
-  it('applies warning color to boosts when < 5', () => {
-    // Test color application
-  })
-
-  it('applies success color to boosts when = 5', () => {
-    // Test color application
   })
 })
 ```
@@ -618,7 +532,6 @@ describe('Integration with Parent Page', () => {
 - [ ] All stats are visible and correctly aligned
 - [ ] Dividers are properly spaced
 - [ ] Total row is visually prominent (primary color, bold)
-- [ ] Boosts row shows correct color (warning for < 5)
 
 **Functional Testing:**
 - [ ] Stats calculate correctly with sample data
@@ -707,9 +620,6 @@ const mockTournamentGuess = testFactories.tournamentGuess({
 - [x] Total points prominently displayed
   - **Verification:** Typography h6, primary.main color, bold weight
 
-- [x] Boosts usage shown (e.g., 3/5)
-  - **Verification:** Unit test for boost calculation, visual color coding
-
 - [x] Compact single-line format for each section
   - **Verification:** Stack layout with spacing={1}, no nested Grids
 
@@ -727,17 +637,7 @@ const mockTournamentGuess = testFactories.tournamentGuess({
 
 ## Open Questions
 
-### 1. Boost Usage Tracking (RESOLVED)
-
-**Question:** How should we calculate boost usage count?
-**Options:**
-- A) Infer from bonus presence (group_boost_bonus > 0, playoff_boost_bonus > 0)
-- B) Query game_guess table for boost_applied = true count
-- C) Show qualitative status ("Boosts: Activos") without count
-
-**Decision:** Option A (infer from bonuses) for MVP. Acceptable trade-off between accuracy and complexity. If precise tracking is needed, implement Option B in follow-up story.
-
-### 2. "Qualified" Label Semantics (RESOLVED)
+### 1. "Qualified" Label Semantics (RESOLVED)
 
 **Question:** Should "Clasificados" include both qualified_teams_score and group_position_score?
 **Analysis:**
@@ -747,12 +647,12 @@ const mockTournamentGuess = testFactories.tournamentGuess({
 
 **Decision:** Merge both into "Clasificados" row to match story spec simplification. Detailed breakdown remains in full stats page.
 
-### 3. Localization Approach (DEFERRED)
+### 2. Localization Approach (DEFERRED)
 
 **Question:** Should labels be hardcoded Spanish or use i18n keys?
 **Decision:** Keep hardcoded Spanish for consistency with current implementation. If project-wide i18n is implemented later, add translation keys then. No localization infrastructure exists currently.
 
-### 4. Mobile Label Abbreviation (OPTIONAL)
+### 3. Mobile Label Abbreviation (OPTIONAL)
 
 **Question:** Should mobile view use shorter labels (e.g., "Groups" instead of "Grupos")?
 **Decision:** Keep same labels across all viewports for consistency. Card width is sufficient for full labels even on mobile. Button text can be shortened ("Ver Stats" vs "Ver Estadísticas Detalladas").
@@ -772,11 +672,6 @@ const mockTournamentGuess = testFactories.tournamentGuess({
 - Safe navigation with `|| 0` fallbacks
 
 ### Medium Risk
-
-**Boost Usage Inference:**
-- **Risk:** Inferred count may not match actual usage if bonus calculation logic changes
-- **Mitigation:** Document assumption clearly, add unit tests to verify logic
-- **Fallback:** If inaccuracy causes user confusion, implement precise query in follow-up
 
 **Card Height Reduction:**
 - **Risk:** May not achieve 30% reduction target on all screen sizes
