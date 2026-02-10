@@ -1,7 +1,8 @@
 'use client'
 
-import { Box, Stack } from '@mui/material';
+import { Box, Stack, Fab } from '@mui/material';
 import { useMemo, useContext } from 'react';
+import NavigationIcon from '@mui/icons-material/Navigation';
 import { FilterContextProvider, useFilterContext } from './context-providers/filter-context-provider';
 import { GameFilters } from './game-filters';
 import { PredictionStatusBar } from './prediction-status-bar';
@@ -12,6 +13,7 @@ import { Team, Tournament, TournamentGroup, PlayoffRound, TournamentPredictionCo
 import { TournamentGameCounts } from '../db/game-repository';
 import { filterGames } from '../utils/game-filters';
 import { GuessesContext } from './context-providers/guesses-context-provider';
+import { findScrollTarget, scrollToGame } from '../utils/auto-scroll';
 
 interface UnifiedGamesPageContentProps {
   readonly games: ExtendedGameData[];
@@ -58,6 +60,14 @@ function UnifiedGamesPageContent({
     return guess && guess.home_score !== null && guess.away_score !== null;
   }).length;
 
+  // Handler to scroll to next/current game
+  const handleScrollToNext = () => {
+    const targetId = findScrollTarget(filteredGames);
+    if (targetId) {
+      scrollToGame(targetId, 'smooth');
+    }
+  };
+
   return (
     <Stack spacing={2} sx={{ height: '100%', overflow: 'hidden' }}>
       {/* Prediction Status Bar */}
@@ -100,7 +110,8 @@ function UnifiedGamesPageContent({
           flexGrow: 1,
           overflow: 'auto',
           minHeight: 0,
-          px: { xs: 0, sm: 1 }
+          px: { xs: 0, sm: 1 },
+          position: 'relative'
         }}
       >
         <GamesListWithScroll
@@ -111,6 +122,23 @@ function UnifiedGamesPageContent({
           dashboardStats={dashboardStats}
           tournament={tournament}
         />
+
+        {/* Floating Action Button - Scroll to Next Game */}
+        {filteredGames.length > 0 && (
+          <Fab
+            color="primary"
+            aria-label="scroll to next game"
+            onClick={handleScrollToNext}
+            sx={{
+              position: 'fixed',
+              bottom: { xs: 80, md: 24 },
+              right: { xs: 16, md: 24 },
+              zIndex: 1000
+            }}
+          >
+            <NavigationIcon />
+          </Fab>
+        )}
       </Box>
     </Stack>
   );
