@@ -144,9 +144,9 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
               </Box>
 
             </Link>
-            {/* User actions container - mobile only */}
+            {/* User actions container */}
             <Box sx={{
-              display: { xs: 'flex', md: 'none' },
+              display: 'flex',
               flexDirection: 'row',
               alignItems: 'center',
               gap: 1,
