@@ -164,7 +164,7 @@ export async function calculatePlayoffTeamsFromPositions(
     type ThirdPositionTeamTuple = [string, TeamStats]
 
     const thirdTeams = Object.entries(groupTableMap).map(([groupLetter, positionsMap]) => {
-      const thirdPositionTeam = positionsMap[3] // Fixed: was positionsMap[2], should be [3] for third place
+      const thirdPositionTeam = positionsMap[2] // 0-indexed: position 3 is at index 2
       return [groupLetter, thirdPositionTeam] as ThirdPositionTeamTuple
     })
       .filter(([, thirdPositionTeam]) => !!thirdPositionTeam)

@@ -51,7 +51,7 @@ export default async function PlayoffPage(props: Props) {
         const groupPrediction = qualificationPredictions.find(p => p.group_id === group.id)
 
         if (!groupPrediction) {
-          return [group.group_letter, {}]
+          return [group.group_letter, []]
         }
 
         // Extract team positions from JSONB and convert to standings format
@@ -79,12 +79,7 @@ export default async function PlayoffPage(props: Props) {
             is_complete: true, // Mark as complete so playoff calculator accepts this group
           }))
 
-        // Convert array to object with 1-indexed position keys (expected by playoff calculator)
-        const positionsMap = Object.fromEntries(
-          standings.map((teamStat, index) => [index + 1, teamStat])
-        )
-
-        return [group.group_letter, positionsMap]
+        return [group.group_letter, standings]
       })
     )
   }
