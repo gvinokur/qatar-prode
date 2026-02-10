@@ -43,8 +43,12 @@ vi.mock('../../app/utils/poisson-generator', () => ({
 vi.mock('../../app/actions/backoffice-actions', () => ({
   calculateAndSavePlayoffGamesForTournament: vi.fn(),
   calculateAndStoreGroupPosition: vi.fn(),
-  calculateAndStoreQualifiedTeamsPoints: vi.fn(),
   calculateGameScores: vi.fn(),
+}));
+
+// Mock qualified teams scoring actions
+vi.mock('../../app/actions/qualified-teams-scoring-actions', () => ({
+  calculateAndStoreQualifiedTeamsScores: vi.fn(),
 }));
 
 import { auth } from '../../auth';
@@ -54,6 +58,7 @@ import * as tournamentGroupRepository from '../../app/db/tournament-group-reposi
 import { db } from '../../app/db/database';
 import { generateMatchScore } from '../../app/utils/poisson-generator';
 import * as backofficeActions from '../../app/actions/backoffice-actions';
+import * as qualifiedTeamsScoringActions from '../../app/actions/qualified-teams-scoring-actions';
 
 const mockAuth = vi.mocked(auth);
 const mockFindGamesInGroup = vi.mocked(gameRepository.findGamesInGroup);
@@ -67,7 +72,7 @@ const mockDb = vi.mocked(db);
 const mockGenerateMatchScore = vi.mocked(generateMatchScore);
 const mockCalculateAndSavePlayoffGamesForTournament = vi.mocked(backofficeActions.calculateAndSavePlayoffGamesForTournament);
 const mockCalculateAndStoreGroupPosition = vi.mocked(backofficeActions.calculateAndStoreGroupPosition);
-const mockCalculateAndStoreQualifiedTeamsPoints = vi.mocked(backofficeActions.calculateAndStoreQualifiedTeamsPoints);
+const mockCalculateAndStoreQualifiedTeamsScores = vi.mocked(qualifiedTeamsScoringActions.calculateAndStoreQualifiedTeamsScores);
 const mockCalculateGameScores = vi.mocked(backofficeActions.calculateGameScores);
 
 describe('Game Score Generator Actions', () => {
@@ -103,7 +108,7 @@ describe('Game Score Generator Actions', () => {
     // Mock recalculation functions
     mockCalculateAndSavePlayoffGamesForTournament.mockResolvedValue(undefined as any);
     mockCalculateAndStoreGroupPosition.mockResolvedValue(undefined as any);
-    mockCalculateAndStoreQualifiedTeamsPoints.mockResolvedValue(undefined as any);
+    mockCalculateAndStoreQualifiedTeamsScores.mockResolvedValue(undefined as any);
     mockCalculateGameScores.mockResolvedValue(undefined as any);
   });
 
@@ -503,7 +508,7 @@ describe('Game Score Generator Actions', () => {
         expect(mockCalculateAndSavePlayoffGamesForTournament).toHaveBeenCalledWith('tournament-1');
         expect(mockCalculateAndStoreGroupPosition).toHaveBeenCalled();
         expect(mockCalculateGameScores).toHaveBeenCalledWith(false, false);
-        expect(mockCalculateAndStoreQualifiedTeamsPoints).toHaveBeenCalledWith('tournament-1');
+        expect(mockCalculateAndStoreQualifiedTeamsScores).toHaveBeenCalledWith('tournament-1');
       });
 
       it('recalculates group standings for group stage games', async () => {
@@ -578,7 +583,7 @@ describe('Game Score Generator Actions', () => {
         // Mock recalculation functions
         mockCalculateAndSavePlayoffGamesForTournament.mockResolvedValue(undefined);
         mockCalculateGameScores.mockResolvedValue(undefined);
-        mockCalculateAndStoreQualifiedTeamsPoints.mockResolvedValue(undefined);
+        mockCalculateAndStoreQualifiedTeamsScores.mockResolvedValue(undefined);
 
         await autoFillGameScores(undefined, 'round-1');
 
@@ -839,7 +844,7 @@ describe('Game Score Generator Actions', () => {
         await clearGameScores('group-1');
 
         expect(mockCalculateGameScores).toHaveBeenCalledWith(false, false);
-        expect(mockCalculateAndStoreQualifiedTeamsPoints).toHaveBeenCalledWith('tournament-1');
+        expect(mockCalculateAndStoreQualifiedTeamsScores).toHaveBeenCalledWith('tournament-1');
       });
 
       it('recalculates group standings for group stage games', async () => {
@@ -913,7 +918,7 @@ describe('Game Score Generator Actions', () => {
 
         // Mock recalculation functions
         mockCalculateGameScores.mockResolvedValue(undefined);
-        mockCalculateAndStoreQualifiedTeamsPoints.mockResolvedValue(undefined);
+        mockCalculateAndStoreQualifiedTeamsScores.mockResolvedValue(undefined);
 
         await clearGameScores(undefined, 'round-1');
 

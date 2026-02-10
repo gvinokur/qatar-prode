@@ -20,30 +20,30 @@ vi.mock('../../auth', () => ({
 }));
 
 // Mock the database
-vi.mock('../../app/db/database', () => ({
-  db: {
-    selectFrom: vi.fn(() => ({
-      selectAll: vi.fn(() => ({
-        where: vi.fn(() => ({
+vi.mock('../../app/db/database', () => {
+  const createQueryChain = () => ({
+    selectAll: vi.fn(() => createQueryChain()),
+    where: vi.fn(() => createQueryChain()),
+    select: vi.fn(() => createQueryChain()),
+    distinct: vi.fn(() => createQueryChain()),
+    orderBy: vi.fn(() => createQueryChain()),
+    execute: vi.fn().mockResolvedValue([]),
+    executeTakeFirst: vi.fn().mockResolvedValue(null)
+  });
+
+  return {
+    db: {
+      selectFrom: vi.fn(() => createQueryChain()),
+      updateTable: vi.fn(() => ({
+        set: vi.fn(() => ({
           where: vi.fn(() => ({
-            where: vi.fn(() => ({
-              where: vi.fn(() => ({
-                executeTakeFirst: vi.fn().mockResolvedValue(null)
-              }))
-            }))
+            execute: vi.fn().mockResolvedValue(undefined)
           }))
         }))
       }))
-    })),
-    updateTable: vi.fn(() => ({
-      set: vi.fn(() => ({
-        where: vi.fn(() => ({
-          execute: vi.fn().mockResolvedValue(undefined)
-        }))
-      }))
-    }))
-  }
-}));
+    }
+  };
+});
 
 vi.mock('../../app/actions/user-actions');
 vi.mock('../../app/db/game-guess-repository');

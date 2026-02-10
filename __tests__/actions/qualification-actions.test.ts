@@ -24,11 +24,23 @@ vi.mock('next-auth', () => ({
 }));
 
 // Mock database
-vi.mock('../../app/db/database', () => ({
-  db: {
-    selectFrom: vi.fn(),
-  },
-}));
+vi.mock('../../app/db/database', () => {
+  const createQueryChain = () => ({
+    selectAll: vi.fn(() => createQueryChain()),
+    where: vi.fn(() => createQueryChain()),
+    select: vi.fn(() => createQueryChain()),
+    distinct: vi.fn(() => createQueryChain()),
+    orderBy: vi.fn(() => createQueryChain()),
+    execute: vi.fn().mockResolvedValue([]),
+    executeTakeFirst: vi.fn().mockResolvedValue(null)
+  });
+
+  return {
+    db: {
+      selectFrom: vi.fn(() => createQueryChain()),
+    }
+  };
+});
 
 // Mock repository
 vi.mock('../../app/db/qualified-teams-repository', () => ({
