@@ -34,7 +34,11 @@ vi.mock('../../../../../app/db/database', () => ({
 
 // Mock team repository (findQualifiedTeams)
 vi.mock('../../../../../app/db/team-repository', () => ({
-  findQualifiedTeams: vi.fn().mockResolvedValue([]),
+  findQualifiedTeams: vi.fn().mockResolvedValue({
+    teams: [],
+    completeGroupIds: new Set(),
+    allGroupsComplete: false
+  }),
 }));
 
 // Mock qualified teams scoring utility

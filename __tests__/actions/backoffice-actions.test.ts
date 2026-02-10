@@ -930,7 +930,11 @@ describe('Backoffice Actions', () => {
 
   describe('calculateAndStoreQualifiedTeamsPoints', () => {
     beforeEach(() => {
-      mockFindQualifiedTeams.mockResolvedValue([{ id: 'team1', name: 'Team 1', short_name: 'T1', theme: null }]);
+      mockFindQualifiedTeams.mockResolvedValue({
+        teams: [{ id: 'team1', name: 'Team 1', short_name: 'T1', theme: null }],
+        completeGroupIds: new Set(),
+        allGroupsComplete: false
+      });
       mockFindGuessedQualifiedTeams.mockResolvedValue([{ id: 'team1', name: 'Team 1', short_name: 'T1', theme: null }]);
       mockUpdateTournamentGuessByUserIdTournament.mockResolvedValue({ 
         id: 'guess1', 
@@ -1313,9 +1317,11 @@ describe('Backoffice Actions', () => {
   describe('calculateAndStoreGroupPositionScores', () => {
     beforeEach(() => {
       mockFindTournamentById.mockResolvedValue(mockTournament);
-      mockFindQualifiedTeams.mockResolvedValue([
-        { id: 'team1', name: 'Team A', short_name: 'TA', theme: null }
-      ]);
+      mockFindQualifiedTeams.mockResolvedValue({
+        teams: [{ id: 'team1', name: 'Team A', short_name: 'TA', theme: null }],
+        completeGroupIds: new Set(),
+        allGroupsComplete: false
+      });
       mockFindGroupsInTournament.mockResolvedValue([{ id: 'group1', tournament_id: 'tournament1', group_letter: 'A', sort_by_games_between_teams: false }]);
       mockFindTeamsInGroup.mockResolvedValue([
         { id: 'teamgroup1', team_id: 'team1', position: 1, tournament_group_id: 'group1', games_played: 3, points: 6, win: 2, draw: 0, loss: 1, goals_for: 4, goals_against: 2, goal_difference: 2, conduct_score: 0, is_complete: true },
