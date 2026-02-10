@@ -38,8 +38,12 @@ export function GameFilters({ gameCounts, activeFilter, onFilterChange }: GameFi
               label={filter.count}
               size="small"
               sx={{
-                height: '20px',
-                fontSize: '0.75rem',
+                height: '16px',
+                fontSize: '0.65rem',
+                '& .MuiChip-label': {
+                  px: 0.5,
+                  py: 0
+                },
                 backgroundColor: activeFilter === filter.type ? 'rgba(255, 255, 255, 0.3)' : 'action.hover'
               }}
             />
