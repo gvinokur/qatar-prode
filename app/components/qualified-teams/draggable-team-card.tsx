@@ -46,58 +46,109 @@ function getBackgroundColor(theme: Theme): string {
   return theme.palette.mode === 'dark' ? theme.palette.grey[900] : theme.palette.grey[50];
 }
 
-/** Get border color based on qualification status and result */
-function getBorderColor(
-  theme: Theme,
-  position: number,
-  predictedToQualify: boolean,
-  disabled: boolean,
-  result?: TeamScoringResult | null,
-  isGroupComplete?: boolean,
-  allGroupsComplete?: boolean,
-  isPending3rdPlace?: boolean
-): string {
-  // Position 4+ or non-predicted 3rd place: no colored border
-  if (position >= 4 || (position === 3 && disabled && !predictedToQualify)) {
-    return 'transparent';
+/** Border color options */
+interface BorderColorOptions {
+  readonly position: number;
+  readonly predictedToQualify: boolean;
+  readonly disabled: boolean;
+  readonly result?: TeamScoringResult | null;
+  readonly isGroupComplete: boolean;
+  readonly allGroupsComplete: boolean;
+  readonly isPending3rdPlace: boolean;
+}
+
+/** Check if team should have no colored border */
+function shouldShowNoBorder(options: BorderColorOptions): boolean {
+  const { position, disabled, predictedToQualify } = options;
+  return position >= 4 || (position === 3 && disabled && !predictedToQualify);
+}
+
+/** Get border color for pending states (before results) */
+function getPendingBorderColor(theme: Theme, options: BorderColorOptions): string | null {
+  const { position, disabled, predictedToQualify, isGroupComplete, allGroupsComplete } = options;
+
+  if (!disabled || !predictedToQualify) {
+    return null;
   }
 
-  // If locked and predicted to qualify, check for pending state BEFORE results
-  if (disabled && predictedToQualify) {
-    // Positions 1-2: Pending until their group completes
-    if ((position === 1 || position === 2) && !isGroupComplete) {
-      return theme.palette.info.main;
-    }
-    // Position 3: Pending until all groups complete
-    if (position === 3 && !allGroupsComplete && !isGroupComplete) {
-      return theme.palette.info.main;
-    }
+  // Positions 1-2: Pending until their group completes
+  if ((position === 1 || position === 2) && !isGroupComplete) {
+    return theme.palette.info.main;
   }
 
-  // If group is complete and we have a result AND user predicted to qualify, use result-based colors
-  if (isGroupComplete && result && predictedToQualify) {
-    if (isPending3rdPlace) {
-      // Pending 3rd place: blue
-      return theme.palette.info.main;
-    }
-    if (result.pointsAwarded === 2 || result.pointsAwarded === 1) {
-      // Correct predictions (1 or 2 pts): green border
-      return theme.palette.success.main;
-    }
-    if (result.pointsAwarded === 0) {
-      // Wrong prediction (0 pts): red border
-      return theme.palette.error.main;
-    }
+  // Position 3: Pending until all groups complete
+  if (position === 3 && !allGroupsComplete && !isGroupComplete) {
+    return theme.palette.info.main;
   }
 
-  // Default prediction colors (before results available)
-  // Positions 1-2-3 in selection mode: yellow border
-  if (!disabled && (position === 1 || position === 2 || (position === 3 && predictedToQualify))) {
+  return null;
+}
+
+/** Get border color based on result (after results available) */
+function getResultBorderColor(theme: Theme, options: BorderColorOptions): string | null {
+  const { isGroupComplete, result, predictedToQualify, isPending3rdPlace } = options;
+
+  if (!isGroupComplete || !result || !predictedToQualify) {
+    return null;
+  }
+
+  if (isPending3rdPlace) {
+    return theme.palette.info.main;
+  }
+
+  if (result.pointsAwarded > 0) {
+    return theme.palette.success.main;
+  }
+
+  if (result.pointsAwarded === 0) {
+    return theme.palette.error.main;
+  }
+
+  return null;
+}
+
+/** Get border color for selection mode (before locking) */
+function getSelectionBorderColor(theme: Theme, options: BorderColorOptions): string | null {
+  const { disabled, position, predictedToQualify } = options;
+
+  if (disabled) {
+    return null;
+  }
+
+  if (position === 1 || position === 2 || (position === 3 && predictedToQualify)) {
     return theme.palette.warning.main;
   }
 
+  return null;
+}
+
+/** Get border color based on qualification status and result */
+function getBorderColor(theme: Theme, options: BorderColorOptions): string {
+  // Position 4+ or non-predicted 3rd place: no colored border
+  if (shouldShowNoBorder(options)) {
+    return 'transparent';
+  }
+
+  // Check for pending state BEFORE results
+  const pendingColor = getPendingBorderColor(theme, options);
+  if (pendingColor) {
+    return pendingColor;
+  }
+
+  // Check for result-based colors (after results available)
+  const resultColor = getResultBorderColor(theme, options);
+  if (resultColor) {
+    return resultColor;
+  }
+
+  // Check for selection mode colors (before locking)
+  const selectionColor = getSelectionBorderColor(theme, options);
+  if (selectionColor) {
+    return selectionColor;
+  }
+
   // Position 3 qualified (locked): green border
-  if (position === 3 && disabled && predictedToQualify) {
+  if (options.position === 3 && options.disabled && options.predictedToQualify) {
     return theme.palette.success.main;
   }
 
@@ -338,7 +389,15 @@ export default function DraggableTeamCard({
   };
 
   const backgroundColor = getBackgroundColor(theme);
-  const borderColor = getBorderColor(theme, position, predictedToQualify, disabled, result, isGroupComplete, allGroupsComplete, isPending3rdPlace);
+  const borderColor = getBorderColor(theme, {
+    position,
+    predictedToQualify,
+    disabled,
+    result,
+    isGroupComplete,
+    allGroupsComplete,
+    isPending3rdPlace,
+  });
 
   // Determine if this team is in a pending state (waiting for results)
   const isPendingBeforeResults = disabled && predictedToQualify && (
@@ -367,7 +426,7 @@ export default function DraggableTeamCard({
         backgroundColor,
         border: isDragging ? `2px dashed ${theme.palette.primary.main}` : '1px solid',
         borderColor: isDragging ? theme.palette.primary.main : theme.palette.divider,
-        borderLeft: borderColor !== 'transparent' ? `4px solid ${borderColor}` : undefined,
+        borderLeft: borderColor === 'transparent' ? undefined : `4px solid ${borderColor}`,
       }}
     >
       <CardContent

@@ -135,7 +135,7 @@ export default function GroupCard({
 
     const prediction = predictions.get(teamId);
     // User must have predicted this team to qualify (in any position)
-    if (!prediction || !prediction.predicted_to_qualify) {
+    if (!prediction?.predicted_to_qualify) {
       return false;
     }
 
