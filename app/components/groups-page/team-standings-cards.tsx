@@ -11,7 +11,8 @@ export default function TeamStandingsCards({
   teamStats,
   teamsMap,
   qualifiedTeams,
-  previousTeamStats
+  previousTeamStats,
+  compact = false
 }: TeamStandingsCardsProps) {
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null)
 
@@ -110,6 +111,7 @@ export default function TeamStandingsCards({
               }}
               rankChange={rankChange}
               showRankChange={showRankChange}
+              compact={compact}
             />
           )
         })}

@@ -35,6 +35,8 @@ export interface TeamStandingsCardsProps {
   readonly qualifiedTeams: { id: string }[]  // Array with at least id property
   // Future rank change support
   readonly previousTeamStats?: TeamStats[]
+  // Compact mode for sidebar display (smaller fonts, less detail)
+  readonly compact?: boolean
 }
 
 /**
@@ -46,4 +48,5 @@ export interface TeamStandingCardProps {
   readonly onToggleExpand: () => void
   readonly rankChange?: number     // Positive = improved, negative = declined, 0 = no change
   readonly showRankChange: boolean // True only if previousTeamStats was provided
+  readonly compact?: boolean       // Compact mode for sidebar display
 }

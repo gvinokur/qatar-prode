@@ -17,15 +17,16 @@ import type { TeamStandingCardProps } from './types'
 import type { Team } from '@/app/db/tables-definition'
 
 // Helper function to calculate card padding based on screen size
-function getCardPadding(isUltraCompact: boolean, isCompact: boolean) {
+function getCardPadding(isUltraCompact: boolean, isCompact: boolean, compactMode: boolean) {
+  if (compactMode) return { py: 0.75, px: 1.25 }
   if (isUltraCompact) return { py: 1, px: 1.5 }
   if (isCompact) return { py: 1.5, px: 1.5 }
   return { py: 2, px: 2.5 }
 }
 
 // Helper function to get team display name based on screen size
-function getTeamDisplay(team: Team, isUltraCompact: boolean) {
-  if (isUltraCompact) {
+function getTeamDisplay(team: Team, isUltraCompact: boolean, compactMode: boolean) {
+  if (compactMode || isUltraCompact) {
     return team.short_name || team.name.substring(0, 3).toUpperCase()
   }
   return team.name
@@ -48,9 +49,10 @@ function getPointsDisplayText(
   points: number,
   gamesPlayed: number,
   goalDifference: number,
-  isUltraCompact: boolean
+  isUltraCompact: boolean,
+  compactMode: boolean
 ): string {
-  if (isUltraCompact) {
+  if (compactMode || isUltraCompact) {
     return `${points} pts`
   }
   const gdSign = goalDifference >= 0 ? '+' : ''
@@ -62,7 +64,8 @@ export default function TeamStandingCard({
   isExpanded,
   onToggleExpand,
   rankChange,
-  showRankChange
+  showRankChange,
+  compact = false
 }: TeamStandingCardProps) {
   const theme = useTheme()
 
@@ -71,10 +74,10 @@ export default function TeamStandingCard({
   const isCompact = useMediaQuery('(max-width:600px)')
 
   // Calculate responsive values
-  const cardPadding = getCardPadding(isUltraCompact, isCompact)
-  const teamDisplay = getTeamDisplay(standing.team, isUltraCompact)
+  const cardPadding = getCardPadding(isUltraCompact, isCompact, compact)
+  const teamDisplay = getTeamDisplay(standing.team, isUltraCompact, compact)
   const ariaLabel = getAriaLabel(standing.team.name, standing.position, standing.points, isExpanded)
-  const pointsText = getPointsDisplayText(standing.points, standing.gamesPlayed, standing.goalDifference, isUltraCompact)
+  const pointsText = getPointsDisplayText(standing.points, standing.gamesPlayed, standing.goalDifference, isUltraCompact, compact)
 
   return (
     <motion.div
@@ -100,8 +103,8 @@ export default function TeamStandingCard({
         aria-expanded={isExpanded}
         sx={{
           ...cardPadding,
-          mb: 1.5,
-          borderRadius: 2,
+          mb: compact ? 0.75 : 1.5,
+          borderRadius: compact ? 1.5 : 2,
           cursor: 'pointer',
           transition: 'all 0.2s ease',
           backgroundColor: standing.isQualified
@@ -120,21 +123,21 @@ export default function TeamStandingCard({
         }}
       >
         <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: isUltraCompact ? 0.5 : 1.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: compact ? 0.5 : (isUltraCompact ? 0.5 : 1.5) }}>
             {/* Rank Badge with Change Indicator */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: isUltraCompact ? '40px' : '60px' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: compact ? '35px' : (isUltraCompact ? '40px' : '60px') }}>
               <Typography
-                variant={isUltraCompact ? 'body1' : 'h6'}
+                variant={compact || isUltraCompact ? 'body1' : 'h6'}
                 component="div"
                 sx={{
                   fontWeight: 'bold',
                   color: theme.palette.text.primary,
-                  fontSize: isUltraCompact ? '0.875rem' : undefined
+                  fontSize: compact ? '0.75rem' : (isUltraCompact ? '0.875rem' : undefined)
                 }}
               >
                 #{standing.position}
               </Typography>
-              {showRankChange && !isUltraCompact && (
+              {showRankChange && !compact && !isUltraCompact && (
                 <RankChangeIndicator change={rankChange ?? 0} size="small" />
               )}
             </Box>
@@ -149,7 +152,7 @@ export default function TeamStandingCard({
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
-                fontSize: isUltraCompact ? '0.875rem' : undefined
+                fontSize: compact ? '0.75rem' : (isUltraCompact ? '0.875rem' : undefined)
               }}
               title={standing.team.name}
             >
@@ -159,12 +162,12 @@ export default function TeamStandingCard({
             {/* Points with PJ/DG (when collapsed) */}
             {!isExpanded && (
               <Typography
-                variant={isUltraCompact ? 'body2' : 'h6'}
+                variant={compact || isUltraCompact ? 'body2' : 'h6'}
                 component="div"
                 sx={{
                   fontWeight: 'bold',
                   whiteSpace: 'nowrap',
-                  fontSize: isUltraCompact ? '0.875rem' : undefined
+                  fontSize: compact ? '0.75rem' : (isUltraCompact ? '0.875rem' : undefined)
                 }}
               >
                 {pointsText}
@@ -174,11 +177,11 @@ export default function TeamStandingCard({
             {/* Points only (when expanded) */}
             {isExpanded && (
               <Typography
-                variant={isUltraCompact ? 'body2' : 'h6'}
+                variant={compact || isUltraCompact ? 'body2' : 'h6'}
                 component="div"
                 sx={{
                   fontWeight: 'bold',
-                  fontSize: isUltraCompact ? '0.875rem' : undefined
+                  fontSize: compact ? '0.75rem' : (isUltraCompact ? '0.875rem' : undefined)
                 }}
               >
                 {standing.points} pts

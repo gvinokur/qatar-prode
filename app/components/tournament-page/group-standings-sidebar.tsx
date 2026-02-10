@@ -1,6 +1,7 @@
 'use client'
 
-import { Card, CardHeader, CardContent, Tabs, Tab, Typography, useTheme } from '@mui/material'
+import { Accordion, AccordionSummary, AccordionDetails, Tabs, Tab, Typography, useTheme } from '@mui/material'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { useState } from 'react'
 import TeamStandingsCards from '../groups-page/team-standings-cards'
 import { Team, TeamStats } from '@/app/db/tables-definition'
@@ -18,6 +19,7 @@ interface GroupStandingsSidebarProps {
 
 export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifiedTeams }: GroupStandingsSidebarProps) {
   const [selectedGroupId, setSelectedGroupId] = useState(defaultGroupId)
+  const [expanded, setExpanded] = useState(true)
   const theme = useTheme()
 
   // Handle empty groups
@@ -25,18 +27,39 @@ export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifie
     return null
   }
 
-  const selectedGroup = groups.find(g => g.id === selectedGroupId) || groups[0]
+  // Sort groups alphabetically by letter
+  const sortedGroups = [...groups].sort((a, b) => a.letter.localeCompare(b.letter))
+
+  const selectedGroup = sortedGroups.find(g => g.id === selectedGroupId) || sortedGroups[0]
 
   return (
-    <Card>
-      <CardHeader
-        title="GROUP STANDINGS"
+    <Accordion
+      expanded={expanded}
+      onChange={(_, isExpanded) => setExpanded(isExpanded)}
+      defaultExpanded
+      sx={{
+        '&:before': {
+          display: 'none',
+        },
+      }}
+    >
+      <AccordionSummary
+        expandIcon={<ExpandMoreIcon />}
+        aria-controls="group-standings-content"
+        id="group-standings-header"
         sx={{
           color: theme.palette.primary.main,
-          borderBottom: `${theme.palette.primary.light} solid 1px`
+          borderBottom: expanded ? `${theme.palette.primary.light} solid 1px` : 'none',
+          '& .MuiAccordionSummary-content': {
+            margin: '12px 0',
+          },
         }}
-      />
-      <CardContent>
+      >
+        <Typography variant="h6" component="h2">
+          Grupos
+        </Typography>
+      </AccordionSummary>
+      <AccordionDetails>
         {/* Tabs for group selection */}
         <Tabs
           value={selectedGroupId}
@@ -50,6 +73,12 @@ export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifie
             '.MuiTab-root': {
               minWidth: '60px',
               fontWeight: 600,
+              backgroundColor: theme.palette.action.hover,
+              borderRadius: 1,
+              mx: 0.5,
+              '&.Mui-selected': {
+                backgroundColor: theme.palette.action.selected,
+              },
             },
           }}
           slotProps={{
@@ -60,7 +89,7 @@ export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifie
             },
           }}
         >
-          {groups.map(group => (
+          {sortedGroups.map(group => (
             <Tab
               key={group.id}
               label={group.letter.toUpperCase()}
@@ -79,8 +108,9 @@ export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifie
           teamStats={selectedGroup.teamStats}
           teamsMap={selectedGroup.teamsMap}
           qualifiedTeams={qualifiedTeams}
+          compact={true}
         />
-      </CardContent>
-    </Card>
+      </AccordionDetails>
+    </Accordion>
   )
 }
