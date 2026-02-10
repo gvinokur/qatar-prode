@@ -6,9 +6,12 @@ import {
   Card,
   CardContent,
   CardActions,
-  Stack
+  Stack,
+  IconButton
 } from "@mui/material";
+import {Share as ShareIcon} from "@mui/icons-material";
 import type { TournamentGroupStats } from "../../definitions";
+import InviteFriendsDialog from "../invite-friends-dialog";
 
 interface TournamentGroupCardProps {
   readonly group: TournamentGroupStats;
@@ -17,7 +20,7 @@ interface TournamentGroupCardProps {
 
 export default function TournamentGroupCard({ group, tournamentId }: TournamentGroupCardProps) {
   const isLeader = group.userPosition === 1;
-  const leaderDisplay = isLeader ? "You!" : group.leaderName;
+  const leaderDisplay = isLeader ? "¡Tú!" : group.leaderName;
 
   return (
     <Card
@@ -26,11 +29,9 @@ export default function TournamentGroupCard({ group, tournamentId }: TournamentG
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
-        border: 1,
-        borderColor: 'divider',
         ...(isLeader && {
-          borderColor: 'primary.main',
-          borderWidth: 2
+          border: 2,
+          borderColor: 'primary.main'
         }),
         // Show theme color accent only for non-leader cards
         ...(!isLeader && group.themeColor && {
@@ -56,7 +57,7 @@ export default function TournamentGroupCard({ group, tournamentId }: TournamentG
           </Typography>
           {group.isOwner && (
             <Chip
-              label="Owner"
+              label="Dueño"
               size="small"
               color="primary"
               variant="outlined"
@@ -67,30 +68,30 @@ export default function TournamentGroupCard({ group, tournamentId }: TournamentG
 
         {/* Stats Section */}
         <Stack spacing={1.5}>
-          {/* Position */}
-          <Box>
-            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-              Your Position
-            </Typography>
-            <Typography variant="h6" sx={{ fontWeight: 600, color: isLeader ? 'primary.main' : 'text.primary' }}>
-              #{group.userPosition} of {group.totalParticipants}
-            </Typography>
-          </Box>
-
-          {/* Points */}
-          <Box>
-            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-              Your Points
-            </Typography>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              {group.userPoints}
-            </Typography>
+          {/* Position and Points - Compact Layout */}
+          <Box sx={{ display: 'flex', gap: 3 }}>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
+                Tu Posición
+              </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: isLeader ? 'primary.main' : 'text.primary' }}>
+                #{group.userPosition} de {group.totalParticipants}
+              </Typography>
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
+                Tus Puntos
+              </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                {group.userPoints}
+              </Typography>
+            </Box>
           </Box>
 
           {/* Leader */}
           <Box>
             <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-              Leader
+              Líder
             </Typography>
             <Typography variant="body1" sx={{ fontWeight: 500 }}>
               {leaderDisplay} ({group.leaderPoints} pts)
@@ -101,6 +102,17 @@ export default function TournamentGroupCard({ group, tournamentId }: TournamentG
 
       {/* Actions */}
       <CardActions sx={{ pt: 0, pb: 2, px: 2 }}>
+        {group.isOwner && (
+          <InviteFriendsDialog
+            trigger={
+              <IconButton size="small" aria-label="Compartir grupo">
+                <ShareIcon />
+              </IconButton>
+            }
+            groupId={group.groupId}
+            groupName={group.groupName}
+          />
+        )}
         <Button
           component={Link}
           href={`/tournaments/${tournamentId}/friend-groups/${group.groupId}`}
@@ -109,7 +121,7 @@ export default function TournamentGroupCard({ group, tournamentId }: TournamentG
           size="small"
           sx={{ ml: 'auto' }}
         >
-          View Details →
+          Ver Detalles
         </Button>
       </CardActions>
     </Card>

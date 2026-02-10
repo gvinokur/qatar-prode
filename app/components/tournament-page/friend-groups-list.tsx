@@ -4,14 +4,15 @@ import {
   Button, Card,
   CardActions,
   CardContent,
-  CardHeader, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
+  CardHeader, Collapse, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
   IconButton,
   List,
   ListItem,
   ListItemText, TextField, useTheme
 } from "@mui/material";
-import {Delete as DeleteIcon, Share as ShareIcon} from "@mui/icons-material";
+import {Delete as DeleteIcon, Share as ShareIcon, ExpandMore as ExpandMoreIcon} from "@mui/icons-material";
 import {useState} from "react";
+import {ExpandMore} from './expand-more';
 import {Controller, useForm} from "react-hook-form";
 import * as React from "react";
 import {createDbGroup, deleteGroup} from "../../actions/prode-group-actions";
@@ -34,11 +35,16 @@ export default function FriendGroupsList({
   tournamentId,
 } : Props) {
   const theme = useTheme();
+  const [expanded, setExpanded] = useState(false);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [openConfirmDeleteGroup, setOpenConfirmDeleteGroup] = useState<string | false>(false)
   const [loading, setLoading] = useState(false)
   const { control, handleSubmit } =useForm<GroupForm>()
   const [userGroups, setUserGroups] = useState(initialUserGroups);
+
+  const handleExpandClick = () => {
+    setExpanded(!expanded);
+  };
 
   const handleCloseCreateDialog = () => {
     setOpenCreateDialog(false)
@@ -69,8 +75,22 @@ export default function FriendGroupsList({
   return (
     <>
       <Card>
-        <CardHeader title='Grupos de Amigos' sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}/>
-        <CardContent sx={{ borderBottom: `${theme.palette.primary.contrastText} 1px solid`, borderTop: `${theme.palette.primary.contrastText} 1px solid` }}>
+        <CardHeader
+          title='Grupos de Amigos'
+          sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
+          action={
+            <ExpandMore
+              expand={expanded}
+              onClick={handleExpandClick}
+              aria-expanded={expanded}
+              aria-label="mostrar más"
+            >
+              <ExpandMoreIcon />
+            </ExpandMore>
+          }
+        />
+        <Collapse in={expanded} timeout="auto" unmountOnExit>
+          <CardContent sx={{ borderBottom: `${theme.palette.primary.contrastText} 1px solid`, borderTop: `${theme.palette.primary.contrastText} 1px solid` }}>
           <List sx={{ width: '100%'}} disablePadding >
             {userGroups.map(userGroup => (
               <ListItem key={userGroup.id}
@@ -110,13 +130,14 @@ export default function FriendGroupsList({
           </List>
         </CardContent>
         <CardActions>
-          <Button onClick={() => setOpenCreateDialog(true)}>Crear Nuevo Grupo</Button>
+          <Button onClick={() => setOpenCreateDialog(true)}>Crear Grupo</Button>
           {tournamentId && (userGroups.length + participantGroups.length) > 1 && (
             <Button component={Link} href={`/tournaments/${tournamentId}/friend-groups`}>
-              Ver Todos los Grupos
+              Ver Grupos
             </Button>
           )}
         </CardActions>
+        </Collapse>
       </Card>
       <Dialog open={openCreateDialog} onClose={handleCloseCreateDialog}
               slotProps={{
