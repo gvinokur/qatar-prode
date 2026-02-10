@@ -5,6 +5,7 @@ import { testFactories } from './test-factories';
 import { createMockSelectQuery } from './mock-helpers';
 import * as tournamentGuessRepository from '../../app/db/tournament-guess-repository';
 import * as tournamentActions from '../../app/actions/tournament-actions';
+import * as qualifiedTeamsRepository from '../../app/db/qualified-teams-repository';
 
 // Mock the database
 vi.mock('../../app/db/database', () => ({
@@ -23,10 +24,16 @@ vi.mock('../../app/actions/tournament-actions', () => ({
   getTournamentStartDate: vi.fn(),
 }));
 
+// Mock qualified teams repository
+vi.mock('../../app/db/qualified-teams-repository', () => ({
+  getAllUserGroupPositionsPredictions: vi.fn(),
+}));
+
 describe('Tournament Prediction Completion Repository', () => {
   const mockDb = vi.mocked(db);
   const mockFindTournamentGuess = vi.mocked(tournamentGuessRepository.findTournamentGuessByUserIdTournament);
   const mockGetTournamentStartDate = vi.mocked(tournamentActions.getTournamentStartDate);
+  const mockGetAllUserGroupPositionsPredictions = vi.mocked(qualifiedTeamsRepository.getAllUserGroupPositionsPredictions);
 
   const userId = 'user-1';
   const tournamentId = 'tournament-1';
@@ -40,6 +47,9 @@ describe('Tournament Prediction Completion Repository', () => {
     it('should return 0% completion when user has no predictions', async () => {
       // Mock: No tournament guesses
       mockFindTournamentGuess.mockResolvedValue(undefined);
+
+      // Mock: No group position predictions
+      mockGetAllUserGroupPositionsPredictions.mockResolvedValue([]);
 
       // Mock: 16 first_round games, 8 groups, 0 complete groups
       let callCount = 0;
@@ -90,6 +100,50 @@ describe('Tournament Prediction Completion Repository', () => {
         best_young_player_id: undefined,
       };
       mockFindTournamentGuess.mockResolvedValue(mockTournamentGuess);
+
+      // Mock: 4 groups with 2 qualifying teams each (8 total qualifiers)
+      mockGetAllUserGroupPositionsPredictions.mockResolvedValue([
+        {
+          id: 'pred-1',
+          user_id: userId,
+          tournament_id: tournamentId,
+          group_id: 'group-a',
+          team_predicted_positions: [
+            { team_id: 'team-1', predicted_position: 1, predicted_to_qualify: true },
+            { team_id: 'team-2', predicted_position: 2, predicted_to_qualify: true },
+          ],
+        },
+        {
+          id: 'pred-2',
+          user_id: userId,
+          tournament_id: tournamentId,
+          group_id: 'group-b',
+          team_predicted_positions: [
+            { team_id: 'team-3', predicted_position: 1, predicted_to_qualify: true },
+            { team_id: 'team-4', predicted_position: 2, predicted_to_qualify: true },
+          ],
+        },
+        {
+          id: 'pred-3',
+          user_id: userId,
+          tournament_id: tournamentId,
+          group_id: 'group-c',
+          team_predicted_positions: [
+            { team_id: 'team-5', predicted_position: 1, predicted_to_qualify: true },
+            { team_id: 'team-6', predicted_position: 2, predicted_to_qualify: true },
+          ],
+        },
+        {
+          id: 'pred-4',
+          user_id: userId,
+          tournament_id: tournamentId,
+          group_id: 'group-d',
+          team_predicted_positions: [
+            { team_id: 'team-7', predicted_position: 1, predicted_to_qualify: true },
+            { team_id: 'team-8', predicted_position: 2, predicted_to_qualify: true },
+          ],
+        },
+      ] as any);
 
       // Mock: 16 first_round games, 8 total groups, 4 complete groups
       let callCount = 0;
@@ -149,6 +203,24 @@ describe('Tournament Prediction Completion Repository', () => {
       };
       mockFindTournamentGuess.mockResolvedValue(mockTournamentGuess);
 
+      // Mock: All 8 groups with 4 qualifying teams each (32 total qualifiers) for 100% completion
+      const mockAllGroupPredictions = [];
+      for (let i = 0; i < 8; i++) {
+        mockAllGroupPredictions.push({
+          id: `pred-${i + 1}`,
+          user_id: userId,
+          tournament_id: tournamentId,
+          group_id: `group-${String.fromCharCode(97 + i)}`,
+          team_predicted_positions: [
+            { team_id: `team-${i * 4 + 1}`, predicted_position: 1, predicted_to_qualify: true },
+            { team_id: `team-${i * 4 + 2}`, predicted_position: 2, predicted_to_qualify: true },
+            { team_id: `team-${i * 4 + 3}`, predicted_position: 3, predicted_to_qualify: true },
+            { team_id: `team-${i * 4 + 4}`, predicted_position: 4, predicted_to_qualify: true },
+          ],
+        });
+      }
+      mockGetAllUserGroupPositionsPredictions.mockResolvedValue(mockAllGroupPredictions as any);
+
       // Mock: 16 first_round games, 8 total groups, all 8 complete
       let callCount = 0;
       mockDb.selectFrom.mockImplementation((tableName: string) => {
@@ -173,9 +245,10 @@ describe('Tournament Prediction Completion Repository', () => {
 
       expect(result.finalStandings.completed).toBe(3);
       expect(result.awards.completed).toBe(4);
-      expect(result.qualifiers.completed).toBe(32); // All 8 groups × 2 + all 16 third-place
-      expect(result.overallCompleted).toBe(39);
-      expect(result.overallTotal).toBe(39);
+      expect(result.qualifiers.completed).toBe(32); // All 8 groups × 4 qualifying teams
+      expect(result.qualifiers.total).toBe(32); // 16 games × 2 teams
+      expect(result.overallCompleted).toBe(39); // 3 + 4 + 32
+      expect(result.overallTotal).toBe(39); // 3 + 4 + 32
       expect(result.overallPercentage).toBe(100);
       expect(result.isPredictionLocked).toBe(false);
     });
@@ -195,6 +268,9 @@ describe('Tournament Prediction Completion Repository', () => {
         best_young_player_id: undefined,
       };
       mockFindTournamentGuess.mockResolvedValue(mockTournamentGuess);
+
+      // Mock: No group position predictions
+      mockGetAllUserGroupPositionsPredictions.mockResolvedValue([]);
 
       // Mock: 16 first_round games, 8 groups, 0 complete groups
       let callCount = 0;
@@ -238,6 +314,9 @@ describe('Tournament Prediction Completion Repository', () => {
       };
       mockFindTournamentGuess.mockResolvedValue(mockTournamentGuess);
 
+      // Mock: No group position predictions
+      mockGetAllUserGroupPositionsPredictions.mockResolvedValue([]);
+
       // Mock: 0 first_round games (no playoffs)
       let callCount = 0;
       mockDb.selectFrom.mockImplementation((tableName: string) => {
@@ -277,6 +356,9 @@ describe('Tournament Prediction Completion Repository', () => {
         group_position_score: undefined,
       };
       mockFindTournamentGuess.mockResolvedValue(mockTournamentGuess);
+
+      // Mock: No group position predictions
+      mockGetAllUserGroupPositionsPredictions.mockResolvedValue([]);
 
       // Mock: Games (doesn't matter for this test)
       mockDb.selectFrom.mockReturnValue(createMockSelectQuery({ count: 0 }) as any);

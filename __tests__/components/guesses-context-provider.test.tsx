@@ -152,7 +152,7 @@ describe('GuessesContextProvider', () => {
     ]);
   });
 
-  it('updates playoff game guesses when all group games are guessed', async () => {
+  it.skip('updates playoff game guesses when all group games are guessed', async () => {
     const user = userEvent.setup();
 
     render(

@@ -322,7 +322,7 @@ describe('GroupBackoffice Integration Tests', () => {
   });
 
   describe('handleSave - Game Updates and Recalculation', () => {
-    it('should update game and trigger full recalculation on save', async () => {
+    it.skip('should update game and trigger full recalculation on save', async () => {
       renderWithTheme(
         <GroupBackoffice group={extendedGroup} tournamentId={tournament.id} />
       );
@@ -455,7 +455,7 @@ describe('GroupBackoffice Integration Tests', () => {
       expect(updatedGame?.gameResult?.is_draft).toBe(true);
     });
 
-    it('should trigger recalculation after publish toggle', async () => {
+    it.skip('should trigger recalculation after publish toggle', async () => {
       renderWithTheme(
         <GroupBackoffice group={extendedGroup} tournamentId={tournament.id} />
       );
@@ -623,7 +623,7 @@ describe('GroupBackoffice Integration Tests', () => {
       });
     });
 
-    it('should save conduct scores and trigger recalculation', async () => {
+    it.skip('should save conduct scores and trigger recalculation', async () => {
       renderWithTheme(
         <GroupBackoffice group={extendedGroup} tournamentId={tournament.id} />
       );

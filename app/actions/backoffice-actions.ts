@@ -9,7 +9,6 @@ import {
 } from "../db/tournament-repository";
 import {
   createTeam,
-  findQualifiedTeams,
   findTeamInTournament,
   getTeamByName
 } from "../db/team-repository";
