@@ -185,40 +185,68 @@ function ThirdPlaceCheckbox({
   );
 }
 
+/** Get position suffix (1st, 2nd, 3rd, 4th, etc.) in Spanish */
+function getPositionSuffixSpanish(pos: number | null): string {
+  if (pos === null) return '';
+  return `${pos}°`;
+}
+
 /** Results overlay showing points and qualification status */
 function ResultsOverlay({
   result,
   isPending3rdPlace,
   isPendingBeforeResults,
+  position,
 }: {
   readonly result?: TeamScoringResult | null;
   readonly isPending3rdPlace: boolean;
   readonly isPendingBeforeResults: boolean;
+  readonly position: number;
 }) {
   const theme = useTheme();
 
-  // Determine icon, color, label, and chip styling based on result
+  // Determine icon, color, label, explanation text, and chip styling based on result
   let icon: React.ReactNode;
   let chipLabel: string;
+  let explanationText: string;
   let iconColor: string;
   let chipBackgroundColor: string;
   let chipTextColor: string;
 
-  if (isPendingBeforeResults || isPending3rdPlace) {
-    // Pending state (waiting for group/all groups to complete, or 3rd place playoff)
+  if (isPendingBeforeResults) {
+    // Pending state before group completion
     icon = <HourglassEmptyIcon sx={{ fontSize: '1.25rem' }} />;
     chipLabel = 'Pendiente';
     iconColor = theme.palette.info.main;
     chipBackgroundColor = theme.palette.info.light;
     chipTextColor = 'white';
+
+    // Different explanations for positions 1-2 vs position 3
+    if (position === 1 || position === 2) {
+      explanationText = 'Esperando resultados del grupo';
+    } else {
+      explanationText = 'Esperando todos los grupos';
+    }
+  } else if (isPending3rdPlace) {
+    // Pending 3rd place playoff
+    icon = <HourglassEmptyIcon sx={{ fontSize: '1.25rem' }} />;
+    chipLabel = 'Pendiente';
+    iconColor = theme.palette.info.main;
+    chipBackgroundColor = theme.palette.info.light;
+    chipTextColor = 'white';
+    explanationText = 'Esperando mejores terceros';
   } else if (result && result.pointsAwarded > 0) {
     // Correct predictions (1 or 2 pts): green chip like regular game cards
-    // Border color already indicates success, chip shows points
     icon = <CheckCircleIcon sx={{ fontSize: '1.25rem' }} />;
     chipLabel = result.pointsAwarded === 1 ? '+1 pt' : '+2 pts';
     iconColor = theme.palette.success.main;
     chipBackgroundColor = theme.palette.success.light;
     chipTextColor = 'white';
+
+    // Show predicted vs actual position
+    const predictedPos = getPositionSuffixSpanish(result.predictedPosition);
+    const actualPos = getPositionSuffixSpanish(result.actualPosition);
+    explanationText = `Predicho ${predictedPos}, terminó ${actualPos}`;
   } else {
     // Wrong prediction (0 pts): red
     icon = <CancelIcon sx={{ fontSize: '1.25rem' }} />;
@@ -226,23 +254,43 @@ function ResultsOverlay({
     iconColor = theme.palette.error.main;
     chipBackgroundColor = theme.palette.error.light;
     chipTextColor = 'white';
+
+    // Show predicted position and that team didn't qualify
+    const predictedPos = getPositionSuffixSpanish(result?.predictedPosition || null);
+    explanationText = `Predicho ${predictedPos}, no calificó`;
   }
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
-      <Box sx={{ color: iconColor, display: 'flex', alignItems: 'center' }}>
-        {icon}
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5, flexShrink: 0 }}>
+      {/* Icon and chip */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ color: iconColor, display: 'flex', alignItems: 'center' }}>
+          {icon}
+        </Box>
+        <Chip
+          label={chipLabel}
+          size="small"
+          sx={{
+            fontWeight: 600,
+            fontSize: '0.75rem',
+            backgroundColor: chipBackgroundColor,
+            color: chipTextColor,
+          }}
+        />
       </Box>
-      <Chip
-        label={chipLabel}
-        size="small"
+      {/* Explanation text */}
+      <Typography
+        variant="caption"
         sx={{
-          fontWeight: 600,
-          fontSize: '0.75rem',
-          backgroundColor: chipBackgroundColor,
-          color: chipTextColor,
+          fontSize: '0.65rem',
+          color: 'text.secondary',
+          fontStyle: 'italic',
+          textAlign: 'right',
+          lineHeight: 1.2,
         }}
-      />
+      >
+        {explanationText}
+      </Typography>
     </Box>
   );
 }
@@ -341,7 +389,7 @@ export default function DraggableTeamCard({
             onChange={onToggleThirdPlace}
           />
         )}
-        {showResults && <ResultsOverlay result={result} isPending3rdPlace={isPending3rdPlace} isPendingBeforeResults={isPendingBeforeResults} />}
+        {showResults && <ResultsOverlay result={result} isPending3rdPlace={isPending3rdPlace} isPendingBeforeResults={isPendingBeforeResults} position={position} />}
       </CardContent>
     </Card>
   );
