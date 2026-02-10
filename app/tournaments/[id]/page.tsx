@@ -1,11 +1,12 @@
 'use server'
 
-import {getGamesAroundMyTime, getTeamsMap, getGamesClosingWithin48Hours} from "../../actions/tournament-actions";
+import {getGamesAroundMyTime, getTeamsMap, getGamesClosingWithin48Hours, getGroupStandingsForTournament} from "../../actions/tournament-actions";
 import {DebugObject} from "../../components/debug";
 import {Fixtures} from "../../components/tournament-page/fixtures";
 import {Grid} from "../../components/mui-wrappers/";
 import Rules from "../../components/tournament-page/rules";
 import FriendGroupsList from "../../components/tournament-page/friend-groups-list";
+import GroupStandingsSidebar from "../../components/tournament-page/group-standings-sidebar";
 import {getGroupsForUser} from "../../actions/prode-group-actions";
 import {getLoggedInUser} from "../../actions/user-actions";
 import {UserTournamentStatistics} from "../../components/tournament-page/user-tournament-statistics";
@@ -79,6 +80,9 @@ export default async function TournamentLandingPage(props: Props) {
     ? new Date(Math.min(...gamesAroundMyTime.map(g => new Date(g.game_date).getTime())))
     : undefined;
 
+  // Fetch group standings for sidebar
+  const groupStandings = await getGroupStandingsForTournament(tournamentId);
+
   return (
     <>
       {searchParams.hasOwnProperty('debug') && (<DebugObject object={{
@@ -124,6 +128,16 @@ export default async function TournamentLandingPage(props: Props) {
                   <Grid size={12}>
                     <UserTournamentStatistics userGameStatistics={userGameStatistics} tournamentGuess={tournamentGuesses} tournamentId={tournamentId} />
                   </Grid>
+              )}
+              {/* Group Standings Section - After UserTournamentStatistics */}
+              {groupStandings.groups.length > 0 && (
+                <Grid size={12}>
+                  <GroupStandingsSidebar
+                    groups={groupStandings.groups}
+                    defaultGroupId={groupStandings.defaultGroupId}
+                    qualifiedTeams={groupStandings.qualifiedTeams}
+                  />
+                </Grid>
               )}
               {prodeGroups && (
                 <Grid size={12}>

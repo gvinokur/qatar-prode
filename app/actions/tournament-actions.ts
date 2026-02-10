@@ -399,3 +399,85 @@ export async function createOrUpdatePlayoffRound(playoffRoundData: PlayoffRoundN
     throw new Error(error.message || 'Failed to save playoff stage');
   }
 }
+
+/**
+ * Find the latest finished group game to determine default selected tab
+ * @param tournamentId - The tournament ID
+ * @returns The latest finished group game or undefined
+ */
+export async function findLatestFinishedGroupGame(tournamentId: string) {
+  const { db } = await import('../db/database');
+
+  return await db.selectFrom('games')
+    .innerJoin('tournament_group_games', 'tournament_group_games.game_id', 'games.id')
+    .innerJoin('game_results', 'game_results.game_id', 'games.id')
+    .where('games.tournament_id', '=', tournamentId)
+    .where('game_results.is_draft', '=', false)  // Only non-draft results
+    .select([
+      'games.id',
+      'games.game_date',
+      'tournament_group_games.tournament_group_id'
+    ])
+    .orderBy('games.game_date', 'desc')
+    .executeTakeFirst();
+}
+
+/**
+ * Get group standings for all groups in a tournament
+ * Used for displaying group standings in tournament home page sidebar
+ * @param tournamentId - The tournament ID
+ * @returns Object with groups, default group ID, and qualified teams
+ */
+export async function getGroupStandingsForTournament(tournamentId: string) {
+  const { calculateGroupPosition } = await import('../utils/group-position-calculator');
+  const { findQualifiedTeams } = await import('../db/team-repository');
+
+  // 1. Fetch all tournament groups
+  const groups = await findGroupsInTournament(tournamentId);
+
+  // 2. Fetch qualified teams for entire tournament (returns teams with position and is_complete flags)
+  const qualifiedTeamsResult = await findQualifiedTeams(tournamentId); // NO groupId - get ALL groups
+  const qualifiedTeams = qualifiedTeamsResult.teams.map(t => ({ id: t.id })); // Format for TeamStandingsCards
+
+  // 3. For each group, fetch team standings using existing calculateGroupPosition utility
+  const groupsWithStandings = await Promise.all(
+    groups.map(async (group) => {
+      // Fetch group's games with results
+      const games = await findGamesInGroup(group.id, true, false); // completeGame=true, draftResult=false
+
+      // Fetch teams in group
+      const teams = await findTeamInGroup(group.id);
+      const teamsMap = toMap(teams);
+      const teamIds = teams.map(t => t.id);
+
+      // Calculate positions using existing utility (FIFA tiebreaker rules)
+      const teamStats = calculateGroupPosition(
+        teamIds,
+        games.map(game => ({
+          ...game,
+          resultOrGuess: (game as any).gameResult // Use actual results, not guesses
+        })),
+        group.sort_by_games_between_teams // Use group-specific tiebreaker rules
+      );
+
+      // Return TeamStats[] directly - no transformation needed
+      // TeamStandingsCards component already knows how to render TeamStats
+      return {
+        id: group.id,
+        letter: group.group_letter,
+        teamStats: teamStats,  // Pass TeamStats[] directly
+        teamsMap: teamsMap      // Pass teamsMap for component
+      };
+    })
+  );
+
+  // 4. Find latest finished game to determine default selected group
+  const latestFinishedGame = await findLatestFinishedGroupGame(tournamentId);
+  const defaultGroupId = latestFinishedGame?.tournament_group_id || groups[0]?.id;
+
+  return {
+    groups: groupsWithStandings,
+    defaultGroupId,
+    qualifiedTeams  // Array format expected by TeamStandingsCards
+  };
+}
