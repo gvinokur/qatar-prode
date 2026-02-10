@@ -67,8 +67,8 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
   const logoUrl = getThemeLogoUrl(layoutData.tournament?.theme)
 
   return (
-    <Box>
-      <AppBar position={'sticky'}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      <AppBar position={'static'}>
         <Grid container>
           <Grid size={12} pt={2} pb={1} pl={2} pr={2} sx={{
             backgroundColor: layoutData.tournament?.theme?.primary_color,
@@ -173,7 +173,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
           </Grid>
         </Grid>
       </AppBar>
-      <Box px={2} pb={2}>
+      <Box sx={{ flexGrow: 1, overflow: 'auto', px: 2, pb: 2, minHeight: 0 }}>
         {children}
       </Box>
       {user &&
