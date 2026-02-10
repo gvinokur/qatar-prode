@@ -14,6 +14,7 @@ import {unstable_ViewTransition as ViewTransition} from "react";
 import {findTournamentById} from "../../db/tournament-repository";
 import type {ScoringConfig} from "../../components/tournament-page/rules";
 import {UnifiedGamesPage} from "../../components/unified-games-page";
+import {UnifiedGamesDashboard} from "../../components/unified-games-dashboard";
 
 type Props = {
   readonly params: Promise<{
@@ -70,6 +71,9 @@ export default async function TournamentLandingPage(props: Props) {
           </Grid>
           <Grid size={{ xs:12, md: 4 }}>
             <Grid container rowSpacing={2}>
+              <Grid size={12}>
+                <UnifiedGamesDashboard tournamentId={tournamentId} />
+              </Grid>
               <Grid size={12}>
                 <Rules expanded={false} scoringConfig={scoringConfig} tournamentId={tournamentId}/>
               </Grid>
