@@ -19,7 +19,7 @@ interface StatRowProps {
   readonly bold?: boolean
 }
 
-function StatRow({ label, value, valueColor = 'text.primary', bold = true }: StatRowProps) {
+function StatRow({ label, value, valueColor = 'text.primary', bold = true }: Readonly<StatRowProps>) {
   return (
     <Box display="flex" justifyContent="space-between" alignItems="center">
       <Typography variant="body2" color="text.secondary">
