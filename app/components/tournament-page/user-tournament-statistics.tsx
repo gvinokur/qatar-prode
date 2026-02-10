@@ -19,6 +19,8 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess, t
     exactPredictions: userGameStatistics?.group_exact_guesses || 0,
     totalPoints: userGameStatistics?.group_score || 0,
     boostBonus: userGameStatistics?.group_boost_bonus || 0,
+    qualifiedCorrect: tournamentGuess?.qualified_teams_correct || 0,
+    qualifiedExact: tournamentGuess?.qualified_teams_exact || 0,
     qualifiers: tournamentGuess?.qualified_teams_score || 0
   }
 
@@ -54,13 +56,13 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess, t
               </Typography></Grid>
             </>
           )}
+          <Grid size={8}><Typography variant={'body1'} color={'primary.light'}>Aciertos Clasificados (Exactos)</Typography></Grid>
+          <Grid size={4}><Typography variant={'body1'} fontWeight={700}>
+            {groupScoreData.qualifiedCorrect} ({groupScoreData.qualifiedExact})
+          </Typography></Grid>
           <Grid size={8}><Typography variant={'body1'} color={'primary.light'}>Puntos por Clasificados</Typography></Grid>
           <Grid size={4}><Typography variant={'body1'} fontWeight={700}>
             {groupScoreData.qualifiers}
-          </Typography></Grid>
-          <Grid size={8}><Typography variant={'body1'} color={'primary.light'}>Posiciones Grupo</Typography></Grid>
-          <Grid size={4}><Typography variant={'body1'} fontWeight={700}>
-            {tournamentGuess?.group_position_score || 0}
           </Typography></Grid>
           <Grid
             sx={{borderTop: `${theme.palette.primary.contrastText} 1px solid` }}

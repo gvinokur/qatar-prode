@@ -25,6 +25,8 @@ type PerformanceStats = {
   readonly groupGamePoints: number
   readonly groupBoostBonus: number
   readonly groupQualifiedTeamsPoints: number
+  readonly groupQualifiedTeamsCorrect: number
+  readonly groupQualifiedTeamsExact: number
   readonly groupPositionPoints: number
   readonly playoffStagePoints: number
   readonly playoffGamePoints: number
@@ -155,13 +157,16 @@ export default async function TournamentStatsPage(props: Props) {
   const groupGamePoints = userGameStats?.group_score ?? 0
   const groupBoostBonus = userGameStats?.group_boost_bonus ?? 0
   const groupQualifiedTeamsPoints = tournamentGuess?.qualified_teams_score ?? 0
-  const groupPositionPoints = tournamentGuess?.group_position_score ?? 0
+  const groupQualifiedTeamsCorrect = tournamentGuess?.qualified_teams_correct ?? 0
+  const groupQualifiedTeamsExact = tournamentGuess?.qualified_teams_exact ?? 0
+  const groupPositionPoints = tournamentGuess?.group_position_score ?? 0 // Legacy, always 0 now
   const playoffGamePoints = userGameStats?.playoff_score ?? 0
   const playoffBoostBonus = userGameStats?.playoff_boost_bonus ?? 0
   const honorRollPoints = tournamentGuess?.honor_roll_score ?? 0
   const individualAwardsPoints = tournamentGuess?.individual_awards_score ?? 0
 
-  const groupStagePoints = groupGamePoints + groupBoostBonus + groupQualifiedTeamsPoints + groupPositionPoints
+  // Note: groupPositionPoints excluded from calculation as it's deprecated (always 0)
+  const groupStagePoints = groupGamePoints + groupBoostBonus + groupQualifiedTeamsPoints
   const playoffStagePoints = playoffGamePoints + playoffBoostBonus + honorRollPoints + individualAwardsPoints
   const totalPoints = groupStagePoints + playoffStagePoints
 
@@ -171,7 +176,9 @@ export default async function TournamentStatsPage(props: Props) {
     groupGamePoints,
     groupBoostBonus,
     groupQualifiedTeamsPoints,
-    groupPositionPoints,
+    groupQualifiedTeamsCorrect,
+    groupQualifiedTeamsExact,
+    groupPositionPoints, // Keep for backward compatibility in UI
     playoffStagePoints,
     playoffGamePoints,
     playoffBoostBonus,

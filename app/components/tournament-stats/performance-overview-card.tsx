@@ -8,6 +8,8 @@ type Props = {
   readonly groupGamePoints: number
   readonly groupBoostBonus: number
   readonly groupQualifiedTeamsPoints: number
+  readonly groupQualifiedTeamsCorrect: number
+  readonly groupQualifiedTeamsExact: number
   readonly groupPositionPoints: number
   readonly playoffStagePoints: number
   readonly playoffGamePoints: number
@@ -104,23 +106,23 @@ export function PerformanceOverviewCard(props: Props) {
 
           <Grid size={8}>
             <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-              Equipos Clasificados
+              Aciertos Clasificados (Exactos)
             </Typography>
           </Grid>
           <Grid size={4}>
             <Typography variant='body1' fontWeight={700} align='right'>
-              {props.groupQualifiedTeamsPoints}
+              {props.groupQualifiedTeamsCorrect} ({props.groupQualifiedTeamsExact})
             </Typography>
           </Grid>
 
           <Grid size={8}>
             <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-              Posiciones de Grupo
+              Puntos por Clasificados
             </Typography>
           </Grid>
           <Grid size={4}>
             <Typography variant='body1' fontWeight={700} align='right'>
-              {props.groupPositionPoints}
+              {props.groupQualifiedTeamsPoints}
             </Typography>
           </Grid>
 

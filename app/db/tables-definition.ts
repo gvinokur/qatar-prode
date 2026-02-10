@@ -280,6 +280,14 @@ export interface TournamentGuessTable extends Identifiable{
    */
   qualified_teams_score?: number
   /**
+   * Count of teams correctly predicted to qualify (regardless of position)
+   */
+  qualified_teams_correct?: number
+  /**
+   * Count of teams correctly predicted to qualify with exact position match
+   */
+  qualified_teams_exact?: number
+  /**
    * undefined - no group position score yet.
    * 1 point for each exact group position guessed
    */

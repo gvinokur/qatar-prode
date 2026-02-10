@@ -91,7 +91,25 @@ export async function calculateAndStoreQualifiedTeamsScores(
         // Calculate score for this user
         const scoringResult = await calculateQualifiedTeamsScore(userId, tournamentId);
 
-        // Update tournament_guesses with the calculated score
+        // Calculate counts from breakdown
+        let correctCount = 0;
+        let exactCount = 0;
+
+        for (const group of scoringResult.breakdown) {
+          for (const team of group.teams) {
+            // Count teams that qualified and user predicted to qualify
+            if (team.predictedToQualify && team.actuallyQualified) {
+              correctCount++;
+
+              // Check if it was exact position match
+              if (team.predictedPosition === team.actualPosition) {
+                exactCount++;
+              }
+            }
+          }
+        }
+
+        // Update tournament_guesses with the calculated score and counts
         // Use atomic upsert (no transaction needed - supported by PostgreSQL)
         await db
           .insertInto('tournament_guesses')
@@ -99,10 +117,14 @@ export async function calculateAndStoreQualifiedTeamsScores(
             user_id: userId,
             tournament_id: tournamentId,
             qualified_teams_score: scoringResult.totalScore,
+            qualified_teams_correct: correctCount,
+            qualified_teams_exact: exactCount,
           })
           .onConflict((oc) =>
             oc.columns(['user_id', 'tournament_id']).doUpdateSet({
               qualified_teams_score: scoringResult.totalScore,
+              qualified_teams_correct: correctCount,
+              qualified_teams_exact: exactCount,
             })
           )
           .execute();
