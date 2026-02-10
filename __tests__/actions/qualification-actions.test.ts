@@ -61,6 +61,9 @@ vi.mock('../../app/actions/guesses-actions', () => ({
   updatePlayoffGameGuesses: vi.fn().mockResolvedValue(undefined),
 }));
 
+import * as guessesActions from '../../app/actions/guesses-actions';
+const mockUpdatePlayoffGameGuesses = vi.mocked(guessesActions.updatePlayoffGameGuesses);
+
 const mockDb = vi.mocked(db);
 const mockGetLoggedInUser = vi.mocked(userActions.getLoggedInUser);
 const mockUpsertGroupPositions = vi.mocked(upsertGroupPositionsPrediction);
@@ -453,6 +456,140 @@ describe('Qualification Actions', () => {
       await expect(
         updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
       ).rejects.toThrow('El equipo team-999 no pertenece al grupo group-1');
+    });
+
+    it('should allow updates in dev environment for dev tournaments even when locked', async () => {
+      // Set environment to development
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'development';
+
+      const mockTournamentQuery = {
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue({
+          ...mockTournament,
+          is_active: false, // Locked
+          dev_only: true,   // But it's a dev tournament
+        }),
+      };
+      const mockTeamQuery = {
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue({ team_id: 'team-1' }),
+      };
+      const mockGameQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue({
+          game_date: new Date('2026-12-31'),
+        }),
+      };
+
+      mockDb.selectFrom.mockImplementation((table: string) => {
+        if (table === 'tournaments') return mockTournamentQuery as any;
+        if (table === 'tournament_group_teams') return mockTeamQuery as any;
+        if (table === 'games') return mockGameQuery as any;
+        return mockTeamQuery as any;
+      });
+
+      mockGetAllUserGroupPositionsPredictions.mockResolvedValue([]);
+      mockUpsertGroupPositions.mockResolvedValue(undefined);
+      mockUpdatePlayoffGameGuesses.mockResolvedValue(undefined);
+
+      const positionUpdates = [
+        { teamId: 'team-1', position: 1, qualifies: true },
+        { teamId: 'team-2', position: 2, qualifies: true },
+      ];
+
+      const result = await updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates);
+
+      expect(result.success).toBe(true);
+      expect(mockUpsertGroupPositions).toHaveBeenCalled();
+
+      // Restore environment
+      process.env.NODE_ENV = originalEnv;
+    });
+
+    it('should call updatePlayoffGameGuesses after successful update', async () => {
+      const mockTournamentQuery = {
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(mockTournament),
+      };
+      const mockTeamQuery = {
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue({ team_id: 'team-1' }),
+      };
+      const mockGameQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue({
+          game_date: new Date('2026-12-31'),
+        }),
+      };
+
+      mockDb.selectFrom.mockImplementation((table: string) => {
+        if (table === 'tournaments') return mockTournamentQuery as any;
+        if (table === 'tournament_group_teams') return mockTeamQuery as any;
+        if (table === 'games') return mockGameQuery as any;
+        return mockTeamQuery as any;
+      });
+
+      mockGetAllUserGroupPositionsPredictions.mockResolvedValue([]);
+      mockUpsertGroupPositions.mockResolvedValue(undefined);
+      mockUpdatePlayoffGameGuesses.mockClear();
+
+      const positionUpdates = [
+        { teamId: 'team-1', position: 1, qualifies: true },
+        { teamId: 'team-2', position: 2, qualifies: true },
+      ];
+
+      await updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates);
+
+      expect(mockUpdatePlayoffGameGuesses).toHaveBeenCalledWith('tournament-1', { id: 'user-1' });
+    });
+
+    it('should handle database errors gracefully', async () => {
+      const mockTournamentQuery = {
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(mockTournament),
+      };
+      const mockTeamQuery = {
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue({ team_id: 'team-1' }),
+      };
+      const mockGameQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue({
+          game_date: new Date('2026-12-31'),
+        }),
+      };
+
+      mockDb.selectFrom.mockImplementation((table: string) => {
+        if (table === 'tournaments') return mockTournamentQuery as any;
+        if (table === 'tournament_group_teams') return mockTeamQuery as any;
+        if (table === 'games') return mockGameQuery as any;
+        return mockTeamQuery as any;
+      });
+
+      mockGetAllUserGroupPositionsPredictions.mockResolvedValue([]);
+      // Simulate database error
+      mockUpsertGroupPositions.mockRejectedValue(new Error('Database connection failed'));
+
+      const positionUpdates = [
+        { teamId: 'team-1', position: 1, qualifies: true },
+      ];
+
+      await expect(
+        updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
+      ).rejects.toThrow('Error al guardar las predicciones. Por favor intenta de nuevo.');
     });
   });
 });
