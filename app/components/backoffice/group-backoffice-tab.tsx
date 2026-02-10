@@ -14,12 +14,12 @@ import BulkActionsMenu from "./bulk-actions-menu";
 import {
   calculateAndSavePlayoffGamesForTournament,
   calculateAndStoreGroupPosition,
-  calculateAndStoreQualifiedTeamsPoints,
   calculateGameScores,
   saveGameResults,
   saveGamesData,
   updateGroupTeamConductScores,
 } from "../../actions/backoffice-actions";
+import { calculateAndStoreQualifiedTeamsScores } from "../../actions/qualified-teams-scoring-actions";
 import TeamStandingsCards from "../groups-page/team-standings-cards";
 import {calculateGroupPosition} from "../../utils/group-position-calculator";
 import TeamStatsEditDialog from "./internal/team-stats-edit-dialog";
@@ -82,7 +82,7 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
     await saveGamesData(Object.values(newGamesMap))
     await calculateAndStoreGroupPosition(group.id, Object.keys(teamsMap), Object.values(newGamesMap), group.sort_by_games_between_teams)
     await calculateGameScores(false, false)
-    await calculateAndStoreQualifiedTeamsPoints(tournamentId)
+    await calculateAndStoreQualifiedTeamsScores(tournamentId)
     setSaved(false)
   }
 
@@ -142,7 +142,7 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
       group.sort_by_games_between_teams
     );
     await calculateGameScores(false, false);
-    await calculateAndStoreQualifiedTeamsPoints(tournamentId);
+    await calculateAndStoreQualifiedTeamsScores(tournamentId);
     setSaved(true);
   };
 

@@ -9,9 +9,9 @@ import { db } from '../db/database'; // Used for playoff round queries
 import {
   calculateAndSavePlayoffGamesForTournament,
   calculateAndStoreGroupPosition,
-  calculateAndStoreQualifiedTeamsPoints,
   calculateGameScores
 } from './backoffice-actions';
+import { calculateAndStoreQualifiedTeamsScores } from './qualified-teams-scoring-actions';
 import { findTeamsInGroup, findTournamentgroupById } from '../db/tournament-group-repository';
 
 /**
@@ -133,7 +133,7 @@ async function runRecalculationPipeline(
   // Then recalculate playoff teams (uses updated group standings)
   await calculateAndSavePlayoffGamesForTournament(tournamentId);
   await calculateGameScores(false, false);
-  await calculateAndStoreQualifiedTeamsPoints(tournamentId);
+  await calculateAndStoreQualifiedTeamsScores(tournamentId);
 }
 
 interface AutoFillResult {

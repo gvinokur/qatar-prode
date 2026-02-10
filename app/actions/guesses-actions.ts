@@ -86,6 +86,7 @@ export async function updatePlayoffGameGuesses(tournamentId: string, user?: User
           goals_for: 0,
           goals_against: 0,
           goal_difference: 0,
+          conduct_score: 0,
           is_complete: true, // Mark as complete so playoff calculator accepts this group
         }))
 
