@@ -86,23 +86,30 @@ function UnifiedGamesPageContent({
         isPlayoffs={false}
       />
 
-      {/* Primary Filters */}
-      <GameFilters
-        gameCounts={gameCounts}
-        activeFilter={activeFilter}
-        onFilterChange={setActiveFilter}
-      />
+      {/* Filters - Side by side */}
+      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+        {/* Primary Filter */}
+        <Box sx={{ flex: 1 }}>
+          <GameFilters
+            gameCounts={gameCounts}
+            activeFilter={activeFilter}
+            onFilterChange={setActiveFilter}
+          />
+        </Box>
 
-      {/* Secondary Filters (Groups/Rounds tabs) */}
-      <SecondaryFilters
-        activeFilter={activeFilter}
-        groupFilter={groupFilter}
-        roundFilter={roundFilter}
-        groups={groups}
-        rounds={rounds}
-        onGroupChange={setGroupFilter}
-        onRoundChange={setRoundFilter}
-      />
+        {/* Secondary Filter (Groups/Rounds) */}
+        <Box sx={{ flex: 1 }}>
+          <SecondaryFilters
+            activeFilter={activeFilter}
+            groupFilter={groupFilter}
+            roundFilter={roundFilter}
+            groups={groups}
+            rounds={rounds}
+            onGroupChange={setGroupFilter}
+            onRoundChange={setRoundFilter}
+          />
+        </Box>
+      </Box>
 
       {/* Scrollable Games List */}
       <Box

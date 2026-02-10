@@ -1,6 +1,6 @@
 'use client'
 
-import { Box, Tabs, Tab } from '@mui/material';
+import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { TournamentGroup, PlayoffRound } from '../db/tables-definition';
 
 interface SecondaryFiltersProps {
@@ -30,48 +30,44 @@ export function SecondaryFilters({
   // Render group selector when in groups mode
   if (activeFilter === 'groups') {
     return (
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-        <Tabs
-          value={groupFilter || false}
-          onChange={(_, value) => onGroupChange(value === false ? null : value)}
-          variant="scrollable"
-          scrollButtons="auto"
-          allowScrollButtonsMobile
+      <FormControl fullWidth size="small">
+        <InputLabel id="group-filter-label">Grupo</InputLabel>
+        <Select
+          labelId="group-filter-label"
+          value={groupFilter || ''}
+          label="Grupo"
+          onChange={(e) => onGroupChange(e.target.value || null)}
         >
-          <Tab label="Todos" value={false} />
+          <MenuItem value="">Todos</MenuItem>
           {groups.map(group => (
-            <Tab
-              key={group.id}
-              label={`Grupo ${group.group_letter.toUpperCase()}`}
-              value={group.id}
-            />
+            <MenuItem key={group.id} value={group.id}>
+              Grupo {group.group_letter.toUpperCase()}
+            </MenuItem>
           ))}
-        </Tabs>
-      </Box>
+        </Select>
+      </FormControl>
     );
   }
 
   // Render round selector when in playoffs mode
   if (activeFilter === 'playoffs') {
     return (
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-        <Tabs
-          value={roundFilter || false}
-          onChange={(_, value) => onRoundChange(value === false ? null : value)}
-          variant="scrollable"
-          scrollButtons="auto"
-          allowScrollButtonsMobile
+      <FormControl fullWidth size="small">
+        <InputLabel id="round-filter-label">Ronda</InputLabel>
+        <Select
+          labelId="round-filter-label"
+          value={roundFilter || ''}
+          label="Ronda"
+          onChange={(e) => onRoundChange(e.target.value || null)}
         >
-          <Tab label="Todos" value={false} />
+          <MenuItem value="">Todos</MenuItem>
           {rounds.map(round => (
-            <Tab
-              key={round.id}
-              label={round.round_name}
-              value={round.id}
-            />
+            <MenuItem key={round.id} value={round.id}>
+              {round.round_name}
+            </MenuItem>
           ))}
-        </Tabs>
-      </Box>
+        </Select>
+      </FormControl>
     );
   }
 

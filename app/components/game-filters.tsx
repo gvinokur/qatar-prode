@@ -1,6 +1,6 @@
 'use client'
 
-import { Box, Button, Chip } from '@mui/material';
+import { FormControl, InputLabel, Select, MenuItem, Box } from '@mui/material';
 import { FilterType } from '../utils/game-filters';
 import { TournamentGameCounts } from '../db/game-repository';
 
@@ -20,42 +20,25 @@ export function GameFilters({ gameCounts, activeFilter, onFilterChange }: GameFi
   ];
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        gap: 1,
-        flexWrap: 'wrap',
-        mb: 2
-      }}
-    >
-      {filters.map(filter => (
-        <Button
-          key={filter.type}
-          variant={activeFilter === filter.type ? 'contained' : 'outlined'}
-          onClick={() => onFilterChange(filter.type)}
-          endIcon={
-            <Chip
-              label={filter.count}
-              size="small"
-              sx={{
-                height: '16px',
-                fontSize: '0.65rem',
-                '& .MuiChip-label': {
-                  px: 0.5,
-                  py: 0
-                },
-                backgroundColor: activeFilter === filter.type ? 'rgba(255, 255, 255, 0.3)' : 'action.hover'
-              }}
-            />
-          }
-          sx={{
-            textTransform: 'none',
-            fontWeight: activeFilter === filter.type ? 600 : 400
-          }}
-        >
-          {filter.label}
-        </Button>
-      ))}
-    </Box>
+    <FormControl fullWidth size="small">
+      <InputLabel id="game-filter-label">Filtro</InputLabel>
+      <Select
+        labelId="game-filter-label"
+        value={activeFilter}
+        label="Filtro"
+        onChange={(e) => onFilterChange(e.target.value as FilterType)}
+      >
+        {filters.map(filter => (
+          <MenuItem key={filter.type} value={filter.type}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+              <span>{filter.label}</span>
+              <span style={{ marginLeft: '16px', color: 'text.secondary', fontSize: '0.875rem' }}>
+                ({filter.count})
+              </span>
+            </Box>
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
   );
 }
