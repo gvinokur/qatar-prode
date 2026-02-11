@@ -14,7 +14,9 @@ import {
   getCompleteTournamentGroups,
   createOrUpdateTournamentGroup,
   getPlayoffRounds,
-  createOrUpdatePlayoffRound
+  createOrUpdatePlayoffRound,
+  findLatestFinishedGroupGame,
+  getGroupStandingsForTournament
 } from '../../app/actions/tournament-actions';
 import { Tournament, TournamentNew, TournamentGroup, Team, Game, PlayoffRoundNew, PlayoffRoundUpdate, TournamentGroupTeam } from '../../app/db/tables-definition';
 import { ExtendedPlayoffRoundData } from '../../app/definitions';
@@ -56,6 +58,7 @@ vi.mock('../../app/db/tournament-playoff-repository', () => ({
 vi.mock('../../app/db/team-repository', () => ({
   findTeamInGroup: vi.fn(),
   findTeamInTournament: vi.fn(),
+  findQualifiedTeams: vi.fn(),
 }));
 
 vi.mock('../../app/actions/user-actions', () => ({
@@ -77,6 +80,16 @@ vi.mock('../../app/utils/ObjectUtils', () => ({
   toMap: vi.fn(),
 }));
 
+vi.mock('../../app/utils/group-position-calculator', () => ({
+  calculateGroupPosition: vi.fn(),
+}));
+
+vi.mock('../../app/db/database', () => ({
+  db: {
+    selectFrom: vi.fn(),
+  },
+}));
+
 // Import mocked functions
 import * as tournamentRepository from '../../app/db/tournament-repository';
 import * as gameRepository from '../../app/db/game-repository';
@@ -87,6 +100,8 @@ import * as userActions from '../../app/actions/user-actions';
 import * as s3 from '../../app/actions/s3';
 import * as objectUtils from '../../app/utils/ObjectUtils';
 import { s3Client } from 'nodejs-s3-typescript';
+import * as groupPositionCalculator from '../../app/utils/group-position-calculator';
+import * as database from '../../app/db/database';
 
 const mockCreateTournament = vi.mocked(tournamentRepository.createTournament);
 const mockFindAllActiveTournaments = vi.mocked(tournamentRepository.findAllActiveTournaments);
@@ -115,12 +130,15 @@ const mockUpdatePlayoffRound = vi.mocked(tournamentPlayoffRepository.updatePlayo
 
 const mockFindTeamInGroup = vi.mocked(teamRepository.findTeamInGroup);
 const mockFindTeamInTournament = vi.mocked(teamRepository.findTeamInTournament);
+const mockFindQualifiedTeams = vi.mocked(teamRepository.findQualifiedTeams);
 
 const mockGetLoggedInUser = vi.mocked(userActions.getLoggedInUser);
 const mockCreateS3Client = vi.mocked(s3.createS3Client);
 const mockGetS3KeyFromURL = vi.mocked(s3.getS3KeyFromURL);
 const mockToMap = vi.mocked(objectUtils.toMap);
 const _mockS3ClientConstructor = vi.mocked(s3Client);
+const mockCalculateGroupPosition = vi.mocked(groupPositionCalculator.calculateGroupPosition);
+const mockDb = vi.mocked(database.db);
 
 describe('Tournament Actions', () => {
   const mockAdminUser = { id: 'admin1', email: 'admin@example.com', emailVerified: new Date(), isAdmin: true };
@@ -1055,6 +1073,271 @@ describe('Tournament Actions', () => {
 
       await expect(createOrUpdateTournament(null, emptyFormData))
         .rejects.toThrow();
+    });
+  });
+
+  describe('findLatestFinishedGroupGame', () => {
+    const mockLatestGame = {
+      id: 'game1',
+      game_date: new Date('2024-06-15T15:00:00Z'),
+      tournament_group_id: 'group1'
+    };
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('returns latest finished group game', async () => {
+      const mockQuery = {
+        innerJoin: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(mockLatestGame)
+      };
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      const result = await findLatestFinishedGroupGame('tournament1');
+
+      expect(mockDb.selectFrom).toHaveBeenCalledWith('games');
+      expect(mockQuery.innerJoin).toHaveBeenCalledTimes(2);
+      expect(mockQuery.where).toHaveBeenCalledWith('games.tournament_id', '=', 'tournament1');
+      expect(mockQuery.where).toHaveBeenCalledWith('game_results.is_draft', '=', false);
+      expect(mockQuery.orderBy).toHaveBeenCalledWith('games.game_date', 'desc');
+      expect(result).toEqual(mockLatestGame);
+    });
+
+    it('returns undefined when no finished games exist', async () => {
+      const mockQuery = {
+        innerJoin: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(undefined)
+      };
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      const result = await findLatestFinishedGroupGame('tournament1');
+
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('getGroupStandingsForTournament', () => {
+    const mockTournamentGroup1 = {
+      id: 'group1',
+      tournament_id: 'tournament1',
+      group_letter: 'A',
+      sort_by_games_between_teams: false
+    };
+
+    const mockTournamentGroup2 = {
+      id: 'group2',
+      tournament_id: 'tournament1',
+      group_letter: 'B',
+      sort_by_games_between_teams: true
+    };
+
+    const mockTeam1: Team = {
+      id: 'team1',
+      name: 'Team 1',
+      short_name: 'T1',
+      image: 'team1.png',
+      is_qualified: false
+    };
+
+    const mockTeam2: Team = {
+      id: 'team2',
+      name: 'Team 2',
+      short_name: 'T2',
+      image: 'team2.png',
+      is_qualified: false
+    };
+
+    const mockGame1: Game = {
+      id: 'game1',
+      tournament_id: 'tournament1',
+      home_team: 'team1',
+      away_team: 'team2',
+      game_date: new Date('2024-06-15'),
+      game_number: 1,
+      sort_order: 1,
+      group_game: true,
+      playoff_game: false,
+      gameResult: {
+        id: 'result1',
+        game_id: 'game1',
+        home_team_score: 2,
+        away_team_score: 1,
+        is_draft: false,
+        created_at: new Date()
+      }
+    };
+
+    const mockTeamStats = [
+      {
+        team_id: 'team1',
+        tournament_id: 'tournament1',
+        group_id: 'group1',
+        points: 10,
+        games_played: 3,
+        win: 3,
+        loss: 0,
+        draw: 0,
+        goals_for: 6,
+        goals_against: 1,
+        goal_difference: 5,
+        conduct_score: 0
+      },
+      {
+        team_id: 'team2',
+        tournament_id: 'tournament1',
+        group_id: 'group1',
+        points: 6,
+        games_played: 3,
+        win: 2,
+        loss: 1,
+        draw: 0,
+        goals_for: 4,
+        goals_against: 3,
+        goal_difference: 1,
+        conduct_score: 0
+      }
+    ];
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+
+      // Set up default mocks
+      mockFindGroupsInTournament.mockResolvedValue([mockTournamentGroup1, mockTournamentGroup2]);
+      mockFindQualifiedTeams.mockResolvedValue({
+        teams: [{ id: 'team1', position: 1, is_complete: true }],
+        isComplete: true
+      });
+      mockFindTeamInGroup.mockResolvedValue([mockTeam1, mockTeam2]);
+      mockFindGamesInGroup.mockResolvedValue([mockGame1]);
+      mockCalculateGroupPosition.mockReturnValue(mockTeamStats);
+      mockToMap.mockReturnValue({ 'team1': mockTeam1, 'team2': mockTeam2 });
+    });
+
+    it('returns group standings with all groups', async () => {
+      const mockLatestGame = {
+        id: 'game1',
+        game_date: new Date(),
+        tournament_group_id: 'group1'
+      };
+      const mockQuery = {
+        innerJoin: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(mockLatestGame)
+      };
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      const result = await getGroupStandingsForTournament('tournament1');
+
+      expect(result.groups).toHaveLength(2);
+      expect(result.groups[0]).toMatchObject({
+        id: 'group1',
+        letter: 'A',
+        teamStats: mockTeamStats,
+        teamsMap: { 'team1': mockTeam1, 'team2': mockTeam2 }
+      });
+      expect(result.defaultGroupId).toBe('group1');
+      expect(result.qualifiedTeams).toEqual([{ id: 'team1' }]);
+    });
+
+    it('calls calculateGroupPosition with correct parameters for each group', async () => {
+      const mockLatestGame = {
+        id: 'game1',
+        game_date: new Date(),
+        tournament_group_id: 'group1'
+      };
+      const mockQuery = {
+        innerJoin: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(mockLatestGame)
+      };
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      await getGroupStandingsForTournament('tournament1');
+
+      // Called twice (once per group)
+      expect(mockCalculateGroupPosition).toHaveBeenCalledTimes(2);
+
+      // First call for Group A
+      expect(mockCalculateGroupPosition).toHaveBeenNthCalledWith(
+        1,
+        ['team1', 'team2'],
+        expect.arrayContaining([expect.objectContaining({
+          ...mockGame1,
+          resultOrGuess: mockGame1.gameResult
+        })]),
+        false // sort_by_games_between_teams for Group A
+      );
+
+      // Second call for Group B
+      expect(mockCalculateGroupPosition).toHaveBeenNthCalledWith(
+        2,
+        ['team1', 'team2'],
+        expect.arrayContaining([expect.objectContaining({
+          ...mockGame1,
+          resultOrGuess: mockGame1.gameResult
+        })]),
+        true // sort_by_games_between_teams for Group B
+      );
+    });
+
+    it('uses first group as default when no finished games exist', async () => {
+      const mockQuery = {
+        innerJoin: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(undefined)
+      };
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      const result = await getGroupStandingsForTournament('tournament1');
+
+      expect(result.defaultGroupId).toBe('group1');
+    });
+
+    it('handles tournament with no groups', async () => {
+      mockFindGroupsInTournament.mockResolvedValue([]);
+      const mockQuery = {
+        innerJoin: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(undefined)
+      };
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      const result = await getGroupStandingsForTournament('tournament1');
+
+      expect(result.groups).toEqual([]);
+      expect(result.defaultGroupId).toBeUndefined();
+    });
+
+    it('fetches qualified teams for entire tournament (not per group)', async () => {
+      const mockQuery = {
+        innerJoin: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(undefined)
+      };
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      await getGroupStandingsForTournament('tournament1');
+
+      // Should call findQualifiedTeams with tournamentId only (no groupId)
+      expect(mockFindQualifiedTeams).toHaveBeenCalledWith('tournament1');
+      expect(mockFindQualifiedTeams).toHaveBeenCalledTimes(1); // Only once, not per group
     });
   });
 });
