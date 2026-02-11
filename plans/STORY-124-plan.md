@@ -12,17 +12,17 @@
 
 ## Story Context
 
-Four UI/UX bugs identified in the qualified teams groups page that affect user experience in editable mode:
+Three UI/UX bugs identified in the qualified teams groups page that affect user experience in editable mode:
 
 1. **Pre-selection indicators**: First 2 teams show yellow qualification indicators before user selection
 2. **No completion status**: No visual indication of whether user has made predictions on a group
 3. **Wrong indicator color**: Qualification markers use yellow (warning) instead of green (success)
-4. **Saving state confusion**: Saving state uses same visual as "permanently locked" state
+
+~~4. **Saving state confusion**: Saving state uses same visual as "permanently locked" state~~ ❌ **REMOVED** - Current locked state behavior is correct per user feedback
 
 These issues make it confusing for users to:
 - Distinguish between "I selected this" vs "This is just in a qualifying position"
 - Know which groups they've completed
-- Understand temporary saving state vs permanent locked state
 - Interpret qualification status (yellow = warning, should be green = success)
 
 ## Acceptance Criteria
@@ -31,7 +31,6 @@ These issues make it confusing for users to:
 - [ ] NO automatic borders based on position alone (positions 1-2 should not auto-show borders)
 - [ ] Groups show clear binary completion status (completed icon/color when group has been touched)
 - [ ] Qualification markers use green color instead of yellow
-- [ ] Saving state has distinct visual treatment from "locked" state
 - [ ] All changes preserve existing drag-and-drop functionality
 - [ ] Tests updated to cover new behaviors
 - [ ] No SonarCloud issues introduced
@@ -148,111 +147,27 @@ const isGroupCompleted = useMemo(() => {
 - Review all usage of `warning.main` in draggable-team-card.tsx
 - Ensure pending states still use `info.main` (blue) appropriately
 
-### Bug 4: Distinct Saving State
+### ~~Bug 4: Distinct Saving State~~ ❌ **REMOVED**
 
-**Current behavior:**
-- `qualified-teams-client-page.tsx` line 311: `isLocked={isLocked || isSaving}`
-- Saving state visually identical to permanently locked state
-- Users can't distinguish "temporarily disabled while saving" from "closed for editing"
+**User feedback:** "Not needed, the locked state is good as it is right now."
 
-**Fix:**
-- Pass `isSaving` as separate prop to child components
-- Add visual indicator for saving state (e.g., loading spinner, "Guardando..." text)
-- Keep drag-and-drop disabled during save
-- Show distinct visual from permanent lock (lock icon)
+The current behavior where `isLocked={isLocked || isSaving}` (line 311 in qualified-teams-client-page.tsx) is correct. Saving state using the same visual as locked state is acceptable and does not need to be changed.
 
-**Implementation:**
-1. Update `DraggableTeamCardProps` to include `isSaving: boolean`
-2. Update `GroupCardProps` to include `isSaving: boolean`
-3. Thread `isSaving` through component tree
-4. In `DraggableTeamCard`, show saving indicator when `isSaving=true && !disabled`
-5. In `GroupCard`, show saving indicator in header when `isSaving=true`
-
-**Changes:**
-```typescript
-// qualified-teams-client-page.tsx:311
-<QualifiedTeamsGrid
-  groups={groups}
-  predictions={predictions}
-  isLocked={isLocked}  // Separate from isSaving
-  isSaving={isSaving}   // New prop
-  allowsThirdPlace={allowsThirdPlace}
-  // ... other props
-/>
-
-// qualified-teams-grid.tsx
-export interface QualifiedTeamsGridProps {
-  // ... existing props
-  readonly isSaving: boolean;  // Add new prop
-}
-
-// group-card.tsx
-export interface GroupCardProps {
-  // ... existing props
-  readonly isSaving: boolean;  // Add new prop
-}
-
-// draggable-team-card.tsx
-export interface DraggableTeamCardProps {
-  // ... existing props
-  readonly isSaving: boolean;  // Add new prop
-}
-
-// In DraggableTeamCard, show spinner when saving:
-// PLACEMENT: Spinner appears to the right of team name, before checkbox/results
-// STYLING: Small spinner (16px), uses theme primary color, margin-left: 1
-{isSaving && (
-  <CircularProgress size={16} sx={{ ml: 1, color: 'primary.main' }} />
-)}
-
-// Disable drag during save OR lock:
-const {
-  // ...
-} = useSortable({
-  id: team.id,
-  disabled: disabled || isSaving,  // Disable for both locked AND saving
-});
-
-// Disable third place checkbox during save:
-<ThirdPlaceCheckbox
-  checked={predictedToQualify}
-  disabled={disabled || isSaving}  // Disable during save or lock
-  onChange={onToggleThirdPlace}
-/>
-```
-
-**Edge Case: isSaving=true AND isLocked=true**
-- This can occur during initial load if tournament is already locked
-- Behavior: Both props passed separately, but only `isLocked` visual shown (no spinner)
-- Rationale: If tournament is locked, saving is unlikely; locked state takes precedence
-- Implementation: `{isSaving && !disabled && (...)}` - spinner only shows if NOT disabled
+**No changes required for Bug 4.**
 
 ## Files to Modify
 
 ### Core Component Files
 1. **`app/components/qualified-teams/draggable-team-card.tsx`**
-   - Remove `getSelectionBorderColor()` auto-borders logic (Bug 1)
-   - Change yellow to green if function kept (Bug 3)
-   - Add `isSaving` prop and visual indicator (Bug 4)
-   - Update `disabled` logic to separate lock from saving
-   - Lines to modify: ~110-123, ~353-455
+   - Fix `getSelectionBorderColor()` to check `predictedToQualify`, not position (Bug 1)
+   - Change yellow to green (Bug 3)
+   - Lines to modify: ~110-123 (getSelectionBorderColor function)
 
 2. **`app/components/qualified-teams/group-card.tsx`**
-   - Add completion status calculation (Bug 2)
-   - Update `GroupHeader` with completion indicator (Bug 2)
-   - Update mobile accordion summary with status (Bug 2)
-   - Add `isSaving` prop and thread through (Bug 4)
+   - Add binary completion status calculation (Bug 2)
+   - Update `GroupHeader` with completion indicator icon/badge (Bug 2)
+   - Update mobile accordion summary with completion styling (Bug 2)
    - Lines to modify: ~45-68 (header), ~106-112 (accordion), ~215-217 (summary)
-
-3. **`app/components/qualified-teams/qualified-teams-grid.tsx`**
-   - Add `isSaving` prop to interface (Bug 4)
-   - Pass `isSaving` to `GroupCard` components (Bug 4)
-   - Lines to modify: ~9-31 (interface), ~74-89 (GroupCard usage)
-
-4. **`app/components/qualified-teams/qualified-teams-client-page.tsx`**
-   - Change `isLocked={isLocked || isSaving}` to pass separately (Bug 4)
-   - Pass `isSaving` prop to `QualifiedTeamsGrid` (Bug 4)
-   - Lines to modify: ~311 (grid props)
 
 ### Test Files to Update
 
@@ -302,32 +217,20 @@ const {
 
 ### Phase 1: Core Component Changes (Sequential)
 
-**Step 1.1: Fix Bug 4 - Add isSaving Prop Threading**
-- Update prop interfaces from bottom-up
-- `DraggableTeamCardProps` → add `isSaving: boolean`
-- `GroupCardProps` → add `isSaving: boolean`
-- `QualifiedTeamsGridProps` → add `isSaving: boolean`
-- Update `qualified-teams-client-page.tsx` to pass `isSaving` separately
+**Step 1.1: Fix Bug 1 - Check predictedToQualify, Not Position**
+- Modify `getSelectionBorderColor()` in `draggable-team-card.tsx`
+- Remove automatic position-based borders (position 1, 2)
+- Only check `predictedToQualify` prop
+- Return green color when `predictedToQualify === true`
 
-**Step 1.2: Fix Bug 4 - Add Saving Visual Indicators**
-- Add saving spinner to `DraggableTeamCard`
-- Update drag disable logic: `disabled: disabled || isSaving`
-- Add saving indicator to `GroupCard` header (optional)
+**Step 1.2: Fix Bug 3 - Change Yellow to Green**
+- In `getSelectionBorderColor()`, use `theme.palette.success.main` instead of `theme.palette.warning.main`
+- Verify consistency with existing success states
 
-**Step 1.3: Fix Bug 1 - Remove Editable Mode Borders**
-- Modify `getSelectionBorderColor()` to return `null` in editable mode
-- OR remove the function entirely and update `getBorderColor()` logic
-- Verify borders still appear correctly in locked/results mode
-
-**Step 1.4: Fix Bug 3 - Change Yellow to Green**
-- Review all uses of `theme.palette.warning.main` in `draggable-team-card.tsx`
-- Change to `theme.palette.success.main` where appropriate
-- Ensure consistency with existing success states
-
-**Step 1.5: Fix Bug 2 - Add Completion Status**
-- Add completion calculation to `GroupCard`
-- Update `GroupHeader` component with status display
-- Update mobile accordion summary with completion indicator
+**Step 1.3: Fix Bug 2 - Add Binary Completion Status**
+- Add binary completion calculation to `GroupCard` (group touched or not)
+- Update `GroupHeader` component with completion icon/badge
+- Update mobile accordion summary with completion styling (color change when complete)
 
 ### Phase 2: Testing (Parallel after Phase 1)
 
@@ -367,26 +270,16 @@ const {
 **Test Cases:**
 
 1. **DraggableTeamCard Tests** (`draggable-team-card.test.tsx`)
-   - ✅ No colored border in editable mode (Bug 1)
-   - ✅ Green border in locked mode for qualified teams (Bug 3)
-   - ✅ Saving spinner appears when isSaving=true
-   - ✅ Drag disabled when isSaving=true OR disabled=true
-   - ✅ Existing border logic preserved (pending, correct, wrong)
+   - ✅ Borders only show when `predictedToQualify === true`, not based on position (Bug 1)
+   - ✅ Green border shown when qualified, not yellow (Bug 3)
+   - ✅ No automatic borders for positions 1-2 in editable mode (Bug 1)
+   - ✅ Existing border logic preserved (pending, correct, wrong results)
 
 2. **GroupCard Tests** (`group-card.test.tsx`)
-   - ✅ Completion status calculated correctly (0/4, 2/4, 4/4)
-   - ✅ Completion indicator visible in header (desktop)
-   - ✅ Completion status in accordion summary (mobile)
-   - ✅ isSaving prop threaded through correctly
-
-3. **QualifiedTeamsGrid Tests** (`qualified-teams-grid.test.tsx`)
-   - ✅ isSaving prop passed to all GroupCard components
-   - ✅ Grid rendering with new props
-
-4. **QualifiedTeamsClientPage Tests** (`qualified-teams-client-page-dnd.test.tsx`)
-   - ✅ isLocked and isSaving passed separately (not combined)
-   - ✅ Saving state shows visual indicators
-   - ✅ Context provides isSaving correctly
+   - ✅ Binary completion status calculated correctly (touched vs not touched)
+   - ✅ Completion indicator visible when group is touched (Bug 2)
+   - ✅ Completion styling in accordion summary (mobile)
+   - ✅ "X seleccionados" count shows qualified teams
 
 **Test Utilities:**
 - Use `renderWithTheme()` from `@/__tests__/utils/test-utils`
@@ -529,52 +422,16 @@ None - requirements are clear from bug descriptions.
 └─────────────────────────────────────────┘
 ```
 
-### Bug 4: Saving State Indicator
+### ~~Bug 4: Saving State Indicator~~ ❌ **REMOVED**
 
-**During Save:**
-```
-┌──────────────────────────────────────┐
-│ ⬜ [1st] Argentina    [🔄]           │  ← Spinner during save
-├──────────────────────────────────────┤
-│ ⬜ [2nd] Brazil       [🔄]           │  ← Disabled, can't drag
-├──────────────────────────────────────┤
-│ ⬜ [3rd] Chile   [☑] Clasifica [🔄] │
-├──────────────────────────────────────┤
-│ ⬜ [4th] Uruguay      [🔄]           │
-└──────────────────────────────────────┘
-     Guardando predicciones...             ← Toast/snackbar
-```
+User feedback: "Not needed, the locked state is good as it is right now."
 
-**Permanently Locked:**
-```
-┌──────────────────────────────────────┐
-│ 🔒 [1st] Argentina                   │  ← Lock icon (not spinner)
-├──────────────────────────────────────┤
-│ 🔒 [2nd] Brazil                      │  ← Different from saving
-├──────────────────────────────────────┤
-│ 🔒 [3rd] Chile   [☑] Clasifica      │
-├──────────────────────────────────────┤
-│ 🔒 [4th] Uruguay                     │
-└──────────────────────────────────────┘
-```
+No visual changes needed for saving state.
 
 **States:**
-- **Editable**: No border, draggable, no icons
-- **Saving**: Spinner visible, drag disabled temporarily, no border
+- **Editable**: Borders only on teams with `predicted_to_qualify === true` (green), draggable
 - **Locked**: Lock icon (already implemented via Alert), borders show results
-- **Results**: Green/red borders, points displayed, readonly
-
-### Component Hierarchy (with new isSaving prop)
-
-```
-QualifiedTeamsClientPage
-├─ QualifiedTeamsContextProvider (provides isSaving)
-│  └─ QualifiedTeamsUI
-│     └─ QualifiedTeamsGrid (receives isSaving)
-│        └─ GroupCard[] (receives isSaving)
-│           └─ DraggableTeamCard[] (receives isSaving)
-│              └─ [Shows spinner if isSaving=true]
-```
+- **Results**: Green/red borders based on correctness, points displayed, readonly
 
 ## Risk Assessment
 
@@ -583,24 +440,23 @@ QualifiedTeamsClientPage
 - No database schema changes
 - No API contract changes
 - Existing tests will catch regressions
+- Only 2 component files modified
 
 **Medium Risk:**
-- Border color logic is complex (many conditionals)
-- PropsDrilling isSaving through multiple layers
-- Could affect drag-and-drop performance if not optimized
+- Border color logic has multiple conditionals (requires careful testing)
+- Color change from yellow to green affects visual consistency
 
 **Mitigation:**
 - Comprehensive test coverage (≥80%)
-- Manual testing of all states (editable, saving, locked, results)
-- Code review focusing on border logic and prop threading
-- Performance testing of drag operations with isSaving checks
+- Manual testing of all states (editable, locked, results)
+- Code review focusing on border logic
+- Visual regression testing on different screen sizes
 
 ## Success Criteria
 
-- [ ] Users see NO yellow borders in editable mode before interaction
-- [ ] Users see green borders in locked/results mode for qualified teams
-- [ ] Users can distinguish saving state from locked state
-- [ ] Users can see completion status for each group
+- [ ] Borders only show when `predicted_to_qualify === true` (not based on position alone)
+- [ ] Borders use green color instead of yellow
+- [ ] Groups show binary completion indicator (touched vs not touched)
 - [ ] All existing functionality preserved (drag-and-drop, third place selection, scoring)
 - [ ] All tests pass with ≥80% coverage
 - [ ] SonarCloud reports 0 new issues
@@ -609,7 +465,7 @@ QualifiedTeamsClientPage
 
 ---
 
-**Estimated Complexity:** Medium
-**Estimated Files Changed:** 4 core files + 4 test files
+**Estimated Complexity:** Low-Medium (reduced from Medium due to Bug 4 removal)
+**Estimated Files Changed:** 2 core files + 2 test files (reduced from 4+4)
 **Breaking Changes:** None
 **Database Migrations:** None
