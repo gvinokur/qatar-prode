@@ -68,8 +68,8 @@ export default async function TournamentLandingPage(props: Props) {
         name={'group-page'}
         enter={'group-enter'}
         exit={'group-exit'}>
-        <Grid container maxWidth={'868px'} mt={1} mx={{md: 'auto'}} spacing={2} sx={{ height: '100%' }}>
-          <Grid size={{ xs:12, md: 8 }} sx={{ display: 'flex', flexDirection: 'column', minHeight: 0, height: '100%' }}>
+        <Grid container maxWidth={'868px'} mt={1} mx={{md: 'auto'}} spacing={2}>
+          <Grid size={{ xs:12, md: 8 }} sx={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
             <UnifiedGamesPage tournamentId={tournamentId} />
           </Grid>
           <Grid size={{ xs:12, md: 4 }}>

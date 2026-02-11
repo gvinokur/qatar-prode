@@ -68,7 +68,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <AppBar position={'static'}>
+      <AppBar position={'sticky'} sx={{ top: 0, zIndex: 1100 }}>
         <Grid container>
           <Grid size={12} pt={2} pb={1} pl={2} pr={2} sx={{
             backgroundColor: layoutData.tournament?.theme?.primary_color,
