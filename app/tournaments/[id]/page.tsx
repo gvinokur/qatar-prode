@@ -1,10 +1,11 @@
 'use server'
 
-import {getTeamsMap} from "../../actions/tournament-actions";
+import {getTeamsMap, getGroupStandingsForTournament} from "../../actions/tournament-actions";
 import {DebugObject} from "../../components/debug";
 import {Grid} from "../../components/mui-wrappers/";
 import Rules from "../../components/tournament-page/rules";
 import FriendGroupsList from "../../components/tournament-page/friend-groups-list";
+import GroupStandingsSidebar from "../../components/tournament-page/group-standings-sidebar";
 import {getGroupsForUser} from "../../actions/prode-group-actions";
 import {getLoggedInUser} from "../../actions/user-actions";
 import {UserTournamentStatistics} from "../../components/tournament-page/user-tournament-statistics";
@@ -54,6 +55,9 @@ export default async function TournamentLandingPage(props: Props) {
     max_golden_games: tournament.max_golden_games ?? 0,
   } : undefined;
 
+  // Fetch group standings for sidebar
+  const groupStandings = await getGroupStandingsForTournament(tournamentId);
+
   return (
     <>
       {searchParams.hasOwnProperty('debug') && (<DebugObject object={{
@@ -77,6 +81,16 @@ export default async function TournamentLandingPage(props: Props) {
                   <Grid size={12}>
                     <UserTournamentStatistics userGameStatistics={userGameStatistics} tournamentGuess={tournamentGuesses} tournamentId={tournamentId} />
                   </Grid>
+              )}
+              {/* Group Standings Section - After UserTournamentStatistics */}
+              {groupStandings.groups.length > 0 && (
+                <Grid size={12}>
+                  <GroupStandingsSidebar
+                    groups={groupStandings.groups}
+                    defaultGroupId={groupStandings.defaultGroupId}
+                    qualifiedTeams={groupStandings.qualifiedTeams}
+                  />
+                </Grid>
               )}
               {prodeGroups && (
                 <Grid size={12}>
