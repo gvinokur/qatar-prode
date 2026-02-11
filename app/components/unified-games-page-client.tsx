@@ -120,11 +120,12 @@ function UnifiedGamesPageContent({
       sx={{
         height: '100%',
         overflow: { xs: 'auto', md: 'hidden' }, // Mobile: entire stack scrolls; Desktop: only games scroll
-        pb: { xs: '56px', md: 0 } // Account for fixed bottom nav on mobile
+        pb: { xs: '56px', md: 0 }, // Account for fixed bottom nav on mobile
+        pt: 2 // Add top padding for spacing from navigation tabs
       }}
     >
       {/* Compact Prediction Dashboard */}
-      <Box sx={{ mt: { xs: 2, md: 1 } }}>
+      <Box>
         <CompactPredictionDashboard
           totalGames={totalGames}
           predictedGames={predictedGames}
