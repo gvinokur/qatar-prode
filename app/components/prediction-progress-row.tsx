@@ -38,9 +38,9 @@ export function PredictionProgressRow({
   onBoostClick,
   marginBottom = 1
 }: PredictionProgressRowProps) {
-  const displayValue = maxValue !== undefined
-    ? `${currentValue}/${maxValue}`
-    : `${currentValue}%`;
+  const displayValue = maxValue === undefined
+    ? `${currentValue}%`
+    : `${currentValue}/${maxValue}`;
 
   return (
     <Box

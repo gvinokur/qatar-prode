@@ -132,9 +132,8 @@ export function hasUrgentGames(
 
   return games.some(game => {
     const guess = gameGuesses[game.id];
-    const isPredicted = guess &&
-      guess.home_score != null &&
-      guess.away_score != null;
+    const isPredicted = guess?.home_score != null &&
+      guess?.away_score != null;
 
     if (isPredicted) return false;
 
