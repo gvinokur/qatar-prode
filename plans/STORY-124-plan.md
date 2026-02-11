@@ -27,7 +27,8 @@ These issues make it confusing for users to:
 
 ## Acceptance Criteria
 
-- [ ] Qualification indicators only appear on teams after predictions are locked (readonly mode)
+- [ ] Qualification indicators appear ONLY on teams with `predicted_to_qualify === true` (in both editable and readonly modes)
+- [ ] NO automatic borders based on position alone (positions 1-2 should not auto-show borders)
 - [ ] Groups show clear completion status (0/4, 2/4, 4/4 teams positioned)
 - [ ] Qualification markers use green color instead of yellow
 - [ ] Saving state has distinct visual treatment from "locked" state
@@ -37,26 +38,41 @@ These issues make it confusing for users to:
 
 ## Technical Approach
 
-### Bug 1: Remove Pre-selection Indicators in Editable Mode
+### Bug 1: Fix Pre-selection Indicators - Check predicted_to_qualify, Not Position
 
 **Current behavior:**
-- `getSelectionBorderColor()` in `draggable-team-card.tsx` returns yellow border for positions 1-2 in editable mode
-- Shows qualification status before user has confirmed their predictions
+- `getSelectionBorderColor()` in `draggable-team-card.tsx` returns yellow border for positions 1-2 automatically
+- Line 118: `if (position === 1 || position === 2 || (position === 3 && predictedToQualify))`
+- Shows borders based on POSITION, not on actual `predicted_to_qualify` value
+- Results in borders appearing before user has set `predicted_to_qualify === true`
 
 **Fix:**
-- Remove automatic yellow borders in editable mode (when `disabled=false`)
-- Only show colored borders in readonly mode (when `disabled=true`)
-- Rationale: Position numbers already indicate position; colored borders should only show final results
+- Change logic to ONLY check `predictedToQualify` (the prop), not position
+- Show colored borders when `predictedToQualify === true`, regardless of position
+- Don't show borders based on position alone
+- Rationale: Borders should indicate user's prediction (predicted_to_qualify), not automatic position-based assumptions
 
 **Changes:**
 ```typescript
 // draggable-team-card.tsx:110-123
 function getSelectionBorderColor(theme: Theme, options: BorderColorOptions): string | null {
-  // Remove this function's logic entirely OR return null always
-  // Colored borders should only appear in readonly mode (handled by other functions)
+  const { disabled, predictedToQualify } = options;
+
+  if (disabled) {
+    return null;  // In readonly mode, other functions handle colors
+  }
+
+  // Show border ONLY when predicted_to_qualify is explicitly true
+  // Don't auto-show based on position
+  if (predictedToQualify) {
+    return theme.palette.success.main;  // Use green, not yellow (Bug 3 fix)
+  }
+
   return null;
 }
 ```
+
+**Key change:** Remove `position === 1 || position === 2` check, only check `predictedToQualify`
 
 ### Bug 2: Add Completion Status Indicators
 
