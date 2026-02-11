@@ -109,14 +109,14 @@ function getResultBorderColor(theme: Theme, options: BorderColorOptions): string
 
 /** Get border color for selection mode (before locking) */
 function getSelectionBorderColor(theme: Theme, options: BorderColorOptions): string | null {
-  const { disabled, position, predictedToQualify } = options;
+  const { disabled, predictedToQualify } = options;
 
   if (disabled) {
     return null;
   }
 
-  if (position === 1 || position === 2 || (position === 3 && predictedToQualify)) {
-    return theme.palette.warning.main;
+  if (predictedToQualify) {
+    return theme.palette.success.main;
   }
 
   return null;

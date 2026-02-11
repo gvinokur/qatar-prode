@@ -3,7 +3,7 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { DndContext, DragEndEvent, MouseSensor, TouchSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { Container, Typography, Alert, Snackbar, Box, IconButton, Popover } from '@mui/material';
+import { Container, Typography, Alert, Snackbar, Box, IconButton, Popover, Backdrop, CircularProgress } from '@mui/material';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import {
   QualifiedTeamsContextProvider,
@@ -308,7 +308,8 @@ function QualifiedTeamsUI({
         <QualifiedTeamsGrid
           groups={groups}
           predictions={predictions}
-          isLocked={isLocked || isSaving}
+          isLocked={isLocked}
+          isSaving={isSaving}
           allowsThirdPlace={allowsThirdPlace}
           onToggleThirdPlace={handleToggleThirdPlace}
           scoringBreakdown={scoringBreakdown}
@@ -338,6 +339,17 @@ function QualifiedTeamsUI({
           {error || 'Error al guardar las predicciones'}
         </Alert>
       </Snackbar>
+
+      <Backdrop
+        open={isSaving}
+        sx={{
+          color: '#fff',
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backdropFilter: 'blur(2px)',
+        }}
+      >
+        <CircularProgress color="inherit" size={60} />
+      </Backdrop>
     </Container>
   );
 }

@@ -16,6 +16,8 @@ export interface QualifiedTeamsGridProps {
   readonly predictions: Map<string, QualifiedTeamPrediction>;
   /** Whether tournament is locked */
   readonly isLocked: boolean;
+  /** Whether predictions are currently being saved */
+  readonly isSaving: boolean;
   /** Whether third place qualification is enabled */
   readonly allowsThirdPlace: boolean;
   /** Callback when team position changes - receives groupId, teamId, and new position */
@@ -42,6 +44,7 @@ export default function QualifiedTeamsGrid({
   groups,
   predictions,
   isLocked,
+  isSaving,
   allowsThirdPlace,
   onPositionChange,
   onToggleThirdPlace,
@@ -76,6 +79,7 @@ export default function QualifiedTeamsGrid({
                 teams={teams}
                 predictions={predictions}
                 isLocked={isLocked}
+                isSaving={isSaving}
                 allowsThirdPlace={allowsThirdPlace}
                 onPositionChange={
                   onPositionChange ? (teamId, newPosition) => onPositionChange(group.id, teamId, newPosition) : undefined

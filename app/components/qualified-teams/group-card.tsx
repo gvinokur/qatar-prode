@@ -15,6 +15,7 @@ import {
   useTheme
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { Team, TournamentGroup, QualifiedTeamPrediction } from '../../db/tables-definition';
 import DraggableTeamCard from './draggable-team-card';
 import { TeamScoringResult } from '../../utils/qualified-teams-scoring';
@@ -28,6 +29,8 @@ export interface GroupCardProps {
   readonly predictions: Map<string, QualifiedTeamPrediction>;
   /** Whether tournament is locked */
   readonly isLocked: boolean;
+  /** Whether predictions are currently being saved */
+  readonly isSaving: boolean;
   /** Whether third place qualification is enabled */
   readonly allowsThirdPlace: boolean;
   /** Callback when team position changes */
@@ -45,17 +48,24 @@ export interface GroupCardProps {
 /** Group header component */
 function GroupHeader({
   groupLetter,
-  groupTotalPoints
+  groupTotalPoints,
+  isGroupTouched
 }: {
   readonly groupLetter: string;
   readonly groupTotalPoints?: number;
+  readonly isGroupTouched: boolean;
 }) {
   return (
     <Box sx={{ mb: 2 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-        <Typography variant="h5" component="h2" sx={{ fontWeight: 600 }}>
-          GRUPO {groupLetter.toUpperCase()}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="h5" component="h2" sx={{ fontWeight: 600 }}>
+            GRUPO {groupLetter.toUpperCase()}
+          </Typography>
+          {isGroupTouched && (
+            <CheckCircleIcon sx={{ fontSize: 20, color: 'success.main' }} />
+          )}
+        </Box>
         {groupTotalPoints !== undefined && (
           <Typography variant="h6" sx={{ fontWeight: 600, color: 'primary.main' }}>
             {groupTotalPoints} {groupTotalPoints === 1 ? 'punto' : 'puntos'}
@@ -78,6 +88,7 @@ export default function GroupCard({
   teams,
   predictions,
   isLocked,
+  isSaving,
   allowsThirdPlace,
   onPositionChange,
   onToggleThirdPlace,
@@ -109,6 +120,10 @@ export default function GroupCard({
       return prediction?.predicted_to_qualify === true;
     }).length;
   }, [sortedTeams, predictions]);
+
+  // Binary completion status: has the user touched this group?
+  // A group is "touched" if the user has made predictions (any team is predicted to qualify)
+  const isGroupTouched = qualifiedCount > 0;
 
   // Create lookup map for team results
   const resultsMap = useMemo(() => {
@@ -150,7 +165,7 @@ export default function GroupCard({
   // Content to render (shared between accordion and card)
   const content = (
     <>
-      {!isMobile && <GroupHeader groupLetter={group.group_letter} groupTotalPoints={groupTotalPoints} />}
+      {!isMobile && <GroupHeader groupLetter={group.group_letter} groupTotalPoints={groupTotalPoints} isGroupTouched={isGroupTouched} />}
 
       <Box sx={{ flex: 1 }}>
         <SortableContext items={teamIds} strategy={verticalListSortingStrategy}>
@@ -167,7 +182,7 @@ export default function GroupCard({
                 team={team}
                 position={prediction.predicted_position}
                 predictedToQualify={prediction.predicted_to_qualify}
-                disabled={isLocked}
+                disabled={isLocked || isSaving}
                 onToggleThirdPlace={
                   onToggleThirdPlace && prediction.predicted_position === 3
                     ? () => onToggleThirdPlace(team.id)
@@ -196,7 +211,10 @@ export default function GroupCard({
           border: 1,
           borderColor: 'divider',
           '&:before': { display: 'none' },
-          boxShadow: 1
+          boxShadow: 1,
+          opacity: isSaving ? 0.6 : 1,
+          pointerEvents: isSaving ? 'none' : 'auto',
+          transition: 'opacity 0.2s ease-in-out',
         }}
       >
         <AccordionSummary
@@ -212,9 +230,14 @@ export default function GroupCard({
             }
           }}
         >
-          <Typography variant="h6" component="h2" sx={{ fontWeight: 600 }}>
-            GRUPO {group.group_letter.toUpperCase()} - {qualifiedCount} seleccionado{qualifiedCount === 1 ? '' : 's'}
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="h6" component="h2" sx={{ fontWeight: 600 }}>
+              GRUPO {group.group_letter.toUpperCase()} - {qualifiedCount} seleccionado{qualifiedCount === 1 ? '' : 's'}
+            </Typography>
+            {isGroupTouched && (
+              <CheckCircleIcon sx={{ fontSize: 18, color: 'success.main' }} />
+            )}
+          </Box>
           {groupTotalPoints !== undefined && (
             <Typography variant="body1" sx={{ fontWeight: 600, color: 'primary.main', ml: 2 }}>
               {groupTotalPoints} {groupTotalPoints === 1 ? 'pt' : 'pts'}
@@ -231,7 +254,16 @@ export default function GroupCard({
 
   // Desktop: Card layout
   return (
-    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Card
+      sx={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        opacity: isSaving ? 0.6 : 1,
+        pointerEvents: isSaving ? 'none' : 'auto',
+        transition: 'opacity 0.2s ease-in-out',
+      }}
+    >
       <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {content}
       </CardContent>
