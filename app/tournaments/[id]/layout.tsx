@@ -182,7 +182,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
           </Grid>
         </Grid>
       </AppBar>
-      <Box sx={{ flexGrow: 1, overflow: 'hidden', px: 2, pb: 2, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ flexGrow: 1, overflow: 'auto', px: 2, pb: 2, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         {children}
       </Box>
       {user &&
