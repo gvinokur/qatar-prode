@@ -182,7 +182,8 @@ export default function GroupCard({
                 team={team}
                 position={prediction.predicted_position}
                 predictedToQualify={prediction.predicted_to_qualify}
-                disabled={isLocked}
+                isLocked={isLocked}
+                isSaving={isSaving}
                 onToggleThirdPlace={
                   onToggleThirdPlace && prediction.predicted_position === 3
                     ? () => onToggleThirdPlace(team.id)
