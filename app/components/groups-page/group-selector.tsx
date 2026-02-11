@@ -26,19 +26,13 @@ const getTabSx = (backgroundColor: string | undefined, textColor: string | undef
 
 /** Get selected tab value from pathname */
 const getSelectedTab = (pathname: string): string => {
-  if (pathname.includes('/groups/')) {
-    const match = pathname.match(/groups\/([^/]+)/);
-    return match ? match[1] : '';
-  }
   if (pathname.includes('/qualified-teams')) {
     return 'qualified-teams';
-  }
-  if (pathname.includes('/playoffs')) {
-    return 'playoffs';
   }
   if (pathname.includes('/awards')) {
     return 'individual_awards';
   }
+  // Default to home tab for tournament root and any other tournament pages
   return '';
 };
 
@@ -51,25 +45,12 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
   return (
     <Tabs
       value={selected}
-      variant="scrollable"
-      scrollButtons="auto"
-      allowScrollButtonsMobile
-      aria-label="Selector de grupos"
+      variant="fullWidth"
+      aria-label="Navegación del torneo"
       slotProps={{
         indicator: {
           sx: {
             backgroundColor: 'transparent',
-          },
-        },
-        root: {
-          sx: {
-            height: '36px',
-          },
-        },
-        scrollButtons: {
-          sx: {
-            color: textColor || theme.palette.text.primary,
-            fontWeight: 600,
           },
         },
       }}
@@ -78,40 +59,24 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
         backgroundColor: backgroundColor || theme.palette.background.paper,
         '.MuiTab-root': {
           fontWeight: 600,
-          height: '36px',
-          minHeight: '36px',
+          minHeight: 48, // Override MUI's 72px default for tabs with icons
         },
       }}
     >
       <Tab
+        label="PARTIDOS"
         icon={<EmojiEventsIcon sx={{ fontSize: 20 }} />}
+        iconPosition="start"
         value=""
         component={Link}
         href={`/tournaments/${tournamentId}`}
         sx={tabSx}
       />
-      {groups.map(({ group_letter, id }) => (
-        <Tab
-          key={id}
-          label={`GRUPO ${group_letter.toUpperCase()}`}
-          value={id}
-          component={Link}
-          href={`/tournaments/${tournamentId}/groups/${id}`}
-          sx={tabSx}
-        />
-      ))}
       <Tab
         label="CLASIFICADOS"
         value="qualified-teams"
         component={Link}
         href={`/tournaments/${tournamentId}/qualified-teams`}
-        sx={tabSx}
-      />
-      <Tab
-        label="PLAYOFFS"
-        value="playoffs"
-        component={Link}
-        href={`/tournaments/${tournamentId}/playoffs`}
         sx={tabSx}
       />
       <Tab
