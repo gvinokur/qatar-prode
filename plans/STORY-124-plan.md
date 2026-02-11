@@ -12,18 +12,23 @@
 
 ## Story Context
 
-Three UI/UX bugs identified in the qualified teams groups page that affect user experience in editable mode:
+Four UI/UX bugs identified in the qualified teams groups page that affect user experience:
 
 1. **Pre-selection indicators**: First 2 teams show yellow qualification indicators before user selection
 2. **No completion status**: No visual indication of whether user has made predictions on a group
 3. **Wrong indicator color**: Qualification markers use yellow (warning) instead of green (success)
-
-~~4. **Saving state confusion**: Saving state uses same visual as "permanently locked" state~~ ❌ **REMOVED** - Current locked state behavior is correct per user feedback
+4. **Saving state confusion**: Need 3 distinct states (Editable, Saving, Locked) - currently only 2 states
 
 These issues make it confusing for users to:
 - Distinguish between "I selected this" vs "This is just in a qualifying position"
 - Know which groups they've completed
 - Interpret qualification status (yellow = warning, should be green = success)
+- Distinguish "saving in progress" from "permanently locked"
+
+**Required States:**
+1. **Editable**: User can drag/drop, with Bugs 1-3 fixed
+2. **Saving**: Temporarily non-editable during save (NEW - needs distinct styling)
+3. **Locked/ReadOnly**: Permanently locked (current visual is good, keep as-is)
 
 ## Acceptance Criteria
 
@@ -31,6 +36,9 @@ These issues make it confusing for users to:
 - [ ] NO automatic borders based on position alone (positions 1-2 should not auto-show borders)
 - [ ] Groups show clear binary completion status (completed icon/color when group has been touched)
 - [ ] Qualification markers use green color instead of yellow
+- [ ] Three distinct states implemented: Editable, Saving, Locked (Bug 4)
+- [ ] Saving state has distinct visual (spinner/indicator, not same as Locked)
+- [ ] Locked state visual unchanged (keep current behavior)
 - [ ] All changes preserve existing drag-and-drop functionality
 - [ ] Tests updated to cover new behaviors
 - [ ] No SonarCloud issues introduced
@@ -147,13 +155,64 @@ const isGroupCompleted = useMemo(() => {
 - Review all usage of `warning.main` in draggable-team-card.tsx
 - Ensure pending states still use `info.main` (blue) appropriately
 
-### ~~Bug 4: Distinct Saving State~~ ❌ **REMOVED**
+### Bug 4: Add Distinct Saving State
 
-**User feedback:** "Not needed, the locked state is good as it is right now."
+**Current behavior:**
+- `qualified-teams-client-page.tsx` line 311: `isLocked={isLocked || isSaving}`
+- Only 2 states: Editable and Locked
+- Saving uses Locked state visual (same as permanently locked)
+- Users can't distinguish "temporarily saving" from "permanently locked"
 
-The current behavior where `isLocked={isLocked || isSaving}` (line 311 in qualified-teams-client-page.tsx) is correct. Saving state using the same visual as locked state is acceptable and does not need to be changed.
+**User clarification:**
+- The current LOCKED state visual is good (don't change it)
+- But we need a THIRD state for SAVING (distinct from Locked)
+- Need 3 states total: Editable, Saving, Locked
 
-**No changes required for Bug 4.**
+**Fix:**
+- Pass `isSaving` as separate prop (don't combine with isLocked)
+- Add distinct Saving state visual (different from Locked)
+- Keep Locked state visual as-is (don't change current locked behavior)
+- Suggestions for Saving state: spinner, subtle overlay, "Guardando..." indicator
+
+**Implementation:**
+1. Pass `isSaving` separately from `isLocked` to child components
+2. In DraggableTeamCard: show saving indicator when `isSaving=true && !disabled`
+3. Keep drag disabled during save (`disabled: disabled || isSaving`)
+4. Don't modify Locked state visual (it's already correct)
+
+**Changes:**
+```typescript
+// qualified-teams-client-page.tsx:311
+// CHANGE FROM:
+isLocked={isLocked || isSaving}
+
+// CHANGE TO:
+isLocked={isLocked}
+isSaving={isSaving}  // Pass separately as new prop
+
+// draggable-team-card.tsx
+// Add isSaving prop
+export interface DraggableTeamCardProps {
+  readonly isSaving: boolean;  // NEW
+  // ... existing props
+}
+
+// Show saving indicator when isSaving=true
+{isSaving && !disabled && (
+  <CircularProgress
+    size={16}
+    sx={{ ml: 1, color: 'text.secondary' }}
+  />
+)}
+
+// Disable drag during save OR lock
+useSortable({
+  id: team.id,
+  disabled: disabled || isSaving
+})
+```
+
+**Key point:** Locked state visual stays the same, only add new Saving state visual
 
 ## Files to Modify
 
@@ -161,13 +220,26 @@ The current behavior where `isLocked={isLocked || isSaving}` (line 311 in qualif
 1. **`app/components/qualified-teams/draggable-team-card.tsx`**
    - Fix `getSelectionBorderColor()` to check `predictedToQualify`, not position (Bug 1)
    - Change yellow to green (Bug 3)
-   - Lines to modify: ~110-123 (getSelectionBorderColor function)
+   - Add `isSaving` prop and saving indicator (Bug 4)
+   - Update drag disable logic: `disabled || isSaving` (Bug 4)
+   - Lines to modify: ~110-123 (getSelectionBorderColor), ~353-455 (component)
 
 2. **`app/components/qualified-teams/group-card.tsx`**
    - Add binary completion status calculation (Bug 2)
    - Update `GroupHeader` with completion indicator icon/badge (Bug 2)
    - Update mobile accordion summary with completion styling (Bug 2)
+   - Add `isSaving` prop threading (Bug 4)
    - Lines to modify: ~45-68 (header), ~106-112 (accordion), ~215-217 (summary)
+
+3. **`app/components/qualified-teams/qualified-teams-grid.tsx`**
+   - Add `isSaving` prop to interface (Bug 4)
+   - Pass `isSaving` to GroupCard components (Bug 4)
+   - Lines to modify: ~9-31 (interface), ~74-89 (GroupCard usage)
+
+4. **`app/components/qualified-teams/qualified-teams-client-page.tsx`**
+   - Change `isLocked={isLocked || isSaving}` to pass separately (Bug 4)
+   - Pass `isSaving` prop to QualifiedTeamsGrid (Bug 4)
+   - Lines to modify: ~311 (grid props)
 
 ### Test Files to Update
 
@@ -231,6 +303,13 @@ The current behavior where `isLocked={isLocked || isSaving}` (line 311 in qualif
 - Add binary completion calculation to `GroupCard` (group touched or not)
 - Update `GroupHeader` component with completion icon/badge
 - Update mobile accordion summary with completion styling (color change when complete)
+
+**Step 1.4: Fix Bug 4 - Add Distinct Saving State**
+- Add `isSaving` prop to all component interfaces (bottom-up)
+- Pass `isSaving` separately from `isLocked` in qualified-teams-client-page.tsx
+- Add saving indicator to DraggableTeamCard (spinner when `isSaving && !disabled`)
+- Update drag disable logic: `disabled: disabled || isSaving`
+- Don't modify Locked state visual (keep as-is)
 
 ### Phase 2: Testing (Parallel after Phase 1)
 
@@ -465,7 +544,7 @@ No visual changes needed for saving state.
 
 ---
 
-**Estimated Complexity:** Low-Medium (reduced from Medium due to Bug 4 removal)
-**Estimated Files Changed:** 2 core files + 2 test files (reduced from 4+4)
+**Estimated Complexity:** Medium
+**Estimated Files Changed:** 4 core files + 4 test files
 **Breaking Changes:** None
 **Database Migrations:** None
