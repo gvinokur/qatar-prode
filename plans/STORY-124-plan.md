@@ -4,6 +4,12 @@
 **Type:** Bugfix
 **Complexity:** Medium
 
+**Plan Status:** Updated after merging latest main (commits 4102a27, 5b1b4e3)
+- ✅ Merged main successfully with no conflicts
+- ✅ Verified line numbers still accurate (getSelectionBorderColor at line 111, isLocked at line 311)
+- ✅ Confirmed all test files already exist (draggable-team-card.test.tsx, group-card.test.tsx)
+- ✅ Plan updated to reflect current codebase state
+
 ## Story Context
 
 Four UI/UX bugs identified in the qualified teams groups page that affect user experience in editable mode:
@@ -232,31 +238,31 @@ const {
 
 ### Test Files to Update
 
-**Existing test files (verify before implementation):**
+**Existing test files (verified after merging latest main):**
 - `__tests__/components/qualified-teams-context.test.tsx` ✓ (exists)
 - `__tests__/components/qualified-teams/qualified-teams-client-page-dnd.test.tsx` ✓ (exists)
 - `__tests__/components/qualified-teams/qualified-teams-client-page-smoke.test.tsx` ✓ (exists)
 - `__tests__/components/qualified-teams/qualified-teams-grid.test.tsx` ✓ (exists)
-
-**Test files to create (if not exist):**
-- `__tests__/components/qualified-teams/draggable-team-card.test.tsx` (may need to create)
-- `__tests__/components/qualified-teams/group-card.test.tsx` (may need to create)
+- `__tests__/components/qualified-teams/draggable-team-card.test.tsx` ✓ (exists - 16KB, comprehensive)
+- `__tests__/components/qualified-teams/group-card.test.tsx` ✓ (exists - 6KB, comprehensive)
 
 **Updates required:**
 
-1. **`__tests__/components/qualified-teams/draggable-team-card.test.tsx`** (create if needed)
-   - Test: No colored border in editable mode (Bug 1)
-   - Test: Green border in locked mode for qualified teams (Bug 3)
-   - Test: Saving spinner appears when isSaving=true && !disabled
-   - Test: Drag disabled when isSaving=true OR disabled=true
-   - Test: Third place checkbox disabled when isSaving=true
-   - Test: Existing border logic preserved (pending, correct, wrong results)
+1. **`__tests__/components/qualified-teams/draggable-team-card.test.tsx`** (UPDATE existing tests)
+   - ADD: No colored border in editable mode (Bug 1)
+   - MODIFY: Verify green border in locked mode for qualified teams (Bug 3)
+   - ADD: Saving spinner appears when isSaving=true && !disabled
+   - ADD: Drag disabled when isSaving=true OR disabled=true
+   - ADD: Third place checkbox disabled when isSaving=true
+   - VERIFY: Existing border logic preserved (pending, correct, wrong results)
+   - Note: File already has 16KB of tests - update existing tests for border colors
 
-2. **`__tests__/components/qualified-teams/group-card.test.tsx`** (create if needed)
-   - Test: Completion status calculated correctly (0/4, 2/4, 4/4)
-   - Test: Completion indicator visible in header (desktop)
-   - Test: Completion chip in accordion summary (mobile)
-   - Test: isSaving prop threaded through to DraggableTeamCard
+2. **`__tests__/components/qualified-teams/group-card.test.tsx`** (UPDATE existing tests)
+   - ADD: Completion status calculated correctly (0/4, 2/4, 4/4)
+   - ADD: Completion indicator visible in header (desktop)
+   - ADD: Completion chip in accordion summary (mobile)
+   - ADD: isSaving prop threaded through to DraggableTeamCard
+   - Note: File already has 6KB of tests - extend with new test cases
 
 3. **`__tests__/components/qualified-teams/qualified-teams-grid.test.tsx`**
    - Test: isSaving prop passed to all GroupCard components
