@@ -9,14 +9,14 @@ import TeamStandingsCards from '../groups-page/team-standings-cards'
 import { Team, TeamStats } from '@/app/db/tables-definition'
 
 interface GroupStandingsSidebarProps {
-  groups: Array<{
-    id: string
-    letter: string
-    teamStats: TeamStats[]      // Use TeamStats directly (from calculateGroupPosition)
-    teamsMap: { [k: string]: Team }
+  readonly groups: ReadonlyArray<{
+    readonly id: string
+    readonly letter: string
+    readonly teamStats: TeamStats[]      // Use TeamStats directly (from calculateGroupPosition)
+    readonly teamsMap: { readonly [k: string]: Team }
   }>
-  defaultGroupId: string
-  qualifiedTeams: { id: string }[]  // Format expected by TeamStandingsCards
+  readonly defaultGroupId: string
+  readonly qualifiedTeams: ReadonlyArray<{ readonly id: string }>  // Format expected by TeamStandingsCards
 }
 
 export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifiedTeams }: GroupStandingsSidebarProps) {
@@ -58,8 +58,8 @@ export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifie
       }
     }
 
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    globalThis.addEventListener('keydown', handleKeyDown)
+    return () => globalThis.removeEventListener('keydown', handleKeyDown)
   }, [expanded, currentIndex, sortedGroups.length])
 
   // Touch/swipe support for mobile

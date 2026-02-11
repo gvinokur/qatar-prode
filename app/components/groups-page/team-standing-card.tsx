@@ -78,6 +78,10 @@ export default function TeamStandingCard({
   const ariaLabel = getAriaLabel(standing.team.name, standing.position, standing.points, isExpanded)
   const pointsText = getPointsDisplayText(standing.points, standing.gamesPlayed, standing.goalDifference, isUltraCompact, compact)
 
+  // Calculate spacing values (avoid nested ternaries)
+  const cardGap = compact ? 0.5 : 1.5
+  const rankBadgeMinWidth = compact ? '35px' : '60px'
+
   return (
     <motion.div
       layout
@@ -122,9 +126,9 @@ export default function TeamStandingCard({
         }}
       >
         <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: compact ? 0.5 : (isUltraCompact ? 0.5 : 1.5) }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: cardGap }}>
             {/* Rank Badge with Change Indicator */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: compact ? '35px' : (isUltraCompact ? '40px' : '60px') }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: rankBadgeMinWidth }}>
               <Typography
                 variant={compact ? 'body1' : 'h6'}
                 component="div"
