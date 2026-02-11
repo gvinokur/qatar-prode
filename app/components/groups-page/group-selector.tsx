@@ -72,6 +72,7 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
       <Tab
         label="PARTIDOS"
         icon={<EmojiEventsIcon sx={{ fontSize: 20 }} />}
+        iconPosition="start"
         value=""
         component={Link}
         href={`/tournaments/${tournamentId}`}
