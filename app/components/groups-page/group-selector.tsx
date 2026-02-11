@@ -57,12 +57,9 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
       sx={{
         width: '100%',
         backgroundColor: backgroundColor || theme.palette.background.paper,
-        minHeight: { xs: 48, md: 40 },
         '.MuiTab-root': {
           fontWeight: 600,
-          minHeight: { xs: 48, md: 40 },
-          py: { xs: 1.5, md: 1 },
-          fontSize: { xs: '0.875rem', md: '0.8125rem' }
+          py: { xs: 1.5, md: 0.75 }, // Reduce padding on desktop for more compact look
         },
       }}
     >
