@@ -162,7 +162,7 @@ export function GamesListWithScroll({
 
   const handleScrollToTop = useCallback(() => {
     if (games.length > 0) {
-      const firstGameId = games[0].id;
+      const firstGameId = `game-${games[0].id}`;
       scrollToGame(firstGameId, 'smooth');
     }
   }, [games]);
@@ -173,7 +173,7 @@ export function GamesListWithScroll({
       scrollToGame(targetId, 'smooth');
     } else if (games.length > 0) {
       // If no target found (all games predicted or closed), scroll to last game
-      const lastGameId = games[games.length - 1].id;
+      const lastGameId = `game-${games[games.length - 1].id}`;
       scrollToGame(lastGameId, 'smooth');
     }
   }, [games]);
