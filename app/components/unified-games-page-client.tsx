@@ -1,8 +1,9 @@
 'use client'
 
 import { Box, Stack, Fab } from '@mui/material';
-import { useMemo, useContext, useEffect } from 'react';
-import NavigationIcon from '@mui/icons-material/Navigation';
+import { useMemo, useContext, useEffect, useState } from 'react';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { FilterContextProvider, useFilterContext } from './context-providers/filter-context-provider';
 import { GameFilters } from './game-filters';
 import { CompactPredictionDashboard } from './compact-prediction-dashboard';
@@ -47,6 +48,7 @@ function UnifiedGamesPageContent({
 }: UnifiedGamesPageContentProps) {
   const { activeFilter, groupFilter, roundFilter, setActiveFilter, setGroupFilter, setRoundFilter } = useFilterContext();
   const guessesContext = useContext(GuessesContext);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   // Filter games based on active filters
   const filteredGames = useMemo(() => {
@@ -73,11 +75,32 @@ function UnifiedGamesPageContent({
     }
   }, [activeFilter, groupFilter, roundFilter, filteredGames]);
 
+  // Track scroll position to show/hide scroll to top button
+  useEffect(() => {
+    const scrollContainer = document.getElementById('games-scroll-container');
+    if (!scrollContainer) return;
+
+    const handleScroll = () => {
+      setShowScrollTop(scrollContainer.scrollTop > 300);
+    };
+
+    scrollContainer.addEventListener('scroll', handleScroll);
+    return () => scrollContainer.removeEventListener('scroll', handleScroll);
+  }, []);
+
   // Handler to scroll to next/current game
   const handleScrollToNext = () => {
     const targetId = findScrollTarget(filteredGames);
     if (targetId) {
       scrollToGame(targetId, 'smooth');
+    }
+  };
+
+  // Handler to scroll to top
+  const handleScrollToTop = () => {
+    const scrollContainer = document.getElementById('games-scroll-container');
+    if (scrollContainer) {
+      scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -99,8 +122,18 @@ function UnifiedGamesPageContent({
         isPlayoffs={false}
       />
 
-      {/* Filters - Side by side */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+      {/* Filters - Side by side, sticky on mobile */}
+      <Box sx={{
+        display: 'flex',
+        gap: 2,
+        mb: 2,
+        position: { xs: 'sticky', md: 'static' },
+        top: { xs: 0, md: 'auto' },
+        zIndex: { xs: 10, md: 'auto' },
+        backgroundColor: { xs: 'background.default', md: 'transparent' },
+        pt: { xs: 1, md: 0 },
+        pb: { xs: 1, md: 0 }
+      }}>
         {/* Primary Filter */}
         <Box sx={{ flex: 1 }}>
           <GameFilters
@@ -126,6 +159,7 @@ function UnifiedGamesPageContent({
 
       {/* Scrollable Games List */}
       <Box
+        id="games-scroll-container"
         sx={{
           flexGrow: 1,
           overflow: 'auto',
@@ -155,7 +189,25 @@ function UnifiedGamesPageContent({
               zIndex: 1000
             }}
           >
-            <NavigationIcon />
+            <ArrowDownwardIcon />
+          </Fab>
+        )}
+
+        {/* Floating Action Button - Scroll to Top (mobile only, when scrolled) */}
+        {showScrollTop && (
+          <Fab
+            color="secondary"
+            aria-label="scroll to top"
+            onClick={handleScrollToTop}
+            sx={{
+              position: 'fixed',
+              bottom: { xs: 160, md: 24 },
+              right: { xs: 16, md: 24 },
+              zIndex: 1000,
+              display: { xs: 'flex', md: 'none' }
+            }}
+          >
+            <ArrowUpwardIcon />
           </Fab>
         )}
       </Box>

@@ -185,9 +185,9 @@ export function GamesListWithScroll({
 
   return (
     <Stack spacing={2}>
-      {/* Next game button - only show if more than 1 game */}
+      {/* Next game button - only show on desktop if more than 1 game */}
       {games.length > 1 && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', pb: 2 }}>
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, justifyContent: 'center', pb: 2 }}>
           <Button
             variant="outlined"
             startIcon={<ArrowDownwardIcon />}
@@ -235,9 +235,9 @@ export function GamesListWithScroll({
         );
       })}
 
-      {/* Back to top button - only show if more than 1 game */}
+      {/* Back to top button - only show on desktop if more than 1 game */}
       {games.length > 1 && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', pt: 2 }}>
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, justifyContent: 'center', pt: 2 }}>
           <Button
             variant="outlined"
             startIcon={<ArrowUpwardIcon />}

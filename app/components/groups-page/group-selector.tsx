@@ -53,19 +53,12 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
             backgroundColor: 'transparent',
           },
         },
-        root: {
-          sx: {
-            height: '36px',
-          },
-        },
       }}
       sx={{
         width: '100%',
         backgroundColor: backgroundColor || theme.palette.background.paper,
         '.MuiTab-root': {
           fontWeight: 600,
-          height: '36px',
-          minHeight: '36px',
         },
       }}
     >

@@ -2,7 +2,7 @@
 
 import {getTeamsMap, getGroupStandingsForTournament} from "../../actions/tournament-actions";
 import {DebugObject} from "../../components/debug";
-import {Grid} from "../../components/mui-wrappers/";
+import {Grid, Box} from "../../components/mui-wrappers/";
 import Rules from "../../components/tournament-page/rules";
 import FriendGroupsList from "../../components/tournament-page/friend-groups-list";
 import GroupStandingsSidebar from "../../components/tournament-page/group-standings-sidebar";
@@ -68,40 +68,42 @@ export default async function TournamentLandingPage(props: Props) {
         name={'group-page'}
         enter={'group-enter'}
         exit={'group-exit'}>
-        <Grid container maxWidth={'868px'} mt={1} mx={{md: 'auto'}} spacing={2}>
-          <Grid size={{ xs:12, md: 8 }} sx={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        <Grid container maxWidth={'868px'} mt={1} mx={{md: 'auto'}} spacing={2} sx={{ height: '100%' }}>
+          <Grid size={{ xs:12, md: 8 }} sx={{ display: 'flex', flexDirection: 'column', minHeight: 0, height: '100%' }}>
             <UnifiedGamesPage tournamentId={tournamentId} />
           </Grid>
-          <Grid size={{ xs:12, md: 4 }}>
-            <Grid container rowSpacing={2}>
-              <Grid size={12}>
-                <Rules expanded={false} scoringConfig={scoringConfig} tournamentId={tournamentId}/>
-              </Grid>
-              {user && (
+          <Grid size={{ xs:12, md: 4 }} sx={{ display: { xs: 'none', md: 'flex' }, flexDirection: 'column', minHeight: 0, height: '100%', overflow: 'hidden' }}>
+            <Box sx={{ flexGrow: 1, overflow: 'auto', minHeight: 0 }}>
+              <Grid container rowSpacing={2}>
+                <Grid size={12}>
+                  <Rules expanded={false} scoringConfig={scoringConfig} tournamentId={tournamentId}/>
+                </Grid>
+                {user && (
+                    <Grid size={12}>
+                      <UserTournamentStatistics userGameStatistics={userGameStatistics} tournamentGuess={tournamentGuesses} tournamentId={tournamentId} />
+                    </Grid>
+                )}
+                {/* Group Standings Section - After UserTournamentStatistics */}
+                {groupStandings.groups.length > 0 && (
                   <Grid size={12}>
-                    <UserTournamentStatistics userGameStatistics={userGameStatistics} tournamentGuess={tournamentGuesses} tournamentId={tournamentId} />
+                    <GroupStandingsSidebar
+                      groups={groupStandings.groups}
+                      defaultGroupId={groupStandings.defaultGroupId}
+                      qualifiedTeams={groupStandings.qualifiedTeams}
+                    />
                   </Grid>
-              )}
-              {/* Group Standings Section - After UserTournamentStatistics */}
-              {groupStandings.groups.length > 0 && (
-                <Grid size={12}>
-                  <GroupStandingsSidebar
-                    groups={groupStandings.groups}
-                    defaultGroupId={groupStandings.defaultGroupId}
-                    qualifiedTeams={groupStandings.qualifiedTeams}
-                  />
-                </Grid>
-              )}
-              {prodeGroups && (
-                <Grid size={12}>
-                  <FriendGroupsList
-                    userGroups={prodeGroups.userGroups}
-                    participantGroups={prodeGroups.participantGroups}
-                    tournamentId={tournamentId}
-                  />
-                </Grid>
-              )}
-            </Grid>
+                )}
+                {prodeGroups && (
+                  <Grid size={12}>
+                    <FriendGroupsList
+                      userGroups={prodeGroups.userGroups}
+                      participantGroups={prodeGroups.participantGroups}
+                      tournamentId={tournamentId}
+                    />
+                  </Grid>
+                )}
+              </Grid>
+            </Box>
           </Grid>
         </Grid>
       </ViewTransition>
