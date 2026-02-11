@@ -70,7 +70,12 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
     <Box sx={{
       display: 'flex',
       flexDirection: 'column',
-      height: { xs: '100vh', md: 'calc(100vh - 56px)' } // Account for fixed footer (56px) on desktop
+      // Use dvh (dynamic viewport height) for Safari iOS - adjusts as address bar shows/hides
+      // Fallback to vh for older browsers
+      height: { xs: '100vh', md: 'calc(100vh - 56px)' },
+      '@supports (height: 100dvh)': {
+        height: { xs: '100dvh', md: 'calc(100dvh - 56px)' }
+      }
     }}>
       <AppBar position={'sticky'} sx={{ top: 0, zIndex: 1100 }}>
         <Grid container>
