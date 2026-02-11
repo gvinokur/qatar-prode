@@ -32,7 +32,7 @@ export interface TeamStanding {
 export interface TeamStandingsCardsProps {
   readonly teamStats: TeamStats[]
   readonly teamsMap: { [key: string]: Team }
-  readonly qualifiedTeams: { id: string }[]  // Array with at least id property
+  readonly qualifiedTeams: ReadonlyArray<{ readonly id: string }>  // Array with at least id property
   // Future rank change support
   readonly previousTeamStats?: TeamStats[]
   // Compact mode for sidebar display (smaller fonts, less detail)
