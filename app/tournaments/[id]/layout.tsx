@@ -67,7 +67,11 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
   const logoUrl = getThemeLogoUrl(layoutData.tournament?.theme)
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+    <Box sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: { xs: '100vh', md: 'calc(100vh - 56px)' } // Account for fixed footer (56px) on desktop
+    }}>
       <AppBar position={'sticky'} sx={{ top: 0, zIndex: 1100 }}>
         <Grid container>
           <Grid size={12} pt={2} pb={1} pl={2} pr={2} sx={{
