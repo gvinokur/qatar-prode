@@ -79,15 +79,17 @@ export function TournamentPredictionCategoryCard({
           '&:last-child': { pb: 1.5 },
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between'
+          justifyContent: 'space-between',
+          gap: 2
         }}
       >
         {/* Left: Icon + Title */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
           {getCategoryStatusIcon()}
           <Typography
             variant="body2"
             color={isLocked ? 'text.disabled' : 'text.secondary'}
+            sx={{ whiteSpace: 'nowrap' }}
           >
             {title}
           </Typography>
@@ -99,17 +101,17 @@ export function TournamentPredictionCategoryCard({
             {safeCompleted}/{total} ({percentage}%)
           </Typography>
 
-          {/* Completar button - only for incomplete + unlocked */}
+          {/* Ir button - only for incomplete + unlocked */}
           {!isComplete && !isLocked && (
             <Button
               component={Link}
               href={link}
               size="small"
               variant="outlined"
-              aria-label={`Completar ${title.toLowerCase()}`}
+              aria-label={`Ir a ${title.toLowerCase()}`}
               sx={{ minWidth: 'auto', fontSize: '0.75rem' }}
             >
-              Completar
+              Ir
             </Button>
           )}
 

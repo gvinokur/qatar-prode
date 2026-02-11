@@ -67,8 +67,17 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
   const logoUrl = getThemeLogoUrl(layoutData.tournament?.theme)
 
   return (
-    <Box>
-      <AppBar position={'sticky'}>
+    <Box sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      // Use dvh (dynamic viewport height) for Safari iOS - adjusts as address bar shows/hides
+      // Fallback to vh for older browsers
+      height: { xs: '100vh', md: 'calc(100vh - 56px)' },
+      '@supports (height: 100dvh)': {
+        height: { xs: '100dvh', md: 'calc(100dvh - 56px)' }
+      }
+    }}>
+      <AppBar position={'sticky'} sx={{ top: 0, zIndex: 1100 }}>
         <Grid container>
           <Grid size={12} pt={2} pb={1} pl={2} pr={2} sx={{
             backgroundColor: layoutData.tournament?.theme?.primary_color,
@@ -159,7 +168,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
               <UserActions user={user} />
             </Box>
           </Grid>
-          <Grid size={12} pt={2} pb={1} pl={1} pr={1}
+          <Grid size={12} pb={{ xs: 1, md: 0.5 }} pl={1} pr={1}
             sx={{
               backgroundColor: layoutData.tournament?.theme?.primary_color
             }}>
@@ -173,7 +182,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
           </Grid>
         </Grid>
       </AppBar>
-      <Box px={2} pb={2}>
+      <Box sx={{ flexGrow: 1, overflow: 'auto', px: 2, pb: 2, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         {children}
       </Box>
       {user &&

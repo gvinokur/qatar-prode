@@ -61,9 +61,9 @@ describe('TournamentPredictionCategoryCard', () => {
       expect(icon).toBeInTheDocument();
     });
 
-    it('shows Completar button when incomplete', () => {
+    it('shows Ir button when incomplete', () => {
       renderWithTheme(<TournamentPredictionCategoryCard {...defaultProps} />);
-      const button = screen.getByRole('link', { name: /completar podio/i });
+      const button = screen.getByRole('link', { name: /ir a podio/i });
       expect(button).toBeInTheDocument();
       expect(button).toHaveAttribute('href', '/tournaments/1/awards');
     });
@@ -76,7 +76,7 @@ describe('TournamentPredictionCategoryCard', () => {
 
     it('button is clickable Link when incomplete', () => {
       renderWithTheme(<TournamentPredictionCategoryCard {...defaultProps} />);
-      const button = screen.getByRole('link', { name: /completar podio/i });
+      const button = screen.getByRole('link', { name: /ir a podio/i });
       expect(button).toHaveAttribute('href', '/tournaments/1/awards');
     });
   });
@@ -151,9 +151,9 @@ describe('TournamentPredictionCategoryCard', () => {
   });
 
   describe('Accessibility', () => {
-    it('incomplete cards have Completar button that is keyboard navigable', () => {
+    it('incomplete cards have Ir button that is keyboard navigable', () => {
       renderWithTheme(<TournamentPredictionCategoryCard {...defaultProps} />);
-      const button = screen.getByRole('link', { name: /completar podio/i });
+      const button = screen.getByRole('link', { name: /ir a podio/i });
       expect(button).toBeInTheDocument();
     });
 
@@ -179,7 +179,7 @@ describe('TournamentPredictionCategoryCard', () => {
 
     it('button has proper ARIA label', () => {
       renderWithTheme(<TournamentPredictionCategoryCard {...defaultProps} />);
-      const button = screen.getByRole('link', { name: 'Completar podio' });
+      const button = screen.getByRole('link', { name: 'Ir a podio' });
       expect(button).toBeInTheDocument();
     });
 

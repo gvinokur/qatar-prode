@@ -107,7 +107,7 @@ export function TournamentPredictionAccordion({
               title="Clasificados"
               completed={tournamentPredictions.qualifiers.completed}
               total={tournamentPredictions.qualifiers.total}
-              link={`/tournaments/${tournamentId}/playoffs`}
+              link={`/tournaments/${tournamentId}/qualified-teams`}
               isLocked={isPredictionLocked}
             />
           )}
