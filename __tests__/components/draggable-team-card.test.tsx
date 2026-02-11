@@ -46,7 +46,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={1}
           predictedToQualify={true}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -59,7 +60,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={1}
           predictedToQualify={true}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -73,7 +75,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={1}
           predictedToQualify={true}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -89,7 +92,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={1}
           predictedToQualify={true}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -102,7 +106,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={2}
           predictedToQualify={true}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -115,7 +120,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={3}
           predictedToQualify={false}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -128,7 +134,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={4}
           predictedToQualify={false}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -143,7 +150,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={3}
           predictedToQualify={false}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -157,7 +165,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={1}
           predictedToQualify={true}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -170,7 +179,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={2}
           predictedToQualify={true}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -183,7 +193,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={4}
           predictedToQualify={false}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -196,7 +207,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={3}
           predictedToQualify={true}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -210,7 +222,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={3}
           predictedToQualify={false}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -226,7 +239,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={3}
           predictedToQualify={false}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
           onToggleThirdPlace={onToggleThirdPlace}
         />
       );
@@ -243,7 +257,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={3}
           predictedToQualify={false}
-          disabled={true}
+          isLocked={true}
+          isSaving={false}
         />
       );
 
@@ -259,7 +274,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={1}
           predictedToQualify={true}
-          disabled={true}
+          isLocked={true}
+          isSaving={false}
         />
       );
 
@@ -272,7 +288,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={1}
           predictedToQualify={true}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -296,7 +313,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={1}
           predictedToQualify={true}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -319,7 +337,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={1}
           predictedToQualify={true}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -343,7 +362,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={1}
           predictedToQualify={true}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -368,7 +388,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={1}
           predictedToQualify={true}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -383,7 +404,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={1}
           predictedToQualify={true}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -399,7 +421,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={2}
           predictedToQualify={true}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -413,7 +436,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={3}
           predictedToQualify={true}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -427,7 +451,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={3}
           predictedToQualify={false}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -441,7 +466,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={4}
           predictedToQualify={false}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -457,7 +483,8 @@ describe('DraggableTeamCard', () => {
           team={mockTeam}
           position={3}
           predictedToQualify={false}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -479,7 +506,8 @@ describe('DraggableTeamCard', () => {
           team={teamWithNullTheme}
           position={1}
           predictedToQualify={true}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
@@ -498,7 +526,8 @@ describe('DraggableTeamCard', () => {
           team={teamWithLongName}
           position={1}
           predictedToQualify={true}
-          disabled={false}
+          isLocked={false}
+          isSaving={false}
         />
       );
 
