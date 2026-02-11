@@ -77,7 +77,12 @@ function UnifiedGamesPageContent({
 
   // Track scroll position to show/hide scroll to top button
   useEffect(() => {
-    const scrollContainer = document.getElementById('games-scroll-container');
+    // On mobile, track Stack scroll; on desktop, track games container scroll
+    const isMobile = window.innerWidth < 900; // md breakpoint
+    const scrollContainer = isMobile
+      ? document.getElementById('unified-games-stack')
+      : document.getElementById('games-scroll-container');
+
     if (!scrollContainer) return;
 
     const handleScroll = () => {
@@ -96,31 +101,45 @@ function UnifiedGamesPageContent({
     }
   };
 
-  // Handler to scroll to top
+  // Handler to scroll to top (on mobile scrolls to show dashboard, on desktop scrolls games)
   const handleScrollToTop = () => {
-    const scrollContainer = document.getElementById('games-scroll-container');
+    const isMobile = window.innerWidth < 900; // md breakpoint
+    const scrollContainer = isMobile
+      ? document.getElementById('unified-games-stack')
+      : document.getElementById('games-scroll-container');
+
     if (scrollContainer) {
       scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   return (
-    <Stack spacing={2} sx={{ height: '100%', overflow: 'hidden' }}>
+    <Stack
+      id="unified-games-stack"
+      spacing={2}
+      sx={{
+        height: '100%',
+        overflow: { xs: 'auto', md: 'hidden' }, // Mobile: entire stack scrolls; Desktop: only games scroll
+        pb: { xs: '56px', md: 0 } // Account for fixed bottom nav on mobile
+      }}
+    >
       {/* Compact Prediction Dashboard */}
-      <CompactPredictionDashboard
-        totalGames={totalGames}
-        predictedGames={predictedGames}
-        silverUsed={dashboardStats?.silverUsed || 0}
-        silverMax={tournament.max_silver_games || 0}
-        goldenUsed={dashboardStats?.goldenUsed || 0}
-        goldenMax={tournament.max_golden_games || 0}
-        tournamentPredictions={tournamentPredictionCompletion || undefined}
-        tournamentId={tournamentId}
-        tournamentStartDate={tournamentStartDate}
-        games={closingGames}
-        teamsMap={teamsMap}
-        isPlayoffs={false}
-      />
+      <Box sx={{ mt: { xs: 2, md: 1 } }}>
+        <CompactPredictionDashboard
+          totalGames={totalGames}
+          predictedGames={predictedGames}
+          silverUsed={dashboardStats?.silverUsed || 0}
+          silverMax={tournament.max_silver_games || 0}
+          goldenUsed={dashboardStats?.goldenUsed || 0}
+          goldenMax={tournament.max_golden_games || 0}
+          tournamentPredictions={tournamentPredictionCompletion || undefined}
+          tournamentId={tournamentId}
+          tournamentStartDate={tournamentStartDate}
+          games={closingGames}
+          teamsMap={teamsMap}
+          isPlayoffs={false}
+        />
+      </Box>
 
       {/* Filters - Side by side, sticky on mobile */}
       <Box sx={{
@@ -162,7 +181,7 @@ function UnifiedGamesPageContent({
         id="games-scroll-container"
         sx={{
           flexGrow: 1,
-          overflow: 'auto',
+          overflow: { xs: 'visible', md: 'auto' }, // Mobile: no scroll (Stack scrolls); Desktop: scrolls
           minHeight: 0,
           position: 'relative'
         }}
@@ -176,16 +195,17 @@ function UnifiedGamesPageContent({
           tournament={tournament}
         />
 
-        {/* Floating Action Button - Scroll to Next Game */}
+        {/* Floating Action Button - Scroll to Next Game (mobile only) */}
         {filteredGames.length > 0 && (
           <Fab
             color="primary"
             aria-label="scroll to next game"
             onClick={handleScrollToNext}
             sx={{
+              display: { xs: 'flex', md: 'none' },
               position: 'fixed',
-              bottom: { xs: 80, md: 24 },
-              right: { xs: 16, md: 24 },
+              bottom: 80,
+              right: 16,
               zIndex: 1000
             }}
           >
@@ -201,8 +221,8 @@ function UnifiedGamesPageContent({
             onClick={handleScrollToTop}
             sx={{
               position: 'fixed',
-              bottom: { xs: 160, md: 24 },
-              right: { xs: 16, md: 24 },
+              bottom: 160,
+              right: 16,
               zIndex: 1000,
               display: { xs: 'flex', md: 'none' }
             }}
