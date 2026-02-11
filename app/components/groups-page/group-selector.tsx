@@ -59,6 +59,7 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
         backgroundColor: backgroundColor || theme.palette.background.paper,
         '.MuiTab-root': {
           fontWeight: 600,
+          minHeight: 48, // Override MUI's 72px default for tabs with icons
         },
       }}
     >
