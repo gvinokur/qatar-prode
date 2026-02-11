@@ -1,19 +1,19 @@
 'use client'
 
 import React, { useContext, useMemo, useState, useRef } from 'react';
-import { Box, LinearProgress, Typography, IconButton, Popover, Card, Alert } from '@mui/material';
-import InfoIcon from '@mui/icons-material/Info';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import WarningIcon from '@mui/icons-material/Warning';
-import ErrorIcon from '@mui/icons-material/Error';
-import LockIcon from '@mui/icons-material/Lock';
-import { BoostCountBadge } from './boost-badge';
+import { Box } from '@mui/material';
 import { TournamentPredictionCompletion, Team } from '../db/tables-definition';
-import { UrgencyAccordionGroup } from './urgency-accordion-group';
-import { TournamentPredictionAccordion } from './tournament-prediction-accordion';
 import { GuessesContext } from './context-providers/guesses-context-provider';
 import type { ExtendedGameData } from '../definitions';
 import BoostInfoPopover from './boost-info-popover';
+import { PredictionProgressRow } from './prediction-progress-row';
+import { GameDetailsPopover } from './game-details-popover';
+import { TournamentDetailsPopover } from './tournament-details-popover';
+import {
+  getGameUrgencyLevel,
+  getTournamentUrgencyLevel,
+  hasUrgentGames as checkUrgentGames
+} from './urgency-helpers';
 
 interface CompactPredictionDashboardProps {
   readonly totalGames: number;
@@ -28,97 +28,6 @@ interface CompactPredictionDashboardProps {
   readonly games?: ExtendedGameData[];
   readonly teamsMap?: Record<string, Team>;
   readonly isPlayoffs?: boolean;
-}
-
-type UrgencyLevel = 'urgent' | 'warning' | 'notice' | 'complete' | 'locked';
-
-function getGameUrgencyLevel(
-  games: ExtendedGameData[] | undefined,
-  gameGuesses: Record<string, any>
-): UrgencyLevel {
-  if (!games || games.length === 0) return 'complete';
-
-  const ONE_HOUR = 60 * 60 * 1000;
-  const now = Date.now();
-
-  let hasUrgent = false;
-  let hasWarning = false;
-  let hasNotice = false;
-  let allClosed = true;
-  let allPredicted = true;
-
-  games.forEach(game => {
-    const guess = gameGuesses[game.id];
-    const isPredicted = guess?.home_score != null &&
-      guess?.away_score != null &&
-      typeof guess.home_score === 'number' &&
-      typeof guess.away_score === 'number';
-
-    if (!isPredicted) {
-      allPredicted = false;
-    }
-
-    const deadline = game.game_date.getTime() - ONE_HOUR;
-    const timeUntilClose = deadline - now;
-
-    if (timeUntilClose > -ONE_HOUR) {
-      allClosed = false;
-    }
-
-    if (!isPredicted && timeUntilClose > -ONE_HOUR) {
-      if (timeUntilClose < 2 * ONE_HOUR) {
-        hasUrgent = true;
-      } else if (timeUntilClose < 24 * ONE_HOUR) {
-        hasWarning = true;
-      } else if (timeUntilClose < 48 * ONE_HOUR) {
-        hasNotice = true;
-      }
-    }
-  });
-
-  if (allClosed) return 'locked';
-  if (allPredicted) return 'complete';
-  if (hasUrgent) return 'urgent';
-  if (hasWarning) return 'warning';
-  if (hasNotice) return 'notice';
-  return 'complete';
-}
-
-function getTournamentUrgencyLevel(
-  tournamentPredictions: TournamentPredictionCompletion | undefined,
-  tournamentStartDate: Date | undefined
-): UrgencyLevel {
-  if (!tournamentPredictions) return 'complete';
-
-  if (tournamentPredictions.isPredictionLocked) return 'locked';
-  if (tournamentPredictions.overallPercentage === 100) return 'complete';
-
-  if (!tournamentStartDate) return 'complete';
-
-  const lockTime = new Date(tournamentStartDate.getTime() + 5 * 24 * 60 * 60 * 1000);
-  const now = new Date();
-  const hoursUntilLock = (lockTime.getTime() - now.getTime()) / (60 * 60 * 1000);
-
-  if (hoursUntilLock < 0) return 'locked';
-  if (hoursUntilLock < 2) return 'urgent';
-  if (hoursUntilLock < 24) return 'warning';
-  if (hoursUntilLock < 48) return 'notice';
-  return 'complete';
-}
-
-function getUrgencyIcon(level: UrgencyLevel) {
-  switch (level) {
-    case 'urgent':
-      return <ErrorIcon sx={{ color: 'error.main', fontSize: '1.25rem' }} />;
-    case 'warning':
-      return <WarningIcon sx={{ color: 'warning.main', fontSize: '1.25rem' }} />;
-    case 'notice':
-      return <InfoIcon sx={{ color: 'info.main', fontSize: '1.25rem' }} />;
-    case 'complete':
-      return <CheckCircleIcon sx={{ color: 'success.main', fontSize: '1.25rem' }} />;
-    case 'locked':
-      return <LockIcon sx={{ color: 'action.disabled', fontSize: '1.25rem' }} />;
-  }
 }
 
 export function CompactPredictionDashboard({
@@ -170,26 +79,10 @@ export function CompactPredictionDashboard({
   const boostPopoverOpen = Boolean(boostAnchorEl);
 
   // Check if there are no urgent games (within 48 hours)
-  const hasUrgentGames = useMemo(() => {
-    if (!games || games.length === 0) return false;
-
-    const ONE_HOUR = 60 * 60 * 1000;
-    const now = Date.now();
-
-    return games.some(game => {
-      const guess = gameGuesses[game.id];
-      const isPredicted = guess &&
-        guess.home_score != null &&
-        guess.away_score != null;
-
-      if (isPredicted) return false;
-
-      const deadline = game.game_date.getTime() - ONE_HOUR;
-      const timeUntilClose = deadline - now;
-
-      return timeUntilClose > -ONE_HOUR && timeUntilClose < 48 * ONE_HOUR;
-    });
-  }, [games, gameGuesses]);
+  const urgentGames = useMemo(
+    () => checkUrgentGames(games, gameGuesses),
+    [games, gameGuesses]
+  );
 
   // Get dashboard width on mount and resize
   React.useEffect(() => {
@@ -207,160 +100,58 @@ export function CompactPredictionDashboard({
   return (
     <Box ref={dashboardRef} sx={{ mb: 2 }}>
       {/* Game Predictions Row */}
-      <Box
+      <PredictionProgressRow
+        label="Partidos"
+        currentValue={predictedGames}
+        maxValue={totalGames}
+        percentage={gamePercentage}
+        urgencyLevel={gameUrgencyLevel}
         onClick={(e) => setGamePopoverAnchor(e.currentTarget)}
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 2,
-          p: 1.5,
-          border: 1,
-          borderColor: 'divider',
-          borderRadius: 1,
-          cursor: 'pointer',
-          '&:hover': {
-            bgcolor: 'action.hover'
-          },
-          mb: 1
-        }}
-      >
-        <Typography variant="body2" sx={{ minWidth: '140px', fontWeight: 500 }}>
-          Partidos: {predictedGames}/{totalGames}
-        </Typography>
-
-        <LinearProgress
-          variant="determinate"
-          value={gamePercentage}
-          sx={{
-            flexGrow: 1,
-            height: 8,
-            borderRadius: 4
-          }}
-        />
-
-        {showBoosts && (
-          <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0 }}>
-            {silverMax > 0 && (
-              <Box onClick={(e) => handleBoostClick(e, 'silver')}>
-                <BoostCountBadge type="silver" used={silverUsed} max={silverMax} />
-              </Box>
-            )}
-            {goldenMax > 0 && (
-              <Box onClick={(e) => handleBoostClick(e, 'golden')}>
-                <BoostCountBadge type="golden" used={goldenUsed} max={goldenMax} />
-              </Box>
-            )}
-          </Box>
-        )}
-
-        <IconButton size="small" sx={{ p: 0.5 }}>
-          {getUrgencyIcon(gameUrgencyLevel)}
-        </IconButton>
-      </Box>
+        showBoosts={showBoosts}
+        silverUsed={silverUsed}
+        silverMax={silverMax}
+        goldenUsed={goldenUsed}
+        goldenMax={goldenMax}
+        onBoostClick={handleBoostClick}
+      />
 
       {/* Tournament Predictions Row */}
       {tournamentPredictions && tournamentId && (
-        <Box
+        <PredictionProgressRow
+          label="Torneo"
+          currentValue={tournamentPredictions.overallPercentage}
+          percentage={tournamentPredictions.overallPercentage}
+          urgencyLevel={tournamentUrgencyLevel}
           onClick={(e) => setTournamentPopoverAnchor(e.currentTarget)}
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 2,
-            p: 1.5,
-            border: 1,
-            borderColor: 'divider',
-            borderRadius: 1,
-            cursor: 'pointer',
-            '&:hover': {
-              bgcolor: 'action.hover'
-            }
-          }}
-        >
-          <Typography variant="body2" sx={{ minWidth: '140px', fontWeight: 500 }}>
-            Torneo: {tournamentPredictions.overallPercentage}%
-          </Typography>
-
-          <LinearProgress
-            variant="determinate"
-            value={tournamentPredictions.overallPercentage}
-            sx={{
-              flexGrow: 1,
-              height: 8,
-              borderRadius: 4
-            }}
-          />
-
-          <IconButton size="small" sx={{ p: 0.5 }}>
-            {getUrgencyIcon(tournamentUrgencyLevel)}
-          </IconButton>
-        </Box>
+          marginBottom={0}
+        />
       )}
 
       {/* Game Details Popover */}
-      <Popover
+      <GameDetailsPopover
         open={Boolean(gamePopoverAnchor)}
         anchorEl={gamePopoverAnchor}
         onClose={() => setGamePopoverAnchor(null)}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'left',
-        }}
-      >
-        <Card sx={{ width: dashboardWidth, maxHeight: '80vh', overflow: 'auto', p: 2 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Predicciones de Partidos
-          </Typography>
-          {hasUrgentGames ? null : (
-            <Alert severity="info" sx={{ mb: 2 }}>
-              Ningun partido cierra en las proximas 48 horas
-            </Alert>
-          )}
-          {games && teamsMap && tournamentId !== undefined && (
-            <UrgencyAccordionGroup
-              games={games}
-              teamsMap={teamsMap}
-              gameGuesses={gameGuesses}
-              tournamentId={tournamentId}
-              isPlayoffs={isPlayoffs}
-              silverMax={silverMax}
-              goldenMax={goldenMax}
-            />
-          )}
-        </Card>
-      </Popover>
+        width={dashboardWidth}
+        hasUrgentGames={urgentGames}
+        games={games}
+        teamsMap={teamsMap}
+        gameGuesses={gameGuesses}
+        tournamentId={tournamentId}
+        isPlayoffs={isPlayoffs}
+        silverMax={silverMax}
+        goldenMax={goldenMax}
+      />
 
       {/* Tournament Details Popover */}
-      <Popover
+      <TournamentDetailsPopover
         open={Boolean(tournamentPopoverAnchor)}
         anchorEl={tournamentPopoverAnchor}
         onClose={() => setTournamentPopoverAnchor(null)}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'left',
-        }}
-      >
-        <Card sx={{ width: dashboardWidth, maxHeight: '80vh', overflow: 'auto', p: 2 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Predicciones de Torneo
-          </Typography>
-          {tournamentPredictions && tournamentId && (
-            <TournamentPredictionAccordion
-              tournamentPredictions={tournamentPredictions}
-              tournamentId={tournamentId}
-              isExpanded={true}
-              onToggle={() => {}}
-            />
-          )}
-        </Card>
-      </Popover>
+        width={dashboardWidth}
+        tournamentPredictions={tournamentPredictions}
+        tournamentId={tournamentId}
+      />
 
       {/* Boost Information Popover */}
       {activeBoostType && (
