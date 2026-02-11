@@ -24,40 +24,40 @@ export function FilterContextProvider({
   tournamentId
 }: FilterContextProviderProps) {
   // Load from localStorage on mount (NAMESPACED by tournament ID to avoid collisions)
-  const [activeFilter, setActiveFilterState] = useState<FilterType>(() => {
-    if (typeof globalThis.window === 'undefined') return 'all';
+  const [activeFilter, setActiveFilter] = useState<FilterType>(() => {
+    if (globalThis.window === undefined) return 'all';
     const key = `tournamentFilter-${tournamentId}`;
     const stored = globalThis.localStorage.getItem(key);
     return (stored as FilterType) || 'all';
   });
 
-  const [groupFilter, setGroupFilterState] = useState<string | null>(() => {
-    if (typeof globalThis.window === 'undefined') return null;
+  const [groupFilter, setGroupFilter] = useState<string | null>(() => {
+    if (globalThis.window === undefined) return null;
     const key = `tournamentGroupFilter-${tournamentId}`;
     return globalThis.localStorage.getItem(key) || null;
   });
 
-  const [roundFilter, setRoundFilterState] = useState<string | null>(() => {
-    if (typeof globalThis.window === 'undefined') return null;
+  const [roundFilter, setRoundFilter] = useState<string | null>(() => {
+    if (globalThis.window === undefined) return null;
     const key = `tournamentRoundFilter-${tournamentId}`;
     return globalThis.localStorage.getItem(key) || null;
   });
 
   // Persist to localStorage on change (NAMESPACED)
-  const setActiveFilter = useCallback((filter: FilterType) => {
-    setActiveFilterState(filter);
+  const handleSetActiveFilter = useCallback((filter: FilterType) => {
+    setActiveFilter(filter);
     const key = `tournamentFilter-${tournamentId}`;
     globalThis.localStorage.setItem(key, filter);
 
     // Reset secondary filters when primary filter changes
-    setGroupFilterState(null);
-    setRoundFilterState(null);
+    setGroupFilter(null);
+    setRoundFilter(null);
     globalThis.localStorage.removeItem(`tournamentGroupFilter-${tournamentId}`);
     globalThis.localStorage.removeItem(`tournamentRoundFilter-${tournamentId}`);
   }, [tournamentId]);
 
-  const setGroupFilter = useCallback((groupId: string | null) => {
-    setGroupFilterState(groupId);
+  const handleSetGroupFilter = useCallback((groupId: string | null) => {
+    setGroupFilter(groupId);
     const key = `tournamentGroupFilter-${tournamentId}`;
     if (groupId) {
       globalThis.localStorage.setItem(key, groupId);
@@ -66,8 +66,8 @@ export function FilterContextProvider({
     }
   }, [tournamentId]);
 
-  const setRoundFilter = useCallback((round: string | null) => {
-    setRoundFilterState(round);
+  const handleSetRoundFilter = useCallback((round: string | null) => {
+    setRoundFilter(round);
     const key = `tournamentRoundFilter-${tournamentId}`;
     if (round) {
       globalThis.localStorage.setItem(key, round);
@@ -80,10 +80,10 @@ export function FilterContextProvider({
     activeFilter,
     groupFilter,
     roundFilter,
-    setActiveFilter,
-    setGroupFilter,
-    setRoundFilter
-  }), [activeFilter, groupFilter, roundFilter, setActiveFilter, setGroupFilter, setRoundFilter]);
+    setActiveFilter: handleSetActiveFilter,
+    setGroupFilter: handleSetGroupFilter,
+    setRoundFilter: handleSetRoundFilter
+  }), [activeFilter, groupFilter, roundFilter, handleSetActiveFilter, handleSetGroupFilter, handleSetRoundFilter]);
 
   return (
     <FilterContext.Provider value={value}>
