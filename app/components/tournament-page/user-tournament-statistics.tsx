@@ -1,9 +1,12 @@
 'use client'
 
-import {Card, CardContent, CardHeader, Stack, Box, Typography, useTheme, Button, Divider} from "@mui/material";
+import {Card, CardContent, CardHeader, CardActions, Stack, Box, Typography, useTheme, Button, Divider, Collapse} from "@mui/material";
+import {ExpandMore as ExpandMoreIcon} from "@mui/icons-material";
+import {useState} from "react";
 import {GameStatisticForUser} from "../../../types/definitions";
 import {TournamentGuess} from "../../db/tables-definition";
 import Link from "next/link";
+import {ExpandMore} from './expand-more';
 
 type Props = {
   readonly userGameStatistics?: GameStatisticForUser
@@ -38,6 +41,11 @@ function StatRow({ label, value, valueColor = 'text.primary', bold = true }: Rea
 
 export function UserTournamentStatistics({userGameStatistics, tournamentGuess, tournamentId} : Props) {
   const theme = useTheme()
+  const [expanded, setExpanded] = useState(false)
+
+  const handleExpandClick = () => {
+    setExpanded(!expanded)
+  }
 
   // Calculate direct totals (boost bonuses are included in the calculations)
   // Groups: only game predictions from group phase
@@ -61,10 +69,21 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess, t
   return (
     <Card aria-label="Estadísticas del usuario">
       <CardHeader
-        title='TUS ESTADÍSTICAS'
+        title='Tus Estadísticas'
         sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
+        action={
+          <ExpandMore
+            expand={expanded}
+            onClick={handleExpandClick}
+            aria-expanded={expanded}
+            aria-label="mostrar más"
+          >
+            <ExpandMoreIcon />
+          </ExpandMore>
+        }
       />
-      <CardContent sx={{ p: 2 }}>
+      <Collapse in={expanded} timeout="auto" unmountOnExit>
+        <CardContent sx={{ p: 2 }}>
         <Stack spacing={1}>
           <StatRow label="Grupos:" value={`${groupsTotal} pts`} />
           <StatRow label="Playoffs:" value={`${playoffsTotal} pts`} />
@@ -78,23 +97,22 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess, t
             value={`${grandTotal} pts`}
             valueColor={theme.palette.primary.main}
           />
-
-          <Divider sx={{ my: 1.5 }} />
-
-          {tournamentId && (
-            <Button
-              component={Link}
-              href={`/tournaments/${tournamentId}/stats`}
-              variant="text"
-              size="small"
-              aria-label="Ver página de estadísticas detalladas"
-              sx={{ textTransform: 'none' }}
-            >
-              Ver Estadísticas Detalladas
-            </Button>
-          )}
         </Stack>
       </CardContent>
+      </Collapse>
+      {tournamentId && (
+        <CardActions sx={{ justifyContent: 'flex-end', px: 2 }}>
+          <Button
+            component={Link}
+            href={`/tournaments/${tournamentId}/stats`}
+            variant="text"
+            color="primary"
+            aria-label="Ver página de estadísticas detalladas"
+          >
+            Ver Detalle
+          </Button>
+        </CardActions>
+      )}
     </Card>
   );
 }
