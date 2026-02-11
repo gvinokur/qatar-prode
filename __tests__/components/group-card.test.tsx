@@ -24,12 +24,12 @@ vi.mock('@dnd-kit/utilities', () => ({
 
 // Mock DraggableTeamCard
 vi.mock('../../app/components/qualified-teams/draggable-team-card', () => ({
-  default: ({ team, position, predictedToQualify, disabled, onToggleThirdPlace }: any) => (
+  default: ({ team, position, predictedToQualify, isLocked, isSaving, onToggleThirdPlace }: any) => (
     <div data-testid={`team-card-${team.id}`}>
       <span>{team.name}</span>
       <span>Position: {position}</span>
       <span>Qualifies: {predictedToQualify ? 'Yes' : 'No'}</span>
-      <span>Disabled: {disabled ? 'Yes' : 'No'}</span>
+      <span>Disabled: {(isLocked || isSaving) ? 'Yes' : 'No'}</span>
       {onToggleThirdPlace && (
         <button onClick={onToggleThirdPlace} data-testid={`toggle-third-${team.id}`}>
           Toggle
@@ -116,7 +116,10 @@ describe('GroupCard', () => {
           teams={mockTeams}
           predictions={mockPredictions}
           isLocked={false}
+          isSaving={false}
           allowsThirdPlace={false}
+          isGroupComplete={false}
+          allGroupsComplete={false}
         />
       );
 
@@ -130,7 +133,10 @@ describe('GroupCard', () => {
           teams={mockTeams}
           predictions={mockPredictions}
           isLocked={false}
+          isSaving={false}
           allowsThirdPlace={false}
+          isGroupComplete={false}
+          allGroupsComplete={false}
         />
       );
 
@@ -150,7 +156,10 @@ describe('GroupCard', () => {
           teams={mockTeams}
           predictions={mockPredictions}
           isLocked={false}
+          isSaving={false}
           allowsThirdPlace={false}
+          isGroupComplete={false}
+          allGroupsComplete={false}
         />
       );
 
@@ -171,7 +180,10 @@ describe('GroupCard', () => {
           teams={mockTeams}
           predictions={mockPredictions}
           isLocked={false}
+          isSaving={false}
           allowsThirdPlace={false}
+          isGroupComplete={false}
+          allGroupsComplete={false}
         />
       );
 
@@ -225,7 +237,10 @@ describe('GroupCard', () => {
           teams={mockTeams}
           predictions={updatedPredictions}
           isLocked={false}
+          isSaving={false}
           allowsThirdPlace={false}
+          isGroupComplete={false}
+          allGroupsComplete={false}
         />
       );
 
@@ -247,7 +262,10 @@ describe('GroupCard', () => {
           teams={mockTeams}
           predictions={mockPredictions}
           isLocked={false}
+          isSaving={false}
           allowsThirdPlace={false}
+          isGroupComplete={false}
+          allGroupsComplete={false}
         />
       );
 
@@ -264,7 +282,10 @@ describe('GroupCard', () => {
           teams={mockTeams}
           predictions={mockPredictions}
           isLocked={false}
+          isSaving={false}
           allowsThirdPlace={false}
+          isGroupComplete={false}
+          allGroupsComplete={false}
         />
       );
 
@@ -281,7 +302,10 @@ describe('GroupCard', () => {
           teams={mockTeams}
           predictions={mockPredictions}
           isLocked={true}
+          isSaving={false}
           allowsThirdPlace={false}
+          isGroupComplete={false}
+          allGroupsComplete={false}
         />
       );
 
@@ -298,7 +322,10 @@ describe('GroupCard', () => {
           teams={mockTeams}
           predictions={mockPredictions}
           isLocked={false}
+          isSaving={false}
           allowsThirdPlace={false}
+          isGroupComplete={false}
+          allGroupsComplete={false}
         />
       );
 
@@ -355,7 +382,10 @@ describe('GroupCard', () => {
           teams={[]}
           predictions={new Map()}
           isLocked={false}
+          isSaving={false}
           allowsThirdPlace={false}
+          isGroupComplete={false}
+          allGroupsComplete={false}
         />
       );
 
@@ -373,7 +403,10 @@ describe('GroupCard', () => {
           teams={incompleteTeams}
           predictions={incompletePredictions}
           isLocked={false}
+          isSaving={false}
           allowsThirdPlace={false}
+          isGroupComplete={false}
+          allGroupsComplete={false}
         />
       );
 
@@ -409,7 +442,10 @@ describe('GroupCard', () => {
           teams={mockTeams}
           predictions={mockPredictions}
           isLocked={false}
+          isSaving={false}
           allowsThirdPlace={false}
+          isGroupComplete={false}
+          allGroupsComplete={false}
         />
       );
 
@@ -425,7 +461,10 @@ describe('GroupCard', () => {
           teams={mockTeams}
           predictions={mockPredictions}
           isLocked={false}
+          isSaving={false}
           allowsThirdPlace={false}
+          isGroupComplete={false}
+          allGroupsComplete={false}
         />
       );
 
@@ -440,7 +479,10 @@ describe('GroupCard', () => {
           teams={mockTeams}
           predictions={mockPredictions}
           isLocked={false}
+          isSaving={false}
           allowsThirdPlace={false}
+          isGroupComplete={false}
+          allGroupsComplete={false}
         />
       );
 

@@ -54,7 +54,10 @@ describe('GroupCard', () => {
         teams={teams}
         predictions={predictions}
         isLocked={false}
+        isSaving={false}
         allowsThirdPlace={false}
+        isGroupComplete={false}
+        allGroupsComplete={false}
       />
     );
 
@@ -86,7 +89,10 @@ describe('GroupCard', () => {
         teams={teams}
         predictions={predictions}
         isLocked={false}
+        isSaving={false}
         allowsThirdPlace={false}
+        isGroupComplete={false}
+        allGroupsComplete={false}
       />
     );
 
@@ -110,7 +116,10 @@ describe('GroupCard', () => {
         teams={teams}
         predictions={predictions}
         isLocked={true}
+        isSaving={false}
         allowsThirdPlace={false}
+        isGroupComplete={false}
+        allGroupsComplete={false}
       />
     );
 
@@ -201,12 +210,154 @@ describe('GroupCard', () => {
         teams={teams}
         predictions={predictions}
         isLocked={false}
+        isSaving={false}
         allowsThirdPlace={false}
+        isGroupComplete={false}
+        allGroupsComplete={false}
       />
     );
 
     // Only Argentina should be rendered (has prediction)
     expect(screen.getByText('Argentina')).toBeInTheDocument();
     expect(screen.queryByText('Brazil')).not.toBeInTheDocument();
+  });
+
+  describe('Completion status (Bug 2)', () => {
+    it('should show CheckCircleIcon when group is touched (qualifiedCount > 0)', () => {
+      const teams = [mockTeam1, mockTeam2];
+      const predictions = new Map([
+        [mockTeam1.id, mockPrediction1], // predicted_to_qualify: true
+        [mockTeam2.id, mockPrediction2], // predicted_to_qualify: true
+      ]);
+
+      renderWithDndContext(
+        <GroupCard
+          group={mockGroup}
+          teams={teams}
+          predictions={predictions}
+          isLocked={false}
+          isSaving={false}
+          allowsThirdPlace={false}
+          isGroupComplete={false}
+          allGroupsComplete={false}
+        />
+      );
+
+      // Should show CheckCircleIcon when qualifiedCount > 0
+      expect(screen.getByTestId('CheckCircleIcon')).toBeInTheDocument();
+    });
+
+    it('should not show CheckCircleIcon when group is not touched (qualifiedCount === 0)', () => {
+      const mockPred1NotQualified = testFactories.qualifiedTeamPrediction({
+        team_id: 'team-1',
+        predicted_position: 1,
+        predicted_to_qualify: false,
+      });
+
+      const mockPred2NotQualified = testFactories.qualifiedTeamPrediction({
+        team_id: 'team-2',
+        predicted_position: 2,
+        predicted_to_qualify: false,
+      });
+
+      const teams = [mockTeam1, mockTeam2];
+      const predictions = new Map([
+        [mockTeam1.id, mockPred1NotQualified],
+        [mockTeam2.id, mockPred2NotQualified],
+      ]);
+
+      renderWithDndContext(
+        <GroupCard
+          group={mockGroup}
+          teams={teams}
+          predictions={predictions}
+          isLocked={false}
+          isSaving={false}
+          allowsThirdPlace={false}
+          isGroupComplete={false}
+          allGroupsComplete={false}
+        />
+      );
+
+      // Should not show CheckCircleIcon when qualifiedCount === 0
+      expect(screen.queryByTestId('CheckCircleIcon')).not.toBeInTheDocument();
+    });
+
+    it('should show CheckCircleIcon in mobile accordion when group is touched', () => {
+      // Mock mobile view
+      mockUseMediaQuery.mockReturnValue(true);
+
+      const teams = [mockTeam1];
+      const predictions = new Map([
+        [mockTeam1.id, mockPrediction1], // predicted_to_qualify: true
+      ]);
+
+      renderWithDndContext(
+        <GroupCard
+          group={mockGroup}
+          teams={teams}
+          predictions={predictions}
+          isLocked={false}
+          isSaving={false}
+          allowsThirdPlace={false}
+          isGroupComplete={false}
+          allGroupsComplete={false}
+        />
+      );
+
+      // Should show CheckCircleIcon in accordion summary
+      expect(screen.getByTestId('CheckCircleIcon')).toBeInTheDocument();
+
+      // Reset mock for other tests
+      mockUseMediaQuery.mockReturnValue(false);
+    });
+  });
+
+  describe('Saving state (Bug 4)', () => {
+    it('should gray out cards and disable interactions when isSaving is true', () => {
+      const teams = [mockTeam1];
+      const predictions = new Map([[mockTeam1.id, mockPrediction1]]);
+
+      const { container } = renderWithDndContext(
+        <GroupCard
+          group={mockGroup}
+          teams={teams}
+          predictions={predictions}
+          isLocked={false}
+          isSaving={true}
+          allowsThirdPlace={false}
+          isGroupComplete={false}
+          allGroupsComplete={false}
+        />
+      );
+
+      // Card should have reduced opacity
+      const card = container.querySelector('[class*="MuiCard"]');
+      expect(card).toHaveStyle({ opacity: '0.6' });
+      expect(card).toHaveStyle({ pointerEvents: 'none' });
+    });
+
+    it('should not affect cards when isSaving is false', () => {
+      const teams = [mockTeam1];
+      const predictions = new Map([[mockTeam1.id, mockPrediction1]]);
+
+      const { container } = renderWithDndContext(
+        <GroupCard
+          group={mockGroup}
+          teams={teams}
+          predictions={predictions}
+          isLocked={false}
+          isSaving={false}
+          allowsThirdPlace={false}
+          isGroupComplete={false}
+          allGroupsComplete={false}
+        />
+      );
+
+      // Card should have full opacity
+      const card = container.querySelector('[class*="MuiCard"]');
+      expect(card).toHaveStyle({ opacity: '1' });
+      expect(card).toHaveStyle({ pointerEvents: 'auto' });
+    });
   });
 });

@@ -18,8 +18,10 @@ export interface DraggableTeamCardProps {
   readonly position: number;
   /** Whether team is predicted to qualify (for position 3) */
   readonly predictedToQualify: boolean;
-  /** Whether drag-and-drop is disabled (tournament locked) */
-  readonly disabled: boolean;
+  /** Whether tournament is locked (read-only mode) */
+  readonly isLocked: boolean;
+  /** Whether predictions are currently being saved */
+  readonly isSaving: boolean;
   /** Callback when third place qualification is toggled */
   readonly onToggleThirdPlace?: () => void;
   /** Scoring result for this team (if available) */
@@ -109,14 +111,14 @@ function getResultBorderColor(theme: Theme, options: BorderColorOptions): string
 
 /** Get border color for selection mode (before locking) */
 function getSelectionBorderColor(theme: Theme, options: BorderColorOptions): string | null {
-  const { disabled, position, predictedToQualify } = options;
+  const { disabled, predictedToQualify } = options;
 
   if (disabled) {
     return null;
   }
 
-  if (position === 1 || position === 2 || (position === 3 && predictedToQualify)) {
-    return theme.palette.warning.main;
+  if (predictedToQualify) {
+    return theme.palette.success.main;
   }
 
   return null;
@@ -354,7 +356,8 @@ export default function DraggableTeamCard({
   team,
   position,
   predictedToQualify,
-  disabled,
+  isLocked,
+  isSaving,
   onToggleThirdPlace,
   result,
   isGroupComplete,
@@ -372,7 +375,7 @@ export default function DraggableTeamCard({
     isDragging,
   } = useSortable({
     id: team.id,
-    disabled,
+    disabled: isLocked || isSaving,
   });
 
   // Calculate opacity based on dragging state only
@@ -392,7 +395,7 @@ export default function DraggableTeamCard({
   const borderColor = getBorderColor(theme, {
     position,
     predictedToQualify,
-    disabled,
+    disabled: isLocked,
     result,
     isGroupComplete,
     allGroupsComplete,
@@ -400,7 +403,7 @@ export default function DraggableTeamCard({
   });
 
   // Determine if this team is in a pending state (waiting for results)
-  const isPendingBeforeResults = disabled && predictedToQualify && (
+  const isPendingBeforeResults = isLocked && predictedToQualify && (
     // Positions 1-2: Pending until their group completes
     ((position === 1 || position === 2) && !isGroupComplete) ||
     // Position 3: Pending until all groups complete (but only if group not complete yet)
@@ -422,7 +425,7 @@ export default function DraggableTeamCard({
       style={style}
       sx={{
         mb: 1,
-        touchAction: disabled ? 'auto' : 'none',
+        touchAction: (isLocked || isSaving) ? 'auto' : 'none',
         backgroundColor,
         border: isDragging ? `2px dashed ${theme.palette.primary.main}` : '1px solid',
         borderColor: isDragging ? theme.palette.primary.main : theme.palette.divider,
@@ -438,13 +441,13 @@ export default function DraggableTeamCard({
           '&:last-child': { pb: 2 },
         }}
       >
-        {!disabled && <DragHandle disabled={disabled} attributes={attributes} listeners={listeners} />}
+        {!isLocked && <DragHandle disabled={isLocked || isSaving} attributes={attributes} listeners={listeners} />}
         <PositionBadge position={position} />
         <TeamInfo team={team} />
-        {position === 3 && !disabled && (
+        {position === 3 && !isLocked && (
           <ThirdPlaceCheckbox
             checked={predictedToQualify}
-            disabled={disabled}
+            disabled={isLocked || isSaving}
             onChange={onToggleThirdPlace}
           />
         )}
