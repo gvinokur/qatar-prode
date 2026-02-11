@@ -3,7 +3,7 @@
 import { Box, Typography } from '@mui/material';
 
 interface EmptyGamesStateProps {
-  filterType: 'all' | 'groups' | 'playoffs' | 'unpredicted' | 'closingSoon';
+  readonly filterType: 'all' | 'groups' | 'playoffs' | 'unpredicted' | 'closingSoon';
 }
 
 export function EmptyGamesState({ filterType }: EmptyGamesStateProps) {

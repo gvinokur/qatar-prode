@@ -5,9 +5,9 @@ import { FilterType } from '../utils/game-filters';
 import { TournamentGameCounts } from '../db/game-repository';
 
 interface GameFiltersProps {
-  gameCounts: TournamentGameCounts;
-  activeFilter: FilterType;
-  onFilterChange: (filter: FilterType) => void;
+  readonly gameCounts: TournamentGameCounts;
+  readonly activeFilter: FilterType;
+  readonly onFilterChange: (filter: FilterType) => void;
 }
 
 export function GameFilters({ gameCounts, activeFilter, onFilterChange }: GameFiltersProps) {

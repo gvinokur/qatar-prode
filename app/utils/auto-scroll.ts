@@ -18,8 +18,8 @@ export function findScrollTarget(games: ExtendedGameData[]): string | null {
   }
 
   // No future games, scroll to most recent game
-  const lastGame = games[games.length - 1];
-  return `game-${lastGame.id}`;
+  const lastGame = games.at(-1);
+  return lastGame ? `game-${lastGame.id}` : null;
 }
 
 /**

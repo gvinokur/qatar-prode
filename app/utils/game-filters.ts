@@ -35,7 +35,7 @@ export function filterGames(
         return !guess || guess.home_score === null || guess.away_score === null;
       });
       break;
-    case 'closingSoon':
+    case 'closingSoon': {
       const now = Date.now();
       const FORTY_EIGHT_HOURS = 48 * 60 * 60 * 1000;
       filtered = games.filter(g => {
@@ -43,6 +43,7 @@ export function filterGames(
         return timeUntilGame > 0 && timeUntilGame < FORTY_EIGHT_HOURS;
       });
       break;
+    }
     case 'all':
     default:
       // No filtering

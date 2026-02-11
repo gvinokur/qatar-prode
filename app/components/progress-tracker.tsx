@@ -4,12 +4,12 @@ import { Box, Card, Typography, LinearProgress } from '@mui/material';
 import { BoostCountBadge } from './boost-badge';
 
 interface ProgressTrackerProps {
-  totalGames: number;
-  predictedGames: number;
-  silverUsed: number;
-  silverMax: number;
-  goldenUsed: number;
-  goldenMax: number;
+  readonly totalGames: number;
+  readonly predictedGames: number;
+  readonly silverUsed: number;
+  readonly silverMax: number;
+  readonly goldenUsed: number;
+  readonly goldenMax: number;
 }
 
 export function ProgressTracker({

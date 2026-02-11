@@ -360,7 +360,7 @@ export const getTournamentGameCounts = cache(async (
       qb.leftJoin('game_guesses', (join) =>
         join
           .onRef('game_guesses.game_id', '=', 'games.id')
-          .on('game_guesses.user_id', '=', userId!)
+          .on('game_guesses.user_id', '=', userId)
       )
     )
     .where('games.tournament_id', '=', tournamentId)
@@ -369,9 +369,9 @@ export const getTournamentGameCounts = cache(async (
       eb.fn.count<number>('tournament_group_games.game_id').as('groups'),
       eb.fn.count<number>('tournament_playoff_round_games.game_id').as('playoffs'),
       // Count unpredicted games (only if userId provided)
-      userId !== null
-        ? sql<number>`count(*) filter (where game_guesses.id is null or game_guesses.home_score is null or game_guesses.away_score is null)`.as('unpredicted')
-        : sql<number>`0`.as('unpredicted'),
+      userId === null
+        ? sql<number>`0`.as('unpredicted')
+        : sql<number>`count(*) filter (where game_guesses.id is null or game_guesses.home_score is null or game_guesses.away_score is null)`.as('unpredicted'),
       // Count games closing within 48 hours
       sql<number>`count(*) filter (where games.game_date <= ${future48Hours} and games.game_date > ${now})`.as('closingSoon')
     ])

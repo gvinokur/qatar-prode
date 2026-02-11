@@ -49,9 +49,8 @@ function getGameUrgencyLevel(
 
   games.forEach(game => {
     const guess = gameGuesses[game.id];
-    const isPredicted = guess &&
-      guess.home_score != null &&
-      guess.away_score != null &&
+    const isPredicted = guess?.home_score != null &&
+      guess?.away_score != null &&
       typeof guess.home_score === 'number' &&
       typeof guess.away_score === 'number';
 
@@ -315,11 +314,11 @@ export function CompactPredictionDashboard({
           <Typography variant="h6" sx={{ mb: 2 }}>
             Predicciones de Partidos
           </Typography>
-          {!hasUrgentGames ? (
+          {hasUrgentGames ? null : (
             <Alert severity="info" sx={{ mb: 2 }}>
               Ningun partido cierra en las proximas 48 horas
             </Alert>
-          ) : null}
+          )}
           {games && teamsMap && tournamentId !== undefined && (
             <UrgencyAccordionGroup
               games={games}

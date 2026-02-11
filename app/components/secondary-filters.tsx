@@ -4,13 +4,13 @@ import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { TournamentGroup, PlayoffRound } from '../db/tables-definition';
 
 interface SecondaryFiltersProps {
-  activeFilter: 'all' | 'groups' | 'playoffs' | 'unpredicted' | 'closingSoon';
-  groupFilter: string | null;
-  roundFilter: string | null;
-  groups: TournamentGroup[];
-  rounds: PlayoffRound[];
-  onGroupChange: (groupId: string | null) => void;
-  onRoundChange: (roundId: string | null) => void;
+  readonly activeFilter: 'all' | 'groups' | 'playoffs' | 'unpredicted' | 'closingSoon';
+  readonly groupFilter: string | null;
+  readonly roundFilter: string | null;
+  readonly groups: TournamentGroup[];
+  readonly rounds: PlayoffRound[];
+  readonly onGroupChange: (groupId: string | null) => void;
+  readonly onRoundChange: (roundId: string | null) => void;
 }
 
 export function SecondaryFilters({

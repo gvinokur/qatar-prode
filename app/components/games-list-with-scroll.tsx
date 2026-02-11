@@ -173,8 +173,11 @@ export function GamesListWithScroll({
       scrollToGame(targetId, 'smooth');
     } else if (games.length > 0) {
       // If no target found (all games predicted or closed), scroll to last game
-      const lastGameId = `game-${games[games.length - 1].id}`;
-      scrollToGame(lastGameId, 'smooth');
+      const lastGame = games.at(-1);
+      if (lastGame) {
+        const lastGameId = `game-${lastGame.id}`;
+        scrollToGame(lastGameId, 'smooth');
+      }
     }
   }, [games]);
 
