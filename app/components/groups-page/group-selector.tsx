@@ -45,9 +45,7 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
   return (
     <Tabs
       value={selected}
-      variant="scrollable"
-      scrollButtons="auto"
-      allowScrollButtonsMobile
+      variant="fullWidth"
       aria-label="Navegación del torneo"
       slotProps={{
         indicator: {
@@ -58,12 +56,6 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
         root: {
           sx: {
             height: '36px',
-          },
-        },
-        scrollButtons: {
-          sx: {
-            color: textColor || theme.palette.text.primary,
-            fontWeight: 600,
           },
         },
       }}
