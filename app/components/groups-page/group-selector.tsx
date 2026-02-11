@@ -26,16 +26,13 @@ const getTabSx = (backgroundColor: string | undefined, textColor: string | undef
 
 /** Get selected tab value from pathname */
 const getSelectedTab = (pathname: string): string => {
-  if (pathname.includes('/groups/')) {
-    const match = pathname.match(/groups\/([^/]+)/);
-    return match ? match[1] : '';
-  }
   if (pathname.includes('/qualified-teams')) {
     return 'qualified-teams';
   }
   if (pathname.includes('/awards')) {
     return 'individual_awards';
   }
+  // Default to home tab for tournament root and any other tournament pages
   return '';
 };
 
@@ -51,7 +48,7 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
       variant="scrollable"
       scrollButtons="auto"
       allowScrollButtonsMobile
-      aria-label="Selector de grupos"
+      aria-label="Navegación del torneo"
       slotProps={{
         indicator: {
           sx: {
@@ -81,22 +78,13 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
       }}
     >
       <Tab
+        label="PARTIDOS"
         icon={<EmojiEventsIcon sx={{ fontSize: 20 }} />}
         value=""
         component={Link}
         href={`/tournaments/${tournamentId}`}
         sx={tabSx}
       />
-      {groups.map(({ group_letter, id }) => (
-        <Tab
-          key={id}
-          label={`GRUPO ${group_letter.toUpperCase()}`}
-          value={id}
-          component={Link}
-          href={`/tournaments/${tournamentId}/groups/${id}`}
-          sx={tabSx}
-        />
-      ))}
       <Tab
         label="CLASIFICADOS"
         value="qualified-teams"
