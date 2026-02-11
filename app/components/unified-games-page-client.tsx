@@ -121,7 +121,13 @@ function UnifiedGamesPageContent({
         height: '100%',
         overflow: { xs: 'auto', md: 'hidden' }, // Mobile: entire stack scrolls; Desktop: only games scroll
         pb: { xs: '56px', md: 0 }, // Account for fixed bottom nav on mobile
-        pt: 2 // Add top padding for spacing from navigation tabs
+        pt: 2, // Add top padding for spacing from navigation tabs
+        // Hide scrollbar
+        scrollbarWidth: 'none', // Firefox
+        msOverflowStyle: 'none', // IE/Edge
+        '&::-webkit-scrollbar': {
+          display: 'none' // Chrome/Safari
+        }
       }}
     >
       {/* Compact Prediction Dashboard */}
@@ -184,7 +190,13 @@ function UnifiedGamesPageContent({
           flexGrow: 1,
           overflow: { xs: 'visible', md: 'auto' }, // Mobile: no scroll (Stack scrolls); Desktop: scrolls
           minHeight: 0,
-          position: 'relative'
+          position: 'relative',
+          // Hide scrollbar
+          scrollbarWidth: 'none', // Firefox
+          msOverflowStyle: 'none', // IE/Edge
+          '&::-webkit-scrollbar': {
+            display: 'none' // Chrome/Safari
+          }
         }}
       >
         <GamesListWithScroll

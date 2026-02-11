@@ -73,7 +73,18 @@ export default async function TournamentLandingPage(props: Props) {
             <UnifiedGamesPage tournamentId={tournamentId} />
           </Grid>
           <Grid size={{ xs:12, md: 4 }} sx={{ display: { xs: 'none', md: 'flex' }, flexDirection: 'column', minHeight: 0, height: '100%', overflow: 'hidden' }}>
-            <Box sx={{ flexGrow: 1, overflow: 'auto', minHeight: 0, pt: 2 }}>
+            <Box sx={{
+              flexGrow: 1,
+              overflow: 'auto',
+              minHeight: 0,
+              pt: 2,
+              // Hide scrollbar
+              scrollbarWidth: 'none', // Firefox
+              msOverflowStyle: 'none', // IE/Edge
+              '&::-webkit-scrollbar': {
+                display: 'none' // Chrome/Safari
+              }
+            }}>
               <Grid container rowSpacing={2}>
                 <Grid size={12}>
                   <Rules expanded={false} scoringConfig={scoringConfig} tournamentId={tournamentId}/>
