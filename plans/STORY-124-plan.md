@@ -172,38 +172,52 @@ const isGroupCompleted = useMemo(() => {
 - Pass `isSaving` as separate prop (don't combine with isLocked)
 - Add distinct Saving state visual (different from Locked)
 - Keep Locked state visual as-is (don't change current locked behavior)
-- Suggestions for Saving state: spinner, subtle overlay, "Guardando..." indicator
+- **Page-level indicator**: Show "Guardando predicciones..." (popover, banner, or backdrop)
+- **Card-level**: Gray out/reduce opacity (not individual spinners - would clutter UI)
+- **Confirmation**: Snackbar after save completes (if not already present)
 
 **Implementation:**
 1. Pass `isSaving` separately from `isLocked` to child components
-2. In DraggableTeamCard: show saving indicator when `isSaving=true && !disabled`
-3. Keep drag disabled during save (`disabled: disabled || isSaving`)
-4. Don't modify Locked state visual (it's already correct)
+2. **Page-level**: Add saving indicator in QualifiedTeamsUI (e.g., Backdrop with spinner + text)
+3. **Card-level**: Reduce opacity/gray out cards when `isSaving=true`
+4. Keep drag disabled during save (`disabled: disabled || isSaving`)
+5. Don't modify Locked state visual (it's already correct)
+6. Add/verify success snackbar after save
 
 **Changes:**
 ```typescript
-// qualified-teams-client-page.tsx:311
-// CHANGE FROM:
-isLocked={isLocked || isSaving}
+// qualified-teams-client-page.tsx
+// Add page-level saving indicator
+{isSaving && (
+  <Backdrop
+    open={isSaving}
+    sx={{
+      color: '#fff',
+      zIndex: (theme) => theme.zIndex.drawer + 1,
+      position: 'fixed'
+    }}
+  >
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+      <CircularProgress color="inherit" />
+      <Typography variant="h6">Guardando predicciones...</Typography>
+    </Box>
+  </Backdrop>
+)}
 
-// CHANGE TO:
+// Pass isSaving separately (line 311)
 isLocked={isLocked}
-isSaving={isSaving}  // Pass separately as new prop
+isSaving={isSaving}
 
 // draggable-team-card.tsx
-// Add isSaving prop
-export interface DraggableTeamCardProps {
-  readonly isSaving: boolean;  // NEW
-  // ... existing props
-}
-
-// Show saving indicator when isSaving=true
-{isSaving && !disabled && (
-  <CircularProgress
-    size={16}
-    sx={{ ml: 1, color: 'text.secondary' }}
-  />
-)}
+// Gray out card during save (no individual spinners)
+<Card
+  sx={{
+    // ... existing styles
+    opacity: isSaving ? 0.6 : 1,
+    pointerEvents: isSaving ? 'none' : 'auto',
+    transition: 'opacity 0.2s'
+  }}
+>
 
 // Disable drag during save OR lock
 useSortable({
@@ -212,7 +226,9 @@ useSortable({
 })
 ```
 
-**Key point:** Locked state visual stays the same, only add new Saving state visual
+**Key point:** Page-level indicator (not per-card spinners) + gray out cards during save
+
+**Success snackbar** (already exists at line 320-329, verify it shows after save)
 
 ## Files to Modify
 
@@ -501,11 +517,56 @@ None - requirements are clear from bug descriptions.
 └─────────────────────────────────────────┘
 ```
 
-### ~~Bug 4: Saving State Indicator~~ ❌ **REMOVED**
+### Bug 4: Saving State Indicator
 
-User feedback: "Not needed, the locked state is good as it is right now."
+**Page-Level Indicator (Backdrop with Spinner):**
+```
+┌─────────────────────────────────────────────┐
+│                                             │
+│        [Backdrop with semi-transparent      │
+│         overlay covering entire page]       │
+│                                             │
+│              ┌──────────────┐               │
+│              │   [spinner]  │               │
+│              │  Guardando   │               │
+│              │ predicciones │               │
+│              └──────────────┘               │
+│                                             │
+│  [Groups below are grayed out/dimmed]      │
+│                                             │
+└─────────────────────────────────────────────┘
+```
 
-No visual changes needed for saving state.
+**Card-Level During Save (Grayed Out):**
+```
+┌──────────────────────────────────────┐
+│ [Grupo A - Opacity 0.6, dimmed]     │
+│                                      │
+│  [1st] Argentina    [grayed out]    │
+│  [2nd] Brazil       [grayed out]    │
+│  [3rd] Chile        [grayed out]    │
+│  [4th] Uruguay      [grayed out]    │
+│                                      │
+│  pointer-events: none (no clicks)   │
+└──────────────────────────────────────┘
+```
+
+**After Save (Success Snackbar):**
+```
+┌─────────────────────────────────────────────┐
+│                                             │
+│           [Success Snackbar]                │
+│    ✓ Predicciones guardadas exitosamente   │
+│                                             │
+└─────────────────────────────────────────────┘
+```
+
+**States:**
+- **Saving**: Backdrop with spinner + text, cards grayed out (opacity 0.6)
+- **Locked**: Current visual (unchanged) - Lock icon, readonly mode
+- **Editable**: Normal colors, draggable, no backdrop
+
+**Key difference:** Page-level indicator (not per-card spinners) prevents UI clutter
 
 **States:**
 - **Editable**: Borders only on teams with `predicted_to_qualify === true` (green), draggable
