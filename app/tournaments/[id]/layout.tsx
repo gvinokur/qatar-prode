@@ -1,6 +1,7 @@
 'use server'
 
 import {Grid, AppBar, Box} from "../../components/mui-wrappers";
+import GroupSelector from "../../components/groups-page/group-selector";
 import {getTournamentAndGroupsData, getTournamentStartDate} from "../../actions/tournament-actions";
 import {findTournamentGuessByUserIdTournament} from "../../db/tournament-guess-repository";
 import {getLoggedInUser} from "../../actions/user-actions";
@@ -157,6 +158,18 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
               <ThemeSwitcher />
               <UserActions user={user} />
             </Box>
+          </Grid>
+          <Grid size={12} pt={2} pb={1} pl={1} pr={1}
+            sx={{
+              backgroundColor: layoutData.tournament?.theme?.primary_color
+            }}>
+            <GroupSelector
+              tournamentId={params.id}
+              backgroundColor={layoutData.tournament?.theme?.primary_color}
+              textColor={layoutData.tournament?.theme?.secondary_color}
+              groups={layoutData.allGroups
+                .toSorted((a, b) => a.group_letter.localeCompare(b.group_letter))
+              }/>
           </Grid>
         </Grid>
       </AppBar>
