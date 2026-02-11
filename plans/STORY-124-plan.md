@@ -29,7 +29,7 @@ These issues make it confusing for users to:
 
 - [ ] Qualification indicators appear ONLY on teams with `predicted_to_qualify === true` (in both editable and readonly modes)
 - [ ] NO automatic borders based on position alone (positions 1-2 should not auto-show borders)
-- [ ] Groups show clear completion status (0/4, 2/4, 4/4 teams positioned)
+- [ ] Groups show clear binary completion status (completed icon/color when group has been touched)
 - [ ] Qualification markers use green color instead of yellow
 - [ ] Saving state has distinct visual treatment from "locked" state
 - [ ] All changes preserve existing drag-and-drop functionality
@@ -74,60 +74,62 @@ function getSelectionBorderColor(theme: Theme, options: BorderColorOptions): str
 
 **Key change:** Remove `position === 1 || position === 2` check, only check `predictedToQualify`
 
-### Bug 2: Add Completion Status Indicators
+### Bug 2: Add Group Completion Status Indicators
 
 **Current behavior:**
-- Mobile accordion shows: "GRUPO A - 2 seleccionados"
-- No indication if user has made predictions (2 could mean "2 auto-generated" or "2 user-selected")
+- Mobile accordion shows: "GRUPO A - 2 seleccionados" (qualification count)
+- No clear indicator if user has touched/completed this group
+- User can't distinguish "not started" from "completed"
+
+**Key insight (from user feedback):**
+- When a group is touched, ALL 4 positions are set at once (not incrementally)
+- Completion is binary: either 0 teams positioned (not touched) OR 4 teams positioned (touched)
+- There is NO intermediate state (no 2/4 or 3/4)
+- The "X seleccionados" already shows qualified count (which is correct)
 
 **Fix:**
-- Track completion status per group based on user interactions
-- Show completion indicator in group header (desktop and mobile)
-- Display format: "4/4 equipos posicionados" or "2/4 equipos posicionados"
+- Add binary completion indicator: Has this group been touched/completed?
+- Show visual difference between "not completed" and "completed" groups
+- Keep existing "X seleccionados" count (shows qualified teams)
+- Don't show "X/4" positioning count (it's always 0/4 or 4/4)
 
 **Implementation:**
-1. Check if all teams in a group have predictions (not just positions 1-2)
-2. Add completion status to GroupCard header
-3. Desktop: Show status chip/badge next to group letter
-4. Mobile: Show status in accordion summary
+1. Check if group has been touched: Do predictions exist for this group?
+2. Add completion visual indicator (checkmark, chip color, etc.)
+3. Desktop: Show completion badge/icon next to group letter
+4. Mobile: Change accordion chip/header style when completed
 
 **Changes:**
 ```typescript
 // group-card.tsx
-// Add completion status calculation
-// NOTE: We count ALL teams with predictions (not just "qualified" status)
-// because user needs to position all 4 teams, even if 3rd/4th don't qualify
-const completionStatus = useMemo(() => {
-  const teamsWithPredictions = teams.filter(team => predictions.has(team.id)).length;
-  return {
-    completed: teamsWithPredictions,
-    total: teams.length,
-    isComplete: teamsWithPredictions === teams.length
-  };
+// Binary completion status - either all predictions exist or none
+const isGroupCompleted = useMemo(() => {
+  // If ANY team has a prediction, the group is completed (all 4 are set)
+  return teams.some(team => predictions.has(team.id));
 }, [teams, predictions]);
 
 // Update GroupHeader component (DESKTOP)
-// PLACEMENT: Below group letter, above team list
-// FORMAT: "X/4 equipos posicionados" (shows positioning, not qualification)
-<Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-  {completionStatus.completed}/{completionStatus.total} equipos posicionados
-</Typography>
+// Show completion indicator (e.g., checkmark icon)
+<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+  <Typography variant="h5">GRUPO {groupLetter.toUpperCase()}</Typography>
+  {isGroupCompleted && <CheckCircleIcon sx={{ fontSize: 20, color: 'success.main' }} />}
+</Box>
 
 // Update mobile accordion summary (MOBILE)
-// PLACEMENT: Right side of accordion header, before expand icon
-// FORMAT: Small chip with "X/4", green when complete
+// Change chip/header style when completed
 <Chip
-  label={`${completionStatus.completed}/${completionStatus.total}`}
+  icon={isGroupCompleted ? <CheckCircleIcon /> : undefined}
+  label={`${qualifiedCount} seleccionado${qualifiedCount === 1 ? '' : 's'}`}
   size="small"
-  color={completionStatus.isComplete ? "success" : "default"}
+  color={isGroupCompleted ? "success" : "default"}
   sx={{ mr: 1 }}
 />
 ```
 
-**Terminology Clarification:**
-- Use "equipos posicionados" (teams positioned) NOT "equipos calificados" (teams qualified)
-- Rationale: All 4 teams need positions (1st, 2nd, 3rd, 4th), but only 2-3 qualify
-- Completion = all teams have positions assigned, regardless of qualification status
+**Key difference from original plan:**
+- ❌ Don't show "X/4 equipos posicionados" (always 0 or 4)
+- ✅ Show binary completion status (completed icon/color)
+- ✅ Keep existing "X seleccionados" qualified count
 
 ### Bug 3: Change Yellow to Green
 
