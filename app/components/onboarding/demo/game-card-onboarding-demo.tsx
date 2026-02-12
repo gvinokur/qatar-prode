@@ -43,7 +43,7 @@ export default function GameCardOnboardingDemo({
   demoNote,
 }: GameCardOnboardingDemoProps) {
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center', width: '100%', maxWidth: 450 }}>
       {/* Game type label */}
       <Chip
         label={label}
@@ -52,17 +52,20 @@ export default function GameCardOnboardingDemo({
         sx={{ fontWeight: 600 }}
       />
 
-      {/* Demo note for playoff */}
-      {demoNote && (
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          align="center"
-          sx={{ maxWidth: 280, fontStyle: 'italic' }}
-        >
-          {demoNote}
-        </Typography>
-      )}
+      {/* Demo note or placeholder for alignment */}
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        align="center"
+        sx={{
+          maxWidth: 280,
+          fontStyle: demoNote ? 'italic' : 'normal',
+          minHeight: '2.5em', // Reserve space for alignment
+          visibility: demoNote ? 'visible' : 'hidden'
+        }}
+      >
+        {demoNote || 'placeholder'}
+      </Typography>
 
       {/* Game card */}
       <FlippableGameCard

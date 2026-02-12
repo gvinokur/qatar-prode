@@ -52,72 +52,76 @@ export default function GamePredictionStep() {
         Haz clic en una tarjeta para voltearla y editar tu predicción
       </Typography>
 
-      <Box sx={{ maxWidth: 900, mx: 'auto' }}>
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-          <MockGuessesContextProvider>
-            {/* Dashboard */}
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Vista unificada de tus predicciones (haz clic para ver detalles):
-              </Typography>
-              <CompactPredictionDashboard
-                {...DEMO_DASHBOARD_PROPS}
-                games={DEMO_GAMES as ExtendedGameData[]}
+      <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <MockGuessesContextProvider>
+          {/* Dashboard */}
+          <Box sx={{ mb: 3, maxWidth: 900, mx: 'auto' }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Vista unificada de tus predicciones (haz clic para ver detalles):
+            </Typography>
+            <CompactPredictionDashboard
+              {...DEMO_DASHBOARD_PROPS}
+              games={DEMO_GAMES as ExtendedGameData[]}
+              teamsMap={DEMO_TEAMS_MAP}
+              tournamentId={DEMO_TOURNAMENT.id}
+              tournamentStartDate={new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)}
+              tournamentPredictions={DEMO_TOURNAMENT_PREDICTIONS}
+              demoMode={true}
+            />
+          </Box>
+
+          {/* Game Cards */}
+          <Box sx={{ borderTop: 1, borderColor: 'divider', pt: 3 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3, textAlign: 'center' }}>
+              Haz clic en una tarjeta para voltearla y editar. Nota las diferencias entre partidos de grupo y playoffs:
+            </Typography>
+            <Box sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+              gap: 4,
+              justifyItems: 'center'
+            }}>
+              <GameCardOnboardingDemo
+                game={DEMO_GAMES[0]}
                 teamsMap={DEMO_TEAMS_MAP}
-                tournamentId={DEMO_TOURNAMENT.id}
-                tournamentStartDate={new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)}
-                tournamentPredictions={DEMO_TOURNAMENT_PREDICTIONS}
-                demoMode={true}
+                isPlayoffs={false}
+                isEditing={editingGameId === DEMO_GAMES[0].id}
+                onEditStart={() => handleEditStart(DEMO_GAMES[0].id)}
+                onEditEnd={handleEditEnd}
+                silverUsed={1}
+                silverMax={5}
+                goldenUsed={0}
+                goldenMax={2}
+                label="Partido de Grupo"
+              />
+              <GameCardOnboardingDemo
+                game={DEMO_GAMES[1]}
+                teamsMap={DEMO_TEAMS_MAP}
+                isPlayoffs={true}
+                isEditing={editingGameId === DEMO_GAMES[1].id}
+                onEditStart={() => handleEditStart(DEMO_GAMES[1].id)}
+                onEditEnd={handleEditEnd}
+                silverUsed={0}
+                silverMax={5}
+                goldenUsed={0}
+                goldenMax={2}
+                label="Partido de Playoff"
+                demoNote="En empate, selecciona el ganador por penales"
               />
             </Box>
+          </Box>
+        </MockGuessesContextProvider>
 
-            {/* Game Cards */}
-            <Box sx={{ borderTop: 1, borderColor: 'divider', pt: 3 }}>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                Haz clic en una tarjeta para voltearla y editar. Nota las diferencias entre partidos de grupo y playoffs:
-              </Typography>
-              <Box sx={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 4 }}>
-                <GameCardOnboardingDemo
-                  game={DEMO_GAMES[0]}
-                  teamsMap={DEMO_TEAMS_MAP}
-                  isPlayoffs={false}
-                  isEditing={editingGameId === DEMO_GAMES[0].id}
-                  onEditStart={() => handleEditStart(DEMO_GAMES[0].id)}
-                  onEditEnd={handleEditEnd}
-                  silverUsed={1}
-                  silverMax={5}
-                  goldenUsed={0}
-                  goldenMax={2}
-                  label="Partido de Grupo"
-                />
-                <GameCardOnboardingDemo
-                  game={DEMO_GAMES[1]}
-                  teamsMap={DEMO_TEAMS_MAP}
-                  isPlayoffs={true}
-                  isEditing={editingGameId === DEMO_GAMES[1].id}
-                  onEditStart={() => handleEditStart(DEMO_GAMES[1].id)}
-                  onEditEnd={handleEditEnd}
-                  silverUsed={0}
-                  silverMax={5}
-                  goldenUsed={0}
-                  goldenMax={2}
-                  label="Partido de Playoff"
-                  demoNote="En empate, selecciona el ganador por penales"
-                />
-              </Box>
-            </Box>
-          </MockGuessesContextProvider>
-
-          {showCardSuccess && (
-            <Alert
-              severity="success"
-              onClose={() => setShowCardSuccess(false)}
-              sx={{ mt: 2 }}
-            >
-              ¡Perfecto! Haz clic en la tarjeta para editarla. Los cambios se guardan automáticamente.
-            </Alert>
-          )}
-        </Paper>
+        {showCardSuccess && (
+          <Alert
+            severity="success"
+            onClose={() => setShowCardSuccess(false)}
+            sx={{ mt: 2 }}
+          >
+            ¡Perfecto! Haz clic en la tarjeta para editarla. Los cambios se guardan automáticamente.
+          </Alert>
+        )}
+      </Paper>
 
         <Typography variant="caption" display="block" align="center" sx={{ mt: 2 }}>
           💡 Estas predicciones son de demostración. Tus predicciones reales comenzarán después del onboarding.
