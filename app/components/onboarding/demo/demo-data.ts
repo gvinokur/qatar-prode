@@ -10,6 +10,7 @@ import type {
   QualifiedTeamPrediction,
   TournamentGroup,
   TournamentPredictionCompletion,
+  Player,
 } from '@/app/db/tables-definition'
 
 // Demo tournament
@@ -25,6 +26,16 @@ export const DEMO_TEAMS: Team[] = [
   { id: 'team-2', name: 'Argentina', short_name: 'ARG', theme: null },
   { id: 'team-3', name: 'Uruguay', short_name: 'URU', theme: null },
   { id: 'team-4', name: 'Chile', short_name: 'CHI', theme: null },
+]
+
+// Demo players for individual awards
+export const DEMO_PLAYERS: Player[] = [
+  { id: 'player-1', team_id: 'team-1', tournament_id: 'demo-tournament', name: 'Neymar Jr.', position: 'FW', age_at_tournament: 31 },
+  { id: 'player-2', team_id: 'team-2', tournament_id: 'demo-tournament', name: 'Lionel Messi', position: 'FW', age_at_tournament: 36 },
+  { id: 'player-3', team_id: 'team-3', tournament_id: 'demo-tournament', name: 'Luis Suárez', position: 'FW', age_at_tournament: 36 },
+  { id: 'player-4', team_id: 'team-1', tournament_id: 'demo-tournament', name: 'Alisson Becker', position: 'GK', age_at_tournament: 31 },
+  { id: 'player-5', team_id: 'team-2', tournament_id: 'demo-tournament', name: 'Emiliano Martínez', position: 'GK', age_at_tournament: 31 },
+  { id: 'player-6', team_id: 'team-1', tournament_id: 'demo-tournament', name: 'Vinícius Jr.', position: 'FW', age_at_tournament: 23 },
 ]
 
 // Teams map for quick lookup
@@ -65,7 +76,7 @@ export const DEMO_GAMES: Game[] = [
     away_team: 'team-4', // Chile
     game_date: new Date(Date.now() + 48 * 60 * 60 * 1000), // In 2 days
     location: 'Estadio Demo',
-    game_type: 'group',
+    game_type: 'playoff', // Playoff game to demo penalty winner
     home_team_rule: undefined,
     away_team_rule: undefined,
     game_local_timezone: undefined,
@@ -83,7 +94,7 @@ export const DEMO_GAME_GUESSES: Record<string, GameGuess> = {
     away_team: 'team-2',
     home_score: 2,
     away_score: 1,
-    boost_type: null,
+    boost_type: 'silver', // Demo: silver boost applied
     home_penalty_winner: undefined,
     away_penalty_winner: undefined,
     score: undefined,

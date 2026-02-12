@@ -83,7 +83,7 @@ export default function GamePredictionStep() {
                   isEditing={editingGameId === DEMO_GAMES[0].id}
                   onEditStart={() => handleEditStart(DEMO_GAMES[0].id)}
                   onEditEnd={handleEditEnd}
-                  silverUsed={0}
+                  silverUsed={1}
                   silverMax={5}
                   goldenUsed={0}
                   goldenMax={2}
@@ -92,7 +92,7 @@ export default function GamePredictionStep() {
                 <FlippableGameCard
                   game={DEMO_GAMES[1]}
                   teamsMap={DEMO_TEAMS_MAP}
-                  isPlayoffs={false}
+                  isPlayoffs={true}
                   isEditing={editingGameId === DEMO_GAMES[1].id}
                   onEditStart={() => handleEditStart(DEMO_GAMES[1].id)}
                   onEditEnd={handleEditEnd}
