@@ -36,7 +36,7 @@ export default function GroupsStageView({ groups, games, qualifiedTeams }: Group
   }
 
   return (
-    <Grid container spacing={2}>
+    <Grid container spacing={2} sx={{ width: '100%' }}>
       {sortedGroups.map((group) => {
         // Filter games for this specific group
         const groupGames = games.filter(
@@ -47,9 +47,6 @@ export default function GroupsStageView({ groups, games, qualifiedTeams }: Group
           <Grid
             key={group.id}
             size={{ xs: 12, sm: 6, md: 4 }}
-            sx={{
-              minWidth: '280px', // Ensures text readability
-            }}
           >
             <GroupResultCard
               group={group}

@@ -52,7 +52,16 @@ export default async function ResultsPage(props: Props) {
 
     // Render the main results page
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          maxWidth: '868px',
+          mx: { md: 'auto' },
+          width: '100%',
+        }}
+      >
         <Typography
           variant="h4"
           component="h1"

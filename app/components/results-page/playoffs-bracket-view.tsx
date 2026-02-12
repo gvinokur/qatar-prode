@@ -126,7 +126,6 @@ export default function PlayoffsBracketView({
             overflowX: 'auto',
             overflowY: 'auto',
             position: 'relative',
-            minHeight: `${dimensions.height + 100}px`,
             pb: 4,
             WebkitOverflowScrolling: 'touch',
           }}

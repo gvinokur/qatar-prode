@@ -43,7 +43,8 @@ After the planning phase is complete and the user approves the plan with "execut
 5. **ALWAYS follow the approved plan** - no scope creep
 6. **ALWAYS mark tasks in_progress** when starting, completed when done
 7. **NEVER commit without user verification** - user tests locally first
-8. **NEVER commit without running validation checks** - MUST run tests, lint, and build before ANY commit (see Section 7)
+8. **NEVER commit without running validation checks** - MUST run tests, lint, and build before ANY commit (see Section 9)
+9. **ALWAYS document deviations from plan** - Add amendments when gaps/issues discovered (see Section 8)
 
 ## Implementation Workflow
 
@@ -690,7 +691,176 @@ See [Planning Guide - Change Plans](planning.md) for complete workflow.
 - ✅ Avoids inefficient sequential changes
 - ✅ User can see progress with TaskList
 
-### 8. After Implementation Complete
+### 8. Plan Amendments (Keeping Plan in Sync)
+
+**Purpose:** Ensure plan documentation matches actual implementation by capturing deviations as they occur.
+
+When implementation reveals gaps, bugs, or edge cases not in the original plan, you must decide how to document them.
+
+#### Decision Tree: How to Document Changes
+
+**Step 1: Analyze the deviation**
+
+Ask yourself:
+1. Is this a significant change to approach or architecture?
+2. Does this change scope beyond original acceptance criteria?
+3. Would this require re-planning the approach?
+
+**Step 2: Choose documentation strategy**
+
+```
+Is this a significant change?
+    ↓                    ↓
+   YES                  NO
+    ↓                    ↓
+CHANGE PLAN      Is this trivial?
+(See planning.md)      ↓
+                   YES     NO
+                    ↓       ↓
+                No doc   PLAN AMENDMENT
+                needed   (Document below)
+```
+
+#### When to Add Plan Amendments
+
+**Add amendments for:**
+- Bug fixes discovered during implementation
+- Edge cases not in original plan
+- Small scope additions (within story boundaries)
+- Technical adjustments (different function name, different file structure)
+- Performance optimizations
+- UX improvements within original design
+
+**Examples:**
+- "Added loading state for slow network connections"
+- "Fixed TypeScript error by changing return type"
+- "Handled empty state that wasn't in mockups"
+- "Added input validation for email format"
+
+**Don't add amendments for:**
+- Trivial changes (single line, typo fix)
+- Changes already covered by change plans
+- Normal implementation details (variable names, etc.)
+
+#### Amendment Format
+
+Add an `## Implementation Amendments` section to your plan document:
+
+```markdown
+## Implementation Amendments
+
+### Amendment 1: Handle Empty Game List
+**Date:** 2026-02-12
+**Reason:** Original plan didn't account for scenario where user has no games
+**Change:** Added EmptyState component displaying "No games yet" message with call-to-action button
+
+### Amendment 2: Fix Kysely Query Type Error
+**Date:** 2026-02-12
+**Reason:** Kysely `.execute()` doesn't return single row, causes TypeScript error
+**Change:** Used `.executeTakeFirst()` instead of `.execute()` for single-row queries
+
+### Amendment 3: Add Response Caching
+**Date:** 2026-02-13
+**Reason:** Vercel Preview showed 3s load time, unacceptable for UX
+**Change:** Added `next: { revalidate: 60 }` to fetch calls for 60-second cache
+```
+
+**Amendment structure:**
+- **Title:** Brief, descriptive (what was changed)
+- **Date:** When the change was made
+- **Reason:** Why it was needed (context for future readers)
+- **Change:** What was actually done (implementation detail)
+
+#### How to Add Amendments During Implementation
+
+**When you discover a gap/issue:**
+
+1. **Fix the code** (implement the solution)
+
+2. **Update plan document** with amendment:
+   ```typescript
+   Edit({
+     file_path: `${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-plan.md`,
+     old_string: `## Testing Strategy`,
+     new_string: `## Implementation Amendments
+
+### Amendment 1: [Title]
+**Date:** ${TODAY}
+**Reason:** [Why this was needed]
+**Change:** [What was done]
+
+## Testing Strategy`
+   })
+   ```
+
+3. **Commit with implementation changes:**
+   ```bash
+   # Add both plan and code changes
+   git -C ${WORKTREE_PATH} add plans/STORY-${STORY_NUMBER}-plan.md src/...
+
+   # Commit together
+   git -C ${WORKTREE_PATH} commit -m "feat: implement X (with plan amendment for Y)
+
+   Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+   ```
+
+**Benefits:**
+- ✅ Plan stays in sync with reality
+- ✅ Low friction (no plan mode re-entry)
+- ✅ Context captured while fresh
+- ✅ Future developers understand decisions
+- ✅ Single source of truth
+
+#### Multiple Amendments
+
+As you discover more gaps, add them sequentially:
+
+```markdown
+## Implementation Amendments
+
+### Amendment 1: Handle Empty State
+**Date:** 2026-02-12
+**Reason:** ...
+**Change:** ...
+
+### Amendment 2: Fix Type Error
+**Date:** 2026-02-12
+**Reason:** ...
+**Change:** ...
+
+### Amendment 3: Add Caching
+**Date:** 2026-02-13
+**Reason:** ...
+**Change:** ...
+```
+
+Number them sequentially for easy reference.
+
+#### Example Workflow
+
+```
+1. Implementing feature X
+   ↓
+2. Discover: Empty state not in plan
+   ↓
+3. Implement empty state component
+   ↓
+4. Update plan document with Amendment 1
+   ↓
+5. Commit both code + plan amendment together
+   ↓
+6. Continue implementation
+   ↓
+7. Discover: TypeScript error in query
+   ↓
+8. Fix query method
+   ↓
+9. Update plan document with Amendment 2
+   ↓
+10. Commit both code + plan amendment together
+```
+
+### 9. After Implementation Complete
 
 **🚨 CRITICAL: VALIDATE, DEPLOY, THEN USER TESTS IN VERCEL PREVIEW 🚨**
 

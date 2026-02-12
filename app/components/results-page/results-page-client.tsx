@@ -74,6 +74,7 @@ export default function ResultsPageClient({
         id="results-tabpanel-0"
         sx={{
           flex: 1,
+          minHeight: 0,
           overflow: 'auto',
           px: 2,
           py: 2,
@@ -90,6 +91,7 @@ export default function ResultsPageClient({
         id="results-tabpanel-1"
         sx={{
           flex: 1,
+          minHeight: 0,
           overflow: 'auto',
           px: 2,
           py: 2,

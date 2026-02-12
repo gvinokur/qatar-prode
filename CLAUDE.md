@@ -85,9 +85,9 @@ If you start planning before reading planning.md, you WILL do it wrong.
 2. **NEVER commit to `main` branch** unless user explicitly says "commit to main" (see worktrees.md "Commit Safety Checks")
 3. **ALWAYS use absolute paths** when working with worktree files (see worktrees.md "Working with Files in Worktrees")
 4. **ALWAYS copy `.env.local` and `.claude/`** to new worktrees (automated by helper script - see worktrees.md "Required Files")
-5. **NEVER commit without running validation checks** - MUST run tests, lint, and build before ANY commit (see implementation.md Section 8)
-6. **ALWAYS ask permission before running migrations** - NEVER run database migrations without explicit user approval (see implementation.md Section 8 Step 4)
-7. **Default: Deploy to Vercel Preview for user testing** - User tests in Vercel Preview (NOT locally) unless they explicitly request local testing (see implementation.md Section 8)
+5. **NEVER commit without running validation checks** - MUST run tests, lint, and build before ANY commit (see implementation.md Section 9)
+6. **ALWAYS ask permission before running migrations** - NEVER run database migrations without explicit user approval (see implementation.md Section 9 Step 4)
+7. **Default: Deploy to Vercel Preview for user testing** - User tests in Vercel Preview (NOT locally) unless they explicitly request local testing (see implementation.md Section 9)
 8. **NEVER ask "would you like to proceed?" after creating plan PR** - Just WAIT for user (see planning.md Step 7 "CRITICAL CHECKPOINT")
 9. **ALWAYS create PRs as DRAFT** - Only mark as ready for review when user explicitly requests it or asks to merge (see planning.md Step 7 and validation.md Section 10)
 
@@ -189,15 +189,20 @@ This project requires using specific tools during planning:
 4. **ALWAYS use absolute paths** - When working in worktrees (see [worktrees.md](docs/claude/worktrees.md))
 5. **ALWAYS follow the approved plan** - No scope creep
 6. **ALWAYS mark tasks in_progress/completed** - Track progress with TaskUpdate
-7. **NEVER commit without validation checks** - MUST run tests, lint, AND build before ANY commit (see implementation.md Section 8)
+7. **ALWAYS document deviations from plan** - Add amendments when gaps/issues discovered during implementation (see implementation.md Section 8)
+   - IF you discover edge case not in plan → Add amendment
+   - IF you fix bug during implementation → Add amendment
+   - IF you make technical adjustment → Add amendment (unless trivial)
+8. **NEVER commit without validation checks** - MUST run tests, lint, AND build before ANY commit (see implementation.md Section 9)
    - IF you commit without running tests → You have violated the workflow
    - IF you commit without running lint → You have violated the workflow
    - IF you commit without running build → You have violated the workflow
-8. **ALWAYS ask permission before running migrations** - NEVER run migrations without explicit user approval (see implementation.md Section 8 Step 4)
-9. **Default workflow: Deploy to Vercel Preview for testing** - After commit/push, user tests in Vercel Preview (NOT locally) unless they explicitly request local testing (see implementation.md Section 8)
-10. **ALWAYS define tasks before handling feedback** - For 2+ non-trivial changes, use TaskCreate/TaskUpdate BEFORE making code changes (see implementation.md Section 8)
+9. **ALWAYS ask permission before running migrations** - NEVER run migrations without explicit user approval (see implementation.md Section 9 Step 4)
+10. **Default workflow: Deploy to Vercel Preview for testing** - After commit/push, user tests in Vercel Preview (NOT locally) unless they explicitly request local testing (see implementation.md Section 9)
+11. **ALWAYS define tasks before handling feedback** - For 2+ non-trivial changes, use TaskCreate/TaskUpdate BEFORE making code changes (see implementation.md Section 7)
    - IF you make sequential changes without tasks → You have violated the workflow
    - This applies to ALL feedback: during implementation AND after Vercel Preview testing
+12. **ALWAYS reconcile plan before final validation** - Ensure plan matches implementation before merge (see validation.md Section 1)
 
 ### Process Overview
 
@@ -209,14 +214,16 @@ This project requires using specific tools during planning:
 2. **Define tasks with dependencies** → implementation.md Section 2 (use TaskCreate/TaskUpdate)
 3. **Implement in execution waves** → implementation.md Sections 3-4 (parallel execution where possible)
 4. **Create tests in parallel** → See [testing.md](docs/claude/testing.md) "Parallel Test Creation"
-5. **Run validation checks** → implementation.md Section 8 Step 3 (MANDATORY: tests, lint, build before commit)
-6. **Check migrations and ask permission** → implementation.md Section 8 Step 4 (ALWAYS ask before running)
-7. **Commit and push** → Triggers Vercel Preview deployment
-8. **Inform user to test in Vercel Preview** → User tests in preview environment (default workflow)
-9. **Wait for user feedback from Vercel Preview** → "code looks good" or provide feedback
-   - If feedback: Define tasks FIRST (implementation.md Section 7), then fix, repeat steps 5-9
-   - If approved: Proceed to final SonarCloud validation
-10. **Final SonarCloud validation** → implementation.md Section 8 Step 8 (after user approves preview)
+5. **Document deviations with amendments** → implementation.md Section 8 (add amendments as gaps/bugs discovered)
+6. **Run validation checks** → implementation.md Section 9 Step 3 (MANDATORY: tests, lint, build before commit)
+7. **Check migrations and ask permission** → implementation.md Section 9 Step 4 (ALWAYS ask before running)
+8. **Commit and push** → Triggers Vercel Preview deployment
+9. **Inform user to test in Vercel Preview** → User tests in preview environment (default workflow)
+10. **Wait for user feedback from Vercel Preview** → "code looks good" or provide feedback
+   - If feedback: Define tasks FIRST (implementation.md Section 7), then fix, repeat steps 6-10
+   - If approved: Proceed to final validation
+11. **Reconcile plan with implementation** → validation.md Section 1 (ensure plan matches reality)
+12. **Final SonarCloud validation** → validation.md Sections 3-8 (after reconciliation and user approval)
 
 **For task parallelization and subagent patterns:** See [subagent-workflows.md](docs/claude/subagent-workflows.md)
 
@@ -262,14 +269,14 @@ Launch multiple subagents in parallel (single message, multiple Task calls) to c
 **Complete workflow:** [Validation Guide](docs/claude/validation.md)
 
 **Key steps:**
-1. **Verify user satisfaction** → See validation.md Section 1
-2. **Run tests** → See validation.md Section 2: `npm run test`
-3. **Run linter** → See validation.md Section 3: `npm run lint`
-4. **Build project** → See validation.md Section 4: `npm run build`
-5. **Commit and push** → See validation.md Section 5 (git operations)
-6. **Wait for CI/CD** → See validation.md Section 6 (use `./scripts/github-projects-helper pr wait-checks`)
-7. **Analyze SonarCloud** → See validation.md Section 7 (use `./scripts/github-projects-helper pr sonar-issues`)
-8. **Fix issues if needed** → See validation.md Section 8 (show user, ask permission)
+1. **Reconcile plan with implementation** → See validation.md Section 1 (ensure plan matches reality)
+2. **Verify user satisfaction** → See validation.md Section 2
+3. **Wait for CI/CD** → See validation.md Section 3 (use `./scripts/github-projects-helper pr wait-checks`)
+4. **Analyze SonarCloud** → See validation.md Section 4 (use `./scripts/github-projects-helper pr sonar-issues`)
+5. **Fix issues if needed** → See validation.md Section 5 (show user, ask permission)
+6. **Validate Vercel deployment** → See validation.md Section 6
+7. **Mark PR ready for review** → See validation.md Section 7 (only when user requests)
+8. **Final confirmation** → See validation.md Section 8
 
 **For detailed SonarCloud analysis and issue resolution:** See validation.md complete workflow
 
@@ -383,11 +390,15 @@ Create tests in parallel (docs/claude/testing.md)
     ↓
 If scope changes → Change Plan (planning.md)
     ↓
-🛑 MANDATORY VALIDATION CHECKS (implementation.md Section 8 Step 3)
+Document deviations with plan amendments (implementation.md Section 8)
+When gaps/bugs discovered → Add amendment to plan
+Commit plan + code together
+    ↓
+🛑 MANDATORY VALIDATION CHECKS (implementation.md Section 9 Step 3)
 Run: npm test → npm lint → npm build
 ALL must pass before commit
     ↓
-Check for migrations (implementation.md Section 8 Step 4)
+Check for migrations (implementation.md Section 9 Step 4)
 If migrations exist → ASK USER PERMISSION (ALWAYS)
 If granted → Run migrations
     ↓
@@ -404,6 +415,7 @@ User provides feedback?
     ↓       ↓
 Define Tasks FIRST (implementation.md Section 7)
 For 2+ changes: TaskCreate → TaskUpdate → Execute in waves
+Add amendments for any deviations
 Then fix issues
 Go back to validation
     ↓
@@ -414,25 +426,28 @@ Go back to validation
             │  📖 SEE validation.md WORKFLOW      │
             └─────────────────────────────────────┘
                 ↓
-            Wait for CI/CD checks
+            Reconcile Plan with Implementation (validation.md Section 1)
+            Review plan vs. actual code
+            Add missing amendments if needed
+            Commit plan updates if changes made
                 ↓
-            Analyze SonarCloud results
+            Verify User Satisfaction (validation.md Section 2)
                 ↓
-            Fix issues if needed (ask permission)
+            Wait for CI/CD checks (validation.md Section 3)
+                ↓
+            Analyze SonarCloud results (validation.md Section 4)
+                ↓
+            Fix issues if needed (validation.md Section 5)
+            Ask permission first
+                ↓
+            Validate Vercel deployment (validation.md Section 6)
+                ↓
+            Mark PR ready for review (validation.md Section 7)
+            ONLY when user explicitly requests
                 ↓
             0 new issues + 80% coverage
                 ↓
             ✅ Quality Gates Passed → Ready to merge
-    ↓
-Commit & Push (validation.md Section 5)
-    ↓
-Wait for CI/CD (validation.md Section 6)
-    ↓
-Analyze SonarCloud (validation.md Section 7)
-    ↓
-Fix issues if needed (validation.md Section 8)
-    ↓
-✅ Quality Gates Passed → Ready to merge
 ```
 
 **Quick Phase Identification:**
@@ -465,11 +480,13 @@ Fix issues if needed (validation.md Section 8)
 | Using relative paths | Bash tool doesn't persist `cd` | Use absolute paths: `/qatar-prode-story-N/file.ts` | worktrees.md "Working with Files" |
 | Forgetting `.env.local` or `.claude/` | App fails with DB errors or permission prompts | Copy after worktree creation (automated by helper) | worktrees.md "Required Files" |
 | Client imports repository | Causes build errors | Server Components import repos, Client Components get props | architecture.md |
-| Committing without running validation checks | Broken code gets committed, CI/CD fails | MUST run tests, lint, AND build before ANY commit | implementation.md Section 8 Step 3 |
-| Running migrations without permission | Database changes without user awareness/approval | ALWAYS ask user permission before running migrations | implementation.md Section 8 Step 4 |
-| Asking user to test locally by default | Inefficient, Vercel Preview is default | User tests in Vercel Preview unless they request local testing | implementation.md Section 8 |
-| Waiting for user approval before committing | Wrong workflow, commit first then user tests in preview | Run validation → Check migrations → Commit → User tests in Vercel Preview | implementation.md Section 8 |
+| Committing without running validation checks | Broken code gets committed, CI/CD fails | MUST run tests, lint, AND build before ANY commit | implementation.md Section 9 Step 3 |
+| Running migrations without permission | Database changes without user awareness/approval | ALWAYS ask user permission before running migrations | implementation.md Section 9 Step 4 |
+| Asking user to test locally by default | Inefficient, Vercel Preview is default | User tests in Vercel Preview unless they request local testing | implementation.md Section 9 |
+| Waiting for user approval before committing | Wrong workflow, commit first then user tests in preview | Run validation → Check migrations → Commit → User tests in Vercel Preview | implementation.md Section 9 |
 | Making sequential code changes when handling feedback | Inefficient, no parallelization, no progress tracking | For 2+ changes: Define tasks with TaskCreate/TaskUpdate FIRST, then execute in waves | implementation.md Section 7 |
+| Not documenting deviations from plan | Plan diverges from reality, future confusion | Add amendments when discovering gaps/bugs during implementation | implementation.md Section 8 |
+| Skipping plan reconciliation before merge | Plan contradicts actual code, documentation debt | Review plan vs. implementation before final validation | validation.md Section 1 |
 
 ## Development Guidelines
 
