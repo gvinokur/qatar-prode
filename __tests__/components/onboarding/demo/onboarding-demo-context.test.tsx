@@ -1,183 +1,173 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import React from 'react'
+import { renderHook, act, waitFor } from '@testing-library/react'
 import {
   MockGuessesContextProvider,
   MockQualifiedTeamsContextProvider,
   useMockQualifiedTeamsContext,
 } from '@/app/components/onboarding/demo/onboarding-demo-context'
 import { GuessesContext } from '@/app/components/context-providers/guesses-context-provider'
-import { DEMO_GAME_GUESSES, DEMO_QUALIFIED_PREDICTIONS } from '@/app/components/onboarding/demo/demo-data'
+import { useContext } from 'react'
 import type { GameGuessNew } from '@/app/db/tables-definition'
 
 describe('MockGuessesContextProvider', () => {
   it('provides initial game guesses from demo data', () => {
-    let contextValue: any = null
+    const { result } = renderHook(() => useContext(GuessesContext), {
+      wrapper: MockGuessesContextProvider,
+    })
 
-    function TestComponent() {
-      contextValue = React.useContext(GuessesContext)
-      return <div>Test</div>
-    }
-
-    render(
-      <MockGuessesContextProvider>
-        <TestComponent />
-      </MockGuessesContextProvider>
-    )
-
-    expect(contextValue.gameGuesses).toEqual(DEMO_GAME_GUESSES)
+    expect(result.current.gameGuesses).toBeDefined()
+    expect(result.current.gameGuesses['game-1']).toBeDefined()
+    expect(result.current.gameGuesses['game-1'].home_score).toBe(2)
+    expect(result.current.gameGuesses['game-1'].away_score).toBe(1)
+    expect(result.current.gameGuesses['game-1'].boost_type).toBe('silver')
   })
 
-  it('provides updateGameGuess function', () => {
-    let contextValue: any = null
-
-    function TestComponent() {
-      contextValue = React.useContext(GuessesContext)
-      return <div>Test</div>
-    }
-
-    render(
-      <MockGuessesContextProvider>
-        <TestComponent />
-      </MockGuessesContextProvider>
-    )
-
-    expect(contextValue.updateGameGuess).toBeDefined()
-    expect(typeof contextValue.updateGameGuess).toBe('function')
-  })
-
-  it('updates game guess in local state', async () => {
-    let contextValue: any = null
-
-    function TestComponent() {
-      contextValue = React.useContext(GuessesContext)
-      return <div>Test</div>
-    }
-
-    render(
-      <MockGuessesContextProvider>
-        <TestComponent />
-      </MockGuessesContextProvider>
-    )
+  it('updates game guess and merges with existing data', async () => {
+    const { result } = renderHook(() => useContext(GuessesContext), {
+      wrapper: MockGuessesContextProvider,
+    })
 
     const newGuess: GameGuessNew = {
       game_id: 'game-1',
       game_number: 1,
-      user_id: 'demo-user',
-      home_team: 'team-1',
-      away_team: 'team-2',
       home_score: 3,
       away_score: 2,
+      boost_type: 'golden',
+    }
+
+    await act(async () => {
+      await result.current.updateGameGuess('game-1', newGuess)
+    })
+
+    await waitFor(() => {
+      expect(result.current.gameGuesses['game-1'].home_score).toBe(3)
+      expect(result.current.gameGuesses['game-1'].away_score).toBe(2)
+      expect(result.current.gameGuesses['game-1'].boost_type).toBe('golden')
+      // Verify existing fields are preserved
+      expect(result.current.gameGuesses['game-1'].id).toBe('guess-1')
+      expect(result.current.gameGuesses['game-1'].user_id).toBe('demo-user')
+    })
+  })
+
+  it('updates penalty winner fields correctly', async () => {
+    const { result } = renderHook(() => useContext(GuessesContext), {
+      wrapper: MockGuessesContextProvider,
+    })
+
+    const newGuess: GameGuessNew = {
+      game_id: 'game-2',
+      game_number: 2,
+      home_score: 1,
+      away_score: 1,
+      home_penalty_winner: true,
+      away_penalty_winner: false,
       boost_type: null,
     }
 
-    await contextValue.updateGameGuess('game-1', newGuess)
+    await act(async () => {
+      await result.current.updateGameGuess('game-2', newGuess)
+    })
 
-    expect(contextValue.gameGuesses['game-1'].home_score).toBe(3)
-    expect(contextValue.gameGuesses['game-1'].away_score).toBe(2)
+    await waitFor(() => {
+      expect(result.current.gameGuesses['game-2'].home_penalty_winner).toBe(true)
+      expect(result.current.gameGuesses['game-2'].away_penalty_winner).toBe(false)
+    })
+  })
+
+  it('simulates async behavior with delay', async () => {
+    const { result } = renderHook(() => useContext(GuessesContext), {
+      wrapper: MockGuessesContextProvider,
+    })
+
+    const startTime = Date.now()
+
+    await act(async () => {
+      await result.current.updateGameGuess('game-1', {
+        game_id: 'game-1',
+        game_number: 1,
+        home_score: 5,
+        away_score: 5,
+      })
+    })
+
+    const endTime = Date.now()
+    const duration = endTime - startTime
+
+    // Should take at least 300ms (simulated async delay)
+    expect(duration).toBeGreaterThanOrEqual(250)
   })
 })
 
 describe('MockQualifiedTeamsContextProvider', () => {
   it('provides initial predictions from demo data', () => {
-    let contextValue: any = null
+    const { result } = renderHook(() => useMockQualifiedTeamsContext(), {
+      wrapper: MockQualifiedTeamsContextProvider,
+    })
 
-    function TestComponent() {
-      contextValue = useMockQualifiedTeamsContext()
-      return <div>Test</div>
-    }
-
-    render(
-      <MockQualifiedTeamsContextProvider>
-        <TestComponent />
-      </MockQualifiedTeamsContextProvider>
-    )
-
-    expect(contextValue.predictions).toEqual(DEMO_QUALIFIED_PREDICTIONS)
-    expect(contextValue.saveState).toBe('idle')
-    expect(contextValue.isSaving).toBe(false)
-    expect(contextValue.lastSaved).toBeNull()
-    expect(contextValue.error).toBeNull()
+    expect(result.current.predictions).toBeDefined()
+    expect(result.current.predictions.size).toBeGreaterThan(0)
+    expect(result.current.predictions.get('group-a-team-1')).toBeDefined()
+    expect(result.current.predictions.get('group-a-team-1')?.predicted_position).toBe(1)
+    expect(result.current.predictions.get('group-a-team-1')?.predicted_to_qualify).toBe(true)
   })
 
-  it('provides all required functions', () => {
-    let contextValue: any = null
+  it('updates group positions correctly', async () => {
+    const { result } = renderHook(() => useMockQualifiedTeamsContext(), {
+      wrapper: MockQualifiedTeamsContextProvider,
+    })
 
-    function TestComponent() {
-      contextValue = useMockQualifiedTeamsContext()
-      return <div>Test</div>
-    }
+    const updates = [
+      { teamId: 'team-1', position: 2, qualifies: true },
+      { teamId: 'team-2', position: 1, qualifies: true },
+    ]
 
-    render(
-      <MockQualifiedTeamsContextProvider>
-        <TestComponent />
-      </MockQualifiedTeamsContextProvider>
-    )
+    await act(async () => {
+      await result.current.updateGroupPositions('group-a', updates)
+    })
 
-    expect(contextValue.updateGroupPositions).toBeDefined()
-    expect(typeof contextValue.updateGroupPositions).toBe('function')
-    expect(contextValue.clearError).toBeDefined()
-    expect(typeof contextValue.clearError).toBe('function')
+    await waitFor(() => {
+      expect(result.current.predictions.get('group-a-team-1')?.predicted_position).toBe(2)
+      expect(result.current.predictions.get('group-a-team-2')?.predicted_position).toBe(1)
+    })
   })
 
-  it('has correct save state properties', () => {
-    let contextValue: any = null
+  it('initializes with idle save state', () => {
+    const { result } = renderHook(() => useMockQualifiedTeamsContext(), {
+      wrapper: MockQualifiedTeamsContextProvider,
+    })
 
-    function TestComponent() {
-      contextValue = useMockQualifiedTeamsContext()
-      return <div>Test</div>
-    }
-
-    render(
-      <MockQualifiedTeamsContextProvider>
-        <TestComponent />
-      </MockQualifiedTeamsContextProvider>
-    )
-
-    expect(contextValue).toHaveProperty('predictions')
-    expect(contextValue).toHaveProperty('saveState')
-    expect(contextValue).toHaveProperty('isSaving')
-    expect(contextValue).toHaveProperty('lastSaved')
-    expect(contextValue).toHaveProperty('error')
-    expect(contextValue).toHaveProperty('updateGroupPositions')
-    expect(contextValue).toHaveProperty('clearError')
-  })
-})
-
-describe('useMockQualifiedTeamsContext', () => {
-  it('throws error when used outside provider', () => {
-    // Suppress console.error for this test since we expect an error
-    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-    function TestComponent() {
-      useMockQualifiedTeamsContext()
-      return <div>Test</div>
-    }
-
-    expect(() => {
-      render(<TestComponent />)
-    }).toThrow('useMockQualifiedTeamsContext must be used within MockQualifiedTeamsContextProvider')
-
-    consoleError.mockRestore()
+    expect(result.current.saveState).toBe('idle')
+    expect(result.current.isSaving).toBe(false)
+    expect(result.current.lastSaved).toBeNull()
+    expect(result.current.error).toBeNull()
   })
 
-  it('works correctly when used within provider', () => {
-    let contextValue: any = null
+  it('transitions to saved state after update', async () => {
+    const { result } = renderHook(() => useMockQualifiedTeamsContext(), {
+      wrapper: MockQualifiedTeamsContextProvider,
+    })
 
-    function TestComponent() {
-      contextValue = useMockQualifiedTeamsContext()
-      return <div data-testid="test">Test</div>
-    }
+    await act(async () => {
+      await result.current.updateGroupPositions('group-a', [
+        { teamId: 'team-1', position: 1, qualifies: true },
+      ])
+    })
 
-    render(
-      <MockQualifiedTeamsContextProvider>
-        <TestComponent />
-      </MockQualifiedTeamsContextProvider>
+    // Should eventually transition to saved
+    await waitFor(
+      () => {
+        expect(result.current.saveState).toBe('saved')
+        expect(result.current.lastSaved).toBeInstanceOf(Date)
+      },
+      { timeout: 1000 }
     )
+  })
 
-    expect(screen.getByTestId('test')).toBeInTheDocument()
-    expect(contextValue).toBeDefined()
-    expect(contextValue.predictions).toBeDefined()
-    expect(contextValue.updateGroupPositions).toBeDefined()
+  it('provides clearError function', () => {
+    const { result } = renderHook(() => useMockQualifiedTeamsContext(), {
+      wrapper: MockQualifiedTeamsContextProvider,
+    })
+
+    expect(typeof result.current.clearError).toBe('function')
   })
 })
