@@ -69,7 +69,7 @@ export function calculateGamePositions(rounds: BracketRound[]): GamePosition[] {
 
         if (feeder1 && feeder2) {
           // Position at 1/4 from top feeder, 3/4 from bottom feeder (biased upward)
-          const y = feeder1.y + 0.75 * (feeder2.y - feeder1.y)
+          const y = feeder1.y + 0.25 * (feeder2.y - feeder1.y)
           positions.push({
             gameId: game.id,
             x,
