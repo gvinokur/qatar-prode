@@ -123,10 +123,9 @@ export default function GamePredictionStep() {
         )}
       </Paper>
 
-        <Typography variant="caption" display="block" align="center" sx={{ mt: 2 }}>
-          💡 Estas predicciones son de demostración. Tus predicciones reales comenzarán después del onboarding.
-        </Typography>
-      </Box>
+      <Typography variant="caption" display="block" align="center" sx={{ mt: 2 }}>
+        💡 Estas predicciones son de demostración. Tus predicciones reales comenzarán después del onboarding.
+      </Typography>
     </Box>
   )
 }
