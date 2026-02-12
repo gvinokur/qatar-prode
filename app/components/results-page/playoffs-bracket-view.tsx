@@ -121,13 +121,10 @@ export default function PlayoffsBracketView({
       {bracketRounds.length > 0 && (
         <Box
           sx={{
-            width: '100%',
-            height: '100%',
-            overflowX: 'auto',
-            overflowY: 'auto',
             position: 'relative',
+            width: dimensions.width,
+            height: dimensions.height,
             pb: 4,
-            WebkitOverflowScrolling: 'touch',
           }}
         >
           {/* SVG overlay for connection lines */}
