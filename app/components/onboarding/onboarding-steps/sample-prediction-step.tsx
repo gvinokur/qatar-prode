@@ -20,12 +20,10 @@ import {
 export default function SamplePredictionStep() {
   // Success message states
   const [showCardSuccess, setShowCardSuccess] = useState(false)
-  const [showDragSuccess, setShowDragSuccess] = useState(false)
   const [showTeamSuccess, setShowTeamSuccess] = useState(false)
 
   // Track user interactions
   const [hasInteractedWithCard, setHasInteractedWithCard] = useState(false)
-  const [hasInteractedWithDrag, setHasInteractedWithDrag] = useState(false)
 
   // Edit state management for flippable cards
   const [editingGameId, setEditingGameId] = useState<string | null>(null)
@@ -52,18 +50,6 @@ export default function SamplePredictionStep() {
   const handleEditEnd = useCallback(() => {
     setEditingGameId(null)
   }, [])
-
-  // Handle drag-and-drop interaction
-  const handleDragSuccess = useCallback(() => {
-    if (!hasInteractedWithDrag) {
-      setHasInteractedWithDrag(true)
-      setShowDragSuccess(true)
-      // Auto-dismiss after 5 seconds
-      setTimeout(() => {
-        setShowDragSuccess(false)
-      }, 5000)
-    }
-  }, [hasInteractedWithDrag])
 
   // Handle team selection
   const handleTeamSelect = useCallback((type: 'champion' | 'runnerUp' | 'thirdPlace', teamId: string) => {
@@ -165,20 +151,12 @@ export default function SamplePredictionStep() {
               userId="demo-user"
               isLocked={false}
               allowsThirdPlace={false}
-              maxThirdPlaceQualifiers={0}
-              onDragEnd={handleDragSuccess}
+              maxThirdPlace={0}
+              completeGroupIds={new Set<string>()}
+              allGroupsComplete={false}
             />
           </MockQualifiedTeamsContextProvider>
 
-          {showDragSuccess && (
-            <Alert
-              severity="success"
-              onClose={() => setShowDragSuccess(false)}
-              sx={{ mt: 2 }}
-            >
-              ¡Excelente! Arrastra para reordenar. Los cambios se guardan automáticamente.
-            </Alert>
-          )}
         </Paper>
 
         <Divider sx={{ my: 3 }} />

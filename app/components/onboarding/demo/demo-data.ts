@@ -9,7 +9,6 @@ import type {
   GameGuess,
   QualifiedTeamPrediction,
   TournamentGroup,
-  Tournament,
 } from '@/app/db/tables-definition'
 
 // Demo tournament
@@ -279,7 +278,4 @@ export const DEMO_DASHBOARD_PROPS = {
   silverMax: 5,
   goldenUsed: 1,
   goldenMax: 2,
-  tournamentPredictions: {
-    overallPercentage: 73,
-  },
 }
