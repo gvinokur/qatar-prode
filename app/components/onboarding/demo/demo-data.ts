@@ -18,18 +18,12 @@ export const DEMO_TOURNAMENT = {
   is_active: true,
 }
 
-// 8 teams (4 per group)
+// 4 teams (1 group)
 export const DEMO_TEAMS: Team[] = [
-  // Group A
   { id: 'team-1', name: 'Brasil', short_name: 'BRA', theme: null },
   { id: 'team-2', name: 'Argentina', short_name: 'ARG', theme: null },
   { id: 'team-3', name: 'Uruguay', short_name: 'URU', theme: null },
   { id: 'team-4', name: 'Chile', short_name: 'CHI', theme: null },
-  // Group B
-  { id: 'team-5', name: 'España', short_name: 'ESP', theme: null },
-  { id: 'team-6', name: 'Alemania', short_name: 'GER', theme: null },
-  { id: 'team-7', name: 'Francia', short_name: 'FRA', theme: null },
-  { id: 'team-8', name: 'Portugal', short_name: 'POR', theme: null },
 ]
 
 // Teams map for quick lookup
@@ -37,7 +31,7 @@ export const DEMO_TEAMS_MAP: Record<string, Team> = Object.fromEntries(
   DEMO_TEAMS.map((team) => [team.id, team])
 )
 
-// 2 tournament groups
+// 1 tournament group
 export const DEMO_GROUPS_DATA: TournamentGroup[] = [
   {
     id: 'group-a',
@@ -45,15 +39,9 @@ export const DEMO_GROUPS_DATA: TournamentGroup[] = [
     group_letter: 'A',
     sort_by_games_between_teams: false,
   },
-  {
-    id: 'group-b',
-    tournament_id: 'demo-tournament',
-    group_letter: 'B',
-    sort_by_games_between_teams: false,
-  },
 ]
 
-// 4 games (2 from each group)
+// 2 games from the group
 export const DEMO_GAMES: Game[] = [
   {
     id: 'game-1',
@@ -74,32 +62,6 @@ export const DEMO_GAMES: Game[] = [
     game_number: 2,
     home_team: 'team-3', // Uruguay
     away_team: 'team-4', // Chile
-    game_date: new Date(Date.now() + 48 * 60 * 60 * 1000), // In 2 days
-    location: 'Estadio Demo',
-    game_type: 'group',
-    home_team_rule: undefined,
-    away_team_rule: undefined,
-    game_local_timezone: undefined,
-  },
-  {
-    id: 'game-3',
-    tournament_id: 'demo-tournament',
-    game_number: 3,
-    home_team: 'team-5', // España
-    away_team: 'team-6', // Alemania
-    game_date: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
-    location: 'Estadio Demo',
-    game_type: 'group',
-    home_team_rule: undefined,
-    away_team_rule: undefined,
-    game_local_timezone: undefined,
-  },
-  {
-    id: 'game-4',
-    tournament_id: 'demo-tournament',
-    game_number: 4,
-    home_team: 'team-7', // Francia
-    away_team: 'team-8', // Portugal
     game_date: new Date(Date.now() + 48 * 60 * 60 * 1000), // In 2 days
     location: 'Estadio Demo',
     game_type: 'group',
@@ -262,11 +224,7 @@ export const DEMO_QUALIFIED_PREDICTIONS = new Map<
 export const DEMO_GROUPS = [
   {
     group: DEMO_GROUPS_DATA[0],
-    teams: [DEMO_TEAMS[0], DEMO_TEAMS[1], DEMO_TEAMS[2], DEMO_TEAMS[3]], // Group A teams
-  },
-  {
-    group: DEMO_GROUPS_DATA[1],
-    teams: [DEMO_TEAMS[4], DEMO_TEAMS[5], DEMO_TEAMS[6], DEMO_TEAMS[7]], // Group B teams
+    teams: DEMO_TEAMS, // All 4 teams in Group A
   },
 ]
 

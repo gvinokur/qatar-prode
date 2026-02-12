@@ -72,7 +72,7 @@ interface QualifiedTeamsContextValue {
   lastSaved: Date | null
   error: string | null
   updateGroupPositions: (
-    _groupId: string,
+    groupId: string,
     _updates: Array<{ teamId: string; position: number; qualifies: boolean }>
   ) => Promise<void>
   clearError: () => void
@@ -98,7 +98,7 @@ export function MockQualifiedTeamsContextProvider({
 
   const updateGroupPositions = useCallback(
     async (
-      _groupId: string,
+      groupId: string,
       _updates: Array<{ teamId: string; position: number; qualifies: boolean }>
     ) => {
       // Prevent changes while saving
@@ -109,9 +109,11 @@ export function MockQualifiedTeamsContextProvider({
         const newPredictions = new Map(prev)
 
         _updates.forEach(({ teamId, position, qualifies }) => {
-          const prediction = prev.get(teamId)
+          // Use proper Map key format: groupId-teamId
+          const mapKey = `${groupId}-${teamId}`
+          const prediction = prev.get(mapKey)
           if (prediction) {
-            newPredictions.set(teamId, {
+            newPredictions.set(mapKey, {
               ...prediction,
               predicted_position: position,
               predicted_to_qualify: qualifies,
