@@ -21,14 +21,16 @@
 
 3. ✅ Groups Stage View displays:
    - One card per group (A, B, C, etc.)
-   - Each card shows minimalistic game results + ultra-compact group table
+   - Each card shows minimalistic game results + group table
+   - Group table uses CSS container queries to determine compact vs ultra-compact mode (current pattern)
    - Responsive layout: 1 card/row (mobile), 2-3 cards/row (tablet/desktop)
    - Cards are collapsible on mobile
 
 4. ✅ Playoffs View displays:
-   - Traditional bracket diagram (Round of 16 → Quarters → Semis → Final)
+   - Traditional bracket diagram (dynamic rounds based on tournament structure)
+   - Visual winner's path highlighting (shows progression through bracket)
    - Horizontally scrollable on mobile
-   - Minimalistic game cards showing results only
+   - Minimalistic game cards showing team icons + results
    - No interaction (view-only)
 
 5. ✅ Navigation behavior:
@@ -50,10 +52,10 @@
 │  ┌─────────────────────────┐   │
 │  │ ▼ GRUPO A               │   │ ← Collapsible
 │  ├─────────────────────────┤   │
-│  │ 🇶🇦 Qatar 0 - 2 Ecuador 🇪🇨│   │
-│  │ 🇸🇳 Senegal 0 - 2 Netherlands 🇳🇱│
-│  │ 🇶🇦 Qatar 1 - 3 Senegal 🇸🇳│   │
-│  │ 🇳🇱 Netherlands 1 - 1 Ecuador 🇪🇨│
+│  │ 🇶🇦 QAT 0 - 2 ECU 🇪🇨│   │
+│  │ 🇸🇳 SEN 0 - 2 NED 🇳🇱│
+│  │ 🇶🇦 QAT 1 - 3 SEN 🇸🇳│   │
+│  │ 🇳🇱 NED 1 - 1 ECU 🇪🇨│
 │  │ ... (2 more games)        │   │
 │  │                           │   │
 │  │ 📊 STANDINGS:             │   │
@@ -85,10 +87,10 @@
 │  ┌─────────────────┐  ┌─────────────────┐  ┌────────────┐│
 │  │ GRUPO A         │  │ GRUPO B         │  │ GRUPO C    ││
 │  ├─────────────────┤  ├─────────────────┤  ├────────────┤│
-│  │ QAT 0-2 ECU     │  │ ENG 6-2 IRN     │  │ ARG 1-2 SAU││
-│  │ SEN 0-2 NED     │  │ USA 1-1 WAL     │  │ MEX 0-0 POL││
-│  │ QAT 1-3 SEN     │  │ WAL 0-2 IRN     │  │ POL 2-0 SAU││
-│  │ NED 1-1 ECU     │  │ ENG 0-0 USA     │  │ ARG 2-0 MEX││
+│  │ 🇶🇦 QAT 0-2 ECU 🇪🇨│  │ 🏴 ENG 6-2 IRN 🇮🇷│  │ 🇦🇷 ARG 1-2 SAU 🇸🇦││
+│  │ 🇸🇳 SEN 0-2 NED 🇳🇱│  │ 🇺🇸 USA 1-1 WAL 🏴󠁧󠁢󠁷󠁬󠁳󠁿│  │ 🇲🇽 MEX 0-0 POL 🇵🇱││
+│  │ 🇶🇦 QAT 1-3 SEN 🇸🇳│  │ 🏴󠁧󠁢󠁷󠁬󠁳󠁿 WAL 0-2 IRN 🇮🇷│  │ 🇵🇱 POL 2-0 SAU 🇸🇦││
+│  │ 🇳🇱 NED 1-1 ECU 🇪🇨│  │ 🏴 ENG 0-0 USA 🇺🇸│  │ 🇦🇷 ARG 2-0 MEX 🇲🇽││
 │  │ ... (more)      │  │ ... (more)      │  │ ... (more) ││
 │  │                 │  │                 │  │            ││
 │  │ 📊 STANDINGS:   │  │ 📊 STANDINGS:   │  │ 📊 STANDI..││
@@ -116,37 +118,37 @@
 │                                                                                │
 │  Round of 16          Quarter-Finals         Semi-Finals          Final       │
 │                                                                                │
-│  ┌─────────┐                                                                  │
-│  │ NED 3-1 │──┐                                                               │
-│  └─────────┘  │  ┌─────────┐                                                  │
-│               ├──│ NED 2-2 │──┐                                               │
-│  ┌─────────┐  │  │ (4-3p)  │  │                                               │
-│  │ USA 3-1 │──┘  └─────────┘  │  ┌─────────┐                                 │
-│  └─────────┘                  ├──│ ARG 3-0 │──┐                               │
-│                               │  └─────────┘  │                               │
-│  ┌─────────┐                  │               │  ┌─────────┐                  │
-│  │ ARG 2-1 │──┐               │               ├──│ ARG 3-3 │                  │
-│  └─────────┘  │  ┌─────────┐  │               │  │ (4-2p)  │                  │
-│               ├──│ ARG 2-1 │──┘               │  └─────────┘ 🏆 CHAMPION     │
-│  ┌─────────┐  │  └─────────┘                  │                               │
-│  │ AUS 2-1 │──┘                               │                               │
-│  └─────────┘                                  │                               │
-│                                               │                               │
-│  ┌─────────┐                                  │                               │
-│  │ FRA 3-1 │──┐                               │                               │
-│  └─────────┘  │  ┌─────────┐                  │                               │
-│               ├──│ FRA 2-1 │──┐               │                               │
-│  ┌─────────┐  │  └─────────┘  │  ┌─────────┐ │                               │
-│  │ POL 1-3 │──┘               ├──│ FRA 2-0 │─┘                               │
-│  └─────────┘                  │  └─────────┘                                  │
-│                               │                                               │
-│  ┌─────────┐                  │                                               │
-│  │ ENG 3-0 │──┐               │                                               │
-│  └─────────┘  │  ┌─────────┐  │                                               │
-│               ├──│ ENG 1-2 │──┘                                               │
-│  ┌─────────┐  │  └─────────┘                                                  │
-│  │ SEN 0-3 │──┘                                                               │
-│  └─────────┘                                                                  │
+│  ┌─────────────┐                                                              │
+│  │ 🇳🇱 NED 3-1 │══╗                                                           │ ← Winner path
+│  └─────────────┘  ║  ┌─────────────┐                                          │   highlighted
+│                   ╠══│ 🇳🇱 NED 2-2 │══╗                                       │   (bold lines)
+│  ┌─────────────┐  ║  │   (4-3p)    │  ║                                       │
+│  │ 🇺🇸 USA 3-1 │──┘  └─────────────┘  ║  ┌─────────────┐                     │
+│  └─────────────┘                     ╠══│ 🇦🇷 ARG 3-0 │══╗                   │
+│                                      ║  └─────────────┘  ║                   │
+│  ┌─────────────┐                     ║                  ║  ┌─────────────┐   │
+│  │ 🇦🇷 ARG 2-1 │══╗                  ║                  ╠══│ 🇦🇷 ARG 3-3 │   │
+│  └─────────────┘  ║  ┌─────────────┐ ║                  ║  │   (4-2p)    │   │
+│                   ╠══│ 🇦🇷 ARG 2-1 │═╝                  ║  └─────────────┘   │
+│  ┌─────────────┐  ║  └─────────────┘                    ║      🏆 CHAMPION   │
+│  │ 🇦🇺 AUS 2-1 │──┘                                     ║                    │
+│  └─────────────┘                                        ║                    │
+│                                                         ║                    │
+│  ┌─────────────┐                                        ║                    │
+│  │ 🇫🇷 FRA 3-1 │──┐                                     ║                    │
+│  └─────────────┘  │  ┌─────────────┐                    ║                    │
+│                   ├──│ 🇫🇷 FRA 2-1 │──┐                 ║                    │
+│  ┌─────────────┐  │  └─────────────┘  │  ┌─────────────┐║                    │
+│  │ 🇵🇱 POL 1-3 │──┘                   ├──│ 🇫🇷 FRA 2-0 │╝                    │
+│  └─────────────┘                      │  └─────────────┘                     │
+│                                       │                                      │
+│  ┌─────────────┐                      │                                      │
+│  │ 🏴 ENG 3-0 │──┐                    │                                      │
+│  └─────────────┘  │  ┌─────────────┐  │                                      │
+│                   ├──│ 🏴 ENG 1-2 │──┘                                      │
+│  ┌─────────────┐  │  └─────────────┘                                        │
+│  │ 🇸🇳 SEN 0-3 │──┘                                                         │
+│  └─────────────┘                                                            │
 │                                                                                │
 │  [Scroll horizontally for more →]                                             │
 │                                                                                │
@@ -168,12 +170,18 @@
 
 ## Technical Approach
 
-### 1. Route Structure
+### 1. Route Structure & Container Best Practices
 
 Create new page route:
 - **Path:** `/app/tournaments/[id]/results/page.tsx`
 - **Type:** Server Component (for data fetching)
 - **Layout:** Uses existing `/app/tournaments/[id]/layout.tsx` (with header and bottom nav)
+
+**Max-Width Container (follow current patterns):**
+- Groups grid: `maxWidth={'868px'}` (same as existing UnifiedGamesPage)
+- Center content: `mx={{md: 'auto'}}` for desktop centering
+- Bracket view: Full-width with horizontal scroll (no max-width constraint)
+- Use MUI Grid `container` with `maxWidth` prop consistently across app
 
 ### 2. Navigation Updates
 
@@ -291,7 +299,11 @@ app/tournaments/[id]/results/page.tsx (Server Component)
 **File:** `app/components/results-page/minimalistic-games-list.tsx`
 - Props: `games[]`, `teamsMap`
 - Simple list of game results (no interaction)
-- Format: `🇶🇦 Qatar 0 - 2 Ecuador 🇪🇨`
+- **Format:** `🇶🇦 QAT 0 - 2 ECU 🇪🇨` (team icon + short name + score)
+- **Team display:** Use short name (3-letter code) for compact layout
+  - Could use CSS container queries to show full name on wider cards (TBD during implementation)
+  - Default to short names for consistency with bracket
+- **Team icons:** Show team flag emoji or icon before code
 - Sort by game_number ascending
 - Show only finished games (have scores)
 - **Penalty shootouts:** Use utility function `formatPenaltyResult(game)` → returns `"(4-3p)"` or `null`
@@ -319,25 +331,32 @@ export function formatGameScore(game: ExtendedGameData): string {
 **File:** `app/components/results-page/playoffs-bracket-view.tsx`
 - Props: `playoffStages[]`, `games`, `teamsMap`
 - Renders traditional bracket diagram
+- **Dynamic round structure:** Adapts to tournament size (not hardcoded to R16)
+  - Example: 16 teams → R16, Quarters, Semis, Final
+  - Example: 8 teams → Quarters, Semis, Final
+  - Reads from `playoffStages` data structure
+- **Winner's path highlighting:** Bold/highlighted connections for winning team's progression
+  - Track winner from each game to final
+  - Highlight SVG paths with higher stroke-width or different color
 - Horizontally scrollable container (Box with overflow-x)
-- Organizes rounds: Round of 16, Quarter-Finals, Semi-Finals, Final, Third Place
-- Uses CSS Grid or Flexbox for bracket layout
-- Connects games with visual lines (borders/pseudo-elements)
+- Uses SVG overlay for bracket connections (see Section 8)
+- Third Place game shown separately (not in main bracket tree)
 
 #### 5.7. Bracket Game Card
 **File:** `app/components/results-page/bracket-game-card.tsx`
-- Props: `game`, `teamsMap`
+- Props: `game`, `teamsMap`, `isOnWinnerPath` (boolean)
 - Minimalistic game card for bracket
 - Format:
   ```
-  ┌───────────┐
-  │ NED  3    │
-  │ USA  1    │
-  └───────────┘
+  ┌─────────────┐
+  │ 🇳🇱 NED  3  │
+  │ 🇺🇸 USA  1  │
+  └─────────────┘
   ```
-- Show team codes (3-letter) + scores
-- Highlight winner (bold or color)
-- Show penalty result if applicable: `(4-3p)`
+- **Team display:** Team icon (flag emoji) + short code (3-letter) + score
+- Highlight winner (bold text or background tint)
+- **Winner path styling:** If `isOnWinnerPath=true`, add visual emphasis (border, glow, or background)
+- Show penalty result if applicable: `(4-3p)` below scores
 - No click interaction (read-only)
 
 ### 6. Reusable Components
@@ -432,17 +451,56 @@ export const BRACKET_CONSTANTS = {
 /**
  * Calculate vertical spacing for a round based on number of games
  * Games double in spacing each round to create visual convergence
+ *
+ * DYNAMIC: Works with any tournament size (not hardcoded to 16 teams)
  */
-export function calculateRoundSpacing(gamesInRound: number): number {
+export function calculateRoundSpacing(gamesInRound: number, maxGamesInFirstRound: number): number {
   const { BASE_VERTICAL_SPACING, GAME_CARD_HEIGHT } = BRACKET_CONSTANTS;
 
-  // Each subsequent round has 2x spacing (visual convergence)
-  // Round of 16: 120px between games
-  // Quarters: 240px + 80px (card height) = 320px
-  // Semis: 640px
-  // Final: centered
+  // Dynamic spacing based on tournament size
+  // 16-team tournament R16: 120px
+  // 8-team tournament Quarters: 120px
+  // Each subsequent round doubles the spacing
 
-  return BASE_VERTICAL_SPACING * (16 / gamesInRound) + GAME_CARD_HEIGHT;
+  return BASE_VERTICAL_SPACING * (maxGamesInFirstRound / gamesInRound) + GAME_CARD_HEIGHT;
+}
+
+/**
+ * Identify games on the winner's path (for visual highlighting)
+ * Traces back from champion to all their previous games
+ */
+export function calculateWinnerPath(
+  games: ExtendedGameData[],
+  finalGameId: string
+): Set<string> {
+  const winnerPath = new Set<string>();
+  const finalGame = games.find(g => g.id === finalGameId);
+
+  if (!finalGame || !finalGame.winner_team_id) {
+    return winnerPath; // Tournament not complete
+  }
+
+  // Recursively trace winner's path backwards
+  function traceWinner(gameId: string): void {
+    winnerPath.add(gameId);
+    const game = games.find(g => g.id === gameId);
+    if (!game) return;
+
+    // Find previous games where winner participated
+    const previousGames = games.filter(g =>
+      g.home_team_id === game.winner_team_id ||
+      g.away_team_id === game.winner_team_id
+    );
+
+    previousGames.forEach(prevGame => {
+      if (!winnerPath.has(prevGame.id) && prevGame.winner_team_id === game.winner_team_id) {
+        traceWinner(prevGame.id);
+      }
+    });
+  }
+
+  traceWinner(finalGameId);
+  return winnerPath;
 }
 
 /**
@@ -452,8 +510,11 @@ export function calculateGamePositions(rounds: BracketRound[]): GamePosition[] {
   const positions: GamePosition[] = [];
   const { ROUND_SPACING, GAME_CARD_HEIGHT } = BRACKET_CONSTANTS;
 
+  // Find max games in first round (for dynamic scaling)
+  const maxGamesInFirstRound = Math.max(...rounds.map(r => r.games.length));
+
   rounds.forEach((round, roundIndex) => {
-    const spacing = calculateRoundSpacing(round.games.length);
+    const spacing = calculateRoundSpacing(round.games.length, maxGamesInFirstRound);
     const x = roundIndex * ROUND_SPACING;
 
     round.games.forEach((game, gameIndex) => {
@@ -514,16 +575,20 @@ export function calculateConnectionPath(
       zIndex: 0,
     }}
   >
-    {connectionPaths.map((path, idx) => (
-      <path
-        key={idx}
-        d={path}
-        stroke="currentColor"
-        strokeWidth={2}
-        fill="none"
-        opacity={0.3}
-      />
-    ))}
+    {connectionPaths.map((path, idx) => {
+      const isOnWinnerPath = winnerPathGameIds.has(path.fromGameId) &&
+                            winnerPathGameIds.has(path.toGameId);
+      return (
+        <path
+          key={idx}
+          d={path.svgPath}
+          stroke={isOnWinnerPath ? 'primary.main' : 'currentColor'}
+          strokeWidth={isOnWinnerPath ? 4 : 2}
+          fill="none"
+          opacity={isOnWinnerPath ? 0.8 : 0.3}
+        />
+      );
+    })}
   </svg>
 
   {/* Game cards layer */}
@@ -537,7 +602,11 @@ export function calculateConnectionPath(
           top: pos.y,
         }}
       >
-        <BracketGameCard game={getGameById(pos.gameId)} teamsMap={teamsMap} />
+        <BracketGameCard
+          game={getGameById(pos.gameId)}
+          teamsMap={teamsMap}
+          isOnWinnerPath={winnerPathGameIds.has(pos.gameId)}
+        />
       </Box>
     ))}
   </Box>
