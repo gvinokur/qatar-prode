@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useContext, useMemo, useState, useRef } from 'react';
+import React, { useContext, useMemo, useState, useRef, useCallback } from 'react';
 import { Box } from '@mui/material';
 import { TournamentPredictionCompletion, Team } from '../db/tables-definition';
 import { GuessesContext } from './context-providers/guesses-context-provider';
@@ -67,18 +67,43 @@ export function CompactPredictionDashboard({
     [tournamentPredictions, tournamentStartDate]
   );
 
-  const handleBoostClick = (event: React.MouseEvent<HTMLElement>, type: 'silver' | 'golden') => {
+  const handleBoostClick = useCallback((event: React.MouseEvent<HTMLElement>, type: 'silver' | 'golden') => {
     event.stopPropagation();
     setBoostAnchorEl(event.currentTarget);
     setActiveBoostType(type);
-  };
+  }, []);
 
-  const handleBoostClose = () => {
+  const handleBoostClose = useCallback(() => {
     setBoostAnchorEl(null);
     setActiveBoostType(null);
-  };
+  }, []);
+
+  // Extract handlers to reduce cognitive complexity
+  const handleGameRowClick = useCallback(
+    (e: React.MouseEvent<HTMLElement>) => {
+      if (!demoMode) {
+        setGamePopoverAnchor(e.currentTarget);
+      }
+    },
+    [demoMode]
+  );
+
+  const handleTournamentRowClick = useCallback(
+    (e: React.MouseEvent<HTMLElement>) => {
+      if (!demoMode) {
+        setTournamentPopoverAnchor(e.currentTarget);
+      }
+    },
+    [demoMode]
+  );
+
+  const boostClickHandler = demoMode ? undefined : handleBoostClick;
 
   const boostPopoverOpen = Boolean(boostAnchorEl);
+
+  // Extract boost values to reduce nesting
+  const boostUsed = activeBoostType === 'silver' ? silverUsed : goldenUsed;
+  const boostMax = activeBoostType === 'silver' ? silverMax : goldenMax;
 
   // Check if there are no urgent games (within 48 hours)
   const urgentGames = useMemo(
@@ -108,13 +133,13 @@ export function CompactPredictionDashboard({
         maxValue={totalGames}
         percentage={gamePercentage}
         urgencyLevel={gameUrgencyLevel}
-        onClick={demoMode ? () => {} : (e) => setGamePopoverAnchor(e.currentTarget)}
+        onClick={handleGameRowClick}
         showBoosts={showBoosts}
         silverUsed={silverUsed}
         silverMax={silverMax}
         goldenUsed={goldenUsed}
         goldenMax={goldenMax}
-        onBoostClick={demoMode ? undefined : handleBoostClick}
+        onBoostClick={boostClickHandler}
       />
 
       {/* Tournament Predictions Row */}
@@ -124,7 +149,7 @@ export function CompactPredictionDashboard({
           currentValue={tournamentPredictions.overallPercentage}
           percentage={tournamentPredictions.overallPercentage}
           urgencyLevel={tournamentUrgencyLevel}
-          onClick={demoMode ? () => {} : (e) => setTournamentPopoverAnchor(e.currentTarget)}
+          onClick={handleTournamentRowClick}
           marginBottom={0}
         />
       )}
@@ -162,8 +187,8 @@ export function CompactPredictionDashboard({
           anchorEl={boostAnchorEl}
           onClose={handleBoostClose}
           boostType={activeBoostType}
-          used={activeBoostType === 'silver' ? silverUsed : goldenUsed}
-          max={activeBoostType === 'silver' ? silverMax : goldenMax}
+          used={boostUsed}
+          max={boostMax}
           tournamentId={tournamentId}
         />
       )}
