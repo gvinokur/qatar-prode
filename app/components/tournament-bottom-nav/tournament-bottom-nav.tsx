@@ -1,7 +1,7 @@
 'use client';
 
 import { BottomNavigation, BottomNavigationAction } from '@mui/material';
-import { Home, EmojiEvents, Groups, Person } from '@mui/icons-material';
+import { Home, EmojiEvents, Groups, Person, Assessment } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
@@ -20,6 +20,8 @@ export default function TournamentBottomNav({ tournamentId, currentPath }: Tourn
       setValue('main-home');
     } else if (currentPath === `/tournaments/${tournamentId}`) {
       setValue('tournament-home');
+    } else if (currentPath.startsWith(`/tournaments/${tournamentId}/results`)) {
+      setValue('results');
     } else if (currentPath === `/tournaments/${tournamentId}/friend-groups`) {
       // EXACT match for friend groups overview
       setValue('friend-groups');
@@ -39,6 +41,9 @@ export default function TournamentBottomNav({ tournamentId, currentPath }: Tourn
         break;
       case 'tournament-home':
         router.push(`/tournaments/${tournamentId}`);
+        break;
+      case 'results':
+        router.push(`/tournaments/${tournamentId}/results`);
         break;
       case 'friend-groups':
         router.push(`/tournaments/${tournamentId}/friend-groups`);
@@ -66,6 +71,7 @@ export default function TournamentBottomNav({ tournamentId, currentPath }: Tourn
     >
       <BottomNavigationAction label="Home" value="main-home" icon={<Home />} />
       <BottomNavigationAction label="Tournament" value="tournament-home" icon={<EmojiEvents />} />
+      <BottomNavigationAction label="Resultados" value="results" icon={<Assessment />} />
       <BottomNavigationAction label="Friend Groups" value="friend-groups" icon={<Groups />} />
       <BottomNavigationAction label="Stats" value="stats" icon={<Person />} />
     </BottomNavigation>
