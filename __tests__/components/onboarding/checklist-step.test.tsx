@@ -18,7 +18,7 @@ describe('ChecklistStep', () => {
 
     expect(screen.getByText('Hacer mi primera predicción de partido')).toBeInTheDocument()
     expect(screen.getByText('Predecir campeón y premios individuales')).toBeInTheDocument()
-    expect(screen.getByText('Completar predicciones de clasificación')).toBeInTheDocument()
+    expect(screen.getByText('Ordenar equipos clasificados (arrastra y suelta)')).toBeInTheDocument()
     expect(screen.getByText('Unirme a un grupo de amigos')).toBeInTheDocument()
     expect(screen.getByText('Revisar las reglas completas')).toBeInTheDocument()
   })

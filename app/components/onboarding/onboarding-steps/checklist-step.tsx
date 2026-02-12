@@ -10,7 +10,7 @@ import { useState } from 'react'
 const CHECKLIST_ITEMS = [
   { id: 'first_prediction', label: 'Hacer mi primera predicción de partido' },
   { id: 'tournament_predictions', label: 'Predecir campeón y premios individuales' },
-  { id: 'qualifiers_predictions', label: 'Completar predicciones de clasificación' },
+  { id: 'qualifiers_predictions', label: 'Ordenar equipos clasificados (arrastra y suelta)' },
   { id: 'join_group', label: 'Unirme a un grupo de amigos' },
   { id: 'explore_rules', label: 'Revisar las reglas completas' },
 ]
