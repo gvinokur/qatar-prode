@@ -12,18 +12,18 @@ interface BracketGameCardProps {
 
 /**
  * Minimalistic game card for playoff bracket display.
- * Shows team codes (3-letter) with scores.
+ * Shows team names with scores.
  * Highlights the winner and displays penalty shootout results.
  */
 export default function BracketGameCard({ game, teamsMap }: BracketGameCardProps) {
   const homeTeam = game.home_team ? teamsMap[game.home_team] : null
   const awayTeam = game.away_team ? teamsMap[game.away_team] : null
 
-  // Get team display text - use team name, or rule description, or 'TBD'
-  const homeTeamCode =
-    homeTeam?.short_name || getTeamDescription(game.home_team_rule as any, true) || 'TBD'
-  const awayTeamCode =
-    awayTeam?.short_name || getTeamDescription(game.away_team_rule as any, true) || 'TBD'
+  // Get team display text - use full team name, or rule description, or 'TBD'
+  const homeTeamDisplay =
+    homeTeam?.name || getTeamDescription(game.home_team_rule as any, false) || 'TBD'
+  const awayTeamDisplay =
+    awayTeam?.name || getTeamDescription(game.away_team_rule as any, false) || 'TBD'
 
   const homeScore = game.gameResult?.home_score ?? '-'
   const awayScore = game.gameResult?.away_score ?? '-'
@@ -68,7 +68,7 @@ export default function BracketGameCard({ game, teamsMap }: BracketGameCardProps
             flex: 1,
           }}
         >
-          {homeTeamCode}
+          {homeTeamDisplay}
         </Typography>
         <Typography
           variant="body1"
@@ -101,7 +101,7 @@ export default function BracketGameCard({ game, teamsMap }: BracketGameCardProps
             flex: 1,
           }}
         >
-          {awayTeamCode}
+          {awayTeamDisplay}
         </Typography>
         <Typography
           variant="body1"

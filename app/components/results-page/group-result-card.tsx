@@ -60,7 +60,7 @@ export default function GroupResultCard({
       {/* Standings table section */}
       <Box>
         <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-          📊 Tabla de Posiciones:
+          Tabla de Posiciones:
         </Typography>
         <TeamStandingsCards
           teamStats={group.teamStats}

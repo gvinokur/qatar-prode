@@ -96,8 +96,8 @@ export default function PlayoffsBracketView({
   }, [gamePositions, bracketRounds])
 
   const dimensions = useMemo(
-    () => calculateBracketDimensions(bracketRounds, isMobile),
-    [bracketRounds, isMobile]
+    () => calculateBracketDimensions(bracketRounds, isMobile, !!thirdPlaceGame),
+    [bracketRounds, isMobile, thirdPlaceGame]
   )
 
   if (bracketRounds.length === 0 && !thirdPlaceGame) {
@@ -125,7 +125,9 @@ export default function PlayoffsBracketView({
             overflowY: 'auto',
             position: 'relative',
             minHeight: `${dimensions.height + 100}px`,
+            maxHeight: '70vh',
             pb: 4,
+            WebkitOverflowScrolling: 'touch',
           }}
         >
           {/* SVG overlay for connection lines */}
@@ -181,17 +183,28 @@ export default function PlayoffsBracketView({
                 </Box>
               )
             })}
-          </Box>
-        </Box>
-      )}
 
-      {/* Third place playoff (separate from main bracket) */}
-      {thirdPlaceGame && (
-        <Box sx={{ mt: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-            Tercer Lugar
-          </Typography>
-          <BracketGameCard game={thirdPlaceGame} teamsMap={teamsMap} />
+            {/* Third place playoff (below final) */}
+            {thirdPlaceGame && gamePositions.length > 0 && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  left: gamePositions[gamePositions.length - 1].x * scale,
+                  top: (gamePositions[gamePositions.length - 1].y + 150) * scale,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  transform: isMobile ? `scale(${BRACKET_CONSTANTS.MOBILE_SCALE})` : 'none',
+                  transformOrigin: 'top left',
+                }}
+              >
+                <Typography variant="caption" sx={{ mb: 1, fontWeight: 600, fontSize: '0.75rem' }}>
+                  3er Lugar
+                </Typography>
+                <BracketGameCard game={thirdPlaceGame} teamsMap={teamsMap} />
+              </Box>
+            )}
+          </Box>
         </Box>
       )}
     </Box>

@@ -126,9 +126,10 @@ export function calculateConnectionPath(
  */
 export function calculateBracketDimensions(
   rounds: BracketRound[],
-  isMobile: boolean = false
+  isMobile: boolean = false,
+  hasThirdPlace: boolean = false
 ): { width: number; height: number } {
-  const { ROUND_SPACING, GAME_CARD_WIDTH, MOBILE_SCALE } = BRACKET_CONSTANTS
+  const { ROUND_SPACING, GAME_CARD_WIDTH, GAME_CARD_HEIGHT, MOBILE_SCALE } = BRACKET_CONSTANTS
 
   const scale = isMobile ? MOBILE_SCALE : 1
 
@@ -139,9 +140,14 @@ export function calculateBracketDimensions(
   let maxHeight = 0
   rounds.forEach((round) => {
     const spacing = calculateRoundSpacing(round.games.length)
-    const roundHeight = (round.games.length - 1) * spacing + BRACKET_CONSTANTS.GAME_CARD_HEIGHT
+    const roundHeight = (round.games.length - 1) * spacing + GAME_CARD_HEIGHT
     maxHeight = Math.max(maxHeight, roundHeight)
   })
+
+  // Add extra height for third place game if present (positioned 150px below final)
+  if (hasThirdPlace) {
+    maxHeight += 150 + GAME_CARD_HEIGHT + 20 // 150px spacing + card height + 20px padding
+  }
 
   const height = maxHeight * scale
 

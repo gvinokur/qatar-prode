@@ -74,7 +74,12 @@ export default function ResultsPageClient({
         )}
       </Box>
 
-      <Box role="tabpanel" hidden={selectedTab !== 1} id="results-tabpanel-1">
+      <Box
+        role="tabpanel"
+        hidden={selectedTab !== 1}
+        id="results-tabpanel-1"
+        sx={{ width: '100%', maxWidth: '100%', overflow: 'hidden' }}
+      >
         {selectedTab === 1 && (
           <PlayoffsBracketView playoffStages={playoffStages} games={games} teamsMap={teamsMap} />
         )}
