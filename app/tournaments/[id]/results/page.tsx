@@ -30,19 +30,9 @@ export default async function ResultsPage(props: Props) {
       findPlayoffStagesWithGamesInTournament(tournamentId),
     ])
 
-    // Filter to only finished games (have scores and date has passed)
-    const finishedGames = games.filter((game) => {
-      const hasScores =
-        typeof game.gameResult?.home_score === 'number' &&
-        typeof game.gameResult?.away_score === 'number'
-      const hasPassed = game.game_date < new Date()
-      return hasScores && hasPassed
-    })
-
     // Handle empty states
     const hasGroups = groupStandings.groups.length > 0
     const hasPlayoffs = playoffStages.length > 0
-    const hasFinishedGames = finishedGames.length > 0
 
     // If no data at all, show empty state
     if (!hasGroups && !hasPlayoffs) {
@@ -60,22 +50,6 @@ export default async function ResultsPage(props: Props) {
       )
     }
 
-    // If tournament exists but no finished games yet
-    if (!hasFinishedGames) {
-      return (
-        <Box sx={{ maxWidth: 'lg', mx: 'auto', py: 4, px: 2 }}>
-          <Box sx={{ textAlign: 'center', py: 8 }}>
-            <Typography variant="h5" color="text.secondary" gutterBottom>
-              No hay resultados disponibles todavía
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              Los resultados se mostrarán aquí cuando los partidos se completen
-            </Typography>
-          </Box>
-        </Box>
-      )
-    }
-
     // Render the main results page
     return (
       <Box sx={{ maxWidth: 'lg', mx: 'auto', py: 4, px: 2 }}>
@@ -87,7 +61,7 @@ export default async function ResultsPage(props: Props) {
           <ResultsPageClient
             groups={groupStandings.groups}
             qualifiedTeams={groupStandings.qualifiedTeams}
-            games={finishedGames}
+            games={games}
             teamsMap={teamsMap}
             playoffStages={playoffStages}
           />

@@ -2,6 +2,7 @@ import { ExtendedGameData } from '@/app/definitions'
 import { Team } from '@/app/db/tables-definition'
 import { Typography, Box } from '@mui/material'
 import { formatGameScore } from '@/app/utils/penalty-result-formatter'
+import { getTeamDescription } from '@/app/utils/playoffs-rule-helper'
 
 interface MinimalisticGamesListProps {
   readonly games: ExtendedGameData[]
@@ -9,26 +10,17 @@ interface MinimalisticGamesListProps {
 }
 
 /**
- * Displays a simple read-only list of finished game results.
- * Shows team names and scores including penalty shootouts.
+ * Displays a simple read-only list of all games.
+ * Shows team names (or placeholders) and scores including penalty shootouts.
  */
 export default function MinimalisticGamesList({ games, teamsMap }: MinimalisticGamesListProps) {
-  // Filter to only finished games (have scores and date has passed)
-  const finishedGames = games.filter((game) => {
-    const hasScores =
-      typeof game.gameResult?.home_score === 'number' &&
-      typeof game.gameResult?.away_score === 'number'
-    const hasPassed = game.game_date < new Date()
-    return hasScores && hasPassed
-  })
-
-  // Sort by game number ascending
-  const sortedGames = [...finishedGames].sort((a, b) => a.game_number - b.game_number)
+  // Sort all games by game number ascending
+  const sortedGames = [...games].sort((a, b) => a.game_number - b.game_number)
 
   if (sortedGames.length === 0) {
     return (
       <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', py: 1 }}>
-        No hay resultados disponibles todavía
+        No hay partidos disponibles
       </Typography>
     )
   }
@@ -39,8 +31,11 @@ export default function MinimalisticGamesList({ games, teamsMap }: MinimalisticG
         const homeTeam = game.home_team ? teamsMap[game.home_team] : null
         const awayTeam = game.away_team ? teamsMap[game.away_team] : null
 
-        const homeTeamDisplay = homeTeam?.name || 'TBD'
-        const awayTeamDisplay = awayTeam?.name || 'TBD'
+        // Get team display text - use team name, or rule description (long form), or 'TBD'
+        const homeTeamDisplay =
+          homeTeam?.name || getTeamDescription(game.home_team_rule as any, false) || 'TBD'
+        const awayTeamDisplay =
+          awayTeam?.name || getTeamDescription(game.away_team_rule as any, false) || 'TBD'
 
         const scoreDisplay = formatGameScore(game)
 
@@ -55,7 +50,16 @@ export default function MinimalisticGamesList({ games, teamsMap }: MinimalisticG
               py: 0.5,
             }}
           >
-            <Box component="span" sx={{ flex: 1, textAlign: 'left' }}>
+            <Box
+              component="span"
+              sx={{
+                flex: 1,
+                textAlign: 'left',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
               {homeTeamDisplay}
             </Box>
             <Box
@@ -69,7 +73,16 @@ export default function MinimalisticGamesList({ games, teamsMap }: MinimalisticG
             >
               {scoreDisplay}
             </Box>
-            <Box component="span" sx={{ flex: 1, textAlign: 'right' }}>
+            <Box
+              component="span"
+              sx={{
+                flex: 1,
+                textAlign: 'right',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
               {awayTeamDisplay}
             </Box>
           </Typography>

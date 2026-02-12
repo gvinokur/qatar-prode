@@ -3,6 +3,7 @@ import { Team } from '@/app/db/tables-definition'
 import { Paper, Typography, Box } from '@mui/material'
 import { formatPenaltyResult } from '@/app/utils/penalty-result-formatter'
 import { getGameWinner } from '@/app/utils/score-utils'
+import { getTeamDescription } from '@/app/utils/playoffs-rule-helper'
 
 interface BracketGameCardProps {
   readonly game: ExtendedGameData
@@ -18,8 +19,11 @@ export default function BracketGameCard({ game, teamsMap }: BracketGameCardProps
   const homeTeam = game.home_team ? teamsMap[game.home_team] : null
   const awayTeam = game.away_team ? teamsMap[game.away_team] : null
 
-  const homeTeamCode = homeTeam?.short_name || 'TBD'
-  const awayTeamCode = awayTeam?.short_name || 'TBD'
+  // Get team display text - use team name, or rule description, or 'TBD'
+  const homeTeamCode =
+    homeTeam?.short_name || getTeamDescription(game.home_team_rule as any, true) || 'TBD'
+  const awayTeamCode =
+    awayTeam?.short_name || getTeamDescription(game.away_team_rule as any, true) || 'TBD'
 
   const homeScore = game.gameResult?.home_score ?? '-'
   const awayScore = game.gameResult?.away_score ?? '-'
@@ -58,6 +62,10 @@ export default function BracketGameCard({ game, teamsMap }: BracketGameCardProps
           sx={{
             fontWeight: homeIsWinner ? 700 : 400,
             color: homeIsWinner ? 'primary.main' : 'text.primary',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            flex: 1,
           }}
         >
           {homeTeamCode}
@@ -87,6 +95,10 @@ export default function BracketGameCard({ game, teamsMap }: BracketGameCardProps
           sx={{
             fontWeight: awayIsWinner ? 700 : 400,
             color: awayIsWinner ? 'primary.main' : 'text.primary',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            flex: 1,
           }}
         >
           {awayTeamCode}
