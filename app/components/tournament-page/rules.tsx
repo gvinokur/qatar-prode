@@ -345,14 +345,14 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
         </CardContent>
       </Collapse>
       {!fullpage && (
-        <CardActions sx={{ justifyContent: 'flex-end', px: 2 }}>
+        <CardActions sx={{ justifyContent: 'center', px: 2, py: 1.5 }}>
           <Button
             component={Link}
             href={tournamentId ? `/tournaments/${tournamentId}/rules` : "/rules"}
             variant="text"
             color="primary"
           >
-            Ver reglas completas y ejemplos
+            Ver Reglas Completas
           </Button>
         </CardActions>
       )}

@@ -1,12 +1,14 @@
 'use client'
 
-import { Accordion, AccordionSummary, AccordionDetails, Typography, useTheme, Box, IconButton } from '@mui/material'
+import { Accordion, AccordionSummary, AccordionDetails, Typography, useTheme, Box, IconButton, Button, Card, CardActions } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
+import AssessmentIcon from '@mui/icons-material/Assessment'
 import { useState, useEffect, useRef } from 'react'
 import TeamStandingsCards from '../groups-page/team-standings-cards'
 import { Team, TeamStats } from '@/app/db/tables-definition'
+import Link from 'next/link'
 
 interface GroupStandingsSidebarProps {
   readonly groups: ReadonlyArray<{
@@ -17,9 +19,10 @@ interface GroupStandingsSidebarProps {
   }>
   readonly defaultGroupId: string
   readonly qualifiedTeams: ReadonlyArray<{ readonly id: string }>  // Format expected by TeamStandingsCards
+  readonly tournamentId: string  // Add tournament ID for results link
 }
 
-export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifiedTeams }: GroupStandingsSidebarProps) {
+export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifiedTeams, tournamentId }: GroupStandingsSidebarProps) {
   const [selectedGroupId, setSelectedGroupId] = useState(defaultGroupId)
   const [expanded, setExpanded] = useState(true)
   const theme = useTheme()
@@ -112,16 +115,18 @@ export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifie
   const hasNext = currentIndex < sortedGroups.length - 1
 
   return (
-    <Accordion
-      expanded={expanded}
-      onChange={(_, isExpanded) => setExpanded(isExpanded)}
-      defaultExpanded
-      sx={{
-        '&:before': {
-          display: 'none',
-        },
-      }}
-    >
+    <Card>
+      <Accordion
+        expanded={expanded}
+        onChange={(_, isExpanded) => setExpanded(isExpanded)}
+        defaultExpanded
+        sx={{
+          '&:before': {
+            display: 'none',
+          },
+          boxShadow: 'none',
+        }}
+      >
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls="group-standings-content"
@@ -200,6 +205,18 @@ export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifie
           compact={true}
         />
       </AccordionDetails>
-    </Accordion>
+      </Accordion>
+      <CardActions sx={{ justifyContent: 'center', px: 2, py: 1.5 }}>
+        <Button
+          component={Link}
+          href={`/tournaments/${tournamentId}/results`}
+          startIcon={<AssessmentIcon />}
+          variant="text"
+          color="primary"
+        >
+          Ver Resultados
+        </Button>
+      </CardActions>
+    </Card>
   )
 }

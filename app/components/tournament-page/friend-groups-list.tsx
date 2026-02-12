@@ -130,7 +130,7 @@ export default function FriendGroupsList({
           </List>
         </CardContent>
         </Collapse>
-        <CardActions>
+        <CardActions sx={{ justifyContent: 'space-around', px: 2, py: 1.5 }}>
           <Button onClick={() => setOpenCreateDialog(true)}>Crear Grupo</Button>
           {tournamentId && (userGroups.length + participantGroups.length) > 1 && (
             <Button component={Link} href={`/tournaments/${tournamentId}/friend-groups`}>

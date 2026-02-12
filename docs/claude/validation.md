@@ -42,13 +42,123 @@ After implementation is complete, code is committed/pushed, and user has tested 
 ## Complete Validation Workflow
 
 **Prerequisites (already completed in implementation phase):**
-- ✅ Tests run and passing (done before commit - implementation.md Section 7 Step 3)
-- ✅ Linting passed (done before commit - implementation.md Section 7 Step 3)
-- ✅ Build succeeded (done before commit - implementation.md Section 7 Step 3)
+- ✅ Tests run and passing (done before commit - implementation.md Section 9 Step 3)
+- ✅ Linting passed (done before commit - implementation.md Section 9 Step 3)
+- ✅ Build succeeded (done before commit - implementation.md Section 9 Step 3)
 - ✅ Code committed and pushed
 - ✅ Vercel Preview deployment created
 
-### 1. Verify User Satisfaction from Vercel Preview
+### 1. Plan Reconciliation (MANDATORY)
+
+**🛑 BEFORE running final validation, reconcile plan with implementation 🛑**
+
+**Purpose:** Ensure plan documentation accurately reflects what was actually built, so future readers understand the final implementation.
+
+#### Step A: Read Plan Document
+
+```typescript
+Read({
+  file_path: `${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-plan.md`
+})
+
+// Also check for change plans
+Read({
+  file_path: `${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-change-1.md` // if exists
+})
+```
+
+#### Step B: Compare Plan to Implementation
+
+Review each section of the plan against actual code:
+
+**Technical Approach:**
+- Does the code follow the approach described?
+- Were there architectural deviations?
+- Are all components/files mentioned in the plan present?
+
+**Implementation Steps:**
+- Were all steps completed as described?
+- Were steps skipped or done differently?
+- Were additional steps needed?
+
+**Files Created/Modified:**
+- Do the actual files match the plan?
+- Were additional files created?
+- Were planned files not needed?
+
+**Testing Strategy:**
+- Were tests created as described?
+- Were additional test scenarios added?
+
+#### Step C: Identify Gaps
+
+**Ask yourself:**
+1. Are there code changes not mentioned in the plan?
+2. Are there amendments that should have been added but weren't?
+3. Does the plan contradict the actual implementation?
+4. Would a future developer be confused by plan vs. code?
+
+#### Step D: Update Plan if Needed
+
+**If gaps found, add missing amendments:**
+
+```typescript
+Edit({
+  file_path: `${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-plan.md`,
+  old_string: `## Testing Strategy`,
+  new_string: `## Implementation Amendments
+
+### Amendment X: [Title]
+**Date:** ${TODAY}
+**Reason:** [Why this was needed - discovered during reconciliation]
+**Change:** [What was actually done]
+
+## Testing Strategy`
+})
+```
+
+**Commit plan updates:**
+
+```bash
+git -C ${WORKTREE_PATH} add plans/STORY-${STORY_NUMBER}-plan.md
+git -C ${WORKTREE_PATH} commit -m "docs: reconcile plan with implementation
+
+Added amendments for changes discovered during implementation.
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+git -C ${WORKTREE_PATH} push
+```
+
+#### Step E: Reconciliation Checklist
+
+**Complete this checklist before proceeding:**
+
+- [ ] I have read the original plan document completely
+- [ ] I have compared plan to actual implementation
+- [ ] All deviations are documented (in amendments or change plans)
+- [ ] No contradictions exist between plan and code
+- [ ] Future developers can understand what was built and why
+- [ ] All amendments have clear reason and change description
+- [ ] Plan amendments are committed and pushed (if updates were needed)
+
+**Only proceed to user satisfaction verification after completing this checklist.**
+
+#### Why This Matters
+
+**Benefits:**
+- ✅ Plan serves as accurate documentation
+- ✅ Future developers understand decisions
+- ✅ Shows evolution of implementation
+- ✅ Captures context while still fresh
+- ✅ No contradictory information
+
+**Without reconciliation:**
+- ❌ Plan shows original intent, not reality
+- ❌ Future developers confused by discrepancies
+- ❌ Decisions lost to time
+- ❌ Plan becomes worthless documentation
+
+### 2. Verify User Satisfaction from Vercel Preview
 
 Confirm user has tested in Vercel Preview and is satisfied with:
 - Functionality works as expected in preview environment
@@ -59,7 +169,7 @@ Confirm user has tested in Vercel Preview and is satisfied with:
 
 **Only proceed when user explicitly confirms satisfaction after testing in Vercel Preview.**
 
-### 2. Wait for CI/CD Checks
+### 3. Wait for CI/CD Checks
 
 ```bash
 # Wait for Vercel and SonarCloud
@@ -76,7 +186,7 @@ Confirm user has tested in Vercel Preview and is satisfied with:
 ./scripts/github-projects-helper pr sonar-issues ${PR_NUMBER}
 ```
 
-### 3. Analyze SonarCloud Results
+### 4. Analyze SonarCloud Results
 
 **Get SonarCloud issues using helper script:**
 ```bash
@@ -133,7 +243,7 @@ Detailed Issues:
 
 **IMPORTANT:** ALL new issues must be fixed, regardless of severity. Even MINOR code smells must be resolved before merge.
 
-### 4. Handle Quality Gate Failures
+### 5. Handle Quality Gate Failures
 
 **If SonarCloud reports new issues:**
 
@@ -222,7 +332,7 @@ Would you like me to add tests to improve coverage?
 3. **Add tests (if authorized)**
 4. **Commit, push, re-validate**
 
-### 9. Validate Vercel Deployment
+### 6. Validate Vercel Deployment
 
 **Check deployment:**
 ```bash
@@ -240,7 +350,7 @@ gh pr view ${PR_NUMBER} --json statusCheckRollup --jq '.statusCheckRollup[] | se
 - Fix build/runtime errors
 - Commit, push, re-validate
 
-### 10. Mark PR as Ready for Review
+### 7. Mark PR as Ready for Review
 
 **CRITICAL: PRs should remain in DRAFT mode throughout planning and implementation.**
 
@@ -268,7 +378,7 @@ gh pr ready ${PR_NUMBER}
 - ❌ After user testing if more changes are expected
 - ❌ Automatically without user's explicit instruction
 
-### 11. Final Quality Gate Confirmation
+### 8. Final Quality Gate Confirmation
 
 **After marking as ready for review, present summary to user:**
 ```
