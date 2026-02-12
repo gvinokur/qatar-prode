@@ -26,7 +26,7 @@ export default function MinimalisticGamesList({ games, teamsMap }: MinimalisticG
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
       {sortedGames.map((game) => {
         const homeTeam = game.home_team ? teamsMap[game.home_team] : null
         const awayTeam = game.away_team ? teamsMap[game.away_team] : null
@@ -47,7 +47,7 @@ export default function MinimalisticGamesList({ games, teamsMap }: MinimalisticG
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              py: 0.5,
+              py: 0.25,
             }}
           >
             <Box

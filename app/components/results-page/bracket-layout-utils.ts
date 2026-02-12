@@ -32,53 +32,64 @@ export const BRACKET_CONSTANTS = {
 }
 
 /**
- * Calculate vertical spacing for a round based on number of games.
- * Games double in spacing each round to create visual convergence effect.
- *
- * @param gamesInRound - Number of games in this round
- * @returns Vertical spacing in pixels
- *
- * @example
- * calculateRoundSpacing(8) // Quarter-finals: 240px spacing
- * calculateRoundSpacing(4) // Semi-finals: 480px spacing
- */
-export function calculateRoundSpacing(gamesInRound: number): number {
-  const { BASE_VERTICAL_SPACING, GAME_CARD_HEIGHT } = BRACKET_CONSTANTS
-
-  // Each subsequent round has 2x spacing (visual convergence)
-  // Round of 16: 120px between games
-  // Quarters: 240px + 80px (card height) = 320px total between cards
-  // Semis: 480px + 80px = 560px
-  // Final: centered
-
-  return BASE_VERTICAL_SPACING * (16 / gamesInRound) + GAME_CARD_HEIGHT
-}
-
-/**
  * Calculate absolute position for each game in the bracket.
+ * First round: games positioned at regular intervals
+ * Subsequent rounds: each game centered between its two feeder games
  *
  * @param rounds - Array of bracket rounds with games
  * @returns Array of game positions with x,y coordinates
  */
 export function calculateGamePositions(rounds: BracketRound[]): GamePosition[] {
   const positions: GamePosition[] = []
-  const { ROUND_SPACING, GAME_CARD_HEIGHT } = BRACKET_CONSTANTS
+  const { ROUND_SPACING, BASE_VERTICAL_SPACING } = BRACKET_CONSTANTS
 
   rounds.forEach((round, roundIndex) => {
-    const spacing = calculateRoundSpacing(round.games.length)
     const x = roundIndex * ROUND_SPACING
 
-    round.games.forEach((game, gameIndex) => {
-      const y = gameIndex * spacing
+    if (roundIndex === 0) {
+      // First round: position at regular intervals
+      round.games.forEach((game, gameIndex) => {
+        const y = gameIndex * BASE_VERTICAL_SPACING
 
-      positions.push({
-        gameId: game.id,
-        x,
-        y,
-        roundIndex,
-        gameIndexInRound: gameIndex,
+        positions.push({
+          gameId: game.id,
+          x,
+          y,
+          roundIndex,
+          gameIndexInRound: gameIndex,
+        })
       })
-    })
+    } else {
+      // Subsequent rounds: position each game at midpoint of its two feeder games
+      const prevRoundPositions = positions.filter((p) => p.roundIndex === roundIndex - 1)
+
+      round.games.forEach((game, gameIndex) => {
+        const feeder1 = prevRoundPositions[gameIndex * 2]
+        const feeder2 = prevRoundPositions[gameIndex * 2 + 1]
+
+        if (feeder1 && feeder2) {
+          // Position at midpoint between the two feeder games
+          const y = (feeder1.y + feeder2.y) / 2
+          positions.push({
+            gameId: game.id,
+            x,
+            y,
+            roundIndex,
+            gameIndexInRound: gameIndex,
+          })
+        } else if (feeder1) {
+          // Only one feeder (edge case, shouldn't happen in proper bracket)
+          const y = feeder1.y
+          positions.push({
+            gameId: game.id,
+            x,
+            y,
+            roundIndex,
+            gameIndexInRound: gameIndex,
+          })
+        }
+      })
+    }
   })
 
   return positions
@@ -119,9 +130,11 @@ export function calculateConnectionPath(
 
 /**
  * Calculate total bracket dimensions for container sizing.
+ * Height is determined by the first round (which has the most games spread out).
  *
  * @param rounds - Array of bracket rounds
  * @param isMobile - Whether to apply mobile scaling
+ * @param hasThirdPlace - Whether third place game exists
  * @returns Object with width and height in pixels
  */
 export function calculateBracketDimensions(
@@ -129,20 +142,20 @@ export function calculateBracketDimensions(
   isMobile: boolean = false,
   hasThirdPlace: boolean = false
 ): { width: number; height: number } {
-  const { ROUND_SPACING, GAME_CARD_WIDTH, GAME_CARD_HEIGHT, MOBILE_SCALE } = BRACKET_CONSTANTS
+  const { ROUND_SPACING, GAME_CARD_WIDTH, GAME_CARD_HEIGHT, BASE_VERTICAL_SPACING, MOBILE_SCALE } =
+    BRACKET_CONSTANTS
 
   const scale = isMobile ? MOBILE_SCALE : 1
 
   // Width: number of rounds * spacing + final card width
   const width = (rounds.length * ROUND_SPACING + GAME_CARD_WIDTH) * scale
 
-  // Height: find the round with maximum vertical extent
+  // Height: based on first round (which has the most games)
   let maxHeight = 0
-  rounds.forEach((round) => {
-    const spacing = calculateRoundSpacing(round.games.length)
-    const roundHeight = (round.games.length - 1) * spacing + GAME_CARD_HEIGHT
-    maxHeight = Math.max(maxHeight, roundHeight)
-  })
+  const firstRound = rounds[0]
+  if (firstRound) {
+    maxHeight = (firstRound.games.length - 1) * BASE_VERTICAL_SPACING + GAME_CARD_HEIGHT
+  }
 
   // Add extra height for third place game if present (positioned 150px below final)
   if (hasThirdPlace) {
