@@ -101,6 +101,7 @@ export default async function TournamentLandingPage(props: Props) {
                       groups={groupStandings.groups}
                       defaultGroupId={groupStandings.defaultGroupId}
                       qualifiedTeams={groupStandings.qualifiedTeams}
+                      tournamentId={tournamentId}
                     />
                   </Grid>
                 )}
