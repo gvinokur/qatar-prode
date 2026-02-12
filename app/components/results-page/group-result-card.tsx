@@ -76,7 +76,12 @@ export default function GroupResultCard({
     <Card sx={{ mb: 2 }}>
       <CardHeader
         title={`GRUPO ${group.letter.toUpperCase()}`}
-        titleTypographyProps={{ variant: 'h6', component: 'h3' }}
+        slotProps={{
+          title: {
+            variant: 'h6',
+            component: 'h3',
+          },
+        }}
         sx={{
           color: theme.palette.primary.main,
           borderBottom: `${theme.palette.primary.light} solid 1px`,

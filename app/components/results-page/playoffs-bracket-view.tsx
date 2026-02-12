@@ -166,9 +166,9 @@ export default function PlayoffsBracketView({
               zIndex: 0,
             }}
           >
-            {connectionPaths.map((path, idx) => (
+            {connectionPaths.map((path) => (
               <path
-                key={idx}
+                key={path}
                 d={path}
                 stroke={theme.palette.divider}
                 strokeWidth={2}
@@ -226,8 +226,8 @@ export default function PlayoffsBracketView({
               <Box
                 sx={{
                   position: 'absolute',
-                  left: gamePositions[gamePositions.length - 1].x * scale,
-                  top: (gamePositions[gamePositions.length - 1].y + 150) * scale,
+                  left: gamePositions.at(-1)!.x * scale,
+                  top: (gamePositions.at(-1)!.y + 150) * scale,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
