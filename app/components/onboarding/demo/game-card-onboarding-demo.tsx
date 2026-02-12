@@ -5,9 +5,10 @@
  * Adds game type labels and handles playoff demo behavior
  */
 
-import React from 'react'
+import React, { useContext } from 'react'
 import { Box, Typography, Chip } from '@mui/material'
 import FlippableGameCard from '@/app/components/flippable-game-card'
+import { GuessesContext } from '@/app/components/context-providers/guesses-context-provider'
 import type { Game, Team } from '@/app/db/tables-definition'
 
 interface GameCardOnboardingDemoProps {
@@ -42,6 +43,10 @@ export default function GameCardOnboardingDemo({
   label,
   demoNote,
 }: GameCardOnboardingDemoProps) {
+  // Read current guess from context to pass to FlippableGameCard
+  const { gameGuesses } = useContext(GuessesContext)
+  const currentGuess = gameGuesses[game.id]
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center', width: '100%', maxWidth: 450 }}>
       {/* Game type label */}
@@ -75,6 +80,11 @@ export default function GameCardOnboardingDemo({
         isEditing={isEditing}
         onEditStart={onEditStart}
         onEditEnd={onEditEnd}
+        homeScore={currentGuess?.home_score}
+        awayScore={currentGuess?.away_score}
+        homePenaltyWinner={currentGuess?.home_penalty_winner}
+        awayPenaltyWinner={currentGuess?.away_penalty_winner}
+        boostType={currentGuess?.boost_type}
         silverUsed={silverUsed}
         silverMax={silverMax}
         goldenUsed={goldenUsed}
