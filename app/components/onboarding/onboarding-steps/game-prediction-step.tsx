@@ -10,6 +10,7 @@ import {
   DEMO_GAMES,
   DEMO_DASHBOARD_PROPS,
   DEMO_TOURNAMENT,
+  DEMO_TOURNAMENT_PREDICTIONS,
 } from '../demo/demo-data'
 import type { ExtendedGameData } from '@/app/definitions'
 
@@ -52,40 +53,10 @@ export default function GamePredictionStep() {
       </Typography>
 
       <Box sx={{ maxWidth: 900, mx: 'auto' }}>
-        {/* Game Cards */}
         <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
           <MockGuessesContextProvider>
-            <Box sx={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 2, mb: 3 }}>
-              <FlippableGameCard
-                game={DEMO_GAMES[0]}
-                teamsMap={DEMO_TEAMS_MAP}
-                isPlayoffs={false}
-                isEditing={editingGameId === DEMO_GAMES[0].id}
-                onEditStart={() => handleEditStart(DEMO_GAMES[0].id)}
-                onEditEnd={handleEditEnd}
-                silverUsed={0}
-                silverMax={5}
-                goldenUsed={0}
-                goldenMax={2}
-                disabled={false}
-              />
-              <FlippableGameCard
-                game={DEMO_GAMES[1]}
-                teamsMap={DEMO_TEAMS_MAP}
-                isPlayoffs={false}
-                isEditing={editingGameId === DEMO_GAMES[1].id}
-                onEditStart={() => handleEditStart(DEMO_GAMES[1].id)}
-                onEditEnd={handleEditEnd}
-                silverUsed={0}
-                silverMax={5}
-                goldenUsed={0}
-                goldenMax={2}
-                disabled={false}
-              />
-            </Box>
-
             {/* Dashboard */}
-            <Box sx={{ borderTop: 1, borderColor: 'divider', pt: 3 }}>
+            <Box sx={{ mb: 3 }}>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Vista unificada de tus predicciones (haz clic para ver detalles):
               </Typography>
@@ -95,7 +66,43 @@ export default function GamePredictionStep() {
                 teamsMap={DEMO_TEAMS_MAP}
                 tournamentId={DEMO_TOURNAMENT.id}
                 tournamentStartDate={new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)}
+                tournamentPredictions={DEMO_TOURNAMENT_PREDICTIONS}
               />
+            </Box>
+
+            {/* Game Cards */}
+            <Box sx={{ borderTop: 1, borderColor: 'divider', pt: 3 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Haz clic en una tarjeta para voltearla y editar:
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 2 }}>
+                <FlippableGameCard
+                  game={DEMO_GAMES[0]}
+                  teamsMap={DEMO_TEAMS_MAP}
+                  isPlayoffs={false}
+                  isEditing={editingGameId === DEMO_GAMES[0].id}
+                  onEditStart={() => handleEditStart(DEMO_GAMES[0].id)}
+                  onEditEnd={handleEditEnd}
+                  silverUsed={0}
+                  silverMax={5}
+                  goldenUsed={0}
+                  goldenMax={2}
+                  disabled={false}
+                />
+                <FlippableGameCard
+                  game={DEMO_GAMES[1]}
+                  teamsMap={DEMO_TEAMS_MAP}
+                  isPlayoffs={false}
+                  isEditing={editingGameId === DEMO_GAMES[1].id}
+                  onEditStart={() => handleEditStart(DEMO_GAMES[1].id)}
+                  onEditEnd={handleEditEnd}
+                  silverUsed={0}
+                  silverMax={5}
+                  goldenUsed={0}
+                  goldenMax={2}
+                  disabled={false}
+                />
+              </Box>
             </Box>
           </MockGuessesContextProvider>
 

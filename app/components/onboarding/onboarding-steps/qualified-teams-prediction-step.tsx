@@ -33,6 +33,7 @@ export default function QualifiedTeamsPredictionStep() {
               maxThirdPlace={0}
               completeGroupIds={new Set<string>()}
               allGroupsComplete={false}
+              showHeader={false}
             />
           </MockQualifiedTeamsContextProvider>
         </Paper>

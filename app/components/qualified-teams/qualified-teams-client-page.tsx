@@ -44,6 +44,8 @@ interface QualifiedTeamsClientPageProps {
   readonly allGroupsComplete: boolean;
   /** Scoring breakdown for user's predictions */
   readonly scoringBreakdown?: QualifiedTeamsScoringResult | null;
+  /** Whether to show the page header (default: true) */
+  readonly showHeader?: boolean;
 }
 
 /** Handle drag end event - batch updates for entire group */
@@ -142,6 +144,7 @@ function QualifiedTeamsUI({
   completeGroupIds,
   allGroupsComplete,
   scoringBreakdown,
+  showHeader = true,
 }: Omit<QualifiedTeamsClientPageProps, 'initialPredictions' | 'userId'>) {
   const { predictions, isSaving, saveState, error, clearError, updateGroupPositions } = useQualifiedTeamsContext();
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
@@ -246,14 +249,16 @@ function QualifiedTeamsUI({
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-        <Typography variant="h4" component="h1">
-          Prediccion de Clasificados
-        </Typography>
-        <IconButton onClick={handleInfoClick} size="small" sx={{ color: 'text.secondary' }}>
-          <InfoOutlinedIcon />
-        </IconButton>
-      </Box>
+      {showHeader && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+          <Typography variant="h4" component="h1">
+            Prediccion de Clasificados
+          </Typography>
+          <IconButton onClick={handleInfoClick} size="small" sx={{ color: 'text.secondary' }}>
+            <InfoOutlinedIcon />
+          </IconButton>
+        </Box>
+      )}
 
       <Popover
         open={infoOpen}

@@ -9,6 +9,7 @@ import type {
   GameGuess,
   QualifiedTeamPrediction,
   TournamentGroup,
+  TournamentPredictionCompletion,
 } from '@/app/db/tables-definition'
 
 // Demo tournament
@@ -227,6 +228,33 @@ export const DEMO_GROUPS = [
     teams: DEMO_TEAMS, // All 4 teams in Group A
   },
 ]
+
+// Tournament prediction completion for dashboard
+export const DEMO_TOURNAMENT_PREDICTIONS: TournamentPredictionCompletion = {
+  finalStandings: {
+    completed: 3,
+    total: 3,
+    champion: true,
+    runnerUp: true,
+    thirdPlace: true,
+  },
+  awards: {
+    completed: 2,
+    total: 4,
+    bestPlayer: true,
+    topGoalscorer: true,
+    bestGoalkeeper: false,
+    bestYoungPlayer: false,
+  },
+  qualifiers: {
+    completed: 4,
+    total: 4,
+  },
+  overallCompleted: 9,
+  overallTotal: 11,
+  overallPercentage: 82,
+  isPredictionLocked: false,
+}
 
 // Props for CompactPredictionDashboard
 export const DEMO_DASHBOARD_PROPS = {
