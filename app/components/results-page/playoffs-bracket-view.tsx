@@ -121,6 +121,7 @@ export default function PlayoffsBracketView({
       {bracketRounds.length > 0 && (
         <Box
           sx={{
+            width: '100%',
             overflowX: 'auto',
             overflowY: 'auto',
             position: 'relative',
