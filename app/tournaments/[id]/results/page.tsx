@@ -52,8 +52,13 @@ export default async function ResultsPage(props: Props) {
 
     // Render the main results page
     return (
-      <Box sx={{ maxWidth: 'lg', mx: 'auto', py: 4, px: 2 }}>
-        <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 3 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <Typography
+          variant="h4"
+          component="h1"
+          gutterBottom
+          sx={{ mb: 2, py: 2, textAlign: 'center' }}
+        >
           Resultados y Tablas
         </Typography>
 

@@ -41,9 +41,9 @@ export default function ResultsPageClient({
   }
 
   return (
-    <Box>
-      {/* Tabs navigation */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+      {/* Tabs navigation - always visible */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', flexShrink: 0 }}>
         <Tabs
           value={selectedTab}
           onChange={handleTabChange}
@@ -67,8 +67,18 @@ export default function ResultsPageClient({
         </Tabs>
       </Box>
 
-      {/* Tab panels */}
-      <Box role="tabpanel" hidden={selectedTab !== 0} id="results-tabpanel-0">
+      {/* Tab panels - scrollable content */}
+      <Box
+        role="tabpanel"
+        hidden={selectedTab !== 0}
+        id="results-tabpanel-0"
+        sx={{
+          flex: 1,
+          overflow: 'auto',
+          px: 2,
+          py: 2,
+        }}
+      >
         {selectedTab === 0 && (
           <GroupsStageView groups={groups} games={games} qualifiedTeams={qualifiedTeams} />
         )}
@@ -78,6 +88,12 @@ export default function ResultsPageClient({
         role="tabpanel"
         hidden={selectedTab !== 1}
         id="results-tabpanel-1"
+        sx={{
+          flex: 1,
+          overflow: 'auto',
+          px: 2,
+          py: 2,
+        }}
       >
         {selectedTab === 1 && (
           <PlayoffsBracketView playoffStages={playoffStages} games={games} teamsMap={teamsMap} />
