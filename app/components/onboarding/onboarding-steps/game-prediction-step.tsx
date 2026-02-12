@@ -3,7 +3,7 @@
 import { Box, Typography, Alert, Paper } from '@mui/material'
 import { useState, useCallback } from 'react'
 import { MockGuessesContextProvider } from '../demo/onboarding-demo-context'
-import FlippableGameCard from '@/app/components/flippable-game-card'
+import GameCardOnboardingDemo from '../demo/game-card-onboarding-demo'
 import { CompactPredictionDashboard } from '@/app/components/compact-prediction-dashboard'
 import {
   DEMO_TEAMS_MAP,
@@ -67,16 +67,17 @@ export default function GamePredictionStep() {
                 tournamentId={DEMO_TOURNAMENT.id}
                 tournamentStartDate={new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)}
                 tournamentPredictions={DEMO_TOURNAMENT_PREDICTIONS}
+                demoMode={true}
               />
             </Box>
 
             {/* Game Cards */}
             <Box sx={{ borderTop: 1, borderColor: 'divider', pt: 3 }}>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Haz clic en una tarjeta para voltearla y editar:
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Haz clic en una tarjeta para voltearla y editar. Nota las diferencias entre partidos de grupo y playoffs:
               </Typography>
-              <Box sx={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 2 }}>
-                <FlippableGameCard
+              <Box sx={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 4 }}>
+                <GameCardOnboardingDemo
                   game={DEMO_GAMES[0]}
                   teamsMap={DEMO_TEAMS_MAP}
                   isPlayoffs={false}
@@ -87,9 +88,9 @@ export default function GamePredictionStep() {
                   silverMax={5}
                   goldenUsed={0}
                   goldenMax={2}
-                  disabled={false}
+                  label="Partido de Grupo"
                 />
-                <FlippableGameCard
+                <GameCardOnboardingDemo
                   game={DEMO_GAMES[1]}
                   teamsMap={DEMO_TEAMS_MAP}
                   isPlayoffs={true}
@@ -100,7 +101,8 @@ export default function GamePredictionStep() {
                   silverMax={5}
                   goldenUsed={0}
                   goldenMax={2}
-                  disabled={false}
+                  label="Partido de Playoff"
+                  demoNote="En empate, selecciona el ganador por penales"
                 />
               </Box>
             </Box>

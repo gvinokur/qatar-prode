@@ -28,6 +28,7 @@ interface CompactPredictionDashboardProps {
   readonly games?: ExtendedGameData[];
   readonly teamsMap?: Record<string, Team>;
   readonly isPlayoffs?: boolean;
+  readonly demoMode?: boolean;
 }
 
 export function CompactPredictionDashboard({
@@ -42,7 +43,8 @@ export function CompactPredictionDashboard({
   tournamentStartDate,
   games,
   teamsMap,
-  isPlayoffs = false
+  isPlayoffs = false,
+  demoMode = false
 }: CompactPredictionDashboardProps) {
   const { gameGuesses } = useContext(GuessesContext);
   const dashboardRef = useRef<HTMLDivElement>(null);
@@ -106,13 +108,13 @@ export function CompactPredictionDashboard({
         maxValue={totalGames}
         percentage={gamePercentage}
         urgencyLevel={gameUrgencyLevel}
-        onClick={(e) => setGamePopoverAnchor(e.currentTarget)}
+        onClick={demoMode ? () => {} : (e) => setGamePopoverAnchor(e.currentTarget)}
         showBoosts={showBoosts}
         silverUsed={silverUsed}
         silverMax={silverMax}
         goldenUsed={goldenUsed}
         goldenMax={goldenMax}
-        onBoostClick={handleBoostClick}
+        onBoostClick={demoMode ? undefined : handleBoostClick}
       />
 
       {/* Tournament Predictions Row */}
@@ -122,7 +124,7 @@ export function CompactPredictionDashboard({
           currentValue={tournamentPredictions.overallPercentage}
           percentage={tournamentPredictions.overallPercentage}
           urgencyLevel={tournamentUrgencyLevel}
-          onClick={(e) => setTournamentPopoverAnchor(e.currentTarget)}
+          onClick={demoMode ? () => {} : (e) => setTournamentPopoverAnchor(e.currentTarget)}
           marginBottom={0}
         />
       )}
