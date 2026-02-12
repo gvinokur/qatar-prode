@@ -13,7 +13,9 @@ vi.mock('../../../app/actions/onboarding-actions', () => ({
 // Mock step components
 vi.mock('../../../app/components/onboarding/onboarding-steps', () => ({
   WelcomeStep: () => <div data-testid="welcome-step">Welcome Step</div>,
-  SamplePredictionStep: () => <div data-testid="prediction-step">Prediction Step</div>,
+  GamePredictionStep: () => <div data-testid="game-prediction-step">Game Prediction Step</div>,
+  QualifiedTeamsPredictionStep: () => <div data-testid="qualified-teams-step">Qualified Teams Step</div>,
+  TournamentAwardsStep: () => <div data-testid="tournament-awards-step">Tournament Awards Step</div>,
   ScoringExplanationStep: () => <div data-testid="scoring-step">Scoring Step</div>,
   BoostIntroductionStep: () => <div data-testid="boost-step">Boost Step</div>,
   ChecklistStep: ({ onComplete }: { onComplete: () => void }) => (
@@ -77,7 +79,7 @@ describe('OnboardingDialog', () => {
     render(<OnboardingDialog open={true} onClose={mockOnClose} />)
 
     expect(screen.getByTestId('welcome-step')).toBeInTheDocument()
-    expect(screen.getByText('Step 1 of 5')).toBeInTheDocument()
+    expect(screen.getByText('Step 1 of 7')).toBeInTheDocument()
   })
 
   it('advances to next step when Siguiente button clicked', async () => {
@@ -87,8 +89,8 @@ describe('OnboardingDialog', () => {
     fireEvent.click(nextButtons[0])
 
     await waitFor(() => {
-      expect(screen.getByTestId('prediction-step')).toBeInTheDocument()
-      expect(screen.getByText('Step 2 of 5')).toBeInTheDocument()
+      expect(screen.getByTestId('game-prediction-step')).toBeInTheDocument()
+      expect(screen.getByText('Step 2 of 7')).toBeInTheDocument()
     })
   })
 
@@ -100,7 +102,7 @@ describe('OnboardingDialog', () => {
     fireEvent.click(nextButtons[0])
 
     await waitFor(() => {
-      expect(screen.getByTestId('prediction-step')).toBeInTheDocument()
+      expect(screen.getByTestId('game-prediction-step')).toBeInTheDocument()
     })
 
     // Go back to step 1
@@ -109,7 +111,7 @@ describe('OnboardingDialog', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('welcome-step')).toBeInTheDocument()
-      expect(screen.getByText('Step 1 of 5')).toBeInTheDocument()
+      expect(screen.getByText('Step 1 of 7')).toBeInTheDocument()
     })
   })
 
@@ -131,14 +133,14 @@ describe('OnboardingDialog', () => {
     render(<OnboardingDialog open={true} onClose={mockOnClose} />)
 
     // Navigate through all steps
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 6; i++) {
       const nextButtons = screen.getAllByText(/Siguiente|Finalizar/)
       fireEvent.click(nextButtons[0])
       await waitFor(() => {}) // Wait for state update
     }
 
     expect(screen.getByTestId('checklist-step')).toBeInTheDocument()
-    expect(screen.getByText('Step 5 of 5')).toBeInTheDocument()
+    expect(screen.getByText('Step 7 of 7')).toBeInTheDocument()
   })
 
   it('completes onboarding when checklist step completed', async () => {
@@ -147,7 +149,7 @@ describe('OnboardingDialog', () => {
     render(<OnboardingDialog open={true} onClose={mockOnClose} />)
 
     // Navigate to checklist step
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 6; i++) {
       const nextButtons = screen.getAllByText(/Siguiente|Finalizar/)
       fireEvent.click(nextButtons[0])
       await waitFor(() => {}) // Wait for state update
@@ -166,18 +168,18 @@ describe('OnboardingDialog', () => {
   it('updates progress bar as steps advance', async () => {
     render(<OnboardingDialog open={true} onClose={mockOnClose} />)
 
-    const getProgress = () => screen.getByTestId('linear-progress').getAttribute('data-value')
+    const getProgress = () => parseFloat(screen.getByTestId('linear-progress').getAttribute('data-value') || '0')
 
-    // Initial progress (step 1/5 = 20%)
-    expect(getProgress()).toBe('20')
+    // Initial progress (step 1/7 ≈ 14.3%)
+    expect(getProgress()).toBeCloseTo(14.285714285714285, 5)
 
     // Advance to step 2
     const nextButtons = screen.getAllByText('Siguiente')
     fireEvent.click(nextButtons[0])
 
     await waitFor(() => {
-      // Step 2/5 = 40%
-      expect(getProgress()).toBe('40')
+      // Step 2/7 ≈ 28.6%
+      expect(getProgress()).toBeCloseTo(28.571428571428573, 5)
     })
   })
 

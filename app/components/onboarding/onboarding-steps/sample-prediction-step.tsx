@@ -1,330 +1,270 @@
 'use client'
 
-import { Box, Typography, Card, CardContent, Tabs, Tab, CardHeader, Grid, Chip, Alert, Table, TableHead, TableRow, TableCell, TableBody, Paper, TextField } from '@mui/material'
-import { useState } from 'react'
-import CompactGameViewCard from '../../compact-game-view-card'
-import TeamSelector from '../../awards/team-selector'
-import MobileFriendlyAutocomplete from '../../awards/mobile-friendly-autocomplete'
-import GameResultEditDialog from '../../game-result-edit-dialog'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import type { Team } from '../../../db/tables-definition'
-import type { ExtendedPlayerData } from '../../../definitions'
-
-// Mock data for demonstration
-const MOCK_TEAMS: Team[] = [
-  { id: '1', name: 'Argentina', short_name: 'ARG', theme: null },
-  { id: '2', name: 'Brasil', short_name: 'BRA', theme: null },
-  { id: '3', name: 'Uruguay', short_name: 'URU', theme: null },
-  { id: '4', name: 'Chile', short_name: 'CHI', theme: null },
-]
-
-const MOCK_PLAYERS: ExtendedPlayerData[] = [
-  { id: '1', name: 'Lionel Messi', position: 'Delantero', age_at_tournament: 34, team_id: '1', tournament_id: 'mock', team: MOCK_TEAMS[0] },
-  { id: '2', name: 'Neymar Jr', position: 'Delantero', age_at_tournament: 29, team_id: '2', tournament_id: 'mock', team: MOCK_TEAMS[1] },
-  { id: '3', name: 'Luis Suárez', position: 'Delantero', age_at_tournament: 34, team_id: '3', tournament_id: 'mock', team: MOCK_TEAMS[2] },
-  { id: '4', name: 'Arturo Vidal', position: 'Mediocampista', age_at_tournament: 34, team_id: '4', tournament_id: 'mock', team: MOCK_TEAMS[3] },
-]
-
-interface TabPanelProps {
-  readonly children?: React.ReactNode
-  readonly index: number
-  readonly value: number
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`prediction-tabpanel-${index}`}
-      aria-labelledby={`prediction-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box sx={{ py: 3 }}>
-          {children}
-        </Box>
-      )}
-    </div>
-  )
-}
+import { Box, Typography, Alert, Divider, Paper, Stack } from '@mui/material'
+import { useState, useCallback } from 'react'
+import { MockGuessesContextProvider, MockQualifiedTeamsContextProvider } from '../demo/onboarding-demo-context'
+import FlippableGameCard from '@/app/components/flippable-game-card'
+import QualifiedTeamsClientPage from '@/app/components/qualified-teams/qualified-teams-client-page'
+import { CompactPredictionDashboard } from '@/app/components/compact-prediction-dashboard'
+import TeamSelector from '@/app/components/awards/team-selector'
+import {
+  DEMO_TEAMS,
+  DEMO_TEAMS_MAP,
+  DEMO_GAMES,
+  DEMO_GROUPS,
+  DEMO_DASHBOARD_PROPS,
+  DEMO_TOURNAMENT,
+  DEMO_QUALIFIED_PREDICTIONS_ARRAY,
+} from '../demo/demo-data'
 
 export default function SamplePredictionStep() {
-  const [tabValue, setTabValue] = useState(0)
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const [homeScore, setHomeScore] = useState<number | undefined>(2)
-  const [awayScore, setAwayScore] = useState<number | undefined>(1)
-  const [gameClicked, setGameClicked] = useState(false)
-  const [champion, setChampion] = useState('')
-  const [runnerUp, setRunnerUp] = useState('')
-  const [bestPlayer, setBestPlayer] = useState('')
+  // Success message states
+  const [showCardSuccess, setShowCardSuccess] = useState(false)
+  const [showTeamSuccess, setShowTeamSuccess] = useState(false)
 
-  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue)
-  }
+  // Track user interactions
+  const [hasInteractedWithCard, setHasInteractedWithCard] = useState(false)
 
-  const handleGameClick = () => {
-    setEditDialogOpen(true)
-  }
+  // Edit state management for flippable cards
+  const [editingGameId, setEditingGameId] = useState<string | null>(null)
 
-  const handleGameGuessSave = async (
-    _gameId: string,
-    newHomeScore?: number,
-    newAwayScore?: number,
-  ) => {
-    setHomeScore(newHomeScore)
-    setAwayScore(newAwayScore)
-    setEditDialogOpen(false)
-    setGameClicked(true)
-  }
+  // Selected tournament predictions
+  const [championTeamId, setChampionTeamId] = useState<string>('')
+  const [runnerUpTeamId, setRunnerUpTeamId] = useState<string>('')
+  const [thirdPlaceTeamId, setThirdPlaceTeamId] = useState<string>('')
+
+  // Handle flippable card edit start
+  const handleEditStart = useCallback((gameId: string) => {
+    setEditingGameId(gameId)
+    if (!hasInteractedWithCard) {
+      setHasInteractedWithCard(true)
+      setShowCardSuccess(true)
+      // Auto-dismiss after 5 seconds
+      setTimeout(() => {
+        setShowCardSuccess(false)
+      }, 5000)
+    }
+  }, [hasInteractedWithCard])
+
+  // Handle flippable card edit end
+  const handleEditEnd = useCallback(() => {
+    setEditingGameId(null)
+  }, [])
+
+  // Handle team selection
+  const handleTeamSelect = useCallback((type: 'champion' | 'runnerUp' | 'thirdPlace', teamId: string) => {
+    if (type === 'champion') {
+      setChampionTeamId(teamId)
+    } else if (type === 'runnerUp') {
+      setRunnerUpTeamId(teamId)
+    } else if (type === 'thirdPlace') {
+      setThirdPlaceTeamId(teamId)
+    }
+
+    if (teamId && !showTeamSuccess) {
+      setShowTeamSuccess(true)
+      // Auto-dismiss after 5 seconds
+      setTimeout(() => {
+        setShowTeamSuccess(false)
+      }, 5000)
+    }
+  }, [showTeamSuccess])
 
   return (
-    <Box>
+    <Box sx={{ py: 2 }}>
       <Typography variant="h5" gutterBottom align="center">
-        Tipos de Predicciones
+        Explora las Predicciones
       </Typography>
 
       <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
-        Hay tres tipos principales de predicciones que puedes hacer
+        Conoce las nuevas formas de predecir partidos, ordenar equipos y más
       </Typography>
 
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-        <Tabs value={tabValue} onChange={handleTabChange} centered>
-          <Tab label="Partidos" />
-          <Tab label="Torneo" />
-          <Tab label="Clasificación" />
-        </Tabs>
-      </Box>
-
-      <TabPanel value={tabValue} index={0}>
-        <Box sx={{ maxWidth: 600, mx: 'auto' }}>
-          <Typography variant="body2" align="center" sx={{ mb: 2, color: 'text.secondary' }}>
-            Haz clic en el lápiz para editar tu predicción
+      <Box sx={{ maxWidth: 900, mx: 'auto' }}>
+        {/* Section 1: Game Predictions - Flippable Cards */}
+        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            🎴 Predicciones de Partidos
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Haz clic en una tarjeta para voltearla y editar tu predicción
           </Typography>
 
-          <CompactGameViewCard
-            gameNumber={42}
-            gameDate={new Date('2024-06-15T18:00:00')}
-            location="Estadio Monumental"
-            homeTeamNameOrDescription="Argentina"
-            homeTeamShortNameOrDescription="ARG"
-            awayTeamNameOrDescription="Brasil"
-            awayTeamShortNameOrDescription="BRA"
-            homeScore={homeScore}
-            awayScore={awayScore}
-            isPlayoffGame={false}
-            isGameGuess={true}
-            isGameFixture={false}
-            onEditClick={handleGameClick}
-            disabled={false}
-          />
+          <MockGuessesContextProvider>
+            <Box sx={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 2 }}>
+              <FlippableGameCard
+                game={DEMO_GAMES[0]}
+                teamsMap={DEMO_TEAMS_MAP}
+                isPlayoffs={false}
+                isEditing={editingGameId === DEMO_GAMES[0].id}
+                onEditStart={() => handleEditStart(DEMO_GAMES[0].id)}
+                onEditEnd={handleEditEnd}
+                silverUsed={0}
+                silverMax={5}
+                goldenUsed={0}
+                goldenMax={2}
+                disabled={false}
+              />
+              <FlippableGameCard
+                game={DEMO_GAMES[1]}
+                teamsMap={DEMO_TEAMS_MAP}
+                isPlayoffs={false}
+                isEditing={editingGameId === DEMO_GAMES[1].id}
+                onEditStart={() => handleEditStart(DEMO_GAMES[1].id)}
+                onEditEnd={handleEditEnd}
+                silverUsed={0}
+                silverMax={5}
+                goldenUsed={0}
+                goldenMax={2}
+                disabled={false}
+              />
+            </Box>
+          </MockGuessesContextProvider>
 
-          <GameResultEditDialog
-            isGameGuess={true}
-            open={editDialogOpen}
-            onClose={() => setEditDialogOpen(false)}
-            onGameGuessSave={handleGameGuessSave}
-            homeTeamName="Argentina"
-            awayTeamName="Brasil"
-            gameId="mock-game-id"
-            gameNumber={42}
-            initialHomeScore={homeScore}
-            initialAwayScore={awayScore}
-            initialHomePenaltyWinner={false}
-            initialAwayPenaltyWinner={false}
-            initialBoostType={null}
-            tournamentId="mock-tournament-id"
-            isPlayoffGame={false}
-          />
-
-          {gameClicked && (
+          {showCardSuccess && (
             <Alert
               severity="success"
-              icon={<CheckCircleIcon />}
+              onClose={() => setShowCardSuccess(false)}
               sx={{ mt: 2 }}
             >
-              ¡Perfecto! Así se editan las predicciones de partidos.
+              ¡Perfecto! Haz clic en la tarjeta para editarla. Los cambios se guardan automáticamente.
             </Alert>
           )}
+        </Paper>
 
-          <Typography variant="caption" display="block" align="center" sx={{ mt: 2, fontStyle: 'italic' }}>
-            📅 Las predicciones de partidos cierran 1 hora antes del inicio
-          </Typography>
-        </Box>
-      </TabPanel>
+        <Divider sx={{ my: 3 }} />
 
-      <TabPanel value={tabValue} index={1}>
-        <Card sx={{ maxWidth: 800, mx: 'auto' }}>
-          <CardHeader title="Podio del Torneo" />
-          <CardContent>
-            <Grid container spacing={3}>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TeamSelector
-                  label="Campeón"
-                  teams={MOCK_TEAMS}
-                  selectedTeamId={champion}
-                  name="champion"
-                  disabled={false}
-                  helperText="Selecciona el equipo que predigas que ganará el torneo"
-                  onChange={setChampion}
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TeamSelector
-                  label="Subcampeón"
-                  teams={MOCK_TEAMS}
-                  selectedTeamId={runnerUp}
-                  name="runnerUp"
-                  disabled={false}
-                  helperText="Selecciona el equipo que predigas que llegará a la final"
-                  onChange={setRunnerUp}
-                />
-              </Grid>
-            </Grid>
-
-            <Typography variant="body2" sx={{ mt: 3, mb: 2, fontWeight: 'bold' }}>
-              Premios Individuales:
-            </Typography>
-
-            <Grid container spacing={2}>
-              <Grid size={12}>
-                <MobileFriendlyAutocomplete
-                  options={MOCK_PLAYERS}
-                  value={MOCK_PLAYERS.find(p => p.id === bestPlayer) || null}
-                  onChange={(_, player) => setBestPlayer(player?.id || '')}
-                  getOptionLabel={(option) => option.name}
-                  groupBy={(option) => option.team.name}
-                  renderOption={(props, option) => (
-                    <Box component="li" {...props}>
-                      {option.name} - {option.team.short_name}
-                    </Box>
-                  )}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Elegir Jugador"
-                      slotProps={{
-                        htmlInput: {
-                          ...params.inputProps,
-                        }
-                      }}
-                    />
-                  )}
-                  label="Mejor Jugador"
-                  disabled={false}
-                />
-              </Grid>
-
-              <Grid size={12}>
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
-                  <Chip label="Goleador" size="small" variant="outlined" />
-                  <Chip label="Mejor Arquero" size="small" variant="outlined" />
-                  <Chip label="Jugador Joven" size="small" variant="outlined" />
-                </Box>
-              </Grid>
-            </Grid>
-
-            {(champion || runnerUp || bestPlayer) && (
-              <Alert severity="success" icon={<CheckCircleIcon />} sx={{ mt: 2 }}>
-                ¡Excelente! Así se predicen el podio y los premios del torneo
-              </Alert>
-            )}
-          </CardContent>
-        </Card>
-
-        <Typography variant="caption" display="block" align="center" sx={{ mt: 2, fontStyle: 'italic' }}>
-          📅 Las predicciones de torneo cierran 5 días después del inicio
-        </Typography>
-      </TabPanel>
-
-      <TabPanel value={tabValue} index={2}>
-        <Box sx={{ maxWidth: 800, mx: 'auto' }}>
-          <Typography variant="body2" align="center" sx={{ mb: 2 }}>
-            Las posiciones de clasificación se calculan automáticamente según tus predicciones de partidos
-          </Typography>
-
+        {/* Section 2: Qualified Teams - Drag and Drop */}
+        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
           <Typography variant="h6" gutterBottom>
-            Tabla de Pronósticos - Grupo A
+            🏆 Ordenar Equipos Clasificados
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Arrastra y suelta para ordenar los equipos en cada grupo
           </Typography>
 
-          <Paper>
-            <Table>
-              <TableHead>
-                <TableRow sx={{ backgroundColor: 'primary.main' }}>
-                  <TableCell sx={{ color: 'primary.contrastText' }}>Pos</TableCell>
-                  <TableCell sx={{ color: 'primary.contrastText' }}>Equipo</TableCell>
-                  <TableCell sx={{ color: 'primary.contrastText' }}>Pts</TableCell>
-                  <TableCell sx={{ color: 'primary.contrastText', display: { xs: 'none', md: 'table-cell' } }}>G</TableCell>
-                  <TableCell sx={{ color: 'primary.contrastText', display: { xs: 'none', md: 'table-cell' } }}>E</TableCell>
-                  <TableCell sx={{ color: 'primary.contrastText', display: { xs: 'none', md: 'table-cell' } }}>P</TableCell>
-                  <TableCell sx={{ color: 'primary.contrastText', display: { xs: 'none', md: 'table-cell' } }}>GF</TableCell>
-                  <TableCell sx={{ color: 'primary.contrastText', display: { xs: 'none', md: 'table-cell' } }}>GC</TableCell>
-                  <TableCell sx={{ color: 'primary.contrastText' }}>DG</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                <TableRow sx={{ backgroundColor: 'secondary.main' }}>
-                  <TableCell>1</TableCell>
-                  <TableCell>Argentina</TableCell>
-                  <TableCell>9</TableCell>
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>3</TableCell>
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>0</TableCell>
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>0</TableCell>
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>7</TableCell>
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>2</TableCell>
-                  <TableCell>+5</TableCell>
-                </TableRow>
-                <TableRow sx={{ backgroundColor: 'secondary.main' }}>
-                  <TableCell>2</TableCell>
-                  <TableCell>Uruguay</TableCell>
-                  <TableCell>6</TableCell>
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>2</TableCell>
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>0</TableCell>
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>1</TableCell>
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>5</TableCell>
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>3</TableCell>
-                  <TableCell>+2</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>3</TableCell>
-                  <TableCell>Chile</TableCell>
-                  <TableCell>3</TableCell>
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>1</TableCell>
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>0</TableCell>
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>2</TableCell>
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>3</TableCell>
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>5</TableCell>
-                  <TableCell>-2</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>4</TableCell>
-                  <TableCell>Paraguay</TableCell>
-                  <TableCell>0</TableCell>
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>0</TableCell>
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>0</TableCell>
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>3</TableCell>
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>2</TableCell>
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>7</TableCell>
-                  <TableCell>-5</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </Paper>
+          <MockQualifiedTeamsContextProvider>
+            <QualifiedTeamsClientPage
+              tournament={DEMO_TOURNAMENT}
+              groups={DEMO_GROUPS}
+              initialPredictions={DEMO_QUALIFIED_PREDICTIONS_ARRAY}
+              userId="demo-user"
+              isLocked={false}
+              allowsThirdPlace={false}
+              maxThirdPlace={0}
+              completeGroupIds={new Set<string>()}
+              allGroupsComplete={false}
+            />
+          </MockQualifiedTeamsContextProvider>
 
-          <Alert severity="info" sx={{ mt: 2 }}>
-            <Typography variant="caption">
-              Los equipos con fondo coloreado clasifican a la siguiente fase
+        </Paper>
+
+        <Divider sx={{ my: 3 }} />
+
+        {/* Section 3: Unified Dashboard View */}
+        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            📊 Vista Unificada de Predicciones
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Todas tus predicciones en un solo lugar
+          </Typography>
+
+          <CompactPredictionDashboard {...DEMO_DASHBOARD_PROPS} />
+
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              Vista previa de próximos partidos:
             </Typography>
-          </Alert>
+            <MockGuessesContextProvider>
+              <Stack spacing={2}>
+                <FlippableGameCard
+                  game={DEMO_GAMES[2]}
+                  teamsMap={DEMO_TEAMS_MAP}
+                  isPlayoffs={false}
+                  isEditing={editingGameId === DEMO_GAMES[2].id}
+                  onEditStart={() => handleEditStart(DEMO_GAMES[2].id)}
+                  onEditEnd={handleEditEnd}
+                  silverUsed={0}
+                  silverMax={5}
+                  goldenUsed={0}
+                  goldenMax={2}
+                  disabled={false}
+                />
+                <FlippableGameCard
+                  game={DEMO_GAMES[3]}
+                  teamsMap={DEMO_TEAMS_MAP}
+                  isPlayoffs={false}
+                  isEditing={editingGameId === DEMO_GAMES[3].id}
+                  onEditStart={() => handleEditStart(DEMO_GAMES[3].id)}
+                  onEditEnd={handleEditEnd}
+                  silverUsed={0}
+                  silverMax={5}
+                  goldenUsed={0}
+                  goldenMax={2}
+                  disabled={false}
+                />
+              </Stack>
+            </MockGuessesContextProvider>
+          </Box>
+        </Paper>
 
-          <Typography variant="caption" display="block" align="center" sx={{ mt: 2, fontStyle: 'italic' }}>
-            📅 Las clasificaciones también cierran 5 días después del inicio
+        <Divider sx={{ my: 3 }} />
+
+        {/* Section 4: Tournament Awards */}
+        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            🎖️ Predicciones del Torneo
           </Typography>
-        </Box>
-      </TabPanel>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Predice el campeón, subcampeón y tercer lugar
+          </Typography>
+
+          <Stack spacing={2}>
+            <TeamSelector
+              label="Campeón"
+              teams={DEMO_TEAMS}
+              selectedTeamId={championTeamId}
+              name="champion"
+              disabled={false}
+              helperText="Selecciona el equipo que predigas que ganará el torneo"
+              onChange={(teamId) => handleTeamSelect('champion', teamId)}
+            />
+            <TeamSelector
+              label="Subcampeón"
+              teams={DEMO_TEAMS}
+              selectedTeamId={runnerUpTeamId}
+              name="runnerUp"
+              disabled={false}
+              helperText="Selecciona el equipo que predigas que llegará a la final"
+              onChange={(teamId) => handleTeamSelect('runnerUp', teamId)}
+            />
+            <TeamSelector
+              label="Tercer Lugar"
+              teams={DEMO_TEAMS}
+              selectedTeamId={thirdPlaceTeamId}
+              name="thirdPlace"
+              disabled={false}
+              helperText="Selecciona el equipo que predigas que quedará tercero"
+              onChange={(teamId) => handleTeamSelect('thirdPlace', teamId)}
+            />
+          </Stack>
+
+          {showTeamSuccess && (
+            <Alert
+              severity="success"
+              onClose={() => setShowTeamSuccess(false)}
+              sx={{ mt: 2 }}
+            >
+              ¡Genial! Selecciona tus predicciones para el torneo.
+            </Alert>
+          )}
+        </Paper>
+
+        <Typography variant="caption" display="block" align="center" sx={{ mt: 2 }}>
+          💡 Todas estas predicciones son de demostración. Tus predicciones reales comenzarán después del onboarding.
+        </Typography>
+      </Box>
     </Box>
   )
 }

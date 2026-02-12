@@ -4,7 +4,9 @@ import { Button, Dialog, DialogActions, DialogContent, LinearProgress, Box } fro
 import { useState, useCallback, useRef, useEffect } from "react"
 import {
   WelcomeStep,
-  SamplePredictionStep,
+  GamePredictionStep,
+  QualifiedTeamsPredictionStep,
+  TournamentAwardsStep,
   ScoringExplanationStep,
   BoostIntroductionStep,
   ChecklistStep
@@ -15,14 +17,16 @@ import OnboardingProgress from "./onboarding-progress"
 /**
  * Progressive Onboarding Flow Dialog
  *
- * A 5-step interactive onboarding experience for new users.
+ * A 7-step interactive onboarding experience for new users.
  *
  * Steps:
  * 1. Welcome - Introduction to Qatar Prode
- * 2. Predictions - Multi-tab demo (Games, Tournament, Qualifiers)
- * 3. Scoring - Points breakdown (tournament-specific)
- * 4. Boosts - Multiplier explanation (tournament-dependent)
- * 5. Checklist - Getting started tasks with deadlines
+ * 2. Game Predictions - Flippable game cards demo
+ * 3. Qualified Teams - Drag-and-drop team ordering
+ * 4. Tournament Awards - Honor roll predictions (champion, runner-up, third place)
+ * 5. Scoring - Points breakdown (tournament-specific)
+ * 6. Boosts - Multiplier explanation (tournament-dependent)
+ * 7. Checklist - Getting started tasks with deadlines
  *
  * Testing: Visit /?showOnboarding=true to force show the dialog
  */
@@ -32,9 +36,9 @@ type OnboardingDialogProps = {
   readonly onClose: () => void
 }
 
-type OnboardingStep = 'welcome' | 'prediction' | 'scoring' | 'boost' | 'checklist'
+type OnboardingStep = 'welcome' | 'game-prediction' | 'qualified-teams' | 'tournament-awards' | 'scoring' | 'boost' | 'checklist'
 
-const STEP_ORDER: OnboardingStep[] = ['welcome', 'prediction', 'scoring', 'boost', 'checklist']
+const STEP_ORDER: OnboardingStep[] = ['welcome', 'game-prediction', 'qualified-teams', 'tournament-awards', 'scoring', 'boost', 'checklist']
 
 export default function OnboardingDialog({ open, onClose }: OnboardingDialogProps) {
   const [currentStep, setCurrentStep] = useState<OnboardingStep>('welcome')
@@ -112,8 +116,12 @@ export default function OnboardingDialog({ open, onClose }: OnboardingDialogProp
     switch (currentStep) {
       case 'welcome':
         return <WelcomeStep />
-      case 'prediction':
-        return <SamplePredictionStep />
+      case 'game-prediction':
+        return <GamePredictionStep />
+      case 'qualified-teams':
+        return <QualifiedTeamsPredictionStep />
+      case 'tournament-awards':
+        return <TournamentAwardsStep />
       case 'scoring':
         return <ScoringExplanationStep />
       case 'boost':

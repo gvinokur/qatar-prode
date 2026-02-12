@@ -9,7 +9,9 @@ type OnboardingProgressProps = {
 
 const STEP_LABELS = [
   'Bienvenida',
-  'Predicciones',
+  'Partidos',
+  'Clasificados',
+  'Premios',
   'Puntaje',
   'Boosts',
   'Checklist'

@@ -1,5 +1,7 @@
 export { default as WelcomeStep } from './welcome-step'
-export { default as SamplePredictionStep } from './sample-prediction-step'
+export { default as GamePredictionStep } from './game-prediction-step'
+export { default as QualifiedTeamsPredictionStep } from './qualified-teams-prediction-step'
+export { default as TournamentAwardsStep } from './tournament-awards-step'
 export { default as ScoringExplanationStep } from './scoring-explanation-step'
 export { default as BoostIntroductionStep } from './boost-introduction-step'
 export { default as ChecklistStep } from './checklist-step'
