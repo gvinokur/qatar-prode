@@ -9,7 +9,9 @@ import {
   DEMO_TEAMS_MAP,
   DEMO_GAMES,
   DEMO_DASHBOARD_PROPS,
+  DEMO_TOURNAMENT,
 } from '../demo/demo-data'
+import type { ExtendedGameData } from '@/app/definitions'
 
 export default function GamePredictionStep() {
   // Success message state
@@ -85,9 +87,15 @@ export default function GamePredictionStep() {
             {/* Dashboard */}
             <Box sx={{ borderTop: 1, borderColor: 'divider', pt: 3 }}>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Vista unificada de tus predicciones:
+                Vista unificada de tus predicciones (haz clic para ver detalles):
               </Typography>
-              <CompactPredictionDashboard {...DEMO_DASHBOARD_PROPS} />
+              <CompactPredictionDashboard
+                {...DEMO_DASHBOARD_PROPS}
+                games={DEMO_GAMES as ExtendedGameData[]}
+                teamsMap={DEMO_TEAMS_MAP}
+                tournamentId={DEMO_TOURNAMENT.id}
+                tournamentStartDate={new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)}
+              />
             </Box>
           </MockGuessesContextProvider>
 
