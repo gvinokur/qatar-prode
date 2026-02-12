@@ -27,7 +27,20 @@ function QualifiedTeamsOnboardingDemoInner({
   group,
   teams,
 }: QualifiedTeamsOnboardingDemoProps) {
-  const { predictions, isSaving, updateGroupPositions } = useMockQualifiedTeamsContext()
+  const { predictions: allPredictions, isSaving, updateGroupPositions } = useMockQualifiedTeamsContext()
+
+  // GroupCard expects predictions keyed by teamId, but context uses groupId-teamId
+  // Transform the Map for this group
+  const predictions = React.useMemo(() => {
+    const groupPredictions = new Map()
+    teams.forEach((team) => {
+      const prediction = allPredictions.get(`${group.id}-${team.id}`)
+      if (prediction) {
+        groupPredictions.set(team.id, prediction)
+      }
+    })
+    return groupPredictions
+  }, [allPredictions, group.id, teams])
 
   // Setup DnD sensors
   const sensors = useSensors(
@@ -59,7 +72,7 @@ function QualifiedTeamsOnboardingDemoInner({
       // Get current team order by position
       const teamOrder = teams
         .map((team) => {
-          const prediction = predictions.get(`${group.id}-${team.id}`)
+          const prediction = predictions.get(team.id)
           return prediction ? { teamId: team.id, position: prediction.predicted_position } : null
         })
         .filter((item): item is { teamId: string; position: number } => item !== null)
