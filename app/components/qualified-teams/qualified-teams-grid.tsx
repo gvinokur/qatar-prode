@@ -65,21 +65,15 @@ export default function QualifiedTeamsGrid({
     return map;
   }, [scoringBreakdown]);
 
-  // For single group layouts (like onboarding demos), center and use more width
-  const isSingleGroup = groups.length === 1;
-
   return (
     <Box sx={{ width: '100%', p: 2 }}>
-      <Grid container spacing={3} justifyContent={isSingleGroup ? 'center' : 'flex-start'}>
+      <Grid container spacing={3}>
         {groups.map(({ group, teams }) => {
           const isGroupComplete = completeGroupIds.has(group.id);
           const groupResults = groupResultsMap.get(group.id) || [];
 
           return (
-            <Grid
-              key={group.id}
-              size={isSingleGroup ? { xs: 12, sm: 10, md: 8, lg: 6 } : { xs: 12, sm: 12, md: 6, lg: 4 }}
-            >
+            <Grid key={group.id} size={{ xs: 12, sm: 12, md: 6, lg: 4 }}>
               <GroupCard
                 group={group}
                 teams={teams}

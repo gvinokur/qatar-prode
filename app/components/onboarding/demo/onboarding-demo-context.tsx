@@ -5,10 +5,9 @@
  * These provide the same interfaces as actual contexts but use local state only (no server actions)
  */
 
-import React, { useCallback, useState, useMemo } from 'react'
+import React, { createContext, useContext, useCallback, useState, useMemo } from 'react'
 import type { GameGuessNew, QualifiedTeamPrediction } from '@/app/db/tables-definition'
 import { GuessesContext } from '@/app/components/context-providers/guesses-context-provider'
-import { QualifiedTeamsContext } from '@/app/components/qualified-teams/qualified-teams-context'
 import {
   DEMO_GAME_GUESSES,
   DEMO_QUALIFIED_PREDICTIONS,
@@ -64,11 +63,37 @@ export function MockGuessesContextProvider({ children }: MockGuessesContextProvi
  *
  * Provides same interface as QualifiedTeamsContext but with local state only.
  * Includes save state machine for realistic UI behavior.
- * Uses the actual QualifiedTeamsContext so components work seamlessly.
  */
+
+interface QualifiedTeamsContextValue {
+  predictions: Map<string, QualifiedTeamPrediction>
+  saveState: SaveState
+  isSaving: boolean
+  lastSaved: Date | null
+  error: string | null
+  updateGroupPositions: (
+    groupId: string,
+    _updates: Array<{ teamId: string; position: number; qualifies: boolean }>
+  ) => Promise<void>
+  clearError: () => void
+}
+
+const MockQualifiedTeamsContext = createContext<QualifiedTeamsContextValue | undefined>(
+  undefined
+)
 
 export interface MockQualifiedTeamsContextProviderProps {
   readonly children: React.ReactNode
+}
+
+export function useMockQualifiedTeamsContext() {
+  const context = useContext(MockQualifiedTeamsContext)
+  if (!context) {
+    throw new Error(
+      'useMockQualifiedTeamsContext must be used within MockQualifiedTeamsContextProvider'
+    )
+  }
+  return context
 }
 
 export function MockQualifiedTeamsContextProvider({
@@ -150,8 +175,8 @@ export function MockQualifiedTeamsContextProvider({
   )
 
   return (
-    <QualifiedTeamsContext.Provider value={context}>
+    <MockQualifiedTeamsContext.Provider value={context}>
       {children}
-    </QualifiedTeamsContext.Provider>
+    </MockQualifiedTeamsContext.Provider>
   )
 }
