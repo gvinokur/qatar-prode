@@ -68,8 +68,8 @@ export function calculateGamePositions(rounds: BracketRound[]): GamePosition[] {
         const feeder2 = prevRoundPositions[gameIndex * 2 + 1]
 
         if (feeder1 && feeder2) {
-          // Position at midpoint between the two feeder games
-          const y = (feeder1.y + feeder2.y) / 2
+          // Position at 1/4 from top feeder, 3/4 from bottom feeder (biased upward)
+          const y = feeder1.y + 0.75 * (feeder2.y - feeder1.y)
           positions.push({
             gameId: game.id,
             x,

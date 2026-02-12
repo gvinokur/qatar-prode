@@ -22,6 +22,25 @@ interface PlayoffsBracketViewProps {
 }
 
 /**
+ * Get display name for a round based on number of games
+ */
+function getRoundName(gamesInRound: number): string {
+  switch (gamesInRound) {
+    case 16:
+    case 8:
+      return 'Octavos'
+    case 4:
+      return 'Cuartos'
+    case 2:
+      return 'Semifinal'
+    case 1:
+      return 'Final'
+    default:
+      return ''
+  }
+}
+
+/**
  * Displays playoff bracket with SVG connection lines.
  * Horizontally scrollable on all screen sizes.
  */
@@ -165,6 +184,11 @@ export default function PlayoffsBracketView({
               const game = gamesMap[pos.gameId]
               if (!game) return null
 
+              // Show round label above first game of each round
+              const isFirstGameInRound = pos.gameIndexInRound === 0
+              const round = bracketRounds[pos.roundIndex]
+              const roundLabel = isFirstGameInRound ? getRoundName(round.games.length) : null
+
               return (
                 <Box
                   key={pos.gameId}
@@ -176,6 +200,14 @@ export default function PlayoffsBracketView({
                     transformOrigin: 'top left',
                   }}
                 >
+                  {roundLabel && (
+                    <Typography
+                      variant="caption"
+                      sx={{ mb: 1, fontWeight: 600, fontSize: '0.75rem', display: 'block' }}
+                    >
+                      {roundLabel}
+                    </Typography>
+                  )}
                   <BracketGameCard game={game} teamsMap={teamsMap} />
                 </Box>
               )
