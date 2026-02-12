@@ -33,9 +33,13 @@ export function MockGuessesContextProvider({ children }: MockGuessesContextProvi
   const updateGameGuess = useCallback(
     async (gameId: string, gameGuess: GameGuessNew) => {
       // Optimistic update - local state only
+      // Merge new values with existing guess to preserve all fields
       const newGameGuesses = {
         ...gameGuesses,
-        [gameId]: gameGuess,
+        [gameId]: {
+          ...gameGuesses[gameId],
+          ...gameGuess,
+        },
       }
       setGameGuesses(newGameGuesses)
 
