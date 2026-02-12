@@ -46,6 +46,8 @@ interface QualifiedTeamsClientPageProps {
   readonly scoringBreakdown?: QualifiedTeamsScoringResult | null;
   /** Whether to show the page header (default: true) */
   readonly showHeader?: boolean;
+  /** Whether to use existing context instead of creating a new one (for demos/mocks) */
+  readonly useExistingContext?: boolean;
 }
 
 /** Handle drag end event - batch updates for entire group */
@@ -364,6 +366,11 @@ function QualifiedTeamsUI({
  * Wraps UI with context and DnD providers
  */
 export default function QualifiedTeamsClientPage(props: QualifiedTeamsClientPageProps) {
+  // If useExistingContext is true, skip context provider wrapper (for demos/mocks)
+  if (props.useExistingContext) {
+    return <QualifiedTeamsUI {...props} />;
+  }
+
   return (
     <QualifiedTeamsContextProvider
       initialPredictions={props.initialPredictions}

@@ -34,6 +34,7 @@ export default function QualifiedTeamsPredictionStep() {
               completeGroupIds={new Set<string>()}
               allGroupsComplete={false}
               showHeader={false}
+              useExistingContext={true}
             />
           </MockQualifiedTeamsContextProvider>
         </Paper>

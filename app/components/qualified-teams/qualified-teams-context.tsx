@@ -46,7 +46,7 @@ interface QualifiedTeamsContextValue {
   clearError: () => void;
 }
 
-const QualifiedTeamsContext = createContext<QualifiedTeamsContextValue | undefined>(undefined);
+export const QualifiedTeamsContext = createContext<QualifiedTeamsContextValue | undefined>(undefined);
 
 export interface QualifiedTeamsContextProviderProps {
   readonly children: React.ReactNode;
