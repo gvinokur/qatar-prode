@@ -27,13 +27,14 @@ describe('TournamentBottomNav', () => {
   });
 
   describe('rendering', () => {
-    it('renders all 4 navigation tabs', () => {
+    it('renders all 5 navigation tabs', () => {
       renderWithTheme(
         <TournamentBottomNav tournamentId={mockTournamentId} currentPath="/" />
       );
 
       expect(screen.getByRole('button', { name: /home/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /tournament/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /resultados/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /friend groups/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /stats/i })).toBeInTheDocument();
     });
@@ -46,12 +47,14 @@ describe('TournamentBottomNav', () => {
       // Check for Material Icons by their test IDs or aria-labels
       const homeButton = screen.getByRole('button', { name: /home/i });
       const tournamentButton = screen.getByRole('button', { name: /tournament/i });
+      const resultsButton = screen.getByRole('button', { name: /resultados/i });
       const friendGroupsButton = screen.getByRole('button', { name: /friend groups/i });
       const statsButton = screen.getByRole('button', { name: /stats/i });
 
       // Verify buttons exist with icons
       expect(homeButton).toBeInTheDocument();
       expect(tournamentButton).toBeInTheDocument();
+      expect(resultsButton).toBeInTheDocument();
       expect(friendGroupsButton).toBeInTheDocument();
       expect(statsButton).toBeInTheDocument();
     });
@@ -89,6 +92,30 @@ describe('TournamentBottomNav', () => {
 
       const friendGroupsButton = screen.getByRole('button', { name: /friend groups/i });
       expect(friendGroupsButton).toHaveClass('Mui-selected');
+    });
+
+    it('selects results tab when currentPath is /tournaments/[id]/results', () => {
+      renderWithTheme(
+        <TournamentBottomNav
+          tournamentId={mockTournamentId}
+          currentPath={`/tournaments/${mockTournamentId}/results`}
+        />
+      );
+
+      const resultsButton = screen.getByRole('button', { name: /resultados/i });
+      expect(resultsButton).toHaveClass('Mui-selected');
+    });
+
+    it('selects results tab when currentPath starts with /tournaments/[id]/results', () => {
+      renderWithTheme(
+        <TournamentBottomNav
+          tournamentId={mockTournamentId}
+          currentPath={`/tournaments/${mockTournamentId}/results/subpage`}
+        />
+      );
+
+      const resultsButton = screen.getByRole('button', { name: /resultados/i });
+      expect(resultsButton).toHaveClass('Mui-selected');
     });
 
     it('selects stats tab when currentPath starts with /tournaments/[id]/stats', () => {
@@ -176,6 +203,18 @@ describe('TournamentBottomNav', () => {
       await user.click(tournamentButton);
 
       expect(mockRouter.push).toHaveBeenCalledWith(`/tournaments/${mockTournamentId}`);
+    });
+
+    it('navigates to /tournaments/[id]/results when Results tab is clicked', async () => {
+      const user = userEvent.setup();
+      renderWithTheme(
+        <TournamentBottomNav tournamentId={mockTournamentId} currentPath="/" />
+      );
+
+      const resultsButton = screen.getByRole('button', { name: /resultados/i });
+      await user.click(resultsButton);
+
+      expect(mockRouter.push).toHaveBeenCalledWith(`/tournaments/${mockTournamentId}/results`);
     });
 
     it('navigates to /tournaments/[id]/friend-groups when Friend Groups tab is clicked', async () => {
