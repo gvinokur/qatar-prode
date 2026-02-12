@@ -125,7 +125,12 @@ export default function PlayoffsBracketView({
             overflowY: 'auto',
             position: 'relative',
             minHeight: `${dimensions.height + 100}px`,
-            maxHeight: '70vh',
+            // Use vh fallback, with dvh for better mobile support (accounts for dynamic browser UI)
+            // Subtract: header (56px) + page title+margin (64px) + tabs+margin (72px) + bottom nav on mobile (56px) + padding (32px)
+            maxHeight: { xs: 'calc(100vh - 280px)', md: 'calc(100vh - 224px)' },
+            '@supports (height: 100dvh)': {
+              maxHeight: { xs: 'calc(100dvh - 280px)', md: 'calc(100dvh - 224px)' }
+            },
             pb: 4,
             WebkitOverflowScrolling: 'touch',
           }}
