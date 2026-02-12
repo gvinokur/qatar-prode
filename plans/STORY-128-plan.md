@@ -46,49 +46,73 @@
 
 ### Architecture Decision: Demo Components vs Shared Components
 
-**Option A: Reuse Actual Components (❌ Not Recommended)**
-- Use FlippableGameCard, QualifiedTeamsGrid directly
-- Pros: 100% accuracy to real experience
-- Cons: Heavy dependencies, context providers required, complex state management, harder to maintain
-
-**Option B: Create Simplified Demo Components (✅ RECOMMENDED)**
+**Option A: Create Simplified Demo Components (❌ Rejected by User)**
 - Build lightweight demo versions that visually match but use simpler logic
 - Pros: Isolated from app changes, faster rendering, easier testing, no server dependencies
-- Cons: Need to maintain visual parity when app components change
+- Cons: Code duplication, visual parity maintenance burden, bound to go stale
 
-**Decision: Option B** - Create demo-specific components in `app/components/onboarding/demo/` directory.
+**Option B: Reuse Actual Components with Mock Handlers (✅ APPROVED BY USER)**
+- Use FlippableGameCard, QualifiedTeamsGrid directly with mock data and handlers
+- Pros: 100% visual accuracy, no duplication, changes/bug fixes automatically reflected in onboarding
+- Cons: Need to handle context providers and dependencies
+
+**Decision: Option B** - Reuse actual components with mock handlers and data.
+
+**Implementation Strategy:**
+- Wrap components in necessary context providers (mock implementations)
+- Use mock handlers that update local state only (no server actions)
+- Provide mock data that matches actual data structure
+- If functional/visual separation is needed, refactor actual components first
 
 ### Component Structure
 
+**Reuse existing components with mock context:**
+
 ```
 app/components/onboarding/demo/
-├── flippable-card-demo.tsx          # Simplified flippable card with CSS animations
-├── draggable-teams-demo.tsx         # Mock drag-and-drop with visual feedback
-├── unified-page-demo.tsx            # Layout demo with filters and games
-├── prediction-dashboard-demo.tsx    # Dashboard with mock progress data
-└── demo-data.ts                     # Shared mock data for all demos
+├── onboarding-demo-context.tsx      # Mock context providers for demos
+├── demo-data.ts                     # Mock data matching actual data structures
+└── demo-handlers.ts                 # Mock handlers for state updates (no server calls)
 ```
+
+**Components to reuse (no changes needed):**
+- `app/components/flippable-game-card.tsx` - Use as-is with mock context
+- `app/components/qualified-teams/qualified-teams-client-page.tsx` - Use as-is with mock context
+- `app/components/compact-prediction-dashboard.tsx` - Use as-is with mock data
+- `app/components/unified-games-page-client.tsx` - Use simplified version or extract sub-components
 
 ### State Management Strategy
 
-**Demo components will be self-contained:**
-- Local React state for interactions (flip state, drag state, filter selection)
+**Use actual components with mock context providers:**
+- Wrap components in mock context (GuessesContext, QualifiedTeamsContext, etc.)
+- Mock context provides same interface but with local state only
 - No server actions or database calls
-- No complex context providers
-- Event handlers update local UI only
+- Event handlers update mock context state, not real database
 
-**Example state pattern:**
+**Example mock context pattern:**
 ```typescript
-// flippable-card-demo.tsx
-const [isFlipped, setIsFlipped] = useState(false)
-const [homeScore, setHomeScore] = useState(2)
-const [awayScore, setAwayScore] = useState(1)
+// onboarding-demo-context.tsx
+const MockGuessesContext = createContext({
+  gameGuesses: mockGameGuesses,
+  updateGameGuess: (gameId, data) => {
+    // Update local state only, no server action
+    setMockGameGuesses(prev => ({ ...prev, [gameId]: data }))
+  },
+  pendingSaves: new Set(),
+  saveErrors: {},
+  // ... other context values
+})
 
-const handleSave = () => {
-  setIsFlipped(false)
-  // Show success message
-}
+// Usage in sample-prediction-step.tsx
+<MockGuessesContext.Provider value={mockContextValue}>
+  <FlippableGameCard game={demoGame} /* actual component */ />
+</MockGuessesContext.Provider>
 ```
+
+**Benefits:**
+- Components behave identically to production
+- Bug fixes and improvements automatically apply to onboarding
+- No visual drift between onboarding and actual app
 
 ## Visual Prototypes
 
@@ -293,110 +317,104 @@ interface PredictionDashboardDemoProps {
 
 ## Implementation Steps
 
-### Phase 1: Setup Demo Infrastructure (1-2 hours)
+### Phase 1: Setup Mock Infrastructure (2-3 hours, revised)
 
 **1.1 Create demo data file**
 - File: `app/components/onboarding/demo/demo-data.ts`
-- Contents: Mock teams, games, tournament data
-- Export: `DEMO_TEAMS`, `DEMO_GAMES`, `DEMO_TOURNAMENT`, `DEMO_GROUPS`
+- Contents: Mock teams, games, tournament data matching actual data structures
+- Export: `DEMO_TEAMS`, `DEMO_GAMES`, `DEMO_TOURNAMENT`, `DEMO_GROUPS`, `DEMO_GAME_GUESSES`, `DEMO_QUALIFIED_PREDICTIONS`
 
-**Demo Data Structure:**
+**Demo Data Structure (matches actual types):**
 ```typescript
-// 8 teams (4 per group)
-DEMO_TEAMS: Team[] = [
-  // Group A: Brasil, Argentina, Uruguay, Chile
-  // Group B: España, Alemania, Francia, Portugal
+// Use actual type imports
+import type { Team, Game, GameGuess, QualifiedTeamPrediction } from '@/types'
+
+// 8 teams (4 per group) - matches Team type
+export const DEMO_TEAMS: Team[] = [
+  { id: '1', name: 'Brasil', short_name: 'BRA', theme: null },
+  { id: '2', name: 'Argentina', short_name: 'ARG', theme: null },
+  // ... 6 more teams
 ]
 
-// 4 games for unified page demo (2 from each group)
-DEMO_GAMES: Game[] = [
-  { home: Brasil, away: Argentina, group: 'A' },
-  { home: Uruguay, away: Chile, group: 'A' },
-  { home: España, away: Alemania, group: 'B' },
-  { home: Francia, away: Portugal, group: 'B' },
+// 4 games - matches Game type
+export const DEMO_GAMES: Game[] = [
+  { id: 'game1', home_team: '1', away_team: '2', group_id: 'groupA', ... },
+  // ... 3 more games
 ]
 
-// 2 groups with 4 teams each
-DEMO_GROUPS = [
-  { name: 'GRUPO A', teams: [Brasil, Argentina, Uruguay, Chile] },
-  { name: 'GRUPO B', teams: [España, Alemania, Francia, Portugal] },
-]
+// Game guesses - matches GameGuess type
+export const DEMO_GAME_GUESSES: Record<string, GameGuess> = {
+  'game1': { id: 'guess1', game_id: 'game1', home_score: 2, away_score: 1, ... },
+  // ... more guesses
+}
+
+// Qualified team predictions - matches QualifiedTeamPrediction type
+export const DEMO_QUALIFIED_PREDICTIONS: Map<string, QualifiedTeamPrediction> = new Map([
+  ['groupA-team1', { predicted_position: 1, predicted_to_qualify: true, ... }],
+  // ... more predictions
+])
 ```
 
-**Reuse existing test factories:**
-- Use `testFactories.team()` for teams (don't reinvent)
-- Use `testFactories.game()` for games
-- Keep consistent with existing test data patterns
+**1.2 Create mock context file**
+- File: `app/components/onboarding/demo/onboarding-demo-context.tsx`
+- Mock GuessesContext, QualifiedTeamsContext with same interface
+- Local state only, no server actions
 
-**1.2 Create demo components directory**
-```bash
-mkdir -p app/components/onboarding/demo
-```
+**1.3 Create mock handlers file**
+- File: `app/components/onboarding/demo/demo-handlers.ts`
+- Mock versions of updateGameGuess, updateGroupPositions, etc.
+- Update local state, show success messages, no API calls
 
-### Phase 2: Build Demo Components (6-8 hours)
+### Phase 2: Setup Mock Context Providers (3-4 hours, revised)
 
-**2.1 FlippableCardDemo Component**
-- File: `app/components/onboarding/demo/flippable-card-demo.tsx`
-- Features:
-  - CSS-based flip animation (not Framer Motion)
-  - Local state for flip/scores/boost
-  - Save handler with success message
-  - Keyboard support (Enter to flip, Escape to cancel)
-  - Reduced motion support using MUI's `useMediaQuery('(prefers-reduced-motion: reduce)')`
-    - If reduced motion: Instant flip (no transform animation)
-    - If animation allowed: 0.4s transform animation
-- Props: `game`, `onInteraction?: () => void`
-- Estimated time: 2 hours
-
-**Reduced Motion Implementation:**
-```typescript
-const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
-const flipDuration = prefersReducedMotion ? 0 : 0.4
-```
-
-**2.2 DraggableTeamsDemo Component**
-- File: `app/components/onboarding/demo/draggable-teams-demo.tsx`
-- Features:
-  - Simplified drag handlers (no @dnd-kit dependency)
-  - Visual drag indicators (elevation, opacity)
-  - Auto-qualification logic (1-2 qualify, 3 optional, 4+ don't)
-  - Keyboard alternative: Up/Down arrows to move within group, Tab to navigate between groups, Enter to confirm
-  - Mobile touch support with `onTouchStart`, `onTouchMove`, `onTouchEnd`
-  - **CHECKPOINT:** Test on actual iOS/Android device at end of this phase
-  - **FALLBACK:** If drag feels sluggish, implement tap-to-reorder (tap team, highlight positions, tap destination)
-- Props: `groups`, `onInteraction?: () => void`
-- Estimated time: 3 hours
-
-**Keyboard Navigation Model:**
-- Focus on team card
-- Up arrow: Move team up one position (if not first)
-- Down arrow: Move team down one position (if not last)
-- Enter: Confirm move (show success feedback)
-- Tab: Move to next team (standard focus navigation)
-
-**2.3 PredictionDashboardDemo Component**
-- File: `app/components/onboarding/demo/prediction-dashboard-demo.tsx`
-- Features:
-  - Two-row layout (games + tournament)
-  - Progress bars with percentages
-  - Boost count badges
-  - Urgency icons
-  - No interactive popovers (demo only)
-- Props: Static data (no props needed)
+**2.1 Create MockGuessesContext**
+- File: `app/components/onboarding/demo/onboarding-demo-context.tsx`
+- Implement same interface as actual GuessesContext
+- Local state management with useState/useReducer
+- Mock updateGameGuess handler (updates local state, no server action)
+- Mock clearSaveError handler
 - Estimated time: 1.5 hours
 
-**2.4 UnifiedPageDemo Component**
-- File: `app/components/onboarding/demo/unified-page-demo.tsx`
-- Features:
-  - Dashboard at top
-  - Filter dropdown + secondary filters
-  - Filtered game list (uses FlippableCardDemo)
-  - Game count display
-  - Responsive layout
-- Props: None (uses demo data internally)
+```typescript
+export const MockGuessesContextProvider = ({ children }) => {
+  const [gameGuesses, setGameGuesses] = useState(DEMO_GAME_GUESSES)
+  const [pendingSaves, setPendingSaves] = useState(new Set())
+  const [saveErrors, setSaveErrors] = useState({})
+
+  const updateGameGuess = async (gameId, updates) => {
+    // Mock implementation - local state only
+    setGameGuesses(prev => ({
+      ...prev,
+      [gameId]: { ...prev[gameId], ...updates }
+    }))
+    // Simulate async for realistic behavior
+    await new Promise(resolve => setTimeout(resolve, 300))
+  }
+
+  return (
+    <GuessesContext.Provider value={{ gameGuesses, updateGameGuess, ... }}>
+      {children}
+    </GuessesContext.Provider>
+  )
+}
+```
+
+**2.2 Create MockQualifiedTeamsContext**
+- Same file: `app/components/onboarding/demo/onboarding-demo-context.tsx`
+- Implement same interface as actual QualifiedTeamsContext
+- Mock updateGroupPositions handler
+- Mock save state machine (idle → saving → saved)
 - Estimated time: 1.5 hours
 
-### Phase 3: Update Sample Prediction Step (3-4 hours)
+**2.3 Test Mock Contexts with Actual Components**
+- Wrap FlippableGameCard in MockGuessesContext
+- Wrap QualifiedTeamsClientPage in MockQualifiedTeamsContext
+- Verify components render correctly with mock data
+- Verify interactions update local state
+- **CHECKPOINT:** Components should work identically to production
+- Estimated time: 0.5 hours
+
+### Phase 3: Update Sample Prediction Step (4-5 hours, revised)
 
 **3.1 Replace TabPanel structure with demo components**
 - File: `app/components/onboarding/onboarding-steps/sample-prediction-step.tsx`
@@ -412,26 +430,64 @@ const flipDuration = prefersReducedMotion ? 0 : 0.4
 
 **New Structure:**
 ```typescript
+import { MockGuessesContextProvider, MockQualifiedTeamsContextProvider } from '../demo/onboarding-demo-context'
+import FlippableGameCard from '@/components/flippable-game-card' // Actual component
+import QualifiedTeamsClientPage from '@/components/qualified-teams/qualified-teams-client-page' // Actual component
+import CompactPredictionDashboard from '@/components/compact-prediction-dashboard' // Actual component
+
 <Box>
   {/* Introduction */}
   <Typography>Así funciona la app...</Typography>
 
-  {/* Section 1: Game Predictions */}
+  {/* Section 1: Game Predictions - Use actual FlippableGameCard */}
   <Typography variant="h6">1. Predicciones de Partidos</Typography>
-  <FlippableCardDemo game={DEMO_GAMES[0]} />
-  <Alert severity="success">¡Perfecto! Haz clic en la tarjeta para editarla</Alert>
+  <MockGuessesContextProvider>
+    <FlippableGameCard
+      game={DEMO_GAMES[0]}
+      teamsMap={DEMO_TEAMS_MAP}
+      onInteraction={handleCardInteraction}
+    />
+  </MockGuessesContextProvider>
+  {showCardSuccess && (
+    <Alert severity="success" onClose={() => setShowCardSuccess(false)}>
+      ¡Perfecto! Haz clic en la tarjeta para editarla
+    </Alert>
+  )}
 
-  {/* Section 2: Qualified Teams */}
+  {/* Section 2: Qualified Teams - Use actual QualifiedTeamsClientPage */}
   <Typography variant="h6">2. Equipos Clasificados</Typography>
-  <DraggableTeamsDemo groups={DEMO_GROUPS} />
-  <Alert severity="success">¡Excelente! Arrastra para reordenar</Alert>
+  <MockQualifiedTeamsContextProvider>
+    <QualifiedTeamsClientPage
+      tournamentId="demo-tournament"
+      groups={DEMO_GROUPS}
+      allowsThirdPlace={false}
+      onInteraction={handleDragInteraction}
+    />
+  </MockQualifiedTeamsContextProvider>
+  {showDragSuccess && (
+    <Alert severity="success" onClose={() => setShowDragSuccess(false)}>
+      ¡Excelente! Arrastra para reordenar
+    </Alert>
+  )}
 
-  {/* Section 3: Unified View */}
+  {/* Section 3: Unified View - Simplified layout demo or extracted sub-components */}
   <Typography variant="h6">3. Vista Unificada</Typography>
-  <UnifiedPageDemo />
-  <Alert severity="success">Todo en un solo lugar con filtros</Alert>
+  <CompactPredictionDashboard {...DEMO_DASHBOARD_PROPS} />
+  <GameFilters value="all" onChange={handleFilterChange} />
+  <MockGuessesContextProvider>
+    <Stack spacing={2}>
+      {DEMO_GAMES.slice(0, 2).map(game => (
+        <FlippableGameCard key={game.id} game={game} teamsMap={DEMO_TEAMS_MAP} />
+      ))}
+    </Stack>
+  </MockGuessesContextProvider>
+  {showFilterSuccess && (
+    <Alert severity="success" onClose={() => setShowFilterSuccess(false)}>
+      ¡Genial! Todas tus predicciones en un solo lugar
+    </Alert>
+  )}
 
-  {/* Section 4: Tournament Awards (Simplified) */}
+  {/* Section 4: Tournament Awards (Keep existing pattern) */}
   <Typography variant="h6">4. Premios del Torneo</Typography>
   <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
     <TeamSelector label="Campeón" teams={DEMO_TEAMS} />
@@ -497,24 +553,21 @@ const handleCardInteraction = () => {
 - Example: "Con nuevas funcionalidades: estadísticas personales, interfaz unificada, y más"
 - Estimated time: 15 minutes
 
-### Phase 5: Testing (4-6 hours)
+### Phase 5: Testing (3-4 hours, revised)
 
-**5.1 Unit Tests for Demo Components**
+**5.1 Unit Tests for Mock Contexts**
 - Files:
-  - `__tests__/components/onboarding/demo/flippable-card-demo.test.tsx`
-  - `__tests__/components/onboarding/demo/draggable-teams-demo.test.tsx`
-  - `__tests__/components/onboarding/demo/prediction-dashboard-demo.test.tsx`
-  - `__tests__/components/onboarding/demo/unified-page-demo.test.tsx`
+  - `__tests__/components/onboarding/demo/onboarding-demo-context.test.tsx`
+  - `__tests__/components/onboarding/demo/demo-handlers.test.ts`
 
 **Test Coverage:**
-- Rendering with mock data
-- Flip animation state changes
-- Drag interaction (mouseDown/move/up)
-- Filter selection changes
-- Keyboard navigation
-- Reduced motion support
-- Success message display
-- Estimated time: 3 hours
+- Mock context providers render correctly
+- Mock handlers update local state (not server)
+- Mock save state machine transitions
+- Context interface matches actual context
+- Estimated time: 1.5 hours
+
+**Note:** No need to test FlippableGameCard or QualifiedTeamsClientPage - they're already tested in their own test files. We're reusing actual components, not duplicating them.
 
 **5.2 Update Existing Tests**
 - File: `__tests__/components/onboarding/sample-prediction-step.test.tsx`
@@ -619,36 +672,49 @@ Test with stopwatch and record actual time per section:
 
 ### Mock Patterns
 ```typescript
-// Demo components don't need server action mocks (no API calls)
-// Just test local state changes
+// Test mock context providers
+describe('MockGuessesContextProvider', () => {
+  it('provides mock context values', () => {
+    const TestComponent = () => {
+      const context = useGuessesContext()
+      return <div>{Object.keys(context.gameGuesses).length} guesses</div>
+    }
 
-// Example test structure
-describe('FlippableCardDemo', () => {
-  it('flips card when edit button clicked', () => {
-    render(<FlippableCardDemo game={mockGame} />)
+    render(
+      <MockGuessesContextProvider>
+        <TestComponent />
+      </MockGuessesContextProvider>
+    )
 
-    const editButton = screen.getByLabelText('Edit prediction')
-    fireEvent.click(editButton)
-
-    expect(screen.getByText('Edit Prediction')).toBeInTheDocument()
-    expect(screen.getByLabelText('Home score')).toBeInTheDocument()
+    expect(screen.getByText('4 guesses')).toBeInTheDocument()
   })
 
-  it('shows success message after save', async () => {
-    render(<FlippableCardDemo game={mockGame} />)
+  it('updates local state without server calls', async () => {
+    const TestComponent = () => {
+      const { gameGuesses, updateGameGuess } = useGuessesContext()
+      return (
+        <button onClick={() => updateGameGuess('game1', { home_score: 3 })}>
+          Update
+        </button>
+      )
+    }
 
-    // Flip to edit mode
-    fireEvent.click(screen.getByLabelText('Edit prediction'))
+    render(
+      <MockGuessesContextProvider>
+        <TestComponent />
+      </MockGuessesContextProvider>
+    )
 
-    // Save
-    fireEvent.click(screen.getByText('Save'))
+    fireEvent.click(screen.getByText('Update'))
 
-    // Success message appears
+    // No server action mocked - it's all local state
     await waitFor(() => {
-      expect(screen.getByText(/¡Perfecto!/)).toBeInTheDocument()
+      // Verify state updated (would need to expose state or test through component)
     })
   })
 })
+
+// Actual FlippableGameCard tests already exist - no duplication needed
 ```
 
 ### Integration Test Scenarios
@@ -667,12 +733,10 @@ describe('FlippableCardDemo', () => {
 
 ## Files to Create/Modify
 
-### New Files (5)
-1. `app/components/onboarding/demo/demo-data.ts` - Mock data for demos
-2. `app/components/onboarding/demo/flippable-card-demo.tsx` - Flippable card demo
-3. `app/components/onboarding/demo/draggable-teams-demo.tsx` - Drag-and-drop demo
-4. `app/components/onboarding/demo/prediction-dashboard-demo.tsx` - Dashboard demo
-5. `app/components/onboarding/demo/unified-page-demo.tsx` - Unified page demo
+### New Files (3, revised)
+1. `app/components/onboarding/demo/demo-data.ts` - Mock data matching actual types
+2. `app/components/onboarding/demo/onboarding-demo-context.tsx` - Mock context providers
+3. `app/components/onboarding/demo/demo-handlers.ts` - Mock handlers for state updates
 
 ### Modified Files (3)
 1. `app/components/onboarding/onboarding-steps/sample-prediction-step.tsx` - Major overhaul
@@ -682,11 +746,9 @@ describe('FlippableCardDemo', () => {
 ### Optional Modified Files (1)
 1. `app/components/onboarding/onboarding-steps/welcome-step.tsx` - Feature mention
 
-### New Test Files (4)
-1. `__tests__/components/onboarding/demo/flippable-card-demo.test.tsx`
-2. `__tests__/components/onboarding/demo/draggable-teams-demo.test.tsx`
-3. `__tests__/components/onboarding/demo/prediction-dashboard-demo.test.tsx`
-4. `__tests__/components/onboarding/demo/unified-page-demo.test.tsx`
+### New Test Files (2, revised)
+1. `__tests__/components/onboarding/demo/onboarding-demo-context.test.tsx` - Mock context tests
+2. `__tests__/components/onboarding/demo/demo-handlers.test.ts` - Mock handler tests
 
 ### Modified Test Files (2)
 1. `__tests__/components/onboarding/sample-prediction-step.test.tsx` - Update expectations
@@ -740,14 +802,16 @@ describe('FlippableCardDemo', () => {
 
 ## Risks & Mitigation
 
-### Risk 1: Demo Components Diverge from Real Components
+### Risk 1: Context Provider Complexity
 **Impact:** Medium
-**Probability:** Medium
+**Probability:** Low (revised - using actual components eliminates drift risk)
 **Mitigation:**
-- Document visual parity requirements in component comments
-- Add manual visual regression testing checklist
-- Create visual comparison screenshots in PR
-- Regular review of onboarding vs actual app patterns
+- Mock contexts must match actual context interfaces exactly
+- Use TypeScript to enforce interface compatibility
+- Test that actual components work with mock contexts
+- Document any differences between mock and real context behavior
+
+**Note:** Original risk (demo component divergence) is eliminated by reusing actual components
 
 ### Risk 2: Onboarding Duration Exceeds 2 Minutes
 **Impact:** High
@@ -923,13 +987,17 @@ describe('FlippableCardDemo', () => {
 
 ## Estimated Effort
 
-- **Setup & Demo Data:** 1-2 hours (includes detailed data structure spec)
-- **Demo Components:** 6-8 hours (includes mobile device testing checkpoint)
-- **Update Steps:** 4-5 hours (revised from 3-4 hours - Step 3.1 is complex)
-- **Testing:** 4-6 hours
+- **Setup & Mock Data:** 2-3 hours (revised - includes mock context setup, more complex than demo data)
+- **Mock Context Providers:** 3-4 hours (revised from 6-8 hours - simpler than building demo components)
+- **Update Steps:** 4-5 hours (same complexity)
+- **Testing:** 3-4 hours (revised from 4-6 hours - less to test, actual components already tested)
 - **Manual Testing & Polish:** 2-3 hours (includes mandatory duration audit)
-- **Total:** 17-24 hours (revised from 16-23 hours)
+- **Total:** 14-19 hours (revised from 17-24 hours - simpler approach, less duplication)
 
-**Risk Buffer:** +2-3 hours if mobile drag fallback is needed or duration exceeds 2 minutes
+**Benefits of Revised Approach:**
+- Fewer hours overall (5-8 hours saved)
+- No code duplication to maintain
+- Bug fixes automatically apply to onboarding
+- 100% visual accuracy guaranteed
 
 **Confidence Level:** High - Well-scoped, clear requirements, existing patterns to follow
