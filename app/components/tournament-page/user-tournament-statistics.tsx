@@ -101,7 +101,7 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess, t
       </CardContent>
       </Collapse>
       {tournamentId && (
-        <CardActions sx={{ justifyContent: 'flex-end', px: 2 }}>
+        <CardActions sx={{ justifyContent: 'center', px: 2, py: 1.5 }}>
           <Button
             component={Link}
             href={`/tournaments/${tournamentId}/stats`}
