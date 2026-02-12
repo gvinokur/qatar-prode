@@ -122,7 +122,7 @@ export default function PlayoffsBracketView({
         <Box
           sx={{
             overflowX: 'auto',
-            overflowY: 'hidden',
+            overflowY: 'auto',
             position: 'relative',
             minHeight: `${dimensions.height + 100}px`,
             pb: 4,

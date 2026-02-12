@@ -3,16 +3,20 @@
 import { ExtendedGameData } from '@/app/definitions'
 import { Team, TeamStats } from '@/app/db/tables-definition'
 import {
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
+  Card,
+  CardHeader,
+  CardContent,
+  Collapse,
   Typography,
   Box,
   useTheme,
+  useMediaQuery,
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import MinimalisticGamesList from './minimalistic-games-list'
 import TeamStandingsCards from '../groups-page/team-standings-cards'
+import { ExpandMore } from '../tournament-page/expand-more'
+import { useState } from 'react'
 
 interface GroupResultCardProps {
   readonly group: {
@@ -23,71 +27,83 @@ interface GroupResultCardProps {
   }
   readonly games: ExtendedGameData[]
   readonly qualifiedTeams: ReadonlyArray<{ readonly id: string }>
-  readonly defaultExpanded?: boolean
 }
 
 /**
- * Collapsible card showing group games and standings.
- * Uses Accordion for mobile collapsibility.
+ * Card showing group games and standings.
+ * Desktop: Always expanded, no collapse button.
+ * Mobile: Collapsible with expand button in header.
  */
 export default function GroupResultCard({
   group,
   games,
   qualifiedTeams,
-  defaultExpanded = false,
 }: GroupResultCardProps) {
   const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+  const [expanded, setExpanded] = useState(true)
+
+  const handleExpandClick = () => {
+    setExpanded(!expanded)
+  }
+
+  const content = (
+    <>
+      {/* Games list section */}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+          Partidos:
+        </Typography>
+        <MinimalisticGamesList games={games} teamsMap={group.teamsMap} />
+      </Box>
+
+      {/* Standings table section */}
+      <Box>
+        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+          📊 Tabla de Posiciones:
+        </Typography>
+        <TeamStandingsCards
+          teamStats={group.teamStats}
+          teamsMap={group.teamsMap}
+          qualifiedTeams={qualifiedTeams}
+          compact={true}
+        />
+      </Box>
+    </>
+  )
 
   return (
-    <Accordion
-      defaultExpanded={defaultExpanded}
-      sx={{
-        '&:before': {
-          display: 'none',
-        },
-        mb: 2,
-      }}
-    >
-      <AccordionSummary
-        expandIcon={<ExpandMoreIcon />}
-        aria-controls={`group-${group.id}-content`}
-        id={`group-${group.id}-header`}
+    <Card sx={{ mb: 2 }}>
+      <CardHeader
+        title={`GRUPO ${group.letter.toUpperCase()}`}
+        titleTypographyProps={{ variant: 'h6', component: 'h3' }}
         sx={{
-          backgroundColor: theme.palette.primary.light,
-          color: theme.palette.primary.contrastText,
-          fontWeight: 600,
-          '& .MuiAccordionSummary-content': {
-            margin: '12px 0',
-          },
+          color: theme.palette.primary.main,
+          borderBottom: `${theme.palette.primary.light} solid 1px`,
         }}
-      >
-        <Typography variant="h6" component="h3">
-          GRUPO {group.letter.toUpperCase()}
-        </Typography>
-      </AccordionSummary>
-
-      <AccordionDetails sx={{ pt: 2 }}>
-        {/* Games list section */}
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-            Partidos:
-          </Typography>
-          <MinimalisticGamesList games={games} teamsMap={group.teamsMap} />
-        </Box>
-
-        {/* Standings table section */}
-        <Box>
-          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-            📊 Tabla de Posiciones:
-          </Typography>
-          <TeamStandingsCards
-            teamStats={group.teamStats}
-            teamsMap={group.teamsMap}
-            qualifiedTeams={qualifiedTeams}
-            compact={true}
-          />
-        </Box>
-      </AccordionDetails>
-    </Accordion>
+        action={
+          isMobile ? (
+            <ExpandMore
+              expand={expanded}
+              onClick={handleExpandClick}
+              aria-expanded={expanded}
+              aria-label="mostrar más"
+            >
+              <ExpandMoreIcon />
+            </ExpandMore>
+          ) : null
+        }
+      />
+      <Collapse in={isMobile ? expanded : true} timeout="auto" unmountOnExit>
+        <CardContent
+          sx={{
+            borderBottom: `${theme.palette.primary.contrastText} 1px solid`,
+            borderTop: `${theme.palette.primary.contrastText} 1px solid`,
+          }}
+        >
+          {content}
+        </CardContent>
+      </Collapse>
+    </Card>
   )
 }

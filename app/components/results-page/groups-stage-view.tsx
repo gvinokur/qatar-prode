@@ -55,7 +55,6 @@ export default function GroupsStageView({ groups, games, qualifiedTeams }: Group
               group={group}
               games={groupGames}
               qualifiedTeams={qualifiedTeams}
-              defaultExpanded={false} // Collapsed on mobile by default
             />
           </Grid>
         )
