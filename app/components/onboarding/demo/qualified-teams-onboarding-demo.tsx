@@ -86,14 +86,34 @@ function QualifiedTeamsOnboardingDemoInner({
         return
       }
 
+      // Remember the current 3rd place qualification status before reordering
+      const currentThirdPlaceTeam = teams.find((team) => {
+        const pred = predictions.get(team.id)
+        return pred?.predicted_position === 3
+      })
+      const thirdPlaceQualificationStatus = currentThirdPlaceTeam
+        ? predictions.get(currentThirdPlaceTeam.id)?.predicted_to_qualify ?? false
+        : false
+
       // Calculate new order after drag
       const newOrder = arrayMove(teamOrder, oldIndex, newIndex)
 
       // Build batch update for all teams
       const updates = newOrder.map((teamId, index) => {
         const newPosition = index + 1
-        // Positions 1-2 always qualify, others don't (no third place in demo)
-        const qualifies = newPosition <= 2
+
+        // Determine qualification status
+        let qualifies: boolean
+        if (newPosition <= 2) {
+          // Positions 1-2 always qualify
+          qualifies = true
+        } else if (newPosition === 3) {
+          // Position 3: inherit the previous 3rd place qualification status
+          qualifies = thirdPlaceQualificationStatus
+        } else {
+          // Position 4+: not qualified
+          qualifies = false
+        }
 
         return {
           teamId,
@@ -101,6 +121,39 @@ function QualifiedTeamsOnboardingDemoInner({
           qualifies,
         }
       })
+
+      // Send batch update
+      updateGroupPositions(group.id, updates)
+    },
+    [group.id, teams, predictions, updateGroupPositions]
+  )
+
+  // Handle third place toggle
+  const handleToggleThirdPlace = useCallback(
+    (teamId: string) => {
+      // Build batch update for all teams in the group
+      const updates = teams
+        .map((team) => {
+          const prediction = predictions.get(team.id)
+          if (!prediction) return null
+
+          // Toggle qualification for the target team at position 3
+          if (team.id === teamId && prediction.predicted_position === 3) {
+            return {
+              teamId: team.id,
+              position: prediction.predicted_position,
+              qualifies: !prediction.predicted_to_qualify,
+            }
+          }
+
+          // Keep other teams as-is
+          return {
+            teamId: team.id,
+            position: prediction.predicted_position,
+            qualifies: prediction.predicted_to_qualify,
+          }
+        })
+        .filter((update): update is { teamId: string; position: number; qualifies: boolean } => update !== null)
 
       // Send batch update
       updateGroupPositions(group.id, updates)
@@ -129,7 +182,8 @@ function QualifiedTeamsOnboardingDemoInner({
             predictions={predictions}
             isLocked={false}
             isSaving={isSaving}
-            allowsThirdPlace={false}
+            allowsThirdPlace={true}
+            onToggleThirdPlace={handleToggleThirdPlace}
             isGroupComplete={false}
             allGroupsComplete={false}
           />
