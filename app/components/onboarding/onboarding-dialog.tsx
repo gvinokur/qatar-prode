@@ -170,7 +170,7 @@ export default function OnboardingDialog({ open, onClose, tournament }: Onboardi
       >
         <LinearProgress variant="determinate" value={progress} sx={{ height: 2 }} />
         <Box sx={{ p: 3, pb: 2 }}>
-          <OnboardingProgress currentStep={currentStepIndex} totalSteps={STEP_ORDER.length} />
+          <OnboardingProgress currentStep={currentStepIndex} totalSteps={STEP_ORDER.length} includeBoosts={hasBoosts} />
         </Box>
       </Box>
 
