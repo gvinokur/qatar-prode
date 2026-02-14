@@ -115,7 +115,7 @@ export default async function TournamentScopedFriendGroup(props : Props){
         </Grid>
       </Grid>
       <Grid container spacing={2} p={2} justifyContent={'center'}>
-        <Grid size={{ xs:12, md :8 }}>
+        <Grid size={12}>
           <ProdeGroupTable
             users={usersMap}
             userScoresByTournament={userScoresByTournament}
@@ -137,7 +137,7 @@ export default async function TournamentScopedFriendGroup(props : Props){
           />
         </Grid>
         {(prodeGroup.owner_user_id === user.id || members.find(m => m.id === user.id)?.is_admin) && (
-          <Grid size={{ xs:12, md : 4 }}>
+          <Grid size={12}>
            <ProdeGroupThemer group={prodeGroup}/>
           </Grid>
         ) || <></>}
