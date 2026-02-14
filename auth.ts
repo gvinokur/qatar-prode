@@ -32,8 +32,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             email: user.email,
             name: user.nickname || user.email,
             nickname: user.nickname,
-            isAdmin: user.is_admin,
-            email_verified: user.email_verified,
+            isAdmin: user.is_admin || false,
+            emailVerified: user.email_verified || false,
             nicknameSetupRequired: user.nickname_setup_required || false,
           }
         }
@@ -82,7 +82,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           user.name = existingOAuthUser.nickname || existingOAuthUser.email;
           user.nickname = existingOAuthUser.nickname;
           user.isAdmin = existingOAuthUser.is_admin || false;
-          user.email_verified = existingOAuthUser.email_verified || false;
+          user.emailVerified = existingOAuthUser.email_verified || false;
           user.nicknameSetupRequired = existingOAuthUser.nickname_setup_required || false;
           return true;
         }
@@ -99,7 +99,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             user.name = updatedUser.nickname || updatedUser.email;
             user.nickname = updatedUser.nickname;
             user.isAdmin = updatedUser.is_admin || false;
-            user.email_verified = updatedUser.email_verified || false;
+            user.emailVerified = updatedUser.email_verified || false;
             user.nicknameSetupRequired = updatedUser.nickname_setup_required || false;
             return true;
           }
@@ -115,7 +115,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           user.name = newUser.nickname || newUser.email;
           user.nickname = newUser.nickname;
           user.isAdmin = newUser.is_admin || false;
-          user.email_verified = newUser.email_verified || false;
+          user.emailVerified = newUser.email_verified || false;
           user.nicknameSetupRequired = newUser.nickname_setup_required || false;
           return true;
         }

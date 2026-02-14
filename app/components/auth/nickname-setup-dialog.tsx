@@ -51,7 +51,7 @@ export default function NicknameSetupDialog({ open, onClose }: NicknameSetupDial
       if (onClose) {
         onClose();
       }
-    } catch (err) {
+    } catch {
       setError('Error al guardar el nickname');
       setLoading(false);
     }

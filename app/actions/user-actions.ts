@@ -40,6 +40,9 @@ function generateVerificationTokenExpiry(): Date {
 export async function signupUser(user: UserNew) {
   const existingUser = await findUserByEmail(user.email)
   if (!existingUser) {
+    if (!user.password_hash) {
+      return 'Password is required for signup';
+    }
     const newUser = await createUser({
       ...user,
       password_hash: getPasswordHash(user.password_hash),

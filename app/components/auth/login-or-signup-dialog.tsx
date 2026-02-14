@@ -23,13 +23,11 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
   const [resetEmail, setResetEmail] = useState<string>('');
   const [createdUser, setCreatedUser] = useState<User>();
   const [email, setEmail] = useState<string>('');
-  const [authMethods, setAuthMethods] = useState<{ hasPassword: boolean; hasGoogle: boolean; userExists: boolean }>();
 
   const closeDialog = () => {
     handleCloseLoginDialog(!!createdUser);
     setDialogMode('emailInput');
     setEmail('');
-    setAuthMethods(undefined);
   }
 
   // Switch between dialog modes
@@ -40,7 +38,6 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
   // Handle email submission from EmailInputForm
   const handleEmailSubmit = (submittedEmail: string, methods: { hasPassword: boolean; hasGoogle: boolean; userExists: boolean }) => {
     setEmail(submittedEmail);
-    setAuthMethods(methods);
 
     // Determine next step based on auth methods
     if (!methods.userExists) {

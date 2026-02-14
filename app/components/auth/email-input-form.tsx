@@ -7,7 +7,7 @@ import { signIn } from 'next-auth/react';
 import { checkAuthMethods } from '@/app/actions/oauth-actions';
 
 type EmailInputFormProps = {
-  onEmailSubmit: (email: string, authMethods: { hasPassword: boolean; hasGoogle: boolean; userExists: boolean }) => void;
+  onEmailSubmit: (_email: string, _authMethods: { hasPassword: boolean; hasGoogle: boolean; userExists: boolean }) => void;
 };
 
 export default function EmailInputForm({ onEmailSubmit }: EmailInputFormProps) {
@@ -35,7 +35,7 @@ export default function EmailInputForm({ onEmailSubmit }: EmailInputFormProps) {
         hasGoogle: result.hasGoogle,
         userExists: result.userExists
       });
-    } catch (err) {
+    } catch {
       setError('Error al verificar el email');
     } finally {
       setLoading(false);
@@ -46,7 +46,7 @@ export default function EmailInputForm({ onEmailSubmit }: EmailInputFormProps) {
     setLoading(true);
     try {
       await signIn('google', { callbackUrl: '/' });
-    } catch (err) {
+    } catch {
       setError('Error al iniciar sesión con Google');
       setLoading(false);
     }
