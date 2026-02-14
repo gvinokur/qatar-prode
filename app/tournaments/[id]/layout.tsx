@@ -2,7 +2,8 @@
 
 import {Grid, AppBar, Box} from "../../components/mui-wrappers";
 import GroupSelector from "../../components/groups-page/group-selector";
-import {getTournamentAndGroupsData, getTournamentStartDate, getGroupStandingsForTournament, getGroupsForUser} from "../../actions/tournament-actions";
+import {getTournamentAndGroupsData, getTournamentStartDate, getGroupStandingsForTournament} from "../../actions/tournament-actions";
+import {getGroupsForUser} from "../../actions/prode-group-actions";
 import {findTournamentGuessByUserIdTournament} from "../../db/tournament-guess-repository";
 import {getLoggedInUser} from "../../actions/user-actions";
 import Link from "next/link";
@@ -57,7 +58,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
 
   // Fetch sidebar data
   const tournament = await findTournamentById(params.id)
-  const prodeGroups = user ? await getGroupsForUser(user.id, params.id) : undefined
+  const prodeGroups = user ? await getGroupsForUser() : undefined
   const groupStandings = await getGroupStandingsForTournament(params.id)
   const userGameStatistics = user ? await getGameGuessStatisticsForUsers([user.id], params.id) : []
 

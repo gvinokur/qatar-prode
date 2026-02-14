@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import TournamentLayout from '../layout';
-import { getTournamentAndGroupsData, getTournamentStartDate, getGroupsForUser, getGroupStandingsForTournament } from '@/app/actions/tournament-actions';
+import { getTournamentAndGroupsData, getTournamentStartDate, getGroupStandingsForTournament } from '@/app/actions/tournament-actions';
+import { getGroupsForUser } from '@/app/actions/prode-group-actions';
 import { getLoggedInUser } from '@/app/actions/user-actions';
 import { findTournamentGuessByUserIdTournament } from '@/app/db/tournament-guess-repository';
 import { getPlayersInTournament } from '@/app/db/player-repository';
@@ -15,8 +16,11 @@ import { renderWithTheme } from '@/__tests__/utils/test-utils';
 vi.mock('@/app/actions/tournament-actions', () => ({
   getTournamentAndGroupsData: vi.fn(),
   getTournamentStartDate: vi.fn(),
-  getGroupsForUser: vi.fn(),
   getGroupStandingsForTournament: vi.fn()
+}));
+
+vi.mock('@/app/actions/prode-group-actions', () => ({
+  getGroupsForUser: vi.fn()
 }));
 
 vi.mock('@/app/actions/user-actions', () => ({
