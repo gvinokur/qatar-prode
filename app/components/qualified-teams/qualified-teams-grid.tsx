@@ -35,9 +35,8 @@ export interface QualifiedTeamsGridProps {
 /**
  * Responsive grid layout for displaying tournament group cards
  * Uses CSS container queries to adapt to container width (not viewport):
- * - Narrow containers: 1 column (<600px)
- * - Medium containers: 2 columns (600-900px)
- * - Wide containers: 3 columns (900px+)
+ * - Narrow containers: 1 column (<500px)
+ * - Wide containers: 2 columns (500px+)
  */
 export default function QualifiedTeamsGrid({
   groups,
@@ -67,12 +66,11 @@ export default function QualifiedTeamsGrid({
   return (
     <Box sx={{
       width: '100%',
-      p: 2,
       // Enable container queries on this element
       containerType: 'inline-size',
       containerName: 'qualified-teams-grid'
     }}>
-      <Grid container spacing={3}>
+      <Grid container spacing={2}>
         {groups.map(({ group, teams }) => {
           const isGroupComplete = completeGroupIds.has(group.id);
           const groupResults = groupResultsMap.get(group.id) || [];
@@ -84,13 +82,9 @@ export default function QualifiedTeamsGrid({
                 // Use container queries instead of viewport breakpoints
                 // Default: 1 column (100%)
                 width: '100%',
-                // 2 columns when container is at least 600px wide
-                '@container qualified-teams-grid (min-width: 600px)': {
+                // 2 columns when container is at least 500px wide
+                '@container qualified-teams-grid (min-width: 500px)': {
                   width: '50%'
-                },
-                // 3 columns when container is at least 900px wide
-                '@container qualified-teams-grid (min-width: 900px)': {
-                  width: '33.333333%'
                 }
               }}
             >

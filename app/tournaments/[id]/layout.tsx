@@ -97,11 +97,12 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
       flexDirection: 'column',
       // Use dvh (dynamic viewport height) for Safari iOS - adjusts as address bar shows/hides
       // Fallback to vh for older browsers
-      // Desktop: account for header (56px)
-      // Mobile: bottom nav is positioned independently, don't subtract it
-      height: { xs: '100vh', md: 'calc(100vh - 56px)' },
+      // Both mobile and desktop need to subtract 56px for fixed bottom element
+      // Mobile: bottom nav (56px)
+      // Desktop: footer (56px)
+      height: 'calc(100vh - 56px)',
       '@supports (height: 100dvh)': {
-        height: { xs: '100dvh', md: 'calc(100dvh - 56px)' }
+        height: 'calc(100dvh - 56px)'
       }
     }}>
       <AppBar position={'sticky'} sx={{ top: 0, zIndex: 1100 }}>
