@@ -5,8 +5,40 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import StarIcon from '@mui/icons-material/Star'
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents'
 import GroupsIcon from '@mui/icons-material/Groups'
+import type { Tournament } from '@/app/db/tables-definition'
 
-export default function ScoringExplanationStep() {
+// Import DEFAULT_SCORING for fallback values
+const DEFAULT_SCORING = {
+  game_exact_score_points: 2,
+  game_correct_outcome_points: 1,
+  champion_points: 5,
+  runner_up_points: 3,
+  third_place_points: 1,
+  individual_award_points: 3,
+  qualified_team_points: 1,
+  exact_position_qualified_points: 2,
+}
+
+interface ScoringExplanationStepProps {
+  readonly tournament?: Tournament
+}
+
+export default function ScoringExplanationStep({ tournament }: ScoringExplanationStepProps) {
+  // Use tournament-specific values or fall back to defaults
+  const points = {
+    gameExact: tournament?.game_exact_score_points ?? DEFAULT_SCORING.game_exact_score_points,
+    gameOutcome: tournament?.game_correct_outcome_points ?? DEFAULT_SCORING.game_correct_outcome_points,
+    champion: tournament?.champion_points ?? DEFAULT_SCORING.champion_points,
+    runnerUp: tournament?.runner_up_points ?? DEFAULT_SCORING.runner_up_points,
+    thirdPlace: tournament?.third_place_points ?? DEFAULT_SCORING.third_place_points,
+    individualAward: tournament?.individual_award_points ?? DEFAULT_SCORING.individual_award_points,
+    qualifiedTeam: tournament?.qualified_team_points ?? DEFAULT_SCORING.qualified_team_points,
+    exactPosition: tournament?.exact_position_qualified_points ?? DEFAULT_SCORING.exact_position_qualified_points,
+  }
+
+  // Calculate total for exact position (qualified + exact position bonus)
+  const exactPositionTotal = points.qualifiedTeam + points.exactPosition
+
   return (
     <Box sx={{ py: 2 }}>
       <Typography variant="h5" gutterBottom align="center">
@@ -33,7 +65,7 @@ export default function ScoringExplanationStep() {
                 <StarIcon sx={{ fontSize: 20, color: 'gold' }} />
                 <Typography variant="body2">Resultado exacto</Typography>
               </Box>
-              <Chip label="2 pts" size="small" color="primary" />
+              <Chip label={`${points.gameExact} pts`} size="small" color="primary" />
             </Box>
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -41,7 +73,7 @@ export default function ScoringExplanationStep() {
                 <CheckCircleIcon sx={{ fontSize: 20, color: 'success.main' }} />
                 <Typography variant="body2">Resultado correcto</Typography>
               </Box>
-              <Chip label="1 pt" size="small" color="success" />
+              <Chip label={`${points.gameOutcome} pt${points.gameOutcome === 1 ? '' : 's'}`} size="small" color="success" />
             </Box>
           </Stack>
         </Paper>
@@ -58,17 +90,17 @@ export default function ScoringExplanationStep() {
           <Stack spacing={1.5}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="body2">🥇 Campeón</Typography>
-              <Chip label="5 pts" size="small" sx={{ bgcolor: 'gold', color: 'black' }} />
+              <Chip label={`${points.champion} pts`} size="small" sx={{ bgcolor: 'gold', color: 'black' }} />
             </Box>
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="body2">🥈 Subcampeón</Typography>
-              <Chip label="3 pts" size="small" sx={{ bgcolor: 'silver', color: 'black' }} />
+              <Chip label={`${points.runnerUp} pts`} size="small" sx={{ bgcolor: 'silver', color: 'black' }} />
             </Box>
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="body2">🥉 Tercer lugar</Typography>
-              <Chip label="1 pt" size="small" sx={{ bgcolor: '#CD7F32', color: 'white' }} />
+              <Chip label={`${points.thirdPlace} pt${points.thirdPlace === 1 ? '' : 's'}`} size="small" sx={{ bgcolor: '#CD7F32', color: 'white' }} />
             </Box>
           </Stack>
         </Paper>
@@ -84,7 +116,7 @@ export default function ScoringExplanationStep() {
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
             <Typography variant="body2">Por cada premio correcto</Typography>
-            <Chip label="3 pts" size="small" color="warning" />
+            <Chip label={`${points.individualAward} pts`} size="small" color="warning" />
           </Box>
 
           <Divider sx={{ my: 1 }} />
@@ -97,7 +129,7 @@ export default function ScoringExplanationStep() {
           </Stack>
 
           <Typography variant="caption" display="block" sx={{ mt: 1, color: 'text.secondary' }}>
-            Total posible: 12 pts (4 premios × 3 pts)
+            Total posible: {points.individualAward * 4} pts (4 premios × {points.individualAward} pts)
           </Typography>
         </Paper>
 
@@ -113,20 +145,29 @@ export default function ScoringExplanationStep() {
           <Stack spacing={1.5}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="body2">Posición exacta + clasificado</Typography>
-              <Chip label="1 pt" size="small" color="info" />
+              <Chip label={`${exactPositionTotal} pt${exactPositionTotal === 1 ? '' : 's'}`} size="small" color="info" />
             </Box>
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="body2">Clasificado (posición incorrecta)</Typography>
-              <Chip label="1 pt" size="small" color="info" variant="outlined" />
+              <Chip label={`${points.qualifiedTeam} pt${points.qualifiedTeam === 1 ? '' : 's'}`} size="small" color="info" variant="outlined" />
             </Box>
           </Stack>
         </Paper>
 
         {/* Important Note */}
         <Alert severity="info" variant="outlined">
-          <AlertTitle>Importante</AlertTitle>
-          Los valores de puntaje pueden variar según el torneo. Los valores mostrados son típicos.
+          {tournament ? (
+            <>
+              <AlertTitle>Configuración de {tournament.long_name || tournament.short_name}</AlertTitle>
+              Estos son los valores de puntaje para este torneo específico.
+            </>
+          ) : (
+            <>
+              <AlertTitle>Importante</AlertTitle>
+              Los valores de puntaje pueden variar según el torneo. Los valores mostrados son típicos.
+            </>
+          )}
         </Alert>
       </Stack>
     </Box>

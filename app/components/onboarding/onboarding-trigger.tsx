@@ -1,23 +1,16 @@
-'use client'
-
-import { useEffect, useState } from 'react'
 import OnboardingDialog from './onboarding-dialog'
+import { getTournaments } from '@/app/actions/tournament-actions'
 
 /**
- * Triggers the onboarding dialog with a small delay after page load
- * This allows the page to render first before showing the modal
+ * Triggers the onboarding dialog
+ * Loads active tournament configuration to display tournament-specific values
  */
-export default function OnboardingTrigger() {
-  const [open, setOpen] = useState(false)
+export default async function OnboardingTrigger() {
+  // Load active tournaments for user
+  const tournaments = await getTournaments()
 
-  useEffect(() => {
-    // Small delay to let page render first
-    const timer = setTimeout(() => {
-      setOpen(true)
-    }, 500)
+  // Use first active tournament (if available)
+  const activeTournament = tournaments?.[0]
 
-    return () => clearTimeout(timer)
-  }, [])
-
-  return <OnboardingDialog open={open} onClose={() => setOpen(false)} />
+  return <OnboardingDialog open={true} onClose={() => {}} tournament={activeTournament} />
 }

@@ -3,8 +3,17 @@
 import { Box, Typography, Card, CardContent, Stack, Alert, Chip } from '@mui/material'
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
+import type { Tournament } from '@/app/db/tables-definition'
 
-export default function BoostIntroductionStep() {
+interface BoostIntroductionStepProps {
+  readonly tournament?: Tournament
+}
+
+export default function BoostIntroductionStep({ tournament }: BoostIntroductionStepProps) {
+  // Extract boost counts from tournament
+  const silverBoosts = tournament?.max_silver_games ?? 0
+  const goldenBoosts = tournament?.max_golden_games ?? 0
+
   return (
     <Box sx={{ py: 2 }}>
       <Typography variant="h5" gutterBottom align="center">
@@ -32,7 +41,7 @@ export default function BoostIntroductionStep() {
             </Typography>
 
             <Chip
-              label="Cantidad limitada por torneo"
+              label={`Tienes ${silverBoosts} ${silverBoosts === 1 ? 'boost disponible' : 'boosts disponibles'} por torneo`}
               size="small"
               sx={{ mt: 1.5 }}
               color="default"
@@ -57,7 +66,7 @@ export default function BoostIntroductionStep() {
             </Typography>
 
             <Chip
-              label="Muy escaso - ¡úsalo sabiamente!"
+              label={`Tienes ${goldenBoosts} ${goldenBoosts === 1 ? 'boost disponible' : 'boosts disponibles'} por torneo`}
               size="small"
               sx={{ mt: 1.5 }}
               color="warning"
@@ -67,6 +76,11 @@ export default function BoostIntroductionStep() {
         </Card>
 
         <Alert severity="info" icon={<InfoOutlinedIcon />}>
+          {tournament && (
+            <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+              Configuración para {tournament.long_name || tournament.short_name}:
+            </Typography>
+          )}
           <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 0.5 }}>
             Puntos Importantes:
           </Typography>
@@ -79,9 +93,6 @@ export default function BoostIntroductionStep() {
             </Typography>
             <Typography variant="body2">
               • Puedes cambiarlos hasta 1 hora antes del partido
-            </Typography>
-            <Typography variant="body2">
-              • Cada torneo tiene cantidades limitadas
             </Typography>
           </Stack>
         </Alert>
