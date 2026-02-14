@@ -248,7 +248,7 @@ function QualifiedTeamsUI({
   const infoOpen = Boolean(infoAnchorEl);
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
+    <Container maxWidth="xl" sx={{ py: 4, height: '100%' }}>
       {showHeader && (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
           <Typography variant="h4" component="h1">

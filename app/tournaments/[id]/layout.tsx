@@ -236,7 +236,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
         }}>
           <Grid container spacing={2} sx={{ height: '100%' }}>
             {/* Main content - 8/12 on desktop, full on mobile */}
-            <Grid size={{ xs: 12, md: 8 }}>
+            <Grid size={{ xs: 12, md: 8 }} sx={{ height: '100%', overflow: 'auto' }}>
               {children}
             </Grid>
 

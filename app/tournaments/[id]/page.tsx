@@ -15,7 +15,7 @@ export default async function TournamentLandingPage(props: Props) {
   const tournamentId = params.id
 
   return (
-    <Box sx={{ pt: 1 }}>
+    <Box sx={{ pt: 1, height: '100%' }}>
       <UnifiedGamesPage tournamentId={tournamentId} />
     </Box>
   )
