@@ -35,15 +35,22 @@ export default function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProp
 
     try {
       if (resetForm.email) {
+        const result: any = await sendPasswordResetLink(resetForm.email);
         setLoading(false);
 
-        const result = await sendPasswordResetLink(resetForm.email);
-
         if (!result.success) {
-          setError('root', {
-            type: 'Email Error',
-            message: 'Error al enviar el correo electrónico. Por favor, inténtalo de nuevo.'
-          });
+          // Check if user is OAuth-only
+          if (result.isOAuthOnly) {
+            setError('root', {
+              type: 'OAuth Only',
+              message: result.error || 'Esta cuenta usa inicio de sesión con Google. No se puede restablecer la contraseña.'
+            });
+          } else {
+            setError('root', {
+              type: 'Email Error',
+              message: result.error || 'Error al enviar el correo electrónico. Por favor, inténtalo de nuevo.'
+            });
+          }
           return;
         }
         onSuccess(resetForm.email);

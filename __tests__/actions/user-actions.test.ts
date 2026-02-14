@@ -43,6 +43,7 @@ vi.mock('../../app/db/users-repository', () => ({
   findUserByVerificationToken: vi.fn(),
   verifyEmail: vi.fn(),
   deleteUser: vi.fn(),
+  userHasPasswordAuth: vi.fn(),
 }));
 
 vi.mock('../../app/db/prode-group-repository', () => ({
@@ -242,6 +243,7 @@ describe('User Actions', () => {
   describe('sendPasswordResetLink', () => {
     it('should send password reset email for existing user', async () => {
       vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(mockUser);
+      vi.mocked(usersRepository.userHasPasswordAuth).mockReturnValue(true);
       vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
       vi.mocked(emailTemplates.generatePasswordResetEmail).mockReturnValue({
         to: 'test@example.com',
@@ -276,6 +278,7 @@ describe('User Actions', () => {
 
     it('should generate reset token with 1-hour expiration', async () => {
       vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(mockUser);
+      vi.mocked(usersRepository.userHasPasswordAuth).mockReturnValue(true);
       vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
       vi.mocked(emailTemplates.generatePasswordResetEmail).mockReturnValue({
         to: 'test@example.com',
@@ -293,6 +296,21 @@ describe('User Actions', () => {
       
       expect(expirationTime).toBeGreaterThan(beforeCall + 59 * 60 * 1000);
       expect(expirationTime).toBeLessThan(afterCall + 61 * 60 * 1000);
+    });
+
+    it('should return error for OAuth-only users', async () => {
+      const oauthUser = { ...mockUser, password_hash: null };
+      vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(oauthUser);
+      vi.mocked(usersRepository.userHasPasswordAuth).mockReturnValue(false);
+
+      const result = await sendPasswordResetLink('oauth@example.com');
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Esta cuenta usa inicio de sesión con Google. No se puede restablecer la contraseña.',
+        isOAuthOnly: true
+      });
+      expect(usersRepository.updateUser).not.toHaveBeenCalled();
     });
   });
 

@@ -8,7 +8,10 @@ import {
   getPasswordHash,
   updateUser,
   findUserByResetToken,
-  findUserByVerificationToken, verifyEmail, deleteUser
+  findUserByVerificationToken,
+  verifyEmail,
+  deleteUser,
+  userHasPasswordAuth
 } from "../db/users-repository"
 import {generatePasswordResetEmail, generateVerificationEmail} from "../utils/email-templates";
 import {sendEmail} from "../utils/email";
@@ -19,6 +22,7 @@ import {
 } from "../db/prode-group-repository";
 import {deleteAllUserTournamentGuesses} from "../db/tournament-guess-repository";
 import {deleteAllUserGameGuesses} from "../db/game-guess-repository";
+import {deleteAllUserGroupPositionsPredictions} from "../db/qualified-teams-repository";
 
 function generateVerificationToken(): string {
   return crypto.randomBytes(32).toString('hex');
@@ -37,6 +41,9 @@ function generateVerificationTokenExpiry(): Date {
 export async function signupUser(user: UserNew) {
   const existingUser = await findUserByEmail(user.email)
   if (!existingUser) {
+    if (!user.password_hash) {
+      return 'Password is required for signup';
+    }
     const newUser = await createUser({
       ...user,
       password_hash: getPasswordHash(user.password_hash),
@@ -91,6 +98,16 @@ export async function sendPasswordResetLink(email: string) {
   // Check if user exists
   if (!user) {
     return { success: false, error: 'No existe un usuario con ese e-mail' };
+  }
+
+  // Check if user has password authentication enabled
+  // OAuth-only users cannot reset password
+  if (!userHasPasswordAuth(user)) {
+    return {
+      success: false,
+      error: 'Esta cuenta usa inicio de sesión con Google. No se puede restablecer la contraseña.',
+      isOAuthOnly: true
+    };
   }
 
   // Generate a random token
@@ -204,6 +221,7 @@ async function sendVerificationEmail(user: User) {
  * Deletes a user account and all associated data
  * This includes:
  * - Game and tournament guesses
+ * - Qualified team predictions
  * - Group memberships
  * - Groups owned by the user
  * - Notification subscriptions
@@ -229,6 +247,8 @@ export async function deleteAccount() {
     // Delete all user guesses
     await deleteAllUserTournamentGuesses(user.id);
     await deleteAllUserGameGuesses(user.id);
+    // Delete all qualified team predictions
+    await deleteAllUserGroupPositionsPredictions(user.id);
 
     // Delete the user record
     await deleteUser(user.id);

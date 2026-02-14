@@ -1,9 +1,10 @@
 import {db} from './database'
 import {createBaseFunctions} from "./base-repository";
-import {User, UserTable} from "./tables-definition";
+import {OAuthAccount, User, UserTable} from "./tables-definition";
 import sha256 from 'crypto-js/sha256'
 import {cache} from "react";
 import {PushSubscription} from "web-push";
+import {sql} from "kysely";
 
 const baseFunctions = createBaseFunctions<UserTable, User>('users');
 export const findUserById = baseFunctions.findById
@@ -137,4 +138,122 @@ export async function findUsersWithNotificationSubscriptions() {
     ]))
     .selectAll()
     .execute();
+}
+
+// ============================================
+// OAuth Repository Functions
+// ============================================
+
+/**
+ * Find user by OAuth provider and provider user ID
+ * Queries the oauth_accounts JSONB array for matching provider and provider_user_id
+ */
+export const findUserByOAuthAccount = cache(async function(
+  provider: string,
+  providerUserId: string
+): Promise<User | undefined> {
+  return db.selectFrom('users')
+    .where(eb =>
+      eb(
+        sql`oauth_accounts @> ${sql.lit(
+          JSON.stringify([{ provider, provider_user_id: providerUserId }])
+        )}::jsonb`,
+        '=',
+        sql`true`
+      )
+    )
+    .selectAll()
+    .executeTakeFirst();
+});
+
+/**
+ * Link OAuth account to existing user
+ * Atomically appends OAuth account to oauth_accounts array and updates auth_providers
+ */
+export async function linkOAuthAccount(
+  userId: string,
+  oauthAccount: OAuthAccount
+): Promise<User | undefined> {
+  const user = await findUserById(userId);
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  // Append to oauth_accounts array
+  const currentOAuthAccounts = user.oauth_accounts || [];
+  const newOAuthAccounts = [...currentOAuthAccounts, oauthAccount];
+
+  // Update auth_providers array
+  const currentProviders = user.auth_providers || [];
+  const newProviders = currentProviders.includes(oauthAccount.provider)
+    ? currentProviders
+    : [...currentProviders, oauthAccount.provider];
+
+  return db.updateTable('users')
+    .set({
+      oauth_accounts: JSON.stringify(newOAuthAccounts),
+      auth_providers: JSON.stringify(newProviders)
+    })
+    .where('id', '=', userId)
+    .returningAll()
+    .executeTakeFirst();
+}
+
+/**
+ * Create new OAuth-only user
+ * Uses displayName from OAuth provider as nickname (or null if not provided)
+ */
+export async function createOAuthUser(
+  email: string,
+  oauthAccount: OAuthAccount,
+  displayName: string | null
+): Promise<User | undefined> {
+  return db.insertInto('users')
+    .values({
+      email,
+      nickname: displayName,
+      password_hash: null,  // OAuth-only user
+      auth_providers: JSON.stringify([oauthAccount.provider]),
+      oauth_accounts: JSON.stringify([oauthAccount]),
+      email_verified: true  // OAuth providers verify email
+    })
+    .returningAll()
+    .executeTakeFirst();
+}
+
+/**
+ * Get authentication methods available for an email
+ * Returns { hasPassword, hasGoogle, userExists } for progressive disclosure
+ */
+export const getAuthMethodsForEmail = cache(async function(
+  email: string
+): Promise<{ hasPassword: boolean; hasGoogle: boolean; userExists: boolean }> {
+  const user = await findUserByEmail(email);
+
+  if (!user) {
+    return { hasPassword: false, hasGoogle: false, userExists: false };
+  }
+
+  const authProviders = user.auth_providers || [];
+  return {
+    hasPassword: authProviders.includes('credentials'),
+    hasGoogle: authProviders.includes('google'),
+    userExists: true
+  };
+});
+
+/**
+ * Get auth_providers array for a user
+ * Helper function for checking authentication methods
+ */
+export function getAuthProviders(user: User): string[] {
+  return user.auth_providers || [];
+}
+
+/**
+ * Check if user has password authentication enabled
+ * Returns true if password_hash is not null
+ */
+export function userHasPasswordAuth(user: User): boolean {
+  return user.password_hash !== null;
 }

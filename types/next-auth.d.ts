@@ -1,47 +1,36 @@
-import { DefaultSession, Jwt as DefaultJwt } from "next-auth"
-import { JWT as DefaultJWT} from "next-auth/jwt"
-import {type AdapterUser as BaseAdapterUser, AdapterUser} from "next-auth/adapters";
-import {DefaultUser} from "@auth/core/types";
-
-declare module "next-auth/jwt" {
-  /** Returned by the `jwt` callback and `getToken`, when using JWT sessions */
-  interface JWT extends DefaultJWT{
-    id:string
-    isAdmin?: boolean,
-    nickname?: string | null,
-    email_verified?: boolean
-  }
-}
-
-declare module "next-auth/adapters" {
-  interface AdapterUser extends BaseAdapterUser {
-    id:string
-    nickname?: string | null,
-    isAdmin?: boolean
-    email_verified?: boolean
-  }
-}
-
+import NextAuth, { DefaultSession } from "next-auth"
 
 declare module "next-auth" {
   /**
-   * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
+   * Returned by `auth()`, `getSession()`, and received as a prop on the `SessionProvider` React Context
    */
   interface Session {
-    user: AdapterUser
+    user: {
+      id: string
+      nickname: string | null
+      isAdmin: boolean
+      emailVerified: boolean
+    } & DefaultSession["user"]
   }
 
-  interface Jwt extends DefaultJwt{
-    id:string
-    isAdmin?: boolean,
-    nickname?: string | null,
-    email_verified?: boolean
+  /**
+   * The shape of the user object returned in the OAuth providers' `profile` callback,
+   * or the second parameter of the `session` callback, when using a database.
+   */
+  interface User {
+    id: string
+    nickname: string | null
+    isAdmin: boolean
+    emailVerified: boolean
   }
+}
 
-  interface User extends DefaultUser {
-    id:string
-    nickname?: string | null,
-    isAdmin?: boolean
-    email_verified?: boolean
+declare module "next-auth/jwt" {
+  /** Returned by the `jwt` callback and `auth()`, when using JWT sessions */
+  interface JWT {
+    id: string
+    nickname: string | null
+    isAdmin: boolean
+    emailVerified: boolean
   }
 }

@@ -129,3 +129,16 @@ export async function deleteAllGroupPositionsPredictions(
     .where('tournament_id', '=', tournamentId)
     .execute();
 }
+
+/**
+ * Delete all group positions predictions (JSONB format) for a user across all tournaments
+ * Used when deleting a user account
+ */
+export async function deleteAllUserGroupPositionsPredictions(
+  userId: string
+): Promise<void> {
+  await db
+    .deleteFrom(jsonbTableName)
+    .where('user_id', '=', userId)
+    .execute();
+}
