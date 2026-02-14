@@ -17,13 +17,13 @@ import { setNickname } from '@/app/actions/oauth-actions';
 import { useSession } from 'next-auth/react';
 
 type NicknameSetupDialogProps = {
-  open: boolean;
-  onClose?: () => void;
+  readonly open: boolean;
+  readonly onClose?: () => void;
 };
 
 export default function NicknameSetupDialog({ open, onClose }: NicknameSetupDialogProps) {
   const { update } = useSession();
-  const [nickname, setNicknameValue] = useState('');
+  const [nicknameInput, setNicknameInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -33,7 +33,7 @@ export default function NicknameSetupDialog({ open, onClose }: NicknameSetupDial
     setLoading(true);
 
     try {
-      const result = await setNickname(nickname);
+      const result = await setNickname(nicknameInput);
 
       if (!result.success) {
         setError(result.error || 'Error al guardar el nickname');
@@ -43,7 +43,7 @@ export default function NicknameSetupDialog({ open, onClose }: NicknameSetupDial
 
       // Update session to reflect new nickname
       await update({
-        nickname,
+        nickname: nicknameInput,
         nicknameSetupRequired: false
       });
 
@@ -82,14 +82,16 @@ export default function NicknameSetupDialog({ open, onClose }: NicknameSetupDial
           <TextField
             fullWidth
             label="Nickname"
-            value={nickname}
-            onChange={(e) => setNicknameValue(e.target.value)}
+            value={nicknameInput}
+            onChange={(e) => setNicknameInput(e.target.value)}
             required
             disabled={loading}
             autoFocus
-            inputProps={{
-              minLength: 2,
-              maxLength: 50
+            slotProps={{
+              htmlInput: {
+                minLength: 2,
+                maxLength: 50
+              }
             }}
             helperText="Mínimo 2 caracteres, máximo 50"
           />

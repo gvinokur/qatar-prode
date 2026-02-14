@@ -300,7 +300,8 @@ describe('ForgotPasswordForm', () => {
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
 
-      await screen.findByText('Test error');
+      const errorMessage = await screen.findByText('Test error');
+      expect(errorMessage).toBeInTheDocument();
     });
 
     it('shows server error message when sendPasswordResetLink throws', async () => {

@@ -16,7 +16,7 @@ export async function checkAuthMethods(email: string): Promise<{
   error?: string;
 }> {
   try {
-    if (!email || !email.trim()) {
+    if (!email?.trim()) {
       return {
         hasPassword: false,
         hasGoogle: false,
@@ -62,7 +62,7 @@ export async function setNickname(nickname: string): Promise<{
       };
     }
 
-    if (!nickname || !nickname.trim()) {
+    if (!nickname?.trim()) {
       return {
         success: false,
         error: "Nickname is required"

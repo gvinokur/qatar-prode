@@ -157,17 +157,6 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
           </DialogActions>
         );
       case 'signup':
-        return (
-          <DialogActions>
-            <Typography
-              color={'primary'}
-              onClick={() => switchMode('emailInput')}
-              sx={{ cursor: 'pointer' }}
-            >
-              ← Volver a email
-            </Typography>
-          </DialogActions>
-        );
       case 'forgotPassword':
         return (
           <DialogActions>

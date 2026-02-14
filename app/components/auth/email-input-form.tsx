@@ -7,7 +7,7 @@ import { signIn } from 'next-auth/react';
 import { checkAuthMethods } from '@/app/actions/oauth-actions';
 
 type EmailInputFormProps = {
-  onEmailSubmit: (_email: string, _authMethods: { hasPassword: boolean; hasGoogle: boolean; userExists: boolean }) => void;
+  readonly onEmailSubmit: (_email: string, _authMethods: { hasPassword: boolean; hasGoogle: boolean; userExists: boolean }) => void;
 };
 
 export default function EmailInputForm({ onEmailSubmit }: EmailInputFormProps) {
