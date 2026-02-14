@@ -76,44 +76,43 @@ export default async function TournamentScopedFriendGroup(props : Props){
           userScoresByTournament
         }}/>
       )}
-      <Grid container spacing={2}
-            mx={-2}
-            pl={2}
-            pt={1}
-            bgcolor={prodeGroup.theme?.primary_color || ''}
-            color={prodeGroup.theme?.secondary_color || ''}
-            alignItems="center"
-            justifyContent="center"
-            direction="row"
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+          p: 2,
+          borderLeft: 4,
+          borderLeftColor: prodeGroup.theme?.primary_color || 'primary.main',
+          bgcolor: prodeGroup.theme?.primary_color
+            ? `color-mix(in srgb, ${prodeGroup.theme.primary_color} 5%, transparent)`
+            : 'action.hover',
+        }}
       >
-        <Grid>
-          {logoUrl && (
-            <Box
-              component="img"
-              src={logoUrl}
-              alt={prodeGroup.name}
-              sx={{
-                maxHeight: { xs: 32, sm: 40, md: 48 },
-                borderRadius: '8px',
-              }}
-            />
-          )}
-        </Grid>
-        <Grid>
-          <Typography
+        {logoUrl && (
+          <Box
+            component="img"
+            src={logoUrl}
+            alt={prodeGroup.name}
             sx={{
-              textAlign: { xs: 'center', sm: 'center', md: 'left' },
-              fontWeight: 'bold',
-              fontSize: { xs: '2rem', sm: '2.2rem', md: '2.8rem' },
-              lineHeight: 1.1
+              maxHeight: { xs: 32, sm: 40, md: 48 },
+              borderRadius: '8px',
+              flexShrink: 0,
             }}
-            variant={undefined}
-            component="h1"
-          >
-            {prodeGroup.name}
-          </Typography>
-        </Grid>
-      </Grid>
+          />
+        )}
+        <Typography
+          component="h1"
+          sx={{
+            fontWeight: 600,
+            fontSize: { xs: '1.75rem', sm: '2rem', md: '2.5rem' },
+            lineHeight: 1.2,
+            color: 'text.primary',
+          }}
+        >
+          {prodeGroup.name}
+        </Typography>
+      </Box>
       <Grid container spacing={2} p={2} justifyContent={'center'}>
         <Grid size={12}>
           <ProdeGroupTable
