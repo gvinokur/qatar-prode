@@ -1,29 +1,9 @@
-import OnboardingDialog from './onboarding-dialog'
-import { getTournaments } from '@/app/actions/tournament-actions'
+import OnboardingDialogClient from './onboarding-dialog-client'
 
 /**
  * Triggers the onboarding dialog
- * Loads active tournament configuration to display tournament-specific values
+ * Renders a client component that will load tournament data on mount
  */
-export default async function OnboardingTrigger() {
-  // Load active tournaments for user
-  const tournaments = await getTournaments()
-
-  // Use first active tournament (if available)
-  const activeTournament = tournaments?.[0]
-
-  // Debug: Log tournament data to verify fields are populated
-  console.warn('[OnboardingTrigger] Active tournament:', {
-    id: activeTournament?.id,
-    name: activeTournament?.short_name,
-    hasScoring: {
-      gameExact: activeTournament?.game_exact_score_points,
-      gameOutcome: activeTournament?.game_correct_outcome_points,
-      champion: activeTournament?.champion_points,
-      silverBoosts: activeTournament?.max_silver_games,
-      goldenBoosts: activeTournament?.max_golden_games,
-    }
-  })
-
-  return <OnboardingDialog open={true} onClose={() => {}} tournament={activeTournament} />
+export default function OnboardingTrigger() {
+  return <OnboardingDialogClient />
 }
