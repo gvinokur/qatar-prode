@@ -5,6 +5,20 @@
 **Effort:** Medium (3-4 days)
 **Priority:** High
 
+---
+
+## 🔄 PLAN REVISION (v2)
+
+**Key Change from v1:** Using **query parameter navigation** (`?tab=tables`) instead of separate route directories (`/tournaments/[id]/tables`).
+
+**Why:** Story's technical implementation clearly shows query-based routing, and existing `page.tsx` already accepts `searchParams`. This approach:
+- ✅ Matches story's intent
+- ✅ Leverages existing page structure
+- ✅ Simpler than creating new route directories
+- ✅ All content rendered from single server component
+
+---
+
 ## Story Context & Objectives
 
 ### Goal
@@ -75,55 +89,61 @@ Add consistent tabbed navigation on desktop and easy access to group tables on m
 
 ## Technical Approach
 
-### Architecture Decision: Route-Based Navigation
+### Architecture Decision: Query Parameter Navigation
 
-**Approach:** Use separate routes for each section (not query parameters)
+**Approach:** Use query parameters for tab navigation (not separate routes)
 
 **Rationale:**
-- Consistent with existing app structure (/stats, /friend-groups, /results are separate pages)
-- Better SEO and deep linking
-- Each page can be an independent Server Component
-- Simpler state management
-- Browser back/forward works naturally
+- Existing page.tsx already accepts searchParams server-side
+- Desktop tabs embedded in main tournament page (not separate pages)
+- Simpler than creating new route directories
+- All content rendered from single page component
+- Browser back/forward works naturally with query params
 
-**Routes:**
-- Games: `/tournaments/[id]` (default)
-- Tables: `/tournaments/[id]/tables` (NEW)
-- Stats: `/tournaments/[id]/stats` (existing)
-- Friend Groups: `/tournaments/[id]/friend-groups` (existing)
+**Navigation Pattern:**
+- Games: `/tournaments/[id]` (default, no ?tab param)
+- Tables: `/tournaments/[id]?tab=tables` (NEW)
+- Stats: `/tournaments/[id]?tab=stats` (NEW - currently separate page, will integrate)
+- Friend Groups: `/tournaments/[id]?tab=groups` (NEW - currently separate page, will integrate)
+
+**IMPORTANT:** This means /stats and /friend-groups pages become query-based tabs instead of separate routes
 
 ### Component Strategy
 
 **1. TournamentDesktopTabs (NEW)**
 - Client component ('use client')
 - Uses Material-UI Tabs with Link components
-- Active tab detection via usePathname()
-- **Route Detection Priority:** Check specific routes BEFORE parent route:
-  1. Check `/tournaments/{id}/tables` first
-  2. Then `/tournaments/{id}/stats`
-  3. Then `/tournaments/{id}/friend-groups`
-  4. Finally `/tournaments/{id}` (default Games)
+- Active tab detection via searchParams.get('tab')
 - Sticky positioning below GroupSelector
 - Desktop-only (hidden on mobile)
+- Navigation uses query parameters: `?tab=tables`, `?tab=stats`, `?tab=groups`
 
-**2. TablesPage (NEW)**
-- Server Component (default)
-- Route: `/tournaments/[id]/tables/page.tsx`
-- Reuses GroupStandingsSidebar component patterns
+**2. Tournament Page (MODIFY EXISTING)**
+- File: `app/tournaments/[id]/page.tsx`
+- Already accepts searchParams server-side
+- Add conditional rendering based on `tab` parameter:
+  - No tab or `tab=games`: Render UnifiedGamesPage (current behavior)
+  - `tab=tables`: Render GroupStandingsFullPage component
+  - `tab=stats`: Render stats content inline (move from /stats page)
+  - `tab=groups`: Render friend groups content inline (move from /friend-groups page)
+
+**3. GroupStandingsFullPage (NEW)**
+- Component file: `app/components/tournament-page/group-standings-full-page.tsx`
 - Shows all groups with tab navigation
-- Consistent layout with other tournament pages
+- Reuses TeamStandingsCards from GroupStandingsSidebar
+- Full-page version (not sidebar)
 
-**3. TournamentBottomNav (UPDATE)**
+**4. TournamentBottomNav (UPDATE)**
 - Update tabs configuration
 - Add TableChartIcon from @mui/icons-material
 - Update labels: "Tournament" → "Games", "Friend Groups" → "Groups"
 - Remove "Resultados" tab
-- Add "Tables" tab
-- **Route Detection Priority:** Same ordering as desktop tabs to ensure consistent active state
+- Add "Tables" tab with href `?tab=tables`
+- Update active tab detection to read current searchParams
 
-**4. TournamentLayout (UPDATE)**
+**5. TournamentLayout (UPDATE)**
 - Add TournamentDesktopTabs component below GroupSelector
-- Position: after GroupSelector, before main content
+- Position: after GroupSelector, before children
 - Desktop-only visibility
 - **Z-Index Coordination:** Header (1100) > Tabs (100) > Content (0) < Bottom Nav (1300)
 
@@ -338,65 +358,91 @@ AFTER (New):
 **Purpose:** Horizontal tab navigation for desktop
 
 **Key Features:**
-- Client component with usePathname hook
+- Client component with useSearchParams hook
 - Material-UI Tabs with Link components
-- Active tab detection based on pathname
+- Active tab detection based on ?tab query parameter
 - Sticky positioning
 - Desktop-only visibility
 
 **Dependencies:**
 - @mui/material: Tabs, Tab, Box
 - next/link: Link
-- next/navigation: usePathname
+- next/navigation: useSearchParams
 
-### 2. TablesPage Component
-**Path:** `app/tournaments/[id]/tables/page.tsx`
+### 2. GroupStandingsFullPage Component
+**Path:** `app/components/tournament-page/group-standings-full-page.tsx`
 
-**Purpose:** Full-page view of all group standings
+**Purpose:** Full-page view of all group standings (for ?tab=tables)
 
 **Key Features:**
-- Server Component (fetch group standings data)
+- Client component for interactivity
 - Material-UI Tabs for group selection
-- Reuses TeamStandingsCards component
-- Keyboard and swipe navigation
+- Reuses TeamStandingsCards component (from GroupStandingsSidebar)
+- Keyboard navigation (arrow keys)
+- Touch swipe support
 - Responsive layout
 
 **Dependencies:**
-- Server actions: getGroupStandingsForTournament
 - Components: TeamStandingsCards
-- @mui/material: Card, Tabs, Tab, Box, IconButton
+- @mui/material: Card, Tabs, Tab, Box, IconButton, Typography
 
-### 3. TablesPage Client Component
-**Path:** `app/components/tournament-page/tables-page-client.tsx`
-
-**Purpose:** Client-side interactive group navigation
-
-**Key Features:**
-- Group carousel with arrow buttons
-- Keyboard navigation (arrow keys)
-- Touch swipe support
-- Active group state management
-
-### 4. Test Files
+### 3. Test Files
 **Paths:**
 - `app/__tests__/components/tournament-page/tournament-desktop-tabs.test.tsx`
-- `app/__tests__/components/tournament-page/tables-page-client.test.tsx`
-- `app/tournaments/[id]/tables/__tests__/page.test.tsx`
-- `app/__tests__/integration/tournament-desktop-tabs-navigation.test.tsx`
+- `app/__tests__/components/tournament-page/group-standings-full-page.test.tsx`
+- `app/__tests__/integration/tournament-tab-navigation.test.tsx`
 
 ## Files to Modify
 
-### 1. TournamentLayout
+### 1. Tournament Page (MAIN CHANGE)
+**Path:** `app/tournaments/[id]/page.tsx`
+
+**Changes:**
+- Read `tab` from searchParams: `const tab = await searchParams.then(sp => sp.tab || 'games')`
+- Add conditional rendering based on tab value
+- Import GroupStandingsFullPage, stats components, friend groups components
+- Fetch data for all tabs server-side
+
+**Current Structure:**
+```tsx
+export default async function TournamentLandingPage(props: Props) {
+  const params = await props.params
+  const searchParams = await props.searchParams // Already exists!
+
+  // Current: Only renders UnifiedGamesPage
+  return <UnifiedGamesPage tournamentId={tournamentId} />
+}
+```
+
+**New Structure:**
+```tsx
+export default async function TournamentLandingPage(props: Props) {
+  const params = await props.params
+  const searchParams = await props.searchParams
+  const tab = searchParams.tab || 'games' // NEW
+
+  // NEW: Conditional rendering
+  return (
+    <>
+      {tab === 'games' && <UnifiedGamesPage tournamentId={tournamentId} />}
+      {tab === 'tables' && <GroupStandingsFullPage groups={groupStandings} />}
+      {tab === 'stats' && <StatsContent userId={user.id} tournamentId={tournamentId} />}
+      {tab === 'groups' && <FriendGroupsContent groups={prodeGroups} />}
+    </>
+  )
+}
+```
+
+### 2. TournamentLayout
 **Path:** `app/tournaments/[id]/layout.tsx`
 
 **Changes:**
 - Import TournamentDesktopTabs
-- Add component below GroupSelector (line ~182)
-- Position between GroupSelector and main content
+- Add component after AppBar closing tag (line ~184)
+- Position before {children}
 
 **Before:**
 ```tsx
-</Grid>
 </AppBar>
 <Box sx={{ flexGrow: 1, ... }}>
   {children}
@@ -405,7 +451,6 @@ AFTER (New):
 
 **After:**
 ```tsx
-</Grid>
 </AppBar>
 <TournamentDesktopTabs tournamentId={params.id} />
 <Box sx={{ flexGrow: 1, ... }}>
@@ -425,14 +470,14 @@ AFTER (New):
 - Update useEffect active tab detection (lines 18-32)
 - Update handleChange switch cases (lines 34-55)
 
-**New tabs array:**
+**New tabs array (with query parameters):**
 ```tsx
 const tabs = [
   { label: 'Home', value: 'main-home', icon: <Home />, href: '/' },
   { label: 'Games', value: 'games', icon: <EmojiEvents />, href: `/tournaments/${tournamentId}` },
-  { label: 'Tables', value: 'tables', icon: <TableChart />, href: `/tournaments/${tournamentId}/tables` },
-  { label: 'Groups', value: 'groups', icon: <People />, href: `/tournaments/${tournamentId}/friend-groups` },
-  { label: 'Stats', value: 'stats', icon: <Assessment />, href: `/tournaments/${tournamentId}/stats` },
+  { label: 'Tables', value: 'tables', icon: <TableChart />, href: `/tournaments/${tournamentId}?tab=tables` },
+  { label: 'Groups', value: 'groups', icon: <People />, href: `/tournaments/${tournamentId}?tab=groups` },
+  { label: 'Stats', value: 'stats', icon: <Assessment />, href: `/tournaments/${tournamentId}?tab=stats` },
 ];
 ```
 
@@ -474,52 +519,66 @@ const tabs = [
 - Test responsive visibility
 - Verify accessibility (keyboard nav, ARIA)
 
-### Phase 2: Tables Page (Day 1-2)
+### Phase 2: Query-Based Page Routing (Day 1-2)
 
-**Step 2.1: Create Tables Page Server Component**
-- Create `app/tournaments/[id]/tables/page.tsx`
-- Fetch group standings data (reuse getGroupStandingsForTournament)
-- Pass data to client component
-- Handle auth check (redirect if not logged in)
-- Handle empty state (no groups)
+**Step 2.1: Modify Tournament Page for Tab Routing**
+- Update `app/tournaments/[id]/page.tsx`
+- Read `tab` parameter from searchParams
+- Add conditional rendering logic for 4 tabs
+- Ensure all necessary data fetched for each tab
+- Handle default case (no tab = games)
 
-**Step 2.2: Create Tables Page Client Component**
-- Create `app/components/tournament-page/tables-page-client.tsx`
-- Implement group carousel with tabs
+**Step 2.2: Create GroupStandingsFullPage Component**
+- Create `app/components/tournament-page/group-standings-full-page.tsx`
+- Client component with group carousel
+- Implement Material-UI tabs for group selection
 - Add arrow button navigation
-- Add keyboard navigation (useEffect for arrow keys)
-- Add touch swipe support (useEffect for touch events)
-- Reuse TeamStandingsCards component
+- Add keyboard navigation (arrow keys)
+- Add touch swipe support
+- Reuse TeamStandingsCards component (from GroupStandingsSidebar)
 
-**Step 2.3: Test Tables Page**
-- Create unit tests for TablesPageClient
-- Test group navigation (tabs, arrows, keyboard)
-- Test active group state management
-- Create integration test for server/client interaction
-- Test empty states and error handling
+**Step 2.3: Integrate Stats and Friend Groups Content**
+- Extract stats rendering logic from `/stats/page.tsx`
+- Extract friend groups rendering logic from `/friend-groups/page.tsx`
+- Create inline components or reuse existing components
+- Ensure data fetching works in main page context
+
+**Step 2.4: Test Tab Routing**
+- Test `?tab=games` renders UnifiedGamesPage
+- Test `?tab=tables` renders GroupStandingsFullPage
+- Test `?tab=stats` renders stats content
+- Test `?tab=groups` renders friend groups content
+- Test default (no tab) renders games
+- Test invalid tab values handled gracefully
 
 ### Phase 3: Mobile Bottom Nav Update (Day 2)
 
 **Step 3.1: Update TournamentBottomNav Component**
 - Add TableChartIcon import from @mui/icons-material
-- Update tabs configuration array
-- **CRITICAL:** Update useEffect active tab detection with correct route priority:
+- Update tabs configuration array with query parameter hrefs
+- **CRITICAL:** Update useEffect active tab detection to read searchParams:
   ```typescript
-  // Check specific routes FIRST (before parent route)
-  if (currentPath === `/tournaments/${tournamentId}/tables`) {
+  // Parse query parameter from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const tab = urlParams.get('tab');
+
+  if (tab === 'tables') {
     setValue('tables');
-  } else if (currentPath.startsWith(`/tournaments/${tournamentId}/stats`)) {
+  } else if (tab === 'stats') {
     setValue('stats');
-  } else if (currentPath === `/tournaments/${tournamentId}/friend-groups`) {
+  } else if (tab === 'groups') {
     setValue('groups');
-  } else if (currentPath === `/tournaments/${tournamentId}`) {
-    setValue('games'); // Default - check LAST
+  } else if (currentPath === '/') {
+    setValue('main-home');
+  } else {
+    setValue('games'); // Default when on /tournaments/{id} with no tab
   }
   ```
-- Update handleChange navigation logic
-- Remove "Resultados" tab logic
-- Add "Tables" tab logic
-- **NOTE:** Badge count feature is OUT OF SCOPE for this story (mentioned in AC but not implemented)
+- Update handleChange to use query parameter navigation
+- Remove "Resultados" tab
+- Add "Tables" tab with href: `/tournaments/${tournamentId}?tab=tables`
+- Update other tabs: Stats → `?tab=stats`, Groups → `?tab=groups`
+- **NOTE:** Badge count feature is OUT OF SCOPE for this story
 
 **Step 3.2: Update Bottom Nav Tests**
 - Update `tournament-bottom-nav.test.tsx`
@@ -628,9 +687,10 @@ describe('TournamentDesktopTabs', () => {
 ```typescript
 describe('TournamentDesktopTabs', () => {
   it('renders 4 tabs', () => {});
-  it('highlights active tab based on pathname', () => {});
-  it('detects /tables route before /tournaments/{id}', () => {}); // NEW
-  it('navigates to correct route on tab click', () => {});
+  it('highlights active tab based on ?tab query parameter', () => {});
+  it('highlights Games tab when no ?tab parameter', () => {});
+  it('highlights Tables tab when ?tab=tables', () => {});
+  it('navigates with query parameters on tab click', () => {});
   it('is hidden on mobile', () => {});
   it('has sticky positioning', () => {});
   it('supports keyboard navigation', () => {});
@@ -638,9 +698,9 @@ describe('TournamentDesktopTabs', () => {
 });
 ```
 
-**TablesPageClient:**
+**GroupStandingsFullPage:**
 ```typescript
-describe('TablesPageClient', () => {
+describe('GroupStandingsFullPage', () => {
   it('renders group tabs', () => {});
   it('switches groups on tab click', () => {});
   it('navigates with arrow buttons', () => {});
@@ -649,6 +709,7 @@ describe('TablesPageClient', () => {
   it('disables previous button on first group', () => {});
   it('disables next button on last group', () => {});
   it('shows qualified badge for qualified teams', () => {});
+  it('handles empty groups gracefully', () => {});
 });
 ```
 
@@ -658,9 +719,10 @@ describe('TournamentBottomNav', () => {
   it('renders 5 tabs', () => {});
   it('includes Tables tab with TableChartIcon', () => {});
   it('does not include Resultados tab', () => {});
-  it('navigates to /tables on Tables tab click', () => {});
-  it('highlights Tables tab when on /tables route', () => {});
-  it('detects /tables route before /tournaments/{id}', () => {}); // NEW
+  it('navigates to ?tab=tables on Tables tab click', () => {});
+  it('highlights Tables tab when ?tab=tables in URL', () => {});
+  it('highlights Games tab when no ?tab parameter', () => {});
+  it('uses query parameters for Stats and Groups tabs', () => {});
   it('updates labels correctly', () => {});
 });
 ```
@@ -670,10 +732,11 @@ describe('TournamentBottomNav', () => {
 **Desktop Navigation Flow:**
 ```typescript
 describe('Desktop Tabs Navigation', () => {
-  it('navigates from Games to Tables', () => {});
+  it('navigates from Games to Tables via ?tab=tables', () => {});
   it('maintains active tab state across navigation', () => {});
   it('works with browser back/forward', () => {});
-  it('supports direct URL navigation', () => {});
+  it('supports direct URL navigation with query params', () => {});
+  it('renders correct content for each tab value', () => {});
 });
 ```
 
