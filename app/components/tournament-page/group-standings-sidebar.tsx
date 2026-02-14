@@ -20,9 +20,10 @@ interface GroupStandingsSidebarProps {
   readonly defaultGroupId: string
   readonly qualifiedTeams: ReadonlyArray<{ readonly id: string }>  // Format expected by TeamStandingsCards
   readonly tournamentId: string  // Add tournament ID for results link
+  readonly isActive?: boolean
 }
 
-export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifiedTeams, tournamentId }: GroupStandingsSidebarProps) {
+export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifiedTeams, tournamentId, isActive = false }: GroupStandingsSidebarProps) {
   const [selectedGroupId, setSelectedGroupId] = useState(defaultGroupId)
   const [expanded, setExpanded] = useState(true)
   const theme = useTheme()
@@ -115,7 +116,13 @@ export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifie
   const hasNext = currentIndex < sortedGroups.length - 1
 
   return (
-    <Card>
+    <Card sx={{
+      ...(isActive && {
+        borderLeft: 3,
+        borderColor: 'primary.main',
+        backgroundColor: 'action.selected',
+      })
+    }}>
       <Accordion
         expanded={expanded}
         onChange={(_, isExpanded) => setExpanded(isExpanded)}
@@ -136,12 +143,18 @@ export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifie
           borderBottom: expanded ? `${theme.palette.primary.light} solid 1px` : 'none',
           '& .MuiAccordionSummary-content': {
             margin: '12px 0',
+            flexDirection: 'column',
           },
         }}
       >
         <Typography variant="h5" component="h2">
           Grupos
         </Typography>
+        {isActive && (
+          <Typography variant="body2" color="text.secondary">
+            Estás aquí
+          </Typography>
+        )}
       </AccordionSummary>
       <AccordionDetails ref={contentRef}>
         {/* Carousel navigation header */}

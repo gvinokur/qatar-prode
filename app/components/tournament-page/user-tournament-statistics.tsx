@@ -1,7 +1,7 @@
 'use client'
 
 import {Card, CardContent, CardHeader, CardActions, Stack, Box, Typography, useTheme, Button, Divider, Collapse} from "@mui/material";
-import {ExpandMore as ExpandMoreIcon} from "@mui/icons-material";
+import {ExpandMore as ExpandMoreIcon, BarChart as BarChartIcon} from "@mui/icons-material";
 import {useState} from "react";
 import {GameStatisticForUser} from "../../../types/definitions";
 import {TournamentGuess} from "../../db/tables-definition";
@@ -12,6 +12,7 @@ type Props = {
   readonly userGameStatistics?: GameStatisticForUser
   readonly tournamentGuess?: TournamentGuess
   readonly tournamentId?: string
+  readonly isActive?: boolean
 }
 
 // Internal helper component for label/value pairs
@@ -39,7 +40,7 @@ function StatRow({ label, value, valueColor = 'text.primary', bold = true }: Rea
   )
 }
 
-export function UserTournamentStatistics({userGameStatistics, tournamentGuess, tournamentId} : Props) {
+export function UserTournamentStatistics({userGameStatistics, tournamentGuess, tournamentId, isActive = false} : Props) {
   const theme = useTheme()
   const [expanded, setExpanded] = useState(false)
 
@@ -67,9 +68,16 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess, t
   const grandTotal = groupsTotal + playoffsTotal + qualifiedTotal + awardsTotal
 
   return (
-    <Card aria-label="Estadísticas del usuario">
+    <Card aria-label="Estadísticas del usuario" sx={{
+      ...(isActive && {
+        borderLeft: 3,
+        borderColor: 'primary.main',
+        backgroundColor: 'action.selected',
+      })
+    }}>
       <CardHeader
         title='Tus Estadísticas'
+        subheader={isActive ? 'Estás aquí' : undefined}
         sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
         action={
           <ExpandMore
@@ -105,6 +113,7 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess, t
           <Button
             component={Link}
             href={`/tournaments/${tournamentId}/stats`}
+            startIcon={<BarChartIcon />}
             variant="text"
             color="primary"
             aria-label="Ver página de estadísticas detalladas"

@@ -1,7 +1,7 @@
 'use client';
 
 import { BottomNavigation, BottomNavigationAction } from '@mui/material';
-import { Home, EmojiEvents, Groups, Person, Assessment } from '@mui/icons-material';
+import { Home, Groups, Assessment, Gavel, BarChart } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
@@ -19,9 +19,11 @@ export default function TournamentBottomNav({ tournamentId, currentPath }: Tourn
     if (currentPath === '/') {
       setValue('main-home');
     } else if (currentPath === `/tournaments/${tournamentId}`) {
-      setValue('tournament-home');
+      setValue(''); // PARTIDOS is in top nav, no bottom nav tab selected
     } else if (currentPath.startsWith(`/tournaments/${tournamentId}/results`)) {
       setValue('results');
+    } else if (currentPath.startsWith(`/tournaments/${tournamentId}/rules`)) {
+      setValue('rules');
     } else if (currentPath === `/tournaments/${tournamentId}/friend-groups`) {
       // EXACT match for friend groups overview
       setValue('friend-groups');
@@ -39,11 +41,11 @@ export default function TournamentBottomNav({ tournamentId, currentPath }: Tourn
       case 'main-home':
         router.push('/');
         break;
-      case 'tournament-home':
-        router.push(`/tournaments/${tournamentId}`);
-        break;
       case 'results':
         router.push(`/tournaments/${tournamentId}/results`);
+        break;
+      case 'rules':
+        router.push(`/tournaments/${tournamentId}/rules`);
         break;
       case 'friend-groups':
         router.push(`/tournaments/${tournamentId}/friend-groups`);
@@ -69,11 +71,11 @@ export default function TournamentBottomNav({ tournamentId, currentPath }: Tourn
         borderColor: 'divider',
       }}
     >
-      <BottomNavigationAction label="Home" value="main-home" icon={<Home />} />
-      <BottomNavigationAction label="Tournament" value="tournament-home" icon={<EmojiEvents />} />
-      <BottomNavigationAction label="Resultados" value="results" icon={<Assessment />} />
-      <BottomNavigationAction label="Friend Groups" value="friend-groups" icon={<Groups />} />
-      <BottomNavigationAction label="Stats" value="stats" icon={<Person />} />
+      <BottomNavigationAction label="Home" value="main-home" icon={<Home sx={{ fontSize: 24 }} />} />
+      <BottomNavigationAction label="Tablas" value="results" icon={<Assessment sx={{ fontSize: 24 }} />} />
+      <BottomNavigationAction label="Reglas" value="rules" icon={<Gavel sx={{ fontSize: 24 }} />} />
+      <BottomNavigationAction label="Stats" value="stats" icon={<BarChart sx={{ fontSize: 24 }} />} />
+      <BottomNavigationAction label="Grupos" value="friend-groups" icon={<Groups sx={{ fontSize: 24 }} />} />
     </BottomNavigation>
   );
 }
