@@ -436,22 +436,33 @@ Progressive disclosure first step - email input with Google button.
 ```tsx
 'use client'
 
+type AuthMethods = {
+  email: string
+  hasPassword: boolean
+  hasGoogle: boolean
+  userExists: boolean
+}
+
 export default function EmailInputForm({
   onEmailSubmit
 }: {
-  onEmailSubmit: (email: string, authMethods: AuthMethods) => void
+  onEmailSubmit: (authMethods: AuthMethods) => void
 }) {
-  // Email input field
+  // Email input field with validation
   // "Continuar" button → calls checkAuthMethodsForEmail()
+  //   → Returns { email, hasPassword, hasGoogle, userExists }
+  //   → Calls onEmailSubmit(authMethods)
   // Divider "o"
   // "Continuar con Google" button → NextAuth Google sign-in
+  //   → Bypasses email check, goes directly to OAuth
 }
 ```
 
 **States:**
+- Idle (waiting for input)
 - Loading (checking email)
-- Error (invalid email)
-- Success (proceed to next step)
+- Error (invalid email or server error)
+- Success (proceed to next step - login or signup)
 
 #### 2. LoginForm (UPDATED)
 
@@ -474,6 +485,8 @@ type LoginFormProps = {
 - Show password field if `authMethods.hasPassword`
 - Show "Continuar con Google" if `authMethods.hasGoogle`
 - Show "¿Olvidaste tu contraseña?" if has password
+
+**Note:** This component is only shown when `userExists = true`
 
 #### 3. NicknameSetupDialog (NEW)
 
@@ -536,15 +549,18 @@ const [email, setEmail] = useState<string>('')
 const [authMethods, setAuthMethods] = useState<{
   hasPassword: boolean
   hasGoogle: boolean
+  userExists: boolean
 } | null>(null)
 ```
 
 **Flow:**
 1. Start with `emailInput` mode
 2. User enters email → Call `checkAuthMethodsForEmail()` → Store result in state
-3. Switch to `login` mode, pass email + authMethods as props
-4. User signs in with Google → NextAuth callback handles sign-in/sign-up/merge
-5. After redirect back, check session for `nicknameSetupRequired`
+3. Check `authMethods.userExists`:
+   - **If true (user exists):** Switch to `login` mode with email + authMethods
+   - **If false (new user):** Switch to `signup` mode with pre-filled email
+4. User signs in/signs up (password or Google)
+5. After redirect back (if OAuth), check session for `nicknameSetupRequired`
 6. If true → Show `nicknameSetup` mode
 7. Complete nickname → Close dialog
 
@@ -593,6 +609,8 @@ Update to check for OAuth-only accounts before sending reset email.
 
 ↓ User enters email and clicks "Continuar"
 
+┌────────── IF USER EXISTS ──────────┐
+
 ┌────────────────────────────────────┐
 │            Ingresar                │
 ├────────────────────────────────────┤
@@ -622,6 +640,31 @@ Update to check for OAuth-only accounts before sending reset email.
 │    [🔵 Continuar con Google]      │
 │                                    │
 │  (Tu cuenta usa Google Sign-In)    │
+│                                    │
+└────────────────────────────────────┘
+
+┌────────── IF USER DOES NOT EXIST ──┐
+
+┌────────────────────────────────────┐
+│          Registrarse               │
+├────────────────────────────────────┤
+│                                    │
+│  📧 user@example.com  [Cambiar]    │
+│                                    │
+│  No existe una cuenta con este     │
+│  correo. Creá una!                 │
+│                                    │
+│  Apodo: [____________________]     │
+│                                    │
+│  Contraseña: [________________]    │
+│                                    │
+│  Confirmar: [_________________]    │
+│                                    │
+│          [Registrarse]             │
+│                                    │
+│          ──── o ────               │
+│                                    │
+│    [🔵 Continuar con Google]      │
 │                                    │
 └────────────────────────────────────┘
 ```
@@ -790,34 +833,60 @@ Before proceeding to Phase 2, **STOP and ask user for permission** to run the da
 1. Update `LoginOrSignupDialog`:
    - Add `emailInput` mode
    - Add `nicknameSetup` mode
-   - Update orchestration flow
+   - Update orchestration flow to check `userExists`:
+     - If `userExists = true` → Show `login` mode
+     - If `userExists = false` → Show `signup` mode
    - Handle OAuth sign-in callback
 2. Update `LoginForm`:
-   - Accept email prop (pre-filled)
+   - Accept email prop (pre-filled, read-only)
    - Accept authMethods prop
-   - Conditionally show password/Google
-   - Add "Cambiar" link to go back
-3. Update `ForgotPasswordForm`:
+   - Conditionally show password/Google based on authMethods
+   - Add "Cambiar" link to go back to email input
+3. Update `SignupForm`:
+   - Accept optional email prop (pre-filled from EmailInputForm)
+   - If email provided → Pre-fill and make read-only (with "Cambiar" link)
+   - If no email → Show email input field (legacy direct signup path)
+   - Keep all existing validation (email, password, nickname)
+   - Show Google button option
+4. Update `ForgotPasswordForm`:
    - Handle OAuth-only error
    - Display appropriate message
    - Suggest Google sign-in
 
 **Testing:**
 - Unit tests for updated components
-- Test progressive disclosure flow
+- Test progressive disclosure flow:
+  - Email exists → Login mode
+  - Email doesn't exist → Signup mode
+  - Switch between modes
 - Test mode transitions
 - Test nickname setup integration
 - Test password reset error handling
+- Test SignupForm with pre-filled email
 
 ### Phase 5: Integration & End-to-End Testing
 
 **Manual testing checklist:**
-1. New user Google sign-up → Nickname setup → Sign-in
-2. Existing password user → Google sign-in → Account merge → Both methods work
-3. Progressive disclosure shows correct options for each user type
-4. Password reset error for OAuth-only users
-5. Sign out/sign in with different methods
-6. Mobile responsive testing
+1. **New user flow (email doesn't exist):**
+   - Enter new email → Shows signup form with pre-filled email
+   - Complete signup with password → Account created
+   - Sign out and sign in again → Works
+2. **New user Google sign-up:**
+   - Enter new email → Shows signup form
+   - Click "Continuar con Google" → Nickname setup → Sign-in
+3. **Existing user flow (email exists):**
+   - Enter existing email → Shows login form with available methods
+   - Sign in with password → Success
+4. **Account merge:**
+   - Existing password user → Sign in with Google → Account merge → Both methods work
+5. **Progressive disclosure accuracy:**
+   - Shows correct options based on user existence and auth methods
+6. **Password reset error:**
+   - OAuth-only users see appropriate error
+7. **Mobile responsive testing:**
+   - Progressive disclosure flows work on mobile
+8. **Email change:**
+   - "Cambiar" link in login/signup goes back to email input
 
 **Integration tests:**
 - Full OAuth flow (mock Google API)
@@ -861,10 +930,11 @@ Before proceeding to Phase 2, **STOP and ask user for permission** to run the da
 ### Integration Tests
 
 **OAuth flow scenarios:**
-1. New user Google sign-up → Account created with email verified
-2. Existing password user Google sign-in → Accounts merged
-3. Existing Google user sign-in → Direct sign-in
-4. Progressive disclosure → Correct options shown
+1. New user email doesn't exist → Shows signup form (not login)
+2. New user Google sign-up → Account created with email verified
+3. Existing password user Google sign-in → Accounts merged
+4. Existing Google user sign-in → Direct sign-in
+5. Progressive disclosure → Correct options shown (login vs signup)
 
 **Edge cases:**
 - Google email doesn't match (shouldn't happen - email is key)
