@@ -10,7 +10,6 @@ declare module "next-auth" {
       nickname: string | null
       isAdmin: boolean
       emailVerified: boolean
-      nicknameSetupRequired: boolean
     } & DefaultSession["user"]
   }
 
@@ -23,7 +22,6 @@ declare module "next-auth" {
     nickname: string | null
     isAdmin: boolean
     emailVerified: boolean
-    nicknameSetupRequired: boolean
   }
 }
 
@@ -34,6 +32,5 @@ declare module "next-auth/jwt" {
     nickname: string | null
     isAdmin: boolean
     emailVerified: boolean
-    nicknameSetupRequired: boolean
   }
 }

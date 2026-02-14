@@ -201,15 +201,13 @@ export async function linkOAuthAccount(
 
 /**
  * Create new OAuth-only user
- * Sets nickname_setup_required=true if displayName is null
+ * Uses displayName from OAuth provider as nickname (or null if not provided)
  */
 export async function createOAuthUser(
   email: string,
   oauthAccount: OAuthAccount,
   displayName: string | null
 ): Promise<User | undefined> {
-  const nicknameSetupRequired = !displayName;
-
   return db.insertInto('users')
     .values({
       email,
@@ -217,8 +215,7 @@ export async function createOAuthUser(
       password_hash: null,  // OAuth-only user
       auth_providers: JSON.stringify([oauthAccount.provider]),
       oauth_accounts: JSON.stringify([oauthAccount]),
-      email_verified: true,  // OAuth providers verify email
-      nickname_setup_required: nicknameSetupRequired
+      email_verified: true  // OAuth providers verify email
     })
     .returningAll()
     .executeTakeFirst();

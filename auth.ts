@@ -34,7 +34,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             nickname: user.nickname,
             isAdmin: user.is_admin || false,
             emailVerified: user.email_verified || false,
-            nicknameSetupRequired: user.nickname_setup_required || false,
           }
         }
 
@@ -83,7 +82,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           user.nickname = existingOAuthUser.nickname;
           user.isAdmin = existingOAuthUser.is_admin || false;
           user.emailVerified = existingOAuthUser.email_verified || false;
-          user.nicknameSetupRequired = existingOAuthUser.nickname_setup_required || false;
           return true;
         }
 
@@ -100,7 +98,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             user.nickname = updatedUser.nickname;
             user.isAdmin = updatedUser.is_admin || false;
             user.emailVerified = updatedUser.email_verified || false;
-            user.nicknameSetupRequired = updatedUser.nickname_setup_required || false;
             return true;
           }
         }
@@ -116,7 +113,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           user.nickname = newUser.nickname;
           user.isAdmin = newUser.is_admin || false;
           user.emailVerified = newUser.email_verified || false;
-          user.nicknameSetupRequired = newUser.nickname_setup_required || false;
           return true;
         }
 
@@ -127,7 +123,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     session: ({session, trigger, token, user }) => {
       session.user = {
-        ...pick(token, ['email', 'name', 'nickname', 'isAdmin', 'id', 'emailVerified', 'nicknameSetupRequired']),
+        ...pick(token, ['email', 'name', 'nickname', 'isAdmin', 'id', 'emailVerified']),
         ...session.user,
       }
       return session

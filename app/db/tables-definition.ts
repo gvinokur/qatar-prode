@@ -101,7 +101,6 @@ export interface UserTable extends Identifiable{
   // OAuth fields
   auth_providers?: JSONColumnType<string[]> | null  // e.g., ["credentials", "google"]
   oauth_accounts?: JSONColumnType<OAuthAccount[]> | null
-  nickname_setup_required?: boolean
 }
 
 export type User = Selectable<UserTable>

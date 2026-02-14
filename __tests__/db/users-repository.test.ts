@@ -793,8 +793,7 @@ describe('Users Repository', () => {
       password_hash: null,
       auth_providers: ['google'],
       oauth_accounts: [mockOAuthAccount],
-      email_verified: true,
-      nickname_setup_required: false
+      email_verified: true
     };
 
     describe('findUserByOAuthAccount', () => {
@@ -974,23 +973,21 @@ describe('Users Repository', () => {
           password_hash: null,
           auth_providers: JSON.stringify(['google']),
           oauth_accounts: JSON.stringify([mockOAuthAccount]),
-          email_verified: true,
-          nickname_setup_required: false
+          email_verified: true
         });
         expect(result).toBe(mockOAuthUser);
       });
 
-      it('should set nickname_setup_required when display name is null', async () => {
-        const userNeedingNickname = {
+      it('should create OAuth user with null nickname when display name is null', async () => {
+        const userWithoutNickname = {
           ...mockOAuthUser,
-          nickname: null,
-          nickname_setup_required: true
+          nickname: null
         };
 
         const mockQuery = {
           values: vi.fn().mockReturnThis(),
           returningAll: vi.fn().mockReturnThis(),
-          executeTakeFirst: vi.fn().mockResolvedValue(userNeedingNickname)
+          executeTakeFirst: vi.fn().mockResolvedValue(userWithoutNickname)
         };
         mockDb.insertInto.mockReturnValue(mockQuery);
 
@@ -1006,10 +1003,9 @@ describe('Users Repository', () => {
           password_hash: null,
           auth_providers: JSON.stringify(['google']),
           oauth_accounts: JSON.stringify([mockOAuthAccount]),
-          email_verified: true,
-          nickname_setup_required: true
+          email_verified: true
         });
-        expect(result).toBe(userNeedingNickname);
+        expect(result).toBe(userWithoutNickname);
       });
 
       it('should handle database errors', async () => {

@@ -23,24 +23,17 @@ ADD COLUMN oauth_accounts JSONB DEFAULT '[]'::jsonb;
 COMMENT ON COLUMN users.oauth_accounts IS
   'Array of OAuth account objects. Structure: [{provider: "google", provider_user_id: "123", email: "user@gmail.com", connected_at: "2026-02-14T..."}]. Used for OAuth sign-in and account linking.';
 
--- Step 4: Add nickname_setup_required flag for OAuth signup flow
-ALTER TABLE users
-ADD COLUMN nickname_setup_required BOOLEAN DEFAULT FALSE;
-
-COMMENT ON COLUMN users.nickname_setup_required IS
-  'Indicates whether user needs to complete nickname setup after OAuth signup. Set to TRUE for new OAuth users without nickname, FALSE after nickname is set or for password users.';
-
--- Step 5: Create GIN index on oauth_accounts for fast OAuth lookups
+-- Step 4: Create GIN index on oauth_accounts for fast OAuth lookups
 CREATE INDEX idx_users_oauth_accounts ON users USING GIN (oauth_accounts);
 
--- Step 6: Backfill existing users with credentials auth provider
+-- Step 5: Backfill existing users with credentials auth provider
 -- Only update users who have a password and don't already have auth_providers set
 UPDATE users
 SET auth_providers = '["credentials"]'::jsonb
 WHERE password_hash IS NOT NULL
   AND (auth_providers IS NULL OR auth_providers = '[]'::jsonb);
 
--- Step 7: Set auth_providers to empty array for users without password (shouldn't exist, but defensive)
+-- Step 6: Set auth_providers to empty array for users without password (shouldn't exist, but defensive)
 UPDATE users
 SET auth_providers = '[]'::jsonb
 WHERE password_hash IS NULL

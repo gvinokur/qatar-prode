@@ -85,10 +85,9 @@ export async function setNickname(nickname: string): Promise<{
       };
     }
 
-    // Update user nickname and clear nickname_setup_required flag
+    // Update user nickname
     await updateUser(session.user.id, {
-      nickname: trimmedNickname,
-      nickname_setup_required: false
+      nickname: trimmedNickname
     });
 
     // Revalidate paths that display user info
