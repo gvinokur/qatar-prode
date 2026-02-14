@@ -95,6 +95,7 @@ describe('Mailing Actions', () => {
     describe('sendPasswordResetLink', () => {
       it('should successfully send password reset email', async () => {
         vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(mockUser);
+        vi.mocked(usersRepository.userHasPasswordAuth).mockReturnValue(true);
         vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
         vi.mocked(generatePasswordResetEmail).mockReturnValue(mockEmailTemplate);
         vi.mocked(sendEmail).mockResolvedValue({ success: true, messageId: 'msg-123' });
@@ -128,6 +129,7 @@ describe('Mailing Actions', () => {
 
       it('should handle email sending failure', async () => {
         vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(mockUser);
+        vi.mocked(usersRepository.userHasPasswordAuth).mockReturnValue(true);
         vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
         vi.mocked(generatePasswordResetEmail).mockReturnValue(mockEmailTemplate);
         vi.mocked(sendEmail).mockRejectedValue(new Error('Email sending failed'));
@@ -138,6 +140,7 @@ describe('Mailing Actions', () => {
 
       it('should set correct token expiration time (1 hour)', async () => {
         vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(mockUser);
+        vi.mocked(usersRepository.userHasPasswordAuth).mockReturnValue(true);
         vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
         vi.mocked(generatePasswordResetEmail).mockReturnValue(mockEmailTemplate);
         vi.mocked(sendEmail).mockResolvedValue({ success: true, messageId: 'msg-123' });
@@ -148,7 +151,7 @@ describe('Mailing Actions', () => {
 
         const updateCall = vi.mocked(usersRepository.updateUser).mock.calls[0][1];
         const expirationTime = updateCall.reset_token_expiration!.getTime();
-        
+
         expect(expirationTime).toBeGreaterThan(beforeCall + 59 * 60 * 1000);
         expect(expirationTime).toBeLessThan(afterCall + 61 * 60 * 1000);
       });
@@ -158,6 +161,7 @@ describe('Mailing Actions', () => {
         process.env.NEXT_PUBLIC_APP_URL = 'https://production.example.com';
 
         vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(mockUser);
+        vi.mocked(usersRepository.userHasPasswordAuth).mockReturnValue(true);
         vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
         vi.mocked(generatePasswordResetEmail).mockReturnValue(mockEmailTemplate);
         vi.mocked(sendEmail).mockResolvedValue({ success: true, messageId: 'msg-123' });
@@ -334,6 +338,7 @@ describe('Mailing Actions', () => {
 
       it('should use correct template data for password reset email', async () => {
         vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(mockUser);
+        vi.mocked(usersRepository.userHasPasswordAuth).mockReturnValue(true);
         vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
         vi.mocked(generatePasswordResetEmail).mockReturnValue(mockEmailTemplate);
         vi.mocked(sendEmail).mockResolvedValue({ success: true, messageId: 'msg-123' });
@@ -348,6 +353,7 @@ describe('Mailing Actions', () => {
 
       it('should handle template generation errors', async () => {
         vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(mockUser);
+        vi.mocked(usersRepository.userHasPasswordAuth).mockReturnValue(true);
         vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
         vi.mocked(generatePasswordResetEmail).mockImplementation(() => {
           throw new Error('Template generation failed');
@@ -363,6 +369,7 @@ describe('Mailing Actions', () => {
         const userWithSpecialEmail = { ...mockUser, email: specialEmail };
 
         vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(userWithSpecialEmail);
+        vi.mocked(usersRepository.userHasPasswordAuth).mockReturnValue(true);
         vi.mocked(usersRepository.updateUser).mockResolvedValue(userWithSpecialEmail);
         vi.mocked(generatePasswordResetEmail).mockReturnValue({
           ...mockEmailTemplate,
@@ -402,6 +409,7 @@ describe('Mailing Actions', () => {
       it('should generate unique tokens for each request', async () => {
         let tokenCounter = 0;
         vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(mockUser);
+        vi.mocked(usersRepository.userHasPasswordAuth).mockReturnValue(true);
         vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
         vi.mocked(generatePasswordResetEmail).mockReturnValue(mockEmailTemplate);
         vi.mocked(sendEmail).mockResolvedValue({ success: true, messageId: 'msg-123' });
@@ -445,6 +453,7 @@ describe('Mailing Actions', () => {
     describe('Error Recovery and Retry Logic', () => {
       it('should handle temporary email service failures', async () => {
         vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(mockUser);
+        vi.mocked(usersRepository.userHasPasswordAuth).mockReturnValue(true);
         vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
         vi.mocked(generatePasswordResetEmail).mockReturnValue(mockEmailTemplate);
         vi.mocked(sendEmail).mockRejectedValue(new Error('Temporary service unavailable'));
@@ -460,6 +469,7 @@ describe('Mailing Actions', () => {
 
       it('should handle database transaction failures', async () => {
         vi.mocked(usersRepository.findUserByEmail).mockResolvedValue(mockUser);
+        vi.mocked(usersRepository.userHasPasswordAuth).mockReturnValue(true);
         vi.mocked(usersRepository.updateUser).mockRejectedValue(new Error('Database connection lost'));
 
         await expect(sendPasswordResetLink('test@example.com')).rejects.toThrow('Database connection lost');
@@ -483,6 +493,7 @@ describe('Mailing Actions', () => {
       vi.mocked(usersRepository.findUserByEmail).mockImplementation(async (email) => {
         return users.find(u => u.email === email) || undefined;
       });
+      vi.mocked(usersRepository.userHasPasswordAuth).mockReturnValue(true);
       vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
       vi.mocked(generatePasswordResetEmail).mockReturnValue(mockEmailTemplate);
       vi.mocked(sendEmail).mockResolvedValue({ success: true, messageId: 'msg-123' });
