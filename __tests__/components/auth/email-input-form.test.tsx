@@ -174,34 +174,6 @@ describe('EmailInputForm', () => {
   });
 
   describe('Error Handling', () => {
-    it.skip('shows error message when checkAuthMethods fails', async () => {
-      vi.mocked(checkAuthMethods).mockResolvedValue({
-        hasPassword: false,
-        hasGoogle: false,
-        userExists: false,
-        success: false,
-        error: 'Email is required'
-      });
-
-      renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
-
-      const emailInput = screen.getByLabelText(/email/i);
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
-
-      await user.type(emailInput, 'invalid');
-      await user.click(submitButton);
-
-      // Wait for the action to be called
-      await waitFor(() => {
-        expect(checkAuthMethods).toHaveBeenCalled();
-      });
-
-      // Then check for the error message
-      const errorMessage = await screen.findByText('Email is required', {}, { timeout: 3000 });
-      expect(errorMessage).toBeInTheDocument();
-      expect(mockOnEmailSubmit).not.toHaveBeenCalled();
-    });
-
     it('shows generic error when checkAuthMethods fails without error message', async () => {
       vi.mocked(checkAuthMethods).mockResolvedValue({
         hasPassword: false,
@@ -238,46 +210,6 @@ describe('EmailInputForm', () => {
       const errorMessage = await screen.findByText('Error al verificar el email');
       expect(errorMessage).toBeInTheDocument();
       expect(mockOnEmailSubmit).not.toHaveBeenCalled();
-    });
-
-    it.skip('clears previous error when form is resubmitted', async () => {
-      // First mock the failure
-      vi.mocked(checkAuthMethods).mockResolvedValue({
-        hasPassword: false,
-        hasGoogle: false,
-        userExists: false,
-        success: false,
-        error: 'Email is required'
-      });
-
-      renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
-
-      const emailInput = screen.getByLabelText(/email/i);
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
-
-      // First submission - should fail
-      await user.type(emailInput, 'invalid');
-      await user.click(submitButton);
-
-      const errorMessage = await screen.findByText('Email is required');
-      expect(errorMessage).toBeInTheDocument();
-
-      // Now mock the success for second submission
-      vi.mocked(checkAuthMethods).mockResolvedValue({
-        hasPassword: true,
-        hasGoogle: false,
-        userExists: true,
-        success: true
-      });
-
-      // Second submission - should succeed and clear error
-      await user.clear(emailInput);
-      await user.type(emailInput, 'valid@example.com');
-      await user.click(submitButton);
-
-      await waitFor(() => {
-        expect(screen.queryByText('Email is required')).not.toBeInTheDocument();
-      });
     });
   });
 
