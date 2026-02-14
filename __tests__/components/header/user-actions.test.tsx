@@ -39,12 +39,12 @@ vi.mock('../../../app/components/auth/login-or-signup-dialog', () => ({
   ),
 }));
 
-vi.mock('../../../app/components/onboarding/onboarding-dialog', () => ({
-  default: ({ open, onClose }: any) => (
-    <div data-testid="onboarding-dialog">
-      <span data-testid="onboarding-dialog-open">{open ? 'true' : 'false'}</span>
+vi.mock('../../../app/components/onboarding/onboarding-dialog-client', () => ({
+  default: ({ initialOpen, onClose }: any) => (
+    <div data-testid="onboarding-dialog-client">
+      <span data-testid="onboarding-dialog-client-initialopen">{initialOpen ? 'true' : 'false'}</span>
       <button
-        data-testid="close-onboarding-dialog"
+        data-testid="close-onboarding-dialog-client"
         onClick={onClose}
       >
         Close Onboarding
@@ -283,11 +283,127 @@ describe('UserActions', () => {
 
     it('navigates to delete account page when delete account is clicked', () => {
       render(<UserActions user={mockUser} />);
-      
+
       fireEvent.click(screen.getByLabelText('Abrir Menu de Usuario'));
       fireEvent.click(screen.getByText('Delete Account'));
-      
+
       expect(mockRouter.push).toHaveBeenCalledWith('/delete-account');
+    });
+
+    it('renders "Ver Tutorial" menu item when user is logged in', () => {
+      render(<UserActions user={mockUser} />);
+
+      fireEvent.click(screen.getByLabelText('Abrir Menu de Usuario'));
+
+      expect(screen.getByText('Ver Tutorial')).toBeInTheDocument();
+    });
+
+    it('does not render OnboardingDialogClient by default', () => {
+      render(<UserActions user={mockUser} />);
+
+      expect(screen.queryByTestId('onboarding-dialog-client')).not.toBeInTheDocument();
+    });
+
+    it('clicking "Ver Tutorial" opens onboarding dialog', () => {
+      render(<UserActions user={mockUser} />);
+
+      fireEvent.click(screen.getByLabelText('Abrir Menu de Usuario'));
+      fireEvent.click(screen.getByText('Ver Tutorial'));
+
+      // Dialog should now be rendered
+      expect(screen.getByTestId('onboarding-dialog-client')).toBeInTheDocument();
+    });
+
+    it('OnboardingDialogClient renders when openOnboardingDialog is true', () => {
+      render(<UserActions user={mockUser} />);
+
+      fireEvent.click(screen.getByLabelText('Abrir Menu de Usuario'));
+      fireEvent.click(screen.getByText('Ver Tutorial'));
+
+      const dialog = screen.getByTestId('onboarding-dialog-client');
+      expect(dialog).toBeInTheDocument();
+    });
+
+    it('OnboardingDialogClient receives initialOpen=true prop', () => {
+      render(<UserActions user={mockUser} />);
+
+      fireEvent.click(screen.getByLabelText('Abrir Menu de Usuario'));
+      fireEvent.click(screen.getByText('Ver Tutorial'));
+
+      expect(screen.getByTestId('onboarding-dialog-client-initialopen')).toHaveTextContent('true');
+    });
+
+    it('OnboardingDialogClient receives onClose callback', () => {
+      render(<UserActions user={mockUser} />);
+
+      fireEvent.click(screen.getByLabelText('Abrir Menu de Usuario'));
+      fireEvent.click(screen.getByText('Ver Tutorial'));
+
+      // Dialog is open
+      expect(screen.getByTestId('onboarding-dialog-client')).toBeInTheDocument();
+
+      // Trigger onClose callback
+      fireEvent.click(screen.getByTestId('close-onboarding-dialog-client'));
+
+      // Dialog should be closed
+      expect(screen.queryByTestId('onboarding-dialog-client')).not.toBeInTheDocument();
+    });
+
+    it('calling onClose closes the onboarding dialog', () => {
+      render(<UserActions user={mockUser} />);
+
+      // Open dialog
+      fireEvent.click(screen.getByLabelText('Abrir Menu de Usuario'));
+      fireEvent.click(screen.getByText('Ver Tutorial'));
+
+      expect(screen.getByTestId('onboarding-dialog-client')).toBeInTheDocument();
+
+      // Close dialog via callback
+      fireEvent.click(screen.getByTestId('close-onboarding-dialog-client'));
+
+      expect(screen.queryByTestId('onboarding-dialog-client')).not.toBeInTheDocument();
+    });
+
+    it('OnboardingDialogClient is conditionally rendered based on openOnboardingDialog state', () => {
+      render(<UserActions user={mockUser} />);
+
+      // Initially not rendered
+      expect(screen.queryByTestId('onboarding-dialog-client')).not.toBeInTheDocument();
+
+      // Open dialog
+      fireEvent.click(screen.getByLabelText('Abrir Menu de Usuario'));
+      fireEvent.click(screen.getByText('Ver Tutorial'));
+
+      // Now rendered
+      expect(screen.getByTestId('onboarding-dialog-client')).toBeInTheDocument();
+
+      // Close dialog
+      fireEvent.click(screen.getByTestId('close-onboarding-dialog-client'));
+
+      // Not rendered again
+      expect(screen.queryByTestId('onboarding-dialog-client')).not.toBeInTheDocument();
+    });
+
+    it('can toggle onboarding dialog multiple times', () => {
+      render(<UserActions user={mockUser} />);
+
+      // First open
+      fireEvent.click(screen.getByLabelText('Abrir Menu de Usuario'));
+      fireEvent.click(screen.getByText('Ver Tutorial'));
+      expect(screen.getByTestId('onboarding-dialog-client')).toBeInTheDocument();
+
+      // First close
+      fireEvent.click(screen.getByTestId('close-onboarding-dialog-client'));
+      expect(screen.queryByTestId('onboarding-dialog-client')).not.toBeInTheDocument();
+
+      // Second open
+      fireEvent.click(screen.getByLabelText('Abrir Menu de Usuario'));
+      fireEvent.click(screen.getByText('Ver Tutorial'));
+      expect(screen.getByTestId('onboarding-dialog-client')).toBeInTheDocument();
+
+      // Second close
+      fireEvent.click(screen.getByTestId('close-onboarding-dialog-client'));
+      expect(screen.queryByTestId('onboarding-dialog-client')).not.toBeInTheDocument();
     });
   });
 

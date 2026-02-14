@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import OnboardingDialog from '../onboarding-dialog';
+import OnboardingDialog from '@/app/components/onboarding/onboarding-dialog';
 import { renderWithTheme } from '@/__tests__/utils/test-utils';
 import { testFactories } from '@/__tests__/db/test-factories';
 import { markOnboardingComplete, skipOnboardingFlow, saveOnboardingStep } from '@/app/actions/onboarding-actions';
@@ -14,7 +14,7 @@ vi.mock('@/app/actions/onboarding-actions', () => ({
 }));
 
 // Mock onboarding steps
-vi.mock('../onboarding-steps', () => ({
+vi.mock('@/app/components/onboarding/onboarding-steps', () => ({
   WelcomeStep: () => <div data-testid="welcome-step">Welcome Step</div>,
   GamePredictionStep: () => <div data-testid="game-prediction-step">Game Prediction Step</div>,
   QualifiedTeamsPredictionStep: () => <div data-testid="qualified-teams-step">Qualified Teams Step</div>,
@@ -37,10 +37,10 @@ vi.mock('../onboarding-steps', () => ({
 }));
 
 // Mock OnboardingProgress component
-vi.mock('../onboarding-progress', () => ({
+vi.mock('@/app/components/onboarding/onboarding-progress', () => ({
   __esModule: true,
-  default: ({ currentStep, totalSteps }: any) => (
-    <div data-testid="onboarding-progress">
+  default: ({ currentStep, totalSteps, includeBoosts }: any) => (
+    <div data-testid="onboarding-progress" data-include-boosts={includeBoosts}>
       {currentStep + 1}/{totalSteps}
     </div>
   )
@@ -65,8 +65,9 @@ describe('OnboardingDialog', () => {
         <OnboardingDialog open={true} onClose={mockOnClose} tournament={tournament} />
       );
 
-      // Should show 5 total steps (welcome, prediction, scoring, boost, checklist)
+      // Should show 7 total steps (welcome, game-prediction, qualified-teams, tournament-awards, scoring, boost, checklist)
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('1/7');
+      expect(screen.getByTestId('onboarding-progress')).toHaveAttribute('data-include-boosts', 'true');
     });
 
     it('includes boost step when tournament has golden boosts', () => {
@@ -80,8 +81,9 @@ describe('OnboardingDialog', () => {
         <OnboardingDialog open={true} onClose={mockOnClose} tournament={tournament} />
       );
 
-      // Should show 5 total steps (welcome, prediction, scoring, boost, checklist)
+      // Should show 7 total steps
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('1/7');
+      expect(screen.getByTestId('onboarding-progress')).toHaveAttribute('data-include-boosts', 'true');
     });
 
     it('includes boost step when tournament has both boost types', () => {
@@ -95,8 +97,9 @@ describe('OnboardingDialog', () => {
         <OnboardingDialog open={true} onClose={mockOnClose} tournament={tournament} />
       );
 
-      // Should show 5 total steps
+      // Should show 7 total steps
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('1/7');
+      expect(screen.getByTestId('onboarding-progress')).toHaveAttribute('data-include-boosts', 'true');
     });
 
     it('navigates through all steps including boost when boosts enabled', async () => {
@@ -114,19 +117,27 @@ describe('OnboardingDialog', () => {
       // Step 1: Welcome
       expect(screen.getByTestId('welcome-step')).toBeInTheDocument();
 
-      // Next to Step 2: Sample Prediction
+      // Next to Step 2: Game Prediction
       await user.click(screen.getByRole('button', { name: /siguiente/i }));
-      expect(screen.getByTestId('sample-prediction-step')).toBeInTheDocument();
+      expect(screen.getByTestId('game-prediction-step')).toBeInTheDocument();
 
-      // Next to Step 3: Scoring
+      // Next to Step 3: Qualified Teams
+      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      expect(screen.getByTestId('qualified-teams-step')).toBeInTheDocument();
+
+      // Next to Step 4: Tournament Awards
+      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      expect(screen.getByTestId('tournament-awards-step')).toBeInTheDocument();
+
+      // Next to Step 5: Scoring
       await user.click(screen.getByRole('button', { name: /siguiente/i }));
       expect(screen.getByTestId('scoring-explanation-step')).toBeInTheDocument();
 
-      // Next to Step 4: Boost (should be included)
+      // Next to Step 6: Boost (should be included)
       await user.click(screen.getByRole('button', { name: /siguiente/i }));
       expect(screen.getByTestId('boost-introduction-step')).toBeInTheDocument();
 
-      // Next to Step 5: Checklist
+      // Next to Step 7: Checklist
       await user.click(screen.getByRole('button', { name: /siguiente/i }));
       expect(screen.getByTestId('checklist-step')).toBeInTheDocument();
     });
@@ -144,8 +155,9 @@ describe('OnboardingDialog', () => {
         <OnboardingDialog open={true} onClose={mockOnClose} tournament={tournament} />
       );
 
-      // Should show 4 total steps (welcome, prediction, scoring, checklist)
+      // Should show 6 total steps (welcome, game-prediction, qualified-teams, tournament-awards, scoring, checklist)
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('1/6');
+      expect(screen.getByTestId('onboarding-progress')).toHaveAttribute('data-include-boosts', 'false');
     });
 
     it('excludes boost step when tournament is undefined', () => {
@@ -153,8 +165,9 @@ describe('OnboardingDialog', () => {
         <OnboardingDialog open={true} onClose={mockOnClose} tournament={undefined} />
       );
 
-      // Should show 4 total steps (no boost step)
+      // Should show 6 total steps (no boost step)
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('1/6');
+      expect(screen.getByTestId('onboarding-progress')).toHaveAttribute('data-include-boosts', 'false');
     });
 
     it('excludes boost step when max_silver_games is null', () => {
@@ -168,8 +181,9 @@ describe('OnboardingDialog', () => {
         <OnboardingDialog open={true} onClose={mockOnClose} tournament={tournament} />
       );
 
-      // Should show 4 total steps
+      // Should show 6 total steps
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('1/6');
+      expect(screen.getByTestId('onboarding-progress')).toHaveAttribute('data-include-boosts', 'false');
     });
 
     it('navigates through all steps excluding boost when boosts disabled', async () => {
@@ -187,15 +201,23 @@ describe('OnboardingDialog', () => {
       // Step 1: Welcome
       expect(screen.getByTestId('welcome-step')).toBeInTheDocument();
 
-      // Next to Step 2: Sample Prediction
+      // Next to Step 2: Game Prediction
       await user.click(screen.getByRole('button', { name: /siguiente/i }));
-      expect(screen.getByTestId('sample-prediction-step')).toBeInTheDocument();
+      expect(screen.getByTestId('game-prediction-step')).toBeInTheDocument();
 
-      // Next to Step 3: Scoring
+      // Next to Step 3: Qualified Teams
+      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      expect(screen.getByTestId('qualified-teams-step')).toBeInTheDocument();
+
+      // Next to Step 4: Tournament Awards
+      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      expect(screen.getByTestId('tournament-awards-step')).toBeInTheDocument();
+
+      // Next to Step 5: Scoring
       await user.click(screen.getByRole('button', { name: /siguiente/i }));
       expect(screen.getByTestId('scoring-explanation-step')).toBeInTheDocument();
 
-      // Next to Step 4: Checklist (boost step is skipped)
+      // Next to Step 6: Checklist (boost step is skipped)
       await user.click(screen.getByRole('button', { name: /siguiente/i }));
       expect(screen.getByTestId('checklist-step')).toBeInTheDocument();
 
@@ -205,7 +227,8 @@ describe('OnboardingDialog', () => {
   });
 
   describe('Tournament Prop Passing', () => {
-    it('passes tournament prop to ScoringExplanationStep', () => {
+    it('passes tournament prop to ScoringExplanationStep', async () => {
+      const user = userEvent.setup();
       const tournament = testFactories.tournament({
         id: 'test-tournament-123',
         short_name: 'TEST',
@@ -217,15 +240,13 @@ describe('OnboardingDialog', () => {
       );
 
       // Navigate to scoring step
-      const nextButton = screen.getByRole('button', { name: /siguiente/i });
-      userEvent.click(nextButton); // to sample prediction
-      userEvent.click(nextButton); // to scoring
+      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to game prediction
+      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to qualified teams
+      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to tournament awards
+      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to scoring
 
-      waitFor(() => {
-        const scoringStep = screen.getByTestId('scoring-explanation-step');
-        expect(scoringStep).toBeInTheDocument();
-        expect(screen.getByTestId('scoring-tournament')).toHaveTextContent('test-tournament-123');
-      });
+      expect(screen.getByTestId('scoring-explanation-step')).toBeInTheDocument();
+      expect(screen.getByTestId('scoring-tournament')).toHaveTextContent('test-tournament-123');
     });
 
     it('passes tournament prop to BoostIntroductionStep', async () => {
@@ -241,7 +262,9 @@ describe('OnboardingDialog', () => {
       );
 
       // Navigate to boost step
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to sample prediction
+      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to game prediction
+      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to qualified teams
+      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to tournament awards
       await user.click(screen.getByRole('button', { name: /siguiente/i })); // to scoring
       await user.click(screen.getByRole('button', { name: /siguiente/i })); // to boost
 
@@ -257,7 +280,9 @@ describe('OnboardingDialog', () => {
       );
 
       // Navigate to scoring step
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to sample prediction
+      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to game prediction
+      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to qualified teams
+      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to tournament awards
       await user.click(screen.getByRole('button', { name: /siguiente/i })); // to scoring
 
       expect(screen.getByTestId('scoring-tournament')).toHaveTextContent('no-tournament');
@@ -349,7 +374,9 @@ describe('OnboardingDialog', () => {
       );
 
       // Navigate through all steps to checklist
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to sample
+      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to game prediction
+      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to qualified teams
+      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to tournament awards
       await user.click(screen.getByRole('button', { name: /siguiente/i })); // to scoring
       await user.click(screen.getByRole('button', { name: /siguiente/i })); // to checklist
 
@@ -415,14 +442,14 @@ describe('OnboardingDialog', () => {
 
       // Go to second step
       await user.click(screen.getByRole('button', { name: /siguiente/i }));
-      expect(screen.getByTestId('sample-prediction-step')).toBeInTheDocument();
+      expect(screen.getByTestId('game-prediction-step')).toBeInTheDocument();
 
       // Go back
       await user.click(screen.getByRole('button', { name: /atrás/i }));
       expect(screen.getByTestId('welcome-step')).toBeInTheDocument();
     });
 
-    it('shows "Finalizar" button on last step before checklist', async () => {
+    it('shows "Siguiente" button on last step before checklist', async () => {
       const user = userEvent.setup();
       const tournament = testFactories.tournament({
         max_silver_games: 0,
@@ -434,7 +461,9 @@ describe('OnboardingDialog', () => {
       );
 
       // Navigate to scoring (last step before checklist)
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to sample
+      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to game prediction
+      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to qualified teams
+      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to tournament awards
       await user.click(screen.getByRole('button', { name: /siguiente/i })); // to scoring
 
       // Button should say "Siguiente" (checklist is ahead)
@@ -453,7 +482,9 @@ describe('OnboardingDialog', () => {
       );
 
       // Navigate to checklist
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to sample
+      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to game prediction
+      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to qualified teams
+      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to tournament awards
       await user.click(screen.getByRole('button', { name: /siguiente/i })); // to scoring
       await user.click(screen.getByRole('button', { name: /siguiente/i })); // to checklist
 
@@ -478,20 +509,28 @@ describe('OnboardingDialog', () => {
         <OnboardingDialog open={true} onClose={mockOnClose} tournament={tournament} />
       );
 
-      // Step 1/4
+      // Step 1/6
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('1/6');
 
       await user.click(screen.getByRole('button', { name: /siguiente/i }));
-      // Step 2/4
-      expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('2/4');
+      // Step 2/6
+      expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('2/6');
 
       await user.click(screen.getByRole('button', { name: /siguiente/i }));
-      // Step 3/4
-      expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('3/4');
+      // Step 3/6
+      expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('3/6');
 
       await user.click(screen.getByRole('button', { name: /siguiente/i }));
-      // Step 4/4
-      expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('4/4');
+      // Step 4/6
+      expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('4/6');
+
+      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      // Step 5/6
+      expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('5/6');
+
+      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      // Step 6/6
+      expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('6/6');
     });
 
     it('progress reflects correct total when boost step included', async () => {
@@ -505,20 +544,26 @@ describe('OnboardingDialog', () => {
         <OnboardingDialog open={true} onClose={mockOnClose} tournament={tournament} />
       );
 
-      // Should show 5 total steps
+      // Should show 7 total steps
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('1/7');
 
       await user.click(screen.getByRole('button', { name: /siguiente/i }));
-      expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('2/5');
+      expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('2/7');
 
       await user.click(screen.getByRole('button', { name: /siguiente/i }));
-      expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('3/5');
+      expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('3/7');
 
       await user.click(screen.getByRole('button', { name: /siguiente/i }));
-      expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('4/5');
+      expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('4/7');
 
       await user.click(screen.getByRole('button', { name: /siguiente/i }));
-      expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('5/5');
+      expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('5/7');
+
+      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('6/7');
+
+      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('7/7');
     });
   });
 
@@ -536,6 +581,7 @@ describe('OnboardingDialog', () => {
 
       // Should include boost step because golden boosts exist
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('1/7');
+      expect(screen.getByTestId('onboarding-progress')).toHaveAttribute('data-include-boosts', 'true');
     });
 
     it('recalculates step order when tournament prop changes', () => {
@@ -548,7 +594,7 @@ describe('OnboardingDialog', () => {
         <OnboardingDialog open={true} onClose={mockOnClose} tournament={tournamentWithBoosts} />
       );
 
-      // Initially 5 steps (with boost)
+      // Initially 7 steps (with boost)
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('1/7');
 
       // Update to tournament without boosts
@@ -561,7 +607,7 @@ describe('OnboardingDialog', () => {
         <OnboardingDialog open={true} onClose={mockOnClose} tournament={tournamentWithoutBoosts} />
       );
 
-      // Should now be 4 steps (without boost)
+      // Should now be 6 steps (without boost)
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('1/6');
     });
 
@@ -584,6 +630,45 @@ describe('OnboardingDialog', () => {
 
       expect(screen.getByTestId('welcome-step')).toBeInTheDocument();
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('1/');
+    });
+  });
+
+  describe('OnboardingProgress Props', () => {
+    it('passes includeBoosts prop correctly when boosts are enabled', () => {
+      const tournament = testFactories.tournament({
+        max_silver_games: 5,
+        max_golden_games: 3
+      });
+
+      renderWithTheme(
+        <OnboardingDialog open={true} onClose={mockOnClose} tournament={tournament} />
+      );
+
+      const progressElement = screen.getByTestId('onboarding-progress');
+      expect(progressElement).toHaveAttribute('data-include-boosts', 'true');
+    });
+
+    it('passes includeBoosts prop correctly when boosts are disabled', () => {
+      const tournament = testFactories.tournament({
+        max_silver_games: 0,
+        max_golden_games: 0
+      });
+
+      renderWithTheme(
+        <OnboardingDialog open={true} onClose={mockOnClose} tournament={tournament} />
+      );
+
+      const progressElement = screen.getByTestId('onboarding-progress');
+      expect(progressElement).toHaveAttribute('data-include-boosts', 'false');
+    });
+
+    it('passes includeBoosts as false when tournament is undefined', () => {
+      renderWithTheme(
+        <OnboardingDialog open={true} onClose={mockOnClose} tournament={undefined} />
+      );
+
+      const progressElement = screen.getByTestId('onboarding-progress');
+      expect(progressElement).toHaveAttribute('data-include-boosts', 'false');
     });
   });
 });
