@@ -35,6 +35,7 @@ vi.mock('../../app/db/users-repository', () => ({
   findUserByVerificationToken: vi.fn(),
   verifyEmail: vi.fn(),
   deleteUser: vi.fn(),
+  userHasPasswordAuth: vi.fn(),
 }));
 
 // Mock email utilities
