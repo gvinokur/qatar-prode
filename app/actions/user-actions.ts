@@ -22,6 +22,7 @@ import {
 } from "../db/prode-group-repository";
 import {deleteAllUserTournamentGuesses} from "../db/tournament-guess-repository";
 import {deleteAllUserGameGuesses} from "../db/game-guess-repository";
+import {deleteAllUserGroupPositionsPredictions} from "../db/qualified-teams-repository";
 
 function generateVerificationToken(): string {
   return crypto.randomBytes(32).toString('hex');
@@ -220,6 +221,7 @@ async function sendVerificationEmail(user: User) {
  * Deletes a user account and all associated data
  * This includes:
  * - Game and tournament guesses
+ * - Qualified team predictions
  * - Group memberships
  * - Groups owned by the user
  * - Notification subscriptions
@@ -245,6 +247,8 @@ export async function deleteAccount() {
     // Delete all user guesses
     await deleteAllUserTournamentGuesses(user.id);
     await deleteAllUserGameGuesses(user.id);
+    // Delete all qualified team predictions
+    await deleteAllUserGroupPositionsPredictions(user.id);
 
     // Delete the user record
     await deleteUser(user.id);
