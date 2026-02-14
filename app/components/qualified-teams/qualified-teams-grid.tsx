@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { Grid, Box } from '@mui/material';
+import { Grid } from '@mui/material';
 import { TournamentGroup, Team, QualifiedTeamPrediction } from '../../db/tables-definition';
 import GroupCard from './group-card';
 import { QualifiedTeamsScoringResult } from '../../utils/qualified-teams-scoring';
@@ -34,9 +34,9 @@ export interface QualifiedTeamsGridProps {
 
 /**
  * Responsive grid layout for displaying tournament group cards
- * Uses CSS container queries to adapt to container width (not viewport):
- * - Narrow containers: 1 column (<500px)
- * - Wide containers: 2 columns (500px+)
+ * Uses viewport breakpoints:
+ * - 1 column for XS-M (<1200px)
+ * - 2 columns for L+ (≥1200px)
  */
 export default function QualifiedTeamsGrid({
   groups,
@@ -64,30 +64,16 @@ export default function QualifiedTeamsGrid({
   }, [scoringBreakdown]);
 
   return (
-    <Box sx={{
-      width: '100%',
-      // Enable container queries on this element
-      containerType: 'inline-size',
-      containerName: 'qualified-teams-grid'
-    }}>
-      <Grid container spacing={2}>
-        {groups.map(({ group, teams }) => {
-          const isGroupComplete = completeGroupIds.has(group.id);
-          const groupResults = groupResultsMap.get(group.id) || [];
+    <Grid container spacing={2} sx={{ width: '100%' }}>
+      {groups.map(({ group, teams }) => {
+        const isGroupComplete = completeGroupIds.has(group.id);
+        const groupResults = groupResultsMap.get(group.id) || [];
 
-          return (
-            <Grid
-              key={group.id}
-              sx={{
-                // Use container queries instead of viewport breakpoints
-                // Default: 1 column (100%)
-                width: '100%',
-                // 2 columns when container is at least 500px wide
-                '@container qualified-teams-grid (min-width: 500px)': {
-                  width: '50%'
-                }
-              }}
-            >
+        return (
+          <Grid
+            key={group.id}
+            size={{ xs: 12, lg: 6 }}
+          >
               <GroupCard
                 group={group}
                 teams={teams}
@@ -105,10 +91,9 @@ export default function QualifiedTeamsGrid({
                 isGroupComplete={isGroupComplete}
                 allGroupsComplete={allGroupsComplete}
               />
-            </Grid>
-          );
-        })}
-      </Grid>
-    </Box>
+          </Grid>
+        );
+      })}
+    </Grid>
   );
 }
