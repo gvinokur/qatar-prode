@@ -378,20 +378,18 @@ describe('ForgotPasswordForm', () => {
       const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
       mockSendPasswordResetLink.mockResolvedValue({ success: false, error: 'Test error' });
-      
+
       render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
+
       const emailInput = screen.getByLabelText('E-Mail');
       const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
-      
+
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
-      
-      await waitFor(() => {
-        const alert = screen.getByRole('alert');
-        expect(alert).toBeInTheDocument();
-        expect(alert).toHaveClass('MuiAlert-standardError');
-      });
+
+      const alert = await screen.findByRole('alert');
+      expect(alert).toBeInTheDocument();
+      expect(alert).toHaveClass('MuiAlert-standardError');
     });
   });
 
