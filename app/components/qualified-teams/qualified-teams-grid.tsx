@@ -34,11 +34,10 @@ export interface QualifiedTeamsGridProps {
 
 /**
  * Responsive grid layout for displaying tournament group cards
- * Adapts to different screen sizes:
- * - Mobile (xs): 1 column (<600px)
- * - Small tablet (sm): 1 column (600-900px)
- * - Medium tablet (md): 2 columns (900-1200px)
- * - Desktop (lg+): 3 columns (1200px+)
+ * Uses CSS container queries to adapt to container width (not viewport):
+ * - Narrow containers: 1 column (<600px)
+ * - Medium containers: 2 columns (600-900px)
+ * - Wide containers: 3 columns (900px+)
  */
 export default function QualifiedTeamsGrid({
   groups,
@@ -66,14 +65,35 @@ export default function QualifiedTeamsGrid({
   }, [scoringBreakdown]);
 
   return (
-    <Box sx={{ width: '100%', p: 2 }}>
+    <Box sx={{
+      width: '100%',
+      p: 2,
+      // Enable container queries on this element
+      containerType: 'inline-size',
+      containerName: 'qualified-teams-grid'
+    }}>
       <Grid container spacing={3}>
         {groups.map(({ group, teams }) => {
           const isGroupComplete = completeGroupIds.has(group.id);
           const groupResults = groupResultsMap.get(group.id) || [];
 
           return (
-            <Grid key={group.id} size={{ xs: 12, sm: 12, md: 6, lg: 4 }}>
+            <Grid
+              key={group.id}
+              sx={{
+                // Use container queries instead of viewport breakpoints
+                // Default: 1 column (100%)
+                width: '100%',
+                // 2 columns when container is at least 600px wide
+                '@container qualified-teams-grid (min-width: 600px)': {
+                  width: '50%'
+                },
+                // 3 columns when container is at least 900px wide
+                '@container qualified-teams-grid (min-width: 900px)': {
+                  width: '33.333333%'
+                }
+              }}
+            >
               <GroupCard
                 group={group}
                 teams={teams}

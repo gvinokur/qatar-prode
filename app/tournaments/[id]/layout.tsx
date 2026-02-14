@@ -97,9 +97,11 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
       flexDirection: 'column',
       // Use dvh (dynamic viewport height) for Safari iOS - adjusts as address bar shows/hides
       // Fallback to vh for older browsers
-      height: { xs: '100vh', md: 'calc(100vh - 56px)' },
+      // Mobile: account for header (56px) + bottom nav (56px) = 112px
+      // Desktop: account for header (56px) only
+      height: { xs: 'calc(100vh - 112px)', md: 'calc(100vh - 56px)' },
       '@supports (height: 100dvh)': {
-        height: { xs: '100dvh', md: 'calc(100dvh - 56px)' }
+        height: { xs: 'calc(100dvh - 112px)', md: 'calc(100dvh - 56px)' }
       }
     }}>
       <AppBar position={'sticky'} sx={{ top: 0, zIndex: 1100 }}>
@@ -233,14 +235,17 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
           width: '100%',
           maxWidth: '1200px',
           display: 'flex',
-          gap: 2
+          gap: 2,
+          height: 'fit-content',
+          minHeight: '100%'
         }}>
-          <Grid container spacing={2} sx={{ height: '100%', width: '100%' }}>
+          <Grid container spacing={2} sx={{ width: '100%' }}>
             {/* Main content - 8/12 on desktop, full on mobile */}
             <Grid size={{ xs: 12, md: 8 }} sx={{
               display: 'flex',
               flexDirection: 'column',
-              minHeight: 0
+              minHeight: 0,
+              height: 'auto'
             }}>
               {children}
             </Grid>
