@@ -430,3 +430,47 @@ describe('Footer', () => {
 
 ## Open Questions
 None - approach is straightforward based on issue requirements.
+
+## Plan Amendments
+
+### Amendment 1: VAPID Environment Variable Stubs in Test Setup (Discovered during implementation)
+
+**Issue Discovered:**
+When running tests for `app/layout.test.tsx`, the test suite failed with error: `Error: No key set vapidDetails.publicKey`
+
+**Root Cause:**
+- Importing `app/layout.tsx` for testing triggers an import chain that loads `app/actions/notification-actions.ts`
+- That file calls `setVapidDetails()` from `web-push` library at module load time (top-level side effect)
+- `setVapidDetails()` requires `NEXT_PUBLIC_VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` environment variables to be set
+- Without these env vars, module loading fails before tests can run
+
+**Solution Implemented:**
+Added VAPID environment variable stubs to `vitest.setup.ts` (before any imports):
+
+```typescript
+import { vi } from 'vitest';
+
+// Stub VAPID environment variables to prevent web-push initialization errors
+// This must be done before any modules are loaded
+vi.stubEnv('NEXT_PUBLIC_VAPID_PUBLIC_KEY', 'BIgIOpCSB_MFNpSkPb4V_eM4SkemKR1l1XmmYFsewYF-XD0T0LZA8A79eerSnzNP00dIcixBZ_TD3SrSRkiQAlI');
+vi.stubEnv('VAPID_PRIVATE_KEY', 'P3Zfb9llkSX79i6PVZW5JhBhsMJed2XtC2vcByjdPNo');
+
+import '@testing-library/jest-dom';
+// ... rest of setup
+```
+
+**Why This Location:**
+- `vitest.setup.ts` runs before any test files are loaded
+- Environment variables must be stubbed before the `web-push` library initializes
+- Attempted fixes in individual test files were too late in the module loading process
+
+**Files Modified:**
+- `vitest.setup.ts` - Added VAPID env stubs at the top (before imports)
+- `app/layout.test.tsx` - Added VAPID stub in beforeEach to maintain stub after vi.unstubAllEnvs()
+
+**Impact:**
+- Enables testing of `app/layout.tsx` without VAPID initialization errors
+- All tests now pass (196 test files, 3639 tests)
+- No impact on production code (test-only change)
+
+**Note:** The VAPID keys used are actual key format values committed to the repository in test setup. These are for test environment only and do not affect production VAPID keys (stored in Vercel environment variables).
