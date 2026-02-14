@@ -20,9 +20,10 @@ export type SignupFormData = {
 
 type SignupFormProps = {
   readonly onSuccess: (_user: User) => void;
+  readonly email?: string;
 }
 
-export default function SignupForm({ onSuccess }: SignupFormProps) {
+export default function SignupForm({ onSuccess, email }: SignupFormProps) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -34,8 +35,8 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
     formState: { errors }
   } = useForm<SignupFormData>({
     defaultValues: {
-      email: '',
-      email_confirm: '',
+      email: email || '',
+      email_confirm: email || '',
       nickname: '',
       password: '',
       password_confirm: ''
@@ -106,38 +107,41 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
         render={({field, fieldState}) => (
           <TextField
             {...field}
-            autoFocus
+            autoFocus={!email}
             margin="dense"
             label="E-Mail"
             type="text"
             fullWidth
             variant="standard"
+            disabled={!!email}
             error={fieldState.error !== undefined}
             helperText={fieldState.error?.message || ''}
           />
         )}
       />
 
-      <Controller
-        control={control}
-        name="email_confirm"
-        rules={{
-          required: 'Por favor confirme su e-mail',
-          validate: (value) => value === getValues('email') || 'Confirme su e-mail correctamente'
-        }}
-        render={({field, fieldState}) => (
-          <TextField
-            {...field}
-            margin="dense"
-            label="Confirmacion de E-Mail"
-            type="text"
-            fullWidth
-            variant="standard"
-            error={fieldState.error !== undefined}
-            helperText={fieldState.error?.message || ''}
-          />
-        )}
-      />
+      {!email && (
+        <Controller
+          control={control}
+          name="email_confirm"
+          rules={{
+            required: 'Por favor confirme su e-mail',
+            validate: (value) => value === getValues('email') || 'Confirme su e-mail correctamente'
+          }}
+          render={({field, fieldState}) => (
+            <TextField
+              {...field}
+              margin="dense"
+              label="Confirmacion de E-Mail"
+              type="text"
+              fullWidth
+              variant="standard"
+              error={fieldState.error !== undefined}
+              helperText={fieldState.error?.message || ''}
+            />
+          )}
+        />
+      )}
 
       <Controller
         control={control}
@@ -145,6 +149,7 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
         render={({field}) => (
           <TextField
             {...field}
+            autoFocus={!!email}
             margin="dense"
             label="Apodo"
             type="text"

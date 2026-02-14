@@ -15,9 +15,10 @@ export type LoginFormData = {
 
 type LoginFormProps = {
   readonly onSuccess: () => void;
+  readonly email?: string;
 }
 
-export default function LoginForm({ onSuccess }: LoginFormProps) {
+export default function LoginForm({ onSuccess, email }: LoginFormProps) {
   const [loading, setLoading] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -29,7 +30,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
     formState: { errors }
   } = useForm<LoginFormData>({
     defaultValues: {
-      email: '',
+      email: email || '',
       password: ''
     }
   });
@@ -94,12 +95,13 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
         render={({field, fieldState}) => (
           <TextField
             {...field}
-            autoFocus
+            autoFocus={!email}
             margin="dense"
             label="E-Mail"
             type="text"
             fullWidth
             variant="standard"
+            disabled={!!email}
             error={fieldState.error !== undefined}
             helperText={fieldState.error?.message || ''}
           />
@@ -115,6 +117,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
         render={({field, fieldState}) => (
           <TextField
             {...field}
+            autoFocus={!!email}
             margin="dense"
             label="Contraseña"
             type="password"

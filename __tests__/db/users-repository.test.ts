@@ -780,6 +780,412 @@ describe('Users Repository', () => {
     });
   });
 
+  describe('OAuth Functions', () => {
+    const mockOAuthAccount = {
+      provider: 'google',
+      provider_user_id: 'google-123',
+      email: 'oauth@example.com',
+      connected_at: new Date().toISOString()
+    };
+
+    const mockOAuthUser: User = {
+      ...mockUser,
+      password_hash: null,
+      auth_providers: ['google'],
+      oauth_accounts: [mockOAuthAccount],
+      email_verified: true,
+      nickname_setup_required: false
+    };
+
+    describe('findUserByOAuthAccount', () => {
+      it('should find user by OAuth provider and provider user ID', async () => {
+        const mockQuery = {
+          where: vi.fn().mockReturnThis(),
+          selectAll: vi.fn().mockReturnThis(),
+          executeTakeFirst: vi.fn().mockResolvedValue(mockOAuthUser)
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery);
+
+        const result = await usersRepository.findUserByOAuthAccount('google', 'google-123');
+
+        expect(mockDb.selectFrom).toHaveBeenCalledWith('users');
+        expect(mockQuery.where).toHaveBeenCalledWith(expect.any(Function));
+        expect(mockQuery.selectAll).toHaveBeenCalled();
+        expect(mockQuery.executeTakeFirst).toHaveBeenCalled();
+        expect(result).toBe(mockOAuthUser);
+      });
+
+      it('should return undefined when OAuth account not found', async () => {
+        const mockQuery = {
+          where: vi.fn().mockReturnThis(),
+          selectAll: vi.fn().mockReturnThis(),
+          executeTakeFirst: vi.fn().mockResolvedValue(undefined)
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery);
+
+        const result = await usersRepository.findUserByOAuthAccount('google', 'nonexistent-id');
+
+        expect(result).toBeUndefined();
+      });
+
+      it('should handle different OAuth providers', async () => {
+        const mockQuery = {
+          where: vi.fn().mockReturnThis(),
+          selectAll: vi.fn().mockReturnThis(),
+          executeTakeFirst: vi.fn().mockResolvedValue(mockOAuthUser)
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery);
+
+        await usersRepository.findUserByOAuthAccount('github', 'github-456');
+
+        expect(mockQuery.where).toHaveBeenCalledWith(expect.any(Function));
+      });
+
+      it('should handle database errors', async () => {
+        const mockQuery = {
+          where: vi.fn().mockReturnThis(),
+          selectAll: vi.fn().mockReturnThis(),
+          executeTakeFirst: vi.fn().mockRejectedValue(new Error('Database error'))
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery);
+
+        await expect(usersRepository.findUserByOAuthAccount('google', 'google-123'))
+          .rejects.toThrow('Database error');
+      });
+    });
+
+    describe('linkOAuthAccount', () => {
+      it('should link OAuth account to existing user', async () => {
+        const existingUser = { ...mockUser, auth_providers: ['credentials'], oauth_accounts: [] };
+        const linkedUser = {
+          ...existingUser,
+          auth_providers: ['credentials', 'google'],
+          oauth_accounts: [mockOAuthAccount]
+        };
+
+        mockBaseFunctions.findById.mockResolvedValue(existingUser);
+
+        const mockQuery = {
+          set: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          returningAll: vi.fn().mockReturnThis(),
+          executeTakeFirst: vi.fn().mockResolvedValue(linkedUser)
+        };
+        mockDb.updateTable.mockReturnValue(mockQuery);
+
+        const result = await usersRepository.linkOAuthAccount('user-123', mockOAuthAccount);
+
+        expect(mockBaseFunctions.findById).toHaveBeenCalledWith('user-123');
+        expect(mockDb.updateTable).toHaveBeenCalledWith('users');
+        expect(mockQuery.set).toHaveBeenCalledWith({
+          oauth_accounts: JSON.stringify([mockOAuthAccount]),
+          auth_providers: JSON.stringify(['credentials', 'google'])
+        });
+        expect(mockQuery.where).toHaveBeenCalledWith('id', '=', 'user-123');
+        expect(result).toBe(linkedUser);
+      });
+
+      it('should not duplicate provider in auth_providers', async () => {
+        const existingUser = {
+          ...mockUser,
+          auth_providers: ['credentials', 'google'],
+          oauth_accounts: [mockOAuthAccount]
+        };
+
+        const secondOAuthAccount = {
+          provider: 'google',
+          provider_user_id: 'google-456',
+          email: 'another@example.com',
+          connected_at: new Date().toISOString()
+        };
+
+        mockBaseFunctions.findById.mockResolvedValue(existingUser);
+
+        const mockQuery = {
+          set: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          returningAll: vi.fn().mockReturnThis(),
+          executeTakeFirst: vi.fn().mockResolvedValue(existingUser)
+        };
+        mockDb.updateTable.mockReturnValue(mockQuery);
+
+        await usersRepository.linkOAuthAccount('user-123', secondOAuthAccount);
+
+        expect(mockQuery.set).toHaveBeenCalledWith({
+          oauth_accounts: JSON.stringify([mockOAuthAccount, secondOAuthAccount]),
+          auth_providers: JSON.stringify(['credentials', 'google'])
+        });
+      });
+
+      it('should throw error when user not found', async () => {
+        mockBaseFunctions.findById.mockResolvedValue(null);
+
+        await expect(usersRepository.linkOAuthAccount('user-123', mockOAuthAccount))
+          .rejects.toThrow('User not found');
+
+        expect(mockDb.updateTable).not.toHaveBeenCalled();
+      });
+
+      it('should handle null oauth_accounts and auth_providers', async () => {
+        const existingUser = {
+          ...mockUser,
+          auth_providers: null,
+          oauth_accounts: null
+        };
+
+        mockBaseFunctions.findById.mockResolvedValue(existingUser);
+
+        const mockQuery = {
+          set: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          returningAll: vi.fn().mockReturnThis(),
+          executeTakeFirst: vi.fn().mockResolvedValue(existingUser)
+        };
+        mockDb.updateTable.mockReturnValue(mockQuery);
+
+        await usersRepository.linkOAuthAccount('user-123', mockOAuthAccount);
+
+        expect(mockQuery.set).toHaveBeenCalledWith({
+          oauth_accounts: JSON.stringify([mockOAuthAccount]),
+          auth_providers: JSON.stringify(['google'])
+        });
+      });
+    });
+
+    describe('createOAuthUser', () => {
+      it('should create OAuth user with display name', async () => {
+        const mockQuery = {
+          values: vi.fn().mockReturnThis(),
+          returningAll: vi.fn().mockReturnThis(),
+          executeTakeFirst: vi.fn().mockResolvedValue(mockOAuthUser)
+        };
+        mockDb.insertInto.mockReturnValue(mockQuery);
+
+        const result = await usersRepository.createOAuthUser(
+          'oauth@example.com',
+          mockOAuthAccount,
+          'OAuth User'
+        );
+
+        expect(mockDb.insertInto).toHaveBeenCalledWith('users');
+        expect(mockQuery.values).toHaveBeenCalledWith({
+          email: 'oauth@example.com',
+          nickname: 'OAuth User',
+          password_hash: null,
+          auth_providers: JSON.stringify(['google']),
+          oauth_accounts: JSON.stringify([mockOAuthAccount]),
+          email_verified: true,
+          nickname_setup_required: false
+        });
+        expect(result).toBe(mockOAuthUser);
+      });
+
+      it('should set nickname_setup_required when display name is null', async () => {
+        const userNeedingNickname = {
+          ...mockOAuthUser,
+          nickname: null,
+          nickname_setup_required: true
+        };
+
+        const mockQuery = {
+          values: vi.fn().mockReturnThis(),
+          returningAll: vi.fn().mockReturnThis(),
+          executeTakeFirst: vi.fn().mockResolvedValue(userNeedingNickname)
+        };
+        mockDb.insertInto.mockReturnValue(mockQuery);
+
+        const result = await usersRepository.createOAuthUser(
+          'oauth@example.com',
+          mockOAuthAccount,
+          null
+        );
+
+        expect(mockQuery.values).toHaveBeenCalledWith({
+          email: 'oauth@example.com',
+          nickname: null,
+          password_hash: null,
+          auth_providers: JSON.stringify(['google']),
+          oauth_accounts: JSON.stringify([mockOAuthAccount]),
+          email_verified: true,
+          nickname_setup_required: true
+        });
+        expect(result).toBe(userNeedingNickname);
+      });
+
+      it('should handle database errors', async () => {
+        const mockQuery = {
+          values: vi.fn().mockReturnThis(),
+          returningAll: vi.fn().mockReturnThis(),
+          executeTakeFirst: vi.fn().mockRejectedValue(new Error('Insert failed'))
+        };
+        mockDb.insertInto.mockReturnValue(mockQuery);
+
+        await expect(usersRepository.createOAuthUser(
+          'oauth@example.com',
+          mockOAuthAccount,
+          'OAuth User'
+        )).rejects.toThrow('Insert failed');
+      });
+    });
+
+    describe('getAuthMethodsForEmail', () => {
+      it('should return hasPassword=true for credentials user', async () => {
+        const credentialsUser = {
+          ...mockUser,
+          auth_providers: ['credentials'],
+          oauth_accounts: []
+        };
+
+        const mockQuery = {
+          where: vi.fn().mockReturnThis(),
+          selectAll: vi.fn().mockReturnThis(),
+          executeTakeFirst: vi.fn().mockResolvedValue(credentialsUser)
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery);
+
+        const result = await usersRepository.getAuthMethodsForEmail('test@example.com');
+
+        expect(result).toEqual({
+          hasPassword: true,
+          hasGoogle: false,
+          userExists: true
+        });
+      });
+
+      it('should return hasGoogle=true for OAuth user', async () => {
+        const googleUser = {
+          ...mockOAuthUser,
+          auth_providers: ['google'],
+          oauth_accounts: [mockOAuthAccount]
+        };
+
+        const mockQuery = {
+          where: vi.fn().mockReturnThis(),
+          selectAll: vi.fn().mockReturnThis(),
+          executeTakeFirst: vi.fn().mockResolvedValue(googleUser)
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery);
+
+        const result = await usersRepository.getAuthMethodsForEmail('oauth@example.com');
+
+        expect(result).toEqual({
+          hasPassword: false,
+          hasGoogle: true,
+          userExists: true
+        });
+      });
+
+      it('should return both true for linked account', async () => {
+        const linkedUser = {
+          ...mockUser,
+          auth_providers: ['credentials', 'google'],
+          oauth_accounts: [mockOAuthAccount]
+        };
+
+        const mockQuery = {
+          where: vi.fn().mockReturnThis(),
+          selectAll: vi.fn().mockReturnThis(),
+          executeTakeFirst: vi.fn().mockResolvedValue(linkedUser)
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery);
+
+        const result = await usersRepository.getAuthMethodsForEmail('linked@example.com');
+
+        expect(result).toEqual({
+          hasPassword: true,
+          hasGoogle: true,
+          userExists: true
+        });
+      });
+
+      it('should return userExists=false when user not found', async () => {
+        const mockQuery = {
+          where: vi.fn().mockReturnThis(),
+          selectAll: vi.fn().mockReturnThis(),
+          executeTakeFirst: vi.fn().mockResolvedValue(undefined)
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery);
+
+        const result = await usersRepository.getAuthMethodsForEmail('nonexistent@example.com');
+
+        expect(result).toEqual({
+          hasPassword: false,
+          hasGoogle: false,
+          userExists: false
+        });
+      });
+
+      it('should handle null auth_providers', async () => {
+        const userWithNullProviders = { ...mockUser, auth_providers: null };
+
+        const mockQuery = {
+          where: vi.fn().mockReturnThis(),
+          selectAll: vi.fn().mockReturnThis(),
+          executeTakeFirst: vi.fn().mockResolvedValue(userWithNullProviders)
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery);
+
+        const result = await usersRepository.getAuthMethodsForEmail('test@example.com');
+
+        expect(result).toEqual({
+          hasPassword: false,
+          hasGoogle: false,
+          userExists: true
+        });
+      });
+    });
+
+    describe('getAuthProviders', () => {
+      it('should return auth_providers array', () => {
+        const user = { ...mockUser, auth_providers: ['credentials', 'google'] };
+
+        const result = usersRepository.getAuthProviders(user);
+
+        expect(result).toEqual(['credentials', 'google']);
+      });
+
+      it('should return empty array when auth_providers is null', () => {
+        const user = { ...mockUser, auth_providers: null };
+
+        const result = usersRepository.getAuthProviders(user);
+
+        expect(result).toEqual([]);
+      });
+
+      it('should return empty array when auth_providers is undefined', () => {
+        const user = { ...mockUser, auth_providers: undefined };
+
+        const result = usersRepository.getAuthProviders(user);
+
+        expect(result).toEqual([]);
+      });
+    });
+
+    describe('userHasPasswordAuth', () => {
+      it('should return true when password_hash exists', () => {
+        const user = { ...mockUser, password_hash: 'hashed-password' };
+
+        const result = usersRepository.userHasPasswordAuth(user);
+
+        expect(result).toBe(true);
+      });
+
+      it('should return false when password_hash is null', () => {
+        const user = { ...mockUser, password_hash: null };
+
+        const result = usersRepository.userHasPasswordAuth(user);
+
+        expect(result).toBe(false);
+      });
+
+      it('should return false for OAuth-only user', () => {
+        const result = usersRepository.userHasPasswordAuth(mockOAuthUser);
+
+        expect(result).toBe(false);
+      });
+    });
+  });
+
   describe('Edge Cases and Error Handling', () => {
     it('should handle null and undefined values', async () => {
       const mockQuery = {

@@ -77,10 +77,17 @@ export interface OnboardingData {
   }
 }
 
+export interface OAuthAccount {
+  provider: string  // e.g., "google"
+  provider_user_id: string  // OAuth provider's user ID
+  email: string  // Email from OAuth provider
+  connected_at: string  // ISO date string
+}
+
 export interface UserTable extends Identifiable{
   email: string
   nickname: string | null
-  password_hash: string
+  password_hash: string | null  // Nullable for OAuth-only users
   is_admin?: boolean
   reset_token?: string | null
   reset_token_expiration?: Date | null
@@ -91,6 +98,10 @@ export interface UserTable extends Identifiable{
   onboarding_completed?: boolean
   onboarding_completed_at?: Date | null
   onboarding_data?: JSONColumnType<OnboardingData> | null
+  // OAuth fields
+  auth_providers?: JSONColumnType<string[]> | null  // e.g., ["credentials", "google"]
+  oauth_accounts?: JSONColumnType<OAuthAccount[]> | null
+  nickname_setup_required?: boolean
 }
 
 export type User = Selectable<UserTable>

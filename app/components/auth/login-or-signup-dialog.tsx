@@ -8,6 +8,7 @@ import SignupForm from "./signup-form";
 import ForgotPasswordForm from "./forgot-password-form";
 import ResetSentView from "./reset-sent-view";
 import VerificationSentView from "./verification-sent-view";
+import EmailInputForm from "./email-input-form";
 import {User} from "../../db/tables-definition";
 
 type LoginOrSignupProps = {
@@ -15,21 +16,42 @@ type LoginOrSignupProps = {
   openLoginDialog: boolean
 }
 
-type DialogMode = 'login' | 'signup' | 'forgotPassword' | 'resetSent' | 'verificationSent';
+type DialogMode = 'emailInput' | 'login' | 'signup' | 'forgotPassword' | 'resetSent' | 'verificationSent';
 
 export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginDialog }: LoginOrSignupProps) {
-  const [dialogMode, setDialogMode] = useState<DialogMode>('login');
+  const [dialogMode, setDialogMode] = useState<DialogMode>('emailInput');
   const [resetEmail, setResetEmail] = useState<string>('');
   const [createdUser, setCreatedUser] = useState<User>();
+  const [email, setEmail] = useState<string>('');
+  const [authMethods, setAuthMethods] = useState<{ hasPassword: boolean; hasGoogle: boolean; userExists: boolean }>();
 
   const closeDialog = () => {
     handleCloseLoginDialog(!!createdUser);
-    setDialogMode('login');
+    setDialogMode('emailInput');
+    setEmail('');
+    setAuthMethods(undefined);
   }
 
   // Switch between dialog modes
   const switchMode = (mode: DialogMode) => {
     setDialogMode(mode);
+  };
+
+  // Handle email submission from EmailInputForm
+  const handleEmailSubmit = (submittedEmail: string, methods: { hasPassword: boolean; hasGoogle: boolean; userExists: boolean }) => {
+    setEmail(submittedEmail);
+    setAuthMethods(methods);
+
+    // Determine next step based on auth methods
+    if (!methods.userExists) {
+      // New user - go to signup
+      switchMode('signup');
+    } else if (methods.hasPassword) {
+      // Existing user with password - go to login
+      switchMode('login');
+    }
+    // If OAuth-only user (userExists=true, hasPassword=false, hasGoogle=true),
+    // they will sign in via Google button in EmailInputForm
   };
 
   // Handle successful login
@@ -54,6 +76,8 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
   // Get dialog title based on current mode
   const getDialogTitle = () => {
     switch (dialogMode) {
+      case 'emailInput':
+        return 'Ingresar o Registrarse';
       case 'login':
         return 'Ingresar';
       case 'signup':
@@ -70,16 +94,24 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
   // Render the appropriate form based on dialog mode
   const renderDialogContent = () => {
     switch (dialogMode) {
+      case 'emailInput':
+        return (
+          <EmailInputForm
+            onEmailSubmit={handleEmailSubmit}
+          />
+        );
       case 'login':
         return (
           <LoginForm
             onSuccess={handleLoginSuccess}
+            email={email}
           />
         );
       case 'signup':
         return (
           <SignupForm
             onSuccess={handleSignupSuccess}
+            email={email}
           />
         );
       case 'forgotPassword':
@@ -100,18 +132,19 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
   // Render navigation links
   const renderNavigationLinks = () => {
     switch (dialogMode) {
+      case 'emailInput':
+        return null; // No navigation links in email input mode
       case 'login':
         return (
           <DialogActions>
             <div style={{ display: 'flex', flexDirection: 'column', width: '100%', alignItems: 'center' }}>
               <div>
-                No tenes usuario?&nbsp;
                 <Typography
                   color={'primary'}
-                  onClick={() => switchMode('signup')}
+                  onClick={() => switchMode('emailInput')}
                   sx={{ cursor: 'pointer', display: 'inline' }}
                 >
-                  Crea uno!
+                  ← Volver a email
                 </Typography>
               </div>
               <div style={{ marginTop: '8px' }}>
@@ -120,7 +153,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
                   onClick={() => switchMode('forgotPassword')}
                   sx={{ cursor: 'pointer' }}
                 >
-                  ¿Olvidaste tu contraseña?&nbsp;
+                  ¿Olvidaste tu contraseña?
                 </Typography>
               </div>
             </div>
@@ -129,13 +162,12 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
       case 'signup':
         return (
           <DialogActions>
-            Ya tenes usuario?&nbsp;
             <Typography
               color={'primary'}
-              onClick={() => switchMode('login')}
+              onClick={() => switchMode('emailInput')}
               sx={{ cursor: 'pointer' }}
             >
-              Ingresa aca!
+              ← Volver a email
             </Typography>
           </DialogActions>
         );
@@ -144,10 +176,10 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
           <DialogActions>
             <Typography
               color={'primary'}
-              onClick={() => switchMode('login')}
+              onClick={() => switchMode('emailInput')}
               sx={{ cursor: 'pointer' }}
             >
-              Volver al inicio de sesión
+              ← Volver a email
             </Typography>
           </DialogActions>
         );
