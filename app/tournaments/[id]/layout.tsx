@@ -245,7 +245,8 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
               display: 'flex',
               flexDirection: 'column',
               minHeight: 0,
-              height: 'auto'
+              height: '100%',
+              overflow: 'auto'
             }}>
               {children}
             </Grid>
