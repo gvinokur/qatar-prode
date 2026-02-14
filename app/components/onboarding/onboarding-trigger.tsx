@@ -13,7 +13,7 @@ export default async function OnboardingTrigger() {
   const activeTournament = tournaments?.[0]
 
   // Debug: Log tournament data to verify fields are populated
-  console.log('[OnboardingTrigger] Active tournament:', {
+  console.warn('[OnboardingTrigger] Active tournament:', {
     id: activeTournament?.id,
     name: activeTournament?.short_name,
     hasScoring: {
