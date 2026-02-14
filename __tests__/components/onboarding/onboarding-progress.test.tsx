@@ -24,16 +24,28 @@ describe('OnboardingProgress', () => {
     expect(screen.getByText('Puntaje')).toBeInTheDocument()
   })
 
-  it('renders correct number of steps based on totalSteps', () => {
-    render(<OnboardingProgress currentStep={0} totalSteps={4} />)
+  it('renders correct number of steps based on includeBoosts flag', () => {
+    // With boosts (7 steps)
+    const { rerender } = render(<OnboardingProgress currentStep={0} totalSteps={7} includeBoosts={true} />)
 
     expect(screen.getByText('Bienvenida')).toBeInTheDocument()
     expect(screen.getByText('Partidos')).toBeInTheDocument()
     expect(screen.getByText('Clasificados')).toBeInTheDocument()
     expect(screen.getByText('Premios')).toBeInTheDocument()
-    expect(screen.queryByText('Puntaje')).not.toBeInTheDocument()
+    expect(screen.getByText('Puntaje')).toBeInTheDocument()
+    expect(screen.getByText('Boosts')).toBeInTheDocument()
+    expect(screen.getByText('Checklist')).toBeInTheDocument()
+
+    // Without boosts (6 steps)
+    rerender(<OnboardingProgress currentStep={0} totalSteps={6} includeBoosts={false} />)
+
+    expect(screen.getByText('Bienvenida')).toBeInTheDocument()
+    expect(screen.getByText('Partidos')).toBeInTheDocument()
+    expect(screen.getByText('Clasificados')).toBeInTheDocument()
+    expect(screen.getByText('Premios')).toBeInTheDocument()
+    expect(screen.getByText('Puntaje')).toBeInTheDocument()
     expect(screen.queryByText('Boosts')).not.toBeInTheDocument()
-    expect(screen.queryByText('Checklist')).not.toBeInTheDocument()
+    expect(screen.getByText('Checklist')).toBeInTheDocument()
   })
 
   it('marks previous steps as completed', () => {

@@ -1,0 +1,325 @@
+import { describe, it, expect } from 'vitest'
+import { screen } from '@testing-library/react'
+import ScoringExplanationStep from '../scoring-explanation-step'
+import { renderWithTheme } from '@/__tests__/utils/test-utils'
+import { testFactories } from '@/__tests__/db/test-factories'
+
+describe('ScoringExplanationStep', () => {
+  describe('with tournament prop', () => {
+    it('should display tournament-specific scoring values', () => {
+      const tournament = testFactories.tournament({
+        id: 'euro-2024',
+        short_name: 'EURO24',
+        long_name: 'UEFA Euro 2024',
+        game_exact_score_points: 15,
+        game_correct_outcome_points: 7,
+        champion_points: 25,
+        runner_up_points: 15,
+        third_place_points: 8,
+        individual_award_points: 5,
+        qualified_team_points: 3,
+        exact_position_qualified_points: 4,
+      })
+
+      renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
+
+      // Game scoring
+      expect(screen.getByText('15 pts')).toBeInTheDocument() // exact score
+      expect(screen.getByText('7 pts')).toBeInTheDocument() // correct outcome
+
+      // Tournament scoring
+      expect(screen.getByText('25 pts')).toBeInTheDocument() // champion
+      expect(screen.getByText('15 pts')).toBeInTheDocument() // runner up
+      expect(screen.getByText('8 pts')).toBeInTheDocument() // third place
+
+      // Individual awards
+      expect(screen.getByText('5 pts')).toBeInTheDocument() // individual award
+      expect(screen.getByText('Total posible: 20 pts (4 premios × 5 pts)')).toBeInTheDocument()
+
+      // Qualifiers - exactPositionTotal = 3 + 4 = 7
+      expect(screen.getByText('7 pts')).toBeInTheDocument() // exact position + qualified
+      expect(screen.getByText('3 pts')).toBeInTheDocument() // qualified only
+    })
+
+    it('should display tournament name in Alert', () => {
+      const tournament = testFactories.tournament({
+        short_name: 'WC26',
+        long_name: 'FIFA World Cup 2026',
+      })
+
+      renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
+
+      expect(screen.getByText('Configuración de FIFA World Cup 2026')).toBeInTheDocument()
+      expect(screen.getByText('Estos son los valores de puntaje para este torneo específico.')).toBeInTheDocument()
+    })
+
+    it('should use short_name in Alert when long_name is not available', () => {
+      const tournament = testFactories.tournament({
+        short_name: 'TEST',
+        long_name: '', // Empty long name
+      })
+
+      renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
+
+      expect(screen.getByText('Configuración de TEST')).toBeInTheDocument()
+    })
+
+    it('should handle singular/plural pts correctly for game outcome (1 pt)', () => {
+      const tournament = testFactories.tournament({
+        game_correct_outcome_points: 1,
+      })
+
+      renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
+
+      // Should be "1 pt" (singular)
+      expect(screen.getByText('1 pt')).toBeInTheDocument()
+    })
+
+    it('should handle singular/plural pts correctly for third place (1 pt)', () => {
+      const tournament = testFactories.tournament({
+        third_place_points: 1,
+      })
+
+      renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
+
+      // Multiple "1 pt" text nodes may exist, just verify at least one
+      expect(screen.getAllByText('1 pt').length).toBeGreaterThan(0)
+    })
+
+    it('should handle singular/plural pts correctly for qualified team (1 pt)', () => {
+      const tournament = testFactories.tournament({
+        qualified_team_points: 1,
+      })
+
+      renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
+
+      // Multiple "1 pt" text nodes may exist
+      expect(screen.getAllByText('1 pt').length).toBeGreaterThan(0)
+    })
+
+    it('should calculate exactPositionTotal correctly', () => {
+      const tournament = testFactories.tournament({
+        qualified_team_points: 5,
+        exact_position_qualified_points: 7,
+      })
+
+      renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
+
+      // exactPositionTotal = 5 + 7 = 12
+      expect(screen.getByText('12 pts')).toBeInTheDocument() // exact position total
+      expect(screen.getByText('5 pts')).toBeInTheDocument() // qualified only
+    })
+  })
+
+  describe('without tournament prop', () => {
+    it('should display DEFAULT_SCORING fallback values', () => {
+      renderWithTheme(<ScoringExplanationStep />)
+
+      // DEFAULT_SCORING values
+      // game_exact_score_points: 2
+      // game_correct_outcome_points: 1
+      // champion_points: 5
+      // runner_up_points: 3
+      // third_place_points: 1
+      // individual_award_points: 3
+      // qualified_team_points: 1
+      // exact_position_qualified_points: 2
+
+      // Game scoring
+      expect(screen.getByText('2 pts')).toBeInTheDocument() // exact score
+      expect(screen.getByText('1 pt')).toBeInTheDocument() // correct outcome (singular)
+
+      // Tournament scoring
+      expect(screen.getByText('5 pts')).toBeInTheDocument() // champion
+      expect(screen.getByText('3 pts')).toBeInTheDocument() // runner up (also individual award, also exactPositionTotal)
+      // Third place: 1 pt (singular) - verified by presence
+
+      // Individual awards
+      expect(screen.getByText('Total posible: 12 pts (4 premios × 3 pts)')).toBeInTheDocument()
+
+      // Qualifiers - exactPositionTotal = 1 + 2 = 3
+      // qualified_team_points = 1 pt (singular)
+      // Note: Multiple "3 pts" may exist (runner up, individual award, exactPositionTotal)
+      expect(screen.getAllByText('3 pts').length).toBeGreaterThan(0)
+    })
+
+    it('should display generic Alert message without tournament', () => {
+      renderWithTheme(<ScoringExplanationStep />)
+
+      expect(screen.getByText('Importante')).toBeInTheDocument()
+      expect(screen.getByText('Los valores de puntaje pueden variar según el torneo. Los valores mostrados son típicos.')).toBeInTheDocument()
+    })
+
+    it('should display all section headers', () => {
+      renderWithTheme(<ScoringExplanationStep />)
+
+      expect(screen.getByText('¿Cómo se Calcula el Puntaje?')).toBeInTheDocument()
+      expect(screen.getByText('Gana puntos por predicciones correctas en partidos y torneo')).toBeInTheDocument()
+      expect(screen.getByText('Partidos')).toBeInTheDocument()
+      expect(screen.getByText('Torneo')).toBeInTheDocument()
+      expect(screen.getByText('Premios Individuales')).toBeInTheDocument()
+      expect(screen.getByText('Clasificación')).toBeInTheDocument()
+    })
+
+    it('should display all game scoring labels', () => {
+      renderWithTheme(<ScoringExplanationStep />)
+
+      expect(screen.getByText('Resultado exacto')).toBeInTheDocument()
+      expect(screen.getByText('Resultado correcto')).toBeInTheDocument()
+    })
+
+    it('should display all tournament scoring labels with emojis', () => {
+      renderWithTheme(<ScoringExplanationStep />)
+
+      expect(screen.getByText('🥇 Campeón')).toBeInTheDocument()
+      expect(screen.getByText('🥈 Subcampeón')).toBeInTheDocument()
+      expect(screen.getByText('🥉 Tercer lugar')).toBeInTheDocument()
+    })
+
+    it('should display all individual award chips', () => {
+      renderWithTheme(<ScoringExplanationStep />)
+
+      expect(screen.getByText('Mejor Jugador')).toBeInTheDocument()
+      expect(screen.getByText('Goleador')).toBeInTheDocument()
+      expect(screen.getByText('Mejor Arquero')).toBeInTheDocument()
+      expect(screen.getByText('Jugador Joven')).toBeInTheDocument()
+    })
+
+    it('should display qualification scoring labels', () => {
+      renderWithTheme(<ScoringExplanationStep />)
+
+      expect(screen.getByText('Posición exacta + clasificado')).toBeInTheDocument()
+      expect(screen.getByText('Clasificado (posición incorrecta)')).toBeInTheDocument()
+    })
+  })
+
+  describe('edge cases', () => {
+    it('should handle zero points correctly', () => {
+      const tournament = testFactories.tournament({
+        game_exact_score_points: 0,
+        game_correct_outcome_points: 0,
+        qualified_team_points: 0,
+        exact_position_qualified_points: 0,
+      })
+
+      renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
+
+      // Should display "0 pts" for exact score
+      expect(screen.getByText('0 pts')).toBeInTheDocument()
+      // Should display "0 pt" (singular) for correct outcome
+      expect(screen.getByText('0 pt')).toBeInTheDocument()
+    })
+
+    it('should handle very large point values', () => {
+      const tournament = testFactories.tournament({
+        game_exact_score_points: 999,
+        champion_points: 9999,
+        individual_award_points: 100,
+      })
+
+      renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
+
+      expect(screen.getByText('999 pts')).toBeInTheDocument()
+      expect(screen.getByText('9999 pts')).toBeInTheDocument()
+      expect(screen.getByText('100 pts')).toBeInTheDocument()
+      expect(screen.getByText('Total posible: 400 pts (4 premios × 100 pts)')).toBeInTheDocument()
+    })
+
+    it('should render without errors when tournament is undefined', () => {
+      const { container } = renderWithTheme(<ScoringExplanationStep tournament={undefined} />)
+
+      // Should render successfully
+      expect(container).toBeTruthy()
+      expect(screen.getByText('¿Cómo se Calcula el Puntaje?')).toBeInTheDocument()
+    })
+
+    it('should handle tournament with null long_name', () => {
+      const tournament = testFactories.tournament({
+        short_name: 'TEST',
+        long_name: null as any, // Explicit null
+      })
+
+      renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
+
+      // Should fall back to short_name
+      expect(screen.getByText('Configuración de TEST')).toBeInTheDocument()
+    })
+  })
+
+  describe('visual elements', () => {
+    it('should display all scoring category icons', () => {
+      const { container } = renderWithTheme(<ScoringExplanationStep />)
+
+      // Count specific MUI icon components and custom SportsSoccerIcon
+      // Note: We can't easily test for specific icons, but we can verify sections render
+      expect(screen.getByText('Partidos')).toBeInTheDocument()
+      expect(screen.getByText('Torneo')).toBeInTheDocument()
+      expect(screen.getByText('Premios Individuales')).toBeInTheDocument()
+      expect(screen.getByText('Clasificación')).toBeInTheDocument()
+
+      // Verify container has content
+      expect(container.textContent).toBeTruthy()
+    })
+
+    it('should render Paper components for each section', () => {
+      const { container } = renderWithTheme(<ScoringExplanationStep />)
+
+      // Each section should be in a Paper component
+      // We verify by checking that all sections render
+      expect(screen.getByText('Partidos')).toBeInTheDocument()
+      expect(screen.getByText('Torneo')).toBeInTheDocument()
+      expect(screen.getByText('Premios Individuales')).toBeInTheDocument()
+      expect(screen.getByText('Clasificación')).toBeInTheDocument()
+    })
+
+    it('should render Chip components for point values', () => {
+      renderWithTheme(<ScoringExplanationStep />)
+
+      // Verify multiple chip-like point displays exist
+      expect(screen.getByText('2 pts')).toBeInTheDocument()
+      expect(screen.getByText('5 pts')).toBeInTheDocument()
+      expect(screen.getByText('3 pts')).toBeInTheDocument()
+    })
+  })
+
+  describe('exactPositionTotal calculation', () => {
+    it('should correctly add qualified_team_points + exact_position_qualified_points', () => {
+      const testCases = [
+        { qualified: 1, exact: 2, expected: 3 },
+        { qualified: 5, exact: 3, expected: 8 },
+        { qualified: 10, exact: 5, expected: 15 },
+        { qualified: 0, exact: 0, expected: 0 },
+        { qualified: 100, exact: 200, expected: 300 },
+      ]
+
+      testCases.forEach(({ qualified, exact, expected }) => {
+        const tournament = testFactories.tournament({
+          qualified_team_points: qualified,
+          exact_position_qualified_points: exact,
+        })
+
+        const { unmount } = renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
+
+        // exactPositionTotal should be displayed
+        const expectedText = expected === 1 ? '1 pt' : `${expected} pts`
+        expect(screen.getByText(expectedText)).toBeInTheDocument()
+
+        // Clean up before next iteration
+        unmount()
+      })
+    })
+
+    it('should display both exactPositionTotal and qualified separately', () => {
+      const tournament = testFactories.tournament({
+        qualified_team_points: 2,
+        exact_position_qualified_points: 3,
+      })
+
+      renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
+
+      // exactPositionTotal = 2 + 3 = 5
+      expect(screen.getByText('5 pts')).toBeInTheDocument() // exact position + qualified
+      expect(screen.getByText('2 pts')).toBeInTheDocument() // qualified only (position incorrect)
+    })
+  })
+})

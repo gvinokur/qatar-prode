@@ -1,7 +1,7 @@
 'use client'
 
 import { Button, Dialog, DialogActions, DialogContent, LinearProgress, Box } from "@mui/material"
-import { useState, useCallback, useRef, useEffect } from "react"
+import { useState, useCallback, useRef, useEffect, useMemo } from "react"
 import {
   WelcomeStep,
   GamePredictionStep,
@@ -13,6 +13,7 @@ import {
 } from "./onboarding-steps"
 import { markOnboardingComplete, skipOnboardingFlow, saveOnboardingStep } from "../../actions/onboarding-actions"
 import OnboardingProgress from "./onboarding-progress"
+import type { Tournament } from '@/app/db/tables-definition'
 
 /**
  * Progressive Onboarding Flow Dialog
@@ -34,13 +35,26 @@ import OnboardingProgress from "./onboarding-progress"
 type OnboardingDialogProps = {
   readonly open: boolean
   readonly onClose: () => void
+  readonly tournament?: Tournament
 }
 
 type OnboardingStep = 'welcome' | 'game-prediction' | 'qualified-teams' | 'tournament-awards' | 'scoring' | 'boost' | 'checklist'
 
-const STEP_ORDER: OnboardingStep[] = ['welcome', 'game-prediction', 'qualified-teams', 'tournament-awards', 'scoring', 'boost', 'checklist']
+export default function OnboardingDialog({ open, onClose, tournament }: OnboardingDialogProps) {
+  // Calculate if boosts are available for this tournament
+  const hasBoosts = useMemo(() => {
+    return (tournament?.max_silver_games ?? 0) > 0 || (tournament?.max_golden_games ?? 0) > 0
+  }, [tournament])
 
-export default function OnboardingDialog({ open, onClose }: OnboardingDialogProps) {
+  // Dynamically build step order based on boost availability
+  const STEP_ORDER: OnboardingStep[] = useMemo(() => {
+    const baseSteps: OnboardingStep[] = ['welcome', 'game-prediction', 'qualified-teams', 'tournament-awards', 'scoring']
+    if (hasBoosts) {
+      baseSteps.push('boost')
+    }
+    baseSteps.push('checklist')
+    return baseSteps
+  }, [hasBoosts])
   const [currentStep, setCurrentStep] = useState<OnboardingStep>('welcome')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showHeaderShadow, setShowHeaderShadow] = useState(false)
@@ -123,9 +137,9 @@ export default function OnboardingDialog({ open, onClose }: OnboardingDialogProp
       case 'tournament-awards':
         return <TournamentAwardsStep />
       case 'scoring':
-        return <ScoringExplanationStep />
+        return <ScoringExplanationStep tournament={tournament} />
       case 'boost':
-        return <BoostIntroductionStep />
+        return <BoostIntroductionStep tournament={tournament} />
       case 'checklist':
         return <ChecklistStep onComplete={handleNext} />
       default:
@@ -156,7 +170,7 @@ export default function OnboardingDialog({ open, onClose }: OnboardingDialogProp
       >
         <LinearProgress variant="determinate" value={progress} sx={{ height: 2 }} />
         <Box sx={{ p: 3, pb: 2 }}>
-          <OnboardingProgress currentStep={currentStepIndex} totalSteps={STEP_ORDER.length} />
+          <OnboardingProgress currentStep={currentStepIndex} totalSteps={STEP_ORDER.length} includeBoosts={hasBoosts} />
         </Box>
       </Box>
 

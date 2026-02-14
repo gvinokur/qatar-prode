@@ -1,23 +1,9 @@
-'use client'
-
-import { useEffect, useState } from 'react'
-import OnboardingDialog from './onboarding-dialog'
+import OnboardingDialogClient from './onboarding-dialog-client'
 
 /**
- * Triggers the onboarding dialog with a small delay after page load
- * This allows the page to render first before showing the modal
+ * Triggers the onboarding dialog
+ * Renders a client component that will load tournament data on mount
  */
 export default function OnboardingTrigger() {
-  const [open, setOpen] = useState(false)
-
-  useEffect(() => {
-    // Small delay to let page render first
-    const timer = setTimeout(() => {
-      setOpen(true)
-    }, 500)
-
-    return () => clearTimeout(timer)
-  }, [])
-
-  return <OnboardingDialog open={open} onClose={() => setOpen(false)} />
+  return <OnboardingDialogClient />
 }
