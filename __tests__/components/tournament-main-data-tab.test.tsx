@@ -197,9 +197,9 @@ describe('TournamentMainDataTab', () => {
       render(<TournamentMainDataTab tournamentId="test-id" />);
 
       await waitFor(() => {
-        const devOnlySwitch = screen.getByRole('checkbox', { name: /development mode only/i });
-        const displayNameSwitch = screen.getByRole('checkbox', { name: /display name/i });
-        const activeSwitch = screen.getByRole('checkbox', { name: /active/i });
+        const devOnlySwitch = screen.getByRole('switch', { name: /development mode only/i });
+        const displayNameSwitch = screen.getByRole('switch', { name: /display name/i });
+        const activeSwitch = screen.getByRole('switch', { name: /active/i });
 
         expect(devOnlySwitch).not.toBeChecked();
         expect(displayNameSwitch).toBeChecked();
@@ -245,10 +245,10 @@ describe('TournamentMainDataTab', () => {
       render(<TournamentMainDataTab tournamentId="test-id" />);
 
       await waitFor(() => {
-        expect(screen.getByRole('checkbox', { name: /development mode only/i })).toBeInTheDocument();
+        expect(screen.getByRole('switch', { name: /development mode only/i })).toBeInTheDocument();
       });
 
-      const devOnlySwitch = screen.getByRole('checkbox', { name: /development mode only/i });
+      const devOnlySwitch = screen.getByRole('switch', { name: /development mode only/i });
       await user.click(devOnlySwitch);
 
       expect(devOnlySwitch).toBeChecked();
@@ -324,10 +324,10 @@ describe('TournamentMainDataTab', () => {
       render(<TournamentMainDataTab tournamentId="test-id" onUpdate={onUpdateMock} />);
 
       await waitFor(() => {
-        expect(screen.getByRole('checkbox', { name: /active/i })).toBeInTheDocument();
+        expect(screen.getByRole('switch', { name: /active/i })).toBeInTheDocument();
       });
 
-      const activeSwitch = screen.getByRole('checkbox', { name: /active/i });
+      const activeSwitch = screen.getByRole('switch', { name: /active/i });
       await user.click(activeSwitch);
 
       await waitFor(() => {
@@ -476,10 +476,10 @@ describe('TournamentMainDataTab', () => {
       render(<TournamentMainDataTab tournamentId="test-id" />);
 
       await waitFor(() => {
-        expect(screen.getByRole('checkbox', { name: /active/i })).toBeInTheDocument();
+        expect(screen.getByRole('switch', { name: /active/i })).toBeInTheDocument();
       });
 
-      const activeSwitch = screen.getByRole('checkbox', { name: /active/i });
+      const activeSwitch = screen.getByRole('switch', { name: /active/i });
       await user.click(activeSwitch);
 
       await waitFor(() => {
