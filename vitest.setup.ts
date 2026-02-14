@@ -1,5 +1,11 @@
-import '@testing-library/jest-dom';
 import { vi } from 'vitest';
+
+// Stub VAPID environment variables to prevent web-push initialization errors
+// This must be done before any modules are loaded
+vi.stubEnv('NEXT_PUBLIC_VAPID_PUBLIC_KEY', 'BIgIOpCSB_MFNpSkPb4V_eM4SkemKR1l1XmmYFsewYF-XD0T0LZA8A79eerSnzNP00dIcixBZ_TD3SrSRkiQAlI');
+vi.stubEnv('VAPID_PRIVATE_KEY', 'P3Zfb9llkSX79i6PVZW5JhBhsMJed2XtC2vcByjdPNo');
+
+import '@testing-library/jest-dom';
 
 // Mock next-auth globally for all tests
 vi.mock('next-auth', () => ({

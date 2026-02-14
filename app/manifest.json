@@ -1,9 +1,9 @@
 {
-  "id": "la_maquina_prode",
-  "start_url": "https://la-maquina-prode.vercel.app",
-  "name": "La Maquina",
-  "short_name": "Maquina",
-  "description": "Pagina de prode para multiples torneos de futbol",
+  "id": "prode_mundial",
+  "start_url": "https://prodemundial.app",
+  "name": "Prode Mundial",
+  "short_name": "Prode",
+  "description": "Plataforma de pronósticos deportivos",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
@@ -33,31 +33,5 @@
   "categories": [
     "social",
     "sports"
-  ],
-  "screenshots": [
-    {
-      "src": "screenshot1.png",
-      "sizes": "1274x780",
-      "type": "image/png",
-      "platform": "wide"
-    },
-    {
-      "src": "screenshot2.png",
-      "sizes": "1270x750",
-      "type": "image/png",
-      "platform": "wide"
-    },
-    {
-      "src": "screenshot3.png",
-      "sizes": "1270x815",
-      "type": "image/png",
-      "platform": "wide"
-    },
-    {
-      "src": "screenshot4.png",
-      "sizes": "1270x820",
-      "type": "image/png",
-      "platform": "wide"
-    }
   ]
 }

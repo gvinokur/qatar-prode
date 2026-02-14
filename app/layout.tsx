@@ -16,14 +16,17 @@ import { CountdownProvider } from './components/context-providers/countdown-cont
 import Footer from './components/home/footer';
 
 export async  function generateMetadata() {
+  const appName = process.env.NEXT_PUBLIC_APP_NAME || 'Prode Mundial';
+  const appDescription = process.env.NEXT_PUBLIC_APP_DESCRIPTION || 'Plataforma de pronósticos deportivos';
+
   return {
-    title: 'La Maquina',
-    description: "Pagina de prode para multiples torneos de futbol",
+    title: appName,
+    description: appDescription,
     manifest: '/manifest.json',
     appleWebApp: {
       capable: true,
       statusBarStyle: 'default',
-      title: 'La Maquina',
+      title: appName,
     },
     icons: [
       {rel: 'icon', url: '/favicon.svg', type: 'image/svg+xml'},
@@ -42,11 +45,12 @@ export default async function RootLayout({
   children: React.ReactNode
 }) {
   const user = await getLoggedInUser();
+  const appName = process.env.NEXT_PUBLIC_APP_NAME || 'Prode Mundial';
 
   return (
     <html lang="en" style={{ height: '100%' }}>
       <head>
-        <meta name="apple-mobile-web-app-title" content="La Maquina"/>
+        <meta name="apple-mobile-web-app-title" content={appName}/>
       </head>
       <body style={{minHeight: '100%', paddingBottom: '64px'}}>
         <TimezoneProvider>
@@ -64,7 +68,7 @@ export default async function RootLayout({
                   >
                     {children}
                   </ViewTransition>
-                  <Footer message="La Maquina © 2025" />
+                  <Footer message={`${appName} © 2025`} />
                   <InstallPwa />
                   <OfflineDetection />
                 </SessionWrapper>

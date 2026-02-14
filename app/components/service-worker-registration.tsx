@@ -1,8 +1,3 @@
-export function registerServiceWorker() {
-  // Service worker registration disabled
-  return;
-}
-
 export function clearBadges() {
   // Clear notification badges if service worker is available
   if ('serviceWorker' in navigator) {
