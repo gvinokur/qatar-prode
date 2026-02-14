@@ -8,7 +8,7 @@ import GroupStandingsSidebar from './group-standings-sidebar'
 import FriendGroupsList from './friend-groups-list'
 import type { GameStatisticForUser } from '@/types/definitions'
 import type { TournamentGuess } from '@/app/db/tables-definition'
-import type { AdapterUser } from 'next-auth/adapters'
+import type { User } from 'next-auth'
 
 interface TournamentSidebarProps {
   readonly tournamentId: string
@@ -24,7 +24,7 @@ interface TournamentSidebarProps {
     userGroups: any[]
     participantGroups: any[]
   }
-  readonly user?: AdapterUser
+  readonly user?: User
 }
 
 // Helper to determine current section from pathname
