@@ -270,19 +270,17 @@ describe('ForgotPasswordForm', () => {
       const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
       mockSendPasswordResetLink.mockResolvedValue({ success: false, error: 'Test error' });
-      
+
       render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
+
       const emailInput = screen.getByLabelText('E-Mail');
       const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
-      
+
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
-      
-      await waitFor(() => {
-        expect(screen.getByText('Error al enviar el correo electrónico. Por favor, inténtalo de nuevo.')).toBeInTheDocument();
-      });
-      
+
+      await screen.findByText('Test error');
+
       // Loading state should be reset
       expect(submitButton).not.toHaveAttribute('loading');
     });
@@ -293,18 +291,16 @@ describe('ForgotPasswordForm', () => {
       const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
       mockSendPasswordResetLink.mockResolvedValue({ success: false, error: 'Test error' });
-      
+
       render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
+
       const emailInput = screen.getByLabelText('E-Mail');
       const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
-      
+
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
-      
-      await waitFor(() => {
-        expect(screen.getByText('Error al enviar el correo electrónico. Por favor, inténtalo de nuevo.')).toBeInTheDocument();
-      });
+
+      await screen.findByText('Test error');
     });
 
     it('shows server error message when sendPasswordResetLink throws', async () => {
@@ -330,19 +326,17 @@ describe('ForgotPasswordForm', () => {
       const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
       mockSendPasswordResetLink.mockResolvedValue({ success: false, error: 'Test error' });
-      
+
       render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
+
       const emailInput = screen.getByLabelText('E-Mail');
       const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
-      
+
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
-      
-      await waitFor(() => {
-        expect(screen.getByText('Error al enviar el correo electrónico. Por favor, inténtalo de nuevo.')).toBeInTheDocument();
-      });
-      
+
+      await screen.findByText('Test error');
+
       expect(mockOnSuccess).not.toHaveBeenCalled();
     });
 
@@ -351,26 +345,24 @@ describe('ForgotPasswordForm', () => {
       validator.isEmail.mockReturnValue(true);
       mockSendPasswordResetLink.mockResolvedValueOnce({ success: false, error: 'Test error' })
         .mockResolvedValueOnce({ success: true, messageId: 'test-message-id' });
-      
+
       render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
+
       const emailInput = screen.getByLabelText('E-Mail');
       const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
-      
+
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
-      
-      await waitFor(() => {
-        expect(screen.getByText('Error al enviar el correo electrónico. Por favor, inténtalo de nuevo.')).toBeInTheDocument();
-      });
-      
+
+      await screen.findByText('Test error');
+
       // Clear email and try again
       await user.clear(emailInput);
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
-      
+
       await waitFor(() => {
-        expect(screen.queryByText('Error al enviar el correo electrónico. Por favor, inténtalo de nuevo.')).not.toBeInTheDocument();
+        expect(screen.queryByText('Test error')).not.toBeInTheDocument();
       });
     });
 
