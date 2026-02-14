@@ -5,13 +5,18 @@ import OnboardingDialog from './onboarding-dialog'
 import { getTournaments } from '@/app/actions/tournament-actions'
 import type { Tournament } from '@/app/db/tables-definition'
 
+type OnboardingDialogClientProps = {
+  readonly initialOpen?: boolean
+  readonly onClose?: () => void
+}
+
 /**
  * Client wrapper for OnboardingDialog that loads tournament data on mount
  * This avoids Server/Client component boundary issues with event handlers
  */
-export default function OnboardingDialogClient() {
+export default function OnboardingDialogClient({ initialOpen = true, onClose }: OnboardingDialogClientProps) {
   const [tournament, setTournament] = useState<Tournament | undefined>(undefined)
-  const [isOpen, setIsOpen] = useState(true)
+  const [isOpen, setIsOpen] = useState(initialOpen)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -46,6 +51,7 @@ export default function OnboardingDialogClient() {
 
   const handleClose = () => {
     setIsOpen(false)
+    onClose?.()
   }
 
   // Don't render dialog until tournament data is loaded

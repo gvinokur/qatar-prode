@@ -16,7 +16,7 @@ import LoginOrSignupDialog from "../auth/login-or-signup-dialog";
 import {signOut} from "next-auth/react";
 import {User} from "next-auth";
 import UserSettingsDialog from "../auth/user-settings-dialog";
-import OnboardingDialog from "../onboarding/onboarding-dialog";
+import OnboardingDialogClient from "../onboarding/onboarding-dialog-client";
 
 type UserActionProps = {
   user?: User
@@ -147,10 +147,12 @@ export default function UserActions({ user }: UserActionProps) {
         openLoginDialog={openLoginDialog}
         handleCloseLoginDialog={handleCloseLoginDialog}
       />
-      <OnboardingDialog
-        open={openOnboardingDialog}
-        onClose={handleCloseOnboarding}
-      />
+      {openOnboardingDialog && (
+        <OnboardingDialogClient
+          initialOpen={true}
+          onClose={handleCloseOnboarding}
+        />
+      )}
     </>
   )
 }
