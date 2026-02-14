@@ -15,8 +15,11 @@ interface GroupsStageViewProps {
 }
 
 /**
- * Displays groups stage results in a responsive grid layout.
+ * Displays groups stage results in a responsive grid layout using container queries.
  * Shows one GroupResultCard per group.
+ * - 1 column for containers < 350px
+ * - 2 columns for containers 350px-549px
+ * - 3 columns for containers ≥ 550px
  */
 export default function GroupsStageView({ groups, games, qualifiedTeams }: GroupsStageViewProps) {
   // Sort groups alphabetically by letter
@@ -36,26 +39,45 @@ export default function GroupsStageView({ groups, games, qualifiedTeams }: Group
   }
 
   return (
-    <Grid container spacing={2} sx={{ width: '100%' }}>
-      {sortedGroups.map((group) => {
-        // Filter games for this specific group
-        const groupGames = games.filter(
-          (game) => game.group?.tournament_group_id === group.id
-        )
+    <Box sx={{
+      width: '100%',
+      // Enable container queries on this element
+      containerType: 'inline-size',
+      containerName: 'groups-stage-grid'
+    }}>
+      <Grid container spacing={2}>
+        {sortedGroups.map((group) => {
+          // Filter games for this specific group
+          const groupGames = games.filter(
+            (game) => game.group?.tournament_group_id === group.id
+          )
 
-        return (
-          <Grid
-            key={group.id}
-            size={{ xs: 12, sm: 6, md: 4 }}
-          >
-            <GroupResultCard
-              group={group}
-              games={groupGames}
-              qualifiedTeams={qualifiedTeams}
-            />
-          </Grid>
-        )
-      })}
-    </Grid>
+          return (
+            <Grid
+              key={group.id}
+              sx={{
+                // Use container queries instead of viewport breakpoints
+                // Default: 1 column (100%)
+                width: '100%',
+                // 2 columns when container is at least 350px wide
+                '@container groups-stage-grid (min-width: 350px)': {
+                  width: '50%'
+                },
+                // 3 columns when container is at least 550px wide
+                '@container groups-stage-grid (min-width: 550px)': {
+                  width: '33.333333%'
+                }
+              }}
+            >
+              <GroupResultCard
+                group={group}
+                games={groupGames}
+                qualifiedTeams={qualifiedTeams}
+              />
+            </Grid>
+          )
+        })}
+      </Grid>
+    </Box>
   )
 }
