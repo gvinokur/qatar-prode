@@ -2495,3 +2495,99 @@ DROP INDEX IF EXISTS idx_users_otp_code;
 **Complexity:** Medium (security critical, UX polish needed)
 **Blocks:** None (can be done after #136)
 **Risk Level:** Low (well-researched, comprehensive testing plan)
+
+---
+
+## Implementation Amendments
+
+*This section documents deviations, fixes, and adjustments discovered during implementation.*
+
+### Amendment 1: OTP Double-Verification Issue (2026-02-15)
+
+**Issue:** CredentialsSignin error when verifying OTP. Root cause: OTP was being verified and cleared in the component, then NextAuth's authorize function tried to verify again but OTP was already gone.
+
+**Solution:**
+- Modified `verifyOTP()` in `users-repository.ts` to NOT clear OTP after verification
+- Added `clearOTP()` call in NextAuth's OTP authorize function after successful authentication
+- This allows component to verify OTP before account setup while keeping it valid for final sign-in
+
+**Files Changed:**
+- `app/db/users-repository.ts`: Removed OTP clearing from `verifyOTP()`
+- `auth.ts`: Added `clearOTP()` import and call in OTP authorize function
+
+**Commit:** b9d2230
+
+---
+
+### Amendment 2: UI Refresh After OTP Login (2026-02-15)
+
+**Issue:** After successful OTP login, dialog closed but UI didn't update with new session state, leaving users confused about whether they were logged in.
+
+**Solution:**
+- Imported `useRouter` from `next/navigation` in OTP components
+- Called `router.refresh()` after successful `signIn()` to trigger session update
+- Added router mock in tests to prevent "app router not mounted" error
+
+**Files Changed:**
+- `app/components/auth/login-or-signup-dialog.tsx`: Added useRouter, call refresh after OTP login
+- `app/components/auth/account-setup-form.tsx`: Added useRouter, call refresh after account creation
+- `__tests__/components/auth/login-or-signup-dialog.test.tsx`: Mocked useRouter with createMockRouter
+
+**Commit:** 715b1c5
+
+---
+
+### Amendment 3: Prominent OTP Button Styling (2026-02-15)
+
+**Issue:** User feedback indicated OTP links were not prominent enough - implemented as small underlined text, unlikely to be discovered or used.
+
+**Solution:**
+- Converted OTP text links to outlined Material-UI buttons with VpnKey icon (🔑)
+- Positioned OTP buttons next to main action buttons (side-by-side layout)
+- Used consistent "Código por Email" text with 12px gap spacing
+- Disabled buttons during loading state
+
+**Files Changed:**
+- `app/components/auth/login-form.tsx`: OTP link → button with icon
+- `app/components/auth/signup-form.tsx`: OTP link → button with icon
+
+**UX Impact:** Makes passwordless OTP authentication more discoverable and encourages adoption.
+
+**Commit:** 27501b4
+
+---
+
+### Amendment 4: Auto-Trigger Google Sign-In (2026-02-15)
+
+**Issue:** When user entered email for Google-only account (userExists=true, hasPassword=false, hasGoogle=true), nothing happened - no error, no message, no action.
+
+**Solution:**
+- Added auto-trigger logic in `handleEmailSubmit` for Google-only users
+- When detected, automatically calls `signIn('google', { callbackUrl: '/' })`
+- Eliminates confusion and creates seamless flow for Google-only accounts
+
+**Files Changed:**
+- `app/components/auth/login-or-signup-dialog.tsx`: Added Google auto-trigger condition
+
+**Flow:** User enters email → System detects Google-only → Google OAuth starts automatically
+
+**Commit:** c5de795
+
+---
+
+### Testing Notes
+
+All amendments were validated with:
+- ✅ Full test suite: 3810 tests passed
+- ✅ ESLint: Passed (warnings only, no errors)
+- ✅ TypeScript build: Succeeded
+- ✅ User acceptance testing in Vercel Preview
+- ✅ Manual testing of all affected flows
+
+### Security Considerations
+
+- No security regressions introduced
+- OTP clearing logic moved but security guarantees maintained
+- All auth flows still properly validated
+- Rate limiting and attempt tracking unchanged
+
