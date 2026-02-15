@@ -19,6 +19,13 @@ export const findUserByEmail = cache(async function(email:string) {
     .executeTakeFirst()
 })
 
+export const findUserByNickname = cache(async function(nickname: string) {
+  return db.selectFrom('users')
+    .where('nickname', '=', nickname)
+    .selectAll()
+    .executeTakeFirst()
+})
+
 export const findUsersByIds = cache(async function (userIds:string[]) {
   return db.selectFrom('users')
     .selectAll()

@@ -102,7 +102,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
       setIsNewUserSignup(false);
       switchMode('otpVerify');
     } else {
-      setOtpError(result.error || 'Error al enviar el código');
+      // Error handled in OTP component
     }
   };
 
@@ -113,7 +113,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
       setIsNewUserSignup(true);
       switchMode('otpVerify');
     } else {
-      setOtpError(result.error || 'Error al enviar el código');
+      // Error handled in OTP component
     }
   };
 
@@ -146,7 +146,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
   const handleOTPResend = async () => {
     const result = await sendOTPCode(email);
     if (!result.success) {
-      setOtpError(result.error || 'Error al reenviar el código');
+      // Error handled in OTP component
     }
   };
 

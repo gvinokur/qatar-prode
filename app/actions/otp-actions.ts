@@ -1,6 +1,6 @@
 "use server";
 
-import { generateOTP, verifyOTP, findUserByEmail, updateUser, getPasswordHash } from "../db/users-repository";
+import { generateOTP, verifyOTP, findUserByEmail, findUserByNickname, updateUser, getPasswordHash } from "../db/users-repository";
 import { sendEmail } from "../utils/email";
 import { User } from "../db/tables-definition";
 
@@ -225,6 +225,15 @@ export async function createAccountViaOTP(data: {
       }
     }
 
+    // Check if nickname is already taken
+    const existingUserWithNickname = await findUserByNickname(trimmedNickname);
+    if (existingUserWithNickname) {
+      return {
+        success: false,
+        error: "Este nickname no está disponible."
+      };
+    }
+
     // Get existing placeholder user
     const user = await findUserByEmail(normalizedEmail);
 
@@ -294,9 +303,14 @@ export async function checkNicknameAvailability(nickname: string): Promise<{
       };
     }
 
-    // Check if nickname is taken (query all users with this nickname)
-    // Note: This assumes nickname field exists and is unique enough
-    // If you need exact uniqueness, add a unique constraint on nickname in DB
+    // Check if nickname is taken
+    const existingUser = await findUserByNickname(trimmedNickname);
+    if (existingUser) {
+      return {
+        available: false,
+        error: "Este nickname no está disponible."
+      };
+    }
 
     return { available: true };
   } catch (error) {
