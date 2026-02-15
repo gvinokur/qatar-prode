@@ -10,7 +10,7 @@ import {
   ListItem,
   ListItemText, TextField, useTheme
 } from "@mui/material";
-import {Delete as DeleteIcon, Share as ShareIcon, ExpandMore as ExpandMoreIcon} from "@mui/icons-material";
+import {Delete as DeleteIcon, Share as ShareIcon, ExpandMore as ExpandMoreIcon, Groups as GroupsIcon} from "@mui/icons-material";
 import {useState} from "react";
 import {ExpandMore} from './expand-more';
 import {Controller, useForm} from "react-hook-form";
@@ -23,6 +23,7 @@ type Props = {
   userGroups: { id: string, name: string}[]
   participantGroups: {id: string, name: string}[]
   tournamentId?: string
+  isActive?: boolean
 }
 
 type GroupForm = {
@@ -33,6 +34,7 @@ export default function FriendGroupsList({
   userGroups:initialUserGroups,
   participantGroups,
   tournamentId,
+  isActive = false,
 } : Props) {
   const theme = useTheme();
   const [expanded, setExpanded] = useState(false);
@@ -74,9 +76,16 @@ export default function FriendGroupsList({
 
   return (
     <>
-      <Card>
+      <Card sx={{
+        ...(isActive && {
+          borderLeft: 3,
+          borderColor: 'primary.main',
+          backgroundColor: 'action.selected',
+        })
+      }}>
         <CardHeader
           title='Grupos de Amigos'
+          subheader={isActive ? 'Estás aquí' : undefined}
           sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
           action={
             <ExpandMore
@@ -133,7 +142,7 @@ export default function FriendGroupsList({
         <CardActions sx={{ justifyContent: 'space-around', px: 2, py: 1.5 }}>
           <Button onClick={() => setOpenCreateDialog(true)}>Crear Grupo</Button>
           {tournamentId && (userGroups.length + participantGroups.length) > 1 && (
-            <Button component={Link} href={`/tournaments/${tournamentId}/friend-groups`}>
+            <Button component={Link} href={`/tournaments/${tournamentId}/friend-groups`} startIcon={<GroupsIcon />}>
               Ver Grupos
             </Button>
           )}

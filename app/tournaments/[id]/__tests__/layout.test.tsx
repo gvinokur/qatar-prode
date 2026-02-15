@@ -1,18 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import TournamentLayout from '../layout';
-import { getTournamentAndGroupsData, getTournamentStartDate } from '@/app/actions/tournament-actions';
+import { getTournamentAndGroupsData, getTournamentStartDate, getGroupStandingsForTournament } from '@/app/actions/tournament-actions';
+import { getGroupsForUser } from '@/app/actions/prode-group-actions';
 import { getLoggedInUser } from '@/app/actions/user-actions';
 import { findTournamentGuessByUserIdTournament } from '@/app/db/tournament-guess-repository';
 import { getPlayersInTournament } from '@/app/db/player-repository';
 import { hasUserPermission } from '@/app/db/tournament-view-permission-repository';
+import { findTournamentById } from '@/app/db/tournament-repository';
+import { getGameGuessStatisticsForUsers } from '@/app/db/game-guess-repository';
 import { redirect, notFound } from 'next/navigation';
 import { renderWithTheme } from '@/__tests__/utils/test-utils';
 
 // Mock server actions
 vi.mock('@/app/actions/tournament-actions', () => ({
   getTournamentAndGroupsData: vi.fn(),
-  getTournamentStartDate: vi.fn()
+  getTournamentStartDate: vi.fn(),
+  getGroupStandingsForTournament: vi.fn()
+}));
+
+vi.mock('@/app/actions/prode-group-actions', () => ({
+  getGroupsForUser: vi.fn()
 }));
 
 vi.mock('@/app/actions/user-actions', () => ({
@@ -29,6 +37,14 @@ vi.mock('@/app/db/player-repository', () => ({
 
 vi.mock('@/app/db/tournament-view-permission-repository', () => ({
   hasUserPermission: vi.fn()
+}));
+
+vi.mock('@/app/db/tournament-repository', () => ({
+  findTournamentById: vi.fn()
+}));
+
+vi.mock('@/app/db/game-guess-repository', () => ({
+  getGameGuessStatisticsForUsers: vi.fn()
 }));
 
 vi.mock('next/navigation', () => ({
@@ -102,6 +118,14 @@ describe('TournamentLayout - Mobile Header Integration', () => {
     (findTournamentGuessByUserIdTournament as any).mockResolvedValue(mockTournamentGuesses);
     (getPlayersInTournament as any).mockResolvedValue(5);
     (hasUserPermission as any).mockResolvedValue(true);
+    (getGroupsForUser as any).mockResolvedValue({ userGroups: [], participantGroups: [] });
+    (getGroupStandingsForTournament as any).mockResolvedValue({
+      groups: [],
+      defaultGroupId: 'group-a',
+      qualifiedTeams: []
+    });
+    (findTournamentById as any).mockResolvedValue(mockTournamentData.tournament);
+    (getGameGuessStatisticsForUsers as any).mockResolvedValue([]);
   });
 
   it('renders tournament layout with all header components', async () => {

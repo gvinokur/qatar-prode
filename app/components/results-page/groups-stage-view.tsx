@@ -17,6 +17,10 @@ interface GroupsStageViewProps {
 /**
  * Displays groups stage results in a responsive grid layout.
  * Shows one GroupResultCard per group.
+ * Uses viewport breakpoints:
+ * - 1 column for XS (<600px)
+ * - 2 columns for S-M (≥600px)
+ * - 3 columns for L+ (≥1200px)
  */
 export default function GroupsStageView({ groups, games, qualifiedTeams }: GroupsStageViewProps) {
   // Sort groups alphabetically by letter
@@ -46,7 +50,7 @@ export default function GroupsStageView({ groups, games, qualifiedTeams }: Group
         return (
           <Grid
             key={group.id}
-            size={{ xs: 12, sm: 6, md: 4 }}
+            size={{ xs: 12, sm: 6, lg: 4 }}
           >
             <GroupResultCard
               group={group}

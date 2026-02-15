@@ -202,7 +202,7 @@ export default async function TournamentStatsPage(props: Props) {
   const goldenBoostStats = calculateBoostStats(goldenBoostData, tournament.max_golden_games, 'golden')
 
   return (
-    <Box pt={2} maxWidth={'868px'} mx={{md: 'auto'}}>
+    <Box pt={2}>
       <StatsTabs
         performanceTab={<PerformanceOverviewCard {...performanceStats} />}
         precisionTab={<PredictionAccuracyCard {...accuracyStats} />}

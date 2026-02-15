@@ -1,6 +1,6 @@
 'use server'
 
-import { Container } from '@mui/material'
+import { Box } from '@mui/material'
 import Rules, { ScoringConfig } from '../../../components/tournament-page/rules'
 import { findTournamentById } from '../../../db/tournament-repository'
 import { redirect } from 'next/navigation'
@@ -37,8 +37,8 @@ export default async function TournamentRulesPage(props: Props) {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Box sx={{ pt: 2 }}>
       <Rules fullpage scoringConfig={scoringConfig} />
-    </Container>
+    </Box>
   )
 }

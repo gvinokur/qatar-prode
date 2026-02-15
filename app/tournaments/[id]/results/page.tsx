@@ -57,8 +57,6 @@ export default async function ResultsPage(props: Props) {
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
-          maxWidth: '868px',
-          mx: { md: 'auto' },
           width: '100%',
         }}
       >
