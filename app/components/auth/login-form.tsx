@@ -1,6 +1,7 @@
 'use client'
 
-import {Alert, Button, TextField, Typography} from "@mui/material";
+import {Alert, Button, TextField} from "@mui/material";
+import { VpnKey } from "@mui/icons-material";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 //@ts-ignore
 import validator from "validator";
@@ -130,21 +131,18 @@ export default function LoginForm({ onSuccess, email, onOTPLoginClick }: LoginFo
         )}
       />
 
-      {onOTPLoginClick && (
-        <div style={{ marginTop: '10px', textAlign: 'center' }}>
-          <Typography
-            variant="body2"
-            color="primary"
+      <div style={{ marginTop: '20px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+        {onOTPLoginClick && (
+          <Button
+            variant="outlined"
+            startIcon={<VpnKey />}
             onClick={onOTPLoginClick}
-            sx={{ cursor: 'pointer', textDecoration: 'underline' }}
+            disabled={loading}
           >
-            Iniciar sesión con código por email
-          </Typography>
-        </div>
-      )}
-
-      <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
-        <Button loading={loading} type="submit">
+            Código por Email
+          </Button>
+        )}
+        <Button loading={loading} type="submit" variant="contained">
           Ingresar
         </Button>
       </div>
