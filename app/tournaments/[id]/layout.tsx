@@ -73,7 +73,7 @@ function extractScoringConfig(tournament: any): ScoringConfig | undefined {
 // Helper: Check if within 5 days of tournament start
 function isWithinFiveDaysOfStart(startDate: Date): boolean {
   const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000
-  const currentTime = new Date().getTime()
+  const currentTime = Date.now()
   const startTime = startDate.getTime()
   const timeDiff = Math.abs(startTime - currentTime)
 
