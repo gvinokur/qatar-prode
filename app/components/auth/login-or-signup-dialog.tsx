@@ -31,7 +31,6 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
   const [email, setEmail] = useState<string>('');
   const [verifiedOTP, setVerifiedOTP] = useState<string>('');
   const [isNewUserSignup, setIsNewUserSignup] = useState(false);
-  const [_otpError, setOtpError] = useState<string>('');
 
   const closeDialog = () => {
     handleCloseLoginDialog(!!createdUser);
@@ -55,7 +54,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
       if (result.success) {
         switchMode('otpVerify');
       } else {
-        setOtpError(result.error || 'Error al enviar el código');
+        // Error handled in OTP component
       }
       return;
     }
@@ -98,7 +97,6 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
 
   // Handle OTP login click from LoginForm
   const handleOTPLoginClick = async () => {
-    setOtpError('');
     const result = await sendOTPCode(email);
     if (result.success) {
       setIsNewUserSignup(false);
@@ -110,7 +108,6 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
 
   // Handle OTP signup click from SignupForm
   const handleOTPSignupClick = async () => {
-    setOtpError('');
     const result = await sendOTPCode(email);
     if (result.success) {
       setIsNewUserSignup(true);
@@ -139,7 +136,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
         handleCloseLoginDialog(true);
         router.refresh();
       } else {
-        setOtpError('Error al iniciar sesión. Intenta nuevamente.');
+        // Error: Failed to sign in after OTP verification
         switchMode('emailInput');
       }
     }
@@ -147,7 +144,6 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
 
   // Handle OTP resend
   const handleOTPResend = async () => {
-    setOtpError('');
     const result = await sendOTPCode(email);
     if (!result.success) {
       setOtpError(result.error || 'Error al reenviar el código');

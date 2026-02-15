@@ -165,9 +165,11 @@ export default function AccountSetupForm({ email, verifiedOTP, onSuccess, onCanc
         disabled={loading}
         variant="outlined"
         required
-        inputProps={{
-          minLength: 3,
-          maxLength: 20
+        slotProps={{
+          htmlInput: {
+            minLength: 3,
+            maxLength: 20
+          }
         }}
         sx={{ mb: 2 }}
       />
@@ -183,11 +185,12 @@ export default function AccountSetupForm({ email, verifiedOTP, onSuccess, onCanc
         helperText={passwordError || 'Opcional: Crear contraseña por si acaso'}
         disabled={loading}
         variant="outlined"
-        inputProps={{
-          minLength: 8
-        }}
-        InputProps={{
-          endAdornment: password && (
+        slotProps={{
+          htmlInput: {
+            minLength: 8
+          },
+          input: {
+            endAdornment: password && (
             <InputAdornment position="end">
               <IconButton
                 aria-label="toggle password visibility"
@@ -197,7 +200,7 @@ export default function AccountSetupForm({ email, verifiedOTP, onSuccess, onCanc
                 {showPassword ? <VisibilityOff /> : <Visibility />}
               </IconButton>
             </InputAdornment>
-          )
+          )}
         }}
         sx={{ mb: 3 }}
       />

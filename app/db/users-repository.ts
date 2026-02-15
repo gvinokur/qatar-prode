@@ -279,7 +279,7 @@ export async function generateOTP(email: string): Promise<{
   const now = new Date();
 
   // Check rate limiting BEFORE creating new OTP
-  if (user && user.otp_last_request) {
+  if (user?.otp_last_request) {
     const timeSinceLastRequest = now.getTime() - new Date(user.otp_last_request).getTime();
     if (timeSinceLastRequest < 60000) { // 1 minute
       return {

@@ -106,7 +106,7 @@ export async function sendOTPCode(email: string): Promise<{
     // Get user to retrieve OTP code
     const user = await findUserByEmail(normalizedEmail);
 
-    if (!user || !user.otp_code) {
+    if (!user?.otp_code) {
       return {
         success: false,
         error: "Error al generar el código."
@@ -244,13 +244,14 @@ export async function createAccountViaOTP(data: {
     }
 
     // Determine auth providers
-    const hasPassword = password && password.trim().length > 0;
+    const trimmedPassword = password?.trim();
+    const hasPassword = trimmedPassword && trimmedPassword.length > 0;
     const authProviders = hasPassword ? ['otp', 'credentials'] : ['otp'];
 
     // Update user with complete account info
     await updateUser(user.id, {
       nickname: trimmedNickname,
-      password_hash: hasPassword ? getPasswordHash(password!) : null,
+      password_hash: hasPassword ? getPasswordHash(trimmedPassword) : null,
       auth_providers: JSON.stringify(authProviders)
     });
 

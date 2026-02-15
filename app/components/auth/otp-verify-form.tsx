@@ -12,7 +12,7 @@ type OTPVerifyFormProps = {
 }
 
 export default function OTPVerifyForm({ email, onSuccess, onCancel, onResend }: OTPVerifyFormProps) {
-  const [otp, setOtp] = useState<string[]>(Array(6).fill(''));
+  const [otp, setOtp] = useState<string[]>(new Array(6).fill(''));
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState('');
   const [timeLeft, setTimeLeft] = useState(180); // 3 minutes in seconds
@@ -141,7 +141,7 @@ export default function OTPVerifyForm({ email, onSuccess, onCancel, onResend }: 
       } else {
         setError(result.error || 'Código incorrecto');
         // Clear OTP boxes on error
-        setOtp(Array(6).fill(''));
+        setOtp(new Array(6).fill(''));
         inputRefs.current[0]?.focus();
       }
     } catch {
@@ -188,7 +188,7 @@ export default function OTPVerifyForm({ email, onSuccess, onCancel, onResend }: 
       <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mb: 2 }}>
         {otp.map((digit, index) => (
           <TextField
-            key={index}
+            key={`otp-input-${index}`}
             inputRef={(el) => (inputRefs.current[index] = el)}
             value={digit}
             onChange={(e) => handleChange(index, e.target.value)}
@@ -196,15 +196,17 @@ export default function OTPVerifyForm({ email, onSuccess, onCancel, onResend }: 
             onPaste={handlePaste}
             disabled={isVerifying}
             variant="outlined"
-            inputProps={{
-              maxLength: 1,
-              style: {
-                textAlign: 'center',
-                fontSize: '24px',
-                fontWeight: 'bold',
-                padding: '12px'
-              },
-              'aria-label': `Dígito ${index + 1} de 6`
+            slotProps={{
+              htmlInput: {
+                maxLength: 1,
+                style: {
+                  textAlign: 'center',
+                  fontSize: '24px',
+                  fontWeight: 'bold',
+                  padding: '12px'
+                },
+                'aria-label': `Dígito ${index + 1} de 6`
+              }
             }}
             sx={{
               width: 50,
