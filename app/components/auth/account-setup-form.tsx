@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Alert, Box, Button, TextField, Typography, InputAdornment, IconButton } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { createAccountViaOTP, checkNicknameAvailability } from "@/app/actions/otp-actions";
@@ -14,6 +15,7 @@ type AccountSetupFormProps = {
 }
 
 export default function AccountSetupForm({ email, verifiedOTP, onSuccess, onCancel }: AccountSetupFormProps) {
+  const router = useRouter();
   const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -117,6 +119,7 @@ export default function AccountSetupForm({ email, verifiedOTP, onSuccess, onCanc
       });
 
       if (signInResult?.ok) {
+        router.refresh();
         onSuccess();
       } else {
         setError('Cuenta creada pero no se pudo iniciar sesión. Intenta iniciar sesión manualmente.');

@@ -3,6 +3,7 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from "@mui/material";
 import * as React from "react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import LoginForm from "./login-form";
 import SignupForm from "./signup-form";
 import ForgotPasswordForm from "./forgot-password-form";
@@ -23,6 +24,7 @@ type LoginOrSignupProps = {
 type DialogMode = 'emailInput' | 'login' | 'signup' | 'forgotPassword' | 'resetSent' | 'verificationSent' | 'otpVerify' | 'accountSetup';
 
 export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginDialog }: LoginOrSignupProps) {
+  const router = useRouter();
   const [dialogMode, setDialogMode] = useState<DialogMode>('emailInput');
   const [resetEmail, setResetEmail] = useState<string>('');
   const [createdUser, setCreatedUser] = useState<User>();
@@ -130,6 +132,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
 
       if (result?.ok) {
         handleCloseLoginDialog(true);
+        router.refresh();
       } else {
         setOtpError('Error al iniciar sesión. Intenta nuevamente.');
         switchMode('emailInput');
