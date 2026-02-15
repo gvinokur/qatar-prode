@@ -389,12 +389,9 @@ export async function verifyOTP(email: string, code: string): Promise<{
     };
   }
 
-  // Success! Clear OTP and mark email as verified
+  // Success! Mark email as verified but DON'T clear OTP yet
+  // (OTP will be cleared by NextAuth after successful sign-in)
   await updateUser(user.id, {
-    otp_code: null,
-    otp_expiration: null,
-    otp_attempts: 0,
-    otp_last_request: null,
     email_verified: true
   });
 

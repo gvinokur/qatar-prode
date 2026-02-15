@@ -144,7 +144,7 @@ export default function OTPVerifyForm({ email, onSuccess, onCancel, onResend }: 
         setOtp(Array(6).fill(''));
         inputRefs.current[0]?.focus();
       }
-    } catch (_err) {
+    } catch {
       setError('Error al verificar el código. Intenta nuevamente.');
       setOtp(Array(6).fill(''));
       inputRefs.current[0]?.focus();

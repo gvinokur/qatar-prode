@@ -7,7 +7,8 @@ import {
   findUserByOAuthAccount,
   linkOAuthAccount,
   createOAuthUser,
-  verifyOTP
+  verifyOTP,
+  clearOTP
 } from "./app/db/users-repository";
 import {pick} from "next/dist/lib/pick";
 import {OAuthAccount} from "./app/db/tables-definition";
@@ -57,6 +58,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const result = await verifyOTP(email, otp);
 
         if (result.success && result.user) {
+          // Clear OTP after successful authentication
+          await clearOTP(result.user.id);
+
           return {
             id: result.user.id,
             email: result.user.email,
