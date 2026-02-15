@@ -131,7 +131,8 @@ Check auth methods (checkAuthMethods server action)
 │ Progressive Disclosure Decision Tree    │
 ├─────────────────────────────────────────┤
 │ IF userExists = false:                  │
-│   → Show SignupForm                     │
+│   → Show SignupForm (traditional email+password signup)
+│   → SignupForm includes "Registrarse con código" link
 │                                         │
 │ IF userExists = true:                   │
 │   IF hasPassword = true:                │
@@ -139,6 +140,9 @@ Check auth methods (checkAuthMethods server action)
 │       • Password field                  │
 │       • "¿Olvidaste tu contraseña?"    │
 │       • "Iniciar sesión con código"    │ ← NEW
+│   IF hasPassword = false (OTP-only):    │ ← NEW
+│     → Auto-send OTP, show OTPVerifyForm │
+│       (Skip LoginForm entirely)         │
 │   IF hasGoogle = true:                  │
 │     → EmailInputForm shows Google btn   │
 │                                         │
@@ -147,21 +151,23 @@ Check auth methods (checkAuthMethods server action)
 └─────────────────────────────────────────┘
 ```
 
-**OTP Flow:**
+**Key Changes:**
+- **New users** still see SignupForm (can create password-based account)
+- **OTP-only users** get OTP auto-sent (no LoginForm shown)
+- **Password users** can choose password OR OTP login
+- SignupForm includes OTP signup option
+
+**OTP Flow (Existing User):**
 
 ```
 LoginForm
   ↓
 Click "Iniciar sesión con código por email"
   ↓
-OTPRequestForm
-  • Display email (readonly)
-  • "Enviar código" button
-  • Loading state
-  ↓
-Server sends OTP via email
+Server sends OTP immediately (no confirmation step)
   ↓
 OTPVerifyForm
+  • Display email (readonly)
   • 6 input boxes (auto-focus)
   • Countdown timer (3:00)
   • Auto-submit on 6 digits
@@ -169,8 +175,8 @@ OTPVerifyForm
   • Resend link (enabled after 1 min)
   ↓
 IF correct code:
-  ├─ Existing user → Sign in
-  └─ New user → Create account → Nickname setup → Sign in
+  ├─ Existing user → Sign in directly
+  └─ New user → Show setup form → Create account → Sign in
 IF wrong code:
   ├─ < 3 attempts → Show error with remaining
   └─ 3 attempts → Clear OTP, show "Solicita nuevo código"
@@ -178,36 +184,89 @@ IF expired:
   └─ Show "Código expirado. Solicita uno nuevo"
 ```
 
+**OTP Flow (OTP-Only User - Auto-send):**
+
+```
+EmailInputForm → "Continuar"
+  ↓
+Server detects: userExists=true, hasPassword=false
+  ↓
+Server auto-sends OTP (no user action needed)
+  ↓
+OTPVerifyForm (same as above)
+```
+
+**OTP Flow (New User Signup):**
+
+```
+SignupForm
+  ↓
+Click "Registrarse con código por email"
+  ↓
+Server sends OTP immediately
+  ↓
+OTPVerifyForm (verify email ownership)
+  ↓
+IF correct code:
+  ↓
+AccountSetupForm
+  • Nickname field (required)
+  • Password field (optional - "Opcional: Crear contraseña por si acaso")
+  • Submit button
+  ↓
+Create user account with provided info
+  ↓
+Sign in → Redirect to home
+```
+
 ### 5. Account Creation via OTP
 
-**Scenario:** New user (email doesn't exist)
+**Scenario:** New user choosing OTP signup
 
 **Flow:**
-1. User enters non-existent email in EmailInputForm
-2. Server doesn't reveal email doesn't exist (timing attack prevention)
-3. User clicks "Iniciar sesión con código"
-4. OTP sent to email
-5. User verifies OTP correctly
-6. **Server creates new account:**
+1. User enters email in EmailInputForm (doesn't exist in DB)
+2. User shown SignupForm with two options:
+   - Traditional: Email + Password + Nickname
+   - OTP: "Registrarse con código por email" link
+3. User clicks "Registrarse con código por email"
+4. Server sends OTP immediately
+5. User verifies OTP in OTPVerifyForm
+6. **After successful verification, show AccountSetupForm:**
+   ```typescript
+   // AccountSetupForm fields:
+   {
+     nickname: string,        // Required
+     password: string | null  // Optional - "Opcional: Crear contraseña por si acaso"
+   }
+   ```
+7. User enters nickname (required) and optionally a password
+8. User submits form
+9. **Server creates account with all info:**
    ```typescript
    {
      email: enteredEmail,
-     nickname: null,
-     password_hash: null,  // OTP-only user
+     nickname: providedNickname,
+     password_hash: providedPassword ? await hash(providedPassword) : null,
      email_verified: true,  // Verified by OTP
-     auth_providers: ["otp"],
+     auth_providers: providedPassword ? ["otp", "password"] : ["otp"],
      oauth_accounts: []
    }
    ```
-7. Show nickname setup dialog (reuse from OAuth)
-8. User sets nickname
-9. Sign-in complete
+10. Sign in user automatically
+11. Redirect to home
 
 **Rationale:**
-- Email ownership proven by OTP verification
-- Consistent with OAuth account creation flow
-- No password needed (true passwordless)
-- Can add password later if desired
+- **Email verified first** via OTP (proves ownership)
+- **Setup before account creation** (cleaner flow, no partial accounts)
+- **Optional password** (user choice - convenience vs. backup)
+- **Single transaction** (all user data collected before DB insert)
+- **Consistent with OAuth** (but setup happens before creation, not after)
+
+**Why Optional Password:**
+- Many users prefer pure passwordless (one less thing to remember)
+- Power users can set backup password "just in case"
+- User can always add password later via account settings
+- Reduces friction for casual users
 
 ### 6. Email Template Design
 
@@ -274,92 +333,7 @@ Tienes máximo 3 intentos
 
 This story involves significant UI changes with two new components. Below are detailed visual prototypes for all UI elements.
 
-### 1. OTPRequestForm Component
-
-**Purpose:** Allow users to request an OTP code for email-based authentication
-
-**Layout:**
-```
-┌─────────────────────────────────────────────┐
-│ Dialog: "Iniciar Sesión"                   │
-├─────────────────────────────────────────────┤
-│                                             │
-│  Te enviaremos un código a tu email         │
-│                                             │
-│  Email: test@example.com (readonly, gray)   │
-│                                             │
-│  [  Enviar código  ] ← Primary button      │
-│                                             │
-│  [← Volver]  [Cancelar]                    │
-│                                             │
-└─────────────────────────────────────────────┘
-```
-
-**States:**
-
-**Initial State:**
-```
-┌─────────────────────────────────────────────┐
-│ Te enviaremos un código a tu email          │
-│                                             │
-│ Email: test@example.com                     │
-│ ─────────────────────────────               │
-│                                             │
-│ [  Enviar código  ]                        │
-└─────────────────────────────────────────────┘
-```
-
-**Loading State:**
-```
-┌─────────────────────────────────────────────┐
-│ Te enviaremos un código a tu email          │
-│                                             │
-│ Email: test@example.com                     │
-│ ─────────────────────────────               │
-│                                             │
-│ [  ⏳ Enviando...  ] ← Disabled            │
-└─────────────────────────────────────────────┘
-```
-
-**Error State (Rate Limited):**
-```
-┌─────────────────────────────────────────────┐
-│ ⚠️ Por favor espera un minuto antes de     │
-│    solicitar otro código.                   │
-├─────────────────────────────────────────────┤
-│ Te enviaremos un código a tu email          │
-│                                             │
-│ Email: test@example.com                     │
-│ ─────────────────────────────               │
-│                                             │
-│ [  Enviar código  ]                        │
-└─────────────────────────────────────────────┘
-```
-
-**Success State:**
-```
-┌─────────────────────────────────────────────┐
-│ ✓ Código enviado. Revisa tu email.         │
-├─────────────────────────────────────────────┤
-│ [Automatically switches to OTPVerifyForm]   │
-└─────────────────────────────────────────────┘
-```
-
-**Material-UI Components:**
-- `TextField` (variant="standard", disabled) for email display
-- `Button` (variant="contained", fullWidth) for send button
-- `Alert` (severity="error" or "success") for messages
-- `CircularProgress` for loading spinner
-- `Typography` (color="primary", clickable) for navigation links
-
-**Responsive:**
-- Mobile: Full width, stacked vertically
-- Tablet: Same as mobile (dialog already constrained)
-- Desktop: Dialog max-width 400px, centered
-
----
-
-### 2. OTPVerifyForm Component
+### 1. OTPVerifyForm Component
 
 **Purpose:** Verify the 6-digit OTP code sent to user's email
 
@@ -545,7 +519,150 @@ If box 4 has digit → Digit deleted, stays in box 4
 
 ---
 
-### 3. Updated LoginForm Component
+### 2. AccountSetupForm Component
+
+**Purpose:** Collect user information (nickname + optional password) after OTP verification for new accounts
+
+**Layout:**
+```
+┌─────────────────────────────────────────────┐
+│ Dialog: "Completa tu perfil"              │
+├─────────────────────────────────────────────┤
+│                                             │
+│  ¡Email verificado! Ahora completa tu       │
+│  información para crear tu cuenta.          │
+│                                             │
+│  Nickname: _______________________          │
+│             (Requerido)                     │
+│                                             │
+│  Contraseña (opcional):                     │
+│  ___________________________________        │
+│  Opcional: Crear contraseña por si acaso   │
+│                                             │
+│  [  Crear cuenta  ]                        │
+│                                             │
+└─────────────────────────────────────────────┘
+```
+
+**States:**
+
+**Initial State:**
+```
+┌─────────────────────────────────────────────┐
+│ Completa tu perfil                          │
+│                                             │
+│ Nickname: _______________________           │
+│           Requerido                         │
+│                                             │
+│ Contraseña (opcional):                      │
+│ ___________________________________         │
+│ Opcional: Crear contraseña por si acaso    │
+│                                             │
+│ [  Crear cuenta  ] ← Disabled (no nickname) │
+└─────────────────────────────────────────────┘
+```
+
+**Valid State:**
+```
+┌─────────────────────────────────────────────┐
+│ Completa tu perfil                          │
+│                                             │
+│ Nickname: JuanCarlos_______________         │
+│           ✓ Disponible                      │
+│                                             │
+│ Contraseña (opcional):                      │
+│ ********_________________________           │
+│ Opcional: Crear contraseña por si acaso    │
+│                                             │
+│ [  Crear cuenta  ] ← Enabled                │
+└─────────────────────────────────────────────┘
+```
+
+**Error State (Nickname Taken):**
+```
+┌─────────────────────────────────────────────┐
+│ ⚠️ Este nickname ya está en uso            │
+├─────────────────────────────────────────────┤
+│ Completa tu perfil                          │
+│                                             │
+│ Nickname: JuanCarlos_______________         │
+│           ✗ No disponible (red)             │
+│                                             │
+│ Contraseña (opcional):                      │
+│ ___________________________________         │
+│ Opcional: Crear contraseña por si acaso    │
+│                                             │
+│ [  Crear cuenta  ]                         │
+└─────────────────────────────────────────────┘
+```
+
+**Loading State:**
+```
+┌─────────────────────────────────────────────┐
+│ Completa tu perfil                          │
+│                                             │
+│ Nickname: JuanCarlos_______________         │
+│ Contraseña (opcional): ********             │
+│                                             │
+│ [  ⏳ Creando cuenta...  ] ← Disabled      │
+└─────────────────────────────────────────────┘
+```
+
+**Material-UI Components:**
+- `TextField` (variant="standard", required) for nickname
+- `TextField` (variant="standard", type="password", optional) for password
+- `Button` (variant="contained", fullWidth) for create account button
+- `Alert` (severity="error") for error messages
+- `Typography` (variant="body2", color="text.secondary") for help text
+- `CircularProgress` for loading spinner
+
+**Validation:**
+- Nickname: 3-20 characters, alphanumeric + underscore
+- Password (if provided): Min 8 characters
+- Submit button disabled until nickname is valid
+
+**Responsive:**
+- Mobile: Full width, stacked vertically
+- Tablet: Same as mobile (dialog already constrained)
+- Desktop: Dialog max-width 400px, centered
+
+---
+
+### 3. Updated SignupForm Component
+
+**Change:** Add OTP signup link alongside traditional signup
+
+**After:**
+```
+┌─────────────────────────────────────────────┐
+│ Dialog: "Crear Cuenta"                      │
+├─────────────────────────────────────────────┤
+│  Email: test@example.com (readonly)         │
+│  ────────────────────────────────           │
+│                                             │
+│  Nickname: _______________________          │
+│  ────────────────────────────────           │
+│                                             │
+│  Contraseña: ********                       │
+│  ────────────────────────────────           │
+│                                             │
+│  [  Crear cuenta  ]                        │
+│                                             │
+│  Registrarse con código por email          │
+│  ────────────────────────────────────────  │
+│  ↑ Blue, underlined, clickable link        │
+│                                             │
+│  [← Volver a email]                        │
+└─────────────────────────────────────────────┘
+```
+
+**Position:** Below "Crear cuenta" button
+**Style:** Typography variant="body2", color="primary", underlined, centered
+**Behavior:** Clicking sends OTP and switches to OTPVerifyForm
+
+---
+
+### 4. Updated LoginForm Component
 
 **Change:** Add OTP authentication link below password field
 
@@ -591,11 +708,11 @@ If box 4 has digit → Digit deleted, stays in box 4
 
 **Position:** Between password field and "Ingresar" button
 **Style:** Typography variant="body2", color="primary", underlined, centered
-**Behavior:** Clicking switches to OTPRequestForm
+**Behavior:** Clicking sends OTP immediately and switches to OTPVerifyForm
 
 ---
 
-### 4. Dialog Mode Flow
+### 5. Dialog Mode Flow
 
 **Complete navigation flow:**
 
@@ -604,62 +721,58 @@ EmailInputForm
       ↓
    Enter email → Check auth methods
       ↓
-┌─────┴──────┐
-│            │
-userExists?  │
-│            │
-NO          YES
-│            │
-SignupForm   hasPassword?
-│            │
-│         YES    NO
-│          │     │
-│      LoginForm │
-│          │     │
-│          ├─────┘
-│          │
-│     Click "Iniciar sesión
-│          con código"
-│          │
-│          ↓
-│     OTPRequestForm ← NEW
-│          │
-│     Click "Enviar código"
-│          ↓
-│     [Email sent]
-│          ↓
-│     OTPVerifyForm ← NEW
-│          │
-│     Enter 6 digits
-│          ↓
-│     ┌─────┴─────┐
-│     │           │
-│  Correct?     Wrong?
-│     │           │
-│    YES         NO
-│     │           │
-│ Sign in    Show error
-│     │        + attempts
-│     │           │
-│     │      3rd attempt?
-│     │           │
-│     │          YES
-│     │           │
-│     │      Lock OTP
-│     │       + show
-│     │       "Solicitar
-│     │        nuevo"
-│     │           │
-│     └───────────┘
-│
-└── If new user → Nickname setup → Sign in
+┌─────┴──────────────────┐
+│                        │
+userExists?              │
+│                        │
+NO                      YES
+│                        │
+SignupForm              hasPassword?
+│                        │
+├─ Traditional          YES    NO (OTP-only)
+│  (password)            │          │
+│                    LoginForm   Auto-send OTP
+├─ Click "Registrarse           │
+│  con código"             ├──────┴──────┐
+│  ↓                       │             │
+│  [OTP sent]         Click "Iniciar   [OTP sent]
+│  │                  con código"       │
+│  │                       │             │
+└──┴───────────────────────┴─────────────┘
+                  ↓
+            OTPVerifyForm ← NEW
+                  │
+            Enter 6 digits
+                  ↓
+          ┌───────┴────────┐
+          │                │
+       Correct?          Wrong?
+          │                │
+         YES              NO
+          │                │
+     userExists?      Show error
+          │             + attempts
+      YES    NO             │
+       │      │        3rd attempt?
+   Sign in   │             │
+             ↓            YES
+    AccountSetupForm ← NEW │
+       │                   │
+    Enter nickname    Lock OTP
+    + optional pwd    + show
+       │              "Solicitar
+    Create user        nuevo"
+       │                   │
+    Sign in                │
+       │                   │
+       └───────────────────┘
 ```
 
 **Dialog Titles by Mode:**
 - emailInput: "Ingresar o Registrarse"
 - login: "Ingresar"
-- otpRequest: "Código de Acceso"  ← NEW
 - otpVerify: "Verificar Código"   ← NEW
+- accountSetup: "Completa tu perfil" ← NEW
 - signup: "Registrarse"
 - forgotPassword: "Recuperar Contraseña"
 
@@ -745,45 +858,7 @@ SignupForm   hasPassword?
 
 ### 7. UI Components
 
-#### 7.1. OTPRequestForm Component
-
-**Purpose:** Request OTP code for a given email
-
-**Props:**
-```typescript
-type OTPRequestFormProps = {
-  readonly email: string;
-  readonly onOTPSent: () => void;
-  readonly onCancel: () => void;
-}
-```
-
-**Features:**
-- Display email (readonly)
-- "Enviar código" button
-- Loading state during request
-- Error handling (rate limited, network error)
-- Success message: "Código enviado. Revisa tu email."
-
-**Implementation:**
-```typescript
-const handleSendOTP = async () => {
-  setLoading(true);
-  setError('');
-
-  const result = await sendOTPCode(email);
-
-  if (!result.success) {
-    setError(result.error || 'Error al enviar el código');
-    setLoading(false);
-    return;
-  }
-
-  onOTPSent();
-};
-```
-
-#### 7.2. OTPVerifyForm Component
+#### 7.1. OTPVerifyForm Component
 
 **Purpose:** Verify 6-digit OTP code
 
@@ -936,7 +1011,118 @@ const getTimerColor = (): string => {
 └─────────────────────────────────────┘
 ```
 
-#### 7.3. Update LoginForm
+#### 7.2. AccountSetupForm Component
+
+**Purpose:** Collect user information after OTP verification for new account creation
+
+**Props:**
+```typescript
+type AccountSetupFormProps = {
+  readonly email: string;
+  readonly verifiedOTP: string; // Already verified OTP
+  readonly onSuccess: () => void;
+  readonly onCancel: () => void;
+}
+```
+
+**Features:**
+- Nickname input (required, 3-20 chars)
+- Password input (optional, min 8 chars)
+- Real-time nickname availability check
+- Loading state during account creation
+- Error handling (nickname taken, etc.)
+
+**Implementation:**
+```typescript
+const [nickname, setNickname] = useState('');
+const [password, setPassword] = useState('');
+const [nicknameError, setNicknameError] = useState('');
+const [loading, setLoading] = useState(false);
+
+const handleCreateAccount = async () => {
+  setLoading(true);
+  setNicknameError('');
+
+  // Create account with OTP verification proof
+  const result = await createAccountViaOTP({
+    email,
+    nickname,
+    password: password || null,
+    verifiedOTP
+  });
+
+  if (!result.success) {
+    setNicknameError(result.error || 'Error al crear la cuenta');
+    setLoading(false);
+    return;
+  }
+
+  // Sign in automatically
+  await signIn('otp', {
+    email,
+    otp: verifiedOTP,
+    redirect: false
+  });
+
+  onSuccess();
+};
+
+// Real-time nickname validation
+useEffect(() => {
+  if (nickname.length >= 3) {
+    checkNicknameAvailability(nickname).then(available => {
+      if (!available) {
+        setNicknameError('Este nickname ya está en uso');
+      }
+    });
+  }
+}, [nickname]);
+```
+
+**Visual Layout:**
+```
+┌─────────────────────────────────────┐
+│   ¡Email verificado!                │
+│   Completa tu información           │
+├─────────────────────────────────────┤
+│                                     │
+│   Nickname *                        │
+│   ┌─────────────────────────┐      │
+│   │ JuanCarlos______________│      │
+│   └─────────────────────────┘      │
+│   ✓ Disponible                      │
+│                                     │
+│   Contraseña (opcional)             │
+│   ┌─────────────────────────┐      │
+│   │ ********________________│      │
+│   └─────────────────────────┘      │
+│   Opcional: por si acaso            │
+│                                     │
+│   [  Crear cuenta  ]                │
+│                                     │
+└─────────────────────────────────────┘
+```
+
+#### 7.3. Update SignupForm
+
+**Changes:**
+- Add link below "Crear cuenta" button: "Registrarse con código por email"
+- Link triggers OTP send and switches to OTPVerifyForm
+
+```typescript
+<div style={{ marginTop: '10px', textAlign: 'center' }}>
+  <Typography
+    variant="body2"
+    color="primary"
+    onClick={onOTPSignupClick}
+    sx={{ cursor: 'pointer', textDecoration: 'underline' }}
+  >
+    Registrarse con código por email
+  </Typography>
+</div>
+```
+
+#### 7.4. Update LoginForm
 
 **Changes:**
 - Add link below password field: "Iniciar sesión con código por email"
@@ -955,7 +1141,7 @@ const getTimerColor = (): string => {
 </div>
 ```
 
-#### 7.4. Update LoginOrSignupDialog
+#### 7.5. Update LoginOrSignupDialog
 
 **Add new dialog modes:**
 ```typescript
@@ -966,48 +1152,72 @@ type DialogMode =
   | 'forgotPassword'
   | 'resetSent'
   | 'verificationSent'
-  | 'otpRequest'   // NEW
-  | 'otpVerify';   // NEW
+  | 'otpVerify'      // NEW
+  | 'accountSetup';  // NEW
 ```
 
 **Handle OTP flow:**
 ```typescript
-const handleOTPLoginClick = () => {
-  switchMode('otpRequest');
-};
+const handleOTPLoginClick = async () => {
+  // Send OTP immediately (no confirmation step)
+  const result = await sendOTPCode(email);
 
-const handleOTPSent = () => {
-  switchMode('otpVerify');
-};
-
-const handleOTPVerifySuccess = async (email: string, code: string) => {
-  // Sign in with OTP provider
-  const result = await signIn('otp', {
-    email,
-    otp: code,
-    redirect: false
-  });
-
-  if (result?.ok) {
-    handleCloseLoginDialog(true);
+  if (result.success) {
+    switchMode('otpVerify');
   } else {
-    // Error handled by OTPVerifyForm
+    setError(result.error || 'Error al enviar el código');
   }
 };
 
-const handleOTPResend = () => {
-  switchMode('otpRequest');
+const handleOTPSignupClick = async () => {
+  // Send OTP immediately for new user signup
+  const result = await sendOTPCode(email);
+
+  if (result.success) {
+    setIsNewUserSignup(true); // Flag for after verification
+    switchMode('otpVerify');
+  } else {
+    setError(result.error || 'Error al enviar el código');
+  }
+};
+
+const handleOTPVerifySuccess = async (email: string, code: string) => {
+  // Check if this is a new user signup
+  const user = await findUserByEmail(email);
+
+  if (!user || isNewUserSignup) {
+    // New user - show account setup
+    setVerifiedOTP(code); // Store for account creation
+    switchMode('accountSetup');
+  } else {
+    // Existing user - sign in directly
+    const result = await signIn('otp', {
+      email,
+      otp: code,
+      redirect: false
+    });
+
+    if (result?.ok) {
+      handleCloseLoginDialog(true);
+    } else {
+      // Error handled by OTPVerifyForm
+  }
+};
+
+const handleAccountSetupSuccess = () => {
+  handleCloseLoginDialog(true);
 };
 ```
 
 **Render OTP forms:**
 ```typescript
-case 'otpRequest':
+case 'accountSetup':
   return (
-    <OTPRequestForm
+    <AccountSetupForm
       email={email}
-      onOTPSent={handleOTPSent}
-      onCancel={() => switchMode('login')}
+      verifiedOTP={verifiedOTP}
+      onSuccess={handleAccountSetupSuccess}
+      onCancel={handleCloseLoginDialog}
     />
   );
 case 'otpVerify':
@@ -1576,7 +1786,7 @@ Si tienes problemas para iniciar sesión, contacta a soporte.
    - `migrations/20260215000000_add_otp_support.sql`
 
 2. **Components:**
-   - `app/components/auth/otp-request-form.tsx`
+   - `app/components/auth/account-setup-form.tsx`
    - `app/components/auth/otp-verify-form.tsx`
 
 3. **Server Actions:**
@@ -1689,11 +1899,6 @@ describe('OTP Actions', () => {
 ```
 
 **UI Components:**
-- ✅ OTPRequestForm renders email (readonly)
-- ✅ OTPRequestForm sends OTP on button click
-- ✅ OTPRequestForm shows loading state
-- ✅ OTPRequestForm shows error messages
-- ✅ OTPRequestForm calls onOTPSent on success
 - ✅ OTPVerifyForm renders 6 input boxes
 - ✅ OTPVerifyForm auto-focuses next box
 - ✅ OTPVerifyForm backspace focuses previous
@@ -1703,6 +1908,12 @@ describe('OTP Actions', () => {
 - ✅ OTPVerifyForm shows error with attempts
 - ✅ OTPVerifyForm resend enabled after 1 minute
 - ✅ OTPVerifyForm calls onSuccess on correct code
+- ✅ AccountSetupForm renders nickname input (required)
+- ✅ AccountSetupForm renders password input (optional)
+- ✅ AccountSetupForm validates nickname availability
+- ✅ AccountSetupForm shows loading state during creation
+- ✅ AccountSetupForm creates account with provided info
+- ✅ AccountSetupForm calls onSuccess after sign-in
 
 ### Integration Tests
 
@@ -1984,21 +2195,14 @@ it('should handle concurrent OTP requests for new user', async () => {
 
 ### Phase 2: Frontend Components (Days 2-3)
 
-**Day 2 Evening: OTPRequestForm**
-1. Create component with email display
-2. Implement send button with loading state
-3. Add error handling
-4. Write component tests
-5. Test manually
-
-**Day 3 Morning: OTPVerifyForm (Part 1)**
+**Day 2 Evening: OTPVerifyForm (Part 1)**
 1. Create 6 input boxes
 2. Implement auto-focus logic
 3. Implement backspace navigation
 4. Implement paste handling
 5. Write tests for input logic
 
-**Day 3 Afternoon: OTPVerifyForm (Part 2)**
+**Day 3 Morning: OTPVerifyForm (Part 2)**
 1. Implement countdown timer
 2. Add timer color coding
 3. Implement resend logic (1-minute delay)
@@ -2006,16 +2210,28 @@ it('should handle concurrent OTP requests for new user', async () => {
 5. Add error display with attempts
 6. Write tests for timer and verification
 
+**Day 3 Afternoon: AccountSetupForm**
+1. Create form with nickname + optional password
+2. Implement nickname validation
+3. Implement real-time availability check
+4. Add loading state during account creation
+5. Write component tests
+6. Test manually
+
 ### Phase 3: Integration & UI Updates (Day 3-4)
 
 **Day 3 Evening: Update Existing Components**
 1. Update `login-form.tsx`
    - Add "Iniciar sesión con código" link
-   - Pass handler to parent
-2. Update `login-or-signup-dialog.tsx`
-   - Add 'otpRequest' and 'otpVerify' modes
+   - Send OTP immediately on click
+2. Update `signup-form.tsx`
+   - Add "Registrarse con código" link
+   - Send OTP immediately on click
+3. Update `login-or-signup-dialog.tsx`
+   - Add 'otpVerify' and 'accountSetup' modes
    - Implement mode handlers
-   - Render OTP forms
+   - Render OTP and setup forms
+   - Auto-send OTP for OTP-only users
 3. Test dialog flow
 
 **Day 4 Morning: Integration Testing**
@@ -2053,6 +2269,84 @@ it('should handle concurrent OTP requests for new user', async () => {
 - [ ] No console.log statements
 - [ ] No commented-out code
 - [ ] TypeScript strict mode passing
+
+## Plan Updates
+
+### Update #1 (2026-02-15) - User Feedback on PR #146
+
+**Feedback received via PR review comments. Key changes implemented:**
+
+#### 1. Removed OTPRequestForm Component (Comment #1, line 157)
+- **Issue:** Unnecessary intermediate step to confirm sending OTP
+- **Change:** Send OTP immediately when user clicks "Iniciar sesión con código por email"
+- **Impact:**
+  - Removed `OTPRequestForm` component entirely
+  - Updated dialog flow to skip confirmation step
+  - Simplified UX (one less click)
+
+#### 2. Clarified New User Signup Path (Comment #2, line 187)
+- **Issue:** Concern that timing attack prevention blocks new users from creating password-based accounts
+- **Change:** Kept `SignupForm` accessible for new users
+- **Implementation:**
+  - `SignupForm` still shows for new emails (userExists = false)
+  - `SignupForm` includes both traditional (email+password) and OTP signup options
+  - "Registrarse con código por email" link added to SignupForm
+
+#### 3. Account Setup Before Creation (Comment #3, line 202)
+- **Issue:** OAuth flow doesn't enforce nickname setup, users redirected without completing profile
+- **Change:** Show `AccountSetupForm` AFTER OTP verification, BEFORE creating account
+- **New Flow:**
+  1. User enters email → OTP sent
+  2. User verifies OTP → Email ownership proven
+  3. Show `AccountSetupForm` (nickname + optional password)
+  4. User submits → Account created with all info
+  5. Auto sign-in → Redirect to home
+- **Benefits:**
+  - Complete profile before account creation
+  - No partial accounts in DB
+  - Single transaction for user creation
+
+#### 4. Optional Password Field (Comments #4 & #5, line 209)
+- **Issue:** Users may not remember they set a password during OTP signup
+- **Change:** Password field made optional with clear labeling
+- **Implementation:**
+  - Label: "Contraseña (opcional)"
+  - Help text: "Opcional: Crear contraseña por si acaso"
+  - If provided: User has both OTP and password auth
+  - If omitted: Pure OTP-only user
+- **Alternative Approach:** Auto-send OTP for OTP-only users (see #5)
+
+#### 5. Auto-Send OTP for OTP-Only Users (Comment #5, line 209)
+- **Issue:** OTP-only users still see LoginForm (password field)
+- **Change:** In progressive disclosure, detect OTP-only users and auto-send OTP
+- **Implementation:**
+  ```typescript
+  IF userExists = true AND hasPassword = false:
+    → Auto-send OTP immediately
+    → Show OTPVerifyForm (skip LoginForm)
+  ```
+- **Benefits:**
+  - Seamless experience for OTP-only users
+  - No confusing password field they can't use
+  - Consistent with "passwordless" goal
+
+#### Files Updated:
+- Visual prototypes: Removed `OTPRequestForm`, added `AccountSetupForm` and `SignupForm` update
+- Progressive disclosure flow: Added auto-send for OTP-only users
+- Dialog mode flow: Updated navigation to reflect new flow
+- UI components: Removed section 7.1 (OTPRequestForm), added section 7.2 (AccountSetupForm)
+- Testing checklist: Replaced OTPRequestForm tests with AccountSetupForm tests
+- Implementation timeline: Reordered components, removed OTPRequestForm day
+
+#### Summary:
+These changes improve UX by:
+1. ✅ Reducing friction (no OTPRequestForm confirmation)
+2. ✅ Complete profile upfront (nickname + optional password before account creation)
+3. ✅ Better progressive disclosure (auto-send for OTP-only users)
+4. ✅ User choice (password optional, not forced)
+5. ✅ Maintaining security (timing attack prevention, rate limiting unchanged)
+
+---
 
 ## Quality Gates (SonarCloud)
 
