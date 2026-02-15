@@ -249,7 +249,7 @@ describe('Game Guess Repository', () => {
     });
 
     describe('getGameGuessStatisticsForUsers', () => {
-      it('should build complex aggregation query', async () => {
+      it('should read from materialized tournament_guesses columns', async () => {
         const mockStatistics = [
           {
             user_id: 'user-1',
@@ -269,47 +269,39 @@ describe('Game Guess Repository', () => {
         ];
 
         const mockQuery = {
-          innerJoin: vi.fn().mockReturnThis(),
           where: vi.fn().mockReturnThis(),
           select: vi.fn().mockReturnThis(),
-          groupBy: vi.fn().mockReturnThis(),
           execute: vi.fn().mockResolvedValue(mockStatistics),
         };
         mockDb.selectFrom.mockReturnValue(mockQuery as any);
 
         const result = await getGameGuessStatisticsForUsers(['user-1'], 'tournament-1');
 
-        expect(mockDb.selectFrom).toHaveBeenCalledWith('game_guesses');
-        expect(mockQuery.innerJoin).toHaveBeenCalledWith('games', 'games.id', 'game_guesses.game_id');
-        expect(mockQuery.where).toHaveBeenCalledWith('game_guesses.user_id', 'in', ['user-1']);
-        expect(mockQuery.where).toHaveBeenCalledWith('games.tournament_id', '=', 'tournament-1');
-        expect(mockQuery.select).toHaveBeenCalledWith('user_id');
-        expect(mockQuery.select).toHaveBeenCalledWith(expect.any(Function));
-        expect(mockQuery.groupBy).toHaveBeenCalledWith('game_guesses.user_id');
+        // Story #147: Now reads from tournament_guesses (materialized data)
+        expect(mockDb.selectFrom).toHaveBeenCalledWith('tournament_guesses');
+        expect(mockQuery.where).toHaveBeenCalledWith('user_id', 'in', ['user-1']);
+        expect(mockQuery.where).toHaveBeenCalledWith('tournament_id', '=', 'tournament-1');
+        expect(mockQuery.select).toHaveBeenCalledWith(expect.any(Array));
         expect(result).toEqual(mockStatistics);
       });
 
       it('should handle multiple users', async () => {
         const mockQuery = {
-          innerJoin: vi.fn().mockReturnThis(),
           where: vi.fn().mockReturnThis(),
           select: vi.fn().mockReturnThis(),
-          groupBy: vi.fn().mockReturnThis(),
           execute: vi.fn().mockResolvedValue([]),
         };
         mockDb.selectFrom.mockReturnValue(mockQuery as any);
 
         await getGameGuessStatisticsForUsers(['user-1', 'user-2', 'user-3'], 'tournament-1');
 
-        expect(mockQuery.where).toHaveBeenCalledWith('game_guesses.user_id', 'in', ['user-1', 'user-2', 'user-3']);
+        expect(mockQuery.where).toHaveBeenCalledWith('user_id', 'in', ['user-1', 'user-2', 'user-3']);
       });
 
       it('should return empty array when no statistics', async () => {
         const mockQuery = {
-          innerJoin: vi.fn().mockReturnThis(),
           where: vi.fn().mockReturnThis(),
           select: vi.fn().mockReturnThis(),
-          groupBy: vi.fn().mockReturnThis(),
           execute: vi.fn().mockResolvedValue([]),
         };
         mockDb.selectFrom.mockReturnValue(mockQuery as any);

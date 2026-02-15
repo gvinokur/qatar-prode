@@ -193,6 +193,7 @@ vi.mock('../../app/db/tournament-guess-repository', () => ({
   updateTournamentGuessByUserIdTournament: vi.fn(),
   updateTournamentGuessByUserIdTournamentWithSnapshot: vi.fn(),
   deleteAllTournamentGuessesByTournamentId: vi.fn(),
+  recalculateGameScoresForUsers: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock('../../app/db/users-repository', () => ({

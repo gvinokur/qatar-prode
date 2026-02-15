@@ -318,6 +318,42 @@ export interface TournamentGuessTable extends Identifiable{
    * Updated on first score change each day
    */
   yesterday_tournament_score?: number
+  /**
+   * Materialized game score totals (sum of game_guesses.score)
+   * Story #147: Performance optimization to avoid expensive SQL aggregations
+   */
+  total_game_score?: number
+  group_stage_game_score?: number
+  playoff_stage_game_score?: number
+  /**
+   * Materialized boost bonuses (sum of final_score - score)
+   */
+  total_boost_bonus?: number
+  group_stage_boost_bonus?: number
+  playoff_stage_boost_bonus?: number
+  /**
+   * Materialized prediction accuracy counts (for stats page)
+   */
+  total_correct_guesses?: number
+  total_exact_guesses?: number
+  group_correct_guesses?: number
+  group_exact_guesses?: number
+  playoff_correct_guesses?: number
+  playoff_exact_guesses?: number
+  /**
+   * Yesterday snapshots for rank tracking (24-hour window)
+   */
+  yesterday_total_game_score?: number
+  yesterday_boost_bonus?: number
+  /**
+   * Timestamp of last game score update (date of last game used in calculation)
+   */
+  last_game_score_update_at?: Date
+  /**
+   * Computed column: Total points across all categories
+   * Generated from: total_game_score + total_boost_bonus + qualified_teams_score + honor_roll_score + individual_awards_score + group_position_score
+   */
+  total_points?: number
 }
 
 export type TournamentGuess = Selectable<TournamentGuessTable>

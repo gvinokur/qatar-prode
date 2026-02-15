@@ -77,7 +77,8 @@ import {calculateScoreForGame} from "../utils/game-score-calculator";
 import {
   findTournamentGuessByTournament,
   updateTournamentGuessWithSnapshot,
-  deleteAllTournamentGuessesByTournamentId
+  deleteAllTournamentGuessesByTournamentId,
+  recalculateGameScoresForUsers
 } from "../db/tournament-guess-repository";
 import {awardsDefinition} from "../utils/award-utils";
 import {getLoggedInUser} from "./user-actions";
@@ -416,6 +417,34 @@ export async function calculateGameScores(forceDrafts: boolean, forceAllGuesses:
       boost_multiplier: null
     } as any)
   }))
+
+  // NEW: Materialize scores for affected users (Story #147)
+  // Get unique user IDs from all updated game guesses
+  const affectedUserIds = new Set<string>();
+  updatedGameGuesses.flat().forEach(guess => {
+    if (guess) affectedUserIds.add(guess.user_id);
+  });
+  cleanedGameGuesses.forEach(guess => {
+    if (guess) affectedUserIds.add(guess.user_id);
+  });
+
+  // Group by tournament for efficient batching
+  const usersByTournament = new Map<string, Set<string>>();
+  for (const game of gamesWithResultAndGuesses) {
+    if (!usersByTournament.has(game.tournament_id)) {
+      usersByTournament.set(game.tournament_id, new Set());
+    }
+    game.gameGuesses.forEach(guess => {
+      usersByTournament.get(game.tournament_id)!.add(guess.user_id);
+    });
+  }
+
+  // Materialize scores for each tournament
+  await Promise.all(
+    Array.from(usersByTournament.entries()).map(([tournamentId, userIds]) =>
+      recalculateGameScoresForUsers(Array.from(userIds), tournamentId)
+    )
+  );
 
   return {updatedGameGuesses, cleanedGameGuesses}
 }

@@ -56,7 +56,16 @@ export async function updateOrCreateGuess(guess: GameGuessNew) {
 
 }
 
-export async function getGameGuessStatisticsForUsers(userIds: string[], tournamentId: string) {
+/**
+ * LEGACY: Get game guess statistics using SQL aggregation
+ * This function preserves the original aggregation logic for:
+ * 1. Testing parity with materialized scores
+ * 2. Materialization function during initial backfill
+ * 3. Spot-check validation in production
+ *
+ * After migration stabilizes (1-2 sprints), this can be removed.
+ */
+export async function legacyGetGameGuessStatisticsForUsers(userIds: string[], tournamentId: string) {
   const statisticsForUsers = await db.selectFrom('game_guesses')
     .innerJoin('games', 'games.id', 'game_guesses.game_id')
     .where('game_guesses.user_id', 'in', userIds)
@@ -224,11 +233,56 @@ export async function getGameGuessStatisticsForUsers(userIds: string[], tourname
         ),
         'integer'
       ).as('yesterday_boost_bonus'),
+      // Date of last game used in calculation (for last_game_score_update_at)
+      eb.fn.max('games.game_date').as('last_game_date'),
     ])
     .groupBy('game_guesses.user_id')
     .execute()
 
   return statisticsForUsers as GameStatisticForUser[]
+}
+
+/**
+ * Get game guess statistics using materialized columns from tournament_guesses
+ * Story #147: Performance optimization - reads from pre-calculated materialized data
+ * instead of running expensive SQL aggregations
+ *
+ * @param userIds - Array of user IDs
+ * @param tournamentId - Tournament ID
+ * @returns Array of game statistics for each user
+ */
+export async function getGameGuessStatisticsForUsers(
+  userIds: string[],
+  tournamentId: string
+): Promise<GameStatisticForUser[]> {
+  // NEW IMPLEMENTATION: Read from materialized columns
+  const tournamentGuesses = await db
+    .selectFrom('tournament_guesses')
+    .where('user_id', 'in', userIds)
+    .where('tournament_id', '=', tournamentId)
+    .select([
+      'user_id',
+      // Map materialized columns to expected output format
+      'total_game_score as total_score',
+      'group_stage_game_score as group_score',
+      'playoff_stage_game_score as playoff_score',
+      'total_boost_bonus',
+      'group_stage_boost_bonus as group_boost_bonus',
+      'playoff_stage_boost_bonus as playoff_boost_bonus',
+      'yesterday_total_game_score as yesterday_total_score',
+      'yesterday_boost_bonus',
+      // Prediction accuracy counts (for stats page)
+      'total_correct_guesses',
+      'total_exact_guesses',
+      'group_correct_guesses',
+      'group_exact_guesses',
+      'playoff_correct_guesses',
+      'playoff_exact_guesses',
+    ])
+    .execute();
+
+  // Return directly - all fields materialized
+  return tournamentGuesses as GameStatisticForUser[];
 }
 
 //--------------------------------------------------------------------------------------
