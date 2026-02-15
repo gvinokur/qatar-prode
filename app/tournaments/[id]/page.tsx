@@ -7,7 +7,6 @@ type Props = {
   readonly params: Promise<{
     id: string
   }>
-  readonly searchParams: Promise<{[k:string]:string}>
 }
 
 export default async function TournamentLandingPage(props: Props) {

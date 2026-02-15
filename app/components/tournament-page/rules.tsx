@@ -138,11 +138,11 @@ const constraints: Rule[] = [
 ]
 
 interface RulesProps {
-  expanded?: boolean;
-  fullpage?: boolean;
-  scoringConfig?: ScoringConfig;
-  tournamentId?: string;
-  isActive?: boolean;
+  readonly expanded?: boolean;
+  readonly fullpage?: boolean;
+  readonly scoringConfig?: ScoringConfig;
+  readonly tournamentId?: string;
+  readonly isActive?: boolean;
 }
 
 export default function Rules({ expanded: defaultExpanded = true, fullpage = false, scoringConfig, tournamentId, isActive = false }: RulesProps) {

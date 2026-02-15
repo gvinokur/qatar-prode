@@ -31,26 +31,63 @@ type TournamentLayoutProps = {
   readonly children: React.ReactNode
 }
 
+// Helper: Check dev tournament permissions
+async function checkDevTournamentPermission(
+  tournamentId: string,
+  tournament: any,
+  user: any
+) {
+  const isDevTournamentInProduction = tournament?.dev_only && !isDevelopmentMode()
+  if (!isDevTournamentInProduction) return
+
+  // Require authentication for dev tournaments in production
+  if (!user) {
+    redirect(`/?openSignin=true&returnUrl=/tournaments/${tournamentId}`)
+  }
+
+  // Check if user has explicit permission
+  const hasPermission = await hasUserPermission(tournamentId, user.id)
+  if (!hasPermission) {
+    notFound()
+  }
+}
+
+// Helper: Extract scoring config from tournament
+function extractScoringConfig(tournament: any): ScoringConfig | undefined {
+  if (!tournament) return undefined
+
+  return {
+    game_exact_score_points: tournament.game_exact_score_points ?? 2,
+    game_correct_outcome_points: tournament.game_correct_outcome_points ?? 1,
+    champion_points: tournament.champion_points ?? 5,
+    runner_up_points: tournament.runner_up_points ?? 3,
+    third_place_points: tournament.third_place_points ?? 1,
+    individual_award_points: tournament.individual_award_points ?? 3,
+    qualified_team_points: tournament.qualified_team_points ?? 1,
+    exact_position_qualified_points: tournament.exact_position_qualified_points ?? 2,
+    max_silver_games: tournament.max_silver_games ?? 0,
+    max_golden_games: tournament.max_golden_games ?? 0,
+  }
+}
+
+// Helper: Check if within 5 days of tournament start
+function isWithinFiveDaysOfStart(startDate: Date): boolean {
+  const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000
+  const currentTime = new Date().getTime()
+  const startTime = startDate.getTime()
+  const timeDiff = Math.abs(startTime - currentTime)
+
+  return timeDiff <= FIVE_DAYS_MS
+}
+
 export default async function TournamentLayout(props: TournamentLayoutProps) {
   const params = await props.params
   const children = props.children
   const user = await getLoggedInUser()
   const layoutData = await getTournamentAndGroupsData(params.id)
 
-  // Check if user has permission to view this dev tournament
-  const isDevTournamentInProduction = layoutData.tournament?.dev_only && !isDevelopmentMode()
-  if (isDevTournamentInProduction) {
-    // Require authentication for dev tournaments in production
-    if (!user) {
-      redirect(`/?openSignin=true&returnUrl=/tournaments/${params.id}`)
-    }
-
-    // Check if user has explicit permission
-    const hasPermission = await hasUserPermission(params.id, user.id)
-    if (!hasPermission) {
-      notFound()
-    }
-  }
+  // Check dev tournament permissions
+  await checkDevTournamentPermission(params.id, layoutData.tournament, user)
 
   const tournamentGuesses = user && (await findTournamentGuessByUserIdTournament(user.id, params.id))
   const tournamentStartDate = await getTournamentStartDate(params.id)
@@ -63,31 +100,10 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
   const userGameStatistics = user ? await getGameGuessStatisticsForUsers([user.id], params.id) : []
 
   // Extract scoring config
-  const scoringConfig: ScoringConfig | undefined = tournament ? {
-    game_exact_score_points: tournament.game_exact_score_points ?? 2,
-    game_correct_outcome_points: tournament.game_correct_outcome_points ?? 1,
-    champion_points: tournament.champion_points ?? 5,
-    runner_up_points: tournament.runner_up_points ?? 3,
-    third_place_points: tournament.third_place_points ?? 1,
-    individual_award_points: tournament.individual_award_points ?? 3,
-    qualified_team_points: tournament.qualified_team_points ?? 1,
-    exact_position_qualified_points: tournament.exact_position_qualified_points ?? 2,
-    max_silver_games: tournament.max_silver_games ?? 0,
-    max_golden_games: tournament.max_golden_games ?? 0,
-  } : undefined
+  const scoringConfig = extractScoringConfig(tournament)
 
-  // Calculate 5 days in milliseconds
-  const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
-
-  // Current time
-  const currentTime = new Date().getTime();
-
-  // Check if we're within 5 days before the tournament or if the tournament hasn't started yet
-  const isWithin5DaysOfTournamentStart =
-    (tournamentStartDate.getTime() > currentTime &&
-      tournamentStartDate.getTime() - currentTime <= FIVE_DAYS_MS) ||
-    (tournamentStartDate.getTime() < currentTime &&
-      currentTime - tournamentStartDate.getTime() <= FIVE_DAYS_MS);
+  // Check if within 5 days of tournament start
+  const isWithin5DaysOfTournamentStart = isWithinFiveDaysOfStart(tournamentStartDate)
 
   const logoUrl = getThemeLogoUrl(layoutData.tournament?.theme)
 
@@ -249,7 +265,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
               tournamentGuess={tournamentGuesses || undefined}
               groupStandings={groupStandings}
               prodeGroups={prodeGroups}
-              user={user || undefined}
+              user={user ?? undefined}
             />
           </Grid>
         </Box>
