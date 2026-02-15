@@ -1,6 +1,6 @@
 'use client'
 
-import {Alert, Button, TextField} from "@mui/material";
+import {Alert, Button, TextField, Typography} from "@mui/material";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 //@ts-ignore
 import validator from "validator";
@@ -16,9 +16,10 @@ export type LoginFormData = {
 type LoginFormProps = {
   readonly onSuccess: () => void;
   readonly email?: string;
+  readonly onOTPLoginClick?: () => void;
 }
 
-export default function LoginForm({ onSuccess, email }: LoginFormProps) {
+export default function LoginForm({ onSuccess, email, onOTPLoginClick }: LoginFormProps) {
   const [loading, setLoading] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -128,6 +129,19 @@ export default function LoginForm({ onSuccess, email }: LoginFormProps) {
           />
         )}
       />
+
+      {onOTPLoginClick && (
+        <div style={{ marginTop: '10px', textAlign: 'center' }}>
+          <Typography
+            variant="body2"
+            color="primary"
+            onClick={onOTPLoginClick}
+            sx={{ cursor: 'pointer', textDecoration: 'underline' }}
+          >
+            Iniciar sesión con código por email
+          </Typography>
+        </div>
+      )}
 
       <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
         <Button loading={loading} type="submit">

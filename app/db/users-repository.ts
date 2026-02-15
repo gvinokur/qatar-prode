@@ -257,3 +257,168 @@ export function getAuthProviders(user: User): string[] {
 export function userHasPasswordAuth(user: User): boolean {
   return user.password_hash !== null;
 }
+
+// ============================================
+// OTP Repository Functions
+// ============================================
+
+/**
+ * Generate OTP code for email-based authentication
+ * Creates placeholder user if email doesn't exist (for new user signup)
+ * Enforces rate limiting: 1 request per minute per email
+ *
+ * @param email - User's email address
+ * @returns Success status with optional error message
+ */
+export async function generateOTP(email: string): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  const normalizedEmail = email.toLowerCase();
+  let user = await findUserByEmail(normalizedEmail);
+  const now = new Date();
+
+  // Check rate limiting BEFORE creating new OTP
+  if (user && user.otp_last_request) {
+    const timeSinceLastRequest = now.getTime() - new Date(user.otp_last_request).getTime();
+    if (timeSinceLastRequest < 60000) { // 1 minute
+      return {
+        success: false,
+        error: 'Por favor espera un minuto antes de solicitar otro código.'
+      };
+    }
+  }
+
+  // If user doesn't exist, create placeholder for new user signup
+  if (!user) {
+    user = await db.insertInto('users')
+      .values({
+        email: normalizedEmail,
+        nickname: null,
+        password_hash: null,
+        email_verified: false,
+        auth_providers: JSON.stringify(['otp']),
+        oauth_accounts: JSON.stringify([])
+      })
+      .returningAll()
+      .executeTakeFirst();
+
+    if (!user) {
+      return {
+        success: false,
+        error: 'Error al crear usuario temporal.'
+      };
+    }
+  }
+
+  // Generate 6-digit OTP (100000-999999)
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  // Set expiration to 3 minutes from now
+  const expiration = new Date(now.getTime() + 3 * 60 * 1000);
+
+  // Update user with new OTP
+  await updateUser(user.id, {
+    otp_code: otp,
+    otp_expiration: expiration,
+    otp_attempts: 0,
+    otp_last_request: now
+  });
+
+  return { success: true };
+}
+
+/**
+ * Verify OTP code for email-based authentication
+ * Checks code validity, expiration, and attempt limits
+ * Clears OTP after max attempts (3) or successful verification
+ * Marks email as verified on successful verification
+ *
+ * @param email - User's email address
+ * @param code - 6-digit OTP code
+ * @returns Success status with user object or error message
+ */
+export async function verifyOTP(email: string, code: string): Promise<{
+  success: boolean;
+  user?: User;
+  error?: string;
+}> {
+  const normalizedEmail = email.toLowerCase();
+  const user = await findUserByEmail(normalizedEmail);
+
+  if (!user) {
+    // Timing attack prevention: don't reveal user doesn't exist
+    return { success: false, error: 'Código incorrecto o expirado.' };
+  }
+
+  if (!user.otp_code || !user.otp_expiration) {
+    return { success: false, error: 'No hay código activo. Solicita uno nuevo.' };
+  }
+
+  // Check if expired
+  const now = new Date();
+  if (now > new Date(user.otp_expiration)) {
+    await clearOTP(user.id);
+    return { success: false, error: 'Código expirado. Solicita uno nuevo.' };
+  }
+
+  // Check if max attempts reached
+  if (user.otp_attempts !== undefined && user.otp_attempts >= 3) {
+    await clearOTP(user.id);
+    return { success: false, error: 'Demasiados intentos fallidos. Solicita un nuevo código.' };
+  }
+
+  // Verify code
+  if (user.otp_code !== code) {
+    // Increment attempts
+    const newAttempts = (user.otp_attempts || 0) + 1;
+
+    if (newAttempts >= 3) {
+      // Clear OTP after max attempts
+      await clearOTP(user.id);
+      return { success: false, error: 'Demasiados intentos fallidos. Solicita un nuevo código.' };
+    }
+
+    await updateUser(user.id, {
+      otp_attempts: newAttempts
+    });
+
+    return {
+      success: false,
+      error: `Código incorrecto. Te quedan ${3 - newAttempts} intentos.`
+    };
+  }
+
+  // Success! Clear OTP and mark email as verified
+  await updateUser(user.id, {
+    otp_code: null,
+    otp_expiration: null,
+    otp_attempts: 0,
+    otp_last_request: null,
+    email_verified: true
+  });
+
+  // Return updated user
+  const updatedUser = await findUserById(user.id);
+  return { success: true, user: updatedUser };
+}
+
+/**
+ * Clear OTP fields for a user
+ * Called after successful verification, max attempts, or expiration
+ *
+ * @param userId - User's ID
+ * @returns Updated user object
+ */
+export async function clearOTP(userId: string): Promise<User | undefined> {
+  return db.updateTable('users')
+    .set({
+      otp_code: null,
+      otp_expiration: null,
+      otp_attempts: 0,
+      otp_last_request: null
+    })
+    .where('id', '=', userId)
+    .returningAll()
+    .executeTakeFirst();
+}

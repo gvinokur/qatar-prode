@@ -9,20 +9,27 @@ import ForgotPasswordForm from "./forgot-password-form";
 import ResetSentView from "./reset-sent-view";
 import VerificationSentView from "./verification-sent-view";
 import EmailInputForm from "./email-input-form";
+import OTPVerifyForm from "./otp-verify-form";
+import AccountSetupForm from "./account-setup-form";
 import {User} from "../../db/tables-definition";
+import {sendOTPCode} from "../../actions/otp-actions";
+import {signIn} from "next-auth/react";
 
 type LoginOrSignupProps = {
   handleCloseLoginDialog: (_forceClose?: boolean) => void;
   openLoginDialog: boolean
 }
 
-type DialogMode = 'emailInput' | 'login' | 'signup' | 'forgotPassword' | 'resetSent' | 'verificationSent';
+type DialogMode = 'emailInput' | 'login' | 'signup' | 'forgotPassword' | 'resetSent' | 'verificationSent' | 'otpVerify' | 'accountSetup';
 
 export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginDialog }: LoginOrSignupProps) {
   const [dialogMode, setDialogMode] = useState<DialogMode>('emailInput');
   const [resetEmail, setResetEmail] = useState<string>('');
   const [createdUser, setCreatedUser] = useState<User>();
   const [email, setEmail] = useState<string>('');
+  const [verifiedOTP, setVerifiedOTP] = useState<string>('');
+  const [isNewUserSignup, setIsNewUserSignup] = useState(false);
+  const [_otpError, setOtpError] = useState<string>('');
 
   const closeDialog = () => {
     handleCloseLoginDialog(!!createdUser);
@@ -36,8 +43,20 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
   };
 
   // Handle email submission from EmailInputForm
-  const handleEmailSubmit = (submittedEmail: string, methods: { hasPassword: boolean; hasGoogle: boolean; userExists: boolean }) => {
+  const handleEmailSubmit = async (submittedEmail: string, methods: { hasPassword: boolean; hasGoogle: boolean; userExists: boolean }) => {
     setEmail(submittedEmail);
+
+    // Check if user is OTP-only (has account but no password, no Google)
+    if (methods.userExists && !methods.hasPassword && !methods.hasGoogle) {
+      // Auto-send OTP for OTP-only users
+      const result = await sendOTPCode(submittedEmail);
+      if (result.success) {
+        switchMode('otpVerify');
+      } else {
+        setOtpError(result.error || 'Error al enviar el código');
+      }
+      return;
+    }
 
     // Determine next step based on auth methods
     if (!methods.userExists) {
@@ -70,6 +89,68 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
     switchMode('resetSent');
   };
 
+  // Handle OTP login click from LoginForm
+  const handleOTPLoginClick = async () => {
+    setOtpError('');
+    const result = await sendOTPCode(email);
+    if (result.success) {
+      setIsNewUserSignup(false);
+      switchMode('otpVerify');
+    } else {
+      setOtpError(result.error || 'Error al enviar el código');
+    }
+  };
+
+  // Handle OTP signup click from SignupForm
+  const handleOTPSignupClick = async () => {
+    setOtpError('');
+    const result = await sendOTPCode(email);
+    if (result.success) {
+      setIsNewUserSignup(true);
+      switchMode('otpVerify');
+    } else {
+      setOtpError(result.error || 'Error al enviar el código');
+    }
+  };
+
+  // Handle OTP verification success
+  const handleOTPVerifySuccess = async (verifiedEmail: string, code: string) => {
+    setVerifiedOTP(code);
+
+    if (isNewUserSignup) {
+      // New user - show account setup
+      switchMode('accountSetup');
+    } else {
+      // Existing user - sign in directly
+      const result = await signIn('otp', {
+        email: verifiedEmail,
+        otp: code,
+        redirect: false
+      });
+
+      if (result?.ok) {
+        handleCloseLoginDialog(true);
+      } else {
+        setOtpError('Error al iniciar sesión. Intenta nuevamente.');
+        switchMode('emailInput');
+      }
+    }
+  };
+
+  // Handle OTP resend
+  const handleOTPResend = async () => {
+    setOtpError('');
+    const result = await sendOTPCode(email);
+    if (!result.success) {
+      setOtpError(result.error || 'Error al reenviar el código');
+    }
+  };
+
+  // Handle account setup success
+  const handleAccountSetupSuccess = () => {
+    handleCloseLoginDialog(true);
+  };
+
   // Get dialog title based on current mode
   const getDialogTitle = () => {
     switch (dialogMode) {
@@ -83,6 +164,10 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
         return 'Recuperar Contraseña';
       case 'resetSent':
         return 'Enlace Enviado';
+      case 'otpVerify':
+        return 'Verificar Código';
+      case 'accountSetup':
+        return 'Completa tu perfil';
       default:
         return 'Ingresar';
     }
@@ -102,6 +187,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
           <LoginForm
             onSuccess={handleLoginSuccess}
             email={email}
+            onOTPLoginClick={handleOTPLoginClick}
           />
         );
       case 'signup':
@@ -109,6 +195,25 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
           <SignupForm
             onSuccess={handleSignupSuccess}
             email={email}
+            onOTPSignupClick={handleOTPSignupClick}
+          />
+        );
+      case 'otpVerify':
+        return (
+          <OTPVerifyForm
+            email={email}
+            onSuccess={handleOTPVerifySuccess}
+            onCancel={() => switchMode('emailInput')}
+            onResend={handleOTPResend}
+          />
+        );
+      case 'accountSetup':
+        return (
+          <AccountSetupForm
+            email={email}
+            verifiedOTP={verifiedOTP}
+            onSuccess={handleAccountSetupSuccess}
+            onCancel={() => switchMode('emailInput')}
           />
         );
       case 'forgotPassword':
