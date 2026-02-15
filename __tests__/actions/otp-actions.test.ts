@@ -143,6 +143,18 @@ describe('OTP Actions', () => {
       expect(result.success).toBe(true);
     });
 
+    it('should normalize email with whitespace', async () => {
+      vi.mocked(usersRepo.generateOTP).mockResolvedValue({ success: true });
+      vi.mocked(usersRepo.findUserByEmail).mockResolvedValue(
+        testFactories.user({ otp_code: '123456' })
+      );
+      vi.mocked(sendEmail).mockResolvedValue({ success: true, messageId: 'test-id' });
+
+      await sendOTPCode('  Test@Example.COM  ');
+
+      expect(usersRepo.generateOTP).toHaveBeenCalledWith('test@example.com');
+    });
+
     it('should return error if email sending fails', async () => {
       vi.mocked(usersRepo.generateOTP).mockResolvedValue({ success: true });
       vi.mocked(usersRepo.findUserByEmail).mockResolvedValue(
@@ -358,6 +370,48 @@ describe('OTP Actions', () => {
       );
     });
 
+    it('should handle empty password as null', async () => {
+      const user = testFactories.user({ email_verified: true });
+
+      vi.mocked(usersRepo.findUserByNickname).mockResolvedValue(null);
+      vi.mocked(usersRepo.findUserByEmail).mockResolvedValue(user);
+      vi.mocked(usersRepo.updateUser).mockResolvedValue(user);
+
+      await createAccountViaOTP({
+        ...validData,
+        password: '' // Empty string
+      });
+
+      expect(usersRepo.updateUser).toHaveBeenCalledWith(
+        user.id,
+        expect.objectContaining({
+          password_hash: null,
+          auth_providers: JSON.stringify(['otp']) // Not credentials
+        })
+      );
+    });
+
+    it('should handle whitespace-only password as null', async () => {
+      const user = testFactories.user({ email_verified: true });
+
+      vi.mocked(usersRepo.findUserByNickname).mockResolvedValue(null);
+      vi.mocked(usersRepo.findUserByEmail).mockResolvedValue(user);
+      vi.mocked(usersRepo.updateUser).mockResolvedValue(user);
+
+      await createAccountViaOTP({
+        ...validData,
+        password: '   ' // Whitespace only
+      });
+
+      expect(usersRepo.updateUser).toHaveBeenCalledWith(
+        user.id,
+        expect.objectContaining({
+          password_hash: null,
+          auth_providers: JSON.stringify(['otp']) // Not credentials
+        })
+      );
+    });
+
     it('should handle exceptions', async () => {
       vi.mocked(usersRepo.findUserByNickname).mockRejectedValue(new Error('DB Error'));
 
@@ -369,6 +423,20 @@ describe('OTP Actions', () => {
   });
 
   describe('checkNicknameAvailability', () => {
+    it('should return error for empty nickname', async () => {
+      const result = await checkNicknameAvailability('');
+
+      expect(result.available).toBe(false);
+      expect(result.error).toContain('requerido');
+    });
+
+    it('should return error for whitespace-only nickname', async () => {
+      const result = await checkNicknameAvailability('   ');
+
+      expect(result.available).toBe(false);
+      expect(result.error).toContain('requerido');
+    });
+
     it('should return error for nickname too short', async () => {
       const result = await checkNicknameAvailability('ab');
 
