@@ -673,7 +673,7 @@ describe('Backfill script', () => {
 - Test game result publication → materialization → UI displays correct scores
 - Test friend group leaderboard with materialized scores
 - Test tournament sidebar shows correct stats
-- **Stats page tolerance test:** Verify stats page renders correctly with 0 for correct/exact counts (acceptable regression)
+- Test stats page displays materialized correct/exact counts accurately
 
 ### Performance Validation
 
@@ -686,7 +686,7 @@ describe('Performance benchmarks', () => {
 
     // Benchmark old approach
     const startLegacy = Date.now();
-    await getGameGuessStatisticsForUsersLegacy(userIds, tournamentId);
+    await legacyGetGameGuessStatisticsForUsers(userIds, tournamentId);
     const legacyTime = Date.now() - startLegacy;
 
     // Benchmark new approach
@@ -715,7 +715,7 @@ describe('Performance benchmarks', () => {
 **Maintainability:**
 - No duplicated logic (reuses existing aggregation during materialization)
 - Clear function boundaries (materialization vs. read)
-- Well-documented tradeoffs (correct/exact counts)
+- All statistics materialized for complete feature parity
 
 ## Open Questions & Risks
 
@@ -725,13 +725,19 @@ describe('Performance benchmarks', () => {
    - A: `recalculateGameScoresForUsers()` creates missing rows automatically
 
 2. **Q: Should we materialize correct/exact guess counts?**
-   - A: No - low value detail metrics, adds schema complexity. Acceptable to show 0 in stats page.
+   - A: Yes - simple to add (6 INT columns) and eliminates stats page regressions. Complete feature parity.
 
-3. **Q: How to handle boost changes after game results exist?**
+3. **Q: Should we add index for leaderboard sorting?**
+   - A: No - friend groups are small (10-20 users), client-side sorting is fast, no pagination exists.
+
+4. **Q: How to handle boost changes after game results exist?**
    - A: Not possible - boosts can only be set before game starts (validation in `setGameBoostAction`)
 
-4. **Q: Yesterday snapshot logic - reuse existing pattern or create new?**
+5. **Q: Yesterday snapshot logic - reuse existing pattern or create new?**
    - A: Reuse existing `last_score_update_date` and yesterday field pattern from tournament scores
+
+6. **Q: Is calculateGameScores() the only place scores are persisted?**
+   - A: Yes - confirmed via codebase analysis. All other references are calculation utilities or UI components.
 
 ### Remaining Risks
 
