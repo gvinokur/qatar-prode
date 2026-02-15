@@ -10,7 +10,7 @@ import {
   ListItemText, Typography,
   useTheme, Button, CardActions, Box, Tooltip
 } from "@mui/material";
-import {ExpandMore as ExpandMoreIcon} from "@mui/icons-material";
+import {ExpandMore as ExpandMoreIcon, Gavel as GavelIcon} from "@mui/icons-material";
 import {ExpandMore} from './expand-more';
 import {useState} from "react";
 import Link from 'next/link';
@@ -138,13 +138,14 @@ const constraints: Rule[] = [
 ]
 
 interface RulesProps {
-  expanded?: boolean;
-  fullpage?: boolean;
-  scoringConfig?: ScoringConfig;
-  tournamentId?: string;
+  readonly expanded?: boolean;
+  readonly fullpage?: boolean;
+  readonly scoringConfig?: ScoringConfig;
+  readonly tournamentId?: string;
+  readonly isActive?: boolean;
 }
 
-export default function Rules({ expanded: defaultExpanded = true, fullpage = false, scoringConfig, tournamentId }: RulesProps) {
+export default function Rules({ expanded: defaultExpanded = true, fullpage = false, scoringConfig, tournamentId, isActive = false }: RulesProps) {
   const theme = useTheme();
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [expandedRules, setExpandedRules] = useState<number[]>([]);
@@ -175,11 +176,20 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
   }
 
   return (
-    <Card sx={{ maxWidth: fullpage ? '800px' : '100%', mx: fullpage ? 'auto' : 0 }}>
+    <Card sx={{
+      maxWidth: fullpage ? '800px' : '100%',
+      mx: fullpage ? 'auto' : 0,
+      ...(isActive && {
+        borderLeft: 3,
+        borderColor: 'primary.main',
+        backgroundColor: 'action.selected',
+      })
+    }}>
       <CardHeader
         title='Reglas Generales'
-        sx={{ 
-          color: theme.palette.primary.main, 
+        subheader={isActive ? 'Estás aquí' : undefined}
+        sx={{
+          color: theme.palette.primary.main,
           borderBottom: `${theme.palette.primary.light} solid 1px`,
           ...(fullpage && { typography: 'h4' })
         }}
@@ -349,6 +359,7 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
           <Button
             component={Link}
             href={tournamentId ? `/tournaments/${tournamentId}/rules` : "/rules"}
+            startIcon={<GavelIcon />}
             variant="text"
             color="primary"
           >

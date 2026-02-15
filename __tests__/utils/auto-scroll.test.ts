@@ -83,6 +83,11 @@ describe('findScrollTarget', () => {
 
   describe('edge cases', () => {
     it('handles game with date exactly at current time', () => {
+      // Use fake timers to ensure consistent Date.now() across test execution
+      vi.useFakeTimers();
+      const fixedTime = new Date('2024-01-15T12:00:00Z');
+      vi.setSystemTime(fixedTime);
+
       const games = [
         createMockGame('game-now', 0), // exactly now
         createMockGame('game-future', 60 * 60 * 1000), // 1 hour from now
@@ -90,6 +95,8 @@ describe('findScrollTarget', () => {
 
       // Should select the game at current time since >= now
       expect(findScrollTarget(games)).toBe('game-game-now');
+
+      vi.useRealTimers();
     });
 
     it('returns null when .at(-1) returns undefined for empty array', () => {

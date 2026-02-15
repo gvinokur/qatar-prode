@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { Grid, Box } from '@mui/material';
+import { Grid } from '@mui/material';
 import { TournamentGroup, Team, QualifiedTeamPrediction } from '../../db/tables-definition';
 import GroupCard from './group-card';
 import { QualifiedTeamsScoringResult } from '../../utils/qualified-teams-scoring';
@@ -34,11 +34,9 @@ export interface QualifiedTeamsGridProps {
 
 /**
  * Responsive grid layout for displaying tournament group cards
- * Adapts to different screen sizes:
- * - Mobile (xs): 1 column (<600px)
- * - Small tablet (sm): 1 column (600-900px)
- * - Medium tablet (md): 2 columns (900-1200px)
- * - Desktop (lg+): 3 columns (1200px+)
+ * Uses viewport breakpoints:
+ * - 1 column for XS-M (<1200px)
+ * - 2 columns for L+ (≥1200px)
  */
 export default function QualifiedTeamsGrid({
   groups,
@@ -66,14 +64,16 @@ export default function QualifiedTeamsGrid({
   }, [scoringBreakdown]);
 
   return (
-    <Box sx={{ width: '100%', p: 2 }}>
-      <Grid container spacing={3}>
-        {groups.map(({ group, teams }) => {
-          const isGroupComplete = completeGroupIds.has(group.id);
-          const groupResults = groupResultsMap.get(group.id) || [];
+    <Grid container spacing={2} sx={{ width: '100%' }}>
+      {groups.map(({ group, teams }) => {
+        const isGroupComplete = completeGroupIds.has(group.id);
+        const groupResults = groupResultsMap.get(group.id) || [];
 
-          return (
-            <Grid key={group.id} size={{ xs: 12, sm: 12, md: 6, lg: 4 }}>
+        return (
+          <Grid
+            key={group.id}
+            size={{ xs: 12, lg: 6 }}
+          >
               <GroupCard
                 group={group}
                 teams={teams}
@@ -91,10 +91,9 @@ export default function QualifiedTeamsGrid({
                 isGroupComplete={isGroupComplete}
                 allGroupsComplete={allGroupsComplete}
               />
-            </Grid>
-          );
-        })}
-      </Grid>
-    </Box>
+          </Grid>
+        );
+      })}
+    </Grid>
   );
 }
