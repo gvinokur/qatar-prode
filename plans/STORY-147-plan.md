@@ -40,11 +40,19 @@ ALTER TABLE tournament_guesses
   ADD COLUMN group_stage_boost_bonus INTEGER DEFAULT 0 NOT NULL,
   ADD COLUMN playoff_stage_boost_bonus INTEGER DEFAULT 0 NOT NULL,
 
+  -- Prediction accuracy counts (for stats page)
+  ADD COLUMN total_correct_guesses INTEGER DEFAULT 0 NOT NULL,
+  ADD COLUMN total_exact_guesses INTEGER DEFAULT 0 NOT NULL,
+  ADD COLUMN group_correct_guesses INTEGER DEFAULT 0 NOT NULL,
+  ADD COLUMN group_exact_guesses INTEGER DEFAULT 0 NOT NULL,
+  ADD COLUMN playoff_correct_guesses INTEGER DEFAULT 0 NOT NULL,
+  ADD COLUMN playoff_exact_guesses INTEGER DEFAULT 0 NOT NULL,
+
   -- Yesterday snapshots for rank tracking (24-hour window)
   ADD COLUMN yesterday_total_game_score INTEGER DEFAULT 0 NOT NULL,
   ADD COLUMN yesterday_boost_bonus INTEGER DEFAULT 0 NOT NULL,
 
-  -- Timestamp of last game score update
+  -- Timestamp of last game score update (date of last game used in calculation)
   ADD COLUMN last_game_score_update_at TIMESTAMP WITH TIME ZONE;
 ```
 
@@ -62,21 +70,13 @@ ALTER TABLE tournament_guesses
   ) STORED;
 ```
 
-**Add performance index for leaderboard queries:**
-
-```sql
-CREATE INDEX idx_tournament_guesses_leaderboard
-  ON tournament_guesses (tournament_id, total_points DESC);
-```
-
 **Rationale:**
 - Reuses existing snapshot infrastructure (`last_score_update_date`, `yesterday_tournament_score`)
 - Computed `total_points` column ensures consistency and simplifies queries
-- Index choice: `(tournament_id, total_points DESC)` optimizes:
-  - Friend group leaderboards (sort by points within tournament)
-  - Tournament-wide leaderboards (if added later)
-  - Note: Individual user lookups use existing PK index on (user_id, tournament_id)
-  - Query pattern analysis shows leaderboards > individual lookups (90% vs 10% of queries)
+- **No additional index needed:**
+  - Friend groups are small (10-20 users) - client-side sorting is fast
+  - No pagination implemented - all data fetched at once
+  - Existing PK index on (user_id, tournament_id) sufficient for individual lookups
 
 ### Phase 2: Materialization Function
 
@@ -98,10 +98,9 @@ export async function recalculateGameScoresForUsers(
     return [];
   }
 
-  // Fetch aggregated game scores using existing query
-  // This will internally use materialized data after Phase 4, but during transition
-  // we need to explicitly call the aggregation version
-  const gameStats = await getGameGuessStatisticsForUsersFromAggregation(userIds, tournamentId);
+  // Fetch aggregated game scores using legacy aggregation query
+  // This ensures parity with on-demand calculations during materialization
+  const gameStats = await legacyGetGameGuessStatisticsForUsers(userIds, tournamentId);
 
   // Build map for efficient lookup
   const statsByUserId = customToMap(gameStats, (stat) => stat.user_id);
@@ -139,9 +138,18 @@ export async function recalculateGameScoresForUsers(
       total_boost_bonus: stats?.total_boost_bonus || 0,
       group_stage_boost_bonus: stats?.group_boost_bonus || 0,
       playoff_stage_boost_bonus: stats?.playoff_boost_bonus || 0,
+      // Prediction accuracy counts (for stats page)
+      total_correct_guesses: stats?.total_correct_guesses || 0,
+      total_exact_guesses: stats?.total_exact_guesses || 0,
+      group_correct_guesses: stats?.group_correct_guesses || 0,
+      group_exact_guesses: stats?.group_exact_guesses || 0,
+      playoff_correct_guesses: stats?.playoff_correct_guesses || 0,
+      playoff_exact_guesses: stats?.playoff_exact_guesses || 0,
+      // Yesterday snapshots
       yesterday_total_game_score: stats?.yesterday_total_score || 0,
       yesterday_boost_bonus: stats?.yesterday_boost_bonus || 0,
-      last_game_score_update_at: new Date(),
+      // Date of last game used in calculation (not current timestamp)
+      last_game_score_update_at: stats?.last_game_date || new Date(),
     };
 
     // Update with transaction-safe update
@@ -157,7 +165,7 @@ export async function recalculateGameScoresForUsers(
 
 **Create legacy aggregation query for testing:**
 
-Keep the original complex SQL aggregation as `getGameGuessStatisticsForUsersFromAggregation()`:
+Keep the original complex SQL aggregation as `legacyGetGameGuessStatisticsForUsers()`:
 
 ```typescript
 /**
@@ -167,9 +175,11 @@ Keep the original complex SQL aggregation as `getGameGuessStatisticsForUsersFrom
  * 2. Materialization function during initial backfill
  * 3. Spot-check validation in production
  *
+ * UPDATED: Now includes last_game_date (max game date used in calculation)
+ *
  * After migration stabilizes (1-2 sprints), this can be removed.
  */
-export async function getGameGuessStatisticsForUsersFromAggregation(
+export async function legacyGetGameGuessStatisticsForUsers(
   userIds: string[],
   tournamentId: string
 ): Promise<GameStatisticForUser[]> {
@@ -181,6 +191,8 @@ export async function getGameGuessStatisticsForUsersFromAggregation(
     .select('user_id')
     .select(eb => [
       // ... all existing aggregation logic ...
+      // NEW: Add max game date for last_game_score_update_at
+      eb.fn.max('games.game_date').as('last_game_date'),
     ])
     .groupBy('game_guesses.user_id')
     .execute()
@@ -190,7 +202,7 @@ export async function getGameGuessStatisticsForUsersFromAggregation(
 ```
 
 **Design decisions:**
-- Preserves legacy aggregation as `getGameGuessStatisticsForUsersFromAggregation()` for testing parity
+- Preserves legacy aggregation as `legacyGetGameGuessStatisticsForUsers()` for testing parity
 - Sequential updates per user within a batch to avoid intra-batch race conditions
 - Handles missing `tournament_guesses` rows with error recovery
 - Edge cases covered: empty userIds, creation failures, missing stats
@@ -248,6 +260,9 @@ export async function calculateGameScores(forceDrafts: boolean, forceAllGuesses:
 - Synchronous materialization ensures consistency (scores updated immediately)
 - Batched by tournament for efficiency
 - Handles both score updates and cleanups (draft results removed)
+
+**Note on game score calculation:**
+`calculateGameScores()` in `backoffice-actions.ts` is the **ONLY** place where game guess scores are persisted to the database. All other references (`game-score-calculator.ts`, `game-view.tsx`) are either calculation utilities or UI display components.
 
 **Note on boost allocation:**
 Boost type changes (`setGameBoostAction()`) only occur BEFORE games start (validation on line 27-30 of `game-boost-actions.ts`). Scores don't exist yet, so no materialization needed. Materialization happens later when game result is published.
@@ -354,49 +369,26 @@ export async function getGameGuessStatisticsForUsers(
       'playoff_stage_boost_bonus as playoff_boost_bonus',
       'yesterday_total_game_score as yesterday_total_score',
       'yesterday_boost_bonus',
-      // Note: correct/exact guess counts not materialized (low value, adds complexity)
-      // Set to 0 for now - these are only used in stats page detail cards
+      // Prediction accuracy counts (for stats page)
+      'total_correct_guesses',
+      'total_exact_guesses',
+      'group_correct_guesses',
+      'group_exact_guesses',
+      'playoff_correct_guesses',
+      'playoff_exact_guesses',
     ])
     .execute();
 
-  // Return with correct/exact counts set to 0 (acceptable tradeoff - detail metrics vs core performance)
-  return tournamentGuesses.map(tg => ({
-    user_id: tg.user_id,
-    total_score: tg.total_score,
-    group_score: tg.group_score,
-    playoff_score: tg.playoff_score,
-    total_boost_bonus: tg.total_boost_bonus,
-    group_boost_bonus: tg.group_boost_bonus,
-    playoff_boost_bonus: tg.playoff_boost_bonus,
-    yesterday_total_score: tg.yesterday_total_score,
-    yesterday_boost_bonus: tg.yesterday_boost_bonus,
-    // Detail metrics (correct/exact counts) - fallback to 0
-    // These are only shown in stats page detail cards, not critical for performance
-    total_correct_guesses: 0,
-    total_exact_guesses: 0,
-    group_correct_guesses: 0,
-    group_exact_guesses: 0,
-    playoff_correct_guesses: 0,
-    playoff_exact_guesses: 0,
-  })) as GameStatisticForUser[];
+  // Return directly - all fields materialized
+  return tournamentGuesses as GameStatisticForUser[];
 }
 ```
 
-**Tradeoff: Correct/Exact Guess Counts**
-- **Not materialized:** `total_correct_guesses`, `total_exact_guesses`, `group_correct_guesses`, etc.
-- **Rationale:** These are detail metrics shown only in stats page cards, not used for leaderboards or core flows
-- **Impact:** Stats page will show 0 for these counts (acceptable regression for 90% performance gain)
-- **Verification needed:** Test stats page UI to ensure it handles 0 values gracefully (no UI breaks, displays "0" not "N/A")
-- **Alternative:** If needed later, can be calculated on-demand for stats page only (1 user vs 100 users)
-- **Code comment required:**
-  ```typescript
-  // TODO: Correct/exact guess counts intentionally hardcoded to 0 for performance
-  // These detail metrics are only shown in stats page and don't justify materialization cost
-  // If needed, can be calculated on-demand for stats page only (single user query)
-  total_correct_guesses: 0,
-  total_exact_guesses: 0,
-  // ...
-  ```
+**Decision: Materialize All Statistics**
+- **All fields materialized:** Including `total_correct_guesses`, `total_exact_guesses`, etc.
+- **Rationale:** These counts are simple to add to the aggregation query and eliminate any stats page regressions
+- **Trade-off:** Slightly larger schema (6 additional INT columns ~24 bytes/row) for complete feature parity
+- **Benefit:** Stats page works identically to current implementation, no UI changes or testing needed
 
 ### Phase 5: Backfill & Migration Strategy
 
@@ -546,6 +538,7 @@ backfillMaterializedScores()
 ### New Files
 - `migrations/20260215000000_add_materialized_game_scores.sql` - Schema changes
 - `scripts/backfill-materialized-scores.ts` - One-time backfill script
+- `scripts/validate-materialized-scores.ts` - Production validation script (MVP requirement)
 
 ### Modified Files
 
@@ -574,7 +567,7 @@ backfillMaterializedScores()
 **Repository tests:**
 - `__tests__/db/tournament-guess-repository.test.ts`
   - Test `recalculateGameScoresForUsers()` with known data
-  - Verify materialized scores match aggregation results (use `getGameGuessStatisticsForUsersFromAggregation()`)
+  - Verify materialized scores match aggregation results (use `legacyGetGameGuessStatisticsForUsers()`)
   - Test creation of missing `tournament_guesses` rows
   - Test yesterday snapshot logic
   - **Edge cases:**
@@ -607,7 +600,7 @@ describe('Materialized scores parity', () => {
     });
 
     // Calculate using legacy aggregation
-    const legacyStats = await getGameGuessStatisticsForUsersFromAggregation(userIds, tournamentId);
+    const legacyStats = await legacyGetGameGuessStatisticsForUsers(userIds, tournamentId);
 
     // Materialize scores
     await recalculateGameScoresForUsers(userIds, tournamentId);
