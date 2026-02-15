@@ -11,6 +11,9 @@ type OTPVerifyFormProps = {
   readonly onResend: () => void;
 }
 
+// Constant array for OTP input positions (to avoid using array index in keys)
+const OTP_POSITIONS = ['0', '1', '2', '3', '4', '5'] as const;
+
 export default function OTPVerifyForm({ email, onSuccess, onCancel, onResend }: OTPVerifyFormProps) {
   const [otp, setOtp] = useState<string[]>(new Array(6).fill(''));
   const [isVerifying, setIsVerifying] = useState(false);
@@ -146,7 +149,7 @@ export default function OTPVerifyForm({ email, onSuccess, onCancel, onResend }: 
       }
     } catch {
       setError('Error al verificar el código. Intenta nuevamente.');
-      setOtp(Array(6).fill(''));
+      setOtp(new Array(6).fill(''));
       inputRefs.current[0]?.focus();
     } finally {
       setIsVerifying(false);
@@ -188,7 +191,7 @@ export default function OTPVerifyForm({ email, onSuccess, onCancel, onResend }: 
       <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mb: 2 }}>
         {otp.map((digit, index) => (
           <TextField
-            key={`otp-input-${index}`}
+            key={`otp-${OTP_POSITIONS[index]}`}
             inputRef={(el) => (inputRefs.current[index] = el)}
             value={digit}
             onChange={(e) => handleChange(index, e.target.value)}
