@@ -60,6 +60,13 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
       return;
     }
 
+    // Check if user is Google-only (has account with Google but no password)
+    if (methods.userExists && !methods.hasPassword && methods.hasGoogle) {
+      // Auto-trigger Google sign-in for Google-only users
+      await signIn('google', { callbackUrl: '/' });
+      return;
+    }
+
     // Determine next step based on auth methods
     if (!methods.userExists) {
       // New user - go to signup
@@ -68,8 +75,6 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
       // Existing user with password - go to login
       switchMode('login');
     }
-    // If OAuth-only user (userExists=true, hasPassword=false, hasGoogle=true),
-    // they will sign in via Google button in EmailInputForm
   };
 
   // Handle successful login
