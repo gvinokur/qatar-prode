@@ -122,8 +122,11 @@ export async function findTournamentGuessByUserIdsTournament(userIds: string[], 
 export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew) {
   const existingGuess = await findTournamentGuessByUserIdTournament(guess.user_id, guess.tournament_id)
   if(existingGuess) {
-    await deleteTournamentGuess(existingGuess.id)
+    // UPDATE existing record - preserves fields not in 'guess' parameter
+    // Cast to TournamentGuessUpdate for proper Kysely typing (Updateable vs Insertable)
+    return updateTournamentGuess(existingGuess.id, guess as TournamentGuessUpdate)
   }
+  // CREATE new record only when none exists
   return createTournamentGuess(guess)
 }
 

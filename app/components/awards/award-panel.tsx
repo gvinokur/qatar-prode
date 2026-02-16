@@ -45,33 +45,57 @@ export default function AwardsPanel({
   const [saved, setSaved] = useState<boolean>(false)
   const [tournamentGuesses, setTournamentGuesses] = useState(savedTournamentGuesses)
 
-  const savePredictions = async (guessesToSave: typeof tournamentGuesses) => {
+  const savePredictions = async (updatePayload: Partial<TournamentGuessNew> & { user_id: string; tournament_id: string }) => {
     setSaving(true)
     //Do the actual save
-    await updateOrCreateTournamentGuess(guessesToSave)
+    const result = await updateOrCreateTournamentGuess(updatePayload)
     setSaving(false)
+
+    // Check if save failed (result would be {success: false, error: string})
+    if (result && typeof result === 'object' && 'success' in result && result.success === false) {
+      console.error('Failed to save tournament guess:', result.error)
+      // Don't show success toast on error
+      return
+    }
+
     setSaved(true)
   }
 
   const handleGuessChange =
     (property: AwardTypes) =>
       (_: any, player: ExtendedPlayerData | null) => {
+        // Update local state with full object
         const newGuesses = {
           ...tournamentGuesses,
           [property]: player?.id
         };
         setTournamentGuesses(newGuesses);
-        savePredictions(newGuesses)
+
+        // But only send the changed field to server (plus identifiers)
+        const updatePayload = {
+          user_id: tournamentGuesses.user_id,
+          tournament_id: tournamentGuesses.tournament_id,
+          [property]: player?.id
+        };
+        savePredictions(updatePayload)
       }
 
   const handlePodiumGuessChange = (property: AwardTypes) =>
     (teamId: string) => {
+      // Update local state with full object
       const newGuesses = {
         ...tournamentGuesses,
         [property]: (teamId === '') ? null : teamId
       };
       setTournamentGuesses(newGuesses);
-      savePredictions(newGuesses)
+
+      // But only send the changed field to server (plus identifiers)
+      const updatePayload = {
+        user_id: tournamentGuesses.user_id,
+        tournament_id: tournamentGuesses.tournament_id,
+        [property]: (teamId === '') ? null : teamId
+      };
+      savePredictions(updatePayload)
   }
 
   const isDisabled = isPredictionLocked || saving
