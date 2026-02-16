@@ -35,10 +35,7 @@ export async function updateOrCreateGameGuesses(gameGuesses: GameGuessNew[]) {
 
 export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew) {
   try {
-    console.warn('[updateOrCreateTournamentGuess] Received guess:', JSON.stringify(guess, null, 2))
-    const result = await dbUpdateOrCreateTournamentGuess(guess)
-    console.warn('[updateOrCreateTournamentGuess] Save successful, result:', result?.id)
-    return result
+    return await dbUpdateOrCreateTournamentGuess(guess)
   } catch (error) {
     console.error('[updateOrCreateTournamentGuess] Save failed:', error)
     return { success: false, error: 'Failed to update tournament guess' };
