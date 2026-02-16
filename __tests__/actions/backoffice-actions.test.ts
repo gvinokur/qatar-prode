@@ -193,6 +193,7 @@ vi.mock('../../app/db/tournament-guess-repository', () => ({
   updateTournamentGuessByUserIdTournament: vi.fn(),
   updateTournamentGuessByUserIdTournamentWithSnapshot: vi.fn(),
   deleteAllTournamentGuessesByTournamentId: vi.fn(),
+  recalculateGameScoresForUsers: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock('../../app/db/users-repository', () => ({
@@ -718,6 +719,70 @@ describe('Backoffice Actions', () => {
 
       expect(mockCreateGameResult).not.toHaveBeenCalled();
       expect(mockUpdateGameResult).not.toHaveBeenCalled();
+    });
+
+    it('triggers recalculation when changing scores on published results', async () => {
+      const existingResult = { ...mockGameResult, is_draft: false, home_score: 1, away_score: 1 };
+      const newResult = { ...mockGameResult, is_draft: false, home_score: 2, away_score: 1 };
+      const gameWithNewScore = { ...mockExtendedGameData, gameResult: newResult };
+
+      mockFindGameResultByGameId.mockResolvedValue(existingResult);
+      // Mock the queries that calculateGameScores uses
+      mockFindAllGamesWithPublishedResultsAndGameGuesses.mockResolvedValue([]);
+      mockFindAllGuessesForGamesWithResultsInDraft.mockResolvedValue([]);
+
+      await saveGameResults([gameWithNewScore]);
+
+      // Should set to draft first
+      expect(mockUpdateGameResult).toHaveBeenNthCalledWith(1, mockGame.id, { ...newResult, is_draft: true });
+      // Should call calculateGameScores to cleanup
+      expect(mockUpdateGameResult).toHaveBeenNthCalledWith(2, mockGame.id, { ...newResult, is_draft: false });
+      expect(mockUpdateGameResult).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not trigger recalculation when scores unchanged on published results', async () => {
+      const existingResult = { ...mockGameResult, is_draft: false, home_score: 2, away_score: 1 };
+      const sameResult = { ...mockGameResult, is_draft: false, home_score: 2, away_score: 1 };
+      const gameWithSameScore = { ...mockExtendedGameData, gameResult: sameResult };
+
+      mockFindGameResultByGameId.mockResolvedValue(existingResult);
+
+      await saveGameResults([gameWithSameScore]);
+
+      // Should just update normally
+      expect(mockUpdateGameResult).toHaveBeenCalledWith(mockGame.id, sameResult);
+      expect(mockUpdateGameResult).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not trigger recalculation when changing draft results', async () => {
+      const existingResult = { ...mockGameResult, is_draft: true, home_score: 1, away_score: 1 };
+      const newResult = { ...mockGameResult, is_draft: true, home_score: 2, away_score: 1 };
+      const gameWithNewScore = { ...mockExtendedGameData, gameResult: newResult };
+
+      mockFindGameResultByGameId.mockResolvedValue(existingResult);
+
+      await saveGameResults([gameWithNewScore]);
+
+      // Should just update normally
+      expect(mockUpdateGameResult).toHaveBeenCalledWith(mockGame.id, newResult);
+      expect(mockUpdateGameResult).toHaveBeenCalledTimes(1);
+    });
+
+    it('triggers recalculation when penalty scores change on published results', async () => {
+      const existingResult = { ...mockGameResult, is_draft: false, home_penalty_score: 3, away_penalty_score: 4 };
+      const newResult = { ...mockGameResult, is_draft: false, home_penalty_score: 4, away_penalty_score: 5 };
+      const gameWithNewPenalty = { ...mockExtendedGameData, gameResult: newResult };
+
+      mockFindGameResultByGameId.mockResolvedValue(existingResult);
+      // Mock the queries that calculateGameScores uses
+      mockFindAllGamesWithPublishedResultsAndGameGuesses.mockResolvedValue([]);
+      mockFindAllGuessesForGamesWithResultsInDraft.mockResolvedValue([]);
+
+      await saveGameResults([gameWithNewPenalty]);
+
+      // Should set to draft first, then republish
+      expect(mockUpdateGameResult).toHaveBeenCalledWith(mockGame.id, { ...newResult, is_draft: true });
+      expect(mockUpdateGameResult).toHaveBeenCalledTimes(2);
     });
   });
 

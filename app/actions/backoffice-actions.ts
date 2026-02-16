@@ -77,7 +77,8 @@ import {calculateScoreForGame} from "../utils/game-score-calculator";
 import {
   findTournamentGuessByTournament,
   updateTournamentGuessWithSnapshot,
-  deleteAllTournamentGuessesByTournamentId
+  deleteAllTournamentGuessesByTournamentId,
+  recalculateGameScoresForUsers
 } from "../db/tournament-guess-repository";
 import {awardsDefinition} from "../utils/award-utils";
 import {getLoggedInUser} from "./user-actions";
@@ -309,16 +310,49 @@ export async function generateDbTournament(name: string, deletePrevious:boolean 
 
 export async function saveGameResults(gamesWithResults: ExtendedGameData[]) {
   //Save all results first
+  const changedPublishedGames: ExtendedGameData[] = [];
+
   await Promise.all(gamesWithResults.map(async (game) => {
     if(game.gameResult) {
       const existingResult = await findGameResultByGameId(game.id, true);
       if (existingResult) {
-        return await updateGameResult(game.id, game.gameResult)
+        // Amendment #1: If changing scores on a published result, handle specially
+        const scoresChanged =
+          existingResult.home_score !== game.gameResult.home_score ||
+          existingResult.away_score !== game.gameResult.away_score ||
+          existingResult.home_penalty_score !== game.gameResult.home_penalty_score ||
+          existingResult.away_penalty_score !== game.gameResult.away_penalty_score;
+
+        const wasPublished = !existingResult.is_draft;
+
+        if (wasPublished && scoresChanged) {
+          // Step 1: Set to draft with NEW scores (marks for cleanup)
+          await updateGameResult(game.id, { ...game.gameResult, is_draft: true });
+          changedPublishedGames.push(game);
+          return;
+        } else {
+          // Normal update (no score change or already draft)
+          return await updateGameResult(game.id, game.gameResult);
+        }
       } else {
         return await createGameResult(game.gameResult)
       }
     }
   }))
+
+  // If we changed scores on published results, trigger cleanup then republish
+  if (changedPublishedGames.length > 0) {
+    // Step 2: Cleanup old scores (processes draft results)
+    await calculateGameScores(true, false);
+
+    // Step 3: Republish with new scores
+    await Promise.all(changedPublishedGames.map(game =>
+      updateGameResult(game.id, { ...game.gameResult, is_draft: false })
+    ));
+
+    // Step 4: Recalculate with new scores (processes published results)
+    await calculateGameScores(false, false);
+  }
 }
 
 export async function saveGamesData(games: ExtendedGameData[]) {
@@ -416,6 +450,55 @@ export async function calculateGameScores(forceDrafts: boolean, forceAllGuesses:
       boost_multiplier: null
     } as any)
   }))
+
+  // NEW: Materialize scores for affected users (Story #147)
+  // Group by tournament for efficient batching
+  const usersByTournament = new Map<string, Set<string>>();
+
+  // Add users from games with published results
+  for (const game of gamesWithResultAndGuesses) {
+    if (!usersByTournament.has(game.tournament_id)) {
+      usersByTournament.set(game.tournament_id, new Set());
+    }
+    game.gameGuesses.forEach(guess => {
+      usersByTournament.get(game.tournament_id)!.add(guess.user_id);
+    });
+  }
+
+  // Add users from cleaned game guesses (unpublished/draft results)
+  // These users also need rematerialization since their scores changed
+  const validCleanedGuesses = cleanedGameGuesses.filter(g => g != null);
+  if (validCleanedGuesses.length > 0) {
+    // Get unique game IDs from cleaned guesses
+    const cleanedGameIds = [...new Set(validCleanedGuesses.map(g => g.game_id))];
+
+    // Fetch games to get tournament IDs
+    const cleanedGames = await db
+      .selectFrom('games')
+      .where('id', 'in', cleanedGameIds)
+      .select(['id', 'tournament_id'])
+      .execute();
+
+    const gameIdToTournamentId = customToMap(cleanedGames, g => g.id);
+
+    // Add cleaned guess users to their tournaments
+    validCleanedGuesses.forEach(guess => {
+      const game = gameIdToTournamentId[guess.game_id];
+      if (!game) return;
+
+      if (!usersByTournament.has(game.tournament_id)) {
+        usersByTournament.set(game.tournament_id, new Set());
+      }
+      usersByTournament.get(game.tournament_id)!.add(guess.user_id);
+    });
+  }
+
+  // Materialize scores for each tournament
+  await Promise.all(
+    Array.from(usersByTournament.entries()).map(([tournamentId, userIds]) =>
+      recalculateGameScoresForUsers(Array.from(userIds), tournamentId)
+    )
+  );
 
   return {updatedGameGuesses, cleanedGameGuesses}
 }
