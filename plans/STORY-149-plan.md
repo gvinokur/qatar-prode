@@ -1191,3 +1191,90 @@ After plan approval:
 7. User testing and feedback
 8. Final SonarCloud validation
 9. Ready to merge
+
+---
+
+## Implementation Amendments
+
+### Amendment 1: UI Issues Fixed During Testing
+**Date:** 2026-02-16
+**Scope:** Bug fixes discovered during Vercel Preview testing
+
+**Issues Fixed:**
+1. **Main navigation appearing in tournament pages** - ConditionalHeader regex not recognizing locale-prefixed routes
+   - Fixed: Updated regex from `/tournaments/` to `/^\/[^/]+\/tournaments\//`
+2. **Inconsistent spacing in header action buttons** - ThemeSwitcher had extra `mr: 1` margin
+   - Fixed: Removed extra margin, using container `gap: 0.5` for consistent spacing
+3. **Missing language switcher in tournament navigation** - Not included in tournament header
+   - Fixed: Added LanguageSwitcher component to tournament layout
+
+**Rationale:** These issues only became apparent after full i18n routing was implemented and tested in deployed environment.
+
+### Amendment 2: Visual Language Indicator Enhancement
+**Date:** 2026-02-16
+**Scope:** UX improvement for language switcher
+
+**Enhancement:** Changed language switcher button from generic globe icon to current language's flag
+- Shows 🇺🇸 when English selected
+- Shows 🇦🇷 when Spanish selected
+- Provides immediate visual feedback of active language
+
+**Rationale:** User feedback indicated the globe icon didn't clearly communicate which language was currently selected. Flag icon is more intuitive and aligned with language menu items.
+
+### Amendment 3: Comprehensive Link Locale Audit
+**Date:** 2026-02-16
+**Scope:** Systematic fix for all navigation links to respect locale
+
+**Work Completed:**
+- Audited all `Link` components and `router.push` calls across application
+- Fixed 13 files with 30+ links missing locale prefix
+- Updated path matching logic in TournamentBottomNav to handle locale-prefixed paths
+
+**Files Fixed:**
+1. tournament-group-card.tsx
+2. group-selector.tsx (3 Tab links)
+3. tournament-bottom-nav.tsx (5 router.push + path logic)
+4. login-form.tsx
+5. join-group-dialog.tsx
+6. leave-group-button.tsx
+7. error.tsx
+8. reset-password/page.tsx (2 routes)
+9. tournament-backoffice-tab.tsx
+10. user-tournament-statistics.tsx
+11. rules.tsx (conditional link)
+12. group-standings-sidebar.tsx
+13. tournament-prediction-accordion.tsx (3 category links)
+
+**Rationale:** Initial plan estimated ~50-100 links to update. During implementation, this audit was partially completed but required systematic verification to ensure language selection persists across ALL navigation.
+
+### Amendment 4: Translation Proof of Concept
+**Date:** 2026-02-16
+**Scope:** Demonstrate end-to-end translation functionality
+
+**Implementation:** Converted home page "Torneos Disponibles" to use translations
+- Added `home.availableTournaments` key to both locale files
+- Updated HomeComponent to use `useTranslations('common')`
+- Verified language switching updates the text correctly
+
+**Rationale:** While this story focused on infrastructure setup, adding one real translation demonstrates the system works end-to-end and provides a pattern for future translation work (Stories #150-153).
+
+---
+
+## Final Status
+
+**All acceptance criteria met:**
+- ✅ next-intl installed and configured
+- ✅ Middleware with locale routing (integrated with NextAuth)
+- ✅ All routes migrated to [locale] directory structure
+- ✅ Translation files created (en/common.json, es/common.json)
+- ✅ Language switcher in both main and tournament headers
+- ✅ Spanish as default locale
+- ✅ All navigation links locale-aware
+- ✅ Build succeeds
+- ✅ Ready for SonarCloud validation
+
+**Additional value delivered:**
+- UI polish (spacing, visual indicators)
+- Translation proof of concept
+- Comprehensive link audit and fixes
+- Enhanced UX with flag-based language indicator
