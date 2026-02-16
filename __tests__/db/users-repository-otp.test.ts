@@ -29,7 +29,7 @@ vi.mock('react', () => ({
 }));
 
 // Import after mocking
-import { generateOTP, verifyOTP, clearOTP, findUserByEmail, findUserById } from '../../app/db/users-repository';
+import { generateOTP, verifyOTP, clearOTP, findUserByEmail, findUserById, findUserByNickname } from '../../app/db/users-repository';
 import { db } from '../../app/db/database';
 
 describe('Users Repository - OTP Functions', () => {
@@ -355,6 +355,37 @@ describe('Users Repository - OTP Functions', () => {
       await clearOTP('user-456');
 
       expect(mockWhere).toHaveBeenCalledWith('id', '=', 'user-456');
+    });
+  });
+
+  describe('findUserByNickname', () => {
+    it('should query users table by nickname', async () => {
+      const user = testFactories.user({ nickname: 'testuser' });
+
+      const mockWhere = vi.fn().mockReturnThis();
+      mockDb.selectFrom.mockReturnValue({
+        where: mockWhere,
+        selectAll: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(user)
+      });
+
+      const result = await findUserByNickname('testuser');
+
+      expect(mockDb.selectFrom).toHaveBeenCalledWith('users');
+      expect(mockWhere).toHaveBeenCalledWith('nickname', '=', 'testuser');
+      expect(result).toEqual(user);
+    });
+
+    it('should return null when nickname not found', async () => {
+      mockDb.selectFrom.mockReturnValue({
+        where: vi.fn().mockReturnThis(),
+        selectAll: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(null)
+      });
+
+      const result = await findUserByNickname('nonexistent');
+
+      expect(result).toBeNull();
     });
   });
 });

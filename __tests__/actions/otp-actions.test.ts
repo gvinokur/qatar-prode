@@ -478,5 +478,13 @@ describe('OTP Actions', () => {
       expect(result.available).toBe(false);
       expect(result.error).toBeDefined();
     });
+
+    it('should trim whitespace from nickname', async () => {
+      vi.mocked(usersRepo.findUserByNickname).mockResolvedValue(null);
+
+      await checkNicknameAvailability('  validuser  ');
+
+      expect(usersRepo.findUserByNickname).toHaveBeenCalledWith('validuser');
+    });
   });
 });
