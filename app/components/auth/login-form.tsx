@@ -1,6 +1,7 @@
 'use client'
 
 import {Alert, Button, TextField} from "@mui/material";
+import { VpnKey } from "@mui/icons-material";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 //@ts-ignore
 import validator from "validator";
@@ -16,9 +17,10 @@ export type LoginFormData = {
 type LoginFormProps = {
   readonly onSuccess: () => void;
   readonly email?: string;
+  readonly onOTPLoginClick?: () => void;
 }
 
-export default function LoginForm({ onSuccess, email }: LoginFormProps) {
+export default function LoginForm({ onSuccess, email, onOTPLoginClick }: LoginFormProps) {
   const [loading, setLoading] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -129,8 +131,18 @@ export default function LoginForm({ onSuccess, email }: LoginFormProps) {
         )}
       />
 
-      <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
-        <Button loading={loading} type="submit">
+      <div style={{ marginTop: '20px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+        {onOTPLoginClick && (
+          <Button
+            variant="outlined"
+            startIcon={<VpnKey />}
+            onClick={onOTPLoginClick}
+            disabled={loading}
+          >
+            Código por Email
+          </Button>
+        )}
+        <Button loading={loading} type="submit" variant="contained">
           Ingresar
         </Button>
       </div>

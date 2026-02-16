@@ -101,6 +101,11 @@ export interface UserTable extends Identifiable{
   // OAuth fields
   auth_providers?: JSONColumnType<string[]> | null  // e.g., ["credentials", "google"]
   oauth_accounts?: JSONColumnType<OAuthAccount[]> | null
+  // OTP fields
+  otp_code?: string | null  // 6-digit code (100000-999999)
+  otp_expiration?: Date | null  // 3-minute expiration
+  otp_attempts?: number  // Track failed attempts (max 3)
+  otp_last_request?: Date | null  // Rate limiting (1 per minute)
 }
 
 export type User = Selectable<UserTable>

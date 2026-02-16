@@ -6,7 +6,9 @@ import {
   getPasswordHash,
   findUserByOAuthAccount,
   linkOAuthAccount,
-  createOAuthUser
+  createOAuthUser,
+  verifyOTP,
+  clearOTP
 } from "./app/db/users-repository";
 import {pick} from "next/dist/lib/pick";
 import {OAuthAccount} from "./app/db/tables-definition";
@@ -40,6 +42,38 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return null
       }
     }),
+    CredentialsProvider({
+      id: 'otp',
+      name: 'OTP',
+      credentials: {
+        email: { label: 'Email', type: 'text' },
+        otp: { label: 'OTP', type: 'text' }
+      },
+      async authorize({ email, otp }: any) {
+        if (!email || !otp) {
+          return null;
+        }
+
+        // Verify OTP code
+        const result = await verifyOTP(email, otp);
+
+        if (result.success && result.user) {
+          // Clear OTP after successful authentication
+          await clearOTP(result.user.id);
+
+          return {
+            id: result.user.id,
+            email: result.user.email,
+            name: result.user.nickname || result.user.email,
+            nickname: result.user.nickname,
+            isAdmin: result.user.is_admin || false,
+            emailVerified: result.user.email_verified || false,
+          };
+        }
+
+        return null;
+      }
+    }),
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
@@ -54,8 +88,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   callbacks: {
     signIn: async ({ user, account, profile }) => {
-      // Skip for credentials provider (already handled in authorize)
-      if (account?.provider === "credentials") {
+      // Skip for credentials and OTP providers (already handled in authorize)
+      if (account?.provider === "credentials" || account?.provider === "otp") {
         return true;
       }
 

@@ -1,9 +1,16 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import React from 'react';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { useRouter } from 'next/navigation';
 import LoginOrSignupDialog from '../../../app/components/auth/login-or-signup-dialog';
 import { User } from '../../../app/db/tables-definition';
 import { renderWithTheme } from '../../utils/test-utils';
+import { createMockRouter } from '../../mocks/next-navigation.mocks';
+
+// Mock next/navigation
+vi.mock('next/navigation', () => ({
+  useRouter: vi.fn(),
+}));
 
 // Mock MUI components
 vi.mock('@mui/material', async () => {
@@ -136,6 +143,8 @@ describe('LoginOrSignupDialog - Progressive Disclosure Flow', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockEmailSubmitFn = null;
+    // Mock useRouter
+    vi.mocked(useRouter).mockReturnValue(createMockRouter());
   });
 
   describe('Initial State', () => {

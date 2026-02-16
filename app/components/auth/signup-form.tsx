@@ -1,6 +1,7 @@
 'use client'
 
 import {Alert, Button, TextField} from "@mui/material";
+import { VpnKey } from "@mui/icons-material";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 //@ts-ignore
 import validator from "validator";
@@ -21,9 +22,10 @@ export type SignupFormData = {
 type SignupFormProps = {
   readonly onSuccess: (_user: User) => void;
   readonly email?: string;
+  readonly onOTPSignupClick?: () => void;
 }
 
-export default function SignupForm({ onSuccess, email }: SignupFormProps) {
+export default function SignupForm({ onSuccess, email, onOTPSignupClick }: SignupFormProps) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -200,8 +202,18 @@ export default function SignupForm({ onSuccess, email }: SignupFormProps) {
         )}
       />
 
-      <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
-        <Button loading={loading} type="submit">
+      <div style={{ marginTop: '20px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+        {onOTPSignupClick && (
+          <Button
+            variant="outlined"
+            startIcon={<VpnKey />}
+            onClick={onOTPSignupClick}
+            disabled={loading}
+          >
+            Código por Email
+          </Button>
+        )}
+        <Button loading={loading} type="submit" variant="contained">
           Registrarse
         </Button>
       </div>
