@@ -14,6 +14,7 @@ import WarningIcon from '@mui/icons-material/Warning';
 import LockIcon from '@mui/icons-material/Lock';
 import { TournamentPredictionCategoryCard } from './tournament-prediction-category-card';
 import type { TournamentPredictionCompletion } from '../db/tables-definition';
+import { useLocale } from 'next-intl';
 
 interface TournamentPredictionAccordionProps {
   readonly tournamentPredictions: TournamentPredictionCompletion;
@@ -28,6 +29,7 @@ export function TournamentPredictionAccordion({
   isExpanded,
   onToggle
 }: TournamentPredictionAccordionProps) {
+  const locale = useLocale();
   const { overallCompleted, overallTotal, overallPercentage, isPredictionLocked } = tournamentPredictions;
 
   // Color logic for accordion border
@@ -88,7 +90,7 @@ export function TournamentPredictionAccordion({
             title="Podio"
             completed={tournamentPredictions.finalStandings.completed}
             total={tournamentPredictions.finalStandings.total}
-            link={`/tournaments/${tournamentId}/awards`}
+            link={`/${locale}/tournaments/${tournamentId}/awards`}
             isLocked={isPredictionLocked}
           />
 
@@ -97,7 +99,7 @@ export function TournamentPredictionAccordion({
             title="Premios Individuales"
             completed={tournamentPredictions.awards.completed}
             total={tournamentPredictions.awards.total}
-            link={`/tournaments/${tournamentId}/awards`}
+            link={`/${locale}/tournaments/${tournamentId}/awards`}
             isLocked={isPredictionLocked}
           />
 
@@ -107,7 +109,7 @@ export function TournamentPredictionAccordion({
               title="Clasificados"
               completed={tournamentPredictions.qualifiers.completed}
               total={tournamentPredictions.qualifiers.total}
-              link={`/tournaments/${tournamentId}/qualified-teams`}
+              link={`/${locale}/tournaments/${tournamentId}/qualified-teams`}
               isLocked={isPredictionLocked}
             />
           )}

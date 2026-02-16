@@ -3,6 +3,7 @@
 import { Box, Typography, Button, Paper } from '@mui/material'
 import { useRouter } from 'next/navigation'
 import LockIcon from '@mui/icons-material/Lock'
+import { useLocale } from 'next-intl'
 
 type ErrorProps = Readonly<{
   _error: Error & { digest?: string }
@@ -13,6 +14,7 @@ export default function TournamentError({
   _error,
   _reset,
 }: ErrorProps) {
+  const locale = useLocale()
   const router = useRouter()
 
   return (
@@ -37,7 +39,7 @@ export default function TournamentError({
         </Typography>
         <Button
           variant="contained"
-          onClick={() => router.push('/')}
+          onClick={() => router.push(`/${locale}`)}
           sx={{ mt: 2 }}
         >
           Return to Home

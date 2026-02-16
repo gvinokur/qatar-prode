@@ -9,6 +9,7 @@ import { useState, useEffect, useRef } from 'react'
 import TeamStandingsCards from '../groups-page/team-standings-cards'
 import { Team, TeamStats } from '@/app/db/tables-definition'
 import Link from 'next/link'
+import { useLocale } from 'next-intl'
 
 interface GroupStandingsSidebarProps {
   readonly groups: ReadonlyArray<{
@@ -24,6 +25,7 @@ interface GroupStandingsSidebarProps {
 }
 
 export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifiedTeams, tournamentId, isActive = false }: GroupStandingsSidebarProps) {
+  const locale = useLocale()
   const [selectedGroupId, setSelectedGroupId] = useState(defaultGroupId)
   const [expanded, setExpanded] = useState(true)
   const theme = useTheme()
@@ -222,7 +224,7 @@ export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifie
       <CardActions sx={{ justifyContent: 'center', px: 2, py: 1.5 }}>
         <Button
           component={Link}
-          href={`/tournaments/${tournamentId}/results`}
+          href={`/${locale}/tournaments/${tournamentId}/results`}
           startIcon={<AssessmentIcon />}
           variant="text"
           color="primary"

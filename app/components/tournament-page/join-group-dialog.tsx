@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Alert } from "../mui-wrappers/";
+import { useLocale } from 'next-intl';
 import {
   Dialog,
   DialogTitle,
@@ -17,6 +18,7 @@ interface JoinGroupDialogProps {
 }
 
 export default function JoinGroupDialog({ open, onClose }: JoinGroupDialogProps) {
+  const locale = useLocale();
   const router = useRouter();
   const [groupCode, setGroupCode] = useState('');
   const [error, setError] = useState('');
@@ -29,7 +31,7 @@ export default function JoinGroupDialog({ open, onClose }: JoinGroupDialogProps)
     }
 
     // Navigate to join page
-    router.push(`/friend-groups/join/${groupCode.trim()}`);
+    router.push(`/${locale}/friend-groups/join/${groupCode.trim()}`);
     handleClose();
   };
 

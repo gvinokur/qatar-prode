@@ -13,12 +13,14 @@ import { triggerQualifiedTeamsScoringAction } from "../../actions/qualified-team
 import {DebugObject} from "../debug";
 import {deactivateTournament} from "../../actions/tournament-actions";
 import {useRouter} from "next/navigation";
+import { useLocale } from 'next-intl';
 
 type Props = {
   tournament: Tournament
 }
 
 export default function TournamentBackofficeTab({ tournament } : Props) {
+  const locale = useLocale();
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false)
   const [actionResults, setActionResults] = useState<{} | null>(null)
@@ -105,7 +107,7 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
       handleDeleteDialogClose();
       // Redirect to backoffice after successful deletion
       setTimeout(() => {
-        router.push('/backoffice');
+        router.push(`/${locale}/backoffice`);
         router.refresh();
       }, 2000);
     } catch (error: any) {

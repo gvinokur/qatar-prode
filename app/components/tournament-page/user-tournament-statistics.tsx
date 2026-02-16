@@ -7,6 +7,7 @@ import {GameStatisticForUser} from "../../../types/definitions";
 import {TournamentGuess} from "../../db/tables-definition";
 import Link from "next/link";
 import {ExpandMore} from './expand-more';
+import { useLocale } from 'next-intl';
 
 type Props = {
   readonly userGameStatistics?: GameStatisticForUser
@@ -41,6 +42,7 @@ function StatRow({ label, value, valueColor = 'text.primary', bold = true }: Rea
 }
 
 export function UserTournamentStatistics({userGameStatistics, tournamentGuess, tournamentId, isActive = false} : Props) {
+  const locale = useLocale();
   const theme = useTheme()
   const [expanded, setExpanded] = useState(false)
 
@@ -112,7 +114,7 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess, t
         <CardActions sx={{ justifyContent: 'center', px: 2, py: 1.5 }}>
           <Button
             component={Link}
-            href={`/tournaments/${tournamentId}/stats`}
+            href={`/${locale}/tournaments/${tournamentId}/stats`}
             startIcon={<BarChartIcon />}
             variant="text"
             color="primary"

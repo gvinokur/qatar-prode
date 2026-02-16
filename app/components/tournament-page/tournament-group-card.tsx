@@ -12,6 +12,7 @@ import {
 import {Share as ShareIcon} from "@mui/icons-material";
 import type { TournamentGroupStats } from "../../definitions";
 import InviteFriendsDialog from "../invite-friends-dialog";
+import { useLocale } from 'next-intl';
 
 interface TournamentGroupCardProps {
   readonly group: TournamentGroupStats;
@@ -19,6 +20,7 @@ interface TournamentGroupCardProps {
 }
 
 export default function TournamentGroupCard({ group, tournamentId }: TournamentGroupCardProps) {
+  const locale = useLocale();
   const isLeader = group.userPosition === 1;
   const leaderDisplay = isLeader ? "¡Tú!" : group.leaderName;
 
@@ -107,7 +109,7 @@ export default function TournamentGroupCard({ group, tournamentId }: TournamentG
       <CardActions sx={{ pt: 0, pb: 2, px: 2, justifyContent: 'flex-end' }}>
         <Button
           component={Link}
-          href={`/tournaments/${tournamentId}/friend-groups/${group.groupId}`}
+          href={`/${locale}/tournaments/${tournamentId}/friend-groups/${group.groupId}`}
           variant="text"
           color="primary"
           size="small"

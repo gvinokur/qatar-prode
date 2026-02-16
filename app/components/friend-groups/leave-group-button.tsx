@@ -4,8 +4,10 @@ import React, { useState } from "react";
 import { Button, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Alert } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { leaveGroupAction } from "../../actions/prode-group-actions";
+import { useLocale } from 'next-intl';
 
 export default function LeaveGroupButton({ groupId }: { readonly groupId: string }) {
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" }>({ open: false, message: "", severity: "success" });
   const [loading, setLoading] = useState(false);
@@ -16,7 +18,7 @@ export default function LeaveGroupButton({ groupId }: { readonly groupId: string
     try {
       await leaveGroupAction(groupId);
       setSnackbar({ open: true, message: "Has dejado el grupo exitosamente.", severity: "success" });
-      setTimeout(() => router.push("/"), 1200);
+      setTimeout(() => router.push(`/${locale}`), 1200);
     } catch (e: any) {
       setSnackbar({ open: true, message: e.message || "Error al dejar el grupo.", severity: "error" });
     } finally {

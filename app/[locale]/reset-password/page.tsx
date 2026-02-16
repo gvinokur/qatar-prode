@@ -6,6 +6,7 @@ import { Alert, Box, Button, Card, CardContent, Container, TextField, Typography
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import { verifyResetToken, updateUserPassword } from '../../actions/user-actions';
 import { AuthPageSkeleton } from '../../components/skeletons';
+import { useLocale } from 'next-intl';
 
 type ResetPasswordFormData = {
   password: string;
@@ -13,6 +14,7 @@ type ResetPasswordFormData = {
 };
 
 export default function ResetPasswordPage() {
+  const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams?.get('token');
@@ -79,7 +81,7 @@ export default function ResetPasswordPage() {
         setMessage({ type: 'success', text: result.message });
         // Redirect to login page after 3 seconds
         setTimeout(() => {
-          router.push('/');
+          router.push(`/${locale}`);
         }, 3000);
       } else {
         setMessage({ type: 'error', text: result.message });
@@ -179,7 +181,7 @@ export default function ResetPasswordPage() {
               <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
                 <Button
                   variant="contained"
-                  onClick={() => router.push('/')}
+                  onClick={() => router.push(`/${locale}`)}
                 >
                   Volver al inicio
                 </Button>
