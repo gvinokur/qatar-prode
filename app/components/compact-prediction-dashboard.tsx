@@ -18,10 +18,6 @@ import {
 interface CompactPredictionDashboardProps {
   readonly totalGames: number;
   readonly predictedGames: number;
-  readonly silverUsed: number;
-  readonly silverMax: number;
-  readonly goldenUsed: number;
-  readonly goldenMax: number;
   readonly tournamentPredictions?: TournamentPredictionCompletion;
   readonly tournamentId?: string;
   readonly tournamentStartDate?: Date;
@@ -34,10 +30,6 @@ interface CompactPredictionDashboardProps {
 export function CompactPredictionDashboard({
   totalGames,
   predictedGames,
-  silverUsed,
-  silverMax,
-  goldenUsed,
-  goldenMax,
   tournamentPredictions,
   tournamentId,
   tournamentStartDate,
@@ -46,7 +38,7 @@ export function CompactPredictionDashboard({
   isPlayoffs = false,
   demoMode = false
 }: CompactPredictionDashboardProps) {
-  const { gameGuesses } = useContext(GuessesContext);
+  const { gameGuesses, boostCounts } = useContext(GuessesContext);
   const dashboardRef = useRef<HTMLDivElement>(null);
   const [gamePopoverAnchor, setGamePopoverAnchor] = useState<HTMLElement | null>(null);
   const [tournamentPopoverAnchor, setTournamentPopoverAnchor] = useState<HTMLElement | null>(null);
@@ -55,7 +47,7 @@ export function CompactPredictionDashboard({
   const [dashboardWidth, setDashboardWidth] = useState<number>(600);
 
   const gamePercentage = totalGames > 0 ? Math.round((predictedGames / totalGames) * 100) : 0;
-  const showBoosts = silverMax > 0 || goldenMax > 0;
+  const showBoosts = boostCounts.silver.max > 0 || boostCounts.golden.max > 0;
 
   const gameUrgencyLevel = useMemo(
     () => getGameUrgencyLevel(games, gameGuesses),
@@ -102,8 +94,8 @@ export function CompactPredictionDashboard({
   const boostPopoverOpen = Boolean(boostAnchorEl);
 
   // Extract boost values to reduce nesting
-  const boostUsed = activeBoostType === 'silver' ? silverUsed : goldenUsed;
-  const boostMax = activeBoostType === 'silver' ? silverMax : goldenMax;
+  const boostUsed = activeBoostType === 'silver' ? boostCounts.silver.used : boostCounts.golden.used;
+  const boostMax = activeBoostType === 'silver' ? boostCounts.silver.max : boostCounts.golden.max;
 
   // Check if there are no urgent games (within 48 hours)
   const urgentGames = useMemo(
@@ -135,10 +127,10 @@ export function CompactPredictionDashboard({
         urgencyLevel={gameUrgencyLevel}
         onClick={handleGameRowClick}
         showBoosts={showBoosts}
-        silverUsed={silverUsed}
-        silverMax={silverMax}
-        goldenUsed={goldenUsed}
-        goldenMax={goldenMax}
+        silverUsed={boostCounts.silver.used}
+        silverMax={boostCounts.silver.max}
+        goldenUsed={boostCounts.golden.used}
+        goldenMax={boostCounts.golden.max}
         onBoostClick={boostClickHandler}
       />
 
@@ -166,8 +158,8 @@ export function CompactPredictionDashboard({
         gameGuesses={gameGuesses}
         tournamentId={tournamentId}
         isPlayoffs={isPlayoffs}
-        silverMax={silverMax}
-        goldenMax={goldenMax}
+        silverMax={boostCounts.silver.max}
+        goldenMax={boostCounts.golden.max}
       />
 
       {/* Tournament Details Popover */}

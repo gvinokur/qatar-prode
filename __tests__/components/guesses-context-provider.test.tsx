@@ -40,6 +40,46 @@ const TestConsumer = () => {
   );
 };
 
+// Test component to display boost counts
+const BoostCountsConsumer = () => {
+  const context = React.useContext(GuessesContext);
+
+  return (
+    <div>
+      <div data-testid="silver-used">{context.boostCounts.silver.used}</div>
+      <div data-testid="silver-max">{context.boostCounts.silver.max}</div>
+      <div data-testid="golden-used">{context.boostCounts.golden.used}</div>
+      <div data-testid="golden-max">{context.boostCounts.golden.max}</div>
+      <button
+        data-testid="add-silver-boost"
+        onClick={() => context.updateGameGuess('game1', {
+          game_id: 'game1',
+          game_number: 1,
+          user_id: 'user1',
+          home_score: 1,
+          away_score: 0,
+          boost_type: 'silver'
+        })}
+      >
+        Add Silver Boost
+      </button>
+      <button
+        data-testid="add-golden-boost"
+        onClick={() => context.updateGameGuess('game2', {
+          game_id: 'game2',
+          game_number: 2,
+          user_id: 'user1',
+          home_score: 2,
+          away_score: 1,
+          boost_type: 'golden'
+        })}
+      >
+        Add Golden Boost
+      </button>
+    </div>
+  );
+};
+
 describe('GuessesContextProvider', () => {
   const mockGameGuesses: { [k: string]: GameGuessNew } = {
     'game1': {
@@ -263,6 +303,312 @@ describe('GuessesContextProvider', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('game-guesses-count')).toHaveTextContent('2');
+    });
+  });
+
+  describe('Boost Counts', () => {
+    it('calculates boost counts with no boosts', () => {
+      const guesses: { [k: string]: GameGuessNew } = {
+        'game1': {
+          game_id: 'game1',
+          game_number: 1,
+          user_id: 'user1',
+          home_score: 1,
+          away_score: 0
+        },
+        'game2': {
+          game_id: 'game2',
+          game_number: 2,
+          user_id: 'user1',
+          home_score: 2,
+          away_score: 1
+        }
+      };
+
+      render(
+        <GuessesContextProvider
+          gameGuesses={guesses}
+          tournamentMaxSilver={3}
+          tournamentMaxGolden={2}
+        >
+          <BoostCountsConsumer />
+        </GuessesContextProvider>
+      );
+
+      expect(screen.getByTestId('silver-used')).toHaveTextContent('0');
+      expect(screen.getByTestId('silver-max')).toHaveTextContent('3');
+      expect(screen.getByTestId('golden-used')).toHaveTextContent('0');
+      expect(screen.getByTestId('golden-max')).toHaveTextContent('2');
+    });
+
+    it('calculates boost counts with silver boosts only', () => {
+      const guesses: { [k: string]: GameGuessNew } = {
+        'game1': {
+          game_id: 'game1',
+          game_number: 1,
+          user_id: 'user1',
+          home_score: 1,
+          away_score: 0,
+          boost_type: 'silver'
+        },
+        'game2': {
+          game_id: 'game2',
+          game_number: 2,
+          user_id: 'user1',
+          home_score: 2,
+          away_score: 1,
+          boost_type: 'silver'
+        }
+      };
+
+      render(
+        <GuessesContextProvider
+          gameGuesses={guesses}
+          tournamentMaxSilver={3}
+          tournamentMaxGolden={2}
+        >
+          <BoostCountsConsumer />
+        </GuessesContextProvider>
+      );
+
+      expect(screen.getByTestId('silver-used')).toHaveTextContent('2');
+      expect(screen.getByTestId('silver-max')).toHaveTextContent('3');
+      expect(screen.getByTestId('golden-used')).toHaveTextContent('0');
+      expect(screen.getByTestId('golden-max')).toHaveTextContent('2');
+    });
+
+    it('calculates boost counts with golden boosts only', () => {
+      const guesses: { [k: string]: GameGuessNew } = {
+        'game1': {
+          game_id: 'game1',
+          game_number: 1,
+          user_id: 'user1',
+          home_score: 1,
+          away_score: 0,
+          boost_type: 'golden'
+        },
+        'game2': {
+          game_id: 'game2',
+          game_number: 2,
+          user_id: 'user1',
+          home_score: 2,
+          away_score: 1,
+          boost_type: 'golden'
+        }
+      };
+
+      render(
+        <GuessesContextProvider
+          gameGuesses={guesses}
+          tournamentMaxSilver={3}
+          tournamentMaxGolden={2}
+        >
+          <BoostCountsConsumer />
+        </GuessesContextProvider>
+      );
+
+      expect(screen.getByTestId('silver-used')).toHaveTextContent('0');
+      expect(screen.getByTestId('silver-max')).toHaveTextContent('3');
+      expect(screen.getByTestId('golden-used')).toHaveTextContent('2');
+      expect(screen.getByTestId('golden-max')).toHaveTextContent('2');
+    });
+
+    it('calculates boost counts with mixed boosts', () => {
+      const guesses: { [k: string]: GameGuessNew } = {
+        'game1': {
+          game_id: 'game1',
+          game_number: 1,
+          user_id: 'user1',
+          home_score: 1,
+          away_score: 0,
+          boost_type: 'silver'
+        },
+        'game2': {
+          game_id: 'game2',
+          game_number: 2,
+          user_id: 'user1',
+          home_score: 2,
+          away_score: 1,
+          boost_type: 'golden'
+        },
+        'game3': {
+          game_id: 'game3',
+          game_number: 3,
+          user_id: 'user1',
+          home_score: 0,
+          away_score: 0,
+          boost_type: 'silver'
+        }
+      };
+
+      render(
+        <GuessesContextProvider
+          gameGuesses={guesses}
+          tournamentMaxSilver={3}
+          tournamentMaxGolden={2}
+        >
+          <BoostCountsConsumer />
+        </GuessesContextProvider>
+      );
+
+      expect(screen.getByTestId('silver-used')).toHaveTextContent('2');
+      expect(screen.getByTestId('silver-max')).toHaveTextContent('3');
+      expect(screen.getByTestId('golden-used')).toHaveTextContent('1');
+      expect(screen.getByTestId('golden-max')).toHaveTextContent('2');
+    });
+
+    it('updates boost counts when gameGuesses changes', async () => {
+      const user = userEvent.setup();
+
+      const guesses: { [k: string]: GameGuessNew } = {
+        'game1': {
+          game_id: 'game1',
+          game_number: 1,
+          user_id: 'user1',
+          home_score: 1,
+          away_score: 0
+        }
+      };
+
+      render(
+        <GuessesContextProvider
+          gameGuesses={guesses}
+          tournamentMaxSilver={3}
+          tournamentMaxGolden={2}
+        >
+          <BoostCountsConsumer />
+        </GuessesContextProvider>
+      );
+
+      // Initial state: no boosts
+      expect(screen.getByTestId('silver-used')).toHaveTextContent('0');
+      expect(screen.getByTestId('golden-used')).toHaveTextContent('0');
+
+      // Add silver boost
+      await user.click(screen.getByTestId('add-silver-boost'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('silver-used')).toHaveTextContent('1');
+      });
+      expect(screen.getByTestId('golden-used')).toHaveTextContent('0');
+
+      // Add golden boost
+      await user.click(screen.getByTestId('add-golden-boost'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('golden-used')).toHaveTextContent('1');
+      });
+      expect(screen.getByTestId('silver-used')).toHaveTextContent('1');
+    });
+
+    it('handles tournament with max values set to 0', () => {
+      const guesses: { [k: string]: GameGuessNew } = {
+        'game1': {
+          game_id: 'game1',
+          game_number: 1,
+          user_id: 'user1',
+          home_score: 1,
+          away_score: 0
+        }
+      };
+
+      render(
+        <GuessesContextProvider
+          gameGuesses={guesses}
+          tournamentMaxSilver={0}
+          tournamentMaxGolden={0}
+        >
+          <BoostCountsConsumer />
+        </GuessesContextProvider>
+      );
+
+      expect(screen.getByTestId('silver-used')).toHaveTextContent('0');
+      expect(screen.getByTestId('silver-max')).toHaveTextContent('0');
+      expect(screen.getByTestId('golden-used')).toHaveTextContent('0');
+      expect(screen.getByTestId('golden-max')).toHaveTextContent('0');
+    });
+
+    it('defaults to max values of 0 when not provided', () => {
+      const guesses: { [k: string]: GameGuessNew } = {};
+
+      render(
+        <GuessesContextProvider gameGuesses={guesses}>
+          <BoostCountsConsumer />
+        </GuessesContextProvider>
+      );
+
+      expect(screen.getByTestId('silver-used')).toHaveTextContent('0');
+      expect(screen.getByTestId('silver-max')).toHaveTextContent('0');
+      expect(screen.getByTestId('golden-used')).toHaveTextContent('0');
+      expect(screen.getByTestId('golden-max')).toHaveTextContent('0');
+    });
+
+    it('ignores null boost_type when counting', () => {
+      const guesses: { [k: string]: GameGuessNew } = {
+        'game1': {
+          game_id: 'game1',
+          game_number: 1,
+          user_id: 'user1',
+          home_score: 1,
+          away_score: 0,
+          boost_type: null
+        },
+        'game2': {
+          game_id: 'game2',
+          game_number: 2,
+          user_id: 'user1',
+          home_score: 2,
+          away_score: 1,
+          boost_type: 'silver'
+        }
+      };
+
+      render(
+        <GuessesContextProvider
+          gameGuesses={guesses}
+          tournamentMaxSilver={3}
+          tournamentMaxGolden={2}
+        >
+          <BoostCountsConsumer />
+        </GuessesContextProvider>
+      );
+
+      expect(screen.getByTestId('silver-used')).toHaveTextContent('1');
+      expect(screen.getByTestId('golden-used')).toHaveTextContent('0');
+    });
+
+    it('ignores undefined boost_type when counting', () => {
+      const guesses: { [k: string]: GameGuessNew } = {
+        'game1': {
+          game_id: 'game1',
+          game_number: 1,
+          user_id: 'user1',
+          home_score: 1,
+          away_score: 0
+          // boost_type is undefined
+        },
+        'game2': {
+          game_id: 'game2',
+          game_number: 2,
+          user_id: 'user1',
+          home_score: 2,
+          away_score: 1,
+          boost_type: 'golden'
+        }
+      };
+
+      render(
+        <GuessesContextProvider
+          gameGuesses={guesses}
+          tournamentMaxSilver={3}
+          tournamentMaxGolden={2}
+        >
+          <BoostCountsConsumer />
+        </GuessesContextProvider>
+      );
+
+      expect(screen.getByTestId('silver-used')).toHaveTextContent('0');
+      expect(screen.getByTestId('golden-used')).toHaveTextContent('1');
     });
   });
 });

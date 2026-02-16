@@ -33,12 +33,6 @@ interface FlippableGameCardProps {
   readonly onEditStart: () => void;
   readonly onEditEnd: () => void;
 
-  // Boost counts for edit controls
-  readonly silverUsed: number;
-  readonly silverMax: number;
-  readonly goldenUsed: number;
-  readonly goldenMax: number;
-
   // Disabled state
   readonly disabled?: boolean;
 
@@ -61,10 +55,6 @@ export default function FlippableGameCard({
   isEditing,
   onEditStart,
   onEditEnd,
-  silverUsed,
-  silverMax,
-  goldenUsed,
-  goldenMax,
   disabled = false,
   onAutoAdvanceNext,
   onAutoGoPrevious
@@ -335,10 +325,6 @@ export default function FlippableGameCard({
                   awayPenaltyWinner={editAwayPenaltyWinner}
                   boostType={editBoostType}
                   initialBoostType={initialBoostType}
-                  silverUsed={silverUsed}
-                  silverMax={silverMax}
-                  goldenUsed={goldenUsed}
-                  goldenMax={goldenMax}
                   onHomeScoreChange={setEditHomeScore}
                   onAwayScoreChange={setEditAwayScore}
                   onHomePenaltyWinnerChange={setEditHomePenaltyWinner}

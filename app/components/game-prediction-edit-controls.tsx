@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
+import { GuessesContext } from './context-providers/guesses-context-provider';
 import {
   Box,
   TextField,
@@ -46,12 +47,6 @@ interface GamePredictionEditControlsProps {
   readonly awayPenaltyWinner?: boolean;
   readonly boostType?: BoostType;
   readonly initialBoostType?: BoostType;
-
-  // Boost counts (readonly, passed from parent to avoid stale data)
-  readonly silverUsed: number;
-  readonly silverMax: number;
-  readonly goldenUsed: number;
-  readonly goldenMax: number;
 
   // Callbacks
   readonly onHomeScoreChange: (_value?: number) => void;
@@ -106,10 +101,6 @@ export default function GamePredictionEditControls({
   awayPenaltyWinner = false,
   boostType = null,
   initialBoostType = null,
-  silverUsed,
-  silverMax,
-  goldenUsed,
-  goldenMax,
   onHomeScoreChange,
   onAwayScoreChange,
   onHomePenaltyWinnerChange,
@@ -135,12 +126,13 @@ export default function GamePredictionEditControls({
 }: GamePredictionEditControlsProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { boostCounts } = useContext(GuessesContext);
   const [currentField, setCurrentField] = useState<'home' | 'away' | 'homePenalty' | 'awayPenalty' | 'boost' | 'save' | 'cancel'>('home');
 
   // Calculate effective boost counts (account for switching types)
   const getEffectiveBoostCounts = () => {
-    let effectiveSilverUsed = silverUsed;
-    let effectiveGoldenUsed = goldenUsed;
+    let effectiveSilverUsed = boostCounts.silver.used;
+    let effectiveGoldenUsed = boostCounts.golden.used;
 
     // If initial boost was set, free it up first
     if (initialBoostType === 'silver') effectiveSilverUsed--;
@@ -151,8 +143,8 @@ export default function GamePredictionEditControls({
     if (boostType === 'golden') effectiveGoldenUsed++;
 
     return {
-      silver: { used: effectiveSilverUsed, max: silverMax },
-      golden: { used: effectiveGoldenUsed, max: goldenMax }
+      silver: { used: effectiveSilverUsed, max: boostCounts.silver.max },
+      golden: { used: effectiveGoldenUsed, max: boostCounts.golden.max }
     };
   };
 
@@ -285,7 +277,7 @@ export default function GamePredictionEditControls({
       case 'save':
       case 'cancel':
         // Shift+Tab from either button goes back to boost (or last input field)
-        if (boostButtonGroupRef?.current && tournamentId && (silverMax > 0 || goldenMax > 0)) {
+        if (boostButtonGroupRef?.current && tournamentId && (boostCounts.silver.max > 0 || boostCounts.golden.max > 0)) {
           focusBoostButtonGroup();
         } else if (isPenaltyShootout && awayPenaltyCheckboxRef?.current) {
           awayPenaltyCheckboxRef.current.focus();
@@ -428,7 +420,7 @@ export default function GamePredictionEditControls({
 
   // Helper: Navigate from away field (SonarQube S3776, S2301)
   const navigateFromAway = () => {
-    const hasBoostSection = !!tournamentId && (silverMax > 0 || goldenMax > 0);
+    const hasBoostSection = !!tournamentId && (boostCounts.silver.max > 0 || boostCounts.golden.max > 0);
     if (isPenaltyShootout && homePenaltyCheckboxRef?.current) {
       homePenaltyCheckboxRef.current.focus();
       setCurrentField('homePenalty');
@@ -442,7 +434,7 @@ export default function GamePredictionEditControls({
 
   // Helper: Navigate from penalty field (SonarQube S3776, S2301)
   const navigateFromPenalty = () => {
-    const hasBoostSection = !!tournamentId && (silverMax > 0 || goldenMax > 0);
+    const hasBoostSection = !!tournamentId && (boostCounts.silver.max > 0 || boostCounts.golden.max > 0);
     if (hasBoostSection && boostButtonGroupRef?.current) {
       focusBoostButtonGroup();
       setCurrentField('boost');
@@ -477,7 +469,7 @@ export default function GamePredictionEditControls({
   // Helper: Get mobile button label (SonarQube S3358 - extract nested ternary)
   const getMobileButtonLabel = () => {
     if (currentField === 'boost') return 'Guardar';
-    const hasBoostSection = !!tournamentId && (silverMax > 0 || goldenMax > 0);
+    const hasBoostSection = !!tournamentId && (boostCounts.silver.max > 0 || boostCounts.golden.max > 0);
     const isLastFieldBeforeSave = (currentField === 'away' || currentField === 'awayPenalty') && !hasBoostSection;
     return isLastFieldBeforeSave ? 'Guardar' : 'Siguiente';
   };
@@ -808,7 +800,7 @@ export default function GamePredictionEditControls({
 
   // Helper: Render boost selection (SonarQube S3776 - extract rendering logic)
   const renderBoostSelection = () => {
-    if (!tournamentId || (silverMax === 0 && goldenMax === 0)) return null;
+    if (!tournamentId || (boostCounts.silver.max === 0 && boostCounts.golden.max === 0)) return null;
 
     return (
       <Box sx={{ mt: compact ? 1.5 : 3 }}>
@@ -820,7 +812,7 @@ export default function GamePredictionEditControls({
               Boost
             </Typography>
             <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0 }}>
-              {silverMax > 0 && (
+              {boostCounts.silver.max > 0 && (
                 <Chip
                   icon={<StarIcon sx={{ fontSize: 12 }} />}
                   label={`${effectiveBoostCounts.silver.max - effectiveBoostCounts.silver.used}/${effectiveBoostCounts.silver.max}`}
@@ -838,7 +830,7 @@ export default function GamePredictionEditControls({
                   variant="outlined"
                 />
               )}
-              {goldenMax > 0 && (
+              {boostCounts.golden.max > 0 && (
                 <Chip
                   icon={<TrophyIcon sx={{ fontSize: 12 }} />}
                   label={`${effectiveBoostCounts.golden.max - effectiveBoostCounts.golden.used}/${effectiveBoostCounts.golden.max}`}
@@ -885,7 +877,7 @@ export default function GamePredictionEditControls({
               >
                 Ninguno
               </ToggleButton>
-              {silverMax > 0 && (
+              {boostCounts.silver.max > 0 && (
                 <ToggleButton
                   value="silver"
                   aria-label="silver boost"
@@ -916,7 +908,7 @@ export default function GamePredictionEditControls({
                   2x
                 </ToggleButton>
               )}
-              {goldenMax > 0 && (
+              {boostCounts.golden.max > 0 && (
                 <ToggleButton
                   value="golden"
                   aria-label="golden boost"
@@ -957,7 +949,7 @@ export default function GamePredictionEditControls({
                 Boost Selection
               </Typography>
               <Box sx={{ display: 'flex', gap: 1 }}>
-                {silverMax > 0 && (
+                {boostCounts.silver.max > 0 && (
                   <Chip
                     icon={<StarIcon />}
                     label={`${effectiveBoostCounts.silver.max - effectiveBoostCounts.silver.used}/${effectiveBoostCounts.silver.max} Silver`}
@@ -972,7 +964,7 @@ export default function GamePredictionEditControls({
                     variant="outlined"
                   />
                 )}
-                {goldenMax > 0 && (
+                {boostCounts.golden.max > 0 && (
                   <Chip
                     icon={<TrophyIcon />}
                     label={`${effectiveBoostCounts.golden.max - effectiveBoostCounts.golden.used}/${effectiveBoostCounts.golden.max} Golden`}
@@ -1015,7 +1007,7 @@ export default function GamePredictionEditControls({
               >
                 Ninguno
               </ToggleButton>
-              {silverMax > 0 && (
+              {boostCounts.silver.max > 0 && (
                 <ToggleButton
                   value="silver"
                   aria-label="silver boost"
@@ -1042,7 +1034,7 @@ export default function GamePredictionEditControls({
                   2x
                 </ToggleButton>
               )}
-              {goldenMax > 0 && (
+              {boostCounts.golden.max > 0 && (
                 <ToggleButton
                   value="golden"
                   aria-label="golden boost"

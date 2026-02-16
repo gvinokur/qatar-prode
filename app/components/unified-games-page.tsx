@@ -70,6 +70,8 @@ export async function UnifiedGamesPage({ tournamentId }: UnifiedGamesPageProps) 
     <GuessesContextProvider
       gameGuesses={gameGuesses}
       autoSave={true}
+      tournamentMaxSilver={tournament.max_silver_games || 0}
+      tournamentMaxGolden={tournament.max_golden_games || 0}
     >
       <UnifiedGamesPageClient
         games={games}
