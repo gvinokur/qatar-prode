@@ -627,8 +627,8 @@ import LanguageIcon from '@mui/icons-material/Language';
 import { useState } from 'react';
 
 const languages = [
-  { code: 'en', name: 'English', flag: '🇬🇧' },
-  { code: 'es', name: 'Español', flag: '🇪🇸' },
+  { code: 'en', name: 'English', flag: '🇺🇸' },
+  { code: 'es', name: 'Español', flag: '🇦🇷' },
 ];
 
 export default function LanguageSwitcher() {
