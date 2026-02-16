@@ -17,12 +17,14 @@ import {signOut} from "next-auth/react";
 import {User} from "next-auth";
 import UserSettingsDialog from "../auth/user-settings-dialog";
 import OnboardingDialogClient from "../onboarding/onboarding-dialog-client";
+import { useLocale } from 'next-intl';
 
 type UserActionProps = {
   user?: User
 }
 
 export default function UserActions({ user }: UserActionProps) {
+  const locale = useLocale()
   const searchParams = useSearchParams()
   const [forceOpen, setForceOpen] = useState(false)
   const [openLoginDialog, setOpenLoginDialog] = useState(forceOpen);
@@ -80,7 +82,7 @@ export default function UserActions({ user }: UserActionProps) {
     await signOut({
       redirect: false
     })
-    router.push("/");
+    router.push(`/${locale}`);
     router.refresh();
   }
 
@@ -117,14 +119,14 @@ export default function UserActions({ user }: UserActionProps) {
               <Typography textAlign="center">Ver Tutorial</Typography>
             </MenuItem>
             {user.isAdmin && (
-              <MenuItem onClick={() => router.push('/backoffice')}>
+              <MenuItem onClick={() => router.push(`/${locale}/backoffice`)}>
                 Ir al Back Office
               </MenuItem>
             )}
             <MenuItem onClick={() => { handleLogout(); handleCloseUserMenu();}} divider={true}>
               <Typography textAlign="center">Salir</Typography>
             </MenuItem>
-            <MenuItem onClick={() => router.push('/delete-account')}>
+            <MenuItem onClick={() => router.push(`/${locale}/delete-account`)}>
               Delete Account
             </MenuItem>
           </Menu>

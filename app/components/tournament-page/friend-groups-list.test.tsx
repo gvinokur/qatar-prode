@@ -3,6 +3,11 @@ import { describe, it, expect, vi } from 'vitest'
 import FriendGroupsList from './friend-groups-list'
 import { renderWithTheme } from '@/__tests__/utils/test-utils'
 
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useLocale: vi.fn(() => 'es'),
+}))
+
 // Mock InviteFriendsDialog
 vi.mock('../invite-friends-dialog', () => ({
   default: vi.fn(({ trigger }) => <div data-testid="invite-dialog">{trigger}</div>)
@@ -63,7 +68,7 @@ describe('FriendGroupsList', () => {
 
     const button = screen.getByRole('link', { name: /Ver Grupos/i })
     expect(button).toBeInTheDocument()
-    expect(button).toHaveAttribute('href', '/tournaments/test-tournament/friend-groups')
+    expect(button).toHaveAttribute('href', '/es/tournaments/test-tournament/friend-groups')
 
     // Check icon is present (MUI renders icon as svg)
     const icon = button.querySelector('svg')

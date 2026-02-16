@@ -13,6 +13,11 @@ vi.mock('next/navigation', () => ({
   useRouter: vi.fn(),
 }));
 
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useLocale: vi.fn(() => 'es'),
+}));
+
 // Mock next-auth/react
 vi.mock('next-auth/react', () => ({
   signOut: vi.fn(),

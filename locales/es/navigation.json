@@ -1,0 +1,9 @@
+{
+  "header": {
+    "home": "Inicio",
+    "tournaments": "Torneos",
+    "profile": "Perfil",
+    "logout": "Cerrar sesión",
+    "login": "Iniciar sesión"
+  }
+}

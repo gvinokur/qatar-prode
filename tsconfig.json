@@ -28,6 +28,7 @@
     ],
     "paths": {
       "@/*": ["./*"],
+      "@locales/*": ["./locales/*"],
       "react": ["./node_modules/@types/react"]
     }
   },

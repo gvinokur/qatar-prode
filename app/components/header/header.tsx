@@ -11,12 +11,16 @@ import UserActions from "./user-actions";
 import Link from "next/link";
 import {User} from "next-auth";
 import ThemeSwitcher from "./theme-switcher";
+import LanguageSwitcher from "./language-switcher";
+import { getLocale } from 'next-intl/server';
 
 type FrameProps = {
   readonly user?: User
 }
 
 export default async function Header(props: FrameProps) {
+  const locale = await getLocale();
+
   return (
     <AppBar position={'sticky'}>
       <Box
@@ -28,7 +32,7 @@ export default async function Header(props: FrameProps) {
         justifyContent={'space-between'}
       >
         <Box>
-          <Link href={'/'}>
+          <Link href={`/${locale}`}>
             <Avatar
               variant={"rounded"}
               src={'/logo.webp'}
@@ -51,7 +55,7 @@ export default async function Header(props: FrameProps) {
             textDecoration: 'none',
             cursor: 'pointer'
           }}>
-          <Link href={'/'}>La Maquina Prode</Link>
+          <Link href={`/${locale}`}>La Maquina Prode</Link>
         </Typography>
         <Box
           alignContent={'center'}
@@ -62,6 +66,7 @@ export default async function Header(props: FrameProps) {
           minWidth={'96px'}
         >
           <ThemeSwitcher />
+          <LanguageSwitcher />
           <UserActions user={props.user}/>
         </Box>
       </Box>

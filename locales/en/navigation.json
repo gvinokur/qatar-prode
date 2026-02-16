@@ -1,0 +1,9 @@
+{
+  "header": {
+    "home": "Home",
+    "tournaments": "Tournaments",
+    "profile": "Profile",
+    "logout": "Logout",
+    "login": "Login"
+  }
+}
