@@ -1,6 +1,6 @@
 import createMiddleware from 'next-intl/middleware';
 import { auth } from './auth';
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 
 // Create i18n middleware
 const intlMiddleware = createMiddleware({
@@ -9,7 +9,7 @@ const intlMiddleware = createMiddleware({
   localePrefix: 'always'
 });
 
-export default async function middleware(request: Request) {
+export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 1. Skip locale middleware for API routes and static files
@@ -44,9 +44,13 @@ export default async function middleware(request: Request) {
   });
 
   if (isProtectedRoute) {
-    const authResult = await auth(request);
-    if (authResult) {
-      return authResult; // Redirect to signin if not authenticated
+    const session = await auth();
+    if (!session) {
+      // User not authenticated, redirect to signin
+      const signInUrl = new URL(`/${pathname.split('/')[1]}/`, request.url);
+      signInUrl.searchParams.set('openSignin', 'true');
+      signInUrl.searchParams.set('returnUrl', pathname);
+      return NextResponse.redirect(signInUrl);
     }
   }
 
