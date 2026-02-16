@@ -32,10 +32,6 @@ export default function GameCardOnboardingDemo({
   isEditing,
   onEditStart,
   onEditEnd,
-  silverUsed,
-  silverMax,
-  goldenUsed,
-  goldenMax,
   label,
   demoNote,
 }: GameCardOnboardingDemoProps) {

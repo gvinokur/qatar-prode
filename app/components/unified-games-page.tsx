@@ -32,7 +32,7 @@ export async function UnifiedGamesPage({ tournamentId }: UnifiedGamesPageProps) 
     gameCounts,
     teamsMap,
     gameGuessesArray,
-    dashboardStats,
+    _dashboardStats,
     tournament,
     groups,
     rounds,
@@ -80,7 +80,6 @@ export async function UnifiedGamesPage({ tournamentId }: UnifiedGamesPageProps) 
         tournamentId={tournamentId}
         groups={groups}
         rounds={rounds}
-        dashboardStats={dashboardStats}
         tournament={tournament}
         closingGames={closingGames}
         tournamentPredictionCompletion={tournamentPredictionCompletion}

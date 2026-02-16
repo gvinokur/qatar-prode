@@ -177,10 +177,6 @@ export default function SamplePredictionStep() {
                   isEditing={editingGameId === DEMO_GAMES[2].id}
                   onEditStart={() => handleEditStart(DEMO_GAMES[2].id)}
                   onEditEnd={handleEditEnd}
-                  silverUsed={0}
-                  silverMax={5}
-                  goldenUsed={0}
-                  goldenMax={2}
                   disabled={false}
                 />
                 <FlippableGameCard
@@ -190,10 +186,6 @@ export default function SamplePredictionStep() {
                   isEditing={editingGameId === DEMO_GAMES[3].id}
                   onEditStart={() => handleEditStart(DEMO_GAMES[3].id)}
                   onEditEnd={handleEditEnd}
-                  silverUsed={0}
-                  silverMax={5}
-                  goldenUsed={0}
-                  goldenMax={2}
                   disabled={false}
                 />
               </Stack>
