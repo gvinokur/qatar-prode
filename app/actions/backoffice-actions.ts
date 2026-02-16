@@ -419,22 +419,43 @@ export async function calculateGameScores(forceDrafts: boolean, forceAllGuesses:
   }))
 
   // NEW: Materialize scores for affected users (Story #147)
-  // Get unique user IDs from all updated game guesses
-  const affectedUserIds = new Set<string>();
-  updatedGameGuesses.flat().forEach(guess => {
-    if (guess) affectedUserIds.add(guess.user_id);
-  });
-  cleanedGameGuesses.forEach(guess => {
-    if (guess) affectedUserIds.add(guess.user_id);
-  });
-
   // Group by tournament for efficient batching
   const usersByTournament = new Map<string, Set<string>>();
+
+  // Add users from games with published results
   for (const game of gamesWithResultAndGuesses) {
     if (!usersByTournament.has(game.tournament_id)) {
       usersByTournament.set(game.tournament_id, new Set());
     }
     game.gameGuesses.forEach(guess => {
+      usersByTournament.get(game.tournament_id)!.add(guess.user_id);
+    });
+  }
+
+  // Add users from cleaned game guesses (unpublished/draft results)
+  // These users also need rematerialization since their scores changed
+  const validCleanedGuesses = cleanedGameGuesses.filter(g => g != null);
+  if (validCleanedGuesses.length > 0) {
+    // Get unique game IDs from cleaned guesses
+    const cleanedGameIds = [...new Set(validCleanedGuesses.map(g => g.game_id))];
+
+    // Fetch games to get tournament IDs
+    const cleanedGames = await db
+      .selectFrom('games')
+      .where('id', 'in', cleanedGameIds)
+      .select(['id', 'tournament_id'])
+      .execute();
+
+    const gameIdToTournamentId = customToMap(cleanedGames, g => g.id);
+
+    // Add cleaned guess users to their tournaments
+    validCleanedGuesses.forEach(guess => {
+      const game = gameIdToTournamentId[guess.game_id];
+      if (!game) return;
+
+      if (!usersByTournament.has(game.tournament_id)) {
+        usersByTournament.set(game.tournament_id, new Set());
+      }
       usersByTournament.get(game.tournament_id)!.add(guess.user_id);
     });
   }
