@@ -378,4 +378,408 @@ describe('Tournament Guess Repository - Materialization', () => {
       );
     });
   });
+
+  describe('updateOrCreateTournamentGuess - Bug #164 Fix', () => {
+    it('should preserve score fields when updating award guesses', async () => {
+      const { updateOrCreateTournamentGuess } = await import('../../app/db/tournament-guess-repository');
+
+      const userId = 'user-1';
+      const tournamentId = 'tournament-1';
+
+      // Existing guess with score fields
+      const existingGuess = testFactories.tournamentGuess({
+        user_id: userId,
+        tournament_id: tournamentId,
+        best_player_id: 'player-1',
+        top_goalscorer_player_id: 'player-2',
+        individual_awards_score: 6,
+        honor_roll_score: 8,
+        qualified_teams_score: 10,
+      });
+
+      // Mock findTournamentGuessByUserIdTournament to return existing guess
+      const mockSelectQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(existingGuess),
+      };
+
+      // Mock updateTournamentGuess (UPDATE operation)
+      const mockUpdateQuery = {
+        where: vi.fn().mockReturnThis(),
+        set: vi.fn().mockReturnThis(),
+        returningAll: vi.fn().mockReturnThis(),
+        executeTakeFirstOrThrow: vi.fn().mockResolvedValue({
+          ...existingGuess,
+          best_player_id: 'player-3', // Only this field changes
+        }),
+      };
+
+      mockDb.selectFrom.mockReturnValue(mockSelectQuery);
+      mockDb.updateTable.mockReturnValue(mockUpdateQuery);
+
+      // Update only best_player_id
+      const result = await updateOrCreateTournamentGuess({
+        user_id: userId,
+        tournament_id: tournamentId,
+        best_player_id: 'player-3', // Only updating this field
+      });
+
+      // Verify UPDATE was called (not DELETE+CREATE)
+      expect(mockDb.updateTable).toHaveBeenCalledWith('tournament_guesses');
+      expect(mockUpdateQuery.set).toHaveBeenCalledWith({
+        user_id: userId,
+        tournament_id: tournamentId,
+        best_player_id: 'player-3',
+      });
+
+      // Verify result has all fields preserved
+      expect(result).toEqual(
+        expect.objectContaining({
+          best_player_id: 'player-3', // Updated
+          top_goalscorer_player_id: 'player-2', // Preserved
+          individual_awards_score: 6, // Preserved
+          honor_roll_score: 8, // Preserved
+          qualified_teams_score: 10, // Preserved
+        })
+      );
+    });
+
+    it('should preserve materialized game scores (story-147 fields)', async () => {
+      const { updateOrCreateTournamentGuess } = await import('../../app/db/tournament-guess-repository');
+
+      const userId = 'user-1';
+      const tournamentId = 'tournament-1';
+
+      // Existing guess with materialized game scores
+      const existingGuess = testFactories.tournamentGuess({
+        user_id: userId,
+        tournament_id: tournamentId,
+        best_player_id: 'player-1',
+        total_game_score: 150,
+        group_stage_game_score: 90,
+        playoff_stage_game_score: 60,
+        total_boost_bonus: 30,
+        group_stage_boost_bonus: 18,
+        playoff_stage_boost_bonus: 12,
+        total_correct_guesses: 20,
+        total_exact_guesses: 10,
+      });
+
+      const mockSelectQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(existingGuess),
+      };
+
+      const mockUpdateQuery = {
+        where: vi.fn().mockReturnThis(),
+        set: vi.fn().mockReturnThis(),
+        returningAll: vi.fn().mockReturnThis(),
+        executeTakeFirstOrThrow: vi.fn().mockResolvedValue({
+          ...existingGuess,
+          best_goalkeeper_player_id: 'player-4',
+        }),
+      };
+
+      mockDb.selectFrom.mockReturnValue(mockSelectQuery);
+      mockDb.updateTable.mockReturnValue(mockUpdateQuery);
+
+      // Update award guess
+      const result = await updateOrCreateTournamentGuess({
+        user_id: userId,
+        tournament_id: tournamentId,
+        best_goalkeeper_player_id: 'player-4',
+      });
+
+      // Verify all materialized fields preserved
+      expect(result).toEqual(
+        expect.objectContaining({
+          total_game_score: 150, // Preserved
+          group_stage_game_score: 90, // Preserved
+          playoff_stage_game_score: 60, // Preserved
+          total_boost_bonus: 30, // Preserved
+          group_stage_boost_bonus: 18, // Preserved
+          playoff_stage_boost_bonus: 12, // Preserved
+          total_correct_guesses: 20, // Preserved
+          total_exact_guesses: 10, // Preserved
+        })
+      );
+    });
+
+    it('should preserve snapshot fields for rank tracking', async () => {
+      const { updateOrCreateTournamentGuess } = await import('../../app/db/tournament-guess-repository');
+
+      const userId = 'user-1';
+      const tournamentId = 'tournament-1';
+
+      const existingGuess = testFactories.tournamentGuess({
+        user_id: userId,
+        tournament_id: tournamentId,
+        champion_team_id: 'team-1',
+        yesterday_tournament_score: 140,
+        yesterday_total_game_score: 130,
+        yesterday_boost_bonus: 25,
+        last_score_update_date: 20260214,
+        last_game_score_update_at: new Date('2024-07-14'),
+      });
+
+      const mockSelectQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(existingGuess),
+      };
+
+      const mockUpdateQuery = {
+        where: vi.fn().mockReturnThis(),
+        set: vi.fn().mockReturnThis(),
+        returningAll: vi.fn().mockReturnThis(),
+        executeTakeFirstOrThrow: vi.fn().mockResolvedValue({
+          ...existingGuess,
+          runner_up_team_id: 'team-2',
+        }),
+      };
+
+      mockDb.selectFrom.mockReturnValue(mockSelectQuery);
+      mockDb.updateTable.mockReturnValue(mockUpdateQuery);
+
+      // Update honor roll guess
+      const result = await updateOrCreateTournamentGuess({
+        user_id: userId,
+        tournament_id: tournamentId,
+        runner_up_team_id: 'team-2',
+      });
+
+      // Verify all snapshot fields preserved
+      expect(result).toEqual(
+        expect.objectContaining({
+          yesterday_tournament_score: 140, // Preserved
+          yesterday_total_game_score: 130, // Preserved
+          yesterday_boost_bonus: 25, // Preserved
+          last_score_update_date: 20260214, // Preserved
+          last_game_score_update_at: new Date('2024-07-14'), // Preserved
+        })
+      );
+    });
+
+    it('should preserve other award guesses when updating one award', async () => {
+      const { updateOrCreateTournamentGuess } = await import('../../app/db/tournament-guess-repository');
+
+      const userId = 'user-1';
+      const tournamentId = 'tournament-1';
+
+      // Multiple awards already set
+      const existingGuess = testFactories.tournamentGuess({
+        user_id: userId,
+        tournament_id: tournamentId,
+        best_player_id: 'player-1',
+        top_goalscorer_player_id: 'player-2',
+        best_goalkeeper_player_id: 'player-3',
+        best_young_player_id: 'player-4',
+      });
+
+      const mockSelectQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(existingGuess),
+      };
+
+      const mockUpdateQuery = {
+        where: vi.fn().mockReturnThis(),
+        set: vi.fn().mockReturnThis(),
+        returningAll: vi.fn().mockReturnThis(),
+        executeTakeFirstOrThrow: vi.fn().mockResolvedValue({
+          ...existingGuess,
+          best_player_id: 'player-99',
+        }),
+      };
+
+      mockDb.selectFrom.mockReturnValue(mockSelectQuery);
+      mockDb.updateTable.mockReturnValue(mockUpdateQuery);
+
+      // Update only best_player_id
+      const result = await updateOrCreateTournamentGuess({
+        user_id: userId,
+        tournament_id: tournamentId,
+        best_player_id: 'player-99',
+      });
+
+      // Verify all other awards preserved
+      expect(result).toEqual(
+        expect.objectContaining({
+          best_player_id: 'player-99', // Updated
+          top_goalscorer_player_id: 'player-2', // Preserved
+          best_goalkeeper_player_id: 'player-3', // Preserved
+          best_young_player_id: 'player-4', // Preserved
+        })
+      );
+    });
+
+    it('should create new record when none exists', async () => {
+      const { updateOrCreateTournamentGuess } = await import('../../app/db/tournament-guess-repository');
+
+      const userId = 'user-new';
+      const tournamentId = 'tournament-1';
+
+      // No existing guess
+      const mockSelectQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(undefined),
+      };
+
+      const newGuess = testFactories.tournamentGuess({
+        user_id: userId,
+        tournament_id: tournamentId,
+        best_player_id: 'player-1',
+      });
+
+      const mockInsertQuery = {
+        values: vi.fn().mockReturnThis(),
+        returningAll: vi.fn().mockReturnThis(),
+        executeTakeFirstOrThrow: vi.fn().mockResolvedValue(newGuess),
+      };
+
+      mockDb.selectFrom.mockReturnValue(mockSelectQuery);
+      mockDb.insertInto.mockReturnValue(mockInsertQuery);
+
+      // Create first guess
+      const result = await updateOrCreateTournamentGuess({
+        user_id: userId,
+        tournament_id: tournamentId,
+        best_player_id: 'player-1',
+      });
+
+      // Verify INSERT was called (not UPDATE)
+      expect(mockDb.insertInto).toHaveBeenCalledWith('tournament_guesses');
+      expect(mockInsertQuery.values).toHaveBeenCalledWith({
+        user_id: userId,
+        tournament_id: tournamentId,
+        best_player_id: 'player-1',
+      });
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          user_id: userId,
+          tournament_id: tournamentId,
+          best_player_id: 'player-1',
+        })
+      );
+    });
+
+    it('should update multiple fields in single call while preserving others', async () => {
+      const { updateOrCreateTournamentGuess } = await import('../../app/db/tournament-guess-repository');
+
+      const userId = 'user-1';
+      const tournamentId = 'tournament-1';
+
+      const existingGuess = testFactories.tournamentGuess({
+        user_id: userId,
+        tournament_id: tournamentId,
+        best_player_id: 'player-1',
+        champion_team_id: 'team-1',
+        individual_awards_score: 3,
+        honor_roll_score: 5,
+        total_game_score: 100,
+      });
+
+      const mockSelectQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(existingGuess),
+      };
+
+      const mockUpdateQuery = {
+        where: vi.fn().mockReturnThis(),
+        set: vi.fn().mockReturnThis(),
+        returningAll: vi.fn().mockReturnThis(),
+        executeTakeFirstOrThrow: vi.fn().mockResolvedValue({
+          ...existingGuess,
+          best_player_id: 'player-2',
+          top_goalscorer_player_id: 'player-3',
+        }),
+      };
+
+      mockDb.selectFrom.mockReturnValue(mockSelectQuery);
+      mockDb.updateTable.mockReturnValue(mockUpdateQuery);
+
+      // Update multiple awards at once
+      const result = await updateOrCreateTournamentGuess({
+        user_id: userId,
+        tournament_id: tournamentId,
+        best_player_id: 'player-2',
+        top_goalscorer_player_id: 'player-3',
+      });
+
+      // Verify UPDATE with multiple fields
+      expect(mockUpdateQuery.set).toHaveBeenCalledWith({
+        user_id: userId,
+        tournament_id: tournamentId,
+        best_player_id: 'player-2',
+        top_goalscorer_player_id: 'player-3',
+      });
+
+      // Verify other fields preserved
+      expect(result).toEqual(
+        expect.objectContaining({
+          best_player_id: 'player-2', // Updated
+          top_goalscorer_player_id: 'player-3', // Updated
+          champion_team_id: 'team-1', // Preserved
+          individual_awards_score: 3, // Preserved
+          honor_roll_score: 5, // Preserved
+          total_game_score: 100, // Preserved
+        })
+      );
+    });
+
+    it('should handle null values without corrupting other fields', async () => {
+      const { updateOrCreateTournamentGuess } = await import('../../app/db/tournament-guess-repository');
+
+      const userId = 'user-1';
+      const tournamentId = 'tournament-1';
+
+      const existingGuess = testFactories.tournamentGuess({
+        user_id: userId,
+        tournament_id: tournamentId,
+        best_player_id: 'player-1',
+        top_goalscorer_player_id: 'player-2',
+        individual_awards_score: 6,
+      });
+
+      const mockSelectQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(existingGuess),
+      };
+
+      const mockUpdateQuery = {
+        where: vi.fn().mockReturnThis(),
+        set: vi.fn().mockReturnThis(),
+        returningAll: vi.fn().mockReturnThis(),
+        executeTakeFirstOrThrow: vi.fn().mockResolvedValue({
+          ...existingGuess,
+          best_player_id: null,
+        }),
+      };
+
+      mockDb.selectFrom.mockReturnValue(mockSelectQuery);
+      mockDb.updateTable.mockReturnValue(mockUpdateQuery);
+
+      // Clear best_player_id (set to null)
+      const result = await updateOrCreateTournamentGuess({
+        user_id: userId,
+        tournament_id: tournamentId,
+        best_player_id: null,
+      });
+
+      // Verify null update doesn't corrupt other fields
+      expect(result).toEqual(
+        expect.objectContaining({
+          best_player_id: null, // Set to null
+          top_goalscorer_player_id: 'player-2', // Preserved
+          individual_awards_score: 6, // Preserved
+        })
+      );
+    });
+  });
 });
