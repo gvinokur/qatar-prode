@@ -546,8 +546,9 @@ export async function updateTournamentAwards(tournamentId: string, withUpdate: T
 
   return await Promise.all(allTournamentGuesses.map(async (tournamentGuess) => {
     const awardsScore = awardsDefinition.reduce((accumScore, awardDefinition) => {
-      if (withUpdate[awardDefinition.property]) {
-        if (tournamentGuess[awardDefinition.property] === withUpdate[awardDefinition.property]) {
+      // FIX: Use tournament (complete state) instead of withUpdate (partial update)
+      if (tournament[awardDefinition.property]) {
+        if (tournamentGuess[awardDefinition.property] === tournament[awardDefinition.property]) {
           return accumScore + individual_award_points
         }
       }
@@ -573,27 +574,27 @@ export async function updateTournamentHonorRoll(tournamentId: string, withUpdate
   const runner_up_points = tournament.runner_up_points ?? 3;
   const third_place_points = tournament.third_place_points ?? 1;
 
-  if(withUpdate.champion_team_id || withUpdate.runner_up_team_id || withUpdate.third_place_team_id) {
-    const allTournamentGuesses = await findTournamentGuessByTournament(tournamentId)
-    return await Promise.all(allTournamentGuesses.map(async (tournamentGuess) => {
-      let honorRollScore = 0
-      if(withUpdate.champion_team_id &&
-        tournamentGuess.champion_team_id === withUpdate.champion_team_id) {
-        honorRollScore += champion_points
-      }
-      if(withUpdate.runner_up_team_id &&
-        tournamentGuess.runner_up_team_id === withUpdate.runner_up_team_id) {
-        honorRollScore += runner_up_points
-      }
-      if(withUpdate.third_place_team_id &&
-        tournamentGuess.third_place_team_id === withUpdate.third_place_team_id) {
-        honorRollScore += third_place_points
-      }
-      return await updateTournamentGuessWithSnapshot(tournamentGuess.id, {
-        honor_roll_score: honorRollScore
-      })
-    }))
-  }
+  // FIX: Always recalculate scores based on ALL honor roll fields in tournament
+  const allTournamentGuesses = await findTournamentGuessByTournament(tournamentId)
+  return await Promise.all(allTournamentGuesses.map(async (tournamentGuess) => {
+    let honorRollScore = 0
+    // FIX: Use tournament (complete state) instead of withUpdate (partial update)
+    if(tournament.champion_team_id &&
+      tournamentGuess.champion_team_id === tournament.champion_team_id) {
+      honorRollScore += champion_points
+    }
+    if(tournament.runner_up_team_id &&
+      tournamentGuess.runner_up_team_id === tournament.runner_up_team_id) {
+      honorRollScore += runner_up_points
+    }
+    if(tournament.third_place_team_id &&
+      tournamentGuess.third_place_team_id === tournament.third_place_team_id) {
+      honorRollScore += third_place_points
+    }
+    return await updateTournamentGuessWithSnapshot(tournamentGuess.id, {
+      honor_roll_score: honorRollScore
+    })
+  }))
 }
 
 /**

@@ -564,7 +564,27 @@ for (const guess of allGuesses) {
 
 ## Dependencies
 
-None - this is a self-contained bug fix in a single file.
+### Story-147 Analysis
+
+**Question:** Should we wait for story-147 (Materialize Score Calculations) to merge first?
+
+**Answer: NO - Proceed independently**
+
+**Analysis:**
+- **Story-147 changes:** Materializes game scores (group/playoff) in `tournament_guesses` table
+  - Modifies: `calculateGameScores()`, adds new columns, updates read paths
+  - Does NOT modify: `updateTournamentAwards()` or `updateTournamentHonorRoll()`
+- **Story-164 changes (this bug fix):** Fixes tournament awards and honor roll score calculation
+  - Modifies: `updateTournamentAwards()` and `updateTournamentHonorRoll()`
+  - Does NOT touch: Game score calculations or materialization
+
+**Conclusion:**
+- ✅ **No code conflicts** - Different functions modified
+- ✅ **Orthogonal concerns** - Game scores (147) vs awards/honor roll (164)
+- ✅ **Critical urgency** - Data loss is happening now, can't wait for performance optimization
+- ⚠️ **Minor risk** - Test files might have merge conflicts (easily resolved)
+
+**Decision: Proceed with story-164 independently. Do not wait for story-147 to merge.**
 
 ## References
 
