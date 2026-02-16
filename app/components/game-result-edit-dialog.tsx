@@ -19,7 +19,6 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import GamePredictionEditControls from './game-prediction-edit-controls';
-import { GameDialogSkeleton } from './skeletons';
 
 interface SharedProps {
   open: boolean;

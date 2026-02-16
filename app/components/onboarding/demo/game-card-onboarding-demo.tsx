@@ -18,10 +18,6 @@ interface GameCardOnboardingDemoProps {
   readonly isEditing: boolean
   readonly onEditStart: () => void
   readonly onEditEnd: () => void
-  readonly silverUsed: number
-  readonly silverMax: number
-  readonly goldenUsed: number
-  readonly goldenMax: number
   readonly label: string
   readonly demoNote?: string
 }
@@ -85,10 +81,6 @@ export default function GameCardOnboardingDemo({
         homePenaltyWinner={currentGuess?.home_penalty_winner}
         awayPenaltyWinner={currentGuess?.away_penalty_winner}
         boostType={currentGuess?.boost_type}
-        silverUsed={silverUsed}
-        silverMax={silverMax}
-        goldenUsed={goldenUsed}
-        goldenMax={goldenMax}
         disabled={false}
       />
     </Box>

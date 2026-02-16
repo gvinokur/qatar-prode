@@ -257,10 +257,6 @@ export default function GamesGrid({
                     isEditing={editingGameId === game.id}
                     onEditStart={() => handleEditStart(game.id)}
                     onEditEnd={handleEditEnd}
-                    silverUsed={dashboardStats?.silverUsed || 0}
-                    silverMax={tournament?.max_silver_games || 0}
-                    goldenUsed={dashboardStats?.goldenUsed || 0}
-                    goldenMax={tournament?.max_golden_games || 0}
                     disabled={!isLoggedIn}
                     onAutoAdvanceNext={() => handleAutoAdvanceNext(game.id)}
                     onAutoGoPrevious={() => handleAutoGoPrevious(game.id)}
