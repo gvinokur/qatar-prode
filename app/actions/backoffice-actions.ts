@@ -314,7 +314,26 @@ export async function saveGameResults(gamesWithResults: ExtendedGameData[]) {
     if(game.gameResult) {
       const existingResult = await findGameResultByGameId(game.id, true);
       if (existingResult) {
-        return await updateGameResult(game.id, game.gameResult)
+        // Amendment #1: If changing scores on a published result, temporarily set to draft
+        // to trigger proper materialization via cleanup + republish flow
+        const scoresChanged =
+          existingResult.home_score !== game.gameResult.home_score ||
+          existingResult.away_score !== game.gameResult.away_score ||
+          existingResult.home_penalty_score !== game.gameResult.home_penalty_score ||
+          existingResult.away_penalty_score !== game.gameResult.away_penalty_score;
+
+        const wasPublished = !existingResult.is_draft;
+
+        if (wasPublished && scoresChanged) {
+          // Step 1: Set to draft (triggers cleanup of game_guesses scores)
+          await updateGameResult(game.id, { ...game.gameResult, is_draft: true });
+
+          // Step 2: Set back to published (triggers recalculation and materialization)
+          return await updateGameResult(game.id, { ...game.gameResult, is_draft: false });
+        } else {
+          // Normal update (no score change or already draft)
+          return await updateGameResult(game.id, game.gameResult);
+        }
       } else {
         return await createGameResult(game.gameResult)
       }

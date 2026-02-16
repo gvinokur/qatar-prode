@@ -900,6 +900,35 @@ async function validateRandomUsers(sampleSize: number = 20) {
    - Update architecture diagram
    - Add comments explaining materialization vs aggregation
 
+## Implementation Amendments
+
+### Amendment #1: Auto-draft game results when changing published scores
+
+**Issue discovered during testing:**
+When changing the score of an already-published game result, the materialized scores were not being recalculated. The materialization trigger only fires when results are published or unpublished, not when scores are modified on existing published results.
+
+**Solution:**
+When a user changes the score of a published game result in the backoffice, automatically set the result to draft first, then republish with the new score. This ensures:
+1. The cleanup path runs (clearing old scores from game_guesses)
+2. The publish path runs (calculating new scores and materializing)
+3. All affected users get proper score recalculation
+
+**Implementation:**
+- Modify game result update logic in backoffice to detect score changes on published results
+- Set `is_draft = true` before updating scores
+- After score update, set `is_draft = false` to republish
+- This reuses existing code paths for proper materialization
+
+**Files to modify:**
+- `app/actions/backoffice-actions.ts` or game result update action
+- Identify where game result scores are updated in backoffice
+- Add logic to temporarily draft published results when scores change
+
+**Testing:**
+- Test changing a published game's score in backoffice
+- Verify materialized scores update correctly for all affected users
+- Verify rank changes reflect the new scores
+
 ## Notes
 
 - **No UI changes required** - this is a backend optimization
