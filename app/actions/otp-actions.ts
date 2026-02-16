@@ -88,7 +88,7 @@ export async function sendOTPCode(email: string): Promise<{
     // Validate email format
     const trimmedEmail = email?.trim() || '';
 
-    // Length check to prevent ReDoS attacks
+    // Length check
     if (!trimmedEmail || trimmedEmail.length > 254) {
       return {
         success: false,
@@ -96,9 +96,18 @@ export async function sendOTPCode(email: string): Promise<{
       };
     }
 
-    // Simplified regex to avoid backtracking issues
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(trimmedEmail)) {
+    // Structure validation without regex to avoid ReDoS
+    const atIndex = trimmedEmail.indexOf('@');
+    const lastDotIndex = trimmedEmail.lastIndexOf('.');
+
+    if (atIndex <= 0 || lastDotIndex <= atIndex + 1 || lastDotIndex >= trimmedEmail.length - 1) {
+      return {
+        success: false,
+        error: "Por favor ingresa un email válido."
+      };
+    }
+
+    if (trimmedEmail.includes(' ')) {
       return {
         success: false,
         error: "Por favor ingresa un email válido."
