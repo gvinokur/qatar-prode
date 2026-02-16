@@ -3,7 +3,6 @@
 import { useLocale } from 'next-intl';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { IconButton, Menu, MenuItem } from '@mui/material';
-import LanguageIcon from '@mui/icons-material/Language';
 import { useState } from 'react';
 
 const languages = [
@@ -50,7 +49,7 @@ export default function LanguageSwitcher() {
         aria-label="Select language"
         sx={{ color: 'inherit' }}
       >
-        <LanguageIcon />
+        <span style={{ fontSize: '20px' }}>{currentLanguage?.flag || '🌐'}</span>
       </IconButton>
       <Menu
         anchorEl={anchorEl}
