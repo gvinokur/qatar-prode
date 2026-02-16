@@ -14,8 +14,7 @@ export default function ThemeSwitcher() {
   }
 
   return (
-    <IconButton title={`Switch to ${themeMode === 'light' ? 'dark' : 'light'} mode`} onClick={switchThemeMode}
-                sx={{mr: 1}}>
+    <IconButton title={`Switch to ${themeMode === 'light' ? 'dark' : 'light'} mode`} onClick={switchThemeMode}>
       {themeMode === 'light' &&
           <DarkMode sx={{height: 24, width: 24, color: theme.palette.primary.contrastText}}/>}
       {themeMode === 'dark' &&
