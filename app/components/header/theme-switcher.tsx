@@ -29,8 +29,8 @@ export default function ThemeSwitcher() {
         }
       }}
     >
-      {themeMode === 'light' && <DarkMode sx={{fontSize: 20}}/>}
-      {themeMode === 'dark' && <LightMode sx={{fontSize: 20}}/>}
+      {themeMode === 'light' && <DarkMode sx={{fontSize: 20, color: theme.palette.primary.contrastText}}/>}
+      {themeMode === 'dark' && <LightMode sx={{fontSize: 20, color: theme.palette.primary.contrastText}}/>}
     </Avatar>
   )
 }
