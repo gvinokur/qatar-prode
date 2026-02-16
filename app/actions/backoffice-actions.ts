@@ -310,12 +310,13 @@ export async function generateDbTournament(name: string, deletePrevious:boolean 
 
 export async function saveGameResults(gamesWithResults: ExtendedGameData[]) {
   //Save all results first
+  const changedPublishedGames: ExtendedGameData[] = [];
+
   await Promise.all(gamesWithResults.map(async (game) => {
     if(game.gameResult) {
       const existingResult = await findGameResultByGameId(game.id, true);
       if (existingResult) {
-        // Amendment #1: If changing scores on a published result, temporarily set to draft
-        // to trigger proper materialization via cleanup + republish flow
+        // Amendment #1: If changing scores on a published result, handle specially
         const scoresChanged =
           existingResult.home_score !== game.gameResult.home_score ||
           existingResult.away_score !== game.gameResult.away_score ||
@@ -325,11 +326,10 @@ export async function saveGameResults(gamesWithResults: ExtendedGameData[]) {
         const wasPublished = !existingResult.is_draft;
 
         if (wasPublished && scoresChanged) {
-          // Step 1: Set to draft (triggers cleanup of game_guesses scores)
+          // Step 1: Set to draft with NEW scores (marks for cleanup)
           await updateGameResult(game.id, { ...game.gameResult, is_draft: true });
-
-          // Step 2: Set back to published (triggers recalculation and materialization)
-          return await updateGameResult(game.id, { ...game.gameResult, is_draft: false });
+          changedPublishedGames.push(game);
+          return;
         } else {
           // Normal update (no score change or already draft)
           return await updateGameResult(game.id, game.gameResult);
@@ -339,6 +339,20 @@ export async function saveGameResults(gamesWithResults: ExtendedGameData[]) {
       }
     }
   }))
+
+  // If we changed scores on published results, trigger cleanup then republish
+  if (changedPublishedGames.length > 0) {
+    // Step 2: Cleanup old scores (processes draft results)
+    await calculateGameScores(true, false);
+
+    // Step 3: Republish with new scores
+    await Promise.all(changedPublishedGames.map(game =>
+      updateGameResult(game.id, { ...game.gameResult, is_draft: false })
+    ));
+
+    // Step 4: Recalculate with new scores (processes published results)
+    await calculateGameScores(false, false);
+  }
 }
 
 export async function saveGamesData(games: ExtendedGameData[]) {
