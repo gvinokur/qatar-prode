@@ -7,7 +7,7 @@ import Rules from "../tournament-page/rules";
 import FriendGroupsList from "../tournament-page/friend-groups-list";
 import Link from "next/link";
 import { DevTournamentBadge } from "../common/dev-tournament-badge";
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 type HomeProps = {
   tournaments: Tournament[]
@@ -20,6 +20,7 @@ type HomeProps = {
 export default function Home({tournaments, groups} : HomeProps) {
   const theme = useTheme()
   const locale = useLocale()
+  const t = useTranslations('common')
 
   return (
     <Grid container spacing={2} p={2} maxWidth={'1000px'} mx={'auto'}>
@@ -30,7 +31,7 @@ export default function Home({tournaments, groups} : HomeProps) {
         }}>
         <Card>
           <CardHeader
-            title={'Torneos Disponibles'}
+            title={t('home.availableTournaments')}
             sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
             />
           <CardContent>

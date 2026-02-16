@@ -9,5 +9,8 @@
     "delete": "Eliminar",
     "edit": "Editar",
     "close": "Cerrar"
+  },
+  "home": {
+    "availableTournaments": "Torneos Disponibles"
   }
 }

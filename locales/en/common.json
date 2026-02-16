@@ -9,5 +9,8 @@
     "delete": "Delete",
     "edit": "Edit",
     "close": "Close"
+  },
+  "home": {
+    "availableTournaments": "Available Tournaments"
   }
 }
