@@ -3,17 +3,15 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { GuessesContextProvider, GuessesContext } from '../../app/components/context-providers/guesses-context-provider';
-import { Game, GameGuessNew } from '../../app/db/tables-definition';
+import { GameGuessNew } from '../../app/db/tables-definition';
 import * as guessesActions from '../../app/actions/guesses-actions';
 
 // Mock the actions
 vi.mock('../../app/actions/guesses-actions', () => ({
   updateOrCreateGameGuesses: vi.fn(),
-  updatePlayoffGameGuesses: vi.fn(),
 }));
 
 const mockUpdateOrCreateGameGuesses = vi.mocked(guessesActions.updateOrCreateGameGuesses);
-const mockUpdatePlayoffGameGuesses = vi.mocked(guessesActions.updatePlayoffGameGuesses);
 
 // Test component to consume the context
 const TestConsumer = () => {
@@ -91,26 +89,9 @@ describe('GuessesContextProvider', () => {
     }
   };
 
-  const mockGroupGames: Game[] = [
-    {
-      id: 'game1',
-      tournament_id: 'tournament1',
-      game_number: 1,
-      home_team: 'team1',
-      away_team: 'team2',
-      game_date: new Date(),
-      location: 'Stadium 1',
-      game_type: 'group',
-      home_team_rule: undefined,
-      away_team_rule: undefined,
-      game_local_timezone: undefined
-    }
-  ];
-
   beforeEach(() => {
     vi.clearAllMocks();
     mockUpdateOrCreateGameGuesses.mockResolvedValue(undefined);
-    mockUpdatePlayoffGameGuesses.mockResolvedValue(undefined);
   });
 
   it('renders children with initial context values', () => {
@@ -192,60 +173,117 @@ describe('GuessesContextProvider', () => {
     ]);
   });
 
-  it('does not update playoff game guesses when not all games are guessed', async () => {
+  it('throws error and logs when save fails with autoSave=true', async () => {
     const user = userEvent.setup();
-    const multipleGames: Game[] = [
-      ...mockGroupGames,
-      {
-        id: 'game2',
-        tournament_id: 'tournament1',
-        game_number: 2,
-        home_team: 'team3',
-        away_team: 'team4',
-        game_date: new Date(),
-        location: 'Stadium 2',
-        game_type: 'group',
-        home_team_rule: undefined,
-        away_team_rule: undefined,
-        game_local_timezone: undefined
-      }
-    ];
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Mock save failure
+    mockUpdateOrCreateGameGuesses.mockResolvedValue({
+      success: false,
+      error: 'Network error'
+    } as any);
+
+    const TestConsumerWithErrorBoundary = () => {
+      const context = React.useContext(GuessesContext);
+      const [error, setError] = React.useState<string | null>(null);
+
+      const handleUpdate = async () => {
+        try {
+          await context.updateGameGuess('game1', {
+            game_id: 'game1',
+            game_number: 1,
+            user_id: 'user1',
+            home_score: 2,
+            away_score: 1
+          });
+        } catch (e: any) {
+          setError(e.message);
+        }
+      };
+
+      return (
+        <div>
+          <button data-testid="update-guess" onClick={handleUpdate}>
+            Update
+          </button>
+          {error && <div data-testid="error-message">{error}</div>}
+        </div>
+      );
+    };
 
     render(
-      <GuessesContextProvider
-        gameGuesses={mockGameGuesses}
-        groupGames={multipleGames}
-        autoSave={true}
-      >
-        <TestConsumer />
+      <GuessesContextProvider gameGuesses={mockGameGuesses} autoSave={true}>
+        <TestConsumerWithErrorBoundary />
       </GuessesContextProvider>
     );
 
     await user.click(screen.getByTestId('update-guess'));
 
     await waitFor(() => {
-      expect(mockUpdatePlayoffGameGuesses).not.toHaveBeenCalled();
+      expect(screen.getByTestId('error-message')).toBeInTheDocument();
     });
+
+    expect(screen.getByTestId('error-message')).toHaveTextContent('Network error');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('[GuessesContext] Save failed:', 'Network error');
+
+    consoleErrorSpy.mockRestore();
   });
 
-  it('does not update playoff game guesses when no group games provided', async () => {
+  it('throws default error message when save fails without error details', async () => {
     const user = userEvent.setup();
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Mock save failure without error message
+    mockUpdateOrCreateGameGuesses.mockResolvedValue({
+      success: false
+    } as any);
+
+    const TestConsumerWithErrorBoundary = () => {
+      const context = React.useContext(GuessesContext);
+      const [error, setError] = React.useState<string | null>(null);
+
+      const handleUpdate = async () => {
+        try {
+          await context.updateGameGuess('game1', {
+            game_id: 'game1',
+            game_number: 1,
+            user_id: 'user1',
+            home_score: 2,
+            away_score: 1
+          });
+        } catch (e: any) {
+          setError(e.message);
+        }
+      };
+
+      return (
+        <div>
+          <button data-testid="update-guess" onClick={handleUpdate}>
+            Update
+          </button>
+          {error && <div data-testid="error-message">{error}</div>}
+        </div>
+      );
+    };
 
     render(
-      <GuessesContextProvider
-        gameGuesses={mockGameGuesses}
-        autoSave={true}
-      >
-        <TestConsumer />
+      <GuessesContextProvider gameGuesses={mockGameGuesses} autoSave={true}>
+        <TestConsumerWithErrorBoundary />
       </GuessesContextProvider>
     );
 
     await user.click(screen.getByTestId('update-guess'));
 
     await waitFor(() => {
-      expect(mockUpdatePlayoffGameGuesses).not.toHaveBeenCalled();
+      expect(screen.getByTestId('error-message')).toBeInTheDocument();
     });
+
+    expect(screen.getByTestId('error-message')).toHaveTextContent('Failed to save prediction');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('[GuessesContext] Save failed:', undefined);
+
+    consoleErrorSpy.mockRestore();
   });
+
 
   it('handles empty initial game guesses', () => {
     render(
