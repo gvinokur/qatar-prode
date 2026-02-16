@@ -4,8 +4,6 @@ import FlippableGameCard from '../../app/components/flippable-game-card';
 import { GuessesContext } from '../../app/components/context-providers/guesses-context-provider';
 import { CountdownProvider } from '../../app/components/context-providers/countdown-context-provider';
 
-// STORY-167: Tests skipped - need updating after removing boost count props
-// TODO: Update these tests after Vercel Preview testing
 import { ExtendedGameData } from '../../app/definitions';
 import { Team } from '../../app/db/tables-definition';
 import { renderWithTheme } from '../utils/test-utils';
@@ -33,7 +31,7 @@ vi.mock('@mui/material', async () => {
   };
 });
 
-describe.skip('FlippableGameCard', () => {
+describe('FlippableGameCard', () => {
   const mockTeamsMap: Record<string, Team> = {
     'team1': {
       id: 'team1',
@@ -89,10 +87,15 @@ describe.skip('FlippableGameCard', () => {
       }
     },
     guessedPositions: {},
+    boostCounts: {
+      silver: { used: 0, max: 5 },
+      golden: { used: 0, max: 2 }
+    },
     updateGameGuess: vi.fn(),
     pendingSaves: new Set<string>(),
     saveErrors: {},
     clearSaveError: vi.fn(),
+    flushPendingSave: vi.fn(),
   };
 
   const defaultProps = {
@@ -108,10 +111,6 @@ describe.skip('FlippableGameCard', () => {
     isEditing: false,
     onEditStart: vi.fn(),
     onEditEnd: vi.fn(),
-    silverUsed: 0,
-    silverMax: 5,
-    goldenUsed: 0,
-    goldenMax: 2,
     disabled: false,
   };
 
@@ -359,14 +358,28 @@ describe.skip('FlippableGameCard', () => {
     });
 
     it('disables silver boost when limit reached', () => {
-      renderWithContext({ ...defaultProps, isEditing: true, tournamentId: 'tournament1', silverUsed: 5 });
+      const contextWithMaxSilver = {
+        ...mockContextValue,
+        boostCounts: {
+          silver: { used: 5, max: 5 },
+          golden: { used: 0, max: 2 }
+        }
+      };
+      renderWithContext({ ...defaultProps, isEditing: true, tournamentId: 'tournament1' }, contextWithMaxSilver);
 
       const silverButton = screen.getByLabelText(/Silver boost/i);
       expect(silverButton).toBeDisabled();
     });
 
     it('disables golden boost when limit reached', () => {
-      renderWithContext({ ...defaultProps, isEditing: true, tournamentId: 'tournament1', goldenUsed: 2 });
+      const contextWithMaxGolden = {
+        ...mockContextValue,
+        boostCounts: {
+          silver: { used: 0, max: 5 },
+          golden: { used: 2, max: 2 }
+        }
+      };
+      renderWithContext({ ...defaultProps, isEditing: true, tournamentId: 'tournament1' }, contextWithMaxGolden);
 
       const goldenButton = screen.getByLabelText(/Golden boost/i);
       expect(goldenButton).toBeDisabled();

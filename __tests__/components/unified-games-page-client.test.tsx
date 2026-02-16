@@ -4,8 +4,6 @@ import { UnifiedGamesPageClient } from '../../app/components/unified-games-page-
 import { renderWithProviders, createMockGuessesContext } from '../utils/test-utils';
 import { testFactories, createMany } from '../db/test-factories';
 
-// STORY-167: Tests skipped - need updating after removing dashboardStats prop
-// TODO: Update these tests after Vercel Preview testing
 import { ExtendedGameData } from '../../app/definitions';
 import { TournamentGameCounts } from '../../app/db/game-repository';
 import { Team, Tournament, TournamentGroup, PlayoffRound, TournamentPredictionCompletion } from '../../app/db/tables-definition';
@@ -69,7 +67,7 @@ vi.mock('../../app/utils/auto-scroll', () => ({
   scrollToGame: vi.fn()
 }));
 
-describe.skip('UnifiedGamesPageClient', () => {
+describe('UnifiedGamesPageClient', () => {
   // Test data factories
   const createTestGames = (count: number): ExtendedGameData[] => {
     return createMany(testFactories.game, count, (i) => ({
@@ -126,11 +124,6 @@ describe.skip('UnifiedGamesPageClient', () => {
     testFactories.playoffRound({ id: 'round-1', round_name: 'Round of 16', round_order: 1 }),
     testFactories.playoffRound({ id: 'round-2', round_name: 'Quarter Finals', round_order: 2 })
   ];
-
-  const defaultDashboardStats = {
-    silverUsed: 2,
-    goldenUsed: 1
-  };
 
   const defaultTournamentPredictionCompletion: TournamentPredictionCompletion = {
     finalStandings: {
@@ -213,7 +206,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -240,7 +232,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={null}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={null}
@@ -264,7 +255,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -289,7 +279,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -316,7 +305,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -340,7 +328,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -368,7 +355,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -398,7 +384,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -428,7 +413,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -465,7 +449,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -499,7 +482,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -529,7 +511,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -562,7 +543,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -588,7 +568,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -617,7 +596,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -648,7 +626,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={[]}
           rounds={[]}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -677,7 +654,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={{ silverUsed: 0, goldenUsed: 0 }}
           tournament={tournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -686,12 +662,8 @@ describe.skip('UnifiedGamesPageClient', () => {
         { guessesContext: true }
       );
 
-      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-        expect.objectContaining({
-          silverMax: 0,
-          goldenMax: 0
-        })
-      );
+      // Component now uses boost counts from context, not props
+      expect(mockCompactPredictionDashboard).toHaveBeenCalled();
     });
 
     it('should handle empty groups and rounds arrays', () => {
@@ -706,7 +678,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={[]}
           rounds={[]}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -735,7 +706,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -767,7 +737,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={closingGames}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -780,10 +749,6 @@ describe.skip('UnifiedGamesPageClient', () => {
         expect.objectContaining({
           totalGames: 6,
           predictedGames: 0,
-          silverUsed: 2,
-          silverMax: 5,
-          goldenUsed: 1,
-          goldenMax: 3,
           tournamentPredictions: defaultTournamentPredictionCompletion,
           tournamentId: 'tournament-1',
           tournamentStartDate: tournamentStartDate,
@@ -806,7 +771,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -836,7 +800,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -870,7 +833,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -885,7 +847,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           teamsMap: teamsMap,
           tournamentId: 'tournament-1',
           activeFilter: 'all',
-          dashboardStats: defaultDashboardStats,
           tournament: defaultTournament
         })
       );
@@ -903,7 +864,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={null}
@@ -933,7 +893,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -966,7 +925,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -999,7 +957,6 @@ describe.skip('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}

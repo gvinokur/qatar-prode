@@ -22,12 +22,21 @@ export interface RenderWithThemeResult extends RenderResult {
 export type GameGuessMap = { [k: string]: GameGuessNew };
 
 /**
+ * Boost counts structure
+ */
+export interface BoostCounts {
+  silver: { used: number; max: number };
+  golden: { used: number; max: number };
+}
+
+/**
  * Extended GuessesContext value type for testing
  * Includes both real context properties and test-specific mock properties
  */
 export interface GuessesContextValue {
   gameGuesses: GameGuessMap;
   guessedPositions: TournamentGroupTeamStatsGuessNew[];
+  boostCounts: BoostCounts;
   updateGameGuess: (gameId: string, gameGuess: GameGuessNew) => Promise<void>;
   pendingSaves: Set<string>;
   saveErrors: Record<string, string>;
@@ -145,6 +154,10 @@ export const createMockGuessesContext = (
   return {
     gameGuesses: {},
     guessedPositions: [],
+    boostCounts: {
+      silver: { used: 0, max: 5 },
+      golden: { used: 0, max: 2 }
+    },
     updateGameGuess: vi.fn().mockResolvedValue(undefined),
     pendingSaves: new Set<string>(),
     saveErrors: {},
