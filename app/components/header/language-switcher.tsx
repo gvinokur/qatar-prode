@@ -2,7 +2,7 @@
 
 import { useLocale } from 'next-intl';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { IconButton, Menu, MenuItem } from '@mui/material';
+import { Avatar, Menu, MenuItem } from '@mui/material';
 import { useState } from 'react';
 
 const languages = [
@@ -44,13 +44,24 @@ export default function LanguageSwitcher() {
 
   return (
     <>
-      <IconButton
+      <Avatar
         onClick={handleOpen}
         aria-label="Select language"
-        sx={{ color: 'inherit' }}
+        sx={{
+          width: 40,
+          height: 40,
+          cursor: 'pointer',
+          bgcolor: 'action.hover',
+          fontSize: '20px',
+          transition: 'all 0.2s',
+          '&:hover': {
+            bgcolor: 'action.selected',
+            transform: 'scale(1.05)',
+          }
+        }}
       >
-        <span style={{ fontSize: '20px' }}>{currentLanguage?.flag || '🌐'}</span>
-      </IconButton>
+        {currentLanguage?.flag || '🌐'}
+      </Avatar>
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}

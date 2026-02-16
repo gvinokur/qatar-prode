@@ -1,7 +1,7 @@
 'use client'
 
 import {DarkMode, LightMode} from "@mui/icons-material";
-import {IconButton, useTheme} from "@mui/material";
+import {Avatar, useTheme} from "@mui/material";
 import {useTheme as useNextTheme} from "next-themes";
 
 export default function ThemeSwitcher() {
@@ -14,11 +14,23 @@ export default function ThemeSwitcher() {
   }
 
   return (
-    <IconButton title={`Switch to ${themeMode === 'light' ? 'dark' : 'light'} mode`} onClick={switchThemeMode}>
-      {themeMode === 'light' &&
-          <DarkMode sx={{height: 24, width: 24, color: theme.palette.primary.contrastText}}/>}
-      {themeMode === 'dark' &&
-          <LightMode sx={{height: 24, width: 24, color: theme.palette.primary.contrastText}}/>}
-    </IconButton>
+    <Avatar
+      onClick={switchThemeMode}
+      title={`Switch to ${themeMode === 'light' ? 'dark' : 'light'} mode`}
+      sx={{
+        width: 40,
+        height: 40,
+        cursor: 'pointer',
+        bgcolor: 'action.hover',
+        transition: 'all 0.2s',
+        '&:hover': {
+          bgcolor: 'action.selected',
+          transform: 'scale(1.05)',
+        }
+      }}
+    >
+      {themeMode === 'light' && <DarkMode sx={{fontSize: 20}}/>}
+      {themeMode === 'dark' && <LightMode sx={{fontSize: 20}}/>}
+    </Avatar>
   )
 }

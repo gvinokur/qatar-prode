@@ -5,7 +5,6 @@ import * as React from "react";
 import {
   Avatar,
   Box, Button,
-  IconButton,
   Menu,
   MenuItem,
   Tooltip,
@@ -92,9 +91,21 @@ export default function UserActions({ user }: UserActionProps) {
       {user ? (
         <Box sx={{ flexGrow: 0 }}>
           <Tooltip title="Abrir Menu de Usuario">
-            <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-              <Avatar alt={(user.nickname || user.email || '')}>{(user.nickname || user.email || 'U')[0]}</Avatar>
-            </IconButton>
+            <Avatar
+              onClick={handleOpenUserMenu}
+              alt={(user.nickname || user.email || '')}
+              sx={{
+                width: 40,
+                height: 40,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                '&:hover': {
+                  transform: 'scale(1.05)',
+                }
+              }}
+            >
+              {(user.nickname || user.email || 'U')[0]}
+            </Avatar>
           </Tooltip>
           <Menu
             sx={{ mt: '45px' }}
