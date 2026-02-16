@@ -5,6 +5,7 @@ import sha256 from 'crypto-js/sha256'
 import {cache} from "react";
 import {PushSubscription} from "web-push";
 import {sql} from "kysely";
+import crypto from "crypto";
 
 const baseFunctions = createBaseFunctions<UserTable, User>('users');
 export const findUserById = baseFunctions.findById
@@ -318,8 +319,8 @@ export async function generateOTP(email: string): Promise<{
     }
   }
 
-  // Generate 6-digit OTP (100000-999999)
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  // Generate 6-digit OTP (100000-999999) using cryptographically secure random
+  const otp = crypto.randomInt(100000, 1000000).toString();
 
   // Set expiration to 3 minutes from now
   const expiration = new Date(now.getTime() + 3 * 60 * 1000);

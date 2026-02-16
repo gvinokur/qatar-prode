@@ -86,8 +86,19 @@ export async function sendOTPCode(email: string): Promise<{
 }> {
   try {
     // Validate email format
+    const trimmedEmail = email?.trim() || '';
+
+    // Length check to prevent ReDoS attacks
+    if (!trimmedEmail || trimmedEmail.length > 254) {
+      return {
+        success: false,
+        error: "Por favor ingresa un email válido."
+      };
+    }
+
+    // Simplified regex to avoid backtracking issues
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email?.trim() || !emailRegex.test(email.trim())) {
+    if (!emailRegex.test(trimmedEmail)) {
       return {
         success: false,
         error: "Por favor ingresa un email válido."
