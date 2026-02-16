@@ -282,7 +282,7 @@ describe('UserTournamentStatistics', () => {
 
       const link = screen.getByRole('link', { name: /ver.*estadísticas detalladas/i })
       expect(link).toBeInTheDocument()
-      expect(link).toHaveAttribute('href', '/tournaments/test-tournament/stats')
+      expect(link).toHaveAttribute('href', '/es/tournaments/test-tournament/stats')
     })
 
     it('does not render link button when tournamentId is missing', () => {
@@ -309,7 +309,7 @@ describe('UserTournamentStatistics', () => {
       )
 
       const link = screen.getByRole('link')
-      expect(link).toHaveAttribute('href', `/tournaments/${tournamentId}/stats`)
+      expect(link).toHaveAttribute('href', `/es/tournaments/${tournamentId}/stats`)
     })
 
     it('displays all stats with realistic tournament data', async () => {

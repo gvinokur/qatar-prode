@@ -89,7 +89,7 @@ describe('JoinGroupDialog', () => {
     await user.click(joinButton);
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/friend-groups/join/ABC123');
+      expect(mockPush).toHaveBeenCalledWith('/es/friend-groups/join/ABC123');
     });
   });
 
@@ -104,7 +104,7 @@ describe('JoinGroupDialog', () => {
     await user.click(joinButton);
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/friend-groups/join/ABC123');
+      expect(mockPush).toHaveBeenCalledWith('/es/friend-groups/join/ABC123');
     });
   });
 

@@ -21,7 +21,7 @@ export default async function JoinGroup(props : Props){
   
   if(!user) {
     if(!searchParams.openSignin) {
-      redirect(`/friend-groups/join/${params.id}/?openSignin=true`)
+      redirect(`/es/friend-groups/join/${params.id}/?openSignin=true`)
     } else {
       return (
         <Snackbar
@@ -54,7 +54,7 @@ export default async function JoinGroup(props : Props){
   const isAlreadyParticipant = participants.some((p: { user_id: string }) => p.user_id === user.id)
   
   if (isAlreadyParticipant || targetGroup.owner_user_id === user.id) {
-    redirect(`/friend-groups/${targetGroup.id}`)
+    redirect(`/es/friend-groups/${targetGroup.id}`)
   }
   let joinedGroup
   try {
@@ -63,7 +63,7 @@ export default async function JoinGroup(props : Props){
     }
 
   if(joinedGroup) {
-    redirect(`/friend-groups/${joinedGroup.id}?recentlyJoined`)
+    redirect(`/es/friend-groups/${joinedGroup.id}?recentlyJoined`)
   }
 
   return (

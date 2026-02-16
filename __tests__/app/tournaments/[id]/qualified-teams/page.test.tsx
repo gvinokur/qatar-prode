@@ -1,6 +1,6 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { redirect, notFound } from 'next/navigation';
-import QualifiedTeamsPage from '../../../../../app/tournaments/[id]/qualified-teams/page';
+import QualifiedTeamsPage from '../../../../../app/[locale]/tournaments/[id]/qualified-teams/page';
 import * as userActions from '../../../../../app/actions/user-actions';
 import * as qualificationActions from '../../../../../app/actions/qualification-actions';
 import { db } from '../../../../../app/db/database';
@@ -47,7 +47,7 @@ vi.mock('../../../../../app/utils/qualified-teams-scoring', () => ({
 }));
 
 // Mock the client component
-vi.mock('../../../../../app/components/qualified-teams/qualified-teams-client-page', () => ({
+vi.mock('../../../../../app/[locale]/components/qualified-teams/qualified-teams-client-page', () => ({
   default: ({ tournament, groups, initialPredictions, userId, isLocked, allowsThirdPlace, maxThirdPlace, actualResults, scoringBreakdown }: any) => (
     <div data-testid="qualified-teams-client-page">
       <div data-testid="tournament-id">{tournament.id}</div>
@@ -134,7 +134,7 @@ describe('QualifiedTeamsPage', () => {
     const params = Promise.resolve({ id: 'tournament-1' });
 
     await expect(QualifiedTeamsPage({ params })).rejects.toThrow('NEXT_REDIRECT');
-    expect(mockRedirect).toHaveBeenCalledWith('/auth/login?redirect=/tournaments/tournament-1/qualified-teams');
+    expect(mockRedirect).toHaveBeenCalledWith('/es/auth/login?redirect=/es/tournaments/tournament-1/qualified-teams');
   });
 
   it('should redirect to login if user has no ID', async () => {
@@ -143,7 +143,7 @@ describe('QualifiedTeamsPage', () => {
     const params = Promise.resolve({ id: 'tournament-1' });
 
     await expect(QualifiedTeamsPage({ params })).rejects.toThrow('NEXT_REDIRECT');
-    expect(mockRedirect).toHaveBeenCalledWith('/auth/login?redirect=/tournaments/tournament-1/qualified-teams');
+    expect(mockRedirect).toHaveBeenCalledWith('/es/auth/login?redirect=/es/tournaments/tournament-1/qualified-teams');
   });
 
   it('should call notFound if tournament does not exist', async () => {

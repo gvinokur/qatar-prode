@@ -154,7 +154,7 @@ describe('TournamentLayout - Mobile Header Integration', () => {
 
     // Verify logo is inside a link to home
     const homeLink = logo.closest('a');
-    expect(homeLink).toHaveAttribute('href', '/');
+    expect(homeLink).toHaveAttribute('href', '/es');
   });
 
   it('includes tournament logo and name', async () => {
@@ -215,7 +215,7 @@ describe('TournamentLayout - Mobile Header Integration', () => {
       expect(e.message).toBe('REDIRECT');
     }
 
-    expect(redirect).toHaveBeenCalledWith('/?openSignin=true&returnUrl=/tournaments/tournament-1');
+    expect(redirect).toHaveBeenCalledWith('/es?openSignin=true&returnUrl=/es/tournaments/tournament-1');
   });
 
   it('shows notFound for dev tournament without permission', async () => {

@@ -15,6 +15,8 @@ export default function ThemeSwitcher() {
 
   return (
     <Avatar
+      role="button"
+      tabIndex={0}
       onClick={switchThemeMode}
       title={`Switch to ${themeMode === 'light' ? 'dark' : 'light'} mode`}
       sx={{

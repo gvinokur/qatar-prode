@@ -72,7 +72,7 @@ describe('TournamentGroupCard', () => {
     renderWithTheme(<TournamentGroupCard group={mockGroup} tournamentId={tournamentId} />);
     // Spanish: "Ver Detalles" instead of "View Details"
     const link = screen.getByRole('link', { name: /Ver Detalles/ });
-    expect(link).toHaveAttribute('href', `/tournaments/${tournamentId}/friend-groups/${mockGroup.groupId}`);
+    expect(link).toHaveAttribute('href', `/es/tournaments/${tournamentId}/friend-groups/${mockGroup.groupId}`);
   });
 
   it('shows share button when user is owner', () => {

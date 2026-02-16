@@ -13,7 +13,7 @@ vi.mock('next/navigation', () => ({
 describe('ConditionalHeader', () => {
   beforeEach(() => {
     // Reset to defaults
-    mockPathname = '/'
+    mockPathname = '/es'
   })
 
   afterEach(() => {
@@ -21,7 +21,7 @@ describe('ConditionalHeader', () => {
   })
 
   it('shows header on home page', () => {
-    mockPathname = '/'
+    mockPathname = '/es'
 
     const { container } = renderWithTheme(
       <ConditionalHeader>
@@ -34,7 +34,7 @@ describe('ConditionalHeader', () => {
   })
 
   it('hides header on tournament page', () => {
-    mockPathname = '/tournaments/123'
+    mockPathname = '/es/tournaments/123'
 
     const { container } = renderWithTheme(
       <ConditionalHeader>
@@ -47,7 +47,7 @@ describe('ConditionalHeader', () => {
   })
 
   it('handles nested tournament route /tournaments/123/groups/A', () => {
-    mockPathname = '/tournaments/123/groups/A'
+    mockPathname = '/es/tournaments/123/groups/A'
 
     const { container } = renderWithTheme(
       <ConditionalHeader>
@@ -60,7 +60,7 @@ describe('ConditionalHeader', () => {
   })
 
   it('handles nested tournament route /tournaments/123/stats', () => {
-    mockPathname = '/tournaments/123/stats'
+    mockPathname = '/es/tournaments/123/stats'
 
     const { container } = renderWithTheme(
       <ConditionalHeader>
@@ -73,7 +73,7 @@ describe('ConditionalHeader', () => {
   })
 
   it('shows header on profile page', () => {
-    mockPathname = '/profile'
+    mockPathname = '/es/profile'
 
     const { container } = renderWithTheme(
       <ConditionalHeader>
@@ -86,7 +86,7 @@ describe('ConditionalHeader', () => {
   })
 
   it('shows header on any non-tournament page', () => {
-    mockPathname = '/some-other-page'
+    mockPathname = '/es/some-other-page'
 
     const { container } = renderWithTheme(
       <ConditionalHeader>
@@ -99,7 +99,7 @@ describe('ConditionalHeader', () => {
   })
 
   it('shows header on non-tournament pages', () => {
-    mockPathname = '/settings'
+    mockPathname = '/es/settings'
 
     const { container } = renderWithTheme(
       <ConditionalHeader>

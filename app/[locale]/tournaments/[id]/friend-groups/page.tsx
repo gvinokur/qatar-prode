@@ -20,13 +20,13 @@ export default async function TournamentGroupsPage(props: Props) {
   // Check authentication
   const user = await getLoggedInUser();
   if (!user) {
-    return redirect(`/login?redirect=/tournaments/${tournamentId}/friend-groups`);
+    return redirect(`/es/login?redirect=/es/tournaments/${tournamentId}/friend-groups`);
   }
 
   // Fetch user's groups
   const prodeGroups = await getGroupsForUser();
   if (!prodeGroups) {
-    return redirect(`/tournaments/${tournamentId}`);
+    return redirect(`/es/tournaments/${tournamentId}`);
   }
 
   // Combine user groups and participant groups

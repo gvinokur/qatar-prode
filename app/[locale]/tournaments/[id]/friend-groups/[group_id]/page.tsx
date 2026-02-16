@@ -33,7 +33,7 @@ export default async function TournamentScopedFriendGroup(props : Props){
   const tournament = await findTournamentById(params.id)
 
   if(!prodeGroup || !user || !tournament) {
-    redirect(`/tournaments/${params.id}`)
+    redirect(`/es/tournaments/${params.id}`)
   }
 
   const participants = await findParticipantsInGroup(prodeGroup.id)

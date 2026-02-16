@@ -136,13 +136,13 @@ export default async function TournamentStatsPage(props: Props) {
   // Auth check
   const user = await getLoggedInUser()
   if (!user) {
-    redirect(`/tournaments/${tournamentId}`)
+    redirect(`/es/tournaments/${tournamentId}`)
   }
 
   // Fetch all required data
   const tournament = await findTournamentById(tournamentId)
   if (!tournament) {
-    redirect(`/tournaments`)
+    redirect(`/es/tournaments`)
   }
 
   const userGameStatsList = await getGameGuessStatisticsForUsers([user.id], tournamentId)

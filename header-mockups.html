@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Header Actions Mockups - Qatar Prode</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .subtitle {
+            color: #888;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+
+        .mockup-section {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid #333;
+        }
+
+        .mockup-title {
+            font-size: 24px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge.current {
+            background: #444;
+            color: #aaa;
+        }
+
+        .badge.recommended {
+            background: #1a73e8;
+            color: #fff;
+        }
+
+        .mockup-description {
+            color: #aaa;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        /* App Header Mockup */
+        .app-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 16px 24px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .app-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        /* Actions Container */
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Current State - Inconsistent */
+        .action-btn-current {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: white;
+            font-size: 20px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .action-btn-current:hover {
+            opacity: 0.8;
+        }
+
+        .avatar-current {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* Option 1: All Circular Avatars */
+        .action-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .action-avatar:hover {
+            background: rgba(255,255,255,0.25);
+            transform: scale(1.05);
+        }
+
+        .action-avatar.user {
+            background: #555;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        /* Option 2: Subtle Backgrounds */
+        .action-btn-subtle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+        }
+
+        .action-btn-subtle:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.05);
+        }
+
+        .avatar-subtle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .avatar-subtle:hover {
+            transform: scale(1.05);
+        }
+
+        /* Option 3: Badge/Ring Style */
+        .action-badge {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: transparent;
+            border: 2px solid rgba(255,255,255,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+        }
+
+        .action-badge:hover {
+            border-color: rgba(255,255,255,0.7);
+            background: rgba(255,255,255,0.1);
+            transform: scale(1.05);
+        }
+
+        .avatar-badge {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #555;
+            border: 2px solid rgba(255,255,255,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .avatar-badge:hover {
+            border-color: rgba(255,255,255,0.7);
+            transform: scale(1.05);
+        }
+
+        /* Option 4: Pill/Capsule Style */
+        .action-pill {
+            height: 40px;
+            padding: 0 16px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.15);
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+            font-weight: 500;
+        }
+
+        .action-pill:hover {
+            background: rgba(255,255,255,0.25);
+            transform: scale(1.02);
+        }
+
+        .pill-label {
+            font-size: 14px;
+            display: none;
+        }
+
+        @media (min-width: 768px) {
+            .pill-label {
+                display: inline;
+            }
+        }
+
+        .avatar-pill {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        /* Pros/Cons */
+        .details {
+            margin-top: 25px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .pros, .cons {
+            background: #0f0f0f;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #222;
+        }
+
+        .pros h4, .cons h4 {
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .pros h4 {
+            color: #4ade80;
+        }
+
+        .cons h4 {
+            color: #f87171;
+        }
+
+        .pros ul, .cons ul {
+            list-style: none;
+            color: #aaa;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .pros li:before {
+            content: "✓ ";
+            color: #4ade80;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .cons li:before {
+            content: "✗ ";
+            color: #f87171;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .details {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Header Actions Design Mockups</h1>
+        <p class="subtitle">Exploring uniform design options for theme switcher, language switcher, and user menu</p>
+
+        <!-- Current State -->
+        <div class="mockup-section">
+            <div class="mockup-title">
+                <span>Current State</span>
+                <span class="badge current">As-Is</span>
+            </div>
+            <p class="mockup-description">
+                The current implementation has inconsistent visual styling - theme and language are plain icons/emojis
+                while the user avatar has a circular background.
+            </p>
+            <div class="app-header">
+                <div class="app-logo">
+                    <div class="logo-icon">⚽</div>
+                    <span>Prode Mundial</span>
+                </div>
+                <div class="actions">
+                    <button class="action-btn-current">☀️</button>
+                    <button class="action-btn-current">🇺🇸</button>
+                    <div class="avatar-current">V</div>
+                </div>
+            </div>
+            <div class="details">
+                <div class="cons">
+                    <h4>Issues</h4>
+                    <ul>
+                        <li>Inconsistent visual hierarchy</li>
+                        <li>Theme and language icons feel "floaty"</li>
+                        <li>User avatar stands out too much</li>
+                        <li>No clear button affordance on first two</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Option 1: All Circular Avatars -->
+        <div class="mockup-section">
+            <div class="mockup-title">
+                <span>Option 1: All Circular Avatars</span>
+                <span class="badge recommended">Recommended</span>
+            </div>
+            <p class="mockup-description">
+                All three elements use the same circular avatar style with consistent sizing and subtle backgrounds.
+                Creates a cohesive, unified look that matches Material-UI patterns.
+            </p>
+            <div class="app-header">
+                <div class="app-logo">
+                    <div class="logo-icon">⚽</div>
+                    <span>Prode Mundial</span>
+                </div>
+                <div class="actions">
+                    <div class="action-avatar">☀️</div>
+                    <div class="action-avatar">🇺🇸</div>
+                    <div class="action-avatar user">V</div>
+                </div>
+            </div>
+            <div class="details">
+                <div class="pros">
+                    <h4>Pros</h4>
+                    <ul>
+                        <li>Most consistent and uniform appearance</li>
+                        <li>All elements have equal visual weight</li>
+                        <li>Clear clickable affordance</li>
+                        <li>Matches Material-UI Avatar component</li>
+                        <li>Professional, polished look</li>
+                        <li>Easy to implement with existing components</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h4>Cons</h4>
+                    <ul>
+                        <li>Slightly larger footprint than icon buttons</li>
+                        <li>May feel "heavier" on mobile</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Option 2: Subtle Backgrounds -->
+        <div class="mockup-section">
+            <div class="mockup-title">
+                <span>Option 2: Icon Buttons with Subtle Backgrounds</span>
+            </div>
+            <p class="mockup-description">
+                All elements get a subtle circular background, keeping them lightweight while adding visual consistency.
+            </p>
+            <div class="app-header">
+                <div class="app-logo">
+                    <div class="logo-icon">⚽</div>
+                    <span>Prode Mundial</span>
+                </div>
+                <div class="actions">
+                    <button class="action-btn-subtle">☀️</button>
+                    <button class="action-btn-subtle">🇺🇸</button>
+                    <div class="avatar-subtle">V</div>
+                </div>
+            </div>
+            <div class="details">
+                <div class="pros">
+                    <h4>Pros</h4>
+                    <ul>
+                        <li>Lightweight and minimal</li>
+                        <li>Good balance between consistency and subtlety</li>
+                        <li>Maintains clickable affordance</li>
+                        <li>Works well on mobile</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h4>Cons</h4>
+                    <ul>
+                        <li>User avatar still stands out more</li>
+                        <li>Less visual consistency than Option 1</li>
+                        <li>Backgrounds may be too subtle</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Option 3: Badge/Ring Style -->
+        <div class="mockup-section">
+            <div class="mockup-title">
+                <span>Option 3: Badge Style with Outline Rings</span>
+            </div>
+            <p class="mockup-description">
+                All elements have outline rings/borders, creating a distinctive badge-like appearance.
+            </p>
+            <div class="app-header">
+                <div class="app-logo">
+                    <div class="logo-icon">⚽</div>
+                    <span>Prode Mundial</span>
+                </div>
+                <div class="actions">
+                    <button class="action-badge">☀️</button>
+                    <button class="action-badge">🇺🇸</button>
+                    <div class="avatar-badge">V</div>
+                </div>
+            </div>
+            <div class="details">
+                <div class="pros">
+                    <h4>Pros</h4>
+                    <ul>
+                        <li>Unique and distinctive look</li>
+                        <li>All elements clearly defined</li>
+                        <li>Good hover states with ring glow</li>
+                        <li>Lightweight background</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h4>Cons</h4>
+                    <ul>
+                        <li>Rings may feel too decorative</li>
+                        <li>More visual noise than other options</li>
+                        <li>Less common UI pattern</li>
+                        <li>May clash with existing design language</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Option 4: Pill/Capsule Style -->
+        <div class="mockup-section">
+            <div class="mockup-title">
+                <span>Option 4: Pill/Capsule Style</span>
+            </div>
+            <p class="mockup-description">
+                Theme and language become pill-shaped buttons (with optional labels on desktop), user keeps circular avatar.
+            </p>
+            <div class="app-header">
+                <div class="app-logo">
+                    <div class="logo-icon">⚽</div>
+                    <span>Prode Mundial</span>
+                </div>
+                <div class="actions">
+                    <button class="action-pill">
+                        <span>☀️</span>
+                        <span class="pill-label">Light</span>
+                    </button>
+                    <button class="action-pill">
+                        <span>🇺🇸</span>
+                        <span class="pill-label">English</span>
+                    </button>
+                    <div class="avatar-pill">V</div>
+                </div>
+            </div>
+            <div class="details">
+                <div class="pros">
+                    <h4>Pros</h4>
+                    <ul>
+                        <li>Optional text labels add clarity</li>
+                        <li>Modern, trendy design</li>
+                        <li>Labels hide on mobile for space saving</li>
+                        <li>Clear clickable buttons</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h4>Cons</h4>
+                    <ul>
+                        <li>Takes up more horizontal space</li>
+                        <li>User avatar looks inconsistent</li>
+                        <li>May be too heavy for simple actions</li>
+                        <li>Labels may be redundant</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendation -->
+        <div class="mockup-section" style="border: 2px solid #1a73e8;">
+            <h2 style="margin-bottom: 16px; color: #1a73e8;">💡 Recommendation: Option 1</h2>
+            <p style="color: #ccc; line-height: 1.8; margin-bottom: 16px;">
+                <strong>Option 1 (All Circular Avatars)</strong> is the best choice because:
+            </p>
+            <ul style="color: #aaa; line-height: 1.8; margin-left: 20px;">
+                <li><strong>Perfect consistency</strong> - All three elements use identical styling</li>
+                <li><strong>Material-UI native</strong> - Uses Avatar component you already have</li>
+                <li><strong>Clear affordance</strong> - All elements look equally clickable</li>
+                <li><strong>Professional polish</strong> - Matches modern app design patterns</li>
+                <li><strong>Easy implementation</strong> - Just wrap theme/language in Avatar components</li>
+            </ul>
+            <p style="color: #888; margin-top: 16px; font-size: 14px;">
+                Try hovering over the elements above to see the interaction states!
+            </p>
+        </div>
+    </div>
+</body>
+</html>

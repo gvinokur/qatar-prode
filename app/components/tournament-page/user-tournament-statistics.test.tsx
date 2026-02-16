@@ -92,7 +92,7 @@ describe('UserTournamentStatistics', () => {
     // Button has aria-label "Ver página de estadísticas detalladas"
     const button = screen.getByRole('link', { name: /Ver página de estadísticas detalladas/i })
     expect(button).toBeInTheDocument()
-    expect(button).toHaveAttribute('href', '/tournaments/test-tournament/stats')
+    expect(button).toHaveAttribute('href', '/es/tournaments/test-tournament/stats')
 
     // Check icon is present (MUI renders icon as svg)
     const icon = button.querySelector('svg')

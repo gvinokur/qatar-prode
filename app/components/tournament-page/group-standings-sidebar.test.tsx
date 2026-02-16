@@ -72,7 +72,7 @@ describe('GroupStandingsSidebar', () => {
 
     const button = screen.getByRole('link', { name: /Ver Resultados/i })
     expect(button).toBeInTheDocument()
-    expect(button).toHaveAttribute('href', '/tournaments/test-tournament/results')
+    expect(button).toHaveAttribute('href', '/es/tournaments/test-tournament/results')
 
     // Check icon is present (MUI renders icon as svg)
     const icon = button.querySelector('svg')

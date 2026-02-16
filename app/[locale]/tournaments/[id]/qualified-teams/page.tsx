@@ -130,7 +130,7 @@ export default async function QualifiedTeamsPage({ params, searchParams }: PageP
     // Check authentication
     const user = await getLoggedInUser();
     if (!user?.id) {
-      redirect(`/auth/login?redirect=/tournaments/${tournamentId}/qualified-teams`);
+      redirect(`/es/auth/login?redirect=/es/tournaments/${tournamentId}/qualified-teams`);
     }
 
     // Fetch tournament (including dev_only field)

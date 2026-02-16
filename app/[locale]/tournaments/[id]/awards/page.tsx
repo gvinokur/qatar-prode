@@ -34,7 +34,7 @@ export default async function Awards(props: Props) {
 
   const user = await getLoggedInUser()
   if(!user) {
-    redirect(`/tournaments/${params.id}`)
+    redirect(`/es/tournaments/${params.id}`)
   }
 
   const tournamentGuesses =

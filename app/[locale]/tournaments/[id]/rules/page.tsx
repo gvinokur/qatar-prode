@@ -19,7 +19,7 @@ export default async function TournamentRulesPage(props: Props) {
   const tournament = await findTournamentById(tournamentId)
 
   if (!tournament) {
-    redirect('/')
+    redirect('/es')
   }
 
   // Extract scoring config from tournament
