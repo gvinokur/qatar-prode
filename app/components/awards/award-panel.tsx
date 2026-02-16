@@ -48,8 +48,16 @@ export default function AwardsPanel({
   const savePredictions = async (guessesToSave: typeof tournamentGuesses) => {
     setSaving(true)
     //Do the actual save
-    await updateOrCreateTournamentGuess(guessesToSave)
+    const result = await updateOrCreateTournamentGuess(guessesToSave)
     setSaving(false)
+
+    // Check if save failed (result would be {success: false, error: string})
+    if (result && typeof result === 'object' && 'success' in result && result.success === false) {
+      console.error('Failed to save tournament guess:', result.error)
+      // Don't show success toast on error
+      return
+    }
+
     setSaved(true)
   }
 
