@@ -64,6 +64,7 @@ export default async function Header(props: FrameProps) {
           justifyContent={'flex-end'}
           flexWrap={'wrap'}
           minWidth={'96px'}
+          gap={0.5}
         >
           <ThemeSwitcher />
           <LanguageSwitcher />
