@@ -1,4 +1,4 @@
-# Implementation Plan: Bug #164 - Individual Awards and Honor Roll Guesses Being Cleared on Update
+# Implementation Plan: Bug #164 - Tournament Guesses Being Deleted When Users Update Awards
 
 ## Story Context
 
@@ -6,591 +6,579 @@
 
 **Severity:** Critical - Data Loss
 
-**Problem:** When an administrator updates individual awards or honor roll values, all user guesses for individual awards and honor roll are being cleared/cleaned, resulting in users losing their prediction points.
+**Problem:** When end users update their individual award or honor roll guesses (predictions), all other data in their tournament_guesses record is being deleted, including:
+- Other award/honor roll guesses
+- All score data (honor_roll_score, individual_awards_score, qualified_teams_score, group_position_score)
+- All materialized game scores (total_game_score, group_stage_game_score, playoff_stage_game_score, boost bonuses)
+- All prediction statistics (total_correct_guesses, total_exact_guesses, etc.)
+- All snapshot fields (yesterday_tournament_score, yesterday_total_game_score, etc.)
+- Tracking timestamps (last_score_update_date, last_game_score_update_at)
 
 ## Root Cause Analysis
 
-After investigating the codebase, I've identified the bug in `app/actions/backoffice-actions.ts`:
+### Investigation Timeline
 
-### The Problem
+**Initial misunderstanding:** Originally identified the bug in admin-side scoring functions (`updateTournamentAwards()` and `updateTournamentHonorRoll()` in backoffice-actions.ts), but this was incorrect.
 
-Both `updateTournamentAwards()` (lines 451-477) and `updateTournamentHonorRoll()` (lines 479-514) have the same bug:
+**Actual bug location:** The bug is in the END USER guess saving logic, specifically in `updateOrCreateTournamentGuess()` function in `app/db/tournament-guess-repository.ts` (lines 122-128).
 
-**They only calculate scores based on the fields being updated in the current request (`withUpdate`), NOT all fields that exist in the tournament.**
+**Discovery:** Through user clarification ("this is updating the award guesses on the end user side, not the admin side" and "Update one award, all user guesses reset"), found that the bug occurs when users save their predictions, not when admins score them.
 
-### How the Bug Manifests
+### The Actual Bug
 
-#### For Individual Awards (`updateTournamentAwards`):
+**File:** `app/db/tournament-guess-repository.ts` (lines 122-128)
 
 ```typescript
-export async function updateTournamentAwards(tournamentId: string, withUpdate: TournamentUpdate) {
-  // Updates the tournament with ONLY the fields in withUpdate
-  await updateTournament(tournamentId, withUpdate)
-
-  const tournament = await findTournamentById(tournamentId);
-  const individual_award_points = tournament.individual_award_points ?? 3;
-  const allTournamentGuesses = await findTournamentGuessByTournament(tournamentId)
-
-  return await Promise.all(allTournamentGuesses.map(async (tournamentGuess) => {
-    const awardsScore = awardsDefinition.reduce((accumScore, awardDefinition) => {
-      // BUG: Only checks awards in withUpdate, ignores all other awards!
-      if (withUpdate[awardDefinition.property]) {
-        if (tournamentGuess[awardDefinition.property] === withUpdate[awardDefinition.property]) {
-          return accumScore + individual_award_points
-        }
-      }
-      return accumScore
-    }, 0)
-    // BUG: Sets total score to ONLY the score from fields in withUpdate
-    return await updateTournamentGuessWithSnapshot(tournamentGuess.id, {
-      individual_awards_score: awardsScore
-    })
-  }))
+export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew) {
+  const existingGuess = await findTournamentGuessByUserIdTournament(guess.user_id, guess.tournament_id)
+  if(existingGuess) {
+    await deleteTournamentGuess(existingGuess.id)  // ❌ DELETES entire record
+  }
+  return createTournamentGuess(guess)  // ❌ CREATES with only fields in 'guess' parameter
 }
 ```
 
-**Example Scenario:**
+**Problem:** The function uses a **delete+create pattern** instead of an **update operation**. This causes catastrophic data loss because:
 
-1. Tournament already has:
-   - `best_player_id = 'player1'`
-   - `top_goalscorer_player_id = 'player2'`
-2. User has guesses matching both awards (should have 6 points total: 3+3)
-3. Admin updates `best_goalkeeper_player_id = 'player3'`
-4. Function receives `withUpdate = { best_goalkeeper_player_id: 'player3' }`
-5. Score calculation loop ONLY checks `best_goalkeeper_player_id` (the only field in withUpdate)
-6. Ignores `best_player_id` and `top_goalscorer_player_id` (not in withUpdate)
-7. Sets `individual_awards_score = 0` or points only for best_goalkeeper match
-8. **Result: User loses all points from previously set awards!**
+1. When a user updates one award guess, the component only sends the fields it manages (award/honor roll guesses)
+2. The database record contains MANY MORE FIELDS that are calculated/maintained server-side
+3. The function DELETES the entire record (losing all server-maintained data)
+4. The function CREATES a new record with ONLY the fields from the component
+5. All other data is permanently lost
 
-#### For Honor Roll (`updateTournamentHonorRoll`):
+### Bug History (Git Blame Analysis)
 
-Same pattern:
+**Original Introduction:**
+- **Commit a2620456** (May 29, 2024): "Initial big refactor to use newer versions and fix Db and all things"
+  - Function created with delete+create pattern as part of massive refactor (80 files changed)
+
+**Attempted Fix (that didn't fix the actual issue):**
+- **Commit 28816627** (May 31, 2024): "fix react hook, fix updating tournament guesses"
+  - Only changed `return await deleteTournamentGuess(...)` to `await deleteTournamentGuess(...)`
+  - Did NOT fix the delete+create bug - just fixed the return statement
+
+**Why It Became Critical NOW:**
+- **Commit c72e1a5** (Feb 15, 2026 - TODAY): Story #147 "Materialize Score Calculations" merged
+  - Added extensive materialized fields to `tournament_guesses` table:
+    - Game scores: `total_game_score`, `group_stage_game_score`, `playoff_stage_game_score`
+    - Boost bonuses: `total_boost_bonus`, `group_stage_boost_bonus`, `playoff_stage_boost_bonus`
+    - Statistics: `total_correct_guesses`, `total_exact_guesses`, `group_correct_guesses`, etc.
+    - Snapshots: `yesterday_tournament_score`, `yesterday_total_game_score`, `yesterday_boost_bonus`
+    - Timestamps: `last_score_update_date`, `last_game_score_update_at`
+  - Before story-147: Bug only lost score fields (less noticeable)
+  - After story-147: Bug loses ALL materialized data (catastrophic)
+
+**Summary:**
+- Bug existed for **~20 months** (May 2024 - Feb 2026)
+- Became CRITICAL after story-147 merged (TODAY)
+- Users experience complete data wipeout when updating award guesses
+
+### Data Flow Analysis
+
+**How the bug manifests:**
+
+1. **User opens awards page** (`app/tournaments/[id]/awards/page.tsx`)
+   - Page fetches tournament_guesses record via `findTournamentGuessByUserIdTournament()`
+   - Record contains ALL fields (awards, scores, materialized data, snapshots, etc.)
+
+2. **Component initializes** (`app/components/awards/award-panel.tsx`)
+   - Component receives `tournamentGuesses` prop with complete data
+   - Initializes local state: `useState(savedTournamentGuesses)`
+   - **BUT:** Component only tracks award/honor roll fields in state (not score fields)
+
+3. **User updates one award** (e.g., changes best_player_id)
+   - Component handler: `handleGuessChange()`
+   - Spreads current state: `{ ...tournamentGuesses, best_player_id: 'newValue' }`
+   - **Problem:** State only contains award/honor roll fields, NOT server-calculated fields
+   - Calls `savePredictions()` → `updateOrCreateTournamentGuess()`
+
+4. **Server action** (`app/actions/guesses-actions.ts`)
+   - Wrapper function calls database function directly
+   - Passes the partial data object (only award/honor roll fields)
+
+5. **Database function executes** (`app/db/tournament-guess-repository.ts`)
+   - Finds existing record (has ALL fields: awards, scores, materialized data, etc.)
+   - **DELETES** entire record
+   - **CREATES** new record with ONLY the fields from the component
+   - **ALL SERVER-MAINTAINED DATA IS LOST:**
+     - ❌ All materialized game scores (story-147 data)
+     - ❌ All boost bonuses
+     - ❌ All prediction statistics
+     - ❌ All snapshot fields (rank tracking)
+     - ❌ All tracking timestamps
+     - ❌ Other award guesses (if not in component state)
+
+### Why Update Pattern Fixes This
+
+**Correct approach: UPDATE operation**
 
 ```typescript
-export async function updateTournamentHonorRoll(tournamentId: string, withUpdate: TournamentUpdate) {
-  await updateTournament(tournamentId, withUpdate)
-
-  // ...
-
-  if(withUpdate.champion_team_id || withUpdate.runner_up_team_id || withUpdate.third_place_team_id) {
-    const allTournamentGuesses = await findTournamentGuessByTournament(tournamentId)
-    return await Promise.all(allTournamentGuesses.map(async (tournamentGuess) => {
-      let honorRollScore = 0
-      // BUG: Only checks fields in withUpdate!
-      if(withUpdate.champion_team_id &&
-        tournamentGuess.champion_team_id === withUpdate.champion_team_id) {
-        honorRollScore += champion_points
-      }
-      if(withUpdate.runner_up_team_id &&
-        tournamentGuess.runner_up_team_id === withUpdate.runner_up_team_id) {
-        honorRollScore += runner_up_points
-      }
-      if(withUpdate.third_place_team_id &&
-        tournamentGuess.third_place_team_id === withUpdate.third_place_team_id) {
-        honorRollScore += third_place_points
-      }
-      // BUG: Sets total score to ONLY the score from fields in withUpdate
-      return await updateTournamentGuessWithSnapshot(tournamentGuess.id, {
-        honor_roll_score: honorRollScore
-      })
-    }))
+export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew) {
+  const existingGuess = await findTournamentGuessByUserIdTournament(guess.user_id, guess.tournament_id)
+  if(existingGuess) {
+    // UPDATE preserves existing fields not in 'guess' parameter
+    return updateTournamentGuess(existingGuess.id, guess)
+  } else {
+    // CREATE only when no record exists
+    return createTournamentGuess(guess)
   }
 }
 ```
 
-**Example:** If admin updates only `champion_team_id`, users lose all points from `runner_up_team_id` and `third_place_team_id` that were previously set.
+**Why this works:**
+1. UPDATE operation only modifies the fields provided in `guess` parameter
+2. All other fields (scores, materialized data, snapshots) are PRESERVED
+3. Component can send partial updates (only award/honor roll fields)
+4. Server-maintained fields remain intact
 
 ## Technical Approach
 
 ### Fix Strategy
 
-**Change the score calculation to use the UPDATED tournament state (which has ALL fields), not just the fields in `withUpdate`.**
+**Replace delete+create pattern with UPDATE operation in `updateOrCreateTournamentGuess()` function.**
 
-#### For `updateTournamentAwards()`:
+**File:** `app/db/tournament-guess-repository.ts` (lines 122-128)
 
 **Before (buggy):**
 ```typescript
-const awardsScore = awardsDefinition.reduce((accumScore, awardDefinition) => {
-  if (withUpdate[awardDefinition.property]) { // BUG: Only checks withUpdate
-    if (tournamentGuess[awardDefinition.property] === withUpdate[awardDefinition.property]) {
-      return accumScore + individual_award_points
-    }
+export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew) {
+  const existingGuess = await findTournamentGuessByUserIdTournament(guess.user_id, guess.tournament_id)
+  if(existingGuess) {
+    await deleteTournamentGuess(existingGuess.id)  // ❌ DELETES entire record
   }
-  return accumScore
-}, 0)
+  return createTournamentGuess(guess)  // ❌ CREATES with only fields in 'guess'
+}
 ```
 
 **After (fixed):**
 ```typescript
-const awardsScore = awardsDefinition.reduce((accumScore, awardDefinition) => {
-  // Use tournament (UPDATED state with ALL fields), not withUpdate
-  if (tournament[awardDefinition.property]) {
-    if (tournamentGuess[awardDefinition.property] === tournament[awardDefinition.property]) {
-      return accumScore + individual_award_points
-    }
+export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew) {
+  const existingGuess = await findTournamentGuessByUserIdTournament(guess.user_id, guess.tournament_id)
+  if(existingGuess) {
+    // ✅ UPDATE preserves fields not in 'guess' parameter
+    return updateTournamentGuess(existingGuess.id, guess)
+  } else {
+    // ✅ CREATE only when no record exists
+    return createTournamentGuess(guess)
   }
-  return accumScore
-}, 0)
-```
-
-**Key change:** Check `tournament[awardDefinition.property]` instead of `withUpdate[awardDefinition.property]`.
-
-Since we call `updateTournament(tournamentId, withUpdate)` first, then fetch the tournament with `findTournamentById()`, the `tournament` variable now contains ALL awards (previously set + newly updated).
-
-#### For `updateTournamentHonorRoll()`:
-
-**Before (buggy):**
-```typescript
-let honorRollScore = 0
-if(withUpdate.champion_team_id &&
-  tournamentGuess.champion_team_id === withUpdate.champion_team_id) {
-  honorRollScore += champion_points
-}
-// ... similar for runner_up and third_place
-```
-
-**After (fixed):**
-```typescript
-let honorRollScore = 0
-if(tournament.champion_team_id &&
-  tournamentGuess.champion_team_id === tournament.champion_team_id) {
-  honorRollScore += champion_points
-}
-if(tournament.runner_up_team_id &&
-  tournamentGuess.runner_up_team_id === tournament.runner_up_team_id) {
-  honorRollScore += runner_up_points
-}
-if(tournament.third_place_team_id &&
-  tournamentGuess.third_place_team_id === tournament.third_place_team_id) {
-  honorRollScore += third_place_points
 }
 ```
 
 **Key changes:**
-1. Check `tournament.champion_team_id` instead of `withUpdate.champion_team_id`
-2. Check ALL three honor roll fields, not just the ones in `withUpdate`
-3. Remove the outer `if` condition that checked if any honor roll fields exist in `withUpdate`
+1. Replace `deleteTournamentGuess()` + `createTournamentGuess()` with `updateTournamentGuess()`
+2. UPDATE operation preserves all existing fields not provided in `guess` parameter
+3. Only fields in `guess` are modified, all others remain intact
 
 ### Why This Fix Works
 
-1. `updateTournament(tournamentId, withUpdate)` updates the tournament record with the new fields
-2. `findTournamentById(tournamentId)` fetches the UPDATED tournament (now has ALL fields: old + new)
-3. Score calculation now uses `tournament` (complete state) instead of `withUpdate` (partial update)
-4. Result: Scores are calculated correctly based on ALL awards/honor roll fields, not just the ones being updated
+1. **Partial updates supported:** Component can send only award/honor roll fields
+2. **Server data preserved:** Score fields, materialized data, snapshots remain intact
+3. **Existing behavior maintained:** CREATE still happens when no record exists
+4. **Type-safe:** Uses existing `TournamentGuessUpdate` type via `updateTournamentGuess()`
 
 ## Acceptance Criteria
 
-✅ When admin updates ONE individual award, users retain points for ALL other individual awards
-✅ When admin updates ONE honor roll field, users retain points for ALL other honor roll fields
-✅ Score calculations are based on the complete tournament state, not just the update delta
-✅ Existing tests pass with updated logic
+✅ Users can update individual award guesses without losing other award guesses
+✅ Users can update honor roll guesses without losing other honor roll guesses
+✅ Score fields (honor_roll_score, individual_awards_score, etc.) are preserved
+✅ Materialized game scores (from story-147) are preserved
+✅ Prediction statistics are preserved
+✅ Snapshot fields (rank tracking) are preserved
+✅ Tracking timestamps are preserved
+✅ New records are created correctly when user has no existing tournament_guesses
+✅ Existing tests pass
 ✅ New regression tests verify the fix
 
 ## Files to Modify
 
-### 1. `app/actions/backoffice-actions.ts`
+### 1. `app/db/tournament-guess-repository.ts`
 
-**Lines 451-477: Fix `updateTournamentAwards()`**
-
-Changes:
-- Line 465: Change `if (withUpdate[awardDefinition.property])` to `if (tournament[awardDefinition.property])`
-- Line 466: Change `withUpdate[awardDefinition.property]` to `tournament[awardDefinition.property]`
-
-**Lines 479-514: Fix `updateTournamentHonorRoll()`**
+**Lines 122-128: Fix `updateOrCreateTournamentGuess()`**
 
 Changes:
-- Remove the outer `if` condition at line 493
-- Always calculate score for all three honor roll fields
-- Line 497: Change `if(withUpdate.champion_team_id &&` to `if(tournament.champion_team_id &&`
-- Line 498: Change `withUpdate.champion_team_id)` to `tournament.champion_team_id)`
-- Line 501: Change `if(withUpdate.runner_up_team_id &&` to `if(tournament.runner_up_team_id &&`
-- Line 502: Change `withUpdate.runner_up_team_id)` to `tournament.runner_up_team_id)`
-- Line 505: Change `if(withUpdate.third_place_team_id &&` to `if(tournament.third_place_team_id &&`
-- Line 506: Change `withUpdate.third_place_team_id)` to `tournament.third_place_team_id)`
+- Line 125: Replace `await deleteTournamentGuess(existingGuess.id)` with `return updateTournamentGuess(existingGuess.id, guess)`
+- Line 127: Keep `return createTournamentGuess(guess)` in else branch
 
-### 2. `__tests__/actions/backoffice-actions.test.ts`
+### 2. `__tests__/db/tournament-guess-repository.test.ts`
 
-**Update existing tests (lines 922-1066):**
+**New test file (or add to existing test file if it exists)**
 
-Tests need to be updated because the mock behavior changes:
-- `updateTournamentAwards` test: Mock `findTournamentById` to return tournament with ALL awards (not just the ones being updated)
-- `updateTournamentHonorRoll` test: Mock `findTournamentById` to return tournament with ALL honor roll fields
+Add comprehensive regression tests:
 
-**Add new regression tests:**
+1. **Test: "updateOrCreateTournamentGuess preserves score fields when updating awards"**
+   - Setup: User has existing record with award guesses and score fields set
+   - Action: Update one award guess
+   - Expected: Score fields remain unchanged
 
-1. **Test: "updateTournamentAwards preserves scores for existing awards when updating different award"**
-   - Setup: Tournament has `best_player_id = 'player1'`, `top_goalscorer_player_id = 'player2'`
-   - User guess matches both awards
-   - Action: Update `best_goalkeeper_player_id = 'player3'` (user doesn't match this one)
-   - Expected: User retains 6 points (3+3 from the two original awards)
+2. **Test: "updateOrCreateTournamentGuess preserves materialized game scores"**
+   - Setup: User has existing record with materialized game scores from story-147
+   - Action: Update one award guess
+   - Expected: All materialized fields preserved (total_game_score, group_stage_game_score, etc.)
 
-2. **Test: "updateTournamentAwards recalculates correctly when updating existing award"**
-   - Setup: Tournament has `best_player_id = 'player1'`
-   - User guess matches the award (3 points)
-   - Action: Update `best_player_id = 'player2'` (user no longer matches)
-   - Expected: User has 0 points
+3. **Test: "updateOrCreateTournamentGuess preserves snapshot fields"**
+   - Setup: User has existing record with snapshot fields (yesterday_tournament_score, etc.)
+   - Action: Update honor roll guess
+   - Expected: All snapshot fields preserved
 
-3. **Test: "updateTournamentHonorRoll preserves scores for existing honor roll when updating different field"**
-   - Setup: Tournament has `champion_team_id = 'team1'`, `runner_up_team_id = 'team2'`
-   - User guess matches both (5+3=8 points)
-   - Action: Update `third_place_team_id = 'team3'` (user doesn't match this one)
-   - Expected: User retains 8 points
+4. **Test: "updateOrCreateTournamentGuess preserves other award guesses when updating one award"**
+   - Setup: User has multiple award guesses set (best_player, top_goalscorer, best_goalkeeper)
+   - Action: Update only best_player_id
+   - Expected: Other award guesses remain unchanged
 
-4. **Test: "updateTournamentHonorRoll recalculates correctly when updating existing honor roll field"**
-   - Setup: Tournament has `champion_team_id = 'team1'`
-   - User guess matches (5 points)
-   - Action: Update `champion_team_id = 'team2'` (user no longer matches)
-   - Expected: User has 0 points (or points from other honor roll fields if set)
+5. **Test: "updateOrCreateTournamentGuess creates new record when none exists"**
+   - Setup: User has no existing tournament_guesses record
+   - Action: Save first award guess
+   - Expected: New record created with provided fields
+
+6. **Test: "updateOrCreateTournamentGuess updates multiple fields in single call"**
+   - Setup: User has existing record
+   - Action: Update multiple awards in one call
+   - Expected: All provided fields updated, other fields preserved
+
+### 3. Rollback Incorrect Fix
+
+**Files to revert:**
+- `app/actions/backoffice-actions.ts` (revert changes to updateTournamentAwards and updateTournamentHonorRoll)
+- `__tests__/actions/backoffice-actions.test.ts` (revert test changes)
+
+**Note:** The changes made to backoffice-actions.ts were based on a misunderstanding of the bug. While they may be technically correct (using tournament state vs withUpdate), they don't fix the actual user-reported issue. Revert them to keep this PR focused on the real bug.
 
 ## Implementation Steps
 
-### Step 1: Fix `updateTournamentAwards()`
+### Step 1: Rollback Incorrect Fix
 
-File: `app/actions/backoffice-actions.ts` (lines 451-477)
+**Goal:** Remove changes that don't fix the actual bug
 
-Change the score calculation logic to use `tournament` instead of `withUpdate`:
+1. Revert changes to `app/actions/backoffice-actions.ts`
+   - Lines 465-466 in updateTournamentAwards
+   - Lines 490-515 in updateTournamentHonorRoll
+
+2. Revert changes to `__tests__/actions/backoffice-actions.test.ts`
+   - Remove or revert test mock changes
+   - Remove new regression tests added for backoffice functions
+
+**Verification:**
+```bash
+git diff app/actions/backoffice-actions.ts
+git diff __tests__/actions/backoffice-actions.test.ts
+```
+
+Both files should show no changes (back to main branch state).
+
+### Step 2: Implement Correct Fix
+
+**File:** `app/db/tournament-guess-repository.ts` (lines 122-128)
+
+Replace the function with:
 
 ```typescript
-export async function updateTournamentAwards(tournamentId: string, withUpdate: TournamentUpdate) {
-  //Store and Calculate score for all users if not empty
-  await updateTournament(tournamentId, withUpdate)
-
-  // Get tournament for scoring config
-  const tournament = await findTournamentById(tournamentId);
-  if (!tournament) {
-    throw new Error(`Tournament ${tournamentId} not found`);
+export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew) {
+  const existingGuess = await findTournamentGuessByUserIdTournament(guess.user_id, guess.tournament_id)
+  if(existingGuess) {
+    // UPDATE existing record - preserves fields not in 'guess' parameter
+    return updateTournamentGuess(existingGuess.id, guess)
   }
-
-  const individual_award_points = tournament.individual_award_points ?? 3;
-  const allTournamentGuesses = await findTournamentGuessByTournament(tournamentId)
-
-  return await Promise.all(allTournamentGuesses.map(async (tournamentGuess) => {
-    const awardsScore = awardsDefinition.reduce((accumScore, awardDefinition) => {
-      // FIX: Use tournament (complete state) instead of withUpdate (partial update)
-      if (tournament[awardDefinition.property]) {
-        if (tournamentGuess[awardDefinition.property] === tournament[awardDefinition.property]) {
-          return accumScore + individual_award_points
-        }
-      }
-      return accumScore
-    }, 0)
-    return await updateTournamentGuessWithSnapshot(tournamentGuess.id, {
-      individual_awards_score: awardsScore
-    })
-  }))
+  // CREATE new record only when none exists
+  return createTournamentGuess(guess)
 }
 ```
 
-### Step 2: Fix `updateTournamentHonorRoll()`
+**Note:** The `updateTournamentGuess` function already exists (line 12) and is properly typed to accept `TournamentGuessUpdate` type.
 
-File: `app/actions/backoffice-actions.ts` (lines 479-514)
+### Step 3: Add Comprehensive Tests
 
-Change the score calculation logic to:
-1. Always run (remove outer if condition)
-2. Use `tournament` instead of `withUpdate`
-3. Check all three honor roll fields
+**File:** `__tests__/db/tournament-guess-repository.test.ts` (create if doesn't exist)
 
+Add test suite with 6 regression tests (see "Files to Modify" section above).
+
+**Test structure:**
 ```typescript
-export async function updateTournamentHonorRoll(tournamentId: string, withUpdate: TournamentUpdate) {
-  //Store and calculate score for all users if the honor roll is not empty
-  await updateTournament(tournamentId, withUpdate)
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import {
+  updateOrCreateTournamentGuess,
+  findTournamentGuessByUserIdTournament,
+  updateTournamentGuess,
+  createTournamentGuess
+} from '../../app/db/tournament-guess-repository'
+import { TournamentGuessNew } from '../../app/db/tables-definition'
 
-  // Get tournament for scoring config
-  const tournament = await findTournamentById(tournamentId);
-  if (!tournament) {
-    throw new Error(`Tournament ${tournamentId} not found`);
+vi.mock('../../app/db/tournament-guess-repository', async () => {
+  const actual = await vi.importActual('../../app/db/tournament-guess-repository')
+  return {
+    ...actual,
+    findTournamentGuessByUserIdTournament: vi.fn(),
+    updateTournamentGuess: vi.fn(),
+    createTournamentGuess: vi.fn()
   }
+})
 
-  const champion_points = tournament.champion_points ?? 5;
-  const runner_up_points = tournament.runner_up_points ?? 3;
-  const third_place_points = tournament.third_place_points ?? 1;
-
-  // FIX: Always recalculate scores based on ALL honor roll fields in tournament
-  const allTournamentGuesses = await findTournamentGuessByTournament(tournamentId)
-  return await Promise.all(allTournamentGuesses.map(async (tournamentGuess) => {
-    let honorRollScore = 0
-    // FIX: Use tournament (complete state) instead of withUpdate (partial update)
-    if(tournament.champion_team_id &&
-      tournamentGuess.champion_team_id === tournament.champion_team_id) {
-      honorRollScore += champion_points
-    }
-    if(tournament.runner_up_team_id &&
-      tournamentGuess.runner_up_team_id === tournament.runner_up_team_id) {
-      honorRollScore += runner_up_points
-    }
-    if(tournament.third_place_team_id &&
-      tournamentGuess.third_place_team_id === tournament.third_place_team_id) {
-      honorRollScore += third_place_points
-    }
-    return await updateTournamentGuessWithSnapshot(tournamentGuess.id, {
-      honor_roll_score: honorRollScore
-    })
-  }))
-}
+describe('updateOrCreateTournamentGuess', () => {
+  // Test implementation...
+})
 ```
 
-### Step 3: Update Existing Tests
+### Step 4: Manual Testing
 
-File: `__tests__/actions/backoffice-actions.test.ts`
+**Test scenario 1: Update award guess, verify data preservation**
 
-**Update test mocks:**
+1. Create test user and tournament
+2. Seed tournament_guesses record:
+   ```sql
+   INSERT INTO tournament_guesses (
+     user_id, tournament_id,
+     best_player_id, top_goalscorer_player_id,
+     individual_awards_score, honor_roll_score,
+     total_game_score, yesterday_tournament_score
+   ) VALUES (
+     'user1', 'tournament1',
+     'player1', 'player2',
+     6, 8,
+     150, 140
+   );
+   ```
 
-Both tests need to mock `findTournamentById` to return a tournament with ALL relevant fields, not just the ones being updated:
+3. Via UI: Update best_player_id to 'player3'
 
-```typescript
-describe('updateTournamentAwards', () => {
-  // ... existing setup ...
+4. Query database:
+   ```sql
+   SELECT * FROM tournament_guesses WHERE user_id = 'user1' AND tournament_id = 'tournament1';
+   ```
 
-  beforeEach(() => {
-    // Mock findTournamentById to return tournament with ALL awards
-    mockFindTournamentById.mockResolvedValue({
-      id: 'tournament1',
-      individual_award_points: 3,
-      // Include the fields being updated PLUS any existing fields
-      best_player_id: 'player1',
-      top_goalscorer_player_id: 'player2',
-      // ... other tournament fields
-    });
-  });
-});
+5. **Expected:**
+   - best_player_id: 'player3' (updated)
+   - top_goalscorer_player_id: 'player2' (preserved)
+   - individual_awards_score: 6 (preserved)
+   - honor_roll_score: 8 (preserved)
+   - total_game_score: 150 (preserved)
+   - yesterday_tournament_score: 140 (preserved)
 
-describe('updateTournamentHonorRoll', () => {
-  // ... existing setup ...
+**Test scenario 2: First-time guess creation**
 
-  beforeEach(() => {
-    // Mock findTournamentById to return tournament with ALL honor roll fields
-    mockFindTournamentById.mockResolvedValue({
-      id: 'tournament1',
-      champion_points: 5,
-      runner_up_points: 3,
-      third_place_points: 1,
-      // Include the fields being updated PLUS any existing fields
-      champion_team_id: 'team1',
-      runner_up_team_id: 'team2',
-      third_place_team_id: 'team3',
-      // ... other tournament fields
-    });
-  });
-});
+1. User with no tournament_guesses record
+2. Via UI: Set best_player_id to 'player1'
+3. Query database
+4. **Expected:** New record created with only user_id, tournament_id, and best_player_id
+
+### Step 5: Commit and Push
+
+**Commit message:**
 ```
+Fix critical data loss bug in user tournament guess updates
 
-### Step 4: Add Regression Tests
+When users updated award/honor roll guesses, the updateOrCreateTournamentGuess()
+function used a delete+create pattern that wiped out all server-maintained data:
+- Score fields (honor_roll_score, individual_awards_score, etc.)
+- Materialized game scores (from story-147)
+- Prediction statistics
+- Snapshot fields (rank tracking)
+- Tracking timestamps
 
-File: `__tests__/actions/backoffice-actions.test.ts`
+Root cause: Function deleted entire record and recreated with only fields from
+component, losing all server-calculated data.
 
-Add 4 new regression tests (see "Add new regression tests" section above for test descriptions).
+Fix: Replace delete+create with UPDATE operation. UPDATE preserves existing
+fields not included in the update parameter.
 
-These tests verify:
-1. Updating one award preserves scores from other awards
-2. Updating an existing award recalculates correctly
-3. Updating one honor roll field preserves scores from other honor roll fields
-4. Updating an existing honor roll field recalculates correctly
+Bug existed since May 2024 but became critical after story-147 (Feb 15, 2026)
+added extensive materialized fields to tournament_guesses table.
 
-### Step 5: Manual Testing
+Fixes #164
 
-After code changes and tests pass:
-
-1. **Setup test data:**
-   - Create a tournament
-   - Set `best_player_id = 'player1'` and `top_goalscorer_player_id = 'player2'`
-   - Create a user guess matching both awards (should have 6 points)
-
-2. **Reproduce the bug (before fix):**
-   - Update `best_goalkeeper_player_id = 'player3'`
-   - Check user's `individual_awards_score`
-   - Expected (buggy behavior): Score is 0 or only counts best_goalkeeper
-
-3. **Verify the fix (after fix):**
-   - Update `best_goalkeeper_player_id = 'player3'`
-   - Check user's `individual_awards_score`
-   - Expected (fixed behavior): Score is still 6 (3+3 from the two original awards)
-
-4. **Test honor roll similarly:**
-   - Set `champion_team_id` and `runner_up_team_id`
-   - User matches both (8 points: 5+3)
-   - Update `third_place_team_id`
-   - Verify user still has 8 points
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+```
 
 ## Testing Strategy
 
 ### Unit Tests
 
-**Existing tests to update:**
-- `updateTournamentAwards` test suite (lines 922-1003)
-- `updateTournamentHonorRoll` test suite (lines 1005-1066)
+**New test file:** `__tests__/db/tournament-guess-repository.test.ts`
 
-**New regression tests to add:**
-- Individual awards: Preserve existing scores when updating different award
-- Individual awards: Recalculate when updating existing award
-- Honor roll: Preserve existing scores when updating different field
-- Honor roll: Recalculate when updating existing field
+**Test coverage:**
+- ✅ Preserves score fields when updating awards
+- ✅ Preserves materialized game scores (story-147 fields)
+- ✅ Preserves snapshot fields (rank tracking)
+- ✅ Preserves other award guesses when updating one
+- ✅ Creates new record when none exists
+- ✅ Updates multiple fields in single call
 
-**Test coverage requirements:**
-- 80% coverage on modified lines (SonarCloud requirement)
-- All regression scenarios covered
-- Edge cases: empty awards, null values, no matching guesses
+**Coverage target:** ≥80% on modified lines (SonarCloud requirement)
 
 ### Integration Tests
 
-**Manual verification:**
-1. Test via backoffice UI (Awards tab)
-2. Test via backoffice UI (Playoff tab - honor roll)
-3. Verify leaderboard scores remain correct after updates
+**Manual verification (via Vercel Preview):**
+1. Test awards page: Update various award guesses
+2. Verify leaderboard: Scores remain correct
+3. Check stats page: Prediction counts preserved
+4. Test rank changes: Yesterday snapshots intact
 
 ### Edge Cases to Test
 
-1. **No existing awards:** Update first award → Score calculated correctly
-2. **All awards already set:** Update one award → Scores recalculated for all awards
-3. **User doesn't match any awards:** Score remains 0 after update
-4. **Multiple users:** All users' scores recalculated correctly
-5. **Null/undefined values:** Handled gracefully (awards set to null don't contribute to score)
-6. **Custom scoring points:** Respects tournament's `individual_award_points` setting
+1. **No existing record:** First guess → Creates new record
+2. **Update single field:** Other fields preserved
+3. **Update multiple fields:** All updates applied, others preserved
+4. **Null values:** Setting field to null doesn't corrupt other fields
+5. **Concurrent updates:** Race conditions handled (existing Kysely transaction safety)
+6. **Large datasets:** Performance with many fields (story-147 added ~20 new columns)
 
 ## Risks & Mitigation
 
-### Risk 1: Performance Impact
+### Risk 1: Existing Data Corruption
 
-**Risk:** Recalculating scores for ALL guesses on every update (even when updating one field)
-
-**Mitigation:**
-- This is the CURRENT behavior - we're just fixing the calculation, not changing the approach
-- For large tournaments, this runs once per admin action (not frequent)
-- If needed later: Optimize by only recalculating when relevant fields change
-
-### Risk 2: Existing Data Corruption
-
-**Risk:** Users may have already lost points due to this bug
+**Risk:** Users have already lost data due to this bug
 
 **Impact:**
-- Historical score data may be incorrect
-- Users may have lost points from previous admin updates
+- Users who updated awards after story-147 merged (TODAY) lost ALL materialized data
+- Historic score data may be incorrect
+- Rank tracking snapshots may be missing
 
 **Mitigation:**
-- **This story:** Fix the bug to prevent further data loss (stop the bleeding)
-- **Separate follow-up story:** Data reconciliation/recovery for users who already lost points
-- Rationale: Keep this story focused on the urgent fix; data recovery is a separate concern that can be addressed after the fix is deployed
+- **This story:** Fix the bug immediately (stop the bleeding)
+- **Separate follow-up story:** Data reconciliation/recovery
+  - Recalculate scores for affected users
+  - Restore materialized data where possible
+  - Re-run ranking calculations
+- **Rationale:** Keep this story focused on urgent fix; recovery is separate concern
 
-**Decision:** Data reconciliation is OUT OF SCOPE for this story. Will create a separate follow-up story for data recovery after this fix is deployed and verified.
+**Decision:** Data reconciliation is OUT OF SCOPE for this story.
+
+### Risk 2: Type Safety
+
+**Risk:** `TournamentGuessNew` vs `TournamentGuessUpdate` type mismatch
+
+**Analysis:**
+- `guess` parameter is typed as `TournamentGuessNew` (Insertable<TournamentGuessTable>)
+- `updateTournamentGuess()` expects `TournamentGuessUpdate` (Updateable<TournamentGuessTable>)
+- Both types are compatible for partial updates (Kysely handles this)
+
+**Mitigation:**
+- TypeScript will catch any type issues at compile time
+- Existing `updateTournamentGuess()` function already handles this correctly
+- No changes needed to type signatures
 
 ### Risk 3: Test Coverage
 
-**Risk:** Existing tests may not catch all edge cases
+**Risk:** Missing edge cases in tests
 
 **Mitigation:**
-- Add comprehensive regression tests (see Testing Strategy)
-- Manual verification before deployment
-- Monitor SonarCloud coverage (must maintain ≥80%)
+- Comprehensive test suite (6 regression tests)
+- Manual testing before deployment
+- SonarCloud coverage monitoring (≥80%)
+
+### Risk 4: Performance
+
+**Risk:** UPDATE vs DELETE+CREATE performance difference
+
+**Analysis:**
+- UPDATE is faster than DELETE+CREATE (single operation vs two)
+- No performance concerns - this is an improvement
+
+**Conclusion:** No mitigation needed (fix improves performance)
 
 ## Validation Checklist
 
 Before marking as complete:
 
-- [ ] Both functions (`updateTournamentAwards` and `updateTournamentHonorRoll`) are fixed
-- [ ] All existing tests pass
-- [ ] New regression tests added and passing
+- [ ] Incorrect fix rolled back (backoffice-actions.ts and tests)
+- [ ] updateOrCreateTournamentGuess() fixed (UPDATE pattern)
+- [ ] New test file created with comprehensive regression tests
+- [ ] All tests pass (npm test)
 - [ ] Code coverage ≥80% on modified lines
-- [ ] Manual testing completed (see Step 5 above)
+- [ ] Manual testing completed in Vercel Preview
+- [ ] Verified: Award guesses preserved
+- [ ] Verified: Score fields preserved
+- [ ] Verified: Materialized data preserved (story-147 fields)
+- [ ] Verified: Snapshot fields preserved
 - [ ] SonarCloud shows 0 new issues
-- [ ] Verified in Vercel Preview deployment
+- [ ] Lint passes (npm run lint)
+- [ ] Build succeeds (npm run build)
 
 ## Post-Deployment
 
-### Data Reconciliation (OUT OF SCOPE - Follow-up Story Needed)
+### Immediate Actions
 
-**Status:** Data reconciliation is **NOT included in this story**.
+1. **Monitor:** Watch for user reports of data loss (should stop)
+2. **Verify:** Check production data - no more score wipeouts
+3. **Communicate:** Notify users that bug is fixed
 
-**Why:**
-- This story focuses on fixing the bug to prevent further data loss
-- Data recovery for users who already lost points is a separate concern
-- Keeps this story focused and deployable quickly (urgent fix)
+### Follow-up Story Required: Data Recovery
 
-**Follow-up Story Required:**
-Create a separate story for data reconciliation after this fix is deployed:
-- **Title:** "Data Recovery: Recalculate Tournament Guess Scores After Bug #164 Fix"
-- **Scope:** Run a one-time migration script to recalculate all tournament guess scores based on current tournament state
-- **Priority:** High (but not blocking this bug fix)
+**Title:** "Data Recovery: Restore Tournament Guess Data Lost in Bug #164"
 
-**Script logic (for follow-up story):**
+**Scope:**
+- Identify users affected by bug (updated awards after story-147 merged)
+- Recalculate scores based on current tournament state
+- Restore materialized game scores (re-run story-147 calculations)
+- Re-run rank tracking calculations
+- Update yesterday snapshots
+
+**Priority:** High (but not blocking this bug fix)
+
+**Script approach:**
 ```typescript
-// For each tournament
-const tournament = await findTournamentById(tournamentId);
-const allGuesses = await findTournamentGuessByTournament(tournamentId);
+// 1. Identify affected users (updated awards after story-147 merge)
+const affectedUsers = await findUsersWithMissingMaterializedData()
 
-// Recalculate individual awards scores
-for (const guess of allGuesses) {
-  const awardsScore = awardsDefinition.reduce((acc, award) => {
-    if (tournament[award.property] && guess[award.property] === tournament[award.property]) {
-      return acc + (tournament.individual_award_points ?? 3);
-    }
-    return acc;
-  }, 0);
+// 2. For each affected user:
+for (const userId of affectedUsers) {
+  // Recalculate award/honor roll scores
+  await recalculateAwardScores(userId, tournamentId)
 
-  await updateTournamentGuess(guess.id, { individual_awards_score: awardsScore });
-}
+  // Restore materialized game scores (story-147)
+  await recalculateGameScoresForUsers([userId], tournamentId)
 
-// Recalculate honor roll scores
-for (const guess of allGuesses) {
-  let honorRollScore = 0;
-  if (tournament.champion_team_id && guess.champion_team_id === tournament.champion_team_id) {
-    honorRollScore += (tournament.champion_points ?? 5);
-  }
-  if (tournament.runner_up_team_id && guess.runner_up_team_id === tournament.runner_up_team_id) {
-    honorRollScore += (tournament.runner_up_points ?? 3);
-  }
-  if (tournament.third_place_team_id && guess.third_place_team_id === tournament.third_place_team_id) {
-    honorRollScore += (tournament.third_place_points ?? 1);
-  }
-
-  await updateTournamentGuess(guess.id, { honor_roll_score: honorRollScore });
+  // Restore rank tracking snapshots
+  await restoreYesterdaySnapshots(userId, tournamentId)
 }
 ```
 
 ## Success Metrics
 
-- ✅ Users no longer lose points when admin updates awards/honor roll
-- ✅ All existing tests pass
-- ✅ New regression tests verify the fix
+- ✅ Users can update awards without losing other data
+- ✅ All materialized fields preserved (story-147 compatibility)
+- ✅ All tests pass with 80%+ coverage
 - ✅ 0 new SonarCloud issues
 - ✅ Manual testing confirms correct behavior
 - ✅ Vercel Preview deployment works correctly
+- ✅ Bug does not recur after deployment
 
 ## Timeline Estimate
 
-- Fix implementation: 30 minutes
-- Test updates: 1 hour
+- Rollback incorrect fix: 15 minutes
+- Implement correct fix: 15 minutes
+- Create test file and write tests: 2 hours
 - Manual testing: 30 minutes
 - Code review & validation: 30 minutes
-- **Total: ~2.5 hours**
+- **Total: ~3.5 hours**
 
 ## Dependencies
 
-### Story-147 Analysis
+### Story-147 Relationship
 
-**Question:** Should we wait for story-147 (Materialize Score Calculations) to merge first?
+**Story-147:** [PERF] Materialize Score Calculations to Reduce Compute & DB Load (#147)
 
-**Answer: NO - Proceed independently**
+**Merged:** Feb 15, 2026 (TODAY)
 
-**Analysis:**
-- **Story-147 changes:** Materializes game scores (group/playoff) in `tournament_guesses` table
-  - Modifies: `calculateGameScores()`, adds new columns, updates read paths
-  - Does NOT modify: `updateTournamentAwards()` or `updateTournamentHonorRoll()`
-- **Story-164 changes (this bug fix):** Fixes tournament awards and honor roll score calculation
-  - Modifies: `updateTournamentAwards()` and `updateTournamentHonorRoll()`
-  - Does NOT touch: Game score calculations or materialization
+**Impact on this bug:**
+- Story-147 added ~20 materialized fields to tournament_guesses table
+- These fields are now being wiped out by the delete+create bug
+- **This bug became CRITICAL after story-147 merged**
+- Before story-147: Bug only lost score fields (less noticeable)
+- After story-147: Bug loses ALL materialized data (catastrophic)
 
 **Conclusion:**
-- ✅ **No code conflicts** - Different functions modified
-- ✅ **Orthogonal concerns** - Game scores (147) vs awards/honor roll (164)
-- ✅ **Critical urgency** - Data loss is happening now, can't wait for performance optimization
-- ⚠️ **Minor risk** - Test files might have merge conflicts (easily resolved)
-
-**Decision: Proceed with story-164 independently. Do not wait for story-147 to merge.**
+- ✅ No code conflicts with story-147
+- ✅ This fix makes story-147 materialization actually work for users
+- ✅ Critical urgency - fix must be deployed ASAP
 
 ## References
 
 - Issue: #164
+- Related commit history:
+  - a2620456 (2024-05-29): Bug introduced in initial refactor
+  - 28816627 (2024-05-31): Attempted fix that didn't fix the bug
+  - c72e1a5 (2026-02-15): Story-147 merged, making bug critical
 - Related files:
-  - `app/actions/backoffice-actions.ts` (main fix)
-  - `__tests__/actions/backoffice-actions.test.ts` (test updates)
-  - `app/components/backoffice/awards-tab.tsx` (calls updateTournamentAwards)
-  - `app/components/backoffice/playoff-tab.tsx` (calls updateTournamentHonorRoll)
+  - `app/db/tournament-guess-repository.ts` (main fix - lines 122-128)
+  - `app/actions/guesses-actions.ts` (calls the buggy function)
+  - `app/components/awards/award-panel.tsx` (UI component that triggers bug)
+  - `app/tournaments/[id]/awards/page.tsx` (page that renders component)
