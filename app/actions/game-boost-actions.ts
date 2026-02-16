@@ -63,30 +63,6 @@ export async function setGameBoostAction(gameId: string, boostType: 'silver' | '
 }
 
 /**
- * Get boost counts for tournament
- */
-export async function getBoostCountsAction(tournamentId: string) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error('Not authenticated');
-  }
-
-  const [counts, tournament] = await Promise.all([
-    countUserBoostsByType(session.user.id, tournamentId),
-    findTournamentById(tournamentId),
-  ]);
-
-  if (!tournament) {
-    throw new Error('Tournament not found');
-  }
-
-  return {
-    silver: { used: counts.silver, max: tournament.max_silver_games ?? 0 },
-    golden: { used: counts.golden, max: tournament.max_golden_games ?? 0 },
-  };
-}
-
-/**
  * Get boost allocation breakdown for tournament
  * Returns how boosts are distributed across groups and playoffs
  */

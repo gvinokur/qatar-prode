@@ -210,8 +210,6 @@ export function PredictionStatusBar({
           gameGuesses={gameGuesses}
           tournamentId={tournamentId}
           isPlayoffs={isPlayoffs}
-          silverMax={silverMax}
-          goldenMax={goldenMax}
         />
       );
     }

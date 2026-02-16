@@ -32,7 +32,7 @@ export async function UnifiedGamesPage({ tournamentId }: UnifiedGamesPageProps) 
     gameCounts,
     teamsMap,
     gameGuessesArray,
-    dashboardStats,
+    _dashboardStats,
     tournament,
     groups,
     rounds,
@@ -70,6 +70,8 @@ export async function UnifiedGamesPage({ tournamentId }: UnifiedGamesPageProps) 
     <GuessesContextProvider
       gameGuesses={gameGuesses}
       autoSave={true}
+      tournamentMaxSilver={tournament.max_silver_games || 0}
+      tournamentMaxGolden={tournament.max_golden_games || 0}
     >
       <UnifiedGamesPageClient
         games={games}
@@ -78,7 +80,6 @@ export async function UnifiedGamesPage({ tournamentId }: UnifiedGamesPageProps) 
         tournamentId={tournamentId}
         groups={groups}
         rounds={rounds}
-        dashboardStats={dashboardStats}
         tournament={tournament}
         closingGames={closingGames}
         tournamentPredictionCompletion={tournamentPredictionCompletion}

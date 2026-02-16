@@ -3,6 +3,7 @@ import { screen, fireEvent, waitFor } from '@testing-library/react';
 import FlippableGameCard from '../../app/components/flippable-game-card';
 import { GuessesContext } from '../../app/components/context-providers/guesses-context-provider';
 import { CountdownProvider } from '../../app/components/context-providers/countdown-context-provider';
+
 import { ExtendedGameData } from '../../app/definitions';
 import { Team } from '../../app/db/tables-definition';
 import { renderWithTheme } from '../utils/test-utils';
@@ -86,10 +87,15 @@ describe('FlippableGameCard', () => {
       }
     },
     guessedPositions: {},
+    boostCounts: {
+      silver: { used: 0, max: 5 },
+      golden: { used: 0, max: 2 }
+    },
     updateGameGuess: vi.fn(),
     pendingSaves: new Set<string>(),
     saveErrors: {},
     clearSaveError: vi.fn(),
+    flushPendingSave: vi.fn(),
   };
 
   const defaultProps = {
@@ -105,10 +111,6 @@ describe('FlippableGameCard', () => {
     isEditing: false,
     onEditStart: vi.fn(),
     onEditEnd: vi.fn(),
-    silverUsed: 0,
-    silverMax: 5,
-    goldenUsed: 0,
-    goldenMax: 2,
     disabled: false,
   };
 
@@ -356,14 +358,28 @@ describe('FlippableGameCard', () => {
     });
 
     it('disables silver boost when limit reached', () => {
-      renderWithContext({ ...defaultProps, isEditing: true, tournamentId: 'tournament1', silverUsed: 5 });
+      const contextWithMaxSilver = {
+        ...mockContextValue,
+        boostCounts: {
+          silver: { used: 5, max: 5 },
+          golden: { used: 0, max: 2 }
+        }
+      };
+      renderWithContext({ ...defaultProps, isEditing: true, tournamentId: 'tournament1' }, contextWithMaxSilver);
 
       const silverButton = screen.getByLabelText(/Silver boost/i);
       expect(silverButton).toBeDisabled();
     });
 
     it('disables golden boost when limit reached', () => {
-      renderWithContext({ ...defaultProps, isEditing: true, tournamentId: 'tournament1', goldenUsed: 2 });
+      const contextWithMaxGolden = {
+        ...mockContextValue,
+        boostCounts: {
+          silver: { used: 0, max: 5 },
+          golden: { used: 2, max: 2 }
+        }
+      };
+      renderWithContext({ ...defaultProps, isEditing: true, tournamentId: 'tournament1' }, contextWithMaxGolden);
 
       const goldenButton = screen.getByLabelText(/Golden boost/i);
       expect(goldenButton).toBeDisabled();

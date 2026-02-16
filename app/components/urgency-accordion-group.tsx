@@ -19,8 +19,6 @@ interface UrgencyAccordionGroupProps {
   readonly gameGuesses: Record<string, GameGuessNew>;
   readonly tournamentId: string;
   readonly isPlayoffs: boolean;
-  readonly silverMax?: number;
-  readonly goldenMax?: number;
 }
 
 const ONE_HOUR = 60 * 60 * 1000;
@@ -30,9 +28,7 @@ export function UrgencyAccordionGroup({
   teamsMap,
   gameGuesses,
   tournamentId: _tournamentId,
-  isPlayoffs: _isPlayoffs,
-  silverMax = 0,
-  goldenMax = 0
+  isPlayoffs: _isPlayoffs
 }: UrgencyAccordionGroupProps) {
   const [expandedTierId, setExpandedTierId] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);

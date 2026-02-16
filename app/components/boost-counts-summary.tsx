@@ -1,35 +1,20 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useContext } from 'react';
 import { Box, Chip, Paper, Typography, useTheme, alpha } from '@mui/material';
 import { EmojiEvents as TrophyIcon, Star as StarIcon } from '@mui/icons-material';
-import { getBoostCountsAction } from '../actions/game-boost-actions';
+import { GuessesContext } from './context-providers/guesses-context-provider';
 
 interface BoostCountsSummaryProps {
   tournamentId: string;
 }
 
-export default function BoostCountsSummary({ tournamentId }: BoostCountsSummaryProps) {
+export default function BoostCountsSummary({ tournamentId: _tournamentId }: BoostCountsSummaryProps) {
   const theme = useTheme();
-  const [boostCounts, setBoostCounts] = useState<{
-    silver: { used: number; max: number };
-    golden: { used: number; max: number };
-  } | null>(null);
-
-  useEffect(() => {
-    const fetchBoostCounts = async () => {
-      try {
-        const counts = await getBoostCountsAction(tournamentId);
-        setBoostCounts(counts);
-      } catch (error) {
-        console.error('Error fetching boost counts:', error);
-      }
-    };
-    fetchBoostCounts();
-  }, [tournamentId]);
+  const { boostCounts } = useContext(GuessesContext);
 
   // Don't render if boosts are disabled for this tournament
-  if (!boostCounts || (boostCounts.silver.max === 0 && boostCounts.golden.max === 0)) {
+  if (boostCounts.silver.max === 0 && boostCounts.golden.max === 0) {
     return null;
   }
 

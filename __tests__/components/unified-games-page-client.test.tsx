@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { UnifiedGamesPageClient } from '../../app/components/unified-games-page-client';
 import { renderWithProviders, createMockGuessesContext } from '../utils/test-utils';
 import { testFactories, createMany } from '../db/test-factories';
+
 import { ExtendedGameData } from '../../app/definitions';
 import { TournamentGameCounts } from '../../app/db/game-repository';
 import { Team, Tournament, TournamentGroup, PlayoffRound, TournamentPredictionCompletion } from '../../app/db/tables-definition';
@@ -124,11 +125,6 @@ describe('UnifiedGamesPageClient', () => {
     testFactories.playoffRound({ id: 'round-2', round_name: 'Quarter Finals', round_order: 2 })
   ];
 
-  const defaultDashboardStats = {
-    silverUsed: 2,
-    goldenUsed: 1
-  };
-
   const defaultTournamentPredictionCompletion: TournamentPredictionCompletion = {
     finalStandings: {
       completed: 2,
@@ -210,7 +206,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -237,7 +232,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={null}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={null}
@@ -261,7 +255,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -286,7 +279,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -313,7 +305,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -337,7 +328,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -365,7 +355,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -395,7 +384,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -425,7 +413,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -462,7 +449,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -496,7 +482,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -526,7 +511,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -559,7 +543,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -585,7 +568,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -614,7 +596,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -645,7 +626,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={[]}
           rounds={[]}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -674,7 +654,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={{ silverUsed: 0, goldenUsed: 0 }}
           tournament={tournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -683,12 +662,8 @@ describe('UnifiedGamesPageClient', () => {
         { guessesContext: true }
       );
 
-      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-        expect.objectContaining({
-          silverMax: 0,
-          goldenMax: 0
-        })
-      );
+      // Component now uses boost counts from context, not props
+      expect(mockCompactPredictionDashboard).toHaveBeenCalled();
     });
 
     it('should handle empty groups and rounds arrays', () => {
@@ -703,7 +678,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={[]}
           rounds={[]}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -732,7 +706,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -764,7 +737,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={closingGames}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -777,10 +749,6 @@ describe('UnifiedGamesPageClient', () => {
         expect.objectContaining({
           totalGames: 6,
           predictedGames: 0,
-          silverUsed: 2,
-          silverMax: 5,
-          goldenUsed: 1,
-          goldenMax: 3,
           tournamentPredictions: defaultTournamentPredictionCompletion,
           tournamentId: 'tournament-1',
           tournamentStartDate: tournamentStartDate,
@@ -803,7 +771,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -833,7 +800,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -867,7 +833,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -882,7 +847,6 @@ describe('UnifiedGamesPageClient', () => {
           teamsMap: teamsMap,
           tournamentId: 'tournament-1',
           activeFilter: 'all',
-          dashboardStats: defaultDashboardStats,
           tournament: defaultTournament
         })
       );
@@ -900,7 +864,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={null}
@@ -930,7 +893,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -963,7 +925,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
@@ -996,7 +957,6 @@ describe('UnifiedGamesPageClient', () => {
           tournamentId="tournament-1"
           groups={defaultGroups}
           rounds={defaultRounds}
-          dashboardStats={defaultDashboardStats}
           tournament={defaultTournament}
           closingGames={[]}
           tournamentPredictionCompletion={defaultTournamentPredictionCompletion}

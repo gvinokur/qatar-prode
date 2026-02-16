@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import {
   Box,
   IconButton,
@@ -20,8 +20,9 @@ import {
   Star as StarIcon,
   Close as CloseIcon
 } from '@mui/icons-material';
-import { setGameBoostAction, getBoostCountsAction } from '../actions/game-boost-actions';
+import { setGameBoostAction } from '../actions/game-boost-actions';
 import { BoostBadge, BoostCountBadge } from './boost-badge';
+import { GuessesContext } from './context-providers/guesses-context-provider';
 
 interface GameBoostSelectorProps {
   gameId: string;
@@ -30,11 +31,6 @@ interface GameBoostSelectorProps {
   tournamentId: string;
   disabled?: boolean;
   noPrediction?: boolean;
-}
-
-interface BoostCounts {
-  silver: { used: number; max: number };
-  golden: { used: number; max: number };
 }
 
 export default function GameBoostSelector({
@@ -46,8 +42,8 @@ export default function GameBoostSelector({
   noPrediction = false
 }: GameBoostSelectorProps) {
   const theme = useTheme();
+  const { boostCounts } = useContext(GuessesContext);
   const [boostType, setBoostType] = useState<'silver' | 'golden' | null>(currentBoostType);
-  const [boostCounts, setBoostCounts] = useState<BoostCounts | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -62,18 +58,6 @@ export default function GameBoostSelector({
     if (gameHasStarted) return 'El partido ya comenzó';
     return '';
   };
-
-  useEffect(() => {
-    const fetchBoostCounts = async () => {
-      try {
-        const counts = await getBoostCountsAction(tournamentId);
-        setBoostCounts(counts);
-      } catch (error) {
-        console.error('Error fetching boost counts:', error);
-      }
-    };
-    fetchBoostCounts();
-  }, [tournamentId]);
 
   useEffect(() => {
     setBoostType(currentBoostType);
@@ -112,24 +96,7 @@ export default function GameBoostSelector({
     try {
       await setGameBoostAction(gameId, newBoostType);
       setBoostType(newBoostType);
-
-      // Update counts
-      if (boostCounts) {
-        const newCounts = {
-          silver: { ...boostCounts.silver },
-          golden: { ...boostCounts.golden }
-        };
-
-        // Remove old boost
-        if (boostType === 'silver') newCounts.silver.used--;
-        if (boostType === 'golden') newCounts.golden.used--;
-
-        // Add new boost
-        if (newBoostType === 'silver') newCounts.silver.used++;
-        if (newBoostType === 'golden') newCounts.golden.used++;
-
-        setBoostCounts(newCounts);
-      }
+      // Context will automatically update counts when gameGuesses changes
     } catch (error: any) {
       setErrorMessage(error.message || 'Error updating boost');
       setDialogOpen(true);
@@ -138,7 +105,7 @@ export default function GameBoostSelector({
     }
   };
 
-  if (!boostCounts || (boostCounts.silver.max === 0 && boostCounts.golden.max === 0)) {
+  if (boostCounts.silver.max === 0 && boostCounts.golden.max === 0) {
     return null; // Boosts disabled for this tournament
   }
 

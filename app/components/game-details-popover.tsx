@@ -66,8 +66,6 @@ export function GameDetailsPopover({
             gameGuesses={gameGuesses}
             tournamentId={tournamentId}
             isPlayoffs={isPlayoffs}
-            silverMax={silverMax}
-            goldenMax={goldenMax}
           />
         )}
       </Card>

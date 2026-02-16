@@ -23,10 +23,6 @@ interface UnifiedGamesPageContentProps {
   readonly tournamentId: string;
   readonly groups: TournamentGroup[];
   readonly rounds: PlayoffRound[];
-  readonly dashboardStats: {
-    silverUsed: number;
-    goldenUsed: number;
-  } | null;
   readonly tournament: Tournament;
   readonly closingGames: ExtendedGameData[];
   readonly tournamentPredictionCompletion: TournamentPredictionCompletion | null;
@@ -40,7 +36,6 @@ function UnifiedGamesPageContent({
   tournamentId,
   groups,
   rounds,
-  dashboardStats,
   tournament,
   closingGames,
   tournamentPredictionCompletion,
@@ -135,10 +130,6 @@ function UnifiedGamesPageContent({
         <CompactPredictionDashboard
           totalGames={totalGames}
           predictedGames={predictedGames}
-          silverUsed={dashboardStats?.silverUsed || 0}
-          silverMax={tournament.max_silver_games || 0}
-          goldenUsed={dashboardStats?.goldenUsed || 0}
-          goldenMax={tournament.max_golden_games || 0}
           tournamentPredictions={tournamentPredictionCompletion || undefined}
           tournamentId={tournamentId}
           tournamentStartDate={tournamentStartDate}
@@ -204,7 +195,6 @@ function UnifiedGamesPageContent({
           teamsMap={teamsMap}
           tournamentId={tournamentId}
           activeFilter={activeFilter}
-          dashboardStats={dashboardStats}
           tournament={tournament}
         />
 
@@ -255,10 +245,6 @@ interface UnifiedGamesPageClientProps {
   readonly tournamentId: string;
   readonly groups: TournamentGroup[];
   readonly rounds: PlayoffRound[];
-  readonly dashboardStats: {
-    silverUsed: number;
-    goldenUsed: number;
-  } | null;
   readonly tournament: Tournament;
   readonly closingGames: ExtendedGameData[];
   readonly tournamentPredictionCompletion: TournamentPredictionCompletion | null;

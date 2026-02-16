@@ -20,10 +20,6 @@ interface GamesListWithScrollProps {
   readonly teamsMap: Record<string, Team>;
   readonly tournamentId: string;
   readonly activeFilter: FilterType;
-  readonly dashboardStats: {
-    silverUsed: number;
-    goldenUsed: number;
-  } | null;
   readonly tournament: Tournament;
 }
 
@@ -45,7 +41,6 @@ export function GamesListWithScroll({
   teamsMap,
   tournamentId,
   activeFilter,
-  dashboardStats,
   tournament
 }: GamesListWithScrollProps) {
   const groupContext = useContext(GuessesContext);
@@ -226,10 +221,6 @@ export function GamesListWithScroll({
               isEditing={editingGameId === game.id}
               onEditStart={() => handleEditStart(game.id)}
               onEditEnd={handleEditEnd}
-              silverUsed={dashboardStats?.silverUsed || 0}
-              silverMax={tournament?.max_silver_games || 0}
-              goldenUsed={dashboardStats?.goldenUsed || 0}
-              goldenMax={tournament?.max_golden_games || 0}
               disabled={false}
               onAutoAdvanceNext={() => handleAutoAdvanceNext(game.id)}
               onAutoGoPrevious={() => handleAutoGoPrevious(game.id)}

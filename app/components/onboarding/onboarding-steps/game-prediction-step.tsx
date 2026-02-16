@@ -88,10 +88,6 @@ export default function GamePredictionStep() {
                 isEditing={editingGameId === DEMO_GAMES[0].id}
                 onEditStart={() => handleEditStart(DEMO_GAMES[0].id)}
                 onEditEnd={handleEditEnd}
-                silverUsed={1}
-                silverMax={5}
-                goldenUsed={0}
-                goldenMax={2}
                 label="Partido de Grupo"
               />
               <GameCardOnboardingDemo
@@ -101,10 +97,6 @@ export default function GamePredictionStep() {
                 isEditing={editingGameId === DEMO_GAMES[1].id}
                 onEditStart={() => handleEditStart(DEMO_GAMES[1].id)}
                 onEditEnd={handleEditEnd}
-                silverUsed={0}
-                silverMax={5}
-                goldenUsed={0}
-                goldenMax={2}
                 label="Partido de Playoff"
                 demoNote="En empate, selecciona el ganador por penales"
               />

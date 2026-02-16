@@ -18,9 +18,7 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
-import { getBoostCountsAction } from '../actions/game-boost-actions';
 import GamePredictionEditControls from './game-prediction-edit-controls';
-import { GameDialogSkeleton } from './skeletons';
 
 interface SharedProps {
   open: boolean;
@@ -77,7 +75,6 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
   const [awayPenaltyScore, setAwayPenaltyScore] = useState<number | undefined>();
   const [gameDate, setGameDate] = useState<Date | null>(null);
   const [boostType, setBoostType] = useState<'silver' | 'golden' | null>(null);
-  const [boostCounts, setBoostCounts] = useState<{ silver: { used: number; max: number }; golden: { used: number; max: number } } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -106,20 +103,6 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  // Fetch boost counts when dialog opens for game guesses
-  useEffect(() => {
-    const fetchBoostCounts = async () => {
-      if (open && props.isGameGuess && tournamentId) {
-        try {
-          const counts = await getBoostCountsAction(tournamentId);
-          setBoostCounts(counts);
-        } catch (error) {
-          console.error('Error fetching boost counts:', error);
-        }
-      }
-    };
-    fetchBoostCounts();
-  }, [open, tournamentId, props.isGameGuess]);
 
   const handleHomeScoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value === '' ? undefined : Number(e.target.value);
@@ -259,13 +242,8 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
           </Box>
         )}
 
-        {/* Game Guess: Loading state */}
-        {props.isGameGuess && !boostCounts && (
-          <GameDialogSkeleton isGameGuess={true} />
-        )}
-
         {/* Game Guess Edit Controls (shared component) */}
-        {props.isGameGuess && boostCounts && (
+        {props.isGameGuess && (
           <GamePredictionEditControls
             gameId={gameId}
             homeTeamName={homeTeamName}
@@ -278,10 +256,6 @@ export default function GameResultEditDialog(props: GameResultEditDialogProps) {
             awayPenaltyWinner={awayPenaltyWinner}
             boostType={boostType}
             initialBoostType={props.initialBoostType}
-            silverUsed={boostCounts.silver.used}
-            silverMax={boostCounts.silver.max}
-            goldenUsed={boostCounts.golden.used}
-            goldenMax={boostCounts.golden.max}
             onHomeScoreChange={setHomeScore}
             onAwayScoreChange={setAwayScore}
             onHomePenaltyWinnerChange={setHomePenaltyWinner}

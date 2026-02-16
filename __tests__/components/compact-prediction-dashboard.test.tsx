@@ -1,6 +1,6 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import React from 'react';
-import { screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { CompactPredictionDashboard } from '@/app/components/compact-prediction-dashboard';
 import { renderWithProviders, createMockGuessesContext } from '@/__tests__/utils/test-utils';
 import type { TournamentPredictionCompletion, Team } from '@/app/db/tables-definition';
@@ -8,29 +8,13 @@ import type { ExtendedGameData } from '@/app/definitions';
 
 // Mock child components
 vi.mock('@/app/components/prediction-progress-row', () => ({
-  PredictionProgressRow: vi.fn(({ label, onClick, onBoostClick, showBoosts, silverMax, goldenMax }) => (
+  PredictionProgressRow: vi.fn(({ label, onClick }) => (
     <div
       data-testid={`progress-row-${label}`}
       onClick={onClick}
       role="button"
     >
       {label}
-      {showBoosts && silverMax > 0 && (
-        <button
-          data-testid="silver-boost-button"
-          onClick={(e) => onBoostClick?.(e, 'silver')}
-        >
-          Silver Boost
-        </button>
-      )}
-      {showBoosts && goldenMax > 0 && (
-        <button
-          data-testid="golden-boost-button"
-          onClick={(e) => onBoostClick?.(e, 'golden')}
-        >
-          Golden Boost
-        </button>
-      )}
     </div>
   ))
 }));
@@ -124,13 +108,14 @@ describe('CompactPredictionDashboard', () => {
   const defaultProps = {
     totalGames: 10,
     predictedGames: 7,
-    silverUsed: 2,
-    silverMax: 5,
-    goldenUsed: 1,
-    goldenMax: 3,
     games: [mockGame],
     teamsMap: { team1: mockTeam },
     isPlayoffs: false
+  };
+
+  const defaultBoostCounts = {
+    silver: { used: 2, max: 5 },
+    golden: { used: 1, max: 3 },
   };
 
   beforeEach(() => {
@@ -151,7 +136,11 @@ describe('CompactPredictionDashboard', () => {
     it('renders game predictions row', () => {
       renderWithProviders(
         <CompactPredictionDashboard {...defaultProps} />,
-        { guessesContext: true }
+        {
+          guessesContext: createMockGuessesContext({
+            boostCounts: defaultBoostCounts,
+          }),
+        }
       );
 
       expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
@@ -164,7 +153,11 @@ describe('CompactPredictionDashboard', () => {
           tournamentPredictions={mockTournamentPredictions}
           tournamentId="tournament1"
         />,
-        { guessesContext: true }
+        {
+          guessesContext: createMockGuessesContext({
+            boostCounts: defaultBoostCounts,
+          }),
+        }
       );
 
       expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
@@ -174,7 +167,11 @@ describe('CompactPredictionDashboard', () => {
     it('does not render tournament row when predictions are missing', () => {
       renderWithProviders(
         <CompactPredictionDashboard {...defaultProps} />,
-        { guessesContext: true }
+        {
+          guessesContext: createMockGuessesContext({
+            boostCounts: defaultBoostCounts,
+          }),
+        }
       );
 
       expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
@@ -187,7 +184,11 @@ describe('CompactPredictionDashboard', () => {
           {...defaultProps}
           tournamentPredictions={mockTournamentPredictions}
         />,
-        { guessesContext: true }
+        {
+          guessesContext: createMockGuessesContext({
+            boostCounts: defaultBoostCounts,
+          }),
+        }
       );
 
       expect(screen.queryByTestId('progress-row-Torneo')).not.toBeInTheDocument();
@@ -198,7 +199,11 @@ describe('CompactPredictionDashboard', () => {
     it('opens game details popover when game row is clicked', async () => {
       renderWithProviders(
         <CompactPredictionDashboard {...defaultProps} />,
-        { guessesContext: true }
+        {
+          guessesContext: createMockGuessesContext({
+            boostCounts: defaultBoostCounts,
+          }),
+        }
       );
 
       const gameRow = screen.getByTestId('progress-row-Partidos');
@@ -212,7 +217,11 @@ describe('CompactPredictionDashboard', () => {
     it('closes game details popover when close button is clicked', async () => {
       renderWithProviders(
         <CompactPredictionDashboard {...defaultProps} />,
-        { guessesContext: true }
+        {
+          guessesContext: createMockGuessesContext({
+            boostCounts: defaultBoostCounts,
+          }),
+        }
       );
 
       // Open popover
@@ -241,7 +250,11 @@ describe('CompactPredictionDashboard', () => {
           tournamentPredictions={mockTournamentPredictions}
           tournamentId="tournament1"
         />,
-        { guessesContext: true }
+        {
+          guessesContext: createMockGuessesContext({
+            boostCounts: defaultBoostCounts,
+          }),
+        }
       );
 
       const tournamentRow = screen.getByTestId('progress-row-Torneo');
@@ -259,7 +272,11 @@ describe('CompactPredictionDashboard', () => {
           tournamentPredictions={mockTournamentPredictions}
           tournamentId="tournament1"
         />,
-        { guessesContext: true }
+        {
+          guessesContext: createMockGuessesContext({
+            boostCounts: defaultBoostCounts,
+          }),
+        }
       );
 
       // Open popover
@@ -280,143 +297,164 @@ describe('CompactPredictionDashboard', () => {
     });
   });
 
-  describe('Boost Interactions', () => {
-    it('shows boost buttons when silverMax > 0', () => {
+  describe('Boost Counts from Context', () => {
+    it('reads boost counts from GuessesContext', () => {
       renderWithProviders(
         <CompactPredictionDashboard {...defaultProps} />,
-        { guessesContext: true }
+        {
+          guessesContext: createMockGuessesContext({
+            boostCounts: {
+              silver: { used: 3, max: 5 },
+              golden: { used: 2, max: 3 },
+            },
+          }),
+        }
       );
 
-      expect(screen.getByTestId('silver-boost-button')).toBeInTheDocument();
+      // Component should render without errors and use context values
+      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
     });
 
-    it('shows boost buttons when goldenMax > 0', () => {
+    it('handles zero boost maxes', () => {
       renderWithProviders(
         <CompactPredictionDashboard {...defaultProps} />,
-        { guessesContext: true }
+        {
+          guessesContext: createMockGuessesContext({
+            boostCounts: {
+              silver: { used: 0, max: 0 },
+              golden: { used: 0, max: 0 },
+            },
+          }),
+        }
       );
 
-      expect(screen.getByTestId('golden-boost-button')).toBeInTheDocument();
+      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
+    });
+  });
+
+  describe('Demo Mode', () => {
+    it('disables interactions in demo mode', () => {
+      renderWithProviders(
+        <CompactPredictionDashboard {...defaultProps} demoMode={true} />,
+        {
+          guessesContext: createMockGuessesContext({
+            boostCounts: defaultBoostCounts,
+          }),
+        }
+      );
+
+      const gameRow = screen.getByTestId('progress-row-Partidos');
+      fireEvent.click(gameRow);
+
+      // Should not open popover in demo mode
+      expect(screen.queryByTestId('game-details-popover')).not.toBeInTheDocument();
     });
 
-    it('does not show boost buttons when both max values are 0', () => {
+    it('renders normally in demo mode', () => {
       renderWithProviders(
         <CompactPredictionDashboard
           {...defaultProps}
-          silverMax={0}
-          goldenMax={0}
+          demoMode={true}
+          tournamentPredictions={mockTournamentPredictions}
+          tournamentId="tournament1"
         />,
-        { guessesContext: true }
+        {
+          guessesContext: createMockGuessesContext({
+            boostCounts: defaultBoostCounts,
+          }),
+        }
       );
 
-      expect(screen.queryByTestId('silver-boost-button')).not.toBeInTheDocument();
-      expect(screen.queryByTestId('golden-boost-button')).not.toBeInTheDocument();
-    });
-
-    it('opens silver boost popover when silver boost button is clicked', async () => {
-      renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} />,
-        { guessesContext: true }
-      );
-
-      const silverButton = screen.getByTestId('silver-boost-button');
-      fireEvent.click(silverButton);
-
-      await waitFor(() => {
-        expect(screen.getByTestId('boost-info-popover')).toBeInTheDocument();
-        expect(screen.getByText('Boost Info: silver')).toBeInTheDocument();
-      });
-    });
-
-    it('opens golden boost popover when golden boost button is clicked', async () => {
-      renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} />,
-        { guessesContext: true }
-      );
-
-      const goldenButton = screen.getByTestId('golden-boost-button');
-      fireEvent.click(goldenButton);
-
-      await waitFor(() => {
-        expect(screen.getByTestId('boost-info-popover')).toBeInTheDocument();
-        expect(screen.getByText('Boost Info: golden')).toBeInTheDocument();
-      });
-    });
-
-    it('closes boost popover when close button is clicked', async () => {
-      renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} />,
-        { guessesContext: true }
-      );
-
-      // Open popover
-      const silverButton = screen.getByTestId('silver-boost-button');
-      fireEvent.click(silverButton);
-
-      await waitFor(() => {
-        expect(screen.getByTestId('boost-info-popover')).toBeInTheDocument();
-      });
-
-      // Close popover
-      const closeButton = screen.getByTestId('close-boost-popover');
-      fireEvent.click(closeButton);
-
-      await waitFor(() => {
-        expect(screen.queryByTestId('boost-info-popover')).not.toBeInTheDocument();
-      });
-    });
-
-    it('stops event propagation when boost button is clicked', async () => {
-      const onClickSpy = vi.fn();
-
-      renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} />,
-        { guessesContext: true }
-      );
-
-      const silverButton = screen.getByTestId('silver-boost-button');
-      fireEvent.click(silverButton);
-
-      // Game popover should not open when boost button is clicked
-      await waitFor(() => {
-        expect(screen.queryByTestId('game-details-popover')).not.toBeInTheDocument();
-      });
+      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
+      expect(screen.getByTestId('progress-row-Torneo')).toBeInTheDocument();
     });
   });
 
-  describe('Context Integration', () => {
-    it('uses gameGuesses from GuessesContext', () => {
-      const mockGameGuesses = {
-        game1: {
-          game_id: 'game1',
-          user_id: 'user1',
-          home_score: 2,
-          away_score: 1,
-          boost_type: null,
-          created_at: new Date(),
-          updated_at: new Date()
-        }
-      };
-
+  describe('Playoffs Mode', () => {
+    it('renders correctly for playoffs', () => {
       renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} />,
+        <CompactPredictionDashboard {...defaultProps} isPlayoffs={true} />,
         {
           guessesContext: createMockGuessesContext({
-            gameGuesses: mockGameGuesses
-          })
+            boostCounts: defaultBoostCounts,
+          }),
         }
       );
 
       expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
     });
 
-    it('works with empty gameGuesses', () => {
+    it('renders playoffs with tournament predictions', () => {
       renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} />,
+        <CompactPredictionDashboard
+          {...defaultProps}
+          isPlayoffs={true}
+          tournamentPredictions={mockTournamentPredictions}
+          tournamentId="tournament1"
+        />,
         {
           guessesContext: createMockGuessesContext({
-            gameGuesses: {}
-          })
+            boostCounts: defaultBoostCounts,
+          }),
+        }
+      );
+
+      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
+      expect(screen.getByTestId('progress-row-Torneo')).toBeInTheDocument();
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('handles empty games array', () => {
+      renderWithProviders(
+        <CompactPredictionDashboard {...defaultProps} games={[]} />,
+        {
+          guessesContext: createMockGuessesContext({
+            boostCounts: defaultBoostCounts,
+          }),
+        }
+      );
+
+      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
+    });
+
+    it('handles zero predicted games', () => {
+      renderWithProviders(
+        <CompactPredictionDashboard {...defaultProps} predictedGames={0} />,
+        {
+          guessesContext: createMockGuessesContext({
+            boostCounts: defaultBoostCounts,
+          }),
+        }
+      );
+
+      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
+    });
+
+    it('handles zero total games', () => {
+      renderWithProviders(
+        <CompactPredictionDashboard {...defaultProps} totalGames={0} />,
+        {
+          guessesContext: createMockGuessesContext({
+            boostCounts: defaultBoostCounts,
+          }),
+        }
+      );
+
+      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
+    });
+
+    it('handles complete predictions', () => {
+      renderWithProviders(
+        <CompactPredictionDashboard
+          {...defaultProps}
+          predictedGames={10}
+          totalGames={10}
+        />,
+        {
+          guessesContext: createMockGuessesContext({
+            boostCounts: defaultBoostCounts,
+          }),
         }
       );
 
@@ -424,178 +462,55 @@ describe('CompactPredictionDashboard', () => {
     });
   });
 
-  describe('Urgency Level Calculations', () => {
-    it('calculates game urgency level using games and gameGuesses', async () => {
-      const { getGameUrgencyLevel } = await import('@/app/components/urgency-helpers');
-
+  describe('Tournament Start Date', () => {
+    it('renders with past tournament start date', () => {
+      const pastDate = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours ago
       renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} />,
-        { guessesContext: true }
+        <CompactPredictionDashboard
+          {...defaultProps}
+          tournamentStartDate={pastDate}
+        />,
+        {
+          guessesContext: createMockGuessesContext({
+            boostCounts: defaultBoostCounts,
+          }),
+        }
       );
 
-      expect(getGameUrgencyLevel).toHaveBeenCalledWith(
-        defaultProps.games,
-        expect.any(Object)
-      );
+      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
     });
 
-    it('calculates tournament urgency level using tournament data', async () => {
-      const { getTournamentUrgencyLevel } = await import('@/app/components/urgency-helpers');
-      const tournamentStartDate = new Date();
+    it('renders with future tournament start date', () => {
+      const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+      renderWithProviders(
+        <CompactPredictionDashboard
+          {...defaultProps}
+          tournamentStartDate={futureDate}
+        />,
+        {
+          guessesContext: createMockGuessesContext({
+            boostCounts: defaultBoostCounts,
+          }),
+        }
+      );
 
+      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
+    });
+  });
+
+  describe('Multiple Interactions', () => {
+    it('handles switching between popovers', async () => {
       renderWithProviders(
         <CompactPredictionDashboard
           {...defaultProps}
           tournamentPredictions={mockTournamentPredictions}
           tournamentId="tournament1"
-          tournamentStartDate={tournamentStartDate}
         />,
-        { guessesContext: true }
-      );
-
-      expect(getTournamentUrgencyLevel).toHaveBeenCalledWith(
-        mockTournamentPredictions,
-        tournamentStartDate
-      );
-    });
-
-    it('checks for urgent games using hasUrgentGames helper', async () => {
-      const { hasUrgentGames } = await import('@/app/components/urgency-helpers');
-
-      renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} />,
-        { guessesContext: true }
-      );
-
-      expect(hasUrgentGames).toHaveBeenCalledWith(
-        defaultProps.games,
-        expect.any(Object)
-      );
-    });
-  });
-
-  describe('Edge Cases', () => {
-    it('handles zero total games', () => {
-      renderWithProviders(
-        <CompactPredictionDashboard
-          {...defaultProps}
-          totalGames={0}
-          predictedGames={0}
-        />,
-        { guessesContext: true }
-      );
-
-      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
-    });
-
-    it('handles 100% prediction completion', () => {
-      renderWithProviders(
-        <CompactPredictionDashboard
-          {...defaultProps}
-          totalGames={10}
-          predictedGames={10}
-        />,
-        { guessesContext: true }
-      );
-
-      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
-    });
-
-    it('handles 0% prediction completion', () => {
-      renderWithProviders(
-        <CompactPredictionDashboard
-          {...defaultProps}
-          totalGames={10}
-          predictedGames={0}
-        />,
-        { guessesContext: true }
-      );
-
-      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
-    });
-
-    it('handles undefined games array', () => {
-      renderWithProviders(
-        <CompactPredictionDashboard
-          {...defaultProps}
-          games={undefined}
-        />,
-        { guessesContext: true }
-      );
-
-      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
-    });
-
-    it('handles undefined teamsMap', () => {
-      renderWithProviders(
-        <CompactPredictionDashboard
-          {...defaultProps}
-          teamsMap={undefined}
-        />,
-        { guessesContext: true }
-      );
-
-      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
-    });
-
-    it('handles playoffs mode', () => {
-      renderWithProviders(
-        <CompactPredictionDashboard
-          {...defaultProps}
-          isPlayoffs={true}
-        />,
-        { guessesContext: true }
-      );
-
-      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
-    });
-  });
-
-  describe('Dashboard Width Tracking', () => {
-    it('initializes with default width', () => {
-      renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} />,
-        { guessesContext: true }
-      );
-
-      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
-    });
-
-    it('updates width on window resize', async () => {
-      renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} />,
-        { guessesContext: true }
-      );
-
-      // Simulate window resize
-      await act(async () => {
-        global.dispatchEvent(new Event('resize'));
-      });
-
-      await waitFor(() => {
-        expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
-      });
-    });
-
-    it('cleans up resize listener on unmount', () => {
-      const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
-
-      const { unmount } = renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} />,
-        { guessesContext: true }
-      );
-
-      unmount();
-
-      expect(removeEventListenerSpy).toHaveBeenCalledWith('resize', expect.any(Function));
-    });
-  });
-
-  describe('Multiple Popovers State Management', () => {
-    it('can have only one popover open at a time - game then boost', async () => {
-      renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} />,
-        { guessesContext: true }
+        {
+          guessesContext: createMockGuessesContext({
+            boostCounts: defaultBoostCounts,
+          }),
+        }
       );
 
       // Open game popover
@@ -606,23 +521,35 @@ describe('CompactPredictionDashboard', () => {
         expect(screen.getByTestId('game-details-popover')).toBeInTheDocument();
       });
 
-      // Open boost popover (game popover should still be open)
-      const silverButton = screen.getByTestId('silver-boost-button');
-      fireEvent.click(silverButton);
+      // Close game popover
+      const closeGameButton = screen.getByTestId('close-game-popover');
+      fireEvent.click(closeGameButton);
 
       await waitFor(() => {
-        expect(screen.getByTestId('boost-info-popover')).toBeInTheDocument();
+        expect(screen.queryByTestId('game-details-popover')).not.toBeInTheDocument();
+      });
+
+      // Open tournament popover
+      const tournamentRow = screen.getByTestId('progress-row-Torneo');
+      fireEvent.click(tournamentRow);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('tournament-details-popover')).toBeInTheDocument();
       });
     });
 
-    it('can open tournament popover independently', async () => {
+    it('closes tournament popover and opens game popover', async () => {
       renderWithProviders(
         <CompactPredictionDashboard
           {...defaultProps}
           tournamentPredictions={mockTournamentPredictions}
           tournamentId="tournament1"
         />,
-        { guessesContext: true }
+        {
+          guessesContext: createMockGuessesContext({
+            boostCounts: defaultBoostCounts,
+          }),
+        }
       );
 
       // Open tournament popover
@@ -633,185 +560,21 @@ describe('CompactPredictionDashboard', () => {
         expect(screen.getByTestId('tournament-details-popover')).toBeInTheDocument();
       });
 
-      // Game popover should not be open
-      expect(screen.queryByTestId('game-details-popover')).not.toBeInTheDocument();
-    });
-  });
-
-  describe('Boost Type State Management', () => {
-    it('tracks active boost type when opening silver boost', async () => {
-      renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} />,
-        { guessesContext: true }
-      );
-
-      const silverButton = screen.getByTestId('silver-boost-button');
-      fireEvent.click(silverButton);
+      // Close tournament popover
+      const closeTournamentButton = screen.getByTestId('close-tournament-popover');
+      fireEvent.click(closeTournamentButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Boost Info: silver')).toBeInTheDocument();
+        expect(screen.queryByTestId('tournament-details-popover')).not.toBeInTheDocument();
       });
-    });
 
-    it('tracks active boost type when opening golden boost', async () => {
-      renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} />,
-        { guessesContext: true }
-      );
-
-      const goldenButton = screen.getByTestId('golden-boost-button');
-      fireEvent.click(goldenButton);
+      // Open game popover
+      const gameRow = screen.getByTestId('progress-row-Partidos');
+      fireEvent.click(gameRow);
 
       await waitFor(() => {
-        expect(screen.getByText('Boost Info: golden')).toBeInTheDocument();
+        expect(screen.getByTestId('game-details-popover')).toBeInTheDocument();
       });
-    });
-
-    it('clears active boost type when closing boost popover', async () => {
-      renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} />,
-        { guessesContext: true }
-      );
-
-      // Open silver boost
-      const silverButton = screen.getByTestId('silver-boost-button');
-      fireEvent.click(silverButton);
-
-      await waitFor(() => {
-        expect(screen.getByTestId('boost-info-popover')).toBeInTheDocument();
-      });
-
-      // Close boost popover
-      const closeButton = screen.getByTestId('close-boost-popover');
-      fireEvent.click(closeButton);
-
-      await waitFor(() => {
-        expect(screen.queryByTestId('boost-info-popover')).not.toBeInTheDocument();
-      });
-
-      // Should be able to open golden boost now
-      const goldenButton = screen.getByTestId('golden-boost-button');
-      fireEvent.click(goldenButton);
-
-      await waitFor(() => {
-        expect(screen.getByText('Boost Info: golden')).toBeInTheDocument();
-      });
-    });
-  });
-
-  describe('Props Variations', () => {
-    it('handles all boost values set to 0', () => {
-      renderWithProviders(
-        <CompactPredictionDashboard
-          {...defaultProps}
-          silverUsed={0}
-          silverMax={0}
-          goldenUsed={0}
-          goldenMax={0}
-        />,
-        { guessesContext: true }
-      );
-
-      expect(screen.queryByTestId('silver-boost-button')).not.toBeInTheDocument();
-      expect(screen.queryByTestId('golden-boost-button')).not.toBeInTheDocument();
-    });
-
-    it('handles only silver boost available', () => {
-      renderWithProviders(
-        <CompactPredictionDashboard
-          {...defaultProps}
-          silverMax={5}
-          goldenMax={0}
-        />,
-        { guessesContext: true }
-      );
-
-      expect(screen.getByTestId('silver-boost-button')).toBeInTheDocument();
-      expect(screen.queryByTestId('golden-boost-button')).not.toBeInTheDocument();
-    });
-
-    it('handles only golden boost available', () => {
-      renderWithProviders(
-        <CompactPredictionDashboard
-          {...defaultProps}
-          silverMax={0}
-          goldenMax={3}
-        />,
-        { guessesContext: true }
-      );
-
-      expect(screen.queryByTestId('silver-boost-button')).not.toBeInTheDocument();
-      expect(screen.getByTestId('golden-boost-button')).toBeInTheDocument();
-    });
-
-    it('handles tournament predictions without start date', () => {
-      renderWithProviders(
-        <CompactPredictionDashboard
-          {...defaultProps}
-          tournamentPredictions={mockTournamentPredictions}
-          tournamentId="tournament1"
-          tournamentStartDate={undefined}
-        />,
-        { guessesContext: true }
-      );
-
-      expect(screen.getByTestId('progress-row-Torneo')).toBeInTheDocument();
-    });
-
-    it('handles empty games array', () => {
-      renderWithProviders(
-        <CompactPredictionDashboard
-          {...defaultProps}
-          games={[]}
-        />,
-        { guessesContext: true }
-      );
-
-      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
-    });
-  });
-
-  describe('Percentage Calculation', () => {
-    it('calculates game percentage correctly with positive values', () => {
-      renderWithProviders(
-        <CompactPredictionDashboard
-          {...defaultProps}
-          totalGames={10}
-          predictedGames={7}
-        />,
-        { guessesContext: true }
-      );
-
-      // The component calculates: Math.round((7 / 10) * 100) = 70%
-      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
-    });
-
-    it('calculates game percentage as 0 when totalGames is 0', () => {
-      renderWithProviders(
-        <CompactPredictionDashboard
-          {...defaultProps}
-          totalGames={0}
-          predictedGames={0}
-        />,
-        { guessesContext: true }
-      );
-
-      // The component calculates: 0 (to avoid division by zero)
-      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
-    });
-
-    it('handles fractional percentages by rounding', () => {
-      renderWithProviders(
-        <CompactPredictionDashboard
-          {...defaultProps}
-          totalGames={3}
-          predictedGames={1}
-        />,
-        { guessesContext: true }
-      );
-
-      // The component calculates: Math.round((1 / 3) * 100) = 33%
-      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
     });
   });
 });

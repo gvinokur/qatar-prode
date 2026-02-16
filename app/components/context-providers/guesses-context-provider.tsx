@@ -10,13 +10,20 @@ import {
 
 type GameGuessMap = {[k:string]: GameGuessNew}
 
+interface BoostCounts {
+  silver: { used: number; max: number };
+  golden: { used: number; max: number };
+}
+
 interface GuessesContextValue {
   gameGuesses: GameGuessMap;
+  boostCounts: BoostCounts;
   updateGameGuess: (gameId: string, gameGuess: GameGuessNew) => Promise<void>;
 }
 
 export const GuessesContext = React.createContext<GuessesContextValue>({
   gameGuesses: {} as GameGuessMap,
+  boostCounts: { silver: { used: 0, max: 0 }, golden: { used: 0, max: 0 } },
   updateGameGuess: async (_gameId:string, _gameGuess: GameGuessNew) => {},
 })
 
@@ -24,13 +31,29 @@ export interface GuessesContextProviderProps {
   readonly children: React.ReactNode
   readonly gameGuesses: {[k:string]: GameGuessNew}
   readonly autoSave?: boolean
+  readonly tournamentMaxSilver?: number
+  readonly tournamentMaxGolden?: number
 }
 
 export function GuessesContextProvider ({children,
                                           gameGuesses: serverGameGuesses,
-                                          autoSave = false
+                                          autoSave = false,
+                                          tournamentMaxSilver = 0,
+                                          tournamentMaxGolden = 0
                                         }: GuessesContextProviderProps) {
   const [gameGuesses, setGameGuesses] = useState(serverGameGuesses)
+
+  // Calculate boost counts from game guesses
+  const boostCounts = useMemo(() => {
+    const guesses = Object.values(gameGuesses);
+    const silverUsed = guesses.filter(g => g.boost_type === 'silver').length;
+    const goldenUsed = guesses.filter(g => g.boost_type === 'golden').length;
+
+    return {
+      silver: { used: silverUsed, max: tournamentMaxSilver },
+      golden: { used: goldenUsed, max: tournamentMaxGolden }
+    };
+  }, [gameGuesses, tournamentMaxSilver, tournamentMaxGolden]);
 
   const updateGameGuess = useCallback(async (
     gameId: string,
@@ -57,8 +80,9 @@ export function GuessesContextProvider ({children,
 
   const context = useMemo(() => ({
     gameGuesses,
+    boostCounts,
     updateGameGuess
-  }), [gameGuesses, updateGameGuess])
+  }), [gameGuesses, boostCounts, updateGameGuess])
 
   return (
     <GuessesContext.Provider value={context}>

@@ -51,12 +51,23 @@ export function MockGuessesContextProvider({ children }: MockGuessesContextProvi
     [gameGuesses]
   )
 
+  const boostCounts = useMemo(() => {
+    const guesses = Object.values(gameGuesses);
+    const silverUsed = guesses.filter(g => g.boost_type === 'silver').length;
+    const goldenUsed = guesses.filter(g => g.boost_type === 'golden').length;
+    return {
+      silver: { used: silverUsed, max: 5 },
+      golden: { used: goldenUsed, max: 2 }
+    };
+  }, [gameGuesses]);
+
   const context = useMemo(
     () => ({
       gameGuesses,
+      boostCounts,
       updateGameGuess,
     }),
-    [gameGuesses, updateGameGuess]
+    [gameGuesses, boostCounts, updateGameGuess]
   )
 
   return <GuessesContext.Provider value={context}>{children}</GuessesContext.Provider>
