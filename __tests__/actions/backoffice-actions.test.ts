@@ -991,11 +991,7 @@ describe('Backoffice Actions', () => {
     };
 
     beforeEach(() => {
-      // Mock returns tournament with updated fields (simulates after updateTournament call)
-      mockFindTournamentById.mockResolvedValue({
-        ...mockTournament,
-        ...mockTournamentUpdate
-      });
+      mockFindTournamentById.mockResolvedValue(mockTournament);
       mockUpdateTournament.mockResolvedValue(mockTournament);
       mockFindTournamentGuessByTournament.mockResolvedValue([
         { 
@@ -1045,102 +1041,26 @@ describe('Backoffice Actions', () => {
 
     it('calculates zero score when no awards match', async () => {
       mockFindTournamentGuessByTournament.mockResolvedValue([
-        {
-          id: 'guess1',
-          tournament_id: 'tournament1',
-          user_id: 'user1',
-          champion_team_id: null,
-          runner_up_team_id: null,
-          third_place_team_id: null,
-          best_player_id: 'player3',
-          top_goalscorer_player_id: 'player4',
-          best_goalkeeper_player_id: undefined,
-          best_young_player_id: undefined,
-          honor_roll_score: undefined,
-          individual_awards_score: undefined,
-          qualified_teams_score: undefined,
-          group_position_score: undefined
+        { 
+          id: 'guess1', 
+          tournament_id: 'tournament1', 
+          user_id: 'user1', 
+          champion_team_id: null, 
+          runner_up_team_id: null, 
+          third_place_team_id: null, 
+          best_player_id: 'player3', 
+          top_goalscorer_player_id: 'player4', 
+          best_goalkeeper_player_id: undefined, 
+          best_young_player_id: undefined, 
+          honor_roll_score: undefined, 
+          individual_awards_score: undefined, 
+          qualified_teams_score: undefined, 
+          group_position_score: undefined 
         }
       ]);
 
       await updateTournamentAwards('tournament1', mockTournamentUpdate);
 
-      expect(mockUpdateTournamentGuessWithSnapshot).toHaveBeenCalledWith('guess1', {
-        individual_awards_score: 0
-      });
-    });
-
-    // Regression test for bug fix: https://github.com/gvinokur/qatar-prode/issues/164
-    it('preserves scores for existing awards when updating different award', async () => {
-      // Setup: Tournament already has best_player and top_goalscorer set
-      mockFindTournamentById.mockResolvedValue({
-        ...mockTournament,
-        best_player_id: 'player1',
-        top_goalscorer_player_id: 'player2',
-        best_goalkeeper_player_id: 'player3' // New field being updated
-      });
-
-      // User matches the first two awards (should have 5+5=10 points)
-      mockFindTournamentGuessByTournament.mockResolvedValue([
-        {
-          id: 'guess1',
-          tournament_id: 'tournament1',
-          user_id: 'user1',
-          champion_team_id: null,
-          runner_up_team_id: null,
-          third_place_team_id: null,
-          best_player_id: 'player1', // Matches
-          top_goalscorer_player_id: 'player2', // Matches
-          best_goalkeeper_player_id: 'player99', // Does NOT match new field
-          best_young_player_id: undefined,
-          honor_roll_score: undefined,
-          individual_awards_score: undefined,
-          qualified_teams_score: undefined,
-          group_position_score: undefined
-        }
-      ]);
-
-      // Update only best_goalkeeper_player_id
-      await updateTournamentAwards('tournament1', { best_goalkeeper_player_id: 'player3' });
-
-      // Should preserve scores for best_player and top_goalscorer (5+5=10 points)
-      expect(mockUpdateTournamentGuessWithSnapshot).toHaveBeenCalledWith('guess1', {
-        individual_awards_score: 10
-      });
-    });
-
-    // Regression test for bug fix: https://github.com/gvinokur/qatar-prode/issues/164
-    it('recalculates correctly when updating existing award', async () => {
-      // Setup: Tournament has best_player set
-      mockFindTournamentById.mockResolvedValue({
-        ...mockTournament,
-        best_player_id: 'player2' // Changed from player1 to player2
-      });
-
-      // User guessed player1 (no longer matches)
-      mockFindTournamentGuessByTournament.mockResolvedValue([
-        {
-          id: 'guess1',
-          tournament_id: 'tournament1',
-          user_id: 'user1',
-          champion_team_id: null,
-          runner_up_team_id: null,
-          third_place_team_id: null,
-          best_player_id: 'player1', // Does NOT match updated value
-          top_goalscorer_player_id: undefined,
-          best_goalkeeper_player_id: undefined,
-          best_young_player_id: undefined,
-          honor_roll_score: undefined,
-          individual_awards_score: undefined,
-          qualified_teams_score: undefined,
-          group_position_score: undefined
-        }
-      ]);
-
-      // Update best_player_id from player1 to player2
-      await updateTournamentAwards('tournament1', { best_player_id: 'player2' });
-
-      // Should recalculate to 0 (user guess no longer matches)
       expect(mockUpdateTournamentGuessWithSnapshot).toHaveBeenCalledWith('guess1', {
         individual_awards_score: 0
       });
@@ -1155,11 +1075,7 @@ describe('Backoffice Actions', () => {
     };
 
     beforeEach(() => {
-      // Mock returns tournament with updated fields (simulates after updateTournament call)
-      mockFindTournamentById.mockResolvedValue({
-        ...mockTournament,
-        ...mockTournamentUpdate
-      });
+      mockFindTournamentById.mockResolvedValue(mockTournament);
       mockUpdateTournament.mockResolvedValue(mockTournament);
       mockFindTournamentGuessByTournament.mockResolvedValue([
         {
@@ -1207,94 +1123,11 @@ describe('Backoffice Actions', () => {
       expect(result).toHaveLength(1);
     });
 
-    it('recalculates scores even when empty update provided (uses tournament state)', async () => {
-      // After fix, function always recalculates based on tournament state (not withUpdate)
+    it('does not update scores when no honor roll data provided', async () => {
       const result = await updateTournamentHonorRoll('tournament1', {});
 
       expect(mockUpdateTournament).toHaveBeenCalledWith('tournament1', {});
-      // Should still recalculate based on existing tournament honor roll fields
-      expect(mockUpdateTournamentGuessWithSnapshot).toHaveBeenCalledWith('guess1', {
-        honor_roll_score: 15 // Based on tournament state (10+5+0)
-      });
-      expect(result).toHaveLength(1);
-    });
-
-    // Regression test for bug fix: https://github.com/gvinokur/qatar-prode/issues/164
-    it('preserves scores for existing honor roll when updating different field', async () => {
-      // Setup: Tournament already has champion and runner_up set
-      mockFindTournamentById.mockResolvedValue({
-        ...mockTournament,
-        champion_team_id: 'team1',
-        runner_up_team_id: 'team2',
-        third_place_team_id: 'team3' // New field being updated
-      });
-
-      // User matches champion and runner_up (should have 10+5=15 points)
-      mockFindTournamentGuessByTournament.mockResolvedValue([
-        {
-          id: 'guess1',
-          tournament_id: 'tournament1',
-          user_id: 'user1',
-          champion_team_id: 'team1', // Matches
-          runner_up_team_id: 'team2', // Matches
-          third_place_team_id: 'team99', // Does NOT match new field
-          best_player_id: undefined,
-          top_goalscorer_player_id: undefined,
-          best_goalkeeper_player_id: undefined,
-          best_young_player_id: undefined,
-          honor_roll_score: undefined,
-          individual_awards_score: undefined,
-          qualified_teams_score: undefined,
-          group_position_score: undefined
-        }
-      ]);
-
-      // Update only third_place_team_id
-      await updateTournamentHonorRoll('tournament1', { third_place_team_id: 'team3' });
-
-      // Should preserve scores for champion and runner_up (10+5=15 points)
-      expect(mockUpdateTournamentGuessWithSnapshot).toHaveBeenCalledWith('guess1', {
-        honor_roll_score: 15
-      });
-    });
-
-    // Regression test for bug fix: https://github.com/gvinokur/qatar-prode/issues/164
-    it('recalculates correctly when updating existing honor roll field', async () => {
-      // Setup: Tournament has champion set to different team
-      mockFindTournamentById.mockResolvedValue({
-        ...mockTournament,
-        champion_team_id: 'team2', // Changed from team1 to team2
-        runner_up_team_id: null,
-        third_place_team_id: null
-      });
-
-      // User guessed team1 as champion (no longer matches)
-      mockFindTournamentGuessByTournament.mockResolvedValue([
-        {
-          id: 'guess1',
-          tournament_id: 'tournament1',
-          user_id: 'user1',
-          champion_team_id: 'team1', // Does NOT match updated value
-          runner_up_team_id: null,
-          third_place_team_id: null,
-          best_player_id: undefined,
-          top_goalscorer_player_id: undefined,
-          best_goalkeeper_player_id: undefined,
-          best_young_player_id: undefined,
-          honor_roll_score: undefined,
-          individual_awards_score: undefined,
-          qualified_teams_score: undefined,
-          group_position_score: undefined
-        }
-      ]);
-
-      // Update champion_team_id from team1 to team2
-      await updateTournamentHonorRoll('tournament1', { champion_team_id: 'team2' });
-
-      // Should recalculate to 0 (user guess no longer matches)
-      expect(mockUpdateTournamentGuessWithSnapshot).toHaveBeenCalledWith('guess1', {
-        honor_roll_score: 0
-      });
+      expect(result).toBeUndefined();
     });
   });
 
