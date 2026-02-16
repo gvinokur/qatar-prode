@@ -137,39 +137,35 @@ app/
 For each route page:
 1. **Move file** - `app/page.tsx` → `app/[locale]/page.tsx`
 2. **Update imports** - Adjust relative imports if path depth changed
-3. **Update dynamic params** - Add locale to params type:
-```typescript
-// Before
-export default async function Page({ params }: { params: { id: string } }) { }
-
-// After
-export default async function Page({
-  params
-}: {
-  params: { locale: string; id: string }
-}) { }
-```
+3. **NO param changes needed** - Pages don't need to accept locale param (locale comes from context)
 4. **Update internal links** - See "Link Updates Strategy" below
-5. **Update generateStaticParams** - Include locale param if route has static generation
+5. **Update generateStaticParams** - Include locale param if route has static generation (only for dynamic segments like `[id]`)
 6. **Test route** - Verify route works at `/es/...` and `/en/...`
+
+**Key simplification:** Pages do NOT need to accept `locale` as a param. The locale is available via:
+- Client Components: `useLocale()` hook from `next-intl`
+- Server Components: `getLocale()` from `next-intl/server`
 
 **Phase E: Link Updates Strategy**
 
 **Server Components** (most common in this app):
 - Use `next/link` with manual locale prefix
-- Pass locale from params:
+- Get locale from `getLocale()`:
 ```typescript
 // Before
 <Link href="/tournaments">Tournaments</Link>
 
 // After (in Server Component)
-export default async function MyPage({ params }: { params: { locale: string } }) {
-  return <Link href={`/${params.locale}/tournaments`}>Tournaments</Link>
+import { getLocale } from 'next-intl/server';
+
+export default async function MyPage() {
+  const locale = await getLocale();
+  return <Link href={`/${locale}/tournaments`}>Tournaments</Link>
 }
 ```
 
 **Client Components:**
-- Use `next-intl`'s `Link` and `useRouter`:
+- Use `next-intl`'s `Link` and `useRouter` (automatically adds locale):
 ```typescript
 import { Link } from 'next-intl';
 import { useRouter } from 'next-intl/client';
@@ -181,6 +177,9 @@ import { useRouter } from 'next-intl/client';
 const router = useRouter();
 router.push('/tournaments');  // → /es/tournaments or /en/tournaments
 ```
+
+**Alternative for Server Components (even simpler):**
+If a Server Component doesn't need other locale-specific logic, you can keep using `next/link` and let the middleware handle locale routing (it will redirect properly).
 
 **Phase F: Update Redirects**
 
@@ -578,14 +577,14 @@ export default async function LocaleLayout({
         <meta name="apple-mobile-web-app-title" content={appName}/>
       </head>
       <body style={{minHeight: '100%', paddingBottom: '64px'}}>
-        <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider messages={messages} locale={locale}>
           <TimezoneProvider>
             <CountdownProvider>
               <NextThemeProvider defaultTheme={'system'} enableSystem={true}>
                 <ThemeProvider>
                   <SessionWrapper>
                     <ConditionalHeader>
-                      <Header user={user} locale={locale}/>
+                      <Header user={user}/>
                     </ConditionalHeader>
                     <ViewTransition
                       name={'main'}
@@ -607,6 +606,12 @@ export default async function LocaleLayout({
     </html>
   )
 }
+```
+
+**Key changes:**
+- Added `locale={locale}` prop to `NextIntlClientProvider` (provides locale to context)
+- Removed `locale={locale}` from `<Header>` (Header gets it from context now)
+- Children and all nested components can now access locale via `useLocale()` (client) or `getLocale()` (server)
 ```
 
 ### 10. Language Switcher Component
@@ -718,13 +723,15 @@ import Link from "next/link";
 import {User} from "next-auth";
 import ThemeSwitcher from "./theme-switcher";
 import LanguageSwitcher from "./language-switcher"; // NEW
+import { getLocale } from 'next-intl/server'; // NEW
 
 type FrameProps = {
   readonly user?: User;
-  readonly locale: string; // NEW
 }
 
 export default async function Header(props: FrameProps) {
+  const locale = await getLocale(); // Get locale from context
+
   return (
     <AppBar position={'sticky'}>
       <Box
@@ -736,7 +743,7 @@ export default async function Header(props: FrameProps) {
         justifyContent={'space-between'}
       >
         <Box>
-          <Link href={`/${props.locale}`}> {/* Add locale prefix */}
+          <Link href={`/${locale}`}> {/* Add locale prefix */}
             <Avatar
               variant={"rounded"}
               src={'/logo.webp'}
@@ -759,7 +766,7 @@ export default async function Header(props: FrameProps) {
             textDecoration: 'none',
             cursor: 'pointer'
           }}>
-          <Link href={`/${props.locale}`}>La Maquina Prode</Link> {/* Add locale prefix */}
+          <Link href={`/${locale}`}>La Maquina Prode</Link> {/* Add locale prefix */}
         </Typography>
         <Box
           alignContent={'center'}
@@ -778,6 +785,11 @@ export default async function Header(props: FrameProps) {
   )
 }
 ```
+
+**Key changes:**
+- Removed `locale` from props (no longer passed from layout)
+- Added `getLocale()` from `next-intl/server` to get locale from context
+- Header now gets locale automatically without needing it passed as prop
 
 ### 11. i18n Configuration File
 
