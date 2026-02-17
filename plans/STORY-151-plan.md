@@ -81,36 +81,36 @@ import 'dayjs/locale/en'; // Add English locale
 // OLD signature:
 export function getCompactGameTime(date: Date, gameTimezone?: string): string
 
-// NEW signature:
+// NEW signature (NO label - component handles clickable link):
 export function getCompactGameTime(
   date: Date,
   gameTimezone: string,
-  locale: Locale,
-  timezoneLabel: string // e.g., "Local Time" or "Horario Local"
+  locale: Locale = 'es'
 ): string {
   const d = dayjs(date);
   if (gameTimezone && Intl.supportedValuesOf('timeZone').includes(gameTimezone)) {
     const formatted = d.tz(gameTimezone).locale(locale).format('D MMM HH:mm');
     const offset = d.tz(gameTimezone).format('Z');
     const offsetShort = `GMT${offset.substring(0, 3)}`;
-    return `${formatted} ${offsetShort} (${timezoneLabel})`;
+    return `${formatted} ${offsetShort}`;  // Component adds clickable label
   }
   return d.locale(locale).format('D MMM HH:mm');
 }
 ```
+
+**Note**: The "(Horario Local)" / "(Local Time)" label is a clickable link in components, so it's handled separately by the UI, not by this utility.
 
 3. **Update `getCompactUserTime()`**:
 ```typescript
 // OLD signature:
 export function getCompactUserTime(date: Date): string
 
-// NEW signature:
+// NEW signature (NO label - component handles clickable link):
 export function getCompactUserTime(
   date: Date,
-  locale: Locale,
-  userTimezoneLabel: string // e.g., "Your Time" or "Tu Horario"
+  locale: Locale = 'es'
 ): string {
-  return `${dayjs(date).locale(locale).format('D MMM HH:mm')} (${userTimezoneLabel})`;
+  return dayjs(date).locale(locale).format('D MMM HH:mm');  // Component adds clickable label
 }
 ```
 
@@ -316,27 +316,7 @@ Include code examples from exploration report showing:
 
 ### Translation Files to Update
 
-**Note on `EnOf()` format**: This is the placeholder format from story #150 used to mark English translations that need proper translation. The format `EnOf(Spanish text)` makes it easy to identify strings that still need translation from Spanish to English.
-
-1. **`/locales/en/common.json`** - Add time labels:
-   ```json
-   {
-     "time": {
-       "localTime": "EnOf(Horario Local)",
-       "yourTime": "EnOf(Tu Horario)"
-     }
-   }
-   ```
-
-2. **`/locales/es/common.json`** - Add time labels:
-   ```json
-   {
-     "time": {
-       "localTime": "Horario Local",
-       "yourTime": "Tu Horario"
-     }
-   }
-   ```
+**No translation file changes needed** - The time labels ("Horario Local", "Tu Horario") are already handled as clickable links in components, not by the date utilities.
 
 ### Migration Path
 
@@ -450,16 +430,13 @@ Follow patterns from:
    ```typescript
    // Before:
    const timeStr = getCompactGameTime(game.date, game.timezone);
+   // Returns: "18 ene 15:00 GMT-5 (Horario Local)"
 
    // After (Client Component):
    const locale = useLocale();
-   const t = useTranslations('common');
-   const timeStr = getCompactGameTime(
-     game.date,
-     game.timezone,
-     locale,
-     t('time.localTime')
-   );
+   const timeStr = getCompactGameTime(game.date, game.timezone, locale);
+   // Returns: "18 Jan 15:00 GMT-5" (en) or "18 ene 15:00 GMT-5" (es)
+   // Component adds the clickable "(Local Time)" / "(Horario Local)" link separately
    ```
 
 3. **Test**:
@@ -480,10 +457,10 @@ Follow patterns from:
    - Test both locales produce correct content
    - Verify translation keys are used
 
-### Phase 4: Translation Keys (10 minutes)
+### Phase 4: Verify Translation Keys (5 minutes)
 
-1. Add time labels to `/locales/en/common.json` and `/locales/es/common.json`
-2. Verify email keys in `emails.json` (already exist from story #150)
+1. Verify email keys in `emails.json` (already exist from story #150)
+2. No new common.json keys needed (time labels are handled by components)
 
 ### Phase 5: Documentation (30 minutes)
 
@@ -599,12 +576,12 @@ None - all requirements are clear and review feedback has been addressed.
 
 ## Timeline
 
-**Total Estimated Time**: 3 hours
+**Total Estimated Time**: 2.75 hours
 
 - Phase 1 (Refactor Date Utils): 45 minutes
-- Phase 2 (Update Example Components): 30 minutes ← NEW
+- Phase 2 (Update Example Components): 30 minutes
 - Phase 3 (Refactor Email Templates): 45 minutes
-- Phase 4 (Translation Keys): 10 minutes
+- Phase 4 (Verify Translation Keys): 5 minutes ← Reduced (no new keys needed)
 - Phase 5 (Documentation): 30 minutes
 - Phase 6 (Validation): 15 minutes
 - **Manual Testing**: 5 minutes (switch language, verify dates change)
