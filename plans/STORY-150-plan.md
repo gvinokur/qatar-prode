@@ -407,25 +407,66 @@ For each namespace, create structured JSON with extracted strings:
 
 **3.2. Create English Placeholder Files**
 
-Mirror the structure with English translations:
+Mirror the structure with `EnOf()` wrapper format:
 
 **`locales/en/common.json`**, **`locales/en/auth.json`**, etc.
 
-For now, these will have placeholder English text or empty strings to be filled by Story #161 (LLM-Assisted English Translation).
+**Placeholder Format:** Use `EnOf(<Spanish Text>)` to enable inline translation and parallelization in Story #161.
+
+**Rationale:**
+- Translator can search-and-replace `EnOf(` pattern
+- Clear 1:1 mapping between Spanish and English files
+- Enables parallel translation work (multiple namespaces simultaneously)
+- Easy to validate completeness (any remaining `EnOf(` means untranslated)
 
 Example structure:
 ```json
 {
   "login": {
-    "title": "Log In",
+    "title": "EnOf(Iniciar Sesión)",
     "email": {
-      "label": "Email",
-      "placeholder": "your@email.com"
-      // ...
+      "label": "EnOf(E-Mail)",
+      "placeholder": "EnOf(tu@email.com)",
+      "required": "EnOf(Por favor ingrese su e-mail)",
+      "invalid": "EnOf(Direccion de E-Mail invalida)"
+    },
+    "password": {
+      "label": "EnOf(Contraseña)",
+      "placeholder": "EnOf(Tu contraseña)"
+    },
+    "errors": {
+      "invalidCredentials": "EnOf(Email o Contraseña Invalida)"
     }
   }
 }
 ```
+
+**Script for English File Generation:**
+
+Create `scripts/generate-english-placeholders.sh` to automate placeholder creation:
+
+```bash
+#!/bin/bash
+# Generates English placeholder files from Spanish baseline
+
+for es_file in locales/es/*.json; do
+  filename=$(basename "$es_file")
+  en_file="locales/en/$filename"
+
+  echo "Generating $en_file from $es_file"
+
+  # Use jq to transform Spanish values to EnOf() format
+  jq 'walk(if type == "string" then "EnOf(\(.))" else . end)' "$es_file" > "$en_file"
+done
+
+echo "English placeholder files generated"
+```
+
+**Translation Workflow (Story #161):**
+
+1. Translator processes files with LLM or manually
+2. Pattern: `"EnOf(Texto español)"` → `"English text"`
+3. Validation: `grep -r "EnOf(" locales/en/` should return 0 results when complete
 
 ### 4. Type Definitions Update
 
@@ -523,6 +564,39 @@ Make executable: `chmod +x scripts/extract-hardcoded-strings.sh`
 ```bash
 ./scripts/extract-hardcoded-strings.sh
 ```
+
+**Limitations & LLM Augmentation:**
+
+This pattern-based script is sufficient for **this story's scope** (extracting known strings from explored components). However, it has limitations:
+
+**Script limitations:**
+- Pattern-based (may miss creative Spanish phrasing)
+- No HTML context understanding
+- No awareness of JSX structure or component boundaries
+- May produce false positives (Spanish words in comments, variable names)
+
+**When to use LLM augmentation (future stories):**
+
+For comprehensive extraction across unexplored codebase areas, consider LLM-based extraction:
+
+**Story #161 (LLM-Assisted English Translation)** could include:
+1. Feed component files to LLM
+2. Ask LLM to identify all user-facing Spanish strings
+3. LLM understands JSX, HTML structure, and UI context
+4. Can differentiate between user-facing text vs. code comments
+
+**For this story (#150):**
+- ✅ Use pattern-based script (sufficient scope)
+- ✅ Manual Explore agent findings cover 100+ strings
+- ✅ Known components already inventoried
+- ❌ Don't over-engineer for edge cases
+- ⏸️ Defer comprehensive LLM extraction to future story if gaps found
+
+**Validation approach:**
+- Run script to catch remaining strings
+- Manual review of high-traffic components
+- Acceptance: Baseline covers auth, groups, emails (story scope)
+- Edge cases in onboarding/games deferred to Stories #153-154
 
 ### 6. Developer Guide
 
@@ -629,6 +703,35 @@ Before adding new keys, check if similar translations exist:
 grep -r "Guardar" locales/es/
 ```
 
+**When to Consolidate to Common:**
+
+If you find an existing translation in a feature-specific namespace that applies broadly:
+
+**Move to `common.json` if:**
+- Used in 3+ different feature areas (e.g., "Guardar" button in auth, groups, and games)
+- Generic UI element (buttons, actions, labels)
+- No feature-specific context needed
+
+**Move to `errors.json` if:**
+- Generic error message (e.g., "Ocurrió un error inesperado")
+- Reusable across features
+- Follows error message patterns
+
+**Keep in feature namespace if:**
+- Specific to that feature (e.g., "Unirse al Grupo" is groups-specific)
+- Contains feature context in the text
+- Only used within that feature area
+
+**Example:**
+```typescript
+// BAD: auth.json has "save": "Guardar"
+//      groups.json also has "save": "Guardar"
+// GOOD: common.buttons.save: "Guardar" (used everywhere)
+
+// BAD: common.json has "groupNotFound": "Grupo no encontrado"
+// GOOD: errors.groups.notFound: "Grupo no encontrado" (feature-specific error)
+```
+
 ### 6. Testing Translations
 
 **Switch language in dev:**
@@ -652,18 +755,19 @@ TypeScript will catch missing translation keys.
 3. **`locales/es/emails.json`** - Spanish email template strings
 4. **`locales/es/validation.json`** - Spanish validation messages
 5. **`locales/es/errors.json`** - Spanish error messages
-6. **`locales/en/auth.json`** - English authentication strings (placeholders)
-7. **`locales/en/groups.json`** - English friend groups strings (placeholders)
-8. **`locales/en/emails.json`** - English email template strings (placeholders)
-9. **`locales/en/validation.json`** - English validation messages (placeholders)
-10. **`locales/en/errors.json`** - English error messages (placeholders)
+6. **`locales/en/auth.json`** - English authentication strings (`EnOf()` format)
+7. **`locales/en/groups.json`** - English friend groups strings (`EnOf()` format)
+8. **`locales/en/emails.json`** - English email template strings (`EnOf()` format)
+9. **`locales/en/validation.json`** - English validation messages (`EnOf()` format)
+10. **`locales/en/errors.json`** - English error messages (`EnOf()` format)
 11. **`scripts/extract-hardcoded-strings.sh`** - String extraction script
-12. **`docs/i18n-guide.md`** - Developer guide
+12. **`scripts/generate-english-placeholders.sh`** - English placeholder generation script
+13. **`docs/i18n-guide.md`** - Developer guide
 
 ### Modify Existing Files
 
 1. **`locales/es/common.json`** - EXPAND with universal UI strings
-2. **`locales/en/common.json`** - EXPAND with English universal UI strings
+2. **`locales/en/common.json`** - EXPAND with `EnOf()` format universal UI strings
 3. **`types/i18n.ts`** - Add new namespace type imports
 4. **`i18n/request.ts`** - Load new namespaces
 
@@ -682,23 +786,27 @@ TypeScript will catch missing translation keys.
 6. Create `locales/es/errors.json` with error messages
 
 ### Phase 3: English Placeholder Creation
-1. Expand `locales/en/common.json` with placeholders
-2. Create `locales/en/auth.json` with placeholders
-3. Create `locales/en/groups.json` with placeholders
-4. Create `locales/en/emails.json` with placeholders
-5. Create `locales/en/validation.json` with placeholders
-6. Create `locales/en/errors.json` with placeholders
+1. Create `scripts/generate-english-placeholders.sh` script
+2. Run script to generate all English files with `EnOf()` format:
+   - `locales/en/common.json` (expanded)
+   - `locales/en/auth.json`
+   - `locales/en/groups.json`
+   - `locales/en/emails.json`
+   - `locales/en/validation.json`
+   - `locales/en/errors.json`
+3. Verify generated files have correct `EnOf()` wrapper format
 
 ### Phase 4: Type System Updates
 1. Update `types/i18n.ts` with new namespace imports
 2. Update `i18n/request.ts` to load new namespaces
 3. Verify TypeScript compilation
 
-### Phase 5: Extraction Script
-1. Create `scripts/extract-hardcoded-strings.sh`
-2. Make script executable
-3. Test script execution
-4. Document usage in developer guide
+### Phase 5: Scripts
+1. Create `scripts/extract-hardcoded-strings.sh` (find hardcoded Spanish strings)
+2. Create `scripts/generate-english-placeholders.sh` (generate EnOf() placeholders)
+3. Make both scripts executable
+4. Test both scripts execution
+5. Document usage in developer guide
 
 ### Phase 6: Validation
 1. Run `npm run build` to verify TypeScript types
