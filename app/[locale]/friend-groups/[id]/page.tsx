@@ -43,7 +43,7 @@ export default async function FriendsGroup(props : Props){
 
   const users = await findUsersByIds(allParticipants)
   const usersMap = toMap(users)
-  //TODO: Calculate scores for users, but not yet, because all is zero!! :D
+  // Calculate user scores for each active tournament
   const userScoresByTournament =
     Object.fromEntries(
       await Promise.all(

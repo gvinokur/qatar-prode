@@ -20,9 +20,7 @@ export default async function JoinGroup(props : Props){
   const user = await getLoggedInUser()
   
   if(!user) {
-    if(!searchParams.openSignin) {
-      redirect(`/es/friend-groups/join/${params.id}/?openSignin=true`)
-    } else {
+    if(searchParams.openSignin) {
       return (
         <Snackbar
           open={true}
@@ -35,6 +33,8 @@ export default async function JoinGroup(props : Props){
           </Alert>
         </Snackbar>
       )
+    } else {
+      redirect(`/es/friend-groups/join/${params.id}/?openSignin=true`)
     }
   }
 

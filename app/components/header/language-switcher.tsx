@@ -33,8 +33,14 @@ export default function LanguageSwitcher() {
 
     // Preserve query parameters and hash
     const queryString = searchParams.toString();
-    const hash = window.location.hash;
-    const fullUrl = `${newPathname}${queryString ? `?${queryString}` : ''}${hash}`;
+    const hash = globalThis.location.hash;
+
+    // Build URL without nested template literals
+    let fullUrl = newPathname;
+    if (queryString) {
+      fullUrl += `?${queryString}`;
+    }
+    fullUrl += hash;
 
     router.push(fullUrl);
     handleClose();

@@ -21,8 +21,8 @@ export default async function LocaleLayout({
   children,
   params
 }: {
-  children: React.ReactNode;
-  params: Promise<{ locale: string }>;
+  readonly children: React.ReactNode;
+  readonly params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
   const user = await getLoggedInUser();
