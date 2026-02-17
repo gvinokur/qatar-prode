@@ -250,10 +250,12 @@ Created implementation tasks:
 **Wave 3 (Sequential):**
 - Task 4: Integrate into page (blocked by Tasks 2, 3)
 
-Starting implementation with Wave 1...
+**→ Next: Proceed to Section 2.5 (Execution Mode Selection Checkpoint)**
 ```
 
-### 2.5. Execution Mode Selection (Optional Hybrid Mode)
+### 2.5. 🛑 Execution Mode Selection Checkpoint
+
+**STOP HERE - Do not proceed to implementation until completing this step.**
 
 **Purpose:** After defining tasks, classify them by complexity and choose whether to execute with main agent (default) or use hybrid/subagent delegation for efficiency gains.
 
@@ -365,16 +367,18 @@ Reasoning: ${REASONING}
 **Which execution mode would you like me to use?**
 - Type "main agent" for Option 1 (default, proven)
 - Type "hybrid" for Option 2 (experimental, optimized)
+
+**DO NOT PROCEED TO SECTION 3 UNTIL USER RESPONDS.**
 ```
 
 #### Step D: Wait for User Choice
 
-**STOP and WAIT for user to respond.**
+**🛑 STOP and WAIT for user to respond. DO NOT continue to Section 3 or 3.5 yet.**
 
 User will choose one of:
 - "main agent" → Proceed to Section 3 (standard execution)
 - "hybrid" → Proceed to Section 3.5 (hybrid execution)
-- No response after reasonable time → Default to main agent mode
+- No response → Ask again (do NOT default without asking)
 
 #### Recommendation Guidelines
 
