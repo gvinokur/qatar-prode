@@ -90,6 +90,7 @@ If you start planning before reading planning.md, you WILL do it wrong.
 7. **Default: Deploy to Vercel Preview for user testing** - User tests in Vercel Preview (NOT locally) unless they explicitly request local testing (see implementation.md Section 9)
 8. **NEVER ask "would you like to proceed?" after creating plan PR** - Just WAIT for user (see planning.md Step 7 "CRITICAL CHECKPOINT")
 9. **ALWAYS create PRs as DRAFT** - Only mark as ready for review when user explicitly requests it or asks to merge (see planning.md Step 7 and validation.md Section 10)
+10. **ALWAYS set Priority, Effort, and Category fields when creating stories** - Never use labels like `priority/high` instead of field values; create new categories if needed (see github-projects-workflow.md Section 2)
 
 ## Permissions Configuration
 
@@ -301,6 +302,7 @@ git branch --show-current # Verify current branch
 ./scripts/github-projects-helper pr wait-checks 45         # Wait for CI/CD
 ./scripts/github-projects-helper pr sonar-issues 45        # Get SonarCloud issues
 ./scripts/github-projects-helper story complete 42 --project 1 # Merge & cleanup
+cd /Users/gvinokur/Personal/qatar-prode && git pull origin main # Update main worktree (post-merge)
 ```
 
 ### Quick Links
@@ -487,6 +489,7 @@ Go back to validation
 | Making sequential code changes when handling feedback | Inefficient, no parallelization, no progress tracking | For 2+ changes: Define tasks with TaskCreate/TaskUpdate FIRST, then execute in waves | implementation.md Section 7 |
 | Not documenting deviations from plan | Plan diverges from reality, future confusion | Add amendments when discovering gaps/bugs during implementation | implementation.md Section 8 |
 | Skipping plan reconciliation before merge | Plan contradicts actual code, documentation debt | Review plan vs. implementation before final validation | validation.md Section 1 |
+| Not updating main worktree after merge | Next story branches from old commit, causes conflicts | After story complete, go to main worktree and `git pull origin main` | github-projects-workflow.md Section 10 |
 
 ## Development Guidelines
 
