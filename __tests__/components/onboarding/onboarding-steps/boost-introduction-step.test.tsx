@@ -1,10 +1,24 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen } from '@testing-library/react'
 import BoostIntroductionStep from '@/app/components/onboarding/onboarding-steps/boost-introduction-step'
 import { renderWithTheme } from '@/__tests__/utils/test-utils'
 import { testFactories } from '@/__tests__/db/test-factories'
+import { createMockTranslations } from '@/__tests__/utils/mock-translations'
+import * as intl from 'next-intl'
+
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useTranslations: vi.fn(),
+  useLocale: vi.fn(() => 'es')
+}))
 
 describe('BoostIntroductionStep', () => {
+  beforeEach(() => {
+    vi.mocked(intl.useTranslations).mockReturnValue(
+      createMockTranslations('onboarding.steps.boosts')
+    )
+  })
+
   describe('Component Rendering', () => {
     it('renders component with tournament prop', () => {
       const tournament = testFactories.tournament({
@@ -16,8 +30,8 @@ describe('BoostIntroductionStep', () => {
 
       renderWithTheme(<BoostIntroductionStep tournament={tournament} />)
 
-      expect(screen.getByText('Multiplica Tus Puntos con Boosts')).toBeInTheDocument()
-      expect(screen.getByText('Usa tus boosts estratégicamente en partidos clave')).toBeInTheDocument()
+      expect(screen.getByText('[title]')).toBeInTheDocument()
+      expect(screen.getByText('[instructions]')).toBeInTheDocument()
     })
 
     it('renders all UI elements (cards, chips, alerts)', () => {
@@ -29,30 +43,26 @@ describe('BoostIntroductionStep', () => {
       renderWithTheme(<BoostIntroductionStep tournament={tournament} />)
 
       // Check card titles
-      expect(screen.getByText('Boost Plateado')).toBeInTheDocument()
-      expect(screen.getByText('Boost Dorado')).toBeInTheDocument()
+      expect(screen.getByText('[silverBoost.label]')).toBeInTheDocument()
+      expect(screen.getByText('[goldenBoost.label]')).toBeInTheDocument()
 
-      // Check chips exist (using getAllByText due to multiple chips with similar text)
-      expect(screen.getByText(/Tienes 5 boosts disponibles por torneo/)).toBeInTheDocument()
-      expect(screen.getByText(/Tienes 3 boosts disponibles por torneo/)).toBeInTheDocument()
+      // Check chips - now using translation keys with pluralization
+      expect(screen.getByText(/\[silverBoost\.available\]{count:5}/)).toBeInTheDocument()
+      expect(screen.getByText(/\[goldenBoost\.available\]{count:3}/)).toBeInTheDocument()
 
       // Check multiplier values
-      expect(screen.getByText('Multiplica × 2')).toBeInTheDocument()
-      expect(screen.getByText('Multiplica × 3')).toBeInTheDocument()
+      expect(screen.getByText('[silverBoost.multiplier]')).toBeInTheDocument()
+      expect(screen.getByText('[goldenBoost.multiplier]')).toBeInTheDocument()
 
       // Check descriptions
-      expect(screen.getByText('Duplica tus puntos en el partido que elijas')).toBeInTheDocument()
-      expect(screen.getByText('Triplica tus puntos en tu partido más importante')).toBeInTheDocument()
+      expect(screen.getByText('[silverBoost.description]')).toBeInTheDocument()
+      expect(screen.getByText('[goldenBoost.description]')).toBeInTheDocument()
 
       // Check alert content
-      expect(screen.getByText('Puntos Importantes:')).toBeInTheDocument()
-      expect(screen.getByText((content, element) => {
-        return element?.textContent === '• Los boosts son específicos de cada torneo'
-      })).toBeInTheDocument()
-      expect(screen.getByText((content, element) => {
-        return element?.textContent === '• Solo aplican a predicciones de partidos'
-      })).toBeInTheDocument()
-      expect(screen.getByText(/Puedes cambiarlos hasta 1 hora antes del partido/)).toBeInTheDocument()
+      expect(screen.getByText('[configAlert.subheader]')).toBeInTheDocument()
+      expect(screen.getByText('• [configAlert.bullet1]')).toBeInTheDocument()
+      expect(screen.getByText('• [configAlert.bullet2]')).toBeInTheDocument()
+      expect(screen.getByText('• [configAlert.bullet3]')).toBeInTheDocument()
     })
 
     it('displays strategic tip', () => {
@@ -60,10 +70,8 @@ describe('BoostIntroductionStep', () => {
 
       renderWithTheme(<BoostIntroductionStep tournament={tournament} />)
 
-      expect(screen.getByText('💡 Consejo Estratégico')).toBeInTheDocument()
-      expect(
-        screen.getByText('Guarda tus boosts para finales y partidos decisivos donde estés más seguro del resultado')
-      ).toBeInTheDocument()
+      expect(screen.getByText('[strategicTip.title]')).toBeInTheDocument()
+      expect(screen.getByText('[strategicTip.text]')).toBeInTheDocument()
     })
   })
 
@@ -76,7 +84,7 @@ describe('BoostIntroductionStep', () => {
 
       renderWithTheme(<BoostIntroductionStep tournament={tournament} />)
 
-      expect(screen.getByText('Tienes 7 boosts disponibles por torneo')).toBeInTheDocument()
+      expect(screen.getByText(/\[(silverBoost|goldenBoost)\.available\]{count:7}/)).toBeInTheDocument()
     })
 
     it('displays golden boost count from tournament (max_golden_games)', () => {
@@ -87,7 +95,7 @@ describe('BoostIntroductionStep', () => {
 
       renderWithTheme(<BoostIntroductionStep tournament={tournament} />)
 
-      expect(screen.getByText('Tienes 4 boosts disponibles por torneo')).toBeInTheDocument()
+      expect(screen.getByText(/\[(silverBoost|goldenBoost)\.available\]{count:4}/)).toBeInTheDocument()
     })
 
     it('displays both silver and golden boosts', () => {
@@ -98,8 +106,8 @@ describe('BoostIntroductionStep', () => {
 
       renderWithTheme(<BoostIntroductionStep tournament={tournament} />)
 
-      expect(screen.getByText('Tienes 5 boosts disponibles por torneo')).toBeInTheDocument()
-      expect(screen.getByText('Tienes 3 boosts disponibles por torneo')).toBeInTheDocument()
+      expect(screen.getByText(/\[(silverBoost|goldenBoost)\.available\]{count:5}/)).toBeInTheDocument()
+      expect(screen.getByText(/\[(silverBoost|goldenBoost)\.available\]{count:3}/)).toBeInTheDocument()
     })
   })
 
@@ -108,9 +116,9 @@ describe('BoostIntroductionStep', () => {
       renderWithTheme(<BoostIntroductionStep tournament={undefined} />)
 
       // Should show 0 for both boost types (2 instances)
-      expect(screen.getAllByText('Tienes 0 boosts disponibles por torneo')).toHaveLength(2)
+      expect(screen.getAllByText(/\[(silverBoost|goldenBoost)\.available\]{count:0}/)).toHaveLength(2)
       // Component should still render without errors
-      expect(screen.getByText('Multiplica Tus Puntos con Boosts')).toBeInTheDocument()
+      expect(screen.getByText('[title]')).toBeInTheDocument()
     })
 
     it('handles tournament with null boost values (treated as 0)', () => {
@@ -122,7 +130,7 @@ describe('BoostIntroductionStep', () => {
       renderWithTheme(<BoostIntroductionStep tournament={tournament} />)
 
       // Both should show 0
-      expect(screen.getAllByText('Tienes 0 boosts disponibles por torneo')).toHaveLength(2)
+      expect(screen.getAllByText(/\[(silverBoost|goldenBoost)\.available\]{count:0}/)).toHaveLength(2)
     })
   })
 
@@ -135,7 +143,7 @@ describe('BoostIntroductionStep', () => {
 
       renderWithTheme(<BoostIntroductionStep tournament={tournament} />)
 
-      expect(screen.getByText('Tienes 1 boost disponible por torneo')).toBeInTheDocument()
+      expect(screen.getByText(/\[(silverBoost|goldenBoost)\.available\]{count:1}/)).toBeInTheDocument()
     })
 
     it('displays singular text for 1 golden boost', () => {
@@ -146,7 +154,7 @@ describe('BoostIntroductionStep', () => {
 
       renderWithTheme(<BoostIntroductionStep tournament={tournament} />)
 
-      expect(screen.getByText('Tienes 1 boost disponible por torneo')).toBeInTheDocument()
+      expect(screen.getByText(/\[(silverBoost|goldenBoost)\.available\]{count:1}/)).toBeInTheDocument()
     })
 
     it('displays plural text for multiple silver boosts', () => {
@@ -157,7 +165,7 @@ describe('BoostIntroductionStep', () => {
 
       renderWithTheme(<BoostIntroductionStep tournament={tournament} />)
 
-      expect(screen.getByText('Tienes 10 boosts disponibles por torneo')).toBeInTheDocument()
+      expect(screen.getByText(/\[(silverBoost|goldenBoost)\.available\]{count:10}/)).toBeInTheDocument()
     })
 
     it('displays plural text for multiple golden boosts', () => {
@@ -168,7 +176,7 @@ describe('BoostIntroductionStep', () => {
 
       renderWithTheme(<BoostIntroductionStep tournament={tournament} />)
 
-      expect(screen.getByText('Tienes 8 boosts disponibles por torneo')).toBeInTheDocument()
+      expect(screen.getByText(/\[(silverBoost|goldenBoost)\.available\]{count:8}/)).toBeInTheDocument()
     })
 
     it('displays correct singular/plural when both boosts are 1', () => {
@@ -179,7 +187,7 @@ describe('BoostIntroductionStep', () => {
 
       renderWithTheme(<BoostIntroductionStep tournament={tournament} />)
 
-      expect(screen.getAllByText('Tienes 1 boost disponible por torneo')).toHaveLength(2)
+      expect(screen.getAllByText(/\[(silverBoost|goldenBoost)\.available\]{count:1}/)).toHaveLength(2)
     })
   })
 
@@ -194,7 +202,8 @@ describe('BoostIntroductionStep', () => {
 
       renderWithTheme(<BoostIntroductionStep tournament={tournament} />)
 
-      expect(screen.getByText('Configuración para FIFA World Cup 2026:')).toBeInTheDocument()
+      // Configuration header shows tournament name through interpolation
+      expect(screen.getByText(/\[configAlert\.header\]\{tournament:FIFA World Cup 2026\}/)).toBeInTheDocument()
     })
 
     it('falls back to short_name when long_name is null', () => {
@@ -207,13 +216,13 @@ describe('BoostIntroductionStep', () => {
 
       renderWithTheme(<BoostIntroductionStep tournament={tournament} />)
 
-      expect(screen.getByText('Configuración para WC26:')).toBeInTheDocument()
+      expect(screen.getByText(/\[configAlert\.header\]\{tournament:WC26\}/)).toBeInTheDocument()
     })
 
     it('does not show tournament name when tournament is undefined', () => {
       renderWithTheme(<BoostIntroductionStep tournament={undefined} />)
 
-      expect(screen.queryByText(/Configuración para/)).not.toBeInTheDocument()
+      expect(screen.queryByText(/\[configAlert\.header\]/)).not.toBeInTheDocument()
     })
   })
 
@@ -226,8 +235,8 @@ describe('BoostIntroductionStep', () => {
 
       renderWithTheme(<BoostIntroductionStep tournament={tournament} />)
 
-      expect(screen.getByText('Tienes 10 boosts disponibles por torneo')).toBeInTheDocument()
-      expect(screen.getByText('Tienes 0 boosts disponibles por torneo')).toBeInTheDocument()
+      expect(screen.getByText(/\[(silverBoost|goldenBoost)\.available\]{count:10}/)).toBeInTheDocument()
+      expect(screen.getByText(/\[(silverBoost|goldenBoost)\.available\]{count:0}/)).toBeInTheDocument()
     })
 
     it('handles tournament with only golden boosts (0 silver)', () => {
@@ -238,8 +247,8 @@ describe('BoostIntroductionStep', () => {
 
       renderWithTheme(<BoostIntroductionStep tournament={tournament} />)
 
-      expect(screen.getByText('Tienes 0 boosts disponibles por torneo')).toBeInTheDocument()
-      expect(screen.getByText('Tienes 5 boosts disponibles por torneo')).toBeInTheDocument()
+      expect(screen.getByText(/\[(silverBoost|goldenBoost)\.available\]{count:0}/)).toBeInTheDocument()
+      expect(screen.getByText(/\[(silverBoost|goldenBoost)\.available\]{count:5}/)).toBeInTheDocument()
     })
 
     it('handles tournament with 0 boosts for both types', () => {
@@ -250,7 +259,7 @@ describe('BoostIntroductionStep', () => {
 
       renderWithTheme(<BoostIntroductionStep tournament={tournament} />)
 
-      expect(screen.getAllByText('Tienes 0 boosts disponibles por torneo')).toHaveLength(2)
+      expect(screen.getAllByText(/\[(silverBoost|goldenBoost)\.available\]{count:0}/)).toHaveLength(2)
     })
 
     it('handles large boost numbers', () => {
@@ -261,8 +270,8 @@ describe('BoostIntroductionStep', () => {
 
       renderWithTheme(<BoostIntroductionStep tournament={tournament} />)
 
-      expect(screen.getByText('Tienes 999 boosts disponibles por torneo')).toBeInTheDocument()
-      expect(screen.getByText('Tienes 888 boosts disponibles por torneo')).toBeInTheDocument()
+      expect(screen.getByText(/\[(silverBoost|goldenBoost)\.available\]{count:999}/)).toBeInTheDocument()
+      expect(screen.getByText(/\[(silverBoost|goldenBoost)\.available\]{count:888}/)).toBeInTheDocument()
     })
   })
 
@@ -272,7 +281,7 @@ describe('BoostIntroductionStep', () => {
 
       renderWithTheme(<BoostIntroductionStep tournament={tournament} />)
 
-      expect(screen.getByText('Multiplica × 2')).toBeInTheDocument()
+      expect(screen.getByText('[silverBoost.multiplier]')).toBeInTheDocument()
     })
 
     it('shows ×3 multiplier for golden boost', () => {
@@ -280,7 +289,7 @@ describe('BoostIntroductionStep', () => {
 
       renderWithTheme(<BoostIntroductionStep tournament={tournament} />)
 
-      expect(screen.getByText('Multiplica × 3')).toBeInTheDocument()
+      expect(screen.getByText('[goldenBoost.multiplier]')).toBeInTheDocument()
     })
   })
 
@@ -298,7 +307,7 @@ describe('BoostIntroductionStep', () => {
 
       renderWithTheme(<BoostIntroductionStep tournament={tournament} />)
 
-      expect(screen.getByText('💡 Consejo Estratégico')).toBeInTheDocument()
+      expect(screen.getByText('[strategicTip.title]')).toBeInTheDocument()
     })
   })
 })

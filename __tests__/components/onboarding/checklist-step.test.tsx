@@ -1,47 +1,60 @@
-import { vi, describe, it, expect } from 'vitest'
+import { vi, describe, it, expect, beforeEach } from 'vitest'
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import ChecklistStep from '../../../app/components/onboarding/onboarding-steps/checklist-step'
+import { createMockTranslations } from '@/__tests__/utils/mock-translations'
+import * as intl from 'next-intl'
+
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useTranslations: vi.fn(),
+  useLocale: vi.fn(() => 'es')
+}))
 
 describe('ChecklistStep', () => {
+  beforeEach(() => {
+    vi.mocked(intl.useTranslations).mockReturnValue(
+      createMockTranslations('onboarding.steps.checklist')
+    )
+  })
+
   it('renders checklist title', () => {
     const mockOnComplete = vi.fn()
     render(<ChecklistStep onComplete={mockOnComplete} />)
 
-    expect(screen.getByText('Lista de Primeros Pasos')).toBeInTheDocument()
-    expect(screen.getByText(/Completa estos pasos para sacar el máximo provecho/)).toBeInTheDocument()
+    expect(screen.getByText('[title]')).toBeInTheDocument()
+    expect(screen.getByText('[instructions]')).toBeInTheDocument()
   })
 
   it('renders all checklist items', () => {
     const mockOnComplete = vi.fn()
     render(<ChecklistStep onComplete={mockOnComplete} />)
 
-    expect(screen.getByText('Hacer mi primera predicción de partido')).toBeInTheDocument()
-    expect(screen.getByText('Predecir campeón y premios individuales')).toBeInTheDocument()
-    expect(screen.getByText('Ordenar equipos clasificados (arrastra y suelta)')).toBeInTheDocument()
-    expect(screen.getByText('Unirme a un grupo de amigos')).toBeInTheDocument()
-    expect(screen.getByText('Revisar las reglas completas')).toBeInTheDocument()
+    expect(screen.getByText('[items.firstPrediction]')).toBeInTheDocument()
+    expect(screen.getByText('[items.championAndAwards]')).toBeInTheDocument()
+    expect(screen.getByText('[items.qualifiedTeams]')).toBeInTheDocument()
+    expect(screen.getByText('[items.joinGroup]')).toBeInTheDocument()
+    expect(screen.getByText('[items.reviewRules]')).toBeInTheDocument()
   })
 
   it('renders deadline education section', () => {
     const mockOnComplete = vi.fn()
     render(<ChecklistStep onComplete={mockOnComplete} />)
 
-    expect(screen.getByText(/Plazos de Predicción/)).toBeInTheDocument()
-    expect(screen.getByText('Predicciones de Partidos')).toBeInTheDocument()
-    // Use getAllByText because the text appears multiple times in the component
-    const horaAntesTexts = screen.getAllByText(/1 hora antes/)
-    expect(horaAntesTexts.length).toBeGreaterThan(0)
-    expect(screen.getByText('Torneo y Clasificación')).toBeInTheDocument()
-    expect(screen.getByText(/5 días después/)).toBeInTheDocument()
-    expect(screen.getByText('Boosts')).toBeInTheDocument()
+    expect(screen.getByText('[deadlinesHeader]')).toBeInTheDocument()
+    expect(screen.getByText('[matchPredictions.label]')).toBeInTheDocument()
+    expect(screen.getByText('[matchPredictions.deadline]')).toBeInTheDocument()
+    expect(screen.getByText('[tournamentAndClassification.label]')).toBeInTheDocument()
+    expect(screen.getByText('[tournamentAndClassification.deadline]')).toBeInTheDocument()
+    expect(screen.getByText('[boosts.label]')).toBeInTheDocument()
+    expect(screen.getByText('[boosts.deadline]')).toBeInTheDocument()
   })
 
   it('toggles item checked state when clicked', () => {
     const mockOnComplete = vi.fn()
     render(<ChecklistStep onComplete={mockOnComplete} />)
 
-    const firstItem = screen.getByText('Hacer mi primera predicción de partido')
+    const firstItem = screen.getByText('[items.firstPrediction]')
     const listItemButton = firstItem.closest('[role="button"]')
 
     expect(listItemButton).toBeInTheDocument()
@@ -59,7 +72,7 @@ describe('ChecklistStep', () => {
     const mockOnComplete = vi.fn()
     render(<ChecklistStep onComplete={mockOnComplete} />)
 
-    const completeButton = screen.getByRole('button', { name: /¡Comenzar a Jugar!/i })
+    const completeButton = screen.getByRole('button', { name: /\[startButton\]/ })
     expect(completeButton).toBeInTheDocument()
   })
 
@@ -67,7 +80,7 @@ describe('ChecklistStep', () => {
     const mockOnComplete = vi.fn()
     render(<ChecklistStep onComplete={mockOnComplete} />)
 
-    const completeButton = screen.getByRole('button', { name: /¡Comenzar a Jugar!/i })
+    const completeButton = screen.getByRole('button', { name: /\[startButton\]/ })
     fireEvent.click(completeButton)
 
     expect(mockOnComplete).toHaveBeenCalledTimes(1)
@@ -78,9 +91,7 @@ describe('ChecklistStep', () => {
     render(<ChecklistStep onComplete={mockOnComplete} />)
 
     const items = screen.getAllByRole('button').filter(button =>
-      button.textContent?.includes('predicción') ||
-      button.textContent?.includes('grupo') ||
-      button.textContent?.includes('reglas')
+      button.textContent?.includes('[items.')
     )
 
     // Click multiple items
@@ -97,7 +108,7 @@ describe('ChecklistStep', () => {
     const mockOnComplete = vi.fn()
     render(<ChecklistStep onComplete={mockOnComplete} />)
 
-    const firstItem = screen.getByText('Hacer mi primera predicción de partido')
+    const firstItem = screen.getByText('[items.firstPrediction]')
     const listItemButton = firstItem.closest('[role="button"]')
 
     expect(listItemButton).toBeInTheDocument()
@@ -117,6 +128,6 @@ describe('ChecklistStep', () => {
     const mockOnComplete = vi.fn()
     render(<ChecklistStep onComplete={mockOnComplete} />)
 
-    expect(screen.getByText(/Puedes acceder a esta lista desde tu perfil/)).toBeInTheDocument()
+    expect(screen.getByText('[infoTip]')).toBeInTheDocument()
   })
 })

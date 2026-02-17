@@ -6,21 +6,23 @@ import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import LockClockIcon from '@mui/icons-material/LockClock'
 import { useState } from 'react'
-
-const CHECKLIST_ITEMS = [
-  { id: 'first_prediction', label: 'Hacer mi primera predicción de partido' },
-  { id: 'tournament_predictions', label: 'Predecir campeón y premios individuales' },
-  { id: 'qualifiers_predictions', label: 'Ordenar equipos clasificados (arrastra y suelta)' },
-  { id: 'join_group', label: 'Unirme a un grupo de amigos' },
-  { id: 'explore_rules', label: 'Revisar las reglas completas' },
-]
+import { useTranslations } from 'next-intl'
 
 type ChecklistStepProps = {
   readonly onComplete: () => void
 }
 
 export default function ChecklistStep({ onComplete }: ChecklistStepProps) {
+  const t = useTranslations('onboarding.steps.checklist')
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set())
+
+  const CHECKLIST_ITEMS = [
+    { id: 'first_prediction', label: t('items.firstPrediction') },
+    { id: 'tournament_predictions', label: t('items.championAndAwards') },
+    { id: 'qualifiers_predictions', label: t('items.qualifiedTeams') },
+    { id: 'join_group', label: t('items.joinGroup') },
+    { id: 'explore_rules', label: t('items.reviewRules') },
+  ]
 
   const toggleItem = (itemId: string) => {
     setCheckedItems(prev => {
@@ -37,11 +39,11 @@ export default function ChecklistStep({ onComplete }: ChecklistStepProps) {
   return (
     <Box sx={{ py: 2 }}>
       <Typography variant="h5" gutterBottom align="center">
-        Lista de Primeros Pasos
+        {t('title')}
       </Typography>
 
       <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
-        Completa estos pasos para sacar el máximo provecho
+        {t('instructions')}
       </Typography>
 
       <Box sx={{ maxWidth: 550, mx: 'auto' }}>
@@ -73,7 +75,7 @@ export default function ChecklistStep({ onComplete }: ChecklistStepProps) {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
             <LockClockIcon sx={{ color: 'info.main' }} />
             <Typography variant="subtitle1" fontWeight="bold">
-              ⏰ Plazos de Predicción
+              {t('deadlinesHeader')}
             </Typography>
           </Box>
 
@@ -82,11 +84,11 @@ export default function ChecklistStep({ onComplete }: ChecklistStepProps) {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                 <AccessTimeIcon sx={{ fontSize: 20, color: 'info.main' }} />
                 <Typography variant="body2" fontWeight="bold">
-                  Predicciones de Partidos
+                  {t('matchPredictions.label')}
                 </Typography>
               </Box>
               <Typography variant="body2" sx={{ pl: 3.5, color: 'text.secondary' }}>
-                Cierran <strong>1 hora antes</strong> del inicio del partido
+                {t('matchPredictions.deadline')}
               </Typography>
             </Box>
 
@@ -96,11 +98,11 @@ export default function ChecklistStep({ onComplete }: ChecklistStepProps) {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                 <AccessTimeIcon sx={{ fontSize: 20, color: 'info.main' }} />
                 <Typography variant="body2" fontWeight="bold">
-                  Torneo y Clasificación
+                  {t('tournamentAndClassification.label')}
                 </Typography>
               </Box>
               <Typography variant="body2" sx={{ pl: 3.5, color: 'text.secondary' }}>
-                Cierran <strong>5 días después</strong> del inicio del torneo
+                {t('tournamentAndClassification.deadline')}
               </Typography>
             </Box>
 
@@ -110,18 +112,18 @@ export default function ChecklistStep({ onComplete }: ChecklistStepProps) {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                 <LocalFireDepartmentIcon sx={{ fontSize: 20, color: 'warning.main' }} />
                 <Typography variant="body2" fontWeight="bold">
-                  Boosts
+                  {t('boosts.label')}
                 </Typography>
               </Box>
               <Typography variant="body2" sx={{ pl: 3.5, color: 'text.secondary' }}>
-                Se pueden cambiar hasta <strong>1 hora antes</strong> del partido
+                {t('boosts.deadline')}
               </Typography>
             </Box>
           </Stack>
         </Paper>
 
         <Typography variant="caption" display="block" align="center" sx={{ mt: 2, mb: 3 }}>
-          💡 Puedes acceder a esta lista desde tu perfil en cualquier momento
+          {t('infoTip')}
         </Typography>
 
         <Box sx={{ textAlign: 'center' }}>
@@ -131,7 +133,7 @@ export default function ChecklistStep({ onComplete }: ChecklistStepProps) {
             onClick={onComplete}
             sx={{ minWidth: 200 }}
           >
-            ¡Comenzar a Jugar!
+            {t('startButton')}
           </Button>
         </Box>
       </Box>

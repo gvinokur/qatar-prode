@@ -2,11 +2,14 @@
 
 import { Box, Typography, Alert, Paper, Stack, Autocomplete, TextField, Divider } from '@mui/material'
 import { useState, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import TeamSelector from '@/app/components/awards/team-selector'
 import { DEMO_TEAMS, DEMO_PLAYERS } from '../demo/demo-data'
 import type { Player } from '@/app/db/tables-definition'
 
 export default function TournamentAwardsStep() {
+  const t = useTranslations('onboarding.steps.tournamentAwards')
+
   // Success message state
   const [showTeamSuccess, setShowTeamSuccess] = useState(false)
   const [showPlayerSuccess, setShowPlayerSuccess] = useState(false)
@@ -55,45 +58,45 @@ export default function TournamentAwardsStep() {
   return (
     <Box sx={{ py: 2 }}>
       <Typography variant="h5" gutterBottom align="center">
-        🎖️ Predicciones del Torneo
+        {t('title')}
       </Typography>
 
       <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
-        Predice el podio del torneo y los premios individuales
+        {t('instructions')}
       </Typography>
 
       <Box sx={{ maxWidth: 900, mx: 'auto' }}>
         <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
           {/* Honor Roll Section */}
           <Typography variant="h6" gutterBottom>
-            Podio del Torneo
+            {t('podiumHeader')}
           </Typography>
           <Stack spacing={2} sx={{ mb: 3 }}>
             <TeamSelector
-              label="Campeón"
+              label={t('champion.label')}
               teams={DEMO_TEAMS}
               selectedTeamId={championTeamId}
               name="champion"
               disabled={false}
-              helperText="Selecciona el equipo que predigas que ganará el torneo"
+              helperText={t('champion.helper')}
               onChange={(teamId) => handleTeamSelect('champion', teamId)}
             />
             <TeamSelector
-              label="Subcampeón"
+              label={t('runnerUp.label')}
               teams={DEMO_TEAMS}
               selectedTeamId={runnerUpTeamId}
               name="runnerUp"
               disabled={false}
-              helperText="Selecciona el equipo que predigas que llegará a la final"
+              helperText={t('runnerUp.helper')}
               onChange={(teamId) => handleTeamSelect('runnerUp', teamId)}
             />
             <TeamSelector
-              label="Tercer Lugar"
+              label={t('thirdPlace.label')}
               teams={DEMO_TEAMS}
               selectedTeamId={thirdPlaceTeamId}
               name="thirdPlace"
               disabled={false}
-              helperText="Selecciona el equipo que predigas que quedará tercero"
+              helperText={t('thirdPlace.helper')}
               onChange={(teamId) => handleTeamSelect('thirdPlace', teamId)}
             />
           </Stack>
@@ -102,7 +105,7 @@ export default function TournamentAwardsStep() {
 
           {/* Individual Awards Section */}
           <Typography variant="h6" gutterBottom>
-            Premios Individuales
+            {t('individualAwardsHeader')}
           </Typography>
           <Stack spacing={2}>
             <Autocomplete
@@ -116,8 +119,8 @@ export default function TournamentAwardsStep() {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Mejor Jugador"
-                  helperText="Selecciona el mejor jugador del torneo"
+                  label={t('bestPlayer.label')}
+                  helperText={t('bestPlayer.helper')}
                 />
               )}
             />
@@ -132,8 +135,8 @@ export default function TournamentAwardsStep() {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Goleador"
-                  helperText="Selecciona el máximo goleador del torneo"
+                  label={t('topScorer.label')}
+                  helperText={t('topScorer.helper')}
                 />
               )}
             />
@@ -148,8 +151,8 @@ export default function TournamentAwardsStep() {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Mejor Arquero"
-                  helperText="Selecciona el mejor arquero del torneo"
+                  label={t('bestGoalkeeper.label')}
+                  helperText={t('bestGoalkeeper.helper')}
                 />
               )}
             />
@@ -164,8 +167,8 @@ export default function TournamentAwardsStep() {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Mejor Jugador Joven"
-                  helperText="Selecciona el mejor jugador joven del torneo"
+                  label={t('bestYoungPlayer.label')}
+                  helperText={t('bestYoungPlayer.helper')}
                 />
               )}
             />
@@ -177,7 +180,7 @@ export default function TournamentAwardsStep() {
               onClose={() => setShowTeamSuccess(false)}
               sx={{ mt: 2 }}
             >
-              ¡Genial! Selecciona tus predicciones para el podio.
+              {t('podiumSuccessAlert')}
             </Alert>
           )}
 
@@ -187,13 +190,13 @@ export default function TournamentAwardsStep() {
               onClose={() => setShowPlayerSuccess(false)}
               sx={{ mt: 2 }}
             >
-              ¡Perfecto! Selecciona los mejores jugadores del torneo.
+              {t('awardsSuccessAlert')}
             </Alert>
           )}
         </Paper>
 
         <Typography variant="caption" display="block" align="center" sx={{ mt: 2 }}>
-          💡 Estas predicciones son de demostración. Podrás hacer tus predicciones reales después del onboarding.
+          {t('infoTip')}
         </Typography>
       </Box>
     </Box>

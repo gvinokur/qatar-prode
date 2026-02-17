@@ -1,6 +1,7 @@
 'use client'
 
 import { Box, Typography, Card, CardContent, Stack, Alert, Chip } from '@mui/material'
+import { useTranslations } from 'next-intl'
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import type { Tournament } from '@/app/db/tables-definition'
@@ -10,6 +11,8 @@ interface BoostIntroductionStepProps {
 }
 
 export default function BoostIntroductionStep({ tournament }: BoostIntroductionStepProps) {
+  const t = useTranslations('onboarding.steps.boosts')
+
   // Extract boost counts from tournament
   const silverBoosts = tournament?.max_silver_games ?? 0
   const goldenBoosts = tournament?.max_golden_games ?? 0
@@ -17,11 +20,11 @@ export default function BoostIntroductionStep({ tournament }: BoostIntroductionS
   return (
     <Box sx={{ py: 2 }}>
       <Typography variant="h5" gutterBottom align="center">
-        Multiplica Tus Puntos con Boosts
+        {t('title')}
       </Typography>
 
       <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
-        Usa tus boosts estratégicamente en partidos clave
+        {t('instructions')}
       </Typography>
 
       <Stack spacing={2} sx={{ maxWidth: 500, mx: 'auto' }}>
@@ -29,19 +32,19 @@ export default function BoostIntroductionStep({ tournament }: BoostIntroductionS
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
               <Box sx={{ fontSize: 32 }}>🥈</Box>
-              <Typography variant="h6">Boost Plateado</Typography>
+              <Typography variant="h6">{t('silverBoost.label')}</Typography>
             </Box>
 
             <Typography variant="body1" sx={{ mb: 1, fontWeight: 'bold', fontSize: '1.1rem' }}>
-              Multiplica × 2
+              {t('silverBoost.multiplier')}
             </Typography>
 
             <Typography variant="body2" color="text.secondary">
-              Duplica tus puntos en el partido que elijas
+              {t('silverBoost.description')}
             </Typography>
 
             <Chip
-              label={`Tienes ${silverBoosts} ${silverBoosts === 1 ? 'boost disponible' : 'boosts disponibles'} por torneo`}
+              label={t('silverBoost.available', { count: silverBoosts })}
               size="small"
               sx={{ mt: 1.5 }}
               color="default"
@@ -54,19 +57,19 @@ export default function BoostIntroductionStep({ tournament }: BoostIntroductionS
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
               <LocalFireDepartmentIcon sx={{ fontSize: 32, color: 'warning.main' }} />
-              <Typography variant="h6">Boost Dorado</Typography>
+              <Typography variant="h6">{t('goldenBoost.label')}</Typography>
             </Box>
 
             <Typography variant="body1" sx={{ mb: 1, fontWeight: 'bold', fontSize: '1.1rem' }}>
-              Multiplica × 3
+              {t('goldenBoost.multiplier')}
             </Typography>
 
             <Typography variant="body2" color="text.secondary">
-              Triplica tus puntos en tu partido más importante
+              {t('goldenBoost.description')}
             </Typography>
 
             <Chip
-              label={`Tienes ${goldenBoosts} ${goldenBoosts === 1 ? 'boost disponible' : 'boosts disponibles'} por torneo`}
+              label={t('goldenBoost.available', { count: goldenBoosts })}
               size="small"
               sx={{ mt: 1.5 }}
               color="warning"
@@ -78,31 +81,31 @@ export default function BoostIntroductionStep({ tournament }: BoostIntroductionS
         <Alert severity="info" icon={<InfoOutlinedIcon />}>
           {tournament && (
             <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-              Configuración para {tournament.long_name || tournament.short_name}:
+              {t('configAlert.header', { tournament: tournament.long_name || tournament.short_name })}
             </Typography>
           )}
           <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-            Puntos Importantes:
+            {t('configAlert.subheader')}
           </Typography>
           <Stack spacing={0.5} sx={{ pl: 1 }}>
             <Typography variant="body2">
-              • Los boosts son <strong>específicos de cada torneo</strong>
+              • {t('configAlert.bullet1')}
             </Typography>
             <Typography variant="body2">
-              • Solo aplican a <strong>predicciones de partidos</strong>
+              • {t('configAlert.bullet2')}
             </Typography>
             <Typography variant="body2">
-              • Puedes cambiarlos hasta 1 hora antes del partido
+              • {t('configAlert.bullet3')}
             </Typography>
           </Stack>
         </Alert>
 
         <Box sx={{ textAlign: 'center', mt: 2, p: 2, bgcolor: 'action.selected', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
           <Typography variant="body2" fontWeight="bold" color="text.primary">
-            💡 Consejo Estratégico
+            {t('strategicTip.title')}
           </Typography>
           <Typography variant="body2" sx={{ mt: 0.5 }} color="text.secondary">
-            Guarda tus boosts para finales y partidos decisivos donde estés más seguro del resultado
+            {t('strategicTip.text')}
           </Typography>
         </Box>
       </Stack>

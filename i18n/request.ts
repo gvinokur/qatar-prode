@@ -19,7 +19,8 @@ export default getRequestConfig(async ({requestLocale}) => {
       groups: (await import(`../locales/${locale}/groups.json`)).default,
       emails: (await import(`../locales/${locale}/emails.json`)).default,
       validation: (await import(`../locales/${locale}/validation.json`)).default,
-      errors: (await import(`../locales/${locale}/errors.json`)).default
+      errors: (await import(`../locales/${locale}/errors.json`)).default,
+      onboarding: (await import(`../locales/${locale}/onboarding.json`)).default
     }
   };
 });

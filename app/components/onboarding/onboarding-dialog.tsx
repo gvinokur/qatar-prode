@@ -2,6 +2,7 @@
 
 import { Button, Dialog, DialogActions, DialogContent, LinearProgress, Box } from "@mui/material"
 import { useState, useCallback, useRef, useEffect, useMemo } from "react"
+import { useTranslations } from 'next-intl'
 import {
   WelcomeStep,
   GamePredictionStep,
@@ -41,6 +42,8 @@ type OnboardingDialogProps = {
 type OnboardingStep = 'welcome' | 'game-prediction' | 'qualified-teams' | 'tournament-awards' | 'scoring' | 'boost' | 'checklist'
 
 export default function OnboardingDialog({ open, onClose, tournament }: OnboardingDialogProps) {
+  const t = useTranslations('onboarding.dialog')
+
   // Calculate if boosts are available for this tournament
   const hasBoosts = useMemo(() => {
     return (tournament?.max_silver_games ?? 0) > 0 || (tournament?.max_golden_games ?? 0) > 0
@@ -194,13 +197,13 @@ export default function OnboardingDialog({ open, onClose, tournament }: Onboardi
           disabled={isSubmitting}
           color="inherit"
         >
-          Saltar Tutorial
+          {t('skipButton')}
         </Button>
 
         <div>
           {currentStepIndex > 0 && currentStep !== 'checklist' && (
             <Button onClick={handleBack} disabled={isSubmitting} sx={{ mr: 1 }}>
-              Atrás
+              {t('backButton')}
             </Button>
           )}
 
@@ -210,7 +213,7 @@ export default function OnboardingDialog({ open, onClose, tournament }: Onboardi
               variant="contained"
               disabled={isSubmitting}
             >
-              {currentStepIndex === STEP_ORDER.length - 1 ? 'Finalizar' : 'Siguiente'}
+              {currentStepIndex === STEP_ORDER.length - 1 ? t('finishButton') : t('nextButton')}
             </Button>
           )}
         </div>

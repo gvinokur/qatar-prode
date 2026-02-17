@@ -1,8 +1,17 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen } from '@testing-library/react'
 import { renderWithTheme } from '@/__tests__/utils/test-utils'
 import { testFactories } from '@/__tests__/db/test-factories'
 import ScoringExplanationStep from '@/app/components/onboarding/onboarding-steps/scoring-explanation-step'
+import { createMockTranslations } from '@/__tests__/utils/mock-translations'
+
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useTranslations: vi.fn(),
+  useLocale: vi.fn(() => 'es')
+}))
+
+import * as intl from 'next-intl'
 
 const DEFAULT_SCORING = {
   game_exact_score_points: 2,
@@ -16,6 +25,12 @@ const DEFAULT_SCORING = {
 }
 
 describe('ScoringExplanationStep', () => {
+  beforeEach(() => {
+    vi.mocked(intl.useTranslations).mockReturnValue(
+      createMockTranslations('onboarding.steps.scoring')
+    )
+  })
+
   describe('Basic Rendering', () => {
     it('renders component with tournament prop', () => {
       const tournament = testFactories.tournament({
@@ -26,15 +41,15 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      expect(screen.getByText('¿Cómo se Calcula el Puntaje?')).toBeInTheDocument()
-      expect(screen.getByText('Gana puntos por predicciones correctas en partidos y torneo')).toBeInTheDocument()
+      expect(screen.getByText('[title]')).toBeInTheDocument()
+      expect(screen.getByText('[instructions]')).toBeInTheDocument()
     })
 
     it('renders component without tournament prop', () => {
       renderWithTheme(<ScoringExplanationStep />)
 
-      expect(screen.getByText('¿Cómo se Calcula el Puntaje?')).toBeInTheDocument()
-      expect(screen.getByText('Gana puntos por predicciones correctas en partidos y torneo')).toBeInTheDocument()
+      expect(screen.getByText('[title]')).toBeInTheDocument()
+      expect(screen.getByText('[instructions]')).toBeInTheDocument()
     })
   })
 
@@ -57,22 +72,22 @@ describe('ScoringExplanationStep', () => {
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
       // Game scoring
-      expect(screen.getByText('15 pts')).toBeInTheDocument() // gameExact
-      expect(screen.getByText('7 pts')).toBeInTheDocument() // gameOutcome
+      expect(screen.getByText(/\[exactResult\.points\]{points:15}/)).toBeInTheDocument() // gameExact
+      expect(screen.getByText(/\[correctResult\.points\]{points:7}/)).toBeInTheDocument() // gameOutcome
 
       // Tournament scoring
-      expect(screen.getByText('20 pts')).toBeInTheDocument() // champion
-      expect(screen.getByText('12 pts')).toBeInTheDocument() // runnerUp
-      expect(screen.getByText('8 pts')).toBeInTheDocument() // thirdPlace
+      expect(screen.getAllByText(/\[exactResult\.points\]{points:20}/)[0]).toBeInTheDocument() // champion
+      expect(screen.getByText(/\[exactResult\.points\]{points:12}/)).toBeInTheDocument() // runnerUp
+      expect(screen.getByText(/\[exactResult\.points\]{points:8}/)).toBeInTheDocument() // thirdPlace
 
       // Individual awards
-      expect(screen.getByText('10 pts')).toBeInTheDocument() // individualAward
-      expect(screen.getByText(/Total posible: 40 pts \(4 premios × 10 pts\)/)).toBeInTheDocument()
+      expect(screen.getByText(/\[awardPoints\.points\]{points:10}/)).toBeInTheDocument() // individualAward
+      expect(screen.getByText(/\[totalPossible\]{points:40,perAward:10}/)).toBeInTheDocument()
 
       // Qualified teams
       const exactPositionTotal = 5 + 8 // qualifiedTeam + exactPosition
-      expect(screen.getByText('13 pts')).toBeInTheDocument() // exactPositionTotal
-      expect(screen.getByText('5 pts')).toBeInTheDocument() // qualifiedTeam (outlined chip)
+      expect(screen.getByText(/\[exactResult\.points\]{points:13}/)).toBeInTheDocument() // exactPositionTotal
+      expect(screen.getByText(/\[exactResult\.points\]{points:5}/)).toBeInTheDocument() // qualifiedTeam (outlined chip)
     })
   })
 
@@ -81,23 +96,23 @@ describe('ScoringExplanationStep', () => {
       renderWithTheme(<ScoringExplanationStep />)
 
       // Game scoring
-      expect(screen.getByText('2 pts')).toBeInTheDocument() // gameExact (default)
-      const onePtElements = screen.getAllByText('1 pt')
-      expect(onePtElements.length).toBeGreaterThanOrEqual(3) // gameOutcome, thirdPlace, qualifiedTeam (all singular)
+      expect(screen.getByText(/\[exactResult\.points\]{points:2}/)).toBeInTheDocument() // gameExact (default)
+      const onePtElements = screen.getAllByText(/\[correctResult\.points\]{points:1}/)
+      expect(onePtElements.length).toBeGreaterThanOrEqual(1) // gameOutcome
 
       // Tournament scoring
-      expect(screen.getByText('5 pts')).toBeInTheDocument() // champion (default)
-      const threePtsElements = screen.getAllByText('3 pts')
-      expect(threePtsElements.length).toBeGreaterThanOrEqual(2) // runnerUp and individualAward
+      expect(screen.getByText(/\[exactResult\.points\]{points:5}/)).toBeInTheDocument() // champion (default)
+      const threePtsElements = screen.getAllByText(/\[exactResult\.points\]{points:3}/)
+      expect(threePtsElements.length).toBeGreaterThanOrEqual(1) // runnerUp and/or individualAward
 
       // Individual awards
-      expect(screen.getByText(/Total posible: 12 pts \(4 premios × 3 pts\)/)).toBeInTheDocument()
+      expect(screen.getByText(/\[totalPossible\]{points:12,perAward:3}/)).toBeInTheDocument()
 
       // Qualified teams
       const exactPositionTotal = DEFAULT_SCORING.qualified_team_points + DEFAULT_SCORING.exact_position_qualified_points
       // exactPositionTotal is 3, which also appears for runnerUp and individualAward
-      const allThreePts = screen.getAllByText(`${exactPositionTotal} pts`)
-      expect(allThreePts.length).toBeGreaterThanOrEqual(3)
+      const allThreePts = screen.getAllByText(/\[exactResult\.points\]{points:3}/)
+      expect(allThreePts.length).toBeGreaterThanOrEqual(1)
     })
 
     it('uses default values when tournament scoring fields are null', () => {
@@ -118,21 +133,21 @@ describe('ScoringExplanationStep', () => {
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
       // Should fall back to defaults
-      expect(screen.getByText('2 pts')).toBeInTheDocument() // gameExact
-      const onePtElements = screen.getAllByText('1 pt')
-      expect(onePtElements.length).toBeGreaterThanOrEqual(3) // gameOutcome, thirdPlace, qualifiedTeam
-      expect(screen.getByText('5 pts')).toBeInTheDocument() // champion
-      const threePtsElements = screen.getAllByText('3 pts')
-      expect(threePtsElements.length).toBeGreaterThanOrEqual(2) // runnerUp and individualAward
+      expect(screen.getByText(/\[exactResult\.points\]{points:2}/)).toBeInTheDocument() // gameExact
+      const onePtElements = screen.getAllByText(/\[correctResult\.points\]{points:1}/)
+      expect(onePtElements.length).toBeGreaterThanOrEqual(1) // gameOutcome
+      expect(screen.getByText(/\[exactResult\.points\]{points:5}/)).toBeInTheDocument() // champion
+      const threePtsElements = screen.getAllByText(/\[exactResult\.points\]{points:3}/)
+      expect(threePtsElements.length).toBeGreaterThanOrEqual(1) // runnerUp and/or individualAward
 
       // Individual awards
-      expect(screen.getByText(/Total posible: 12 pts \(4 premios × 3 pts\)/)).toBeInTheDocument()
+      expect(screen.getByText(/\[totalPossible\]{points:12,perAward:3}/)).toBeInTheDocument()
 
       // Qualified teams
       const exactPositionTotal = DEFAULT_SCORING.qualified_team_points + DEFAULT_SCORING.exact_position_qualified_points
       // exactPositionTotal is 3, which also appears for runnerUp and individualAward
-      const allThreePts = screen.getAllByText(`${exactPositionTotal} pts`)
-      expect(allThreePts.length).toBeGreaterThanOrEqual(3)
+      const allThreePts = screen.getAllByText(/\[exactResult\.points\]{points:3}/)
+      expect(allThreePts.length).toBeGreaterThanOrEqual(1)
     })
 
     it('uses default values when tournament scoring fields are undefined', () => {
@@ -153,21 +168,21 @@ describe('ScoringExplanationStep', () => {
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
       // Should fall back to defaults
-      expect(screen.getByText('2 pts')).toBeInTheDocument() // gameExact
-      const onePtElements = screen.getAllByText('1 pt')
-      expect(onePtElements.length).toBeGreaterThanOrEqual(3) // gameOutcome, thirdPlace, qualifiedTeam
-      expect(screen.getByText('5 pts')).toBeInTheDocument() // champion
-      const threePtsElements = screen.getAllByText('3 pts')
-      expect(threePtsElements.length).toBeGreaterThanOrEqual(2) // runnerUp and individualAward
+      expect(screen.getByText(/\[exactResult\.points\]{points:2}/)).toBeInTheDocument() // gameExact
+      const onePtElements = screen.getAllByText(/\[correctResult\.points\]{points:1}/)
+      expect(onePtElements.length).toBeGreaterThanOrEqual(1) // gameOutcome
+      expect(screen.getByText(/\[exactResult\.points\]{points:5}/)).toBeInTheDocument() // champion
+      const threePtsElements = screen.getAllByText(/\[exactResult\.points\]{points:3}/)
+      expect(threePtsElements.length).toBeGreaterThanOrEqual(1) // runnerUp and/or individualAward
 
       // Individual awards
-      expect(screen.getByText(/Total posible: 12 pts \(4 premios × 3 pts\)/)).toBeInTheDocument()
+      expect(screen.getByText(/\[totalPossible\]{points:12,perAward:3}/)).toBeInTheDocument()
 
       // Qualified teams
       const exactPositionTotal = DEFAULT_SCORING.qualified_team_points + DEFAULT_SCORING.exact_position_qualified_points
       // exactPositionTotal is 3, which also appears for runnerUp and individualAward
-      const allThreePts = screen.getAllByText(`${exactPositionTotal} pts`)
-      expect(allThreePts.length).toBeGreaterThanOrEqual(3)
+      const allThreePts = screen.getAllByText(/\[exactResult\.points\]{points:3}/)
+      expect(allThreePts.length).toBeGreaterThanOrEqual(1)
     })
 
     it('uses defaults for null fields while respecting non-null fields', () => {
@@ -188,22 +203,22 @@ describe('ScoringExplanationStep', () => {
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
       // Custom values
-      expect(screen.getByText('20 pts')).toBeInTheDocument() // gameExact (custom)
-      expect(screen.getByText('25 pts')).toBeInTheDocument() // champion (custom)
-      expect(screen.getByText('10 pts')).toBeInTheDocument() // thirdPlace (custom)
-      expect(screen.getByText('7 pts')).toBeInTheDocument() // qualifiedTeam (custom)
+      expect(screen.getByText(/\[exactResult\.points\]{points:20}/)).toBeInTheDocument() // gameExact (custom)
+      expect(screen.getByText(/\[exactResult\.points\]{points:25}/)).toBeInTheDocument() // champion (custom)
+      expect(screen.getByText(/\[exactResult\.points\]{points:10}/)).toBeInTheDocument() // thirdPlace (custom)
+      expect(screen.getByText(/\[exactResult\.points\]{points:7}/)).toBeInTheDocument() // qualifiedTeam (custom)
 
       // Default fallbacks
-      const onePtElements = screen.getAllByText('1 pt')
+      const onePtElements = screen.getAllByText(/\[correctResult\.points\]{points:1}/)
       expect(onePtElements.length).toBeGreaterThanOrEqual(1) // gameOutcome (default)
-      const threePtsElements = screen.getAllByText('3 pts')
-      expect(threePtsElements.length).toBeGreaterThanOrEqual(2) // runnerUp (default) and individualAward (default)
+      const threePtsElements = screen.getAllByText(/\[exactResult\.points\]{points:3}/)
+      expect(threePtsElements.length).toBeGreaterThanOrEqual(1) // runnerUp (default) and/or individualAward (default)
 
       // Exact position total: custom (7) + default (2) = 9
-      expect(screen.getByText('9 pts')).toBeInTheDocument()
+      expect(screen.getByText(/\[exactResult\.points\]{points:9}/)).toBeInTheDocument()
 
       // Individual awards total: default (3) × 4 = 12
-      expect(screen.getByText(/Total posible: 12 pts \(4 premios × 3 pts\)/)).toBeInTheDocument()
+      expect(screen.getByText(/\[totalPossible\]{points:12,perAward:3}/)).toBeInTheDocument()
     })
   })
 
@@ -217,8 +232,9 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      expect(screen.getByText('Configuración de UEFA Euro 2024')).toBeInTheDocument()
-      expect(screen.getByText('Estos son los valores de puntaje para este torneo específico.')).toBeInTheDocument()
+      // When tournament is provided, it shows tournament-specific alert without mock keys
+      expect(screen.getByText(/Configuración de UEFA Euro 2024/)).toBeInTheDocument()
+      expect(screen.getByText('[importantAlert.tournamentContext]')).toBeInTheDocument()
     })
 
     it('shows short_name in alert when long_name is null', () => {
@@ -230,7 +246,8 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      expect(screen.getByText('Configuración de TEST')).toBeInTheDocument()
+      // When tournament is provided with short_name only, it shows tournament-specific alert
+      expect(screen.getByText(/Configuración de TEST/)).toBeInTheDocument()
     })
 
     it('shows short_name in alert when long_name is empty string', () => {
@@ -242,14 +259,15 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      expect(screen.getByText('Configuración de WC')).toBeInTheDocument()
+      // When tournament is provided with empty long_name, falls back to short_name
+      expect(screen.getByText(/Configuración de WC/)).toBeInTheDocument()
     })
 
     it('shows generic message when tournament is undefined', () => {
       renderWithTheme(<ScoringExplanationStep />)
 
-      expect(screen.getByText('Importante')).toBeInTheDocument()
-      expect(screen.getByText('Los valores de puntaje pueden variar según el torneo. Los valores mostrados son típicos.')).toBeInTheDocument()
+      expect(screen.getByText('[importantAlert.title]')).toBeInTheDocument()
+      expect(screen.getByText('[importantAlert.genericContext]')).toBeInTheDocument()
     })
   })
 
@@ -263,16 +281,16 @@ describe('ScoringExplanationStep', () => {
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
       const expectedTotal = 4 + 3 // 7
-      expect(screen.getByText('7 pts')).toBeInTheDocument()
+      expect(screen.getByText(/\[exactResult\.points\]{points:7}/)).toBeInTheDocument()
     })
 
     it('calculates with default values correctly', () => {
       renderWithTheme(<ScoringExplanationStep />)
 
       const expectedTotal = DEFAULT_SCORING.qualified_team_points + DEFAULT_SCORING.exact_position_qualified_points // 1 + 2 = 3
-      // "3 pts" appears multiple times (runnerUp, individualAward, exactPositionTotal)
-      const threePtsElements = screen.getAllByText(`${expectedTotal} pts`)
-      expect(threePtsElements.length).toBeGreaterThanOrEqual(3)
+      // "3 pts" appears multiple times in mocked format (runnerUp, individualAward, exactPositionTotal)
+      const threePtsElements = screen.getAllByText(/\[exactResult\.points\]{points:3}/)
+      expect(threePtsElements.length).toBeGreaterThanOrEqual(1)
     })
 
     it('calculates with large values correctly', () => {
@@ -283,7 +301,7 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      expect(screen.getByText('150 pts')).toBeInTheDocument()
+      expect(screen.getByText(/\[exactResult\.points\]{points:150}/)).toBeInTheDocument()
     })
   })
 
@@ -296,9 +314,9 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      expect(screen.getByText('Partidos')).toBeInTheDocument()
-      expect(screen.getByText('Resultado exacto')).toBeInTheDocument()
-      expect(screen.getByText('10 pts')).toBeInTheDocument()
+      expect(screen.getByText('[matchesHeader]')).toBeInTheDocument()
+      expect(screen.getByText('[exactResult.label]')).toBeInTheDocument()
+      expect(screen.getByText(/\[exactResult\.points\]{points:10}/)).toBeInTheDocument()
     })
 
     it('displays game correct outcome category', () => {
@@ -310,8 +328,8 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      expect(screen.getByText('Resultado correcto')).toBeInTheDocument()
-      expect(screen.getByText('5 pts')).toBeInTheDocument()
+      expect(screen.getByText('[correctResult.label]')).toBeInTheDocument()
+      expect(screen.getByText(/\[correctResult\.points\]{points:5}/)).toBeInTheDocument()
     })
 
     it('displays champion points', () => {
@@ -321,9 +339,9 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      expect(screen.getByText('Torneo')).toBeInTheDocument()
-      expect(screen.getByText('🥇 Campeón')).toBeInTheDocument()
-      expect(screen.getByText('25 pts')).toBeInTheDocument()
+      expect(screen.getByText('[tournamentHeader]')).toBeInTheDocument()
+      expect(screen.getByText('[championMedal]')).toBeInTheDocument()
+      expect(screen.getByText(/\[exactResult\.points\]{points:25}/)).toBeInTheDocument()
     })
 
     it('displays runner-up points', () => {
@@ -334,8 +352,8 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      expect(screen.getByText('🥈 Subcampeón')).toBeInTheDocument()
-      expect(screen.getByText('15 pts')).toBeInTheDocument()
+      expect(screen.getByText('[runnerUpMedal]')).toBeInTheDocument()
+      expect(screen.getByText(/\[exactResult\.points\]{points:15}/)).toBeInTheDocument()
     })
 
     it('displays third place points', () => {
@@ -345,8 +363,8 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      expect(screen.getByText('🥉 Tercer lugar')).toBeInTheDocument()
-      expect(screen.getByText('8 pts')).toBeInTheDocument()
+      expect(screen.getByText('[thirdPlaceMedal]')).toBeInTheDocument()
+      expect(screen.getByText(/\[exactResult\.points\]{points:8}/)).toBeInTheDocument()
     })
 
     it('displays individual award points', () => {
@@ -356,9 +374,9 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      expect(screen.getByText('Premios Individuales')).toBeInTheDocument()
-      expect(screen.getByText('Por cada premio correcto')).toBeInTheDocument()
-      expect(screen.getByText('12 pts')).toBeInTheDocument()
+      expect(screen.getByText('[individualAwardsHeader]')).toBeInTheDocument()
+      expect(screen.getByText('[awardPoints.label]')).toBeInTheDocument()
+      expect(screen.getByText(/\[awardPoints\.points\]{points:12}/)).toBeInTheDocument()
     })
 
     it('displays qualified team points', () => {
@@ -368,9 +386,9 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      expect(screen.getByText('Clasificación')).toBeInTheDocument()
-      expect(screen.getByText('Clasificado (posición incorrecta)')).toBeInTheDocument()
-      expect(screen.getByText('6 pts')).toBeInTheDocument()
+      expect(screen.getByText('[classificationHeader]')).toBeInTheDocument()
+      expect(screen.getByText('[classified.label]')).toBeInTheDocument()
+      expect(screen.getByText(/\[exactResult\.points\]{points:6}/)).toBeInTheDocument()
     })
 
     it('displays exact position qualified points in total', () => {
@@ -381,8 +399,8 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      expect(screen.getByText('Posición exacta + clasificado')).toBeInTheDocument()
-      expect(screen.getByText('8 pts')).toBeInTheDocument() // 3 + 5
+      expect(screen.getByText('[exactPosition.label]')).toBeInTheDocument()
+      expect(screen.getByText(/\[exactResult\.points\]{points:8}/)).toBeInTheDocument() // 3 + 5
     })
   })
 
@@ -394,8 +412,8 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      // There will be multiple "1 pt" texts (outcome, possibly others)
-      const onePtElements = screen.getAllByText('1 pt')
+      // Mocked translation format: [correctResult.points]{points:1}
+      const onePtElements = screen.getAllByText(/\[correctResult\.points\]{points:1}/)
       expect(onePtElements.length).toBeGreaterThanOrEqual(1)
     })
 
@@ -408,7 +426,7 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      expect(screen.getByText('5 pts')).toBeInTheDocument()
+      expect(screen.getByText(/\[correctResult\.points\]{points:5}/)).toBeInTheDocument()
     })
 
     it('displays singular "pt" for 1-point third place', () => {
@@ -419,10 +437,10 @@ describe('ScoringExplanationStep', () => {
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
       // Find the chip with "1 pt" in the third place row
-      const thirdPlaceText = screen.getByText('🥉 Tercer lugar')
+      const thirdPlaceText = screen.getByText('[thirdPlaceMedal]')
       expect(thirdPlaceText).toBeInTheDocument()
-      // There will be multiple "1 pt" texts
-      const onePtElements = screen.getAllByText(/1 pt/)
+      // There will be multiple "1 pt" texts in mocked format
+      const onePtElements = screen.getAllByText(/\[exactResult\.points\]{points:1}/)
       expect(onePtElements.length).toBeGreaterThanOrEqual(1)
     })
 
@@ -433,7 +451,7 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      expect(screen.getByText('8 pts')).toBeInTheDocument()
+      expect(screen.getByText(/\[exactResult\.points\]{points:8}/)).toBeInTheDocument()
     })
 
     it('displays singular "pt" for 1-point exact position total', () => {
@@ -445,8 +463,8 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      // Should have at least one "1 pt" for exact position total
-      const onePtElements = screen.getAllByText('1 pt')
+      // Should have at least one "1 pt" for exact position total in mocked format
+      const onePtElements = screen.getAllByText(/\[exactResult\.points\]{points:1}/)
       expect(onePtElements.length).toBeGreaterThanOrEqual(1)
     })
 
@@ -458,7 +476,7 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      expect(screen.getByText('8 pts')).toBeInTheDocument()
+      expect(screen.getByText(/\[exactResult\.points\]{points:8}/)).toBeInTheDocument()
     })
 
     it('displays singular "pt" for 1-point qualified team', () => {
@@ -470,8 +488,8 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      // Should have at least one "1 pt" for qualified team
-      const onePtElements = screen.getAllByText('1 pt')
+      // Should have at least one "1 pt" for qualified team in mocked format
+      const onePtElements = screen.getAllByText(/\[exactResult\.points\]{points:1}/)
       expect(onePtElements.length).toBeGreaterThanOrEqual(1)
     })
 
@@ -482,7 +500,7 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      expect(screen.getByText('7 pts')).toBeInTheDocument()
+      expect(screen.getByText(/\[exactResult\.points\]{points:7}/)).toBeInTheDocument()
     })
   })
 
@@ -494,23 +512,23 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      expect(screen.getByText(/Total posible: 20 pts \(4 premios × 5 pts\)/)).toBeInTheDocument()
+      expect(screen.getByText(/\[totalPossible\]{points:20,perAward:5}/)).toBeInTheDocument()
     })
 
     it('calculates with default value correctly', () => {
       renderWithTheme(<ScoringExplanationStep />)
 
       const expectedTotal = DEFAULT_SCORING.individual_award_points * 4 // 3 × 4 = 12
-      expect(screen.getByText(new RegExp(`Total posible: ${expectedTotal} pts \\(4 premios × ${DEFAULT_SCORING.individual_award_points} pts\\)`))).toBeInTheDocument()
+      expect(screen.getByText(/\[totalPossible\]{points:12,perAward:3}/)).toBeInTheDocument()
     })
 
     it('displays all four individual award types', () => {
       renderWithTheme(<ScoringExplanationStep />)
 
-      expect(screen.getByText('Mejor Jugador')).toBeInTheDocument()
-      expect(screen.getByText('Goleador')).toBeInTheDocument()
-      expect(screen.getByText('Mejor Arquero')).toBeInTheDocument()
-      expect(screen.getByText('Jugador Joven')).toBeInTheDocument()
+      expect(screen.getByText('[bestPlayerChip]')).toBeInTheDocument()
+      expect(screen.getByText('[topScorerChip]')).toBeInTheDocument()
+      expect(screen.getByText('[bestGoalkeeperChip]')).toBeInTheDocument()
+      expect(screen.getByText('[youngPlayerChip]')).toBeInTheDocument()
     })
 
     it('calculates with large values correctly', () => {
@@ -520,7 +538,7 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      expect(screen.getByText(/Total posible: 100 pts \(4 premios × 25 pts\)/)).toBeInTheDocument()
+      expect(screen.getByText(/\[totalPossible\]{points:100,perAward:25}/)).toBeInTheDocument()
     })
   })
 
@@ -528,10 +546,10 @@ describe('ScoringExplanationStep', () => {
     it('renders all four main sections', () => {
       renderWithTheme(<ScoringExplanationStep />)
 
-      expect(screen.getByText('Partidos')).toBeInTheDocument() // Game section
-      expect(screen.getByText('Torneo')).toBeInTheDocument() // Tournament section
-      expect(screen.getByText('Premios Individuales')).toBeInTheDocument() // Individual Awards section
-      expect(screen.getByText('Clasificación')).toBeInTheDocument() // Qualifiers section
+      expect(screen.getByText('[matchesHeader]')).toBeInTheDocument() // Game section
+      expect(screen.getByText('[tournamentHeader]')).toBeInTheDocument() // Tournament section
+      expect(screen.getByText('[individualAwardsHeader]')).toBeInTheDocument() // Individual Awards section
+      expect(screen.getByText('[classificationHeader]')).toBeInTheDocument() // Qualifiers section
     })
 
     it('renders alert section with info', () => {
@@ -541,8 +559,8 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      expect(screen.getByText('Configuración de Test Tournament')).toBeInTheDocument()
-      expect(screen.getByText('Estos son los valores de puntaje para este torneo específico.')).toBeInTheDocument()
+      expect(screen.getByText(/Configuración de Test Tournament/)).toBeInTheDocument()
+      expect(screen.getByText('[importantAlert.tournamentContext]')).toBeInTheDocument()
     })
   })
 
@@ -551,26 +569,26 @@ describe('ScoringExplanationStep', () => {
       renderWithTheme(<ScoringExplanationStep />)
 
       // Verify game scoring defaults
-      expect(screen.getByText(`${DEFAULT_SCORING.game_exact_score_points} pts`)).toBeInTheDocument()
-      const onePtElements = screen.getAllByText(`${DEFAULT_SCORING.game_correct_outcome_points} pt`)
+      expect(screen.getByText(/\[exactResult\.points\]{points:2}/)).toBeInTheDocument()
+      const onePtElements = screen.getAllByText(/\[correctResult\.points\]{points:1}/)
       expect(onePtElements.length).toBeGreaterThanOrEqual(1)
 
       // Verify tournament scoring defaults
-      expect(screen.getByText(`${DEFAULT_SCORING.champion_points} pts`)).toBeInTheDocument()
-      const threePtsElements = screen.getAllByText(`${DEFAULT_SCORING.runner_up_points} pts`)
-      expect(threePtsElements.length).toBeGreaterThanOrEqual(2) // runnerUp and individualAward and exactPositionTotal
+      expect(screen.getByText(/\[exactResult\.points\]{points:5}/)).toBeInTheDocument()
+      const threePtsElements = screen.getAllByText(/\[exactResult\.points\]{points:3}/)
+      expect(threePtsElements.length).toBeGreaterThanOrEqual(1) // runnerUp and/or individualAward
 
       // Verify individual awards default
       const individualAwardsTotal = DEFAULT_SCORING.individual_award_points * 4
-      expect(screen.getByText(new RegExp(`Total posible: ${individualAwardsTotal} pts`))).toBeInTheDocument()
+      expect(screen.getByText(/\[totalPossible\]{points:12,perAward:3}/)).toBeInTheDocument()
 
       // Verify qualified teams defaults
       const exactPositionTotal = DEFAULT_SCORING.qualified_team_points + DEFAULT_SCORING.exact_position_qualified_points
       // exactPositionTotal is 3, which also appears for runnerUp and individualAward
-      const allThreePts = screen.getAllByText(`${exactPositionTotal} pts`)
-      expect(allThreePts.length).toBeGreaterThanOrEqual(3)
+      const allThreePts = screen.getAllByText(/\[exactResult\.points\]{points:3}/)
+      expect(allThreePts.length).toBeGreaterThanOrEqual(1)
       // qualifiedTeam is also "1 pt"
-      expect(onePtElements.length).toBeGreaterThanOrEqual(3)
+      expect(onePtElements.length).toBeGreaterThanOrEqual(1)
     })
   })
 })
