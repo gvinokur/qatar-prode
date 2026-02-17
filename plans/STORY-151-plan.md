@@ -306,6 +306,9 @@ Include code examples from exploration report showing:
 
 1. **`/app/utils/date-utils.ts`** - Add locale parameter to all functions
 2. **`/app/utils/email-templates.ts`** - Add locale-aware email generators
+3. **1-2 example components** - Update to use locale-aware date formatting (TBD: find components using `getCompactGameTime()`)
+4. **`/__tests__/utils/date-utils.test.ts`** - Add locale parameter tests
+5. **`/__tests__/utils/email-templates.test.ts`** - Add locale parameter tests
 
 ### New Files
 
@@ -435,7 +438,36 @@ Follow patterns from:
    - Test backward compatibility (no locale = defaults to 'es')
    - Verify month names are localized
 
-### Phase 2: Refactor Email Templates (45 minutes)
+### Phase 2: Update Example Components (30 minutes)
+
+**Proof of concept**: Update 1-2 components to demonstrate i18n working
+
+1. **Find a component using `getCompactGameTime()`**:
+   - Search for usages: `grep -r "getCompactGameTime" app/components/`
+   - Likely candidates: FlippableGameCard, game time displays
+
+2. **Update component to pass locale**:
+   ```typescript
+   // Before:
+   const timeStr = getCompactGameTime(game.date, game.timezone);
+
+   // After (Client Component):
+   const locale = useLocale();
+   const t = useTranslations('common');
+   const timeStr = getCompactGameTime(
+     game.date,
+     game.timezone,
+     locale,
+     t('time.localTime')
+   );
+   ```
+
+3. **Test**:
+   - Run app, switch language
+   - Verify date format changes (Dec vs dic)
+   - Verify label changes (Local Time vs Horario Local)
+
+### Phase 3: Refactor Email Templates (45 minutes)
 
 1. Update `/app/utils/email-templates.ts`:
    - Add locale parameter to `generateVerificationEmail()`
@@ -448,12 +480,12 @@ Follow patterns from:
    - Test both locales produce correct content
    - Verify translation keys are used
 
-### Phase 3: Translation Keys (10 minutes)
+### Phase 4: Translation Keys (10 minutes)
 
 1. Add time labels to `/locales/en/common.json` and `/locales/es/common.json`
 2. Verify email keys in `emails.json` (already exist from story #150)
 
-### Phase 4: Documentation (30 minutes)
+### Phase 5: Documentation (30 minutes)
 
 1. Create `/app/utils/i18n-patterns.md` with:
    - Server Component i18n patterns (`getLocale`, `getTranslations`)
@@ -462,14 +494,16 @@ Follow patterns from:
    - Number formatting (use Intl directly)
    - Pluralization (use next-intl built-in)
    - Error messages (use getTranslations directly)
+   - Include example from Phase 2 (component update)
 
-### Phase 5: Validation (15 minutes)
+### Phase 6: Validation (15 minutes)
 
 1. Run linting: `npm run lint`
 2. Run tests: `npm run test`
 3. Run build: `npm run build`
 4. Verify 0 new SonarCloud issues
 5. Verify 80%+ coverage on modified functions
+6. **Manual test**: Switch language and verify example component shows localized dates
 
 ## Validation Considerations
 
@@ -510,19 +544,17 @@ Follow patterns from:
 
 ## Clarifications from Plan Review
 
-### Scope Simplification (User Feedback):
+### Scope Refinement (User Feedback - 2 iterations):
 
-**Original plan**: Create new i18n utility directory with date, number, currency, pluralization, and error helpers
+**Iteration 1 - Simplification**:
+- **Original**: Create new i18n utility directory with date, number, currency, pluralization, and error helpers
+- **Simplified**: Refactor existing `date-utils.ts` and `email-templates.ts` to be locale-aware
+- **Rationale**: Focus on real value, skip thin wrappers
 
-**Simplified plan**: Refactor existing `date-utils.ts` and `email-templates.ts` to be locale-aware
-
-**Rationale**:
-- ✅ Date/time and email utilities have real value (currently hardcoded Spanish)
-- ❌ Number/currency formatters are thin wrappers (use `Intl.NumberFormat` or `next-intl`'s `useFormatter()` directly)
-- ❌ Pluralization helpers are redundant (`next-intl` has built-in plural support)
-- ❌ Error utilities don't add abstraction value (call `getTranslations('errors')` directly)
-
-**Result**: Focused, practical implementation that delivers real value in ~2.5 hours instead of 2-4 hours
+**Iteration 2 - Add Proof of Concept**:
+- **Addition**: Update 1-2 example components to demonstrate i18n working
+- **Rationale**: User wants to see visible frontend changes, not just backend infrastructure
+- **Result**: ~3 hours total, with visible date formatting changes when switching languages
 
 ### Review Cycle 1 & 2 Feedback Addressed:
 
@@ -555,22 +587,28 @@ None - all requirements are clear and review feedback has been addressed.
 
 ## Success Metrics
 
-- ✅ All utilities implemented and tested
+- ✅ Date utils refactored with locale support
+- ✅ Email templates refactored with locale support
+- ✅ 1-2 example components updated and showing i18n working
 - ✅ 80%+ test coverage achieved
 - ✅ Documentation complete with examples
 - ✅ 0 new SonarCloud issues
 - ✅ All tests passing
 - ✅ Build succeeds
-- ✅ Ready for other stories to use utilities
+- ✅ **Manual verification**: User can switch language and see dates/times change format
 
 ## Timeline
 
-**Total Estimated Time**: 2-2.5 hours (reduced from 2-4 hours)
+**Total Estimated Time**: 3 hours
 
 - Phase 1 (Refactor Date Utils): 45 minutes
-- Phase 2 (Refactor Email Templates): 45 minutes
-- Phase 3 (Translation Keys): 10 minutes
-- Phase 4 (Documentation): 30 minutes
-- Phase 5 (Validation): 15 minutes
+- Phase 2 (Update Example Components): 30 minutes ← NEW
+- Phase 3 (Refactor Email Templates): 45 minutes
+- Phase 4 (Translation Keys): 10 minutes
+- Phase 5 (Documentation): 30 minutes
+- Phase 6 (Validation): 15 minutes
+- **Manual Testing**: 5 minutes (switch language, verify dates change)
 
-**Delivery**: Single PR with refactored utilities, updated tests, and i18n patterns documentation.
+**Delivery**: Single PR with refactored utilities, 1-2 updated components showing i18n working, tests, and documentation.
+
+**User will see**: Date formatting changing when switching between English/Spanish in example components.
