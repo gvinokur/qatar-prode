@@ -1,0 +1,50 @@
+{
+  "title": "Grupos de Amigos",
+  "status": {
+    "youAreHere": "Estás aquí"
+  },
+  "actions": {
+    "create": "Crear Grupo",
+    "delete": "Borrar Grupo",
+    "invite": "Invitar Amigos",
+    "inviteMore": "Invitar mas amigos",
+    "join": "Unirse al Grupo",
+    "view": "Ver Grupos"
+  },
+  "create": {
+    "title": "Crear Grupo de Amigos",
+    "description": "Un grupo de amigos te permite tener un ranking privado. Crea tantos grupos como quieras para jugar con diferentes círculos de amigos.",
+    "nameField": {
+      "label": "Nombre",
+      "required": "El nombre del grupo es obligatorio"
+    },
+    "buttons": {
+      "cancel": "Cancelar",
+      "create": "Crear"
+    }
+  },
+  "delete": {
+    "title": "Borrar Grupo",
+    "confirmation": "¿Estás seguro de que quieres borrar este grupo?"
+  },
+  "invite": {
+    "title": "Invitar amigos a {groupName}",
+    "message": "¡Hola! Te invito a unirte a nuestro grupo \"{groupName}\" para jugar en al prode en los torneos actuales y futuros. Usa este enlace para unirte: {link}",
+    "feedback": {
+      "copied": "¡Enlace copiado al portapapeles!",
+      "copyError": "Error al copiar el enlace"
+    }
+  },
+  "join": {
+    "title": "Unirse a un Grupo",
+    "codeField": {
+      "label": "Código de Grupo",
+      "placeholder": "Ingresa el código del grupo",
+      "required": "Por favor ingresa un código de grupo"
+    },
+    "buttons": {
+      "cancel": "Cancelar",
+      "join": "Unirse al Grupo"
+    }
+  }
+}

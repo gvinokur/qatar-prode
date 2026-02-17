@@ -1,0 +1,12 @@
+{
+  "generic": "EnOf(Ocurrió un error inesperado. Por favor, inténtalo de nuevo.)",
+  "auth": {
+    "invalidCredentials": "EnOf(Email o Contraseña Invalida)",
+    "googleAccount": "EnOf(Esta cuenta usa inicio de sesión con Google.)",
+    "emailSendFailed": "EnOf(Error al enviar el correo electrónico. Por favor, inténtalo de nuevo.)",
+    "passwordUpdateFailed": "EnOf(Error al actualizar la contraseña. Por favor, inténtalo de nuevo.)"
+  },
+  "groups": {
+    "copyFailed": "EnOf(Error al copiar: {error})"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "required": "Requerido",
+  "optional": "Opcional",
+  "email": {
+    "invalid": "Direccion de E-Mail invalida",
+    "required": "Por favor ingrese su e-mail"
+  },
+  "password": {
+    "required": "La contraseña es requerida",
+    "minLength": "La contraseña debe tener al menos {min} caracteres"
+  },
+  "nickname": {
+    "required": "El nickname es requerido",
+    "minLength": "El nickname debe tener al menos {min} caracteres",
+    "maxLength": "El nickname debe tener máximo {max} caracteres",
+    "unavailable": "Este nickname no está disponible",
+    "available": "✓ Disponible"
+  },
+  "groupName": {
+    "required": "El nombre del grupo es obligatorio"
+  },
+  "confirmPassword": {
+    "mismatch": "Las contraseñas no coinciden"
+  }
+}

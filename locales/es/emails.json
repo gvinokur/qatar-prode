@@ -1,0 +1,17 @@
+{
+  "verification": {
+    "subject": "Verificación de Cuenta - La Maquina Prode",
+    "title": "Verifica tu dirección de correo electrónico",
+    "greeting": "¡Gracias por registrarte!",
+    "button": "Verificar correo electrónico",
+    "expiration": "Este enlace expirará en 24 horas.",
+    "signature": "El equipo de La Maquina Prode"
+  },
+  "passwordReset": {
+    "subject": "Recuperación de contraseña - La Maquina Prode",
+    "title": "Restablecer contraseña",
+    "button": "Restablecer contraseña",
+    "expiration": "Este enlace expirará en 1 hora.",
+    "signature": "El equipo de La Maquina Prode"
+  }
+}

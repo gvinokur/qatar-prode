@@ -1,0 +1,50 @@
+{
+  "title": "EnOf(Grupos de Amigos)",
+  "status": {
+    "youAreHere": "EnOf(Estás aquí)"
+  },
+  "actions": {
+    "create": "EnOf(Crear Grupo)",
+    "delete": "EnOf(Borrar Grupo)",
+    "invite": "EnOf(Invitar Amigos)",
+    "inviteMore": "EnOf(Invitar mas amigos)",
+    "join": "EnOf(Unirse al Grupo)",
+    "view": "EnOf(Ver Grupos)"
+  },
+  "create": {
+    "title": "EnOf(Crear Grupo de Amigos)",
+    "description": "EnOf(Un grupo de amigos te permite tener un ranking privado. Crea tantos grupos como quieras para jugar con diferentes círculos de amigos.)",
+    "nameField": {
+      "label": "EnOf(Nombre)",
+      "required": "EnOf(El nombre del grupo es obligatorio)"
+    },
+    "buttons": {
+      "cancel": "EnOf(Cancelar)",
+      "create": "EnOf(Crear)"
+    }
+  },
+  "delete": {
+    "title": "EnOf(Borrar Grupo)",
+    "confirmation": "EnOf(¿Estás seguro de que quieres borrar este grupo?)"
+  },
+  "invite": {
+    "title": "EnOf(Invitar amigos a {groupName})",
+    "message": "EnOf(¡Hola! Te invito a unirte a nuestro grupo \"{groupName}\" para jugar en al prode en los torneos actuales y futuros. Usa este enlace para unirte: {link})",
+    "feedback": {
+      "copied": "EnOf(¡Enlace copiado al portapapeles!)",
+      "copyError": "EnOf(Error al copiar el enlace)"
+    }
+  },
+  "join": {
+    "title": "EnOf(Unirse a un Grupo)",
+    "codeField": {
+      "label": "EnOf(Código de Grupo)",
+      "placeholder": "EnOf(Ingresa el código del grupo)",
+      "required": "EnOf(Por favor ingresa un código de grupo)"
+    },
+    "buttons": {
+      "cancel": "EnOf(Cancelar)",
+      "join": "EnOf(Unirse al Grupo)"
+    }
+  }
+}

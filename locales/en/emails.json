@@ -1,0 +1,17 @@
+{
+  "verification": {
+    "subject": "EnOf(Verificación de Cuenta - La Maquina Prode)",
+    "title": "EnOf(Verifica tu dirección de correo electrónico)",
+    "greeting": "EnOf(¡Gracias por registrarte!)",
+    "button": "EnOf(Verificar correo electrónico)",
+    "expiration": "EnOf(Este enlace expirará en 24 horas.)",
+    "signature": "EnOf(El equipo de La Maquina Prode)"
+  },
+  "passwordReset": {
+    "subject": "EnOf(Recuperación de contraseña - La Maquina Prode)",
+    "title": "EnOf(Restablecer contraseña)",
+    "button": "EnOf(Restablecer contraseña)",
+    "expiration": "EnOf(Este enlace expirará en 1 hora.)",
+    "signature": "EnOf(El equipo de La Maquina Prode)"
+  }
+}

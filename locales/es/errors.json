@@ -1,0 +1,12 @@
+{
+  "generic": "Ocurrió un error inesperado. Por favor, inténtalo de nuevo.",
+  "auth": {
+    "invalidCredentials": "Email o Contraseña Invalida",
+    "googleAccount": "Esta cuenta usa inicio de sesión con Google.",
+    "emailSendFailed": "Error al enviar el correo electrónico. Por favor, inténtalo de nuevo.",
+    "passwordUpdateFailed": "Error al actualizar la contraseña. Por favor, inténtalo de nuevo."
+  },
+  "groups": {
+    "copyFailed": "Error al copiar: {error}"
+  }
+}
