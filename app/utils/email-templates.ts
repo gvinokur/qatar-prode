@@ -1,20 +1,28 @@
-export function generateVerificationEmail(email: string, verificationLink: string) {
-  const subject = 'Verificación de Cuenta - La Maquina Prode';
+import { getTranslations } from 'next-intl/server';
+import { Locale } from '@/i18n.config';
+
+export async function generateVerificationEmail(
+  email: string,
+  verificationLink: string,
+  locale: Locale = 'es'
+) {
+  const t = await getTranslations({ locale, namespace: 'emails' });
+
+  const subject = t('verification.subject');
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2>Verifica tu dirección de correo electrónico</h2>
-      <p>¡Gracias por registrarte! Por favor, verifica tu dirección de correo electrónico haciendo clic en el siguiente enlace:</p>
+      <h2>${t('verification.title')}</h2>
+      <p>${t('verification.greeting')}</p>
       <p>
-        <a href="${verificationLink}" 
+        <a href="${verificationLink}"
         style="display: inline-block; padding: 10px 20px; background-color: #1976d2; color: white; text-decoration: none; border-radius: 4px;">
-          Verificar correo electrónico
+          ${t('verification.button')}
         </a>
       </p>
-      <p>Si el botón no funciona, puedes copiar y pegar este enlace en tu navegador:</p>
       <p>${verificationLink}</p>
-      <p>Este enlace expirará en 24 horas.</p>
-      <p>Si no te registraste para una cuenta, puedes ignorar este correo electrónico.</p>
+      <p>${t('verification.expiration')}</p>
+      <p>${t('verification.signature')}</p>
     </div>
   `;
 
@@ -23,26 +31,27 @@ export function generateVerificationEmail(email: string, verificationLink: strin
 /**
  * Generate password reset email content
  */
-export function generatePasswordResetEmail(email: string, resetLink: string) {
-  const subject = 'Recuperación de contraseña - La Maquina Prode';
+export async function generatePasswordResetEmail(
+  email: string,
+  resetLink: string,
+  locale: Locale = 'es'
+) {
+  const t = await getTranslations({ locale, namespace: 'emails' });
+
+  const subject = t('passwordReset.subject');
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #4a4a4a;">Recuperación de contraseña</h2>
-      <p>Hola,</p>
-      <p>Has solicitado restablecer tu contraseña para tu cuenta en Qatar Prode.</p>
-      <p>Haz clic en el siguiente enlace para crear una nueva contraseña:</p>
+      <h2 style="color: #4a4a4a;">${t('passwordReset.title')}</h2>
       <p style="margin: 20px 0;">
-        <a 
-          href="${resetLink}" 
+        <a
+          href="${resetLink}"
           style="display: inline-block; padding: 10px 20px; background-color: #1976d2; color: white; text-decoration: none; border-radius: 4px;">
-        >
-          Restablecer contraseña
+          ${t('passwordReset.button')}
         </a>
       </p>
-      <p>Este enlace expirará en 1 hora.</p>
-      <p>Si no solicitaste restablecer tu contraseña, puedes ignorar este correo electrónico.</p>
-      <p>Saludos,<br>El equipo de La Maquina Prode</p>
+      <p>${t('passwordReset.expiration')}</p>
+      <p>${t('passwordReset.signature')}</p>
     </div>
   `;
 

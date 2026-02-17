@@ -3,6 +3,8 @@
 import { Box, LinearProgress, Link, Typography, useTheme } from '@mui/material';
 import { motion } from 'framer-motion';
 import dayjs from 'dayjs';
+import { useLocale } from 'next-intl';
+import { Locale } from '@/i18n.config';
 import { useGameCountdown } from '../hooks/use-game-countdown';
 import { getUrgencyColor } from '../utils/countdown-utils';
 import { getCompactUserTime, getCompactGameTime } from '../utils/date-utils';
@@ -34,6 +36,7 @@ export default function GameCountdownDisplay({
   hideDate = false,
 }: Readonly<GameCountdownDisplayProps>) {
   const theme = useTheme();
+  const locale = useLocale() as Locale;
   const { showLocalTime, toggleTimezone } = useTimezone();
   const countdown = useGameCountdown(gameDate);
 
@@ -54,12 +57,12 @@ export default function GameCountdownDisplay({
   let currentTime: string;
   if (gameTimezone) {
     if (showLocalTime) {
-      currentTime = getCompactUserTime(gameDate);
+      currentTime = getCompactUserTime(gameDate, locale);
     } else {
-      currentTime = getCompactGameTime(gameDate, gameTimezone);
+      currentTime = getCompactGameTime(gameDate, gameTimezone, locale);
     }
   } else {
-    currentTime = `${dayjs(gameDate).format('D MMM HH:mm')}`;
+    currentTime = `${dayjs(gameDate).locale(locale).format('D MMM HH:mm')}`;
   }
 
   const toggleText = showLocalTime ? 'Ver horario local' : 'Ver tu horario';
