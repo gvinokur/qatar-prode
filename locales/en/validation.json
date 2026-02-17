@@ -1,0 +1,25 @@
+{
+  "required": "EnOf(Requerido)",
+  "optional": "EnOf(Opcional)",
+  "email": {
+    "invalid": "EnOf(Direccion de E-Mail invalida)",
+    "required": "EnOf(Por favor ingrese su e-mail)"
+  },
+  "password": {
+    "required": "EnOf(La contraseña es requerida)",
+    "minLength": "EnOf(La contraseña debe tener al menos {min} caracteres)"
+  },
+  "nickname": {
+    "required": "EnOf(El nickname es requerido)",
+    "minLength": "EnOf(El nickname debe tener al menos {min} caracteres)",
+    "maxLength": "EnOf(El nickname debe tener máximo {max} caracteres)",
+    "unavailable": "EnOf(Este nickname no está disponible)",
+    "available": "EnOf(✓ Disponible)"
+  },
+  "groupName": {
+    "required": "EnOf(El nombre del grupo es obligatorio)"
+  },
+  "confirmPassword": {
+    "mismatch": "EnOf(Las contraseñas no coinciden)"
+  }
+}

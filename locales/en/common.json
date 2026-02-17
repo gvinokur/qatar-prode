@@ -1,16 +1,25 @@
 {
   "app": {
-    "name": "Qatar Prode",
-    "description": "Sports Prediction Platform",
-    "loading": "Loading...",
-    "error": "An error occurred",
-    "save": "Save",
-    "cancel": "Cancel",
-    "delete": "Delete",
-    "edit": "Edit",
-    "close": "Close"
+    "name": "EnOf(Prode Mundial)",
+    "description": "EnOf(Plataforma de pronósticos deportivos)",
+    "loading": "EnOf(Cargando...)",
+    "error": "EnOf(Ocurrió un error)"
+  },
+  "buttons": {
+    "save": "EnOf(Guardar)",
+    "cancel": "EnOf(Cancelar)",
+    "delete": "EnOf(Eliminar)",
+    "edit": "EnOf(Editar)",
+    "close": "EnOf(Cerrar)",
+    "create": "EnOf(Crear)",
+    "confirm": "EnOf(Confirmar)"
+  },
+  "actions": {
+    "showMore": "EnOf(mostrar más)",
+    "viewAll": "EnOf(Ver todo)",
+    "back": "EnOf(Volver)"
   },
   "home": {
-    "availableTournaments": "Available Tournaments"
+    "availableTournaments": "EnOf(Torneos Disponibles)"
   }
 }

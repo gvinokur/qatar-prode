@@ -1,9 +1,9 @@
 {
   "header": {
-    "home": "Home",
-    "tournaments": "Tournaments",
-    "profile": "Profile",
-    "logout": "Logout",
-    "login": "Login"
+    "home": "EnOf(Inicio)",
+    "tournaments": "EnOf(Torneos)",
+    "profile": "EnOf(Perfil)",
+    "logout": "EnOf(Cerrar sesión)",
+    "login": "EnOf(Iniciar sesión)"
   }
 }

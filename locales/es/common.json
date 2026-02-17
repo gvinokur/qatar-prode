@@ -3,12 +3,21 @@
     "name": "Prode Mundial",
     "description": "Plataforma de pronósticos deportivos",
     "loading": "Cargando...",
-    "error": "Ocurrió un error",
+    "error": "Ocurrió un error"
+  },
+  "buttons": {
     "save": "Guardar",
     "cancel": "Cancelar",
     "delete": "Eliminar",
     "edit": "Editar",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "create": "Crear",
+    "confirm": "Confirmar"
+  },
+  "actions": {
+    "showMore": "mostrar más",
+    "viewAll": "Ver todo",
+    "back": "Volver"
   },
   "home": {
     "availableTournaments": "Torneos Disponibles"
