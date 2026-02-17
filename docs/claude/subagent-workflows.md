@@ -10,9 +10,9 @@ Subagents are specialized AI agents that handle specific tasks with focused cont
 - **Efficiency** - Focused context = faster, cheaper operations
 - **Clear tracking** - Explicit task boundaries and progress
 
-## Three High-Impact Subagent Patterns
+## Four High-Impact Subagent Patterns
 
-We use three subagent patterns integrated into our workflow phases:
+We use four subagent patterns integrated into our workflow phases:
 
 ### 1. Plan Review Subagent (Planning Phase)
 
@@ -90,12 +90,46 @@ Task({subagent_type: "general-purpose", model: "haiku", ...}) // Test C
 
 ---
 
+### 4. Hybrid Execution Mode (Implementation Phase - Optional)
+
+**Purpose:** Use Haiku subagents for simple tasks while main agent handles complex tasks for speed and cost optimization.
+
+**When:** OPTIONAL - After defining tasks (Section 2.5), if story has 5+ tasks with 3+ being simple/isolated.
+
+**Impact:** 20-40% faster, 30-50% cheaper (depends on simple vs complex task ratio), maintains quality.
+
+**Details:** See **[Implementation Guide - Section 2.5 & 3.5: Hybrid Mode](implementation.md#25-execution-mode-selection-optional-hybrid-mode)**
+
+**Quick example:**
+```typescript
+// After defining 8 tasks, classify by complexity
+// Simple: Tasks 1, 3, 5, 7
+// Complex: Tasks 2, 4, 6, 8
+
+// Ask user: "main agent" or "hybrid" mode
+
+// If hybrid:
+// Wave 1:
+Task({model: "haiku", description: "Implement simple Task 1", ...})
+// Main agent implements complex Task 2
+
+// Wave 2 (parallel):
+Task({model: "haiku", description: "Implement simple Task 3", ...})
+Task({model: "haiku", description: "Implement simple Task 5", ...})
+// Main agent implements complex Tasks 4 & 6
+
+// Review outputs, mark complete
+```
+
+---
+
 ## When to Use Subagents
 
 ### ✅ Use Subagents When:
 - **Planning review:** Always (2-3 cycles)
 - **Task definition:** Always for non-trivial stories
 - **Parallel testing:** Always when 2+ files need tests
+- **Hybrid execution:** Optional, when 5+ tasks with 3+ simple/isolated (ask user first)
 - **Independent work:** Tasks with clear boundaries and no dependencies
 
 ### ❌ Don't Use Subagents When:
@@ -132,7 +166,12 @@ Task({subagent_type: "general-purpose", model: "haiku", ...}) // Test C
 │   → TaskUpdate for dependencies     │
 │   → Identify parallel opportunities │
 │                                     │
-│ Main Agent:                         │
+│ ✨ Execution Mode Choice (Optional):│
+│   → Classify tasks (simple/complex) │
+│   → Ask user: main agent or hybrid  │
+│   → If hybrid: delegate simple tasks│
+│                                     │
+│ Main Agent (or Hybrid):             │
 │   → Implement in waves              │
 │   → Mark in_progress/completed      │
 └─────────────────────────────────────┘

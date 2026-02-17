@@ -253,6 +253,160 @@ Created implementation tasks:
 Starting implementation with Wave 1...
 ```
 
+### 2.5. Execution Mode Selection (Optional Hybrid Mode)
+
+**Purpose:** After defining tasks, classify them by complexity and choose whether to execute with main agent (default) or use hybrid/subagent delegation for efficiency gains.
+
+**This step is OPTIONAL** - The default workflow (main agent implements all tasks) works well for most stories. Hybrid mode is an optimization that may provide speed and cost benefits.
+
+#### Step A: Classify Tasks by Complexity
+
+Review each task and classify as **Simple**, **Medium**, or **Complex**:
+
+**Simple Tasks (Subagent-Ready - Haiku):**
+- Clear, unambiguous specification
+- Isolated change (1-2 files)
+- Following established patterns (similar code exists)
+- Basic logic (CRUD, simple validation, standard component)
+- No architectural decisions needed
+- Examples:
+  - Add new database field to existing table
+  - Create simple display component (no complex interactions)
+  - Add validation rule to existing schema
+  - Add new route following existing pattern
+  - Simple utility function
+
+**Complex Tasks (Main Agent - Sonnet):**
+- Ambiguous requirements needing judgment
+- Cross-cutting changes (3+ files with coordination)
+- Greenfield work (establishing new patterns)
+- Complex business logic
+- Architectural or design decisions
+- Integration points between systems
+- Examples:
+  - Design new authentication flow
+  - Refactor component hierarchy
+  - Complex state management
+  - API integration with error handling
+  - Performance optimization requiring analysis
+
+**Medium Tasks (Could Go Either Way):**
+- 2-3 files with light coordination
+- Some judgment needed but mostly following patterns
+- Moderate complexity logic
+- Decision: Use your best judgment or default to main agent for safety
+
+#### Step B: Analyze Story Characteristics
+
+Consider the overall story:
+
+**Good candidates for hybrid mode:**
+- ✅ 5+ total tasks
+- ✅ 3+ simple tasks (Haiku-ready)
+- ✅ Tasks are well-isolated (clear boundaries)
+- ✅ Cost/speed matters (large story, multiple iterations expected)
+
+**Stick with main agent mode:**
+- ❌ <4 total tasks (overhead not worth it)
+- ❌ <2 simple tasks (not enough to parallelize)
+- ❌ Highly coupled tasks (context loss hurts quality)
+- ❌ First time implementing this type of feature (need holistic view)
+
+#### Step C: Present Analysis to User
+
+**Format your analysis as follows:**
+
+```markdown
+## Task Complexity Analysis
+
+I've defined ${TOTAL_TASKS} tasks for this story. Here's the complexity breakdown:
+
+**Simple Tasks (Subagent-Ready - Haiku):**
+${SIMPLE_TASK_COUNT} tasks
+- Task ${ID}: ${SUBJECT}
+- Task ${ID}: ${SUBJECT}
+...
+
+**Medium Tasks:**
+${MEDIUM_TASK_COUNT} tasks
+- Task ${ID}: ${SUBJECT}
+...
+
+**Complex Tasks (Main Agent Required):**
+${COMPLEX_TASK_COUNT} tasks
+- Task ${ID}: ${SUBJECT}
+...
+
+## Execution Mode Options
+
+**Option 1: Main Agent Mode (Default)**
+- Main agent implements all tasks sequentially
+- ✅ Best quality (full context)
+- ✅ Simplest coordination
+- ✅ Proven workflow
+- ⏱️ Moderate speed
+- 💰 Standard cost
+
+**Option 2: Hybrid Mode**
+- Main agent handles complex tasks
+- Haiku subagents handle simple tasks (parallel where possible)
+- ✅ Faster (parallelization)
+- ✅ Cheaper (Haiku 5-10x less than Sonnet)
+- ⚠️ More coordination overhead
+- ⚠️ Potential quality variance on simple tasks
+- 📊 Estimated: ${SPEED_IMPROVEMENT}% faster, ${COST_REDUCTION}% cheaper
+
+**My Recommendation: ${RECOMMENDATION}**
+
+Reasoning: ${REASONING}
+
+---
+
+**Which execution mode would you like me to use?**
+- Type "main agent" for Option 1 (default, proven)
+- Type "hybrid" for Option 2 (experimental, optimized)
+```
+
+#### Step D: Wait for User Choice
+
+**STOP and WAIT for user to respond.**
+
+User will choose one of:
+- "main agent" → Proceed to Section 3 (standard execution)
+- "hybrid" → Proceed to Section 3.5 (hybrid execution)
+- No response after reasonable time → Default to main agent mode
+
+#### Recommendation Guidelines
+
+**Recommend "Main Agent Mode" when:**
+- <4 total tasks
+- <2 simple tasks
+- First time implementing this feature type
+- Tasks are highly coupled
+- User is new to this workflow
+
+**Recommend "Hybrid Mode" when:**
+- 5+ total tasks
+- 3+ simple tasks
+- Established patterns (not greenfield)
+- Tasks are well-isolated
+- Story will take multiple hours
+- User has used hybrid mode successfully before
+
+**Example recommendations:**
+
+```markdown
+**My Recommendation: Main Agent Mode**
+
+Reasoning: While 2 tasks are simple, this story only has 4 total tasks. The overhead of coordinating subagents isn't justified for this small story. Main agent mode will be just as fast and simpler.
+```
+
+```markdown
+**My Recommendation: Hybrid Mode**
+
+Reasoning: This story has 8 tasks, with 4 being simple and well-isolated (add fields, create basic components). Using Haiku subagents for the simple tasks while main agent handles the 2 complex tasks (authentication logic, integration) will likely complete 30% faster and cost 40% less, with minimal quality trade-off since the simple tasks follow established patterns.
+```
+
 ### Task Definition Best Practices
 
 #### Good Task Boundaries
@@ -410,11 +564,231 @@ TaskList()
 // Start next available task(s)
 ```
 
-### 4. Parallel Execution Strategy
+### 3.5. Hybrid Execution Mode (Optional)
+
+**Only follow this section if user chose "hybrid" in Section 2.5.**
+
+This section describes how to execute implementation using a hybrid approach: main agent for complex tasks, Haiku subagents for simple tasks.
+
+#### Hybrid Execution Strategy
+
+**Wave execution with role separation:**
+
+1. **Identify execution waves** (as normal, respecting dependencies)
+2. **For each wave**:
+   - Complex tasks → Main agent implements
+   - Simple tasks → Delegate to Haiku subagents (parallel if independent)
+3. **Review subagent outputs** before marking tasks complete
+4. **Fix any issues** from subagent work
+5. **Move to next wave**
+
+#### Delegating Simple Tasks to Haiku Subagents
+
+**When a simple task is ready to execute:**
+
+```typescript
+// Mark task as in_progress
+TaskUpdate({
+  taskId: "3",
+  status: "in_progress",
+  owner: "haiku-subagent"
+})
+
+// Launch Haiku subagent
+Task({
+  subagent_type: "general-purpose",
+  model: "haiku",
+  description: "Add database field",
+  prompt: `You are implementing a simple, well-defined task as part of a larger story.
+
+**Task:** Add 'lastLoginAt' timestamp field to users table
+
+**Context:**
+- Existing schema file: ${WORKTREE_PATH}/app/db/schema.ts
+- Follow the exact same pattern as 'createdAt' field
+- Use Kysely schema definition
+
+**Files to modify:**
+- ${WORKTREE_PATH}/app/db/schema.ts (add field to UsersTable interface)
+- ${WORKTREE_PATH}/migrations/YYYY-MM-DD-add-last-login.sql (create migration)
+
+**Success criteria:**
+- Field added to UsersTable interface with correct type (Timestamp)
+- Migration file created following existing migration format
+- Field is nullable (users may not have logged in yet)
+
+**Instructions:**
+1. Read the existing schema file to understand the pattern
+2. Add the new field to the UsersTable interface
+3. Create a migration file with the ALTER TABLE statement
+4. Verify TypeScript types are correct
+5. Report completion
+
+**Important:**
+- Follow existing code style exactly
+- Don't add features beyond the specified field
+- If you encounter ambiguity, report it (don't guess)
+`
+})
+
+// After subagent completes:
+// 1. Review the output
+// 2. Verify it matches requirements
+// 3. Fix any issues if needed
+// 4. Mark task as completed
+TaskUpdate({
+  taskId: "3",
+  status: "completed"
+})
+```
+
+#### Parallel Subagent Execution
+
+**When multiple simple tasks in a wave are independent:**
+
+```typescript
+// Launch multiple Haiku subagents in parallel (single message, multiple Task calls)
+
+// Mark all as in_progress
+TaskUpdate({taskId: "3", status: "in_progress"})
+TaskUpdate({taskId: "4", status: "in_progress"})
+TaskUpdate({taskId: "5", status: "in_progress"})
+
+// Launch 3 Haiku subagents in parallel
+Task({
+  subagent_type: "general-purpose",
+  model: "haiku",
+  description: "Add database field",
+  prompt: "..." // Task 3 implementation
+})
+
+Task({
+  subagent_type: "general-purpose",
+  model: "haiku",
+  description: "Create display component",
+  prompt: "..." // Task 4 implementation
+})
+
+Task({
+  subagent_type: "general-purpose",
+  model: "haiku",
+  description: "Add validation rule",
+  prompt: "..." // Task 5 implementation
+})
+
+// After ALL subagents complete:
+// 1. Review all outputs
+// 2. Verify consistency across changes
+// 3. Fix any issues
+// 4. Mark all as completed
+```
+
+#### Main Agent Implements Complex Tasks
+
+**For complex tasks, main agent implements as normal:**
+
+```typescript
+// Mark as in_progress
+TaskUpdate({
+  taskId: "7",
+  status: "in_progress",
+  owner: "main-agent"
+})
+
+// Main agent implements (no delegation)
+// ... implementation ...
+
+// Mark as completed
+TaskUpdate({
+  taskId: "7",
+  status: "completed"
+})
+```
+
+#### Reviewing Subagent Work
+
+**CRITICAL: Always review subagent outputs before marking complete.**
+
+**Check for:**
+- ✅ Follows the task specification
+- ✅ Matches existing code style and patterns
+- ✅ TypeScript types are correct
+- ✅ No unexpected changes (scope creep)
+- ✅ Integrates correctly with other tasks
+
+**If issues found:**
+- Fix them yourself (don't launch another subagent to fix)
+- Small fixes: just edit the code
+- Major issues: re-implement the task yourself
+
+#### Example: Hybrid Execution Flow
+
+```
+Story: 8 tasks
+- Tasks 1, 3, 5, 7: Simple (Haiku-ready)
+- Tasks 2, 4, 6, 8: Complex (Main agent)
+
+Wave 1:
+- Task 1 (simple) → Haiku subagent
+- Task 2 (complex) → Main agent
+
+Wave 2 (Tasks 3-6, no dependencies between them):
+- Task 3 (simple) → Haiku subagent  }
+- Task 5 (simple) → Haiku subagent  } Launch in parallel
+- Task 4 (complex) → Main agent
+- Task 6 (complex) → Main agent
+
+Wave 3:
+- Task 7 (simple) → Haiku subagent
+- Task 8 (complex) → Main agent
+
+Review all outputs, fix any issues, mark complete.
+```
+
+#### When to Abandon Hybrid Mode Mid-Story
+
+**If you encounter issues with hybrid mode:**
+
+Switch back to main agent mode:
+- Subagent outputs are low quality (requires too much fixing)
+- Tasks are more coupled than expected (context loss hurting quality)
+- Coordination overhead > time saved
+
+**Just inform the user:**
+
+```markdown
+I'm switching back to main agent mode for the remaining tasks. The tasks turned out to be more coupled than initially assessed, and coordinating subagents is creating more overhead than benefit.
+```
+
+**Then continue with main agent implementing all remaining tasks.**
+
+#### Tips for Successful Hybrid Execution
+
+**Prepare good subagent prompts:**
+- Include relevant existing code as example
+- Be explicit about files to modify
+- State success criteria clearly
+- Tell subagent to report ambiguity (don't guess)
+
+**Don't over-delegate:**
+- When in doubt, implement yourself
+- Better to do 1-2 tasks yourself than delegate poorly
+
+**Batch review:**
+- Review multiple subagent outputs together
+- Check for consistency across changes
+
+**Learn and adapt:**
+- Track which types of tasks work well with Haiku
+- Refine your classification criteria over time
+
+### 4. Parallel Execution Strategy (Main Agent Mode)
+
+**This section applies to standard main agent mode (not hybrid mode).**
 
 **When multiple tasks have no dependencies:**
 
-**Option A: Implement sequentially yourself**
+**Option A: Implement sequentially yourself (Recommended)**
 ```typescript
 // Main agent implements Task 2
 TaskUpdate({taskId: "2", status: "in_progress"})
@@ -427,14 +801,14 @@ TaskUpdate({taskId: "3", status: "in_progress"})
 TaskUpdate({taskId: "3", status: "completed"})
 ```
 
-**Option B: Use subagents for true parallelism** (Advanced)
+**Option B: Use subagents for true parallelism** (Advanced, rarely needed)
 ```typescript
 // Launch subagents in parallel for independent tasks
-// This is more complex and only worth it for larger tasks
+// This is more complex and only worth it for very large stories
 // See subagent-workflows.md for details
 ```
 
-**Recommendation:** For most stories, Option A (sequential) is sufficient. Save parallel subagents for very large stories or when specifically beneficial.
+**Recommendation:** For most stories, Option A (sequential) is sufficient. If you want parallelization benefits, use hybrid mode (Section 2.5 and 3.5) instead of this advanced pattern.
 
 ### 5. Progress Tracking
 

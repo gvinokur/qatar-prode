@@ -213,18 +213,19 @@ This project requires using specific tools during planning:
 
 1. **Exit plan mode** → implementation.md Section 1 (final exit when user says "execute the plan")
 2. **Define tasks with dependencies** → implementation.md Section 2 (use TaskCreate/TaskUpdate)
-3. **Implement in execution waves** → implementation.md Sections 3-4 (parallel execution where possible)
-4. **Create tests in parallel** → See [testing.md](docs/claude/testing.md) "Parallel Test Creation"
-5. **Document deviations with amendments** → implementation.md Section 8 (add amendments as gaps/bugs discovered)
-6. **Run validation checks** → implementation.md Section 9 Step 3 (MANDATORY: tests, lint, build before commit)
-7. **Check migrations and ask permission** → implementation.md Section 9 Step 4 (ALWAYS ask before running)
-8. **Commit and push** → Triggers Vercel Preview deployment
-9. **Inform user to test in Vercel Preview** → User tests in preview environment (default workflow)
-10. **Wait for user feedback from Vercel Preview** → "code looks good" or provide feedback
-   - If feedback: Define tasks FIRST (implementation.md Section 7), then fix, repeat steps 6-10
+3. **[OPTIONAL] Choose execution mode** → implementation.md Section 2.5 (classify tasks, ask user: main agent vs hybrid mode)
+4. **Implement in execution waves** → implementation.md Sections 3-4 (standard) or 3.5 (hybrid with Haiku subagents)
+5. **Create tests in parallel** → See [testing.md](docs/claude/testing.md) "Parallel Test Creation"
+6. **Document deviations with amendments** → implementation.md Section 8 (add amendments as gaps/bugs discovered)
+7. **Run validation checks** → implementation.md Section 9 Step 3 (MANDATORY: tests, lint, build before commit)
+8. **Check migrations and ask permission** → implementation.md Section 9 Step 4 (ALWAYS ask before running)
+9. **Commit and push** → Triggers Vercel Preview deployment
+10. **Inform user to test in Vercel Preview** → User tests in preview environment (default workflow)
+11. **Wait for user feedback from Vercel Preview** → "code looks good" or provide feedback
+   - If feedback: Define tasks FIRST (implementation.md Section 7), then fix, repeat steps 7-11
    - If approved: Proceed to final validation
-11. **Reconcile plan with implementation** → validation.md Section 1 (ensure plan matches reality)
-12. **Final SonarCloud validation** → validation.md Sections 3-8 (after reconciliation and user approval)
+12. **Reconcile plan with implementation** → validation.md Section 1 (ensure plan matches reality)
+13. **Final SonarCloud validation** → validation.md Sections 3-8 (after reconciliation and user approval)
 
 **For task parallelization and subagent patterns:** See [subagent-workflows.md](docs/claude/subagent-workflows.md)
 
