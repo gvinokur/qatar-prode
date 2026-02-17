@@ -61,8 +61,7 @@ describe('GameCountdownDisplay', () => {
     // Should show countdown
     expect(screen.getByText(/Cierra en/)).toBeInTheDocument();
 
-    // Should also show formatted date with Tu Horario label and toggle
-    expect(screen.getByText(/Tu Horario/)).toBeInTheDocument();
+    // Should also show formatted date with toggle link (no label in utility)
     expect(screen.getByText('Ver horario local')).toBeInTheDocument();
   });
 
@@ -139,8 +138,7 @@ describe('GameCountdownDisplay', () => {
       </TestWrapper>
     );
 
-    // Line 1 should have date with user time label
-    expect(screen.getByText(/Tu Horario/)).toBeInTheDocument();
+    // Line 1 should have date with toggle link (no label in utility)
     expect(screen.getByText('Ver horario local')).toBeInTheDocument();
 
     // Line 2 should have countdown
@@ -194,8 +192,7 @@ describe('GameCountdownDisplay', () => {
       </TestWrapper>
     );
 
-    // Should show user time by default with toggle link
-    expect(screen.getByText(/Tu Horario/)).toBeInTheDocument();
+    // Should show user time by default with toggle link (no label in utility)
     expect(screen.getByText('Ver horario local')).toBeInTheDocument();
   });
 
@@ -257,16 +254,14 @@ describe('GameCountdownDisplay', () => {
       </TestWrapper>
     );
 
-    // Should show user time initially
-    expect(screen.getByText(/Tu Horario/)).toBeInTheDocument();
+    // Should show user time initially with toggle link (no label in utility)
     expect(screen.getByText('Ver horario local')).toBeInTheDocument();
 
     // Click toggle
     const toggleLink = screen.getByText('Ver horario local');
     fireEvent.click(toggleLink);
 
-    // Should now show game time
-    expect(screen.getByText(/Horario Local/)).toBeInTheDocument();
+    // Should now show game time with different toggle text (no label in utility)
     expect(screen.getByText('Ver tu horario')).toBeInTheDocument();
 
     // Should show "Cerrado" on Line 2

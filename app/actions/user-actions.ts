@@ -128,7 +128,7 @@ export async function sendPasswordResetLink(email: string) {
   const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
 
   // Generate email content
-  const emailData = generatePasswordResetEmail(email, resetUrl);
+  const emailData = await generatePasswordResetEmail(email, resetUrl);
 
   // Send the email
   const emailResult = await sendEmail(emailData);
@@ -209,7 +209,8 @@ async function sendVerificationEmail(user: User) {
     // Create verification link
     const verificationLink = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${user.verification_token}`;
     // Send verification email
-    const result = await sendEmail(generateVerificationEmail(user.email, verificationLink));
+    const emailData = await generateVerificationEmail(user.email, verificationLink);
+    const result = await sendEmail(emailData);
 
     return result;
   } catch {
