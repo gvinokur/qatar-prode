@@ -42,110 +42,95 @@ The i18n infrastructure is in place (#149) and translation keys have been extrac
 
 ## Technical Approach
 
-### File Organization
+### Simplified Scope (Based on User Feedback)
 
-Create utilities under organized structure:
+**Focus on real value**: Refactor existing utilities that currently have hardcoded Spanish to be locale-aware.
 
-```
-app/utils/i18n/
-├── index.ts                     # Re-export all helpers
-├── formatters.ts                # Date, number, currency formatting
-├── email-templates.ts           # Email generation with i18n
-├── pluralization.ts             # Plural handling
-└── patterns.md                  # Documentation on Server vs Client patterns
-```
+**Files to refactor:**
+1. `/app/utils/date-utils.ts` - Add locale parameter to all functions
+2. `/app/utils/email-templates.ts` - Create locale-aware versions using translations
+3. `/app/utils/i18n-patterns.md` - New documentation file for Server/Client patterns
 
-### 1. Date/Time Formatting (`formatters.ts`)
+**Skip:**
+- ❌ Thin wrappers (number formatting, pluralization, error utilities)
+- ❌ New i18n directory structure
+- ✅ Use `Intl.NumberFormat` directly in components
+- ✅ Use `next-intl`'s built-in plural support
+- ✅ Use `getTranslations('errors')` directly in components
 
-**Current State**: `/app/utils/date-utils.ts` has hardcoded Spanish:
+### 1. Refactor Date/Time Formatting (`/app/utils/date-utils.ts`)
+
+**Current State**: Hardcoded Spanish labels
 ```typescript
 getCompactGameTime() // Returns "DD MMM HH:mm GMT±X (Horario Local)"
 getCompactUserTime() // Returns "DD MMM HH:mm (Tu Horario)"
 ```
 
-**Solution**: Refactor to use locale-aware formatting
+**Solution**: Add locale parameter and translation label parameters
 
-**Implementation**:
+**Changes to make:**
+
+1. **Add locale import**:
 ```typescript
-import dayjs from 'dayjs';
-import timezone from 'dayjs/plugin/timezone';
-import utc from 'dayjs/plugin/utc';
 import { Locale } from '@/i18n.config';
+import 'dayjs/locale/en'; // Add English locale
+```
 
-// Load dayjs plugins
-dayjs.extend(utc);
-dayjs.extend(timezone);
+2. **Update `getCompactGameTime()`**:
+```typescript
+// OLD signature:
+export function getCompactGameTime(date: Date, gameTimezone?: string): string
 
-// Load dayjs locales
-import 'dayjs/locale/es';
-import 'dayjs/locale/en';
-
-/**
- * Format date with locale-specific formatting
- * @param date - Date to format
- * @param locale - User's locale ('en' | 'es')
- * @param format - dayjs format string
- * @returns Formatted date string
- */
-export function formatLocalizedDate(
-  date: Date | string,
-  locale: Locale,
-  format: string = 'DD MMM HH:mm'
-): string {
-  return dayjs(date).locale(locale).format(format);
-}
-
-/**
- * Get compact game time with translatable timezone label
- * @param date - Game date
- * @param timezone - Game timezone (e.g., 'America/Argentina/Buenos_Aires')
- * @param locale - User's locale
- * @param timezoneLabel - Translation for "Local Time"
- * @returns Formatted string like "17 Dec 15:00 GMT-3 (Local Time)"
- */
+// NEW signature:
 export function getCompactGameTime(
-  date: Date | string,
-  timezone: string,
+  date: Date,
+  gameTimezone: string,
   locale: Locale,
-  timezoneLabel: string
+  timezoneLabel: string // e.g., "Local Time" or "Horario Local"
 ): string {
-  const localTime = dayjs(date).tz(timezone).locale(locale);
-  const formatted = localTime.format('DD MMM HH:mm');
-  const offset = localTime.format('Z');
-  const gmtOffset = `GMT${offset.slice(0, 3)}`;
-
-  return `${formatted} ${gmtOffset} (${timezoneLabel})`;
-}
-
-/**
- * Get compact user local time with translatable label
- * @param date - Date to format
- * @param locale - User's locale
- * @param userTimezoneLabel - Translation for "Your Time"
- * @returns Formatted string like "17 Dec 15:00 (Your Time)"
- */
-export function getCompactUserTime(
-  date: Date | string,
-  locale: Locale,
-  userTimezoneLabel: string
-): string {
-  const formatted = dayjs(date).locale(locale).format('DD MMM HH:mm');
-  return `${formatted} (${userTimezoneLabel})`;
-}
-
-/**
- * Format relative time ("2 hours ago", "hace 2 horas")
- * @param date - Date to format
- * @param locale - User's locale
- * @returns Relative time string
- */
-export function formatRelativeTime(
-  date: Date | string,
-  locale: Locale
-): string {
-  return dayjs(date).locale(locale).fromNow();
+  const d = dayjs(date);
+  if (gameTimezone && Intl.supportedValuesOf('timeZone').includes(gameTimezone)) {
+    const formatted = d.tz(gameTimezone).locale(locale).format('D MMM HH:mm');
+    const offset = d.tz(gameTimezone).format('Z');
+    const offsetShort = `GMT${offset.substring(0, 3)}`;
+    return `${formatted} ${offsetShort} (${timezoneLabel})`;
+  }
+  return d.locale(locale).format('D MMM HH:mm');
 }
 ```
+
+3. **Update `getCompactUserTime()`**:
+```typescript
+// OLD signature:
+export function getCompactUserTime(date: Date): string
+
+// NEW signature:
+export function getCompactUserTime(
+  date: Date,
+  locale: Locale,
+  userTimezoneLabel: string // e.g., "Your Time" or "Tu Horario"
+): string {
+  return `${dayjs(date).locale(locale).format('D MMM HH:mm')} (${userTimezoneLabel})`;
+}
+```
+
+4. **Update other functions**:
+```typescript
+// Add locale parameter to getLocalGameTime and getUserLocalTime
+export function getLocalGameTime(date: Date, gameTimezone?: string, locale: Locale = 'es'): string {
+  const d = dayjs(date).locale(locale);
+  if (gameTimezone && Intl.supportedValuesOf('timeZone').includes(gameTimezone)) {
+    return d.tz(gameTimezone).format('MMM D, YYYY - HH:mm');
+  }
+  return d.format('MMM D, YYYY - HH:mm');
+}
+
+export function getUserLocalTime(date: Date, locale: Locale = 'es'): string {
+  return dayjs(date).locale(locale).format('MMM D, YYYY - HH:mm');
+}
+```
+
+**Backward compatibility**: Add default parameters (`locale = 'es'`) to maintain existing behavior for functions not yet updated.
 
 **Usage Pattern - Client Component**:
 ```typescript
@@ -193,147 +178,7 @@ async function GameTime({ game }) {
 }
 ```
 
-### 2. Number & Currency Formatting (`formatters.ts`)
-
-**Implementation**:
-```typescript
-import { Locale } from '@/i18n.config';
-
-/**
- * Format number with locale-specific separators
- * @param value - Number to format
- * @param locale - User's locale
- * @param options - Intl.NumberFormat options
- * @returns Formatted number string
- */
-export function formatLocalizedNumber(
-  value: number,
-  locale: Locale,
-  options?: Intl.NumberFormatOptions
-): string {
-  return new Intl.NumberFormat(locale, options).format(value);
-}
-
-/**
- * Format currency with locale-specific formatting
- * @param value - Amount to format
- * @param locale - User's locale
- * @param currency - Currency code (e.g., 'ARS', 'USD')
- * @returns Formatted currency string
- */
-export function formatCurrency(
-  value: number,
-  locale: Locale,
-  currency: string = 'ARS'
-): string {
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency,
-  }).format(value);
-}
-
-/**
- * Format percentage with locale-specific formatting
- * @param value - Decimal value (0.75 = 75%)
- * @param locale - User's locale
- * @param decimals - Number of decimal places
- * @returns Formatted percentage string
- */
-export function formatPercentage(
-  value: number,
-  locale: Locale,
-  decimals: number = 0
-): string {
-  return new Intl.NumberFormat(locale, {
-    style: 'percent',
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  }).format(value);
-}
-```
-
-**Usage with next-intl's useFormatter** (alternative):
-```typescript
-'use client'
-import { useFormatter, useLocale } from 'next-intl';
-
-function ScoreDisplay({ score }) {
-  const format = useFormatter();
-
-  return <span>{format.number(score)}</span>;
-}
-```
-
-### 3. Pluralization Helpers (`pluralization.ts`)
-
-**Implementation**:
-```typescript
-import { Locale } from '@/i18n.config';
-
-/**
- * Get plural form key for a count
- * @param count - Number to pluralize for
- * @param locale - User's locale
- * @returns 'zero' | 'one' | 'two' | 'few' | 'many' | 'other'
- */
-export function getPluralForm(count: number, locale: Locale): Intl.LDMLPluralRule {
-  const rules = new Intl.PluralRules(locale);
-  return rules.select(count);
-}
-
-/**
- * Helper for building plural translation keys
- * @param baseKey - Base translation key (e.g., 'members')
- * @param count - Number for plural form
- * @param locale - User's locale
- * @returns Full key like 'members.one' or 'members.other'
- */
-export function pluralKey(baseKey: string, count: number, locale: Locale): string {
-  const form = getPluralForm(count, locale);
-  return `${baseKey}.${form}`;
-}
-```
-
-**Translation File Structure** (`locales/en/common.json`):
-```json
-{
-  "members": {
-    "one": "1 member",
-    "other": "{count} members"
-  },
-  "points": {
-    "one": "1 point",
-    "other": "{count} points"
-  }
-}
-```
-
-**Usage**:
-```typescript
-'use client'
-import { useTranslations, useLocale } from 'next-intl';
-import { pluralKey } from '@/app/utils/i18n/pluralization';
-
-// Approach 1: Custom helper (explicit control)
-function MemberCount({ count }) {
-  const t = useTranslations('common');
-  const locale = useLocale();
-  const key = pluralKey('members', count, locale);
-
-  return <span>{t(key, { count })}</span>;
-}
-
-// Approach 2: Use next-intl's built-in plural support (recommended)
-// next-intl automatically detects plural forms based on locale
-function MemberCount({ count }) {
-  const t = useTranslations('common');
-  return <span>{t('members', { count })}</span>;
-}
-```
-
-**Recommendation**: Use next-intl's built-in plural support (Approach 2) for most cases. The custom helper is available for advanced scenarios where explicit plural form control is needed.
-
-### 4. Email Template Generator (`email-templates.ts`)
+### 2. Refactor Email Templates (`/app/utils/email-templates.ts`)
 
 **Current State**: `/app/utils/email-templates.ts` generates hardcoded Spanish emails
 
@@ -436,93 +281,9 @@ export async function generateLocalizedPasswordResetEmail(
 }
 ```
 
-**Migration Path**:
-1. Create new localized functions
-2. Update Server Actions to use new functions with user's locale
-3. Deprecate old functions in `/app/utils/email-templates.ts`
-4. Future story: Remove old functions after migration complete
+**Migration Strategy**: Keep old functions, add new locale-aware versions alongside them. Future story will migrate callers.
 
-### 5. Error Message Translation Utility (`formatters.ts`)
-
-**Implementation**:
-```typescript
-/**
- * Format error message with locale support
- * @param errorKey - Translation key in 'errors' namespace
- * @param locale - User's locale
- * @param params - Dynamic parameters for interpolation
- * @returns Translated error message
- */
-export async function getLocalizedError(
-  errorKey: string,
-  locale: Locale,
-  params?: Record<string, string | number>
-): Promise<string> {
-  const t = await getTranslations({ locale, namespace: 'errors' });
-  return t(errorKey, params);
-}
-
-/**
- * Client-side error message utility
- * (use in Client Components with useTranslations hook)
- */
-export function useLocalizedError() {
-  const t = useTranslations('errors');
-
-  return (errorKey: string, params?: Record<string, string | number>) => {
-    return t(errorKey, params);
-  };
-}
-```
-
-**Usage in Server Action**:
-```typescript
-'use server'
-import { getLocale } from 'next-intl/server';
-import { getLocalizedError } from '@/app/utils/i18n/formatters';
-
-export async function updateUser(data: UpdateUserInput) {
-  const locale = await getLocale();
-
-  try {
-    // ... update logic
-  } catch (error) {
-    return {
-      success: false,
-      error: await getLocalizedError('generic.serverError', locale)
-    };
-  }
-}
-```
-
-### 6. Index File (`index.ts`)
-
-Re-export all utilities for convenient imports:
-```typescript
-export {
-  formatLocalizedDate,
-  getCompactGameTime,
-  getCompactUserTime,
-  formatRelativeTime,
-  formatLocalizedNumber,
-  formatCurrency,
-  formatPercentage,
-  getLocalizedError,
-  useLocalizedError, // Client Component hook for error messages
-} from './formatters';
-
-export {
-  generateLocalizedVerificationEmail,
-  generateLocalizedPasswordResetEmail,
-} from './email-templates';
-
-export {
-  getPluralForm,
-  pluralKey,
-} from './pluralization';
-```
-
-### 7. Documentation (`patterns.md`)
+### 3. Documentation (`/app/utils/i18n-patterns.md`)
 
 Create comprehensive guide with examples for:
 - Server Component translation patterns
@@ -541,13 +302,14 @@ Include code examples from exploration report showing:
 
 ## Files to Create/Modify
 
+### Files to Modify
+
+1. **`/app/utils/date-utils.ts`** - Add locale parameter to all functions
+2. **`/app/utils/email-templates.ts`** - Add locale-aware email generators
+
 ### New Files
 
-1. **`/app/utils/i18n/index.ts`** - Main export file
-2. **`/app/utils/i18n/formatters.ts`** - Date, number, currency, error formatting
-3. **`/app/utils/i18n/email-templates.ts`** - Localized email generators
-4. **`/app/utils/i18n/pluralization.ts`** - Plural helpers
-5. **`/app/utils/i18n/patterns.md`** - Developer documentation
+1. **`/app/utils/i18n-patterns.md`** - Developer documentation for Server/Client i18n patterns
 
 ### Translation Files to Update
 
@@ -559,10 +321,6 @@ Include code examples from exploration report showing:
      "time": {
        "localTime": "EnOf(Horario Local)",
        "yourTime": "EnOf(Tu Horario)"
-     },
-     "members": {
-       "one": "EnOf(1 miembro)",
-       "other": "EnOf({count} miembros)"
      }
    }
    ```
@@ -573,58 +331,32 @@ Include code examples from exploration report showing:
      "time": {
        "localTime": "Horario Local",
        "yourTime": "Tu Horario"
-     },
-     "members": {
-       "one": "1 miembro",
-       "other": "{count} miembros"
      }
    }
    ```
 
-### Existing Files (Future Migration - Not This Story)
+### Migration Path
 
-These files have hardcoded Spanish but will be refactored in **future stories** using the helpers created here:
+**This story**: Refactor `date-utils.ts` and `email-templates.ts` to support locale parameter with backward-compatible defaults
 
-- `/app/utils/date-utils.ts` - Refactor to use `formatLocalizedDate()` helpers
-- `/app/utils/email-templates.ts` - Deprecate in favor of localized versions
-- Components using date formatting - Update to use new helpers
-- Email sending Server Actions - Update to use localized generators
-
-**Important**: This story creates the utilities, but does NOT migrate the entire codebase. That's a separate story.
+**Future stories**: Update components/actions to pass locale when calling these utilities
 
 ## Testing Strategy
 
-### Test Files to Create
+### Test Files to Update
 
-1. **`/__tests__/utils/i18n/formatters.test.ts`**
-   - Date formatting with 'en' and 'es' locales
-   - Timezone handling
-   - Number formatting with different locales
-   - Currency formatting
-   - Percentage formatting
-   - Error message generation
-   - Edge cases: invalid locales, undefined values, null parameters
+1. **`/__tests__/utils/date-utils.test.ts`** - Update existing tests:
+   - Add locale parameter tests for 'en' and 'es'
+   - Test backward compatibility (default 'es' locale)
+   - Timezone handling with different locales
+   - Edge cases: invalid locales, undefined timezones
 
-2. **`/__tests__/utils/i18n/email-templates.test.ts`**
-   - Email generation for both locales
-   - HTML structure preservation
-   - Variable interpolation (links, names, etc.)
-   - Subject line translation
-   - Content translation
-
-3. **`/__tests__/utils/i18n/pluralization.test.ts`**
-   - Plural rules for English and Spanish
-   - Edge cases: 0, 1, 2, many
-   - Translation key building
-
-### Testing Utilities to Create/Update
-
-1. **`/__tests__/mocks/i18n.mocks.ts`** - Extend with:
-   - `createMockFormatter()` - Factory for `useFormatter()` mock
-   - `createMockGetTranslations()` - Mock for server-side `getTranslations()`
-   - Locale-specific test data
-
-2. **`/__tests__/mocks/setup-helpers.ts`** - Add i18n setup options
+2. **`/__tests__/utils/email-templates.test.ts`** - Update existing tests:
+   - Add locale parameter to existing email tests
+   - Test both 'en' and 'es' email generation
+   - HTML structure preservation across locales
+   - Variable interpolation (links, names)
+   - Translation key usage
 
 ### Mock Strategy
 
@@ -689,49 +421,47 @@ Follow patterns from:
 
 ## Implementation Steps
 
-### Phase 1: Core Utilities (1-2 hours)
+### Phase 1: Refactor Date Utils (45 minutes)
 
-1. Create directory structure: `/app/utils/i18n/`
-2. Implement `formatters.ts`:
-   - Date/time formatting functions
-   - Number/currency formatting functions
-   - Error message utilities
-3. Implement `pluralization.ts`:
-   - Plural form detection
-   - Translation key building
-4. Implement `email-templates.ts`:
-   - Localized verification email generator
-   - Localized password reset email generator
-5. Create `index.ts` with re-exports
+1. Update `/app/utils/date-utils.ts`:
+   - Add English locale import: `import 'dayjs/locale/en'`
+   - Add locale parameter to all functions with default `locale = 'es'`
+   - Update `getCompactGameTime()` to accept `timezoneLabel` parameter
+   - Update `getCompactUserTime()` to accept `userTimezoneLabel` parameter
+   - Use `.locale(locale)` in all dayjs calls
 
-### Phase 2: Translation Keys (15 minutes)
+2. Update tests in `/__tests__/utils/date-utils.test.ts`:
+   - Test functions with both 'en' and 'es' locales
+   - Test backward compatibility (no locale = defaults to 'es')
+   - Verify month names are localized
 
-1. Add time labels to `common.json` (both locales)
-2. Add plural keys to `common.json` (both locales)
-3. Verify `emails.json` has all needed keys:
-   - ✅ Already verified: `locales/en/emails.json` and `locales/es/emails.json` contain:
-     - `verification.subject`, `verification.title`, `verification.greeting`, `verification.button`, `verification.expiration`, `verification.signature`
-     - `passwordReset.subject`, `passwordReset.title`, `passwordReset.button`, `passwordReset.expiration`, `passwordReset.signature`
-   - These keys were added in story #150 and are ready to use
+### Phase 2: Refactor Email Templates (45 minutes)
 
-### Phase 3: Testing (1-1.5 hours)
+1. Update `/app/utils/email-templates.ts`:
+   - Add locale parameter to `generateVerificationEmail()`
+   - Add locale parameter to `generatePasswordResetEmail()`
+   - Use `getTranslations({ locale, namespace: 'emails' })` instead of hardcoded strings
+   - Add backward compatibility: default to 'es' locale
 
-1. Create test files for all utilities
-2. Extend test mocks for i18n
-3. Run tests and ensure 80%+ coverage
-4. Fix any failing tests
+2. Update tests in `/__tests__/utils/email-templates.test.ts`:
+   - Mock `getTranslations` from `next-intl/server`
+   - Test both locales produce correct content
+   - Verify translation keys are used
+
+### Phase 3: Translation Keys (10 minutes)
+
+1. Add time labels to `/locales/en/common.json` and `/locales/es/common.json`
+2. Verify email keys in `emails.json` (already exist from story #150)
 
 ### Phase 4: Documentation (30 minutes)
 
-1. Create `patterns.md` with:
-   - Server Component examples
-   - Client Component examples
-   - Date formatting best practices
-   - Email generation guide
-   - Number formatting examples
-   - Pluralization strategies
-   - Testing patterns
-2. Add JSDoc comments to all utility functions
+1. Create `/app/utils/i18n-patterns.md` with:
+   - Server Component i18n patterns (`getLocale`, `getTranslations`)
+   - Client Component i18n patterns (`useLocale`, `useTranslations`)
+   - Examples of using refactored date-utils and email-templates
+   - Number formatting (use Intl directly)
+   - Pluralization (use next-intl built-in)
+   - Error messages (use getTranslations directly)
 
 ### Phase 5: Validation (15 minutes)
 
@@ -739,7 +469,7 @@ Follow patterns from:
 2. Run tests: `npm run test`
 3. Run build: `npm run build`
 4. Verify 0 new SonarCloud issues
-5. Verify 80%+ coverage on new files
+5. Verify 80%+ coverage on modified functions
 
 ## Validation Considerations
 
@@ -780,19 +510,31 @@ Follow patterns from:
 
 ## Clarifications from Plan Review
 
-### Review Cycle 1 Feedback Addressed:
+### Scope Simplification (User Feedback):
 
-1. **✅ Dayjs timezone plugin**: Added explicit imports (`dayjs/plugin/timezone` and `dayjs/plugin/utc`) and plugin extension calls in formatters.ts examples
+**Original plan**: Create new i18n utility directory with date, number, currency, pluralization, and error helpers
+
+**Simplified plan**: Refactor existing `date-utils.ts` and `email-templates.ts` to be locale-aware
+
+**Rationale**:
+- ✅ Date/time and email utilities have real value (currently hardcoded Spanish)
+- ❌ Number/currency formatters are thin wrappers (use `Intl.NumberFormat` or `next-intl`'s `useFormatter()` directly)
+- ❌ Pluralization helpers are redundant (`next-intl` has built-in plural support)
+- ❌ Error utilities don't add abstraction value (call `getTranslations('errors')` directly)
+
+**Result**: Focused, practical implementation that delivers real value in ~2.5 hours instead of 2-4 hours
+
+### Review Cycle 1 & 2 Feedback Addressed:
+
+1. **✅ Dayjs timezone plugin**: Verified existing imports in date-utils.ts
 2. **✅ Email translation keys**: Verified all required keys exist in `locales/{locale}/emails.json` from story #150
-3. **✅ useLocalizedError export**: Added to index.ts exports with clarifying comment
-4. **✅ HTML security**: Added security note in email template functions explaining translation values are safe (from controlled JSON)
-5. **✅ Pluralization strategy**: Clarified that next-intl's built-in plural support is recommended; custom helper available for advanced cases
-6. **✅ EnOf() format**: Documented that this is the placeholder format from story #150 for marking untranslated English strings
+3. **✅ HTML security**: Added security note in email template functions
+4. **✅ EnOf() format**: Documented placeholder format from story #150
 
 ### Dependencies Confirmed:
 - ✅ dayjs (v1.11.11) - installed with timezone and utc plugins
 - ✅ next-intl (v4.8.3) - installed with getTranslations API
-- ✅ Translation namespaces - all required keys exist in emails.json and common.json
+- ✅ Translation keys - all required keys exist in emails.json (verified)
 
 ## Open Questions
 
@@ -823,12 +565,12 @@ None - all requirements are clear and review feedback has been addressed.
 
 ## Timeline
 
-**Total Estimated Time**: 2-4 hours
+**Total Estimated Time**: 2-2.5 hours (reduced from 2-4 hours)
 
-- Phase 1 (Core Utilities): 1-2 hours
-- Phase 2 (Translation Keys): 15 minutes
-- Phase 3 (Testing): 1-1.5 hours
+- Phase 1 (Refactor Date Utils): 45 minutes
+- Phase 2 (Refactor Email Templates): 45 minutes
+- Phase 3 (Translation Keys): 10 minutes
 - Phase 4 (Documentation): 30 minutes
 - Phase 5 (Validation): 15 minutes
 
-**Delivery**: Single PR with all utilities, tests, and documentation.
+**Delivery**: Single PR with refactored utilities, updated tests, and i18n patterns documentation.
