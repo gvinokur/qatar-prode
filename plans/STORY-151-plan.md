@@ -60,10 +60,10 @@ The i18n infrastructure is in place (#149) and translation keys have been extrac
 
 ### 1. Refactor Date/Time Formatting (`/app/utils/date-utils.ts`)
 
-**Current State**: Hardcoded Spanish labels
+**Current State**: Hardcoded Spanish formatting
 ```typescript
-getCompactGameTime() // Returns "DD MMM HH:mm GMT±X (Horario Local)"
-getCompactUserTime() // Returns "DD MMM HH:mm (Tu Horario)"
+getCompactGameTime() // Returns "DD MMM HH:mm GMT±X (Horario Local)" - label needs removal
+getCompactUserTime() // Returns "DD MMM HH:mm (Tu Horario)" - label needs removal
 ```
 
 **Solution**: Add locale parameter and translation label parameters
@@ -135,21 +135,16 @@ export function getUserLocalTime(date: Date, locale: Locale = 'es'): string {
 **Usage Pattern - Client Component**:
 ```typescript
 'use client'
-import { useLocale, useTranslations } from 'next-intl';
-import { getCompactGameTime } from '@/app/utils/i18n/formatters';
+import { useLocale } from 'next-intl';
+import { getCompactGameTime } from '@/app/utils/date-utils';
 
 function GameTime({ game }) {
   const locale = useLocale();
-  const t = useTranslations('common');
 
   return (
     <span>
-      {getCompactGameTime(
-        game.date,
-        game.timezone,
-        locale,
-        t('time.localTime')  // "Local Time" | "Horario Local"
-      )}
+      {getCompactGameTime(game.date, game.timezone, locale)}
+      {/* Component adds clickable label separately */}
     </span>
   );
 }
@@ -158,21 +153,15 @@ function GameTime({ game }) {
 **Usage Pattern - Server Component**:
 ```typescript
 import { getLocale } from 'next-intl/server';
-import { getTranslations } from 'next-intl/server';
-import { getCompactGameTime } from '@/app/utils/i18n/formatters';
+import { getCompactGameTime } from '@/app/utils/date-utils';
 
 async function GameTime({ game }) {
   const locale = await getLocale();
-  const t = await getTranslations('common');
 
   return (
     <span>
-      {getCompactGameTime(
-        game.date,
-        game.timezone,
-        locale,
-        t('time.localTime')
-      )}
+      {getCompactGameTime(game.date, game.timezone, locale)}
+      {/* Component adds clickable label separately */}
     </span>
   );
 }
@@ -409,8 +398,8 @@ Follow patterns from:
 1. Update `/app/utils/date-utils.ts`:
    - Add English locale import: `import 'dayjs/locale/en'`
    - Add locale parameter to all functions with default `locale = 'es'`
-   - Update `getCompactGameTime()` to accept `timezoneLabel` parameter
-   - Update `getCompactUserTime()` to accept `userTimezoneLabel` parameter
+   - Update `getCompactGameTime()` to format date with locale (NO label parameter)
+   - Update `getCompactUserTime()` to format date with locale (NO label parameter)
    - Use `.locale(locale)` in all dayjs calls
 
 2. Update tests in `/__tests__/utils/date-utils.test.ts`:
@@ -436,7 +425,7 @@ Follow patterns from:
    const locale = useLocale();
    const timeStr = getCompactGameTime(game.date, game.timezone, locale);
    // Returns: "18 Jan 15:00 GMT-5" (en) or "18 ene 15:00 GMT-5" (es)
-   // Component adds the clickable "(Local Time)" / "(Horario Local)" link separately
+   // Note: Labels removed from utility. Component adds clickable link separately.
    ```
 
 3. **Test**:
