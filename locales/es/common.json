@@ -1,0 +1,16 @@
+{
+  "app": {
+    "name": "Prode Mundial",
+    "description": "Plataforma de pronósticos deportivos",
+    "loading": "Cargando...",
+    "error": "Ocurrió un error",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar"
+  },
+  "home": {
+    "availableTournaments": "Torneos Disponibles"
+  }
+}

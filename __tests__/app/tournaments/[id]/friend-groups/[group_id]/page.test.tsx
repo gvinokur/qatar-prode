@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { redirect } from 'next/navigation';
-import TournamentScopedFriendGroup from '@/app/tournaments/[id]/friend-groups/[group_id]/page';
+import TournamentScopedFriendGroup from '@/app/[locale]/tournaments/[id]/friend-groups/[group_id]/page';
 import { getLoggedInUser } from '@/app/actions/user-actions';
 import { findProdeGroupById, findParticipantsInGroup } from '@/app/db/prode-group-repository';
 import { findTournamentById } from '@/app/db/tournament-repository';
@@ -79,7 +79,7 @@ describe('TournamentScopedFriendGroup', () => {
       const searchParams = Promise.resolve({});
 
       await expect(TournamentScopedFriendGroup({ params, searchParams }))
-        .rejects.toThrow(`REDIRECT_TO:/tournaments/${mockTournamentId}`);
+        .rejects.toThrow(`REDIRECT_TO:/es/tournaments/${mockTournamentId}`);
     });
 
     it('redirects to tournament page if prode group not found', async () => {
@@ -91,7 +91,7 @@ describe('TournamentScopedFriendGroup', () => {
       const searchParams = Promise.resolve({});
 
       await expect(TournamentScopedFriendGroup({ params, searchParams }))
-        .rejects.toThrow(`REDIRECT_TO:/tournaments/${mockTournamentId}`);
+        .rejects.toThrow(`REDIRECT_TO:/es/tournaments/${mockTournamentId}`);
     });
 
     it('redirects to tournament page if tournament not found', async () => {
@@ -103,7 +103,7 @@ describe('TournamentScopedFriendGroup', () => {
       const searchParams = Promise.resolve({});
 
       await expect(TournamentScopedFriendGroup({ params, searchParams }))
-        .rejects.toThrow(`REDIRECT_TO:/tournaments/${mockTournamentId}`);
+        .rejects.toThrow(`REDIRECT_TO:/es/tournaments/${mockTournamentId}`);
     });
   });
 

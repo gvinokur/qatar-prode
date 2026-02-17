@@ -6,6 +6,7 @@ import { Box, Typography, Paper, Alert } from '../../components/mui-wrappers';
 import {signOut} from "next-auth/react";
 import {verifyUserEmail} from "../../actions/user-actions";
 import { AuthPageSkeleton } from '../skeletons';
+import { useLocale } from 'next-intl';
 
 interface EmailVerifierProps {
   readonly token: string;
@@ -13,12 +14,14 @@ interface EmailVerifierProps {
 
 export default function EmailVerifier({ token }: EmailVerifierProps) {
   const router = useRouter();
+  const locale = useLocale();
   const [isVerifying, setIsVerifying] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const verifyToken = useCallback(
     async (
       token: string,
+      locale: string,
       setIsVerifying: (_value: boolean) => void,
       setError: (_error: string | null) => void) => {
         try {
@@ -26,7 +29,7 @@ export default function EmailVerifier({ token }: EmailVerifierProps) {
 
           if (result.success) {
             // Redirect to login page with success message
-            await signOut({ redirect: true, callbackUrl: '/?verified=true' });
+            await signOut({ redirect: true, callbackUrl: `/${locale}?verified=true` });
             setIsVerifying(false)
           } else {
             setError(result.error || 'The verification link is invalid or has expired.');
@@ -40,9 +43,9 @@ export default function EmailVerifier({ token }: EmailVerifierProps) {
 
   useEffect(() => {
     if(token) {
-      verifyToken(token, setIsVerifying, setError);
+      verifyToken(token, locale, setIsVerifying, setError);
     }
-  }, [token, verifyToken, setIsVerifying, setError]);
+  }, [token, locale, verifyToken, setIsVerifying, setError]);
 
   if (isVerifying) {
     return <AuthPageSkeleton />;
@@ -53,7 +56,7 @@ export default function EmailVerifier({ token }: EmailVerifierProps) {
       sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}
       onLoad={() => {
         setTimeout(() => {
-          router.push('/');
+          router.push(`/${locale}`);
         }, 2000);
       }}
     >

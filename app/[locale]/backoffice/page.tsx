@@ -1,0 +1,91 @@
+'use server'
+
+import {getLoggedInUser} from "../../actions/user-actions";
+import {redirect} from "next/navigation";
+import { getLocale } from 'next-intl/server';
+import {Alert, AlertTitle, Box} from "../../components/mui-wrappers";
+import {
+  BackofficeTabs,
+} from "../../components/backoffice/backoffice-tabs";
+import {findAllTournaments} from "../../db/tournament-repository";
+import GroupsTab from "../../components/backoffice/groups-backoffice-tab";
+import TournamentBackofficeTab from "../../components/backoffice/tournament-backoffice-tab";
+import BackofficeAwardsTab from "../../components/backoffice/awards-tab";
+import TournamentMainDataTab from "../../components/backoffice/tournament-main-data-tab";
+import CreateTournamentButton from "../../components/backoffice/internal/create-tournament-button";
+import {createActionTab, createTab} from "../../components/backoffice/backoffice-tab-utils";
+import TournamentTeamsManagerTab from "../../components/backoffice/tournament-teams-manager-tab";
+import TournamentGroupsManagerTab from "../../components/backoffice/tournament-groups-manager-tab";
+import TournamentGameManagerTab from "../../components/backoffice/tournament-game-manager-tab";
+import PlayersTab from "../../components/backoffice/PlayersTab";
+import NotificationSender from "../../components/backoffice/notification-sender";
+import TournamentThirdPlaceRulesTab from "../../components/backoffice/tournament-third-place-rules-tab";
+import TournamentScoringConfigTab from "../../components/backoffice/tournament-scoring-config-tab";
+
+export default async function Backoffice() {
+  const locale = await getLocale();
+  const user = await  getLoggedInUser()
+  if(!user?.isAdmin) {
+    redirect(`/${locale}`)
+  }
+
+  const dbTournaments = await findAllTournaments()
+  const activeTournaments = dbTournaments.filter(({is_active}) => is_active)
+  const inactiveTournaments = dbTournaments.filter(({is_active}) => !is_active)
+
+  return (
+    <Box p={2} sx={{ width: '100%'}}>
+      <Alert variant={'filled'} severity={"warning"}>
+        <AlertTitle>Consola de administracion</AlertTitle>
+        Estas en la consola de administracion, cualquie accion que tomes puede afectar la usabilidad general de la pagina.
+      </Alert>
+
+      <BackofficeTabs tabs={
+        [
+          ...activeTournaments.map(tournament =>
+            createTab(
+              tournament.short_name,
+              (
+                <BackofficeTabs key={tournament.short_name} tabIdParam="subtab" tabs={[
+                  createTab('Tournament Actions', <TournamentBackofficeTab tournament={tournament}/>),
+                  createTab('Game Scores', <GroupsTab tournamentId={tournament.id}/>),
+                  createTab('Awards', <BackofficeAwardsTab tournamentId={tournament.id}/>),
+                  createTab('Scoring Config', <TournamentScoringConfigTab tournamentId={tournament.id}/>),
+                  createTab('Teams', <TournamentTeamsManagerTab tournamentId={tournament.id}/>),
+                  createTab('Tournament Data', <TournamentMainDataTab tournamentId={tournament.id}/>),
+                  createTab('Tournament Groups', <TournamentGroupsManagerTab tournamentId={tournament.id}/>),
+                  createTab('Games', <TournamentGameManagerTab tournamentId={tournament.id}/>),
+                  createTab('Third-Place Rules', <TournamentThirdPlaceRulesTab tournamentId={tournament.id}/>),
+                  createTab('Players', <PlayersTab tournamentId={tournament.id}/>),
+                ]}/>
+              ),
+              tournament.dev_only,
+              true // isActive
+            ),
+          ),
+          ...inactiveTournaments.map(tournament =>
+            createTab(
+              tournament.short_name,
+              (
+                <BackofficeTabs key={tournament.short_name} tabIdParam="subtab" tabs={[
+                  createTab('Tournament Actions', <TournamentBackofficeTab tournament={tournament}/>),
+                  createTab('Tournament Data', <TournamentMainDataTab tournamentId={tournament.id}/>),
+                  createTab('Scoring Config', <TournamentScoringConfigTab tournamentId={tournament.id}/>),
+                  createTab('Tournament Teams', <TournamentTeamsManagerTab tournamentId={tournament.id}/>),
+                  createTab('Tournament Groups', <TournamentGroupsManagerTab tournamentId={tournament.id}/>),
+                  createTab('Tournament Games', <TournamentGameManagerTab tournamentId={tournament.id}/>),
+                  createTab('Third-Place Rules', <TournamentThirdPlaceRulesTab tournamentId={tournament.id}/>),
+                  createTab('Players', <PlayersTab tournamentId={tournament.id}/>),
+                ]}/>
+              ),
+              tournament.dev_only,
+              false // isActive
+            ),
+          ),
+          createActionTab(<CreateTournamentButton key='create-tournament' />),
+          createTab('Notifications', <NotificationSender />)
+        ]
+      }/>
+    </Box>
+  )
+}

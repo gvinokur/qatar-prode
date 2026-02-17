@@ -20,6 +20,44 @@ vi.mock('next-auth/react', () => ({
   })
 }));
 
+// Mock next-intl globally for all tests (client components)
+vi.mock('next-intl', () => ({
+  useLocale: () => 'es', // Default to Spanish locale
+  useTranslations: () => (key: string) => key, // Return key as-is for tests
+  useFormatter: () => ({
+    dateTime: (date: Date) => date.toISOString(),
+    number: (num: number) => num.toString(),
+    relativeTime: (date: Date) => date.toISOString(),
+  }),
+}));
+
+// Mock next-intl/server for server components
+vi.mock('next-intl/server', () => ({
+  getLocale: async () => 'es', // Default to Spanish locale
+  getTranslations: async () => (key: string) => key, // Return key as-is for tests
+  getFormatter: async () => ({
+    dateTime: (date: Date) => date.toISOString(),
+    number: (num: number) => num.toString(),
+    relativeTime: (date: Date) => date.toISOString(),
+  }),
+  getMessages: async () => ({}),
+}));
+
+// Mock next/navigation for routing hooks
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    refresh: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+  usePathname: () => '/es',
+  useSearchParams: () => new URLSearchParams(),
+  useParams: () => ({}),
+}));
+
 // Mock the database connection to avoid VercelPostgresError
 // Enhanced mock with full Kysely method chain support
 vi.mock('./app/db/database', () => ({

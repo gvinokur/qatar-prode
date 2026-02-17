@@ -17,8 +17,9 @@ interface ConditionalHeaderProps {
 export default function ConditionalHeader({ children }: ConditionalHeaderProps) {
   const pathname = usePathname()
 
-  // Check if current route is a tournament page
-  const isTournamentPage = pathname.startsWith('/tournaments/')
+  // Check if current route is a tournament page (accounting for locale prefix)
+  const tournamentPageRegex = /^\/[^/]+\/tournaments\//
+  const isTournamentPage = tournamentPageRegex.exec(pathname)
 
   // Hide header on tournament pages
   if (isTournamentPage) {

@@ -50,7 +50,7 @@ describe('Rules', () => {
 
     const button = screen.getByRole('link', { name: /Ver Reglas Completas/i })
     expect(button).toBeInTheDocument()
-    expect(button).toHaveAttribute('href', '/tournaments/test-tournament/rules')
+    expect(button).toHaveAttribute('href', '/es/tournaments/test-tournament/rules')
 
     // Check icon is present (MUI renders icon as svg)
     const icon = button.querySelector('svg')

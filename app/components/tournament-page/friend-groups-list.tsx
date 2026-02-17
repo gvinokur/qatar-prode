@@ -18,6 +18,7 @@ import * as React from "react";
 import {createDbGroup, deleteGroup} from "../../actions/prode-group-actions";
 import InviteFriendsDialog from "../invite-friends-dialog";
 import Link from "next/link";
+import { useLocale } from 'next-intl';
 
 type Props = {
   userGroups: { id: string, name: string}[]
@@ -37,6 +38,7 @@ export default function FriendGroupsList({
   isActive = false,
 } : Props) {
   const theme = useTheme();
+  const locale = useLocale();
   const [expanded, setExpanded] = useState(false);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [openConfirmDeleteGroup, setOpenConfirmDeleteGroup] = useState<string | false>(false)
@@ -120,7 +122,7 @@ export default function FriendGroupsList({
                           </>
                         }>
                 <ListItemText>
-                  <Link href={tournamentId ? `/tournaments/${tournamentId}/friend-groups/${userGroup.id}` : `/friend-groups/${userGroup.id}`}>
+                  <Link href={tournamentId ? `/${locale}/tournaments/${tournamentId}/friend-groups/${userGroup.id}` : `/${locale}/friend-groups/${userGroup.id}`}>
                     {userGroup.name}
                   </Link>
                 </ListItemText>
@@ -130,7 +132,7 @@ export default function FriendGroupsList({
             {participantGroups.map(participantGroup => (
               <ListItem key={participantGroup.id} disableGutters>
                 <ListItemText>
-                  <Link href={tournamentId ? `/tournaments/${tournamentId}/friend-groups/${participantGroup.id}` : `/friend-groups/${participantGroup.id}`}>
+                  <Link href={tournamentId ? `/${locale}/tournaments/${tournamentId}/friend-groups/${participantGroup.id}` : `/${locale}/friend-groups/${participantGroup.id}`}>
                     {participantGroup.name}
                   </Link>
                 </ListItemText>
@@ -142,7 +144,7 @@ export default function FriendGroupsList({
         <CardActions sx={{ justifyContent: 'space-around', px: 2, py: 1.5 }}>
           <Button onClick={() => setOpenCreateDialog(true)}>Crear Grupo</Button>
           {tournamentId && (userGroups.length + participantGroups.length) > 1 && (
-            <Button component={Link} href={`/tournaments/${tournamentId}/friend-groups`} startIcon={<GroupsIcon />}>
+            <Button component={Link} href={`/${locale}/tournaments/${tournamentId}/friend-groups`} startIcon={<GroupsIcon />}>
               Ver Grupos
             </Button>
           )}

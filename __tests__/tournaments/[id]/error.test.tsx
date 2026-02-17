@@ -2,7 +2,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { useRouter } from 'next/navigation';
-import TournamentError from '../../../app/tournaments/[id]/error';
+import TournamentError from '../../../app/[locale]/tournaments/[id]/error';
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
@@ -80,7 +80,7 @@ describe('TournamentError (403 Page)', () => {
       const button = screen.getByRole('button', { name: /Return to Home/i });
       fireEvent.click(button);
 
-      expect(mockRouter.push).toHaveBeenCalledWith('/');
+      expect(mockRouter.push).toHaveBeenCalledWith('/es');
     });
 
     it('only calls router.push once per click', () => {
@@ -92,7 +92,7 @@ describe('TournamentError (403 Page)', () => {
 
       // Button might be clicked multiple times by user
       expect(mockRouter.push).toHaveBeenCalledTimes(2);
-      expect(mockRouter.push).toHaveBeenCalledWith('/');
+      expect(mockRouter.push).toHaveBeenCalledWith('/es');
     });
   });
 

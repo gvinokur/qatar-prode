@@ -278,7 +278,7 @@ describe('TournamentBackofficeTab', () => {
 
       // Wait for router.push and refresh to be called
       await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith('/backoffice');
+        expect(mockPush).toHaveBeenCalledWith('/es/backoffice');
         expect(mockRefresh).toHaveBeenCalled();
       }, { timeout: 2500 });
     });

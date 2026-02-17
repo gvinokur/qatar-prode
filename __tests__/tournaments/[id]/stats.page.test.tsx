@@ -2,7 +2,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { redirect } from 'next/navigation';
-import TournamentStatsPage from '../../../app/tournaments/[id]/stats/page';
+import TournamentStatsPage from '../../../app/[locale]/tournaments/[id]/stats/page';
 import { getLoggedInUser } from '../../../app/actions/user-actions';
 import {
   getGameGuessStatisticsForUsers,
@@ -141,8 +141,8 @@ describe('TournamentStatsPage', () => {
         searchParams: Promise.resolve({}),
       };
 
-      await expect(TournamentStatsPage(props)).rejects.toThrow(`REDIRECT_TO:/tournaments/${mockTournamentId}`);
-      expect(redirect).toHaveBeenCalledWith(`/tournaments/${mockTournamentId}`);
+      await expect(TournamentStatsPage(props)).rejects.toThrow(`REDIRECT_TO:/es/tournaments/${mockTournamentId}`);
+      expect(redirect).toHaveBeenCalledWith(`/es/tournaments/${mockTournamentId}`);
     });
 
     it('renders stats page when user is authenticated', async () => {

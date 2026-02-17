@@ -5,7 +5,6 @@ import * as React from "react";
 import {
   Avatar,
   Box, Button,
-  IconButton,
   Menu,
   MenuItem,
   Tooltip,
@@ -17,12 +16,14 @@ import {signOut} from "next-auth/react";
 import {User} from "next-auth";
 import UserSettingsDialog from "../auth/user-settings-dialog";
 import OnboardingDialogClient from "../onboarding/onboarding-dialog-client";
+import { useLocale } from 'next-intl';
 
 type UserActionProps = {
   user?: User
 }
 
 export default function UserActions({ user }: UserActionProps) {
+  const locale = useLocale()
   const searchParams = useSearchParams()
   const [forceOpen, setForceOpen] = useState(false)
   const [openLoginDialog, setOpenLoginDialog] = useState(forceOpen);
@@ -80,7 +81,7 @@ export default function UserActions({ user }: UserActionProps) {
     await signOut({
       redirect: false
     })
-    router.push("/");
+    router.push(`/${locale}`);
     router.refresh();
   }
 
@@ -90,9 +91,21 @@ export default function UserActions({ user }: UserActionProps) {
       {user ? (
         <Box sx={{ flexGrow: 0 }}>
           <Tooltip title="Abrir Menu de Usuario">
-            <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-              <Avatar alt={(user.nickname || user.email || '')}>{(user.nickname || user.email || 'U')[0]}</Avatar>
-            </IconButton>
+            <Avatar
+              onClick={handleOpenUserMenu}
+              alt={(user.nickname || user.email || '')}
+              sx={{
+                width: 40,
+                height: 40,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                '&:hover': {
+                  transform: 'scale(1.05)',
+                }
+              }}
+            >
+              {(user.nickname || user.email || 'U')[0]}
+            </Avatar>
           </Tooltip>
           <Menu
             sx={{ mt: '45px' }}
@@ -117,14 +130,14 @@ export default function UserActions({ user }: UserActionProps) {
               <Typography textAlign="center">Ver Tutorial</Typography>
             </MenuItem>
             {user.isAdmin && (
-              <MenuItem onClick={() => router.push('/backoffice')}>
+              <MenuItem onClick={() => router.push(`/${locale}/backoffice`)}>
                 Ir al Back Office
               </MenuItem>
             )}
             <MenuItem onClick={() => { handleLogout(); handleCloseUserMenu();}} divider={true}>
               <Typography textAlign="center">Salir</Typography>
             </MenuItem>
-            <MenuItem onClick={() => router.push('/delete-account')}>
+            <MenuItem onClick={() => router.push(`/${locale}/delete-account`)}>
               Delete Account
             </MenuItem>
           </Menu>

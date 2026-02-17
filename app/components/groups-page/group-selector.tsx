@@ -4,6 +4,7 @@ import { Tabs, Tab, useTheme } from "@mui/material";
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLocale } from 'next-intl';
 
 type Props = {
   readonly groups: { group_letter: string, id: string }[];
@@ -37,6 +38,7 @@ const getSelectedTab = (pathname: string): string => {
 };
 
 const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Props) => {
+  const locale = useLocale();
   const pathname = usePathname();
   const theme = useTheme();
   const selected = getSelectedTab(pathname);
@@ -69,21 +71,21 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
         iconPosition="start"
         value=""
         component={Link}
-        href={`/tournaments/${tournamentId}`}
+        href={`/${locale}/tournaments/${tournamentId}`}
         sx={tabSx}
       />
       <Tab
         label="CLASIFICADOS"
         value="qualified-teams"
         component={Link}
-        href={`/tournaments/${tournamentId}/qualified-teams`}
+        href={`/${locale}/tournaments/${tournamentId}/qualified-teams`}
         sx={tabSx}
       />
       <Tab
         label="PREMIOS"
         value="individual_awards"
         component={Link}
-        href={`/tournaments/${tournamentId}/awards`}
+        href={`/${locale}/tournaments/${tournamentId}/awards`}
         sx={tabSx}
       />
     </Tabs>

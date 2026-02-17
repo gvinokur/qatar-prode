@@ -14,6 +14,7 @@ import {ExpandMore as ExpandMoreIcon, Gavel as GavelIcon} from "@mui/icons-mater
 import {ExpandMore} from './expand-more';
 import {useState} from "react";
 import Link from 'next/link';
+import { useLocale } from 'next-intl';
 import WinnerDrawExample from './rules-examples/winner-draw';
 import ExactScoreExample from './rules-examples/exact-score';
 import RoundOf16Example from './rules-examples/round-of-16';
@@ -146,6 +147,7 @@ interface RulesProps {
 }
 
 export default function Rules({ expanded: defaultExpanded = true, fullpage = false, scoringConfig, tournamentId, isActive = false }: RulesProps) {
+  const locale = useLocale();
   const theme = useTheme();
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [expandedRules, setExpandedRules] = useState<number[]>([]);
@@ -358,7 +360,7 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
         <CardActions sx={{ justifyContent: 'center', px: 2, py: 1.5 }}>
           <Button
             component={Link}
-            href={tournamentId ? `/tournaments/${tournamentId}/rules` : "/rules"}
+            href={tournamentId ? `/${locale}/tournaments/${tournamentId}/rules` : `/${locale}/rules`}
             startIcon={<GavelIcon />}
             variant="text"
             color="primary"

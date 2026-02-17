@@ -8,6 +8,7 @@ import validator from "validator";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useLocale } from 'next-intl';
 
 export type LoginFormData = {
   email: string,
@@ -21,6 +22,7 @@ type LoginFormProps = {
 }
 
 export default function LoginForm({ onSuccess, email, onOTPLoginClick }: LoginFormProps) {
+  const locale = useLocale();
   const [loading, setLoading] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -57,7 +59,7 @@ export default function LoginForm({ onSuccess, email, onOTPLoginClick }: LoginFo
       } else {
         onSuccess();
         if(searchParams?.get('callbackUrl')) {
-          router.push(searchParams.get('callbackUrl') || '/');
+          router.push(searchParams.get('callbackUrl') || `/${locale}`);
         }
         router.refresh();
       }

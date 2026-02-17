@@ -28,6 +28,7 @@ vi.mock('next/navigation', () => ({
     useSearchParams: () => ({
         get: vi.fn(),
     }),
+    usePathname: () => '/es',
 }));
 
 // Mock Next.js Link
@@ -143,14 +144,14 @@ describe('Header', () => {
             await renderHeader();
 
             const logoLink = screen.getByAltText('la-maquina-prode').closest('a');
-            expect(logoLink).toHaveAttribute('href', '/');
+            expect(logoLink).toHaveAttribute('href', '/es');
         });
 
         it('renders title as clickable link to home', async () => {
             await renderHeader();
 
             const titleLink = screen.getByText('La Maquina Prode').closest('a');
-            expect(titleLink).toHaveAttribute('href', '/');
+            expect(titleLink).toHaveAttribute('href', '/es');
         });
 
         it('applies correct styles to logo', async () => {
@@ -251,7 +252,7 @@ describe('Header', () => {
 
             const logo = screen.getByAltText('la-maquina-prode');
             expect(logo).toBeInTheDocument();
-            expect(logo.closest('a')).toHaveAttribute('href', '/');
+            expect(logo.closest('a')).toHaveAttribute('href', '/es');
         });
 
         it('renders center section with title', async () => {
@@ -417,8 +418,8 @@ describe('Header', () => {
             const logoLink = screen.getByAltText('la-maquina-prode').closest('a');
             const titleLink = screen.getByText('La Maquina Prode').closest('a');
 
-            expect(logoLink).toHaveAttribute('href', '/');
-            expect(titleLink).toHaveAttribute('href', '/');
+            expect(logoLink).toHaveAttribute('href', '/es');
+            expect(titleLink).toHaveAttribute('href', '/es');
         });
 
         it('provides accessible user actions', async () => {

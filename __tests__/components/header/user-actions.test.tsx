@@ -13,6 +13,11 @@ vi.mock('next/navigation', () => ({
   useRouter: vi.fn(),
 }));
 
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useLocale: vi.fn(() => 'es'),
+}));
+
 // Mock next-auth/react
 vi.mock('next-auth/react', () => ({
   signOut: vi.fn(),
@@ -242,7 +247,7 @@ describe('UserActions', () => {
         expect(signOut).toHaveBeenCalledWith({ redirect: false });
       });
       
-      expect(mockRouter.push).toHaveBeenCalledWith('/');
+      expect(mockRouter.push).toHaveBeenCalledWith('/es');
       expect(mockRouter.refresh).toHaveBeenCalled();
     });
 
@@ -278,7 +283,7 @@ describe('UserActions', () => {
       fireEvent.click(screen.getByLabelText('Abrir Menu de Usuario'));
       fireEvent.click(screen.getByText('Ir al Back Office'));
       
-      expect(mockRouter.push).toHaveBeenCalledWith('/backoffice');
+      expect(mockRouter.push).toHaveBeenCalledWith('/es/backoffice');
     });
 
     it('navigates to delete account page when delete account is clicked', () => {
@@ -287,7 +292,7 @@ describe('UserActions', () => {
       fireEvent.click(screen.getByLabelText('Abrir Menu de Usuario'));
       fireEvent.click(screen.getByText('Delete Account'));
 
-      expect(mockRouter.push).toHaveBeenCalledWith('/delete-account');
+      expect(mockRouter.push).toHaveBeenCalledWith('/es/delete-account');
     });
 
     it('renders "Ver Tutorial" menu item when user is logged in', () => {
@@ -451,7 +456,7 @@ describe('UserActions', () => {
       fireEvent.click(screen.getByText('Delete Account'));
       
       await waitFor(() => {
-        expect(mockRouter.push).toHaveBeenCalledWith('/delete-account');
+        expect(mockRouter.push).toHaveBeenCalledWith('/es/delete-account');
       });
     });
   });

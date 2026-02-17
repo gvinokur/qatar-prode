@@ -4,6 +4,7 @@ import { BottomNavigation, BottomNavigationAction } from '@mui/material';
 import { Home, Groups, Assessment, Gavel, BarChart } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { useLocale } from 'next-intl';
 
 interface TournamentBottomNavProps {
   readonly tournamentId: string;
@@ -11,23 +12,27 @@ interface TournamentBottomNavProps {
 }
 
 export default function TournamentBottomNav({ tournamentId, currentPath }: TournamentBottomNavProps) {
+  const locale = useLocale();
   const router = useRouter();
   const [value, setValue] = useState<string>('tournament-home');
 
-  // Determine active tab based on currentPath
+  // Determine active tab based on currentPath (currentPath includes locale prefix)
   useEffect(() => {
-    if (currentPath === '/') {
+    // Extract path without locale (currentPath is like /es/tournaments/... or /en/tournaments/...)
+    const pathWithoutLocale = currentPath.replace(/^\/[^/]+/, '');
+
+    if (pathWithoutLocale === '' || pathWithoutLocale === '/') {
       setValue('main-home');
-    } else if (currentPath === `/tournaments/${tournamentId}`) {
+    } else if (pathWithoutLocale === `/tournaments/${tournamentId}`) {
       setValue(''); // PARTIDOS is in top nav, no bottom nav tab selected
-    } else if (currentPath.startsWith(`/tournaments/${tournamentId}/results`)) {
+    } else if (pathWithoutLocale.startsWith(`/tournaments/${tournamentId}/results`)) {
       setValue('results');
-    } else if (currentPath.startsWith(`/tournaments/${tournamentId}/rules`)) {
+    } else if (pathWithoutLocale.startsWith(`/tournaments/${tournamentId}/rules`)) {
       setValue('rules');
-    } else if (currentPath === `/tournaments/${tournamentId}/friend-groups`) {
+    } else if (pathWithoutLocale === `/tournaments/${tournamentId}/friend-groups`) {
       // EXACT match for friend groups overview
       setValue('friend-groups');
-    } else if (currentPath.startsWith(`/tournaments/${tournamentId}/stats`)) {
+    } else if (pathWithoutLocale.startsWith(`/tournaments/${tournamentId}/stats`)) {
       setValue('stats');
     }
     // Note: Individual game groups (/tournaments/[id]/groups/[group_id]) don't activate any bottom nav tab
@@ -39,19 +44,19 @@ export default function TournamentBottomNav({ tournamentId, currentPath }: Tourn
     // Navigate based on selected tab
     switch (newValue) {
       case 'main-home':
-        router.push('/');
+        router.push(`/${locale}`);
         break;
       case 'results':
-        router.push(`/tournaments/${tournamentId}/results`);
+        router.push(`/${locale}/tournaments/${tournamentId}/results`);
         break;
       case 'rules':
-        router.push(`/tournaments/${tournamentId}/rules`);
+        router.push(`/${locale}/tournaments/${tournamentId}/rules`);
         break;
       case 'friend-groups':
-        router.push(`/tournaments/${tournamentId}/friend-groups`);
+        router.push(`/${locale}/tournaments/${tournamentId}/friend-groups`);
         break;
       case 'stats':
-        router.push(`/tournaments/${tournamentId}/stats`);
+        router.push(`/${locale}/tournaments/${tournamentId}/stats`);
         break;
     }
   };

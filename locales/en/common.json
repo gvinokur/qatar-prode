@@ -1,0 +1,16 @@
+{
+  "app": {
+    "name": "Qatar Prode",
+    "description": "Sports Prediction Platform",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close"
+  },
+  "home": {
+    "availableTournaments": "Available Tournaments"
+  }
+}
