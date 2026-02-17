@@ -1,0 +1,65 @@
+{
+  "dashboard": {
+    "games": "Partidos",
+    "tournament": "Torneo",
+    "gamePredictions": "Predicciones de Partidos",
+    "tournamentPredictions": "Predicciones de Torneo",
+    "predictions": "Predicciones"
+  },
+  "filters": {
+    "label": "Filtro",
+    "all": "Todos",
+    "groups": "Grupos",
+    "playoffs": "Playoffs",
+    "unpredicted": "Sin Predecir",
+    "closingSoon": "Cierran Pronto"
+  },
+  "secondaryFilters": {
+    "group": "Grupo",
+    "round": "Ronda"
+  },
+  "game": {
+    "vs": "vs",
+    "editPrediction": "Editar predicción: {homeTeam} vs {awayTeam}",
+    "editResult": "Editar resultado"
+  },
+  "urgency": {
+    "games": {
+      "zero": "Ningún partido cierra en {timeframe}",
+      "one": "{count} partido cierra en {timeframe}",
+      "other": "{count} partidos cierran en {timeframe}"
+    },
+    "unpredicted": {
+      "one": ", {count} sin predecir",
+      "other": ", {count} sin predecir"
+    },
+    "requiresAction": "REQUIEREN ACCIÓN",
+    "alreadyPredicted": "YA PREDICHOS",
+    "tournament": {
+      "zero": "Predicciones de torneo no disponibles",
+      "one": "Predicciones de torneo cierran en {timeframe}",
+      "other": "Predicciones de torneo cierran en {timeframe}"
+    },
+    "timeframes": {
+      "twoHours": "2 horas",
+      "twentyFourHours": "24 horas",
+      "twoDays": "2 días"
+    },
+    "noGamesIn48Hours": "Ningún partido cierra en las próximas 48 horas"
+  },
+  "points": {
+    "singular": "pt",
+    "plural": "pts"
+  },
+  "edit": {
+    "save": "Guardar",
+    "next": "Siguiente",
+    "saving": "Guardando...",
+    "cancel": "Cancelar",
+    "boost": "Boost",
+    "boostSelection": "Boost Selection",
+    "penaltyWinner": "Ganador Penales",
+    "penaltyWinnerFull": "Ganador de la tanda de penales",
+    "penaltyWinnerPrompt": "Dado que el pártido terminó empatado, por favor seleccione el ganador de la tanda de penales."
+  }
+}

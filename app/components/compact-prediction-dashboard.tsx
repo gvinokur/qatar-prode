@@ -2,6 +2,7 @@
 
 import React, { useContext, useMemo, useState, useRef, useCallback } from 'react';
 import { Box } from '@mui/material';
+import { useTranslations } from 'next-intl';
 import { TournamentPredictionCompletion, Team } from '../db/tables-definition';
 import { GuessesContext } from './context-providers/guesses-context-provider';
 import type { ExtendedGameData } from '../definitions';
@@ -38,6 +39,7 @@ export function CompactPredictionDashboard({
   isPlayoffs = false,
   demoMode = false
 }: CompactPredictionDashboardProps) {
+  const t = useTranslations('predictions');
   const { gameGuesses, boostCounts } = useContext(GuessesContext);
   const dashboardRef = useRef<HTMLDivElement>(null);
   const [gamePopoverAnchor, setGamePopoverAnchor] = useState<HTMLElement | null>(null);
@@ -120,7 +122,7 @@ export function CompactPredictionDashboard({
     <Box ref={dashboardRef} sx={{ mb: 2 }}>
       {/* Game Predictions Row */}
       <PredictionProgressRow
-        label="Partidos"
+        label={t('dashboard.games')}
         currentValue={predictedGames}
         maxValue={totalGames}
         percentage={gamePercentage}
@@ -137,7 +139,7 @@ export function CompactPredictionDashboard({
       {/* Tournament Predictions Row */}
       {tournamentPredictions && tournamentId && (
         <PredictionProgressRow
-          label="Torneo"
+          label={t('dashboard.tournament')}
           currentValue={tournamentPredictions.overallPercentage}
           percentage={tournamentPredictions.overallPercentage}
           urgencyLevel={tournamentUrgencyLevel}

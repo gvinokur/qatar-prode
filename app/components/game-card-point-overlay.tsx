@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, useMotionValue, animate } from 'framer-motion';
 import { Box, Chip, useTheme, alpha } from '@mui/material';
 import { useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { ConfettiEffect, TrophyBounce, SobEffect, CheckEffect } from './celebration-effects';
 import PointBreakdownTooltip from './point-breakdown-tooltip';
 import { BoostType } from '../utils/point-calculator';
@@ -31,6 +32,7 @@ export default function GameCardPointOverlay({
 }: Readonly<GameCardPointOverlayProps>) {
   const theme = useTheme();
   const searchParams = useSearchParams();
+  const t = useTranslations('predictions');
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   const [shouldAnimate, setShouldAnimate] = useState(false);
@@ -114,7 +116,8 @@ export default function GameCardPointOverlay({
   // Format display text
   const formatPointsText = () => {
     const sign = points > 0 ? '+' : '';
-    const pointsText = `${sign}${points} ${points === 1 ? 'pt' : 'pts'}`;
+    const pointsLabel = points === 1 ? t('points.singular') : t('points.plural');
+    const pointsText = `${sign}${points} ${pointsLabel}`;
 
     if (points === 0) {
       return (

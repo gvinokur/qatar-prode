@@ -1,5 +1,6 @@
 import React from 'react';
 import { Popover, Card, Typography } from '@mui/material';
+import { useTranslations } from 'next-intl';
 import { TournamentPredictionAccordion } from './tournament-prediction-accordion';
 import { TournamentPredictionCompletion } from '../db/tables-definition';
 
@@ -23,6 +24,8 @@ export function TournamentDetailsPopover({
   tournamentPredictions,
   tournamentId
 }: TournamentDetailsPopoverProps) {
+  const t = useTranslations('predictions');
+
   return (
     <Popover
       open={open}
@@ -39,7 +42,7 @@ export function TournamentDetailsPopover({
     >
       <Card sx={{ width, maxHeight: '80vh', overflow: 'auto', p: 2 }}>
         <Typography variant="h6" sx={{ mb: 2 }}>
-          Predicciones de Torneo
+          {t('dashboard.tournamentPredictions')}
         </Typography>
         {tournamentPredictions && tournamentId && (
           <TournamentPredictionAccordion

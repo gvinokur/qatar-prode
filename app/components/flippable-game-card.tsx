@@ -141,7 +141,7 @@ export default function FlippableGameCard({
       // Restore focus to edit button after flip animation completes
       setTimeout(() => {
         const cardElement = document.querySelector(`[data-game-id="${game.id}"]`);
-        const editButton = cardElement?.querySelector<HTMLButtonElement>('button[aria-label*="Editar"]');
+        const editButton = cardElement?.querySelector<HTMLButtonElement>('button[data-action="edit-prediction"]');
         editButton?.focus();
       }, flipDuration * 1000 + 50); // Wait for flip + small buffer
     } catch (error: any) {
@@ -168,7 +168,7 @@ export default function FlippableGameCard({
     // Restore focus to edit button after flip animation completes
     setTimeout(() => {
       const cardElement = document.querySelector(`[data-game-id="${game.id}"]`);
-      const editButton = cardElement?.querySelector<HTMLButtonElement>('button[aria-label*="Editar"]');
+      const editButton = cardElement?.querySelector<HTMLButtonElement>('button[data-action="edit-prediction"]');
       editButton?.focus();
     }, flipDuration * 1000 + 50); // Wait for flip + small buffer
   };

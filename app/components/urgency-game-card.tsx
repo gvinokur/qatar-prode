@@ -10,6 +10,7 @@ import {
   useTheme
 } from '@mui/material';
 import { Edit as EditIcon } from '@mui/icons-material';
+import { useTranslations } from 'next-intl';
 import type { ExtendedGameData } from '../definitions';
 import type { Team } from '../db/tables-definition';
 import GameCountdownDisplay from './game-countdown-display';
@@ -39,6 +40,7 @@ export function UrgencyGameCard({
   disabled = false
 }: UrgencyGameCardProps) {
   const theme = useTheme();
+  const t = useTranslations('predictions');
 
   // Get team info
   const homeTeam = game.home_team ? teamsMap[game.home_team] : null;
@@ -104,7 +106,7 @@ export function UrgencyGameCard({
 
           {/* vs */}
           <Typography variant="body2" color="text.secondary" sx={{ mx: 0.5, flexShrink: 0 }}>
-            vs
+            {t('game.vs')}
           </Typography>
 
           {/* Away team */}
@@ -154,7 +156,8 @@ export function UrgencyGameCard({
           <IconButton
             size="small"
             onClick={() => onEdit(game.id)}
-            aria-label={`Editar predicción: ${homeTeamName} vs ${awayTeamName}`}
+            aria-label={t('game.editPrediction', { homeTeam: homeTeamName, awayTeam: awayTeamName })}
+            data-action="edit-prediction"
             sx={{ flexShrink: 0 }}
           >
             <EditIcon fontSize="small" />

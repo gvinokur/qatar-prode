@@ -16,6 +16,7 @@ import {
 import { Edit as EditIcon, Save as SaveIcon, SaveOutlined as SaveOutlinedIcon, Scoreboard as ScoreboardIcon, EmojiEvents as TrophyIcon } from "@mui/icons-material";
 import { GameResultNew, Theme} from "../db/tables-definition";
 import {useState} from "react";
+import { useTranslations } from 'next-intl';
 import {getThemeLogoUrl} from "../utils/theme-utils";
 import { calculateFinalPoints } from "../utils/point-calculator";
 import GameCardPointOverlay from "./game-card-point-overlay";
@@ -88,6 +89,7 @@ export default function CompactGameViewCard({
   ...specificProps
 }: CompactGameViewCardProps) {
   const theme = useTheme();
+  const t = useTranslations('predictions');
   const hasResult = Number.isInteger(homeScore) && Number.isInteger(awayScore);
   const [publishing, setPublishing] = useState(false);
 
@@ -322,7 +324,7 @@ export default function CompactGameViewCard({
                 </Typography>
               ) : (
                 <Typography variant="caption" color="text.secondary">
-                  vs
+                  {t('game.vs')}
                 </Typography>
               )}
             </Grid>
