@@ -23,32 +23,31 @@ export function getUserLocalTime(date: Date, locale: Locale = 'es'): string {
 
 /**
  * Format game date in compact format with timezone
- * Format: "DD MMM HH:mm GMT±X" (label handled separately by component)
- * Example: "18 Jan 15:00 GMT-5" or "18 ene 15:00 GMT-5"
- *
- * Note: Components should add timezone label separately as clickable link
+ * Format: "DD MMM HH:mm GMT±X (Local Time)" or "DD MMM HH:mm GMT±X (Horario Local)"
+ * Example: "18 Jan 15:00 GMT-5 (Local Time)" or "18 ene 15:00 GMT-5 (Horario Local)"
  */
 export function getCompactGameTime(date: Date, gameTimezone?: string, locale: Locale = 'es'): string {
   const d = dayjs(date).locale(locale);
+  const label = locale === 'en' ? 'Local Time' : 'Horario Local';
+
   if (gameTimezone && Intl.supportedValuesOf('timeZone').includes(gameTimezone)) {
-    // Format: "18 ene 15:00" + timezone offset
+    // Format: "18 ene 15:00" + timezone offset + label
     const formatted = d.tz(gameTimezone).format('D MMM HH:mm');
     const offset = d.tz(gameTimezone).format('Z'); // e.g., "-05:00"
     const offsetShort = `GMT${offset.substring(0, 3)}`; // e.g., "GMT-5"
-    return `${formatted} ${offsetShort}`;
+    return `${formatted} ${offsetShort} (${label})`;
   }
   return d.format('D MMM HH:mm');
 }
 
 /**
  * Format user's local time in compact format
- * Format: "DD MMM HH:mm" (label handled separately by component)
- * Example: "18 Jan 14:00" or "18 ene 14:00"
- *
- * Note: Components should add timezone label separately as clickable link
+ * Format: "DD MMM HH:mm (Your Time)" or "DD MMM HH:mm (Tu Horario)"
+ * Example: "18 Jan 14:00 (Your Time)" or "18 ene 14:00 (Tu Horario)"
  */
 export function getCompactUserTime(date: Date, locale: Locale = 'es'): string {
-  return dayjs(date).locale(locale).format('D MMM HH:mm');
+  const label = locale === 'en' ? 'Your Time' : 'Tu Horario';
+  return `${dayjs(date).locale(locale).format('D MMM HH:mm')} (${label})`;
 }
 
 /**

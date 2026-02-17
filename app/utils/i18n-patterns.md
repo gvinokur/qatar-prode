@@ -112,15 +112,15 @@ export default function GameCountdownDisplay({ gameDate, gameTimezone }) {
 
   // Format game time with current locale
   const gameTime = getCompactGameTime(gameDate, gameTimezone, locale);
-  // Returns: "18 Jan 15:00 GMT-5" (en) or "18 ene 15:00 GMT-5" (es)
+  // Returns: "18 Jan 15:00 GMT-5 (Local Time)" (en) or "18 ene 15:00 GMT-5 (Horario Local)" (es)
 
   const userTime = getCompactUserTime(gameDate, locale);
-  // Returns: "18 Jan 14:00" (en) or "18 ene 14:00" (es)
+  // Returns: "18 Jan 14:00 (Your Time)" (en) or "18 ene 14:00 (Tu Horario)" (es)
 
   return (
     <div>
-      <p>Game time: {gameTime}</p>
-      <p>Your time: {userTime}</p>
+      <p>{gameTime}</p>
+      <p>{userTime}</p>
     </div>
   );
 }
@@ -151,12 +151,10 @@ const gameTime = getCompactGameTime(game.date, game.timezone, locale);
 ### Function Reference
 
 - **`getCompactGameTime(date, timezone, locale = 'es')`**
-  Returns: `"18 Jan 15:00 GMT-5"` or `"18 ene 15:00 GMT-5"`
-  Note: Label ("Horario Local") handled separately by component
+  Returns: `"18 Jan 15:00 GMT-5 (Local Time)"` or `"18 ene 15:00 GMT-5 (Horario Local)"`
 
 - **`getCompactUserTime(date, locale = 'es')`**
-  Returns: `"18 Jan 14:00"` or `"18 ene 14:00"`
-  Note: Label ("Tu Horario") handled separately by component
+  Returns: `"18 Jan 14:00 (Your Time)"` or `"18 ene 14:00 (Tu Horario)"`
 
 - **`getLocalGameTime(date, timezone?, locale = 'es')`**
   Returns: `"Jan 18, 2026 - 15:00"` or `"ene 18, 2026 - 15:00"`

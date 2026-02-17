@@ -59,6 +59,8 @@ describe('date-utils', () => {
       expect(result).toContain('dic');
       // Should include GMT offset
       expect(result).toContain('GMT');
+      // Should include Spanish label
+      expect(result).toContain('(Horario Local)');
     });
 
     it('should format with English locale when provided', () => {
@@ -67,15 +69,8 @@ describe('date-utils', () => {
       expect(result).toContain('Dec');
       // Should include GMT offset
       expect(result).toContain('GMT');
-    });
-
-    it('should NOT include label in return value', () => {
-      const result = getCompactGameTime(mockDate, 'America/New_York');
-      // Labels removed - component handles separately
-      expect(result).not.toContain('Horario Local');
-      expect(result).not.toContain('Local Time');
-      expect(result).not.toContain('(');
-      expect(result).not.toContain(')');
+      // Should include English label
+      expect(result).toContain('(Local Time)');
     });
 
     it('should return local formatted time when timezone is not provided', () => {
@@ -96,21 +91,16 @@ describe('date-utils', () => {
       const result = getCompactUserTime(mockDate);
       // Spanish month abbreviation
       expect(result).toContain('dic');
+      // Should include Spanish label
+      expect(result).toContain('(Tu Horario)');
     });
 
     it('should format with English locale when provided', () => {
       const result = getCompactUserTime(mockDate, 'en');
       // English month abbreviation
       expect(result).toContain('Dec');
-    });
-
-    it('should NOT include label in return value', () => {
-      const result = getCompactUserTime(mockDate);
-      // Labels removed - component handles separately
-      expect(result).not.toContain('Tu Horario');
-      expect(result).not.toContain('Your Time');
-      expect(result).not.toContain('(');
-      expect(result).not.toContain(')');
+      // Should include English label
+      expect(result).toContain('(Your Time)');
     });
 
     it('should handle different date formats', () => {
