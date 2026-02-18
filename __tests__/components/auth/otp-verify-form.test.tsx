@@ -9,31 +9,9 @@ import * as otpActions from '../../../app/actions/otp-actions';
 
 // Mock next-intl with translation support
 vi.mock('next-intl', () => ({
-  useTranslations: () => {
-    return (key: string, values?: Record<string, any>) => {
-      const templates: Record<string, string> = {
-        'otp.instruction': 'Ingrese el código OTP enviado a:',
-        'otp.timer.expired': 'El código OTP ha expirado',
-        'otp.timer.expiresIn': 'El código expira en {time}',
-        'otp.digit.ariaLabel': 'Dígito OTP {current} de {total}',
-        'otp.resend.prompt': 'No recibió el código?',
-        'otp.resend.action': 'Reenviar',
-        'otp.resend.countdown': 'Reenviar en {seconds}s',
-        'otp.buttons.back': 'Atrás',
-        'otp.buttons.verify': 'Verificar',
-        'otp.buttons.verifying': 'Verificando...',
-        'otp.errors.incorrect': 'Código incorrecto',
-        'otp.errors.required': 'Ingrese un código de 6 dígitos',
-        'otp.errors.verifyFailed': 'Error al verificar',
-      };
-
-      let template = templates[key] || key;
-
-      if (values) {
-        // Simple template interpolation
-        Object.entries(values).forEach(([k, v]) => {
-          template = template.replace(`{${k}}`, String(v));
-        });
+  useTranslations: vi.fn(),
+  useLocale: vi.fn(() => 'es'),
+}));
       }
 
       return template;

@@ -45,12 +45,12 @@ describe('ForgotPasswordForm', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSendPasswordResetLink.mockResolvedValue({ success: true, messageId: 'test-message-id' 
+    mockSendPasswordResetLink.mockResolvedValue({ success: true, messageId: 'test-message-id' });
+
     // Setup i18n mocks
     vi.mocked(intl.useTranslations).mockReturnValue(
       createMockTranslations('auth')
     );
-  });
   });
 
   afterEach(() => {

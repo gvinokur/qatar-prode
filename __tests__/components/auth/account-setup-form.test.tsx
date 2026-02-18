@@ -29,62 +29,9 @@ vi.mock('next-auth/react', () => ({
 
 // Mock next-intl with translation interpolation support
 vi.mock('next-intl', () => ({
-  useTranslations: () => (key: string, params?: Record<string, any>) => {
-    const translations: Record<string, string> = {
-      'auth.accountSetup.instruction': 'Completa tu perfil para continuar',
-      'auth.accountSetup.nickname.label': 'Nickname',
-      'auth.accountSetup.nickname.placeholder': 'Elige tu nombre de usuario',
-      'auth.accountSetup.nickname.available': 'Nickname disponible',
-      'auth.accountSetup.nickname.minLength': `El nickname debe tener al menos {min} caracteres`,
-      'auth.accountSetup.nickname.maxLength': `El nickname no puede exceder {max} caracteres`,
-      'auth.accountSetup.nickname.required': 'El nickname es requerido',
-      'auth.accountSetup.nickname.unavailable': 'Este nickname no está disponible',
-      'auth.accountSetup.password.label': 'Contraseña (opcional)',
-      'auth.accountSetup.password.optional': 'Puedes crear una contraseña para mayor seguridad',
-      'auth.accountSetup.password.minLength': `La contraseña debe tener al menos {min} caracteres`,
-      'auth.accountSetup.buttons.cancel': 'Cancelar',
-      'auth.accountSetup.buttons.submit': 'Crear Cuenta',
-      'auth.accountSetup.buttons.submitting': 'Creando...',
-      'auth.accountSetup.errors.createFailed': 'Error al crear la cuenta',
-      'auth.accountSetup.errors.createAndLoginFailed': 'Error al crear la cuenta e iniciar sesión',
-    };
-
-    if (key === 'auth.accountSetup.nickname.minLength' && params?.min) {
-      return `El nickname debe tener al menos ${params.min} caracteres`;
-    }
-    if (key === 'auth.accountSetup.nickname.maxLength' && params?.max) {
-      return `El nickname no puede exceder ${params.max} caracteres`;
-    }
-    if (key === 'auth.accountSetup.password.minLength' && params?.min) {
-      return `La contraseña debe tener al menos ${params.min} caracteres`;
-    }
-
-    return translations[key] || key;
-  },
-  useLocale: () => 'es',
+  useTranslations: vi.fn(),
+  useLocale: vi.fn(() => 'es'),
 }));
-
-describe('AccountSetupForm', () => {
-  const mockOnSuccess = vi.fn();
-  const mockOnCancel = vi.fn();
-
-  const defaultProps = {
-    email: 'test@example.com',
-    verifiedOTP: '123456',
-    onSuccess: mockOnSuccess,
-    onCancel: mockOnCancel
-  };
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    vi.mocked(otpActions.checkNicknameAvailability).mockResolvedValue({
-      available: true
-    
-    // Setup i18n mocks
-    vi.mocked(intl.useTranslations).mockReturnValue(
-      createMockTranslations('auth')
-    );
-  });
   });
 
   it('should render the form with nickname field', () => {
