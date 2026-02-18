@@ -17,13 +17,15 @@ The application has hardcoded error messages and validation text scattered acros
 - Zod validation schemas have hardcoded English error messages
 - Error boundary has hardcoded English text
 - No consistent pattern for error message i18n in server actions
-- English translation files use `EnOf()` placeholders instead of proper English text
+- Missing English translation keys for new error messages (need `EnOf()` placeholders)
 
 **Scope:**
 - Server action error messages in `app/actions/*.ts`
 - Zod schema validation messages
 - Error boundary messages (`app/[locale]/tournaments/[id]/error.tsx`)
-- Complete English translations for `locales/en/errors.json` and `locales/en/validation.json`
+- Add missing English translation keys in `EnOf()` format for `locales/en/errors.json` and `locales/en/validation.json`
+
+**Note:** English translations use `EnOf(Spanish text)` format by design. Actual English translation will be done by a translator in a future story. This story focuses on i18n infrastructure and using translation keys throughout the codebase.
 
 ## Acceptance Criteria
 
@@ -31,7 +33,7 @@ The application has hardcoded error messages and validation text scattered acros
 - [ ] All Zod validation messages use `getTranslations('validation')` instead of hardcoded strings
 - [ ] Error boundary uses `useTranslations('errors')` for all text
 - [ ] Spanish translations preserved in `locales/es/errors.json` and `locales/es/validation.json`
-- [ ] English translations completed in `locales/en/errors.json` and `locales/en/validation.json` (remove `EnOf()` wrappers)
+- [ ] English translations added in `locales/en/errors.json` and `locales/en/validation.json` (using `EnOf()` format)
 - [ ] Create i18n utility helper for server actions: `getServerTranslations()` that automatically detects locale
 - [ ] All 21 server action files audited and updated
 - [ ] Consistent error response format: `{ success: false, error: string }` or `{ error: string }`
@@ -42,11 +44,13 @@ The application has hardcoded error messages and validation text scattered acros
 
 ## Technical Approach
 
-### 1. Complete English Translation Files
+### 1. Add Missing English Translation Keys (EnOf Format)
+
+**Important:** All English translations MUST use `EnOf(Spanish text)` format. This is by design until a professional translator works on proper English translations in a future story.
 
 **Files to update:**
-- `locales/en/errors.json` - Replace `EnOf()` wrappers with proper English translations
-- `locales/en/validation.json` - Replace `EnOf()` wrappers with proper English translations
+- `locales/en/errors.json` - Add missing keys in `EnOf()` format
+- `locales/en/validation.json` - Add missing keys in `EnOf()` format
 
 **Current state (errors.json):**
 ```json
@@ -60,74 +64,80 @@ The application has hardcoded error messages and validation text scattered acros
 }
 ```
 
-**Target state (errors.json):**
+**Target state (errors.json) - Keep EnOf() format:**
 ```json
 {
-  "generic": "An unexpected error occurred. Please try again.",
-  "unauthorized": "Unauthorized",
-  "notFound": "Not found",
+  "generic": "EnOf(Ocurrió un error inesperado. Por favor, inténtalo de nuevo.)",
+  "unauthorized": "EnOf(No autorizado)",
+  "notFound": "EnOf(No encontrado)",
   "auth": {
-    "invalidCredentials": "Invalid email or password",
-    "googleAccount": "This account uses Google sign-in.",
-    "emailSendFailed": "Failed to send email. Please try again.",
-    "passwordUpdateFailed": "Failed to update password. Please try again.",
-    "noUser": "No user found with that email",
-    "passwordRequired": "Password is required for signup",
-    "userExists": "A user with that email already exists",
-    "invalidToken": "Invalid or expired token",
-    "tokenExpired": "Token has expired",
-    "verificationFailed": "Failed to verify email"
+    "invalidCredentials": "EnOf(Email o contraseña inválida)",
+    "googleAccount": "EnOf(Esta cuenta usa inicio de sesión con Google.)",
+    "emailSendFailed": "EnOf(Error al enviar el correo electrónico. Por favor, inténtalo de nuevo.)",
+    "passwordUpdateFailed": "EnOf(Error al actualizar la contraseña. Por favor, inténtalo de nuevo.)",
+    "noUser": "EnOf(No existe un usuario con ese e-mail)",
+    "passwordRequired": "EnOf(La contraseña es requerida para registrarse)",
+    "userExists": "EnOf(Ya existe un usuario con ese e-mail)",
+    "invalidToken": "EnOf(Token inválido o expirado)",
+    "tokenExpired": "EnOf(El token ha expirado)",
+    "verificationFailed": "EnOf(Error al verificar el correo electrónico)"
   },
   "groups": {
-    "copyFailed": "Failed to copy: {error}",
-    "notFound": "Group not found",
-    "unauthorized": "Only the group owner can perform this action",
-    "cannotLeave": "The group owner cannot leave the group",
-    "joinFailed": "Failed to join group",
-    "uploadFailed": "Image upload failed. Please try again with a smaller file.",
-    "fileTooLarge": "File is too large. Maximum size is 5MB."
+    "copyFailed": "EnOf(Error al copiar: {error})",
+    "notFound": "EnOf(El grupo no existe)",
+    "unauthorized": "EnOf(Solo el dueño del grupo puede realizar esta acción)",
+    "cannotLeave": "EnOf(El dueño del grupo no puede dejar el grupo)",
+    "joinFailed": "EnOf(Error al unirse al grupo)",
+    "uploadFailed": "EnOf(Error al subir la imagen. Por favor, inténtalo de nuevo con un archivo más pequeño.)",
+    "fileTooLarge": "EnOf(El archivo es demasiado grande. El tamaño máximo es 5MB.)"
   },
   "account": {
-    "deleteFailed": "Failed to delete account. Please try again."
+    "deleteFailed": "EnOf(Error al eliminar la cuenta. Por favor, inténtalo de nuevo.)"
   },
   "validation": {
-    "invalidImage": "Invalid image file",
-    "fileSizeExceeded": "File size exceeded",
-    "bodyExceeded": "Request body is too large"
+    "invalidImage": "EnOf(Archivo de imagen inválido)",
+    "fileSizeExceeded": "EnOf(Tamaño de archivo excedido)",
+    "bodyExceeded": "EnOf(El cuerpo de la solicitud es demasiado grande)"
+  },
+  "tournament": {
+    "accessDenied": "EnOf(Acceso Denegado)",
+    "noPermission": "EnOf(No tienes permiso para ver este torneo. Este es un torneo de desarrollo que requiere acceso especial.)",
+    "contactAdmin": "EnOf(Si crees que deberías tener acceso, por favor contacta a un administrador.)",
+    "returnHome": "EnOf(Volver al Inicio)"
   }
 }
 ```
 
-**Target state (validation.json):**
+**Target state (validation.json) - Keep EnOf() format:**
 ```json
 {
-  "required": "Required",
-  "optional": "Optional",
+  "required": "EnOf(Requerido)",
+  "optional": "EnOf(Opcional)",
   "email": {
-    "invalid": "Invalid email address",
-    "required": "Please enter your email"
+    "invalid": "EnOf(Dirección de e-mail inválida)",
+    "required": "EnOf(Por favor ingrese su e-mail)"
   },
   "password": {
-    "required": "Password is required",
-    "minLength": "Password must be at least {min} characters"
+    "required": "EnOf(La contraseña es requerida)",
+    "minLength": "EnOf(La contraseña debe tener al menos {min} caracteres)"
   },
   "nickname": {
-    "required": "Nickname is required",
-    "minLength": "Nickname must be at least {min} characters",
-    "maxLength": "Nickname must be at most {max} characters",
-    "unavailable": "This nickname is not available",
-    "available": "✓ Available"
+    "required": "EnOf(El nickname es requerido)",
+    "minLength": "EnOf(El nickname debe tener al menos {min} caracteres)",
+    "maxLength": "EnOf(El nickname debe tener máximo {max} caracteres)",
+    "unavailable": "EnOf(Este nickname no está disponible)",
+    "available": "EnOf(✓ Disponible)"
   },
   "groupName": {
-    "required": "Group name is required"
+    "required": "EnOf(El nombre del grupo es obligatorio)"
   },
   "confirmPassword": {
-    "mismatch": "Passwords do not match"
+    "mismatch": "EnOf(Las contraseñas no coinciden)"
   },
   "image": {
-    "required": "Please select an image",
-    "invalidType": ".jpg, .jpeg, .png and .webp files are accepted",
-    "tooLarge": "Max file size is 5MB"
+    "required": "EnOf(Por favor seleccione una imagen)",
+    "invalidType": "EnOf(Se aceptan archivos .jpg, .jpeg, .png y .webp)",
+    "tooLarge": "EnOf(El tamaño máximo del archivo es 5MB)"
   }
 }
 ```
@@ -215,6 +225,8 @@ Add these missing keys:
 ```
 
 ### 2. Create Server Action i18n Helper Utility
+
+**Note:** Based on review of existing i18n stories, this utility does NOT yet exist. The `app/utils/i18n-patterns.md` documents patterns but no server-i18n helper has been created yet.
 
 **Problem:** Server actions need locale context for translations.
 
@@ -556,8 +568,8 @@ const t = await getTranslations({ locale, namespace: 'errors' });
 
 ### Phase 1: Setup & Infrastructure
 1. Create `app/utils/server-i18n.ts` with helper utilities
-2. Complete English translations in `locales/en/errors.json`
-3. Complete English translations in `locales/en/validation.json`
+2. Add missing English translation keys in `locales/en/errors.json` (EnOf format)
+3. Add missing English translation keys in `locales/en/validation.json` (EnOf format)
 4. Add missing Spanish translation keys (maintain parity with English)
 
 ### Phase 2: Server Actions (High-Impact Files First)
@@ -719,7 +731,7 @@ This ensures all tests that use server actions with translations will have the m
 ## Validation Checklist (Pre-Merge)
 
 - [ ] All hardcoded error strings replaced with translation keys
-- [ ] English translation files completed (no `EnOf()` wrappers)
+- [ ] English translation keys added (with `EnOf()` wrappers as per design)
 - [ ] `getServerTranslations()` utility working correctly
 - [ ] All 21 server action files audited
 - [ ] Error boundary displays translated text
