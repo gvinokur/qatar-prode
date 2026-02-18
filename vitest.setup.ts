@@ -67,7 +67,7 @@ function getTranslation(namespace: string, key: string, values?: Record<string, 
 
   // Handle simple interpolation
   if (values) {
-    value = value.replace(/\{(\w+)\}/g, (match, varName) => {
+    value = value.replace(/\{(\w+)\}/g, (match: string, varName: string) => {
       return values[varName]?.toString() || match;
     });
   }
