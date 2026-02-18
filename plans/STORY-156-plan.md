@@ -9,7 +9,7 @@ This implementation will extract ~68 hardcoded Spanish strings from 9 components
 ## Objectives
 
 1. **Extract hardcoded strings** from friend groups components into `locales/es/groups.json`
-2. **Add English translations** to `locales/en/groups.json` (replacing stub entries)
+2. **Add English locale keys** to `locales/en/groups.json` using "EnOf(spanish text)" wrapper pattern (actual translations will be done in Story #161)
 3. **Update components** to use `useTranslations()` hook from next-intl
 4. **Handle dynamic content** with proper variable interpolation (groupName, links)
 5. **Consolidate common strings** by using `common` namespace for shared buttons
@@ -19,7 +19,7 @@ This implementation will extract ~68 hardcoded Spanish strings from 9 components
 
 - [ ] All 9 components use `useTranslations()` hook for text content
 - [ ] All hardcoded Spanish strings extracted to `locales/es/groups.json`
-- [ ] All English translations added to `locales/en/groups.json`
+- [ ] All English locale keys added to `locales/en/groups.json` using "EnOf(spanish text)" wrapper pattern
 - [ ] Dynamic content (group names, links) uses proper variable interpolation
 - [ ] Common strings (Cancel, Create, Close buttons) reference `common` namespace
 - [ ] Language switcher changes friend groups text in real-time
@@ -187,142 +187,142 @@ Add new sections to the EXISTING structure (keeping all Story #150 content):
 ```
 
 **Update `locales/en/groups.json`:**
-Replace **ALL "EnOf(...)" placeholder wrappers** with actual English translations, maintaining the same structure as Spanish:
+Add new translation keys using the **"EnOf(spanish text)" wrapper pattern**, maintaining the same structure as Spanish. This pattern will be replaced with actual English translations in Story #161 (LLM-Assisted English Translation):
 
 ```json
 {
-  "title": "Friend Groups",
+  "title": "EnOf(Grupos de Amigos)",
   "status": {
-    "youAreHere": "You are here"
+    "youAreHere": "EnOf(Estás aquí)"
   },
   "actions": {
-    "create": "Create Group",
-    "delete": "Delete Group",
-    "invite": "Invite Friends",
-    "inviteMore": "Invite more friends",
-    "join": "Join Group",
-    "view": "View Groups"
+    "create": "EnOf(Crear Grupo)",
+    "delete": "EnOf(Borrar Grupo)",
+    "invite": "EnOf(Invitar Amigos)",
+    "inviteMore": "EnOf(Invitar mas amigos)",
+    "join": "EnOf(Unirse al Grupo)",
+    "view": "EnOf(Ver Grupos)"
   },
   "create": {
-    "title": "Create Friend Group",
-    "description": "A friend group allows you to have a private leaderboard. Create as many groups as you want to play with different friend circles.",
+    "title": "EnOf(Crear Grupo de Amigos)",
+    "description": "EnOf(Un grupo de amigos te permite tener un ranking privado. Crea tantos grupos como quieras para jugar con diferentes círculos de amigos.)",
     "nameField": {
-      "label": "Name",
-      "required": "Group name is required"
+      "label": "EnOf(Nombre)",
+      "required": "EnOf(El nombre del grupo es obligatorio)"
     },
     "buttons": {
-      "cancel": "Cancel",
-      "create": "Create"
+      "cancel": "EnOf(Cancelar)",
+      "create": "EnOf(Crear)"
     }
   },
   "delete": {
-    "title": "Delete Group",
-    "confirmation": "Are you sure you want to delete this group?"
+    "title": "EnOf(Borrar Grupo)",
+    "confirmation": "EnOf(¿Estás seguro de que quieres borrar este grupo?)"
   },
   "invite": {
-    "title": "Invite friends to {groupName}",
-    "description": "Share this link with your friends to join the group.",
-    "directShare": "Or share directly through:",
-    "message": "Hi! I invite you to join our group \"{groupName}\" to play predictions in current and future tournaments. Use this link to join: {link}",
-    "emailSubject": "Invitation to \"{groupName}\" Predictions Group",
+    "title": "EnOf(Invitar amigos a {groupName})",
+    "description": "EnOf(Comparte este enlace con tus amigos para que se unan al grupo.)",
+    "directShare": "EnOf(O comparte directamente a través de:)",
+    "message": "EnOf(¡Hola! Te invito a unirte a nuestro grupo \"{groupName}\" para jugar en al prode en los torneos actuales y futuros. Usa este enlace para unirte: {link})",
+    "emailSubject": "EnOf(Invitación al grupo \"{groupName}\" del Prode)",
     "buttons": {
-      "email": "Email",
-      "whatsapp": "WhatsApp"
+      "email": "EnOf(Email)",
+      "whatsapp": "EnOf(WhatsApp)"
     },
     "feedback": {
-      "copied": "Link copied to clipboard!",
-      "copyError": "Error copying link"
+      "copied": "EnOf(¡Enlace copiado al portapapeles!)",
+      "copyError": "EnOf(Error al copiar el enlace)"
     }
   },
   "join": {
-    "title": "Join a Group",
+    "title": "EnOf(Unirse a un Grupo)",
     "codeField": {
-      "label": "Group Code",
-      "placeholder": "Enter the group code",
-      "required": "Please enter a group code"
+      "label": "EnOf(Código de Grupo)",
+      "placeholder": "EnOf(Ingresa el código del grupo)",
+      "required": "EnOf(Por favor ingresa un código de grupo)"
     },
     "buttons": {
-      "cancel": "Cancel",
-      "join": "Join Group"
+      "cancel": "EnOf(Cancelar)",
+      "join": "EnOf(Unirse al Grupo)"
     }
   },
   "leave": {
-    "button": "Leave group",
+    "button": "EnOf(Dejar grupo)",
     "confirmation": {
-      "title": "Are you sure?",
-      "message": "Do you want to leave this group? You will no longer be able to compete with your friends."
+      "title": "EnOf(¿Estás seguro?)",
+      "message": "EnOf(¿Quieres dejar este grupo? Ya no podras competir con tus amigos.)"
     },
     "feedback": {
-      "success": "You have successfully left the group.",
-      "error": "Error leaving the group."
+      "success": "EnOf(Has dejado el grupo exitosamente.)",
+      "error": "EnOf(Error al dejar el grupo.)"
     }
   },
   "notifications": {
-    "sendButton": "Send Notification",
+    "sendButton": "EnOf(Enviar Notificación)",
     "dialog": {
-      "title": "Send Notification to Participants",
-      "targetLabel": "Destination",
+      "title": "EnOf(Enviar Notificación a Participantes)",
+      "targetLabel": "EnOf(Destino)",
       "targetOptions": {
-        "tournament": "Tournament page",
-        "friendsGroup": "Friend group page"
+        "tournament": "EnOf(Página del torneo)",
+        "friendsGroup": "EnOf(Página del grupo de amigos)"
       },
-      "titleLabel": "Title",
-      "messageLabel": "Message"
+      "titleLabel": "EnOf(Título)",
+      "messageLabel": "EnOf(Mensaje)"
     },
     "feedback": {
-      "success": "Notification sent",
-      "error": "Error sending notification"
+      "success": "EnOf(Notificación enviada)",
+      "error": "EnOf(Error al enviar notificación)"
     }
   },
   "standings": {
-    "title": "Leaderboard",
-    "empty": "No active tournaments available at this time."
+    "title": "EnOf(Tabla de Posiciones)",
+    "empty": "EnOf(No hay torneos activos disponibles en este momento.)"
   },
   "betting": {
-    "statusEnabled": "Betting enabled",
-    "statusDisabled": "Betting disabled",
-    "toggleEnable": "Enable",
-    "toggleDisable": "Disable",
-    "amountLabel": "Bet amount",
-    "descriptionLabel": "Payment description",
-    "paymentStatusLabel": "Payment status",
+    "statusEnabled": "EnOf(Apuesta habilitada)",
+    "statusDisabled": "EnOf(Apuesta deshabilitada)",
+    "toggleEnable": "EnOf(Habilitar)",
+    "toggleDisable": "EnOf(Deshabilitar)",
+    "amountLabel": "EnOf(Monto de la apuesta)",
+    "descriptionLabel": "EnOf(Descripción del pago)",
+    "paymentStatusLabel": "EnOf(Estado de pago)",
     "tableHeaders": {
-      "name": "Name",
-      "paid": "Paid?",
-      "actions": "Actions"
+      "name": "EnOf(Nombre)",
+      "paid": "EnOf(¿Pagó?)",
+      "actions": "EnOf(Acciones)"
     },
-    "changeButton": "Change",
+    "changeButton": "EnOf(Cambiar)",
     "summary": {
-      "perPerson": "Amount per person:",
-      "total": "Total amount:",
-      "description": "Description:",
-      "paidList": "Paid:"
+      "perPerson": "EnOf(Monto por persona:)",
+      "total": "EnOf(Monto acumulado:)",
+      "description": "EnOf(Descripción:)",
+      "paidList": "EnOf(Pagaron:)"
     },
     "feedback": {
-      "configSaved": "Configuration saved!",
-      "configError": "Error saving configuration",
-      "paymentUpdated": "Payment status updated!",
-      "paymentError": "Error updating payment status"
+      "configSaved": "EnOf(¡Configuración guardada!)",
+      "configError": "EnOf(Error al guardar la configuración)",
+      "paymentUpdated": "EnOf(¡Estado de pago actualizado!)",
+      "paymentError": "EnOf(Error al actualizar el estado de pago)"
     }
   },
   "joinMessage": {
-    "title": "Welcome!!",
-    "body": "Thank you for joining this group.\nNow you can compete against many friends."
+    "title": "EnOf(Bienvenido!!)",
+    "body": "EnOf(Gracias por unirte a este grupo.\nAhora vas a poder competir contra un montón de amigos.)"
   },
   "create": {
-    "button": "Create Friend Group",
+    "button": "EnOf(Crear Grupo de Amigos)",
     "dialog": {
-      "title": "Create Friend Group",
-      "description": "A friend group allows you to have a private leaderboard. Create as many groups as you want, your predictions will be used to calculate your position in all of them.",
-      "nameLabel": "Name",
+      "title": "EnOf(Crear Grupo de Amigos)",
+      "description": "EnOf(Un grupo de amigos te permite tener un ranking privado. Crea tantos grupos como quieras, tus mismos pronósticos serán usados para calcular tu posición en todos ellos.)",
+      "nameLabel": "EnOf(Nombre)",
       "validation": {
-        "required": "Group name is required"
+        "required": "EnOf(El nombre del grupo es obligatorio)"
       }
     }
   },
   "list": {
-    "title": "Friend Groups",
-    "joinButton": "Join"
+    "title": "EnOf(Grupos de Amigos)",
+    "joinButton": "EnOf(Unirse)"
   }
 }
 ```
@@ -465,34 +465,34 @@ Add only new buttons to existing structure:
 ```
 
 **Update English (`locales/en/common.json`):**
-Replace "EnOf(...)" wrappers with actual English translations + add new buttons:
+Keep existing "EnOf(...)" wrappers + add new buttons using same pattern:
 ```json
 {
   "app": {
-    "name": "World Predictions",
-    "description": "Sports prediction platform",
-    "loading": "Loading...",
-    "error": "An error occurred"
+    "name": "EnOf(Prode Mundial)",
+    "description": "EnOf(Plataforma de pronósticos deportivos)",
+    "loading": "EnOf(Cargando...)",
+    "error": "EnOf(Ocurrió un error)"
   },
   "buttons": {
-    "save": "Save",
-    "cancel": "Cancel",
-    "delete": "Delete",
-    "edit": "Edit",
-    "close": "Close",
-    "create": "Create",
-    "confirm": "Confirm",
-    "copy": "Copy",         // ← ADD THIS
-    "send": "Send",         // ← ADD THIS
-    "change": "Change"      // ← ADD THIS
+    "save": "EnOf(Guardar)",
+    "cancel": "EnOf(Cancelar)",
+    "delete": "EnOf(Eliminar)",
+    "edit": "EnOf(Editar)",
+    "close": "EnOf(Cerrar)",
+    "create": "EnOf(Crear)",
+    "confirm": "EnOf(Confirmar)",
+    "copy": "EnOf(Copiar)",         // ← ADD THIS
+    "send": "EnOf(Enviar)",         // ← ADD THIS
+    "change": "EnOf(Cambiar)"       // ← ADD THIS
   },
   "actions": {
-    "showMore": "show more",
-    "viewAll": "View all",
-    "back": "Back"
+    "showMore": "EnOf(mostrar más)",
+    "viewAll": "EnOf(Ver todo)",
+    "back": "EnOf(Volver)"
   },
   "home": {
-    "availableTournaments": "Available Tournaments"
+    "availableTournaments": "EnOf(Torneos Disponibles)"
   }
 }
 ```
@@ -750,7 +750,7 @@ test('leave group button shows success message in English', async () => {
 
 None - all concerns from plan review have been addressed:
 - ✅ Aligned plan with existing `groups.json` structure (extending, not replacing)
-- ✅ Replaced "EnOf(...)" placeholders with actual English translations
+- ✅ Maintaining "EnOf(...)" wrapper pattern for English locale keys (actual translations in Story #161)
 - ✅ Clarified common namespace usage (only adding new buttons)
 - ✅ Enhanced testing strategy with server action mocking examples
 - ✅ Added email subject line translation (was hardcoded)
