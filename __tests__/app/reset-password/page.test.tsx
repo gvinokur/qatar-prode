@@ -430,10 +430,8 @@ describe('ResetPasswordPage', () => {
         expect(screen.getByText('Password updated successfully')).toBeInTheDocument();
       });
 
-      // Use fake timers AFTER all waitFor calls
-      vi.useFakeTimers();
-      vi.advanceTimersByTime(3000);
-      vi.useRealTimers();
+      // Wait for the setTimeout to fire (3000ms + buffer)
+      await new Promise(resolve => setTimeout(resolve, 3100));
 
       expect(mockRouter.push).toHaveBeenCalledWith('/');
     });
