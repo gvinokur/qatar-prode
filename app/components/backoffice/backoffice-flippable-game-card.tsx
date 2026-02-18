@@ -42,6 +42,7 @@ export default function BackofficeFlippableGameCard({
   // Refs for focus management
   const homeScoreInputRef = useRef<HTMLInputElement | null>(null);
   const awayScoreInputRef = useRef<HTMLInputElement | null>(null);
+  const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Flip animation duration (slightly slower on mobile)
   const flipDuration = isMobile ? 0.5 : 0.4;
@@ -63,6 +64,15 @@ export default function BackofficeFlippableGameCard({
       setTimeout(() => homeScoreInputRef.current?.focus(), flipDuration * 1000);
     }
   }, [isEditing, flipDuration]);
+
+  // Cleanup focus timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (focusTimeoutRef.current) {
+        clearTimeout(focusTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleEditStart = () => {
     setIsEditing(true);
@@ -92,7 +102,7 @@ export default function BackofficeFlippableGameCard({
       setIsEditing(false);
 
       // Focus edit button after flip animation completes
-      setTimeout(() => {
+      focusTimeoutRef.current = setTimeout(() => {
         const cardElement = document.querySelector(`[data-game-id="${game.id}"]`);
         const editButton = cardElement?.querySelector<HTMLButtonElement>('button[aria-label*="Edit"]');
         editButton?.focus();
