@@ -294,7 +294,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
     if (dialogMode === 'resetSent') {
       return (
         <DialogActions>
-          <Button onClick={closeDialog}>{t('accountSetup.buttons.cancel')}</Button>
+          <Button onClick={closeDialog}>{t('dialog.buttons.close')}</Button>
         </DialogActions>
       );
     }
