@@ -2,8 +2,7 @@
 
 import { Typography, Box, Alert } from "@mui/material";
 import EmailIcon from '@mui/icons-material/Email';
-import { useTranslations, useLocale } from 'next-intl';
-import type { Locale } from '@/i18n.config';
+import { useTranslations } from 'next-intl';
 import {User} from "../../db/tables-definition";
 
 type VerificationSentViewProps = {
@@ -12,7 +11,6 @@ type VerificationSentViewProps = {
 
 export default function VerificationSentView({ user }: VerificationSentViewProps) {
   const t = useTranslations('auth');
-  const locale = useLocale() as Locale;
   return (
     <Box sx={{ padding: '16px 0', textAlign: 'center' }}>
       <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
