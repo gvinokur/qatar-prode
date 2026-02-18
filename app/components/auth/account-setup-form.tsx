@@ -6,6 +6,8 @@ import { Alert, Box, Button, TextField, Typography, InputAdornment, IconButton }
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { createAccountViaOTP, checkNicknameAvailability } from "@/app/actions/otp-actions";
 import { signIn } from "next-auth/react";
+import { useTranslations, useLocale } from 'next-intl';
+import type { Locale } from '@/i18n.config';
 
 type AccountSetupFormProps = {
   readonly email: string;
@@ -15,6 +17,8 @@ type AccountSetupFormProps = {
 }
 
 export default function AccountSetupForm({ email, verifiedOTP, onSuccess, onCancel }: AccountSetupFormProps) {
+  const t = useTranslations('auth');
+  const locale = useLocale() as Locale;
   const router = useRouter();
   const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
@@ -36,19 +40,19 @@ export default function AccountSetupForm({ email, verifiedOTP, onSuccess, onCanc
     }
 
     if (trimmed.length < 3) {
-      setNicknameError('El nickname debe tener al menos 3 caracteres');
+      setNicknameError(t('accountSetup.nickname.minLength', { min: 3 }));
       return;
     }
 
     if (trimmed.length > 20) {
-      setNicknameError('El nickname debe tener máximo 20 caracteres');
+      setNicknameError(t('accountSetup.nickname.maxLength', { max: 20 }));
       return;
     }
 
     // Check availability (simplified - actual check would query DB)
-    const result = await checkNicknameAvailability(trimmed);
+    const result = await checkNicknameAvailability(trimmed, locale);
     if (!result.available) {
-      setNicknameError(result.error || 'Este nickname no está disponible');
+      setNicknameError(result.error || t('accountSetup.nickname.unavailable'));
     }
   };
 
@@ -58,7 +62,7 @@ export default function AccountSetupForm({ email, verifiedOTP, onSuccess, onCanc
     setPasswordError('');
 
     if (value.trim().length > 0 && value.length < 8) {
-      setPasswordError('La contraseña debe tener al menos 8 caracteres');
+      setPasswordError(t('accountSetup.password.minLength', { min: 8 }));
     }
   };
 
@@ -72,26 +76,26 @@ export default function AccountSetupForm({ email, verifiedOTP, onSuccess, onCanc
 
     // Validate nickname
     if (!trimmedNickname) {
-      setError('El nickname es requerido');
+      setError(t('accountSetup.nickname.required'));
       setLoading(false);
       return;
     }
 
     if (trimmedNickname.length < 3) {
-      setError('El nickname debe tener al menos 3 caracteres');
+      setError(t('accountSetup.nickname.minLength', { min: 3 }));
       setLoading(false);
       return;
     }
 
     if (trimmedNickname.length > 20) {
-      setError('El nickname debe tener máximo 20 caracteres');
+      setError(t('accountSetup.nickname.maxLength', { max: 20 }));
       setLoading(false);
       return;
     }
 
     // Validate password if provided
     if (trimmedPassword && trimmedPassword.length < 8) {
-      setError('La contraseña debe tener al menos 8 caracteres');
+      setError(t('accountSetup.password.minLength', { min: 8 }));
       setLoading(false);
       return;
     }
@@ -103,10 +107,10 @@ export default function AccountSetupForm({ email, verifiedOTP, onSuccess, onCanc
         nickname: trimmedNickname,
         password: trimmedPassword || null,
         verifiedOTP
-      });
+      }, locale);
 
       if (!result.success) {
-        setError(result.error || 'Error al crear la cuenta');
+        setError(result.error || t('accountSetup.errors.createFailed'));
         setLoading(false);
         return;
       }
@@ -122,12 +126,12 @@ export default function AccountSetupForm({ email, verifiedOTP, onSuccess, onCanc
         router.refresh();
         onSuccess();
       } else {
-        setError('Cuenta creada pero no se pudo iniciar sesión. Intenta iniciar sesión manualmente.');
+        setError(t('accountSetup.errors.createAndLoginFailed'));
         setLoading(false);
       }
     } catch (err) {
       console.error('Error creating account:', err);
-      setError('Error al crear la cuenta. Intenta nuevamente.');
+      setError(t('accountSetup.errors.createFailed'));
       setLoading(false);
     }
   };
@@ -151,17 +155,17 @@ export default function AccountSetupForm({ email, verifiedOTP, onSuccess, onCanc
       )}
 
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3, textAlign: 'center' }}>
-        ¡Email verificado! Ahora completa tu información para crear tu cuenta.
+        {t('accountSetup.instruction')}
       </Typography>
 
       {/* Nickname field */}
       <TextField
         fullWidth
-        label="Nickname"
+        label={t('accountSetup.nickname.label')}
         value={nickname}
         onChange={(e) => handleNicknameChange(e.target.value)}
         error={!!nicknameError}
-        helperText={nicknameError || (nickname.trim() && !nicknameError ? '✓ Disponible' : 'Requerido')}
+        helperText={nicknameError || (nickname.trim() && !nicknameError ? t('accountSetup.nickname.available') : t('accountSetup.nickname.placeholder'))}
         disabled={loading}
         variant="outlined"
         required
@@ -178,11 +182,11 @@ export default function AccountSetupForm({ email, verifiedOTP, onSuccess, onCanc
       <TextField
         fullWidth
         type={showPassword ? 'text' : 'password'}
-        label="Contraseña (opcional)"
+        label={t('accountSetup.password.label')}
         value={password}
         onChange={(e) => handlePasswordChange(e.target.value)}
         error={!!passwordError}
-        helperText={passwordError || 'Opcional: Crear contraseña por si acaso'}
+        helperText={passwordError || t('accountSetup.password.optional')}
         disabled={loading}
         variant="outlined"
         slotProps={{
@@ -193,7 +197,7 @@ export default function AccountSetupForm({ email, verifiedOTP, onSuccess, onCanc
             endAdornment: password && (
             <InputAdornment position="end">
               <IconButton
-                aria-label="toggle password visibility"
+                aria-label={t('login.password.toggleVisibility')}
                 onClick={() => setShowPassword(!showPassword)}
                 edge="end"
               >
@@ -212,14 +216,14 @@ export default function AccountSetupForm({ email, verifiedOTP, onSuccess, onCanc
           onClick={onCancel}
           disabled={loading}
         >
-          Cancelar
+          {t('accountSetup.buttons.cancel')}
         </Button>
         <Button
           type="submit"
           variant="contained"
           disabled={loading || !isFormValid()}
         >
-          {loading ? 'Creando cuenta...' : 'Crear cuenta'}
+          {loading ? t('accountSetup.buttons.submitting') : t('accountSetup.buttons.submit')}
         </Button>
       </Box>
     </Box>

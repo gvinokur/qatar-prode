@@ -12,7 +12,10 @@
     "edit": "Editar",
     "close": "Cerrar",
     "create": "Crear",
-    "confirm": "Confirmar"
+    "confirm": "Confirmar",
+    "continue": "Continuar",
+    "resend": "Reenviar",
+    "sending": "Enviando..."
   },
   "actions": {
     "showMore": "mostrar más",

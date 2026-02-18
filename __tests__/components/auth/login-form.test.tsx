@@ -1,11 +1,12 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import LoginForm from '../../../app/components/auth/login-form';
 import { setupTestMocks } from '../../mocks/setup-helpers';
+import { renderWithTheme } from '../../utils/test-utils';
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
@@ -54,7 +55,7 @@ describe('LoginForm', () => {
 
   describe('rendering', () => {
     it('renders login form with all required fields', () => {
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       expect(screen.getByLabelText('E-Mail')).toBeInTheDocument();
       expect(screen.getByLabelText('Contraseña')).toBeInTheDocument();
@@ -67,7 +68,7 @@ describe('LoginForm', () => {
         return null;
       });
       
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       expect(screen.getByText('¡Tu correo electrónico ha sido verificado exitosamente! Ahora puedes iniciar sesión.')).toBeInTheDocument();
     });
@@ -78,13 +79,13 @@ describe('LoginForm', () => {
         return null;
       });
       
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       expect(screen.queryByText('¡Tu correo electrónico ha sido verificado exitosamente! Ahora puedes iniciar sesión.')).not.toBeInTheDocument();
     });
 
     it('does not render verification message when verified param is not present', () => {
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       expect(screen.queryByText('¡Tu correo electrónico ha sido verificado exitosamente! Ahora puedes iniciar sesión.')).not.toBeInTheDocument();
     });
@@ -92,7 +93,7 @@ describe('LoginForm', () => {
 
   describe('form validation', () => {
     it('shows error when email is empty', async () => {
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       const submitButton = screen.getByRole('button', { name: 'Ingresar' });
       await user.click(submitButton);
@@ -101,7 +102,7 @@ describe('LoginForm', () => {
     });
 
     it('shows error when password is empty', async () => {
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       const emailInput = screen.getByLabelText('E-Mail');
       await user.type(emailInput, 'test@example.com');
@@ -116,7 +117,7 @@ describe('LoginForm', () => {
       const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(false);
       
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       const emailInput = screen.getByLabelText('E-Mail');
       await user.type(emailInput, 'invalid-email');
@@ -131,7 +132,7 @@ describe('LoginForm', () => {
       const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
       
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       const emailInput = screen.getByLabelText('E-Mail');
       const passwordInput = screen.getByLabelText('Contraseña');
@@ -148,7 +149,7 @@ describe('LoginForm', () => {
     });
 
     it('clears validation errors when input is corrected', async () => {
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       const emailInput = screen.getByLabelText('E-Mail');
       const submitButton = screen.getByRole('button', { name: 'Ingresar' });
@@ -167,7 +168,7 @@ describe('LoginForm', () => {
 
   describe('form submission', () => {
     it('calls signIn with correct credentials on successful validation', async () => {
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       const emailInput = screen.getByLabelText('E-Mail');
       const passwordInput = screen.getByLabelText('Contraseña');
@@ -189,7 +190,7 @@ describe('LoginForm', () => {
     it('calls onSuccess when login is successful', async () => {
       (signIn as any).mockResolvedValue({ ok: true });
       
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       const emailInput = screen.getByLabelText('E-Mail');
       const passwordInput = screen.getByLabelText('Contraseña');
@@ -207,7 +208,7 @@ describe('LoginForm', () => {
     it('refreshes router on successful login', async () => {
       (signIn as any).mockResolvedValue({ ok: true });
       
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       const emailInput = screen.getByLabelText('E-Mail');
       const passwordInput = screen.getByLabelText('Contraseña');
@@ -229,7 +230,7 @@ describe('LoginForm', () => {
         return null;
       });
       
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       const emailInput = screen.getByLabelText('E-Mail');
       const passwordInput = screen.getByLabelText('Contraseña');
@@ -247,7 +248,7 @@ describe('LoginForm', () => {
     it('does not redirect when callback URL is not present', async () => {
       (signIn as any).mockResolvedValue({ ok: true });
       
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       const emailInput = screen.getByLabelText('E-Mail');
       const passwordInput = screen.getByLabelText('Contraseña');
@@ -267,7 +268,7 @@ describe('LoginForm', () => {
     it('shows error message when login fails', async () => {
       (signIn as any).mockResolvedValue({ ok: false });
       
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       const emailInput = screen.getByLabelText('E-Mail');
       const passwordInput = screen.getByLabelText('Contraseña');
@@ -286,7 +287,7 @@ describe('LoginForm', () => {
       const errorMessage = 'Network error';
       (signIn as any).mockRejectedValue(new Error(errorMessage));
       
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       const emailInput = screen.getByLabelText('E-Mail');
       const passwordInput = screen.getByLabelText('Contraseña');
@@ -304,7 +305,7 @@ describe('LoginForm', () => {
     it('does not call onSuccess when login fails', async () => {
       (signIn as any).mockResolvedValue({ ok: false });
       
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       const emailInput = screen.getByLabelText('E-Mail');
       const passwordInput = screen.getByLabelText('Contraseña');
@@ -324,7 +325,7 @@ describe('LoginForm', () => {
     it('clears error message when form is resubmitted', async () => {
       (signIn as any).mockResolvedValueOnce({ ok: false }).mockResolvedValueOnce({ ok: true });
       
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       const emailInput = screen.getByLabelText('E-Mail');
       const passwordInput = screen.getByLabelText('Contraseña');
@@ -351,14 +352,14 @@ describe('LoginForm', () => {
 
   describe('form interaction', () => {
     it('focuses email input on render', () => {
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       const emailInput = screen.getByLabelText('E-Mail');
       expect(emailInput).toHaveFocus();
     });
 
     it('submits form when Enter is pressed', async () => {
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       const emailInput = screen.getByLabelText('E-Mail');
       const passwordInput = screen.getByLabelText('Contraseña');
@@ -373,7 +374,7 @@ describe('LoginForm', () => {
     });
 
     it('handles tab navigation correctly', async () => {
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       const emailInput = screen.getByLabelText('E-Mail');
       const passwordInput = screen.getByLabelText('Contraseña');
@@ -391,14 +392,14 @@ describe('LoginForm', () => {
 
   describe('accessibility', () => {
     it('has proper form labels', () => {
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       expect(screen.getByLabelText('E-Mail')).toBeInTheDocument();
       expect(screen.getByLabelText('Contraseña')).toBeInTheDocument();
     });
 
     it('shows field errors with proper accessibility attributes', async () => {
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       const submitButton = screen.getByRole('button', { name: 'Ingresar' });
       await user.click(submitButton);
@@ -409,7 +410,7 @@ describe('LoginForm', () => {
     });
 
     it('has proper button type for form submission', () => {
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       const submitButton = screen.getByRole('button', { name: 'Ingresar' });
       expect(submitButton).toHaveAttribute('type', 'submit');
@@ -424,7 +425,7 @@ describe('LoginForm', () => {
         return null;
       });
       
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       const emailInput = screen.getByLabelText('E-Mail');
       const passwordInput = screen.getByLabelText('Contraseña');
@@ -448,7 +449,7 @@ describe('LoginForm', () => {
         return null;
       });
       
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       const emailInput = screen.getByLabelText('E-Mail');
       const passwordInput = screen.getByLabelText('Contraseña');
@@ -467,7 +468,7 @@ describe('LoginForm', () => {
     });
 
     it('handles special characters in credentials', async () => {
-      render(<LoginForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<LoginForm onSuccess={mockOnSuccess} />);
       
       const emailInput = screen.getByLabelText('E-Mail');
       const passwordInput = screen.getByLabelText('Contraseña');

@@ -1,5 +1,7 @@
 "use server";
 
+import { getTranslations } from 'next-intl/server';
+import type { Locale } from '../../i18n.config';
 import { generateOTP, verifyOTP, findUserByEmail, findUserByNickname, updateUser, getPasswordHash } from "../db/users-repository";
 import { sendEmail } from "../utils/email";
 import { User } from "../db/tables-definition";
@@ -78,12 +80,15 @@ Si tienes problemas para iniciar sesión, contacta a soporte.
  * Generates OTP, sends email with code, enforces rate limiting
  *
  * @param email - User's email address
+ * @param locale - User's current locale for localized messages
  * @returns Success status with optional error message
  */
-export async function sendOTPCode(email: string): Promise<{
+export async function sendOTPCode(email: string, locale: Locale = 'es'): Promise<{
   success: boolean;
   error?: string;
 }> {
+  const t = await getTranslations({ locale, namespace: 'auth' });
+
   try {
     // Validate email format
     const trimmedEmail = email?.trim() || '';
@@ -92,7 +97,7 @@ export async function sendOTPCode(email: string): Promise<{
     if (!trimmedEmail || trimmedEmail.length > 254) {
       return {
         success: false,
-        error: "Por favor ingresa un email válido."
+        error: t('emailInput.email.error')
       };
     }
 
@@ -103,14 +108,14 @@ export async function sendOTPCode(email: string): Promise<{
     if (atIndex <= 0 || lastDotIndex <= atIndex + 1 || lastDotIndex >= trimmedEmail.length - 1) {
       return {
         success: false,
-        error: "Por favor ingresa un email válido."
+        error: t('emailInput.email.error')
       };
     }
 
     if (trimmedEmail.includes(' ')) {
       return {
         success: false,
-        error: "Por favor ingresa un email válido."
+        error: t('emailInput.email.error')
       };
     }
 
@@ -127,9 +132,10 @@ export async function sendOTPCode(email: string): Promise<{
     const user = await findUserByEmail(normalizedEmail);
 
     if (!user?.otp_code) {
+      const tErrors = await getTranslations({ locale, namespace: 'errors' });
       return {
         success: false,
-        error: "Error al generar el código."
+        error: tErrors('generic')
       };
     }
 
@@ -146,9 +152,10 @@ export async function sendOTPCode(email: string): Promise<{
     return { success: true };
   } catch (error) {
     console.error("Error sending OTP code:", error);
+    const tErrors = await getTranslations({ locale, namespace: 'errors' });
     return {
       success: false,
-      error: "Error al enviar el código. Intenta nuevamente."
+      error: tErrors('email.sendFailed')
     };
   }
 }
@@ -159,18 +166,21 @@ export async function sendOTPCode(email: string): Promise<{
  *
  * @param email - User's email address
  * @param code - 6-digit OTP code
+ * @param locale - User's current locale for localized messages
  * @returns Success status with user object or error message
  */
-export async function verifyOTPCode(email: string, code: string): Promise<{
+export async function verifyOTPCode(email: string, code: string, locale: Locale = 'es'): Promise<{
   success: boolean;
   user?: User;
   error?: string;
 }> {
+  const t = await getTranslations({ locale, namespace: 'auth' });
+
   try {
     if (!email?.trim() || !code?.trim()) {
       return {
         success: false,
-        error: "Email y código son requeridos."
+        error: t('otp.errors.required')
       };
     }
 
@@ -183,9 +193,10 @@ export async function verifyOTPCode(email: string, code: string): Promise<{
     return result;
   } catch (error) {
     console.error("Error verifying OTP code:", error);
+    const tErrors = await getTranslations({ locale, namespace: 'errors' });
     return {
       success: false,
-      error: "Error al verificar el código. Intenta nuevamente."
+      error: tErrors('generic')
     };
   }
 }
@@ -195,6 +206,7 @@ export async function verifyOTPCode(email: string, code: string): Promise<{
  * Used for new user signup flow with nickname and optional password
  *
  * @param data - Account creation data
+ * @param locale - User's current locale for localized messages
  * @returns Success status with optional error message
  */
 export async function createAccountViaOTP(data: {
@@ -202,10 +214,12 @@ export async function createAccountViaOTP(data: {
   nickname: string;
   password?: string | null;
   verifiedOTP: string;
-}): Promise<{
+}, locale: Locale = 'es'): Promise<{
   success: boolean;
   error?: string;
 }> {
+  const t = await getTranslations({ locale, namespace: 'auth' });
+
   try {
     const { email, nickname, password, verifiedOTP } = data;
 
@@ -213,7 +227,7 @@ export async function createAccountViaOTP(data: {
     if (!email?.trim() || !nickname?.trim() || !verifiedOTP?.trim()) {
       return {
         success: false,
-        error: "Email, nickname y código verificado son requeridos."
+        error: t('accountSetup.errors.createFailed')
       };
     }
 
@@ -224,14 +238,14 @@ export async function createAccountViaOTP(data: {
     if (trimmedNickname.length < 3) {
       return {
         success: false,
-        error: "El nickname debe tener al menos 3 caracteres."
+        error: t('accountSetup.nickname.minLength', { min: 3 })
       };
     }
 
     if (trimmedNickname.length > 20) {
       return {
         success: false,
-        error: "El nickname debe tener máximo 20 caracteres."
+        error: t('accountSetup.nickname.maxLength', { max: 20 })
       };
     }
 
@@ -240,7 +254,7 @@ export async function createAccountViaOTP(data: {
       if (password.length < 8) {
         return {
           success: false,
-          error: "La contraseña debe tener al menos 8 caracteres."
+          error: t('accountSetup.password.minLength', { min: 8 })
         };
       }
     }
@@ -250,7 +264,7 @@ export async function createAccountViaOTP(data: {
     if (existingUserWithNickname) {
       return {
         success: false,
-        error: "Este nickname no está disponible."
+        error: t('accountSetup.nickname.unavailable')
       };
     }
 
@@ -258,9 +272,10 @@ export async function createAccountViaOTP(data: {
     const user = await findUserByEmail(normalizedEmail);
 
     if (!user) {
+      const tErrors = await getTranslations({ locale, namespace: 'errors' });
       return {
         success: false,
-        error: "Usuario no encontrado. Solicita un nuevo código."
+        error: tErrors('auth.userNotFound')
       };
     }
 
@@ -268,7 +283,7 @@ export async function createAccountViaOTP(data: {
     if (user.email_verified !== true) {
       return {
         success: false,
-        error: "Email no verificado. Verifica el código primero."
+        error: t('otp.errors.verifyFailed')
       };
     }
 
@@ -287,9 +302,10 @@ export async function createAccountViaOTP(data: {
     return { success: true };
   } catch (error) {
     console.error("Error creating account via OTP:", error);
+    const tErrors = await getTranslations({ locale, namespace: 'errors' });
     return {
       success: false,
-      error: "Error al crear la cuenta. Intenta nuevamente."
+      error: tErrors('generic')
     };
   }
 }
@@ -299,17 +315,20 @@ export async function createAccountViaOTP(data: {
  * Used for real-time validation in AccountSetupForm
  *
  * @param nickname - Desired nickname
+ * @param locale - User's current locale for localized messages
  * @returns Availability status
  */
-export async function checkNicknameAvailability(nickname: string): Promise<{
+export async function checkNicknameAvailability(nickname: string, locale: Locale = 'es'): Promise<{
   available: boolean;
   error?: string;
 }> {
+  const t = await getTranslations({ locale, namespace: 'auth' });
+
   try {
     if (!nickname?.trim()) {
       return {
         available: false,
-        error: "El nickname es requerido."
+        error: t('accountSetup.nickname.required')
       };
     }
 
@@ -319,7 +338,7 @@ export async function checkNicknameAvailability(nickname: string): Promise<{
     if (trimmedNickname.length < 3 || trimmedNickname.length > 20) {
       return {
         available: false,
-        error: "El nickname debe tener entre 3 y 20 caracteres."
+        error: t('accountSetup.nickname.minLength', { min: 3 })
       };
     }
 
@@ -328,16 +347,17 @@ export async function checkNicknameAvailability(nickname: string): Promise<{
     if (existingUser) {
       return {
         available: false,
-        error: "Este nickname no está disponible."
+        error: t('accountSetup.nickname.unavailable')
       };
     }
 
     return { available: true };
   } catch (error) {
     console.error("Error checking nickname availability:", error);
+    const tErrors = await getTranslations({ locale, namespace: 'errors' });
     return {
       available: false,
-      error: "Error al verificar disponibilidad."
+      error: tErrors('generic')
     };
   }
 }

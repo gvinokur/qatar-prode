@@ -4,6 +4,7 @@ import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography }
 import * as React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import LoginForm from "./login-form";
 import SignupForm from "./signup-form";
 import ForgotPasswordForm from "./forgot-password-form";
@@ -15,6 +16,7 @@ import AccountSetupForm from "./account-setup-form";
 import {User} from "../../db/tables-definition";
 import {sendOTPCode} from "../../actions/otp-actions";
 import {signIn} from "next-auth/react";
+import { Locale } from "@/i18n.config";
 
 type LoginOrSignupProps = {
   handleCloseLoginDialog: (_forceClose?: boolean) => void;
@@ -25,6 +27,8 @@ type DialogMode = 'emailInput' | 'login' | 'signup' | 'forgotPassword' | 'resetS
 
 export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginDialog }: LoginOrSignupProps) {
   const router = useRouter();
+  const t = useTranslations('auth');
+  const locale = useLocale() as Locale;
   const [dialogMode, setDialogMode] = useState<DialogMode>('emailInput');
   const [resetEmail, setResetEmail] = useState<string>('');
   const [createdUser, setCreatedUser] = useState<User>();
@@ -159,21 +163,23 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
   const getDialogTitle = () => {
     switch (dialogMode) {
       case 'emailInput':
-        return 'Ingresar o Registrarse';
+        return t('dialog.titles.emailInput');
       case 'login':
-        return 'Ingresar';
+        return t('dialog.titles.login');
       case 'signup':
-        return 'Registrarse';
+        return t('dialog.titles.signup');
       case 'forgotPassword':
-        return 'Recuperar Contraseña';
+        return t('dialog.titles.forgotPassword');
       case 'resetSent':
-        return 'Enlace Enviado';
+        return t('dialog.titles.resetSent');
+      case 'verificationSent':
+        return t('dialog.titles.verificationSent');
       case 'otpVerify':
-        return 'Verificar Código';
+        return t('dialog.titles.otpVerify');
       case 'accountSetup':
-        return 'Completa tu perfil';
+        return t('dialog.titles.accountSetup');
       default:
-        return 'Ingresar';
+        return t('dialog.titles.emailInput');
     }
   };
 

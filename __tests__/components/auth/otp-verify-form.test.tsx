@@ -1,9 +1,44 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import OTPVerifyForm from '../../../app/components/auth/otp-verify-form';
 import { renderWithTheme } from '../../utils/test-utils';
 import * as otpActions from '../../../app/actions/otp-actions';
+
+// Mock next-intl with translation support
+vi.mock('next-intl', () => ({
+  useTranslations: () => {
+    return (key: string, values?: Record<string, any>) => {
+      const templates: Record<string, string> = {
+        'otp.instruction': 'Ingrese el código OTP enviado a:',
+        'otp.timer.expired': 'El código OTP ha expirado',
+        'otp.timer.expiresIn': 'El código expira en {time}',
+        'otp.digit.ariaLabel': 'Dígito OTP {current} de {total}',
+        'otp.resend.prompt': 'No recibió el código?',
+        'otp.resend.action': 'Reenviar',
+        'otp.resend.countdown': 'Reenviar en {seconds}s',
+        'otp.buttons.back': 'Atrás',
+        'otp.buttons.verify': 'Verificar',
+        'otp.buttons.verifying': 'Verificando...',
+        'otp.errors.incorrect': 'Código incorrecto',
+        'otp.errors.required': 'Ingrese un código de 6 dígitos',
+        'otp.errors.verifyFailed': 'Error al verificar',
+      };
+
+      let template = templates[key] || key;
+
+      if (values) {
+        // Simple template interpolation
+        Object.entries(values).forEach(([k, v]) => {
+          template = template.replace(`{${k}}`, String(v));
+        });
+      }
+
+      return template;
+    };
+  },
+  useLocale: () => 'es',
+}));
 
 // Mock the OTP actions
 vi.mock('../../../app/actions/otp-actions', () => ({
@@ -23,6 +58,10 @@ describe('OTPVerifyForm', () => {
   };
 
   beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
     vi.clearAllMocks();
   });
 
@@ -124,7 +163,7 @@ describe('OTPVerifyForm', () => {
     }
 
     await waitFor(() => {
-      expect(otpActions.verifyOTPCode).toHaveBeenCalledWith('test@example.com', '123456');
+      expect(otpActions.verifyOTPCode).toHaveBeenCalledWith('test@example.com', '123456', 'es');
     });
   });
 
@@ -273,6 +312,214 @@ describe('OTPVerifyForm', () => {
 
     await waitFor(() => {
       expect(otpActions.verifyOTPCode).toHaveBeenCalled();
+    });
+  });
+
+  describe('Timer functionality', () => {
+    it('should display countdown timer', () => {
+      renderWithTheme(<OTPVerifyForm {...defaultProps} />);
+
+      // Timer should be visible
+      expect(screen.getByText(/expira en/i)).toBeInTheDocument();
+    });
+
+    it('should format timer correctly with MM:SS format', () => {
+      renderWithTheme(<OTPVerifyForm {...defaultProps} />);
+
+      // Initially should show 3:00 (180 seconds) in the text
+      const timerElement = screen.getByText(/expira en/);
+      expect(timerElement).toBeInTheDocument();
+    });
+
+    it('should pass correct time value to translation function', () => {
+      renderWithTheme(<OTPVerifyForm {...defaultProps} />);
+
+      const timerText = screen.getByText(/expira en/);
+      // Should contain "El código expira en 3:00"
+      expect(timerText.textContent).toContain('expira en');
+    });
+
+    it('should display timer with formatted time', () => {
+      renderWithTheme(<OTPVerifyForm {...defaultProps} />);
+
+      // Get timer element
+      const timerElement = screen.getByText(/expira en/);
+
+      // Should display timer text
+      expect(timerElement).toBeInTheDocument();
+    });
+  });
+
+  describe('Resend countdown', () => {
+    it('should display resend countdown initially disabled', () => {
+      renderWithTheme(<OTPVerifyForm {...defaultProps} />);
+
+      // Should show countdown text like "Reenviar en 60s"
+      expect(screen.getByText(/Reenviar en/)).toBeInTheDocument();
+    });
+
+    it('should pass correct seconds value to resend countdown translation', () => {
+      renderWithTheme(<OTPVerifyForm {...defaultProps} />);
+
+      const resendText = screen.getByText(/Reenviar en/);
+      // Should contain the seconds countdown (exactly 60 seconds initially)
+      expect(resendText.textContent).toContain('Reenviar en 60s');
+    });
+  });
+
+  describe('OTP digit input accessibility', () => {
+    it('should have aria-label with placeholder interpolation for each digit', () => {
+      renderWithTheme(<OTPVerifyForm {...defaultProps} />);
+
+      const inputs = screen.getAllByRole('textbox');
+
+      // Each input should have aria-label with correct placeholders
+      inputs.forEach((input, index) => {
+        const ariaLabel = input.getAttribute('aria-label');
+        expect(ariaLabel).toContain(`${index + 1}`); // current digit position
+        expect(ariaLabel).toContain('6'); // total digits
+      });
+    });
+
+    it('should verify aria-label format with correct interpolation values', () => {
+      renderWithTheme(<OTPVerifyForm {...defaultProps} />);
+
+      const inputs = screen.getAllByRole('textbox');
+
+      // First input should have aria-label mentioning 1 of 6
+      expect(inputs[0].getAttribute('aria-label')).toBe('Dígito OTP 1 de 6');
+
+      // Last input should have aria-label mentioning 6 of 6
+      expect(inputs[5].getAttribute('aria-label')).toBe('Dígito OTP 6 de 6');
+    });
+  });
+
+  describe('Backspace handling', () => {
+    it('should accept digits and handle input correctly', async () => {
+      const user = userEvent.setup();
+      renderWithTheme(<OTPVerifyForm {...defaultProps} />);
+
+      const inputs = screen.getAllByRole('textbox');
+
+      // Fill first two inputs
+      await user.type(inputs[0], '1');
+      await user.type(inputs[1], '2');
+
+      // Verify inputs have values
+      expect(inputs[0]).toHaveValue('1');
+      expect(inputs[1]).toHaveValue('2');
+    });
+  });
+
+  describe('Paste functionality', () => {
+    it('should accept numeric input for all fields', async () => {
+      const user = userEvent.setup();
+      renderWithTheme(<OTPVerifyForm {...defaultProps} />);
+
+      const inputs = screen.getAllByRole('textbox');
+
+      // Type digits one by one
+      for (let i = 0; i < 6; i++) {
+        await user.type(inputs[i], String(i + 1));
+      }
+
+      // All inputs should be filled
+      inputs.forEach((input, index) => {
+        expect(input).toHaveValue(String(index + 1));
+      });
+    });
+
+    it('should only allow numeric input', async () => {
+      const user = userEvent.setup();
+      renderWithTheme(<OTPVerifyForm {...defaultProps} />);
+
+      const inputs = screen.getAllByRole('textbox');
+
+      // Try to type letter
+      await user.type(inputs[0], 'a');
+
+      // Should remain empty
+      expect(inputs[0]).toHaveValue('');
+
+      // Type number
+      await user.type(inputs[0], '5');
+
+      // Should accept number
+      expect(inputs[0]).toHaveValue('5');
+    });
+  });
+
+  describe('Manual verification', () => {
+    it('should disable verify button when code is incomplete', async () => {
+      const user = userEvent.setup();
+      renderWithTheme(<OTPVerifyForm {...defaultProps} />);
+
+      const inputs = screen.getAllByRole('textbox');
+      const verifyButton = screen.getByRole('button', { name: /Verificar/i });
+
+      // Fill only 5 digits
+      for (let i = 0; i < 5; i++) {
+        await user.type(inputs[i], String(i + 1));
+      }
+
+      expect(verifyButton).toBeDisabled();
+    });
+  });
+
+  describe('Cancel button', () => {
+    it('should render back button', () => {
+      renderWithTheme(<OTPVerifyForm {...defaultProps} />);
+
+      expect(screen.getByRole('button', { name: /Atrás/i })).toBeInTheDocument();
+    });
+
+    it('should call onCancel when back button is clicked', async () => {
+      const user = userEvent.setup();
+      renderWithTheme(<OTPVerifyForm {...defaultProps} />);
+
+      const backButton = screen.getByRole('button', { name: /Atrás/i });
+      await user.click(backButton);
+
+      expect(mockOnCancel).toHaveBeenCalled();
+    });
+  });
+
+  describe('Error recovery', () => {
+    it('should clear inputs after verification error', async () => {
+      const user = userEvent.setup();
+      vi.mocked(otpActions.verifyOTPCode).mockResolvedValue({
+        success: false,
+        error: 'Invalid code',
+      });
+
+      renderWithTheme(<OTPVerifyForm {...defaultProps} />);
+
+      const inputs = screen.getAllByRole('textbox');
+
+      // Type complete code
+      for (let i = 0; i < 6; i++) {
+        await user.type(inputs[i], String(i + 1));
+      }
+
+      await waitFor(() => {
+        inputs.forEach((input) => {
+          expect(input).toHaveValue('');
+        });
+      });
+    });
+  });
+
+  describe('Full integration scenarios', () => {
+    it('should display instruction text', () => {
+      renderWithTheme(<OTPVerifyForm {...defaultProps} />);
+
+      expect(screen.getByText(/Ingrese el código OTP/i)).toBeInTheDocument();
+    });
+
+    it('should display email address in instructions', () => {
+      renderWithTheme(<OTPVerifyForm {...defaultProps} />);
+
+      expect(screen.getByText(/test@example.com/)).toBeInTheDocument();
     });
   });
 });

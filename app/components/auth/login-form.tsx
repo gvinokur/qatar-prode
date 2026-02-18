@@ -8,7 +8,8 @@ import validator from "validator";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import type { Locale } from '@/i18n.config';
 
 export type LoginFormData = {
   email: string,
@@ -22,7 +23,8 @@ type LoginFormProps = {
 }
 
 export default function LoginForm({ onSuccess, email, onOTPLoginClick }: LoginFormProps) {
-  const locale = useLocale();
+  const t = useTranslations('auth');
+  const locale = useLocale() as Locale;
   const [loading, setLoading] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -54,7 +56,7 @@ export default function LoginForm({ onSuccess, email, onOTPLoginClick }: LoginFo
       if (!response.ok) {
         setError('root', {
           type: 'Login Error',
-          message: 'Email o Contraseña Invalida'
+          message: t('login.errors.invalidCredentials')
         });
       } else {
         onSuccess();
@@ -85,7 +87,7 @@ export default function LoginForm({ onSuccess, email, onOTPLoginClick }: LoginFo
           severity="success"
           sx={{ mb: 2 }}
         >
-          ¡Tu correo electrónico ha sido verificado exitosamente! Ahora puedes iniciar sesión.
+          {t('login.success.verified')}
         </Alert>
       )}
 
@@ -93,15 +95,15 @@ export default function LoginForm({ onSuccess, email, onOTPLoginClick }: LoginFo
         control={control}
         name="email"
         rules={{
-          required: 'Por favor ingrese su e-mail',
-          validate: (value) => validator.isEmail(value) || 'Direccion de E-Mail invalida'
+          required: t('login.email.required'),
+          validate: (value) => validator.isEmail(value) || t('login.email.invalid')
         }}
         render={({field, fieldState}) => (
           <TextField
             {...field}
             autoFocus={!email}
             margin="dense"
-            label="E-Mail"
+            label={t('login.email.label')}
             type="text"
             fullWidth
             variant="standard"
@@ -116,14 +118,14 @@ export default function LoginForm({ onSuccess, email, onOTPLoginClick }: LoginFo
         control={control}
         name="password"
         rules={{
-          required: 'Ingrese su contraseña',
+          required: t('login.password.required'),
         }}
         render={({field, fieldState}) => (
           <TextField
             {...field}
             autoFocus={!!email}
             margin="dense"
-            label="Contraseña"
+            label={t('login.password.label')}
             type="password"
             fullWidth
             variant="standard"
@@ -141,11 +143,11 @@ export default function LoginForm({ onSuccess, email, onOTPLoginClick }: LoginFo
             onClick={onOTPLoginClick}
             disabled={loading}
           >
-            Código por Email
+            {t('login.buttons.otpEmail')}
           </Button>
         )}
         <Button loading={loading} type="submit" variant="contained">
-          Ingresar
+          {t('login.buttons.submit')}
         </Button>
       </div>
     </form>

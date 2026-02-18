@@ -6,7 +6,8 @@ import { Box, Typography, Paper, Alert } from '../../components/mui-wrappers';
 import {signOut} from "next-auth/react";
 import {verifyUserEmail} from "../../actions/user-actions";
 import { AuthPageSkeleton } from '../skeletons';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { Locale } from '@/i18n.config';
 
 interface EmailVerifierProps {
   readonly token: string;
@@ -14,7 +15,8 @@ interface EmailVerifierProps {
 
 export default function EmailVerifier({ token }: EmailVerifierProps) {
   const router = useRouter();
-  const locale = useLocale();
+  const locale = useLocale() as Locale;
+  const t = useTranslations('auth');
   const [isVerifying, setIsVerifying] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,11 +34,11 @@ export default function EmailVerifier({ token }: EmailVerifierProps) {
             await signOut({ redirect: true, callbackUrl: `/${locale}?verified=true` });
             setIsVerifying(false)
           } else {
-            setError(result.error || 'The verification link is invalid or has expired.');
+            setError(result.error || t('emailVerifier.errors.invalidLink'));
             setIsVerifying(false);
           }
         } catch {
-          setError('An unexpected error occurred during verification.');
+          setError(t('emailVerifier.errors.unexpected'));
           setIsVerifying(false);
         }
       }, []);
@@ -62,7 +64,7 @@ export default function EmailVerifier({ token }: EmailVerifierProps) {
     >
       <Paper sx={{ p: 4, maxWidth: 500, width: '100%' }}>
         <Typography variant="h5" gutterBottom align="center">
-          Email Verification Failed
+          {t('emailVerifier.title')}
         </Typography>
 
         <Alert severity="error" sx={{ mt: 2 }}>
@@ -70,7 +72,7 @@ export default function EmailVerifier({ token }: EmailVerifierProps) {
         </Alert>
 
         <Typography sx={{ mt: 3 }} align="center">
-          Please try to log in again or request a new verification email.
+          {t('emailVerifier.instruction')}
         </Typography>
       </Paper>
     </Box>

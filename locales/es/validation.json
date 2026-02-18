@@ -21,5 +21,9 @@
   },
   "confirmPassword": {
     "mismatch": "Las contraseñas no coinciden"
+  },
+  "confirmEmail": {
+    "required": "Por favor confirme su e-mail",
+    "mismatch": "Los correos electrónicos no coinciden"
   }
 }

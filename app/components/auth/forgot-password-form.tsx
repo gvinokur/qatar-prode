@@ -6,6 +6,8 @@ import {Controller, SubmitHandler, useForm} from "react-hook-form";
 import validator from "validator";
 import {useState} from "react";
 import {sendPasswordResetLink} from "../../actions/user-actions";
+import { useTranslations, useLocale } from 'next-intl';
+import type { Locale } from '@/i18n.config';
 
 type ForgotPasswordFormData = {
   email: string
@@ -16,6 +18,8 @@ type ForgotPasswordFormProps = {
 }
 
 export default function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {
+  const t = useTranslations('auth');
+  const locale = useLocale() as Locale;
   const [loading, setLoading] = useState(false);
 
   const {
@@ -35,7 +39,7 @@ export default function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProp
 
     try {
       if (resetForm.email) {
-        const result: any = await sendPasswordResetLink(resetForm.email);
+        const result: any = await sendPasswordResetLink(resetForm.email, locale);
         setLoading(false);
 
         if (!result.success) {
@@ -43,12 +47,12 @@ export default function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProp
           if (result.isOAuthOnly) {
             setError('root', {
               type: 'OAuth Only',
-              message: result.error || 'Esta cuenta usa inicio de sesión con Google. No se puede restablecer la contraseña.'
+              message: result.error || t('forgotPassword.errors.googleAccount')
             });
           } else {
             setError('root', {
               type: 'Email Error',
-              message: result.error || 'Error al enviar el correo electrónico. Por favor, inténtalo de nuevo.'
+              message: result.error || t('forgotPassword.errors.sendFailed')
             });
           }
           return;
@@ -73,22 +77,22 @@ export default function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProp
       )}
 
       <Typography variant="body2" sx={{ mb: 2 }}>
-        Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
+        {t('forgotPassword.description')}
       </Typography>
 
       <Controller
         control={control}
         name="email"
         rules={{
-          required: 'Por favor ingrese su e-mail',
-          validate: (value) => validator.isEmail(value) || 'Direccion de E-Mail invalida'
+          required: t('login.email.required'),
+          validate: (value) => validator.isEmail(value) || t('login.email.invalid')
         }}
         render={({field, fieldState}) => (
           <TextField
             {...field}
             autoFocus
             margin="dense"
-            label="E-Mail"
+            label={t('login.email.label')}
             type="text"
             fullWidth
             variant="standard"
@@ -100,7 +104,7 @@ export default function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProp
 
       <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
         <Button loading={loading} type="submit">
-          Enviar Enlace
+          {t('forgotPassword.buttons.submit')}
         </Button>
       </div>
     </form>

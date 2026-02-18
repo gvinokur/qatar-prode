@@ -1,6 +1,8 @@
 'use server';
 
 import crypto from 'crypto';
+import { getTranslations } from 'next-intl/server';
+import type { Locale } from '../../i18n.config';
 import {User, UserNew} from "../db/tables-definition"
 import {
   createUser,
@@ -37,12 +39,15 @@ function generateVerificationTokenExpiry(): Date {
 /**
  *
  * @param user - password_hash in this case should be the plain text password
+ * @param locale - User's current locale for localized messages
  */
-export async function signupUser(user: UserNew) {
+export async function signupUser(user: UserNew, locale: Locale = 'es') {
+  const t = await getTranslations({ locale, namespace: 'auth' });
+
   const existingUser = await findUserByEmail(user.email)
   if (!existingUser) {
     if (!user.password_hash) {
-      return 'Password is required for signup';
+      return t('signup.errors.passwordRequired');
     }
     const newUser = await createUser({
       ...user,
@@ -52,31 +57,35 @@ export async function signupUser(user: UserNew) {
       verification_token_expiration: generateVerificationTokenExpiry()
     })
 
-    await sendVerificationEmail(newUser)
+    await sendVerificationEmail(newUser, locale)
 
     return newUser
   } else {
-    return 'Ya existe un usuario con ese e-mail'
+    return t('signup.errors.emailInUse');
   }
 }
 
-export async function resendVerificationEmail() {
+export async function resendVerificationEmail(locale: Locale = 'es') {
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
   const user = await getLoggedInUser()
   if (!user) {
-    return { success: false, error: 'No existe un usuario con ese e-mail'};
+    return { success: false, error: t('auth.userNotFound')};
   }
   const updatedUser = await updateUser(user.id, {
     verification_token: generateVerificationToken(),
     verification_token_expiration: generateVerificationTokenExpiry()
   })
 
-  return sendVerificationEmail(updatedUser)
+  return sendVerificationEmail(updatedUser, locale)
 }
 
-export async function updateNickname(nickname: string) {
+export async function updateNickname(nickname: string, locale: Locale = 'es') {
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
   const user = await getLoggedInUser();
   if(!user) {
-    return 'Unauthorized'
+    return t('auth.unauthorized')
   }
   await updateUser(user.id, { nickname })
 }
@@ -89,15 +98,18 @@ export async function getLoggedInUser() {
 /**
  * Creates a password reset link for a user
  * @param email - The email of the user requesting password reset
+ * @param locale - User's current locale for localized messages and emails
  * @returns A reset URL or an error message
  */
-export async function sendPasswordResetLink(email: string) {
+export async function sendPasswordResetLink(email: string, locale: Locale = 'es') {
+  const t = await getTranslations({ locale, namespace: 'auth' });
+
   // Find the user by email
   const user = await findUserByEmail(email);
 
   // Check if user exists
   if (!user) {
-    return { success: false, error: 'No existe un usuario con ese e-mail' };
+    return { success: false, error: t('forgotPassword.errors.userNotFound') };
   }
 
   // Check if user has password authentication enabled
@@ -105,7 +117,7 @@ export async function sendPasswordResetLink(email: string) {
   if (!userHasPasswordAuth(user)) {
     return {
       success: false,
-      error: 'Esta cuenta usa inicio de sesión con Google. No se puede restablecer la contraseña.',
+      error: t('forgotPassword.errors.googleAccount'),
       isOAuthOnly: true
     };
   }
@@ -125,10 +137,10 @@ export async function sendPasswordResetLink(email: string) {
 
   // Create and return the reset URL
   // Note: Replace with your actual domain in production
-  const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+  const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/${locale}/reset-password?token=${resetToken}`;
 
-  // Generate email content
-  const emailData = await generatePasswordResetEmail(email, resetUrl);
+  // Generate email content - CRITICAL FIX: Pass locale to email template
+  const emailData = await generatePasswordResetEmail(email, resetUrl, locale);
 
   // Send the email
   const emailResult = await sendEmail(emailData);
@@ -136,21 +148,23 @@ export async function sendPasswordResetLink(email: string) {
   return emailResult
 }
 
-export async function verifyUserEmail(token: string) {
+export async function verifyUserEmail(token: string, locale: Locale = 'es') {
+  const t = await getTranslations({ locale, namespace: 'auth' });
+
   try {
     const user = await findUserByVerificationToken(token);
     if (!user) {
-      return { success: false, error: 'Invalid or expired verification link' };
+      return { success: false, error: t('emailVerifier.errors.invalidLink') };
     }
     const verifiedUser = await verifyEmail(token);
 
     if (!verifiedUser) {
-      return { success: false, error: 'Failed to verify email' };
+      return { success: false, error: t('emailVerifier.errors.unexpected') };
     }
 
     return { success: true, user: verifiedUser };
   } catch {
-    return { success: false, error: 'Failed to verify email' };
+    return { success: false, error: t('emailVerifier.errors.unexpected') };
   }
 }
 
@@ -182,9 +196,12 @@ export async function verifyResetToken(token: string) {
  * Updates a user's password
  * @param userId - The ID of the user
  * @param newPassword - The new password (plain text)
+ * @param locale - User's current locale for localized messages
  * @returns Success message or error
  */
-export async function updateUserPassword(userId: string, newPassword: string) {
+export async function updateUserPassword(userId: string, newPassword: string, locale: Locale = 'es') {
+  const t = await getTranslations({ locale, namespace: 'auth' });
+
   try {
     // Hash the new password
     const passwordHash = getPasswordHash(newPassword);
@@ -197,24 +214,26 @@ export async function updateUserPassword(userId: string, newPassword: string) {
       reset_token_expiration: null
     });
 
-    return { success: true, message: 'Contraseña actualizada exitosamente' };
+    return { success: true, message: t('resetPassword.success.updated') };
   } catch (error) {
     console.error('Error updating password:', error);
-    return { success: false, message: 'Error al actualizar la contraseña' };
+    return { success: false, message: t('resetPassword.errors.updateFailed') };
   }
 }
 
-async function sendVerificationEmail(user: User) {
+async function sendVerificationEmail(user: User, locale: Locale = 'es') {
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
   try {
-    // Create verification link
-    const verificationLink = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${user.verification_token}`;
-    // Send verification email
-    const emailData = await generateVerificationEmail(user.email, verificationLink);
+    // Create verification link with locale prefix
+    const verificationLink = `${process.env.NEXT_PUBLIC_APP_URL}/${locale}/verify-email?token=${user.verification_token}`;
+    // Send verification email - CRITICAL FIX: Pass locale to email template
+    const emailData = await generateVerificationEmail(user.email, verificationLink, locale);
     const result = await sendEmail(emailData);
 
     return result;
   } catch {
-    return { success: false, error: 'Failed to send verification email' };
+    return { success: false, error: t('email.sendFailed') };
   }
 }
 
@@ -227,13 +246,16 @@ async function sendVerificationEmail(user: User) {
  * - Groups owned by the user
  * - Notification subscriptions
  * - User record itself
+ * @param locale - User's current locale for localized error messages
  */
-export async function deleteAccount() {
+export async function deleteAccount(locale: Locale = 'es') {
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
   // Get the current user session
   const user = await getLoggedInUser();
 
   if (!user?.id) {
-    return { error: 'No estás autenticado' };
+    return { error: t('auth.unauthorized') };
   }
 
   try {

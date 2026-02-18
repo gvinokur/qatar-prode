@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Alert, Box, Button, Card, CardContent, Container, TextField, Typography } from '@mui/material';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
+import { useTranslations } from 'next-intl';
 import { verifyResetToken, updateUserPassword } from '../../actions/user-actions';
 import { AuthPageSkeleton } from '../../components/skeletons';
-import { useLocale } from 'next-intl';
 
 type ResetPasswordFormData = {
   password: string;
@@ -14,7 +14,7 @@ type ResetPasswordFormData = {
 };
 
 export default function ResetPasswordPage() {
-  const locale = useLocale();
+  const t = useTranslations('auth');
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams?.get('token');
@@ -37,7 +37,7 @@ export default function ResetPasswordPage() {
       if (!token) {
         setTokenValid(false);
         setLoading(false);
-        setMessage({ type: 'error', text: 'Token de restablecimiento no proporcionado.' });
+        setMessage({ type: 'error', text: t('resetPassword.errors.tokenNotProvided') });
         return;
       }
 
@@ -51,7 +51,7 @@ export default function ResetPasswordPage() {
           setTokenValid(false);
           setMessage({
             type: 'error',
-            text: 'El enlace de restablecimiento no es válido o ha expirado. Por favor, solicita un nuevo enlace.'
+            text: t('resetPassword.errors.tokenInvalid')
           });
         }
       } catch (error) {
@@ -59,7 +59,7 @@ export default function ResetPasswordPage() {
         setTokenValid(false);
         setMessage({
           type: 'error',
-          text: 'Error al verificar el token. Por favor, inténtalo de nuevo.'
+          text: t('resetPassword.errors.tokenVerifyFailed')
         });
       } finally {
         setLoading(false);
@@ -67,7 +67,7 @@ export default function ResetPasswordPage() {
     }
 
     checkToken();
-  }, [token]);
+  }, [token, t]);
 
   // Handle form submission
   const onSubmit: SubmitHandler<ResetPasswordFormData> = async (data) => {
@@ -78,10 +78,10 @@ export default function ResetPasswordPage() {
       const result = await updateUserPassword(userId, data.password);
 
       if (result.success) {
-        setMessage({ type: 'success', text: result.message });
-        // Redirect to login page after 3 seconds
+        setMessage({ type: 'success', text: t('resetPassword.success.updated') });
+        // Redirect to home page after 3 seconds
         setTimeout(() => {
-          router.push(`/${locale}`);
+          router.push('/');
         }, 3000);
       } else {
         setMessage({ type: 'error', text: result.message });
@@ -90,7 +90,7 @@ export default function ResetPasswordPage() {
       console.error('Error updating password:', error);
       setMessage({
         type: 'error',
-        text: 'Error al actualizar la contraseña. Por favor, inténtalo de nuevo.'
+        text: t('resetPassword.errors.updateFailed')
       });
     } finally {
       setSubmitting(false);
@@ -107,7 +107,7 @@ export default function ResetPasswordPage() {
       <Card>
         <CardContent>
           <Typography variant="h5" component="h1" gutterBottom>
-            Restablecer contraseña
+            {t('resetPassword.title')}
           </Typography>
 
           {message && (
@@ -126,16 +126,16 @@ export default function ResetPasswordPage() {
                 control={control}
                 defaultValue=""
                 rules={{
-                  required: 'La contraseña es requerida',
+                  required: t('resetPassword.newPassword.required'),
                   minLength: {
                     value: 8,
-                    message: 'La contraseña debe tener al menos 8 caracteres'
+                    message: t('resetPassword.newPassword.minLength')
                   }
                 }}
                 render={({ field, fieldState }) => (
                   <TextField
                     {...field}
-                    label="Nueva contraseña"
+                    label={t('resetPassword.newPassword.label')}
                     type="password"
                     fullWidth
                     margin="normal"
@@ -150,14 +150,14 @@ export default function ResetPasswordPage() {
                 control={control}
                 defaultValue=""
                 rules={{
-                  required: 'Confirma tu contraseña',
+                  required: t('resetPassword.confirmPassword.required'),
                   validate: (value) =>
-                    value === watch('password') || 'Las contraseñas no coinciden'
+                    value === watch('password') || t('resetPassword.confirmPassword.mismatch')
                 }}
                 render={({ field, fieldState }) => (
                   <TextField
                     {...field}
-                    label="Confirmar contraseña"
+                    label={t('resetPassword.confirmPassword.label')}
                     type="password"
                     fullWidth
                     margin="normal"
@@ -173,7 +173,7 @@ export default function ResetPasswordPage() {
                   type="submit"
                   variant="contained"
                 >
-                  Actualizar contraseña
+                  {submitting ? t('resetPassword.button.submitting') : t('resetPassword.button.submit')}
                 </Button>
               </Box>
             </form>
@@ -181,9 +181,9 @@ export default function ResetPasswordPage() {
               <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
                 <Button
                   variant="contained"
-                  onClick={() => router.push(`/${locale}`)}
+                  onClick={() => router.push('/')}
                 >
-                  Volver al inicio
+                  {t('resetPassword.success.backHome')}
                 </Button>
               </Box>
           )}

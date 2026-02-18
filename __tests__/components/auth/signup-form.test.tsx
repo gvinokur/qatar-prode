@@ -1,12 +1,13 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import SignupForm, { SignupFormData } from '../../../app/components/auth/signup-form';
 import { signupUser } from '../../../app/actions/user-actions';
 import { User } from '../../../app/db/tables-definition';
 import { setupTestMocks } from '../../mocks/setup-helpers';
+import { renderWithTheme } from '../../utils/test-utils';
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
@@ -80,7 +81,7 @@ describe('SignupForm', () => {
 
   describe('Form rendering', () => {
     it('renders all form fields correctly', () => {
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       expect(screen.getByLabelText('E-Mail')).toBeInTheDocument();
       expect(screen.getByLabelText('Confirmacion de E-Mail')).toBeInTheDocument();
@@ -91,7 +92,7 @@ describe('SignupForm', () => {
     });
 
     it('renders form fields with correct types', () => {
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       expect(screen.getByLabelText('E-Mail')).toHaveAttribute('type', 'text');
       expect(screen.getByLabelText('Confirmacion de E-Mail')).toHaveAttribute('type', 'text');
@@ -101,14 +102,14 @@ describe('SignupForm', () => {
     });
 
     it('has autofocus on email field', () => {
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       // Check that email field has name attribute (autofocus is set by the TextField component)
       expect(screen.getByLabelText('E-Mail')).toHaveAttribute('name', 'email');
     });
 
     it('does not show error alert initially', () => {
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
@@ -116,7 +117,7 @@ describe('SignupForm', () => {
 
   describe('Form validation', () => {
     it('shows required error for empty email', async () => {
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       fireEvent.click(screen.getByText('Registrarse'));
 
@@ -128,7 +129,7 @@ describe('SignupForm', () => {
     it('shows invalid email error for malformed email', async () => {
       (validator.isEmail as any).mockReturnValue(false);
 
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       fireEvent.change(screen.getByLabelText('E-Mail'), {
         target: { value: 'invalid-email' },
@@ -142,7 +143,7 @@ describe('SignupForm', () => {
     });
 
     it('shows required error for empty email confirmation', async () => {
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       fireEvent.change(screen.getByLabelText('E-Mail'), {
         target: { value: 'test@example.com' },
@@ -156,7 +157,7 @@ describe('SignupForm', () => {
     });
 
     it('shows mismatch error when email confirmation does not match', async () => {
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       fireEvent.change(screen.getByLabelText('E-Mail'), {
         target: { value: 'test@example.com' },
@@ -174,7 +175,7 @@ describe('SignupForm', () => {
     });
 
     it('shows required error for empty password', async () => {
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       fireEvent.change(screen.getByLabelText('E-Mail'), {
         target: { value: 'test@example.com' },
@@ -192,7 +193,7 @@ describe('SignupForm', () => {
     });
 
     it('shows required error for empty password confirmation', async () => {
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       fireEvent.change(screen.getByLabelText('E-Mail'), {
         target: { value: 'test@example.com' },
@@ -214,7 +215,7 @@ describe('SignupForm', () => {
     });
 
     it('shows mismatch error when password confirmation does not match', async () => {
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       fireEvent.change(screen.getByLabelText('E-Mail'), {
         target: { value: 'test@example.com' },
@@ -240,7 +241,7 @@ describe('SignupForm', () => {
     });
 
     it('allows nickname to be optional', async () => {
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       fireEvent.change(screen.getByLabelText('E-Mail'), {
         target: { value: 'test@example.com' },
@@ -302,7 +303,7 @@ describe('SignupForm', () => {
     };
 
     it('calls signupUser with correct data on successful form submission', async () => {
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       fillFormWithValidData();
 
@@ -320,7 +321,7 @@ describe('SignupForm', () => {
     it('shows loading state during form submission', async () => {
       (signupUser as any).mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
 
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       fillFormWithValidData();
 
@@ -333,7 +334,7 @@ describe('SignupForm', () => {
     });
 
     it('attempts automatic login after successful registration', async () => {
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       fillFormWithValidData();
 
@@ -349,7 +350,7 @@ describe('SignupForm', () => {
     });
 
     it('calls onSuccess and refreshes router on successful registration and login', async () => {
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       fillFormWithValidData();
 
@@ -365,7 +366,7 @@ describe('SignupForm', () => {
       const errorMessage = 'Ya existe un usuario con ese e-mail';
       (signupUser as any).mockResolvedValue(errorMessage);
 
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       fillFormWithValidData();
 
@@ -381,7 +382,7 @@ describe('SignupForm', () => {
     it('shows error when automatic login fails after registration', async () => {
       (signIn as any).mockResolvedValue({ error: 'Login failed' });
 
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       fillFormWithValidData();
 
@@ -398,7 +399,7 @@ describe('SignupForm', () => {
       const errorMessage = 'Network error';
       (signupUser as any).mockRejectedValue(new Error(errorMessage));
 
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       fillFormWithValidData();
 
@@ -412,7 +413,7 @@ describe('SignupForm', () => {
     });
 
     it('does not submit form if required fields are missing', async () => {
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       fireEvent.click(screen.getByText('Registrarse'));
 
@@ -424,7 +425,7 @@ describe('SignupForm', () => {
 
   describe('Form field interactions', () => {
     it('updates email field value on input change', () => {
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       const emailInput = screen.getByLabelText('E-Mail');
       fireEvent.change(emailInput, { target: { value: 'new@example.com' } });
@@ -433,7 +434,7 @@ describe('SignupForm', () => {
     });
 
     it('updates email confirmation field value on input change', () => {
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       const emailConfirmInput = screen.getByLabelText('Confirmacion de E-Mail');
       fireEvent.change(emailConfirmInput, { target: { value: 'new@example.com' } });
@@ -442,7 +443,7 @@ describe('SignupForm', () => {
     });
 
     it('updates nickname field value on input change', () => {
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       const nicknameInput = screen.getByLabelText('Apodo');
       fireEvent.change(nicknameInput, { target: { value: 'newnickname' } });
@@ -451,7 +452,7 @@ describe('SignupForm', () => {
     });
 
     it('updates password field value on input change', () => {
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       const passwordInput = screen.getByLabelText('Contraseña');
       fireEvent.change(passwordInput, { target: { value: 'newpassword' } });
@@ -460,7 +461,7 @@ describe('SignupForm', () => {
     });
 
     it('updates password confirmation field value on input change', () => {
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       const passwordConfirmInput = screen.getByLabelText('Confirmacion de Contraseña');
       fireEvent.change(passwordConfirmInput, { target: { value: 'newpassword' } });
@@ -471,7 +472,7 @@ describe('SignupForm', () => {
     it('validation errors are shown only on form submission, not on blur', async () => {
       (validator.isEmail as any).mockReturnValue(false);
 
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       const emailInput = screen.getByLabelText('E-Mail');
       fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
@@ -494,7 +495,7 @@ describe('SignupForm', () => {
       const errorMessage = 'Ya existe un usuario con ese e-mail';
       (signupUser as any).mockResolvedValueOnce(errorMessage);
 
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       // Fill form and submit to get error
       fireEvent.change(screen.getByLabelText('E-Mail'), {
@@ -532,7 +533,7 @@ describe('SignupForm', () => {
     it('handles network errors gracefully', async () => {
       (signupUser as any).mockRejectedValue(new Error('Network error'));
 
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       fireEvent.change(screen.getByLabelText('E-Mail'), {
         target: { value: 'test@example.com' },
@@ -560,7 +561,7 @@ describe('SignupForm', () => {
     it('handles signIn errors gracefully', async () => {
       (signIn as any).mockRejectedValue(new Error('SignIn error'));
 
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       fireEvent.change(screen.getByLabelText('E-Mail'), {
         target: { value: 'test@example.com' },
@@ -590,7 +591,7 @@ describe('SignupForm', () => {
     it('calls onSuccess prop when registration and login are successful', async () => {
       const customOnSuccess = vi.fn();
 
-      render(<SignupForm onSuccess={customOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={customOnSuccess} />);
 
       fireEvent.change(screen.getByLabelText('E-Mail'), {
         target: { value: 'test@example.com' },
@@ -619,7 +620,7 @@ describe('SignupForm', () => {
       const customOnSuccess = vi.fn();
       (signupUser as any).mockResolvedValue('Error message');
 
-      render(<SignupForm onSuccess={customOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={customOnSuccess} />);
 
       fireEvent.change(screen.getByLabelText('E-Mail'), {
         target: { value: 'test@example.com' },
@@ -649,7 +650,7 @@ describe('SignupForm', () => {
 
   describe('Accessibility', () => {
     it('has proper form structure with labels', () => {
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       expect(screen.getByLabelText('E-Mail')).toBeInTheDocument();
       expect(screen.getByLabelText('Confirmacion de E-Mail')).toBeInTheDocument();
@@ -659,7 +660,7 @@ describe('SignupForm', () => {
     });
 
     it('shows error messages in helper text', async () => {
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       fireEvent.click(screen.getByText('Registrarse'));
 
@@ -671,7 +672,7 @@ describe('SignupForm', () => {
     });
 
     it('marks fields with errors as invalid', async () => {
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       fireEvent.click(screen.getByText('Registrarse'));
 
@@ -684,7 +685,7 @@ describe('SignupForm', () => {
     it('shows alert with proper severity for form errors', async () => {
       (signupUser as any).mockResolvedValue('Error message');
 
-      render(<SignupForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       fireEvent.change(screen.getByLabelText('E-Mail'), {
         target: { value: 'test@example.com' },

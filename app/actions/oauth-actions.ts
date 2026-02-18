@@ -1,5 +1,7 @@
 "use server";
 
+import { getTranslations } from 'next-intl/server';
+import type { Locale } from '../../i18n.config';
 import { auth } from "@/auth";
 import { getAuthMethodsForEmail, updateUser } from "../db/users-repository";
 import { revalidatePath } from "next/cache";
@@ -8,13 +10,15 @@ import { revalidatePath } from "next/cache";
  * Check what authentication methods are available for an email
  * Used in progressive disclosure flow to determine next step
  */
-export async function checkAuthMethods(email: string): Promise<{
+export async function checkAuthMethods(email: string, locale: Locale = 'es'): Promise<{
   hasPassword: boolean;
   hasGoogle: boolean;
   userExists: boolean;
   success: boolean;
   error?: string;
 }> {
+  const t = await getTranslations({ locale, namespace: 'auth' });
+
   try {
     if (!email?.trim()) {
       return {
@@ -22,7 +26,7 @@ export async function checkAuthMethods(email: string): Promise<{
         hasGoogle: false,
         userExists: false,
         success: false,
-        error: "Email is required"
+        error: t('emailInput.email.error')
       };
     }
 
@@ -34,12 +38,13 @@ export async function checkAuthMethods(email: string): Promise<{
     };
   } catch (error) {
     console.error("Error checking auth methods:", error);
+    const tErrors = await getTranslations({ locale, namespace: 'errors' });
     return {
       hasPassword: false,
       hasGoogle: false,
       userExists: false,
       success: false,
-      error: "Failed to check authentication methods"
+      error: tErrors('generic')
     };
   }
 }
@@ -48,24 +53,27 @@ export async function checkAuthMethods(email: string): Promise<{
  * Set nickname for authenticated user
  * Used after OAuth signup when user needs to choose a nickname
  */
-export async function setNickname(nickname: string): Promise<{
+export async function setNickname(nickname: string, locale: Locale = 'es'): Promise<{
   success: boolean;
   error?: string;
 }> {
+  const tAuth = await getTranslations({ locale, namespace: 'auth' });
+  const tErrors = await getTranslations({ locale, namespace: 'errors' });
+
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return {
         success: false,
-        error: "Not authenticated"
+        error: tErrors('auth.unauthorized')
       };
     }
 
     if (!nickname?.trim()) {
       return {
         success: false,
-        error: "Nickname is required"
+        error: tAuth('accountSetup.nickname.required')
       };
     }
 
@@ -74,14 +82,14 @@ export async function setNickname(nickname: string): Promise<{
     if (trimmedNickname.length < 2) {
       return {
         success: false,
-        error: "Nickname must be at least 2 characters"
+        error: tAuth('nicknameSetup.nickname.helperText')
       };
     }
 
     if (trimmedNickname.length > 50) {
       return {
         success: false,
-        error: "Nickname must be less than 50 characters"
+        error: tAuth('nicknameSetup.nickname.helperText')
       };
     }
 
@@ -100,7 +108,7 @@ export async function setNickname(nickname: string): Promise<{
     console.error("Error setting nickname:", error);
     return {
       success: false,
-      error: "Failed to set nickname"
+      error: tErrors('generic')
     };
   }
 }

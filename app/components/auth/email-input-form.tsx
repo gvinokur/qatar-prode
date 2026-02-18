@@ -4,13 +4,17 @@ import { useState } from 'react';
 import { TextField, Button, Box, CircularProgress, Alert, Divider, Typography } from '@mui/material';
 import { Google as GoogleIcon } from '@mui/icons-material';
 import { signIn } from 'next-auth/react';
+import { useTranslations, useLocale } from 'next-intl';
 import { checkAuthMethods } from '@/app/actions/oauth-actions';
+import { Locale } from '@/i18n.config';
 
 type EmailInputFormProps = {
   readonly onEmailSubmit: (_email: string, _authMethods: { hasPassword: boolean; hasGoogle: boolean; userExists: boolean }) => void;
 };
 
 export default function EmailInputForm({ onEmailSubmit }: EmailInputFormProps) {
+  const t = useTranslations('auth');
+  const locale = useLocale() as Locale;
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -21,10 +25,10 @@ export default function EmailInputForm({ onEmailSubmit }: EmailInputFormProps) {
     setLoading(true);
 
     try {
-      const result = await checkAuthMethods(email);
+      const result = await checkAuthMethods(email, locale);
 
       if (!result.success) {
-        setError(result.error || 'Error al verificar el email');
+        setError(result.error || t('emailInput.email.error'));
         setLoading(false);
         return;
       }
@@ -36,7 +40,7 @@ export default function EmailInputForm({ onEmailSubmit }: EmailInputFormProps) {
         userExists: result.userExists
       });
     } catch {
-      setError('Error al verificar el email');
+      setError(t('emailInput.email.error'));
     } finally {
       setLoading(false);
     }
@@ -47,7 +51,7 @@ export default function EmailInputForm({ onEmailSubmit }: EmailInputFormProps) {
     try {
       await signIn('google', { callbackUrl: '/' });
     } catch {
-      setError('Error al iniciar sesión con Google');
+      setError(t('emailInput.email.error'));
       setLoading(false);
     }
   };
@@ -62,7 +66,7 @@ export default function EmailInputForm({ onEmailSubmit }: EmailInputFormProps) {
 
       <TextField
         fullWidth
-        label="Email"
+        label={t('emailInput.email.label')}
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
@@ -78,12 +82,12 @@ export default function EmailInputForm({ onEmailSubmit }: EmailInputFormProps) {
         disabled={loading}
         sx={{ mb: 2 }}
       >
-        {loading ? <CircularProgress size={24} /> : 'Continuar'}
+        {loading ? <CircularProgress size={24} /> : t('emailInput.buttons.continue')}
       </Button>
 
       <Divider sx={{ my: 2 }}>
         <Typography variant="body2" color="text.secondary">
-          o
+          {t('emailInput.divider')}
         </Typography>
       </Divider>
 
@@ -94,7 +98,7 @@ export default function EmailInputForm({ onEmailSubmit }: EmailInputFormProps) {
         onClick={handleGoogleSignIn}
         disabled={loading}
       >
-        Continuar con Google
+        {t('emailInput.buttons.google')}
       </Button>
     </Box>
   );
