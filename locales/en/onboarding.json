@@ -110,6 +110,7 @@
       },
       "importantAlert": {
         "title": "EnOf(Importante)",
+        "tournamentHeader": "EnOf(Configuración de {tournament})",
         "tournamentContext": "EnOf(Estos son los valores de puntaje para este torneo específico.)",
         "genericContext": "EnOf(Los valores de puntaje pueden variar según el torneo. Los valores mostrados son típicos.)"
       }

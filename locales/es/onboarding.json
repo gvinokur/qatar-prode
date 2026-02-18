@@ -110,6 +110,7 @@
       },
       "importantAlert": {
         "title": "Importante",
+        "tournamentHeader": "Configuración de {tournament}",
         "tournamentContext": "Estos son los valores de puntaje para este torneo específico.",
         "genericContext": "Los valores de puntaje pueden variar según el torneo. Los valores mostrados son típicos."
       }

@@ -232,8 +232,8 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      // When tournament is provided, it shows tournament-specific alert without mock keys
-      expect(screen.getByText(/Configuración de UEFA Euro 2024/)).toBeInTheDocument()
+      // When tournament is provided, it shows tournament-specific alert with mock keys
+      expect(screen.getByText(/\[importantAlert\.tournamentHeader\]\{tournament:UEFA Euro 2024\}/)).toBeInTheDocument()
       expect(screen.getByText('[importantAlert.tournamentContext]')).toBeInTheDocument()
     })
 
@@ -247,7 +247,7 @@ describe('ScoringExplanationStep', () => {
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
       // When tournament is provided with short_name only, it shows tournament-specific alert
-      expect(screen.getByText(/Configuración de TEST/)).toBeInTheDocument()
+      expect(screen.getByText(/\[importantAlert\.tournamentHeader\]\{tournament:TEST\}/)).toBeInTheDocument()
     })
 
     it('shows short_name in alert when long_name is empty string', () => {
@@ -260,7 +260,7 @@ describe('ScoringExplanationStep', () => {
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
       // When tournament is provided with empty long_name, falls back to short_name
-      expect(screen.getByText(/Configuración de WC/)).toBeInTheDocument()
+      expect(screen.getByText(/\[importantAlert\.tournamentHeader\]\{tournament:WC\}/)).toBeInTheDocument()
     })
 
     it('shows generic message when tournament is undefined', () => {
@@ -559,7 +559,7 @@ describe('ScoringExplanationStep', () => {
 
       renderWithTheme(<ScoringExplanationStep tournament={tournament} />)
 
-      expect(screen.getByText(/Configuración de Test Tournament/)).toBeInTheDocument()
+      expect(screen.getByText(/\[importantAlert\.tournamentHeader\]\{tournament:Test Tournament\}/)).toBeInTheDocument()
       expect(screen.getByText('[importantAlert.tournamentContext]')).toBeInTheDocument()
     })
   })

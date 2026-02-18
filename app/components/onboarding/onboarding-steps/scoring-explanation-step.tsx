@@ -162,7 +162,7 @@ export default function ScoringExplanationStep({ tournament }: ScoringExplanatio
         <Alert severity="info" variant="outlined">
           {tournament ? (
             <>
-              <AlertTitle>Configuración de {tournament.long_name || tournament.short_name}</AlertTitle>
+              <AlertTitle>{t('importantAlert.tournamentHeader', { tournament: tournament.long_name || tournament.short_name })}</AlertTitle>
               {t('importantAlert.tournamentContext')}
             </>
           ) : (
