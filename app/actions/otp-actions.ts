@@ -7,16 +7,18 @@ import { sendEmail } from "../utils/email";
 import { User } from "../db/tables-definition";
 
 /**
- * Generate OTP email template with Spanish content
+ * Generate OTP email template with internationalized content
  */
-function generateOTPEmailContent(email: string, otpCode: string): { subject: string; html: string; text: string } {
-  const subject = `Tu código de acceso - Qatar Prode`;
+async function generateOTPEmailContent(email: string, otpCode: string, locale: Locale = 'es'): Promise<{ subject: string; html: string; text: string }> {
+  const t = await getTranslations({ locale, namespace: 'emails' });
+
+  const subject = t('otp.subject');
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #8b0000;">Tu código de acceso</h2>
+      <h2 style="color: #8b0000;">${t('otp.title')}</h2>
 
-      <p>Has solicitado un código para iniciar sesión en Qatar Prode.</p>
+      <p>${t('otp.greeting')}</p>
 
       <div style="
         font-size: 32px;
@@ -33,43 +35,43 @@ function generateOTPEmailContent(email: string, otpCode: string): { subject: str
       </div>
 
       <div style="background: #e8f4f8; padding: 15px; border-left: 4px solid #1976d2; margin: 20px 0;">
-        <p style="margin: 5px 0;"><strong>⏱️ Válido por 3 minutos</strong></p>
-        <p style="margin: 5px 0;">Tienes máximo 3 intentos para ingresar este código.</p>
+        <p style="margin: 5px 0;"><strong>${t('otp.validity')}</strong></p>
+        <p style="margin: 5px 0;">${t('otp.attempts')}</p>
       </div>
 
       <div style="background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 20px 0;">
-        <p style="margin: 5px 0 10px 0;"><strong>⚠️ Seguridad:</strong></p>
+        <p style="margin: 5px 0 10px 0;"><strong>${t('otp.securityTitle')}</strong></p>
         <ul style="margin: 5px 0; padding-left: 20px;">
-          <li>No compartas este código con nadie</li>
-          <li>Qatar Prode nunca te pedirá este código por teléfono o email</li>
-          <li>Si no solicitaste este código, puedes ignorar este mensaje</li>
+          <li>${t('otp.securityTips.tip1')}</li>
+          <li>${t('otp.securityTips.tip2')}</li>
+          <li>${t('otp.securityTips.tip3')}</li>
         </ul>
       </div>
 
       <p style="color: #888; font-size: 12px; margin-top: 30px;">
-        Este código fue solicitado para: ${email}<br>
-        Si tienes problemas para iniciar sesión, contacta a soporte.
+        ${t('otp.requestedFor')} ${email}<br>
+        ${t('otp.support')}
       </p>
     </div>
   `;
 
   const text = `
-Tu código de acceso - Qatar Prode
+${t('otp.subject')}
 
-Has solicitado un código para iniciar sesión en Qatar Prode.
+${t('otp.greeting')}
 
-Tu código: ${otpCode}
+${t('otp.title')}: ${otpCode}
 
-⏱️ Válido por 3 minutos
-Tienes máximo 3 intentos para ingresar este código.
+${t('otp.validity')}
+${t('otp.attempts')}
 
-⚠️ SEGURIDAD:
-• No compartas este código con nadie
-• Qatar Prode nunca te pedirá este código por teléfono o email
-• Si no solicitaste este código, puedes ignorar este mensaje
+${t('otp.securityTitle')}
+• ${t('otp.securityTips.tip1')}
+• ${t('otp.securityTips.tip2')}
+• ${t('otp.securityTips.tip3')}
 
-Este código fue solicitado para: ${email}
-Si tienes problemas para iniciar sesión, contacta a soporte.
+${t('otp.requestedFor')} ${email}
+${t('otp.support')}
   `;
 
   return { subject, html, text };
@@ -140,7 +142,7 @@ export async function sendOTPCode(email: string, locale: Locale = 'es'): Promise
     }
 
     // Generate email content
-    const { subject, html } = generateOTPEmailContent(normalizedEmail, user.otp_code);
+    const { subject, html } = await generateOTPEmailContent(normalizedEmail, user.otp_code, locale);
 
     // Send email
     await sendEmail({

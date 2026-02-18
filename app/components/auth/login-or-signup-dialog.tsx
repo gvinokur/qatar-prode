@@ -256,7 +256,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
                   onClick={() => switchMode('emailInput')}
                   sx={{ cursor: 'pointer', display: 'inline' }}
                 >
-                  ← Volver a email
+                  {t('dialog.links.backToEmail')}
                 </Typography>
               </div>
               <div style={{ marginTop: '8px' }}>
@@ -265,7 +265,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
                   onClick={() => switchMode('forgotPassword')}
                   sx={{ cursor: 'pointer' }}
                 >
-                  ¿Olvidaste tu contraseña?
+                  {t('login.forgotPassword')}
                 </Typography>
               </div>
             </div>
@@ -280,7 +280,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
               onClick={() => switchMode('emailInput')}
               sx={{ cursor: 'pointer' }}
             >
-              ← Volver a email
+              {t('dialog.links.backToEmail')}
             </Typography>
           </DialogActions>
         );
@@ -294,7 +294,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
     if (dialogMode === 'resetSent') {
       return (
         <DialogActions>
-          <Button onClick={closeDialog}>Cerrar</Button>
+          <Button onClick={closeDialog}>{t('accountSetup.buttons.cancel')}</Button>
         </DialogActions>
       );
     }
