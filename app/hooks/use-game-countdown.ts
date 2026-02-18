@@ -10,8 +10,8 @@ import {
 } from '../utils/countdown-utils';
 
 interface GameCountdownState {
-  /** Formatted display text (e.g., "Closes in 3h 45m") */
-  display: string;
+  /** Raw countdown string (e.g., "3h 45m") - for interpolation into translated string */
+  countdown: string;
   /** Urgency level for color coding */
   urgency: UrgencyLevel;
   /** Progress bar percentage (0-100) */
@@ -42,16 +42,11 @@ export function useGameCountdown(gameDate: Date): GameCountdownState {
     const progressPercent = calculateProgress(gameDate, currentTime);
     const shouldShowProgress = shouldShowProgressBar(timeRemaining);
 
-    let display: string;
-    if (isClosed) {
-      display = 'Cerrado';
-    } else {
-      const countdown = formatCountdown(timeRemaining);
-      display = `Cierra en ${countdown}`;
-    }
+    // Return raw countdown string for component-level formatting
+    const countdown = formatCountdown(timeRemaining);
 
     return {
-      display,
+      countdown,
       urgency,
       progressPercent,
       timeRemaining,

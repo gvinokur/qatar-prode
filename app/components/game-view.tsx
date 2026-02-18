@@ -1,6 +1,7 @@
 'use client'
 
 import { useContext} from "react";
+import { useTranslations } from 'next-intl';
 import {calculateScoreForGame} from "../utils/game-score-calculator";
 import {ExtendedGameData} from "../definitions";
 import {Game, Team} from "../db/tables-definition";
@@ -27,6 +28,7 @@ const buildGameGuess = (game: Game) => ({
 })
 
 const GameView = ({game, teamsMap, handleEditClick, disabled = false}: GameViewProps) => {
+  const t = useTranslations('predictions');
   const isPlayoffGame = (!!game.playoffStage);
   const groupContext = useContext(GuessesContext)
   const gameGuesses = groupContext.gameGuesses
@@ -46,7 +48,7 @@ const GameView = ({game, teamsMap, handleEditClick, disabled = false}: GameViewP
     awayTeamName,
     homeTeamShortName,
     awayTeamShortName,
-  } = getTeamNames(game, gameGuess, teamsMap);
+  } = getTeamNames(game, gameGuess, teamsMap, t);
 
   return (
     <CompactGameViewCard

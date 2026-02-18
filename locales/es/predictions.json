@@ -25,7 +25,9 @@
     "editPrediction": "Editar predicción: {homeTeam} vs {awayTeam}",
     "editResult": "Editar resultado",
     "viewLocalTime": "Ver horario local",
-    "viewYourTime": "Ver tu horario"
+    "viewYourTime": "Ver tu horario",
+    "closed": "Cerrado",
+    "closesIn": "Cierra en {countdown}"
   },
   "urgency": {
     "games": {
@@ -72,5 +74,30 @@
     "podium": "Podio",
     "individualAwards": "Premios Individuales",
     "qualified": "Clasificados"
+  },
+  "navigation": {
+    "go": "Ir",
+    "goTo": "Ir a {destination}",
+    "goToNextGame": "Ir al Proximo Partido",
+    "backToTop": "Volver al Principio"
+  },
+  "common": {
+    "of": "de",
+    "completed": {
+      "one": "completado",
+      "other": "completados"
+    }
+  },
+  "playoffs": {
+    "firstPlace": "Primero Grupo {group}",
+    "firstPlaceShort": "1 {group}",
+    "secondPlace": "Segundo Grupo {group}",
+    "secondPlaceShort": "2 {group}",
+    "thirdPlace": "Tercero Grupo(s) {group}",
+    "thirdPlaceShort": "3 {group}",
+    "winner": "Ganador #{game}",
+    "winnerShort": "G{game}",
+    "loser": "Perdedor #{game}",
+    "loserShort": "P{game}"
   }
 }

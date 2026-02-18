@@ -68,6 +68,11 @@ export default function GameCountdownDisplay({
 
   const toggleText = showLocalTime ? t('game.viewLocalTime') : t('game.viewYourTime');
 
+  // Format countdown display using translations
+  const displayText = countdown.isClosed
+    ? t('game.closed')
+    : t('game.closesIn', { countdown: countdown.countdown });
+
   return (
     <>
       {/* Line 1: Date centered with toggle link */}
@@ -115,7 +120,7 @@ export default function GameCountdownDisplay({
                 whiteSpace: 'nowrap'
               }}
             >
-              {countdown.display}
+              {displayText}
             </Typography>
           </motion.div>
 

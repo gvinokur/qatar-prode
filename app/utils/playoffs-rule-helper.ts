@@ -32,25 +32,40 @@ export const isTeamWinnerRule = (object: any): object is TeamWinnerRule => {
 
 /**
  * Get a human-readable description of a team rule.
- * 
+ *
  * @param rule - The team rule to describe (can be undefined)
+ * @param t - Translation function from useTranslations('predictions')
  * @param shortName - Whether to return a short description (default: false)
  * @returns A string description of the rule, or empty string if rule is invalid/undefined
  */
-export const getTeamDescription = (rule?: GroupFinishRule | TeamWinnerRule, shortName?: boolean) => {
+export const getTeamDescription = (
+  rule: GroupFinishRule | TeamWinnerRule | undefined,
+  t: (key: string, params?: any) => string,
+  shortName?: boolean
+) => {
   if(isGroupFinishRule(rule)) {
     if (rule.position === 1) {
-      return shortName ? `1 ${rule.group}` : `Primero Grupo ${rule.group}`
+      return shortName
+        ? t('playoffs.firstPlaceShort', { group: rule.group })
+        : t('playoffs.firstPlace', { group: rule.group });
     } else if (rule.position === 2) {
-      return shortName ? `2 ${rule.group}` : `Segundo Grupo ${rule.group}`
+      return shortName
+        ? t('playoffs.secondPlaceShort', { group: rule.group })
+        : t('playoffs.secondPlace', { group: rule.group });
     } else if (rule.position === 3) {
-      return shortName ? `3 ${rule.group}` : `Tercero Grupo(s) ${rule.group}`
+      return shortName
+        ? t('playoffs.thirdPlaceShort', { group: rule.group })
+        : t('playoffs.thirdPlace', { group: rule.group });
     }
   } else if (isTeamWinnerRule(rule)){
     if (rule.winner) {
-      return shortName ? `G${rule.game}` : `Ganador #${rule.game}`
+      return shortName
+        ? t('playoffs.winnerShort', { game: rule.game })
+        : t('playoffs.winner', { game: rule.game });
     } else {
-      return shortName ? `P${rule.game}` : `Perdedor #${rule.game}`
+      return shortName
+        ? t('playoffs.loserShort', { game: rule.game })
+        : t('playoffs.loser', { game: rule.game });
     }
   }
   return ''

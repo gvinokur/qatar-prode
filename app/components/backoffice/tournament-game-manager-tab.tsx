@@ -39,6 +39,7 @@ import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import UTC from "dayjs/plugin/utc";
 import {getTeamDescription} from "../../utils/playoffs-rule-helper";
+import { useTranslations } from 'next-intl';
 
 dayjs.extend(UTC);
 dayjs.extend(timezone);
@@ -48,6 +49,7 @@ interface TournamentGameManagerProps {
 }
 
 const TournamentGameManager: React.FC<TournamentGameManagerProps> = ({ tournamentId }) => {
+  const t = useTranslations('predictions');
   const [games, setGames] = useState<ExtendedGameData[]>([]);
   const [teams, setTeams] = useState<{[key: string]: Team}>({});
   const [groups, setGroups] = useState<ExtendedGroupData[]>([]);
@@ -227,7 +229,7 @@ const TournamentGameManager: React.FC<TournamentGameManagerProps> = ({ tournamen
                       <Typography variant="body2" component={'span'}>
                         {game.home_team && teams[game.home_team]?.name || ''}
                         {game.game_type !== 'group' && game.home_team && ' ( ' || ''}
-                        {game.game_type !== 'group' && game.home_team_rule && getTeamDescription(game.home_team_rule) || ''}
+                        {game.game_type !== 'group' && game.home_team_rule && getTeamDescription(game.home_team_rule, t) || ''}
                         {game.game_type !== 'group' && game.home_team && ' ) ' || ''}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" component={'span'}>
@@ -236,7 +238,7 @@ const TournamentGameManager: React.FC<TournamentGameManagerProps> = ({ tournamen
                       <Typography variant="body2" component={'span'}>
                         {game.away_team && teams[game.away_team]?.name || ''}
                         {game.game_type !== 'group' && game.home_team && ' ( ' || ''}
-                        {game.game_type !== 'group' && game.away_team_rule && getTeamDescription(game.away_team_rule) || ''}
+                        {game.game_type !== 'group' && game.away_team_rule && getTeamDescription(game.away_team_rule, t) || ''}
                         {game.game_type !== 'group' && game.home_team && ' ) ' || ''}
                       </Typography>
                     </Box>

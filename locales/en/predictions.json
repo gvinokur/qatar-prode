@@ -25,7 +25,9 @@
     "editPrediction": "EnOf(Editar predicción: {homeTeam} vs {awayTeam})",
     "editResult": "EnOf(Editar resultado)",
     "viewLocalTime": "EnOf(Ver horario local)",
-    "viewYourTime": "EnOf(Ver tu horario)"
+    "viewYourTime": "EnOf(Ver tu horario)",
+    "closed": "EnOf(Cerrado)",
+    "closesIn": "EnOf(Cierra en {countdown})"
   },
   "urgency": {
     "games": {
@@ -72,5 +74,30 @@
     "podium": "EnOf(Podio)",
     "individualAwards": "EnOf(Premios Individuales)",
     "qualified": "EnOf(Clasificados)"
+  },
+  "navigation": {
+    "go": "EnOf(Ir)",
+    "goTo": "EnOf(Ir a {destination})",
+    "goToNextGame": "EnOf(Ir al Proximo Partido)",
+    "backToTop": "EnOf(Volver al Principio)"
+  },
+  "common": {
+    "of": "EnOf(de)",
+    "completed": {
+      "one": "EnOf(completado)",
+      "other": "EnOf(completados)"
+    }
+  },
+  "playoffs": {
+    "firstPlace": "EnOf(Primero Grupo {group})",
+    "firstPlaceShort": "EnOf(1 {group})",
+    "secondPlace": "EnOf(Segundo Grupo {group})",
+    "secondPlaceShort": "EnOf(2 {group})",
+    "thirdPlace": "EnOf(Tercero Grupo(s) {group})",
+    "thirdPlaceShort": "EnOf(3 {group})",
+    "winner": "EnOf(Ganador #{game})",
+    "winnerShort": "EnOf(G{game})",
+    "loser": "EnOf(Perdedor #{game})",
+    "loserShort": "EnOf(P{game})"
   }
 }

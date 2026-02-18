@@ -13,6 +13,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningIcon from '@mui/icons-material/Warning';
 import LockIcon from '@mui/icons-material/Lock';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 interface TournamentPredictionCategoryCardProps {
   readonly title: string;
@@ -29,6 +30,8 @@ export function TournamentPredictionCategoryCard({
   link,
   isLocked
 }: TournamentPredictionCategoryCardProps) {
+  const t = useTranslations('predictions');
+
   // Defensive programming: clamp completed to max of total
   const safeCompleted = Math.min(completed, total);
   const percentage = total > 0 ? Math.round((safeCompleted / total) * 100) : 0;
@@ -62,7 +65,7 @@ export function TournamentPredictionCategoryCard({
   };
 
   // ARIA label for accessibility
-  const cardAriaLabel = `${title}: ${safeCompleted} de ${total} completado${safeCompleted === 1 ? '' : 's'}`;
+  const cardAriaLabel = `${title}: ${safeCompleted} ${t('common.of')} ${total} ${t('common.completed', { count: safeCompleted })}`;
 
   return (
     <Card
@@ -108,10 +111,10 @@ export function TournamentPredictionCategoryCard({
               href={link}
               size="small"
               variant="outlined"
-              aria-label={`Ir a ${title.toLowerCase()}`}
+              aria-label={t('navigation.goTo', { destination: title.toLowerCase() })}
               sx={{ minWidth: 'auto', fontSize: '0.75rem' }}
             >
-              Ir
+              {t('navigation.go')}
             </Button>
           )}
 
@@ -119,7 +122,7 @@ export function TournamentPredictionCategoryCard({
           {isLocked && (
             <Chip
               icon={<LockIcon />}
-              label="Cerrado"
+              label={t('game.closed')}
               size="small"
               sx={{
                 bgcolor: 'grey.700',

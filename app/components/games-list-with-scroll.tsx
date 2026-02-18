@@ -3,6 +3,7 @@
 import { Box, Stack, Button } from '@mui/material';
 import { useContext, useState, useCallback, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useTranslations } from 'next-intl';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import FlippableGameCard from './flippable-game-card';
@@ -43,6 +44,7 @@ export function GamesListWithScroll({
   activeFilter,
   tournament
 }: GamesListWithScrollProps) {
+  const t = useTranslations('predictions');
   const groupContext = useContext(GuessesContext);
   const editMode = useEditMode();
   const [editingGameId, setEditingGameId] = useState<string | null>(null);
@@ -192,7 +194,7 @@ export function GamesListWithScroll({
             onClick={handleScrollToNext}
             sx={{ minWidth: 200 }}
           >
-            Ir al Proximo Partido
+            {t('navigation.goToNextGame')}
           </Button>
         </Box>
       )}
@@ -238,7 +240,7 @@ export function GamesListWithScroll({
             onClick={handleScrollToTop}
             sx={{ minWidth: 200 }}
           >
-            Volver al Principio
+            {t('navigation.backToTop')}
           </Button>
         </Box>
       )}

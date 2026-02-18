@@ -3,6 +3,7 @@
 import React, { useRef, useEffect, useState, useContext } from 'react';
 import { Box, Card, CardContent, useTheme, useMediaQuery } from '@mui/material';
 import { useReducedMotion } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 import GamePredictionEditControls from './game-prediction-edit-controls';
 import GameView from './game-view';
 import { ExtendedGameData } from '../definitions';
@@ -59,6 +60,7 @@ export default function FlippableGameCard({
   onAutoAdvanceNext,
   onAutoGoPrevious
 }: FlippableGameCardProps) {
+  const t = useTranslations('predictions');
   const theme = useTheme();
   const prefersReducedMotion = useReducedMotion();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -87,7 +89,8 @@ export default function FlippableGameCard({
   const { homeTeamName, awayTeamName, homeTeamShortName, awayTeamShortName } = getTeamNames(
     game,
     gameGuess,
-    teamsMap
+    teamsMap,
+    t
   );
 
   // Flip animation duration (slightly slower on mobile)

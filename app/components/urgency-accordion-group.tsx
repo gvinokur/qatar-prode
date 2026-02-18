@@ -170,8 +170,8 @@ export function UrgencyAccordionGroup({
     const awayTeam = selectedGame.away_team || gameGuess?.away_team;
 
     return {
-      homeTeamName: homeTeam ? teamsMap[homeTeam].name : getTeamDescription(selectedGame.home_team_rule),
-      awayTeamName: awayTeam ? teamsMap[awayTeam].name : getTeamDescription(selectedGame.away_team_rule)
+      homeTeamName: homeTeam ? teamsMap[homeTeam].name : getTeamDescription(selectedGame.home_team_rule, t),
+      awayTeamName: awayTeam ? teamsMap[awayTeam].name : getTeamDescription(selectedGame.away_team_rule, t)
     };
   };
 

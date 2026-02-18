@@ -47,8 +47,8 @@ export function UrgencyGameCard({
   const awayTeam = game.away_team ? teamsMap[game.away_team] : null;
 
   // Get team names (fallback to descriptions for playoff games without determined teams)
-  const homeTeamName = homeTeam?.short_name || getTeamDescription(game.home_team_rule);
-  const awayTeamName = awayTeam?.short_name || getTeamDescription(game.away_team_rule);
+  const homeTeamName = homeTeam?.short_name || getTeamDescription(game.home_team_rule, t);
+  const awayTeamName = awayTeam?.short_name || getTeamDescription(game.away_team_rule, t);
 
   // Get team logos
   const homeLogoUrl = homeTeam ? getThemeLogoUrl(homeTeam.theme) : null;
