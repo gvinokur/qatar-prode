@@ -44,7 +44,10 @@ const getGroupFinishKey = (position: number, shortName: boolean): string | null 
   };
 
   const keys = keyMap[position];
-  return keys ? (shortName ? keys.short : keys.long) : null;
+  if (!keys) {
+    return null;
+  }
+  return shortName ? keys.short : keys.long;
 };
 
 /**
@@ -75,9 +78,12 @@ const getTeamWinnerDescription = (
   t: (key: string, params?: any) => string,
   shortName: boolean
 ): string => {
-  const key = rule.winner
-    ? (shortName ? 'playoffs.winnerShort' : 'playoffs.winner')
-    : (shortName ? 'playoffs.loserShort' : 'playoffs.loser');
+  let key: string;
+  if (rule.winner) {
+    key = shortName ? 'playoffs.winnerShort' : 'playoffs.winner';
+  } else {
+    key = shortName ? 'playoffs.loserShort' : 'playoffs.loser';
+  }
 
   return t(key, { game: rule.game });
 };
@@ -93,16 +99,14 @@ const getTeamWinnerDescription = (
 export const getTeamDescription = (
   rule: GroupFinishRule | TeamWinnerRule | undefined,
   t: (key: string, params?: any) => string,
-  shortName?: boolean
+  shortName: boolean = false
 ) => {
-  const useShort = shortName ?? false;
-
   if (isGroupFinishRule(rule)) {
-    return getGroupFinishDescription(rule, t, useShort);
+    return getGroupFinishDescription(rule, t, shortName);
   }
 
   if (isTeamWinnerRule(rule)) {
-    return getTeamWinnerDescription(rule, t, useShort);
+    return getTeamWinnerDescription(rule, t, shortName);
   }
 
   return '';
