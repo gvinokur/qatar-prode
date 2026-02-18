@@ -12,13 +12,6 @@ vi.mock('next-intl', () => ({
   useTranslations: vi.fn(),
   useLocale: vi.fn(() => 'es'),
 }));
-      }
-
-      return template;
-    };
-  },
-  useLocale: () => 'es',
-}));
 
 // Mock the OTP actions
 vi.mock('../../../app/actions/otp-actions', () => ({
@@ -66,7 +59,7 @@ describe('OTPVerifyForm', () => {
   it('should render verify button', () => {
     renderWithTheme(<OTPVerifyForm {...defaultProps} />);
 
-    expect(screen.getByRole('button', { name: /Verificar/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '[otp.buttons.verify]' })).toBeInTheDocument();
   });
 
   it('should render form elements', () => {
@@ -190,7 +183,7 @@ describe('OTPVerifyForm', () => {
     }
 
     await waitFor(() => {
-      expect(screen.getByText(/Código incorrecto/i)).toBeInTheDocument();
+      expect(screen.getByText('Código incorrecto')).toBeInTheDocument();
     });
   });
 
@@ -257,7 +250,7 @@ describe('OTPVerifyForm', () => {
     }
 
     await waitFor(() => {
-      expect(screen.getByText(/Error al verificar/i)).toBeInTheDocument();
+      expect(screen.getByText(/\[otp\.errors\.verifyFailed\]/)).toBeInTheDocument();
     });
   });
 
@@ -292,7 +285,7 @@ describe('OTPVerifyForm', () => {
     }
 
     // Click verify button
-    const verifyButton = screen.getByRole('button', { name: /Verificar/i });
+    const verifyButton = screen.getByRole('button', { name: '[otp.buttons.verify]' });
     await user.click(verifyButton);
 
     await waitFor(() => {
@@ -305,30 +298,30 @@ describe('OTPVerifyForm', () => {
       renderWithTheme(<OTPVerifyForm {...defaultProps} />);
 
       // Timer should be visible
-      expect(screen.getByText(/expira en/i)).toBeInTheDocument();
+      expect(screen.getByText(/\[otp\.timer\.expiresIn\]/)).toBeInTheDocument();
     });
 
     it('should format timer correctly with MM:SS format', () => {
       renderWithTheme(<OTPVerifyForm {...defaultProps} />);
 
       // Initially should show 3:00 (180 seconds) in the text
-      const timerElement = screen.getByText(/expira en/);
+      const timerElement = screen.getByText(/\[otp\.timer\.expiresIn\]/);
       expect(timerElement).toBeInTheDocument();
     });
 
     it('should pass correct time value to translation function', () => {
       renderWithTheme(<OTPVerifyForm {...defaultProps} />);
 
-      const timerText = screen.getByText(/expira en/);
-      // Should contain "El código expira en 3:00"
-      expect(timerText.textContent).toContain('expira en');
+      const timerText = screen.getByText(/\[otp\.timer\.expiresIn\]/);
+      // Should contain timer with interpolated time value
+      expect(timerText.textContent).toMatch(/\[otp\.timer\.expiresIn\]/);
     });
 
     it('should display timer with formatted time', () => {
       renderWithTheme(<OTPVerifyForm {...defaultProps} />);
 
       // Get timer element
-      const timerElement = screen.getByText(/expira en/);
+      const timerElement = screen.getByText(/\[otp\.timer\.expiresIn\]/);
 
       // Should display timer text
       expect(timerElement).toBeInTheDocument();
@@ -339,16 +332,16 @@ describe('OTPVerifyForm', () => {
     it('should display resend countdown initially disabled', () => {
       renderWithTheme(<OTPVerifyForm {...defaultProps} />);
 
-      // Should show countdown text like "Reenviar en 60s"
-      expect(screen.getByText(/Reenviar en/)).toBeInTheDocument();
+      // Should show countdown text with interpolated seconds
+      expect(screen.getByText(/\[otp\.resend\.countdown\]/)).toBeInTheDocument();
     });
 
     it('should pass correct seconds value to resend countdown translation', () => {
       renderWithTheme(<OTPVerifyForm {...defaultProps} />);
 
-      const resendText = screen.getByText(/Reenviar en/);
-      // Should contain the seconds countdown (exactly 60 seconds initially)
-      expect(resendText.textContent).toContain('Reenviar en 60s');
+      const resendText = screen.getByText(/\[otp\.resend\.countdown\]/);
+      // Should contain the seconds countdown with interpolated value
+      expect(resendText.textContent).toMatch(/\[otp\.resend\.countdown\]/);
     });
   });
 
@@ -371,11 +364,11 @@ describe('OTPVerifyForm', () => {
 
       const inputs = screen.getAllByRole('textbox');
 
-      // First input should have aria-label mentioning 1 of 6
-      expect(inputs[0].getAttribute('aria-label')).toBe('Dígito OTP 1 de 6');
+      // First input should have aria-label with interpolated values
+      expect(inputs[0].getAttribute('aria-label')).toBe('[otp.digit.ariaLabel]{current:1,total:6}');
 
-      // Last input should have aria-label mentioning 6 of 6
-      expect(inputs[5].getAttribute('aria-label')).toBe('Dígito OTP 6 de 6');
+      // Last input should have aria-label with interpolated values
+      expect(inputs[5].getAttribute('aria-label')).toBe('[otp.digit.ariaLabel]{current:6,total:6}');
     });
   });
 
@@ -440,7 +433,7 @@ describe('OTPVerifyForm', () => {
       renderWithTheme(<OTPVerifyForm {...defaultProps} />);
 
       const inputs = screen.getAllByRole('textbox');
-      const verifyButton = screen.getByRole('button', { name: /Verificar/i });
+      const verifyButton = screen.getByRole('button', { name: '[otp.buttons.verify]' });
 
       // Fill only 5 digits
       for (let i = 0; i < 5; i++) {
@@ -455,14 +448,14 @@ describe('OTPVerifyForm', () => {
     it('should render back button', () => {
       renderWithTheme(<OTPVerifyForm {...defaultProps} />);
 
-      expect(screen.getByRole('button', { name: /Atrás/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '[otp.buttons.back]' })).toBeInTheDocument();
     });
 
     it('should call onCancel when back button is clicked', async () => {
       const user = userEvent.setup();
       renderWithTheme(<OTPVerifyForm {...defaultProps} />);
 
-      const backButton = screen.getByRole('button', { name: /Atrás/i });
+      const backButton = screen.getByRole('button', { name: '[otp.buttons.back]' });
       await user.click(backButton);
 
       expect(mockOnCancel).toHaveBeenCalled();
@@ -498,7 +491,7 @@ describe('OTPVerifyForm', () => {
     it('should display instruction text', () => {
       renderWithTheme(<OTPVerifyForm {...defaultProps} />);
 
-      expect(screen.getByText(/Ingrese el código OTP/i)).toBeInTheDocument();
+      expect(screen.getByText('[otp.instruction]')).toBeInTheDocument();
     });
 
     it('should display email address in instructions', () => {

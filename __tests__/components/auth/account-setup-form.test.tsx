@@ -32,25 +32,49 @@ vi.mock('next-intl', () => ({
   useTranslations: vi.fn(),
   useLocale: vi.fn(() => 'es'),
 }));
+
+describe('AccountSetupForm', () => {
+  const mockOnSuccess = vi.fn();
+  const mockOnCancel = vi.fn();
+
+  const defaultProps = {
+    email: 'test@example.com',
+    verifiedOTP: '123456',
+    onSuccess: mockOnSuccess,
+    onCancel: mockOnCancel
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    // Setup i18n mocks
+    vi.mocked(intl.useTranslations).mockReturnValue(
+      createMockTranslations('auth')
+    );
+
+    // Setup default mock responses
+    vi.mocked(otpActions.checkNicknameAvailability).mockResolvedValue({ available: true });
+    vi.mocked(otpActions.createAccountViaOTP).mockResolvedValue({ success: false });
+    vi.mocked(signIn).mockResolvedValue({ ok: false });
   });
 
   it('should render the form with nickname field', () => {
     renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-    expect(screen.getByLabelText(/Nickname/i)).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' })).toBeInTheDocument();
   });
 
   it('should render optional password field', () => {
     renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-    expect(screen.getByLabelText(/Contraseña \(opcional\)/i)).toBeInTheDocument();
+    expect(screen.getByLabelText('[accountSetup.password.label]')).toBeInTheDocument();
   });
 
   it('should allow typing in nickname field', async () => {
     const user = userEvent.setup();
     renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-    const nicknameInput = screen.getByLabelText(/Nickname/i);
+    const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
     await user.type(nicknameInput, 'testuser');
 
     expect(nicknameInput).toHaveValue('testuser');
@@ -60,7 +84,7 @@ vi.mock('next-intl', () => ({
     const user = userEvent.setup();
     renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-    const passwordInput = screen.getByLabelText(/Contraseña \(opcional\)/i);
+    const passwordInput = screen.getByLabelText('[accountSetup.password.label]');
     await user.type(passwordInput, 'password123');
 
     expect(passwordInput).toHaveValue('password123');
@@ -70,12 +94,12 @@ vi.mock('next-intl', () => ({
     const user = userEvent.setup();
     renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-    const nicknameInput = screen.getByLabelText(/Nickname/i);
+    const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
     await user.type(nicknameInput, 'testuser');
     await user.tab(); // Trigger blur
 
     await waitFor(() => {
-      expect(otpActions.checkNicknameAvailability).toHaveBeenCalledWith('testuser');
+      expect(otpActions.checkNicknameAvailability).toHaveBeenCalledWith('testuser', 'es');
     });
   });
 
@@ -88,7 +112,7 @@ vi.mock('next-intl', () => ({
 
     renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-    const nicknameInput = screen.getByLabelText(/Nickname/i);
+    const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
     await user.type(nicknameInput, 'taken');
     await user.tab();
 
@@ -100,14 +124,14 @@ vi.mock('next-intl', () => ({
   it('should render cancel button', () => {
     renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-    expect(screen.getByRole('button', { name: /Cancelar/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '[accountSetup.buttons.cancel]' })).toBeInTheDocument();
   });
 
   it('should call onCancel when cancel button is clicked', async () => {
     const user = userEvent.setup();
     renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-    const cancelButton = screen.getByRole('button', { name: /Cancelar/i });
+    const cancelButton = screen.getByRole('button', { name: '[accountSetup.buttons.cancel]' });
     await user.click(cancelButton);
 
     expect(mockOnCancel).toHaveBeenCalled();
@@ -119,10 +143,10 @@ vi.mock('next-intl', () => ({
 
     renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-    const nicknameInput = screen.getByLabelText(/Nickname/i);
+    const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
     await user.type(nicknameInput, 'validuser');
 
-    const submitButton = screen.getByRole('button', { name: /Crear Cuenta/i });
+    const submitButton = screen.getByRole('button', { name: '[accountSetup.buttons.submit]' });
     await user.click(submitButton);
 
     await waitFor(() => {
@@ -131,7 +155,7 @@ vi.mock('next-intl', () => ({
         nickname: 'validuser',
         password: null,
         verifiedOTP: '123456'
-      });
+      }, 'es');
     });
   });
 
@@ -141,13 +165,13 @@ vi.mock('next-intl', () => ({
 
     renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-    const nicknameInput = screen.getByLabelText(/Nickname/i);
+    const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
     await user.type(nicknameInput, 'validuser');
 
-    const passwordInput = screen.getByLabelText(/Contraseña \(opcional\)/i);
+    const passwordInput = screen.getByLabelText('[accountSetup.password.label]');
     await user.type(passwordInput, 'password123');
 
-    const submitButton = screen.getByRole('button', { name: /Crear Cuenta/i });
+    const submitButton = screen.getByRole('button', { name: '[accountSetup.buttons.submit]' });
     await user.click(submitButton);
 
     await waitFor(() => {
@@ -156,7 +180,7 @@ vi.mock('next-intl', () => ({
         nickname: 'validuser',
         password: 'password123',
         verifiedOTP: '123456'
-      });
+      }, 'es');
     });
   });
 
@@ -169,10 +193,10 @@ vi.mock('next-intl', () => ({
 
     renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-    const nicknameInput = screen.getByLabelText(/Nickname/i);
+    const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
     await user.type(nicknameInput, 'validuser');
 
-    const submitButton = screen.getByRole('button', { name: /Crear Cuenta/i });
+    const submitButton = screen.getByRole('button', { name: '[accountSetup.buttons.submit]' });
     await user.click(submitButton);
 
     await waitFor(() => {
@@ -183,7 +207,7 @@ vi.mock('next-intl', () => ({
   it('should render submit button', () => {
     renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-    expect(screen.getByRole('button', { name: /Crear Cuenta/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '[accountSetup.buttons.submit]' })).toBeInTheDocument();
   });
 
   it('should trim whitespace from nickname', async () => {
@@ -192,15 +216,16 @@ vi.mock('next-intl', () => ({
 
     renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-    const nicknameInput = screen.getByLabelText(/Nickname/i);
+    const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
     await user.type(nicknameInput, '  testuser  ');
 
-    const submitButton = screen.getByRole('button', { name: /Crear Cuenta/i });
+    const submitButton = screen.getByRole('button', { name: '[accountSetup.buttons.submit]' });
     await user.click(submitButton);
 
     await waitFor(() => {
       expect(otpActions.createAccountViaOTP).toHaveBeenCalledWith(
-        expect.objectContaining({ nickname: 'testuser' })
+        expect.objectContaining({ nickname: 'testuser' }),
+        'es'
       );
     });
   });
@@ -213,10 +238,10 @@ vi.mock('next-intl', () => ({
 
       renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-      const nicknameInput = screen.getByLabelText(/Nickname/i);
+      const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
       await user.type(nicknameInput, 'testuser');
 
-      const submitButton = screen.getByRole('button', { name: /Crear Cuenta/i });
+      const submitButton = screen.getByRole('button', { name: '[accountSetup.buttons.submit]' });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -229,21 +254,15 @@ vi.mock('next-intl', () => ({
 
     it('signs in after successful account creation', async () => {
       const user = userEvent.setup();
-      const mockRefresh = vi.fn();
       vi.mocked(otpActions.createAccountViaOTP).mockResolvedValue({ success: true });
       vi.mocked(signIn).mockResolvedValue({ ok: true });
 
-      // Mock router refresh
-      vi.spyOn(require('next/navigation'), 'useRouter').mockReturnValue({
-        refresh: mockRefresh
-      });
-
       renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-      const nicknameInput = screen.getByLabelText(/Nickname/i);
+      const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
       await user.type(nicknameInput, 'testuser');
 
-      const submitButton = screen.getByRole('button', { name: /Crear Cuenta/i });
+      const submitButton = screen.getByRole('button', { name: '[accountSetup.buttons.submit]' });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -261,26 +280,30 @@ vi.mock('next-intl', () => ({
       const user = userEvent.setup();
       renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-      const nicknameInput = screen.getByLabelText(/Nickname/i);
+      const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
       await user.type(nicknameInput, 'ab');
       await user.tab();
 
       await waitFor(() => {
-        expect(screen.getByText(/El nickname debe tener al menos 3 caracteres/i)).toBeInTheDocument();
+        expect(screen.getByText(/\[accountSetup\.nickname\.minLength\]/)).toBeInTheDocument();
       });
     });
 
     it('displays nickname maximum length error with interpolated value', async () => {
       const user = userEvent.setup();
-      renderWithTheme(<AccountSetupForm {...defaultProps} />);
+      const { container } = renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-      const nicknameInput = screen.getByLabelText(/Nickname/i);
+      const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' }) as HTMLInputElement;
+
+      // Remove maxLength attribute to allow typing more than 20 chars
+      nicknameInput.removeAttribute('maxlength');
+
       const longNickname = 'a'.repeat(21);
       await user.type(nicknameInput, longNickname);
       await user.tab();
 
       await waitFor(() => {
-        expect(screen.getByText(/El nickname no puede exceder 20 caracteres/i)).toBeInTheDocument();
+        expect(screen.getByText(/\[accountSetup\.nickname\.maxLength\]/)).toBeInTheDocument();
       });
     });
 
@@ -288,11 +311,11 @@ vi.mock('next-intl', () => ({
       const user = userEvent.setup();
       renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-      const passwordInput = screen.getByLabelText(/Contraseña/i);
+      const passwordInput = screen.getByLabelText('[accountSetup.password.label]');
       await user.type(passwordInput, 'short');
 
       await waitFor(() => {
-        expect(screen.getByText(/La contraseña debe tener al menos 8 caracteres/i)).toBeInTheDocument();
+        expect(screen.getByText(/\[accountSetup\.password\.minLength\]/)).toBeInTheDocument();
       });
     });
 
@@ -300,21 +323,21 @@ vi.mock('next-intl', () => ({
       const user = userEvent.setup();
       renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-      const nicknameInput = screen.getByLabelText(/Nickname/i);
+      const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
 
       // Type too short
       await user.type(nicknameInput, 'a');
       await user.tab();
 
       await waitFor(() => {
-        expect(screen.getByText(/El nickname debe tener al menos 3 caracteres/i)).toBeInTheDocument();
+        expect(screen.getByText(/\[accountSetup\.nickname\.minLength\]/)).toBeInTheDocument();
       });
 
       // Add more characters
       await user.type(nicknameInput, 'bcde');
 
       await waitFor(() => {
-        expect(screen.queryByText(/El nickname debe tener al menos 3 caracteres/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/\[accountSetup\.nickname\.minLength\]/)).not.toBeInTheDocument();
       });
     });
   });
@@ -328,7 +351,7 @@ vi.mock('next-intl', () => ({
 
       renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-      const nicknameInput = screen.getByLabelText(/Nickname/i);
+      const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
       await user.type(nicknameInput, 'testuser');
       await user.tab();
 
@@ -345,7 +368,7 @@ vi.mock('next-intl', () => ({
 
       renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-      const nicknameInput = screen.getByLabelText(/Nickname/i);
+      const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
       await user.type(nicknameInput, 'testuser');
       await user.tab();
 
@@ -362,7 +385,7 @@ vi.mock('next-intl', () => ({
 
       renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-      const nicknameInput = screen.getByLabelText(/Nickname/i);
+      const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
       await user.tab();
 
       await waitFor(() => {
@@ -372,24 +395,28 @@ vi.mock('next-intl', () => ({
 
     it('clears availability error when nickname is corrected', async () => {
       const user = userEvent.setup();
+      // Mock returns error for "taken", then success for "available"
+      // handleNicknameChange calls checkNicknameAvailability on every keystroke after 3+ chars
+      // "taken" = 5 chars, so 3 calls (t-a-k, t-a-k-e, t-a-k-e-n)
+      // "available" = 9 chars, so 7 calls
       vi.mocked(otpActions.checkNicknameAvailability)
-        .mockResolvedValueOnce({ available: false, error: 'Nickname taken' })
-        .mockResolvedValueOnce({ available: true });
+        .mockResolvedValue({ available: false, error: 'Nickname taken' });
 
       renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-      const nicknameInput = screen.getByLabelText(/Nickname/i);
+      const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
       await user.type(nicknameInput, 'taken');
-      await user.tab();
 
       await waitFor(() => {
         expect(screen.getByText(/Nickname taken/i)).toBeInTheDocument();
       });
 
-      // Correct the nickname
+      // Correct the nickname - mock now returns available
+      vi.mocked(otpActions.checkNicknameAvailability)
+        .mockResolvedValue({ available: true });
+
       await user.clear(nicknameInput);
       await user.type(nicknameInput, 'available');
-      await user.tab();
 
       await waitFor(() => {
         expect(screen.queryByText(/Nickname taken/i)).not.toBeInTheDocument();
@@ -405,9 +432,9 @@ vi.mock('next-intl', () => ({
 
       renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-      const nicknameInput = screen.getByLabelText(/Nickname/i);
-      const passwordInput = screen.getByLabelText(/Contraseña/i);
-      const submitButton = screen.getByRole('button', { name: /Crear Cuenta/i });
+      const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
+      const passwordInput = screen.getByLabelText('[accountSetup.password.label]');
+      const submitButton = screen.getByRole('button', { name: '[accountSetup.buttons.submit]' });
 
       await user.type(nicknameInput, 'validuser');
       await user.type(passwordInput, '12345678');
@@ -433,8 +460,8 @@ vi.mock('next-intl', () => ({
 
       renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-      const nicknameInput = screen.getByLabelText(/Nickname/i);
-      const submitButton = screen.getByRole('button', { name: /Crear Cuenta/i });
+      const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
+      const submitButton = screen.getByRole('button', { name: '[accountSetup.buttons.submit]' });
 
       await user.type(nicknameInput, 'validuser');
 
@@ -456,11 +483,11 @@ vi.mock('next-intl', () => ({
       const user = userEvent.setup();
       renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-      const passwordInput = screen.getByLabelText(/Contraseña/i);
+      const passwordInput = screen.getByLabelText('[accountSetup.password.label]');
       await user.type(passwordInput, 'short');
 
       await waitFor(() => {
-        expect(screen.getByText(/La contraseña debe tener al menos 8 caracteres/i)).toBeInTheDocument();
+        expect(screen.getByText(/\[accountSetup\.password\.minLength\]/)).toBeInTheDocument();
       });
     });
 
@@ -468,7 +495,7 @@ vi.mock('next-intl', () => ({
       const user = userEvent.setup();
       renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-      const passwordInput = screen.getByLabelText(/Contraseña/i);
+      const passwordInput = screen.getByLabelText('[accountSetup.password.label]');
       expect(screen.queryByLabelText(/toggleVisibility/i)).not.toBeInTheDocument();
 
       await user.type(passwordInput, 'password123');
@@ -481,7 +508,7 @@ vi.mock('next-intl', () => ({
       const user = userEvent.setup();
       renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-      const passwordInput = screen.getByLabelText(/Contraseña/i) as HTMLInputElement;
+      const passwordInput = screen.getByLabelText('[accountSetup.password.label]') as HTMLInputElement;
       await user.type(passwordInput, 'password123');
 
       expect(passwordInput.type).toBe('password');
@@ -506,8 +533,8 @@ vi.mock('next-intl', () => ({
 
       renderWithTheme(<AccountSetupForm {...defaultProps} onSuccess={mockOnSuccess} />);
 
-      const nicknameInput = screen.getByLabelText(/Nickname/i);
-      const submitButton = screen.getByRole('button', { name: /Crear Cuenta/i });
+      const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
+      const submitButton = screen.getByRole('button', { name: '[accountSetup.buttons.submit]' });
 
       await user.type(nicknameInput, 'testuser');
       await user.click(submitButton);
@@ -524,14 +551,14 @@ vi.mock('next-intl', () => ({
 
       renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-      const nicknameInput = screen.getByLabelText(/Nickname/i);
-      const submitButton = screen.getByRole('button', { name: /Crear Cuenta/i });
+      const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
+      const submitButton = screen.getByRole('button', { name: '[accountSetup.buttons.submit]' });
 
       await user.type(nicknameInput, 'testuser');
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(screen.getByText(/Error al crear la cuenta e iniciar sesión/i)).toBeInTheDocument();
+        expect(screen.getByText(/\[accountSetup\.errors\.createAndLoginFailed\]/)).toBeInTheDocument();
       });
     });
 
@@ -546,19 +573,19 @@ vi.mock('next-intl', () => ({
 
       renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-      const nicknameInput = screen.getByLabelText(/Nickname/i);
-      const submitButton = screen.getByRole('button', { name: /Crear Cuenta/i });
+      const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
+      const submitButton = screen.getByRole('button', { name: '[accountSetup.buttons.submit]' });
 
       await user.type(nicknameInput, 'testuser');
       await user.click(submitButton);
 
       // Button should show "Creando..." while loading
-      expect(screen.getByRole('button', { name: /Creando/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /\[accountSetup\.buttons\.submitting\]/ })).toBeInTheDocument();
 
       resolveCreateAccount({ success: true });
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Crear Cuenta/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: '[accountSetup.buttons.submit]' })).toBeInTheDocument();
       });
     });
 
@@ -566,10 +593,10 @@ vi.mock('next-intl', () => ({
       const user = userEvent.setup();
       renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-      const submitButton = screen.getByRole('button', { name: /Crear Cuenta/i });
+      const submitButton = screen.getByRole('button', { name: '[accountSetup.buttons.submit]' });
       expect(submitButton).toBeDisabled();
 
-      const nicknameInput = screen.getByLabelText(/Nickname/i);
+      const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
       await user.type(nicknameInput, 'validuser');
 
       // Need to wait for nickname availability check
@@ -589,10 +616,10 @@ vi.mock('next-intl', () => ({
 
       renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-      const nicknameInput = screen.getByLabelText(/Nickname/i);
-      const passwordInput = screen.getByLabelText(/Contraseña/i);
-      const submitButton = screen.getByRole('button', { name: /Crear Cuenta/i });
-      const cancelButton = screen.getByRole('button', { name: /Cancelar/i });
+      const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
+      const passwordInput = screen.getByLabelText('[accountSetup.password.label]');
+      const submitButton = screen.getByRole('button', { name: '[accountSetup.buttons.submit]' });
+      const cancelButton = screen.getByRole('button', { name: '[accountSetup.buttons.cancel]' });
 
       await user.type(nicknameInput, 'testuser');
       await user.type(passwordInput, 'password123');
@@ -618,8 +645,8 @@ vi.mock('next-intl', () => ({
 
       renderWithTheme(<AccountSetupForm email="" verifiedOTP="123456" onSuccess={vi.fn()} onCancel={vi.fn()} />);
 
-      const nicknameInput = screen.getByLabelText(/Nickname/i);
-      const submitButton = screen.getByRole('button', { name: /Crear Cuenta/i });
+      const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
+      const submitButton = screen.getByRole('button', { name: '[accountSetup.buttons.submit]' });
 
       await user.type(nicknameInput, 'testuser');
       await user.click(submitButton);
@@ -643,8 +670,8 @@ vi.mock('next-intl', () => ({
 
       renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-      const nicknameInput = screen.getByLabelText(/Nickname/i);
-      const submitButton = screen.getByRole('button', { name: /Crear Cuenta/i });
+      const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
+      const submitButton = screen.getByRole('button', { name: '[accountSetup.buttons.submit]' });
 
       await user.type(nicknameInput, 'testuser');
       await user.click(submitButton);
@@ -662,14 +689,14 @@ vi.mock('next-intl', () => ({
 
       renderWithTheme(<AccountSetupForm {...defaultProps} />);
 
-      const nicknameInput = screen.getByLabelText(/Nickname/i);
-      const submitButton = screen.getByRole('button', { name: /Crear Cuenta/i });
+      const nicknameInput = screen.getByRole('textbox', { name: '[accountSetup.nickname.label]' });
+      const submitButton = screen.getByRole('button', { name: '[accountSetup.buttons.submit]' });
 
       await user.type(nicknameInput, 'testuser');
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(screen.getByText(/Error al crear la cuenta/i)).toBeInTheDocument();
+        expect(screen.getByText('[accountSetup.errors.createFailed]')).toBeInTheDocument();
       });
     });
   });
