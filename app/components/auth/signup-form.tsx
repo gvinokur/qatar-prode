@@ -10,6 +10,8 @@ import { signupUser } from "../../actions/user-actions";
 import {User} from "../../db/tables-definition";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from 'next-intl';
+import type { Locale } from '@/i18n.config';
 
 export type SignupFormData = {
   email: string,
@@ -26,6 +28,8 @@ type SignupFormProps = {
 }
 
 export default function SignupForm({ onSuccess, email, onOTPSignupClick }: SignupFormProps) {
+  const t = useTranslations('auth');
+  const locale = useLocale() as Locale;
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -54,7 +58,7 @@ export default function SignupForm({ onSuccess, email, onOTPSignupClick }: Signu
           email: signupForm.email,
           password_hash: signupForm.password,
           nickname: signupForm.nickname
-        });
+        }, locale);
         setLoading(false);
 
         if (typeof userOrError === 'string') {
@@ -73,7 +77,7 @@ export default function SignupForm({ onSuccess, email, onOTPSignupClick }: Signu
           if (result?.error) {
             setError('root', {
               type: 'Login Error',
-              message: 'Registration successful but automatic login failed. Please try logging in manually.'
+              message: t('accountSetup.errors.createAndLoginFailed')
             });
           } else {
             // Process response here
@@ -103,15 +107,15 @@ export default function SignupForm({ onSuccess, email, onOTPSignupClick }: Signu
         control={control}
         name="email"
         rules={{
-          required: 'Por favor ingrese su e-mail',
-          validate: (value) => validator.isEmail(value) || 'Direccion de E-Mail invalida'
+          required: t('signup.email.required'),
+          validate: (value) => validator.isEmail(value) || t('signup.email.invalid')
         }}
         render={({field, fieldState}) => (
           <TextField
             {...field}
             autoFocus={!email}
             margin="dense"
-            label="E-Mail"
+            label={t('signup.email.label')}
             type="text"
             fullWidth
             variant="standard"
@@ -127,14 +131,14 @@ export default function SignupForm({ onSuccess, email, onOTPSignupClick }: Signu
           control={control}
           name="email_confirm"
           rules={{
-            required: 'Por favor confirme su e-mail',
-            validate: (value) => value === getValues('email') || 'Confirme su e-mail correctamente'
+            required: t('signup.confirmEmail.required'),
+            validate: (value) => value === getValues('email') || t('signup.confirmEmail.mismatch')
           }}
           render={({field, fieldState}) => (
             <TextField
               {...field}
               margin="dense"
-              label="Confirmacion de E-Mail"
+              label={t('signup.confirmEmail.label')}
               type="text"
               fullWidth
               variant="standard"
@@ -153,7 +157,7 @@ export default function SignupForm({ onSuccess, email, onOTPSignupClick }: Signu
             {...field}
             autoFocus={!!email}
             margin="dense"
-            label="Apodo"
+            label={t('signup.nickname.label')}
             type="text"
             fullWidth
             variant="standard"
@@ -165,13 +169,13 @@ export default function SignupForm({ onSuccess, email, onOTPSignupClick }: Signu
         control={control}
         name="password"
         rules={{
-          required: 'Cree su contraseña',
+          required: t('signup.password.required'),
         }}
         render={({field, fieldState}) => (
           <TextField
             {...field}
             margin="dense"
-            label="Contraseña"
+            label={t('signup.password.label')}
             type="password"
             fullWidth
             variant="standard"
@@ -185,14 +189,14 @@ export default function SignupForm({ onSuccess, email, onOTPSignupClick }: Signu
         control={control}
         name="password_confirm"
         rules={{
-          required: 'Por favor confirme su contraseña',
-          validate: (value) => value === getValues('password') || 'Confirme su contraseña correctamente'
+          required: t('signup.password.confirmRequired'),
+          validate: (value) => value === getValues('password') || t('signup.password.confirmMismatch')
         }}
         render={({field, fieldState}) => (
           <TextField
             {...field}
             margin="dense"
-            label="Confirmacion de Contraseña"
+            label={t('signup.password.confirmLabel')}
             type="password"
             fullWidth
             variant="standard"
@@ -210,11 +214,11 @@ export default function SignupForm({ onSuccess, email, onOTPSignupClick }: Signu
             onClick={onOTPSignupClick}
             disabled={loading}
           >
-            Código por Email
+            {t('signup.buttons.otpEmail')}
           </Button>
         )}
         <Button loading={loading} type="submit" variant="contained">
-          Registrarse
+          {t('signup.buttons.submit')}
         </Button>
       </div>
     </form>

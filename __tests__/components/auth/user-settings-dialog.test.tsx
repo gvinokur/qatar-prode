@@ -12,6 +12,14 @@ import {
 } from '../../../app/utils/notifications-utils';
 import { setupTestMocks } from '../../mocks/setup-helpers';
 import { createAuthenticatedSessionValue } from '../../mocks/next-auth.mocks';
+import { createMockTranslations } from '../../utils/mock-translations';
+import * as intl from 'next-intl';
+
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useTranslations: vi.fn(),
+  useLocale: vi.fn(() => 'es'),
+}));
 
 // Mock next-auth/react
 vi.mock('next-auth/react', () => ({
@@ -38,6 +46,11 @@ describe('UserSettingsDialog', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Setup i18n mocks
+    vi.mocked(intl.useTranslations).mockReturnValue(
+      createMockTranslations('auth')
+    );
 
     // Setup session mock with helper
     const mocks = setupTestMocks({
@@ -69,9 +82,9 @@ describe('UserSettingsDialog', () => {
   describe('rendering', () => {
     it('renders dialog when open prop is true', () => {
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
-      
+
       expect(screen.getByRole('dialog')).toBeInTheDocument();
-      expect(screen.getByText('Configuracion de Usuario')).toBeInTheDocument();
+      expect(screen.getByText('[userSettings.title]')).toBeInTheDocument();
     });
 
     it('does not render dialog when open prop is false', () => {
@@ -83,7 +96,7 @@ describe('UserSettingsDialog', () => {
     it('renders nickname text field with user nickname as default value', () => {
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
       
-      const nicknameField = screen.getByLabelText('Apodo');
+      const nicknameField = screen.getByRole('textbox', { name: '[userSettings.nickname.label]' });
       expect(nicknameField).toHaveValue('testuser');
     });
 
@@ -98,7 +111,7 @@ describe('UserSettingsDialog', () => {
 
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
 
-      const nicknameField = screen.getByLabelText('Apodo');
+      const nicknameField = screen.getByRole('textbox', { name: '[userSettings.nickname.label]' });
       expect(nicknameField).toHaveValue('Test User');
     });
 
@@ -116,21 +129,21 @@ describe('UserSettingsDialog', () => {
       
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
       
-      const nicknameField = screen.getByLabelText('Apodo');
+      const nicknameField = screen.getByRole('textbox', { name: '[userSettings.nickname.label]' });
       expect(nicknameField).toHaveValue('');
     });
 
     it('renders notifications switch', () => {
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
       
-      expect(screen.getByLabelText('Recibir Notificationes')).toBeInTheDocument();
+      expect(screen.getByRole('switch', { name: '[userSettings.notifications.label]' })).toBeInTheDocument();
     });
 
     it('renders action buttons', () => {
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
       
-      expect(screen.getByText('Cancelar')).toBeInTheDocument();
-      expect(screen.getByText('Guardar')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '[nicknameSetup.buttons.cancel]' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '[nicknameSetup.buttons.save]' })).toBeInTheDocument();
     });
   });
 
@@ -141,7 +154,7 @@ describe('UserSettingsDialog', () => {
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
       
       await waitFor(() => {
-        expect(screen.getByLabelText('Recibir Notificationes')).not.toBeDisabled();
+        expect(screen.getByRole('switch', { name: '[userSettings.notifications.label]' })).not.toBeDisabled();
       });
     });
 
@@ -151,7 +164,7 @@ describe('UserSettingsDialog', () => {
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
       
       await waitFor(() => {
-        expect(screen.getByLabelText('Recibir Notificationes')).toBeDisabled();
+        expect(screen.getByRole('switch', { name: '[userSettings.notifications.label]' })).toBeDisabled();
       });
     });
 
@@ -161,7 +174,7 @@ describe('UserSettingsDialog', () => {
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
       
       await waitFor(() => {
-        expect(screen.getByLabelText('Recibir Notificationes')).toBeChecked();
+        expect(screen.getByRole('switch', { name: '[userSettings.notifications.label]' })).toBeChecked();
       });
     });
 
@@ -171,7 +184,7 @@ describe('UserSettingsDialog', () => {
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
       
       await waitFor(() => {
-        expect(screen.getByLabelText('Recibir Notificationes')).not.toBeChecked();
+        expect(screen.getByRole('switch', { name: '[userSettings.notifications.label]' })).not.toBeChecked();
       });
     });
   });
@@ -180,7 +193,7 @@ describe('UserSettingsDialog', () => {
     it('updates nickname field when user types', async () => {
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
       
-      const nicknameField = screen.getByLabelText('Apodo');
+      const nicknameField = screen.getByRole('textbox', { name: '[userSettings.nickname.label]' });
       
       await act(async () => {
         fireEvent.change(nicknameField, { target: { value: 'newuser' } });
@@ -192,7 +205,7 @@ describe('UserSettingsDialog', () => {
     it('toggles notifications switch when clicked', async () => {
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
       
-      const notificationsSwitch = screen.getByLabelText('Recibir Notificationes');
+      const notificationsSwitch = screen.getByRole('switch', { name: '[userSettings.notifications.label]' });
       
       await waitFor(() => {
         expect(notificationsSwitch).not.toBeChecked();
@@ -209,7 +222,7 @@ describe('UserSettingsDialog', () => {
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
       
       await act(async () => {
-        fireEvent.click(screen.getByText('Cancelar'));
+        fireEvent.click(screen.getByRole('button', { name: '[nicknameSetup.buttons.cancel]' }));
       });
       
       expect(mockOnClose).toHaveBeenCalled();
@@ -221,24 +234,24 @@ describe('UserSettingsDialog', () => {
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
       
       // Update nickname
-      const nicknameField = screen.getByLabelText('Apodo');
+      const nicknameField = screen.getByRole('textbox', { name: '[userSettings.nickname.label]' });
       await act(async () => {
         fireEvent.change(nicknameField, { target: { value: 'newuser' } });
       });
       
       // Enable notifications
-      const notificationsSwitch = screen.getByLabelText('Recibir Notificationes');
+      const notificationsSwitch = screen.getByRole('switch', { name: '[userSettings.notifications.label]' });
       await act(async () => {
         fireEvent.click(notificationsSwitch);
       });
       
       // Submit form
       await act(async () => {
-        fireEvent.click(screen.getByText('Guardar'));
+        fireEvent.click(screen.getByRole('button', { name: '[nicknameSetup.buttons.save]' }));
       });
       
       await waitFor(() => {
-        expect(updateNickname).toHaveBeenCalledWith('newuser');
+        expect(updateNickname).toHaveBeenCalledWith('newuser', 'es');
       });
       
       expect(mockSessionValue.update).toHaveBeenCalledWith({
@@ -257,29 +270,29 @@ describe('UserSettingsDialog', () => {
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
       
       // Update nickname
-      const nicknameField = screen.getByLabelText('Apodo');
+      const nicknameField = screen.getByRole('textbox', { name: '[userSettings.nickname.label]' });
       await act(async () => {
         fireEvent.change(nicknameField, { target: { value: 'newuser' } });
       });
       
       // Wait for notifications to be initially enabled
       await waitFor(() => {
-        expect(screen.getByLabelText('Recibir Notificationes')).toBeChecked();
+        expect(screen.getByRole('switch', { name: '[userSettings.notifications.label]' })).toBeChecked();
       });
       
       // Disable notifications
-      const notificationsSwitch = screen.getByLabelText('Recibir Notificationes');
+      const notificationsSwitch = screen.getByRole('switch', { name: '[userSettings.notifications.label]' });
       await act(async () => {
         fireEvent.click(notificationsSwitch);
       });
       
       // Submit form
       await act(async () => {
-        fireEvent.click(screen.getByText('Guardar'));
+        fireEvent.click(screen.getByRole('button', { name: '[nicknameSetup.buttons.save]' }));
       });
       
       await waitFor(() => {
-        expect(updateNickname).toHaveBeenCalledWith('newuser');
+        expect(updateNickname).toHaveBeenCalledWith('newuser', 'es');
       });
       
       expect(mockSessionValue.update).toHaveBeenCalledWith({
@@ -300,8 +313,8 @@ describe('UserSettingsDialog', () => {
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
       
       // Should still render the component even if checking existing subscription fails
-      expect(screen.getByLabelText('Recibir Notificationes')).toBeInTheDocument();
-      expect(screen.getByLabelText('Recibir Notificationes')).not.toBeChecked();
+      expect(screen.getByRole('switch', { name: '[userSettings.notifications.label]' })).toBeInTheDocument();
+      expect(screen.getByRole('switch', { name: '[userSettings.notifications.label]' })).not.toBeChecked();
     });
   });
 
@@ -317,15 +330,15 @@ describe('UserSettingsDialog', () => {
     it('has proper button types', () => {
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
       
-      const saveButton = screen.getByText('Guardar');
+      const saveButton = screen.getByRole('button', { name: '[nicknameSetup.buttons.save]' });
       expect(saveButton).toHaveAttribute('type', 'submit');
     });
 
     it('has proper labels for form elements', () => {
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
       
-      expect(screen.getByLabelText('Apodo')).toBeInTheDocument();
-      expect(screen.getByLabelText('Recibir Notificationes')).toBeInTheDocument();
+      expect(screen.getByRole('textbox', { name: '[userSettings.nickname.label]' })).toBeInTheDocument();
+      expect(screen.getByRole('switch', { name: '[userSettings.notifications.label]' })).toBeInTheDocument();
     });
   });
 
@@ -341,7 +354,7 @@ describe('UserSettingsDialog', () => {
 
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
 
-      const nicknameField = screen.getByLabelText('Apodo');
+      const nicknameField = screen.getByRole('textbox', { name: '[userSettings.nickname.label]' });
       expect(nicknameField).toHaveValue('');
     });
 
@@ -356,7 +369,7 @@ describe('UserSettingsDialog', () => {
 
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
 
-      const nicknameField = screen.getByLabelText('Apodo');
+      const nicknameField = screen.getByRole('textbox', { name: '[userSettings.nickname.label]' });
       expect(nicknameField).toHaveValue('');
     });
   });
@@ -365,10 +378,10 @@ describe('UserSettingsDialog', () => {
     it('initializes form with correct default values on mount', () => {
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
       
-      const nicknameField = screen.getByLabelText('Apodo');
+      const nicknameField = screen.getByRole('textbox', { name: '[userSettings.nickname.label]' });
       expect(nicknameField).toHaveValue('testuser');
       
-      const notificationsSwitch = screen.getByLabelText('Recibir Notificationes');
+      const notificationsSwitch = screen.getByRole('switch', { name: '[userSettings.notifications.label]' });
       expect(notificationsSwitch).not.toBeChecked();
     });
 
@@ -391,7 +404,7 @@ describe('UserSettingsDialog', () => {
     it('allows submission with empty nickname', async () => {
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
       
-      const nicknameField = screen.getByLabelText('Apodo');
+      const nicknameField = screen.getByRole('textbox', { name: '[userSettings.nickname.label]' });
       await act(async () => {
         fireEvent.change(nicknameField, { target: { value: '' } });
       });
@@ -399,19 +412,19 @@ describe('UserSettingsDialog', () => {
       expect(nicknameField).toHaveValue('');
       
       // Should still allow form submission
-      const submitButton = screen.getByText('Guardar');
+      const submitButton = screen.getByRole('button', { name: '[nicknameSetup.buttons.save]' });
       expect(submitButton).not.toBeDisabled();
     });
 
     it('preserves form values when switching between notifications states', async () => {
       render(<UserSettingsDialog open={true} onClose={mockOnClose} />);
       
-      const nicknameField = screen.getByLabelText('Apodo');
+      const nicknameField = screen.getByRole('textbox', { name: '[userSettings.nickname.label]' });
       await act(async () => {
         fireEvent.change(nicknameField, { target: { value: 'newuser' } });
       });
       
-      const notificationsSwitch = screen.getByLabelText('Recibir Notificationes');
+      const notificationsSwitch = screen.getByRole('switch', { name: '[userSettings.notifications.label]' });
       await act(async () => {
         fireEvent.click(notificationsSwitch);
       });

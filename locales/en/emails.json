@@ -1,17 +1,32 @@
 {
   "verification": {
-    "subject": "EnOf(Verificación de Cuenta - La Maquina Prode)",
-    "title": "EnOf(Verifica tu dirección de correo electrónico)",
-    "greeting": "EnOf(¡Gracias por registrarte!)",
-    "button": "EnOf(Verificar correo electrónico)",
-    "expiration": "EnOf(Este enlace expirará en 24 horas.)",
-    "signature": "EnOf(El equipo de La Maquina Prode)"
+    "subject": "Account Verification - La Maquina Prode",
+    "title": "Verify your email address",
+    "greeting": "Thanks for signing up!",
+    "button": "Verify Email Address",
+    "expiration": "This link will expire in 24 hours.",
+    "signature": "The La Maquina Prode Team"
   },
   "passwordReset": {
-    "subject": "EnOf(Recuperación de contraseña - La Maquina Prode)",
-    "title": "EnOf(Restablecer contraseña)",
-    "button": "EnOf(Restablecer contraseña)",
-    "expiration": "EnOf(Este enlace expirará en 1 hora.)",
-    "signature": "EnOf(El equipo de La Maquina Prode)"
+    "subject": "Password Recovery - La Maquina Prode",
+    "title": "Reset Password",
+    "button": "Reset Password",
+    "expiration": "This link will expire in 1 hour.",
+    "signature": "The La Maquina Prode Team"
+  },
+  "otp": {
+    "subject": "Your Access Code - Qatar Prode",
+    "title": "Your Access Code",
+    "greeting": "You have requested a code to sign in to Qatar Prode.",
+    "validity": "⏱️ Valid for 3 minutes",
+    "attempts": "You have a maximum of 3 attempts to enter this code.",
+    "securityTitle": "⚠️ Security:",
+    "securityTips": {
+      "tip1": "Do not share this code with anyone",
+      "tip2": "Qatar Prode will never ask you for this code by phone or email",
+      "tip3": "If you did not request this code, you can ignore this message"
+    },
+    "requestedFor": "This code was requested for:",
+    "support": "If you have trouble signing in, contact support."
   }
 }

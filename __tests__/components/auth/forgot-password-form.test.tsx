@@ -4,10 +4,19 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ForgotPasswordForm from '../../../app/components/auth/forgot-password-form';
 import { sendPasswordResetLink } from '../../../app/actions/user-actions';
+import { renderWithTheme } from '../../utils/test-utils';
+import { createMockTranslations } from '../../utils/mock-translations';
+import * as intl from 'next-intl';
 
 // Mock the user actions
 vi.mock('../../../app/actions/user-actions', () => ({
   sendPasswordResetLink: vi.fn(),
+}));
+
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useTranslations: vi.fn(),
+  useLocale: vi.fn(() => 'es'),
 }));
 
 // Mock validator
@@ -26,6 +35,11 @@ describe('ForgotPasswordForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSendPasswordResetLink.mockResolvedValue({ success: true, messageId: 'test-message-id' });
+
+    // Setup i18n mocks
+    vi.mocked(intl.useTranslations).mockReturnValue(
+      createMockTranslations('auth')
+    );
   });
 
   afterEach(() => {
@@ -34,104 +48,104 @@ describe('ForgotPasswordForm', () => {
 
   describe('rendering', () => {
     it('renders forgot password form with all required elements', () => {
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      expect(screen.getByLabelText('E-Mail')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Enviar Enlace' })).toBeInTheDocument();
-      expect(screen.getByText('Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.')).toBeInTheDocument();
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      expect(screen.getByRole('textbox', { name: '[login.email.label]' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' })).toBeInTheDocument();
+      expect(screen.getByText('[forgotPassword.description]')).toBeInTheDocument();
     });
 
     it('focuses email input on render', () => {
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const emailInput = screen.getByLabelText('E-Mail');
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
       expect(emailInput).toHaveFocus();
     });
 
     it('renders email field with correct attributes', () => {
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const emailInput = screen.getByLabelText('E-Mail');
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
       expect(emailInput).toHaveAttribute('type', 'text');
       expect(emailInput).toHaveAttribute('name', 'email');
     });
 
     it('renders submit button with correct attributes', () => {
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
       expect(submitButton).toHaveAttribute('type', 'submit');
     });
   });
 
   describe('form validation', () => {
     it('shows error when email is empty', async () => {
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
       await user.click(submitButton);
-      
-      expect(screen.getByText('Por favor ingrese su e-mail')).toBeInTheDocument();
+
+      expect(screen.getByText('[login.email.required]')).toBeInTheDocument();
     });
 
     it('shows error when email format is invalid', async () => {
       const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(false);
-      
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const emailInput = screen.getByLabelText('E-Mail');
+
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
       await user.type(emailInput, 'invalid-email');
-      
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
+
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
       await user.click(submitButton);
-      
-      expect(screen.getByText('Direccion de E-Mail invalida')).toBeInTheDocument();
+
+      expect(screen.getByText('[login.email.invalid]')).toBeInTheDocument();
     });
 
     it('validates email format correctly with valid email', async () => {
       const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
-      
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const emailInput = screen.getByLabelText('E-Mail');
+
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
       await user.type(emailInput, 'test@example.com');
-      
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
+
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
       await user.click(submitButton);
-      
+
       await waitFor(() => {
-        expect(sendPasswordResetLink).toHaveBeenCalledWith('test@example.com');
+        expect(sendPasswordResetLink).toHaveBeenCalledWith('test@example.com', 'es');
       });
     });
 
     it('clears validation errors when input is corrected', async () => {
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const emailInput = screen.getByLabelText('E-Mail');
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
-      
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
+
       // First, trigger validation error
       await user.click(submitButton);
-      expect(screen.getByText('Por favor ingrese su e-mail')).toBeInTheDocument();
-      
+      expect(screen.getByText('[login.email.required]')).toBeInTheDocument();
+
       // Then, correct the input
       await user.type(emailInput, 'test@example.com');
-      
+
       // Error should be cleared
-      expect(screen.queryByText('Por favor ingrese su e-mail')).not.toBeInTheDocument();
+      expect(screen.queryByText('[login.email.required]')).not.toBeInTheDocument();
     });
 
     it('shows field errors with proper accessibility attributes', async () => {
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
       await user.click(submitButton);
-      
-      const emailInput = screen.getByLabelText('E-Mail');
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
       expect(emailInput).toHaveAttribute('aria-invalid', 'true');
-      expect(screen.getByText('Por favor ingrese su e-mail')).toBeInTheDocument();
+      expect(screen.getByText('[login.email.required]')).toBeInTheDocument();
     });
   });
 
@@ -139,17 +153,17 @@ describe('ForgotPasswordForm', () => {
     it('calls sendPasswordResetLink with correct email on successful validation', async () => {
       const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
-      
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const emailInput = screen.getByLabelText('E-Mail');
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
-      
+
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
+
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
-      
+
       await waitFor(() => {
-        expect(sendPasswordResetLink).toHaveBeenCalledWith('test@example.com');
+        expect(sendPasswordResetLink).toHaveBeenCalledWith('test@example.com', 'es');
       });
     });
 
@@ -157,15 +171,15 @@ describe('ForgotPasswordForm', () => {
       const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
       mockSendPasswordResetLink.mockResolvedValue({ success: true, messageId: 'test-message-id' });
-      
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const emailInput = screen.getByLabelText('E-Mail');
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
-      
+
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
+
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
-      
+
       await waitFor(() => {
         expect(mockOnSuccess).toHaveBeenCalledWith('test@example.com');
       });
@@ -174,24 +188,24 @@ describe('ForgotPasswordForm', () => {
     it('submits form when Enter is pressed', async () => {
       const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
-      
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const emailInput = screen.getByLabelText('E-Mail');
+
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
       await user.type(emailInput, 'test@example.com');
       await user.keyboard('{Enter}');
-      
+
       await waitFor(() => {
-        expect(sendPasswordResetLink).toHaveBeenCalledWith('test@example.com');
+        expect(sendPasswordResetLink).toHaveBeenCalledWith('test@example.com', 'es');
       });
     });
 
     it('prevents form submission when email is empty', async () => {
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
       await user.click(submitButton);
-      
+
       await waitFor(() => {
         expect(sendPasswordResetLink).not.toHaveBeenCalled();
       });
@@ -200,15 +214,15 @@ describe('ForgotPasswordForm', () => {
     it('does not submit form when email validation fails', async () => {
       const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(false);
-      
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const emailInput = screen.getByLabelText('E-Mail');
+
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
       await user.type(emailInput, 'invalid-email');
-      
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
+
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
       await user.click(submitButton);
-      
+
       await waitFor(() => {
         expect(sendPasswordResetLink).not.toHaveBeenCalled();
       });
@@ -219,25 +233,25 @@ describe('ForgotPasswordForm', () => {
     it('shows loading state while sending password reset link', async () => {
       const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
-      
+
       // Mock a delayed response
       let resolvePromise: (_value: any) => void;
       const promise = new Promise<{ success: boolean; messageId: string } | { success: boolean; error: string }>((resolve) => {
         resolvePromise = resolve;
       });
       mockSendPasswordResetLink.mockReturnValue(promise);
-      
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const emailInput = screen.getByLabelText('E-Mail');
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
-      
+
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
+
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
-      
+
       // Check that loading state is active by looking for MUI loading indicator
       expect(submitButton.querySelector('.MuiButton-loadingWrapper')).toBeInTheDocument();
-      
+
       // Resolve the promise
       resolvePromise!({ success: true });
       await waitFor(() => {
@@ -249,19 +263,19 @@ describe('ForgotPasswordForm', () => {
       const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
       mockSendPasswordResetLink.mockResolvedValue({ success: true, messageId: 'test-message-id' });
-      
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const emailInput = screen.getByLabelText('E-Mail');
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
-      
+
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
+
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
-      
+
       await waitFor(() => {
         expect(mockOnSuccess).toHaveBeenCalled();
       });
-      
+
       // Loading state should be reset
       expect(submitButton).not.toHaveAttribute('loading');
     });
@@ -271,10 +285,10 @@ describe('ForgotPasswordForm', () => {
       validator.isEmail.mockReturnValue(true);
       mockSendPasswordResetLink.mockResolvedValue({ success: false, error: 'Test error' });
 
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
 
-      const emailInput = screen.getByLabelText('E-Mail');
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
 
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
@@ -292,10 +306,10 @@ describe('ForgotPasswordForm', () => {
       validator.isEmail.mockReturnValue(true);
       mockSendPasswordResetLink.mockResolvedValue({ success: false, error: 'Test error' });
 
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
 
-      const emailInput = screen.getByLabelText('E-Mail');
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
 
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
@@ -309,15 +323,15 @@ describe('ForgotPasswordForm', () => {
       validator.isEmail.mockReturnValue(true);
       const errorMessage = 'Network error';
       mockSendPasswordResetLink.mockRejectedValue(new Error(errorMessage));
-      
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const emailInput = screen.getByLabelText('E-Mail');
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
-      
+
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
+
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
-      
+
       await waitFor(() => {
         expect(screen.getByText(`Error: ${errorMessage}`)).toBeInTheDocument();
       });
@@ -328,10 +342,10 @@ describe('ForgotPasswordForm', () => {
       validator.isEmail.mockReturnValue(true);
       mockSendPasswordResetLink.mockResolvedValue({ success: false, error: 'Test error' });
 
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
 
-      const emailInput = screen.getByLabelText('E-Mail');
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
 
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
@@ -347,10 +361,10 @@ describe('ForgotPasswordForm', () => {
       mockSendPasswordResetLink.mockResolvedValueOnce({ success: false, error: 'Test error' })
         .mockResolvedValueOnce({ success: true, messageId: 'test-message-id' });
 
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
 
-      const emailInput = screen.getByLabelText('E-Mail');
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
 
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
@@ -372,10 +386,10 @@ describe('ForgotPasswordForm', () => {
       validator.isEmail.mockReturnValue(true);
       mockSendPasswordResetLink.mockResolvedValue({ success: false, error: 'Test error' });
 
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
 
-      const emailInput = screen.getByLabelText('E-Mail');
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
 
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
@@ -388,24 +402,24 @@ describe('ForgotPasswordForm', () => {
 
   describe('accessibility', () => {
     it('has proper form labels', () => {
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      expect(screen.getByLabelText('E-Mail')).toBeInTheDocument();
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      expect(screen.getByRole('textbox', { name: '[login.email.label]' })).toBeInTheDocument();
     });
 
     it('has proper button type for form submission', () => {
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
       expect(submitButton).toHaveAttribute('type', 'submit');
     });
 
     it('has proper form structure', () => {
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const emailInput = screen.getByLabelText('E-Mail');
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
-      
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
+
       expect(emailInput).toBeInTheDocument();
       expect(submitButton).toBeInTheDocument();
       expect(submitButton).toHaveAttribute('type', 'submit');
@@ -414,33 +428,33 @@ describe('ForgotPasswordForm', () => {
 
   describe('form interaction', () => {
     it('handles tab navigation correctly', async () => {
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const emailInput = screen.getByLabelText('E-Mail');
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
-      
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
+
       expect(emailInput).toHaveFocus();
-      
+
       await user.tab();
       expect(submitButton).toHaveFocus();
     });
 
     it('allows typing in email field', async () => {
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const emailInput = screen.getByLabelText('E-Mail');
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
       await user.type(emailInput, 'test@example.com');
-      
+
       expect(emailInput).toHaveValue('test@example.com');
     });
 
     it('clears email field when cleared', async () => {
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const emailInput = screen.getByLabelText('E-Mail');
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
       await user.type(emailInput, 'test@example.com');
       await user.clear(emailInput);
-      
+
       expect(emailInput).toHaveValue('');
     });
   });
@@ -449,61 +463,61 @@ describe('ForgotPasswordForm', () => {
     it('handles special characters in email', async () => {
       const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
-      
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const emailInput = screen.getByLabelText('E-Mail');
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
-      
+
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
+
       await user.type(emailInput, 'test+special@example.com');
       await user.click(submitButton);
-      
+
       await waitFor(() => {
-        expect(sendPasswordResetLink).toHaveBeenCalledWith('test+special@example.com');
+        expect(sendPasswordResetLink).toHaveBeenCalledWith('test+special@example.com', 'es');
       });
     });
 
     it('handles empty email string gracefully', async () => {
       const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(false);
-      
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const emailInput = screen.getByLabelText('E-Mail');
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
-      
+
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
+
       await user.type(emailInput, '   ');
       await user.click(submitButton);
-      
+
       // Form validation should prevent submission
-      expect(screen.getByText('Direccion de E-Mail invalida')).toBeInTheDocument();
+      expect(screen.getByText('[login.email.invalid]')).toBeInTheDocument();
       expect(sendPasswordResetLink).not.toHaveBeenCalled();
     });
 
     it('handles null/undefined email gracefully', async () => {
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
       await user.click(submitButton);
-      
+
       expect(sendPasswordResetLink).not.toHaveBeenCalled();
     });
 
     it('handles very long email addresses', async () => {
       const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
-      
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
+
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
       const longEmail = 'a'.repeat(100) + '@example.com';
-      const emailInput = screen.getByLabelText('E-Mail');
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
-      
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
+
       await user.type(emailInput, longEmail);
       await user.click(submitButton);
-      
+
       await waitFor(() => {
-        expect(sendPasswordResetLink).toHaveBeenCalledWith(longEmail);
+        expect(sendPasswordResetLink).toHaveBeenCalledWith(longEmail, 'es');
       });
     });
 
@@ -511,19 +525,19 @@ describe('ForgotPasswordForm', () => {
       const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
       mockSendPasswordResetLink.mockRejectedValue(new Error('Network error'));
-      
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const emailInput = screen.getByLabelText('E-Mail');
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
-      
+
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
+
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Error: Network error')).toBeInTheDocument();
       });
-      
+
       expect(mockOnSuccess).not.toHaveBeenCalled();
     });
 
@@ -531,25 +545,221 @@ describe('ForgotPasswordForm', () => {
       const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
       validator.isEmail.mockReturnValue(true);
       mockSendPasswordResetLink.mockResolvedValue({ success: true, messageId: 'test-message-id' });
-      
-      render(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
-      
-      const emailInput = screen.getByLabelText('E-Mail');
-      const submitButton = screen.getByRole('button', { name: 'Enviar Enlace' });
-      
+
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
+
       await user.type(emailInput, 'test@example.com');
-      
+
       // Click multiple times rapidly
       await user.click(submitButton);
       await user.click(submitButton);
       await user.click(submitButton);
-      
+
       await waitFor(() => {
         expect(mockOnSuccess).toHaveBeenCalledWith('test@example.com');
       });
-      
+
       // Multiple clicks may result in multiple calls as there's no debouncing
-      expect(sendPasswordResetLink).toHaveBeenCalledWith('test@example.com');
+      expect(sendPasswordResetLink).toHaveBeenCalledWith('test@example.com', 'es');
+    });
+  });
+
+  describe('locale and internationalization', () => {
+    it('passes locale to sendPasswordResetLink action', async () => {
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
+      validator.isEmail.mockReturnValue(true);
+      mockSendPasswordResetLink.mockResolvedValue({ success: true, messageId: 'test-message-id' });
+
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
+
+      await user.type(emailInput, 'test@example.com');
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(sendPasswordResetLink).toHaveBeenCalledWith('test@example.com', 'es');
+      });
+    });
+
+    it('displays translated error messages for OAuth-only accounts', async () => {
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
+      validator.isEmail.mockReturnValue(true);
+      mockSendPasswordResetLink.mockResolvedValue({
+        success: false,
+        isOAuthOnly: true,
+        error: 'Esta cuenta está vinculada a Google'
+      });
+
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
+
+      await user.type(emailInput, 'oauth-user@example.com');
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Esta cuenta está vinculada a Google')).toBeInTheDocument();
+      });
+    });
+
+    it('displays translation key as OAuth-only error when message not provided', async () => {
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
+      validator.isEmail.mockReturnValue(true);
+      mockSendPasswordResetLink.mockResolvedValue({
+        success: false,
+        isOAuthOnly: true
+      });
+
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
+
+      await user.type(emailInput, 'oauth-user@example.com');
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('[forgotPassword.errors.googleAccount]')).toBeInTheDocument();
+      });
+    });
+
+    it('handles regular email errors with translated messages', async () => {
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
+      validator.isEmail.mockReturnValue(true);
+      mockSendPasswordResetLink.mockResolvedValue({
+        success: false,
+        isOAuthOnly: false,
+        error: 'Usuario no encontrado'
+      });
+
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
+
+      await user.type(emailInput, 'nonexistent@example.com');
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Usuario no encontrado')).toBeInTheDocument();
+      });
+    });
+
+    it('uses fallback translation when send failed error not provided', async () => {
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
+      validator.isEmail.mockReturnValue(true);
+      mockSendPasswordResetLink.mockResolvedValue({
+        success: false,
+        isOAuthOnly: false
+      });
+
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
+
+      await user.type(emailInput, 'test@example.com');
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('[forgotPassword.errors.sendFailed]')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('oauth-only account handling', () => {
+    it('shows OAuth-specific error alert instead of regular error', async () => {
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
+      validator.isEmail.mockReturnValue(true);
+      mockSendPasswordResetLink.mockResolvedValue({
+        success: false,
+        isOAuthOnly: true,
+        error: 'Esta cuenta está vinculada a Google'
+      });
+
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
+
+      await user.type(emailInput, 'oauth-user@example.com');
+      await user.click(submitButton);
+
+      const alert = await screen.findByRole('alert');
+      expect(alert).toHaveClass('MuiAlert-standardError');
+      expect(alert).toHaveTextContent('Esta cuenta está vinculada a Google');
+    });
+
+    it('does not call onSuccess for OAuth-only accounts', async () => {
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
+      validator.isEmail.mockReturnValue(true);
+      mockSendPasswordResetLink.mockResolvedValue({
+        success: false,
+        isOAuthOnly: true,
+        error: 'Esta cuenta está vinculada a Google'
+      });
+
+      renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
+
+      await user.type(emailInput, 'oauth-user@example.com');
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(mockOnSuccess).not.toHaveBeenCalled();
+      });
+    });
+
+    it('distinguishes between OAuth-only and regular email errors', async () => {
+      const validator = vi.mocked(await vi.importMock('validator')).default as { isEmail: ReturnType<typeof vi.fn> };
+      validator.isEmail.mockReturnValue(true);
+
+      // First attempt - OAuth-only
+      mockSendPasswordResetLink.mockResolvedValueOnce({
+        success: false,
+        isOAuthOnly: true,
+        error: 'Esta cuenta está vinculada a Google'
+      });
+
+      const { rerender } = renderWithTheme(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      let emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      let submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
+
+      await user.type(emailInput, 'oauth-user@example.com');
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Esta cuenta está vinculada a Google')).toBeInTheDocument();
+      });
+
+      // Second attempt - regular error
+      mockSendPasswordResetLink.mockResolvedValueOnce({
+        success: false,
+        isOAuthOnly: false,
+        error: 'Error al enviar el enlace'
+      });
+
+      rerender(<ForgotPasswordForm onSuccess={mockOnSuccess} />);
+
+      emailInput = screen.getByRole('textbox', { name: '[login.email.label]' });
+      submitButton = screen.getByRole('button', { name: '[forgotPassword.buttons.submit]' });
+
+      await user.clear(emailInput);
+      await user.type(emailInput, 'regular-user@example.com');
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Error al enviar el enlace')).toBeInTheDocument();
+      });
     });
   });
 });

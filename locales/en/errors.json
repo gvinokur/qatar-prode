@@ -1,12 +1,17 @@
 {
-  "generic": "EnOf(Ocurrió un error inesperado. Por favor, inténtalo de nuevo.)",
+  "generic": "An unexpected error occurred. Please try again.",
   "auth": {
-    "invalidCredentials": "EnOf(Email o Contraseña Invalida)",
-    "googleAccount": "EnOf(Esta cuenta usa inicio de sesión con Google.)",
-    "emailSendFailed": "EnOf(Error al enviar el correo electrónico. Por favor, inténtalo de nuevo.)",
-    "passwordUpdateFailed": "EnOf(Error al actualizar la contraseña. Por favor, inténtalo de nuevo.)"
+    "invalidCredentials": "Invalid Email or Password",
+    "googleAccount": "This account uses Google sign-in.",
+    "emailSendFailed": "Error sending email. Please try again.",
+    "passwordUpdateFailed": "Error updating password. Please try again.",
+    "userNotFound": "No account exists with this email",
+    "unauthorized": "You are not authenticated"
+  },
+  "email": {
+    "sendFailed": "Error sending email"
   },
   "groups": {
-    "copyFailed": "EnOf(Error al copiar: {error})"
+    "copyFailed": "Error copying: {error}"
   }
 }

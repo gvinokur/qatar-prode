@@ -12,6 +12,8 @@ import {
 import {Controller, useForm} from "react-hook-form";
 import { updateNickname } from "../../actions/user-actions";
 import { useSession } from "next-auth/react";
+import { useTranslations, useLocale } from 'next-intl';
+import type { Locale } from '@/i18n.config';
 import {
   checkExistingSubscription,
   isNotificationSupported,
@@ -29,6 +31,8 @@ type UserSettingsDialogProps = {
 }
 
 export default function UserSettingsDialog({ open, onClose }: UserSettingsDialogProps) {
+  const t = useTranslations('auth');
+  const locale = useLocale() as Locale;
   const { update, data:session } = useSession();
   const [loading, setLoading] = useState(false);
   const [disableNotifications, setDisableNotifications] = useState<boolean>(false)
@@ -54,7 +58,7 @@ export default function UserSettingsDialog({ open, onClose }: UserSettingsDialog
 
   const handleNicknameSet = async ({ nickname, enableNotifications }: NicknameFormData) => {
     setLoading(true);
-    await updateNickname(nickname);
+    await updateNickname(nickname, locale);
     await update({
       name: nickname,
       nickname
@@ -80,12 +84,12 @@ export default function UserSettingsDialog({ open, onClose }: UserSettingsDialog
           }
         }
       }}>
-      <DialogTitle>Configuracion de Usuario</DialogTitle>
+      <DialogTitle>{t('userSettings.title')}</DialogTitle>
       <DialogContent>
         <TextField
           autoFocus={true}
           margin="dense"
-          label="Apodo"
+          label={t('userSettings.nickname.label')}
           type="text"
           fullWidth
           variant="standard"
@@ -105,15 +109,15 @@ export default function UserSettingsDialog({ open, onClose }: UserSettingsDialog
                     onClick={() => setValue('enableNotifications', !field.value)}
                   />
                 }
-                label={'Recibir Notificationes'}
+                label={t('userSettings.notifications.label')}
                 labelPlacement='start'
               />)
           }/>
 
       </DialogContent>
       <DialogActions>
-        <Button disabled={loading} onClick={onClose}>Cancelar</Button>
-        <Button loading={loading} type='submit'>Guardar</Button>
+        <Button disabled={loading} onClick={onClose}>{t('nicknameSetup.buttons.cancel')}</Button>
+        <Button loading={loading} type='submit'>{t('nicknameSetup.buttons.save')}</Button>
       </DialogActions>
     </Dialog>
   );

@@ -4,6 +4,12 @@ import { renderWithTheme } from '@/__tests__/utils/test-utils'
 import LeaderboardCard from '@/app/components/leaderboard/LeaderboardCard'
 import type { LeaderboardUser } from '@/app/components/leaderboard/types'
 
+// Mock next-intl/server (used by email-templates.ts)
+vi.mock('next-intl/server', () => ({
+  getTranslations: vi.fn(() => Promise.resolve((key: string) => key)),
+  getLocale: vi.fn(() => Promise.resolve('es')),
+}))
+
 const mockUser: LeaderboardUser = {
   id: 'user-1',
   name: 'John Doe',

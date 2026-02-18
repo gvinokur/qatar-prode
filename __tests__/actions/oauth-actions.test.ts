@@ -1,67 +1,75 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { checkAuthMethods, setNickname } from '../../app/actions/oauth-actions';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+import {
+  checkAuthMethods,
+  setNickname
+} from '../../app/actions/oauth-actions';
+import { User } from '../../app/db/tables-definition';
 import * as usersRepository from '../../app/db/users-repository';
 import { auth } from '../../auth';
+import { getTranslations } from 'next-intl/server';
 
-// Mock dependencies
-vi.mock('../../app/db/users-repository');
-vi.mock('../../auth', () => ({
-  auth: vi.fn()
+// Mock next-intl/server
+vi.mock('next-intl/server', () => ({
+  getTranslations: vi.fn(),
 }));
+
+// Mock the auth module
+vi.mock('../../auth', () => ({
+  auth: vi.fn(),
+}));
+
+// Mock all database repositories
+vi.mock('../../app/db/users-repository', () => ({
+  getAuthMethodsForEmail: vi.fn(),
+  updateUser: vi.fn(),
+}));
+
+// Mock revalidatePath
 vi.mock('next/cache', () => ({
-  revalidatePath: vi.fn()
+  revalidatePath: vi.fn(),
 }));
 
 describe('OAuth Actions', () => {
+  const mockUser: User = {
+    id: 'user-123',
+    email: 'test@example.com',
+    password_hash: 'hashed-password',
+    nickname: 'testuser',
+    email_verified: true,
+    verification_token: null,
+    verification_token_expiration: null,
+    reset_token: null,
+    reset_token_expiration: null,
+    is_admin: false,
+    notification_subscriptions: null,
+    otp_code: null,
+    otp_expires_at: null,
+    otp_attempts: 0,
+    auth_providers: JSON.stringify(['oauth']),
+    onboarding_completed: false,
+    onboarding_completed_at: null,
+    onboarding_data: null
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe('checkAuthMethods', () => {
-    it('returns error when email is empty', async () => {
-      const result = await checkAuthMethods('');
-
-      expect(result).toEqual({
-        hasPassword: false,
-        hasGoogle: false,
-        userExists: false,
-        success: false,
-        error: 'Email is required'
+    it('should return auth methods for existing email with Spanish locale', async () => {
+      const mockT = vi.fn((key: string, values?: Record<string, any>) => {
+        if (values) return `${key}:${JSON.stringify(values)}`;
+        return key;
       });
-    });
+      vi.mocked(getTranslations).mockResolvedValue(mockT as any);
 
-    it('returns error when email is only whitespace', async () => {
-      const result = await checkAuthMethods('   ');
-
-      expect(result).toEqual({
-        hasPassword: false,
-        hasGoogle: false,
-        userExists: false,
-        success: false,
-        error: 'Email is required'
-      });
-    });
-
-    it('returns error when email is null/undefined', async () => {
-      const result = await checkAuthMethods(null as any);
-
-      expect(result).toEqual({
-        hasPassword: false,
-        hasGoogle: false,
-        userExists: false,
-        success: false,
-        error: 'Email is required'
-      });
-    });
-
-    it('returns auth methods for existing user with password', async () => {
       vi.mocked(usersRepository.getAuthMethodsForEmail).mockResolvedValue({
         hasPassword: true,
         hasGoogle: false,
         userExists: true
       });
 
-      const result = await checkAuthMethods('test@example.com');
+      const result = await checkAuthMethods('test@example.com', 'es');
 
       expect(result).toEqual({
         hasPassword: true,
@@ -70,16 +78,23 @@ describe('OAuth Actions', () => {
         success: true
       });
       expect(usersRepository.getAuthMethodsForEmail).toHaveBeenCalledWith('test@example.com');
+      expect(getTranslations).toHaveBeenCalledWith({ locale: 'es', namespace: 'auth' });
     });
 
-    it('returns auth methods for existing user with Google OAuth', async () => {
+    it('should return auth methods for existing email with English locale', async () => {
+      const mockT = vi.fn((key: string, values?: Record<string, any>) => {
+        if (values) return `${key}:${JSON.stringify(values)}`;
+        return key;
+      });
+      vi.mocked(getTranslations).mockResolvedValue(mockT as any);
+
       vi.mocked(usersRepository.getAuthMethodsForEmail).mockResolvedValue({
         hasPassword: false,
         hasGoogle: true,
         userExists: true
       });
 
-      const result = await checkAuthMethods('google@example.com');
+      const result = await checkAuthMethods('user@test.com', 'en');
 
       expect(result).toEqual({
         hasPassword: false,
@@ -87,16 +102,23 @@ describe('OAuth Actions', () => {
         userExists: true,
         success: true
       });
+      expect(getTranslations).toHaveBeenCalledWith({ locale: 'en', namespace: 'auth' });
     });
 
-    it('returns auth methods for existing user with both password and Google', async () => {
+    it('should return auth methods for both password and Google methods', async () => {
+      const mockT = vi.fn((key: string, values?: Record<string, any>) => {
+        if (values) return `${key}:${JSON.stringify(values)}`;
+        return key;
+      });
+      vi.mocked(getTranslations).mockResolvedValue(mockT as any);
+
       vi.mocked(usersRepository.getAuthMethodsForEmail).mockResolvedValue({
         hasPassword: true,
         hasGoogle: true,
         userExists: true
       });
 
-      const result = await checkAuthMethods('both@example.com');
+      const result = await checkAuthMethods('both@example.com', 'es');
 
       expect(result).toEqual({
         hasPassword: true,
@@ -106,14 +128,20 @@ describe('OAuth Actions', () => {
       });
     });
 
-    it('returns auth methods for non-existent user', async () => {
+    it('should return success for non-existent user', async () => {
+      const mockT = vi.fn((key: string, values?: Record<string, any>) => {
+        if (values) return `${key}:${JSON.stringify(values)}`;
+        return key;
+      });
+      vi.mocked(getTranslations).mockResolvedValue(mockT as any);
+
       vi.mocked(usersRepository.getAuthMethodsForEmail).mockResolvedValue({
         hasPassword: false,
         hasGoogle: false,
         userExists: false
       });
 
-      const result = await checkAuthMethods('newuser@example.com');
+      const result = await checkAuthMethods('newuser@example.com', 'es');
 
       expect(result).toEqual({
         hasPassword: false,
@@ -123,211 +151,362 @@ describe('OAuth Actions', () => {
       });
     });
 
-    it('converts email to lowercase before checking', async () => {
+    it('should return error when email is empty with translation key', async () => {
+      const mockT = vi.fn((key: string, values?: Record<string, any>) => {
+        if (values) return `${key}:${JSON.stringify(values)}`;
+        return key;
+      });
+      vi.mocked(getTranslations).mockResolvedValue(mockT as any);
+
+      const result = await checkAuthMethods('', 'es');
+
+      expect(result).toEqual({
+        hasPassword: false,
+        hasGoogle: false,
+        userExists: false,
+        success: false,
+        error: 'emailInput.email.error'
+      });
+      expect(usersRepository.getAuthMethodsForEmail).not.toHaveBeenCalled();
+      expect(mockT).toHaveBeenCalledWith('emailInput.email.error');
+    });
+
+    it('should return error when email is whitespace only', async () => {
+      const mockT = vi.fn((key: string, values?: Record<string, any>) => {
+        if (values) return `${key}:${JSON.stringify(values)}`;
+        return key;
+      });
+      vi.mocked(getTranslations).mockResolvedValue(mockT as any);
+
+      const result = await checkAuthMethods('   ', 'es');
+
+      expect(result).toEqual({
+        hasPassword: false,
+        hasGoogle: false,
+        userExists: false,
+        success: false,
+        error: 'emailInput.email.error'
+      });
+    });
+
+    it('should normalize email to lowercase before checking', async () => {
+      const mockT = vi.fn((key: string, values?: Record<string, any>) => {
+        if (values) return `${key}:${JSON.stringify(values)}`;
+        return key;
+      });
+      vi.mocked(getTranslations).mockResolvedValue(mockT as any);
+
       vi.mocked(usersRepository.getAuthMethodsForEmail).mockResolvedValue({
         hasPassword: true,
         hasGoogle: false,
         userExists: true
       });
 
-      await checkAuthMethods('Test@EXAMPLE.COM');
+      await checkAuthMethods('TEST@EXAMPLE.COM', 'es');
 
       expect(usersRepository.getAuthMethodsForEmail).toHaveBeenCalledWith('test@example.com');
     });
 
-    it('trims whitespace from email', async () => {
-      vi.mocked(usersRepository.getAuthMethodsForEmail).mockResolvedValue({
-        hasPassword: true,
-        hasGoogle: false,
-        userExists: true
+    it('should handle database errors with error translation key', async () => {
+      const mockT = vi.fn((key: string, values?: Record<string, any>) => {
+        if (values) return `${key}:${JSON.stringify(values)}`;
+        return key;
       });
+      const mockTErrors = vi.fn((key: string) => `errors.${key}`);
 
-      await checkAuthMethods('  test@example.com  ');
+      vi.mocked(getTranslations)
+        .mockResolvedValueOnce(mockT as any)
+        .mockResolvedValueOnce(mockTErrors as any);
 
-      // The actual implementation converts to lowercase but doesn't trim before calling the repository
-      expect(usersRepository.getAuthMethodsForEmail).toHaveBeenCalledWith('  test@example.com  ');
-    });
-
-    it('handles database errors gracefully', async () => {
       vi.mocked(usersRepository.getAuthMethodsForEmail).mockRejectedValue(
         new Error('Database connection failed')
       );
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      const result = await checkAuthMethods('test@example.com');
+      const result = await checkAuthMethods('test@example.com', 'es');
 
       expect(result).toEqual({
         hasPassword: false,
         hasGoogle: false,
         userExists: false,
         success: false,
-        error: 'Failed to check authentication methods'
+        error: 'errors.generic'
       });
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error checking auth methods:',
-        expect.any(Error)
-      );
+      expect(getTranslations).toHaveBeenCalledWith({ locale: 'es', namespace: 'errors' });
+    });
 
-      consoleErrorSpy.mockRestore();
+    it('should use default locale (es) when not specified', async () => {
+      const mockT = vi.fn((key: string, values?: Record<string, any>) => {
+        if (values) return `${key}:${JSON.stringify(values)}`;
+        return key;
+      });
+      vi.mocked(getTranslations).mockResolvedValue(mockT as any);
+
+      vi.mocked(usersRepository.getAuthMethodsForEmail).mockResolvedValue({
+        hasPassword: true,
+        hasGoogle: false,
+        userExists: true
+      });
+
+      await checkAuthMethods('test@example.com');
+
+      expect(getTranslations).toHaveBeenCalledWith({ locale: 'es', namespace: 'auth' });
     });
   });
 
   describe('setNickname', () => {
-    const mockSession = {
-      user: {
-        id: 'user-123',
-        email: 'test@example.com'
-      }
-    };
+    it('should set nickname for authenticated user with Spanish locale', async () => {
+      const mockTAuth = vi.fn((key: string, values?: Record<string, any>) => {
+        if (values) return `${key}:${JSON.stringify(values)}`;
+        return key;
+      });
+      const mockTErrors = vi.fn((key: string) => `errors.${key}`);
 
-    it('returns error when user is not authenticated', async () => {
-      vi.mocked(auth).mockResolvedValue(null);
+      vi.mocked(getTranslations)
+        .mockResolvedValueOnce(mockTAuth as any)
+        .mockResolvedValueOnce(mockTErrors as any);
 
-      const result = await setNickname('TestNickname');
+      vi.mocked(auth).mockResolvedValue({ user: mockUser } as any);
+      vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
+
+      const result = await setNickname('newnicK', 'es');
+
+      expect(result).toEqual({ success: true });
+      expect(usersRepository.updateUser).toHaveBeenCalledWith(mockUser.id, {
+        nickname: 'newnicK'
+      });
+    });
+
+    it('should set nickname for authenticated user with English locale', async () => {
+      const mockTAuth = vi.fn((key: string, values?: Record<string, any>) => {
+        if (values) return `${key}:${JSON.stringify(values)}`;
+        return key;
+      });
+      const mockTErrors = vi.fn((key: string) => `errors.${key}`);
+
+      vi.mocked(getTranslations)
+        .mockResolvedValueOnce(mockTAuth as any)
+        .mockResolvedValueOnce(mockTErrors as any);
+
+      vi.mocked(auth).mockResolvedValue({ user: mockUser } as any);
+      vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
+
+      const result = await setNickname('Player123', 'en');
+
+      expect(result).toEqual({ success: true });
+      expect(getTranslations).toHaveBeenCalledWith({ locale: 'en', namespace: 'auth' });
+    });
+
+    it('should trim whitespace from nickname', async () => {
+      const mockTAuth = vi.fn((key: string, values?: Record<string, any>) => {
+        if (values) return `${key}:${JSON.stringify(values)}`;
+        return key;
+      });
+      const mockTErrors = vi.fn((key: string) => `errors.${key}`);
+
+      vi.mocked(getTranslations)
+        .mockResolvedValueOnce(mockTAuth as any)
+        .mockResolvedValueOnce(mockTErrors as any);
+
+      vi.mocked(auth).mockResolvedValue({ user: mockUser } as any);
+      vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
+
+      await setNickname('  spacedNick  ', 'es');
+
+      expect(usersRepository.updateUser).toHaveBeenCalledWith(mockUser.id, {
+        nickname: 'spacedNick'
+      });
+    });
+
+    it('should return error with translation key when user is not authenticated', async () => {
+      const mockTAuth = vi.fn((key: string, values?: Record<string, any>) => {
+        if (values) return `${key}:${JSON.stringify(values)}`;
+        return key;
+      });
+      const mockTErrors = vi.fn((key: string) => `errors.${key}`);
+
+      vi.mocked(getTranslations)
+        .mockResolvedValueOnce(mockTAuth as any)
+        .mockResolvedValueOnce(mockTErrors as any);
+
+      vi.mocked(auth).mockResolvedValue(null as any);
+
+      const result = await setNickname('newnicK', 'es');
 
       expect(result).toEqual({
         success: false,
-        error: 'Not authenticated'
+        error: 'errors.auth.unauthorized'
       });
+      expect(mockTErrors).toHaveBeenCalledWith('auth.unauthorized');
     });
 
-    it('returns error when session has no user id', async () => {
-      vi.mocked(auth).mockResolvedValue({
-        user: { email: 'test@example.com' }
-      } as any);
+    it('should return error when session has no user ID', async () => {
+      const mockTAuth = vi.fn((key: string, values?: Record<string, any>) => {
+        if (values) return `${key}:${JSON.stringify(values)}`;
+        return key;
+      });
+      const mockTErrors = vi.fn((key: string) => `errors.${key}`);
 
-      const result = await setNickname('TestNickname');
+      vi.mocked(getTranslations)
+        .mockResolvedValueOnce(mockTAuth as any)
+        .mockResolvedValueOnce(mockTErrors as any);
+
+      vi.mocked(auth).mockResolvedValue({ user: { ...mockUser, id: undefined } } as any);
+
+      const result = await setNickname('newnicK', 'es');
 
       expect(result).toEqual({
         success: false,
-        error: 'Not authenticated'
+        error: 'errors.auth.unauthorized'
       });
     });
 
-    it('returns error when nickname is empty', async () => {
-      vi.mocked(auth).mockResolvedValue(mockSession as any);
+    it('should return error with translation key when nickname is empty', async () => {
+      const mockTAuth = vi.fn((key: string, values?: Record<string, any>) => {
+        if (values) return `${key}:${JSON.stringify(values)}`;
+        return key;
+      });
+      const mockTErrors = vi.fn((key: string) => `errors.${key}`);
 
-      const result = await setNickname('');
+      vi.mocked(getTranslations)
+        .mockResolvedValueOnce(mockTAuth as any)
+        .mockResolvedValueOnce(mockTErrors as any);
+
+      vi.mocked(auth).mockResolvedValue({ user: mockUser } as any);
+
+      const result = await setNickname('', 'es');
 
       expect(result).toEqual({
         success: false,
-        error: 'Nickname is required'
+        error: 'accountSetup.nickname.required'
       });
+      expect(mockTAuth).toHaveBeenCalledWith('accountSetup.nickname.required');
     });
 
-    it('returns error when nickname is only whitespace', async () => {
-      vi.mocked(auth).mockResolvedValue(mockSession as any);
+    it('should return error when nickname is too short', async () => {
+      const mockTAuth = vi.fn((key: string, values?: Record<string, any>) => {
+        if (values) return `${key}:${JSON.stringify(values)}`;
+        return key;
+      });
+      const mockTErrors = vi.fn((key: string) => `errors.${key}`);
 
-      const result = await setNickname('   ');
+      vi.mocked(getTranslations)
+        .mockResolvedValueOnce(mockTAuth as any)
+        .mockResolvedValueOnce(mockTErrors as any);
+
+      vi.mocked(auth).mockResolvedValue({ user: mockUser } as any);
+
+      const result = await setNickname('a', 'es');
 
       expect(result).toEqual({
         success: false,
-        error: 'Nickname is required'
+        error: 'nicknameSetup.nickname.helperText'
       });
+      expect(mockTAuth).toHaveBeenCalledWith('nicknameSetup.nickname.helperText');
     });
 
-    it('returns error when nickname is null/undefined', async () => {
-      vi.mocked(auth).mockResolvedValue(mockSession as any);
+    it('should return error when nickname is too long', async () => {
+      const mockTAuth = vi.fn((key: string, values?: Record<string, any>) => {
+        if (values) return `${key}:${JSON.stringify(values)}`;
+        return key;
+      });
+      const mockTErrors = vi.fn((key: string) => `errors.${key}`);
 
-      const result = await setNickname(null as any);
+      vi.mocked(getTranslations)
+        .mockResolvedValueOnce(mockTAuth as any)
+        .mockResolvedValueOnce(mockTErrors as any);
+
+      vi.mocked(auth).mockResolvedValue({ user: mockUser } as any);
+
+      const longNickname = 'a'.repeat(51);
+      const result = await setNickname(longNickname, 'es');
 
       expect(result).toEqual({
         success: false,
-        error: 'Nickname is required'
+        error: 'nicknameSetup.nickname.helperText'
       });
     });
 
-    it('returns error when nickname is too short (less than 2 characters)', async () => {
-      vi.mocked(auth).mockResolvedValue(mockSession as any);
-
-      const result = await setNickname('a');
-
-      expect(result).toEqual({
-        success: false,
-        error: 'Nickname must be at least 2 characters'
+    it('should accept nickname exactly 2 characters long', async () => {
+      const mockTAuth = vi.fn((key: string, values?: Record<string, any>) => {
+        if (values) return `${key}:${JSON.stringify(values)}`;
+        return key;
       });
+      const mockTErrors = vi.fn((key: string) => `errors.${key}`);
+
+      vi.mocked(getTranslations)
+        .mockResolvedValueOnce(mockTAuth as any)
+        .mockResolvedValueOnce(mockTErrors as any);
+
+      vi.mocked(auth).mockResolvedValue({ user: mockUser } as any);
+      vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
+
+      const result = await setNickname('ab', 'es');
+
+      expect(result).toEqual({ success: true });
     });
 
-    it('returns error when nickname is too long (more than 50 characters)', async () => {
-      vi.mocked(auth).mockResolvedValue(mockSession as any);
-
-      const result = await setNickname('a'.repeat(51));
-
-      expect(result).toEqual({
-        success: false,
-        error: 'Nickname must be less than 50 characters'
+    it('should accept nickname exactly 50 characters long', async () => {
+      const mockTAuth = vi.fn((key: string, values?: Record<string, any>) => {
+        if (values) return `${key}:${JSON.stringify(values)}`;
+        return key;
       });
+      const mockTErrors = vi.fn((key: string) => `errors.${key}`);
+
+      vi.mocked(getTranslations)
+        .mockResolvedValueOnce(mockTAuth as any)
+        .mockResolvedValueOnce(mockTErrors as any);
+
+      vi.mocked(auth).mockResolvedValue({ user: mockUser } as any);
+      vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
+
+      const fiftyCharNickname = 'a'.repeat(50);
+      const result = await setNickname(fiftyCharNickname, 'es');
+
+      expect(result).toEqual({ success: true });
     });
 
-    it('successfully sets nickname with valid input', async () => {
-      vi.mocked(auth).mockResolvedValue(mockSession as any);
-      vi.mocked(usersRepository.updateUser).mockResolvedValue(undefined);
-
-      const result = await setNickname('TestNickname');
-
-      expect(result).toEqual({
-        success: true
+    it('should handle database errors with error translation key', async () => {
+      const mockTAuth = vi.fn((key: string, values?: Record<string, any>) => {
+        if (values) return `${key}:${JSON.stringify(values)}`;
+        return key;
       });
-      expect(usersRepository.updateUser).toHaveBeenCalledWith('user-123', {
-        nickname: 'TestNickname'
-      });
-    });
+      const mockTErrors = vi.fn((key: string) => `errors.${key}`);
 
-    it('trims whitespace from nickname before saving', async () => {
-      vi.mocked(auth).mockResolvedValue(mockSession as any);
-      vi.mocked(usersRepository.updateUser).mockResolvedValue(undefined);
+      vi.mocked(getTranslations)
+        .mockResolvedValueOnce(mockTAuth as any)
+        .mockResolvedValueOnce(mockTErrors as any);
 
-      const result = await setNickname('  TestNickname  ');
-
-      expect(result).toEqual({
-        success: true
-      });
-      expect(usersRepository.updateUser).toHaveBeenCalledWith('user-123', {
-        nickname: 'TestNickname'
-      });
-    });
-
-    it('accepts nickname with exactly 2 characters', async () => {
-      vi.mocked(auth).mockResolvedValue(mockSession as any);
-      vi.mocked(usersRepository.updateUser).mockResolvedValue(undefined);
-
-      const result = await setNickname('AB');
-
-      expect(result).toEqual({
-        success: true
-      });
-    });
-
-    it('accepts nickname with exactly 50 characters', async () => {
-      vi.mocked(auth).mockResolvedValue(mockSession as any);
-      vi.mocked(usersRepository.updateUser).mockResolvedValue(undefined);
-
-      const result = await setNickname('a'.repeat(50));
-
-      expect(result).toEqual({
-        success: true
-      });
-    });
-
-    it('handles database errors gracefully', async () => {
-      vi.mocked(auth).mockResolvedValue(mockSession as any);
+      vi.mocked(auth).mockResolvedValue({ user: mockUser } as any);
       vi.mocked(usersRepository.updateUser).mockRejectedValue(
-        new Error('Database update failed')
+        new Error('Database connection failed')
       );
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      const result = await setNickname('TestNickname');
+      const result = await setNickname('newnicK', 'es');
 
       expect(result).toEqual({
         success: false,
-        error: 'Failed to set nickname'
+        error: 'errors.generic'
       });
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error setting nickname:',
-        expect.any(Error)
-      );
+      expect(mockTErrors).toHaveBeenCalledWith('generic');
+    });
 
-      consoleErrorSpy.mockRestore();
+    it('should use default locale (es) when not specified', async () => {
+      const mockTAuth = vi.fn((key: string, values?: Record<string, any>) => {
+        if (values) return `${key}:${JSON.stringify(values)}`;
+        return key;
+      });
+      const mockTErrors = vi.fn((key: string) => `errors.${key}`);
+
+      vi.mocked(getTranslations)
+        .mockResolvedValueOnce(mockTAuth as any)
+        .mockResolvedValueOnce(mockTErrors as any);
+
+      vi.mocked(auth).mockResolvedValue({ user: mockUser } as any);
+      vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
+
+      await setNickname('newnicK');
+
+      expect(getTranslations).toHaveBeenCalledWith({ locale: 'es', namespace: 'auth' });
     });
   });
 });

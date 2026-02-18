@@ -1,25 +1,28 @@
 {
   "app": {
-    "name": "EnOf(Prode Mundial)",
-    "description": "EnOf(Plataforma de pronósticos deportivos)",
-    "loading": "EnOf(Cargando...)",
-    "error": "EnOf(Ocurrió un error)"
+    "name": "World Cup Predictions",
+    "description": "Sports prediction platform",
+    "loading": "Loading...",
+    "error": "An error occurred"
   },
   "buttons": {
-    "save": "EnOf(Guardar)",
-    "cancel": "EnOf(Cancelar)",
-    "delete": "EnOf(Eliminar)",
-    "edit": "EnOf(Editar)",
-    "close": "EnOf(Cerrar)",
-    "create": "EnOf(Crear)",
-    "confirm": "EnOf(Confirmar)"
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "create": "Create",
+    "confirm": "Confirm",
+    "continue": "Continue",
+    "resend": "Resend",
+    "sending": "Sending..."
   },
   "actions": {
-    "showMore": "EnOf(mostrar más)",
-    "viewAll": "EnOf(Ver todo)",
-    "back": "EnOf(Volver)"
+    "showMore": "show more",
+    "viewAll": "View all",
+    "back": "Back"
   },
   "home": {
-    "availableTournaments": "EnOf(Torneos Disponibles)"
+    "availableTournaments": "Available Tournaments"
   }
 }

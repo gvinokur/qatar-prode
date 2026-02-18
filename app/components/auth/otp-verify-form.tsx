@@ -2,7 +2,9 @@
 
 import { useState, useRef, useEffect, KeyboardEvent, ClipboardEvent } from "react";
 import { Alert, Box, Button, Link, TextField, Typography } from "@mui/material";
+import { useTranslations, useLocale } from 'next-intl';
 import { verifyOTPCode } from "@/app/actions/otp-actions";
+import { Locale } from "@/i18n.config";
 
 type OTPVerifyFormProps = {
   readonly email: string;
@@ -15,6 +17,8 @@ type OTPVerifyFormProps = {
 const OTP_POSITIONS = ['0', '1', '2', '3', '4', '5'] as const;
 
 export default function OTPVerifyForm({ email, onSuccess, onCancel, onResend }: OTPVerifyFormProps) {
+  const t = useTranslations('auth');
+  const locale = useLocale() as Locale;
   const [otp, setOtp] = useState<string[]>(new Array(6).fill(''));
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState('');
@@ -29,7 +33,7 @@ export default function OTPVerifyForm({ email, onSuccess, onCancel, onResend }: 
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          setError('Código expirado. Solicita uno nuevo.');
+          setError(t('otp.timer.expired'));
           return 0;
         }
         return prev - 1;
@@ -37,7 +41,7 @@ export default function OTPVerifyForm({ email, onSuccess, onCancel, onResend }: 
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [t]);
 
   // Countdown timer for resend button
   useEffect(() => {
@@ -137,18 +141,18 @@ export default function OTPVerifyForm({ email, onSuccess, onCancel, onResend }: 
     setError('');
 
     try {
-      const result = await verifyOTPCode(email, code);
+      const result = await verifyOTPCode(email, code, locale);
 
       if (result.success) {
         onSuccess(email, code);
       } else {
-        setError(result.error || 'Código incorrecto');
+        setError(result.error || t('otp.errors.incorrect'));
         // Clear OTP boxes on error
         setOtp(new Array(6).fill(''));
         inputRefs.current[0]?.focus();
       }
     } catch {
-      setError('Error al verificar el código. Intenta nuevamente.');
+      setError(t('otp.errors.verifyFailed'));
       setOtp(new Array(6).fill(''));
       inputRefs.current[0]?.focus();
     } finally {
@@ -161,7 +165,7 @@ export default function OTPVerifyForm({ email, onSuccess, onCancel, onResend }: 
     if (code.length === 6) {
       handleVerify(code);
     } else {
-      setError('Por favor ingresa los 6 dígitos');
+      setError(t('otp.errors.required'));
     }
   };
 
@@ -183,7 +187,7 @@ export default function OTPVerifyForm({ email, onSuccess, onCancel, onResend }: 
       )}
 
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3, textAlign: 'center' }}>
-        Ingresa el código enviado a<br />
+        {t('otp.instruction')}<br />
         <strong>{email}</strong>
       </Typography>
 
@@ -208,7 +212,7 @@ export default function OTPVerifyForm({ email, onSuccess, onCancel, onResend }: 
                   fontWeight: 'bold',
                   padding: '12px'
                 },
-                'aria-label': `Dígito ${index + 1} de 6`
+                'aria-label': t('otp.digit.ariaLabel', { current: index + 1, total: 6 })
               }
             }}
             sx={{
@@ -230,25 +234,25 @@ export default function OTPVerifyForm({ email, onSuccess, onCancel, onResend }: 
             fontWeight: 'medium'
           }}
         >
-          ⏱️ Expira en: {formatTime(timeLeft)}
+          {t('otp.timer.expiresIn', { time: formatTime(timeLeft) })}
         </Typography>
       </Box>
 
       {/* Resend link */}
       <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
         <Typography variant="body2" color="text.secondary">
-          ¿No recibiste el código?{' '}
+          {t('otp.resend.prompt')}{' '}
           {resendEnabled ? (
             <Link
               component="button"
               onClick={handleResendClick}
               sx={{ cursor: 'pointer', textDecoration: 'underline' }}
             >
-              Reenviar
+              {t('otp.resend.action')}
             </Link>
           ) : (
             <span style={{ color: '#999' }}>
-              Reenviar (en {resendTimeLeft}s)
+              {t('otp.resend.countdown', { seconds: resendTimeLeft })}
             </span>
           )}
         </Typography>
@@ -261,14 +265,14 @@ export default function OTPVerifyForm({ email, onSuccess, onCancel, onResend }: 
           onClick={onCancel}
           disabled={isVerifying}
         >
-          ← Volver
+          {t('otp.buttons.back')}
         </Button>
         <Button
           variant="contained"
           onClick={handleManualVerify}
           disabled={isVerifying || otp.join('').length !== 6}
         >
-          {isVerifying ? 'Verificando...' : 'Verificar'}
+          {isVerifying ? t('otp.buttons.verifying') : t('otp.buttons.verify')}
         </Button>
       </Box>
     </Box>

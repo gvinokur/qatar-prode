@@ -4,6 +4,7 @@ import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography }
 import * as React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import LoginForm from "./login-form";
 import SignupForm from "./signup-form";
 import ForgotPasswordForm from "./forgot-password-form";
@@ -15,6 +16,7 @@ import AccountSetupForm from "./account-setup-form";
 import {User} from "../../db/tables-definition";
 import {sendOTPCode} from "../../actions/otp-actions";
 import {signIn} from "next-auth/react";
+import { Locale } from "@/i18n.config";
 
 type LoginOrSignupProps = {
   handleCloseLoginDialog: (_forceClose?: boolean) => void;
@@ -25,6 +27,8 @@ type DialogMode = 'emailInput' | 'login' | 'signup' | 'forgotPassword' | 'resetS
 
 export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginDialog }: LoginOrSignupProps) {
   const router = useRouter();
+  const t = useTranslations('auth');
+  const locale = useLocale() as Locale;
   const [dialogMode, setDialogMode] = useState<DialogMode>('emailInput');
   const [resetEmail, setResetEmail] = useState<string>('');
   const [createdUser, setCreatedUser] = useState<User>();
@@ -50,7 +54,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
     // Check if user is OTP-only (has account but no password, no Google)
     if (methods.userExists && !methods.hasPassword && !methods.hasGoogle) {
       // Auto-send OTP for OTP-only users
-      const result = await sendOTPCode(submittedEmail);
+      const result = await sendOTPCode(submittedEmail, locale);
       if (result.success) {
         switchMode('otpVerify');
       } else {
@@ -97,7 +101,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
 
   // Handle OTP login click from LoginForm
   const handleOTPLoginClick = async () => {
-    const result = await sendOTPCode(email);
+    const result = await sendOTPCode(email, locale);
     if (result.success) {
       setIsNewUserSignup(false);
       switchMode('otpVerify');
@@ -108,7 +112,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
 
   // Handle OTP signup click from SignupForm
   const handleOTPSignupClick = async () => {
-    const result = await sendOTPCode(email);
+    const result = await sendOTPCode(email, locale);
     if (result.success) {
       setIsNewUserSignup(true);
       switchMode('otpVerify');
@@ -144,7 +148,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
 
   // Handle OTP resend
   const handleOTPResend = async () => {
-    const result = await sendOTPCode(email);
+    const result = await sendOTPCode(email, locale);
     if (!result.success) {
       // Error handled in OTP component
     }
@@ -159,21 +163,23 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
   const getDialogTitle = () => {
     switch (dialogMode) {
       case 'emailInput':
-        return 'Ingresar o Registrarse';
+        return t('dialog.titles.emailInput');
       case 'login':
-        return 'Ingresar';
+        return t('dialog.titles.login');
       case 'signup':
-        return 'Registrarse';
+        return t('dialog.titles.signup');
       case 'forgotPassword':
-        return 'Recuperar Contraseña';
+        return t('dialog.titles.forgotPassword');
       case 'resetSent':
-        return 'Enlace Enviado';
+        return t('dialog.titles.resetSent');
+      case 'verificationSent':
+        return t('dialog.titles.verificationSent');
       case 'otpVerify':
-        return 'Verificar Código';
+        return t('dialog.titles.otpVerify');
       case 'accountSetup':
-        return 'Completa tu perfil';
+        return t('dialog.titles.accountSetup');
       default:
-        return 'Ingresar';
+        return t('dialog.titles.emailInput');
     }
   };
 
@@ -250,7 +256,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
                   onClick={() => switchMode('emailInput')}
                   sx={{ cursor: 'pointer', display: 'inline' }}
                 >
-                  ← Volver a email
+                  {t('dialog.links.backToEmail')}
                 </Typography>
               </div>
               <div style={{ marginTop: '8px' }}>
@@ -259,7 +265,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
                   onClick={() => switchMode('forgotPassword')}
                   sx={{ cursor: 'pointer' }}
                 >
-                  ¿Olvidaste tu contraseña?
+                  {t('login.forgotPassword')}
                 </Typography>
               </div>
             </div>
@@ -274,7 +280,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
               onClick={() => switchMode('emailInput')}
               sx={{ cursor: 'pointer' }}
             >
-              ← Volver a email
+              {t('dialog.links.backToEmail')}
             </Typography>
           </DialogActions>
         );
@@ -288,7 +294,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
     if (dialogMode === 'resetSent') {
       return (
         <DialogActions>
-          <Button onClick={closeDialog}>Cerrar</Button>
+          <Button onClick={closeDialog}>{t('dialog.buttons.close')}</Button>
         </DialogActions>
       );
     }

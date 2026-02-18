@@ -1,20 +1,24 @@
 "use server";
 
+import { getTranslations } from 'next-intl/server';
+import type { Locale } from '../../i18n.config';
 import { generateOTP, verifyOTP, findUserByEmail, findUserByNickname, updateUser, getPasswordHash } from "../db/users-repository";
 import { sendEmail } from "../utils/email";
 import { User } from "../db/tables-definition";
 
 /**
- * Generate OTP email template with Spanish content
+ * Generate OTP email template with internationalized content
  */
-function generateOTPEmailContent(email: string, otpCode: string): { subject: string; html: string; text: string } {
-  const subject = `Tu código de acceso - Qatar Prode`;
+async function generateOTPEmailContent(email: string, otpCode: string, locale: Locale = 'es'): Promise<{ subject: string; html: string; text: string }> {
+  const t = await getTranslations({ locale, namespace: 'emails' });
+
+  const subject = t('otp.subject');
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #8b0000;">Tu código de acceso</h2>
+      <h2 style="color: #8b0000;">${t('otp.title')}</h2>
 
-      <p>Has solicitado un código para iniciar sesión en Qatar Prode.</p>
+      <p>${t('otp.greeting')}</p>
 
       <div style="
         font-size: 32px;
@@ -31,43 +35,43 @@ function generateOTPEmailContent(email: string, otpCode: string): { subject: str
       </div>
 
       <div style="background: #e8f4f8; padding: 15px; border-left: 4px solid #1976d2; margin: 20px 0;">
-        <p style="margin: 5px 0;"><strong>⏱️ Válido por 3 minutos</strong></p>
-        <p style="margin: 5px 0;">Tienes máximo 3 intentos para ingresar este código.</p>
+        <p style="margin: 5px 0;"><strong>${t('otp.validity')}</strong></p>
+        <p style="margin: 5px 0;">${t('otp.attempts')}</p>
       </div>
 
       <div style="background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 20px 0;">
-        <p style="margin: 5px 0 10px 0;"><strong>⚠️ Seguridad:</strong></p>
+        <p style="margin: 5px 0 10px 0;"><strong>${t('otp.securityTitle')}</strong></p>
         <ul style="margin: 5px 0; padding-left: 20px;">
-          <li>No compartas este código con nadie</li>
-          <li>Qatar Prode nunca te pedirá este código por teléfono o email</li>
-          <li>Si no solicitaste este código, puedes ignorar este mensaje</li>
+          <li>${t('otp.securityTips.tip1')}</li>
+          <li>${t('otp.securityTips.tip2')}</li>
+          <li>${t('otp.securityTips.tip3')}</li>
         </ul>
       </div>
 
       <p style="color: #888; font-size: 12px; margin-top: 30px;">
-        Este código fue solicitado para: ${email}<br>
-        Si tienes problemas para iniciar sesión, contacta a soporte.
+        ${t('otp.requestedFor')} ${email}<br>
+        ${t('otp.support')}
       </p>
     </div>
   `;
 
   const text = `
-Tu código de acceso - Qatar Prode
+${t('otp.subject')}
 
-Has solicitado un código para iniciar sesión en Qatar Prode.
+${t('otp.greeting')}
 
-Tu código: ${otpCode}
+${t('otp.title')}: ${otpCode}
 
-⏱️ Válido por 3 minutos
-Tienes máximo 3 intentos para ingresar este código.
+${t('otp.validity')}
+${t('otp.attempts')}
 
-⚠️ SEGURIDAD:
-• No compartas este código con nadie
-• Qatar Prode nunca te pedirá este código por teléfono o email
-• Si no solicitaste este código, puedes ignorar este mensaje
+${t('otp.securityTitle')}
+• ${t('otp.securityTips.tip1')}
+• ${t('otp.securityTips.tip2')}
+• ${t('otp.securityTips.tip3')}
 
-Este código fue solicitado para: ${email}
-Si tienes problemas para iniciar sesión, contacta a soporte.
+${t('otp.requestedFor')} ${email}
+${t('otp.support')}
   `;
 
   return { subject, html, text };
@@ -78,12 +82,15 @@ Si tienes problemas para iniciar sesión, contacta a soporte.
  * Generates OTP, sends email with code, enforces rate limiting
  *
  * @param email - User's email address
+ * @param locale - User's current locale for localized messages
  * @returns Success status with optional error message
  */
-export async function sendOTPCode(email: string): Promise<{
+export async function sendOTPCode(email: string, locale: Locale = 'es'): Promise<{
   success: boolean;
   error?: string;
 }> {
+  const t = await getTranslations({ locale, namespace: 'auth' });
+
   try {
     // Validate email format
     const trimmedEmail = email?.trim() || '';
@@ -92,7 +99,7 @@ export async function sendOTPCode(email: string): Promise<{
     if (!trimmedEmail || trimmedEmail.length > 254) {
       return {
         success: false,
-        error: "Por favor ingresa un email válido."
+        error: t('emailInput.email.error')
       };
     }
 
@@ -103,14 +110,14 @@ export async function sendOTPCode(email: string): Promise<{
     if (atIndex <= 0 || lastDotIndex <= atIndex + 1 || lastDotIndex >= trimmedEmail.length - 1) {
       return {
         success: false,
-        error: "Por favor ingresa un email válido."
+        error: t('emailInput.email.error')
       };
     }
 
     if (trimmedEmail.includes(' ')) {
       return {
         success: false,
-        error: "Por favor ingresa un email válido."
+        error: t('emailInput.email.error')
       };
     }
 
@@ -127,14 +134,15 @@ export async function sendOTPCode(email: string): Promise<{
     const user = await findUserByEmail(normalizedEmail);
 
     if (!user?.otp_code) {
+      const tErrors = await getTranslations({ locale, namespace: 'errors' });
       return {
         success: false,
-        error: "Error al generar el código."
+        error: tErrors('generic')
       };
     }
 
     // Generate email content
-    const { subject, html } = generateOTPEmailContent(normalizedEmail, user.otp_code);
+    const { subject, html } = await generateOTPEmailContent(normalizedEmail, user.otp_code, locale);
 
     // Send email
     await sendEmail({
@@ -146,9 +154,10 @@ export async function sendOTPCode(email: string): Promise<{
     return { success: true };
   } catch (error) {
     console.error("Error sending OTP code:", error);
+    const tErrors = await getTranslations({ locale, namespace: 'errors' });
     return {
       success: false,
-      error: "Error al enviar el código. Intenta nuevamente."
+      error: tErrors('email.sendFailed')
     };
   }
 }
@@ -159,18 +168,21 @@ export async function sendOTPCode(email: string): Promise<{
  *
  * @param email - User's email address
  * @param code - 6-digit OTP code
+ * @param locale - User's current locale for localized messages
  * @returns Success status with user object or error message
  */
-export async function verifyOTPCode(email: string, code: string): Promise<{
+export async function verifyOTPCode(email: string, code: string, locale: Locale = 'es'): Promise<{
   success: boolean;
   user?: User;
   error?: string;
 }> {
+  const t = await getTranslations({ locale, namespace: 'auth' });
+
   try {
     if (!email?.trim() || !code?.trim()) {
       return {
         success: false,
-        error: "Email y código son requeridos."
+        error: t('otp.errors.required')
       };
     }
 
@@ -183,9 +195,10 @@ export async function verifyOTPCode(email: string, code: string): Promise<{
     return result;
   } catch (error) {
     console.error("Error verifying OTP code:", error);
+    const tErrors = await getTranslations({ locale, namespace: 'errors' });
     return {
       success: false,
-      error: "Error al verificar el código. Intenta nuevamente."
+      error: tErrors('generic')
     };
   }
 }
@@ -195,6 +208,7 @@ export async function verifyOTPCode(email: string, code: string): Promise<{
  * Used for new user signup flow with nickname and optional password
  *
  * @param data - Account creation data
+ * @param locale - User's current locale for localized messages
  * @returns Success status with optional error message
  */
 export async function createAccountViaOTP(data: {
@@ -202,10 +216,12 @@ export async function createAccountViaOTP(data: {
   nickname: string;
   password?: string | null;
   verifiedOTP: string;
-}): Promise<{
+}, locale: Locale = 'es'): Promise<{
   success: boolean;
   error?: string;
 }> {
+  const t = await getTranslations({ locale, namespace: 'auth' });
+
   try {
     const { email, nickname, password, verifiedOTP } = data;
 
@@ -213,7 +229,7 @@ export async function createAccountViaOTP(data: {
     if (!email?.trim() || !nickname?.trim() || !verifiedOTP?.trim()) {
       return {
         success: false,
-        error: "Email, nickname y código verificado son requeridos."
+        error: t('accountSetup.errors.createFailed')
       };
     }
 
@@ -224,14 +240,14 @@ export async function createAccountViaOTP(data: {
     if (trimmedNickname.length < 3) {
       return {
         success: false,
-        error: "El nickname debe tener al menos 3 caracteres."
+        error: t('accountSetup.nickname.minLength', { min: 3 })
       };
     }
 
     if (trimmedNickname.length > 20) {
       return {
         success: false,
-        error: "El nickname debe tener máximo 20 caracteres."
+        error: t('accountSetup.nickname.maxLength', { max: 20 })
       };
     }
 
@@ -240,7 +256,7 @@ export async function createAccountViaOTP(data: {
       if (password.length < 8) {
         return {
           success: false,
-          error: "La contraseña debe tener al menos 8 caracteres."
+          error: t('accountSetup.password.minLength', { min: 8 })
         };
       }
     }
@@ -250,7 +266,7 @@ export async function createAccountViaOTP(data: {
     if (existingUserWithNickname) {
       return {
         success: false,
-        error: "Este nickname no está disponible."
+        error: t('accountSetup.nickname.unavailable')
       };
     }
 
@@ -258,9 +274,10 @@ export async function createAccountViaOTP(data: {
     const user = await findUserByEmail(normalizedEmail);
 
     if (!user) {
+      const tErrors = await getTranslations({ locale, namespace: 'errors' });
       return {
         success: false,
-        error: "Usuario no encontrado. Solicita un nuevo código."
+        error: tErrors('auth.userNotFound')
       };
     }
 
@@ -268,7 +285,7 @@ export async function createAccountViaOTP(data: {
     if (user.email_verified !== true) {
       return {
         success: false,
-        error: "Email no verificado. Verifica el código primero."
+        error: t('otp.errors.verifyFailed')
       };
     }
 
@@ -287,9 +304,10 @@ export async function createAccountViaOTP(data: {
     return { success: true };
   } catch (error) {
     console.error("Error creating account via OTP:", error);
+    const tErrors = await getTranslations({ locale, namespace: 'errors' });
     return {
       success: false,
-      error: "Error al crear la cuenta. Intenta nuevamente."
+      error: tErrors('generic')
     };
   }
 }
@@ -299,17 +317,20 @@ export async function createAccountViaOTP(data: {
  * Used for real-time validation in AccountSetupForm
  *
  * @param nickname - Desired nickname
+ * @param locale - User's current locale for localized messages
  * @returns Availability status
  */
-export async function checkNicknameAvailability(nickname: string): Promise<{
+export async function checkNicknameAvailability(nickname: string, locale: Locale = 'es'): Promise<{
   available: boolean;
   error?: string;
 }> {
+  const t = await getTranslations({ locale, namespace: 'auth' });
+
   try {
     if (!nickname?.trim()) {
       return {
         available: false,
-        error: "El nickname es requerido."
+        error: t('accountSetup.nickname.required')
       };
     }
 
@@ -319,7 +340,7 @@ export async function checkNicknameAvailability(nickname: string): Promise<{
     if (trimmedNickname.length < 3 || trimmedNickname.length > 20) {
       return {
         available: false,
-        error: "El nickname debe tener entre 3 y 20 caracteres."
+        error: t('accountSetup.nickname.minLength', { min: 3 })
       };
     }
 
@@ -328,16 +349,17 @@ export async function checkNicknameAvailability(nickname: string): Promise<{
     if (existingUser) {
       return {
         available: false,
-        error: "Este nickname no está disponible."
+        error: t('accountSetup.nickname.unavailable')
       };
     }
 
     return { available: true };
   } catch (error) {
     console.error("Error checking nickname availability:", error);
+    const tErrors = await getTranslations({ locale, namespace: 'errors' });
     return {
       available: false,
-      error: "Error al verificar disponibilidad."
+      error: tErrors('generic')
     };
   }
 }

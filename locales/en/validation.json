@@ -1,25 +1,29 @@
 {
-  "required": "EnOf(Requerido)",
-  "optional": "EnOf(Opcional)",
+  "required": "Required",
+  "optional": "Optional",
   "email": {
-    "invalid": "EnOf(Direccion de E-Mail invalida)",
-    "required": "EnOf(Por favor ingrese su e-mail)"
+    "invalid": "Invalid email address",
+    "required": "Please enter your email"
   },
   "password": {
-    "required": "EnOf(La contraseña es requerida)",
-    "minLength": "EnOf(La contraseña debe tener al menos {min} caracteres)"
+    "required": "Password is required",
+    "minLength": "Password must be at least {min} characters"
   },
   "nickname": {
-    "required": "EnOf(El nickname es requerido)",
-    "minLength": "EnOf(El nickname debe tener al menos {min} caracteres)",
-    "maxLength": "EnOf(El nickname debe tener máximo {max} caracteres)",
-    "unavailable": "EnOf(Este nickname no está disponible)",
-    "available": "EnOf(✓ Disponible)"
+    "required": "Nickname is required",
+    "minLength": "Nickname must be at least {min} characters",
+    "maxLength": "Nickname must be at most {max} characters",
+    "unavailable": "This nickname is not available",
+    "available": "✓ Available"
   },
   "groupName": {
-    "required": "EnOf(El nombre del grupo es obligatorio)"
+    "required": "Group name is required"
   },
   "confirmPassword": {
-    "mismatch": "EnOf(Las contraseñas no coinciden)"
+    "mismatch": "Passwords do not match"
+  },
+  "confirmEmail": {
+    "required": "Please confirm your email",
+    "mismatch": "Emails do not match"
   }
 }

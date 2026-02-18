@@ -15,6 +15,8 @@ import {
 } from '@mui/material';
 import { setNickname } from '@/app/actions/oauth-actions';
 import { useSession } from 'next-auth/react';
+import { useTranslations, useLocale } from 'next-intl';
+import type { Locale } from '@/i18n.config';
 
 type NicknameSetupDialogProps = {
   readonly open: boolean;
@@ -22,6 +24,8 @@ type NicknameSetupDialogProps = {
 };
 
 export default function NicknameSetupDialog({ open, onClose }: NicknameSetupDialogProps) {
+  const t = useTranslations('auth');
+  const locale = useLocale() as Locale;
   const { update } = useSession();
   const [nicknameInput, setNicknameInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -33,10 +37,10 @@ export default function NicknameSetupDialog({ open, onClose }: NicknameSetupDial
     setLoading(true);
 
     try {
-      const result = await setNickname(nicknameInput);
+      const result = await setNickname(nicknameInput, locale);
 
       if (!result.success) {
-        setError(result.error || 'Error al guardar el nickname');
+        setError(result.error || t('nicknameSetup.errors.saveFailed'));
         setLoading(false);
         return;
       }
@@ -52,7 +56,7 @@ export default function NicknameSetupDialog({ open, onClose }: NicknameSetupDial
         onClose();
       }
     } catch {
-      setError('Error al guardar el nickname');
+      setError(t('nicknameSetup.errors.saveFailed'));
       setLoading(false);
     }
   };
@@ -66,11 +70,11 @@ export default function NicknameSetupDialog({ open, onClose }: NicknameSetupDial
       // Prevent closing by clicking outside or ESC key
       disableEscapeKeyDown={!onClose}
     >
-      <DialogTitle>Configura tu nickname</DialogTitle>
+      <DialogTitle>{t('nicknameSetup.title')}</DialogTitle>
       <DialogContent>
         <Box component="form" onSubmit={handleSubmit} id="nickname-form">
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Para completar tu registro, por favor elige un nickname que será visible para otros usuarios.
+            {t('nicknameSetup.instruction')}
           </Typography>
 
           {error && (
@@ -81,7 +85,7 @@ export default function NicknameSetupDialog({ open, onClose }: NicknameSetupDial
 
           <TextField
             fullWidth
-            label="Nickname"
+            label={t('nicknameSetup.nickname.label')}
             value={nicknameInput}
             onChange={(e) => setNicknameInput(e.target.value)}
             required
@@ -93,14 +97,14 @@ export default function NicknameSetupDialog({ open, onClose }: NicknameSetupDial
                 maxLength: 50
               }
             }}
-            helperText="Mínimo 2 caracteres, máximo 50"
+            helperText={t('nicknameSetup.nickname.helperText')}
           />
         </Box>
       </DialogContent>
       <DialogActions>
         {onClose && (
           <Button onClick={onClose} disabled={loading}>
-            Cancelar
+            {t('nicknameSetup.buttons.cancel')}
           </Button>
         )}
         <Button
@@ -109,7 +113,7 @@ export default function NicknameSetupDialog({ open, onClose }: NicknameSetupDial
           variant="contained"
           disabled={loading}
         >
-          {loading ? <CircularProgress size={24} /> : 'Guardar'}
+          {loading ? <CircularProgress size={24} /> : t('nicknameSetup.buttons.save')}
         </Button>
       </DialogActions>
     </Dialog>

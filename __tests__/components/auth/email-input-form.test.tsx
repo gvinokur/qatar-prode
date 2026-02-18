@@ -1,10 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import EmailInputForm from '../../../app/components/auth/email-input-form';
 import { renderWithTheme } from '../../utils/test-utils';
+import { createMockTranslations } from '../../utils/mock-translations';
+import * as intl from 'next-intl';
 import { checkAuthMethods } from '../../../app/actions/oauth-actions';
 import { signIn } from 'next-auth/react';
+
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useTranslations: vi.fn(),
+  useLocale: vi.fn(() => 'es'),
+}));
 
 // Mock dependencies
 vi.mock('../../../app/actions/oauth-actions', () => ({
@@ -20,31 +28,40 @@ describe('EmailInputForm', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  
+    // Setup i18n mocks
+    vi.mocked(intl.useTranslations).mockReturnValue(
+      createMockTranslations('auth')
+    );
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
   describe('Rendering', () => {
     it('renders email input field', () => {
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+      expect(screen.getByRole('textbox', { name: '[emailInput.email.label]' })).toBeInTheDocument();
     });
 
     it('renders continue button', () => {
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      expect(screen.getByRole('button', { name: /continuar$/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '[emailInput.buttons.continue]' })).toBeInTheDocument();
     });
 
     it('renders Google sign-in button', () => {
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      expect(screen.getByRole('button', { name: /continuar con google/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '[emailInput.buttons.google]' })).toBeInTheDocument();
     });
 
     it('renders divider with "o" text', () => {
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      expect(screen.getByText('o')).toBeInTheDocument();
+      expect(screen.getByText('[emailInput.divider]')).toBeInTheDocument();
     });
   });
 
@@ -52,7 +69,7 @@ describe('EmailInputForm', () => {
     it('allows typing in email field', async () => {
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/email/i);
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
       await user.type(emailInput, 'test@example.com');
 
       expect(emailInput).toHaveValue('test@example.com');
@@ -61,12 +78,21 @@ describe('EmailInputForm', () => {
     it('clears email input when user types', async () => {
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/email/i);
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
       await user.type(emailInput, 'test');
       await user.clear(emailInput);
       await user.type(emailInput, 'new@example.com');
 
       expect(emailInput).toHaveValue('new@example.com');
+    });
+
+    it('accepts valid email formats with special characters', async () => {
+      renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' }) as HTMLInputElement;
+      await user.type(emailInput, 'user+tag@sub-domain.example.co.uk');
+
+      expect(emailInput.value).toBe('user+tag@sub-domain.example.co.uk');
     });
   });
 
@@ -81,14 +107,14 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/email/i);
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
 
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(checkAuthMethods).toHaveBeenCalledWith('test@example.com');
+        expect(checkAuthMethods).toHaveBeenCalledWith('test@example.com', 'es');
       });
     });
 
@@ -102,8 +128,8 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/email/i);
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
 
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
@@ -129,8 +155,8 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/email/i);
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
 
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
@@ -155,9 +181,9 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/email/i);
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
-      const googleButton = screen.getByRole('button', { name: /continuar con google/i });
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
+      const googleButton = screen.getByRole('button', { name: '[emailInput.buttons.google]' });
 
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
@@ -184,13 +210,13 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/email/i);
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
 
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
 
-      const errorMessage = await screen.findByText('Error al verificar el email');
+      const errorMessage = await screen.findByText('[emailInput.email.error]');
       expect(errorMessage).toBeInTheDocument();
     });
 
@@ -201,13 +227,13 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/email/i);
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
 
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
 
-      const errorMessage = await screen.findByText('Error al verificar el email');
+      const errorMessage = await screen.findByText('[emailInput.email.error]');
       expect(errorMessage).toBeInTheDocument();
       expect(mockOnEmailSubmit).not.toHaveBeenCalled();
     });
@@ -219,7 +245,7 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const googleButton = screen.getByRole('button', { name: /continuar con google/i });
+      const googleButton = screen.getByRole('button', { name: '[emailInput.buttons.google]' });
       await user.click(googleButton);
 
       await waitFor(() => {
@@ -232,11 +258,11 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const googleButton = screen.getByRole('button', { name: /continuar con google/i });
+      const googleButton = screen.getByRole('button', { name: '[emailInput.buttons.google]' });
       await user.click(googleButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Error al iniciar sesión con Google')).toBeInTheDocument();
+        expect(screen.getByText('[emailInput.email.error]')).toBeInTheDocument();
       });
     });
 
@@ -247,9 +273,9 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/email/i);
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
-      const googleButton = screen.getByRole('button', { name: /continuar con google/i });
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
+      const googleButton = screen.getByRole('button', { name: '[emailInput.buttons.google]' });
 
       await user.click(googleButton);
 
@@ -268,15 +294,252 @@ describe('EmailInputForm', () => {
     it('requires email field', () => {
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/email/i);
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
       expect(emailInput).toBeRequired();
     });
 
     it('has proper email input type', () => {
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/email/i);
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
       expect(emailInput).toHaveAttribute('type', 'email');
+    });
+
+    it('has proper keyboard navigation', async () => {
+      renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const continueButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
+      const googleButton = screen.getByRole('button', { name: /google/i });
+
+      // Tab to email input
+      await user.tab();
+      expect(emailInput).toHaveFocus();
+
+      // Tab to continue button
+      await user.tab();
+      expect(continueButton).toHaveFocus();
+
+      // Tab to google button
+      await user.tab();
+      expect(googleButton).toHaveFocus();
+    });
+
+    it('submit button has correct type attribute', () => {
+      renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
+
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
+      expect(submitButton).toHaveAttribute('type', 'submit');
+    });
+  });
+
+  describe('Form state management', () => {
+    it('disables all inputs during email verification', async () => {
+      let resolveCheckAuthMethods: any;
+      const checkAuthMethodsPromise = new Promise((resolve) => {
+        resolveCheckAuthMethods = resolve;
+      });
+      vi.mocked(checkAuthMethods).mockReturnValue(checkAuthMethodsPromise as any);
+
+      renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
+      const googleButton = screen.getByRole('button', { name: /google/i });
+
+      await user.type(emailInput, 'test@example.com');
+      await user.click(submitButton);
+
+      // All inputs should be disabled
+      expect(emailInput).toBeDisabled();
+      expect(submitButton).toBeDisabled();
+      expect(googleButton).toBeDisabled();
+
+      // Resolve promise
+      resolveCheckAuthMethods({
+        success: true,
+        hasPassword: true,
+        hasGoogle: false,
+        userExists: true,
+      });
+
+      await waitFor(() => {
+        expect(emailInput).not.toBeDisabled();
+      });
+    });
+
+    it('re-enables inputs after successful verification', async () => {
+      vi.mocked(checkAuthMethods).mockResolvedValue({
+        success: true,
+        hasPassword: true,
+        hasGoogle: false,
+        userExists: true,
+      });
+
+      renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
+
+      await user.type(emailInput, 'test@example.com');
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(emailInput).not.toBeDisabled();
+        expect(submitButton).not.toBeDisabled();
+      });
+    });
+
+    it('clears error message on successful submit after error', async () => {
+      vi.mocked(checkAuthMethods)
+        .mockResolvedValueOnce({
+          success: false,
+          error: 'Error de verificación',
+        })
+        .mockResolvedValueOnce({
+          success: true,
+          hasPassword: true,
+          hasGoogle: false,
+          userExists: true,
+        });
+
+      renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
+
+      // First submission with error
+      await user.type(emailInput, 'test@example.com');
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Error de verificación')).toBeInTheDocument();
+      });
+
+      // Clear and retry
+      await user.clear(emailInput);
+      await user.type(emailInput, 'test@example.com');
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.queryByText('Error de verificación')).not.toBeInTheDocument();
+        expect(mockOnEmailSubmit).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Error message display', () => {
+    it('displays error from checkAuthMethods response', async () => {
+      const errorMessage = 'This email is already registered';
+      vi.mocked(checkAuthMethods).mockResolvedValue({
+        success: false,
+        error: errorMessage,
+      });
+
+      renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
+
+      await user.type(emailInput, 'existing@example.com');
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(errorMessage)).toBeInTheDocument();
+      });
+    });
+
+    it('displays error alert with role alert', async () => {
+      vi.mocked(checkAuthMethods).mockResolvedValue({
+        success: false,
+        error: 'Verification error',
+      });
+
+      renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
+
+      await user.type(emailInput, 'test@example.com');
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        const alert = screen.getByRole('alert');
+        expect(alert).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Translation and localization', () => {
+    it('calls checkAuthMethods with correct locale', async () => {
+      vi.mocked(checkAuthMethods).mockResolvedValue({
+        success: true,
+        hasPassword: true,
+        hasGoogle: false,
+        userExists: true,
+      });
+
+      renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
+
+      await user.type(emailInput, 'test@example.com');
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(checkAuthMethods).toHaveBeenCalledWith('test@example.com', 'es');
+      });
+    });
+  });
+
+  describe('Edge cases', () => {
+    it('handles rapid form submissions gracefully', async () => {
+      let callCount = 0;
+      vi.mocked(checkAuthMethods).mockImplementation(async () => {
+        callCount++;
+        return {
+          success: true,
+          hasPassword: true,
+          hasGoogle: false,
+          userExists: true,
+        };
+      });
+
+      renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
+
+      await user.type(emailInput, 'test@example.com');
+
+      // Rapid clicks
+      await user.click(submitButton);
+      await user.click(submitButton);
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(callCount).toBeGreaterThan(0);
+      });
+    });
+
+    it('handles empty string error from checkAuthMethods', async () => {
+      vi.mocked(checkAuthMethods).mockResolvedValue({
+        success: false,
+        error: '',
+      });
+
+      renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
+
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
+
+      await user.type(emailInput, 'test@example.com');
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('[emailInput.email.error]')).toBeInTheDocument();
+      });
     });
   });
 });
