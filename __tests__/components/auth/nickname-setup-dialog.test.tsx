@@ -5,6 +5,14 @@ import NicknameSetupDialog from '../../../app/components/auth/nickname-setup-dia
 import { renderWithTheme } from '../../utils/test-utils';
 import { setNickname } from '../../../app/actions/oauth-actions';
 import { useSession } from 'next-auth/react';
+import { createMockTranslations } from '../../utils/mock-translations';
+import * as intl from 'next-intl';
+
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useTranslations: vi.fn(),
+  useLocale: vi.fn(() => 'es'),
+}));
 
 // Mock dependencies
 vi.mock('../../../app/actions/oauth-actions', () => ({
@@ -33,6 +41,12 @@ describe('NicknameSetupDialog', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Setup i18n mocks
+    vi.mocked(intl.useTranslations).mockReturnValue(
+      createMockTranslations('auth')
+    );
+
     vi.mocked(useSession).mockReturnValue({
       data: null,
       status: 'unauthenticated',
@@ -45,7 +59,7 @@ describe('NicknameSetupDialog', () => {
       renderWithTheme(<NicknameSetupDialog open={true} />);
 
       expect(screen.getByTestId('dialog')).toBeInTheDocument();
-      expect(screen.getByTestId('dialog-title')).toHaveTextContent('Configura tu nickname');
+      expect(screen.getByTestId('dialog-title')).toHaveTextContent('[nicknameSetup.title]');
     });
 
     it('does not render when open is false', () => {
@@ -57,25 +71,25 @@ describe('NicknameSetupDialog', () => {
     it('renders nickname input field', () => {
       renderWithTheme(<NicknameSetupDialog open={true} />);
 
-      expect(screen.getByLabelText(/nickname/i)).toBeInTheDocument();
+      expect(screen.getByRole('textbox', { name: '[nicknameSetup.nickname.label]' })).toBeInTheDocument();
     });
 
     it('renders save button', () => {
       renderWithTheme(<NicknameSetupDialog open={true} />);
 
-      expect(screen.getByRole('button', { name: /guardar/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '[nicknameSetup.buttons.save]' })).toBeInTheDocument();
     });
 
     it('shows helper text about character limits', () => {
       renderWithTheme(<NicknameSetupDialog open={true} />);
 
-      expect(screen.getByText(/mínimo 2 caracteres, máximo 50/i)).toBeInTheDocument();
+      expect(screen.getByText('[nicknameSetup.nickname.helperText]')).toBeInTheDocument();
     });
 
     it('shows explanation text', () => {
       renderWithTheme(<NicknameSetupDialog open={true} />);
 
-      expect(screen.getByText(/para completar tu registro/i)).toBeInTheDocument();
+      expect(screen.getByText('[nicknameSetup.instruction]')).toBeInTheDocument();
     });
   });
 
@@ -83,7 +97,7 @@ describe('NicknameSetupDialog', () => {
     it('allows typing in nickname field', async () => {
       renderWithTheme(<NicknameSetupDialog open={true} />);
 
-      const nicknameInput = screen.getByLabelText(/nickname/i);
+      const nicknameInput = screen.getByRole('textbox', { name: '[nicknameSetup.nickname.label]' });
       await user.type(nicknameInput, 'TestUser');
 
       expect(nicknameInput).toHaveValue('TestUser');
@@ -92,7 +106,7 @@ describe('NicknameSetupDialog', () => {
     it('clears input when user types', async () => {
       renderWithTheme(<NicknameSetupDialog open={true} />);
 
-      const nicknameInput = screen.getByLabelText(/nickname/i);
+      const nicknameInput = screen.getByRole('textbox', { name: '[nicknameSetup.nickname.label]' });
       await user.type(nicknameInput, 'First');
       await user.clear(nicknameInput);
       await user.type(nicknameInput, 'Second');
@@ -109,14 +123,14 @@ describe('NicknameSetupDialog', () => {
 
       renderWithTheme(<NicknameSetupDialog open={true} onClose={mockOnClose} />);
 
-      const nicknameInput = screen.getByLabelText(/nickname/i);
-      const saveButton = screen.getByRole('button', { name: /guardar/i });
+      const nicknameInput = screen.getByRole('textbox', { name: '[nicknameSetup.nickname.label]' });
+      const saveButton = screen.getByRole('button', { name: '[nicknameSetup.buttons.save]' });
 
       await user.type(nicknameInput, 'TestUser');
       await user.click(saveButton);
 
       await waitFor(() => {
-        expect(setNickname).toHaveBeenCalledWith('TestUser');
+        expect(setNickname).toHaveBeenCalledWith('TestUser', 'es');
       });
     });
 
@@ -127,8 +141,8 @@ describe('NicknameSetupDialog', () => {
 
       renderWithTheme(<NicknameSetupDialog open={true} onClose={mockOnClose} />);
 
-      const nicknameInput = screen.getByLabelText(/nickname/i);
-      const saveButton = screen.getByRole('button', { name: /guardar/i });
+      const nicknameInput = screen.getByRole('textbox', { name: '[nicknameSetup.nickname.label]' });
+      const saveButton = screen.getByRole('button', { name: '[nicknameSetup.buttons.save]' });
 
       await user.type(nicknameInput, 'TestUser');
       await user.click(saveButton);
@@ -148,8 +162,8 @@ describe('NicknameSetupDialog', () => {
 
       renderWithTheme(<NicknameSetupDialog open={true} onClose={mockOnClose} />);
 
-      const nicknameInput = screen.getByLabelText(/nickname/i);
-      const saveButton = screen.getByRole('button', { name: /guardar/i });
+      const nicknameInput = screen.getByRole('textbox', { name: '[nicknameSetup.nickname.label]' });
+      const saveButton = screen.getByRole('button', { name: '[nicknameSetup.buttons.save]' });
 
       await user.type(nicknameInput, 'TestUser');
       await user.click(saveButton);
@@ -166,8 +180,8 @@ describe('NicknameSetupDialog', () => {
 
       renderWithTheme(<NicknameSetupDialog open={true} />);
 
-      const nicknameInput = screen.getByLabelText(/nickname/i);
-      const saveButton = screen.getByRole('button', { name: /guardar/i });
+      const nicknameInput = screen.getByRole('textbox', { name: '[nicknameSetup.nickname.label]' });
+      const saveButton = screen.getByRole('button', { name: '[nicknameSetup.buttons.save]' });
 
       await user.type(nicknameInput, 'TestUser');
       await user.click(saveButton);
@@ -187,8 +201,8 @@ describe('NicknameSetupDialog', () => {
 
       renderWithTheme(<NicknameSetupDialog open={true} />);
 
-      const nicknameInput = screen.getByLabelText(/nickname/i);
-      const saveButton = screen.getByRole('button', { name: /guardar/i });
+      const nicknameInput = screen.getByRole('textbox', { name: '[nicknameSetup.nickname.label]' });
+      const saveButton = screen.getByRole('button', { name: '[nicknameSetup.buttons.save]' });
 
       await user.type(nicknameInput, 'TestUser');
       await user.click(saveButton);
@@ -208,8 +222,8 @@ describe('NicknameSetupDialog', () => {
 
       renderWithTheme(<NicknameSetupDialog open={true} />);
 
-      const nicknameInput = screen.getByLabelText(/nickname/i);
-      const saveButton = screen.getByRole('button', { name: /guardar/i });
+      const nicknameInput = screen.getByRole('textbox', { name: '[nicknameSetup.nickname.label]' });
+      const saveButton = screen.getByRole('button', { name: '[nicknameSetup.buttons.save]' });
 
       await user.type(nicknameInput, 'TestUser');
       await user.click(saveButton);
@@ -232,8 +246,8 @@ describe('NicknameSetupDialog', () => {
 
       renderWithTheme(<NicknameSetupDialog open={true} />);
 
-      const nicknameInput = screen.getByLabelText(/nickname/i);
-      const saveButton = screen.getByRole('button', { name: /guardar/i });
+      const nicknameInput = screen.getByRole('textbox', { name: '[nicknameSetup.nickname.label]' });
+      const saveButton = screen.getByRole('button', { name: '[nicknameSetup.buttons.save]' });
 
       await user.type(nicknameInput, 'TakenNickname');
       await user.click(saveButton);
@@ -252,14 +266,14 @@ describe('NicknameSetupDialog', () => {
 
       renderWithTheme(<NicknameSetupDialog open={true} />);
 
-      const nicknameInput = screen.getByLabelText(/nickname/i);
-      const saveButton = screen.getByRole('button', { name: /guardar/i });
+      const nicknameInput = screen.getByRole('textbox', { name: '[nicknameSetup.nickname.label]' });
+      const saveButton = screen.getByRole('button', { name: '[nicknameSetup.buttons.save]' });
 
       await user.type(nicknameInput, 'TestUser');
       await user.click(saveButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Error al guardar el nickname')).toBeInTheDocument();
+        expect(screen.getByText('[nicknameSetup.errors.saveFailed]')).toBeInTheDocument();
       });
     });
 
@@ -270,14 +284,14 @@ describe('NicknameSetupDialog', () => {
 
       renderWithTheme(<NicknameSetupDialog open={true} />);
 
-      const nicknameInput = screen.getByLabelText(/nickname/i);
-      const saveButton = screen.getByRole('button', { name: /guardar/i });
+      const nicknameInput = screen.getByRole('textbox', { name: '[nicknameSetup.nickname.label]' });
+      const saveButton = screen.getByRole('button', { name: '[nicknameSetup.buttons.save]' });
 
       await user.type(nicknameInput, 'TestUser');
       await user.click(saveButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Error al guardar el nickname')).toBeInTheDocument();
+        expect(screen.getByText('[nicknameSetup.errors.saveFailed]')).toBeInTheDocument();
       });
 
       expect(mockOnClose).not.toHaveBeenCalled();
@@ -295,8 +309,8 @@ describe('NicknameSetupDialog', () => {
 
       renderWithTheme(<NicknameSetupDialog open={true} onClose={mockOnClose} />);
 
-      const nicknameInput = screen.getByLabelText(/nickname/i);
-      const saveButton = screen.getByRole('button', { name: /guardar/i });
+      const nicknameInput = screen.getByRole('textbox', { name: '[nicknameSetup.nickname.label]' });
+      const saveButton = screen.getByRole('button', { name: '[nicknameSetup.buttons.save]' });
 
       // First submission - should fail
       await user.type(nicknameInput, 'a');
@@ -322,14 +336,14 @@ describe('NicknameSetupDialog', () => {
     it('has required attribute on input', () => {
       renderWithTheme(<NicknameSetupDialog open={true} />);
 
-      const nicknameInput = screen.getByLabelText(/nickname/i);
+      const nicknameInput = screen.getByRole('textbox', { name: '[nicknameSetup.nickname.label]' });
       expect(nicknameInput).toBeRequired();
     });
 
     it('has correct min and max length attributes', () => {
       renderWithTheme(<NicknameSetupDialog open={true} />);
 
-      const nicknameInput = screen.getByLabelText(/nickname/i);
+      const nicknameInput = screen.getByRole('textbox', { name: '[nicknameSetup.nickname.label]' });
       expect(nicknameInput).toHaveAttribute('minlength', '2');
       expect(nicknameInput).toHaveAttribute('maxlength', '50');
     });
@@ -347,7 +361,7 @@ describe('NicknameSetupDialog', () => {
     it('has labeled input field', () => {
       renderWithTheme(<NicknameSetupDialog open={true} />);
 
-      expect(screen.getByLabelText(/nickname/i)).toBeInTheDocument();
+      expect(screen.getByRole('textbox', { name: '[nicknameSetup.nickname.label]' })).toBeInTheDocument();
     });
   });
 
@@ -359,14 +373,14 @@ describe('NicknameSetupDialog', () => {
 
       renderWithTheme(<NicknameSetupDialog open={true} />);
 
-      const nicknameInput = screen.getByLabelText(/nickname/i);
-      const saveButton = screen.getByRole('button', { name: /guardar/i });
+      const nicknameInput = screen.getByRole('textbox', { name: '[nicknameSetup.nickname.label]' });
+      const saveButton = screen.getByRole('button', { name: '[nicknameSetup.buttons.save]' });
 
       await user.type(nicknameInput, '  TestUser  ');
       await user.click(saveButton);
 
       await waitFor(() => {
-        expect(setNickname).toHaveBeenCalledWith('  TestUser  ');
+        expect(setNickname).toHaveBeenCalledWith('  TestUser  ', 'es');
       });
     });
 
@@ -378,8 +392,8 @@ describe('NicknameSetupDialog', () => {
 
       renderWithTheme(<NicknameSetupDialog open={true} />);
 
-      const nicknameInput = screen.getByLabelText(/nickname/i);
-      const saveButton = screen.getByRole('button', { name: /guardar/i });
+      const nicknameInput = screen.getByRole('textbox', { name: '[nicknameSetup.nickname.label]' });
+      const saveButton = screen.getByRole('button', { name: '[nicknameSetup.buttons.save]' });
 
       const longNickname = 'a'.repeat(51);
       await user.type(nicknameInput, longNickname);
@@ -397,8 +411,8 @@ describe('NicknameSetupDialog', () => {
 
       renderWithTheme(<NicknameSetupDialog open={true} onClose={mockOnClose} />);
 
-      const nicknameInput = screen.getByLabelText(/nickname/i);
-      const saveButton = screen.getByRole('button', { name: /guardar/i });
+      const nicknameInput = screen.getByRole('textbox', { name: '[nicknameSetup.nickname.label]' });
+      const saveButton = screen.getByRole('button', { name: '[nicknameSetup.buttons.save]' });
 
       await user.type(nicknameInput, 'AB');
       await user.click(saveButton);
@@ -415,8 +429,8 @@ describe('NicknameSetupDialog', () => {
 
       renderWithTheme(<NicknameSetupDialog open={true} onClose={mockOnClose} />);
 
-      const nicknameInput = screen.getByLabelText(/nickname/i);
-      const saveButton = screen.getByRole('button', { name: /guardar/i });
+      const nicknameInput = screen.getByRole('textbox', { name: '[nicknameSetup.nickname.label]' });
+      const saveButton = screen.getByRole('button', { name: '[nicknameSetup.buttons.save]' });
 
       await user.type(nicknameInput, 'a'.repeat(50));
       await user.click(saveButton);

@@ -6,6 +6,14 @@ import LoginOrSignupDialog from '../../../app/components/auth/login-or-signup-di
 import { User } from '../../../app/db/tables-definition';
 import { renderWithTheme } from '../../utils/test-utils';
 import { createMockRouter } from '../../mocks/next-navigation.mocks';
+import { createMockTranslations } from '../../utils/mock-translations';
+import * as intl from 'next-intl';
+
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useTranslations: vi.fn(),
+  useLocale: vi.fn(() => 'es'),
+}));
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
@@ -143,6 +151,12 @@ describe('LoginOrSignupDialog - Progressive Disclosure Flow', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockEmailSubmitFn = null;
+
+    // Setup i18n mocks
+    vi.mocked(intl.useTranslations).mockReturnValue(
+      createMockTranslations('auth')
+    );
+
     // Mock useRouter
     vi.mocked(useRouter).mockReturnValue(createMockRouter());
   });
@@ -152,7 +166,7 @@ describe('LoginOrSignupDialog - Progressive Disclosure Flow', () => {
       renderWithTheme(<LoginOrSignupDialog {...mockProps} />);
 
       expect(screen.getByTestId('email-input-form')).toBeInTheDocument();
-      expect(screen.getByTestId('dialog-title')).toHaveTextContent('Ingresar o Registrarse');
+      expect(screen.getByTestId('dialog-title')).toHaveTextContent('[dialog.titles.emailInput]');
     });
 
     it('does not render when closed', () => {
@@ -171,7 +185,7 @@ describe('LoginOrSignupDialog - Progressive Disclosure Flow', () => {
       await waitFor(() => {
         expect(screen.getByTestId('login-form')).toBeInTheDocument();
       });
-      expect(screen.getByTestId('dialog-title')).toHaveTextContent('Ingresar');
+      expect(screen.getByTestId('dialog-title')).toHaveTextContent('[dialog.titles.login]');
     });
 
     it('shows back to email link in login mode', async () => {
@@ -180,7 +194,7 @@ describe('LoginOrSignupDialog - Progressive Disclosure Flow', () => {
       fireEvent.click(screen.getByTestId('submit-email-existing-user'));
 
       await waitFor(() => {
-        expect(screen.getByText('← Volver a email')).toBeInTheDocument();
+        expect(screen.getByText('[dialog.links.backToEmail]')).toBeInTheDocument();
       });
     });
 
@@ -190,7 +204,7 @@ describe('LoginOrSignupDialog - Progressive Disclosure Flow', () => {
       fireEvent.click(screen.getByTestId('submit-email-existing-user'));
       await waitFor(() => expect(screen.getByTestId('login-form')).toBeInTheDocument());
 
-      fireEvent.click(screen.getByText('← Volver a email'));
+      fireEvent.click(screen.getByText('[dialog.links.backToEmail]'));
 
       await waitFor(() => {
         expect(screen.getByTestId('email-input-form')).toBeInTheDocument();
@@ -207,7 +221,7 @@ describe('LoginOrSignupDialog - Progressive Disclosure Flow', () => {
       await waitFor(() => {
         expect(screen.getByTestId('signup-form')).toBeInTheDocument();
       });
-      expect(screen.getByTestId('dialog-title')).toHaveTextContent('Registrarse');
+      expect(screen.getByTestId('dialog-title')).toHaveTextContent('[dialog.titles.signup]');
     });
 
     it('can navigate back to email input from signup', async () => {
@@ -216,7 +230,7 @@ describe('LoginOrSignupDialog - Progressive Disclosure Flow', () => {
       fireEvent.click(screen.getByTestId('submit-email-new-user'));
       await waitFor(() => expect(screen.getByTestId('signup-form')).toBeInTheDocument());
 
-      fireEvent.click(screen.getByText('← Volver a email'));
+      fireEvent.click(screen.getByText('[dialog.links.backToEmail]'));
 
       await waitFor(() => {
         expect(screen.getByTestId('email-input-form')).toBeInTheDocument();
@@ -231,11 +245,11 @@ describe('LoginOrSignupDialog - Progressive Disclosure Flow', () => {
       fireEvent.click(screen.getByTestId('submit-email-existing-user'));
       await waitFor(() => expect(screen.getByTestId('login-form')).toBeInTheDocument());
 
-      fireEvent.click(screen.getByText('¿Olvidaste tu contraseña?'));
+      fireEvent.click(screen.getByText('[login.forgotPassword]'));
 
       await waitFor(() => {
         expect(screen.getByTestId('forgot-password-form')).toBeInTheDocument();
-        expect(screen.getByTestId('dialog-title')).toHaveTextContent('Recuperar Contraseña');
+        expect(screen.getByTestId('dialog-title')).toHaveTextContent('[dialog.titles.forgotPassword]');
       });
     });
 
@@ -245,7 +259,7 @@ describe('LoginOrSignupDialog - Progressive Disclosure Flow', () => {
       fireEvent.click(screen.getByTestId('submit-email-existing-user'));
       await waitFor(() => expect(screen.getByTestId('login-form')).toBeInTheDocument());
 
-      fireEvent.click(screen.getByText('¿Olvidaste tu contraseña?'));
+      fireEvent.click(screen.getByText('[login.forgotPassword]'));
       await waitFor(() => expect(screen.getByTestId('forgot-password-form')).toBeInTheDocument());
 
       fireEvent.click(screen.getByTestId('forgot-password-submit'));
