@@ -2,6 +2,7 @@
 
 import { Box, Typography, Alert, Divider, Paper, Stack } from '@mui/material'
 import { useState, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { MockGuessesContextProvider, MockQualifiedTeamsContextProvider } from '../demo/onboarding-demo-context'
 import FlippableGameCard from '@/app/components/flippable-game-card'
 import QualifiedTeamsClientPage from '@/app/components/qualified-teams/qualified-teams-client-page'
@@ -18,6 +19,8 @@ import {
 } from '../demo/demo-data'
 
 export default function SamplePredictionStep() {
+  const t = useTranslations('onboarding.steps.samplePrediction')
+
   // Success message states
   const [showCardSuccess, setShowCardSuccess] = useState(false)
   const [showTeamSuccess, setShowTeamSuccess] = useState(false)
@@ -87,7 +90,7 @@ export default function SamplePredictionStep() {
             🎴 Predicciones de Partidos
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Haz clic en una tarjeta para voltearla y editar tu predicción
+            {t('clickToFlip')}
           </Typography>
 
           <MockGuessesContextProvider>
@@ -119,7 +122,7 @@ export default function SamplePredictionStep() {
               onClose={() => setShowCardSuccess(false)}
               sx={{ mt: 2 }}
             >
-              ¡Perfecto! Haz clic en la tarjeta para editarla. Los cambios se guardan automáticamente.
+              {t('successAlert')}
             </Alert>
           )}
         </Paper>
@@ -132,7 +135,7 @@ export default function SamplePredictionStep() {
             🏆 Ordenar Equipos Clasificados
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Arrastra y suelta para ordenar los equipos en cada grupo
+            {t('dragToReorder')}
           </Typography>
 
           <MockQualifiedTeamsContextProvider>

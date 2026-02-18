@@ -1,18 +1,21 @@
 'use client'
 
 import { Box, Typography, Paper } from '@mui/material'
+import { useTranslations } from 'next-intl'
 import QualifiedTeamsOnboardingDemo from '../demo/qualified-teams-onboarding-demo'
 import { DEMO_GROUPS } from '../demo/demo-data'
 
 export default function QualifiedTeamsPredictionStep() {
+  const t = useTranslations('onboarding.steps.qualifiedTeams')
+
   return (
     <Box sx={{ py: 2 }}>
       <Typography variant="h5" gutterBottom align="center">
-        🏆 Ordenar Equipos Clasificados
+        {t('title')}
       </Typography>
 
       <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
-        Arrastra y suelta para ordenar los equipos del grupo
+        {t('instructions')}
       </Typography>
 
       <Box sx={{ maxWidth: 900, mx: 'auto' }}>
@@ -24,7 +27,7 @@ export default function QualifiedTeamsPredictionStep() {
         </Paper>
 
         <Typography variant="caption" display="block" align="center" sx={{ mt: 2 }}>
-          💡 Arrastra los equipos para reordenarlos. Los 2 primeros clasifican automáticamente. Los cambios se guardan automáticamente.
+          {t('infoTip')}
         </Typography>
       </Box>
     </Box>

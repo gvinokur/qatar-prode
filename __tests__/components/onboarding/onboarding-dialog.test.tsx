@@ -5,6 +5,14 @@ import OnboardingDialog from '@/app/components/onboarding/onboarding-dialog';
 import { renderWithTheme } from '@/__tests__/utils/test-utils';
 import { testFactories } from '@/__tests__/db/test-factories';
 import { markOnboardingComplete, skipOnboardingFlow, saveOnboardingStep } from '@/app/actions/onboarding-actions';
+import { createMockTranslations } from '@/__tests__/utils/mock-translations';
+import * as intl from 'next-intl';
+
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useTranslations: vi.fn(),
+  useLocale: vi.fn(() => 'es')
+}))
 
 // Mock server actions
 vi.mock('@/app/actions/onboarding-actions', () => ({
@@ -51,6 +59,9 @@ describe('OnboardingDialog', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(intl.useTranslations).mockReturnValue(
+      createMockTranslations('onboarding.dialog')
+    )
   });
 
   describe('Step Order - Boosts Enabled', () => {
@@ -118,27 +129,27 @@ describe('OnboardingDialog', () => {
       expect(screen.getByTestId('welcome-step')).toBeInTheDocument();
 
       // Next to Step 2: Game Prediction
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
       expect(screen.getByTestId('game-prediction-step')).toBeInTheDocument();
 
       // Next to Step 3: Qualified Teams
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
       expect(screen.getByTestId('qualified-teams-step')).toBeInTheDocument();
 
       // Next to Step 4: Tournament Awards
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
       expect(screen.getByTestId('tournament-awards-step')).toBeInTheDocument();
 
       // Next to Step 5: Scoring
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
       expect(screen.getByTestId('scoring-explanation-step')).toBeInTheDocument();
 
       // Next to Step 6: Boost (should be included)
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
       expect(screen.getByTestId('boost-introduction-step')).toBeInTheDocument();
 
       // Next to Step 7: Checklist
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
       expect(screen.getByTestId('checklist-step')).toBeInTheDocument();
     });
   });
@@ -202,23 +213,23 @@ describe('OnboardingDialog', () => {
       expect(screen.getByTestId('welcome-step')).toBeInTheDocument();
 
       // Next to Step 2: Game Prediction
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
       expect(screen.getByTestId('game-prediction-step')).toBeInTheDocument();
 
       // Next to Step 3: Qualified Teams
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
       expect(screen.getByTestId('qualified-teams-step')).toBeInTheDocument();
 
       // Next to Step 4: Tournament Awards
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
       expect(screen.getByTestId('tournament-awards-step')).toBeInTheDocument();
 
       // Next to Step 5: Scoring
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
       expect(screen.getByTestId('scoring-explanation-step')).toBeInTheDocument();
 
       // Next to Step 6: Checklist (boost step is skipped)
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
       expect(screen.getByTestId('checklist-step')).toBeInTheDocument();
 
       // Verify boost step was never shown
@@ -240,10 +251,10 @@ describe('OnboardingDialog', () => {
       );
 
       // Navigate to scoring step
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to game prediction
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to qualified teams
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to tournament awards
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to scoring
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to game prediction
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to qualified teams
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to tournament awards
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to scoring
 
       expect(screen.getByTestId('scoring-explanation-step')).toBeInTheDocument();
       expect(screen.getByTestId('scoring-tournament')).toHaveTextContent('test-tournament-123');
@@ -262,11 +273,11 @@ describe('OnboardingDialog', () => {
       );
 
       // Navigate to boost step
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to game prediction
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to qualified teams
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to tournament awards
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to scoring
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to boost
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to game prediction
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to qualified teams
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to tournament awards
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to scoring
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to boost
 
       expect(screen.getByTestId('boost-introduction-step')).toBeInTheDocument();
       expect(screen.getByTestId('boost-tournament')).toHaveTextContent('boost-tournament-456');
@@ -280,10 +291,10 @@ describe('OnboardingDialog', () => {
       );
 
       // Navigate to scoring step
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to game prediction
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to qualified teams
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to tournament awards
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to scoring
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to game prediction
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to qualified teams
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to tournament awards
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to scoring
 
       expect(screen.getByTestId('scoring-tournament')).toHaveTextContent('no-tournament');
     });
@@ -339,7 +350,7 @@ describe('OnboardingDialog', () => {
         <OnboardingDialog open={true} onClose={mockOnClose} tournament={tournament} />
       );
 
-      await user.click(screen.getByRole('button', { name: /saltar tutorial/i }));
+      await user.click(screen.getByRole('button', { name: /\[skipButton\]/i }));
 
       await waitFor(() => {
         expect(skipOnboardingFlow).toHaveBeenCalledTimes(1);
@@ -355,7 +366,7 @@ describe('OnboardingDialog', () => {
         <OnboardingDialog open={true} onClose={mockOnClose} tournament={tournament} />
       );
 
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
 
       await waitFor(() => {
         expect(saveOnboardingStep).toHaveBeenCalledWith(1);
@@ -374,11 +385,11 @@ describe('OnboardingDialog', () => {
       );
 
       // Navigate through all steps to checklist
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to game prediction
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to qualified teams
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to tournament awards
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to scoring
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to checklist
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to game prediction
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to qualified teams
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to tournament awards
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to scoring
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to checklist
 
       // Complete checklist by clicking the button from ChecklistStep mock
       await user.click(screen.getByText('Complete Checklist'));
@@ -400,8 +411,8 @@ describe('OnboardingDialog', () => {
         <OnboardingDialog open={true} onClose={mockOnClose} tournament={tournament} />
       );
 
-      const skipButton = screen.getByRole('button', { name: /saltar tutorial/i });
-      const nextButton = screen.getByRole('button', { name: /siguiente/i });
+      const skipButton = screen.getByRole('button', { name: /\[skipButton\]/i });
+      const nextButton = screen.getByRole('button', { name: /\[nextButton\]/i });
 
       await user.click(skipButton);
 
@@ -423,13 +434,13 @@ describe('OnboardingDialog', () => {
       );
 
       // Back button should not be visible on first step
-      expect(screen.queryByRole('button', { name: /atrás/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /\[backButton\]/i })).not.toBeInTheDocument();
 
       // Navigate to second step
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
 
       // Back button should now be visible
-      expect(screen.getByRole('button', { name: /atrás/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /\[backButton\]/i })).toBeInTheDocument();
     });
 
     it('navigates backwards when back button clicked', async () => {
@@ -441,11 +452,11 @@ describe('OnboardingDialog', () => {
       );
 
       // Go to second step
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
       expect(screen.getByTestId('game-prediction-step')).toBeInTheDocument();
 
       // Go back
-      await user.click(screen.getByRole('button', { name: /atrás/i }));
+      await user.click(screen.getByRole('button', { name: /\[backButton\]/i }));
       expect(screen.getByTestId('welcome-step')).toBeInTheDocument();
     });
 
@@ -461,13 +472,13 @@ describe('OnboardingDialog', () => {
       );
 
       // Navigate to scoring (last step before checklist)
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to game prediction
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to qualified teams
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to tournament awards
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to scoring
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to game prediction
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to qualified teams
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to tournament awards
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to scoring
 
       // Button should say "Siguiente" (checklist is ahead)
-      expect(screen.getByRole('button', { name: /siguiente/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /\[nextButton\]/i })).toBeInTheDocument();
     });
 
     it('hides navigation buttons on checklist step', async () => {
@@ -482,18 +493,18 @@ describe('OnboardingDialog', () => {
       );
 
       // Navigate to checklist
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to game prediction
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to qualified teams
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to tournament awards
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to scoring
-      await user.click(screen.getByRole('button', { name: /siguiente/i })); // to checklist
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to game prediction
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to qualified teams
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to tournament awards
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to scoring
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i })); // to checklist
 
-      // Next/Finalizar button should not be visible on checklist
-      expect(screen.queryByRole('button', { name: /siguiente/i })).not.toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: /finalizar/i })).not.toBeInTheDocument();
+      // Next/Finish button should not be visible on checklist
+      expect(screen.queryByRole('button', { name: /\[nextButton\]/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /\[finishButton\]/i })).not.toBeInTheDocument();
 
       // Back button should not be visible on checklist
-      expect(screen.queryByRole('button', { name: /atrás/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /\[backButton\]/i })).not.toBeInTheDocument();
     });
   });
 
@@ -512,23 +523,23 @@ describe('OnboardingDialog', () => {
       // Step 1/6
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('1/6');
 
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
       // Step 2/6
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('2/6');
 
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
       // Step 3/6
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('3/6');
 
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
       // Step 4/6
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('4/6');
 
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
       // Step 5/6
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('5/6');
 
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
       // Step 6/6
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('6/6');
     });
@@ -547,22 +558,22 @@ describe('OnboardingDialog', () => {
       // Should show 7 total steps
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('1/7');
 
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('2/7');
 
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('3/7');
 
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('4/7');
 
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('5/7');
 
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('6/7');
 
-      await user.click(screen.getByRole('button', { name: /siguiente/i }));
+      await user.click(screen.getByRole('button', { name: /\[nextButton\]/i }));
       expect(screen.getByTestId('onboarding-progress')).toHaveTextContent('7/7');
     });
   });

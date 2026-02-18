@@ -1,7 +1,15 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import GamePredictionStep from '@/app/components/onboarding/onboarding-steps/game-prediction-step'
 import { renderWithTheme } from '@/__tests__/utils/test-utils'
+import { createMockTranslations } from '@/__tests__/utils/mock-translations'
+import * as intl from 'next-intl'
+
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useTranslations: vi.fn(),
+  useLocale: vi.fn(() => 'es')
+}))
 
 // Mock the demo components
 vi.mock('@/app/components/onboarding/demo/onboarding-demo-context', () => ({
@@ -30,22 +38,28 @@ vi.mock('@/app/components/compact-prediction-dashboard', () => ({
 }))
 
 describe('GamePredictionStep', () => {
+  beforeEach(() => {
+    vi.mocked(intl.useTranslations).mockReturnValue(
+      createMockTranslations('onboarding.steps.gamePrediction')
+    )
+  })
+
   it('renders main heading', () => {
     renderWithTheme(<GamePredictionStep />)
-    
-    expect(screen.getByText('🎴 Predicciones de Partidos')).toBeInTheDocument()
+
+    expect(screen.getByText('[title]')).toBeInTheDocument()
   })
 
   it('renders instruction text', () => {
     renderWithTheme(<GamePredictionStep />)
-    
-    expect(screen.getByText(/Haz clic en una tarjeta para voltearla y editar tu predicción/i)).toBeInTheDocument()
+
+    expect(screen.getByText('[clickToFlip]')).toBeInTheDocument()
   })
 
   it('renders demo disclaimer', () => {
     renderWithTheme(<GamePredictionStep />)
-    
-    expect(screen.getByText(/Estas predicciones son de demostración/i)).toBeInTheDocument()
+
+    expect(screen.getByText('[infoTip]')).toBeInTheDocument()
   })
 
   it('renders compact prediction dashboard in demo mode', () => {
@@ -57,15 +71,15 @@ describe('GamePredictionStep', () => {
 
   it('renders two game cards with correct labels', () => {
     renderWithTheme(<GamePredictionStep />)
-    
-    expect(screen.getByTestId('label-game-1')).toHaveTextContent('Partido de Grupo')
-    expect(screen.getByTestId('label-game-2')).toHaveTextContent('Partido de Playoff')
+
+    expect(screen.getByTestId('label-game-1')).toHaveTextContent('[groupGameLabel]')
+    expect(screen.getByTestId('label-game-2')).toHaveTextContent('[playoffGameLabel]')
   })
 
   it('renders playoff demo note', () => {
     renderWithTheme(<GamePredictionStep />)
-    
-    expect(screen.getByTestId('note-game-2')).toHaveTextContent(/En empate, selecciona el ganador por penales/i)
+
+    expect(screen.getByTestId('note-game-2')).toHaveTextContent('[demoNote]')
   })
 
   it('handles card edit interaction', async () => {
@@ -82,13 +96,13 @@ describe('GamePredictionStep', () => {
 
   it('shows success message after first card interaction', async () => {
     renderWithTheme(<GamePredictionStep />)
-    
+
     const editBtn = screen.getByTestId('edit-btn-game-1')
-    
+
     fireEvent.click(editBtn)
-    
+
     await waitFor(() => {
-      expect(screen.getByText(/¡Perfecto! Haz clic en la tarjeta para editarla/i)).toBeInTheDocument()
+      expect(screen.getByText('[successAlert]')).toBeInTheDocument()
     })
   })
 

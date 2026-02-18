@@ -53,7 +53,7 @@ export const DEMO_GROUPS_DATA: TournamentGroup[] = [
   },
 ]
 
-// 2 games from the group
+// 4 games from the group
 export const DEMO_GAMES: Game[] = [
   {
     id: 'game-1',
@@ -77,6 +77,32 @@ export const DEMO_GAMES: Game[] = [
     game_date: new Date(Date.now() + 48 * 60 * 60 * 1000), // In 2 days
     location: 'Estadio Demo',
     game_type: 'playoff', // Playoff game to demo penalty winner
+    home_team_rule: undefined,
+    away_team_rule: undefined,
+    game_local_timezone: undefined,
+  },
+  {
+    id: 'game-3',
+    tournament_id: 'demo-tournament',
+    game_number: 3,
+    home_team: 'team-1', // Brasil
+    away_team: 'team-3', // Uruguay
+    game_date: new Date(Date.now() + 72 * 60 * 60 * 1000), // In 3 days
+    location: 'Estadio Demo',
+    game_type: 'group',
+    home_team_rule: undefined,
+    away_team_rule: undefined,
+    game_local_timezone: undefined,
+  },
+  {
+    id: 'game-4',
+    tournament_id: 'demo-tournament',
+    game_number: 4,
+    home_team: 'team-2', // Argentina
+    away_team: 'team-4', // Chile
+    game_date: new Date(Date.now() + 96 * 60 * 60 * 1000), // In 4 days
+    location: 'Estadio Demo',
+    game_type: 'group',
     home_team_rule: undefined,
     away_team_rule: undefined,
     game_local_timezone: undefined,
@@ -111,6 +137,40 @@ export const DEMO_GAME_GUESSES: Record<string, GameGuess> = {
     away_team: 'team-4',
     home_score: 1,
     away_score: 1,
+    boost_type: null,
+    home_penalty_winner: undefined,
+    away_penalty_winner: undefined,
+    score: undefined,
+    boost_multiplier: undefined,
+    final_score: undefined,
+    updated_at: undefined,
+  },
+  'game-3': {
+    id: 'guess-3',
+    game_id: 'game-3',
+    game_number: 3,
+    user_id: 'demo-user',
+    home_team: 'team-1',
+    away_team: 'team-3',
+    home_score: 3,
+    away_score: 0,
+    boost_type: null,
+    home_penalty_winner: undefined,
+    away_penalty_winner: undefined,
+    score: undefined,
+    boost_multiplier: undefined,
+    final_score: undefined,
+    updated_at: undefined,
+  },
+  'game-4': {
+    id: 'guess-4',
+    game_id: 'game-4',
+    game_number: 4,
+    user_id: 'demo-user',
+    home_team: 'team-2',
+    away_team: 'team-4',
+    home_score: 2,
+    away_score: 2,
     boost_type: null,
     home_penalty_winner: undefined,
     away_penalty_winner: undefined,

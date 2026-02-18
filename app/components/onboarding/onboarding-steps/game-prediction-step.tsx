@@ -2,6 +2,7 @@
 
 import { Box, Typography, Alert, Paper } from '@mui/material'
 import { useState, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { MockGuessesContextProvider } from '../demo/onboarding-demo-context'
 import GameCardOnboardingDemo from '../demo/game-card-onboarding-demo'
 import { CompactPredictionDashboard } from '@/app/components/compact-prediction-dashboard'
@@ -15,6 +16,8 @@ import {
 import type { ExtendedGameData } from '@/app/definitions'
 
 export default function GamePredictionStep() {
+  const t = useTranslations('onboarding.steps.gamePrediction')
+
   // Success message state
   const [showCardSuccess, setShowCardSuccess] = useState(false)
 
@@ -45,11 +48,11 @@ export default function GamePredictionStep() {
   return (
     <Box sx={{ py: 2 }}>
       <Typography variant="h5" gutterBottom align="center">
-        🎴 Predicciones de Partidos
+        {t('title')}
       </Typography>
 
       <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
-        Haz clic en una tarjeta para voltearla y editar tu predicción
+        {t('clickToFlip')}
       </Typography>
 
       <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
@@ -57,7 +60,7 @@ export default function GamePredictionStep() {
           {/* Dashboard */}
           <Box sx={{ mb: 3, maxWidth: 900, mx: 'auto' }}>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Vista unificada de tus predicciones (haz clic para ver detalles):
+              {t('dashboardLabel')}
             </Typography>
             <CompactPredictionDashboard
               {...DEMO_DASHBOARD_PROPS}
@@ -73,7 +76,7 @@ export default function GamePredictionStep() {
           {/* Game Cards */}
           <Box sx={{ borderTop: 1, borderColor: 'divider', pt: 3 }}>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3, textAlign: 'center' }}>
-              Haz clic en una tarjeta para voltearla y editar. Nota las diferencias entre partidos de grupo y playoffs:
+              {t('cardInstructions')}
             </Typography>
             <Box sx={{
               display: 'grid',
@@ -88,7 +91,7 @@ export default function GamePredictionStep() {
                 isEditing={editingGameId === DEMO_GAMES[0].id}
                 onEditStart={() => handleEditStart(DEMO_GAMES[0].id)}
                 onEditEnd={handleEditEnd}
-                label="Partido de Grupo"
+                label={t('groupGameLabel')}
               />
               <GameCardOnboardingDemo
                 game={DEMO_GAMES[1]}
@@ -97,8 +100,8 @@ export default function GamePredictionStep() {
                 isEditing={editingGameId === DEMO_GAMES[1].id}
                 onEditStart={() => handleEditStart(DEMO_GAMES[1].id)}
                 onEditEnd={handleEditEnd}
-                label="Partido de Playoff"
-                demoNote="En empate, selecciona el ganador por penales"
+                label={t('playoffGameLabel')}
+                demoNote={t('demoNote')}
               />
             </Box>
           </Box>
@@ -110,13 +113,13 @@ export default function GamePredictionStep() {
             onClose={() => setShowCardSuccess(false)}
             sx={{ mt: 2 }}
           >
-            ¡Perfecto! Haz clic en la tarjeta para editarla. Los cambios se guardan automáticamente.
+            {t('successAlert')}
           </Alert>
         )}
       </Paper>
 
       <Typography variant="caption" display="block" align="center" sx={{ mt: 2 }}>
-        💡 Estas predicciones son de demostración. Tus predicciones reales comenzarán después del onboarding.
+        {t('infoTip')}
       </Typography>
     </Box>
   )

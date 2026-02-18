@@ -1,0 +1,177 @@
+{
+  "dialog": {
+    "skipButton": "Saltar Tutorial",
+    "backButton": "Atrás",
+    "nextButton": "Siguiente",
+    "finishButton": "Finalizar"
+  },
+  "progress": {
+    "welcome": "Bienvenida",
+    "gamePrediction": "Partidos",
+    "qualifiedTeams": "Clasificados",
+    "tournamentAwards": "Premios",
+    "scoring": "Puntaje",
+    "boosts": "Boosts",
+    "checklist": "Checklist"
+  },
+  "steps": {
+    "welcome": {
+      "title": "¡Bienvenido a Qatar Prode!",
+      "description": "Te guiaremos a través de las funciones principales para que puedas empezar a hacer tus predicciones y competir con tus amigos.",
+      "durationInfo": "Este tutorial tomará aproximadamente 2 minutos"
+    },
+    "gamePrediction": {
+      "title": "🎴 Predicciones de Partidos",
+      "clickToFlip": "Haz clic en una tarjeta para voltearla y editar tu predicción",
+      "dashboardLabel": "Vista unificada de tus predicciones (haz clic para ver detalles):",
+      "cardInstructions": "Haz clic en una tarjeta para voltearla y editar. Nota las diferencias entre partidos de grupo y playoffs:",
+      "groupGameLabel": "Partido de Grupo",
+      "playoffGameLabel": "Partido de Playoff",
+      "demoNote": "En empate, selecciona el ganador por penales",
+      "successAlert": "¡Perfecto! Haz clic en la tarjeta para editarla. Los cambios se guardan automáticamente.",
+      "infoTip": "💡 Estas predicciones son de demostración. Tus predicciones reales comenzarán después del onboarding."
+    },
+    "qualifiedTeams": {
+      "title": "🏆 Ordenar Equipos Clasificados",
+      "instructions": "Arrastra y suelta para ordenar los equipos del grupo",
+      "infoTip": "💡 Arrastra los equipos para reordenarlos. Los 2 primeros clasifican automáticamente. Los cambios se guardan automáticamente."
+    },
+    "tournamentAwards": {
+      "title": "🎖️ Predicciones del Torneo",
+      "instructions": "Predice el podio del torneo y los premios individuales",
+      "podiumHeader": "Podio del Torneo",
+      "champion": {
+        "label": "Campeón",
+        "helper": "Selecciona el equipo que predigas que ganará el torneo"
+      },
+      "runnerUp": {
+        "label": "Subcampeón",
+        "helper": "Selecciona el equipo que predigas que llegará a la final"
+      },
+      "thirdPlace": {
+        "label": "Tercer Lugar",
+        "helper": "Selecciona el equipo que predigas que quedará tercero"
+      },
+      "individualAwardsHeader": "Premios Individuales",
+      "bestPlayer": {
+        "label": "Mejor Jugador",
+        "helper": "Selecciona el mejor jugador del torneo"
+      },
+      "topScorer": {
+        "label": "Goleador",
+        "helper": "Selecciona el máximo goleador del torneo"
+      },
+      "bestGoalkeeper": {
+        "label": "Mejor Arquero",
+        "helper": "Selecciona el mejor arquero del torneo"
+      },
+      "bestYoungPlayer": {
+        "label": "Mejor Jugador Joven",
+        "helper": "Selecciona el mejor jugador joven del torneo"
+      },
+      "podiumSuccessAlert": "¡Genial! Selecciona tus predicciones para el podio.",
+      "awardsSuccessAlert": "¡Perfecto! Selecciona los mejores jugadores del torneo.",
+      "infoTip": "💡 Estas predicciones son de demostración. Podrás hacer tus predicciones reales después del onboarding."
+    },
+    "scoring": {
+      "title": "¿Cómo se Calcula el Puntaje?",
+      "instructions": "Gana puntos por predicciones correctas en partidos y torneo",
+      "matchesHeader": "Partidos",
+      "exactResult": {
+        "label": "Resultado exacto",
+        "points": "{points} pts"
+      },
+      "correctResult": {
+        "label": "Resultado correcto",
+        "points": "{points} pts"
+      },
+      "tournamentHeader": "Torneo",
+      "championMedal": "🥇 Campeón",
+      "runnerUpMedal": "🥈 Subcampeón",
+      "thirdPlaceMedal": "🥉 Tercer lugar",
+      "individualAwardsHeader": "Premios Individuales",
+      "awardPoints": {
+        "label": "Por cada premio correcto",
+        "points": "{points} pts"
+      },
+      "bestPlayerChip": "Mejor Jugador",
+      "topScorerChip": "Goleador",
+      "bestGoalkeeperChip": "Mejor Arquero",
+      "youngPlayerChip": "Jugador Joven",
+      "totalPossible": "Total posible: {points} pts (4 premios × {perAward} pts)",
+      "classificationHeader": "Clasificación",
+      "exactPosition": {
+        "label": "Posición exacta + clasificado",
+        "points": "{points} pts"
+      },
+      "classified": {
+        "label": "Clasificado (posición incorrecta)",
+        "points": "{points} pts"
+      },
+      "importantAlert": {
+        "title": "Importante",
+        "tournamentHeader": "Configuración de {tournament}",
+        "tournamentContext": "Estos son los valores de puntaje para este torneo específico.",
+        "genericContext": "Los valores de puntaje pueden variar según el torneo. Los valores mostrados son típicos."
+      }
+    },
+    "boosts": {
+      "title": "Multiplica Tus Puntos con Boosts",
+      "instructions": "Usa tus boosts estratégicamente en partidos clave",
+      "silverBoost": {
+        "label": "Boost Plateado",
+        "multiplier": "Multiplica × 2",
+        "description": "Duplica tus puntos en el partido que elijas",
+        "available": "{count, plural, one {Tienes {count} boost disponible por torneo} other {Tienes {count} boosts disponibles por torneo}}"
+      },
+      "goldenBoost": {
+        "label": "Boost Dorado",
+        "multiplier": "Multiplica × 3",
+        "description": "Triplica tus puntos en tu partido más importante",
+        "available": "{count, plural, one {Tienes {count} boost disponible por torneo} other {Tienes {count} boosts disponibles por torneo}}"
+      },
+      "configAlert": {
+        "header": "Configuración para {tournament}:",
+        "subheader": "Puntos Importantes:",
+        "bullet1": "Los boosts son específicos de cada torneo",
+        "bullet2": "Solo aplican a predicciones de partidos",
+        "bullet3": "Puedes cambiarlos hasta 1 hora antes del partido"
+      },
+      "strategicTip": {
+        "title": "💡 Consejo Estratégico",
+        "text": "Guarda tus boosts para finales y partidos decisivos donde estés más seguro del resultado"
+      }
+    },
+    "checklist": {
+      "title": "Lista de Primeros Pasos",
+      "instructions": "Completa estos pasos para sacar el máximo provecho",
+      "items": {
+        "firstPrediction": "Hacer mi primera predicción de partido",
+        "championAndAwards": "Predecir campeón y premios individuales",
+        "qualifiedTeams": "Ordenar equipos clasificados (arrastra y suelta)",
+        "joinGroup": "Unirme a un grupo de amigos",
+        "reviewRules": "Revisar las reglas completas"
+      },
+      "deadlinesHeader": "⏰ Plazos de Predicción",
+      "matchPredictions": {
+        "label": "Predicciones de Partidos",
+        "deadline": "Cierran 1 hora antes del inicio del partido"
+      },
+      "tournamentAndClassification": {
+        "label": "Torneo y Clasificación",
+        "deadline": "Cierran 5 días después del inicio del torneo"
+      },
+      "boosts": {
+        "label": "Boosts",
+        "deadline": "Se pueden cambiar hasta 1 hora antes del partido"
+      },
+      "infoTip": "💡 Puedes acceder a esta lista desde tu perfil en cualquier momento",
+      "startButton": "¡Comenzar a Jugar!"
+    },
+    "samplePrediction": {
+      "clickToFlip": "Haz clic en una tarjeta para voltearla y editar tu predicción",
+      "dragToReorder": "Arrastra y suelta para ordenar los equipos en cada grupo",
+      "successAlert": "¡Perfecto! Haz clic en la tarjeta para editarla. Los cambios se guardan automáticamente."
+    }
+  }
+}
