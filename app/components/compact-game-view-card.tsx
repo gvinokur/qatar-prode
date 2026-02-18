@@ -173,7 +173,7 @@ export default function CompactGameViewCard({
                     Number.isInteger(specificProps.gameResult?.away_score) &&
                     Number.isInteger(specificProps.scoreForGame)
                   ) && (
-                    <Tooltip title={`Multiplicador ${boostType === 'golden' ? '3x' : '2x'} aplicado`}>
+                    <Tooltip title={t(`boost.${boostType}.applied`)}>
                       <Chip
                         icon={<TrophyIcon sx={{ fontSize: 14 }} />}
                         label={boostType === 'golden' ? '3x' : '2x'}
@@ -192,7 +192,7 @@ export default function CompactGameViewCard({
                     </Tooltip>
                   )}
                   {(!disabled) && (
-                    <Tooltip title="Editar resultado">
+                    <Tooltip title={t('game.editResult')}>
                       <IconButton
                         size={'large'}
                         onClick={handleEditClick}
@@ -210,7 +210,7 @@ export default function CompactGameViewCard({
                     </Tooltip>
                   )}
                   {!specificProps.isGameGuess && !disabled && (
-                    <Tooltip title="¿Está publicado?">
+                    <Tooltip title={t('game.isPublished')}>
                       <Checkbox
                         size="medium"
                         color={isDraft ? 'warning' : 'success'}
@@ -419,7 +419,7 @@ export default function CompactGameViewCard({
             }}
           >
             <Typography variant='caption' component='div' color='secondary.contrastText'>
-              IN PLAY OR RECENTLY FINISHED
+              {t('game.inPlayOrRecentlyFinished')}
             </Typography>
           </Box>
         )}

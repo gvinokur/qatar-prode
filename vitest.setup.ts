@@ -20,10 +20,45 @@ vi.mock('next-auth/react', () => ({
   })
 }));
 
+// Load Spanish translations for tests
+const spanishTranslations: Record<string, any> = {
+  predictions: require('./locales/es/predictions.json'),
+  // Add other namespaces as needed
+};
+
+// Helper function to get nested translation value
+function getTranslation(namespace: string, key: string, values?: Record<string, any>): string {
+  const keys = key.split('.');
+  let value: any = spanishTranslations[namespace];
+
+  for (const k of keys) {
+    if (value && typeof value === 'object') {
+      value = value[k];
+    } else {
+      return key; // Return key if translation not found
+    }
+  }
+
+  if (typeof value !== 'string') {
+    return key; // Return key if value is not a string
+  }
+
+  // Handle interpolation
+  if (values) {
+    return value.replace(/\{(\w+)\}/g, (match, varName) => {
+      return values[varName]?.toString() || match;
+    });
+  }
+
+  return value;
+}
+
 // Mock next-intl globally for all tests (client components)
 vi.mock('next-intl', () => ({
   useLocale: () => 'es', // Default to Spanish locale
-  useTranslations: () => (key: string) => key, // Return key as-is for tests
+  useTranslations: (namespace: string = 'predictions') => (key: string, values?: Record<string, any>) => {
+    return getTranslation(namespace, key, values);
+  },
   useFormatter: () => ({
     dateTime: (date: Date) => date.toISOString(),
     number: (num: number) => num.toString(),

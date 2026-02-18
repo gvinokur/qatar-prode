@@ -27,7 +27,9 @@
     "viewLocalTime": "EnOf(Ver horario local)",
     "viewYourTime": "EnOf(Ver tu horario)",
     "closed": "EnOf(Cerrado)",
-    "closesIn": "EnOf(Cierra en {countdown})"
+    "closesIn": "EnOf(Cierra en {countdown})",
+    "isPublished": "EnOf(¿Está publicado?)",
+    "inPlayOrRecentlyFinished": "EnOf(EN JUEGO O RECIÉN TERMINADO)"
   },
   "urgency": {
     "games": "EnOf({count, plural, =0 {Ningún partido cierra en {timeframe}} one {{count} partido cierra en {timeframe}} other {{count} partidos cierran en {timeframe}}})",
@@ -44,7 +46,15 @@
   },
   "points": {
     "singular": "EnOf(pt)",
-    "plural": "EnOf(pts)"
+    "plural": "EnOf(pts)",
+    "singularFull": "EnOf(punto)",
+    "pluralFull": "EnOf(puntos)"
+  },
+  "pointBreakdown": {
+    "title": "EnOf(Desglose de Puntos)",
+    "base": "EnOf(Base:)",
+    "multiplier": "EnOf(Multiplicador:)",
+    "total": "EnOf(Total:)"
   },
   "edit": {
     "save": "EnOf(Guardar)",
@@ -57,6 +67,50 @@
     "penaltyWinner": "EnOf(Ganador Penales)",
     "penaltyWinnerFull": "EnOf(Ganador de la tanda de penales)",
     "penaltyWinnerPrompt": "EnOf(Dado que el pártido terminó empatado, por favor seleccione el ganador de la tanda de penales.)"
+  },
+  "boost": {
+    "silver": {
+      "name": "EnOf(Multiplicador de Plata)",
+      "multiplier": "EnOf(2x)",
+      "description": "EnOf(Duplica los puntos obtenidos en este partido)",
+      "title": "EnOf(Multiplicador x2)",
+      "applied": "EnOf(Multiplicador 2x aplicado)",
+      "clickToRemove": "EnOf(Click para remover Multiplicador de Plata (2x puntos))",
+      "usage": "EnOf(Multiplicador de Plata (2x puntos) - {used}/{max} usados)",
+      "allUsed": "EnOf(Has usado todos tus {max} multiplicadores de plata. Remueve uno de otro partido primero.)"
+    },
+    "golden": {
+      "name": "EnOf(Multiplicador de Oro)",
+      "multiplier": "EnOf(3x)",
+      "description": "EnOf(Triplica los puntos obtenidos en este partido)",
+      "title": "EnOf(Multiplicador x3)",
+      "applied": "EnOf(Multiplicador 3x aplicado)",
+      "clickToRemove": "EnOf(Click para remover Multiplicador de Oro (3x puntos))",
+      "usage": "EnOf(Multiplicador de Oro (3x puntos) - {used}/{max} usados)",
+      "allUsed": "EnOf(Has usado todos tus {max} multiplicadores de oro. Remueve uno de otro partido primero.)"
+    },
+    "limitReached": "EnOf(Límite de Multiplicadores Alcanzado)",
+    "changeAllowed": "EnOf(Puedes cambiar tus multiplicadores en cualquier momento antes de que comiencen los partidos.)",
+    "enterPredictionFirst": "EnOf(Ingresa tu predicción primero)",
+    "gameStarted": "EnOf(El partido ya comenzó)"
+  },
+  "boostStats": {
+    "loading": "EnOf(Cargando...)",
+    "noBoostsUsed": "EnOf(Aún no has usado boosts de este tipo)",
+    "group": "EnOf(Grupo {letter})",
+    "game": "EnOf(partido)",
+    "games": "EnOf(partidos)",
+    "playoffs": "EnOf(Playoffs:)",
+    "totalUsed": "EnOf(Total: {used} de {max} usados)",
+    "infoUnavailable": "EnOf(Información no disponible)",
+    "extraPoint": "EnOf(punto extra)",
+    "extraPoints": "EnOf(puntos extra)",
+    "qualifiedBoostedGame": "EnOf(partido boosteado calificado)",
+    "qualifiedBoostedGames": "EnOf(partidos boosteados calificados)",
+    "performance": "EnOf(RENDIMIENTO)",
+    "earnedPoints": "EnOf(Ganaste {points} {pointsLabel} en {count} {gamesLabel})",
+    "errorLoading": "EnOf(Error al cargar datos. Intenta de nuevo.)",
+    "distribution": "EnOf(DISTRIBUCIÓN DE BOOSTS)"
   },
   "tournament": {
     "predictions": "EnOf(Predicciones de Torneo)",
@@ -72,7 +126,8 @@
   },
   "common": {
     "of": "EnOf(de)",
-    "completed": "EnOf({count, plural, one {completado} other {completados}})"
+    "completed": "EnOf({count, plural, one {completado} other {completados}})",
+    "close": "EnOf(Cerrar)"
   },
   "playoffs": {
     "firstPlace": "EnOf(Primero Grupo {group})",

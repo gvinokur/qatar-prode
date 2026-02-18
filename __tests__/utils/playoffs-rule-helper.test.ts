@@ -1,9 +1,26 @@
-import { 
-  isGroupFinishRule, 
-  isTeamWinnerRule, 
-  getTeamDescription 
+import {
+  isGroupFinishRule,
+  isTeamWinnerRule,
+  getTeamDescription
 } from '../../app/utils/playoffs-rule-helper';
 import { GroupFinishRule, TeamWinnerRule } from '../../app/db/tables-definition';
+
+// Mock translation function
+const mockT = (key: string, params?: any) => {
+  const translations: Record<string, string> = {
+    'playoffs.firstPlaceShort': `1 ${params?.group}`,
+    'playoffs.firstPlace': `Primero Grupo ${params?.group}`,
+    'playoffs.secondPlaceShort': `2 ${params?.group}`,
+    'playoffs.secondPlace': `Segundo Grupo ${params?.group}`,
+    'playoffs.thirdPlaceShort': `3 ${params?.group}`,
+    'playoffs.thirdPlace': `Tercero Grupo(s) ${params?.group}`,
+    'playoffs.winnerShort': `G${params?.game}`,
+    'playoffs.winner': `Ganador #${params?.game}`,
+    'playoffs.loserShort': `P${params?.game}`,
+    'playoffs.loser': `Perdedor #${params?.game}`,
+  };
+  return translations[key] || key;
+};
 
 describe('isGroupFinishRule', () => {
   it('should return true for valid GroupFinishRule objects', () => {
@@ -143,49 +160,49 @@ describe('getTeamDescription', () => {
   describe('GroupFinishRule descriptions', () => {
     it('should return correct description for position 1 (short)', () => {
       const rule: GroupFinishRule = { group: 'A', position: 1 };
-      const result = getTeamDescription(rule, true);
+      const result = getTeamDescription(rule, mockT, true);
       expect(result).toBe('1 A');
     });
 
     it('should return correct description for position 1 (long)', () => {
       const rule: GroupFinishRule = { group: 'A', position: 1 };
-      const result = getTeamDescription(rule, false);
+      const result = getTeamDescription(rule, mockT, false);
       expect(result).toBe('Primero Grupo A');
     });
 
     it('should return correct description for position 2 (short)', () => {
       const rule: GroupFinishRule = { group: 'B', position: 2 };
-      const result = getTeamDescription(rule, true);
+      const result = getTeamDescription(rule, mockT, true);
       expect(result).toBe('2 B');
     });
 
     it('should return correct description for position 2 (long)', () => {
       const rule: GroupFinishRule = { group: 'B', position: 2 };
-      const result = getTeamDescription(rule, false);
+      const result = getTeamDescription(rule, mockT, false);
       expect(result).toBe('Segundo Grupo B');
     });
 
     it('should return correct description for position 3 (short)', () => {
       const rule: GroupFinishRule = { group: 'C', position: 3 };
-      const result = getTeamDescription(rule, true);
+      const result = getTeamDescription(rule, mockT, true);
       expect(result).toBe('3 C');
     });
 
     it('should return correct description for position 3 (long)', () => {
       const rule: GroupFinishRule = { group: 'C', position: 3 };
-      const result = getTeamDescription(rule, false);
+      const result = getTeamDescription(rule, mockT, false);
       expect(result).toBe('Tercero Grupo(s) C');
     });
 
     it('should handle different group letters', () => {
       const rule: GroupFinishRule = { group: 'D', position: 1 };
-      const result = getTeamDescription(rule, true);
+      const result = getTeamDescription(rule, mockT, true);
       expect(result).toBe('1 D');
     });
 
     it('should handle lowercase group letters', () => {
       const rule: GroupFinishRule = { group: 'a', position: 2 };
-      const result = getTeamDescription(rule, true);
+      const result = getTeamDescription(rule, mockT, true);
       expect(result).toBe('2 a');
     });
   });
@@ -193,84 +210,84 @@ describe('getTeamDescription', () => {
   describe('TeamWinnerRule descriptions', () => {
     it('should return correct description for winner true (short)', () => {
       const rule: TeamWinnerRule = { winner: true, game: 1 };
-      const result = getTeamDescription(rule, true);
+      const result = getTeamDescription(rule, mockT, true);
       expect(result).toBe('G1');
     });
 
     it('should return correct description for winner true (long)', () => {
       const rule: TeamWinnerRule = { winner: true, game: 1 };
-      const result = getTeamDescription(rule, false);
+      const result = getTeamDescription(rule, mockT, false);
       expect(result).toBe('Ganador #1');
     });
 
     it('should return correct description for winner false (short)', () => {
       const rule: TeamWinnerRule = { winner: false, game: 2 };
-      const result = getTeamDescription(rule, true);
+      const result = getTeamDescription(rule, mockT, true);
       expect(result).toBe('P2');
     });
 
     it('should return correct description for winner false (long)', () => {
       const rule: TeamWinnerRule = { winner: false, game: 2 };
-      const result = getTeamDescription(rule, false);
+      const result = getTeamDescription(rule, mockT, false);
       expect(result).toBe('Perdedor #2');
     });
 
     it('should handle different game numbers', () => {
       const rule: TeamWinnerRule = { winner: true, game: 5 };
-      const result = getTeamDescription(rule, true);
+      const result = getTeamDescription(rule, mockT, true);
       expect(result).toBe('G5');
     });
 
     it('should handle large game numbers', () => {
       const rule: TeamWinnerRule = { winner: false, game: 15 };
-      const result = getTeamDescription(rule, false);
+      const result = getTeamDescription(rule, mockT, false);
       expect(result).toBe('Perdedor #15');
     });
   });
 
   describe('Edge cases and invalid inputs', () => {
     it('should return empty string for undefined rule', () => {
-      const result = getTeamDescription(undefined);
+      const result = getTeamDescription(undefined, mockT);
       expect(result).toBe('');
     });
 
     it('should return empty string for null rule', () => {
-      const result = getTeamDescription(null as any);
+      const result = getTeamDescription(null as any, mockT);
       expect(result).toBe('');
     });
 
     it('should return empty string for invalid rule object', () => {
       const invalidRule = { invalid: 'property' };
-      const result = getTeamDescription(invalidRule as any);
+      const result = getTeamDescription(invalidRule as any, mockT);
       expect(result).toBe('');
     });
 
     it('should return empty string for empty object', () => {
-      const result = getTeamDescription({} as any);
+      const result = getTeamDescription({} as any, mockT);
       expect(result).toBe('');
     });
 
     it('should return empty string for GroupFinishRule with invalid position', () => {
       const rule = { group: 'A', position: 4 } as GroupFinishRule;
-      const result = getTeamDescription(rule);
+      const result = getTeamDescription(rule, mockT);
       expect(result).toBe('');
     });
 
     it('should return empty string for GroupFinishRule with position 0', () => {
       const rule = { group: 'A', position: 0 } as GroupFinishRule;
-      const result = getTeamDescription(rule);
+      const result = getTeamDescription(rule, mockT);
       expect(result).toBe('');
     });
 
     it('should return empty string for GroupFinishRule with negative position', () => {
       const rule = { group: 'A', position: -1 } as GroupFinishRule;
-      const result = getTeamDescription(rule);
+      const result = getTeamDescription(rule, mockT);
       expect(result).toBe('');
     });
 
     it('should return empty string for objects with extra properties', () => {
       const rule = { group: 'A', position: 1, extra: 'property' } as any;
-      const result = getTeamDescription(rule);
+      const result = getTeamDescription(rule, mockT);
       expect(result).toBe('');
     });
   });
@@ -278,19 +295,19 @@ describe('getTeamDescription', () => {
   describe('Default parameter behavior', () => {
     it('should default to long description when shortName is not provided', () => {
       const rule: GroupFinishRule = { group: 'A', position: 1 };
-      const result = getTeamDescription(rule);
+      const result = getTeamDescription(rule, mockT);
       expect(result).toBe('Primero Grupo A');
     });
 
     it('should use provided shortName parameter', () => {
       const rule: GroupFinishRule = { group: 'A', position: 1 };
-      const result = getTeamDescription(rule, false);
+      const result = getTeamDescription(rule, mockT, false);
       expect(result).toBe('Primero Grupo A');
     });
 
     it('should use short description when shortName is true', () => {
       const rule: GroupFinishRule = { group: 'A', position: 1 };
-      const result = getTeamDescription(rule, true);
+      const result = getTeamDescription(rule, mockT, true);
       expect(result).toBe('1 A');
     });
   });

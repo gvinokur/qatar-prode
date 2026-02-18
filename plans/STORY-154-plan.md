@@ -973,3 +973,50 @@ Existing dependencies are sufficient:
 - [ ] SonarCloud quality gates met (≥80% coverage, 0 new issues)
 - [ ] Code review approved
 - [ ] Vercel preview deployment successful
+
+---
+
+## Amendments
+
+### Amendment 1: Internationalize Game Card Tooltips & Popovers (Discovered during Vercel Preview testing)
+
+**Date:** 2026-02-18
+**Reason:** During implementation testing, discovered additional hardcoded Spanish strings in tooltips and popovers that were not initially identified.
+
+**Scope:** Add translations for the following components:
+
+1. **Boost Description Tooltips**
+   - Component: Likely in `game-prediction-edit-controls.tsx` or separate tooltip component
+   - Strings: Boost type descriptions (Silver, Golden, etc.)
+   - Location: Tooltips on boost selection buttons
+
+2. **Edit Game Button Tooltips**
+   - Component: Game card components
+   - Strings: Edit button tooltip text
+   - Location: Game cards edit buttons
+
+3. **"Desglose de Puntos" Popover**
+   - Component: Need to identify - likely `game-card-point-overlay.tsx` or related
+   - Strings: Popover title "Desglose de puntos" and breakdown details
+   - Location: Point breakdown popover on game cards
+
+4. **Boosts Stats Popover**
+   - Component: Dashboard or game card components
+   - Strings: Boost statistics display labels
+   - Location: Boosts statistics popover
+
+**Implementation Approach:**
+- Search for components with these features
+- Extract hardcoded strings to `predictions.json`
+- Add English placeholders with EnOf()
+- Update components to use `useTranslations('predictions')`
+- Test popover/tooltip functionality preserved
+
+**Estimated Effort:** 1-2 hours
+
+**Tasks to Create:**
+1. Identify tooltip/popover components
+2. Extract and internationalize boost descriptions
+3. Internationalize edit game tooltips
+4. Internationalize "Desglose de puntos" popover
+5. Internationalize boosts stats popover

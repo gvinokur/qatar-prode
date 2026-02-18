@@ -8,6 +8,7 @@ import {
   Stack,
   useTheme,
 } from '@mui/material';
+import { useTranslations } from 'next-intl';
 import { formatBoostText, BoostType } from '../utils/point-calculator';
 
 interface PointBreakdownTooltipProps {
@@ -35,6 +36,7 @@ export default function PointBreakdownTooltip({
   scoreDescription,
   boostType,
 }: Readonly<PointBreakdownTooltipProps>) {
+  const t = useTranslations('predictions');
   const theme = useTheme();
 
   return (
@@ -59,7 +61,7 @@ export default function PointBreakdownTooltip({
     >
       <Box sx={{ p: 2 }}>
         <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-          Desglose de Puntos
+          {t('pointBreakdown.title')}
         </Typography>
 
         <Divider sx={{ my: 1 }} />
@@ -67,10 +69,10 @@ export default function PointBreakdownTooltip({
         <Stack spacing={1}>
           <Box display="flex" justifyContent="space-between" alignItems="center">
             <Typography variant="body2" color="text.secondary">
-              Base:
+              {t('pointBreakdown.base')}
             </Typography>
             <Typography variant="body2" fontWeight="medium">
-              {baseScore} {baseScore === 1 ? 'punto' : 'puntos'}
+              {baseScore} {baseScore === 1 ? t('points.singularFull') : t('points.pluralFull')}
               <Typography
                 component="span"
                 variant="caption"
@@ -85,7 +87,7 @@ export default function PointBreakdownTooltip({
           {boostType && (
             <Box display="flex" justifyContent="space-between" alignItems="center">
               <Typography variant="body2" color="text.secondary">
-                Multiplicador:
+                {t('pointBreakdown.multiplier')}
               </Typography>
               <Typography
                 variant="body2"
@@ -103,7 +105,7 @@ export default function PointBreakdownTooltip({
 
           <Box display="flex" justifyContent="space-between" alignItems="center">
             <Typography variant="body2" fontWeight="bold">
-              Total:
+              {t('pointBreakdown.total')}
             </Typography>
             <Typography
               variant="body1"
@@ -111,7 +113,7 @@ export default function PointBreakdownTooltip({
               color="success.main"
               sx={{ fontSize: '1.1rem' }}
             >
-              {finalScore} {finalScore === 1 ? 'punto' : 'puntos'}
+              {finalScore} {finalScore === 1 ? t('points.singularFull') : t('points.pluralFull')}
             </Typography>
           </Box>
         </Stack>
