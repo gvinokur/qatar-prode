@@ -8,7 +8,6 @@ import OfflineDetection from "../components/offline-detection";
 import Header from "../components/header/header";
 import ConditionalHeader from "../components/header/conditional-header";
 import {getLoggedInUser} from "../actions/user-actions";
-import { unstable_ViewTransition as ViewTransition } from 'react'
 import { TimezoneProvider } from '../components/context-providers/timezone-context-provider';
 import { CountdownProvider } from '../components/context-providers/countdown-context-provider';
 import Footer from '../components/home/footer';
@@ -44,13 +43,7 @@ export default async function LocaleLayout({
                     <ConditionalHeader>
                       <Header user={user}/>
                     </ConditionalHeader>
-                    <ViewTransition
-                      name={'main'}
-                      enter={'page-enter'}
-                      exit={'page-exit duration-100'}
-                    >
-                      {children}
-                    </ViewTransition>
+                    {children}
                     <Footer message={`${appName} © 2025`} />
                     <InstallPwa />
                     <OfflineDetection />

@@ -51,7 +51,7 @@ export default function GameCountdownDisplay({
       repeat: Infinity,
       ease: 'easeInOut',
     },
-  } : {};
+  } : undefined;
 
   // Get formatted date based on timezone toggle
   // If no gameTimezone, just show date without label
@@ -111,7 +111,7 @@ export default function GameCountdownDisplay({
       <Box display="flex" alignItems="center" justifyContent="space-between" gap={1}>
         <Box display="flex" alignItems="center" gap={1} flex={1}>
           {/* State: "Cerrado" or "Cierra en XXX" */}
-          <motion.div animate={pulsingAnimation} style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+          <motion.div animate={pulsingAnimation as any} style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
             <Typography
               variant={compact ? 'body2' : 'body1'}
               sx={{
