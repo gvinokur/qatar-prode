@@ -1,65 +1,65 @@
 {
   "dashboard": {
-    "games": "EnOf(Partidos)",
-    "tournament": "EnOf(Torneo)",
-    "gamePredictions": "EnOf(Predicciones de Partidos)",
-    "tournamentPredictions": "EnOf(Predicciones de Torneo)",
-    "predictions": "EnOf(Predicciones)"
+    "games": "Games",
+    "tournament": "Tournament",
+    "gamePredictions": "Game Predictions",
+    "tournamentPredictions": "Tournament Predictions",
+    "predictions": "Predictions"
   },
   "filters": {
-    "label": "EnOf(Filtro)",
-    "all": "EnOf(Todos)",
-    "groups": "EnOf(Grupos)",
-    "playoffs": "EnOf(Playoffs)",
-    "unpredicted": "EnOf(Sin Predecir)",
-    "closingSoon": "EnOf(Cierran Pronto)"
+    "label": "Filter",
+    "all": "All",
+    "groups": "Groups",
+    "playoffs": "Playoffs",
+    "unpredicted": "Unpredicted",
+    "closingSoon": "Closing Soon"
   },
   "secondaryFilters": {
-    "group": "EnOf(Grupo)",
-    "round": "EnOf(Ronda)"
+    "group": "Group",
+    "round": "Round"
   },
   "game": {
-    "vs": "EnOf(vs)",
-    "editPrediction": "EnOf(Editar predicción: {homeTeam} vs {awayTeam})",
-    "editResult": "EnOf(Editar resultado)"
+    "vs": "vs",
+    "editPrediction": "Edit prediction: {homeTeam} vs {awayTeam}",
+    "editResult": "Edit result"
   },
   "urgency": {
     "games": {
-      "zero": "EnOf(Ningún partido cierra en {timeframe})",
-      "one": "EnOf({count} partido cierra en {timeframe})",
-      "other": "EnOf({count} partidos cierran en {timeframe})"
+      "zero": "No games closing in {timeframe}",
+      "one": "{count} game closes in {timeframe}",
+      "other": "{count} games close in {timeframe}"
     },
     "unpredicted": {
-      "one": "EnOf(, {count} sin predecir)",
-      "other": "EnOf(, {count} sin predecir)"
+      "one": ", {count} unpredicted",
+      "other": ", {count} unpredicted"
     },
-    "requiresAction": "EnOf(REQUIEREN ACCIÓN)",
-    "alreadyPredicted": "EnOf(YA PREDICHOS)",
+    "requiresAction": "REQUIRES ACTION",
+    "alreadyPredicted": "ALREADY PREDICTED",
     "tournament": {
-      "zero": "EnOf(Predicciones de torneo no disponibles)",
-      "one": "EnOf(Predicciones de torneo cierran en {timeframe})",
-      "other": "EnOf(Predicciones de torneo cierran en {timeframe})"
+      "zero": "Tournament predictions unavailable",
+      "one": "Tournament predictions close in {timeframe}",
+      "other": "Tournament predictions close in {timeframe}"
     },
     "timeframes": {
-      "twoHours": "EnOf(2 horas)",
-      "twentyFourHours": "EnOf(24 horas)",
-      "twoDays": "EnOf(2 días)"
+      "twoHours": "2 hours",
+      "twentyFourHours": "24 hours",
+      "twoDays": "2 days"
     },
-    "noGamesIn48Hours": "EnOf(Ningún partido cierra en las próximas 48 horas)"
+    "noGamesIn48Hours": "No games closing in the next 48 hours"
   },
   "points": {
-    "singular": "EnOf(pt)",
-    "plural": "EnOf(pts)"
+    "singular": "pt",
+    "plural": "pts"
   },
   "edit": {
-    "save": "EnOf(Guardar)",
-    "next": "EnOf(Siguiente)",
-    "saving": "EnOf(Guardando...)",
-    "cancel": "EnOf(Cancelar)",
-    "boost": "EnOf(Boost)",
-    "boostSelection": "EnOf(Boost Selection)",
-    "penaltyWinner": "EnOf(Ganador Penales)",
-    "penaltyWinnerFull": "EnOf(Ganador de la tanda de penales)",
-    "penaltyWinnerPrompt": "EnOf(Dado que el pártido terminó empatado, por favor seleccione el ganador de la tanda de penales.)"
+    "save": "Save",
+    "next": "Next",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "boost": "Boost",
+    "boostSelection": "Boost Selection",
+    "penaltyWinner": "Penalty Winner",
+    "penaltyWinnerFull": "Penalty shootout winner",
+    "penaltyWinnerPrompt": "Since the game ended tied, please select the penalty shootout winner."
   }
 }
