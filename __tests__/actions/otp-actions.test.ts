@@ -233,9 +233,11 @@ describe('OTP Actions', () => {
       });
       const mockTErrors = vi.fn((key: string) => `errors.${key}`);
 
-      vi.mocked(getTranslations)
-        .mockResolvedValueOnce(mockT as any)
-        .mockResolvedValueOnce(mockTErrors as any);
+      vi.mocked(getTranslations).mockImplementation(async (params: any) => {
+        if (params.namespace === 'auth') return mockT as any;
+        if (params.namespace === 'errors') return mockTErrors as any;
+        return mockT as any;
+      });
 
       vi.mocked(usersRepo.generateOTP).mockResolvedValue({ success: true });
       vi.mocked(usersRepo.findUserByEmail).mockResolvedValue(

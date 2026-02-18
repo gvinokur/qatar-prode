@@ -49,6 +49,11 @@ vi.mock('next-themes', () => ({
     }),
 }));
 
+// Mock next-intl/server
+vi.mock('next-intl/server', () => ({
+    getLocale: vi.fn(() => Promise.resolve('es')),
+}));
+
 // Mock UserActions component
 vi.mock('../../../app/components/header/user-actions', () => ({
     __esModule: true,
