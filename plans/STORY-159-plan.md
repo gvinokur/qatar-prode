@@ -25,14 +25,14 @@ The application has hardcoded error messages and validation text scattered acros
 - Error boundary messages (`app/[locale]/tournaments/[id]/error.tsx`)
 - Add missing English translation keys in `EnOf()` format for `locales/en/errors.json` and `locales/en/validation.json`
 
-**Note:** English translations use `EnOf(Spanish text)` format by design. Actual English translation will be done by a translator in a future story. This story focuses on i18n infrastructure and using translation keys throughout the codebase.
+**Note:** English translations use `EnOf(Spanish text)` format and Spanish translations use `EsOf(English text)` format by design. Actual translations will be done by a professional translator in a future story. This story focuses on i18n infrastructure and using translation keys throughout the codebase.
 
 ## Acceptance Criteria
 
 - [ ] All server action error messages use `getTranslations('errors')` instead of hardcoded strings
 - [ ] All Zod validation messages use `getTranslations('validation')` instead of hardcoded strings
 - [ ] Error boundary uses `useTranslations('errors')` for all text
-- [ ] Spanish translations preserved in `locales/es/errors.json` and `locales/es/validation.json`
+- [ ] Spanish translations added in `locales/es/errors.json` and `locales/es/validation.json` (using `EsOf()` format)
 - [ ] English translations added in `locales/en/errors.json` and `locales/en/validation.json` (using `EnOf()` format)
 - [ ] Create i18n utility helper for server actions: `getServerTranslations()` that automatically detects locale
 - [ ] All 21 server action files audited and updated
@@ -44,13 +44,18 @@ The application has hardcoded error messages and validation text scattered acros
 
 ## Technical Approach
 
-### 1. Add Missing English Translation Keys (EnOf Format)
+### 1. Add Missing Translation Keys (EnOf/EsOf Format)
 
-**Important:** All English translations MUST use `EnOf(Spanish text)` format. This is by design until a professional translator works on proper English translations in a future story.
+**Important Translation Format Rules:**
+- **English translations:** Use `EnOf(Spanish text)` format
+- **Spanish translations:** Use `EsOf(English text)` format
+- This is by design until a professional translator works on proper translations in a future story
 
 **Files to update:**
-- `locales/en/errors.json` - Add missing keys in `EnOf()` format
-- `locales/en/validation.json` - Add missing keys in `EnOf()` format
+- `locales/en/errors.json` - Add missing keys in `EnOf(Spanish)` format
+- `locales/en/validation.json` - Add missing keys in `EnOf(Spanish)` format
+- `locales/es/errors.json` - Add missing keys in `EsOf(English)` format
+- `locales/es/validation.json` - Add missing keys in `EsOf(English)` format
 
 **Current state (errors.json):**
 ```json
@@ -142,84 +147,84 @@ The application has hardcoded error messages and validation text scattered acros
 }
 ```
 
-**Spanish Translation Updates (`locales/es/errors.json`):**
+**Spanish Translation Updates (`locales/es/errors.json`) - Use EsOf() format:**
 
-Add these missing keys to maintain parity with English:
+Add these missing keys with EsOf(English) format to maintain parity:
 ```json
 {
-  "generic": "Ocurrió un error inesperado. Por favor, inténtalo de nuevo.",
-  "unauthorized": "No autorizado",
-  "notFound": "No encontrado",
+  "generic": "EsOf(An unexpected error occurred. Please try again.)",
+  "unauthorized": "EsOf(Unauthorized)",
+  "notFound": "EsOf(Not found)",
   "auth": {
-    "invalidCredentials": "Email o contraseña inválida",
-    "googleAccount": "Esta cuenta usa inicio de sesión con Google.",
-    "emailSendFailed": "Error al enviar el correo electrónico. Por favor, inténtalo de nuevo.",
-    "passwordUpdateFailed": "Error al actualizar la contraseña. Por favor, inténtalo de nuevo.",
-    "noUser": "No existe un usuario con ese e-mail",
-    "passwordRequired": "La contraseña es requerida para registrarse",
-    "userExists": "Ya existe un usuario con ese e-mail",
-    "invalidToken": "Token inválido o expirado",
-    "tokenExpired": "El token ha expirado",
-    "verificationFailed": "Error al verificar el correo electrónico"
+    "invalidCredentials": "EsOf(Invalid email or password)",
+    "googleAccount": "EsOf(This account uses Google sign-in.)",
+    "emailSendFailed": "EsOf(Failed to send email. Please try again.)",
+    "passwordUpdateFailed": "EsOf(Failed to update password. Please try again.)",
+    "noUser": "EsOf(No user found with that email)",
+    "passwordRequired": "EsOf(Password is required for signup)",
+    "userExists": "EsOf(A user with that email already exists)",
+    "invalidToken": "EsOf(Invalid or expired token)",
+    "tokenExpired": "EsOf(Token has expired)",
+    "verificationFailed": "EsOf(Failed to verify email)"
   },
   "groups": {
-    "copyFailed": "Error al copiar: {error}",
-    "notFound": "El grupo no existe",
-    "unauthorized": "Solo el dueño del grupo puede realizar esta acción",
-    "cannotLeave": "El dueño del grupo no puede dejar el grupo",
-    "joinFailed": "Error al unirse al grupo",
-    "uploadFailed": "Error al subir la imagen. Por favor, inténtalo de nuevo con un archivo más pequeño.",
-    "fileTooLarge": "El archivo es demasiado grande. El tamaño máximo es 5MB."
+    "copyFailed": "EsOf(Failed to copy: {error})",
+    "notFound": "EsOf(Group not found)",
+    "unauthorized": "EsOf(Only the group owner can perform this action)",
+    "cannotLeave": "EsOf(The group owner cannot leave the group)",
+    "joinFailed": "EsOf(Failed to join group)",
+    "uploadFailed": "EsOf(Image upload failed. Please try again with a smaller file.)",
+    "fileTooLarge": "EsOf(File is too large. Maximum size is 5MB.)"
   },
   "account": {
-    "deleteFailed": "Error al eliminar la cuenta. Por favor, inténtalo de nuevo."
+    "deleteFailed": "EsOf(Failed to delete account. Please try again.)"
   },
   "validation": {
-    "invalidImage": "Archivo de imagen inválido",
-    "fileSizeExceeded": "Tamaño de archivo excedido",
-    "bodyExceeded": "El cuerpo de la solicitud es demasiado grande"
+    "invalidImage": "EsOf(Invalid image file)",
+    "fileSizeExceeded": "EsOf(File size exceeded)",
+    "bodyExceeded": "EsOf(Request body is too large)"
   },
   "tournament": {
-    "accessDenied": "Acceso Denegado",
-    "noPermission": "No tienes permiso para ver este torneo. Este es un torneo de desarrollo que requiere acceso especial.",
-    "contactAdmin": "Si crees que deberías tener acceso, por favor contacta a un administrador.",
-    "returnHome": "Volver al Inicio"
+    "accessDenied": "EsOf(Access Denied)",
+    "noPermission": "EsOf(You don't have permission to view this tournament. This is a development tournament that requires special access.)",
+    "contactAdmin": "EsOf(If you believe you should have access, please contact an administrator.)",
+    "returnHome": "EsOf(Return to Home)"
   }
 }
 ```
 
-**Spanish Translation Updates (`locales/es/validation.json`):**
+**Spanish Translation Updates (`locales/es/validation.json`) - Use EsOf() format:**
 
-Add these missing keys:
+Add these missing keys with EsOf(English) format:
 ```json
 {
-  "required": "Requerido",
-  "optional": "Opcional",
+  "required": "EsOf(Required)",
+  "optional": "EsOf(Optional)",
   "email": {
-    "invalid": "Dirección de e-mail inválida",
-    "required": "Por favor ingrese su e-mail"
+    "invalid": "EsOf(Invalid email address)",
+    "required": "EsOf(Please enter your email)"
   },
   "password": {
-    "required": "La contraseña es requerida",
-    "minLength": "La contraseña debe tener al menos {min} caracteres"
+    "required": "EsOf(Password is required)",
+    "minLength": "EsOf(Password must be at least {min} characters)"
   },
   "nickname": {
-    "required": "El nickname es requerido",
-    "minLength": "El nickname debe tener al menos {min} caracteres",
-    "maxLength": "El nickname debe tener máximo {max} caracteres",
-    "unavailable": "Este nickname no está disponible",
-    "available": "✓ Disponible"
+    "required": "EsOf(Nickname is required)",
+    "minLength": "EsOf(Nickname must be at least {min} characters)",
+    "maxLength": "EsOf(Nickname must be at most {max} characters)",
+    "unavailable": "EsOf(This nickname is not available)",
+    "available": "EsOf(✓ Available)"
   },
   "groupName": {
-    "required": "El nombre del grupo es obligatorio"
+    "required": "EsOf(Group name is required)"
   },
   "confirmPassword": {
-    "mismatch": "Las contraseñas no coinciden"
+    "mismatch": "EsOf(Passwords do not match)"
   },
   "image": {
-    "required": "Por favor seleccione una imagen",
-    "invalidType": "Se aceptan archivos .jpg, .jpeg, .png y .webp",
-    "tooLarge": "El tamaño máximo del archivo es 5MB"
+    "required": "EsOf(Please select an image)",
+    "invalidType": "EsOf(.jpg, .jpeg, .png and .webp files are accepted)",
+    "tooLarge": "EsOf(Max file size is 5MB)"
   }
 }
 ```
@@ -570,7 +575,8 @@ const t = await getTranslations({ locale, namespace: 'errors' });
 1. Create `app/utils/server-i18n.ts` with helper utilities
 2. Add missing English translation keys in `locales/en/errors.json` (EnOf format)
 3. Add missing English translation keys in `locales/en/validation.json` (EnOf format)
-4. Add missing Spanish translation keys (maintain parity with English)
+4. Add missing Spanish translation keys in `locales/es/errors.json` (EsOf format)
+5. Add missing Spanish translation keys in `locales/es/validation.json` (EsOf format)
 
 ### Phase 2: Server Actions (High-Impact Files First)
 
