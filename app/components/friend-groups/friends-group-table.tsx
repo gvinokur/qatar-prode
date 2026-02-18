@@ -18,6 +18,7 @@ import Button from '@mui/material/Button';
 import MuiAlert from '@mui/material/Alert';
 import NotificationDialog from "./notification-dialog";
 import LeaderboardView from '../leaderboard/LeaderboardView';
+import { useTranslations } from 'next-intl';
 
 type Props = {
   readonly users: {[k:string]: User},
@@ -33,6 +34,8 @@ type Props = {
 }
 
 export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, ownerId, members, bettingData, selectedTournamentId}: Props) {
+  const t = useTranslations('groups.standings');
+
   const [selectedTab, setSelectedTab] = useState<string>(selectedTournamentId || tournaments[0]?.id || '')
   const [snackbar, setSnackbar] = useState<{open: boolean, message: string, severity: 'success' | 'error'}>({open: false, message: '', severity: 'success'});
   const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
@@ -42,13 +45,13 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
     return (
       <Card>
         <CardHeader
-          title='Tabla de Posiciones'
+          title={t('title')}
           action={action}
         />
         <CardContent>
           <Box sx={{ textAlign: 'center', py: 4 }}>
             <Typography variant="body1" color="text.secondary">
-              No hay torneos activos disponibles en este momento.
+              {t('noTournaments')}
             </Typography>
           </Box>
         </CardContent>
@@ -59,7 +62,7 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
   return (
     <Card>
       <CardHeader
-        title='Tabla de Posiciones'
+        title={t('title')}
         action={action}
       />
       <CardContent>
@@ -104,7 +107,7 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
                 {isAdmin && (
                   <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 2 }}>
                     <Button variant="contained" color="primary" onClick={() => setNotificationDialogOpen(true)}>
-                      Enviar Notificación
+                      {t('sendNotification')}
                     </Button>
                   </Box>
                 )}

@@ -15,7 +15,10 @@
     "confirm": "Confirm",
     "continue": "Continue",
     "resend": "Resend",
-    "sending": "Sending..."
+    "sending": "Sending...",
+    "copy": "Copy",
+    "send": "Send",
+    "change": "Change"
   },
   "actions": {
     "showMore": "show more",

@@ -1,6 +1,9 @@
+'use client'
+
 import React, { useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, MenuItem, Snackbar, Alert } from '@mui/material';
 import { sendGroupNotification } from '../../actions/notifiaction-actions';
+import { useTranslations } from 'next-intl';
 
 interface NotificationDialogProps {
   open: boolean;
@@ -10,12 +13,15 @@ interface NotificationDialogProps {
   senderId: string;
 }
 
-const targetOptions = [
-  { value: 'tournament', label: 'Página del torneo' },
-  { value: 'friends-group', label: 'Página del grupo de amigos' },
-];
-
 const NotificationDialog: React.FC<NotificationDialogProps> = ({ open, onClose, groupId, tournamentId, senderId }) => {
+  const t = useTranslations('groups.notifications.dialog');
+  const tCommon = useTranslations('common.buttons');
+
+  const targetOptions = [
+    { value: 'tournament', label: t('options.tournament') },
+    { value: 'friends-group', label: t('options.friendsGroup') },
+  ];
+
   const [targetPage, setTargetPage] = useState<'tournament' | 'friends-group'>('tournament');
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
@@ -26,12 +32,12 @@ const NotificationDialog: React.FC<NotificationDialogProps> = ({ open, onClose, 
     setLoading(true);
     try {
       await sendGroupNotification({ groupId, tournamentId, targetPage, title, message, senderId });
-      setSnackbar({ open: true, message: 'Notificación enviada', severity: 'success' });
+      setSnackbar({ open: true, message: t('feedback.success'), severity: 'success' });
       setTitle('');
       setMessage('');
       onClose();
     } catch (e: any) {
-      setSnackbar({ open: true, message: e?.message || 'Error al enviar notificación', severity: 'error' });
+      setSnackbar({ open: true, message: e?.message || t('feedback.error'), severity: 'error' });
     } finally {
       setLoading(false);
     }
@@ -40,11 +46,11 @@ const NotificationDialog: React.FC<NotificationDialogProps> = ({ open, onClose, 
   return (
     <>
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-        <DialogTitle>Enviar Notificación a Participantes</DialogTitle>
+        <DialogTitle>{t('title')}</DialogTitle>
         <DialogContent>
           <TextField
             select
-            label="Destino"
+            label={t('fields.destination')}
             value={targetPage}
             onChange={e => setTargetPage(e.target.value as 'tournament' | 'friends-group')}
             fullWidth
@@ -55,14 +61,14 @@ const NotificationDialog: React.FC<NotificationDialogProps> = ({ open, onClose, 
             ))}
           </TextField>
           <TextField
-            label="Título"
+            label={t('fields.title')}
             value={title}
             onChange={e => setTitle(e.target.value)}
             fullWidth
             margin="normal"
           />
           <TextField
-            label="Mensaje"
+            label={t('fields.message')}
             value={message}
             onChange={e => setMessage(e.target.value)}
             fullWidth
@@ -72,8 +78,8 @@ const NotificationDialog: React.FC<NotificationDialogProps> = ({ open, onClose, 
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose} disabled={loading}>Cancelar</Button>
-          <Button onClick={handleSend} variant="contained" color="primary" disabled={loading || !title || !message}>Enviar</Button>
+          <Button onClick={onClose} disabled={loading}>{tCommon('cancel')}</Button>
+          <Button onClick={handleSend} variant="contained" color="primary" disabled={loading || !title || !message}>{tCommon('send')}</Button>
         </DialogActions>
       </Dialog>
       <Snackbar open={snackbar.open} autoHideDuration={3000} onClose={() => setSnackbar({ ...snackbar, open: false })}>

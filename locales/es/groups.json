@@ -29,7 +29,14 @@
   },
   "invite": {
     "title": "Invitar amigos a {groupName}",
+    "description": "Comparte este enlace con tus amigos para que se unan al grupo.",
+    "directShare": "O comparte directamente a través de:",
     "message": "¡Hola! Te invito a unirte a nuestro grupo \"{groupName}\" para jugar en al prode en los torneos actuales y futuros. Usa este enlace para unirte: {link}",
+    "emailSubject": "Invitación al grupo \"{groupName}\" del Prode",
+    "buttons": {
+      "email": "Email",
+      "whatsapp": "WhatsApp"
+    },
     "feedback": {
       "copied": "¡Enlace copiado al portapapeles!",
       "copyError": "Error al copiar el enlace"
@@ -46,5 +53,72 @@
       "cancel": "Cancelar",
       "join": "Unirse al Grupo"
     }
+  },
+  "leave": {
+    "button": "Dejar grupo",
+    "confirmation": {
+      "title": "¿Estás seguro?",
+      "message": "¿Quieres dejar este grupo? Ya no podras competir con tus amigos."
+    },
+    "feedback": {
+      "success": "Has dejado el grupo exitosamente.",
+      "error": "Error al dejar el grupo."
+    }
+  },
+  "notifications": {
+    "sendButton": "Enviar Notificación",
+    "dialog": {
+      "title": "Enviar Notificación a Participantes",
+      "targetLabel": "Destino",
+      "targetOptions": {
+        "tournament": "Página del torneo",
+        "friendsGroup": "Página del grupo de amigos"
+      },
+      "titleLabel": "Título",
+      "messageLabel": "Mensaje"
+    },
+    "feedback": {
+      "success": "Notificación enviada",
+      "error": "Error al enviar notificación"
+    }
+  },
+  "standings": {
+    "title": "Tabla de Posiciones",
+    "empty": "No hay torneos activos disponibles en este momento."
+  },
+  "betting": {
+    "statusEnabled": "Apuesta habilitada",
+    "statusDisabled": "Apuesta deshabilitada",
+    "toggleEnable": "Habilitar",
+    "toggleDisable": "Deshabilitar",
+    "amountLabel": "Monto de la apuesta",
+    "descriptionLabel": "Descripción del pago",
+    "paymentStatusLabel": "Estado de pago",
+    "tableHeaders": {
+      "name": "Nombre",
+      "paid": "¿Pagó?",
+      "actions": "Acciones"
+    },
+    "changeButton": "Cambiar",
+    "summary": {
+      "perPerson": "Monto por persona:",
+      "total": "Monto acumulado:",
+      "description": "Descripción:",
+      "paidList": "Pagaron:"
+    },
+    "feedback": {
+      "configSaved": "¡Configuración guardada!",
+      "configError": "Error al guardar la configuración",
+      "paymentUpdated": "¡Estado de pago actualizado!",
+      "paymentError": "Error al actualizar el estado de pago"
+    }
+  },
+  "joinMessage": {
+    "title": "Bienvenido!!",
+    "body": "Gracias por unirte a este grupo.\nAhora vas a poder competir contra un montón de amigos."
+  },
+  "list": {
+    "title": "Grupos de Amigos",
+    "joinButton": "Unirse"
   }
 }
