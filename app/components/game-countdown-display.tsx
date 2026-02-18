@@ -3,7 +3,7 @@
 import { Box, LinearProgress, Link, Typography, useTheme } from '@mui/material';
 import { motion } from 'framer-motion';
 import dayjs from 'dayjs';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Locale } from '@/i18n.config';
 import { useGameCountdown } from '../hooks/use-game-countdown';
 import { getUrgencyColor } from '../utils/countdown-utils';
@@ -35,6 +35,7 @@ export default function GameCountdownDisplay({
   actions,
   hideDate = false,
 }: Readonly<GameCountdownDisplayProps>) {
+  const t = useTranslations('predictions');
   const theme = useTheme();
   const locale = useLocale() as Locale;
   const { showLocalTime, toggleTimezone } = useTimezone();
@@ -65,7 +66,12 @@ export default function GameCountdownDisplay({
     currentTime = `${dayjs(gameDate).locale(locale).format('D MMM HH:mm')}`;
   }
 
-  const toggleText = showLocalTime ? 'Ver horario local' : 'Ver tu horario';
+  const toggleText = showLocalTime ? t('game.viewLocalTime') : t('game.viewYourTime');
+
+  // Format countdown display using translations
+  const displayText = countdown.isClosed
+    ? t('game.closed')
+    : t('game.closesIn', { countdown: countdown.countdown });
 
   return (
     <>
@@ -114,7 +120,7 @@ export default function GameCountdownDisplay({
                 whiteSpace: 'nowrap'
               }}
             >
-              {countdown.display}
+              {displayText}
             </Typography>
           </motion.div>
 

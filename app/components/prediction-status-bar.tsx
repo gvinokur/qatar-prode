@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useContext, useMemo, useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Box, Card, Typography, LinearProgress, Alert } from '@mui/material';
 import { BoostCountBadge } from './boost-badge';
 import { TournamentPredictionCompletion, Team } from '../db/tables-definition';
@@ -36,33 +37,35 @@ type UrgencyWarning = {
 };
 
 // Build urgency warnings from game counts
-function buildUrgencyWarnings(urgentGames: number, warningGames: number, noticeGames: number): UrgencyWarning[] {
+function buildUrgencyWarnings(
+  urgentGames: number,
+  warningGames: number,
+  noticeGames: number,
+  t: (key: string, params?: any) => string
+): UrgencyWarning[] {
   const warnings: UrgencyWarning[] = [];
 
   if (urgentGames > 0) {
-    const plural = urgentGames > 1;
     warnings.push({
       severity: 'error',
       count: urgentGames,
-      message: `${urgentGames} partido${plural ? 's' : ''} cierra${plural ? 'n' : ''} en 2 horas`
+      message: t('urgency.games', { count: urgentGames, timeframe: t('urgency.timeframes.twoHours') })
     });
   }
 
   if (warningGames > 0) {
-    const plural = warningGames > 1;
     warnings.push({
       severity: 'warning',
       count: warningGames,
-      message: `${warningGames} partido${plural ? 's' : ''} cierra${plural ? 'n' : ''} en 24 horas`
+      message: t('urgency.games', { count: warningGames, timeframe: t('urgency.timeframes.twentyFourHours') })
     });
   }
 
   if (noticeGames > 0) {
-    const plural = noticeGames > 1;
     warnings.push({
       severity: 'info',
       count: noticeGames,
-      message: `${noticeGames} partido${plural ? 's' : ''} cierra${plural ? 'n' : ''} en 2 días`
+      message: t('urgency.games', { count: noticeGames, timeframe: t('urgency.timeframes.twoDays') })
     });
   }
 
@@ -73,7 +76,8 @@ function buildUrgencyWarnings(urgentGames: number, warningGames: number, noticeG
 function buildTournamentUrgencyWarnings(
   isPredictionLocked: boolean,
   tournamentStartDate: Date | undefined,
-  overallPercentage: number
+  overallPercentage: number,
+  t: (key: string, params?: any) => string
 ): UrgencyWarning[] {
   if (isPredictionLocked || overallPercentage === 100 || !tournamentStartDate) {
     return [];
@@ -86,11 +90,11 @@ function buildTournamentUrgencyWarnings(
   if (hoursUntilLock < 0) {
     return []; // Already locked
   } else if (hoursUntilLock < 2) {
-    return [{ severity: 'error', message: 'Predicciones de torneo cierran en 2 horas' }];
+    return [{ severity: 'error', message: t('urgency.tournament', { count: 1, timeframe: t('urgency.timeframes.twoHours') }) }];
   } else if (hoursUntilLock < 24) {
-    return [{ severity: 'warning', message: 'Predicciones de torneo cierran en 24 horas' }];
+    return [{ severity: 'warning', message: t('urgency.tournament', { count: 1, timeframe: t('urgency.timeframes.twentyFourHours') }) }];
   } else if (hoursUntilLock < 48) {
-    return [{ severity: 'info', message: 'Predicciones de torneo cierran en 2 días' }];
+    return [{ severity: 'info', message: t('urgency.tournament', { count: 1, timeframe: t('urgency.timeframes.twoDays') }) }];
   }
 
   return [];
@@ -109,6 +113,7 @@ export function PredictionStatusBar({
   teamsMap,
   isPlayoffs = false
 }: PredictionStatusBarProps) {
+  const t = useTranslations('predictions');
   const percentage = totalGames > 0 ? Math.round((predictedGames / totalGames) * 100) : 0;
   const showBoosts = silverMax > 0 || goldenMax > 0;
 
@@ -187,14 +192,15 @@ export function PredictionStatusBar({
     return { urgentGames: urgent, warningGames: warning, noticeGames: notice };
   }, [games, gameGuesses, showAccordions]);
 
-  const gameUrgencyWarnings = buildUrgencyWarnings(urgentGames, warningGames, noticeGames);
+  const gameUrgencyWarnings = buildUrgencyWarnings(urgentGames, warningGames, noticeGames, t);
 
   // Tournament prediction warnings
   const tournamentUrgencyWarnings = tournamentPredictions && tournamentStartDate
     ? buildTournamentUrgencyWarnings(
         tournamentPredictions.isPredictionLocked,
         tournamentStartDate,
-        tournamentPredictions.overallPercentage
+        tournamentPredictions.overallPercentage,
+        t
       )
     : [];
 
@@ -268,7 +274,7 @@ export function PredictionStatusBar({
             fontWeight="medium"
             sx={{ whiteSpace: 'nowrap' }}
           >
-            Predicciones: {predictedGames}/{totalGames}
+            {t('dashboard.predictions')}: {predictedGames}/{totalGames}
           </Typography>
 
           <LinearProgress

@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Accordion,
   AccordionSummary,
@@ -40,6 +41,8 @@ export function UrgencyAccordion({
   tierId,
   onEditGame
 }: UrgencyAccordionProps) {
+  const t = useTranslations('predictions');
+
   // Check if a game is predicted
   const isPredicted = (game: ExtendedGameData): boolean => {
     const guess = gameGuesses[game.id];
@@ -115,7 +118,7 @@ export function UrgencyAccordion({
                 fontSize: '0.75rem'
               }}
             >
-              REQUIEREN ACCIÓN ({unpredictedGames.length})
+              {t('urgency.requiresAction')} ({unpredictedGames.length})
             </Typography>
             <Grid container spacing={1.5}>
               {unpredictedGames.map(game => (
@@ -145,7 +148,7 @@ export function UrgencyAccordion({
                 fontSize: '0.75rem'
               }}
             >
-              YA PREDICHOS ({predictedGames.length})
+              {t('urgency.alreadyPredicted')} ({predictedGames.length})
             </Typography>
             <Grid container spacing={1.5}>
               {predictedGames.map(game => {

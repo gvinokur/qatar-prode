@@ -1,6 +1,7 @@
 'use client'
 
 import { FormControl, InputLabel, Select, MenuItem, Box } from '@mui/material';
+import { useTranslations } from 'next-intl';
 import { FilterType } from '../utils/game-filters';
 import { TournamentGameCounts } from '../db/game-repository';
 
@@ -11,21 +12,23 @@ interface GameFiltersProps {
 }
 
 export function GameFilters({ gameCounts, activeFilter, onFilterChange }: GameFiltersProps) {
+  const t = useTranslations('predictions');
+
   const filters: Array<{ type: FilterType; label: string; count: number }> = [
-    { type: 'all', label: 'Todos', count: gameCounts.total },
-    { type: 'groups', label: 'Grupos', count: gameCounts.groups },
-    { type: 'playoffs', label: 'Playoffs', count: gameCounts.playoffs },
-    { type: 'unpredicted', label: 'Sin Predecir', count: gameCounts.unpredicted },
-    { type: 'closingSoon', label: 'Cierran Pronto', count: gameCounts.closingSoon }
+    { type: 'all', label: t('filters.all'), count: gameCounts.total },
+    { type: 'groups', label: t('filters.groups'), count: gameCounts.groups },
+    { type: 'playoffs', label: t('filters.playoffs'), count: gameCounts.playoffs },
+    { type: 'unpredicted', label: t('filters.unpredicted'), count: gameCounts.unpredicted },
+    { type: 'closingSoon', label: t('filters.closingSoon'), count: gameCounts.closingSoon }
   ];
 
   return (
     <FormControl fullWidth size="small">
-      <InputLabel id="game-filter-label">Filtro</InputLabel>
+      <InputLabel id="game-filter-label">{t('filters.label')}</InputLabel>
       <Select
         labelId="game-filter-label"
         value={activeFilter}
-        label="Filtro"
+        label={t('filters.label')}
         onChange={(e) => onFilterChange(e.target.value as FilterType)}
       >
         {filters.map(filter => (

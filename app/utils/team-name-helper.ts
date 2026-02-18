@@ -10,12 +10,14 @@ import { getTeamDescription } from './playoffs-rule-helper';
  * @param game - The game data
  * @param gameGuess - The user's guess for this game (may contain team assignments)
  * @param teamsMap - Map of team IDs to team objects
+ * @param t - Translation function from useTranslations('predictions')
  * @returns Object with team names, short names, and IDs
  */
 export function getTeamNames(
   game: ExtendedGameData,
   gameGuess: { home_team?: string | null; away_team?: string | null } | undefined,
-  teamsMap: Record<string, Team>
+  teamsMap: Record<string, Team>,
+  t: (key: string, params?: any) => string
 ) {
   // Get team IDs from game or guess (for playoff games)
   const homeTeamId = game.home_team || gameGuess?.home_team;
@@ -24,19 +26,19 @@ export function getTeamNames(
   // Calculate names: use team name if ID exists in map, otherwise use rule description
   const homeTeamName = (homeTeamId && teamsMap[homeTeamId])
     ? teamsMap[homeTeamId].name
-    : (getTeamDescription(game.home_team_rule) || 'TBD');
+    : (getTeamDescription(game.home_team_rule, t) || 'TBD');
 
   const awayTeamName = (awayTeamId && teamsMap[awayTeamId])
     ? teamsMap[awayTeamId].name
-    : (getTeamDescription(game.away_team_rule) || 'TBD');
+    : (getTeamDescription(game.away_team_rule, t) || 'TBD');
 
   const homeTeamShortName = (homeTeamId && teamsMap[homeTeamId])
     ? teamsMap[homeTeamId].short_name
-    : (getTeamDescription(game.home_team_rule, true) || 'TBD');
+    : (getTeamDescription(game.home_team_rule, t, true) || 'TBD');
 
   const awayTeamShortName = (awayTeamId && teamsMap[awayTeamId])
     ? teamsMap[awayTeamId].short_name
-    : (getTeamDescription(game.away_team_rule, true) || 'TBD');
+    : (getTeamDescription(game.away_team_rule, t, true) || 'TBD');
 
   return {
     homeTeamId,

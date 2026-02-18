@@ -20,10 +20,67 @@ vi.mock('next-auth/react', () => ({
   })
 }));
 
+// Load Spanish translations for tests
+const spanishTranslations: Record<string, any> = {
+  predictions: require('./locales/es/predictions.json'),
+  // Add other namespaces as needed
+};
+
+// Helper function to get nested translation value
+function getTranslation(namespace: string, key: string, values?: Record<string, any>): string {
+  const keys = key.split('.');
+  let value: any = spanishTranslations[namespace];
+
+  for (const k of keys) {
+    if (value && typeof value === 'object') {
+      value = value[k];
+    } else {
+      return key; // Return key if translation not found
+    }
+  }
+
+  if (typeof value !== 'string') {
+    return key; // Return key if value is not a string
+  }
+
+  // Handle ICU MessageFormat pluralization
+  // Pattern: {count, plural, =0 {...} one {...} other {...}}
+  // Simple approach: match the whole pattern with explicit plural rules
+  const simplePluralPattern = /\{(\w+),\s*plural,\s*(?:=(\d+)\s*\{([^}]+)\}\s*)?one\s*\{([^}]+)\}\s*other\s*\{([^}]+)\}\}/g;
+  value = value.replace(simplePluralPattern, (match, varName, exactNum, exactText, oneText, otherText) => {
+    if (!values || values[varName] === undefined) return match;
+
+    const count = values[varName];
+
+    // Check for exact match first (e.g., =0)
+    if (exactNum && count === parseInt(exactNum)) {
+      return exactText;
+    }
+
+    // Then check for one vs other
+    if (count === 1) {
+      return oneText;
+    } else {
+      return otherText;
+    }
+  });
+
+  // Handle simple interpolation
+  if (values) {
+    value = value.replace(/\{(\w+)\}/g, (match: string, varName: string) => {
+      return values[varName]?.toString() || match;
+    });
+  }
+
+  return value;
+}
+
 // Mock next-intl globally for all tests (client components)
 vi.mock('next-intl', () => ({
   useLocale: () => 'es', // Default to Spanish locale
-  useTranslations: () => (key: string) => key, // Return key as-is for tests
+  useTranslations: (namespace: string = 'predictions') => (key: string, values?: Record<string, any>) => {
+    return getTranslation(namespace, key, values);
+  },
   useFormatter: () => ({
     dateTime: (date: Date) => date.toISOString(),
     number: (num: number) => num.toString(),

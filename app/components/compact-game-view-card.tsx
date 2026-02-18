@@ -16,6 +16,7 @@ import {
 import { Edit as EditIcon, Save as SaveIcon, SaveOutlined as SaveOutlinedIcon, Scoreboard as ScoreboardIcon, EmojiEvents as TrophyIcon } from "@mui/icons-material";
 import { GameResultNew, Theme} from "../db/tables-definition";
 import {useState} from "react";
+import { useTranslations } from 'next-intl';
 import {getThemeLogoUrl} from "../utils/theme-utils";
 import { calculateFinalPoints } from "../utils/point-calculator";
 import GameCardPointOverlay from "./game-card-point-overlay";
@@ -88,6 +89,7 @@ export default function CompactGameViewCard({
   ...specificProps
 }: CompactGameViewCardProps) {
   const theme = useTheme();
+  const t = useTranslations('predictions');
   const hasResult = Number.isInteger(homeScore) && Number.isInteger(awayScore);
   const [publishing, setPublishing] = useState(false);
 
@@ -171,7 +173,7 @@ export default function CompactGameViewCard({
                     Number.isInteger(specificProps.gameResult?.away_score) &&
                     Number.isInteger(specificProps.scoreForGame)
                   ) && (
-                    <Tooltip title={`Multiplicador ${boostType === 'golden' ? '3x' : '2x'} aplicado`}>
+                    <Tooltip title={t(`boost.${boostType}.applied`)}>
                       <Chip
                         icon={<TrophyIcon sx={{ fontSize: 14 }} />}
                         label={boostType === 'golden' ? '3x' : '2x'}
@@ -190,7 +192,7 @@ export default function CompactGameViewCard({
                     </Tooltip>
                   )}
                   {(!disabled) && (
-                    <Tooltip title="Editar resultado">
+                    <Tooltip title={t('game.editResult')}>
                       <IconButton
                         size={'large'}
                         onClick={handleEditClick}
@@ -208,7 +210,7 @@ export default function CompactGameViewCard({
                     </Tooltip>
                   )}
                   {!specificProps.isGameGuess && !disabled && (
-                    <Tooltip title="¿Está publicado?">
+                    <Tooltip title={t('game.isPublished')}>
                       <Checkbox
                         size="medium"
                         color={isDraft ? 'warning' : 'success'}
@@ -322,7 +324,7 @@ export default function CompactGameViewCard({
                 </Typography>
               ) : (
                 <Typography variant="caption" color="text.secondary">
-                  vs
+                  {t('game.vs')}
                 </Typography>
               )}
             </Grid>
@@ -417,7 +419,7 @@ export default function CompactGameViewCard({
             }}
           >
             <Typography variant='caption' component='div' color='secondary.contrastText'>
-              IN PLAY OR RECENTLY FINISHED
+              {t('game.inPlayOrRecentlyFinished')}
             </Typography>
           </Box>
         )}

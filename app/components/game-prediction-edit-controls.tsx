@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useContext, useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { GuessesContext } from './context-providers/guesses-context-provider';
 import {
   Box,
@@ -124,6 +125,7 @@ export default function GamePredictionEditControls({
   onEscapePressed,
   retryCallback
 }: GamePredictionEditControlsProps) {
+  const t = useTranslations('predictions');
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { boostCounts } = useContext(GuessesContext);
@@ -468,10 +470,10 @@ export default function GamePredictionEditControls({
 
   // Helper: Get mobile button label (SonarQube S3358 - extract nested ternary)
   const getMobileButtonLabel = () => {
-    if (currentField === 'boost') return 'Guardar';
+    if (currentField === 'boost') return t('edit.save');
     const hasBoostSection = !!tournamentId && (boostCounts.silver.max > 0 || boostCounts.golden.max > 0);
     const isLastFieldBeforeSave = (currentField === 'away' || currentField === 'awayPenalty') && !hasBoostSection;
-    return isLastFieldBeforeSave ? 'Guardar' : 'Siguiente';
+    return isLastFieldBeforeSave ? t('edit.save') : t('edit.next');
   };
 
   // Auto-focus home input when component mounts (for inline editing)
@@ -555,7 +557,7 @@ export default function GamePredictionEditControls({
                     minWidth: 'fit-content'
                   }}
                 >
-                  Ganador Penales
+                  {t('edit.penaltyWinner')}
                 </Typography>
                 {(!homePenaltyWinner && !awayPenaltyWinner) && (
                   <WarningIcon
@@ -711,7 +713,7 @@ export default function GamePredictionEditControls({
               color: noPenaltyWinnerSelected ? 'warning.main' : 'text.primary'
             }}
           >
-            Ganador de la tanda de penales
+            {t('edit.penaltyWinnerFull')}
           </Typography>
           {noPenaltyWinnerSelected && (
             <WarningIcon
@@ -792,7 +794,7 @@ export default function GamePredictionEditControls({
         </Grid>
 
         <Typography variant="caption" color="text.secondary">
-          Dado que el pártido terminó empatado, por favor seleccione el ganador de la tanda de penales.
+          {t('edit.penaltyWinnerPrompt')}
         </Typography>
       </Box>
     );
@@ -809,7 +811,7 @@ export default function GamePredictionEditControls({
           // Compact mode: single line with label, counters, and buttons
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', justifyContent: 'space-between' }}>
             <Typography variant="body2" fontWeight="medium" sx={{ flexShrink: 0 }}>
-              Boost
+              {t('edit.boost')}
             </Typography>
             <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0 }}>
               {boostCounts.silver.max > 0 && (
@@ -875,7 +877,7 @@ export default function GamePredictionEditControls({
                   }
                 }}
               >
-                Ninguno
+                {t('edit.noBoost')}
               </ToggleButton>
               {boostCounts.silver.max > 0 && (
                 <ToggleButton
@@ -946,7 +948,7 @@ export default function GamePredictionEditControls({
           <>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
               <Typography variant="subtitle2">
-                Boost Selection
+                {t('edit.boostSelection')}
               </Typography>
               <Box sx={{ display: 'flex', gap: 1 }}>
                 {boostCounts.silver.max > 0 && (
@@ -1005,7 +1007,7 @@ export default function GamePredictionEditControls({
                   }
                 }}
               >
-                Ninguno
+                {t('edit.noBoost')}
               </ToggleButton>
               {boostCounts.silver.max > 0 && (
                 <ToggleButton
@@ -1086,7 +1088,7 @@ export default function GamePredictionEditControls({
             sx={{ minHeight: '44px' }}
             fullWidth
           >
-            Cancelar
+            {t('edit.cancel')}
           </Button>
           <Button
             variant="contained"
@@ -1121,7 +1123,7 @@ export default function GamePredictionEditControls({
               }
             }}
           >
-            Cancelar
+            {t('edit.cancel')}
           </Button>
           <Button
             ref={saveButtonRef}
@@ -1140,7 +1142,7 @@ export default function GamePredictionEditControls({
               }
             }}
           >
-            {loading ? 'Guardando...' : 'Guardar'}
+            {loading ? t('edit.saving') : t('edit.save')}
           </Button>
         </Box>
       );

@@ -11,6 +11,7 @@ import {useEditMode} from "./context-providers/edit-mode-context-provider";
 import GameResultEditDialog from "./game-result-edit-dialog";
 import {getTeamDescription} from "../utils/playoffs-rule-helper";
 import {useSession} from "next-auth/react";
+import { useTranslations } from 'next-intl';
 import {calculateTeamNamesForPlayoffGame} from "../utils/playoff-utils";
 import { getGuessLoser, getGuessWinner } from "../utils/score-utils";
 import { updateOrCreateTournamentGuess } from "../actions/guesses-actions";
@@ -52,6 +53,7 @@ export default function GamesGrid({
   dashboardStats,
   tournament
 }: GamesGridProps) {
+  const t = useTranslations('predictions');
   const groupContext = useContext(GuessesContext)
   const editMode = useEditMode()
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -225,8 +227,8 @@ export default function GamesGrid({
     const homeTeam = selectedGame.home_team || gameGuess?.home_team
     const awayTeam = selectedGame.away_team || gameGuess?.away_team
     return {
-      homeTeamName: homeTeam ? teamsMap[homeTeam].name : getTeamDescription(selectedGame.home_team_rule),
-      awayTeamName: awayTeam ? teamsMap[awayTeam].name : getTeamDescription(selectedGame.away_team_rule)
+      homeTeamName: homeTeam ? teamsMap[homeTeam].name : getTeamDescription(selectedGame.home_team_rule, t),
+      awayTeamName: awayTeam ? teamsMap[awayTeam].name : getTeamDescription(selectedGame.away_team_rule, t)
     }
   }
 

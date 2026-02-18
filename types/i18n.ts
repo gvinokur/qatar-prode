@@ -6,6 +6,7 @@ import emails from '@/locales/en/emails.json';
 import validation from '@/locales/en/validation.json';
 import errors from '@/locales/en/errors.json';
 import onboarding from '@/locales/en/onboarding.json';
+import predictions from '@/locales/en/predictions.json';
 
 // Merge all namespaces into single type
 type Messages = {
@@ -17,6 +18,7 @@ type Messages = {
   validation: typeof validation;
   errors: typeof errors;
   onboarding: typeof onboarding;
+  predictions: typeof predictions;
 };
 
 declare global {

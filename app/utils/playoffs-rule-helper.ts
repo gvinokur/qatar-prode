@@ -31,27 +31,83 @@ export const isTeamWinnerRule = (object: any): object is TeamWinnerRule => {
 }
 
 /**
+ * Helper function to get translation key for group finish position.
+ * @param position - The position in the group (1, 2, or 3)
+ * @param shortName - Whether to return short version
+ * @returns Translation key or null if position is invalid
+ */
+const getGroupFinishKey = (position: number, shortName: boolean): string | null => {
+  const keyMap: Record<number, { short: string; long: string }> = {
+    1: { short: 'playoffs.firstPlaceShort', long: 'playoffs.firstPlace' },
+    2: { short: 'playoffs.secondPlaceShort', long: 'playoffs.secondPlace' },
+    3: { short: 'playoffs.thirdPlaceShort', long: 'playoffs.thirdPlace' },
+  };
+
+  const keys = keyMap[position];
+  if (!keys) {
+    return null;
+  }
+  return shortName ? keys.short : keys.long;
+};
+
+/**
+ * Helper function to get description for GroupFinishRule.
+ * @param rule - The GroupFinishRule
+ * @param t - Translation function
+ * @param shortName - Whether to return short version
+ * @returns Translated description or empty string
+ */
+const getGroupFinishDescription = (
+  rule: GroupFinishRule,
+  t: (key: string, params?: any) => string,
+  shortName: boolean
+): string => {
+  const key = getGroupFinishKey(rule.position, shortName);
+  return key ? t(key, { group: rule.group }) : '';
+};
+
+/**
+ * Helper function to get description for TeamWinnerRule.
+ * @param rule - The TeamWinnerRule
+ * @param t - Translation function
+ * @param shortName - Whether to return short version
+ * @returns Translated description
+ */
+const getTeamWinnerDescription = (
+  rule: TeamWinnerRule,
+  t: (key: string, params?: any) => string,
+  shortName: boolean
+): string => {
+  let key: string;
+  if (rule.winner) {
+    key = shortName ? 'playoffs.winnerShort' : 'playoffs.winner';
+  } else {
+    key = shortName ? 'playoffs.loserShort' : 'playoffs.loser';
+  }
+
+  return t(key, { game: rule.game });
+};
+
+/**
  * Get a human-readable description of a team rule.
- * 
+ *
  * @param rule - The team rule to describe (can be undefined)
+ * @param t - Translation function from useTranslations('predictions')
  * @param shortName - Whether to return a short description (default: false)
  * @returns A string description of the rule, or empty string if rule is invalid/undefined
  */
-export const getTeamDescription = (rule?: GroupFinishRule | TeamWinnerRule, shortName?: boolean) => {
-  if(isGroupFinishRule(rule)) {
-    if (rule.position === 1) {
-      return shortName ? `1 ${rule.group}` : `Primero Grupo ${rule.group}`
-    } else if (rule.position === 2) {
-      return shortName ? `2 ${rule.group}` : `Segundo Grupo ${rule.group}`
-    } else if (rule.position === 3) {
-      return shortName ? `3 ${rule.group}` : `Tercero Grupo(s) ${rule.group}`
-    }
-  } else if (isTeamWinnerRule(rule)){
-    if (rule.winner) {
-      return shortName ? `G${rule.game}` : `Ganador #${rule.game}`
-    } else {
-      return shortName ? `P${rule.game}` : `Perdedor #${rule.game}`
-    }
+export const getTeamDescription = (
+  rule: GroupFinishRule | TeamWinnerRule | undefined,
+  t: (key: string, params?: any) => string,
+  shortName: boolean = false
+) => {
+  if (isGroupFinishRule(rule)) {
+    return getGroupFinishDescription(rule, t, shortName);
   }
-  return ''
+
+  if (isTeamWinnerRule(rule)) {
+    return getTeamWinnerDescription(rule, t, shortName);
+  }
+
+  return '';
 }

@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useContext } from 'react';
 import { Box } from '@mui/material';
+import { useTranslations } from 'next-intl';
 import { UrgencyAccordion } from './urgency-accordion';
 import GameResultEditDialog from './game-result-edit-dialog';
 import { GuessesContext } from './context-providers/guesses-context-provider';
@@ -30,6 +31,7 @@ export function UrgencyAccordionGroup({
   tournamentId: _tournamentId,
   isPlayoffs: _isPlayoffs
 }: UrgencyAccordionGroupProps) {
+  const t = useTranslations('predictions');
   const [expandedTierId, setExpandedTierId] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState<ExtendedGameData | null>(null);
@@ -168,21 +170,20 @@ export function UrgencyAccordionGroup({
     const awayTeam = selectedGame.away_team || gameGuess?.away_team;
 
     return {
-      homeTeamName: homeTeam ? teamsMap[homeTeam].name : getTeamDescription(selectedGame.home_team_rule),
-      awayTeamName: awayTeam ? teamsMap[awayTeam].name : getTeamDescription(selectedGame.away_team_rule)
+      homeTeamName: homeTeam ? teamsMap[homeTeam].name : getTeamDescription(selectedGame.home_team_rule, t),
+      awayTeamName: awayTeam ? teamsMap[awayTeam].name : getTeamDescription(selectedGame.away_team_rule, t)
     };
   };
 
   const { homeTeamName, awayTeamName } = getTeamNames();
   const gameGuess = selectedGame ? gameGuesses[selectedGame.id] : undefined;
 
-  // Build title messages with Spanish pluralization and unpredicted count
+  // Build title messages with i18n pluralization and unpredicted count
   const buildTitle = (totalCount: number, unpredictedCount: number, timeframe: string): string => {
-    const plural = totalCount > 1;
-    let title = `${totalCount} partido${plural ? 's' : ''} cierra${plural ? 'n' : ''} en ${timeframe}`;
+    let title = t('urgency.games', { count: totalCount, timeframe });
 
     if (unpredictedCount > 0) {
-      title += `, ${unpredictedCount} sin predecir`;
+      title += t('urgency.unpredicted', { count: unpredictedCount });
     }
 
     return title;
@@ -200,7 +201,7 @@ export function UrgencyAccordionGroup({
         {filteredGames.urgent.length > 0 && (
           <UrgencyAccordion
             severity="error"
-            title={buildTitle(filteredGames.urgent.length, urgentUnpredicted, '2 horas')}
+            title={buildTitle(filteredGames.urgent.length, urgentUnpredicted, t('urgency.timeframes.twoHours'))}
             games={filteredGames.urgent}
             teamsMap={teamsMap}
             gameGuesses={gameGuesses}
@@ -215,7 +216,7 @@ export function UrgencyAccordionGroup({
         {filteredGames.warning.length > 0 && (
           <UrgencyAccordion
             severity="warning"
-            title={buildTitle(filteredGames.warning.length, warningUnpredicted, '24 horas')}
+            title={buildTitle(filteredGames.warning.length, warningUnpredicted, t('urgency.timeframes.twentyFourHours'))}
             games={filteredGames.warning}
             teamsMap={teamsMap}
             gameGuesses={gameGuesses}
@@ -230,7 +231,7 @@ export function UrgencyAccordionGroup({
         {filteredGames.notice.length > 0 && (
           <UrgencyAccordion
             severity="info"
-            title={buildTitle(filteredGames.notice.length, noticeUnpredicted, '2 días')}
+            title={buildTitle(filteredGames.notice.length, noticeUnpredicted, t('urgency.timeframes.twoDays'))}
             games={filteredGames.notice}
             teamsMap={teamsMap}
             gameGuesses={gameGuesses}

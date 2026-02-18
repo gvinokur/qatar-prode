@@ -1,0 +1,144 @@
+{
+  "dashboard": {
+    "games": "Partidos",
+    "tournament": "Torneo",
+    "gamePredictions": "Predicciones de Partidos",
+    "tournamentPredictions": "Predicciones de Torneo",
+    "predictions": "Predicciones"
+  },
+  "filters": {
+    "label": "Filtro",
+    "all": "Todos",
+    "groups": "Grupos",
+    "playoffs": "Playoffs",
+    "unpredicted": "Sin Predecir",
+    "closingSoon": "Cierran Pronto"
+  },
+  "secondaryFilters": {
+    "group": "Grupo",
+    "round": "Ronda",
+    "all": "Todos",
+    "groupWithLetter": "Grupo {letter}"
+  },
+  "game": {
+    "vs": "vs",
+    "editPrediction": "Editar predicción: {homeTeam} vs {awayTeam}",
+    "editResult": "Editar resultado",
+    "viewLocalTime": "Ver horario local",
+    "viewYourTime": "Ver tu horario",
+    "closed": "Cerrado",
+    "closesIn": "Cierra en {countdown}",
+    "isPublished": "¿Está publicado?",
+    "inPlayOrRecentlyFinished": "EN JUEGO O RECIÉN TERMINADO"
+  },
+  "urgency": {
+    "games": "{count, plural, =0 {Ningún partido cierra en {timeframe}} one {{count} partido cierra en {timeframe}} other {{count} partidos cierran en {timeframe}}}",
+    "unpredicted": "{count, plural, one {, {count} sin predecir} other {, {count} sin predecir}}",
+    "requiresAction": "REQUIEREN ACCIÓN",
+    "alreadyPredicted": "YA PREDICHOS",
+    "tournament": "{count, plural, =0 {Predicciones de torneo no disponibles} one {Predicciones de torneo cierran en {timeframe}} other {Predicciones de torneo cierran en {timeframe}}}",
+    "timeframes": {
+      "twoHours": "2 horas",
+      "twentyFourHours": "24 horas",
+      "twoDays": "2 días"
+    },
+    "noGamesIn48Hours": "Ningún partido cierra en las próximas 48 horas"
+  },
+  "points": {
+    "singular": "pt",
+    "plural": "pts",
+    "singularFull": "punto",
+    "pluralFull": "puntos"
+  },
+  "pointBreakdown": {
+    "title": "Desglose de Puntos",
+    "base": "Base:",
+    "multiplier": "Multiplicador:",
+    "total": "Total:"
+  },
+  "edit": {
+    "save": "Guardar",
+    "next": "Siguiente",
+    "saving": "Guardando...",
+    "cancel": "Cancelar",
+    "boost": "Boost",
+    "boostSelection": "Boost Selection",
+    "noBoost": "Ninguno",
+    "penaltyWinner": "Ganador Penales",
+    "penaltyWinnerFull": "Ganador de la tanda de penales",
+    "penaltyWinnerPrompt": "Dado que el pártido terminó empatado, por favor seleccione el ganador de la tanda de penales."
+  },
+  "boost": {
+    "silver": {
+      "name": "Multiplicador de Plata",
+      "multiplier": "2x",
+      "description": "Duplica los puntos obtenidos en este partido",
+      "title": "Multiplicador x2",
+      "applied": "Multiplicador 2x aplicado",
+      "clickToRemove": "Click para remover Multiplicador de Plata (2x puntos)",
+      "usage": "Multiplicador de Plata (2x puntos) - {used}/{max} usados",
+      "allUsed": "Has usado todos tus {max} multiplicadores de plata. Remueve uno de otro partido primero."
+    },
+    "golden": {
+      "name": "Multiplicador de Oro",
+      "multiplier": "3x",
+      "description": "Triplica los puntos obtenidos en este partido",
+      "title": "Multiplicador x3",
+      "applied": "Multiplicador 3x aplicado",
+      "clickToRemove": "Click para remover Multiplicador de Oro (3x puntos)",
+      "usage": "Multiplicador de Oro (3x puntos) - {used}/{max} usados",
+      "allUsed": "Has usado todos tus {max} multiplicadores de oro. Remueve uno de otro partido primero."
+    },
+    "limitReached": "Límite de Multiplicadores Alcanzado",
+    "changeAllowed": "Puedes cambiar tus multiplicadores en cualquier momento antes de que comiencen los partidos.",
+    "enterPredictionFirst": "Ingresa tu predicción primero",
+    "gameStarted": "El partido ya comenzó"
+  },
+  "boostStats": {
+    "loading": "Cargando...",
+    "noBoostsUsed": "Aún no has usado boosts de este tipo",
+    "group": "Grupo {letter}",
+    "game": "partido",
+    "games": "partidos",
+    "playoffs": "Playoffs:",
+    "totalUsed": "Total: {used} de {max} usados",
+    "infoUnavailable": "Información no disponible",
+    "extraPoint": "punto extra",
+    "extraPoints": "puntos extra",
+    "qualifiedBoostedGame": "partido boosteado calificado",
+    "qualifiedBoostedGames": "partidos boosteados calificados",
+    "performance": "RENDIMIENTO",
+    "earnedPoints": "Ganaste {points} {pointsLabel} en {count} {gamesLabel}",
+    "errorLoading": "Error al cargar datos. Intenta de nuevo.",
+    "distribution": "DISTRIBUCIÓN DE BOOSTS"
+  },
+  "tournament": {
+    "predictions": "Predicciones de Torneo",
+    "podium": "Podio",
+    "individualAwards": "Premios Individuales",
+    "qualified": "Clasificados"
+  },
+  "navigation": {
+    "go": "Ir",
+    "goTo": "Ir a {destination}",
+    "goToNextGame": "Ir al Proximo Partido",
+    "backToTop": "Volver al Principio"
+  },
+  "common": {
+    "of": "de",
+    "completed": "{count, plural, one {completado} other {completados}}",
+    "close": "Cerrar"
+  },
+  "playoffs": {
+    "firstPlace": "Primero Grupo {group}",
+    "firstPlaceShort": "1 {group}",
+    "secondPlace": "Segundo Grupo {group}",
+    "secondPlaceShort": "2 {group}",
+    "thirdPlace": "Tercero Grupo(s) {group}",
+    "thirdPlaceShort": "3 {group}",
+    "winner": "Ganador #{game}",
+    "winnerShort": "G{game}",
+    "loser": "Perdedor #{game}",
+    "loserShort": "P{game}"
+  }
+}

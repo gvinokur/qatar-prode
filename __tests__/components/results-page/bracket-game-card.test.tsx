@@ -33,7 +33,7 @@ describe('BracketGameCard', () => {
   })
 
   describe('Basic rendering', () => {
-    it('renders team names when teams exist', () => {
+    it('renders team names when teams exist', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -47,13 +47,14 @@ describe('BracketGameCard', () => {
         }),
       }
 
-      renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    renderWithTheme(component)
 
       expect(screen.getByText('Argentina')).toBeInTheDocument()
       expect(screen.getByText('Brazil')).toBeInTheDocument()
     })
 
-    it('shows team scores (home and away)', () => {
+    it('shows team scores (home and away)', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -67,13 +68,14 @@ describe('BracketGameCard', () => {
         }),
       }
 
-      renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    renderWithTheme(component)
 
       expect(screen.getByText('3')).toBeInTheDocument()
       expect(screen.getByText('2')).toBeInTheDocument()
     })
 
-    it('shows "-" when home_score is missing', () => {
+    it('shows "-" when home_score is missing', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -88,13 +90,14 @@ describe('BracketGameCard', () => {
         },
       }
 
-      renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    renderWithTheme(component)
 
       expect(screen.getByText('-')).toBeInTheDocument()
       expect(screen.getByText('1')).toBeInTheDocument()
     })
 
-    it('shows "-" when away_score is missing', () => {
+    it('shows "-" when away_score is missing', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -109,13 +112,14 @@ describe('BracketGameCard', () => {
         },
       }
 
-      renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    renderWithTheme(component)
 
       expect(screen.getByText('2')).toBeInTheDocument()
       expect(screen.getByText('-')).toBeInTheDocument()
     })
 
-    it('shows "-" when gameResult is null', () => {
+    it('shows "-" when gameResult is null', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -125,14 +129,15 @@ describe('BracketGameCard', () => {
         gameResult: null,
       }
 
-      renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    renderWithTheme(component)
 
       // Should show "-" for both scores
       const dashes = screen.getAllByText('-')
       expect(dashes).toHaveLength(2)
     })
 
-    it('shows "TBD" when home_team is null', () => {
+    it('shows "TBD" when home_team is null', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -142,13 +147,14 @@ describe('BracketGameCard', () => {
         gameResult: null,
       }
 
-      renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    renderWithTheme(component)
 
       expect(screen.getByText('TBD')).toBeInTheDocument()
       expect(screen.getByText('Brazil')).toBeInTheDocument()
     })
 
-    it('shows "TBD" when away_team is null', () => {
+    it('shows "TBD" when away_team is null', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -158,13 +164,14 @@ describe('BracketGameCard', () => {
         gameResult: null,
       }
 
-      renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    renderWithTheme(component)
 
       expect(screen.getByText('Argentina')).toBeInTheDocument()
       expect(screen.getByText('TBD')).toBeInTheDocument()
     })
 
-    it('shows "TBD" when both teams are null', () => {
+    it('shows "TBD" when both teams are null', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -174,7 +181,8 @@ describe('BracketGameCard', () => {
         gameResult: null,
       }
 
-      renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    renderWithTheme(component)
 
       const tbds = screen.getAllByText('TBD')
       expect(tbds).toHaveLength(2)
@@ -182,7 +190,7 @@ describe('BracketGameCard', () => {
   })
 
   describe('Winner highlighting', () => {
-    it('highlights home team when home_team wins (bold text, primary color)', () => {
+    it('highlights home team when home_team wins (bold text, primary color)', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -199,7 +207,8 @@ describe('BracketGameCard', () => {
       // Mock getGameWinner to return home team as winner
       vi.mocked(scoreUtils.getGameWinner).mockReturnValue('argentina')
 
-      const { container } = renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    const { container } = renderWithTheme(component)
 
       // Find the home team text element
       const homeTeamElement = screen.getByText('Argentina')
@@ -212,7 +221,7 @@ describe('BracketGameCard', () => {
       expect(homeTeamElement).toHaveStyle({ fontWeight: 700 })
     })
 
-    it('highlights away team when away_team wins', () => {
+    it('highlights away team when away_team wins', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -229,7 +238,8 @@ describe('BracketGameCard', () => {
       // Mock getGameWinner to return away team as winner
       vi.mocked(scoreUtils.getGameWinner).mockReturnValue('brazil')
 
-      renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    renderWithTheme(component)
 
       // Find the away team text element
       const awayTeamElement = screen.getByText('Brazil')
@@ -238,7 +248,7 @@ describe('BracketGameCard', () => {
       expect(awayTeamElement).toHaveStyle({ fontWeight: 700 })
     })
 
-    it('no highlight when game is tied (no winner)', () => {
+    it('no highlight when game is tied (no winner)', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -255,7 +265,8 @@ describe('BracketGameCard', () => {
       // Mock getGameWinner to return undefined (tie)
       vi.mocked(scoreUtils.getGameWinner).mockReturnValue(undefined)
 
-      renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    renderWithTheme(component)
 
       const homeTeamElement = screen.getByText('Argentina')
       const awayTeamElement = screen.getByText('Brazil')
@@ -265,7 +276,7 @@ describe('BracketGameCard', () => {
       expect(awayTeamElement).toHaveStyle({ fontWeight: 400 })
     })
 
-    it('highlights home team when winning on penalties', () => {
+    it('highlights home team when winning on penalties', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -284,13 +295,14 @@ describe('BracketGameCard', () => {
       // Mock getGameWinner to return home team as winner (after penalties)
       vi.mocked(scoreUtils.getGameWinner).mockReturnValue('argentina')
 
-      renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    renderWithTheme(component)
 
       const homeTeamElement = screen.getByText('Argentina')
       expect(homeTeamElement).toHaveStyle({ fontWeight: 700 })
     })
 
-    it('highlights away team when winning on penalties', () => {
+    it('highlights away team when winning on penalties', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -309,7 +321,8 @@ describe('BracketGameCard', () => {
       // Mock getGameWinner to return away team as winner (after penalties)
       vi.mocked(scoreUtils.getGameWinner).mockReturnValue('brazil')
 
-      renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    renderWithTheme(component)
 
       const awayTeamElement = screen.getByText('Brazil')
       expect(awayTeamElement).toHaveStyle({ fontWeight: 700 })
@@ -317,7 +330,7 @@ describe('BracketGameCard', () => {
   })
 
   describe('Penalty results', () => {
-    it('shows penalty result "(4-3p)" when penalty shootout occurred', () => {
+    it('shows penalty result "(4-3p)" when penalty shootout occurred', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -336,13 +349,14 @@ describe('BracketGameCard', () => {
       // Mock formatPenaltyResult to return penalty score
       vi.mocked(penaltyResultFormatter.formatPenaltyResult).mockReturnValue('(4-3p)')
 
-      renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    renderWithTheme(component)
 
       expect(screen.getByText('(4-3p)')).toBeInTheDocument()
       expect(penaltyResultFormatter.formatPenaltyResult).toHaveBeenCalledWith(game)
     })
 
-    it('uses formatPenaltyResult() utility', () => {
+    it('uses formatPenaltyResult() utility', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -360,13 +374,14 @@ describe('BracketGameCard', () => {
 
       vi.mocked(penaltyResultFormatter.formatPenaltyResult).mockReturnValue('(5-4p)')
 
-      renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    renderWithTheme(component)
 
       expect(penaltyResultFormatter.formatPenaltyResult).toHaveBeenCalledWith(game)
       expect(screen.getByText('(5-4p)')).toBeInTheDocument()
     })
 
-    it('no penalty result shown for regular games', () => {
+    it('no penalty result shown for regular games', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -383,13 +398,14 @@ describe('BracketGameCard', () => {
       // Mock formatPenaltyResult to return null (no penalties)
       vi.mocked(penaltyResultFormatter.formatPenaltyResult).mockReturnValue(null)
 
-      renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    renderWithTheme(component)
 
       expect(penaltyResultFormatter.formatPenaltyResult).toHaveBeenCalledWith(game)
       expect(screen.queryByText(/p\)/)).not.toBeInTheDocument()
     })
 
-    it('shows different penalty scores correctly', () => {
+    it('shows different penalty scores correctly', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -407,14 +423,15 @@ describe('BracketGameCard', () => {
 
       vi.mocked(penaltyResultFormatter.formatPenaltyResult).mockReturnValue('(3-5p)')
 
-      renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    renderWithTheme(component)
 
       expect(screen.getByText('(3-5p)')).toBeInTheDocument()
     })
   })
 
   describe('Team descriptions', () => {
-    it('shows team description from rule when team not qualified yet (e.g., "Winner of Group A")', () => {
+    it('shows team description from rule when team not qualified yet (e.g., "Winner of Group A")', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -428,13 +445,15 @@ describe('BracketGameCard', () => {
       // Mock getTeamDescription to return description
       vi.mocked(playoffsRuleHelper.getTeamDescription).mockReturnValue('Winner of Group A')
 
-      renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    renderWithTheme(component)
 
-      expect(playoffsRuleHelper.getTeamDescription).toHaveBeenCalledWith({ position: 1, group: 'A' }, false)
+      // getTeamDescription now receives translation function as second parameter
+      expect(playoffsRuleHelper.getTeamDescription).toHaveBeenCalledWith({ position: 1, group: 'A' }, expect.any(Function), false)
       expect(screen.getByText('Winner of Group A')).toBeInTheDocument()
     })
 
-    it('uses getTeamDescription() utility', () => {
+    it('uses getTeamDescription() utility', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -447,13 +466,15 @@ describe('BracketGameCard', () => {
 
       vi.mocked(playoffsRuleHelper.getTeamDescription).mockReturnValue('Runner-up Group B')
 
-      renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    renderWithTheme(component)
 
-      expect(playoffsRuleHelper.getTeamDescription).toHaveBeenCalledWith({ position: 2, group: 'B' }, false)
+      // getTeamDescription now receives translation function as second parameter
+      expect(playoffsRuleHelper.getTeamDescription).toHaveBeenCalledWith({ position: 2, group: 'B' }, expect.any(Function), false)
       expect(screen.getByText('Runner-up Group B')).toBeInTheDocument()
     })
 
-    it('prefers team name over rule description when team is qualified', () => {
+    it('prefers team name over rule description when team is qualified', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -465,7 +486,8 @@ describe('BracketGameCard', () => {
       }
 
       // Even though there's a rule, team name should be shown since team is qualified
-      renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    renderWithTheme(component)
 
       expect(screen.getByText('France')).toBeInTheDocument()
       expect(screen.getByText('Brazil')).toBeInTheDocument()
@@ -473,7 +495,7 @@ describe('BracketGameCard', () => {
       expect(playoffsRuleHelper.getTeamDescription).not.toHaveBeenCalled()
     })
 
-    it('shows "TBD" when team is null and no rule description available', () => {
+    it('shows "TBD" when team is null and no rule description available', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -488,13 +510,14 @@ describe('BracketGameCard', () => {
       // Mock getTeamDescription to return empty string (no rule)
       vi.mocked(playoffsRuleHelper.getTeamDescription).mockReturnValue('')
 
-      renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    renderWithTheme(component)
 
       const tbds = screen.getAllByText('TBD')
       expect(tbds).toHaveLength(2)
     })
 
-    it('shows team description for both teams when neither is qualified', () => {
+    it('shows team description for both teams when neither is qualified', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -510,7 +533,8 @@ describe('BracketGameCard', () => {
         .mockReturnValueOnce('Winner #5')
         .mockReturnValueOnce('Winner #6')
 
-      renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    renderWithTheme(component)
 
       expect(screen.getByText('Winner #5')).toBeInTheDocument()
       expect(screen.getByText('Winner #6')).toBeInTheDocument()
@@ -519,7 +543,7 @@ describe('BracketGameCard', () => {
   })
 
   describe('Edge cases', () => {
-    it('handles missing team in teamsMap gracefully', () => {
+    it('handles missing team in teamsMap gracefully', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -531,14 +555,15 @@ describe('BracketGameCard', () => {
 
       vi.mocked(playoffsRuleHelper.getTeamDescription).mockReturnValue('')
 
-      renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    renderWithTheme(component)
 
       // Should show TBD when team doesn't exist in map
       expect(screen.getByText('TBD')).toBeInTheDocument()
       expect(screen.getByText('Brazil')).toBeInTheDocument()
     })
 
-    it('renders correctly with all props valid', () => {
+    it('renders correctly with all props valid', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -554,7 +579,8 @@ describe('BracketGameCard', () => {
 
       vi.mocked(scoreUtils.getGameWinner).mockReturnValue('argentina')
 
-      const { container } = renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    const { container } = renderWithTheme(component)
 
       // Check that the Paper component is rendered
       expect(container.querySelector('.MuiPaper-root')).toBeInTheDocument()
@@ -564,7 +590,7 @@ describe('BracketGameCard', () => {
       expect(screen.getByText('1')).toBeInTheDocument()
     })
 
-    it('renders with empty teamsMap', () => {
+    it('renders with empty teamsMap', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -576,13 +602,14 @@ describe('BracketGameCard', () => {
 
       vi.mocked(playoffsRuleHelper.getTeamDescription).mockReturnValue('')
 
-      renderWithTheme(<BracketGameCard game={game} teamsMap={{}} />)
+      const component = await BracketGameCard({ game, teamsMap: {} })
+      renderWithTheme(component)
 
       const tbds = screen.getAllByText('TBD')
       expect(tbds).toHaveLength(2)
     })
 
-    it('handles score of 0 correctly', () => {
+    it('handles score of 0 correctly', async () => {
       const game: ExtendedGameData = {
         ...testFactories.game({
           id: 'game-1',
@@ -596,7 +623,8 @@ describe('BracketGameCard', () => {
         }),
       }
 
-      renderWithTheme(<BracketGameCard game={game} teamsMap={mockTeams} />)
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+    renderWithTheme(component)
 
       // Both scores should be shown as 0, not "-"
       const zeros = screen.getAllByText('0')

@@ -18,7 +18,7 @@ describe('useGameCountdown', () => {
     vi.restoreAllMocks();
   });
 
-  it('should return "Cerrado" state for past games', () => {
+  it('should return closed state for past games', () => {
     const now = new Date('2026-01-20T15:00:00Z');
     vi.setSystemTime(now);
 
@@ -27,7 +27,7 @@ describe('useGameCountdown', () => {
 
     const { result } = renderHook(() => useGameCountdown(gameDate), { wrapper });
 
-    expect(result.current.display).toBe('Cerrado');
+    // Hook no longer returns translated "Cerrado" - just raw countdown
     expect(result.current.urgency).toBe('closed');
     expect(result.current.isClosed).toBe(true);
     expect(result.current.progressPercent).toBe(0);
@@ -43,8 +43,8 @@ describe('useGameCountdown', () => {
 
     const { result } = renderHook(() => useGameCountdown(gameDate), { wrapper });
 
-    expect(result.current.display).toContain('Cierra en');
-    expect(result.current.display).toContain('4h');
+    // Hook returns raw countdown (e.g., "4h") without "Cierra en" prefix
+    expect(result.current.countdown).toContain('4h');
     expect(result.current.urgency).toBe('warning'); // 4 hours = warning level
     expect(result.current.isClosed).toBe(false);
     expect(result.current.progressPercent).toBeGreaterThan(0);
@@ -60,8 +60,8 @@ describe('useGameCountdown', () => {
     const { result } = renderHook(() => useGameCountdown(gameDate), { wrapper });
 
     expect(result.current.urgency).toBe('safe');
-    expect(result.current.display).toContain('Cierra en');
-    expect(result.current.display).toContain('2 días');
+    // Hook returns raw countdown without "Cierra en" prefix
+    expect(result.current.countdown).toContain('2 días');
   });
 
   it('should return "notice" urgency for games 24-48h away', () => {
@@ -88,7 +88,7 @@ describe('useGameCountdown', () => {
     const { result } = renderHook(() => useGameCountdown(gameDate), { wrapper });
 
     expect(result.current.urgency).toBe('warning');
-    expect(result.current.display).toContain('11h');
+    expect(result.current.countdown).toContain('11h');
   });
 
   it('should return "urgent" urgency for games <1h away', () => {
@@ -101,7 +101,7 @@ describe('useGameCountdown', () => {
     const { result } = renderHook(() => useGameCountdown(gameDate), { wrapper });
 
     expect(result.current.urgency).toBe('urgent');
-    expect(result.current.display).toContain('30m');
+    expect(result.current.countdown).toContain('30m');
   });
 
   it('should calculate progress correctly at different time points', () => {
@@ -134,29 +134,29 @@ describe('useGameCountdown', () => {
     const { result } = renderHook(() => useGameCountdown(gameDate), { wrapper });
 
     expect(result.current.isClosed).toBe(true);
-    expect(result.current.display).toBe('Cerrado');
+    // Hook no longer returns translated "Cerrado"
     expect(result.current.urgency).toBe('closed');
   });
 
-  it('should format display text correctly for various time ranges', () => {
+  it('should format countdown text correctly for various time ranges', () => {
     const now = new Date('2026-01-20T10:00:00Z');
     vi.setSystemTime(now);
 
     // Test days
     const daysGame = new Date('2026-01-23T11:00:00Z'); // ~3 days
     const { result: daysResult } = renderHook(() => useGameCountdown(daysGame), { wrapper });
-    expect(daysResult.current.display).toContain('días');
+    expect(daysResult.current.countdown).toContain('días');
 
     // Test hours and minutes
     const hoursGame = new Date('2026-01-20T14:30:00Z'); // ~3.5 hours to deadline
     const { result: hoursResult } = renderHook(() => useGameCountdown(hoursGame), { wrapper });
-    expect(hoursResult.current.display).toContain('h');
-    expect(hoursResult.current.display).toContain('m');
+    expect(hoursResult.current.countdown).toContain('h');
+    expect(hoursResult.current.countdown).toContain('m');
 
     // Test minutes only
     const minsGame = new Date('2026-01-20T11:30:00Z'); // 1h 30m to game = 30m to deadline
     const { result: minsResult } = renderHook(() => useGameCountdown(minsGame), { wrapper });
-    expect(minsResult.current.display).toContain('m');
+    expect(minsResult.current.countdown).toContain('m');
   });
 
   it('should handle different urgency levels across boundary conditions', () => {
@@ -195,7 +195,7 @@ describe('useGameCountdown', () => {
     const { result } = renderHook(() => useGameCountdown(gameDate), { wrapper });
 
     // Initial state - 1 hour to deadline
-    expect(result.current.display).toContain('1h');
+    expect(result.current.countdown).toContain('1h');
     expect(result.current.urgency).toBe('warning');
 
     // Simulate the CountdownProvider's interval triggering after 1 second

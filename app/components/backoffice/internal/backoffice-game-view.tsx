@@ -4,6 +4,7 @@ import {ExtendedGameData} from "../../../definitions";
 import {Team} from "../../../db/tables-definition";
 import {getTeamDescription} from "../../../utils/playoffs-rule-helper";
 import CompactGameViewCard from "../../compact-game-view-card";
+import { useTranslations } from 'next-intl';
 
 type Props = {
   readonly game: ExtendedGameData
@@ -13,6 +14,8 @@ type Props = {
 }
 
 export default function BackofficeGameView({ game, teamsMap, onEditClick, onPublishClick } : Props) {
+  const t = useTranslations('predictions');
+
   return (
     <CompactGameViewCard
       isGameGuess={false}
@@ -22,8 +25,8 @@ export default function BackofficeGameView({ game, teamsMap, onEditClick, onPubl
       location={game.location}
       gameTimezone={game.game_local_timezone}
       isPlayoffGame={!!game.playoffStage}
-      homeTeamNameOrDescription={game.home_team ? teamsMap[game.home_team].name : getTeamDescription(game.home_team_rule)}
-      awayTeamNameOrDescription={game.away_team ? teamsMap[game.away_team].name : getTeamDescription(game.away_team_rule)}
+      homeTeamNameOrDescription={game.home_team ? teamsMap[game.home_team].name : getTeamDescription(game.home_team_rule, t)}
+      awayTeamNameOrDescription={game.away_team ? teamsMap[game.away_team].name : getTeamDescription(game.away_team_rule, t)}
       homeTeamTheme={game.home_team && teamsMap[game.home_team].theme || null}
       awayTeamTheme={game.away_team && teamsMap[game.away_team].theme || null}
       isDraft={game.gameResult ? game.gameResult.is_draft : true}

@@ -1,5 +1,8 @@
+'use client'
+
 import React from 'react';
 import { Popover, Card, Typography, Alert } from '@mui/material';
+import { useTranslations } from 'next-intl';
 import { UrgencyAccordionGroup } from './urgency-accordion-group';
 import type { ExtendedGameData } from '../definitions';
 import { Team } from '../db/tables-definition';
@@ -36,6 +39,8 @@ export function GameDetailsPopover({
   silverMax,
   goldenMax
 }: GameDetailsPopoverProps) {
+  const t = useTranslations('predictions');
+
   return (
     <Popover
       open={open}
@@ -52,11 +57,11 @@ export function GameDetailsPopover({
     >
       <Card sx={{ width, maxHeight: '80vh', overflow: 'auto', p: 2 }}>
         <Typography variant="h6" sx={{ mb: 2 }}>
-          Predicciones de Partidos
+          {t('dashboard.gamePredictions')}
         </Typography>
         {hasUrgentGames ? null : (
           <Alert severity="info" sx={{ mb: 2 }}>
-            Ningun partido cierra en las proximas 48 horas
+            {t('urgency.noGamesIn48Hours')}
           </Alert>
         )}
         {games && teamsMap && tournamentId !== undefined && (

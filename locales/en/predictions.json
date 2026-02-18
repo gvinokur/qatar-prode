@@ -1,0 +1,144 @@
+{
+  "dashboard": {
+    "games": "EnOf(Partidos)",
+    "tournament": "EnOf(Torneo)",
+    "gamePredictions": "EnOf(Predicciones de Partidos)",
+    "tournamentPredictions": "EnOf(Predicciones de Torneo)",
+    "predictions": "EnOf(Predicciones)"
+  },
+  "filters": {
+    "label": "EnOf(Filtro)",
+    "all": "EnOf(Todos)",
+    "groups": "EnOf(Grupos)",
+    "playoffs": "EnOf(Playoffs)",
+    "unpredicted": "EnOf(Sin Predecir)",
+    "closingSoon": "EnOf(Cierran Pronto)"
+  },
+  "secondaryFilters": {
+    "group": "EnOf(Grupo)",
+    "round": "EnOf(Ronda)",
+    "all": "EnOf(Todos)",
+    "groupWithLetter": "EnOf(Grupo {letter})"
+  },
+  "game": {
+    "vs": "EnOf(vs)",
+    "editPrediction": "EnOf(Editar predicción: {homeTeam} vs {awayTeam})",
+    "editResult": "EnOf(Editar resultado)",
+    "viewLocalTime": "EnOf(Ver horario local)",
+    "viewYourTime": "EnOf(Ver tu horario)",
+    "closed": "EnOf(Cerrado)",
+    "closesIn": "EnOf(Cierra en {countdown})",
+    "isPublished": "EnOf(¿Está publicado?)",
+    "inPlayOrRecentlyFinished": "EnOf(EN JUEGO O RECIÉN TERMINADO)"
+  },
+  "urgency": {
+    "games": "EnOf({count, plural, =0 {Ningún partido cierra en {timeframe}} one {{count} partido cierra en {timeframe}} other {{count} partidos cierran en {timeframe}}})",
+    "unpredicted": "EnOf({count, plural, one {, {count} sin predecir} other {, {count} sin predecir}})",
+    "requiresAction": "EnOf(REQUIEREN ACCIÓN)",
+    "alreadyPredicted": "EnOf(YA PREDICHOS)",
+    "tournament": "EnOf({count, plural, =0 {Predicciones de torneo no disponibles} one {Predicciones de torneo cierran en {timeframe}} other {Predicciones de torneo cierran en {timeframe}}})",
+    "timeframes": {
+      "twoHours": "EnOf(2 horas)",
+      "twentyFourHours": "EnOf(24 horas)",
+      "twoDays": "EnOf(2 días)"
+    },
+    "noGamesIn48Hours": "EnOf(Ningún partido cierra en las próximas 48 horas)"
+  },
+  "points": {
+    "singular": "EnOf(pt)",
+    "plural": "EnOf(pts)",
+    "singularFull": "EnOf(punto)",
+    "pluralFull": "EnOf(puntos)"
+  },
+  "pointBreakdown": {
+    "title": "EnOf(Desglose de Puntos)",
+    "base": "EnOf(Base:)",
+    "multiplier": "EnOf(Multiplicador:)",
+    "total": "EnOf(Total:)"
+  },
+  "edit": {
+    "save": "EnOf(Guardar)",
+    "next": "EnOf(Siguiente)",
+    "saving": "EnOf(Guardando...)",
+    "cancel": "EnOf(Cancelar)",
+    "boost": "EnOf(Boost)",
+    "boostSelection": "EnOf(Boost Selection)",
+    "noBoost": "EnOf(Ninguno)",
+    "penaltyWinner": "EnOf(Ganador Penales)",
+    "penaltyWinnerFull": "EnOf(Ganador de la tanda de penales)",
+    "penaltyWinnerPrompt": "EnOf(Dado que el pártido terminó empatado, por favor seleccione el ganador de la tanda de penales.)"
+  },
+  "boost": {
+    "silver": {
+      "name": "EnOf(Multiplicador de Plata)",
+      "multiplier": "EnOf(2x)",
+      "description": "EnOf(Duplica los puntos obtenidos en este partido)",
+      "title": "EnOf(Multiplicador x2)",
+      "applied": "EnOf(Multiplicador 2x aplicado)",
+      "clickToRemove": "EnOf(Click para remover Multiplicador de Plata (2x puntos))",
+      "usage": "EnOf(Multiplicador de Plata (2x puntos) - {used}/{max} usados)",
+      "allUsed": "EnOf(Has usado todos tus {max} multiplicadores de plata. Remueve uno de otro partido primero.)"
+    },
+    "golden": {
+      "name": "EnOf(Multiplicador de Oro)",
+      "multiplier": "EnOf(3x)",
+      "description": "EnOf(Triplica los puntos obtenidos en este partido)",
+      "title": "EnOf(Multiplicador x3)",
+      "applied": "EnOf(Multiplicador 3x aplicado)",
+      "clickToRemove": "EnOf(Click para remover Multiplicador de Oro (3x puntos))",
+      "usage": "EnOf(Multiplicador de Oro (3x puntos) - {used}/{max} usados)",
+      "allUsed": "EnOf(Has usado todos tus {max} multiplicadores de oro. Remueve uno de otro partido primero.)"
+    },
+    "limitReached": "EnOf(Límite de Multiplicadores Alcanzado)",
+    "changeAllowed": "EnOf(Puedes cambiar tus multiplicadores en cualquier momento antes de que comiencen los partidos.)",
+    "enterPredictionFirst": "EnOf(Ingresa tu predicción primero)",
+    "gameStarted": "EnOf(El partido ya comenzó)"
+  },
+  "boostStats": {
+    "loading": "EnOf(Cargando...)",
+    "noBoostsUsed": "EnOf(Aún no has usado boosts de este tipo)",
+    "group": "EnOf(Grupo {letter})",
+    "game": "EnOf(partido)",
+    "games": "EnOf(partidos)",
+    "playoffs": "EnOf(Playoffs:)",
+    "totalUsed": "EnOf(Total: {used} de {max} usados)",
+    "infoUnavailable": "EnOf(Información no disponible)",
+    "extraPoint": "EnOf(punto extra)",
+    "extraPoints": "EnOf(puntos extra)",
+    "qualifiedBoostedGame": "EnOf(partido boosteado calificado)",
+    "qualifiedBoostedGames": "EnOf(partidos boosteados calificados)",
+    "performance": "EnOf(RENDIMIENTO)",
+    "earnedPoints": "EnOf(Ganaste {points} {pointsLabel} en {count} {gamesLabel})",
+    "errorLoading": "EnOf(Error al cargar datos. Intenta de nuevo.)",
+    "distribution": "EnOf(DISTRIBUCIÓN DE BOOSTS)"
+  },
+  "tournament": {
+    "predictions": "EnOf(Predicciones de Torneo)",
+    "podium": "EnOf(Podio)",
+    "individualAwards": "EnOf(Premios Individuales)",
+    "qualified": "EnOf(Clasificados)"
+  },
+  "navigation": {
+    "go": "EnOf(Ir)",
+    "goTo": "EnOf(Ir a {destination})",
+    "goToNextGame": "EnOf(Ir al Proximo Partido)",
+    "backToTop": "EnOf(Volver al Principio)"
+  },
+  "common": {
+    "of": "EnOf(de)",
+    "completed": "EnOf({count, plural, one {completado} other {completados}})",
+    "close": "EnOf(Cerrar)"
+  },
+  "playoffs": {
+    "firstPlace": "EnOf(Primero Grupo {group})",
+    "firstPlaceShort": "EnOf(1 {group})",
+    "secondPlace": "EnOf(Segundo Grupo {group})",
+    "secondPlaceShort": "EnOf(2 {group})",
+    "thirdPlace": "EnOf(Tercero Grupo(s) {group})",
+    "thirdPlaceShort": "EnOf(3 {group})",
+    "winner": "EnOf(Ganador #{game})",
+    "winnerShort": "EnOf(G{game})",
+    "loser": "EnOf(Perdedor #{game})",
+    "loserShort": "EnOf(P{game})"
+  }
+}

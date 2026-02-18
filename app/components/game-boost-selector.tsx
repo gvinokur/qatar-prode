@@ -20,6 +20,7 @@ import {
   Star as StarIcon,
   Close as CloseIcon
 } from '@mui/icons-material';
+import { useTranslations } from 'next-intl';
 import { setGameBoostAction } from '../actions/game-boost-actions';
 import { BoostBadge, BoostCountBadge } from './boost-badge';
 import { GuessesContext } from './context-providers/guesses-context-provider';
@@ -41,6 +42,7 @@ export default function GameBoostSelector({
   disabled = false,
   noPrediction = false
 }: GameBoostSelectorProps) {
+  const t = useTranslations('predictions');
   const theme = useTheme();
   const { boostCounts } = useContext(GuessesContext);
   const [boostType, setBoostType] = useState<'silver' | 'golden' | null>(currentBoostType);
@@ -54,8 +56,8 @@ export default function GameBoostSelector({
   const isDisabled = disabled || gameHasStarted || noPrediction;
 
   const getDisabledReason = () => {
-    if (noPrediction) return 'Ingresa tu predicción primero';
-    if (gameHasStarted) return 'El partido ya comenzó';
+    if (noPrediction) return t('boost.enterPredictionFirst');
+    if (gameHasStarted) return t('boost.gameStarted');
     return '';
   };
 
@@ -74,13 +76,13 @@ export default function GameBoostSelector({
       if (!boostCounts) return;
 
       if (type === 'silver' && boostCounts.silver.used >= boostCounts.silver.max && boostCounts.silver.max > 0) {
-        setErrorMessage(`Has usado todos tus ${boostCounts.silver.max} multiplicadores de plata. Remueve uno de otro partido primero.`);
+        setErrorMessage(t('boost.silver.allUsed', { max: boostCounts.silver.max }));
         setDialogOpen(true);
         return;
       }
 
       if (type === 'golden' && boostCounts.golden.used >= boostCounts.golden.max && boostCounts.golden.max > 0) {
-        setErrorMessage(`Has usado todos tus ${boostCounts.golden.max} multiplicadores de oro. Remueve uno de otro partido primero.`);
+        setErrorMessage(t('boost.golden.allUsed', { max: boostCounts.golden.max }));
         setDialogOpen(true);
         return;
       }
@@ -119,8 +121,8 @@ export default function GameBoostSelector({
               isDisabled
                 ? getDisabledReason()
                 : boostType === 'silver'
-                ? 'Click para remover Multiplicador de Plata (2x puntos)'
-                : `Multiplicador de Plata (2x puntos) - ${boostCounts.silver.used}/${boostCounts.silver.max} usados`
+                ? t('boost.silver.clickToRemove')
+                : t('boost.silver.usage', { used: boostCounts.silver.used, max: boostCounts.silver.max })
             }
           >
             <span>
@@ -156,8 +158,8 @@ export default function GameBoostSelector({
               isDisabled
                 ? getDisabledReason()
                 : boostType === 'golden'
-                ? 'Click para remover Multiplicador de Oro (3x puntos)'
-                : `Multiplicador de Oro (3x puntos) - ${boostCounts.golden.used}/${boostCounts.golden.max} usados`
+                ? t('boost.golden.clickToRemove')
+                : t('boost.golden.usage', { used: boostCounts.golden.used, max: boostCounts.golden.max })
             }
           >
             <span>
@@ -193,7 +195,7 @@ export default function GameBoostSelector({
       {/* Error Dialog */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle>
-          Límite de Multiplicadores Alcanzado
+          {t('boost.limitReached')}
           <IconButton
             onClick={() => setDialogOpen(false)}
             sx={{ position: 'absolute', right: 8, top: 8 }}
@@ -206,11 +208,11 @@ export default function GameBoostSelector({
             {errorMessage}
           </Alert>
           <Typography variant="body2" color="text.secondary">
-            Puedes cambiar tus multiplicadores en cualquier momento antes de que comiencen los partidos.
+            {t('boost.changeAllowed')}
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Cerrar</Button>
+          <Button onClick={() => setDialogOpen(false)}>{t('common.close')}</Button>
         </DialogActions>
       </Dialog>
 

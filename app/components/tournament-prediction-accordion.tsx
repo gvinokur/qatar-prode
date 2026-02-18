@@ -14,7 +14,7 @@ import WarningIcon from '@mui/icons-material/Warning';
 import LockIcon from '@mui/icons-material/Lock';
 import { TournamentPredictionCategoryCard } from './tournament-prediction-category-card';
 import type { TournamentPredictionCompletion } from '../db/tables-definition';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 interface TournamentPredictionAccordionProps {
   readonly tournamentPredictions: TournamentPredictionCompletion;
@@ -29,6 +29,7 @@ export function TournamentPredictionAccordion({
   isExpanded,
   onToggle
 }: TournamentPredictionAccordionProps) {
+  const t = useTranslations('predictions');
   const locale = useLocale();
   const { overallCompleted, overallTotal, overallPercentage, isPredictionLocked } = tournamentPredictions;
 
@@ -79,7 +80,7 @@ export function TournamentPredictionAccordion({
       >
         {getAccordionIcon()}
         <Typography variant="body2" sx={{ fontWeight: 600 }}>
-          Predicciones de Torneo - {overallCompleted}/{overallTotal} ({overallPercentage}%)
+          {t('tournament.predictions')} - {overallCompleted}/{overallTotal} ({overallPercentage}%)
         </Typography>
       </AccordionSummary>
 
@@ -87,7 +88,7 @@ export function TournamentPredictionAccordion({
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           {/* Podio */}
           <TournamentPredictionCategoryCard
-            title="Podio"
+            title={t('tournament.podium')}
             completed={tournamentPredictions.finalStandings.completed}
             total={tournamentPredictions.finalStandings.total}
             link={`/${locale}/tournaments/${tournamentId}/awards`}
@@ -96,7 +97,7 @@ export function TournamentPredictionAccordion({
 
           {/* Premios Individuales */}
           <TournamentPredictionCategoryCard
-            title="Premios Individuales"
+            title={t('tournament.individualAwards')}
             completed={tournamentPredictions.awards.completed}
             total={tournamentPredictions.awards.total}
             link={`/${locale}/tournaments/${tournamentId}/awards`}
@@ -106,7 +107,7 @@ export function TournamentPredictionAccordion({
           {/* Clasificados (conditional) */}
           {tournamentPredictions.qualifiers.total > 0 && (
             <TournamentPredictionCategoryCard
-              title="Clasificados"
+              title={t('tournament.qualified')}
               completed={tournamentPredictions.qualifiers.completed}
               total={tournamentPredictions.qualifiers.total}
               link={`/${locale}/tournaments/${tournamentId}/qualified-teams`}

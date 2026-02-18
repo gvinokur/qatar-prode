@@ -8,6 +8,7 @@ import {
   Divider,
   CircularProgress,
 } from '@mui/material';
+import { useTranslations } from 'next-intl';
 import { getBoostAllocationBreakdownAction } from '../actions/game-boost-actions';
 
 interface BoostInfoPopoverProps {
@@ -29,12 +30,12 @@ interface BreakdownData {
 }
 
 // Helper component for loading state
-function LoadingState() {
+function LoadingState({ t }: { readonly t: any }) {
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 1 }}>
       <CircularProgress size={16} />
       <Typography variant="caption" color="text.secondary">
-        Cargando...
+        {t('boostStats.loading')}
       </Typography>
     </Box>
   );
@@ -50,10 +51,10 @@ function ErrorState({ message }: { readonly message: string }) {
 }
 
 // Helper component for empty state
-function EmptyState() {
+function EmptyState({ t }: { readonly t: any }) {
   return (
     <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>
-      Aún no has usado boosts de este tipo
+      {t('boostStats.noBoostsUsed')}
     </Typography>
   );
 }
@@ -63,33 +64,35 @@ function BreakdownContent({
   breakdown,
   used,
   max,
+  t,
 }: {
   readonly breakdown: BreakdownData;
   readonly used: number;
   readonly max: number;
+  readonly t: any;
 }) {
   const hasNoBoosts = breakdown.byGroup.length === 0 && breakdown.playoffCount === 0;
 
   if (hasNoBoosts) {
-    return <EmptyState />;
+    return <EmptyState t={t} />;
   }
 
   return (
     <>
       {breakdown.byGroup.map((group) => (
         <Typography key={group.groupLetter} variant="body2" sx={{ py: 0.5 }}>
-          • Grupo {group.groupLetter}: {group.count}{' '}
-          {group.count === 1 ? 'partido' : 'partidos'}
+          • {t('boostStats.group', { letter: group.groupLetter })}: {group.count}{' '}
+          {group.count === 1 ? t('boostStats.game') : t('boostStats.games')}
         </Typography>
       ))}
       {breakdown.playoffCount > 0 && (
         <Typography variant="body2" sx={{ py: 0.5 }}>
-          • Playoffs: {breakdown.playoffCount}{' '}
-          {breakdown.playoffCount === 1 ? 'partido' : 'partidos'}
+          • {t('boostStats.playoffs')} {breakdown.playoffCount}{' '}
+          {breakdown.playoffCount === 1 ? t('boostStats.game') : t('boostStats.games')}
         </Typography>
       )}
       <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-        Total: {used} de {max} usados
+        {t('boostStats.totalUsed', { used, max })}
       </Typography>
     </>
   );
@@ -103,6 +106,7 @@ function DistributionSection({
   breakdown,
   used,
   max,
+  t,
 }: {
   readonly tournamentId?: string;
   readonly loading: boolean;
@@ -110,17 +114,18 @@ function DistributionSection({
   readonly breakdown: BreakdownData | null;
   readonly used: number;
   readonly max: number;
+  readonly t: any;
 }) {
   if (tournamentId === undefined) {
     return (
       <Typography variant="caption" color="text.secondary">
-        Información no disponible
+        {t('boostStats.infoUnavailable')}
       </Typography>
     );
   }
 
   if (loading) {
-    return <LoadingState />;
+    return <LoadingState t={t} />;
   }
 
   if (error) {
@@ -128,33 +133,43 @@ function DistributionSection({
   }
 
   if (breakdown) {
-    return <BreakdownContent breakdown={breakdown} used={used} max={max} />;
+    return <BreakdownContent breakdown={breakdown} used={used} max={max} t={t} />;
   }
 
   return null;
 }
 
 // Helper component for performance section
-function PerformanceSection({ breakdown }: { readonly breakdown: BreakdownData | null }) {
+function PerformanceSection({
+  breakdown,
+  t
+}: {
+  readonly breakdown: BreakdownData | null;
+  readonly t: any;
+}) {
   if (!breakdown || breakdown.scoredGamesCount === 0) {
     return null;
   }
 
-  const pointsLabel = breakdown.totalPointsEarned === 1 ? 'punto extra' : 'puntos extra';
+  const pointsLabel = breakdown.totalPointsEarned === 1 ? t('boostStats.extraPoint') : t('boostStats.extraPoints');
   const gamesLabel =
     breakdown.scoredGamesCount === 1
-      ? 'partido boosteado calificado'
-      : 'partidos boosteados calificados';
+      ? t('boostStats.qualifiedBoostedGame')
+      : t('boostStats.qualifiedBoostedGames');
 
   return (
     <>
       <Divider sx={{ my: 2 }} />
       <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-        RENDIMIENTO
+        {t('boostStats.performance')}
       </Typography>
       <Typography variant="body2" sx={{ py: 1 }}>
-        Ganaste {breakdown.totalPointsEarned} {pointsLabel} en {breakdown.scoredGamesCount}{' '}
-        {gamesLabel}
+        {t('boostStats.earnedPoints', {
+          points: breakdown.totalPointsEarned,
+          pointsLabel,
+          count: breakdown.scoredGamesCount,
+          gamesLabel
+        })}
       </Typography>
     </>
   );
@@ -169,6 +184,7 @@ export default function BoostInfoPopover({
   anchorEl,
   onClose,
 }: BoostInfoPopoverProps) {
+  const t = useTranslations('predictions');
   const [breakdown, setBreakdown] = useState<BreakdownData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -183,19 +199,16 @@ export default function BoostInfoPopover({
         })
         .catch((err) => {
           console.error('Error fetching boost breakdown:', err);
-          setError('Error al cargar datos. Intenta de nuevo.');
+          setError(t('boostStats.errorLoading'));
         })
         .finally(() => {
           setLoading(false);
         });
     }
-  }, [open, tournamentId, boostType]);
+  }, [open, tournamentId, boostType, t]);
 
-  const title = boostType === 'silver' ? 'Multiplicador x2' : 'Multiplicador x3';
-  const description =
-    boostType === 'silver'
-      ? 'Duplica los puntos obtenidos en este partido'
-      : 'Triplica los puntos obtenidos en este partido';
+  const title = t(`boost.${boostType}.title`);
+  const description = t(`boost.${boostType}.description`);
 
   return (
     <Popover
@@ -220,7 +233,7 @@ export default function BoostInfoPopover({
 
         {/* Distribution Section - Always visible */}
         <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-          DISTRIBUCIÓN DE BOOSTS
+          {t('boostStats.distribution')}
         </Typography>
 
         <DistributionSection
@@ -230,10 +243,11 @@ export default function BoostInfoPopover({
           breakdown={breakdown}
           used={used}
           max={max}
+          t={t}
         />
 
         {/* Performance Section - Conditional */}
-        <PerformanceSection breakdown={breakdown} />
+        <PerformanceSection breakdown={breakdown} t={t} />
       </Box>
     </Popover>
   );

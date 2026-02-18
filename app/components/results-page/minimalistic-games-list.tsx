@@ -3,6 +3,7 @@ import { Team } from '@/app/db/tables-definition'
 import { Typography, Box } from '@mui/material'
 import { formatGameScore } from '@/app/utils/penalty-result-formatter'
 import { getTeamDescription } from '@/app/utils/playoffs-rule-helper'
+import { getTranslations } from 'next-intl/server'
 
 interface MinimalisticGamesListProps {
   readonly games: ExtendedGameData[]
@@ -13,7 +14,9 @@ interface MinimalisticGamesListProps {
  * Displays a simple read-only list of all games.
  * Shows team names (or placeholders) and scores including penalty shootouts.
  */
-export default function MinimalisticGamesList({ games, teamsMap }: MinimalisticGamesListProps) {
+export default async function MinimalisticGamesList({ games, teamsMap }: MinimalisticGamesListProps) {
+  const t = await getTranslations('predictions');
+
   // Sort all games by game number ascending
   const sortedGames = [...games].sort((a, b) => a.game_number - b.game_number)
 
@@ -33,9 +36,9 @@ export default function MinimalisticGamesList({ games, teamsMap }: MinimalisticG
 
         // Get team display text - use team name, or rule description (long form), or 'TBD'
         const homeTeamDisplay =
-          homeTeam?.name || getTeamDescription(game.home_team_rule as any, false) || 'TBD'
+          homeTeam?.name || getTeamDescription(game.home_team_rule as any, t, false) || 'TBD'
         const awayTeamDisplay =
-          awayTeam?.name || getTeamDescription(game.away_team_rule as any, false) || 'TBD'
+          awayTeam?.name || getTeamDescription(game.away_team_rule as any, t, false) || 'TBD'
 
         const scoreDisplay = formatGameScore(game)
 

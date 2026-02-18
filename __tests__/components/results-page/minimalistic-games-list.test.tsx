@@ -8,7 +8,7 @@ import MinimalisticGamesList from '@/app/components/results-page/minimalistic-ga
 
 // Mock only the playoffs-rule-helper module (formatGameScore is simple enough to test without mocking)
 vi.mock('@/app/utils/playoffs-rule-helper', () => ({
-  getTeamDescription: vi.fn((rule: any) => {
+  getTeamDescription: vi.fn((rule: any, t: any, useShort: boolean = false) => {
     if (!rule) return ''
     if (rule.position && rule.group) {
       if (rule.position === 1) return `Primero Grupo ${rule.group}`
@@ -47,7 +47,7 @@ describe('MinimalisticGamesList', () => {
   }
 
   describe('Basic rendering', () => {
-    it('renders all games in the list', () => {
+    it('renders all games in the list', async () => {
       const team1 = createTeam('argentina', 'Argentina')
       const team2 = createTeam('brazil', 'Brazil')
       const team3 = createTeam('chile', 'Chile')
@@ -77,7 +77,8 @@ describe('MinimalisticGamesList', () => {
         }),
       ]
 
-      renderWithTheme(<MinimalisticGamesList games={games} teamsMap={teamsMap} />)
+      const component = await MinimalisticGamesList({ games, teamsMap })
+      renderWithTheme(component)
 
       // Verify all teams are displayed
       expect(screen.getByText('Argentina')).toBeInTheDocument()
@@ -86,7 +87,7 @@ describe('MinimalisticGamesList', () => {
       expect(screen.getByText('Uruguay')).toBeInTheDocument()
     })
 
-    it('shows team names from teamsMap', () => {
+    it('shows team names from teamsMap', async () => {
       const team1 = createTeam('germany', 'Germany')
       const team2 = createTeam('spain', 'Spain')
 
@@ -105,13 +106,14 @@ describe('MinimalisticGamesList', () => {
         }),
       ]
 
-      renderWithTheme(<MinimalisticGamesList games={games} teamsMap={teamsMap} />)
+      const component = await MinimalisticGamesList({ games, teamsMap })
+      renderWithTheme(component)
 
       expect(screen.getByText('Germany')).toBeInTheDocument()
       expect(screen.getByText('Spain')).toBeInTheDocument()
     })
 
-    it('shows scores (home_score - away_score)', () => {
+    it('shows scores (home_score - away_score)', async () => {
       const team1 = createTeam('france', 'France')
       const team2 = createTeam('italy', 'Italy')
 
@@ -130,14 +132,15 @@ describe('MinimalisticGamesList', () => {
         }),
       ]
 
-      renderWithTheme(<MinimalisticGamesList games={games} teamsMap={teamsMap} />)
+      const component = await MinimalisticGamesList({ games, teamsMap })
+      renderWithTheme(component)
 
       expect(screen.getByText('3 - 2')).toBeInTheDocument()
     })
   })
 
   describe('Game sorting', () => {
-    it('sorts games by game_number ascending', () => {
+    it('sorts games by game_number ascending', async () => {
       const team1 = createTeam('argentina', 'Argentina')
       const team2 = createTeam('brazil', 'Brazil')
       const team3 = createTeam('chile', 'Chile')
@@ -179,9 +182,8 @@ describe('MinimalisticGamesList', () => {
         }),
       ]
 
-      const { container } = renderWithTheme(
-        <MinimalisticGamesList games={games} teamsMap={teamsMap} />
-      )
+      const component = await MinimalisticGamesList({ games, teamsMap })
+      const { container } = renderWithTheme(component)
 
       // Get all game rows
       const gameRows = container.querySelectorAll('[class*="MuiTypography"]')
@@ -197,7 +199,7 @@ describe('MinimalisticGamesList', () => {
       expect(game2Index).toBeLessThan(game3Index)
     })
 
-    it('first game shown is lowest game_number', () => {
+    it('first game shown is lowest game_number', async () => {
       const team1 = createTeam('portugal', 'Portugal')
       const team2 = createTeam('netherlands', 'Netherlands')
       const team3 = createTeam('belgium', 'Belgium')
@@ -228,9 +230,8 @@ describe('MinimalisticGamesList', () => {
         }),
       ]
 
-      const { container } = renderWithTheme(
-        <MinimalisticGamesList games={games} teamsMap={teamsMap} />
-      )
+      const component = await MinimalisticGamesList({ games, teamsMap })
+      const { container } = renderWithTheme(component)
 
       // Get all game rows
       const gameRows = container.querySelectorAll('[class*="MuiTypography"]')
@@ -243,7 +244,7 @@ describe('MinimalisticGamesList', () => {
   })
 
   describe('Penalty results', () => {
-    it('shows penalty result when game has penalties', () => {
+    it('shows penalty result when game has penalties', async () => {
       const team1 = createTeam('argentina', 'Argentina')
       const team2 = createTeam('brazil', 'Brazil')
 
@@ -269,13 +270,14 @@ describe('MinimalisticGamesList', () => {
         }),
       ]
 
-      renderWithTheme(<MinimalisticGamesList games={games} teamsMap={teamsMap} />)
+      const component = await MinimalisticGamesList({ games, teamsMap })
+      renderWithTheme(component)
 
       // Verify penalty is displayed with regular score
       expect(screen.getByText('2 - 2 (4-3p)')).toBeInTheDocument()
     })
 
-    it('uses formatPenaltyResult() utility correctly', () => {
+    it('uses formatPenaltyResult() utility correctly', async () => {
       const team1 = createTeam('germany', 'Germany')
       const team2 = createTeam('italy', 'Italy')
 
@@ -301,13 +303,14 @@ describe('MinimalisticGamesList', () => {
         }),
       ]
 
-      renderWithTheme(<MinimalisticGamesList games={games} teamsMap={teamsMap} />)
+      const component = await MinimalisticGamesList({ games, teamsMap })
+      renderWithTheme(component)
 
       // Verify the complete format with penalty shootout
       expect(screen.getByText('1 - 1 (5-4p)')).toBeInTheDocument()
     })
 
-    it('format shows regular score and penalty score', () => {
+    it('format shows regular score and penalty score', async () => {
       const team1 = createTeam('france', 'France')
       const team2 = createTeam('spain', 'Spain')
 
@@ -333,7 +336,8 @@ describe('MinimalisticGamesList', () => {
         }),
       ]
 
-      renderWithTheme(<MinimalisticGamesList games={games} teamsMap={teamsMap} />)
+      const component = await MinimalisticGamesList({ games, teamsMap })
+      renderWithTheme(component)
 
       // Expected format: "0 - 0 (3-2p)"
       expect(screen.getByText('0 - 0 (3-2p)')).toBeInTheDocument()
@@ -341,7 +345,7 @@ describe('MinimalisticGamesList', () => {
   })
 
   describe('Edge cases', () => {
-    it('shows team code when team not in teamsMap', () => {
+    it('shows team code when team not in teamsMap', async () => {
       const team1 = createTeam('argentina', 'Argentina')
 
       const teamsMap = {
@@ -359,7 +363,8 @@ describe('MinimalisticGamesList', () => {
         }),
       ]
 
-      renderWithTheme(<MinimalisticGamesList games={games} teamsMap={teamsMap} />)
+      const component = await MinimalisticGamesList({ games, teamsMap })
+      renderWithTheme(component)
 
       // Home team should show name
       expect(screen.getByText('Argentina')).toBeInTheDocument()
@@ -368,7 +373,7 @@ describe('MinimalisticGamesList', () => {
       expect(screen.getByText('TBD')).toBeInTheDocument()
     })
 
-    it('shows rule description when team is null but rule exists', () => {
+    it('shows rule description when team is null but rule exists', async () => {
       const teamsMap = {}
 
       const games: ExtendedGameData[] = [
@@ -383,14 +388,15 @@ describe('MinimalisticGamesList', () => {
         }),
       ]
 
-      renderWithTheme(<MinimalisticGamesList games={games} teamsMap={teamsMap} />)
+      const component = await MinimalisticGamesList({ games, teamsMap })
+      renderWithTheme(component)
 
       // Should show rule descriptions
       expect(screen.getByText('Primero Grupo A')).toBeInTheDocument()
       expect(screen.getByText('Segundo Grupo B')).toBeInTheDocument()
     })
 
-    it('shows TBD when team is null and no rule exists', () => {
+    it('shows TBD when team is null and no rule exists', async () => {
       const teamsMap = {}
 
       const games: ExtendedGameData[] = [
@@ -405,23 +411,25 @@ describe('MinimalisticGamesList', () => {
         }),
       ]
 
-      renderWithTheme(<MinimalisticGamesList games={games} teamsMap={teamsMap} />)
+      const component = await MinimalisticGamesList({ games, teamsMap })
+      renderWithTheme(component)
 
       // Should show 'TBD' for both teams
       const tbdElements = screen.getAllByText('TBD')
       expect(tbdElements).toHaveLength(2)
     })
 
-    it('empty state when no games provided', () => {
+    it('empty state when no games provided', async () => {
       const teamsMap = {}
       const games: ExtendedGameData[] = []
 
-      renderWithTheme(<MinimalisticGamesList games={games} teamsMap={teamsMap} />)
+      const component = await MinimalisticGamesList({ games, teamsMap })
+      renderWithTheme(component)
 
       expect(screen.getByText('No hay partidos disponibles')).toBeInTheDocument()
     })
 
-    it('handles games without scores', () => {
+    it('handles games without scores', async () => {
       const team1 = createTeam('portugal', 'Portugal')
       const team2 = createTeam('croatia', 'Croatia')
 
@@ -440,7 +448,8 @@ describe('MinimalisticGamesList', () => {
         }),
       ]
 
-      renderWithTheme(<MinimalisticGamesList games={games} teamsMap={teamsMap} />)
+      const component = await MinimalisticGamesList({ games, teamsMap })
+      renderWithTheme(component)
 
       // Teams should be displayed
       expect(screen.getByText('Portugal')).toBeInTheDocument()
@@ -450,7 +459,7 @@ describe('MinimalisticGamesList', () => {
       expect(screen.getByText('- - -')).toBeInTheDocument()
     })
 
-    it('handles games with partial scores (home score only)', () => {
+    it('handles games with partial scores (home score only)', async () => {
       const team1 = createTeam('netherlands', 'Netherlands')
       const team2 = createTeam('belgium', 'Belgium')
 
@@ -469,13 +478,14 @@ describe('MinimalisticGamesList', () => {
         }),
       ]
 
-      renderWithTheme(<MinimalisticGamesList games={games} teamsMap={teamsMap} />)
+      const component = await MinimalisticGamesList({ games, teamsMap })
+      renderWithTheme(component)
 
       // Should display partial score
       expect(screen.getByText('2 - -')).toBeInTheDocument()
     })
 
-    it('handles games with zero scores', () => {
+    it('handles games with zero scores', async () => {
       const team1 = createTeam('england', 'England')
       const team2 = createTeam('scotland', 'Scotland')
 
@@ -494,13 +504,14 @@ describe('MinimalisticGamesList', () => {
         }),
       ]
 
-      renderWithTheme(<MinimalisticGamesList games={games} teamsMap={teamsMap} />)
+      const component = await MinimalisticGamesList({ games, teamsMap })
+      renderWithTheme(component)
 
       // Should display 0-0
       expect(screen.getByText('0 - 0')).toBeInTheDocument()
     })
 
-    it('handles games with large scores', () => {
+    it('handles games with large scores', async () => {
       const team1 = createTeam('brazil', 'Brazil')
       const team2 = createTeam('bolivia', 'Bolivia')
 
@@ -519,13 +530,14 @@ describe('MinimalisticGamesList', () => {
         }),
       ]
 
-      renderWithTheme(<MinimalisticGamesList games={games} teamsMap={teamsMap} />)
+      const component = await MinimalisticGamesList({ games, teamsMap })
+      renderWithTheme(component)
 
       // Should display large score correctly
       expect(screen.getByText('7 - 1')).toBeInTheDocument()
     })
 
-    it('handles penalty shootout with zero regular score', () => {
+    it('handles penalty shootout with zero regular score', async () => {
       const team1 = createTeam('germany', 'Germany')
       const team2 = createTeam('france', 'France')
 
@@ -551,7 +563,8 @@ describe('MinimalisticGamesList', () => {
         }),
       ]
 
-      renderWithTheme(<MinimalisticGamesList games={games} teamsMap={teamsMap} />)
+      const component = await MinimalisticGamesList({ games, teamsMap })
+      renderWithTheme(component)
 
       // Should show 0-0 with penalties
       expect(screen.getByText('0 - 0 (5-4p)')).toBeInTheDocument()
