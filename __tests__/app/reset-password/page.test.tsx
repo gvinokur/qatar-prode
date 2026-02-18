@@ -1,4 +1,5 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { useTranslations, useLocale } from 'next-intl';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ResetPasswordPage from '../../../app/[locale]/reset-password/page';
@@ -22,29 +23,10 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => mockSearchParams,
 }));
 
-// Mock next-intl
+// Mock next-intl hooks
 vi.mock('next-intl', () => ({
-  useTranslations: () => (key: string) => {
-    const translations: Record<string, string> = {
-      'resetPassword.title': 'Reset Password',
-      'resetPassword.errors.tokenNotProvided': 'Token not provided',
-      'resetPassword.errors.tokenInvalid': 'Invalid or expired token',
-      'resetPassword.errors.tokenVerifyFailed': 'Failed to verify token',
-      'resetPassword.errors.updateFailed': 'Failed to update password',
-      'resetPassword.newPassword.label': 'New Password',
-      'resetPassword.newPassword.required': 'Password is required',
-      'resetPassword.newPassword.minLength': 'Password must be at least 8 characters',
-      'resetPassword.confirmPassword.label': 'Confirm Password',
-      'resetPassword.confirmPassword.required': 'Please confirm your password',
-      'resetPassword.confirmPassword.mismatch': 'Passwords do not match',
-      'resetPassword.button.submit': 'Reset Password',
-      'resetPassword.button.submitting': 'Resetting...',
-      'resetPassword.success.updated': 'Password updated successfully',
-      'resetPassword.success.backHome': 'Back Home',
-    };
-    return translations[key] || key;
-  },
-  useLocale: () => 'es',
+  useTranslations: vi.fn(),
+  useLocale: vi.fn(),
 }));
 
 // Mock user actions
@@ -67,11 +49,37 @@ describe('ResetPasswordPage', () => {
     email: 'test@example.com',
   };
 
+  // Translation mock function
+  const mockT = vi.fn((key: string) => {
+    const translations: Record<string, string> = {
+      'resetPassword.title': 'Reset Password',
+      'resetPassword.errors.tokenNotProvided': 'Token not provided',
+      'resetPassword.errors.tokenInvalid': 'Invalid or expired token',
+      'resetPassword.errors.tokenVerifyFailed': 'Failed to verify token',
+      'resetPassword.errors.updateFailed': 'Failed to update password',
+      'resetPassword.newPassword.label': 'New Password',
+      'resetPassword.newPassword.required': 'Password is required',
+      'resetPassword.newPassword.minLength': 'Password must be at least 8 characters',
+      'resetPassword.confirmPassword.label': 'Confirm Password',
+      'resetPassword.confirmPassword.required': 'Please confirm your password',
+      'resetPassword.confirmPassword.mismatch': 'Passwords do not match',
+      'resetPassword.button.submit': 'Reset Password',
+      'resetPassword.button.submitting': 'Resetting...',
+      'resetPassword.success.updated': 'Password updated successfully',
+      'resetPassword.success.backHome': 'Back Home',
+    };
+    return translations[key] || key;
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     mockRouter.push.mockClear();
     // Clear and reset URLSearchParams
     (mockSearchParams as any).clear?.();
+
+    // Setup translation mocks
+    vi.mocked(useTranslations).mockReturnValue(mockT);
+    vi.mocked(useLocale).mockReturnValue('es');
   });
 
   afterEach(() => {
@@ -401,8 +409,6 @@ describe('ResetPasswordPage', () => {
 
     it('should redirect to home page after successful password update', async () => {
       const user = userEvent.setup();
-      vi.useFakeTimers();
-
       mockUpdateUserPassword.mockResolvedValue({ success: true });
 
       renderWithTheme(<ResetPasswordPage />);
@@ -424,11 +430,12 @@ describe('ResetPasswordPage', () => {
         expect(screen.getByText('Password updated successfully')).toBeInTheDocument();
       });
 
+      // Use fake timers AFTER all waitFor calls
+      vi.useFakeTimers();
       vi.advanceTimersByTime(3000);
+      vi.useRealTimers();
 
       expect(mockRouter.push).toHaveBeenCalledWith('/');
-
-      vi.useRealTimers();
     });
   });
 
@@ -496,8 +503,6 @@ describe('ResetPasswordPage', () => {
 
     it('should not redirect when password update fails', async () => {
       const user = userEvent.setup();
-      vi.useFakeTimers();
-
       mockUpdateUserPassword.mockRejectedValue(new Error('Network error'));
 
       renderWithTheme(<ResetPasswordPage />);
@@ -519,11 +524,12 @@ describe('ResetPasswordPage', () => {
         expect(screen.getByText('Failed to update password')).toBeInTheDocument();
       });
 
+      // Use fake timers AFTER all waitFor calls
+      vi.useFakeTimers();
       vi.advanceTimersByTime(3000);
+      vi.useRealTimers();
 
       expect(mockRouter.push).not.toHaveBeenCalled();
-
-      vi.useRealTimers();
     });
 
     it('should allow resubmission after error', async () => {
@@ -728,8 +734,11 @@ describe('ResetPasswordPage', () => {
       const passwordField = screen.getByLabelText('New Password');
       const confirmPasswordField = screen.getByLabelText('Confirm Password');
 
-      await user.type(passwordField, longPassword);
-      await user.type(confirmPasswordField, longPassword);
+      // Use paste instead of type for performance with long passwords
+      await user.click(passwordField);
+      await user.paste(longPassword);
+      await user.click(confirmPasswordField);
+      await user.paste(longPassword);
 
       const submitButton = screen.getByRole('button', { name: 'Reset Password' });
       await user.click(submitButton);
@@ -759,8 +768,11 @@ describe('ResetPasswordPage', () => {
       const passwordField = screen.getByLabelText('New Password');
       const confirmPasswordField = screen.getByLabelText('Confirm Password');
 
-      await user.type(passwordField, specialPassword);
-      await user.type(confirmPasswordField, specialPassword);
+      // Use paste instead of type for special characters
+      await user.click(passwordField);
+      await user.paste(specialPassword);
+      await user.click(confirmPasswordField);
+      await user.paste(specialPassword);
 
       const submitButton = screen.getByRole('button', { name: 'Reset Password' });
       await user.click(submitButton);
