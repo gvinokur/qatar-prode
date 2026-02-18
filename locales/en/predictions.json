@@ -1,65 +1,76 @@
 {
   "dashboard": {
-    "games": "Games",
-    "tournament": "Tournament",
-    "gamePredictions": "Game Predictions",
-    "tournamentPredictions": "Tournament Predictions",
-    "predictions": "Predictions"
+    "games": "EnOf(Partidos)",
+    "tournament": "EnOf(Torneo)",
+    "gamePredictions": "EnOf(Predicciones de Partidos)",
+    "tournamentPredictions": "EnOf(Predicciones de Torneo)",
+    "predictions": "EnOf(Predicciones)"
   },
   "filters": {
-    "label": "Filter",
-    "all": "All",
-    "groups": "Groups",
-    "playoffs": "Playoffs",
-    "unpredicted": "Unpredicted",
-    "closingSoon": "Closing Soon"
+    "label": "EnOf(Filtro)",
+    "all": "EnOf(Todos)",
+    "groups": "EnOf(Grupos)",
+    "playoffs": "EnOf(Playoffs)",
+    "unpredicted": "EnOf(Sin Predecir)",
+    "closingSoon": "EnOf(Cierran Pronto)"
   },
   "secondaryFilters": {
-    "group": "Group",
-    "round": "Round"
+    "group": "EnOf(Grupo)",
+    "round": "EnOf(Ronda)",
+    "all": "EnOf(Todos)",
+    "groupWithLetter": "EnOf(Grupo {letter})"
   },
   "game": {
-    "vs": "vs",
-    "editPrediction": "Edit prediction: {homeTeam} vs {awayTeam}",
-    "editResult": "Edit result"
+    "vs": "EnOf(vs)",
+    "editPrediction": "EnOf(Editar predicción: {homeTeam} vs {awayTeam})",
+    "editResult": "EnOf(Editar resultado)",
+    "viewLocalTime": "EnOf(Ver horario local)",
+    "viewYourTime": "EnOf(Ver tu horario)"
   },
   "urgency": {
     "games": {
-      "zero": "No games closing in {timeframe}",
-      "one": "{count} game closes in {timeframe}",
-      "other": "{count} games close in {timeframe}"
+      "zero": "EnOf(Ningún partido cierra en {timeframe})",
+      "one": "EnOf({count} partido cierra en {timeframe})",
+      "other": "EnOf({count} partidos cierran en {timeframe})"
     },
     "unpredicted": {
-      "one": ", {count} unpredicted",
-      "other": ", {count} unpredicted"
+      "one": "EnOf(, {count} sin predecir)",
+      "other": "EnOf(, {count} sin predecir)"
     },
-    "requiresAction": "REQUIRES ACTION",
-    "alreadyPredicted": "ALREADY PREDICTED",
+    "requiresAction": "EnOf(REQUIEREN ACCIÓN)",
+    "alreadyPredicted": "EnOf(YA PREDICHOS)",
     "tournament": {
-      "zero": "Tournament predictions unavailable",
-      "one": "Tournament predictions close in {timeframe}",
-      "other": "Tournament predictions close in {timeframe}"
+      "zero": "EnOf(Predicciones de torneo no disponibles)",
+      "one": "EnOf(Predicciones de torneo cierran en {timeframe})",
+      "other": "EnOf(Predicciones de torneo cierran en {timeframe})"
     },
     "timeframes": {
-      "twoHours": "2 hours",
-      "twentyFourHours": "24 hours",
-      "twoDays": "2 days"
+      "twoHours": "EnOf(2 horas)",
+      "twentyFourHours": "EnOf(24 horas)",
+      "twoDays": "EnOf(2 días)"
     },
-    "noGamesIn48Hours": "No games closing in the next 48 hours"
+    "noGamesIn48Hours": "EnOf(Ningún partido cierra en las próximas 48 horas)"
   },
   "points": {
-    "singular": "pt",
-    "plural": "pts"
+    "singular": "EnOf(pt)",
+    "plural": "EnOf(pts)"
   },
   "edit": {
-    "save": "Save",
-    "next": "Next",
-    "saving": "Saving...",
-    "cancel": "Cancel",
-    "boost": "Boost",
-    "boostSelection": "Boost Selection",
-    "penaltyWinner": "Penalty Winner",
-    "penaltyWinnerFull": "Penalty shootout winner",
-    "penaltyWinnerPrompt": "Since the game ended tied, please select the penalty shootout winner."
+    "save": "EnOf(Guardar)",
+    "next": "EnOf(Siguiente)",
+    "saving": "EnOf(Guardando...)",
+    "cancel": "EnOf(Cancelar)",
+    "boost": "EnOf(Boost)",
+    "boostSelection": "EnOf(Boost Selection)",
+    "noBoost": "EnOf(Ninguno)",
+    "penaltyWinner": "EnOf(Ganador Penales)",
+    "penaltyWinnerFull": "EnOf(Ganador de la tanda de penales)",
+    "penaltyWinnerPrompt": "EnOf(Dado que el pártido terminó empatado, por favor seleccione el ganador de la tanda de penales.)"
+  },
+  "tournament": {
+    "predictions": "EnOf(Predicciones de Torneo)",
+    "podium": "EnOf(Podio)",
+    "individualAwards": "EnOf(Premios Individuales)",
+    "qualified": "EnOf(Clasificados)"
   }
 }

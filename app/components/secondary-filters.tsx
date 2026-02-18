@@ -41,10 +41,10 @@ export function SecondaryFilters({
           label={t('secondaryFilters.group')}
           onChange={(e) => onGroupChange(e.target.value || null)}
         >
-          <MenuItem value="">Todos</MenuItem>
+          <MenuItem value="">{t('secondaryFilters.all')}</MenuItem>
           {groups.map(group => (
             <MenuItem key={group.id} value={group.id}>
-              Grupo {group.group_letter.toUpperCase()}
+              {t('secondaryFilters.groupWithLetter', { letter: group.group_letter.toUpperCase() })}
             </MenuItem>
           ))}
         </Select>
@@ -63,7 +63,7 @@ export function SecondaryFilters({
           label={t('secondaryFilters.round')}
           onChange={(e) => onRoundChange(e.target.value || null)}
         >
-          <MenuItem value="">Todos</MenuItem>
+          <MenuItem value="">{t('secondaryFilters.all')}</MenuItem>
           {rounds.map(round => (
             <MenuItem key={round.id} value={round.id}>
               {round.round_name}

@@ -16,12 +16,16 @@
   },
   "secondaryFilters": {
     "group": "Grupo",
-    "round": "Ronda"
+    "round": "Ronda",
+    "all": "Todos",
+    "groupWithLetter": "Grupo {letter}"
   },
   "game": {
     "vs": "vs",
     "editPrediction": "Editar predicción: {homeTeam} vs {awayTeam}",
-    "editResult": "Editar resultado"
+    "editResult": "Editar resultado",
+    "viewLocalTime": "Ver horario local",
+    "viewYourTime": "Ver tu horario"
   },
   "urgency": {
     "games": {
@@ -58,8 +62,15 @@
     "cancel": "Cancelar",
     "boost": "Boost",
     "boostSelection": "Boost Selection",
+    "noBoost": "Ninguno",
     "penaltyWinner": "Ganador Penales",
     "penaltyWinnerFull": "Ganador de la tanda de penales",
     "penaltyWinnerPrompt": "Dado que el pártido terminó empatado, por favor seleccione el ganador de la tanda de penales."
+  },
+  "tournament": {
+    "predictions": "Predicciones de Torneo",
+    "podium": "Podio",
+    "individualAwards": "Premios Individuales",
+    "qualified": "Clasificados"
   }
 }

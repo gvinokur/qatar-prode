@@ -877,7 +877,7 @@ export default function GamePredictionEditControls({
                   }
                 }}
               >
-                Ninguno
+                {t('edit.noBoost')}
               </ToggleButton>
               {boostCounts.silver.max > 0 && (
                 <ToggleButton
@@ -1007,7 +1007,7 @@ export default function GamePredictionEditControls({
                   }
                 }}
               >
-                Ninguno
+                {t('edit.noBoost')}
               </ToggleButton>
               {boostCounts.silver.max > 0 && (
                 <ToggleButton
