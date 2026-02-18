@@ -10,18 +10,8 @@ import { signIn } from 'next-auth/react';
 
 // Mock next-intl
 vi.mock('next-intl', () => ({
-  useTranslations: () => (key: string, values?: Record<string, any>) => {
-    const translations: Record<string, string> = {
-      'emailInput.email.label': 'Correo Electrónico',
-      'emailInput.email.error': 'Error al verificar el email',
-      'emailInput.buttons.continue': 'Continuar',
-      'emailInput.buttons.google': 'Continuar con Google',
-      'emailInput.divider': 'o',
-    };
-    if (values) return `${translations[key] || key}:${JSON.stringify(values)}`;
-    return translations[key] || key;
-  },
-  useLocale: () => 'es',
+  useTranslations: vi.fn(),
+  useLocale: vi.fn(() => 'es'),
 }));
 
 // Mock dependencies
@@ -53,25 +43,25 @@ describe('EmailInputForm', () => {
     it('renders email input field', () => {
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      expect(screen.getByLabelText(/correo/i)).toBeInTheDocument();
+      expect(screen.getByRole('textbox', { name: '[emailInput.email.label]' })).toBeInTheDocument();
     });
 
     it('renders continue button', () => {
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      expect(screen.getByRole('button', { name: /continuar$/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '[emailInput.buttons.continue]' })).toBeInTheDocument();
     });
 
     it('renders Google sign-in button', () => {
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      expect(screen.getByRole('button', { name: /continuar con google/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '[emailInput.buttons.google]' })).toBeInTheDocument();
     });
 
     it('renders divider with "o" text', () => {
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      expect(screen.getByText('o')).toBeInTheDocument();
+      expect(screen.getByText('[emailInput.divider]')).toBeInTheDocument();
     });
   });
 
@@ -79,7 +69,7 @@ describe('EmailInputForm', () => {
     it('allows typing in email field', async () => {
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/correo/i);
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
       await user.type(emailInput, 'test@example.com');
 
       expect(emailInput).toHaveValue('test@example.com');
@@ -88,7 +78,7 @@ describe('EmailInputForm', () => {
     it('clears email input when user types', async () => {
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/correo/i);
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
       await user.type(emailInput, 'test');
       await user.clear(emailInput);
       await user.type(emailInput, 'new@example.com');
@@ -99,7 +89,7 @@ describe('EmailInputForm', () => {
     it('accepts valid email formats with special characters', async () => {
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/correo/i) as HTMLInputElement;
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' }) as HTMLInputElement;
       await user.type(emailInput, 'user+tag@sub-domain.example.co.uk');
 
       expect(emailInput.value).toBe('user+tag@sub-domain.example.co.uk');
@@ -117,8 +107,8 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/correo/i);
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
 
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
@@ -138,8 +128,8 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/correo/i);
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
 
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
@@ -165,8 +155,8 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/correo/i);
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
 
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
@@ -191,9 +181,9 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/correo/i);
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
-      const googleButton = screen.getByRole('button', { name: /continuar con google/i });
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
+      const googleButton = screen.getByRole('button', { name: '[emailInput.buttons.google]' });
 
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
@@ -220,13 +210,13 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/correo/i);
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
 
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
 
-      const errorMessage = await screen.findByText('Error al verificar el email');
+      const errorMessage = await screen.findByText('[emailInput.email.error]');
       expect(errorMessage).toBeInTheDocument();
     });
 
@@ -237,13 +227,13 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/correo/i);
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
 
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
 
-      const errorMessage = await screen.findByText('Error al verificar el email');
+      const errorMessage = await screen.findByText('[emailInput.email.error]');
       expect(errorMessage).toBeInTheDocument();
       expect(mockOnEmailSubmit).not.toHaveBeenCalled();
     });
@@ -255,7 +245,7 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const googleButton = screen.getByRole('button', { name: /continuar con google/i });
+      const googleButton = screen.getByRole('button', { name: '[emailInput.buttons.google]' });
       await user.click(googleButton);
 
       await waitFor(() => {
@@ -268,7 +258,7 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const googleButton = screen.getByRole('button', { name: /continuar con google/i });
+      const googleButton = screen.getByRole('button', { name: '[emailInput.buttons.google]' });
       await user.click(googleButton);
 
       await waitFor(() => {
@@ -283,9 +273,9 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/correo/i);
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
-      const googleButton = screen.getByRole('button', { name: /continuar con google/i });
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
+      const googleButton = screen.getByRole('button', { name: '[emailInput.buttons.google]' });
 
       await user.click(googleButton);
 
@@ -304,22 +294,22 @@ describe('EmailInputForm', () => {
     it('requires email field', () => {
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/correo/i);
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
       expect(emailInput).toBeRequired();
     });
 
     it('has proper email input type', () => {
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/correo/i);
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
       expect(emailInput).toHaveAttribute('type', 'email');
     });
 
     it('has proper keyboard navigation', async () => {
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/correo/i);
-      const continueButton = screen.getByRole('button', { name: /continuar$/i });
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const continueButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
       const googleButton = screen.getByRole('button', { name: /google/i });
 
       // Tab to email input
@@ -338,7 +328,7 @@ describe('EmailInputForm', () => {
     it('submit button has correct type attribute', () => {
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
       expect(submitButton).toHaveAttribute('type', 'submit');
     });
   });
@@ -353,8 +343,8 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/correo/i);
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
       const googleButton = screen.getByRole('button', { name: /google/i });
 
       await user.type(emailInput, 'test@example.com');
@@ -388,8 +378,8 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/correo/i);
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
 
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
@@ -415,8 +405,8 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/correo/i);
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
 
       // First submission with error
       await user.type(emailInput, 'test@example.com');
@@ -448,8 +438,8 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/correo/i);
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
 
       await user.type(emailInput, 'existing@example.com');
       await user.click(submitButton);
@@ -467,8 +457,8 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/correo/i);
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
 
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
@@ -491,8 +481,8 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/correo/i);
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
 
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
@@ -518,8 +508,8 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/correo/i);
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
 
       await user.type(emailInput, 'test@example.com');
 
@@ -541,8 +531,8 @@ describe('EmailInputForm', () => {
 
       renderWithTheme(<EmailInputForm onEmailSubmit={mockOnEmailSubmit} />);
 
-      const emailInput = screen.getByLabelText(/correo/i);
-      const submitButton = screen.getByRole('button', { name: /continuar$/i });
+      const emailInput = screen.getByRole('textbox', { name: '[emailInput.email.label]' });
+      const submitButton = screen.getByRole('button', { name: '[emailInput.buttons.continue]' });
 
       await user.type(emailInput, 'test@example.com');
       await user.click(submitButton);
