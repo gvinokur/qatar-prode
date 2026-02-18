@@ -54,7 +54,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
     // Check if user is OTP-only (has account but no password, no Google)
     if (methods.userExists && !methods.hasPassword && !methods.hasGoogle) {
       // Auto-send OTP for OTP-only users
-      const result = await sendOTPCode(submittedEmail);
+      const result = await sendOTPCode(submittedEmail, locale);
       if (result.success) {
         switchMode('otpVerify');
       } else {
@@ -101,7 +101,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
 
   // Handle OTP login click from LoginForm
   const handleOTPLoginClick = async () => {
-    const result = await sendOTPCode(email);
+    const result = await sendOTPCode(email, locale);
     if (result.success) {
       setIsNewUserSignup(false);
       switchMode('otpVerify');
@@ -112,7 +112,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
 
   // Handle OTP signup click from SignupForm
   const handleOTPSignupClick = async () => {
-    const result = await sendOTPCode(email);
+    const result = await sendOTPCode(email, locale);
     if (result.success) {
       setIsNewUserSignup(true);
       switchMode('otpVerify');
@@ -148,7 +148,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
 
   // Handle OTP resend
   const handleOTPResend = async () => {
-    const result = await sendOTPCode(email);
+    const result = await sendOTPCode(email, locale);
     if (!result.success) {
       // Error handled in OTP component
     }
