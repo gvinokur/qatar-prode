@@ -189,6 +189,62 @@ await waitFor(() => {
 
 **Solution:** Use `getByRole('textbox', { name: '[key]' })` instead
 
+### Error 5: Clickable Text Elements (Typography with onClick)
+
+**Pattern:** Some components use `<Typography onClick={...}>` instead of semantic buttons/links.
+
+**Example from component:**
+```typescript
+<Typography
+  color={'primary'}
+  onClick={() => switchMode('forgotPassword')}
+  sx={{ cursor: 'pointer' }}
+>
+  {t('login.forgotPassword')}
+</Typography>
+```
+
+**Correct test approach:**
+```typescript
+// ✅ CORRECT - Use getByText for clickable Typography
+fireEvent.click(screen.getByText('[login.forgotPassword]'));
+```
+
+**❌ WRONG - Don't try to use getByRole:**
+```typescript
+// This won't work - Typography doesn't have button role
+screen.getByRole('button', { name: '[login.forgotPassword]' })
+```
+
+**How to identify if translation key is correct:**
+
+1. **Check the component source** to see what translation key is used
+2. **Look for the pattern:** `{t('key.name')}` in Typography/span/div with onClick
+3. **Test should match exactly:** `screen.getByText('[key.name]')`
+
+**How to find these patterns in tests:**
+
+```bash
+# Find all fireEvent.click with getByText (potential clickable text)
+grep -n "fireEvent.click(screen.getByText" __tests__/**/*.test.tsx
+
+# Find userEvent.click with getByText (potential clickable text)
+grep -n "user.click(screen.getByText" __tests__/**/*.test.tsx
+```
+
+**Verification checklist when you find these:**
+- [ ] Check component to confirm it's Typography/span/div with onClick (not a button)
+- [ ] Verify translation key matches exactly: component uses `t('x.y')` → test uses `'[x.y]'`
+- [ ] Ensure no typos in translation key
+- [ ] Run test to confirm it passes and doesn't timeout
+
+**Common mistake:**
+```typescript
+// Component uses: t('login.forgotPassword')
+// Test incorrectly uses: '[loginDialog.forgotPassword]'  ❌ Wrong namespace!
+// Test should use:       '[login.forgotPassword]'        ✅ Correct
+```
+
 ## Checklist for Converting Tests
 
 - [ ] Import `createMockTranslations` and `* as intl`
@@ -198,6 +254,7 @@ await waitFor(() => {
 - [ ] Replace all Spanish text with `[key]` format
 - [ ] Replace all regex patterns with exact `[key]` strings
 - [ ] Add locale parameter to ALL server action expectations
+- [ ] **Verify clickable text elements:** Run `grep -n "fireEvent.click(screen.getByText" <test-file>` and verify each translation key matches the component
 - [ ] Test for timeouts (indicates missing expectations)
 - [ ] Verify all tests pass
 
