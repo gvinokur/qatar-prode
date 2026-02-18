@@ -25,9 +25,9 @@ vi.mock('../../app/utils/game-score-calculator', () => ({
 }));
 
 vi.mock('../../app/utils/playoffs-rule-helper', () => ({
-    getTeamDescription: vi.fn((rule, shortName) => {
+    getTeamDescription: vi.fn((rule, t, useShort) => {
         if (!rule) return '';
-        if (shortName) return 'Short Team Desc';
+        if (useShort) return 'Short Team Desc';
         return 'Team Description';
     }),
 }));

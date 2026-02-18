@@ -43,9 +43,31 @@ function getTranslation(namespace: string, key: string, values?: Record<string, 
     return key; // Return key if value is not a string
   }
 
-  // Handle interpolation
+  // Handle ICU MessageFormat pluralization
+  // Pattern: {count, plural, =0 {...} one {...} other {...}}
+  // Simple approach: match the whole pattern with explicit plural rules
+  const simplePluralPattern = /\{(\w+),\s*plural,\s*(?:=(\d+)\s*\{([^}]+)\}\s*)?one\s*\{([^}]+)\}\s*other\s*\{([^}]+)\}\}/g;
+  value = value.replace(simplePluralPattern, (match, varName, exactNum, exactText, oneText, otherText) => {
+    if (!values || values[varName] === undefined) return match;
+
+    const count = values[varName];
+
+    // Check for exact match first (e.g., =0)
+    if (exactNum && count === parseInt(exactNum)) {
+      return exactText;
+    }
+
+    // Then check for one vs other
+    if (count === 1) {
+      return oneText;
+    } else {
+      return otherText;
+    }
+  });
+
+  // Handle simple interpolation
   if (values) {
-    return value.replace(/\{(\w+)\}/g, (match, varName) => {
+    value = value.replace(/\{(\w+)\}/g, (match, varName) => {
       return values[varName]?.toString() || match;
     });
   }

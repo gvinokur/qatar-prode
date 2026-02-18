@@ -89,7 +89,7 @@ describe('GameDetailsPopover', () => {
     it('shows alert when no urgent games', () => {
       renderWithTheme(<GameDetailsPopover {...defaultProps} hasUrgentGames={false} />);
 
-      expect(screen.getByText('Ningun partido cierra en las proximas 48 horas')).toBeInTheDocument();
+      expect(screen.getByText('Ningún partido cierra en las próximas 48 horas')).toBeInTheDocument();
     });
 
     it('renders UrgencyAccordionGroup when all data is provided', () => {
