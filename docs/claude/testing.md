@@ -572,6 +572,198 @@ it('should submit form with correct values', async () => {
 
 ## Mocking
 
+### ⚠️ CRITICAL: Module-Level Mocking Patterns
+
+**NEVER use inline arrow functions in `vi.mock()` at module level** - this causes Vitest to hang during test collection phase.
+
+#### ❌ WRONG Pattern (Causes Hanging)
+
+```typescript
+// ❌ DON'T DO THIS - Test will hang during collection
+vi.mock('next-intl', () => ({
+  useTranslations: () => (key: string) => {
+    const translations: Record<string, string> = { /* ... */ };
+    return translations[key] || key;
+  },
+  useLocale: () => 'es',
+}));
+```
+
+**Why this fails:**
+- Inline arrow functions at module level confuse Vitest's collection phase
+- Vitest tries to analyze the mock during import resolution
+- The nested function structure causes infinite loops or hangs
+- Tests timeout before ever reaching the execution phase
+
+**Symptoms:**
+- Test hangs during collection (before any test runs)
+- No console output, no error message
+- Timeout after 60+ seconds
+- `0 tests` collected
+
+#### ✅ CORRECT Pattern (Use vi.fn() + beforeEach)
+
+```typescript
+// ✅ DO THIS - Mock at module level with vi.fn()
+import { useTranslations, useLocale } from 'next-intl';
+import { vi } from 'vitest';
+
+vi.mock('next-intl', () => ({
+  useTranslations: vi.fn(),
+  useLocale: vi.fn(),
+}));
+
+// Define mock implementation
+const mockT = vi.fn((key: string) => {
+  const translations: Record<string, string> = {
+    'resetPassword.title': 'Reset Password',
+    'resetPassword.newPassword.label': 'New Password',
+    // ... more translations
+  };
+  return translations[key] || key;
+});
+
+describe('ResetPasswordPage', () => {
+  beforeEach(() => {
+    // Setup mock behavior in beforeEach
+    vi.mocked(useTranslations).mockReturnValue(mockT);
+    vi.mocked(useLocale).mockReturnValue('es');
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should render with translations', () => {
+    renderWithTheme(<ResetPasswordPage />);
+    expect(screen.getByText('Reset Password')).toBeInTheDocument();
+  });
+});
+```
+
+**Why this works:**
+- `vi.fn()` creates a proper mock spy at module level
+- Mock behavior is configured in `beforeEach` (not during import)
+- Vitest can safely analyze the mock during collection
+- Each test gets fresh mock state via `beforeEach`
+
+#### Pattern Comparison
+
+| Aspect | ❌ Wrong (Inline) | ✅ Right (vi.fn) |
+|--------|------------------|------------------|
+| Module-level mock | `() => (key) => {...}` | `vi.fn()` |
+| Mock behavior | Defined at import | Defined in `beforeEach` |
+| Vitest collection | Hangs/times out | Works correctly |
+| Test isolation | Poor (shared state) | Good (reset per test) |
+| Mock assertions | Difficult | Easy (`expect(mock).toHaveBeenCalled()`) |
+
+#### Real-World Example: next-intl Mocking
+
+```typescript
+import { useTranslations } from 'next-intl';
+import { vi } from 'vitest';
+import { renderWithTheme } from '@/__tests__/utils/test-utils';
+
+// ✅ Mock at module level with vi.fn()
+vi.mock('next-intl', () => ({
+  useTranslations: vi.fn(),
+}));
+
+describe('AuthForm', () => {
+  let mockT: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    // Create translation function
+    mockT = vi.fn((key: string) => {
+      const translations: Record<string, string> = {
+        'auth.login.title': 'Sign In',
+        'auth.login.email.label': 'Email',
+        'auth.login.password.label': 'Password',
+        'auth.login.submit': 'Sign In',
+      };
+      return translations[key] || key;
+    });
+
+    // Setup mock
+    vi.mocked(useTranslations).mockReturnValue(mockT);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should render login form', () => {
+    renderWithTheme(<AuthForm />);
+
+    expect(screen.getByText('Sign In')).toBeInTheDocument();
+    expect(screen.getByLabelText('Email')).toBeInTheDocument();
+    expect(mockT).toHaveBeenCalledWith('auth.login.title');
+  });
+});
+```
+
+#### Other Common Modules to Mock
+
+**Next.js navigation:**
+```typescript
+import { useRouter, useSearchParams } from 'next/navigation';
+import { vi } from 'vitest';
+
+// ✅ Correct pattern
+vi.mock('next/navigation', () => ({
+  useRouter: vi.fn(),
+  useSearchParams: vi.fn(),
+  usePathname: vi.fn(),
+}));
+
+describe('MyComponent', () => {
+  beforeEach(() => {
+    const mockRouter = { push: vi.fn(), back: vi.fn() };
+    vi.mocked(useRouter).mockReturnValue(mockRouter);
+
+    const mockSearchParams = new URLSearchParams({ q: 'test' });
+    vi.mocked(useSearchParams).mockReturnValue(mockSearchParams);
+  });
+});
+```
+
+**NextAuth:**
+```typescript
+import { useSession } from 'next-auth/react';
+import { vi } from 'vitest';
+
+// ✅ Correct pattern
+vi.mock('next-auth/react', () => ({
+  useSession: vi.fn(),
+}));
+
+describe('MyComponent', () => {
+  beforeEach(() => {
+    vi.mocked(useSession).mockReturnValue({
+      data: { user: { id: '1', email: 'test@example.com' } },
+      status: 'authenticated',
+    });
+  });
+});
+```
+
+#### Debugging Mock Issues
+
+**If tests hang:**
+1. Check for inline arrow functions in `vi.mock()` at module level
+2. Move mock behavior from module level to `beforeEach`
+3. Use `vi.fn()` at module level, configure in `beforeEach`
+
+**If tests fail with "not a function":**
+1. Ensure you're calling `vi.mocked()` before using mock methods
+2. Verify mock is setup in `beforeEach` before test runs
+3. Check that module path in `vi.mock()` matches import path
+
+**If mocks aren't being called:**
+1. Verify `vi.mock()` is at top level (not inside describe)
+2. Check that `beforeEach` runs before each test
+3. Ensure `vi.clearAllMocks()` doesn't clear before assertions
+
 ### Mocking AWS S3
 
 When testing file uploads:
