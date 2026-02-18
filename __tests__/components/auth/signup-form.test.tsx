@@ -8,6 +8,8 @@ import { signupUser } from '../../../app/actions/user-actions';
 import { User } from '../../../app/db/tables-definition';
 import { setupTestMocks } from '../../mocks/setup-helpers';
 import { renderWithTheme } from '../../utils/test-utils';
+import { createMockTranslations } from '../../utils/mock-translations';
+import * as intl from 'next-intl';
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
@@ -18,6 +20,12 @@ vi.mock('next/navigation', () => ({
 // Mock next-auth/react
 vi.mock('next-auth/react', () => ({
   signIn: vi.fn(),
+}));
+
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useTranslations: vi.fn(),
+  useLocale: vi.fn(() => 'es'),
 }));
 
 // Mock user actions
@@ -73,6 +81,11 @@ describe('SignupForm', () => {
 
     vi.mocked(signupUser).mockResolvedValue(mockUser);
     vi.mocked(validator.isEmail).mockReturnValue(true);
+
+    // Setup i18n mocks
+    vi.mocked(intl.useTranslations).mockReturnValue(
+      createMockTranslations('auth')
+    );
   });
 
   afterEach(() => {
@@ -83,29 +96,29 @@ describe('SignupForm', () => {
     it('renders all form fields correctly', () => {
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
-      expect(screen.getByLabelText('E-Mail')).toBeInTheDocument();
-      expect(screen.getByLabelText('Confirmacion de E-Mail')).toBeInTheDocument();
-      expect(screen.getByLabelText('Apodo')).toBeInTheDocument();
-      expect(screen.getByLabelText('Contraseña')).toBeInTheDocument();
-      expect(screen.getByLabelText('Confirmacion de Contraseña')).toBeInTheDocument();
-      expect(screen.getByText('Registrarse')).toBeInTheDocument();
+      expect(screen.getByLabelText('[signup.email.label]')).toBeInTheDocument();
+      expect(screen.getByLabelText('[signup.confirmEmail.label]')).toBeInTheDocument();
+      expect(screen.getByLabelText('[signup.nickname.label]')).toBeInTheDocument();
+      expect(screen.getByLabelText('[signup.password.label]')).toBeInTheDocument();
+      expect(screen.getByLabelText('[signup.password.confirmLabel]')).toBeInTheDocument();
+      expect(screen.getByText('[signup.buttons.submit]')).toBeInTheDocument();
     });
 
     it('renders form fields with correct types', () => {
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
-      expect(screen.getByLabelText('E-Mail')).toHaveAttribute('type', 'text');
-      expect(screen.getByLabelText('Confirmacion de E-Mail')).toHaveAttribute('type', 'text');
-      expect(screen.getByLabelText('Apodo')).toHaveAttribute('type', 'text');
-      expect(screen.getByLabelText('Contraseña')).toHaveAttribute('type', 'password');
-      expect(screen.getByLabelText('Confirmacion de Contraseña')).toHaveAttribute('type', 'password');
+      expect(screen.getByLabelText('[signup.email.label]')).toHaveAttribute('type', 'text');
+      expect(screen.getByLabelText('[signup.confirmEmail.label]')).toHaveAttribute('type', 'text');
+      expect(screen.getByLabelText('[signup.nickname.label]')).toHaveAttribute('type', 'text');
+      expect(screen.getByLabelText('[signup.password.label]')).toHaveAttribute('type', 'password');
+      expect(screen.getByLabelText('[signup.password.confirmLabel]')).toHaveAttribute('type', 'password');
     });
 
     it('has autofocus on email field', () => {
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       // Check that email field has name attribute (autofocus is set by the TextField component)
-      expect(screen.getByLabelText('E-Mail')).toHaveAttribute('name', 'email');
+      expect(screen.getByLabelText('[signup.email.label]')).toHaveAttribute('name', 'email');
     });
 
     it('does not show error alert initially', () => {
@@ -119,10 +132,10 @@ describe('SignupForm', () => {
     it('shows required error for empty email', async () => {
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
-        expect(screen.getByText('Por favor ingrese su e-mail')).toBeInTheDocument();
+        expect(screen.getByText('[signup.email.required]')).toBeInTheDocument();
       });
     });
 
@@ -131,135 +144,135 @@ describe('SignupForm', () => {
 
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
-      fireEvent.change(screen.getByLabelText('E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.email.label]'), {
         target: { value: 'invalid-email' },
       });
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
-        expect(screen.getByText('Direccion de E-Mail invalida')).toBeInTheDocument();
+        expect(screen.getByText('[signup.email.invalid]')).toBeInTheDocument();
       });
     });
 
     it('shows required error for empty email confirmation', async () => {
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
-      fireEvent.change(screen.getByLabelText('E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.email.label]'), {
         target: { value: 'test@example.com' },
       });
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
-        expect(screen.getByText('Por favor confirme su e-mail')).toBeInTheDocument();
+        expect(screen.getByText('[signup.confirmEmail.required]')).toBeInTheDocument();
       });
     });
 
     it('shows mismatch error when email confirmation does not match', async () => {
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
-      fireEvent.change(screen.getByLabelText('E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.email.label]'), {
         target: { value: 'test@example.com' },
       });
 
-      fireEvent.change(screen.getByLabelText('Confirmacion de E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.confirmEmail.label]'), {
         target: { value: 'different@example.com' },
       });
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
-        expect(screen.getByText('Confirme su e-mail correctamente')).toBeInTheDocument();
+        expect(screen.getByText('[signup.confirmEmail.mismatch]')).toBeInTheDocument();
       });
     });
 
     it('shows required error for empty password', async () => {
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
-      fireEvent.change(screen.getByLabelText('E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.email.label]'), {
         target: { value: 'test@example.com' },
       });
 
-      fireEvent.change(screen.getByLabelText('Confirmacion de E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.confirmEmail.label]'), {
         target: { value: 'test@example.com' },
       });
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
-        expect(screen.getByText('Cree su contraseña')).toBeInTheDocument();
+        expect(screen.getByText('[signup.password.required]')).toBeInTheDocument();
       });
     });
 
     it('shows required error for empty password confirmation', async () => {
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
-      fireEvent.change(screen.getByLabelText('E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.email.label]'), {
         target: { value: 'test@example.com' },
       });
 
-      fireEvent.change(screen.getByLabelText('Confirmacion de E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.confirmEmail.label]'), {
         target: { value: 'test@example.com' },
       });
 
-      fireEvent.change(screen.getByLabelText('Contraseña'), {
+      fireEvent.change(screen.getByLabelText('[signup.password.label]'), {
         target: { value: 'password123' },
       });
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
-        expect(screen.getByText('Por favor confirme su contraseña')).toBeInTheDocument();
+        expect(screen.getByText('[signup.password.confirmRequired]')).toBeInTheDocument();
       });
     });
 
     it('shows mismatch error when password confirmation does not match', async () => {
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
-      fireEvent.change(screen.getByLabelText('E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.email.label]'), {
         target: { value: 'test@example.com' },
       });
 
-      fireEvent.change(screen.getByLabelText('Confirmacion de E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.confirmEmail.label]'), {
         target: { value: 'test@example.com' },
       });
 
-      fireEvent.change(screen.getByLabelText('Contraseña'), {
+      fireEvent.change(screen.getByLabelText('[signup.password.label]'), {
         target: { value: 'password123' },
       });
 
-      fireEvent.change(screen.getByLabelText('Confirmacion de Contraseña'), {
+      fireEvent.change(screen.getByLabelText('[signup.password.confirmLabel]'), {
         target: { value: 'differentpassword' },
       });
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
-        expect(screen.getByText('Confirme su contraseña correctamente')).toBeInTheDocument();
+        expect(screen.getByText('[signup.password.confirmMismatch]')).toBeInTheDocument();
       });
     });
 
     it('allows nickname to be optional', async () => {
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
-      fireEvent.change(screen.getByLabelText('E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.email.label]'), {
         target: { value: 'test@example.com' },
       });
 
-      fireEvent.change(screen.getByLabelText('Confirmacion de E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.confirmEmail.label]'), {
         target: { value: 'test@example.com' },
       });
 
-      fireEvent.change(screen.getByLabelText('Contraseña'), {
+      fireEvent.change(screen.getByLabelText('[signup.password.label]'), {
         target: { value: 'password123' },
       });
 
-      fireEvent.change(screen.getByLabelText('Confirmacion de Contraseña'), {
+      fireEvent.change(screen.getByLabelText('[signup.password.confirmLabel]'), {
         target: { value: 'password123' },
       });
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
         expect(signupUser).toHaveBeenCalledWith({
@@ -281,23 +294,23 @@ describe('SignupForm', () => {
     };
 
     const fillFormWithValidData = () => {
-      fireEvent.change(screen.getByLabelText('E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.email.label]'), {
         target: { value: validFormData.email },
       });
 
-      fireEvent.change(screen.getByLabelText('Confirmacion de E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.confirmEmail.label]'), {
         target: { value: validFormData.email_confirm },
       });
 
-      fireEvent.change(screen.getByLabelText('Apodo'), {
+      fireEvent.change(screen.getByLabelText('[signup.nickname.label]'), {
         target: { value: validFormData.nickname },
       });
 
-      fireEvent.change(screen.getByLabelText('Contraseña'), {
+      fireEvent.change(screen.getByLabelText('[signup.password.label]'), {
         target: { value: validFormData.password },
       });
 
-      fireEvent.change(screen.getByLabelText('Confirmacion de Contraseña'), {
+      fireEvent.change(screen.getByLabelText('[signup.password.confirmLabel]'), {
         target: { value: validFormData.password_confirm },
       });
     };
@@ -307,7 +320,7 @@ describe('SignupForm', () => {
 
       fillFormWithValidData();
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
         expect(signupUser).toHaveBeenCalledWith({
@@ -325,11 +338,11 @@ describe('SignupForm', () => {
 
       fillFormWithValidData();
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       // Check if button shows loading state
       await waitFor(() => {
-        expect(screen.getByText('Registrarse')).toBeInTheDocument();
+        expect(screen.getByText('[signup.buttons.submit]')).toBeInTheDocument();
       });
     });
 
@@ -338,7 +351,7 @@ describe('SignupForm', () => {
 
       fillFormWithValidData();
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
         expect(signIn).toHaveBeenCalledWith('credentials', {
@@ -354,7 +367,7 @@ describe('SignupForm', () => {
 
       fillFormWithValidData();
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
         expect(mockOnSuccess).toHaveBeenCalledWith(mockUser);
@@ -370,7 +383,7 @@ describe('SignupForm', () => {
 
       fillFormWithValidData();
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
         expect(screen.getByText(errorMessage)).toBeInTheDocument();
@@ -386,10 +399,10 @@ describe('SignupForm', () => {
 
       fillFormWithValidData();
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
-        expect(screen.getByText('Registration successful but automatic login failed. Please try logging in manually.')).toBeInTheDocument();
+        expect(screen.getByText('[accountSetup.errors.createAndLoginFailed]')).toBeInTheDocument();
       });
 
       expect(mockOnSuccess).not.toHaveBeenCalled();
@@ -403,7 +416,7 @@ describe('SignupForm', () => {
 
       fillFormWithValidData();
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
         expect(screen.getByText(`Error: ${errorMessage}`)).toBeInTheDocument();
@@ -415,7 +428,7 @@ describe('SignupForm', () => {
     it('does not submit form if required fields are missing', async () => {
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
         expect(signupUser).not.toHaveBeenCalled();
@@ -427,7 +440,7 @@ describe('SignupForm', () => {
     it('updates email field value on input change', () => {
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
-      const emailInput = screen.getByLabelText('E-Mail');
+      const emailInput = screen.getByLabelText('[signup.email.label]');
       fireEvent.change(emailInput, { target: { value: 'new@example.com' } });
 
       expect(emailInput).toHaveValue('new@example.com');
@@ -436,7 +449,7 @@ describe('SignupForm', () => {
     it('updates email confirmation field value on input change', () => {
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
-      const emailConfirmInput = screen.getByLabelText('Confirmacion de E-Mail');
+      const emailConfirmInput = screen.getByLabelText('[signup.confirmEmail.label]');
       fireEvent.change(emailConfirmInput, { target: { value: 'new@example.com' } });
 
       expect(emailConfirmInput).toHaveValue('new@example.com');
@@ -445,7 +458,7 @@ describe('SignupForm', () => {
     it('updates nickname field value on input change', () => {
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
-      const nicknameInput = screen.getByLabelText('Apodo');
+      const nicknameInput = screen.getByLabelText('[signup.nickname.label]');
       fireEvent.change(nicknameInput, { target: { value: 'newnickname' } });
 
       expect(nicknameInput).toHaveValue('newnickname');
@@ -454,7 +467,7 @@ describe('SignupForm', () => {
     it('updates password field value on input change', () => {
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
-      const passwordInput = screen.getByLabelText('Contraseña');
+      const passwordInput = screen.getByLabelText('[signup.password.label]');
       fireEvent.change(passwordInput, { target: { value: 'newpassword' } });
 
       expect(passwordInput).toHaveValue('newpassword');
@@ -463,7 +476,7 @@ describe('SignupForm', () => {
     it('updates password confirmation field value on input change', () => {
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
-      const passwordConfirmInput = screen.getByLabelText('Confirmacion de Contraseña');
+      const passwordConfirmInput = screen.getByLabelText('[signup.password.confirmLabel]');
       fireEvent.change(passwordConfirmInput, { target: { value: 'newpassword' } });
 
       expect(passwordConfirmInput).toHaveValue('newpassword');
@@ -474,18 +487,18 @@ describe('SignupForm', () => {
 
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
-      const emailInput = screen.getByLabelText('E-Mail');
+      const emailInput = screen.getByLabelText('[signup.email.label]');
       fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
       fireEvent.blur(emailInput);
 
       // No validation error should be shown until form is submitted
-      expect(screen.queryByText('Direccion de E-Mail invalida')).not.toBeInTheDocument();
+      expect(screen.queryByText('[signup.email.invalid]')).not.toBeInTheDocument();
 
       // But validation error should be shown on form submission
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
-        expect(screen.getByText('Direccion de E-Mail invalida')).toBeInTheDocument();
+        expect(screen.getByText('[signup.email.invalid]')).toBeInTheDocument();
       });
     });
   });
@@ -498,23 +511,23 @@ describe('SignupForm', () => {
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
       // Fill form and submit to get error
-      fireEvent.change(screen.getByLabelText('E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.email.label]'), {
         target: { value: 'test@example.com' },
       });
 
-      fireEvent.change(screen.getByLabelText('Confirmacion de E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.confirmEmail.label]'), {
         target: { value: 'test@example.com' },
       });
 
-      fireEvent.change(screen.getByLabelText('Contraseña'), {
+      fireEvent.change(screen.getByLabelText('[signup.password.label]'), {
         target: { value: 'password123' },
       });
 
-      fireEvent.change(screen.getByLabelText('Confirmacion de Contraseña'), {
+      fireEvent.change(screen.getByLabelText('[signup.password.confirmLabel]'), {
         target: { value: 'password123' },
       });
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
         expect(screen.getByText(errorMessage)).toBeInTheDocument();
@@ -523,7 +536,7 @@ describe('SignupForm', () => {
       // Now mock successful response and submit again
       (signupUser as any).mockResolvedValueOnce(mockUser);
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
         expect(screen.queryByText(errorMessage)).not.toBeInTheDocument();
@@ -535,23 +548,23 @@ describe('SignupForm', () => {
 
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
-      fireEvent.change(screen.getByLabelText('E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.email.label]'), {
         target: { value: 'test@example.com' },
       });
 
-      fireEvent.change(screen.getByLabelText('Confirmacion de E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.confirmEmail.label]'), {
         target: { value: 'test@example.com' },
       });
 
-      fireEvent.change(screen.getByLabelText('Contraseña'), {
+      fireEvent.change(screen.getByLabelText('[signup.password.label]'), {
         target: { value: 'password123' },
       });
 
-      fireEvent.change(screen.getByLabelText('Confirmacion de Contraseña'), {
+      fireEvent.change(screen.getByLabelText('[signup.password.confirmLabel]'), {
         target: { value: 'password123' },
       });
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
         expect(screen.getByText('Error: Network error')).toBeInTheDocument();
@@ -563,23 +576,23 @@ describe('SignupForm', () => {
 
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
-      fireEvent.change(screen.getByLabelText('E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.email.label]'), {
         target: { value: 'test@example.com' },
       });
 
-      fireEvent.change(screen.getByLabelText('Confirmacion de E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.confirmEmail.label]'), {
         target: { value: 'test@example.com' },
       });
 
-      fireEvent.change(screen.getByLabelText('Contraseña'), {
+      fireEvent.change(screen.getByLabelText('[signup.password.label]'), {
         target: { value: 'password123' },
       });
 
-      fireEvent.change(screen.getByLabelText('Confirmacion de Contraseña'), {
+      fireEvent.change(screen.getByLabelText('[signup.password.confirmLabel]'), {
         target: { value: 'password123' },
       });
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
         expect(screen.getByText('Error: SignIn error')).toBeInTheDocument();
@@ -593,23 +606,23 @@ describe('SignupForm', () => {
 
       renderWithTheme(<SignupForm onSuccess={customOnSuccess} />);
 
-      fireEvent.change(screen.getByLabelText('E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.email.label]'), {
         target: { value: 'test@example.com' },
       });
 
-      fireEvent.change(screen.getByLabelText('Confirmacion de E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.confirmEmail.label]'), {
         target: { value: 'test@example.com' },
       });
 
-      fireEvent.change(screen.getByLabelText('Contraseña'), {
+      fireEvent.change(screen.getByLabelText('[signup.password.label]'), {
         target: { value: 'password123' },
       });
 
-      fireEvent.change(screen.getByLabelText('Confirmacion de Contraseña'), {
+      fireEvent.change(screen.getByLabelText('[signup.password.confirmLabel]'), {
         target: { value: 'password123' },
       });
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
         expect(customOnSuccess).toHaveBeenCalledWith(mockUser);
@@ -622,23 +635,23 @@ describe('SignupForm', () => {
 
       renderWithTheme(<SignupForm onSuccess={customOnSuccess} />);
 
-      fireEvent.change(screen.getByLabelText('E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.email.label]'), {
         target: { value: 'test@example.com' },
       });
 
-      fireEvent.change(screen.getByLabelText('Confirmacion de E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.confirmEmail.label]'), {
         target: { value: 'test@example.com' },
       });
 
-      fireEvent.change(screen.getByLabelText('Contraseña'), {
+      fireEvent.change(screen.getByLabelText('[signup.password.label]'), {
         target: { value: 'password123' },
       });
 
-      fireEvent.change(screen.getByLabelText('Confirmacion de Contraseña'), {
+      fireEvent.change(screen.getByLabelText('[signup.password.confirmLabel]'), {
         target: { value: 'password123' },
       });
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
         expect(screen.getByText('Error message')).toBeInTheDocument();
@@ -652,20 +665,20 @@ describe('SignupForm', () => {
     it('has proper form structure with labels', () => {
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
-      expect(screen.getByLabelText('E-Mail')).toBeInTheDocument();
-      expect(screen.getByLabelText('Confirmacion de E-Mail')).toBeInTheDocument();
-      expect(screen.getByLabelText('Apodo')).toBeInTheDocument();
-      expect(screen.getByLabelText('Contraseña')).toBeInTheDocument();
-      expect(screen.getByLabelText('Confirmacion de Contraseña')).toBeInTheDocument();
+      expect(screen.getByLabelText('[signup.email.label]')).toBeInTheDocument();
+      expect(screen.getByLabelText('[signup.confirmEmail.label]')).toBeInTheDocument();
+      expect(screen.getByLabelText('[signup.nickname.label]')).toBeInTheDocument();
+      expect(screen.getByLabelText('[signup.password.label]')).toBeInTheDocument();
+      expect(screen.getByLabelText('[signup.password.confirmLabel]')).toBeInTheDocument();
     });
 
     it('shows error messages in helper text', async () => {
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
-        const emailField = screen.getByLabelText('E-Mail');
+        const emailField = screen.getByLabelText('[signup.email.label]');
         const helperText = emailField.parentElement?.parentElement?.querySelector('.MuiFormHelperText-root');
         expect(helperText).toHaveTextContent('Por favor ingrese su e-mail');
       });
@@ -674,10 +687,10 @@ describe('SignupForm', () => {
     it('marks fields with errors as invalid', async () => {
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
-        const emailField = screen.getByLabelText('E-Mail');
+        const emailField = screen.getByLabelText('[signup.email.label]');
         expect(emailField).toHaveAttribute('aria-invalid', 'true');
       });
     });
@@ -687,23 +700,23 @@ describe('SignupForm', () => {
 
       renderWithTheme(<SignupForm onSuccess={mockOnSuccess} />);
 
-      fireEvent.change(screen.getByLabelText('E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.email.label]'), {
         target: { value: 'test@example.com' },
       });
 
-      fireEvent.change(screen.getByLabelText('Confirmacion de E-Mail'), {
+      fireEvent.change(screen.getByLabelText('[signup.confirmEmail.label]'), {
         target: { value: 'test@example.com' },
       });
 
-      fireEvent.change(screen.getByLabelText('Contraseña'), {
+      fireEvent.change(screen.getByLabelText('[signup.password.label]'), {
         target: { value: 'password123' },
       });
 
-      fireEvent.change(screen.getByLabelText('Confirmacion de Contraseña'), {
+      fireEvent.change(screen.getByLabelText('[signup.password.confirmLabel]'), {
         target: { value: 'password123' },
       });
 
-      fireEvent.click(screen.getByText('Registrarse'));
+      fireEvent.click(screen.getByText('[signup.buttons.submit]'));
 
       await waitFor(() => {
         const alert = screen.getByRole('alert');

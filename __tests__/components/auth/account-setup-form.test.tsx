@@ -3,6 +3,8 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import AccountSetupForm from '../../../app/components/auth/account-setup-form';
 import { renderWithTheme } from '../../utils/test-utils';
+import { createMockTranslations } from '../../utils/mock-translations';
+import * as intl from 'next-intl';
 import * as otpActions from '../../../app/actions/otp-actions';
 import { signIn } from 'next-auth/react';
 
@@ -77,7 +79,12 @@ describe('AccountSetupForm', () => {
     vi.clearAllMocks();
     vi.mocked(otpActions.checkNicknameAvailability).mockResolvedValue({
       available: true
-    });
+    
+    // Setup i18n mocks
+    vi.mocked(intl.useTranslations).mockReturnValue(
+      createMockTranslations('auth')
+    );
+  });
   });
 
   it('should render the form with nickname field', () => {

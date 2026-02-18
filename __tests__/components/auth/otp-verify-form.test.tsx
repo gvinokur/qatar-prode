@@ -3,6 +3,8 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import OTPVerifyForm from '../../../app/components/auth/otp-verify-form';
 import { renderWithTheme } from '../../utils/test-utils';
+import { createMockTranslations } from '../../utils/mock-translations';
+import * as intl from 'next-intl';
 import * as otpActions from '../../../app/actions/otp-actions';
 
 // Mock next-intl with translation support
@@ -59,6 +61,11 @@ describe('OTPVerifyForm', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  
+    // Setup i18n mocks
+    vi.mocked(intl.useTranslations).mockReturnValue(
+      createMockTranslations('auth')
+    );
   });
 
   afterEach(() => {

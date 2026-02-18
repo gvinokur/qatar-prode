@@ -3,6 +3,8 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import EmailInputForm from '../../../app/components/auth/email-input-form';
 import { renderWithTheme } from '../../utils/test-utils';
+import { createMockTranslations } from '../../utils/mock-translations';
+import * as intl from 'next-intl';
 import { checkAuthMethods } from '../../../app/actions/oauth-actions';
 import { signIn } from 'next-auth/react';
 
@@ -36,6 +38,11 @@ describe('EmailInputForm', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  
+    // Setup i18n mocks
+    vi.mocked(intl.useTranslations).mockReturnValue(
+      createMockTranslations('auth')
+    );
   });
 
   afterEach(() => {
@@ -265,7 +272,7 @@ describe('EmailInputForm', () => {
       await user.click(googleButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Error al verificar el email')).toBeInTheDocument();
+        expect(screen.getByText('[emailInput.email.error]')).toBeInTheDocument();
       });
     });
 
@@ -541,7 +548,7 @@ describe('EmailInputForm', () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Error al verificar el email')).toBeInTheDocument();
+        expect(screen.getByText('[emailInput.email.error]')).toBeInTheDocument();
       });
     });
   });

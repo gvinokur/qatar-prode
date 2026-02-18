@@ -5,6 +5,8 @@ import userEvent from '@testing-library/user-event';
 import ForgotPasswordForm from '../../../app/components/auth/forgot-password-form';
 import { sendPasswordResetLink } from '../../../app/actions/user-actions';
 import { renderWithTheme } from '../../utils/test-utils';
+import { createMockTranslations } from '../../utils/mock-translations';
+import * as intl from 'next-intl';
 
 // Mock the user actions
 vi.mock('../../../app/actions/user-actions', () => ({
@@ -43,7 +45,12 @@ describe('ForgotPasswordForm', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSendPasswordResetLink.mockResolvedValue({ success: true, messageId: 'test-message-id' });
+    mockSendPasswordResetLink.mockResolvedValue({ success: true, messageId: 'test-message-id' 
+    // Setup i18n mocks
+    vi.mocked(intl.useTranslations).mockReturnValue(
+      createMockTranslations('auth')
+    );
+  });
   });
 
   afterEach(() => {
