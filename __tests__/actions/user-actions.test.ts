@@ -63,11 +63,10 @@ vi.mock('crypto', () => ({
 vi.mock('next-intl/server', () => ({
   getTranslations: vi.fn((config: { locale?: string; namespace?: string }) => {
     const locale = config?.locale || 'es';
-    const namespace = config?.namespace || 'errors';
     const translations = mockTranslations[locale as keyof typeof mockTranslations];
     return Promise.resolve((key: string) => {
-      const fullKey = namespace === 'errors' ? key : `${namespace}.${key.split('.')[1] || key}`;
-      return translations[fullKey as keyof typeof translations] || key;
+      // The key is the full path (e.g., 'signup.errors.emailInUse' or 'auth.userNotFound')
+      return translations[key as keyof typeof translations] || key;
     });
   }),
 }));
