@@ -30,22 +30,11 @@
     "closesIn": "EnOf(Cierra en {countdown})"
   },
   "urgency": {
-    "games": {
-      "zero": "EnOf(Ningún partido cierra en {timeframe})",
-      "one": "EnOf({count} partido cierra en {timeframe})",
-      "other": "EnOf({count} partidos cierran en {timeframe})"
-    },
-    "unpredicted": {
-      "one": "EnOf(, {count} sin predecir)",
-      "other": "EnOf(, {count} sin predecir)"
-    },
+    "games": "EnOf({count, plural, =0 {Ningún partido cierra en {timeframe}} one {{count} partido cierra en {timeframe}} other {{count} partidos cierran en {timeframe}}})",
+    "unpredicted": "EnOf({count, plural, one {, {count} sin predecir} other {, {count} sin predecir}})",
     "requiresAction": "EnOf(REQUIEREN ACCIÓN)",
     "alreadyPredicted": "EnOf(YA PREDICHOS)",
-    "tournament": {
-      "zero": "EnOf(Predicciones de torneo no disponibles)",
-      "one": "EnOf(Predicciones de torneo cierran en {timeframe})",
-      "other": "EnOf(Predicciones de torneo cierran en {timeframe})"
-    },
+    "tournament": "EnOf({count, plural, =0 {Predicciones de torneo no disponibles} one {Predicciones de torneo cierran en {timeframe}} other {Predicciones de torneo cierran en {timeframe}}})",
     "timeframes": {
       "twoHours": "EnOf(2 horas)",
       "twentyFourHours": "EnOf(24 horas)",
@@ -83,10 +72,7 @@
   },
   "common": {
     "of": "EnOf(de)",
-    "completed": {
-      "one": "EnOf(completado)",
-      "other": "EnOf(completados)"
-    }
+    "completed": "EnOf({count, plural, one {completado} other {completados}})"
   },
   "playoffs": {
     "firstPlace": "EnOf(Primero Grupo {group})",
