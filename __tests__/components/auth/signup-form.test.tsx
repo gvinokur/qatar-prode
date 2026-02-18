@@ -279,7 +279,7 @@ describe('SignupForm', () => {
           email: 'test@example.com',
           password_hash: 'password123',
           nickname: '',
-        });
+        }, 'es');
       });
     });
   });
@@ -327,7 +327,7 @@ describe('SignupForm', () => {
           email: validFormData.email,
           password_hash: validFormData.password,
           nickname: validFormData.nickname,
-        });
+        }, 'es');
       });
     });
 
@@ -680,7 +680,7 @@ describe('SignupForm', () => {
       await waitFor(() => {
         const emailField = screen.getByLabelText('[signup.email.label]');
         const helperText = emailField.parentElement?.parentElement?.querySelector('.MuiFormHelperText-root');
-        expect(helperText).toHaveTextContent('Por favor ingrese su e-mail');
+        expect(helperText).toHaveTextContent('[signup.email.required]');
       });
     });
 
