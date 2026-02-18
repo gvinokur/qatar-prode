@@ -1,5 +1,5 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { screen } from '@testing-library/react';
 import ResetSentView from '../../../app/components/auth/reset-sent-view';
 import { renderWithTheme } from '../../utils/test-utils';
@@ -7,7 +7,6 @@ import { renderWithTheme } from '../../utils/test-utils';
 // Mock next-intl hooks
 vi.mock('next-intl', () => ({
   useTranslations: vi.fn(),
-  useLocale: vi.fn(),
 }));
 
 describe('ResetSentView', () => {
@@ -16,12 +15,9 @@ describe('ResetSentView', () => {
     return key;
   });
 
-  const mockLocale = 'en';
-
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useTranslations).mockReturnValue(mockT);
-    vi.mocked(useLocale).mockReturnValue(mockLocale);
   });
 
   describe('basic rendering', () => {
@@ -176,23 +172,6 @@ describe('ResetSentView', () => {
     });
   });
 
-  describe('locale handling', () => {
-    it('retrieves locale from useLocale hook', () => {
-      renderWithTheme(<ResetSentView email="test@example.com" />);
-
-      expect(useLocale).toHaveBeenCalled();
-    });
-
-    it('handles different locales', () => {
-      vi.mocked(useLocale).mockReturnValue('ar');
-
-      renderWithTheme(<ResetSentView email="test@example.com" />);
-
-      expect(useLocale).toHaveBeenCalled();
-      expect(mockLocale).toBe('en');
-    });
-  });
-
   describe('rerender functionality', () => {
     it('updates email when prop changes', () => {
       const { rerenderWithTheme } = renderWithTheme(<ResetSentView email="old@example.com" />);
@@ -201,7 +180,6 @@ describe('ResetSentView', () => {
 
       vi.clearAllMocks();
       vi.mocked(useTranslations).mockReturnValue(mockT);
-      vi.mocked(useLocale).mockReturnValue(mockLocale);
 
       rerenderWithTheme(<ResetSentView email="new@example.com" />);
 
@@ -214,13 +192,11 @@ describe('ResetSentView', () => {
 
       vi.clearAllMocks();
       vi.mocked(useTranslations).mockReturnValue(mockT);
-      vi.mocked(useLocale).mockReturnValue(mockLocale);
 
       rerenderWithTheme(<ResetSentView email="email2@example.com" />);
 
       vi.clearAllMocks();
       vi.mocked(useTranslations).mockReturnValue(mockT);
-      vi.mocked(useLocale).mockReturnValue(mockLocale);
 
       rerenderWithTheme(<ResetSentView email="email3@example.com" />);
 

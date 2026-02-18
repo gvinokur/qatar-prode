@@ -1,5 +1,5 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { render, screen } from '@testing-library/react';
 import VerificationSentView from '../../../app/components/auth/verification-sent-view';
 import { renderWithTheme } from '../../utils/test-utils';
@@ -8,7 +8,6 @@ import type { User } from '../../../app/db/tables-definition';
 // Mock next-intl hooks
 vi.mock('next-intl', () => ({
   useTranslations: vi.fn(),
-  useLocale: vi.fn(),
 }));
 
 describe('VerificationSentView', () => {
@@ -16,8 +15,6 @@ describe('VerificationSentView', () => {
     if (values) return `${key}:${JSON.stringify(values)}`;
     return key;
   });
-
-  const mockLocale = 'en';
 
   const mockUser: User = {
     id: '1',
@@ -36,7 +33,6 @@ describe('VerificationSentView', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useTranslations).mockReturnValue(mockT);
-    vi.mocked(useLocale).mockReturnValue(mockLocale);
   });
 
   describe('rendering with user', () => {
@@ -220,14 +216,7 @@ describe('VerificationSentView', () => {
     });
   });
 
-  describe('locale handling', () => {
-    it('uses the correct locale from useLocale hook', () => {
-      renderWithTheme(<VerificationSentView user={mockUser} />);
-
-      expect(useLocale).toHaveBeenCalled();
-      expect(mockLocale).toBe('en');
-    });
-
+  describe('translations', () => {
     it('uses translations from auth namespace', () => {
       renderWithTheme(<VerificationSentView user={mockUser} />);
 
@@ -262,7 +251,6 @@ describe('VerificationSentView', () => {
 
       vi.clearAllMocks();
       vi.mocked(useTranslations).mockReturnValue(mockT);
-      vi.mocked(useLocale).mockReturnValue(mockLocale);
 
       const newUser: User = {
         ...mockUser,
@@ -281,7 +269,6 @@ describe('VerificationSentView', () => {
 
       vi.clearAllMocks();
       vi.mocked(useTranslations).mockReturnValue(mockT);
-      vi.mocked(useLocale).mockReturnValue(mockLocale);
 
       rerenderWithTheme(<VerificationSentView />);
 
@@ -293,7 +280,6 @@ describe('VerificationSentView', () => {
 
       vi.clearAllMocks();
       vi.mocked(useTranslations).mockReturnValue(mockT);
-      vi.mocked(useLocale).mockReturnValue(mockLocale);
 
       rerenderWithTheme(<VerificationSentView user={mockUser} />);
 
