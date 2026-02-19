@@ -128,6 +128,14 @@ export default async function MyComponent() {
 - Aria-label: "Select language"
 - Note: Language names ('English', 'Español') can stay hardcoded as they're self-referential
 
+**7. Mobile Bottom Nav Component (`app/components/tournament-bottom-nav/tournament-bottom-nav.tsx`)**
+- Navigation labels (mix of Spanish/English):
+  - "Home"
+  - "Tablas"
+  - "Reglas"
+  - "Stats"
+  - "Grupos"
+
 ### ❌ Out of Scope
 
 - Actual translation from placeholders (separate story)
@@ -146,6 +154,7 @@ export default async function MyComponent() {
 4. `/Users/gvinokur/Personal/qatar-prode-story-155/app/components/confirm-dialog.tsx`
 5. `/Users/gvinokur/Personal/qatar-prode-story-155/app/components/header/theme-switcher.tsx`
 6. `/Users/gvinokur/Personal/qatar-prode-story-155/app/components/header/language-switcher.tsx`
+7. `/Users/gvinokur/Personal/qatar-prode-story-155/app/components/tournament-bottom-nav/tournament-bottom-nav.tsx`
 
 ### Translation Files to Modify
 1. `/Users/gvinokur/Personal/qatar-prode-story-155/locales/en/common.json`
@@ -201,10 +210,21 @@ export default async function MyComponent() {
 
 ### Step 6: Update Language Switcher Component (Client Component)
 - Import `useTranslations` from 'next-intl'
-- Replace aria-label with `t('common.language.selectLanguage')`
+- Replace aria-label with `t('language.selectLanguage')` (namespace: 'common')
 - Add key to common.json files
 
-### Step 7: Update Translation Files
+### Step 7: Update Mobile Bottom Nav Component (Client Component)
+- Import `useTranslations` from 'next-intl'
+- **Component already uses** `useLocale` from next-intl
+- Replace navigation labels with translation keys:
+  - "Home" → `t('navigation.bottomNav.home')`
+  - "Tablas" → `t('navigation.bottomNav.results')`
+  - "Reglas" → `t('navigation.bottomNav.rules')`
+  - "Stats" → `t('navigation.bottomNav.stats')`
+  - "Grupos" → `t('navigation.bottomNav.groups')`
+- Add keys to navigation.json files
+
+### Step 8: Update Translation Files
 **Add keys to `locales/en/common.json`:**
 ```json
 {
@@ -326,6 +346,13 @@ export default async function MyComponent() {
       "logout": "EnOf(Salir)",
       "deleteAccount": "Delete Account"
     }
+  },
+  "bottomNav": {
+    "home": "Home",
+    "results": "EnOf(Tablas)",
+    "rules": "EnOf(Reglas)",
+    "stats": "EnOf(Stats)",
+    "groups": "EnOf(Grupos)"
   }
 }
 ```
@@ -347,6 +374,13 @@ export default async function MyComponent() {
       "logout": "Salir",
       "deleteAccount": "EsOf(Delete Account)"
     }
+  },
+  "bottomNav": {
+    "home": "EsOf(Home)",
+    "results": "Tablas",
+    "rules": "Reglas",
+    "stats": "Stats",
+    "groups": "Grupos"
   }
 }
 ```
@@ -383,6 +417,12 @@ export default async function MyComponent() {
 **6. Language Switcher Component Tests**
 - Test aria-label uses translation key
 - Verify correct namespace usage
+
+**7. Mobile Bottom Nav Component Tests**
+- Test all navigation labels use translation keys
+- Test correct namespace usage (`navigation`)
+- Verify label text renders with translations
+- Test that existing functionality (navigation, active tab) still works
 
 ### Test Utilities to Use
 - `renderWithTheme()` from `@/__tests__/utils/test-utils`
