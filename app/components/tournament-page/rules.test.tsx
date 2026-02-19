@@ -169,4 +169,91 @@ describe('Rules', () => {
       expect(screen.getByRole('link', { name: /EnOf\(Ver Reglas Completas\)/i })).toBeInTheDocument()
     })
   })
+
+  // Parameterized examples tests
+  describe('Parameterized Examples', () => {
+    it('renders example with correct point values from config', () => {
+      const customConfig = {
+        ...mockScoringConfig,
+        champion_points: 10,
+        runner_up_points: 7,
+        individual_award_points: 4,
+      }
+      renderWithProviders(<Rules scoringConfig={customConfig} expanded={true} fullpage={true} />)
+
+      // Examples should display the dynamic point values
+      expect(screen.getByText(/10 puntos/i)).toBeInTheDocument()
+      expect(screen.getByText(/7 puntos/i)).toBeInTheDocument()
+      expect(screen.getByText(/4 puntos/i)).toBeInTheDocument()
+    })
+
+    it('renders examples with singular form when points is 1', () => {
+      const configWithSingularPoints = {
+        ...mockScoringConfig,
+        champion_points: 1,
+        third_place_points: 1,
+        individual_award_points: 1,
+      }
+      renderWithProviders(<Rules scoringConfig={configWithSingularPoints} expanded={true} fullpage={false} />)
+
+      // Check that rule labels use singular form "Punto" (not "Puntos")
+      expect(screen.getByText(/1 Punto por campeon/i)).toBeInTheDocument()
+      expect(screen.getByText(/1 Punto por tercer puesto/i)).toBeInTheDocument()
+      expect(screen.getByText(/1 Punto por cada premio acertado/i)).toBeInTheDocument()
+    })
+
+    it('renders examples with plural form when points is greater than 1', () => {
+      const configWithPluralPoints = {
+        ...mockScoringConfig,
+        champion_points: 8,
+        runner_up_points: 6,
+      }
+      renderWithProviders(<Rules scoringConfig={configWithPluralPoints} expanded={true} fullpage={true} />)
+
+      // Should use "puntos" (plural)
+      expect(screen.getByText(/8 puntos/i)).toBeInTheDocument()
+      expect(screen.getByText(/6 puntos/i)).toBeInTheDocument()
+    })
+
+    it('renders exact score example with correct bonus calculation', () => {
+      const customConfig = {
+        ...mockScoringConfig,
+        game_exact_score_points: 5,
+        game_correct_outcome_points: 2,
+      }
+      renderWithProviders(<Rules scoringConfig={customConfig} expanded={true} fullpage={false} />)
+
+      // Bonus should be 5 - 2 = 3, total should be 5
+      // Check the label shows correct values
+      expect(screen.getByText(/3 puntos extra por resultado exacto.*total: 5 puntos/i)).toBeInTheDocument()
+    })
+
+    it('renders group position example with correct total points', () => {
+      const customConfig = {
+        ...mockScoringConfig,
+        qualified_team_points: 2,
+        exact_position_qualified_points: 3,
+      }
+      renderWithProviders(<Rules scoringConfig={customConfig} expanded={true} fullpage={false} />)
+
+      // Total should be 2 + 3 = 5
+      // Check the label shows correct total
+      expect(screen.getByText(/3 Puntos adicionales por posición exacta.*total: 5 puntos por equipo clasificado en posición exacta/i)).toBeInTheDocument()
+    })
+  })
+
+  // Qualified teams constraint tests
+  describe('Qualified Teams Constraint', () => {
+    it('renders qualified teams prediction time constraint', () => {
+      renderWithProviders(<Rules scoringConfig={mockScoringConfig} expanded={true} />)
+
+      expect(screen.getByText(/Se permite modificar pronosticos de equipos clasificados/i)).toBeInTheDocument()
+    })
+
+    it('renders qualified teams constraint in English with EnOf pattern', () => {
+      renderWithProviders(<Rules scoringConfig={mockScoringConfig} expanded={true} />, { locale: 'en' })
+
+      expect(screen.getByText(/EnOf\(Se permite modificar pronosticos de equipos clasificados/i)).toBeInTheDocument()
+    })
+  })
 })

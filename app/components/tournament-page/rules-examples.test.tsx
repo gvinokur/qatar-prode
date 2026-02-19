@@ -12,47 +12,56 @@ import MatchPredictionTimeExample from './rules-examples/match-prediction-time'
 import PodiumPredictionTimeExample from './rules-examples/podium-prediction-time'
 import SinglePredictionExample from './rules-examples/single-prediction'
 import GroupPositionExample from './rules-examples/group-position'
+import QualifiedTeamsPredictionTimeExample from './rules-examples/qualified-teams-prediction-time'
 
 describe('Rules Examples Components', () => {
   describe('Spanish translations', () => {
-    it('renders WinnerDrawExample in Spanish', () => {
-      renderWithProviders(<WinnerDrawExample />)
+    it('renders WinnerDrawExample in Spanish with points', () => {
+      renderWithProviders(<WinnerDrawExample points={1} />)
       expect(screen.getByText(/Si predices que Argentina ganará contra Brasil/i)).toBeInTheDocument()
+      expect(screen.getByText(/1 punto/i)).toBeInTheDocument()
     })
 
-    it('renders ExactScoreExample in Spanish', () => {
-      renderWithProviders(<ExactScoreExample />)
+    it('renders ExactScoreExample in Spanish with point values', () => {
+      renderWithProviders(<ExactScoreExample total={2} correctOutcome={1} bonus={1} />)
       expect(screen.getByText(/Si predices que Argentina ganará 2-1/i)).toBeInTheDocument()
+      expect(screen.getByText(/2 puntos/i)).toBeInTheDocument()
     })
 
-    it('renders RoundOf16Example in Spanish', () => {
-      renderWithProviders(<RoundOf16Example />)
+    it('renders RoundOf16Example in Spanish with points', () => {
+      renderWithProviders(<RoundOf16Example points={1} />)
       expect(screen.getByText(/Si predices que Argentina clasificará a octavos/i)).toBeInTheDocument()
+      expect(screen.getByText(/1 punto/i)).toBeInTheDocument()
     })
 
-    it('renders GroupPositionExample in Spanish', () => {
-      renderWithProviders(<GroupPositionExample />)
+    it('renders GroupPositionExample in Spanish with points', () => {
+      renderWithProviders(<GroupPositionExample qualifiedPoints={1} exactPositionPoints={2} totalPoints={3} />)
       expect(screen.getByText(/Si predices que Argentina clasificará primero del Grupo A/i)).toBeInTheDocument()
+      expect(screen.getByText(/3 puntos/i)).toBeInTheDocument()
     })
 
-    it('renders ChampionExample in Spanish', () => {
-      renderWithProviders(<ChampionExample />)
+    it('renders ChampionExample in Spanish with points', () => {
+      renderWithProviders(<ChampionExample points={5} />)
       expect(screen.getByText(/Si predices que Argentina será campeón/i)).toBeInTheDocument()
+      expect(screen.getByText(/5 puntos/i)).toBeInTheDocument()
     })
 
-    it('renders RunnerUpExample in Spanish', () => {
-      renderWithProviders(<RunnerUpExample />)
+    it('renders RunnerUpExample in Spanish with points', () => {
+      renderWithProviders(<RunnerUpExample points={3} />)
       expect(screen.getByText(/Si predices que Brasil será subcampeón/i)).toBeInTheDocument()
+      expect(screen.getByText(/3 puntos/i)).toBeInTheDocument()
     })
 
-    it('renders ThirdPlaceExample in Spanish', () => {
-      renderWithProviders(<ThirdPlaceExample />)
+    it('renders ThirdPlaceExample in Spanish with points', () => {
+      renderWithProviders(<ThirdPlaceExample points={1} />)
       expect(screen.getByText(/Si predices que Francia será tercero/i)).toBeInTheDocument()
+      expect(screen.getByText(/1 punto/i)).toBeInTheDocument()
     })
 
-    it('renders IndividualAwardsExample in Spanish', () => {
-      renderWithProviders(<IndividualAwardsExample />)
+    it('renders IndividualAwardsExample in Spanish with points', () => {
+      renderWithProviders(<IndividualAwardsExample points={3} />)
       expect(screen.getByText(/Si predices que Lionel Messi ganará/i)).toBeInTheDocument()
+      expect(screen.getByText(/3 puntos/i)).toBeInTheDocument()
     })
 
     it('renders MatchPredictionTimeExample in Spanish', () => {
@@ -69,47 +78,60 @@ describe('Rules Examples Components', () => {
       renderWithProviders(<SinglePredictionExample />)
       expect(screen.getByText(/Solo puedes tener un pronostico activo/i)).toBeInTheDocument()
     })
+
+    it('renders QualifiedTeamsPredictionTimeExample in Spanish', () => {
+      renderWithProviders(<QualifiedTeamsPredictionTimeExample />)
+      expect(screen.getByText(/Si el torneo comienza el 1 de junio, puedes modificar tus pronósticos de equipos clasificados hasta el 3 de junio/i)).toBeInTheDocument()
+    })
   })
 
   describe('English translations (EnOf pattern)', () => {
-    it('renders WinnerDrawExample in English', () => {
-      renderWithProviders(<WinnerDrawExample />, { locale: 'en' })
+    it('renders WinnerDrawExample in English with points', () => {
+      renderWithProviders(<WinnerDrawExample points={1} />, { locale: 'en' })
       expect(screen.getByText(/EnOf\(Ejemplo: Si predices que Argentina ganará/i)).toBeInTheDocument()
+      expect(screen.getByText(/EnOf\(.*1 punto.*\)/i)).toBeInTheDocument()
     })
 
-    it('renders ExactScoreExample in English', () => {
-      renderWithProviders(<ExactScoreExample />, { locale: 'en' })
+    it('renders ExactScoreExample in English with point values', () => {
+      renderWithProviders(<ExactScoreExample total={2} correctOutcome={1} bonus={1} />, { locale: 'en' })
       expect(screen.getByText(/EnOf\(Ejemplo: Si predices que Argentina ganará 2-1/i)).toBeInTheDocument()
+      expect(screen.getByText(/EnOf\(.*2 puntos.*\)/i)).toBeInTheDocument()
     })
 
-    it('renders RoundOf16Example in English', () => {
-      renderWithProviders(<RoundOf16Example />, { locale: 'en' })
+    it('renders RoundOf16Example in English with points', () => {
+      renderWithProviders(<RoundOf16Example points={1} />, { locale: 'en' })
       expect(screen.getByText(/EnOf\(Ejemplo: Si predices que Argentina clasificará a octavos/i)).toBeInTheDocument()
+      expect(screen.getByText(/EnOf\(.*1 punto.*\)/i)).toBeInTheDocument()
     })
 
-    it('renders GroupPositionExample in English', () => {
-      renderWithProviders(<GroupPositionExample />, { locale: 'en' })
+    it('renders GroupPositionExample in English with points', () => {
+      renderWithProviders(<GroupPositionExample qualifiedPoints={1} exactPositionPoints={2} totalPoints={3} />, { locale: 'en' })
       expect(screen.getByText(/EnOf\(Ejemplo: Si predices que Argentina clasificará primero/i)).toBeInTheDocument()
+      expect(screen.getByText(/EnOf\(.*3 puntos.*\)/i)).toBeInTheDocument()
     })
 
-    it('renders ChampionExample in English', () => {
-      renderWithProviders(<ChampionExample />, { locale: 'en' })
+    it('renders ChampionExample in English with points', () => {
+      renderWithProviders(<ChampionExample points={5} />, { locale: 'en' })
       expect(screen.getByText(/EnOf\(Ejemplo: Si predices que Argentina será campeón/i)).toBeInTheDocument()
+      expect(screen.getByText(/EnOf\(.*5 puntos.*\)/i)).toBeInTheDocument()
     })
 
-    it('renders RunnerUpExample in English', () => {
-      renderWithProviders(<RunnerUpExample />, { locale: 'en' })
+    it('renders RunnerUpExample in English with points', () => {
+      renderWithProviders(<RunnerUpExample points={3} />, { locale: 'en' })
       expect(screen.getByText(/EnOf\(Ejemplo: Si predices que Brasil será subcampeón/i)).toBeInTheDocument()
+      expect(screen.getByText(/EnOf\(.*3 puntos.*\)/i)).toBeInTheDocument()
     })
 
-    it('renders ThirdPlaceExample in English', () => {
-      renderWithProviders(<ThirdPlaceExample />, { locale: 'en' })
+    it('renders ThirdPlaceExample in English with points', () => {
+      renderWithProviders(<ThirdPlaceExample points={1} />, { locale: 'en' })
       expect(screen.getByText(/EnOf\(Ejemplo: Si predices que Francia será tercero/i)).toBeInTheDocument()
+      expect(screen.getByText(/EnOf\(.*1 punto.*\)/i)).toBeInTheDocument()
     })
 
-    it('renders IndividualAwardsExample in English', () => {
-      renderWithProviders(<IndividualAwardsExample />, { locale: 'en' })
+    it('renders IndividualAwardsExample in English with points', () => {
+      renderWithProviders(<IndividualAwardsExample points={3} />, { locale: 'en' })
       expect(screen.getByText(/EnOf\(Ejemplo: Si predices que Lionel Messi ganará/i)).toBeInTheDocument()
+      expect(screen.getByText(/EnOf\(.*3 puntos.*\)/i)).toBeInTheDocument()
     })
 
     it('renders MatchPredictionTimeExample in English', () => {
@@ -125,6 +147,39 @@ describe('Rules Examples Components', () => {
     it('renders SinglePredictionExample in English', () => {
       renderWithProviders(<SinglePredictionExample />, { locale: 'en' })
       expect(screen.getByText(/EnOf\(Ejemplo: Solo puedes tener un pronostico activo/i)).toBeInTheDocument()
+    })
+
+    it('renders QualifiedTeamsPredictionTimeExample in English', () => {
+      renderWithProviders(<QualifiedTeamsPredictionTimeExample />, { locale: 'en' })
+      expect(screen.getByText(/EnOf\(.*Si el torneo comienza el 1 de junio.*equipos clasificados hasta el 3 de junio/i)).toBeInTheDocument()
+    })
+  })
+
+  // Pluralization tests for parameterized examples
+  describe('Parameterized Examples Pluralization', () => {
+    it('uses singular "punto" when points is 1', () => {
+      renderWithProviders(<WinnerDrawExample points={1} />)
+      expect(screen.getByText(/obtienes 1 punto/i)).toBeInTheDocument()
+    })
+
+    it('uses plural "puntos" when points is greater than 1', () => {
+      renderWithProviders(<ChampionExample points={5} />)
+      expect(screen.getByText(/obtienes 5 puntos/i)).toBeInTheDocument()
+    })
+
+    it('correctly handles ExactScoreExample with different point values', () => {
+      renderWithProviders(<ExactScoreExample total={5} correctOutcome={2} bonus={3} />)
+      expect(screen.getByText(/obtienes 5 puntos.*2 por el ganador.*3 extra por el resultado exacto/i)).toBeInTheDocument()
+    })
+
+    it('correctly handles GroupPositionExample with different point values', () => {
+      renderWithProviders(<GroupPositionExample qualifiedPoints={2} exactPositionPoints={3} totalPoints={5} />)
+      expect(screen.getByText(/obtienes 5 puntos adicionales.*2 por clasificar.*3 por posición exacta.*5 puntos totales/i)).toBeInTheDocument()
+    })
+
+    it('uses singular when ExactScoreExample has 1 bonus point', () => {
+      renderWithProviders(<ExactScoreExample total={2} correctOutcome={1} bonus={1} />)
+      expect(screen.getByText(/obtienes 2 puntos.*1 por el ganador.*1 extra por el resultado exacto/i)).toBeInTheDocument()
     })
   })
 })

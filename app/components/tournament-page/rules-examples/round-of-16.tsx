@@ -3,13 +3,17 @@
 import { Box, Typography } from '@mui/material'
 import { useTranslations } from 'next-intl'
 
-export default function RoundOf16Example() {
+interface RoundOf16ExampleProps {
+  readonly points: number;
+}
+
+export default function RoundOf16Example({ points }: RoundOf16ExampleProps) {
   const t = useTranslations('rules.examples')
 
   return (
     <Box>
       <Typography variant="body2" color="text.secondary">
-        {t('roundOf16')}
+        {t('roundOf16', { points })}
       </Typography>
     </Box>
   )

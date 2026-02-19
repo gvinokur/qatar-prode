@@ -3,18 +3,14 @@
 import { Box, Typography } from '@mui/material'
 import { useTranslations } from 'next-intl'
 
-interface ThirdPlaceExampleProps {
-  readonly points: number;
-}
-
-export default function ThirdPlaceExample({ points }: ThirdPlaceExampleProps) {
+export default function QualifiedTeamsPredictionTimeExample() {
   const t = useTranslations('rules.examples')
 
   return (
     <Box>
       <Typography variant="body2" color="text.secondary">
-        {t('thirdPlace', { points })}
+        {t('qualifiedTeamsPredictionTime')}
       </Typography>
     </Box>
   )
-} 
+}
