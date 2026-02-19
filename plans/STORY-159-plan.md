@@ -906,6 +906,9 @@ The execution approach (main agent only vs. hybrid mode with subagents) will be 
 8. ✅ SonarCloud: 0 new issues, maintainability B+
 9. ✅ Pattern consistency verified (all files follow checklist)
 10. ✅ QualificationPredictionError migrated to return pattern (if applicable)
+11. ✅ **Key parity verified:** All keys exist in BOTH en/ and es/ files
+12. ✅ **No duplicate content:** All translation values are unique (or documented if intentional)
+13. ✅ **Translation tracking complete:** Tracking file or LLM audit confirms all keys are accounted for
 
 ## Verification Steps
 
@@ -950,6 +953,132 @@ The execution approach (main agent only vs. hybrid mode with subagents) will be 
    - Ensure source language text is preserved correctly in non-placeholder file
    - Check that placeholder wraps the correct source text
 
+4. **Advanced Translation Key Verification (CRITICAL):**
+
+   **A. Key Parity Verification (en/ ↔ es/ sync)**
+
+   **Option 1: Translation Key Tracking File (Recommended)**
+
+   Create a temporary tracking file during implementation:
+   ```bash
+   # Create tracking file at root of worktree
+   touch /Users/gvinokur/Personal/qatar-prode-story-159/.translation-keys-added.json
+   ```
+
+   Format:
+   ```json
+   {
+     "keys": [
+       {
+         "namespace": "errors",
+         "key": "admin.unauthorized",
+         "fullKey": "errors.admin.unauthorized",
+         "usedIn": ["app/actions/backoffice-actions.ts:99", "app/actions/team-actions.ts:27"],
+         "enFile": "locales/en/errors.json",
+         "esFile": "locales/es/errors.json",
+         "enValue": "Unauthorized: Only administrators can...",
+         "esValue": "EsOf(Unauthorized: Only administrators can...)"
+       }
+     ]
+   }
+   ```
+
+   **During implementation:**
+   - Add entry to tracking file for each new translation key
+   - Include namespace, key path, files using it, and both en/es values
+
+   **Before commit verification:**
+   ```bash
+   # Verify all keys in tracking file exist in both locales
+   node scripts/verify-translation-parity.js .translation-keys-added.json
+
+   # Or manual verification:
+   # For each key in tracking file, verify it exists in both en/ and es/ files
+   ```
+
+   **Option 2: LLM Audit Based on Branch Changes**
+
+   ```bash
+   # Get all changed translation files in this branch
+   git diff origin/main --name-only | grep "locales/"
+
+   # Get full diff of translation files
+   git diff origin/main locales/ > /tmp/translation-changes.diff
+   ```
+
+   Then use LLM (Task tool with general-purpose agent) to:
+   - Parse the diff and extract all added keys from en/ files
+   - Parse the diff and extract all added keys from es/ files
+   - Compare: Every key added to en/*.json must have corresponding key in es/*.json
+   - Report missing keys
+
+   **Verification Script (Create during implementation):**
+   ```typescript
+   // scripts/verify-translation-parity.ts
+   // Read all en/ JSON files, extract all keys
+   // Read all es/ JSON files, extract all keys
+   // Compare: enKeys === esKeys (same keys in both)
+   // Report differences
+   ```
+
+   **B. Duplicate Content Detection**
+
+   Prevent duplicate translation content across keys:
+
+   ```bash
+   # Find duplicate values in translation files
+   # This checks if the same text appears in multiple keys
+
+   # For English files (excluding placeholders)
+   find locales/en -name "*.json" -exec jq -r '.. | strings' {} \; | \
+     grep -v "^EnOf(" | sort | uniq -d
+
+   # For Spanish files (excluding placeholders)
+   find locales/es -name "*.json" -exec jq -r '.. | strings' {} \; | \
+     grep -v "^EsOf(" | sort | uniq -d
+   ```
+
+   **Verification Script (Create during implementation):**
+   ```typescript
+   // scripts/check-duplicate-translations.ts
+   // For each locale (en, es):
+   //   1. Load all translation files
+   //   2. Flatten all keys and values
+   //   3. Find values that appear more than once (excluding placeholders)
+   //   4. Report duplicates with key paths
+
+   // Example output:
+   // DUPLICATE FOUND in en/errors.json:
+   //   "Unauthorized" appears in:
+   //     - errors.admin.unauthorized
+   //     - errors.auth.unauthorized
+   //   RECOMMENDATION: Use a shared key or make text more specific
+   ```
+
+   **Duplicate Detection Strategy:**
+   - Run before final commit
+   - Ignore placeholder values (EnOf/EsOf)
+   - Flag exact text matches across different keys
+   - Review each duplicate:
+     - If intentionally same → Document why
+     - If accidental → Consolidate to single key
+     - If similar context → Make text more specific
+
+   **Allowed Duplicates:**
+   - Generic messages like "generic": "An unexpected error occurred" (expected in errors namespace)
+   - Common validation messages shared across forms (document in comments)
+
+   **5. Complete Verification Checklist:**
+
+   Before final commit, verify:
+   - [ ] Tracking file `.translation-keys-added.json` is complete (if using Option 1)
+   - [ ] All keys in tracking file exist in BOTH en/ and es/ files
+   - [ ] OR: LLM audit confirms key parity (if using Option 2)
+   - [ ] No duplicate content detected (or documented if intentional)
+   - [ ] All keys used in code exist in translation files
+   - [ ] All translation files have corresponding keys in both locales
+   - [ ] Interpolation variables match across locales
+
 ### After Deployment to Vercel Preview
 
 **Test Matrix:**
@@ -973,9 +1102,12 @@ The execution approach (main agent only vs. hybrid mode with subagents) will be 
 - Error boundary shows translated "Try again" button
 
 ### Sign-off Checklist
-- [ ] All 92 error messages translated and tested
+- [ ] All error messages extracted to translation keys (with EnOf/EsOf placeholders)
 - [ ] Error boundary displays correct locale
 - [ ] No hardcoded strings found in grep searches
+- [ ] **Key parity verified:** All new keys exist in BOTH en/ and es/ files
+- [ ] **No duplicate content detected** (or documented if intentional)
+- [ ] Translation tracking file complete (or LLM audit done)
 - [ ] User confirms both locales work correctly in Vercel Preview
 - [ ] SonarCloud passes (0 new issues, 80%+ coverage)
 - [ ] Ready for merge
@@ -1022,6 +1154,19 @@ If critical issues are found during Vercel Preview testing:
 - Use two-namespace pattern (primary + fallback errors)
 - Test both locales for every error path
 - Client components MUST pass locale to server actions
+- **KEEP EnOf/EsOf placeholders** - do NOT attempt actual translations in this story
+
+**Translation Key Tracking:**
+- Create `.translation-keys-added.json` at worktree root at start of implementation
+- Update tracking file as each new key is added
+- Include: namespace, key path, usage locations, en/es values
+- Use for verification before final commit
+- **DO NOT commit tracking file** - it's temporary for verification only
+
+**Verification Scripts to Create (Optional but Recommended):**
+- `scripts/verify-translation-parity.ts` - Check en/es key parity
+- `scripts/check-duplicate-translations.ts` - Find duplicate content
+- These scripts can be committed and reused for future i18n stories
 
 ## Estimated Effort
 
