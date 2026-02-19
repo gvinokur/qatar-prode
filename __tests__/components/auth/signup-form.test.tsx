@@ -24,7 +24,7 @@ vi.mock('next-auth/react', () => ({
 
 // Mock next-intl
 vi.mock('next-intl', () => ({
-  useTranslations: vi.fn(),
+  useTranslations: vi.fn(() => (key: string) => key),
   useLocale: vi.fn(() => 'es'),
 }));
 

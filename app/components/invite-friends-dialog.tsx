@@ -1,6 +1,7 @@
 'use client'
 
 import {useState, ReactNode, cloneElement, isValidElement} from 'react';
+import {useTranslations} from 'next-intl';
 import {
   Dialog,
   DialogTitle,
@@ -27,6 +28,9 @@ interface InviteFriendsDialogProps {
 }
 
 export default function InviteFriendsDialog({ trigger, groupId, groupName }: InviteFriendsDialogProps) {
+  const t = useTranslations('groups.invite');
+  const tCommon = useTranslations('common.buttons');
+
   const [open, setOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -53,24 +57,24 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName }: Inv
 
   // Generate invitation message
   const getInvitationMessage = () => {
-    return `¡Hola! Te invito a unirte a nuestro grupo "${groupName}" para jugar en al prode en los torneos actuales y futuros. Usa este enlace para unirte: ${getInvitationLink()}`;
+    return t('message', { groupName, link: getInvitationLink() });
   };
 
   // Copy link to clipboard
   const copyToClipboard = () => {
     navigator.clipboard.writeText(getInvitationLink())
       .then(() => {
-        showSnackbar('¡Enlace copiado al portapapeles!');
+        showSnackbar(t('feedback.copied'));
       })
       .catch(err => {
         console.error('Error al copiar: ', err);
-        showSnackbar('Error al copiar el enlace');
+        showSnackbar(t('feedback.copyError'));
       });
   };
 
   // Share via email
   const shareViaEmail = () => {
-    const subject = encodeURIComponent(`Invitación al grupo "${groupName}" del Prode`);
+    const subject = encodeURIComponent(t('emailSubject', { groupName }));
     const body = encodeURIComponent(getInvitationMessage());
     window.open(`mailto:?subject=${subject}&body=${body}`);
   };
@@ -95,7 +99,7 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName }: Inv
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>
           <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Typography variant="h6">Invitar amigos a {groupName}</Typography>
+            <Typography variant="h6">{t('title', { groupName })}</Typography>
             <IconButton edge="end" color="inherit" onClick={handleClose} aria-label="close">
               <CloseIcon />
             </IconButton>
@@ -104,7 +108,7 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName }: Inv
 
         <DialogContent>
           <Typography variant="body1" sx={{ mb: 3 }}>
-            Comparte este enlace con tus amigos para que se unan al grupo.
+            {t('description')}
           </Typography>
 
           <Box sx={{ display: 'flex', mb: 3 }}>
@@ -125,14 +129,14 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName }: Inv
               sx={{ ml: 1 }}
               startIcon={<ContentCopyIcon />}
             >
-              Copiar
+              {tCommon('copy')}
             </Button>
           </Box>
 
           <Divider sx={{ my: 3 }} />
 
           <Typography variant="body1" sx={{ mb: 2 }}>
-            O comparte directamente a través de:
+            {t('directShare')}
           </Typography>
 
           <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
@@ -141,7 +145,7 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName }: Inv
               startIcon={<EmailIcon />}
               onClick={shareViaEmail}
             >
-              Email
+              {t('buttons.email')}
             </Button>
             <Button
               variant="outlined"
@@ -149,14 +153,14 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName }: Inv
               startIcon={<WhatsAppIcon />}
               onClick={shareViaWhatsApp}
             >
-              WhatsApp
+              {t('buttons.whatsapp')}
             </Button>
           </Box>
         </DialogContent>
 
         <DialogActions>
           <Button onClick={handleClose} color="primary">
-            Cerrar
+            {tCommon('close')}
           </Button>
         </DialogActions>
       </Dialog>

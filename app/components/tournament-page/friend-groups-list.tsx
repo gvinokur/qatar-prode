@@ -18,7 +18,7 @@ import * as React from "react";
 import {createDbGroup, deleteGroup} from "../../actions/prode-group-actions";
 import InviteFriendsDialog from "../invite-friends-dialog";
 import Link from "next/link";
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 type Props = {
   userGroups: { id: string, name: string}[]
@@ -37,6 +37,7 @@ export default function FriendGroupsList({
   tournamentId,
   isActive = false,
 } : Props) {
+  const t = useTranslations('groups');
   const theme = useTheme();
   const locale = useLocale();
   const [expanded, setExpanded] = useState(false);
@@ -86,15 +87,15 @@ export default function FriendGroupsList({
         })
       }}>
         <CardHeader
-          title='Grupos de Amigos'
-          subheader={isActive ? 'Estás aquí' : undefined}
+          title={t('title')}
+          subheader={isActive ? t('status.youAreHere') : undefined}
           sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
           action={
             <ExpandMore
               expand={expanded}
               onClick={handleExpandClick}
               aria-expanded={expanded}
-              aria-label="mostrar más"
+              aria-label={t('actions.expandMore')}
             >
               <ExpandMoreIcon />
             </ExpandMore>
@@ -109,12 +110,12 @@ export default function FriendGroupsList({
                         disableGutters
                         secondaryAction={
                           <>
-                            <IconButton title='Borrar Grupo' onClick={() => setOpenConfirmDeleteGroup(userGroup.id)}>
+                            <IconButton title={t('actions.delete')} onClick={() => setOpenConfirmDeleteGroup(userGroup.id)}>
                               <DeleteIcon/>
                             </IconButton>
                             <InviteFriendsDialog
                               trigger={
-                                <IconButton title='Invitar Amigos'>
+                                <IconButton title={t('actions.invite')}>
                                   <ShareIcon/>
                                 </IconButton>}
                               groupId={userGroup.id}
@@ -142,10 +143,10 @@ export default function FriendGroupsList({
         </CardContent>
         </Collapse>
         <CardActions sx={{ justifyContent: 'space-around', px: 2, py: 1.5 }}>
-          <Button onClick={() => setOpenCreateDialog(true)}>Crear Grupo</Button>
+          <Button onClick={() => setOpenCreateDialog(true)}>{t('actions.create')}</Button>
           {tournamentId && (userGroups.length + participantGroups.length) > 1 && (
             <Button component={Link} href={`/${locale}/tournaments/${tournamentId}/friend-groups`} startIcon={<GroupsIcon />}>
-              Ver Grupos
+              {t('actions.view')}
             </Button>
           )}
         </CardActions>
@@ -161,24 +162,23 @@ export default function FriendGroupsList({
                   }
                 }
               }}>
-        <DialogTitle>Crear Grupo de Amigos</DialogTitle>
+        <DialogTitle>{t('create.title')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Un grupo de amigos te permite tener un ranking privado de aciertos.
-            Crea tantos grupos de amigos como quieras, tu mismo pronostico va a ser usado para calcular tu posicion en todos.
+            {t('create.description')}
           </DialogContentText>
           <Controller
             control={control}
             name={'name'}
             rules={{
-              required: 'El nombre del grupo es obligatorio',
+              required: t('create.nameField.required'),
             }}
             render={({field, fieldState}) => (
               <TextField
                 {...field}
                 autoFocus
                 margin="dense"
-                label="Nombre"
+                label={t('create.nameField.label')}
                 type="text"
                 fullWidth
                 variant="standard"
@@ -189,20 +189,20 @@ export default function FriendGroupsList({
           />
         </DialogContent>
         <DialogActions>
-          <Button disabled={loading} onClick={handleCloseCreateDialog}>Cancelar</Button>
-          <Button loading={loading} type='submit'>Crear</Button>
+          <Button disabled={loading} onClick={handleCloseCreateDialog}>{t('create.buttons.cancel')}</Button>
+          <Button loading={loading} type='submit'>{t('create.buttons.create')}</Button>
         </DialogActions>
       </Dialog>
       <Dialog open={!!openConfirmDeleteGroup} onClose={() => setOpenConfirmDeleteGroup(false)}>
-        <DialogTitle>Borrar Grupo</DialogTitle>
+        <DialogTitle>{t('delete.title')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Estas seguro que queres borrar este grupo?
+            {t('delete.confirmation')}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button disabled={loading} onClick={() => setOpenConfirmDeleteGroup(false)}>Cancelar</Button>
-          <Button loading={loading} onClick={handleGroupDelete}>Borrar</Button>
+          <Button disabled={loading} onClick={() => setOpenConfirmDeleteGroup(false)}>{t('create.buttons.cancel')}</Button>
+          <Button loading={loading} onClick={handleGroupDelete}>{t('actions.delete')}</Button>
         </DialogActions>
       </Dialog>
     </>

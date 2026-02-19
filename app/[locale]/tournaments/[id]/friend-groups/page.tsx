@@ -3,7 +3,6 @@
 import { getGroupsForUser, calculateTournamentGroupStats } from "../../../../actions/prode-group-actions";
 import { getLoggedInUser } from "../../../../actions/user-actions";
 import { redirect } from "next/navigation";
-import { unstable_ViewTransition as ViewTransition } from "react";
 import TournamentGroupsList from "../../../../components/tournament-page/tournament-groups-list";
 import type { TournamentGroupStats } from "../../../../definitions";
 
@@ -39,11 +38,9 @@ export default async function TournamentGroupsPage(props: Props) {
   const groupStats: TournamentGroupStats[] = await Promise.all(groupStatsPromises);
 
   return (
-    <ViewTransition>
-      <TournamentGroupsList
-        groups={groupStats}
-        tournamentId={tournamentId}
-      />
-    </ViewTransition>
+    <TournamentGroupsList
+      groups={groupStats}
+      tournamentId={tournamentId}
+    />
   );
 }

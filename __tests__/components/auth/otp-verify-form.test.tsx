@@ -9,7 +9,7 @@ import * as otpActions from '../../../app/actions/otp-actions';
 
 // Mock next-intl with translation support
 vi.mock('next-intl', () => ({
-  useTranslations: vi.fn(),
+  useTranslations: vi.fn(() => (key: string) => key),
   useLocale: vi.fn(() => 'es'),
 }));
 

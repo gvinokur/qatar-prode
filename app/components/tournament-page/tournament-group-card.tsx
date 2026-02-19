@@ -12,7 +12,7 @@ import {
 import {Share as ShareIcon} from "@mui/icons-material";
 import type { TournamentGroupStats } from "../../definitions";
 import InviteFriendsDialog from "../invite-friends-dialog";
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 interface TournamentGroupCardProps {
   readonly group: TournamentGroupStats;
@@ -21,8 +21,9 @@ interface TournamentGroupCardProps {
 
 export default function TournamentGroupCard({ group, tournamentId }: TournamentGroupCardProps) {
   const locale = useLocale();
+  const t = useTranslations('groups.card');
   const isLeader = group.userPosition === 1;
-  const leaderDisplay = isLeader ? "¡Tú!" : group.leaderName;
+  const leaderDisplay = isLeader ? t('you') : group.leaderName;
 
   return (
     <Card
@@ -52,7 +53,7 @@ export default function TournamentGroupCard({ group, tournamentId }: TournamentG
           {group.isOwner && (
             <>
               <Chip
-                label="Dueño"
+                label={t('owner')}
                 size="small"
                 color="primary"
                 variant="outlined"
@@ -77,15 +78,15 @@ export default function TournamentGroupCard({ group, tournamentId }: TournamentG
           <Box sx={{ display: 'flex', gap: 3 }}>
             <Box sx={{ flex: 1 }}>
               <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-                Tu Posición
+                {t('yourPosition')}
               </Typography>
               <Typography variant="h6" sx={{ fontWeight: 600, color: isLeader ? 'primary.main' : 'text.primary' }}>
-                #{group.userPosition} de {group.totalParticipants}
+                {t('positionOf', { position: group.userPosition, total: group.totalParticipants })}
               </Typography>
             </Box>
             <Box sx={{ flex: 1 }}>
               <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-                Tus Puntos
+                {t('yourPoints')}
               </Typography>
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
                 {group.userPoints}
@@ -96,7 +97,7 @@ export default function TournamentGroupCard({ group, tournamentId }: TournamentG
           {/* Leader */}
           <Box>
             <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-              Líder
+              {t('leader')}
             </Typography>
             <Typography variant="body1" sx={{ fontWeight: 500 }}>
               {leaderDisplay} ({group.leaderPoints} pts)
@@ -114,7 +115,7 @@ export default function TournamentGroupCard({ group, tournamentId }: TournamentG
           color="primary"
           size="small"
         >
-          Ver Detalles
+          {t('viewDetails')}
         </Button>
       </CardActions>
     </Card>

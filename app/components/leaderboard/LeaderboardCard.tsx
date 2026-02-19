@@ -15,6 +15,7 @@ import {
 import { motion } from 'framer-motion'
 import type { LeaderboardCardProps } from './types'
 import { RankChangeIndicator } from './rank-change-animations'
+import { useTranslations } from 'next-intl'
 
 // Helper function to get avatar color from user ID
 function getAvatarColor(userId: string): string {
@@ -44,6 +45,7 @@ export default function LeaderboardCard({
   onToggle
 }: LeaderboardCardProps) {
   const theme = useTheme()
+  const t = useTranslations('groups.leaderboard')
 
   // Truncate long names
   const displayName = user.name.length > 25
@@ -169,19 +171,19 @@ export default function LeaderboardCard({
               variant="subtitle2"
               sx={{ fontWeight: 'bold', mb: 1, color: theme.palette.primary.main }}
             >
-              Point Breakdown
+              {t('pointBreakdown')}
             </Typography>
             <Grid container spacing={1.5}>
               {/* Group Stage Section */}
               <Grid size={{ xs: 12 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'primary.light' }}>
-                  Group Stage
+                  {t('groupStage')}
                 </Typography>
               </Grid>
 
               <Grid size={{ xs: 8 }}>
                 <Typography variant="body1" color="text.secondary">
-                  Group Stage Games
+                  {t('groupStageGames')}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 4 }}>
@@ -194,7 +196,7 @@ export default function LeaderboardCard({
                 <>
                   <Grid size={{ xs: 8 }}>
                     <Typography variant="body2" color="text.secondary" sx={{ pl: 2 }}>
-                      + Group Boost Bonus
+                      {t('groupBoostBonus')}
                     </Typography>
                   </Grid>
                   <Grid size={{ xs: 4 }}>
@@ -207,7 +209,7 @@ export default function LeaderboardCard({
 
               <Grid size={{ xs: 8 }}>
                 <Typography variant="body1" color="text.secondary">
-                  Qualified Teams
+                  {t('qualifiedTeams')}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 4 }}>
@@ -220,7 +222,7 @@ export default function LeaderboardCard({
                 <>
                   <Grid size={{ xs: 8 }}>
                     <Typography variant="body1" color="text.secondary">
-                      Group Positions
+                      {t('groupPositions')}
                     </Typography>
                   </Grid>
                   <Grid size={{ xs: 4 }}>
@@ -234,13 +236,13 @@ export default function LeaderboardCard({
               {/* Knockout Section */}
               <Grid size={{ xs: 12 }} sx={{ mt: 1.5 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'primary.light' }}>
-                  Knockout
+                  {t('knockout')}
                 </Typography>
               </Grid>
 
               <Grid size={{ xs: 8 }}>
                 <Typography variant="body1" color="text.secondary">
-                  Playoff Games
+                  {t('playoffGames')}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 4 }}>
@@ -253,7 +255,7 @@ export default function LeaderboardCard({
                 <>
                   <Grid size={{ xs: 8 }}>
                     <Typography variant="body2" color="text.secondary" sx={{ pl: 2 }}>
-                      + Playoff Boost Bonus
+                      {t('playoffBoostBonus')}
                     </Typography>
                   </Grid>
                   <Grid size={{ xs: 4 }}>
@@ -267,13 +269,13 @@ export default function LeaderboardCard({
               {/* Tournament Section */}
               <Grid size={{ xs: 12 }} sx={{ mt: 1.5 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'primary.light' }}>
-                  Tournament
+                  {t('tournament')}
                 </Typography>
               </Grid>
 
               <Grid size={{ xs: 8 }}>
                 <Typography variant="body1" color="text.secondary">
-                  Honor Roll
+                  {t('honorRoll')}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 4 }}>
@@ -284,7 +286,7 @@ export default function LeaderboardCard({
 
               <Grid size={{ xs: 8 }}>
                 <Typography variant="body1" color="text.secondary">
-                  Individual Awards
+                  {t('individualAwards')}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 4 }}>
@@ -299,7 +301,7 @@ export default function LeaderboardCard({
             color="text.secondary"
             sx={{ display: 'block', mt: 1.5, textAlign: 'center', fontStyle: 'italic' }}
           >
-            Tap to collapse
+            {t('tapToCollapse')}
           </Typography>
         </Collapse>
       </CardContent>

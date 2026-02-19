@@ -401,9 +401,9 @@ describe('ProdeGroupTable', () => {
       fireEvent.click(firstCard);
 
       // Should now be expanded and show detailed breakdown
-      // Both tabs are kept mounted, so "Point Breakdown" appears multiple times
+      // Both tabs are kept mounted, so "Desglose de Puntos" appears multiple times
       expect(firstCard).toHaveAttribute('aria-expanded', 'true');
-      expect(screen.getAllByText(/point breakdown/i).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/desglose de puntos/i).length).toBeGreaterThanOrEqual(1);
     });
 
     it('shows detailed point breakdown when expanded', () => {
@@ -415,11 +415,11 @@ describe('ProdeGroupTable', () => {
 
       // Check for detailed breakdown sections
       // Both tabs are kept mounted, so sections appear multiple times
-      expect(screen.getAllByText('Group Stage Games').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Qualified Teams').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Playoff Games').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Honor Roll').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Individual Awards').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Partidos de Fase de Grupos').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Equipos Clasificados').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Partidos de Playoff').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Cuadro de Honor').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Premios Individuales').length).toBeGreaterThanOrEqual(1);
     });
 
     it('only expands one card at a time', () => {

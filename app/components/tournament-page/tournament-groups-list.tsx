@@ -17,6 +17,7 @@ import TournamentGroupCard from "./tournament-group-card";
 import EmptyGroupsState from "./empty-groups-state";
 import JoinGroupDialog from "./join-group-dialog";
 import { createDbGroup } from "../../actions/prode-group-actions";
+import { useTranslations } from 'next-intl';
 
 interface TournamentGroupsListProps {
   readonly groups: TournamentGroupStats[];
@@ -28,6 +29,10 @@ type GroupForm = {
 }
 
 export default function TournamentGroupsList({ groups, tournamentId }: TournamentGroupsListProps) {
+  const tCreate = useTranslations('groups.create');
+  const tList = useTranslations('groups.list');
+  const tActions = useTranslations('groups.actions');
+
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [openJoinDialog, setOpenJoinDialog] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -79,24 +84,23 @@ export default function TournamentGroupsList({ groups, tournamentId }: Tournamen
             }
           }}
         >
-          <DialogTitle>Crear Grupo de Amigos</DialogTitle>
+          <DialogTitle>{tCreate('title')}</DialogTitle>
           <DialogContent>
             <DialogContentText>
-              Un grupo de amigos te permite tener un ranking privado. Crea tantos grupos como quieras,
-              tus mismos pronósticos serán usados para calcular tu posición en todos ellos.
+              {tCreate('description')}
             </DialogContentText>
             <Controller
               control={control}
               name="name"
               rules={{
-                required: 'El nombre del grupo es obligatorio'
+                required: tCreate('nameField.required')
               }}
               render={({ field, fieldState }) => (
                 <TextField
                   {...field}
                   autoFocus
                   margin="dense"
-                  label="Nombre"
+                  label={tCreate('nameField.label')}
                   type="text"
                   fullWidth
                   variant="standard"
@@ -108,10 +112,10 @@ export default function TournamentGroupsList({ groups, tournamentId }: Tournamen
           </DialogContent>
           <DialogActions>
             <Button disabled={loading} onClick={handleCloseCreateDialog}>
-              Cancelar
+              {tCreate('buttons.cancel')}
             </Button>
             <Button loading={loading} type="submit">
-              Crear
+              {tCreate('buttons.create')}
             </Button>
           </DialogActions>
         </Dialog>
@@ -135,7 +139,7 @@ export default function TournamentGroupsList({ groups, tournamentId }: Tournamen
               sx={{ mb: 3 }}
             >
               <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
-                Grupos de Amigos
+                {tList('title')}
               </Typography>
               <Stack direction="row" spacing={1}>
                 <Button
@@ -144,7 +148,7 @@ export default function TournamentGroupsList({ groups, tournamentId }: Tournamen
                   size="small"
                   onClick={() => setOpenCreateDialog(true)}
                 >
-                  Crear
+                  {tActions('create')}
                 </Button>
                 <Button
                   variant="outlined"
@@ -152,7 +156,7 @@ export default function TournamentGroupsList({ groups, tournamentId }: Tournamen
                   size="small"
                   onClick={() => setOpenJoinDialog(true)}
                 >
-                  Unirse
+                  {tActions('join')}
                 </Button>
               </Stack>
             </Stack>
@@ -184,24 +188,23 @@ export default function TournamentGroupsList({ groups, tournamentId }: Tournamen
           }
         }}
       >
-        <DialogTitle>Crear Grupo de Amigos</DialogTitle>
+        <DialogTitle>{tCreate('title')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Un grupo de amigos te permite tener un ranking privado. Crea tantos grupos como quieras,
-            tus mismos pronósticos serán usados para calcular tu posición en todos ellos.
+            {tCreate('description')}
           </DialogContentText>
           <Controller
             control={control}
             name="name"
             rules={{
-              required: 'El nombre del grupo es obligatorio'
+              required: tCreate('nameField.required')
             }}
             render={({ field, fieldState }) => (
               <TextField
                 {...field}
                 autoFocus
                 margin="dense"
-                label="Nombre"
+                label={tCreate('nameField.label')}
                 type="text"
                 fullWidth
                 variant="standard"
@@ -213,10 +216,10 @@ export default function TournamentGroupsList({ groups, tournamentId }: Tournamen
         </DialogContent>
         <DialogActions>
           <Button disabled={loading} onClick={handleCloseCreateDialog}>
-            Cancelar
+            {tCreate('buttons.cancel')}
           </Button>
           <Button loading={loading} type="submit">
-            Crear
+            {tCreate('buttons.create')}
           </Button>
         </DialogActions>
       </Dialog>

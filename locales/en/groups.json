@@ -9,11 +9,12 @@
     "invite": "EnOf(Invitar Amigos)",
     "inviteMore": "EnOf(Invitar mas amigos)",
     "join": "EnOf(Unirse al Grupo)",
-    "view": "EnOf(Ver Grupos)"
+    "view": "EnOf(Ver Grupos)",
+    "expandMore": "EnOf(mostrar más)"
   },
   "create": {
     "title": "EnOf(Crear Grupo de Amigos)",
-    "description": "EnOf(Un grupo de amigos te permite tener un ranking privado. Crea tantos grupos como quieras para jugar con diferentes círculos de amigos.)",
+    "description": "EnOf(Un grupo de amigos te permite tener un ranking privado de aciertos. Crea tantos grupos de amigos como quieras, tu mismo pronostico va a ser usado para calcular tu posicion en todos.)",
     "nameField": {
       "label": "EnOf(Nombre)",
       "required": "EnOf(El nombre del grupo es obligatorio)"
@@ -29,7 +30,14 @@
   },
   "invite": {
     "title": "EnOf(Invitar amigos a {groupName})",
+    "description": "EnOf(Comparte este enlace con tus amigos para que se unan al grupo.)",
+    "directShare": "EnOf(O comparte directamente a través de:)",
     "message": "EnOf(¡Hola! Te invito a unirte a nuestro grupo \"{groupName}\" para jugar en al prode en los torneos actuales y futuros. Usa este enlace para unirte: {link})",
+    "emailSubject": "EnOf(Invitación al grupo \"{groupName}\" del Prode)",
+    "buttons": {
+      "email": "EnOf(Email)",
+      "whatsapp": "EnOf(WhatsApp)"
+    },
     "feedback": {
       "copied": "EnOf(¡Enlace copiado al portapapeles!)",
       "copyError": "EnOf(Error al copiar el enlace)"
@@ -46,5 +54,108 @@
       "cancel": "EnOf(Cancelar)",
       "join": "EnOf(Unirse al Grupo)"
     }
+  },
+  "leave": {
+    "button": "EnOf(Dejar grupo)",
+    "confirmation": {
+      "title": "EnOf(¿Estás seguro?)",
+      "message": "EnOf(¿Quieres dejar este grupo? Ya no podras competir con tus amigos.)"
+    },
+    "feedback": {
+      "success": "EnOf(Has dejado el grupo exitosamente.)",
+      "error": "EnOf(Error al dejar el grupo.)"
+    }
+  },
+  "notifications": {
+    "sendButton": "EnOf(Enviar Notificación)",
+    "dialog": {
+      "title": "EnOf(Enviar Notificación a Participantes)",
+      "targetLabel": "EnOf(Destino)",
+      "targetOptions": {
+        "tournament": "EnOf(Página del torneo)",
+        "friendsGroup": "EnOf(Página del grupo de amigos)"
+      },
+      "titleLabel": "EnOf(Título)",
+      "messageLabel": "EnOf(Mensaje)"
+    },
+    "feedback": {
+      "success": "EnOf(Notificación enviada)",
+      "error": "EnOf(Error al enviar notificación)"
+    }
+  },
+  "standings": {
+    "title": "EnOf(Tabla de Posiciones)",
+    "empty": "EnOf(No hay torneos activos disponibles en este momento.)",
+    "sendNotification": "EnOf(Enviar Notificación)"
+  },
+  "betting": {
+    "statusEnabled": "EnOf(Apuesta habilitada)",
+    "statusDisabled": "EnOf(Apuesta deshabilitada)",
+    "toggleEnable": "EnOf(Habilitar)",
+    "toggleDisable": "EnOf(Deshabilitar)",
+    "amountLabel": "EnOf(Monto de la apuesta)",
+    "descriptionLabel": "EnOf(Descripción del pago)",
+    "paymentStatusLabel": "EnOf(Estado de pago)",
+    "tableHeaders": {
+      "name": "EnOf(Nombre)",
+      "paid": "EnOf(¿Pagó?)",
+      "actions": "EnOf(Acciones)"
+    },
+    "changeButton": "EnOf(Cambiar)",
+    "summary": {
+      "perPerson": "EnOf(Monto por persona:)",
+      "total": "EnOf(Monto acumulado:)",
+      "description": "EnOf(Descripción:)",
+      "paidList": "EnOf(Pagaron:)"
+    },
+    "feedback": {
+      "configSaved": "EnOf(¡Configuración guardada!)",
+      "configError": "EnOf(Error al guardar la configuración)",
+      "paymentUpdated": "EnOf(¡Estado de pago actualizado!)",
+      "paymentError": "EnOf(Error al actualizar el estado de pago)"
+    }
+  },
+  "joinMessage": {
+    "title": "EnOf(Bienvenido!!)",
+    "body": "EnOf(Gracias por unirte a este grupo.\nAhora vas a poder competir contra un montón de amigos.)"
+  },
+  "list": {
+    "title": "EnOf(Grupos de Amigos)",
+    "joinButton": "EnOf(Unirse)"
+  },
+  "leaderboard": {
+    "pointBreakdown": "EnOf(Desglose de Puntos)",
+    "groupStage": "EnOf(Fase de Grupos)",
+    "groupStageGames": "EnOf(Partidos de Fase de Grupos)",
+    "groupBoostBonus": "EnOf(+ Bonus de Boost de Grupos)",
+    "qualifiedTeams": "EnOf(Equipos Clasificados)",
+    "groupPositions": "EnOf(Posiciones de Grupo)",
+    "knockout": "EnOf(Eliminatorias)",
+    "playoffGames": "EnOf(Partidos de Playoff)",
+    "playoffBoostBonus": "EnOf(+ Bonus de Boost de Playoff)",
+    "tournament": "EnOf(Torneo)",
+    "honorRoll": "EnOf(Cuadro de Honor)",
+    "individualAwards": "EnOf(Premios Individuales)",
+    "tapToCollapse": "EnOf(Toca para colapsar)"
+  },
+  "card": {
+    "owner": "EnOf(Dueño)",
+    "you": "EnOf(¡Tú!)",
+    "yourPosition": "EnOf(Tu Posición)",
+    "yourPoints": "EnOf(Tus Puntos)",
+    "leader": "EnOf(Líder)",
+    "viewDetails": "EnOf(Ver Detalles)",
+    "positionOf": "EnOf(#{position} de {total})"
+  },
+  "customization": {
+    "title": "EnOf(Customiza el look de tu grupo)",
+    "groupName": "EnOf(Nombre del grupo)",
+    "primaryColor": "EnOf(Color primario)",
+    "secondaryColor": "EnOf(Color secundario)",
+    "logo": "EnOf(Logo)",
+    "selectImage": "EnOf(Seleccionar imagen)",
+    "noImageSelected": "EnOf(No se seleccionó imagen)",
+    "aspectRatioHint": "EnOf(Proporción de imagen recomendada: {ratio}:1)",
+    "saveButton": "EnOf(Guardar)"
   }
 }

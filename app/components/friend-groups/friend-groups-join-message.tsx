@@ -2,8 +2,10 @@
 
 import {useState} from "react";
 import {Alert, AlertTitle, Snackbar} from '@mui/material';
+import { useTranslations } from 'next-intl';
 
 export default function JoinMessage() {
+  const t = useTranslations('groups.joinMessage');
   const [open, setOpen] =  useState<boolean>(true)
 
   return (
@@ -21,9 +23,8 @@ export default function JoinMessage() {
         variant="filled"
         sx={{ width: '100%' }}
       >
-        <AlertTitle>Bienvenido!!</AlertTitle>
-        Gracias por unirte a este grupo. <br/>
-        Ahora vas a poder competir contra un montón de amigos.
+        <AlertTitle>{t('title')}</AlertTitle>
+        {t('body')}
       </Alert>
     </Snackbar>
   )

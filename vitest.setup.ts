@@ -23,14 +23,28 @@ vi.mock('next-auth/react', () => ({
 // Load Spanish translations for tests
 const spanishTranslations: Record<string, any> = {
   predictions: require('./locales/es/predictions.json'),
+  groups: require('./locales/es/groups.json'),
+  common: require('./locales/es/common.json'),
   // Add other namespaces as needed
 };
 
 // Helper function to get nested translation value
 function getTranslation(namespace: string, key: string, values?: Record<string, any>): string {
-  const keys = key.split('.');
-  let value: any = spanishTranslations[namespace];
+  // Handle multi-part namespace (e.g., 'groups.betting')
+  const namespaceParts = namespace.split('.');
+  let value: any = spanishTranslations;
 
+  // Navigate to the namespace
+  for (const part of namespaceParts) {
+    if (value && typeof value === 'object') {
+      value = value[part];
+    } else {
+      return key; // Return key if namespace not found
+    }
+  }
+
+  // Navigate to the key within the namespace
+  const keys = key.split('.');
   for (const k of keys) {
     if (value && typeof value === 'object') {
       value = value[k];

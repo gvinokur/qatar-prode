@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Alert } from "../mui-wrappers/";
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import {
   Dialog,
   DialogTitle,
@@ -20,13 +20,16 @@ interface JoinGroupDialogProps {
 export default function JoinGroupDialog({ open, onClose }: JoinGroupDialogProps) {
   const locale = useLocale();
   const router = useRouter();
+  const t = useTranslations('groups.join');
+  const tCommon = useTranslations('common.buttons');
+
   const [groupCode, setGroupCode] = useState('');
   const [error, setError] = useState('');
 
   const handleJoin = () => {
     // Validate code
     if (!groupCode.trim()) {
-      setError('Por favor ingresa un código de grupo');
+      setError(t('codeField.required'));
       return;
     }
 
@@ -43,7 +46,7 @@ export default function JoinGroupDialog({ open, onClose }: JoinGroupDialogProps)
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Unirse a un Grupo</DialogTitle>
+      <DialogTitle>{t('title')}</DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -53,7 +56,7 @@ export default function JoinGroupDialog({ open, onClose }: JoinGroupDialogProps)
         <TextField
           autoFocus
           margin="dense"
-          label="Código de Grupo"
+          label={t('codeField.label')}
           type="text"
           fullWidth
           variant="outlined"
@@ -62,16 +65,16 @@ export default function JoinGroupDialog({ open, onClose }: JoinGroupDialogProps)
             setGroupCode(e.target.value);
             setError('');
           }}
-          placeholder="Ingresa el código del grupo"
+          placeholder={t('codeField.placeholder')}
           sx={{ mt: 1 }}
         />
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={handleClose} color="inherit">
-          Cancelar
+          {tCommon('cancel')}
         </Button>
         <Button onClick={handleJoin} variant="contained" color="primary">
-          Unirse al Grupo
+          {t('buttons.join')}
         </Button>
       </DialogActions>
     </Dialog>
