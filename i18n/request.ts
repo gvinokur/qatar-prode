@@ -21,7 +21,8 @@ export default getRequestConfig(async ({requestLocale}) => {
       validation: (await import(`../locales/${locale}/validation.json`)).default,
       errors: (await import(`../locales/${locale}/errors.json`)).default,
       onboarding: (await import(`../locales/${locale}/onboarding.json`)).default,
-      predictions: (await import(`../locales/${locale}/predictions.json`)).default
+      predictions: (await import(`../locales/${locale}/predictions.json`)).default,
+      rules: (await import(`../locales/${locale}/rules.json`)).default
     }
   };
 });

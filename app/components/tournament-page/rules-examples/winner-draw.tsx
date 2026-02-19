@@ -1,13 +1,15 @@
 'use client'
 
 import { Box, Typography } from '@mui/material'
+import { useTranslations } from 'next-intl'
 
 export default function WinnerDrawExample() {
+  const t = useTranslations('rules.examples')
+
   return (
     <Box>
       <Typography variant="body2" color="text.secondary">
-        Ejemplo: Si predices que Argentina ganará contra Brasil y efectivamente Argentina gana, obtienes 1 punto.
-        Si predices un empate y el partido termina en empate, también obtienes 1 punto.
+        {t('winnerDraw')}
       </Typography>
     </Box>
   )
