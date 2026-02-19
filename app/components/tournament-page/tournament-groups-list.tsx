@@ -29,9 +29,9 @@ type GroupForm = {
 }
 
 export default function TournamentGroupsList({ groups, tournamentId }: TournamentGroupsListProps) {
-  const t = useTranslations('groups.create.dialog');
+  const tCreate = useTranslations('groups.create');
   const tList = useTranslations('groups.list');
-  const tCommon = useTranslations('common.buttons');
+  const tActions = useTranslations('groups.actions');
 
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [openJoinDialog, setOpenJoinDialog] = useState(false);
@@ -84,23 +84,23 @@ export default function TournamentGroupsList({ groups, tournamentId }: Tournamen
             }
           }}
         >
-          <DialogTitle>{t('title')}</DialogTitle>
+          <DialogTitle>{tCreate('title')}</DialogTitle>
           <DialogContent>
             <DialogContentText>
-              {t('description')}
+              {tCreate('description')}
             </DialogContentText>
             <Controller
               control={control}
               name="name"
               rules={{
-                required: t('fields.nameRequired')
+                required: tCreate('nameField.required')
               }}
               render={({ field, fieldState }) => (
                 <TextField
                   {...field}
                   autoFocus
                   margin="dense"
-                  label={t('fields.name')}
+                  label={tCreate('nameField.label')}
                   type="text"
                   fullWidth
                   variant="standard"
@@ -112,10 +112,10 @@ export default function TournamentGroupsList({ groups, tournamentId }: Tournamen
           </DialogContent>
           <DialogActions>
             <Button disabled={loading} onClick={handleCloseCreateDialog}>
-              {tCommon('cancel')}
+              {tCreate('buttons.cancel')}
             </Button>
             <Button loading={loading} type="submit">
-              {tList('buttons.create')}
+              {tCreate('buttons.create')}
             </Button>
           </DialogActions>
         </Dialog>
@@ -148,7 +148,7 @@ export default function TournamentGroupsList({ groups, tournamentId }: Tournamen
                   size="small"
                   onClick={() => setOpenCreateDialog(true)}
                 >
-                  {tList('buttons.create')}
+                  {tActions('create')}
                 </Button>
                 <Button
                   variant="outlined"
@@ -156,7 +156,7 @@ export default function TournamentGroupsList({ groups, tournamentId }: Tournamen
                   size="small"
                   onClick={() => setOpenJoinDialog(true)}
                 >
-                  {tList('buttons.join')}
+                  {tActions('join')}
                 </Button>
               </Stack>
             </Stack>
@@ -188,23 +188,23 @@ export default function TournamentGroupsList({ groups, tournamentId }: Tournamen
           }
         }}
       >
-        <DialogTitle>{t('title')}</DialogTitle>
+        <DialogTitle>{tCreate('title')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {t('description')}
+            {tCreate('description')}
           </DialogContentText>
           <Controller
             control={control}
             name="name"
             rules={{
-              required: t('fields.nameRequired')
+              required: tCreate('nameField.required')
             }}
             render={({ field, fieldState }) => (
               <TextField
                 {...field}
                 autoFocus
                 margin="dense"
-                label={t('fields.name')}
+                label={tCreate('nameField.label')}
                 type="text"
                 fullWidth
                 variant="standard"
@@ -216,10 +216,10 @@ export default function TournamentGroupsList({ groups, tournamentId }: Tournamen
         </DialogContent>
         <DialogActions>
           <Button disabled={loading} onClick={handleCloseCreateDialog}>
-            {tCommon('cancel')}
+            {tCreate('buttons.cancel')}
           </Button>
           <Button loading={loading} type="submit">
-            {tList('buttons.create')}
+            {tCreate('buttons.create')}
           </Button>
         </DialogActions>
       </Dialog>

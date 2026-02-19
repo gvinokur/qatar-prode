@@ -15,11 +15,12 @@ interface NotificationDialogProps {
 
 const NotificationDialog: React.FC<NotificationDialogProps> = ({ open, onClose, groupId, tournamentId, senderId }) => {
   const t = useTranslations('groups.notifications.dialog');
+  const tFeedback = useTranslations('groups.notifications.feedback');
   const tCommon = useTranslations('common.buttons');
 
   const targetOptions = [
-    { value: 'tournament', label: t('options.tournament') },
-    { value: 'friends-group', label: t('options.friendsGroup') },
+    { value: 'tournament', label: t('targetOptions.tournament') },
+    { value: 'friends-group', label: t('targetOptions.friendsGroup') },
   ];
 
   const [targetPage, setTargetPage] = useState<'tournament' | 'friends-group'>('tournament');
@@ -32,12 +33,12 @@ const NotificationDialog: React.FC<NotificationDialogProps> = ({ open, onClose, 
     setLoading(true);
     try {
       await sendGroupNotification({ groupId, tournamentId, targetPage, title, message, senderId });
-      setSnackbar({ open: true, message: t('feedback.success'), severity: 'success' });
+      setSnackbar({ open: true, message: tFeedback('success'), severity: 'success' });
       setTitle('');
       setMessage('');
       onClose();
     } catch (e: any) {
-      setSnackbar({ open: true, message: e?.message || t('feedback.error'), severity: 'error' });
+      setSnackbar({ open: true, message: e?.message || tFeedback('error'), severity: 'error' });
     } finally {
       setLoading(false);
     }
@@ -50,7 +51,7 @@ const NotificationDialog: React.FC<NotificationDialogProps> = ({ open, onClose, 
         <DialogContent>
           <TextField
             select
-            label={t('fields.destination')}
+            label={t('targetLabel')}
             value={targetPage}
             onChange={e => setTargetPage(e.target.value as 'tournament' | 'friends-group')}
             fullWidth
@@ -61,14 +62,14 @@ const NotificationDialog: React.FC<NotificationDialogProps> = ({ open, onClose, 
             ))}
           </TextField>
           <TextField
-            label={t('fields.title')}
+            label={t('titleLabel')}
             value={title}
             onChange={e => setTitle(e.target.value)}
             fullWidth
             margin="normal"
           />
           <TextField
-            label={t('fields.message')}
+            label={t('messageLabel')}
             value={message}
             onChange={e => setMessage(e.target.value)}
             fullWidth
