@@ -13,6 +13,8 @@ import {
 } from './backoffice-actions';
 import { calculateAndStoreQualifiedTeamsScores } from './qualified-teams-scoring-actions';
 import { findTeamsInGroup, findTournamentgroupById } from '../db/tournament-group-repository';
+import { getTranslations } from 'next-intl/server';
+import type { Locale } from '../../i18n.config';
 
 /**
  * Get the currently logged in user
@@ -27,13 +29,16 @@ async function getLoggedInUser() {
  */
 async function queryGamesForBulkOperation(
   groupId?: string,
-  playoffRoundId?: string
+  playoffRoundId?: string,
+  locale: Locale = 'es'
 ): Promise<{ games: ExtendedGameData[]; tournamentId: string } | { error: string }> {
+  const t = await getTranslations({ locale, namespace: 'games' });
+
   if (groupId) {
     const games = await findGamesInGroup(groupId, true, true);
     const group = await findTournamentgroupById(groupId);
     if (!group) {
-      return { error: 'Group not found' };
+      return { error: t('scoreGenerator.groupNotFound') };
     }
     return { games, tournamentId: group.tournament_id };
   }
@@ -45,7 +50,7 @@ async function queryGamesForBulkOperation(
       .executeTakeFirst();
 
     if (!round) {
-      return { error: 'Playoff round not found' };
+      return { error: t('scoreGenerator.playoffRoundNotFound') };
     }
 
     const allGames = await findGamesInTournament(round.tournament_id, true);
@@ -56,7 +61,7 @@ async function queryGamesForBulkOperation(
     return { games, tournamentId: round.tournament_id };
   }
 
-  return { error: 'Invalid parameters' };
+  return { error: t('scoreGenerator.invalidParameters') };
 }
 
 /**
@@ -112,7 +117,8 @@ async function clearScoresForGames(gamesWithResults: ExtendedGameData[]): Promis
  */
 async function runRecalculationPipeline(
   tournamentId: string,
-  groupId?: string
+  groupId?: string,
+  locale: Locale = 'es'
 ): Promise<void> {
   // First recalculate group standings (playoff calculation depends on this)
   if (groupId) {
@@ -133,7 +139,7 @@ async function runRecalculationPipeline(
   // Then recalculate playoff teams (uses updated group standings)
   await calculateAndSavePlayoffGamesForTournament(tournamentId);
   await calculateGameScores(false, false);
-  await calculateAndStoreQualifiedTeamsScores(tournamentId);
+  await calculateAndStoreQualifiedTeamsScores(tournamentId, locale);
 }
 
 interface AutoFillResult {
@@ -155,22 +161,24 @@ interface AutoFillResult {
  */
 export async function autoFillGameScores(
   groupId?: string,
-  playoffRoundId?: string
+  playoffRoundId?: string,
+  locale: Locale = 'es'
 ): Promise<AutoFillResult> {
+  const t = await getTranslations({ locale, namespace: 'games' });
   try {
     // Authorization check
     const user = await getLoggedInUser();
     if (!user?.isAdmin) {
-      return { success: false, error: 'Unauthorized: Admin access required' };
+      return { success: false, error: t('scoreGenerator.unauthorized') };
     }
 
     // Validate input
     if (!groupId && !playoffRoundId) {
-      return { success: false, error: 'Must provide either groupId or playoffRoundId' };
+      return { success: false, error: t('scoreGenerator.requireGroupOrPlayoff') };
     }
 
     // Query games
-    const queryResult = await queryGamesForBulkOperation(groupId, playoffRoundId);
+    const queryResult = await queryGamesForBulkOperation(groupId, playoffRoundId, locale);
     if ('error' in queryResult) {
       return { success: false, error: queryResult.error };
     }
@@ -196,7 +204,7 @@ export async function autoFillGameScores(
     await generateAndSaveScores(gamesToFill, resultsMap);
 
     // Run recalculation pipeline
-    await runRecalculationPipeline(tournamentId, groupId);
+    await runRecalculationPipeline(tournamentId, groupId, locale);
 
     return {
       success: true,
@@ -206,9 +214,10 @@ export async function autoFillGameScores(
 
   } catch (error) {
     console.error('Error auto-filling game scores:', error);
+    const tErrors = await getTranslations({ locale, namespace: 'errors' });
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to auto-fill scores'
+      error: tErrors('generic')
     };
   }
 }
@@ -229,22 +238,24 @@ interface ClearResult {
  */
 export async function clearGameScores(
   groupId?: string,
-  playoffRoundId?: string
+  playoffRoundId?: string,
+  locale: Locale = 'es'
 ): Promise<ClearResult> {
+  const t = await getTranslations({ locale, namespace: 'games' });
   try {
     // Authorization check
     const user = await getLoggedInUser();
     if (!user?.isAdmin) {
-      return { success: false, error: 'Unauthorized: Admin access required' };
+      return { success: false, error: t('scoreGenerator.unauthorized') };
     }
 
     // Validate input
     if (!groupId && !playoffRoundId) {
-      return { success: false, error: 'Must provide either groupId or playoffRoundId' };
+      return { success: false, error: t('scoreGenerator.requireGroupOrPlayoff') };
     }
 
     // Query games
-    const queryResult = await queryGamesForBulkOperation(groupId, playoffRoundId);
+    const queryResult = await queryGamesForBulkOperation(groupId, playoffRoundId, locale);
     if ('error' in queryResult) {
       return { success: false, error: queryResult.error };
     }
@@ -261,7 +272,7 @@ export async function clearGameScores(
     await clearScoresForGames(gamesWithResults);
 
     // Run recalculation pipeline
-    await runRecalculationPipeline(tournamentId, groupId);
+    await runRecalculationPipeline(tournamentId, groupId, locale);
 
     return {
       success: true,
@@ -270,9 +281,10 @@ export async function clearGameScores(
 
   } catch (error) {
     console.error('Error clearing game scores:', error);
+    const tErrors = await getTranslations({ locale, namespace: 'errors' });
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to clear scores'
+      error: tErrors('generic')
     };
   }
 }

@@ -1,6 +1,16 @@
 {
   "notFound": "Torneo no encontrado",
   "invalidStartDate": "EsOf[tournaments.invalidStartDate]",
+  "unauthorized": "EsOf[tournaments.unauthorized]",
+  "thirdPlace": {
+    "invalidCombinationKey": "EsOf[tournaments.thirdPlace.invalidCombinationKey]",
+    "rulesNotObject": "EsOf[tournaments.thirdPlace.rulesNotObject]",
+    "ruleValuesMustBeStrings": "EsOf[tournaments.thirdPlace.ruleValuesMustBeStrings]"
+  },
+  "scoring": {
+    "noPredictions": "EsOf[tournaments.scoring.noPredictions]",
+    "processed": "EsOf[tournaments.scoring.processed]"
+  },
   "qualification": {
     "tournamentNotFound": "Torneo no encontrado",
     "invalidTeamGroup": "El equipo {teamId} no pertenece al grupo {groupId}",

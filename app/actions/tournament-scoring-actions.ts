@@ -4,19 +4,22 @@ import { auth } from '../../auth';
 import { findTournamentById, updateTournament } from '../db/tournament-repository';
 import { findGamesInTournament } from '../db/game-repository';
 import { TournamentUpdate } from '../db/tables-definition';
+import { getTranslations } from 'next-intl/server';
+import type { Locale } from '../../i18n.config';
 
 /**
  * Get tournament scoring config (admin only)
  */
-export async function getTournamentScoringConfigAction(tournamentId: string) {
+export async function getTournamentScoringConfigAction(tournamentId: string, locale: Locale = 'es') {
+  const t = await getTranslations({ locale, namespace: 'tournaments' });
   const session = await auth();
   if (!session?.user?.isAdmin) {
-    throw new Error('Unauthorized');
+    throw new Error(t('unauthorized'));
   }
 
   const tournament = await findTournamentById(tournamentId);
   if (!tournament) {
-    throw new Error('Tournament not found');
+    throw new Error(t('notFound'));
   }
 
   // Return scoring fields
@@ -39,11 +42,13 @@ export async function getTournamentScoringConfigAction(tournamentId: string) {
  */
 export async function updateTournamentScoringConfigAction(
   tournamentId: string,
-  update: TournamentUpdate
+  update: TournamentUpdate,
+  locale: Locale = 'es'
 ) {
+  const t = await getTranslations({ locale, namespace: 'tournaments' });
   const session = await auth();
   if (!session?.user?.isAdmin) {
-    throw new Error('Unauthorized');
+    throw new Error(t('unauthorized'));
   }
 
   return updateTournament(tournamentId, update);
@@ -52,10 +57,11 @@ export async function updateTournamentScoringConfigAction(
 /**
  * Get recommended point values based on tournament statistics
  */
-export async function getRecommendedScoringValues(tournamentId: string) {
+export async function getRecommendedScoringValues(tournamentId: string, locale: Locale = 'es') {
+  const t = await getTranslations({ locale, namespace: 'tournaments' });
   const session = await auth();
   if (!session?.user?.isAdmin) {
-    throw new Error('Unauthorized');
+    throw new Error(t('unauthorized'));
   }
 
   const games = await findGamesInTournament(tournamentId);

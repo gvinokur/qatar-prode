@@ -17,6 +17,7 @@
     "playoffRoundNotFound": "Playoff round not found",
     "invalidParameters": "Invalid parameters",
     "unauthorized": "Admin access required",
+    "requireGroupOrPlayoff": "Must provide either groupId or playoffRoundId",
     "autoFillFailed": "Failed to auto-fill scores",
     "clearFailed": "Failed to clear scores"
   }

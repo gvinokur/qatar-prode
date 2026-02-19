@@ -17,6 +17,7 @@
     "playoffRoundNotFound": "EsOf[games.scoreGenerator.playoffRoundNotFound]",
     "invalidParameters": "EsOf[games.scoreGenerator.invalidParameters]",
     "unauthorized": "EsOf[games.scoreGenerator.unauthorized]",
+    "requireGroupOrPlayoff": "EsOf[games.scoreGenerator.requireGroupOrPlayoff]",
     "autoFillFailed": "EsOf[games.scoreGenerator.autoFillFailed]",
     "clearFailed": "EsOf[games.scoreGenerator.clearFailed]"
   }
