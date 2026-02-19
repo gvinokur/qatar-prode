@@ -103,11 +103,13 @@ return { success: false, error: t('key') };
 **Purpose:**
 - Placeholder format indicates what needs translation and provides source text for reference
 - Makes it easy to identify untranslated content during review
+- **Actual translation to English/Spanish happens in a SEPARATE story** (not Story #159)
 
-**Workflow:**
-1. Add keys with placeholder format first (based on source language in code)
-2. Replace placeholders with actual translations before final commit
-3. Ensure both en/ and es/ files have real translations (NO placeholders remain)
+**Workflow for Story #159:**
+1. Add keys with placeholder format based on source language in code
+2. **KEEP the EnOf/EsOf placeholders** - DO NOT attempt actual translations
+3. Commit translation files WITH placeholders intact
+4. Translation from placeholders to actual English/Spanish is OUT OF SCOPE for this story
 
 **Example based on source language:**
 ```json
@@ -122,7 +124,7 @@ return { success: false, error: t('key') };
 // locales/es/errors.json:
 {
   "admin": {
-    "unauthorized": "EsOf(Unauthorized: Admin only)"  // Placeholder → translate to Spanish
+    "unauthorized": "EsOf(Unauthorized: Admin only)"  // KEEP placeholder - translation happens in separate story
   }
 }
 
@@ -130,7 +132,7 @@ return { success: false, error: t('key') };
 // locales/en/errors.json:
 {
   "admin": {
-    "unauthorized": "EnOf(No autorizado: Solo admin)"  // Placeholder → translate to English
+    "unauthorized": "EnOf(No autorizado: Solo admin)"  // KEEP placeholder - translation happens in separate story
   }
 }
 
@@ -156,6 +158,7 @@ return { success: false, error: t('key') };
 
 **Out of Scope:**
 - ❌ **Push notification content** (game-notification-actions.ts) - Separate story
+- ❌ **Actual translation of EnOf/EsOf placeholders** - Separate story (keep placeholders in this story)
 
 **Impact of Expanded Scope:**
 - Phase 0 audit must include: client-side forms, API routes, network utilities
@@ -393,9 +396,9 @@ Create mapping of hardcoded strings → translation keys for each file:
 ```
 
 **Pattern Rule:**
-- **English source text** → en file gets final English, es file gets `EsOf(English text)`
-- **Spanish source text** → es file gets final Spanish, en file gets `EnOf(Spanish text)`
-- Replace ALL placeholders (`EnOf`/`EsOf`) with proper translations before final commit
+- **English source text** → en file gets final English, es file gets `EsOf(English text)` placeholder
+- **Spanish source text** → es file gets final Spanish, en file gets `EnOf(Spanish text)` placeholder
+- **KEEP ALL placeholders** (`EnOf`/`EsOf`) in final commit - DO NOT attempt translations in this story
 
 ### Phase 2: Server Action File Updates
 
@@ -828,9 +831,9 @@ If gaps/issues are discovered during implementation that weren't in this plan:
 - [ ] Key exists in BOTH en/ and es/ files
 - [ ] Interpolation variables match (e.g., `{id}` in en matches `{id}` in es)
 - [ ] Key structure: `domain.context.key`
-- [ ] **NO placeholder formats remain** (`EnOf(...)` or `EsOf(...)` must be replaced with real translations)
-- [ ] English files have proper English text (not Spanish)
-- [ ] Spanish files have proper Spanish text (not English)
+- [ ] **Placeholders are CORRECT** (`EnOf(...)` in English for Spanish source, `EsOf(...)` in Spanish for English source)
+- [ ] Source language text is properly preserved (English source → en file, Spanish source → es file)
+- [ ] Placeholder wraps the correct source text
 
 ## Execution Strategy
 
@@ -937,15 +940,15 @@ The execution approach (main agent only vs. hybrid mode with subagents) will be 
 
 3. **Verify translation file completeness:**
    ```bash
-   # Check for placeholder formats that should be replaced
-   grep -r "EnOf(" locales/en/
-   grep -r "EsOf(" locales/es/
+   # Verify placeholder formats are used correctly
+   grep -r "EnOf(" locales/en/  # Should find placeholders - this is EXPECTED
+   grep -r "EsOf(" locales/es/  # Should find placeholders - this is EXPECTED
    ```
    - Check all keys used in code exist in both en/ and es/ files
    - Verify interpolation variables match in both languages
-   - **Ensure NO placeholder formats remain** (`EnOf(...)` or `EsOf(...)`)
-   - Verify all English files have proper English (not Spanish text)
-   - Verify all Spanish files have proper Spanish (not English text)
+   - **Verify placeholders are CORRECT** (EnOf in English files, EsOf in Spanish files)
+   - Ensure source language text is preserved correctly in non-placeholder file
+   - Check that placeholder wraps the correct source text
 
 ### After Deployment to Vercel Preview
 
