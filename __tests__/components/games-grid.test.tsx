@@ -175,7 +175,7 @@ describe('GamesGrid', () => {
     const mockUpdateOrCreateTournamentGuess = vi.mocked(guessesActions.updateOrCreateTournamentGuess);
     
     await waitFor(() => {
-      expect(mockUpdateOrCreateTournamentGuess).toHaveBeenCalledWith(expect.objectContaining({ champion_team_id: 't1', runner_up_team_id: 't2' }));
+      expect(mockUpdateOrCreateTournamentGuess).toHaveBeenCalledWith(expect.objectContaining({ champion_team_id: 't1', runner_up_team_id: 't2' }), 'es');
     }, { timeout: 10000 });
   }, 15000);
 

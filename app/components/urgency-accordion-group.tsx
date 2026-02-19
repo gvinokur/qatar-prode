@@ -2,7 +2,8 @@
 
 import React, { useState, useMemo, useEffect, useContext } from 'react';
 import { Box } from '@mui/material';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+import { toLocale } from '../utils/locale-utils';
 import { UrgencyAccordion } from './urgency-accordion';
 import GameResultEditDialog from './game-result-edit-dialog';
 import { GuessesContext } from './context-providers/guesses-context-provider';
@@ -32,6 +33,7 @@ export function UrgencyAccordionGroup({
   isPlayoffs: _isPlayoffs
 }: UrgencyAccordionGroupProps) {
   const t = useTranslations('predictions');
+  const locale = toLocale(useLocale());
   const [expandedTierId, setExpandedTierId] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState<ExtendedGameData | null>(null);
@@ -149,13 +151,13 @@ export function UrgencyAccordionGroup({
             tournament_id: selectedGame.tournament_id,
             champion_team_id: winner_team_id,
             runner_up_team_id: loser_team_id,
-          });
+          }, locale);
         } else if (selectedGame.playoffStage.is_third_place) {
           await updateOrCreateTournamentGuess({
             user_id: data?.user?.id || '',
             tournament_id: selectedGame.tournament_id,
             third_place_team_id: loser_team_id,
-          });
+          }, locale);
         }
       }
     }

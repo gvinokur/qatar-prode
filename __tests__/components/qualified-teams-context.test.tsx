@@ -112,7 +112,7 @@ describe('QualifiedTeamsContext', () => {
       });
 
       expect(mockUpdateGroupPositions).toHaveBeenCalledTimes(1);
-      expect(mockUpdateGroupPositions).toHaveBeenCalledWith(mockGroupId, mockTournamentId, updates);
+      expect(mockUpdateGroupPositions).toHaveBeenCalledWith(mockGroupId, mockTournamentId, updates, 'es');
     });
 
     it('should apply optimistic update immediately', async () => {

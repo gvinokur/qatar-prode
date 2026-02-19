@@ -14,13 +14,14 @@ import {DebugObject} from "../debug";
 import {deactivateTournament} from "../../actions/tournament-actions";
 import {useRouter} from "next/navigation";
 import { useLocale } from 'next-intl';
+import { toLocale } from '../../utils/locale-utils';
 
 type Props = {
   tournament: Tournament
 }
 
 export default function TournamentBackofficeTab({ tournament } : Props) {
-  const locale = useLocale();
+  const locale = toLocale(useLocale());
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false)
   const [actionResults, setActionResults] = useState<{} | null>(null)
@@ -46,7 +47,7 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
 
   const calculateGameScoresForTournament = async () => {
     setLoading(true)
-    const results = await calculateGameScores(false, false)
+    const results = await calculateGameScores(false, false, locale)
     setActionResults(results)
     setLoading(false)
   }
@@ -71,7 +72,7 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
     setDeactivateError(null);
 
     try {
-      await deactivateTournament(tournament.id);
+      await deactivateTournament(tournament.id, locale);
       setDeactivateSuccess(true);
       handleDeactivateDialogClose();
       // Refresh to update tabs and tournament status
@@ -102,7 +103,7 @@ export default function TournamentBackofficeTab({ tournament } : Props) {
     setDeleteError(null);
 
     try {
-      await deleteDBTournamentTree(tournament);
+      await deleteDBTournamentTree(tournament, locale);
       setDeleteSuccess(true);
       handleDeleteDialogClose();
       // Redirect to backoffice after successful deletion

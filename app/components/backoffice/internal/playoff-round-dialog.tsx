@@ -1,6 +1,8 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
+import { useLocale } from 'next-intl';
+import { toLocale } from '../../../utils/locale-utils';
 import {
   Dialog,
   DialogTitle,
@@ -33,6 +35,7 @@ export default function PlayoffRoundDialog({
   round,
   nextOrder = 1
 }: PlayoffRoundDialogProps) {
+  const locale = toLocale(useLocale());
   const [loading, setLoading] = useState<boolean>(false);
   const [roundName, setRoundName] = useState<string>('');
   const [roundOrder, setRoundOrder] = useState<number>(nextOrder);
@@ -100,7 +103,7 @@ export default function PlayoffRoundDialog({
         is_first_stage: (roundOrder === 1)
       };
 
-      await createOrUpdatePlayoffRound(roundData);
+      await createOrUpdatePlayoffRound(roundData, locale);
       onSave();
       onClose();
     } catch (err: any) {

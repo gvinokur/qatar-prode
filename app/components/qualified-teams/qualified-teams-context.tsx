@@ -1,6 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { useLocale } from 'next-intl';
+import { toLocale } from '../../utils/locale-utils';
 import { QualifiedTeamPrediction } from '../../db/tables-definition';
 import { updateGroupPositionsJsonb } from '../../actions/qualification-actions';
 
@@ -67,6 +69,8 @@ export function QualifiedTeamsContextProvider({
   userId,
   isLocked,
 }: QualifiedTeamsContextProviderProps) {
+  const locale = toLocale(useLocale());
+
   // Convert initial predictions array to Map for O(1) lookups
   const initialPredictionsMap = useMemo(() => {
     const map = new Map<string, QualifiedTeamPrediction>();
@@ -121,7 +125,7 @@ export function QualifiedTeamsContextProvider({
 
       // Save to server
       try {
-        const result = await updateGroupPositionsJsonb(groupId, tournamentId, updates);
+        const result = await updateGroupPositionsJsonb(groupId, tournamentId, updates, locale);
 
         if (!isMountedRef.current) return;
 
@@ -160,7 +164,7 @@ export function QualifiedTeamsContextProvider({
         }));
       }
     },
-    [tournamentId, userId, isLocked, state.saveState]
+    [tournamentId, userId, isLocked, state.saveState, locale]
   );
 
   /**

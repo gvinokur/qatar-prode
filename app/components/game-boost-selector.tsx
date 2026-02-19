@@ -20,7 +20,8 @@ import {
   Star as StarIcon,
   Close as CloseIcon
 } from '@mui/icons-material';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+import { toLocale } from '../utils/locale-utils';
 import { setGameBoostAction } from '../actions/game-boost-actions';
 import { BoostBadge, BoostCountBadge } from './boost-badge';
 import { GuessesContext } from './context-providers/guesses-context-provider';
@@ -43,6 +44,7 @@ export default function GameBoostSelector({
   noPrediction = false
 }: GameBoostSelectorProps) {
   const t = useTranslations('predictions');
+  const locale = toLocale(useLocale());
   const theme = useTheme();
   const { boostCounts } = useContext(GuessesContext);
   const [boostType, setBoostType] = useState<'silver' | 'golden' | null>(currentBoostType);
@@ -96,7 +98,7 @@ export default function GameBoostSelector({
     setErrorMessage('');
 
     try {
-      await setGameBoostAction(gameId, newBoostType);
+      await setGameBoostAction(gameId, newBoostType, locale);
       setBoostType(newBoostType);
       // Context will automatically update counts when gameGuesses changes
     } catch (error: any) {

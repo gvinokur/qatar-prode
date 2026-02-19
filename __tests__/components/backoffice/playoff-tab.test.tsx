@@ -298,7 +298,7 @@ describe('PlayoffTab Integration Tests', () => {
         ])
       );
       expect(saveGamesData).toHaveBeenCalled();
-      expect(calculateGameScores).toHaveBeenCalledWith(false, false);
+      expect(calculateGameScores).toHaveBeenCalledWith(false, false, 'es');
     });
 
     it('should show success snackbar after successful save', async () => {
@@ -398,7 +398,7 @@ describe('PlayoffTab Integration Tests', () => {
       });
 
       expect(saveGamesData).toHaveBeenCalled();
-      expect(calculateGameScores).toHaveBeenCalledWith(false, false);
+      expect(calculateGameScores).toHaveBeenCalledWith(false, false, 'es');
     });
 
     it('should show error snackbar when publish fails', async () => {
@@ -782,7 +782,8 @@ describe('PlayoffTab Integration Tests', () => {
           expect.objectContaining({
             champion_team_id: team1.id, // Home team won 2-1
             runner_up_team_id: team2.id
-          })
+          }),
+          'es'
         );
       });
 
@@ -807,7 +808,8 @@ describe('PlayoffTab Integration Tests', () => {
           tournamentId,
           expect.objectContaining({
             third_place_team_id: team3.id // Home team won 1-0
-          })
+          }),
+          'es'
         );
       });
 
@@ -864,7 +866,8 @@ describe('PlayoffTab Integration Tests', () => {
             champion_team_id: team1.id,
             runner_up_team_id: team2.id,
             third_place_team_id: team3.id
-          })
+          }),
+          'es'
         );
       });
 
@@ -966,7 +969,8 @@ describe('PlayoffTab Integration Tests', () => {
             champion_team_id: null,
             runner_up_team_id: null,
             third_place_team_id: team3.id
-          })
+          }),
+          'es'
         );
       });
     });
