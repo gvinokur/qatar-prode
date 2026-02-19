@@ -11,6 +11,9 @@
     "noPredictions": "No users with predictions found for this tournament",
     "processed": "Processed {processed} out of {total} users"
   },
+  "logoTooLarge": "Logo file is too large. Maximum file size allowed is 5MB. Please choose a smaller image file.",
+  "logoUploadFailed": "Failed to upload logo. Please try again with a smaller file.",
+  "playoffSaveFailed": "Failed to save playoff stage",
   "qualification": {
     "tournamentNotFound": "EnOf[tournaments.qualification.tournamentNotFound]",
     "invalidTeamGroup": "EnOf[tournaments.qualification.invalidTeamGroup]",

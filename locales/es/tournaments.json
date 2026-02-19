@@ -11,6 +11,9 @@
     "noPredictions": "EsOf[tournaments.scoring.noPredictions]",
     "processed": "EsOf[tournaments.scoring.processed]"
   },
+  "logoTooLarge": "EsOf[tournaments.logoTooLarge]",
+  "logoUploadFailed": "EsOf[tournaments.logoUploadFailed]",
+  "playoffSaveFailed": "EsOf[tournaments.playoffSaveFailed]",
   "qualification": {
     "tournamentNotFound": "Torneo no encontrado",
     "invalidTeamGroup": "El equipo {teamId} no pertenece al grupo {groupId}",

@@ -1,6 +1,8 @@
 'use server'
 
 import tournaments from "../../data/tournaments";
+import { getTranslations } from 'next-intl/server';
+import type { Locale } from '../../i18n.config';
 import {
   createTournament,
   createTournamentTeam,
@@ -91,17 +93,18 @@ import {
 } from '../db/tournament-view-permission-repository';
 
 
-export async function deleteDBTournamentTree(tournament: Tournament) {
+export async function deleteDBTournamentTree(tournament: Tournament, locale: Locale = 'es') {
+  const t = await getTranslations({ locale, namespace: 'backoffice' });
   const user = await getLoggedInUser();
 
   // Authorization: Only admins can delete tournaments
   if (!user?.isAdmin) {
-    throw new Error('Unauthorized: Only administrators can delete tournaments');
+    throw new Error(t('tournament.deleteUnauthorized'));
   }
 
   // Safety check: Only allow deletion of deactivated tournaments
   if (tournament.is_active) {
-    throw new Error('Cannot delete an active tournament. Please deactivate it first.');
+    throw new Error(t('tournament.cannotDeleteActive'));
   }
 
   revalidatePath(`/tournaments/${tournament.id}/backoffice`);
@@ -406,7 +409,8 @@ export async function recalculateAllPlayoffFirstRoundGameGuesses(tournamentId: s
     .filter(updatedPlayoffGamesForUser => updatedPlayoffGamesForUser.length > 0)
 }
 
-export async function calculateGameScores(forceDrafts: boolean, forceAllGuesses: boolean) {
+export async function calculateGameScores(forceDrafts: boolean, forceAllGuesses: boolean, locale: Locale = 'es') {
+  const t = await getTranslations({ locale, namespace: 'tournaments' });
   const gamesWithResultAndGuesses = await findAllGamesWithPublishedResultsAndGameGuesses(forceDrafts, forceAllGuesses)
   const gameGuessesToClean = await findAllGuessesForGamesWithResultsInDraft()
 
@@ -423,7 +427,7 @@ export async function calculateGameScores(forceDrafts: boolean, forceAllGuesses:
     }
     const tournament = tournamentsMap.get(game.tournament_id);
     if (!tournament) {
-      throw new Error(`Tournament ${game.tournament_id} not found`);
+      throw new Error(t('notFound'));
     }
 
     // Extract scoring config
@@ -531,14 +535,15 @@ export async function findDataForAwards(tournamentId: string) {
   }
 }
 
-export async function updateTournamentAwards(tournamentId: string, withUpdate: TournamentUpdate) {
+export async function updateTournamentAwards(tournamentId: string, withUpdate: TournamentUpdate, locale: Locale = 'es') {
+  const t = await getTranslations({ locale, namespace: 'tournaments' });
   //Store and Calculate score for all users if not empty
   await updateTournament(tournamentId, withUpdate)
 
   // Get tournament for scoring config
   const tournament = await findTournamentById(tournamentId);
   if (!tournament) {
-    throw new Error(`Tournament ${tournamentId} not found`);
+    throw new Error(t('notFound'));
   }
 
   const individual_award_points = tournament.individual_award_points ?? 3;
@@ -559,14 +564,15 @@ export async function updateTournamentAwards(tournamentId: string, withUpdate: T
   }))
 }
 
-export async function updateTournamentHonorRoll(tournamentId: string, withUpdate: TournamentUpdate) {
+export async function updateTournamentHonorRoll(tournamentId: string, withUpdate: TournamentUpdate, locale: Locale = 'es') {
+  const t = await getTranslations({ locale, namespace: 'tournaments' });
   //Store and calculate score for all users if the honor roll is not empty
   await updateTournament(tournamentId, withUpdate)
 
   // Get tournament for scoring config
   const tournament = await findTournamentById(tournamentId);
   if (!tournament) {
-    throw new Error(`Tournament ${tournamentId} not found`);
+    throw new Error(t('notFound'));
   }
 
   const champion_points = tournament.champion_points ?? 5;
@@ -607,24 +613,26 @@ export async function copyTournament(
   tournamentId: string,
   newStartDate?: Date,
   longName?: string,
-  shortName?: string
+  shortName?: string,
+  locale: Locale = 'es'
 ): Promise<Tournament> {
+  const t = await getTranslations({ locale, namespace: 'tournaments' });
   const user = await getLoggedInUser();
 
   // Check if user is admin
   if (!user?.isAdmin) {
-    throw new Error('Unauthorized: Only administrators can copy tournaments');
+    throw new Error(t('unauthorized'));
   }
 
   // Validate newStartDate if provided
   if (newStartDate && Number.isNaN(newStartDate.getTime())) {
-    throw new Error('Invalid start date provided');
+    throw new Error(t('invalidStartDate'));
   }
 
   // Get the original tournament
   const originalTournament = await findTournamentById(tournamentId);
   if (!originalTournament) {
-    throw new Error('Tournament not found');
+    throw new Error(t('notFound'));
   }
 
   // Create a new tournament with modified name
@@ -839,11 +847,13 @@ export async function copyTournament(
  */
 export async function updateGroupTeamConductScores(
   groupId: string,
-  conductScores: { [teamId: string]: number }
+  conductScores: { [teamId: string]: number },
+  locale: Locale = 'es'
 ) {
+  const t = await getTranslations({ locale, namespace: 'backoffice' });
   const user = await getLoggedInUser();
   if (!user?.isAdmin) {
-    throw new Error('Unauthorized: Admin access required');
+    throw new Error(t('unauthorized'));
   }
 
   const { updateTeamConductScores } = await import('../db/tournament-group-repository');

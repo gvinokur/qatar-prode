@@ -6,6 +6,8 @@ import {
   findTournamentById,
   updateTournament
 } from "../db/tournament-repository";
+import { getTranslations } from 'next-intl/server';
+import type { Locale } from '../../i18n.config';
 import {
   Game, PlayoffRoundNew, PlayoffRoundUpdate,
   Team,
@@ -140,18 +142,19 @@ export async function getTournamentStartDate(tournamentId: string) {
  * @param tournamentId - The ID of the tournament to deactivate
  * @returns The updated tournament or an error
  */
-export async function deactivateTournament(tournamentId: string) {
+export async function deactivateTournament(tournamentId: string, locale: Locale = 'es') {
+  const t = await getTranslations({ locale, namespace: 'tournaments' });
   const user = await getLoggedInUser();
 
   // Check if user is admin
   if (!user?.isAdmin) {
-    throw new Error('Unauthorized: Only administrators can deactivate tournaments');
+    throw new Error(t('unauthorized'));
   }
 
   // Check if tournament exists
   const tournament = await findTournamentById(tournamentId);
   if (!tournament) {
-    throw new Error('Tournament not found');
+    throw new Error(t('notFound'));
   }
 
   // Update the tournament to set is_active to false
@@ -170,28 +173,30 @@ export async function deactivateTournament(tournamentId: string) {
 export async function createOrUpdateTournament(
   tournamentId: string | null,
   tournamentFormData: any,
+  locale: Locale = 'es'
 ): Promise<Tournament> {
   // Check if user is admin
-  await validateAdminUser();
-  
+  await validateAdminUser(locale);
+
   const { tournamentData, logoFile } = parseFormData(tournamentFormData);
-  const existingTournament = await getExistingTournament(tournamentId);
-  
-  const { logoUrl, logoKey } = await handleLogoUpload(logoFile, existingTournament);
-  
+  const existingTournament = await getExistingTournament(tournamentId, locale);
+
+  const { logoUrl, logoKey } = await handleLogoUpload(logoFile, existingTournament, locale);
+
   const updatedTournamentData = prepareTournamentData(tournamentData, existingTournament, logoUrl, logoKey);
-  
+
   const result = await saveOrUpdateTournament(tournamentId, updatedTournamentData);
-  
+
   await cleanupOldLogo(existingTournament, logoFile, logoUrl);
-  
+
   return result;
 }
 
-async function validateAdminUser(): Promise<void> {
+async function validateAdminUser(locale: Locale = 'es'): Promise<void> {
+  const t = await getTranslations({ locale, namespace: 'tournaments' });
   const user = await getLoggedInUser();
   if (!user?.isAdmin) {
-    throw new Error('Unauthorized: Only administrators can manage tournaments');
+    throw new Error(t('unauthorized'));
   }
 }
 
@@ -203,25 +208,27 @@ function parseFormData(formData: any): { tournamentData: any; logoFile: any } {
   };
 }
 
-async function getExistingTournament(tournamentId: string | null): Promise<Tournament | null> {
+async function getExistingTournament(tournamentId: string | null, locale: Locale = 'es'): Promise<Tournament | null> {
   if (!tournamentId) return null;
-  
+
+  const t = await getTranslations({ locale, namespace: 'tournaments' });
   const tournament = await findTournamentById(tournamentId);
   if (!tournament) {
-    throw new Error('Tournament not found');
+    throw new Error(t('notFound'));
   }
-  
+
   return tournament;
 }
 
-async function handleLogoUpload(logoFile: any, existingTournament: Tournament | null): Promise<{ logoUrl: string | null; logoKey: string | null }> {
+async function handleLogoUpload(logoFile: any, existingTournament: Tournament | null, locale: Locale = 'es'): Promise<{ logoUrl: string | null; logoKey: string | null }> {
   if (!logoFile) {
     return {
       logoUrl: existingTournament?.theme?.logo || null,
       logoKey: existingTournament?.theme?.s3_logo_key || null
     };
   }
-  
+
+  const t = await getTranslations({ locale, namespace: 'tournaments' });
   try {
     const s3Client = createS3Client('tournament-logos');
     const res = await s3Client.uploadFile(Buffer.from(await logoFile.arrayBuffer()));
@@ -231,12 +238,12 @@ async function handleLogoUpload(logoFile: any, existingTournament: Tournament | 
     };
   } catch (error) {
     console.error('Error uploading logo:', error);
-    
+
     if (error instanceof Error && error.message.includes('Body exceeded')) {
-      throw new Error('Logo file is too large. Maximum file size allowed is 5MB. Please choose a smaller image file.');
+      throw new Error(t('logoTooLarge'));
     }
-    
-    throw new Error('Failed to upload logo. Please try again with a smaller file.');
+
+    throw new Error(t('logoUploadFailed'));
   }
 }
 
@@ -303,12 +310,14 @@ export async function createOrUpdateTournamentGroup(
     group_letter: string;
     sort_by_games_between_teams?: boolean;
   },
-  teamIds: string[]
+  teamIds: string[],
+  locale: Locale = 'es'
 ) {
+  const t = await getTranslations({ locale, namespace: 'tournaments' });
   // Check if user is admin
   const user = await getLoggedInUser();
   if (!user?.isAdmin) {
-    throw new Error('Unauthorized: Only administrators can manage tournament groups');
+    throw new Error(t('unauthorized'));
   }
 
   let group: TournamentGroup;
@@ -375,11 +384,12 @@ export async function getPlayoffRounds(tournamentId: string) {
  * @param playoffRoundData - The playoff stage data to create or update
  * @returns The created/updated playoff stage
  */
-export async function createOrUpdatePlayoffRound(playoffRoundData: PlayoffRoundNew | PlayoffRoundUpdate): Promise<any> {
+export async function createOrUpdatePlayoffRound(playoffRoundData: PlayoffRoundNew | PlayoffRoundUpdate, locale: Locale = 'es'): Promise<any> {
+  const t = await getTranslations({ locale, namespace: 'tournaments' });
   // Check if user is admin
   const user = await getLoggedInUser();
   if (!user?.isAdmin) {
-    throw new Error('Unauthorized: Only administrators can manage playoff stages');
+    throw new Error(t('unauthorized'));
   }
 
   try {
@@ -396,7 +406,7 @@ export async function createOrUpdatePlayoffRound(playoffRoundData: PlayoffRoundN
     return result;
   } catch (error: any) {
     console.error('Error creating/updating playoff round:', error);
-    throw new Error(error.message || 'Failed to save playoff stage');
+    throw new Error(error.message || t('playoffSaveFailed'));
   }
 }
 

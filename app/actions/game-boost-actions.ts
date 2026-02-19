@@ -9,30 +9,34 @@ import {
 } from '../db/game-guess-repository';
 import { findGameById } from '../db/game-repository';
 import { findTournamentById } from '../db/tournament-repository';
+import { getTranslations } from 'next-intl/server';
+import type { Locale } from '../../i18n.config';
 
 /**
  * Set boost for game (with validation)
  */
-export async function setGameBoostAction(gameId: string, boostType: 'silver' | 'golden' | null) {
+export async function setGameBoostAction(gameId: string, boostType: 'silver' | 'golden' | null, locale: Locale = 'es') {
+  const t = await getTranslations({ locale, namespace: 'games' });
   const session = await auth();
   if (!session?.user?.id) {
-    throw new Error('Not authenticated');
+    throw new Error(t('boost.notAuthenticated'));
   }
 
   const game = await findGameById(gameId);
   if (!game) {
-    throw new Error('Game not found');
+    throw new Error(t('notFound'));
   }
 
   // Check if game has started
   if (new Date() >= game.game_date) {
-    throw new Error('Cannot set boost after game starts');
+    throw new Error(t('boost.cannotSetAfterStart'));
   }
 
   // Get tournament for limits
   const tournament = await findTournamentById(game.tournament_id);
   if (!tournament) {
-    throw new Error('Tournament not found');
+    const tTournaments = await getTranslations({ locale, namespace: 'tournaments' });
+    throw new Error(tTournaments('notFound'));
   }
 
   const max_silver_games = tournament.max_silver_games ?? 0;
@@ -52,10 +56,10 @@ export async function setGameBoostAction(gameId: string, boostType: 'silver' | '
       : counts[boostType] + 1; // Adding new boost increases count
 
     if (boostType === 'silver' && effectiveCount > max_silver_games) {
-      throw new Error(`Maximum ${max_silver_games} silver games allowed`);
+      throw new Error(t('boost.maxSilverReached', { max: max_silver_games }));
     }
     if (boostType === 'golden' && effectiveCount > max_golden_games) {
-      throw new Error(`Maximum ${max_golden_games} golden games allowed`);
+      throw new Error(t('boost.maxGoldenReached', { max: max_golden_games }));
     }
   }
 
@@ -68,11 +72,13 @@ export async function setGameBoostAction(gameId: string, boostType: 'silver' | '
  */
 export async function getBoostAllocationBreakdownAction(
   tournamentId: string,
-  boostType: 'silver' | 'golden'
+  boostType: 'silver' | 'golden',
+  locale: Locale = 'es'
 ) {
+  const t = await getTranslations({ locale, namespace: 'games' });
   const session = await auth();
   if (!session?.user?.id) {
-    throw new Error('Not authenticated');
+    throw new Error(t('boost.notAuthenticated'));
   }
 
   return getBoostAllocationBreakdown(session.user.id, tournamentId, boostType);

@@ -113,6 +113,10 @@
       "configError": "EnOf(Error al guardar la configuración)",
       "paymentUpdated": "EnOf(¡Estado de pago actualizado!)",
       "paymentError": "EnOf(Error al actualizar el estado de pago)"
+    },
+    "errors": {
+      "notAuthenticated": "Not authenticated",
+      "ownerOnly": "Not authorized: Only group owner or admin can modify betting config"
     }
   },
   "joinMessage": {
