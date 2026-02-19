@@ -7,7 +7,7 @@ import type { User } from '../../../app/db/tables-definition';
 
 // Mock next-intl hooks
 vi.mock('next-intl', () => ({
-  useTranslations: vi.fn(),
+  useTranslations: vi.fn(() => (key: string) => key),
 }));
 
 describe('VerificationSentView', () => {

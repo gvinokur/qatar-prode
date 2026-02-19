@@ -29,7 +29,7 @@ vi.mock('next-auth/react', () => ({
 
 // Mock next-intl with translation interpolation support
 vi.mock('next-intl', () => ({
-  useTranslations: vi.fn(),
+  useTranslations: vi.fn(() => (key: string) => key),
   useLocale: vi.fn(() => 'es'),
 }));
 

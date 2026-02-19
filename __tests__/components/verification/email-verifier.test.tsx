@@ -9,7 +9,7 @@ import { renderWithTheme } from '../../utils/test-utils';
 
 // Mock next-intl hooks
 vi.mock('next-intl', () => ({
-  useTranslations: vi.fn(),
+  useTranslations: vi.fn(() => (key: string) => key),
   useLocale: vi.fn(),
 }));
 
