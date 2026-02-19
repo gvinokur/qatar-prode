@@ -10,6 +10,7 @@ import {updateTheme} from "../../actions/prode-group-actions";
 import ImagePicker from "./image-picker";
 import {useRouter} from "next/navigation";
 import {getThemeLogoUrl} from "../../utils/theme-utils";
+import {useTranslations} from 'next-intl';
 
 type Props = {
   group: ProdeGroup
@@ -23,6 +24,7 @@ type FormData = {
 }
 
 export default function ProdeGroupThemer({ group }: Props) {
+  const t = useTranslations('groups.customization');
   const [loading, setLoading] = useState<boolean>(false)
   const router = useRouter()
   const { handleSubmit, control } =
@@ -48,7 +50,7 @@ export default function ProdeGroupThemer({ group }: Props) {
 
   return (
     <Card>
-      <CardHeader title={'Customiza el look de tu grupo'}/>
+      <CardHeader title={t('title')}/>
       <form onSubmit={handleSubmit(onUpdateTheme)}>
         <CardContent>
           <Controller
@@ -57,7 +59,7 @@ export default function ProdeGroupThemer({ group }: Props) {
             render={({ field, fieldState: fieldState }) => (
               <TextField
                 {...field}
-                label="Nombre del grupo"
+                label={t('groupName')}
                 margin="dense"
                 fullWidth
                 error={!!fieldState.error}
@@ -69,14 +71,14 @@ export default function ProdeGroupThemer({ group }: Props) {
             control={control}
             name={'primary_color'}
             render={({field}) => (
-              <MuiColorInput {...field} format="hex" margin='dense' fullWidth/>
+              <MuiColorInput {...field} format="hex" margin='dense' fullWidth label={t('primaryColor')}/>
             )}
           />
           <Controller
             control={control}
             name={'secondary_color'}
             render={({field}) => (
-              <MuiColorInput {...field} format="hex" margin='dense' fullWidth/>
+              <MuiColorInput {...field} format="hex" margin='dense' fullWidth label={t('secondaryColor')}/>
             )}
           />
           <Controller
@@ -86,6 +88,9 @@ export default function ProdeGroupThemer({ group }: Props) {
               <ImagePicker {...field}
                            id={'file'}
                            defaultValue={getThemeLogoUrl(group.theme) || undefined}
+                           buttonText={t('selectImage')}
+                           noImageText={t('noImageSelected')}
+                           imageType={t('logo')}
                            onChange={(event) => {
                              field.onChange(event.target.files?.[0]);
                            }}/>
@@ -95,7 +100,7 @@ export default function ProdeGroupThemer({ group }: Props) {
         <CardActions sx={{
           direction: 'rtl'
         }}>
-          <Button variant={'contained'} loading={loading} type={'submit'}>Guardar</Button>
+          <Button variant={'contained'} loading={loading} type={'submit'}>{t('saveButton')}</Button>
         </CardActions>
       </form>
     </Card>

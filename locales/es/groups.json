@@ -9,11 +9,12 @@
     "invite": "Invitar Amigos",
     "inviteMore": "Invitar mas amigos",
     "join": "Unirse al Grupo",
-    "view": "Ver Grupos"
+    "view": "Ver Grupos",
+    "expandMore": "mostrar más"
   },
   "create": {
     "title": "Crear Grupo de Amigos",
-    "description": "Un grupo de amigos te permite tener un ranking privado. Crea tantos grupos como quieras para jugar con diferentes círculos de amigos.",
+    "description": "Un grupo de amigos te permite tener un ranking privado de aciertos. Crea tantos grupos de amigos como quieras, tu mismo pronostico va a ser usado para calcular tu posicion en todos.",
     "nameField": {
       "label": "Nombre",
       "required": "El nombre del grupo es obligatorio"
@@ -84,7 +85,8 @@
   },
   "standings": {
     "title": "Tabla de Posiciones",
-    "empty": "No hay torneos activos disponibles en este momento."
+    "empty": "No hay torneos activos disponibles en este momento.",
+    "sendNotification": "Enviar Notificación"
   },
   "betting": {
     "statusEnabled": "Apuesta habilitada",
@@ -120,5 +122,40 @@
   "list": {
     "title": "Grupos de Amigos",
     "joinButton": "Unirse"
+  },
+  "leaderboard": {
+    "pointBreakdown": "Desglose de Puntos",
+    "groupStage": "Fase de Grupos",
+    "groupStageGames": "Partidos de Fase de Grupos",
+    "groupBoostBonus": "+ Bonus de Boost de Grupos",
+    "qualifiedTeams": "Equipos Clasificados",
+    "groupPositions": "Posiciones de Grupo",
+    "knockout": "Eliminatorias",
+    "playoffGames": "Partidos de Playoff",
+    "playoffBoostBonus": "+ Bonus de Boost de Playoff",
+    "tournament": "Torneo",
+    "honorRoll": "Cuadro de Honor",
+    "individualAwards": "Premios Individuales",
+    "tapToCollapse": "Toca para colapsar"
+  },
+  "card": {
+    "owner": "Dueño",
+    "you": "¡Tú!",
+    "yourPosition": "Tu Posición",
+    "yourPoints": "Tus Puntos",
+    "leader": "Líder",
+    "viewDetails": "Ver Detalles",
+    "positionOf": "#{position} de {total}"
+  },
+  "customization": {
+    "title": "Customiza el look de tu grupo",
+    "groupName": "Nombre del grupo",
+    "primaryColor": "Color primario",
+    "secondaryColor": "Color secundario",
+    "logo": "Logo",
+    "selectImage": "Seleccionar imagen",
+    "noImageSelected": "No se seleccionó imagen",
+    "aspectRatioHint": "Proporción de imagen recomendada: {ratio}:1",
+    "saveButton": "Guardar"
   }
 }

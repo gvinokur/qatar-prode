@@ -46,7 +46,6 @@ const GroupTournamentBettingAdmin: React.FC<GroupTournamentBettingAdminProps> = 
   payments: initialPayments,
 }) => {
   const t = useTranslations('groups.betting');
-  const tCommon = useTranslations('common.buttons');
 
   const [bettingEnabled, setBettingEnabled] = useState(!!config?.betting_enabled);
   const [bettingAmount, setBettingAmount] = useState(config?.betting_amount?.toString() || '');
@@ -138,7 +137,7 @@ const GroupTournamentBettingAdmin: React.FC<GroupTournamentBettingAdminProps> = 
         </Snackbar>
         <Paper sx={{ p: 2, mb: 4 }} elevation={2}>
           <Typography variant="body1">
-            {bettingEnabled ? t('status.enabled') : t('status.disabled')}
+            {bettingEnabled ? t('statusEnabled') : t('statusDisabled')}
             <Button
               variant="outlined"
               color={bettingEnabled ? 'error' : 'success'}
@@ -147,13 +146,13 @@ const GroupTournamentBettingAdmin: React.FC<GroupTournamentBettingAdminProps> = 
               onClick={handleToggleEnabled}
               disabled={saving}
             >
-              {bettingEnabled ? t('buttons.disable') : t('buttons.enable')}
+              {bettingEnabled ? t('toggleDisable') : t('toggleEnable')}
             </Button>
           </Typography>
           {bettingEnabled && (
             <Box mt={2}>
               <TextField
-                label={t('fields.amount')}
+                label={t('amountLabel')}
                 type="number"
                 value={bettingAmount}
                 onChange={handleAmountChange}
@@ -163,7 +162,7 @@ const GroupTournamentBettingAdmin: React.FC<GroupTournamentBettingAdminProps> = 
                 disabled={saving}
               />
               <TextField
-                label={t('fields.description')}
+                label={t('descriptionLabel')}
                 value={bettingDescription}
                 onChange={handleDescriptionChange}
                 onBlur={handleDescriptionBlur}
@@ -174,14 +173,14 @@ const GroupTournamentBettingAdmin: React.FC<GroupTournamentBettingAdminProps> = 
                 disabled={saving}
               />
               <Typography variant="h6" mb={2}>
-                {t('paymentStatus.title')}
+                {t('paymentStatusLabel')}
               </Typography>
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>{t('paymentStatus.table.name')}</TableCell>
-                    <TableCell>{t('paymentStatus.table.paid')}</TableCell>
-                    <TableCell>{t('paymentStatus.table.actions')}</TableCell>
+                    <TableCell>{t('tableHeaders.name')}</TableCell>
+                    <TableCell>{t('tableHeaders.paid')}</TableCell>
+                    <TableCell>{t('tableHeaders.actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -198,7 +197,7 @@ const GroupTournamentBettingAdmin: React.FC<GroupTournamentBettingAdminProps> = 
                             onClick={() => handleTogglePaid(member.id)}
                             disabled={saving}
                           >
-                            {tCommon('change')}
+                            {t('changeButton')}
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -218,14 +217,14 @@ const GroupTournamentBettingAdmin: React.FC<GroupTournamentBettingAdminProps> = 
     <Box mt={2}>
       <Paper elevation={2} sx={{ p: 2, mb: 2 }}>
         <Typography variant="body1">
-          <b>{config?.betting_enabled ? t('status.enabled') : t('status.disabled')}</b><br />
+          <b>{config?.betting_enabled ? t('statusEnabled') : t('statusDisabled')}</b><br />
           {config?.betting_enabled && (
             <>
-              <b>{t('readOnly.amountPerPerson')}</b> $ {config?.betting_amount ?? '-'}<br />
-              <b>{t('readOnly.totalAmount')}</b> $ {config?.betting_amount ? config?.betting_amount * payments.filter((p) => p.has_paid).length : '-'}<br />
-              <b>{t('readOnly.description')}</b> <br />
+              <b>{t('summary.perPerson')}</b> $ {config?.betting_amount ?? '-'}<br />
+              <b>{t('summary.total')}</b> $ {config?.betting_amount ? config?.betting_amount * payments.filter((p) => p.has_paid).length : '-'}<br />
+              <b>{t('summary.description')}</b> <br />
               {config?.betting_payout_description ?? '-'}<br />
-              <b>{t('readOnly.paidBy')}</b> {payments.filter((p) => p.has_paid).map((p) => members.find((m) => m.id === p.user_id)?.nombre).join(', ')}<br />
+              <b>{t('summary.paidList')}</b> {payments.filter((p) => p.has_paid).map((p) => members.find((m) => m.id === p.user_id)?.nombre).join(', ')}<br />
             </>
           )}
         </Typography>
