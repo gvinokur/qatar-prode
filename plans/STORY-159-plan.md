@@ -86,6 +86,62 @@ return { success: false, error: t('key') };
 - **Dot notation:** `t('section.subsection.key')`
 - **Interpolation:** `t('key', { var: value })`
 
+### 5. Translation Placeholder Pattern (CRITICAL)
+
+**For new translation keys being added:**
+
+**English files (`locales/en/*.json`):**
+- Use `EnOf(Spanish text)` as placeholder for content that needs English translation
+- Example: `"unauthorized": "EnOf(No autorizado)"`
+- Indicates: This is Spanish text that needs to be translated TO English
+
+**Spanish files (`locales/es/*.json`):**
+- Use `EsOf(English text)` as placeholder for content that needs Spanish translation
+- Example: `"unauthorized": "EsOf(Unauthorized)"`
+- Indicates: This is English text that needs to be translated TO Spanish
+
+**Purpose:**
+- Placeholder format indicates what needs translation and provides source text for reference
+- Makes it easy to identify untranslated content during review
+
+**Workflow:**
+1. Add keys with placeholder format first (based on source language in code)
+2. Replace placeholders with actual translations before final commit
+3. Ensure both en/ and es/ files have real translations (NO placeholders remain)
+
+**Example based on source language:**
+```json
+// If source code has: "Unauthorized: Admin only"
+// locales/en/errors.json:
+{
+  "admin": {
+    "unauthorized": "Unauthorized: Admin only"  // Keep English as-is
+  }
+}
+
+// locales/es/errors.json:
+{
+  "admin": {
+    "unauthorized": "EsOf(Unauthorized: Admin only)"  // Placeholder → translate to Spanish
+  }
+}
+
+// If source code has: "No autorizado: Solo admin"
+// locales/en/errors.json:
+{
+  "admin": {
+    "unauthorized": "EnOf(No autorizado: Solo admin)"  // Placeholder → translate to English
+  }
+}
+
+// locales/es/errors.json:
+{
+  "admin": {
+    "unauthorized": "No autorizado: Solo admin"  // Keep Spanish as-is
+  }
+}
+```
+
 ## Scope Clarification
 
 **✅ SCOPE CONFIRMED BY USER**
@@ -315,15 +371,31 @@ Create mapping of hardcoded strings → translation keys for each file:
 
 **Example mapping for backoffice-actions.ts:**
 ```
-"Unauthorized: Only administrators can delete tournaments"
+"Unauthorized: Only administrators can delete tournaments" (English source)
   → t('admin.deleteUnauthorized') [backoffice namespace]
+  → en/backoffice.json: "Unauthorized: Only administrators can delete tournaments"
+  → es/backoffice.json: "EsOf(Unauthorized: Only administrators can delete tournaments)"
 
-"Cannot delete an active tournament. Please deactivate it first."
+"Cannot delete an active tournament. Please deactivate it first." (English source)
   → t('tournament.cannotDeleteActive') [backoffice namespace]
+  → en/backoffice.json: "Cannot delete an active tournament. Please deactivate it first."
+  → es/backoffice.json: "EsOf(Cannot delete an active tournament. Please deactivate it first.)"
 
-"Tournament {id} not found"
-  → tErrors('tournaments.notFound', { id }) [errors namespace]
+"El torneo ya existe" (Spanish source - from line 186 of backoffice-actions.ts)
+  → t('tournament.alreadyExists') [backoffice namespace]
+  → en/backoffice.json: "EnOf(El torneo ya existe)"
+  → es/backoffice.json: "El torneo ya existe"
+
+"Tournament {id} not found" (English source)
+  → tErrors('tournaments.notFound', { id}) [errors namespace]
+  → en/errors.json: "Tournament {id} not found"
+  → es/errors.json: "EsOf(Tournament {id} not found)"
 ```
+
+**Pattern Rule:**
+- **English source text** → en file gets final English, es file gets `EsOf(English text)`
+- **Spanish source text** → es file gets final Spanish, en file gets `EnOf(Spanish text)`
+- Replace ALL placeholders (`EnOf`/`EsOf`) with proper translations before final commit
 
 ### Phase 2: Server Action File Updates
 
@@ -754,8 +826,11 @@ If gaps/issues are discovered during implementation that weren't in this plan:
 
 ### Translation Files
 - [ ] Key exists in BOTH en/ and es/ files
-- [ ] Interpolation variables match
+- [ ] Interpolation variables match (e.g., `{id}` in en matches `{id}` in es)
 - [ ] Key structure: `domain.context.key`
+- [ ] **NO placeholder formats remain** (`EnOf(...)` or `EsOf(...)` must be replaced with real translations)
+- [ ] English files have proper English text (not Spanish)
+- [ ] Spanish files have proper Spanish text (not English)
 
 ## Execution Strategy
 
@@ -861,8 +936,16 @@ The execution approach (main agent only vs. hybrid mode with subagents) will be 
    ```
 
 3. **Verify translation file completeness:**
+   ```bash
+   # Check for placeholder formats that should be replaced
+   grep -r "EnOf(" locales/en/
+   grep -r "EsOf(" locales/es/
+   ```
    - Check all keys used in code exist in both en/ and es/ files
    - Verify interpolation variables match in both languages
+   - **Ensure NO placeholder formats remain** (`EnOf(...)` or `EsOf(...)`)
+   - Verify all English files have proper English (not Spanish text)
+   - Verify all Spanish files have proper Spanish (not English text)
 
 ### After Deployment to Vercel Preview
 
