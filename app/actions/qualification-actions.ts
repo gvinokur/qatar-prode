@@ -1,7 +1,5 @@
 'use server';
 
-import { getTranslations } from 'next-intl/server';
-import type { Locale } from '../../i18n.config';
 import { getLoggedInUser } from './user-actions';
 import {
   upsertGroupPositionsPrediction,
@@ -15,51 +13,34 @@ import { QualificationPredictionError } from './qualification-errors';
  * Get tournament configuration for qualified teams feature
  * Used by client components to determine UI behavior
  */
-export async function getTournamentQualificationConfig(
-  tournamentId: string,
-  locale: Locale = 'es'
-): Promise<{
-  success: boolean;
-  error?: string;
-  data?: {
-    allowsThirdPlace: boolean;
-    maxThirdPlace: number;
-    isLocked: boolean;
-  };
+export async function getTournamentQualificationConfig(tournamentId: string): Promise<{
+  allowsThirdPlace: boolean;
+  maxThirdPlace: number;
+  isLocked: boolean;
 }> {
-  try {
-    const t = await getTranslations({ locale, namespace: 'tournaments' });
-    const tournament = await db
-      .selectFrom('tournaments')
-      .where('id', '=', tournamentId)
-      .select(['is_active', 'allows_third_place_qualification', 'max_third_place_qualifiers'])
-      .executeTakeFirst();
+  const tournament = await db
+    .selectFrom('tournaments')
+    .where('id', '=', tournamentId)
+    .select(['is_active', 'allows_third_place_qualification', 'max_third_place_qualifiers'])
+    .executeTakeFirst();
 
-    if (!tournament) {
-      return { success: false, error: t('qualification.tournamentNotFound') };
-    }
-
-    // Check if predictions are locked (5 days after tournament starts)
-    // Same logic as tournament awards (honor roll, individual awards)
-    const { getTournamentStartDate } = await import('./tournament-actions');
-    const tournamentStartDate = await getTournamentStartDate(tournamentId);
-    const isPredictionLocked = tournamentStartDate
-      ? Date.now() > tournamentStartDate.getTime() + 5 * 24 * 60 * 60 * 1000
-      : false;
-
-    return {
-      success: true,
-      data: {
-        allowsThirdPlace: tournament.allows_third_place_qualification || false,
-        maxThirdPlace: tournament.max_third_place_qualifiers || 0,
-        isLocked: isPredictionLocked,
-      },
-    };
-  } catch (error) {
-    console.error('Error getting tournament qualification config:', error);
-    const tErrors = await getTranslations({ locale, namespace: 'errors' });
-    return { success: false, error: tErrors('generic') };
+  if (!tournament) {
+    throw new QualificationPredictionError('Torneo no encontrado', 'TOURNAMENT_NOT_FOUND');
   }
+
+  // Check if predictions are locked (5 days after tournament starts)
+  // Same logic as tournament awards (honor roll, individual awards)
+  const { getTournamentStartDate } = await import('./tournament-actions');
+  const tournamentStartDate = await getTournamentStartDate(tournamentId);
+  const isPredictionLocked = tournamentStartDate
+    ? Date.now() > tournamentStartDate.getTime() + 5 * 24 * 60 * 60 * 1000
+    : false;
+
+  return {
+    allowsThirdPlace: tournament.allows_third_place_qualification || false,
+    maxThirdPlace: tournament.max_third_place_qualifiers || 0,
+    isLocked: isPredictionLocked,
+  };
 }
 
 /** Helper: Validate teams belong to group */
@@ -172,78 +153,80 @@ async function validateThirdPlaceForGroup(
  * @param groupId - The tournament group ID
  * @param tournamentId - The tournament ID
  * @param positionUpdates - Array of {teamId, position, qualifies}
- * @param locale - The locale for error messages
  * @returns Updated predictions or error
  */
 export async function updateGroupPositionsJsonb(
   groupId: string,
   tournamentId: string,
-  positionUpdates: Array<{ teamId: string; position: number; qualifies: boolean }>,
-  locale: Locale = 'es'
-): Promise<{ success: boolean; message?: string; error?: string }> {
-  try {
-    const t = await getTranslations({ locale, namespace: 'tournaments' });
-
-    // Validation: User authentication
-    const user = await getLoggedInUser();
-    if (!user?.id) {
-      return { success: false, error: t('qualification.unauthorized') };
-    }
-
-    const userId = user.id;
-
-    // Validation: Empty array
-    if (positionUpdates.length === 0) {
-      return { success: true, message: t('qualification.noUpdates') };
-    }
-
-    // Validation: Tournament exists and is not locked
-    const tournament = await db
-      .selectFrom('tournaments')
-      .where('id', '=', tournamentId)
-      .select(['id', 'is_active', 'allows_third_place_qualification', 'max_third_place_qualifiers', 'dev_only'])
-      .executeTakeFirst();
-
-    if (!tournament) {
-      return { success: false, error: t('qualification.tournamentNotFound') };
-    }
-
-    // Check if editing is allowed via dev override (dev/preview environment + dev tournament)
-    const isDevelopmentEnvironment = process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'preview';
-    const isDevTournament = tournament.dev_only === true;
-    const allowDevOverride = isDevelopmentEnvironment && isDevTournament;
-
-    if (!tournament.is_active && !allowDevOverride) {
-      return { success: false, error: t('qualification.tournamentLocked') };
-    }
-
-    const teamIds = positionUpdates.map((u) => u.teamId);
-    const positionNumbers = positionUpdates.map((u) => u.position);
-
-    // Run all validations
-    await validateTeamsInGroup(teamIds, groupId);
-    validateNoDuplicateTeams(teamIds);
-    validatePositionsValidAndUnique(positionNumbers);
-    validateQualificationFlagsForPositions(positionUpdates);
-    await validateThirdPlaceForGroup(
-      positionUpdates,
-      {
-        allows_third_place_qualification: tournament.allows_third_place_qualification ?? null,
-        max_third_place_qualifiers: tournament.max_third_place_qualifiers ?? null
-      },
-      userId,
-      tournamentId,
-      groupId
+  positionUpdates: Array<{ teamId: string; position: number; qualifies: boolean }>
+): Promise<{ success: boolean; message: string }> {
+  // Validation: User authentication
+  const user = await getLoggedInUser();
+  if (!user?.id) {
+    throw new QualificationPredictionError(
+      'Debes iniciar sesión para actualizar predicciones',
+      'UNAUTHORIZED'
     );
+  }
 
-    // Build TeamPositionPrediction array for JSONB
-    const positions: TeamPositionPrediction[] = positionUpdates.map((update) => ({
-      team_id: update.teamId,
-      predicted_position: update.position,
-      predicted_to_qualify: update.qualifies,
-    }));
+  const userId = user.id;
 
-    // Execute atomic JSONB upsert
+  // Validation: Empty array
+  if (positionUpdates.length === 0) {
+    return { success: true, message: 'No hay predicciones para actualizar' };
+  }
+
+  // Validation: Tournament exists and is not locked
+  const tournament = await db
+    .selectFrom('tournaments')
+    .where('id', '=', tournamentId)
+    .select(['id', 'is_active', 'allows_third_place_qualification', 'max_third_place_qualifiers', 'dev_only'])
+    .executeTakeFirst();
+
+  if (!tournament) {
+    throw new QualificationPredictionError('Torneo no encontrado', 'TOURNAMENT_NOT_FOUND');
+  }
+
+  // Check if editing is allowed via dev override (dev/preview environment + dev tournament)
+  const isDevelopmentEnvironment = process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'preview';
+  const isDevTournament = tournament.dev_only === true;
+  const allowDevOverride = isDevelopmentEnvironment && isDevTournament;
+
+  if (!tournament.is_active && !allowDevOverride) {
+    throw new QualificationPredictionError(
+      'Las predicciones están bloqueadas para este torneo',
+      'TOURNAMENT_LOCKED'
+    );
+  }
+
+  const teamIds = positionUpdates.map((u) => u.teamId);
+  const positionNumbers = positionUpdates.map((u) => u.position);
+
+  // Run all validations
+  await validateTeamsInGroup(teamIds, groupId);
+  validateNoDuplicateTeams(teamIds);
+  validatePositionsValidAndUnique(positionNumbers);
+  validateQualificationFlagsForPositions(positionUpdates);
+  await validateThirdPlaceForGroup(
+    positionUpdates,
+    {
+      allows_third_place_qualification: tournament.allows_third_place_qualification ?? null,
+      max_third_place_qualifiers: tournament.max_third_place_qualifiers ?? null
+    },
+    userId,
+    tournamentId,
+    groupId
+  );
+
+  // Build TeamPositionPrediction array for JSONB
+  const positions: TeamPositionPrediction[] = positionUpdates.map((update) => ({
+    team_id: update.teamId,
+    predicted_position: update.position,
+    predicted_to_qualify: update.qualifies,
+  }));
+
+  // Execute atomic JSONB upsert
+  try {
     await upsertGroupPositionsPrediction(userId, tournamentId, groupId, positions);
 
     // Update playoff game guesses based on new qualification predictions
@@ -253,15 +236,13 @@ export async function updateGroupPositionsJsonb(
 
     return {
       success: true,
-      message: t('qualification.updateSuccess', { count: positions.length }),
+      message: `Actualizadas ${positions.length} predicciones exitosamente`,
     };
   } catch (error) {
     console.error('Error updating group positions (JSONB):', error);
-    // If it's a QualificationPredictionError, extract the Spanish message
-    if (error instanceof QualificationPredictionError) {
-      return { success: false, error: error.message };
-    }
-    const tErrors = await getTranslations({ locale, namespace: 'errors' });
-    return { success: false, error: tErrors('generic') };
+    throw new QualificationPredictionError(
+      'Error al guardar las predicciones. Por favor intenta de nuevo.',
+      'DATABASE_ERROR'
+    );
   }
 }

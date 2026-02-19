@@ -1,7 +1,5 @@
 'use server'
 
-import { getTranslations } from 'next-intl/server';
-import type { Locale } from '../../i18n.config';
 import {getLoggedInUser} from "./user-actions";
 import {GameGuessNew, TournamentGuessNew, UserUpdate} from "../db/tables-definition";
 import { updateGameGuessByGameId, updateOrCreateGuess} from "../db/game-guess-repository";
@@ -14,12 +12,11 @@ import {findGamesInTournament} from "../db/game-repository";
 import {toMap} from "../utils/ObjectUtils";
 import {db} from "../db/database";
 
-export async function updateOrCreateGameGuesses(gameGuesses: GameGuessNew[], locale: Locale = 'es') {
+export async function updateOrCreateGameGuesses(gameGuesses: GameGuessNew[]) {
   try {
-    const t = await getTranslations({ locale, namespace: 'games' });
     const user = await getLoggedInUser()
     if(!user) {
-      return { success: false, error: t('unauthorized') };
+      throw new Error('Unauthorized action')
     }
     const _createdGameGuesses = await Promise.all(
       gameGuesses.map(gameGuess => {
@@ -31,19 +28,17 @@ export async function updateOrCreateGameGuesses(gameGuesses: GameGuessNew[], loc
     )
     return { success: true }
   } catch (error: any) {
-    console.error('Error updating/creating game guesses:', error);
-    const tErrors = await getTranslations({ locale, namespace: 'errors' });
-    return { success: false, error: tErrors('generic') }
+    // Return error message so client can display it
+    return { success: false, error: error.message || 'Failed to save prediction' }
   }
 }
 
-export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew, locale: Locale = 'es') {
+export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew) {
   try {
     return await dbUpdateOrCreateTournamentGuess(guess)
   } catch (error) {
     console.error('[updateOrCreateTournamentGuess] Save failed:', error)
-    const tErrors = await getTranslations({ locale, namespace: 'errors' });
-    return { success: false, error: tErrors('generic') };
+    return { success: false, error: 'Failed to update tournament guess' };
   }
 }
 

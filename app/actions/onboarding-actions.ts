@@ -1,7 +1,5 @@
 'use server'
 
-import { getTranslations } from 'next-intl/server';
-import type { Locale } from '../../i18n.config';
 import { getLoggedInUser } from './user-actions'
 import {
   completeOnboarding,
@@ -26,10 +24,9 @@ export async function getOnboardingData() {
 /**
  * Save current onboarding step for the logged-in user
  */
-export async function saveOnboardingStep(step: number, locale: Locale = 'es') {
-  const t = await getTranslations({ locale, namespace: 'errors' });
+export async function saveOnboardingStep(step: number) {
   const user = await getLoggedInUser()
-  if (!user?.id) return { error: t('unauthorized') }
+  if (!user?.id) return { error: 'Unauthorized' }
 
   await updateOnboardingData(user.id, { currentStep: step })
   return { success: true }
@@ -38,10 +35,9 @@ export async function saveOnboardingStep(step: number, locale: Locale = 'es') {
 /**
  * Mark onboarding as complete for the logged-in user
  */
-export async function markOnboardingComplete(locale: Locale = 'es') {
-  const t = await getTranslations({ locale, namespace: 'errors' });
+export async function markOnboardingComplete() {
   const user = await getLoggedInUser()
-  if (!user?.id) return { error: t('unauthorized') }
+  if (!user?.id) return { error: 'Unauthorized' }
 
   await completeOnboarding(user.id)
   revalidatePath('/') // Refresh to prevent showing onboarding again
@@ -51,10 +47,9 @@ export async function markOnboardingComplete(locale: Locale = 'es') {
 /**
  * Skip the onboarding flow (marks as completed)
  */
-export async function skipOnboardingFlow(locale: Locale = 'es') {
-  const t = await getTranslations({ locale, namespace: 'errors' });
+export async function skipOnboardingFlow() {
   const user = await getLoggedInUser()
-  if (!user?.id) return { error: t('unauthorized') }
+  if (!user?.id) return { error: 'Unauthorized' }
 
   await skipOnboarding(user.id)
   revalidatePath('/')
@@ -64,10 +59,9 @@ export async function skipOnboardingFlow(locale: Locale = 'es') {
 /**
  * Dismiss a tooltip for the logged-in user
  */
-export async function dismissTooltip(tooltipId: string, locale: Locale = 'es') {
-  const t = await getTranslations({ locale, namespace: 'errors' });
+export async function dismissTooltip(tooltipId: string) {
   const user = await getLoggedInUser()
-  if (!user?.id) return { error: t('unauthorized') }
+  if (!user?.id) return { error: 'Unauthorized' }
 
   await dismissTooltipRepo(user.id, tooltipId)
   return { success: true }
@@ -76,10 +70,9 @@ export async function dismissTooltip(tooltipId: string, locale: Locale = 'es') {
 /**
  * Update a checklist item's completion status
  */
-export async function updateChecklistItem(itemId: string, completed: boolean, locale: Locale = 'es') {
-  const t = await getTranslations({ locale, namespace: 'errors' });
+export async function updateChecklistItem(itemId: string, completed: boolean) {
   const user = await getLoggedInUser()
-  if (!user?.id) return { error: t('unauthorized') }
+  if (!user?.id) return { error: 'Unauthorized' }
 
   await updateChecklistItemRepo(user.id, itemId, completed)
   revalidatePath('/profile') // Or wherever checklist is shown

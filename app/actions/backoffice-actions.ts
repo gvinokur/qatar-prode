@@ -1,7 +1,5 @@
 'use server'
 
-import { getTranslations } from 'next-intl/server';
-import type { Locale } from '../../i18n.config';
 import tournaments from "../../data/tournaments";
 import {
   createTournament,
@@ -93,64 +91,52 @@ import {
 } from '../db/tournament-view-permission-repository';
 
 
-export async function deleteDBTournamentTree(tournament: Tournament, locale: Locale = 'es') {
-  try {
-    const t = await getTranslations({ locale, namespace: 'backoffice' });
-    const user = await getLoggedInUser();
+export async function deleteDBTournamentTree(tournament: Tournament) {
+  const user = await getLoggedInUser();
 
-    // Authorization: Only admins can delete tournaments
-    if (!user?.isAdmin) {
-      return { success: false, error: t('tournament.deleteUnauthorized') };
-    }
-
-    // Safety check: Only allow deletion of deactivated tournaments
-    if (tournament.is_active) {
-      return { success: false, error: t('tournament.cannotDeleteActive') };
-    }
-
-    revalidatePath(`/tournaments/${tournament.id}/backoffice`);
-
-    // Delete all related entities in reverse order of dependencies
-    // User-related data
-    await deleteAllGameGuessesByTournamentId(tournament.id);
-    await deleteAllTournamentGuessesByTournamentId(tournament.id);
-
-    // Tournament structure and content
-    await deleteAllPlayersInTournament(tournament.id);
-    await deleteAllTournamentVenues(tournament.id);
-    await deleteThirdPlaceRulesByTournament(tournament.id);
-    await deleteAllGamesFromTournament(tournament.id);
-    await deleteAllPlayoffRoundsInTournament(tournament.id);
-    await deleteAllGroupsFromTournament(tournament.id);
-    await deleteTournamentTeams(tournament.id);
-
-    // Finally, delete the tournament itself
-    await deleteTournament(tournament.id);
-
-    return { success: true };
-  } catch (error) {
-    console.error('Error deleting tournament tree:', error);
-    const tErrors = await getTranslations({ locale, namespace: 'errors' });
-    return { success: false, error: tErrors('generic') };
+  // Authorization: Only admins can delete tournaments
+  if (!user?.isAdmin) {
+    throw new Error('Unauthorized: Only administrators can delete tournaments');
   }
+
+  // Safety check: Only allow deletion of deactivated tournaments
+  if (tournament.is_active) {
+    throw new Error('Cannot delete an active tournament. Please deactivate it first.');
+  }
+
+  revalidatePath(`/tournaments/${tournament.id}/backoffice`);
+
+  // Delete all related entities in reverse order of dependencies
+  // User-related data
+  await deleteAllGameGuessesByTournamentId(tournament.id);
+  await deleteAllTournamentGuessesByTournamentId(tournament.id);
+
+  // Tournament structure and content
+  await deleteAllPlayersInTournament(tournament.id);
+  await deleteAllTournamentVenues(tournament.id);
+  await deleteThirdPlaceRulesByTournament(tournament.id);
+  await deleteAllGamesFromTournament(tournament.id);
+  await deleteAllPlayoffRoundsInTournament(tournament.id);
+  await deleteAllGroupsFromTournament(tournament.id);
+  await deleteTournamentTeams(tournament.id);
+
+  // Finally, delete the tournament itself
+  await deleteTournament(tournament.id);
 }
 
-export async function generateDbTournamentTeamPlayers(tournamentName: string, locale: Locale = 'es') {
-  try {
-    const t = await getTranslations({ locale, namespace: 'backoffice' });
-
-    const result = await Promise.all(tournaments
-      .filter(tournament => tournament.tournament_name === tournamentName)
-      .map(async (tournament) => {
-        if(tournament.players.length > 0) {
-          const existingDBTournament = await findTournamentByName(tournamentName);
-          if(!existingDBTournament) {
-            return { success: false, error: t('tournament.createPlayersFailed') };
-          }
-          const teams = await findTeamInTournament(existingDBTournament.id);
-          if(teams.length === 0) {
-            return { success: false, error: t('tournament.createPlayersNoTeams') };
-          }
+export async function generateDbTournamentTeamPlayers(tournamentName: string) {
+  const result = await Promise.all(tournaments
+    .filter(tournament => tournament.tournament_name === tournamentName)
+    .map(async (tournament) => {
+      if(tournament.players.length > 0) {
+        const existingDBTournament = await findTournamentByName(tournamentName);
+        if(!existingDBTournament) {
+          throw "Cannot create players for a non existing tournament"
+        }
+        const teams = await findTeamInTournament(existingDBTournament.id);
+        if(teams.length === 0) {
+          throw "Cannot create players for a tournament without teams"
+        }
         const teamsByNameMap: {[k:string]: Team} = customToMap(teams, (team) => team.name)
 
         await Promise.all(tournament.players.map(async (player) => {
@@ -179,16 +165,11 @@ export async function generateDbTournamentTeamPlayers(tournamentName: string, lo
 
         }))
 
-        return { success: true, message: 'All players created' }
+        return 'All players created'
       }
     }))
 
-    return { success: true, data: result };
-  } catch (error) {
-    console.error('Error generating tournament team players:', error);
-    const tErrors = await getTranslations({ locale, namespace: 'errors' });
-    return { success: false, error: tErrors('generic') };
-  }
+  return result
 }
 
 export async function generateDbTournament(name: string, deletePrevious:boolean = false) {
@@ -425,27 +406,25 @@ export async function recalculateAllPlayoffFirstRoundGameGuesses(tournamentId: s
     .filter(updatedPlayoffGamesForUser => updatedPlayoffGamesForUser.length > 0)
 }
 
-export async function calculateGameScores(forceDrafts: boolean, forceAllGuesses: boolean, locale: Locale = 'es') {
-  try {
-    const gamesWithResultAndGuesses = await findAllGamesWithPublishedResultsAndGameGuesses(forceDrafts, forceAllGuesses)
-    const gameGuessesToClean = await findAllGuessesForGamesWithResultsInDraft()
+export async function calculateGameScores(forceDrafts: boolean, forceAllGuesses: boolean) {
+  const gamesWithResultAndGuesses = await findAllGamesWithPublishedResultsAndGameGuesses(forceDrafts, forceAllGuesses)
+  const gameGuessesToClean = await findAllGuessesForGamesWithResultsInDraft()
 
-    // Cache tournaments by ID
-    const tournamentsMap = new Map<string, any>();
+  // Cache tournaments by ID
+  const tournamentsMap = new Map<string, any>();
 
-    const updatedGameGuesses = await Promise.all(gamesWithResultAndGuesses.map(async (game) => {
-      // Get or cache tournament
-      if (!tournamentsMap.has(game.tournament_id)) {
-        const tournament = await findTournamentById(game.tournament_id);
-        if (tournament) {
-          tournamentsMap.set(game.tournament_id, tournament);
-        }
+  const updatedGameGuesses = await Promise.all(gamesWithResultAndGuesses.map(async (game) => {
+    // Get or cache tournament
+    if (!tournamentsMap.has(game.tournament_id)) {
+      const tournament = await findTournamentById(game.tournament_id);
+      if (tournament) {
+        tournamentsMap.set(game.tournament_id, tournament);
       }
-      const tournament = tournamentsMap.get(game.tournament_id);
-      if (!tournament) {
-        const t = await getTranslations({ locale, namespace: 'backoffice' });
-        throw new Error(t('tournament.notFound', { id: game.tournament_id }));
-      }
+    }
+    const tournament = tournamentsMap.get(game.tournament_id);
+    if (!tournament) {
+      throw new Error(`Tournament ${game.tournament_id} not found`);
+    }
 
     // Extract scoring config
     const scoringConfig = {
@@ -514,19 +493,14 @@ export async function calculateGameScores(forceDrafts: boolean, forceAllGuesses:
     });
   }
 
-    // Materialize scores for each tournament
-    await Promise.all(
-      Array.from(usersByTournament.entries()).map(([tournamentId, userIds]) =>
-        recalculateGameScoresForUsers(Array.from(userIds), tournamentId)
-      )
-    );
+  // Materialize scores for each tournament
+  await Promise.all(
+    Array.from(usersByTournament.entries()).map(([tournamentId, userIds]) =>
+      recalculateGameScoresForUsers(Array.from(userIds), tournamentId)
+    )
+  );
 
-    return { success: true, data: { updatedGameGuesses, cleanedGameGuesses } };
-  } catch (error) {
-    console.error('Error calculating game scores:', error);
-    const tErrors = await getTranslations({ locale, namespace: 'errors' });
-    return { success: false, error: tErrors('generic') };
-  }
+  return {updatedGameGuesses, cleanedGameGuesses}
 }
 
 export async function calculateAndStoreGroupPosition(group_id: string, teamIds: string[], groupGames: ExtendedGameData[], sortByGamesBetweenTeams: boolean) {
@@ -557,89 +531,68 @@ export async function findDataForAwards(tournamentId: string) {
   }
 }
 
-export async function updateTournamentAwards(tournamentId: string, withUpdate: TournamentUpdate, locale: Locale = 'es') {
-  try {
-    const t = await getTranslations({ locale, namespace: 'backoffice' });
+export async function updateTournamentAwards(tournamentId: string, withUpdate: TournamentUpdate) {
+  //Store and Calculate score for all users if not empty
+  await updateTournament(tournamentId, withUpdate)
 
-    //Store and Calculate score for all users if not empty
-    await updateTournament(tournamentId, withUpdate)
-
-    // Get tournament for scoring config
-    const tournament = await findTournamentById(tournamentId);
-    if (!tournament) {
-      return { success: false, error: t('tournament.notFound', { id: tournamentId }) };
-    }
-
-    const individual_award_points = tournament.individual_award_points ?? 3;
-    const allTournamentGuesses = await findTournamentGuessByTournament(tournamentId)
-
-    const result = await Promise.all(allTournamentGuesses.map(async (tournamentGuess) => {
-      const awardsScore = awardsDefinition.reduce((accumScore, awardDefinition) => {
-        if (withUpdate[awardDefinition.property]) {
-          if (tournamentGuess[awardDefinition.property] === withUpdate[awardDefinition.property]) {
-            return accumScore + individual_award_points
-          }
-        }
-        return accumScore
-      }, 0)
-      return await updateTournamentGuessWithSnapshot(tournamentGuess.id, {
-        individual_awards_score: awardsScore
-      })
-    }))
-
-    return { success: true, data: result };
-  } catch (error) {
-    console.error('Error updating tournament awards:', error);
-    const tErrors = await getTranslations({ locale, namespace: 'errors' });
-    return { success: false, error: tErrors('generic') };
+  // Get tournament for scoring config
+  const tournament = await findTournamentById(tournamentId);
+  if (!tournament) {
+    throw new Error(`Tournament ${tournamentId} not found`);
   }
+
+  const individual_award_points = tournament.individual_award_points ?? 3;
+  const allTournamentGuesses = await findTournamentGuessByTournament(tournamentId)
+
+  return await Promise.all(allTournamentGuesses.map(async (tournamentGuess) => {
+    const awardsScore = awardsDefinition.reduce((accumScore, awardDefinition) => {
+      if (withUpdate[awardDefinition.property]) {
+        if (tournamentGuess[awardDefinition.property] === withUpdate[awardDefinition.property]) {
+          return accumScore + individual_award_points
+        }
+      }
+      return accumScore
+    }, 0)
+    return await updateTournamentGuessWithSnapshot(tournamentGuess.id, {
+      individual_awards_score: awardsScore
+    })
+  }))
 }
 
-export async function updateTournamentHonorRoll(tournamentId: string, withUpdate: TournamentUpdate, locale: Locale = 'es') {
-  try {
-    const t = await getTranslations({ locale, namespace: 'backoffice' });
+export async function updateTournamentHonorRoll(tournamentId: string, withUpdate: TournamentUpdate) {
+  //Store and calculate score for all users if the honor roll is not empty
+  await updateTournament(tournamentId, withUpdate)
 
-    //Store and calculate score for all users if the honor roll is not empty
-    await updateTournament(tournamentId, withUpdate)
+  // Get tournament for scoring config
+  const tournament = await findTournamentById(tournamentId);
+  if (!tournament) {
+    throw new Error(`Tournament ${tournamentId} not found`);
+  }
 
-    // Get tournament for scoring config
-    const tournament = await findTournamentById(tournamentId);
-    if (!tournament) {
-      return { success: false, error: t('tournament.notFound', { id: tournamentId }) };
-    }
+  const champion_points = tournament.champion_points ?? 5;
+  const runner_up_points = tournament.runner_up_points ?? 3;
+  const third_place_points = tournament.third_place_points ?? 1;
 
-    const champion_points = tournament.champion_points ?? 5;
-    const runner_up_points = tournament.runner_up_points ?? 3;
-    const third_place_points = tournament.third_place_points ?? 1;
-
-    if(withUpdate.champion_team_id || withUpdate.runner_up_team_id || withUpdate.third_place_team_id) {
-      const allTournamentGuesses = await findTournamentGuessByTournament(tournamentId)
-      const result = await Promise.all(allTournamentGuesses.map(async (tournamentGuess) => {
-        let honorRollScore = 0
-        if(withUpdate.champion_team_id &&
-          tournamentGuess.champion_team_id === withUpdate.champion_team_id) {
-          honorRollScore += champion_points
-        }
-        if(withUpdate.runner_up_team_id &&
-          tournamentGuess.runner_up_team_id === withUpdate.runner_up_team_id) {
-          honorRollScore += runner_up_points
-        }
-        if(withUpdate.third_place_team_id &&
-          tournamentGuess.third_place_team_id === withUpdate.third_place_team_id) {
-          honorRollScore += third_place_points
-        }
-        return await updateTournamentGuessWithSnapshot(tournamentGuess.id, {
-          honor_roll_score: honorRollScore
-        })
-      }))
-      return { success: true, data: result };
-    }
-
-    return { success: true };
-  } catch (error) {
-    console.error('Error updating tournament honor roll:', error);
-    const tErrors = await getTranslations({ locale, namespace: 'errors' });
-    return { success: false, error: tErrors('generic') };
+  if(withUpdate.champion_team_id || withUpdate.runner_up_team_id || withUpdate.third_place_team_id) {
+    const allTournamentGuesses = await findTournamentGuessByTournament(tournamentId)
+    return await Promise.all(allTournamentGuesses.map(async (tournamentGuess) => {
+      let honorRollScore = 0
+      if(withUpdate.champion_team_id &&
+        tournamentGuess.champion_team_id === withUpdate.champion_team_id) {
+        honorRollScore += champion_points
+      }
+      if(withUpdate.runner_up_team_id &&
+        tournamentGuess.runner_up_team_id === withUpdate.runner_up_team_id) {
+        honorRollScore += runner_up_points
+      }
+      if(withUpdate.third_place_team_id &&
+        tournamentGuess.third_place_team_id === withUpdate.third_place_team_id) {
+        honorRollScore += third_place_points
+      }
+      return await updateTournamentGuessWithSnapshot(tournamentGuess.id, {
+        honor_roll_score: honorRollScore
+      })
+    }))
   }
 }
 
@@ -654,28 +607,25 @@ export async function copyTournament(
   tournamentId: string,
   newStartDate?: Date,
   longName?: string,
-  shortName?: string,
-  locale: Locale = 'es'
-): Promise<{ success: boolean; error?: string; data?: Tournament }> {
-  try {
-    const t = await getTranslations({ locale, namespace: 'backoffice' });
-    const user = await getLoggedInUser();
+  shortName?: string
+): Promise<Tournament> {
+  const user = await getLoggedInUser();
 
-    // Check if user is admin
-    if (!user?.isAdmin) {
-      return { success: false, error: t('tournament.copyUnauthorized') };
-    }
+  // Check if user is admin
+  if (!user?.isAdmin) {
+    throw new Error('Unauthorized: Only administrators can copy tournaments');
+  }
 
-    // Validate newStartDate if provided
-    if (newStartDate && Number.isNaN(newStartDate.getTime())) {
-      return { success: false, error: t('tournament.invalidStartDate') };
-    }
+  // Validate newStartDate if provided
+  if (newStartDate && Number.isNaN(newStartDate.getTime())) {
+    throw new Error('Invalid start date provided');
+  }
 
-    // Get the original tournament
-    const originalTournament = await findTournamentById(tournamentId);
-    if (!originalTournament) {
-      return { success: false, error: t('tournament.notFound', { id: tournamentId }) };
-    }
+  // Get the original tournament
+  const originalTournament = await findTournamentById(tournamentId);
+  if (!originalTournament) {
+    throw new Error('Tournament not found');
+  }
 
   // Create a new tournament with modified name
   const newTournament = await createTournament({
@@ -869,23 +819,18 @@ export async function copyTournament(
     })
   );
 
-    // Copy third-place rules
-    const thirdPlaceRules = await findThirdPlaceRulesByTournament(tournamentId);
-    await Promise.all(thirdPlaceRules.map(rule =>
-      createThirdPlaceRule({
-        tournament_id: newTournament.id,
-        combination_key: rule.combination_key,
-        rules: JSON.stringify(rule.rules)
-      })
-    ));
+  // Copy third-place rules
+  const thirdPlaceRules = await findThirdPlaceRulesByTournament(tournamentId);
+  await Promise.all(thirdPlaceRules.map(rule =>
+    createThirdPlaceRule({
+      tournament_id: newTournament.id,
+      combination_key: rule.combination_key,
+      rules: JSON.stringify(rule.rules)
+    })
+  ));
 
-    // Do not activate the tournament automatically
-    return { success: true, data: newTournament };
-  } catch (error) {
-    console.error('Error copying tournament:', error);
-    const tErrors = await getTranslations({ locale, namespace: 'errors' });
-    return { success: false, error: tErrors('generic') };
-  }
+  // Do not activate the tournament automatically
+  return newTournament;
 }
 
 /**
@@ -894,25 +839,15 @@ export async function copyTournament(
  */
 export async function updateGroupTeamConductScores(
   groupId: string,
-  conductScores: { [teamId: string]: number },
-  locale: Locale = 'es'
+  conductScores: { [teamId: string]: number }
 ) {
-  try {
-    const t = await getTranslations({ locale, namespace: 'backoffice' });
-    const user = await getLoggedInUser();
-    if (!user?.isAdmin) {
-      return { success: false, error: t('unauthorized') };
-    }
-
-    const { updateTeamConductScores } = await import('../db/tournament-group-repository');
-    await updateTeamConductScores(conductScores, groupId);
-
-    return { success: true };
-  } catch (error) {
-    console.error('Error updating group team conduct scores:', error);
-    const tErrors = await getTranslations({ locale, namespace: 'errors' });
-    return { success: false, error: tErrors('generic') };
+  const user = await getLoggedInUser();
+  if (!user?.isAdmin) {
+    throw new Error('Unauthorized: Admin access required');
   }
+
+  const { updateTeamConductScores } = await import('../db/tournament-group-repository');
+  await updateTeamConductScores(conductScores, groupId);
 }
 
 /**

@@ -1,7 +1,5 @@
 'use server'
 
-import { getTranslations } from 'next-intl/server';
-import type { Locale } from '../../i18n.config';
 import { auth } from '../../auth';
 import { findGamesInGroup, findGamesInTournament } from '../db/game-repository';
 import { findGameResultByGameIds, createGameResult, updateGameResult } from '../db/game-result-repository';
@@ -157,15 +155,13 @@ interface AutoFillResult {
  */
 export async function autoFillGameScores(
   groupId?: string,
-  playoffRoundId?: string,
-  locale: Locale = 'es'
+  playoffRoundId?: string
 ): Promise<AutoFillResult> {
   try {
-    const t = await getTranslations({ locale, namespace: 'games' });
     // Authorization check
     const user = await getLoggedInUser();
     if (!user?.isAdmin) {
-      return { success: false, error: t('unauthorized') };
+      return { success: false, error: 'Unauthorized: Admin access required' };
     }
 
     // Validate input
@@ -210,10 +206,9 @@ export async function autoFillGameScores(
 
   } catch (error) {
     console.error('Error auto-filling game scores:', error);
-    const tErrors = await getTranslations({ locale, namespace: 'errors' });
     return {
       success: false,
-      error: tErrors('generic')
+      error: error instanceof Error ? error.message : 'Failed to auto-fill scores'
     };
   }
 }
@@ -234,15 +229,13 @@ interface ClearResult {
  */
 export async function clearGameScores(
   groupId?: string,
-  playoffRoundId?: string,
-  locale: Locale = 'es'
+  playoffRoundId?: string
 ): Promise<ClearResult> {
   try {
-    const t = await getTranslations({ locale, namespace: 'games' });
     // Authorization check
     const user = await getLoggedInUser();
     if (!user?.isAdmin) {
-      return { success: false, error: t('unauthorized') };
+      return { success: false, error: 'Unauthorized: Admin access required' };
     }
 
     // Validate input
@@ -277,10 +270,9 @@ export async function clearGameScores(
 
   } catch (error) {
     console.error('Error clearing game scores:', error);
-    const tErrors = await getTranslations({ locale, namespace: 'errors' });
     return {
       success: false,
-      error: tErrors('generic')
+      error: error instanceof Error ? error.message : 'Failed to clear scores'
     };
   }
 }
