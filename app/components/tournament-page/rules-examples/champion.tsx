@@ -1,13 +1,15 @@
 'use client'
 
 import { Box, Typography } from '@mui/material'
+import { useTranslations } from 'next-intl'
 
 export default function ChampionExample() {
+  const t = useTranslations('rules.examples')
+
   return (
     <Box>
       <Typography variant="body2" color="text.secondary">
-        Ejemplo: Si predices que Argentina será campeón y efectivamente Argentina gana el torneo, obtienes 5 puntos.
-        Si Argentina llega a la final pero pierde, no obtienes los puntos.
+        {t('champion')}
       </Typography>
     </Box>
   )

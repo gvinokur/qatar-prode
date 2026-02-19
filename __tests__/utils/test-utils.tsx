@@ -5,6 +5,10 @@ import { GuessesContext } from '../../app/components/context-providers/guesses-c
 import { TimezoneProvider } from '../../app/components/context-providers/timezone-context-provider';
 import type { GameGuessNew, TournamentGroupTeamStatsGuessNew } from '../../app/db/tables-definition';
 import { vi } from 'vitest';
+import { NextIntlClientProvider } from 'next-intl';
+import esMessages from '../../locales/es/rules.json';
+import enMessages from '../../locales/en/rules.json';
+import { setTestLocale } from '../../vitest.setup';
 
 export interface RenderWithThemeOptions {
   /** Theme mode: 'light' or 'dark' (default: 'light') */
@@ -62,6 +66,12 @@ export interface RenderWithProvidersOptions extends RenderWithThemeOptions {
    * - Omit or pass `false` to not include TimezoneProvider
    */
   timezone?: boolean;
+  /**
+   * Locale for internationalization
+   * - Pass 'es' for Spanish (default)
+   * - Pass 'en' for English
+   */
+  locale?: 'es' | 'en';
 }
 
 /**
@@ -219,7 +229,10 @@ export const renderWithProviders = (
   component: React.ReactElement,
   options: RenderWithProvidersOptions = {}
 ): RenderWithProvidersResult => {
-  const { theme, themeOverrides, guessesContext, timezone } = options;
+  const { theme, themeOverrides, guessesContext, timezone, locale = 'es' } = options;
+
+  // Set the global test locale for mocked hooks
+  setTestLocale(locale);
 
   // Create theme
   const testTheme = createTestTheme(theme || 'light', themeOverrides);
@@ -231,6 +244,9 @@ export const renderWithProviders = (
   } else if (guessesContext && typeof guessesContext === 'object') {
     contextValue = createMockGuessesContext(guessesContext);
   }
+
+  // Get messages for the locale
+  const messages = locale === 'en' ? { rules: enMessages } : { rules: esMessages };
 
   // Compose providers from inside-out
   let wrapped = component;
@@ -248,6 +264,13 @@ export const renderWithProviders = (
   if (timezone) {
     wrapped = <TimezoneProvider>{wrapped}</TimezoneProvider>;
   }
+
+  // Always wrap in NextIntlClientProvider for i18n support
+  wrapped = (
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      {wrapped}
+    </NextIntlClientProvider>
+  );
 
   // Always wrap in ThemeProvider
   wrapped = <ThemeProvider theme={testTheme}>{wrapped}</ThemeProvider>;
@@ -272,6 +295,12 @@ export const renderWithProviders = (
       if (timezone) {
         wrappedRerender = <TimezoneProvider>{wrappedRerender}</TimezoneProvider>;
       }
+
+      wrappedRerender = (
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          {wrappedRerender}
+        </NextIntlClientProvider>
+      );
 
       wrappedRerender = (
         <ThemeProvider theme={testTheme}>{wrappedRerender}</ThemeProvider>

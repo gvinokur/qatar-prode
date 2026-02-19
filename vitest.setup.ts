@@ -25,14 +25,34 @@ const spanishTranslations: Record<string, any> = {
   predictions: require('./locales/es/predictions.json'),
   groups: require('./locales/es/groups.json'),
   common: require('./locales/es/common.json'),
+  rules: require('./locales/es/rules.json'),
   // Add other namespaces as needed
 };
+
+// Load English translations for tests
+const englishTranslations: Record<string, any> = {
+  rules: require('./locales/en/rules.json'),
+  // Add other namespaces as needed
+};
+
+// Global variable to track current test locale (can be changed by tests)
+let currentTestLocale = 'es';
+
+// Helper function to set the test locale
+export function setTestLocale(locale: 'es' | 'en') {
+  currentTestLocale = locale;
+}
+
+// Helper function to get the translations for the current locale
+function getTranslationsForLocale(): Record<string, any> {
+  return currentTestLocale === 'en' ? englishTranslations : spanishTranslations;
+}
 
 // Helper function to get nested translation value
 function getTranslation(namespace: string, key: string, values?: Record<string, any>): string {
   // Handle multi-part namespace (e.g., 'groups.betting')
   const namespaceParts = namespace.split('.');
-  let value: any = spanishTranslations;
+  let value: any = getTranslationsForLocale();
 
   // Navigate to the namespace
   for (const part of namespaceParts) {
@@ -90,17 +110,21 @@ function getTranslation(namespace: string, key: string, values?: Record<string, 
 }
 
 // Mock next-intl globally for all tests (client components)
-vi.mock('next-intl', () => ({
-  useLocale: () => 'es', // Default to Spanish locale
-  useTranslations: (namespace: string = 'predictions') => (key: string, values?: Record<string, any>) => {
-    return getTranslation(namespace, key, values);
-  },
-  useFormatter: () => ({
-    dateTime: (date: Date) => date.toISOString(),
-    number: (num: number) => num.toString(),
-    relativeTime: (date: Date) => date.toISOString(),
-  }),
-}));
+vi.mock('next-intl', async (importOriginal) => {
+  const actual = await importOriginal() as any;
+  return {
+    ...actual,
+    useLocale: () => currentTestLocale, // Use current test locale
+    useTranslations: (namespace: string = 'predictions') => (key: string, values?: Record<string, any>) => {
+      return getTranslation(namespace, key, values);
+    },
+    useFormatter: () => ({
+      dateTime: (date: Date) => date.toISOString(),
+      number: (num: number) => num.toString(),
+      relativeTime: (date: Date) => date.toISOString(),
+    }),
+  };
+});
 
 // Mock next-intl/server for server components
 vi.mock('next-intl/server', () => ({

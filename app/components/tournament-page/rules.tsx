@@ -14,7 +14,7 @@ import {ExpandMore as ExpandMoreIcon, Gavel as GavelIcon} from "@mui/icons-mater
 import {ExpandMore} from './expand-more';
 import {useState} from "react";
 import Link from 'next/link';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import WinnerDrawExample from './rules-examples/winner-draw';
 import ExactScoreExample from './rules-examples/exact-score';
 import RoundOf16Example from './rules-examples/round-of-16';
@@ -59,85 +59,6 @@ const DEFAULT_SCORING: ScoringConfig = {
   max_golden_games: 0,
 };
 
-function getRules(config: ScoringConfig): Rule[] {
-  const exactScoreBonus = config.game_exact_score_points - config.game_correct_outcome_points;
-
-  const baseRules: Rule[] = [
-    {
-      label: `${config.game_correct_outcome_points} ${config.game_correct_outcome_points === 1 ? 'Punto' : 'Puntos'} por Ganador/Empate acertado`,
-      component: <WinnerDrawExample />
-    },
-    {
-      label: `${exactScoreBonus} ${exactScoreBonus === 1 ? 'punto' : 'puntos'} extra por resultado exacto (total: ${config.game_exact_score_points} ${config.game_exact_score_points === 1 ? 'punto' : 'puntos'})`,
-      component: <ExactScoreExample />
-    },
-    {
-      label: `${config.qualified_team_points} ${config.qualified_team_points === 1 ? 'Punto' : 'Puntos'} por cada equipo clasificado acertado`,
-      component: <RoundOf16Example />
-    },
-    {
-      label: `${config.exact_position_qualified_points} ${config.exact_position_qualified_points === 1 ? 'Punto' : 'Puntos'} adicional${config.exact_position_qualified_points === 1 ? '' : 'es'} por posición exacta en la fase de grupos (total: ${config.qualified_team_points + config.exact_position_qualified_points} puntos por equipo clasificado en posición exacta)`,
-      component: <GroupPositionExample />
-    },
-    {
-      label: `${config.champion_points} ${config.champion_points === 1 ? 'Punto' : 'Puntos'} por campeon`,
-      component: <ChampionExample />
-    },
-    {
-      label: `${config.runner_up_points} ${config.runner_up_points === 1 ? 'Punto' : 'Puntos'} por subcampeon`,
-      component: <RunnerUpExample />
-    },
-    {
-      label: `${config.third_place_points} ${config.third_place_points === 1 ? 'Punto' : 'Puntos'} por tercer puesto, si es que el torneo tiene partido por el mismo`,
-      component: <ThirdPlaceExample />
-    },
-    {
-      label: `${config.individual_award_points} ${config.individual_award_points === 1 ? 'Punto' : 'Puntos'} por cada premio acertado (mejor jugador, arquero, goleador, etc...)`,
-      component: <IndividualAwardsExample />
-    },
-  ];
-
-  // Add boost rules only if boosts are enabled
-  if (config.max_silver_games > 0 || config.max_golden_games > 0) {
-    const boostRules: Rule[] = [];
-
-    if (config.max_silver_games > 0) {
-      boostRules.push({
-        label: `Boost Plateado: Puedes seleccionar hasta ${config.max_silver_games} ${config.max_silver_games === 1 ? 'partido' : 'partidos'} que valdrán el doble de puntos (2x)`,
-      });
-    }
-
-    if (config.max_golden_games > 0) {
-      boostRules.push({
-        label: `Boost Dorado: Puedes seleccionar hasta ${config.max_golden_games} ${config.max_golden_games === 1 ? 'partido' : 'partidos'} que valdrán el triple de puntos (3x)`,
-      });
-    }
-
-    boostRules.push({
-      label: 'Los boosts solo pueden aplicarse antes de que comience el partido',
-    });
-
-    return [...baseRules, ...boostRules];
-  }
-
-  return baseRules;
-}
-
-const constraints: Rule[] = [
-  {
-    label: 'Se permite cambiar los pronosticos de cada partido hasta una hora antes del mismo',
-    component: <MatchPredictionTimeExample />
-  },
-  {
-    label: 'Se permite modificar pronosticos de podio y premios individuales luego hasta 2 dias despues del comienzo del torneo',
-    component: <PodiumPredictionTimeExample />
-  },
-  {
-    label: 'No se permite mas de un pronostico por persona, pero el mismo se puede utilizar en multiples grupos',
-    component: <SinglePredictionExample />
-  }
-]
-
 interface RulesProps {
   readonly expanded?: boolean;
   readonly fullpage?: boolean;
@@ -149,12 +70,107 @@ interface RulesProps {
 export default function Rules({ expanded: defaultExpanded = true, fullpage = false, scoringConfig, tournamentId, isActive = false }: RulesProps) {
   const locale = useLocale();
   const theme = useTheme();
+  const t = useTranslations('rules');
+  const tRules = useTranslations('rules.rules');
+  const tConstraints = useTranslations('rules.constraints');
+  const tActions = useTranslations('rules.actions');
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [expandedRules, setExpandedRules] = useState<number[]>([]);
   const [expandedConstraints, setExpandedConstraints] = useState<number[]>([]);
 
   // Use provided config or defaults
   const config = scoringConfig || DEFAULT_SCORING;
+
+  // Helper function to get pluralized translation
+  const getPluralized = (key: string, count: number, params: Record<string, any>): string => {
+    const form = count === 1 ? 'singular' : 'plural';
+    return tRules(`${key}.${form}`, params);
+  };
+
+  // Helper function to get rules with i18n
+  const getRules = (config: ScoringConfig): Rule[] => {
+    const exactScoreBonus = config.game_exact_score_points - config.game_correct_outcome_points;
+
+    const baseRules: Rule[] = [
+      {
+        label: getPluralized('winnerDraw', config.game_correct_outcome_points, { points: config.game_correct_outcome_points }),
+        component: <WinnerDrawExample />
+      },
+      {
+        label: getPluralized('exactScore', exactScoreBonus, { bonus: exactScoreBonus, total: config.game_exact_score_points }),
+        component: <ExactScoreExample />
+      },
+      {
+        label: getPluralized('qualifiedTeam', config.qualified_team_points, { points: config.qualified_team_points }),
+        component: <RoundOf16Example />
+      },
+      {
+        label: getPluralized('exactPosition', config.exact_position_qualified_points, {
+          points: config.exact_position_qualified_points,
+          total: config.qualified_team_points + config.exact_position_qualified_points
+        }),
+        component: <GroupPositionExample />
+      },
+      {
+        label: getPluralized('champion', config.champion_points, { points: config.champion_points }),
+        component: <ChampionExample />
+      },
+      {
+        label: getPluralized('runnerUp', config.runner_up_points, { points: config.runner_up_points }),
+        component: <RunnerUpExample />
+      },
+      {
+        label: getPluralized('thirdPlace', config.third_place_points, { points: config.third_place_points }),
+        component: <ThirdPlaceExample />
+      },
+      {
+        label: getPluralized('individualAwards', config.individual_award_points, { points: config.individual_award_points }),
+        component: <IndividualAwardsExample />
+      },
+    ];
+
+    // Add boost rules only if boosts are enabled
+    if (config.max_silver_games > 0 || config.max_golden_games > 0) {
+      const boostRules: Rule[] = [];
+
+      if (config.max_silver_games > 0) {
+        boostRules.push({
+          label: getPluralized('silverBoost', config.max_silver_games, { count: config.max_silver_games }),
+        });
+      }
+
+      if (config.max_golden_games > 0) {
+        boostRules.push({
+          label: getPluralized('goldenBoost', config.max_golden_games, { count: config.max_golden_games }),
+        });
+      }
+
+      boostRules.push({
+        label: tRules('boostTiming'),
+      });
+
+      return [...baseRules, ...boostRules];
+    }
+
+    return baseRules;
+  };
+
+  // Constraints with i18n
+  const constraints: Rule[] = [
+    {
+      label: tConstraints('matchPredictionTime'),
+      component: <MatchPredictionTimeExample />
+    },
+    {
+      label: tConstraints('podiumPredictionTime'),
+      component: <PodiumPredictionTimeExample />
+    },
+    {
+      label: tConstraints('singlePrediction'),
+      component: <SinglePredictionExample />
+    }
+  ];
+
   const rules = getRules(config);
 
   const handleExpandClick = () => {
@@ -188,8 +204,8 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
       })
     }}>
       <CardHeader
-        title='Reglas Generales'
-        subheader={isActive ? 'Estás aquí' : undefined}
+        title={t('title')}
+        subheader={isActive ? t('status.youAreHere') : undefined}
         sx={{
           color: theme.palette.primary.main,
           borderBottom: `${theme.palette.primary.light} solid 1px`,
@@ -211,7 +227,7 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
       <Collapse in={fullpage ? true : expanded} timeout="auto" unmountOnExit>
         <CardContent sx={{ borderBottom: `${theme.palette.primary.contrastText} 1px solid`, borderTop: `${theme.palette.primary.contrastText} 1px solid` }}>
           <Typography variant={'h6'}>
-            Calculo de puntos
+            {t('sections.scoring')}
           </Typography>
           <List disablePadding>
             {rules.map((rule, index) => (
@@ -283,7 +299,7 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
             ))}
           </List>
           <Typography variant={'h6'}>
-            Condiciones generales
+            {t('sections.constraints')}
           </Typography>
           <List disablePadding>
             {constraints.map((constraint, index) => (
@@ -365,7 +381,7 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
             variant="text"
             color="primary"
           >
-            Ver Reglas Completas
+            {tActions('viewFullRules')}
           </Button>
         </CardActions>
       )}
