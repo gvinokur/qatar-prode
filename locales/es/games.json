@@ -4,8 +4,7 @@
   "boost": {
     "cannotSetAfterStart": "EsOf[games.boost.cannotSetAfterStart]",
     "maxSilverReached": "EsOf[games.boost.maxSilverReached]",
-    "maxGoldenReached": "EsOf[games.boost.maxGoldenReached]",
-    "notAuthenticated": "EsOf[games.boost.notAuthenticated]"
+    "maxGoldenReached": "EsOf[games.boost.maxGoldenReached]"
   },
   "guess": {
     "unauthorized": "EsOf[games.guess.unauthorized]",

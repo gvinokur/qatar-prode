@@ -23,14 +23,15 @@ export async function getGroupTournamentBettingConfigAction(groupId: string, tou
 // Set betting config (admin only: group owner)
 export async function setGroupTournamentBettingConfigAction(groupId: string, tournamentId: string, config: Omit<ProdeGroupTournamentBettingNew, 'group_id' | 'tournament_id'>, locale: Locale = 'es') {
   const t = await getTranslations({ locale, namespace: 'groups' });
+  const tErrors = await getTranslations({ locale, namespace: 'errors' });
   const user = await getLoggedInUser();
-  if (!user) throw new Error(t('betting.errors.notAuthenticated'));
+  if (!user) throw new Error(tErrors('notAuthenticated'));
   const group = await findProdeGroupById(groupId);
   const groupParticipants = await findParticipantsInGroup(groupId);
   const isAdmin = groupParticipants.find(p => p.user_id === user.id)?.is_admin;
   if (!group ||
     !(group.owner_user_id === user.id || isAdmin))
-    throw new Error(t('betting.errors.ownerOnly'));
+    throw new Error(t('betting.ownerOnly'));
   let existing = await getGroupTournamentBettingConfig(groupId, tournamentId);
   if (existing) {
     return updateGroupTournamentBettingConfig(existing.id, config as ProdeGroupTournamentBettingUpdate);
@@ -47,14 +48,15 @@ export async function getGroupTournamentBettingPaymentsAction(groupTournamentBet
 // Set payment status for a user (admin only: group owner)
 export async function setUserGroupTournamentBettingPaymentAction(groupTournamentBettingId: string, userId: string, hasPaid: boolean, groupId: string, locale: Locale = 'es') {
   const t = await getTranslations({ locale, namespace: 'groups' });
+  const tErrors = await getTranslations({ locale, namespace: 'errors' });
   const user = await getLoggedInUser();
-  if (!user) throw new Error(t('betting.errors.notAuthenticated'));
+  if (!user) throw new Error(tErrors('notAuthenticated'));
   const group = await findProdeGroupById(groupId);
   const groupParticipants = await findParticipantsInGroup(groupId);
   const isAdmin = groupParticipants.find(p => p.user_id === user.id)?.is_admin;
   if (!group ||
     !(group.owner_user_id === user.id || isAdmin))
-    throw new Error(t('betting.errors.ownerOnly'));
+    throw new Error(t('betting.ownerOnly'));
   return setUserGroupTournamentBettingPayment(groupTournamentBettingId, userId, hasPaid);
 }
 

@@ -4,8 +4,7 @@
   "boost": {
     "cannotSetAfterStart": "Cannot set boost after game starts",
     "maxSilverReached": "Maximum {max} silver games allowed",
-    "maxGoldenReached": "Maximum {max} golden games allowed",
-    "notAuthenticated": "Not authenticated"
+    "maxGoldenReached": "Maximum {max} golden games allowed"
   },
   "guess": {
     "unauthorized": "Unauthorized action",

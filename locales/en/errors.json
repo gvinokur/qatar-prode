@@ -2,6 +2,7 @@
   "generic": "An unexpected error occurred. Please try again.",
   "tryAgain": "Try again",
   "unauthorized": "Unauthorized",
+  "notAuthenticated": "Not authenticated",
   "notFound": "Not found",
   "invalidParameters": "Invalid parameters",
   "returnHome": "Return to Home",

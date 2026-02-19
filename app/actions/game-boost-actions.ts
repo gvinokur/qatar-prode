@@ -17,9 +17,10 @@ import type { Locale } from '../../i18n.config';
  */
 export async function setGameBoostAction(gameId: string, boostType: 'silver' | 'golden' | null, locale: Locale = 'es') {
   const t = await getTranslations({ locale, namespace: 'games' });
+  const tErrors = await getTranslations({ locale, namespace: 'errors' });
   const session = await auth();
   if (!session?.user?.id) {
-    throw new Error(t('boost.notAuthenticated'));
+    throw new Error(tErrors('notAuthenticated'));
   }
 
   const game = await findGameById(gameId);
@@ -75,10 +76,10 @@ export async function getBoostAllocationBreakdownAction(
   boostType: 'silver' | 'golden',
   locale: Locale = 'es'
 ) {
-  const t = await getTranslations({ locale, namespace: 'games' });
+  const tErrors = await getTranslations({ locale, namespace: 'errors' });
   const session = await auth();
   if (!session?.user?.id) {
-    throw new Error(t('boost.notAuthenticated'));
+    throw new Error(tErrors('notAuthenticated'));
   }
 
   return getBoostAllocationBreakdown(session.user.id, tournamentId, boostType);
