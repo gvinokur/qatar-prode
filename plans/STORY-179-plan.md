@@ -14,21 +14,22 @@ Internationalize the Rules pages and related components to support both Spanish 
 ### Scope
 
 - Rules page content
-- Sidebar card for Rules (bottom navigation)
 - Scoring rules display with dynamic pluralization
 - Tournament rules display
 - All 11 rules-examples components
+
+**Out of scope:**
+- Bottom navigation (will be handled separately)
 
 ## Acceptance Criteria
 
 1. ✅ All hardcoded Spanish text in Rules component is replaced with i18n keys
 2. ✅ All 11 rules-examples components are internationalized
-3. ✅ Bottom navigation "Reglas" label is internationalized
-4. ✅ Pluralization logic works correctly in both languages
-5. ✅ Both `/[locale]/rules` and `/[locale]/tournaments/[id]/rules` pages display translated content
-6. ✅ English translations are proper English (not "EnOf()" placeholders)
-7. ✅ All existing tests pass with translated text
-8. ✅ 80% code coverage maintained on new/modified code
+3. ✅ Pluralization logic works correctly in both languages
+4. ✅ Both `/[locale]/rules` and `/[locale]/tournaments/[id]/rules` pages display translated content
+5. ✅ English translations use "EnOf()" pattern (actual English translation handled in #161)
+6. ✅ All existing tests pass with translated text
+7. ✅ 80% code coverage maintained on new/modified code
 
 ## Current State
 
@@ -39,9 +40,8 @@ Internationalize the Rules pages and related components to support both Spanish 
 - All rule labels: Spanish with Spanish grammar (e.g., "Punto" vs "Puntos")
 - All constraints: Spanish
 - All 11 examples: Spanish
-- Bottom navigation: Mixed ("Home" in English, "Tablas", "Reglas", "Stats", "Grupos" in Spanish)
 
-**Migration approach:** Replace all Spanish hardcoded strings with i18n translation keys that support both Spanish and English.
+**Migration approach:** Replace all Spanish hardcoded strings with i18n translation keys. English will use "EnOf()" pattern temporarily until #161 implements full English translations.
 
 ## Technical Approach
 
@@ -128,79 +128,81 @@ Create `rules.json` in both `/locales/es/` and `/locales/en/` with the following
 
 **English version (`/locales/en/rules.json`):**
 
+Uses "EnOf()" pattern for all strings (actual English translation will be handled in #161):
+
 ```json
 {
-  "title": "General Rules",
+  "title": "EnOf(Reglas Generales)",
   "status": {
-    "youAreHere": "You are here"
+    "youAreHere": "EnOf(Estás aquí)"
   },
   "sections": {
-    "scoring": "Points Calculation",
-    "constraints": "General Conditions"
+    "scoring": "EnOf(Calculo de puntos)",
+    "constraints": "EnOf(Condiciones generales)"
   },
   "rules": {
     "winnerDraw": {
-      "singular": "{points} Point for correct Winner/Draw",
-      "plural": "{points} Points for correct Winner/Draw"
+      "singular": "EnOf({points} Punto por Ganador/Empate acertado)",
+      "plural": "EnOf({points} Puntos por Ganador/Empate acertado)"
     },
     "exactScore": {
-      "singular": "{bonus} extra point for exact score (total: {total} point)",
-      "plural": "{bonus} extra points for exact score (total: {total} points)"
+      "singular": "EnOf({bonus} punto extra por resultado exacto (total: {total} punto))",
+      "plural": "EnOf({bonus} puntos extra por resultado exacto (total: {total} puntos))"
     },
     "qualifiedTeam": {
-      "singular": "{points} Point for each correct qualified team",
-      "plural": "{points} Points for each correct qualified team"
+      "singular": "EnOf({points} Punto por cada equipo clasificado acertado)",
+      "plural": "EnOf({points} Puntos por cada equipo clasificado acertado)"
     },
     "exactPosition": {
-      "singular": "{points} Additional point for exact group stage position (total: {total} points for qualified team in exact position)",
-      "plural": "{points} Additional points for exact group stage position (total: {total} points for qualified team in exact position)"
+      "singular": "EnOf({points} Punto adicional por posición exacta en la fase de grupos (total: {total} puntos por equipo clasificado en posición exacta))",
+      "plural": "EnOf({points} Puntos adicionales por posición exacta en la fase de grupos (total: {total} puntos por equipo clasificado en posición exacta))"
     },
     "champion": {
-      "singular": "{points} Point for champion",
-      "plural": "{points} Points for champion"
+      "singular": "EnOf({points} Punto por campeon)",
+      "plural": "EnOf({points} Puntos por campeon)"
     },
     "runnerUp": {
-      "singular": "{points} Point for runner-up",
-      "plural": "{points} Points for runner-up"
+      "singular": "EnOf({points} Punto por subcampeon)",
+      "plural": "EnOf({points} Puntos por subcampeon)"
     },
     "thirdPlace": {
-      "singular": "{points} Point for third place, if the tournament has a third-place match",
-      "plural": "{points} Points for third place, if the tournament has a third-place match"
+      "singular": "EnOf({points} Punto por tercer puesto, si es que el torneo tiene partido por el mismo)",
+      "plural": "EnOf({points} Puntos por tercer puesto, si es que el torneo tiene partido por el mismo)"
     },
     "individualAwards": {
-      "singular": "{points} Point for each correct award (best player, goalkeeper, top scorer, etc.)",
-      "plural": "{points} Points for each correct award (best player, goalkeeper, top scorer, etc.)"
+      "singular": "EnOf({points} Punto por cada premio acertado (mejor jugador, arquero, goleador, etc...))",
+      "plural": "EnOf({points} Puntos por cada premio acertado (mejor jugador, arquero, goleador, etc...))"
     },
     "silverBoost": {
-      "singular": "Silver Boost: You can select up to {count} match that will be worth double points (2x)",
-      "plural": "Silver Boost: You can select up to {count} matches that will be worth double points (2x)"
+      "singular": "EnOf(Boost Plateado: Puedes seleccionar hasta {count} partido que valdrá el doble de puntos (2x))",
+      "plural": "EnOf(Boost Plateado: Puedes seleccionar hasta {count} partidos que valdrán el doble de puntos (2x))"
     },
     "goldenBoost": {
-      "singular": "Golden Boost: You can select up to {count} match that will be worth triple points (3x)",
-      "plural": "Golden Boost: You can select up to {count} matches that will be worth triple points (3x)"
+      "singular": "EnOf(Boost Dorado: Puedes seleccionar hasta {count} partido que valdrá el triple de puntos (3x))",
+      "plural": "EnOf(Boost Dorado: Puedes seleccionar hasta {count} partidos que valdrán el triple de puntos (3x))"
     },
-    "boostTiming": "Boosts can only be applied before the match starts"
+    "boostTiming": "EnOf(Los boosts solo pueden aplicarse antes de que comience el partido)"
   },
   "constraints": {
-    "matchPredictionTime": "You can change match predictions up to one hour before the match starts",
-    "podiumPredictionTime": "You can modify podium and individual award predictions up to 2 days after the tournament starts",
-    "singlePrediction": "Only one prediction per person is allowed, but it can be used in multiple groups"
+    "matchPredictionTime": "EnOf(Se permite cambiar los pronosticos de cada partido hasta una hora antes del mismo)",
+    "podiumPredictionTime": "EnOf(Se permite modificar pronosticos de podio y premios individuales luego hasta 2 dias despues del comienzo del torneo)",
+    "singlePrediction": "EnOf(No se permite mas de un pronostico por persona, pero el mismo se puede utilizar en multiples grupos)"
   },
   "examples": {
-    "winnerDraw": "Example: If you predict Argentina will beat Brazil and Argentina wins, you get 1 point. If you predict a draw and the match ends in a draw, you also get 1 point.",
-    "exactScore": "Example: If you predict Argentina will win 2-1 against Brazil and the final score is exactly 2-1, you get 2 points (1 for the winner + 1 extra for the exact score).",
-    "roundOf16": "Example: If you predict Argentina will qualify to the Round of 16 and they do qualify, you get 1 point for that qualified team.",
-    "groupPosition": "Example: If you predict Argentina will finish first in Group A and they actually finish first, you get 2 additional points (1 for qualifying + 2 for exact position = 3 points total).",
-    "champion": "Example: If you predict Argentina will be champion and Argentina wins the tournament, you get 5 points. If Argentina reaches the final but loses, you don't get the points.",
-    "runnerUp": "Example: If you predict Brazil will be runner-up and Brazil loses the final, you get 3 points.",
-    "thirdPlace": "Example: If you predict France will finish third and France wins the third-place match, you get 1 point.",
-    "individualAwards": "Example: If you predict Lionel Messi will win the best player award and he wins it, you get 3 points. The same applies to other awards (goalkeeper, top scorer, etc.).",
-    "matchPredictionTime": "Example: If a match starts at 3:00 PM, you can modify your prediction until 2:00 PM. After that time, the prediction is locked.",
-    "podiumPredictionTime": "Example: If the tournament starts on June 1st, you can modify your champion, runner-up, and third-place predictions until June 3rd at 11:59 PM.",
-    "singlePrediction": "Example: You can only have one active prediction, but that same prediction can be used in your friends' group, your office group, and any other group you join."
+    "winnerDraw": "EnOf(Ejemplo: Si predices que Argentina ganará contra Brasil y efectivamente Argentina gana, obtienes 1 punto. Si predices un empate y el partido termina en empate, también obtienes 1 punto.)",
+    "exactScore": "EnOf(Ejemplo: Si predices que Argentina ganará 2-1 contra Brasil y el resultado final es exactamente 2-1, obtienes 2 puntos (1 por el ganador + 1 extra por el resultado exacto).)",
+    "roundOf16": "EnOf(Ejemplo: Si predices que Argentina clasificará a octavos de final y efectivamente clasifica, obtienes 1 punto por ese equipo clasificado.)",
+    "groupPosition": "EnOf(Ejemplo: Si predices que Argentina clasificará primero del Grupo A y efectivamente termina primero, obtienes 2 puntos adicionales (1 por clasificar + 2 por posición exacta = 3 puntos totales).)",
+    "champion": "EnOf(Ejemplo: Si predices que Argentina será campeón y efectivamente Argentina gana el torneo, obtienes 5 puntos. Si Argentina llega a la final pero pierde, no obtienes los puntos.)",
+    "runnerUp": "EnOf(Ejemplo: Si predices que Brasil será subcampeón y efectivamente Brasil pierde la final, obtienes 3 puntos.)",
+    "thirdPlace": "EnOf(Ejemplo: Si predices que Francia será tercero y efectivamente Francia gana el partido por el tercer puesto, obtienes 1 punto.)",
+    "individualAwards": "EnOf(Ejemplo: Si predices que Lionel Messi ganará el premio al mejor jugador y efectivamente lo gana, obtienes 3 puntos. Lo mismo aplica para otros premios (arquero, goleador, etc.).)",
+    "matchPredictionTime": "EnOf(Ejemplo: Si un partido comienza a las 15:00, puedes modificar tu pronóstico hasta las 14:00. Después de esa hora, el pronóstico queda bloqueado.)",
+    "podiumPredictionTime": "EnOf(Ejemplo: Si el torneo comienza el 1 de junio, puedes modificar tus pronósticos de campeón, subcampeón y tercer puesto hasta el 3 de junio a las 23:59.)",
+    "singlePrediction": "EnOf(Ejemplo: Solo puedes tener un pronostico activo, pero ese mismo pronostico puede usarse en el grupo con tus amigos, en el grupo de tu oficina, y en cualquier otro grupo al que te unas.)"
   },
   "actions": {
-    "viewFullRules": "View Full Rules"
+    "viewFullRules": "EnOf(Ver Reglas Completas)"
   }
 }
 ```
@@ -345,66 +347,7 @@ export default function WinnerDrawExample() {
 
 **Note:** All 11 components follow the same pattern - only the translation key changes based on the mapping table above.
 
-### 5. Internationalize Bottom Navigation
-
-**File:** `/app/components/tournament-bottom-nav/tournament-bottom-nav.tsx`
-
-**Note:** This is a Client Component (has `'use client'` directive), so `useTranslations()` hook will work correctly.
-
-**Changes:**
-
-1. Import `useTranslations` hook at the top
-2. Initialize translation hook inside component: `const t = useTranslations('navigation.bottomNav')`
-3. Replace hardcoded labels in BottomNavigationAction components (lines 79-83):
-   - "Home" → `t('home')`
-   - "Tablas" → `t('results')`
-   - "Reglas" → `t('rules')`
-   - "Stats" → `t('stats')`
-   - "Grupos" → `t('groups')`
-
-**Also update navigation.json files:**
-
-`/locales/es/navigation.json` - Add `bottomNav` section:
-```json
-{
-  "header": {
-    "home": "Inicio",
-    "tournaments": "Torneos",
-    "profile": "Perfil",
-    "logout": "Cerrar sesión",
-    "login": "Iniciar sesión"
-  },
-  "bottomNav": {
-    "home": "Home",
-    "results": "Tablas",
-    "rules": "Reglas",
-    "stats": "Stats",
-    "groups": "Grupos"
-  }
-}
-```
-
-`/locales/en/navigation.json` - Add `bottomNav` section:
-```json
-{
-  "header": {
-    "home": "Home",
-    "tournaments": "Tournaments",
-    "profile": "Profile",
-    "logout": "Log out",
-    "login": "Log in"
-  },
-  "bottomNav": {
-    "home": "Home",
-    "results": "Tables",
-    "rules": "Rules",
-    "stats": "Stats",
-    "groups": "Groups"
-  }
-}
-```
-
-### 6. Update Tests
+### 5. Update Tests
 
 **File:** `/app/components/tournament-page/rules.test.tsx`
 
@@ -441,30 +384,25 @@ it('renders English title', () => {
 
 1. `/i18n/request.ts` - Add rules messages import
 2. `/app/components/tournament-page/rules.tsx` - Internationalize main component
-3. `/app/components/tournament-bottom-nav/tournament-bottom-nav.tsx` - Internationalize navigation labels
-4. `/locales/es/navigation.json` - Add bottomNav section
-5. `/locales/en/navigation.json` - Add bottomNav section
-6. `/app/components/tournament-page/rules-examples/winner-draw.tsx` - Internationalize
-7. `/app/components/tournament-page/rules-examples/exact-score.tsx` - Internationalize
-8. `/app/components/tournament-page/rules-examples/round-of-16.tsx` - Internationalize
-9. `/app/components/tournament-page/rules-examples/champion.tsx` - Internationalize
-10. `/app/components/tournament-page/rules-examples/runner-up.tsx` - Internationalize
-11. `/app/components/tournament-page/rules-examples/third-place.tsx` - Internationalize
-12. `/app/components/tournament-page/rules-examples/individual-awards.tsx` - Internationalize
-13. `/app/components/tournament-page/rules-examples/match-prediction-time.tsx` - Internationalize
-14. `/app/components/tournament-page/rules-examples/podium-prediction-time.tsx` - Internationalize
-15. `/app/components/tournament-page/rules-examples/single-prediction.tsx` - Internationalize
-16. `/app/components/tournament-page/rules-examples/group-position.tsx` - Internationalize
-17. `/app/components/tournament-page/rules.test.tsx` - Update tests for i18n
+3. `/app/components/tournament-page/rules-examples/winner-draw.tsx` - Internationalize
+4. `/app/components/tournament-page/rules-examples/exact-score.tsx` - Internationalize
+5. `/app/components/tournament-page/rules-examples/round-of-16.tsx` - Internationalize
+6. `/app/components/tournament-page/rules-examples/champion.tsx` - Internationalize
+7. `/app/components/tournament-page/rules-examples/runner-up.tsx` - Internationalize
+8. `/app/components/tournament-page/rules-examples/third-place.tsx` - Internationalize
+9. `/app/components/tournament-page/rules-examples/individual-awards.tsx` - Internationalize
+10. `/app/components/tournament-page/rules-examples/match-prediction-time.tsx` - Internationalize
+11. `/app/components/tournament-page/rules-examples/podium-prediction-time.tsx` - Internationalize
+12. `/app/components/tournament-page/rules-examples/single-prediction.tsx` - Internationalize
+13. `/app/components/tournament-page/rules-examples/group-position.tsx` - Internationalize
+14. `/app/components/tournament-page/rules.test.tsx` - Update tests for i18n
 
 ## Implementation Steps
 
-### Phase 1: Create Translation Files (30 mins)
+### Phase 1: Create Translation Files (20 mins)
 1. Create `/locales/es/rules.json` with all Spanish translations
-2. Create `/locales/en/rules.json` with proper English translations
-3. Update `/locales/es/navigation.json` with bottomNav section
-4. Update `/locales/en/navigation.json` with bottomNav section
-5. Update `/i18n/request.ts` to import rules messages
+2. Create `/locales/en/rules.json` with "EnOf()" pattern
+3. Update `/i18n/request.ts` to import rules messages
 
 ### Phase 2: Internationalize Main Rules Component (45 mins)
 1. Add `useTranslations` imports to `rules.tsx`
@@ -480,11 +418,7 @@ it('renders English title', () => {
 3. Replace hardcoded Spanish text with translation keys
 4. Verify examples render correctly
 
-### Phase 4: Internationalize Bottom Navigation (15 mins)
-1. Add `useTranslations` to bottom nav component
-2. Replace hardcoded labels with translation keys
-
-### Phase 5: Update Tests (60 mins)
+### Phase 4: Update Tests (60 mins)
 1. **Update existing tests in `rules.test.tsx`** (20 mins)
    - Import `renderWithProviders` from test utils
    - Replace all `renderWithTheme` calls with `renderWithProviders`
@@ -509,23 +443,16 @@ it('renders English title', () => {
    - Test each example renders in English
    - Total: 22 test cases (11 components × 2 locales)
 
-5. **Add bottom navigation tests** (5 mins)
-   - Create or update `tournament-bottom-nav.test.tsx`
-   - Test Spanish labels
-   - Test English labels
-   - Total: 2 test cases
-
-**Expected total new test cases:** ~33 tests
+**Expected total new test cases:** ~31 tests
 **Expected coverage:** ≥80% on all modified files
 
-### Phase 6: Manual Testing (30 mins)
+### Phase 5: Manual Testing (30 mins)
 1. Test `/es/rules` page - verify Spanish translations
 2. Test `/en/rules` page - verify English translations
 3. Test `/es/tournaments/{id}/rules` - verify tournament-specific rules
-4. Test `/en/tournaments/{id}/rules` - verify English tournament rules
-5. Test bottom navigation labels in both locales
-6. Test pluralization edge cases (1 point vs 2 points)
-7. Test boost rules display with different configurations
+4. Test `/en/tournaments/{id}/rules` - verify English with "EnOf()" pattern
+5. Test pluralization edge cases (1 point vs 2 points)
+6. Test boost rules display with different configurations
 
 ## Testing Strategy
 
@@ -555,8 +482,8 @@ it('renders English title', () => {
    - Each example component renders translated text
    - Examples work in both Spanish and English
 
-5. **Navigation:**
-   - Bottom nav shows translated labels
+5. **Button links:**
+   - "Ver Reglas Completas" button works correctly
    - Correct links generated with locale prefix
 
 **Test utilities:**
@@ -566,24 +493,18 @@ it('renders English title', () => {
 **New test file to create:**
 - `/app/components/tournament-page/rules-examples.test.tsx` - Tests for all 11 example components
 
-**Test file to create/update:**
-- `/app/components/tournament-bottom-nav/tournament-bottom-nav.test.tsx` - Tests for bottom nav translations
-
 **Coverage strategy:**
 - Rules component: Already has 8 tests, adding ~15 more = ~23 total tests
 - Rules examples: New file with 22 tests (11 components × 2 locales)
-- Bottom nav: 2 tests for translation rendering
-- **Total:** ~47 tests covering all translation functionality
+- **Total:** ~45 tests covering all translation functionality
 - **Expected coverage:** 85-90% on modified code (exceeds 80% requirement)
 
 ### Manual Testing Checklist
 
 - [ ] Navigate to `/es/rules` - verify Spanish content
-- [ ] Navigate to `/en/rules` - verify English content
+- [ ] Navigate to `/en/rules` - verify English content with "EnOf()" pattern
 - [ ] Navigate to `/es/tournaments/test-id/rules` - verify tournament rules in Spanish
-- [ ] Navigate to `/en/tournaments/test-id/rules` - verify tournament rules in English
-- [ ] Bottom navigation shows "Reglas" in Spanish
-- [ ] Bottom navigation shows "Rules" in English
+- [ ] Navigate to `/en/tournaments/test-id/rules` - verify tournament rules in English with "EnOf()" pattern
 - [ ] Click on each rule to expand examples
 - [ ] Verify examples are translated correctly
 - [ ] Test with different scoring configurations (0 boosts, 1 boost, multiple boosts)
@@ -642,9 +563,8 @@ None - scope is well-defined from previous i18n stories.
 
 ## Success Metrics
 
-- ✅ All Rules pages display correctly in both Spanish and English
+- ✅ All Rules pages display correctly in Spanish and English (with "EnOf()" pattern)
 - ✅ Pluralization works correctly for all dynamic point values
 - ✅ All 11 rules examples are translated
-- ✅ Bottom navigation shows translated labels
 - ✅ 80% test coverage maintained
 - ✅ 0 new SonarCloud issues
