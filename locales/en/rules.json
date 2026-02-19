@@ -53,20 +53,22 @@
   "constraints": {
     "matchPredictionTime": "EnOf(Se permite cambiar los pronosticos de cada partido hasta una hora antes del mismo)",
     "podiumPredictionTime": "EnOf(Se permite modificar pronosticos de podio y premios individuales luego hasta 2 dias despues del comienzo del torneo)",
-    "singlePrediction": "EnOf(No se permite mas de un pronostico por persona, pero el mismo se puede utilizar en multiples grupos)"
+    "singlePrediction": "EnOf(No se permite mas de un pronostico por persona, pero el mismo se puede utilizar en multiples grupos)",
+    "qualifiedTeamsPredictionTime": "EnOf(Se permite modificar pronosticos de equipos clasificados hasta 2 dias despues del comienzo del torneo)"
   },
   "examples": {
-    "winnerDraw": "EnOf(Ejemplo: Si predices que Argentina ganará contra Brasil y efectivamente Argentina gana, obtienes 1 punto. Si predices un empate y el partido termina en empate, también obtienes 1 punto.)",
-    "exactScore": "EnOf(Ejemplo: Si predices que Argentina ganará 2-1 contra Brasil y el resultado final es exactamente 2-1, obtienes 2 puntos (1 por el ganador + 1 extra por el resultado exacto).)",
-    "roundOf16": "EnOf(Ejemplo: Si predices que Argentina clasificará a octavos de final y efectivamente clasifica, obtienes 1 punto por ese equipo clasificado.)",
-    "groupPosition": "EnOf(Ejemplo: Si predices que Argentina clasificará primero del Grupo A y efectivamente termina primero, obtienes 2 puntos adicionales (1 por clasificar + 2 por posición exacta = 3 puntos totales).)",
-    "champion": "EnOf(Ejemplo: Si predices que Argentina será campeón y efectivamente Argentina gana el torneo, obtienes 5 puntos. Si Argentina llega a la final pero pierde, no obtienes los puntos.)",
-    "runnerUp": "EnOf(Ejemplo: Si predices que Brasil será subcampeón y efectivamente Brasil pierde la final, obtienes 3 puntos.)",
-    "thirdPlace": "EnOf(Ejemplo: Si predices que Francia será tercero y efectivamente Francia gana el partido por el tercer puesto, obtienes 1 punto.)",
-    "individualAwards": "EnOf(Ejemplo: Si predices que Lionel Messi ganará el premio al mejor jugador y efectivamente lo gana, obtienes 3 puntos. Lo mismo aplica para otros premios (arquero, goleador, etc.).)",
+    "winnerDraw": "EnOf(Ejemplo: Si predices que Argentina ganará contra Brasil y efectivamente Argentina gana, obtienes {points} {points, plural, one {punto} other {puntos}}. Si predices un empate y el partido termina en empate, también obtienes {points} {points, plural, one {punto} other {puntos}}.)",
+    "exactScore": "EnOf(Ejemplo: Si predices que Argentina ganará 2-1 contra Brasil y el resultado final es exactamente 2-1, obtienes {total} {total, plural, one {punto} other {puntos}} ({correctOutcome} por el ganador + {bonus} extra por el resultado exacto).)",
+    "roundOf16": "EnOf(Ejemplo: Si predices que Argentina clasificará a octavos de final y efectivamente clasifica, obtienes {points} {points, plural, one {punto} other {puntos}} por ese equipo clasificado.)",
+    "groupPosition": "EnOf(Ejemplo: Si predices que Argentina clasificará primero del Grupo A y efectivamente termina primero, obtienes {totalPoints} {totalPoints, plural, one {punto} other {puntos}} adicionales ({qualifiedPoints} por clasificar + {exactPositionPoints} por posición exacta = {totalPoints} puntos totales).)",
+    "champion": "EnOf(Ejemplo: Si predices que Argentina será campeón y efectivamente Argentina gana el torneo, obtienes {points} {points, plural, one {punto} other {puntos}}. Si Argentina llega a la final pero pierde, no obtienes los puntos.)",
+    "runnerUp": "EnOf(Ejemplo: Si predices que Brasil será subcampeón y efectivamente Brasil pierde la final, obtienes {points} {points, plural, one {punto} other {puntos}}.)",
+    "thirdPlace": "EnOf(Ejemplo: Si predices que Francia será tercero y efectivamente Francia gana el partido por el tercer puesto, obtienes {points} {points, plural, one {punto} other {puntos}}.)",
+    "individualAwards": "EnOf(Ejemplo: Si predices que Lionel Messi ganará el premio al mejor jugador y efectivamente lo gana, obtienes {points} {points, plural, one {punto} other {puntos}}. Lo mismo aplica para otros premios (arquero, goleador, etc.).)",
     "matchPredictionTime": "EnOf(Ejemplo: Si un partido comienza a las 15:00, puedes modificar tu pronóstico hasta las 14:00. Después de esa hora, el pronóstico queda bloqueado.)",
     "podiumPredictionTime": "EnOf(Ejemplo: Si el torneo comienza el 1 de junio, puedes modificar tus pronósticos de campeón, subcampeón y tercer puesto hasta el 3 de junio a las 23:59.)",
-    "singlePrediction": "EnOf(Ejemplo: Solo puedes tener un pronostico activo, pero ese mismo pronostico puede usarse en el grupo con tus amigos, en el grupo de tu oficina, y en cualquier otro grupo al que te unas.)"
+    "singlePrediction": "EnOf(Ejemplo: Solo puedes tener un pronostico activo, pero ese mismo pronostico puede usarse en el grupo con tus amigos, en el grupo de tu oficina, y en cualquier otro grupo al que te unas.)",
+    "qualifiedTeamsPredictionTime": "EnOf(Ejemplo: Si el torneo comienza el 1 de junio, puedes modificar tus pronósticos de equipos clasificados hasta el 3 de junio a las 23:59.)"
   },
   "actions": {
     "viewFullRules": "EnOf(Ver Reglas Completas)"

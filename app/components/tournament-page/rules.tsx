@@ -26,6 +26,7 @@ import MatchPredictionTimeExample from './rules-examples/match-prediction-time';
 import PodiumPredictionTimeExample from './rules-examples/podium-prediction-time';
 import SinglePredictionExample from './rules-examples/single-prediction';
 import GroupPositionExample from './rules-examples/group-position';
+import QualifiedTeamsPredictionTimeExample from './rules-examples/qualified-teams-prediction-time';
 
 interface Rule {
   label: string;
@@ -94,38 +95,46 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
     const baseRules: Rule[] = [
       {
         label: getPluralized('winnerDraw', config.game_correct_outcome_points, { points: config.game_correct_outcome_points }),
-        component: <WinnerDrawExample />
+        component: <WinnerDrawExample points={config.game_correct_outcome_points} />
       },
       {
         label: getPluralized('exactScore', exactScoreBonus, { bonus: exactScoreBonus, total: config.game_exact_score_points }),
-        component: <ExactScoreExample />
+        component: <ExactScoreExample
+          total={config.game_exact_score_points}
+          correctOutcome={config.game_correct_outcome_points}
+          bonus={exactScoreBonus}
+        />
       },
       {
         label: getPluralized('qualifiedTeam', config.qualified_team_points, { points: config.qualified_team_points }),
-        component: <RoundOf16Example />
+        component: <RoundOf16Example points={config.qualified_team_points} />
       },
       {
         label: getPluralized('exactPosition', config.exact_position_qualified_points, {
           points: config.exact_position_qualified_points,
           total: config.qualified_team_points + config.exact_position_qualified_points
         }),
-        component: <GroupPositionExample />
+        component: <GroupPositionExample
+          qualifiedPoints={config.qualified_team_points}
+          exactPositionPoints={config.exact_position_qualified_points}
+          totalPoints={config.qualified_team_points + config.exact_position_qualified_points}
+        />
       },
       {
         label: getPluralized('champion', config.champion_points, { points: config.champion_points }),
-        component: <ChampionExample />
+        component: <ChampionExample points={config.champion_points} />
       },
       {
         label: getPluralized('runnerUp', config.runner_up_points, { points: config.runner_up_points }),
-        component: <RunnerUpExample />
+        component: <RunnerUpExample points={config.runner_up_points} />
       },
       {
         label: getPluralized('thirdPlace', config.third_place_points, { points: config.third_place_points }),
-        component: <ThirdPlaceExample />
+        component: <ThirdPlaceExample points={config.third_place_points} />
       },
       {
         label: getPluralized('individualAwards', config.individual_award_points, { points: config.individual_award_points }),
-        component: <IndividualAwardsExample />
+        component: <IndividualAwardsExample points={config.individual_award_points} />
       },
     ];
 
@@ -164,6 +173,10 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
     {
       label: tConstraints('podiumPredictionTime'),
       component: <PodiumPredictionTimeExample />
+    },
+    {
+      label: tConstraints('qualifiedTeamsPredictionTime'),
+      component: <QualifiedTeamsPredictionTimeExample />
     },
     {
       label: tConstraints('singlePrediction'),
