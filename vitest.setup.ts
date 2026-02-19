@@ -30,9 +30,21 @@ const spanishTranslations: Record<string, any> = {
 
 // Helper function to get nested translation value
 function getTranslation(namespace: string, key: string, values?: Record<string, any>): string {
-  const keys = key.split('.');
-  let value: any = spanishTranslations[namespace];
+  // Handle multi-part namespace (e.g., 'groups.betting')
+  const namespaceParts = namespace.split('.');
+  let value: any = spanishTranslations;
 
+  // Navigate to the namespace
+  for (const part of namespaceParts) {
+    if (value && typeof value === 'object') {
+      value = value[part];
+    } else {
+      return key; // Return key if namespace not found
+    }
+  }
+
+  // Navigate to the key within the namespace
+  const keys = key.split('.');
   for (const k of keys) {
     if (value && typeof value === 'object') {
       value = value[k];
