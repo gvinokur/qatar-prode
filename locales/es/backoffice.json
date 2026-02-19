@@ -1,0 +1,18 @@
+{
+  "unauthorized": "EsOf[backoffice.unauthorized]",
+  "tournament": {
+    "deleteUnauthorized": "EsOf[backoffice.tournament.deleteUnauthorized]",
+    "cannotDeleteActive": "EsOf[backoffice.tournament.cannotDeleteActive]",
+    "notFound": "EsOf[backoffice.tournament.notFound]",
+    "copyUnauthorized": "EsOf[backoffice.tournament.copyUnauthorized]",
+    "invalidStartDate": "EsOf[backoffice.tournament.invalidStartDate]",
+    "createPlayersFailed": "EsOf[backoffice.tournament.createPlayersFailed]",
+    "createPlayersNoTeams": "EsOf[backoffice.tournament.createPlayersNoTeams]"
+  },
+  "notification": {
+    "usersNotFound": "EsOf[backoffice.notification.usersNotFound]",
+    "subscriptionNotFound": "EsOf[backoffice.notification.subscriptionNotFound]",
+    "sendFailed": "EsOf[backoffice.notification.sendFailed]",
+    "groupNotFound": "EsOf[backoffice.notification.groupNotFound]"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "notFound": "Game not found",
+  "unauthorized": "Only administrators can manage tournament games",
+  "boost": {
+    "cannotSetAfterStart": "Cannot set boost after game starts",
+    "maxSilverReached": "Maximum {max} silver games allowed",
+    "maxGoldenReached": "Maximum {max} golden games allowed",
+    "notAuthenticated": "Not authenticated"
+  },
+  "guess": {
+    "unauthorized": "Unauthorized action",
+    "saveFailed": "Failed to save prediction",
+    "updateFailed": "Failed to update tournament guess"
+  },
+  "scoreGenerator": {
+    "groupNotFound": "Group not found",
+    "playoffRoundNotFound": "Playoff round not found",
+    "invalidParameters": "Invalid parameters",
+    "unauthorized": "Admin access required",
+    "autoFillFailed": "Failed to auto-fill scores",
+    "clearFailed": "Failed to clear scores"
+  }
+}

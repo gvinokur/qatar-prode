@@ -1,0 +1,18 @@
+{
+  "unauthorized": "Admin access required",
+  "tournament": {
+    "deleteUnauthorized": "Only administrators can delete tournaments",
+    "cannotDeleteActive": "Cannot delete an active tournament. Please deactivate it first",
+    "notFound": "Tournament {id} not found",
+    "copyUnauthorized": "Only administrators can copy tournaments",
+    "invalidStartDate": "Invalid start date provided",
+    "createPlayersFailed": "Cannot create players for a non-existing tournament",
+    "createPlayersNoTeams": "Cannot create players for a tournament without teams"
+  },
+  "notification": {
+    "usersNotFound": "Users not found",
+    "subscriptionNotFound": "Subscription not found",
+    "sendFailed": "Failed to send notification",
+    "groupNotFound": "Group not found"
+  }
+}

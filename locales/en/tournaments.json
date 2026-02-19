@@ -1,0 +1,19 @@
+{
+  "notFound": "Tournament not found",
+  "invalidStartDate": "Invalid start date provided",
+  "qualification": {
+    "tournamentNotFound": "EnOf[tournaments.qualification.tournamentNotFound]",
+    "invalidTeamGroup": "EnOf[tournaments.qualification.invalidTeamGroup]",
+    "duplicateTeams": "EnOf[tournaments.qualification.duplicateTeams]",
+    "invalidPosition": "EnOf[tournaments.qualification.invalidPosition]",
+    "duplicatePositions": "EnOf[tournaments.qualification.duplicatePositions]",
+    "invalidQualificationFlag": "EnOf[tournaments.qualification.invalidQualificationFlag]",
+    "thirdPlaceNotAllowed": "EnOf[tournaments.qualification.thirdPlaceNotAllowed]",
+    "tooManyThirdPlace": "EnOf[tournaments.qualification.tooManyThirdPlace]",
+    "unauthorized": "EnOf[tournaments.qualification.unauthorized]",
+    "noUpdates": "EnOf[tournaments.qualification.noUpdates]",
+    "tournamentLocked": "EnOf[tournaments.qualification.tournamentLocked]",
+    "updateSuccess": "EnOf[tournaments.qualification.updateSuccess]",
+    "saveFailed": "EnOf[tournaments.qualification.saveFailed]"
+  }
+}

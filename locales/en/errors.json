@@ -1,5 +1,10 @@
 {
   "generic": "An unexpected error occurred. Please try again.",
+  "tryAgain": "Try again",
+  "unauthorized": "Unauthorized",
+  "notFound": "Not found",
+  "invalidParameters": "Invalid parameters",
+  "returnHome": "Return to Home",
   "auth": {
     "invalidCredentials": "Invalid Email or Password",
     "googleAccount": "This account uses Google sign-in.",
@@ -13,5 +18,10 @@
   },
   "groups": {
     "copyFailed": "Error copying: {error}"
+  },
+  "tournament": {
+    "accessDenied": "Access Denied",
+    "noPermission": "You don't have permission to view this tournament. This is a development tournament that requires special access.",
+    "contactAdmin": "If you believe you should have access, please contact an administrator."
   }
 }

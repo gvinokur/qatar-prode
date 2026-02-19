@@ -1,0 +1,23 @@
+{
+  "notFound": "EsOf[games.notFound]",
+  "unauthorized": "EsOf[games.unauthorized]",
+  "boost": {
+    "cannotSetAfterStart": "EsOf[games.boost.cannotSetAfterStart]",
+    "maxSilverReached": "EsOf[games.boost.maxSilverReached]",
+    "maxGoldenReached": "EsOf[games.boost.maxGoldenReached]",
+    "notAuthenticated": "EsOf[games.boost.notAuthenticated]"
+  },
+  "guess": {
+    "unauthorized": "EsOf[games.guess.unauthorized]",
+    "saveFailed": "EsOf[games.guess.saveFailed]",
+    "updateFailed": "EsOf[games.guess.updateFailed]"
+  },
+  "scoreGenerator": {
+    "groupNotFound": "EsOf[games.scoreGenerator.groupNotFound]",
+    "playoffRoundNotFound": "EsOf[games.scoreGenerator.playoffRoundNotFound]",
+    "invalidParameters": "EsOf[games.scoreGenerator.invalidParameters]",
+    "unauthorized": "EsOf[games.scoreGenerator.unauthorized]",
+    "autoFillFailed": "EsOf[games.scoreGenerator.autoFillFailed]",
+    "clearFailed": "EsOf[games.scoreGenerator.clearFailed]"
+  }
+}
