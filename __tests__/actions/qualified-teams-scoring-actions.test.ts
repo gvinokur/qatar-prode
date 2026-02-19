@@ -120,7 +120,7 @@ describe('qualified-teams-scoring-actions', () => {
       const result = await calculateAndStoreQualifiedTeamsScores(tournamentId);
 
       expect(result.success).toBe(false);
-      expect(result.message).toContain('Tournament tournament-1 not found');
+      expect(result.message).toContain('notFound');
       expect(result.usersProcessed).toBe(0);
       expect(result.errors).toHaveLength(1);
     });
@@ -132,7 +132,7 @@ describe('qualified-teams-scoring-actions', () => {
       const result = await calculateAndStoreQualifiedTeamsScores(tournamentId);
 
       expect(result.success).toBe(true);
-      expect(result.message).toBe('No users with predictions found for this tournament');
+      expect(result.message).toBe('scoring.noPredictions');
       expect(result.usersProcessed).toBe(0);
       expect(result.totalScoreSum).toBe(0);
     });
@@ -251,7 +251,7 @@ describe('qualified-teams-scoring-actions', () => {
       const result = await calculateAndStoreQualifiedTeamsScores(tournamentId);
 
       expect(result.success).toBe(false);
-      expect(result.message).toContain('Error calculating scores: Database connection failed');
+      expect(result.message).toContain('generic');
       expect(result.usersProcessed).toBe(0);
       expect(result.errors).toHaveLength(1);
     });
@@ -302,7 +302,7 @@ describe('qualified-teams-scoring-actions', () => {
       const result = await calculateUserQualifiedTeamsScore(userId1, tournamentId);
 
       expect(result.success).toBe(false);
-      expect(result.message).toContain('Groups Group A are not complete');
+      expect(result.message).toContain('generic');
       expect(result.score).toBeUndefined();
       expect(result.breakdown).toBeUndefined();
     });
@@ -315,9 +315,9 @@ describe('qualified-teams-scoring-actions', () => {
       const result = await triggerQualifiedTeamsScoringAction(tournamentId);
 
       expect(result.success).toBe(false);
-      expect(result.message).toBe('Unauthorized: You must be logged in');
+      expect(result.message).toBe('unauthorized');
       expect(result.usersProcessed).toBe(0);
-      expect(result.errors).toContain('User not authenticated');
+      expect(result.errors).toContain('unauthorized');
     });
 
     it('should successfully trigger scoring when user is logged in', async () => {
@@ -358,7 +358,7 @@ describe('qualified-teams-scoring-actions', () => {
       const result = await triggerQualifiedTeamsScoringAction(tournamentId);
 
       expect(result.success).toBe(false);
-      expect(result.message).toContain('Error calculating scores: Database error');
+      expect(result.message).toContain('generic');
     });
   });
 

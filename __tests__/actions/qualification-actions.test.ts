@@ -134,7 +134,7 @@ describe('Qualification Actions', () => {
 
       await expect(
         getTournamentQualificationConfig('tournament-1')
-      ).rejects.toThrow('Torneo no encontrado');
+      ).rejects.toThrow('qualification.tournamentNotFound');
     });
   });
 
@@ -143,7 +143,7 @@ describe('Qualification Actions', () => {
       const result = await updateGroupPositionsJsonb('group-1', 'tournament-1', []);
 
       expect(result.success).toBe(true);
-      expect(result.message).toBe('No hay predicciones para actualizar');
+      expect(result.message).toBe('qualification.noUpdates');
       expect(mockUpsertGroupPositions).not.toHaveBeenCalled();
     });
 
@@ -158,7 +158,7 @@ describe('Qualification Actions', () => {
 
       await expect(
         updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
-      ).rejects.toThrow('Debes iniciar sesión para actualizar predicciones');
+      ).rejects.toThrow('qualification.unauthorized');
     });
 
     it('should reject if tournament not found', async () => {
@@ -173,7 +173,7 @@ describe('Qualification Actions', () => {
 
       await expect(
         updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
-      ).rejects.toThrow('Torneo no encontrado');
+      ).rejects.toThrow('qualification.tournamentNotFound');
     });
 
     it('should reject if tournament is locked', async () => {
@@ -191,7 +191,7 @@ describe('Qualification Actions', () => {
 
       await expect(
         updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
-      ).rejects.toThrow('Las predicciones están bloqueadas para este torneo');
+      ).rejects.toThrow('qualification.tournamentLocked');
     });
 
     it('should successfully update positions', async () => {
@@ -265,7 +265,7 @@ describe('Qualification Actions', () => {
 
       await expect(
         updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
-      ).rejects.toThrow('Hay equipos duplicados');
+      ).rejects.toThrow('qualification.duplicateTeams');
     });
 
     it('should reject invalid positions (less than 1)', async () => {
@@ -282,7 +282,7 @@ describe('Qualification Actions', () => {
 
       await expect(
         updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
-      ).rejects.toThrow('Todas las posiciones deben ser al menos 1');
+      ).rejects.toThrow('qualification.invalidPosition');
     });
 
     it('should reject duplicate positions', async () => {
@@ -300,7 +300,7 @@ describe('Qualification Actions', () => {
 
       await expect(
         updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
-      ).rejects.toThrow('Hay posiciones duplicadas');
+      ).rejects.toThrow('qualification.duplicatePositions');
     });
 
     it('should reject when positions 1-2 are not marked as qualified', async () => {
@@ -318,7 +318,7 @@ describe('Qualification Actions', () => {
 
       await expect(
         updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
-      ).rejects.toThrow('Los equipos en posiciones 1 y 2 deben estar calificados');
+      ).rejects.toThrow('qualification.invalidQualificationFlag');
     });
 
     it('should reject third place qualifiers when tournament does not allow them', async () => {
@@ -361,7 +361,7 @@ describe('Qualification Actions', () => {
 
       await expect(
         updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
-      ).rejects.toThrow('Este torneo no permite calificar equipos de tercer lugar');
+      ).rejects.toThrow('qualification.thirdPlaceNotAllowed');
     });
 
     it('should reject too many third place qualifiers', async () => {
@@ -416,7 +416,7 @@ describe('Qualification Actions', () => {
 
       await expect(
         updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
-      ).rejects.toThrow('Solo puedes seleccionar 2 equipos de tercer lugar en total');
+      ).rejects.toThrow('qualification.tooManyThirdPlace');
     });
 
     it('should reject team not in group', async () => {
@@ -455,7 +455,7 @@ describe('Qualification Actions', () => {
 
       await expect(
         updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
-      ).rejects.toThrow('El equipo team-999 no pertenece al grupo group-1');
+      ).rejects.toThrow('qualification.invalidTeamGroup');
     });
 
     it('should allow updates in dev environment for dev tournaments even when locked', async () => {
@@ -589,7 +589,7 @@ describe('Qualification Actions', () => {
 
       await expect(
         updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
-      ).rejects.toThrow('Error al guardar las predicciones. Por favor intenta de nuevo.');
+      ).rejects.toThrow('qualification.saveFailed');
     });
   });
 });

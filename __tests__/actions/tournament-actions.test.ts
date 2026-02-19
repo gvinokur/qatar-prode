@@ -581,7 +581,7 @@ describe('Tournament Actions', () => {
       mockGetLoggedInUser.mockResolvedValue(mockRegularUser);
 
       await expect(deactivateTournament('tournament1'))
-        .rejects.toThrow('Unauthorized: Only administrators can deactivate tournaments');
+        .rejects.toThrow('unauthorized');
       
       expect(mockFindTournamentById).not.toHaveBeenCalled();
       expect(mockUpdateTournament).not.toHaveBeenCalled();
@@ -591,7 +591,7 @@ describe('Tournament Actions', () => {
       mockGetLoggedInUser.mockResolvedValue(undefined);
 
       await expect(deactivateTournament('tournament1'))
-        .rejects.toThrow('Unauthorized: Only administrators can deactivate tournaments');
+        .rejects.toThrow('unauthorized');
       
       expect(mockFindTournamentById).not.toHaveBeenCalled();
       expect(mockUpdateTournament).not.toHaveBeenCalled();
@@ -601,7 +601,7 @@ describe('Tournament Actions', () => {
       mockFindTournamentById.mockResolvedValue(undefined);
 
       await expect(deactivateTournament('tournament1'))
-        .rejects.toThrow('Tournament not found');
+        .rejects.toThrow('notFound');
       
       expect(mockUpdateTournament).not.toHaveBeenCalled();
     });
@@ -667,7 +667,7 @@ describe('Tournament Actions', () => {
       mockGetLoggedInUser.mockResolvedValue(mockRegularUser);
 
       await expect(createOrUpdateTournament(null, mockFormData))
-        .rejects.toThrow('Unauthorized: Only administrators can manage tournaments');
+        .rejects.toThrow('unauthorized');
       
       expect(mockCreateTournament).not.toHaveBeenCalled();
       expect(mockUpdateTournament).not.toHaveBeenCalled();
@@ -677,14 +677,14 @@ describe('Tournament Actions', () => {
       mockGetLoggedInUser.mockResolvedValue(undefined);
 
       await expect(createOrUpdateTournament(null, mockFormData))
-        .rejects.toThrow('Unauthorized: Only administrators can manage tournaments');
+        .rejects.toThrow('unauthorized');
     });
 
     it('throws error when tournament not found for update', async () => {
       mockFindTournamentById.mockResolvedValue(undefined);
 
       await expect(createOrUpdateTournament('tournament1', mockFormData))
-        .rejects.toThrow('Tournament not found');
+        .rejects.toThrow('notFound');
     });
 
     it('handles logo upload for new tournament', async () => {
@@ -746,7 +746,7 @@ describe('Tournament Actions', () => {
       mockS3Client.uploadFile.mockRejectedValue(new Error('S3 upload failed'));
 
       await expect(createOrUpdateTournament(null, mockFormDataEntries as any))
-        .rejects.toThrow('Failed to upload logo');
+        .rejects.toThrow('logoUploadFailed');
     });
 
     it('handles S3 delete errors gracefully', async () => {
@@ -863,7 +863,7 @@ describe('Tournament Actions', () => {
       mockGetLoggedInUser.mockResolvedValue(mockRegularUser);
 
       await expect(createOrUpdateTournamentGroup('tournament1', mockGroupData, mockTeamIds))
-        .rejects.toThrow('Unauthorized: Only administrators can manage tournament groups');
+        .rejects.toThrow('unauthorized');
       
       expect(mockCreateTournamentGroup).not.toHaveBeenCalled();
       expect(mockUpdateTournamentGroup).not.toHaveBeenCalled();
@@ -873,7 +873,7 @@ describe('Tournament Actions', () => {
       mockGetLoggedInUser.mockResolvedValue(undefined);
 
       await expect(createOrUpdateTournamentGroup('tournament1', mockGroupData, mockTeamIds))
-        .rejects.toThrow('Unauthorized: Only administrators can manage tournament groups');
+        .rejects.toThrow('unauthorized');
     });
 
     it('handles team replacement in existing group', async () => {
@@ -983,7 +983,7 @@ describe('Tournament Actions', () => {
       mockGetLoggedInUser.mockResolvedValue(mockRegularUser);
 
       await expect(createOrUpdatePlayoffRound(mockPlayoffRoundNew))
-        .rejects.toThrow('Unauthorized: Only administrators can manage playoff stages');
+        .rejects.toThrow('unauthorized');
       
       expect(mockCreatePlayoffRound).not.toHaveBeenCalled();
       expect(mockUpdatePlayoffRound).not.toHaveBeenCalled();
@@ -993,7 +993,7 @@ describe('Tournament Actions', () => {
       mockGetLoggedInUser.mockResolvedValue(undefined);
 
       await expect(createOrUpdatePlayoffRound(mockPlayoffRoundNew))
-        .rejects.toThrow('Unauthorized: Only administrators can manage playoff stages');
+        .rejects.toThrow('unauthorized');
     });
 
     it('handles create operation errors', async () => {
@@ -1014,7 +1014,7 @@ describe('Tournament Actions', () => {
       mockCreatePlayoffRound.mockRejectedValue(new Error());
 
       await expect(createOrUpdatePlayoffRound(mockPlayoffRoundNew))
-        .rejects.toThrow('Failed to save playoff stage');
+        .rejects.toThrow('playoffSaveFailed');
     });
 
     it('preserves specific error messages', async () => {

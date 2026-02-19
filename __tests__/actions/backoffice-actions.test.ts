@@ -555,7 +555,7 @@ describe('Backoffice Actions', () => {
     });
 
     it('throws error when trying to delete active tournament', async () => {
-      await expect(deleteDBTournamentTree(mockTournament)).rejects.toThrow('Cannot delete an active tournament');
+      await expect(deleteDBTournamentTree(mockTournament)).rejects.toThrow('tournament.cannotDeleteActive');
     });
   });
 
@@ -1200,21 +1200,21 @@ describe('Backoffice Actions', () => {
       mockGetLoggedInUser.mockResolvedValue(mockRegularUser);
 
       await expect(copyTournament('tournament1'))
-        .rejects.toThrow('Unauthorized: Only administrators can copy tournaments');
+        .rejects.toThrow('unauthorized');
     });
 
     it('throws error when user is not logged in', async () => {
       mockGetLoggedInUser.mockResolvedValue(undefined);
 
       await expect(copyTournament('tournament1'))
-        .rejects.toThrow('Unauthorized: Only administrators can copy tournaments');
+        .rejects.toThrow('unauthorized');
     });
 
     it('throws error when tournament not found', async () => {
       mockFindTournamentById.mockResolvedValue(undefined);
 
       await expect(copyTournament('tournament1'))
-        .rejects.toThrow('Tournament not found');
+        .rejects.toThrow('notFound');
     });
 
     it('copies all tournament components', async () => {
@@ -1327,7 +1327,7 @@ describe('Backoffice Actions', () => {
       expect(groupsResult).toEqual([]);
 
       // updateTournamentAwards now throws when tournament not found
-      await expect(updateTournamentAwards('tournament1', {})).rejects.toThrow('Tournament tournament1 not found');
+      await expect(updateTournamentAwards('tournament1', {})).rejects.toThrow('notFound');
     });
 
     it('handles empty arrays in calculations', async () => {

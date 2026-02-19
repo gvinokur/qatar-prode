@@ -153,7 +153,7 @@ describe('Guesses Actions', () => {
 
       const result = await updateOrCreateGameGuesses(gameGuesses);
 
-      expect(result).toEqual({ success: false, error: 'Unauthorized action' });
+      expect(result).toEqual({ success: false, error: 'guess.unauthorized' });
       expect(mockUpdateOrCreateGuess).not.toHaveBeenCalled();
     });
 
@@ -187,7 +187,7 @@ describe('Guesses Actions', () => {
 
       const result = await updateOrCreateTournamentGuess(mockTournamentGuess);
 
-      expect(result).toEqual({ success: false, error: 'Failed to update tournament guess' });
+      expect(result).toEqual({ success: false, error: 'guess.updateFailed' });
     });
   });
 
