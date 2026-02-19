@@ -81,63 +81,50 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
   // Use provided config or defaults
   const config = scoringConfig || DEFAULT_SCORING;
 
+  // Helper function to get pluralized translation
+  const getPluralized = (key: string, count: number, params: Record<string, any>): string => {
+    const form = count === 1 ? 'singular' : 'plural';
+    return tRules(`${key}.${form}`, params);
+  };
+
   // Helper function to get rules with i18n
   const getRules = (config: ScoringConfig): Rule[] => {
     const exactScoreBonus = config.game_exact_score_points - config.game_correct_outcome_points;
 
     const baseRules: Rule[] = [
       {
-        label: config.game_correct_outcome_points === 1
-          ? tRules('winnerDraw.singular', { points: config.game_correct_outcome_points })
-          : tRules('winnerDraw.plural', { points: config.game_correct_outcome_points }),
+        label: getPluralized('winnerDraw', config.game_correct_outcome_points, { points: config.game_correct_outcome_points }),
         component: <WinnerDrawExample />
       },
       {
-        label: exactScoreBonus === 1
-          ? tRules('exactScore.singular', { bonus: exactScoreBonus, total: config.game_exact_score_points })
-          : tRules('exactScore.plural', { bonus: exactScoreBonus, total: config.game_exact_score_points }),
+        label: getPluralized('exactScore', exactScoreBonus, { bonus: exactScoreBonus, total: config.game_exact_score_points }),
         component: <ExactScoreExample />
       },
       {
-        label: config.qualified_team_points === 1
-          ? tRules('qualifiedTeam.singular', { points: config.qualified_team_points })
-          : tRules('qualifiedTeam.plural', { points: config.qualified_team_points }),
+        label: getPluralized('qualifiedTeam', config.qualified_team_points, { points: config.qualified_team_points }),
         component: <RoundOf16Example />
       },
       {
-        label: config.exact_position_qualified_points === 1
-          ? tRules('exactPosition.singular', {
-              points: config.exact_position_qualified_points,
-              total: config.qualified_team_points + config.exact_position_qualified_points
-            })
-          : tRules('exactPosition.plural', {
-              points: config.exact_position_qualified_points,
-              total: config.qualified_team_points + config.exact_position_qualified_points
-            }),
+        label: getPluralized('exactPosition', config.exact_position_qualified_points, {
+          points: config.exact_position_qualified_points,
+          total: config.qualified_team_points + config.exact_position_qualified_points
+        }),
         component: <GroupPositionExample />
       },
       {
-        label: config.champion_points === 1
-          ? tRules('champion.singular', { points: config.champion_points })
-          : tRules('champion.plural', { points: config.champion_points }),
+        label: getPluralized('champion', config.champion_points, { points: config.champion_points }),
         component: <ChampionExample />
       },
       {
-        label: config.runner_up_points === 1
-          ? tRules('runnerUp.singular', { points: config.runner_up_points })
-          : tRules('runnerUp.plural', { points: config.runner_up_points }),
+        label: getPluralized('runnerUp', config.runner_up_points, { points: config.runner_up_points }),
         component: <RunnerUpExample />
       },
       {
-        label: config.third_place_points === 1
-          ? tRules('thirdPlace.singular', { points: config.third_place_points })
-          : tRules('thirdPlace.plural', { points: config.third_place_points }),
+        label: getPluralized('thirdPlace', config.third_place_points, { points: config.third_place_points }),
         component: <ThirdPlaceExample />
       },
       {
-        label: config.individual_award_points === 1
-          ? tRules('individualAwards.singular', { points: config.individual_award_points })
-          : tRules('individualAwards.plural', { points: config.individual_award_points }),
+        label: getPluralized('individualAwards', config.individual_award_points, { points: config.individual_award_points }),
         component: <IndividualAwardsExample />
       },
     ];
@@ -148,17 +135,13 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
 
       if (config.max_silver_games > 0) {
         boostRules.push({
-          label: config.max_silver_games === 1
-            ? tRules('silverBoost.singular', { count: config.max_silver_games })
-            : tRules('silverBoost.plural', { count: config.max_silver_games }),
+          label: getPluralized('silverBoost', config.max_silver_games, { count: config.max_silver_games }),
         });
       }
 
       if (config.max_golden_games > 0) {
         boostRules.push({
-          label: config.max_golden_games === 1
-            ? tRules('goldenBoost.singular', { count: config.max_golden_games })
-            : tRules('goldenBoost.plural', { count: config.max_golden_games }),
+          label: getPluralized('goldenBoost', config.max_golden_games, { count: config.max_golden_games }),
         });
       }
 
