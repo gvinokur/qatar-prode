@@ -2,6 +2,8 @@
 
 import {Alert, Backdrop, Box, CircularProgress, Grid, Snackbar, Typography} from "@mui/material";
 import { useEffect, useState} from "react";
+import { useLocale } from 'next-intl';
+import { toLocale } from '../../utils/locale-utils';
 import {ExtendedGameData, ExtendedPlayoffRoundData} from "../../definitions";
 import {Team} from "../../db/tables-definition";
 import {getCompletePlayoffData} from "../../actions/tournament-actions";
@@ -51,6 +53,7 @@ const modifyAffectedTeams = (newGame:ExtendedGameData, newGamesMap: {[k: string]
 }
 
 export default function PlayoffTab({ tournamentId } :Props) {
+  const locale = toLocale(useLocale());
   const [playoffStages, setPlayoffStages] = useState<ExtendedPlayoffRoundData[]>()
   const [gamesMap, setGamesMap] = useState<{[k: string]: ExtendedGameData}>({})
   const [teamsMap, setTeamsMap] = useState<{[k:string]:Team}>({})
@@ -74,7 +77,7 @@ export default function PlayoffTab({ tournamentId } :Props) {
     await saveGameResults(Object.values(newGamesMap))
     modifyAffectedTeams(newGame, newGamesMap, gamesMap)
     await saveGamesData(Object.values(newGamesMap))
-    await calculateGameScores(false, false)
+    await calculateGameScores(false, false, locale)
     const finalStage = playoffStages?.find(stage => stage.is_final)
     const thirdPlaceStage = playoffStages?.find(stage => stage.is_third_place)
     let champion_team_id: string | null | undefined= null
@@ -93,7 +96,7 @@ export default function PlayoffTab({ tournamentId } :Props) {
     }
     // Only update honor roll if at least one value is a non-empty team ID
     if (champion_team_id || runner_up_team_id || third_place_team_id) {
-      await updateTournamentHonorRoll(tournamentId, { champion_team_id, runner_up_team_id, third_place_team_id })
+      await updateTournamentHonorRoll(tournamentId, { champion_team_id, runner_up_team_id, third_place_team_id }, locale)
     }
     setGamesMap(newGamesMap)
     setSaved(true)

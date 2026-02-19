@@ -3,7 +3,7 @@
 import { Box, Typography, Button, Paper } from '@mui/material'
 import { useRouter } from 'next/navigation'
 import LockIcon from '@mui/icons-material/Lock'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 
 type ErrorProps = Readonly<{
   _error: Error & { digest?: string }
@@ -16,6 +16,7 @@ export default function TournamentError({
 }: ErrorProps) {
   const locale = useLocale()
   const router = useRouter()
+  const t = useTranslations('errors')
 
   return (
     <Box
@@ -28,21 +29,20 @@ export default function TournamentError({
       <Paper elevation={3} sx={{ p: 4, maxWidth: 500, textAlign: 'center' }}>
         <LockIcon sx={{ fontSize: 64, color: 'warning.main', mb: 2 }} />
         <Typography variant="h4" gutterBottom>
-          Access Denied
+          {t('tournament.accessDenied')}
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-          You don&apos;t have permission to view this tournament. This is a development
-          tournament that requires special access.
+          {t('tournament.noPermission')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          If you believe you should have access, please contact an administrator.
+          {t('tournament.contactAdmin')}
         </Typography>
         <Button
           variant="contained"
           onClick={() => router.push(`/${locale}`)}
           sx={{ mt: 2 }}
         >
-          Return to Home
+          {t('returnHome')}
         </Button>
       </Paper>
     </Box>

@@ -170,7 +170,7 @@ describe('GuessesContextProvider', () => {
         home_score: 2,
         away_score: 1
       })
-    ]);
+    ], 'es');
   });
 
   it('throws error and logs when save fails with autoSave=true', async () => {

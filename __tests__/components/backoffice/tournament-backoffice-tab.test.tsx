@@ -123,7 +123,7 @@ describe('TournamentBackofficeTab', () => {
       await user.click(button);
 
       await waitFor(() => {
-        expect(backofficeActions.calculateGameScores).toHaveBeenCalledWith(false, false);
+        expect(backofficeActions.calculateGameScores).toHaveBeenCalledWith(false, false, 'es');
       });
     });
   });
@@ -180,7 +180,7 @@ describe('TournamentBackofficeTab', () => {
       await user.click(confirmButton);
 
       await waitFor(() => {
-        expect(tournamentActions.deactivateTournament).toHaveBeenCalledWith(mockActiveTournament.id);
+        expect(tournamentActions.deactivateTournament).toHaveBeenCalledWith(mockActiveTournament.id, 'es');
       });
 
       await waitFor(() => {
@@ -269,7 +269,7 @@ describe('TournamentBackofficeTab', () => {
       await user.click(confirmButton);
 
       await waitFor(() => {
-        expect(backofficeActions.deleteDBTournamentTree).toHaveBeenCalledWith(mockInactiveTournament);
+        expect(backofficeActions.deleteDBTournamentTree).toHaveBeenCalledWith(mockInactiveTournament, 'es');
       });
 
       await waitFor(() => {

@@ -20,7 +20,8 @@ import {
   setGroupTournamentBettingConfigAction,
   setUserGroupTournamentBettingPaymentAction
 } from '../../actions/group-tournament-betting-actions';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+import { toLocale } from '../../utils/locale-utils';
 
 // Props: groupId, tournamentId, currentUserId, isAdmin, members (array of { id, nombre })
 interface Member {
@@ -46,6 +47,7 @@ const GroupTournamentBettingAdmin: React.FC<GroupTournamentBettingAdminProps> = 
   payments: initialPayments,
 }) => {
   const t = useTranslations('groups.betting');
+  const locale = toLocale(useLocale());
 
   const [bettingEnabled, setBettingEnabled] = useState(!!config?.betting_enabled);
   const [bettingAmount, setBettingAmount] = useState(config?.betting_amount?.toString() || '');
@@ -71,7 +73,7 @@ const GroupTournamentBettingAdmin: React.FC<GroupTournamentBettingAdminProps> = 
         betting_enabled: fields.betting_enabled ?? bettingEnabled,
         betting_amount: fields.betting_amount ?? (bettingAmount ? parseFloat(bettingAmount) : null),
         betting_payout_description: fields.betting_payout_description ?? bettingDescription,
-      });
+      }, locale);
       setBettingEnabled(!!updated.betting_enabled);
       setBettingAmount(updated.betting_amount?.toString() || '');
       setBettingDescription(updated.betting_payout_description || '');
@@ -111,7 +113,7 @@ const GroupTournamentBettingAdmin: React.FC<GroupTournamentBettingAdminProps> = 
     const payment = payments.find((p) => p.user_id === userId);
     const newPaid = !payment?.has_paid;
     try {
-      const newPayment = await setUserGroupTournamentBettingPaymentAction(config.id, userId, newPaid, groupId);
+      const newPayment = await setUserGroupTournamentBettingPaymentAction(config.id, userId, newPaid, groupId, locale);
       const oldPaymentIndex = payments.findIndex((p) => p.user_id === userId);
       if (oldPaymentIndex === -1) {
         setPayments([...payments, newPayment]);

@@ -112,7 +112,8 @@
       "configSaved": "¡Configuración guardada!",
       "configError": "Error al guardar la configuración",
       "paymentUpdated": "¡Estado de pago actualizado!",
-      "paymentError": "Error al actualizar el estado de pago"
+      "paymentError": "Error al actualizar el estado de pago",
+      "ownerOnly": "EsOf[groups.betting.ownerOnly]"
     }
   },
   "joinMessage": {

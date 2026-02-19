@@ -9,6 +9,20 @@ vi.mock('next/navigation', () => ({
   useRouter: vi.fn(),
 }));
 
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useLocale: vi.fn(() => 'es'),
+  useTranslations: vi.fn(() => (key: string) => {
+    const translations: Record<string, string> = {
+      'tournament.accessDenied': 'Access Denied',
+      'tournament.noPermission': "You don't have permission to view this tournament. This is a development tournament that requires special access.",
+      'tournament.contactAdmin': 'If you believe you should have access, please contact an administrator.',
+      'returnHome': 'Return to Home',
+    };
+    return translations[key] || key;
+  }),
+}));
+
 describe('TournamentError (403 Page)', () => {
   const mockRouter = {
     push: vi.fn(),

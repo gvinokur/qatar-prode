@@ -1,5 +1,11 @@
 {
   "generic": "Ocurrió un error inesperado. Por favor, inténtalo de nuevo.",
+  "tryAgain": "EsOf[errors.tryAgain]",
+  "unauthorized": "EsOf[errors.unauthorized]",
+  "notAuthenticated": "EsOf[errors.notAuthenticated]",
+  "notFound": "EsOf[errors.notFound]",
+  "invalidParameters": "EsOf[errors.invalidParameters]",
+  "returnHome": "EsOf[errors.returnHome]",
   "auth": {
     "invalidCredentials": "Email o Contraseña Invalida",
     "googleAccount": "Esta cuenta usa inicio de sesión con Google.",
@@ -13,5 +19,10 @@
   },
   "groups": {
     "copyFailed": "Error al copiar: {error}"
+  },
+  "tournament": {
+    "accessDenied": "EsOf[errors.tournament.accessDenied]",
+    "noPermission": "EsOf[errors.tournament.noPermission]",
+    "contactAdmin": "EsOf[errors.tournament.contactAdmin]"
   }
 }

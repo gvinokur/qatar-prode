@@ -9,17 +9,20 @@ import {Game, GameNew, GameUpdate} from "../db/tables-definition";
 import {getLoggedInUser} from "./user-actions";
 import {createTournamentGroupGame, deleteTournamentGroupGame} from "../db/tournament-group-repository";
 import {createPlayoffRoundGame, deletePlayoffRoundGame} from "../db/tournament-playoff-repository";
+import { getTranslations } from 'next-intl/server';
+import type { Locale } from '../../i18n.config';
 
 /**
  * Creates a new game in a tournament group
  * @param gameData - The game data to create
  * @returns The created game
  */
-export async function createGroupGame(gameData: GameNew, groupId: string) {
+export async function createGroupGame(gameData: GameNew, groupId: string, locale: Locale = 'es') {
+  const t = await getTranslations({ locale, namespace: 'games' });
   // Check if user is admin
   const user = await getLoggedInUser();
   if (!user?.isAdmin) {
-    throw new Error('Unauthorized: Only administrators can manage tournament games');
+    throw new Error(t('unauthorized'));
   }
   const game = await createGame({
     ...gameData,
@@ -39,11 +42,12 @@ export async function createGroupGame(gameData: GameNew, groupId: string) {
  * @param gameData - The updated game data
  * @returns The updated game
  */
-export async function updateGroupGame(gameId: string, gameData: GameUpdate) {
+export async function updateGroupGame(gameId: string, gameData: GameUpdate, locale: Locale = 'es') {
+  const t = await getTranslations({ locale, namespace: 'games' });
   // Check if user is admin
   const user = await getLoggedInUser();
   if (!user?.isAdmin) {
-    throw new Error('Unauthorized: Only administrators can manage tournament games');
+    throw new Error(t('unauthorized'));
   }
 
   // Update the game
@@ -56,11 +60,12 @@ export async function updateGroupGame(gameId: string, gameData: GameUpdate) {
  * @param gameId - The ID of the game to delete
  * @returns A promise that resolves when the deletion is complete
  */
-export async function deleteGroupGame(gameId: string) {
+export async function deleteGroupGame(gameId: string, locale: Locale = 'es') {
+  const t = await getTranslations({ locale, namespace: 'games' });
   // Check if user is admin
   const user = await getLoggedInUser();
   if (!user?.isAdmin) {
-    throw new Error('Unauthorized: Only administrators can manage tournament games');
+    throw new Error(t('unauthorized'));
   }
 
   // Delete the game

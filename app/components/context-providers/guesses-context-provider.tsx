@@ -1,6 +1,8 @@
 'use client'
 
 import React, {useCallback, useMemo, useState} from "react";
+import { useLocale } from 'next-intl';
+import { toLocale } from '../../utils/locale-utils';
 import {
   GameGuessNew,
 } from "../../db/tables-definition";
@@ -41,6 +43,7 @@ export function GuessesContextProvider ({children,
                                           tournamentMaxSilver = 0,
                                           tournamentMaxGolden = 0
                                         }: GuessesContextProviderProps) {
+  const locale = toLocale(useLocale());
   const [gameGuesses, setGameGuesses] = useState(serverGameGuesses)
 
   // Calculate boost counts from game guesses
@@ -69,14 +72,14 @@ export function GuessesContextProvider ({children,
     if (!autoSave) return
 
     // Save to server
-    const result = await updateOrCreateGameGuesses([gameGuess])
+    const result = await updateOrCreateGameGuesses([gameGuess], locale)
 
     // Check if save failed
     if (result && 'success' in result && !result.success) {
       console.error('[GuessesContext] Save failed:', result.error)
       throw new Error(result.error || 'Failed to save prediction')
     }
-  }, [autoSave, gameGuesses])
+  }, [autoSave, gameGuesses, locale])
 
   const context = useMemo(() => ({
     gameGuesses,

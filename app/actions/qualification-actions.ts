@@ -8,16 +8,19 @@ import {
 import { TeamPositionPrediction } from '../db/tables-definition';
 import { db } from '../db/database';
 import { QualificationPredictionError } from './qualification-errors';
+import { getTranslations } from 'next-intl/server';
+import type { Locale } from '../../i18n.config';
 
 /**
  * Get tournament configuration for qualified teams feature
  * Used by client components to determine UI behavior
  */
-export async function getTournamentQualificationConfig(tournamentId: string): Promise<{
+export async function getTournamentQualificationConfig(tournamentId: string, locale: Locale = 'es'): Promise<{
   allowsThirdPlace: boolean;
   maxThirdPlace: number;
   isLocked: boolean;
 }> {
+  const t = await getTranslations({ locale, namespace: 'tournaments' });
   const tournament = await db
     .selectFrom('tournaments')
     .where('id', '=', tournamentId)
@@ -25,7 +28,7 @@ export async function getTournamentQualificationConfig(tournamentId: string): Pr
     .executeTakeFirst();
 
   if (!tournament) {
-    throw new QualificationPredictionError('Torneo no encontrado', 'TOURNAMENT_NOT_FOUND');
+    throw new QualificationPredictionError(t('qualification.tournamentNotFound'), 'TOURNAMENT_NOT_FOUND');
   }
 
   // Check if predictions are locked (5 days after tournament starts)
@@ -44,7 +47,8 @@ export async function getTournamentQualificationConfig(tournamentId: string): Pr
 }
 
 /** Helper: Validate teams belong to group */
-async function validateTeamsInGroup(teamIds: string[], groupId: string): Promise<void> {
+async function validateTeamsInGroup(teamIds: string[], groupId: string, locale: Locale = 'es'): Promise<void> {
+  const t = await getTranslations({ locale, namespace: 'tournaments' });
   for (const teamId of teamIds) {
     const teamInGroup = await db
       .selectFrom('tournament_group_teams')
@@ -55,7 +59,7 @@ async function validateTeamsInGroup(teamIds: string[], groupId: string): Promise
 
     if (!teamInGroup) {
       throw new QualificationPredictionError(
-        `El equipo ${teamId} no pertenece al grupo ${groupId}`,
+        t('qualification.invalidTeamGroup', { teamId, groupId }),
         'INVALID_TEAM_GROUP'
       );
     }
@@ -63,19 +67,21 @@ async function validateTeamsInGroup(teamIds: string[], groupId: string): Promise
 }
 
 /** Helper: Validate no duplicate teams */
-function validateNoDuplicateTeams(teamIds: string[]): void {
+async function validateNoDuplicateTeams(teamIds: string[], locale: Locale = 'es'): Promise<void> {
+  const t = await getTranslations({ locale, namespace: 'tournaments' });
   const unique = new Set(teamIds);
   if (unique.size !== teamIds.length) {
-    throw new QualificationPredictionError('Hay equipos duplicados', 'DUPLICATE_TEAMS');
+    throw new QualificationPredictionError(t('qualification.duplicateTeams'), 'DUPLICATE_TEAMS');
   }
 }
 
 /** Helper: Validate positions are valid and unique */
-function validatePositionsValidAndUnique(positions: number[]): void {
+async function validatePositionsValidAndUnique(positions: number[], locale: Locale = 'es'): Promise<void> {
+  const t = await getTranslations({ locale, namespace: 'tournaments' });
   // Check all positions >= 1
   if (positions.some((p) => p < 1)) {
     throw new QualificationPredictionError(
-      'Todas las posiciones deben ser al menos 1',
+      t('qualification.invalidPosition'),
       'INVALID_POSITION'
     );
   }
@@ -83,19 +89,21 @@ function validatePositionsValidAndUnique(positions: number[]): void {
   // Check positions are unique
   const unique = new Set(positions);
   if (unique.size !== positions.length) {
-    throw new QualificationPredictionError('Hay posiciones duplicadas', 'DUPLICATE_POSITIONS');
+    throw new QualificationPredictionError(t('qualification.duplicatePositions'), 'DUPLICATE_POSITIONS');
   }
 }
 
 /** Helper: Validate qualification flags for positions */
-function validateQualificationFlagsForPositions(
-  updates: Array<{ position: number; qualifies: boolean }>
-): void {
+async function validateQualificationFlagsForPositions(
+  updates: Array<{ position: number; qualifies: boolean }>,
+  locale: Locale = 'es'
+): Promise<void> {
+  const t = await getTranslations({ locale, namespace: 'tournaments' });
   // Positions 1-2 must be qualified
   const invalidFlags = updates.filter((u) => u.position <= 2 && !u.qualifies);
   if (invalidFlags.length > 0) {
     throw new QualificationPredictionError(
-      'Los equipos en posiciones 1 y 2 deben estar calificados',
+      t('qualification.invalidQualificationFlag'),
       'INVALID_QUALIFICATION_FLAG'
     );
   }
@@ -107,14 +115,16 @@ async function validateThirdPlaceForGroup(
   tournament: { allows_third_place_qualification: boolean | null; max_third_place_qualifiers: number | null },
   userId: string,
   tournamentId: string,
-  groupId: string
+  groupId: string,
+  locale: Locale = 'es'
 ): Promise<void> {
+  const t = await getTranslations({ locale, namespace: 'tournaments' });
   if (!tournament.allows_third_place_qualification) {
     // If tournament doesn't allow third place, position 3+ should not be qualified
     const invalidThirdPlace = updates.filter((u) => u.position >= 3 && u.qualifies);
     if (invalidThirdPlace.length > 0) {
       throw new QualificationPredictionError(
-        'Este torneo no permite calificar equipos de tercer lugar',
+        t('qualification.thirdPlaceNotAllowed'),
         'THIRD_PLACE_NOT_ALLOWED'
       );
     }
@@ -140,7 +150,7 @@ async function validateThirdPlaceForGroup(
 
   if (totalThirdPlace > maxThirdPlace) {
     throw new QualificationPredictionError(
-      `Solo puedes seleccionar ${maxThirdPlace} equipos de tercer lugar en total. Tienes ${totalThirdPlace}.`,
+      t('qualification.tooManyThirdPlace', { maxThirdPlace, totalThirdPlace }),
       'TOO_MANY_THIRD_PLACE'
     );
   }
@@ -158,13 +168,15 @@ async function validateThirdPlaceForGroup(
 export async function updateGroupPositionsJsonb(
   groupId: string,
   tournamentId: string,
-  positionUpdates: Array<{ teamId: string; position: number; qualifies: boolean }>
+  positionUpdates: Array<{ teamId: string; position: number; qualifies: boolean }>,
+  locale: Locale = 'es'
 ): Promise<{ success: boolean; message: string }> {
+  const t = await getTranslations({ locale, namespace: 'tournaments' });
   // Validation: User authentication
   const user = await getLoggedInUser();
   if (!user?.id) {
     throw new QualificationPredictionError(
-      'Debes iniciar sesión para actualizar predicciones',
+      t('qualification.unauthorized'),
       'UNAUTHORIZED'
     );
   }
@@ -173,7 +185,7 @@ export async function updateGroupPositionsJsonb(
 
   // Validation: Empty array
   if (positionUpdates.length === 0) {
-    return { success: true, message: 'No hay predicciones para actualizar' };
+    return { success: true, message: t('qualification.noUpdates') };
   }
 
   // Validation: Tournament exists and is not locked
@@ -184,7 +196,7 @@ export async function updateGroupPositionsJsonb(
     .executeTakeFirst();
 
   if (!tournament) {
-    throw new QualificationPredictionError('Torneo no encontrado', 'TOURNAMENT_NOT_FOUND');
+    throw new QualificationPredictionError(t('qualification.tournamentNotFound'), 'TOURNAMENT_NOT_FOUND');
   }
 
   // Check if editing is allowed via dev override (dev/preview environment + dev tournament)
@@ -194,7 +206,7 @@ export async function updateGroupPositionsJsonb(
 
   if (!tournament.is_active && !allowDevOverride) {
     throw new QualificationPredictionError(
-      'Las predicciones están bloqueadas para este torneo',
+      t('qualification.tournamentLocked'),
       'TOURNAMENT_LOCKED'
     );
   }
@@ -203,10 +215,10 @@ export async function updateGroupPositionsJsonb(
   const positionNumbers = positionUpdates.map((u) => u.position);
 
   // Run all validations
-  await validateTeamsInGroup(teamIds, groupId);
-  validateNoDuplicateTeams(teamIds);
-  validatePositionsValidAndUnique(positionNumbers);
-  validateQualificationFlagsForPositions(positionUpdates);
+  await validateTeamsInGroup(teamIds, groupId, locale);
+  await validateNoDuplicateTeams(teamIds, locale);
+  await validatePositionsValidAndUnique(positionNumbers, locale);
+  await validateQualificationFlagsForPositions(positionUpdates, locale);
   await validateThirdPlaceForGroup(
     positionUpdates,
     {
@@ -215,7 +227,8 @@ export async function updateGroupPositionsJsonb(
     },
     userId,
     tournamentId,
-    groupId
+    groupId,
+    locale
   );
 
   // Build TeamPositionPrediction array for JSONB
@@ -236,12 +249,12 @@ export async function updateGroupPositionsJsonb(
 
     return {
       success: true,
-      message: `Actualizadas ${positions.length} predicciones exitosamente`,
+      message: t('qualification.updateSuccess', { count: positions.length }),
     };
   } catch (error) {
     console.error('Error updating group positions (JSONB):', error);
     throw new QualificationPredictionError(
-      'Error al guardar las predicciones. Por favor intenta de nuevo.',
+      t('qualification.saveFailed'),
       'DATABASE_ERROR'
     );
   }

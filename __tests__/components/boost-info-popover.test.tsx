@@ -388,7 +388,7 @@ describe('BoostInfoPopover', () => {
       );
 
       await waitFor(() => {
-        expect(mockGetBoostAllocationBreakdownAction).toHaveBeenCalledWith('tournament-1', 'silver');
+        expect(mockGetBoostAllocationBreakdownAction).toHaveBeenCalledWith('tournament-1', 'silver', 'es');
       });
     });
   });

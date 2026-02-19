@@ -2,6 +2,8 @@
 
 import {Alert, Box, Button, Grid, Paper, Snackbar, Typography} from "@mui/material";
 import { useEffect, useState} from "react";
+import { useLocale } from 'next-intl';
+import { toLocale } from '../../utils/locale-utils';
 import {ExtendedGameData, ExtendedGroupData} from "../../definitions";
 import {getCompleteGroupData} from "../../actions/tournament-actions";
 import { BackofficeTabsSkeleton } from "../skeletons";
@@ -31,6 +33,7 @@ type Props = {
 }
 
 export default function GroupBackoffice({group, tournamentId} :Props) {
+  const locale = toLocale(useLocale());
   const [gamesMap, setGamesMap] = useState<{[k: string]: ExtendedGameData}>({})
   const [sortedGameIds, setSortedGameIds] = useState<string[]>([])
   const [teamsMap, setTeamsMap] = useState<{[k:string]:Team}>({})
@@ -81,7 +84,7 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
     await calculateAndSavePlayoffGamesForTournament(tournamentId)
     await saveGamesData(Object.values(newGamesMap))
     await calculateAndStoreGroupPosition(group.id, Object.keys(teamsMap), Object.values(newGamesMap), group.sort_by_games_between_teams)
-    await calculateGameScores(false, false)
+    await calculateGameScores(false, false, locale)
     await calculateAndStoreQualifiedTeamsScores(tournamentId)
     setSaved(false)
   }
@@ -141,7 +144,7 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
       Object.values(gamesMap),
       group.sort_by_games_between_teams
     );
-    await calculateGameScores(false, false);
+    await calculateGameScores(false, false, locale);
     await calculateAndStoreQualifiedTeamsScores(tournamentId);
     setSaved(true);
   };

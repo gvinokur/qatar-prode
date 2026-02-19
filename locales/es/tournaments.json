@@ -1,0 +1,32 @@
+{
+  "notFound": "Torneo no encontrado",
+  "invalidStartDate": "EsOf[tournaments.invalidStartDate]",
+  "unauthorized": "EsOf[tournaments.unauthorized]",
+  "thirdPlace": {
+    "invalidCombinationKey": "EsOf[tournaments.thirdPlace.invalidCombinationKey]",
+    "rulesNotObject": "EsOf[tournaments.thirdPlace.rulesNotObject]",
+    "ruleValuesMustBeStrings": "EsOf[tournaments.thirdPlace.ruleValuesMustBeStrings]"
+  },
+  "scoring": {
+    "noPredictions": "EsOf[tournaments.scoring.noPredictions]",
+    "processed": "EsOf[tournaments.scoring.processed]"
+  },
+  "logoTooLarge": "EsOf[tournaments.logoTooLarge]",
+  "logoUploadFailed": "EsOf[tournaments.logoUploadFailed]",
+  "playoffSaveFailed": "EsOf[tournaments.playoffSaveFailed]",
+  "qualification": {
+    "tournamentNotFound": "Torneo no encontrado",
+    "invalidTeamGroup": "El equipo {teamId} no pertenece al grupo {groupId}",
+    "duplicateTeams": "Hay equipos duplicados",
+    "invalidPosition": "Todas las posiciones deben ser al menos 1",
+    "duplicatePositions": "Hay posiciones duplicadas",
+    "invalidQualificationFlag": "Los equipos en posiciones 1 y 2 deben estar calificados",
+    "thirdPlaceNotAllowed": "Este torneo no permite calificar equipos de tercer lugar",
+    "tooManyThirdPlace": "Solo puedes seleccionar {maxThirdPlace} equipos de tercer lugar en total. Tienes {totalThirdPlace}.",
+    "unauthorized": "Debes iniciar sesión para actualizar predicciones",
+    "noUpdates": "No hay predicciones para actualizar",
+    "tournamentLocked": "Las predicciones están bloqueadas para este torneo",
+    "updateSuccess": "Actualizadas {count} predicciones exitosamente",
+    "saveFailed": "Error al guardar las predicciones. Por favor intenta de nuevo."
+  }
+}

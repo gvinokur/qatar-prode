@@ -1,0 +1,32 @@
+{
+  "notFound": "Tournament not found",
+  "invalidStartDate": "Invalid start date provided",
+  "unauthorized": "Unauthorized: Admin access required",
+  "thirdPlace": {
+    "invalidCombinationKey": "Combination key must contain only uppercase letters (e.g., \"ABCDEFGH\")",
+    "rulesNotObject": "Rules must be a valid JSON object (not an array)",
+    "ruleValuesMustBeStrings": "All rule values must be strings (group letters)"
+  },
+  "scoring": {
+    "noPredictions": "No users with predictions found for this tournament",
+    "processed": "Processed {processed} out of {total} users"
+  },
+  "logoTooLarge": "Logo file is too large. Maximum file size allowed is 5MB. Please choose a smaller image file.",
+  "logoUploadFailed": "Failed to upload logo. Please try again with a smaller file.",
+  "playoffSaveFailed": "Failed to save playoff stage",
+  "qualification": {
+    "tournamentNotFound": "EnOf[tournaments.qualification.tournamentNotFound]",
+    "invalidTeamGroup": "EnOf[tournaments.qualification.invalidTeamGroup]",
+    "duplicateTeams": "EnOf[tournaments.qualification.duplicateTeams]",
+    "invalidPosition": "EnOf[tournaments.qualification.invalidPosition]",
+    "duplicatePositions": "EnOf[tournaments.qualification.duplicatePositions]",
+    "invalidQualificationFlag": "EnOf[tournaments.qualification.invalidQualificationFlag]",
+    "thirdPlaceNotAllowed": "EnOf[tournaments.qualification.thirdPlaceNotAllowed]",
+    "tooManyThirdPlace": "EnOf[tournaments.qualification.tooManyThirdPlace]",
+    "unauthorized": "EnOf[tournaments.qualification.unauthorized]",
+    "noUpdates": "EnOf[tournaments.qualification.noUpdates]",
+    "tournamentLocked": "EnOf[tournaments.qualification.tournamentLocked]",
+    "updateSuccess": "EnOf[tournaments.qualification.updateSuccess]",
+    "saveFailed": "EnOf[tournaments.qualification.saveFailed]"
+  }
+}

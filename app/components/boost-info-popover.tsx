@@ -8,7 +8,8 @@ import {
   Divider,
   CircularProgress,
 } from '@mui/material';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+import { toLocale } from '../utils/locale-utils';
 import { getBoostAllocationBreakdownAction } from '../actions/game-boost-actions';
 
 interface BoostInfoPopoverProps {
@@ -185,6 +186,7 @@ export default function BoostInfoPopover({
   onClose,
 }: BoostInfoPopoverProps) {
   const t = useTranslations('predictions');
+  const locale = toLocale(useLocale());
   const [breakdown, setBreakdown] = useState<BreakdownData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -193,7 +195,7 @@ export default function BoostInfoPopover({
     if (open && tournamentId) {
       setLoading(true);
       setError(null);
-      getBoostAllocationBreakdownAction(tournamentId, boostType)
+      getBoostAllocationBreakdownAction(tournamentId, boostType, locale)
         .then((data) => {
           setBreakdown(data);
         })
@@ -205,7 +207,7 @@ export default function BoostInfoPopover({
           setLoading(false);
         });
     }
-  }, [open, tournamentId, boostType, t]);
+  }, [open, tournamentId, boostType, locale, t]);
 
   const title = t(`boost.${boostType}.title`);
   const description = t(`boost.${boostType}.description`);

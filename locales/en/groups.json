@@ -112,7 +112,8 @@
       "configSaved": "EnOf(¡Configuración guardada!)",
       "configError": "EnOf(Error al guardar la configuración)",
       "paymentUpdated": "EnOf(¡Estado de pago actualizado!)",
-      "paymentError": "EnOf(Error al actualizar el estado de pago)"
+      "paymentError": "EnOf(Error al actualizar el estado de pago)",
+      "ownerOnly": "Not authorized: Only group owner or admin can modify betting config"
     }
   },
   "joinMessage": {

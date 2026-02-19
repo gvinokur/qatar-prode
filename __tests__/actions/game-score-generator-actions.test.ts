@@ -149,7 +149,7 @@ describe('Game Score Generator Actions', () => {
         const result = await autoFillGameScores('group-1');
 
         expect(result.success).toBe(false);
-        expect(result.error).toBe('Unauthorized: Admin access required');
+        expect(result.error).toBe('scoreGenerator.unauthorized');
         expect(mockFindGamesInGroup).not.toHaveBeenCalled();
       });
 
@@ -159,7 +159,7 @@ describe('Game Score Generator Actions', () => {
         const result = await autoFillGameScores('group-1');
 
         expect(result.success).toBe(false);
-        expect(result.error).toBe('Unauthorized: Admin access required');
+        expect(result.error).toBe('scoreGenerator.unauthorized');
         expect(mockFindGamesInGroup).not.toHaveBeenCalled();
       });
     });
@@ -169,7 +169,7 @@ describe('Game Score Generator Actions', () => {
         const result = await autoFillGameScores();
 
         expect(result.success).toBe(false);
-        expect(result.error).toBe('Must provide either groupId or playoffRoundId');
+        expect(result.error).toBe('scoreGenerator.requireGroupOrPlayoff');
         expect(mockFindGamesInGroup).not.toHaveBeenCalled();
       });
 
@@ -179,7 +179,7 @@ describe('Game Score Generator Actions', () => {
         const result = await autoFillGameScores('non-existent-group');
 
         expect(result.success).toBe(false);
-        expect(result.error).toBe('Group not found');
+        expect(result.error).toBe('scoreGenerator.groupNotFound');
       });
 
       it('returns error when playoff round not found', async () => {
@@ -193,7 +193,7 @@ describe('Game Score Generator Actions', () => {
         const result = await autoFillGameScores(undefined, 'non-existent-round');
 
         expect(result.success).toBe(false);
-        expect(result.error).toBe('Playoff round not found');
+        expect(result.error).toBe('scoreGenerator.playoffRoundNotFound');
       });
     });
 
@@ -508,7 +508,7 @@ describe('Game Score Generator Actions', () => {
         expect(mockCalculateAndSavePlayoffGamesForTournament).toHaveBeenCalledWith('tournament-1');
         expect(mockCalculateAndStoreGroupPosition).toHaveBeenCalled();
         expect(mockCalculateGameScores).toHaveBeenCalledWith(false, false);
-        expect(mockCalculateAndStoreQualifiedTeamsScores).toHaveBeenCalledWith('tournament-1');
+        expect(mockCalculateAndStoreQualifiedTeamsScores).toHaveBeenCalledWith('tournament-1', 'es');
       });
 
       it('recalculates group standings for group stage games', async () => {
@@ -619,7 +619,7 @@ describe('Game Score Generator Actions', () => {
         const result = await autoFillGameScores('group-1');
 
         expect(result.success).toBe(false);
-        expect(result.error).toBe('Database connection failed');
+        expect(result.error).toBe('generic');
       });
     });
   });
@@ -659,7 +659,7 @@ describe('Game Score Generator Actions', () => {
         const result = await clearGameScores('group-1');
 
         expect(result.success).toBe(false);
-        expect(result.error).toBe('Unauthorized: Admin access required');
+        expect(result.error).toBe('scoreGenerator.unauthorized');
         expect(mockFindGamesInGroup).not.toHaveBeenCalled();
       });
 
@@ -669,7 +669,7 @@ describe('Game Score Generator Actions', () => {
         const result = await clearGameScores('group-1');
 
         expect(result.success).toBe(false);
-        expect(result.error).toBe('Unauthorized: Admin access required');
+        expect(result.error).toBe('scoreGenerator.unauthorized');
         expect(mockFindGamesInGroup).not.toHaveBeenCalled();
       });
     });
@@ -679,7 +679,7 @@ describe('Game Score Generator Actions', () => {
         const result = await clearGameScores();
 
         expect(result.success).toBe(false);
-        expect(result.error).toBe('Must provide either groupId or playoffRoundId');
+        expect(result.error).toBe('scoreGenerator.requireGroupOrPlayoff');
         expect(mockFindGamesInGroup).not.toHaveBeenCalled();
       });
 
@@ -689,7 +689,7 @@ describe('Game Score Generator Actions', () => {
         const result = await clearGameScores('non-existent-group');
 
         expect(result.success).toBe(false);
-        expect(result.error).toBe('Group not found');
+        expect(result.error).toBe('scoreGenerator.groupNotFound');
       });
 
       it('returns error when playoff round not found', async () => {
@@ -703,7 +703,7 @@ describe('Game Score Generator Actions', () => {
         const result = await clearGameScores(undefined, 'non-existent-round');
 
         expect(result.success).toBe(false);
-        expect(result.error).toBe('Playoff round not found');
+        expect(result.error).toBe('scoreGenerator.playoffRoundNotFound');
       });
     });
 
@@ -844,7 +844,7 @@ describe('Game Score Generator Actions', () => {
         await clearGameScores('group-1');
 
         expect(mockCalculateGameScores).toHaveBeenCalledWith(false, false);
-        expect(mockCalculateAndStoreQualifiedTeamsScores).toHaveBeenCalledWith('tournament-1');
+        expect(mockCalculateAndStoreQualifiedTeamsScores).toHaveBeenCalledWith('tournament-1', 'es');
       });
 
       it('recalculates group standings for group stage games', async () => {
@@ -953,7 +953,7 @@ describe('Game Score Generator Actions', () => {
         const result = await clearGameScores('group-1');
 
         expect(result.success).toBe(false);
-        expect(result.error).toBe('Database connection failed');
+        expect(result.error).toBe('generic');
       });
     });
   });

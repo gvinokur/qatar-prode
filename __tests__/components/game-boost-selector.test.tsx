@@ -133,7 +133,7 @@ describe('GameBoostSelector', () => {
       await user.click(silverButton);
 
       await waitFor(() => {
-        expect(mockSetGameBoostAction).toHaveBeenCalledWith('game-123', 'silver');
+        expect(mockSetGameBoostAction).toHaveBeenCalledWith('game-123', 'silver', 'es');
       });
     });
 
@@ -149,7 +149,7 @@ describe('GameBoostSelector', () => {
       await user.click(goldenButton);
 
       await waitFor(() => {
-        expect(mockSetGameBoostAction).toHaveBeenCalledWith('game-123', 'golden');
+        expect(mockSetGameBoostAction).toHaveBeenCalledWith('game-123', 'golden', 'es');
       });
     });
 
@@ -165,7 +165,7 @@ describe('GameBoostSelector', () => {
       await user.click(silverButton);
 
       await waitFor(() => {
-        expect(mockSetGameBoostAction).toHaveBeenCalledWith('game-123', null);
+        expect(mockSetGameBoostAction).toHaveBeenCalledWith('game-123', null, 'es');
       });
     });
 
@@ -181,7 +181,7 @@ describe('GameBoostSelector', () => {
       await user.click(goldenButton);
 
       await waitFor(() => {
-        expect(mockSetGameBoostAction).toHaveBeenCalledWith('game-123', 'golden');
+        expect(mockSetGameBoostAction).toHaveBeenCalledWith('game-123', 'golden', 'es');
       });
     });
   });

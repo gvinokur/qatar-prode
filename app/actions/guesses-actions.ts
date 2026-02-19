@@ -11,12 +11,15 @@ import {findPlayoffStagesWithGamesInTournament} from "../db/tournament-playoff-r
 import {findGamesInTournament} from "../db/game-repository";
 import {toMap} from "../utils/ObjectUtils";
 import {db} from "../db/database";
+import { getTranslations } from 'next-intl/server';
+import type { Locale } from '../../i18n.config';
 
-export async function updateOrCreateGameGuesses(gameGuesses: GameGuessNew[]) {
+export async function updateOrCreateGameGuesses(gameGuesses: GameGuessNew[], locale: Locale = 'es') {
+  const t = await getTranslations({ locale, namespace: 'games' });
   try {
     const user = await getLoggedInUser()
     if(!user) {
-      throw new Error('Unauthorized action')
+      throw new Error(t('guess.unauthorized'))
     }
     const _createdGameGuesses = await Promise.all(
       gameGuesses.map(gameGuess => {
@@ -29,16 +32,17 @@ export async function updateOrCreateGameGuesses(gameGuesses: GameGuessNew[]) {
     return { success: true }
   } catch (error: any) {
     // Return error message so client can display it
-    return { success: false, error: error.message || 'Failed to save prediction' }
+    return { success: false, error: error.message || t('guess.saveFailed') }
   }
 }
 
-export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew) {
+export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew, locale: Locale = 'es') {
+  const t = await getTranslations({ locale, namespace: 'games' });
   try {
     return await dbUpdateOrCreateTournamentGuess(guess)
   } catch (error) {
     console.error('[updateOrCreateTournamentGuess] Save failed:', error)
-    return { success: false, error: 'Failed to update tournament guess' };
+    return { success: false, error: t('guess.updateFailed') };
   }
 }
 

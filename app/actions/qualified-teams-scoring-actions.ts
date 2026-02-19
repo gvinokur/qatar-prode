@@ -5,6 +5,8 @@ import { getLoggedInUser } from './user-actions';
 import { findTournamentById } from '../db/tournament-repository';
 import { db } from '../db/database';
 import { revalidatePath } from 'next/cache';
+import { getTranslations } from 'next-intl/server';
+import type { Locale } from '../../i18n.config';
 
 /**
  * Result type for batch scoring operation
@@ -65,17 +67,19 @@ function calculateCountsFromBreakdown(breakdown: any[]): { correctCount: number;
  * @returns Batch scoring result with summary
  */
 export async function calculateAndStoreQualifiedTeamsScores(
-  tournamentId: string
+  tournamentId: string,
+  locale: Locale = 'es'
 ): Promise<BatchScoringResult> {
+  const t = await getTranslations({ locale, namespace: 'tournaments' });
   try {
     // Validate tournament exists
     const tournament = await findTournamentById(tournamentId);
     if (!tournament) {
       return {
         success: false,
-        message: `Tournament ${tournamentId} not found`,
+        message: t('notFound'),
         usersProcessed: 0,
-        errors: [`Tournament not found: ${tournamentId}`],
+        errors: [t('notFound')],
       };
     }
 
@@ -92,7 +96,7 @@ export async function calculateAndStoreQualifiedTeamsScores(
     if (userIds.length === 0) {
       return {
         success: true,
-        message: 'No users with predictions found for this tournament',
+        message: t('scoring.noPredictions'),
         usersProcessed: 0,
         errors: [],
         totalScoreSum: 0,
@@ -155,7 +159,7 @@ export async function calculateAndStoreQualifiedTeamsScores(
 
     return {
       success: true,
-      message: `Processed ${usersProcessed} out of ${userIds.length} users`,
+      message: t('scoring.processed', { processed: usersProcessed, total: userIds.length }),
       usersProcessed,
       errors,
       totalScoreSum,
@@ -163,9 +167,10 @@ export async function calculateAndStoreQualifiedTeamsScores(
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('Error in calculateAndStoreQualifiedTeamsScores:', error);
+    const tErrors = await getTranslations({ locale, namespace: 'errors' });
     return {
       success: false,
-      message: `Error calculating scores: ${errorMessage}`,
+      message: tErrors('generic'),
       usersProcessed: 0,
       errors: [errorMessage],
     };
@@ -181,7 +186,8 @@ export async function calculateAndStoreQualifiedTeamsScores(
  */
 export async function calculateUserQualifiedTeamsScore(
   userId: string,
-  tournamentId: string
+  tournamentId: string,
+  locale: Locale = 'es'
 ): Promise<SingleUserScoringResult> {
   try {
     const scoringResult = await calculateQualifiedTeamsScore(userId, tournamentId);
@@ -192,11 +198,11 @@ export async function calculateUserQualifiedTeamsScore(
       breakdown: scoringResult.breakdown,
     };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`Error calculating score for user ${userId}:`, error);
+    const tErrors = await getTranslations({ locale, namespace: 'errors' });
     return {
       success: false,
-      message: errorMessage,
+      message: tErrors('generic'),
     };
   }
 }
@@ -209,16 +215,18 @@ export async function calculateUserQualifiedTeamsScore(
  * @returns Batch scoring result
  */
 export async function triggerQualifiedTeamsScoringAction(
-  tournamentId: string
+  tournamentId: string,
+  locale: Locale = 'es'
 ): Promise<BatchScoringResult> {
+  const t = await getTranslations({ locale, namespace: 'tournaments' });
   // Authorization check
   const user = await getLoggedInUser();
   if (!user) {
     return {
       success: false,
-      message: 'Unauthorized: You must be logged in',
+      message: t('unauthorized'),
       usersProcessed: 0,
-      errors: ['User not authenticated'],
+      errors: [t('unauthorized')],
     };
   }
 
@@ -226,12 +234,12 @@ export async function triggerQualifiedTeamsScoringAction(
   // if (!user.isAdmin) {
   //   return {
   //     success: false,
-  //     message: 'Unauthorized: Only administrators can trigger scoring',
+  //     message: t('unauthorized'),
   //     usersProcessed: 0,
-  //     errors: ['User is not an administrator'],
+  //     errors: [t('unauthorized')],
   //   };
   // }
 
   // Execute the scoring calculation
-  return await calculateAndStoreQualifiedTeamsScores(tournamentId);
+  return await calculateAndStoreQualifiedTeamsScores(tournamentId, locale);
 }

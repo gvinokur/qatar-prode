@@ -152,8 +152,8 @@ describe('Game Actions', () => {
       mockGetLoggedInUser.mockResolvedValue(mockRegularUser);
 
       await expect(createGroupGame(mockGameData, 'group1'))
-        .rejects.toThrow('Unauthorized: Only administrators can manage tournament games');
-      
+        .rejects.toThrow('unauthorized');
+
       expect(mockCreateGame).not.toHaveBeenCalled();
     });
 
@@ -161,8 +161,8 @@ describe('Game Actions', () => {
       mockGetLoggedInUser.mockResolvedValue(null as any);
 
       await expect(createGroupGame(mockGameData, 'group1'))
-        .rejects.toThrow('Unauthorized: Only administrators can manage tournament games');
-      
+        .rejects.toThrow('unauthorized');
+
       expect(mockCreateGame).not.toHaveBeenCalled();
     });
   });
@@ -179,8 +179,8 @@ describe('Game Actions', () => {
       mockGetLoggedInUser.mockResolvedValue(mockRegularUser);
 
       await expect(updateGroupGame('game1', mockGameUpdate))
-        .rejects.toThrow('Unauthorized: Only administrators can manage tournament games');
-      
+        .rejects.toThrow('unauthorized');
+
       expect(mockUpdateGame).not.toHaveBeenCalled();
     });
 
@@ -188,8 +188,8 @@ describe('Game Actions', () => {
       mockGetLoggedInUser.mockResolvedValue(null as any);
 
       await expect(updateGroupGame('game1', mockGameUpdate))
-        .rejects.toThrow('Unauthorized: Only administrators can manage tournament games');
-      
+        .rejects.toThrow('unauthorized');
+
       expect(mockUpdateGame).not.toHaveBeenCalled();
     });
   });
@@ -205,8 +205,8 @@ describe('Game Actions', () => {
       mockGetLoggedInUser.mockResolvedValue(mockRegularUser);
 
       await expect(deleteGroupGame('game1'))
-        .rejects.toThrow('Unauthorized: Only administrators can manage tournament games');
-      
+        .rejects.toThrow('unauthorized');
+
       expect(mockDeleteGame).not.toHaveBeenCalled();
     });
 
@@ -214,8 +214,8 @@ describe('Game Actions', () => {
       mockGetLoggedInUser.mockResolvedValue(null as any);
 
       await expect(deleteGroupGame('game1'))
-        .rejects.toThrow('Unauthorized: Only administrators can manage tournament games');
-      
+        .rejects.toThrow('unauthorized');
+
       expect(mockDeleteGame).not.toHaveBeenCalled();
     });
   });

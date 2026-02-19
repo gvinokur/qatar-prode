@@ -11,7 +11,8 @@ import {useEditMode} from "./context-providers/edit-mode-context-provider";
 import GameResultEditDialog from "./game-result-edit-dialog";
 import {getTeamDescription} from "../utils/playoffs-rule-helper";
 import {useSession} from "next-auth/react";
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+import { toLocale } from '../utils/locale-utils';
 import {calculateTeamNamesForPlayoffGame} from "../utils/playoff-utils";
 import { getGuessLoser, getGuessWinner } from "../utils/score-utils";
 import { updateOrCreateTournamentGuess } from "../actions/guesses-actions";
@@ -54,6 +55,7 @@ export default function GamesGrid({
   tournament
 }: GamesGridProps) {
   const t = useTranslations('predictions');
+  const locale = toLocale(useLocale());
   const groupContext = useContext(GuessesContext)
   const editMode = useEditMode()
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -155,13 +157,13 @@ export default function GamesGrid({
               tournament_id: selectedGame.tournament_id,
               champion_team_id: winner_team_id,
               runner_up_team_id: loser_team_id,
-            })
+            }, locale)
           } else if (selectedGame.playoffStage.is_third_place) {
             await updateOrCreateTournamentGuess({
               user_id: data?.user?.id || '',
               tournament_id: selectedGame.tournament_id,
               third_place_team_id: loser_team_id,
-            })
+            }, locale)
           }
         }
       }

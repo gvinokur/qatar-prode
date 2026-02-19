@@ -67,7 +67,8 @@ describe('GroupTournamentBettingAdmin', () => {
         mockProps.tournamentId,
         expect.objectContaining({
           betting_enabled: false,
-        })
+        }),
+        'es'
       );
 
       await waitFor(() => {
@@ -95,7 +96,8 @@ describe('GroupTournamentBettingAdmin', () => {
         mockProps.tournamentId,
         expect.objectContaining({
           betting_amount: 200,
-        })
+        }),
+        'es'
       );
     });
 
@@ -120,7 +122,8 @@ describe('GroupTournamentBettingAdmin', () => {
         mockProps.tournamentId,
         expect.objectContaining({
           betting_payout_description: newDescription,
-        })
+        }),
+        'es'
       );
     });
 
@@ -138,7 +141,8 @@ describe('GroupTournamentBettingAdmin', () => {
         mockProps.config.id,
         'user-2',
         true,
-        mockProps.groupId
+        mockProps.groupId,
+        'es'
       );
     });
 
@@ -189,7 +193,8 @@ describe('GroupTournamentBettingAdmin', () => {
         mockProps.config.id,
         'user-3',
         true,
-        mockProps.groupId
+        mockProps.groupId,
+        'es'
       );
 
       // Verify the UI updates to show the payment status

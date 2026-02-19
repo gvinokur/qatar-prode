@@ -12,6 +12,8 @@ import {
   Typography
 } from "@mui/material";
 import { Fragment, useEffect, useState} from "react";
+import { useLocale } from 'next-intl';
+import { toLocale } from '../../utils/locale-utils';
 import {awardsDefinition, AwardTypes} from "../../utils/award-utils";
 import { TournamentUpdate} from "../../db/tables-definition";
 import {ExtendedPlayerData} from "../../definitions";
@@ -22,6 +24,7 @@ type Props = {
   readonly tournamentId: string
 }
 export default function BackofficeAwardsTab({ tournamentId}: Props) {
+  const locale = toLocale(useLocale());
   const [saving, setSaving] = useState<boolean>(false)
   const [tournament, setTournament] = useState<TournamentUpdate | undefined>()
   const [players, setPlayers] = useState<ExtendedPlayerData[]>([])
@@ -47,7 +50,7 @@ export default function BackofficeAwardsTab({ tournamentId}: Props) {
   const saveTournament = async () => {
     setSaving(true)
     if(tournament) {
-      await updateTournamentAwards(tournamentId, tournament)
+      await updateTournamentAwards(tournamentId, tournament, locale)
     }
     setSaving(false)
   }
