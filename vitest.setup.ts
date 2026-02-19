@@ -23,6 +23,8 @@ vi.mock('next-auth/react', () => ({
 // Load Spanish translations for tests
 const spanishTranslations: Record<string, any> = {
   predictions: require('./locales/es/predictions.json'),
+  groups: require('./locales/es/groups.json'),
+  common: require('./locales/es/common.json'),
   // Add other namespaces as needed
 };
 
