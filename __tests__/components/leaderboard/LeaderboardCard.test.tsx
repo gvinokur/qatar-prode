@@ -87,29 +87,29 @@ describe('LeaderboardCard', () => {
       />
     )
 
-    expect(screen.getByText(/point breakdown/i)).toBeInTheDocument()
+    expect(screen.getByText(/desglose de puntos/i)).toBeInTheDocument()
 
     // Group Stage section
-    expect(screen.getByText('Group Stage Games')).toBeInTheDocument()
+    expect(screen.getByText('Partidos de Fase de Grupos')).toBeInTheDocument()
     expect(screen.getByText('500')).toBeInTheDocument() // group stage score
     expect(screen.getByText('+50')).toBeInTheDocument() // group boost bonus
-    expect(screen.getByText('Qualified Teams')).toBeInTheDocument()
+    expect(screen.getByText('Equipos Clasificados')).toBeInTheDocument()
     expect(screen.getByText('150')).toBeInTheDocument() // qualifiers score
-    expect(screen.getByText('Group Positions')).toBeInTheDocument()
+    expect(screen.getByText('Posiciones de Grupo')).toBeInTheDocument()
     expect(screen.getByText('10')).toBeInTheDocument() // group positions score
 
     // Knockout section
-    expect(screen.getByText('Playoff Games')).toBeInTheDocument()
+    expect(screen.getByText('Partidos de Playoff')).toBeInTheDocument()
     expect(screen.getByText('270')).toBeInTheDocument() // playoff score
     expect(screen.getByText('+30')).toBeInTheDocument() // playoff boost bonus
 
     // Tournament section
-    expect(screen.getByText('Honor Roll')).toBeInTheDocument()
+    expect(screen.getByText('Cuadro de Honor')).toBeInTheDocument()
     expect(screen.getByText('40')).toBeInTheDocument() // honor roll score
-    expect(screen.getByText('Individual Awards')).toBeInTheDocument()
+    expect(screen.getByText('Premios Individuales')).toBeInTheDocument()
     expect(screen.getByText('60')).toBeInTheDocument() // individual awards score
 
-    expect(screen.getByText(/tap to collapse/i)).toBeInTheDocument()
+    expect(screen.getByText(/toca para colapsar/i)).toBeInTheDocument()
   })
 
   it('truncates long user names', () => {

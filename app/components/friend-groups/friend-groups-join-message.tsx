@@ -24,8 +24,7 @@ export default function JoinMessage() {
         sx={{ width: '100%' }}
       >
         <AlertTitle>{t('title')}</AlertTitle>
-        {t('message')} <br/>
-        {t('description')}
+        {t('body')}
       </Alert>
     </Snackbar>
   )

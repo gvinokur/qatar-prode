@@ -51,7 +51,7 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
         <CardContent>
           <Box sx={{ textAlign: 'center', py: 4 }}>
             <Typography variant="body1" color="text.secondary">
-              {t('noTournaments')}
+              {t('empty')}
             </Typography>
           </Box>
         </CardContent>
