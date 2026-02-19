@@ -1,5 +1,7 @@
 'use server';
 
+import { getTranslations } from 'next-intl/server';
+import type { Locale } from '../../i18n.config';
 import { calculateQualifiedTeamsScore } from '../utils/qualified-teams-scoring';
 import { getLoggedInUser } from './user-actions';
 import { findTournamentById } from '../db/tournament-repository';
@@ -65,17 +67,20 @@ function calculateCountsFromBreakdown(breakdown: any[]): { correctCount: number;
  * @returns Batch scoring result with summary
  */
 export async function calculateAndStoreQualifiedTeamsScores(
-  tournamentId: string
+  tournamentId: string,
+  locale: Locale = 'es'
 ): Promise<BatchScoringResult> {
   try {
+    const t = await getTranslations({ locale, namespace: 'tournaments' });
+
     // Validate tournament exists
     const tournament = await findTournamentById(tournamentId);
     if (!tournament) {
       return {
         success: false,
-        message: `Tournament ${tournamentId} not found`,
+        message: t('notFound'),
         usersProcessed: 0,
-        errors: [`Tournament not found: ${tournamentId}`],
+        errors: [t('notFound')],
       };
     }
 
@@ -209,16 +214,18 @@ export async function calculateUserQualifiedTeamsScore(
  * @returns Batch scoring result
  */
 export async function triggerQualifiedTeamsScoringAction(
-  tournamentId: string
+  tournamentId: string,
+  locale: Locale = 'es'
 ): Promise<BatchScoringResult> {
+  const t = await getTranslations({ locale, namespace: 'tournaments' });
   // Authorization check
   const user = await getLoggedInUser();
   if (!user) {
     return {
       success: false,
-      message: 'Unauthorized: You must be logged in',
+      message: t('unauthorized'),
       usersProcessed: 0,
-      errors: ['User not authenticated'],
+      errors: [t('unauthorized')],
     };
   }
 
@@ -233,5 +240,5 @@ export async function triggerQualifiedTeamsScoringAction(
   // }
 
   // Execute the scoring calculation
-  return await calculateAndStoreQualifiedTeamsScores(tournamentId);
+  return await calculateAndStoreQualifiedTeamsScores(tournamentId, locale);
 }

@@ -1,5 +1,7 @@
 'use server'
 
+import { getTranslations } from 'next-intl/server';
+import type { Locale } from '../../i18n.config';
 import {getLoggedInUser} from "./user-actions";
 import {GameGuessNew, TournamentGuessNew, UserUpdate} from "../db/tables-definition";
 import { updateGameGuessByGameId, updateOrCreateGuess} from "../db/game-guess-repository";
@@ -12,11 +14,12 @@ import {findGamesInTournament} from "../db/game-repository";
 import {toMap} from "../utils/ObjectUtils";
 import {db} from "../db/database";
 
-export async function updateOrCreateGameGuesses(gameGuesses: GameGuessNew[]) {
+export async function updateOrCreateGameGuesses(gameGuesses: GameGuessNew[], locale: Locale = 'es') {
   try {
+    const t = await getTranslations({ locale, namespace: 'games' });
     const user = await getLoggedInUser()
     if(!user) {
-      throw new Error('Unauthorized action')
+      return { success: false, error: t('unauthorized') };
     }
     const _createdGameGuesses = await Promise.all(
       gameGuesses.map(gameGuess => {
@@ -28,17 +31,19 @@ export async function updateOrCreateGameGuesses(gameGuesses: GameGuessNew[]) {
     )
     return { success: true }
   } catch (error: any) {
-    // Return error message so client can display it
-    return { success: false, error: error.message || 'Failed to save prediction' }
+    console.error('Error updating/creating game guesses:', error);
+    const tErrors = await getTranslations({ locale, namespace: 'errors' });
+    return { success: false, error: tErrors('generic') }
   }
 }
 
-export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew) {
+export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew, locale: Locale = 'es') {
   try {
     return await dbUpdateOrCreateTournamentGuess(guess)
   } catch (error) {
     console.error('[updateOrCreateTournamentGuess] Save failed:', error)
-    return { success: false, error: 'Failed to update tournament guess' };
+    const tErrors = await getTranslations({ locale, namespace: 'errors' });
+    return { success: false, error: tErrors('generic') };
   }
 }
 

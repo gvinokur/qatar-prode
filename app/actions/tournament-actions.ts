@@ -1,5 +1,7 @@
 'use server'
 
+import { getTranslations } from 'next-intl/server';
+import type { Locale } from '../../i18n.config';
 import {
   createTournament,
   findAllActiveTournaments, findAllTournaments,
@@ -138,24 +140,33 @@ export async function getTournamentStartDate(tournamentId: string) {
 /**
  * Deactivates a tournament by setting is_active to false
  * @param tournamentId - The ID of the tournament to deactivate
+ * @param locale - The locale for error messages
  * @returns The updated tournament or an error
  */
-export async function deactivateTournament(tournamentId: string) {
-  const user = await getLoggedInUser();
+export async function deactivateTournament(tournamentId: string, locale: Locale = 'es') {
+  try {
+    const t = await getTranslations({ locale, namespace: 'tournaments' });
+    const user = await getLoggedInUser();
 
-  // Check if user is admin
-  if (!user?.isAdmin) {
-    throw new Error('Unauthorized: Only administrators can deactivate tournaments');
+    // Check if user is admin
+    if (!user?.isAdmin) {
+      return { success: false, error: t('unauthorized') };
+    }
+
+    // Check if tournament exists
+    const tournament = await findTournamentById(tournamentId);
+    if (!tournament) {
+      return { success: false, error: t('notFound') };
+    }
+
+    // Update the tournament to set is_active to false
+    const result = await updateTournament(tournamentId, { is_active: false });
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error deactivating tournament:', error);
+    const tErrors = await getTranslations({ locale, namespace: 'errors' });
+    return { success: false, error: tErrors('generic') };
   }
-
-  // Check if tournament exists
-  const tournament = await findTournamentById(tournamentId);
-  if (!tournament) {
-    throw new Error('Tournament not found');
-  }
-
-  // Update the tournament to set is_active to false
-  return await updateTournament(tournamentId, { is_active: false });
 }
 
 // S3 client will be created when needed
@@ -163,29 +174,41 @@ export async function deactivateTournament(tournamentId: string) {
 /**
  * Create or update a tournament with optional logo upload
  * @param tournamentId - Tournament ID (null for new tournaments)
- * @param tournamentData - Tournament data to create/update
- * @param logoFile - Optional logo file to upload
+ * @param tournamentFormData - Tournament data to create/update
+ * @param locale - The locale for error messages
  * @returns The created/updated tournament
  */
 export async function createOrUpdateTournament(
   tournamentId: string | null,
   tournamentFormData: any,
-): Promise<Tournament> {
-  // Check if user is admin
-  await validateAdminUser();
-  
-  const { tournamentData, logoFile } = parseFormData(tournamentFormData);
-  const existingTournament = await getExistingTournament(tournamentId);
-  
-  const { logoUrl, logoKey } = await handleLogoUpload(logoFile, existingTournament);
-  
-  const updatedTournamentData = prepareTournamentData(tournamentData, existingTournament, logoUrl, logoKey);
-  
-  const result = await saveOrUpdateTournament(tournamentId, updatedTournamentData);
-  
-  await cleanupOldLogo(existingTournament, logoFile, logoUrl);
-  
-  return result;
+  locale: Locale = 'es'
+): Promise<{ success: boolean; error?: string; data?: Tournament }> {
+  try {
+    // Check if user is admin
+    await validateAdminUser();
+
+    const { tournamentData, logoFile } = parseFormData(tournamentFormData);
+    const existingTournament = await getExistingTournament(tournamentId);
+
+    const { logoUrl, logoKey } = await handleLogoUpload(logoFile, existingTournament);
+
+    const updatedTournamentData = prepareTournamentData(tournamentData, existingTournament, logoUrl, logoKey);
+
+    const result = await saveOrUpdateTournament(tournamentId, updatedTournamentData);
+
+    await cleanupOldLogo(existingTournament, logoFile, logoUrl);
+
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error creating/updating tournament:', error);
+    // Check if it's a known error with a message
+    if (error instanceof Error) {
+      // Return the specific error message for known errors
+      return { success: false, error: error.message };
+    }
+    const tErrors = await getTranslations({ locale, namespace: 'errors' });
+    return { success: false, error: tErrors('generic') };
+  }
 }
 
 async function validateAdminUser(): Promise<void> {
@@ -294,6 +317,7 @@ export async function getCompleteTournamentGroups(tournamentId: string) {
  * @param tournamentId - The ID of the tournament
  * @param groupData - The group data (id is required for updates, omit for creation)
  * @param teamIds - Array of team IDs to associate with the group
+ * @param locale - The locale for error messages
  * @returns The updated groups for the tournament
  */
 export async function createOrUpdateTournamentGroup(
@@ -303,67 +327,76 @@ export async function createOrUpdateTournamentGroup(
     group_letter: string;
     sort_by_games_between_teams?: boolean;
   },
-  teamIds: string[]
+  teamIds: string[],
+  locale: Locale = 'es'
 ) {
-  // Check if user is admin
-  const user = await getLoggedInUser();
-  if (!user?.isAdmin) {
-    throw new Error('Unauthorized: Only administrators can manage tournament groups');
-  }
+  try {
+    const t = await getTranslations({ locale, namespace: 'tournaments' });
+    // Check if user is admin
+    const user = await getLoggedInUser();
+    if (!user?.isAdmin) {
+      return { success: false, error: t('unauthorized') };
+    }
 
-  let group: TournamentGroup;
-  let existingTeamsIds: string[] = [];
+    let group: TournamentGroup;
+    let existingTeamsIds: string[] = [];
 
-  // Determine if we're creating or updating
-  if (groupData.id) {
-    // Update existing group
-    group = await updateTournamentGroup(groupData.id, {
-      group_letter: groupData.group_letter,
-      sort_by_games_between_teams: groupData.sort_by_games_between_teams || false
-    });
+    // Determine if we're creating or updating
+    if (groupData.id) {
+      // Update existing group
+      group = await updateTournamentGroup(groupData.id, {
+        group_letter: groupData.group_letter,
+        sort_by_games_between_teams: groupData.sort_by_games_between_teams || false
+      });
 
-    existingTeamsIds = (await findTeamInGroup(group.id)).map(team => team.id);
-  } else {
-    // Create new group
-    group = await createTournamentGroup({
-      tournament_id: tournamentId,
-      group_letter: groupData.group_letter,
-      sort_by_games_between_teams: groupData.sort_by_games_between_teams || false
-    });
-  }
-
-  // Create new team associations
-  let createTeams = true;
-  if(existingTeamsIds) {
-    if (teamIds.length !== existingTeamsIds.length ||
-      existingTeamsIds.some(existingTeamId => !teamIds.includes(existingTeamId))) {
-      await deleteTournamentGroupTeams(group.id);
+      existingTeamsIds = (await findTeamInGroup(group.id)).map(team => team.id);
     } else {
-      createTeams = false;
-      }
-  }
-  if(createTeams && teamIds.length > 0) {
-    await Promise.all(teamIds.map((teamId, index) => {
-      return createTournamentGroupTeam({
-        tournament_group_id: group.id,
-        team_id: teamId,
-        position: index,
-        games_played: 0,
-        points: 0,
-        win: 0,
-        draw: 0,
-        loss: 0,
-        goals_for: 0,
-        goals_against: 0,
-        goal_difference: 0,
-        conduct_score: 0,
-        is_complete: false
-      })
-    }));
-  }
+      // Create new group
+      group = await createTournamentGroup({
+        tournament_id: tournamentId,
+        group_letter: groupData.group_letter,
+        sort_by_games_between_teams: groupData.sort_by_games_between_teams || false
+      });
+    }
 
-  // Return the updated list of groups for the tournament
-  return await findGroupsWithGamesAndTeamsInTournament(tournamentId);
+    // Create new team associations
+    let createTeams = true;
+    if(existingTeamsIds) {
+      if (teamIds.length !== existingTeamsIds.length ||
+        existingTeamsIds.some(existingTeamId => !teamIds.includes(existingTeamId))) {
+        await deleteTournamentGroupTeams(group.id);
+      } else {
+        createTeams = false;
+        }
+    }
+    if(createTeams && teamIds.length > 0) {
+      await Promise.all(teamIds.map((teamId, index) => {
+        return createTournamentGroupTeam({
+          tournament_group_id: group.id,
+          team_id: teamId,
+          position: index,
+          games_played: 0,
+          points: 0,
+          win: 0,
+          draw: 0,
+          loss: 0,
+          goals_for: 0,
+          goals_against: 0,
+          goal_difference: 0,
+          conduct_score: 0,
+          is_complete: false
+        })
+      }));
+    }
+
+    // Return the updated list of groups for the tournament
+    const result = await findGroupsWithGamesAndTeamsInTournament(tournamentId);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error creating/updating tournament group:', error);
+    const tErrors = await getTranslations({ locale, namespace: 'errors' });
+    return { success: false, error: tErrors('generic') };
+  }
 }
 
 export async function getPlayoffRounds(tournamentId: string) {
@@ -373,16 +406,21 @@ export async function getPlayoffRounds(tournamentId: string) {
 /**
  * Creates or updates a playoff stage
  * @param playoffRoundData - The playoff stage data to create or update
+ * @param locale - The locale for error messages
  * @returns The created/updated playoff stage
  */
-export async function createOrUpdatePlayoffRound(playoffRoundData: PlayoffRoundNew | PlayoffRoundUpdate): Promise<any> {
-  // Check if user is admin
-  const user = await getLoggedInUser();
-  if (!user?.isAdmin) {
-    throw new Error('Unauthorized: Only administrators can manage playoff stages');
-  }
-
+export async function createOrUpdatePlayoffRound(
+  playoffRoundData: PlayoffRoundNew | PlayoffRoundUpdate,
+  locale: Locale = 'es'
+): Promise<{ success: boolean; error?: string; data?: any }> {
   try {
+    const t = await getTranslations({ locale, namespace: 'tournaments' });
+    // Check if user is admin
+    const user = await getLoggedInUser();
+    if (!user?.isAdmin) {
+      return { success: false, error: t('unauthorized') };
+    }
+
     let result;
 
     if (playoffRoundData.id) {
@@ -393,10 +431,11 @@ export async function createOrUpdatePlayoffRound(playoffRoundData: PlayoffRoundN
       result = await createPlayoffRound(playoffRoundData as PlayoffRoundNew);
     }
 
-    return result;
+    return { success: true, data: result };
   } catch (error: any) {
     console.error('Error creating/updating playoff round:', error);
-    throw new Error(error.message || 'Failed to save playoff stage');
+    const tErrors = await getTranslations({ locale, namespace: 'errors' });
+    return { success: false, error: tErrors('generic') };
   }
 }
 
