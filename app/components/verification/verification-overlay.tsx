@@ -5,8 +5,9 @@ import {usePathname} from "next/navigation";
 
 export function VerificationOverlay() {
   const pathname = usePathname()
-  // Remove locale prefix to check path (pathname is like /en/verify-email or /es/verify-email)
-  const pathWithoutLocale = pathname.replace(/^\/[^/]+/, '');
+  // Remove locale prefix if present (pathname could be /en/verify-email or /verify-email)
+  // Only strip if first segment is a 2-letter locale code
+  const pathWithoutLocale = pathname.replace(/^\/[a-z]{2}(?=\/)/, '');
 
   return <Box
     sx={{

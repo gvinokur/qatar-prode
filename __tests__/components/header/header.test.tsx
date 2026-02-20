@@ -52,6 +52,14 @@ vi.mock('next-themes', () => ({
 // Mock next-intl/server
 vi.mock('next-intl/server', () => ({
     getLocale: vi.fn(() => Promise.resolve('es')),
+    getTranslations: vi.fn(() => Promise.resolve((key: string) => {
+        // Return realistic values for common translations used in Header
+        const translations: Record<string, string> = {
+            'app.title': 'La Maquina Prode',
+            'app.logoAlt': 'la-maquina-prode',
+        };
+        return translations[key] || key;
+    })),
 }));
 
 // Mock UserActions component
