@@ -174,14 +174,13 @@ export function ScrollShadowContainer({
       setShadows(calculateShadowVisibility(container, direction))
     }
 
-    // ResizeObserver - minimal debounce (50ms) for responsive updates when content changes
-    // (e.g., accordion expand/collapse, dynamic content loading)
+    // ResizeObserver - debounced (250ms) since resize events are less frequent
     let resizeTimeout: NodeJS.Timeout
     const resizeObserver = new ResizeObserver(() => {
       clearTimeout(resizeTimeout)
       resizeTimeout = setTimeout(() => {
         setShadows(calculateShadowVisibility(container, direction))
-      }, 50)
+      }, 250)
     })
 
     // Set up observers and listeners
