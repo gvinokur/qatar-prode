@@ -9,7 +9,7 @@ import { useState, useEffect, useRef } from 'react'
 import TeamStandingsCards from '../groups-page/team-standings-cards'
 import { Team, TeamStats } from '@/app/db/tables-definition'
 import Link from 'next/link'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 
 interface GroupStandingsSidebarProps {
   readonly groups: ReadonlyArray<{
@@ -26,6 +26,7 @@ interface GroupStandingsSidebarProps {
 
 export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifiedTeams, tournamentId, isActive = false }: GroupStandingsSidebarProps) {
   const locale = useLocale()
+  const t = useTranslations('tables')
   const [selectedGroupId, setSelectedGroupId] = useState(defaultGroupId)
   const [expanded, setExpanded] = useState(true)
   const theme = useTheme()
@@ -150,11 +151,11 @@ export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifie
         }}
       >
         <Typography variant="h5" component="h2">
-          Grupos
+          {t('groups.title')}
         </Typography>
         {isActive && (
           <Typography variant="body2" color="text.secondary">
-            Estás aquí
+            {t('groups.statusHere')}
           </Typography>
         )}
       </AccordionSummary>
@@ -173,7 +174,7 @@ export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifie
             onClick={navigateToPrevious}
             disabled={!hasPrevious}
             size="small"
-            aria-label="Previous group"
+            aria-label={t('aria.previousGroup')}
             sx={{
               color: theme.palette.primary.main,
               '&.Mui-disabled': {
@@ -193,14 +194,14 @@ export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifie
               textAlign: 'center',
             }}
           >
-            GRUPO {selectedGroup.letter.toUpperCase()}
+            {t('groups.groupLabel', { letter: selectedGroup.letter.toUpperCase() })}
           </Typography>
 
           <IconButton
             onClick={navigateToNext}
             disabled={!hasNext}
             size="small"
-            aria-label="Next group"
+            aria-label={t('aria.nextGroup')}
             sx={{
               color: theme.palette.primary.main,
               '&.Mui-disabled': {
@@ -229,7 +230,7 @@ export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifie
           variant="text"
           color="primary"
         >
-          Ver Resultados
+          {t('groups.viewResults')}
         </Button>
       </CardActions>
     </Card>

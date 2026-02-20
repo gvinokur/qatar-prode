@@ -4,6 +4,7 @@ import { ExtendedGameData } from '@/app/definitions'
 import { Team, PlayoffRound } from '@/app/db/tables-definition'
 import { Box, Typography, useMediaQuery, useTheme } from '@mui/material'
 import { useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import BracketGameCard from './bracket-game-card'
 import {
   BracketRound,
@@ -24,18 +25,18 @@ interface PlayoffsBracketViewProps {
 /**
  * Get display name for a round based on number of games
  */
-function getRoundName(gamesInRound: number): string {
+function getRoundName(gamesInRound: number, t: (key: string) => string): string {
   switch (gamesInRound) {
     case 16:
-      return 'Dieciseisavos'
+      return t('playoffs.rounds.roundOf16')
     case 8:
-      return 'Octavos'
+      return t('playoffs.rounds.roundOf8')
     case 4:
-      return 'Cuartos'
+      return t('playoffs.rounds.quarterfinals')
     case 2:
-      return 'Semifinal'
+      return t('playoffs.rounds.semifinals')
     case 1:
-      return 'Final'
+      return t('playoffs.rounds.final')
     default:
       return ''
   }
@@ -50,6 +51,7 @@ export default function PlayoffsBracketView({
   games,
   teamsMap,
 }: PlayoffsBracketViewProps) {
+  const t = useTranslations('tables')
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
@@ -124,10 +126,10 @@ export default function PlayoffsBracketView({
     return (
       <Box sx={{ textAlign: 'center', py: 8 }}>
         <Typography variant="h6" color="text.secondary">
-          Los playoffs aún no comenzaron
+          {t('playoffs.notStarted')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          El cuadro de eliminatorias se mostrará aquí cuando estén disponibles
+          {t('playoffs.notStartedDescription')}
         </Typography>
       </Box>
     )
@@ -195,7 +197,7 @@ export default function PlayoffsBracketView({
               // Show round label above first game of each round
               const isFirstGameInRound = pos.gameIndexInRound === 0
               const round = bracketRounds[pos.roundIndex]
-              const roundLabel = isFirstGameInRound ? getRoundName(round.games.length) : null
+              const roundLabel = isFirstGameInRound ? getRoundName(round.games.length, t) : null
 
               return (
                 <Box
@@ -236,7 +238,7 @@ export default function PlayoffsBracketView({
                 }}
               >
                 <Typography variant="caption" sx={{ mb: 1, fontWeight: 600, fontSize: '0.75rem' }}>
-                  3er Lugar
+                  {t('playoffs.thirdPlace')}
                 </Typography>
                 <BracketGameCard game={thirdPlaceGame} teamsMap={teamsMap} />
               </Box>

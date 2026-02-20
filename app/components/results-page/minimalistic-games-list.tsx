@@ -3,7 +3,7 @@ import { Team } from '@/app/db/tables-definition'
 import { Typography, Box } from '@mui/material'
 import { formatGameScore } from '@/app/utils/penalty-result-formatter'
 import { getTeamDescription } from '@/app/utils/playoffs-rule-helper'
-import { getTranslations } from 'next-intl/server'
+import { useTranslations } from 'next-intl'
 
 interface MinimalisticGamesListProps {
   readonly games: ExtendedGameData[]
@@ -14,8 +14,8 @@ interface MinimalisticGamesListProps {
  * Displays a simple read-only list of all games.
  * Shows team names (or placeholders) and scores including penalty shootouts.
  */
-export default async function MinimalisticGamesList({ games, teamsMap }: MinimalisticGamesListProps) {
-  const t = await getTranslations('predictions');
+export default function MinimalisticGamesList({ games, teamsMap }: MinimalisticGamesListProps) {
+  const t = useTranslations('predictions');
 
   // Sort all games by game number ascending
   const sortedGames = [...games].sort((a, b) => a.game_number - b.game_number)

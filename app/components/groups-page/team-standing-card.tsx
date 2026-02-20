@@ -11,6 +11,7 @@ import {
   useTheme
 } from '@mui/material'
 import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import RankChangeIndicator from '@/app/components/leaderboard/RankChangeIndicator'
 import type { TeamStandingCardProps } from './types'
 import type { Team } from '@/app/db/tables-definition'
@@ -36,11 +37,12 @@ function getAriaLabel(
   teamName: string,
   position: number,
   points: number,
-  isExpanded: boolean
+  isExpanded: boolean,
+  t: (key: string) => string
 ): string {
   const expandState = isExpanded ? 'Expanded' : 'Collapsed'
   const action = isExpanded ? 'collapse' : 'expand'
-  return `${teamName}, rank ${position}, ${points} points. ${expandState}. Press Enter or Space to ${action}.`
+  return `${teamName}, rank ${position}, ${points} ${t('stats.points')}. ${expandState}. Press Enter or Space to ${action}.`
 }
 
 // Helper function to format points display text
@@ -49,13 +51,15 @@ function getPointsDisplayText(
   gamesPlayed: number,
   goalDifference: number,
   isUltraCompact: boolean,
-  compactMode: boolean
+  compactMode: boolean,
+  t: (key: string, params?: Record<string, string | number>) => string
 ): string {
   if (compactMode || isUltraCompact) {
-    return `${points} pts`
+    return t('stats.pointsCompact', { points })
   }
   const gdSign = goalDifference >= 0 ? '+' : ''
-  return `${points} pts (${gamesPlayed} PJ, ${gdSign}${goalDifference} DG)`
+  const gdFormatted = `${gdSign}${goalDifference}`
+  return t('stats.pointsDisplay', { points, gamesPlayed, goalDifference: gdFormatted })
 }
 
 export default function TeamStandingCard({
@@ -67,6 +71,7 @@ export default function TeamStandingCard({
   compact = false
 }: TeamStandingCardProps) {
   const theme = useTheme()
+  const t = useTranslations('tables')
 
   // Use compact prop for sizing (container-aware, not viewport-aware)
   const isUltraCompact = compact
@@ -75,8 +80,8 @@ export default function TeamStandingCard({
   // Calculate responsive values
   const cardPadding = getCardPadding(isUltraCompact, isCompact, compact)
   const teamDisplay = getTeamDisplay(standing.team, isUltraCompact, compact)
-  const ariaLabel = getAriaLabel(standing.team.name, standing.position, standing.points, isExpanded)
-  const pointsText = getPointsDisplayText(standing.points, standing.gamesPlayed, standing.goalDifference, isUltraCompact, compact)
+  const ariaLabel = getAriaLabel(standing.team.name, standing.position, standing.points, isExpanded, t)
+  const pointsText = getPointsDisplayText(standing.points, standing.gamesPlayed, standing.goalDifference, isUltraCompact, compact, t)
 
   // Calculate spacing values (avoid nested ternaries)
   const cardGap = compact ? 0.5 : 1.5
@@ -183,7 +188,7 @@ export default function TeamStandingCard({
                   fontWeight: 'bold',
                 }}
               >
-                {standing.points} pts
+                {t('stats.pointsCompact', { points: standing.points })}
               </Typography>
             )}
           </Box>
@@ -194,50 +199,50 @@ export default function TeamStandingCard({
               <Divider sx={{ mb: 2 }} />
 
               <Typography variant="subtitle2" gutterBottom>
-                Estadísticas Detalladas
+                {t('stats.detailedStats')}
               </Typography>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {/* Games Played */}
                 <Typography variant="body2" color="text.secondary">
-                  Partidos Jugados: {standing.gamesPlayed}
+                  {t('stats.gamesPlayed')}: {standing.gamesPlayed}
                 </Typography>
 
                 {/* Record */}
                 <Box>
                   <Typography variant="caption" color="text.secondary" display="block">
-                    Récord
+                    {t('stats.record')}
                   </Typography>
                   <Typography variant="body2">
-                    • Ganados: {standing.wins}
+                    • {t('stats.wins')}: {standing.wins}
                   </Typography>
                   <Typography variant="body2">
-                    • Empatados: {standing.draws}
+                    • {t('stats.draws')}: {standing.draws}
                   </Typography>
                   <Typography variant="body2">
-                    • Perdidos: {standing.losses}
+                    • {t('stats.losses')}: {standing.losses}
                   </Typography>
                 </Box>
 
                 {/* Goals */}
                 <Box>
                   <Typography variant="caption" color="text.secondary" display="block">
-                    Goles
+                    {t('stats.goals')}
                   </Typography>
                   <Typography variant="body2">
-                    • Goles a Favor: {standing.goalsFor}
+                    • {t('stats.goalsFor')}: {standing.goalsFor}
                   </Typography>
                   <Typography variant="body2">
-                    • Goles en Contra: {standing.goalsAgainst}
+                    • {t('stats.goalsAgainst')}: {standing.goalsAgainst}
                   </Typography>
                   <Typography variant="body2">
-                    • Diferencia de Gol: {standing.goalDifference >= 0 ? '+' : ''}{standing.goalDifference}
+                    • {t('stats.goalDifference')}: {standing.goalDifference >= 0 ? '+' : ''}{standing.goalDifference}
                   </Typography>
                 </Box>
 
                 {/* Conduct Score */}
                 <Typography variant="body2" color="text.secondary">
-                  Puntos de Conducta: {standing.conductScore}
+                  {t('stats.conductScore')}: {standing.conductScore}
                 </Typography>
               </Box>
             </Box>

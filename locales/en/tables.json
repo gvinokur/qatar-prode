@@ -1,0 +1,69 @@
+{
+  "results": {
+    "title": "EnOf(Resultados y Tablas)",
+    "unavailable": "EnOf(Resultados no disponibles)",
+    "unavailableDescription": "EnOf(Los resultados se mostrarán aquí cuando los partidos comiencen)",
+    "error": "EnOf(Error al cargar resultados)",
+    "errorDescription": "EnOf(Por favor, intenta nuevamente más tarde)"
+  },
+  "tabs": {
+    "groups": "EnOf(Grupos)",
+    "playoffs": "EnOf(Playoffs)"
+  },
+  "groups": {
+    "title": "EnOf(Grupos)",
+    "groupLabel": "EnOf(GRUPO {letter})",
+    "statusHere": "EnOf(Estás aquí)",
+    "noGroups": "EnOf(No hay grupos configurados)",
+    "noGroupsDescription": "EnOf(Los grupos se mostrarán aquí cuando estén disponibles)",
+    "viewResults": "EnOf(Ver Resultados)"
+  },
+  "standings": {
+    "title": "EnOf(Tabla de Posiciones)",
+    "noStandings": "EnOf(No hay posiciones disponibles todavía)",
+    "games": "EnOf(Partidos:)",
+    "table": "EnOf(Tabla de Posiciones:)"
+  },
+  "stats": {
+    "detailedStats": "EnOf(Estadísticas Detalladas)",
+    "gamesPlayed": "EnOf(Partidos Jugados)",
+    "gamesPlayedShort": "EnOf(PJ)",
+    "goalDifference": "EnOf(Diferencia de Gol)",
+    "goalDifferenceShort": "EnOf(DG)",
+    "pointsDisplay": "EnOf({points} pts ({gamesPlayed} PJ, {goalDifference} DG))",
+    "pointsCompact": "EnOf({points} pts)",
+    "record": "EnOf(Récord)",
+    "wins": "EnOf(Ganados)",
+    "draws": "EnOf(Empatados)",
+    "losses": "EnOf(Perdidos)",
+    "goals": "EnOf(Goles)",
+    "goalsFor": "EnOf(Goles a Favor)",
+    "goalsAgainst": "EnOf(Goles en Contra)",
+    "conductScore": "EnOf(Puntos de Conducta)",
+    "points": "EnOf(pts)"
+  },
+  "aria": {
+    "previousGroup": "EnOf(Grupo anterior)",
+    "nextGroup": "EnOf(Siguiente grupo)",
+    "tournamentNavigation": "EnOf(Navegación del torneo)",
+    "expandMore": "EnOf(mostrar más)"
+  },
+  "navigation": {
+    "games": "EnOf(PARTIDOS)",
+    "qualified": "EnOf(CLASIFICADOS)",
+    "awards": "EnOf(PREMIOS)",
+    "expandMore": "EnOf(mostrar más)"
+  },
+  "playoffs": {
+    "notStarted": "EnOf(Los playoffs aún no comenzaron)",
+    "notStartedDescription": "EnOf(El cuadro de eliminatorias se mostrará aquí cuando estén disponibles)",
+    "thirdPlace": "EnOf(3er Lugar)",
+    "rounds": {
+      "roundOf16": "EnOf(Dieciseisavos)",
+      "roundOf8": "EnOf(Octavos)",
+      "quarterfinals": "EnOf(Cuartos)",
+      "semifinals": "EnOf(Semifinal)",
+      "final": "EnOf(Final)"
+    }
+  }
+}

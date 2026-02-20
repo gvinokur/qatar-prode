@@ -23,7 +23,8 @@ export default getRequestConfig(async ({requestLocale}) => {
       onboarding: (await import(`../locales/${locale}/onboarding.json`)).default,
       predictions: (await import(`../locales/${locale}/predictions.json`)).default,
       rules: (await import(`../locales/${locale}/rules.json`)).default,
-      stats: (await import(`../locales/${locale}/stats.json`)).default
+      stats: (await import(`../locales/${locale}/stats.json`)).default,
+      tables: (await import(`../locales/${locale}/tables.json`)).default
     }
   };
 });

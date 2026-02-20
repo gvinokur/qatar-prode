@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithTheme } from '../../utils/test-utils';
+import { renderWithTheme, renderWithProviders } from '../../utils/test-utils';
 import { testFactories } from '../../db/test-factories';
 import GroupResultCard from '../../../app/components/results-page/group-result-card';
 import type { ExtendedGameData } from '../../../app/definitions';
@@ -508,6 +508,288 @@ describe('GroupResultCard', () => {
 
       // Desktop: expand button removed
       expect(screen.queryByLabelText('mostrar más')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('i18n - Spanish Language (Interpolation)', () => {
+    it('should display Spanish group label with letter interpolation (GRUPO A)', () => {
+      mockUseMediaQuery.mockReturnValue(false);
+
+      renderWithProviders(
+        <GroupResultCard group={group} games={games} qualifiedTeams={qualifiedTeams} />,
+        { locale: 'es' }
+      );
+
+      // Spanish: "GRUPO {letter}" should become "GRUPO A"
+      expect(screen.getByText('GRUPO A')).toBeInTheDocument();
+    });
+
+    it('should display Spanish group label with different letters (B, C, H)', () => {
+      mockUseMediaQuery.mockReturnValue(false);
+
+      const groupB = { ...group, letter: 'B' };
+      const { unmount } = renderWithProviders(
+        <GroupResultCard group={groupB} games={games} qualifiedTeams={qualifiedTeams} />,
+        { locale: 'es' }
+      );
+
+      expect(screen.getByText('GRUPO B')).toBeInTheDocument();
+      unmount();
+
+      const groupC = { ...group, letter: 'C' };
+      renderWithProviders(
+        <GroupResultCard group={groupC} games={games} qualifiedTeams={qualifiedTeams} />,
+        { locale: 'es' }
+      );
+
+      expect(screen.getByText('GRUPO C')).toBeInTheDocument();
+    });
+
+    it('should display Spanish labels for games and standings sections', () => {
+      mockUseMediaQuery.mockReturnValue(false);
+
+      renderWithProviders(
+        <GroupResultCard group={group} games={games} qualifiedTeams={qualifiedTeams} />,
+        { locale: 'es' }
+      );
+
+      // Check Spanish labels
+      expect(screen.getByText('Partidos:')).toBeInTheDocument();
+      expect(screen.getByText('Tabla de Posiciones:')).toBeInTheDocument();
+    });
+
+    it('should display correct aria-label for expand button in Spanish', () => {
+      mockUseMediaQuery.mockReturnValue(true);
+
+      renderWithProviders(
+        <GroupResultCard group={group} games={games} qualifiedTeams={qualifiedTeams} />,
+        { locale: 'es' }
+      );
+
+      const expandButton = screen.getByLabelText('mostrar más');
+      expect(expandButton).toHaveAttribute('aria-label', 'mostrar más');
+    });
+
+    it('should handle lowercase group letter and convert to uppercase', () => {
+      mockUseMediaQuery.mockReturnValue(false);
+
+      const groupLowercase = { ...group, letter: 'e' };
+      renderWithProviders(
+        <GroupResultCard group={groupLowercase} games={games} qualifiedTeams={qualifiedTeams} />,
+        { locale: 'es' }
+      );
+
+      // Component uses .toUpperCase() in the interpolation
+      expect(screen.getByText('GRUPO E')).toBeInTheDocument();
+    });
+
+    it('should correctly interpolate all group letters A-H', () => {
+      mockUseMediaQuery.mockReturnValue(false);
+
+      const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+
+      for (const letter of letters) {
+        const groupWithLetter = { ...group, letter };
+        const { unmount } = renderWithProviders(
+          <GroupResultCard group={groupWithLetter} games={games} qualifiedTeams={qualifiedTeams} />,
+          { locale: 'es' }
+        );
+
+        expect(screen.getByText(`GRUPO ${letter}`)).toBeInTheDocument();
+        unmount();
+      }
+    });
+  });
+
+  describe('i18n - English Language (Interpolation)', () => {
+    it('should display English group label with letter interpolation (EnOf(GRUPO A))', () => {
+      mockUseMediaQuery.mockReturnValue(false);
+
+      renderWithProviders(
+        <GroupResultCard group={group} games={games} qualifiedTeams={qualifiedTeams} />,
+        { locale: 'en' }
+      );
+
+      // English: "EnOf(GRUPO {letter})" should become "EnOf(GRUPO A)"
+      expect(screen.getByText('EnOf(GRUPO A)')).toBeInTheDocument();
+    });
+
+    it('should display English group label with different letters (B, C, H)', () => {
+      mockUseMediaQuery.mockReturnValue(false);
+
+      const groupB = { ...group, letter: 'B' };
+      const { unmount } = renderWithProviders(
+        <GroupResultCard group={groupB} games={games} qualifiedTeams={qualifiedTeams} />,
+        { locale: 'en' }
+      );
+
+      expect(screen.getByText('EnOf(GRUPO B)')).toBeInTheDocument();
+      unmount();
+
+      const groupC = { ...group, letter: 'C' };
+      renderWithProviders(
+        <GroupResultCard group={groupC} games={games} qualifiedTeams={qualifiedTeams} />,
+        { locale: 'en' }
+      );
+
+      expect(screen.getByText('EnOf(GRUPO C)')).toBeInTheDocument();
+    });
+
+    it('should display English labels for games and standings sections', () => {
+      mockUseMediaQuery.mockReturnValue(false);
+
+      renderWithProviders(
+        <GroupResultCard group={group} games={games} qualifiedTeams={qualifiedTeams} />,
+        { locale: 'en' }
+      );
+
+      // Check English labels
+      expect(screen.getByText('EnOf(Partidos:)')).toBeInTheDocument();
+      expect(screen.getByText('EnOf(Tabla de Posiciones:)')).toBeInTheDocument();
+    });
+
+    it('should display correct aria-label for expand button in English', () => {
+      mockUseMediaQuery.mockReturnValue(true);
+
+      renderWithProviders(
+        <GroupResultCard group={group} games={games} qualifiedTeams={qualifiedTeams} />,
+        { locale: 'en' }
+      );
+
+      const expandButton = screen.getByLabelText('EnOf(mostrar más)');
+      expect(expandButton).toHaveAttribute('aria-label', 'EnOf(mostrar más)');
+    });
+
+    it('should handle lowercase group letter and convert to uppercase in English', () => {
+      mockUseMediaQuery.mockReturnValue(false);
+
+      const groupLowercase = { ...group, letter: 'f' };
+      renderWithProviders(
+        <GroupResultCard group={groupLowercase} games={games} qualifiedTeams={qualifiedTeams} />,
+        { locale: 'en' }
+      );
+
+      // Component uses .toUpperCase() in the interpolation
+      expect(screen.getByText('EnOf(GRUPO F)')).toBeInTheDocument();
+    });
+
+    it('should correctly interpolate all group letters A-H in English', () => {
+      mockUseMediaQuery.mockReturnValue(false);
+
+      const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+
+      for (const letter of letters) {
+        const groupWithLetter = { ...group, letter };
+        const { unmount } = renderWithProviders(
+          <GroupResultCard group={groupWithLetter} games={games} qualifiedTeams={qualifiedTeams} />,
+          { locale: 'en' }
+        );
+
+        expect(screen.getByText(`EnOf(GRUPO ${letter})`)).toBeInTheDocument();
+        unmount();
+      }
+    });
+  });
+
+  describe('i18n - Locale Switching', () => {
+    it('should switch from Spanish to English with correct interpolation', () => {
+      mockUseMediaQuery.mockReturnValue(false);
+
+      // Start with Spanish
+      const { unmount } = renderWithProviders(
+        <GroupResultCard group={group} games={games} qualifiedTeams={qualifiedTeams} />,
+        { locale: 'es' }
+      );
+
+      expect(screen.getByText('GRUPO A')).toBeInTheDocument();
+      expect(screen.getByText('Partidos:')).toBeInTheDocument();
+      unmount();
+
+      // Switch to English
+      renderWithProviders(
+        <GroupResultCard group={group} games={games} qualifiedTeams={qualifiedTeams} />,
+        { locale: 'en' }
+      );
+
+      expect(screen.getByText('EnOf(GRUPO A)')).toBeInTheDocument();
+      expect(screen.getByText('EnOf(Partidos:)')).toBeInTheDocument();
+    });
+
+    it('should switch from English to Spanish with correct interpolation', () => {
+      mockUseMediaQuery.mockReturnValue(false);
+
+      // Start with English
+      const { unmount } = renderWithProviders(
+        <GroupResultCard group={group} games={games} qualifiedTeams={qualifiedTeams} />,
+        { locale: 'en' }
+      );
+
+      expect(screen.getByText('EnOf(GRUPO A)')).toBeInTheDocument();
+      expect(screen.getByText('EnOf(Partidos:)')).toBeInTheDocument();
+      unmount();
+
+      // Switch to Spanish
+      renderWithProviders(
+        <GroupResultCard group={group} games={games} qualifiedTeams={qualifiedTeams} />,
+        { locale: 'es' }
+      );
+
+      expect(screen.getByText('GRUPO A')).toBeInTheDocument();
+      expect(screen.getByText('Partidos:')).toBeInTheDocument();
+    });
+  });
+
+  describe('i18n - Interpolation Edge Cases', () => {
+    it('should render with all uppercase letter from the start', () => {
+      mockUseMediaQuery.mockReturnValue(false);
+
+      const groupUppercase = { ...group, letter: 'G' };
+      renderWithProviders(
+        <GroupResultCard group={groupUppercase} games={games} qualifiedTeams={qualifiedTeams} />,
+        { locale: 'es' }
+      );
+
+      expect(screen.getByText('GRUPO G')).toBeInTheDocument();
+    });
+
+    it('should render with all lowercase letter that needs uppercase conversion', () => {
+      mockUseMediaQuery.mockReturnValue(false);
+
+      const groupLowercase = { ...group, letter: 'h' };
+      renderWithProviders(
+        <GroupResultCard group={groupLowercase} games={games} qualifiedTeams={qualifiedTeams} />,
+        { locale: 'es' }
+      );
+
+      // Component uses .toUpperCase()
+      expect(screen.getByText('GRUPO H')).toBeInTheDocument();
+    });
+
+    it('should render correct content with empty games array', () => {
+      mockUseMediaQuery.mockReturnValue(false);
+
+      renderWithProviders(
+        <GroupResultCard group={group} games={[]} qualifiedTeams={qualifiedTeams} />,
+        { locale: 'es' }
+      );
+
+      // Should still show labels even with empty games
+      expect(screen.getByText('GRUPO A')).toBeInTheDocument();
+      expect(screen.getByText('Partidos:')).toBeInTheDocument();
+      expect(screen.getByText('Tabla de Posiciones:')).toBeInTheDocument();
+    });
+
+    it('should render correct content with different qualified teams', () => {
+      mockUseMediaQuery.mockReturnValue(false);
+
+      renderWithProviders(
+        <GroupResultCard group={group} games={games} qualifiedTeams={[]} />,
+        { locale: 'es' }
+      );
+
+      // Should still show all content even with empty qualified teams
+      expect(screen.getByText('GRUPO A')).toBeInTheDocument();
+      expect(screen.getByText('Partidos:')).toBeInTheDocument();
     });
   });
 });

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { Box, Typography } from '@mui/material'
 import { LayoutGroup } from 'framer-motion'
 import { calculateRanks } from '@/app/utils/rank-calculator'
@@ -14,6 +15,7 @@ export default function TeamStandingsCards({
   previousTeamStats,
   compact = false
 }: TeamStandingsCardsProps) {
+  const t = useTranslations('tables')
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null)
 
   // Transform team stats to standings with ranks
@@ -74,7 +76,7 @@ export default function TeamStandingsCards({
     return (
       <Box sx={{ textAlign: 'center', py: 4 }}>
         <Typography variant="body1" color="text.secondary">
-          No hay posiciones disponibles todavía.
+          {t('standings.noStandings')}
         </Typography>
       </Box>
     )

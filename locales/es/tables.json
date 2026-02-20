@@ -1,0 +1,69 @@
+{
+  "results": {
+    "title": "Resultados y Tablas",
+    "unavailable": "Resultados no disponibles",
+    "unavailableDescription": "Los resultados se mostrarán aquí cuando los partidos comiencen",
+    "error": "Error al cargar resultados",
+    "errorDescription": "Por favor, intenta nuevamente más tarde"
+  },
+  "tabs": {
+    "groups": "Grupos",
+    "playoffs": "Playoffs"
+  },
+  "groups": {
+    "title": "Grupos",
+    "groupLabel": "GRUPO {letter}",
+    "statusHere": "Estás aquí",
+    "noGroups": "No hay grupos configurados",
+    "noGroupsDescription": "Los grupos se mostrarán aquí cuando estén disponibles",
+    "viewResults": "Ver Resultados"
+  },
+  "standings": {
+    "title": "Tabla de Posiciones",
+    "noStandings": "No hay posiciones disponibles todavía",
+    "games": "Partidos:",
+    "table": "Tabla de Posiciones:"
+  },
+  "stats": {
+    "detailedStats": "Estadísticas Detalladas",
+    "gamesPlayed": "Partidos Jugados",
+    "gamesPlayedShort": "PJ",
+    "goalDifference": "Diferencia de Gol",
+    "goalDifferenceShort": "DG",
+    "pointsDisplay": "{points} pts ({gamesPlayed} PJ, {goalDifference} DG)",
+    "pointsCompact": "{points} pts",
+    "record": "Récord",
+    "wins": "Ganados",
+    "draws": "Empatados",
+    "losses": "Perdidos",
+    "goals": "Goles",
+    "goalsFor": "Goles a Favor",
+    "goalsAgainst": "Goles en Contra",
+    "conductScore": "Puntos de Conducta",
+    "points": "pts"
+  },
+  "aria": {
+    "previousGroup": "Grupo anterior",
+    "nextGroup": "Siguiente grupo",
+    "tournamentNavigation": "Navegación del torneo",
+    "expandMore": "mostrar más"
+  },
+  "navigation": {
+    "games": "PARTIDOS",
+    "qualified": "CLASIFICADOS",
+    "awards": "PREMIOS",
+    "expandMore": "mostrar más"
+  },
+  "playoffs": {
+    "notStarted": "Los playoffs aún no comenzaron",
+    "notStartedDescription": "El cuadro de eliminatorias se mostrará aquí cuando estén disponibles",
+    "thirdPlace": "3er Lugar",
+    "rounds": {
+      "roundOf16": "Dieciseisavos",
+      "roundOf8": "Octavos",
+      "quarterfinals": "Cuartos",
+      "semifinals": "Semifinal",
+      "final": "Final"
+    }
+  }
+}

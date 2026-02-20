@@ -17,6 +17,7 @@ import MinimalisticGamesList from './minimalistic-games-list'
 import TeamStandingsCards from '../groups-page/team-standings-cards'
 import { ExpandMore } from '../tournament-page/expand-more'
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 
 interface GroupResultCardProps {
   readonly group: {
@@ -42,6 +43,7 @@ export default function GroupResultCard({
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const [expanded, setExpanded] = useState(true)
+  const t = useTranslations('tables')
 
   const handleExpandClick = () => {
     setExpanded(!expanded)
@@ -52,7 +54,7 @@ export default function GroupResultCard({
       {/* Games list section */}
       <Box sx={{ mb: 3 }}>
         <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-          Partidos:
+          {t('standings.games')}
         </Typography>
         <MinimalisticGamesList games={games} teamsMap={group.teamsMap} />
       </Box>
@@ -60,7 +62,7 @@ export default function GroupResultCard({
       {/* Standings table section */}
       <Box>
         <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-          Tabla de Posiciones:
+          {t('standings.table')}
         </Typography>
         <TeamStandingsCards
           teamStats={group.teamStats}
@@ -75,7 +77,7 @@ export default function GroupResultCard({
   return (
     <Card sx={{ mb: 2 }}>
       <CardHeader
-        title={`GRUPO ${group.letter.toUpperCase()}`}
+        title={t('groups.groupLabel', { letter: group.letter.toUpperCase() })}
         slotProps={{
           title: {
             variant: 'h6',
@@ -92,7 +94,7 @@ export default function GroupResultCard({
               expand={expanded}
               onClick={handleExpandClick}
               aria-expanded={expanded}
-              aria-label="mostrar más"
+              aria-label={t('aria.expandMore')}
             >
               <ExpandMoreIcon />
             </ExpandMore>
