@@ -7,7 +7,7 @@ import {GameStatisticForUser} from "../../../types/definitions";
 import {TournamentGuess} from "../../db/tables-definition";
 import Link from "next/link";
 import {ExpandMore} from './expand-more';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 type Props = {
   readonly userGameStatistics?: GameStatisticForUser
@@ -43,6 +43,7 @@ function StatRow({ label, value, valueColor = 'text.primary', bold = true }: Rea
 
 export function UserTournamentStatistics({userGameStatistics, tournamentGuess, tournamentId, isActive = false} : Props) {
   const locale = useLocale();
+  const t = useTranslations('stats');
   const theme = useTheme()
   const [expanded, setExpanded] = useState(false)
 
@@ -70,7 +71,7 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess, t
   const grandTotal = groupsTotal + playoffsTotal + qualifiedTotal + awardsTotal
 
   return (
-    <Card aria-label="Estadísticas del usuario" sx={{
+    <Card aria-label={t('sidebar.ariaLabels.card')} sx={{
       ...(isActive && {
         borderLeft: 3,
         borderColor: 'primary.main',
@@ -78,15 +79,15 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess, t
       })
     }}>
       <CardHeader
-        title='Tus Estadísticas'
-        subheader={isActive ? 'Estás aquí' : undefined}
+        title={t('sidebar.title')}
+        subheader={isActive ? t('sidebar.activeIndicator') : undefined}
         sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
         action={
           <ExpandMore
             expand={expanded}
             onClick={handleExpandClick}
             aria-expanded={expanded}
-            aria-label="mostrar más"
+            aria-label={t('sidebar.ariaLabels.expandButton')}
           >
             <ExpandMoreIcon />
           </ExpandMore>
@@ -95,15 +96,15 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess, t
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <CardContent sx={{ p: 2 }}>
         <Stack spacing={1}>
-          <StatRow label="Grupos:" value={`${groupsTotal} pts`} />
-          <StatRow label="Playoffs:" value={`${playoffsTotal} pts`} />
-          <StatRow label="Clasificados:" value={`${qualifiedTotal} pts`} />
-          <StatRow label="Premios:" value={`${awardsTotal} pts`} />
+          <StatRow label={t('sidebar.labels.groups')} value={`${groupsTotal} pts`} />
+          <StatRow label={t('sidebar.labels.playoffs')} value={`${playoffsTotal} pts`} />
+          <StatRow label={t('sidebar.labels.qualified')} value={`${qualifiedTotal} pts`} />
+          <StatRow label={t('sidebar.labels.awards')} value={`${awardsTotal} pts`} />
 
           <Divider sx={{ my: 1.5 }} />
 
           <StatRow
-            label="Total:"
+            label={t('sidebar.labels.total')}
             value={`${grandTotal} pts`}
             valueColor={theme.palette.primary.main}
           />
@@ -118,9 +119,9 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess, t
             startIcon={<BarChartIcon />}
             variant="text"
             color="primary"
-            aria-label="Ver página de estadísticas detalladas"
+            aria-label={t('sidebar.ariaLabels.viewDetailsButton')}
           >
-            Ver Detalle
+            {t('sidebar.viewDetails')}
           </Button>
         </CardActions>
       )}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Box, Tabs, Tab } from '@mui/material';
 
 interface TabPanelProps {
@@ -43,6 +44,7 @@ type Props = {
 }
 
 export function StatsTabs({ performanceTab, precisionTab, boostsTab }: Props) {
+  const t = useTranslations('stats');
   const [value, setValue] = useState(0);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -52,10 +54,10 @@ export function StatsTabs({ performanceTab, precisionTab, boostsTab }: Props) {
   return (
     <Box sx={{ width: '100%' }}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={value} onChange={handleChange} aria-label="estadísticas del torneo">
-          <Tab label="Rendimiento" {...a11yProps(0)} />
-          <Tab label="Precisión" {...a11yProps(1)} />
-          <Tab label="Análisis de Boosts" {...a11yProps(2)} />
+        <Tabs value={value} onChange={handleChange} aria-label={t('tabs.ariaLabel')}>
+          <Tab label={t('tabs.performance')} {...a11yProps(0)} />
+          <Tab label={t('tabs.accuracy')} {...a11yProps(1)} />
+          <Tab label={t('tabs.boosts')} {...a11yProps(2)} />
         </Tabs>
       </Box>
       <TabPanel value={value} index={0}>

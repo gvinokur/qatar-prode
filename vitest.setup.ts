@@ -26,12 +26,14 @@ const spanishTranslations: Record<string, any> = {
   groups: require('./locales/es/groups.json'),
   common: require('./locales/es/common.json'),
   rules: require('./locales/es/rules.json'),
+  stats: require('./locales/es/stats.json'),
   // Add other namespaces as needed
 };
 
 // Load English translations for tests
 const englishTranslations: Record<string, any> = {
   rules: require('./locales/en/rules.json'),
+  stats: require('./locales/en/stats.json'),
   // Add other namespaces as needed
 };
 

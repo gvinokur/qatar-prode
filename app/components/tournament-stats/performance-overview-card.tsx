@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { Card, CardContent, CardHeader, Grid, Typography, useTheme } from "@mui/material";
 
 type Props = {
@@ -19,6 +20,7 @@ type Props = {
 
 export function PerformanceOverviewCard(props: Props) {
   const theme = useTheme()
+  const t = useTranslations('stats')
 
   // Handle empty state
   const hasAnyPoints = props.totalPoints > 0
@@ -27,12 +29,12 @@ export function PerformanceOverviewCard(props: Props) {
     return (
       <Card>
         <CardHeader
-          title='Rendimiento General'
+          title={t('performance.title')}
           sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px` }}
         />
         <CardContent>
           <Typography variant='body1' color='text.secondary' align='center'>
-            No hay predicciones aún. ¡Comienza a predecir para ver tus estadísticas!
+            {t('performance.emptyState')}
           </Typography>
         </CardContent>
       </Card>
@@ -42,7 +44,7 @@ export function PerformanceOverviewCard(props: Props) {
   return (
     <Card>
       <CardHeader
-        title='Rendimiento General'
+        title={t('performance.title')}
         sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px` }}
       />
       <CardContent>
@@ -50,7 +52,7 @@ export function PerformanceOverviewCard(props: Props) {
           {/* Total Points - Prominent display */}
           <Grid size={8}>
             <Typography variant='h6' color='primary.light'>
-              Puntos Totales en Torneo
+              {t('performance.totalPoints')}
             </Typography>
           </Grid>
           <Grid size={4}>
@@ -66,20 +68,20 @@ export function PerformanceOverviewCard(props: Props) {
             size={12}
           >
             <Typography variant='h6' color='primary.light'>
-              Desglose por Fase
+              {t('performance.breakdown')}
             </Typography>
           </Grid>
 
           {/* Group Stage Section */}
           <Grid size={12} mt={1}>
             <Typography variant='body1' fontWeight={600} color='primary.main'>
-              Fase de Grupos
+              {t('performance.groupStage.title')}
             </Typography>
           </Grid>
 
           <Grid size={8}>
             <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-              Puntos por Partidos
+              {t('performance.groupStage.gamePoints')}
             </Typography>
           </Grid>
           <Grid size={4}>
@@ -92,7 +94,7 @@ export function PerformanceOverviewCard(props: Props) {
             <>
               <Grid size={8}>
                 <Typography variant='body2' color='primary.light' sx={{ pl: 4 }}>
-                  + Bonus por Boosts
+                  {t('performance.groupStage.boostBonus')}
                 </Typography>
               </Grid>
               <Grid size={4}>
@@ -105,7 +107,7 @@ export function PerformanceOverviewCard(props: Props) {
 
           <Grid size={8}>
             <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-              Aciertos Clasificados (Exactos)
+              {t('performance.groupStage.qualifiedCorrect')}
             </Typography>
           </Grid>
           <Grid size={4}>
@@ -116,7 +118,7 @@ export function PerformanceOverviewCard(props: Props) {
 
           <Grid size={8}>
             <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-              Puntos por Clasificados
+              {t('performance.groupStage.qualifiedPoints')}
             </Typography>
           </Grid>
           <Grid size={4}>
@@ -127,7 +129,7 @@ export function PerformanceOverviewCard(props: Props) {
 
           <Grid size={8}>
             <Typography variant='body1' fontWeight={600} sx={{ pl: 2 }}>
-              Total Fase de Grupos
+              {t('performance.groupStage.total')}
             </Typography>
           </Grid>
           <Grid size={4}>
@@ -139,13 +141,13 @@ export function PerformanceOverviewCard(props: Props) {
           {/* Playoff Stage Section */}
           <Grid size={12} mt={2}>
             <Typography variant='body1' fontWeight={600} color='primary.main'>
-              Fase de Playoffs
+              {t('performance.playoffStage.title')}
             </Typography>
           </Grid>
 
           <Grid size={8}>
             <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-              Puntos por Partidos
+              {t('performance.playoffStage.gamePoints')}
             </Typography>
           </Grid>
           <Grid size={4}>
@@ -158,7 +160,7 @@ export function PerformanceOverviewCard(props: Props) {
             <>
               <Grid size={8}>
                 <Typography variant='body2' color='primary.light' sx={{ pl: 4 }}>
-                  + Bonus por Boosts
+                  {t('performance.playoffStage.boostBonus')}
                 </Typography>
               </Grid>
               <Grid size={4}>
@@ -171,7 +173,7 @@ export function PerformanceOverviewCard(props: Props) {
 
           <Grid size={8}>
             <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-              Predicciones Finales
+              {t('performance.playoffStage.finalPredictions')}
             </Typography>
           </Grid>
           <Grid size={4}>
@@ -182,7 +184,7 @@ export function PerformanceOverviewCard(props: Props) {
 
           <Grid size={8}>
             <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-              Premios Individuales
+              {t('performance.playoffStage.individualAwards')}
             </Typography>
           </Grid>
           <Grid size={4}>
@@ -193,7 +195,7 @@ export function PerformanceOverviewCard(props: Props) {
 
           <Grid size={8}>
             <Typography variant='body1' fontWeight={600} sx={{ pl: 2 }}>
-              Total Fase de Playoffs
+              {t('performance.playoffStage.total')}
             </Typography>
           </Grid>
           <Grid size={4}>

@@ -1,6 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardHeader, Grid, Typography, useTheme } from "@mui/material";
+import { useTranslations } from 'next-intl';
 
 type BoostAllocation = {
   groupLetter: string
@@ -33,6 +34,7 @@ type Props = {
 }
 
 export function BoostAnalysisCard(props: Props) {
+  const t = useTranslations('stats');
   const theme = useTheme()
 
   // Check if user has used any boosts
@@ -42,15 +44,15 @@ export function BoostAnalysisCard(props: Props) {
     return (
       <Card>
         <CardHeader
-          title='Análisis de Boosts'
+          title={t('boosts.title')}
           sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px` }}
         />
         <CardContent>
           <Typography variant='body1' color='text.secondary' align='center'>
-            ¡Usa tus boosts para maximizar puntos!
+            {t('boosts.emptyState.message')}
           </Typography>
           <Typography variant='body2' color='text.secondary' align='center' mt={1}>
-            Disponibles: {props.silverBoost.available} Silver, {props.goldenBoost.available} Golden
+            {t('boosts.emptyState.available', { silver: props.silverBoost.available, golden: props.goldenBoost.available })}
           </Typography>
         </CardContent>
       </Card>
@@ -60,20 +62,20 @@ export function BoostAnalysisCard(props: Props) {
   // Format allocation display
   const formatAllocation = (boost: Props['silverBoost'] | Props['goldenBoost']) => {
     const groupParts = boost.allocationByGroup
-      .map(g => `Grupo ${g.groupLetter} (${g.count})`)
+      .map(g => t('boosts.groupAllocation', { letter: g.groupLetter, count: g.count }))
       .join(', ')
-    const playoffPart = boost.allocationPlayoffs > 0 ? `Playoffs (${boost.allocationPlayoffs})` : ''
+    const playoffPart = boost.allocationPlayoffs > 0 ? t('boosts.playoffsAllocation', { count: boost.allocationPlayoffs }) : ''
 
     if (groupParts && playoffPart) {
       return `${groupParts}, ${playoffPart}`
     }
-    return groupParts || playoffPart || 'Ninguno'
+    return groupParts || playoffPart || t('boosts.none')
   }
 
   return (
     <Card>
       <CardHeader
-        title='Análisis de Boosts'
+        title={t('boosts.title')}
         sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px` }}
       />
       <CardContent>
@@ -81,13 +83,13 @@ export function BoostAnalysisCard(props: Props) {
           {/* Silver Boosts Section */}
           <Grid size={12}>
             <Typography variant='h6' color='primary.light'>
-              Boosts Silver
+              {t('boosts.silver')}
             </Typography>
           </Grid>
 
           <Grid size={8}>
             <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-              Disponibles
+              {t('boosts.available')}
             </Typography>
           </Grid>
           <Grid size={4}>
@@ -98,7 +100,7 @@ export function BoostAnalysisCard(props: Props) {
 
           <Grid size={8}>
             <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-              Usados
+              {t('boosts.used')}
             </Typography>
           </Grid>
           <Grid size={4}>
@@ -111,7 +113,7 @@ export function BoostAnalysisCard(props: Props) {
             <>
               <Grid size={8}>
                 <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-                  Partidos Acertados
+                  {t('boosts.scoredGames')}
                 </Typography>
               </Grid>
               <Grid size={4}>
@@ -122,7 +124,7 @@ export function BoostAnalysisCard(props: Props) {
 
               <Grid size={8}>
                 <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-                  Puntos Ganados
+                  {t('boosts.pointsEarned')}
                 </Typography>
               </Grid>
               <Grid size={4}>
@@ -133,7 +135,7 @@ export function BoostAnalysisCard(props: Props) {
 
               <Grid size={8}>
                 <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-                  ROI (Promedio por boost)
+                  {t('boosts.roi')}
                 </Typography>
               </Grid>
               <Grid size={4}>
@@ -151,13 +153,13 @@ export function BoostAnalysisCard(props: Props) {
             size={12}
           >
             <Typography variant='h6' color='primary.light'>
-              Boosts Golden
+              {t('boosts.golden')}
             </Typography>
           </Grid>
 
           <Grid size={8}>
             <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-              Disponibles
+              {t('boosts.available')}
             </Typography>
           </Grid>
           <Grid size={4}>
@@ -168,7 +170,7 @@ export function BoostAnalysisCard(props: Props) {
 
           <Grid size={8}>
             <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-              Usados
+              {t('boosts.used')}
             </Typography>
           </Grid>
           <Grid size={4}>
@@ -181,7 +183,7 @@ export function BoostAnalysisCard(props: Props) {
             <>
               <Grid size={8}>
                 <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-                  Partidos Acertados
+                  {t('boosts.scoredGames')}
                 </Typography>
               </Grid>
               <Grid size={4}>
@@ -192,7 +194,7 @@ export function BoostAnalysisCard(props: Props) {
 
               <Grid size={8}>
                 <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-                  Puntos Ganados
+                  {t('boosts.pointsEarned')}
                 </Typography>
               </Grid>
               <Grid size={4}>
@@ -203,7 +205,7 @@ export function BoostAnalysisCard(props: Props) {
 
               <Grid size={8}>
                 <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-                  ROI (Promedio por boost)
+                  {t('boosts.roi')}
                 </Typography>
               </Grid>
               <Grid size={4}>
@@ -223,7 +225,7 @@ export function BoostAnalysisCard(props: Props) {
                 size={12}
               >
                 <Typography variant='h6' color='primary.light'>
-                  Distribución de Boosts
+                  {t('boosts.distribution.title')}
                 </Typography>
               </Grid>
 
@@ -231,7 +233,7 @@ export function BoostAnalysisCard(props: Props) {
                 <>
                   <Grid size={12} mt={1}>
                     <Typography variant='body2' fontWeight={600} color='primary.main'>
-                      Silver:
+                      {t('boosts.distribution.silverLabel')}
                     </Typography>
                   </Grid>
                   <Grid size={12}>
@@ -246,7 +248,7 @@ export function BoostAnalysisCard(props: Props) {
                 <>
                   <Grid size={12} mt={1}>
                     <Typography variant='body2' fontWeight={600} color='primary.main'>
-                      Golden:
+                      {t('boosts.distribution.goldenLabel')}
                     </Typography>
                   </Grid>
                   <Grid size={12}>

@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { Card, CardContent, CardHeader, Grid, Typography, useTheme } from "@mui/material";
 
 type Props = {
@@ -23,6 +24,7 @@ type Props = {
 }
 
 export function PredictionAccuracyCard(props: Props) {
+  const t = useTranslations('stats')
   const theme = useTheme()
 
   // Handle empty state
@@ -32,12 +34,12 @@ export function PredictionAccuracyCard(props: Props) {
     return (
       <Card>
         <CardHeader
-          title='Precisión de Predicciones'
+          title={t('accuracy.title')}
           sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px` }}
         />
         <CardContent>
           <Typography variant='body1' color='text.secondary' align='center'>
-            Haz tu primera predicción para ver estadísticas de precisión
+            {t('accuracy.emptyState')}
           </Typography>
         </CardContent>
       </Card>
@@ -47,7 +49,7 @@ export function PredictionAccuracyCard(props: Props) {
   return (
     <Card>
       <CardHeader
-        title='Precisión de Predicciones'
+        title={t('accuracy.title')}
         sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px` }}
       />
       <CardContent>
@@ -55,7 +57,7 @@ export function PredictionAccuracyCard(props: Props) {
           {/* Summary Section */}
           <Grid size={8}>
             <Typography variant='h6' color='primary.light'>
-              Predicciones Totales
+              {t('accuracy.totalPredictions')}
             </Typography>
           </Grid>
           <Grid size={4}>
@@ -66,7 +68,7 @@ export function PredictionAccuracyCard(props: Props) {
 
           <Grid size={8}>
             <Typography variant='body1' color='primary.light'>
-              Completado
+              {t('accuracy.completed')}
             </Typography>
           </Grid>
           <Grid size={4}>
@@ -82,14 +84,14 @@ export function PredictionAccuracyCard(props: Props) {
             size={12}
           >
             <Typography variant='h6' color='primary.light'>
-              Precisión General
+              {t('accuracy.overallAccuracy')}
             </Typography>
           </Grid>
 
           {/* Overall Accuracy */}
           <Grid size={8}>
             <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-              Resultado Correcto
+              {t('accuracy.resultCorrect')}
             </Typography>
           </Grid>
           <Grid size={4}>
@@ -100,7 +102,7 @@ export function PredictionAccuracyCard(props: Props) {
 
           <Grid size={8}>
             <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-              Marcador Exacto
+              {t('accuracy.exactScore')}
             </Typography>
           </Grid>
           <Grid size={4}>
@@ -111,7 +113,7 @@ export function PredictionAccuracyCard(props: Props) {
 
           <Grid size={8}>
             <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-              Falladas
+              {t('accuracy.missed')}
             </Typography>
           </Grid>
           <Grid size={4}>
@@ -127,20 +129,20 @@ export function PredictionAccuracyCard(props: Props) {
             size={12}
           >
             <Typography variant='h6' color='primary.light'>
-              Por Fase
+              {t('accuracy.byPhase')}
             </Typography>
           </Grid>
 
           {/* Group Stage */}
           <Grid size={12} mt={1}>
             <Typography variant='body1' fontWeight={600} color='primary.main'>
-              Fase de Grupos
+              {t('accuracy.groupStage')}
             </Typography>
           </Grid>
 
           <Grid size={8}>
             <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-              Resultado Correcto
+              {t('accuracy.resultCorrect')}
             </Typography>
           </Grid>
           <Grid size={4}>
@@ -151,7 +153,7 @@ export function PredictionAccuracyCard(props: Props) {
 
           <Grid size={8}>
             <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-              Marcador Exacto
+              {t('accuracy.exactScore')}
             </Typography>
           </Grid>
           <Grid size={4}>
@@ -163,13 +165,13 @@ export function PredictionAccuracyCard(props: Props) {
           {/* Playoff Stage */}
           <Grid size={12} mt={2}>
             <Typography variant='body1' fontWeight={600} color='primary.main'>
-              Fase de Playoffs
+              {t('accuracy.playoffStage')}
             </Typography>
           </Grid>
 
           <Grid size={8}>
             <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-              Resultado Correcto
+              {t('accuracy.resultCorrect')}
             </Typography>
           </Grid>
           <Grid size={4}>
@@ -180,7 +182,7 @@ export function PredictionAccuracyCard(props: Props) {
 
           <Grid size={8}>
             <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-              Marcador Exacto
+              {t('accuracy.exactScore')}
             </Typography>
           </Grid>
           <Grid size={4}>
