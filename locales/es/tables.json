@@ -53,5 +53,17 @@
     "qualified": "CLASIFICADOS",
     "awards": "PREMIOS",
     "expandMore": "mostrar más"
+  },
+  "playoffs": {
+    "notStarted": "Los playoffs aún no comenzaron",
+    "notStartedDescription": "El cuadro de eliminatorias se mostrará aquí cuando estén disponibles",
+    "thirdPlace": "3er Lugar",
+    "rounds": {
+      "roundOf16": "Dieciseisavos",
+      "roundOf8": "Octavos",
+      "quarterfinals": "Cuartos",
+      "semifinals": "Semifinal",
+      "final": "Final"
+    }
   }
 }
