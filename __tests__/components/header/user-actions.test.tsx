@@ -16,6 +16,19 @@ vi.mock('next/navigation', () => ({
 // Mock next-intl
 vi.mock('next-intl', () => ({
   useLocale: vi.fn(() => 'es'),
+  useTranslations: () => (key: string) => {
+    // Return translations matching what tests expect (mix of English/Spanish)
+    const translations: Record<string, string> = {
+      'header.login': 'Log In',
+      'header.userMenu.tooltip': 'Abrir Menu de Usuario',
+      'header.userMenu.settings': 'Configuracion',
+      'header.userMenu.tutorial': 'Ver Tutorial',
+      'header.userMenu.logout': 'Salir',
+      'header.userMenu.deleteAccount': 'Delete Account',
+      'header.userMenu.backoffice': 'Ir al Back Office',
+    };
+    return translations[key] || key;
+  },
 }));
 
 // Mock next-auth/react

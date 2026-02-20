@@ -7,6 +7,11 @@ import LanguageSwitcher from './language-switcher';
 const mockUseLocale = vi.fn();
 vi.mock('next-intl', () => ({
   useLocale: () => mockUseLocale(),
+  useTranslations: () => (key: string) => {
+    // Return translation for language switcher
+    if (key === 'language.selectLanguage') return 'Select language';
+    return key;
+  },
 }));
 
 // Mock next/navigation
