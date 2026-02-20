@@ -1,9 +1,51 @@
 import { screen, fireEvent, waitFor } from '@testing-library/react'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { UserTournamentStatistics } from './user-tournament-statistics'
 import { renderWithTheme } from '@/__tests__/utils/test-utils'
+import { NextIntlClientProvider } from 'next-intl'
+
+// Mock next-intl hooks
+vi.mock('next-intl', async () => {
+  const actual = await vi.importActual('next-intl')
+  return {
+    ...actual,
+    useLocale: () => 'es',
+  }
+})
 
 describe('UserTournamentStatistics', () => {
+  // Spanish translations for stats.sidebar
+  const spanishMessages = {
+    stats: {
+      sidebar: {
+        title: 'Tus Estadísticas',
+        activeIndicator: 'Estás aquí',
+        labels: {
+          groups: 'Grupos:',
+          playoffs: 'Playoffs:',
+          qualified: 'Clasificados:',
+          awards: 'Premios:',
+          total: 'Total:',
+        },
+        viewDetails: 'Ver Detalle',
+        ariaLabels: {
+          card: 'Estadísticas del usuario',
+          expandButton: 'mostrar más',
+          viewDetailsButton: 'Ver página de estadísticas detalladas',
+        },
+      },
+    },
+  }
+
+  // Helper to render with NextIntlClientProvider
+  const renderWithIntl = (ui: React.ReactElement) => {
+    return renderWithTheme(
+      <NextIntlClientProvider locale="es" messages={spanishMessages}>
+        {ui}
+      </NextIntlClientProvider>
+    )
+  }
+
   const mockUserGameStatistics = {
     user_id: 'user-1',
     tournament_id: 'test-tournament',
@@ -26,7 +68,7 @@ describe('UserTournamentStatistics', () => {
   }
 
   it('renders the statistics card with title', () => {
-    renderWithTheme(
+    renderWithIntl(
       <UserTournamentStatistics
         userGameStatistics={mockUserGameStatistics}
         tournamentGuess={mockTournamentGuess}
@@ -38,7 +80,7 @@ describe('UserTournamentStatistics', () => {
   })
 
   it('shows "Estás aquí" subheader when isActive is true', () => {
-    renderWithTheme(
+    renderWithIntl(
       <UserTournamentStatistics
         userGameStatistics={mockUserGameStatistics}
         tournamentGuess={mockTournamentGuess}
@@ -51,7 +93,7 @@ describe('UserTournamentStatistics', () => {
   })
 
   it('does not show "Estás aquí" subheader when isActive is false', () => {
-    renderWithTheme(
+    renderWithIntl(
       <UserTournamentStatistics
         userGameStatistics={mockUserGameStatistics}
         tournamentGuess={mockTournamentGuess}
@@ -64,7 +106,7 @@ describe('UserTournamentStatistics', () => {
   })
 
   it('applies active state styling when isActive is true', () => {
-    const { container } = renderWithTheme(
+    const { container } = renderWithIntl(
       <UserTournamentStatistics
         userGameStatistics={mockUserGameStatistics}
         tournamentGuess={mockTournamentGuess}
@@ -81,7 +123,7 @@ describe('UserTournamentStatistics', () => {
   })
 
   it('renders "Ver Detalle" button with BarChart icon', () => {
-    renderWithTheme(
+    renderWithIntl(
       <UserTournamentStatistics
         userGameStatistics={mockUserGameStatistics}
         tournamentGuess={mockTournamentGuess}
@@ -100,7 +142,7 @@ describe('UserTournamentStatistics', () => {
   })
 
   it('does not render button when tournamentId is not provided', () => {
-    renderWithTheme(
+    renderWithIntl(
       <UserTournamentStatistics
         userGameStatistics={mockUserGameStatistics}
         tournamentGuess={mockTournamentGuess}
@@ -111,7 +153,7 @@ describe('UserTournamentStatistics', () => {
   })
 
   it('calculates correct total points', async () => {
-    renderWithTheme(
+    renderWithIntl(
       <UserTournamentStatistics
         userGameStatistics={mockUserGameStatistics}
         tournamentGuess={mockTournamentGuess}
@@ -134,7 +176,7 @@ describe('UserTournamentStatistics', () => {
   })
 
   it('handles missing data gracefully', () => {
-    renderWithTheme(
+    renderWithIntl(
       <UserTournamentStatistics
         tournamentId="test-tournament"
       />

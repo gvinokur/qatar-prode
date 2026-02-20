@@ -1,0 +1,82 @@
+{
+  "sidebar": {
+    "title": "Tus Estadísticas",
+    "activeIndicator": "Estás aquí",
+    "labels": {
+      "groups": "Grupos:",
+      "playoffs": "Playoffs:",
+      "qualified": "Clasificados:",
+      "awards": "Premios:",
+      "total": "Total:"
+    },
+    "viewDetails": "Ver Detalle",
+    "ariaLabels": {
+      "card": "Estadísticas del usuario",
+      "expandButton": "mostrar más",
+      "viewDetailsButton": "Ver página de estadísticas detalladas"
+    }
+  },
+  "performance": {
+    "title": "Rendimiento General",
+    "emptyState": "No hay predicciones aún. ¡Comienza a predecir para ver tus estadísticas!",
+    "totalPoints": "Puntos Totales en Torneo",
+    "breakdown": "Desglose por Fase",
+    "groupStage": {
+      "title": "Fase de Grupos",
+      "gamePoints": "Puntos por Partidos",
+      "boostBonus": "+ Bonus por Boosts",
+      "qualifiedCorrect": "Aciertos Clasificados (Exactos)",
+      "qualifiedPoints": "Puntos por Clasificados",
+      "total": "Total Fase de Grupos"
+    },
+    "playoffStage": {
+      "title": "Fase de Playoffs",
+      "gamePoints": "Puntos por Partidos",
+      "boostBonus": "+ Bonus por Boosts",
+      "finalPredictions": "Predicciones Finales",
+      "individualAwards": "Premios Individuales",
+      "total": "Total Fase de Playoffs"
+    }
+  },
+  "accuracy": {
+    "title": "Precisión de Predicciones",
+    "emptyState": "Haz tu primera predicción para ver estadísticas de precisión",
+    "totalPredictions": "Predicciones Totales",
+    "completed": "Completado",
+    "overallAccuracy": "Precisión General",
+    "resultCorrect": "Resultado Correcto",
+    "exactScore": "Marcador Exacto",
+    "missed": "Falladas",
+    "byPhase": "Por Fase",
+    "groupStage": "Fase de Grupos",
+    "playoffStage": "Fase de Playoffs"
+  },
+  "boosts": {
+    "title": "Análisis de Boosts",
+    "emptyState": {
+      "message": "¡Usa tus boosts para maximizar puntos!",
+      "available": "Disponibles: {silver} Silver, {golden} Golden"
+    },
+    "silver": "Boosts Silver",
+    "golden": "Boosts Golden",
+    "available": "Disponibles",
+    "used": "Usados",
+    "scoredGames": "Partidos Acertados",
+    "pointsEarned": "Puntos Ganados",
+    "roi": "ROI (Promedio por boost)",
+    "distribution": {
+      "title": "Distribución de Boosts",
+      "silverLabel": "Silver:",
+      "goldenLabel": "Golden:"
+    },
+    "groupAllocation": "Grupo {letter} ({count})",
+    "playoffsAllocation": "Playoffs ({count})",
+    "none": "Ninguno"
+  },
+  "tabs": {
+    "performance": "Rendimiento",
+    "accuracy": "Precisión",
+    "boosts": "Análisis de Boosts",
+    "ariaLabel": "estadísticas del torneo"
+  }
+}
