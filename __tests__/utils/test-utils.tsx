@@ -6,8 +6,10 @@ import { TimezoneProvider } from '../../app/components/context-providers/timezon
 import type { GameGuessNew, TournamentGroupTeamStatsGuessNew } from '../../app/db/tables-definition';
 import { vi } from 'vitest';
 import { NextIntlClientProvider } from 'next-intl';
-import esMessages from '../../locales/es/rules.json';
-import enMessages from '../../locales/en/rules.json';
+import esRulesMessages from '../../locales/es/rules.json';
+import enRulesMessages from '../../locales/en/rules.json';
+import esTablesMessages from '../../locales/es/tables.json';
+import enTablesMessages from '../../locales/en/tables.json';
 import { setTestLocale } from '../../vitest.setup';
 
 export interface RenderWithThemeOptions {
@@ -246,7 +248,9 @@ export const renderWithProviders = (
   }
 
   // Get messages for the locale
-  const messages = locale === 'en' ? { rules: enMessages } : { rules: esMessages };
+  const messages = locale === 'en'
+    ? { rules: enRulesMessages, tables: enTablesMessages }
+    : { rules: esRulesMessages, tables: esTablesMessages };
 
   // Compose providers from inside-out
   let wrapped = component;

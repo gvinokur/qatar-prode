@@ -4,6 +4,7 @@ import { getTeamsMap, getGroupStandingsForTournament } from '@/app/actions/tourn
 import { Box, Typography } from '@/app/components/mui-wrappers'
 import ResultsPageClient from '@/app/components/results-page/results-page-client'
 import LoadingSkeleton from '@/app/components/results-page/loading-skeleton'
+import { getTranslations } from 'next-intl/server'
 import { Suspense } from 'react'
 
 type Props = {
@@ -20,6 +21,7 @@ type Props = {
 export default async function ResultsPage(props: Props) {
   const params = await props.params
   const tournamentId = params.id
+  const t = await getTranslations('tables')
 
   try {
     // Fetch all data in parallel
@@ -40,10 +42,10 @@ export default async function ResultsPage(props: Props) {
         <Box sx={{ maxWidth: 'lg', mx: 'auto', py: 4, px: 2 }}>
           <Box sx={{ textAlign: 'center', py: 8 }}>
             <Typography variant="h5" color="text.secondary" gutterBottom>
-              Resultados no disponibles
+              {t('results.unavailable')}
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              Los resultados se mostrarán aquí cuando los partidos comiencen
+              {t('results.unavailableDescription')}
             </Typography>
           </Box>
         </Box>
@@ -66,7 +68,7 @@ export default async function ResultsPage(props: Props) {
           gutterBottom
           sx={{ mb: 2, py: 2, textAlign: 'center' }}
         >
-          Resultados y Tablas
+          {t('results.title')}
         </Typography>
 
         <Suspense fallback={<LoadingSkeleton />}>
@@ -87,10 +89,10 @@ export default async function ResultsPage(props: Props) {
       <Box sx={{ maxWidth: 'lg', mx: 'auto', py: 4, px: 2 }}>
         <Box sx={{ textAlign: 'center', py: 8 }}>
           <Typography variant="h5" color="error" gutterBottom>
-            Error al cargar resultados
+            {t('results.error')}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Por favor, intenta nuevamente más tarde
+            {t('results.errorDescription')}
           </Typography>
         </Box>
       </Box>

@@ -98,8 +98,8 @@ describe('GroupStandingsSidebar', () => {
 
     expect(screen.getByText('GRUPO A')).toBeInTheDocument()
 
-    // Click next button
-    const nextButton = screen.getByLabelText('Next group')
+    // Click next button (using Spanish translation for aria-label)
+    const nextButton = screen.getByLabelText('Siguiente grupo')
     fireEvent.click(nextButton)
 
     // Wait for state update to reflect in DOM

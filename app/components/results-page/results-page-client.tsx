@@ -5,6 +5,7 @@ import { Team, TeamStats, PlayoffRound } from '@/app/db/tables-definition'
 import { Box, Tabs, Tab } from '@mui/material'
 import { EmojiEvents, AccountTree } from '@mui/icons-material'
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import GroupsStageView from './groups-stage-view'
 import PlayoffsBracketView from './playoffs-bracket-view'
 
@@ -34,6 +35,7 @@ export default function ResultsPageClient({
   teamsMap,
   playoffStages,
 }: ResultsPageClientProps) {
+  const t = useTranslations('tables')
   const [selectedTab, setSelectedTab] = useState(0)
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
@@ -52,14 +54,14 @@ export default function ResultsPageClient({
         >
           <Tab
             icon={<EmojiEvents />}
-            label="Grupos"
+            label={t('tabs.groups')}
             id="results-tab-0"
             aria-controls="results-tabpanel-0"
             iconPosition="start"
           />
           <Tab
             icon={<AccountTree />}
-            label="Playoffs"
+            label={t('tabs.playoffs')}
             id="results-tab-1"
             aria-controls="results-tabpanel-1"
             iconPosition="start"

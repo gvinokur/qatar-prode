@@ -1,6 +1,9 @@
+'use client'
+
 import { ExtendedGameData } from '@/app/definitions'
 import { Team, TeamStats } from '@/app/db/tables-definition'
 import { Grid, Typography, Box } from '@mui/material'
+import { useTranslations } from 'next-intl'
 import GroupResultCard from './group-result-card'
 
 interface GroupsStageViewProps {
@@ -23,6 +26,7 @@ interface GroupsStageViewProps {
  * - 3 columns for L+ (≥1200px)
  */
 export default function GroupsStageView({ groups, games, qualifiedTeams }: GroupsStageViewProps) {
+  const t = useTranslations('tables')
   // Sort groups alphabetically by letter
   const sortedGroups = [...groups].sort((a, b) => a.letter.localeCompare(b.letter))
 
@@ -30,10 +34,10 @@ export default function GroupsStageView({ groups, games, qualifiedTeams }: Group
     return (
       <Box sx={{ textAlign: 'center', py: 8 }}>
         <Typography variant="h6" color="text.secondary">
-          No hay grupos configurados
+          {t('groups.noGroups')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          Los grupos se mostrarán aquí cuando estén disponibles
+          {t('groups.noGroupsDescription')}
         </Typography>
       </Box>
     )
