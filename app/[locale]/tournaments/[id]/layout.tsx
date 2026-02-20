@@ -244,16 +244,12 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
         </Box>
       </AppBar>
       {/* Main content area */}
-      <ScrollShadowContainer
-        direction="vertical"
-        hideScrollbar={true}
-        sx={{
-          flexGrow: 1,
-          minHeight: 0,
-          px: 2,
-          pb: 2
-        }}
-      >
+      <Box sx={{
+        flexGrow: 1,
+        minHeight: 0,
+        px: 2,
+        pb: 2
+      }}>
         {/* Centered max-width container */}
         <Box sx={{
           maxWidth: '1200px',
@@ -284,7 +280,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
             />
           </Grid>
         </Box>
-      </ScrollShadowContainer>
+      </Box>
       {user &&
         (((!tournamentGuesses?.best_player_id ||
           !tournamentGuesses?.best_young_player_id ||
