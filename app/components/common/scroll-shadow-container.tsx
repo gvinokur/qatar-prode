@@ -206,9 +206,14 @@ export function ScrollShadowContainer({
       theme.palette.mode === 'dark' ? 0.4 : 0.2
     )
 
+  // Extract overflow from sx to prevent it being applied to outer wrapper
+  // The scroll container (inner div) handles all overflow behavior
+  const { overflow, overflowX, overflowY, ...sxWithoutOverflow } = (sx || {}) as any
+
   // Merge sx with dedicated height/width props (dedicated props take precedence)
+  // Note: We explicitly exclude overflow properties as they should not affect the outer wrapper
   const mergedSx: SxProps<Theme> = {
-    ...sx,
+    ...sxWithoutOverflow,
     ...(height !== undefined && { height }),
     ...(width !== undefined && { width }),
   }
