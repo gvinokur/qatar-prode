@@ -7,6 +7,15 @@ vi.stubEnv('VAPID_PRIVATE_KEY', 'P3Zfb9llkSX79i6PVZW5JhBhsMJed2XtC2vcByjdPNo');
 
 import '@testing-library/jest-dom';
 
+// Mock ResizeObserver for all tests (used by ScrollShadowContainer)
+class ResizeObserverMock {
+  observe = vi.fn()
+  unobserve = vi.fn()
+  disconnect = vi.fn()
+}
+
+global.ResizeObserver = ResizeObserverMock as any;
+
 // Mock next-auth globally for all tests
 vi.mock('next-auth', () => ({
   __esModule: true,

@@ -1,7 +1,8 @@
 'use client'
 
-import { Box, Grid } from '@mui/material'
+import { Grid } from '@mui/material'
 import { usePathname } from 'next/navigation'
+import { ScrollShadowContainer } from '@/app/components/common/scroll-shadow-container'
 import Rules, { ScoringConfig } from './rules'
 import { UserTournamentStatistics } from './user-tournament-statistics'
 import GroupStandingsSidebar from './group-standings-sidebar'
@@ -63,17 +64,15 @@ export default function TournamentSidebar({
         overflow: 'hidden'
       }}
     >
-      <Box sx={{
-        flexGrow: 1,
-        overflow: 'auto',
-        minHeight: 0,
-        pt: 2,
-        scrollbarWidth: 'none',
-        msOverflowStyle: 'none',
-        '&::-webkit-scrollbar': {
-          display: 'none'
-        }
-      }}>
+      <ScrollShadowContainer
+        direction="vertical"
+        hideScrollbar={true}
+        sx={{
+          flexGrow: 1,
+          minHeight: 0,
+          pt: 2,
+        }}
+      >
         <Grid container rowSpacing={2}>
           <Grid size={12}>
             <Rules
@@ -115,7 +114,7 @@ export default function TournamentSidebar({
             </Grid>
           )}
         </Grid>
-      </Box>
+      </ScrollShadowContainer>
     </Grid>
   )
 }

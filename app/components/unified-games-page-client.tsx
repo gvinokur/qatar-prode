@@ -1,9 +1,10 @@
 'use client'
 
-import { Box, Stack, Fab } from '@mui/material';
+import { Box, Fab } from '@mui/material';
 import { useMemo, useContext, useEffect, useState } from 'react';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import { ScrollShadowContainer } from './common/scroll-shadow-container';
 import { FilterContextProvider, useFilterContext } from './context-providers/filter-context-provider';
 import { GameFilters } from './game-filters';
 import { CompactPredictionDashboard } from './compact-prediction-dashboard';
@@ -109,20 +110,18 @@ function UnifiedGamesPageContent({
   };
 
   return (
-    <Stack
+    <ScrollShadowContainer
       id="unified-games-stack"
-      spacing={2}
+      direction="vertical"
+      hideScrollbar={true}
       sx={{
         height: '100%',
         overflow: { xs: 'auto', md: 'hidden' }, // Mobile: entire stack scrolls; Desktop: only games scroll
         pb: { xs: '56px', md: 0 }, // Account for fixed bottom nav on mobile
         pt: 2, // Add top padding for spacing from navigation tabs
-        // Hide scrollbar
-        scrollbarWidth: 'none', // Firefox
-        msOverflowStyle: 'none', // IE/Edge
-        '&::-webkit-scrollbar': {
-          display: 'none' // Chrome/Safari
-        }
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2, // Equivalent to Stack spacing={2}
       }}
     >
       {/* Compact Prediction Dashboard */}
@@ -175,19 +174,15 @@ function UnifiedGamesPageContent({
       </Box>
 
       {/* Scrollable Games List */}
-      <Box
+      <ScrollShadowContainer
         id="games-scroll-container"
+        direction="vertical"
+        hideScrollbar={true}
         sx={{
           flexGrow: 1,
           overflow: { xs: 'visible', md: 'auto' }, // Mobile: no scroll (Stack scrolls); Desktop: scrolls
           minHeight: 0,
           position: 'relative',
-          // Hide scrollbar
-          scrollbarWidth: 'none', // Firefox
-          msOverflowStyle: 'none', // IE/Edge
-          '&::-webkit-scrollbar': {
-            display: 'none' // Chrome/Safari
-          }
         }}
       >
         <GamesListWithScroll
@@ -233,8 +228,8 @@ function UnifiedGamesPageContent({
             <ArrowUpwardIcon />
           </Fab>
         )}
-      </Box>
-    </Stack>
+      </ScrollShadowContainer>
+    </ScrollShadowContainer>
   );
 }
 
