@@ -4,7 +4,7 @@ import { Paper, Typography, Box } from '@mui/material'
 import { formatPenaltyResult } from '@/app/utils/penalty-result-formatter'
 import { getGameWinner } from '@/app/utils/score-utils'
 import { getTeamDescription } from '@/app/utils/playoffs-rule-helper'
-import { getTranslations } from 'next-intl/server'
+import { useTranslations } from 'next-intl'
 
 interface BracketGameCardProps {
   readonly game: ExtendedGameData
@@ -16,8 +16,8 @@ interface BracketGameCardProps {
  * Shows team names with scores.
  * Highlights the winner and displays penalty shootout results.
  */
-export default async function BracketGameCard({ game, teamsMap }: BracketGameCardProps) {
-  const t = await getTranslations('predictions');
+export default function BracketGameCard({ game, teamsMap }: BracketGameCardProps) {
+  const t = useTranslations('predictions');
   const homeTeam = game.home_team ? teamsMap[game.home_team] : null
   const awayTeam = game.away_team ? teamsMap[game.away_team] : null
 
