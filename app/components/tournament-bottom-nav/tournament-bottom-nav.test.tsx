@@ -4,6 +4,22 @@ import { useRouter } from 'next/navigation'
 import TournamentBottomNav from './tournament-bottom-nav'
 import { renderWithTheme } from '@/__tests__/utils/test-utils'
 
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useLocale: () => 'es',
+  useTranslations: () => (key: string) => {
+    // Return translations matching what tests expect (mix of English/Spanish)
+    const translations: Record<string, string> = {
+      'bottomNav.home': 'Home',
+      'bottomNav.results': 'Tablas',
+      'bottomNav.rules': 'Reglas',
+      'bottomNav.stats': 'Stats',
+      'bottomNav.groups': 'Grupos',
+    };
+    return translations[key] || key;
+  },
+}));
+
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
   useRouter: vi.fn()

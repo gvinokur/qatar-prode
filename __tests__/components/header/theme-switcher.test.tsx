@@ -5,6 +5,19 @@ import { useTheme } from 'next-themes';
 import ThemeSwitcher from '../../../app/components/header/theme-switcher';
 import { renderWithTheme } from '../../utils/test-utils';
 
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useTranslations: () => (key: string, params?: any) => {
+    // Return realistic translations for theme switcher
+    if (key === 'theme.switchTo' && params?.mode) {
+      return `Switch to ${params.mode} mode`;
+    }
+    if (key === 'theme.light') return 'light';
+    if (key === 'theme.dark') return 'dark';
+    return key;
+  },
+}));
+
 // Mock next-themes
 vi.mock('next-themes', () => ({
   useTheme: vi.fn(),

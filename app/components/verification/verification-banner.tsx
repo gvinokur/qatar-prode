@@ -30,7 +30,10 @@ export default function VerificationBanner() {
     }
   };
 
-  return pathname === '/verify-email' ? null : (
+  // Remove locale prefix if present (pathname could be /en/verify-email or /verify-email)
+  // Only strip if first segment is a 2-letter locale code
+  const pathWithoutLocale = pathname.replace(/^\/[a-z]{2}(?=\/)/, '');
+  return pathWithoutLocale === '/verify-email' ? null : (
     <div
       style={{
         margin: '16px auto',

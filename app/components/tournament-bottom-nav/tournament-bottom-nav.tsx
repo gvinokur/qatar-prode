@@ -4,7 +4,7 @@ import { BottomNavigation, BottomNavigationAction } from '@mui/material';
 import { Home, Groups, Assessment, Gavel, BarChart } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 interface TournamentBottomNavProps {
   readonly tournamentId: string;
@@ -13,6 +13,7 @@ interface TournamentBottomNavProps {
 
 export default function TournamentBottomNav({ tournamentId, currentPath }: TournamentBottomNavProps) {
   const locale = useLocale();
+  const t = useTranslations('navigation');
   const router = useRouter();
   const [value, setValue] = useState<string>('tournament-home');
 
@@ -76,11 +77,11 @@ export default function TournamentBottomNav({ tournamentId, currentPath }: Tourn
         borderColor: 'divider',
       }}
     >
-      <BottomNavigationAction label="Home" value="main-home" icon={<Home sx={{ fontSize: 24 }} />} />
-      <BottomNavigationAction label="Tablas" value="results" icon={<Assessment sx={{ fontSize: 24 }} />} />
-      <BottomNavigationAction label="Reglas" value="rules" icon={<Gavel sx={{ fontSize: 24 }} />} />
-      <BottomNavigationAction label="Stats" value="stats" icon={<BarChart sx={{ fontSize: 24 }} />} />
-      <BottomNavigationAction label="Grupos" value="friend-groups" icon={<Groups sx={{ fontSize: 24 }} />} />
+      <BottomNavigationAction label={t('bottomNav.home')} value="main-home" icon={<Home sx={{ fontSize: 24 }} />} />
+      <BottomNavigationAction label={t('bottomNav.results')} value="results" icon={<Assessment sx={{ fontSize: 24 }} />} />
+      <BottomNavigationAction label={t('bottomNav.rules')} value="rules" icon={<Gavel sx={{ fontSize: 24 }} />} />
+      <BottomNavigationAction label={t('bottomNav.stats')} value="stats" icon={<BarChart sx={{ fontSize: 24 }} />} />
+      <BottomNavigationAction label={t('bottomNav.groups')} value="friend-groups" icon={<Groups sx={{ fontSize: 24 }} />} />
     </BottomNavigation>
   );
 }

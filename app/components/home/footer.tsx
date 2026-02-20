@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
@@ -20,10 +21,14 @@ const TEASING_FOOTER_GROUP_ID = process.env.NEXT_PUBLIC_TEASING_FOOTER_GROUP_ID;
 const TEASING_FOOTER_TOURNAMENT_ID = process.env.NEXT_PUBLIC_TEASING_FOOTER_TOURNAMENT_ID;
 
 function Footer({ imageUrl, message }: FooterProps) {
+  const t = useTranslations('common');
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const pathname = usePathname();
-  const isInTournamentContext = pathname.startsWith('/tournaments/');
+  // Remove locale prefix if present (pathname could be /en/tournaments/... or /tournaments/...)
+  // Only strip if first segment is a 2-letter locale code
+  const pathWithoutLocale = pathname.replace(/^\/[a-z]{2}(?=\/)/, '');
+  const isInTournamentContext = pathWithoutLocale.startsWith('/tournaments/');
 
   const [infoMessage, setInfoMessage] = useState<React.ReactNode | null>(null);
 
@@ -43,9 +48,9 @@ function Footer({ imageUrl, message }: FooterProps) {
 
           // If the user is in the first position, even if he has the same score as the first one, show a message
           if (userScores[currentUserPosition].totalPoints === userScores[0].totalPoints) {
-            setInfoMessage('👑👑 Grande Rey, vas primero, a ver si te podes mantener!! 👑👑');
+            setInfoMessage(t('footer.teasingMessages.firstPlace'));
           } else if (userScores[currentUserPosition].totalPoints === userScores[userScores.length - 1].totalPoints) {
-            setInfoMessage('💩💩 Vas Ultimo, caquita!! 💩💩');
+            setInfoMessage(t('footer.teasingMessages.lastPlace'));
           }
         } catch (error) {
           console.error('Error fetching user info for footer:', error);
@@ -80,7 +85,7 @@ function Footer({ imageUrl, message }: FooterProps) {
           <Box
             component="img"
             src={imageUrl}
-            alt="Footer Logo"
+            alt={t('footer.logoAlt')}
             sx={{ height: 32, mb: 1 }}
           />
         )}

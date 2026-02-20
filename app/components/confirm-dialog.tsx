@@ -23,6 +23,15 @@ interface ConfirmDialogProps {
   readonly loading?: boolean;
 }
 
+/**
+ * ConfirmDialog component
+ *
+ * Note: This component receives text via props. Consumers should pass
+ * translated strings using useTranslations('common'):
+ * - confirmText: t('buttons.confirm')
+ * - cancelText: t('buttons.cancel')
+ */
+
 export default function ConfirmDialog({
   open,
   title,
