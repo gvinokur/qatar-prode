@@ -30,16 +30,27 @@ This story is part of the ongoing internationalization effort to make the applic
 3. **Use next-intl pattern:**
    - Client Components: `useTranslations('tables')` + `t('key')`
    - Server Components: `await getTranslations('tables')` + `t('key')`
-   - **Dynamic values:** Use interpolation: `t('groups.groupLabel', { letter: 'A' })` → "GROUP A"
-4. **EnOf marker pattern:** Wrap Spanish defaults with `EnOf()` for easy identification
+   - **Dynamic values:** Use interpolation: `t('groups.groupLabel', { letter: 'A' })` → "GRUPO A" (ES) / "GROUP A" (EN)
+4. **EnOf marker pattern:**
+   - All hardcoded strings are in Spanish (original language)
+   - **ES file:** Clean Spanish text (the source)
+   - **EN file:** `EnOf(Spanish text)` to mark "needs English translation"
 
 ### String Interpolation Examples
 
 **Translation file format:**
 ```json
+// es/tables.json (source)
 {
   "groups": {
-    "groupLabel": "GROUP {letter}"
+    "groupLabel": "GRUPO {letter}"
+  }
+}
+
+// en/tables.json (to be translated)
+{
+  "groups": {
+    "groupLabel": "EnOf(GRUPO {letter})"
   }
 }
 ```
@@ -48,92 +59,153 @@ This story is part of the ongoing internationalization effort to make the applic
 ```typescript
 // Dynamic group letter
 const label = t('groups.groupLabel', { letter: group.letter.toUpperCase() })
-// Result in EN: "GROUP A"
 // Result in ES: "GRUPO A"
+// Result in EN: "EnOf(GRUPO A)" (until translated to "GROUP A")
 ```
 
 **For point display:**
 ```typescript
+const gdFormatted = standing.goalDifference >= 0 ? `+${standing.goalDifference}` : standing.goalDifference
 const pointsText = t('stats.pointsDisplay', {
   points: standing.points,
   gamesPlayed: standing.gamesPlayed,
-  goalDifference: standing.goalDifference >= 0 ? `+${standing.goalDifference}` : standing.goalDifference
+  goalDifference: gdFormatted
 })
-// Result in EN: "15 pts (3 GP, +5 GD)"
+// Result in ES: "15 pts (3 PJ, +5 DG)"
+// Result in EN: "EnOf(15 pts (3 PJ, +5 DG))" (until translated)
 ```
 
 ### Translation File Structure
 
-**New file: `/locales/en/tables.json`**
+**New file: `/locales/es/tables.json`** (Spanish - source language)
 ```json
 {
   "results": {
-    "title": "Results and Tables",
-    "unavailable": "Results not available",
-    "unavailableDescription": "Results will be shown here when games begin",
-    "error": "Error loading results",
-    "errorDescription": "Please try again later"
+    "title": "Resultados y Tablas",
+    "unavailable": "Resultados no disponibles",
+    "unavailableDescription": "Los resultados se mostrarán aquí cuando los partidos comiencen",
+    "error": "Error al cargar resultados",
+    "errorDescription": "Por favor, intenta nuevamente más tarde"
   },
   "tabs": {
-    "groups": "Groups",
+    "groups": "Grupos",
     "playoffs": "Playoffs"
   },
   "groups": {
-    "title": "Groups",
-    "groupLabel": "GROUP {letter}",
-    "statusHere": "You are here",
-    "noGroups": "No groups configured",
-    "noGroupsDescription": "Groups will be shown here when available",
-    "viewResults": "View Results"
+    "title": "Grupos",
+    "groupLabel": "GRUPO {letter}",
+    "statusHere": "Estás aquí",
+    "noGroups": "No hay grupos configurados",
+    "noGroupsDescription": "Los grupos se mostrarán aquí cuando estén disponibles",
+    "viewResults": "Ver Resultados"
   },
   "standings": {
-    "title": "Standings",
-    "noStandings": "No standings available yet",
-    "games": "Games:",
-    "table": "Standings Table:"
+    "title": "Tabla de Posiciones",
+    "noStandings": "No hay posiciones disponibles todavía",
+    "games": "Partidos:",
+    "table": "Tabla de Posiciones:"
   },
   "stats": {
-    "detailedStats": "Detailed Statistics",
-    "gamesPlayed": "Games Played",
-    "gamesPlayedShort": "GP",
-    "goalDifference": "Goal Difference",
-    "goalDifferenceShort": "GD",
-    "pointsDisplay": "{points} pts ({gamesPlayed} GP, {goalDifference} GD)",
+    "detailedStats": "Estadísticas Detalladas",
+    "gamesPlayed": "Partidos Jugados",
+    "gamesPlayedShort": "PJ",
+    "goalDifference": "Diferencia de Gol",
+    "goalDifferenceShort": "DG",
+    "pointsDisplay": "{points} pts ({gamesPlayed} PJ, {goalDifference} DG)",
     "pointsCompact": "{points} pts",
-    "record": "Record",
-    "wins": "Wins",
-    "draws": "Draws",
-    "losses": "Losses",
-    "goals": "Goals",
-    "goalsFor": "Goals For",
-    "goalsAgainst": "Goals Against",
-    "conductScore": "Conduct Points",
+    "record": "Récord",
+    "wins": "Ganados",
+    "draws": "Empatados",
+    "losses": "Perdidos",
+    "goals": "Goles",
+    "goalsFor": "Goles a Favor",
+    "goalsAgainst": "Goles en Contra",
+    "conductScore": "Puntos de Conducta",
     "points": "pts"
   },
   "aria": {
-    "previousGroup": "Previous group",
-    "nextGroup": "Next group",
-    "tournamentNavigation": "Tournament navigation",
-    "expandMore": "show more"
-  }
+    "previousGroup": "Grupo anterior",
+    "nextGroup": "Siguiente grupo",
+    "tournamentNavigation": "Navegación del torneo",
+    "expandMore": "mostrar más"
+  },
   "navigation": {
-    "games": "GAMES",
-    "qualified": "QUALIFIED",
-    "awards": "AWARDS",
-    "expandMore": "show more"
+    "games": "PARTIDOS",
+    "qualified": "CLASIFICADOS",
+    "awards": "PREMIOS",
+    "expandMore": "mostrar más"
+  }
+}
+```
+
+**New file: `/locales/en/tables.json`** (English - needs translation)
+```json
+{
+  "results": {
+    "title": "EnOf(Resultados y Tablas)",
+    "unavailable": "EnOf(Resultados no disponibles)",
+    "unavailableDescription": "EnOf(Los resultados se mostrarán aquí cuando los partidos comiencen)",
+    "error": "EnOf(Error al cargar resultados)",
+    "errorDescription": "EnOf(Por favor, intenta nuevamente más tarde)"
+  },
+  "tabs": {
+    "groups": "EnOf(Grupos)",
+    "playoffs": "EnOf(Playoffs)"
+  },
+  "groups": {
+    "title": "EnOf(Grupos)",
+    "groupLabel": "EnOf(GRUPO {letter})",
+    "statusHere": "EnOf(Estás aquí)",
+    "noGroups": "EnOf(No hay grupos configurados)",
+    "noGroupsDescription": "EnOf(Los grupos se mostrarán aquí cuando estén disponibles)",
+    "viewResults": "EnOf(Ver Resultados)"
+  },
+  "standings": {
+    "title": "EnOf(Tabla de Posiciones)",
+    "noStandings": "EnOf(No hay posiciones disponibles todavía)",
+    "games": "EnOf(Partidos:)",
+    "table": "EnOf(Tabla de Posiciones:)"
+  },
+  "stats": {
+    "detailedStats": "EnOf(Estadísticas Detalladas)",
+    "gamesPlayed": "EnOf(Partidos Jugados)",
+    "gamesPlayedShort": "EnOf(PJ)",
+    "goalDifference": "EnOf(Diferencia de Gol)",
+    "goalDifferenceShort": "EnOf(DG)",
+    "pointsDisplay": "EnOf({points} pts ({gamesPlayed} PJ, {goalDifference} DG))",
+    "pointsCompact": "EnOf({points} pts)",
+    "record": "EnOf(Récord)",
+    "wins": "EnOf(Ganados)",
+    "draws": "EnOf(Empatados)",
+    "losses": "EnOf(Perdidos)",
+    "goals": "EnOf(Goles)",
+    "goalsFor": "EnOf(Goles a Favor)",
+    "goalsAgainst": "EnOf(Goles en Contra)",
+    "conductScore": "EnOf(Puntos de Conducta)",
+    "points": "EnOf(pts)"
+  },
+  "aria": {
+    "previousGroup": "EnOf(Grupo anterior)",
+    "nextGroup": "EnOf(Siguiente grupo)",
+    "tournamentNavigation": "EnOf(Navegación del torneo)",
+    "expandMore": "EnOf(mostrar más)"
+  },
+  "navigation": {
+    "games": "EnOf(PARTIDOS)",
+    "qualified": "EnOf(CLASIFICADOS)",
+    "awards": "EnOf(PREMIOS)",
+    "expandMore": "EnOf(mostrar más)"
   }
 }
 ```
 
 **Note:** `navigation.json` already contains all necessary bottom nav translations. No updates needed.
 
-**Mirror structure in Spanish:** `/locales/es/tables.json` with EnOf wrappers
-
 ## Files to Create/Modify
 
 ### Translation Files (New)
-1. `/locales/en/tables.json` - English translations for tables/results pages
-2. `/locales/es/tables.json` - Spanish translations (with EnOf markers)
+1. `/locales/es/tables.json` - Spanish translations (source language, clean text)
+2. `/locales/en/tables.json` - English placeholders (with EnOf markers until translated)
 
 **Note:** No updates to navigation.json needed - bottom nav already fully translated.
 
@@ -226,8 +298,8 @@ const pointsText = t('stats.pointsDisplay', {
 ## Implementation Steps
 
 ### Phase 1: Translation Files (Create foundation)
-1. Create `/locales/en/tables.json` with complete English translations
-2. Create `/locales/es/tables.json` with EnOf-wrapped Spanish translations
+1. Create `/locales/es/tables.json` with clean Spanish text (source language)
+2. Create `/locales/en/tables.json` with `EnOf(Spanish text)` markers (to be translated later)
 3. **Validate translation key parity:** Run validation script to ensure EN and ES have matching keys
 
 **Key Parity Validation:**
