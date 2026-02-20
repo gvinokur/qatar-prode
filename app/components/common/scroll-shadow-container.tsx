@@ -146,16 +146,20 @@ export function ScrollShadowContainer({
         clientWidth,
       } = el
 
+      // Check if there's actually overflow in each direction
+      const hasVerticalOverflow = scrollHeight > clientHeight
+      const hasHorizontalOverflow = scrollWidth > clientWidth
+
       return {
-        // Top shadow: visible when scrolled down from top
-        top: dir !== 'horizontal' && scrollTop > 0,
-        // Bottom shadow: visible when not scrolled to bottom
+        // Top shadow: visible when there's overflow AND scrolled down from top
+        top: dir !== 'horizontal' && hasVerticalOverflow && scrollTop > 0,
+        // Bottom shadow: visible when there's overflow AND not scrolled to bottom
         bottom:
-          dir !== 'horizontal' && scrollTop < scrollHeight - clientHeight,
-        // Left shadow: visible when scrolled right from left edge
-        left: dir !== 'vertical' && scrollLeft > 0,
-        // Right shadow: visible when not scrolled to right edge
-        right: dir !== 'vertical' && scrollLeft < scrollWidth - clientWidth,
+          dir !== 'horizontal' && hasVerticalOverflow && scrollTop < scrollHeight - clientHeight,
+        // Left shadow: visible when there's overflow AND scrolled right from left edge
+        left: dir !== 'vertical' && hasHorizontalOverflow && scrollLeft > 0,
+        // Right shadow: visible when there's overflow AND not scrolled to right edge
+        right: dir !== 'vertical' && hasHorizontalOverflow && scrollLeft < scrollWidth - clientWidth,
       }
     },
     []
