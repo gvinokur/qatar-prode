@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import ThemeSwitcher from '../theme-switcher'
 import { renderWithTheme } from '@/__tests__/utils/test-utils'
 

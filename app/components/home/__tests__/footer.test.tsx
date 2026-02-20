@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import Footer from '../footer'
 import { renderWithTheme } from '@/__tests__/utils/test-utils'
 
@@ -26,6 +26,11 @@ vi.mock('@mui/material', async () => {
     }),
   }
 })
+
+// Mock auth
+vi.mock('../../../../auth', () => ({
+  auth: vi.fn(),
+}))
 
 // Mock user actions
 vi.mock('../../actions/user-actions', () => ({

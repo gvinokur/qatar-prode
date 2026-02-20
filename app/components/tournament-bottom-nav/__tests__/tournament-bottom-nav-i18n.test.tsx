@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import TournamentBottomNav from '../tournament-bottom-nav'
 import { renderWithTheme } from '@/__tests__/utils/test-utils'
 
@@ -37,8 +37,8 @@ describe('TournamentBottomNav i18n', () => {
     renderWithTheme(<TournamentBottomNav {...defaultProps} />)
 
     // Verify that all keys are from the navigation namespace
-    // Our mock returns keys as-is, so we can check they start with correct prefix
-    const navigation = screen.getByRole('navigation')
-    expect(navigation).toBeInTheDocument()
+    // Our mock returns keys as-is, so the rendered text will be the key itself
+    // Just verify the component renders with the translation keys
+    expect(screen.getByRole('button', { name: /bottomNav\.home/i })).toBeInTheDocument()
   })
 })

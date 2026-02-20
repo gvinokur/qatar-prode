@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import LanguageSwitcher from '../language-switcher'
 import { renderWithTheme } from '@/__tests__/utils/test-utils'
 
@@ -21,19 +21,20 @@ vi.mock('next/navigation', () => ({
 }))
 
 describe('LanguageSwitcher i18n', () => {
-  it('renders language switcher button', () => {
+  it('renders language switcher with aria-label', () => {
     renderWithTheme(<LanguageSwitcher />)
 
-    const button = screen.getByRole('button', { name: /language.selectLanguage/i })
-    expect(button).toBeInTheDocument()
+    // Avatar uses aria-label (not button role)
+    const switcher = screen.getByLabelText(/language.selectLanguage/i)
+    expect(switcher).toBeInTheDocument()
   })
 
   it('uses common namespace for aria-label', () => {
     renderWithTheme(<LanguageSwitcher />)
 
     // Verify aria-label uses translation key
-    const button = screen.getByRole('button')
-    expect(button).toHaveAttribute('aria-label', 'language.selectLanguage')
+    const switcher = screen.getByLabelText('language.selectLanguage')
+    expect(switcher).toHaveAttribute('aria-label', 'language.selectLanguage')
   })
 
   it('keeps language names hardcoded', () => {
@@ -41,6 +42,7 @@ describe('LanguageSwitcher i18n', () => {
 
     // Language names should remain as-is (self-referential)
     // This is verified by the component not translating these values
-    expect(screen.getByRole('button')).toBeInTheDocument()
+    const switcher = screen.getByLabelText(/language.selectLanguage/i)
+    expect(switcher).toBeInTheDocument()
   })
 })

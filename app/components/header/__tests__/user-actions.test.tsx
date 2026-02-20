@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import UserActions from '../user-actions'
 import { renderWithTheme } from '@/__tests__/utils/test-utils'
 
@@ -23,6 +23,7 @@ vi.mock('next/navigation', () => ({
 // Mock next-auth/react
 vi.mock('next-auth/react', () => ({
   signOut: vi.fn(),
+  useSession: () => ({ data: null, status: 'unauthenticated', update: vi.fn() }),
 }))
 
 describe('UserActions i18n', () => {
@@ -63,8 +64,8 @@ describe('UserActions i18n', () => {
 
     renderWithTheme(<UserActions user={mockUser as any} />)
 
-    // All translation keys should be prefixed with the namespace pattern
-    // Since our mock returns the key itself, rendered text will be the key
-    expect(screen.getByRole('button', { name: /header\.login/i }) || screen.getByText(/header\.userMenu/)).toBeTruthy()
+    // When logged in, menu items should use translation keys from navigation namespace
+    // Check for a specific menu item translation key
+    expect(screen.getByText('header.userMenu.settings')).toBeInTheDocument()
   })
 })
