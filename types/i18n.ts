@@ -7,7 +7,9 @@ import validation from '@/locales/en/validation.json';
 import errors from '@/locales/en/errors.json';
 import onboarding from '@/locales/en/onboarding.json';
 import predictions from '@/locales/en/predictions.json';
+import rules from '@/locales/en/rules.json';
 import stats from '@/locales/en/stats.json';
+import tables from '@/locales/en/tables.json';
 
 // Merge all namespaces into single type
 type Messages = {
@@ -20,7 +22,9 @@ type Messages = {
   errors: typeof errors;
   onboarding: typeof onboarding;
   predictions: typeof predictions;
+  rules: typeof rules;
   stats: typeof stats;
+  tables: typeof tables;
 };
 
 declare global {
