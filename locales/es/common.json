@@ -1,9 +1,26 @@
 {
   "app": {
     "name": "Prode Mundial",
+    "title": "La Maquina Prode",
+    "logoAlt": "La Maquina Prode",
     "description": "Plataforma de pronósticos deportivos",
     "loading": "Cargando...",
     "error": "Ocurrió un error"
+  },
+  "theme": {
+    "switchTo": "EsOf(Switch to {mode} mode)",
+    "light": "EsOf(light)",
+    "dark": "EsOf(dark)"
+  },
+  "language": {
+    "selectLanguage": "EsOf(Select language)"
+  },
+  "footer": {
+    "logoAlt": "EsOf(Footer Logo)",
+    "teasingMessages": {
+      "firstPlace": "👑👑 Grande Rey, vas primero, a ver si te podes mantener!! 👑👑",
+      "lastPlace": "💩💩 Vas Ultimo, caquita!! 💩💩"
+    }
   },
   "buttons": {
     "save": "Guardar",

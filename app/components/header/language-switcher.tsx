@@ -1,6 +1,6 @@
 'use client'
 
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Avatar, Menu, MenuItem } from '@mui/material';
 import { useState } from 'react';
@@ -11,6 +11,7 @@ const languages = [
 ];
 
 export default function LanguageSwitcher() {
+  const t = useTranslations('common');
   const locale = useLocale();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -52,7 +53,7 @@ export default function LanguageSwitcher() {
     <>
       <Avatar
         onClick={handleOpen}
-        aria-label="Select language"
+        aria-label={t('language.selectLanguage')}
         sx={{
           width: 40,
           height: 40,

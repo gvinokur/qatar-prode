@@ -3,10 +3,12 @@
 import {DarkMode, LightMode} from "@mui/icons-material";
 import {Avatar, useTheme} from "@mui/material";
 import {useTheme as useNextTheme} from "next-themes";
+import { useTranslations } from 'next-intl';
 
 export default function ThemeSwitcher() {
   const theme = useTheme()
   const {resolvedTheme: themeMode, setTheme } = useNextTheme()
+  const t = useTranslations('common');
 
   const switchThemeMode = async () => {
     const newThemeMode = themeMode === 'light' ? 'dark' : 'light'
@@ -18,7 +20,9 @@ export default function ThemeSwitcher() {
       role="button"
       tabIndex={0}
       onClick={switchThemeMode}
-      title={`Switch to ${themeMode === 'light' ? 'dark' : 'light'} mode`}
+      title={t('theme.switchTo', {
+        mode: themeMode === 'light' ? t('theme.dark') : t('theme.light')
+      })}
       sx={{
         width: 40,
         height: 40,

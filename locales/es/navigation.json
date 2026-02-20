@@ -4,6 +4,21 @@
     "tournaments": "Torneos",
     "profile": "Perfil",
     "logout": "Cerrar sesión",
-    "login": "Iniciar sesión"
+    "login": "EsOf(Log In)",
+    "userMenu": {
+      "tooltip": "Abrir Menu de Usuario",
+      "settings": "Configuracion",
+      "tutorial": "Ver Tutorial",
+      "backoffice": "Ir al Back Office",
+      "logout": "Salir",
+      "deleteAccount": "EsOf(Delete Account)"
+    }
+  },
+  "bottomNav": {
+    "home": "EsOf(Home)",
+    "results": "Tablas",
+    "rules": "Reglas",
+    "stats": "Stats",
+    "groups": "Grupos"
   }
 }

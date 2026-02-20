@@ -4,6 +4,21 @@
     "tournaments": "EnOf(Torneos)",
     "profile": "EnOf(Perfil)",
     "logout": "EnOf(Cerrar sesión)",
-    "login": "EnOf(Iniciar sesión)"
+    "login": "Log In",
+    "userMenu": {
+      "tooltip": "EnOf(Abrir Menu de Usuario)",
+      "settings": "EnOf(Configuracion)",
+      "tutorial": "EnOf(Ver Tutorial)",
+      "backoffice": "EnOf(Ir al Back Office)",
+      "logout": "EnOf(Salir)",
+      "deleteAccount": "Delete Account"
+    }
+  },
+  "bottomNav": {
+    "home": "Home",
+    "results": "EnOf(Tablas)",
+    "rules": "EnOf(Reglas)",
+    "stats": "EnOf(Stats)",
+    "groups": "EnOf(Grupos)"
   }
 }

@@ -12,7 +12,7 @@ import Link from "next/link";
 import {User} from "next-auth";
 import ThemeSwitcher from "./theme-switcher";
 import LanguageSwitcher from "./language-switcher";
-import { getLocale } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 
 type FrameProps = {
   readonly user?: User
@@ -20,6 +20,7 @@ type FrameProps = {
 
 export default async function Header(props: FrameProps) {
   const locale = await getLocale();
+  const t = await getTranslations({ locale, namespace: 'common' });
 
   return (
     <AppBar position={'sticky'}>
@@ -36,7 +37,7 @@ export default async function Header(props: FrameProps) {
             <Avatar
               variant={"rounded"}
               src={'/logo.webp'}
-              alt='la-maquina-prode'
+              alt={t('app.logoAlt')}
               sx={{
                 backgroundColor: 'white',
                 height: 60,
@@ -55,7 +56,7 @@ export default async function Header(props: FrameProps) {
             textDecoration: 'none',
             cursor: 'pointer'
           }}>
-          <Link href={`/${locale}`}>La Maquina Prode</Link>
+          <Link href={`/${locale}`}>{t('app.title')}</Link>
         </Typography>
         <Box
           alignContent={'center'}

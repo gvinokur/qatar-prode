@@ -16,7 +16,7 @@ import {signOut} from "next-auth/react";
 import {User} from "next-auth";
 import UserSettingsDialog from "../auth/user-settings-dialog";
 import OnboardingDialogClient from "../onboarding/onboarding-dialog-client";
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 type UserActionProps = {
   user?: User
@@ -24,6 +24,7 @@ type UserActionProps = {
 
 export default function UserActions({ user }: UserActionProps) {
   const locale = useLocale()
+  const t = useTranslations('navigation')
   const searchParams = useSearchParams()
   const [forceOpen, setForceOpen] = useState(false)
   const [openLoginDialog, setOpenLoginDialog] = useState(forceOpen);
@@ -90,7 +91,7 @@ export default function UserActions({ user }: UserActionProps) {
     <>
       {user ? (
         <Box sx={{ flexGrow: 0 }}>
-          <Tooltip title="Abrir Menu de Usuario">
+          <Tooltip title={t('header.userMenu.tooltip')}>
             <Avatar
               onClick={handleOpenUserMenu}
               alt={(user.nickname || user.email || '')}
@@ -124,21 +125,21 @@ export default function UserActions({ user }: UserActionProps) {
             onClose={handleCloseUserMenu}
           >
             <MenuItem onClick={handleCloseUserMenu}>
-              <Typography textAlign="center" onClick={handleOpen}>Configuracion</Typography>
+              <Typography textAlign="center" onClick={handleOpen}>{t('header.userMenu.settings')}</Typography>
             </MenuItem>
             <MenuItem onClick={handleOpenOnboarding}>
-              <Typography textAlign="center">Ver Tutorial</Typography>
+              <Typography textAlign="center">{t('header.userMenu.tutorial')}</Typography>
             </MenuItem>
             {user.isAdmin && (
               <MenuItem onClick={() => router.push(`/${locale}/backoffice`)}>
-                Ir al Back Office
+                {t('header.userMenu.backoffice')}
               </MenuItem>
             )}
             <MenuItem onClick={() => { handleLogout(); handleCloseUserMenu();}} divider={true}>
-              <Typography textAlign="center">Salir</Typography>
+              <Typography textAlign="center">{t('header.userMenu.logout')}</Typography>
             </MenuItem>
             <MenuItem onClick={() => router.push(`/${locale}/delete-account`)}>
-              Delete Account
+              {t('header.userMenu.deleteAccount')}
             </MenuItem>
           </Menu>
         </Box>
@@ -148,7 +149,7 @@ export default function UserActions({ user }: UserActionProps) {
           onClick={handleOpenLoginDialog}
           sx={{ my: 2, color: 'white' }}
         >
-          Log In
+          {t('header.login')}
         </Button>
       </Box>
     )}
