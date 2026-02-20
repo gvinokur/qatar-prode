@@ -68,11 +68,16 @@ interface ScrollShadowContainerProps {
   shadowSize?: number; // default: 40px
   shadowColor?: string; // default: theme-based (black with alpha). Accepts: hex (#000000), rgba(0,0,0,0.2), CSS color names
   hideScrollbar?: boolean; // default: false. When true, hides native scrollbars with CSS (TournamentSidebar needs this)
-  height?: string | number;
-  width?: string | number;
-  sx?: SxProps<Theme>;
+  height?: string | number; // Applied directly to scroll container. Avoid duplicating in sx.
+  width?: string | number; // Applied directly to scroll container. Avoid duplicating in sx.
+  sx?: SxProps<Theme>; // Additional styles. If height/width provided above, they take precedence over sx height/width.
 }
 ```
+
+**Note on Props Priority:**
+- If both `height` prop and `sx.height` are provided, the dedicated `height` prop takes precedence
+- Same for `width` prop vs `sx.width`
+- Implementation will merge props with dedicated height/width overriding sx values
 
 **Usage Example:**
 ```tsx
@@ -220,13 +225,19 @@ interface ScrollShadowContainerProps {
 **Objective:** Roll out to other identified scroll containers
 
 **Surfaces to Migrate (in priority order):**
-1. **Results Page Tabs** (`/app/components/results-page/results-page-client.tsx`)
+1. **Tournament Home Games Section** (HIGHEST PRIORITY)
+   - Location: Tournament home page main games section
+   - One of the most important scroll containers in the app
+   - Need to identify exact component file during implementation
+   - Likely vertical scrolling
+
+2. **Results Page Tabs** (`/app/components/results-page/results-page-client.tsx`)
    - Lines 78, 95: Two tab panels with `overflow: 'auto'`
 
-2. **Main Content Area** (`/app/[locale]/tournaments/[id]/layout.tsx`)
+3. **Main Content Area** (`/app/[locale]/tournaments/[id]/layout.tsx`)
    - Line 261: Grid item with `overflow: 'auto'`
 
-3. **Playoffs Bracket View** (`/app/components/results-page/playoffs-bracket-view.tsx`)
+4. **Playoffs Bracket View** (`/app/components/results-page/playoffs-bracket-view.tsx`)
    - **Investigation step:** Load tournament with playoffs in browser, check:
      a) Does content overflow horizontally/vertically?
      b) Is the CSS mask (lines 149-154) actually visible/working?
@@ -234,20 +245,22 @@ interface ScrollShadowContainerProps {
    - **If bracket is fixed-size:** Remove non-functional mask implementation (lines 149-154)
    - Document decision in plan amendment
 
-4. **Audit remaining containers:**
+5. **Audit remaining containers:**
    - Search codebase for `overflow: 'auto'` or `overflow: 'scroll'`
    - Evaluate each on case-by-case basis
    - Apply ScrollShadowContainer where appropriate
 
 **Steps:**
-1. Apply to results page tabs (highest impact)
-2. Apply to main content area
-3. Fix or remove broken bracket mask implementation
-4. Audit codebase with `grep -r "overflow.*auto"` and `grep -r "overflow.*scroll"`
-5. Document any containers that intentionally don't use ScrollShadowContainer (with reason)
+1. Apply to tournament home games section (HIGHEST PRIORITY)
+2. Apply to results page tabs
+3. Apply to main content area
+4. Fix or remove broken bracket mask implementation
+5. Audit codebase with `grep -r "overflow.*auto"` and `grep -r "overflow.*scroll"`
+6. Document any containers that intentionally don't use ScrollShadowContainer (with reason)
 
 **Success Criteria:**
-- At least 3 additional containers migrated
+- At least 4 additional containers migrated (games section, results tabs, main content, +1 more)
+- Tournament home games section has scroll shadows
 - Broken bracket mask removed or fixed
 - All new integrations tested in light/dark mode
 - No visual regressions
@@ -259,8 +272,9 @@ interface ScrollShadowContainerProps {
 ### Phase 1: Component + Sidebar
 
 **New Files:**
-1. `/app/components/common/scroll-shadow-container.tsx` - Main component
+1. `/app/components/common/scroll-shadow-container.tsx` - Main component (with comprehensive JSDoc)
 2. `/app/components/common/scroll-shadow-container.test.tsx` - Unit tests
+3. `/docs/migration-guides/box-to-scroll-shadow-container.md` - Migration guide
 
 **Modified Files:**
 1. `/app/components/tournament-page/tournament-sidebar.tsx` - Apply ScrollShadowContainer
@@ -268,9 +282,10 @@ interface ScrollShadowContainerProps {
 ### Phase 2: Migration
 
 **Modified Files:**
-1. `/app/components/results-page/results-page-client.tsx` - Results tabs
-2. `/app/[locale]/tournaments/[id]/layout.tsx` - Main content area
-3. `/app/components/results-page/playoffs-bracket-view.tsx` - Fix broken mask
+1. [Tournament home games component] - Games section (identify during implementation)
+2. `/app/components/results-page/results-page-client.tsx` - Results tabs
+3. `/app/[locale]/tournaments/[id]/layout.tsx` - Main content area
+4. `/app/components/results-page/playoffs-bracket-view.tsx` - Fix broken mask
 
 ---
 
@@ -388,6 +403,17 @@ export function ScrollShadowContainer({
 - Shadow overlays positioned absolutely with `pointer-events: none`
 - Shadows sit on top of content (content should have padding if needed)
 - Clean up observers/listeners on unmount
+- **Props handling:** Merge `height`/`width` props with `sx`, giving precedence to dedicated props
+
+**Component Documentation Requirements:**
+- **Comprehensive JSDoc** explaining:
+  - Purpose and usage
+  - Parent container requirements (must have defined height/width for overflow to work)
+  - Props and their behavior
+  - Height/width prop vs sx precedence
+  - Example usage patterns
+- **Inline comments** for complex logic (shadow visibility calculation, ResizeObserver setup)
+- **Migration guide** (separate doc): How to convert existing `Box` with `overflow: 'auto'` to `ScrollShadowContainer`
 
 ### Step 2: Apply to TournamentSidebar
 
@@ -453,7 +479,54 @@ export function ScrollShadowContainer({
 
 **Coverage Target:** 80%+ on new code
 
-### Step 4: Apply to Results Page Tabs
+### Step 4: Create Migration Guide
+
+**File:** `/docs/migration-guides/box-to-scroll-shadow-container.md`
+
+**Content:**
+- **When to use ScrollShadowContainer** vs plain Box
+- **Parent container requirements** (height/width must be defined)
+- **Before/After examples** of common patterns
+- **Props mapping:** Box props → ScrollShadowContainer props
+- **Common pitfalls** and how to avoid them
+- **Testing the migration** (how to verify shadows work correctly)
+
+**Example pattern:**
+```markdown
+## Before: Box with overflow
+\`\`\`tsx
+<Box sx={{ overflow: 'auto', height: '100%' }}>
+  {content}
+</Box>
+\`\`\`
+
+## After: ScrollShadowContainer
+\`\`\`tsx
+<ScrollShadowContainer direction="vertical" height="100%">
+  {content}
+</ScrollShadowContainer>
+\`\`\`
+
+## Parent Requirements
+The parent container MUST have a defined height (either absolute or relative to viewport).
+Without this, the scroll container cannot determine overflow.
+```
+
+### Step 5: Apply to Tournament Home Games Section
+
+**File:** [To be identified during implementation]
+
+**Investigation:**
+- Find the component that renders the main games section on tournament home page
+- Likely in `/app/components/tournament-page/` or similar
+- Check current scroll implementation
+
+**Changes:**
+- Wrap games list/container with ScrollShadowContainer
+- Test with varying numbers of games (few vs many)
+- Ensure shadows work correctly on mobile and desktop
+
+### Step 6: Apply to Results Page Tabs
 
 **File:** `/app/components/results-page/results-page-client.tsx`
 
@@ -463,7 +536,7 @@ export function ScrollShadowContainer({
 - Keep existing overflow behavior
 - Test with different result set sizes
 
-### Step 5: Apply to Main Content Area
+### Step 7: Apply to Main Content Area
 
 **File:** `/app/[locale]/tournaments/[id]/layout.tsx`
 
@@ -472,7 +545,7 @@ export function ScrollShadowContainer({
 - Maintain existing height calculations
 - Test with different viewport sizes
 
-### Step 6: Fix Broken Playoffs Bracket Mask
+### Step 8: Fix Broken Playoffs Bracket Mask
 
 **File:** `/app/components/results-page/playoffs-bracket-view.tsx`
 
@@ -491,7 +564,7 @@ export function ScrollShadowContainer({
   - No ScrollShadowContainer needed
 - **Document decision:** Add amendment to plan explaining which option was chosen and why
 
-### Step 7: Audit Remaining Containers
+### Step 9: Audit Remaining Containers
 
 **Action:**
 ```bash
@@ -642,7 +715,10 @@ describe('ScrollShadowContainer', () => {
 ### Pre-Merge Checklist
 
 **Phase 1:**
-- [ ] ScrollShadowContainer component created and tested
+- [ ] ScrollShadowContainer component created with comprehensive JSDoc
+- [ ] Component documents parent container requirements (height/width)
+- [ ] Component documents height/width prop vs sx precedence
+- [ ] Migration guide created (`/docs/migration-guides/box-to-scroll-shadow-container.md`)
 - [ ] TournamentSidebar integration complete
 - [ ] Unit tests pass with 80%+ coverage
 - [ ] Manual testing in light/dark mode
@@ -650,12 +726,14 @@ describe('ScrollShadowContainer', () => {
 - [ ] SonarCloud shows 0 new issues
 
 **Phase 2:**
+- [ ] Tournament home games section integration complete (HIGHEST PRIORITY)
 - [ ] Results tabs integration complete
 - [ ] Main content area integration complete
 - [ ] Broken bracket mask fixed or removed
+- [ ] At least 4 total containers migrated
 - [ ] Audit of remaining containers complete
-- [ ] All integrations tested
-- [ ] Documentation updated (if needed)
+- [ ] All integrations tested in light/dark mode
+- [ ] Migration guide validated with real-world examples
 
 ### Accessibility
 
