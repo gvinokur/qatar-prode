@@ -12,9 +12,13 @@ This story is part of the ongoing internationalization effort to make the applic
 
 **What needs translation:**
 - **Tables page** (`/tournaments/[id]/results`) - Results and standings page with Groups/Playoffs tabs
-- **Groups components** - Tournament group standings cards and navigation
-- **Sidebar cards** - Group standings sidebar component
-- **Navigation elements** - Group selector tabs (PARTIDOS, CLASIFICADOS, PREMIOS)
+- **Groups components** - Tournament group standings cards within results page
+- **Sidebar component** - Group standings sidebar
+- **Team standings** - Cards and detailed stats used in results page
+
+**Out of scope:**
+- Tournament layout navigation (group-selector.tsx)
+- Friend groups pages (group-table.tsx)
 
 **Why this matters:**
 - Essential for bilingual user experience
@@ -215,7 +219,7 @@ const pointsText = t('stats.pointsDisplay', {
    - Replace: "Resultados no disponibles", "Los resultados se mostrarán aquí cuando los partidos comiencen", "Resultados y Tablas", "Error al cargar resultados", "Por favor, intenta nuevamente más tarde"
    - Use `await getTranslations('tables')` pattern
 
-### Client Components (8 files)
+### Client Components (6 files)
 
 4. `/app/components/results-page/results-page-client.tsx`
    - Add `useTranslations('tables')`
@@ -229,26 +233,20 @@ const pointsText = t('stats.pointsDisplay', {
    - Add `useTranslations('tables')`
    - Replace: "GRUPO {letter}", "Partidos:", "Tabla de Posiciones:", "mostrar más"
 
-7. `/app/components/groups-page/group-selector.tsx`
-   - Add `useTranslations('tables')` or use `navigation`
-   - Replace: "Navegación del torneo", "PARTIDOS", "CLASIFICADOS", "PREMIOS"
+7. `/app/components/groups-page/team-standings-cards.tsx`
+   - Add `useTranslations('tables')`
+   - Replace: "No hay posiciones disponibles todavía."
+   - **Note:** Used in `group-result-card.tsx` (results page component tree)
 
-8. `/app/components/groups-page/group-table.tsx`
-    - Add `useTranslations('tables')`
-    - Replace: "Tabla de Posiciones"
+8. `/app/components/groups-page/team-standing-card.tsx`
+   - Add `useTranslations('tables')`
+   - Update helper functions to accept `t` parameter (see detailed refactoring below)
+   - Replace all Spanish stats labels
+   - **Note:** Used in `team-standings-cards.tsx` (results page component tree)
 
-9. `/app/components/groups-page/team-standings-cards.tsx`
-    - Add `useTranslations('tables')`
-    - Replace: "No hay posiciones disponibles todavía."
-
-10. `/app/components/groups-page/team-standing-card.tsx`
-    - Add `useTranslations('tables')`
-    - Update helper functions to accept `t` parameter (see detailed refactoring below)
-    - Replace all Spanish stats labels
-
-11. `/app/components/tournament-page/group-standings-sidebar.tsx`
-    - Add `useTranslations('tables')`
-    - Replace: "Grupos", "Estás aquí", "GRUPO {letter}", "Ver Resultados"
+9. `/app/components/tournament-page/group-standings-sidebar.tsx`
+   - Add `useTranslations('tables')`
+   - Replace: "Grupos", "Estás aquí", "GRUPO {letter}", "Ver Resultados"
 
 ### Helper Function Refactoring (team-standing-card.tsx)
 
@@ -281,19 +279,17 @@ const pointsText = t('stats.pointsDisplay', {
 
 **All aria-labels explicitly listed for i18n coverage.**
 
-### Test Files (9 test files)
+### Test Files (7 test files)
 
-12. `__tests__/components/results-page/results-page-client.test.tsx` - i18n test
-13. `__tests__/components/results-page/groups-stage-view.test.tsx` - i18n test
-14. `__tests__/components/results-page/group-result-card.test.tsx` - i18n test
-15. `__tests__/components/groups-page/group-selector.test.tsx` - i18n test
-16. `__tests__/components/groups-page/group-table.test.tsx` - i18n test
-17. `__tests__/components/groups-page/team-standings-cards.test.tsx` - i18n test
-18. `__tests__/components/groups-page/team-standing-card.test.tsx` - i18n test (including helper functions)
-19. `__tests__/components/tournament-page/group-standings-sidebar.test.tsx` - Update existing test for i18n
-20. `__tests__/app/[locale]/tournaments/[id]/results/page.test.tsx` - Server component i18n test
+10. `__tests__/components/results-page/results-page-client.test.tsx` - i18n test
+11. `__tests__/components/results-page/groups-stage-view.test.tsx` - i18n test
+12. `__tests__/components/results-page/group-result-card.test.tsx` - i18n test
+13. `__tests__/components/groups-page/team-standings-cards.test.tsx` - i18n test
+14. `__tests__/components/groups-page/team-standing-card.test.tsx` - i18n test (including helper functions)
+15. `__tests__/components/tournament-page/group-standings-sidebar.test.tsx` - Update existing test for i18n
+16. `__tests__/app/[locale]/tournaments/[id]/results/page.test.tsx` - Server component i18n test
 
-**Total: 9 test files** (8 new + 1 update)
+**Total: 7 test files** (6 new + 1 update)
 
 ## Implementation Steps
 
@@ -333,41 +329,31 @@ diff <(jq -r 'paths(scalars) | join(".")' locales/en/tables.json | sort) \
    - Add `const t = useTranslations('tables')`
    - Replace lines 55, 63, 78, 95 with translated strings
 
-### Phase 4: Groups Page Components (4 files)
-8. Update `/app/components/groups-page/group-selector.tsx`:
+### Phase 4: Team Standings Components (2 files)
+8. Update `/app/components/groups-page/team-standings-cards.tsx`:
    - Import `useTranslations` from 'next-intl'
-   - Add `const t = useTranslations('tables')` (or 'navigation')
-   - Replace hardcoded labels: lines 52, 69, 78, 87
+   - Add `const t = useTranslations('tables')`
+   - Replace line 77: "No hay posiciones disponibles todavía."
 
-9. Update `/app/components/groups-page/group-table.tsx`:
-    - Import `useTranslations` from 'next-intl'
-    - Add `const t = useTranslations('tables')`
-    - Replace line 21
-
-10. Update `/app/components/groups-page/team-standings-cards.tsx`:
-    - Import `useTranslations` from 'next-intl'
-    - Add `const t = useTranslations('tables')`
-    - Replace line 77
-
-11. Update `/app/components/groups-page/team-standing-card.tsx`:
-    - Import `useTranslations` from 'next-intl'
-    - Add `const t = useTranslations('tables')`
-    - Update helper functions to accept `t` parameter
-    - Replace all hardcoded Spanish in lines 58, 197, 203, 209, 212, 215, 218, 225, 228, 231, 234, 240
+9. Update `/app/components/groups-page/team-standing-card.tsx`:
+   - Import `useTranslations` from 'next-intl'
+   - Add `const t = useTranslations('tables')`
+   - Update helper functions to accept `t` parameter
+   - Replace all hardcoded Spanish in lines 58, 197, 203, 209, 212, 215, 218, 225, 228, 231, 234, 240
 
 ### Phase 5: Sidebar Component (1 file)
-12. Update `/app/components/tournament-page/group-standings-sidebar.tsx`:
+10. Update `/app/components/tournament-page/group-standings-sidebar.tsx`:
     - Import `useTranslations` from 'next-intl'
     - Add `const t = useTranslations('tables')`
     - Replace lines 153, 157, 196, 232
 
 ### Phase 6: Testing (Create comprehensive test coverage)
-13. Create i18n tests for 9 components (8 new + 1 update)
-14. Test both English and Spanish translations
-15. Test dynamic interpolation (group letters, point displays)
-16. Test aria-labels in both languages
-17. Test empty states, error states, and all UI text
-18. Ensure 80% coverage threshold met
+11. Create i18n tests for 7 components (6 new + 1 update)
+12. Test both English and Spanish translations
+13. Test dynamic interpolation (group letters, point displays)
+14. Test aria-labels in both languages
+15. Test empty states, error states, and all UI text
+16. Ensure 80% coverage threshold met
 
 **Testing pattern:**
 ```typescript
@@ -422,7 +408,7 @@ describe('Component i18n', () => {
    - **Key parity validation:** Automated check that EN and ES have identical key structure
    - Validate EnOf markers in Spanish
 
-2. **Component i18n tests (all 9 components):**
+2. **Component i18n tests (all 7 components):**
    - Test each component renders with English translations
    - Test each component renders with Spanish translations
    - Test dynamic interpolation (group letters: "GROUP {letter}" → "GROUP A")
@@ -471,7 +457,7 @@ describe('Component i18n', () => {
 2. **✅ Helper function scope:** Only 3 internal helpers in team-standing-card.tsx, no external dependencies
 3. **✅ Test utilities:** Using NextIntlClientProvider directly (matches story #156 pattern)
 4. **✅ Key parity validation:** Added explicit diff command to verify EN/ES key matching
-5. **✅ Component count:** Corrected to 9 test files (8 new + 1 update), not 13
+5. **✅ Component count:** Corrected to 7 test files (6 new + 1 update) after removing out-of-scope components
 6. **✅ Aria-labels:** Explicit audit added with all 4 components requiring translation
 7. **✅ Navigation.json:** Confirmed already complete, no updates needed
 
