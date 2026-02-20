@@ -36,7 +36,10 @@ After evaluating three approaches via interactive HTML mockup (`scroll-shadow-mo
 - [ ] Accessible (doesn't interfere with keyboard navigation or screen readers)
 - [ ] Performance tested with large content (100+ items)
 - [ ] Tournament bracket shadows working correctly (fix broken mask implementation)
-- [ ] At least 3 existing scroll containers migrated successfully
+- [ ] At least 3 existing scroll containers migrated successfully:
+  - [ ] Tournament Bracket View (CRITICAL - broken mask fix)
+  - [ ] Tournament Layout Main Content (HIGH IMPACT - all tournament pages)
+  - [ ] Tournament Sidebar (HIGH IMPACT - navigation area)
 
 ---
 
@@ -150,6 +153,51 @@ useEffect(() => {
 
 ---
 
+## Scroll Container Audit (Updated based on PR feedback)
+
+**User feedback:** "I think we also need to change tournament layout as it's using scrolling containers for the sidebar and for the tournament main content, right? Any other that we should look for?"
+
+**Audit completed:** Comprehensive search for all `overflow: auto` instances in codebase.
+
+### User-Facing Containers (Priority for Migration)
+
+1. **Tournament Bracket View** - `playoffs-bracket-view.tsx`
+   - Lines 149-154: Broken mask implementation
+   - **Priority: CRITICAL** (currently broken, needs fix)
+
+2. **Tournament Layout - Main Content** - `app/[locale]/tournaments/[id]/layout.tsx`
+   - Line 261: Main content Grid with `overflow: 'auto'`
+   - Affects ALL tournament pages (games, results, groups, stats)
+   - **Priority: HIGH** (✨ NEW from user feedback - highest user impact)
+
+3. **Tournament Sidebar** - `tournament-page/tournament-sidebar.tsx`
+   - Line 68: Sidebar scroll with hidden scrollbars
+   - Contains rules, stats, friend groups
+   - **Priority: HIGH** (✨ NEW from user feedback - main navigation)
+
+4. **Results Page Tabs** - `results-page-client.tsx`
+   - Lines 78, 95: Both tab panels
+   - **Priority: MEDIUM**
+
+5. **Games List Container** - `unified-games-page-client.tsx`
+   - Vertical scrolling with hidden scrollbars
+   - **Priority: MEDIUM**
+
+### Additional Containers (Lower Priority)
+
+6. **Popovers** - `tournament-details-popover.tsx` (line 43), `game-details-popover.tsx` (line 58)
+   - **Priority: LOW** (small modals)
+
+7. **Backoffice Components** - Admin-only features
+   - `tournament-third-place-rules-tab.tsx` (lines 232, 297)
+   - `internal/group-dialog.tsx` (lines 178, 211)
+   - `tournament-main-data-tab.tsx` (line 559)
+   - **Priority: VERY LOW** (admin only)
+
+**Total Found:** 10 scroll containers (7 user-facing + 3 backoffice)
+
+---
+
 ## Files to Create/Modify
 
 ### New Files
@@ -170,20 +218,37 @@ useEffect(() => {
    - Accessibility tests
    - ~300-400 lines (80% coverage requirement)
 
-### Modified Files
+### Modified Files (Updated based on user feedback)
 
-1. **`app/components/results-page/playoffs-bracket-view.tsx`**
+**Core Migrations (Required - 3 minimum):**
+
+1. **`app/components/results-page/playoffs-bracket-view.tsx`** (PRIORITY 1 - CRITICAL)
    - Remove broken mask implementation (lines 149-154)
    - Wrap bracket container with `<ScrollShadowContainer direction="both">`
    - Update container styling (remove mask-related sx props)
 
-2. **`app/components/results-page/results-page-client.tsx`**
-   - Wrap both tab panels (lines 71-86, 88-103) with `<ScrollShadowContainer direction="vertical">`
+2. **`app/[locale]/tournaments/[id]/layout.tsx`** (PRIORITY 2 - HIGH IMPACT) ✨ NEW
+   - Line 261: Wrap main content Grid with `<ScrollShadowContainer direction="vertical">`
+   - Affects ALL tournament pages (games, results, groups, stats)
+   - Maintain existing height/overflow styling
+   - **Note:** Server component - may need client wrapper for ScrollShadowContainer
+
+3. **`app/components/tournament-page/tournament-sidebar.tsx`** (PRIORITY 3 - HIGH IMPACT) ✨ NEW
+   - Line 68: Wrap sidebar Box with `<ScrollShadowContainer direction="vertical">`
+   - Keep existing hidden scrollbar styling
+   - Test with expanded rules, multiple friend groups
+
+**Stretch Goals (If time permits):**
+
+4. **`app/components/results-page/results-page-client.tsx`**
+   - Lines 78, 95: Wrap both tab panels with `<ScrollShadowContainer direction="vertical">`
    - Maintain existing sx styling for flex layout
 
-3. **`app/components/unified-games-page-client.tsx`**
-   - Wrap games scroll container (lines 178-192) with `<ScrollShadowContainer direction="vertical">`
+5. **`app/components/unified-games-page-client.tsx`**
+   - Wrap games scroll container with `<ScrollShadowContainer direction="vertical">`
    - Keep existing hidden scrollbar styling
+
+**Impact:** Updated plan has significantly broader user benefit - enhances all tournament pages instead of just 2-3 specific pages.
 
 ---
 
@@ -265,27 +330,46 @@ useEffect(() => {
 
 ### Phase 3: Migration
 
-1. **Fix Tournament Bracket View**
-   - Remove broken mask implementation
+**Core Migrations (Required - 3 minimum):**
+
+1. **Fix Tournament Bracket View (CRITICAL)**
+   - Remove broken mask implementation (lines 149-154)
    - Wrap with ScrollShadowContainer direction="both"
    - Test horizontal + vertical scrolling
    - Verify in light/dark themes
+   - Check z-index conflicts with SVG connectors
 
-2. **Update Results Page Tabs**
+2. **Update Tournament Layout Main Content (HIGH IMPACT)** ✨ NEW
+   - Wrap main content Grid in `app/[locale]/tournaments/[id]/layout.tsx` line 261
+   - Use ScrollShadowContainer direction="vertical"
+   - Maintain existing height/overflow styling
+   - Test across all tournament pages (games, results, groups, stats)
+   - Verify responsive behavior
+   - Note: Server component - may need client wrapper
+
+3. **Update Tournament Sidebar (HIGH IMPACT)** ✨ NEW
+   - Wrap sidebar Box in `tournament-sidebar.tsx` line 68
+   - Use ScrollShadowContainer direction="vertical"
+   - Keep existing hidden scrollbar styling
+   - Test with expanded rules, multiple friend groups, conditional content
+   - Verify sidebar navigation still works correctly
+
+**Stretch Goals (If time permits):**
+
+4. **Update Results Page Tabs**
    - Wrap Groups tab panel with ScrollShadowContainer
    - Wrap Playoffs tab panel with ScrollShadowContainer
    - Test tab switching behavior
    - Verify shadows update when switching tabs
 
-3. **Update Games List Container**
+5. **Update Games List Container**
    - Wrap unified-games-page-client scroll container
    - Keep existing hidden scrollbar styling
    - Test with large game lists (50+ games)
    - Verify auto-scroll behavior still works
 
-4. **Audit remaining containers**
-   - Search for overflow: auto in codebase
-   - Evaluate each for shadow enhancement
+6. **Audit remaining containers**
+   - Evaluate popovers and backoffice containers
    - Document any containers intentionally not migrated
 
 ---
@@ -480,6 +564,98 @@ const mockScrollTo = (container: HTMLElement, scrollTop: number, scrollLeft: num
 
 ---
 
+## Comprehensive Scroll Container Audit
+
+**Audit completed based on user PR feedback:** All `overflow: auto` instances in the codebase have been identified and categorized.
+
+### User-Facing Containers (Priority for Migration)
+
+1. **Tournament Bracket View** (`playoffs-bracket-view.tsx`)
+   - Currently has broken mask implementation (lines 149-154)
+   - Needs horizontal + vertical shadows
+   - **Priority: CRITICAL** (currently broken)
+
+2. **Tournament Layout - Main Content** (`app/[locale]/tournaments/[id]/layout.tsx`)
+   - Line 261: Main content Grid with `overflow: 'auto'`
+   - Contains the primary tournament pages (games, results, groups, stats)
+   - **Priority: HIGH** (main user navigation area)
+   - **Status: NEW - Added from user feedback**
+
+3. **Tournament Sidebar** (`tournament-page/tournament-sidebar.tsx`)
+   - Line 68: Sidebar scroll container with hidden scrollbars
+   - Contains rules, stats, group standings, friend groups
+   - **Priority: HIGH** (main user navigation area)
+   - **Status: NEW - Added from user feedback**
+
+4. **Results Page Tabs** (`results-page-client.tsx`)
+   - Lines 78, 95: Both tab panels have `overflow: 'auto'`
+   - Groups stage and Playoffs tabs
+   - **Priority: MEDIUM**
+
+5. **Games List Container** (`unified-games-page-client.tsx`)
+   - Vertical scrolling of game cards with hidden scrollbars
+   - **Priority: MEDIUM**
+
+### Additional Containers (Lower Priority / Optional)
+
+6. **Popovers** (Good candidates for UX enhancement)
+   - `tournament-details-popover.tsx` line 43: `maxHeight: '80vh', overflow: 'auto'`
+   - `game-details-popover.tsx` line 58: `maxHeight: '80vh', overflow: 'auto'`
+   - **Priority: LOW** (small modals, less critical)
+
+7. **Backoffice Components** (Admin only, lowest priority)
+   - `tournament-third-place-rules-tab.tsx` lines 232, 297
+   - `internal/group-dialog.tsx` lines 178, 211
+   - `tournament-main-data-tab.tsx` line 559
+   - **Priority: VERY LOW** (admin-only features)
+
+**Total Identified:** 10 scroll containers (7 user-facing + 3 backoffice)
+
+### Migration Strategy
+
+**Core Migrations (Required - 3 minimum for acceptance criteria):**
+
+**Migration #1: Tournament Bracket View (CRITICAL)**
+- File: `playoffs-bracket-view.tsx`
+- Action: Remove broken mask (lines 149-154), wrap with `<ScrollShadowContainer direction="both">`
+- Impact: Fixes currently broken functionality
+- Testing: Horizontal + vertical scrolling, z-index conflicts with SVG, light/dark themes
+
+**Migration #2: Tournament Layout Main Content (HIGH IMPACT)** ✨ NEW
+- File: `app/[locale]/tournaments/[id]/layout.tsx` line 261
+- Action: Wrap main content Grid with `<ScrollShadowContainer direction="vertical">`
+- Impact: All tournament pages get scroll indicators (games, results, stats, groups)
+- Testing: Test across all tournament pages, responsive behavior, long content
+- Notes: This is the primary container users interact with
+
+**Migration #3: Tournament Sidebar (HIGH IMPACT)** ✨ NEW
+- File: `tournament-sidebar.tsx` line 68
+- Action: Wrap sidebar Box with `<ScrollShadowContainer direction="vertical">`
+- Impact: Sidebar navigation gets scroll indicators
+- Testing: Expanded rules, multiple friend groups, conditional content
+- Notes: Keep existing hidden scrollbar styling
+
+**Rationale for Updated Priority:**
+- User feedback highlighted tournament layout containers as important
+- These containers have **highest user visibility** (main navigation areas)
+- **Broader impact** than original plan (affects all tournament pages, not just results)
+- Original plan targeted Results Tabs + Games List, but tournament layout is more critical
+
+### Migration Contingency
+
+**If Tournament Layout migration has issues:**
+- Layout.tsx is server component, might need client component wrapper
+- Children rendering patterns must be preserved
+- If blocked, fall back to Results Tabs (#4) or Games List (#5)
+- Minimum 3 migrations still achievable with backup options
+
+**Risk mitigation:**
+- Test tournament layout migration carefully
+- Verify no hydration issues with server/client boundary
+- Ensure children prop forwarding works correctly
+
+---
+
 ## Open Questions
 
 None - all requirements clarified via:
@@ -487,6 +663,7 @@ None - all requirements clarified via:
 - Comprehensive issue documentation
 - Codebase exploration
 - Testing pattern analysis
+- User PR feedback on additional scroll containers
 
 ---
 
