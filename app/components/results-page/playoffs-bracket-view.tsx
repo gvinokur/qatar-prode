@@ -5,6 +5,7 @@ import { Team, PlayoffRound } from '@/app/db/tables-definition'
 import { Box, Typography, useMediaQuery, useTheme } from '@mui/material'
 import { useMemo } from 'react'
 import BracketGameCard from './bracket-game-card'
+import ScrollShadowContainer from '@/app/components/scroll-shadow-container'
 import {
   BracketRound,
   calculateGamePositions,
@@ -139,110 +140,105 @@ export default function PlayoffsBracketView({
     <Box>
       {/* Main bracket (if any rounds exist) */}
       {bracketRounds.length > 0 && (
-        <Box
-          sx={{
-            position: 'relative',
-            width: dimensions.width,
-            height: dimensions.height,
-            pb: 4,
-            // Edge fade gradients to indicate scrollability
-            maskImage:
-              'linear-gradient(to right, black calc(100% - 40px), transparent), linear-gradient(to bottom, black calc(100% - 40px), transparent)',
-            maskComposite: 'intersect',
-            WebkitMaskImage:
-              'linear-gradient(to right, black calc(100% - 40px), transparent), linear-gradient(to bottom, black calc(100% - 40px), transparent)',
-            WebkitMaskComposite: 'source-in',
-          }}
-        >
-          {/* SVG overlay for connection lines */}
-          <svg
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: dimensions.width,
-              height: dimensions.height,
-              pointerEvents: 'none',
-              zIndex: 0,
-            }}
-          >
-            {connectionPaths.map((path) => (
-              <path
-                key={path}
-                d={path}
-                stroke={theme.palette.divider}
-                strokeWidth={2}
-                fill="none"
-                opacity={0.5}
-                transform={`scale(${scale})`}
-              />
-            ))}
-          </svg>
-
-          {/* Game cards layer */}
+        <ScrollShadowContainer direction="both" height={dimensions.height} width="100%">
           <Box
             sx={{
               position: 'relative',
-              zIndex: 1,
               width: dimensions.width,
               height: dimensions.height,
+              pb: 4,
             }}
           >
-            {gamePositions.map((pos) => {
-              const game = gamesMap[pos.gameId]
-              if (!game) return null
+            {/* SVG overlay for connection lines */}
+            <svg
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: dimensions.width,
+                height: dimensions.height,
+                pointerEvents: 'none',
+                zIndex: 0,
+              }}
+            >
+              {connectionPaths.map((path) => (
+                <path
+                  key={path}
+                  d={path}
+                  stroke={theme.palette.divider}
+                  strokeWidth={2}
+                  fill="none"
+                  opacity={0.5}
+                  transform={`scale(${scale})`}
+                />
+              ))}
+            </svg>
 
-              // Show round label above first game of each round
-              const isFirstGameInRound = pos.gameIndexInRound === 0
-              const round = bracketRounds[pos.roundIndex]
-              const roundLabel = isFirstGameInRound ? getRoundName(round.games.length) : null
+            {/* Game cards layer */}
+            <Box
+              sx={{
+                position: 'relative',
+                zIndex: 1,
+                width: dimensions.width,
+                height: dimensions.height,
+              }}
+            >
+              {gamePositions.map((pos) => {
+                const game = gamesMap[pos.gameId]
+                if (!game) return null
 
-              return (
+                // Show round label above first game of each round
+                const isFirstGameInRound = pos.gameIndexInRound === 0
+                const round = bracketRounds[pos.roundIndex]
+                const roundLabel = isFirstGameInRound ? getRoundName(round.games.length) : null
+
+                return (
+                  <Box
+                    key={pos.gameId}
+                    sx={{
+                      position: 'absolute',
+                      left: pos.x * scale,
+                      top: pos.y * scale,
+                      transform: isMobile ? `scale(${BRACKET_CONSTANTS.MOBILE_SCALE})` : 'none',
+                      transformOrigin: 'top left',
+                    }}
+                  >
+                    {roundLabel && (
+                      <Typography
+                        variant="caption"
+                        sx={{ mb: 1, fontWeight: 600, fontSize: '0.75rem', display: 'block' }}
+                      >
+                        {roundLabel}
+                      </Typography>
+                    )}
+                    <BracketGameCard game={game} teamsMap={teamsMap} />
+                  </Box>
+                )
+              })}
+
+              {/* Third place playoff (below final) */}
+              {thirdPlaceGame && gamePositions.length > 0 && (
                 <Box
-                  key={pos.gameId}
                   sx={{
                     position: 'absolute',
-                    left: pos.x * scale,
-                    top: pos.y * scale,
+                    left: gamePositions.at(-1)!.x * scale,
+                    top: (gamePositions.at(-1)!.y + 150) * scale,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
                     transform: isMobile ? `scale(${BRACKET_CONSTANTS.MOBILE_SCALE})` : 'none',
                     transformOrigin: 'top left',
                   }}
                 >
-                  {roundLabel && (
-                    <Typography
-                      variant="caption"
-                      sx={{ mb: 1, fontWeight: 600, fontSize: '0.75rem', display: 'block' }}
-                    >
-                      {roundLabel}
-                    </Typography>
-                  )}
-                  <BracketGameCard game={game} teamsMap={teamsMap} />
+                  <Typography variant="caption" sx={{ mb: 1, fontWeight: 600, fontSize: '0.75rem' }}>
+                    3er Lugar
+                  </Typography>
+                  <BracketGameCard game={thirdPlaceGame} teamsMap={teamsMap} />
                 </Box>
-              )
-            })}
-
-            {/* Third place playoff (below final) */}
-            {thirdPlaceGame && gamePositions.length > 0 && (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  left: gamePositions.at(-1)!.x * scale,
-                  top: (gamePositions.at(-1)!.y + 150) * scale,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  transform: isMobile ? `scale(${BRACKET_CONSTANTS.MOBILE_SCALE})` : 'none',
-                  transformOrigin: 'top left',
-                }}
-              >
-                <Typography variant="caption" sx={{ mb: 1, fontWeight: 600, fontSize: '0.75rem' }}>
-                  3er Lugar
-                </Typography>
-                <BracketGameCard game={thirdPlaceGame} teamsMap={teamsMap} />
-              </Box>
-            )}
+              )}
+            </Box>
           </Box>
-        </Box>
+        </ScrollShadowContainer>
       )}
     </Box>
   )
