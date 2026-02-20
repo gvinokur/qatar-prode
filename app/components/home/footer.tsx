@@ -25,7 +25,9 @@ function Footer({ imageUrl, message }: FooterProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const pathname = usePathname();
-  const isInTournamentContext = pathname.startsWith('/tournaments/');
+  // Remove locale prefix to check tournament context (pathname is like /en/tournaments/... or /es/tournaments/...)
+  const pathWithoutLocale = pathname.replace(/^\/[^/]+/, '');
+  const isInTournamentContext = pathWithoutLocale.startsWith('/tournaments/');
 
   const [infoMessage, setInfoMessage] = useState<React.ReactNode | null>(null);
 

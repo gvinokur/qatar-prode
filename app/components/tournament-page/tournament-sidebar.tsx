@@ -29,10 +29,13 @@ interface TournamentSidebarProps {
 
 // Helper to determine current section from pathname
 function getCurrentSection(pathname: string, tournamentId: string): string | null {
-  if (pathname === `/tournaments/${tournamentId}/rules`) return 'rules'
-  if (pathname.startsWith(`/tournaments/${tournamentId}/stats`)) return 'stats'
-  if (pathname === `/tournaments/${tournamentId}/results`) return 'results'
-  if (pathname.startsWith(`/tournaments/${tournamentId}/friend-groups`)) return 'friend-groups'
+  // Remove locale prefix (pathname is like /en/tournaments/... or /es/tournaments/...)
+  const pathWithoutLocale = pathname.replace(/^\/[^/]+/, '');
+
+  if (pathWithoutLocale === `/tournaments/${tournamentId}/rules`) return 'rules'
+  if (pathWithoutLocale.startsWith(`/tournaments/${tournamentId}/stats`)) return 'stats'
+  if (pathWithoutLocale === `/tournaments/${tournamentId}/results`) return 'results'
+  if (pathWithoutLocale.startsWith(`/tournaments/${tournamentId}/friend-groups`)) return 'friend-groups'
   return null
 }
 
