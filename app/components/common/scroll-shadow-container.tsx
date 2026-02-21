@@ -353,8 +353,10 @@ export function ScrollShadowContainer({
     )
 
   // Calculate overflow based on direction
-  const overflowX = direction === 'horizontal' || direction === 'both' ? 'auto' : 'hidden'
-  const overflowY = direction === 'vertical' || direction === 'both' ? 'auto' : 'hidden'
+  // Use 'clip' for direction='none' to completely disable scrolling (not even programmatic)
+  // Use 'hidden' for perpendicular axis (allows programmatic scroll if needed)
+  const overflowX = direction === 'horizontal' || direction === 'both' ? 'auto' : direction === 'none' ? 'clip' : 'hidden'
+  const overflowY = direction === 'vertical' || direction === 'both' ? 'auto' : direction === 'none' ? 'clip' : 'hidden'
 
   // Merge sx with dedicated height/width props (dedicated props take precedence)
   const mergedSx: SxProps<Theme> = {

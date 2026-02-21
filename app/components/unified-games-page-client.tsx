@@ -182,6 +182,7 @@ function UnifiedGamesPageContent({
         sx={{
           flexGrow: 1,
           minHeight: 0,
+          height: { xs: 'auto', md: '100%' },
         }}
       >
         <GamesListWithScroll
