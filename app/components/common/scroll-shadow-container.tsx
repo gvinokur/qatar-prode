@@ -76,7 +76,7 @@ import type { SxProps, Theme } from '@mui/material'
  *       <Dashboard />
  *       <Filters />
  *
- *       {/* Inner: doesn't scroll on mobile, scrolls on desktop */}
+ *       // Inner container: doesn't scroll on mobile, scrolls on desktop
  *       <ScrollShadowContainer
  *         direction={isMobile ? 'none' : 'vertical'}
  *         sx={{ flexGrow: 1, minHeight: 0 }}
