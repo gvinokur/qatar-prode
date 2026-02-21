@@ -77,7 +77,7 @@ describe('DraggableTeamCard', () => {
       />
     );
 
-    expect(screen.getByText('1')).toBeInTheDocument();
+    expect(screen.getByText('1°')).toBeInTheDocument();
   });
 
   it('should render checkbox for position 3', () => {
