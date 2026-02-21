@@ -203,44 +203,44 @@ import type { SxProps, Theme } from '@mui/material'
 
 interface ScrollShadowContainerProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> {
   /** Content to be rendered inside the scrollable container */
-  children: React.ReactNode
+  readonly children: React.ReactNode
   /** Scroll direction for shadow indicators. Default: 'vertical'. Use 'none' to disable scrolling. */
-  direction?: 'vertical' | 'horizontal' | 'both' | 'none'
+  readonly direction?: 'vertical' | 'horizontal' | 'both' | 'none'
   /** Size of shadow gradient in pixels. Default: 40 */
-  shadowSize?: number
+  readonly shadowSize?: number
   /**
    * Custom shadow color. Accepts hex (#000000), rgba(0,0,0,0.2), or CSS color names.
    * Default: theme-based (black with alpha, opacity varies by theme mode)
    */
-  shadowColor?: string
+  readonly shadowColor?: string
   /**
    * Hide native scrollbars with CSS.
    * Default: false (scrollbars visible)
    * Set to true when you want shadows as the only scroll indicator.
    */
-  hideScrollbar?: boolean
+  readonly hideScrollbar?: boolean
   /**
    * Container height. Applied directly to scroll container.
    * Takes precedence over sx.height if both are provided.
    */
-  height?: string | number
+  readonly height?: string | number
   /**
    * Container width. Applied directly to scroll container.
    * Takes precedence over sx.width if both are provided.
    */
-  width?: string | number
+  readonly width?: string | number
   /**
    * Additional MUI sx prop styles for the outer wrapper.
    * Applied to the outer box (position: relative wrapper).
    * If height/width are provided via dedicated props above, they override sx.height/sx.width.
    */
-  sx?: SxProps<Theme>
+  readonly sx?: SxProps<Theme>
   /**
    * Additional MUI sx prop styles for the inner scroll container.
    * Applied to the scrollable box that contains children.
    * Use this for layout styles that affect children (display: flex, gap, padding, etc.)
    */
-  scrollContainerSx?: SxProps<Theme>
+  readonly scrollContainerSx?: SxProps<Theme>
 }
 
 type ShadowState = {
@@ -343,7 +343,7 @@ export function ScrollShadowContainer({
     const observeChildren = () => {
       Array.from(container.children).forEach((child) => {
         // Skip shadow divs (they have data-shadow attribute)
-        if (!(child as HTMLElement).hasAttribute('data-shadow')) {
+        if (!(child as HTMLElement).dataset.shadow) {
           resizeObserver.observe(child)
           console.warn('[ScrollShadow] Observing child:', child)
         }
@@ -393,8 +393,18 @@ export function ScrollShadowContainer({
   // Calculate overflow based on direction
   // Use 'clip' for direction='none' to completely disable scrolling (not even programmatic)
   // Use 'hidden' for perpendicular axis (allows programmatic scroll if needed)
-  const overflowX = direction === 'horizontal' || direction === 'both' ? 'auto' : direction === 'none' ? 'clip' : 'hidden'
-  const overflowY = direction === 'vertical' || direction === 'both' ? 'auto' : direction === 'none' ? 'clip' : 'hidden'
+  const getOverflowX = () => {
+    if (direction === 'horizontal' || direction === 'both') return 'auto'
+    if (direction === 'none') return 'clip'
+    return 'hidden'
+  }
+  const getOverflowY = () => {
+    if (direction === 'vertical' || direction === 'both') return 'auto'
+    if (direction === 'none') return 'clip'
+    return 'hidden'
+  }
+  const overflowX = getOverflowX()
+  const overflowY = getOverflowY()
 
   // Merge sx with dedicated height/width props (dedicated props take precedence)
   const mergedSx: SxProps<Theme> = {
