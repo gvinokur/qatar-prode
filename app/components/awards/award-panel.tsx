@@ -17,7 +17,7 @@ import {
 import {Close as MissIcon, Done as HitIcon} from "@mui/icons-material";
 import {updateOrCreateTournamentGuess} from "../../actions/guesses-actions";
 import {ExtendedPlayerData} from "../../definitions";
-import {getAwardsDefinition, awardsDefinition, AwardTypes} from "../../utils/award-utils";
+import {getAwardsDefinition, AwardDefinition, AwardTypes} from "../../utils/award-utils";
 import TeamSelector from "./team-selector";
 import MobileFriendlyAutocomplete from './mobile-friendly-autocomplete';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -103,7 +103,7 @@ export default function AwardsPanel({
   const isDisabled = isPredictionLocked || saving
 
   // Common Autocomplete props/functions for player awards
-  const getPlayerOptions = (awardDefinition: typeof awardsDefinition[number]) =>
+  const getPlayerOptions = (awardDefinition: AwardDefinition) =>
     allPlayers.filter(awardDefinition.playerFilter).sort((a, b) => a.team.name.localeCompare(b.team.name));
 
   const groupByTeam = (option: ExtendedPlayerData) => option.team.name;

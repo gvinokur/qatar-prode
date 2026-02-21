@@ -9,7 +9,7 @@ export type AwardTypes =
   | 'runner_up_team_id'
   | 'third_place_team_id'
 
-interface AwardDefinition {
+export interface AwardDefinition {
   label: string
   property: AwardTypes
   playerFilter: (_: ExtendedPlayerData) => boolean
