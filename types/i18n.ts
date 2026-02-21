@@ -11,6 +11,7 @@ import predictions from '@/locales/en/predictions.json';
 import rules from '@/locales/en/rules.json';
 import stats from '@/locales/en/stats.json';
 import tables from '@/locales/en/tables.json';
+import qualifiedTeams from '@/locales/en/qualified-teams.json';
 
 // Merge all namespaces into single type
 type Messages = {
@@ -27,6 +28,7 @@ type Messages = {
   rules: typeof rules;
   stats: typeof stats;
   tables: typeof tables;
+  'qualified-teams': typeof qualifiedTeams;
 };
 
 declare global {

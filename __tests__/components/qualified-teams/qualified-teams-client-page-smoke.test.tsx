@@ -1,9 +1,24 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { NextIntlClientProvider } from 'next-intl';
 import QualifiedTeamsClientPage from '../../../app/components/qualified-teams/qualified-teams-client-page';
-import { renderWithTheme } from '../../utils/test-utils';
 import { testFactories } from '../../db/test-factories';
+import qualifiedTeamsEs from '../../../locales/es/qualified-teams.json';
+import qualifiedTeamsEn from '../../../locales/en/qualified-teams.json';
+
+// Helper to render with i18n
+const renderWithI18n = (component: React.ReactElement, locale: 'en' | 'es' = 'es') => {
+  const messages = {
+    'qualified-teams': locale === 'es' ? qualifiedTeamsEs : qualifiedTeamsEn,
+  };
+
+  return render(
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      {component}
+    </NextIntlClientProvider>
+  );
+};
 
 /**
  * Smoke tests for QualifiedTeamsClientPage
@@ -54,24 +69,24 @@ describe('QualifiedTeamsClientPage - Smoke Tests', () => {
   };
 
   it('should render without crashing', () => {
-    const { container } = renderWithTheme(<QualifiedTeamsClientPage {...mockProps} />);
+    const { container } = renderWithI18n(<QualifiedTeamsClientPage {...mockProps} />);
     expect(container).toBeInTheDocument();
   });
 
   it('should render with locked state', () => {
     const lockedProps = { ...mockProps, isLocked: true };
-    const { container } = renderWithTheme(<QualifiedTeamsClientPage {...lockedProps} />);
+    const { container } = renderWithI18n(<QualifiedTeamsClientPage {...lockedProps} />);
     expect(container).toBeInTheDocument();
   });
 
   it('should render with no initial predictions', () => {
     const emptyProps = { ...mockProps, initialPredictions: [] };
-    const { container } = renderWithTheme(<QualifiedTeamsClientPage {...emptyProps} />);
+    const { container } = renderWithI18n(<QualifiedTeamsClientPage {...emptyProps} />);
     expect(container).toBeInTheDocument();
   });
 
   it('should render DnD container', () => {
-    const { container } = renderWithTheme(<QualifiedTeamsClientPage {...mockProps} />);
+    const { container } = renderWithI18n(<QualifiedTeamsClientPage {...mockProps} />);
     // Component should render with DnD context
     const dndContainer = container.querySelector('[aria-describedby^="DndDescribedBy"]');
     expect(dndContainer || container.firstChild).toBeTruthy();
@@ -86,7 +101,7 @@ describe('QualifiedTeamsClientPage - Smoke Tests', () => {
         max_third_place_qualifiers: 0,
       }),
     };
-    const { container } = renderWithTheme(<QualifiedTeamsClientPage {...noThirdPlaceProps} />);
+    const { container } = renderWithI18n(<QualifiedTeamsClientPage {...noThirdPlaceProps} />);
     expect(container).toBeInTheDocument();
   });
 });

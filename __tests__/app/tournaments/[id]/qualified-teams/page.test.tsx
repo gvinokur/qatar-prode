@@ -131,7 +131,7 @@ describe('QualifiedTeamsPage', () => {
   it('should redirect to login if user is not authenticated', async () => {
     mockGetLoggedInUser.mockResolvedValue(null);
 
-    const params = Promise.resolve({ id: 'tournament-1' });
+    const params = Promise.resolve({ id: 'tournament-1', locale: 'es' });
 
     await expect(QualifiedTeamsPage({ params })).rejects.toThrow('NEXT_REDIRECT');
     expect(mockRedirect).toHaveBeenCalledWith('/es/auth/login?redirect=/es/tournaments/tournament-1/qualified-teams');
@@ -140,7 +140,7 @@ describe('QualifiedTeamsPage', () => {
   it('should redirect to login if user has no ID', async () => {
     mockGetLoggedInUser.mockResolvedValue({ ...mockUser, id: '' });
 
-    const params = Promise.resolve({ id: 'tournament-1' });
+    const params = Promise.resolve({ id: 'tournament-1', locale: 'es' });
 
     await expect(QualifiedTeamsPage({ params })).rejects.toThrow('NEXT_REDIRECT');
     expect(mockRedirect).toHaveBeenCalledWith('/es/auth/login?redirect=/es/tournaments/tournament-1/qualified-teams');
@@ -155,7 +155,7 @@ describe('QualifiedTeamsPage', () => {
     };
     mockDb.selectFrom.mockReturnValue(mockTournamentQuery as any);
 
-    const params = Promise.resolve({ id: 'nonexistent' });
+    const params = Promise.resolve({ id: 'nonexistent', locale: 'es' });
 
     await expect(QualifiedTeamsPage({ params })).rejects.toThrow('NEXT_NOT_FOUND');
     expect(mockNotFound).toHaveBeenCalled();
@@ -221,7 +221,7 @@ describe('QualifiedTeamsPage', () => {
       return mockTournamentQuery as any;
     });
 
-    const params = Promise.resolve({ id: 'tournament-1' });
+    const params = Promise.resolve({ id: 'tournament-1', locale: 'es' });
     const searchParams = Promise.resolve({});
     const result = await QualifiedTeamsPage({ params, searchParams });
 
@@ -260,7 +260,7 @@ describe('QualifiedTeamsPage', () => {
       return mockTournamentQuery as any;
     });
 
-    const params = Promise.resolve({ id: 'tournament-1' });
+    const params = Promise.resolve({ id: 'tournament-1', locale: 'es' });
     const searchParams = Promise.resolve({});
     const result = await QualifiedTeamsPage({ params, searchParams });
 
@@ -301,10 +301,19 @@ describe('QualifiedTeamsPage', () => {
       return mockTournamentQuery as any;
     });
 
-    const params = Promise.resolve({ id: 'tournament-1' });
+    const params = Promise.resolve({ id: 'tournament-1', locale: 'es' });
     const searchParams = Promise.resolve({});
     await QualifiedTeamsPage({ params, searchParams });
 
     expect(mockGetTournamentConfig).toHaveBeenCalledWith('tournament-1');
+  });
+
+  it('should use dynamic locale in redirect URL', async () => {
+    mockGetLoggedInUser.mockResolvedValue(null);
+
+    const params = Promise.resolve({ id: 'tournament-1', locale: 'en' });
+
+    await expect(QualifiedTeamsPage({ params })).rejects.toThrow('NEXT_REDIRECT');
+    expect(mockRedirect).toHaveBeenCalledWith('/en/auth/login?redirect=/en/tournaments/tournament-1/qualified-teams');
   });
 });

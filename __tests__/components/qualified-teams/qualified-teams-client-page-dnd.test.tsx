@@ -1,11 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { NextIntlClientProvider } from 'next-intl';
 import { DragEndEvent } from '@dnd-kit/core';
 import QualifiedTeamsClientPage from '../../../app/components/qualified-teams/qualified-teams-client-page';
-import { renderWithTheme } from '../../utils/test-utils';
 import { testFactories } from '../../db/test-factories';
 import * as qualificationActions from '../../../app/actions/qualification-actions';
+import qualifiedTeamsEs from '../../../locales/es/qualified-teams.json';
+import qualifiedTeamsEn from '../../../locales/en/qualified-teams.json';
+
+// Helper to render with i18n
+const renderWithI18n = (component: React.ReactElement, locale: 'en' | 'es' = 'es') => {
+  const messages = {
+    'qualified-teams': locale === 'es' ? qualifiedTeamsEs : qualifiedTeamsEn,
+  };
+
+  return render(
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      {component}
+    </NextIntlClientProvider>
+  );
+};
 
 // Mock qualification actions
 vi.mock('../../../app/actions/qualification-actions', () => ({
@@ -104,7 +119,7 @@ describe('QualifiedTeamsClientPage - Drag and Drop', () => {
   });
 
   it('should render all teams in initial order', () => {
-    renderWithTheme(<QualifiedTeamsClientPage {...mockProps} />);
+    renderWithI18n(<QualifiedTeamsClientPage {...mockProps} />);
 
     expect(screen.getByText('Argentina')).toBeInTheDocument();
     expect(screen.getByText('Brazil')).toBeInTheDocument();
@@ -113,7 +128,7 @@ describe('QualifiedTeamsClientPage - Drag and Drop', () => {
   });
 
   it('should display third place summary when enabled', () => {
-    renderWithTheme(<QualifiedTeamsClientPage {...mockProps} />);
+    renderWithI18n(<QualifiedTeamsClientPage {...mockProps} />);
 
     // Third place summary should be visible
     expect(screen.getByText(/Clasificados en Tercer Lugar/i)).toBeInTheDocument();
@@ -129,7 +144,7 @@ describe('QualifiedTeamsClientPage - Drag and Drop', () => {
       },
     };
 
-    renderWithTheme(<QualifiedTeamsClientPage {...noThirdPlaceProps} />);
+    renderWithI18n(<QualifiedTeamsClientPage {...noThirdPlaceProps} />);
 
     expect(screen.queryByText(/Clasificados en Tercer Lugar/i)).not.toBeInTheDocument();
   });
@@ -140,7 +155,7 @@ describe('QualifiedTeamsClientPage - Drag and Drop', () => {
       message: 'Guardado exitoso',
     });
 
-    const { container } = renderWithTheme(<QualifiedTeamsClientPage {...mockProps} />);
+    const { container } = renderWithI18n(<QualifiedTeamsClientPage {...mockProps} />);
 
     // Simulate a drag end event by finding the DnD context and triggering onDragEnd
     // Since we can't easily simulate actual drag events, we'll test the component renders
@@ -150,7 +165,7 @@ describe('QualifiedTeamsClientPage - Drag and Drop', () => {
   it('should show error alert on save failure', async () => {
     mockUpdateGroupPositions.mockRejectedValue(new Error('Network error'));
 
-    renderWithTheme(<QualifiedTeamsClientPage {...mockProps} />);
+    renderWithI18n(<QualifiedTeamsClientPage {...mockProps} />);
 
     // Component should render without crashing even with mock error
     expect(screen.getByText('Argentina')).toBeInTheDocument();
@@ -162,7 +177,7 @@ describe('QualifiedTeamsClientPage - Drag and Drop', () => {
       isLocked: true,
     };
 
-    renderWithTheme(<QualifiedTeamsClientPage {...lockedProps} />);
+    renderWithI18n(<QualifiedTeamsClientPage {...lockedProps} />);
 
     // All teams should be visible when locked
     expect(screen.getByText('Argentina')).toBeInTheDocument();
@@ -175,14 +190,14 @@ describe('QualifiedTeamsClientPage - Drag and Drop', () => {
       initialPredictions: [],
     };
 
-    renderWithTheme(<QualifiedTeamsClientPage {...emptyProps} />);
+    renderWithI18n(<QualifiedTeamsClientPage {...emptyProps} />);
 
     // Should render without crashing
     expect(screen.getByText(/Clasificados en Tercer Lugar/i)).toBeInTheDocument();
   });
 
   it('should render info popover button', () => {
-    renderWithTheme(<QualifiedTeamsClientPage {...mockProps} />);
+    renderWithI18n(<QualifiedTeamsClientPage {...mockProps} />);
 
     // Info buttons should be present (InfoOutlinedIcon in header and potentially other places)
     const infoButtons = screen.getAllByTestId('InfoOutlinedIcon');
@@ -234,7 +249,7 @@ describe('QualifiedTeamsClientPage - Drag and Drop', () => {
       initialPredictions: [mockPrediction1, mockPrediction2, mockPrediction5, mockPrediction6],
     };
 
-    renderWithTheme(<QualifiedTeamsClientPage {...multiGroupProps} />);
+    renderWithI18n(<QualifiedTeamsClientPage {...multiGroupProps} />);
 
     expect(screen.getByText('GRUPO A')).toBeInTheDocument();
     expect(screen.getByText('GRUPO B')).toBeInTheDocument();
@@ -257,7 +272,7 @@ describe('QualifiedTeamsClientPage - Drag and Drop', () => {
       ],
     };
 
-    renderWithTheme(<QualifiedTeamsClientPage {...qualifiedThirdProps} />);
+    renderWithI18n(<QualifiedTeamsClientPage {...qualifiedThirdProps} />);
 
     // Third place summary should show 1 selected out of 4 max
     expect(screen.getByText('Clasificados en Tercer Lugar')).toBeInTheDocument();
@@ -286,7 +301,7 @@ describe('QualifiedTeamsClientPage - Drag and Drop', () => {
       ],
     };
 
-    renderWithTheme(<QualifiedTeamsClientPage {...exceededProps} />);
+    renderWithI18n(<QualifiedTeamsClientPage {...exceededProps} />);
 
     // Should show error state in third place summary (2 selected, 1 max)
     const errorAlert = screen.getByRole('alert');
@@ -306,7 +321,7 @@ describe('QualifiedTeamsClientPage - Drag and Drop', () => {
       },
     };
 
-    renderWithTheme(<QualifiedTeamsClientPage {...noThirdPlaceProps} />);
+    renderWithI18n(<QualifiedTeamsClientPage {...noThirdPlaceProps} />);
 
     // Third place summary should not be rendered
     expect(screen.queryByText(/Clasificados en Tercer Lugar/i)).not.toBeInTheDocument();

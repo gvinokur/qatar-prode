@@ -1,0 +1,45 @@
+{
+  "page": {
+    "title": "EnOf(Prediccion de Clasificados)",
+    "lockedAlert": "EnOf(Las predicciones están bloqueadas para este torneo. Puedes ver tus predicciones pero no puedes hacer cambios.)",
+    "savedSuccess": "EnOf(Predicciones guardadas exitosamente)",
+    "saveError": "EnOf(Error al guardar las predicciones)"
+  },
+  "instructions": {
+    "title": "EnOf(Cómo hacer predicciones:)",
+    "dragTeams": "EnOf(Arrastra los equipos para cambiar su posición en el grupo)",
+    "autoQualify": "EnOf(Los equipos en posiciones 1-2 clasifican automáticamente)",
+    "thirdPlace": "EnOf(Para el 3er puesto: usa el checkbox \"Clasifica\" para seleccionar qué equipos predices que clasificarán)",
+    "autoSave": "EnOf(Tus cambios se guardan automáticamente.)"
+  },
+  "group": {
+    "header": "EnOf(GRUPO {letter})",
+    "points": "EnOf({count, plural, =1 {punto} other {puntos}})",
+    "pointsAbbrev": "EnOf({count, plural, =1 {pt} other {pts}})",
+    "selected": "EnOf({count} seleccionado{count, plural, =1 {} other {s}})"
+  },
+  "position": {
+    "first": "EnOf(1°)",
+    "second": "EnOf(2°)",
+    "third": "EnOf(3°)",
+    "fourth": "EnOf(4°)",
+    "label": "EnOf(Clasifica)"
+  },
+  "results": {
+    "pending": "EnOf(Pendiente)",
+    "waitingGroup": "EnOf(Esperando resultados del grupo)",
+    "waitingAll": "EnOf(Esperando todos los grupos)",
+    "waitingBestThirds": "EnOf(Esperando mejores terceros)",
+    "points1": "EnOf(+1 pt)",
+    "points2": "EnOf(+2 pts)",
+    "points0": "EnOf(+0 pts)",
+    "predictedVsActual": "EnOf(Predicho {predicted}, terminó {actual})",
+    "didNotQualify": "EnOf(Predicho {predicted}, no calificó)"
+  },
+  "thirdPlace": {
+    "title": "EnOf(Clasificados en Tercer Lugar)",
+    "overLimit": "EnOf(Has seleccionado {selected} equipos, pero solo {max} pueden clasificar. Deselecciona {excess} equipo{excess, plural, =1 {} other {s}}.)",
+    "noSelection": "EnOf(Aún no has seleccionado equipos de tercer lugar. Selecciona equipos desde la posición 3 en cada grupo para predecir cuáles clasificarán.)",
+    "progress": "EnOf({count} / {max})"
+  }
+}

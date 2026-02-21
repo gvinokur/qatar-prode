@@ -1,9 +1,24 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { NextIntlClientProvider } from 'next-intl';
 import ThirdPlaceSummary from '../../../app/components/qualified-teams/third-place-summary';
-import { renderWithTheme } from '../../utils/test-utils';
 import { testFactories } from '../../db/test-factories';
+import qualifiedTeamsEs from '../../../locales/es/qualified-teams.json';
+import qualifiedTeamsEn from '../../../locales/en/qualified-teams.json';
+
+// Helper to render with i18n
+const renderWithI18n = (component: React.ReactElement, locale: 'en' | 'es' = 'es') => {
+  const messages = {
+    'qualified-teams': locale === 'es' ? qualifiedTeamsEs : qualifiedTeamsEn,
+  };
+
+  return render(
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      {component}
+    </NextIntlClientProvider>
+  );
+};
 
 describe('ThirdPlaceSummary', () => {
   const mockTeam1 = testFactories.team({ id: 'team-1', name: 'Argentina' });
@@ -32,7 +47,7 @@ describe('ThirdPlaceSummary', () => {
     const teams = [mockTeam1];
     const predictions = new Map([[mockTeam1.id, mockPrediction1]]);
 
-    const { container } = renderWithTheme(
+    const { container } = renderWithI18n(
       <ThirdPlaceSummary
         teams={teams}
         predictions={predictions}
@@ -51,7 +66,7 @@ describe('ThirdPlaceSummary', () => {
       [mockTeam2.id, mockPrediction2],
     ]);
 
-    renderWithTheme(
+    renderWithI18n(
       <ThirdPlaceSummary
         teams={teams}
         predictions={predictions}
@@ -72,7 +87,7 @@ describe('ThirdPlaceSummary', () => {
       [mockTeam2.id, mockPrediction2],
     ]);
 
-    renderWithTheme(
+    renderWithI18n(
       <ThirdPlaceSummary
         teams={teams}
         predictions={predictions}
@@ -89,7 +104,7 @@ describe('ThirdPlaceSummary', () => {
     const teams = [mockTeam3];
     const predictions = new Map([[mockTeam3.id, mockPrediction3]]);
 
-    renderWithTheme(
+    renderWithI18n(
       <ThirdPlaceSummary
         teams={teams}
         predictions={predictions}
@@ -108,7 +123,7 @@ describe('ThirdPlaceSummary', () => {
       [mockTeam2.id, mockPrediction2],
     ]);
 
-    renderWithTheme(
+    renderWithI18n(
       <ThirdPlaceSummary
         teams={teams}
         predictions={predictions}
@@ -128,7 +143,7 @@ describe('ThirdPlaceSummary', () => {
       [mockTeam2.id, mockPrediction2],
     ]);
 
-    renderWithTheme(
+    renderWithI18n(
       <ThirdPlaceSummary
         teams={teams}
         predictions={predictions}
@@ -154,7 +169,7 @@ describe('ThirdPlaceSummary', () => {
       [mockTeam2.id, notQualifiedPred], // position 3, not qualified
     ]);
 
-    renderWithTheme(
+    renderWithI18n(
       <ThirdPlaceSummary
         teams={teams}
         predictions={predictions}

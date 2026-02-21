@@ -16,6 +16,7 @@ import { calculateQualifiedTeamsScore } from '../../../../utils/qualified-teams-
 interface PageProps {
   readonly params: Promise<{
     readonly id: string;
+    readonly locale: string;
   }>;
   readonly searchParams: Promise<{ [k: string]: string }>;
 }
@@ -123,14 +124,14 @@ async function fetchAndFlattenPredictions(
  * Passes data to client component for drag-and-drop interaction
  */
 export default async function QualifiedTeamsPage({ params, searchParams }: PageProps) {
-  const { id: tournamentId } = await params;
+  const { id: tournamentId, locale } = await params;
   const searchParamsResolved = await searchParams;
 
   try {
     // Check authentication
     const user = await getLoggedInUser();
     if (!user?.id) {
-      redirect(`/es/auth/login?redirect=/es/tournaments/${tournamentId}/qualified-teams`);
+      redirect(`/${locale}/auth/login?redirect=/${locale}/tournaments/${tournamentId}/qualified-teams`);
     }
 
     // Fetch tournament (including dev_only field)

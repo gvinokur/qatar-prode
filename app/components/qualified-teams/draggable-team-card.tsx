@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent, Typography, Box, Checkbox, FormControlLabel, useTheme, Theme, Chip } from '@mui/material';
@@ -35,11 +36,11 @@ export interface DraggableTeamCardProps {
 }
 
 /** Get position suffix (1st, 2nd, 3rd, 4th, etc.) */
-function getPositionSuffix(pos: number): string {
-  if (pos === 1) return 'st';
-  if (pos === 2) return 'nd';
-  if (pos === 3) return 'rd';
-  return 'th';
+function getPositionSuffix(pos: number, t: any): string {
+  if (pos === 1) return t('position.first');
+  if (pos === 2) return t('position.second');
+  if (pos === 3) return t('position.third');
+  return t('position.fourth');
 }
 
 /** Get background color - now using gray for cleaner design */
@@ -178,7 +179,7 @@ function DragHandle({ disabled, attributes, listeners }: { readonly disabled: bo
 }
 
 /** Position badge component */
-function PositionBadge({ position }: { readonly position: number }) {
+function PositionBadge({ position, t }: { readonly position: number; readonly t: any }) {
   const theme = useTheme();
   return (
     <Box
@@ -198,7 +199,7 @@ function PositionBadge({ position }: { readonly position: number }) {
     >
       {position}
       <Typography variant="caption" component="sup" sx={{ fontSize: '0.6rem', ml: 0.25 }}>
-        {getPositionSuffix(position)}
+        {getPositionSuffix(position, t)}
       </Typography>
     </Box>
   );
@@ -220,17 +221,19 @@ function ThirdPlaceCheckbox({
   checked,
   disabled,
   onChange,
+  t,
 }: {
   readonly checked: boolean;
   readonly disabled: boolean;
   readonly onChange?: () => void;
+  readonly t: any;
 }) {
   return (
     <FormControlLabel
       control={<Checkbox checked={checked} onChange={onChange} disabled={disabled} color="primary" />}
       label={
         <Typography variant="body2" sx={{ fontWeight: 500, whiteSpace: 'nowrap' }}>
-          Clasifica
+          {t('position.label')}
         </Typography>
       }
       sx={{ mr: 0, flexShrink: 0 }}
@@ -238,10 +241,13 @@ function ThirdPlaceCheckbox({
   );
 }
 
-/** Get position suffix (1st, 2nd, 3rd, 4th, etc.) in Spanish */
-function getPositionSuffixSpanish(pos: number | null): string {
+/** Get position display (1°, 2°, 3°, 4°, etc.) */
+function getPositionDisplay(pos: number | null, t: any): string {
   if (pos === null) return '';
-  return `${pos}°`;
+  if (pos === 1) return t('position.first');
+  if (pos === 2) return t('position.second');
+  if (pos === 3) return t('position.third');
+  return t('position.fourth');
 }
 
 /** Results overlay showing points and qualification status */
@@ -250,11 +256,13 @@ function ResultsOverlay({
   isPending3rdPlace,
   isPendingBeforeResults,
   position,
+  t,
 }: {
   readonly result?: TeamScoringResult | null;
   readonly isPending3rdPlace: boolean;
   readonly isPendingBeforeResults: boolean;
   readonly position: number;
+  readonly t: any;
 }) {
   const theme = useTheme();
 
@@ -269,48 +277,54 @@ function ResultsOverlay({
   if (isPendingBeforeResults) {
     // Pending state before group completion
     icon = <HourglassEmptyIcon sx={{ fontSize: '1.25rem' }} />;
-    chipLabel = 'Pendiente';
+    chipLabel = t('results.pending');
     iconColor = theme.palette.info.main;
     chipBackgroundColor = theme.palette.info.light;
     chipTextColor = 'white';
 
     // Different explanations for positions 1-2 vs position 3
     if (position === 1 || position === 2) {
-      explanationText = 'Esperando resultados del grupo';
+      explanationText = t('results.waitingGroup');
     } else {
-      explanationText = 'Esperando todos los grupos';
+      explanationText = t('results.waitingAll');
     }
   } else if (isPending3rdPlace) {
     // Pending 3rd place playoff
     icon = <HourglassEmptyIcon sx={{ fontSize: '1.25rem' }} />;
-    chipLabel = 'Pendiente';
+    chipLabel = t('results.pending');
     iconColor = theme.palette.info.main;
     chipBackgroundColor = theme.palette.info.light;
     chipTextColor = 'white';
-    explanationText = 'Esperando mejores terceros';
+    explanationText = t('results.waitingBestThirds');
   } else if (result && result.pointsAwarded > 0) {
     // Correct predictions (1 or 2 pts): green chip like regular game cards
     icon = <CheckCircleIcon sx={{ fontSize: '1.25rem' }} />;
-    chipLabel = result.pointsAwarded === 1 ? '+1 pt' : '+2 pts';
+    const pointsKey = result.pointsAwarded === 1 ? 'results.points1' : 'results.points2';
+    chipLabel = t(pointsKey);
     iconColor = theme.palette.success.main;
     chipBackgroundColor = theme.palette.success.light;
     chipTextColor = 'white';
 
     // Show predicted vs actual position
-    const predictedPos = getPositionSuffixSpanish(result.predictedPosition);
-    const actualPos = getPositionSuffixSpanish(result.actualPosition);
-    explanationText = `Predicho ${predictedPos}, terminó ${actualPos}`;
+    const predictedPos = getPositionDisplay(result.predictedPosition, t);
+    const actualPos = getPositionDisplay(result.actualPosition, t);
+    explanationText = t('results.predictedVsActual', {
+      predicted: predictedPos,
+      actual: actualPos,
+    });
   } else {
     // Wrong prediction (0 pts): red
     icon = <CancelIcon sx={{ fontSize: '1.25rem' }} />;
-    chipLabel = '+0 pts';
+    chipLabel = t('results.points0');
     iconColor = theme.palette.error.main;
     chipBackgroundColor = theme.palette.error.light;
     chipTextColor = 'white';
 
     // Show predicted position and that team didn't qualify
-    const predictedPos = getPositionSuffixSpanish(result?.predictedPosition || null);
-    explanationText = `Predicho ${predictedPos}, no calificó`;
+    const predictedPos = getPositionDisplay(result?.predictedPosition || null, t);
+    explanationText = t('results.didNotQualify', {
+      predicted: predictedPos,
+    });
   }
 
   return (
@@ -365,6 +379,7 @@ export default function DraggableTeamCard({
   isPending3rdPlace,
 }: DraggableTeamCardProps) {
   const theme = useTheme();
+  const t = useTranslations('qualified-teams');
 
   const {
     attributes,
@@ -442,16 +457,17 @@ export default function DraggableTeamCard({
         }}
       >
         {!isLocked && <DragHandle disabled={isLocked || isSaving} attributes={attributes} listeners={listeners} />}
-        <PositionBadge position={position} />
+        <PositionBadge position={position} t={t} />
         <TeamInfo team={team} />
         {position === 3 && !isLocked && (
           <ThirdPlaceCheckbox
             checked={predictedToQualify}
             disabled={isLocked || isSaving}
             onChange={onToggleThirdPlace}
+            t={t}
           />
         )}
-        {showResults && <ResultsOverlay result={result} isPending3rdPlace={isPending3rdPlace} isPendingBeforeResults={isPendingBeforeResults} position={position} />}
+        {showResults && <ResultsOverlay result={result} isPending3rdPlace={isPending3rdPlace} isPendingBeforeResults={isPendingBeforeResults} position={position} t={t} />}
       </CardContent>
     </Card>
   );

@@ -1,10 +1,25 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { NextIntlClientProvider } from 'next-intl';
 import { DndContext } from '@dnd-kit/core';
 import GroupCard from '../../../app/components/qualified-teams/group-card';
-import { renderWithTheme } from '../../utils/test-utils';
 import { testFactories } from '../../db/test-factories';
+import qualifiedTeamsEs from '../../../locales/es/qualified-teams.json';
+import qualifiedTeamsEn from '../../../locales/en/qualified-teams.json';
+
+// Helper to render with i18n
+const renderWithI18n = (component: React.ReactElement, locale: 'en' | 'es' = 'es') => {
+  const messages = {
+    'qualified-teams': locale === 'es' ? qualifiedTeamsEs : qualifiedTeamsEn,
+  };
+
+  return render(
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      {component}
+    </NextIntlClientProvider>
+  );
+};
 
 // Mock useMediaQuery - default to desktop, can be overridden per test
 const mockUseMediaQuery = vi.fn(() => false);
@@ -33,11 +48,17 @@ describe('GroupCard', () => {
     predicted_to_qualify: true,
   });
 
-  const renderWithDndContext = (ui: React.ReactElement) => {
-    return renderWithTheme(
-      <DndContext>
-        {ui}
-      </DndContext>
+  const renderWithDndContext = (ui: React.ReactElement, locale: 'en' | 'es' = 'es') => {
+    const messages = {
+      'qualified-teams': locale === 'es' ? qualifiedTeamsEs : qualifiedTeamsEn,
+    };
+
+    return render(
+      <NextIntlClientProvider locale={locale} messages={messages}>
+        <DndContext>
+          {ui}
+        </DndContext>
+      </NextIntlClientProvider>
     );
   };
 

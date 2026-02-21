@@ -38,6 +38,7 @@ const spanishTranslations: Record<string, any> = {
   stats: require('./locales/es/stats.json'),
   tables: require('./locales/es/tables.json'),
   awards: require('./locales/es/awards.json'),
+  'qualified-teams': require('./locales/es/qualified-teams.json'),
   // Add other namespaces as needed
 };
 
@@ -47,6 +48,7 @@ const englishTranslations: Record<string, any> = {
   stats: require('./locales/en/stats.json'),
   tables: require('./locales/en/tables.json'),
   awards: require('./locales/en/awards.json'),
+  'qualified-teams': require('./locales/en/qualified-teams.json'),
   // Add other namespaces as needed
 };
 

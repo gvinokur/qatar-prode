@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import {
   Card,
@@ -55,12 +56,14 @@ function GroupHeader({
   readonly groupTotalPoints?: number;
   readonly isGroupTouched: boolean;
 }) {
+  const t = useTranslations('qualified-teams');
+
   return (
     <Box sx={{ mb: 2 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography variant="h5" component="h2" sx={{ fontWeight: 600 }}>
-            GRUPO {groupLetter.toUpperCase()}
+            {t('group.header', { letter: groupLetter.toUpperCase() })}
           </Typography>
           {isGroupTouched && (
             <CheckCircleIcon sx={{ fontSize: 20, color: 'success.main' }} />
@@ -68,7 +71,7 @@ function GroupHeader({
         </Box>
         {groupTotalPoints !== undefined && (
           <Typography variant="h6" sx={{ fontWeight: 600, color: 'primary.main' }}>
-            {groupTotalPoints} {groupTotalPoints === 1 ? 'punto' : 'puntos'}
+            {groupTotalPoints} {t('group.points', { count: groupTotalPoints })}
           </Typography>
         )}
       </Box>
@@ -96,6 +99,7 @@ export default function GroupCard({
   isGroupComplete,
   allGroupsComplete,
 }: GroupCardProps) {
+  const t = useTranslations('qualified-teams');
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [isExpanded, setIsExpanded] = useState(true);
@@ -233,7 +237,7 @@ export default function GroupCard({
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography variant="h6" component="h2" sx={{ fontWeight: 600 }}>
-              GRUPO {group.group_letter.toUpperCase()} - {qualifiedCount} seleccionado{qualifiedCount === 1 ? '' : 's'}
+              {t('group.header', { letter: group.group_letter.toUpperCase() })} - {t('group.selected', { count: qualifiedCount })}
             </Typography>
             {isGroupTouched && (
               <CheckCircleIcon sx={{ fontSize: 18, color: 'success.main' }} />
@@ -241,7 +245,7 @@ export default function GroupCard({
           </Box>
           {groupTotalPoints !== undefined && (
             <Typography variant="body1" sx={{ fontWeight: 600, color: 'primary.main', ml: 2 }}>
-              {groupTotalPoints} {groupTotalPoints === 1 ? 'pt' : 'pts'}
+              {groupTotalPoints} {t('group.pointsAbbrev', { count: groupTotalPoints })}
             </Typography>
           )}
         </AccordionSummary>

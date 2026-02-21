@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { DndContext, DragEndEvent, MouseSensor, TouchSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { Container, Typography, Alert, Snackbar, Box, IconButton, Popover, Backdrop, CircularProgress } from '@mui/material';
@@ -146,6 +147,7 @@ function QualifiedTeamsUI({
   scoringBreakdown,
   showHeader = true,
 }: Omit<QualifiedTeamsClientPageProps, 'initialPredictions' | 'userId'>) {
+  const t = useTranslations('qualified-teams');
   const { predictions, isSaving, saveState, error, clearError, updateGroupPositions } = useQualifiedTeamsContext();
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
 
@@ -252,7 +254,7 @@ function QualifiedTeamsUI({
       {showHeader && (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
           <Typography variant="h4" component="h1">
-            Prediccion de Clasificados
+            {t('page.title')}
           </Typography>
           <IconButton onClick={handleInfoClick} size="small" sx={{ color: 'text.secondary' }}>
             <InfoOutlinedIcon />
@@ -275,28 +277,28 @@ function QualifiedTeamsUI({
       >
         <Box sx={{ p: 2, maxWidth: 400 }}>
           <Typography variant="body2" sx={{ mb: 1.5 }}>
-            <strong>Cómo hacer predicciones:</strong>
+            <strong>{t('instructions.title')}</strong>
           </Typography>
           <Typography variant="body2" sx={{ mb: 1 }}>
-            • Arrastra los equipos para cambiar su posición en el grupo
+            • {t('instructions.dragTeams')}
           </Typography>
           <Typography variant="body2" sx={{ mb: 1.5 }}>
-            • Los equipos en posiciones 1-2 clasifican automáticamente
+            • {t('instructions.autoQualify')}
           </Typography>
           {allowsThirdPlace && (
             <Typography variant="body2" sx={{ mb: 1.5 }}>
-              • Para el 3er puesto: usa el checkbox &ldquo;Clasifica&rdquo; para seleccionar qué equipos predices que clasificarán
+              • {t('instructions.thirdPlace')}
             </Typography>
           )}
           <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
-            Tus cambios se guardan automáticamente.
+            {t('instructions.autoSave')}
           </Typography>
         </Box>
       </Popover>
 
       {isLocked && (
         <Alert severity="warning" sx={{ mb: 3 }}>
-          Las predicciones están bloqueadas para este torneo. Puedes ver tus predicciones pero no puedes hacer cambios.
+          {t('page.lockedAlert')}
         </Alert>
       )}
 
@@ -330,7 +332,7 @@ function QualifiedTeamsUI({
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
-          Predicciones guardadas exitosamente
+          {t('page.savedSuccess')}
         </Alert>
       </Snackbar>
 
@@ -341,7 +343,7 @@ function QualifiedTeamsUI({
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert onClose={handleCloseErrorSnackbar} severity="error" sx={{ width: '100%' }}>
-          {error || 'Error al guardar las predicciones'}
+          {error || t('page.saveError')}
         </Alert>
       </Snackbar>
 
