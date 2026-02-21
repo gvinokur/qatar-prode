@@ -1,6 +1,6 @@
 'use client'
 
-import { Box, Fab } from '@mui/material';
+import { Box, Fab, useTheme, useMediaQuery } from '@mui/material';
 import { useMemo, useContext, useEffect, useState } from 'react';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
@@ -45,6 +45,8 @@ function UnifiedGamesPageContent({
   const { activeFilter, groupFilter, roundFilter, setActiveFilter, setGroupFilter, setRoundFilter } = useFilterContext();
   const guessesContext = useContext(GuessesContext);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   // Filter games based on active filters
   const filteredGames = useMemo(() => {
@@ -112,7 +114,7 @@ function UnifiedGamesPageContent({
   return (
     <ScrollShadowContainer
       id="unified-games-stack"
-      direction="vertical"
+      direction={isMobile ? 'vertical' : 'none'}
       hideScrollbar={true}
       sx={{
         height: '100%',
@@ -175,7 +177,7 @@ function UnifiedGamesPageContent({
       {/* Scrollable Games List */}
       <ScrollShadowContainer
         id="games-scroll-container"
-        direction="vertical"
+        direction={isMobile ? 'none' : 'vertical'}
         hideScrollbar={true}
         sx={{
           flexGrow: 1,

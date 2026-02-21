@@ -66,8 +66,8 @@ import type { SxProps, Theme } from '@mui/material'
 interface ScrollShadowContainerProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> {
   /** Content to be rendered inside the scrollable container */
   children: React.ReactNode
-  /** Scroll direction for shadow indicators. Default: 'vertical' */
-  direction?: 'vertical' | 'horizontal' | 'both'
+  /** Scroll direction for shadow indicators. Default: 'vertical'. Use 'none' to disable scrolling. */
+  direction?: 'vertical' | 'horizontal' | 'both' | 'none'
   /** Size of shadow gradient in pixels. Default: 40 */
   shadowSize?: number
   /**
@@ -136,7 +136,7 @@ export function ScrollShadowContainer({
    * @returns Object indicating which shadows should be visible
    */
   const calculateShadowVisibility = useCallback(
-    (el: HTMLElement, dir: 'vertical' | 'horizontal' | 'both'): ShadowState => {
+    (el: HTMLElement, dir: 'vertical' | 'horizontal' | 'both' | 'none'): ShadowState => {
       const {
         scrollTop,
         scrollLeft,
@@ -152,14 +152,14 @@ export function ScrollShadowContainer({
 
       return {
         // Top shadow: visible when there's overflow AND scrolled down from top
-        top: dir !== 'horizontal' && hasVerticalOverflow && scrollTop > 0,
+        top: dir !== 'horizontal' && dir !== 'none' && hasVerticalOverflow && scrollTop > 0,
         // Bottom shadow: visible when there's overflow AND not scrolled to bottom
         bottom:
-          dir !== 'horizontal' && hasVerticalOverflow && scrollTop < scrollHeight - clientHeight,
+          dir !== 'horizontal' && dir !== 'none' && hasVerticalOverflow && scrollTop < scrollHeight - clientHeight,
         // Left shadow: visible when there's overflow AND scrolled right from left edge
-        left: dir !== 'vertical' && hasHorizontalOverflow && scrollLeft > 0,
+        left: dir !== 'vertical' && dir !== 'none' && hasHorizontalOverflow && scrollLeft > 0,
         // Right shadow: visible when there's overflow AND not scrolled to right edge
-        right: dir !== 'vertical' && hasHorizontalOverflow && scrollLeft < scrollWidth - clientWidth,
+        right: dir !== 'vertical' && dir !== 'none' && hasHorizontalOverflow && scrollLeft < scrollWidth - clientWidth,
       }
     },
     []
@@ -206,6 +206,10 @@ export function ScrollShadowContainer({
       theme.palette.mode === 'dark' ? 0.4 : 0.2
     )
 
+  // Calculate overflow based on direction
+  const overflowX = direction === 'horizontal' || direction === 'both' ? 'auto' : 'hidden'
+  const overflowY = direction === 'vertical' || direction === 'both' ? 'auto' : 'hidden'
+
   // Merge sx with dedicated height/width props (dedicated props take precedence)
   const mergedSx: SxProps<Theme> = {
     ...sx,
@@ -220,7 +224,8 @@ export function ScrollShadowContainer({
       data-scroll-container
       sx={{
         position: 'relative',
-        overflow: 'auto',
+        overflowX,
+        overflowY,
         ...mergedSx,
         // Hide scrollbars if requested
         ...(hideScrollbar && {
