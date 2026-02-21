@@ -65,8 +65,7 @@ describe('DraggableTeamCard', () => {
         />
       );
 
-      expect(screen.getByText('1')).toBeInTheDocument();
-      expect(screen.getByText('st')).toBeInTheDocument();
+      expect(screen.getByText('1°')).toBeInTheDocument();
     });
 
     it('should render drag indicator icon', () => {
@@ -97,10 +96,10 @@ describe('DraggableTeamCard', () => {
         />
       );
 
-      expect(screen.getByText('st')).toBeInTheDocument();
+      expect(screen.getByText('1°')).toBeInTheDocument();
     });
 
-    it('should display "nd" suffix for position 2', () => {
+    it('should display "2°" suffix for position 2', () => {
       renderWithTheme(
         <DraggableTeamCard
           team={mockTeam}
@@ -111,10 +110,10 @@ describe('DraggableTeamCard', () => {
         />
       );
 
-      expect(screen.getByText('nd')).toBeInTheDocument();
+      expect(screen.getByText('2°')).toBeInTheDocument();
     });
 
-    it('should display "rd" suffix for position 3', () => {
+    it('should display "3°" suffix for position 3', () => {
       renderWithTheme(
         <DraggableTeamCard
           team={mockTeam}
@@ -125,10 +124,10 @@ describe('DraggableTeamCard', () => {
         />
       );
 
-      expect(screen.getByText('rd')).toBeInTheDocument();
+      expect(screen.getByText('3°')).toBeInTheDocument();
     });
 
-    it('should display "th" suffix for position 4 and higher', () => {
+    it('should display "4°" suffix for position 4 and higher', () => {
       renderWithTheme(
         <DraggableTeamCard
           team={mockTeam}
@@ -139,7 +138,7 @@ describe('DraggableTeamCard', () => {
         />
       );
 
-      expect(screen.getByText('th')).toBeInTheDocument();
+      expect(screen.getByText('4°')).toBeInTheDocument();
     });
   });
 

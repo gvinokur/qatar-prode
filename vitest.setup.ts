@@ -38,6 +38,7 @@ const spanishTranslations: Record<string, any> = {
   stats: require('./locales/es/stats.json'),
   tables: require('./locales/es/tables.json'),
   awards: require('./locales/es/awards.json'),
+  'qualified-teams': require('./locales/es/qualified-teams.json'),
   // Add other namespaces as needed
 };
 
@@ -47,6 +48,7 @@ const englishTranslations: Record<string, any> = {
   stats: require('./locales/en/stats.json'),
   tables: require('./locales/en/tables.json'),
   awards: require('./locales/en/awards.json'),
+  'qualified-teams': require('./locales/en/qualified-teams.json'),
   // Add other namespaces as needed
 };
 
@@ -93,24 +95,24 @@ function getTranslation(namespace: string, key: string, values?: Record<string, 
   }
 
   // Handle ICU MessageFormat pluralization
-  // Pattern: {count, plural, =0 {...} one {...} other {...}}
+  // Pattern: {count, plural, =0 {...} one {...} other {...}} or {count, plural, =1 {} other {s}}
   // Simple approach: match the whole pattern with explicit plural rules
-  const simplePluralPattern = /\{(\w+),\s*plural,\s*(?:=(\d+)\s*\{([^}]+)\}\s*)?one\s*\{([^}]+)\}\s*other\s*\{([^}]+)\}\}/g;
-  value = value.replace(simplePluralPattern, (match, varName, exactNum, exactText, oneText, otherText) => {
+  const simplePluralPattern = /\{(\w+),\s*plural,\s*(?:=(\d+)\s*\{([^}]*)\}\s*)?(one\s*\{([^}]+)\}\s*)?other\s*\{([^}]*)\}\}/g;
+  value = value.replace(simplePluralPattern, (match, varName, exactNum, exactText, oneKeyword, oneText, otherText) => {
     if (!values || values[varName] === undefined) return match;
 
     const count = values[varName];
 
-    // Check for exact match first (e.g., =0)
+    // Check for exact match first (e.g., =0 or =1)
     if (exactNum && count === parseInt(exactNum)) {
-      return exactText;
+      return exactText || '';
     }
 
     // Then check for one vs other
-    if (count === 1) {
-      return oneText;
+    if (count === 1 && oneKeyword) {
+      return oneText || '';
     } else {
-      return otherText;
+      return otherText || '';
     }
   });
 

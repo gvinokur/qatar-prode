@@ -1,0 +1,45 @@
+{
+  "page": {
+    "title": "Prediccion de Clasificados",
+    "lockedAlert": "Las predicciones están bloqueadas para este torneo. Puedes ver tus predicciones pero no puedes hacer cambios.",
+    "savedSuccess": "Predicciones guardadas exitosamente",
+    "saveError": "Error al guardar las predicciones"
+  },
+  "instructions": {
+    "title": "Cómo hacer predicciones:",
+    "dragTeams": "Arrastra los equipos para cambiar su posición en el grupo",
+    "autoQualify": "Los equipos en posiciones 1-2 clasifican automáticamente",
+    "thirdPlace": "Para el 3er puesto: usa el checkbox \"Clasifica\" para seleccionar qué equipos predices que clasificarán",
+    "autoSave": "Tus cambios se guardan automáticamente."
+  },
+  "group": {
+    "header": "GRUPO {letter}",
+    "points": "{count, plural, =1 {punto} other {puntos}}",
+    "pointsAbbrev": "{count, plural, =1 {pt} other {pts}}",
+    "selected": "{count} seleccionado{count, plural, =1 {} other {s}}"
+  },
+  "position": {
+    "first": "1°",
+    "second": "2°",
+    "third": "3°",
+    "fourth": "4°",
+    "label": "Clasifica"
+  },
+  "results": {
+    "pending": "Pendiente",
+    "waitingGroup": "Esperando resultados del grupo",
+    "waitingAll": "Esperando todos los grupos",
+    "waitingBestThirds": "Esperando mejores terceros",
+    "points1": "+1 pt",
+    "points2": "+2 pts",
+    "points0": "+0 pts",
+    "predictedVsActual": "Predicho {predicted}, terminó {actual}",
+    "didNotQualify": "Predicho {predicted}, no calificó"
+  },
+  "thirdPlace": {
+    "title": "Clasificados en Tercer Lugar",
+    "overLimit": "Has seleccionado {selected} equipos, pero solo {max} pueden clasificar. Deselecciona {excess} equipo{excess, plural, =1 {} other {s}}.",
+    "noSelection": "Aún no has seleccionado equipos de tercer lugar. Selecciona equipos desde la posición 3 en cada grupo para predecir cuáles clasificarán.",
+    "progress": "{count} / {max}"
+  }
+}

@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react';
 import { Card, CardContent, Typography, Box, Chip, LinearProgress, Alert } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { useTranslations } from 'next-intl';
 import { Team, QualifiedTeamPrediction } from '../../db/tables-definition';
 
 export interface ThirdPlaceSummaryProps {
@@ -82,6 +83,8 @@ export default function ThirdPlaceSummary({
   maxThirdPlace,
   allowsThirdPlace,
 }: ThirdPlaceSummaryProps) {
+  const t = useTranslations('qualified-teams');
+
   // Calculate selected third place qualifiers
   const selectedThirdPlace = useMemo(() => {
     const selected: Array<{ team: Team; prediction: QualifiedTeamPrediction }> = [];
@@ -110,7 +113,7 @@ export default function ThirdPlaceSummary({
       <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
           <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 600 }}>
-            Clasificados en Tercer Lugar
+            {t('thirdPlace.title')}
           </Typography>
           <ProgressIndicator count={count} max={maxThirdPlace} />
         </Box>
@@ -118,8 +121,11 @@ export default function ThirdPlaceSummary({
         {isOverLimit && (
           <Alert severity="error" sx={{ py: 0.5, mb: 1 }}>
             <Typography variant="body2">
-              Has seleccionado {count} equipos, pero solo {maxThirdPlace} pueden clasificar. Deselecciona{' '}
-              {count - maxThirdPlace} equipo{count - maxThirdPlace > 1 ? 's' : ''}.
+              {t('thirdPlace.overLimit', {
+                selected: count,
+                max: maxThirdPlace,
+                excess: count - maxThirdPlace,
+              })}
             </Typography>
           </Alert>
         )}
@@ -127,7 +133,7 @@ export default function ThirdPlaceSummary({
         {count === 0 ? (
           <Alert severity="info" sx={{ py: 0.5 }}>
             <Typography variant="body2">
-              Aún no has seleccionado equipos de tercer lugar. Selecciona equipos desde la posición 3 en cada grupo para predecir cuáles clasificarán.
+              {t('thirdPlace.noSelection')}
             </Typography>
           </Alert>
         ) : (

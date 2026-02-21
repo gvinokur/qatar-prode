@@ -1,12 +1,27 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { NextIntlClientProvider } from 'next-intl';
 import { DndContext } from '@dnd-kit/core';
 import { SortableContext } from '@dnd-kit/sortable';
 import DraggableTeamCard from '../../../app/components/qualified-teams/draggable-team-card';
-import { renderWithTheme } from '../../utils/test-utils';
 import { testFactories } from '../../db/test-factories';
 import { TeamScoringResult } from '../../../app/utils/qualified-teams-scoring';
+import qualifiedTeamsEs from '../../../locales/es/qualified-teams.json';
+import qualifiedTeamsEn from '../../../locales/en/qualified-teams.json';
+
+// Helper to render with i18n
+const renderWithI18n = (component: React.ReactElement, locale: 'en' | 'es' = 'es') => {
+  const messages = {
+    'qualified-teams': locale === 'es' ? qualifiedTeamsEs : qualifiedTeamsEn,
+  };
+
+  return render(
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      {component}
+    </NextIntlClientProvider>
+  );
+};
 
 describe('DraggableTeamCard', () => {
   const mockTeam = testFactories.team({
@@ -15,13 +30,19 @@ describe('DraggableTeamCard', () => {
     theme: { primary: '#75AADB', secondary: '#FFFFFF' },
   });
 
-  const renderWithDndContext = (ui: React.ReactElement) => {
-    return renderWithTheme(
-      <DndContext>
-        <SortableContext items={['team-1']}>
-          {ui}
-        </SortableContext>
-      </DndContext>
+  const renderWithDndContext = (ui: React.ReactElement, locale: 'en' | 'es' = 'es') => {
+    const messages = {
+      'qualified-teams': locale === 'es' ? qualifiedTeamsEs : qualifiedTeamsEn,
+    };
+
+    return render(
+      <NextIntlClientProvider locale={locale} messages={messages}>
+        <DndContext>
+          <SortableContext items={['team-1']}>
+            {ui}
+          </SortableContext>
+        </DndContext>
+      </NextIntlClientProvider>
     );
   };
 
@@ -56,7 +77,7 @@ describe('DraggableTeamCard', () => {
       />
     );
 
-    expect(screen.getByText('1')).toBeInTheDocument();
+    expect(screen.getByText('1°')).toBeInTheDocument();
   });
 
   it('should render checkbox for position 3', () => {
