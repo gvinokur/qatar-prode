@@ -261,7 +261,7 @@ export function ScrollShadowContainer({
   sx = {},
   scrollContainerSx = {},
   ...htmlAttributes
-}: ScrollShadowContainerProps) {
+}: Readonly<ScrollShadowContainerProps>) {
   const theme = useTheme()
   const containerRef = useRef<HTMLDivElement>(null)
 
