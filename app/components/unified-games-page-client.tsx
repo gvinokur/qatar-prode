@@ -120,7 +120,7 @@ function UnifiedGamesPageContent({
       scrollContainerSx={{
         pb: { xs: '56px', md: 0 }, // Account for fixed bottom nav on mobile
         pt: 2, // Add top padding for spacing from navigation tabs
-        display: 'flex',
+        display: { xs: 'block', md: 'flex' },
         flexDirection: 'column',
         gap: 2, // Equivalent to Stack spacing={2}
       }}
