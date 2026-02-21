@@ -116,6 +116,8 @@ function UnifiedGamesPageContent({
       hideScrollbar={true}
       sx={{
         height: '100%',
+      }}
+      scrollContainerSx={{
         pb: { xs: '56px', md: 0 }, // Account for fixed bottom nav on mobile
         pt: 2, // Add top padding for spacing from navigation tabs
         display: 'flex',

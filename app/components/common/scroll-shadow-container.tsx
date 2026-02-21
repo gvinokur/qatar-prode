@@ -90,6 +90,36 @@ import type { SxProps, Theme } from '@mui/material'
  *
  * This prevents double-scrolling on mobile and ensures proper behavior on both screen sizes.
  *
+ * ## sx vs scrollContainerSx
+ *
+ * **Use `sx` for:** Outer wrapper styles (size, position)
+ * - `height`, `width` (though dedicated props are preferred)
+ * - Rarely needed since most styling goes on scroll container
+ *
+ * **Use `scrollContainerSx` for:** Inner scroll container styles (layout, spacing)
+ * - `display: 'flex'`, `flexDirection`, `gap` (for flex layout of children)
+ * - `padding`, `paddingTop`, `paddingBottom` (spacing inside scroll area)
+ * - Any styles that affect how children are laid out
+ *
+ * @example
+ * ```tsx
+ * // Flex layout with children - use scrollContainerSx
+ * <ScrollShadowContainer
+ *   direction="vertical"
+ *   height="100%"
+ *   scrollContainerSx={{
+ *     display: 'flex',
+ *     flexDirection: 'column',
+ *     gap: 2,
+ *     pt: 2,
+ *   }}
+ * >
+ *   <Dashboard />
+ *   <Filters />
+ *   <GamesList sx={{ flexGrow: 1 }} />
+ * </ScrollShadowContainer>
+ * ```
+ *
  * ## Basic Examples
  *
  * @example
@@ -200,10 +230,17 @@ interface ScrollShadowContainerProps extends Omit<React.HTMLAttributes<HTMLDivEl
    */
   width?: string | number
   /**
-   * Additional MUI sx prop styles.
+   * Additional MUI sx prop styles for the outer wrapper.
+   * Applied to the outer box (position: relative wrapper).
    * If height/width are provided via dedicated props above, they override sx.height/sx.width.
    */
   sx?: SxProps<Theme>
+  /**
+   * Additional MUI sx prop styles for the inner scroll container.
+   * Applied to the scrollable box that contains children.
+   * Use this for layout styles that affect children (display: flex, gap, padding, etc.)
+   */
+  scrollContainerSx?: SxProps<Theme>
 }
 
 type ShadowState = {
@@ -222,6 +259,7 @@ export function ScrollShadowContainer({
   height,
   width,
   sx = {},
+  scrollContainerSx = {},
   ...htmlAttributes
 }: ScrollShadowContainerProps) {
   const theme = useTheme()
@@ -391,6 +429,8 @@ export function ScrollShadowContainer({
               display: 'none', // Chrome/Safari
             },
           }),
+          // User's scroll container styles
+          ...scrollContainerSx,
         }}
       >
         {children}
