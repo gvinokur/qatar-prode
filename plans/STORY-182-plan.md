@@ -209,6 +209,7 @@ const getAwardLabel = (property: string, t: any) => {
 1. `/locales/es/awards.json` - Spanish translations (source language, clean text, fix typo)
 2. `/locales/en/awards.json` - English placeholders (with EnOf markers until translated)
 3. `/types/i18n.ts` - Add `awards` namespace to type definitions
+4. `/i18n/request.ts` - Register `awards` namespace in messages configuration
 
 ### Client Components (5 files)
 
@@ -257,7 +258,10 @@ const getAwardLabel = (property: string, t: any) => {
 1. Create `/locales/es/awards.json` with clean Spanish text (fix typo: "Inviduales" → "Individuales")
 2. Create `/locales/en/awards.json` with `EnOf(Spanish text)` markers
 3. Update `/types/i18n.ts` to import and include `awards` namespace
-4. **Validate translation key parity:** Ensure EN and ES have matching keys
+4. **Register namespace in `/i18n/request.ts`:**
+   - Add to messages object: `awards: (await import(\`../locales/\${locale}/awards.json\`)).default,`
+   - Insert alphabetically after `auth:` and before `common:`
+5. **Validate translation key parity:** Ensure EN and ES have matching keys
 
 **Key Parity Validation:**
 ```bash
@@ -282,6 +286,7 @@ b) **No duplicate content keys:**
 c) **Namespace files properly imported:**
    - Verify `/types/i18n.ts` imports `awards` from both locales
    - Verify the namespace is added to the `Messages` type
+   - Verify `/i18n/request.ts` includes `awards` in messages configuration
    - Check that TypeScript compilation succeeds
 
 d) **Proper translation pattern usage:**
