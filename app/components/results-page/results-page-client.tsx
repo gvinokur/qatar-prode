@@ -95,11 +95,13 @@ export default function ResultsPageClient({
         hidden={selectedTab !== 1}
         id="results-tabpanel-1"
         aria-controls="results-tab-1"
-        direction="none"
+        direction="both"
         hideScrollbar={true}
         sx={{
           flex: 1,
           minHeight: 0,
+        }}
+        scrollContainerSx={{
           px: 2,
           py: 2,
         }}

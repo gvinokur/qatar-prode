@@ -5,7 +5,6 @@ import { Team, PlayoffRound } from '@/app/db/tables-definition'
 import { Box, Typography, useMediaQuery, useTheme } from '@mui/material'
 import { useMemo } from 'react'
 import { useTranslations } from 'next-intl'
-import { ScrollShadowContainer } from '@/app/components/common/scroll-shadow-container'
 import BracketGameCard from './bracket-game-card'
 import {
   BracketRound,
@@ -142,9 +141,7 @@ export default function PlayoffsBracketView({
     <Box>
       {/* Main bracket (if any rounds exist) */}
       {bracketRounds.length > 0 && (
-        <ScrollShadowContainer
-          direction="both"
-          hideScrollbar={true}
+        <Box
           sx={{
             position: 'relative',
             width: dimensions.width,
@@ -240,7 +237,7 @@ export default function PlayoffsBracketView({
               </Box>
             )}
           </Box>
-        </ScrollShadowContainer>
+        </Box>
       )}
     </Box>
   )
