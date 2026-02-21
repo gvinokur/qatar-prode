@@ -279,21 +279,58 @@ export function ScrollShadowContainer({
 
     // Scroll event handler - NOT debounced for immediate visual feedback
     const handleScroll = () => {
+      console.log('[ScrollShadow] Scroll event fired', {
+        scrollTop: container.scrollTop,
+        scrollHeight: container.scrollHeight,
+        clientHeight: container.clientHeight,
+        hasOverflow: container.scrollHeight > container.clientHeight,
+      })
       setShadows(calculateShadowVisibility(container, direction))
     }
 
     // ResizeObserver - debounced (250ms) since resize events are less frequent
     let resizeTimeout: NodeJS.Timeout
-    const resizeObserver = new ResizeObserver(() => {
+    const resizeObserver = new ResizeObserver((entries) => {
+      console.log('[ScrollShadow] ResizeObserver fired', {
+        entries: entries.length,
+        containerSize: { width: container.clientWidth, height: container.clientHeight },
+      })
       clearTimeout(resizeTimeout)
       resizeTimeout = setTimeout(() => {
         setShadows(calculateShadowVisibility(container, direction))
       }, 250)
     })
 
+    // Helper to observe all children (excluding shadow divs)
+    const observeChildren = () => {
+      Array.from(container.children).forEach((child) => {
+        // Skip shadow divs (they have data-shadow attribute)
+        if (!(child as HTMLElement).hasAttribute('data-shadow')) {
+          resizeObserver.observe(child)
+          console.log('[ScrollShadow] Observing child:', child)
+        }
+      })
+    }
+
+    // MutationObserver - watch for children being added/removed
+    const mutationObserver = new MutationObserver((mutations) => {
+      console.log('[ScrollShadow] MutationObserver fired', {
+        mutations: mutations.length,
+      })
+      // Re-observe all children when DOM changes
+      observeChildren()
+      // Recalculate shadows
+      setShadows(calculateShadowVisibility(container, direction))
+    })
+
     // Set up observers and listeners
     container.addEventListener('scroll', handleScroll, { passive: true })
     resizeObserver.observe(container)
+    observeChildren()
+    mutationObserver.observe(container, {
+      childList: true, // Watch for children being added/removed
+      subtree: false, // Only watch direct children, not descendants
+    })
 
     // Initial calculation
     handleScroll()
@@ -302,6 +339,7 @@ export function ScrollShadowContainer({
     return () => {
       container.removeEventListener('scroll', handleScroll)
       resizeObserver.disconnect()
+      mutationObserver.disconnect()
       clearTimeout(resizeTimeout)
     }
   }, [direction, calculateShadowVisibility])
@@ -328,24 +366,33 @@ export function ScrollShadowContainer({
   return (
     <Box
       {...htmlAttributes}
-      ref={containerRef}
-      data-scroll-container
       sx={{
         position: 'relative',
-        overflowX,
-        overflowY,
         ...mergedSx,
-        // Hide scrollbars if requested
-        ...(hideScrollbar && {
-          scrollbarWidth: 'none', // Firefox
-          msOverflowStyle: 'none', // IE/Edge
-          '&::-webkit-scrollbar': {
-            display: 'none', // Chrome/Safari
-          },
-        }),
       }}
     >
-      {children}
+      {/* Scroll container */}
+      <Box
+        ref={containerRef}
+        data-scroll-container
+        sx={{
+          height: '100%',
+          width: '100%',
+          overflowX,
+          overflowY,
+          position: 'relative',
+          // Hide scrollbars if requested
+          ...(hideScrollbar && {
+            scrollbarWidth: 'none', // Firefox
+            msOverflowStyle: 'none', // IE/Edge
+            '&::-webkit-scrollbar': {
+              display: 'none', // Chrome/Safari
+            },
+          }),
+        }}
+      >
+        {children}
+      </Box>
 
       {/* Top shadow */}
       {shadows.top && (
