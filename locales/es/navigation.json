@@ -20,5 +20,11 @@
     "rules": "Reglas",
     "stats": "Stats",
     "groups": "Grupos"
+  },
+  "topNav": {
+    "matches": "PARTIDOS",
+    "qualified": "CLASIFICADOS",
+    "awards": "PREMIOS",
+    "ariaLabel": "Navegación del torneo"
   }
 }
