@@ -15,6 +15,9 @@ interface AwardDefinition {
   playerFilter: (_: ExtendedPlayerData) => boolean
 }
 
+/**
+ * @deprecated Use getAwardsDefinition(t) instead for i18n support
+ */
 export const awardsDefinition: AwardDefinition[] = [
   {
     label: 'Mejor Jugador',
@@ -37,3 +40,33 @@ export const awardsDefinition: AwardDefinition[] = [
     playerFilter: (p: ExtendedPlayerData) => p.age_at_tournament < 22,
   }
 ]
+
+/**
+ * Get awards definition with translated labels
+ * @param t - Translation function from useTranslations hook or server-side i18n
+ * @returns Awards definition array with translated labels
+ */
+export function getAwardsDefinition(t: any): AwardDefinition[] {
+  return [
+    {
+      label: t('categories.bestPlayer'),
+      property: 'best_player_id',
+      playerFilter: (_: ExtendedPlayerData) => true,
+    },
+    {
+      label: t('categories.topGoalscorer'),
+      property: 'top_goalscorer_player_id',
+      playerFilter: (_: ExtendedPlayerData) => true,
+    },
+    {
+      label: t('categories.bestGoalkeeper'),
+      property: 'best_goalkeeper_player_id',
+      playerFilter: (p: ExtendedPlayerData) => p.position.toUpperCase() === 'GK',
+    },
+    {
+      label: t('categories.bestYoungPlayer'),
+      property: 'best_young_player_id',
+      playerFilter: (p: ExtendedPlayerData) => p.age_at_tournament < 22,
+    }
+  ]
+}

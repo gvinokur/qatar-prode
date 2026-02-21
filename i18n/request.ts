@@ -16,6 +16,7 @@ export default getRequestConfig(async ({requestLocale}) => {
       common: (await import(`../locales/${locale}/common.json`)).default,
       navigation: (await import(`../locales/${locale}/navigation.json`)).default,
       auth: (await import(`../locales/${locale}/auth.json`)).default,
+      awards: (await import(`../locales/${locale}/awards.json`)).default,
       groups: (await import(`../locales/${locale}/groups.json`)).default,
       emails: (await import(`../locales/${locale}/emails.json`)).default,
       validation: (await import(`../locales/${locale}/validation.json`)).default,

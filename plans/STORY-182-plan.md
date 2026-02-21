@@ -564,6 +564,24 @@ grep -h "Mejor Jugador\|Best Player" locales/es/*.json
 - Ensure award category terms match across `awards.json` and `onboarding.json`
 - Document any intentional variations in translation notes
 
+## Amendments (During Implementation)
+
+### Amendment 1: Vitest Setup Configuration (2026-02-21)
+**Issue Discovered:** Tests were failing because the `awards` namespace wasn't registered in the global vitest mock.
+
+**Root Cause:** The `vitest.setup.ts` file mocks `next-intl` globally and loads specific translation namespaces into memory for tests (lines 24-40). The `awards` namespace was missing from both `spanishTranslations` and `englishTranslations` objects.
+
+**Fix Applied:**
+- Added `awards: require('./locales/es/awards.json')` to `spanishTranslations` (line 30)
+- Added `awards: require('./locales/en/awards.json')` to `englishTranslations` (line 39)
+
+**Files Modified:**
+- `/vitest.setup.ts` (2 lines added)
+
+**Why Not in Original Plan:** The plan didn't account for the global test mock configuration needing updates. Previous i18n stories (#155, #178, #180) all required this same step, establishing it as a pattern for future i18n stories.
+
+**Lesson Learned:** All i18n stories require updating `vitest.setup.ts` to register new translation namespaces in the global mock. This should be added to the i18n story template/checklist.
+
 ## Notes
 - Follow exact pattern from story #178 (Tables & Groups i18n) and #180 (User Stats i18n)
 - This story FIXES bugs: typo ("Inviduales"), mixed languages ("Third Place" in English)

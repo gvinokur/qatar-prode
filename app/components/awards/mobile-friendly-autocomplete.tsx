@@ -1,4 +1,5 @@
 import React, { useState, forwardRef } from 'react';
+import { useTranslations } from 'next-intl';
 import Autocomplete from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
@@ -30,6 +31,7 @@ interface MobileFriendlyAutocompleteProps<T> {
 }
 
 function MobileFriendlyAutocomplete<T>(props: MobileFriendlyAutocompleteProps<T>) {
+  const t = useTranslations('awards');
   const {
     options,
     groupBy,
@@ -61,7 +63,7 @@ function MobileFriendlyAutocomplete<T>(props: MobileFriendlyAutocompleteProps<T>
   return (
     <>
       <TextField
-        label="Select Item"
+        label={t('selector.selectItem')}
         value={value ? getOptionLabel(value) : ''}
         onClick={handleOpen}
         fullWidth
