@@ -1,0 +1,43 @@
+{
+  "podium": {
+    "title": "Podio del Torneo",
+    "champion": {
+      "label": "Campeón",
+      "helper": "Selecciona el equipo que predigas que ganará el torneo"
+    },
+    "runnerUp": {
+      "label": "Subcampeón",
+      "helper": "Selecciona el equipo que predigas que llegará a la final"
+    },
+    "thirdPlace": {
+      "label": "Tercer Lugar",
+      "helper": "Selecciona el equipo que predigas que ganará el partido por el tercer lugar"
+    }
+  },
+  "individual": {
+    "title": "Premios Individuales",
+    "selectPlayer": "Elegir Jugador",
+    "unavailableTitle": "Premios Individuales no disponibles",
+    "unavailableMessage": "Esta sección estará disponible una vez que se den a conocer las nóminas de los equipos participantes en el torneo",
+    "successMessage": "Tus pronósticos se guardaron correctamente!",
+    "lockedTitle": "Predicciones Bloqueadas",
+    "lockedMessage": "Las predicciones ya no están disponibles ya que el torneo ya ha comenzado"
+  },
+  "categories": {
+    "bestPlayer": "Mejor Jugador",
+    "topGoalscorer": "Goleador",
+    "bestGoalkeeper": "Mejor Arquero",
+    "bestYoungPlayer": "Mejor Jugador Joven"
+  },
+  "notification": {
+    "title": "Pronóstico de Premios no Finalizado",
+    "message": "Hemos detectado que no has elegido quién será el campeón o los premios individuales.",
+    "deadline": "La selección de dichas predicciones cierra 5 días luego del inicio del campeonato.",
+    "action": "Puedes ir a la página de premios para hacer tus predicciones.",
+    "button": "Ir a Premios"
+  },
+  "selector": {
+    "none": "Ninguno",
+    "selectItem": "Seleccionar"
+  }
+}

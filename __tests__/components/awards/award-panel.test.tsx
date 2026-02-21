@@ -271,8 +271,8 @@ describe('AwardsPanel - Bug #164 Fix', () => {
       const championSelect = screen.getAllByRole('combobox')[0];
       await user.click(championSelect);
 
-      // Select "None" option to clear
-      const emptyOption = await screen.findByRole('option', { name: /None/i });
+      // Select "Ninguno" option to clear
+      const emptyOption = await screen.findByRole('option', { name: /Ninguno/i });
       await user.click(emptyOption);
 
       await waitFor(() => {
@@ -295,7 +295,7 @@ describe('AwardsPanel - Bug #164 Fix', () => {
         />
       );
 
-      expect(screen.getByLabelText(/Third Place/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Tercer Lugar/i)).toBeInTheDocument();
     });
 
     it('should NOT show third place selector when hasThirdPlaceGame is false', () => {
@@ -346,7 +346,7 @@ describe('AwardsPanel - Bug #164 Fix', () => {
         />
       );
 
-      expect(screen.getByText(/Predictions Locked/i)).toBeInTheDocument();
+      expect(screen.getByText(/Predicciones Bloqueadas/i)).toBeInTheDocument();
     });
   });
 
@@ -363,7 +363,7 @@ describe('AwardsPanel - Bug #164 Fix', () => {
         />
       );
 
-      expect(screen.getByText(/Premios Inviduales no disponibles/i)).toBeInTheDocument();
+      expect(screen.getByText(/Premios Individuales no disponibles/i)).toBeInTheDocument();
     });
   });
 });

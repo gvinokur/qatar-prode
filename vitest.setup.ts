@@ -37,6 +37,7 @@ const spanishTranslations: Record<string, any> = {
   rules: require('./locales/es/rules.json'),
   stats: require('./locales/es/stats.json'),
   tables: require('./locales/es/tables.json'),
+  awards: require('./locales/es/awards.json'),
   // Add other namespaces as needed
 };
 
@@ -45,6 +46,7 @@ const englishTranslations: Record<string, any> = {
   rules: require('./locales/en/rules.json'),
   stats: require('./locales/en/stats.json'),
   tables: require('./locales/en/tables.json'),
+  awards: require('./locales/en/awards.json'),
   // Add other namespaces as needed
 };
 

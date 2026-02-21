@@ -17,10 +17,11 @@ import {
 import {Close as MissIcon, Done as HitIcon} from "@mui/icons-material";
 import {updateOrCreateTournamentGuess} from "../../actions/guesses-actions";
 import {ExtendedPlayerData} from "../../definitions";
-import {awardsDefinition, AwardTypes} from "../../utils/award-utils";
+import {getAwardsDefinition, AwardDefinition, AwardTypes} from "../../utils/award-utils";
 import TeamSelector from "./team-selector";
 import MobileFriendlyAutocomplete from './mobile-friendly-autocomplete';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTranslations } from 'next-intl';
 
 type Props = {
   readonly allPlayers: ExtendedPlayerData[],
@@ -41,6 +42,7 @@ export default function AwardsPanel({
   }: Props) {
   const theme = useTheme()
   const isMobile = useMediaQuery('(max-width:600px)');
+  const t = useTranslations('awards');
   const [saving, setSaving] = useState<boolean>(false)
   const [saved, setSaved] = useState<boolean>(false)
   const [tournamentGuesses, setTournamentGuesses] = useState(savedTournamentGuesses)
@@ -101,7 +103,7 @@ export default function AwardsPanel({
   const isDisabled = isPredictionLocked || saving
 
   // Common Autocomplete props/functions for player awards
-  const getPlayerOptions = (awardDefinition: typeof awardsDefinition[number]) =>
+  const getPlayerOptions = (awardDefinition: AwardDefinition) =>
     allPlayers.filter(awardDefinition.playerFilter).sort((a, b) => a.team.name.localeCompare(b.team.name));
 
   const groupByTeam = (option: ExtendedPlayerData) => option.team.name;
@@ -116,7 +118,7 @@ export default function AwardsPanel({
   const renderPlayerInput = (params: any) => (
     <TextField
       {...params}
-      label="Elegir Jugador"
+      label={t('individual.selectPlayer')}
       slotProps={{
         htmlInput: {
           ...params.inputProps,
@@ -129,12 +131,12 @@ export default function AwardsPanel({
     <>
       {isPredictionLocked ? (
         <Alert severity="info" sx={{ mb: 3 }}>
-          <AlertTitle>Predictions Locked</AlertTitle>
-          Predictions are no longer available as the tournament has already started.
+          <AlertTitle>{t('individual.lockedTitle')}</AlertTitle>
+          {t('individual.lockedMessage')}
         </Alert>
       ) : null}
       <Card sx={{ maxWidth: '800px', mr: 'auto', ml: 'auto'}}>
-        <CardHeader title={'Podio del Torneo'}/>
+        <CardHeader title={t('podium.title')}/>
         <CardContent>
           <Grid container spacing={3}>
             <Grid
@@ -145,12 +147,12 @@ export default function AwardsPanel({
                 md: hasThirdPlaceGame ? 4 : 6
               }}>
               <TeamSelector
-                label="Campeón"
+                label={t('podium.champion.label')}
                 teams={teams}
                 selectedTeamId={tournamentGuesses.champion_team_id || ''}
                 name="championTeamId"
                 disabled={isDisabled}
-                helperText="Selecciona el equipo que predigas que ganará el torneo"
+                helperText={t('podium.champion.helper')}
                 onChange={handlePodiumGuessChange('champion_team_id')}
               />
               {tournament.champion_team_id && tournament.champion_team_id === tournamentGuesses.champion_team_id && (
@@ -174,12 +176,12 @@ export default function AwardsPanel({
                 md: hasThirdPlaceGame ? 4 : 6
               }}>
               <TeamSelector
-                label="Subcampeón"
+                label={t('podium.runnerUp.label')}
                 teams={teams}
                 selectedTeamId={tournamentGuesses.runner_up_team_id || ''}
                 name="runnerUpTeamId"
                 disabled={isDisabled}
-                helperText="Selecciona el equipo que predigas que llegará a la final"
+                helperText={t('podium.runnerUp.helper')}
                 onChange={handlePodiumGuessChange('runner_up_team_id')}
               />
               {tournament.runner_up_team_id && tournament.runner_up_team_id === tournamentGuesses.runner_up_team_id && (
@@ -203,12 +205,12 @@ export default function AwardsPanel({
                   md: 4
                 }}>
                 <TeamSelector
-                  label="Third Place"
+                  label={t('podium.thirdPlace.label')}
                   teams={teams}
                   selectedTeamId={tournamentGuesses.third_place_team_id || ''}
                   name="thirdPlaceTeamId"
                   disabled={isDisabled}
-                  helperText="Select the team you predict will win the third place match"
+                  helperText={t('podium.thirdPlace.helper')}
                   onChange={handlePodiumGuessChange('third_place_team_id')}
                 />
                 {tournament.third_place_team_id && tournament.third_place_team_id === tournamentGuesses.third_place_team_id && (
@@ -227,17 +229,17 @@ export default function AwardsPanel({
         </CardContent>
       </Card>
       <Card sx={{ maxWidth: '800px', mr: 'auto', ml: 'auto', marginTop: '24px'}}>
-        <CardHeader title={'Premios Individuales'}/>
+        <CardHeader title={t('individual.title')}/>
         <CardContent>
           {allPlayers.length === 0 && (
             <Alert variant={'filled'} severity={'warning'}>
-              <AlertTitle>Premios Inviduales no disponibles</AlertTitle>
-              Esta seccion estara disponible una vez que se den a conocer las nominas de los equipos participantes en el torneo
+              <AlertTitle>{t('individual.unavailableTitle')}</AlertTitle>
+              {t('individual.unavailableMessage')}
             </Alert>
           )}
           {allPlayers.length > 0 && (
             <Grid container spacing={2}>
-              {awardsDefinition.map(awardDefinition => (
+              {getAwardsDefinition(t).map(awardDefinition => (
                 <Fragment key={awardDefinition.property}>
                   <Grid flexDirection={'row'} alignItems={'center'} display={'flex'} size={5}>
                     {tournament[awardDefinition.property] && tournament[awardDefinition.property] === tournamentGuesses[awardDefinition.property] && (
@@ -295,7 +297,7 @@ export default function AwardsPanel({
       </Card>
       <Snackbar anchorOrigin={{ vertical: 'bottom', horizontal: 'center'}} open={saved} autoHideDuration={2000} onClose={() => setSaved(false)}>
         <Alert onClose={() => setSaved(false)} severity="success" sx={{ width: '100%' }}>
-          Tus pronosticos se guardaron correctamente!
+          {t('individual.successMessage')}
         </Alert>
       </Snackbar>
     </>

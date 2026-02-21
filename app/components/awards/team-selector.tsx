@@ -5,6 +5,7 @@ import { FormControl, InputLabel, Select, MenuItem, FormHelperText, Box, SelectC
 import { Team } from '../../db/tables-definition';
 import Image from 'next/image';
 import {getThemeLogoUrl} from "../../utils/theme-utils";
+import { useTranslations } from 'next-intl';
 
 interface TeamSelectorProps {
   label: string;
@@ -25,6 +26,7 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
   helperText,
   onChange
 }) => {
+  const t = useTranslations('awards');
   // Sort teams alphabetically by name
   const sortedTeams = [...teams].sort((a, b) => a.name.localeCompare(b.name));
 
@@ -72,7 +74,7 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
         }}
       >
         <MenuItem value="">
-          <em>None</em>
+          <em>{t('selector.none')}</em>
         </MenuItem>
         {sortedTeams.map((team) => {
           logoUrl = getThemeLogoUrl(team.theme);
