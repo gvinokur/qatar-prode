@@ -403,9 +403,12 @@ export function ScrollShadowContainer({
     ...(width !== undefined && { width }),
   }
 
+  // Extract id from htmlAttributes to apply it to inner scroll container
+  const { id, ...outerHtmlAttributes } = htmlAttributes
+
   return (
     <Box
-      {...htmlAttributes}
+      {...outerHtmlAttributes}
       sx={{
         position: 'relative',
         ...mergedSx,
@@ -413,6 +416,7 @@ export function ScrollShadowContainer({
     >
       {/* Scroll container */}
       <Box
+        id={id}
         ref={containerRef}
         data-scroll-container
         sx={{
