@@ -20,5 +20,11 @@
     "rules": "EnOf(Reglas)",
     "stats": "EnOf(Stats)",
     "groups": "EnOf(Grupos)"
+  },
+  "topNav": {
+    "matches": "MATCHES",
+    "qualified": "QUALIFIED TEAMS",
+    "awards": "AWARDS",
+    "ariaLabel": "Tournament navigation"
   }
 }
