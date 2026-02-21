@@ -387,7 +387,7 @@ export function ScrollShadowContainer({
     shadowColor ||
     alpha(
       theme.palette.text.primary,
-      theme.palette.mode === 'dark' ? 0.4 : 0.2
+      theme.palette.mode === 'dark' ? 0.3 : 0.2
     )
 
   // Calculate overflow based on direction
