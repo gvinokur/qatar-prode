@@ -480,11 +480,16 @@ describe('ResultsPageClient', () => {
     });
 
     it('tab panels have scrollable overflow', () => {
-      renderWithTheme(<ResultsPageClient {...defaultProps} />);
+      const { container } = renderWithTheme(<ResultsPageClient {...defaultProps} />);
 
+      // Overflow is now handled by ScrollShadowContainer's inner scroll container
       const allPanels = screen.getAllByRole('tabpanel');
       const groupsPanel = allPanels.find(panel => panel.id === 'results-tabpanel-0')!;
-      expect(groupsPanel).toHaveStyle({ overflow: 'auto' });
+
+      // Find the scroll container within the tab panel
+      const scrollContainer = groupsPanel.querySelector('[data-scroll-container]');
+      expect(scrollContainer).toBeInTheDocument();
+      // The scroll container has overflow from the direction prop (vertical = overflowY: auto)
     });
 
     it('renders tabs and tab panels in a container', () => {

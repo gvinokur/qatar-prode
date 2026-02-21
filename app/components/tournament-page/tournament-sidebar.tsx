@@ -1,7 +1,8 @@
 'use client'
 
-import { Box, Grid } from '@mui/material'
+import { Grid, Paper } from '@mui/material'
 import { usePathname } from 'next/navigation'
+import { ScrollShadowContainer } from '@/app/components/common/scroll-shadow-container'
 import Rules, { ScoringConfig } from './rules'
 import { UserTournamentStatistics } from './user-tournament-statistics'
 import GroupStandingsSidebar from './group-standings-sidebar'
@@ -63,59 +64,56 @@ export default function TournamentSidebar({
         overflow: 'hidden'
       }}
     >
-      <Box sx={{
-        flexGrow: 1,
-        overflow: 'auto',
-        minHeight: 0,
-        pt: 2,
-        scrollbarWidth: 'none',
-        msOverflowStyle: 'none',
-        '&::-webkit-scrollbar': {
-          display: 'none'
-        }
-      }}>
-        <Grid container rowSpacing={2}>
-          <Grid size={12}>
-            <Rules
-              expanded={false}
-              scoringConfig={scoringConfig}
-              tournamentId={tournamentId}
-              isActive={currentSection === 'rules'}
-            />
-          </Grid>
-          {user && (
-            <Grid size={12}>
-              <UserTournamentStatistics
-                userGameStatistics={userGameStatistics}
-                tournamentGuess={tournamentGuess}
-                tournamentId={tournamentId}
-                isActive={currentSection === 'stats'}
-              />
-            </Grid>
-          )}
+      <ScrollShadowContainer
+        direction="vertical"
+        hideScrollbar={true}
+        sx={{
+          flexGrow: 1,
+          minHeight: 0,
+          pt: 2,
+        }}
+      >
+        <Paper elevation={1}>
+          {/* 1. Tables */}
           {groupStandings && groupStandings.groups.length > 0 && (
-            <Grid size={12}>
-              <GroupStandingsSidebar
-                groups={groupStandings.groups}
-                defaultGroupId={groupStandings.defaultGroupId}
-                qualifiedTeams={groupStandings.qualifiedTeams}
-                tournamentId={tournamentId}
-                isActive={currentSection === 'results'}
-              />
-            </Grid>
+            <GroupStandingsSidebar
+              groups={groupStandings.groups}
+              defaultGroupId={groupStandings.defaultGroupId}
+              qualifiedTeams={groupStandings.qualifiedTeams}
+              tournamentId={tournamentId}
+              isActive={currentSection === 'results'}
+            />
           )}
+
+          {/* 2. Stats */}
+          {user && (
+            <UserTournamentStatistics
+              userGameStatistics={userGameStatistics}
+              tournamentGuess={tournamentGuess}
+              tournamentId={tournamentId}
+              isActive={currentSection === 'stats'}
+            />
+          )}
+
+          {/* 3. Friend Groups */}
           {prodeGroups && (
-            <Grid size={12}>
-              <FriendGroupsList
-                userGroups={prodeGroups.userGroups}
-                participantGroups={prodeGroups.participantGroups}
-                tournamentId={tournamentId}
-                isActive={currentSection === 'friend-groups'}
-              />
-            </Grid>
+            <FriendGroupsList
+              userGroups={prodeGroups.userGroups}
+              participantGroups={prodeGroups.participantGroups}
+              tournamentId={tournamentId}
+              isActive={currentSection === 'friend-groups'}
+            />
           )}
-        </Grid>
-      </Box>
+
+          {/* 4. Rules */}
+          <Rules
+            expanded={false}
+            scoringConfig={scoringConfig}
+            tournamentId={tournamentId}
+            isActive={currentSection === 'rules'}
+          />
+        </Paper>
+      </ScrollShadowContainer>
     </Grid>
   )
 }

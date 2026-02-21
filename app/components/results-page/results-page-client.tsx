@@ -6,6 +6,7 @@ import { Box, Tabs, Tab } from '@mui/material'
 import { EmojiEvents, AccountTree } from '@mui/icons-material'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { ScrollShadowContainer } from '@/app/components/common/scroll-shadow-container'
 import GroupsStageView from './groups-stage-view'
 import PlayoffsBracketView from './playoffs-bracket-view'
 
@@ -70,14 +71,16 @@ export default function ResultsPageClient({
       </Box>
 
       {/* Tab panels - scrollable content */}
-      <Box
+      <ScrollShadowContainer
         role="tabpanel"
         hidden={selectedTab !== 0}
         id="results-tabpanel-0"
+        aria-controls="results-tab-0"
+        direction="vertical"
+        hideScrollbar={true}
         sx={{
           flex: 1,
           minHeight: 0,
-          overflow: 'auto',
           px: 2,
           py: 2,
         }}
@@ -85,16 +88,20 @@ export default function ResultsPageClient({
         {selectedTab === 0 && (
           <GroupsStageView groups={groups} games={games} qualifiedTeams={qualifiedTeams} />
         )}
-      </Box>
+      </ScrollShadowContainer>
 
-      <Box
+      <ScrollShadowContainer
         role="tabpanel"
         hidden={selectedTab !== 1}
         id="results-tabpanel-1"
+        aria-controls="results-tab-1"
+        direction="both"
+        hideScrollbar={true}
         sx={{
           flex: 1,
           minHeight: 0,
-          overflow: 'auto',
+        }}
+        scrollContainerSx={{
           px: 2,
           py: 2,
         }}
@@ -102,7 +109,7 @@ export default function ResultsPageClient({
         {selectedTab === 1 && (
           <PlayoffsBracketView playoffStages={playoffStages} games={games} teamsMap={teamsMap} />
         )}
-      </Box>
+      </ScrollShadowContainer>
     </Box>
   )
 }

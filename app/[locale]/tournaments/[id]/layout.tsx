@@ -25,6 +25,7 @@ import { findTournamentById } from '../../../db/tournament-repository';
 import { getGameGuessStatisticsForUsers } from '../../../db/game-guess-repository';
 import type { ScoringConfig } from '../../../components/tournament-page/rules';
 import { getLocale } from 'next-intl/server';
+import { ScrollShadowContainer } from '../../../components/common/scroll-shadow-container';
 
 type TournamentLayoutProps = {
   readonly params: Promise<{
@@ -245,7 +246,6 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
       {/* Main content area */}
       <Box sx={{
         flexGrow: 1,
-        overflow: 'auto',
         minHeight: 0,
         px: 2,
         pb: 2
@@ -258,8 +258,14 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
         }}>
           <Grid container spacing={2} sx={{ height: '100%' }}>
             {/* Main content - 8/12 on desktop, full on mobile */}
-            <Grid size={{ xs: 12, md: 8 }} sx={{ height: '100%', overflow: 'auto' }}>
-              {children}
+            <Grid size={{ xs: 12, md: 8 }} sx={{ height: '100%' }}>
+              <ScrollShadowContainer
+                direction="vertical"
+                hideScrollbar={true}
+                sx={{ height: '100%' }}
+              >
+                {children}
+              </ScrollShadowContainer>
             </Grid>
 
             {/* Sidebar - 4/12 on desktop, hidden on mobile */}

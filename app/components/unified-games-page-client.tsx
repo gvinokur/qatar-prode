@@ -1,9 +1,10 @@
 'use client'
 
-import { Box, Stack, Fab } from '@mui/material';
+import { Box, Fab, useTheme, useMediaQuery } from '@mui/material';
 import { useMemo, useContext, useEffect, useState } from 'react';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import { ScrollShadowContainer } from './common/scroll-shadow-container';
 import { FilterContextProvider, useFilterContext } from './context-providers/filter-context-provider';
 import { GameFilters } from './game-filters';
 import { CompactPredictionDashboard } from './compact-prediction-dashboard';
@@ -44,6 +45,8 @@ function UnifiedGamesPageContent({
   const { activeFilter, groupFilter, roundFilter, setActiveFilter, setGroupFilter, setRoundFilter } = useFilterContext();
   const guessesContext = useContext(GuessesContext);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   // Filter games based on active filters
   const filteredGames = useMemo(() => {
@@ -73,10 +76,11 @@ function UnifiedGamesPageContent({
   // Track scroll position to show/hide scroll to top button
   useEffect(() => {
     // On mobile, track Stack scroll; on desktop, track games container scroll
-    const isMobile = window.innerWidth < 900; // md breakpoint
-    const scrollContainer = isMobile
+    const wrapper = isMobile
       ? document.getElementById('unified-games-stack')
       : document.getElementById('games-scroll-container');
+
+    const scrollContainer = wrapper?.querySelector('[data-scroll-container]') as HTMLElement | null;
 
     if (!scrollContainer) return;
 
@@ -86,7 +90,7 @@ function UnifiedGamesPageContent({
 
     scrollContainer.addEventListener('scroll', handleScroll);
     return () => scrollContainer.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isMobile]); // Re-run when screen size changes
 
   // Handler to scroll to next/current game
   const handleScrollToNext = () => {
@@ -98,10 +102,11 @@ function UnifiedGamesPageContent({
 
   // Handler to scroll to top (on mobile scrolls to show dashboard, on desktop scrolls games)
   const handleScrollToTop = () => {
-    const isMobile = window.innerWidth < 900; // md breakpoint
-    const scrollContainer = isMobile
+    const wrapper = isMobile
       ? document.getElementById('unified-games-stack')
       : document.getElementById('games-scroll-container');
+
+    const scrollContainer = wrapper?.querySelector('[data-scroll-container]') as HTMLElement | null;
 
     if (scrollContainer) {
       scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
@@ -109,20 +114,19 @@ function UnifiedGamesPageContent({
   };
 
   return (
-    <Stack
+    <ScrollShadowContainer
       id="unified-games-stack"
-      spacing={2}
+      direction={isMobile ? 'vertical' : 'none'}
+      hideScrollbar={true}
       sx={{
         height: '100%',
-        overflow: { xs: 'auto', md: 'hidden' }, // Mobile: entire stack scrolls; Desktop: only games scroll
+      }}
+      scrollContainerSx={{
         pb: { xs: '56px', md: 0 }, // Account for fixed bottom nav on mobile
         pt: 2, // Add top padding for spacing from navigation tabs
-        // Hide scrollbar
-        scrollbarWidth: 'none', // Firefox
-        msOverflowStyle: 'none', // IE/Edge
-        '&::-webkit-scrollbar': {
-          display: 'none' // Chrome/Safari
-        }
+        display: { xs: 'block', md: 'flex' },
+        flexDirection: 'column',
+        gap: 2, // Equivalent to Stack spacing={2}
       }}
     >
       {/* Compact Prediction Dashboard */}
@@ -175,19 +179,13 @@ function UnifiedGamesPageContent({
       </Box>
 
       {/* Scrollable Games List */}
-      <Box
+      <ScrollShadowContainer
         id="games-scroll-container"
+        direction={isMobile ? 'none' : 'vertical'}
+        hideScrollbar={true}
         sx={{
           flexGrow: 1,
-          overflow: { xs: 'visible', md: 'auto' }, // Mobile: no scroll (Stack scrolls); Desktop: scrolls
           minHeight: 0,
-          position: 'relative',
-          // Hide scrollbar
-          scrollbarWidth: 'none', // Firefox
-          msOverflowStyle: 'none', // IE/Edge
-          '&::-webkit-scrollbar': {
-            display: 'none' // Chrome/Safari
-          }
         }}
       >
         <GamesListWithScroll
@@ -233,8 +231,8 @@ function UnifiedGamesPageContent({
             <ArrowUpwardIcon />
           </Fab>
         )}
-      </Box>
-    </Stack>
+      </ScrollShadowContainer>
+    </ScrollShadowContainer>
   );
 }
 

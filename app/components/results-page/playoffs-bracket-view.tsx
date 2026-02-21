@@ -147,13 +147,6 @@ export default function PlayoffsBracketView({
             width: dimensions.width,
             height: dimensions.height,
             pb: 4,
-            // Edge fade gradients to indicate scrollability
-            maskImage:
-              'linear-gradient(to right, black calc(100% - 40px), transparent), linear-gradient(to bottom, black calc(100% - 40px), transparent)',
-            maskComposite: 'intersect',
-            WebkitMaskImage:
-              'linear-gradient(to right, black calc(100% - 40px), transparent), linear-gradient(to bottom, black calc(100% - 40px), transparent)',
-            WebkitMaskComposite: 'source-in',
           }}
         >
           {/* SVG overlay for connection lines */}
