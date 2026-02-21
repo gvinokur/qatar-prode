@@ -1,23 +1,23 @@
 {
-  "notFound": "EsOf[games.notFound]",
-  "unauthorized": "EsOf[games.unauthorized]",
+  "notFound": "Partido no encontrado",
+  "unauthorized": "Solo los administradores pueden gestionar los partidos del torneo",
   "boost": {
-    "cannotSetAfterStart": "EsOf[games.boost.cannotSetAfterStart]",
-    "maxSilverReached": "EsOf[games.boost.maxSilverReached]",
-    "maxGoldenReached": "EsOf[games.boost.maxGoldenReached]"
+    "cannotSetAfterStart": "No se puede aplicar boost después de que comienza el partido",
+    "maxSilverReached": "Máximo {max} partidos plateados permitidos",
+    "maxGoldenReached": "Máximo {max} partidos dorados permitidos"
   },
   "guess": {
-    "unauthorized": "EsOf[games.guess.unauthorized]",
-    "saveFailed": "EsOf[games.guess.saveFailed]",
-    "updateFailed": "EsOf[games.guess.updateFailed]"
+    "unauthorized": "Acción no autorizada",
+    "saveFailed": "Error al guardar la predicción",
+    "updateFailed": "Error al actualizar la predicción del torneo"
   },
   "scoreGenerator": {
-    "groupNotFound": "EsOf[games.scoreGenerator.groupNotFound]",
-    "playoffRoundNotFound": "EsOf[games.scoreGenerator.playoffRoundNotFound]",
-    "invalidParameters": "EsOf[games.scoreGenerator.invalidParameters]",
-    "unauthorized": "EsOf[games.scoreGenerator.unauthorized]",
-    "requireGroupOrPlayoff": "EsOf[games.scoreGenerator.requireGroupOrPlayoff]",
-    "autoFillFailed": "EsOf[games.scoreGenerator.autoFillFailed]",
-    "clearFailed": "EsOf[games.scoreGenerator.clearFailed]"
+    "groupNotFound": "Grupo no encontrado",
+    "playoffRoundNotFound": "Ronda de playoff no encontrada",
+    "invalidParameters": "Parámetros inválidos",
+    "unauthorized": "Se requiere acceso de administrador",
+    "requireGroupOrPlayoff": "Debe proporcionar groupId o playoffRoundId",
+    "autoFillFailed": "Error al auto-completar puntuaciones",
+    "clearFailed": "Error al limpiar puntuaciones"
   }
 }

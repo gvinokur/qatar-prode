@@ -8,15 +8,15 @@
     "error": "Ocurrió un error"
   },
   "theme": {
-    "switchTo": "EsOf(Switch to {mode} mode)",
-    "light": "EsOf(light)",
-    "dark": "EsOf(dark)"
+    "switchTo": "Cambiar a modo {mode}",
+    "light": "claro",
+    "dark": "oscuro"
   },
   "language": {
-    "selectLanguage": "EsOf(Select language)"
+    "selectLanguage": "Seleccionar idioma"
   },
   "footer": {
-    "logoAlt": "EsOf(Footer Logo)",
+    "logoAlt": "Logo del Pie de Página",
     "teasingMessages": {
       "firstPlace": "👑👑 Grande Rey, vas primero, a ver si te podes mantener!! 👑👑",
       "lastPlace": "💩💩 Vas Ultimo, caquita!! 💩💩"

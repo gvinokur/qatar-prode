@@ -1,43 +1,43 @@
 {
   "podium": {
-    "title": "EnOf(Podio del Torneo)",
+    "title": "Tournament Podium",
     "champion": {
-      "label": "EnOf(Campeón)",
-      "helper": "EnOf(Selecciona el equipo que predigas que ganará el torneo)"
+      "label": "Champion",
+      "helper": "Select the team you predict will win the tournament"
     },
     "runnerUp": {
-      "label": "EnOf(Subcampeón)",
-      "helper": "EnOf(Selecciona el equipo que predigas que llegará a la final)"
+      "label": "Runner-up",
+      "helper": "Select the team you predict will reach the final"
     },
     "thirdPlace": {
-      "label": "EnOf(Tercer Lugar)",
-      "helper": "EnOf(Selecciona el equipo que predigas que ganará el partido por el tercer lugar)"
+      "label": "Third Place",
+      "helper": "Select the team you predict will win the third place match"
     }
   },
   "individual": {
-    "title": "EnOf(Premios Individuales)",
-    "selectPlayer": "EnOf(Elegir Jugador)",
-    "unavailableTitle": "EnOf(Premios Individuales no disponibles)",
-    "unavailableMessage": "EnOf(Esta sección estará disponible una vez que se den a conocer las nóminas de los equipos participantes en el torneo)",
-    "successMessage": "EnOf(Tus pronósticos se guardaron correctamente!)",
-    "lockedTitle": "EnOf(Predicciones Bloqueadas)",
-    "lockedMessage": "EnOf(Las predicciones ya no están disponibles ya que el torneo ya ha comenzado)"
+    "title": "Individual Awards",
+    "selectPlayer": "Choose Player",
+    "unavailableTitle": "Individual Awards Unavailable",
+    "unavailableMessage": "This section will be available once the team rosters for the tournament are announced",
+    "successMessage": "Your predictions were saved successfully!",
+    "lockedTitle": "Predictions Locked",
+    "lockedMessage": "Predictions are no longer available since the tournament has already started"
   },
   "categories": {
-    "bestPlayer": "EnOf(Mejor Jugador)",
-    "topGoalscorer": "EnOf(Goleador)",
-    "bestGoalkeeper": "EnOf(Mejor Arquero)",
-    "bestYoungPlayer": "EnOf(Mejor Jugador Joven)"
+    "bestPlayer": "Best Player",
+    "topGoalscorer": "Top Goalscorer",
+    "bestGoalkeeper": "Best Goalkeeper",
+    "bestYoungPlayer": "Best Young Player"
   },
   "notification": {
-    "title": "EnOf(Pronóstico de Premios no Finalizado)",
-    "message": "EnOf(Hemos detectado que no has elegido quién será el campeón o los premios individuales.)",
-    "deadline": "EnOf(La selección de dichas predicciones cierra 5 días luego del inicio del campeonato.)",
-    "action": "EnOf(Puedes ir a la página de premios para hacer tus predicciones.)",
-    "button": "EnOf(Ir a Premios)"
+    "title": "Awards Predictions Not Completed",
+    "message": "We detected that you haven't chosen who will be the champion or the individual awards.",
+    "deadline": "Selection for these predictions closes 5 days after the start of the championship.",
+    "action": "You can go to the awards page to make your predictions.",
+    "button": "Go to Awards"
   },
   "selector": {
-    "none": "EnOf(Ninguno)",
-    "selectItem": "EnOf(Seleccionar)"
+    "none": "None",
+    "selectItem": "Select"
   }
 }

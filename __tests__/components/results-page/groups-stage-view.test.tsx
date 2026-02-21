@@ -718,8 +718,8 @@ describe('GroupsStageView', () => {
         { locale: 'en' }
       );
 
-      expect(screen.getByText('EnOf(No hay grupos configurados)')).toBeInTheDocument();
-      expect(screen.getByText('EnOf(Los grupos se mostrarán aquí cuando estén disponibles)')).toBeInTheDocument();
+      expect(screen.getByText('No groups configured')).toBeInTheDocument();
+      expect(screen.getByText('Groups will be shown here when available')).toBeInTheDocument();
     });
 
     it('should not display empty state messages when groups are provided (Spanish)', () => {
@@ -760,7 +760,7 @@ describe('GroupsStageView', () => {
         { locale: 'en' }
       );
 
-      expect(screen.queryByText('EnOf(No hay grupos configurados)')).not.toBeInTheDocument();
+      expect(screen.queryByText('No groups configured')).not.toBeInTheDocument();
       expect(screen.getByTestId('group-card-group-1')).toBeInTheDocument();
     });
 
@@ -809,8 +809,8 @@ describe('GroupsStageView', () => {
       );
 
       // Both English text elements should be present
-      expect(screen.getByText('EnOf(No hay grupos configurados)')).toBeInTheDocument();
-      expect(screen.getByText('EnOf(Los grupos se mostrarán aquí cuando estén disponibles)')).toBeInTheDocument();
+      expect(screen.getByText('No groups configured')).toBeInTheDocument();
+      expect(screen.getByText('Groups will be shown here when available')).toBeInTheDocument();
 
       // Verify it's in a Box with text-align center
       const emptyStateBox = container.querySelector('.MuiBox-root');

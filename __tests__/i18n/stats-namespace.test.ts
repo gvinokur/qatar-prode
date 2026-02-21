@@ -16,15 +16,13 @@ describe('stats namespace i18n', () => {
     expect(esKeys).toBe(enKeys);
   });
 
-  it('should use EnOf() placeholders in English file', () => {
+  it('should not have any EnOf() placeholders (fully translated)', () => {
     const enJSON = JSON.stringify(enStats);
-
-    // Check for EnOf pattern in English file
-    expect(enJSON).toContain('EnOf(');
-
-    // Spanish file should not have EnOf
     const esJSON = JSON.stringify(esStats);
-    expect(esJSON).not.toContain('EnOf(');
+
+    // Both files should be fully translated (no EnOf or EsOf markers)
+    expect(enJSON).not.toContain('EnOf(');
+    expect(esJSON).not.toContain('EsOf(');
   });
 
   it('should have valid dynamic interpolation placeholders', () => {

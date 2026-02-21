@@ -15,18 +15,18 @@
   "logoUploadFailed": "Failed to upload logo. Please try again with a smaller file.",
   "playoffSaveFailed": "Failed to save playoff stage",
   "qualification": {
-    "tournamentNotFound": "EnOf[tournaments.qualification.tournamentNotFound]",
-    "invalidTeamGroup": "EnOf[tournaments.qualification.invalidTeamGroup]",
-    "duplicateTeams": "EnOf[tournaments.qualification.duplicateTeams]",
-    "invalidPosition": "EnOf[tournaments.qualification.invalidPosition]",
-    "duplicatePositions": "EnOf[tournaments.qualification.duplicatePositions]",
-    "invalidQualificationFlag": "EnOf[tournaments.qualification.invalidQualificationFlag]",
-    "thirdPlaceNotAllowed": "EnOf[tournaments.qualification.thirdPlaceNotAllowed]",
-    "tooManyThirdPlace": "EnOf[tournaments.qualification.tooManyThirdPlace]",
-    "unauthorized": "EnOf[tournaments.qualification.unauthorized]",
-    "noUpdates": "EnOf[tournaments.qualification.noUpdates]",
-    "tournamentLocked": "EnOf[tournaments.qualification.tournamentLocked]",
-    "updateSuccess": "EnOf[tournaments.qualification.updateSuccess]",
-    "saveFailed": "EnOf[tournaments.qualification.saveFailed]"
+    "tournamentNotFound": "Tournament not found",
+    "invalidTeamGroup": "Team {teamId} does not belong to group {groupId}",
+    "duplicateTeams": "There are duplicate teams",
+    "invalidPosition": "All positions must be at least 1",
+    "duplicatePositions": "There are duplicate positions",
+    "invalidQualificationFlag": "Teams in positions 1 and 2 must be qualified",
+    "thirdPlaceNotAllowed": "This tournament does not allow third place teams to qualify",
+    "tooManyThirdPlace": "You can only select {maxThirdPlace} third place teams in total. You have {totalThirdPlace}.",
+    "unauthorized": "You must log in to update predictions",
+    "noUpdates": "No predictions to update",
+    "tournamentLocked": "Predictions are locked for this tournament",
+    "updateSuccess": "Updated {count} predictions successfully",
+    "saveFailed": "Error saving predictions. Please try again."
   }
 }

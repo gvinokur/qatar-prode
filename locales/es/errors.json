@@ -1,11 +1,11 @@
 {
   "generic": "Ocurrió un error inesperado. Por favor, inténtalo de nuevo.",
-  "tryAgain": "EsOf[errors.tryAgain]",
-  "unauthorized": "EsOf[errors.unauthorized]",
-  "notAuthenticated": "EsOf[errors.notAuthenticated]",
-  "notFound": "EsOf[errors.notFound]",
-  "invalidParameters": "EsOf[errors.invalidParameters]",
-  "returnHome": "EsOf[errors.returnHome]",
+  "tryAgain": "Intentar de nuevo",
+  "unauthorized": "No autorizado",
+  "notAuthenticated": "No autenticado",
+  "notFound": "No encontrado",
+  "invalidParameters": "Parámetros inválidos",
+  "returnHome": "Volver al Inicio",
   "auth": {
     "invalidCredentials": "Email o Contraseña Invalida",
     "googleAccount": "Esta cuenta usa inicio de sesión con Google.",
@@ -21,8 +21,8 @@
     "copyFailed": "Error al copiar: {error}"
   },
   "tournament": {
-    "accessDenied": "EsOf[errors.tournament.accessDenied]",
-    "noPermission": "EsOf[errors.tournament.noPermission]",
-    "contactAdmin": "EsOf[errors.tournament.contactAdmin]"
+    "accessDenied": "Acceso Denegado",
+    "noPermission": "No tienes permiso para ver este torneo. Este es un torneo de desarrollo que requiere acceso especial.",
+    "contactAdmin": "Si crees que deberías tener acceso, por favor contacta a un administrador."
   }
 }

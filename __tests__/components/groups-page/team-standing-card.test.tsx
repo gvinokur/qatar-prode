@@ -70,7 +70,7 @@ describe('TeamStandingCard', () => {
         />
       );
 
-      // Should show PJ and DG in collapsed state (on larger screens)
+      // Should show PJ and DG in collapsed state (on larger screens) - Spanish locale
       expect(screen.getByText(/3 PJ/)).toBeInTheDocument();
       expect(screen.getByText(/\+5 DG/)).toBeInTheDocument();
     });
@@ -123,7 +123,7 @@ describe('TeamStandingCard', () => {
         />
       );
 
-      // Check for detailed stats section
+      // Check for detailed stats section (Spanish locale)
       expect(screen.getByText('Estadísticas Detalladas')).toBeInTheDocument();
       expect(screen.getByText(/Partidos Jugados: 3/)).toBeInTheDocument();
       expect(screen.getByText(/Ganados: 3/)).toBeInTheDocument();
@@ -135,7 +135,7 @@ describe('TeamStandingCard', () => {
       expect(screen.getByText(/Puntos de Conducta: 0/)).toBeInTheDocument();
     });
 
-    it('shows only points (not PJ/DG) when expanded', () => {
+    it('shows only points (not MP/DG) when expanded', () => {
       renderWithTheme(
         <TeamStandingCard
           standing={baseMockStanding}
@@ -145,12 +145,12 @@ describe('TeamStandingCard', () => {
         />
       );
 
-      // In expanded state, should only show "9 pts" without PJ/DG
+      // In expanded state, should only show "9 pts" without MP/DG
       const pointsText = screen.getByText('9 pts');
       expect(pointsText).toBeInTheDocument();
 
-      // Should NOT show PJ/DG inline (they're in the detailed stats)
-      expect(screen.queryByText(/9 pts \(3 PJ/)).not.toBeInTheDocument();
+      // Should NOT show MP/DG inline (they're in the detailed stats)
+      expect(screen.queryByText(/9 pts \(3 MP/)).not.toBeInTheDocument();
     });
   });
 
@@ -480,9 +480,8 @@ describe('TeamStandingCard', () => {
           { locale: 'en' }
         );
 
-        // English: EnOf prefix indicates English translation with interpolation
-        // Should display: "EnOf(15 pts (5 PJ, +10 DG))"
-        expect(screen.getByText(/EnOf\(15 pts \(5 PJ, \+10 DG\)\)/)).toBeInTheDocument();
+        // English: Should display interpolated text: "15 pts (5 MP, +10 GD)"
+        expect(screen.getByText(/15 pts \(5 MP, \+10 GD\)/)).toBeInTheDocument();
       });
 
       it('handles negative goal difference in English', () => {
@@ -503,7 +502,7 @@ describe('TeamStandingCard', () => {
           { locale: 'en' }
         );
 
-        expect(screen.getByText(/EnOf\(8 pts \(4 PJ, -3 DG\)\)/)).toBeInTheDocument();
+        expect(screen.getByText(/8 pts \(4 MP, -3 GD\)/)).toBeInTheDocument();
       });
 
       it('handles zero goal difference in English', () => {
@@ -524,7 +523,7 @@ describe('TeamStandingCard', () => {
           { locale: 'en' }
         );
 
-        expect(screen.getByText(/EnOf\(10 pts \(3 PJ, \+0 DG\)\)/)).toBeInTheDocument();
+        expect(screen.getByText(/10 pts \(3 MP, \+0 GD\)/)).toBeInTheDocument();
       });
 
       it('displays compact points in English when expanded', () => {
@@ -543,8 +542,8 @@ describe('TeamStandingCard', () => {
           { locale: 'en' }
         );
 
-        // When expanded, should show compact format: "EnOf(15 pts)"
-        expect(screen.getByText(/EnOf\(15 pts\)/)).toBeInTheDocument();
+        // When expanded, should show compact format: "15 pts)"
+        expect(screen.getByText(/15 pts/)).toBeInTheDocument();
       });
 
       it('displays large points values with correct interpolation (English)', () => {
@@ -565,7 +564,7 @@ describe('TeamStandingCard', () => {
           { locale: 'en' }
         );
 
-        expect(screen.getByText(/EnOf\(999 pts \(100 PJ, \+500 DG\)\)/)).toBeInTheDocument();
+        expect(screen.getByText(/999 pts \(100 MP, \+500 GD\)/)).toBeInTheDocument();
       });
     });
 
@@ -593,18 +592,18 @@ describe('TeamStandingCard', () => {
           { locale: 'en' }
         );
 
-        // All stat labels should be in English (with EnOf prefix)
-        expect(screen.getByText(/EnOf\(Estadísticas Detalladas\)/)).toBeInTheDocument();
-        expect(screen.getByText(/EnOf\(Partidos Jugados\)/)).toBeInTheDocument();
-        expect(screen.getByText(/EnOf\(Récord\)/)).toBeInTheDocument();
-        expect(screen.getByText(/EnOf\(Ganados\)/)).toBeInTheDocument();
-        expect(screen.getByText(/EnOf\(Empatados\)/)).toBeInTheDocument();
-        expect(screen.getByText(/EnOf\(Perdidos\)/)).toBeInTheDocument();
-        expect(screen.getByText(/EnOf\(Goles\)/)).toBeInTheDocument();
-        expect(screen.getByText(/EnOf\(Goles a Favor\)/)).toBeInTheDocument();
-        expect(screen.getByText(/EnOf\(Goles en Contra\)/)).toBeInTheDocument();
-        expect(screen.getByText(/EnOf\(Diferencia de Gol\)/)).toBeInTheDocument();
-        expect(screen.getByText(/EnOf\(Puntos de Conducta\)/)).toBeInTheDocument();
+        // All stat labels should be in English
+        expect(screen.getByText(/Detailed Stats/)).toBeInTheDocument();
+        expect(screen.getByText(/Matches Played/)).toBeInTheDocument();
+        expect(screen.getByText(/Record/)).toBeInTheDocument();
+        expect(screen.getByText(/Wins/)).toBeInTheDocument();
+        expect(screen.getByText(/Draws/)).toBeInTheDocument();
+        expect(screen.getByText(/Losses/)).toBeInTheDocument();
+        expect(screen.getAllByText(/^Goals$/)[0]).toBeInTheDocument();
+        expect(screen.getByText(/Goals For/)).toBeInTheDocument();
+        expect(screen.getByText(/Goals Against/)).toBeInTheDocument();
+        expect(screen.getByText(/Goal Difference/)).toBeInTheDocument();
+        expect(screen.getByText(/Conduct Score/)).toBeInTheDocument();
       });
 
       it('formats goal difference with sign in detailed stats (English)', () => {
@@ -624,7 +623,7 @@ describe('TeamStandingCard', () => {
         );
 
         // Goal difference should show with + prefix in the detailed stats section
-        expect(screen.getByText(/EnOf\(Diferencia de Gol\): \+9/)).toBeInTheDocument();
+        expect(screen.getByText(/Goal Difference: \+9/)).toBeInTheDocument();
       });
 
       it('formats negative goal difference in detailed stats (English)', () => {
@@ -643,7 +642,7 @@ describe('TeamStandingCard', () => {
           { locale: 'en' }
         );
 
-        expect(screen.getByText(/EnOf\(Diferencia de Gol\): -5/)).toBeInTheDocument();
+        expect(screen.getByText(/Goal Difference: -5/)).toBeInTheDocument();
       });
     });
   });
@@ -669,7 +668,7 @@ describe('TeamStandingCard', () => {
         );
 
         // Spanish: no EnOf prefix, direct translation
-        // Should display: "15 pts (5 PJ, +10 DG)"
+        // Should display: "15 pts (5 PJ, +10 DG)" (Spanish abbreviations)
         expect(screen.getByText(/15 pts \(5 PJ, \+10 DG\)/)).toBeInTheDocument();
       });
 
@@ -857,7 +856,7 @@ describe('TeamStandingCard', () => {
       );
 
       // In compact mode, should show compact format even when collapsed
-      expect(screen.getByText(/EnOf\(15 pts\)/)).toBeInTheDocument();
+      expect(screen.getByText(/15 pts/)).toBeInTheDocument();
     });
 
     it('displays compact points format in Spanish compact mode (collapsed)', () => {
@@ -1025,7 +1024,7 @@ describe('TeamStandingCard', () => {
       );
 
       // Should display all zeros without errors
-      expect(screen.getByText(/EnOf\(0 pts\)/)).toBeInTheDocument();
+      expect(screen.getByText(/0 pts/)).toBeInTheDocument();
     });
 
     it('displays zero values correctly in Spanish', () => {

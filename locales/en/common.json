@@ -1,8 +1,8 @@
 {
   "app": {
     "name": "World Cup Predictions",
-    "title": "EnOf(La Maquina Prode)",
-    "logoAlt": "EnOf(La Maquina Prode)",
+    "title": "La Maquina Prode",
+    "logoAlt": "La Maquina Prode",
     "description": "Sports prediction platform",
     "loading": "Loading...",
     "error": "An error occurred"
@@ -18,8 +18,8 @@
   "footer": {
     "logoAlt": "Footer Logo",
     "teasingMessages": {
-      "firstPlace": "EnOf(👑👑 Grande Rey, vas primero, a ver si te podes mantener!! 👑👑)",
-      "lastPlace": "EnOf(💩💩 Vas Ultimo, caquita!! 💩💩)"
+      "firstPlace": "👑👑 Amazing champ, you're first! Let's see if you can stay there!! 👑👑",
+      "lastPlace": "💩💩 You're last, come on!! 💩💩"
     }
   },
   "buttons": {

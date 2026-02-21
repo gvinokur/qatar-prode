@@ -123,7 +123,7 @@ describe('AwardsPanel - i18n', () => {
   });
 
   describe('English translations', () => {
-    it('renders podium title with EnOf marker', () => {
+    it('renders podium title in English', () => {
       renderWithAwards(
         <AwardsPanel
           allPlayers={mockPlayers}
@@ -136,10 +136,10 @@ describe('AwardsPanel - i18n', () => {
         'en'
       );
 
-      expect(screen.getByText(/EnOf\(Podio del Torneo\)/)).toBeInTheDocument();
+      expect(screen.getByText('Tournament Podium')).toBeInTheDocument();
     });
 
-    it('renders individual awards title with EnOf marker', () => {
+    it('renders individual awards title in English', () => {
       renderWithAwards(
         <AwardsPanel
           allPlayers={mockPlayers}
@@ -152,7 +152,7 @@ describe('AwardsPanel - i18n', () => {
         'en'
       );
 
-      expect(screen.getByText(/EnOf\(Premios Individuales\)/)).toBeInTheDocument();
+      expect(screen.getByText('Individual Awards')).toBeInTheDocument();
     });
   });
 

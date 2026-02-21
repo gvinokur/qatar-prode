@@ -45,16 +45,16 @@ describe('EmptyAwardsSnackbar - i18n', () => {
   });
 
   describe('English translations', () => {
-    it('renders notification title with EnOf marker', () => {
+    it('renders notification title in English', () => {
       renderWithAwards(<EmptyAwardsSnackbar open={true} onClose={() => {}} tournamentId="1" />, 'en');
 
-      expect(screen.getByText(/EnOf\(Pronóstico de Premios no Finalizado\)/)).toBeInTheDocument();
+      expect(screen.getByText('Awards Predictions Not Completed')).toBeInTheDocument();
     });
 
-    it('renders button text with EnOf marker', () => {
+    it('renders button text in English', () => {
       renderWithAwards(<EmptyAwardsSnackbar open={true} onClose={() => {}} tournamentId="1" />, 'en');
 
-      expect(screen.getByText(/EnOf\(Ir a Premios\)/)).toBeInTheDocument();
+      expect(screen.getByText('Go to Awards')).toBeInTheDocument();
     });
   });
 });

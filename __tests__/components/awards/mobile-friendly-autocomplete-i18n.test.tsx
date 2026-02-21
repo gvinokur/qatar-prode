@@ -46,7 +46,7 @@ describe('MobileFriendlyAutocomplete - i18n', () => {
   });
 
   describe('English translations', () => {
-    it('renders EnOf marker for label in English', () => {
+    it('renders "Select" label in English', () => {
       renderWithAwards(
         <MobileFriendlyAutocomplete
           options={mockOptions}
@@ -58,7 +58,7 @@ describe('MobileFriendlyAutocomplete - i18n', () => {
         'en'
       );
 
-      expect(screen.getByLabelText(/EnOf\(Seleccionar\)/)).toBeInTheDocument();
+      expect(screen.getByLabelText('Select')).toBeInTheDocument();
     });
   });
 });

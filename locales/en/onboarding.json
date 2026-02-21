@@ -1,177 +1,177 @@
 {
   "dialog": {
-    "skipButton": "EnOf(Saltar Tutorial)",
-    "backButton": "EnOf(Atrás)",
-    "nextButton": "EnOf(Siguiente)",
-    "finishButton": "EnOf(Finalizar)"
+    "skipButton": "Skip Tutorial",
+    "backButton": "Back",
+    "nextButton": "Next",
+    "finishButton": "Finish"
   },
   "progress": {
-    "welcome": "EnOf(Bienvenida)",
-    "gamePrediction": "EnOf(Partidos)",
-    "qualifiedTeams": "EnOf(Clasificados)",
-    "tournamentAwards": "EnOf(Premios)",
-    "scoring": "EnOf(Puntaje)",
-    "boosts": "EnOf(Boosts)",
-    "checklist": "EnOf(Checklist)"
+    "welcome": "Welcome",
+    "gamePrediction": "Matches",
+    "qualifiedTeams": "Qualified",
+    "tournamentAwards": "Awards",
+    "scoring": "Scoring",
+    "boosts": "Boosts",
+    "checklist": "Checklist"
   },
   "steps": {
     "welcome": {
-      "title": "EnOf(¡Bienvenido a Qatar Prode!)",
-      "description": "EnOf(Te guiaremos a través de las funciones principales para que puedas empezar a hacer tus predicciones y competir con tus amigos.)",
-      "durationInfo": "EnOf(Este tutorial tomará aproximadamente 2 minutos)"
+      "title": "Welcome to Qatar Prode!",
+      "description": "We'll guide you through the main features so you can start making your predictions and competing with your friends.",
+      "durationInfo": "This tutorial will take approximately 2 minutes"
     },
     "gamePrediction": {
-      "title": "EnOf(🎴 Predicciones de Partidos)",
-      "clickToFlip": "EnOf(Haz clic en una tarjeta para voltearla y editar tu predicción)",
-      "dashboardLabel": "EnOf(Vista unificada de tus predicciones (haz clic para ver detalles):)",
-      "cardInstructions": "EnOf(Haz clic en una tarjeta para voltearla y editar. Nota las diferencias entre partidos de grupo y playoffs:)",
-      "groupGameLabel": "EnOf(Partido de Grupo)",
-      "playoffGameLabel": "EnOf(Partido de Playoff)",
-      "demoNote": "EnOf(En empate, selecciona el ganador por penales)",
-      "successAlert": "EnOf(¡Perfecto! Haz clic en la tarjeta para editarla. Los cambios se guardan automáticamente.)",
-      "infoTip": "EnOf(💡 Estas predicciones son de demostración. Tus predicciones reales comenzarán después del onboarding.)"
+      "title": "🎴 Match Predictions",
+      "clickToFlip": "Click on a card to flip it and edit your prediction",
+      "dashboardLabel": "Unified view of your predictions (click to see details):",
+      "cardInstructions": "Click on a card to flip it and edit. Note the differences between group matches and playoffs:",
+      "groupGameLabel": "Group Match",
+      "playoffGameLabel": "Playoff Match",
+      "demoNote": "In case of a draw, select the penalty winner",
+      "successAlert": "Perfect! Click on the card to edit it. Changes are saved automatically.",
+      "infoTip": "💡 These predictions are for demonstration. Your real predictions will start after onboarding."
     },
     "qualifiedTeams": {
-      "title": "EnOf(🏆 Ordenar Equipos Clasificados)",
-      "instructions": "EnOf(Arrastra y suelta para ordenar los equipos del grupo)",
-      "infoTip": "EnOf(💡 Arrastra los equipos para reordenarlos. Los 2 primeros clasifican automáticamente. Los cambios se guardan automáticamente.)"
+      "title": "🏆 Order Qualified Teams",
+      "instructions": "Drag and drop to order group teams",
+      "infoTip": "💡 Drag teams to reorder them. The first 2 automatically qualify. Changes are saved automatically."
     },
     "tournamentAwards": {
-      "title": "EnOf(🎖️ Predicciones del Torneo)",
-      "instructions": "EnOf(Predice el podio del torneo y los premios individuales)",
-      "podiumHeader": "EnOf(Podio del Torneo)",
+      "title": "🎖️ Tournament Predictions",
+      "instructions": "Predict the tournament podium and individual awards",
+      "podiumHeader": "Tournament Podium",
       "champion": {
-        "label": "EnOf(Campeón)",
-        "helper": "EnOf(Selecciona el equipo que predigas que ganará el torneo)"
+        "label": "Champion",
+        "helper": "Select the team you predict will win the tournament"
       },
       "runnerUp": {
-        "label": "EnOf(Subcampeón)",
-        "helper": "EnOf(Selecciona el equipo que predigas que llegará a la final)"
+        "label": "Runner-up",
+        "helper": "Select the team you predict will reach the final"
       },
       "thirdPlace": {
-        "label": "EnOf(Tercer Lugar)",
-        "helper": "EnOf(Selecciona el equipo que predigas que quedará tercero)"
+        "label": "Third Place",
+        "helper": "Select the team you predict will finish third"
       },
-      "individualAwardsHeader": "EnOf(Premios Individuales)",
+      "individualAwardsHeader": "Individual Awards",
       "bestPlayer": {
-        "label": "EnOf(Mejor Jugador)",
-        "helper": "EnOf(Selecciona el mejor jugador del torneo)"
+        "label": "Best Player",
+        "helper": "Select the best player of the tournament"
       },
       "topScorer": {
-        "label": "EnOf(Goleador)",
-        "helper": "EnOf(Selecciona el máximo goleador del torneo)"
+        "label": "Top Scorer",
+        "helper": "Select the top scorer of the tournament"
       },
       "bestGoalkeeper": {
-        "label": "EnOf(Mejor Arquero)",
-        "helper": "EnOf(Selecciona el mejor arquero del torneo)"
+        "label": "Best Goalkeeper",
+        "helper": "Select the best goalkeeper of the tournament"
       },
       "bestYoungPlayer": {
-        "label": "EnOf(Mejor Jugador Joven)",
-        "helper": "EnOf(Selecciona el mejor jugador joven del torneo)"
+        "label": "Best Young Player",
+        "helper": "Select the best young player of the tournament"
       },
-      "podiumSuccessAlert": "EnOf(¡Genial! Selecciona tus predicciones para el podio.)",
-      "awardsSuccessAlert": "EnOf(¡Perfecto! Selecciona los mejores jugadores del torneo.)",
-      "infoTip": "EnOf(💡 Estas predicciones son de demostración. Podrás hacer tus predicciones reales después del onboarding.)"
+      "podiumSuccessAlert": "Great! Select your predictions for the podium.",
+      "awardsSuccessAlert": "Perfect! Select the best players of the tournament.",
+      "infoTip": "💡 These predictions are for demonstration. You can make your real predictions after onboarding."
     },
     "scoring": {
-      "title": "EnOf(¿Cómo se Calcula el Puntaje?)",
-      "instructions": "EnOf(Gana puntos por predicciones correctas en partidos y torneo)",
-      "matchesHeader": "EnOf(Partidos)",
+      "title": "How is the Score Calculated?",
+      "instructions": "Earn points for correct predictions in matches and tournament",
+      "matchesHeader": "Matches",
       "exactResult": {
-        "label": "EnOf(Resultado exacto)",
-        "points": "EnOf({points} pts)"
+        "label": "Exact result",
+        "points": "{points} pts"
       },
       "correctResult": {
-        "label": "EnOf(Resultado correcto)",
-        "points": "EnOf({points} pts)"
+        "label": "Correct result",
+        "points": "{points} pts"
       },
-      "tournamentHeader": "EnOf(Torneo)",
-      "championMedal": "EnOf(🥇 Campeón)",
-      "runnerUpMedal": "EnOf(🥈 Subcampeón)",
-      "thirdPlaceMedal": "EnOf(🥉 Tercer lugar)",
-      "individualAwardsHeader": "EnOf(Premios Individuales)",
+      "tournamentHeader": "Tournament",
+      "championMedal": "🥇 Champion",
+      "runnerUpMedal": "🥈 Runner-up",
+      "thirdPlaceMedal": "🥉 Third place",
+      "individualAwardsHeader": "Individual Awards",
       "awardPoints": {
-        "label": "EnOf(Por cada premio correcto)",
-        "points": "EnOf({points} pts)"
+        "label": "For each correct award",
+        "points": "{points} pts"
       },
-      "bestPlayerChip": "EnOf(Mejor Jugador)",
-      "topScorerChip": "EnOf(Goleador)",
-      "bestGoalkeeperChip": "EnOf(Mejor Arquero)",
-      "youngPlayerChip": "EnOf(Jugador Joven)",
-      "totalPossible": "EnOf(Total posible: {points} pts (4 premios × {perAward} pts))",
-      "classificationHeader": "EnOf(Clasificación)",
+      "bestPlayerChip": "Best Player",
+      "topScorerChip": "Top Scorer",
+      "bestGoalkeeperChip": "Best Goalkeeper",
+      "youngPlayerChip": "Young Player",
+      "totalPossible": "Total possible: {points} pts (4 awards × {perAward} pts)",
+      "classificationHeader": "Qualification",
       "exactPosition": {
-        "label": "EnOf(Posición exacta + clasificado)",
-        "points": "EnOf({points} pts)"
+        "label": "Exact position + qualified",
+        "points": "{points} pts"
       },
       "classified": {
-        "label": "EnOf(Clasificado (posición incorrecta))",
-        "points": "EnOf({points} pts)"
+        "label": "Qualified (wrong position)",
+        "points": "{points} pts"
       },
       "importantAlert": {
-        "title": "EnOf(Importante)",
-        "tournamentHeader": "EnOf(Configuración de {tournament})",
-        "tournamentContext": "EnOf(Estos son los valores de puntaje para este torneo específico.)",
-        "genericContext": "EnOf(Los valores de puntaje pueden variar según el torneo. Los valores mostrados son típicos.)"
+        "title": "Important",
+        "tournamentHeader": "{tournament} Configuration",
+        "tournamentContext": "These are the scoring values for this specific tournament.",
+        "genericContext": "Scoring values may vary by tournament. The values shown are typical."
       }
     },
     "boosts": {
-      "title": "EnOf(Multiplica Tus Puntos con Boosts)",
-      "instructions": "EnOf(Usa tus boosts estratégicamente en partidos clave)",
+      "title": "Multiply Your Points with Boosts",
+      "instructions": "Use your boosts strategically in key matches",
       "silverBoost": {
-        "label": "EnOf(Boost Plateado)",
-        "multiplier": "EnOf(Multiplica × 2)",
-        "description": "EnOf(Duplica tus puntos en el partido que elijas)",
-        "available": "EnOf({count, plural, one {Tienes {count} boost disponible por torneo} other {Tienes {count} boosts disponibles por torneo}})"
+        "label": "Silver Boost",
+        "multiplier": "Multiply × 2",
+        "description": "Double your points on the match you choose",
+        "available": "{count, plural, one {You have {count} boost available per tournament} other {You have {count} boosts available per tournament}}"
       },
       "goldenBoost": {
-        "label": "EnOf(Boost Dorado)",
-        "multiplier": "EnOf(Multiplica × 3)",
-        "description": "EnOf(Triplica tus puntos en tu partido más importante)",
-        "available": "EnOf({count, plural, one {Tienes {count} boost disponible por torneo} other {Tienes {count} boosts disponibles por torneo}})"
+        "label": "Golden Boost",
+        "multiplier": "Multiply × 3",
+        "description": "Triple your points on your most important match",
+        "available": "{count, plural, one {You have {count} boost available per tournament} other {You have {count} boosts available per tournament}}"
       },
       "configAlert": {
-        "header": "EnOf(Configuración para {tournament}:)",
-        "subheader": "EnOf(Puntos Importantes:)",
-        "bullet1": "EnOf(Los boosts son específicos de cada torneo)",
-        "bullet2": "EnOf(Solo aplican a predicciones de partidos)",
-        "bullet3": "EnOf(Puedes cambiarlos hasta 1 hora antes del partido)"
+        "header": "{tournament} Configuration:",
+        "subheader": "Important Points:",
+        "bullet1": "Boosts are specific to each tournament",
+        "bullet2": "They only apply to match predictions",
+        "bullet3": "You can change them up to 1 hour before the match"
       },
       "strategicTip": {
-        "title": "EnOf(💡 Consejo Estratégico)",
-        "text": "EnOf(Guarda tus boosts para finales y partidos decisivos donde estés más seguro del resultado)"
+        "title": "💡 Strategic Tip",
+        "text": "Save your boosts for finals and decisive matches where you're most confident about the result"
       }
     },
     "checklist": {
-      "title": "EnOf(Lista de Primeros Pasos)",
-      "instructions": "EnOf(Completa estos pasos para sacar el máximo provecho)",
+      "title": "Getting Started Checklist",
+      "instructions": "Complete these steps to get the most out of it",
       "items": {
-        "firstPrediction": "EnOf(Hacer mi primera predicción de partido)",
-        "championAndAwards": "EnOf(Predecir campeón y premios individuales)",
-        "qualifiedTeams": "EnOf(Ordenar equipos clasificados (arrastra y suelta))",
-        "joinGroup": "EnOf(Unirme a un grupo de amigos)",
-        "reviewRules": "EnOf(Revisar las reglas completas)"
+        "firstPrediction": "Make my first match prediction",
+        "championAndAwards": "Predict champion and individual awards",
+        "qualifiedTeams": "Order qualified teams (drag and drop)",
+        "joinGroup": "Join a friend group",
+        "reviewRules": "Review the full rules"
       },
-      "deadlinesHeader": "EnOf(⏰ Plazos de Predicción)",
+      "deadlinesHeader": "⏰ Prediction Deadlines",
       "matchPredictions": {
-        "label": "EnOf(Predicciones de Partidos)",
-        "deadline": "EnOf(Cierran 1 hora antes del inicio del partido)"
+        "label": "Match Predictions",
+        "deadline": "Close 1 hour before match start"
       },
       "tournamentAndClassification": {
-        "label": "EnOf(Torneo y Clasificación)",
-        "deadline": "EnOf(Cierran 5 días después del inicio del torneo)"
+        "label": "Tournament and Qualification",
+        "deadline": "Close 5 days after tournament starts"
       },
       "boosts": {
-        "label": "EnOf(Boosts)",
-        "deadline": "EnOf(Se pueden cambiar hasta 1 hora antes del partido)"
+        "label": "Boosts",
+        "deadline": "Can be changed up to 1 hour before the match"
       },
-      "infoTip": "EnOf(💡 Puedes acceder a esta lista desde tu perfil en cualquier momento)",
-      "startButton": "EnOf(¡Comenzar a Jugar!)"
+      "infoTip": "💡 You can access this list from your profile at any time",
+      "startButton": "Start Playing!"
     },
     "samplePrediction": {
-      "clickToFlip": "EnOf(Haz clic en una tarjeta para voltearla y editar tu predicción)",
-      "dragToReorder": "EnOf(Arrastra y suelta para ordenar los equipos en cada grupo)",
-      "successAlert": "EnOf(¡Perfecto! Haz clic en la tarjeta para editarla. Los cambios se guardan automáticamente.)"
+      "clickToFlip": "Click on a card to flip it and edit your prediction",
+      "dragToReorder": "Drag and drop to order teams in each group",
+      "successAlert": "Perfect! Click on the card to edit it. Changes are saved automatically."
     }
   }
 }
