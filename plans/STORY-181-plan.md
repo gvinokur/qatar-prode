@@ -237,6 +237,47 @@ diff <(jq -r 'paths(scalars) | join(".")' locales/en/qualified-teams.json | sort
 # Should output nothing (no differences)
 ```
 
+**I18n-Specific Verification Steps (MANDATORY):**
+
+After creating translation files and before moving to Phase 2, verify:
+
+a) **All used keys exist in messages:**
+   - Grep all components for `t('qualified-teams.` or `t("qualified-teams.` calls
+   - Cross-reference against keys defined in `/locales/es/qualified-teams.json`
+   - Ensure every `t()` call maps to an existing key path
+   - Example: `t('page.title')` must have `{ "page": { "title": "..." } }` in the JSON
+
+b) **No duplicate content keys:**
+   - Check that no two keys have identical values in Spanish
+   - If duplicates exist, they should be intentional (e.g., "Pendiente" used in multiple contexts)
+   - Document reasoning for any intentional duplicates in this plan
+
+c) **Namespace files properly imported:**
+   - Verify `/types/i18n.ts` imports `qualified-teams` from both locales
+   - Verify the namespace is added to the `Messages` type
+   - Check that TypeScript compilation succeeds after adding namespace
+
+d) **Proper translation pattern usage:**
+   - Client components use `useTranslations('qualified-teams')` (not `getTranslations`)
+   - Server components use `await getTranslations('qualified-teams')` (not `useTranslations`)
+   - No components import from wrong next-intl module
+
+**Verification Commands:**
+```bash
+# a) Find all t() calls in qualified-teams components
+grep -r "t('qualified-teams\|t(\"qualified-teams" app/components/qualified-teams/
+
+# b) Check for duplicate values in Spanish file
+jq -r '.. | strings' locales/es/qualified-teams.json | sort | uniq -d
+
+# c) Verify TypeScript compilation
+npm run build
+
+# d) Verify correct pattern usage
+grep -r "useTranslations" app/components/qualified-teams/  # Should find client components
+grep -r "getTranslations" app/\[locale\]/tournaments/\[id\]/qualified-teams/  # Should find server component
+```
+
 ### Phase 2: Server Component (1 file)
 5. Update `/app/[locale]/tournaments/[id]/qualified-teams/page.tsx`:
    - Extract `locale` from params
@@ -458,9 +499,10 @@ describe('Component i18n', () => {
 ## Validation Considerations
 
 ### Pre-Commit Validation
-1. Run `npm test` → all tests pass (including new i18n tests)
-2. Run `npm run lint` → no linting errors
-3. Run `npm run build` → build succeeds without errors
+1. **Run i18n verification steps from Phase 1** → all keys exist, no unintended duplicates, namespace imported, correct patterns
+2. Run `npm test` → all tests pass (including new i18n tests)
+3. Run `npm run lint` → no linting errors
+4. Run `npm run build` → build succeeds without errors (also verifies TypeScript types for i18n)
 
 ### SonarCloud Requirements
 - **Code coverage:** ≥80% on new/modified code
