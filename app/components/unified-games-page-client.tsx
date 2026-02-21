@@ -76,7 +76,6 @@ function UnifiedGamesPageContent({
   // Track scroll position to show/hide scroll to top button
   useEffect(() => {
     // On mobile, track Stack scroll; on desktop, track games container scroll
-    const isMobile = window.innerWidth < 900; // md breakpoint
     const scrollContainer = isMobile
       ? document.getElementById('unified-games-stack')
       : document.getElementById('games-scroll-container');
@@ -89,7 +88,7 @@ function UnifiedGamesPageContent({
 
     scrollContainer.addEventListener('scroll', handleScroll);
     return () => scrollContainer.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isMobile]); // Re-run when screen size changes
 
   // Handler to scroll to next/current game
   const handleScrollToNext = () => {
@@ -101,7 +100,6 @@ function UnifiedGamesPageContent({
 
   // Handler to scroll to top (on mobile scrolls to show dashboard, on desktop scrolls games)
   const handleScrollToTop = () => {
-    const isMobile = window.innerWidth < 900; // md breakpoint
     const scrollContainer = isMobile
       ? document.getElementById('unified-games-stack')
       : document.getElementById('games-scroll-container');
@@ -182,7 +180,6 @@ function UnifiedGamesPageContent({
         sx={{
           flexGrow: 1,
           minHeight: 0,
-          height: { xs: 'auto', md: '100%' },
         }}
       >
         <GamesListWithScroll
