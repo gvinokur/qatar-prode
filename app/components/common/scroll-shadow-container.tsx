@@ -11,8 +11,90 @@ import type { SxProps, Theme } from '@mui/material'
  * This component wraps scrollable content and automatically shows/hides shadow overlays
  * at the edges to indicate that more content is available in that direction.
  *
+ * ## Architecture
+ *
+ * **Single Box Structure:**
+ * The component uses ONE box element (not nested boxes) with:
+ * - `position: 'relative'` - for shadow positioning
+ * - `overflow` - calculated from `direction` prop (overflowX/overflowY)
+ * - User's `sx` props - height, width, padding, etc.
+ * - Shadow overlays as absolutely-positioned children
+ *
+ * This single-box approach prevents height/overflow conflicts that occur with nested containers.
+ *
+ * ## Direction Prop
+ *
+ * Controls scroll behavior and shadow visibility:
+ * - `'vertical'` - Scrolls vertically (overflowY: auto, overflowX: hidden)
+ * - `'horizontal'` - Scrolls horizontally (overflowX: auto, overflowY: hidden)
+ * - `'both'` - Scrolls in both directions (both overflow: auto)
+ * - `'none'` - No scrolling (both overflow: hidden, no shadows)
+ *
+ * **IMPORTANT:** Do NOT pass `overflow`, `overflowX`, or `overflowY` in the `sx` prop.
+ * Always use the `direction` prop to control scroll behavior.
+ *
+ * ## Responsive Scrolling Pattern
+ *
+ * For containers that should scroll on mobile but not desktop (or vice versa),
+ * use `useMediaQuery` to set the direction prop dynamically:
+ *
  * @example
  * ```tsx
+ * import { useTheme, useMediaQuery } from '@mui/material';
+ *
+ * function MyComponent() {
+ *   const theme = useTheme();
+ *   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+ *
+ *   return (
+ *     <ScrollShadowContainer
+ *       direction={isMobile ? 'vertical' : 'none'}
+ *       height="100%"
+ *     >
+ *       <Content />
+ *     </ScrollShadowContainer>
+ *   );
+ * }
+ * ```
+ *
+ * ## Nested ScrollShadowContainers
+ *
+ * When nesting ScrollShadowContainers (e.g., outer stack with inner games list),
+ * use `direction='none'` to prevent one from scrolling while allowing the other:
+ *
+ * @example
+ * ```tsx
+ * function GamesPage() {
+ *   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+ *
+ *   return (
+ *     // Outer: scrolls on mobile, doesn't scroll on desktop
+ *     <ScrollShadowContainer
+ *       direction={isMobile ? 'vertical' : 'none'}
+ *       height="100%"
+ *     >
+ *       <Dashboard />
+ *       <Filters />
+ *
+ *       {/* Inner: doesn't scroll on mobile, scrolls on desktop */}
+ *       <ScrollShadowContainer
+ *         direction={isMobile ? 'none' : 'vertical'}
+ *         sx={{ flexGrow: 1, minHeight: 0 }}
+ *       >
+ *         <GamesList />
+ *       </ScrollShadowContainer>
+ *     </ScrollShadowContainer>
+ *   );
+ * }
+ * ```
+ *
+ * This prevents double-scrolling on mobile and ensures proper behavior on both screen sizes.
+ *
+ * ## Basic Examples
+ *
+ * @example
+ * ```tsx
+ * // Simple vertical scrolling
  * <ScrollShadowContainer
  *   direction="vertical"
  *   height="400px"
@@ -30,15 +112,18 @@ import type { SxProps, Theme } from '@mui/material'
  *   id="panel-1"
  *   aria-labelledby="tab-1"
  *   hidden={selectedTab !== 0}
+ *   direction="vertical"
  *   height="100%"
  * >
  *   <TabContent />
  * </ScrollShadowContainer>
  * ```
  *
- * **Parent Container Requirements:**
- * The parent container MUST have a defined height (for vertical scrolling) or width
- * (for horizontal scrolling). This can be:
+ * ## Requirements
+ *
+ * **Container Size:**
+ * The container MUST have a defined height (for vertical scrolling) or width
+ * (for horizontal scrolling):
  * - Absolute: `height="400px"` or `width="600px"`
  * - Relative: `height="100%"` or `width="100%"` (parent must have defined size)
  * - Viewport-relative: `height="100vh"` or `width="100vw"`
@@ -46,21 +131,44 @@ import type { SxProps, Theme } from '@mui/material'
  * Without a defined size, the container cannot determine overflow and shadows won't work.
  *
  * **Props Priority:**
- * If both the dedicated `height`/`width` props AND `sx.height`/`sx.width` are provided,
- * the dedicated props take precedence. This ensures consistent behavior when migrating
- * from Box components.
+ * If both dedicated `height`/`width` props AND `sx.height`/`sx.width` are provided,
+ * the dedicated props take precedence.
  *
- * **HTML Attributes:**
- * Supports all standard HTML div attributes (role, id, aria-*, data-*, etc.) which are
- * passed through to the outer container. This allows ScrollShadowContainer to fully
- * replace Box components without losing semantic or accessibility attributes.
+ * ## What NOT to Do
  *
- * **Usage Notes:**
+ * ❌ **Don't pass overflow in sx:**
+ * ```tsx
+ * // WRONG - overflow conflicts with direction prop
+ * <ScrollShadowContainer
+ *   direction="vertical"
+ *   sx={{ overflow: 'auto' }}
+ * >
+ * ```
+ *
+ * ❌ **Don't use responsive overflow in sx:**
+ * ```tsx
+ * // WRONG - use direction prop with useMediaQuery instead
+ * <ScrollShadowContainer
+ *   sx={{ overflowY: { xs: 'auto', md: 'hidden' } }}
+ * >
+ * ```
+ *
+ * ✅ **Do use direction prop with useMediaQuery:**
+ * ```tsx
+ * // CORRECT
+ * <ScrollShadowContainer
+ *   direction={isMobile ? 'vertical' : 'none'}
+ * >
+ * ```
+ *
+ * ## Additional Notes
+ *
  * - Shadows are purely decorative and don't affect accessibility
  * - Shadows only appear when content actually overflows the container
  * - Shadows respond immediately to scroll (no debouncing) for smooth UX
- * - ResizeObserver tracks container/content size changes automatically
+ * - ResizeObserver tracks container/content size changes automatically (250ms debounce)
  * - Works seamlessly with MUI light/dark themes
+ * - Supports all standard HTML div attributes (role, id, aria-*, data-*, etc.)
  */
 
 interface ScrollShadowContainerProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> {
