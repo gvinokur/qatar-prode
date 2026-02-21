@@ -17,7 +17,7 @@ This creates an inconsistent user experience where the language switcher exists 
 ## Acceptance Criteria
 
 - [ ] Navigation tabs display "PARTIDOS", "CLASIFICADOS", "PREMIOS" when locale is 'es'
-- [ ] Navigation tabs display "MATCHES", "QUALIFIED", "AWARDS" when locale is 'en'
+- [ ] Navigation tabs display "MATCHES", "QUALIFIED TEAMS", "AWARDS" when locale is 'en'
 - [ ] Aria-label is translated in both languages
 - [ ] Tab navigation functionality unchanged (routing still works correctly)
 - [ ] Tab selection state works correctly
@@ -51,7 +51,7 @@ Add a `topNav` section to navigation namespace, parallel to existing `bottomNav`
   "bottomNav": { ... },
   "topNav": {
     "matches": "MATCHES",
-    "qualified": "QUALIFIED",
+    "qualified": "QUALIFIED TEAMS",
     "awards": "AWARDS",
     "ariaLabel": "Tournament navigation"
   }
@@ -233,7 +233,7 @@ describe('GroupSelector i18n', () => {
 5. **Migrations:** Confirm no migrations required (i18n-only changes)
 6. **Manual verification (Vercel Preview):**
    - Switch to Spanish (es) → Verify "PARTIDOS", "CLASIFICADOS", "PREMIOS"
-   - Switch to English (en) → Verify "MATCHES", "QUALIFIED", "AWARDS"
+   - Switch to English (en) → Verify "MATCHES", "QUALIFIED TEAMS", "AWARDS"
    - Click each tab → Verify navigation works
    - Check aria-label with dev tools → Verify translated
 
