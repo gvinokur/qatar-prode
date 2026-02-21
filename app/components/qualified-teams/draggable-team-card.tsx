@@ -197,10 +197,7 @@ function PositionBadge({ position, t }: { readonly position: number; readonly t:
         border: `2px solid ${theme.palette.mode === 'dark' ? theme.palette.grey[700] : theme.palette.grey[400]}`,
       }}
     >
-      {position}
-      <Typography variant="caption" component="sup" sx={{ fontSize: '0.6rem', ml: 0.25 }}>
-        {getPositionSuffix(position, t)}
-      </Typography>
+      {getPositionSuffix(position, t)}
     </Box>
   );
 }
