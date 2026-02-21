@@ -326,7 +326,7 @@ export function ScrollShadowContainer({
       setShadows(calculateShadowVisibility(container, direction))
     }
 
-    // ResizeObserver - debounced (250ms) since resize events are less frequent
+    // ResizeObserver - debounced (100ms) for responsive feel while preventing excessive recalculations
     let resizeTimeout: NodeJS.Timeout
     const resizeObserver = new ResizeObserver((entries) => {
       console.warn('[ScrollShadow] ResizeObserver fired', {
@@ -336,7 +336,7 @@ export function ScrollShadowContainer({
       clearTimeout(resizeTimeout)
       resizeTimeout = setTimeout(() => {
         setShadows(calculateShadowVisibility(container, direction))
-      }, 250)
+      }, 100)
     })
 
     // Helper to observe all children (excluding shadow divs)
