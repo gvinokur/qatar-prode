@@ -28,9 +28,9 @@ interface PlayoffsBracketViewProps {
 function getRoundName(gamesInRound: number, t: (key: string) => string): string {
   switch (gamesInRound) {
     case 16:
-      return t('playoffs.rounds.roundOf16')
+      return t('playoffs.rounds.roundOf32')
     case 8:
-      return t('playoffs.rounds.roundOf8')
+      return t('playoffs.rounds.roundOf16')
     case 4:
       return t('playoffs.rounds.quarterfinals')
     case 2:

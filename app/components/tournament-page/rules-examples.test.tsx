@@ -30,7 +30,7 @@ describe('Rules Examples Components', () => {
 
     it('renders RoundOf16Example in Spanish with points', () => {
       renderWithProviders(<RoundOf16Example points={1} />)
-      expect(screen.getByText(/Si predices que Argentina clasificará a octavos/i)).toBeInTheDocument()
+      expect(screen.getByText(/Si predices que Argentina clasificará a dieciseisavos/i)).toBeInTheDocument()
       expect(screen.getByText(/1 punto/i)).toBeInTheDocument()
     })
 
@@ -100,7 +100,7 @@ describe('Rules Examples Components', () => {
 
     it('renders RoundOf16Example in English with points', () => {
       renderWithProviders(<RoundOf16Example points={1} />, { locale: 'en' })
-      expect(screen.getByText(/Example: If you predict Argentina will qualify for the Round of 16/i)).toBeInTheDocument()
+      expect(screen.getByText(/Example: If you predict Argentina will qualify for the Round of 32/i)).toBeInTheDocument()
       expect(screen.getByText(/you get 1 point/i)).toBeInTheDocument()
     })
 

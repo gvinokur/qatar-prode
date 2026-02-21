@@ -59,10 +59,10 @@
     "notStartedDescription": "El cuadro de eliminatorias se mostrará aquí cuando estén disponibles",
     "thirdPlace": "3er Lugar",
     "rounds": {
-      "roundOf16": "Dieciseisavos",
-      "roundOf8": "Octavos",
+      "roundOf32": "Dieciseisavos",
+      "roundOf16": "Octavos",
       "quarterfinals": "Cuartos",
-      "semifinals": "Semifinal",
+      "semifinals": "Semifinales",
       "final": "Final"
     }
   }

@@ -13,7 +13,7 @@ export default function RoundOf16Example({ points }: RoundOf16ExampleProps) {
   return (
     <Box>
       <Typography variant="body2" color="text.secondary">
-        {t('roundOf16', { points })}
+        {t('roundOf32', { points })}
       </Typography>
     </Box>
   )

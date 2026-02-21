@@ -19,7 +19,7 @@ describe('TournamentDetailsPopover', () => {
     runnerUpPercentage: 100,
     thirdPlacePercentage: 100,
     groupWinnersPercentage: 75,
-    roundOf16Percentage: 50,
+    roundOf32Percentage: 50,
     quarterFinalsPercentage: 0,
     semiFinalsPercentage: 0
   };
@@ -129,7 +129,7 @@ describe('TournamentDetailsPopover', () => {
         runnerUpPercentage: 0,
         thirdPlacePercentage: 0,
         groupWinnersPercentage: 0,
-        roundOf16Percentage: 0,
+        roundOf32Percentage: 0,
         quarterFinalsPercentage: 0,
         semiFinalsPercentage: 0
       };
@@ -152,7 +152,7 @@ describe('TournamentDetailsPopover', () => {
         runnerUpPercentage: 100,
         thirdPlacePercentage: 100,
         groupWinnersPercentage: 100,
-        roundOf16Percentage: 100,
+        roundOf32Percentage: 100,
         quarterFinalsPercentage: 100,
         semiFinalsPercentage: 100
       };

@@ -59,7 +59,7 @@
   "examples": {
     "winnerDraw": "Example: If you predict Argentina will beat Brazil and Argentina indeed wins, you get {points} {points, plural, one {point} other {points}}. If you predict a draw and the match ends in a draw, you also get {points} {points, plural, one {point} other {points}}.",
     "exactScore": "Example: If you predict Argentina will win 2-1 against Brazil and the final score is exactly 2-1, you get {total} {total, plural, one {point} other {points}} ({correctOutcome} for the winner + {bonus} extra for exact score).",
-    "roundOf16": "Example: If you predict Argentina will qualify for the Round of 16 and they indeed qualify, you get {points} {points, plural, one {point} other {points}} for that qualified team.",
+    "roundOf32": "Example: If you predict Argentina will qualify for the Round of 32 and they indeed qualify, you get {points} {points, plural, one {point} other {points}} for that qualified team.",
     "groupPosition": "Example: If you predict Argentina will finish first in Group A and they indeed finish first, you get {totalPoints} additional {totalPoints, plural, one {point} other {points}} ({qualifiedPoints} for qualifying + {exactPositionPoints} for exact position = {totalPoints} total points).",
     "champion": "Example: If you predict Argentina will be champion and Argentina indeed wins the tournament, you get {points} {points, plural, one {point} other {points}}. If Argentina reaches the final but loses, you don't get the points.",
     "runnerUp": "Example: If you predict Brazil will be runner-up and Brazil indeed loses the final, you get {points} {points, plural, one {point} other {points}}.",
