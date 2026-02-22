@@ -1,13 +1,14 @@
-import { MetadataRoute } from 'next'
+import { NextRequest, NextResponse } from 'next/server'
 import { getTranslations } from 'next-intl/server'
 
-export default async function manifest(
+export async function GET(
+  _request: NextRequest,
   { params }: { params: Promise<{ locale: string }> }
-): Promise<MetadataRoute.Manifest> {
+) {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'common' })
 
-  return {
+  const manifest = {
     id: 'prode_mundial',
     start_url: `/${locale}`,
     name: t('app.name'),
@@ -41,4 +42,11 @@ export default async function manifest(
     orientation: 'any',
     categories: ['social', 'sports']
   }
+
+  return NextResponse.json(manifest, {
+    headers: {
+      'Content-Type': 'application/manifest+json',
+      'Cache-Control': 'public, max-age=3600, s-maxage=3600'
+    }
+  })
 }

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
-import manifest from '../manifest'
+import { GET } from '../manifest.webmanifest/route'
+import { NextRequest } from 'next/server'
 
 // Mock next-intl/server
 vi.mock('next-intl/server', () => ({
@@ -18,9 +19,11 @@ vi.mock('next-intl/server', () => ({
   }
 }))
 
-describe('Locale-specific PWA Manifest', () => {
+describe('Locale-specific PWA Manifest Route Handler', () => {
   it('generates Spanish manifest with correct locale', async () => {
-    const result = await manifest({ params: Promise.resolve({ locale: 'es' }) })
+    const request = new NextRequest('http://localhost:3000/es/manifest.webmanifest')
+    const response = await GET(request, { params: Promise.resolve({ locale: 'es' }) })
+    const result = await response.json()
 
     expect(result.name).toBe('Prode Mundial')
     expect(result.description).toBe('Plataforma de pronósticos deportivos')
@@ -29,7 +32,9 @@ describe('Locale-specific PWA Manifest', () => {
   })
 
   it('generates English manifest with correct locale', async () => {
-    const result = await manifest({ params: Promise.resolve({ locale: 'en' }) })
+    const request = new NextRequest('http://localhost:3000/en/manifest.webmanifest')
+    const response = await GET(request, { params: Promise.resolve({ locale: 'en' }) })
+    const result = await response.json()
 
     expect(result.name).toBe('World Cup Predictions')
     expect(result.description).toBe('Sports prediction platform')
@@ -38,7 +43,9 @@ describe('Locale-specific PWA Manifest', () => {
   })
 
   it('includes all required PWA fields', async () => {
-    const result = await manifest({ params: Promise.resolve({ locale: 'es' }) })
+    const request = new NextRequest('http://localhost:3000/es/manifest.webmanifest')
+    const response = await GET(request, { params: Promise.resolve({ locale: 'es' }) })
+    const result = await response.json()
 
     expect(result.id).toBe('prode_mundial')
     expect(result.theme_color).toBe('#242424')
@@ -49,7 +56,9 @@ describe('Locale-specific PWA Manifest', () => {
   })
 
   it('includes correct icon configurations', async () => {
-    const result = await manifest({ params: Promise.resolve({ locale: 'es' }) })
+    const request = new NextRequest('http://localhost:3000/es/manifest.webmanifest')
+    const response = await GET(request, { params: Promise.resolve({ locale: 'es' }) })
+    const result = await response.json()
 
     expect(result.icons[0]).toMatchObject({
       src: '/web-app-manifest-192x192.png',
@@ -64,5 +73,12 @@ describe('Locale-specific PWA Manifest', () => {
       type: 'image/png',
       purpose: 'maskable'
     })
+  })
+
+  it('returns correct Content-Type header', async () => {
+    const request = new NextRequest('http://localhost:3000/es/manifest.webmanifest')
+    const response = await GET(request, { params: Promise.resolve({ locale: 'es' }) })
+
+    expect(response.headers.get('Content-Type')).toBe('application/manifest+json')
   })
 })
