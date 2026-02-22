@@ -50,7 +50,7 @@ describe('NotificationsSubscriptionPrompt i18n', () => {
     })
   })
 
-  it('uses pwa.notifications namespace', async () => {
+  it('uses pwa namespace', async () => {
     renderWithTheme(<NotificationsSubscriptionPrompt canOpen={true} />)
 
     // Wait for component to render after async checks

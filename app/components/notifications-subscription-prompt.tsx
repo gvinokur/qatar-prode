@@ -17,7 +17,7 @@ import {
 import { useTranslations } from 'next-intl';
 
 export default function NotificationsSubscriptionPrompt({ canOpen }: { readonly canOpen: boolean }  ) {
-  const t = useTranslations('pwa.notifications');
+  const t = useTranslations('pwa');
   const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);

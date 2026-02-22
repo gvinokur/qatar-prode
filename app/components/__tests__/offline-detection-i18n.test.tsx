@@ -18,19 +18,19 @@ describe('OfflineDetection i18n', () => {
     })
   })
 
-  it('uses pwa.offline namespace', () => {
+  it('uses pwa namespace', () => {
     renderWithTheme(<OfflineDetection />)
 
-    // The translation mock returns keys as-is, so we should see "message"
+    // The translation mock returns keys as-is, so we should see "offline.message"
     // in the rendered output
-    expect(screen.getByText(/message/i)).toBeInTheDocument()
+    expect(screen.getByText(/offline\.message/i)).toBeInTheDocument()
   })
 
   it('renders offline message with translation key', () => {
     renderWithTheme(<OfflineDetection />)
 
     // Verify the translation key is being used
-    const messageElement = screen.getByText(/message/i)
+    const messageElement = screen.getByText(/offline\.message/i)
     expect(messageElement).toBeInTheDocument()
   })
 })

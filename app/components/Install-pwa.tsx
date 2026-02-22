@@ -39,7 +39,7 @@ const DONT_ASK_UNTIL_KEY = 'install-pwa-dont-ask-until';
 const DONT_ASK_LAST_BACKOFF_PERIOD = 'install-pwa-dont-ask-backoff-period';
 
 export default function InstallPwa() {
-  const t = useTranslations('pwa.install');
+  const t = useTranslations('pwa');
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isIOS, setIsIOS] = useState(false);
   const [showIOSGuide, setShowIOSGuide] = useState(false);

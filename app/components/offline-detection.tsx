@@ -5,7 +5,7 @@ import { Snackbar, Alert } from '@mui/material';
 import { useTranslations } from 'next-intl';
 
 export default function OfflineDetection() {
-  const t = useTranslations('pwa.offline');
+  const t = useTranslations('pwa');
   const [isOffline, setIsOffline] = useState(false);
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export default function OfflineDetection() {
       anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
     >
       <Alert severity="warning">
-        {t('message')}
+        {t('offline.message')}
       </Alert>
     </Snackbar>
   );

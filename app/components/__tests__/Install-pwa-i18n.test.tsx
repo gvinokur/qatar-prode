@@ -43,7 +43,7 @@ describe('InstallPwa i18n', () => {
     })
   })
 
-  it('uses pwa.install namespace', () => {
+  it('uses pwa namespace', () => {
     // Mock iOS device
     Object.defineProperty(window.navigator, 'userAgent', {
       writable: true,
