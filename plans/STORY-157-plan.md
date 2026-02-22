@@ -43,340 +43,378 @@ Currently, tournament static data (team names, venue locations, playoff stage na
 
 ## Technical Approach
 
-### Strategy Decision: Option 1 (Recommended)
+### Strategy Decision: Option 2 (User-Selected)
 
-**Approach:** Keep canonical/original names in data structures and database, add translations to i18n JSON namespace files.
+**Approach:** Add locale-specific JSON fields to database tables, use a generic `getLocalizedName()` helper function with fallback to original field value.
 
-**Rationale:**
-1. ✅ **Minimal data structure changes** - No database migrations needed
-2. ✅ **Leverages existing i18n infrastructure** - Uses next-intl framework already in place
-3. ✅ **Separation of concerns** - Data layer stays canonical, presentation layer handles localization
-4. ✅ **Easy to maintain** - Translations in same place as other UI strings
-5. ✅ **Extensible** - Adding new languages doesn't require data migration
-6. ✅ **Type-safe** - Leverages existing TypeScript i18n type system
+**User Decision Rationale:**
+1. ✅ **Centralized data management** - All data (including translations) managed through backoffice
+2. ✅ **No sync issues** - Translations stored alongside canonical data
+3. ✅ **Flexible fallback** - If locale-specific value missing, falls back to original field
+4. ✅ **Extensible** - Easy to add more languages by extending JSON structure
+5. ✅ **Backoffice-driven** - Admins can manage translations without code changes
 
 **Tradeoffs:**
-- ⚠️ Requires translation key lookups at render time (negligible performance impact)
-- ⚠️ Must maintain consistency between data canonical names and translation keys
+- ⚠️ **Database schema changes required** - Need migrations for 4 tables
+- ⚠️ **Backoffice updates required** - Must update config pages to support locale fields
+- ⚠️ **Data migration complexity** - Current mixed-language data (some ES, some EN) needs handling
+- ⚠️ **Potential data duplication** - Locale values stored in DB vs. i18n JSON approach
+
+**Migration Strategy:**
+- **No automatic migration** - Existing non-localized strings remain as fallback default
+- Admins will add locale-specific values through backoffice as needed
+- `getLocalizedName()` returns original value if locale field is null or empty
 
 ### Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Data Layer (Canonical)                   │
-│  /data/euro/teams.ts: { name: "Germany", ... }             │
-│  /data/copa-america/teams.ts: { name: "Argentina", ... }   │
+│                    Database Layer (NEW)                     │
+│  tournaments: { long_name, long_name_i18n: {en,es} }      │
+│  teams: { name, name_i18n: {en,es} }                      │
+│  playoff_rounds: { round_name, round_name_i18n: {en,es} } │
+│  games: { location, location_i18n: {en,es} }              │
 └─────────────────────────────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│              Translation Mapping Layer (NEW)                │
-│  Utility: getTeamName(canonicalName, locale)              │
-│  Utility: getVenueName(canonicalName, locale)             │
-│  Utility: getStageName(canonicalName, locale)             │
+│              Generic Localization Helper (NEW)              │
+│  getLocalizedName(field_value, i18n_json, locale)         │
+│    → If i18n_json[locale] exists: return it               │
+│    → Otherwise: return field_value (fallback)             │
 └─────────────────────────────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│            i18n JSON Files (Presentation Layer)             │
-│  /locales/en/tournaments.json                              │
-│  /locales/es/tournaments.json                              │
-│    - teams: { "Germany": "Alemania", ... }                │
-│    - venues: { "Munich Football Arena": "Arena de..." }   │
-│    - stages: { "Round of 16": "Octavos de Final" }        │
+│              Repository/Service Layer (Modified)            │
+│  applyLocalization(data, locale)                           │
+│    → Transforms DB rows using getLocalizedName()          │
+│    → Returns localized data to components                 │
 └─────────────────────────────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                    UI Components (Render)                   │
-│  Team display: {getTeamName(team.name, locale)}           │
-│  Venue display: {getVenueName(game.location, locale)}     │
+│  Team display: {team.name} (already localized by repo)    │
+│  Venue display: {game.location} (already localized)       │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│              Backoffice Admin UI (Modified)                 │
+│  Forms to edit i18n fields: { en: "...", es: "..." }      │
+│  Validation: at least one locale value required           │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Translation Structure
+### Database Schema Changes
 
-Create new nested sections in existing `tournaments.json` namespace:
+**Tables to modify:**
 
-**`/locales/en/tournaments.json`** (additions):
-```json
-{
-  "staticData": {
-    "teams": {
-      "Germany": "Germany",
-      "Spain": "Spain",
-      "Argentina": "Argentina",
-      "Brazil": "Brazil",
-      ...
-    },
-    "venues": {
-      "Olympiastadion Berlin": "Berlin Olympic Stadium",
-      "Munich Football Arena": "Munich Football Arena",
-      "Estadio Monumental": "Monumental Stadium",
-      ...
-    },
-    "stages": {
-      "Octavos de Final": "Round of 16",
-      "Cuartos de Final": "Quarterfinals",
-      "Semifinal": "Semifinals",
-      "Final": "Final",
-      "Tercer Puesto": "Third Place"
-    },
-    "tournamentNames": {
-      "euro-2024": "UEFA Euro 2024",
-      "copa-america-2024": "Copa América 2024",
-      "fifa-2026": "FIFA World Cup 2026"
-    }
-  }
-}
-```
+1. **`tournaments` table** - Add i18n columns for names:
+   ```sql
+   ALTER TABLE tournaments
+   ADD COLUMN long_name_i18n JSONB,
+   ADD COLUMN short_name_i18n JSONB;
+   ```
+   Example data:
+   ```json
+   {
+     "long_name": "Copa América 2024",
+     "long_name_i18n": {
+       "en": "Copa América 2024",
+       "es": "Copa América 2024"
+     },
+     "short_name": "copa-america-2024",
+     "short_name_i18n": {
+       "en": "Copa América 2024",
+       "es": "Copa América 2024"
+     }
+   }
+   ```
 
-**`/locales/es/tournaments.json`** (additions):
-```json
-{
-  "staticData": {
-    "teams": {
-      "Germany": "Alemania",
-      "Spain": "España",
-      "Argentina": "Argentina",
-      "Brazil": "Brasil",
-      ...
-    },
-    "venues": {
-      "Olympiastadion Berlin": "Estadio Olímpico de Berlín",
-      "Munich Football Arena": "Arena de Fútbol de Múnich",
-      "Estadio Monumental": "Estadio Monumental",
-      ...
-    },
-    "stages": {
-      "Octavos de Final": "Octavos de Final",
-      "Cuartos de Final": "Cuartos de Final",
-      "Semifinal": "Semifinal",
-      "Final": "Final",
-      "Tercer Puesto": "Tercer Puesto"
-    },
-    "tournamentNames": {
-      "euro-2024": "Eurocopa 2024",
-      "copa-america-2024": "Copa América 2024",
-      "fifa-2026": "Copa Mundial FIFA 2026"
-    }
-  }
-}
-```
+2. **`teams` table** - Add i18n column for team names:
+   ```sql
+   ALTER TABLE teams
+   ADD COLUMN name_i18n JSONB;
+   ```
+   Example data:
+   ```json
+   {
+     "name": "Germany",
+     "name_i18n": {
+       "en": "Germany",
+       "es": "Alemania"
+     }
+   }
+   ```
 
-### Helper Utilities
+3. **`playoff_rounds` table** - Add i18n column for stage names:
+   ```sql
+   ALTER TABLE playoff_rounds
+   ADD COLUMN round_name_i18n JSONB;
+   ```
+   Example data:
+   ```json
+   {
+     "round_name": "Round of 16",
+     "round_name_i18n": {
+       "en": "Round of 16",
+       "es": "Octavos de Final"
+     }
+   }
+   ```
 
-Create new file: `/app/utils/tournament-i18n-helpers.ts`
+4. **`games` table** - Add i18n column for venue names:
+   ```sql
+   ALTER TABLE games
+   ADD COLUMN location_i18n JSONB;
+   ```
+   Example data:
+   ```json
+   {
+     "location": "Munich Football Arena",
+     "location_i18n": {
+       "en": "Munich Football Arena",
+       "es": "Arena de Fútbol de Múnich"
+     }
+   }
+   ```
+
+**JSON Structure:** `{ "en": "English value", "es": "Spanish value" }`
+- Extensible to more locales: `{ "en": "...", "es": "...", "pt": "..." }`
+- Nullable: If `null` or missing locale key, falls back to original field value
+
+### Generic Localization Helper
+
+Create new file: `/app/utils/localization-helper.ts`
 
 ```typescript
-import { getTranslations } from 'next-intl/server';
-import { useTranslations } from 'next-intl';
-
 /**
- * Server-side team name localization
+ * Generic function to get localized name from i18n JSON field with fallback
+ *
+ * @param fieldValue - Original field value (e.g., "Germany", "Munich Football Arena")
+ * @param i18nJson - JSON object with locale keys: { en: "...", es: "..." }
+ * @param locale - Target locale ('en' | 'es')
+ * @returns Localized value if exists, otherwise returns fieldValue
+ *
+ * @example
+ * const team = { name: "Germany", name_i18n: { en: "Germany", es: "Alemania" } };
+ * getLocalizedName(team.name, team.name_i18n, 'es') // Returns "Alemania"
+ * getLocalizedName(team.name, team.name_i18n, 'en') // Returns "Germany"
+ * getLocalizedName(team.name, null, 'es') // Returns "Germany" (fallback)
  */
-export async function getTeamName(canonicalName: string, locale: string): Promise<string> {
-  const t = await getTranslations({ locale, namespace: 'tournaments' });
-  const translatedName = t(`staticData.teams.${canonicalName}`, { defaultValue: canonicalName });
-
-  // Development mode: warn if translation missing
-  if (process.env.NODE_ENV === 'development' && translatedName === canonicalName) {
-    console.warn(`[i18n] Missing team translation for "${canonicalName}" in locale "${locale}"`);
+export function getLocalizedName(
+  fieldValue: string,
+  i18nJson: Record<string, string> | null | undefined,
+  locale: string
+): string {
+  // If no i18n JSON provided, return original value
+  if (!i18nJson) {
+    return fieldValue;
   }
 
-  return translatedName;
+  // If locale exists in JSON, return it
+  if (i18nJson[locale]) {
+    return i18nJson[locale];
+  }
+
+  // Fallback to original field value
+  if (process.env.NODE_ENV === 'development') {
+    console.warn(
+      `[i18n] Missing locale "${locale}" for field value "${fieldValue}". ` +
+      `Available locales: ${Object.keys(i18nJson).join(', ')}`
+    );
+  }
+
+  return fieldValue;
 }
 
 /**
- * Client-side team name localization hook
+ * Apply localization to an object with multiple i18n fields
+ *
+ * @example
+ * const tournament = {
+ *   long_name: "Copa América 2024",
+ *   long_name_i18n: { en: "Copa América 2024", es: "Copa América 2024" },
+ *   short_name: "copa-america-2024",
+ *   short_name_i18n: { en: "Copa América 2024", es: "Copa América 2024" }
+ * };
+ *
+ * applyLocalization(tournament, 'es', [
+ *   { field: 'long_name', i18nField: 'long_name_i18n' },
+ *   { field: 'short_name', i18nField: 'short_name_i18n' }
+ * ]);
+ * // tournament.long_name and tournament.short_name are now localized
  */
-export function useTeamName(canonicalName: string): string {
-  const t = useTranslations('tournaments.staticData.teams');
-  return t(canonicalName, { defaultValue: canonicalName });
-}
-
-/**
- * Server-side venue name localization
- */
-export async function getVenueName(canonicalName: string, locale: string): Promise<string> {
-  const t = await getTranslations({ locale, namespace: 'tournaments' });
-  return t(`staticData.venues.${canonicalName}`, { defaultValue: canonicalName });
-}
-
-/**
- * Client-side venue name localization hook
- */
-export function useVenueName(canonicalName: string): string {
-  const t = useTranslations('tournaments.staticData.venues');
-  return t(canonicalName, { defaultValue: canonicalName });
-}
-
-/**
- * Server-side stage name localization
- */
-export async function getStageName(canonicalName: string, locale: string): Promise<string> {
-  const t = await getTranslations({ locale, namespace: 'tournaments' });
-  return t(`staticData.stages.${canonicalName}`, { defaultValue: canonicalName });
-}
-
-/**
- * Client-side stage name localization hook
- */
-export function useStageName(canonicalName: string): string {
-  const t = useTranslations('tournaments.staticData.stages');
-  return t(canonicalName, { defaultValue: canonicalName });
-}
-
-/**
- * Server-side tournament name localization
- */
-export async function getTournamentName(tournamentKey: string, locale: string): Promise<string> {
-  const t = await getTranslations({ locale, namespace: 'tournaments' });
-  return t(`staticData.tournamentNames.${tournamentKey}`, { defaultValue: tournamentKey });
-}
-
-/**
- * Client-side tournament name localization hook
- */
-export function useTournamentName(tournamentKey: string): string {
-  const t = useTranslations('tournaments.staticData.tournamentNames');
-  return t(tournamentKey, { defaultValue: tournamentKey });
-}
-
-/**
- * Batch translation for team arrays (server-side)
- * Uses parallel execution for performance
- */
-export async function getTeamNames(canonicalNames: string[], locale: string): Promise<string[]> {
-  return Promise.all(canonicalNames.map(name => getTeamName(name, locale)));
-}
-
-/**
- * Validate translation completeness for a given locale
- * Returns array of missing translation keys
- * Used in build validation and tests
- */
-export async function validateTranslationCompleteness(
+export function applyLocalization<T extends Record<string, any>>(
+  data: T,
   locale: string,
-  requiredKeys: { teams: string[], venues: string[], stages: string[], tournamentNames: string[] }
-): Promise<{ missing: string[], total: number }> {
-  const t = await getTranslations({ locale, namespace: 'tournaments' });
-  const missing: string[] = [];
+  fields: Array<{ field: keyof T; i18nField: keyof T }>
+): T {
+  const localized = { ...data };
 
-  // Check team names
-  for (const team of requiredKeys.teams) {
-    const translation = t(`staticData.teams.${team}`, { defaultValue: '__MISSING__' });
-    if (translation === '__MISSING__') missing.push(`teams.${team}`);
+  for (const { field, i18nField } of fields) {
+    const originalValue = data[field] as string;
+    const i18nJson = data[i18nField] as Record<string, string> | null | undefined;
+
+    localized[field] = getLocalizedName(originalValue, i18nJson, locale) as T[keyof T];
   }
 
-  // Check venues
-  for (const venue of requiredKeys.venues) {
-    const translation = t(`staticData.venues.${venue}`, { defaultValue: '__MISSING__' });
-    if (translation === '__MISSING__') missing.push(`venues.${venue}`);
-  }
+  return localized;
+}
 
-  // Check stages
-  for (const stage of requiredKeys.stages) {
-    const translation = t(`staticData.stages.${stage}`, { defaultValue: '__MISSING__' });
-    if (translation === '__MISSING__') missing.push(`stages.${stage}`);
-  }
-
-  // Check tournament names
-  for (const tournament of requiredKeys.tournamentNames) {
-    const translation = t(`staticData.tournamentNames.${tournament}`, { defaultValue: '__MISSING__' });
-    if (translation === '__MISSING__') missing.push(`tournamentNames.${tournament}`);
-  }
-
-  const total = requiredKeys.teams.length + requiredKeys.venues.length +
-                requiredKeys.stages.length + requiredKeys.tournamentNames.length;
-
-  return { missing, total };
+/**
+ * Batch localization for arrays of objects
+ */
+export function applyLocalizationBatch<T extends Record<string, any>>(
+  dataArray: T[],
+  locale: string,
+  fields: Array<{ field: keyof T; i18nField: keyof T }>
+): T[] {
+  return dataArray.map(item => applyLocalization(item, locale, fields));
 }
 ```
 
-### Team Name Strategy Decision
+### Data Localization Strategy
 
-**Recommendation:** Keep team names in **original/canonical English form**.
+With database locale fields, all internationalizable data follows the same pattern:
 
-**Rationale:**
-1. ✅ **International standard** - Team names are proper nouns (e.g., "Manchester United", "Real Madrid")
-2. ✅ **Recognition** - Fans recognize teams by official names regardless of language
-3. ✅ **Consistency** - FIFA, UEFA use official English names in multilingual contexts
-4. ✅ **Simplicity** - Avoid translation inconsistencies (e.g., "Germany" vs "Alemania" vs "Deutschland")
+**1. Tournament Names:**
+- Store original value in `long_name` / `short_name`
+- Store localized versions in `long_name_i18n` / `short_name_i18n` JSON fields
+- Example:
+  ```json
+  {
+    "long_name": "Copa América 2024",
+    "long_name_i18n": { "en": "Copa América 2024", "es": "Copa América 2024" }
+  }
+  ```
 
-**Exceptions:**
-- Country demonyms in UI context (e.g., "German team" → "Equipo alemán")
-- Adjectives referring to teams (e.g., "Spanish victory" → "Victoria española")
+**2. Team Names:**
+- Store original value in `name`
+- Store localized versions in `name_i18n` JSON field
+- Admin can decide: translate ("Germany" → "Alemania") or keep canonical for both locales
+- Example (translated):
+  ```json
+  {
+    "name": "Germany",
+    "name_i18n": { "en": "Germany", "es": "Alemania" }
+  }
+  ```
+- Example (canonical):
+  ```json
+  {
+    "name": "Germany",
+    "name_i18n": { "en": "Germany", "es": "Germany" }
+  }
+  ```
 
-**Implementation:**
-- Keep canonical names in data: `{ name: "Germany", ... }`
-- Provide translations ONLY if explicitly needed in UI copy (not for team identification)
-- Use helper functions with `defaultValue: canonicalName` fallback
+**3. Venue/Location Names:**
+- Store original value in `location`
+- Store localized versions in `location_i18n` JSON field
+- Example:
+  ```json
+  {
+    "location": "Munich Football Arena",
+    "location_i18n": { "en": "Munich Football Arena", "es": "Arena de Fútbol de Múnich" }
+  }
+  ```
 
-### Venue Name Strategy
+**4. Playoff Stage Names:**
+- Store original value in `round_name`
+- Store localized versions in `round_name_i18n` JSON field
+- Example:
+  ```json
+  {
+    "round_name": "Round of 16",
+    "round_name_i18n": { "en": "Round of 16", "es": "Octavos de Final" }
+  }
+  ```
 
-**Recommendation:** Translate venue names for better UX.
-
-**Rationale:**
-1. ✅ **Geographic context** - Users benefit from localized location names
-2. ✅ **Accessibility** - Easier to understand for non-English speakers
-3. ✅ **Consistency** - Matches localization of other geographic content
-
-**Implementation:**
-- Maintain canonical English names in `/data/` files
-- Add translations to `tournaments.staticData.venues.*` in i18n files
-- Use `getVenueName()` / `useVenueName()` helpers in UI components
-
-### Player Name Strategy
-
-**Recommendation:** Keep player names in **original form** (no translation).
-
-**Rationale:**
-1. ✅ **Proper nouns** - Player names are personal identifiers
-2. ✅ **International standard** - Sports media globally uses original player names
-3. ✅ **Data integrity** - No risk of mistranslation or confusion
-
-**Implementation:**
-- No changes needed - current implementation already correct
-- Player names remain as stored in `/data/*/players.ts`
+**5. Player Names (No Changes):**
+- Keep player names in **original form** (no translation)
+- Rationale: Proper nouns, international standard
+- No i18n field needed for players table
 
 ## Files to Create
 
 ### New Files
 
-1. **`/app/utils/tournament-i18n-helpers.ts`**
-   - Helper functions for server-side translation
-   - Helper hooks for client-side translation
-   - Batch translation utilities
-   - Export: `getTeamName`, `getVenueName`, `getStageName`, `getTournamentName`
-   - Export: `useTeamName`, `useVenueName`, `useStageName`, `useTournamentName`
+1. **`/migrations/YYYYMMDDHHMMSS_add_i18n_columns.sql`**
+   - Add `long_name_i18n` and `short_name_i18n` columns to `tournaments` table
+   - Add `name_i18n` column to `teams` table
+   - Add `round_name_i18n` column to `playoff_rounds` table
+   - Add `location_i18n` column to `games` table
+   - All columns: `JSONB` type, nullable
 
-2. **`/__tests__/utils/tournament-i18n-helpers.test.ts`**
-   - Unit tests for helper functions
-   - Test both server and client variants
-   - Test fallback behavior (defaultValue)
-   - Test batch translation
+2. **`/app/utils/localization-helper.ts`**
+   - Generic `getLocalizedName()` function
+   - `applyLocalization()` function for single objects
+   - `applyLocalizationBatch()` function for arrays
+   - Export all three functions
 
-3. **`/locales/en/tournaments.json`** (extend existing)
-   - Add `staticData.teams.*` section
-   - Add `staticData.venues.*` section
-   - Add `staticData.stages.*` section
-   - Add `staticData.tournamentNames.*` section
+3. **`/__tests__/utils/localization-helper.test.ts`**
+   - Unit tests for `getLocalizedName()`
+   - Test fallback behavior when i18n JSON is null
+   - Test fallback behavior when locale missing from JSON
+   - Test `applyLocalization()` for objects
+   - Test `applyLocalizationBatch()` for arrays
 
-4. **`/locales/es/tournaments.json`** (extend existing)
-   - Add Spanish translations for all static data sections
+4. **Backoffice Components** (location TBD based on existing backoffice structure)
+   - **`/app/components/backoffice/i18n-field-editor.tsx`**
+     - Reusable component for editing i18n JSON fields
+     - Inputs for EN and ES values
+     - Validation: at least one locale required
+   - **`/app/components/backoffice/tournament-form-i18n.tsx`** (or extend existing)
+     - Integrate i18n field editor for tournament names
+   - **`/app/components/backoffice/team-form-i18n.tsx`** (or extend existing)
+     - Integrate i18n field editor for team names
+   - **`/app/components/backoffice/playoff-round-form-i18n.tsx`** (or extend existing)
+     - Integrate i18n field editor for stage names
+   - **`/app/components/backoffice/game-form-i18n.tsx`** (or extend existing)
+     - Integrate i18n field editor for venue names
 
 ## Files to Modify
 
-### Translation Files
+### Database Schema
 
-1. **`/locales/en/tournaments.json`**
-   - Add `staticData` section with all static data translations
+1. **`/app/db/tables-definition.ts`**
+   - Add `long_name_i18n?: JSONColumnType<Record<string, string>>` to `TournamentTable`
+   - Add `short_name_i18n?: JSONColumnType<Record<string, string>>` to `TournamentTable`
+   - Add `name_i18n?: JSONColumnType<Record<string, string>>` to `TeamTable`
+   - Add `round_name_i18n?: JSONColumnType<Record<string, string>>` to `PlayoffRoundTable`
+   - Add `location_i18n?: JSONColumnType<Record<string, string>>` to `GameTable`
 
-2. **`/locales/es/tournaments.json`**
-   - Add `staticData` section with all static data translations
+### Repository Layer
 
-### UI Components (Examples - identify all usages)
+2. **`/app/db/tournament-repository.ts`**
+   - Add locale parameter to query functions
+   - Apply localization using `applyLocalization()` before returning data
+   - Example: `findTournamentById(id, locale)` → apply localization to result
+
+3. **`/app/db/team-repository.ts`** (if exists, or create)
+   - Add locale parameter to team query functions
+   - Apply localization to team data
+
+4. **`/app/db/game-repository.ts`**
+   - Add locale parameter to game query functions
+   - Apply localization to game location field
+
+5. **`/app/db/playoff-round-repository.ts`** (if exists, or create)
+   - Add locale parameter to playoff round query functions
+   - Apply localization to round name field
+
+### Server Actions
+
+6. **`/app/actions/tournament-actions.ts`**
+   - Update all actions to pass locale to repository functions
+   - Example: `getTournament(id, locale)` → calls `findTournamentById(id, locale)`
+
+7. **`/app/actions/game-actions.ts`** (if exists)
+   - Update to pass locale to game repository functions
+
+### UI Components (Examples - identify all usages via Phase 0 audit)
 
 **Components likely needing updates:**
 
@@ -463,120 +501,171 @@ export async function validateTranslationCompleteness(
 
 ---
 
-### Phase 1: Infrastructure Setup (2-3 hours)
+### Phase 1: Database Schema & Helper Infrastructure (2-3 hours)
 
-1. **Create helper utilities file**
-   - Create `/app/utils/tournament-i18n-helpers.ts`
-   - Implement server-side helper functions (`getTeamName`, `getVenueName`, `getStageName`, `getTournamentName`)
-   - Implement client-side hooks (`useTeamName`, `useVenueName`, `useStageName`, `useTournamentName`)
-   - Add TypeScript types and JSDoc documentation
+1. **Create database migration**
+   - Create `/migrations/YYYYMMDDHHMMSS_add_i18n_columns.sql`
+   - Add JSONB columns to 4 tables:
+     - `tournaments`: `long_name_i18n`, `short_name_i18n`
+     - `teams`: `name_i18n`
+     - `playoff_rounds`: `round_name_i18n`
+     - `games`: `location_i18n`
+   - All columns nullable (existing data won't have values yet)
+   - **⚠️ IMPORTANT:** Ask user permission before running migration (see implementation.md Section 9 Step 4)
 
-2. **Add translation data**
-   - Analyze all tournaments in `/data/` to extract:
-     - All unique team names (Euro 2024: 24 teams, Copa América 2024: 16 teams, FIFA 2026: 48 teams)
-     - All unique venue names
-     - All unique stage names
-     - All tournament names
-   - Add English translations to `/locales/en/tournaments.json` under `staticData.*`
-   - Add Spanish translations to `/locales/es/tournaments.json` under `staticData.*`
+2. **Update TypeScript schema definitions**
+   - Update `/app/db/tables-definition.ts`
+   - Add i18n column types to interfaces:
+     - `TournamentTable`: `long_name_i18n`, `short_name_i18n`
+     - `TeamTable`: `name_i18n`
+     - `PlayoffRoundTable`: `round_name_i18n`
+     - `GameTable`: `location_i18n`
+   - Use `JSONColumnType<Record<string, string>>` type
 
-3. **Verify translation namespace registration**
-   - Confirm `tournaments` namespace is in `i18n/request.ts` (already exists)
-   - Confirm `tournaments` namespace is in `types/i18n.ts` (already exists)
+3. **Create localization helper utilities**
+   - Create `/app/utils/localization-helper.ts`
+   - Implement `getLocalizedName()` - generic fallback function
+   - Implement `applyLocalization()` - single object localization
+   - Implement `applyLocalizationBatch()` - array localization
+   - Add JSDoc documentation and TypeScript types
+   - Add development mode warnings for missing locales
 
-### Phase 2: Component Migration (4-5 hours)
+### Phase 2: Repository & Service Layer Updates (3-4 hours)
 
-4. **Identify all components using tournament static data**
-   - Use `Grep` to find components rendering:
-     - `team.name` or `game.home_team` / `game.away_team`
-     - `game.location`
-     - `stage.name` or `playoff.stage`
-     - `tournament.long_name` / `tournament.short_name`
+4. **Update repository functions**
+   - **`/app/db/tournament-repository.ts`:**
+     - Add `locale` parameter to all query functions
+     - Apply localization before returning:
+       ```typescript
+       const tournament = await query...;
+       return applyLocalization(tournament, locale, [
+         { field: 'long_name', i18nField: 'long_name_i18n' },
+         { field: 'short_name', i18nField: 'short_name_i18n' }
+       ]);
+       ```
+   - **`/app/db/team-repository.ts`:**
+     - Add locale parameter
+     - Apply localization to team `name` field
+   - **`/app/db/game-repository.ts`:**
+     - Add locale parameter
+     - Apply localization to `location` field
+   - **`/app/db/playoff-round-repository.ts`:**
+     - Add locale parameter
+     - Apply localization to `round_name` field
 
-5. **Update Server Components**
-   - Import `getTeamName`, `getVenueName`, `getStageName`, `getTournamentName`
-   - Import `getLocale` from `next-intl/server`
-   - Replace direct data access with helper function calls
-   - Pass locale to helpers
+5. **Update Server Actions**
+   - **`/app/actions/tournament-actions.ts`:**
+     - Get locale from `next-intl/server`
+     - Pass locale to repository functions
+     - Example: `const locale = await getLocale(); const tournament = await findTournamentById(id, locale);`
+   - **`/app/actions/game-actions.ts`:**
+     - Same pattern: get locale, pass to repository
+   - Maintain backward compatibility: if locale not provided, default to 'es'
 
-6. **Update Client Components**
-   - Import `useTeamName`, `useVenueName`, `useStageName`, `useTournamentName`
-   - Import `useLocale` from `next-intl`
-   - Replace direct data access with hook calls
+6. **Update UI Components (minimal changes)**
+   - **Key insight:** Components don't need changes if repository layer handles localization
+   - Components continue using `team.name`, `game.location`, etc.
+   - Data is already localized when it arrives from repository
+   - Only update components if they bypass repository and query DB directly
 
-7. **Update repository/service layer (if needed)**
-   - Add locale parameter to functions returning tournament display data
-   - Apply translations at data transformation layer
-   - Maintain backward compatibility with default locale fallback
+### Phase 3: Backoffice UI Updates (3-4 hours)
 
-### Phase 3: Testing (2-3 hours)
+7. **Create reusable i18n field editor component**
+   - Create `/app/components/backoffice/i18n-field-editor.tsx`
+   - Form inputs for EN and ES values
+   - Props: `value: { en: string, es: string }`, `onChange`, `label`
+   - Validation: at least one locale value required
+   - Clear UX: labeled inputs "English" and "Spanish"
 
-8. **Create unit tests for helpers**
-   - Create `/__tests__/utils/tournament-i18n-helpers.test.ts`
-   - Test server-side helpers:
-     - Correct translation retrieval (EN and ES)
-     - Fallback to canonical name if translation missing
-     - Batch translation functions
-   - Test client-side hooks:
-     - Correct translation retrieval
-     - Fallback behavior
-   - Mock `next-intl` functions using existing mock utilities
+8. **Update tournament form**
+   - Integrate i18n field editor for `long_name_i18n` and `short_name_i18n`
+   - Display both original field and i18n fields
+   - Server action: save i18n JSON to database
 
-9. **Create/update component i18n tests**
-   - For each modified component, create/update `*-i18n.test.tsx` file
-   - Test rendering in both EN and ES locales
-   - Verify correct translations appear
-   - Use existing test utilities (`createMockTranslations`, `renderWithProviders`)
+9. **Update team form**
+   - Integrate i18n field editor for `name_i18n`
+   - Server action: save i18n JSON to database
 
-10. **Integration testing**
-    - Manually test in dev environment:
-      - Switch language (EN ↔ ES)
-      - Verify team names, venue names, stage names update correctly
-      - Test across different tournaments (Euro, Copa América, FIFA)
-    - Check all pages:
-      - Tournament list page
-      - Tournament detail page
-      - Games list
-      - Groups standings
-      - Playoff bracket
-      - Awards page (team selector)
+10. **Update playoff round form**
+    - Integrate i18n field editor for `round_name_i18n`
+    - Server action: save i18n JSON to database
 
-### Phase 4: Documentation & Validation (1-2 hours)
+11. **Update game/venue form**
+    - Integrate i18n field editor for `location_i18n`
+    - Server action: save i18n JSON to database
 
-11. **Validate translation completeness**
-    - Run `validateTranslationCompleteness()` for both EN and ES locales
-    - Check for missing translations in all categories:
-      - Teams (Euro: 24, Copa: 16, FIFA: 48)
-      - Venues (all unique venue names from Phase 0 audit)
-      - Stages (all playoff stage names)
-      - Tournament names (all tournament keys)
-    - If missing translations found:
-      - Add missing translations to JSON files
-      - Re-run validation until 100% complete
-    - Create validation test that fails on missing translations
+### Phase 4: Testing (2-3 hours)
 
-12. **Update documentation**
+12. **Create unit tests for helpers**
+    - Create `/__tests__/utils/localization-helper.test.ts`
+    - Test `getLocalizedName()`:
+      - Returns locale value when i18n JSON provided
+      - Falls back to fieldValue when i18n JSON is null
+      - Falls back to fieldValue when locale missing from JSON
+      - Logs warning in development mode
+    - Test `applyLocalization()`:
+      - Localizes single object correctly
+      - Handles multiple fields
+    - Test `applyLocalizationBatch()`:
+      - Localizes array of objects correctly
+
+13. **Create/update repository tests**
+    - Test repository functions with locale parameter
+    - Mock database responses with i18n JSON fields
+    - Verify localization applied correctly
+    - Test fallback behavior when i18n JSON is null
+
+14. **Create/update component i18n tests** (if components were modified)
+    - For each modified component, create/update `*-i18n.test.tsx` file
+    - Mock repository responses with localized data
+    - Test rendering in both EN and ES locales
+    - Verify correct translations appear
+
+15. **Backoffice UI tests**
+    - Test i18n field editor component
+    - Test form submissions with i18n values
+    - Verify JSON is saved correctly to database
+
+### Phase 5: Documentation & Validation (1-2 hours)
+
+16. **Update documentation**
     - Update `/docs/i18n-guide.md`:
-      - Add section on tournament static data localization
-      - Document helper functions and hooks
-      - Add examples of usage
-      - Add guidance on when to use server vs client helpers:
-        - **Server helpers** (`getTeamName`, etc.): Use in Server Components, Server Actions, metadata generation
-        - **Client hooks** (`useTeamName`, etc.): Use in Client Components with `'use client'` directive
-      - Add performance guidance:
-        - Use batch functions (`getTeamNames`) for arrays of 5+ items
-        - Individual functions for single lookups or small arrays
+      - Add section: "Database-Driven Internationalization"
+      - Document `getLocalizedName()` function and usage
+      - Document `applyLocalization()` pattern in repositories
+      - Add examples of JSON structure: `{ "en": "...", "es": "..." }`
+      - Add guidance on adding new locales
     - Update `/app/utils/i18n-patterns.md`:
-      - Add pattern for tournament static data
-      - Add examples for server and client components
-      - Add fallback behavior documentation
+      - Add pattern for database i18n fields
+      - Add repository layer localization examples
+      - Document fallback behavior
+    - Add backoffice documentation:
+      - How to add localized values through admin UI
+      - Validation requirements (at least one locale)
+      - Best practices for translation quality
 
-13. **Run validation checks**
+17. **Run validation checks**
     - Run `npm test` - All tests must pass
     - Run `npm run lint` - No linting errors
     - Run `npm run build` - Build must succeed
-    - Verify 80% coverage on new code (calculate: modified components × 2 tests = target coverage)
+    - Verify 80% coverage on new code
     - Check SonarCloud preview (if available)
+
+18. **Manual integration testing**
+    - Test locale switching (EN ↔ ES):
+      - Tournament names update
+      - Team names update (if localized in backoffice)
+      - Venue names update
+      - Stage names update
+    - Test fallback behavior:
+      - View tournaments/teams without i18n values
+      - Verify original field value displays correctly
+    - Test backoffice:
+      - Create new tournament with i18n values
+      - Edit existing tournament to add i18n values
+      - Verify values save and display correctly on frontend
+    - Test across all tournaments:
+      - Euro 2024, Copa América 2024, FIFA 2026
 
 ## Testing Strategy
 
@@ -596,98 +685,99 @@ export async function validateTranslationCompleteness(
 
 **Example Test:**
 ```typescript
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getTeamName, getVenueName, getStageName } from '@/app/utils/tournament-i18n-helpers';
-import * as nextIntl from 'next-intl/server';
+import { describe, it, expect } from 'vitest';
+import { getLocalizedName, applyLocalization } from '@/app/utils/localization-helper';
 
-vi.mock('next-intl/server');
-
-describe('tournament-i18n-helpers', () => {
-  describe('getTeamName', () => {
-    it('should return English team name for EN locale', async () => {
-      vi.mocked(nextIntl.getTranslations).mockResolvedValue((key: string) => {
-        if (key === 'staticData.teams.Germany') return 'Germany';
-        return key;
-      });
-
-      const result = await getTeamName('Germany', 'en');
-      expect(result).toBe('Germany');
-    });
-
-    it('should return Spanish team name for ES locale', async () => {
-      vi.mocked(nextIntl.getTranslations).mockResolvedValue((key: string) => {
-        if (key === 'staticData.teams.Germany') return 'Alemania';
-        return key;
-      });
-
-      const result = await getTeamName('Germany', 'es');
+describe('localization-helper', () => {
+  describe('getLocalizedName', () => {
+    it('should return localized value when i18n JSON provided', () => {
+      const i18nJson = { en: 'Germany', es: 'Alemania' };
+      const result = getLocalizedName('Germany', i18nJson, 'es');
       expect(result).toBe('Alemania');
     });
 
-    it('should fall back to canonical name if translation missing', async () => {
-      vi.mocked(nextIntl.getTranslations).mockResolvedValue((key: string, options: any) => {
-        return options?.defaultValue || key;
-      });
+    it('should return English value for EN locale', () => {
+      const i18nJson = { en: 'Germany', es: 'Alemania' };
+      const result = getLocalizedName('Germany', i18nJson, 'en');
+      expect(result).toBe('Germany');
+    });
 
-      const result = await getTeamName('UnknownTeam', 'en');
-      expect(result).toBe('UnknownTeam');
+    it('should fall back to field value when i18n JSON is null', () => {
+      const result = getLocalizedName('Germany', null, 'es');
+      expect(result).toBe('Germany');
+    });
+
+    it('should fall back to field value when locale missing from JSON', () => {
+      const i18nJson = { en: 'Germany' }; // Missing 'es'
+      const result = getLocalizedName('Germany', i18nJson, 'es');
+      expect(result).toBe('Germany');
     });
   });
 
-  // Similar tests for getVenueName, getStageName, getTournamentName
+  describe('applyLocalization', () => {
+    it('should localize multiple fields in object', () => {
+      const tournament = {
+        long_name: 'Copa América 2024',
+        long_name_i18n: { en: 'Copa América 2024', es: 'Copa América 2024' },
+        short_name: 'copa-america-2024',
+        short_name_i18n: { en: 'Copa América 2024', es: 'Copa América 2024' }
+      };
+
+      const localized = applyLocalization(tournament, 'es', [
+        { field: 'long_name', i18nField: 'long_name_i18n' },
+        { field: 'short_name', i18nField: 'short_name_i18n' }
+      ]);
+
+      expect(localized.long_name).toBe('Copa América 2024');
+      expect(localized.short_name).toBe('Copa América 2024');
+    });
+  });
 });
 ```
 
 ### Component Tests
 
-**Pattern:** For each modified component, create/update `*-i18n.test.tsx`
+**Pattern:** Test repository functions with locale parameter
 
-**Example:** `/__tests__/components/game-card/game-card-i18n.test.tsx`
+**Example:** `/__tests__/db/game-repository-i18n.test.ts`
 
 ```typescript
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import GameCard from '@/app/components/game-card/game-card';
-import * as nextIntl from 'next-intl';
-import { createMockTranslations } from '@/__tests__/utils/mock-translations';
+import { describe, it, expect, vi } from 'vitest';
+import { findGamesInTournament } from '@/app/db/game-repository';
+import { getLocalizedName } from '@/app/utils/localization-helper';
 
-vi.mock('next-intl');
-
-describe('GameCard - i18n', () => {
-  beforeEach(() => {
-    vi.mocked(nextIntl.useLocale).mockReturnValue('es');
-    vi.mocked(nextIntl.useTranslations).mockReturnValue(
-      createMockTranslations('tournaments')
-    );
-  });
-
-  it('should display localized venue name in Spanish', () => {
-    const mockGame = {
+describe('game-repository - i18n', () => {
+  it('should return localized game location for ES locale', async () => {
+    // Mock database response
+    const mockDbGames = [{
+      id: '1',
       location: 'Munich Football Arena',
-      // ... other game data
-    };
+      location_i18n: { en: 'Munich Football Arena', es: 'Arena de Fútbol de Múnich' },
+      // ... other fields
+    }];
 
-    render(<GameCard game={mockGame} />);
+    // Mock DB query (implementation-specific)
+    vi.mocked(db.selectFrom).mockReturnValue(mockDbGames);
 
-    // Verify Spanish venue name appears
-    expect(screen.getByText(/Arena de Fútbol de Múnich/i)).toBeInTheDocument();
+    const games = await findGamesInTournament('tournament-1', 'es');
+
+    expect(games[0].location).toBe('Arena de Fútbol de Múnich');
   });
 
-  it('should display localized venue name in English', () => {
-    vi.mocked(nextIntl.useLocale).mockReturnValue('en');
-
-    const mockGame = {
+  it('should fall back to original location when i18n is null', async () => {
+    const mockDbGames = [{
+      id: '1',
       location: 'Munich Football Arena',
-      // ... other game data
-    };
+      location_i18n: null, // No localization data
+      // ... other fields
+    }];
 
-    render(<GameCard game={mockGame} />);
+    vi.mocked(db.selectFrom).mockReturnValue(mockDbGames);
 
-    // Verify English venue name appears
-    expect(screen.getByText(/Munich Football Arena/i)).toBeInTheDocument();
+    const games = await findGamesInTournament('tournament-1', 'es');
+
+    expect(games[0].location).toBe('Munich Football Arena'); // Fallback
   });
-
-  // Test team names, stage names, etc.
 });
 ```
 
@@ -767,128 +857,134 @@ describe('GameCard - i18n', () => {
 
 ### Performance Considerations
 
-- **Translation lookup performance:**
-  - `next-intl` uses efficient key lookup (O(1) hash map access)
-  - Minimal overhead compared to direct string access
-  - No noticeable performance impact expected
+- **JSONB field access:**
+  - PostgreSQL JSONB is binary format (faster than text JSON)
+  - Indexing not needed for i18n fields (small objects, not queried)
+  - Negligible overhead compared to string columns
 
-- **Batch operations:**
-  - Use `getTeamNames()` for arrays of teams to reduce async overhead
-  - Consider memoization for frequently accessed translations (if needed)
+- **Repository layer localization:**
+  - `getLocalizedName()` is synchronous (no async overhead)
+  - `applyLocalization()` runs in-memory (no database calls)
+  - Batch operations (`applyLocalizationBatch()`) use map (efficient for arrays)
+
+- **No caching needed:**
+  - Localization applied at query time (repository layer)
+  - Results cached by Next.js (Server Components, React Server Cache)
+  - No additional caching strategy required
 
 ### Backward Compatibility
 
-- ✅ **No database schema changes** - Existing data structure unchanged
-- ✅ **Graceful fallbacks** - If translation missing, display canonical name
-- ✅ **Optional locale parameter** - Repository functions maintain current signatures
+- ✅ **Nullable i18n columns** - Existing rows work without i18n values
+- ✅ **Graceful fallbacks** - `getLocalizedName()` returns original field value if i18n JSON is null
+- ✅ **Optional locale parameter** - Repository functions default to 'es' if locale not provided
+- ✅ **No breaking changes** - Components receive localized data transparently
 
 ### Extensibility
 
-- ✅ **New languages:** Simply add new locale files (e.g., `/locales/pt/tournaments.json`)
-- ✅ **New tournaments:** Add canonical data to `/data/`, add translations to i18n files
-- ✅ **New teams/venues:** Add to translation files without code changes
+- ✅ **New languages:** Extend JSON structure: `{ "en": "...", "es": "...", "pt": "..." }`
+- ✅ **New tournaments:** Add through backoffice with i18n values
+- ✅ **New teams/venues:** Add through backoffice with i18n values
+- ✅ **New localizable fields:** Add `*_i18n` column, update repository, add to backoffice form
+- ✅ **No code changes** needed to add translations (done through admin UI)
 
-## Pre-Implementation Checkpoint: Required Decisions
+## Pre-Implementation Decisions: ✅ RESOLVED
 
-**⚠️ CRITICAL: These decisions MUST be confirmed before implementation can begin.**
+**User has selected Option 2: Database locale fields approach**
 
-The following architectural decisions are blockers for Phase 1 and Phase 2. User approval required.
+All architectural decisions have been made:
 
-### Decision 1: Team Name Translation Strategy
+### ✅ Decision 1: Localization Strategy
+**Selected:** Database JSON locale fields with `getLocalizedName()` fallback function
+- Add i18n columns to: tournaments, teams, playoff_rounds, games tables
+- JSON format: `{ "en": "...", "es": "..." }`
+- Fallback: If i18n JSON is null or locale missing, return original field value
 
-**Question:** Should we translate team names or keep them in canonical English?
+### ✅ Decision 2: Team Name Translation
+**Selected:** Admin-controlled via backoffice
+- Admins can choose to translate or keep canonical per team
+- Example translated: `{ "name": "Germany", "name_i18n": { "en": "Germany", "es": "Alemania" } }`
+- Example canonical: `{ "name": "Germany", "name_i18n": { "en": "Germany", "es": "Germany" } }`
 
-**Options:**
-- A. Keep canonical (e.g., "Germany", "Spain") - **RECOMMENDED**
-- B. Translate country teams (e.g., "Germany" → "Alemania")
+### ✅ Decision 3: Backoffice Scope
+**Selected:** Include backoffice updates in this story
+- Create reusable i18n field editor component
+- Update tournament, team, playoff round, and game forms
+- Forms will allow admins to enter EN and ES values
 
-**Recommendation:** **Option A** - Keep canonical names
-- Rationale: International sports standard, fan recognition, simplicity
-- Implementation: Provide translations only if explicitly needed in UI copy
+### ✅ Decision 4: Migration Strategy
+**Selected:** No automatic migration
+- Leave existing non-localized strings as fallback default
+- Admins add locale values through backoffice as needed
+- `getLocalizedName()` handles missing values gracefully
 
-**Impact if delayed:** 40% of Phase 2 work (component updates) depends on this decision.
-
-**⚠️ Decision needed from user before starting Phase 1.**
-
-### Decision 2: Database Display Name Column
-
-**Question:** Should we add a `display_name` column to `teams` table for pre-computed localized names?
-
-**Options:**
-- A. No database changes (use i18n JSON only) - **RECOMMENDED**
-- B. Add `display_name_en` and `display_name_es` columns
-
-**Recommendation:** **Option A** - No database changes
-- Rationale: Simpler, more maintainable, follows existing i18n pattern
-- Performance: Negligible overhead with next-intl key lookups
-
-**Impact if delayed:** Affects helper function design and repository layer changes.
-
-**⚠️ Decision needed from user before starting Phase 1.**
-
-### Decision 3: Venue Name Canonical Source
-
-**Question:** Should we standardize venue canonical names to English or keep original language?
-
-**Current State:** Mix of English and Spanish in data files
-- Euro 2024: English venue names
-- Copa América: Spanish venue names (e.g., "Estadio Monumental")
-
-**Options:**
-- A. Standardize all canonical names to English - **RECOMMENDED**
-- B. Keep original language (requires mapping canonical → English → other locales)
-
-**Recommendation:** **Option A** - Standardize to English
-- Rationale: Consistency, simpler translation mapping, single source of truth
-- Implementation: Update `/data/copa-america/base-data.ts` to use English canonical names
-- **Before/After Example:**
-  - Before: `COL: 'Estadio Monumental'`
-  - After: `COL: 'Monumental Stadium'`
-  - Spanish translation: `"Monumental Stadium": "Estadio Monumental"`
-
-**Impact if delayed:** Affects Phase 1 translation data creation and Copa América venue tests.
-
-**⚠️ Decision needed from user before starting Phase 1.**
+### ✅ Decision 5: Venue Canonical Names
+**Selected:** Accept current mixed-language state
+- No standardization needed (covered by i18n JSON approach)
+- Current Spanish venue names (Copa América) remain as-is
+- Admins add English translations via backoffice
 
 ---
 
-**Checkpoint Verification:**
-- [ ] Decision 1 confirmed by user
-- [ ] Decision 2 confirmed by user
-- [ ] Decision 3 confirmed by user
-- [ ] All three decisions documented in plan
-
-**Only proceed to Phase 0 after all decisions confirmed.**
+**All decisions locked. Ready to proceed to Phase 0.**
 
 ## Risk Assessment
 
 ### Low Risk
-- ✅ No database schema changes
-- ✅ Leverages existing i18n infrastructure
-- ✅ Graceful fallbacks prevent breaking changes
+- ✅ Graceful fallbacks prevent breaking changes (returns original value if i18n JSON null)
+- ✅ Nullable columns - existing data continues working
+- ✅ Backoffice-driven - no code changes needed to add new translations
 
 ### Medium Risk
-- ⚠️ **Large number of components to update** - Mitigated by systematic component audit
-- ⚠️ **Translation consistency** - Mitigated by centralized translation files and review
+- ⚠️ **Database schema changes** - Mitigated by:
+  - Nullable columns (no data required initially)
+  - User permission required before running migration
+  - Rollback plan: drop columns if issues arise
+- ⚠️ **Backoffice UI complexity** - Mitigated by:
+  - Reusable i18n field editor component
+  - Clear validation rules
+  - Consistent pattern across all forms
+- ⚠️ **Repository layer changes** - Mitigated by:
+  - Systematic audit in Phase 0
+  - Backward compatibility (locale parameter optional with default)
+  - Generic `applyLocalization()` function reduces duplication
 
 ### High Risk
 - ❌ None identified
 
+**Mitigation Strategies:**
+- Test migration on dev database first
+- Create database backup before running migration
+- Implement comprehensive fallback logic
+- Extensive testing of repository localization
+- User acceptance testing in Vercel Preview before merge
+
 ## Dependencies
 
-- ✅ `next-intl` v4.8.3 (already installed)
-- ✅ Existing `tournaments` namespace (already configured)
-- ✅ Existing i18n infrastructure (routing, locale detection)
+- ✅ PostgreSQL database with JSONB support (already in use)
+- ✅ Kysely ORM with JSONColumnType (already in use)
+- ✅ `next-intl` for locale detection (already installed)
+- ✅ Existing backoffice infrastructure (forms, server actions)
+- ⚠️ Database migration permissions (must ask user before running)
+
+**New Dependencies:** None (all required libraries already installed)
 
 ## Timeline Estimate
 
 - **Phase 0:** Pre-Implementation Audit - 1 hour
-- **Phase 1:** Infrastructure Setup - 2-3 hours
-- **Phase 2:** Component Migration - 4-5 hours
-- **Phase 3:** Testing - 2-3 hours
-- **Phase 4:** Documentation & Validation - 1-2 hours
+- **Phase 1:** Database Schema & Helper Infrastructure - 2-3 hours
+- **Phase 2:** Repository & Service Layer Updates - 3-4 hours
+- **Phase 3:** Backoffice UI Updates - 3-4 hours
+- **Phase 4:** Testing - 2-3 hours
+- **Phase 5:** Documentation & Validation - 1-2 hours
 
-**Total:** 10-14 hours (aligns with High effort estimate of 8-12 hours, with buffer for unknowns)
+**Total:** 12-17 hours
+
+**Note:** Original estimate was 8-12 hours, but database approach + backoffice UI work adds 4-5 hours.
+- Database migrations + TypeScript updates: +1-2 hours
+- Backoffice UI components (4 forms + reusable editor): +3-4 hours
+- Additional testing (backoffice tests): +1 hour
+
+**Recommendation:** Update story effort estimate to reflect actual scope.
 
 ## Success Metrics
 
