@@ -217,29 +217,70 @@ Create i18n tests following existing patterns (like `tournament-bottom-nav-i18n.
 1. Create `locales/es/pwa.json` with Spanish PWA strings
 2. Create `locales/en/pwa.json` with English PWA strings
 
-### Step 2: Update offline-detection.tsx
+### Step 2: Register PWA Namespace in i18n Configuration
+
+**CRITICAL:** The `pwa` namespace must be registered in two places for next-intl to recognize it.
+
+#### Step 2.1: Register in `types/i18n.ts`
+
+Add import at top with other namespace imports:
+```typescript
+import pwa from '@/locales/en/pwa.json';
+```
+
+Add to `Messages` type:
+```typescript
+type Messages = {
+  common: typeof common;
+  navigation: typeof navigation;
+  // ... other namespaces ...
+  pwa: typeof pwa;  // ADD THIS
+};
+```
+
+#### Step 2.2: Register in `i18n/request.ts`
+
+Add to `messages` object in `getRequestConfig`:
+```typescript
+return {
+  locale,
+  messages: {
+    common: (await import(`../locales/${locale}/common.json`)).default,
+    navigation: (await import(`../locales/${locale}/navigation.json`)).default,
+    // ... other namespaces ...
+    pwa: (await import(`../locales/${locale}/pwa.json`)).default  // ADD THIS
+  }
+};
+```
+
+**Why this is required:**
+- `types/i18n.ts` provides TypeScript type safety for translation keys
+- `i18n/request.ts` loads the actual translation JSON at runtime
+- Without both registrations, `useTranslations('pwa')` will fail
+
+### Step 3: Update offline-detection.tsx
 1. Import `useTranslations`
 2. Add `const t = useTranslations('pwa.offline')`
 3. Replace hardcoded string with `t('message')`
 
-### Step 3: Update Install-pwa.tsx
+### Step 4: Update Install-pwa.tsx
 1. Import `useTranslations`
 2. Add `const t = useTranslations('pwa.install')`
 3. Replace all hardcoded strings with translation keys
 4. Fix "Intalar" typo (via translation key)
 
-### Step 4: Update notifications-subscription-prompt.tsx
+### Step 5: Update notifications-subscription-prompt.tsx
 1. Import `useTranslations`
 2. Add `const t = useTranslations('pwa.notifications')`
 3. Replace all hardcoded strings with translation keys
 
-### Step 5: Create Tests
+### Step 6: Create Tests
 1. Create `offline-detection-i18n.test.tsx`
 2. Create `Install-pwa-i18n.test.tsx`
 3. Create `notifications-subscription-prompt-i18n.test.tsx`
 4. Follow existing i18n test patterns (mock next-intl, verify keys)
 
-### Step 6: Validation
+### Step 7: Validation
 1. Run tests (`npm test`)
 2. Run lint (`npm run lint`)
 3. Run build (`npm run build`)
@@ -258,9 +299,11 @@ Create i18n tests following existing patterns (like `tournament-bottom-nav-i18n.
 5. **app/components/__tests__/notifications-subscription-prompt-i18n.test.tsx** - Notifications i18n tests
 
 ### Files to Modify
-1. **app/components/offline-detection.tsx** - Add i18n
-2. **app/components/Install-pwa.tsx** - Add i18n (10+ strings)
-3. **app/components/notifications-subscription-prompt.tsx** - Add i18n (5 strings)
+1. **types/i18n.ts** - Register `pwa` namespace for TypeScript type safety
+2. **i18n/request.ts** - Register `pwa` namespace for runtime loading
+3. **app/components/offline-detection.tsx** - Add i18n
+4. **app/components/Install-pwa.tsx** - Add i18n (10+ strings)
+5. **app/components/notifications-subscription-prompt.tsx** - Add i18n (5 strings)
 
 ## Impact Assessment
 
@@ -271,9 +314,10 @@ Create i18n tests following existing patterns (like `tournament-bottom-nav-i18n.
 - ✅ Tests for manifest and layout metadata
 
 **New files to modify (change plan):**
-- 3 component files
-- 2 translation files (new namespace)
-- 3 test files
+- 2 i18n configuration files (namespace registration)
+- 3 component files (i18n implementation)
+- 2 translation files (new `pwa` namespace)
+- 3 test files (i18n tests)
 
 **Files that no longer need modification:**
 - None (change plan is additive only)
