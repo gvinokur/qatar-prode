@@ -1,25 +1,25 @@
 {
   "header": {
-    "home": "EnOf(Inicio)",
-    "tournaments": "EnOf(Torneos)",
-    "profile": "EnOf(Perfil)",
-    "logout": "EnOf(Cerrar sesión)",
+    "home": "Home",
+    "tournaments": "Tournaments",
+    "profile": "Profile",
+    "logout": "Log Out",
     "login": "Log In",
     "userMenu": {
-      "tooltip": "EnOf(Abrir Menu de Usuario)",
-      "settings": "EnOf(Configuracion)",
-      "tutorial": "EnOf(Ver Tutorial)",
-      "backoffice": "EnOf(Ir al Back Office)",
-      "logout": "EnOf(Salir)",
+      "tooltip": "Open User Menu",
+      "settings": "Settings",
+      "tutorial": "View Tutorial",
+      "backoffice": "Go to Back Office",
+      "logout": "Log Out",
       "deleteAccount": "Delete Account"
     }
   },
   "bottomNav": {
     "home": "Home",
-    "results": "EnOf(Tablas)",
-    "rules": "EnOf(Reglas)",
-    "stats": "EnOf(Stats)",
-    "groups": "EnOf(Grupos)"
+    "results": "Standings",
+    "rules": "Rules",
+    "stats": "Stats",
+    "groups": "Groups"
   },
   "topNav": {
     "matches": "MATCHES",

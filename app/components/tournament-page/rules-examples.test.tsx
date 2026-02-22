@@ -30,7 +30,7 @@ describe('Rules Examples Components', () => {
 
     it('renders RoundOf16Example in Spanish with points', () => {
       renderWithProviders(<RoundOf16Example points={1} />)
-      expect(screen.getByText(/Si predices que Argentina clasificará a octavos/i)).toBeInTheDocument()
+      expect(screen.getByText(/Si predices que Argentina clasificará a dieciseisavos/i)).toBeInTheDocument()
       expect(screen.getByText(/1 punto/i)).toBeInTheDocument()
     })
 
@@ -85,73 +85,73 @@ describe('Rules Examples Components', () => {
     })
   })
 
-  describe('English translations (EnOf pattern)', () => {
+  describe('English translations', () => {
     it('renders WinnerDrawExample in English with points', () => {
       renderWithProviders(<WinnerDrawExample points={1} />, { locale: 'en' })
-      expect(screen.getByText(/EnOf\(Ejemplo: Si predices que Argentina ganará/i)).toBeInTheDocument()
-      expect(screen.getByText(/EnOf\(.*1 punto.*\)/i)).toBeInTheDocument()
+      expect(screen.getByText(/Example: If you predict Argentina will beat/i)).toBeInTheDocument()
+      expect(screen.getByText(/you get 1 point/i)).toBeInTheDocument()
     })
 
     it('renders ExactScoreExample in English with point values', () => {
       renderWithProviders(<ExactScoreExample total={2} correctOutcome={1} bonus={1} />, { locale: 'en' })
-      expect(screen.getByText(/EnOf\(Ejemplo: Si predices que Argentina ganará 2-1/i)).toBeInTheDocument()
-      expect(screen.getByText(/EnOf\(.*2 puntos.*\)/i)).toBeInTheDocument()
+      expect(screen.getByText(/Example: If you predict Argentina will win 2-1/i)).toBeInTheDocument()
+      expect(screen.getByText(/you get 2 points/i)).toBeInTheDocument()
     })
 
     it('renders RoundOf16Example in English with points', () => {
       renderWithProviders(<RoundOf16Example points={1} />, { locale: 'en' })
-      expect(screen.getByText(/EnOf\(Ejemplo: Si predices que Argentina clasificará a octavos/i)).toBeInTheDocument()
-      expect(screen.getByText(/EnOf\(.*1 punto.*\)/i)).toBeInTheDocument()
+      expect(screen.getByText(/Example: If you predict Argentina will qualify for the Round of 32/i)).toBeInTheDocument()
+      expect(screen.getByText(/you get 1 point/i)).toBeInTheDocument()
     })
 
     it('renders GroupPositionExample in English with points', () => {
       renderWithProviders(<GroupPositionExample qualifiedPoints={1} exactPositionPoints={2} totalPoints={3} />, { locale: 'en' })
-      expect(screen.getByText(/EnOf\(Ejemplo: Si predices que Argentina clasificará primero/i)).toBeInTheDocument()
-      expect(screen.getByText(/EnOf\(.*3 puntos.*\)/i)).toBeInTheDocument()
+      expect(screen.getByText(/Example: If you predict Argentina will finish first in Group A/i)).toBeInTheDocument()
+      expect(screen.getByText(/you get 3 additional points/i)).toBeInTheDocument()
     })
 
     it('renders ChampionExample in English with points', () => {
       renderWithProviders(<ChampionExample points={5} />, { locale: 'en' })
-      expect(screen.getByText(/EnOf\(Ejemplo: Si predices que Argentina será campeón/i)).toBeInTheDocument()
-      expect(screen.getByText(/EnOf\(.*5 puntos.*\)/i)).toBeInTheDocument()
+      expect(screen.getByText(/Example: If you predict Argentina will be champion/i)).toBeInTheDocument()
+      expect(screen.getByText(/you get 5 points/i)).toBeInTheDocument()
     })
 
     it('renders RunnerUpExample in English with points', () => {
       renderWithProviders(<RunnerUpExample points={3} />, { locale: 'en' })
-      expect(screen.getByText(/EnOf\(Ejemplo: Si predices que Brasil será subcampeón/i)).toBeInTheDocument()
-      expect(screen.getByText(/EnOf\(.*3 puntos.*\)/i)).toBeInTheDocument()
+      expect(screen.getByText(/Example: If you predict Brazil will be runner-up/i)).toBeInTheDocument()
+      expect(screen.getByText(/you get 3 points/i)).toBeInTheDocument()
     })
 
     it('renders ThirdPlaceExample in English with points', () => {
       renderWithProviders(<ThirdPlaceExample points={1} />, { locale: 'en' })
-      expect(screen.getByText(/EnOf\(Ejemplo: Si predices que Francia será tercero/i)).toBeInTheDocument()
-      expect(screen.getByText(/EnOf\(.*1 punto.*\)/i)).toBeInTheDocument()
+      expect(screen.getByText(/Example: If you predict France will be third/i)).toBeInTheDocument()
+      expect(screen.getByText(/you get 1 point/i)).toBeInTheDocument()
     })
 
     it('renders IndividualAwardsExample in English with points', () => {
       renderWithProviders(<IndividualAwardsExample points={3} />, { locale: 'en' })
-      expect(screen.getByText(/EnOf\(Ejemplo: Si predices que Lionel Messi ganará/i)).toBeInTheDocument()
-      expect(screen.getByText(/EnOf\(.*3 puntos.*\)/i)).toBeInTheDocument()
+      expect(screen.getByText(/Example: If you predict Lionel Messi will win/i)).toBeInTheDocument()
+      expect(screen.getByText(/you get 3 points/i)).toBeInTheDocument()
     })
 
     it('renders MatchPredictionTimeExample in English', () => {
       renderWithProviders(<MatchPredictionTimeExample />, { locale: 'en' })
-      expect(screen.getByText(/EnOf\(Ejemplo: Si un partido comienza a las 15:00/i)).toBeInTheDocument()
+      expect(screen.getByText(/Example: If a match starts at 3:00 PM/i)).toBeInTheDocument()
     })
 
     it('renders PodiumPredictionTimeExample in English', () => {
       renderWithProviders(<PodiumPredictionTimeExample />, { locale: 'en' })
-      expect(screen.getByText(/EnOf\(Ejemplo: Si el torneo comienza el 1 de junio/i)).toBeInTheDocument()
+      expect(screen.getByText(/Example: If the tournament starts on June 1st/i)).toBeInTheDocument()
     })
 
     it('renders SinglePredictionExample in English', () => {
       renderWithProviders(<SinglePredictionExample />, { locale: 'en' })
-      expect(screen.getByText(/EnOf\(Ejemplo: Solo puedes tener un pronostico activo/i)).toBeInTheDocument()
+      expect(screen.getByText(/Example: You can only have one active prediction/i)).toBeInTheDocument()
     })
 
     it('renders QualifiedTeamsPredictionTimeExample in English', () => {
       renderWithProviders(<QualifiedTeamsPredictionTimeExample />, { locale: 'en' })
-      expect(screen.getByText(/EnOf\(.*Si el torneo comienza el 1 de junio.*equipos clasificados hasta el 3 de junio/i)).toBeInTheDocument()
+      expect(screen.getByText(/Example: If the tournament starts on June 1st, you can modify your qualified teams predictions until June 3rd/i)).toBeInTheDocument()
     })
   })
 

@@ -144,29 +144,29 @@ describe('Rules', () => {
 
   // English translation tests
   describe('English translations', () => {
-    it('renders English title with EnOf pattern', () => {
+    it('renders English title', () => {
       renderWithProviders(<Rules scoringConfig={mockScoringConfig} />, { locale: 'en' })
 
-      expect(screen.getByText('EnOf(Reglas Generales)')).toBeInTheDocument()
+      expect(screen.getByText('General Rules')).toBeInTheDocument()
     })
 
     it('renders English subheader when isActive', () => {
       renderWithProviders(<Rules scoringConfig={mockScoringConfig} isActive={true} />, { locale: 'en' })
 
-      expect(screen.getByText('EnOf(Estás aquí)')).toBeInTheDocument()
+      expect(screen.getByText('You are here')).toBeInTheDocument()
     })
 
     it('renders English section titles', () => {
       renderWithProviders(<Rules scoringConfig={mockScoringConfig} expanded={true} />, { locale: 'en' })
 
-      expect(screen.getByText('EnOf(Calculo de puntos)')).toBeInTheDocument()
-      expect(screen.getByText('EnOf(Condiciones generales)')).toBeInTheDocument()
+      expect(screen.getByText('Points Calculation')).toBeInTheDocument()
+      expect(screen.getByText('General Conditions')).toBeInTheDocument()
     })
 
     it('renders English button text', () => {
       renderWithProviders(<Rules scoringConfig={mockScoringConfig} tournamentId="test" fullpage={false} />, { locale: 'en' })
 
-      expect(screen.getByRole('link', { name: /EnOf\(Ver Reglas Completas\)/i })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: /View Full Rules/i })).toBeInTheDocument()
     })
   })
 
@@ -250,10 +250,10 @@ describe('Rules', () => {
       expect(screen.getByText(/Se permite modificar pronosticos de equipos clasificados/i)).toBeInTheDocument()
     })
 
-    it('renders qualified teams constraint in English with EnOf pattern', () => {
+    it('renders qualified teams constraint in English', () => {
       renderWithProviders(<Rules scoringConfig={mockScoringConfig} expanded={true} />, { locale: 'en' })
 
-      expect(screen.getByText(/EnOf\(Se permite modificar pronosticos de equipos clasificados/i)).toBeInTheDocument()
+      expect(screen.getByText(/You can modify qualified teams predictions up to 2 days after the tournament starts/i)).toBeInTheDocument()
     })
   })
 })

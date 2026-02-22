@@ -132,7 +132,7 @@ describe('urgency-helpers', () => {
       runnerUpPercentage: 0,
       thirdPlacePercentage: 0,
       groupWinnersPercentage: 0,
-      roundOf16Percentage: 0,
+      roundOf32Percentage: 0,
       quarterFinalsPercentage: 0,
       semiFinalsPercentage: 0
     });

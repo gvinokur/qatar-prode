@@ -154,13 +154,13 @@ describe('PlayoffsBracketView', () => {
   });
 
   describe('Round labels', () => {
-    it('should show "Dieciseisavos" for 16-game round', () => {
+    it('should show "Dieciseisavos" for 16-game round (Round of 32)', () => {
       const games = createMany(testFactories.game, 16, (i) => ({ id: `game-${i}` }));
       const stages: (PlayoffRound & { games: ReadonlyArray<{ game_id: string }> })[] = [
         {
           ...testFactories.playoffRound({
-            id: 'round-16',
-            round_name: 'Round of 16',
+            id: 'round-32',
+            round_name: 'Round of 32',
             total_games: 16,
           }),
           games: games.map((g) => ({ game_id: g.id })),
@@ -174,13 +174,13 @@ describe('PlayoffsBracketView', () => {
       expect(screen.getByText('Dieciseisavos')).toBeInTheDocument();
     });
 
-    it('should show "Octavos" for 8-game round', () => {
+    it('should show "Octavos" for 8-game round (Round of 16)', () => {
       const games = createMany(testFactories.game, 8, (i) => ({ id: `game-${i}` }));
       const stages: (PlayoffRound & { games: ReadonlyArray<{ game_id: string }> })[] = [
         {
           ...testFactories.playoffRound({
-            id: 'round-8',
-            round_name: 'Round of 8',
+            id: 'round-16',
+            round_name: 'Round of 16',
             total_games: 8,
           }),
           games: games.map((g) => ({ game_id: g.id })),
@@ -214,7 +214,7 @@ describe('PlayoffsBracketView', () => {
       expect(screen.getByText('Cuartos')).toBeInTheDocument();
     });
 
-    it('should show "Semifinal" for 2-game round', () => {
+    it('should show "Semifinales" for 2-game round', () => {
       const games = createMany(testFactories.game, 2, (i) => ({ id: `game-${i}` }));
       const stages: (PlayoffRound & { games: ReadonlyArray<{ game_id: string }> })[] = [
         {
@@ -231,7 +231,7 @@ describe('PlayoffsBracketView', () => {
         <PlayoffsBracketView playoffStages={stages} games={games} teamsMap={{}} />
       );
 
-      expect(screen.getByText('Semifinal')).toBeInTheDocument();
+      expect(screen.getByText('Semifinales')).toBeInTheDocument();
     });
 
     it('should show "Final" for 1-game round', () => {
@@ -293,7 +293,7 @@ describe('PlayoffsBracketView', () => {
       );
 
       // Should not show any standard round label
-      expect(screen.queryByText(/Octavos|Cuartos|Semifinal|Final|Dieciseisavos/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Dieciseisavos|Octavos|Cuartos|Semifinales|Final/)).not.toBeInTheDocument();
     });
   });
 

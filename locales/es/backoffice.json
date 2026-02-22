@@ -1,18 +1,18 @@
 {
-  "unauthorized": "EsOf[backoffice.unauthorized]",
+  "unauthorized": "Se requiere acceso de administrador",
   "tournament": {
-    "deleteUnauthorized": "EsOf[backoffice.tournament.deleteUnauthorized]",
-    "cannotDeleteActive": "EsOf[backoffice.tournament.cannotDeleteActive]",
-    "notFound": "EsOf[backoffice.tournament.notFound]",
-    "copyUnauthorized": "EsOf[backoffice.tournament.copyUnauthorized]",
-    "invalidStartDate": "EsOf[backoffice.tournament.invalidStartDate]",
-    "createPlayersFailed": "EsOf[backoffice.tournament.createPlayersFailed]",
-    "createPlayersNoTeams": "EsOf[backoffice.tournament.createPlayersNoTeams]"
+    "deleteUnauthorized": "Solo los administradores pueden eliminar torneos",
+    "cannotDeleteActive": "No se puede eliminar un torneo activo. Por favor desactívalo primero",
+    "notFound": "Torneo {id} no encontrado",
+    "copyUnauthorized": "Solo los administradores pueden copiar torneos",
+    "invalidStartDate": "Fecha de inicio inválida proporcionada",
+    "createPlayersFailed": "No se pueden crear jugadores para un torneo inexistente",
+    "createPlayersNoTeams": "No se pueden crear jugadores para un torneo sin equipos"
   },
   "notification": {
-    "usersNotFound": "EsOf[backoffice.notification.usersNotFound]",
-    "subscriptionNotFound": "EsOf[backoffice.notification.subscriptionNotFound]",
-    "sendFailed": "EsOf[backoffice.notification.sendFailed]",
-    "groupNotFound": "EsOf[backoffice.notification.groupNotFound]"
+    "usersNotFound": "Usuarios no encontrados",
+    "subscriptionNotFound": "Suscripción no encontrada",
+    "sendFailed": "Error al enviar la notificación",
+    "groupNotFound": "Grupo no encontrado"
   }
 }

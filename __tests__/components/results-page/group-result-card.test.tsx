@@ -602,7 +602,7 @@ describe('GroupResultCard', () => {
   });
 
   describe('i18n - English Language (Interpolation)', () => {
-    it('should display English group label with letter interpolation (EnOf(GRUPO A))', () => {
+    it('should display English group label with letter interpolation (GROUP A))', () => {
       mockUseMediaQuery.mockReturnValue(false);
 
       renderWithProviders(
@@ -610,8 +610,8 @@ describe('GroupResultCard', () => {
         { locale: 'en' }
       );
 
-      // English: "EnOf(GRUPO {letter})" should become "EnOf(GRUPO A)"
-      expect(screen.getByText('EnOf(GRUPO A)')).toBeInTheDocument();
+      // English: "GROUP {letter})" should become "GROUP A)"
+      expect(screen.getByText('GROUP A')).toBeInTheDocument();
     });
 
     it('should display English group label with different letters (B, C, H)', () => {
@@ -623,7 +623,7 @@ describe('GroupResultCard', () => {
         { locale: 'en' }
       );
 
-      expect(screen.getByText('EnOf(GRUPO B)')).toBeInTheDocument();
+      expect(screen.getByText('GROUP B')).toBeInTheDocument();
       unmount();
 
       const groupC = { ...group, letter: 'C' };
@@ -632,7 +632,7 @@ describe('GroupResultCard', () => {
         { locale: 'en' }
       );
 
-      expect(screen.getByText('EnOf(GRUPO C)')).toBeInTheDocument();
+      expect(screen.getByText('GROUP C')).toBeInTheDocument();
     });
 
     it('should display English labels for games and standings sections', () => {
@@ -644,8 +644,8 @@ describe('GroupResultCard', () => {
       );
 
       // Check English labels
-      expect(screen.getByText('EnOf(Partidos:)')).toBeInTheDocument();
-      expect(screen.getByText('EnOf(Tabla de Posiciones:)')).toBeInTheDocument();
+      expect(screen.getByText('Matches:')).toBeInTheDocument();
+      expect(screen.getByText('Standings:')).toBeInTheDocument();
     });
 
     it('should display correct aria-label for expand button in English', () => {
@@ -656,8 +656,8 @@ describe('GroupResultCard', () => {
         { locale: 'en' }
       );
 
-      const expandButton = screen.getByLabelText('EnOf(mostrar más)');
-      expect(expandButton).toHaveAttribute('aria-label', 'EnOf(mostrar más)');
+      const expandButton = screen.getByLabelText('show more');
+      expect(expandButton).toHaveAttribute('aria-label', 'show more');
     });
 
     it('should handle lowercase group letter and convert to uppercase in English', () => {
@@ -670,7 +670,7 @@ describe('GroupResultCard', () => {
       );
 
       // Component uses .toUpperCase() in the interpolation
-      expect(screen.getByText('EnOf(GRUPO F)')).toBeInTheDocument();
+      expect(screen.getByText('GROUP F')).toBeInTheDocument();
     });
 
     it('should correctly interpolate all group letters A-H in English', () => {
@@ -685,7 +685,7 @@ describe('GroupResultCard', () => {
           { locale: 'en' }
         );
 
-        expect(screen.getByText(`EnOf(GRUPO ${letter})`)).toBeInTheDocument();
+        expect(screen.getByText(`GROUP ${letter}`)).toBeInTheDocument();
         unmount();
       }
     });
@@ -711,8 +711,8 @@ describe('GroupResultCard', () => {
         { locale: 'en' }
       );
 
-      expect(screen.getByText('EnOf(GRUPO A)')).toBeInTheDocument();
-      expect(screen.getByText('EnOf(Partidos:)')).toBeInTheDocument();
+      expect(screen.getByText('GROUP A')).toBeInTheDocument();
+      expect(screen.getByText('Matches:')).toBeInTheDocument();
     });
 
     it('should switch from English to Spanish with correct interpolation', () => {
@@ -724,8 +724,8 @@ describe('GroupResultCard', () => {
         { locale: 'en' }
       );
 
-      expect(screen.getByText('EnOf(GRUPO A)')).toBeInTheDocument();
-      expect(screen.getByText('EnOf(Partidos:)')).toBeInTheDocument();
+      expect(screen.getByText('GROUP A')).toBeInTheDocument();
+      expect(screen.getByText('Matches:')).toBeInTheDocument();
       unmount();
 
       // Switch to Spanish

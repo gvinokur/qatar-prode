@@ -59,7 +59,7 @@
   "examples": {
     "winnerDraw": "Ejemplo: Si predices que Argentina ganará contra Brasil y efectivamente Argentina gana, obtienes {points} {points, plural, one {punto} other {puntos}}. Si predices un empate y el partido termina en empate, también obtienes {points} {points, plural, one {punto} other {puntos}}.",
     "exactScore": "Ejemplo: Si predices que Argentina ganará 2-1 contra Brasil y el resultado final es exactamente 2-1, obtienes {total} {total, plural, one {punto} other {puntos}} ({correctOutcome} por el ganador + {bonus} extra por el resultado exacto).",
-    "roundOf16": "Ejemplo: Si predices que Argentina clasificará a octavos de final y efectivamente clasifica, obtienes {points} {points, plural, one {punto} other {puntos}} por ese equipo clasificado.",
+    "roundOf32": "Ejemplo: Si predices que Argentina clasificará a dieciseisavos de final y efectivamente clasifica, obtienes {points} {points, plural, one {punto} other {puntos}} por ese equipo clasificado.",
     "groupPosition": "Ejemplo: Si predices que Argentina clasificará primero del Grupo A y efectivamente termina primero, obtienes {totalPoints} {totalPoints, plural, one {punto} other {puntos}} adicionales ({qualifiedPoints} por clasificar + {exactPositionPoints} por posición exacta = {totalPoints} {totalPoints, plural, one {punto} other {puntos}} totales).",
     "champion": "Ejemplo: Si predices que Argentina será campeón y efectivamente Argentina gana el torneo, obtienes {points} {points, plural, one {punto} other {puntos}}. Si Argentina llega a la final pero pierde, no obtienes los puntos.",
     "runnerUp": "Ejemplo: Si predices que Brasil será subcampeón y efectivamente Brasil pierde la final, obtienes {points} {points, plural, one {punto} other {puntos}}.",

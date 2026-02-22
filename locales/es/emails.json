@@ -15,15 +15,15 @@
     "signature": "El equipo de La Maquina Prode"
   },
   "otp": {
-    "subject": "Tu código de acceso - Qatar Prode",
+    "subject": "Tu código de acceso - La Maquina Prode",
     "title": "Tu código de acceso",
-    "greeting": "Has solicitado un código para iniciar sesión en Qatar Prode.",
+    "greeting": "Has solicitado un código para iniciar sesión en La Maquina Prode.",
     "validity": "⏱️ Válido por 3 minutos",
     "attempts": "Tienes máximo 3 intentos para ingresar este código.",
     "securityTitle": "⚠️ Seguridad:",
     "securityTips": {
       "tip1": "No compartas este código con nadie",
-      "tip2": "Qatar Prode nunca te pedirá este código por teléfono o email",
+      "tip2": "La Maquina Prode nunca te pedirá este código por teléfono o email",
       "tip3": "Si no solicitaste este código, puedes ignorar este mensaje"
     },
     "requestedFor": "Este código fue solicitado para:",

@@ -45,7 +45,7 @@ describe('TabbedPlayoffsPage', () => {
 
   const createMockSections = (): Section[] => [
     {
-      section: 'Round of 16',
+      section: 'Round of 32',
       games: [
         {
           id: 'game-1',
@@ -99,7 +99,7 @@ describe('TabbedPlayoffsPage', () => {
         />
       );
 
-      expect(screen.getByText('Round of 16')).toBeInTheDocument();
+      expect(screen.getByText('Round of 32')).toBeInTheDocument();
       expect(screen.getByText('Quarter Finals')).toBeInTheDocument();
       expect(screen.getByText('Semi Finals')).toBeInTheDocument();
     });
@@ -188,7 +188,7 @@ describe('TabbedPlayoffsPage', () => {
 
   describe('Automatic Tab Selection Based on Date', () => {
     it('selects tab with game closest to today by default', async () => {
-      const today = new Date('2024-06-19T12:00:00Z'); // Closer to Quarter Finals (2024-06-20) than Round of 16 (2024-06-16)
+      const today = new Date('2024-06-19T12:00:00Z'); // Closer to Quarter Finals (2024-06-20) than Round of 32 (2024-06-16)
       vi.setSystemTime(today);
 
       const sections = createMockSections();
@@ -211,7 +211,7 @@ describe('TabbedPlayoffsPage', () => {
     it('selects first tab when no games have dates', async () => {
       const sectionsWithoutDates: Section[] = [
         {
-          section: 'Round of 16',
+          section: 'Round of 32',
           games: [
             {
               id: 'game-1',
@@ -240,7 +240,7 @@ describe('TabbedPlayoffsPage', () => {
       );
 
       await waitFor(() => {
-        const roundOf16Tab = screen.getByText('Round of 16');
+        const roundOf16Tab = screen.getByText('Round of 32');
         expect(roundOf16Tab).toHaveClass('Mui-selected');
       });
     });
@@ -278,9 +278,9 @@ describe('TabbedPlayoffsPage', () => {
         />
       );
 
-      // Should select Round of 16 as it has the closest future game (2024-06-15)
+      // Should select Round of 32 as it has the closest future game (2024-06-15)
       await waitFor(() => {
-        const roundOf16Tab = screen.getByText('Round of 16');
+        const roundOf16Tab = screen.getByText('Round of 32');
         expect(roundOf16Tab).toHaveClass('Mui-selected');
       });
 
@@ -304,7 +304,7 @@ describe('TabbedPlayoffsPage', () => {
     it('handles sections with empty games arrays', () => {
       const sectionsWithEmptyGames: Section[] = [
         {
-          section: 'Round of 16',
+          section: 'Round of 32',
           games: [],
         },
         {
@@ -320,7 +320,7 @@ describe('TabbedPlayoffsPage', () => {
         />
       );
 
-      expect(screen.getByText('Round of 16')).toBeInTheDocument();
+      expect(screen.getByText('Round of 32')).toBeInTheDocument();
       expect(screen.getByText('Quarter Finals')).toBeInTheDocument();
     });
 
@@ -375,7 +375,7 @@ describe('TabbedPlayoffsPage', () => {
     it('handles invalid date strings gracefully', async () => {
       const sectionsWithInvalidDates: Section[] = [
         {
-          section: 'Round of 16',
+          section: 'Round of 32',
           games: [
             {
               id: 'game-1',
@@ -415,7 +415,7 @@ describe('TabbedPlayoffsPage', () => {
     it('handles null/undefined game dates', async () => {
       const sectionsWithNullDates: Section[] = [
         {
-          section: 'Round of 16',
+          section: 'Round of 32',
           games: [
             {
               id: 'game-1',
@@ -447,7 +447,7 @@ describe('TabbedPlayoffsPage', () => {
 
       // Should default to first tab when dates are null/undefined
       await waitFor(() => {
-        const roundOf16Tab = screen.getByText('Round of 16');
+        const roundOf16Tab = screen.getByText('Round of 32');
         expect(roundOf16Tab).toHaveClass('Mui-selected');
       });
     });

@@ -1,19 +1,19 @@
 {
   "notFound": "Torneo no encontrado",
-  "invalidStartDate": "EsOf[tournaments.invalidStartDate]",
-  "unauthorized": "EsOf[tournaments.unauthorized]",
+  "invalidStartDate": "Fecha de inicio inválida proporcionada",
+  "unauthorized": "No autorizado: Se requiere acceso de administrador",
   "thirdPlace": {
-    "invalidCombinationKey": "EsOf[tournaments.thirdPlace.invalidCombinationKey]",
-    "rulesNotObject": "EsOf[tournaments.thirdPlace.rulesNotObject]",
-    "ruleValuesMustBeStrings": "EsOf[tournaments.thirdPlace.ruleValuesMustBeStrings]"
+    "invalidCombinationKey": "La clave de combinación solo debe contener letras mayúsculas (ej., \"ABCDEFGH\")",
+    "rulesNotObject": "Las reglas deben ser un objeto JSON válido (no un array)",
+    "ruleValuesMustBeStrings": "Todos los valores de las reglas deben ser strings (letras de grupo)"
   },
   "scoring": {
-    "noPredictions": "EsOf[tournaments.scoring.noPredictions]",
-    "processed": "EsOf[tournaments.scoring.processed]"
+    "noPredictions": "No se encontraron usuarios con predicciones para este torneo",
+    "processed": "Procesados {processed} de {total} usuarios"
   },
-  "logoTooLarge": "EsOf[tournaments.logoTooLarge]",
-  "logoUploadFailed": "EsOf[tournaments.logoUploadFailed]",
-  "playoffSaveFailed": "EsOf[tournaments.playoffSaveFailed]",
+  "logoTooLarge": "El archivo del logo es demasiado grande. El tamaño máximo permitido es 5MB. Por favor elige un archivo de imagen más pequeño.",
+  "logoUploadFailed": "Error al subir el logo. Por favor intenta de nuevo con un archivo más pequeño.",
+  "playoffSaveFailed": "Error al guardar la fase de playoff",
   "qualification": {
     "tournamentNotFound": "Torneo no encontrado",
     "invalidTeamGroup": "El equipo {teamId} no pertenece al grupo {groupId}",

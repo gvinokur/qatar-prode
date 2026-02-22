@@ -1,82 +1,82 @@
 {
   "sidebar": {
-    "title": "EnOf(Tus Estadísticas)",
-    "activeIndicator": "EnOf(Estás aquí)",
+    "title": "Your Stats",
+    "activeIndicator": "You are here",
     "labels": {
-      "groups": "EnOf(Grupos:)",
-      "playoffs": "EnOf(Playoffs:)",
-      "qualified": "EnOf(Clasificados:)",
-      "awards": "EnOf(Premios:)",
-      "total": "EnOf(Total:)"
+      "groups": "Groups:",
+      "playoffs": "Playoffs:",
+      "qualified": "Qualified:",
+      "awards": "Awards:",
+      "total": "Total:"
     },
-    "viewDetails": "EnOf(Ver Detalle)",
+    "viewDetails": "View Details",
     "ariaLabels": {
-      "card": "EnOf(Estadísticas del usuario)",
-      "expandButton": "EnOf(mostrar más)",
-      "viewDetailsButton": "EnOf(Ver página de estadísticas detalladas)"
+      "card": "User statistics",
+      "expandButton": "show more",
+      "viewDetailsButton": "View detailed statistics page"
     }
   },
   "performance": {
-    "title": "EnOf(Rendimiento General)",
-    "emptyState": "EnOf(No hay predicciones aún. ¡Comienza a predecir para ver tus estadísticas!)",
-    "totalPoints": "EnOf(Puntos Totales en Torneo)",
-    "breakdown": "EnOf(Desglose por Fase)",
+    "title": "Overall Performance",
+    "emptyState": "No predictions yet. Start predicting to see your stats!",
+    "totalPoints": "Total Tournament Points",
+    "breakdown": "Breakdown by Phase",
     "groupStage": {
-      "title": "EnOf(Fase de Grupos)",
-      "gamePoints": "EnOf(Puntos por Partidos)",
-      "boostBonus": "EnOf(+ Bonus por Boosts)",
-      "qualifiedCorrect": "EnOf(Aciertos Clasificados (Exactos))",
-      "qualifiedPoints": "EnOf(Puntos por Clasificados)",
-      "total": "EnOf(Total Fase de Grupos)"
+      "title": "Group Stage",
+      "gamePoints": "Points from Matches",
+      "boostBonus": "+ Boost Bonus",
+      "qualifiedCorrect": "Qualified Correct (Exact)",
+      "qualifiedPoints": "Points from Qualified Teams",
+      "total": "Group Stage Total"
     },
     "playoffStage": {
-      "title": "EnOf(Fase de Playoffs)",
-      "gamePoints": "EnOf(Puntos por Partidos)",
-      "boostBonus": "EnOf(+ Bonus por Boosts)",
-      "finalPredictions": "EnOf(Predicciones Finales)",
-      "individualAwards": "EnOf(Premios Individuales)",
-      "total": "EnOf(Total Fase de Playoffs)"
+      "title": "Playoff Stage",
+      "gamePoints": "Points from Matches",
+      "boostBonus": "+ Boost Bonus",
+      "finalPredictions": "Final Predictions",
+      "individualAwards": "Individual Awards",
+      "total": "Playoff Stage Total"
     }
   },
   "accuracy": {
-    "title": "EnOf(Precisión de Predicciones)",
-    "emptyState": "EnOf(Haz tu primera predicción para ver estadísticas de precisión)",
-    "totalPredictions": "EnOf(Predicciones Totales)",
-    "completed": "EnOf(Completado)",
-    "overallAccuracy": "EnOf(Precisión General)",
-    "resultCorrect": "EnOf(Resultado Correcto)",
-    "exactScore": "EnOf(Marcador Exacto)",
-    "missed": "EnOf(Falladas)",
-    "byPhase": "EnOf(Por Fase)",
-    "groupStage": "EnOf(Fase de Grupos)",
-    "playoffStage": "EnOf(Fase de Playoffs)"
+    "title": "Prediction Accuracy",
+    "emptyState": "Make your first prediction to see accuracy stats",
+    "totalPredictions": "Total Predictions",
+    "completed": "Completed",
+    "overallAccuracy": "Overall Accuracy",
+    "resultCorrect": "Result Correct",
+    "exactScore": "Exact Score",
+    "missed": "Missed",
+    "byPhase": "By Phase",
+    "groupStage": "Group Stage",
+    "playoffStage": "Playoff Stage"
   },
   "boosts": {
-    "title": "EnOf(Análisis de Boosts)",
+    "title": "Boost Analysis",
     "emptyState": {
-      "message": "EnOf(¡Usa tus boosts para maximizar puntos!)",
-      "available": "EnOf(Disponibles: {silver} Silver, {golden} Golden)"
+      "message": "Use your boosts to maximize points!",
+      "available": "Available: {silver} Silver, {golden} Golden"
     },
-    "silver": "EnOf(Boosts Silver)",
-    "golden": "EnOf(Boosts Golden)",
-    "available": "EnOf(Disponibles)",
-    "used": "EnOf(Usados)",
-    "scoredGames": "EnOf(Partidos Acertados)",
-    "pointsEarned": "EnOf(Puntos Ganados)",
-    "roi": "EnOf(ROI (Promedio por boost))",
+    "silver": "Silver Boosts",
+    "golden": "Golden Boosts",
+    "available": "Available",
+    "used": "Used",
+    "scoredGames": "Correct Matches",
+    "pointsEarned": "Points Earned",
+    "roi": "ROI (Average per boost)",
     "distribution": {
-      "title": "EnOf(Distribución de Boosts)",
-      "silverLabel": "EnOf(Silver:)",
-      "goldenLabel": "EnOf(Golden:)"
+      "title": "Boost Distribution",
+      "silverLabel": "Silver:",
+      "goldenLabel": "Golden:"
     },
-    "groupAllocation": "EnOf(Grupo {letter} ({count}))",
-    "playoffsAllocation": "EnOf(Playoffs ({count}))",
-    "none": "EnOf(Ninguno)"
+    "groupAllocation": "Group {letter} ({count})",
+    "playoffsAllocation": "Playoffs ({count})",
+    "none": "None"
   },
   "tabs": {
-    "performance": "EnOf(Rendimiento)",
-    "accuracy": "EnOf(Precisión)",
-    "boosts": "EnOf(Análisis de Boosts)",
-    "ariaLabel": "EnOf(estadísticas del torneo)"
+    "performance": "Performance",
+    "accuracy": "Accuracy",
+    "boosts": "Boost Analysis",
+    "ariaLabel": "tournament statistics"
   }
 }

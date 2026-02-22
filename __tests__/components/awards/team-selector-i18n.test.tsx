@@ -53,7 +53,7 @@ describe('TeamSelector - i18n', () => {
   });
 
   describe('English translations', () => {
-    it('renders EnOf marker for None option in English', () => {
+    it('renders "None" for None option in English', () => {
       renderWithAwards(
         <TeamSelector
           label="Test Label"
@@ -71,7 +71,7 @@ describe('TeamSelector - i18n', () => {
       fireEvent.mouseDown(selectButton);
 
       // Now the option should be visible
-      expect(screen.getByText(/EnOf\(Ninguno\)/)).toBeInTheDocument();
+      expect(screen.getByText('None')).toBeInTheDocument();
     });
   });
 });

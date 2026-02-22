@@ -1,76 +1,76 @@
 {
-  "title": "EnOf(Reglas Generales)",
+  "title": "General Rules",
   "status": {
-    "youAreHere": "EnOf(Estás aquí)"
+    "youAreHere": "You are here"
   },
   "sections": {
-    "scoring": "EnOf(Calculo de puntos)",
-    "constraints": "EnOf(Condiciones generales)"
+    "scoring": "Points Calculation",
+    "constraints": "General Conditions"
   },
   "rules": {
     "winnerDraw": {
-      "singular": "EnOf({points} Punto por Ganador/Empate acertado)",
-      "plural": "EnOf({points} Puntos por Ganador/Empate acertado)"
+      "singular": "{points} Point for correct Winner/Draw",
+      "plural": "{points} Points for correct Winner/Draw"
     },
     "exactScore": {
-      "singular": "EnOf({bonus} punto extra por resultado exacto (total: {total} punto))",
-      "plural": "EnOf({bonus} puntos extra por resultado exacto (total: {total} puntos))"
+      "singular": "{bonus} extra point for exact score (total: {total} point)",
+      "plural": "{bonus} extra points for exact score (total: {total} points)"
     },
     "qualifiedTeam": {
-      "singular": "EnOf({points} Punto por cada equipo clasificado acertado)",
-      "plural": "EnOf({points} Puntos por cada equipo clasificado acertado)"
+      "singular": "{points} Point for each correct qualified team",
+      "plural": "{points} Points for each correct qualified team"
     },
     "exactPosition": {
-      "singular": "EnOf({points} Punto adicional por posición exacta en la fase de grupos (total: {total} puntos por equipo clasificado en posición exacta))",
-      "plural": "EnOf({points} Puntos adicionales por posición exacta en la fase de grupos (total: {total} puntos por equipo clasificado en posición exacta))"
+      "singular": "{points} Additional point for exact position in group stage (total: {total} points for qualified team in exact position)",
+      "plural": "{points} Additional points for exact position in group stage (total: {total} points for qualified team in exact position)"
     },
     "champion": {
-      "singular": "EnOf({points} Punto por campeon)",
-      "plural": "EnOf({points} Puntos por campeon)"
+      "singular": "{points} Point for champion",
+      "plural": "{points} Points for champion"
     },
     "runnerUp": {
-      "singular": "EnOf({points} Punto por subcampeon)",
-      "plural": "EnOf({points} Puntos por subcampeon)"
+      "singular": "{points} Point for runner-up",
+      "plural": "{points} Points for runner-up"
     },
     "thirdPlace": {
-      "singular": "EnOf({points} Punto por tercer puesto, si es que el torneo tiene partido por el mismo)",
-      "plural": "EnOf({points} Puntos por tercer puesto, si es que el torneo tiene partido por el mismo)"
+      "singular": "{points} Point for third place, if the tournament has a third place match",
+      "plural": "{points} Points for third place, if the tournament has a third place match"
     },
     "individualAwards": {
-      "singular": "EnOf({points} Punto por cada premio acertado (mejor jugador, arquero, goleador, etc...))",
-      "plural": "EnOf({points} Puntos por cada premio acertado (mejor jugador, arquero, goleador, etc...))"
+      "singular": "{points} Point for each correct award (best player, goalkeeper, top scorer, etc...)",
+      "plural": "{points} Points for each correct award (best player, goalkeeper, top scorer, etc...)"
     },
     "silverBoost": {
-      "singular": "EnOf(Boost Plateado: Puedes seleccionar hasta {count} partido que valdrá el doble de puntos (2x))",
-      "plural": "EnOf(Boost Plateado: Puedes seleccionar hasta {count} partidos que valdrán el doble de puntos (2x))"
+      "singular": "Silver Boost: You can select up to {count} match that will be worth double points (2x)",
+      "plural": "Silver Boost: You can select up to {count} matches that will be worth double points (2x)"
     },
     "goldenBoost": {
-      "singular": "EnOf(Boost Dorado: Puedes seleccionar hasta {count} partido que valdrá el triple de puntos (3x))",
-      "plural": "EnOf(Boost Dorado: Puedes seleccionar hasta {count} partidos que valdrán el triple de puntos (3x))"
+      "singular": "Golden Boost: You can select up to {count} match that will be worth triple points (3x)",
+      "plural": "Golden Boost: You can select up to {count} matches that will be worth triple points (3x)"
     },
-    "boostTiming": "EnOf(Los boosts solo pueden aplicarse antes de que comience el partido)"
+    "boostTiming": "Boosts can only be applied before the match starts"
   },
   "constraints": {
-    "matchPredictionTime": "EnOf(Se permite cambiar los pronosticos de cada partido hasta una hora antes del mismo)",
-    "podiumPredictionTime": "EnOf(Se permite modificar pronosticos de podio y premios individuales luego hasta 2 dias despues del comienzo del torneo)",
-    "singlePrediction": "EnOf(No se permite mas de un pronostico por persona, pero el mismo se puede utilizar en multiples grupos)",
-    "qualifiedTeamsPredictionTime": "EnOf(Se permite modificar pronosticos de equipos clasificados hasta 2 dias despues del comienzo del torneo)"
+    "matchPredictionTime": "You can change your predictions for each match up to one hour before it starts",
+    "podiumPredictionTime": "You can modify podium and individual awards predictions up to 2 days after the tournament starts",
+    "singlePrediction": "Only one prediction per person is allowed, but the same prediction can be used in multiple groups",
+    "qualifiedTeamsPredictionTime": "You can modify qualified teams predictions up to 2 days after the tournament starts"
   },
   "examples": {
-    "winnerDraw": "EnOf(Ejemplo: Si predices que Argentina ganará contra Brasil y efectivamente Argentina gana, obtienes {points} {points, plural, one {punto} other {puntos}}. Si predices un empate y el partido termina en empate, también obtienes {points} {points, plural, one {punto} other {puntos}}.)",
-    "exactScore": "EnOf(Ejemplo: Si predices que Argentina ganará 2-1 contra Brasil y el resultado final es exactamente 2-1, obtienes {total} {total, plural, one {punto} other {puntos}} ({correctOutcome} por el ganador + {bonus} extra por el resultado exacto).)",
-    "roundOf16": "EnOf(Ejemplo: Si predices que Argentina clasificará a octavos de final y efectivamente clasifica, obtienes {points} {points, plural, one {punto} other {puntos}} por ese equipo clasificado.)",
-    "groupPosition": "EnOf(Ejemplo: Si predices que Argentina clasificará primero del Grupo A y efectivamente termina primero, obtienes {totalPoints} {totalPoints, plural, one {punto} other {puntos}} adicionales ({qualifiedPoints} por clasificar + {exactPositionPoints} por posición exacta = {totalPoints} puntos totales).)",
-    "champion": "EnOf(Ejemplo: Si predices que Argentina será campeón y efectivamente Argentina gana el torneo, obtienes {points} {points, plural, one {punto} other {puntos}}. Si Argentina llega a la final pero pierde, no obtienes los puntos.)",
-    "runnerUp": "EnOf(Ejemplo: Si predices que Brasil será subcampeón y efectivamente Brasil pierde la final, obtienes {points} {points, plural, one {punto} other {puntos}}.)",
-    "thirdPlace": "EnOf(Ejemplo: Si predices que Francia será tercero y efectivamente Francia gana el partido por el tercer puesto, obtienes {points} {points, plural, one {punto} other {puntos}}.)",
-    "individualAwards": "EnOf(Ejemplo: Si predices que Lionel Messi ganará el premio al mejor jugador y efectivamente lo gana, obtienes {points} {points, plural, one {punto} other {puntos}}. Lo mismo aplica para otros premios (arquero, goleador, etc.).)",
-    "matchPredictionTime": "EnOf(Ejemplo: Si un partido comienza a las 15:00, puedes modificar tu pronóstico hasta las 14:00. Después de esa hora, el pronóstico queda bloqueado.)",
-    "podiumPredictionTime": "EnOf(Ejemplo: Si el torneo comienza el 1 de junio, puedes modificar tus pronósticos de campeón, subcampeón y tercer puesto hasta el 3 de junio a las 23:59.)",
-    "singlePrediction": "EnOf(Ejemplo: Solo puedes tener un pronostico activo, pero ese mismo pronostico puede usarse en el grupo con tus amigos, en el grupo de tu oficina, y en cualquier otro grupo al que te unas.)",
-    "qualifiedTeamsPredictionTime": "EnOf(Ejemplo: Si el torneo comienza el 1 de junio, puedes modificar tus pronósticos de equipos clasificados hasta el 3 de junio a las 23:59.)"
+    "winnerDraw": "Example: If you predict Argentina will beat Brazil and Argentina indeed wins, you get {points} {points, plural, one {point} other {points}}. If you predict a draw and the match ends in a draw, you also get {points} {points, plural, one {point} other {points}}.",
+    "exactScore": "Example: If you predict Argentina will win 2-1 against Brazil and the final score is exactly 2-1, you get {total} {total, plural, one {point} other {points}} ({correctOutcome} for the winner + {bonus} extra for exact score).",
+    "roundOf32": "Example: If you predict Argentina will qualify for the Round of 32 and they indeed qualify, you get {points} {points, plural, one {point} other {points}} for that qualified team.",
+    "groupPosition": "Example: If you predict Argentina will finish first in Group A and they indeed finish first, you get {totalPoints} additional {totalPoints, plural, one {point} other {points}} ({qualifiedPoints} for qualifying + {exactPositionPoints} for exact position = {totalPoints} total points).",
+    "champion": "Example: If you predict Argentina will be champion and Argentina indeed wins the tournament, you get {points} {points, plural, one {point} other {points}}. If Argentina reaches the final but loses, you don't get the points.",
+    "runnerUp": "Example: If you predict Brazil will be runner-up and Brazil indeed loses the final, you get {points} {points, plural, one {point} other {points}}.",
+    "thirdPlace": "Example: If you predict France will be third and France indeed wins the third place match, you get {points} {points, plural, one {point} other {points}}.",
+    "individualAwards": "Example: If you predict Lionel Messi will win the best player award and he indeed wins it, you get {points} {points, plural, one {point} other {points}}. The same applies for other awards (goalkeeper, top scorer, etc.).",
+    "matchPredictionTime": "Example: If a match starts at 3:00 PM, you can modify your prediction until 2:00 PM. After that time, the prediction is locked.",
+    "podiumPredictionTime": "Example: If the tournament starts on June 1st, you can modify your champion, runner-up, and third place predictions until June 3rd at 11:59 PM.",
+    "singlePrediction": "Example: You can only have one active prediction, but that same prediction can be used in your friends' group, your office group, and any other group you join.",
+    "qualifiedTeamsPredictionTime": "Example: If the tournament starts on June 1st, you can modify your qualified teams predictions until June 3rd at 11:59 PM."
   },
   "actions": {
-    "viewFullRules": "EnOf(Ver Reglas Completas)"
+    "viewFullRules": "View Full Rules"
   }
 }
