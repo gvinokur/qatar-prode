@@ -1,0 +1,29 @@
+{
+  "install": {
+    "title": "Instalar como App",
+    "heading": "Instala esta aplicación en tu dispositivo",
+    "description": "Instala esta aplicación en tu pantalla de inicio para un acceso rápido y fácil cuando estés en movimiento.",
+    "button": "Instalar Aplicación",
+    "ios": {
+      "heading": "Instala esta aplicación en tu dispositivo iOS",
+      "showGuide": "Mostrar guía de instalación",
+      "hideGuide": "Ocultar guía de instalación",
+      "instructions": {
+        "title": "Para instalar esta aplicación en tu iPhone:",
+        "step1": "Toca el botón Compartir en la parte inferior de la pantalla",
+        "step2": "Desplázate hacia abajo y toca 'Añadir a pantalla de inicio'",
+        "step3": "Toca 'Añadir' en la esquina superior derecha"
+      }
+    }
+  },
+  "offline": {
+    "message": "Estás navegando sin conexión. Algunas funciones pueden no estar disponibles."
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "message": "¿Te gustaría recibir notificaciones para estar al día con las últimas actualizaciones?",
+    "neverAsk": "No preguntar más",
+    "notNow": "Ahora no",
+    "activate": "Activar"
+  }
+}

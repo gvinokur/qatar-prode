@@ -18,6 +18,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import {InstallMobile} from "@mui/icons-material";
 import NotificationsSubscriptionPrompt from "./notifications-subscription-prompt";
+import { useTranslations } from 'next-intl';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -38,6 +39,7 @@ const DONT_ASK_UNTIL_KEY = 'install-pwa-dont-ask-until';
 const DONT_ASK_LAST_BACKOFF_PERIOD = 'install-pwa-dont-ask-backoff-period';
 
 export default function InstallPwa() {
+  const t = useTranslations('pwa.install');
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isIOS, setIsIOS] = useState(false);
   const [showIOSGuide, setShowIOSGuide] = useState(false);
@@ -121,15 +123,15 @@ export default function InstallPwa() {
           onClose={handleClose}
         >
           <AlertTitle>
-            Intalar como App
+            {t('install.title')}
           </AlertTitle>
           {installPrompt && (
             <Box mb={2}>
               <Typography variant="h6" gutterBottom>
-                Instala esta aplicación en tu dispositivo
+                {t('install.heading')}
               </Typography>
               <Typography variant="body2" paragraph>
-                Instala esta aplicación en tu pantalla de inicio para un acceso rápido y fácil cuando estés en movimiento.
+                {t('install.description')}
               </Typography>
               <Button
                 variant="contained"
@@ -137,7 +139,7 @@ export default function InstallPwa() {
                 onClick={handleInstallClick}
                 startIcon={<AddIcon />}
               >
-                Instalar Aplicación
+                {t('install.button')}
               </Button>
             </Box>
           )}
@@ -145,7 +147,7 @@ export default function InstallPwa() {
           {isIOS && (
             <Box>
               <Typography variant="h6" gutterBottom>
-                Instala esta aplicación en tu dispositivo iOS
+                {t('install.ios.heading')}
               </Typography>
               <Button
                 variant="outlined"
@@ -154,32 +156,32 @@ export default function InstallPwa() {
                 endIcon={showIOSGuide ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                 sx={{ mb: 1 }}
               >
-                {showIOSGuide ? 'Ocultar guía de instalación' : 'Mostrar guía de instalación'}
+                {showIOSGuide ? t('install.ios.hideGuide') : t('install.ios.showGuide')}
               </Button>
 
               <Collapse in={showIOSGuide}>
                 <Paper variant="outlined" sx={{ p: 2, mt: 1, bgcolor: 'background.default' }}>
                   <Typography variant="body1" gutterBottom>
-                    Para instalar esta aplicación en tu iPhone:
+                    {t('install.ios.instructions.title')}
                   </Typography>
                   <List dense>
                     <ListItem>
                       <ListItemIcon>
                         <IosShareIcon />
                       </ListItemIcon>
-                      <ListItemText primary="Toca el botón Compartir en la parte inferior de la pantalla" />
+                      <ListItemText primary={t('install.ios.instructions.step1')} />
                     </ListItem>
                     <ListItem>
                       <ListItemIcon>
                         <AddIcon />
                       </ListItemIcon>
-                      <ListItemText primary="Desplázate hacia abajo y toca 'Añadir a pantalla de inicio'" />
+                      <ListItemText primary={t('install.ios.instructions.step2')} />
                     </ListItem>
                     <ListItem>
                       <ListItemIcon>
                         <AddIcon />
                       </ListItemIcon>
-                      <ListItemText primary="Toca 'Añadir' en la esquina superior derecha" />
+                      <ListItemText primary={t('install.ios.instructions.step3')} />
                     </ListItem>
                   </List>
                 </Paper>
