@@ -504,6 +504,404 @@ This creates English files with `EnOf(<Spanish text>)` format for easy translati
 6. **Test both locales** - Always verify translations work in both Spanish and English
 7. **Use interpolation** - Don't concatenate strings: `"Hola " + name` ❌ Use `t('greeting', {name})` ✅
 
+## Database-Driven Internationalization
+
+For dynamic content that administrators manage (tournaments, teams, venues, etc.), we store translations in PostgreSQL JSONB columns rather than static JSON files.
+
+### When to Use Database i18n
+
+**Use Database i18n for:**
+- Tournament names, descriptions
+- Team names
+- Venue/location names
+- Playoff round names
+- Any admin-managed content that needs translation
+
+**Use Static i18n (JSON files) for:**
+- UI elements (buttons, labels, navigation)
+- Error messages
+- Validation messages
+- Email templates
+- All hardcoded interface text
+
+### Database Schema Pattern
+
+**JSONB Column Structure:**
+
+```typescript
+// Database column type
+name_i18n: JSONColumnType<Record<string, string>> | null
+
+// Stored JSON format in database
+{
+  "en": "World Cup 2026",
+  "es": "Copa Mundial 2026"
+}
+```
+
+**Example Database Schema:**
+
+```sql
+CREATE TABLE tournaments (
+  id TEXT PRIMARY KEY,
+  short_name TEXT NOT NULL,           -- Original/fallback value
+  short_name_i18n JSONB,              -- Translations: { "en": "...", "es": "..." }
+  long_name TEXT NOT NULL,
+  long_name_i18n JSONB,
+  ...
+);
+
+CREATE TABLE teams (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,                 -- Original/fallback value
+  name_i18n JSONB,                    -- Translations: { "en": "...", "es": "..." }
+  ...
+);
+
+CREATE TABLE games (
+  id TEXT PRIMARY KEY,
+  location TEXT NOT NULL,             -- Original/fallback value
+  location_i18n JSONB,                -- Translations: { "en": "...", "es": "..." }
+  ...
+);
+```
+
+### Localization Helper Functions
+
+Use the localization helpers to apply translations in Server Actions:
+
+```typescript
+import { applyLocalization, applyLocalizationBatch } from '@/app/utils/localization-helper';
+import { getLocale } from 'next-intl/server';
+
+// Single object localization
+export async function getTournament(id: string) {
+  const locale = await getLocale();
+
+  // 1. Fetch from database (returns raw data with i18n fields)
+  const tournament = await db
+    .selectFrom('tournaments')
+    .where('id', '=', id)
+    .select(['id', 'short_name', 'short_name_i18n', 'long_name', 'long_name_i18n'])
+    .executeTakeFirst();
+
+  // 2. Apply localization
+  const localized = applyLocalization(tournament, locale, [
+    { field: 'short_name', i18nField: 'short_name_i18n' },
+    { field: 'long_name', i18nField: 'long_name_i18n' }
+  ]);
+
+  return localized;
+  // Returns: { id, short_name: "World Cup" (en) or "Copa Mundial" (es), ... }
+}
+
+// Batch localization for arrays
+export async function getTeams() {
+  const locale = await getLocale();
+
+  // 1. Fetch array from database
+  const teams = await db
+    .selectFrom('teams')
+    .select(['id', 'name', 'name_i18n', 'short_name'])
+    .execute();
+
+  // 2. Apply localization to all items
+  const localized = applyLocalizationBatch(teams, locale, [
+    { field: 'name', i18nField: 'name_i18n' }
+  ]);
+
+  return localized;
+}
+```
+
+### Localization Architecture
+
+**Three-Layer Pattern:**
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ 1. REPOSITORY LAYER (Kysely queries)                   │
+│ - Returns raw data with i18n fields                    │
+│ - Selects both base field and i18n field               │
+│ - NO localization applied here                         │
+└─────────────────────────────────────────────────────────┘
+                          ↓
+┌─────────────────────────────────────────────────────────┐
+│ 2. SERVER ACTION LAYER                                  │
+│ - Calls repository function                            │
+│ - Gets current locale with getLocale()                 │
+│ - Applies localization with applyLocalization()        │
+│ - Returns localized data                               │
+└─────────────────────────────────────────────────────────┘
+                          ↓
+┌─────────────────────────────────────────────────────────┐
+│ 3. SERVER COMPONENT                                     │
+│ - Calls Server Action                                  │
+│ - Receives pre-localized data                          │
+│ - Renders to user                                      │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Complete Example:**
+
+```typescript
+// ============================================
+// 1. Repository (app/db/tournament-repository.ts)
+// ============================================
+import { db } from './database';
+
+export async function findTournamentById(id: string) {
+  return await db
+    .selectFrom('tournaments')
+    .where('id', '=', id)
+    .select([
+      'id',
+      'short_name',       // Base field
+      'short_name_i18n',  // JSONB translations
+      'long_name',
+      'long_name_i18n'
+    ])
+    .executeTakeFirst();
+}
+
+// ============================================
+// 2. Server Action (app/actions/tournament-actions.ts)
+// ============================================
+'use server';
+
+import { getLocale } from 'next-intl/server';
+import { applyLocalization } from '@/app/utils/localization-helper';
+import { findTournamentById } from '@/app/db/tournament-repository';
+
+export async function getTournamentById(id: string) {
+  // Get current user's locale
+  const locale = await getLocale(); // 'en' or 'es'
+
+  // Fetch raw data from repository
+  const tournament = await findTournamentById(id);
+
+  if (!tournament) return null;
+
+  // Apply localization
+  const localized = applyLocalization(tournament, locale, [
+    { field: 'short_name', i18nField: 'short_name_i18n' },
+    { field: 'long_name', i18nField: 'long_name_i18n' }
+  ]);
+
+  return localized;
+}
+
+// ============================================
+// 3. Server Component (app/[locale]/tournaments/page.tsx)
+// ============================================
+import { getTournamentById } from '@/app/actions/tournament-actions';
+
+export default async function TournamentPage({ params }) {
+  const tournament = await getTournamentById(params.id);
+
+  return (
+    <div>
+      <h1>{tournament.short_name}</h1>
+      {/* Displays "World Cup" (en) or "Copa Mundial" (es) */}
+      <p>{tournament.long_name}</p>
+    </div>
+  );
+}
+```
+
+### Fallback Behavior
+
+The localization helpers implement smart fallback logic:
+
+```typescript
+const data = {
+  name: 'World Cup',           // Original value
+  name_i18n: { es: 'Copa Mundial' }  // Missing English translation
+};
+
+const result = applyLocalization(data, 'en', [
+  { field: 'name', i18nField: 'name_i18n' }
+]);
+
+console.log(result.name); // "World Cup" (falls back to original)
+```
+
+**Fallback priority:**
+1. Try to get translation for requested locale from i18n field
+2. If not found or empty, use original base field value
+3. Original value is always preserved as fallback
+
+### Backoffice Usage Guide
+
+Administrators can add translations through the backoffice interface using the `I18nFieldEditor` component.
+
+**Adding translations to a tournament:**
+
+1. Navigate to Backoffice → Tournaments
+2. Edit an existing tournament or create new one
+3. Find fields with language flags (🇬🇧 English / 🇪🇸 Spanish)
+4. Enter translations for each locale:
+   - English field: Translation shown to English users
+   - Spanish field: Translation shown to Spanish users
+5. If a translation is empty, users will see the original value as fallback
+6. Save the form
+
+**I18nFieldEditor features:**
+- Side-by-side English/Spanish input fields
+- Shows current original value as reference
+- Optional validation (at least one locale required)
+- Clear labels indicating which locale each field represents
+- Helper text explaining when each translation is displayed
+
+### Type Handling in TypeScript
+
+Database JSONB columns use `JSONColumnType` for type safety:
+
+```typescript
+import { JSONColumnType } from 'kysely';
+
+// Database table definition
+interface TournamentsTable {
+  id: string;
+  short_name: string;
+  // JSONColumnType allows different types for select/insert/update
+  short_name_i18n: JSONColumnType<Record<string, string>> | null;
+}
+
+// When reading from database, cast to expected format
+const tournament = await db.selectFrom('tournaments')
+  .select(['short_name_i18n'])
+  .executeTakeFirst();
+
+// Type assertion when needed in UI components
+const i18nValue = tournament.short_name_i18n as { en: string; es: string } | null;
+```
+
+### Adding New Locales
+
+To add support for a new locale (e.g., Portuguese):
+
+**1. Update static i18n configuration:**
+```typescript
+// i18n.config.ts
+export const locales = ['en', 'es', 'pt'] as const;
+```
+
+**2. Add translation JSON files:**
+```bash
+mkdir -p locales/pt
+cp locales/en/*.json locales/pt/
+# Edit locales/pt/*.json with Portuguese translations
+```
+
+**3. Update database i18n structure:**
+```typescript
+// Existing format works for any number of locales
+{
+  "en": "World Cup",
+  "es": "Copa Mundial",
+  "pt": "Copa do Mundo"  // Just add new locale key
+}
+```
+
+**4. Update I18nFieldEditor component:**
+```typescript
+// Add Portuguese input field to I18nFieldEditor
+// The component structure supports any number of locales
+```
+
+**5. Test localization helpers:**
+```typescript
+// Localization helpers automatically support new locales
+const result = applyLocalization(data, 'pt', [
+  { field: 'name', i18nField: 'name_i18n' }
+]);
+```
+
+### Important Warnings
+
+**❌ DO NOT localize in Client Components:**
+```typescript
+// ❌ BAD: Client Component trying to localize
+'use client';
+
+export default function TournamentCard({ tournament }) {
+  const locale = useLocale();
+  // Cannot call applyLocalization here - data should already be localized
+  return <h1>{tournament.name}</h1>;
+}
+```
+
+**✅ DO localize in Server Actions:**
+```typescript
+// ✅ GOOD: Server Action localizes before passing to client
+'use server';
+
+export async function getTournamentData(id: string) {
+  const locale = await getLocale();
+  const tournament = await findTournamentById(id);
+  return applyLocalization(tournament, locale, [...]);
+}
+```
+
+**❌ DO NOT localize in repositories:**
+```typescript
+// ❌ BAD: Repository trying to localize
+export async function findTournamentById(id: string) {
+  const locale = await getLocale(); // NO! Repository should not know about locale
+  const data = await db.select(...);
+  return applyLocalization(data, locale, [...]); // NO! Keep repositories pure
+}
+```
+
+**✅ DO return raw data from repositories:**
+```typescript
+// ✅ GOOD: Repository returns raw data with i18n fields
+export async function findTournamentById(id: string) {
+  return await db
+    .selectFrom('tournaments')
+    .select(['id', 'name', 'name_i18n']) // Include both base and i18n field
+    .executeTakeFirst();
+}
+```
+
+### Testing Database i18n
+
+See unit tests for localization helpers:
+
+```typescript
+// __tests__/utils/localization-helper.test.ts
+import { applyLocalization, applyLocalizationBatch } from '@/app/utils/localization-helper';
+
+describe('applyLocalization', () => {
+  it('should apply localization for single field', () => {
+    const data = {
+      name: 'Original Name',
+      name_i18n: { en: 'English Name', es: 'Spanish Name' }
+    };
+
+    const result = applyLocalization(data, 'en', [
+      { field: 'name', i18nField: 'name_i18n' }
+    ]);
+
+    expect(result.name).toBe('English Name');
+  });
+
+  it('should fallback to original when locale is missing', () => {
+    const data = {
+      name: 'Original Name',
+      name_i18n: { es: 'Nombre en Español' }
+    };
+
+    const result = applyLocalization(data, 'en', [
+      { field: 'name', i18nField: 'name_i18n' }
+    ]);
+
+    expect(result.name).toBe('Original Name'); // Fallback
+  });
+});
+```
+
 ## Migration Guide
 
 ### Converting Hardcoded Strings
@@ -545,3 +943,6 @@ export default async function Page() {
 - **Translation Files:** `locales/{locale}/{namespace}.json`
 - **Type Definitions:** `types/i18n.ts`
 - **Configuration:** `i18n.config.ts`, `i18n/routing.ts`, `i18n/request.ts`
+- **Localization Helpers:** `app/utils/localization-helper.ts`
+- **I18n Patterns:** `app/utils/i18n-patterns.md`
+- **Backoffice Components:** `app/components/backoffice/i18n-field-editor.tsx`

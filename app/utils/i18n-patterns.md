@@ -4,13 +4,325 @@ Guide for implementing internationalization (i18n) in the qatar-prode applicatio
 
 ## Table of Contents
 
-1. [Server Component Patterns](#server-component-patterns)
-2. [Client Component Patterns](#client-component-patterns)
-3. [Date and Time Formatting](#date-and-time-formatting)
-4. [Email Templates](#email-templates)
-5. [Number Formatting](#number-formatting)
-6. [Pluralization](#pluralization)
-7. [Error Messages](#error-messages)
+1. [Database-Driven Internationalization](#database-driven-internationalization)
+2. [Server Component Patterns](#server-component-patterns)
+3. [Client Component Patterns](#client-component-patterns)
+4. [Date and Time Formatting](#date-and-time-formatting)
+5. [Email Templates](#email-templates)
+6. [Number Formatting](#number-formatting)
+7. [Pluralization](#pluralization)
+8. [Error Messages](#error-messages)
+
+---
+
+## Database-Driven Internationalization
+
+For dynamic, admin-managed content (tournaments, teams, venues), translations are stored in PostgreSQL JSONB columns.
+
+### Quick Start
+
+```typescript
+// 1. Repository: Return raw data with i18n fields
+export async function findTournaments() {
+  return await db
+    .selectFrom('tournaments')
+    .select(['id', 'name', 'name_i18n'])  // Include both
+    .execute();
+}
+
+// 2. Server Action: Apply localization
+'use server';
+import { getLocale } from 'next-intl/server';
+import { applyLocalizationBatch } from '@/app/utils/localization-helper';
+
+export async function getTournaments() {
+  const locale = await getLocale();
+  const tournaments = await findTournaments();
+
+  return applyLocalizationBatch(tournaments, locale, [
+    { field: 'name', i18nField: 'name_i18n' }
+  ]);
+}
+
+// 3. Server Component: Receive localized data
+export default async function TournamentsPage() {
+  const tournaments = await getTournaments();
+  return tournaments.map(t => <div>{t.name}</div>); // Already localized
+}
+```
+
+### Localization Helper API
+
+**Single Object:**
+
+```typescript
+import { applyLocalization } from '@/app/utils/localization-helper';
+
+const localized = applyLocalization(
+  data,          // Object with i18n fields
+  locale,        // 'en' | 'es'
+  [              // Field mappings
+    { field: 'name', i18nField: 'name_i18n' },
+    { field: 'description', i18nField: 'description_i18n' }
+  ]
+);
+```
+
+**Array of Objects:**
+
+```typescript
+import { applyLocalizationBatch } from '@/app/utils/localization-helper';
+
+const localized = applyLocalizationBatch(
+  dataArray,     // Array of objects
+  locale,        // 'en' | 'es'
+  [              // Field mappings (applied to each item)
+    { field: 'name', i18nField: 'name_i18n' }
+  ]
+);
+```
+
+### Complete Example: Teams
+
+```typescript
+// ============================================
+// Repository (app/db/team-repository.ts)
+// ============================================
+export async function findAllTeams() {
+  return await db
+    .selectFrom('teams')
+    .select([
+      'id',
+      'name',          // Base field (fallback value)
+      'name_i18n',     // JSONB: { "en": "...", "es": "..." }
+      'short_name',
+      'theme'
+    ])
+    .orderBy('name', 'asc')
+    .execute();
+}
+
+// ============================================
+// Server Action (app/actions/team-actions.ts)
+// ============================================
+'use server';
+
+import { getLocale } from 'next-intl/server';
+import { applyLocalizationBatch } from '@/app/utils/localization-helper';
+import { findAllTeams } from '@/app/db/team-repository';
+
+export async function getTeams() {
+  const locale = await getLocale();
+  const teams = await findAllTeams();
+
+  return applyLocalizationBatch(teams, locale, [
+    { field: 'name', i18nField: 'name_i18n' }
+  ]);
+}
+
+// ============================================
+// Server Component (app/components/team-list.tsx)
+// ============================================
+import { getTeams } from '@/app/actions/team-actions';
+
+export default async function TeamList() {
+  const teams = await getTeams();
+
+  return (
+    <ul>
+      {teams.map(team => (
+        <li key={team.id}>{team.name}</li>
+        // Displays English or Spanish based on user's locale
+      ))}
+    </ul>
+  );
+}
+```
+
+### Fallback Behavior
+
+Localization helpers automatically fallback to original values:
+
+```typescript
+const data = {
+  name: 'Original Name',
+  name_i18n: null  // No translations available
+};
+
+const result = applyLocalization(data, 'en', [
+  { field: 'name', i18nField: 'name_i18n' }
+]);
+
+console.log(result.name); // "Original Name" (fallback)
+```
+
+**Fallback cases:**
+- i18n field is `null`
+- i18n field is `undefined`
+- i18n field is empty object `{}`
+- Requested locale is missing in i18n object
+- Translation value is empty string
+
+### Type Handling
+
+Database JSONB columns require type casting in some contexts:
+
+```typescript
+import { JSONColumnType } from 'kysely';
+
+// Table definition
+interface TournamentsTable {
+  id: string;
+  name: string;
+  name_i18n: JSONColumnType<Record<string, string>> | null;
+}
+
+// Reading from database - no cast needed
+const tournament = await db
+  .selectFrom('tournaments')
+  .select(['name', 'name_i18n'])
+  .executeTakeFirst();
+
+// Passing to UI state - cast when needed
+const [nameI18n, setNameI18n] = useState<{ en: string; es: string } | null>(
+  (tournament.name_i18n as { en: string; es: string } | null) || null
+);
+
+// Passing to Server Action - cast to any
+await updateTournament({
+  name_i18n: nameI18n ? nameI18n as any : undefined
+});
+```
+
+### Multiple Fields
+
+Localize multiple fields in a single call:
+
+```typescript
+const localized = applyLocalization(tournament, locale, [
+  { field: 'short_name', i18nField: 'short_name_i18n' },
+  { field: 'long_name', i18nField: 'long_name_i18n' },
+  { field: 'description', i18nField: 'description_i18n' }
+]);
+
+// All three fields are now localized
+console.log(localized.short_name);  // Localized
+console.log(localized.long_name);   // Localized
+console.log(localized.description); // Localized
+```
+
+### Where NOT to Localize
+
+**❌ DO NOT localize in repositories:**
+```typescript
+// ❌ BAD
+export async function findTournaments() {
+  const locale = await getLocale(); // Repositories should not know about locale
+  const data = await db.select(...).execute();
+  return applyLocalizationBatch(data, locale, [...]); // NO!
+}
+
+// ✅ GOOD
+export async function findTournaments() {
+  return await db
+    .selectFrom('tournaments')
+    .select(['id', 'name', 'name_i18n']) // Return raw data
+    .execute();
+}
+```
+
+**❌ DO NOT localize in Client Components:**
+```typescript
+// ❌ BAD
+'use client';
+
+export default function TournamentCard({ tournament }) {
+  const locale = useLocale();
+  // Cannot use applyLocalization here - it's a server-only helper
+}
+
+// ✅ GOOD - Localize in Server Action before passing to Client Component
+'use server';
+
+export async function getTournamentForCard(id: string) {
+  const locale = await getLocale();
+  const tournament = await findTournamentById(id);
+  return applyLocalization(tournament, locale, [...]);
+}
+```
+
+**✅ DO localize in Server Actions:**
+```typescript
+// ✅ GOOD
+'use server';
+
+export async function getLocalizedData() {
+  const locale = await getLocale();
+  const data = await repository.findData();
+  return applyLocalizationBatch(data, locale, [...]);
+}
+```
+
+### Architecture Pattern
+
+```
+┌──────────────────────────────────────────────────────┐
+│ REPOSITORY LAYER                                     │
+│ - Returns raw data with i18n fields                 │
+│ - NO locale awareness                               │
+│ - NO localization logic                             │
+└──────────────────────────────────────────────────────┘
+                      ↓
+┌──────────────────────────────────────────────────────┐
+│ SERVER ACTION LAYER                                  │
+│ - Gets locale: await getLocale()                    │
+│ - Applies localization: applyLocalization()         │
+│ - Returns localized data                            │
+└──────────────────────────────────────────────────────┘
+                      ↓
+┌──────────────────────────────────────────────────────┐
+│ SERVER/CLIENT COMPONENTS                             │
+│ - Receives pre-localized data                       │
+│ - Renders directly                                  │
+└──────────────────────────────────────────────────────┘
+```
+
+### Testing
+
+```typescript
+import { describe, it, expect } from 'vitest';
+import { applyLocalization } from '@/app/utils/localization-helper';
+
+describe('Database i18n', () => {
+  it('should apply English translation', () => {
+    const team = {
+      id: '1',
+      name: 'Brasil',
+      name_i18n: { en: 'Brazil', es: 'Brasil' }
+    };
+
+    const result = applyLocalization(team, 'en', [
+      { field: 'name', i18nField: 'name_i18n' }
+    ]);
+
+    expect(result.name).toBe('Brazil');
+  });
+
+  it('should fallback to original when translation missing', () => {
+    const team = {
+      id: '1',
+      name: 'Brasil',
+      name_i18n: { es: 'Brasil' } // No English translation
+    };
+
+    const result = applyLocalization(team, 'en', [
+      { field: 'name', i18nField: 'name_i18n' }
+    ]);
+
+    expect(result.name).toBe('Brasil'); // Fallback to original
+  });
+});
+```
 
 ---
 
