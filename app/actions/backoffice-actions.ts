@@ -3,7 +3,7 @@
 import tournaments from "../../data/tournaments";
 import { getTranslations, getLocale } from 'next-intl/server';
 import type { Locale } from '../../i18n.config';
-import { applyLocalization, applyLocalizationBatch } from '../utils/localization-helper';
+import { applyLocalization } from '../utils/localization-helper';
 import {
   createTournament,
   createTournamentTeam,
@@ -397,16 +397,10 @@ export async function calculateAndSavePlayoffGamesForTournament(tournamentId: st
 }
 
 export async function getGroupDataWithGamesAndTeams(tournamentId: string) {
-  const locale = await getLocale()
-  const groups = await findGroupsWithGamesAndTeamsInTournament(tournamentId)
-
-  // Localize teams within each group (games only contain game_id, no location to localize)
-  return groups.map(group => ({
-    ...group,
-    teams: applyLocalizationBatch(group.teams, locale, [
-      { field: 'name', i18nField: 'name_i18n' }
-    ])
-  }));
+  // Note: This function returns groups with only game_id and team_id arrays,
+  // not full game/team objects, so no localization can be applied here.
+  // Localization should be done where full objects are fetched.
+  return await findGroupsWithGamesAndTeamsInTournament(tournamentId);
 }
 
 export async function recalculateAllPlayoffFirstRoundGameGuesses(tournamentId: string) {
@@ -538,7 +532,7 @@ export async function findDataForAwards(tournamentId: string) {
   const [tournament, players] =
     await Promise.all([findTournamentById(tournamentId), findAllPlayersInTournamentWithTeamData(tournamentId)])
 
-  const {id: _id, theme: _theme, short_name: _short_name, long_name: _long_name, is_active: _is_active, ...tournamentUpdate} = tournament || {}
+  const {id: _id, theme: _theme, short_name: _short_name, long_name: _long_name, is_active: _is_active, short_name_i18n: _short_name_i18n, long_name_i18n: _long_name_i18n, ...tournamentUpdate} = tournament || {}
 
   // Localize team objects within players
   const localizedPlayers = players.map(player => ({

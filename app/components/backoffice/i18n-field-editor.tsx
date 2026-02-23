@@ -127,7 +127,7 @@ export default function I18nFieldEditor({
 
       {/* Locale input fields */}
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             fullWidth
             label="English (en)"
@@ -140,7 +140,7 @@ export default function I18nFieldEditor({
           />
         </Grid>
 
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             fullWidth
             label="Spanish (es)"

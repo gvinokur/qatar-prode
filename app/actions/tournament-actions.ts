@@ -334,19 +334,10 @@ export async function getTournamentById(tournamentId: string) {
 }
 
 export async function getCompleteTournamentGroups(tournamentId: string) {
-  const locale = await getLocale()
-  const groups = await findGroupsWithGamesAndTeamsInTournament(tournamentId);
-
-  // Localize games and teams within each group
-  return groups.map(group => ({
-    ...group,
-    games: applyLocalizationBatch(group.games, locale, [
-      { field: 'location', i18nField: 'location_i18n' }
-    ]),
-    teams: applyLocalizationBatch(group.teams, locale, [
-      { field: 'name', i18nField: 'name_i18n' }
-    ])
-  }));
+  // Note: This function returns groups with only game_id and team_id arrays,
+  // not full game/team objects, so no localization can be applied here.
+  // Localization should be done where full objects are fetched.
+  return await findGroupsWithGamesAndTeamsInTournament(tournamentId);
 }
 
 /**

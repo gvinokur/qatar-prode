@@ -96,7 +96,7 @@ const GameDialog: React.FC<GameDialogProps> = ({
         setGameNumber(game.game_number || nextGameNumber);
         setGameDate(game.game_date);
         setLocation(game.location || '');
-        setLocationI18n(game.location_i18n || null);
+        setLocationI18n((game.location_i18n as { en: string; es: string } | null) || null);
 
         // Determine game type
         if (game.game_type === 'group') {
@@ -175,7 +175,7 @@ const GameDialog: React.FC<GameDialogProps> = ({
         game_date: gameDate!,
         game_local_timezone: timezone,
         location,
-        location_i18n: locationI18n,
+        location_i18n: locationI18n ? locationI18n as any : undefined,
         game_number: Number(gameNumber),
         game_type: gameType === 'group' ? 'group' :
           playoffStage?.round_order === 1 ? 'first_round' :

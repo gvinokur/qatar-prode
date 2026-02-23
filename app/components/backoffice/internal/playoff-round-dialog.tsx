@@ -52,7 +52,7 @@ export default function PlayoffRoundDialog({
       if (round) {
         // Edit mode
         setRoundName(round.round_name);
-        setRoundNameI18n(round.round_name_i18n || null);
+        setRoundNameI18n((round.round_name_i18n as { en: string; es: string } | null) || null);
         setRoundOrder(round.round_order);
         setTotalGames(round.total_games);
         setIsFinal(round.is_final);
@@ -100,7 +100,7 @@ export default function PlayoffRoundDialog({
         id: round?.id,
         tournament_id: tournamentId,
         round_name: roundName,
-        round_name_i18n: roundNameI18n,
+        round_name_i18n: roundNameI18n ? roundNameI18n as any : undefined,
         round_order: roundOrder,
         total_games: totalGames,
         is_final: isFinal,

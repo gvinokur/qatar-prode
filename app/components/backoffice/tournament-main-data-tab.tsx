@@ -109,8 +109,8 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
         setTournament(tournamentData);
         setLongName(tournamentData.long_name || '');
         setShortName(tournamentData.short_name || '');
-        setLongNameI18n(tournamentData.long_name_i18n || null);
-        setShortNameI18n(tournamentData.short_name_i18n || null);
+        setLongNameI18n((tournamentData.long_name_i18n as { en: string; es: string } | null) || null);
+        setShortNameI18n((tournamentData.short_name_i18n as { en: string; es: string } | null) || null);
         setDevOnly(tournamentData.dev_only || false);
         setDisplayName(tournamentData.display_name || false);
         setTheme({

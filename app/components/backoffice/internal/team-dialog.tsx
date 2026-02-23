@@ -52,7 +52,7 @@ export default function TeamDialog({
   useEffect(() => {
     if (team) {
       setName(team.name || '');
-      setNameI18n(team.name_i18n || null);
+      setNameI18n((team.name_i18n as { en: string; es: string } | null) || null);
       setShortName(team.short_name || '');
       setPrimaryColor(team.theme?.primary_color || '#1976d2');
       setSecondaryColor(team.theme?.secondary_color || '#dc004e');
