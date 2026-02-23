@@ -11,7 +11,7 @@ import EmptyAwardsSnackbar from "../../../components/awards/empty-award-notifica
 import {getPlayersInTournament} from "../../../db/player-repository";
 import EnvironmentIndicator from "../../../components/environment-indicator";
 import {Typography, Avatar} from "@mui/material";
-import { alpha } from '@mui/material/styles';
+import ScrollableContentArea from '../../../components/tournament-page/scrollable-content-area';
 import {getThemeLogoUrl} from "../../../utils/theme-utils";
 import { isDevelopmentMode } from '../../../utils/environment-utils';
 import { hasUserPermission } from '../../../db/tournament-view-permission-repository';
@@ -26,7 +26,6 @@ import { findTournamentById } from '../../../db/tournament-repository';
 import { getGameGuessStatisticsForUsers } from '../../../db/game-guess-repository';
 import type { ScoringConfig } from '../../../components/tournament-page/rules';
 import { getLocale } from 'next-intl/server';
-import { ScrollShadowContainer } from '../../../components/common/scroll-shadow-container';
 
 type TournamentLayoutProps = {
   readonly params: Promise<{
@@ -259,17 +258,9 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
           <Grid container spacing={2} sx={{ height: '100%' }}>
             {/* Main content - 9/12 on desktop, full on mobile */}
             <Grid size={{ xs: 12, md: 9 }} sx={{ height: '100%' }}>
-              <ScrollShadowContainer
-                direction="vertical"
-                hideScrollbar={true}
-                sx={{
-                  height: '100%',
-                  backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.06),
-                  p: 2
-                }}
-              >
+              <ScrollableContentArea>
                 {children}
-              </ScrollShadowContainer>
+              </ScrollableContentArea>
             </Grid>
 
             {/* Sidebar - 4/12 on desktop, hidden on mobile */}
