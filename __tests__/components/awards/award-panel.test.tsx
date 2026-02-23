@@ -346,7 +346,7 @@ describe('AwardsPanel - Bug #164 Fix', () => {
         />
       );
 
-      expect(screen.getByText(/Predicciones Bloqueadas/i)).toBeInTheDocument();
+      expect(screen.getByText('Las predicciones están bloqueadas para este torneo. Puedes ver tus predicciones pero no puedes hacer cambios.')).toBeInTheDocument();
     });
 
     it('should display Lock icon in alert when locked (Fix #6)', () => {

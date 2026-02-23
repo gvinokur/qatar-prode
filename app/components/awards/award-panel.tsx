@@ -3,7 +3,8 @@
 import {Team, Tournament, TournamentGuessNew} from "../../db/tables-definition";
 import React, {Fragment, useState} from "react";
 import {
-  Alert, AlertTitle,
+  Alert,
+  AlertTitle,
   Autocomplete, Avatar,
   Box,
   Card,
@@ -131,7 +132,6 @@ export default function AwardsPanel({
     <>
       {isPredictionLocked ? (
         <Alert severity="info" sx={{ mb: 3 }} icon={<LockIcon />}>
-          <AlertTitle>{t('individual.lockedTitle')}</AlertTitle>
           {t('individual.lockedMessage')}
         </Alert>
       ) : null}

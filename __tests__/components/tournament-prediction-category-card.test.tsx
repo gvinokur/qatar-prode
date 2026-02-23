@@ -82,7 +82,7 @@ describe('TournamentPredictionCategoryCard', () => {
   });
 
   describe('Locked State', () => {
-    it('shows gray lock icon when locked', () => {
+    it('shows info blue lock icon when locked', () => {
       renderWithTheme(<TournamentPredictionCategoryCard {...defaultProps} isLocked={true} />);
       const icons = screen.getAllByTestId('LockIcon');
       expect(icons.length).toBeGreaterThan(0);

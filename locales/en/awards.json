@@ -20,8 +20,7 @@
     "unavailableTitle": "Individual Awards Unavailable",
     "unavailableMessage": "This section will be available once the team rosters for the tournament are announced",
     "successMessage": "Your predictions were saved successfully!",
-    "lockedTitle": "Predictions Locked",
-    "lockedMessage": "Predictions are no longer available since the tournament has already started"
+    "lockedMessage": "Predictions are locked for this tournament. You can view your predictions but cannot make changes."
   },
   "categories": {
     "bestPlayer": "Best Player",
