@@ -142,3 +142,16 @@ export async function deleteAllUserGroupPositionsPredictions(
     .where('user_id', '=', userId)
     .execute();
 }
+
+/**
+ * Delete all group positions predictions for a tournament across all users
+ * Used when deleting a tournament (admin operation)
+ */
+export async function deleteAllTournamentGroupPositionsPredictions(
+  tournamentId: string
+): Promise<void> {
+  await db
+    .deleteFrom(jsonbTableName)
+    .where('tournament_id', '=', tournamentId)
+    .execute();
+}
