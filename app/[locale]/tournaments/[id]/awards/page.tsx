@@ -67,7 +67,7 @@ export default async function Awards(props: Props) {
   const isPredictionLocked = (currentTime.getTime() - tournamentStartDate.getTime()) >= FIVE_DAYS_MS;
 
   return (
-    <Box pt={3}>
+    <Box pt={2}>
       {searchParams.hasOwnProperty('debug') && (
         <DebugObject object={{
           allPlayers,
