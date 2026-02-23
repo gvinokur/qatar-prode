@@ -11,7 +11,7 @@ import EmptyAwardsSnackbar from "../../../components/awards/empty-award-notifica
 import {getPlayersInTournament} from "../../../db/player-repository";
 import EnvironmentIndicator from "../../../components/environment-indicator";
 import {Typography, Avatar} from "@mui/material";
-import TournamentContentWrapper from '../../../components/tournament-page/tournament-content-wrapper';
+import { alpha } from '@mui/material/styles';
 import {getThemeLogoUrl} from "../../../utils/theme-utils";
 import { isDevelopmentMode } from '../../../utils/environment-utils';
 import { hasUserPermission } from '../../../db/tournament-view-permission-repository';
@@ -262,11 +262,13 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
               <ScrollShadowContainer
                 direction="vertical"
                 hideScrollbar={true}
-                sx={{ height: '100%' }}
+                sx={{
+                  height: '100%',
+                  backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.02),
+                  p: 2
+                }}
               >
-                <TournamentContentWrapper>
-                  {children}
-                </TournamentContentWrapper>
+                {children}
               </ScrollShadowContainer>
             </Grid>
 
