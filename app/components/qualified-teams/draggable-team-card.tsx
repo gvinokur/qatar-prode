@@ -6,9 +6,6 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent, Typography, Box, Checkbox, FormControlLabel, useTheme, Theme, Chip } from '@mui/material';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
-import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import { Team } from '../../db/tables-definition';
 import { TeamScoringResult } from '../../utils/qualified-teams-scoring';
 
@@ -263,19 +260,15 @@ function ResultsOverlay({
 }) {
   const theme = useTheme();
 
-  // Determine icon, color, label, explanation text, and chip styling based on result
-  let icon: React.ReactNode;
+  // Determine label, explanation text, and chip styling based on result
   let chipLabel: string;
   let explanationText: string;
-  let iconColor: string;
   let chipBackgroundColor: string;
   let chipTextColor: string;
 
   if (isPendingBeforeResults) {
     // Pending state before group completion
-    icon = <HourglassEmptyIcon sx={{ fontSize: '1.25rem' }} />;
     chipLabel = t('results.pending');
-    iconColor = theme.palette.info.main;
     chipBackgroundColor = theme.palette.info.light;
     chipTextColor = 'white';
 
@@ -287,18 +280,14 @@ function ResultsOverlay({
     }
   } else if (isPending3rdPlace) {
     // Pending 3rd place playoff
-    icon = <HourglassEmptyIcon sx={{ fontSize: '1.25rem' }} />;
     chipLabel = t('results.pending');
-    iconColor = theme.palette.info.main;
     chipBackgroundColor = theme.palette.info.light;
     chipTextColor = 'white';
     explanationText = t('results.waitingBestThirds');
   } else if (result && result.pointsAwarded > 0) {
     // Correct predictions (1 or 2 pts): green chip like regular game cards
-    icon = <CheckCircleIcon sx={{ fontSize: '1.25rem' }} />;
     const pointsKey = result.pointsAwarded === 1 ? 'results.points1' : 'results.points2';
     chipLabel = t(pointsKey);
-    iconColor = theme.palette.success.main;
     chipBackgroundColor = theme.palette.success.light;
     chipTextColor = 'white';
 
@@ -311,9 +300,7 @@ function ResultsOverlay({
     });
   } else {
     // Wrong prediction (0 pts): red
-    icon = <CancelIcon sx={{ fontSize: '1.25rem' }} />;
     chipLabel = t('results.points0');
-    iconColor = theme.palette.error.main;
     chipBackgroundColor = theme.palette.error.light;
     chipTextColor = 'white';
 

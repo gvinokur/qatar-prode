@@ -218,7 +218,7 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
     }}>
       <CardHeader
         title={t('title')}
-        titleTypographyProps={{ variant: fullpage ? 'h4' : 'h6' }}
+        slotProps={{ title: { variant: fullpage ? 'h4' : 'h6' } }}
         subheader={isActive ? t('status.youAreHere') : undefined}
         sx={{
           color: theme.palette.primary.main,
