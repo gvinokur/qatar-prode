@@ -264,7 +264,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                 hideScrollbar={true}
                 sx={{
                   height: '100%',
-                  backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.02),
+                  backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.06),
                   p: 2
                 }}
               >
