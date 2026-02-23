@@ -245,6 +245,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
       </AppBar>
       {/* Main content area */}
       <Box sx={{
+        display: 'flow-root',
         flexGrow: 1,
         minHeight: 0,
         px: 2
