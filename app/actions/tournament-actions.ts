@@ -6,8 +6,9 @@ import {
   findTournamentById,
   updateTournament
 } from "../db/tournament-repository";
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, getLocale } from 'next-intl/server';
 import type { Locale } from '../../i18n.config';
+import { applyLocalization, applyLocalizationBatch } from '../utils/localization-helper';
 import {
   Game, PlayoffRoundNew, PlayoffRoundUpdate,
   Team,
@@ -45,14 +46,22 @@ import {findTeamInGroup, findTeamInTournament} from "../db/team-repository";
  * Get all tournaments, including dev and inactive ones
  */
 export async function getAllTournaments () {
+  const locale = await getLocale()
   const tournaments = await findAllTournaments()
-  return tournaments
+  return applyLocalizationBatch(tournaments, locale, [
+    { field: 'long_name', i18nField: 'long_name_i18n' },
+    { field: 'short_name', i18nField: 'short_name_i18n' }
+  ])
 }
 
 export async function getTournaments () {
   const user = await getLoggedInUser()
+  const locale = await getLocale()
   const tournaments = await findAllActiveTournaments(user?.id)
-  return tournaments
+  return applyLocalizationBatch(tournaments, locale, [
+    { field: 'long_name', i18nField: 'long_name_i18n' },
+    { field: 'short_name', i18nField: 'short_name_i18n' }
+  ])
 }
 
 /**
@@ -74,13 +83,18 @@ export async function getGamesClosingWithin48Hours(tournamentId: string) {
 }
 
 export async function getTeamsMap(objectId: string, teamParent: 'tournament' | 'group' = 'tournament') {
+  const locale = await getLocale()
   const teams: Team[] = teamParent === 'tournament' ? await findTeamInTournament(objectId) : await findTeamInGroup(objectId)
-  const teamsMap: {[k:string]: Team} = toMap(teams)
+  const localizedTeams = applyLocalizationBatch(teams, locale, [
+    { field: 'name', i18nField: 'name_i18n' }
+  ])
+  const teamsMap: {[k:string]: Team} = toMap(localizedTeams)
 
   return teamsMap;
 }
 
 export async function getCompleteGroupData(groupId: string, includeDraftResults:boolean = false) {
+  const locale = await getLocale()
   const group = await findTournamentgroupById(groupId)
 
   if(group) {
@@ -89,7 +103,10 @@ export async function getCompleteGroupData(groupId: string, includeDraftResults:
     const teamsMap = await getTeamsMap(group.id, 'group')
 
     const games = await findGamesInGroup(group.id, true, includeDraftResults)
-    const gamesMap: {[k: string]: Game} = toMap(games)
+    const localizedGames = applyLocalizationBatch(games, locale, [
+      { field: 'location', i18nField: 'location_i18n' }
+    ])
+    const gamesMap: {[k: string]: Game} = toMap(localizedGames)
 
     const teamPositions = await findTeamsInGroup(groupId)
 
@@ -106,16 +123,23 @@ export async function getCompleteGroupData(groupId: string, includeDraftResults:
 }
 
 export async function getCompletePlayoffData(tournamentId: string, includeDraftResults:boolean = true) {
+  const locale = await getLocale()
   const playoffStages = await findPlayoffStagesWithGamesInTournament(tournamentId)
+  const localizedPlayoffStages = applyLocalizationBatch(playoffStages, locale, [
+    { field: 'round_name', i18nField: 'round_name_i18n' }
+  ])
   const teamsMap = await getTeamsMap(tournamentId)
   const games: Game[] = await findGamesInTournament(tournamentId, includeDraftResults)
-  const gamesMap: {[k: string]: Game} = toMap(games)
+  const localizedGames = applyLocalizationBatch(games, locale, [
+    { field: 'location', i18nField: 'location_i18n' }
+  ])
+  const gamesMap: {[k: string]: Game} = toMap(localizedGames)
   const tournamentStartDate: Date =
     // new Date(2024, 4,1) //For debug purposes
-    games.sort((a, b) => a.game_date.getTime() - b.game_date.getTime())[0]?.game_date
+    localizedGames.sort((a, b) => a.game_date.getTime() - b.game_date.getTime())[0]?.game_date
 
   return {
-    playoffStages,
+    playoffStages: localizedPlayoffStages,
     teamsMap,
     gamesMap,
     tournamentStartDate
@@ -123,11 +147,15 @@ export async function getCompletePlayoffData(tournamentId: string, includeDraftR
 }
 
 export async function getTournamentAndGroupsData(tournamentId:string) {
+  const locale = await getLocale()
   const tournament = await findTournamentById(tournamentId)
   const allGroups = await findGroupsInTournament(tournamentId)
 
   return {
-    tournament,
+    tournament: tournament ? applyLocalization(tournament, locale, [
+      { field: 'long_name', i18nField: 'long_name_i18n' },
+      { field: 'short_name', i18nField: 'short_name_i18n' }
+    ]) : null,
     allGroups
   }
 }
@@ -158,7 +186,11 @@ export async function deactivateTournament(tournamentId: string, locale: Locale 
   }
 
   // Update the tournament to set is_active to false
-  return await updateTournament(tournamentId, { is_active: false });
+  const updatedTournament = await updateTournament(tournamentId, { is_active: false });
+  return applyLocalization(updatedTournament, locale, [
+    { field: 'long_name', i18nField: 'long_name_i18n' },
+    { field: 'short_name', i18nField: 'short_name_i18n' }
+  ]);
 }
 
 // S3 client will be created when needed
@@ -189,7 +221,10 @@ export async function createOrUpdateTournament(
 
   await cleanupOldLogo(existingTournament, logoFile, logoUrl);
 
-  return result;
+  return applyLocalization(result, locale, [
+    { field: 'long_name', i18nField: 'long_name_i18n' },
+    { field: 'short_name', i18nField: 'short_name_i18n' }
+  ]);
 }
 
 async function validateAdminUser(locale: Locale = 'es'): Promise<void> {
@@ -289,11 +324,29 @@ async function cleanupOldLogo(existingTournament: Tournament | null, logoFile: a
 }
 
 export async function getTournamentById(tournamentId: string) {
-  return await findTournamentById(tournamentId);
+  const locale = await getLocale()
+  const tournament = await findTournamentById(tournamentId);
+  if (!tournament) return null;
+  return applyLocalization(tournament, locale, [
+    { field: 'long_name', i18nField: 'long_name_i18n' },
+    { field: 'short_name', i18nField: 'short_name_i18n' }
+  ]);
 }
 
 export async function getCompleteTournamentGroups(tournamentId: string) {
-  return await findGroupsWithGamesAndTeamsInTournament(tournamentId);
+  const locale = await getLocale()
+  const groups = await findGroupsWithGamesAndTeamsInTournament(tournamentId);
+
+  // Localize games and teams within each group
+  return groups.map(group => ({
+    ...group,
+    games: applyLocalizationBatch(group.games, locale, [
+      { field: 'location', i18nField: 'location_i18n' }
+    ]),
+    teams: applyLocalizationBatch(group.teams, locale, [
+      { field: 'name', i18nField: 'name_i18n' }
+    ])
+  }));
 }
 
 /**
@@ -376,7 +429,11 @@ export async function createOrUpdateTournamentGroup(
 }
 
 export async function getPlayoffRounds(tournamentId: string) {
-  return findPlayoffStagesWithGamesInTournament(tournamentId);
+  const locale = await getLocale()
+  const rounds = await findPlayoffStagesWithGamesInTournament(tournamentId);
+  return applyLocalizationBatch(rounds, locale, [
+    { field: 'round_name', i18nField: 'round_name_i18n' }
+  ]);
 }
 
 /**
@@ -403,7 +460,9 @@ export async function createOrUpdatePlayoffRound(playoffRoundData: PlayoffRoundN
       result = await createPlayoffRound(playoffRoundData as PlayoffRoundNew);
     }
 
-    return result;
+    return applyLocalization(result, locale, [
+      { field: 'round_name', i18nField: 'round_name_i18n' }
+    ]);
   } catch (error: any) {
     console.error('Error creating/updating playoff round:', error);
     throw new Error(error.message || t('playoffSaveFailed'));
@@ -439,6 +498,7 @@ export async function findLatestFinishedGroupGame(tournamentId: string) {
  * @returns Object with groups, default group ID, and qualified teams
  */
 export async function getGroupStandingsForTournament(tournamentId: string) {
+  const locale = await getLocale()
   const { calculateGroupPosition } = await import('../utils/group-position-calculator');
   const { findQualifiedTeams } = await import('../db/team-repository');
 
@@ -457,8 +517,11 @@ export async function getGroupStandingsForTournament(tournamentId: string) {
 
       // Fetch teams in group
       const teams = await findTeamInGroup(group.id);
-      const teamsMap = toMap(teams);
-      const teamIds = teams.map(t => t.id);
+      const localizedTeams = applyLocalizationBatch(teams, locale, [
+        { field: 'name', i18nField: 'name_i18n' }
+      ]);
+      const teamsMap = toMap(localizedTeams);
+      const teamIds = localizedTeams.map(t => t.id);
 
       // Calculate positions using existing utility (FIFA tiebreaker rules)
       const teamStats = calculateGroupPosition(

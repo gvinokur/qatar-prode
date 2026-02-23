@@ -25,6 +25,7 @@ import {
 import {createOrUpdateTournament, getAllTournaments } from "../../../actions/tournament-actions";
 import { Tournament } from "../../../db/tables-definition";
 import {copyTournament} from "../../../actions/backoffice-actions";
+import I18nFieldEditor from '../i18n-field-editor';
 
 interface CreateTournamentModalProps {
   readonly open: boolean;
@@ -35,6 +36,8 @@ interface CreateTournamentModalProps {
 export default function CreateTournamentModal({ open, onClose, onSuccess }: CreateTournamentModalProps) {
   const [longName, setLongName] = useState("");
   const [shortName, setShortName] = useState("");
+  const [longNameI18n, setLongNameI18n] = useState<{ en: string; es: string } | null>(null);
+  const [shortNameI18n, setShortNameI18n] = useState<{ en: string; es: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -79,6 +82,8 @@ export default function CreateTournamentModal({ open, onClose, onSuccess }: Crea
   const handleClose = () => {
     setLongName("");
     setShortName("");
+    setLongNameI18n(null);
+    setShortNameI18n(null);
     setError(null);
     setCreateMode('new');
     setSelectedTournamentId('');
@@ -103,6 +108,8 @@ export default function CreateTournamentModal({ open, onClose, onSuccess }: Crea
         formData.append('tournament', JSON.stringify({
           long_name: longName,
           short_name: shortName,
+          long_name_i18n: longNameI18n,
+          short_name_i18n: shortNameI18n,
           is_active: false
         }));
 
@@ -226,6 +233,29 @@ export default function CreateTournamentModal({ open, onClose, onSuccess }: Crea
           required
           disabled={loading}
         />
+
+        <Box sx={{ mt: 3 }}>
+          <I18nFieldEditor
+            label="Long Name (Localized)"
+            value={longNameI18n}
+            originalValue={longName}
+            onChange={(value) => setLongNameI18n(value)}
+            helperText="Optional: Provide translations for the tournament's long name"
+            disabled={loading}
+          />
+        </Box>
+
+        <Box sx={{ mt: 2 }}>
+          <I18nFieldEditor
+            label="Short Name (Localized)"
+            value={shortNameI18n}
+            originalValue={shortName}
+            onChange={(value) => setShortNameI18n(value)}
+            helperText="Optional: Provide translations for the tournament's short name"
+            disabled={loading}
+          />
+        </Box>
+
         {error && (
           <Alert severity="error" sx={{ mt: 2 }}>
             {error}

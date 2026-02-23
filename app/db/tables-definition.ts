@@ -20,6 +20,17 @@ export interface Theme {
   s3_logo_key?: string
 }
 
+/**
+ * Tournament with internationalization support
+ *
+ * ⚠️ LOCALIZATION PATTERN:
+ * - Repositories return RAW data (both 'field_name' and 'field_name_i18n')
+ * - Server Actions apply localization using applyLocalization()
+ * - Components receive localized data
+ *
+ * ⚠️ DO NOT add locale parameters to repository functions
+ * ⚠️ DO add applyLocalization() calls in Server Actions
+ */
 export interface TournamentTable extends Identifiable{
   short_name: string
 
@@ -38,6 +49,10 @@ export interface TournamentTable extends Identifiable{
   display_name?: boolean
 
   theme: JSONColumnType<Theme> | null | undefined
+
+  // Internationalization columns
+  short_name_i18n?: JSONColumnType<Record<string, string>>
+  long_name_i18n?: JSONColumnType<Record<string, string>>
 
   // Scoring configuration fields
   game_exact_score_points?: number
@@ -122,10 +137,24 @@ export type TournamentGroup = Selectable<TournamentGroupTable>
 export type TournamentGroupNew = Insertable<TournamentGroupTable>
 export type TournamentGroupUpdate = Updateable<TournamentGroupTable>
 
+/**
+ * Team with internationalization support
+ *
+ * ⚠️ LOCALIZATION PATTERN:
+ * - Repositories return RAW data (both 'field_name' and 'field_name_i18n')
+ * - Server Actions apply localization using applyLocalization()
+ * - Components receive localized data
+ *
+ * ⚠️ DO NOT add locale parameters to repository functions
+ * ⚠️ DO add applyLocalization() calls in Server Actions
+ */
 export interface TeamTable extends Identifiable {
   name: string
   short_name: string
   theme: JSONColumnType<Theme> | null | undefined
+
+  // Internationalization columns
+  name_i18n?: JSONColumnType<Record<string, string>>
 }
 
 export type Team = Selectable<TeamTable>
@@ -156,6 +185,17 @@ export type TournamentGroupTeam = Selectable<TournamentGroupTeamTable>
 export type TournamentGroupTeamNew = Insertable<TournamentGroupTeamTable>
 export type TournamentGroupTeamUpdate = Updateable<TournamentGroupTeamTable>
 
+/**
+ * PlayoffRound with internationalization support
+ *
+ * ⚠️ LOCALIZATION PATTERN:
+ * - Repositories return RAW data (both 'field_name' and 'field_name_i18n')
+ * - Server Actions apply localization using applyLocalization()
+ * - Components receive localized data
+ *
+ * ⚠️ DO NOT add locale parameters to repository functions
+ * ⚠️ DO add applyLocalization() calls in Server Actions
+ */
 export interface PlayoffRoundTable extends Identifiable {
   tournament_id: string
   round_name: string
@@ -164,6 +204,9 @@ export interface PlayoffRoundTable extends Identifiable {
   is_final?: boolean
   is_third_place?: boolean
   is_first_stage?: boolean
+
+  // Internationalization columns
+  round_name_i18n?: JSONColumnType<Record<string, string>>
 }
 
 export type PlayoffRound = Selectable<PlayoffRoundTable>
@@ -180,6 +223,17 @@ export interface TeamWinnerRule {
   winner: boolean
 }
 
+/**
+ * Game with internationalization support
+ *
+ * ⚠️ LOCALIZATION PATTERN:
+ * - Repositories return RAW data (both 'field_name' and 'field_name_i18n')
+ * - Server Actions apply localization using applyLocalization()
+ * - Components receive localized data
+ *
+ * ⚠️ DO NOT add locale parameters to repository functions
+ * ⚠️ DO add applyLocalization() calls in Server Actions
+ */
 export interface GameTable extends Identifiable {
   tournament_id: string
   game_number: number
@@ -191,6 +245,9 @@ export interface GameTable extends Identifiable {
   away_team_rule?: JSONColumnType<GroupFinishRule | TeamWinnerRule>
   game_type?: string
   game_local_timezone?: string
+
+  // Internationalization columns
+  location_i18n?: JSONColumnType<Record<string, string>>
 }
 
 export type Game = Selectable<GameTable>

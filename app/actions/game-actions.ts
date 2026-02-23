@@ -9,8 +9,9 @@ import {Game, GameNew, GameUpdate} from "../db/tables-definition";
 import {getLoggedInUser} from "./user-actions";
 import {createTournamentGroupGame, deleteTournamentGroupGame} from "../db/tournament-group-repository";
 import {createPlayoffRoundGame, deletePlayoffRoundGame} from "../db/tournament-playoff-repository";
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, getLocale } from 'next-intl/server';
 import type { Locale } from '../../i18n.config';
+import { applyLocalizationBatch } from '../utils/localization-helper';
 
 /**
  * Creates a new game in a tournament group
@@ -100,5 +101,9 @@ export async function createOrUpdateGame(gameData: GameNew | GameUpdate, groupId
 }
 
 export async function getGamesInTournament(tournamentId: string) {
-  return await findGamesInTournament(tournamentId);
+  const locale = await getLocale();
+  const games = await findGamesInTournament(tournamentId);
+  return applyLocalizationBatch(games, locale, [
+    { field: 'location', i18nField: 'location_i18n' }
+  ]);
 }

@@ -789,7 +789,7 @@ describe('Tournament Actions', () => {
 
       const result = await getTournamentById('tournament1');
 
-      expect(result).toBeUndefined();
+      expect(result).toBeNull();
     });
 
     it('handles database errors', async () => {
@@ -1037,7 +1037,7 @@ describe('Tournament Actions', () => {
 
       expect(allTournaments).toEqual([]);
       expect(activeTournaments).toEqual([]);
-      expect(tournament).toBeUndefined();
+      expect(tournament).toBeNull();
     });
 
     it('handles concurrent operations correctly', async () => {

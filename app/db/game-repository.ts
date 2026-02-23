@@ -14,6 +14,15 @@ export const updateGame = baseFunctions.update
 export const createGame = baseFunctions.create
 export const deleteGame =  baseFunctions.delete
 
+/**
+ * Find all games in a tournament with group and playoff metadata.
+ *
+ * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
+ * ⚠️ DO NOT add locale parameter to this function
+ * ⚠️ DO NOT apply localization here
+ *
+ * @see applyLocalization() in /app/utils/localization-helper.ts must be called in Server Action layer
+ */
 export const findGamesInTournament = cache(async (tournamentId: string, draftResult: boolean = true) => {
   return await db.selectFrom(tableName)
     .selectAll()
@@ -52,6 +61,15 @@ export const findGamesInTournament = cache(async (tournamentId: string, draftRes
     .execute() as ExtendedGameData[]
 })
 
+/**
+ * Find the first game in a tournament by date.
+ *
+ * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
+ * ⚠️ DO NOT add locale parameter to this function
+ * ⚠️ DO NOT apply localization here
+ *
+ * @see applyLocalization() in /app/utils/localization-helper.ts must be called in Server Action layer
+ */
 export const findFirstGameInTournament = cache(async (tournamentId: string)  => {
  return db.selectFrom(tableName)
    .selectAll()
@@ -60,6 +78,15 @@ export const findFirstGameInTournament = cache(async (tournamentId: string)  => 
    .executeTakeFirst()
 })
 
+/**
+ * Find games in a group, optionally with full metadata.
+ *
+ * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
+ * ⚠️ DO NOT add locale parameter to this function
+ * ⚠️ DO NOT apply localization here
+ *
+ * @see applyLocalization() in /app/utils/localization-helper.ts must be called in Server Action layer
+ */
 export const findGamesInGroup = cache(async (groupId: string, completeGame: boolean = false , draftResult: boolean = false) => {
   const query = db.selectFrom(tableName)
     .innerJoin('tournament_group_games', 'tournament_group_games.game_id', 'games.id')
@@ -125,6 +152,15 @@ interface GameWithResultAndGuess extends Game {
   gameGuesses: GameGuess[]
 }
 
+/**
+ * Find all games with published results and associated game guesses.
+ *
+ * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
+ * ⚠️ DO NOT add locale parameter to this function
+ * ⚠️ DO NOT apply localization here
+ *
+ * @see applyLocalization() in /app/utils/localization-helper.ts must be called in Server Action layer
+ */
 export const findAllGamesWithPublishedResultsAndGameGuesses = cache(async (forceDrafts: boolean, forceAllGameGuesses: boolean) => {
   return await db.selectFrom(tableName)
     .selectAll()
@@ -161,6 +197,15 @@ export const findAllGamesWithPublishedResultsAndGameGuesses = cache(async (force
     .execute() as GameWithResultAndGuess[]
 })
 
+/**
+ * Find games around current time (last 24h results + next 48h upcoming).
+ *
+ * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
+ * ⚠️ DO NOT add locale parameter to this function
+ * ⚠️ DO NOT apply localization here
+ *
+ * @see applyLocalization() in /app/utils/localization-helper.ts must be called in Server Action layer
+ */
 export const findGamesAroundCurrentTime = cache(async (tournamentId: string)  => {
   const gamesAroundCurrentTime = await db.selectFrom(tableName)
     .selectAll()
@@ -204,6 +249,15 @@ export const findGamesAroundCurrentTime = cache(async (tournamentId: string)  =>
   return gamesAroundCurrentTime.sort((a, b) => a.game_date.getTime() - b.game_date.getTime())
 })
 
+/**
+ * Find games in the next 24 hours.
+ *
+ * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
+ * ⚠️ DO NOT add locale parameter to this function
+ * ⚠️ DO NOT apply localization here
+ *
+ * @see applyLocalization() in /app/utils/localization-helper.ts must be called in Server Action layer
+ */
 export const findGamesInNext24Hours = cache(async (tournamentId: string) => {
   const now = new Date();
   const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
@@ -245,6 +299,12 @@ export const findGamesInNext24Hours = cache(async (tournamentId: string) => {
  * Find games for dashboard display
  * Returns games from last 24 hours (recent results) + next 48 hours (upcoming fixtures & accordion)
  * This unified function replaces both findGamesAroundCurrentTime and findGamesClosingWithin48Hours
+ *
+ * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
+ * ⚠️ DO NOT add locale parameter to this function
+ * ⚠️ DO NOT apply localization here
+ *
+ * @see applyLocalization() in /app/utils/localization-helper.ts must be called in Server Action layer
  */
 export const findGamesForDashboard = cache(async (tournamentId: string) => {
   const now = new Date();
@@ -295,6 +355,12 @@ export const findGamesForDashboard = cache(async (tournamentId: string) => {
  * Fetch ALL tournament games (groups + playoffs) for unified games page
  * Returns ExtendedGameData with group and playoff metadata
  * Sorted by game_date ascending
+ *
+ * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
+ * ⚠️ DO NOT add locale parameter to this function
+ * ⚠️ DO NOT apply localization here
+ *
+ * @see applyLocalization() in /app/utils/localization-helper.ts must be called in Server Action layer
  */
 export const getAllTournamentGames = cache(async (tournamentId: string) => {
   return await db.selectFrom(tableName)
@@ -336,6 +402,12 @@ export const getAllTournamentGames = cache(async (tournamentId: string) => {
 /**
  * Get filter badge counts for unified games page
  * Returns counts for each filter type efficiently in single query
+ *
+ * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
+ * ⚠️ DO NOT add locale parameter to this function
+ * ⚠️ DO NOT apply localization here
+ *
+ * @see applyLocalization() in /app/utils/localization-helper.ts must be called in Server Action layer
  */
 export interface TournamentGameCounts {
   total: number;

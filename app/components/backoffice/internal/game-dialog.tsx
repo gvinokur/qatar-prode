@@ -30,6 +30,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import {GameNew, GameUpdate, PlayoffRound, Team} from "../../../db/tables-definition";
 import { createOrUpdateGame } from "../../../actions/game-actions";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
+import I18nFieldEditor from '../i18n-field-editor';
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import UTC from "dayjs/plugin/utc";
@@ -66,6 +67,7 @@ const GameDialog: React.FC<GameDialogProps> = ({
   const [gameNumber, setGameNumber] = useState<number | null>(null);
   const [gameDate, setGameDate] = useState<Date | null>(new Date());
   const [location, setLocation] = useState('');
+  const [locationI18n, setLocationI18n] = useState<{ en: string; es: string } | null>(null);
   const [timezone, setTimezone] = useState(dayjs.tz.guess());
   const [gameType, setGameType] = useState<'group' | 'playoff'>('group');
 
@@ -94,6 +96,7 @@ const GameDialog: React.FC<GameDialogProps> = ({
         setGameNumber(game.game_number || nextGameNumber);
         setGameDate(game.game_date);
         setLocation(game.location || '');
+        setLocationI18n(game.location_i18n || null);
 
         // Determine game type
         if (game.game_type === 'group') {
@@ -115,6 +118,7 @@ const GameDialog: React.FC<GameDialogProps> = ({
         setGameNumber(nextGameNumber);
         setGameDate(new Date());
         setLocation('');
+        setLocationI18n(null);
         setGameType('group');
         setGroupId('');
         setPlayoffStage(null);
@@ -171,6 +175,7 @@ const GameDialog: React.FC<GameDialogProps> = ({
         game_date: gameDate!,
         game_local_timezone: timezone,
         location,
+        location_i18n: locationI18n,
         game_number: Number(gameNumber),
         game_type: gameType === 'group' ? 'group' :
           playoffStage?.round_order === 1 ? 'first_round' :
@@ -260,6 +265,17 @@ const GameDialog: React.FC<GameDialogProps> = ({
                 disabled={loading}
                 placeholder="Enter location name"
                 margin="normal"
+              />
+            </Grid>
+
+            <Grid size={12}>
+              <I18nFieldEditor
+                label="Location (Localized)"
+                value={locationI18n}
+                originalValue={location}
+                onChange={(value) => setLocationI18n(value)}
+                helperText="Optional: Provide translations for the game location/venue"
+                disabled={loading}
               />
             </Grid>
 
