@@ -71,13 +71,15 @@ export default function TournamentSidebar({
         sx={{
           flexGrow: 1,
           minHeight: 0,
-          pt: 2,
         }}
       >
         <Box sx={{
           backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.04),
           p: 2,
-          minHeight: '100%'
+          minHeight: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1
         }}>
           {/* 1. Tables */}
           {groupStandings && groupStandings.groups.length > 0 && (
