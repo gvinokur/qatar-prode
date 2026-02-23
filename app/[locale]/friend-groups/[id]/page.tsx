@@ -16,6 +16,7 @@ import {getThemeLogoUrl} from "../../../utils/theme-utils";
 import { getGroupTournamentBettingConfigAction, getGroupTournamentBettingPaymentsAction } from '../../../actions/group-tournament-betting-actions';
 import LeaveGroupButton from '../../../components/friend-groups/leave-group-button';
 import { getUserScoresForTournament } from "../../../actions/prode-group-actions";
+import ScrollableContentArea from '../../../components/tournament-page/scrollable-content-area';
 
 type Props = {
   readonly params: Promise<{
@@ -115,35 +116,37 @@ export default async function FriendsGroup(props : Props){
           </Typography>
         </Grid>
       </Grid>
-      <Grid container spacing={2} p={2} justifyContent={'center'}>
-        <Grid size={{ xs:12, md :8 }}>
-          <ProdeGroupTable
-            users={usersMap}
-            userScoresByTournament={userScoresByTournament}
-            loggedInUser={user.id}
-            tournaments={tournaments}
-            action={prodeGroup.owner_user_id === user.id ? (
-              <InviteFriendsDialogButton
-                groupName={prodeGroup.name}
-                groupId={prodeGroup.id}/>
-            ) : (
-              <LeaveGroupButton groupId={prodeGroup.id} />
+      <ScrollableContentArea>
+        <Grid container spacing={2} justifyContent={'center'}>
+          <Grid size={{ xs:12, md :9 }}>
+            <ProdeGroupTable
+              users={usersMap}
+              userScoresByTournament={userScoresByTournament}
+              loggedInUser={user.id}
+              tournaments={tournaments}
+              action={prodeGroup.owner_user_id === user.id ? (
+                <InviteFriendsDialogButton
+                  groupName={prodeGroup.name}
+                  groupId={prodeGroup.id}/>
+              ) : (
+                <LeaveGroupButton groupId={prodeGroup.id} />
 
-            )}
-            groupId={prodeGroup.id}
-            ownerId={prodeGroup.owner_user_id}
-            members={members}
-            bettingData={bettingData}
-            selectedTournamentId={searchParams.tournament}
-          />
-        </Grid>
-        {(prodeGroup.owner_user_id === user.id || members.find(m => m.id === user.id)?.is_admin) && (
-          <Grid size={{ xs:12, md : 4 }}>
-           <ProdeGroupThemer group={prodeGroup}/>
+              )}
+              groupId={prodeGroup.id}
+              ownerId={prodeGroup.owner_user_id}
+              members={members}
+              bettingData={bettingData}
+              selectedTournamentId={searchParams.tournament}
+            />
           </Grid>
-        ) || <></>}
-      </Grid>
-      {searchParams.hasOwnProperty('recentlyJoined') && (<JoinMessage />)}
+          {(prodeGroup.owner_user_id === user.id || members.find(m => m.id === user.id)?.is_admin) && (
+            <Grid size={{ xs:12, md : 3 }}>
+             <ProdeGroupThemer group={prodeGroup}/>
+            </Grid>
+          ) || <></>}
+        </Grid>
+        {searchParams.hasOwnProperty('recentlyJoined') && (<JoinMessage />)}
+      </ScrollableContentArea>
     </Box>
   )
 }

@@ -1,7 +1,8 @@
 'use client'
 
 import {Team, Tournament, TournamentGuessNew} from "../../db/tables-definition";
-import React, {Fragment, useState} from "react";
+import React, {Fragment, useState, useEffect} from "react";
+import { getDismissalState, setDismissalState } from '../../utils/dismissal-storage';
 import {
   Alert,
   AlertTitle,
@@ -23,6 +24,10 @@ import TeamSelector from "./team-selector";
 import MobileFriendlyAutocomplete from './mobile-friendly-autocomplete';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTranslations } from 'next-intl';
+import { CompactPredictionDashboard } from '../compact-prediction-dashboard';
+import { GuessesContextProvider } from '../context-providers/guesses-context-provider';
+import { customToMap } from '../../utils/ObjectUtils';
+import { useMemo } from 'react';
 
 type Props = {
   readonly allPlayers: ExtendedPlayerData[],
@@ -30,7 +35,12 @@ type Props = {
   readonly teams: Team[];
   readonly hasThirdPlaceGame: boolean;
   readonly isPredictionLocked: boolean;
-  readonly tournament: Tournament
+  readonly tournament: Tournament;
+  readonly games: any[];
+  readonly gameGuessesArray: any[];
+  readonly tournamentPredictionCompletion: any;
+  readonly tournamentStartDate: Date;
+  readonly teamsMap: Record<string, Team>;
 }
 
 export default function AwardsPanel({
@@ -39,7 +49,12 @@ export default function AwardsPanel({
     teams,
     hasThirdPlaceGame,
     isPredictionLocked,
-    tournament
+    tournament,
+    games,
+    gameGuessesArray,
+    tournamentPredictionCompletion,
+    tournamentStartDate,
+    teamsMap
   }: Props) {
   const theme = useTheme()
   const isMobile = useMediaQuery('(max-width:600px)');
@@ -47,6 +62,20 @@ export default function AwardsPanel({
   const [saving, setSaving] = useState<boolean>(false)
   const [saved, setSaved] = useState<boolean>(false)
   const [tournamentGuesses, setTournamentGuesses] = useState(savedTournamentGuesses)
+  const [showLockedSnackbar, setShowLockedSnackbar] = useState(false);
+
+  // Initialize locked snackbar state from localStorage
+  useEffect(() => {
+    const dismissalKey = `dismissedLocked_${tournament.id}_awards`;
+    const isDismissed = getDismissalState(dismissalKey);
+    setShowLockedSnackbar(isPredictionLocked && !isDismissed);
+  }, [isPredictionLocked, tournament.id]);
+
+  const handleCloseLockedSnackbar = () => {
+    const dismissalKey = `dismissedLocked_${tournament.id}_awards`;
+    setDismissalState(dismissalKey, true);
+    setShowLockedSnackbar(false);
+  };
 
   const savePredictions = async (updatePayload: Partial<TournamentGuessNew> & { user_id: string; tournament_id: string }) => {
     setSaving(true)
@@ -128,14 +157,30 @@ export default function AwardsPanel({
     />
   );
 
+  // Convert game guesses array to map for GuessesContext
+  const gameGuessesMap = useMemo(
+    () => customToMap(gameGuessesArray, (g: any) => g.game_id),
+    [gameGuessesArray]
+  );
+
   return (
-    <>
-      {isPredictionLocked ? (
-        <Alert severity="info" sx={{ mb: 3 }} icon={<LockIcon />}>
-          {t('individual.lockedMessage')}
-        </Alert>
-      ) : null}
-      <Card sx={{ maxWidth: '800px', mr: 'auto', ml: 'auto'}}>
+    <GuessesContextProvider
+      gameGuesses={gameGuessesMap}
+      autoSave={true}
+      tournamentMaxSilver={tournament.max_silver_games || 0}
+      tournamentMaxGolden={tournament.max_golden_games || 0}
+    >
+      <CompactPredictionDashboard
+        totalGames={games.length}
+        predictedGames={gameGuessesArray.length}
+        tournamentPredictions={tournamentPredictionCompletion}
+        tournamentId={tournament.id}
+        tournamentStartDate={tournamentStartDate}
+        games={games}
+        teamsMap={teamsMap}
+      />
+
+      <Card>
         <CardHeader title={t('podium.title')}/>
         <CardContent>
           <Grid container spacing={3}>
@@ -228,7 +273,7 @@ export default function AwardsPanel({
           </Grid>
         </CardContent>
       </Card>
-      <Card sx={{ maxWidth: '800px', mr: 'auto', ml: 'auto', marginTop: '24px'}}>
+      <Card sx={{ marginTop: '24px' }}>
         <CardHeader title={t('individual.title')}/>
         <CardContent>
           {allPlayers.length === 0 && (
@@ -300,6 +345,15 @@ export default function AwardsPanel({
           {t('individual.successMessage')}
         </Alert>
       </Snackbar>
-    </>
+      <Snackbar
+        open={showLockedSnackbar}
+        onClose={handleCloseLockedSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseLockedSnackbar} severity="info" icon={<LockIcon />} sx={{ width: '100%' }}>
+          {t('individual.lockedMessage')}
+        </Alert>
+      </Snackbar>
+    </GuessesContextProvider>
   );
 }

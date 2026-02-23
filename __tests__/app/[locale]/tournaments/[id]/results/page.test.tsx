@@ -98,7 +98,7 @@ describe('ResultsPage i18n', () => {
       const result = await ResultsPage({ params })
 
       expect(mockGetTranslations).toHaveBeenCalledWith('tables')
-      expect(mockT).toHaveBeenCalledWith('results.title')
+      // Page title removed as part of story #200 - no longer rendered
       expect(result).toBeDefined()
 
       // Verify the component was called with correct parameters
@@ -191,7 +191,7 @@ describe('ResultsPage i18n', () => {
       const result = await ResultsPage({ params })
 
       expect(mockGetTranslations).toHaveBeenCalledWith('tables')
-      expect(mockT).toHaveBeenCalledWith('results.title')
+      // Page title removed as part of story #200 - no longer rendered
       expect(result).toBeDefined()
     })
 
@@ -374,7 +374,7 @@ describe('ResultsPage i18n', () => {
       const result = await ResultsPage({ params })
 
       expect(result).toBeDefined()
-      expect(mockT).toHaveBeenCalledWith('results.title')
+      // Page title removed as part of story #200 - no longer rendered
     })
   })
 

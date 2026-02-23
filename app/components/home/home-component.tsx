@@ -8,6 +8,7 @@ import FriendGroupsList from "../tournament-page/friend-groups-list";
 import Link from "next/link";
 import { DevTournamentBadge } from "../common/dev-tournament-badge";
 import { useLocale, useTranslations } from 'next-intl';
+import ScrollableContentArea from '../tournament-page/scrollable-content-area';
 
 type HomeProps = {
   tournaments: Tournament[]
@@ -23,60 +24,62 @@ export default function Home({tournaments, groups} : HomeProps) {
   const t = useTranslations('common')
 
   return (
-    <Grid container spacing={2} p={2} maxWidth={'1000px'} mx={'auto'}>
-      <Grid
-        size={{
-          xs: 12,
-          md: 8
-        }}>
-        <Card>
-          <CardHeader
-            title={t('home.availableTournaments')}
-            sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
-            />
-          <CardContent>
-            <Grid container spacing={1}>
-              {tournaments.map(tournament => (
-                <Fragment key={tournament.id}>
-                  <Grid size={12}>
-                    <Link href={`/${locale}/tournaments/${tournament.id}`}>
-                      <Box display="flex" alignItems="center" gap={1}>
-                        {tournament.dev_only && <DevTournamentBadge />}
-                        <Typography
-                        variant={'h6'}
-                          sx={{
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden'
-                          }}>
-                          {tournament.long_name}
-                        </Typography>
-                      </Box>
-                    </Link>
-                  </Grid>
-                </Fragment>
-              ))}
-            </Grid>
-          </CardContent>
-        </Card>
-      </Grid>
-      <Grid
-        size={{
-          xs: 12,
-          md: 4
-        }}>
-        <Grid container spacing={2}>
-          <Grid size={12}>
-            <Rules expanded={false}/>
-          </Grid>
-          {!!groups && (
-            <Grid size={12}>
-              <FriendGroupsList userGroups={groups.userGroups} participantGroups={groups.participantGroups}/>
-            </Grid>
-          )}
+    <ScrollableContentArea>
+      <Grid container spacing={2} maxWidth={'1000px'} mx={'auto'}>
+        <Grid
+          size={{
+            xs: 12,
+            md: 9
+          }}>
+          <Card>
+            <CardHeader
+              title={t('home.availableTournaments')}
+              sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
+              />
+            <CardContent>
+              <Grid container spacing={1}>
+                {tournaments.map(tournament => (
+                  <Fragment key={tournament.id}>
+                    <Grid size={12}>
+                      <Link href={`/${locale}/tournaments/${tournament.id}`}>
+                        <Box display="flex" alignItems="center" gap={1}>
+                          {tournament.dev_only && <DevTournamentBadge />}
+                          <Typography
+                          variant={'h6'}
+                            sx={{
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden'
+                            }}>
+                            {tournament.long_name}
+                          </Typography>
+                        </Box>
+                      </Link>
+                    </Grid>
+                  </Fragment>
+                ))}
+              </Grid>
+            </CardContent>
+          </Card>
         </Grid>
-      </Grid>
+        <Grid
+          size={{
+            xs: 12,
+            md: 3
+          }}>
+          <Grid container spacing={2}>
+            <Grid size={12}>
+              <Rules expanded={false}/>
+            </Grid>
+            {!!groups && (
+              <Grid size={12}>
+                <FriendGroupsList userGroups={groups.userGroups} participantGroups={groups.participantGroups}/>
+              </Grid>
+            )}
+          </Grid>
+        </Grid>
 
-    </Grid>
+      </Grid>
+    </ScrollableContentArea>
   );
 }

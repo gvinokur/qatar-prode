@@ -149,6 +149,10 @@ export default function SamplePredictionStep() {
               maxThirdPlace={0}
               completeGroupIds={new Set<string>()}
               allGroupsComplete={false}
+              games={[]}
+              gameGuessesArray={[]}
+              tournamentPredictionCompletion={null}
+              teamsMap={{}}
             />
           </MockQualifiedTeamsContextProvider>
 

@@ -25,51 +25,63 @@ export default async function Header(props: FrameProps) {
   return (
     <AppBar position={'sticky'}>
       <Box
-        display={'flex'}
-        flexDirection={'row'}
-        px={2}
-        py={1}
-        gap={2}
-        justifyContent={'space-between'}
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          width: '100%'
+        }}
       >
-        <Box>
-          <Link href={`/${locale}`}>
-            <Avatar
-              variant={"rounded"}
-              src={'/logo.webp'}
-              alt={t('app.logoAlt')}
-              sx={{
-                backgroundColor: 'white',
-                height: 60,
-                width: 60,
-                mr: 2,
-              }}/>
-          </Link>
-        </Box>
-        <Typography
-          variant="h6"
-          noWrap
-          alignContent={'center'}
-          sx={{
-            fontWeight: 700,
-            color: 'inherit',
-            textDecoration: 'none',
-            cursor: 'pointer'
-          }}>
-          <Link href={`/${locale}`}>{t('app.title')}</Link>
-        </Typography>
         <Box
-          alignContent={'center'}
-          display={'flex'}
-          flexDirection={'row'}
-          justifyContent={'flex-end'}
-          flexWrap={'wrap'}
-          minWidth={'96px'}
-          gap={0.5}
+          sx={{
+            width: '100%',
+            maxWidth: '1200px',
+            display: 'flex',
+            flexDirection: 'row',
+            px: 2,
+            py: 1,
+            gap: 2,
+            justifyContent: 'space-between'
+          }}
         >
-          <ThemeSwitcher />
-          <LanguageSwitcher />
-          <UserActions user={props.user}/>
+          <Box>
+            <Link href={`/${locale}`}>
+              <Avatar
+                variant={"rounded"}
+                src={'/logo.webp'}
+                alt={t('app.logoAlt')}
+                sx={{
+                  backgroundColor: 'white',
+                  height: 60,
+                  width: 60,
+                  mr: 2,
+                }}/>
+            </Link>
+          </Box>
+          <Typography
+            variant="h6"
+            noWrap
+            alignContent={'center'}
+            sx={{
+              fontWeight: 700,
+              color: 'inherit',
+              textDecoration: 'none',
+              cursor: 'pointer'
+            }}>
+            <Link href={`/${locale}`}>{t('app.title')}</Link>
+          </Typography>
+          <Box
+            alignContent={'center'}
+            display={'flex'}
+            flexDirection={'row'}
+            justifyContent={'flex-end'}
+            flexWrap={'wrap'}
+            minWidth={'96px'}
+            gap={0.5}
+          >
+            <ThemeSwitcher />
+            <LanguageSwitcher />
+            <UserActions user={props.user}/>
+          </Box>
         </Box>
       </Box>
     </AppBar>

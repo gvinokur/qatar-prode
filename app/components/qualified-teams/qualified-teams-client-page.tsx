@@ -4,8 +4,8 @@ import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { DndContext, DragEndEvent, MouseSensor, TouchSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { Container, Typography, Alert, Snackbar, Box, IconButton, Popover, Backdrop, CircularProgress } from '@mui/material';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import { Typography, Alert, Snackbar, Box, Popover, Backdrop, CircularProgress, useMediaQuery } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import LockIcon from '@mui/icons-material/Lock';
 import {
   QualifiedTeamsContextProvider,
@@ -13,8 +13,12 @@ import {
 } from './qualified-teams-context';
 import { Team, TournamentGroup, QualifiedTeamPrediction } from '../../db/tables-definition';
 import QualifiedTeamsGrid from './qualified-teams-grid';
-import ThirdPlaceSummary from './third-place-summary';
 import { QualifiedTeamsScoringResult } from '../../utils/qualified-teams-scoring';
+import { getDismissalState, setDismissalState } from '../../utils/dismissal-storage';
+import { CompactPredictionDashboard } from '../compact-prediction-dashboard';
+import { GuessesContextProvider } from '../context-providers/guesses-context-provider';
+import { customToMap } from '../../utils/ObjectUtils';
+import { ScrollShadowContainer } from '../common/scroll-shadow-container';
 
 interface QualifiedTeamsClientPageProps {
   /** Tournament data */
@@ -22,6 +26,8 @@ interface QualifiedTeamsClientPageProps {
     readonly id: string;
     readonly short_name: string;
     readonly is_active: boolean;
+    readonly max_silver_games?: number | null;
+    readonly max_golden_games?: number | null;
   };
   /** Groups with their teams */
   readonly groups: Array<{
@@ -48,6 +54,12 @@ interface QualifiedTeamsClientPageProps {
   readonly scoringBreakdown?: QualifiedTeamsScoringResult | null;
   /** Whether to show the page header (default: true) */
   readonly showHeader?: boolean;
+  /** Dashboard data */
+  readonly games: any[];
+  readonly gameGuessesArray: any[];
+  readonly tournamentPredictionCompletion: any;
+  readonly tournamentStartDate?: Date;
+  readonly teamsMap: Record<string, Team>;
 }
 
 /** Handle drag end event - batch updates for entire group */
@@ -140,17 +152,29 @@ function QualifiedTeamsUI({
   tournament,
   groups,
   allowsThirdPlace,
-  maxThirdPlace,
   isLocked,
-  actualResults,
   completeGroupIds,
   allGroupsComplete,
   scoringBreakdown,
-  showHeader = true,
+  games,
+  gameGuessesArray,
+  tournamentPredictionCompletion,
+  tournamentStartDate,
+  teamsMap,
 }: Omit<QualifiedTeamsClientPageProps, 'initialPredictions' | 'userId'>) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const t = useTranslations('qualified-teams');
   const { predictions, isSaving, saveState, error, clearError, updateGroupPositions } = useQualifiedTeamsContext();
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
+  const [showLockedSnackbar, setShowLockedSnackbar] = useState(false);
+
+  // Initialize locked snackbar state from localStorage
+  useEffect(() => {
+    const dismissalKey = `dismissedLocked_${tournament.id}_qualifiedTeams`;
+    const isDismissed = getDismissalState(dismissalKey);
+    setShowLockedSnackbar(isLocked && !isDismissed);
+  }, [isLocked, tournament.id]);
 
   // Show snackbar when save succeeds
   useEffect(() => {
@@ -165,6 +189,12 @@ function QualifiedTeamsUI({
 
   const handleCloseErrorSnackbar = () => {
     clearError();
+  };
+
+  const handleCloseLockedSnackbar = () => {
+    const dismissalKey = `dismissedLocked_${tournament.id}_qualifiedTeams`;
+    setDismissalState(dismissalKey, true);
+    setShowLockedSnackbar(false);
   };
 
   const sensors = useSensors(
@@ -250,23 +280,41 @@ function QualifiedTeamsUI({
 
   const infoOpen = Boolean(infoAnchorEl);
 
-  return (
-    <Container maxWidth="xl" sx={{ py: 4, height: '100%' }}>
-      {showHeader && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-          <Typography variant="h4" component="h1">
-            {t('page.title')}
-          </Typography>
-          <IconButton onClick={handleInfoClick} size="small" sx={{ color: 'text.secondary' }}>
-            <InfoOutlinedIcon />
-          </IconButton>
-        </Box>
-      )}
+  // Convert game guesses array to map for GuessesContext
+  const gameGuessesMap = useMemo(
+    () => customToMap(gameGuessesArray, (g: any) => g.game_id),
+    [gameGuessesArray]
+  );
 
-      <Popover
-        open={infoOpen}
-        anchorEl={infoAnchorEl}
-        onClose={handleInfoClose}
+  return (
+    <GuessesContextProvider
+      gameGuesses={gameGuessesMap}
+      autoSave={true}
+      tournamentMaxSilver={tournament.max_silver_games || 0}
+      tournamentMaxGolden={tournament.max_golden_games || 0}
+    >
+      <Box sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: isMobile ? 'auto' : '100%',
+      }}>
+        {/* Fixed header (desktop) */}
+        <Box sx={{ flexShrink: 0 }}>
+          <CompactPredictionDashboard
+            totalGames={games.length}
+            predictedGames={gameGuessesArray.length}
+            tournamentPredictions={tournamentPredictionCompletion}
+            tournamentId={tournament.id}
+            tournamentStartDate={tournamentStartDate}
+            games={games}
+            teamsMap={teamsMap}
+          />
+        </Box>
+
+        <Popover
+          open={infoOpen}
+          anchorEl={infoAnchorEl}
+          onClose={handleInfoClose}
         anchorOrigin={{
           vertical: 'bottom',
           horizontal: 'left',
@@ -297,34 +345,46 @@ function QualifiedTeamsUI({
         </Box>
       </Popover>
 
-      {isLocked && (
-        <Alert severity="info" icon={<LockIcon />} sx={{ mb: 3 }}>
-          {t('page.lockedAlert')}
-        </Alert>
-      )}
-
-      {allowsThirdPlace && (
-        <ThirdPlaceSummary
-          teams={allTeams}
-          predictions={predictions}
-          maxThirdPlace={maxThirdPlace}
-          allowsThirdPlace={allowsThirdPlace}
-        />
-      )}
-
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <QualifiedTeamsGrid
-          groups={groups}
-          predictions={predictions}
-          isLocked={isLocked}
-          isSaving={isSaving}
-          allowsThirdPlace={allowsThirdPlace}
-          onToggleThirdPlace={handleToggleThirdPlace}
-          scoringBreakdown={scoringBreakdown}
-          completeGroupIds={completeGroupIds}
-          allGroupsComplete={allGroupsComplete}
-        />
-      </DndContext>
+        {/* Scrollable content area */}
+        {isMobile ? (
+          // Mobile: Full page scroll, no ScrollShadowContainer
+          <Box sx={{ px: 2, py: 2 }}>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <QualifiedTeamsGrid
+                groups={groups}
+                predictions={predictions}
+                isLocked={isLocked}
+                isSaving={isSaving}
+                allowsThirdPlace={allowsThirdPlace}
+                onToggleThirdPlace={handleToggleThirdPlace}
+                scoringBreakdown={scoringBreakdown}
+                completeGroupIds={completeGroupIds}
+                allGroupsComplete={allGroupsComplete}
+              />
+            </DndContext>
+          </Box>
+        ) : (
+          // Desktop: Scrollable with shadows
+          <ScrollShadowContainer
+            direction="vertical"
+            hideScrollbar={true}
+            sx={{ flex: 1, minHeight: 0, px: 2, py: 2 }}
+          >
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <QualifiedTeamsGrid
+                groups={groups}
+                predictions={predictions}
+                isLocked={isLocked}
+                isSaving={isSaving}
+                allowsThirdPlace={allowsThirdPlace}
+                onToggleThirdPlace={handleToggleThirdPlace}
+                scoringBreakdown={scoringBreakdown}
+                completeGroupIds={completeGroupIds}
+                allGroupsComplete={allGroupsComplete}
+              />
+            </DndContext>
+          </ScrollShadowContainer>
+        )}
 
       <Snackbar
         open={showSuccessSnackbar}
@@ -348,6 +408,16 @@ function QualifiedTeamsUI({
         </Alert>
       </Snackbar>
 
+      <Snackbar
+        open={showLockedSnackbar}
+        onClose={handleCloseLockedSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseLockedSnackbar} severity="info" icon={<LockIcon />} sx={{ width: '100%' }}>
+          {t('page.lockedAlert')}
+        </Alert>
+      </Snackbar>
+
       <Backdrop
         open={isSaving}
         sx={{
@@ -358,7 +428,8 @@ function QualifiedTeamsUI({
       >
         <CircularProgress color="inherit" size={60} />
       </Backdrop>
-    </Container>
+      </Box>
+    </GuessesContextProvider>
   );
 }
 
