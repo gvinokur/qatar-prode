@@ -34,10 +34,11 @@ Currently, unauthenticated users cannot access tournament content. When they try
 ### 2. Tournament Public Page (Main Content)
 - [ ] Display games list (schedule + results) - read-only
 - [ ] Show tournament header (name, dates, logo)
-- [ ] Prominent sticky CTA: "Sign up to make predictions"
+- [ ] Prominent sticky CTA: "Login or Sign up to make predictions"
 - [ ] "Learn how predictions work" button → triggers onboarding flow
 - [ ] All prediction inputs locked/hidden (show lock icons or disabled state)
 - [ ] Clean "read-only" state without feeling broken
+- [ ] All text content uses i18n (next-intl) with proper translation keys
 
 ### 3. Navigation (Unauthenticated State)
 - [ ] **Sidebar shows only:**
@@ -64,13 +65,22 @@ Currently, unauthenticated users cannot access tournament content. When they try
 ### 6. Onboarding Flow Integration
 - [ ] Onboarding can be triggered from public page
 - [ ] Works without authentication (educational only)
-- [ ] End of onboarding shows "Sign up to start predicting" CTA
+- [ ] End of onboarding shows "Login or Sign up to start predicting" CTA
 - [ ] Does not require/modify auth state
+- [ ] All onboarding text uses i18n (next-intl) with proper translation keys
 
 ### 7. Future-Proof Architecture
 - [ ] Code structure supports making tournament the default landing page (Phase 2)
 - [ ] Authentication state easily toggles between limited/full nav
 - [ ] Reuses existing components where possible (DRY principle)
+
+### 8. Internationalization (i18n)
+- [ ] All new UI text uses next-intl translation keys
+- [ ] CTA buttons: "Login or Sign up", "Learn how predictions work"
+- [ ] Empty states: All messages translated
+- [ ] Game card overlays: "Login or sign up to predict" translated
+- [ ] Translation keys added to appropriate i18n namespace (e.g., 'tournament', 'auth', 'common')
+- [ ] No hardcoded English strings in components
 
 ## Technical Approach
 
@@ -232,11 +242,13 @@ interface TournamentBottomNavProps {
 **Required changes:**
 1. Create public onboarding trigger button in `UnifiedGamesPagePublic`
 2. Import and use existing `OnboardingDialogClient` (no modifications needed)
-3. Verify "Sign up to start predicting" CTA exists at end (check OnboardingDialog component)
+3. Verify "Login or sign up to start predicting" CTA exists at end (check OnboardingDialog component)
+4. Ensure all onboarding text uses i18n translation keys
 
 **Button placement:**
-- Sticky CTA bar at top: "Sign up to make predictions | Learn How"
+- Sticky CTA bar at top: "Login or sign up to make predictions | Learn How"
 - "Learn How" button opens onboarding dialog
+- All button labels i18n-enabled
 
 #### 6. Results Page
 
@@ -290,16 +302,18 @@ interface TournamentBottomNavProps {
 
 1. **Sticky CTA Bar** (NEW component):
    - Background: Primary color with contrast
-   - Left: Warning icon + "Sign up to make predictions"
-   - Right: [Learn How] [Sign Up] buttons
+   - Left: Warning icon + "Login or sign up to make predictions"
+   - Right: [Learn How] [Login or Sign Up] buttons
    - Sticky position: Below group selector
    - Dismissible: Optional (UX decision)
+   - All text i18n-enabled with translation keys
 
 2. **Read-Only Game Cards**:
    - Prediction inputs shown with 🔒 lock icon
    - Grayed out/disabled appearance
-   - Overlay text: "Sign up to predict"
-   - Click behavior: Opens sign-up dialog
+   - Overlay text: "Login or sign up to predict"
+   - Click behavior: Opens login/signup dialog
+   - Overlay text i18n-enabled
 
 3. **Sidebar - Public Mode**:
    - ✅ Shows: Group Standings, Rules
@@ -407,15 +421,17 @@ interface TournamentBottomNavProps {
 
 3. **`app/components/tournament-page/public-cta-bar.tsx`** (Client Component)
    - Sticky CTA bar component
-   - "Sign up to make predictions | Learn How | Sign Up"
+   - "Login or sign up to make predictions | Learn How | Login or Sign Up"
    - Handles dialog triggers
    - Responsive design
+   - Uses next-intl for all text (useTranslations hook)
 
 4. **`app/components/tournament-page/read-only-game-card.tsx`** (Client Component)
    - Game card with locked prediction inputs
    - Lock icon overlays
-   - Click opens sign-up dialog
+   - Click opens login/signup dialog
    - Same styling as regular cards
+   - Overlay text i18n-enabled with translation key
 
 5. **`app/[locale]/tournaments/[id]/public/page.tsx`** (OPTIONAL - only if we do separate route)
    - Alternative: Could use query param or pathname check instead
@@ -571,15 +587,16 @@ Manually test `LoginOrSignupDialog`:
 4. **Create Public CTA Bar Component**
    - Create `app/components/tournament-page/public-cta-bar.tsx`
    - Sticky positioning below group selector
-   - "Sign up to make predictions | Learn How | Sign Up" layout
+   - "Login or sign up to make predictions | Learn How | Login or Sign Up" layout
    - Responsive design (mobile + desktop)
+   - Use next-intl `useTranslations` hook for all text
 
 5. **Create Read-Only Game Card Component**
    - Create `app/components/tournament-page/read-only-game-card.tsx`
    - Reuse existing game card styles
    - Add lock icons on prediction inputs
-   - Add overlay text "Sign up to predict"
-   - Click opens sign-up dialog
+   - Add overlay text "Login or sign up to predict" (i18n-enabled)
+   - Click opens login/signup dialog
 
 6. **Create Public Games Page Client**
    - Create `app/components/unified-games-page-public-client.tsx`
@@ -614,7 +631,8 @@ Manually test `LoginOrSignupDialog`:
 9. **Verify Onboarding Works Without Auth**
    - Test `OnboardingDialogClient` without user context
    - Ensure no user-specific data dependencies
-   - Add "Sign up to start" CTA at end if not present
+   - Add "Login or sign up to start" CTA at end if not present
+   - Verify all onboarding text uses i18n
 
 10. **Integrate Onboarding Trigger**
     - Add "Learn How" button to public CTA bar
@@ -658,8 +676,9 @@ Manually test `LoginOrSignupDialog`:
 
 14. **Improve Visual States**
     - Add loading skeletons for public pages
-    - Add empty states ("Tournament starting soon")
-    - Add error states with retry
+    - Add empty states ("Tournament starting soon") - all i18n-enabled
+    - Add error states with retry - all i18n-enabled
+    - Add i18n translation keys to appropriate namespace files
 
 15. **Mobile Responsive Polish**
     - Test CTA bar on mobile (full width)
@@ -682,15 +701,17 @@ Manually test `LoginOrSignupDialog`:
 1. **`public-cta-bar.test.tsx`**
    - Renders correctly
    - "Learn How" button triggers onboarding
-   - "Sign Up" button opens auth dialog
+   - "Login or Sign Up" button opens auth dialog
    - Sticky positioning correct
    - Responsive behavior
+   - i18n translations render correctly
 
 2. **`read-only-game-card.test.tsx`**
    - Displays game data correctly
    - Shows lock icons on inputs
-   - Click opens sign-up dialog
+   - Click opens login/signup dialog
    - Matches visual design
+   - i18n overlay text renders correctly
 
 3. **`unified-games-page-public-client.test.tsx`**
    - Renders games list
