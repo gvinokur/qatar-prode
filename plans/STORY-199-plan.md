@@ -111,6 +111,7 @@ This fix requires visual verification in running app first. The solution is stra
 
 **Font Size Reductions (NEED TO INVESTIGATE DURING IMPLEMENTATION):**
 - Target: Reduce sidebar section header fonts from ~16px to ~14px
+- **IMPORTANT: Do NOT use custom fontSize** - must use theme typography variants or add new variant to theme
 - During implementation: Read each sidebar section component to identify header elements
 - Components to check:
   - `app/components/tournament-page/group-standings-sidebar.tsx`
@@ -118,8 +119,9 @@ This fix requires visual verification in running app first. The solution is stra
   - `app/components/tournament-page/friend-groups-list.tsx`
   - `app/components/tournament-page/rules.tsx`
 - Look for: Typography variant="h6" (default 20px) or CardHeader title props
-- Change to: Typography variant="subtitle1" (16px) or custom fontSize
+- Change to: Typography variant="subtitle1" (16px) **OR** add new theme variant if needed (e.g., "subtitle2")
 - Rule: Do NOT reduce if current font is already ≤14px
+- If no suitable variant exists: Add to theme configuration (app/components/context-providers/theme-provider.tsx)
 
 **Files to Modify:**
 - `app/[locale]/tournaments/[id]/layout.tsx` - Main content grid (line 261) - **DEFINITE**
@@ -147,6 +149,12 @@ Grid changes are straightforward. Font size changes require reading each sidebar
 - Add tonal background to both regions using theme-aware alpha:
   - Main content container: `alpha(theme.palette.primary.main, 0.02)` (subtle tonal)
   - Sidebar container: `alpha(theme.palette.primary.main, 0.04)` (slightly brighter to differentiate)
+- **Add padding to tonal background containers:**
+  - Main content: Add `p: 2` (16px padding) to Box with tonal background to prevent content flush with edges
+  - Sidebar: Add `p: 2` (16px padding) to Grid with tonal background
+- **Ensure spacing between main and sidebar:**
+  - Grid container (line 259) must have `spacing={2}` prop to create gap between main and sidebar
+  - This creates 16px gap between the two tonal regions
 - Both regions clearly defined without elevation conflict
 - All cards (within main and sidebar) keep their existing elevation level (elevation={1})
 
@@ -157,8 +165,12 @@ Grid changes are straightforward. Font size changes require reading each sidebar
 - Test early in implementation to verify visibility in dark mode
 
 **Files to Modify:**
-- `app/[locale]/tournaments/[id]/layout.tsx` - Add tonal background to main content Box (lines 246-252)
-- `app/components/tournament-page/tournament-sidebar.tsx` - Remove Paper wrapper (line 76), add tonal background to outer Grid
+- `app/[locale]/tournaments/[id]/layout.tsx`:
+  - Add tonal background to main content Box (lines 246-252) with `p: 2` padding
+  - Ensure Grid container (line 259) has `spacing={2}` prop
+- `app/components/tournament-page/tournament-sidebar.tsx`:
+  - Remove Paper wrapper (line 76)
+  - Add tonal background to outer Grid with `p: 2` padding
 
 **Visual Result:**
 - Both regions have subtle tonal backgrounds (Material Design 3 pattern)
@@ -252,13 +264,25 @@ Grid changes are straightforward. Font size changes require reading each sidebar
 3. Locate dashboard locked state indicators
 4. Document current colors for each
 
-**Phase 2: Update to Info Blue**
+**Phase 2: Update to Info Blue + Add Closed Icons**
 - **Qualified Teams**: Verify Alert severity="info" (may already be correct)
+  - **NEW**: Add "closed" icon (Lock icon) to each group card header when locked
+  - Provides visual clarity on why cards are not editable
 - **Awards**: No changes needed (already uses severity="info")
+  - **NEW**: Add "closed" icon (Lock icon) to each award selector when locked
+  - Provides visual clarity on why selectors are disabled
 - **Game Cards**: Change "Closed" label color from gray/muted → info.main (blue)
 - **Dashboard**: Change locked state chips from warning/gray → info.main (blue)
   - Keep icons gray if used for visual hierarchy
   - Change chip background to info color
+
+**Additional Icons (NEW REQUIREMENT):**
+- Use Lock icon from `@mui/icons-material/Lock`
+- Place icon next to group card title or in card header
+- Place icon next to award selector label
+- Use info.main color for consistency
+- Small size (fontSize: 'small' or ~16px)
+- Only show when locked/disabled state is true
 
 **Rationale:**
 - Locked state is **informational** (not warning/error)
@@ -268,8 +292,10 @@ Grid changes are straightforward. Font size changes require reading each sidebar
 
 **Files to Modify (Once Located):**
 - `app/components/qualified-teams/qualified-teams-client-page.tsx` - Verify Alert severity
-- Game card component (TBD - find during implementation)
-- Dashboard locked indicator components (TBD - find during implementation)
+- `app/components/qualified-teams/group-card.tsx` - Add Lock icon to group card header when locked
+- `app/components/awards/award-panel.tsx` - Add Lock icon to award selectors when locked
+- Game card component (TBD - find during implementation) - Update "Closed" label color
+- Dashboard locked indicator components (TBD - find during implementation) - Update chip colors
 
 **Visual Result:**
 - All locked state indicators use consistent Info blue color
