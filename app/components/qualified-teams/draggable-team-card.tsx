@@ -184,8 +184,8 @@ function PositionBadge({ position, t }: { readonly position: number; readonly t:
   return (
     <Box
       sx={{
-        minWidth: 48,
-        height: 48,
+        minWidth: 40,
+        height: 40,
         borderRadius: '50%',
         backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[300],
         color: theme.palette.mode === 'dark' ? theme.palette.grey[100] : theme.palette.grey[800],
@@ -193,7 +193,7 @@ function PositionBadge({ position, t }: { readonly position: number; readonly t:
         alignItems: 'center',
         justifyContent: 'center',
         fontWeight: 'bold',
-        fontSize: '1.1rem',
+        fontSize: '0.9rem',
         border: `2px solid ${theme.palette.mode === 'dark' ? theme.palette.grey[700] : theme.palette.grey[400]}`,
       }}
     >
@@ -206,7 +206,7 @@ function PositionBadge({ position, t }: { readonly position: number; readonly t:
 function TeamInfo({ team }: { readonly team: Team }) {
   return (
     <Box sx={{ flex: 1, minWidth: 0 }}>
-      <Typography variant="h6" component="div" sx={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <Typography variant="subtitle1" component="div" sx={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis' }}>
         {team.name}
       </Typography>
     </Box>
@@ -326,27 +326,22 @@ function ResultsOverlay({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5, flexShrink: 0 }}>
-      {/* Icon and chip */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Box sx={{ color: iconColor, display: 'flex', alignItems: 'center' }}>
-          {icon}
-        </Box>
-        <Chip
-          label={chipLabel}
-          size="small"
-          sx={{
-            fontWeight: 600,
-            fontSize: '0.75rem',
-            backgroundColor: chipBackgroundColor,
-            color: chipTextColor,
-          }}
-        />
-      </Box>
+      {/* Chip without icon */}
+      <Chip
+        label={chipLabel}
+        size="small"
+        sx={{
+          fontWeight: 600,
+          fontSize: '0.6875rem',
+          backgroundColor: chipBackgroundColor,
+          color: chipTextColor,
+        }}
+      />
       {/* Explanation text */}
       <Typography
         variant="caption"
         sx={{
-          fontSize: '0.65rem',
+          fontSize: '0.6rem',
           color: 'text.secondary',
           fontStyle: 'italic',
           textAlign: 'right',
@@ -449,8 +444,8 @@ export default function DraggableTeamCard({
           display: 'flex',
           alignItems: 'center',
           gap: 2,
-          p: 2,
-          '&:last-child': { pb: 2 },
+          p: 1.5,
+          '&:last-child': { pb: 1.5 },
         }}
       >
         {!isLocked && <DragHandle disabled={isLocked || isSaving} attributes={attributes} listeners={listeners} />}

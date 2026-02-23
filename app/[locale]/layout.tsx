@@ -87,7 +87,7 @@ export default async function LocaleLayout({
       <head>
         <meta name="apple-mobile-web-app-title" content={appName}/>
       </head>
-      <body style={{minHeight: '100%', paddingBottom: '64px'}}>
+      <body style={{minHeight: '100%'}}>
         <NextIntlClientProvider messages={messages} locale={locale}>
           <TimezoneProvider>
             <CountdownProvider>

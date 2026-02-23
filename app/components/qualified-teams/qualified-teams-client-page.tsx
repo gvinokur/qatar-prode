@@ -6,6 +6,7 @@ import { DndContext, DragEndEvent, MouseSensor, TouchSensor, useSensor, useSenso
 import { arrayMove } from '@dnd-kit/sortable';
 import { Container, Typography, Alert, Snackbar, Box, IconButton, Popover, Backdrop, CircularProgress } from '@mui/material';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import LockIcon from '@mui/icons-material/Lock';
 import {
   QualifiedTeamsContextProvider,
   useQualifiedTeamsContext,
@@ -297,7 +298,7 @@ function QualifiedTeamsUI({
       </Popover>
 
       {isLocked && (
-        <Alert severity="warning" sx={{ mb: 3 }}>
+        <Alert severity="info" icon={<LockIcon />} sx={{ mb: 3 }}>
           {t('page.lockedAlert')}
         </Alert>
       )}

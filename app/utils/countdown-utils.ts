@@ -110,7 +110,7 @@ export function getUrgencyColor(theme: Theme, urgency: UrgencyLevel): string {
     case 'urgent':
       return theme.palette.error.main;
     case 'closed':
-      return theme.palette.text.disabled;
+      return theme.palette.info.main;
     default:
       return theme.palette.text.secondary;
   }
