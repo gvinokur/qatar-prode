@@ -55,39 +55,56 @@ This story addresses inconsistent page layout patterns, scrolling behaviors, ale
 
 **Implementation:**
 
-**Optimization Opportunity:**
-Consider creating a shared helper function `app/utils/tournament-dashboard-data.ts`:
+**Optimization Strategy:**
+
+**Analysis of existing fetches:**
+- **Qualified Teams** already fetches: `tournament`, `groups with teams`, `user predictions`, `config`
+- **Awards** already fetches: `tournament`, `players`, `tournament guesses`, `teams`, `playoff stages`
+- **Matches** already fetches: full dashboard data (games, game guesses, tournament, etc.)
+
+**NEW data needed for dashboard on Qualified Teams & Awards:**
+- `games` (getAllTournamentGames)
+- `gameGuessesArray` (findGameGuessesByUserId)
+- `tournamentPredictionCompletion` (getTournamentPredictionCompletion)
+- `teamsMap` (getTeamsMap) - though both pages already have teams in different formats
+
+**Optimization Approach:**
+Create a **minimal shared helper** `app/utils/tournament-dashboard-data.ts` that ONLY fetches the NEW data:
 ```tsx
-export async function fetchTournamentDashboardData(userId: string, tournamentId: string) {
-  const [games, gameGuessesArray, tournament, teamsMap, tournamentPredictionCompletion] = await Promise.all([
+export async function fetchDashboardOnlyData(userId: string, tournamentId: string, tournament: Tournament) {
+  const [games, gameGuessesArray, tournamentPredictionCompletion] = await Promise.all([
     getAllTournamentGames(tournamentId),
     findGameGuessesByUserId(userId, tournamentId),
-    findTournamentById(tournamentId),
-    getTeamsMap(tournamentId),
-    (async () => {
-      const t = await findTournamentById(tournamentId)
-      return t ? getTournamentPredictionCompletion(userId, tournamentId, t) : null
-    })()
+    getTournamentPredictionCompletion(userId, tournamentId, tournament)
   ])
 
   const tournamentStartDate = games.length > 0
     ? new Date(Math.min(...games.map(g => g.game_date.getTime())))
     : undefined
 
-  return { games, gameGuessesArray, tournament, teamsMap, tournamentPredictionCompletion, tournamentStartDate }
+  return { games, gameGuessesArray, tournamentPredictionCompletion, tournamentStartDate }
 }
 ```
 
-This helper can be reused by:
-- `app/[locale]/tournaments/[id]/page.tsx` (Matches page - already fetches this data)
-- `app/[locale]/tournaments/[id]/qualified-teams/page.tsx` (NEW)
-- `app/[locale]/tournaments/[id]/awards/page.tsx` (NEW)
+**Usage:**
+- **Qualified Teams:** Fetch tournament first (existing), then call helper
+- **Awards:** Fetch tournament first (existing), then call helper
+- **Matches:** Keep current approach (already optimized with Promise.all)
+
+**Alternative (simpler):** Keep inline fetching in each page (more explicit, no over-optimization risk)
+
+**Recommended:** Inline fetching for now - only optimize if duplication becomes a maintenance burden
 
 **Qualified Teams Page:**
 1. **Server component** (`qualified-teams/page.tsx`):
-   - Option A: Use shared helper `fetchTournamentDashboardData(user.id, tournamentId)`
-   - Option B: Keep inline fetching (current approach, more explicit)
-   - **Recommendation:** Use shared helper to reduce duplication across 3 pages
+   - Keep existing tournament fetch (line 146-154)
+   - Add parallel fetch for NEW dashboard data:
+     ```tsx
+     const [dashboardData, /* existing fetches */] = await Promise.all([
+       fetchDashboardOnlyData(user.id, tournamentId, tournament),
+       /* existing fetches */
+     ])
+     ```
    - Pass to client component as props (games, teamsMap, tournamentPredictionCompletion, tournamentStartDate, gameGuessesArray, tournament)
 
 2. **Client component** (`qualified-teams-client-page.tsx`):
