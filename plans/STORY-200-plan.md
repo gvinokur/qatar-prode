@@ -55,16 +55,39 @@ This story addresses inconsistent page layout patterns, scrolling behaviors, ale
 
 **Implementation:**
 
+**Optimization Opportunity:**
+Consider creating a shared helper function `app/utils/tournament-dashboard-data.ts`:
+```tsx
+export async function fetchTournamentDashboardData(userId: string, tournamentId: string) {
+  const [games, gameGuessesArray, tournament, teamsMap, tournamentPredictionCompletion] = await Promise.all([
+    getAllTournamentGames(tournamentId),
+    findGameGuessesByUserId(userId, tournamentId),
+    findTournamentById(tournamentId),
+    getTeamsMap(tournamentId),
+    (async () => {
+      const t = await findTournamentById(tournamentId)
+      return t ? getTournamentPredictionCompletion(userId, tournamentId, t) : null
+    })()
+  ])
+
+  const tournamentStartDate = games.length > 0
+    ? new Date(Math.min(...games.map(g => g.game_date.getTime())))
+    : undefined
+
+  return { games, gameGuessesArray, tournament, teamsMap, tournamentPredictionCompletion, tournamentStartDate }
+}
+```
+
+This helper can be reused by:
+- `app/[locale]/tournaments/[id]/page.tsx` (Matches page - already fetches this data)
+- `app/[locale]/tournaments/[id]/qualified-teams/page.tsx` (NEW)
+- `app/[locale]/tournaments/[id]/awards/page.tsx` (NEW)
+
 **Qualified Teams Page:**
 1. **Server component** (`qualified-teams/page.tsx`):
-   - Import `getTournamentPredictionCompletion` from `db/tournament-prediction-completion-repository`
-   - Import `getAllTournamentGames`, `getTournamentGameCounts` from `db/game-repository`
-   - Import `getTeamsMap` from `actions/tournament-actions`
-   - Import `findGameGuessesByUserId` from `db/game-guess-repository`
-   - Fetch tournament prediction completion data
-   - Fetch games for tournament (`getAllTournamentGames` returns `ExtendedGameData[]`)
-   - Fetch game guesses to get predicted games count
-   - Fetch tournament data to get boost limits (max_silver_games, max_golden_games)
+   - Option A: Use shared helper `fetchTournamentDashboardData(user.id, tournamentId)`
+   - Option B: Keep inline fetching (current approach, more explicit)
+   - **Recommendation:** Use shared helper to reduce duplication across 3 pages
    - Pass to client component as props (games, teamsMap, tournamentPredictionCompletion, tournamentStartDate, gameGuessesArray, tournament)
 
 2. **Client component** (`qualified-teams-client-page.tsx`):
@@ -147,8 +170,7 @@ This story addresses inconsistent page layout patterns, scrolling behaviors, ale
   <Box sx={{
     display: 'flex',
     flexDirection: 'column',
-    height: '100%',
-    ...(isMobile && { overflow: 'auto' }) // Mobile: full page scroll
+    height: isMobile ? 'auto' : '100%', // Mobile: auto height to avoid conflict with parent ScrollableContentArea
   }}>
     {/* Fixed header (desktop) */}
     <Box sx={{ flexShrink: 0 }}>
@@ -271,17 +293,24 @@ This story addresses inconsistent page layout patterns, scrolling behaviors, ale
 
 **Implementation:**
 
-**Chosen Approach: Option B - Wrap in home component** (granular control, only home page affected)
+**Chosen Approach: Option B - Wrap in home component AND friend-groups pages** (granular control)
 
-**Reason:** Tournament layout applies ScrollableContentArea to all tournament pages (matches, results, qualified teams, awards, stats). App layout should match - apply to all app-level pages OR only home. Since user only mentioned "app home", applying only to home is appropriate and prevents unintended visual changes on other pages (e.g., auth pages, settings, friends pages if they exist).
+**Reason:** Tournament layout applies ScrollableContentArea to all tournament pages (matches, results, qualified teams, awards, stats). App layout should match on relevant pages. User feedback identified both app home and friend-groups pages need this treatment.
 
-**Steps:**
-1. Import ScrollableContentArea in `home-component.tsx`:
+**Pages to update:**
+1. `app/components/home/home-component.tsx` (app home)
+2. `app/[locale]/friend-groups/[id]/page.tsx` (friend group detail page)
+
+**Steps for each page:**
+1. Import ScrollableContentArea:
    ```tsx
    import ScrollableContentArea from '../tournament-page/scrollable-content-area'
+   // Or adjust path as needed for friend-groups page
    ```
 
-2. Wrap Grid container (currently lines 26-80):
+2. Wrap main content container:
+
+   **Home page (home-component.tsx lines 26-80):**
    ```tsx
    return (
      <ScrollableContentArea>
@@ -291,8 +320,10 @@ This story addresses inconsistent page layout patterns, scrolling behaviors, ale
      </ScrollableContentArea>
    )
    ```
+   Remove `p={2}` from Grid (ScrollableContentArea provides padding).
 
-3. Remove `p={2}` from Grid (ScrollableContentArea provides padding via ScrollShadowContainer)
+   **Friend groups page:**
+   Similar pattern - wrap main Grid/Container with ScrollableContentArea, remove padding from inner container.
 
 **Pattern reference:**
 - `app/components/tournament-page/scrollable-content-area.tsx` (component implementation)
@@ -302,15 +333,24 @@ This story addresses inconsistent page layout patterns, scrolling behaviors, ale
 
 **Files to modify:**
 - `app/components/awards/award-panel.tsx` (lines 138, 231)
+- `app/components/qualified-teams/qualified-teams-client-page.tsx` (Container component)
 
 **Current state:**
-- Cards have `maxWidth: '800px'` which narrows content unnecessarily
-- Container already has `maxWidth: '1200px'` from layout
+- **Awards:** Cards have `maxWidth: '800px'` which narrows content unnecessarily
+- **Qualified Teams:** Page Container takes full width but groups grid doesn't utilize full space
+- Parent layout already has `maxWidth: '1200px'` constraint from tournament layout
 
 **Implementation:**
+
+**Awards (award-panel.tsx):**
 - Remove `sx={{ maxWidth: '800px', mr: 'auto', ml: 'auto'}}` from both Card components (Podium card line 138, Individual awards card line 231)
 - Let cards expand to full container width
 - Keep spacing between cards (`marginTop: '24px'` on line 231)
+
+**Qualified Teams (qualified-teams-client-page.tsx):**
+- Current: Container component (line 254) with `maxWidth="xl"` which may be creating nested width constraints
+- After Fix 4 changes: Remove Container wrapper entirely (already planned - conflicts with ScrollShadowContainer pattern)
+- Groups grid will naturally expand to full available width within parent tournament layout constraint
 
 ## Visual Prototypes
 
