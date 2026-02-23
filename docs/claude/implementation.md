@@ -259,7 +259,7 @@ Created implementation tasks:
 
 **Purpose:** After defining tasks, classify them by complexity and choose whether to execute with main agent (default) or use hybrid/subagent delegation for efficiency gains.
 
-**This step is OPTIONAL** - The default workflow (main agent implements all tasks) works well for most stories. Hybrid mode is an optimization that may provide speed and cost benefits.
+**Purpose:** After defining tasks, classify them by complexity, apply the recommendation criteria, and proceed with the chosen mode immediately — no user input needed.
 
 #### Step A: Classify Tasks by Complexity
 
@@ -314,9 +314,9 @@ Consider the overall story:
 - ❌ Highly coupled tasks (context loss hurts quality)
 - ❌ First time implementing this type of feature (need holistic view)
 
-#### Step C: Present Analysis to User
+#### Step C: Present Analysis and Proceed with Recommendation
 
-**Format your analysis as follows:**
+**Format your analysis as follows, then immediately proceed with the recommended mode:**
 
 ```markdown
 ## Task Complexity Analysis
@@ -339,46 +339,14 @@ ${COMPLEX_TASK_COUNT} tasks
 - Task ${ID}: ${SUBJECT}
 ...
 
-## Execution Mode Options
-
-**Option 1: Main Agent Mode (Default)**
-- Main agent implements all tasks sequentially
-- ✅ Best quality (full context)
-- ✅ Simplest coordination
-- ✅ Proven workflow
-- ⏱️ Moderate speed
-- 💰 Standard cost
-
-**Option 2: Hybrid Mode**
-- Main agent handles complex tasks
-- Haiku subagents handle simple tasks (parallel where possible)
-- ✅ Faster (parallelization)
-- ✅ Cheaper (Haiku 5-10x less than Sonnet)
-- ⚠️ More coordination overhead
-- ⚠️ Potential quality variance on simple tasks
-- 📊 Estimated: ${SPEED_IMPROVEMENT}% faster, ${COST_REDUCTION}% cheaper
-
-**My Recommendation: ${RECOMMENDATION}**
+**Execution Mode: ${RECOMMENDATION}**
 
 Reasoning: ${REASONING}
 
----
-
-**Which execution mode would you like me to use?**
-- Type "main agent" for Option 1 (default, proven)
-- Type "hybrid" for Option 2 (experimental, optimized)
-
-**DO NOT PROCEED TO SECTION 3 UNTIL USER RESPONDS.**
+Proceeding with ${RECOMMENDATION}...
 ```
 
-#### Step D: Wait for User Choice
-
-**🛑 STOP and WAIT for user to respond. DO NOT continue to Section 3 or 3.5 yet.**
-
-User will choose one of:
-- "main agent" → Proceed to Section 3 (standard execution)
-- "hybrid" → Proceed to Section 3.5 (hybrid execution)
-- No response → Ask again (do NOT default without asking)
+**After presenting this analysis, immediately proceed to Section 3 (main agent mode) or Section 3.5 (hybrid mode) based on your recommendation. Do NOT wait for user input.**
 
 #### Recommendation Guidelines
 

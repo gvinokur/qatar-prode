@@ -213,7 +213,7 @@ This project requires using specific tools during planning:
 
 1. **Exit plan mode** → implementation.md Section 1 (final exit when user says "execute the plan")
 2. **Define tasks with dependencies** → implementation.md Section 2 (use TaskCreate/TaskUpdate)
-3. **[OPTIONAL] Choose execution mode** → implementation.md Section 2.5 (classify tasks, ask user: main agent vs hybrid mode)
+3. **Choose execution mode** → implementation.md Section 2.5 (classify tasks, apply recommendation criteria, proceed immediately — no user input needed)
 4. **Implement in execution waves** → implementation.md Sections 3-4 (standard) or 3.5 (hybrid with Haiku subagents)
 5. **Create tests in parallel** → See [testing.md](docs/claude/testing.md) "Parallel Test Creation"
 6. **Document deviations with amendments** → implementation.md Section 8 (add amendments as gaps/bugs discovered)
