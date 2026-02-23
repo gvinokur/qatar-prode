@@ -761,29 +761,269 @@ export async function getAllTournaments() {
 
 ### Phase 3: Backoffice UI Updates (3-4 hours)
 
-7. **Create reusable i18n field editor component**
-   - Create `/app/components/backoffice/i18n-field-editor.tsx`
-   - Form inputs for EN and ES values
-   - Props: `value: { en: string, es: string }`, `onChange`, `label`
-   - Validation: at least one locale value required
-   - Clear UX: labeled inputs "English" and "Spanish"
+**Existing Backoffice Structure:**
+- **Tournament Data Management** (includes Playoff Stage Management sub-component)
+- **Game Management**
+- **Team Management**
 
-8. **Update tournament form**
-   - Integrate i18n field editor for `long_name_i18n` and `short_name_i18n`
-   - Display both original field and i18n fields
-   - Server action: save i18n JSON to database
+---
 
-9. **Update team form**
-   - Integrate i18n field editor for `name_i18n`
-   - Server action: save i18n JSON to database
+#### 7. Create Reusable i18n Field Editor Component
 
-10. **Update playoff round form**
-    - Integrate i18n field editor for `round_name_i18n`
-    - Server action: save i18n JSON to database
+**File:** `/app/components/backoffice/i18n-field-editor.tsx`
 
-11. **Update game/venue form**
-    - Integrate i18n field editor for `location_i18n`
-    - Server action: save i18n JSON to database
+**Component Design:**
+
+```typescript
+interface I18nFieldEditorProps {
+  label: string;
+  value: { en?: string; es?: string } | null;
+  onChange: (value: { en: string; es: string }) => void;
+  originalValue?: string; // Display reference to original field
+  required?: boolean;
+  helperText?: string;
+}
+
+export function I18nFieldEditor({ label, value, onChange, originalValue, ... }: I18nFieldEditorProps) {
+  // ...
+}
+```
+
+**Visual Layout:**
+
+```
+┌────────────────────────────────────────────────────┐
+│ Tournament Name (Localized)                        │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│ Original Value (Reference):                       │
+│ [Copa América 2024                            ]   │
+│ (Read-only, grayed out)                           │
+│                                                    │
+│ English (en):                                     │
+│ [Copa América 2024                            ]   │
+│                                                    │
+│ Spanish (es):                                     │
+│ [Copa América 2024                            ]   │
+│                                                    │
+│ ⓘ At least one language must be provided         │
+└────────────────────────────────────────────────────┘
+```
+
+**Features:**
+- Two text inputs (EN and ES)
+- Optional display of original field value as reference
+- Validation: at least one locale required
+- Clear labels with flag emojis: "🇺🇸 English" / "🇦🇷 Spanish"
+- Helper text explaining fallback behavior
+
+---
+
+#### 8. Update Tournament Data Management
+
+**Location:** Existing Tournament form (exact path TBD - you'll know the structure)
+
+**Changes Needed:**
+
+**A. Tournament Form (long_name, short_name)**
+
+Add i18n fields after the original fields:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ Tournament Information                                  │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│ Long Name:                                              │
+│ [Copa América 2024                                  ]   │
+│                                                         │
+│ ↓ Add below ↓                                          │
+│                                                         │
+│ <I18nFieldEditor                                       │
+│   label="Long Name (Localized)"                        │
+│   value={tournament.long_name_i18n}                    │
+│   originalValue={tournament.long_name}                 │
+│   onChange={(v) => setTournament({...tournament,       │
+│     long_name_i18n: v                                  │
+│   })}                                                   │
+│ />                                                      │
+│                                                         │
+│ Short Name:                                             │
+│ [copa-america-2024                                  ]   │
+│                                                         │
+│ <I18nFieldEditor                                       │
+│   label="Short Name (Localized)"                        │
+│   value={tournament.short_name_i18n}                   │
+│   originalValue={tournament.short_name}                │
+│   onChange={...}                                        │
+│ />                                                      │
+│                                                         │
+│ [Save Tournament]                                       │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Server Action Update:**
+- Modify `createTournament()` or `updateTournament()` action
+- Accept `long_name_i18n` and `short_name_i18n` from form
+- Save to database: `{ ...data, long_name_i18n, short_name_i18n }`
+
+**B. Playoff Stage Management Sub-Component**
+
+Add i18n field for `round_name`:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ Playoff Stages                                          │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│ Stage Name:                                             │
+│ [Round of 16                                        ]   │
+│                                                         │
+│ <I18nFieldEditor                                       │
+│   label="Stage Name (Localized)"                        │
+│   value={stage.round_name_i18n}                        │
+│   originalValue={stage.round_name}                     │
+│   onChange={...}                                        │
+│ />                                                      │
+│                                                         │
+│ [Add Stage] [Edit] [Delete]                            │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Server Action Update:**
+- Modify playoff stage create/update actions
+- Accept `round_name_i18n` from form
+- Save to database
+
+---
+
+#### 9. Update Game Management
+
+**Location:** Existing Game form
+
+**Changes Needed:**
+
+Add i18n field for `location`:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ Game Information                                        │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│ Home Team:                                              │
+│ [Select team ▼]                                        │
+│                                                         │
+│ Away Team:                                              │
+│ [Select team ▼]                                        │
+│                                                         │
+│ Location/Venue:                                         │
+│ [Munich Football Arena                              ]   │
+│                                                         │
+│ ↓ Add below ↓                                          │
+│                                                         │
+│ <I18nFieldEditor                                       │
+│   label="Location (Localized)"                          │
+│   value={game.location_i18n}                           │
+│   originalValue={game.location}                        │
+│   onChange={(v) => setGame({...game,                   │
+│     location_i18n: v                                   │
+│   })}                                                   │
+│ />                                                      │
+│                                                         │
+│ Game Date:                                              │
+│ [2024-06-14 ▼]                                         │
+│                                                         │
+│ [Save Game]                                             │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Server Action Update:**
+- Modify `createGame()` or `updateGame()` action
+- Accept `location_i18n` from form
+- Save to database
+
+---
+
+#### 10. Update Team Management
+
+**Location:** Existing Team form
+
+**Changes Needed:**
+
+Add i18n field for `name`:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ Team Information                                        │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│ Team Name:                                              │
+│ [Germany                                            ]   │
+│                                                         │
+│ ↓ Add below ↓                                          │
+│                                                         │
+│ <I18nFieldEditor                                       │
+│   label="Team Name (Localized)"                         │
+│   value={team.name_i18n}                               │
+│   originalValue={team.name}                            │
+│   onChange={(v) => setTeam({...team,                   │
+│     name_i18n: v                                       │
+│   })}                                                   │
+│   helperText="Keep same in both languages for          │
+│     canonical names (e.g., 'Germany'), or translate    │
+│     (e.g., EN: 'Germany', ES: 'Alemania')"             │
+│ />                                                      │
+│                                                         │
+│ Short Name:                                             │
+│ [GER]                                                   │
+│                                                         │
+│ Colors:                                                 │
+│ Primary: [#000000] Secondary: [#FF0000]                │
+│                                                         │
+│ [Save Team]                                             │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Server Action Update:**
+- Modify `createTeam()` or `updateTeam()` action
+- Accept `name_i18n` from form
+- Save to database
+
+---
+
+#### 11. Form Validation Rules
+
+**All forms must validate:**
+1. At least one locale value (EN or ES) is provided
+2. If both provided, neither can be empty string
+3. Validation error message: "Please provide at least one translation (English or Spanish)"
+
+**Example validation logic:**
+```typescript
+function validateI18nField(value: { en?: string; es?: string } | null): boolean {
+  if (!value) return false;
+  const hasEn = value.en && value.en.trim().length > 0;
+  const hasEs = value.es && value.es.trim().length > 0;
+  return hasEn || hasEs; // At least one must be provided
+}
+```
+
+---
+
+#### Implementation Notes
+
+**For each form update:**
+1. Import `I18nFieldEditor` component
+2. Add state for `*_i18n` field
+3. Place `I18nFieldEditor` below original field
+4. Update Server Action to accept i18n field
+5. Update database insert/update query to include i18n column
+6. Add validation before save
+
+**No breaking changes:**
+- Existing forms continue working (i18n fields are nullable)
+- Old tournaments/teams/games without i18n values still function
+- Admins can gradually add translations over time
 
 ### Phase 4: Testing (2-3 hours)
 
