@@ -299,7 +299,7 @@ function QualifiedTeamsUI({
         height: isMobile ? 'auto' : '100%',
       }}>
         {/* Fixed header (desktop) */}
-        <Box sx={{ flexShrink: 0 }}>
+        <Box sx={{ flexShrink: 0, pt: 2 }}>
           <CompactPredictionDashboard
             totalGames={games.length}
             predictedGames={gameGuessesArray.length}
