@@ -325,14 +325,26 @@ export async function fetchDashboardOnlyData(userId: string, tournamentId: strin
    // Or adjust path as needed for friend-groups page
    ```
 
-2. Wrap main content container:
+2. **Update grid layout (Story #199 improvement):**
+
+   **Home page (home-component.tsx lines 27-67):**
+   - Change main content grid: `md: 8` → `md: 9` (line 30)
+   - Change sidebar grid: `md: 4` → `md: 3` (line 66)
+   - This matches tournament layout improvement (gives main content +12.5% more space, reduces sidebar prominence)
+
+3. Wrap main content container:
 
    **Home page (home-component.tsx lines 26-80):**
    ```tsx
    return (
      <ScrollableContentArea>
        <Grid container spacing={2} maxWidth={'1000px'} mx={'auto'}>
-         {/* Existing content */}
+         <Grid size={{ xs: 12, md: 9 }}>  {/* Changed from md: 8 */}
+           {/* Tournaments card */}
+         </Grid>
+         <Grid size={{ xs: 12, md: 3 }}>  {/* Changed from md: 4 */}
+           {/* Rules + Friend groups */}
+         </Grid>
        </Grid>
      </ScrollableContentArea>
    )
@@ -340,7 +352,7 @@ export async function fetchDashboardOnlyData(userId: string, tournamentId: strin
    Remove `p={2}` from Grid (ScrollableContentArea provides padding).
 
    **Friend groups page:**
-   Similar pattern - wrap main Grid/Container with ScrollableContentArea, remove padding from inner container.
+   Similar pattern - wrap main Grid/Container with ScrollableContentArea, remove padding from inner container, apply grid size changes if applicable.
 
 **Pattern reference:**
 - `app/components/tournament-page/scrollable-content-area.tsx` (component implementation)
