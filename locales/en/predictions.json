@@ -27,6 +27,7 @@
     "viewLocalTime": "View local time",
     "viewYourTime": "View your time",
     "closed": "Closed",
+    "locked": "Locked",
     "closesIn": "Closes in {countdown}",
     "isPublished": "Is published?",
     "inPlayOrRecentlyFinished": "IN PLAY OR RECENTLY FINISHED"

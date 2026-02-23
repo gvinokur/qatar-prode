@@ -290,4 +290,64 @@ describe('CompactGameViewCard', () => {
       consoleSpy.mockRestore();
     });
   });
+
+  describe('Disabled/Locked State (Fix #6)', () => {
+    it('should display Lock icon when game guess is disabled', () => {
+      const { container } = renderWithTheme(
+        <TestWrapper>
+          <CompactGameViewCard
+            {...guessProps}
+            disabled={true}
+          />
+        </TestWrapper>
+      );
+
+      // Verify Lock icon is present
+      // The Lock icon should be rendered as an SVG with specific data-testid or class
+      const lockIcon = container.querySelector('[data-testid="LockIcon"]');
+      expect(lockIcon).toBeInTheDocument();
+    });
+
+    it('should not display edit button when disabled', () => {
+      const onEditClick = vi.fn();
+      renderWithTheme(
+        <TestWrapper>
+          <CompactGameViewCard
+            {...guessProps}
+            disabled={true}
+            onEditClick={onEditClick}
+          />
+        </TestWrapper>
+      );
+
+      // Edit button should not be present when disabled
+      const buttons = screen.queryAllByRole('button');
+      const editButton = buttons.find(btn =>
+        btn.querySelector('[data-testid="EditIcon"], [data-testid="ScoreboardIcon"]')
+      );
+
+      expect(editButton).toBeUndefined();
+    });
+
+    it('should not call onEditClick when disabled and clicked', () => {
+      const onEditClick = vi.fn();
+      const { container } = renderWithTheme(
+        <TestWrapper>
+          <CompactGameViewCard
+            {...guessProps}
+            disabled={true}
+            onEditClick={onEditClick}
+          />
+        </TestWrapper>
+      );
+
+      // Try clicking the card
+      const card = container.querySelector('.MuiCard-root');
+      if (card) {
+        fireEvent.click(card);
+      }
+
+      expect(onEditClick).not.toHaveBeenCalled();
+    });
+  });
 }); // test comment

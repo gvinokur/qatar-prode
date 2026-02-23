@@ -150,7 +150,7 @@ export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifie
           },
         }}
       >
-        <Typography variant="h5" component="h2">
+        <Typography variant="h6" component="h2">
           {t('groups.title')}
         </Typography>
         {isActive && (
@@ -229,6 +229,7 @@ export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifie
           startIcon={<AssessmentIcon />}
           variant="text"
           color="primary"
+          size="small"
         >
           {t('groups.viewResults')}
         </Button>

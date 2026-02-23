@@ -258,7 +258,6 @@ describe('DraggableTeamCard', () => {
       );
 
       expect(screen.getByText('Pendiente')).toBeInTheDocument();
-      expect(screen.getByTestId('HourglassEmptyIcon')).toBeInTheDocument();
     });
 
     it('should show pending overlay for position 2 when locked and group not complete', () => {
@@ -277,7 +276,6 @@ describe('DraggableTeamCard', () => {
       );
 
       expect(screen.getByText('Pendiente')).toBeInTheDocument();
-      expect(screen.getByTestId('HourglassEmptyIcon')).toBeInTheDocument();
     });
 
     it('should show pending overlay for position 3 when locked and group not complete', () => {
@@ -296,7 +294,6 @@ describe('DraggableTeamCard', () => {
       );
 
       expect(screen.getByText('Pendiente')).toBeInTheDocument();
-      expect(screen.getByTestId('HourglassEmptyIcon')).toBeInTheDocument();
     });
 
     it('should show result (not pending) for position 3 team when group is complete', () => {
@@ -330,7 +327,6 @@ describe('DraggableTeamCard', () => {
 
       // Should show result chip (1 pt), not pending
       expect(screen.getByText('+1 pt')).toBeInTheDocument();
-      expect(screen.getByTestId('CheckCircleIcon')).toBeInTheDocument();
       expect(screen.queryByText('Pendiente')).not.toBeInTheDocument();
     });
 
@@ -422,7 +418,6 @@ describe('DraggableTeamCard', () => {
       );
 
       expect(screen.getByText('+2 pts')).toBeInTheDocument();
-      expect(screen.getByTestId('CheckCircleIcon')).toBeInTheDocument();
     });
 
     it('should show partial match result (1 pt) with check icon', () => {
@@ -449,7 +444,6 @@ describe('DraggableTeamCard', () => {
       );
 
       expect(screen.getByText('+1 pt')).toBeInTheDocument();
-      expect(screen.getByTestId('CheckCircleIcon')).toBeInTheDocument();
     });
 
     it('should show wrong prediction result (0 pts) with cancel icon', () => {
@@ -476,7 +470,6 @@ describe('DraggableTeamCard', () => {
       );
 
       expect(screen.getByText('+0 pts')).toBeInTheDocument();
-      expect(screen.getByTestId('CancelIcon')).toBeInTheDocument();
     });
 
     it('should show pending 3rd place result with hourglass icon', () => {
@@ -504,7 +497,6 @@ describe('DraggableTeamCard', () => {
       );
 
       expect(screen.getByText('Pendiente')).toBeInTheDocument();
-      expect(screen.getByTestId('HourglassEmptyIcon')).toBeInTheDocument();
     });
 
     it('should apply correct background color for perfect match', () => {

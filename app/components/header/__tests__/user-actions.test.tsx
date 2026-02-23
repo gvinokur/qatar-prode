@@ -34,8 +34,10 @@ describe('UserActions i18n', () => {
   it('renders login button with translation key when user is not logged in', () => {
     renderWithTheme(<UserActions />)
 
-    const loginButton = screen.getByRole('button', { name: 'header.login' })
-    expect(loginButton).toBeInTheDocument()
+    // Avatar now renders login text instead of Button (Fix #1)
+    const loginAvatar = screen.getByText('header.login')
+    expect(loginAvatar).toBeInTheDocument()
+    expect(loginAvatar.closest('.MuiAvatar-root')).toBeInTheDocument()
   })
 
   it('renders user menu tooltip with translation key when user is logged in', () => {

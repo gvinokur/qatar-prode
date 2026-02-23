@@ -4,11 +4,12 @@ import { useEffect, useState} from "react";
 import * as React from "react";
 import {
   Avatar,
-  Box, Button,
+  Box,
   Menu,
   MenuItem,
   Tooltip,
   Typography,
+  useTheme,
 } from "@mui/material";
 import {useSearchParams, useRouter} from "next/navigation";
 import LoginOrSignupDialog from "../auth/login-or-signup-dialog";
@@ -23,6 +24,7 @@ type UserActionProps = {
 }
 
 export default function UserActions({ user }: UserActionProps) {
+  const theme = useTheme()
   const locale = useLocale()
   const t = useTranslations('navigation')
   const searchParams = useSearchParams()
@@ -145,12 +147,28 @@ export default function UserActions({ user }: UserActionProps) {
         </Box>
     ) : (
       <Box sx={{ flexGrow: 0 }}>
-        <Button
+        <Avatar
+          variant="rounded"
           onClick={handleOpenLoginDialog}
-          sx={{ my: 2, color: 'white' }}
+          sx={{
+            width: 'auto',
+            minWidth: 60,
+            height: 40,
+            px: 1.5,
+            cursor: 'pointer',
+            bgcolor: 'action.hover',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: theme.palette.primary.contrastText,
+            transition: 'all 0.2s',
+            '&:hover': {
+              bgcolor: 'action.selected',
+              transform: 'scale(1.05)',
+            }
+          }}
         >
           {t('header.login')}
-        </Button>
+        </Avatar>
       </Box>
     )}
       <UserSettingsDialog

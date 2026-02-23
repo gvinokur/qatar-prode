@@ -80,7 +80,15 @@ function Footer({ imageUrl, message }: FooterProps) {
       component="footer"
       elevation={3}
     >
-      <Toolbar sx={{ justifyContent: 'center', flexDirection: 'column', minHeight: 56 }}>
+      <Toolbar sx={{
+        justifyContent: 'center',
+        flexDirection: 'column',
+        height: 56,
+        minHeight: 56,
+        '&.MuiToolbar-root': {
+          minHeight: 56
+        }
+      }}>
         {imageUrl && (
           <Box
             component="img"

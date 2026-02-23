@@ -13,7 +13,7 @@ import {
   Chip,
   alpha
 } from "@mui/material";
-import { Edit as EditIcon, Save as SaveIcon, SaveOutlined as SaveOutlinedIcon, Scoreboard as ScoreboardIcon, EmojiEvents as TrophyIcon } from "@mui/icons-material";
+import { Edit as EditIcon, Save as SaveIcon, SaveOutlined as SaveOutlinedIcon, Scoreboard as ScoreboardIcon, EmojiEvents as TrophyIcon, Lock as LockIcon } from "@mui/icons-material";
 import { GameResultNew, Theme} from "../db/tables-definition";
 import {useState} from "react";
 import { useTranslations } from 'next-intl';
@@ -207,6 +207,11 @@ export default function CompactGameViewCard({
                           <ScoreboardIcon sx={{ width: '20px', height: '20px' }}/>
                         </Badge>
                       </IconButton>
+                    </Tooltip>
+                  )}
+                  {disabled && specificProps.isGameGuess && (
+                    <Tooltip title={t('game.locked')}>
+                      <LockIcon sx={{ color: 'info.main', width: '20px', height: '20px' }}/>
                     </Tooltip>
                   )}
                   {!specificProps.isGameGuess && !disabled && (

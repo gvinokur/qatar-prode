@@ -189,8 +189,8 @@ describe('countdown-utils', () => {
       expect(getUrgencyColor(theme, 'urgent')).toBe(theme.palette.error.main);
     });
 
-    it('should return disabled color for "closed"', () => {
-      expect(getUrgencyColor(theme, 'closed')).toBe(theme.palette.text.disabled);
+    it('should return info color for "closed"', () => {
+      expect(getUrgencyColor(theme, 'closed')).toBe(theme.palette.info.main);
     });
 
     it('should handle different theme modes', () => {

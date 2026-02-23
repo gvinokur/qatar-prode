@@ -218,11 +218,11 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
     }}>
       <CardHeader
         title={t('title')}
+        slotProps={{ title: { variant: fullpage ? 'h4' : 'h6' } }}
         subheader={isActive ? t('status.youAreHere') : undefined}
         sx={{
           color: theme.palette.primary.main,
-          borderBottom: `${theme.palette.primary.light} solid 1px`,
-          ...(fullpage && { typography: 'h4' })
+          borderBottom: `${theme.palette.primary.light} solid 1px`
         }}
         action={
           !fullpage && (
@@ -393,6 +393,7 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
             startIcon={<GavelIcon />}
             variant="text"
             color="primary"
+            size="small"
           >
             {tActions('viewFullRules')}
           </Button>

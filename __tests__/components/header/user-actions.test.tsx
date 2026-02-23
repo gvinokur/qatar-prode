@@ -107,9 +107,20 @@ describe('UserActions', () => {
   describe('without user (logged out state)', () => {
     it('renders login button when user is not provided', () => {
       render(<UserActions />);
-      
+
       expect(screen.getByText('Log In')).toBeInTheDocument();
       expect(screen.queryByLabelText('Abrir Menu de Usuario')).not.toBeInTheDocument();
+    });
+
+    it('renders login as Avatar component (Fix #1)', () => {
+      const { container } = render(<UserActions />);
+
+      // Find the Avatar by its text content
+      const loginAvatar = screen.getByText('Log In');
+
+      // Verify it's rendered and clickable
+      expect(loginAvatar).toBeInTheDocument();
+      expect(loginAvatar.closest('.MuiAvatar-root')).toBeInTheDocument();
     });
 
     it('opens login dialog when login button is clicked', () => {

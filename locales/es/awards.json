@@ -20,8 +20,7 @@
     "unavailableTitle": "Premios Individuales no disponibles",
     "unavailableMessage": "Esta sección estará disponible una vez que se den a conocer las nóminas de los equipos participantes en el torneo",
     "successMessage": "Tus pronósticos se guardaron correctamente!",
-    "lockedTitle": "Predicciones Bloqueadas",
-    "lockedMessage": "Las predicciones ya no están disponibles ya que el torneo ya ha comenzado"
+    "lockedMessage": "Las predicciones están bloqueadas para este torneo. Puedes ver tus predicciones pero no puedes hacer cambios."
   },
   "categories": {
     "bestPlayer": "Mejor Jugador",

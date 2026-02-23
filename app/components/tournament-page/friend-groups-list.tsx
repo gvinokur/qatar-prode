@@ -88,6 +88,7 @@ export default function FriendGroupsList({
       }}>
         <CardHeader
           title={t('title')}
+          slotProps={{ title: { variant: 'h6' } }}
           subheader={isActive ? t('status.youAreHere') : undefined}
           sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
           action={
@@ -142,10 +143,29 @@ export default function FriendGroupsList({
           </List>
         </CardContent>
         </Collapse>
-        <CardActions sx={{ justifyContent: 'space-around', px: 2, py: 1.5 }}>
-          <Button onClick={() => setOpenCreateDialog(true)}>{t('actions.create')}</Button>
+        <CardActions sx={{
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: 1,
+          px: 2,
+          py: 1.5
+        }}>
+          <Button
+            onClick={() => setOpenCreateDialog(true)}
+            size="small"
+            fullWidth
+          >
+            {t('actions.create')}
+          </Button>
           {tournamentId && (userGroups.length + participantGroups.length) > 1 && (
-            <Button component={Link} href={`/${locale}/tournaments/${tournamentId}/friend-groups`} startIcon={<GroupsIcon />}>
+            <Button
+              component={Link}
+              href={`/${locale}/tournaments/${tournamentId}/friend-groups`}
+              startIcon={<GroupsIcon />}
+              size="small"
+              fullWidth
+            >
               {t('actions.view')}
             </Button>
           )}

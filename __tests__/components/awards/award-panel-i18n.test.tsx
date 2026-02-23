@@ -118,7 +118,7 @@ describe('AwardsPanel - i18n', () => {
         'es'
       );
 
-      expect(screen.getByText('Predicciones Bloqueadas')).toBeInTheDocument();
+      expect(screen.getByText('Las predicciones están bloqueadas para este torneo. Puedes ver tus predicciones pero no puedes hacer cambios.')).toBeInTheDocument();
     });
   });
 
@@ -209,9 +209,9 @@ describe('AwardsPanel - i18n', () => {
       );
 
       // Should be Spanish
-      expect(screen.getByText('Predicciones Bloqueadas')).toBeInTheDocument();
+      expect(screen.getByText('Las predicciones están bloqueadas para este torneo. Puedes ver tus predicciones pero no puedes hacer cambios.')).toBeInTheDocument();
       // English text should not appear
-      expect(screen.queryByText('Predictions Locked')).not.toBeInTheDocument();
+      expect(screen.queryByText('Predictions are locked for this tournament. You can view your predictions but cannot make changes.')).not.toBeInTheDocument();
     });
   });
 

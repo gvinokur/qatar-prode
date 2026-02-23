@@ -40,7 +40,7 @@ export function TournamentPredictionCategoryCard({
   // Icon logic - 16px icons
   const getCategoryStatusIcon = (): React.ReactElement => {
     if (isLocked) {
-      return <LockIcon sx={{ fontSize: 16, color: 'text.disabled' }} />;
+      return <LockIcon sx={{ fontSize: 16, color: 'info.main' }} />;
     }
     if (isComplete) {
       return <CheckCircleIcon sx={{ fontSize: 16, color: 'success.main' }} />;
@@ -124,12 +124,10 @@ export function TournamentPredictionCategoryCard({
               icon={<LockIcon />}
               label={t('game.closed')}
               size="small"
+              color="info"
               sx={{
-                bgcolor: 'grey.700',
-                color: 'white',
                 height: '20px',
                 '& .MuiChip-icon': {
-                  color: 'white',
                   fontSize: 14
                 }
               }}
