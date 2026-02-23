@@ -14,8 +14,7 @@ export default function TournamentContentWrapper({ children }: TournamentContent
   return (
     <Box sx={{
       backgroundColor: alpha(theme.palette.primary.main, 0.02),
-      p: 2,
-      minHeight: '100%'
+      p: 2
     }}>
       {children}
     </Box>
