@@ -31,6 +31,15 @@ export const updateTeam = baseFunctions.update
 export const createTeam = baseFunctions.create
 export const deleteTeam =  baseFunctions.delete
 
+/**
+ * Get team by name.
+ *
+ * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
+ * ⚠️ DO NOT add locale parameter to this function
+ * ⚠️ DO NOT apply localization here
+ *
+ * @see applyLocalization() in /app/utils/localization-helper.ts must be called in Server Action layer
+ */
 export const getTeamByName = cache(async (name: string)=> {
   return await db.selectFrom(tableName)
     .where('name', '=', name)
@@ -38,6 +47,15 @@ export const getTeamByName = cache(async (name: string)=> {
     .executeTakeFirst()
 })
 
+/**
+ * Find teams in a tournament.
+ *
+ * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
+ * ⚠️ DO NOT add locale parameter to this function
+ * ⚠️ DO NOT apply localization here
+ *
+ * @see applyLocalization() in /app/utils/localization-helper.ts must be called in Server Action layer
+ */
 export const findTeamInTournament = cache(async (tournamentId: string) => {
   return await db.selectFrom(tableName)
     .innerJoin('tournament_teams', 'tournament_teams.team_id', 'teams.id')
@@ -46,6 +64,15 @@ export const findTeamInTournament = cache(async (tournamentId: string) => {
     .execute();
 })
 
+/**
+ * Find teams in a tournament group.
+ *
+ * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
+ * ⚠️ DO NOT add locale parameter to this function
+ * ⚠️ DO NOT apply localization here
+ *
+ * @see applyLocalization() in /app/utils/localization-helper.ts must be called in Server Action layer
+ */
 export const findTeamInGroup = cache(async (groupId: string) => {
   return await db.selectFrom(tableName)
     .innerJoin('tournament_group_teams', 'tournament_group_teams.team_id', 'teams.id')
@@ -54,6 +81,15 @@ export const findTeamInGroup = cache(async (groupId: string) => {
     .execute();
 })
 
+/**
+ * Find teams guessed by user as qualified in the tournament.
+ *
+ * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
+ * ⚠️ DO NOT add locale parameter to this function
+ * ⚠️ DO NOT apply localization here
+ *
+ * @see applyLocalization() in /app/utils/localization-helper.ts must be called in Server Action layer
+ */
 export const findGuessedQualifiedTeams = cache(async (tournamentId: string, userId: string, inGroupId?:string) => {
  const query = db.selectFrom(tableName)
    .selectAll()
@@ -149,6 +185,12 @@ function addThirdPlaceQualifiers(
  *
  * This allows scoring to progress as groups finish rather than blocking
  * until all groups are complete.
+ *
+ * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
+ * ⚠️ DO NOT add locale parameter to this function
+ * ⚠️ DO NOT apply localization here
+ *
+ * @see applyLocalization() in /app/utils/localization-helper.ts must be called in Server Action layer
  */
 export const findQualifiedTeams = cache(async (tournamentId: string, inGroupId?: string): Promise<QualifiedTeamsResult> => {
   // 1. Get all group standings with completion status

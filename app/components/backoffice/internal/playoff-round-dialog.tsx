@@ -17,6 +17,7 @@ import {
 } from "@mui/material";
 import { createOrUpdatePlayoffRound } from "../../../actions/tournament-actions";
 import {PlayoffRound, PlayoffRoundNew, PlayoffRoundUpdate} from "../../../db/tables-definition";
+import I18nFieldEditor from '../i18n-field-editor';
 
 interface PlayoffRoundDialogProps {
   readonly open: boolean;
@@ -38,6 +39,7 @@ export default function PlayoffRoundDialog({
   const locale = toLocale(useLocale());
   const [loading, setLoading] = useState<boolean>(false);
   const [roundName, setRoundName] = useState<string>('');
+  const [roundNameI18n, setRoundNameI18n] = useState<{ en: string; es: string } | null>(null);
   const [roundOrder, setRoundOrder] = useState<number>(nextOrder);
   const [totalGames, setTotalGames] = useState<number>(1);
   const [isFinal, setIsFinal] = useState<boolean | undefined>(false)
@@ -50,6 +52,7 @@ export default function PlayoffRoundDialog({
       if (round) {
         // Edit mode
         setRoundName(round.round_name);
+        setRoundNameI18n((round.round_name_i18n as { en: string; es: string } | null) || null);
         setRoundOrder(round.round_order);
         setTotalGames(round.total_games);
         setIsFinal(round.is_final);
@@ -57,6 +60,7 @@ export default function PlayoffRoundDialog({
       } else {
         // Create mode
         setRoundName('');
+        setRoundNameI18n(null);
         setRoundOrder(nextOrder);
         setTotalGames(1);
         setIsFinal(false);
@@ -96,6 +100,7 @@ export default function PlayoffRoundDialog({
         id: round?.id,
         tournament_id: tournamentId,
         round_name: roundName,
+        round_name_i18n: roundNameI18n ? roundNameI18n as any : undefined,
         round_order: roundOrder,
         total_games: totalGames,
         is_final: isFinal,
@@ -139,6 +144,18 @@ export default function PlayoffRoundDialog({
               disabled={loading}
             />
           </Grid>
+
+          <Grid size={12}>
+            <I18nFieldEditor
+              label="Round Name (Localized)"
+              value={roundNameI18n}
+              originalValue={roundName}
+              onChange={(value) => setRoundNameI18n(value)}
+              helperText="Optional: Provide translations for the playoff round name"
+              disabled={loading}
+            />
+          </Grid>
+
           <Grid
             size={{
               xs: 12,

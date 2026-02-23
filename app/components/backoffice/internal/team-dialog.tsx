@@ -18,6 +18,7 @@ import { Team } from '../../../db/tables-definition';
 import ImagePicker from '../../friend-groups/image-picker';
 import { createTeam, updateTeam } from '../../../actions/team-actions';
 import {getThemeLogoUrl} from "../../../utils/theme-utils";
+import I18nFieldEditor from '../i18n-field-editor';
 
 interface TeamDialogProps {
   readonly open: boolean;
@@ -39,6 +40,7 @@ export default function TeamDialog({
 
   // State for form fields
   const [name, setName] = useState<string>('');
+  const [nameI18n, setNameI18n] = useState<{ en: string; es: string } | null>(null);
   const [shortName, setShortName] = useState<string>('');
   const [primaryColor, setPrimaryColor] = useState<string>('#1976d2');
   const [secondaryColor, setSecondaryColor] = useState<string>('#dc004e');
@@ -50,6 +52,7 @@ export default function TeamDialog({
   useEffect(() => {
     if (team) {
       setName(team.name || '');
+      setNameI18n((team.name_i18n as { en: string; es: string } | null) || null);
       setShortName(team.short_name || '');
       setPrimaryColor(team.theme?.primary_color || '#1976d2');
       setSecondaryColor(team.theme?.secondary_color || '#dc004e');
@@ -62,6 +65,7 @@ export default function TeamDialog({
   // Reset form to default values
   const resetForm = () => {
     setName('');
+    setNameI18n(null);
     setShortName('');
     setPrimaryColor('#1976d2');
     setSecondaryColor('#dc004e');
@@ -88,6 +92,7 @@ export default function TeamDialog({
       const formData = new FormData();
       formData.append('team', JSON.stringify({
         name: name.trim(),
+        name_i18n: nameI18n,
         short_name: shortName.toUpperCase(),
         theme: {
           primary_color: primaryColor,
@@ -160,6 +165,16 @@ export default function TeamDialog({
               required
               margin="normal"
               helperText="Full team name (e.g. 'Argentina')"
+            />
+          </Grid>
+
+          <Grid size={12}>
+            <I18nFieldEditor
+              label="Team Name (Localized)"
+              value={nameI18n}
+              originalValue={name}
+              onChange={(value) => setNameI18n(value)}
+              helperText="Optional: Provide translations for the team name"
             />
           </Grid>
 

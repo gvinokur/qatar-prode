@@ -1,8 +1,9 @@
 'use server'
 
 import tournaments from "../../data/tournaments";
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, getLocale } from 'next-intl/server';
 import type { Locale } from '../../i18n.config';
+import { applyLocalization } from '../utils/localization-helper';
 import {
   createTournament,
   createTournamentTeam,
@@ -396,7 +397,10 @@ export async function calculateAndSavePlayoffGamesForTournament(tournamentId: st
 }
 
 export async function getGroupDataWithGamesAndTeams(tournamentId: string) {
-  return findGroupsWithGamesAndTeamsInTournament(tournamentId)
+  // Note: This function returns groups with only game_id and team_id arrays,
+  // not full game/team objects, so no localization can be applied here.
+  // Localization should be done where full objects are fetched.
+  return await findGroupsWithGamesAndTeamsInTournament(tournamentId);
 }
 
 export async function recalculateAllPlayoffFirstRoundGameGuesses(tournamentId: string) {
@@ -524,14 +528,23 @@ export async function calculateAndStoreGroupPosition(group_id: string, teamIds: 
 }
 
 export async function findDataForAwards(tournamentId: string) {
+  const locale = await getLocale()
   const [tournament, players] =
     await Promise.all([findTournamentById(tournamentId), findAllPlayersInTournamentWithTeamData(tournamentId)])
 
-  const {id: _id, theme: _theme, short_name: _short_name, long_name: _long_name, is_active: _is_active, ...tournamentUpdate} = tournament || {}
+  const {id: _id, theme: _theme, short_name: _short_name, long_name: _long_name, is_active: _is_active, short_name_i18n: _short_name_i18n, long_name_i18n: _long_name_i18n, ...tournamentUpdate} = tournament || {}
+
+  // Localize team objects within players
+  const localizedPlayers = players.map(player => ({
+    ...player,
+    team: applyLocalization(player.team, locale, [
+      { field: 'name', i18nField: 'name_i18n' }
+    ])
+  }));
 
   return {
     tournamentUpdate,
-    players
+    players: localizedPlayers
   }
 }
 
@@ -838,7 +851,10 @@ export async function copyTournament(
   ));
 
   // Do not activate the tournament automatically
-  return newTournament;
+  return applyLocalization(newTournament, locale, [
+    { field: 'long_name', i18nField: 'long_name_i18n' },
+    { field: 'short_name', i18nField: 'short_name_i18n' }
+  ]);
 }
 
 /**

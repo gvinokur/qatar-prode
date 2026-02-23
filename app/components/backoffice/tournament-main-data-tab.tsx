@@ -30,6 +30,7 @@ import {getThemeLogoUrl} from "../../utils/theme-utils";
 import {useRouter} from "next/navigation";
 import TournamentPermissionsSelector from './tournament-permissions-selector';
 import { getTournamentPermissionData, updateTournamentPermissions } from '../../actions/backoffice-actions';
+import I18nFieldEditor from './i18n-field-editor';
 
 type Props = {
   readonly tournamentId: string;
@@ -43,6 +44,8 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [longName, setLongName] = useState<string>('');
   const [shortName, setShortName] = useState<string>('');
+  const [longNameI18n, setLongNameI18n] = useState<{ en: string; es: string } | null>(null);
+  const [shortNameI18n, setShortNameI18n] = useState<{ en: string; es: string } | null>(null);
   const [theme, setTheme] = useState<Theme>({
     primary_color: '#1976d2',
     secondary_color: '#dc004e',
@@ -106,6 +109,8 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
         setTournament(tournamentData);
         setLongName(tournamentData.long_name || '');
         setShortName(tournamentData.short_name || '');
+        setLongNameI18n((tournamentData.long_name_i18n as { en: string; es: string } | null) || null);
+        setShortNameI18n((tournamentData.short_name_i18n as { en: string; es: string } | null) || null);
         setDevOnly(tournamentData.dev_only || false);
         setDisplayName(tournamentData.display_name || false);
         setTheme({
@@ -172,6 +177,8 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
       formData.append('tournament', JSON.stringify({
         long_name: longName,
         short_name: shortName,
+        long_name_i18n: longNameI18n,
+        short_name_i18n: shortNameI18n,
         theme: theme,
         dev_only: devOnly,
         display_name: displayName,
@@ -385,6 +392,27 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
               helperText="A shorter version of the name (e.g. 'World Cup 2022')"
             />
           </Grid>
+
+          <Grid size={{ xs: 12 }}>
+            <I18nFieldEditor
+              label="Long Name (Localized)"
+              value={longNameI18n}
+              originalValue={longName}
+              onChange={(value) => setLongNameI18n(value)}
+              helperText="Optional: Provide translations for the tournament's long name"
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12 }}>
+            <I18nFieldEditor
+              label="Short Name (Localized)"
+              value={shortNameI18n}
+              originalValue={shortName}
+              onChange={(value) => setShortNameI18n(value)}
+              helperText="Optional: Provide translations for the tournament's short name"
+            />
+          </Grid>
+
           <Grid
             size={{
               xs: 12,

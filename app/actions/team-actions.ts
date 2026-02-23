@@ -1,6 +1,8 @@
 'use server'
 
 import { getLoggedInUser } from './user-actions';
+import { getLocale } from 'next-intl/server';
+import { applyLocalization, applyLocalizationBatch } from '../utils/localization-helper';
 import {Player, PlayerNew, Team} from '../db/tables-definition';
 import {createS3Client, deleteThemeLogoFromS3} from "./s3";
 import {createTeam as createTeamInDb, updateTeam as updateTeaminDb, findTeamInTournament} from "../db/team-repository";
@@ -67,12 +69,15 @@ export async function createTeam(formData: FormData, tournamentId: string): Prom
   };
 
   // Create team in database
+  const locale = await getLocale();
   const newTeam = await createTeamInDb(finalTeamData)
   await createTournamentTeam({
     tournament_id: tournamentId,
     team_id: newTeam.id
   });
-  return newTeam;
+  return applyLocalization(newTeam, locale, [
+    { field: 'name', i18nField: 'name_i18n' }
+  ]);
 }
 
 /**
@@ -126,8 +131,11 @@ export async function updateTeam(teamId: string, formData: FormData): Promise<Te
   };
 
   // Update team in database
+  const locale = await getLocale();
   const updatedTeam = await updateTeaminDb(teamId, finalTeamData);
-  return updatedTeam;
+  return applyLocalization(updatedTeam, locale, [
+    { field: 'name', i18nField: 'name_i18n' }
+  ]);
 }
 
 /**
@@ -142,12 +150,16 @@ export async function getPlayersInTournament(tournamentId: string): Promise<{tea
 
   try {
     // Get all players with their team data
+    const locale = await getLocale();
     const teams = await findTeamInTournament(tournamentId);
+    const localizedTeams = applyLocalizationBatch(teams, locale, [
+      { field: 'name', i18nField: 'name_i18n' }
+    ]);
     const playersWithTeams = await findAllPlayersInTournamentWithTeamData(tournamentId);
 
     // Group players by team
     const teamMap =
-      Object.fromEntries(teams.map(team => [team.id, { team, players: [] as Player[] }]));
+      Object.fromEntries(localizedTeams.map(team => [team.id, { team, players: [] as Player[] }]));
 
     playersWithTeams.forEach(playerWithTeam => {
       const { team, ...player } = playerWithTeam;

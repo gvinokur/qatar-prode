@@ -2,6 +2,8 @@ import { notFound, redirect } from 'next/navigation';
 import { getLoggedInUser } from '../../../../actions/user-actions';
 import { getTournamentQualificationConfig } from '../../../../actions/qualification-actions';
 import { db } from '../../../../db/database';
+import { getLocale } from 'next-intl/server';
+import { applyLocalizationBatch } from '../../../../utils/localization-helper';
 import {
   Team,
   TournamentGroup,
@@ -23,6 +25,7 @@ interface PageProps {
 
 /** Fetch groups with their teams */
 async function fetchGroupsWithTeams(tournamentId: string) {
+  const locale = await getLocale();
   const groups = await db
     .selectFrom('tournament_groups')
     .where('tournament_id', '=', tournamentId)
@@ -36,12 +39,17 @@ async function fetchGroupsWithTeams(tournamentId: string) {
         .selectFrom('tournament_group_teams')
         .innerJoin('teams', 'teams.id', 'tournament_group_teams.team_id')
         .where('tournament_group_teams.tournament_group_id', '=', group.id)
-        .select(['teams.id', 'teams.name', 'teams.short_name', 'teams.theme'])
+        .select(['teams.id', 'teams.name', 'teams.name_i18n', 'teams.short_name', 'teams.theme'])
         .execute();
+
+      // Apply localization to team names
+      const localizedTeams = applyLocalizationBatch(teamAssignments, locale, [
+        { field: 'name', i18nField: 'name_i18n' }
+      ]);
 
       return {
         group,
-        teams: teamAssignments,
+        teams: localizedTeams,
       };
     })
   );

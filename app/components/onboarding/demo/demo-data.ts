@@ -22,10 +22,10 @@ export const DEMO_TOURNAMENT = {
 
 // 4 teams (1 group)
 export const DEMO_TEAMS: Team[] = [
-  { id: 'team-1', name: 'Brasil', short_name: 'BRA', theme: null },
-  { id: 'team-2', name: 'Argentina', short_name: 'ARG', theme: null },
-  { id: 'team-3', name: 'Uruguay', short_name: 'URU', theme: null },
-  { id: 'team-4', name: 'Chile', short_name: 'CHI', theme: null },
+  { id: 'team-1', name: 'Brasil', short_name: 'BRA', theme: null, name_i18n: undefined },
+  { id: 'team-2', name: 'Argentina', short_name: 'ARG', theme: null, name_i18n: undefined },
+  { id: 'team-3', name: 'Uruguay', short_name: 'URU', theme: null, name_i18n: undefined },
+  { id: 'team-4', name: 'Chile', short_name: 'CHI', theme: null, name_i18n: undefined },
 ]
 
 // Demo players for individual awards
@@ -67,6 +67,7 @@ export const DEMO_GAMES: Game[] = [
     home_team_rule: undefined,
     away_team_rule: undefined,
     game_local_timezone: undefined,
+    location_i18n: undefined,
   },
   {
     id: 'game-2',
@@ -80,6 +81,7 @@ export const DEMO_GAMES: Game[] = [
     home_team_rule: undefined,
     away_team_rule: undefined,
     game_local_timezone: undefined,
+    location_i18n: undefined,
   },
   {
     id: 'game-3',
@@ -93,6 +95,7 @@ export const DEMO_GAMES: Game[] = [
     home_team_rule: undefined,
     away_team_rule: undefined,
     game_local_timezone: undefined,
+    location_i18n: undefined,
   },
   {
     id: 'game-4',
@@ -106,6 +109,7 @@ export const DEMO_GAMES: Game[] = [
     home_team_rule: undefined,
     away_team_rule: undefined,
     game_local_timezone: undefined,
+    location_i18n: undefined,
   },
 ]
 

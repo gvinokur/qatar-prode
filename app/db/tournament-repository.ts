@@ -10,6 +10,15 @@ export const updateTournament = baseFunctions.update
 export const createTournament = baseFunctions.create
 export const deleteTournament =  baseFunctions.delete
 
+/**
+ * Find tournament by name.
+ *
+ * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
+ * ⚠️ DO NOT add locale parameter to this function
+ * ⚠️ DO NOT apply localization here
+ *
+ * @see applyLocalization() in /app/utils/localization-helper.ts must be called in Server Action layer
+ */
 export async function findTournamentByName (name:string) {
   return db.selectFrom('tournaments')
     .where('long_name', '=', name)
@@ -17,6 +26,15 @@ export async function findTournamentByName (name:string) {
     .executeTakeFirst()
 }
 
+/**
+ * Find all tournaments.
+ *
+ * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
+ * ⚠️ DO NOT add locale parameter to this function
+ * ⚠️ DO NOT apply localization here
+ *
+ * @see applyLocalization() in /app/utils/localization-helper.ts must be called in Server Action layer
+ */
 export async function findAllTournaments () {
   return db.selectFrom('tournaments')
     .selectAll()
@@ -43,6 +61,15 @@ function buildDevTournamentPermissionCheck(
   )
 }
 
+/**
+ * Find all active tournaments.
+ *
+ * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
+ * ⚠️ DO NOT add locale parameter to this function
+ * ⚠️ DO NOT apply localization here
+ *
+ * @see applyLocalization() in /app/utils/localization-helper.ts must be called in Server Action layer
+ */
 export async function findAllActiveTournaments (userId?: string) {
   const isDevMode = isDevelopmentMode()
 
@@ -64,6 +91,15 @@ export async function findAllActiveTournaments (userId?: string) {
   return query.selectAll().execute()
 }
 
+/**
+ * Create tournament team association.
+ *
+ * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
+ * ⚠️ DO NOT add locale parameter to this function
+ * ⚠️ DO NOT apply localization here
+ *
+ * @see applyLocalization() in /app/utils/localization-helper.ts must be called in Server Action layer
+ */
 export async function createTournamentTeam(tournamentTeam: TournamentTeamTable) {
   return await db.insertInto('tournament_teams')
     .values(tournamentTeam)
