@@ -9,6 +9,7 @@ import {
   MenuItem,
   Tooltip,
   Typography,
+  useTheme,
 } from "@mui/material";
 import {useSearchParams, useRouter} from "next/navigation";
 import LoginOrSignupDialog from "../auth/login-or-signup-dialog";
@@ -23,6 +24,7 @@ type UserActionProps = {
 }
 
 export default function UserActions({ user }: UserActionProps) {
+  const theme = useTheme()
   const locale = useLocale()
   const t = useTranslations('navigation')
   const searchParams = useSearchParams()
@@ -146,14 +148,18 @@ export default function UserActions({ user }: UserActionProps) {
     ) : (
       <Box sx={{ flexGrow: 0 }}>
         <Avatar
+          variant="rounded"
           onClick={handleOpenLoginDialog}
           sx={{
-            width: 40,
+            width: 'auto',
+            minWidth: 60,
             height: 40,
+            px: 1.5,
             cursor: 'pointer',
             bgcolor: 'action.hover',
-            fontSize: '0.7rem',
+            fontSize: '0.875rem',
             fontWeight: 600,
+            color: theme.palette.primary.contrastText,
             transition: 'all 0.2s',
             '&:hover': {
               bgcolor: 'action.selected',
