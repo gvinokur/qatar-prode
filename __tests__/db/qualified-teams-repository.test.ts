@@ -5,6 +5,7 @@ import {
   upsertGroupPositionsPrediction,
   deleteGroupPositionsPrediction,
   deleteAllGroupPositionsPredictions,
+  deleteAllTournamentGroupPositionsPredictions,
 } from '../../app/db/qualified-teams-repository';
 import { db } from '../../app/db/database';
 import { createMockSelectQuery, createMockInsertQuery, createMockDeleteQuery } from './mock-helpers';
@@ -177,6 +178,20 @@ describe('Qualified Teams Repository', () => {
       await deleteAllGroupPositionsPredictions('user-1', 'tournament-1');
 
       expect(mockDb.deleteFrom).toHaveBeenCalledWith('tournament_user_group_positions_predictions');
+    });
+  });
+
+  describe('deleteAllTournamentGroupPositionsPredictions', () => {
+    it('should delete all predictions for a tournament across all users', async () => {
+      const mockQuery = createMockDeleteQuery();
+      mockDb.deleteFrom.mockReturnValue(mockQuery as any);
+
+      await deleteAllTournamentGroupPositionsPredictions('tournament-1');
+
+      // Verify correct table name (matches jsonbTableName constant in repository)
+      expect(mockDb.deleteFrom).toHaveBeenCalledWith('tournament_user_group_positions_predictions');
+      expect(mockQuery.where).toHaveBeenCalledWith('tournament_id', '=', 'tournament-1');
+      expect(mockQuery.execute).toHaveBeenCalled();
     });
   });
 });

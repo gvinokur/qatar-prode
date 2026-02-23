@@ -168,6 +168,7 @@ vi.mock('../../app/db/game-result-repository', () => ({
   findGameResultByGameId: vi.fn(),
   findGameResultByGameIds: vi.fn(),
   updateGameResult: vi.fn(),
+  deleteAllGameResultsByTournamentId: vi.fn(),
 }));
 
 vi.mock('../../app/db/game-guess-repository', () => ({
@@ -194,6 +195,10 @@ vi.mock('../../app/db/tournament-guess-repository', () => ({
   updateTournamentGuessByUserIdTournamentWithSnapshot: vi.fn(),
   deleteAllTournamentGuessesByTournamentId: vi.fn(),
   recalculateGameScoresForUsers: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock('../../app/db/qualified-teams-repository', () => ({
+  deleteAllTournamentGroupPositionsPredictions: vi.fn(),
 }));
 
 vi.mock('../../app/db/users-repository', () => ({
@@ -266,6 +271,7 @@ import * as playerRepository from '../../app/db/player-repository';
 import * as gameResultRepository from '../../app/db/game-result-repository';
 import * as gameGuessRepository from '../../app/db/game-guess-repository';
 import * as tournamentGuessRepository from '../../app/db/tournament-guess-repository';
+import * as qualifiedTeamsRepository from '../../app/db/qualified-teams-repository';
 import * as tournamentVenueRepository from '../../app/db/tournament-venue-repository';
 import * as tournamentThirdPlaceRulesRepository from '../../app/db/tournament-third-place-rules-repository';
 import * as usersRepository from '../../app/db/users-repository';
@@ -282,6 +288,7 @@ import { revalidatePath } from 'next/cache';
 // Mock functions
 const mockDeleteAllGameGuessesByTournamentId = vi.mocked(gameGuessRepository.deleteAllGameGuessesByTournamentId);
 const mockDeleteAllTournamentGuessesByTournamentId = vi.mocked(tournamentGuessRepository.deleteAllTournamentGuessesByTournamentId);
+const mockDeleteAllTournamentGroupPositionsPredictions = vi.mocked(qualifiedTeamsRepository.deleteAllTournamentGroupPositionsPredictions);
 const mockDeleteAllGamesFromTournament = vi.mocked(gameRepository.deleteAllGamesFromTournament);
 const mockDeleteAllPlayoffRoundsInTournament = vi.mocked(tournamentPlayoffRepository.deleteAllPlayoffRoundsInTournament);
 const mockDeleteAllGroupsFromTournament = vi.mocked(tournamentGroupRepository.deleteAllGroupsFromTournament);
@@ -339,6 +346,7 @@ const mockCreateGameResult = vi.mocked(gameResultRepository.createGameResult);
 const mockUpdateGameResult = vi.mocked(gameResultRepository.updateGameResult);
 const mockFindGameResultByGameId = vi.mocked(gameResultRepository.findGameResultByGameId);
 const mockFindGameResultByGameIds = vi.mocked(gameResultRepository.findGameResultByGameIds);
+const mockDeleteAllGameResultsByTournamentId = vi.mocked(gameResultRepository.deleteAllGameResultsByTournamentId);
 
 const mockFindGameGuessesByUserId = vi.mocked(gameGuessRepository.findGameGuessesByUserId);
 const mockUpdateGameGuess = vi.mocked(gameGuessRepository.updateGameGuess);
@@ -537,9 +545,11 @@ describe('Backoffice Actions', () => {
       expect(mockRevalidatePath).toHaveBeenCalledWith(`/tournaments/${mockTournament.id}/backoffice`);
       expect(mockDeleteAllGameGuessesByTournamentId).toHaveBeenCalledWith(mockTournament.id);
       expect(mockDeleteAllTournamentGuessesByTournamentId).toHaveBeenCalledWith(mockTournament.id);
+      expect(mockDeleteAllTournamentGroupPositionsPredictions).toHaveBeenCalledWith(mockTournament.id);
       expect(mockDeleteAllPlayersInTournament).toHaveBeenCalledWith(mockTournament.id);
       expect(mockDeleteAllTournamentVenues).toHaveBeenCalledWith(mockTournament.id);
       expect(mockDeleteThirdPlaceRulesByTournament).toHaveBeenCalledWith(mockTournament.id);
+      expect(mockDeleteAllGameResultsByTournamentId).toHaveBeenCalledWith(mockTournament.id);
       expect(mockDeleteAllGamesFromTournament).toHaveBeenCalledWith(mockTournament.id);
       expect(mockDeleteAllPlayoffRoundsInTournament).toHaveBeenCalledWith(mockTournament.id);
       expect(mockDeleteAllGroupsFromTournament).toHaveBeenCalledWith(mockTournament.id);

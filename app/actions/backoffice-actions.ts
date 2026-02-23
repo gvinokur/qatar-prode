@@ -63,7 +63,8 @@ import {
   createGameResult,
   findGameResultByGameId,
   findGameResultByGameIds,
-  updateGameResult
+  updateGameResult,
+  deleteAllGameResultsByTournamentId
 } from "../db/game-result-repository";
 import {calculatePlayoffTeams} from "../utils/playoff-teams-calculator";
 import {
@@ -83,6 +84,9 @@ import {
   deleteAllTournamentGuessesByTournamentId,
   recalculateGameScoresForUsers
 } from "../db/tournament-guess-repository";
+import {
+  deleteAllTournamentGroupPositionsPredictions
+} from "../db/qualified-teams-repository";
 import {awardsDefinition} from "../utils/award-utils";
 import {getLoggedInUser} from "./user-actions";
 import { revalidatePath } from 'next/cache';
@@ -114,11 +118,13 @@ export async function deleteDBTournamentTree(tournament: Tournament, locale: Loc
   // User-related data
   await deleteAllGameGuessesByTournamentId(tournament.id);
   await deleteAllTournamentGuessesByTournamentId(tournament.id);
+  await deleteAllTournamentGroupPositionsPredictions(tournament.id);
 
   // Tournament structure and content
   await deleteAllPlayersInTournament(tournament.id);
   await deleteAllTournamentVenues(tournament.id);
   await deleteThirdPlaceRulesByTournament(tournament.id);
+  await deleteAllGameResultsByTournamentId(tournament.id);
   await deleteAllGamesFromTournament(tournament.id);
   await deleteAllPlayoffRoundsInTournament(tournament.id);
   await deleteAllGroupsFromTournament(tournament.id);

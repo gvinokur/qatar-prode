@@ -41,3 +41,25 @@ export const findGameResultByGameIds = cache(async function(gameIds: string[], i
     .where('is_draft', 'in', [false, includeDrafts])
     .execute()
 })
+
+/**
+ * Delete all game results for a tournament
+ * Used when deleting a tournament (admin operation)
+ */
+export async function deleteAllGameResultsByTournamentId(tournamentId: string): Promise<void> {
+  // First get all game IDs for this tournament
+  const games = await db
+    .selectFrom('games')
+    .select('id')
+    .where('tournament_id', '=', tournamentId)
+    .execute();
+
+  const gameIds = games.map(g => g.id);
+
+  if (gameIds.length > 0) {
+    await db
+      .deleteFrom('game_results')
+      .where('game_id', 'in', gameIds)
+      .execute();
+  }
+}

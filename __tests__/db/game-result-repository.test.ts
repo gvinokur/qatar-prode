@@ -4,10 +4,11 @@ import {
   updateGameResult,
   findGameResultByGameId,
   findGameResultByGameIds,
+  deleteAllGameResultsByTournamentId,
 } from '../../app/db/game-result-repository';
 import { db } from '../../app/db/database';
 import { testFactories } from './test-factories';
-import { createMockSelectQuery, createMockInsertQuery, createMockUpdateQuery } from './mock-helpers';
+import { createMockSelectQuery, createMockInsertQuery, createMockUpdateQuery, createMockDeleteQuery } from './mock-helpers';
 
 // Mock the database
 vi.mock('../../app/db/database', () => ({
@@ -406,6 +407,52 @@ describe('Game Result Repository', () => {
 
       expect(result?.home_penalty_score).toBeUndefined();
       expect(result?.away_penalty_score).toBeUndefined();
+    });
+  });
+
+  describe('deleteAllGameResultsByTournamentId', () => {
+    it('should delete all game results for a tournament', async () => {
+      // Mock getting games for tournament
+      const mockGames = [
+        { id: 'game-1' },
+        { id: 'game-2' },
+        { id: 'game-3' },
+      ];
+      const mockSelectQuery = createMockSelectQuery(mockGames, 'execute');
+      mockDb.selectFrom.mockReturnValue(mockSelectQuery as any);
+
+      // Mock delete query
+      const mockDeleteQuery = createMockDeleteQuery();
+      mockDb.deleteFrom.mockReturnValue(mockDeleteQuery as any);
+
+      await deleteAllGameResultsByTournamentId('tournament-1');
+
+      // Verify it queries for games in the tournament
+      expect(mockDb.selectFrom).toHaveBeenCalledWith('games');
+      expect(mockSelectQuery.select).toHaveBeenCalledWith('id');
+      expect(mockSelectQuery.where).toHaveBeenCalledWith('tournament_id', '=', 'tournament-1');
+      expect(mockSelectQuery.execute).toHaveBeenCalled();
+
+      // Verify it deletes game results for those games
+      expect(mockDb.deleteFrom).toHaveBeenCalledWith('game_results');
+      expect(mockDeleteQuery.where).toHaveBeenCalledWith('game_id', 'in', ['game-1', 'game-2', 'game-3']);
+      expect(mockDeleteQuery.execute).toHaveBeenCalled();
+    });
+
+    it('should not delete when tournament has no games', async () => {
+      // Mock getting no games for tournament
+      const mockSelectQuery = createMockSelectQuery([], 'execute');
+      mockDb.selectFrom.mockReturnValue(mockSelectQuery as any);
+
+      await deleteAllGameResultsByTournamentId('tournament-1');
+
+      // Verify it queries for games
+      expect(mockDb.selectFrom).toHaveBeenCalledWith('games');
+      expect(mockSelectQuery.where).toHaveBeenCalledWith('tournament_id', '=', 'tournament-1');
+      expect(mockSelectQuery.execute).toHaveBeenCalled();
+
+      // Verify it does NOT try to delete (no games = no delete call)
+      expect(mockDb.deleteFrom).not.toHaveBeenCalled();
     });
   });
 
