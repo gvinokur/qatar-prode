@@ -150,7 +150,7 @@ export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifie
           },
         }}
       >
-        <Typography variant="h7" component="h2">
+        <Typography variant="h6" component="h2">
           {t('groups.title')}
         </Typography>
         {isActive && (
