@@ -218,7 +218,7 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
     }}>
       <CardHeader
         title={t('title')}
-        titleTypographyProps={{ variant: fullpage ? 'h4' : 'subtitle1' }}
+        titleTypographyProps={{ variant: fullpage ? 'h4' : 'h7' }}
         subheader={isActive ? t('status.youAreHere') : undefined}
         sx={{
           color: theme.palette.primary.main,
@@ -239,7 +239,7 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
       />
       <Collapse in={fullpage ? true : expanded} timeout="auto" unmountOnExit>
         <CardContent sx={{ borderBottom: `${theme.palette.primary.contrastText} 1px solid`, borderTop: `${theme.palette.primary.contrastText} 1px solid` }}>
-          <Typography variant={'subtitle1'}>
+          <Typography variant={'h7'}>
             {t('sections.scoring')}
           </Typography>
           <List disablePadding>
@@ -311,7 +311,7 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
               </ListItem>
             ))}
           </List>
-          <Typography variant={'subtitle1'}>
+          <Typography variant={'h7'}>
             {t('sections.constraints')}
           </Typography>
           <List disablePadding>

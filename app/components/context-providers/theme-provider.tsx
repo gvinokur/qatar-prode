@@ -97,6 +97,13 @@ export default function AppThemeProvider(
     palette: {
       ...themeToUse
     },
+    typography: {
+      h7: {
+        fontSize: '1.125rem', // 18px
+        fontWeight: 500,
+        lineHeight: 1.6,
+      },
+    },
   });
 
   return mounted && <ThemeProvider theme={theme}>{children}</ThemeProvider>

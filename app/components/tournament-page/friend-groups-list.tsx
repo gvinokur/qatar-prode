@@ -88,7 +88,7 @@ export default function FriendGroupsList({
       }}>
         <CardHeader
           title={t('title')}
-          titleTypographyProps={{ variant: 'subtitle1' }}
+          titleTypographyProps={{ variant: 'h7' }}
           subheader={isActive ? t('status.youAreHere') : undefined}
           sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
           action={
