@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { getDismissalState, setDismissalState } from '../dismissal-storage';
 
 describe('dismissal-storage', () => {
