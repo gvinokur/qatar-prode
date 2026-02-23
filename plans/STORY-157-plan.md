@@ -67,6 +67,8 @@ Currently, tournament static data (team names, venue locations, playoff stage na
 
 ### Architecture
 
+**🎯 KEY DECISION: Localization happens at Service/Action Layer (NOT Repository Layer)**
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Database Layer (NEW)                     │
@@ -78,25 +80,53 @@ Currently, tournament static data (team names, venue locations, playoff stage na
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│              Generic Localization Helper (NEW)              │
-│  getLocalizedName(field_value, i18n_json, locale)         │
-│    → If i18n_json[locale] exists: return it               │
-│    → Otherwise: return field_value (fallback)             │
+│              Repository Layer (UNCHANGED)                   │
+│  ⚠️  Returns RAW data with i18n fields intact              │
+│  ⚠️  NO locale parameter                                   │
+│  ⚠️  NO localization logic                                 │
+│                                                             │
+│  Example:                                                   │
+│  findTournamentById(id) → {                                │
+│    long_name: "Copa América 2024",                         │
+│    long_name_i18n: { en: "...", es: "..." }               │
+│  }                                                          │
 └─────────────────────────────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│              Repository/Service Layer (Modified)            │
-│  applyLocalization(data, locale)                           │
-│    → Transforms DB rows using getLocalizedName()          │
-│    → Returns localized data to components                 │
+│         🎯 Service/Action Layer (LOCALIZATION HERE)        │
+│                                                             │
+│  1. Get locale from next-intl                              │
+│  2. Fetch raw data from repository                         │
+│  3. Apply localization with applyLocalization()            │
+│  4. Return localized data to component                     │
+│                                                             │
+│  Example Server Action:                                     │
+│  export async function getTournament(id) {                 │
+│    const locale = await getLocale();                       │
+│    const raw = await tournamentRepo.findById(id);          │
+│    return applyLocalization(raw, locale, [...]);           │
+│  }                                                          │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│              Generic Localization Helpers (NEW)             │
+│  applyLocalization(data, locale, fields)                   │
+│    → Replaces field values with locale-specific versions   │
+│    → Returns new object with localized strings            │
+│                                                             │
+│  applyLocalizationBatch(dataArray, locale, fields)         │
+│    → Same but for arrays                                   │
 └─────────────────────────────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                    UI Components (Render)                   │
-│  Team display: {team.name} (already localized by repo)    │
+│  Receive fully localized data from actions                 │
+│  Team display: {team.name} (already localized)            │
 │  Venue display: {game.location} (already localized)       │
+│  ⚠️  NO localization logic in components                   │
 └─────────────────────────────────────────────────────────────┘
                             │
                             ▼
@@ -106,6 +136,13 @@ Currently, tournament static data (team names, venue locations, playoff stage na
 │  Validation: at least one locale value required           │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+**Why Service/Action Layer?**
+1. **Repository Purity** - Repositories stay pure data access, no presentation logic
+2. **Clear Responsibility** - Actions orchestrate: fetch data, transform for presentation, return to components
+3. **Flexible Caching** - Can cache raw repository results, localize per-request
+4. **Component Simplicity** - Components receive clean, localized data (no i18n logic)
+5. **Next.js Pattern** - Server Actions are the natural "API layer" between server and client
 
 ### Database Schema Changes
 
@@ -185,67 +222,40 @@ Currently, tournament static data (team names, venue locations, playoff stage na
 - Extensible to more locales: `{ "en": "...", "es": "...", "pt": "..." }`
 - Nullable: If `null` or missing locale key, falls back to original field value
 
-### Generic Localization Helper
+### Localization Helper Functions
 
 Create new file: `/app/utils/localization-helper.ts`
 
 ```typescript
 /**
- * Generic function to get localized name from i18n JSON field with fallback
- *
- * @param fieldValue - Original field value (e.g., "Germany", "Munich Football Arena")
- * @param i18nJson - JSON object with locale keys: { en: "...", es: "..." }
- * @param locale - Target locale ('en' | 'es')
- * @returns Localized value if exists, otherwise returns fieldValue
- *
- * @example
- * const team = { name: "Germany", name_i18n: { en: "Germany", es: "Alemania" } };
- * getLocalizedName(team.name, team.name_i18n, 'es') // Returns "Alemania"
- * getLocalizedName(team.name, team.name_i18n, 'en') // Returns "Germany"
- * getLocalizedName(team.name, null, 'es') // Returns "Germany" (fallback)
- */
-export function getLocalizedName(
-  fieldValue: string,
-  i18nJson: Record<string, string> | null | undefined,
-  locale: string
-): string {
-  // If no i18n JSON provided, return original value
-  if (!i18nJson) {
-    return fieldValue;
-  }
-
-  // If locale exists in JSON, return it
-  if (i18nJson[locale]) {
-    return i18nJson[locale];
-  }
-
-  // Fallback to original field value
-  if (process.env.NODE_ENV === 'development') {
-    console.warn(
-      `[i18n] Missing locale "${locale}" for field value "${fieldValue}". ` +
-      `Available locales: ${Object.keys(i18nJson).join(', ')}`
-    );
-  }
-
-  return fieldValue;
-}
-
-/**
  * Apply localization to an object with multiple i18n fields
  *
- * @example
- * const tournament = {
- *   long_name: "Copa América 2024",
- *   long_name_i18n: { en: "Copa América 2024", es: "Copa América 2024" },
- *   short_name: "copa-america-2024",
- *   short_name_i18n: { en: "Copa América 2024", es: "Copa América 2024" }
- * };
+ * ⚠️ IMPORTANT: This function should be called in Server Actions ONLY
+ * ⚠️ DO NOT call this in repositories or components
+ * ⚠️ Repositories return raw data, Actions apply localization
  *
- * applyLocalization(tournament, 'es', [
- *   { field: 'long_name', i18nField: 'long_name_i18n' },
- *   { field: 'short_name', i18nField: 'short_name_i18n' }
- * ]);
- * // tournament.long_name and tournament.short_name are now localized
+ * @param data - Object with both field and field_i18n properties
+ * @param locale - Target locale ('en' | 'es')
+ * @param fields - Array of field mappings: { field: 'name', i18nField: 'name_i18n' }
+ * @returns New object with localized field values
+ *
+ * @example
+ * // ✅ CORRECT: Use in Server Action
+ * export async function getTournament(id: string) {
+ *   const locale = await getLocale();
+ *   const tournament = await tournamentRepo.findById(id); // Raw data
+ *   return applyLocalization(tournament, locale, [
+ *     { field: 'long_name', i18nField: 'long_name_i18n' },
+ *     { field: 'short_name', i18nField: 'short_name_i18n' }
+ *   ]);
+ * }
+ *
+ * @example
+ * // ❌ WRONG: Do NOT use in repository
+ * export function findTournamentById(id: string, locale: string) {
+ *   const tournament = await db.selectFrom('tournaments')...;
+ *   return applyLocalization(tournament, locale, [...]); // NO!
+ * }
  */
 export function applyLocalization<T extends Record<string, any>>(
   data: T,
@@ -258,7 +268,24 @@ export function applyLocalization<T extends Record<string, any>>(
     const originalValue = data[field] as string;
     const i18nJson = data[i18nField] as Record<string, string> | null | undefined;
 
-    localized[field] = getLocalizedName(originalValue, i18nJson, locale) as T[keyof T];
+    // If no i18n JSON provided, keep original value
+    if (!i18nJson) {
+      continue;
+    }
+
+    // If locale exists in JSON, use it
+    if (i18nJson[locale]) {
+      localized[field] = i18nJson[locale] as T[keyof T];
+    } else {
+      // Fallback to original value
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(
+          `[i18n] Missing locale "${locale}" for field "${String(field)}" ` +
+          `with value "${originalValue}". Available locales: ${Object.keys(i18nJson).join(', ')}`
+        );
+      }
+      // Keep original value (already in localized object)
+    }
   }
 
   return localized;
@@ -266,6 +293,18 @@ export function applyLocalization<T extends Record<string, any>>(
 
 /**
  * Batch localization for arrays of objects
+ *
+ * ⚠️ IMPORTANT: Use in Server Actions ONLY (same rules as applyLocalization)
+ *
+ * @example
+ * // ✅ CORRECT: Use in Server Action
+ * export async function getGamesForTournament(tournamentId: string) {
+ *   const locale = await getLocale();
+ *   const games = await gameRepo.findByTournament(tournamentId); // Raw data
+ *   return applyLocalizationBatch(games, locale, [
+ *     { field: 'location', i18nField: 'location_i18n' }
+ *   ]);
+ * }
  */
 export function applyLocalizationBatch<T extends Record<string, any>>(
   dataArray: T[],
@@ -349,16 +388,16 @@ With database locale fields, all internationalizable data follows the same patte
    - All columns: `JSONB` type, nullable
 
 2. **`/app/utils/localization-helper.ts`**
-   - Generic `getLocalizedName()` function
    - `applyLocalization()` function for single objects
    - `applyLocalizationBatch()` function for arrays
-   - Export all three functions
+   - Export both functions
+   - **Extensive JSDoc documentation** with warnings about where to use
 
 3. **`/__tests__/utils/localization-helper.test.ts`**
-   - Unit tests for `getLocalizedName()`
+   - Unit tests for `applyLocalization()`
    - Test fallback behavior when i18n JSON is null
    - Test fallback behavior when locale missing from JSON
-   - Test `applyLocalization()` for objects
+   - Test multiple field localization
    - Test `applyLocalizationBatch()` for arrays
 
 4. **Backoffice Components** (location TBD based on existing backoffice structure)
@@ -380,39 +419,176 @@ With database locale fields, all internationalizable data follows the same patte
 ### Database Schema
 
 1. **`/app/db/tables-definition.ts`**
-   - Add `long_name_i18n?: JSONColumnType<Record<string, string>>` to `TournamentTable`
-   - Add `short_name_i18n?: JSONColumnType<Record<string, string>>` to `TournamentTable`
-   - Add `name_i18n?: JSONColumnType<Record<string, string>>` to `TeamTable`
-   - Add `round_name_i18n?: JSONColumnType<Record<string, string>>` to `PlayoffRoundTable`
-   - Add `location_i18n?: JSONColumnType<Record<string, string>>` to `GameTable`
+   - Add i18n columns with **extensive documentation for future agents**:
+
+```typescript
+/**
+ * Tournament table with internationalization support
+ *
+ * ⚠️ LOCALIZATION PATTERN:
+ * - Repositories return RAW data (both 'long_name' and 'long_name_i18n')
+ * - Server Actions apply localization using applyLocalization()
+ * - Components receive localized data (only 'long_name' matters to them)
+ *
+ * ⚠️ DO NOT add locale parameters to repository functions
+ * ⚠️ DO add applyLocalization() calls in Server Actions
+ */
+export interface TournamentTable extends Identifiable {
+  // ... existing fields ...
+
+  /**
+   * Localized tournament name (JSON: { en: "...", es: "..." })
+   * ⚠️ Must be localized in Server Action before returning to component
+   * @see applyLocalization() in /app/utils/localization-helper.ts
+   */
+  long_name_i18n?: JSONColumnType<Record<string, string>>;
+
+  /**
+   * Localized short name (JSON: { en: "...", es: "..." })
+   * ⚠️ Must be localized in Server Action before returning to component
+   */
+  short_name_i18n?: JSONColumnType<Record<string, string>>;
+}
+
+/**
+ * Team table with internationalization support
+ *
+ * ⚠️ Same localization pattern as TournamentTable
+ */
+export interface TeamTable extends Identifiable {
+  // ... existing fields ...
+
+  /**
+   * Localized team name (JSON: { en: "...", es: "..." })
+   * ⚠️ Must be localized in Server Action before returning to component
+   */
+  name_i18n?: JSONColumnType<Record<string, string>>;
+}
+
+/**
+ * Playoff round table with internationalization support
+ *
+ * ⚠️ Same localization pattern as TournamentTable
+ */
+export interface PlayoffRoundTable extends Identifiable {
+  // ... existing fields ...
+
+  /**
+   * Localized round name (JSON: { en: "...", es: "..." })
+   * ⚠️ Must be localized in Server Action before returning to component
+   */
+  round_name_i18n?: JSONColumnType<Record<string, string>>;
+}
+
+/**
+ * Game table with internationalization support
+ *
+ * ⚠️ Same localization pattern as TournamentTable
+ */
+export interface GameTable extends Identifiable {
+  // ... existing fields ...
+
+  /**
+   * Localized location/venue name (JSON: { en: "...", es: "..." })
+   * ⚠️ Must be localized in Server Action before returning to component
+   */
+  location_i18n?: JSONColumnType<Record<string, string>>;
+}
+```
 
 ### Repository Layer
 
-2. **`/app/db/tournament-repository.ts`**
-   - Add locale parameter to query functions
-   - Apply localization using `applyLocalization()` before returning data
-   - Example: `findTournamentById(id, locale)` → apply localization to result
+**⚠️ CRITICAL: Repositories DO NOT apply localization**
 
-3. **`/app/db/team-repository.ts`** (if exists, or create)
-   - Add locale parameter to team query functions
-   - Apply localization to team data
+2. **`/app/db/tournament-repository.ts`**
+   - **NO changes to function signatures** (no locale parameter)
+   - **NO localization logic**
+   - Returns raw data with i18n fields intact
+   - Add JSDoc documentation:
+
+```typescript
+/**
+ * Find tournament by ID
+ *
+ * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
+ * ⚠️ DO NOT add locale parameter to this function
+ * ⚠️ DO NOT apply localization here
+ *
+ * @returns Tournament with both 'long_name' and 'long_name_i18n' fields
+ * @see applyLocalization() must be called in Server Action layer
+ */
+export async function findTournamentById(id: string): Promise<Tournament> {
+  // ... existing implementation (unchanged) ...
+}
+```
+
+3. **`/app/db/team-repository.ts`** (if exists)
+   - Same pattern: NO locale parameter, NO localization
+   - Add JSDoc warnings
 
 4. **`/app/db/game-repository.ts`**
-   - Add locale parameter to game query functions
-   - Apply localization to game location field
+   - Same pattern: NO locale parameter, NO localization
+   - Add JSDoc warnings
 
-5. **`/app/db/playoff-round-repository.ts`** (if exists, or create)
-   - Add locale parameter to playoff round query functions
-   - Apply localization to round name field
+5. **`/app/db/playoff-round-repository.ts`** (if exists)
+   - Same pattern: NO locale parameter, NO localization
+   - Add JSDoc warnings
 
 ### Server Actions
 
+**🎯 THIS IS WHERE LOCALIZATION HAPPENS**
+
 6. **`/app/actions/tournament-actions.ts`**
-   - Update all actions to pass locale to repository functions
-   - Example: `getTournament(id, locale)` → calls `findTournamentById(id, locale)`
+   - **Add localization logic to ALL actions that return tournament data**
+   - Pattern for every action:
+     1. Get locale from `next-intl/server`
+     2. Fetch raw data from repository
+     3. Apply localization with `applyLocalization()`
+     4. Return localized data
+
+```typescript
+import { getLocale } from 'next-intl/server';
+import { applyLocalization } from '@/app/utils/localization-helper';
+import * as tournamentRepo from '@/app/db/tournament-repository';
+
+/**
+ * Get tournament by ID with localized names
+ *
+ * ✅ CORRECT: Applies localization before returning to component
+ */
+export async function getTournament(id: string) {
+  const locale = await getLocale();
+  const rawTournament = await tournamentRepo.findTournamentById(id);
+
+  return applyLocalization(rawTournament, locale, [
+    { field: 'long_name', i18nField: 'long_name_i18n' },
+    { field: 'short_name', i18nField: 'short_name_i18n' }
+  ]);
+}
+
+/**
+ * Get all tournaments with localized names
+ */
+export async function getAllTournaments() {
+  const locale = await getLocale();
+  const rawTournaments = await tournamentRepo.findAllTournaments();
+
+  return applyLocalizationBatch(rawTournaments, locale, [
+    { field: 'long_name', i18nField: 'long_name_i18n' },
+    { field: 'short_name', i18nField: 'short_name_i18n' }
+  ]);
+}
+```
 
 7. **`/app/actions/game-actions.ts`** (if exists)
-   - Update to pass locale to game repository functions
+   - Same pattern: get locale, fetch raw data, apply localization
+   - Localize `location` field with `location_i18n`
+
+8. **`/app/actions/team-actions.ts`** (if exists)
+   - Same pattern: localize `name` field with `name_i18n`
+
+9. **`/app/actions/playoff-round-actions.ts`** (if exists)
+   - Same pattern: localize `round_name` field with `round_name_i18n`
 
 ### UI Components (Examples - identify all usages via Phase 0 audit)
 
@@ -524,49 +700,64 @@ With database locale fields, all internationalizable data follows the same patte
 
 3. **Create localization helper utilities**
    - Create `/app/utils/localization-helper.ts`
-   - Implement `getLocalizedName()` - generic fallback function
    - Implement `applyLocalization()` - single object localization
    - Implement `applyLocalizationBatch()` - array localization
-   - Add JSDoc documentation and TypeScript types
+   - **Add extensive JSDoc documentation** with:
+     - ⚠️ Warnings that this should ONLY be used in Server Actions
+     - ❌ Examples of what NOT to do (using in repositories)
+     - ✅ Examples of correct usage (Server Actions pattern)
    - Add development mode warnings for missing locales
 
-### Phase 2: Repository & Service Layer Updates (3-4 hours)
+### Phase 2: Service/Action Layer Updates (2-3 hours)
 
-4. **Update repository functions**
-   - **`/app/db/tournament-repository.ts`:**
-     - Add `locale` parameter to all query functions
-     - Apply localization before returning:
-       ```typescript
-       const tournament = await query...;
-       return applyLocalization(tournament, locale, [
-         { field: 'long_name', i18nField: 'long_name_i18n' },
-         { field: 'short_name', i18nField: 'short_name_i18n' }
-       ]);
-       ```
-   - **`/app/db/team-repository.ts`:**
-     - Add locale parameter
-     - Apply localization to team `name` field
-   - **`/app/db/game-repository.ts`:**
-     - Add locale parameter
-     - Apply localization to `location` field
-   - **`/app/db/playoff-round-repository.ts`:**
-     - Add locale parameter
-     - Apply localization to `round_name` field
+**🎯 CRITICAL: This is the ONLY place where localization happens**
 
-5. **Update Server Actions**
-   - **`/app/actions/tournament-actions.ts`:**
-     - Get locale from `next-intl/server`
-     - Pass locale to repository functions
-     - Example: `const locale = await getLocale(); const tournament = await findTournamentById(id, locale);`
-   - **`/app/actions/game-actions.ts`:**
-     - Same pattern: get locale, pass to repository
-   - Maintain backward compatibility: if locale not provided, default to 'es'
+4. **Add JSDoc documentation to repository functions**
+   - **DO NOT change function logic** - repositories stay pure
+   - **DO NOT add locale parameters**
+   - **DO add warnings in JSDoc** for future agents:
 
-6. **Update UI Components (minimal changes)**
-   - **Key insight:** Components don't need changes if repository layer handles localization
-   - Components continue using `team.name`, `game.location`, etc.
-   - Data is already localized when it arrives from repository
-   - Only update components if they bypass repository and query DB directly
+```typescript
+/**
+ * ⚠️ RETURNS RAW DATA - must be localized in Server Action
+ * ⚠️ DO NOT add locale parameter
+ * ⚠️ DO NOT apply localization here
+ * @see applyLocalization() in /app/utils/localization-helper.ts
+ */
+```
+
+   - Add to all repository functions that return:
+     - Tournaments (long_name, short_name)
+     - Teams (name)
+     - Games (location)
+     - Playoff rounds (round_name)
+
+5. **Update ALL Server Actions that return localizable data**
+
+   **Pattern (apply to EVERY action):**
+   ```typescript
+   import { getLocale } from 'next-intl/server';
+   import { applyLocalization } from '@/app/utils/localization-helper';
+
+   export async function getXyz() {
+     const locale = await getLocale();
+     const rawData = await xyzRepo.find...(); // Raw data from repo
+     return applyLocalization(rawData, locale, [...]); // Localize here
+   }
+   ```
+
+   **Actions to update:**
+   - `/app/actions/tournament-actions.ts` - ALL actions returning tournaments
+   - `/app/actions/game-actions.ts` - ALL actions returning games
+   - `/app/actions/team-actions.ts` (if exists) - ALL actions returning teams
+   - `/app/actions/playoff-round-actions.ts` (if exists) - ALL actions returning playoff rounds
+   - Any other actions that return tournament data
+
+6. **Verify UI Components need NO changes**
+   - Components already call Server Actions
+   - Actions now return localized data
+   - Components just render `{team.name}`, `{game.location}`, etc.
+   - **No component changes needed** (data arrives pre-localized)
 
 ### Phase 3: Backoffice UI Updates (3-4 hours)
 
