@@ -244,6 +244,220 @@ npm run build
 
 TypeScript will catch missing translation keys at build time.
 
+## Translation Workflow for New Keys
+
+This section describes the recommended workflow for translating new content between Spanish and English using LLM-assisted translation.
+
+### Quick Start
+
+**When adding new translation keys**, follow this workflow to ensure consistent, high-quality translations:
+
+1. **Add Spanish content first** (Spanish is the primary language)
+2. **Use LLM translation** with our templates for English
+3. **Validate** with automated script
+4. **Review** tone and interpolation
+
+### Terminology Decision
+
+**Brand Name:** **"Prode"** remains untranslated in all locales
+- In English contexts, use full branding: **"Prode - Football Cups Pick'em"**
+- This maintains brand identity while clarifying the purpose for English-speaking users
+- Think of it like "Uber" or "Spotify" - brand names don't translate
+
+### Step-by-Step Translation Process
+
+#### Step 1: Add Spanish Content
+
+Add your new translation keys to the appropriate namespace in Spanish:
+
+```json
+// locales/es/groups.json
+{
+  "newFeature": {
+    "title": "Nueva Funcionalidad",
+    "description": "Descripción con variable: {userName}",
+    "action": "Comenzar"
+  }
+}
+```
+
+**Important:** Ensure interpolation variables like `{userName}` use English names (code convention).
+
+#### Step 2: Use Translation Prompt Template
+
+Use our LLM translation templates for consistent, high-quality English translations:
+
+**📄 See:** [`/docs/translation-prompt-template.md`](translation-prompt-template.md)
+
+**Process:**
+1. Copy the **Spanish → English** prompt template
+2. Provide your Spanish JSON to Claude, GPT-4, or another LLM
+3. The template includes:
+   - "Prode" brand terminology guidance
+   - Sports-specific terminology
+   - Tone requirements (casual, friendly)
+   - Interpolation variable preservation
+   - UI constraints (concise button text)
+
+**Example prompt usage:**
+```
+[Copy ES→EN template from translation-prompt-template.md]
+
+Spanish JSON to translate:
+{
+  "newFeature": {
+    "title": "Nueva Funcionalidad",
+    "description": "Descripción con variable: {userName}",
+    "action": "Comenzar"
+  }
+}
+```
+
+**Expected output:**
+```json
+{
+  "newFeature": {
+    "title": "New Feature",
+    "description": "Description with variable: {userName}",
+    "action": "Start"
+  }
+}
+```
+
+#### Step 3: Use Sports Terminology Glossary
+
+For consistent terminology across all translations, reference our glossary:
+
+**📄 See:** [`/docs/translation-glossary.md`](translation-glossary.md)
+
+**Quick reference:**
+- Prode → **Prode** (brand name, untranslated)
+- Partido → **Match** (preferred for international football)
+- Torneo → **Tournament**
+- Fase de grupos → **Group Stage**
+- Eliminatorias → **Knockout Stage**
+- Tabla de posiciones → **Standings**
+- Grupo (social) → **Group**
+- Pronóstico → **Prediction** or **Pick'em** (context-dependent)
+
+**The glossary includes:**
+- Core platform terms
+- Sports terminology
+- Social features vocabulary
+- UI/UX terms
+- Error message patterns
+
+#### Step 4: Validate Translations
+
+Run our automated validation script to catch common issues:
+
+```bash
+./scripts/validate-translations.sh
+```
+
+**The script checks:**
+1. ✅ No `EnOf()` or `EsOf()` placeholders remaining
+2. ✅ Valid JSON syntax in all files
+3. ✅ Structure consistency between Spanish and English
+4. ✅ Interpolation variables preserved (e.g., `{userName}` not changed)
+5. ✅ All expected translation files present
+
+**If errors found:** Fix issues and re-run validation until all checks pass.
+
+#### Step 5: Manual Quality Review
+
+**Check these aspects:**
+
+**Tone verification:**
+- [ ] Casual and friendly (not formal)
+- [ ] Sports enthusiasm maintained
+- [ ] "Prode" used correctly (brand name)
+
+**UI constraints:**
+- [ ] Button text concise (<15 characters ideally)
+- [ ] Error messages clear and helpful
+- [ ] Form labels brief but informative
+
+**Interpolation:**
+- [ ] Variables render correctly: `{userName}` → actual name (not literal `{userName}`)
+- [ ] Variable names unchanged from source
+
+### Reverse Translation (English → Spanish)
+
+If you have English content that needs Spanish translation:
+
+**Use Template 2:** English → Spanish prompt (in [`translation-prompt-template.md`](translation-prompt-template.md))
+
+**Same process:**
+1. Copy EN→ES template
+2. Provide English JSON
+3. Reference glossary for terminology
+4. Validate with script
+5. Review tone (Latin American Spanish, casual, friendly)
+
+### Common Pitfalls to Avoid
+
+**❌ Translating variable names:**
+```json
+// Spanish
+"invite": "Invitar a {groupName}"
+
+// ❌ WRONG English
+"invite": "Invite {nombreGrupo}"
+
+// ✅ CORRECT English
+"invite": "Invite {groupName}"
+```
+
+**❌ Removing interpolation braces:**
+```json
+// Spanish
+"members": "{count} miembros"
+
+// ❌ WRONG English
+"members": "count members"
+
+// ✅ CORRECT English
+"members": "{count} members"
+```
+
+**❌ Translating brand name:**
+```json
+// Spanish
+"welcome": "Bienvenido a Prode"
+
+// ❌ WRONG English
+"welcome": "Welcome to Prediction"
+
+// ✅ CORRECT English
+"welcome": "Welcome to Prode"
+```
+
+**❌ Overly formal tone:**
+```json
+// Spanish (casual)
+"error": "No pudimos guardar tus cambios"
+
+// ❌ WRONG English (too formal)
+"error": "The system was unable to persist your modifications"
+
+// ✅ CORRECT English (casual, friendly)
+"error": "Couldn't save your changes"
+```
+
+### Resources
+
+**Translation Tools:**
+- **Prompt Templates:** [`/docs/translation-prompt-template.md`](translation-prompt-template.md)
+- **Terminology Glossary:** [`/docs/translation-glossary.md`](translation-glossary.md)
+- **Validation Script:** `/scripts/validate-translations.sh`
+
+**Testing:**
+- Switch locales: Navigate to `/en/` or `/es/` routes
+- Use language switcher in header
+- Verify interpolation renders correctly
+- Check button text fits in UI (test on mobile)
+
 ## Interpolation Patterns
 
 ### Simple Variables
