@@ -80,6 +80,7 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess, t
     }}>
       <CardHeader
         title={t('sidebar.title')}
+        titleTypographyProps={{ variant: 'subtitle1' }}
         subheader={isActive ? t('sidebar.activeIndicator') : undefined}
         sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
         action={
@@ -119,6 +120,7 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess, t
             startIcon={<BarChartIcon />}
             variant="text"
             color="primary"
+            size="small"
             aria-label={t('sidebar.ariaLabels.viewDetailsButton')}
           >
             {t('sidebar.viewDetails')}

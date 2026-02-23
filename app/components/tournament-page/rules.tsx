@@ -218,11 +218,11 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
     }}>
       <CardHeader
         title={t('title')}
+        titleTypographyProps={{ variant: fullpage ? 'h4' : 'subtitle1' }}
         subheader={isActive ? t('status.youAreHere') : undefined}
         sx={{
           color: theme.palette.primary.main,
-          borderBottom: `${theme.palette.primary.light} solid 1px`,
-          ...(fullpage && { typography: 'h4' })
+          borderBottom: `${theme.palette.primary.light} solid 1px`
         }}
         action={
           !fullpage && (
@@ -239,7 +239,7 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
       />
       <Collapse in={fullpage ? true : expanded} timeout="auto" unmountOnExit>
         <CardContent sx={{ borderBottom: `${theme.palette.primary.contrastText} 1px solid`, borderTop: `${theme.palette.primary.contrastText} 1px solid` }}>
-          <Typography variant={'h6'}>
+          <Typography variant={'subtitle1'}>
             {t('sections.scoring')}
           </Typography>
           <List disablePadding>
@@ -311,7 +311,7 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
               </ListItem>
             ))}
           </List>
-          <Typography variant={'h6'}>
+          <Typography variant={'subtitle1'}>
             {t('sections.constraints')}
           </Typography>
           <List disablePadding>
@@ -393,6 +393,7 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
             startIcon={<GavelIcon />}
             variant="text"
             color="primary"
+            size="small"
           >
             {tActions('viewFullRules')}
           </Button>
