@@ -12,6 +12,7 @@ import rules from '@/locales/en/rules.json';
 import stats from '@/locales/en/stats.json';
 import tables from '@/locales/en/tables.json';
 import qualifiedTeams from '@/locales/en/qualified-teams.json';
+import pwa from '@/locales/en/pwa.json';
 
 // Merge all namespaces into single type
 type Messages = {
@@ -29,6 +30,7 @@ type Messages = {
   stats: typeof stats;
   tables: typeof tables;
   'qualified-teams': typeof qualifiedTeams;
+  pwa: typeof pwa;
 };
 
 declare global {

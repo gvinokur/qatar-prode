@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { Snackbar, Alert } from '@mui/material';
+import { useTranslations } from 'next-intl';
 
 export default function OfflineDetection() {
+  const t = useTranslations('pwa');
   const [isOffline, setIsOffline] = useState(false);
 
   useEffect(() => {
@@ -28,7 +30,7 @@ export default function OfflineDetection() {
       anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
     >
       <Alert severity="warning">
-        Estás navegando sin conexión. Algunas funciones pueden no estar disponibles.
+        {t('offline.message')}
       </Alert>
     </Snackbar>
   );

@@ -26,7 +26,8 @@ export default getRequestConfig(async ({requestLocale}) => {
       rules: (await import(`../locales/${locale}/rules.json`)).default,
       stats: (await import(`../locales/${locale}/stats.json`)).default,
       tables: (await import(`../locales/${locale}/tables.json`)).default,
-      'qualified-teams': (await import(`../locales/${locale}/qualified-teams.json`)).default
+      'qualified-teams': (await import(`../locales/${locale}/qualified-teams.json`)).default,
+      pwa: (await import(`../locales/${locale}/pwa.json`)).default
     }
   };
 });

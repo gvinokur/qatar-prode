@@ -14,8 +14,10 @@ import {
   isNotificationSupported,
   subscribeToNotifications
 } from "../utils/notifications-utils";
+import { useTranslations } from 'next-intl';
 
 export default function NotificationsSubscriptionPrompt({ canOpen }: { readonly canOpen: boolean }  ) {
+  const t = useTranslations('pwa');
   const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -113,8 +115,8 @@ export default function NotificationsSubscriptionPrompt({ canOpen }: { readonly 
         variant="outlined"
         sx={{ width: '100%', backgroundColor: 'background.paper' }}
       >
-        <AlertTitle>Notificaciones</AlertTitle>
-        <p>¿Te gustaría recibir notificaciones para estar al día con las últimas actualizaciones?</p>
+        <AlertTitle>{t('notifications.title')}</AlertTitle>
+        <p>{t('notifications.message')}</p>
         <Stack direction="row" spacing={1} mt={1} justifyContent="flex-end">
           <Button
             size="small"
@@ -122,14 +124,14 @@ export default function NotificationsSubscriptionPrompt({ canOpen }: { readonly 
             onClick={handleNeverAskAgain}
             sx={{ opacity: 0.7 }}
           >
-            No preguntar más
+            {t('notifications.neverAsk')}
           </Button>
           <Button
             size="small"
             color="inherit"
             onClick={handleNotNow}
           >
-            Ahora no
+            {t('notifications.notNow')}
           </Button>
           <Button
             size="small"
@@ -138,7 +140,7 @@ export default function NotificationsSubscriptionPrompt({ canOpen }: { readonly 
             onClick={handleSubscribe}
             sx={{ fontWeight: 'bold' }}
           >
-            Activar
+            {t('notifications.activate')}
           </Button>
         </Stack>
       </Alert>

@@ -1,0 +1,29 @@
+{
+  "install": {
+    "title": "Install as App",
+    "heading": "Install this app on your device",
+    "description": "Install this app on your home screen for quick and easy access when you're on the go.",
+    "button": "Install App",
+    "ios": {
+      "heading": "Install this app on your iOS device",
+      "showGuide": "Show installation guide",
+      "hideGuide": "Hide installation guide",
+      "instructions": {
+        "title": "To install this app on your iPhone:",
+        "step1": "Tap the Share button at the bottom of the screen",
+        "step2": "Scroll down and tap 'Add to Home Screen'",
+        "step3": "Tap 'Add' in the top right corner"
+      }
+    }
+  },
+  "offline": {
+    "message": "You're browsing offline. Some features may not be available."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "message": "Would you like to receive notifications to stay up-to-date with the latest updates?",
+    "neverAsk": "Don't ask again",
+    "notNow": "Not now",
+    "activate": "Enable"
+  }
+}
