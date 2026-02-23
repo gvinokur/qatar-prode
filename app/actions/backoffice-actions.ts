@@ -62,7 +62,8 @@ import {
   createGameResult,
   findGameResultByGameId,
   findGameResultByGameIds,
-  updateGameResult
+  updateGameResult,
+  deleteAllGameResultsByTournamentId
 } from "../db/game-result-repository";
 import {calculatePlayoffTeams} from "../utils/playoff-teams-calculator";
 import {
@@ -122,6 +123,7 @@ export async function deleteDBTournamentTree(tournament: Tournament, locale: Loc
   await deleteAllPlayersInTournament(tournament.id);
   await deleteAllTournamentVenues(tournament.id);
   await deleteThirdPlaceRulesByTournament(tournament.id);
+  await deleteAllGameResultsByTournamentId(tournament.id);
   await deleteAllGamesFromTournament(tournament.id);
   await deleteAllPlayoffRoundsInTournament(tournament.id);
   await deleteAllGroupsFromTournament(tournament.id);
