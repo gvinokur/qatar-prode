@@ -348,7 +348,7 @@ function QualifiedTeamsUI({
         {/* Scrollable content area */}
         {isMobile ? (
           // Mobile: Full page scroll, no ScrollShadowContainer
-          <Box sx={{ px: 2, py: 2 }}>
+          <Box sx={{ py: 2 }}>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <QualifiedTeamsGrid
                 groups={groups}
@@ -368,7 +368,7 @@ function QualifiedTeamsUI({
           <ScrollShadowContainer
             direction="vertical"
             hideScrollbar={true}
-            sx={{ flex: 1, minHeight: 0, px: 2, py: 2 }}
+            sx={{ flex: 1, minHeight: 0, py: 2 }}
           >
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <QualifiedTeamsGrid
