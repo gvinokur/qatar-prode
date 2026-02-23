@@ -11,6 +11,7 @@ import EmptyAwardsSnackbar from "../../../components/awards/empty-award-notifica
 import {getPlayersInTournament} from "../../../db/player-repository";
 import EnvironmentIndicator from "../../../components/environment-indicator";
 import {Typography, Avatar} from "@mui/material";
+import { alpha } from '@mui/material/styles';
 import {getThemeLogoUrl} from "../../../utils/theme-utils";
 import { isDevelopmentMode } from '../../../utils/environment-utils';
 import { hasUserPermission } from '../../../db/tournament-view-permission-repository';
@@ -247,8 +248,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
       <Box sx={{
         flexGrow: 1,
         minHeight: 0,
-        px: 2,
-        pb: 2
+        px: 2
       }}>
         {/* Centered max-width container */}
         <Box sx={{
@@ -257,14 +257,20 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
           height: '100%'
         }}>
           <Grid container spacing={2} sx={{ height: '100%' }}>
-            {/* Main content - 8/12 on desktop, full on mobile */}
-            <Grid size={{ xs: 12, md: 8 }} sx={{ height: '100%' }}>
+            {/* Main content - 9/12 on desktop, full on mobile */}
+            <Grid size={{ xs: 12, md: 9 }} sx={{ height: '100%' }}>
               <ScrollShadowContainer
                 direction="vertical"
                 hideScrollbar={true}
                 sx={{ height: '100%' }}
               >
-                {children}
+                <Box sx={{
+                  backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.02),
+                  p: 2,
+                  minHeight: '100%'
+                }}>
+                  {children}
+                </Box>
               </ScrollShadowContainer>
             </Grid>
 

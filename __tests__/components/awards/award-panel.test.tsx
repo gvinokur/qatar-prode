@@ -348,6 +348,27 @@ describe('AwardsPanel - Bug #164 Fix', () => {
 
       expect(screen.getByText(/Predicciones Bloqueadas/i)).toBeInTheDocument();
     });
+
+    it('should display Lock icon in alert when locked (Fix #6)', () => {
+      const { container } = renderWithTheme(
+        <AwardsPanel
+          allPlayers={mockPlayers}
+          tournamentGuesses={mockTournamentGuess}
+          teams={mockTeams}
+          hasThirdPlaceGame={false}
+          isPredictionLocked={true}
+          tournament={mockTournament}
+        />
+      );
+
+      // Verify Alert with info severity is present
+      const alert = container.querySelector('.MuiAlert-standardInfo');
+      expect(alert).toBeInTheDocument();
+
+      // Verify Lock icon is in the alert
+      const lockIcon = container.querySelector('.MuiAlert-icon .MuiSvgIcon-root');
+      expect(lockIcon).toBeInTheDocument();
+    });
   });
 
   describe('No Players Available', () => {

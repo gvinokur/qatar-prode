@@ -18,7 +18,7 @@ import type { Team } from '@/app/db/tables-definition'
 
 // Helper function to calculate card padding based on screen size
 function getCardPadding(isUltraCompact: boolean, isCompact: boolean, compactMode: boolean) {
-  if (compactMode) return { py: 0.75, px: 1.25 }
+  if (compactMode) return { py: 0.5, px: 1 }
   if (isUltraCompact) return { py: 1, px: 1.5 }
   if (isCompact) return { py: 1.5, px: 1.5 }
   return { py: 2, px: 2.5 }
@@ -84,8 +84,8 @@ export default function TeamStandingCard({
   const pointsText = getPointsDisplayText(standing.points, standing.gamesPlayed, standing.goalDifference, isUltraCompact, compact, t)
 
   // Calculate spacing values (avoid nested ternaries)
-  const cardGap = compact ? 0.5 : 1.5
-  const rankBadgeMinWidth = compact ? '35px' : '60px'
+  const cardGap = compact ? 0.4 : 1.5
+  const rankBadgeMinWidth = compact ? '30px' : '60px'
 
   return (
     <motion.div
@@ -111,8 +111,8 @@ export default function TeamStandingCard({
         aria-expanded={isExpanded}
         sx={{
           ...cardPadding,
-          mb: compact ? 0.75 : 1.5,
-          borderRadius: compact ? 1.5 : 2,
+          mb: compact ? 0.5 : 1.5,
+          borderRadius: compact ? 1 : 2,
           cursor: 'pointer',
           transition: 'all 0.2s ease',
           backgroundColor: standing.isQualified
@@ -135,7 +135,7 @@ export default function TeamStandingCard({
             {/* Rank Badge with Change Indicator */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: rankBadgeMinWidth }}>
               <Typography
-                variant={compact ? 'body1' : 'h6'}
+                variant={compact ? 'body2' : 'h6'}
                 component="div"
                 sx={{
                   fontWeight: 'bold',
@@ -168,7 +168,7 @@ export default function TeamStandingCard({
             {/* Points with PJ/DG (when collapsed) */}
             {!isExpanded && (
               <Typography
-                variant={compact ? 'body1' : 'h6'}
+                variant={compact ? 'body2' : 'h6'}
                 component="div"
                 sx={{
                   fontWeight: 'bold',
@@ -182,7 +182,7 @@ export default function TeamStandingCard({
             {/* Points only (when expanded) */}
             {isExpanded && (
               <Typography
-                variant={compact ? 'body1' : 'h6'}
+                variant={compact ? 'body2' : 'h6'}
                 component="div"
                 sx={{
                   fontWeight: 'bold',

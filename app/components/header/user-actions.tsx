@@ -4,7 +4,7 @@ import { useEffect, useState} from "react";
 import * as React from "react";
 import {
   Avatar,
-  Box, Button,
+  Box,
   Menu,
   MenuItem,
   Tooltip,
@@ -145,12 +145,24 @@ export default function UserActions({ user }: UserActionProps) {
         </Box>
     ) : (
       <Box sx={{ flexGrow: 0 }}>
-        <Button
+        <Avatar
           onClick={handleOpenLoginDialog}
-          sx={{ my: 2, color: 'white' }}
+          sx={{
+            width: 40,
+            height: 40,
+            cursor: 'pointer',
+            bgcolor: 'action.hover',
+            fontSize: '0.7rem',
+            fontWeight: 600,
+            transition: 'all 0.2s',
+            '&:hover': {
+              bgcolor: 'action.selected',
+              transform: 'scale(1.05)',
+            }
+          }}
         >
           {t('header.login')}
-        </Button>
+        </Avatar>
       </Box>
     )}
       <UserSettingsDialog

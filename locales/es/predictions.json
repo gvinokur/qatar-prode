@@ -27,6 +27,7 @@
     "viewLocalTime": "Ver horario local",
     "viewYourTime": "Ver tu horario",
     "closed": "Cerrado",
+    "locked": "Bloqueado",
     "closesIn": "Cierra en {countdown}",
     "isPublished": "¿Está publicado?",
     "inPlayOrRecentlyFinished": "EN JUEGO O RECIÉN TERMINADO"

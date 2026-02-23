@@ -1,6 +1,7 @@
 'use client'
 
-import { Grid, Paper } from '@mui/material'
+import { Grid, Box } from '@mui/material'
+import { alpha } from '@mui/material/styles'
 import { usePathname } from 'next/navigation'
 import { ScrollShadowContainer } from '@/app/components/common/scroll-shadow-container'
 import Rules, { ScoringConfig } from './rules'
@@ -55,7 +56,7 @@ export default function TournamentSidebar({
 
   return (
     <Grid
-      size={{ xs: 12, md: 4 }}
+      size={{ xs: 12, md: 3 }}
       sx={{
         display: { xs: 'none', md: 'flex' },
         flexDirection: 'column',
@@ -73,7 +74,11 @@ export default function TournamentSidebar({
           pt: 2,
         }}
       >
-        <Paper elevation={1}>
+        <Box sx={{
+          backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.04),
+          p: 2,
+          minHeight: '100%'
+        }}>
           {/* 1. Tables */}
           {groupStandings && groupStandings.groups.length > 0 && (
             <GroupStandingsSidebar
@@ -112,7 +117,7 @@ export default function TournamentSidebar({
             tournamentId={tournamentId}
             isActive={currentSection === 'rules'}
           />
-        </Paper>
+        </Box>
       </ScrollShadowContainer>
     </Grid>
   )

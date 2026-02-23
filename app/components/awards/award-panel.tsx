@@ -14,7 +14,7 @@ import {
   TextField,
   Typography, useTheme
 } from "@mui/material";
-import {Close as MissIcon, Done as HitIcon} from "@mui/icons-material";
+import {Close as MissIcon, Done as HitIcon, Lock as LockIcon} from "@mui/icons-material";
 import {updateOrCreateTournamentGuess} from "../../actions/guesses-actions";
 import {ExtendedPlayerData} from "../../definitions";
 import {getAwardsDefinition, AwardDefinition, AwardTypes} from "../../utils/award-utils";
@@ -130,7 +130,7 @@ export default function AwardsPanel({
   return (
     <>
       {isPredictionLocked ? (
-        <Alert severity="info" sx={{ mb: 3 }}>
+        <Alert severity="info" sx={{ mb: 3 }} icon={<LockIcon />}>
           <AlertTitle>{t('individual.lockedTitle')}</AlertTitle>
           {t('individual.lockedMessage')}
         </Alert>
