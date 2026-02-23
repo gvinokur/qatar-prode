@@ -77,7 +77,7 @@ export default function I18nFieldEditor({
   required = false,
   helperText,
   disabled = false
-}: I18nFieldEditorProps) {
+}: Readonly<I18nFieldEditorProps>) {
   // Local state for the two locale inputs
   const [enValue, setEnValue] = useState<string>('');
   const [esValue, setEsValue] = useState<string>('');

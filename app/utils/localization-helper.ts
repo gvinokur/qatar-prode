@@ -54,16 +54,14 @@ export function applyLocalization<T extends Record<string, any>>(
     // If locale exists in JSON, use it
     if (i18nJson[locale]) {
       localized[field] = i18nJson[locale] as T[keyof T];
-    } else {
+    } else if (process.env.NODE_ENV === 'development') {
       // Fallback to original value
-      if (process.env.NODE_ENV === 'development') {
-        console.warn(
-          `[i18n] Missing locale "${locale}" for field "${String(field)}" ` +
-          `with value "${originalValue}". Available locales: ${Object.keys(i18nJson).join(', ')}`
-        );
-      }
-      // Keep original value (already in localized object)
+      console.warn(
+        `[i18n] Missing locale "${locale}" for field "${String(field)}" ` +
+        `with value "${originalValue}". Available locales: ${Object.keys(i18nJson).join(', ')}`
+      );
     }
+    // Keep original value (already in localized object)
   }
 
   return localized;
