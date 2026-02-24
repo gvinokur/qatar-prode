@@ -16,7 +16,6 @@ import {getThemeLogoUrl} from "../../../utils/theme-utils";
 import { getGroupTournamentBettingConfigAction, getGroupTournamentBettingPaymentsAction } from '../../../actions/group-tournament-betting-actions';
 import LeaveGroupButton from '../../../components/friend-groups/leave-group-button';
 import { getUserScoresForTournament } from "../../../actions/prode-group-actions";
-import ScrollableContentArea from '../../../components/tournament-page/scrollable-content-area';
 
 type Props = {
   readonly params: Promise<{
@@ -116,7 +115,7 @@ export default async function FriendsGroup(props : Props){
           </Typography>
         </Grid>
       </Grid>
-      <ScrollableContentArea>
+      <Box sx={{ maxWidth: '1200px', mx: 'auto', p: 2 }}>
         <Grid container spacing={2} justifyContent={'center'}>
           <Grid size={{ xs:12, md :9 }}>
             <ProdeGroupTable
@@ -146,7 +145,7 @@ export default async function FriendsGroup(props : Props){
           ) || <></>}
         </Grid>
         {searchParams.hasOwnProperty('recentlyJoined') && (<JoinMessage />)}
-      </ScrollableContentArea>
+      </Box>
     </Box>
   )
 }

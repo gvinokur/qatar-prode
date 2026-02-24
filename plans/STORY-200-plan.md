@@ -601,6 +601,110 @@ All pages use **full page scroll** - no fixed headers, no sticky positioning. Sc
 - Existing components: CompactPredictionDashboard, ScrollShadowContainer, ScrollableContentArea, GuessesContextProvider
 - Database repositories: getTournamentPredictionCompletion, findGamesInTournament, findGameGuessesByUserId
 
+## Amendments (Discovered During Implementation)
+
+### Amendment 1: Stats Page - Sticky Tabs Pattern
+
+**Discovered:** During Fix 4 verification, determined that Stats page needs fixed header pattern like other pages.
+
+**Current state:**
+- Stats page has full page scroll (tabs scroll with content)
+- Plan stated "no changes needed" based on initial assessment
+
+**Required change:**
+- Apply fixed header pattern to Stats page
+- **Both mobile AND desktop** (unlike other pages that are desktop-only)
+- Tabs should stay fixed at top, content scrolls below
+- Similar to Results page behavior
+
+**Files to modify:**
+- `app/[locale]/tournaments/[id]/stats/page.tsx` or stats client component
+- `app/components/tournament-stats/stats-tabs.tsx` (if needed)
+
+**Implementation:**
+- Use responsive Box layout with flex column
+- Tabs in fixed header Box (flexShrink: 0)
+- Content in ScrollShadowContainer (flex: 1, minHeight: 0)
+- Apply to both mobile and desktop (full viewport pattern)
+
+### Amendment 2: App Home Page - Two-Column Tonal Backgrounds
+
+**Discovered:** During Fix 7 verification, determined that home page needs more nuanced tonal background treatment than originally planned.
+
+**Current state:**
+- Fix 7 plan proposed wrapping entire page in single ScrollableContentArea
+- This would apply uniform tonal background
+
+**Required change:**
+- **Two separate tonal background columns** with different alpha values
+- Left column (Available Tournaments): `alpha(theme.palette.primary.main, 0.06)`
+- Right column (Sidebar): `alpha(theme.palette.primary.main, 0.04)`
+- Each column has its own ScrollShadowContainer
+- Padding: `pt: 2` on each column
+- Gap: 2 between columns
+- Max-width container for whole layout (1200px centered)
+
+**Files to modify:**
+- `app/components/home/home-component.tsx`
+
+**Implementation:**
+```tsx
+<Box sx={{ maxWidth: '1200px', mx: 'auto', p: 2 }}>
+  <Grid container spacing={2}>
+    {/* Left column: Available Tournaments */}
+    <Grid size={{ xs: 12, md: 9 }}>
+      <Box sx={{
+        bgcolor: (theme) => alpha(theme.palette.primary.main, 0.06),
+        borderRadius: 1,
+        pt: 2
+      }}>
+        <ScrollShadowContainer direction="vertical" hideScrollbar={true}>
+          {/* Tournaments content */}
+        </ScrollShadowContainer>
+      </Box>
+    </Grid>
+
+    {/* Right column: Sidebar */}
+    <Grid size={{ xs: 12, md: 3 }}>
+      <Box sx={{
+        bgcolor: (theme) => alpha(theme.palette.primary.main, 0.04),
+        borderRadius: 1,
+        pt: 2
+      }}>
+        <ScrollShadowContainer direction="vertical" hideScrollbar={true}>
+          {/* Sidebar content */}
+        </ScrollShadowContainer>
+      </Box>
+    </Grid>
+  </Grid>
+</Box>
+```
+
+### Amendment 3: Friend Groups - Max-Width Constraint
+
+**Discovered:** During Fix 7 verification, determined that friend groups page only needs max-width constraint, not full tonal background treatment.
+
+**Current state:**
+- Fix 7 plan proposed wrapping friend groups in ScrollableContentArea
+- This would add unnecessary tonal background
+
+**Required change:**
+- Add max-width constraint only (1200px centered)
+- No tonal backgrounds needed
+- Keep existing layout structure
+
+**Files to modify:**
+- `app/[locale]/friend-groups/[id]/page.tsx`
+
+**Implementation:**
+```tsx
+<Box sx={{ maxWidth: '1200px', mx: 'auto', p: 2 }}>
+  {/* Existing content */}
+</Box>
+```
+
+**Rationale:** Friend groups is a simpler page that doesn't need the tournament page visual treatment, just consistent width constraints.
+
 ## Open Questions
 
 None - all requirements are clear from the issue description and user's additional requirements.
