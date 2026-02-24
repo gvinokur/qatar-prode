@@ -2,7 +2,6 @@
 'use server'
 
 import {getTournaments} from "../actions/tournament-actions";
-import {getGroupsForUser} from "../actions/prode-group-actions";
 import {getLoggedInUser} from "../actions/user-actions";
 import {getOnboardingStatus} from "../db/onboarding-repository";
 import OnboardingTrigger from "../components/onboarding/onboarding-trigger";
@@ -16,7 +15,6 @@ type ServerHomeProps = {
 export default async function ServerHome({ searchParams }: ServerHomeProps) {
 
   const tournaments = await getTournaments();
-  const prodeGroups = await getGroupsForUser()
   const user = await getLoggedInUser()
 
   // Force show onboarding for testing with ?showOnboarding=true

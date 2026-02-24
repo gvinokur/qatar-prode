@@ -14,8 +14,8 @@ import CheckIcon from '@mui/icons-material/Check';
 import { setLastSelectedTournamentId } from '@/app/utils/dismissal-storage';
 
 interface TournamentSwitcherProps {
-  currentTournamentId: string;
-  tournaments: Array<{ id: string; long_name: string; short_name: string }>;
+  readonly currentTournamentId: string;
+  readonly tournaments: ReadonlyArray<{ readonly id: string; readonly long_name: string; readonly short_name: string }>;
 }
 
 export default function TournamentSwitcher({
@@ -47,8 +47,8 @@ export default function TournamentSwitcher({
     // Preserve current page path when switching tournaments
     // Extract everything after /tournaments/[id]
     const pathRegex = new RegExp(`/${locale}/tournaments/${currentTournamentId}(/.*)?`);
-    const match = pathname.match(pathRegex);
-    const pagePath = match && match[1] ? match[1] : '';
+    const match = pathRegex.exec(pathname);
+    const pagePath = match?.[1] ?? '';
 
     // Navigate to new tournament with same page path
     router.push(`/${locale}/tournaments/${tournamentId}${pagePath}`);

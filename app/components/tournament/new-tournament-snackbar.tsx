@@ -6,9 +6,9 @@ import { useTranslations } from 'next-intl';
 import { getDismissalState, setDismissalState } from '@/app/utils/dismissal-storage';
 
 interface NewTournamentSnackbarProps {
-  tournamentId: string;
-  tournamentName: string;
-  otherTournaments: Array<{ id: string; long_name: string }>;
+  readonly tournamentId: string;
+  readonly tournamentName: string;
+  readonly otherTournaments: ReadonlyArray<{ readonly id: string; readonly long_name: string }>;
 }
 
 export default function NewTournamentSnackbar({

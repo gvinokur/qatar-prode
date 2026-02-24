@@ -10,7 +10,7 @@ import {
 } from '@/app/utils/dismissal-storage';
 
 interface TournamentRedirectProps {
-  tournaments: Array<{ id: string }>;
+  readonly tournaments: ReadonlyArray<{ readonly id: string }>;
 }
 
 export default function TournamentRedirect({

@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import EmptyTournamentsState from '../empty-tournaments-state';
