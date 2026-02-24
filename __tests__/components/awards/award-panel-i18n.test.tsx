@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
 import AwardsPanel from '../../../app/components/awards/award-panel';
 import { testFactories } from '../../db/test-factories';
 import { setTestLocale } from '../../../vitest.setup';
 import enAwards from '../../../locales/en/awards.json';
 import esAwards from '../../../locales/es/awards.json';
+import { renderWithTheme } from '../../utils/test-utils';
 
 // Mock the actions
 vi.mock('../../../app/actions/guesses-actions', () => ({
@@ -18,7 +19,11 @@ describe('AwardsPanel - i18n', () => {
     setTestLocale('es');
   });
 
-  const mockTournament = testFactories.tournament();
+  const mockTournament = {
+    ...testFactories.tournament(),
+    max_silver_games: 5,
+    max_golden_games: 3,
+  };
   const mockTeams = [
     testFactories.team({ id: 'team-1', name: 'Team 1', short_name: 'T1' }),
     testFactories.team({ id: 'team-2', name: 'Team 2', short_name: 'T2' }),
@@ -40,11 +45,36 @@ describe('AwardsPanel - i18n', () => {
     tournament_id: mockTournament.id,
   });
 
+  // Mock dashboard data (added for CompactPredictionDashboard)
+  const mockGames: any[] = [];
+  const mockGameGuessesArray: any[] = [];
+  const mockTournamentPredictionCompletion = null;
+  const mockTournamentStartDate = new Date('2024-01-01');
+  const mockTeamsMap = {
+    'team-1': mockTeams[0],
+    'team-2': mockTeams[1],
+  };
+
+  // Default props for all tests
+  const defaultProps = {
+    allPlayers: mockPlayers,
+    tournamentGuesses: mockTournamentGuess,
+    teams: mockTeams,
+    hasThirdPlaceGame: false,
+    isPredictionLocked: false,
+    tournament: mockTournament,
+    games: mockGames,
+    gameGuessesArray: mockGameGuessesArray,
+    tournamentPredictionCompletion: mockTournamentPredictionCompletion,
+    tournamentStartDate: mockTournamentStartDate,
+    teamsMap: mockTeamsMap,
+  };
+
   const renderWithAwards = (component: React.ReactNode, locale = 'es') => {
     // Set the global test locale to match
     setTestLocale(locale as 'es' | 'en');
     const messages = { awards: locale === 'en' ? enAwards : esAwards };
-    return render(
+    return renderWithTheme(
       <NextIntlClientProvider locale={locale} messages={messages}>
         {component}
       </NextIntlClientProvider>
@@ -54,14 +84,7 @@ describe('AwardsPanel - i18n', () => {
   describe('Spanish translations', () => {
     it('renders podium title in Spanish', () => {
       renderWithAwards(
-        <AwardsPanel
-          allPlayers={mockPlayers}
-          tournamentGuesses={mockTournamentGuess}
-          teams={mockTeams}
-          hasThirdPlaceGame={false}
-          isPredictionLocked={false}
-          tournament={mockTournament}
-        />,
+        <AwardsPanel {...defaultProps} />,
         'es'
       );
 
@@ -70,14 +93,7 @@ describe('AwardsPanel - i18n', () => {
 
     it('renders individual awards title in Spanish with correct spelling', () => {
       renderWithAwards(
-        <AwardsPanel
-          allPlayers={mockPlayers}
-          tournamentGuesses={mockTournamentGuess}
-          teams={mockTeams}
-          hasThirdPlaceGame={false}
-          isPredictionLocked={false}
-          tournament={mockTournament}
-        />,
+        <AwardsPanel {...defaultProps} />,
         'es'
       );
 
@@ -88,14 +104,7 @@ describe('AwardsPanel - i18n', () => {
 
     it('renders podium labels in Spanish', () => {
       renderWithAwards(
-        <AwardsPanel
-          allPlayers={mockPlayers}
-          tournamentGuesses={mockTournamentGuess}
-          teams={mockTeams}
-          hasThirdPlaceGame={true}
-          isPredictionLocked={false}
-          tournament={mockTournament}
-        />,
+        <AwardsPanel {...defaultProps} hasThirdPlaceGame={true} />,
         'es'
       );
 
@@ -107,14 +116,7 @@ describe('AwardsPanel - i18n', () => {
 
     it('renders locked alert in Spanish when predictions locked', () => {
       renderWithAwards(
-        <AwardsPanel
-          allPlayers={mockPlayers}
-          tournamentGuesses={mockTournamentGuess}
-          teams={mockTeams}
-          hasThirdPlaceGame={false}
-          isPredictionLocked={true}
-          tournament={mockTournament}
-        />,
+        <AwardsPanel {...defaultProps} isPredictionLocked={true} />,
         'es'
       );
 
@@ -125,14 +127,7 @@ describe('AwardsPanel - i18n', () => {
   describe('English translations', () => {
     it('renders podium title in English', () => {
       renderWithAwards(
-        <AwardsPanel
-          allPlayers={mockPlayers}
-          tournamentGuesses={mockTournamentGuess}
-          teams={mockTeams}
-          hasThirdPlaceGame={false}
-          isPredictionLocked={false}
-          tournament={mockTournament}
-        />,
+        <AwardsPanel {...defaultProps} />,
         'en'
       );
 
@@ -141,14 +136,7 @@ describe('AwardsPanel - i18n', () => {
 
     it('renders individual awards title in English', () => {
       renderWithAwards(
-        <AwardsPanel
-          allPlayers={mockPlayers}
-          tournamentGuesses={mockTournamentGuess}
-          teams={mockTeams}
-          hasThirdPlaceGame={false}
-          isPredictionLocked={false}
-          tournament={mockTournament}
-        />,
+        <AwardsPanel {...defaultProps} />,
         'en'
       );
 
@@ -159,14 +147,7 @@ describe('AwardsPanel - i18n', () => {
   describe('Bug fixes', () => {
     it('fixes typo: "Individuales" not "Inviduales"', () => {
       renderWithAwards(
-        <AwardsPanel
-          allPlayers={mockPlayers}
-          tournamentGuesses={mockTournamentGuess}
-          teams={mockTeams}
-          hasThirdPlaceGame={false}
-          isPredictionLocked={false}
-          tournament={mockTournament}
-        />,
+        <AwardsPanel {...defaultProps} />,
         'es'
       );
 
@@ -178,14 +159,7 @@ describe('AwardsPanel - i18n', () => {
 
     it('fixes language inconsistency: "Tercer Lugar" not "Third Place"', () => {
       renderWithAwards(
-        <AwardsPanel
-          allPlayers={mockPlayers}
-          tournamentGuesses={mockTournamentGuess}
-          teams={mockTeams}
-          hasThirdPlaceGame={true}
-          isPredictionLocked={false}
-          tournament={mockTournament}
-        />,
+        <AwardsPanel {...defaultProps} hasThirdPlaceGame={true} />,
         'es'
       );
 
@@ -197,14 +171,7 @@ describe('AwardsPanel - i18n', () => {
 
     it('fixes language inconsistency: locked alert in Spanish', () => {
       renderWithAwards(
-        <AwardsPanel
-          allPlayers={mockPlayers}
-          tournamentGuesses={mockTournamentGuess}
-          teams={mockTeams}
-          hasThirdPlaceGame={false}
-          isPredictionLocked={true}
-          tournament={mockTournament}
-        />,
+        <AwardsPanel {...defaultProps} isPredictionLocked={true} />,
         'es'
       );
 
@@ -218,14 +185,7 @@ describe('AwardsPanel - i18n', () => {
   describe('Award categories', () => {
     it('renders translated award categories in Spanish', () => {
       renderWithAwards(
-        <AwardsPanel
-          allPlayers={mockPlayers}
-          tournamentGuesses={mockTournamentGuess}
-          teams={mockTeams}
-          hasThirdPlaceGame={false}
-          isPredictionLocked={false}
-          tournament={mockTournament}
-        />,
+        <AwardsPanel {...defaultProps} />,
         'es'
       );
 

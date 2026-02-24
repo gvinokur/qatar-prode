@@ -14,6 +14,9 @@ import {
   getTournamentStartDate
 } from "../../../../actions/tournament-actions";
 import {findTournamentById} from "../../../../db/tournament-repository";
+import { getAllTournamentGames } from '../../../../db/game-repository';
+import { findGameGuessesByUserId } from '../../../../db/game-guess-repository';
+import { getTournamentPredictionCompletion } from '../../../../db/tournament-prediction-completion-repository';
 
 type Props = {
   readonly params: Promise<{
@@ -36,17 +39,27 @@ export default async function Awards(props: Props) {
     redirect(`/es/tournaments/${params.id}`)
   }
 
-  const tournamentGuesses =
-    (await findTournamentGuessByUserIdTournament(user.id, params.id)) || buildTournamentGuesses(user.id, params.id)
-  const allPlayers = await findAllPlayersInTournamentWithTeamData(params.id)
-  const tournamentStartDate = await getTournamentStartDate(params.id)
-  const teamsMap = await getTeamsMap(params.id)
+  // Fetch all required data in parallel
+  const [tournamentGuesses, allPlayers, tournamentStartDate, teamsMap, tournament, playoffStages, games, gameGuessesArray] = await Promise.all([
+    findTournamentGuessByUserIdTournament(user.id, params.id).then(result => result || buildTournamentGuesses(user.id, params.id)),
+    findAllPlayersInTournamentWithTeamData(params.id),
+    getTournamentStartDate(params.id),
+    getTeamsMap(params.id),
+    findTournamentById(params.id),
+    getPlayoffRounds(params.id),
+    getAllTournamentGames(params.id),
+    findGameGuessesByUserId(user.id, params.id)
+  ]);
+
   const teams = Object.values(teamsMap).sort((a, b) => a.name.localeCompare(b.name))
-  const tournament = await findTournamentById(params.id)
 
   // Check if tournament has a third place game
-  const playoffStages = await getPlayoffRounds(params.id)
   const hasThirdPlaceGame = playoffStages.some(stage => stage.is_third_place)
+
+  // Fetch tournament prediction completion (needs tournament object)
+  const tournamentPredictionCompletion = tournament
+    ? await getTournamentPredictionCompletion(user.id, params.id, tournament)
+    : null
 
   // Get tournament start time to check if predictions are still allowed
   const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
@@ -72,6 +85,11 @@ export default async function Awards(props: Props) {
         hasThirdPlaceGame={hasThirdPlaceGame}
         isPredictionLocked={isPredictionLocked}
         tournament={tournament}
+        games={games}
+        gameGuessesArray={gameGuessesArray}
+        tournamentPredictionCompletion={tournamentPredictionCompletion}
+        tournamentStartDate={tournamentStartDate}
+        teamsMap={teamsMap}
       />}
     </Box>
   )

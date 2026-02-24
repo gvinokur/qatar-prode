@@ -62,15 +62,6 @@ export default async function ResultsPage(props: Props) {
           width: '100%',
         }}
       >
-        <Typography
-          variant="h4"
-          component="h1"
-          gutterBottom
-          sx={{ mb: 2, py: 2, textAlign: 'center' }}
-        >
-          {t('results.title')}
-        </Typography>
-
         <Suspense fallback={<LoadingSkeleton />}>
           <ResultsPageClient
             groups={groupStandings.groups}

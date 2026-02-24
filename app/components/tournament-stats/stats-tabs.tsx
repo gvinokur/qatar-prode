@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Box, Tabs, Tab } from '@mui/material';
+import { ScrollShadowContainer } from '../common/scroll-shadow-container';
 
 interface TabPanelProps {
   readonly children?: React.ReactNode;
@@ -52,23 +53,37 @@ export function StatsTabs({ performanceTab, precisionTab, boostsTab }: Props) {
   };
 
   return (
-    <Box sx={{ width: '100%' }}>
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+    <Box sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%',
+    }}>
+      {/* Fixed tabs header */}
+      <Box sx={{ flexShrink: 0, borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={value} onChange={handleChange} aria-label={t('tabs.ariaLabel')}>
           <Tab label={t('tabs.performance')} {...a11yProps(0)} />
           <Tab label={t('tabs.accuracy')} {...a11yProps(1)} />
           <Tab label={t('tabs.boosts')} {...a11yProps(2)} />
         </Tabs>
       </Box>
-      <TabPanel value={value} index={0}>
-        {performanceTab}
-      </TabPanel>
-      <TabPanel value={value} index={1}>
-        {precisionTab}
-      </TabPanel>
-      <TabPanel value={value} index={2}>
-        {boostsTab}
-      </TabPanel>
+
+      {/* Scrollable content */}
+      <ScrollShadowContainer
+        direction="vertical"
+        hideScrollbar={true}
+        sx={{ flex: 1, minHeight: 0 }}
+        scrollContainerSx={{ pb: { xs: '56px', md: 2 } }} // Account for bottom nav on mobile
+      >
+        <TabPanel value={value} index={0}>
+          {performanceTab}
+        </TabPanel>
+        <TabPanel value={value} index={1}>
+          {precisionTab}
+        </TabPanel>
+        <TabPanel value={value} index={2}>
+          {boostsTab}
+        </TabPanel>
+      </ScrollShadowContainer>
     </Box>
   );
 }

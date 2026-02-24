@@ -14,6 +14,10 @@ import QualifiedTeamsClientPage from '../../../../components/qualified-teams/qua
 import { DebugObject } from '../../../../components/debug';
 import { findQualifiedTeams } from '../../../../db/team-repository';
 import { calculateQualifiedTeamsScore } from '../../../../utils/qualified-teams-scoring';
+import { getAllTournamentGames } from '../../../../db/game-repository';
+import { findGameGuessesByUserId } from '../../../../db/game-guess-repository';
+import { getTournamentPredictionCompletion } from '../../../../db/tournament-prediction-completion-repository';
+import { getTeamsMap } from '../../../../actions/tournament-actions';
 
 interface PageProps {
   readonly params: Promise<{
@@ -142,11 +146,11 @@ export default async function QualifiedTeamsPage({ params, searchParams }: PageP
       redirect(`/${locale}/auth/login?redirect=/${locale}/tournaments/${tournamentId}/qualified-teams`);
     }
 
-    // Fetch tournament (including dev_only field)
+    // Fetch tournament (fetch all fields for getTournamentPredictionCompletion)
     const tournament = await db
       .selectFrom('tournaments')
       .where('id', '=', tournamentId)
-      .select(['id', 'short_name', 'is_active', 'dev_only'])
+      .selectAll()
       .executeTakeFirst();
 
     if (!tournament) {
@@ -184,6 +188,19 @@ export default async function QualifiedTeamsPage({ params, searchParams }: PageP
       ? await calculateQualifiedTeamsScore(user.id, tournamentId)
       : null;
 
+    // Fetch dashboard data for CompactPredictionDashboard
+    const [games, gameGuessesArray, tournamentPredictionCompletion, teamsMap] = await Promise.all([
+      getAllTournamentGames(tournamentId),
+      findGameGuessesByUserId(user.id, tournamentId),
+      getTournamentPredictionCompletion(user.id, tournamentId, tournament),
+      getTeamsMap(tournamentId)
+    ]);
+
+    // Calculate tournament start date from games
+    const tournamentStartDate = games.length > 0
+      ? new Date(Math.min(...games.map(g => g.game_date.getTime())))
+      : undefined;
+
     // Debug data (only fetched when ?debug is present)
     let debugData = null;
     if (searchParamsResolved.hasOwnProperty('debug')) {
@@ -214,6 +231,11 @@ export default async function QualifiedTeamsPage({ params, searchParams }: PageP
           completeGroupIds={qualifiedTeamsResult.completeGroupIds}
           allGroupsComplete={qualifiedTeamsResult.allGroupsComplete}
           scoringBreakdown={scoringResult}
+          games={games}
+          gameGuessesArray={gameGuessesArray}
+          tournamentPredictionCompletion={tournamentPredictionCompletion}
+          tournamentStartDate={tournamentStartDate}
+          teamsMap={teamsMap}
         />
       </>
     );
