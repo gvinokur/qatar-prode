@@ -9,7 +9,7 @@
  * @returns true if dismissed, false if not dismissed or key doesn't exist
  */
 export function getDismissalState(key: string): boolean {
-  if (typeof globalThis.window === 'undefined') {
+  if (globalThis.window === undefined) {
     return false
   }
 
@@ -28,7 +28,7 @@ export function getDismissalState(key: string): boolean {
  * @param dismissed - true to mark as dismissed, false to clear dismissal
  */
 export function setDismissalState(key: string, dismissed: boolean): void {
-  if (typeof globalThis.window === 'undefined') {
+  if (globalThis.window === undefined) {
     return
   }
 
