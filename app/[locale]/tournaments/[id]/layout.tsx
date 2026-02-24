@@ -293,7 +293,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
       <EnvironmentIndicator isDev={layoutData.tournament?.dev_only || false}/>
 
       {/* Mobile bottom navigation - only shown on mobile within tournament context */}
-      <TournamentBottomNavWrapper tournamentId={params.id} />
+      <TournamentBottomNavWrapper tournamentId={params.id} user={user ?? undefined} />
     </Box>
   )
  }

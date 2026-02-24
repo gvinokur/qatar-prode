@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { screen } from '@testing-library/react'
 import TournamentBottomNav from '../tournament-bottom-nav'
 import { renderWithTheme } from '@/__tests__/utils/test-utils'
+import type { User } from '@/app/db/tables-definition'
 
 // Mock next-intl
 vi.mock('next-intl', () => ({
@@ -16,10 +17,20 @@ vi.mock('next/navigation', () => ({
   }),
 }))
 
+const mockUser: User = {
+  id: 'user1',
+  email: 'test@example.com',
+  nickname: 'TestUser',
+  password_hash: 'hash',
+  is_admin: false,
+  created_at: new Date()
+}
+
 describe('TournamentBottomNav i18n', () => {
   const defaultProps = {
     tournamentId: 'test-tournament',
     currentPath: '/en/tournaments/test-tournament',
+    user: mockUser
   }
 
   it('renders all navigation labels with translation keys', () => {

@@ -1,0 +1,11 @@
+{
+  "public": {
+    "ctaMessage": "Login or sign up to make predictions",
+    "learnHow": "Learn How",
+    "loginOrSignup": "Login or Sign Up",
+    "cardLockMessage": "Login or sign up to predict",
+    "noGames": "No games available",
+    "playoff": "Playoff",
+    "group": "Group"
+  }
+}

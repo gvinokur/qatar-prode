@@ -11,6 +11,7 @@ import { getTournamentPredictionCompletion } from '../db/tournament-prediction-c
 import { customToMap } from '../utils/ObjectUtils';
 import { GuessesContextProvider } from './context-providers/guesses-context-provider';
 import { UnifiedGamesPageClient } from './unified-games-page-client';
+import { PublicGamesPage } from './tournament-page/public-games-page';
 
 interface UnifiedGamesPageProps {
   readonly tournamentId: string;
@@ -19,11 +20,9 @@ interface UnifiedGamesPageProps {
 export async function UnifiedGamesPage({ tournamentId }: UnifiedGamesPageProps) {
   const user = await getLoggedInUser();
 
+  // If user is not authenticated, show public view
   if (!user) {
-    // Return empty state or redirect if user not logged in
-    return (
-      <div>Please log in to view games.</div>
-    );
+    return <PublicGamesPage tournamentId={tournamentId} />;
   }
 
   // Fetch all data in parallel

@@ -5,13 +5,15 @@ import { Home, Groups, Assessment, Gavel, BarChart } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { User } from '../../db/tables-definition';
 
 interface TournamentBottomNavProps {
   readonly tournamentId: string;
   readonly currentPath: string;
+  readonly user?: User;
 }
 
-export default function TournamentBottomNav({ tournamentId, currentPath }: TournamentBottomNavProps) {
+export default function TournamentBottomNav({ tournamentId, currentPath, user }: TournamentBottomNavProps) {
   const locale = useLocale();
   const t = useTranslations('navigation');
   const router = useRouter();
@@ -80,8 +82,8 @@ export default function TournamentBottomNav({ tournamentId, currentPath }: Tourn
       <BottomNavigationAction label={t('bottomNav.home')} value="main-home" icon={<Home sx={{ fontSize: 24 }} />} />
       <BottomNavigationAction label={t('bottomNav.results')} value="results" icon={<Assessment sx={{ fontSize: 24 }} />} />
       <BottomNavigationAction label={t('bottomNav.rules')} value="rules" icon={<Gavel sx={{ fontSize: 24 }} />} />
-      <BottomNavigationAction label={t('bottomNav.stats')} value="stats" icon={<BarChart sx={{ fontSize: 24 }} />} />
-      <BottomNavigationAction label={t('bottomNav.groups')} value="friend-groups" icon={<Groups sx={{ fontSize: 24 }} />} />
+      {user && <BottomNavigationAction label={t('bottomNav.stats')} value="stats" icon={<BarChart sx={{ fontSize: 24 }} />} />}
+      {user && <BottomNavigationAction label={t('bottomNav.groups')} value="friend-groups" icon={<Groups sx={{ fontSize: 24 }} />} />}
     </BottomNavigation>
   );
 }

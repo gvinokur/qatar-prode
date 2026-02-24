@@ -1,0 +1,11 @@
+{
+  "public": {
+    "ctaMessage": "Inicia sesión o regístrate para hacer predicciones",
+    "learnHow": "Cómo Funciona",
+    "loginOrSignup": "Iniciar Sesión o Registrarse",
+    "cardLockMessage": "Inicia sesión o regístrate para predecir",
+    "noGames": "No hay partidos disponibles",
+    "playoff": "Eliminatorias",
+    "group": "Grupo"
+  }
+}
