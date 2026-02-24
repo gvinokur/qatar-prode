@@ -2,6 +2,10 @@ import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 import type { Session } from 'next-auth';
 
+// Create hoisted mocks
+const mockCookieGet = vi.fn(() => null);
+const mockCookieSet = vi.fn();
+
 // Mock modules before importing middleware
 vi.mock('../auth', () => ({
   auth: vi.fn(),
@@ -9,8 +13,8 @@ vi.mock('../auth', () => ({
 
 vi.mock('next/headers', () => ({
   cookies: vi.fn(() => ({
-    get: vi.fn(() => null),
-    set: vi.fn(),
+    get: mockCookieGet,
+    set: mockCookieSet,
   })),
 }));
 
@@ -506,6 +510,100 @@ describe('middleware', () => {
 
       expect(mockAuth).toHaveBeenCalledOnce();
       expect(response.headers.get('x-middleware-intl')).toBe('processed');
+    });
+  });
+
+  describe('Cookie-based locale preference redirect', () => {
+    beforeEach(() => {
+      // Reset the cookie mock before each test to return null by default
+      mockCookieGet.mockReturnValue(null);
+    });
+
+    it('should redirect when cookie locale differs from URL locale', async () => {
+      // Set cookie to Spanish
+      mockCookieGet.mockReturnValue({ value: 'es' });
+
+      const request = new NextRequest('http://localhost:3000/en/tournaments/123');
+
+      const response = await middleware(request);
+
+      expect(response.status).toBe(307);
+      expect(response.headers.get('location')).toBe('http://localhost:3000/es/tournaments/123');
+    });
+
+    it('should preserve query parameters when redirecting based on cookie', async () => {
+      mockCookieGet.mockReturnValue({ value: 'en' });
+
+      const request = new NextRequest('http://localhost:3000/es/tournaments/123?tab=stats&view=detailed');
+
+      const response = await middleware(request);
+
+      expect(response.status).toBe(307);
+      expect(response.headers.get('location')).toBe('http://localhost:3000/en/tournaments/123?tab=stats&view=detailed');
+    });
+
+    it('should not redirect when cookie locale matches URL locale', async () => {
+      mockCookieGet.mockReturnValue({ value: 'en' });
+
+      const request = new NextRequest('http://localhost:3000/en/tournaments/123');
+
+      const response = await middleware(request);
+
+      // Should not redirect (status should not be 307/308)
+      expect(response.status).not.toBe(307);
+      expect(response.status).not.toBe(308);
+      expect(response.headers.get('x-middleware-intl')).toBe('processed');
+    });
+
+    it('should not redirect when no cookie is set', async () => {
+      mockCookieGet.mockReturnValue(null);
+
+      const request = new NextRequest('http://localhost:3000/en/tournaments/123');
+
+      const response = await middleware(request);
+
+      // Should not redirect
+      expect(response.status).not.toBe(307);
+      expect(response.status).not.toBe(308);
+      expect(response.headers.get('x-middleware-intl')).toBe('processed');
+    });
+
+    it('should not redirect for invalid cookie locale values', async () => {
+      mockCookieGet.mockReturnValue({ value: 'fr' }); // Invalid locale
+
+      const request = new NextRequest('http://localhost:3000/en/tournaments/123');
+
+      const response = await middleware(request);
+
+      // Should not redirect for invalid locale
+      expect(response.status).not.toBe(307);
+      expect(response.status).not.toBe(308);
+    });
+
+    it('should redirect from en to es based on cookie for public routes', async () => {
+      mockCookieGet.mockReturnValue({ value: 'es' });
+
+      const request = new NextRequest('http://localhost:3000/en/auth/signin');
+
+      const response = await middleware(request);
+
+      expect(response.status).toBe(307);
+      expect(response.headers.get('location')).toBe('http://localhost:3000/es/auth/signin');
+      // Should not call auth() for public routes
+      expect(mockAuth).not.toHaveBeenCalled();
+    });
+
+    it('should redirect from es to en based on cookie for protected routes', async () => {
+      mockCookieGet.mockReturnValue({ value: 'en' });
+      const mockSession = createMockSession({ user: { id: 'user-10', name: 'Test User 10' } });
+      mockAuth.mockResolvedValueOnce(mockSession);
+
+      const request = new NextRequest('http://localhost:3000/es/predictions');
+
+      const response = await middleware(request);
+
+      expect(response.status).toBe(307);
+      expect(response.headers.get('location')).toBe('http://localhost:3000/en/predictions');
     });
   });
 
