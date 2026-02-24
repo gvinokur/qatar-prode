@@ -88,10 +88,10 @@ export default function PublicGamesPageClient({
                 gameDate={game.game_date}
                 location={game.location}
                 gameTimezone={game.game_local_timezone}
-                homeTeamNameOrDescription={homeTeam?.short_name || homeTeam?.name || ''}
+                homeTeamNameOrDescription={homeTeam?.name || homeTeam?.short_name || ''}
                 homeTeamShortNameOrDescription={homeTeam?.short_name}
                 homeTeamTheme={homeTeam?.theme}
-                awayTeamNameOrDescription={awayTeam?.short_name || awayTeam?.name || ''}
+                awayTeamNameOrDescription={awayTeam?.name || awayTeam?.short_name || ''}
                 awayTeamShortNameOrDescription={awayTeam?.short_name}
                 awayTeamTheme={awayTeam?.theme}
                 homeScore={game.gameResult?.home_score}
