@@ -1,5 +1,5 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import EmptyTournamentsState from '../empty-tournaments-state';
 import { renderWithTheme } from '@/__tests__/utils/test-utils';
 import type { Tournament } from '@/app/db/tables-definition';
