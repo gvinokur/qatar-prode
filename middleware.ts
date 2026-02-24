@@ -91,7 +91,21 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.redirect(newUrl);
   }
 
-  // 4. Apply i18n middleware (handles locale routing)
+  // 4. Check if authenticated user's preferred locale differs from current URL locale
+  const currentLocale = pathname.split('/')[1] as Locale;
+  const session = await auth();
+
+  if (session?.user?.preferred_locale &&
+      locales.includes(session.user.preferred_locale as Locale) &&
+      session.user.preferred_locale !== currentLocale) {
+    // User's preferred locale differs from current URL locale - redirect
+    const newPathname = pathname.replace(`/${currentLocale}`, `/${session.user.preferred_locale}`);
+    const newUrl = new URL(newPathname, request.url);
+    newUrl.search = request.nextUrl.search;
+    return NextResponse.redirect(newUrl);
+  }
+
+  // 5. Apply i18n middleware (handles locale routing)
   const intlResponse = intlMiddleware(request);
 
   // If i18n middleware returned a redirect, return it immediately
@@ -99,13 +113,13 @@ export default async function middleware(request: NextRequest) {
     return intlResponse;
   }
 
-  // 3. Exclude public auth routes from NextAuth protection
+  // 6. Exclude public auth routes from NextAuth protection
   const isPublicRoute = pathname.match(/^\/[^/]+\/auth/) || pathname.match(/^\/[^/]+\/verify-email/);
   if (isPublicRoute) {
     return intlResponse; // Public routes don't need auth
   }
 
-  // 4. Apply NextAuth middleware for protected routes
+  // 7. Apply NextAuth middleware for protected routes
   const protectedRoutes = ['/predictions', '/friend-groups'];
   const isProtectedRoute = protectedRoutes.some(route => {
     // Check if pathname matches pattern like /es/predictions/* or /en/friend-groups/*
@@ -119,7 +133,7 @@ export default async function middleware(request: NextRequest) {
     protectedTournamentSubRoutes.some(route => pathname.includes(route));
 
   if (isProtectedRoute || isProtectedTournamentRoute) {
-    const session = await auth();
+    // Reuse session fetched earlier (for locale detection)
     if (!session) {
       // User not authenticated, redirect to signin
       const signInUrl = new URL(`/${pathname.split('/')[1]}/`, request.url);
@@ -129,7 +143,7 @@ export default async function middleware(request: NextRequest) {
     }
   }
 
-  // 5. Apply route redirects (existing logic, updated for locale)
+  // 8. Apply route redirects (existing logic, updated for locale)
   const groupsMatch = pathname.match(/^\/([^/]+)\/tournaments\/(\d+)\/groups$/);
   if (groupsMatch) {
     const locale = groupsMatch[1];
