@@ -39,6 +39,6 @@ export default function TournamentRedirect({
     router.push(`/${locale}/tournaments/${targetTournament.id}`);
   }, [tournaments, router, locale]);
 
-  // Show loading state while redirecting
-  return <div>Loading...</div>;
+  // Return null - redirect happens instantly, no need to show loading state
+  return null;
 }
