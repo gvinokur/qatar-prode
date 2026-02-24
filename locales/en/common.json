@@ -43,6 +43,7 @@
     "back": "Back"
   },
   "home": {
-    "availableTournaments": "Available Tournaments"
+    "availableTournaments": "Available Tournaments",
+    "loadingTournaments": "Loading Tournaments"
   }
 }

@@ -2,7 +2,8 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { Box, CircularProgress, Typography } from '@mui/material';
 import {
   getLastSelectedTournamentId,
   setLastSelectedTournamentId,
@@ -17,6 +18,7 @@ export default function TournamentRedirect({
 }: TournamentRedirectProps) {
   const router = useRouter();
   const locale = useLocale();
+  const t = useTranslations('home');
 
   useEffect(() => {
     if (tournaments.length === 0) return;
@@ -39,6 +41,22 @@ export default function TournamentRedirect({
     router.push(`/${locale}/tournaments/${targetTournament.id}`);
   }, [tournaments, router, locale]);
 
-  // Return null - redirect happens instantly, no need to show loading state
-  return null;
+  // Show centered loading indicator while redirecting
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '50vh',
+        gap: 2,
+      }}
+    >
+      <CircularProgress size={48} />
+      <Typography variant="h6" color="text.secondary">
+        {t('loadingTournaments')}
+      </Typography>
+    </Box>
+  );
 }
