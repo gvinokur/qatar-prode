@@ -16,7 +16,9 @@
 - [ ] Tournament selection persists across sessions via localStorage (sticky selection)
 - [ ] Dropdown switcher appears in tournament header when multiple tournaments are active
 - [ ] Users can switch between active tournaments via the dropdown
-- [ ] Snackbar notification appears when user visits a new tournament they haven't seen before
+- [ ] When switching tournaments, user stays on the same page type (e.g., qualified-teams → qualified-teams)
+- [ ] Snackbar notification appears when user lands on a tournament AND multiple tournaments exist
+- [ ] Snackbar shows list of other available tournaments
 - [ ] Snackbar is dismissible and dismissal state persists per tournament
 - [ ] Empty state displays when no active tournaments exist, showing past tournaments as examples
 - [ ] All new strings are internationalized (i18n)
@@ -69,11 +71,15 @@
 │                                                            │
 │                                                            │
 │          ┌────────────────────────────────────┐           │
-│          │ ℹ️  New Tournament Available!       │   [✕]    │
+│          │ ℹ️  Multiple Tournaments Active!   │   [✕]    │
 │          │                                    │           │
 │          │  You're viewing World Cup 2022.    │           │
-│          │  Switch tournaments anytime using  │           │
-│          │  the dropdown in the header.       │           │
+│          │  Other tournaments:                │           │
+│          │  • Copa America 2024               │           │
+│          │  • Euro 2024                       │           │
+│          │                                    │           │
+│          │  Switch anytime using the dropdown │           │
+│          │  in the header.                    │           │
 │          └────────────────────────────────────┘           │
 └────────────────────────────────────────────────────────────┘
 ```
@@ -81,20 +87,23 @@
 **Component Details:**
 - **Material-UI:** Snackbar + Alert (severity: 'info', variant: 'outlined')
 - **Position:** `{ vertical: 'bottom', horizontal: 'center' }`
-- **autoHideDuration:** 8000ms (8 seconds)
+- **autoHideDuration:** 10000ms (10 seconds - longer due to more content)
 - **Dismissible:** User can click [✕] to dismiss
-- **Shows when:** User visits a tournament they haven't seen before
+- **Content:**
+  - Title: "Multiple Tournaments Active!"
+  - Current tournament name
+  - Bulleted list of other active tournaments
+  - Instructions to use dropdown
+- **Shows when:** User lands on a tournament AND multiple tournaments exist
 - **Doesn't show if:**
   - Only one active tournament exists
-  - User has already seen this tournament
   - User has dismissed snackbar for this tournament
 
 **Conditions for display:**
 ```typescript
 // Show snackbar if:
-// 1. Multiple active tournaments exist AND
-// 2. This tournament hasn't been seen before AND
-// 3. Snackbar hasn't been dismissed for this tournament
+// 1. Multiple active tournaments exist (2 or more) AND
+// 2. Snackbar hasn't been dismissed for this tournament
 ```
 
 ### 3. Empty State (No Active Tournaments)
@@ -200,8 +209,15 @@ interface TournamentSwitcherProps {
 - On click: open Menu with tournament list
 - On menu item click:
   - Update localStorage with selected tournament ID
-  - Navigate to selected tournament page
+  - Navigate to selected tournament, **preserving current page path**
+  - Example: If on `/tournaments/1/qualified-teams`, switching to tournament 2 navigates to `/tournaments/2/qualified-teams`
   - Close menu
+
+**Route Preservation Logic:**
+- Use `usePathname()` to get current path
+- Extract everything after `/tournaments/[id]` (e.g., `/qualified-teams`, `/friend-groups/123`)
+- Append to new tournament URL
+- Fall back to tournament home if extraction fails
 
 **Material-UI Components:**
 - IconButton (trigger)
@@ -234,7 +250,7 @@ interface TournamentSwitcherProps {
 interface NewTournamentSnackbarProps {
   tournamentId: number;
   tournamentName: string;
-  hasMultipleTournaments: boolean;
+  otherTournaments: Array<{ id: number; long_name: string }>; // Other active tournaments
 }
 ```
 
@@ -243,29 +259,48 @@ interface NewTournamentSnackbarProps {
 const [open, setOpen] = useState(false);
 
 useEffect(() => {
-  // Check if this tournament has been seen
-  const seenTournaments = getSeenTournaments(); // from localStorage
+  // Check if snackbar has been dismissed for this tournament
   const dismissed = getDismissalState(`tournamentSnackbar_${tournamentId}`);
 
-  if (!seenTournaments.includes(tournamentId) && !dismissed && hasMultipleTournaments) {
+  // Show if multiple tournaments exist and not dismissed
+  if (otherTournaments.length > 0 && !dismissed) {
     setOpen(true);
-    // Mark tournament as seen
-    addSeenTournament(tournamentId);
   }
-}, [tournamentId, hasMultipleTournaments]);
+}, [tournamentId, otherTournaments]);
 ```
 
 **localStorage Keys:**
-- `seenTournaments`: JSON array of tournament IDs user has visited
-- `dismissedTournamentSnackbar_${tournamentId}`: boolean for dismissal state
+- `dismissedTournamentSnackbar_${tournamentId}`: boolean for dismissal state (simplified - no more seenTournaments tracking)
 
 **Material-UI Components:**
 - Snackbar (container)
 - Alert (message with close button)
+- AlertTitle (for "Multiple Tournaments Active!")
+- Typography (for body text)
+- List/ListItem (for tournament names)
 - Severity: 'info'
 - Variant: 'outlined'
 
 **Integration Point:** Tournament layout (render at bottom of layout)
+
+**Content Structure:**
+```tsx
+<Alert severity="info" variant="outlined" onClose={handleDismiss}>
+  <AlertTitle>{t('tournament.snackbar.title')}</AlertTitle>
+  <Typography variant="body2">
+    {t('tournament.snackbar.currentTournament', { name: tournamentName })}
+  </Typography>
+  <Typography variant="body2" sx={{ mt: 1 }}>
+    {t('tournament.snackbar.otherTournaments')}
+  </Typography>
+  <ul>
+    {otherTournaments.map(t => <li key={t.id}>{t.long_name}</li>)}
+  </ul>
+  <Typography variant="body2" sx={{ mt: 1 }}>
+    {t('tournament.snackbar.instructions')}
+  </Typography>
+</Alert>
+```
 
 ### 4. Empty State Component
 
@@ -321,31 +356,6 @@ export function setLastSelectedTournamentId(tournamentId: number): void {
   }
 }
 
-// Get seen tournaments
-export function getSeenTournaments(): number[] {
-  if (globalThis.window === undefined) return [];
-  try {
-    const value = localStorage.getItem('seenTournaments');
-    return value ? JSON.parse(value) : [];
-  } catch (error) {
-    console.error('Error reading seen tournaments:', error);
-    return [];
-  }
-}
-
-// Add tournament to seen list
-export function addSeenTournament(tournamentId: number): void {
-  if (globalThis.window === undefined) return;
-  try {
-    const seenTournaments = getSeenTournaments();
-    if (!seenTournaments.includes(tournamentId)) {
-      seenTournaments.push(tournamentId);
-      localStorage.setItem('seenTournaments', JSON.stringify(seenTournaments));
-    }
-  } catch (error) {
-    console.error('Error saving seen tournament:', error);
-  }
-}
 ```
 
 **Pattern:** Follow existing SSR-safe pattern with globalThis.window checks
@@ -473,7 +483,7 @@ const activeTournaments = await getTournaments(); // Gets all active tournaments
 <NewTournamentSnackbar
   tournamentId={tournament.id}
   tournamentName={tournament.long_name}
-  hasMultipleTournaments={activeTournaments.length > 1}
+  otherTournaments={activeTournaments.filter(t => t.id !== tournament.id)}
 />
 ```
 
@@ -489,10 +499,10 @@ const activeTournaments = await getTournaments(); // Gets all active tournaments
     "currentTournament": "Current tournament"
   },
   "snackbar": {
-    "newTournament": {
-      "title": "New Tournament Available!",
-      "message": "You're viewing {tournamentName}. Switch tournaments anytime using the dropdown in the header."
-    }
+    "title": "Multiple Tournaments Active!",
+    "currentTournament": "You're viewing {name}.",
+    "otherTournaments": "Other tournaments:",
+    "instructions": "Switch anytime using the dropdown in the header."
   },
   "emptyState": {
     "title": "No Active Tournaments Right Now",
@@ -513,10 +523,10 @@ const activeTournaments = await getTournaments(); // Gets all active tournaments
     "currentTournament": "Torneo actual"
   },
   "snackbar": {
-    "newTournament": {
-      "title": "¡Nuevo Torneo Disponible!",
-      "message": "Estás viendo {tournamentName}. Cambia de torneo en cualquier momento usando el menú desplegable en el encabezado."
-    }
+    "title": "¡Múltiples Torneos Activos!",
+    "currentTournament": "Estás viendo {name}.",
+    "otherTournaments": "Otros torneos:",
+    "instructions": "Cambia en cualquier momento usando el menú desplegable en el encabezado."
   },
   "emptyState": {
     "title": "No Hay Torneos Activos En Este Momento",
@@ -549,7 +559,7 @@ const activeTournaments = await getTournaments(); // Gets all active tournaments
 ## Implementation Steps
 
 ### Phase 1: Data Layer & Utilities
-1. Add localStorage utility functions to `dismissal-storage.ts`
+1. Add localStorage utility functions to `dismissal-storage.ts` (only tournament selection, no seenTournaments tracking)
 2. Add `findPastTournaments()` to tournament-repository.ts
 3. Add `getPastTournaments()` to tournament-actions.ts
 4. Add i18n keys to translation files
@@ -587,10 +597,9 @@ const activeTournaments = await getTournaments(); // Gets all active tournaments
 **File:** `__tests__/utils/dismissal-storage.test.ts`
 - Test `getLastSelectedTournamentId()` - returns null when empty, returns ID when set
 - Test `setLastSelectedTournamentId()` - saves to localStorage
-- Test `getSeenTournaments()` - returns empty array when empty, returns array when set
-- Test `addSeenTournament()` - adds tournament to array, doesn't duplicate
 - Test SSR safety (window undefined)
 - Test error handling
+- Test `getDismissalState()` and `setDismissalState()` for snackbar dismissals
 
 **File:** `__tests__/db/tournament-repository.test.ts`
 - Test `findPastTournaments()` - returns inactive tournaments only
@@ -605,16 +614,18 @@ const activeTournaments = await getTournaments(); // Gets all active tournaments
 **File:** `__tests__/components/tournament/tournament-switcher.test.tsx`
 - Test renders only when multiple tournaments
 - Test menu opens on click
-- Test navigation on selection
+- Test navigation on selection preserves current page path
+- Test navigation falls back to tournament home on error
 - Test checkmark on current tournament
 - Test localStorage update
 
 **File:** `__tests__/components/tournament/new-tournament-snackbar.test.tsx`
-- Test shows when tournament not seen
-- Test doesn't show when tournament already seen
-- Test doesn't show when dismissed
-- Test doesn't show when only one tournament
-- Test dismissal persists
+- Test shows when multiple tournaments exist
+- Test doesn't show when dismissed for current tournament
+- Test doesn't show when no other tournaments
+- Test dismissal persists per tournament
+- Test displays list of other tournament names
+- Test content matches i18n keys
 
 **File:** `__tests__/components/tournament/empty-tournaments-state.test.tsx`
 - Test renders empty state message
@@ -633,12 +644,15 @@ const activeTournaments = await getTournaments(); // Gets all active tournaments
 1. Clear localStorage
 2. Visit "/"
 3. Expect: Redirect to first active tournament
-4. Expect: Snackbar appears
-5. Click switcher, select different tournament
-6. Expect: Navigate to selected tournament
-7. Expect: No snackbar (already seen)
-8. Refresh page, visit "/"
-9. Expect: Redirect to last selected tournament
+4. Expect: Snackbar appears with list of other tournaments
+5. Dismiss snackbar
+6. Refresh page
+7. Expect: No snackbar for this tournament
+8. Click switcher, select different tournament
+9. Expect: Navigate to selected tournament home
+10. Expect: Snackbar appears for new tournament
+11. Visit "/"
+12. Expect: Redirect to last selected tournament
 
 **Scenario 2: User with no active tournaments**
 1. Mock getTournaments() to return []
@@ -646,18 +660,30 @@ const activeTournaments = await getTournaments(); // Gets all active tournaments
 3. Expect: Empty state displayed
 4. Expect: Past tournaments list shown
 
-**Scenario 3: User dismisses snackbar**
-1. Visit tournament for first time
-2. Expect: Snackbar appears
-3. Click dismiss
-4. Refresh page
-5. Expect: Snackbar doesn't appear
+**Scenario 3: Route preservation when switching tournaments**
+1. Visit tournament 1 home page
+2. Navigate to qualified-teams page (/tournaments/1/qualified-teams)
+3. Click tournament switcher
+4. Select tournament 2
+5. Expect: Navigate to /tournaments/2/qualified-teams (same page type)
+6. Navigate to friend-groups page (/tournaments/2/friend-groups/123)
+7. Switch back to tournament 1
+8. Expect: Navigate to /tournaments/1/friend-groups/123 (preserves full path if exists)
 
-**Scenario 4: Single tournament (no switcher)**
+**Scenario 4: Single tournament (no switcher or snackbar)**
 1. Mock getTournaments() to return 1 tournament
 2. Visit tournament page
 3. Expect: No switcher in header
 4. Expect: No snackbar
+
+**Scenario 5: User dismisses snackbar**
+1. Visit tournament with multiple active tournaments
+2. Expect: Snackbar appears with other tournament names
+3. Click dismiss
+4. Refresh page
+5. Expect: Snackbar doesn't appear for this tournament
+6. Switch to another tournament
+7. Expect: Snackbar appears for the new tournament (separate dismissal state)
 
 ### Manual Testing Checklist
 
@@ -666,8 +692,10 @@ const activeTournaments = await getTournaments(); // Gets all active tournaments
 - [ ] Tournament switcher visible with 2+ tournaments
 - [ ] Tournament switcher hidden with 1 tournament
 - [ ] Switching tournaments updates localStorage
-- [ ] Switching tournaments navigates to new tournament
-- [ ] Snackbar appears for new tournament
+- [ ] Switching tournaments preserves current page (e.g., qualified-teams → qualified-teams)
+- [ ] Switching tournaments from home goes to tournament home
+- [ ] Snackbar appears when landing on tournament with multiple active
+- [ ] Snackbar shows list of other tournament names
 - [ ] Snackbar dismissal persists
 - [ ] Empty state shows with past tournaments
 - [ ] Mobile responsive: switcher works
@@ -705,10 +733,11 @@ const activeTournaments = await getTournaments(); // Gets all active tournaments
 
 ### Edge Cases
 - User's last selected tournament is no longer active → Redirect to first active tournament
-- User's seenTournaments list has invalid IDs → Filter out invalid IDs
-- localStorage is disabled/blocked → Fall back to redirecting to first tournament
+- localStorage is disabled/blocked → Fall back to redirecting to first tournament, no snackbar persistence
 - User manually types "/" in URL → Redirect should still work
 - Multiple browser tabs open → localStorage changes should sync
+- Switching tournaments when on non-existent page in new tournament → Fall back to tournament home
+- Switching tournaments from a friend-group page → Preserve path if that group exists in new tournament, otherwise go to tournament home
 
 ## Open Questions
 
