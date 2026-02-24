@@ -46,9 +46,29 @@ vi.mock('../../../../../app/utils/qualified-teams-scoring', () => ({
   calculateQualifiedTeamsScore: vi.fn().mockResolvedValue(null),
 }));
 
+// Mock game repository
+vi.mock('../../../../../app/db/game-repository', () => ({
+  getAllTournamentGames: vi.fn().mockResolvedValue([]),
+}));
+
+// Mock game guess repository
+vi.mock('../../../../../app/db/game-guess-repository', () => ({
+  findGameGuessesByUserId: vi.fn().mockResolvedValue([]),
+}));
+
+// Mock tournament prediction completion repository
+vi.mock('../../../../../app/db/tournament-prediction-completion-repository', () => ({
+  getTournamentPredictionCompletion: vi.fn().mockResolvedValue(null),
+}));
+
+// Mock tournament actions
+vi.mock('../../../../../app/actions/tournament-actions', () => ({
+  getTeamsMap: vi.fn().mockResolvedValue({}),
+}));
+
 // Mock the client component
 vi.mock('../../../../../app/[locale]/components/qualified-teams/qualified-teams-client-page', () => ({
-  default: ({ tournament, groups, initialPredictions, userId, isLocked, allowsThirdPlace, maxThirdPlace, actualResults, scoringBreakdown }: any) => (
+  default: ({ tournament, groups, initialPredictions, userId, isLocked, allowsThirdPlace, maxThirdPlace, actualResults, completeGroupIds, allGroupsComplete, scoringBreakdown, games, gameGuessesArray, tournamentPredictionCompletion, tournamentStartDate, teamsMap }: any) => (
     <div data-testid="qualified-teams-client-page">
       <div data-testid="tournament-id">{tournament.id}</div>
       <div data-testid="groups-count">{groups.length}</div>
@@ -59,6 +79,7 @@ vi.mock('../../../../../app/[locale]/components/qualified-teams/qualified-teams-
       <div data-testid="max-third-place">{maxThirdPlace}</div>
       <div data-testid="has-actual-results">{actualResults ? 'true' : 'false'}</div>
       <div data-testid="has-scoring-breakdown">{scoringBreakdown ? 'true' : 'false'}</div>
+      <div data-testid="has-dashboard-props">{games && gameGuessesArray && teamsMap ? 'true' : 'false'}</div>
     </div>
   ),
 }));
@@ -151,6 +172,7 @@ describe('QualifiedTeamsPage', () => {
     const mockTournamentQuery = {
       where: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
+      selectAll: vi.fn().mockReturnThis(),
       executeTakeFirst: vi.fn().mockResolvedValue(null),
     };
     mockDb.selectFrom.mockReturnValue(mockTournamentQuery as any);
@@ -166,6 +188,7 @@ describe('QualifiedTeamsPage', () => {
     const mockTournamentQuery = {
       where: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
+      selectAll: vi.fn().mockReturnThis(),
       executeTakeFirst: vi.fn().mockResolvedValue(mockTournament),
     };
 
@@ -235,6 +258,7 @@ describe('QualifiedTeamsPage', () => {
     const mockTournamentQuery = {
       where: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
+      selectAll: vi.fn().mockReturnThis(),
       executeTakeFirst: vi.fn().mockResolvedValue(mockTournament),
     };
 
@@ -278,6 +302,7 @@ describe('QualifiedTeamsPage', () => {
     const mockTournamentQuery = {
       where: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
+      selectAll: vi.fn().mockReturnThis(),
       executeTakeFirst: vi.fn().mockResolvedValue(mockTournament),
     };
 

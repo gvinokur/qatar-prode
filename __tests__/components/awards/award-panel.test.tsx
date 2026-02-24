@@ -14,7 +14,11 @@ vi.mock('../../../app/actions/guesses-actions', () => ({
 const mockUpdateOrCreateTournamentGuess = vi.mocked(guessesActions.updateOrCreateTournamentGuess);
 
 describe('AwardsPanel - Bug #164 Fix', () => {
-  const mockTournament = testFactories.tournament();
+  const mockTournament = {
+    ...testFactories.tournament(),
+    max_silver_games: 5,
+    max_golden_games: 3,
+  };
   const mockTeams = [
     testFactories.team({ id: 'team-1', name: 'Team 1', short_name: 'T1' }),
     testFactories.team({ id: 'team-2', name: 'Team 2', short_name: 'T2' }),
@@ -268,7 +272,7 @@ describe('AwardsPanel - Bug #164 Fix', () => {
 
     it('should show third place selector when hasThirdPlaceGame is true', () => {
       renderWithTheme(
-        <AwardsPanel {...defaultProps} />
+        <AwardsPanel {...defaultProps} hasThirdPlaceGame={true} />
       );
 
       expect(screen.getByLabelText(/Tercer Lugar/i)).toBeInTheDocument();
@@ -286,7 +290,7 @@ describe('AwardsPanel - Bug #164 Fix', () => {
   describe('Prediction Locked State', () => {
     it('should disable inputs when predictions are locked', () => {
       renderWithTheme(
-        <AwardsPanel {...defaultProps} />
+        <AwardsPanel {...defaultProps} isPredictionLocked={true} />
       );
 
       const autocompletes = screen.getAllByRole('combobox');
@@ -298,7 +302,7 @@ describe('AwardsPanel - Bug #164 Fix', () => {
 
     it('should show locked message when predictions are locked', () => {
       renderWithTheme(
-        <AwardsPanel {...defaultProps} />
+        <AwardsPanel {...defaultProps} isPredictionLocked={true} />
       );
 
       expect(screen.getByText('Las predicciones están bloqueadas para este torneo. Puedes ver tus predicciones pero no puedes hacer cambios.')).toBeInTheDocument();

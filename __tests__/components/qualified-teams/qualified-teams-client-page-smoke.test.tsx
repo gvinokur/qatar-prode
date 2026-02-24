@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { NextIntlClientProvider } from 'next-intl';
 import QualifiedTeamsClientPage from '../../../app/components/qualified-teams/qualified-teams-client-page';
 import { testFactories } from '../../db/test-factories';
 import qualifiedTeamsEs from '../../../locales/es/qualified-teams.json';
 import qualifiedTeamsEn from '../../../locales/en/qualified-teams.json';
+import { renderWithTheme } from '../../utils/test-utils';
 
 // Helper to render with i18n
 const renderWithI18n = (component: React.ReactElement, locale: 'en' | 'es' = 'es') => {
@@ -13,7 +14,7 @@ const renderWithI18n = (component: React.ReactElement, locale: 'en' | 'es' = 'es
     'qualified-teams': locale === 'es' ? qualifiedTeamsEs : qualifiedTeamsEn,
   };
 
-  return render(
+  return renderWithTheme(
     <NextIntlClientProvider locale={locale} messages={messages}>
       {component}
     </NextIntlClientProvider>
@@ -26,11 +27,15 @@ const renderWithI18n = (component: React.ReactElement, locale: 'en' | 'es' = 'es
  * Full integration testing is complex due to DnD and context dependencies
  */
 describe('QualifiedTeamsClientPage - Smoke Tests', () => {
-  const mockTournament = testFactories.tournament({
-    id: 'tournament-1',
-    allows_third_place_qualification: true,
-    max_third_place_qualifiers: 4,
-  });
+  const mockTournament = {
+    ...testFactories.tournament({
+      id: 'tournament-1',
+      allows_third_place_qualification: true,
+      max_third_place_qualifiers: 4,
+    }),
+    max_silver_games: 5,
+    max_golden_games: 3,
+  };
 
   const mockGroup = testFactories.tournamentGroup({
     id: 'group-1',

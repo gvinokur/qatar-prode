@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
 import AwardsPanel from '../../../app/components/awards/award-panel';
 import { testFactories } from '../../db/test-factories';
 import { setTestLocale } from '../../../vitest.setup';
 import enAwards from '../../../locales/en/awards.json';
 import esAwards from '../../../locales/es/awards.json';
+import { renderWithTheme } from '../../utils/test-utils';
 
 // Mock the actions
 vi.mock('../../../app/actions/guesses-actions', () => ({
@@ -18,7 +19,11 @@ describe('AwardsPanel - i18n', () => {
     setTestLocale('es');
   });
 
-  const mockTournament = testFactories.tournament();
+  const mockTournament = {
+    ...testFactories.tournament(),
+    max_silver_games: 5,
+    max_golden_games: 3,
+  };
   const mockTeams = [
     testFactories.team({ id: 'team-1', name: 'Team 1', short_name: 'T1' }),
     testFactories.team({ id: 'team-2', name: 'Team 2', short_name: 'T2' }),
@@ -69,7 +74,7 @@ describe('AwardsPanel - i18n', () => {
     // Set the global test locale to match
     setTestLocale(locale as 'es' | 'en');
     const messages = { awards: locale === 'en' ? enAwards : esAwards };
-    return render(
+    return renderWithTheme(
       <NextIntlClientProvider locale={locale} messages={messages}>
         {component}
       </NextIntlClientProvider>
@@ -99,7 +104,7 @@ describe('AwardsPanel - i18n', () => {
 
     it('renders podium labels in Spanish', () => {
       renderWithAwards(
-        <AwardsPanel {...defaultProps} />,
+        <AwardsPanel {...defaultProps} hasThirdPlaceGame={true} />,
         'es'
       );
 
@@ -111,7 +116,7 @@ describe('AwardsPanel - i18n', () => {
 
     it('renders locked alert in Spanish when predictions locked', () => {
       renderWithAwards(
-        <AwardsPanel {...defaultProps} />,
+        <AwardsPanel {...defaultProps} isPredictionLocked={true} />,
         'es'
       );
 
@@ -154,7 +159,7 @@ describe('AwardsPanel - i18n', () => {
 
     it('fixes language inconsistency: "Tercer Lugar" not "Third Place"', () => {
       renderWithAwards(
-        <AwardsPanel {...defaultProps} />,
+        <AwardsPanel {...defaultProps} hasThirdPlaceGame={true} />,
         'es'
       );
 
@@ -166,7 +171,7 @@ describe('AwardsPanel - i18n', () => {
 
     it('fixes language inconsistency: locked alert in Spanish', () => {
       renderWithAwards(
-        <AwardsPanel {...defaultProps} />,
+        <AwardsPanel {...defaultProps} isPredictionLocked={true} />,
         'es'
       );
 
