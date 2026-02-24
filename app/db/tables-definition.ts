@@ -121,6 +121,8 @@ export interface UserTable extends Identifiable{
   otp_expiration?: Date | null  // 3-minute expiration
   otp_attempts?: number  // Track failed attempts (max 3)
   otp_last_request?: Date | null  // Rate limiting (1 per minute)
+  // i18n fields
+  preferred_locale?: string | null  // User's preferred language ('en' or 'es')
 }
 
 export type User = Selectable<UserTable>

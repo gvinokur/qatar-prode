@@ -3,6 +3,8 @@
 import crypto from 'crypto';
 import { getTranslations } from 'next-intl/server';
 import type { Locale } from '../../i18n.config';
+import { locales } from '../../i18n.config';
+import { cookies } from 'next/headers';
 import {User, UserNew} from "../db/tables-definition"
 import {
   createUser,
@@ -88,6 +90,42 @@ export async function updateNickname(nickname: string, locale: Locale = 'es') {
     return t('auth.unauthorized')
   }
   await updateUser(user.id, { nickname })
+}
+
+/**
+ * Update user's preferred locale
+ *
+ * Works for both authenticated and unauthenticated users:
+ * - Authenticated: Updates database and sets cookie
+ * - Unauthenticated: Only sets cookie (for persistence)
+ *
+ * @param locale - The locale to set ('en' or 'es')
+ */
+export async function updateUserLocale(locale: Locale) {
+  // Validate locale against allowed values
+  if (!locales.includes(locale)) {
+    throw new Error(`Invalid locale: ${locale}`);
+  }
+
+  // Try to get authenticated user (may be null)
+  const user = await getLoggedInUser();
+
+  // If authenticated, update database
+  if (user) {
+    await updateUser(user.id, { preferred_locale: locale });
+  }
+
+  // Always set cookie (for both auth and unauth users)
+  const cookieStore = await cookies();
+  cookieStore.set('NEXT_LOCALE', locale, {
+    maxAge: 365 * 24 * 60 * 60, // 1 year in seconds
+    path: '/',
+    sameSite: 'lax',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production'
+  });
+
+  // Note: If authenticated, client should call useSession().update() to refresh session
 }
 
 export async function getLoggedInUser() {

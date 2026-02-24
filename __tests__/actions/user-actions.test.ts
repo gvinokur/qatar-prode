@@ -8,7 +8,8 @@ import {
   verifyUserEmail,
   verifyResetToken,
   updateUserPassword,
-  deleteAccount
+  deleteAccount,
+  updateUserLocale
 } from '../../app/actions/user-actions';
 import { User, UserNew } from '../../app/db/tables-definition';
 import * as usersRepository from '../../app/db/users-repository';
@@ -116,6 +117,16 @@ vi.mock('../../app/utils/email-templates', () => ({
 
 vi.mock('../../app/utils/email', () => ({
   sendEmail: vi.fn(),
+}));
+
+// Mock next/headers
+const mockCookieSet = vi.fn();
+const mockCookieGet = vi.fn(() => null);
+vi.mock('next/headers', () => ({
+  cookies: vi.fn(() => ({
+    set: mockCookieSet,
+    get: mockCookieGet,
+  })),
 }));
 
 // Set environment variables for testing
@@ -930,6 +941,90 @@ describe('User Actions', () => {
 
       expect(resultEs).toContain('autenticado');
       expect(resultEn).toContain('Unauthorized');
+    });
+  });
+
+  describe('updateUserLocale', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('should throw error for invalid locale', async () => {
+      await expect(updateUserLocale('fr' as any)).rejects.toThrow('Invalid locale: fr');
+    });
+
+    it('should update database and set cookie for authenticated user', async () => {
+      vi.mocked(auth).mockResolvedValue({
+        user: mockUser,
+        expires: new Date(Date.now() + 86400000).toISOString()
+      } as any);
+      vi.mocked(usersRepository.updateUser).mockResolvedValue(mockUser);
+
+      await updateUserLocale('en');
+
+      // Verify database was updated
+      expect(usersRepository.updateUser).toHaveBeenCalledWith('user-123', {
+        preferred_locale: 'en'
+      });
+
+      // Verify cookie was set with correct options
+      expect(mockCookieSet).toHaveBeenCalledWith('NEXT_LOCALE', 'en', {
+        maxAge: 365 * 24 * 60 * 60,
+        path: '/',
+        sameSite: 'lax',
+        httpOnly: true,
+        secure: false // NODE_ENV is not 'production' in tests
+      });
+    });
+
+    it('should only set cookie for unauthenticated user (no database update)', async () => {
+      vi.mocked(auth).mockResolvedValue(null as any);
+
+      await updateUserLocale('es');
+
+      // Verify database was NOT updated
+      expect(usersRepository.updateUser).not.toHaveBeenCalled();
+
+      // Verify cookie was set
+      expect(mockCookieSet).toHaveBeenCalledWith('NEXT_LOCALE', 'es', {
+        maxAge: 365 * 24 * 60 * 60,
+        path: '/',
+        sameSite: 'lax',
+        httpOnly: true,
+        secure: false
+      });
+    });
+
+    it('should set secure cookie in production environment', async () => {
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+
+      vi.mocked(auth).mockResolvedValue(null as any);
+
+      await updateUserLocale('en');
+
+      expect(mockCookieSet).toHaveBeenCalledWith('NEXT_LOCALE', 'en', {
+        maxAge: 365 * 24 * 60 * 60,
+        path: '/',
+        sameSite: 'lax',
+        httpOnly: true,
+        secure: true // Should be true in production
+      });
+
+      // Restore original environment
+      process.env.NODE_ENV = originalEnv;
+    });
+
+    it('should accept both valid locales (en and es)', async () => {
+      vi.mocked(auth).mockResolvedValue(null as any);
+
+      await updateUserLocale('en');
+      expect(mockCookieSet).toHaveBeenCalledWith('NEXT_LOCALE', 'en', expect.any(Object));
+
+      vi.clearAllMocks();
+
+      await updateUserLocale('es');
+      expect(mockCookieSet).toHaveBeenCalledWith('NEXT_LOCALE', 'es', expect.any(Object));
     });
   });
 });
