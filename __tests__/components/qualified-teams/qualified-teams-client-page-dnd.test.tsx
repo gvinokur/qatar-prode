@@ -108,6 +108,12 @@ describe('QualifiedTeamsClientPage - Drag and Drop', () => {
     initialPredictions: [mockPrediction1, mockPrediction2, mockPrediction3, mockPrediction4],
     completeGroupIds: new Set<string>(),
     allGroupsComplete: false,
+    // Dashboard props (added for CompactPredictionDashboard)
+    games: [],
+    gameGuessesArray: [],
+    tournamentPredictionCompletion: null,
+    tournamentStartDate: new Date('2024-01-01'),
+    teamsMap: { 'team-1': mockTeam1, 'team-2': mockTeam2, 'team-3': mockTeam3, 'team-4': mockTeam4 },
   };
 
   beforeEach(() => {
