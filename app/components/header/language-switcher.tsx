@@ -4,6 +4,9 @@ import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Avatar, Menu, MenuItem } from '@mui/material';
 import { useState } from 'react';
+import { useSession } from 'next-auth/react';
+import { updateUserLocale } from '../../actions/user-actions';
+import type { Locale } from '@/i18n.config';
 
 const languages = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
@@ -16,6 +19,7 @@ export default function LanguageSwitcher() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { update, status } = useSession();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -26,7 +30,17 @@ export default function LanguageSwitcher() {
     setAnchorEl(null);
   };
 
-  const handleLanguageChange = (newLocale: string) => {
+  const handleLanguageChange = async (newLocale: string) => {
+    // Persist language preference
+    if (status === 'authenticated') {
+      // If authenticated, update database and session
+      await updateUserLocale(newLocale as Locale);
+      await update({ preferred_locale: newLocale });
+    } else {
+      // If not authenticated, still set cookie for persistence
+      await updateUserLocale(newLocale as Locale);
+    }
+
     // Replace current locale in pathname
     const segments = pathname.split('/');
     segments[1] = newLocale; // Replace locale segment

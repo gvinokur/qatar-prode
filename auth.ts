@@ -36,6 +36,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             nickname: user.nickname,
             isAdmin: user.is_admin || false,
             emailVerified: user.email_verified || false,
+            preferred_locale: user.preferred_locale || null,
           }
         }
 
@@ -68,6 +69,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             nickname: result.user.nickname,
             isAdmin: result.user.is_admin || false,
             emailVerified: result.user.email_verified || false,
+            preferred_locale: result.user.preferred_locale || null,
           };
         }
 
@@ -116,6 +118,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           user.nickname = existingOAuthUser.nickname;
           user.isAdmin = existingOAuthUser.is_admin || false;
           user.emailVerified = existingOAuthUser.email_verified || false;
+          user.preferred_locale = existingOAuthUser.preferred_locale || null;
           return true;
         }
 
@@ -132,6 +135,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             user.nickname = updatedUser.nickname;
             user.isAdmin = updatedUser.is_admin || false;
             user.emailVerified = updatedUser.email_verified || false;
+            user.preferred_locale = updatedUser.preferred_locale || null;
             return true;
           }
         }
@@ -147,6 +151,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           user.nickname = newUser.nickname;
           user.isAdmin = newUser.is_admin || false;
           user.emailVerified = newUser.email_verified || false;
+          user.preferred_locale = newUser.preferred_locale || null;
           return true;
         }
 
@@ -156,9 +161,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return true;
     },
     session: ({session, trigger, token, user }) => {
+      const pickedFields = pick(token, ['email', 'name', 'nickname', 'isAdmin', 'id', 'emailVerified', 'preferred_locale']);
       session.user = {
-        ...pick(token, ['email', 'name', 'nickname', 'isAdmin', 'id', 'emailVerified']),
+        ...pickedFields,
         ...session.user,
+        preferred_locale: token.preferred_locale as string | null | undefined,
       }
       return session
     },
