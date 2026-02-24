@@ -167,19 +167,26 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                 }}
               />
             </Link>
-            <Link
-              href={`/${locale}/tournaments/${layoutData.tournament?.id}`}
-            >
-              <Box
-                sx={{
+
+            {/* Tournament info with switcher */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                flex: '1 1 auto',
+                minWidth: 0,
+                gap: 1
+              }}>
+              <Link
+                href={`/${locale}/tournaments/${layoutData.tournament?.id}`}
+                style={{
                   display: 'flex',
                   alignItems: 'center',
                   textDecoration: 'none',
                   color: 'inherit',
-                  flex: '1 1 auto',
-                  minWidth: 0,
-                  justifyContent: 'flex-start'
-                }}>
+                  minWidth: 0
+                }}
+              >
                 <Box
                   component="img"
                   src={logoUrl || ''}
@@ -217,15 +224,16 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                       }}>
                       {layoutData.tournament?.short_name || layoutData.tournament?.long_name}
                     </Typography>
-                    <TournamentSwitcher
-                      currentTournamentId={params.id}
-                      tournaments={activeTournaments}
-                    />
                   </Box>
                 )}
-              </Box>
+              </Link>
 
-            </Link>
+              {/* Tournament switcher - outside Link to prevent navigation interference */}
+              <TournamentSwitcher
+                currentTournamentId={params.id}
+                tournaments={activeTournaments}
+              />
+            </Box>
             {/* User actions container */}
             <Box sx={{
               display: 'flex',
