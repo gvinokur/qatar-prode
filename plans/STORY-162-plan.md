@@ -144,64 +144,82 @@ Create new server action:
 /**
  * Update user's preferred locale
  * @param locale - The locale to set ('en' or 'es')
+ *
+ * Works for both authenticated and unauthenticated users:
+ * - Authenticated: Updates database and sets cookie
+ * - Unauthenticated: Only sets cookie (for persistence)
  */
 export async function updateUserLocale(locale: Locale): Promise<void>
 ```
 
 **Implementation:**
-1. Get authenticated user with `getLoggedInUser()`
-2. Validate locale is in allowed locales (from `i18n.config.ts`)
-3. Update user record with `updateUser(userId, { preferred_locale: locale })`
-4. Set cookie `NEXT_LOCALE` with locale value
+1. Validate locale is in allowed locales (from `i18n.config.ts`)
+2. Get authenticated user with `getLoggedInUser()` (may be null)
+3. If authenticated, update user record with `updateUser(userId, { preferred_locale: locale })`
+4. Set cookie `NEXT_LOCALE` with locale value (always, regardless of auth status)
 5. Return success
 
-**Client-side session update:**
+**Client-side session update (for authenticated users):**
 - Component must call `useSession().update({ preferred_locale: locale })` after action succeeds
 - This triggers NextAuth JWT callback with `trigger: 'update'`
 - Session is updated with new locale
 - NextAuth automatically refreshes session on next request
 
-### 6. User Settings Dialog Enhancement
+### 6. Enhance Existing Language Switcher
 
-**File:** `app/components/auth/user-settings-dialog.tsx`
+**File:** `app/components/header/language-switcher.tsx`
 
-Add language selector to existing user settings form:
+The app already has a language switcher component (flag avatar in header). We'll enhance it to persist the language preference when the user changes languages.
 
-**UI Changes:**
-- Add Select field with language options (English/Español)
-- Position below nickname field
-- Use Material-UI Select component
-- Display current locale from `useLocale()` hook as default value
-- On change, call `updateUserLocale` server action
-- After successful action, call `useSession().update({ preferred_locale: newLocale })`
-- Optionally, redirect to same URL to refresh locale context immediately
+**Current behavior:**
+- Shows flag avatar (🇺🇸 or 🇦🇷)
+- Opens menu with language options
+- On selection, changes URL to new locale (`router.push(newPathname)`)
 
-**Form state:**
+**Enhancement needed:**
+- When user changes language, also call `updateUserLocale` server action
+- If authenticated, store preference in database and session
+- If not authenticated, only set cookie (for persistence across visits)
+
+**Updated `handleLanguageChange` function:**
 ```typescript
-type NicknameFormData = {
-  nickname: string,
-  enableNotifications: boolean,
-  preferredLocale: Locale  // NEW
-}
+import { useSession } from 'next-auth/react';
+
+const { update, status } = useSession();
+
+const handleLanguageChange = async (newLocale: string) => {
+  // If authenticated, update database and session
+  if (status === 'authenticated') {
+    await updateUserLocale(newLocale as Locale);
+    await update({ preferred_locale: newLocale });
+  } else {
+    // If not authenticated, still set cookie for persistence
+    await updateUserLocale(newLocale as Locale);
+  }
+
+  // Navigate to new locale (existing behavior)
+  const segments = pathname.split('/');
+  segments[1] = newLocale;
+  const newPathname = segments.join('/');
+
+  const queryString = searchParams.toString();
+  const hash = globalThis.location.hash;
+
+  let fullUrl = newPathname;
+  if (queryString) fullUrl += `?${queryString}`;
+  fullUrl += hash;
+
+  router.push(fullUrl);
+  handleClose();
+};
 ```
 
-**Session update flow:**
-```typescript
-const { update } = useSession();
-const router = useRouter();
-
-async function handleLocaleChange(newLocale: Locale) {
-  await updateUserLocale(newLocale); // Updates DB and sets cookie
-  await update({ preferred_locale: newLocale }); // Updates session token
-  router.refresh(); // Triggers middleware re-execution with new session
-}
-```
-
-**Important timing consideration:**
-- `await update()` ensures session is updated before `router.refresh()`
-- `router.refresh()` triggers middleware which reads from updated session
-- Middleware sets cookie if not already set (idempotent)
-- User sees new locale immediately after refresh completes
+**Important notes:**
+- The `updateUserLocale` server action handles both authenticated and unauthenticated users
+- For authenticated users: updates DB, sets cookie, and returns success
+- For unauthenticated users: only sets cookie (no DB update)
+- Session update only happens if user is authenticated
+- URL navigation happens after persistence (ensures preference is saved)
 
 ### 7. Accept-Language Header Parsing
 
@@ -283,10 +301,8 @@ export function matchLocale(
 2. `auth.ts` - Update NextAuth callbacks to include `preferred_locale` in session
 3. `types/next-auth.d.ts` - Add `preferred_locale` to Session and User type definitions
 4. `middleware.ts` - Add custom locale detection reading from session (not DB)
-5. `app/actions/user-actions.ts` - Add `updateUserLocale` server action
-6. `app/components/auth/user-settings-dialog.tsx` - Add language selector with session update
-7. `locales/en/auth.json` - Add translation keys for language selector
-8. `locales/es/auth.json` - Add translation keys for language selector
+5. `app/actions/user-actions.ts` - Add `updateUserLocale` server action (handles both auth/unauth)
+6. `app/components/header/language-switcher.tsx` - Enhance to persist preference on language change
 
 ## Implementation Steps
 
@@ -345,18 +361,20 @@ export function matchLocale(
    import { cookies } from 'next/headers';
 
    export async function updateUserLocale(locale: Locale) {
-     const user = await getLoggedInUser()
-     if (!user) throw new Error('Unauthorized')
-
      // Validate locale against allowed values
      if (!locales.includes(locale)) {
        throw new Error(`Invalid locale: ${locale}`)
      }
 
-     // Update database
-     await updateUser(user.id, { preferred_locale: locale })
+     // Try to get authenticated user (may be null)
+     const user = await getLoggedInUser()
 
-     // Set cookie
+     // If authenticated, update database
+     if (user) {
+       await updateUser(user.id, { preferred_locale: locale })
+     }
+
+     // Always set cookie (for both auth and unauth users)
      cookies().set('NEXT_LOCALE', locale, {
        maxAge: 365 * 24 * 60 * 60, // 1 year
        path: '/',
@@ -365,84 +383,74 @@ export function matchLocale(
        secure: process.env.NODE_ENV === 'production'
      })
 
-     // Note: Client must call useSession().update() to refresh session
+     // Note: If authenticated, client should call useSession().update() to refresh session
    }
    ```
 4. Create unit tests in `__tests__/actions/user-actions.test.ts`
+   - Test authenticated user (updates DB and sets cookie)
+   - Test unauthenticated user (only sets cookie, no DB update)
+   - Test invalid locale (throws error)
 
-### Step 7: Update User Settings Dialog
-1. Import `updateUserLocale` action
-2. Import `useSession` from next-auth/react
-3. Import `useRouter` from next/navigation
-4. Add `preferredLocale` to form schema
-5. Add Select field with current locale from `useLocale()` hook:
+### Step 7: Enhance Language Switcher Component
+1. Open `app/components/header/language-switcher.tsx`
+2. Import `updateUserLocale` server action
+3. Import `useSession` from next-auth/react
+4. Update `handleLanguageChange` function:
    ```tsx
-   <Select
-     value={currentLocale}
-     onChange={handleLocaleChange}
-     label={t('userSettings.language.label')}
-   >
-     <MenuItem value="en">English</MenuItem>
-     <MenuItem value="es">Español</MenuItem>
-   </Select>
-   ```
-6. Implement `handleLocaleChange`:
-   ```tsx
-   async function handleLocaleChange(newLocale: Locale) {
-     setLoading(true);
-     try {
-       await updateUserLocale(newLocale);
+   const { update, status } = useSession();
+
+   const handleLanguageChange = async (newLocale: string) => {
+     // If authenticated, update database and session
+     if (status === 'authenticated') {
+       await updateUserLocale(newLocale as Locale);
        await update({ preferred_locale: newLocale });
-       router.refresh(); // Reload page with new locale
-     } catch (error) {
-       // Handle error
-     } finally {
-       setLoading(false);
+     } else {
+       // If not authenticated, still set cookie
+       await updateUserLocale(newLocale as Locale);
      }
-   }
-   ```
-7. Handle loading and error states
 
-### Step 8: Add Translation Keys
-1. `locales/en/auth.json`:
-   ```json
-   {
-     "userSettings": {
-       "language": {
-         "label": "Language",
-         "description": "Select your preferred language"
-       }
-     }
-   }
-   ```
-2. `locales/es/auth.json`:
-   ```json
-   {
-     "userSettings": {
-       "language": {
-         "label": "Idioma",
-         "description": "Selecciona tu idioma preferido"
-       }
-     }
-   }
-   ```
+     // Navigate to new locale (existing code)
+     const segments = pathname.split('/');
+     segments[1] = newLocale;
+     const newPathname = segments.join('/');
 
-### Step 9: Integration Testing
+     const queryString = searchParams.toString();
+     const hash = globalThis.location.hash;
+
+     let fullUrl = newPathname;
+     if (queryString) fullUrl += `?${queryString}`;
+     fullUrl += hash;
+
+     router.push(fullUrl);
+     handleClose();
+   };
+   ```
+5. Add error handling and loading state if needed
+
+### Step 8: Integration Testing
 1. Test first-time visitor flow:
    - Visit site without cookie
    - Verify locale detected from browser
    - Verify cookie set
-2. Test authenticated user flow:
+2. Test unauthenticated user flow:
+   - Visit site without being logged in
+   - Click language switcher avatar
+   - Select different language
+   - Verify cookie is set
+   - Refresh page, verify preference persisted (cookie-based)
+3. Test authenticated user flow:
    - Log in
-   - Change language in settings
-   - Verify database updated
+   - Click language switcher avatar
+   - Select different language
+   - Verify database updated (check DB)
    - Verify cookie updated
+   - Verify session updated (check session.user.preferred_locale)
    - Refresh page, verify preference persisted
-3. Test URL override:
+4. Test URL override:
    - Visit `/en/...` while having Spanish preference
    - Verify English content displayed
    - Verify preference not overwritten
-4. Test fallback behavior:
+5. Test fallback behavior:
    - Clear cookies
    - Set Accept-Language to unsupported locale (e.g., "fr")
    - Verify fallback to Spanish
@@ -458,19 +466,22 @@ export function matchLocale(
 - **Coverage target:** 100% (pure functions, easy to test)
 
 **File:** `__tests__/actions/user-actions.test.ts` (extend existing)
-- Test `updateUserLocale` success case
-- Test unauthorized user (should throw)
+- Test `updateUserLocale` with authenticated user (should update DB and set cookie)
+- Test `updateUserLocale` with unauthenticated user (should only set cookie, no DB call)
 - Test invalid locale (should throw)
-- Test cookie is set correctly
+- Test cookie is set correctly with proper options
 - Mock `updateUser` repository call
+- Mock `getLoggedInUser` to return user or null
 - **Coverage target:** 80%+
 
-**File:** `__tests__/components/auth/user-settings-dialog.test.tsx` (extend existing)
-- Test language selector renders
-- Test language selection triggers action
-- Test loading state during update
-- Test error handling
-- Test session update is called after locale change
+**File:** `__tests__/components/header/language-switcher.test.tsx` (extend existing)
+- Test language switcher renders with current locale flag
+- Test menu opens on click
+- Test language selection triggers `updateUserLocale` action
+- Test authenticated user: verify session.update() is called
+- Test unauthenticated user: verify session.update() is NOT called
+- Test navigation to new locale URL after locale change
+- Mock `useSession` to return authenticated/unauthenticated states
 - **Coverage target:** 80%+
 
 **File:** `__tests__/middleware.test.ts` (new - middleware testing)
@@ -552,10 +563,10 @@ Before marking as complete:
 - [ ] Unit tests pass for locale detection utilities (100% coverage)
 - [ ] Unit tests pass for user actions (80%+ coverage)
 - [ ] Middleware correctly detects locale in all priority scenarios
-- [ ] User settings dialog includes language selector
-- [ ] Language change updates database and cookie
-- [ ] Translation keys added for both English and Spanish
-- [ ] Manual testing completed for all user flows
+- [ ] Language switcher enhanced to persist preference
+- [ ] Language change updates database (auth users) and cookie (all users)
+- [ ] Session updates correctly for authenticated users
+- [ ] Manual testing completed for all user flows (auth and unauth)
 - [ ] SonarCloud shows 0 new issues
 - [ ] Code coverage ≥80% on new code
 
