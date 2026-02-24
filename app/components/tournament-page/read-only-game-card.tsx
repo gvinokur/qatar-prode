@@ -2,20 +2,16 @@
 
 import {
   Box,
-  Card,
-  CardContent,
   Typography,
   alpha,
-  Chip,
   Button,
 } from '@mui/material'
 import { Login as LoginIcon } from '@mui/icons-material'
 import { Theme } from '../../db/tables-definition'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { getThemeLogoUrl } from '../../utils/theme-utils'
 import LoginOrSignupDialog from '../auth/login-or-signup-dialog'
-import GameCountdownDisplay from '../game-countdown-display'
+import CompactGameViewCard from '../compact-game-view-card'
 
 interface ReadOnlyGameCardProps {
   readonly gameNumber: number
@@ -49,7 +45,7 @@ export default function ReadOnlyGameCard({
   homeScore,
   awayScore,
   isPlayoffGame,
-  groupOrPlayoffText,
+  groupOrPlayoffText = '',
   showCtaOverlay = false,
 }: ReadOnlyGameCardProps) {
   const t = useTranslations('tournament.public')
@@ -59,23 +55,35 @@ export default function ReadOnlyGameCard({
     setOpenAuthDialog(true)
   }
 
-  const handleCloseAuthDialog = () => {
-    setOpenAuthDialog(false)
+  // No-op for edit click since this is read-only
+  const handleEditClick = () => {
+    // Do nothing
   }
-
-  const homeLogoUrl = homeTeamTheme ? getThemeLogoUrl(homeTeamTheme) : null
-  const awayLogoUrl = awayTeamTheme ? getThemeLogoUrl(awayTeamTheme) : null
-
-  const hasResult = homeScore !== undefined && homeScore !== null && awayScore !== undefined && awayScore !== null
-  const isPast = new Date() > gameDate
 
   return (
     <>
-      <Card
-        sx={{
-          position: 'relative',
-        }}
-      >
+      <Box sx={{ position: 'relative' }}>
+        <CompactGameViewCard
+          isGameFixture={true}
+          isGameGuess={false}
+          gameNumber={gameNumber}
+          gameDate={gameDate}
+          location={location}
+          gameTimezone={gameTimezone}
+          homeTeamNameOrDescription={homeTeamNameOrDescription}
+          homeTeamShortNameOrDescription={homeTeamShortNameOrDescription}
+          homeTeamTheme={homeTeamTheme}
+          awayTeamNameOrDescription={awayTeamNameOrDescription}
+          awayTeamShortNameOrDescription={awayTeamShortNameOrDescription}
+          awayTeamTheme={awayTeamTheme}
+          homeScore={homeScore}
+          awayScore={awayScore}
+          isPlayoffGame={isPlayoffGame}
+          groupOrPlayoffText={groupOrPlayoffText}
+          onEditClick={handleEditClick}
+          disabled={true}
+        />
+
         {/* CTA Overlay - shown on every Nth card */}
         {showCtaOverlay && (
           <Box
@@ -90,6 +98,7 @@ export default function ReadOnlyGameCard({
               justifyContent: 'center',
               backgroundColor: alpha('#000', 0.65),
               zIndex: 10,
+              borderRadius: 1,
             }}
           >
             <Box
@@ -124,91 +133,12 @@ export default function ReadOnlyGameCard({
             </Box>
           </Box>
         )}
-
-        <CardContent sx={{ pb: 1.5 }}>
-          {/* Game Number and Info */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-            <Chip
-              label={`#${gameNumber}`}
-              size="small"
-              color="primary"
-              sx={{ fontWeight: 600 }}
-            />
-            {groupOrPlayoffText && (
-              <Typography variant="caption" color="text.secondary">
-                {groupOrPlayoffText}
-              </Typography>
-            )}
-          </Box>
-
-          {/* Teams */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1.5 }}>
-            {/* Home Team */}
-            <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-              {homeLogoUrl && (
-                <Box
-                  component="img"
-                  src={homeLogoUrl}
-                  alt={homeTeamNameOrDescription}
-                  sx={{ width: 32, height: 32, objectFit: 'contain' }}
-                />
-              )}
-              <Typography variant="body2" fontWeight={600} noWrap>
-                {homeTeamShortNameOrDescription || homeTeamNameOrDescription}
-              </Typography>
-            </Box>
-
-            {/* Score or vs */}
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-              {hasResult ? (
-                <>
-                  <Typography variant="h6" fontWeight={700}>
-                    {homeScore}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    -
-                  </Typography>
-                  <Typography variant="h6" fontWeight={700}>
-                    {awayScore}
-                  </Typography>
-                </>
-              ) : (
-                <Typography variant="body2" color="text.secondary" fontWeight={600}>
-                  vs
-                </Typography>
-              )}
-            </Box>
-
-            {/* Away Team */}
-            <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
-              <Typography variant="body2" fontWeight={600} noWrap>
-                {awayTeamShortNameOrDescription || awayTeamNameOrDescription}
-              </Typography>
-              {awayLogoUrl && (
-                <Box
-                  component="img"
-                  src={awayLogoUrl}
-                  alt={awayTeamNameOrDescription}
-                  sx={{ width: 32, height: 32, objectFit: 'contain' }}
-                />
-              )}
-            </Box>
-          </Box>
-
-          {/* Date and Location */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, alignItems: 'center' }}>
-            {!isPast && <GameCountdownDisplay gameDate={gameDate} gameTimezone={gameTimezone} />}
-            <Typography variant="caption" color="text.secondary">
-              {location}
-            </Typography>
-          </Box>
-        </CardContent>
-      </Card>
+      </Box>
 
       {/* Auth Dialog */}
       <LoginOrSignupDialog
         openLoginDialog={openAuthDialog}
-        handleCloseLoginDialog={handleCloseAuthDialog}
+        handleCloseLoginDialog={() => setOpenAuthDialog(false)}
       />
     </>
   )
