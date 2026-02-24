@@ -7,7 +7,7 @@ import type { Locale } from '@/i18n.config';
  *
  * Quality value handling:
  * - Parse quality values (q=0.9) for each language
- * - Default to 1.0 for languages without explicit quality
+ * - Default to 1 for languages without explicit quality
  * - Sort by quality in descending order
  * - Extract base language code (en-US -> en)
  * - Remove duplicates
@@ -27,12 +27,12 @@ export function parseAcceptLanguage(header: string): string[] {
       const parts = lang.trim().split(';');
       const code = parts[0].trim();
 
-      // Extract quality value (default to 1.0)
-      let quality = 1.0;
+      // Extract quality value (default to 1)
+      let quality = 1;
       if (parts[1]) {
-        const qMatch = parts[1].match(/q=([0-9.]+)/);
+        const qMatch = /q=([0-9.]+)/.exec(parts[1]);
         if (qMatch) {
-          quality = parseFloat(qMatch[1]);
+          quality = Number.parseFloat(qMatch[1]);
         }
       }
 
