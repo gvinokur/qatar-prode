@@ -36,14 +36,19 @@ export default async function middleware(request: NextRequest) {
   }
 
   // 4. Apply NextAuth middleware for protected routes
-  const protectedRoutes = ['/predictions', '/friend-groups', '/tournaments'];
+  const protectedRoutes = ['/predictions', '/friend-groups'];
   const isProtectedRoute = protectedRoutes.some(route => {
-    // Check if pathname matches pattern like /es/predictions/* or /en/tournaments/*
+    // Check if pathname matches pattern like /es/predictions/* or /en/friend-groups/*
     const regex = new RegExp(`^/[^/]+${route}`);
     return regex.test(pathname);
   });
 
-  if (isProtectedRoute) {
+  // Protected tournament sub-routes (stats, friend-groups within tournament context)
+  const protectedTournamentSubRoutes = ['/stats', '/friend-groups'];
+  const isProtectedTournamentRoute = pathname.match(/^\/[^/]+\/tournaments\/[^/]+/) &&
+    protectedTournamentSubRoutes.some(route => pathname.includes(route));
+
+  if (isProtectedRoute || isProtectedTournamentRoute) {
     const session = await auth();
     if (!session) {
       // User not authenticated, redirect to signin

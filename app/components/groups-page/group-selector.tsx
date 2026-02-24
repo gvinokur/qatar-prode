@@ -5,12 +5,14 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLocale, useTranslations } from 'next-intl';
+import { User } from 'next-auth';
 
 type Props = {
   readonly groups: { group_letter: string, id: string }[];
   readonly tournamentId: string;
   readonly backgroundColor?: string;
   readonly textColor?: string;
+  readonly user?: User;
 };
 
 /** Get tab styling */
@@ -37,7 +39,7 @@ const getSelectedTab = (pathname: string): string => {
   return '';
 };
 
-const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Props) => {
+const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor, user }: Props) => {
   const locale = useLocale();
   const t = useTranslations('navigation.topNav');
   const pathname = usePathname();
@@ -81,6 +83,7 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
         component={Link}
         href={`/${locale}/tournaments/${tournamentId}/qualified-teams`}
         sx={tabSx}
+        disabled={!user}
       />
       <Tab
         label={t('awards')}
@@ -88,6 +91,7 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor }: Pro
         component={Link}
         href={`/${locale}/tournaments/${tournamentId}/awards`}
         sx={tabSx}
+        disabled={!user}
       />
     </Tabs>
   );

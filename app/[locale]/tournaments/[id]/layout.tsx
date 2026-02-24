@@ -237,7 +237,9 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                   textColor={layoutData.tournament?.theme?.secondary_color}
                   groups={layoutData.allGroups
                     .toSorted((a, b) => a.group_letter.localeCompare(b.group_letter))
-                  }/>
+                  }
+                  user={user}
+                />
               </Grid>
             </Grid>
           </Box>
@@ -293,7 +295,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
       <EnvironmentIndicator isDev={layoutData.tournament?.dev_only || false}/>
 
       {/* Mobile bottom navigation - only shown on mobile within tournament context */}
-      <TournamentBottomNavWrapper tournamentId={params.id} />
+      <TournamentBottomNavWrapper tournamentId={params.id} user={user ?? undefined} />
     </Box>
   )
  }

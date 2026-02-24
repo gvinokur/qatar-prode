@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useRouter } from 'next/navigation'
 import TournamentBottomNav from './tournament-bottom-nav'
 import { renderWithTheme } from '@/__tests__/utils/test-utils'
+import type { User } from '@/app/db/tables-definition'
 
 // Mock next-intl
 vi.mock('next-intl', () => ({
@@ -25,6 +26,15 @@ vi.mock('next/navigation', () => ({
   useRouter: vi.fn()
 }))
 
+const mockUser: User = {
+  id: 'user1',
+  email: 'test@example.com',
+  nickname: 'TestUser',
+  password_hash: 'hash',
+  is_admin: false,
+  created_at: new Date()
+}
+
 describe('TournamentBottomNav', () => {
   const tournamentId = 'test-tournament'
   let mockPush: ReturnType<typeof vi.fn>
@@ -43,7 +53,7 @@ describe('TournamentBottomNav', () => {
 
   it('renders exactly 5 navigation tabs', () => {
     renderWithTheme(
-      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}`} />
+      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}`} user={mockUser} />
     )
 
     const tabs = screen.getAllByRole('button')
@@ -52,7 +62,7 @@ describe('TournamentBottomNav', () => {
 
   it('does not render a "Tournament" tab', () => {
     renderWithTheme(
-      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}`} />
+      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}`} user={mockUser} />
     )
 
     expect(screen.queryByText('Tournament')).not.toBeInTheDocument()
@@ -60,7 +70,7 @@ describe('TournamentBottomNav', () => {
 
   it('renders "Home" tab', () => {
     renderWithTheme(
-      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}`} />
+      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}`} user={mockUser} />
     )
 
     expect(screen.getByText('Home')).toBeInTheDocument()
@@ -68,7 +78,7 @@ describe('TournamentBottomNav', () => {
 
   it('renders "Tablas" tab (renamed from Resultados)', () => {
     renderWithTheme(
-      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}`} />
+      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}`} user={mockUser} />
     )
 
     expect(screen.getByText('Tablas')).toBeInTheDocument()
@@ -77,7 +87,7 @@ describe('TournamentBottomNav', () => {
 
   it('renders "Reglas" tab (new)', () => {
     renderWithTheme(
-      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}`} />
+      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}`} user={mockUser} />
     )
 
     expect(screen.getByText('Reglas')).toBeInTheDocument()
@@ -85,7 +95,7 @@ describe('TournamentBottomNav', () => {
 
   it('renders "Stats" tab', () => {
     renderWithTheme(
-      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}`} />
+      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}`} user={mockUser} />
     )
 
     expect(screen.getByText('Stats')).toBeInTheDocument()
@@ -93,7 +103,7 @@ describe('TournamentBottomNav', () => {
 
   it('renders "Grupos" tab (renamed from Friend Groups)', () => {
     renderWithTheme(
-      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}`} />
+      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}`} user={mockUser} />
     )
 
     expect(screen.getByText('Grupos')).toBeInTheDocument()
@@ -102,7 +112,7 @@ describe('TournamentBottomNav', () => {
 
   it('activates "main-home" tab when on home route', () => {
     const { container } = renderWithTheme(
-      <TournamentBottomNav tournamentId={tournamentId} currentPath="/es" />
+      <TournamentBottomNav tournamentId={tournamentId} currentPath="/es" user={mockUser} />
     )
 
     const homeButton = screen.getByText('Home').closest('button')
@@ -111,7 +121,7 @@ describe('TournamentBottomNav', () => {
 
   it('activates "results" tab when on /results route', () => {
     renderWithTheme(
-      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}/results`} />
+      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}/results`} user={mockUser} />
     )
 
     const tablasButton = screen.getByText('Tablas').closest('button')
@@ -120,7 +130,7 @@ describe('TournamentBottomNav', () => {
 
   it('activates "rules" tab when on /rules route', () => {
     renderWithTheme(
-      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}/rules`} />
+      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}/rules`} user={mockUser} />
     )
 
     const reglasButton = screen.getByText('Reglas').closest('button')
@@ -129,7 +139,7 @@ describe('TournamentBottomNav', () => {
 
   it('activates "stats" tab when on /stats route', () => {
     renderWithTheme(
-      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}/stats`} />
+      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}/stats`} user={mockUser} />
     )
 
     const statsButton = screen.getByText('Stats').closest('button')
@@ -138,7 +148,7 @@ describe('TournamentBottomNav', () => {
 
   it('activates "friend-groups" tab when on /friend-groups route', () => {
     renderWithTheme(
-      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}/friend-groups`} />
+      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}/friend-groups`} user={mockUser} />
     )
 
     const gruposButton = screen.getByText('Grupos').closest('button')
@@ -147,7 +157,7 @@ describe('TournamentBottomNav', () => {
 
   it('does not activate any tab when on tournament home (PARTIDOS)', () => {
     renderWithTheme(
-      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}`} />
+      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}`} user={mockUser} />
     )
 
     // None of the bottom nav buttons should be selected (PARTIDOS is in top nav)
@@ -159,7 +169,7 @@ describe('TournamentBottomNav', () => {
 
   it('navigates to correct route when Home tab is clicked', () => {
     renderWithTheme(
-      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}`} />
+      <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}`} user={mockUser} />
     )
 
     const homeTab = screen.getByText('Home').closest('button')
@@ -171,7 +181,7 @@ describe('TournamentBottomNav', () => {
 
   it('navigates to correct route when Tablas tab is clicked', () => {
     renderWithTheme(
-      <TournamentBottomNav tournamentId={tournamentId} currentPath="/es" />
+      <TournamentBottomNav tournamentId={tournamentId} currentPath="/es" user={mockUser} />
     )
 
     const tablasTab = screen.getByText('Tablas').closest('button')
@@ -183,7 +193,7 @@ describe('TournamentBottomNav', () => {
 
   it('navigates to correct route when Reglas tab is clicked', () => {
     renderWithTheme(
-      <TournamentBottomNav tournamentId={tournamentId} currentPath="/es" />
+      <TournamentBottomNav tournamentId={tournamentId} currentPath="/es" user={mockUser} />
     )
 
     const reglasTab = screen.getByText('Reglas').closest('button')
@@ -195,7 +205,7 @@ describe('TournamentBottomNav', () => {
 
   it('all icons have fontSize of 24', () => {
     const { container } = renderWithTheme(
-      <TournamentBottomNav tournamentId={tournamentId} currentPath="/es" />
+      <TournamentBottomNav tournamentId={tournamentId} currentPath="/es" user={mockUser} />
     )
 
     const icons = container.querySelectorAll('svg')
