@@ -7,5 +7,23 @@
     "noGames": "No hay partidos disponibles",
     "playoff": "Eliminatorias",
     "group": "Grupo"
+  },
+  "switcher": {
+    "label": "Cambiar torneo",
+    "currentTournament": "Torneo actual"
+  },
+  "snackbar": {
+    "title": "¡Múltiples Torneos Activos!",
+    "currentTournament": "Estás viendo {name}.",
+    "otherTournaments": "Otros torneos:",
+    "instructions": "Cambia en cualquier momento usando el menú desplegable en el encabezado."
+  },
+  "emptyState": {
+    "title": "No Hay Torneos Activos En Este Momento",
+    "description": "¡Vuelve pronto para ver nuevos torneos!",
+    "pastTournaments": {
+      "heading": "Torneos Pasados:",
+      "endedOn": "Finalizado {date}"
+    }
   }
 }

@@ -2,7 +2,9 @@
 
 import {Grid, AppBar, Box} from "../../../components/mui-wrappers";
 import GroupSelector from "../../../components/groups-page/group-selector";
-import {getTournamentAndGroupsData, getTournamentStartDate, getGroupStandingsForTournament} from "../../../actions/tournament-actions";
+import {getTournamentAndGroupsData, getTournamentStartDate, getGroupStandingsForTournament, getTournaments} from "../../../actions/tournament-actions";
+import TournamentSwitcher from "../../../components/tournament/tournament-switcher";
+import NewTournamentSnackbar from "../../../components/tournament/new-tournament-snackbar";
 import {getGroupsForUser} from "../../../actions/prode-group-actions";
 import {findTournamentGuessByUserIdTournament} from "../../../db/tournament-guess-repository";
 import {getLoggedInUser} from "../../../actions/user-actions";
@@ -90,6 +92,9 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
   const locale = await getLocale()
   const user = await getLoggedInUser()
   const layoutData = await getTournamentAndGroupsData(params.id)
+
+  // Get all active tournaments for switcher
+  const activeTournaments = await getTournaments()
 
   // Check dev tournament permissions
   await checkDevTournamentPermission(params.id, layoutData.tournament, user, locale)
@@ -212,6 +217,10 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                       }}>
                       {layoutData.tournament?.short_name || layoutData.tournament?.long_name}
                     </Typography>
+                    <TournamentSwitcher
+                      currentTournamentId={params.id}
+                      tournaments={activeTournaments}
+                    />
                   </Box>
                 )}
               </Box>
@@ -296,6 +305,13 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
 
       {/* Mobile bottom navigation - only shown on mobile within tournament context */}
       <TournamentBottomNavWrapper tournamentId={params.id} user={user ?? undefined} />
+
+      {/* New tournament notification snackbar */}
+      <NewTournamentSnackbar
+        tournamentId={params.id}
+        tournamentName={layoutData.tournament?.long_name || ''}
+        otherTournaments={activeTournaments.filter(t => t.id !== params.id)}
+      />
     </Box>
   )
  }

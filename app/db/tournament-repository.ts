@@ -92,6 +92,27 @@ export async function findAllActiveTournaments (userId?: string) {
 }
 
 /**
+ * Find past (inactive) tournaments.
+ *
+ * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
+ * ⚠️ DO NOT add locale parameter to this function
+ * ⚠️ DO NOT apply localization here
+ *
+ * @see applyLocalization() in /app/utils/localization-helper.ts must be called in Server Action layer
+ */
+export async function findPastTournaments(limit: number = 5) {
+  const query = db
+    .selectFrom('tournaments')
+    .where('is_active', '=', false)
+    .where('dev_only', '=', false)
+    .orderBy('id', 'desc')
+    .limit(limit)
+    .selectAll();
+
+  return await query.execute();
+}
+
+/**
  * Create tournament team association.
  *
  * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action

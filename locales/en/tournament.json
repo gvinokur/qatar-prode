@@ -7,5 +7,23 @@
     "noGames": "No games available",
     "playoff": "Playoff",
     "group": "Group"
+  },
+  "switcher": {
+    "label": "Switch tournament",
+    "currentTournament": "Current tournament"
+  },
+  "snackbar": {
+    "title": "Multiple Tournaments Active!",
+    "currentTournament": "You're viewing {name}.",
+    "otherTournaments": "Other tournaments:",
+    "instructions": "Switch anytime using the dropdown in the header."
+  },
+  "emptyState": {
+    "title": "No Active Tournaments Right Now",
+    "description": "Check back soon for new tournaments!",
+    "pastTournaments": {
+      "heading": "Past Tournaments:",
+      "endedOn": "Ended {date}"
+    }
   }
 }

@@ -42,3 +42,37 @@ export function setDismissalState(key: string, dismissed: boolean): void {
     console.error('Error setting dismissal state:', error)
   }
 }
+
+/**
+ * Get the last selected tournament ID from localStorage
+ * @returns The tournament ID as a string, or null if not found or error
+ */
+export function getLastSelectedTournamentId(): string | null {
+  if (globalThis.window === undefined) {
+    return null
+  }
+
+  try {
+    const value = localStorage.getItem('lastSelectedTournamentId')
+    return value
+  } catch (error) {
+    console.error('Error reading last selected tournament ID:', error)
+    return null
+  }
+}
+
+/**
+ * Set the last selected tournament ID in localStorage
+ * @param tournamentId - The tournament ID to store
+ */
+export function setLastSelectedTournamentId(tournamentId: string): void {
+  if (globalThis.window === undefined) {
+    return
+  }
+
+  try {
+    localStorage.setItem('lastSelectedTournamentId', tournamentId)
+  } catch (error) {
+    console.error('Error setting last selected tournament ID:', error)
+  }
+}
