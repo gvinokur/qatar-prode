@@ -211,8 +211,6 @@ function QualifiedTeamsUI({
     })
   );
 
-  const allTeams = useMemo(() => groups.flatMap(({ teams }) => teams), [groups]);
-
   const handleDragEnd = useMemo(
     () => createDragEndHandler(groups, predictions, updateGroupPositions),
     [groups, predictions, updateGroupPositions]
@@ -269,10 +267,6 @@ function QualifiedTeamsUI({
   );
 
   const [infoAnchorEl, setInfoAnchorEl] = useState<HTMLElement | null>(null);
-
-  const handleInfoClick = (event: React.MouseEvent<HTMLElement>) => {
-    setInfoAnchorEl(event.currentTarget);
-  };
 
   const handleInfoClose = () => {
     setInfoAnchorEl(null);

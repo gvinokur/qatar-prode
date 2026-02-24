@@ -1,7 +1,7 @@
 'use client'
 
 import {Team, Tournament, TournamentGuessNew} from "../../db/tables-definition";
-import React, {Fragment, useState, useEffect} from "react";
+import React, {Fragment, useState, useEffect, useMemo} from "react";
 import { getDismissalState, setDismissalState } from '../../utils/dismissal-storage';
 import {
   Alert,
@@ -27,7 +27,6 @@ import { useTranslations } from 'next-intl';
 import { CompactPredictionDashboard } from '../compact-prediction-dashboard';
 import { GuessesContextProvider } from '../context-providers/guesses-context-provider';
 import { customToMap } from '../../utils/ObjectUtils';
-import { useMemo } from 'react';
 
 type Props = {
   readonly allPlayers: ExtendedPlayerData[],
