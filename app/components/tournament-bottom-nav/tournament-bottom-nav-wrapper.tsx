@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { useMediaQuery, useTheme } from '@mui/material';
 import TournamentBottomNav from './tournament-bottom-nav';
-import { User } from '../../db/tables-definition';
+import { User } from 'next-auth';
 
 interface TournamentBottomNavWrapperProps {
   readonly tournamentId: string;

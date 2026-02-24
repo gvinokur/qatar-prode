@@ -196,7 +196,7 @@ export default function ReadOnlyGameCard({
 
           {/* Date and Location */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, alignItems: 'center' }}>
-            {!isPast && <GameCountdownDisplay gameDate={gameDate} timezone={gameTimezone} />}
+            {!isPast && <GameCountdownDisplay gameDate={gameDate} gameTimezone={gameTimezone} />}
             <Typography variant="caption" color="text.secondary">
               {location}
             </Typography>

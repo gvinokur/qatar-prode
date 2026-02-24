@@ -47,12 +47,10 @@ export default function PublicGamesPageClient({
   // Helper to get group/playoff text for a game
   const getGroupOrPlayoffText = (game: ExtendedGameData): string => {
     if (game.playoffStage) {
-      const round = rounds.find(r => r.id === game.playoff_stage_id)
-      return round?.name || t('playoff')
+      return game.playoffStage.round_name || t('playoff')
     }
-    if (game.group_id) {
-      const group = groups.find(g => g.id === game.group_id)
-      return group ? `${t('group')} ${group.group_letter}` : ''
+    if (game.group) {
+      return `${t('group')} ${game.group.group_letter}`
     }
     return ''
   }
@@ -77,8 +75,8 @@ export default function PublicGamesPageClient({
         {/* Games List */}
         <Stack spacing={1.5}>
           {sortedGames.map((game) => {
-            const homeTeam = game.home_team_id ? teamsMap[game.home_team_id] : null
-            const awayTeam = game.away_team_id ? teamsMap[game.away_team_id] : null
+            const homeTeam = game.home_team ? teamsMap[game.home_team] : null
+            const awayTeam = game.away_team ? teamsMap[game.away_team] : null
 
             return (
               <ReadOnlyGameCard
@@ -86,15 +84,15 @@ export default function PublicGamesPageClient({
                 gameNumber={game.game_number}
                 gameDate={game.game_date}
                 location={game.location}
-                gameTimezone={game.game_timezone}
-                homeTeamNameOrDescription={game.home_team_description || homeTeam?.short_name || homeTeam?.name || ''}
+                gameTimezone={game.game_local_timezone}
+                homeTeamNameOrDescription={homeTeam?.short_name || homeTeam?.name || ''}
                 homeTeamShortNameOrDescription={homeTeam?.short_name}
                 homeTeamTheme={homeTeam?.theme}
-                awayTeamNameOrDescription={game.away_team_description || awayTeam?.short_name || awayTeam?.name || ''}
+                awayTeamNameOrDescription={awayTeam?.short_name || awayTeam?.name || ''}
                 awayTeamShortNameOrDescription={awayTeam?.short_name}
                 awayTeamTheme={awayTeam?.theme}
-                homeScore={game.home_score}
-                awayScore={game.away_score}
+                homeScore={game.gameResult?.home_score}
+                awayScore={game.gameResult?.away_score}
                 isPlayoffGame={!!game.playoffStage}
                 groupOrPlayoffText={getGroupOrPlayoffText(game)}
               />

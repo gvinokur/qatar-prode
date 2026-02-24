@@ -5,7 +5,7 @@ import { Home, Groups, Assessment, Gavel, BarChart } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { User } from '../../db/tables-definition';
+import { User } from 'next-auth';
 
 interface TournamentBottomNavProps {
   readonly tournamentId: string;
