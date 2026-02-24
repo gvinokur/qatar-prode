@@ -7,8 +7,9 @@ import {
   Typography,
   alpha,
   Chip,
+  Button,
 } from '@mui/material'
-import { Lock as LockIcon, Login as LoginIcon } from '@mui/icons-material'
+import { Login as LoginIcon } from '@mui/icons-material'
 import { Theme } from '../../db/tables-definition'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
@@ -31,6 +32,7 @@ interface ReadOnlyGameCardProps {
   readonly awayScore?: number
   readonly isPlayoffGame: boolean
   readonly groupOrPlayoffText?: string
+  readonly showCtaOverlay?: boolean
 }
 
 export default function ReadOnlyGameCard({
@@ -48,11 +50,12 @@ export default function ReadOnlyGameCard({
   awayScore,
   isPlayoffGame,
   groupOrPlayoffText,
+  showCtaOverlay = false,
 }: ReadOnlyGameCardProps) {
   const t = useTranslations('tournament.public')
   const [openAuthDialog, setOpenAuthDialog] = useState(false)
 
-  const handleCardClick = () => {
+  const handleCtaClick = () => {
     setOpenAuthDialog(true)
   }
 
@@ -69,60 +72,58 @@ export default function ReadOnlyGameCard({
   return (
     <>
       <Card
-        onClick={handleCardClick}
         sx={{
           position: 'relative',
-          cursor: 'pointer',
-          opacity: 0.85,
-          transition: 'all 0.2s',
-          '&:hover': {
-            opacity: 1,
-            transform: 'scale(1.02)',
-            boxShadow: 4,
-          },
         }}
       >
-        {/* Lock Overlay */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: alpha('#000', 0.05),
-            zIndex: 10,
-            pointerEvents: 'none',
-          }}
-        >
+        {/* CTA Overlay - shown on every Nth card */}
+        {showCtaOverlay && (
           <Box
             sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
               display: 'flex',
-              flexDirection: 'column',
               alignItems: 'center',
-              gap: 0.5,
-              backgroundColor: alpha('#fff', 0.95),
-              px: 2,
-              py: 1,
-              borderRadius: 1,
-              boxShadow: 2,
+              justifyContent: 'center',
+              backgroundColor: alpha('#000', 0.65),
+              zIndex: 10,
             }}
           >
-            <LockIcon color="action" fontSize="small" />
-            <Typography variant="caption" color="text.secondary" fontWeight={600} textAlign="center">
-              {t('cardLockMessage')}
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <LoginIcon fontSize="small" color="primary" />
-              <Typography variant="caption" color="primary" fontWeight={700}>
-                {t('loginOrSignup')}
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 1.5,
+                backgroundColor: alpha('#fff', 0.98),
+                px: 3,
+                py: 2.5,
+                borderRadius: 2,
+                boxShadow: 4,
+                maxWidth: '90%',
+              }}
+            >
+              <Typography variant="body2" fontWeight={600} textAlign="center" color="text.primary">
+                {t('cardLockMessage')}
               </Typography>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<LoginIcon />}
+                onClick={handleCtaClick}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 600,
+                }}
+              >
+                {t('loginOrSignup')}
+              </Button>
             </Box>
           </Box>
-        </Box>
+        )}
 
         <CardContent sx={{ pb: 1.5 }}>
           {/* Game Number and Info */}
