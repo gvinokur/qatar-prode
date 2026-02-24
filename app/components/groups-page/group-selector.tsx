@@ -77,24 +77,22 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor, user 
         href={`/${locale}/tournaments/${tournamentId}`}
         sx={tabSx}
       />
-      {user && (
-        <Tab
-          label={t('qualified')}
-          value="qualified-teams"
-          component={Link}
-          href={`/${locale}/tournaments/${tournamentId}/qualified-teams`}
-          sx={tabSx}
-        />
-      )}
-      {user && (
-        <Tab
-          label={t('awards')}
-          value="individual_awards"
-          component={Link}
-          href={`/${locale}/tournaments/${tournamentId}/awards`}
-          sx={tabSx}
-        />
-      )}
+      <Tab
+        label={t('qualified')}
+        value="qualified-teams"
+        component={Link}
+        href={`/${locale}/tournaments/${tournamentId}/qualified-teams`}
+        sx={tabSx}
+        disabled={!user}
+      />
+      <Tab
+        label={t('awards')}
+        value="individual_awards"
+        component={Link}
+        href={`/${locale}/tournaments/${tournamentId}/awards`}
+        sx={tabSx}
+        disabled={!user}
+      />
     </Tabs>
   );
 };
