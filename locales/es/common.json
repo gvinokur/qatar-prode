@@ -43,6 +43,7 @@
     "back": "Volver"
   },
   "home": {
-    "availableTournaments": "Torneos Disponibles"
+    "availableTournaments": "Torneos Disponibles",
+    "loadingTournaments": "Cargando Torneos"
   }
 }

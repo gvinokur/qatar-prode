@@ -1,12 +1,12 @@
 // mark as client component
 'use server'
 
-import Home from '../components/home/home-component'
 import {getTournaments} from "../actions/tournament-actions";
-import {getGroupsForUser} from "../actions/prode-group-actions";
 import {getLoggedInUser} from "../actions/user-actions";
 import {getOnboardingStatus} from "../db/onboarding-repository";
 import OnboardingTrigger from "../components/onboarding/onboarding-trigger";
+import EmptyTournamentsState from "../components/tournament/empty-tournaments-state";
+import TournamentRedirect from "../components/home/tournament-redirect";
 
 type ServerHomeProps = {
   readonly searchParams: Promise<{ showOnboarding?: string }>
@@ -15,7 +15,6 @@ type ServerHomeProps = {
 export default async function ServerHome({ searchParams }: ServerHomeProps) {
 
   const tournaments = await getTournaments();
-  const prodeGroups = await getGroupsForUser()
   const user = await getLoggedInUser()
 
   // Force show onboarding for testing with ?showOnboarding=true
@@ -26,10 +25,20 @@ export default async function ServerHome({ searchParams }: ServerHomeProps) {
   const needsOnboarding = user && !(await getOnboardingStatus(user.id))?.onboarding_completed
   const shouldShowOnboarding = forceShowOnboarding || needsOnboarding
 
+  // Check if there are active tournaments
+  if (tournaments.length === 0) {
+    return (
+      <>
+        {shouldShowOnboarding && <OnboardingTrigger />}
+        <EmptyTournamentsState />
+      </>
+    )
+  }
+
   return (
     <>
       {shouldShowOnboarding && <OnboardingTrigger />}
-      <Home tournaments={tournaments} groups={prodeGroups}></Home>
+      <TournamentRedirect tournaments={tournaments} />
     </>
   )
 }

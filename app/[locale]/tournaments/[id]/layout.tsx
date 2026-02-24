@@ -2,7 +2,9 @@
 
 import {Grid, AppBar, Box} from "../../../components/mui-wrappers";
 import GroupSelector from "../../../components/groups-page/group-selector";
-import {getTournamentAndGroupsData, getTournamentStartDate, getGroupStandingsForTournament} from "../../../actions/tournament-actions";
+import {getTournamentAndGroupsData, getTournamentStartDate, getGroupStandingsForTournament, getTournaments} from "../../../actions/tournament-actions";
+import TournamentSwitcher from "../../../components/tournament/tournament-switcher";
+import NewTournamentSnackbar from "../../../components/tournament/new-tournament-snackbar";
 import {getGroupsForUser} from "../../../actions/prode-group-actions";
 import {findTournamentGuessByUserIdTournament} from "../../../db/tournament-guess-repository";
 import {getLoggedInUser} from "../../../actions/user-actions";
@@ -91,6 +93,9 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
   const user = await getLoggedInUser()
   const layoutData = await getTournamentAndGroupsData(params.id)
 
+  // Get all active tournaments for switcher
+  const activeTournaments = await getTournaments()
+
   // Check dev tournament permissions
   await checkDevTournamentPermission(params.id, layoutData.tournament, user, locale)
 
@@ -162,19 +167,27 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                 }}
               />
             </Link>
-            <Link
-              href={`/${locale}/tournaments/${layoutData.tournament?.id}`}
-            >
-              <Box
-                sx={{
+
+            {/* Tournament info with switcher */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flex: '1 1 auto',
+                minWidth: 0,
+                gap: 1
+              }}>
+              <Link
+                href={`/${locale}/tournaments/${layoutData.tournament?.id}`}
+                style={{
                   display: 'flex',
                   alignItems: 'center',
                   textDecoration: 'none',
                   color: 'inherit',
-                  flex: '1 1 auto',
-                  minWidth: 0,
-                  justifyContent: 'flex-start'
-                }}>
+                  minWidth: 0
+                }}
+              >
                 <Box
                   component="img"
                   src={logoUrl || ''}
@@ -214,9 +227,14 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                     </Typography>
                   </Box>
                 )}
-              </Box>
+              </Link>
 
-            </Link>
+              {/* Tournament switcher - outside Link to prevent navigation interference */}
+              <TournamentSwitcher
+                currentTournamentId={params.id}
+                tournaments={activeTournaments}
+              />
+            </Box>
             {/* User actions container */}
             <Box sx={{
               display: 'flex',
@@ -296,6 +314,13 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
 
       {/* Mobile bottom navigation - only shown on mobile within tournament context */}
       <TournamentBottomNavWrapper tournamentId={params.id} user={user ?? undefined} />
+
+      {/* New tournament notification snackbar */}
+      <NewTournamentSnackbar
+        tournamentId={params.id}
+        tournamentName={layoutData.tournament?.long_name || ''}
+        otherTournaments={activeTournaments.filter(t => t.id !== params.id)}
+      />
     </Box>
   )
  }

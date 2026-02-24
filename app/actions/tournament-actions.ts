@@ -3,6 +3,7 @@
 import {
   createTournament,
   findAllActiveTournaments, findAllTournaments,
+  findPastTournaments,
   findTournamentById,
   updateTournament
 } from "../db/tournament-repository";
@@ -58,6 +59,15 @@ export async function getTournaments () {
   const user = await getLoggedInUser()
   const locale = await getLocale()
   const tournaments = await findAllActiveTournaments(user?.id)
+  return applyLocalizationBatch(tournaments, locale, [
+    { field: 'long_name', i18nField: 'long_name_i18n' },
+    { field: 'short_name', i18nField: 'short_name_i18n' }
+  ])
+}
+
+export async function getPastTournaments(limit: number = 5) {
+  const locale = await getLocale()
+  const tournaments = await findPastTournaments(limit)
   return applyLocalizationBatch(tournaments, locale, [
     { field: 'long_name', i18nField: 'long_name_i18n' },
     { field: 'short_name', i18nField: 'short_name_i18n' }
