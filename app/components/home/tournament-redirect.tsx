@@ -18,7 +18,7 @@ export default function TournamentRedirect({
 }: TournamentRedirectProps) {
   const router = useRouter();
   const locale = useLocale();
-  const t = useTranslations('home');
+  const t = useTranslations('common');
 
   useEffect(() => {
     if (tournaments.length === 0) return;
@@ -55,7 +55,7 @@ export default function TournamentRedirect({
     >
       <CircularProgress size={48} />
       <Typography variant="h6" color="text.secondary">
-        {t('loadingTournaments')}
+        {t('home.loadingTournaments')}
       </Typography>
     </Box>
   );
