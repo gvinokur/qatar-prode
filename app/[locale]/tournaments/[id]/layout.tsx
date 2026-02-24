@@ -173,6 +173,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
               sx={{
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'center',
                 flex: '1 1 auto',
                 minWidth: 0,
                 gap: 1
