@@ -91,15 +91,17 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.redirect(newUrl);
   }
 
-  // 4. Check if authenticated user's preferred locale differs from current URL locale
+  // 4. Check if user's preferred locale (from cookie) differs from current URL locale
+  // Use cookie instead of auth() for performance (auth is expensive on every request)
   const currentLocale = pathname.split('/')[1] as Locale;
-  const session = await auth();
+  const cookieStore = await cookies();
+  const preferredLocale = cookieStore.get('NEXT_LOCALE')?.value;
 
-  if (session?.user?.preferred_locale &&
-      locales.includes(session.user.preferred_locale as Locale) &&
-      session.user.preferred_locale !== currentLocale) {
+  if (preferredLocale &&
+      locales.includes(preferredLocale as Locale) &&
+      preferredLocale !== currentLocale) {
     // User's preferred locale differs from current URL locale - redirect
-    const newPathname = pathname.replace(`/${currentLocale}`, `/${session.user.preferred_locale}`);
+    const newPathname = pathname.replace(`/${currentLocale}`, `/${preferredLocale}`);
     const newUrl = new URL(newPathname, request.url);
     newUrl.search = request.nextUrl.search;
     return NextResponse.redirect(newUrl);
@@ -133,7 +135,8 @@ export default async function middleware(request: NextRequest) {
     protectedTournamentSubRoutes.some(route => pathname.includes(route));
 
   if (isProtectedRoute || isProtectedTournamentRoute) {
-    // Reuse session fetched earlier (for locale detection)
+    // Check authentication for protected routes
+    const session = await auth();
     if (!session) {
       // User not authenticated, redirect to signin
       const signInUrl = new URL(`/${pathname.split('/')[1]}/`, request.url);

@@ -7,6 +7,13 @@ vi.mock('../auth', () => ({
   auth: vi.fn(),
 }));
 
+vi.mock('next/headers', () => ({
+  cookies: vi.fn(() => ({
+    get: vi.fn(() => null),
+    set: vi.fn(),
+  })),
+}));
+
 vi.mock('next-intl/middleware', () => ({
   default: vi.fn((config) => {
     return (request: NextRequest) => {
