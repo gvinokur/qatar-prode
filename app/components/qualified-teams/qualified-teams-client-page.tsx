@@ -152,6 +152,7 @@ function QualifiedTeamsUI({
   tournament,
   groups,
   allowsThirdPlace,
+  maxThirdPlace,
   isLocked,
   completeGroupIds,
   allGroupsComplete,
@@ -168,6 +169,13 @@ function QualifiedTeamsUI({
   const { predictions, isSaving, saveState, error, clearError, updateGroupPositions } = useQualifiedTeamsContext();
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
   const [showLockedSnackbar, setShowLockedSnackbar] = useState(false);
+
+  // Calculate current third place count for limit checking
+  const currentThirdPlaceCount = useMemo(() => {
+    return Array.from(predictions.values()).filter(
+      p => p.predicted_position === 3 && p.predicted_to_qualify
+    ).length;
+  }, [predictions]);
 
   // Initialize locked snackbar state from localStorage
   useEffect(() => {
@@ -350,6 +358,8 @@ function QualifiedTeamsUI({
                 isLocked={isLocked}
                 isSaving={isSaving}
                 allowsThirdPlace={allowsThirdPlace}
+                maxThirdPlace={maxThirdPlace}
+                currentThirdPlaceCount={currentThirdPlaceCount}
                 onToggleThirdPlace={handleToggleThirdPlace}
                 scoringBreakdown={scoringBreakdown}
                 completeGroupIds={completeGroupIds}
@@ -371,6 +381,8 @@ function QualifiedTeamsUI({
                 isLocked={isLocked}
                 isSaving={isSaving}
                 allowsThirdPlace={allowsThirdPlace}
+                maxThirdPlace={maxThirdPlace}
+                currentThirdPlaceCount={currentThirdPlaceCount}
                 onToggleThirdPlace={handleToggleThirdPlace}
                 scoringBreakdown={scoringBreakdown}
                 completeGroupIds={completeGroupIds}

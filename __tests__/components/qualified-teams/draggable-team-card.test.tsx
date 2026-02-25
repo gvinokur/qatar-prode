@@ -54,6 +54,8 @@ describe('DraggableTeamCard', () => {
         predictedToQualify={true}
         isLocked={false}
         isSaving={false}
+        maxThirdPlace={8}
+        currentThirdPlaceCount={0}
         isGroupComplete={false}
         allGroupsComplete={false}
         isPending3rdPlace={false}
@@ -71,6 +73,8 @@ describe('DraggableTeamCard', () => {
         predictedToQualify={true}
         isLocked={false}
         isSaving={false}
+        maxThirdPlace={8}
+        currentThirdPlaceCount={0}
         isGroupComplete={false}
         allGroupsComplete={false}
         isPending3rdPlace={false}
@@ -88,6 +92,8 @@ describe('DraggableTeamCard', () => {
         predictedToQualify={false}
         isLocked={false}
         isSaving={false}
+        maxThirdPlace={8}
+        currentThirdPlaceCount={0}
         isGroupComplete={false}
         allGroupsComplete={false}
         isPending3rdPlace={false}
@@ -107,6 +113,8 @@ describe('DraggableTeamCard', () => {
         predictedToQualify={true}
         isLocked={false}
         isSaving={false}
+        maxThirdPlace={8}
+        currentThirdPlaceCount={1}
         isGroupComplete={false}
         allGroupsComplete={false}
         isPending3rdPlace={false}
@@ -127,6 +135,8 @@ describe('DraggableTeamCard', () => {
         predictedToQualify={false}
         isLocked={false}
         isSaving={false}
+        maxThirdPlace={8}
+        currentThirdPlaceCount={0}
         onToggleThirdPlace={onToggleThirdPlace}
         isGroupComplete={false}
         allGroupsComplete={false}
@@ -151,11 +161,128 @@ describe('DraggableTeamCard', () => {
         isGroupComplete={false}
         allGroupsComplete={false}
         isPending3rdPlace={false}
+        maxThirdPlace={8}
+        currentThirdPlaceCount={0}
       />
     );
 
     const checkbox = screen.queryByRole('checkbox');
     expect(checkbox).not.toBeInTheDocument();
+  });
+
+  describe('Third Place Limit', () => {
+    it('should disable checkbox when limit is reached and team is not selected', () => {
+      renderWithDndContext(
+        <DraggableTeamCard
+          team={mockTeam}
+          position={3}
+          predictedToQualify={false}
+          isLocked={false}
+          isSaving={false}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={8}
+          isGroupComplete={false}
+          allGroupsComplete={false}
+          isPending3rdPlace={false}
+        />
+      );
+
+      const checkbox = screen.getByRole('checkbox');
+      expect(checkbox).toBeDisabled();
+    });
+
+    it('should NOT disable checkbox when limit is reached but team is already selected', () => {
+      renderWithDndContext(
+        <DraggableTeamCard
+          team={mockTeam}
+          position={3}
+          predictedToQualify={true}
+          isLocked={false}
+          isSaving={false}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={8}
+          isGroupComplete={false}
+          allGroupsComplete={false}
+          isPending3rdPlace={false}
+        />
+      );
+
+      const checkbox = screen.getByRole('checkbox');
+      expect(checkbox).not.toBeDisabled();
+      expect(checkbox).toBeChecked();
+    });
+
+    it('should NOT disable checkbox when limit is not reached', () => {
+      renderWithDndContext(
+        <DraggableTeamCard
+          team={mockTeam}
+          position={3}
+          predictedToQualify={false}
+          isLocked={false}
+          isSaving={false}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={7}
+          isGroupComplete={false}
+          allGroupsComplete={false}
+          isPending3rdPlace={false}
+        />
+      );
+
+      const checkbox = screen.getByRole('checkbox');
+      expect(checkbox).not.toBeDisabled();
+    });
+
+    it('should show tooltip with limit message when checkbox is disabled due to limit', async () => {
+      const { getByRole, findByRole } = renderWithDndContext(
+        <DraggableTeamCard
+          team={mockTeam}
+          position={3}
+          predictedToQualify={false}
+          isLocked={false}
+          isSaving={false}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={8}
+          isGroupComplete={false}
+          allGroupsComplete={false}
+          isPending3rdPlace={false}
+        />
+      );
+
+      const checkbox = getByRole('checkbox');
+
+      // Hover to trigger tooltip
+      fireEvent.mouseOver(checkbox.parentElement!);
+
+      // Wait for tooltip to appear
+      const tooltip = await findByRole('tooltip');
+      expect(tooltip).toHaveTextContent('Máximo de 8 terceros puestos ya seleccionados');
+    });
+
+    it('should NOT show tooltip when checkbox is not disabled due to limit', () => {
+      renderWithDndContext(
+        <DraggableTeamCard
+          team={mockTeam}
+          position={3}
+          predictedToQualify={false}
+          isLocked={false}
+          isSaving={false}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={7}
+          isGroupComplete={false}
+          allGroupsComplete={false}
+          isPending3rdPlace={false}
+        />
+      );
+
+      const checkbox = screen.getByRole('checkbox');
+
+      // Hover to trigger tooltip (should not appear)
+      fireEvent.mouseOver(checkbox.parentElement!);
+
+      // Tooltip should not exist (empty message)
+      const tooltip = screen.queryByRole('tooltip');
+      expect(tooltip).not.toBeInTheDocument();
+    });
   });
 
   it('should not render checkbox for positions 1-2', () => {
@@ -166,6 +293,8 @@ describe('DraggableTeamCard', () => {
         predictedToQualify={true}
         isLocked={false}
         isSaving={false}
+        maxThirdPlace={8}
+        currentThirdPlaceCount={0}
         isGroupComplete={false}
         allGroupsComplete={false}
         isPending3rdPlace={false}
@@ -183,6 +312,8 @@ describe('DraggableTeamCard', () => {
         predictedToQualify={false}
         isLocked={false}
         isSaving={false}
+        maxThirdPlace={8}
+        currentThirdPlaceCount={0}
         isGroupComplete={false}
         allGroupsComplete={false}
         isPending3rdPlace={false}
@@ -200,6 +331,8 @@ describe('DraggableTeamCard', () => {
         predictedToQualify={true}
         isLocked={false}
         isSaving={false}
+        maxThirdPlace={8}
+        currentThirdPlaceCount={0}
         isGroupComplete={false}
         allGroupsComplete={false}
         isPending3rdPlace={false}
@@ -219,6 +352,8 @@ describe('DraggableTeamCard', () => {
         predictedToQualify={true}
         isLocked={true}
         isSaving={false}
+        maxThirdPlace={8}
+        currentThirdPlaceCount={0}
         isGroupComplete={false}
         allGroupsComplete={false}
         isPending3rdPlace={false}
@@ -249,7 +384,9 @@ describe('DraggableTeamCard', () => {
           position={1}
           predictedToQualify={true}
           isLocked={true}
-        isSaving={false}
+          isSaving={false}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={0}
           result={null}
           isGroupComplete={false}
           allGroupsComplete={false}
@@ -267,7 +404,9 @@ describe('DraggableTeamCard', () => {
           position={2}
           predictedToQualify={true}
           isLocked={true}
-        isSaving={false}
+          isSaving={false}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={0}
           result={null}
           isGroupComplete={false}
           allGroupsComplete={false}
@@ -285,7 +424,9 @@ describe('DraggableTeamCard', () => {
           position={3}
           predictedToQualify={true}
           isLocked={true}
-        isSaving={false}
+          isSaving={false}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={1}
           result={null}
           isGroupComplete={false}
           allGroupsComplete={false}
@@ -317,7 +458,9 @@ describe('DraggableTeamCard', () => {
           position={3}
           predictedToQualify={true}
           isLocked={true}
-        isSaving={false}
+          isSaving={false}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={1}
           result={resultFor3rdTeamQualifiedIn2nd}
           isGroupComplete={true}
           allGroupsComplete={false}
@@ -337,7 +480,9 @@ describe('DraggableTeamCard', () => {
           position={1}
           predictedToQualify={true}
           isLocked={false}
-        isSaving={false}
+          isSaving={false}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={0}
           result={null}
           isGroupComplete={false}
           allGroupsComplete={false}
@@ -355,7 +500,9 @@ describe('DraggableTeamCard', () => {
           position={1}
           predictedToQualify={false}
           isLocked={true}
-        isSaving={false}
+          isSaving={false}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={0}
           result={null}
           isGroupComplete={false}
           allGroupsComplete={false}
@@ -373,7 +520,9 @@ describe('DraggableTeamCard', () => {
           position={1}
           predictedToQualify={true}
           isLocked={false}
-        isSaving={false}
+          isSaving={false}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={0}
           result={mockResult}
           isGroupComplete={false}
           allGroupsComplete={false}
@@ -391,7 +540,9 @@ describe('DraggableTeamCard', () => {
           position={1}
           predictedToQualify={true}
           isLocked={false}
-        isSaving={false}
+          isSaving={false}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={0}
           result={null}
           isGroupComplete={true}
           allGroupsComplete={true}
@@ -409,7 +560,9 @@ describe('DraggableTeamCard', () => {
           position={1}
           predictedToQualify={true}
           isLocked={false}
-        isSaving={false}
+          isSaving={false}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={0}
           result={mockResult}
           isGroupComplete={true}
           allGroupsComplete={true}
@@ -435,7 +588,9 @@ describe('DraggableTeamCard', () => {
           position={2}
           predictedToQualify={true}
           isLocked={false}
-        isSaving={false}
+          isSaving={false}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={0}
           result={partialResult}
           isGroupComplete={true}
           allGroupsComplete={true}
@@ -461,7 +616,9 @@ describe('DraggableTeamCard', () => {
           position={1}
           predictedToQualify={true}
           isLocked={false}
-        isSaving={false}
+          isSaving={false}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={0}
           result={wrongResult}
           isGroupComplete={true}
           allGroupsComplete={true}
@@ -488,7 +645,9 @@ describe('DraggableTeamCard', () => {
           position={3}
           predictedToQualify={true}
           isLocked={false}
-        isSaving={false}
+          isSaving={false}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={1}
           result={pendingResult}
           isGroupComplete={true}
           allGroupsComplete={false}
@@ -506,7 +665,9 @@ describe('DraggableTeamCard', () => {
           position={1}
           predictedToQualify={true}
           isLocked={false}
-        isSaving={false}
+          isSaving={false}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={0}
           result={mockResult}
           isGroupComplete={true}
           allGroupsComplete={true}
@@ -532,7 +693,9 @@ describe('DraggableTeamCard', () => {
           position={1}
           predictedToQualify={true}
           isLocked={false}
-        isSaving={false}
+          isSaving={false}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={0}
           result={partialResult}
           isGroupComplete={true}
           allGroupsComplete={true}
@@ -557,7 +720,9 @@ describe('DraggableTeamCard', () => {
           position={3}
           predictedToQualify={true}
           isLocked={false}
-        isSaving={false}
+          isSaving={false}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={1}
           result={pendingResult}
           isGroupComplete={true}
           allGroupsComplete={false}
@@ -577,7 +742,9 @@ describe('DraggableTeamCard', () => {
           position={1}
           predictedToQualify={true}
           isLocked={true}
-        isSaving={false}
+          isSaving={false}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={0}
           result={null}
           isGroupComplete={false}
           allGroupsComplete={false}

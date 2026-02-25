@@ -34,6 +34,10 @@ export interface GroupCardProps {
   readonly isSaving: boolean;
   /** Whether third place qualification is enabled */
   readonly allowsThirdPlace: boolean;
+  /** Maximum allowed third place qualifiers */
+  readonly maxThirdPlace: number;
+  /** Current count of third place teams selected */
+  readonly currentThirdPlaceCount: number;
   /** Callback when team position changes */
   readonly onPositionChange?: (teamId: string, newPosition: number) => void;
   /** Callback when third place qualification is toggled */
@@ -93,6 +97,8 @@ export default function GroupCard({
   isLocked,
   isSaving,
   allowsThirdPlace,
+  maxThirdPlace,
+  currentThirdPlaceCount,
   onPositionChange,
   onToggleThirdPlace,
   groupResults = [],
@@ -188,6 +194,8 @@ export default function GroupCard({
                 predictedToQualify={prediction.predicted_to_qualify}
                 isLocked={isLocked}
                 isSaving={isSaving}
+                maxThirdPlace={maxThirdPlace}
+                currentThirdPlaceCount={currentThirdPlaceCount}
                 onToggleThirdPlace={
                   onToggleThirdPlace && prediction.predicted_position === 3
                     ? () => onToggleThirdPlace(team.id)

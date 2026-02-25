@@ -40,6 +40,7 @@
     "title": "Clasificados en Tercer Lugar",
     "overLimit": "Has seleccionado {selected} equipos, pero solo {max} pueden clasificar. Deselecciona {excess} equipo{excess, plural, =1 {} other {s}}.",
     "noSelection": "Aún no has seleccionado equipos de tercer lugar. Selecciona equipos desde la posición 3 en cada grupo para predecir cuáles clasificarán.",
-    "progress": "{count} / {max}"
+    "progress": "{count} / {max}",
+    "limitReached": "Máximo de {max} terceros puestos ya seleccionados"
   }
 }

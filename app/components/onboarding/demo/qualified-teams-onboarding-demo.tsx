@@ -183,6 +183,8 @@ function QualifiedTeamsOnboardingDemoInner({
             isLocked={false}
             isSaving={isSaving}
             allowsThirdPlace={true}
+            maxThirdPlace={8}
+            currentThirdPlaceCount={0}
             onToggleThirdPlace={handleToggleThirdPlace}
             isGroupComplete={false}
             allGroupsComplete={false}
