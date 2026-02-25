@@ -306,9 +306,10 @@ const gamesClosingInNext48Hours = closingGames.map(game => ({
 **Update fetches:**
 
 ```typescript
-// ✅ ADD: Fetch game predictions from DB (SINGLE QUERY)
-const [gamePredictionStats, tournamentPredictionCompletion, teamsMap] = await Promise.all([
+// ✅ ADD: Fetch game predictions and closing games from DB
+const [gamePredictionStats, closingGames, tournamentPredictionCompletion, teamsMap] = await Promise.all([
   getPredictionDashboardStats(user.id, tournamentId),  // Game predictions from DB
+  getGamesClosingWithin48Hours(tournamentId),          // Games closing in next 48h
   getTournamentPredictionCompletion(user.id, tournamentId, tournament),
   getTeamsMap(tournamentId)
 ]);
@@ -322,6 +323,7 @@ const [gamePredictionStats, tournamentPredictionCompletion, teamsMap] = await Pr
 <QualifiedTeamsClientPage
   // ... existing props ...
   gamePredictionStats={gamePredictionStats}  // ✅ ADD
+  closingGames={closingGames}                // ✅ ADD
   tournamentPredictionCompletion={tournamentPredictionCompletion}
   tournament={tournament}
   teamsMap={teamsMap}
@@ -341,6 +343,7 @@ readonly gamePredictionStats: {
   silverUsed: number;
   goldenUsed: number;
 };
+readonly closingGames: ExtendedGameData[];
 readonly tournament: Tournament;
 
 // ❌ REMOVE:
@@ -381,8 +384,11 @@ const tournamentClosesInHours = tournament.start_date
   tournamentPredictionIsLocked={isLocked}
   tournamentClosesInHours={tournamentClosesInHours}
 
-  // No games closing data on this page
-  gamesClosingInNext48Hours={[]}
+  // Games closing in next 48 hours (from DB)
+  gamesClosingInNext48Hours={closingGames.map(game => ({
+    game,
+    gameGuess: undefined  // No game guesses on this page
+  }))}
   tournamentId={tournament.id}
   teamsMap={teamsMap}
 />
@@ -390,8 +396,9 @@ const tournamentClosesInHours = tournament.start_date
 
 **Note:**
 - Qualified Teams page calculates its OWN predictions (qualified teams)
-- Gets game predictions from DB (doesn't have games data)
-- No GuessesContextProvider wrapper needed
+- Gets game predictions and closing games from DB (doesn't have games data)
+- No game guesses available, so gameGuess is undefined for each game
+- Dashboard will show urgency indicator but clicking won't show guess details
 
 ### Part 5: Update Awards Page
 
@@ -402,15 +409,16 @@ const tournamentClosesInHours = tournament.start_date
 **Update fetches:**
 
 ```typescript
-// ✅ ADD: Fetch game predictions from DB (SINGLE QUERY)
-const [tournamentGuesses, allPlayers, tournamentStartDate, teamsMap, tournament, playoffStages, gamePredictionStats] = await Promise.all([
+// ✅ ADD: Fetch game predictions and closing games from DB
+const [tournamentGuesses, allPlayers, tournamentStartDate, teamsMap, tournament, playoffStages, gamePredictionStats, closingGames] = await Promise.all([
   findTournamentGuessByUserIdTournament(user.id, params.id).then(result => result || buildTournamentGuesses(user.id, params.id)),
   findAllPlayersInTournamentWithTeamData(params.id),
   getTournamentStartDate(params.id),
   getTeamsMap(params.id),
   findTournamentById(params.id),
   getPlayoffRounds(params.id),
-  getPredictionDashboardStats(user.id, params.id)  // ✅ Game predictions from DB
+  getPredictionDashboardStats(user.id, params.id),  // ✅ Game predictions from DB
+  getGamesClosingWithin48Hours(params.id)           // ✅ Games closing in next 48h
 ]);
 
 // ❌ REMOVE: getAllTournamentGames, findGameGuessesByUserId (lines 50-51)
@@ -427,6 +435,7 @@ const tournamentPredictionCompletion = tournament
 <AwardsPanel
   // ... existing props ...
   gamePredictionStats={gamePredictionStats}  // ✅ ADD
+  closingGames={closingGames}                // ✅ ADD
   tournament={tournament}
   tournamentPredictionCompletion={tournamentPredictionCompletion}
   tournamentStartDate={tournamentStartDate}
@@ -447,6 +456,7 @@ readonly gamePredictionStats: {
   silverUsed: number;
   goldenUsed: number;
 };
+readonly closingGames: ExtendedGameData[];
 readonly tournament: Tournament;
 
 // ❌ REMOVE:
@@ -502,8 +512,11 @@ const tournamentClosesInHours = tournamentStartDate
   tournamentPredictionIsLocked={isPredictionLocked}
   tournamentClosesInHours={tournamentClosesInHours}
 
-  // No games closing data on this page
-  gamesClosingInNext48Hours={[]}
+  // Games closing in next 48 hours (from DB)
+  gamesClosingInNext48Hours={closingGames.map(game => ({
+    game,
+    gameGuess: undefined  // No game guesses on this page
+  }))}
   tournamentId={tournament.id}
   teamsMap={teamsMap}
 />
@@ -511,8 +524,9 @@ const tournamentClosesInHours = tournamentStartDate
 
 **Note:**
 - Awards page calculates its OWN predictions (awards)
-- Gets game predictions from DB (doesn't have games data)
-- No GuessesContextProvider wrapper needed
+- Gets game predictions and closing games from DB (doesn't have games data)
+- No game guesses available, so gameGuess is undefined for each game
+- Dashboard will show urgency indicator but clicking won't show guess details
 
 **Note on GuessesContextProvider:**
 - Home page KEEPS GuessesContextProvider (needed for games list editing)
