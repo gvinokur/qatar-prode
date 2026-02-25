@@ -56,9 +56,7 @@ interface CompactPredictionDashboardProps {
   // Core tournament context
   readonly tournamentId?: string;
   readonly tournamentStartDate?: Date;
-  readonly games?: ExtendedGameData[];
-  readonly teamsMap?: Record<string, Team>;
-  readonly isPlayoffs?: boolean;
+  readonly games?: ExtendedGameData[]; // For urgency calculation and dynamic game count
   readonly demoMode?: boolean;
 
   // Fixed data (retrieved once from server, won't change on this page)
@@ -72,6 +70,9 @@ interface CompactPredictionDashboardProps {
 
   readonly tournamentPredictions?: TournamentPredictionCompletion;
   readonly tournamentGuesses?: TournamentGuessNew; // For awards calculation
+
+  // Note: gameGuesses comes from GuessesContext, not props
+  // Note: Removed teamsMap and isPlayoffs as GameDetailsPopover is replaced by navigation
 }
 ```
 
@@ -125,10 +126,12 @@ function calculateQualifiedTeamsPredictions(
   predictions: Map<string, QualifiedTeamPrediction>
 ): number {
   return Array.from(predictions.values()).filter(
-    p => p.predicted_position != null
+    p => p.predicted_to_qualify === true
   ).length;
 }
 ```
+
+**Note**: Checks `predicted_to_qualify` flag, not just position. A team can have a position (e.g., 5th) but not qualify.
 
 ### 3. Final Standings Calculation
 
@@ -407,8 +410,7 @@ MOBILE BENEFIT: Full-screen game list, easier to flip cards, see more context
 <CompactPredictionDashboard
   tournamentId={tournamentId}
   tournamentStartDate={tournamentStartDate}
-  games={closingGames}
-  teamsMap={teamsMap}
+  games={closingGames}  // For urgency calculation and dynamic game count
   fixedData={{
     totalGames: games.length,
     gamePredictions: null,  // Calculate dynamically from GuessesContext
@@ -428,8 +430,7 @@ MOBILE BENEFIT: Full-screen game list, easier to flip cards, see more context
 <CompactPredictionDashboard
   tournamentId={tournament.id}
   tournamentStartDate={tournamentStartDate}
-  games={games}
-  teamsMap={teamsMap}
+  games={games}  // For urgency calculation
   fixedData={{
     totalGames: games.length,
     gamePredictions: gameGuessesArray.length,
@@ -449,8 +450,7 @@ MOBILE BENEFIT: Full-screen game list, easier to flip cards, see more context
 <CompactPredictionDashboard
   tournamentId={tournament.id}
   tournamentStartDate={tournamentStartDate}
-  games={games}
-  teamsMap={teamsMap}
+  games={games}  // For urgency calculation
   fixedData={{
     totalGames: games.length,
     gamePredictions: gameGuessesArray.length,
