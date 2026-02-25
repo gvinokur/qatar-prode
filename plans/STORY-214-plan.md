@@ -21,9 +21,9 @@ Refactor CompactPredictionDashboard to use a **fixed + dynamic data model**:
 - **Configuration**: Pass `null` in fixedData for metrics to calculate dynamically
 
 Each page configures which metrics are dynamic by passing null:
-- **Home**: Games = `null` (calculate from `GuessesContext`), qualified teams/finalStandings/awards = server values
-- **Qualified Teams**: Qualified teams = `null` (calculate from `QualifiedTeamsContext`), games/finalStandings/awards = server values
-- **Awards**: FinalStandings + Awards = `null` (calculate from `tournamentGuesses` state), games/qualifiedTeams = server values
+- **Home**: Games = `null` (calculate from `GuessesContext` - context already present for game cards), qualified teams/finalStandings/awards = server values
+- **Qualified Teams**: Qualified teams = `null` (calculate from `QualifiedTeamsContext` - context already present for team ranking UI), games/finalStandings/awards = server values
+- **Awards**: FinalStandings + Awards = `null` (calculate from `tournamentGuesses` local state), games/qualifiedTeams = server values (NO GuessesContext needed)
 
 Additionally, change the dashboard game row click behavior from opening an edit dialog to navigating to the tournament home page with scroll/edit/filter parameters.
 
@@ -178,7 +178,9 @@ Add useMemo hook to combine fixed + dynamic data:
 
 ```typescript
 // Call hooks at top level (Rules of Hooks)
-const { gameGuesses } = useContext(GuessesContext);
+// GuessesContext might not be available on all pages (Awards, Qualified Teams)
+const guessesContext = useContext(GuessesContext);
+const gameGuesses = guessesContext?.gameGuesses ?? {};
 
 // QualifiedTeamsContext might not be available on all pages (Awards, Home)
 // Context default value is undefined when provider not present
@@ -433,7 +435,7 @@ MOBILE BENEFIT: Full-screen game list, easier to flip cards, see more context
   games={games}  // For urgency calculation
   fixedData={{
     totalGames: games.length,
-    gamePredictions: gameGuessesArray.length,
+    gamePredictions: gameGuessesArray.length,  // Fixed from server (NO GuessesContext needed)
     qualifiedTeams: null,  // Calculate dynamically from QualifiedTeamsContext
     finalStandings: tournamentPredictionCompletion?.finalStandings.completed ?? 0,
     awards: tournamentPredictionCompletion?.awards.completed ?? 0
@@ -441,6 +443,8 @@ MOBILE BENEFIT: Full-screen game list, easier to flip cards, see more context
   tournamentPredictions={tournamentPredictionCompletion}
 />
 ```
+
+**Note**: Uses existing QualifiedTeamsContext for team ranking UI. NO GuessesContext needed.
 
 ### Awards Page
 
@@ -453,15 +457,17 @@ MOBILE BENEFIT: Full-screen game list, easier to flip cards, see more context
   games={games}  // For urgency calculation
   fixedData={{
     totalGames: games.length,
-    gamePredictions: gameGuessesArray.length,
+    gamePredictions: gameGuessesArray.length,  // Fixed from server (NO GuessesContext needed)
     qualifiedTeams: tournamentPredictionCompletion?.qualifiers.completed ?? 0,
-    finalStandings: null,  // Calculate dynamically from tournamentGuesses
-    awards: null  // Calculate dynamically from tournamentGuesses
+    finalStandings: null,  // Calculate dynamically from tournamentGuesses local state
+    awards: null  // Calculate dynamically from tournamentGuesses local state
   }}
   tournamentPredictions={tournamentPredictionCompletion}
   tournamentGuesses={tournamentGuesses}  // Pass state for dynamic calculation
 />
 ```
+
+**Note**: Remove `GuessesContextProvider` wrapper - not needed since games count is fixed from server.
 
 ## Implementation Steps
 
@@ -482,10 +488,11 @@ MOBILE BENEFIT: Full-screen game list, easier to flip cards, see more context
 6. Add integration tests
 
 ### Phase 3: Page Updates
-1. Update Home page props
-2. Update Qualified Teams page props
-3. Update Awards page props (pass tournamentGuesses)
+1. Update Home page props (keep using GuessesContext for dynamic game count)
+2. Update Qualified Teams page props (keep using QualifiedTeamsContext, NO GuessesContext)
+3. Update Awards page props (pass tournamentGuesses, remove GuessesContextProvider wrapper)
 4. Verify real-time updates work on each page
+5. Verify performance: Awards and Qualified Teams pages don't load unnecessary context
 
 ### Phase 4: Navigation Changes
 1. Update `handleGameRowClick` in CompactPredictionDashboard
