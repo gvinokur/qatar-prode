@@ -44,6 +44,7 @@
     "components",
     "services",
     "pages_old",
-    "utils"
+    "utils",
+    "scripts"
   ]
 }

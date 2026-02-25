@@ -3,11 +3,11 @@
  * CLI wrapper for generating translation coverage report
  */
 import { generateCoverageReport } from '../lib/translation-qa';
-import path = require('path');
+import { join } from 'path';
 
 async function main() {
   const projectRoot = process.cwd();
-  const messagesDir = path.join(projectRoot, 'locales');
+  const messagesDir = join(projectRoot, 'locales');
 
   console.log('📊 Generating translation coverage report...\n');
 

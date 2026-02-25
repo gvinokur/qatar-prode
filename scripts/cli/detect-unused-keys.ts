@@ -3,12 +3,12 @@
  * CLI wrapper for detecting unused translation keys
  */
 import { detectUnusedKeys } from '../lib/translation-qa';
-import path = require('path');
+import { join } from 'path';
 
 async function main() {
   const projectRoot = process.cwd();
-  const srcDir = path.join(projectRoot, 'app');
-  const messagesDir = path.join(projectRoot, 'locales');
+  const srcDir = join(projectRoot, 'app');
+  const messagesDir = join(projectRoot, 'locales');
 
   console.log('🔍 Scanning for unused translation keys...\n');
 
