@@ -12,7 +12,7 @@ import {
 import LockIcon from '@mui/icons-material/Lock';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { getCategoryUrgencyLevel, getUrgencyIcon, URGENCY_COLOR_MAP } from './urgency-helpers';
+import { getCategoryUrgencyLevel, getUrgencyIcon } from './urgency-helpers';
 
 interface TournamentPredictionCategoryCardProps {
   readonly title: string;
@@ -46,13 +46,9 @@ export function TournamentPredictionCategoryCard({
     tournamentStartDate
   );
 
-  // Icon logic - 16px icons with proper colors
+  // Icon logic - 16px icons
   const getCategoryStatusIcon = (): React.ReactElement => {
-    const icon = getUrgencyIcon(urgencyLevel);
-    // Clone icon with fontSize and explicit color in sx to ensure proper styling
-    return React.cloneElement(icon, {
-      sx: { fontSize: 16, color: URGENCY_COLOR_MAP[urgencyLevel] }
-    });
+    return getUrgencyIcon(urgencyLevel, 16);
   };
 
   // Border color logic

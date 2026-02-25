@@ -175,20 +175,23 @@ export function getWorstUrgencyLevel(...levels: UrgencyLevel[]): UrgencyLevel {
 /**
  * Returns the appropriate icon for a given urgency level
  * @param level - The urgency level
+ * @param fontSize - Optional fontSize (default: '1.25rem' for 20px)
  * @returns A React icon component with appropriate styling
  */
-export function getUrgencyIcon(level: UrgencyLevel) {
+export function getUrgencyIcon(level: UrgencyLevel, fontSize: number | string = '1.25rem') {
+  const getIconSx = (color: string) => ({ color, fontSize });
+
   switch (level) {
     case 'urgent':
-      return <ErrorIcon sx={{ color: 'error.main', fontSize: '1.25rem' }} />;
+      return <ErrorIcon sx={getIconSx(URGENCY_COLOR_MAP.urgent)} />;
     case 'warning':
-      return <WarningIcon sx={{ color: 'warning.main', fontSize: '1.25rem' }} />;
+      return <WarningIcon sx={getIconSx(URGENCY_COLOR_MAP.warning)} />;
     case 'notice':
-      return <InfoIcon sx={{ color: 'info.main', fontSize: '1.25rem' }} />;
+      return <InfoIcon sx={getIconSx(URGENCY_COLOR_MAP.notice)} />;
     case 'complete':
-      return <CheckCircleIcon sx={{ color: 'success.main', fontSize: '1.25rem' }} />;
+      return <CheckCircleIcon sx={getIconSx(URGENCY_COLOR_MAP.complete)} />;
     case 'locked':
-      return <LockIcon sx={{ color: 'action.disabled', fontSize: '1.25rem' }} />;
+      return <LockIcon sx={getIconSx(URGENCY_COLOR_MAP.locked)} />;
   }
 }
 

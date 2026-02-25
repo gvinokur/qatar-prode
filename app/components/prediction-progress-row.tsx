@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, LinearProgress, Typography, IconButton } from '@mui/material';
 import { BoostCountBadge } from './boost-badge';
-import { getUrgencyIcon, UrgencyLevel, URGENCY_COLOR_MAP } from './urgency-helpers';
+import { getUrgencyIcon, UrgencyLevel } from './urgency-helpers';
 
 interface PredictionProgressRowProps {
   readonly label: string;
@@ -90,9 +90,7 @@ export function PredictionProgressRow({
       )}
 
       <IconButton size="small" sx={{ p: 0.5 }}>
-        {React.cloneElement(getUrgencyIcon(urgencyLevel), {
-          sx: { color: URGENCY_COLOR_MAP[urgencyLevel] }
-        })}
+        {getUrgencyIcon(urgencyLevel)}
       </IconButton>
     </Box>
   );

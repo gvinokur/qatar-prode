@@ -12,7 +12,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { TournamentPredictionCategoryCard } from './tournament-prediction-category-card';
 import type { TournamentPredictionCompletion } from '../db/tables-definition';
 import { useLocale, useTranslations } from 'next-intl';
-import { getCategoryUrgencyLevel, getWorstUrgencyLevel, getUrgencyIcon, URGENCY_COLOR_MAP } from './urgency-helpers';
+import { getCategoryUrgencyLevel, getWorstUrgencyLevel, getUrgencyIcon } from './urgency-helpers';
 
 interface TournamentPredictionAccordionProps {
   readonly tournamentPredictions: TournamentPredictionCompletion;
@@ -75,13 +75,9 @@ export function TournamentPredictionAccordion({
     }
   };
 
-  // Icon logic - 24px icons (default size) with explicit color
+  // Icon logic - 24px icons (default 1.25rem = 20px, close to 24px)
   const getAccordionIcon = (): React.ReactElement => {
-    const icon = getUrgencyIcon(overallUrgency);
-    // Clone icon with explicit color in sx to ensure proper styling
-    return React.cloneElement(icon, {
-      sx: { color: URGENCY_COLOR_MAP[overallUrgency] }
-    });
+    return getUrgencyIcon(overallUrgency);
   };
 
   return (
