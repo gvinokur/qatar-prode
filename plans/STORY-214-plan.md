@@ -412,9 +412,9 @@ MOBILE BENEFIT: Full-screen game list, easier to flip cards, see more context
 <CompactPredictionDashboard
   tournamentId={tournamentId}
   tournamentStartDate={tournamentStartDate}
-  games={closingGames}  // For urgency calculation and dynamic game count
+  games={closingGames}  // Only games closing within 48hrs (for urgency + dynamic count)
   fixedData={{
-    totalGames: games.length,
+    totalGames: games.length,  // All games count for denominator
     gamePredictions: null,  // Calculate dynamically from GuessesContext
     qualifiedTeams: tournamentPredictionCompletion?.qualifiers.completed ?? 0,
     finalStandings: tournamentPredictionCompletion?.finalStandings.completed ?? 0,
@@ -424,7 +424,13 @@ MOBILE BENEFIT: Full-screen game list, easier to flip cards, see more context
 />
 ```
 
+**Note**: Already uses `getGamesClosingWithin48Hours()` from server (no changes needed to page.tsx).
+
 ### Qualified Teams Page
+
+**File**: `app/[locale]/tournaments/[id]/qualified-teams/page.tsx`
+- Replace `getAllTournamentGames(params.id)` with `getGamesClosingWithin48Hours(params.id)`
+- Pass `closingGames` to component for urgency calculation (not all games)
 
 **File**: `app/components/qualified-teams/qualified-teams-client-page.tsx`
 
@@ -432,9 +438,9 @@ MOBILE BENEFIT: Full-screen game list, easier to flip cards, see more context
 <CompactPredictionDashboard
   tournamentId={tournament.id}
   tournamentStartDate={tournamentStartDate}
-  games={games}  // For urgency calculation
+  games={closingGames}  // Only games closing within 48hrs (for urgency calculation)
   fixedData={{
-    totalGames: games.length,
+    totalGames: allGamesCount,  // Total from server (not closingGames.length)
     gamePredictions: gameGuessesArray.length,  // Fixed from server (NO GuessesContext needed)
     qualifiedTeams: null,  // Calculate dynamically from QualifiedTeamsContext
     finalStandings: tournamentPredictionCompletion?.finalStandings.completed ?? 0,
@@ -448,15 +454,20 @@ MOBILE BENEFIT: Full-screen game list, easier to flip cards, see more context
 
 ### Awards Page
 
+**File**: `app/[locale]/tournaments/[id]/awards/page.tsx`
+- Replace `getAllTournamentGames(params.id)` with `getGamesClosingWithin48Hours(params.id)`
+- Also fetch total games count separately: `getTournamentGameCounts(user.id, params.id)` for `totalGames`
+- Pass `closingGames` to component for urgency calculation (not all games)
+
 **File**: `app/components/awards/award-panel.tsx`
 
 ```typescript
 <CompactPredictionDashboard
   tournamentId={tournament.id}
   tournamentStartDate={tournamentStartDate}
-  games={games}  // For urgency calculation
+  games={closingGames}  // Only games closing within 48hrs (for urgency calculation)
   fixedData={{
-    totalGames: games.length,
+    totalGames: allGamesCount,  // Total from server (not closingGames.length)
     gamePredictions: gameGuessesArray.length,  // Fixed from server (NO GuessesContext needed)
     qualifiedTeams: tournamentPredictionCompletion?.qualifiers.completed ?? 0,
     finalStandings: null,  // Calculate dynamically from tournamentGuesses local state
@@ -488,11 +499,12 @@ MOBILE BENEFIT: Full-screen game list, easier to flip cards, see more context
 6. Add integration tests
 
 ### Phase 3: Page Updates
-1. Update Home page props (keep using GuessesContext for dynamic game count)
-2. Update Qualified Teams page props (keep using QualifiedTeamsContext, NO GuessesContext)
-3. Update Awards page props (pass tournamentGuesses, remove GuessesContextProvider wrapper)
-4. Verify real-time updates work on each page
-5. Verify performance: Awards and Qualified Teams pages don't load unnecessary context
+1. Update Qualified Teams server page: Use `getGamesClosingWithin48Hours()` instead of `getAllTournamentGames()`
+2. Update Awards server page: Use `getGamesClosingWithin48Hours()` instead of `getAllTournamentGames()`
+3. Update component props to receive `closingGames` and `allGamesCount` separately
+4. Remove `GuessesContextProvider` wrapper from Awards page
+5. Verify real-time updates work on each page
+6. Verify performance: Only closing games fetched for non-home pages, no unnecessary contexts
 
 ### Phase 4: Navigation Changes
 1. Update `handleGameRowClick` in CompactPredictionDashboard
