@@ -91,20 +91,12 @@ export function getGameUrgencyLevel(
 }
 
 /**
- * Determines the urgency level for tournament predictions based on lock date
- * @param tournamentPredictions - Tournament prediction completion data
- * @param tournamentStartDate - Date when tournament starts
- * @returns The urgency level for tournament predictions
+ * Calculate urgency level based on time until tournament lock
+ * Shared logic between tournament and category urgency calculations
+ * @param tournamentStartDate - Tournament start date
+ * @returns Urgency level based on time until lock
  */
-export function getTournamentUrgencyLevel(
-  tournamentPredictions: TournamentPredictionCompletion | undefined,
-  tournamentStartDate: Date | undefined
-): UrgencyLevel {
-  if (!tournamentPredictions) return 'complete';
-
-  if (tournamentPredictions.isPredictionLocked) return 'locked';
-  if (tournamentPredictions.overallPercentage === 100) return 'complete';
-
+function calculateTimeBasedUrgency(tournamentStartDate: Date | undefined): UrgencyLevel {
   if (!tournamentStartDate) return 'notice';
 
   const lockTime = new Date(
@@ -119,6 +111,24 @@ export function getTournamentUrgencyLevel(
   if (hoursUntilLock < URGENCY_TIME_CONSTANTS.WARNING_THRESHOLD_HOURS) return 'warning';
   if (hoursUntilLock < URGENCY_TIME_CONSTANTS.NOTICE_THRESHOLD_HOURS) return 'notice';
   return 'notice';
+}
+
+/**
+ * Determines the urgency level for tournament predictions based on lock date
+ * @param tournamentPredictions - Tournament prediction completion data
+ * @param tournamentStartDate - Date when tournament starts
+ * @returns The urgency level for tournament predictions
+ */
+export function getTournamentUrgencyLevel(
+  tournamentPredictions: TournamentPredictionCompletion | undefined,
+  tournamentStartDate: Date | undefined
+): UrgencyLevel {
+  if (!tournamentPredictions) return 'complete';
+
+  if (tournamentPredictions.isPredictionLocked) return 'locked';
+  if (tournamentPredictions.overallPercentage === 100) return 'complete';
+
+  return calculateTimeBasedUrgency(tournamentStartDate);
 }
 
 /**
@@ -137,21 +147,8 @@ export function getCategoryUrgencyLevel(
 ): UrgencyLevel {
   if (isPredictionLocked) return 'locked';
   if (completed === total) return 'complete';
-  if (!tournamentStartDate) return 'notice';  // Default to notice if no date
 
-  // Lock time is TOURNAMENT_LOCK_OFFSET_DAYS after tournament start
-  const lockTime = new Date(
-    tournamentStartDate.getTime() +
-    URGENCY_TIME_CONSTANTS.TOURNAMENT_LOCK_OFFSET_DAYS * 24 * 60 * 60 * 1000
-  );
-  const now = new Date();
-  const hoursUntilLock = (lockTime.getTime() - now.getTime()) / (60 * 60 * 1000);
-
-  if (hoursUntilLock < 0) return 'locked';
-  if (hoursUntilLock < URGENCY_TIME_CONSTANTS.URGENT_THRESHOLD_HOURS) return 'urgent';
-  if (hoursUntilLock < URGENCY_TIME_CONSTANTS.WARNING_THRESHOLD_HOURS) return 'warning';
-  if (hoursUntilLock < URGENCY_TIME_CONSTANTS.NOTICE_THRESHOLD_HOURS) return 'notice';
-  return 'notice';  // >48h = notice (not urgent, but incomplete)
+  return calculateTimeBasedUrgency(tournamentStartDate);
 }
 
 /**
