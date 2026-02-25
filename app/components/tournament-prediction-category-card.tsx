@@ -9,11 +9,10 @@ import {
   Button,
   Chip
 } from '@mui/material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import WarningIcon from '@mui/icons-material/Warning';
 import LockIcon from '@mui/icons-material/Lock';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { getCategoryUrgencyLevel, getUrgencyIcon } from './urgency-helpers';
 
 interface TournamentPredictionCategoryCardProps {
   readonly title: string;
@@ -21,6 +20,7 @@ interface TournamentPredictionCategoryCardProps {
   readonly total: number;
   readonly link: string;
   readonly isLocked: boolean;
+  readonly tournamentStartDate?: Date;
 }
 
 export function TournamentPredictionCategoryCard({
@@ -28,7 +28,8 @@ export function TournamentPredictionCategoryCard({
   completed,
   total,
   link,
-  isLocked
+  isLocked,
+  tournamentStartDate
 }: TournamentPredictionCategoryCardProps) {
   const t = useTranslations('predictions');
 
@@ -37,31 +38,36 @@ export function TournamentPredictionCategoryCard({
   const percentage = total > 0 ? Math.round((safeCompleted / total) * 100) : 0;
   const isComplete = safeCompleted === total;
 
+  // Calculate urgency level
+  const urgencyLevel = getCategoryUrgencyLevel(
+    safeCompleted,
+    total,
+    isLocked,
+    tournamentStartDate
+  );
+
   // Icon logic - 16px icons
   const getCategoryStatusIcon = (): React.ReactElement => {
-    if (isLocked) {
-      return <LockIcon sx={{ fontSize: 16, color: 'info.main' }} />;
-    }
-    if (isComplete) {
-      return <CheckCircleIcon sx={{ fontSize: 16, color: 'success.main' }} />;
-    }
-    return <WarningIcon sx={{ fontSize: 16, color: 'warning.main' }} />;
+    const icon = getUrgencyIcon(urgencyLevel);
+    // Clone icon with fontSize for consistency (category cards use 16px)
+    return React.cloneElement(icon, { sx: { fontSize: 16 } });
   };
 
   // Border color logic
   const getCategoryCardBorderColor = (): string => {
-    if (isLocked || isComplete) {
-      return 'divider';
+    switch (urgencyLevel) {
+      case 'urgent': return 'error.main';
+      case 'warning': return 'warning.main';
+      case 'notice': return 'info.main';
+      case 'complete': return 'divider';
+      case 'locked': return 'divider';
     }
-    return 'warning.main';
   };
 
   // Border width logic
   const getCategoryCardBorderWidth = (): number => {
-    if (isLocked || isComplete) {
-      return 1;
-    }
-    return 2;
+    // Thicker border for urgent/warning to draw attention
+    return (urgencyLevel === 'urgent' || urgencyLevel === 'warning') ? 2 : 1;
   };
 
   // ARIA label for accessibility

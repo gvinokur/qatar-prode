@@ -10,6 +10,17 @@ import { TournamentPredictionCompletion } from '../db/tables-definition';
 export type UrgencyLevel = 'urgent' | 'warning' | 'notice' | 'complete' | 'locked';
 
 /**
+ * Time constants for urgency calculations
+ * Centralizes all time thresholds to avoid magic numbers
+ */
+export const URGENCY_TIME_CONSTANTS = {
+  TOURNAMENT_LOCK_OFFSET_DAYS: 5,
+  URGENT_THRESHOLD_HOURS: 2,
+  WARNING_THRESHOLD_HOURS: 24,
+  NOTICE_THRESHOLD_HOURS: 48
+} as const;
+
+/**
  * Determines the urgency level for game predictions based on deadlines and prediction status
  * @param games - List of games to evaluate
  * @param gameGuesses - Record of user's game predictions
@@ -84,15 +95,69 @@ export function getTournamentUrgencyLevel(
 
   if (!tournamentStartDate) return 'complete';
 
-  const lockTime = new Date(tournamentStartDate.getTime() + 5 * 24 * 60 * 60 * 1000);
+  const lockTime = new Date(
+    tournamentStartDate.getTime() +
+    URGENCY_TIME_CONSTANTS.TOURNAMENT_LOCK_OFFSET_DAYS * 24 * 60 * 60 * 1000
+  );
   const now = new Date();
   const hoursUntilLock = (lockTime.getTime() - now.getTime()) / (60 * 60 * 1000);
 
   if (hoursUntilLock < 0) return 'locked';
-  if (hoursUntilLock < 2) return 'urgent';
-  if (hoursUntilLock < 24) return 'warning';
-  if (hoursUntilLock < 48) return 'notice';
+  if (hoursUntilLock < URGENCY_TIME_CONSTANTS.URGENT_THRESHOLD_HOURS) return 'urgent';
+  if (hoursUntilLock < URGENCY_TIME_CONSTANTS.WARNING_THRESHOLD_HOURS) return 'warning';
+  if (hoursUntilLock < URGENCY_TIME_CONSTANTS.NOTICE_THRESHOLD_HOURS) return 'notice';
   return 'complete';
+}
+
+/**
+ * Calculate urgency level for a specific tournament prediction category
+ * @param completed - Number of predictions completed in this category
+ * @param total - Total predictions needed in this category
+ * @param isPredictionLocked - Whether predictions are locked
+ * @param tournamentStartDate - Tournament start date (used to calculate lock time)
+ * @returns Urgency level for this category
+ */
+export function getCategoryUrgencyLevel(
+  completed: number,
+  total: number,
+  isPredictionLocked: boolean,
+  tournamentStartDate: Date | undefined
+): UrgencyLevel {
+  if (isPredictionLocked) return 'locked';
+  if (completed === total) return 'complete';
+  if (!tournamentStartDate) return 'notice';  // Default to notice if no date
+
+  // Lock time is TOURNAMENT_LOCK_OFFSET_DAYS after tournament start
+  const lockTime = new Date(
+    tournamentStartDate.getTime() +
+    URGENCY_TIME_CONSTANTS.TOURNAMENT_LOCK_OFFSET_DAYS * 24 * 60 * 60 * 1000
+  );
+  const now = new Date();
+  const hoursUntilLock = (lockTime.getTime() - now.getTime()) / (60 * 60 * 1000);
+
+  if (hoursUntilLock < 0) return 'locked';
+  if (hoursUntilLock < URGENCY_TIME_CONSTANTS.URGENT_THRESHOLD_HOURS) return 'urgent';
+  if (hoursUntilLock < URGENCY_TIME_CONSTANTS.WARNING_THRESHOLD_HOURS) return 'warning';
+  if (hoursUntilLock < URGENCY_TIME_CONSTANTS.NOTICE_THRESHOLD_HOURS) return 'notice';
+  return 'notice';  // >48h = notice (not urgent, but incomplete)
+}
+
+/**
+ * Get the worst (most urgent) urgency level from a list
+ * Priority: urgent > warning > notice > complete > locked
+ * @param levels - Urgency levels to compare
+ * @returns The most urgent level
+ */
+export function getWorstUrgencyLevel(...levels: UrgencyLevel[]): UrgencyLevel {
+  const priority: UrgencyLevel[] = ['urgent', 'warning', 'notice', 'complete', 'locked'];
+
+  for (const level of priority) {
+    if (levels.includes(level)) {
+      return level;
+    }
+  }
+
+  return 'complete';  // Fallback
 }
 
 /**

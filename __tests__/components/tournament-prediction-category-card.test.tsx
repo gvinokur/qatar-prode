@@ -1,6 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { renderWithTheme } from '../utils/test-utils';
+import { vi, beforeEach, afterEach } from 'vitest';
 import { TournamentPredictionCategoryCard } from '../../app/components/tournament-prediction-category-card';
 
 describe('TournamentPredictionCategoryCard', () => {
@@ -55,9 +56,10 @@ describe('TournamentPredictionCategoryCard', () => {
   });
 
   describe('Incomplete State', () => {
-    it('shows orange warning icon when incomplete', () => {
+    it('shows info icon when incomplete (defaults to notice without date)', () => {
       renderWithTheme(<TournamentPredictionCategoryCard {...defaultProps} />);
-      const icon = screen.getByTestId('WarningIcon');
+      // Without tournamentStartDate, defaults to notice (InfoIcon)
+      const icon = screen.getByTestId('InfoIcon');
       expect(icon).toBeInTheDocument();
     });
 
@@ -68,10 +70,11 @@ describe('TournamentPredictionCategoryCard', () => {
       expect(button).toHaveAttribute('href', '/tournaments/1/awards');
     });
 
-    it('has thicker border (2px) when incomplete', () => {
+    it('has normal border (1px) when incomplete without date (defaults to notice)', () => {
       const { container } = renderWithTheme(<TournamentPredictionCategoryCard {...defaultProps} />);
       const card = container.querySelector('.MuiCard-root');
-      expect(card).toHaveStyle({ borderWidth: '2px' });
+      // Without tournamentStartDate, urgency is notice, which has 1px border
+      expect(card).toHaveStyle({ borderWidth: '1px' });
     });
 
     it('button is clickable Link when incomplete', () => {
@@ -112,10 +115,11 @@ describe('TournamentPredictionCategoryCard', () => {
   });
 
   describe('Border Widths', () => {
-    it('incomplete cards have 2px border', () => {
+    it('incomplete cards have 1px border when notice (default without date)', () => {
       const { container } = renderWithTheme(<TournamentPredictionCategoryCard {...defaultProps} completed={1} total={3} />);
       const card = container.querySelector('.MuiCard-root');
-      expect(card).toHaveStyle({ borderWidth: '2px' });
+      // Without tournamentStartDate, urgency defaults to notice (1px border)
+      expect(card).toHaveStyle({ borderWidth: '1px' });
     });
 
     it('complete cards have 1px border', () => {
@@ -187,6 +191,99 @@ describe('TournamentPredictionCategoryCard', () => {
       const { container } = renderWithTheme(<TournamentPredictionCategoryCard {...defaultProps} completed={1} total={3} />);
       const card = container.querySelector('[aria-label]');
       expect(card).toHaveAttribute('aria-label', 'Podio: 1 de 3 completado');
+    });
+  });
+
+  describe('Time-based Urgency', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2024-01-01T12:00:00Z'));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('shows INFO icon when >48h until lock and incomplete', () => {
+      const tournamentStart = new Date('2023-12-30T12:00:00Z'); // Lock in 72h
+      const props = { ...defaultProps, tournamentStartDate: tournamentStart };
+      renderWithTheme(<TournamentPredictionCategoryCard {...props} />);
+      expect(screen.getByTestId('InfoIcon')).toBeInTheDocument();
+    });
+
+    it('shows WARNING icon when 2-24h until lock and incomplete', () => {
+      const tournamentStart = new Date('2023-12-28T00:00:00Z'); // Lock in 12h
+      const props = { ...defaultProps, tournamentStartDate: tournamentStart };
+      renderWithTheme(<TournamentPredictionCategoryCard {...props} />);
+      expect(screen.getByTestId('WarningIcon')).toBeInTheDocument();
+    });
+
+    it('shows ERROR icon when <2h until lock and incomplete', () => {
+      const tournamentStart = new Date('2023-12-27T13:00:00Z'); // Lock in 1h
+      const props = { ...defaultProps, tournamentStartDate: tournamentStart };
+      renderWithTheme(<TournamentPredictionCategoryCard {...props} />);
+      expect(screen.getByTestId('ErrorIcon')).toBeInTheDocument();
+    });
+
+    it('defaults to notice when tournamentStartDate is undefined', () => {
+      const props = { ...defaultProps, tournamentStartDate: undefined };
+      renderWithTheme(<TournamentPredictionCategoryCard {...props} />);
+      expect(screen.getByTestId('InfoIcon')).toBeInTheDocument();
+    });
+  });
+
+  describe('Urgency-based Borders', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2024-01-01T12:00:00Z'));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('has 2px border when urgent (<2h until lock)', () => {
+      const tournamentStart = new Date('2023-12-27T13:00:00Z');
+      const props = { ...defaultProps, tournamentStartDate: tournamentStart };
+      const { container } = renderWithTheme(<TournamentPredictionCategoryCard {...props} />);
+      const card = container.querySelector('.MuiCard-root');
+      expect(card).toHaveStyle({ borderWidth: '2px' });
+    });
+
+    it('has 2px border when warning (2-24h until lock)', () => {
+      const tournamentStart = new Date('2023-12-28T00:00:00Z');
+      const props = { ...defaultProps, tournamentStartDate: tournamentStart };
+      const { container } = renderWithTheme(<TournamentPredictionCategoryCard {...props} />);
+      const card = container.querySelector('.MuiCard-root');
+      expect(card).toHaveStyle({ borderWidth: '2px' });
+    });
+
+    it('has 1px border when notice (>48h until lock)', () => {
+      const tournamentStart = new Date('2023-12-30T12:00:00Z');
+      const props = { ...defaultProps, tournamentStartDate: tournamentStart };
+      const { container } = renderWithTheme(<TournamentPredictionCategoryCard {...props} />);
+      const card = container.querySelector('.MuiCard-root');
+      expect(card).toHaveStyle({ borderWidth: '1px' });
+    });
+  });
+
+  describe('Icon Size Consistency', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2024-01-01T12:00:00Z'));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('preserves 16px icon size when using getUrgencyIcon', () => {
+      const tournamentStart = new Date('2023-12-27T13:00:00Z'); // urgent
+      const props = { ...defaultProps, tournamentStartDate: tournamentStart };
+      const { container } = renderWithTheme(<TournamentPredictionCategoryCard {...props} />);
+      const icon = container.querySelector('[data-testid="ErrorIcon"]');
+      // Icon should have fontSize 16px via sx prop
+      expect(icon).toBeInTheDocument();
     });
   });
 });

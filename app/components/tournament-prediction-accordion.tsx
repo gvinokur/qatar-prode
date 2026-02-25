@@ -9,16 +9,15 @@ import {
   Typography
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import WarningIcon from '@mui/icons-material/Warning';
-import LockIcon from '@mui/icons-material/Lock';
 import { TournamentPredictionCategoryCard } from './tournament-prediction-category-card';
 import type { TournamentPredictionCompletion } from '../db/tables-definition';
 import { useLocale, useTranslations } from 'next-intl';
+import { getCategoryUrgencyLevel, getWorstUrgencyLevel, getUrgencyIcon } from './urgency-helpers';
 
 interface TournamentPredictionAccordionProps {
   readonly tournamentPredictions: TournamentPredictionCompletion;
   readonly tournamentId: string;
+  readonly tournamentStartDate?: Date;
   readonly isExpanded: boolean;
   readonly onToggle: () => void;
 }
@@ -26,6 +25,7 @@ interface TournamentPredictionAccordionProps {
 export function TournamentPredictionAccordion({
   tournamentPredictions,
   tournamentId,
+  tournamentStartDate,
   isExpanded,
   onToggle
 }: TournamentPredictionAccordionProps) {
@@ -33,22 +33,51 @@ export function TournamentPredictionAccordion({
   const locale = useLocale();
   const { overallCompleted, overallTotal, overallPercentage, isPredictionLocked } = tournamentPredictions;
 
+  // Calculate urgency for each category
+  const finalStandingsUrgency = getCategoryUrgencyLevel(
+    tournamentPredictions.finalStandings.completed,
+    tournamentPredictions.finalStandings.total,
+    isPredictionLocked,
+    tournamentStartDate
+  );
+
+  const awardsUrgency = getCategoryUrgencyLevel(
+    tournamentPredictions.awards.completed,
+    tournamentPredictions.awards.total,
+    isPredictionLocked,
+    tournamentStartDate
+  );
+
+  const qualifiersUrgency = tournamentPredictions.qualifiers.total > 0
+    ? getCategoryUrgencyLevel(
+        tournamentPredictions.qualifiers.completed,
+        tournamentPredictions.qualifiers.total,
+        isPredictionLocked,
+        tournamentStartDate
+      )
+    : 'complete';
+
+  // Get worst urgency level across all categories
+  const overallUrgency = getWorstUrgencyLevel(
+    finalStandingsUrgency,
+    awardsUrgency,
+    qualifiersUrgency
+  );
+
   // Color logic for accordion border
   const getAccordionColor = (): string => {
-    if (isPredictionLocked) return 'text.disabled';  // Gray (locked)
-    if (overallPercentage === 100) return 'success.main';  // Green (complete)
-    return 'warning.main';  // Orange (incomplete)
+    switch (overallUrgency) {
+      case 'urgent': return 'error.main';
+      case 'warning': return 'warning.main';
+      case 'notice': return 'info.main';
+      case 'complete': return 'success.main';
+      case 'locked': return 'text.disabled';
+    }
   };
 
   // Icon logic - 24px icons (default size)
   const getAccordionIcon = (): React.ReactElement => {
-    if (isPredictionLocked) {
-      return <LockIcon color="disabled" />;
-    }
-    if (overallPercentage === 100) {
-      return <CheckCircleIcon color="success" />;
-    }
-    return <WarningIcon color="warning" />;
+    return getUrgencyIcon(overallUrgency);
   };
 
   return (
@@ -93,6 +122,7 @@ export function TournamentPredictionAccordion({
             total={tournamentPredictions.finalStandings.total}
             link={`/${locale}/tournaments/${tournamentId}/awards`}
             isLocked={isPredictionLocked}
+            tournamentStartDate={tournamentStartDate}
           />
 
           {/* Premios Individuales */}
@@ -102,6 +132,7 @@ export function TournamentPredictionAccordion({
             total={tournamentPredictions.awards.total}
             link={`/${locale}/tournaments/${tournamentId}/awards`}
             isLocked={isPredictionLocked}
+            tournamentStartDate={tournamentStartDate}
           />
 
           {/* Clasificados (conditional) */}
@@ -112,6 +143,7 @@ export function TournamentPredictionAccordion({
               total={tournamentPredictions.qualifiers.total}
               link={`/${locale}/tournaments/${tournamentId}/qualified-teams`}
               isLocked={isPredictionLocked}
+              tournamentStartDate={tournamentStartDate}
             />
           )}
         </Box>

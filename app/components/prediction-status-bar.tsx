@@ -325,6 +325,7 @@ export function PredictionStatusBar({
           <TournamentPredictionAccordion
             tournamentPredictions={tournamentPredictions}
             tournamentId={tournamentId}
+            tournamentStartDate={tournamentStartDate}
             isExpanded={tournamentAccordionExpanded}
             onToggle={() => setTournamentAccordionExpanded(prev => !prev)}
           />
