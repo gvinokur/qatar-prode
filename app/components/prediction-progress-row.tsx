@@ -42,6 +42,18 @@ export function PredictionProgressRow({
     ? `${currentValue}%`
     : `${currentValue}/${maxValue}`;
 
+  // Map urgency levels to theme colors
+  const getUrgencyColor = (level: UrgencyLevel): string => {
+    const colorMap: Record<UrgencyLevel, string> = {
+      urgent: 'error.main',
+      warning: 'warning.main',
+      notice: 'info.main',
+      complete: 'success.main',
+      locked: 'info.main'
+    };
+    return colorMap[level];
+  };
+
   return (
     <Box
       onClick={onClick}
@@ -91,13 +103,7 @@ export function PredictionProgressRow({
 
       <IconButton size="small" sx={{ p: 0.5 }}>
         {React.cloneElement(getUrgencyIcon(urgencyLevel), {
-          sx: {
-            color: urgencyLevel === 'urgent' ? 'error.main'
-              : urgencyLevel === 'warning' ? 'warning.main'
-              : urgencyLevel === 'notice' ? 'info.main'
-              : urgencyLevel === 'complete' ? 'success.main'
-              : 'info.main' // locked
-          }
+          sx: { color: getUrgencyColor(urgencyLevel) }
         })}
       </IconButton>
     </Box>
