@@ -58,9 +58,11 @@ testFactories.team(overrides?)          // Team entity
 testFactories.game(overrides?)          // Game entity
 testFactories.gameGuess(overrides?)     // Game guess entity
 testFactories.player(overrides?)        // Player entity
-testFactories.tournamentGroupTeamStatsGuess(overrides?)  // Group stats guess
 testFactories.boost(overrides?)         // Boost entity
 testFactories.leaderboardEntry(overrides?)  // Leaderboard entry
+
+// DEPRECATED: Table dropped in migration 20260311
+// testFactories.tournamentGroupTeamStatsGuess(overrides?)
 
 // Bulk creation helper
 createMany(factory, count, customizer?)  // Create multiple entities
@@ -824,6 +826,70 @@ describe('GuessForm', () => {
   });
 });
 ```
+
+---
+
+## Testing i18n Components
+
+Components that use translations require mocking next-intl.
+
+### Standard Pattern
+
+```typescript
+import { vi } from 'vitest';
+
+// Mock next-intl (for Client Components)
+vi.mock('next-intl', () => ({
+  useLocale: () => 'en',
+  useTranslations: (namespace: string) => (key: string) => `${namespace}.${key}`,
+}));
+
+// Mock next-intl/server (for Server Components)
+vi.mock('next-intl/server', () => ({
+  getLocale: async () => 'en',
+  getTranslations: async (namespace: string) => (key: string) => `${namespace}.${key}`,
+}));
+```
+
+### Using renderWithProviders
+
+```typescript
+import { renderWithProviders } from '@/__tests__/utils/test-utils';
+
+renderWithProviders(<Component />, {
+  locale: 'en',  // Sets locale for test
+});
+```
+
+### Testing Localized Content
+
+```typescript
+test('displays localized tournament name', () => {
+  const { getByText } = renderWithProviders(
+    <TournamentCard tournament={mockTournament} />,
+    { locale: 'es' }
+  );
+
+  expect(getByText('Copa América 2024')).toBeInTheDocument();
+});
+
+test('uses correct namespace keys', () => {
+  const { getByText } = renderWithProviders(<GameCard />, { locale: 'en' });
+
+  // Translation keys return as-is with namespace prefix
+  expect(getByText('games.submit_prediction')).toBeInTheDocument();
+});
+```
+
+### Best Practices
+
+- Mock translations at test file level (not per-test)
+- Use `${namespace}.${key}` pattern for predictable output
+- Test both locales if component behavior differs
+- Use `applyLocalization()` in test setup if testing localized data
+
+**Future Enhancement:**
+Consider creating `renderWithTranslations()` helper that loads actual translation files for integration tests.
 
 ---
 

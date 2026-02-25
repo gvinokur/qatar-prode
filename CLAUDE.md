@@ -318,7 +318,8 @@ For detailed guidance, see:
 - **[Subagent Workflows Guide](docs/claude/subagent-workflows.md)** - Quick reference for all subagent patterns
 - **[Git Worktrees Guide](docs/claude/worktrees.md)** - Worktree setup, management, safety checks
 - **[GitHub Projects Workflow](docs/claude/github-projects-workflow.md)** - Complete story workflow from start to completion
-- **[Architecture Guide](docs/claude/architecture.md)** - Stack, patterns, server/client boundaries
+- **[Architecture Guide](docs/claude/architecture.md)** - Stack, patterns, i18n infrastructure, context providers, authentication patterns, performance optimization, reusable UI components, server/client boundaries
+- **[Patterns Quick Reference](docs/claude/patterns.md)** - 5 critical patterns with examples (NEW)
 - **[Helper Script Docs](scripts/README.md)** - Full documentation for `github-projects-helper`
 
 ## Project Context
@@ -327,7 +328,8 @@ For detailed guidance, see:
 - **Database**: PostgreSQL with Kysely ORM
 - **Auth**: NextAuth.js v5
 - **UI**: Material-UI v7
-- **Testing**: Vitest (80% coverage on new code)
+- **i18n**: next-intl with locale routing (English, Spanish)
+- **Testing**: Vitest (60% overall coverage, 80% on new code)
 - **Deployment**: Vercel (auto-deploy on push to main)
 
 ## Decision Tree: What Phase Am I In?
@@ -491,6 +493,10 @@ Go back to validation
 | Not documenting deviations from plan | Plan diverges from reality, future confusion | Add amendments when discovering gaps/bugs during implementation | implementation.md Section 8 |
 | Skipping plan reconciliation before merge | Plan contradicts actual code, documentation debt | Review plan vs. implementation before final validation | validation.md Section 1 |
 | Not updating main worktree after merge | Next story branches from old commit, causes conflicts | After story complete, go to main worktree and `git pull origin main` | github-projects-workflow.md Section 10 |
+| Not registering new translation namespaces | Missing translations, runtime errors | Register in i18n.config.ts and create namespace files | architecture/i18n.md |
+| Adding locale params to repositories | Violates separation of concerns | Use applyLocalization in Server Actions | patterns.md Pattern 1 |
+| Not using test factories | Incomplete mock data, test failures | ALWAYS use testFactories.* | patterns.md Pattern 2 |
+| Client Components fetching data | Slow, insecure, wrong pattern | Server Components fetch, pass as props | patterns.md Pattern 3 |
 
 ## Development Guidelines
 
@@ -511,7 +517,7 @@ Go back to validation
 - Optimize images with Next.js `<Image>` component
 
 ### Quality Gates (SonarCloud)
-- Code coverage: ≥80% on new code
+- Code coverage: ≥60% overall, ≥80% on new code
 - 0 new issues of ANY severity (low, medium, high, critical)
 - Security rating: A
 - Maintainability: B or higher
@@ -556,6 +562,7 @@ NEXT_PUBLIC_APP_DESCRIPTION=Sports Prediction Platform
 ## Additional Notes
 
 - Experimental HTTPS in development for PWA testing
-- Tournament data stored in `data/` as JSON files
+- Tournament seed data stored in `data/` directory, organized by tournament (copa-america, euro, fifa-2026)
 - Database migrations in `migrations/` (manual execution)
+- Middleware handles i18n routing, authentication, and legacy path redirects (e.g., /groups → /friend-groups)
 - Git hooks via Husky (tests + linting on modified files)
