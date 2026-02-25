@@ -1151,6 +1151,267 @@ export default async function Page() {
 }
 ```
 
+## Translation Quality Assurance
+
+Automated tooling to ensure translation completeness and prevent regressions.
+
+### Running QA Scripts Locally
+
+**Check for missing/unused keys:**
+```bash
+npm run i18n:check
+```
+
+This runs both missing keys detection and unused keys detection.
+
+**Generate coverage report:**
+```bash
+npm run i18n:coverage
+```
+
+Outputs a markdown table with translation metrics per namespace.
+
+**Individual scripts:**
+```bash
+./scripts/detect-missing-keys.sh    # Detect missing keys
+./scripts/detect-unused-keys.sh     # Detect unused keys
+./scripts/translation-coverage.sh   # Generate report
+```
+
+### Interpreting Results
+
+#### Missing Keys
+
+**What they are:** Translation keys used in code (`t('key')`) but not present in JSON files.
+
+**Severity:** ❌ **Critical errors** - must be fixed before merging.
+
+**Example output:**
+```
+❌ MISSING KEYS FOUND:
+
+Namespace: auth
+  File: app/components/auth/login-form.tsx:45
+  Key: login.submitButton
+  Missing in: en
+
+Summary: 1 missing keys found across 1 namespaces
+```
+
+**How to fix:**
+1. Add the missing key to both `locales/en/{namespace}.json` and `locales/es/{namespace}.json`
+2. Follow the [Translation Workflow](#translation-workflow-for-new-keys) for proper translation
+3. Run `npm run i18n:check` again to verify
+
+#### Unused Keys
+
+**What they are:** Translation keys in JSON files that are never referenced in the codebase.
+
+**Severity:** ⚠️  **Warnings only** - review before removing, but won't block PRs.
+
+**Example output:**
+```
+⚠️  UNUSED KEYS FOUND:
+
+Namespace: auth (2 unused keys)
+  - auth.login.forgotPasswordOld
+  - auth.signup.termsCheckbox
+
+Summary: 2 unused keys across 1 namespaces
+Note: These are warnings only. Review before removing.
+```
+
+**How to handle:**
+- Review each unused key carefully
+- Key might be used in dynamic scenarios (edge case)
+- Key might be planned for future feature
+- If truly unused, remove from both locale files
+- See [Quarterly Cleanup Workflow](#quarterly-cleanup-workflow-for-unused-keys) below
+
+#### Coverage Report
+
+**What it shows:** Metrics on translation completeness across all namespaces.
+
+**Example output:**
+```markdown
+# Translation Coverage Report
+
+## Summary
+- Total Namespaces: 19
+- Total Keys (EN): 1,234
+- Total Keys (ES): 1,234
+- Missing Keys: 0
+- Unused Keys: 4
+
+## By Namespace
+
+| Namespace | EN Keys | ES Keys | Coverage | Missing | Unused |
+|-----------|---------|---------|----------|---------|--------|
+| auth      | 85      | 85      | 100%     | 0       | 2      |
+| common    | 120     | 120     | 100%     | 0       | 1      |
+...
+
+## ✅ Status: PASS
+All namespaces have complete translations.
+```
+
+**Understanding coverage percentage:**
+- 100% = Same number of keys in both locales
+- <100% = One locale has fewer keys than the other
+- Formula: (min keys / max keys) * 100
+
+### Best Practices for Avoiding Missing/Unused Keys
+
+**1. Add translations immediately:**
+Don't commit code with `t('key')` calls without corresponding JSON keys. Add translations as you write the code.
+
+**2. Run QA before committing:**
+```bash
+npm run i18n:check
+```
+Catch issues early before they reach CI/CD.
+
+**3. Use literal keys (avoid dynamic construction):**
+```typescript
+// ✅ GOOD: Literal string
+t('auth.login.title')
+
+// ❌ BAD: Dynamic key (QA tools can't detect)
+const action = 'login';
+t(`auth.${action}.title`)
+```
+
+**4. Remove unused keys regularly:**
+Follow the quarterly cleanup workflow below to prevent bloat.
+
+**5. Check coverage reports periodically:**
+Review `npm run i18n:coverage` output to monitor translation health.
+
+### CI/CD Integration
+
+GitHub Actions automatically runs translation QA on all PRs:
+
+**What runs:**
+1. `validate-translations.sh` - Structure and syntax validation
+2. `detect-missing-keys.sh` - Missing keys detection (❌ fails build if found)
+3. `detect-unused-keys.sh` - Unused keys detection (⚠️  warnings only)
+4. `translation-coverage.sh` - Generate coverage report (uploaded as artifact)
+
+**Status check behavior:**
+- ✅ **Missing keys** - Blocks PR merge (required status check)
+- ⚠️  **Unused keys** - Informational only (doesn't block)
+- 📊 **Coverage report** - Available as downloadable artifact
+
+**Viewing coverage report in CI:**
+1. Go to PR checks on GitHub
+2. Find "SonarCloud Analysis" workflow
+3. Download "translation-coverage-report" artifact
+4. Open the markdown file
+
+### Quarterly Cleanup Workflow for Unused Keys
+
+Unused keys accumulate over time as features change. Establish a quarterly cleanup process:
+
+**When:** Every quarter (January, April, July, October)
+**Who:** Tech lead or designated team member
+
+**Process:**
+
+**Step 1: Generate report**
+```bash
+npm run i18n:check > unused-keys-report.txt
+```
+
+**Step 2: Review unused keys**
+- Open `unused-keys-report.txt`
+- For each unused key, verify it's truly unused:
+  - Search codebase manually for dynamic usage
+  - Check if planned for upcoming feature
+  - Confirm with team if unsure
+
+**Step 3: Remove confirmed unused keys**
+- Delete keys from both `locales/en/{namespace}.json` and `locales/es/{namespace}.json`
+- Keep structure consistent between locales
+- Do NOT remove keys if you're uncertain
+
+**Step 4: Create cleanup PR**
+- Title: `chore: Remove unused translation keys (Q1 2026)`
+- Include list of removed keys in PR description
+- Run `npm run i18n:check` to verify no regressions
+- Merge after review
+
+**Responsibility:** This should be a recurring calendar event to prevent translation bloat.
+
+### Troubleshooting
+
+**Q: `npm run i18n:check` fails with "command not found"**
+A: Run `npm install` to ensure scripts are installed.
+
+**Q: Script reports false positive (key is used but marked as unused)**
+A: The script only detects literal strings. Check if you're using dynamic key construction:
+```typescript
+// This won't be detected by the script
+t(`auth.${action}.title`)
+```
+If this is the case, consider refactoring to use literal keys, or document the dynamic usage.
+
+**Q: How do I skip translation QA temporarily?**
+A: You can't and shouldn't. Translation QA is critical for UX. Fix the missing keys instead - it's usually faster than trying to work around it.
+
+**Q: CI fails but I need to merge urgently**
+A: Add the missing keys to both locale files:
+```json
+// locales/en/namespace.json
+{
+  "new": {
+    "key": "English text"
+  }
+}
+
+// locales/es/namespace.json
+{
+  "new": {
+    "key": "Spanish text"
+  }
+}
+```
+This takes <2 minutes and unblocks your PR.
+
+**Q: Script is very slow**
+A: The script scans all TypeScript files in the project. Expected runtime is <10 seconds for ~720 files. If it's slower, check:
+- Are you running from project root?
+- Is `node_modules` being scanned (should be excluded)?
+- Try clearing `.next` cache: `rm -rf .next`
+
+### Common Mistakes
+
+**❌ Committing code with missing keys**
+```typescript
+// Don't do this
+<Button>{t('newFeature.button')}</Button>
+// Without adding the key to JSON files first
+```
+
+**❌ Translating variable names in interpolation**
+```json
+// Spanish
+"invite": "Invitar a {groupName}"
+
+// ❌ WRONG English
+"invite": "Invite {nombreGrupo}"
+
+// ✅ CORRECT English
+"invite": "Invite {groupName}"
+```
+
+**❌ Removing all unused keys without review**
+Some "unused" keys might be used dynamically or planned for future features. Always review before removing.
+
+**❌ Ignoring quarterly cleanup**
+Unused keys accumulate. Regular cleanup keeps translation files lean and maintainable.
+
+---
+
 ## Resources
 
 - **next-intl Documentation:** https://next-intl-docs.vercel.app/
@@ -1160,3 +1421,4 @@ export default async function Page() {
 - **Localization Helpers:** `app/utils/localization-helper.ts`
 - **I18n Architecture:** `claude/architecture/i18n.md`
 - **Backoffice Components:** `app/components/backoffice/i18n-field-editor.tsx`
+- **Translation QA Scripts:** `scripts/lib/translation-qa.ts`

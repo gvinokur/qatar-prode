@@ -14,6 +14,9 @@
     "sonar": "sonar-scanner",
     "sonar:local": "sonar-scanner -Dsonar.host.url=http://localhost:9000",
     "sonar:check": "./scripts/sonar-check.sh",
+    "i18n:check": "./scripts/detect-missing-keys.sh",
+    "i18n:unused": "./scripts/detect-unused-keys.sh",
+    "i18n:coverage": "./scripts/translation-coverage.sh",
     "prepare": "husky"
   },
   "dependencies": {
