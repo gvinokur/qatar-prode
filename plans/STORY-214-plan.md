@@ -20,10 +20,12 @@ Refactor CompactPredictionDashboard to use a **fixed + dynamic data model**:
 - **Dynamic data**: Metrics calculated from client context (updates in real-time)
 - **Configuration**: Pass `null` in fixedData for metrics to calculate dynamically
 
-Each page configures which metrics are dynamic by passing null:
-- **Home**: Games = `null` (calculate from `GuessesContext` - context already present for game cards), qualified teams/finalStandings/awards = server values
-- **Qualified Teams**: Qualified teams = `null` (calculate from `QualifiedTeamsContext` - context already present for team ranking UI), games/finalStandings/awards = server values
-- **Awards**: FinalStandings + Awards = `null` (calculate from `tournamentGuesses` local state), games/qualifiedTeams = server values (NO GuessesContext needed)
+Each page configures which metrics are dynamic by passing null in fixedData:
+- **Home**: Games = `null` → Parent extracts `gameGuesses` from GuessesContext and passes as prop
+- **Qualified Teams**: Qualified teams = `null` → Parent extracts `predictions` from QualifiedTeamsContext and passes as prop
+- **Awards**: FinalStandings + Awards = `null` → Parent passes `tournamentGuesses` local state as prop
+
+**Key architectural principle**: Dashboard is a pure component with NO context dependencies. Parent components are responsible for consuming contexts and passing data as props. This makes the dashboard simpler, more testable, and easier to understand.
 
 Additionally, change the dashboard game row click behavior from opening an edit dialog to navigating to the tournament home page with scroll/edit/filter parameters.
 
@@ -59,19 +61,23 @@ interface CompactPredictionDashboardProps {
   readonly games?: ExtendedGameData[]; // For urgency calculation and dynamic game count
   readonly demoMode?: boolean;
 
+  // Data for dynamic calculations (passed by parent components)
+  readonly gameGuesses?: Record<string, GameGuessNew>; // For dynamic game count calculation
+  readonly qualifiedTeamsPredictions?: Map<string, QualifiedTeamPrediction>; // For dynamic qualified teams count
+  readonly tournamentGuesses?: TournamentGuessNew; // For dynamic awards calculation
+
   // Fixed data (retrieved once from server, won't change on this page)
   readonly fixedData: {
     readonly totalGames: number;
-    readonly gamePredictions: number | null; // null = calculate dynamically
-    readonly qualifiedTeams: number | null;
-    readonly finalStandings: number | null;
-    readonly awards: number | null;
+    readonly gamePredictions: number | null; // null = calculate dynamically from gameGuesses prop
+    readonly qualifiedTeams: number | null; // null = calculate dynamically from qualifiedTeamsPredictions prop
+    readonly finalStandings: number | null; // null = calculate dynamically from tournamentGuesses prop
+    readonly awards: number | null; // null = calculate dynamically from tournamentGuesses prop
   };
 
   readonly tournamentPredictions?: TournamentPredictionCompletion;
-  readonly tournamentGuesses?: TournamentGuessNew; // For awards calculation
 
-  // Note: gameGuesses comes from GuessesContext, not props
+  // Note: Dashboard does NOT consume contexts - parent components extract and pass data as props
   // Note: Removed teamsMap and isPlayoffs as GameDetailsPopover is replaced by navigation
 }
 ```
@@ -174,24 +180,14 @@ function calculateAwards(
 
 **File**: `app/components/compact-prediction-dashboard.tsx`
 
-Add useMemo hook to combine fixed + dynamic data:
+Dashboard receives all data as props (no context consumption). Add useMemo hook to combine fixed + dynamic data:
 
 ```typescript
-// Call hooks at top level (Rules of Hooks)
-// GuessesContext might not be available on all pages (Awards, Qualified Teams)
-const guessesContext = useContext(GuessesContext);
-const gameGuesses = guessesContext?.gameGuesses ?? {};
-
-// QualifiedTeamsContext might not be available on all pages (Awards, Home)
-// Context default value is undefined when provider not present
-const qualifiedTeamsContext = useContext(QualifiedTeamsContext);
-const qualifiedTeamsPredictions = qualifiedTeamsContext?.predictions;
-
 const calculatedData = useMemo(() => {
   // Calculate game predictions if fixedData.gamePredictions is null
   const gamePredictions = fixedData.gamePredictions !== null
     ? fixedData.gamePredictions
-    : (games ? calculateGamePredictions(games, gameGuesses) : 0);
+    : (games && gameGuesses ? calculateGamePredictions(games, gameGuesses) : 0);
 
   // Calculate qualified teams if fixedData.qualifiedTeams is null
   const qualifiedTeams = fixedData.qualifiedTeams !== null
@@ -222,6 +218,8 @@ const calculatedData = useMemo(() => {
   tournamentGuesses
 ]);
 ```
+
+**Key architectural improvement**: Dashboard is now a pure component - no context dependencies, just props. Parent components are responsible for extracting data from contexts and passing to dashboard.
 
 ## Navigation Behavior Change
 
@@ -409,13 +407,17 @@ MOBILE BENEFIT: Full-screen game list, easier to flip cards, see more context
 **File**: `app/components/unified-games-page-client.tsx`
 
 ```typescript
+// Parent component consumes context and extracts data
+const { gameGuesses } = useContext(GuessesContext);
+
 <CompactPredictionDashboard
   tournamentId={tournamentId}
   tournamentStartDate={tournamentStartDate}
   games={closingGames}  // Only games closing within 48hrs (for urgency + dynamic count)
+  gameGuesses={gameGuesses}  // Extracted from context, passed as prop
   fixedData={{
     totalGames: games.length,  // All games count for denominator
-    gamePredictions: null,  // Calculate dynamically from GuessesContext
+    gamePredictions: null,  // Calculate dynamically from gameGuesses prop
     qualifiedTeams: tournamentPredictionCompletion?.qualifiers.completed ?? 0,
     finalStandings: tournamentPredictionCompletion?.finalStandings.completed ?? 0,
     awards: tournamentPredictionCompletion?.awards.completed ?? 0
@@ -424,7 +426,7 @@ MOBILE BENEFIT: Full-screen game list, easier to flip cards, see more context
 />
 ```
 
-**Note**: Already uses `getGamesClosingWithin48Hours()` from server (no changes needed to page.tsx).
+**Note**: Parent component (UnifiedGamesPageClient) is responsible for consuming GuessesContext and passing data to dashboard as props.
 
 ### Qualified Teams Page
 
@@ -435,14 +437,18 @@ MOBILE BENEFIT: Full-screen game list, easier to flip cards, see more context
 **File**: `app/components/qualified-teams/qualified-teams-client-page.tsx`
 
 ```typescript
+// Parent component consumes context and extracts data
+const { predictions } = useContext(QualifiedTeamsContext);
+
 <CompactPredictionDashboard
   tournamentId={tournament.id}
   tournamentStartDate={tournamentStartDate}
   games={closingGames}  // Only games closing within 48hrs (for urgency calculation)
+  qualifiedTeamsPredictions={predictions}  // Extracted from context, passed as prop
   fixedData={{
     totalGames: allGamesCount,  // Total from server (not closingGames.length)
     gamePredictions: gameGuessesArray.length,  // Fixed from server (NO GuessesContext needed)
-    qualifiedTeams: null,  // Calculate dynamically from QualifiedTeamsContext
+    qualifiedTeams: null,  // Calculate dynamically from qualifiedTeamsPredictions prop
     finalStandings: tournamentPredictionCompletion?.finalStandings.completed ?? 0,
     awards: tournamentPredictionCompletion?.awards.completed ?? 0
   }}
@@ -450,7 +456,7 @@ MOBILE BENEFIT: Full-screen game list, easier to flip cards, see more context
 />
 ```
 
-**Note**: Uses existing QualifiedTeamsContext for team ranking UI. NO GuessesContext needed.
+**Note**: Parent component is responsible for consuming QualifiedTeamsContext and passing data to dashboard as props. NO GuessesContext needed.
 
 ### Awards Page
 
@@ -462,23 +468,24 @@ MOBILE BENEFIT: Full-screen game list, easier to flip cards, see more context
 **File**: `app/components/awards/award-panel.tsx`
 
 ```typescript
+// tournamentGuesses is local state, just pass it as prop
 <CompactPredictionDashboard
   tournamentId={tournament.id}
   tournamentStartDate={tournamentStartDate}
   games={closingGames}  // Only games closing within 48hrs (for urgency calculation)
+  tournamentGuesses={tournamentGuesses}  // Local state, passed as prop for dynamic calculation
   fixedData={{
     totalGames: allGamesCount,  // Total from server (not closingGames.length)
-    gamePredictions: gameGuessesArray.length,  // Fixed from server (NO GuessesContext needed)
+    gamePredictions: gameGuessesArray.length,  // Fixed from server
     qualifiedTeams: tournamentPredictionCompletion?.qualifiers.completed ?? 0,
-    finalStandings: null,  // Calculate dynamically from tournamentGuesses local state
-    awards: null  // Calculate dynamically from tournamentGuesses local state
+    finalStandings: null,  // Calculate dynamically from tournamentGuesses prop
+    awards: null  // Calculate dynamically from tournamentGuesses prop
   }}
   tournamentPredictions={tournamentPredictionCompletion}
-  tournamentGuesses={tournamentGuesses}  // Pass state for dynamic calculation
 />
 ```
 
-**Note**: Remove `GuessesContextProvider` wrapper - not needed since games count is fixed from server.
+**Note**: Remove `GuessesContextProvider` wrapper - not needed. Dashboard receives tournamentGuesses from local state as prop. NO contexts consumed.
 
 ## Implementation Steps
 
