@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen, fireEvent } from '@testing-library/react';
 import { renderWithTheme } from '../utils/test-utils';
-import { vi, beforeEach, afterEach } from 'vitest';
+import { vi } from 'vitest';
 import { TournamentPredictionAccordion } from '../../app/components/tournament-prediction-accordion';
 import type { TournamentPredictionCompletion } from '../../app/db/tables-definition';
 
@@ -41,15 +41,14 @@ describe('TournamentPredictionAccordion', () => {
 
   describe('Rendering', () => {
     it('renders summary with correct completion count', () => {
-      renderWithTheme(<TournamentPredictionAccordion {...defaultProps} />);
+      render(<TournamentPredictionAccordion {...defaultProps} />);
       expect(screen.getByText('Predicciones de Torneo - 21/39 (54%)')).toBeInTheDocument();
     });
 
-    it('renders with correct icon for incomplete state (defaults to notice)', () => {
-      renderWithTheme(<TournamentPredictionAccordion {...defaultProps} />);
-      // Without tournamentStartDate, defaults to notice (InfoIcon)
-      // Multiple icons exist (accordion + category cards)
-      const icons = screen.getAllByTestId('InfoIcon');
+    it('renders with correct icon for incomplete state', () => {
+      render(<TournamentPredictionAccordion {...defaultProps} />);
+      // Multiple icons may exist (accordion + category cards), just check at least one exists
+      const icons = screen.getAllByTestId('WarningIcon');
       expect(icons.length).toBeGreaterThan(0);
     });
 
@@ -58,18 +57,13 @@ describe('TournamentPredictionAccordion', () => {
         ...defaultProps,
         tournamentPredictions: {
           ...mockTournamentPredictions,
-          finalStandings: { ...mockTournamentPredictions.finalStandings, completed: 3, total: 3 },
-          awards: { ...mockTournamentPredictions.awards, completed: 4, total: 4 },
-          qualifiers: { ...mockTournamentPredictions.qualifiers, completed: 32, total: 32 },
           overallCompleted: 39,
           overallTotal: 39,
           overallPercentage: 100
         }
       };
-      renderWithTheme(<TournamentPredictionAccordion {...completeProps} />);
-      // All categories complete, so CheckCircleIcon appears
-      const icons = screen.getAllByTestId('CheckCircleIcon');
-      expect(icons.length).toBeGreaterThan(0);
+      render(<TournamentPredictionAccordion {...completeProps} />);
+      expect(screen.getByTestId('CheckCircleIcon')).toBeInTheDocument();
     });
 
     it('renders with correct icon for locked state', () => {
@@ -80,16 +74,15 @@ describe('TournamentPredictionAccordion', () => {
           isPredictionLocked: true
         }
       };
-      renderWithTheme(<TournamentPredictionAccordion {...lockedProps} />);
+      render(<TournamentPredictionAccordion {...lockedProps} />);
       // Multiple icons may exist (accordion + category cards), just check at least one exists
       const icons = screen.getAllByTestId('LockIcon');
       expect(icons.length).toBeGreaterThan(0);
     });
 
     it('icon size is 24px (default MUI size)', () => {
-      const { container } = renderWithTheme(<TournamentPredictionAccordion {...defaultProps} />);
-      // Without tournamentStartDate, defaults to InfoIcon
-      const icon = container.querySelector('[data-testid="InfoIcon"]');
+      const { container } = render(<TournamentPredictionAccordion {...defaultProps} />);
+      const icon = container.querySelector('[data-testid="WarningIcon"]');
       // MUI icons default to 24px, no explicit fontSize means default
       expect(icon).toBeInTheDocument();
     });
@@ -97,7 +90,7 @@ describe('TournamentPredictionAccordion', () => {
 
   describe('Categories', () => {
     it('renders all 3 categories when expanded', () => {
-      renderWithTheme(<TournamentPredictionAccordion {...defaultProps} isExpanded={true} />);
+      render(<TournamentPredictionAccordion {...defaultProps} isExpanded={true} />);
       expect(screen.getByText('Podio')).toBeInTheDocument();
       expect(screen.getByText('Premios Individuales')).toBeInTheDocument();
       expect(screen.getByText('Clasificados')).toBeInTheDocument();
@@ -117,24 +110,24 @@ describe('TournamentPredictionAccordion', () => {
         },
         isExpanded: true
       };
-      renderWithTheme(<TournamentPredictionAccordion {...propsWithoutQualifiers} />);
+      render(<TournamentPredictionAccordion {...propsWithoutQualifiers} />);
       expect(screen.getByText('Podio')).toBeInTheDocument();
       expect(screen.getByText('Premios Individuales')).toBeInTheDocument();
       expect(screen.queryByText('Clasificados')).not.toBeInTheDocument();
     });
 
     it('passes correct props to Podio card', () => {
-      renderWithTheme(<TournamentPredictionAccordion {...defaultProps} isExpanded={true} />);
+      render(<TournamentPredictionAccordion {...defaultProps} isExpanded={true} />);
       expect(screen.getByText('2/3 (67%)')).toBeInTheDocument();
     });
 
     it('passes correct props to Premios card', () => {
-      renderWithTheme(<TournamentPredictionAccordion {...defaultProps} isExpanded={true} />);
+      render(<TournamentPredictionAccordion {...defaultProps} isExpanded={true} />);
       expect(screen.getByText('3/4 (75%)')).toBeInTheDocument();
     });
 
     it('passes correct props to Clasificados card', () => {
-      renderWithTheme(<TournamentPredictionAccordion {...defaultProps} isExpanded={true} />);
+      render(<TournamentPredictionAccordion {...defaultProps} isExpanded={true} />);
       expect(screen.getByText('16/32 (50%)')).toBeInTheDocument();
     });
   });
@@ -142,7 +135,7 @@ describe('TournamentPredictionAccordion', () => {
   describe('Interaction', () => {
     it('calls onToggle when clicked', () => {
       const onToggle = vi.fn();
-      renderWithTheme(<TournamentPredictionAccordion {...defaultProps} onToggle={onToggle} />);
+      render(<TournamentPredictionAccordion {...defaultProps} onToggle={onToggle} />);
 
       const accordion = screen.getByRole('button', { name: /predicciones de torneo/i });
       fireEvent.click(accordion);
@@ -151,13 +144,13 @@ describe('TournamentPredictionAccordion', () => {
     });
 
     it('expands when isExpanded is true', () => {
-      renderWithTheme(<TournamentPredictionAccordion {...defaultProps} isExpanded={true} />);
+      render(<TournamentPredictionAccordion {...defaultProps} isExpanded={true} />);
       // When expanded, categories should be visible
       expect(screen.getByText('Podio')).toBeInTheDocument();
     });
 
     it('collapses when isExpanded is false', () => {
-      renderWithTheme(<TournamentPredictionAccordion {...defaultProps} isExpanded={false} />);
+      render(<TournamentPredictionAccordion {...defaultProps} isExpanded={false} />);
       // When collapsed, MUI Accordion keeps content in DOM but hidden
       // Check that the accordion details are collapsed (height: 0 or display:none)
       const podioText = screen.getByText('Podio');
@@ -168,7 +161,7 @@ describe('TournamentPredictionAccordion', () => {
 
   describe('Border Colors', () => {
     it('has warning.main border color for incomplete state', () => {
-      const { container } = renderWithTheme(<TournamentPredictionAccordion {...defaultProps} />);
+      const { container } = render(<TournamentPredictionAccordion {...defaultProps} />);
       const accordionSummary = container.querySelector('.MuiAccordionSummary-root');
       expect(accordionSummary).toHaveStyle({ borderLeftColor: expect.any(String) });
     });
@@ -183,7 +176,7 @@ describe('TournamentPredictionAccordion', () => {
           overallPercentage: 100
         }
       };
-      const { container } = renderWithTheme(<TournamentPredictionAccordion {...completeProps} />);
+      const { container } = render(<TournamentPredictionAccordion {...completeProps} />);
       const accordionSummary = container.querySelector('.MuiAccordionSummary-root');
       expect(accordionSummary).toHaveStyle({ borderLeftColor: expect.any(String) });
     });
@@ -196,7 +189,7 @@ describe('TournamentPredictionAccordion', () => {
           isPredictionLocked: true
         }
       };
-      const { container } = renderWithTheme(<TournamentPredictionAccordion {...lockedProps} />);
+      const { container } = render(<TournamentPredictionAccordion {...lockedProps} />);
       const accordionSummary = container.querySelector('.MuiAccordionSummary-root');
       expect(accordionSummary).toHaveStyle({ borderLeftColor: expect.any(String) });
     });
@@ -216,7 +209,7 @@ describe('TournamentPredictionAccordion', () => {
           isPredictionLocked: false
         }
       };
-      renderWithTheme(<TournamentPredictionAccordion {...emptyProps} />);
+      render(<TournamentPredictionAccordion {...emptyProps} />);
       expect(screen.getByText('Predicciones de Torneo - 0/0 (0%)')).toBeInTheDocument();
     });
   });
@@ -231,7 +224,7 @@ describe('TournamentPredictionAccordion', () => {
         },
         isExpanded: true
       };
-      renderWithTheme(<TournamentPredictionAccordion {...lockedProps} />);
+      render(<TournamentPredictionAccordion {...lockedProps} />);
 
       // All cards should show "Cerrado" chip
       const cerradoChips = screen.getAllByText('Cerrado');
@@ -247,116 +240,9 @@ describe('TournamentPredictionAccordion', () => {
         },
         isExpanded: true
       };
-      renderWithTheme(<TournamentPredictionAccordion {...lockedProps} />);
+      render(<TournamentPredictionAccordion {...lockedProps} />);
 
       expect(screen.queryByRole('link', { name: /completar/i })).not.toBeInTheDocument();
-    });
-  });
-
-  describe('Time-based Urgency', () => {
-    beforeEach(() => {
-      vi.useFakeTimers();
-      vi.setSystemTime(new Date('2024-01-01T12:00:00Z'));
-    });
-
-    afterEach(() => {
-      vi.useRealTimers();
-    });
-
-    it('shows INFO icon when >48h until lock and incomplete', () => {
-      // Lock in 72h: tournament starts in -3 days (lock = start + 5 days = 2 days from now)
-      const tournamentStart = new Date('2023-12-30T12:00:00Z');
-      const props = {
-        ...defaultProps,
-        tournamentStartDate: tournamentStart
-      };
-      renderWithTheme(<TournamentPredictionAccordion {...props} />);
-      const icons = screen.getAllByTestId('InfoIcon');
-      expect(icons.length).toBeGreaterThan(0);
-    });
-
-    it('shows WARNING icon when 2-24h until lock and incomplete', () => {
-      // Lock in 12h: tournament starts in (now - 4d 12h)
-      const tournamentStart = new Date('2023-12-28T00:00:00Z');
-      const props = {
-        ...defaultProps,
-        tournamentStartDate: tournamentStart
-      };
-      renderWithTheme(<TournamentPredictionAccordion {...props} />);
-      const icons = screen.getAllByTestId('WarningIcon');
-      expect(icons.length).toBeGreaterThan(0);
-    });
-
-    it('shows ERROR icon when <2h until lock and incomplete', () => {
-      // Lock in 1h: tournament starts in (now - 4d 23h)
-      const tournamentStart = new Date('2023-12-27T13:00:00Z');
-      const props = {
-        ...defaultProps,
-        tournamentStartDate: tournamentStart
-      };
-      renderWithTheme(<TournamentPredictionAccordion {...props} />);
-      const icons = screen.getAllByTestId('ErrorIcon');
-      expect(icons.length).toBeGreaterThan(0);
-    });
-
-    it('defaults to notice when tournamentStartDate is undefined', () => {
-      const props = {
-        ...defaultProps,
-        tournamentStartDate: undefined
-      };
-      renderWithTheme(<TournamentPredictionAccordion {...props} />);
-      const icons = screen.getAllByTestId('InfoIcon');
-      expect(icons.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('Worst Child Status Aggregation', () => {
-    beforeEach(() => {
-      vi.useFakeTimers();
-      vi.setSystemTime(new Date('2024-01-01T12:00:00Z'));
-    });
-
-    afterEach(() => {
-      vi.useRealTimers();
-    });
-
-    it('shows urgent when any child is urgent', () => {
-      // Make one category urgent (lock in 1h) and others less urgent
-      const tournamentStart = new Date('2023-12-27T13:00:00Z');
-      const props = {
-        ...defaultProps,
-        tournamentStartDate: tournamentStart
-      };
-      renderWithTheme(<TournamentPredictionAccordion {...props} />);
-      // Parent should show error icon (urgent)
-      const icons = screen.getAllByTestId('ErrorIcon');
-      expect(icons.length).toBeGreaterThan(0);
-    });
-
-    it('shows warning when no urgent but has warning', () => {
-      // All categories warning (lock in 12h)
-      const tournamentStart = new Date('2023-12-28T00:00:00Z');
-      const props = {
-        ...defaultProps,
-        tournamentStartDate: tournamentStart
-      };
-      renderWithTheme(<TournamentPredictionAccordion {...props} />);
-      // Parent should show warning icon
-      const icons = screen.getAllByTestId('WarningIcon');
-      expect(icons.length).toBeGreaterThan(0);
-    });
-
-    it('shows notice when all incomplete children are notice', () => {
-      // All categories notice (lock in 72h)
-      const tournamentStart = new Date('2023-12-30T12:00:00Z');
-      const props = {
-        ...defaultProps,
-        tournamentStartDate: tournamentStart
-      };
-      renderWithTheme(<TournamentPredictionAccordion {...props} />);
-      // Parent should show info icon (notice)
-      const icons = screen.getAllByTestId('InfoIcon');
-      expect(icons.length).toBeGreaterThan(0);
     });
   });
 });

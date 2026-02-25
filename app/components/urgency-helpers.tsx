@@ -10,6 +10,29 @@ import { TournamentPredictionCompletion } from '../db/tables-definition';
 export type UrgencyLevel = 'urgent' | 'warning' | 'notice' | 'complete' | 'locked';
 
 /**
+ * Time constants for urgency calculations
+ * Centralizes all time thresholds to avoid magic numbers
+ */
+export const URGENCY_TIME_CONSTANTS = {
+  TOURNAMENT_LOCK_OFFSET_DAYS: 5,
+  URGENT_THRESHOLD_HOURS: 2,
+  WARNING_THRESHOLD_HOURS: 24,
+  NOTICE_THRESHOLD_HOURS: 48
+} as const;
+
+/**
+ * Maps urgency levels to MUI theme colors
+ * Centralized to avoid code duplication across components
+ */
+export const URGENCY_COLOR_MAP: Record<UrgencyLevel, string> = {
+  urgent: 'error.main',
+  warning: 'warning.main',
+  notice: 'info.main',
+  complete: 'success.main',
+  locked: 'info.main'
+} as const;
+
+/**
  * Determines the urgency level for game predictions based on deadlines and prediction status
  * @param games - List of games to evaluate
  * @param gameGuesses - Record of user's game predictions
@@ -68,6 +91,29 @@ export function getGameUrgencyLevel(
 }
 
 /**
+ * Calculate urgency level based on time until tournament lock
+ * Shared logic between tournament and category urgency calculations
+ * @param tournamentStartDate - Tournament start date
+ * @returns Urgency level based on time until lock
+ */
+function calculateTimeBasedUrgency(tournamentStartDate: Date | undefined): UrgencyLevel {
+  if (!tournamentStartDate) return 'notice';
+
+  const lockTime = new Date(
+    tournamentStartDate.getTime() +
+    URGENCY_TIME_CONSTANTS.TOURNAMENT_LOCK_OFFSET_DAYS * 24 * 60 * 60 * 1000
+  );
+  const now = new Date();
+  const hoursUntilLock = (lockTime.getTime() - now.getTime()) / (60 * 60 * 1000);
+
+  if (hoursUntilLock < 0) return 'locked';
+  if (hoursUntilLock < URGENCY_TIME_CONSTANTS.URGENT_THRESHOLD_HOURS) return 'urgent';
+  if (hoursUntilLock < URGENCY_TIME_CONSTANTS.WARNING_THRESHOLD_HOURS) return 'warning';
+  if (hoursUntilLock < URGENCY_TIME_CONSTANTS.NOTICE_THRESHOLD_HOURS) return 'notice';
+  return 'notice';
+}
+
+/**
  * Determines the urgency level for tournament predictions based on lock date
  * @param tournamentPredictions - Tournament prediction completion data
  * @param tournamentStartDate - Date when tournament starts
@@ -82,36 +128,67 @@ export function getTournamentUrgencyLevel(
   if (tournamentPredictions.isPredictionLocked) return 'locked';
   if (tournamentPredictions.overallPercentage === 100) return 'complete';
 
-  if (!tournamentStartDate) return 'complete';
+  return calculateTimeBasedUrgency(tournamentStartDate);
+}
 
-  const lockTime = new Date(tournamentStartDate.getTime() + 5 * 24 * 60 * 60 * 1000);
-  const now = new Date();
-  const hoursUntilLock = (lockTime.getTime() - now.getTime()) / (60 * 60 * 1000);
+/**
+ * Calculate urgency level for a specific tournament prediction category
+ * @param completed - Number of predictions completed in this category
+ * @param total - Total predictions needed in this category
+ * @param isPredictionLocked - Whether predictions are locked
+ * @param tournamentStartDate - Tournament start date (used to calculate lock time)
+ * @returns Urgency level for this category
+ */
+export function getCategoryUrgencyLevel(
+  completed: number,
+  total: number,
+  isPredictionLocked: boolean,
+  tournamentStartDate: Date | undefined
+): UrgencyLevel {
+  if (isPredictionLocked) return 'locked';
+  if (completed === total) return 'complete';
 
-  if (hoursUntilLock < 0) return 'locked';
-  if (hoursUntilLock < 2) return 'urgent';
-  if (hoursUntilLock < 24) return 'warning';
-  if (hoursUntilLock < 48) return 'notice';
-  return 'complete';
+  return calculateTimeBasedUrgency(tournamentStartDate);
+}
+
+/**
+ * Get the worst (most urgent) urgency level from a list
+ * Priority: urgent > warning > notice > complete > locked
+ * @param levels - Urgency levels to compare
+ * @returns The most urgent level
+ */
+export function getWorstUrgencyLevel(...levels: UrgencyLevel[]): UrgencyLevel {
+  const priority: UrgencyLevel[] = ['urgent', 'warning', 'notice', 'complete', 'locked'];
+
+  for (const level of priority) {
+    if (levels.includes(level)) {
+      return level;
+    }
+  }
+
+  return 'complete';  // Fallback
 }
 
 /**
  * Returns the appropriate icon for a given urgency level
  * @param level - The urgency level
+ * @param fontSize - Optional fontSize (default: '1.25rem' for 20px)
  * @returns A React icon component with appropriate styling
  */
-export function getUrgencyIcon(level: UrgencyLevel) {
+export function getUrgencyIcon(level: UrgencyLevel, fontSize: number | string = '1.25rem') {
+  const getIconSx = (color: string) => ({ color, fontSize });
+
   switch (level) {
     case 'urgent':
-      return <ErrorIcon sx={{ color: 'error.main', fontSize: '1.25rem' }} />;
+      return <ErrorIcon sx={getIconSx(URGENCY_COLOR_MAP.urgent)} />;
     case 'warning':
-      return <WarningIcon sx={{ color: 'warning.main', fontSize: '1.25rem' }} />;
+      return <WarningIcon sx={getIconSx(URGENCY_COLOR_MAP.warning)} />;
     case 'notice':
-      return <InfoIcon sx={{ color: 'info.main', fontSize: '1.25rem' }} />;
+      return <InfoIcon sx={getIconSx(URGENCY_COLOR_MAP.notice)} />;
     case 'complete':
-      return <CheckCircleIcon sx={{ color: 'success.main', fontSize: '1.25rem' }} />;
+      return <CheckCircleIcon sx={getIconSx(URGENCY_COLOR_MAP.complete)} />;
     case 'locked':
-      return <LockIcon sx={{ color: 'action.disabled', fontSize: '1.25rem' }} />;
+      return <LockIcon sx={getIconSx(URGENCY_COLOR_MAP.locked)} />;
   }
 }
 

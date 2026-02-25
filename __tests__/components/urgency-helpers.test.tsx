@@ -1,8 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render } from '@testing-library/react';
 import {
   getGameUrgencyLevel,
   getTournamentUrgencyLevel,
+  getCategoryUrgencyLevel,
+  getWorstUrgencyLevel,
   getUrgencyIcon,
   hasUrgentGames,
   UrgencyLevel
@@ -151,9 +153,9 @@ describe('urgency-helpers', () => {
       expect(getTournamentUrgencyLevel(predictions, new Date())).toBe('complete');
     });
 
-    it('returns "complete" when start date is undefined', () => {
+    it('returns "notice" when start date is undefined', () => {
       const predictions = createTournamentPredictions(50, false);
-      expect(getTournamentUrgencyLevel(predictions, undefined)).toBe('complete');
+      expect(getTournamentUrgencyLevel(predictions, undefined)).toBe('notice');
     });
 
     it('returns "locked" when past lock time', () => {
@@ -191,13 +193,13 @@ describe('urgency-helpers', () => {
       expect(getTournamentUrgencyLevel(predictions, startDate)).toBe('notice');
     });
 
-    it('returns "complete" when more than 48 hours until lock', () => {
+    it('returns "notice" when more than 48 hours until lock', () => {
       const now = new Date();
       // Lock is 5 days after start, so for lock in 72 hours: start = now - (5 days - 72 hours)
       const startDate = new Date(now.getTime() - (5 * 24 * 60 * 60 * 1000 - 72 * 60 * 60 * 1000));
       const predictions = createTournamentPredictions(50, false);
 
-      expect(getTournamentUrgencyLevel(predictions, startDate)).toBe('complete');
+      expect(getTournamentUrgencyLevel(predictions, startDate)).toBe('notice');
     });
   });
 
@@ -306,6 +308,133 @@ describe('urgency-helpers', () => {
       };
 
       expect(hasUrgentGames([game], invalidGuess)).toBe(true);
+    });
+  });
+
+  describe('getCategoryUrgencyLevel', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2024-01-01T12:00:00Z')); // Fixed time for tests
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('returns "locked" when isPredictionLocked is true', () => {
+      const tournamentStart = new Date('2023-12-27T12:00:00Z');
+      expect(getCategoryUrgencyLevel(2, 3, true, tournamentStart)).toBe('locked');
+    });
+
+    it('returns "complete" when completed === total', () => {
+      const tournamentStart = new Date('2023-12-27T12:00:00Z');
+      expect(getCategoryUrgencyLevel(3, 3, false, tournamentStart)).toBe('complete');
+    });
+
+    it('returns "notice" when tournamentStartDate is undefined', () => {
+      expect(getCategoryUrgencyLevel(2, 3, false, undefined)).toBe('notice');
+    });
+
+    it('returns "locked" when hoursUntilLock < 0', () => {
+      // Tournament started 10 days ago, lock time passed (5 days after start)
+      const tournamentStart = new Date('2023-12-22T12:00:00Z');
+      expect(getCategoryUrgencyLevel(2, 3, false, tournamentStart)).toBe('locked');
+    });
+
+    it('returns "urgent" when hoursUntilLock < 2', () => {
+      // Lock in 1 hour: tournament start = now - (5 days - 1 hour)
+      const tournamentStart = new Date('2023-12-27T13:00:00Z');
+      expect(getCategoryUrgencyLevel(2, 3, false, tournamentStart)).toBe('urgent');
+    });
+
+    it('returns "warning" when hoursUntilLock < 24', () => {
+      // Lock in 12 hours: tournament start = now - (5 days - 12 hours)
+      const tournamentStart = new Date('2023-12-28T00:00:00Z');
+      expect(getCategoryUrgencyLevel(2, 3, false, tournamentStart)).toBe('warning');
+    });
+
+    it('returns "notice" when hoursUntilLock < 48', () => {
+      // Lock in 36 hours: tournament start = now - (5 days - 36 hours)
+      const tournamentStart = new Date('2023-12-29T00:00:00Z');
+      expect(getCategoryUrgencyLevel(2, 3, false, tournamentStart)).toBe('notice');
+    });
+
+    it('returns "notice" when hoursUntilLock >= 48', () => {
+      // Lock in 72 hours: tournament start = now - (5 days - 72 hours)
+      const tournamentStart = new Date('2023-12-30T12:00:00Z');
+      expect(getCategoryUrgencyLevel(2, 3, false, tournamentStart)).toBe('notice');
+    });
+
+    it('handles exactly 0 hours until lock (boundary case)', () => {
+      // Lock exactly now: tournament start = now - 5 days
+      const tournamentStart = new Date('2023-12-27T12:00:00Z');
+      // When hoursUntilLock === 0, it should be less than 2, so urgent
+      expect(getCategoryUrgencyLevel(2, 3, false, tournamentStart)).toBe('urgent');
+    });
+
+    it('handles exactly 2 hours until lock (boundary case)', () => {
+      // Lock in exactly 2 hours: tournament start = now - (5 days - 2 hours)
+      const tournamentStart = new Date('2023-12-27T14:00:00Z');
+      // When hoursUntilLock === 2, it should not be < 2, so warning
+      expect(getCategoryUrgencyLevel(2, 3, false, tournamentStart)).toBe('warning');
+    });
+
+    it('handles exactly 24 hours until lock (boundary case)', () => {
+      // Lock in exactly 24 hours: tournament start = now - (5 days - 24 hours)
+      const tournamentStart = new Date('2023-12-28T12:00:00Z');
+      // When hoursUntilLock === 24, it should not be < 24, so notice
+      expect(getCategoryUrgencyLevel(2, 3, false, tournamentStart)).toBe('notice');
+    });
+
+    it('handles exactly 48 hours until lock (boundary case)', () => {
+      // Lock in exactly 48 hours: tournament start = now - (5 days - 48 hours)
+      const tournamentStart = new Date('2023-12-30T12:00:00Z');
+      // When hoursUntilLock === 48, it should not be < 48, so notice
+      expect(getCategoryUrgencyLevel(2, 3, false, tournamentStart)).toBe('notice');
+    });
+  });
+
+  describe('getWorstUrgencyLevel', () => {
+    it('returns urgent when any level is urgent', () => {
+      expect(getWorstUrgencyLevel('urgent', 'warning', 'notice')).toBe('urgent');
+      expect(getWorstUrgencyLevel('notice', 'urgent', 'complete')).toBe('urgent');
+      expect(getWorstUrgencyLevel('complete', 'locked', 'urgent')).toBe('urgent');
+    });
+
+    it('returns warning when no urgent but has warning', () => {
+      expect(getWorstUrgencyLevel('warning', 'notice', 'complete')).toBe('warning');
+      expect(getWorstUrgencyLevel('notice', 'warning', 'locked')).toBe('warning');
+    });
+
+    it('returns notice when no urgent/warning but has notice', () => {
+      expect(getWorstUrgencyLevel('notice', 'complete', 'locked')).toBe('notice');
+      expect(getWorstUrgencyLevel('complete', 'notice')).toBe('notice');
+    });
+
+    it('returns complete when no urgent/warning/notice but has complete', () => {
+      expect(getWorstUrgencyLevel('complete', 'locked')).toBe('complete');
+      expect(getWorstUrgencyLevel('complete', 'complete', 'complete')).toBe('complete');
+    });
+
+    it('returns locked when all are locked', () => {
+      expect(getWorstUrgencyLevel('locked', 'locked', 'locked')).toBe('locked');
+    });
+
+    it('returns complete when no arguments', () => {
+      expect(getWorstUrgencyLevel()).toBe('complete');
+    });
+
+    it('returns first level when only one argument', () => {
+      expect(getWorstUrgencyLevel('urgent')).toBe('urgent');
+      expect(getWorstUrgencyLevel('warning')).toBe('warning');
+      expect(getWorstUrgencyLevel('notice')).toBe('notice');
+      expect(getWorstUrgencyLevel('complete')).toBe('complete');
+      expect(getWorstUrgencyLevel('locked')).toBe('locked');
+    });
+
+    it('handles many arguments correctly', () => {
+      expect(getWorstUrgencyLevel('locked', 'complete', 'notice', 'warning', 'urgent')).toBe('urgent');
+      expect(getWorstUrgencyLevel('locked', 'complete', 'complete', 'locked')).toBe('complete');
     });
   });
 });
