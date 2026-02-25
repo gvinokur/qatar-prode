@@ -115,4 +115,76 @@ describe('QualifiedTeamsClientPage - Smoke Tests', () => {
     const { container } = renderWithI18n(<QualifiedTeamsClientPage {...noThirdPlaceProps} />);
     expect(container).toBeInTheDocument();
   });
+
+  it('should render when third place limit is reached', () => {
+    // Create 4 teams, 2 in position 3 with qualification (limit is 4 globally)
+    const team3 = testFactories.team({ id: 'team-3', name: 'Chile' });
+    const team4 = testFactories.team({ id: 'team-4', name: 'Uruguay' });
+
+    const mockGroup2 = testFactories.tournamentGroup({
+      id: 'group-2',
+      tournament_id: 'tournament-1',
+      group_letter: 'B',
+    });
+
+    const pred2 = testFactories.qualifiedTeamPrediction({
+      id: 'pred-2',
+      user_id: 'user-1',
+      tournament_id: 'tournament-1',
+      team_id: 'team-2',
+      group_id: 'group-1',
+      predicted_position: 3,
+      predicted_to_qualify: true,
+    });
+
+    const pred3 = testFactories.qualifiedTeamPrediction({
+      id: 'pred-3',
+      user_id: 'user-1',
+      tournament_id: 'tournament-1',
+      team_id: 'team-3',
+      group_id: 'group-2',
+      predicted_position: 3,
+      predicted_to_qualify: true,
+    });
+
+    const pred4 = testFactories.qualifiedTeamPrediction({
+      id: 'pred-4',
+      user_id: 'user-1',
+      tournament_id: 'tournament-1',
+      team_id: 'team-4',
+      group_id: 'group-2',
+      predicted_position: 4,
+      predicted_to_qualify: false,
+    });
+
+    const limitReachedProps = {
+      ...mockProps,
+      allowsThirdPlace: true,
+      maxThirdPlace: 2,
+      groups: [
+        {
+          group: mockGroup,
+          teams: [mockTeam1, mockTeam2],
+        },
+        {
+          group: mockGroup2,
+          teams: [team3, team4],
+        },
+      ],
+      initialPredictions: [mockPrediction1, pred2, pred3, pred4],
+      teamsMap: {
+        'team-1': mockTeam1,
+        'team-2': mockTeam2,
+        'team-3': team3,
+        'team-4': team4,
+      },
+    };
+
+    const { container } = renderWithI18n(<QualifiedTeamsClientPage {...limitReachedProps} />);
+    expect(container).toBeInTheDocument();
+
+    // Verify third place teams are rendered
+    expect(screen.queryByText('Chile')).toBeInTheDocument();
+    expect(screen.queryByText('Uruguay')).toBeInTheDocument();
+  });
 });

@@ -20,6 +20,10 @@ export interface QualifiedTeamsGridProps {
   readonly isSaving: boolean;
   /** Whether third place qualification is enabled */
   readonly allowsThirdPlace: boolean;
+  /** Maximum allowed third place qualifiers */
+  readonly maxThirdPlace: number;
+  /** Current count of third place teams selected */
+  readonly currentThirdPlaceCount: number;
   /** Callback when team position changes - receives groupId, teamId, and new position */
   readonly onPositionChange?: (_groupId: string, _teamId: string, _newPosition: number) => void;
   /** Callback when third place qualification is toggled - receives groupId and teamId */
@@ -44,6 +48,8 @@ export default function QualifiedTeamsGrid({
   isLocked,
   isSaving,
   allowsThirdPlace,
+  maxThirdPlace,
+  currentThirdPlaceCount,
   onPositionChange,
   onToggleThirdPlace,
   scoringBreakdown,
@@ -81,6 +87,8 @@ export default function QualifiedTeamsGrid({
                 isLocked={isLocked}
                 isSaving={isSaving}
                 allowsThirdPlace={allowsThirdPlace}
+                maxThirdPlace={maxThirdPlace}
+                currentThirdPlaceCount={currentThirdPlaceCount}
                 onPositionChange={
                   onPositionChange ? (teamId, newPosition) => onPositionChange(group.id, teamId, newPosition) : undefined
                 }

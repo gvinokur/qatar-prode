@@ -4,7 +4,7 @@ import React from 'react';
 import { useTranslations } from 'next-intl';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Card, CardContent, Typography, Box, Checkbox, FormControlLabel, useTheme, Theme, Chip } from '@mui/material';
+import { Card, CardContent, Typography, Box, Checkbox, FormControlLabel, useTheme, Theme, Chip, Tooltip } from '@mui/material';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import { Team } from '../../db/tables-definition';
 import { TeamScoringResult } from '../../utils/qualified-teams-scoring';
@@ -20,6 +20,10 @@ export interface DraggableTeamCardProps {
   readonly isLocked: boolean;
   /** Whether predictions are currently being saved */
   readonly isSaving: boolean;
+  /** Maximum allowed third place qualifiers */
+  readonly maxThirdPlace: number;
+  /** Current count of third place teams selected */
+  readonly currentThirdPlaceCount: number;
   /** Callback when third place qualification is toggled */
   readonly onToggleThirdPlace?: () => void;
   /** Scoring result for this team (if available) */
@@ -215,23 +219,35 @@ function ThirdPlaceCheckbox({
   checked,
   disabled,
   onChange,
+  disabledReason,
+  maxThirdPlace,
   t,
 }: {
   readonly checked: boolean;
   readonly disabled: boolean;
   readonly onChange?: () => void;
+  readonly disabledReason?: 'limit-reached';
+  readonly maxThirdPlace?: number;
   readonly t: any;
 }) {
+  const tooltipMessage = disabledReason === 'limit-reached' && maxThirdPlace
+    ? t('thirdPlace.limitReached', { max: maxThirdPlace })
+    : '';
+
   return (
-    <FormControlLabel
-      control={<Checkbox checked={checked} onChange={onChange} disabled={disabled} color="primary" />}
-      label={
-        <Typography variant="body2" sx={{ fontWeight: 500, whiteSpace: 'nowrap' }}>
-          {t('position.label')}
-        </Typography>
-      }
-      sx={{ mr: 0, flexShrink: 0 }}
-    />
+    <Tooltip title={tooltipMessage} arrow>
+      <span>
+        <FormControlLabel
+          control={<Checkbox checked={checked} onChange={onChange} disabled={disabled} color="primary" />}
+          label={
+            <Typography variant="body2" sx={{ fontWeight: 500, whiteSpace: 'nowrap' }}>
+              {t('position.label')}
+            </Typography>
+          }
+          sx={{ mr: 0, flexShrink: 0 }}
+        />
+      </span>
+    </Tooltip>
   );
 }
 
@@ -351,6 +367,8 @@ export default function DraggableTeamCard({
   predictedToQualify,
   isLocked,
   isSaving,
+  maxThirdPlace,
+  currentThirdPlaceCount,
   onToggleThirdPlace,
   result,
   isGroupComplete,
@@ -413,6 +431,10 @@ export default function DraggableTeamCard({
     (isGroupComplete && result)
   );
 
+  // Determine if checkbox should be disabled due to limit being reached
+  // Only disable if this team is NOT already selected and limit is reached
+  const cannotAddMore = !predictedToQualify && currentThirdPlaceCount >= maxThirdPlace;
+
   return (
     <Card
       ref={setNodeRef}
@@ -441,8 +463,10 @@ export default function DraggableTeamCard({
         {position === 3 && !isLocked && (
           <ThirdPlaceCheckbox
             checked={predictedToQualify}
-            disabled={isLocked || isSaving}
+            disabled={isLocked || isSaving || cannotAddMore}
             onChange={onToggleThirdPlace}
+            disabledReason={cannotAddMore ? 'limit-reached' : undefined}
+            maxThirdPlace={maxThirdPlace}
             t={t}
           />
         )}

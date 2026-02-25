@@ -152,13 +152,10 @@ describe('Qualification Actions', () => {
 
       const positionUpdates = [{ teamId: 'team-1', position: 1, qualifies: true }];
 
-      await expect(
-        updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
-      ).rejects.toThrow(QualificationPredictionError);
+      const result = await updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates);
 
-      await expect(
-        updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
-      ).rejects.toThrow('qualification.unauthorized');
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('qualification.unauthorized');
     });
 
     it('should reject if tournament not found', async () => {
@@ -171,9 +168,10 @@ describe('Qualification Actions', () => {
 
       const positionUpdates = [{ teamId: 'team-1', position: 1, qualifies: true }];
 
-      await expect(
-        updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
-      ).rejects.toThrow('qualification.tournamentNotFound');
+      const result = await updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('qualification.tournamentNotFound');
     });
 
     it('should reject if tournament is locked', async () => {
@@ -189,9 +187,10 @@ describe('Qualification Actions', () => {
 
       const positionUpdates = [{ teamId: 'team-1', position: 1, qualifies: true }];
 
-      await expect(
-        updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
-      ).rejects.toThrow('qualification.tournamentLocked');
+      const result = await updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('qualification.tournamentLocked');
     });
 
     it('should successfully update positions', async () => {
@@ -263,9 +262,10 @@ describe('Qualification Actions', () => {
         { teamId: 'team-1', position: 2, qualifies: true }, // Duplicate!
       ];
 
-      await expect(
-        updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
-      ).rejects.toThrow('qualification.duplicateTeams');
+      const result = await updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('qualification.duplicateTeams');
     });
 
     it('should reject invalid positions (less than 1)', async () => {
@@ -280,9 +280,10 @@ describe('Qualification Actions', () => {
         { teamId: 'team-1', position: 0, qualifies: true }, // Invalid position!
       ];
 
-      await expect(
-        updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
-      ).rejects.toThrow('qualification.invalidPosition');
+      const result = await updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('qualification.invalidPosition');
     });
 
     it('should reject duplicate positions', async () => {
@@ -298,9 +299,10 @@ describe('Qualification Actions', () => {
         { teamId: 'team-2', position: 1, qualifies: true }, // Duplicate position!
       ];
 
-      await expect(
-        updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
-      ).rejects.toThrow('qualification.duplicatePositions');
+      const result = await updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('qualification.duplicatePositions');
     });
 
     it('should reject when positions 1-2 are not marked as qualified', async () => {
@@ -316,9 +318,10 @@ describe('Qualification Actions', () => {
         { teamId: 'team-2', position: 2, qualifies: true },
       ];
 
-      await expect(
-        updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
-      ).rejects.toThrow('qualification.invalidQualificationFlag');
+      const result = await updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('qualification.invalidQualificationFlag');
     });
 
     it('should reject third place qualifiers when tournament does not allow them', async () => {
@@ -359,9 +362,10 @@ describe('Qualification Actions', () => {
         { teamId: 'team-3', position: 3, qualifies: true }, // Third place not allowed!
       ];
 
-      await expect(
-        updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
-      ).rejects.toThrow('qualification.thirdPlaceNotAllowed');
+      const result = await updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('qualification.thirdPlaceNotAllowed');
     });
 
     it('should reject too many third place qualifiers', async () => {
@@ -414,9 +418,10 @@ describe('Qualification Actions', () => {
         { teamId: 'team-3', position: 3, qualifies: true }, // Would exceed limit!
       ];
 
-      await expect(
-        updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
-      ).rejects.toThrow('qualification.tooManyThirdPlace');
+      const result = await updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('qualification.tooManyThirdPlace');
     });
 
     it('should reject team not in group', async () => {
@@ -453,9 +458,10 @@ describe('Qualification Actions', () => {
         { teamId: 'team-999', position: 1, qualifies: true }, // Team not in group!
       ];
 
-      await expect(
-        updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
-      ).rejects.toThrow('qualification.invalidTeamGroup');
+      const result = await updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('qualification.invalidTeamGroup');
     });
 
     it('should allow updates in dev environment for dev tournaments even when locked', async () => {
@@ -587,9 +593,10 @@ describe('Qualification Actions', () => {
         { teamId: 'team-1', position: 1, qualifies: true },
       ];
 
-      await expect(
-        updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates)
-      ).rejects.toThrow('qualification.saveFailed');
+      const result = await updateGroupPositionsJsonb('group-1', 'tournament-1', positionUpdates);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('qualification.saveFailed');
     });
   });
 });

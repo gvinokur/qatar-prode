@@ -175,10 +175,10 @@ export async function updateGroupPositionsJsonb(
   // Validation: User authentication
   const user = await getLoggedInUser();
   if (!user?.id) {
-    throw new QualificationPredictionError(
-      t('qualification.unauthorized'),
-      'UNAUTHORIZED'
-    );
+    return {
+      success: false,
+      message: t('qualification.unauthorized')
+    };
   }
 
   const userId = user.id;
@@ -196,7 +196,10 @@ export async function updateGroupPositionsJsonb(
     .executeTakeFirst();
 
   if (!tournament) {
-    throw new QualificationPredictionError(t('qualification.tournamentNotFound'), 'TOURNAMENT_NOT_FOUND');
+    return {
+      success: false,
+      message: t('qualification.tournamentNotFound')
+    };
   }
 
   // Check if editing is allowed via dev override (dev/preview environment + dev tournament)
@@ -205,31 +208,47 @@ export async function updateGroupPositionsJsonb(
   const allowDevOverride = isDevelopmentEnvironment && isDevTournament;
 
   if (!tournament.is_active && !allowDevOverride) {
-    throw new QualificationPredictionError(
-      t('qualification.tournamentLocked'),
-      'TOURNAMENT_LOCKED'
-    );
+    return {
+      success: false,
+      message: t('qualification.tournamentLocked')
+    };
   }
 
   const teamIds = positionUpdates.map((u) => u.teamId);
   const positionNumbers = positionUpdates.map((u) => u.position);
 
-  // Run all validations
-  await validateTeamsInGroup(teamIds, groupId, locale);
-  await validateNoDuplicateTeams(teamIds, locale);
-  await validatePositionsValidAndUnique(positionNumbers, locale);
-  await validateQualificationFlagsForPositions(positionUpdates, locale);
-  await validateThirdPlaceForGroup(
-    positionUpdates,
-    {
-      allows_third_place_qualification: tournament.allows_third_place_qualification ?? null,
-      max_third_place_qualifiers: tournament.max_third_place_qualifiers ?? null
-    },
-    userId,
-    tournamentId,
-    groupId,
-    locale
-  );
+  // Run all validations - wrap in try-catch to convert thrown errors to return objects
+  try {
+    await validateTeamsInGroup(teamIds, groupId, locale);
+    await validateNoDuplicateTeams(teamIds, locale);
+    await validatePositionsValidAndUnique(positionNumbers, locale);
+    await validateQualificationFlagsForPositions(positionUpdates, locale);
+    await validateThirdPlaceForGroup(
+      positionUpdates,
+      {
+        allows_third_place_qualification: tournament.allows_third_place_qualification ?? null,
+        max_third_place_qualifiers: tournament.max_third_place_qualifiers ?? null
+      },
+      userId,
+      tournamentId,
+      groupId,
+      locale
+    );
+  } catch (error) {
+    // Convert QualificationPredictionError to return object
+    if (error instanceof QualificationPredictionError) {
+      return {
+        success: false,
+        message: error.message
+      };
+    }
+    // Unexpected errors - log and return generic message
+    console.error('Unexpected validation error:', error);
+    return {
+      success: false,
+      message: t('qualification.saveFailed')
+    };
+  }
 
   // Build TeamPositionPrediction array for JSONB
   const positions: TeamPositionPrediction[] = positionUpdates.map((update) => ({
@@ -253,9 +272,9 @@ export async function updateGroupPositionsJsonb(
     };
   } catch (error) {
     console.error('Error updating group positions (JSONB):', error);
-    throw new QualificationPredictionError(
-      t('qualification.saveFailed'),
-      'DATABASE_ERROR'
-    );
+    return {
+      success: false,
+      message: t('qualification.saveFailed')
+    };
   }
 }

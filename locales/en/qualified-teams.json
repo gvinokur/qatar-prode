@@ -40,6 +40,7 @@
     "title": "Third Place Qualifiers",
     "overLimit": "You've selected {selected} teams, but only {max} can qualify. Deselect {excess} team{excess, plural, =1 {} other {s}}.",
     "noSelection": "You haven't selected any third place teams yet. Select teams from position 3 in each group to predict which will qualify.",
-    "progress": "{count} / {max}"
+    "progress": "{count} / {max}",
+    "limitReached": "Maximum of {max} third place teams already selected"
   }
 }
