@@ -48,6 +48,16 @@ The Compact Prediction Dashboard component has architectural issues causing perf
 - [ ] All data passed explicitly via props
 - [ ] Dashboard is pure and reusable
 
+## Architecture Principle
+
+**Each page calculates its OWN prediction type (has the data), fetches OTHER types from DB in a single query.**
+
+- **Home page:** Calculates game predictions (has games data), fetches tournament predictions from DB
+- **Qualified Teams:** Calculates qualified teams predictions (has predictions data), fetches game predictions from DB
+- **Awards:** Calculates awards predictions (has tournament guess data), fetches game predictions from DB
+
+**Dashboard component is dumb - receives all data as props, doesn't care how you got it.**
+
 ## Technical Approach
 
 ### Part 1: Fix Repository Function - Validate Playoff Ties
@@ -164,15 +174,21 @@ interface CompactPredictionDashboardProps {
   readonly totalGames: number;
   readonly predictedGames: number;
 
-  // Tournament Predictions (existing - keep)
-  readonly tournamentPredictions?: TournamentPredictionCompletion;
+  // ✅ CHANGE: Break apart tournament predictions for clarity
+  readonly tournamentPredictionPercentage?: number;
+  readonly tournamentPredictionIsLocked?: boolean;
   readonly tournamentId?: string;
-  readonly tournamentStartDate?: Date;
 
-  // Games data (existing - keep for popovers)
-  readonly games?: ExtendedGameData[];
+  // ✅ CHANGE: Replace tournamentStartDate with hours calculation
+  readonly tournamentClosesInHours?: number; // Positive = hours until close, Negative = hours since closed
+
+  // ✅ CHANGE: Only pass games closing in next 48 hours (not all games)
+  readonly gamesClosingInNext48Hours?: Array<{
+    game: ExtendedGameData;
+    gameGuess?: GameGuessNew;
+  }>;
   readonly teamsMap?: Record<string, Team>;
-  readonly isPlayoffs?: boolean;
+  // ❌ REMOVE: isPlayoffs - not needed
 
   // ✅ ADD: Boost data (replace context usage)
   readonly silverBoostUsed: number;
@@ -180,8 +196,7 @@ interface CompactPredictionDashboardProps {
   readonly goldenBoostUsed: number;
   readonly goldenBoostMax: number;
 
-  // ✅ ADD: Game guesses (for urgency and popover)
-  readonly gameGuesses: Record<string, any>;
+  // ❌ REMOVE: gameGuesses map - only need gamesClosingInNext48Hours
 
   // Demo mode (existing - keep)
   readonly demoMode?: boolean;
@@ -199,188 +214,220 @@ const boostCounts = {
   silver: { used: silverBoostUsed, max: silverBoostMax },
   golden: { used: goldenBoostUsed, max: goldenBoostMax }
 };
+
+// ✅ Update urgency calculation to use gamesClosingInNext48Hours
+// Instead of: getGameUrgencyLevel(games, gameGuesses)
+// Use: Calculate from gamesClosingInNext48Hours prop
+
+// ✅ Update tournament urgency to use tournamentClosesInHours
+// Instead of: getTournamentUrgencyLevel(tournamentPredictions, tournamentStartDate)
+// Use: Calculate from tournamentClosesInHours and tournamentPredictionPercentage/isLocked
+
+// ✅ Update hasUrgentGames check
+// Instead of: checkUrgentGames(games, gameGuesses)
+// Use: gamesClosingInNext48Hours.length > 0
 ```
 
 ### Part 3: Update Home Page (UnifiedGamesPage)
 
+**Home page HAS games data → calculates game predictions itself, fetches tournament predictions from DB.**
+
 **File:** `app/components/unified-games-page.tsx`
 
-Currently fetches `dashboardStats` but doesn't use it (line 34).
-
-**Update to pass dashboard stats as props:**
-
 ```typescript
-// Line 34 - Already fetches this, just need to use it
-const dashboardStats = await getPredictionDashboardStats(user.id, tournamentId);
+// ❌ REMOVE: getPredictionDashboardStats fetch (line 34) - don't need it
+// Home page calculates game predictions from games it already has
 
-// Pass to UnifiedGamesPageClient (add to props)
-<UnifiedGamesPageClient
-  games={games}
-  // ... existing props ...
-  dashboardStats={dashboardStats}  // ✅ ADD
-/>
+// ✅ KEEP: All existing fetches (games, tournament, etc.)
 ```
 
 **File:** `app/components/unified-games-page-client.tsx`
 
-Update component to accept `dashboardStats` and pass to dashboard:
+```typescript
+// ✅ Calculate game predictions from games data (HOME PAGE'S RESPONSIBILITY)
+const totalGames = games.length;
+const predictedGames = games.filter(game => {
+  const guess = guessesContext.gameGuesses[game.id];
+
+  // Check if both scores filled
+  if (guess?.home_score == null || guess?.away_score == null) return false;
+
+  // For playoff games with tied scores, check penalty winner
+  if (game.playoff_round_id && guess.home_score === guess.away_score) {
+    return guess.home_penalty_winner === true || guess.away_penalty_winner === true;
+  }
+
+  return true;
+}).length;
+
+// ✅ Calculate boost usage from game guesses
+const silverBoostUsed = Object.values(guessesContext.gameGuesses).filter(g => g.boost_type === 'silver').length;
+const goldenBoostUsed = Object.values(guessesContext.gameGuesses).filter(g => g.boost_type === 'golden').length;
+
+// ✅ Calculate tournament closes in hours
+const tournamentClosesInHours = tournamentStartDate
+  ? ((tournamentStartDate.getTime() + 5 * 24 * 60 * 60 * 1000) - Date.now()) / (60 * 60 * 1000)
+  : undefined;
+
+// ✅ Build gamesClosingInNext48Hours with guesses
+const gamesClosingInNext48Hours = closingGames.map(game => ({
+  game,
+  gameGuess: guessesContext.gameGuesses[game.id]
+}));
+
+// Pass to CompactPredictionDashboard
+<CompactPredictionDashboard
+  totalGames={totalGames}
+  predictedGames={predictedGames}  // Calculated here, not from DB
+  silverBoostUsed={silverBoostUsed}
+  silverBoostMax={tournament.max_silver_games || 0}
+  goldenBoostUsed={goldenBoostUsed}
+  goldenBoostMax={tournament.max_golden_games || 0}
+  tournamentPredictionPercentage={tournamentPredictionCompletion?.overallPercentage}
+  tournamentPredictionIsLocked={tournamentPredictionCompletion?.isPredictionLocked}
+  tournamentClosesInHours={tournamentClosesInHours}
+  gamesClosingInNext48Hours={gamesClosingInNext48Hours}
+  tournamentId={tournamentId}
+  teamsMap={teamsMap}
+/>
+```
+
+**Note:**
+- Home page calculates its OWN predictions (has the data)
+- Playoff tie validation happens CLIENT-SIDE using same logic as repository
+- Tournament predictions come from existing `getTournamentPredictionCompletion()` call
+
+### Part 4: Update Qualified Teams Page
+
+**Qualified Teams HAS qualified teams data → calculates qualified teams predictions itself, fetches game predictions from DB.**
+
+**File:** `app/[locale]/tournaments/[id]/qualified-teams/page.tsx`
+
+**Update fetches:**
 
 ```typescript
-// Add to props interface
-readonly dashboardStats: {
+// ✅ ADD: Fetch game predictions from DB (SINGLE QUERY)
+const [gamePredictionStats, tournamentPredictionCompletion, teamsMap] = await Promise.all([
+  getPredictionDashboardStats(user.id, tournamentId),  // Game predictions from DB
+  getTournamentPredictionCompletion(user.id, tournamentId, tournament),
+  getTeamsMap(tournamentId)
+]);
+
+// ❌ REMOVE: getAllTournamentGames, findGameGuessesByUserId (don't need them)
+```
+
+**Update props passed to client:**
+
+```typescript
+<QualifiedTeamsClientPage
+  // ... existing props ...
+  gamePredictionStats={gamePredictionStats}  // ✅ ADD
+  tournamentPredictionCompletion={tournamentPredictionCompletion}
+  tournament={tournament}
+  teamsMap={teamsMap}
+  // ❌ REMOVE: games, gameGuessesArray
+/>
+```
+
+**File:** `app/components/qualified-teams/qualified-teams-client-page.tsx`
+
+**Update props interface:**
+
+```typescript
+// ✅ ADD:
+readonly gamePredictionStats: {
   totalGames: number;
   predictedGames: number;
   silverUsed: number;
   goldenUsed: number;
 };
+readonly tournament: Tournament;
 
-// ❌ REMOVE manual calculation (lines 57-61)
-// Current code manually counts predicted games like this:
-// const predictedGames = games.filter(game => {
-//   const guess = guessesContext.gameGuesses[game.id];
-//   return guess && guess.home_score !== null && guess.away_score !== null;
-// }).length;
-// This is REMOVED - use repository calculation instead
+// ❌ REMOVE:
+readonly games: any[];
+readonly gameGuessesArray: any[];
+readonly tournamentStartDate?: Date;
 
-// ✅ Use dashboardStats from repository (accurate with playoff validation)
+// ✅ KEEP:
+readonly tournamentPredictionCompletion: any;
+readonly teamsMap: Record<string, Team>;
+```
 
-// Pass to CompactPredictionDashboard
+**Update dashboard usage:**
+
+```typescript
+// ✅ Calculate qualified teams predictions (THIS PAGE'S RESPONSIBILITY)
+const predictedQualifiedTeams = initialPredictions.filter(p => p.predicted_to_qualify).length;
+const totalQualifiedTeamsNeeded = allowsThirdPlace
+  ? groups.length * 2 + maxThirdPlace
+  : groups.length * 2;
+
+// ✅ Calculate tournament closes in hours
+const tournamentClosesInHours = tournament.start_date
+  ? ((tournament.start_date.getTime() + 5 * 24 * 60 * 60 * 1000) - Date.now()) / (60 * 60 * 1000)
+  : undefined;
+
 <CompactPredictionDashboard
-  totalGames={dashboardStats.totalGames}
-  predictedGames={dashboardStats.predictedGames}  // From repository, not manual calc
-  silverBoostUsed={dashboardStats.silverUsed}
+  // Game predictions from DB
+  totalGames={gamePredictionStats.totalGames}
+  predictedGames={gamePredictionStats.predictedGames}
+  silverBoostUsed={gamePredictionStats.silverUsed}
   silverBoostMax={tournament.max_silver_games || 0}
-  goldenBoostUsed={dashboardStats.goldenUsed}
+  goldenBoostUsed={gamePredictionStats.goldenUsed}
   goldenBoostMax={tournament.max_golden_games || 0}
-  gameGuesses={guessesContext.gameGuesses}  // Still needed for urgency + popovers
-  tournamentPredictions={tournamentPredictionCompletion}
-  tournamentId={tournamentId}
-  tournamentStartDate={tournamentStartDate}
-  games={games}
+
+  // Tournament predictions (qualified teams - calculated here)
+  tournamentPredictionPercentage={Math.round((predictedQualifiedTeams / totalQualifiedTeamsNeeded) * 100)}
+  tournamentPredictionIsLocked={isLocked}
+  tournamentClosesInHours={tournamentClosesInHours}
+
+  // No games closing data on this page
+  gamesClosingInNext48Hours={[]}
+  tournamentId={tournament.id}
   teamsMap={teamsMap}
-  isPlayoffs={rounds.some(r => !r.is_third_place)}
 />
 ```
 
 **Note:**
-- `gameGuesses` from context is still needed for urgency calculation and popover display
-- Repository's `predictedGames` is more accurate (includes playoff validation)
-- Manual calculation would miss incomplete playoff ties
-
-### Part 4: Update Qualified Teams Page
-
-**File:** `app/[locale]/tournaments/[id]/qualified-teams/page.tsx`
-
-**Remove unnecessary fetches (lines 192-194):**
-
-```typescript
-// ❌ REMOVE these lines:
-const [games, gameGuessesArray, tournamentPredictionCompletion, teamsMap] = await Promise.all([
-  getAllTournamentGames(tournamentId),
-  findGameGuessesByUserId(user.id, tournamentId),  // ❌ NOT NEEDED
-  getTournamentPredictionCompletion(user.id, tournamentId, tournament),
-  getTeamsMap(tournamentId)
-]);
-```
-
-**Replace with minimal fetch:**
-
-```typescript
-// ✅ Only fetch what's actually needed
-const [tournamentPredictionCompletion, teamsMap] = await Promise.all([
-  getTournamentPredictionCompletion(user.id, tournamentId, tournament),
-  getTeamsMap(tournamentId)
-]);
-
-// ✅ Calculate tournament start from predictions or tournament data
-const tournamentStartDate = tournament.start_date || undefined;
-```
-
-**Update props passed to client (lines 234-238):**
-
-```typescript
-<QualifiedTeamsClientPage
-  // ... existing props ...
-  tournamentPredictionCompletion={tournamentPredictionCompletion}
-  tournamentStartDate={tournamentStartDate}
-  teamsMap={teamsMap}
-  // ❌ REMOVE: games, gameGuessesArray
-/>
-```
-
-**File:** `app/components/qualified-teams/qualified-teams-client-page.tsx`
-
-**Update props interface (remove lines 58-59):**
-
-```typescript
-// ❌ REMOVE these props:
-readonly games: any[];
-readonly gameGuessesArray: any[];
-
-// Keep these:
-readonly tournamentPredictionCompletion: any;
-readonly tournamentStartDate?: Date;
-readonly teamsMap: Record<string, Team>;
-```
-
-**Update dashboard usage (find where CompactPredictionDashboard is rendered):**
-
-```typescript
-// ✅ Pass only tournament predictions (no game data)
-<CompactPredictionDashboard
-  totalGames={0}  // Not showing game predictions on this page
-  predictedGames={0}
-  silverBoostUsed={0}  // Not applicable
-  silverBoostMax={0}
-  goldenBoostUsed={0}
-  goldenBoostMax={0}
-  gameGuesses={{}}  // Empty - no games on this page
-  tournamentPredictions={tournamentPredictionCompletion}
-  tournamentId={tournament.id}
-  tournamentStartDate={tournamentStartDate}
-  teamsMap={teamsMap}
-  // ❌ Do NOT pass games/isPlayoffs - not needed on this page
-/>
-```
-
-**Note on zero-game rendering:**
-- Dashboard will only show tournament prediction row
-- Game prediction row is conditionally rendered in component (check line 124-137)
-- When `totalGames === 0`, game row won't render
-- Popover won't open since there's no game row to click
-- Boost display is controlled by `showBoosts` (line 52): `const showBoosts = boostCounts.silver.max > 0 || boostCounts.golden.max > 0`
-- With `silverBoostMax={0}` and `goldenBoostMax={0}`, boost section won't render
+- Qualified Teams page calculates its OWN predictions (qualified teams)
+- Gets game predictions from DB (doesn't have games data)
+- No GuessesContextProvider wrapper needed
 
 ### Part 5: Update Awards Page
 
+**Awards HAS tournament guess data → calculates awards predictions itself, fetches game predictions from DB.**
+
 **File:** `app/[locale]/tournaments/[id]/awards/page.tsx`
 
-**Remove unnecessary fetches (lines 50-51):**
+**Update fetches:**
 
 ```typescript
-// ❌ REMOVE from Promise.all:
-games,           // Line 50 - NOT NEEDED
-gameGuessesArray // Line 51 - NOT NEEDED
-```
+// ✅ ADD: Fetch game predictions from DB (SINGLE QUERY)
+const [tournamentGuesses, allPlayers, tournamentStartDate, teamsMap, tournament, playoffStages, gamePredictionStats] = await Promise.all([
+  findTournamentGuessByUserIdTournament(user.id, params.id).then(result => result || buildTournamentGuesses(user.id, params.id)),
+  findAllPlayersInTournamentWithTeamData(params.id),
+  getTournamentStartDate(params.id),
+  getTeamsMap(params.id),
+  findTournamentById(params.id),
+  getPlayoffRounds(params.id),
+  getPredictionDashboardStats(user.id, params.id)  // ✅ Game predictions from DB
+]);
 
-**Updated parallel fetch (lines 43-52):**
+// ❌ REMOVE: getAllTournamentGames, findGameGuessesByUserId (lines 50-51)
 
-❌ **DO NOT ADD** `tournamentPredictionCompletion` fetch - it's already fetched at lines 60-62:
-```typescript
+// ✅ KEEP: Existing tournamentPredictionCompletion fetch (lines 60-62)
 const tournamentPredictionCompletion = tournament
   ? await getTournamentPredictionCompletion(user.id, params.id, tournament)
-  : null
+  : null;
 ```
 
-**Just use the existing fetch** - no changes needed to Promise.all array.
-
-Only change: Remove `games` and `gameGuessesArray` from the existing Promise.all (lines 50-51).
-
-**Update props passed to AwardsPanel (lines 88-92):**
+**Update props passed to AwardsPanel:**
 
 ```typescript
 <AwardsPanel
   // ... existing props ...
+  gamePredictionStats={gamePredictionStats}  // ✅ ADD
+  tournament={tournament}
   tournamentPredictionCompletion={tournamentPredictionCompletion}
   tournamentStartDate={tournamentStartDate}
   teamsMap={teamsMap}
@@ -390,61 +437,86 @@ Only change: Remove `games` and `gameGuessesArray` from the existing Promise.all
 
 **File:** `app/components/awards/award-panel.tsx`
 
-**Update props interface (remove lines 38-39):**
+**Update props interface:**
 
 ```typescript
-// ❌ REMOVE these props:
+// ✅ ADD:
+readonly gamePredictionStats: {
+  totalGames: number;
+  predictedGames: number;
+  silverUsed: number;
+  goldenUsed: number;
+};
+readonly tournament: Tournament;
+
+// ❌ REMOVE:
 readonly games: any[];
 readonly gameGuessesArray: any[];
 
-// Keep these:
+// ✅ KEEP:
 readonly tournamentPredictionCompletion: any;
 readonly tournamentStartDate: Date;
 readonly teamsMap: Record<string, Team>;
 ```
 
-**Update dashboard usage (find where CompactPredictionDashboard is rendered):**
+**Update dashboard usage:**
 
 ```typescript
-// ✅ Pass only tournament predictions (no game data)
+// ✅ Calculate awards predictions (THIS PAGE'S RESPONSIBILITY)
+const predictedHonorRollAwards = [
+  tournamentGuesses.champion_id,
+  tournamentGuesses.runner_up_id,
+  hasThirdPlaceGame ? tournamentGuesses.third_place_id : null
+].filter(Boolean).length;
+
+const totalHonorRollAwards = hasThirdPlaceGame ? 3 : 2;
+
+const predictedIndividualAwards = [
+  tournamentGuesses.top_scorer_id,
+  tournamentGuesses.best_player_id,
+  tournamentGuesses.best_young_player_id,
+  tournamentGuesses.best_goalkeeper_id
+].filter(Boolean).length;
+
+const totalIndividualAwards = 4;
+
+const totalAwards = totalHonorRollAwards + totalIndividualAwards;
+const predictedAwards = predictedHonorRollAwards + predictedIndividualAwards;
+
+// ✅ Calculate tournament closes in hours
+const tournamentClosesInHours = tournamentStartDate
+  ? ((tournamentStartDate.getTime() + 5 * 24 * 60 * 60 * 1000) - Date.now()) / (60 * 60 * 1000)
+  : undefined;
+
 <CompactPredictionDashboard
-  totalGames={0}  // Not showing game predictions on this page
-  predictedGames={0}
-  silverBoostUsed={0}  // Not applicable
-  silverBoostMax={0}
-  goldenBoostUsed={0}
-  goldenBoostMax={0}
-  gameGuesses={{}}  // Empty - no games on this page
-  tournamentPredictions={tournamentPredictionCompletion}
+  // Game predictions from DB
+  totalGames={gamePredictionStats.totalGames}
+  predictedGames={gamePredictionStats.predictedGames}
+  silverBoostUsed={gamePredictionStats.silverUsed}
+  silverBoostMax={tournament.max_silver_games || 0}
+  goldenBoostUsed={gamePredictionStats.goldenUsed}
+  goldenBoostMax={tournament.max_golden_games || 0}
+
+  // Tournament predictions (awards - calculated here)
+  tournamentPredictionPercentage={Math.round((predictedAwards / totalAwards) * 100)}
+  tournamentPredictionIsLocked={isPredictionLocked}
+  tournamentClosesInHours={tournamentClosesInHours}
+
+  // No games closing data on this page
+  gamesClosingInNext48Hours={[]}
   tournamentId={tournament.id}
-  tournamentStartDate={tournamentStartDate}
   teamsMap={teamsMap}
 />
 ```
 
-### Part 6: Remove GuessesContextProvider Wrapper (Qualified Teams & Awards)
+**Note:**
+- Awards page calculates its OWN predictions (awards)
+- Gets game predictions from DB (doesn't have games data)
+- No GuessesContextProvider wrapper needed
 
-Both pages currently wrap the dashboard in GuessesContextProvider even though it's no longer needed.
-
-**File:** `app/components/qualified-teams/qualified-teams-client-page.tsx`
-
-Find where dashboard is rendered - if wrapped in `GuessesContextProvider`, remove the wrapper:
-
-```typescript
-// ❌ REMOVE wrapper if exists:
-<GuessesContextProvider gameGuesses={gameGuesses} ...>
-  <CompactPredictionDashboard ... />
-</GuessesContextProvider>
-
-// ✅ Direct render:
-<CompactPredictionDashboard ... />
-```
-
-**File:** `app/components/awards/award-panel.tsx`
-
-Same approach - remove `GuessesContextProvider` wrapper if it exists.
-
-**Note:** Home page KEEPS GuessesContextProvider because it's used for the entire games list, not just the dashboard.
+**Note on GuessesContextProvider:**
+- Home page KEEPS GuessesContextProvider (needed for games list editing)
+- Qualified Teams and Awards pages don't use GuessesContextProvider (no game editing)
 
 ## Files to Create/Modify
 
