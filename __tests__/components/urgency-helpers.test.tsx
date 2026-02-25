@@ -153,9 +153,9 @@ describe('urgency-helpers', () => {
       expect(getTournamentUrgencyLevel(predictions, new Date())).toBe('complete');
     });
 
-    it('returns "complete" when start date is undefined', () => {
+    it('returns "notice" when start date is undefined', () => {
       const predictions = createTournamentPredictions(50, false);
-      expect(getTournamentUrgencyLevel(predictions, undefined)).toBe('complete');
+      expect(getTournamentUrgencyLevel(predictions, undefined)).toBe('notice');
     });
 
     it('returns "locked" when past lock time', () => {
@@ -193,13 +193,13 @@ describe('urgency-helpers', () => {
       expect(getTournamentUrgencyLevel(predictions, startDate)).toBe('notice');
     });
 
-    it('returns "complete" when more than 48 hours until lock', () => {
+    it('returns "notice" when more than 48 hours until lock', () => {
       const now = new Date();
       // Lock is 5 days after start, so for lock in 72 hours: start = now - (5 days - 72 hours)
       const startDate = new Date(now.getTime() - (5 * 24 * 60 * 60 * 1000 - 72 * 60 * 60 * 1000));
       const predictions = createTournamentPredictions(50, false);
 
-      expect(getTournamentUrgencyLevel(predictions, startDate)).toBe('complete');
+      expect(getTournamentUrgencyLevel(predictions, startDate)).toBe('notice');
     });
   });
 

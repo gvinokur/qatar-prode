@@ -93,7 +93,7 @@ export function getTournamentUrgencyLevel(
   if (tournamentPredictions.isPredictionLocked) return 'locked';
   if (tournamentPredictions.overallPercentage === 100) return 'complete';
 
-  if (!tournamentStartDate) return 'complete';
+  if (!tournamentStartDate) return 'notice';
 
   const lockTime = new Date(
     tournamentStartDate.getTime() +
@@ -106,7 +106,7 @@ export function getTournamentUrgencyLevel(
   if (hoursUntilLock < URGENCY_TIME_CONSTANTS.URGENT_THRESHOLD_HOURS) return 'urgent';
   if (hoursUntilLock < URGENCY_TIME_CONSTANTS.WARNING_THRESHOLD_HOURS) return 'warning';
   if (hoursUntilLock < URGENCY_TIME_CONSTANTS.NOTICE_THRESHOLD_HOURS) return 'notice';
-  return 'complete';
+  return 'notice';
 }
 
 /**
