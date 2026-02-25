@@ -493,7 +493,7 @@ Go back to validation
 | Not documenting deviations from plan | Plan diverges from reality, future confusion | Add amendments when discovering gaps/bugs during implementation | implementation.md Section 8 |
 | Skipping plan reconciliation before merge | Plan contradicts actual code, documentation debt | Review plan vs. implementation before final validation | validation.md Section 1 |
 | Not updating main worktree after merge | Next story branches from old commit, causes conflicts | After story complete, go to main worktree and `git pull origin main` | github-projects-workflow.md Section 10 |
-| Not registering new translation namespaces | Missing translations, runtime errors | Register in i18n.config.ts and create namespace files | i18n-patterns.md |
+| Not registering new translation namespaces | Missing translations, runtime errors | Register in i18n.config.ts and create namespace files | architecture/i18n.md |
 | Adding locale params to repositories | Violates separation of concerns | Use applyLocalization in Server Actions | patterns.md Pattern 1 |
 | Not using test factories | Incomplete mock data, test failures | ALWAYS use testFactories.* | patterns.md Pattern 2 |
 | Client Components fetching data | Slow, insecure, wrong pattern | Server Components fetch, pass as props | patterns.md Pattern 3 |

@@ -49,7 +49,7 @@ export async function getTournaments() {
 }
 ```
 
-**See:** `app/utils/i18n-patterns.md` for complete guide
+**See:** [i18n Architecture Guide](architecture/i18n.md) for complete guide
 
 ---
 

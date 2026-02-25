@@ -1158,5 +1158,5 @@ export default async function Page() {
 - **Type Definitions:** `types/i18n.ts`
 - **Configuration:** `i18n.config.ts`, `i18n/routing.ts`, `i18n/request.ts`
 - **Localization Helpers:** `app/utils/localization-helper.ts`
-- **I18n Patterns:** `app/utils/i18n-patterns.md`
+- **I18n Architecture:** `claude/architecture/i18n.md`
 - **Backoffice Components:** `app/components/backoffice/i18n-field-editor.tsx`
