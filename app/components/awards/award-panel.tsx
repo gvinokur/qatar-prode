@@ -25,7 +25,6 @@ import MobileFriendlyAutocomplete from './mobile-friendly-autocomplete';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTranslations } from 'next-intl';
 import { CompactPredictionDashboard } from '../compact-prediction-dashboard';
-import { GuessesContextProvider } from '../context-providers/guesses-context-provider';
 import { customToMap } from '../../utils/ObjectUtils';
 
 type Props = {
@@ -35,7 +34,8 @@ type Props = {
   readonly hasThirdPlaceGame: boolean;
   readonly isPredictionLocked: boolean;
   readonly tournament: Tournament;
-  readonly games: any[];
+  readonly closingGames: any[]; // Games closing within 48 hours (for urgency calculation)
+  readonly allGamesCount: number; // Total games count (for dashboard denominator)
   readonly gameGuessesArray: any[];
   readonly tournamentPredictionCompletion: any;
   readonly tournamentStartDate: Date;
@@ -49,7 +49,8 @@ export default function AwardsPanel({
     hasThirdPlaceGame,
     isPredictionLocked,
     tournament,
-    games,
+    closingGames,
+    allGamesCount,
     gameGuessesArray,
     tournamentPredictionCompletion,
     tournamentStartDate,
@@ -163,20 +164,20 @@ export default function AwardsPanel({
   );
 
   return (
-    <GuessesContextProvider
-      gameGuesses={gameGuessesMap}
-      autoSave={true}
-      tournamentMaxSilver={tournament.max_silver_games || 0}
-      tournamentMaxGolden={tournament.max_golden_games || 0}
-    >
+    <>
       <CompactPredictionDashboard
-        totalGames={games.length}
-        predictedGames={gameGuessesArray.length}
-        tournamentPredictions={tournamentPredictionCompletion}
         tournamentId={tournament.id}
         tournamentStartDate={tournamentStartDate}
-        games={games}
-        teamsMap={teamsMap}
+        games={closingGames}
+        tournamentGuesses={tournamentGuesses}
+        fixedData={{
+          totalGames: allGamesCount,
+          gamePredictions: gameGuessesArray.length,
+          qualifiedTeams: tournamentPredictionCompletion?.qualifiers.completed ?? 0,
+          finalStandings: null, // Calculate dynamically from tournamentGuesses
+          awards: null // Calculate dynamically from tournamentGuesses
+        }}
+        tournamentPredictions={tournamentPredictionCompletion}
       />
 
       <Card>
@@ -353,6 +354,6 @@ export default function AwardsPanel({
           {t('individual.lockedMessage')}
         </Alert>
       </Snackbar>
-    </GuessesContextProvider>
+    </>
   );
 }

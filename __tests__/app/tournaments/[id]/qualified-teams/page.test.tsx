@@ -49,6 +49,7 @@ vi.mock('../../../../../app/utils/qualified-teams-scoring', () => ({
 // Mock game repository
 vi.mock('../../../../../app/db/game-repository', () => ({
   getAllTournamentGames: vi.fn().mockResolvedValue([]),
+  getTournamentGameCounts: vi.fn().mockResolvedValue({ total: 48, predicted: 0, unpredicted: 48 }),
 }));
 
 // Mock game guess repository
@@ -64,11 +65,12 @@ vi.mock('../../../../../app/db/tournament-prediction-completion-repository', () 
 // Mock tournament actions
 vi.mock('../../../../../app/actions/tournament-actions', () => ({
   getTeamsMap: vi.fn().mockResolvedValue({}),
+  getGamesClosingWithin48Hours: vi.fn().mockResolvedValue([]),
 }));
 
 // Mock the client component
 vi.mock('../../../../../app/[locale]/components/qualified-teams/qualified-teams-client-page', () => ({
-  default: ({ tournament, groups, initialPredictions, userId, isLocked, allowsThirdPlace, maxThirdPlace, actualResults, completeGroupIds, allGroupsComplete, scoringBreakdown, games, gameGuessesArray, tournamentPredictionCompletion, tournamentStartDate, teamsMap }: any) => (
+  default: ({ tournament, groups, initialPredictions, userId, isLocked, allowsThirdPlace, maxThirdPlace, actualResults, completeGroupIds, allGroupsComplete, scoringBreakdown, closingGames, allGamesCount, gameGuessesArray, tournamentPredictionCompletion, tournamentStartDate, teamsMap }: any) => (
     <div data-testid="qualified-teams-client-page">
       <div data-testid="tournament-id">{tournament.id}</div>
       <div data-testid="groups-count">{groups.length}</div>
@@ -79,7 +81,7 @@ vi.mock('../../../../../app/[locale]/components/qualified-teams/qualified-teams-
       <div data-testid="max-third-place">{maxThirdPlace}</div>
       <div data-testid="has-actual-results">{actualResults ? 'true' : 'false'}</div>
       <div data-testid="has-scoring-breakdown">{scoringBreakdown ? 'true' : 'false'}</div>
-      <div data-testid="has-dashboard-props">{games && gameGuessesArray && teamsMap ? 'true' : 'false'}</div>
+      <div data-testid="has-dashboard-props">{closingGames && allGamesCount !== undefined && gameGuessesArray && teamsMap ? 'true' : 'false'}</div>
     </div>
   ),
 }));

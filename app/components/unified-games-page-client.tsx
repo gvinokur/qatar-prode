@@ -2,6 +2,7 @@
 
 import { Box, Fab, useTheme, useMediaQuery } from '@mui/material';
 import { useMemo, useContext, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { ScrollShadowContainer } from './common/scroll-shadow-container';
@@ -45,23 +46,48 @@ function UnifiedGamesPageContent({
   const { activeFilter, groupFilter, roundFilter, setActiveFilter, setGroupFilter, setRoundFilter } = useFilterContext();
   const guessesContext = useContext(GuessesContext);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [urlParamsProcessed, setUrlParamsProcessed] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const searchParams = useSearchParams();
 
   // Filter games based on active filters
   const filteredGames = useMemo(() => {
     return filterGames(games, activeFilter, groupFilter, roundFilter, guessesContext.gameGuesses);
   }, [games, activeFilter, groupFilter, roundFilter, guessesContext.gameGuesses]);
 
-  // Calculate progress
-  const totalGames = games.length;
-  const predictedGames = games.filter(game => {
-    const guess = guessesContext.gameGuesses[game.id];
-    return guess && guess.home_score !== null && guess.away_score !== null;
-  }).length;
-
-  // Auto-scroll when filters change
+  // Handle URL parameters from navigation (e.g., from dashboard click)
   useEffect(() => {
+    const filter = searchParams.get('filter');
+    const scrollToGameParam = searchParams.get('scrollToGame');
+
+    if (filter === 'all') {
+      setActiveFilter('all');
+      setGroupFilter('all');
+      setRoundFilter('all');
+    }
+
+    if (scrollToGameParam === 'auto') {
+      // Delay to allow filter state to settle and filteredGames to update
+      setTimeout(() => {
+        const targetId = findScrollTarget(filteredGames);
+        if (targetId) {
+          scrollToGame(targetId, 'smooth');
+        }
+        setUrlParamsProcessed(true);
+      }, 300);
+    } else {
+      setUrlParamsProcessed(true);
+    }
+    // Note: filteredGames is intentionally NOT in dependency array to avoid infinite loops.
+    // The setTimeout allows filter state changes to propagate before scroll calculation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  // Auto-scroll when filters change (but not when processing URL params)
+  useEffect(() => {
+    if (!urlParamsProcessed) return; // Skip if URL params are being processed
+
     if (filteredGames.length > 0) {
       const targetId = findScrollTarget(filteredGames);
       if (targetId) {
@@ -71,7 +97,7 @@ function UnifiedGamesPageContent({
         }, 100);
       }
     }
-  }, [activeFilter, groupFilter, roundFilter, filteredGames]);
+  }, [activeFilter, groupFilter, roundFilter, filteredGames, urlParamsProcessed]);
 
   // Track scroll position to show/hide scroll to top button
   useEffect(() => {
@@ -132,14 +158,18 @@ function UnifiedGamesPageContent({
       {/* Compact Prediction Dashboard */}
       <Box>
         <CompactPredictionDashboard
-          totalGames={totalGames}
-          predictedGames={predictedGames}
-          tournamentPredictions={tournamentPredictionCompletion || undefined}
           tournamentId={tournamentId}
           tournamentStartDate={tournamentStartDate}
           games={closingGames}
-          teamsMap={teamsMap}
-          isPlayoffs={false}
+          gameGuesses={guessesContext.gameGuesses}
+          fixedData={{
+            totalGames: games.length,
+            gamePredictions: null, // Calculate dynamically from gameGuesses
+            qualifiedTeams: tournamentPredictionCompletion?.qualifiers.completed ?? 0,
+            finalStandings: tournamentPredictionCompletion?.finalStandings.completed ?? 0,
+            awards: tournamentPredictionCompletion?.awards.completed ?? 0
+          }}
+          tournamentPredictions={tournamentPredictionCompletion || undefined}
         />
       </Box>
 

@@ -55,7 +55,8 @@ interface QualifiedTeamsClientPageProps {
   /** Whether to show the page header (default: true) */
   readonly showHeader?: boolean;
   /** Dashboard data */
-  readonly games: any[];
+  readonly closingGames: any[]; // Games closing within 48 hours (for urgency calculation)
+  readonly allGamesCount: number; // Total games count (for dashboard denominator)
   readonly gameGuessesArray: any[];
   readonly tournamentPredictionCompletion: any;
   readonly tournamentStartDate?: Date;
@@ -157,7 +158,8 @@ function QualifiedTeamsUI({
   completeGroupIds,
   allGroupsComplete,
   scoringBreakdown,
-  games,
+  closingGames,
+  allGamesCount,
   gameGuessesArray,
   tournamentPredictionCompletion,
   tournamentStartDate,
@@ -303,13 +305,18 @@ function QualifiedTeamsUI({
         {/* Fixed header (desktop) */}
         <Box sx={{ flexShrink: 0, pt: 2 }}>
           <CompactPredictionDashboard
-            totalGames={games.length}
-            predictedGames={gameGuessesArray.length}
-            tournamentPredictions={tournamentPredictionCompletion}
             tournamentId={tournament.id}
             tournamentStartDate={tournamentStartDate}
-            games={games}
-            teamsMap={teamsMap}
+            games={closingGames}
+            qualifiedTeamsPredictions={predictions}
+            fixedData={{
+              totalGames: allGamesCount,
+              gamePredictions: gameGuessesArray.length,
+              qualifiedTeams: null, // Calculate dynamically from qualifiedTeamsPredictions
+              finalStandings: tournamentPredictionCompletion?.finalStandings.completed ?? 0,
+              awards: tournamentPredictionCompletion?.awards.completed ?? 0
+            }}
+            tournamentPredictions={tournamentPredictionCompletion}
           />
         </Box>
 

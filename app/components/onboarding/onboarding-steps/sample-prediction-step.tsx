@@ -149,7 +149,8 @@ export default function SamplePredictionStep() {
               maxThirdPlace={0}
               completeGroupIds={new Set<string>()}
               allGroupsComplete={false}
-              games={[]}
+              closingGames={[]}
+              allGamesCount={0}
               gameGuessesArray={[]}
               tournamentPredictionCompletion={null}
               teamsMap={{}}

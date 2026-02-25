@@ -14,10 +14,10 @@ import QualifiedTeamsClientPage from '../../../../components/qualified-teams/qua
 import { DebugObject } from '../../../../components/debug';
 import { findQualifiedTeams } from '../../../../db/team-repository';
 import { calculateQualifiedTeamsScore } from '../../../../utils/qualified-teams-scoring';
-import { getAllTournamentGames } from '../../../../db/game-repository';
+import { getTournamentGameCounts } from '../../../../db/game-repository';
 import { findGameGuessesByUserId } from '../../../../db/game-guess-repository';
 import { getTournamentPredictionCompletion } from '../../../../db/tournament-prediction-completion-repository';
-import { getTeamsMap } from '../../../../actions/tournament-actions';
+import { getTeamsMap, getGamesClosingWithin48Hours } from '../../../../actions/tournament-actions';
 
 interface PageProps {
   readonly params: Promise<{
@@ -189,16 +189,17 @@ export default async function QualifiedTeamsPage({ params, searchParams }: PageP
       : null;
 
     // Fetch dashboard data for CompactPredictionDashboard
-    const [games, gameGuessesArray, tournamentPredictionCompletion, teamsMap] = await Promise.all([
-      getAllTournamentGames(tournamentId),
+    const [closingGames, gameCounts, gameGuessesArray, tournamentPredictionCompletion, teamsMap] = await Promise.all([
+      getGamesClosingWithin48Hours(tournamentId),
+      getTournamentGameCounts(user.id, tournamentId),
       findGameGuessesByUserId(user.id, tournamentId),
       getTournamentPredictionCompletion(user.id, tournamentId, tournament),
       getTeamsMap(tournamentId)
     ]);
 
-    // Calculate tournament start date from games
-    const tournamentStartDate = games.length > 0
-      ? new Date(Math.min(...games.map(g => g.game_date.getTime())))
+    // Calculate tournament start date from closing games (or use tournament's first game)
+    const tournamentStartDate = closingGames.length > 0
+      ? new Date(Math.min(...closingGames.map(g => g.game_date.getTime())))
       : undefined;
 
     // Debug data (only fetched when ?debug is present)
@@ -231,7 +232,8 @@ export default async function QualifiedTeamsPage({ params, searchParams }: PageP
           completeGroupIds={qualifiedTeamsResult.completeGroupIds}
           allGroupsComplete={qualifiedTeamsResult.allGroupsComplete}
           scoringBreakdown={scoringResult}
-          games={games}
+          closingGames={closingGames}
+          allGamesCount={gameCounts.total}
           gameGuessesArray={gameGuessesArray}
           tournamentPredictionCompletion={tournamentPredictionCompletion}
           tournamentStartDate={tournamentStartDate}

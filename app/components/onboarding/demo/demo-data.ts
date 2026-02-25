@@ -333,10 +333,12 @@ export const DEMO_TOURNAMENT_PREDICTIONS: TournamentPredictionCompletion = {
 
 // Props for CompactPredictionDashboard
 export const DEMO_DASHBOARD_PROPS = {
-  totalGames: 48,
-  predictedGames: 32,
-  silverUsed: 3,
-  silverMax: 5,
-  goldenUsed: 1,
-  goldenMax: 2,
+  demoMode: true,
+  fixedData: {
+    totalGames: 48,
+    gamePredictions: 32,
+    qualifiedTeams: 12,
+    finalStandings: 3,
+    awards: 4
+  }
 }

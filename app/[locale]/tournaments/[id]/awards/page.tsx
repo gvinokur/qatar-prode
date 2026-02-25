@@ -11,10 +11,11 @@ import AwardsPanel from "../../../../components/awards/award-panel";
 import {
   getPlayoffRounds,
   getTeamsMap,
-  getTournamentStartDate
+  getTournamentStartDate,
+  getGamesClosingWithin48Hours
 } from "../../../../actions/tournament-actions";
 import {findTournamentById} from "../../../../db/tournament-repository";
-import { getAllTournamentGames } from '../../../../db/game-repository';
+import { getTournamentGameCounts } from '../../../../db/game-repository';
 import { findGameGuessesByUserId } from '../../../../db/game-guess-repository';
 import { getTournamentPredictionCompletion } from '../../../../db/tournament-prediction-completion-repository';
 
@@ -40,14 +41,15 @@ export default async function Awards(props: Props) {
   }
 
   // Fetch all required data in parallel
-  const [tournamentGuesses, allPlayers, tournamentStartDate, teamsMap, tournament, playoffStages, games, gameGuessesArray] = await Promise.all([
+  const [tournamentGuesses, allPlayers, tournamentStartDate, teamsMap, tournament, playoffStages, closingGames, gameCounts, gameGuessesArray] = await Promise.all([
     findTournamentGuessByUserIdTournament(user.id, params.id).then(result => result || buildTournamentGuesses(user.id, params.id)),
     findAllPlayersInTournamentWithTeamData(params.id),
     getTournamentStartDate(params.id),
     getTeamsMap(params.id),
     findTournamentById(params.id),
     getPlayoffRounds(params.id),
-    getAllTournamentGames(params.id),
+    getGamesClosingWithin48Hours(params.id),
+    getTournamentGameCounts(user.id, params.id),
     findGameGuessesByUserId(user.id, params.id)
   ]);
 
@@ -85,7 +87,8 @@ export default async function Awards(props: Props) {
         hasThirdPlaceGame={hasThirdPlaceGame}
         isPredictionLocked={isPredictionLocked}
         tournament={tournament}
-        games={games}
+        closingGames={closingGames}
+        allGamesCount={gameCounts.total}
         gameGuessesArray={gameGuessesArray}
         tournamentPredictionCompletion={tournamentPredictionCompletion}
         tournamentStartDate={tournamentStartDate}

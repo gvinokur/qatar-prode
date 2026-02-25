@@ -65,11 +65,9 @@ export default function GamePredictionStep() {
             <CompactPredictionDashboard
               {...DEMO_DASHBOARD_PROPS}
               games={DEMO_GAMES as ExtendedGameData[]}
-              teamsMap={DEMO_TEAMS_MAP}
               tournamentId={DEMO_TOURNAMENT.id}
               tournamentStartDate={new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)}
               tournamentPredictions={DEMO_TOURNAMENT_PREDICTIONS}
-              demoMode={true}
             />
           </Box>
 
