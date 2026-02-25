@@ -8,7 +8,7 @@
       "esnext",
       "webworker"
     ],
-    "types": ["@serwist/next/typings"],
+    "types": ["@serwist/next/typings", "node"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
