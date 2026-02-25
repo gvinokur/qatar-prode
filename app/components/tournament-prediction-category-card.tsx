@@ -46,11 +46,21 @@ export function TournamentPredictionCategoryCard({
     tournamentStartDate
   );
 
-  // Icon logic - 16px icons
+  // Icon logic - 16px icons with proper colors
   const getCategoryStatusIcon = (): React.ReactElement => {
     const icon = getUrgencyIcon(urgencyLevel);
-    // Clone icon with fontSize for consistency (category cards use 16px)
-    return React.cloneElement(icon, { sx: { fontSize: 16 } });
+    // Map urgency levels to theme colors
+    const colorMap: Record<string, string> = {
+      urgent: 'error.main',
+      warning: 'warning.main',
+      notice: 'info.main',
+      complete: 'success.main',
+      locked: 'info.main'
+    };
+    // Clone icon with fontSize and explicit color in sx to ensure proper styling
+    return React.cloneElement(icon, {
+      sx: { fontSize: 16, color: colorMap[urgencyLevel] }
+    });
   };
 
   // Border color logic

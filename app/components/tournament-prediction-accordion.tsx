@@ -75,9 +75,21 @@ export function TournamentPredictionAccordion({
     }
   };
 
-  // Icon logic - 24px icons (default size)
+  // Icon logic - 24px icons (default size) with explicit color
   const getAccordionIcon = (): React.ReactElement => {
-    return getUrgencyIcon(overallUrgency);
+    const icon = getUrgencyIcon(overallUrgency);
+    // Map urgency levels to theme colors
+    const colorMap: Record<string, string> = {
+      urgent: 'error.main',
+      warning: 'warning.main',
+      notice: 'info.main',
+      complete: 'success.main',
+      locked: 'info.main'
+    };
+    // Clone icon with explicit color in sx to ensure proper styling
+    return React.cloneElement(icon, {
+      sx: { color: colorMap[overallUrgency] }
+    });
   };
 
   return (
