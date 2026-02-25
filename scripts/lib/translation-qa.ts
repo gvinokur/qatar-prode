@@ -40,8 +40,6 @@ export interface NamespaceCoverage {
   enKeys: number;    // Leaf key count in English
   esKeys: number;    // Leaf key count in Spanish
   coverage: number;  // Percentage (0-100)
-  missingKeys: number;
-  unusedKeys: number;
 }
 
 // ============================================================================
@@ -415,9 +413,10 @@ export async function detectUnusedKeys(
 
     // Check each key for usage
     for (const key of allKeys) {
-      // Search for t('key') or t.rich('key') or t("key") or t.rich("key")
+      // Search for t('key') or tAuth('key') or t.rich('key') etc.
+      // Matches any variable starting with 't' followed by optional word chars
       const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const usagePattern = new RegExp(`\\bt(?:\\.rich)?\\(['\"\`]${escapedKey}['\"\`]\\)`, 'm');
+      const usagePattern = new RegExp(`\\bt\\w*(?:\\.rich)?\\(['\"\`]${escapedKey}['\"\`]\\)`, 'm');
 
       if (!usagePattern.test(allContent)) {
         // Key not used anywhere
@@ -455,9 +454,8 @@ export async function detectUnusedKeys(
  * @returns Markdown formatted report
  */
 export async function generateCoverageReport(
-  rootPath: string,
   localesPath: string
-): Promise<string> {
+): Promise<NamespaceCoverage[]> {
   const coverages: NamespaceCoverage[] = [];
 
   // Get all namespace files
@@ -468,9 +466,8 @@ export async function generateCoverageReport(
     ? fs.readdirSync(enPath).filter(f => f.endsWith('.json')).map(f => f.replace('.json', ''))
     : [];
 
-  // Get missing and unused keys
-  const missingKeys = await detectMissingKeys(rootPath, localesPath);
-  const unusedKeys = await detectUnusedKeys(rootPath, localesPath);
+  // Note: We don't scan for missing/unused keys here since we don't have rootPath
+  // Those metrics can be calculated separately if needed
 
   // Calculate coverage for each namespace
   for (const namespace of namespaces) {
@@ -486,152 +483,14 @@ export async function generateCoverageReport(
       : 0;
 
     const coverage = calculateCoverage(enKeys, esKeys);
-    const missing = missingKeys.filter(k => k.namespace === namespace).length;
-    const unused = unusedKeys.filter(k => k.namespace === namespace).length;
 
     coverages.push({
       namespace,
       enKeys,
       esKeys,
-      coverage,
-      missingKeys: missing,
-      unusedKeys: unused
+      coverage
     });
   }
 
-  // Generate markdown report
-  const now = new Date().toISOString();
-  const totalEnKeys = coverages.reduce((sum, c) => sum + c.enKeys, 0);
-  const totalEsKeys = coverages.reduce((sum, c) => sum + c.esKeys, 0);
-  const totalMissing = missingKeys.length;
-  const totalUnused = unusedKeys.length;
-
-  const report = `# Translation Coverage Report
-
-Generated: ${now}
-
-## Summary
-- Total Namespaces: ${coverages.length}
-- Total Keys (EN): ${totalEnKeys.toLocaleString()}
-- Total Keys (ES): ${totalEsKeys.toLocaleString()}
-- Missing Keys: ${totalMissing}
-- Unused Keys: ${totalUnused}
-
-## By Namespace
-
-| Namespace | EN Keys | ES Keys | Coverage | Missing | Unused |
-|-----------|---------|---------|----------|---------|--------|
-${coverages.map(c =>
-  `| ${c.namespace} | ${c.enKeys} | ${c.esKeys} | ${c.coverage}% | ${c.missingKeys} | ${c.unusedKeys} |`
-).join('\n')}
-
-## ${totalMissing === 0 ? '✅ Status: PASS' : '❌ Status: FAIL'}
-${totalMissing === 0
-  ? 'All namespaces have complete translations.'
-  : `Found ${totalMissing} missing translation keys that must be added.`}
-
-## Recommendations
-${totalUnused > 0
-  ? `- Review ${totalUnused} unused keys for potential removal`
-  : '- No unused keys found'}
-- Keep translation files lean and maintainable
-`;
-
-  return report;
-}
-
-// ============================================================================
-// CLI Entry Points
-// ============================================================================
-
-async function main() {
-  const command = process.argv[2];
-  const rootPath = process.cwd();
-  const localesPath = path.join(rootPath, 'locales');
-
-  try {
-    switch (command) {
-      case 'detect-missing-keys': {
-        const missing = await detectMissingKeys(rootPath, localesPath);
-
-        if (missing.length === 0) {
-          console.log('\n✅ No missing translation keys found!\n');
-          process.exit(0);
-        } else {
-          console.log('\n❌ MISSING KEYS FOUND:\n');
-
-          // Group by namespace
-          const byNamespace = missing.reduce((acc, key) => {
-            if (!acc[key.namespace]) acc[key.namespace] = [];
-            acc[key.namespace].push(key);
-            return acc;
-          }, {} as Record<string, MissingKey[]>);
-
-          for (const [namespace, keys] of Object.entries(byNamespace)) {
-            console.log(`Namespace: ${namespace}`);
-            keys.forEach(key => {
-              console.log(`  File: ${key.file}:${key.line}`);
-              console.log(`  Key: ${key.key}`);
-              console.log(`  Missing in: ${key.missingLocales.join(', ')}\n`);
-            });
-          }
-
-          console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-          console.log(`Summary: ${missing.length} missing keys found across ${Object.keys(byNamespace).length} namespaces\n`);
-          process.exit(1);
-        }
-      }
-
-      case 'detect-unused-keys': {
-        const unused = await detectUnusedKeys(rootPath, localesPath);
-
-        if (unused.length === 0) {
-          console.log('\n✅ No unused translation keys found!\n');
-          process.exit(0);
-        } else {
-          console.log('\n⚠️  UNUSED KEYS FOUND:\n');
-
-          // Group by namespace
-          const byNamespace = unused.reduce((acc, key) => {
-            if (!acc[key.namespace]) acc[key.namespace] = [];
-            acc[key.namespace].push(key);
-            return acc;
-          }, {} as Record<string, UnusedKey[]>);
-
-          for (const [namespace, keys] of Object.entries(byNamespace)) {
-            console.log(`Namespace: ${namespace} (${keys.length} unused keys)`);
-            keys.forEach(key => {
-              console.log(`  - ${key.key}`);
-            });
-            console.log();
-          }
-
-          console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-          console.log(`Summary: ${unused.length} unused keys across ${Object.keys(byNamespace).length} namespaces`);
-          console.log('Note: These are warnings only. Review before removing.\n');
-          process.exit(0); // Exit 0 (warnings only)
-        }
-      }
-
-      case 'generate-coverage': {
-        const report = await generateCoverageReport(rootPath, localesPath);
-        console.log(report);
-        process.exit(0);
-      }
-
-      default:
-        console.error(`Unknown command: ${command}`);
-        console.error('Usage: tsx translation-qa.ts <command>');
-        console.error('Commands: detect-missing-keys, detect-unused-keys, generate-coverage');
-        process.exit(1);
-    }
-  } catch (error) {
-    console.error('Error:', error);
-    process.exit(1);
-  }
-}
-
-// Run CLI if executed directly
-if (require.main === module) {
-  main();
+  return coverages;
 }

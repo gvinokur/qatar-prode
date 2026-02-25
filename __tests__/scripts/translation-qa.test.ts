@@ -446,9 +446,235 @@ describe('Translation QA Utilities', () => {
   });
 
   // ============================================================================
-  // Integration Tests (not testing main functions with filesystem mocking)
+  // Integration Tests with Temporary Filesystem
   // ============================================================================
-  // Note: detectMissingKeys, detectUnusedKeys, and generateCoverageReport
-  // would require extensive filesystem mocking for integration tests.
-  // The core logic has been thoroughly tested via the utility functions above.
+  describe('Integration Tests', () => {
+    const tmpDir = '/tmp/translation-qa-test';
+    const srcDir = `${tmpDir}/src`;
+    const messagesDir = `${tmpDir}/messages`;
+
+    beforeAll(async () => {
+      const fs = await import('fs');
+      const path = await import('path');
+
+      // Create test directory structure
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.mkdirSync(`${messagesDir}/en`, { recursive: true });
+      fs.mkdirSync(`${messagesDir}/es`, { recursive: true });
+
+      // Create sample source files with translation usage
+      fs.writeFileSync(
+        `${srcDir}/component1.tsx`,
+        `
+import { useTranslations } from 'next-intl';
+
+export function Component1() {
+  const t = useTranslations('common');
+  return <div>{t('greeting')}</div>;
+}
+        `.trim()
+      );
+
+      fs.writeFileSync(
+        `${srcDir}/component2.tsx`,
+        `
+import { useTranslations } from 'next-intl';
+
+export function Component2() {
+  const tAuth = useTranslations('auth');
+  const tCommon = useTranslations('common');
+  return (
+    <div>
+      {tAuth('login.title')}
+      {tCommon('missing.key')}
+    </div>
+  );
+}
+        `.trim()
+      );
+
+      fs.writeFileSync(
+        `${srcDir}/no-translations.tsx`,
+        `
+export function NoTranslations() {
+  return <div>No translations here</div>;
+}
+        `.trim()
+      );
+
+      // Create translation JSON files
+      fs.writeFileSync(
+        `${messagesDir}/en/common.json`,
+        JSON.stringify({
+          greeting: 'Hello',
+          unused: {
+            key: 'This is unused'
+          }
+        }, null, 2)
+      );
+
+      fs.writeFileSync(
+        `${messagesDir}/es/common.json`,
+        JSON.stringify({
+          greeting: 'Hola',
+          unused: {
+            key: 'Esto no se usa'
+          }
+        }, null, 2)
+      );
+
+      fs.writeFileSync(
+        `${messagesDir}/en/auth.json`,
+        JSON.stringify({
+          login: {
+            title: 'Login',
+            email: 'Email'
+          }
+        }, null, 2)
+      );
+
+      fs.writeFileSync(
+        `${messagesDir}/es/auth.json`,
+        JSON.stringify({
+          login: {
+            title: 'Iniciar sesión',
+            email: 'Correo electrónico'
+          }
+        }, null, 2)
+      );
+    });
+
+    afterAll(async () => {
+      const fs = await import('fs');
+      // Clean up test directory
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    });
+
+    describe('detectMissingKeys', () => {
+      it('should detect missing translation keys', async () => {
+        const { detectMissingKeys } = await import('@/scripts/lib/translation-qa');
+        const results = await detectMissingKeys(srcDir, messagesDir);
+
+        // Should find 'common.missing.key' as missing
+        expect(results.length).toBeGreaterThan(0);
+
+        const missingCommonKey = results.find(
+          r => r.namespace === 'common' && r.key === 'missing.key'
+        );
+        expect(missingCommonKey).toBeDefined();
+        expect(missingCommonKey?.missingLocales).toContain('en');
+        expect(missingCommonKey?.missingLocales).toContain('es');
+        expect(missingCommonKey?.file).toContain('component2.tsx');
+      });
+
+      it('should not report keys that exist', async () => {
+        const { detectMissingKeys } = await import('@/scripts/lib/translation-qa');
+        const results = await detectMissingKeys(srcDir, messagesDir);
+
+        // 'common.greeting' exists, should not be in results
+        const greetingKey = results.find(
+          r => r.namespace === 'common' && r.key === 'greeting'
+        );
+        expect(greetingKey).toBeUndefined();
+
+        // 'auth.login.title' exists, should not be in results
+        const loginTitle = results.find(
+          r => r.namespace === 'auth' && r.key === 'login.title'
+        );
+        expect(loginTitle).toBeUndefined();
+      });
+    });
+
+    describe('detectUnusedKeys', () => {
+      it('should detect unused translation keys', async () => {
+        const { detectUnusedKeys } = await import('@/scripts/lib/translation-qa');
+        const results = await detectUnusedKeys(srcDir, messagesDir);
+
+        // Should find 'common.unused.key' as unused
+        const unusedKey = results.find(
+          r => r.namespace === 'common' && r.key === 'unused.key'
+        );
+        expect(unusedKey).toBeDefined();
+        expect(unusedKey?.existsIn).toContain('en');
+        expect(unusedKey?.existsIn).toContain('es');
+      });
+
+      it('should not report keys that are used', async () => {
+        const { detectUnusedKeys } = await import('@/scripts/lib/translation-qa');
+        const results = await detectUnusedKeys(srcDir, messagesDir);
+
+        // 'common.greeting' is used, should not be in results
+        const greetingKey = results.find(
+          r => r.namespace === 'common' && r.key === 'greeting'
+        );
+        expect(greetingKey).toBeUndefined();
+
+        // 'auth.login.title' is used, should not be in results
+        const loginTitle = results.find(
+          r => r.namespace === 'auth' && r.key === 'login.title'
+        );
+        expect(loginTitle).toBeUndefined();
+      });
+
+      it('should detect unused keys that only exist in one locale', async () => {
+        const { detectUnusedKeys } = await import('@/scripts/lib/translation-qa');
+        const results = await detectUnusedKeys(srcDir, messagesDir);
+
+        // 'auth.login.email' exists but is unused
+        const emailKey = results.find(
+          r => r.namespace === 'auth' && r.key === 'login.email'
+        );
+        expect(emailKey).toBeDefined();
+        expect(emailKey?.existsIn).toContain('en');
+        expect(emailKey?.existsIn).toContain('es');
+      });
+    });
+
+    describe('generateCoverageReport', () => {
+      it('should generate coverage report with correct metrics', async () => {
+        const { generateCoverageReport } = await import('@/scripts/lib/translation-qa');
+        const results = await generateCoverageReport(messagesDir);
+
+        // Should have coverage for both namespaces
+        expect(results.length).toBe(2);
+
+        // Check common namespace
+        const commonCoverage = results.find(r => r.namespace === 'common');
+        expect(commonCoverage).toBeDefined();
+        expect(commonCoverage?.enKeys).toBe(2); // greeting, unused.key
+        expect(commonCoverage?.esKeys).toBe(2);
+        expect(commonCoverage?.coverage).toBe(100);
+
+        // Check auth namespace
+        const authCoverage = results.find(r => r.namespace === 'auth');
+        expect(authCoverage).toBeDefined();
+        expect(authCoverage?.enKeys).toBe(2); // login.title, login.email
+        expect(authCoverage?.esKeys).toBe(2);
+        expect(authCoverage?.coverage).toBe(100);
+      });
+
+      it('should calculate coverage correctly when keys differ', async () => {
+        const fs = await import('fs');
+
+        // Add a key only to EN
+        const enAuth = JSON.parse(fs.readFileSync(`${messagesDir}/en/auth.json`, 'utf-8'));
+        enAuth.signup = { title: 'Sign Up' };
+        fs.writeFileSync(`${messagesDir}/en/auth.json`, JSON.stringify(enAuth, null, 2));
+
+        const { generateCoverageReport } = await import('@/scripts/lib/translation-qa');
+        const results = await generateCoverageReport(messagesDir);
+
+        const authCoverage = results.find(r => r.namespace === 'auth');
+        expect(authCoverage).toBeDefined();
+        expect(authCoverage?.enKeys).toBe(3); // login.title, login.email, signup.title
+        expect(authCoverage?.esKeys).toBe(2); // login.title, login.email
+        // Coverage should be (2/3) * 100 = 67%
+        expect(authCoverage?.coverage).toBe(67);
+
+        // Restore original state
+        delete enAuth.signup;
+        fs.writeFileSync(`${messagesDir}/en/auth.json`, JSON.stringify(enAuth, null, 2));
+      });
+    });
+  });
 });
