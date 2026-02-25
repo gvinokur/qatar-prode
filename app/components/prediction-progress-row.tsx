@@ -90,7 +90,15 @@ export function PredictionProgressRow({
       )}
 
       <IconButton size="small" sx={{ p: 0.5 }}>
-        {getUrgencyIcon(urgencyLevel)}
+        {React.cloneElement(getUrgencyIcon(urgencyLevel), {
+          sx: {
+            color: urgencyLevel === 'urgent' ? 'error.main'
+              : urgencyLevel === 'warning' ? 'warning.main'
+              : urgencyLevel === 'notice' ? 'info.main'
+              : urgencyLevel === 'complete' ? 'success.main'
+              : 'info.main' // locked
+          }
+        })}
       </IconButton>
     </Box>
   );
