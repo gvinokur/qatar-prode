@@ -21,6 +21,18 @@ export const URGENCY_TIME_CONSTANTS = {
 } as const;
 
 /**
+ * Maps urgency levels to MUI theme colors
+ * Centralized to avoid code duplication across components
+ */
+export const URGENCY_COLOR_MAP: Record<UrgencyLevel, string> = {
+  urgent: 'error.main',
+  warning: 'warning.main',
+  notice: 'info.main',
+  complete: 'success.main',
+  locked: 'info.main'
+} as const;
+
+/**
  * Determines the urgency level for game predictions based on deadlines and prediction status
  * @param games - List of games to evaluate
  * @param gameGuesses - Record of user's game predictions

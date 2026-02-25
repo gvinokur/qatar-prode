@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, LinearProgress, Typography, IconButton } from '@mui/material';
 import { BoostCountBadge } from './boost-badge';
-import { getUrgencyIcon, UrgencyLevel } from './urgency-helpers';
+import { getUrgencyIcon, UrgencyLevel, URGENCY_COLOR_MAP } from './urgency-helpers';
 
 interface PredictionProgressRowProps {
   readonly label: string;
@@ -41,18 +41,6 @@ export function PredictionProgressRow({
   const displayValue = maxValue === undefined
     ? `${currentValue}%`
     : `${currentValue}/${maxValue}`;
-
-  // Map urgency levels to theme colors
-  const getUrgencyColor = (level: UrgencyLevel): string => {
-    const colorMap: Record<UrgencyLevel, string> = {
-      urgent: 'error.main',
-      warning: 'warning.main',
-      notice: 'info.main',
-      complete: 'success.main',
-      locked: 'info.main'
-    };
-    return colorMap[level];
-  };
 
   return (
     <Box
@@ -103,7 +91,7 @@ export function PredictionProgressRow({
 
       <IconButton size="small" sx={{ p: 0.5 }}>
         {React.cloneElement(getUrgencyIcon(urgencyLevel), {
-          sx: { color: getUrgencyColor(urgencyLevel) }
+          sx: { color: URGENCY_COLOR_MAP[urgencyLevel] }
         })}
       </IconButton>
     </Box>
