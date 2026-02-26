@@ -100,7 +100,7 @@ function UnifiedGamesPageContent({
           setPendingEditGameId(null); // Clear pending state
 
           // Remove edit parameter from URL to prevent re-triggering
-          router.replace(window.location.pathname, { scroll: false });
+          router.replace(globalThis.location.pathname, { scroll: false });
         }, SCROLL_ANIMATION_DURATION);
 
         return () => clearTimeout(editTimeoutId);

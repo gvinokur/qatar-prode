@@ -120,53 +120,51 @@ export function UrgencyAccordionGroup({
   const noticeUnpredicted = filteredGames.notice.filter(game => !isPredicted(game)).length;
 
   return (
-    <>
-      <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
-        {/* Urgent tier (< 2h) */}
-        {filteredGames.urgent.length > 0 && (
-          <UrgencyAccordion
-            severity="error"
-            title={buildTitle(filteredGames.urgent.length, urgentUnpredicted, t('urgency.timeframes.twoHours'))}
-            games={filteredGames.urgent}
-            teamsMap={teamsMap}
-            gameGuesses={gameGuesses}
-            isExpanded={expandedTierId === 'urgent'}
-            onToggle={handleToggle}
-            tierId="urgent"
-            onEditGame={handleEditGame}
-          />
-        )}
+    <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
+      {/* Urgent tier (< 2h) */}
+      {filteredGames.urgent.length > 0 && (
+        <UrgencyAccordion
+          severity="error"
+          title={buildTitle(filteredGames.urgent.length, urgentUnpredicted, t('urgency.timeframes.twoHours'))}
+          games={filteredGames.urgent}
+          teamsMap={teamsMap}
+          gameGuesses={gameGuesses}
+          isExpanded={expandedTierId === 'urgent'}
+          onToggle={handleToggle}
+          tierId="urgent"
+          onEditGame={handleEditGame}
+        />
+      )}
 
-        {/* Warning tier (2-24h) */}
-        {filteredGames.warning.length > 0 && (
-          <UrgencyAccordion
-            severity="warning"
-            title={buildTitle(filteredGames.warning.length, warningUnpredicted, t('urgency.timeframes.twentyFourHours'))}
-            games={filteredGames.warning}
-            teamsMap={teamsMap}
-            gameGuesses={gameGuesses}
-            isExpanded={expandedTierId === 'warning'}
-            onToggle={handleToggle}
-            tierId="warning"
-            onEditGame={handleEditGame}
-          />
-        )}
+      {/* Warning tier (2-24h) */}
+      {filteredGames.warning.length > 0 && (
+        <UrgencyAccordion
+          severity="warning"
+          title={buildTitle(filteredGames.warning.length, warningUnpredicted, t('urgency.timeframes.twentyFourHours'))}
+          games={filteredGames.warning}
+          teamsMap={teamsMap}
+          gameGuesses={gameGuesses}
+          isExpanded={expandedTierId === 'warning'}
+          onToggle={handleToggle}
+          tierId="warning"
+          onEditGame={handleEditGame}
+        />
+      )}
 
-        {/* Notice tier (24-48h) */}
-        {filteredGames.notice.length > 0 && (
-          <UrgencyAccordion
-            severity="info"
-            title={buildTitle(filteredGames.notice.length, noticeUnpredicted, t('urgency.timeframes.twoDays'))}
-            games={filteredGames.notice}
-            teamsMap={teamsMap}
-            gameGuesses={gameGuesses}
-            isExpanded={expandedTierId === 'notice'}
-            onToggle={handleToggle}
-            tierId="notice"
-            onEditGame={handleEditGame}
-          />
-        )}
-      </Box>
-    </>
+      {/* Notice tier (24-48h) */}
+      {filteredGames.notice.length > 0 && (
+        <UrgencyAccordion
+          severity="info"
+          title={buildTitle(filteredGames.notice.length, noticeUnpredicted, t('urgency.timeframes.twoDays'))}
+          games={filteredGames.notice}
+          teamsMap={teamsMap}
+          gameGuesses={gameGuesses}
+          isExpanded={expandedTierId === 'notice'}
+          onToggle={handleToggle}
+          tierId="notice"
+          onEditGame={handleEditGame}
+        />
+      )}
+    </Box>
   );
 }
