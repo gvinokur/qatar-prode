@@ -442,7 +442,7 @@ describe('QualifiedTeamsClientPage - Override Pattern', () => {
   it('should pass calculated predictedGames from gameGuessesArray', () => {
     const gameGuesses = [
       { game_id: 'game-1', home_score: 2, away_score: 1 },
-      { game_id: 'game-2', home_score: 1, away_score: 1 },
+      { game_id: 'game-2', home_score: 2, away_score: 0 },
       { game_id: 'game-3', home_score: null, away_score: 1 }, // Partial - not counted
     ];
 
