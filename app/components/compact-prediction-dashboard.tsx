@@ -1,8 +1,9 @@
 'use client'
 
-import React, { useContext, useMemo, useState, useRef, useCallback } from 'react';
+import React, { useContext, useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import { Box } from '@mui/material';
 import { useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import { TournamentPredictionCompletion, Team } from '../db/tables-definition';
 import { GuessesContext } from './context-providers/guesses-context-provider';
 import type { ExtendedGameData } from '../definitions';
@@ -95,6 +96,8 @@ export function CompactPredictionDashboard({
 
   const boostPopoverOpen = Boolean(boostAnchorEl);
 
+  const searchParams = useSearchParams();
+
   // Extract boost values to reduce nesting
   const boostUsed = activeBoostType === 'silver' ? boostCounts.silver.used : boostCounts.golden.used;
   const boostMax = activeBoostType === 'silver' ? boostCounts.silver.max : boostCounts.golden.max;
@@ -117,6 +120,14 @@ export function CompactPredictionDashboard({
     window.addEventListener('resize', updateWidth);
     return () => window.removeEventListener('resize', updateWidth);
   }, []);
+
+  // Close game popover when edit parameter is present (navigation-based edit)
+  useEffect(() => {
+    const editGameId = searchParams.get('edit');
+    if (editGameId && gamePopoverAnchor) {
+      setGamePopoverAnchor(null);
+    }
+  }, [searchParams, gamePopoverAnchor]);
 
   return (
     <Box ref={dashboardRef} sx={{ mb: 2 }}>
