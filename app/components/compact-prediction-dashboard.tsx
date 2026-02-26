@@ -73,6 +73,36 @@ export function CompactPredictionDashboard({
   const gamePercentage = totalGames > 0 ? Math.round((predictedGames / totalGames) * 100) : 0;
   const showBoosts = silverBoostsMax > 0 || goldenBoostsMax > 0;
 
+  // Calculate tournament predictions completion from individual props (supports override pattern)
+  const tournamentCompleted = useMemo(() => {
+    if (
+      finalStandingsCompleted === undefined ||
+      awardsCompleted === undefined ||
+      qualifiersCompleted === undefined
+    ) {
+      return undefined;
+    }
+    return finalStandingsCompleted + awardsCompleted + qualifiersCompleted;
+  }, [finalStandingsCompleted, awardsCompleted, qualifiersCompleted]);
+
+  const tournamentTotal = useMemo(() => {
+    if (
+      finalStandingsTotal === undefined ||
+      awardsTotal === undefined ||
+      qualifiersTotal === undefined
+    ) {
+      return undefined;
+    }
+    return finalStandingsTotal + awardsTotal + qualifiersTotal;
+  }, [finalStandingsTotal, awardsTotal, qualifiersTotal]);
+
+  const tournamentPercentage = useMemo(() => {
+    if (tournamentCompleted === undefined || tournamentTotal === undefined || tournamentTotal === 0) {
+      return undefined;
+    }
+    return Math.round((tournamentCompleted / tournamentTotal) * 100);
+  }, [tournamentCompleted, tournamentTotal]);
+
   const gameUrgencyLevel = useMemo(
     () => getGameUrgencyLevel(urgentGames, urgentGameGuesses || {}),
     [urgentGames, urgentGameGuesses]
@@ -199,11 +229,12 @@ export function CompactPredictionDashboard({
       />
 
       {/* Tournament Predictions Row */}
-      {overallPercentage !== undefined && tournamentId && (
+      {tournamentPercentage !== undefined && tournamentCompleted !== undefined && tournamentId && (
         <PredictionProgressRow
           label={t('dashboard.tournament')}
-          currentValue={overallPercentage}
-          percentage={overallPercentage}
+          currentValue={tournamentCompleted}
+          maxValue={tournamentTotal}
+          percentage={tournamentPercentage}
           urgencyLevel={tournamentUrgencyLevel}
           onClick={handleTournamentRowClick}
           marginBottom={0}

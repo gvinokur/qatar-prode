@@ -163,14 +163,14 @@ describe('CompactPredictionDashboard', () => {
       expect(screen.queryByTestId('progress-row-Torneo')).not.toBeInTheDocument();
     });
 
-    it('does not render tournament row when overallPercentage is undefined', () => {
+    it('renders tournament row when individual props are provided (even without overallPercentage)', () => {
       renderWithTheme(
         <CompactPredictionDashboard
           {...defaultProps}
-          finalStandingsCompleted={24}
-          finalStandingsTotal={32}
+          finalStandingsCompleted={2}
+          finalStandingsTotal={3}
           awardsCompleted={3}
-          awardsTotal={5}
+          awardsTotal={4}
           qualifiersCompleted={12}
           qualifiersTotal={16}
           isPredictionLocked={false}
@@ -178,7 +178,8 @@ describe('CompactPredictionDashboard', () => {
         />
       );
 
-      expect(screen.queryByTestId('progress-row-Torneo')).not.toBeInTheDocument();
+      // Dashboard should calculate percentage from individual props and render row
+      expect(screen.getByTestId('progress-row-Torneo')).toBeInTheDocument();
     });
   });
 
