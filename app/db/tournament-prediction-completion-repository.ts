@@ -40,6 +40,24 @@ export async function getTournamentPredictionCompletion(
     .where('game_guesses.user_id', '=', userId)
     .where('game_guesses.home_score', 'is not', null)
     .where('game_guesses.away_score', 'is not', null)
+    .where((eb) =>
+      eb.or([
+        // Group games are complete with just scores
+        eb('games.game_type', '=', 'group'),
+        // Playoff games: either not tied OR has penalty winner selected
+        eb.and([
+          eb('games.game_type', '!=', 'group'),
+          eb.or([
+            // Not tied (different scores)
+            eb('game_guesses.home_score', '!=', eb.ref('game_guesses.away_score')),
+            // Or has home penalty winner
+            eb('game_guesses.home_penalty_winner', '=', true),
+            // Or has away penalty winner
+            eb('game_guesses.away_penalty_winner', '=', true),
+          ])
+        ])
+      ])
+    )
     .executeTakeFirst();
 
   const completedGames = Number(completedGamesResult?.count ?? 0);
