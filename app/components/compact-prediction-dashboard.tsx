@@ -111,30 +111,19 @@ export function CompactPredictionDashboard({
   // Reconstruct tournament predictions object for urgency calculation
   const tournamentPredictions = useMemo(() => {
     if (
-      finalStandingsCompleted === undefined ||
-      finalStandingsTotal === undefined ||
-      awardsCompleted === undefined ||
-      awardsTotal === undefined ||
-      qualifiersCompleted === undefined ||
-      qualifiersTotal === undefined ||
-      overallPercentage === undefined ||
+      tournamentPercentage === undefined ||
       isPredictionLocked === undefined
     ) {
       return undefined;
     }
     // Only include fields needed by getTournamentUrgencyLevel
+    // Use calculated tournamentPercentage instead of baseline overallPercentage
     return {
-      overallPercentage,
+      overallPercentage: tournamentPercentage,
       isPredictionLocked,
     } as any; // Partial object sufficient for urgency calculation
   }, [
-    finalStandingsCompleted,
-    finalStandingsTotal,
-    awardsCompleted,
-    awardsTotal,
-    qualifiersCompleted,
-    qualifiersTotal,
-    overallPercentage,
+    tournamentPercentage,
     isPredictionLocked,
   ]);
 
