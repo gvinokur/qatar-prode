@@ -2,7 +2,7 @@
 
 import { Box, Fab, useTheme, useMediaQuery } from '@mui/material';
 import { useMemo, useContext, useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { ScrollShadowContainer } from './common/scroll-shadow-container';
@@ -49,6 +49,7 @@ function UnifiedGamesPageContent({
   tournamentStartDate
 }: UnifiedGamesPageContentProps) {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { activeFilter, groupFilter, roundFilter, setActiveFilter, setGroupFilter, setRoundFilter } = useFilterContext();
   const { triggerEdit } = useEditTrigger();
   const guessesContext = useContext(GuessesContext);
@@ -97,6 +98,9 @@ function UnifiedGamesPageContent({
         const editTimeoutId = setTimeout(() => {
           triggerEdit(pendingEditGameId);
           setPendingEditGameId(null); // Clear pending state
+
+          // Remove edit parameter from URL to prevent re-triggering
+          router.replace(window.location.pathname, { scroll: false });
         }, SCROLL_ANIMATION_DURATION);
 
         return () => clearTimeout(editTimeoutId);

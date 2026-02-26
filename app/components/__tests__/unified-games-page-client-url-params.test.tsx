@@ -7,7 +7,8 @@ import { testFactories } from '@/__tests__/db/test-factories';
 
 // Mock dependencies
 vi.mock('next/navigation', () => ({
-  useSearchParams: vi.fn()
+  useSearchParams: vi.fn(),
+  useRouter: vi.fn()
 }));
 
 vi.mock('../context-providers/filter-context-provider', () => ({
@@ -101,6 +102,16 @@ describe('UnifiedGamesPageClient URL Parameter Handling', () => {
       size: mockSearchParams.size,
       [Symbol.iterator]: () => mockSearchParams[Symbol.iterator]()
     } as URLSearchParams);
+
+    // Mock useRouter
+    vi.mocked(nextNavigation.useRouter).mockReturnValue({
+      push: vi.fn(),
+      replace: vi.fn(),
+      prefetch: vi.fn(),
+      back: vi.fn(),
+      forward: vi.fn(),
+      refresh: vi.fn()
+    } as unknown as ReturnType<typeof nextNavigation.useRouter>);
 
     vi.clearAllMocks();
   });
