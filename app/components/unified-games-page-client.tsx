@@ -192,7 +192,7 @@ function UnifiedGamesPageContent({
           tournamentId={tournamentId}
           tournamentStartDate={tournamentStartDate}
           urgentGames={closingGames}
-          urgentGameGuesses={guessesContext.gameGuesses}
+          urgentGameGuesses={guessesContext.gameGuesses as any}
           teamsMap={teamsMap}
           silverBoostsUsed={guessesContext.boostCounts.silver.used}
           silverBoostsMax={guessesContext.boostCounts.silver.max}

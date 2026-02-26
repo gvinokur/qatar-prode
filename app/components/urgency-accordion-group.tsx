@@ -14,7 +14,7 @@ interface UrgencyAccordionGroupProps {
   readonly teamsMap: Record<string, Team>;
   readonly gameGuesses: Record<string, GameGuessNew>;
   readonly tournamentId: string;
-  readonly isPlayoffs: boolean;
+  readonly isPlayoffs?: boolean;
 }
 
 const ONE_HOUR = 60 * 60 * 1000;

@@ -329,14 +329,21 @@ export const DEMO_TOURNAMENT_PREDICTIONS: TournamentPredictionCompletion = {
   overallTotal: 11,
   overallPercentage: 82,
   isPredictionLocked: false,
+  completedGames: 32,
+  totalGames: 48,
+  silverBoostsUsed: 3,
+  silverBoostsMax: 5,
+  goldenBoostsUsed: 1,
+  goldenBoostsMax: 2,
 }
 
 // Props for CompactPredictionDashboard
 export const DEMO_DASHBOARD_PROPS = {
   totalGames: 48,
   predictedGames: 32,
-  silverUsed: 3,
-  silverMax: 5,
-  goldenUsed: 1,
-  goldenMax: 2,
+  silverBoostsUsed: 3,
+  silverBoostsMax: 5,
+  goldenBoostsUsed: 1,
+  goldenBoostsMax: 2,
+  demoMode: true,
 }

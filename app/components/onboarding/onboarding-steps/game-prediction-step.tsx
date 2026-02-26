@@ -64,12 +64,19 @@ export default function GamePredictionStep() {
             </Typography>
             <CompactPredictionDashboard
               {...DEMO_DASHBOARD_PROPS}
-              games={DEMO_GAMES as ExtendedGameData[]}
+              urgentGames={DEMO_GAMES as ExtendedGameData[]}
+              urgentGameGuesses={{}}
               teamsMap={DEMO_TEAMS_MAP}
               tournamentId={DEMO_TOURNAMENT.id}
               tournamentStartDate={new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)}
-              tournamentPredictions={DEMO_TOURNAMENT_PREDICTIONS}
-              demoMode={true}
+              finalStandingsCompleted={DEMO_TOURNAMENT_PREDICTIONS.finalStandings.completed}
+              finalStandingsTotal={DEMO_TOURNAMENT_PREDICTIONS.finalStandings.total}
+              awardsCompleted={DEMO_TOURNAMENT_PREDICTIONS.awards.completed}
+              awardsTotal={DEMO_TOURNAMENT_PREDICTIONS.awards.total}
+              qualifiersCompleted={DEMO_TOURNAMENT_PREDICTIONS.qualifiers.completed}
+              qualifiersTotal={DEMO_TOURNAMENT_PREDICTIONS.qualifiers.total}
+              overallPercentage={DEMO_TOURNAMENT_PREDICTIONS.overallPercentage}
+              isPredictionLocked={DEMO_TOURNAMENT_PREDICTIONS.isPredictionLocked}
             />
           </Box>
 

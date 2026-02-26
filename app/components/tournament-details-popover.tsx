@@ -79,7 +79,7 @@ export function TournamentDetailsPopover({
         </Typography>
         {tournamentPredictions && tournamentId && (
           <TournamentPredictionAccordion
-            tournamentPredictions={tournamentPredictions}
+            tournamentPredictions={tournamentPredictions as any}
             tournamentId={tournamentId}
             isExpanded={true}
             onToggle={() => {}}
