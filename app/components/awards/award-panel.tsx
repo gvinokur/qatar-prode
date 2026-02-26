@@ -162,9 +162,9 @@ export default function AwardsPanel({
     [gameGuessesArray]
   );
 
-  // Calculate predictedGames correctly (count where both scores are NOT NULL)
+  // Calculate predictedGames correctly (count where both scores are NOT NULL/UNDEFINED)
   const predictedGames = useMemo(
-    () => gameGuessesArray.filter((g: any) => g.home_score !== null && g.away_score !== null).length,
+    () => gameGuessesArray.filter((g: any) => g.home_score != null && g.away_score != null).length,
     [gameGuessesArray]
   );
 

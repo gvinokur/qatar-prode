@@ -67,7 +67,7 @@ function UnifiedGamesPageContent({
   const totalGames = games.length;
   const predictedGames = games.filter(game => {
     const guess = guessesContext.gameGuesses[game.id];
-    return guess && guess.home_score !== null && guess.away_score !== null;
+    return guess && guess.home_score != null && guess.away_score != null;
   }).length;
 
   // Effect 1: Detect edit parameter and clear filters
