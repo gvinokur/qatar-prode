@@ -27,6 +27,7 @@ import { useTranslations } from 'next-intl';
 import { CompactPredictionDashboard } from '../compact-prediction-dashboard';
 import { GuessesContextProvider } from '../context-providers/guesses-context-provider';
 import { customToMap } from '../../utils/ObjectUtils';
+import { isGamePredictionComplete } from '../../utils/game-prediction-helpers';
 
 type Props = {
   readonly allPlayers: ExtendedPlayerData[],
@@ -162,10 +163,24 @@ export default function AwardsPanel({
     [gameGuessesArray]
   );
 
-  // Calculate predictedGames correctly (count where both scores are NOT NULL/UNDEFINED)
+  // Create a map of game_id -> game_type for prediction validation
+  const gameTypeMap = useMemo(
+    () => Object.fromEntries(games.map((g: any) => [g.id, g.game_type])),
+    [games]
+  );
+
+  // Calculate predictedGames correctly (check scores AND penalty winner for tied playoff games)
   const predictedGames = useMemo(
-    () => gameGuessesArray.filter((g: any) => g.home_score != null && g.away_score != null).length,
-    [gameGuessesArray]
+    () => gameGuessesArray.filter((g: any) =>
+      isGamePredictionComplete(
+        gameTypeMap[g.game_id],
+        g.home_score,
+        g.away_score,
+        g.home_penalty_winner,
+        g.away_penalty_winner
+      )
+    ).length,
+    [gameGuessesArray, gameTypeMap]
   );
 
   // Calculate individual awards completion from local state

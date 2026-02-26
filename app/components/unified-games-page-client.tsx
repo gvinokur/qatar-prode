@@ -18,6 +18,7 @@ import { TournamentGameCounts } from '../db/game-repository';
 import { filterGames } from '../utils/game-filters';
 import { GuessesContext } from './context-providers/guesses-context-provider';
 import { findScrollTarget, scrollToGame } from '../utils/auto-scroll';
+import { isGamePredictionComplete } from '../utils/game-prediction-helpers';
 
 // Timing constants for edit parameter handling
 const DOM_RENDER_DELAY = 50; // ms - small delay for DOM to re-render after filter change
@@ -67,7 +68,15 @@ function UnifiedGamesPageContent({
   const totalGames = games.length;
   const predictedGames = games.filter(game => {
     const guess = guessesContext.gameGuesses[game.id];
-    return guess && guess.home_score != null && guess.away_score != null;
+    if (!guess) return false;
+
+    return isGamePredictionComplete(
+      game.game_type,
+      guess.home_score,
+      guess.away_score,
+      guess.home_penalty_winner,
+      guess.away_penalty_winner
+    );
   }).length;
 
   // Effect 1: Detect edit parameter and clear filters
