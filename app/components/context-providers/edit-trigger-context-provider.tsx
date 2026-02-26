@@ -5,6 +5,8 @@ import { createContext, useContext, useCallback, useState, ReactNode } from 'rea
 interface EditTriggerContextValue {
   triggerEdit: (gameId: string) => void;
   registerTrigger: (trigger: ((gameId: string) => void) | null) => void;
+  isEditMode: boolean;
+  setEditMode: (isEdit: boolean) => void;
 }
 
 const EditTriggerContext = createContext<EditTriggerContextValue | undefined>(undefined);
@@ -15,6 +17,7 @@ interface EditTriggerContextProviderProps {
 
 export function EditTriggerContextProvider({ children }: EditTriggerContextProviderProps) {
   const [editTrigger, setEditTrigger] = useState<((gameId: string) => void) | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const registerTrigger = useCallback((trigger: ((gameId: string) => void) | null) => {
     setEditTrigger(() => trigger);
@@ -23,11 +26,16 @@ export function EditTriggerContextProvider({ children }: EditTriggerContextProvi
   const triggerEdit = useCallback((gameId: string) => {
     if (editTrigger) {
       editTrigger(gameId);
+      setIsEditMode(true); // Mark edit mode as active when triggered
     }
   }, [editTrigger]);
 
+  const setEditMode = useCallback((isEdit: boolean) => {
+    setIsEditMode(isEdit);
+  }, []);
+
   return (
-    <EditTriggerContext.Provider value={{ triggerEdit, registerTrigger }}>
+    <EditTriggerContext.Provider value={{ triggerEdit, registerTrigger, isEditMode, setEditMode }}>
       {children}
     </EditTriggerContext.Provider>
   );

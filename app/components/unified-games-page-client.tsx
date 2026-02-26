@@ -1,7 +1,7 @@
 'use client'
 
 import { Box, Fab, useTheme, useMediaQuery } from '@mui/material';
-import { useMemo, useContext, useEffect, useState, useRef } from 'react';
+import { useMemo, useContext, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
@@ -51,11 +51,10 @@ function UnifiedGamesPageContent({
   const searchParams = useSearchParams();
   const router = useRouter();
   const { activeFilter, groupFilter, roundFilter, setActiveFilter, setGroupFilter, setRoundFilter } = useFilterContext();
-  const { triggerEdit } = useEditTrigger();
+  const { triggerEdit, isEditMode } = useEditTrigger();
   const guessesContext = useContext(GuessesContext);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [pendingEditGameId, setPendingEditGameId] = useState<string | null>(null);
-  const isProcessingEdit = useRef(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -76,9 +75,6 @@ function UnifiedGamesPageContent({
     const editGameId = searchParams.get('edit');
 
     if (editGameId && !pendingEditGameId) {
-      // Mark that we're processing an edit to prevent auto-scroll
-      isProcessingEdit.current = true;
-
       // Step 1: Store the game ID to trigger scroll/edit after filters update
       setPendingEditGameId(editGameId);
 
@@ -100,16 +96,11 @@ function UnifiedGamesPageContent({
 
         // Trigger edit after scroll animation completes
         const editTimeoutId = setTimeout(() => {
-          triggerEdit(pendingEditGameId);
+          triggerEdit(pendingEditGameId); // This sets isEditMode to true in context
           setPendingEditGameId(null); // Clear pending state
 
           // Remove edit parameter from URL to prevent re-triggering
           router.replace(window.location.pathname, { scroll: false });
-
-          // Clear the processing flag after a short delay to allow URL update to settle
-          setTimeout(() => {
-            isProcessingEdit.current = false;
-          }, 100);
         }, SCROLL_ANIMATION_DURATION);
 
         return () => clearTimeout(editTimeoutId);
@@ -121,8 +112,8 @@ function UnifiedGamesPageContent({
 
   // Auto-scroll when filters change
   useEffect(() => {
-    // Skip auto-scroll if we're processing an edit parameter (prevents re-scroll after edit)
-    if (isProcessingEdit.current) {
+    // Skip auto-scroll if any card is in edit mode
+    if (isEditMode) {
       return;
     }
 
@@ -135,7 +126,7 @@ function UnifiedGamesPageContent({
         }, 100);
       }
     }
-  }, [activeFilter, groupFilter, roundFilter, filteredGames]);
+  }, [activeFilter, groupFilter, roundFilter, filteredGames, isEditMode]);
 
   // Track scroll position to show/hide scroll to top button
   useEffect(() => {

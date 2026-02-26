@@ -48,7 +48,7 @@ export function GamesListWithScroll({
   const t = useTranslations('predictions');
   const groupContext = useContext(GuessesContext);
   const editMode = useEditMode();
-  const { registerTrigger } = useEditTrigger();
+  const { registerTrigger, setEditMode } = useEditTrigger();
   const [editingGameId, setEditingGameId] = useState<string | null>(null);
   const gameGuesses = groupContext.gameGuesses;
   const { data } = useSession();
@@ -104,14 +104,16 @@ export function GamesListWithScroll({
       await editMode.startEdit(gameId, 'inline');
     }
     setEditingGameId(gameId);
-  }, [editMode]);
+    setEditMode(true); // Mark edit mode as active
+  }, [editMode, setEditMode]);
 
   const handleEditEnd = useCallback(() => {
     if (editMode) {
       editMode.endEdit();
     }
     setEditingGameId(null);
-  }, [editMode]);
+    setEditMode(false); // Mark edit mode as inactive
+  }, [editMode, setEditMode]);
 
   // Register handleEditStart with EditTriggerContext to allow external triggering
   useEffect(() => {
