@@ -162,6 +162,53 @@ export default function AwardsPanel({
     [gameGuessesArray]
   );
 
+  // Calculate predictedGames correctly (count where both scores are NOT NULL)
+  const predictedGames = useMemo(
+    () => gameGuessesArray.filter((g: any) => g.home_score !== null && g.away_score !== null).length,
+    [gameGuessesArray]
+  );
+
+  // Calculate individual awards completion from local state
+  const awardsCompleted = useMemo(() => {
+    return [
+      tournamentGuesses.best_player_id,
+      tournamentGuesses.top_goalscorer_player_id,
+      tournamentGuesses.best_goalkeeper_player_id,
+      tournamentGuesses.best_young_player_id,
+    ].filter(Boolean).length;
+  }, [
+    tournamentGuesses.best_player_id,
+    tournamentGuesses.top_goalscorer_player_id,
+    tournamentGuesses.best_goalkeeper_player_id,
+    tournamentGuesses.best_young_player_id,
+  ]);
+
+  // Calculate final standings (honor roll) completion from local state
+  const finalStandingsCompleted = useMemo(() => {
+    return [
+      tournamentGuesses.champion_team_id,
+      tournamentGuesses.runner_up_team_id,
+      tournamentGuesses.third_place_team_id,
+    ].filter(Boolean).length;
+  }, [
+    tournamentGuesses.champion_team_id,
+    tournamentGuesses.runner_up_team_id,
+    tournamentGuesses.third_place_team_id,
+  ]);
+
+  // Filter urgent games (within 48 hours)
+  const urgentGames = useMemo(
+    () => {
+      const now = Date.now();
+      const fortyEightHours = 48 * 60 * 60 * 1000;
+      return games.filter((game: any) => {
+        const gameTime = new Date(game.game_date).getTime();
+        return gameTime > now && gameTime <= now + fortyEightHours;
+      });
+    },
+    [games]
+  );
+
   return (
     <GuessesContextProvider
       gameGuesses={gameGuessesMap}
@@ -170,13 +217,25 @@ export default function AwardsPanel({
       tournamentMaxGolden={tournament.max_golden_games || 0}
     >
       <CompactPredictionDashboard
-        totalGames={games.length}
-        predictedGames={gameGuessesArray.length}
-        tournamentPredictions={tournamentPredictionCompletion}
+        totalGames={tournamentPredictionCompletion?.totalGames ?? games.length}
+        predictedGames={predictedGames}
         tournamentId={tournament.id}
         tournamentStartDate={tournamentStartDate}
-        games={games}
+        urgentGames={urgentGames}
+        urgentGameGuesses={gameGuessesMap}
         teamsMap={teamsMap}
+        silverBoostsUsed={tournamentPredictionCompletion?.silverBoostsUsed ?? 0}
+        silverBoostsMax={tournamentPredictionCompletion?.silverBoostsMax ?? (tournament.max_silver_games || 0)}
+        goldenBoostsUsed={tournamentPredictionCompletion?.goldenBoostsUsed ?? 0}
+        goldenBoostsMax={tournamentPredictionCompletion?.goldenBoostsMax ?? (tournament.max_golden_games || 0)}
+        finalStandingsCompleted={finalStandingsCompleted}
+        finalStandingsTotal={tournamentPredictionCompletion?.finalStandings.total ?? 3}
+        awardsCompleted={awardsCompleted}
+        awardsTotal={tournamentPredictionCompletion?.awards.total ?? 4}
+        qualifiersCompleted={tournamentPredictionCompletion?.qualifiers.completed}
+        qualifiersTotal={tournamentPredictionCompletion?.qualifiers.total}
+        overallPercentage={tournamentPredictionCompletion?.overallPercentage}
+        isPredictionLocked={tournamentPredictionCompletion?.isPredictionLocked}
       />
 
       <Card>

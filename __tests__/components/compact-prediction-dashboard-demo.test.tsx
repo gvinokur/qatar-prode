@@ -86,10 +86,10 @@ describe('CompactPredictionDashboard - Demo Mode', () => {
       <CompactPredictionDashboard
         totalGames={48}
         predictedGames={32}
-        silverUsed={3}
-        silverMax={5}
-        goldenUsed={1}
-        goldenMax={2}
+        silverBoostsUsed={3}
+        silverBoostsMax={5}
+        goldenBoostsUsed={1}
+        goldenBoostsMax={2}
         demoMode={false}
       />
     )
@@ -102,11 +102,17 @@ describe('CompactPredictionDashboard - Demo Mode', () => {
       <CompactPredictionDashboard
         totalGames={48}
         predictedGames={32}
-        silverUsed={3}
-        silverMax={5}
-        goldenUsed={1}
-        goldenMax={2}
-        tournamentPredictions={mockTournamentPredictions}
+        silverBoostsUsed={3}
+        silverBoostsMax={5}
+        goldenBoostsUsed={1}
+        goldenBoostsMax={2}
+        finalStandingsCompleted={3}
+        finalStandingsTotal={3}
+        awardsCompleted={2}
+        awardsTotal={4}
+        qualifiersCompleted={4}
+        qualifiersTotal={4}
+        overallPercentage={82}
         tournamentId="demo-tournament"
         demoMode={false}
       />
@@ -120,11 +126,12 @@ describe('CompactPredictionDashboard - Demo Mode', () => {
       <CompactPredictionDashboard
         totalGames={48}
         predictedGames={32}
-        silverUsed={3}
-        silverMax={5}
-        goldenUsed={1}
-        goldenMax={2}
-        games={mockGames}
+        silverBoostsUsed={3}
+        silverBoostsMax={5}
+        goldenBoostsUsed={1}
+        goldenBoostsMax={2}
+        urgentGames={mockGames}
+        urgentGameGuesses={{}}
         teamsMap={mockTeamsMap}
         demoMode={true}
       />
@@ -141,11 +148,17 @@ describe('CompactPredictionDashboard - Demo Mode', () => {
       <CompactPredictionDashboard
         totalGames={48}
         predictedGames={32}
-        silverUsed={3}
-        silverMax={5}
-        goldenUsed={1}
-        goldenMax={2}
-        tournamentPredictions={mockTournamentPredictions}
+        silverBoostsUsed={3}
+        silverBoostsMax={5}
+        goldenBoostsUsed={1}
+        goldenBoostsMax={2}
+        finalStandingsCompleted={3}
+        finalStandingsTotal={3}
+        awardsCompleted={2}
+        awardsTotal={4}
+        qualifiersCompleted={4}
+        qualifiersTotal={4}
+        overallPercentage={82}
         tournamentId="demo-tournament"
         demoMode={true}
       />
@@ -162,10 +175,10 @@ describe('CompactPredictionDashboard - Demo Mode', () => {
       <CompactPredictionDashboard
         totalGames={48}
         predictedGames={32}
-        silverUsed={3}
-        silverMax={5}
-        goldenUsed={1}
-        goldenMax={2}
+        silverBoostsUsed={3}
+        silverBoostsMax={5}
+        goldenBoostsUsed={1}
+        goldenBoostsMax={2}
         demoMode={true}
       />
     )
@@ -179,11 +192,12 @@ describe('CompactPredictionDashboard - Demo Mode', () => {
       <CompactPredictionDashboard
         totalGames={48}
         predictedGames={32}
-        silverUsed={3}
-        silverMax={5}
-        goldenUsed={1}
-        goldenMax={2}
-        games={mockGames}
+        silverBoostsUsed={3}
+        silverBoostsMax={5}
+        goldenBoostsUsed={1}
+        goldenBoostsMax={2}
+        urgentGames={mockGames}
+        urgentGameGuesses={{}}
         teamsMap={mockTeamsMap}
         demoMode={false}
       />
@@ -198,10 +212,10 @@ describe('CompactPredictionDashboard - Demo Mode', () => {
       <CompactPredictionDashboard
         totalGames={100}
         predictedGames={50}
-        silverUsed={0}
-        silverMax={5}
-        goldenUsed={0}
-        goldenMax={2}
+        silverBoostsUsed={0}
+        silverBoostsMax={5}
+        goldenBoostsUsed={0}
+        goldenBoostsMax={2}
         demoMode={false}
       />
     )
@@ -214,10 +228,10 @@ describe('CompactPredictionDashboard - Demo Mode', () => {
       <CompactPredictionDashboard
         totalGames={0}
         predictedGames={0}
-        silverUsed={0}
-        silverMax={5}
-        goldenUsed={0}
-        goldenMax={2}
+        silverBoostsUsed={0}
+        silverBoostsMax={5}
+        goldenBoostsUsed={0}
+        goldenBoostsMax={2}
         demoMode={false}
       />
     )
@@ -230,10 +244,10 @@ describe('CompactPredictionDashboard - Demo Mode', () => {
       <CompactPredictionDashboard
         totalGames={48}
         predictedGames={32}
-        silverUsed={3}
-        silverMax={5}
-        goldenUsed={0}
-        goldenMax={0}
+        silverBoostsUsed={3}
+        silverBoostsMax={5}
+        goldenBoostsUsed={0}
+        goldenBoostsMax={0}
         demoMode={false}
       />
     )
@@ -246,11 +260,12 @@ describe('CompactPredictionDashboard - Demo Mode', () => {
       <CompactPredictionDashboard
         totalGames={48}
         predictedGames={32}
-        silverUsed={3}
-        silverMax={5}
-        goldenUsed={1}
-        goldenMax={2}
-        games={mockGames}
+        silverBoostsUsed={3}
+        silverBoostsMax={5}
+        goldenBoostsUsed={1}
+        goldenBoostsMax={2}
+        urgentGames={mockGames}
+        urgentGameGuesses={{}}
         teamsMap={mockTeamsMap}
         demoMode={false}
       />
@@ -261,11 +276,12 @@ describe('CompactPredictionDashboard - Demo Mode', () => {
       <CompactPredictionDashboard
         totalGames={48}
         predictedGames={32}
-        silverUsed={3}
-        silverMax={5}
-        goldenUsed={1}
-        goldenMax={2}
-        games={mockGames}
+        silverBoostsUsed={3}
+        silverBoostsMax={5}
+        goldenBoostsUsed={1}
+        goldenBoostsMax={2}
+        urgentGames={mockGames}
+        urgentGameGuesses={{}}
         teamsMap={mockTeamsMap}
         demoMode={false}
       />

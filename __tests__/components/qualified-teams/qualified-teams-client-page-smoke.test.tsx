@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { NextIntlClientProvider } from 'next-intl';
@@ -7,6 +7,12 @@ import { testFactories } from '../../db/test-factories';
 import qualifiedTeamsEs from '../../../locales/es/qualified-teams.json';
 import qualifiedTeamsEn from '../../../locales/en/qualified-teams.json';
 import { renderWithTheme } from '../../utils/test-utils';
+
+// Mock CompactPredictionDashboard to capture props
+const mockCompactPredictionDashboard = vi.fn(() => <div data-testid="compact-prediction-dashboard">Dashboard</div>);
+vi.mock('../../../app/components/compact-prediction-dashboard', () => ({
+  CompactPredictionDashboard: (props: any) => mockCompactPredictionDashboard(props)
+}));
 
 // Helper to render with i18n
 const renderWithI18n = (component: React.ReactElement, locale: 'en' | 'es' = 'es') => {
@@ -27,6 +33,10 @@ const renderWithI18n = (component: React.ReactElement, locale: 'en' | 'es' = 'es
  * Full integration testing is complex due to DnD and context dependencies
  */
 describe('QualifiedTeamsClientPage - Smoke Tests', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   const mockTournament = {
     ...testFactories.tournament({
       id: 'tournament-1',
@@ -186,5 +196,360 @@ describe('QualifiedTeamsClientPage - Smoke Tests', () => {
     // Verify third place teams are rendered
     expect(screen.queryByText('Chile')).toBeInTheDocument();
     expect(screen.queryByText('Uruguay')).toBeInTheDocument();
+  });
+});
+
+describe('QualifiedTeamsClientPage - Override Pattern', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const mockTournament = {
+    ...testFactories.tournament({
+      id: 'tournament-1',
+      allows_third_place_qualification: true,
+      max_third_place_qualifiers: 4,
+    }),
+    max_silver_games: 5,
+    max_golden_games: 3,
+  };
+
+  const mockGroup1 = testFactories.tournamentGroup({
+    id: 'group-1',
+    tournament_id: 'tournament-1',
+    group_letter: 'A',
+  });
+
+  const mockGroup2 = testFactories.tournamentGroup({
+    id: 'group-2',
+    tournament_id: 'tournament-1',
+    group_letter: 'B',
+  });
+
+  const mockTeam1 = testFactories.team({ id: 'team-1', name: 'Argentina' });
+  const mockTeam2 = testFactories.team({ id: 'team-2', name: 'Brazil' });
+  const mockTeam3 = testFactories.team({ id: 'team-3', name: 'Chile' });
+  const mockTeam4 = testFactories.team({ id: 'team-4', name: 'Uruguay' });
+
+  it('should calculate qualifiersCompleted from predictions state (override pattern)', () => {
+    const predictions = [
+      testFactories.qualifiedTeamPrediction({
+        id: 'pred-1',
+        user_id: 'user-1',
+        tournament_id: 'tournament-1',
+        team_id: 'team-1',
+        group_id: 'group-1',
+        predicted_position: 1,
+        predicted_to_qualify: true,
+      }),
+      testFactories.qualifiedTeamPrediction({
+        id: 'pred-2',
+        user_id: 'user-1',
+        tournament_id: 'tournament-1',
+        team_id: 'team-2',
+        group_id: 'group-1',
+        predicted_position: 2,
+        predicted_to_qualify: true,
+      }),
+      testFactories.qualifiedTeamPrediction({
+        id: 'pred-3',
+        user_id: 'user-1',
+        tournament_id: 'tournament-1',
+        team_id: 'team-3',
+        group_id: 'group-2',
+        predicted_position: 1,
+        predicted_to_qualify: true,
+      }),
+    ];
+
+    const mockProps = {
+      tournament: { ...mockTournament, short_name: 'Test' },
+      groups: [
+        { group: mockGroup1, teams: [mockTeam1, mockTeam2] },
+        { group: mockGroup2, teams: [mockTeam3, mockTeam4] },
+      ],
+      userId: 'user-1',
+      isLocked: false,
+      initialPredictions: predictions,
+      allowsThirdPlace: false,
+      maxThirdPlace: 0,
+      completeGroupIds: new Set<string>(),
+      allGroupsComplete: false,
+      games: [],
+      gameGuessesArray: [],
+      tournamentPredictionCompletion: {
+        qualifiers: { completed: 999, total: 16 }, // Server value should be overridden
+        finalStandings: { completed: 0, total: 3 },
+        awards: { completed: 0, total: 4 },
+      },
+      tournamentStartDate: new Date('2024-01-01'),
+      teamsMap: { 'team-1': mockTeam1, 'team-2': mockTeam2, 'team-3': mockTeam3, 'team-4': mockTeam4 },
+    };
+
+    renderWithTheme(
+      <NextIntlClientProvider locale="es" messages={{ 'qualified-teams': qualifiedTeamsEs }}>
+        <QualifiedTeamsClientPage {...mockProps} />
+      </NextIntlClientProvider>
+    );
+
+    // Dashboard should receive qualifiersCompleted = 3 (from predictions state)
+    // NOT the server value of 999
+    expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        qualifiersCompleted: 3, // Overridden from predictions state
+        qualifiersTotal: 16, // From server
+      })
+    );
+  });
+
+  it('should calculate qualifiersCompleted with third place qualifications', () => {
+    const predictions = [
+      testFactories.qualifiedTeamPrediction({
+        id: 'pred-1',
+        user_id: 'user-1',
+        tournament_id: 'tournament-1',
+        team_id: 'team-1',
+        group_id: 'group-1',
+        predicted_position: 1,
+        predicted_to_qualify: true,
+      }),
+      testFactories.qualifiedTeamPrediction({
+        id: 'pred-2',
+        user_id: 'user-1',
+        tournament_id: 'tournament-1',
+        team_id: 'team-2',
+        group_id: 'group-1',
+        predicted_position: 2,
+        predicted_to_qualify: true,
+      }),
+      testFactories.qualifiedTeamPrediction({
+        id: 'pred-3',
+        user_id: 'user-1',
+        tournament_id: 'tournament-1',
+        team_id: 'team-3',
+        group_id: 'group-1',
+        predicted_position: 3,
+        predicted_to_qualify: true, // Third place qualifies
+      }),
+      testFactories.qualifiedTeamPrediction({
+        id: 'pred-4',
+        user_id: 'user-1',
+        tournament_id: 'tournament-1',
+        team_id: 'team-4',
+        group_id: 'group-1',
+        predicted_position: 4,
+        predicted_to_qualify: false, // Fourth place does not qualify
+      }),
+    ];
+
+    const mockProps = {
+      tournament: { ...mockTournament, short_name: 'Test' },
+      groups: [{ group: mockGroup1, teams: [mockTeam1, mockTeam2, mockTeam3, mockTeam4] }],
+      userId: 'user-1',
+      isLocked: false,
+      initialPredictions: predictions,
+      allowsThirdPlace: true,
+      maxThirdPlace: 4,
+      completeGroupIds: new Set<string>(),
+      allGroupsComplete: false,
+      games: [],
+      gameGuessesArray: [],
+      tournamentPredictionCompletion: null,
+      tournamentStartDate: new Date('2024-01-01'),
+      teamsMap: { 'team-1': mockTeam1, 'team-2': mockTeam2, 'team-3': mockTeam3, 'team-4': mockTeam4 },
+    };
+
+    renderWithTheme(
+      <NextIntlClientProvider locale="es" messages={{ 'qualified-teams': qualifiedTeamsEs }}>
+        <QualifiedTeamsClientPage {...mockProps} />
+      </NextIntlClientProvider>
+    );
+
+    // Should count 3 qualified teams (1st, 2nd, and 3rd place)
+    expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        qualifiersCompleted: 3,
+      })
+    );
+  });
+
+  it('should count DISTINCT teams when same team is marked as qualifier in multiple groups', () => {
+    // Edge case: If same team ID is marked as qualifier in multiple groups (shouldn't happen but...)
+    const predictions = [
+      testFactories.qualifiedTeamPrediction({
+        id: 'pred-1',
+        user_id: 'user-1',
+        tournament_id: 'tournament-1',
+        team_id: 'team-1',
+        group_id: 'group-1',
+        predicted_position: 1,
+        predicted_to_qualify: true,
+      }),
+      testFactories.qualifiedTeamPrediction({
+        id: 'pred-2',
+        user_id: 'user-1',
+        tournament_id: 'tournament-1',
+        team_id: 'team-1', // Same team (shouldn't happen in real data)
+        group_id: 'group-2',
+        predicted_position: 1,
+        predicted_to_qualify: true,
+      }),
+      testFactories.qualifiedTeamPrediction({
+        id: 'pred-3',
+        user_id: 'user-1',
+        tournament_id: 'tournament-1',
+        team_id: 'team-2',
+        group_id: 'group-1',
+        predicted_position: 2,
+        predicted_to_qualify: true,
+      }),
+    ];
+
+    const mockProps = {
+      tournament: { ...mockTournament, short_name: 'Test' },
+      groups: [
+        { group: mockGroup1, teams: [mockTeam1, mockTeam2] },
+        { group: mockGroup2, teams: [mockTeam1, mockTeam3] }, // team-1 in both groups
+      ],
+      userId: 'user-1',
+      isLocked: false,
+      initialPredictions: predictions,
+      allowsThirdPlace: false,
+      maxThirdPlace: 0,
+      completeGroupIds: new Set<string>(),
+      allGroupsComplete: false,
+      games: [],
+      gameGuessesArray: [],
+      tournamentPredictionCompletion: null,
+      tournamentStartDate: new Date('2024-01-01'),
+      teamsMap: { 'team-1': mockTeam1, 'team-2': mockTeam2, 'team-3': mockTeam3 },
+    };
+
+    renderWithTheme(
+      <NextIntlClientProvider locale="es" messages={{ 'qualified-teams': qualifiedTeamsEs }}>
+        <QualifiedTeamsClientPage {...mockProps} />
+      </NextIntlClientProvider>
+    );
+
+    // Should count DISTINCT teams = 2 (team-1 and team-2), not 3
+    expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        qualifiersCompleted: 2,
+      })
+    );
+  });
+
+  it('should pass calculated predictedGames from gameGuessesArray', () => {
+    const gameGuesses = [
+      { game_id: 'game-1', home_score: 2, away_score: 1 },
+      { game_id: 'game-2', home_score: 1, away_score: 1 },
+      { game_id: 'game-3', home_score: null, away_score: 1 }, // Partial - not counted
+    ];
+
+    const mockProps = {
+      tournament: { ...mockTournament, short_name: 'Test' },
+      groups: [{ group: mockGroup1, teams: [mockTeam1, mockTeam2] }],
+      userId: 'user-1',
+      isLocked: false,
+      initialPredictions: [],
+      allowsThirdPlace: false,
+      maxThirdPlace: 0,
+      completeGroupIds: new Set<string>(),
+      allGroupsComplete: false,
+      games: [],
+      gameGuessesArray: gameGuesses,
+      tournamentPredictionCompletion: null,
+      tournamentStartDate: new Date('2024-01-01'),
+      teamsMap: { 'team-1': mockTeam1, 'team-2': mockTeam2 },
+    };
+
+    renderWithTheme(
+      <NextIntlClientProvider locale="es" messages={{ 'qualified-teams': qualifiedTeamsEs }}>
+        <QualifiedTeamsClientPage {...mockProps} />
+      </NextIntlClientProvider>
+    );
+
+    expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        predictedGames: 2, // Only game-1 and game-2 have both scores
+      })
+    );
+  });
+
+  it('should filter urgent games (within 48 hours)', () => {
+    const now = Date.now();
+    const urgentGame = { game_id: 'game-1', game_date: new Date(now + 24 * 60 * 60 * 1000) }; // 24 hours away
+    const notUrgentGame = { game_id: 'game-2', game_date: new Date(now + 72 * 60 * 60 * 1000) }; // 72 hours away
+
+    const mockProps = {
+      tournament: { ...mockTournament, short_name: 'Test' },
+      groups: [{ group: mockGroup1, teams: [mockTeam1, mockTeam2] }],
+      userId: 'user-1',
+      isLocked: false,
+      initialPredictions: [],
+      allowsThirdPlace: false,
+      maxThirdPlace: 0,
+      completeGroupIds: new Set<string>(),
+      allGroupsComplete: false,
+      games: [urgentGame, notUrgentGame],
+      gameGuessesArray: [],
+      tournamentPredictionCompletion: null,
+      tournamentStartDate: new Date('2024-01-01'),
+      teamsMap: { 'team-1': mockTeam1, 'team-2': mockTeam2 },
+    };
+
+    renderWithTheme(
+      <NextIntlClientProvider locale="es" messages={{ 'qualified-teams': qualifiedTeamsEs }}>
+        <QualifiedTeamsClientPage {...mockProps} />
+      </NextIntlClientProvider>
+    );
+
+    expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        urgentGames: [urgentGame], // Only the urgent one
+      })
+    );
+  });
+
+  it('should pass boost counts from tournamentPredictionCompletion when available', () => {
+    const mockProps = {
+      tournament: { ...mockTournament, short_name: 'Test' },
+      groups: [{ group: mockGroup1, teams: [mockTeam1, mockTeam2] }],
+      userId: 'user-1',
+      isLocked: false,
+      initialPredictions: [],
+      allowsThirdPlace: false,
+      maxThirdPlace: 0,
+      completeGroupIds: new Set<string>(),
+      allGroupsComplete: false,
+      games: [],
+      gameGuessesArray: [],
+      tournamentPredictionCompletion: {
+        silverBoostsUsed: 3,
+        silverBoostsMax: 5,
+        goldenBoostsUsed: 2,
+        goldenBoostsMax: 3,
+        finalStandings: { completed: 0, total: 3 },
+        awards: { completed: 0, total: 4 },
+        qualifiers: { completed: 0, total: 16 },
+      },
+      tournamentStartDate: new Date('2024-01-01'),
+      teamsMap: { 'team-1': mockTeam1, 'team-2': mockTeam2 },
+    };
+
+    renderWithTheme(
+      <NextIntlClientProvider locale="es" messages={{ 'qualified-teams': qualifiedTeamsEs }}>
+        <QualifiedTeamsClientPage {...mockProps} />
+      </NextIntlClientProvider>
+    );
+
+    expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        silverBoostsUsed: 3,
+        silverBoostsMax: 5,
+        goldenBoostsUsed: 2,
+        goldenBoostsMax: 3,
+      })
+    );
   });
 });

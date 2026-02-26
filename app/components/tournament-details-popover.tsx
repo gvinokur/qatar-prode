@@ -2,14 +2,18 @@ import React from 'react';
 import { Popover, Card, Typography } from '@mui/material';
 import { useTranslations } from 'next-intl';
 import { TournamentPredictionAccordion } from './tournament-prediction-accordion';
-import { TournamentPredictionCompletion } from '../db/tables-definition';
 
 interface TournamentDetailsPopoverProps {
   readonly open: boolean;
   readonly anchorEl: HTMLElement | null;
   readonly onClose: () => void;
   readonly width: number;
-  readonly tournamentPredictions?: TournamentPredictionCompletion;
+  readonly finalStandingsCompleted?: number;
+  readonly finalStandingsTotal?: number;
+  readonly awardsCompleted?: number;
+  readonly awardsTotal?: number;
+  readonly qualifiersCompleted?: number;
+  readonly qualifiersTotal?: number;
   readonly tournamentId?: string;
 }
 
@@ -21,10 +25,39 @@ export function TournamentDetailsPopover({
   anchorEl,
   onClose,
   width,
-  tournamentPredictions,
+  finalStandingsCompleted,
+  finalStandingsTotal,
+  awardsCompleted,
+  awardsTotal,
+  qualifiersCompleted,
+  qualifiersTotal,
   tournamentId
 }: TournamentDetailsPopoverProps) {
   const t = useTranslations('predictions');
+
+  // Reconstruct tournament predictions object for the accordion component
+  const tournamentPredictions =
+    finalStandingsCompleted !== undefined &&
+    finalStandingsTotal !== undefined &&
+    awardsCompleted !== undefined &&
+    awardsTotal !== undefined &&
+    qualifiersCompleted !== undefined &&
+    qualifiersTotal !== undefined
+      ? {
+          finalStandings: {
+            completed: finalStandingsCompleted,
+            total: finalStandingsTotal,
+          },
+          awards: {
+            completed: awardsCompleted,
+            total: awardsTotal,
+          },
+          qualifiers: {
+            completed: qualifiersCompleted,
+            total: qualifiersTotal,
+          },
+        }
+      : undefined;
 
   return (
     <Popover

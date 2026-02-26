@@ -1,11 +1,10 @@
 'use client'
 
-import React, { useContext, useMemo, useState, useRef, useCallback, useEffect } from 'react';
+import React, { useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import { Box } from '@mui/material';
 import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
-import { TournamentPredictionCompletion, Team } from '../db/tables-definition';
-import { GuessesContext } from './context-providers/guesses-context-provider';
+import { Team } from '../db/tables-definition';
 import type { ExtendedGameData } from '../definitions';
 import BoostInfoPopover from './boost-info-popover';
 import { PredictionProgressRow } from './prediction-progress-row';
@@ -20,28 +19,50 @@ import {
 interface CompactPredictionDashboardProps {
   readonly totalGames: number;
   readonly predictedGames: number;
-  readonly tournamentPredictions?: TournamentPredictionCompletion;
   readonly tournamentId?: string;
   readonly tournamentStartDate?: Date;
-  readonly games?: ExtendedGameData[];
+  readonly urgentGames?: ExtendedGameData[];
+  readonly urgentGameGuesses?: Record<string, { home_score: number | null; away_score: number | null }>;
   readonly teamsMap?: Record<string, Team>;
-  readonly isPlayoffs?: boolean;
+  readonly silverBoostsUsed: number;
+  readonly silverBoostsMax: number;
+  readonly goldenBoostsUsed: number;
+  readonly goldenBoostsMax: number;
+  // Tournament predictions - flattened
+  readonly finalStandingsCompleted?: number;
+  readonly finalStandingsTotal?: number;
+  readonly awardsCompleted?: number;
+  readonly awardsTotal?: number;
+  readonly qualifiersCompleted?: number;
+  readonly qualifiersTotal?: number;
+  readonly overallPercentage?: number;
+  readonly isPredictionLocked?: boolean;
   readonly demoMode?: boolean;
 }
 
 export function CompactPredictionDashboard({
   totalGames,
   predictedGames,
-  tournamentPredictions,
   tournamentId,
   tournamentStartDate,
-  games,
+  urgentGames,
+  urgentGameGuesses,
   teamsMap,
-  isPlayoffs = false,
+  silverBoostsUsed,
+  silverBoostsMax,
+  goldenBoostsUsed,
+  goldenBoostsMax,
+  finalStandingsCompleted,
+  finalStandingsTotal,
+  awardsCompleted,
+  awardsTotal,
+  qualifiersCompleted,
+  qualifiersTotal,
+  overallPercentage,
+  isPredictionLocked,
   demoMode = false
 }: CompactPredictionDashboardProps) {
   const t = useTranslations('predictions');
-  const { gameGuesses, boostCounts } = useContext(GuessesContext);
   const dashboardRef = useRef<HTMLDivElement>(null);
   const [gamePopoverAnchor, setGamePopoverAnchor] = useState<HTMLElement | null>(null);
   const [tournamentPopoverAnchor, setTournamentPopoverAnchor] = useState<HTMLElement | null>(null);
@@ -50,12 +71,42 @@ export function CompactPredictionDashboard({
   const [dashboardWidth, setDashboardWidth] = useState<number>(600);
 
   const gamePercentage = totalGames > 0 ? Math.round((predictedGames / totalGames) * 100) : 0;
-  const showBoosts = boostCounts.silver.max > 0 || boostCounts.golden.max > 0;
+  const showBoosts = silverBoostsMax > 0 || goldenBoostsMax > 0;
 
   const gameUrgencyLevel = useMemo(
-    () => getGameUrgencyLevel(games, gameGuesses),
-    [games, gameGuesses]
+    () => getGameUrgencyLevel(urgentGames, urgentGameGuesses || {}),
+    [urgentGames, urgentGameGuesses]
   );
+
+  // Reconstruct tournament predictions object for urgency calculation
+  const tournamentPredictions = useMemo(() => {
+    if (
+      finalStandingsCompleted === undefined ||
+      finalStandingsTotal === undefined ||
+      awardsCompleted === undefined ||
+      awardsTotal === undefined ||
+      qualifiersCompleted === undefined ||
+      qualifiersTotal === undefined ||
+      overallPercentage === undefined ||
+      isPredictionLocked === undefined
+    ) {
+      return undefined;
+    }
+    // Only include fields needed by getTournamentUrgencyLevel
+    return {
+      overallPercentage,
+      isPredictionLocked,
+    } as any; // Partial object sufficient for urgency calculation
+  }, [
+    finalStandingsCompleted,
+    finalStandingsTotal,
+    awardsCompleted,
+    awardsTotal,
+    qualifiersCompleted,
+    qualifiersTotal,
+    overallPercentage,
+    isPredictionLocked,
+  ]);
 
   const tournamentUrgencyLevel = useMemo(
     () => getTournamentUrgencyLevel(tournamentPredictions, tournamentStartDate),
@@ -99,13 +150,13 @@ export function CompactPredictionDashboard({
   const searchParams = useSearchParams();
 
   // Extract boost values to reduce nesting
-  const boostUsed = activeBoostType === 'silver' ? boostCounts.silver.used : boostCounts.golden.used;
-  const boostMax = activeBoostType === 'silver' ? boostCounts.silver.max : boostCounts.golden.max;
+  const boostUsed = activeBoostType === 'silver' ? silverBoostsUsed : goldenBoostsUsed;
+  const boostMax = activeBoostType === 'silver' ? silverBoostsMax : goldenBoostsMax;
 
-  // Check if there are no urgent games (within 48 hours)
-  const urgentGames = useMemo(
-    () => checkUrgentGames(games, gameGuesses),
-    [games, gameGuesses]
+  // Check if there are urgent games (within 48 hours)
+  const hasUrgentGamesValue = useMemo(
+    () => checkUrgentGames(urgentGames, urgentGameGuesses || {}),
+    [urgentGames, urgentGameGuesses]
   );
 
   // Get dashboard width on mount and resize
@@ -140,19 +191,19 @@ export function CompactPredictionDashboard({
         urgencyLevel={gameUrgencyLevel}
         onClick={handleGameRowClick}
         showBoosts={showBoosts}
-        silverUsed={boostCounts.silver.used}
-        silverMax={boostCounts.silver.max}
-        goldenUsed={boostCounts.golden.used}
-        goldenMax={boostCounts.golden.max}
+        silverUsed={silverBoostsUsed}
+        silverMax={silverBoostsMax}
+        goldenUsed={goldenBoostsUsed}
+        goldenMax={goldenBoostsMax}
         onBoostClick={boostClickHandler}
       />
 
       {/* Tournament Predictions Row */}
-      {tournamentPredictions && tournamentId && (
+      {overallPercentage !== undefined && tournamentId && (
         <PredictionProgressRow
           label={t('dashboard.tournament')}
-          currentValue={tournamentPredictions.overallPercentage}
-          percentage={tournamentPredictions.overallPercentage}
+          currentValue={overallPercentage}
+          percentage={overallPercentage}
           urgencyLevel={tournamentUrgencyLevel}
           onClick={handleTournamentRowClick}
           marginBottom={0}
@@ -165,14 +216,13 @@ export function CompactPredictionDashboard({
         anchorEl={gamePopoverAnchor}
         onClose={() => setGamePopoverAnchor(null)}
         width={dashboardWidth}
-        hasUrgentGames={urgentGames}
-        games={games}
+        hasUrgentGames={hasUrgentGamesValue}
+        urgentGames={urgentGames}
+        urgentGameGuesses={urgentGameGuesses}
         teamsMap={teamsMap}
-        gameGuesses={gameGuesses}
         tournamentId={tournamentId}
-        isPlayoffs={isPlayoffs}
-        silverMax={boostCounts.silver.max}
-        goldenMax={boostCounts.golden.max}
+        silverMax={silverBoostsMax}
+        goldenMax={goldenBoostsMax}
       />
 
       {/* Tournament Details Popover */}
@@ -181,7 +231,12 @@ export function CompactPredictionDashboard({
         anchorEl={tournamentPopoverAnchor}
         onClose={() => setTournamentPopoverAnchor(null)}
         width={dashboardWidth}
-        tournamentPredictions={tournamentPredictions}
+        finalStandingsCompleted={finalStandingsCompleted}
+        finalStandingsTotal={finalStandingsTotal}
+        awardsCompleted={awardsCompleted}
+        awardsTotal={awardsTotal}
+        qualifiersCompleted={qualifiersCompleted}
+        qualifiersTotal={qualifiersTotal}
         tournamentId={tournamentId}
       />
 

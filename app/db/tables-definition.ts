@@ -488,6 +488,14 @@ export interface TournamentPredictionCompletion {
   overallTotal: number;
   overallPercentage: number;
   isPredictionLocked: boolean;
+  // Game predictions
+  completedGames: number;
+  totalGames: number;
+  // Boost tracking
+  silverBoostsUsed: number;
+  goldenBoostsUsed: number;
+  silverBoostsMax: number;
+  goldenBoostsMax: number;
 }
 
 export interface PlayerTable extends Identifiable {

@@ -21,7 +21,13 @@ vi.mock('../context-providers/edit-trigger-context-provider', () => ({
 }));
 
 vi.mock('../context-providers/guesses-context-provider', () => ({
-  GuessesContext: React.createContext({ gameGuesses: {} })
+  GuessesContext: React.createContext({
+    gameGuesses: {},
+    boostCounts: {
+      silver: { used: 0, max: 5 },
+      golden: { used: 0, max: 3 }
+    }
+  })
 }));
 
 vi.mock('../utils/auto-scroll', () => ({

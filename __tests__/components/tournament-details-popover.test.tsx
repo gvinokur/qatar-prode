@@ -12,24 +12,17 @@ vi.mock('../../app/components/tournament-prediction-accordion', () => ({
 }));
 
 describe('TournamentDetailsPopover', () => {
-  const mockTournamentPredictions: TournamentPredictionCompletion = {
-    overallPercentage: 75,
-    isPredictionLocked: false,
-    championPercentage: 100,
-    runnerUpPercentage: 100,
-    thirdPlacePercentage: 100,
-    groupWinnersPercentage: 75,
-    roundOf32Percentage: 50,
-    quarterFinalsPercentage: 0,
-    semiFinalsPercentage: 0
-  };
-
   const defaultProps = {
     open: true,
     anchorEl: document.createElement('div'),
     onClose: vi.fn(),
     width: 600,
-    tournamentPredictions: mockTournamentPredictions,
+    finalStandingsCompleted: 3,
+    finalStandingsTotal: 3,
+    awardsCompleted: 3,
+    awardsTotal: 4,
+    qualifiersCompleted: 24,
+    qualifiersTotal: 32,
     tournamentId: 'tournament1'
   };
 
@@ -58,9 +51,17 @@ describe('TournamentDetailsPopover', () => {
       expect(screen.getByTestId('tournament-prediction-accordion')).toBeInTheDocument();
     });
 
-    it('does not render accordion when tournamentPredictions is undefined', () => {
+    it('does not render accordion when all prediction props are undefined', () => {
       renderWithTheme(
-        <TournamentDetailsPopover {...defaultProps} tournamentPredictions={undefined} />
+        <TournamentDetailsPopover
+          {...defaultProps}
+          finalStandingsCompleted={undefined}
+          finalStandingsTotal={undefined}
+          awardsCompleted={undefined}
+          awardsTotal={undefined}
+          qualifiersCompleted={undefined}
+          qualifiersTotal={undefined}
+        />
       );
 
       expect(screen.queryByTestId('tournament-prediction-accordion')).not.toBeInTheDocument();
@@ -122,22 +123,15 @@ describe('TournamentDetailsPopover', () => {
 
   describe('prop variations', () => {
     it('handles 0% completion', () => {
-      const incompletePredictions: TournamentPredictionCompletion = {
-        ...mockTournamentPredictions,
-        overallPercentage: 0,
-        championPercentage: 0,
-        runnerUpPercentage: 0,
-        thirdPlacePercentage: 0,
-        groupWinnersPercentage: 0,
-        roundOf32Percentage: 0,
-        quarterFinalsPercentage: 0,
-        semiFinalsPercentage: 0
-      };
-
       renderWithTheme(
         <TournamentDetailsPopover
           {...defaultProps}
-          tournamentPredictions={incompletePredictions}
+          finalStandingsCompleted={0}
+          finalStandingsTotal={3}
+          awardsCompleted={0}
+          awardsTotal={4}
+          qualifiersCompleted={0}
+          qualifiersTotal={32}
         />
       );
 
@@ -145,38 +139,15 @@ describe('TournamentDetailsPopover', () => {
     });
 
     it('handles 100% completion', () => {
-      const completePredictions: TournamentPredictionCompletion = {
-        overallPercentage: 100,
-        isPredictionLocked: false,
-        championPercentage: 100,
-        runnerUpPercentage: 100,
-        thirdPlacePercentage: 100,
-        groupWinnersPercentage: 100,
-        roundOf32Percentage: 100,
-        quarterFinalsPercentage: 100,
-        semiFinalsPercentage: 100
-      };
-
       renderWithTheme(
         <TournamentDetailsPopover
           {...defaultProps}
-          tournamentPredictions={completePredictions}
-        />
-      );
-
-      expect(screen.getByTestId('tournament-prediction-accordion')).toBeInTheDocument();
-    });
-
-    it('handles locked predictions', () => {
-      const lockedPredictions: TournamentPredictionCompletion = {
-        ...mockTournamentPredictions,
-        isPredictionLocked: true
-      };
-
-      renderWithTheme(
-        <TournamentDetailsPopover
-          {...defaultProps}
-          tournamentPredictions={lockedPredictions}
+          finalStandingsCompleted={3}
+          finalStandingsTotal={3}
+          awardsCompleted={4}
+          awardsTotal={4}
+          qualifiersCompleted={32}
+          qualifiersTotal={32}
         />
       );
 
@@ -221,11 +192,16 @@ describe('TournamentDetailsPopover', () => {
   });
 
   describe('edge cases', () => {
-    it('renders without errors when both tournamentPredictions and tournamentId are undefined', () => {
+    it('renders without errors when all props are undefined', () => {
       renderWithTheme(
         <TournamentDetailsPopover
           {...defaultProps}
-          tournamentPredictions={undefined}
+          finalStandingsCompleted={undefined}
+          finalStandingsTotal={undefined}
+          awardsCompleted={undefined}
+          awardsTotal={undefined}
+          qualifiersCompleted={undefined}
+          qualifiersTotal={undefined}
           tournamentId={undefined}
         />
       );

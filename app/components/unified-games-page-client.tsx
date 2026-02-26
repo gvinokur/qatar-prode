@@ -189,12 +189,23 @@ function UnifiedGamesPageContent({
         <CompactPredictionDashboard
           totalGames={totalGames}
           predictedGames={predictedGames}
-          tournamentPredictions={tournamentPredictionCompletion || undefined}
           tournamentId={tournamentId}
           tournamentStartDate={tournamentStartDate}
-          games={closingGames}
+          urgentGames={closingGames}
+          urgentGameGuesses={guessesContext.gameGuesses}
           teamsMap={teamsMap}
-          isPlayoffs={false}
+          silverBoostsUsed={guessesContext.boostCounts.silver.used}
+          silverBoostsMax={guessesContext.boostCounts.silver.max}
+          goldenBoostsUsed={guessesContext.boostCounts.golden.used}
+          goldenBoostsMax={guessesContext.boostCounts.golden.max}
+          finalStandingsCompleted={tournamentPredictionCompletion?.finalStandings.completed}
+          finalStandingsTotal={tournamentPredictionCompletion?.finalStandings.total}
+          awardsCompleted={tournamentPredictionCompletion?.awards.completed}
+          awardsTotal={tournamentPredictionCompletion?.awards.total}
+          qualifiersCompleted={tournamentPredictionCompletion?.qualifiers.completed}
+          qualifiersTotal={tournamentPredictionCompletion?.qualifiers.total}
+          overallPercentage={tournamentPredictionCompletion?.overallPercentage}
+          isPredictionLocked={tournamentPredictionCompletion?.isPredictionLocked}
         />
       </Box>
 

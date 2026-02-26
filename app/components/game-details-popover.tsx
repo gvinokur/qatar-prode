@@ -13,11 +13,10 @@ interface GameDetailsPopoverProps {
   readonly onClose: () => void;
   readonly width: number;
   readonly hasUrgentGames: boolean;
-  readonly games?: ExtendedGameData[];
+  readonly urgentGames?: ExtendedGameData[];
+  readonly urgentGameGuesses?: Record<string, { home_score: number | null; away_score: number | null }>;
   readonly teamsMap?: Record<string, Team>;
-  readonly gameGuesses: Record<string, any>;
   readonly tournamentId?: string;
-  readonly isPlayoffs: boolean;
   readonly silverMax: number;
   readonly goldenMax: number;
 }
@@ -31,11 +30,10 @@ export function GameDetailsPopover({
   onClose,
   width,
   hasUrgentGames,
-  games,
+  urgentGames,
+  urgentGameGuesses,
   teamsMap,
-  gameGuesses,
   tournamentId,
-  isPlayoffs,
   silverMax,
   goldenMax
 }: GameDetailsPopoverProps) {
@@ -64,13 +62,12 @@ export function GameDetailsPopover({
             {t('urgency.noGamesIn48Hours')}
           </Alert>
         )}
-        {games && teamsMap && tournamentId !== undefined && (
+        {urgentGames && teamsMap && tournamentId !== undefined && urgentGameGuesses && (
           <UrgencyAccordionGroup
-            games={games}
+            games={urgentGames}
             teamsMap={teamsMap}
-            gameGuesses={gameGuesses}
+            gameGuesses={urgentGameGuesses as Record<string, any>}
             tournamentId={tournamentId}
-            isPlayoffs={isPlayoffs}
           />
         )}
       </Card>

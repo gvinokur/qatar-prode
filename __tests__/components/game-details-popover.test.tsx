@@ -52,11 +52,10 @@ describe('GameDetailsPopover', () => {
     onClose: vi.fn(),
     width: 600,
     hasUrgentGames: true,
-    games: mockGames,
+    urgentGames: mockGames,
+    urgentGameGuesses: {},
     teamsMap: mockTeamsMap,
-    gameGuesses: {},
     tournamentId: 'tournament1',
-    isPlayoffs: false,
     silverMax: 5,
     goldenMax: 3
   };
@@ -98,8 +97,8 @@ describe('GameDetailsPopover', () => {
       expect(screen.getByTestId('urgency-accordion-group')).toBeInTheDocument();
     });
 
-    it('does not render UrgencyAccordionGroup when games is undefined', () => {
-      renderWithTheme(<GameDetailsPopover {...defaultProps} games={undefined} />);
+    it('does not render UrgencyAccordionGroup when urgentGames is undefined', () => {
+      renderWithTheme(<GameDetailsPopover {...defaultProps} urgentGames={undefined} />);
 
       expect(screen.queryByTestId('urgency-accordion-group')).not.toBeInTheDocument();
     });
@@ -153,16 +152,10 @@ describe('GameDetailsPopover', () => {
   });
 
   describe('prop variations', () => {
-    it('handles empty games array', () => {
-      renderWithTheme(<GameDetailsPopover {...defaultProps} games={[]} />);
+    it('handles empty urgent games array', () => {
+      renderWithTheme(<GameDetailsPopover {...defaultProps} urgentGames={[]} />);
 
       expect(screen.getByText('Predicciones de Partidos')).toBeInTheDocument();
-    });
-
-    it('handles playoffs mode', () => {
-      renderWithTheme(<GameDetailsPopover {...defaultProps} isPlayoffs={true} />);
-
-      expect(screen.getByTestId('urgency-accordion-group')).toBeInTheDocument();
     });
 
     it('handles different boost values', () => {
