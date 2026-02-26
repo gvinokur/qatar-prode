@@ -2,10 +2,12 @@
 
 import { Box, Fab, useTheme, useMediaQuery } from '@mui/material';
 import { useMemo, useContext, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { ScrollShadowContainer } from './common/scroll-shadow-container';
 import { FilterContextProvider, useFilterContext } from './context-providers/filter-context-provider';
+import { useEditTrigger } from './context-providers/edit-trigger-context-provider';
 import { GameFilters } from './game-filters';
 import { CompactPredictionDashboard } from './compact-prediction-dashboard';
 import { SecondaryFilters } from './secondary-filters';
@@ -16,6 +18,10 @@ import { TournamentGameCounts } from '../db/game-repository';
 import { filterGames } from '../utils/game-filters';
 import { GuessesContext } from './context-providers/guesses-context-provider';
 import { findScrollTarget, scrollToGame } from '../utils/auto-scroll';
+
+// Timing constants for edit parameter handling
+const DOM_RENDER_DELAY = 50; // ms - small delay for DOM to re-render after filter change
+const SCROLL_ANIMATION_DURATION = 600; // ms - time for smooth scroll to complete
 
 interface UnifiedGamesPageContentProps {
   readonly games: ExtendedGameData[];
@@ -42,9 +48,12 @@ function UnifiedGamesPageContent({
   tournamentPredictionCompletion,
   tournamentStartDate
 }: UnifiedGamesPageContentProps) {
+  const searchParams = useSearchParams();
   const { activeFilter, groupFilter, roundFilter, setActiveFilter, setGroupFilter, setRoundFilter } = useFilterContext();
+  const { triggerEdit } = useEditTrigger();
   const guessesContext = useContext(GuessesContext);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [pendingEditGameId, setPendingEditGameId] = useState<string | null>(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -59,6 +68,43 @@ function UnifiedGamesPageContent({
     const guess = guessesContext.gameGuesses[game.id];
     return guess && guess.home_score !== null && guess.away_score !== null;
   }).length;
+
+  // Effect 1: Detect edit parameter and clear filters
+  useEffect(() => {
+    const editGameId = searchParams.get('edit');
+
+    if (editGameId && !pendingEditGameId) {
+      // Step 1: Store the game ID to trigger scroll/edit after filters update
+      setPendingEditGameId(editGameId);
+
+      // Step 2: Clear all filters to ensure game is visible
+      setActiveFilter('all');
+      setGroupFilter(null);
+      setRoundFilter(null);
+    }
+  }, [searchParams, setActiveFilter, setGroupFilter, setRoundFilter, pendingEditGameId]);
+
+  // Effect 2: Scroll and trigger edit AFTER filters have updated
+  useEffect(() => {
+    if (pendingEditGameId && activeFilter === 'all' && groupFilter === null && roundFilter === null) {
+      // Filters are confirmed cleared - now safe to scroll and edit
+
+      // Small delay to ensure DOM has re-rendered with all games visible
+      const timeoutId = setTimeout(() => {
+        scrollToGame(`game-${pendingEditGameId}`, 'smooth');
+
+        // Trigger edit after scroll animation completes
+        const editTimeoutId = setTimeout(() => {
+          triggerEdit(pendingEditGameId);
+          setPendingEditGameId(null); // Clear pending state
+        }, SCROLL_ANIMATION_DURATION);
+
+        return () => clearTimeout(editTimeoutId);
+      }, DOM_RENDER_DELAY);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [pendingEditGameId, activeFilter, groupFilter, roundFilter, triggerEdit]);
 
   // Auto-scroll when filters change
   useEffect(() => {

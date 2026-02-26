@@ -10,6 +10,7 @@ import { findPlayoffStagesWithGamesInTournament } from '../db/tournament-playoff
 import { getTournamentPredictionCompletion } from '../db/tournament-prediction-completion-repository';
 import { customToMap } from '../utils/ObjectUtils';
 import { GuessesContextProvider } from './context-providers/guesses-context-provider';
+import { EditTriggerContextProvider } from './context-providers/edit-trigger-context-provider';
 import { UnifiedGamesPageClient } from './unified-games-page-client';
 import { PublicGamesPage } from './tournament-page/public-games-page';
 
@@ -72,18 +73,20 @@ export async function UnifiedGamesPage({ tournamentId }: UnifiedGamesPageProps) 
       tournamentMaxSilver={tournament.max_silver_games || 0}
       tournamentMaxGolden={tournament.max_golden_games || 0}
     >
-      <UnifiedGamesPageClient
-        games={games}
-        gameCounts={gameCounts}
-        teamsMap={teamsMap}
-        tournamentId={tournamentId}
-        groups={groups}
-        rounds={rounds}
-        tournament={tournament}
-        closingGames={closingGames}
-        tournamentPredictionCompletion={tournamentPredictionCompletion}
-        tournamentStartDate={tournamentStartDate}
-      />
+      <EditTriggerContextProvider>
+        <UnifiedGamesPageClient
+          games={games}
+          gameCounts={gameCounts}
+          teamsMap={teamsMap}
+          tournamentId={tournamentId}
+          groups={groups}
+          rounds={rounds}
+          tournament={tournament}
+          closingGames={closingGames}
+          tournamentPredictionCompletion={tournamentPredictionCompletion}
+          tournamentStartDate={tournamentStartDate}
+        />
+      </EditTriggerContextProvider>
     </GuessesContextProvider>
   );
 }

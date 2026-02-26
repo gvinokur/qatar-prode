@@ -11,6 +11,7 @@ import { ExtendedGameData } from '../definitions';
 import { Game, GameGuessNew, Team, Tournament } from '../db/tables-definition';
 import { GuessesContext } from './context-providers/guesses-context-provider';
 import { useEditMode } from './context-providers/edit-mode-context-provider';
+import { useEditTrigger } from './context-providers/edit-trigger-context-provider';
 import { EmptyGamesState } from './empty-games-state';
 import { FilterType } from '../utils/game-filters';
 import { findScrollTarget, scrollToGame } from '../utils/auto-scroll';
@@ -47,6 +48,7 @@ export function GamesListWithScroll({
   const t = useTranslations('predictions');
   const groupContext = useContext(GuessesContext);
   const editMode = useEditMode();
+  const { registerTrigger } = useEditTrigger();
   const [editingGameId, setEditingGameId] = useState<string | null>(null);
   const gameGuesses = groupContext.gameGuesses;
   const { data } = useSession();
@@ -110,6 +112,16 @@ export function GamesListWithScroll({
     }
     setEditingGameId(null);
   }, [editMode]);
+
+  // Register handleEditStart with EditTriggerContext to allow external triggering
+  useEffect(() => {
+    registerTrigger(handleEditStart);
+
+    // Cleanup: unregister on unmount
+    return () => {
+      registerTrigger(null);
+    };
+  }, [handleEditStart, registerTrigger]);
 
   const handleAutoAdvanceNext = useCallback((currentGameId: string) => {
     const idx = games.findIndex(g => g.id === currentGameId);
