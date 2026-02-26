@@ -220,9 +220,10 @@ interface CompactPredictionDashboardProps {
   readonly tournamentId: string
   readonly tournamentStartDate?: Date
   readonly teamsMap: Record<string, Team>
-  readonly isPlayoffs?: boolean
   readonly demoMode?: boolean
   readonly isPredictionLocked: boolean
+
+  // Note: isPlayoffs prop removed (unused - verified in urgency-accordion-group.tsx line 27)
 }
 ```
 
