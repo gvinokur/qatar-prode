@@ -1,11 +1,12 @@
 'use client'
 
-import { createContext, useContext, useCallback, useState, ReactNode } from 'react';
+import { createContext, useContext, useCallback, useState, useRef, useEffect, ReactNode } from 'react';
 
 interface EditTriggerContextValue {
   triggerEdit: (gameId: string) => void;
   registerTrigger: (trigger: ((gameId: string) => void) | null) => void;
   isEditMode: boolean;
+  isEditModeRef: React.MutableRefObject<boolean>;
   setEditMode: (isEdit: boolean) => void;
 }
 
@@ -18,6 +19,12 @@ interface EditTriggerContextProviderProps {
 export function EditTriggerContextProvider({ children }: EditTriggerContextProviderProps) {
   const [editTrigger, setEditTrigger] = useState<((gameId: string) => void) | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const isEditModeRef = useRef(false);
+
+  // Sync state to ref whenever it changes
+  useEffect(() => {
+    isEditModeRef.current = isEditMode;
+  }, [isEditMode]);
 
   const registerTrigger = useCallback((trigger: ((gameId: string) => void) | null) => {
     setEditTrigger(() => trigger);
@@ -35,7 +42,7 @@ export function EditTriggerContextProvider({ children }: EditTriggerContextProvi
   }, []);
 
   return (
-    <EditTriggerContext.Provider value={{ triggerEdit, registerTrigger, isEditMode, setEditMode }}>
+    <EditTriggerContext.Provider value={{ triggerEdit, registerTrigger, isEditMode, isEditModeRef, setEditMode }}>
       {children}
     </EditTriggerContext.Provider>
   );

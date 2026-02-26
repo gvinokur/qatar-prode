@@ -86,7 +86,10 @@ describe('UnifiedGamesPageClient URL Parameter Handling', () => {
     const { useEditTrigger } = vi.mocked(await import('../context-providers/edit-trigger-context-provider'));
     useEditTrigger.mockReturnValue({
       triggerEdit: mockTriggerEdit,
-      registerTrigger: vi.fn()
+      registerTrigger: vi.fn(),
+      isEditMode: false,
+      isEditModeRef: { current: false },
+      setEditMode: vi.fn()
     });
 
     // Mock useSearchParams

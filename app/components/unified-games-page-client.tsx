@@ -51,7 +51,7 @@ function UnifiedGamesPageContent({
   const searchParams = useSearchParams();
   const router = useRouter();
   const { activeFilter, groupFilter, roundFilter, setActiveFilter, setGroupFilter, setRoundFilter } = useFilterContext();
-  const { triggerEdit, isEditMode } = useEditTrigger();
+  const { triggerEdit, isEditModeRef } = useEditTrigger();
   const guessesContext = useContext(GuessesContext);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [pendingEditGameId, setPendingEditGameId] = useState<string | null>(null);
@@ -110,10 +110,10 @@ function UnifiedGamesPageContent({
     }
   }, [pendingEditGameId, activeFilter, groupFilter, roundFilter, triggerEdit]);
 
-  // Auto-scroll when filters change
+  // Auto-scroll when filters change (but not when edit mode changes)
   useEffect(() => {
-    // Skip auto-scroll if any card is in edit mode
-    if (isEditMode) {
+    // Skip auto-scroll if any card is in edit mode (check ref to avoid re-running on edit mode changes)
+    if (isEditModeRef.current) {
       return;
     }
 
@@ -126,7 +126,7 @@ function UnifiedGamesPageContent({
         }, 100);
       }
     }
-  }, [activeFilter, groupFilter, roundFilter, filteredGames, isEditMode]);
+  }, [activeFilter, groupFilter, roundFilter, filteredGames, isEditModeRef]);
 
   // Track scroll position to show/hide scroll to top button
   useEffect(() => {
