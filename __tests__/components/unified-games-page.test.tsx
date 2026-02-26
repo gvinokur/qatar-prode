@@ -70,6 +70,15 @@ vi.mock('../../app/components/context-providers/guesses-context-provider', () =>
   ),
 }));
 
+// Mock the EditTriggerContextProvider
+vi.mock('../../app/components/context-providers/edit-trigger-context-provider', () => ({
+  EditTriggerContextProvider: ({ children }: any) => (
+    <div data-testid="edit-trigger-context-provider">
+      {children}
+    </div>
+  ),
+}));
+
 // Mock the UnifiedGamesPageClient component
 vi.mock('../../app/components/unified-games-page-client', () => ({
   UnifiedGamesPageClient: ({ games, gameCounts, teamsMap, tournamentId, groups, rounds, tournament, closingGames, tournamentPredictionCompletion, tournamentStartDate }: any) => (
@@ -279,7 +288,8 @@ describe('UnifiedGamesPage', () => {
 
     it('should pass correct props to UnifiedGamesPageClient', async () => {
       const result = await UnifiedGamesPage({ tournamentId });
-      const clientComponent = result.props.children;
+      const editTriggerProvider = result.props.children;
+      const clientComponent = editTriggerProvider.props.children;
       const clientProps = clientComponent.props;
 
       expect(clientProps.tournamentId).toBe(tournamentId);
@@ -295,7 +305,8 @@ describe('UnifiedGamesPage', () => {
 
     it('should calculate tournament start date from earliest game', async () => {
       const result = await UnifiedGamesPage({ tournamentId });
-      const clientComponent = result.props.children;
+      const editTriggerProvider = result.props.children;
+      const clientComponent = editTriggerProvider.props.children;
       const clientProps = clientComponent.props;
 
       expect(clientProps.tournamentStartDate).toBeDefined();
@@ -372,7 +383,8 @@ describe('UnifiedGamesPage', () => {
       mockGetAllTournamentGames.mockResolvedValue(gamesWithDifferentDates);
 
       const result = await UnifiedGamesPage({ tournamentId });
-      const clientComponent = result.props.children;
+      const editTriggerProvider = result.props.children;
+      const clientComponent = editTriggerProvider.props.children;
       const clientProps = clientComponent.props;
 
       expect(clientProps.tournamentStartDate.getTime()).toBe(new Date('2024-06-15T18:00:00Z').getTime());
@@ -382,7 +394,8 @@ describe('UnifiedGamesPage', () => {
       mockGetAllTournamentGames.mockResolvedValue([]);
 
       const result = await UnifiedGamesPage({ tournamentId });
-      const clientComponent = result.props.children;
+      const editTriggerProvider = result.props.children;
+      const clientComponent = editTriggerProvider.props.children;
       const clientProps = clientComponent.props;
 
       expect(clientProps.tournamentStartDate).toBeUndefined();
@@ -393,7 +406,8 @@ describe('UnifiedGamesPage', () => {
       mockGetAllTournamentGames.mockResolvedValue(singleGame);
 
       const result = await UnifiedGamesPage({ tournamentId });
-      const clientComponent = result.props.children;
+      const editTriggerProvider = result.props.children;
+      const clientComponent = editTriggerProvider.props.children;
       const clientProps = clientComponent.props;
 
       expect(clientProps.tournamentStartDate.getTime()).toBe(singleGame[0].game_date.getTime());
@@ -415,7 +429,8 @@ describe('UnifiedGamesPage', () => {
       mockGetTournamentPredictionCompletion.mockResolvedValue(null);
 
       const result = await UnifiedGamesPage({ tournamentId });
-      const clientComponent = result.props.children;
+      const editTriggerProvider = result.props.children;
+      const clientComponent = editTriggerProvider.props.children;
       const clientProps = clientComponent.props;
 
       expect(clientProps.tournamentPredictionCompletion).toBeNull();
@@ -428,7 +443,8 @@ describe('UnifiedGamesPage', () => {
         .mockResolvedValueOnce(null);
 
       const result = await UnifiedGamesPage({ tournamentId });
-      const clientComponent = result.props.children;
+      const editTriggerProvider = result.props.children;
+      const clientComponent = editTriggerProvider.props.children;
       const clientProps = clientComponent.props;
 
       expect(clientProps.tournamentPredictionCompletion).toBeNull();
@@ -450,7 +466,8 @@ describe('UnifiedGamesPage', () => {
       mockGetGamesClosingWithin48Hours.mockResolvedValue([]);
 
       const result = await UnifiedGamesPage({ tournamentId });
-      const clientComponent = result.props.children;
+      const editTriggerProvider = result.props.children;
+      const clientComponent = editTriggerProvider.props.children;
       const clientProps = clientComponent.props;
 
       expect(clientProps.closingGames).toEqual([]);
@@ -487,7 +504,8 @@ describe('UnifiedGamesPage', () => {
       mockFindGameGuessesByUserId.mockResolvedValue(manyGuesses);
 
       const result = await UnifiedGamesPage({ tournamentId });
-      const clientComponent = result.props.children;
+      const editTriggerProvider = result.props.children;
+      const clientComponent = editTriggerProvider.props.children;
       const clientProps = clientComponent.props;
 
       expect(clientProps.games.length).toBe(100);

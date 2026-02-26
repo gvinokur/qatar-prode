@@ -50,6 +50,11 @@ vi.mock('../../app/components/context-providers/edit-mode-context-provider', () 
   useEditMode: vi.fn(),
 }));
 
+// Mock EditTriggerProvider
+vi.mock('../../app/components/context-providers/edit-trigger-context-provider', () => ({
+  useEditTrigger: vi.fn(),
+}));
+
 // Mock MUI useMediaQuery
 vi.mock('@mui/material', async () => {
   const actual = await vi.importActual('@mui/material');
@@ -62,6 +67,7 @@ vi.mock('@mui/material', async () => {
 // Import after mocks
 import { useSession } from 'next-auth/react';
 import { useEditMode } from '../../app/components/context-providers/edit-mode-context-provider';
+import { useEditTrigger } from '../../app/components/context-providers/edit-trigger-context-provider';
 
 describe('GamesListWithScroll', () => {
   const mockTeamsMap: Record<string, Team> = {
@@ -141,6 +147,15 @@ describe('GamesListWithScroll', () => {
       endEdit: vi.fn(),
     };
     vi.mocked(useEditMode).mockReturnValue(mockEditMode);
+
+    // Setup edit trigger mock
+    vi.mocked(useEditTrigger).mockReturnValue({
+      triggerEdit: vi.fn(),
+      registerTrigger: vi.fn(),
+      isEditMode: false,
+      isEditModeRef: { current: false },
+      setEditMode: vi.fn(),
+    });
 
     // Setup update game guess mock
     mockUpdateGameGuess = vi.fn().mockResolvedValue(undefined);

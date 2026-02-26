@@ -67,6 +67,17 @@ vi.mock('../../app/utils/auto-scroll', () => ({
   scrollToGame: vi.fn()
 }));
 
+// Mock EditTriggerProvider
+vi.mock('../../app/components/context-providers/edit-trigger-context-provider', () => ({
+  useEditTrigger: vi.fn(() => ({
+    triggerEdit: vi.fn(),
+    registerTrigger: vi.fn(),
+    isEditMode: false,
+    isEditModeRef: { current: false },
+    setEditMode: vi.fn(),
+  })),
+}));
+
 describe('UnifiedGamesPageClient', () => {
   // Test data factories
   const createTestGames = (count: number): ExtendedGameData[] => {
