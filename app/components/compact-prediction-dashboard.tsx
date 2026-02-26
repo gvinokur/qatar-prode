@@ -268,6 +268,8 @@ export function CompactPredictionDashboard({
         awardsTotal={awardsTotal}
         qualifiersCompleted={qualifiersCompleted}
         qualifiersTotal={qualifiersTotal}
+        isPredictionLocked={isPredictionLocked}
+        tournamentStartDate={tournamentStartDate}
         tournamentId={tournamentId}
       />
 

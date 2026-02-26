@@ -14,6 +14,8 @@ interface TournamentDetailsPopoverProps {
   readonly awardsTotal?: number;
   readonly qualifiersCompleted?: number;
   readonly qualifiersTotal?: number;
+  readonly isPredictionLocked?: boolean;
+  readonly tournamentStartDate?: Date;
   readonly tournamentId?: string;
 }
 
@@ -31,6 +33,8 @@ export function TournamentDetailsPopover({
   awardsTotal,
   qualifiersCompleted,
   qualifiersTotal,
+  isPredictionLocked,
+  tournamentStartDate,
   tournamentId
 }: TournamentDetailsPopoverProps) {
   const t = useTranslations('predictions');
@@ -56,6 +60,14 @@ export function TournamentDetailsPopover({
             completed: qualifiersCompleted,
             total: qualifiersTotal,
           },
+          overallCompleted: finalStandingsCompleted + awardsCompleted + qualifiersCompleted,
+          overallTotal: finalStandingsTotal + awardsTotal + qualifiersTotal,
+          overallPercentage: Math.round(
+            ((finalStandingsCompleted + awardsCompleted + qualifiersCompleted) /
+              (finalStandingsTotal + awardsTotal + qualifiersTotal)) *
+              100
+          ),
+          isPredictionLocked: isPredictionLocked ?? false,
         }
       : undefined;
 
@@ -81,6 +93,7 @@ export function TournamentDetailsPopover({
           <TournamentPredictionAccordion
             tournamentPredictions={tournamentPredictions as any}
             tournamentId={tournamentId}
+            tournamentStartDate={tournamentStartDate}
             isExpanded={true}
             onToggle={() => {}}
           />
