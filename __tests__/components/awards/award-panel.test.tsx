@@ -13,6 +13,12 @@ vi.mock('../../../app/actions/guesses-actions', () => ({
 
 const mockUpdateOrCreateTournamentGuess = vi.mocked(guessesActions.updateOrCreateTournamentGuess);
 
+// Mock CompactPredictionDashboard
+const mockCompactPredictionDashboard = vi.fn(() => <div data-testid="compact-prediction-dashboard">Dashboard</div>);
+vi.mock('../../../app/components/compact-prediction-dashboard', () => ({
+  CompactPredictionDashboard: (props: any) => mockCompactPredictionDashboard(props)
+}));
+
 describe('AwardsPanel - Bug #164 Fix', () => {
   const mockTournament = {
     ...testFactories.tournament(),
@@ -327,6 +333,214 @@ describe('AwardsPanel - Bug #164 Fix', () => {
       );
 
       expect(screen.getByText(/Premios Individuales no disponibles/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('Override Pattern - Dashboard Props', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('should calculate awardsCompleted from local tournamentGuesses state', () => {
+      const guessWithAllAwards = testFactories.tournamentGuess({
+        user_id: 'user-1',
+        tournament_id: mockTournament.id,
+        best_player_id: 'player-1',
+        top_goalscorer_player_id: 'player-2',
+        best_goalkeeper_player_id: 'player-1',
+        best_young_player_id: 'player-2',
+      });
+
+      renderWithTheme(
+        <AwardsPanel {...defaultProps} tournamentGuesses={guessWithAllAwards} />
+      );
+
+      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
+        expect.objectContaining({
+          awardsCompleted: 4,
+          awardsTotal: 4
+        })
+      );
+    });
+
+    it('should calculate awardsCompleted with partial predictions', () => {
+      const guessWithPartialAwards = testFactories.tournamentGuess({
+        user_id: 'user-1',
+        tournament_id: mockTournament.id,
+        best_player_id: 'player-1',
+        top_goalscorer_player_id: null,
+        best_goalkeeper_player_id: 'player-2',
+        best_young_player_id: null,
+      });
+
+      renderWithTheme(
+        <AwardsPanel {...defaultProps} tournamentGuesses={guessWithPartialAwards} />
+      );
+
+      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
+        expect.objectContaining({
+          awardsCompleted: 2 // best_player and best_goalkeeper
+        })
+      );
+    });
+
+    it('should calculate finalStandingsCompleted from local tournamentGuesses state', () => {
+      const guessWithAllPodium = testFactories.tournamentGuess({
+        user_id: 'user-1',
+        tournament_id: mockTournament.id,
+        champion_team_id: 'team-1',
+        runner_up_team_id: 'team-2',
+        third_place_team_id: 'team-1',
+      });
+
+      renderWithTheme(
+        <AwardsPanel {...defaultProps} tournamentGuesses={guessWithAllPodium} hasThirdPlaceGame={true} />
+      );
+
+      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
+        expect.objectContaining({
+          finalStandingsCompleted: 3,
+          finalStandingsTotal: 3
+        })
+      );
+    });
+
+    it('should calculate finalStandingsCompleted with partial podium', () => {
+      const guessWithPartialPodium = testFactories.tournamentGuess({
+        user_id: 'user-1',
+        tournament_id: mockTournament.id,
+        champion_team_id: 'team-1',
+        runner_up_team_id: null,
+        third_place_team_id: null,
+      });
+
+      renderWithTheme(
+        <AwardsPanel {...defaultProps} tournamentGuesses={guessWithPartialPodium} />
+      );
+
+      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
+        expect.objectContaining({
+          finalStandingsCompleted: 1 // Only champion
+        })
+      );
+    });
+
+    it('should update awardsCompleted when user changes an award prediction', async () => {
+      const user = userEvent.setup();
+
+      const guessWithOneAward = testFactories.tournamentGuess({
+        user_id: 'user-1',
+        tournament_id: mockTournament.id,
+        best_player_id: 'player-1',
+        top_goalscorer_player_id: null,
+        best_goalkeeper_player_id: null,
+        best_young_player_id: null,
+      });
+
+      renderWithTheme(
+        <AwardsPanel {...defaultProps} tournamentGuesses={guessWithOneAward} />
+      );
+
+      // Initial state: 1 award completed
+      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
+        expect.objectContaining({
+          awardsCompleted: 1
+        })
+      );
+
+      vi.clearAllMocks();
+
+      // Select a second award
+      const allAutocompletes = screen.getAllByRole('combobox');
+      const secondAwardAutocomplete = allAutocompletes[3]; // Fourth combobox (after champion, runner-up, first award)
+
+      await user.click(secondAwardAutocomplete);
+      const player2Option = await screen.findByRole('option', { name: /Player 2/i });
+      await user.click(player2Option);
+
+      // After state update, dashboard should show 2 awards completed
+      await waitFor(() => {
+        expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
+          expect.objectContaining({
+            awardsCompleted: 2
+          })
+        );
+      });
+    });
+
+    it('should update finalStandingsCompleted when user changes podium prediction', async () => {
+      const user = userEvent.setup();
+
+      const guessWithNoHonorRoll = testFactories.tournamentGuess({
+        user_id: 'user-1',
+        tournament_id: mockTournament.id,
+        champion_team_id: null,
+        runner_up_team_id: null,
+        third_place_team_id: null,
+      });
+
+      renderWithTheme(
+        <AwardsPanel {...defaultProps} tournamentGuesses={guessWithNoHonorRoll} />
+      );
+
+      // Initial state: 0 completed
+      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
+        expect.objectContaining({
+          finalStandingsCompleted: 0
+        })
+      );
+
+      vi.clearAllMocks();
+
+      // Select champion
+      const championSelect = screen.getAllByRole('combobox')[0];
+      await user.click(championSelect);
+
+      const team1Option = await screen.findByRole('option', { name: /Team 1/i });
+      await user.click(team1Option);
+
+      // After state update, dashboard should show 1 completed
+      await waitFor(() => {
+        expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
+          expect.objectContaining({
+            finalStandingsCompleted: 1
+          })
+        );
+      });
+    });
+
+    it('should pass calculated predictedGames count to dashboard', () => {
+      const gameGuesses = [
+        { game_id: 'game-1', home_score: 2, away_score: 1 },
+        { game_id: 'game-2', home_score: 2, away_score: 0 },
+        { game_id: 'game-3', home_score: null, away_score: 1 } // Partial - not counted
+      ];
+
+      renderWithTheme(
+        <AwardsPanel {...defaultProps} gameGuessesArray={gameGuesses} />
+      );
+
+      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
+        expect.objectContaining({
+          predictedGames: 2 // Only game-1 and game-2 have both scores
+        })
+      );
+    });
+
+    it('should pass filtered urgent games to dashboard', () => {
+      const now = Date.now();
+      const urgentGame = { game_id: 'game-1', game_date: new Date(now + 24 * 60 * 60 * 1000) }; // 24 hours away
+      const notUrgentGame = { game_id: 'game-2', game_date: new Date(now + 72 * 60 * 60 * 1000) }; // 72 hours away
+
+      renderWithTheme(
+        <AwardsPanel {...defaultProps} games={[urgentGame, notUrgentGame]} />
+      );
+
+      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
+        expect.objectContaining({
+          urgentGames: [urgentGame] // Only the urgent one
+        })
+      );
     });
   });
 });

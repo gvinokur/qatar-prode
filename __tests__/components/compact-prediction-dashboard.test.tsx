@@ -2,8 +2,8 @@ import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import React from 'react';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { CompactPredictionDashboard } from '@/app/components/compact-prediction-dashboard';
-import { renderWithProviders, createMockGuessesContext } from '@/__tests__/utils/test-utils';
-import type { TournamentPredictionCompletion, Team } from '@/app/db/tables-definition';
+import { renderWithTheme } from '@/__tests__/utils/test-utils';
+import type { Team } from '@/app/db/tables-definition';
 import type { ExtendedGameData } from '@/app/definitions';
 
 // Mock child components
@@ -88,34 +88,27 @@ describe('CompactPredictionDashboard', () => {
     away_team: { ...mockTeam, id: 'team2', name: 'Team 2' }
   };
 
-  const mockTournamentPredictions: TournamentPredictionCompletion = {
-    overallPercentage: 75,
-    isPredictionLocked: false,
-    breakdown: {
-      groups: {
-        totalPositions: 32,
-        predictedPositions: 24,
-        percentageComplete: 75
-      },
-      qualifiedTeams: {
-        totalTeams: 16,
-        predictedTeams: 12,
-        percentageComplete: 75
-      }
-    }
-  };
-
   const defaultProps = {
     totalGames: 10,
     predictedGames: 7,
-    games: [mockGame],
+    urgentGames: [mockGame],
+    urgentGameGuesses: {},
     teamsMap: { team1: mockTeam },
-    isPlayoffs: false
+    silverBoostsUsed: 2,
+    silverBoostsMax: 5,
+    goldenBoostsUsed: 1,
+    goldenBoostsMax: 3,
   };
 
-  const defaultBoostCounts = {
-    silver: { used: 2, max: 5 },
-    golden: { used: 1, max: 3 },
+  const tournamentPredictionProps = {
+    finalStandingsCompleted: 24,
+    finalStandingsTotal: 32,
+    awardsCompleted: 3,
+    awardsTotal: 5,
+    qualifiersCompleted: 12,
+    qualifiersTotal: 16,
+    overallPercentage: 75,
+    isPredictionLocked: false,
   };
 
   beforeEach(() => {
@@ -134,30 +127,18 @@ describe('CompactPredictionDashboard', () => {
 
   describe('Basic Rendering', () => {
     it('renders game predictions row', () => {
-      renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} />,
-        {
-          guessesContext: createMockGuessesContext({
-            boostCounts: defaultBoostCounts,
-          }),
-        }
-      );
+      renderWithTheme(<CompactPredictionDashboard {...defaultProps} />);
 
       expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
     });
 
     it('renders tournament predictions row when provided', () => {
-      renderWithProviders(
+      renderWithTheme(
         <CompactPredictionDashboard
           {...defaultProps}
-          tournamentPredictions={mockTournamentPredictions}
+          {...tournamentPredictionProps}
           tournamentId="tournament1"
-        />,
-        {
-          guessesContext: createMockGuessesContext({
-            boostCounts: defaultBoostCounts,
-          }),
-        }
+        />
       );
 
       expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
@@ -165,46 +146,46 @@ describe('CompactPredictionDashboard', () => {
     });
 
     it('does not render tournament row when predictions are missing', () => {
-      renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} />,
-        {
-          guessesContext: createMockGuessesContext({
-            boostCounts: defaultBoostCounts,
-          }),
-        }
-      );
+      renderWithTheme(<CompactPredictionDashboard {...defaultProps} />);
 
       expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
       expect(screen.queryByTestId('progress-row-Torneo')).not.toBeInTheDocument();
     });
 
     it('does not render tournament row when tournament ID is missing', () => {
-      renderWithProviders(
+      renderWithTheme(
         <CompactPredictionDashboard
           {...defaultProps}
-          tournamentPredictions={mockTournamentPredictions}
-        />,
-        {
-          guessesContext: createMockGuessesContext({
-            boostCounts: defaultBoostCounts,
-          }),
-        }
+          {...tournamentPredictionProps}
+        />
       );
 
       expect(screen.queryByTestId('progress-row-Torneo')).not.toBeInTheDocument();
+    });
+
+    it('renders tournament row when individual props are provided (even without overallPercentage)', () => {
+      renderWithTheme(
+        <CompactPredictionDashboard
+          {...defaultProps}
+          finalStandingsCompleted={2}
+          finalStandingsTotal={3}
+          awardsCompleted={3}
+          awardsTotal={4}
+          qualifiersCompleted={12}
+          qualifiersTotal={16}
+          isPredictionLocked={false}
+          tournamentId="tournament1"
+        />
+      );
+
+      // Dashboard should calculate percentage from individual props and render row
+      expect(screen.getByTestId('progress-row-Torneo')).toBeInTheDocument();
     });
   });
 
   describe('Game Popover Interactions', () => {
     it('opens game details popover when game row is clicked', async () => {
-      renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} />,
-        {
-          guessesContext: createMockGuessesContext({
-            boostCounts: defaultBoostCounts,
-          }),
-        }
-      );
+      renderWithTheme(<CompactPredictionDashboard {...defaultProps} />);
 
       const gameRow = screen.getByTestId('progress-row-Partidos');
       fireEvent.click(gameRow);
@@ -215,14 +196,7 @@ describe('CompactPredictionDashboard', () => {
     });
 
     it('closes game details popover when close button is clicked', async () => {
-      renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} />,
-        {
-          guessesContext: createMockGuessesContext({
-            boostCounts: defaultBoostCounts,
-          }),
-        }
-      );
+      renderWithTheme(<CompactPredictionDashboard {...defaultProps} />);
 
       // Open popover
       const gameRow = screen.getByTestId('progress-row-Partidos');
@@ -244,17 +218,12 @@ describe('CompactPredictionDashboard', () => {
 
   describe('Tournament Popover Interactions', () => {
     it('opens tournament details popover when tournament row is clicked', async () => {
-      renderWithProviders(
+      renderWithTheme(
         <CompactPredictionDashboard
           {...defaultProps}
-          tournamentPredictions={mockTournamentPredictions}
+          {...tournamentPredictionProps}
           tournamentId="tournament1"
-        />,
-        {
-          guessesContext: createMockGuessesContext({
-            boostCounts: defaultBoostCounts,
-          }),
-        }
+        />
       );
 
       const tournamentRow = screen.getByTestId('progress-row-Torneo');
@@ -266,17 +235,12 @@ describe('CompactPredictionDashboard', () => {
     });
 
     it('closes tournament details popover when close button is clicked', async () => {
-      renderWithProviders(
+      renderWithTheme(
         <CompactPredictionDashboard
           {...defaultProps}
-          tournamentPredictions={mockTournamentPredictions}
+          {...tournamentPredictionProps}
           tournamentId="tournament1"
-        />,
-        {
-          guessesContext: createMockGuessesContext({
-            boostCounts: defaultBoostCounts,
-          }),
-        }
+        />
       );
 
       // Open popover
@@ -297,35 +261,45 @@ describe('CompactPredictionDashboard', () => {
     });
   });
 
-  describe('Boost Counts from Context', () => {
-    it('reads boost counts from GuessesContext', () => {
-      renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} />,
-        {
-          guessesContext: createMockGuessesContext({
-            boostCounts: {
-              silver: { used: 3, max: 5 },
-              golden: { used: 2, max: 3 },
-            },
-          }),
-        }
+  describe('Boost Counts', () => {
+    it('renders with custom boost counts', () => {
+      renderWithTheme(
+        <CompactPredictionDashboard
+          {...defaultProps}
+          silverBoostsUsed={3}
+          silverBoostsMax={5}
+          goldenBoostsUsed={2}
+          goldenBoostsMax={3}
+        />
       );
 
-      // Component should render without errors and use context values
+      // Component should render without errors and use prop values
       expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
     });
 
     it('handles zero boost maxes', () => {
-      renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} />,
-        {
-          guessesContext: createMockGuessesContext({
-            boostCounts: {
-              silver: { used: 0, max: 0 },
-              golden: { used: 0, max: 0 },
-            },
-          }),
-        }
+      renderWithTheme(
+        <CompactPredictionDashboard
+          {...defaultProps}
+          silverBoostsUsed={0}
+          silverBoostsMax={0}
+          goldenBoostsUsed={0}
+          goldenBoostsMax={0}
+        />
+      );
+
+      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
+    });
+
+    it('handles all boosts used', () => {
+      renderWithTheme(
+        <CompactPredictionDashboard
+          {...defaultProps}
+          silverBoostsUsed={5}
+          silverBoostsMax={5}
+          goldenBoostsUsed={3}
+          goldenBoostsMax={3}
+        />
       );
 
       expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
@@ -334,13 +308,8 @@ describe('CompactPredictionDashboard', () => {
 
   describe('Demo Mode', () => {
     it('disables interactions in demo mode', () => {
-      renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} demoMode={true} />,
-        {
-          guessesContext: createMockGuessesContext({
-            boostCounts: defaultBoostCounts,
-          }),
-        }
+      renderWithTheme(
+        <CompactPredictionDashboard {...defaultProps} demoMode={true} />
       );
 
       const gameRow = screen.getByTestId('progress-row-Partidos');
@@ -351,18 +320,13 @@ describe('CompactPredictionDashboard', () => {
     });
 
     it('renders normally in demo mode', () => {
-      renderWithProviders(
+      renderWithTheme(
         <CompactPredictionDashboard
           {...defaultProps}
+          {...tournamentPredictionProps}
           demoMode={true}
-          tournamentPredictions={mockTournamentPredictions}
           tournamentId="tournament1"
-        />,
-        {
-          guessesContext: createMockGuessesContext({
-            boostCounts: defaultBoostCounts,
-          }),
-        }
+        />
       );
 
       expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
@@ -370,92 +334,91 @@ describe('CompactPredictionDashboard', () => {
     });
   });
 
-  describe('Playoffs Mode', () => {
-    it('renders correctly for playoffs', () => {
-      renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} isPlayoffs={true} />,
-        {
-          guessesContext: createMockGuessesContext({
-            boostCounts: defaultBoostCounts,
-          }),
-        }
+  describe('Urgent Games', () => {
+    it('handles empty urgent games array', () => {
+      renderWithTheme(
+        <CompactPredictionDashboard
+          {...defaultProps}
+          urgentGames={[]}
+        />
       );
 
       expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
     });
 
-    it('renders playoffs with tournament predictions', () => {
-      renderWithProviders(
+    it('handles urgent games with guesses', () => {
+      renderWithTheme(
         <CompactPredictionDashboard
           {...defaultProps}
-          isPlayoffs={true}
-          tournamentPredictions={mockTournamentPredictions}
-          tournamentId="tournament1"
-        />,
-        {
-          guessesContext: createMockGuessesContext({
-            boostCounts: defaultBoostCounts,
-          }),
-        }
+          urgentGames={[mockGame]}
+          urgentGameGuesses={{
+            'game1': { home_score: 2, away_score: 1 }
+          }}
+        />
       );
 
       expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
-      expect(screen.getByTestId('progress-row-Torneo')).toBeInTheDocument();
+    });
+
+    it('handles urgent games without guesses', () => {
+      renderWithTheme(
+        <CompactPredictionDashboard
+          {...defaultProps}
+          urgentGames={[mockGame]}
+          urgentGameGuesses={{}}
+        />
+      );
+
+      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
     });
   });
 
   describe('Edge Cases', () => {
-    it('handles empty games array', () => {
-      renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} games={[]} />,
-        {
-          guessesContext: createMockGuessesContext({
-            boostCounts: defaultBoostCounts,
-          }),
-        }
-      );
-
-      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
-    });
-
     it('handles zero predicted games', () => {
-      renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} predictedGames={0} />,
-        {
-          guessesContext: createMockGuessesContext({
-            boostCounts: defaultBoostCounts,
-          }),
-        }
+      renderWithTheme(
+        <CompactPredictionDashboard {...defaultProps} predictedGames={0} />
       );
 
       expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
     });
 
     it('handles zero total games', () => {
-      renderWithProviders(
-        <CompactPredictionDashboard {...defaultProps} totalGames={0} />,
-        {
-          guessesContext: createMockGuessesContext({
-            boostCounts: defaultBoostCounts,
-          }),
-        }
+      renderWithTheme(
+        <CompactPredictionDashboard {...defaultProps} totalGames={0} />
       );
 
       expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
     });
 
     it('handles complete predictions', () => {
-      renderWithProviders(
+      renderWithTheme(
         <CompactPredictionDashboard
           {...defaultProps}
           predictedGames={10}
           totalGames={10}
-        />,
-        {
-          guessesContext: createMockGuessesContext({
-            boostCounts: defaultBoostCounts,
-          }),
-        }
+        />
+      );
+
+      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
+    });
+
+    it('handles undefined urgentGames', () => {
+      renderWithTheme(
+        <CompactPredictionDashboard
+          {...defaultProps}
+          urgentGames={undefined}
+        />
+      );
+
+      expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
+    });
+
+    it('handles undefined urgentGameGuesses', () => {
+      renderWithTheme(
+        <CompactPredictionDashboard
+          {...defaultProps}
+          urgentGameGuesses={undefined}
+        />
       );
 
       expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
@@ -465,16 +428,11 @@ describe('CompactPredictionDashboard', () => {
   describe('Tournament Start Date', () => {
     it('renders with past tournament start date', () => {
       const pastDate = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours ago
-      renderWithProviders(
+      renderWithTheme(
         <CompactPredictionDashboard
           {...defaultProps}
           tournamentStartDate={pastDate}
-        />,
-        {
-          guessesContext: createMockGuessesContext({
-            boostCounts: defaultBoostCounts,
-          }),
-        }
+        />
       );
 
       expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
@@ -482,16 +440,11 @@ describe('CompactPredictionDashboard', () => {
 
     it('renders with future tournament start date', () => {
       const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
-      renderWithProviders(
+      renderWithTheme(
         <CompactPredictionDashboard
           {...defaultProps}
           tournamentStartDate={futureDate}
-        />,
-        {
-          guessesContext: createMockGuessesContext({
-            boostCounts: defaultBoostCounts,
-          }),
-        }
+        />
       );
 
       expect(screen.getByTestId('progress-row-Partidos')).toBeInTheDocument();
@@ -500,17 +453,12 @@ describe('CompactPredictionDashboard', () => {
 
   describe('Multiple Interactions', () => {
     it('handles switching between popovers', async () => {
-      renderWithProviders(
+      renderWithTheme(
         <CompactPredictionDashboard
           {...defaultProps}
-          tournamentPredictions={mockTournamentPredictions}
+          {...tournamentPredictionProps}
           tournamentId="tournament1"
-        />,
-        {
-          guessesContext: createMockGuessesContext({
-            boostCounts: defaultBoostCounts,
-          }),
-        }
+        />
       );
 
       // Open game popover
@@ -539,17 +487,12 @@ describe('CompactPredictionDashboard', () => {
     });
 
     it('closes tournament popover and opens game popover', async () => {
-      renderWithProviders(
+      renderWithTheme(
         <CompactPredictionDashboard
           {...defaultProps}
-          tournamentPredictions={mockTournamentPredictions}
+          {...tournamentPredictionProps}
           tournamentId="tournament1"
-        />,
-        {
-          guessesContext: createMockGuessesContext({
-            boostCounts: defaultBoostCounts,
-          }),
-        }
+        />
       );
 
       // Open tournament popover
@@ -575,6 +518,85 @@ describe('CompactPredictionDashboard', () => {
       await waitFor(() => {
         expect(screen.getByTestId('game-details-popover')).toBeInTheDocument();
       });
+    });
+  });
+
+  describe('Flattened Tournament Predictions Props', () => {
+    it('handles partial tournament prediction props', () => {
+      renderWithTheme(
+        <CompactPredictionDashboard
+          {...defaultProps}
+          finalStandingsCompleted={10}
+          finalStandingsTotal={32}
+          tournamentId="tournament1"
+        />
+      );
+
+      // Should not render tournament row when all props are not present
+      expect(screen.queryByTestId('progress-row-Torneo')).not.toBeInTheDocument();
+    });
+
+    it('handles complete tournament prediction props with all values', () => {
+      renderWithTheme(
+        <CompactPredictionDashboard
+          {...defaultProps}
+          {...tournamentPredictionProps}
+          tournamentId="tournament1"
+        />
+      );
+
+      expect(screen.getByTestId('progress-row-Torneo')).toBeInTheDocument();
+    });
+
+    it('handles zero values in tournament predictions', () => {
+      renderWithTheme(
+        <CompactPredictionDashboard
+          {...defaultProps}
+          finalStandingsCompleted={0}
+          finalStandingsTotal={32}
+          awardsCompleted={0}
+          awardsTotal={5}
+          qualifiersCompleted={0}
+          qualifiersTotal={16}
+          overallPercentage={0}
+          isPredictionLocked={false}
+          tournamentId="tournament1"
+        />
+      );
+
+      expect(screen.getByTestId('progress-row-Torneo')).toBeInTheDocument();
+    });
+
+    it('handles locked tournament predictions', () => {
+      renderWithTheme(
+        <CompactPredictionDashboard
+          {...defaultProps}
+          {...tournamentPredictionProps}
+          isPredictionLocked={true}
+          tournamentId="tournament1"
+        />
+      );
+
+      expect(screen.getByTestId('progress-row-Torneo')).toBeInTheDocument();
+    });
+
+    it('handles 100% complete tournament predictions', () => {
+      renderWithTheme(
+        <CompactPredictionDashboard
+          {...defaultProps}
+          finalStandingsCompleted={32}
+          finalStandingsTotal={32}
+          awardsCompleted={5}
+          awardsTotal={5}
+          qualifiersCompleted={16}
+          qualifiersTotal={16}
+          overallPercentage={100}
+          isPredictionLocked={false}
+          tournamentId="tournament1"
+        />
+      );
+
+      expect(screen.getByTestId('progress-row-Torneo')).toBeInTheDocument();
     });
   });
 });

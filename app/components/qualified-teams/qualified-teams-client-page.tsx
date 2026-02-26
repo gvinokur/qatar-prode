@@ -19,6 +19,7 @@ import { CompactPredictionDashboard } from '../compact-prediction-dashboard';
 import { GuessesContextProvider } from '../context-providers/guesses-context-provider';
 import { customToMap } from '../../utils/ObjectUtils';
 import { ScrollShadowContainer } from '../common/scroll-shadow-container';
+import { isGamePredictionComplete } from '../../utils/game-prediction-helpers';
 
 interface QualifiedTeamsClientPageProps {
   /** Tournament data */
@@ -288,6 +289,50 @@ function QualifiedTeamsUI({
     [gameGuessesArray]
   );
 
+  // Create a map of game_id -> game_type for prediction validation
+  const gameTypeMap = useMemo(
+    () => Object.fromEntries(games.map((g: any) => [g.id, g.game_type])),
+    [games]
+  );
+
+  // Calculate predictedGames correctly (check scores AND penalty winner for tied playoff games)
+  const predictedGames = useMemo(
+    () => gameGuessesArray.filter((g: any) =>
+      isGamePredictionComplete(
+        gameTypeMap[g.game_id],
+        g.home_score,
+        g.away_score,
+        g.home_penalty_winner,
+        g.away_penalty_winner
+      )
+    ).length,
+    [gameGuessesArray, gameTypeMap]
+  );
+
+  // Calculate qualified teams completion (DISTINCT teams marked as predicted_to_qualify)
+  const qualifiedTeamsCompleted = useMemo(() => {
+    const uniqueTeams = new Set<string>();
+    for (const prediction of predictions.values()) {
+      if (prediction.predicted_to_qualify) {
+        uniqueTeams.add(prediction.team_id);
+      }
+    }
+    return uniqueTeams.size;
+  }, [predictions]);
+
+  // Filter urgent games (within 48 hours)
+  const urgentGames = useMemo(
+    () => {
+      const now = Date.now();
+      const fortyEightHours = 48 * 60 * 60 * 1000;
+      return games.filter((game: any) => {
+        const gameTime = new Date(game.game_date).getTime();
+        return gameTime > now && gameTime <= now + fortyEightHours;
+      });
+    },
+    [games]
+  );
+
   return (
     <GuessesContextProvider
       gameGuesses={gameGuessesMap}
@@ -303,13 +348,25 @@ function QualifiedTeamsUI({
         {/* Fixed header (desktop) */}
         <Box sx={{ flexShrink: 0, pt: 2 }}>
           <CompactPredictionDashboard
-            totalGames={games.length}
-            predictedGames={gameGuessesArray.length}
-            tournamentPredictions={tournamentPredictionCompletion}
+            totalGames={tournamentPredictionCompletion?.totalGames ?? games.length}
+            predictedGames={predictedGames}
             tournamentId={tournament.id}
             tournamentStartDate={tournamentStartDate}
-            games={games}
+            urgentGames={urgentGames}
+            urgentGameGuesses={gameGuessesMap}
             teamsMap={teamsMap}
+            silverBoostsUsed={tournamentPredictionCompletion?.silverBoostsUsed ?? 0}
+            silverBoostsMax={tournamentPredictionCompletion?.silverBoostsMax ?? (tournament.max_silver_games || 0)}
+            goldenBoostsUsed={tournamentPredictionCompletion?.goldenBoostsUsed ?? 0}
+            goldenBoostsMax={tournamentPredictionCompletion?.goldenBoostsMax ?? (tournament.max_golden_games || 0)}
+            finalStandingsCompleted={tournamentPredictionCompletion?.finalStandings.completed}
+            finalStandingsTotal={tournamentPredictionCompletion?.finalStandings.total}
+            awardsCompleted={tournamentPredictionCompletion?.awards.completed}
+            awardsTotal={tournamentPredictionCompletion?.awards.total}
+            qualifiersCompleted={qualifiedTeamsCompleted}
+            qualifiersTotal={tournamentPredictionCompletion?.qualifiers.total}
+            overallPercentage={tournamentPredictionCompletion?.overallPercentage}
+            isPredictionLocked={tournamentPredictionCompletion?.isPredictionLocked}
           />
         </Box>
 

@@ -51,19 +51,25 @@ describe('Tournament Prediction Completion Repository', () => {
       // Mock: No group position predictions
       mockGetAllUserGroupPositionsPredictions.mockResolvedValue([]);
 
-      // Mock: 16 first_round games, 8 groups, 0 complete groups
+      // Mock: Database calls in sequence
       let callCount = 0;
       mockDb.selectFrom.mockImplementation((tableName: string) => {
         callCount++;
         if (callCount === 1) {
-          // First call: count total first_round games (16)
-          return createMockSelectQuery({ count: 16 }) as any;
+          // Call 1: count total games (20 games in tournament)
+          return createMockSelectQuery({ count: 20 }) as any;
         } else if (callCount === 2) {
-          // Second call: count total groups (8)
-          return createMockSelectQuery({ count: 8 }) as any;
-        } else {
-          // Third call: count complete groups (0)
+          // Call 2: count completed game guesses (0 - no predictions)
           return createMockSelectQuery({ count: 0 }) as any;
+        } else if (callCount === 3) {
+          // Call 3: count silver boosts (0 - no predictions)
+          return createMockSelectQuery({ count: 0 }) as any;
+        } else if (callCount === 4) {
+          // Call 4: count golden boosts (0 - no predictions)
+          return createMockSelectQuery({ count: 0 }) as any;
+        } else {
+          // Call 5: count total first_round games (16)
+          return createMockSelectQuery({ count: 16 }) as any;
         }
       });
 
@@ -145,19 +151,25 @@ describe('Tournament Prediction Completion Repository', () => {
         },
       ] as any);
 
-      // Mock: 16 first_round games, 8 total groups, 4 complete groups
+      // Mock: Database calls in sequence
       let callCount = 0;
       mockDb.selectFrom.mockImplementation((tableName: string) => {
         callCount++;
         if (callCount === 1) {
-          // First call: count total first_round games (16)
-          return createMockSelectQuery({ count: 16 }) as any;
+          // Call 1: count total games (20)
+          return createMockSelectQuery({ count: 20 }) as any;
         } else if (callCount === 2) {
-          // Second call: count total groups (8)
-          return createMockSelectQuery({ count: 8 }) as any;
+          // Call 2: count completed game guesses (10 - some predictions)
+          return createMockSelectQuery({ count: 10 }) as any;
+        } else if (callCount === 3) {
+          // Call 3: count silver boosts (2)
+          return createMockSelectQuery({ count: 2 }) as any;
+        } else if (callCount === 4) {
+          // Call 4: count golden boosts (1)
+          return createMockSelectQuery({ count: 1 }) as any;
         } else {
-          // Third call: count complete groups (4)
-          return createMockSelectQuery({ count: 4 }) as any;
+          // Call 5: count total first_round games (16)
+          return createMockSelectQuery({ count: 16 }) as any;
         }
       });
 
@@ -221,19 +233,25 @@ describe('Tournament Prediction Completion Repository', () => {
       }
       mockGetAllUserGroupPositionsPredictions.mockResolvedValue(mockAllGroupPredictions as any);
 
-      // Mock: 16 first_round games, 8 total groups, all 8 complete
+      // Mock: Database calls in sequence
       let callCount = 0;
       mockDb.selectFrom.mockImplementation((tableName: string) => {
         callCount++;
         if (callCount === 1) {
-          // First call: count total first_round games (16)
-          return createMockSelectQuery({ count: 16 }) as any;
+          // Call 1: count total games (20)
+          return createMockSelectQuery({ count: 20 }) as any;
         } else if (callCount === 2) {
-          // Second call: count total groups (8)
-          return createMockSelectQuery({ count: 8 }) as any;
+          // Call 2: count completed game guesses (20 - all games)
+          return createMockSelectQuery({ count: 20 }) as any;
+        } else if (callCount === 3) {
+          // Call 3: count silver boosts (10)
+          return createMockSelectQuery({ count: 10 }) as any;
+        } else if (callCount === 4) {
+          // Call 4: count golden boosts (5)
+          return createMockSelectQuery({ count: 5 }) as any;
         } else {
-          // Third call: count complete groups (8 - all complete!)
-          return createMockSelectQuery({ count: 8 }) as any;
+          // Call 5: count total first_round games (16)
+          return createMockSelectQuery({ count: 16 }) as any;
         }
       });
 
@@ -272,19 +290,25 @@ describe('Tournament Prediction Completion Repository', () => {
       // Mock: No group position predictions
       mockGetAllUserGroupPositionsPredictions.mockResolvedValue([]);
 
-      // Mock: 16 first_round games, 8 groups, 0 complete groups
+      // Mock: Database calls in sequence
       let callCount = 0;
       mockDb.selectFrom.mockImplementation((tableName: string) => {
         callCount++;
         if (callCount === 1) {
-          // First call: count total first_round games (16)
-          return createMockSelectQuery({ count: 16 }) as any;
+          // Call 1: count total games (20 games in tournament)
+          return createMockSelectQuery({ count: 20 }) as any;
         } else if (callCount === 2) {
-          // Second call: count total groups (8)
-          return createMockSelectQuery({ count: 8 }) as any;
-        } else {
-          // Third call: count complete groups (0)
+          // Call 2: count completed game guesses (0 - no predictions)
           return createMockSelectQuery({ count: 0 }) as any;
+        } else if (callCount === 3) {
+          // Call 3: count silver boosts (0 - no predictions)
+          return createMockSelectQuery({ count: 0 }) as any;
+        } else if (callCount === 4) {
+          // Call 4: count golden boosts (0 - no predictions)
+          return createMockSelectQuery({ count: 0 }) as any;
+        } else {
+          // Call 5: count total first_round games (16)
+          return createMockSelectQuery({ count: 16 }) as any;
         }
       });
 
@@ -381,6 +405,603 @@ describe('Tournament Prediction Completion Repository', () => {
       expect(result.awards.bestGoalkeeper).toBe(true);
       expect(result.awards.bestYoungPlayer).toBe(false);
       expect(result.awards.completed).toBe(2);
+    });
+
+    // NEW TESTS FOR GAMES AND BOOSTS
+
+    describe('Game Predictions', () => {
+      it('should return 0 completed games when user has no game predictions', async () => {
+        // Mock: No tournament guesses
+        mockFindTournamentGuess.mockResolvedValue(undefined);
+
+        // Mock: No group position predictions
+        mockGetAllUserGroupPositionsPredictions.mockResolvedValue([]);
+
+        // Mock database queries for games and boosts
+        let callCount = 0;
+        mockDb.selectFrom.mockImplementation((tableName: string) => {
+          callCount++;
+          if (callCount === 1) {
+            // First call: count total games (10)
+            return createMockSelectQuery({ count: 10 }) as any;
+          } else if (callCount === 2) {
+            // Second call: count completed game guesses (0 - no guesses)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 3) {
+            // Third call: count silver boosts (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 4) {
+            // Fourth call: count golden boosts (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 5) {
+            // Fifth call: count total first_round games (16)
+            return createMockSelectQuery({ count: 16 }) as any;
+          } else if (callCount === 6) {
+            // Sixth call: count total groups (8)
+            return createMockSelectQuery({ count: 8 }) as any;
+          } else {
+            // Seventh call: count complete groups (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          }
+        });
+
+        // Mock: Tournament started 2 days ago
+        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
+
+        const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament);
+
+        expect(result.completedGames).toBe(0);
+        expect(result.totalGames).toBe(10);
+      });
+
+      it('should count completed games correctly when user has predictions', async () => {
+        // Mock: No tournament guesses
+        mockFindTournamentGuess.mockResolvedValue(undefined);
+
+        // Mock: No group position predictions
+        mockGetAllUserGroupPositionsPredictions.mockResolvedValue([]);
+
+        // Mock database queries
+        let callCount = 0;
+        mockDb.selectFrom.mockImplementation((tableName: string) => {
+          callCount++;
+          if (callCount === 1) {
+            // First call: count total games (20)
+            return createMockSelectQuery({ count: 20 }) as any;
+          } else if (callCount === 2) {
+            // Second call: count completed game guesses (15 completed predictions)
+            return createMockSelectQuery({ count: 15 }) as any;
+          } else if (callCount === 3) {
+            // Third call: count silver boosts (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 4) {
+            // Fourth call: count golden boosts (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 5) {
+            // Fifth call: count total first_round games (16)
+            return createMockSelectQuery({ count: 16 }) as any;
+          } else if (callCount === 6) {
+            // Sixth call: count total groups (8)
+            return createMockSelectQuery({ count: 8 }) as any;
+          } else {
+            // Seventh call: count complete groups (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          }
+        });
+
+        // Mock: Tournament started 2 days ago
+        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
+
+        const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament);
+
+        expect(result.completedGames).toBe(15);
+        expect(result.totalGames).toBe(20);
+      });
+
+      it('should handle partial game predictions (only one score filled)', async () => {
+        // Mock: No tournament guesses
+        mockFindTournamentGuess.mockResolvedValue(undefined);
+
+        // Mock: No group position predictions
+        mockGetAllUserGroupPositionsPredictions.mockResolvedValue([]);
+
+        // Mock database queries
+        let callCount = 0;
+        mockDb.selectFrom.mockImplementation((tableName: string) => {
+          callCount++;
+          if (callCount === 1) {
+            // First call: count total games (10)
+            return createMockSelectQuery({ count: 10 }) as any;
+          } else if (callCount === 2) {
+            // Second call: count completed game guesses (5)
+            // Note: query filters for BOTH home_score AND away_score NOT NULL
+            return createMockSelectQuery({ count: 5 }) as any;
+          } else if (callCount === 3) {
+            // Third call: count silver boosts (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 4) {
+            // Fourth call: count golden boosts (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 5) {
+            // Fifth call: count total first_round games (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 6) {
+            // Sixth call: count total groups (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else {
+            // Seventh call: count complete groups (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          }
+        });
+
+        // Mock: Tournament started 2 days ago
+        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
+
+        const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament);
+
+        // Only games with BOTH scores filled are counted as completed
+        expect(result.completedGames).toBe(5);
+        expect(result.totalGames).toBe(10);
+      });
+
+      it('should handle tournament with no games', async () => {
+        // Mock: No tournament guesses
+        mockFindTournamentGuess.mockResolvedValue(undefined);
+
+        // Mock: No group position predictions
+        mockGetAllUserGroupPositionsPredictions.mockResolvedValue([]);
+
+        // Mock database queries
+        let callCount = 0;
+        mockDb.selectFrom.mockImplementation((tableName: string) => {
+          callCount++;
+          if (callCount === 1) {
+            // First call: count total games (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 2) {
+            // Second call: count completed game guesses (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 3) {
+            // Third call: count silver boosts (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 4) {
+            // Fourth call: count golden boosts (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 5) {
+            // Fifth call: count total first_round games (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 6) {
+            // Sixth call: count total groups (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else {
+            // Seventh call: count complete groups (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          }
+        });
+
+        // Mock: Tournament started 2 days ago
+        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
+
+        const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament);
+
+        expect(result.completedGames).toBe(0);
+        expect(result.totalGames).toBe(0);
+      });
+    });
+
+    describe('Boost Tracking', () => {
+      it('should return 0 boosts used when user has no game predictions', async () => {
+        // Mock: No tournament guesses
+        mockFindTournamentGuess.mockResolvedValue(undefined);
+
+        // Mock: No group position predictions
+        mockGetAllUserGroupPositionsPredictions.mockResolvedValue([]);
+
+        // Mock database queries
+        let callCount = 0;
+        mockDb.selectFrom.mockImplementation((tableName: string) => {
+          callCount++;
+          if (callCount === 1) {
+            // First call: count total games (10)
+            return createMockSelectQuery({ count: 10 }) as any;
+          } else if (callCount === 2) {
+            // Second call: count completed game guesses (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 3) {
+            // Third call: count silver boosts (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 4) {
+            // Fourth call: count golden boosts (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 5) {
+            // Fifth call: count total first_round games (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 6) {
+            // Sixth call: count total groups (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else {
+            // Seventh call: count complete groups (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          }
+        });
+
+        // Mock: Tournament started 2 days ago
+        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
+
+        const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament);
+
+        expect(result.silverBoostsUsed).toBe(0);
+        expect(result.goldenBoostsUsed).toBe(0);
+        expect(result.silverBoostsMax).toBe(5); // From mockTournament default
+        expect(result.goldenBoostsMax).toBe(3); // From mockTournament default
+      });
+
+      it('should count silver boosts correctly', async () => {
+        // Mock: No tournament guesses
+        mockFindTournamentGuess.mockResolvedValue(undefined);
+
+        // Mock: No group position predictions
+        mockGetAllUserGroupPositionsPredictions.mockResolvedValue([]);
+
+        // Mock database queries
+        let callCount = 0;
+        mockDb.selectFrom.mockImplementation((tableName: string) => {
+          callCount++;
+          if (callCount === 1) {
+            // First call: count total games (10)
+            return createMockSelectQuery({ count: 10 }) as any;
+          } else if (callCount === 2) {
+            // Second call: count completed game guesses (10)
+            return createMockSelectQuery({ count: 10 }) as any;
+          } else if (callCount === 3) {
+            // Third call: count silver boosts (3 silver boosts used)
+            return createMockSelectQuery({ count: 3 }) as any;
+          } else if (callCount === 4) {
+            // Fourth call: count golden boosts (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 5) {
+            // Fifth call: count total first_round games (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 6) {
+            // Sixth call: count total groups (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else {
+            // Seventh call: count complete groups (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          }
+        });
+
+        // Mock: Tournament started 2 days ago
+        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
+
+        const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament);
+
+        expect(result.silverBoostsUsed).toBe(3);
+        expect(result.goldenBoostsUsed).toBe(0);
+        expect(result.silverBoostsMax).toBe(5);
+        expect(result.goldenBoostsMax).toBe(3);
+      });
+
+      it('should count golden boosts correctly', async () => {
+        // Mock: No tournament guesses
+        mockFindTournamentGuess.mockResolvedValue(undefined);
+
+        // Mock: No group position predictions
+        mockGetAllUserGroupPositionsPredictions.mockResolvedValue([]);
+
+        // Mock database queries
+        let callCount = 0;
+        mockDb.selectFrom.mockImplementation((tableName: string) => {
+          callCount++;
+          if (callCount === 1) {
+            // First call: count total games (10)
+            return createMockSelectQuery({ count: 10 }) as any;
+          } else if (callCount === 2) {
+            // Second call: count completed game guesses (10)
+            return createMockSelectQuery({ count: 10 }) as any;
+          } else if (callCount === 3) {
+            // Third call: count silver boosts (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 4) {
+            // Fourth call: count golden boosts (2 golden boosts used)
+            return createMockSelectQuery({ count: 2 }) as any;
+          } else if (callCount === 5) {
+            // Fifth call: count total first_round games (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 6) {
+            // Sixth call: count total groups (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else {
+            // Seventh call: count complete groups (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          }
+        });
+
+        // Mock: Tournament started 2 days ago
+        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
+
+        const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament);
+
+        expect(result.silverBoostsUsed).toBe(0);
+        expect(result.goldenBoostsUsed).toBe(2);
+        expect(result.silverBoostsMax).toBe(5);
+        expect(result.goldenBoostsMax).toBe(3);
+      });
+
+      it('should count both silver and golden boosts correctly', async () => {
+        // Mock: No tournament guesses
+        mockFindTournamentGuess.mockResolvedValue(undefined);
+
+        // Mock: No group position predictions
+        mockGetAllUserGroupPositionsPredictions.mockResolvedValue([]);
+
+        // Mock database queries
+        let callCount = 0;
+        mockDb.selectFrom.mockImplementation((tableName: string) => {
+          callCount++;
+          if (callCount === 1) {
+            // First call: count total games (20)
+            return createMockSelectQuery({ count: 20 }) as any;
+          } else if (callCount === 2) {
+            // Second call: count completed game guesses (20)
+            return createMockSelectQuery({ count: 20 }) as any;
+          } else if (callCount === 3) {
+            // Third call: count silver boosts (5 - at max)
+            return createMockSelectQuery({ count: 5 }) as any;
+          } else if (callCount === 4) {
+            // Fourth call: count golden boosts (3 - at max)
+            return createMockSelectQuery({ count: 3 }) as any;
+          } else if (callCount === 5) {
+            // Fifth call: count total first_round games (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 6) {
+            // Sixth call: count total groups (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else {
+            // Seventh call: count complete groups (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          }
+        });
+
+        // Mock: Tournament started 2 days ago
+        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
+
+        const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament);
+
+        expect(result.silverBoostsUsed).toBe(5);
+        expect(result.goldenBoostsUsed).toBe(3);
+        expect(result.silverBoostsMax).toBe(5);
+        expect(result.goldenBoostsMax).toBe(3);
+      });
+
+      it('should use custom tournament boost limits', async () => {
+        // Create tournament with custom boost limits
+        const customTournament = testFactories.tournament({
+          id: tournamentId,
+          max_silver_games: 10,
+          max_golden_games: 7,
+        });
+
+        // Mock: No tournament guesses
+        mockFindTournamentGuess.mockResolvedValue(undefined);
+
+        // Mock: No group position predictions
+        mockGetAllUserGroupPositionsPredictions.mockResolvedValue([]);
+
+        // Mock database queries
+        let callCount = 0;
+        mockDb.selectFrom.mockImplementation((tableName: string) => {
+          callCount++;
+          if (callCount === 1) {
+            // First call: count total games (10)
+            return createMockSelectQuery({ count: 10 }) as any;
+          } else if (callCount === 2) {
+            // Second call: count completed game guesses (10)
+            return createMockSelectQuery({ count: 10 }) as any;
+          } else if (callCount === 3) {
+            // Third call: count silver boosts (8)
+            return createMockSelectQuery({ count: 8 }) as any;
+          } else if (callCount === 4) {
+            // Fourth call: count golden boosts (5)
+            return createMockSelectQuery({ count: 5 }) as any;
+          } else if (callCount === 5) {
+            // Fifth call: count total first_round games (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 6) {
+            // Sixth call: count total groups (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else {
+            // Seventh call: count complete groups (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          }
+        });
+
+        // Mock: Tournament started 2 days ago
+        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
+
+        const result = await getTournamentPredictionCompletion(userId, tournamentId, customTournament);
+
+        expect(result.silverBoostsUsed).toBe(8);
+        expect(result.goldenBoostsUsed).toBe(5);
+        expect(result.silverBoostsMax).toBe(10);
+        expect(result.goldenBoostsMax).toBe(7);
+      });
+
+      it('should handle tournaments with no boost limits (null values)', async () => {
+        // Create tournament with null boost limits
+        const noBoostTournament = testFactories.tournament({
+          id: tournamentId,
+          max_silver_games: null,
+          max_golden_games: null,
+        });
+
+        // Mock: No tournament guesses
+        mockFindTournamentGuess.mockResolvedValue(undefined);
+
+        // Mock: No group position predictions
+        mockGetAllUserGroupPositionsPredictions.mockResolvedValue([]);
+
+        // Mock database queries
+        let callCount = 0;
+        mockDb.selectFrom.mockImplementation((tableName: string) => {
+          callCount++;
+          if (callCount === 1) {
+            // First call: count total games (10)
+            return createMockSelectQuery({ count: 10 }) as any;
+          } else if (callCount === 2) {
+            // Second call: count completed game guesses (10)
+            return createMockSelectQuery({ count: 10 }) as any;
+          } else if (callCount === 3) {
+            // Third call: count silver boosts (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 4) {
+            // Fourth call: count golden boosts (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 5) {
+            // Fifth call: count total first_round games (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 6) {
+            // Sixth call: count total groups (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else {
+            // Seventh call: count complete groups (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          }
+        });
+
+        // Mock: Tournament started 2 days ago
+        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
+
+        const result = await getTournamentPredictionCompletion(userId, tournamentId, noBoostTournament);
+
+        expect(result.silverBoostsUsed).toBe(0);
+        expect(result.goldenBoostsUsed).toBe(0);
+        // Should default to 0 when null
+        expect(result.silverBoostsMax).toBe(0);
+        expect(result.goldenBoostsMax).toBe(0);
+      });
+    });
+
+    describe('Integration: Games and Boosts with Full Predictions', () => {
+      it('should return all fields correctly in a complete scenario', async () => {
+        // Create tournament with custom limits
+        const customTournament = testFactories.tournament({
+          id: tournamentId,
+          max_silver_games: 8,
+          max_golden_games: 4,
+        });
+
+        // Mock: Complete tournament guesses
+        const mockTournamentGuess = {
+          id: 'guess-1',
+          tournament_id: tournamentId,
+          user_id: userId,
+          champion_team_id: 'team-1',
+          runner_up_team_id: 'team-2',
+          third_place_team_id: 'team-3',
+          best_player_id: 'player-1',
+          top_goalscorer_player_id: 'player-2',
+          best_goalkeeper_player_id: 'player-3',
+          best_young_player_id: 'player-4',
+        };
+        mockFindTournamentGuess.mockResolvedValue(mockTournamentGuess);
+
+        // Mock: 2 groups with 2 qualifying teams each (4 total qualifiers)
+        mockGetAllUserGroupPositionsPredictions.mockResolvedValue([
+          {
+            id: 'pred-1',
+            user_id: userId,
+            tournament_id: tournamentId,
+            group_id: 'group-a',
+            team_predicted_positions: [
+              { team_id: 'team-1', predicted_position: 1, predicted_to_qualify: true },
+              { team_id: 'team-2', predicted_position: 2, predicted_to_qualify: true },
+            ],
+          },
+          {
+            id: 'pred-2',
+            user_id: userId,
+            tournament_id: tournamentId,
+            group_id: 'group-b',
+            team_predicted_positions: [
+              { team_id: 'team-3', predicted_position: 1, predicted_to_qualify: true },
+              { team_id: 'team-4', predicted_position: 2, predicted_to_qualify: true },
+            ],
+          },
+        ] as any);
+
+        // Mock database queries for a complete scenario
+        let callCount = 0;
+        mockDb.selectFrom.mockImplementation((tableName: string) => {
+          callCount++;
+          if (callCount === 1) {
+            // First call: count total games (48)
+            return createMockSelectQuery({ count: 48 }) as any;
+          } else if (callCount === 2) {
+            // Second call: count completed game guesses (40)
+            return createMockSelectQuery({ count: 40 }) as any;
+          } else if (callCount === 3) {
+            // Third call: count silver boosts (7)
+            return createMockSelectQuery({ count: 7 }) as any;
+          } else if (callCount === 4) {
+            // Fourth call: count golden boosts (3)
+            return createMockSelectQuery({ count: 3 }) as any;
+          } else if (callCount === 5) {
+            // Fifth call: count total first_round games (8)
+            return createMockSelectQuery({ count: 8 }) as any;
+          } else if (callCount === 6) {
+            // Sixth call: count total groups (2)
+            return createMockSelectQuery({ count: 2 }) as any;
+          } else {
+            // Seventh call: count complete groups (2)
+            return createMockSelectQuery({ count: 2 }) as any;
+          }
+        });
+
+        // Mock: Tournament started 2 days ago
+        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
+
+        const result = await getTournamentPredictionCompletion(userId, tournamentId, customTournament);
+
+        // Verify game predictions
+        expect(result.completedGames).toBe(40);
+        expect(result.totalGames).toBe(48);
+
+        // Verify boost tracking
+        expect(result.silverBoostsUsed).toBe(7);
+        expect(result.goldenBoostsUsed).toBe(3);
+        expect(result.silverBoostsMax).toBe(8);
+        expect(result.goldenBoostsMax).toBe(4);
+
+        // Verify final standings
+        expect(result.finalStandings.completed).toBe(3);
+        expect(result.finalStandings.total).toBe(3);
+
+        // Verify awards
+        expect(result.awards.completed).toBe(4);
+        expect(result.awards.total).toBe(4);
+
+        // Verify qualifiers
+        expect(result.qualifiers.completed).toBe(4);
+        expect(result.qualifiers.total).toBe(16); // 8 games × 2 teams
+
+        // Verify overall completion
+        expect(result.overallCompleted).toBe(11); // 3 + 4 + 4
+        expect(result.overallTotal).toBe(23); // 3 + 4 + 16
+        expect(result.overallPercentage).toBe(48); // Math.round(11/23 * 100)
+        expect(result.isPredictionLocked).toBe(false);
+      });
     });
   });
 });

@@ -18,6 +18,7 @@ import { TournamentGameCounts } from '../db/game-repository';
 import { filterGames } from '../utils/game-filters';
 import { GuessesContext } from './context-providers/guesses-context-provider';
 import { findScrollTarget, scrollToGame } from '../utils/auto-scroll';
+import { isGamePredictionComplete } from '../utils/game-prediction-helpers';
 
 // Timing constants for edit parameter handling
 const DOM_RENDER_DELAY = 50; // ms - small delay for DOM to re-render after filter change
@@ -67,7 +68,15 @@ function UnifiedGamesPageContent({
   const totalGames = games.length;
   const predictedGames = games.filter(game => {
     const guess = guessesContext.gameGuesses[game.id];
-    return guess && guess.home_score !== null && guess.away_score !== null;
+    if (!guess) return false;
+
+    return isGamePredictionComplete(
+      game.game_type,
+      guess.home_score,
+      guess.away_score,
+      guess.home_penalty_winner,
+      guess.away_penalty_winner
+    );
   }).length;
 
   // Effect 1: Detect edit parameter and clear filters
@@ -189,12 +198,23 @@ function UnifiedGamesPageContent({
         <CompactPredictionDashboard
           totalGames={totalGames}
           predictedGames={predictedGames}
-          tournamentPredictions={tournamentPredictionCompletion || undefined}
           tournamentId={tournamentId}
           tournamentStartDate={tournamentStartDate}
-          games={closingGames}
+          urgentGames={closingGames}
+          urgentGameGuesses={guessesContext.gameGuesses as any}
           teamsMap={teamsMap}
-          isPlayoffs={false}
+          silverBoostsUsed={guessesContext.boostCounts.silver.used}
+          silverBoostsMax={guessesContext.boostCounts.silver.max}
+          goldenBoostsUsed={guessesContext.boostCounts.golden.used}
+          goldenBoostsMax={guessesContext.boostCounts.golden.max}
+          finalStandingsCompleted={tournamentPredictionCompletion?.finalStandings.completed}
+          finalStandingsTotal={tournamentPredictionCompletion?.finalStandings.total}
+          awardsCompleted={tournamentPredictionCompletion?.awards.completed}
+          awardsTotal={tournamentPredictionCompletion?.awards.total}
+          qualifiersCompleted={tournamentPredictionCompletion?.qualifiers.completed}
+          qualifiersTotal={tournamentPredictionCompletion?.qualifiers.total}
+          overallPercentage={tournamentPredictionCompletion?.overallPercentage}
+          isPredictionLocked={tournamentPredictionCompletion?.isPredictionLocked}
         />
       </Box>
 

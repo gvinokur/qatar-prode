@@ -734,7 +734,7 @@ describe('UnifiedGamesPageClient', () => {
   });
 
   describe('Component Props Passing', () => {
-    it('should pass correct props to CompactPredictionDashboard', () => {
+    it('should pass correct props to CompactPredictionDashboard with data from GuessesContext', () => {
       const games = createTestGames(6);
       const teamsMap = createTestTeamsMap(12);
       const closingGames = games.slice(0, 2);
@@ -760,12 +760,23 @@ describe('UnifiedGamesPageClient', () => {
         expect.objectContaining({
           totalGames: 6,
           predictedGames: 0,
-          tournamentPredictions: defaultTournamentPredictionCompletion,
           tournamentId: 'tournament-1',
           tournamentStartDate: tournamentStartDate,
-          games: closingGames,
+          urgentGames: closingGames,
+          urgentGameGuesses: expect.any(Object),
           teamsMap: teamsMap,
-          isPlayoffs: false
+          silverBoostsUsed: expect.any(Number),
+          silverBoostsMax: expect.any(Number),
+          goldenBoostsUsed: expect.any(Number),
+          goldenBoostsMax: expect.any(Number),
+          finalStandingsCompleted: 2,
+          finalStandingsTotal: 3,
+          awardsCompleted: 1,
+          awardsTotal: 4,
+          qualifiersCompleted: 8,
+          qualifiersTotal: 16,
+          overallPercentage: 47.83,
+          isPredictionLocked: false
         })
       );
     });
@@ -885,7 +896,137 @@ describe('UnifiedGamesPageClient', () => {
 
       expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
         expect.objectContaining({
-          tournamentPredictions: undefined
+          finalStandingsCompleted: undefined,
+          finalStandingsTotal: undefined,
+          awardsCompleted: undefined,
+          awardsTotal: undefined,
+          qualifiersCompleted: undefined,
+          qualifiersTotal: undefined,
+          overallPercentage: undefined,
+          isPredictionLocked: undefined
+        })
+      );
+    });
+  });
+
+  describe('Override Pattern - GuessesContext Integration', () => {
+    it('should pass boost counts from GuessesContext to dashboard', () => {
+      const games = createTestGames(6);
+      const teamsMap = createTestTeamsMap(12);
+      const mockGameGuesses = {
+        'game-1': testFactories.gameGuess({
+          game_id: 'game-1',
+          home_score: 2,
+          away_score: 1,
+          is_golden_game: true
+        }),
+        'game-2': testFactories.gameGuess({
+          game_id: 'game-2',
+          home_score: 1,
+          away_score: 1,
+          is_silver_game: true
+        })
+      };
+
+      renderWithProviders(
+        <UnifiedGamesPageClient
+          games={games}
+          gameCounts={defaultGameCounts}
+          teamsMap={teamsMap}
+          tournamentId="tournament-1"
+          groups={defaultGroups}
+          rounds={defaultRounds}
+          tournament={defaultTournament}
+          closingGames={[]}
+          tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
+          tournamentStartDate={undefined}
+        />,
+        {
+          guessesContext: {
+            gameGuesses: mockGameGuesses,
+            boostCounts: {
+              silver: { used: 1, max: 5 },
+              golden: { used: 1, max: 3 }
+            }
+          }
+        }
+      );
+
+      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
+        expect.objectContaining({
+          silverBoostsUsed: 1,
+          silverBoostsMax: 5,
+          goldenBoostsUsed: 1,
+          goldenBoostsMax: 3
+        })
+      );
+    });
+
+    it('should pass urgent games and their guesses from GuessesContext', () => {
+      const games = createTestGames(6);
+      const teamsMap = createTestTeamsMap(12);
+      const closingGames = games.slice(0, 2);
+      const mockGameGuesses = {
+        [closingGames[0].id]: testFactories.gameGuess({
+          game_id: closingGames[0].id,
+          home_score: 2,
+          away_score: 1
+        })
+      };
+
+      renderWithProviders(
+        <UnifiedGamesPageClient
+          games={games}
+          gameCounts={defaultGameCounts}
+          teamsMap={teamsMap}
+          tournamentId="tournament-1"
+          groups={defaultGroups}
+          rounds={defaultRounds}
+          tournament={defaultTournament}
+          closingGames={closingGames}
+          tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
+          tournamentStartDate={undefined}
+        />,
+        { guessesContext: { gameGuesses: mockGameGuesses } }
+      );
+
+      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
+        expect.objectContaining({
+          urgentGames: closingGames,
+          urgentGameGuesses: mockGameGuesses
+        })
+      );
+    });
+
+    it('should calculate totalGames and predictedGames from games and GuessesContext', () => {
+      const games = createTestGames(5);
+      const teamsMap = createTestTeamsMap(10);
+      const mockGameGuesses = {
+        'game-1': testFactories.gameGuess({ game_id: 'game-1', home_score: 2, away_score: 1 }),
+        'game-2': testFactories.gameGuess({ game_id: 'game-2', home_score: 1, away_score: 1 }),
+        'game-3': testFactories.gameGuess({ game_id: 'game-3', home_score: null, away_score: 1 }) // Partial prediction
+      };
+
+      renderWithProviders(
+        <UnifiedGamesPageClient
+          games={games}
+          gameCounts={defaultGameCounts}
+          teamsMap={teamsMap}
+          tournamentId="tournament-1"
+          groups={defaultGroups}
+          rounds={defaultRounds}
+          tournament={defaultTournament}
+          closingGames={[]}
+          tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
+          tournamentStartDate={undefined}
+        />,
+        { guessesContext: { gameGuesses: mockGameGuesses } }
+      );
+
+      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
+        expect.objectContaining({
+          totalGames: 5,
+          predictedGames: 2 // Only game-1 and game-2 have both scores
         })
       );
     });

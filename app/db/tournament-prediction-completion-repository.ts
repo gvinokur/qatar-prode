@@ -18,10 +18,76 @@ import { getAllUserGroupPositionsPredictions } from './qualified-teams-repositor
 export async function getTournamentPredictionCompletion(
   userId: string,
   tournamentId: string,
-  _tournament: Tournament
+  tournament: Tournament
 ): Promise<TournamentPredictionCompletion> {
   // Fetch user's tournament guess using repository function
   const tournamentGuess = await findTournamentGuessByUserIdTournament(userId, tournamentId);
+
+  // Game predictions: Count total games and completed games
+  const totalGamesResult = await db
+    .selectFrom('games')
+    .select((eb) => eb.fn.countAll<number>().as('count'))
+    .where('tournament_id', '=', tournamentId)
+    .executeTakeFirst();
+
+  const totalGames = Number(totalGamesResult?.count ?? 0);
+
+  const completedGamesResult = await db
+    .selectFrom('games')
+    .innerJoin('game_guesses', 'game_guesses.game_id', 'games.id')
+    .select((eb) => eb.fn.countAll<number>().as('count'))
+    .where('games.tournament_id', '=', tournamentId)
+    .where('game_guesses.user_id', '=', userId)
+    .where('game_guesses.home_score', 'is not', null)
+    .where('game_guesses.away_score', 'is not', null)
+    .where((eb) =>
+      eb.or([
+        // Group games are complete with just scores
+        eb('games.game_type', '=', 'group'),
+        // Playoff games: either not tied OR has penalty winner selected
+        eb.and([
+          eb('games.game_type', '!=', 'group'),
+          eb.or([
+            // Not tied (different scores)
+            eb('game_guesses.home_score', '!=', eb.ref('game_guesses.away_score')),
+            // Or has home penalty winner
+            eb('game_guesses.home_penalty_winner', '=', true),
+            // Or has away penalty winner
+            eb('game_guesses.away_penalty_winner', '=', true),
+          ])
+        ])
+      ])
+    )
+    .executeTakeFirst();
+
+  const completedGames = Number(completedGamesResult?.count ?? 0);
+
+  // Boost tracking: Count silver and golden boost usage
+  const silverBoostsResult = await db
+    .selectFrom('game_guesses')
+    .innerJoin('games', 'games.id', 'game_guesses.game_id')
+    .select((eb) => eb.fn.countAll<number>().as('count'))
+    .where('games.tournament_id', '=', tournamentId)
+    .where('game_guesses.user_id', '=', userId)
+    .where('game_guesses.boost_type', '=', 'silver')
+    .executeTakeFirst();
+
+  const silverBoostsUsed = Number(silverBoostsResult?.count ?? 0);
+
+  const goldenBoostsResult = await db
+    .selectFrom('game_guesses')
+    .innerJoin('games', 'games.id', 'game_guesses.game_id')
+    .select((eb) => eb.fn.countAll<number>().as('count'))
+    .where('games.tournament_id', '=', tournamentId)
+    .where('game_guesses.user_id', '=', userId)
+    .where('game_guesses.boost_type', '=', 'golden')
+    .executeTakeFirst();
+
+  const goldenBoostsUsed = Number(goldenBoostsResult?.count ?? 0);
+
+  // Boost max values from tournament
+  const silverBoostsMax = tournament.max_silver_games ?? 0;
+  const goldenBoostsMax = tournament.max_golden_games ?? 0;
 
   // Category 1: Final Standings (3 items)
   const champion = !!tournamentGuess?.champion_team_id;
@@ -96,5 +162,11 @@ export async function getTournamentPredictionCompletion(
     overallTotal,
     overallPercentage,
     isPredictionLocked,
+    completedGames,
+    totalGames,
+    silverBoostsUsed,
+    goldenBoostsUsed,
+    silverBoostsMax,
+    goldenBoostsMax,
   };
 }
