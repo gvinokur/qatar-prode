@@ -2,6 +2,8 @@
 
 ## Context
 
+**IMPORTANT:** This is a **data flow refactoring only** - no UI changes, no visual changes, no user-facing behavior changes. Only changes to how data is fetched, calculated, and passed to the dashboard component.
+
 The `CompactPredictionDashboard` component is currently tightly coupled with `GuessesContext`, which causes several issues:
 
 **Problems:**
@@ -169,9 +171,10 @@ interface TournamentPredictionCompletion {
   goldenBoostsUsed: number         // Golden boosts currently used
   silverBoostsMax: number          // From tournament.max_silver_games (0 if null)
   goldenBoostsMax: number          // From tournament.max_golden_games (0 if null)
-  urgentGamesCount: number         // Games closing in 48hrs (incomplete)
-  urgentGames: ExtendedGameData[]  // Array of urgent games (sorted by game_date)
-  urgentGameGuesses: Record<string, GameGuessNew> // User's guesses (empty {} if none)
+  urgentGames: ExtendedGameData[]  // Games closing in 48hrs (incomplete), sorted by game_date
+  urgentGameGuesses: Record<string, GameGuessNew> // User's guesses for urgent games (empty {} if none)
+
+  // Note: urgentGamesCount removed (redundant - use urgentGames.length instead)
 }
 ```
 
@@ -209,10 +212,7 @@ interface CompactPredictionDashboardProps {
   readonly qualifiedTeamsCompleted: number
   readonly qualifiedTeamsTotal: number
 
-  // Urgency data (pre-calculated)
-  readonly gameUrgencyLevel: UrgencyLevel
-  readonly tournamentUrgencyLevel: UrgencyLevel
-  readonly urgentGamesCount: number
+  // Urgent games data (for popover)
   readonly urgentGames: ExtendedGameData[]
   readonly urgentGameGuesses: Record<string, GameGuessNew>
 
@@ -229,8 +229,11 @@ interface CompactPredictionDashboardProps {
 **Changes:**
 - Remove nested `tournamentPredictions` object, flatten all values
 - Receive boost data as individual props (not from context)
-- Receive pre-calculated urgency levels (not calculated internally)
-- Receive urgent games data directly
+- **Calculate urgency levels internally** using existing helper functions from `app/components/urgency-helpers.tsx`
+  - `getGameUrgencyLevel(urgentGames, urgentGameGuesses)` - pure function, can calculate in component
+  - `getTournamentUrgencyLevel(tournamentPredictions, tournamentStartDate)` - pure function, can calculate in component
+  - Helpers only depend on data already received as props
+- Receive urgent games data for popover
 
 **Child components:**
 - `PredictionProgressRow`: No changes needed (already receives individual props)
@@ -254,13 +257,16 @@ interface CompactPredictionDashboardProps {
 - No data fetching or calculation logic
 
 **Props interface note:**
-- Interface has 17+ individual props (flattened approach)
-- **Alternative considered:** Group related props into objects (gameMetrics, boosts, tournaments, urgency)
+- Interface reduced to ~15 individual props (urgency levels removed, urgentGamesCount removed)
+- **Urgency calculation:** Component calculates internally using pure helper functions
+  - Receives: urgentGames, urgentGameGuesses, tournamentStartDate, isPredictionLocked
+  - Calculates: gameUrgencyLevel, tournamentUrgencyLevel
+  - Helpers are pure functions with no side effects
+- **Alternative considered:** Group related props into objects (gameMetrics, boosts, tournaments)
 - **Decision:** Keep flat props for Phase 1 implementation
   - Easier to pass individual calculated values from parent
   - Clear which values parent must provide
   - Can refactor to grouped props later if duplication becomes issue
-- If implementation reveals significant prop-passing duplication, revisit grouping approach
 
 ---
 
@@ -282,14 +288,14 @@ interface CompactPredictionDashboardProps {
 2. **Calculate from GuessesContext:**
    - `predictedGames`: Count games where `gameGuesses[game.id]` has both scores filled
    - `silverBoostsUsed`, `goldenBoostsUsed`: From `boostCounts` in context
-   - `urgentGamesCount`: Filter `games` for closingIn48hrs and unpredicted
-   - `urgentGames`: Subset of `games` closing within 48hrs
-   - `urgentGameGuesses`: Map of guesses for urgent games
+   - `urgentGames`: Filter `games` for closing within 48hrs and incomplete/unpredicted
+   - `urgentGameGuesses`: Map of guesses for those urgent games only
 
-3. **Calculate urgency levels:**
-   - `gameUrgencyLevel`: Use existing `getGameUrgencyLevel(urgentGames, gameGuesses)` helper from `app/components/urgency-helpers.tsx`
-   - `tournamentUrgencyLevel`: Use existing `getTournamentUrgencyLevel(tournamentPredictions, tournamentStartDate)` helper from `app/components/urgency-helpers.tsx`
-   - **Note:** These helpers already exist and take the correct parameters (verified during exploration)
+3. **Dashboard calculates urgency levels internally:**
+   - No need to pre-calculate urgency in parent
+   - Dashboard uses `getGameUrgencyLevel(urgentGames, urgentGameGuesses)` helper
+   - Dashboard uses `getTournamentUrgencyLevel(tournamentPredictions, tournamentStartDate)` helper
+   - Helpers are pure functions, no side effects
 
 4. **Flatten and pass to dashboard:**
    - Extract final standings values from `tournamentPredictions.finalStandings`
@@ -347,8 +353,7 @@ interface CompactPredictionDashboardProps {
 4. **Flatten and pass to dashboard:**
    - Destructure all repository data
    - Override qualified teams values
-   - Calculate urgency levels using helper functions
-   - Pass flattened props
+   - Pass flattened props (dashboard calculates urgency internally)
 
 **GuessesContextProvider:**
 - Still needed by page for game prediction management (not removed)
@@ -409,8 +414,7 @@ interface CompactPredictionDashboardProps {
 5. **Flatten and pass:**
    - Destructure repository data
    - Override awards/honor roll values
-   - Calculate urgency levels
-   - Pass flattened props
+   - Pass flattened props (dashboard calculates urgency internally)
 
 **GuessesContextProvider:**
 - Still wraps component (needed for other features)
