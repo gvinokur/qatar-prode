@@ -4,6 +4,7 @@ import {Box, Grid, Typography} from "../../../../../components/mui-wrappers";
 import {redirect} from "next/navigation";
 import {DebugObject} from "../../../../../components/debug";
 import {findParticipantsInGroup, findProdeGroupById} from "../../../../../db/prode-group-repository";
+import {findPendingJoinRequest} from "../../../../../db/prode-group-join-request-repository";
 import JoinMessage from "../../../../../components/friend-groups/friend-groups-join-message";
 import {findUsersByIds} from "../../../../../db/users-repository";
 import ProdeGroupTable from "../../../../../components/friend-groups/friends-group-table";
@@ -16,11 +17,17 @@ import {getThemeLogoUrl} from "../../../../../utils/theme-utils";
 import { getGroupTournamentBettingConfigAction, getGroupTournamentBettingPaymentsAction } from '../../../../../actions/group-tournament-betting-actions';
 import LeaveGroupButton from '../../../../../components/friend-groups/leave-group-button';
 import { getUserScoresForTournament } from "../../../../../actions/prode-group-actions";
+import { getGroupJoinRequests, getPendingRequestCount } from "../../../../../actions/prode-group-join-request-actions";
+import PendingRequestView from "../../../../../components/friend-groups/pending-request-view";
+import AdminTabs from "../../../../../components/friend-groups/admin-tabs";
+import JoinRequestManager from "../../../../../components/friend-groups/join-request-manager";
+import GroupTournamentBettingAdmin from "../../../../../components/friend-groups/group-tournament-betting-admin";
 
 type Props = {
   readonly params: Promise<{
     id: string  // tournament ID
     group_id: string  // friend group ID
+    locale: string
   }>,
   readonly searchParams: Promise<{[k:string]:string}>
 }
@@ -33,10 +40,40 @@ export default async function TournamentScopedFriendGroup(props : Props){
   const tournament = await findTournamentById(params.id)
 
   if(!prodeGroup || !user || !tournament) {
-    redirect(`/es/tournaments/${params.id}`)
+    redirect(`/${params.locale}/tournaments/${params.id}`)
   }
 
+  // Check user access
   const participants = await findParticipantsInGroup(prodeGroup.id)
+  const isOwner = prodeGroup.owner_user_id === user.id;
+  const participantRecord = participants.find((p: any) => p.user_id === user.id);
+  const isMember = !!participantRecord || isOwner;
+  const isAdmin = !!(isOwner || participantRecord?.is_admin);
+
+  // Check for pending join request
+  const pendingRequest = await findPendingJoinRequest(prodeGroup.id, user.id);
+
+  // Access control
+  if (pendingRequest && !isMember) {
+    // Show pending request view
+    return (
+      <Box p={2}>
+        <PendingRequestView
+          group={prodeGroup}
+          requestId={pendingRequest.id}
+          requestedAt={pendingRequest.requested_at}
+          memberCount={participants.length}
+        />
+      </Box>
+    );
+  }
+
+  if (!isMember) {
+    // Not a member, redirect to join page
+    redirect(`/${params.locale}/friend-groups/join/${prodeGroup.id}`);
+  }
+
+  // Build user data
   const allParticipants = [
     prodeGroup.owner_user_id,
     ...participants.map(({user_id}) => user_id)
@@ -53,7 +90,11 @@ export default async function TournamentScopedFriendGroup(props : Props){
 
   let logoUrl = getThemeLogoUrl(prodeGroup.theme)
 
-  const members = users.map(u => ({ id: u.id, nombre: u.nickname || u.email, is_admin: participants.find((p: any) => p.user_id === u.id)?.is_admin || false }));
+  const members = users.map(u => ({
+    id: u.id,
+    nombre: u.nickname || u.email,
+    is_admin: participants.find((p: any) => p.user_id === u.id)?.is_admin || false
+  }));
 
   // Fetch betting config and payments for this tournament only
   const config = await getGroupTournamentBettingConfigAction(prodeGroup.id, tournament.id);
@@ -64,6 +105,22 @@ export default async function TournamentScopedFriendGroup(props : Props){
   const bettingData = {
     [tournament.id]: { config, payments }
   };
+
+  // Fetch pending request count for admin badge
+  const pendingRequestCount = isAdmin ? await getPendingRequestCount(prodeGroup.id) : 0;
+
+  // Fetch pending join requests for admin
+  let joinRequests: any[] = [];
+  if (isAdmin) {
+    try {
+      joinRequests = await getGroupJoinRequests(prodeGroup.id);
+    } catch (err) {
+      console.error('Error fetching join requests:', err);
+    }
+  }
+
+  // Check for default tab from URL
+  const defaultTab = searchParams.tab === 'admin' && isAdmin ? 'admin' : 'leaderboard';
 
   return (
     <Box>
@@ -76,6 +133,7 @@ export default async function TournamentScopedFriendGroup(props : Props){
           userScoresByTournament
         }}/>
       )}
+      {/* Group Header */}
       <Box
         sx={{
           display: 'flex',
@@ -112,35 +170,80 @@ export default async function TournamentScopedFriendGroup(props : Props){
         >
           {prodeGroup.name}
         </Typography>
+        <Box sx={{ ml: 'auto' }}>
+          {isOwner && (
+            <InviteFriendsDialogButton
+              groupName={prodeGroup.name}
+              groupId={prodeGroup.id}
+            />
+          )}
+        </Box>
       </Box>
+
+      {/* Content with Tabs */}
       <Grid container spacing={2} p={2} justifyContent={'center'}>
         <Grid size={12}>
-          <ProdeGroupTable
-            users={usersMap}
-            userScoresByTournament={userScoresByTournament}
-            loggedInUser={user.id}
-            tournaments={[tournament]}  // Only this tournament
-            action={prodeGroup.owner_user_id === user.id ? (
-              <InviteFriendsDialogButton
-                groupName={prodeGroup.name}
-                groupId={prodeGroup.id}/>
-            ) : (
-              <LeaveGroupButton groupId={prodeGroup.id} />
+          <AdminTabs
+            isAdmin={isAdmin}
+            defaultTab={defaultTab}
+            leaderboardContent={
+              <ProdeGroupTable
+                users={usersMap}
+                userScoresByTournament={userScoresByTournament}
+                loggedInUser={user.id}
+                tournaments={[tournament]}
+                groupId={prodeGroup.id}
+                ownerId={prodeGroup.owner_user_id}
+                members={members}
+                bettingData={bettingData}
+                selectedTournamentId={tournament.id}
+                pendingRequestCount={pendingRequestCount}
+              />
+            }
+            adminContent={
+              <Box>
+                {/* Section 1: Join Requests */}
+                <Box sx={{ mb: 3 }}>
+                  <JoinRequestManager
+                    groupId={prodeGroup.id}
+                    initialRequests={joinRequests}
+                    locale={params.locale as 'en' | 'es'}
+                  />
+                </Box>
 
-            )}
-            groupId={prodeGroup.id}
-            ownerId={prodeGroup.owner_user_id}
-            members={members}
-            bettingData={bettingData}
-            selectedTournamentId={tournament.id}  // Pre-select this tournament
+                {/* Section 2: Group Settings */}
+                <Box sx={{ mb: 3 }}>
+                  <Grid container spacing={2}>
+                    <Grid size={12}>
+                      <Box sx={{ display: 'flex', gap: 2 }}>
+                        {!isOwner && <LeaveGroupButton groupId={prodeGroup.id} />}
+                      </Box>
+                    </Grid>
+                  </Grid>
+                </Box>
+
+                {/* Section 3: Betting Configuration */}
+                <Box sx={{ mb: 3 }}>
+                  <GroupTournamentBettingAdmin
+                    groupId={prodeGroup.id}
+                    tournamentId={tournament.id}
+                    isAdmin={isAdmin}
+                    members={members}
+                    config={config ?? null}
+                    payments={payments}
+                  />
+                </Box>
+
+                {/* Section 4: Theme Customization */}
+                <Box>
+                  <ProdeGroupThemer group={prodeGroup} />
+                </Box>
+              </Box>
+            }
           />
         </Grid>
-        {(prodeGroup.owner_user_id === user.id || members.find(m => m.id === user.id)?.is_admin) && (
-          <Grid size={12}>
-           <ProdeGroupThemer group={prodeGroup}/>
-          </Grid>
-        ) || <></>}
       </Grid>
+
       {searchParams.hasOwnProperty('recentlyJoined') && (<JoinMessage />)}
     </Box>
   )

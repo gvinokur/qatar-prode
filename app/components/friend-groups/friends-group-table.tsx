@@ -9,6 +9,7 @@ import {
   CardHeader,
   Tab,
   Typography,
+  Chip,
 } from "@mui/material";
 import {useState} from "react";
 import GroupTournamentBettingAdmin from './group-tournament-betting-admin';
@@ -30,10 +31,11 @@ type Props = {
   readonly ownerId: string,
   readonly members: { id: string, nombre: string, is_admin?: boolean }[],
   readonly bettingData: { [tournamentId: string]: { config: any, payments: any[] } }
-  readonly selectedTournamentId?: string
+  readonly selectedTournamentId?: string,
+  readonly pendingRequestCount?: number
 }
 
-export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, ownerId, members, bettingData, selectedTournamentId}: Props) {
+export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, ownerId, members, bettingData, selectedTournamentId, pendingRequestCount}: Props) {
   const t = useTranslations('groups.standings');
 
   const [selectedTab, setSelectedTab] = useState<string>(selectedTournamentId || tournaments[0]?.id || '')
@@ -45,7 +47,14 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
     return (
       <Card>
         <CardHeader
-          title={t('title')}
+          title={
+            <Box display="flex" alignItems="center" gap={1}>
+              {t('title')}
+              {isAdmin && pendingRequestCount && pendingRequestCount > 0 && (
+                <Chip label={pendingRequestCount} color="error" size="small" />
+              )}
+            </Box>
+          }
           action={action}
         />
         <CardContent>
@@ -62,7 +71,14 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
   return (
     <Card>
       <CardHeader
-        title={t('title')}
+        title={
+          <Box display="flex" alignItems="center" gap={1}>
+            {t('title')}
+            {isAdmin && pendingRequestCount && pendingRequestCount > 0 && (
+              <Chip label={pendingRequestCount} color="error" size="small" />
+            )}
+          </Box>
+        }
         action={action}
       />
       <CardContent>

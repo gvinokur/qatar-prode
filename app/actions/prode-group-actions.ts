@@ -82,6 +82,10 @@ export async function demoteParticipantFromAdmin(groupId: string, userId: string
   await updateParticipantAdminStatus(groupId, userId, false);
 }
 
+/**
+ * @deprecated Use requestToJoinGroup from prode-group-join-request-actions.ts instead
+ * Auto-join has been replaced with request/approval workflow
+ */
 export async function joinGroup(groupId: string, isAdmin: boolean = false) {
   const user = await getLoggedInUser();
   if(!user) {

@@ -158,5 +158,66 @@
     "noImageSelected": "No image selected",
     "aspectRatioHint": "Recommended image ratio: {ratio}:1",
     "saveButton": "Save"
+  },
+  "joinRequests": {
+    "title": "Join Requests",
+    "noPendingRequests": "No pending join requests",
+    "approve": "Approve",
+    "reject": "Reject",
+    "approveSuccess": "Join request approved",
+    "rejectSuccess": "Join request rejected",
+    "approveFailed": "Failed to approve request",
+    "rejectFailed": "Failed to reject request",
+    "timeAgo": {
+      "minutes": "{count, plural, =1 {1 minute ago} other {# minutes ago}}",
+      "hours": "{count, plural, =1 {1 hour ago} other {# hours ago}}",
+      "days": "{count, plural, =1 {1 day ago} other {# days ago}}"
+    },
+    "source": {
+      "invite_link": "via invite link",
+      "discovery": "via discovery",
+      "email_invite": "via email invite"
+    }
+  },
+  "pendingRequest": {
+    "title": "Request Pending",
+    "message": "Your request to join this group is pending admin approval.",
+    "requestedOn": "Requested on: {date}",
+    "members": "{count, plural, =1 {1 member} other {# members}}",
+    "hiddenContent": "Leaderboard, scores, and betting information are hidden until your request is approved.",
+    "cancelButton": "Cancel Request",
+    "confirmCancel": "Are you sure you want to cancel your join request?",
+    "cancelFailed": "Failed to cancel request"
+  },
+  "pendingRequests": {
+    "title": "My Pending Requests",
+    "noRequests": "No pending requests",
+    "unknownGroup": "Unknown Group",
+    "cancel": "Cancel",
+    "confirmCancel": "Are you sure you want to cancel this request?",
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "canRequestAgain": "Can request again: {date}",
+    "timeAgo": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "daysAgo": "{count, plural, =1 {1 day ago} other {# days ago}}"
+    }
+  },
+  "tabs": {
+    "leaderboard": "Leaderboard",
+    "admin": "Admin"
+  },
+  "joinRequest": {
+    "preview": "Group Preview",
+    "members": "{count, plural, =1 {1 member} other {# members}}",
+    "approvalRequired": "Admin approval is required to join this group. Your request will be reviewed by the group administrators.",
+    "requestButton": "Request to Join Group",
+    "requestFailed": "Failed to submit join request",
+    "successTitle": "Request Submitted!",
+    "successMessage": "Your request to join this group has been submitted. You will be notified via email when an admin reviews your request."
   }
 }

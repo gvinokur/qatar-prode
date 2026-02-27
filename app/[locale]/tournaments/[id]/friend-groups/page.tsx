@@ -1,6 +1,7 @@
 'use server'
 
 import { getGroupsForUser, calculateTournamentGroupStats } from "../../../../actions/prode-group-actions";
+import { getUserJoinRequests } from "../../../../actions/prode-group-join-request-actions";
 import { getLoggedInUser } from "../../../../actions/user-actions";
 import { redirect } from "next/navigation";
 import TournamentGroupsList from "../../../../components/tournament-page/tournament-groups-list";
@@ -37,10 +38,14 @@ export default async function TournamentGroupsPage(props: Props) {
   );
   const groupStats: TournamentGroupStats[] = await Promise.all(groupStatsPromises);
 
+  // Fetch user's pending join requests
+  const pendingRequests = await getUserJoinRequests();
+
   return (
     <TournamentGroupsList
       groups={groupStats}
       tournamentId={tournamentId}
+      pendingRequests={pendingRequests}
     />
   );
 }

@@ -575,3 +575,22 @@ export interface ProdeGroupTournamentBettingPaymentTable extends Identifiable {
 export type ProdeGroupTournamentBettingPayment = Selectable<ProdeGroupTournamentBettingPaymentTable>;
 export type ProdeGroupTournamentBettingPaymentNew = Insertable<ProdeGroupTournamentBettingPaymentTable>;
 export type ProdeGroupTournamentBettingPaymentUpdate = Updateable<ProdeGroupTournamentBettingPaymentTable>;
+
+// Join request status type
+export type JoinRequestStatus = 'pending' | 'approved' | 'rejected';
+export type JoinRequestSource = 'discovery' | 'invite_link' | 'email_invite';
+
+// Join requests for friend groups
+export interface ProdeGroupJoinRequestTable extends Identifiable {
+  group_id: string;
+  user_id: string;
+  status: JoinRequestStatus;
+  request_source: JoinRequestSource;
+  requested_at: Generated<Date>;
+  resolved_at?: Date | null;
+  resolved_by_user_id?: string | null;
+}
+
+export type ProdeGroupJoinRequest = Selectable<ProdeGroupJoinRequestTable>;
+export type ProdeGroupJoinRequestNew = Insertable<ProdeGroupJoinRequestTable>;
+export type ProdeGroupJoinRequestUpdate = Updateable<ProdeGroupJoinRequestTable>;

@@ -16,19 +16,30 @@ import type { TournamentGroupStats } from "../../definitions";
 import TournamentGroupCard from "./tournament-group-card";
 import EmptyGroupsState from "./empty-groups-state";
 import JoinGroupDialog from "./join-group-dialog";
+import PendingRequestsCard from "../friend-groups/pending-requests-card";
 import { createDbGroup } from "../../actions/prode-group-actions";
 import { useTranslations } from 'next-intl';
+
+interface UserJoinRequest {
+  id: string;
+  group_id: string;
+  group_name?: string | null;
+  status: 'pending' | 'approved' | 'rejected';
+  requested_at: Date;
+  resolved_at?: Date | null;
+}
 
 interface TournamentGroupsListProps {
   readonly groups: TournamentGroupStats[];
   readonly tournamentId: string;
+  readonly pendingRequests?: UserJoinRequest[];
 }
 
 type GroupForm = {
   name: string;
 }
 
-export default function TournamentGroupsList({ groups, tournamentId }: TournamentGroupsListProps) {
+export default function TournamentGroupsList({ groups, tournamentId, pendingRequests = [] }: TournamentGroupsListProps) {
   const tCreate = useTranslations('groups.create');
   const tList = useTranslations('groups.list');
   const tActions = useTranslations('groups.actions');
@@ -160,6 +171,13 @@ export default function TournamentGroupsList({ groups, tournamentId }: Tournamen
                 </Button>
               </Stack>
             </Stack>
+
+            {/* Pending Requests Card */}
+            {pendingRequests.length > 0 && (
+              <Box sx={{ mb: 3 }}>
+                <PendingRequestsCard requests={pendingRequests} />
+              </Box>
+            )}
 
             {/* Groups Grid */}
             <Grid container spacing={3}>
