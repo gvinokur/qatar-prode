@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Box, Tab } from '@mui/material';
+import { Box, Tab, Badge } from '@mui/material';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { useTranslations } from 'next-intl';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -12,9 +12,10 @@ type Props = {
   leaderboardContent: React.ReactNode;
   adminContent: React.ReactNode;
   defaultTab?: 'leaderboard' | 'admin';
+  pendingRequestCount?: number;
 };
 
-export default function AdminTabs({ isAdmin, leaderboardContent, adminContent, defaultTab }: Props) {
+export default function AdminTabs({ isAdmin, leaderboardContent, adminContent, defaultTab, pendingRequestCount }: Props) {
   const t = useTranslations('groups.tabs');
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -73,7 +74,11 @@ export default function AdminTabs({ isAdmin, leaderboardContent, adminContent, d
             <Tab
               icon={<SettingsIcon />}
               iconPosition="start"
-              label={t('admin')}
+              label={
+                <Badge badgeContent={pendingRequestCount} color="error" max={99}>
+                  {t('admin')}
+                </Badge>
+              }
               value="admin"
             />
           </TabList>

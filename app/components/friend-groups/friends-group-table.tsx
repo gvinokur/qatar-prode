@@ -9,7 +9,6 @@ import {
   CardHeader,
   Tab,
   Typography,
-  Chip,
 } from "@mui/material";
 import {useState} from "react";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
@@ -26,34 +25,24 @@ type Props = {
   readonly tournaments: Tournament[],
   readonly action?: React.ReactNode,
   readonly groupId: string,
-  readonly ownerId: string,
   readonly members: { id: string, nombre: string, is_admin?: boolean }[],
   readonly bettingData: { [tournamentId: string]: { config: any, payments: any[] } }
   readonly selectedTournamentId?: string,
-  readonly pendingRequestCount?: number
 }
 
-export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, ownerId, members, bettingData, selectedTournamentId, pendingRequestCount}: Props) {
+export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, members, bettingData, selectedTournamentId}: Props) {
   const t = useTranslations('groups.standings');
   const tBetting = useTranslations('groups.betting');
 
   const [selectedTab, setSelectedTab] = useState<string>(selectedTournamentId || tournaments[0]?.id || '')
   const [snackbar, setSnackbar] = useState<{open: boolean, message: string, severity: 'success' | 'error'}>({open: false, message: '', severity: 'success'});
   const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
-  const isAdmin = ownerId === loggedInUser || !!members.find(m => m.id === loggedInUser && m.is_admin);
 
   if (tournaments.length === 0) {
     return (
       <Card>
         <CardHeader
-          title={
-            <Box display="flex" alignItems="center" gap={1}>
-              {t('title')}
-              {isAdmin && pendingRequestCount && pendingRequestCount > 0 && (
-                <Chip label={pendingRequestCount} color="error" size="small" />
-              )}
-            </Box>
-          }
+          title={t('title')}
           action={action}
         />
         <CardContent>
@@ -70,14 +59,7 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
   return (
     <Card>
       <CardHeader
-        title={
-          <Box display="flex" alignItems="center" gap={1}>
-            {t('title')}
-            {isAdmin && pendingRequestCount && pendingRequestCount > 0 && (
-              <Chip label={pendingRequestCount} color="error" size="small" />
-            )}
-          </Box>
-        }
+        title={t('title')}
         action={action}
       />
       <CardContent>

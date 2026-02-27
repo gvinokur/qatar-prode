@@ -188,6 +188,7 @@ export default async function TournamentScopedFriendGroup(props : Props){
           <AdminTabs
             isAdmin={isAdmin}
             defaultTab={defaultTab}
+            pendingRequestCount={pendingRequestCount}
             leaderboardContent={
               <ProdeGroupTable
                 users={usersMap}
@@ -195,11 +196,9 @@ export default async function TournamentScopedFriendGroup(props : Props){
                 loggedInUser={user.id}
                 tournaments={[tournament]}
                 groupId={prodeGroup.id}
-                ownerId={prodeGroup.owner_user_id}
                 members={members}
                 bettingData={bettingData}
                 selectedTournamentId={tournament.id}
-                pendingRequestCount={pendingRequestCount}
               />
             }
             adminContent={
