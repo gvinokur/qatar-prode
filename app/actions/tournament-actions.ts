@@ -298,15 +298,28 @@ function prepareTournamentData(
   logoUrl: string | null,
   logoKey: string | null
 ): any {
+  // Build theme object with correct merge order
+  // Note: existingTournament.theme is already parsed by Kysely (JSONColumnType)
+  // Note: tournamentData.theme is already an object from JSON.parse(formData)
+  const themeObject = {
+    ...(existingTournament?.theme || {}), // ✅ DB theme first (base, already parsed)
+    ...(tournamentData.theme),           // ✅ UI changes second (override, already an object)
+    logo: logoUrl || undefined,
+    s3_logo_key: logoKey || undefined,
+    is_s3_logo: true
+  };
+
+  // Validate theme is JSON-serializable before saving
+  try {
+    JSON.stringify(themeObject);
+  } catch (error) {
+    console.error('Theme object is not JSON serializable:', error);
+    throw new Error('Invalid theme data - cannot serialize');
+  }
+
   return {
     ...tournamentData,
-    theme: {
-      ...(tournamentData.theme),
-      ...(existingTournament?.theme || {}),
-      logo: logoUrl || undefined,
-      s3_logo_key: logoKey || undefined,
-      is_s3_logo: true
-    }
+    theme: JSON.stringify(themeObject) // ✅ Stringify for DB storage (Kysely will auto-parse on read)
   };
 }
 

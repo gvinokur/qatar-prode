@@ -633,12 +633,12 @@ describe('Tournament Actions', () => {
 
       expect(mockCreateTournament).toHaveBeenCalledWith({
         ...mockTournamentData,
-        theme: {
+        theme: JSON.stringify({
           primary_color: '#ff0000',
           logo: undefined,
           s3_logo_key: undefined,
           is_s3_logo: true,
-        },
+        }),
       });
       expect(result).toEqual(mockTournament);
     });
@@ -652,13 +652,13 @@ describe('Tournament Actions', () => {
       expect(mockFindTournamentById).toHaveBeenCalledWith('tournament1');
       expect(mockUpdateTournament).toHaveBeenCalledWith('tournament1', {
         ...mockTournamentData,
-        theme: {
+        theme: JSON.stringify({
           primary_color: '#ff0000',
           secondary_color: '#00ff00',
           logo: 'https://example.com/logo.png',
           s3_logo_key: 'logos/logo.png',
           is_s3_logo: true,
-        },
+        }),
       });
       expect(result).toEqual(mockTournament);
     });
@@ -701,12 +701,12 @@ describe('Tournament Actions', () => {
       expect(mockS3Client.uploadFile).toHaveBeenCalled();
       expect(mockCreateTournament).toHaveBeenCalledWith({
         ...mockTournamentData,
-        theme: {
+        theme: JSON.stringify({
           primary_color: '#ff0000',
           logo: 'https://s3.example.com/new-logo.png',
           s3_logo_key: 'new-logo.png',
           is_s3_logo: true,
-        },
+        }),
       });
     });
 
@@ -726,13 +726,13 @@ describe('Tournament Actions', () => {
       expect(mockS3Client.deleteFile).toHaveBeenCalledWith('logos/logo.png');
       expect(mockUpdateTournament).toHaveBeenCalledWith('tournament1', {
         ...mockTournamentData,
-        theme: {
+        theme: JSON.stringify({
           primary_color: '#ff0000',
           secondary_color: '#00ff00',
           logo: 'https://s3.example.com/new-logo.png',
           s3_logo_key: 'new-logo.png',
           is_s3_logo: true,
-        },
+        }),
       });
     });
 
@@ -1338,6 +1338,161 @@ describe('Tournament Actions', () => {
       // Should call findQualifiedTeams with tournamentId only (no groupId)
       expect(mockFindQualifiedTeams).toHaveBeenCalledWith('tournament1');
       expect(mockFindQualifiedTeams).toHaveBeenCalledTimes(1); // Only once, not per group
+    });
+  });
+
+  // Tests for theme persistence (Story #227)
+  describe('createOrUpdateTournament - theme persistence', () => {
+    it('should stringify theme and preserve merge order', async () => {
+      // Setup: Existing tournament with theme
+      mockFindTournamentById.mockResolvedValue({
+        id: 'existing-id',
+        short_name: 'TEST',
+        long_name: 'Test Tournament',
+        theme: { primary_color: '#000000', secondary_color: '#111111' },
+        is_active: true,
+        start_date: new Date('2024-01-01'),
+        end_date: new Date('2024-12-31')
+      } as any);
+
+      // Update only primary color
+      const formData = new FormData();
+      formData.append('tournament', JSON.stringify({
+        short_name: 'TEST',
+        long_name: 'Test Tournament',
+        theme: { primary_color: '#FF0000' } // UI change (only primary color)
+      }));
+
+      mockUpdateTournament.mockResolvedValue({
+        id: 'existing-id',
+        short_name: 'TEST',
+        long_name: 'Test Tournament',
+        theme: '{"primary_color":"#FF0000","secondary_color":"#111111"}',
+        is_active: true,
+        start_date: new Date('2024-01-01'),
+        end_date: new Date('2024-12-31')
+      } as any);
+
+      // Mock getLoggedInUser for admin check
+      mockGetLoggedInUser.mockResolvedValue({ id: 'user1', isAdmin: true } as any);
+
+      await createOrUpdateTournament('existing-id', formData);
+
+      const callArgs = mockUpdateTournament.mock.calls[0][1];
+
+      // BUG #1: Theme should be stringified (currently it's an object)
+      expect(typeof callArgs.theme).toBe('string'); // ❌ FAILS - currently object
+
+      // BUG #2: UI changes should override DB values (currently reversed)
+      const parsedTheme = typeof callArgs.theme === 'string'
+        ? JSON.parse(callArgs.theme)
+        : callArgs.theme;
+      expect(parsedTheme.primary_color).toBe('#FF0000'); // ✅ UI change applied
+      expect(parsedTheme.secondary_color).toBe('#111111'); // ✅ DB value preserved
+    });
+
+    it('should stringify theme for new tournament', async () => {
+      // Create new tournament (no existing tournament)
+      mockFindTournamentById.mockResolvedValue(null);
+
+      const formData = new FormData();
+      formData.append('tournament', JSON.stringify({
+        short_name: 'NEW',
+        long_name: 'New Tournament',
+        theme: { primary_color: '#AABBCC', secondary_color: '#DDEEFF' }
+      }));
+
+      mockCreateTournament.mockResolvedValue({
+        id: 'new-id',
+        short_name: 'NEW',
+        long_name: 'New Tournament',
+        theme: '{"primary_color":"#AABBCC","secondary_color":"#DDEEFF"}',
+        is_active: true,
+        start_date: new Date('2024-01-01'),
+        end_date: new Date('2024-12-31')
+      } as any);
+
+      mockGetLoggedInUser.mockResolvedValue({ id: 'user1', isAdmin: true } as any);
+
+      await createOrUpdateTournament(null, formData);
+
+      const callArgs = mockCreateTournament.mock.calls[0][0];
+
+      // Theme should be stringified
+      expect(typeof callArgs.theme).toBe('string');
+      const parsedTheme = JSON.parse(callArgs.theme);
+      expect(parsedTheme.primary_color).toBe('#AABBCC');
+      expect(parsedTheme.secondary_color).toBe('#DDEEFF');
+    });
+
+    it('should handle null existingTournament (new tournament)', async () => {
+      mockFindTournamentById.mockResolvedValue(null);
+
+      const formData = new FormData();
+      formData.append('tournament', JSON.stringify({
+        short_name: 'TEST',
+        long_name: 'Test Tournament',
+        theme: { primary_color: '#FF0000' }
+      }));
+
+      mockCreateTournament.mockResolvedValue({
+        id: 'new-id',
+        short_name: 'TEST',
+        long_name: 'Test Tournament',
+        theme: '{"primary_color":"#FF0000"}',
+        is_active: true,
+        start_date: new Date('2024-01-01'),
+        end_date: new Date('2024-12-31')
+      } as any);
+
+      mockGetLoggedInUser.mockResolvedValue({ id: 'user1', isAdmin: true } as any);
+
+      await createOrUpdateTournament(null, formData);
+
+      const callArgs = mockCreateTournament.mock.calls[0][0];
+
+      // Should not throw, and theme should be stringified
+      expect(() => JSON.parse(callArgs.theme)).not.toThrow();
+      expect(typeof callArgs.theme).toBe('string');
+    });
+
+    it('should handle undefined theme in existingTournament', async () => {
+      // Existing tournament with no theme
+      mockFindTournamentById.mockResolvedValue({
+        id: 'existing-id',
+        short_name: 'TEST',
+        long_name: 'Test Tournament',
+        theme: undefined, // No theme
+        is_active: true,
+        start_date: new Date('2024-01-01'),
+        end_date: new Date('2024-12-31')
+      } as any);
+
+      const formData = new FormData();
+      formData.append('tournament', JSON.stringify({
+        short_name: 'TEST',
+        long_name: 'Test Tournament',
+        theme: { primary_color: '#FF0000' }
+      }));
+
+      mockUpdateTournament.mockResolvedValue({
+        id: 'existing-id',
+        short_name: 'TEST',
+        long_name: 'Test Tournament',
+        theme: '{"primary_color":"#FF0000"}',
+        is_active: true,
+        start_date: new Date('2024-01-01'),
+        end_date: new Date('2024-12-31')
+      } as any);
+
+      mockGetLoggedInUser.mockResolvedValue({ id: 'user1', isAdmin: true } as any);
+
+      await createOrUpdateTournament('existing-id', formData);
+
+      const callArgs = mockUpdateTournament.mock.calls[0][1];
+      const parsedTheme = JSON.parse(callArgs.theme);
+
+      expect(parsedTheme.primary_color).toBe('#FF0000');
     });
   });
 });
