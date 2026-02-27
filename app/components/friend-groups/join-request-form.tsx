@@ -23,9 +23,10 @@ type Props = {
   group: ProdeGroup;
   memberCount: number;
   locale: Locale;
+  tournamentId?: string;
 };
 
-export default function JoinRequestForm({ group, memberCount, locale }: Props) {
+export default function JoinRequestForm({ group, memberCount, locale, tournamentId }: Props) {
   const t = useTranslations('groups.joinRequest');
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -37,7 +38,7 @@ export default function JoinRequestForm({ group, memberCount, locale }: Props) {
     setError(null);
 
     try {
-      await requestToJoinGroup(group.id, 'invite_link', locale);
+      await requestToJoinGroup(group.id, 'invite_link', locale, tournamentId);
       setSuccess(true);
       // Refresh the page to show PendingRequestView
       router.refresh();

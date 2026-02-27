@@ -209,6 +209,7 @@ export default async function TournamentScopedFriendGroup(props : Props){
                     groupId={prodeGroup.id}
                     initialRequests={joinRequests}
                     locale={params.locale as 'en' | 'es'}
+                    tournamentId={tournament.id}
                   />
                 </Box>
 

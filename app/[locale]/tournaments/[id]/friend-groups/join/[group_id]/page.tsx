@@ -83,5 +83,5 @@ export default async function TournamentScopedJoinGroup(props: Props) {
   }
 
   // Show join request form
-  return <JoinRequestForm group={group} memberCount={participants.length} locale={params.locale as 'en' | 'es'} />;
+  return <JoinRequestForm group={group} memberCount={participants.length} locale={params.locale as 'en' | 'es'} tournamentId={params.id} />;
 }

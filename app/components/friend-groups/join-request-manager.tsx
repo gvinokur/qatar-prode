@@ -35,9 +35,10 @@ type Props = {
   groupId: string;
   initialRequests: JoinRequest[];
   locale?: Locale;
+  tournamentId?: string;
 };
 
-export default function JoinRequestManager({ groupId, initialRequests, locale = 'es' }: Props) {
+export default function JoinRequestManager({ groupId, initialRequests, locale = 'es', tournamentId }: Props) {
   const t = useTranslations('groups.joinRequests');
   const router = useRouter();
   const [requests, setRequests] = useState<JoinRequest[]>(initialRequests);
@@ -55,7 +56,7 @@ export default function JoinRequestManager({ groupId, initialRequests, locale = 
     setRequests(prev => prev.filter(r => r.id !== requestId));
 
     try {
-      await approveJoinRequestAction(requestId, groupId);
+      await approveJoinRequestAction(requestId, groupId, tournamentId);
       setSuccessMessage(t('approveSuccess'));
       router.refresh();
     } catch (err) {

@@ -27,7 +27,7 @@ import { Locale } from '@/i18n.config';
 /**
  * Request to join a friend group
  */
-export async function requestToJoinGroup(groupId: string, source: JoinRequestSource = 'invite_link', locale: Locale = 'es') {
+export async function requestToJoinGroup(groupId: string, source: JoinRequestSource = 'invite_link', locale: Locale = 'es', tournamentId?: string) {
   const user = await getLoggedInUser();
   if (!user) {
     throw new Error('Should not call this action from a logged out page');
@@ -81,7 +81,9 @@ export async function requestToJoinGroup(groupId: string, source: JoinRequestSou
   // Send individual emails to each admin (fire and forget)
   adminUsers.forEach(admin => {
     const adminLocale = (admin.preferred_locale as 'en' | 'es') || 'en';
-    const groupUrl = `${process.env.NEXT_PUBLIC_APP_URL}/${adminLocale}/friend-groups/${groupId}`;
+    const groupUrl = tournamentId
+      ? `${process.env.NEXT_PUBLIC_APP_URL}/${adminLocale}/tournaments/${tournamentId}/friend-groups/${groupId}?tab=admin`
+      : `${process.env.NEXT_PUBLIC_APP_URL}/${adminLocale}/friend-groups/${groupId}`;
     const requestedDate = new Intl.DateTimeFormat(adminLocale, { dateStyle: 'medium' }).format(new Date());
 
     const emailPromise = generateJoinRequestNotificationEmail(
@@ -152,7 +154,7 @@ export async function getGroupJoinRequests(groupId: string) {
 /**
  * Approve join request
  */
-export async function approveJoinRequestAction(requestId: string, groupId: string) {
+export async function approveJoinRequestAction(requestId: string, groupId: string, tournamentId?: string) {
   const user = await getLoggedInUser();
   if (!user) {
     throw new Error('Should not call this action from a logged out page');
@@ -179,7 +181,9 @@ export async function approveJoinRequestAction(requestId: string, groupId: strin
   if (requesterUsers.length > 0) {
     const requester = requesterUsers[0];
     const requesterLocale = (requester.preferred_locale as 'en' | 'es') || 'en';
-    const groupUrl = `${process.env.NEXT_PUBLIC_APP_URL}/${requesterLocale}/friend-groups/${groupId}`;
+    const groupUrl = tournamentId
+      ? `${process.env.NEXT_PUBLIC_APP_URL}/${requesterLocale}/tournaments/${tournamentId}/friend-groups/${groupId}`
+      : `${process.env.NEXT_PUBLIC_APP_URL}/${requesterLocale}/friend-groups/${groupId}`;
 
     const emailPromise = generateJoinRequestApprovedEmail(
       requester.email,
