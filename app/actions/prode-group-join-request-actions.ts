@@ -78,11 +78,10 @@ export async function requestToJoinGroup(groupId: string, source: JoinRequestSou
   const uniqueAdminIds = [...new Set(adminUserIds)]; // Remove duplicates
   const adminUsers = await findUsersByIds(uniqueAdminIds);
 
-  const groupUrl = `${process.env.NEXT_PUBLIC_APP_URL}/tournaments/${group.id}/friend-groups/${groupId}?tab=admin`;
-
   // Send individual emails to each admin (fire and forget)
   adminUsers.forEach(admin => {
     const adminLocale = (admin.preferred_locale as 'en' | 'es') || 'en';
+    const groupUrl = `${process.env.NEXT_PUBLIC_APP_URL}/${adminLocale}/friend-groups/${groupId}`;
     const requestedDate = new Intl.DateTimeFormat(adminLocale, { dateStyle: 'medium' }).format(new Date());
 
     const emailPromise = generateJoinRequestNotificationEmail(
@@ -180,7 +179,7 @@ export async function approveJoinRequestAction(requestId: string, groupId: strin
   if (requesterUsers.length > 0) {
     const requester = requesterUsers[0];
     const requesterLocale = (requester.preferred_locale as 'en' | 'es') || 'en';
-    const groupUrl = `${process.env.NEXT_PUBLIC_APP_URL}/tournaments/${group.id}/friend-groups/${groupId}`;
+    const groupUrl = `${process.env.NEXT_PUBLIC_APP_URL}/${requesterLocale}/friend-groups/${groupId}`;
 
     const emailPromise = generateJoinRequestApprovedEmail(
       requester.email,
