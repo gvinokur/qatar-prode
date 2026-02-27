@@ -63,6 +63,7 @@ export default async function TournamentScopedFriendGroup(props : Props){
           requestId={pendingRequest.id}
           requestedAt={pendingRequest.requested_at}
           memberCount={participants.length}
+          tournamentId={tournament.id}
         />
       </Box>
     );
@@ -235,7 +236,7 @@ export default async function TournamentScopedFriendGroup(props : Props){
         </Grid>
         {!isOwner && (
           <Grid size={12} sx={{ display: 'flex', justifyContent: 'flex-end', px: 2 }}>
-            <LeaveGroupButton groupId={prodeGroup.id} />
+            <LeaveGroupButton groupId={prodeGroup.id} tournamentId={tournament.id} />
           </Grid>
         )}
       </Grid>

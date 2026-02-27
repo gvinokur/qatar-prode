@@ -12,7 +12,7 @@ import {
   CircularProgress,
   Divider
 } from '@mui/material';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { cancelJoinRequestAction } from '@/app/actions/prode-group-join-request-actions';
 import { HourglassEmpty as HourglassIcon } from '@mui/icons-material';
@@ -23,10 +23,12 @@ type Props = {
   requestId: string;
   requestedAt: Date;
   memberCount?: number;
+  tournamentId?: string;
 };
 
-export default function PendingRequestView({ group, requestId, requestedAt, memberCount }: Props) {
+export default function PendingRequestView({ group, requestId, requestedAt, memberCount, tournamentId }: Props) {
   const t = useTranslations('groups.pendingRequest');
+  const locale = useLocale();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,8 +43,10 @@ export default function PendingRequestView({ group, requestId, requestedAt, memb
 
     try {
       await cancelJoinRequestAction(requestId);
-      router.push('/tournaments'); // Redirect after cancel
-      router.refresh();
+      const redirectUrl = tournamentId
+        ? `/${locale}/tournaments/${tournamentId}/friend-groups`
+        : `/${locale}`;
+      router.push(redirectUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : t('cancelFailed'));
       console.error('Error canceling join request:', err);

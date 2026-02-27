@@ -78,6 +78,7 @@ export default async function TournamentScopedJoinGroup(props: Props) {
         requestId={pendingRequest.id}
         requestedAt={pendingRequest.requested_at}
         memberCount={participants.length}
+        tournamentId={params.id}
       />
     );
   }

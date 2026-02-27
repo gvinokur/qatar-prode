@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { leaveGroupAction } from "../../actions/prode-group-actions";
 import { useLocale, useTranslations } from 'next-intl';
 
-export default function LeaveGroupButton({ groupId }: { readonly groupId: string }) {
+export default function LeaveGroupButton({ groupId, tournamentId }: { readonly groupId: string; readonly tournamentId?: string }) {
   const locale = useLocale();
   const t = useTranslations('groups.leave');
   const tCommon = useTranslations('common.buttons');
@@ -21,7 +21,10 @@ export default function LeaveGroupButton({ groupId }: { readonly groupId: string
     try {
       await leaveGroupAction(groupId);
       setSnackbar({ open: true, message: t('feedback.success'), severity: "success" });
-      setTimeout(() => router.push(`/${locale}`), 1200);
+      const redirectUrl = tournamentId
+        ? `/${locale}/tournaments/${tournamentId}/friend-groups`
+        : `/${locale}`;
+      setTimeout(() => router.push(redirectUrl), 1200);
     } catch (e: any) {
       setSnackbar({ open: true, message: e.message || t('feedback.error'), severity: "error" });
     } finally {
