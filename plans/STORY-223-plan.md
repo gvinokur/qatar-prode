@@ -88,35 +88,43 @@ findRecentRejectedRequest(groupId, userId)
 
 // Approve request (marks approved + adds to group)
 approveJoinRequest(requestId, resolvedByUserId)
-  - Uses Kysely transaction to ensure atomicity
-  - Transaction structure:
+  - NOTE: Vercel Postgres doesn't support transactions
+  - Two-step process with compensating rollback on failure:
     ```typescript
-    return db.transaction(async (trx) => {
-      // 1. Update request status
-      const request = await trx
-        .updateTable('prode_group_join_requests')
-        .set({
-          status: 'approved',
-          resolved_at: new Date(),
-          resolved_by_user_id: resolvedByUserId
-        })
-        .where('id', '=', requestId)
-        .returningAll()
-        .executeTakeFirstOrThrow()
+    // Step 1: Update request status to 'approved'
+    const request = await db
+      .updateTable('prode_group_join_requests')
+      .set({
+        status: 'approved',
+        resolved_at: new Date(),
+        resolved_by_user_id: resolvedByUserId
+      })
+      .where('id', '=', requestId)
+      .returningAll()
+      .executeTakeFirstOrThrow()
 
-      // 2. Add user to group (must use trx, not db)
-      await trx.insertInto('prode_group_participants')
+    // Step 2: Add user to group
+    try {
+      await db.insertInto('prode_group_participants')
         .values({
           prode_group_id: request.group_id,
           participant_id: request.user_id,
           is_admin: false
         })
         .execute()
+    } catch (error) {
+      // Compensating transaction: revert request status to pending
+      await db
+        .updateTable('prode_group_join_requests')
+        .set({ status: 'pending', resolved_at: null, resolved_by_user_id: null })
+        .where('id', '=', requestId)
+        .execute()
+      throw error
+    }
 
-      return request
-    })
+    return request
     ```
-  - If either step fails, entire transaction rolls back
+  - If adding user to group fails, request is reverted to pending status
   - Returns approved request object
 
 // Reject request
@@ -294,7 +302,7 @@ Admin view of pending requests in Admin tab.
 
 ```typescript
 Props: {
-  groupId: string
+  groupId: string  // Required for server actions (approveJoinRequest, rejectJoinRequest need groupId parameter)
   initialRequests: JoinRequest[] // From server
 }
 
