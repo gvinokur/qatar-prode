@@ -164,11 +164,13 @@
     "title": "Join Requests",
     "noPendingRequests": "No pending join requests",
     "approve": "Approve",
+    "approveRejected": "Approve Anyway",
     "reject": "Reject",
     "approveSuccess": "Join request approved",
     "rejectSuccess": "Join request rejected",
     "approveFailed": "Failed to approve request",
     "rejectFailed": "Failed to reject request",
+    "recentlyRejectedTitle": "Recently Rejected",
     "timeAgo": {
       "minutes": "{count, plural, =1 {1 minute ago} other {# minutes ago}}",
       "hours": "{count, plural, =1 {1 hour ago} other {# hours ago}}",
@@ -221,6 +223,9 @@
     "requestButton": "Request to Join Group",
     "requestFailed": "Failed to submit join request",
     "successTitle": "Request Submitted!",
-    "successMessage": "Your request to join this group has been submitted. You will be notified via email when an admin reviews your request."
+    "successMessage": "Your request to join this group has been submitted. You will be notified via email when an admin reviews your request.",
+    "rejectedTitle": "Request Not Approved",
+    "rejectedMessage": "Your previous request to join this group was not approved.",
+    "cooldownMessage": "You can request to join again on {date}."
   }
 }

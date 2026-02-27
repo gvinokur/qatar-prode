@@ -164,11 +164,13 @@
     "title": "Solicitudes de Ingreso",
     "noPendingRequests": "No hay solicitudes pendientes",
     "approve": "Aprobar",
+    "approveRejected": "Aprobar de todas formas",
     "reject": "Rechazar",
     "approveSuccess": "Solicitud aprobada",
     "rejectSuccess": "Solicitud rechazada",
     "approveFailed": "Error al aprobar solicitud",
     "rejectFailed": "Error al rechazar solicitud",
+    "recentlyRejectedTitle": "Rechazadas Recientemente",
     "timeAgo": {
       "minutes": "hace {count, plural, =1 {1 minuto} other {# minutos}}",
       "hours": "hace {count, plural, =1 {1 hora} other {# horas}}",
@@ -221,6 +223,9 @@
     "requestButton": "Solicitar Unirse al Grupo",
     "requestFailed": "Error al enviar solicitud de ingreso",
     "successTitle": "¡Solicitud Enviada!",
-    "successMessage": "Tu solicitud para unirte a este grupo ha sido enviada. Serás notificado por email cuando un administrador revise tu solicitud."
+    "successMessage": "Tu solicitud para unirte a este grupo ha sido enviada. Serás notificado por email cuando un administrador revise tu solicitud.",
+    "rejectedTitle": "Solicitud No Aprobada",
+    "rejectedMessage": "Tu solicitud anterior para unirte a este grupo no fue aprobada.",
+    "cooldownMessage": "Podrás solicitar unirte nuevamente el {date}."
   }
 }

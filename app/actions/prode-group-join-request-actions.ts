@@ -147,8 +147,18 @@ export async function getGroupJoinRequests(groupId: string) {
     throw new Error('Only group owner or admins can view join requests');
   }
 
-  // Return pending requests
-  return findJoinRequestsByGroup(groupId, 'pending');
+  // Get pending requests
+  const pendingRequests = await findJoinRequestsByGroup(groupId, 'pending');
+
+  // Get recently-rejected requests (within last 7 days) so admins can approve if they made a mistake
+  const rejectedRequests = await findJoinRequestsByGroup(groupId, 'rejected');
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const recentlyRejected = rejectedRequests.filter(r =>
+    r.resolved_at && new Date(r.resolved_at) > sevenDaysAgo
+  );
+
+  return [...pendingRequests, ...recentlyRejected];
 }
 
 /**

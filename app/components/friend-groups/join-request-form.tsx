@@ -24,9 +24,10 @@ type Props = {
   memberCount: number;
   locale: Locale;
   tournamentId?: string;
+  rejectionCooldown?: string; // formatted date when user can request again
 };
 
-export default function JoinRequestForm({ group, memberCount, locale, tournamentId }: Props) {
+export default function JoinRequestForm({ group, memberCount, locale, tournamentId, rejectionCooldown }: Props) {
   const t = useTranslations('groups.joinRequest');
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -49,6 +50,29 @@ export default function JoinRequestForm({ group, memberCount, locale, tournament
       setLoading(false);
     }
   };
+
+  if (rejectionCooldown) {
+    return (
+      <Card>
+        <CardHeader title={group.name} subheader={t('preview')} />
+        <Divider />
+        <CardContent>
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            <Typography variant="subtitle1" fontWeight="bold">
+              {t('rejectedTitle')}
+            </Typography>
+            <Typography variant="body2">{t('rejectedMessage')}</Typography>
+            <Typography variant="body2" sx={{ mt: 0.5 }}>
+              {t('cooldownMessage', { date: rejectionCooldown })}
+            </Typography>
+          </Alert>
+          <Typography variant="body2" color="text.secondary">
+            {t('members', { count: memberCount })}
+          </Typography>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (success) {
     return (

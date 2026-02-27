@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getLoggedInUser } from '../../../../../../actions/user-actions';
 import { findProdeGroupById, findParticipantsInGroup } from '../../../../../../db/prode-group-repository';
-import { findPendingJoinRequest } from '../../../../../../db/prode-group-join-request-repository';
+import { findPendingJoinRequest, findRecentRejectedRequest } from '../../../../../../db/prode-group-join-request-repository';
 import { findTournamentById } from '../../../../../../db/tournament-repository';
 import { Alert, Box, Typography } from '../../../../../../components/mui-wrappers';
 import PendingRequestView from '../../../../../../components/friend-groups/pending-request-view';
@@ -81,6 +81,26 @@ export default async function TournamentScopedJoinGroup(props: Props) {
         tournamentId={params.id}
       />
     );
+  }
+
+  // Check for recent rejection cooldown
+  const recentRejection = await findRecentRejectedRequest(group.id, user.id);
+  if (recentRejection?.resolved_at) {
+    const nextEligibleDate = new Date(recentRejection.resolved_at);
+    nextEligibleDate.setDate(nextEligibleDate.getDate() + 7);
+    if (new Date() < nextEligibleDate) {
+      const locale = params.locale as 'en' | 'es';
+      const formattedDate = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(nextEligibleDate);
+      return (
+        <JoinRequestForm
+          group={group}
+          memberCount={participants.length}
+          locale={locale}
+          tournamentId={params.id}
+          rejectionCooldown={formattedDate}
+        />
+      );
+    }
   }
 
   // Show join request form

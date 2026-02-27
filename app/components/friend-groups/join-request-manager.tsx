@@ -29,6 +29,7 @@ interface JoinRequest {
   user_email?: string | null;
   requested_at: Date;
   request_source: string;
+  status: string;
 }
 
 type Props = {
@@ -118,7 +119,10 @@ export default function JoinRequestManager({ groupId, initialRequests, locale = 
     }
   };
 
-  if (requests.length === 0) {
+  const pendingRequests = requests.filter(r => r.status === 'pending');
+  const rejectedRequests = requests.filter(r => r.status === 'rejected');
+
+  if (pendingRequests.length === 0 && rejectedRequests.length === 0) {
     return (
       <Card>
         <CardHeader title={t('title')} avatar={<PersonAddIcon />} />
@@ -130,6 +134,61 @@ export default function JoinRequestManager({ groupId, initialRequests, locale = 
       </Card>
     );
   }
+
+  const renderRequestItem = (request: JoinRequest, isPending: boolean) => (
+    <ListItem
+      key={request.id}
+      sx={{
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+        '&:last-child': { borderBottom: 'none' }
+      }}
+    >
+      <ListItemAvatar>
+        <Avatar sx={{ bgcolor: isPending ? 'primary.main' : 'text.disabled' }}>
+          {(request.user_nickname || request.user_email || 'U')[0].toUpperCase()}
+        </Avatar>
+      </ListItemAvatar>
+      <ListItemText
+        primary={request.user_nickname || request.user_email}
+        secondary={
+          <Box component="span">
+            <Typography variant="body2" component="span" color="text.secondary">
+              {formatDate(request.requested_at)}
+            </Typography>
+            {' • '}
+            <Typography variant="body2" component="span" color="text.secondary">
+              {t(`source.${request.request_source}`)}
+            </Typography>
+          </Box>
+        }
+      />
+      <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+        <Button
+          variant={isPending ? 'contained' : 'outlined'}
+          color="success"
+          size="small"
+          startIcon={loadingRequests.has(request.id) ? <CircularProgress size={16} /> : <CheckIcon />}
+          onClick={() => handleApprove(request.id)}
+          disabled={loadingRequests.has(request.id)}
+        >
+          {isPending ? t('approve') : t('approveRejected')}
+        </Button>
+        {isPending && (
+          <Button
+            variant="outlined"
+            color="error"
+            size="small"
+            startIcon={loadingRequests.has(request.id) ? <CircularProgress size={16} /> : <CloseIcon />}
+            onClick={() => handleReject(request.id)}
+            disabled={loadingRequests.has(request.id)}
+          >
+            {t('reject')}
+          </Button>
+        )}
+      </Box>
+    </ListItem>
+  );
 
   return (
     <Card>
@@ -146,60 +205,22 @@ export default function JoinRequestManager({ groupId, initialRequests, locale = 
           </Alert>
         )}
 
-        <List>
-          {requests.map((request) => (
-            <ListItem
-              key={request.id}
-              sx={{
-                borderBottom: '1px solid',
-                borderColor: 'divider',
-                '&:last-child': { borderBottom: 'none' }
-              }}
-            >
-              <ListItemAvatar>
-                <Avatar sx={{ bgcolor: 'primary.main' }}>
-                  {(request.user_nickname || request.user_email || 'U')[0].toUpperCase()}
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText
-                primary={request.user_nickname || request.user_email}
-                secondary={
-                  <Box component="span">
-                    <Typography variant="body2" component="span" color="text.secondary">
-                      {formatDate(request.requested_at)}
-                    </Typography>
-                    {' • '}
-                    <Typography variant="body2" component="span" color="text.secondary">
-                      {t(`source.${request.request_source}`)}
-                    </Typography>
-                  </Box>
-                }
-              />
-              <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
-                <Button
-                  variant="contained"
-                  color="success"
-                  size="small"
-                  startIcon={loadingRequests.has(request.id) ? <CircularProgress size={16} /> : <CheckIcon />}
-                  onClick={() => handleApprove(request.id)}
-                  disabled={loadingRequests.has(request.id)}
-                >
-                  {t('approve')}
-                </Button>
-                <Button
-                  variant="outlined"
-                  color="error"
-                  size="small"
-                  startIcon={loadingRequests.has(request.id) ? <CircularProgress size={16} /> : <CloseIcon />}
-                  onClick={() => handleReject(request.id)}
-                  disabled={loadingRequests.has(request.id)}
-                >
-                  {t('reject')}
-                </Button>
-              </Box>
-            </ListItem>
-          ))}
-        </List>
+        {pendingRequests.length > 0 && (
+          <List>
+            {pendingRequests.map((request) => renderRequestItem(request, true))}
+          </List>
+        )}
+
+        {rejectedRequests.length > 0 && (
+          <Box sx={{ mt: pendingRequests.length > 0 ? 2 : 0 }}>
+            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+              {t('recentlyRejectedTitle')}
+            </Typography>
+            <List>
+              {rejectedRequests.map((request) => renderRequestItem(request, false))}
+            </List>
+          </Box>
+        )}
       </CardContent>
     </Card>
   );
