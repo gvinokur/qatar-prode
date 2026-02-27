@@ -48,7 +48,11 @@ export async function getGroupsForUser() {
   return ({
     userGroups,
     participantGroups,
-    pendingRequestsCount: pendingRequests.length
+    pendingRequests: pendingRequests.map(r => ({
+      id: r.id,
+      group_id: r.group_id,
+      group_name: r.group_name
+    }))
   })
 }
 

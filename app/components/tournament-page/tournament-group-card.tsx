@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Typography, Button, Box, Chip } from "../mui-wrappers/";
 import {
   Card,
+  CardActionArea,
   CardContent,
   CardActions,
   Stack,
@@ -27,20 +28,8 @@ export default function TournamentGroupCard({ group, tournamentId, isPending = f
   const isLeader = group.userPosition === 1;
   const leaderDisplay = isLeader ? t('you') : group.leaderName;
 
-  return (
-    <Card
-      sx={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'relative',
-        opacity: isPending ? 0.7 : 1,
-        ...(isPending && {
-          border: '2px dashed',
-          borderColor: 'warning.main'
-        })
-      }}
-    >
+  const cardContent = (
+    <>
       <CardContent sx={{ flexGrow: 1, pb: 1 }}>
         {isPending && (
           <Box sx={{ mb: 2 }}>
@@ -141,6 +130,34 @@ export default function TournamentGroupCard({ group, tournamentId, isPending = f
           </Button>
         )}
       </CardActions>
+    </>
+  );
+
+  return (
+    <Card
+      sx={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'relative',
+        opacity: isPending ? 0.7 : 1,
+        ...(isPending && {
+          border: '2px dashed',
+          borderColor: 'warning.main'
+        })
+      }}
+    >
+      {isPending ? (
+        <CardActionArea
+          component={Link}
+          href={`/${locale}/tournaments/${tournamentId}/friend-groups/join/${group.groupId}`}
+          sx={{ display: 'flex', flexDirection: 'column', height: '100%', alignItems: 'stretch' }}
+        >
+          {cardContent}
+        </CardActionArea>
+      ) : (
+        cardContent
+      )}
     </Card>
   );
 }

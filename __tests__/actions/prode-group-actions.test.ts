@@ -167,7 +167,7 @@ describe('Prode Group Actions', () => {
   describe('getGroupsForUser', () => {
     it('returns user and participant groups', async () => {
       const result = await getGroupsForUser();
-      expect(result).toEqual({ userGroups: [mockGroup], participantGroups: [mockGroup], pendingRequestsCount: 0 });
+      expect(result).toEqual({ userGroups: [mockGroup], participantGroups: [mockGroup], pendingRequests: [] });
     });
     it('returns undefined if not logged in', async () => {
       mockGetLoggedInUser.mockResolvedValue(undefined);
