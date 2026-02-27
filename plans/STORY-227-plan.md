@@ -186,6 +186,63 @@ try {
 
 ## Implementation Steps
 
+### Phase 0: Prove the Bug (Test-Driven Approach)
+
+**Goal**: Create a failing test that demonstrates both bugs (missing JSON.stringify and wrong merge order)
+
+1. **Create test file**: `app/actions/__tests__/tournament-actions.test.ts`
+
+2. **Write test that demonstrates current bugs**:
+   ```typescript
+   describe('createOrUpdateTournament - theme persistence bug', () => {
+     it('CURRENTLY FAILS - should stringify theme and preserve merge order', async () => {
+       // Setup: Existing tournament with theme
+       vi.spyOn(tournamentRepository, 'findTournamentById').mockResolvedValue({
+         id: 'existing-id',
+         theme: { primary_color: '#000000', secondary_color: '#111111' }
+       } as any);
+
+       // Update only primary color
+       const formData = new FormData();
+       formData.append('tournament', JSON.stringify({
+         id: 'existing-id',
+         short_name: 'TEST',
+         theme: { primary_color: '#FF0000' } // UI change
+       }));
+
+       const updateSpy = vi.spyOn(tournamentRepository, 'updateTournament')
+         .mockResolvedValue({} as any);
+
+       await createOrUpdateTournament(formData);
+
+       const callArgs = updateSpy.mock.calls[0][1];
+
+       // BUG #1: Theme should be stringified (currently it's an object)
+       expect(typeof callArgs.theme).toBe('string'); // ❌ FAILS - currently object
+
+       // BUG #2: UI changes should override DB values (currently reversed)
+       const parsedTheme = typeof callArgs.theme === 'string'
+         ? JSON.parse(callArgs.theme)
+         : callArgs.theme;
+       expect(parsedTheme.primary_color).toBe('#FF0000'); // ❌ FAILS - DB overwrites UI
+       expect(parsedTheme.secondary_color).toBe('#111111'); // ✅ Should preserve DB value
+     });
+   });
+   ```
+
+3. **Run test to confirm it fails**:
+   ```bash
+   npm test -- tournament-actions.test.ts
+   ```
+
+4. **Expected failure output**:
+   - Test fails on `typeof callArgs.theme` - it's an object, not a string
+   - Test fails on merge order - primary_color is '#000000' (DB value), not '#FF0000' (UI change)
+
+**This proves the bug exists before we fix it.**
+
+---
+
 ### Phase 1: Core Bug Fix
 
 1. **Update `prepareTournamentData()` function**
@@ -194,7 +251,14 @@ try {
    - Add JSON.stringify() for theme object
    - Add error handling
 
-2. **Verify fix with existing data**
+2. **Re-run the test**:
+   ```bash
+   npm test -- tournament-actions.test.ts
+   ```
+   - **Expected**: Test now passes ✅
+   - This confirms the fix works
+
+3. **Verify fix with existing data**
    - Ensure existing tournaments still load correctly
    - Test that logo handling still works
    - Confirm no breaking changes to theme structure
