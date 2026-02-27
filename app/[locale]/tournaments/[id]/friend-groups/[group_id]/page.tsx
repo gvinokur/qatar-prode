@@ -175,6 +175,7 @@ export default async function TournamentScopedFriendGroup(props : Props){
             <InviteFriendsDialogButton
               groupName={prodeGroup.name}
               groupId={prodeGroup.id}
+              tournamentId={tournament.id}
             />
           )}
         </Box>

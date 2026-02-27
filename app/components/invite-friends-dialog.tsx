@@ -25,9 +25,10 @@ interface InviteFriendsDialogProps {
   readonly trigger: ReactNode;
   readonly groupId: string;
   readonly groupName: string;
+  readonly tournamentId?: string;
 }
 
-export default function InviteFriendsDialog({ trigger, groupId, groupName }: InviteFriendsDialogProps) {
+export default function InviteFriendsDialog({ trigger, groupId, groupName, tournamentId }: InviteFriendsDialogProps) {
   const t = useTranslations('groups.invite');
   const tCommon = useTranslations('common.buttons');
 
@@ -52,6 +53,9 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName }: Inv
   // Generate invitation link
   const getInvitationLink = () => {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    if (tournamentId) {
+      return `${baseUrl}/tournaments/${tournamentId}/friend-groups/join/${groupId}`;
+    }
     return `${baseUrl}/friend-groups/join/${groupId}`;
   };
 

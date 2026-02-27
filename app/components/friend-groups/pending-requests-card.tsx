@@ -34,9 +34,11 @@ type Props = {
 
 export default function PendingRequestsCard({ requests: initialRequests }: Props) {
   const t = useTranslations('groups.pendingRequests');
+  const tCommon = useTranslations('common.buttons');
   const router = useRouter();
   const [requests, setRequests] = useState<UserJoinRequest[]>(initialRequests);
   const [loadingRequests, setLoadingRequests] = useState<Set<string>>(new Set());
+  const [showAll, setShowAll] = useState(false);
 
   const handleCancel = async (requestId: string) => {
     if (!confirm(t('confirmCancel'))) {
@@ -95,12 +97,15 @@ export default function PendingRequestsCard({ requests: initialRequests }: Props
     );
   }
 
+  const displayedRequests = showAll ? requests : requests.slice(0, 3);
+  const hasMore = requests.length > 3;
+
   return (
     <Card>
       <CardHeader title={t('title')} avatar={<MailIcon />} />
       <CardContent>
         <List dense>
-          {requests.map((request) => (
+          {displayedRequests.map((request) => (
             <ListItem
               key={request.id}
               sx={{
@@ -157,6 +162,13 @@ export default function PendingRequestsCard({ requests: initialRequests }: Props
             </ListItem>
           ))}
         </List>
+        {hasMore && !showAll && (
+          <Box sx={{ mt: 2, textAlign: 'center' }}>
+            <Button size="small" onClick={() => setShowAll(true)}>
+              {tCommon('viewAll')}
+            </Button>
+          </Box>
+        )}
       </CardContent>
     </Card>
   );

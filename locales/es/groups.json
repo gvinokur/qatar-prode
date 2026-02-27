@@ -187,7 +187,9 @@
     "hiddenContent": "La tabla de posiciones, puntajes e información de apuestas están ocultos hasta que tu solicitud sea aprobada.",
     "cancelButton": "Cancelar Solicitud",
     "confirmCancel": "¿Estás seguro que quieres cancelar tu solicitud de ingreso?",
-    "cancelFailed": "Error al cancelar solicitud"
+    "cancelFailed": "Error al cancelar solicitud",
+    "status": "SOLICITUD PENDIENTE",
+    "awaitingApproval": "Esperando aprobación del administrador"
   },
   "pendingRequests": {
     "title": "Mis Solicitudes Pendientes",

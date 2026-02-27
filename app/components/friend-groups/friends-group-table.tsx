@@ -12,10 +12,8 @@ import {
   Chip,
 } from "@mui/material";
 import {useState} from "react";
-import GroupTournamentBettingAdmin from './group-tournament-betting-admin';
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 import Snackbar from '@mui/material/Snackbar';
-import Button from '@mui/material/Button';
 import MuiAlert from '@mui/material/Alert';
 import NotificationDialog from "./notification-dialog";
 import LeaderboardView from '../leaderboard/LeaderboardView';
@@ -120,21 +118,14 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
                   currentUserId={loggedInUser}
                   tournament={tournament}
                 />
-                {isAdmin && (
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 2 }}>
-                    <Button variant="contained" color="primary" onClick={() => setNotificationDialogOpen(true)}>
-                      {t('sendNotification')}
-                    </Button>
+                {/* Betting Status (read-only) */}
+                {bettingData[tournament.id]?.config?.betting_enabled && (
+                  <Box sx={{ mt: 2, p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      💰 {t('betting.statusEnabled')}: ${bettingData[tournament.id]?.config?.betting_amount || 0}
+                    </Typography>
                   </Box>
                 )}
-                <GroupTournamentBettingAdmin
-                  groupId={groupId}
-                  tournamentId={tournament.id}
-                  isAdmin={ownerId === loggedInUser || !!members.find(m => m.id === loggedInUser)?.is_admin}
-                  members={members}
-                  config={bettingData[tournament.id]?.config}
-                  payments={bettingData[tournament.id]?.payments}
-                />
               </TabPanel>
             )
           })}

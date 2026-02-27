@@ -187,7 +187,9 @@
     "hiddenContent": "Leaderboard, scores, and betting information are hidden until your request is approved.",
     "cancelButton": "Cancel Request",
     "confirmCancel": "Are you sure you want to cancel your join request?",
-    "cancelFailed": "Failed to cancel request"
+    "cancelFailed": "Failed to cancel request",
+    "status": "PENDING REQUEST",
+    "awaitingApproval": "Awaiting admin approval"
   },
   "pendingRequests": {
     "title": "My Pending Requests",

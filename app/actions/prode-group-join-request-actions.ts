@@ -78,11 +78,13 @@ export async function requestToJoinGroup(groupId: string, source: JoinRequestSou
   const uniqueAdminIds = [...new Set(adminUserIds)]; // Remove duplicates
   const adminUsers = await findUsersByIds(uniqueAdminIds);
 
-  const requestedDate = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date());
   const groupUrl = `${process.env.NEXT_PUBLIC_APP_URL}/tournaments/${group.id}/friend-groups/${groupId}?tab=admin`;
 
   // Send individual emails to each admin (fire and forget)
   adminUsers.forEach(admin => {
+    const adminLocale = (admin.preferred_locale as 'en' | 'es') || 'en';
+    const requestedDate = new Intl.DateTimeFormat(adminLocale, { dateStyle: 'medium' }).format(new Date());
+
     const emailPromise = generateJoinRequestNotificationEmail(
       admin.email,
       admin.nickname || admin.email || 'Unknown',
@@ -90,7 +92,7 @@ export async function requestToJoinGroup(groupId: string, source: JoinRequestSou
       group.name,
       requestedDate,
       groupUrl,
-      locale
+      adminLocale
     ).then(emailData => sendEmail(emailData));
 
     // Fire and forget - don't await
@@ -151,7 +153,7 @@ export async function getGroupJoinRequests(groupId: string) {
 /**
  * Approve join request
  */
-export async function approveJoinRequestAction(requestId: string, groupId: string, locale: Locale = 'es') {
+export async function approveJoinRequestAction(requestId: string, groupId: string) {
   const user = await getLoggedInUser();
   if (!user) {
     throw new Error('Should not call this action from a logged out page');
@@ -177,6 +179,7 @@ export async function approveJoinRequestAction(requestId: string, groupId: strin
   const requesterUsers = await findUsersByIds([request.user_id]);
   if (requesterUsers.length > 0) {
     const requester = requesterUsers[0];
+    const requesterLocale = (requester.preferred_locale as 'en' | 'es') || 'en';
     const groupUrl = `${process.env.NEXT_PUBLIC_APP_URL}/tournaments/${group.id}/friend-groups/${groupId}`;
 
     const emailPromise = generateJoinRequestApprovedEmail(
@@ -184,7 +187,7 @@ export async function approveJoinRequestAction(requestId: string, groupId: strin
       requester.nickname || requester.email,
       group.name,
       groupUrl,
-      locale
+      requesterLocale
     ).then(emailData => sendEmail(emailData));
 
     emailPromise.catch(err => console.error('Error sending approval email:', err));
@@ -199,7 +202,7 @@ export async function approveJoinRequestAction(requestId: string, groupId: strin
 /**
  * Reject join request
  */
-export async function rejectJoinRequestAction(requestId: string, groupId: string, locale: Locale = 'es') {
+export async function rejectJoinRequestAction(requestId: string, groupId: string) {
   const user = await getLoggedInUser();
   if (!user) {
     throw new Error('Should not call this action from a logged out page');
@@ -225,12 +228,13 @@ export async function rejectJoinRequestAction(requestId: string, groupId: string
   const requesterUsers = await findUsersByIds([request.user_id]);
   if (requesterUsers.length > 0) {
     const requester = requesterUsers[0];
+    const requesterLocale = (requester.preferred_locale as 'en' | 'es') || 'en';
 
     const emailPromise = generateJoinRequestRejectedEmail(
       requester.email,
       requester.nickname || requester.email,
       group.name,
-      locale
+      requesterLocale
     ).then(emailData => sendEmail(emailData));
 
     emailPromise.catch(err => console.error('Error sending rejection email:', err));

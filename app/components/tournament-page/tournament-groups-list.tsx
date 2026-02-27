@@ -16,7 +16,6 @@ import type { TournamentGroupStats } from "../../definitions";
 import TournamentGroupCard from "./tournament-group-card";
 import EmptyGroupsState from "./empty-groups-state";
 import JoinGroupDialog from "./join-group-dialog";
-import PendingRequestsCard from "../friend-groups/pending-requests-card";
 import { createDbGroup } from "../../actions/prode-group-actions";
 import { useTranslations } from 'next-intl';
 
@@ -172,20 +171,39 @@ export default function TournamentGroupsList({ groups, tournamentId, pendingRequ
               </Stack>
             </Stack>
 
-            {/* Pending Requests Card */}
-            {pendingRequests.length > 0 && (
-              <Box sx={{ mb: 3 }}>
-                <PendingRequestsCard requests={pendingRequests} />
-              </Box>
-            )}
-
             {/* Groups Grid */}
             <Grid container spacing={3}>
+              {/* Approved Groups */}
               {groups.map((group) => (
                 <Grid size={{ xs: 12, sm: 12, md: 6 }} key={group.groupId}>
                   <TournamentGroupCard group={group} tournamentId={tournamentId} />
                 </Grid>
               ))}
+
+              {/* Pending Requests as Blurred Cards */}
+              {pendingRequests.filter(req => req.status === 'pending').map((request) => {
+                // Create a mock TournamentGroupStats for pending requests
+                const pendingGroup: TournamentGroupStats = {
+                  groupId: request.group_id,
+                  groupName: request.group_name || 'Unknown Group',
+                  userPosition: 0,
+                  totalParticipants: 0,
+                  userPoints: 0,
+                  leaderName: '---',
+                  leaderPoints: 0,
+                  isOwner: false
+                };
+
+                return (
+                  <Grid size={{ xs: 12, sm: 12, md: 6 }} key={request.id}>
+                    <TournamentGroupCard
+                      group={pendingGroup}
+                      tournamentId={tournamentId}
+                      isPending={true}
+                    />
+                  </Grid>
+                );
+              })}
             </Grid>
           </Box>
         </Grid>

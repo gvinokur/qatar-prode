@@ -50,6 +50,15 @@ export default function AdminTabs({ isAdmin, leaderboardContent, adminContent, d
     router.replace(newUrl, { scroll: false });
   };
 
+  // If not admin, just show content without tabs
+  if (!isAdmin) {
+    return (
+      <Box sx={{ width: '100%' }}>
+        {leaderboardContent}
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ width: '100%', typography: 'body1' }}>
       <TabContext value={value}>
@@ -61,24 +70,20 @@ export default function AdminTabs({ isAdmin, leaderboardContent, adminContent, d
               label={t('leaderboard')}
               value="leaderboard"
             />
-            {isAdmin && (
-              <Tab
-                icon={<SettingsIcon />}
-                iconPosition="start"
-                label={t('admin')}
-                value="admin"
-              />
-            )}
+            <Tab
+              icon={<SettingsIcon />}
+              iconPosition="start"
+              label={t('admin')}
+              value="admin"
+            />
           </TabList>
         </Box>
         <TabPanel value="leaderboard" sx={{ px: 0 }}>
           {leaderboardContent}
         </TabPanel>
-        {isAdmin && (
-          <TabPanel value="admin" sx={{ px: 0 }}>
-            {adminContent}
-          </TabPanel>
-        )}
+        <TabPanel value="admin" sx={{ px: 0 }}>
+          {adminContent}
+        </TabPanel>
       </TabContext>
     </Box>
   );
