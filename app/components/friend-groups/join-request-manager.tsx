@@ -55,7 +55,7 @@ export default function JoinRequestManager({ groupId, initialRequests, locale = 
     setRequests(prev => prev.filter(r => r.id !== requestId));
 
     try {
-      await approveJoinRequestAction(requestId, groupId, locale);
+      await approveJoinRequestAction(requestId, groupId);
       setSuccessMessage(t('approveSuccess'));
       router.refresh();
     } catch (err) {
@@ -82,7 +82,7 @@ export default function JoinRequestManager({ groupId, initialRequests, locale = 
     setRequests(prev => prev.filter(r => r.id !== requestId));
 
     try {
-      await rejectJoinRequestAction(requestId, groupId, locale);
+      await rejectJoinRequestAction(requestId, groupId);
       setSuccessMessage(t('rejectSuccess'));
       router.refresh();
     } catch (err) {
