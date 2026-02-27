@@ -106,7 +106,8 @@
       "perPerson": "Monto por persona:",
       "total": "Monto acumulado:",
       "description": "Descripción:",
-      "paidList": "Pagaron:"
+      "paidList": "Pagaron:",
+      "notPaidList": "No pagaron:"
     },
     "feedback": {
       "configSaved": "¡Configuración guardada!",

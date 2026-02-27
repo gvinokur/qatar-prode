@@ -112,6 +112,13 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
               individualAwardsScore: score.individualAwardsScore || 0
             }))
 
+            const bettingConfig = bettingData[tournament.id]?.config;
+            const bettingPayments: { user_id: string, has_paid: boolean }[] = bettingData[tournament.id]?.payments || [];
+            const paidUserIds = new Set(bettingPayments.filter(p => p.has_paid).map(p => p.user_id));
+            const paidMembers = members.filter(m => paidUserIds.has(m.id));
+            const unpaidMembers = members.filter(m => !paidUserIds.has(m.id));
+            const totalAmount = paidMembers.length * (bettingConfig?.betting_amount || 0);
+
             return (
               <TabPanel value={tournament.id} key={tournament.id} keepMounted={true}>
                 <LeaderboardView
@@ -120,11 +127,32 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
                   tournament={tournament}
                 />
                 {/* Betting Status (read-only) */}
-                {bettingData[tournament.id]?.config?.betting_enabled && (
+                {bettingConfig?.betting_enabled && (
                   <Box sx={{ mt: 2, p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      💰 {tBetting('statusEnabled')}: ${bettingData[tournament.id]?.config?.betting_amount || 0}
+                    <Typography variant="body2" fontWeight="bold" gutterBottom>
+                      💰 {tBetting('statusEnabled')}
                     </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {tBetting('summary.perPerson')} ${bettingConfig.betting_amount || 0}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {tBetting('summary.total')} ${totalAmount.toFixed(2)}
+                    </Typography>
+                    {bettingConfig.betting_payout_description && (
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                        {tBetting('summary.description')} {bettingConfig.betting_payout_description}
+                      </Typography>
+                    )}
+                    {paidMembers.length > 0 && (
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                        ✅ {tBetting('summary.paidList')} {paidMembers.map(m => m.nombre).join(', ')}
+                      </Typography>
+                    )}
+                    {unpaidMembers.length > 0 && (
+                      <Typography variant="body2" color="text.secondary">
+                        ❌ {tBetting('summary.notPaidList')} {unpaidMembers.map(m => m.nombre).join(', ')}
+                      </Typography>
+                    )}
                   </Box>
                 )}
               </TabPanel>
