@@ -14,6 +14,7 @@ import {
   findParticipantsInGroup
 } from "../db/prode-group-repository";
 import {getLoggedInUser} from "./user-actions";
+import { findJoinRequestsByUser } from "../db/prode-group-join-request-repository";
 import {z} from "zod";
 import {createS3Client, deleteThemeLogoFromS3} from "./s3";
 import { getGameGuessStatisticsForUsers } from '../db/game-guess-repository';
@@ -42,10 +43,12 @@ export async function getGroupsForUser() {
   }
   const userGroups = await findProdeGroupsByOwner(user.id)
   const participantGroups = await findProdeGroupsByParticipant(user.id)
+  const pendingRequests = await findJoinRequestsByUser(user.id, 'pending')
 
   return ({
     userGroups,
-    participantGroups
+    participantGroups,
+    pendingRequestsCount: pendingRequests.length
   })
 }
 

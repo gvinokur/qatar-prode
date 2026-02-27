@@ -25,6 +25,7 @@ interface TournamentSidebarProps {
   readonly prodeGroups?: {
     userGroups: any[]
     participantGroups: any[]
+    pendingRequestsCount?: number
   }
   readonly user?: User
 }
@@ -107,6 +108,7 @@ export default function TournamentSidebar({
             <FriendGroupsList
               userGroups={prodeGroups.userGroups}
               participantGroups={prodeGroups.participantGroups}
+              pendingRequestsCount={prodeGroups.pendingRequestsCount}
               tournamentId={tournamentId}
               isActive={currentSection === 'friend-groups'}
             />

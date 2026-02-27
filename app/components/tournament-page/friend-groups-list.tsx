@@ -25,6 +25,7 @@ type Props = {
   participantGroups: {id: string, name: string}[]
   tournamentId?: string
   isActive?: boolean
+  pendingRequestsCount?: number
 }
 
 type GroupForm = {
@@ -36,6 +37,7 @@ export default function FriendGroupsList({
   participantGroups,
   tournamentId,
   isActive = false,
+  pendingRequestsCount = 0,
 } : Props) {
   const t = useTranslations('groups');
   const theme = useTheme();
@@ -158,7 +160,7 @@ export default function FriendGroupsList({
           >
             {t('actions.create')}
           </Button>
-          {tournamentId && (userGroups.length + participantGroups.length) > 1 && (
+          {tournamentId && (userGroups.length + participantGroups.length > 1 || pendingRequestsCount > 0) && (
             <Button
               component={Link}
               href={`/${locale}/tournaments/${tournamentId}/friend-groups`}
