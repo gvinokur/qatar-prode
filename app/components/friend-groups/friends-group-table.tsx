@@ -35,6 +35,7 @@ type Props = {
 
 export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, ownerId, members, bettingData, selectedTournamentId, pendingRequestCount}: Props) {
   const t = useTranslations('groups.standings');
+  const tBetting = useTranslations('groups.betting');
 
   const [selectedTab, setSelectedTab] = useState<string>(selectedTournamentId || tournaments[0]?.id || '')
   const [snackbar, setSnackbar] = useState<{open: boolean, message: string, severity: 'success' | 'error'}>({open: false, message: '', severity: 'success'});
@@ -122,7 +123,7 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
                 {bettingData[tournament.id]?.config?.betting_enabled && (
                   <Box sx={{ mt: 2, p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
                     <Typography variant="body2" color="text.secondary">
-                      💰 {t('betting.statusEnabled')}: ${bettingData[tournament.id]?.config?.betting_amount || 0}
+                      💰 {tBetting('statusEnabled')}: ${bettingData[tournament.id]?.config?.betting_amount || 0}
                     </Typography>
                   </Box>
                 )}

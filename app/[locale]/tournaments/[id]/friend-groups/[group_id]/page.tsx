@@ -213,18 +213,7 @@ export default async function TournamentScopedFriendGroup(props : Props){
                   />
                 </Box>
 
-                {/* Section 2: Group Settings */}
-                <Box sx={{ mb: 3 }}>
-                  <Grid container spacing={2}>
-                    <Grid size={12}>
-                      <Box sx={{ display: 'flex', gap: 2 }}>
-                        {!isOwner && <LeaveGroupButton groupId={prodeGroup.id} />}
-                      </Box>
-                    </Grid>
-                  </Grid>
-                </Box>
-
-                {/* Section 3: Betting Configuration */}
+                {/* Section 2: Betting Configuration */}
                 <Box sx={{ mb: 3 }}>
                   <GroupTournamentBettingAdmin
                     groupId={prodeGroup.id}
@@ -244,6 +233,11 @@ export default async function TournamentScopedFriendGroup(props : Props){
             }
           />
         </Grid>
+        {!isOwner && (
+          <Grid size={12} sx={{ display: 'flex', justifyContent: 'flex-end', px: 2 }}>
+            <LeaveGroupButton groupId={prodeGroup.id} />
+          </Grid>
+        )}
       </Grid>
 
       {searchParams.hasOwnProperty('recentlyJoined') && (<JoinMessage />)}
