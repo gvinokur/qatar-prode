@@ -73,6 +73,7 @@ export default function TournamentGroupCard({ group, tournamentId, isPending = f
                 }
                 groupId={group.groupId}
                 groupName={group.groupName}
+                tournamentId={tournamentId}
               />
             </>
           )}

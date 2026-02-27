@@ -122,7 +122,8 @@ export default function FriendGroupsList({
                                   <ShareIcon/>
                                 </IconButton>}
                               groupId={userGroup.id}
-                              groupName={userGroup.name} />
+                              groupName={userGroup.name}
+                              tournamentId={tournamentId} />
                           </>
                         }>
                 <ListItemText>
