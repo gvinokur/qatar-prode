@@ -59,7 +59,7 @@ export async function requestToJoinGroup(groupId: string, source: JoinRequestSou
 
   // Check for recent rejection with active cooldown
   const recentRejection = await findRecentRejectedRequest(groupId, user.id);
-  if (recentRejection && recentRejection.resolved_at) {
+  if (recentRejection?.resolved_at) {
     const nextEligibleDate = new Date(recentRejection.resolved_at);
     nextEligibleDate.setDate(nextEligibleDate.getDate() + 7);
 

@@ -39,7 +39,7 @@ type Props = {
   tournamentId?: string;
 };
 
-export default function JoinRequestManager({ groupId, initialRequests, locale = 'es', tournamentId }: Props) {
+export default function JoinRequestManager({ groupId, initialRequests, locale = 'es', tournamentId }: Readonly<Props>) {
   const t = useTranslations('groups.joinRequests');
   const router = useRouter();
   const [requests, setRequests] = useState<JoinRequest[]>(initialRequests);

@@ -27,7 +27,7 @@ type Props = {
   rejectionCooldown?: string; // formatted date when user can request again
 };
 
-export default function JoinRequestForm({ group, memberCount, locale, tournamentId, rejectionCooldown }: Props) {
+export default function JoinRequestForm({ group, memberCount, locale, tournamentId, rejectionCooldown }: Readonly<Props>) {
   const t = useTranslations('groups.joinRequest');
   const router = useRouter();
   const [loading, setLoading] = useState(false);

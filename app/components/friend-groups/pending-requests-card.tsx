@@ -32,7 +32,13 @@ type Props = {
   requests: UserJoinRequest[];
 };
 
-export default function PendingRequestsCard({ requests: initialRequests }: Props) {
+function statusChipColor(status: string): 'warning' | 'success' | 'error' {
+  if (status === 'pending') return 'warning';
+  if (status === 'approved') return 'success';
+  return 'error';
+}
+
+export default function PendingRequestsCard({ requests: initialRequests }: Readonly<Props>) {
   const t = useTranslations('groups.pendingRequests');
   const tCommon = useTranslations('common.buttons');
   const router = useRouter();
@@ -128,13 +134,7 @@ export default function PendingRequestsCard({ requests: initialRequests }: Props
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', width: '100%' }}>
                 <Chip
                   label={t(`status.${request.status}`)}
-                  color={
-                    request.status === 'pending'
-                      ? 'warning'
-                      : request.status === 'approved'
-                      ? 'success'
-                      : 'error'
-                  }
+                  color={statusChipColor(request.status)}
                   size="small"
                 />
                 {request.status === 'pending' && (

@@ -26,7 +26,7 @@ type Props = {
   tournamentId?: string;
 };
 
-export default function PendingRequestView({ group, requestId, requestedAt, memberCount, tournamentId }: Props) {
+export default function PendingRequestView({ group, requestId, requestedAt, memberCount, tournamentId }: Readonly<Props>) {
   const t = useTranslations('groups.pendingRequest');
   const locale = useLocale();
   const router = useRouter();

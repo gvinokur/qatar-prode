@@ -15,17 +15,19 @@ type Props = {
   pendingRequestCount?: number;
 };
 
-export default function AdminTabs({ isAdmin, leaderboardContent, adminContent, defaultTab, pendingRequestCount }: Props) {
+export default function AdminTabs({ isAdmin, leaderboardContent, adminContent, defaultTab, pendingRequestCount }: Readonly<Props>) {
   const t = useTranslations('groups.tabs');
   const searchParams = useSearchParams();
   const router = useRouter();
 
   // Determine initial tab from URL query param or defaultTab
   const tabFromUrl = searchParams.get('tab');
-  const initialTab =
-    (tabFromUrl === 'admin' && isAdmin) ? 'admin' :
-    (defaultTab === 'admin' && isAdmin) ? 'admin' :
-    'leaderboard';
+  let initialTab = 'leaderboard';
+  if (tabFromUrl === 'admin' && isAdmin) {
+    initialTab = 'admin';
+  } else if (defaultTab === 'admin' && isAdmin) {
+    initialTab = 'admin';
+  }
 
   const [value, setValue] = useState<string>(initialTab);
 
@@ -43,7 +45,7 @@ export default function AdminTabs({ isAdmin, leaderboardContent, adminContent, d
     setValue(newValue);
 
     // Update URL without page reload
-    const currentPath = window.location.pathname;
+    const currentPath = globalThis.location.pathname;
     const newUrl = newValue === 'admin'
       ? `${currentPath}?tab=admin`
       : currentPath;
