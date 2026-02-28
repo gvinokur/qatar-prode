@@ -618,3 +618,39 @@ None. All requirements are clear from the issue description and codebase explora
 - No SonarCloud issues
 - Manual verification in email clients shows correct display names for both locales
 - No increase in spam rate or delivery failures
+
+---
+
+## Implementation Amendments
+
+### Amendment 1: Explicit Envelope Sender for AWS SES Compatibility (2026-02-27)
+
+**Issue Discovered**: During Vercel Preview testing, emails failed to send with AWS SES error:
+```
+Email address is not verified. The following identities failed the check in region US-EAST-2:
+noreply@prodemundial.app, La Maquina World Cup Predictions <noreply@prodemundial.app>
+```
+
+**Root Cause**: AWS SES was validating both the SMTP envelope sender (MAIL FROM command) and the From header as separate identities. When Nodemailer automatically extracted the email address from `from: "Display Name <email@address>"` for the envelope, AWS SES still checked both as distinct identities.
+
+**Solution**: Explicitly set the `envelope` property in Nodemailer's `mailOptions` to ensure only the email address (without display name) is used for the SMTP MAIL FROM command, while keeping the display name in the visible From header.
+
+**Changes**:
+1. **`app/utils/email.ts`**:
+   - Moved `emailAddress` variable outside try-catch to proper scope
+   - Added explicit `envelope: { from: emailAddress, to }` to mailOptions
+   - Email address used for SMTP envelope, display name only in From header
+
+2. **`__tests__/utils/email.test.ts`**:
+   - Updated all test expectations to verify `envelope` property is set
+   - Tests verify `envelope.from` contains only email address
+   - Tests verify `from` header contains display name + email
+
+**Result**: AWS SES now only needs to verify the email address identity (`noreply@prodemundial.app`), not the display name format.
+
+**Commit**: `7e1d646` - "fix: set explicit envelope sender to fix AWS SES display name verification"
+
+**References**:
+- [Nodemailer SMTP Envelope Documentation](https://nodemailer.com/smtp/envelope)
+- [AWS SES Email Format Documentation](https://docs.aws.amazon.com/ses/latest/dg/send-email-concepts-email-format.html)
+- [Nodemailer with AWS SES Best Practices](https://nodemailer.com/transports/ses)
