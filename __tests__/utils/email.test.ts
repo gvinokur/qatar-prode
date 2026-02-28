@@ -9,6 +9,25 @@ import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { sendEmail } from '../../app/utils/email';
 import nodemailer from 'nodemailer';
 
+// Mock next-intl/server
+vi.mock('next-intl/server', () => ({
+  getTranslations: vi.fn((config: { locale: string; namespace: string }) => {
+    const locale = config.locale || 'es';
+    const translations = {
+      en: {
+        senderName: '"La Maquina" World Cup Predictions',
+      },
+      es: {
+        senderName: '"La Maquina" Prode Mundial',
+      },
+    };
+    return Promise.resolve((key: string) => {
+      const localeTranslations = translations[locale as keyof typeof translations];
+      return localeTranslations[key as keyof typeof localeTranslations] || key;
+    });
+  }),
+}));
+
 // Mock nodemailer
 vi.mock('nodemailer', () => {
   const mockSendMail = vi.fn();
@@ -133,11 +152,72 @@ describe('email', () => {
       };
       await sendEmail(differentEmailOptions);
       expect(globalThis.mockSendMail).toHaveBeenCalledWith({
-        from: 'noreply@example.com',
+        from: '"La Maquina" Prode Mundial <noreply@example.com>',
         to: 'different@example.com',
         subject: 'Different Subject',
         html: '<h1>Different Content</h1>',
       });
+    });
+  });
+
+  describe('sendEmail with localized sender names', () => {
+    it('should use Spanish sender name for Spanish locale', async () => {
+      await sendEmail({
+        to: 'user@example.com',
+        subject: 'Test',
+        html: '<p>Test</p>',
+        locale: 'es'
+      });
+
+      expect(globalThis.mockSendMail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          from: '"La Maquina" Prode Mundial <noreply@example.com>'
+        })
+      );
+    });
+
+    it('should use English sender name for English locale', async () => {
+      await sendEmail({
+        to: 'user@example.com',
+        subject: 'Test',
+        html: '<p>Test</p>',
+        locale: 'en'
+      });
+
+      expect(globalThis.mockSendMail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          from: '"La Maquina" World Cup Predictions <noreply@example.com>'
+        })
+      );
+    });
+
+    it('should default to Spanish locale when locale not provided', async () => {
+      await sendEmail({
+        to: 'user@example.com',
+        subject: 'Test',
+        html: '<p>Test</p>'
+      });
+
+      expect(globalThis.mockSendMail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          from: '"La Maquina" Prode Mundial <noreply@example.com>'
+        })
+      );
+    });
+
+    it('should fallback to Spanish for invalid locale', async () => {
+      await sendEmail({
+        to: 'user@example.com',
+        subject: 'Test',
+        html: '<p>Test</p>',
+        locale: 'fr' as any  // Invalid locale
+      });
+
+      expect(globalThis.mockSendMail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          from: '"La Maquina" Prode Mundial <noreply@example.com>'
+        })
+      );
     });
   });
 }); 

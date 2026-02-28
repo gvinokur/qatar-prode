@@ -148,7 +148,8 @@ export async function sendOTPCode(email: string, locale: Locale = 'es'): Promise
     await sendEmail({
       to: normalizedEmail,
       subject,
-      html
+      html,
+      locale
     });
 
     return { success: true };
