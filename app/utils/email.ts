@@ -39,11 +39,12 @@ export async function sendEmail({
     try {
       const t = await getTranslations({ locale: validLocale, namespace: 'emails' });
       const senderName = t('senderName');
-      from = `${senderName} <${emailAddress}>`;
+      // Use quoted display name format for AWS SES compatibility
+      from = `"${senderName}" <${emailAddress}>`;
     } catch (translationError) {
       // Fallback to hardcoded default if translations fail
       console.error('Failed to get email sender translation:', translationError);
-      from = `La Maquina Prode Mundial <${emailAddress}>`;
+      from = `"La Maquina Prode Mundial" <${emailAddress}>`;
     }
 
     // Determine which email provider to use based on environment variable
