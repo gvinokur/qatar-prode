@@ -654,3 +654,79 @@ noreply@prodemundial.app, La Maquina World Cup Predictions <noreply@prodemundial
 - [Nodemailer SMTP Envelope Documentation](https://nodemailer.com/smtp/envelope)
 - [AWS SES Email Format Documentation](https://docs.aws.amazon.com/ses/latest/dg/send-email-concepts-email-format.html)
 - [Nodemailer with AWS SES Best Practices](https://nodemailer.com/transports/ses)
+
+### Amendment 2: AWS SES Region Mismatch and DMARC Alignment (2026-02-28)
+
+**Issue Discovered**: After Amendment 1, emails still failed with the same error. Further investigation revealed the actual root causes were AWS SES region mismatch and DMARC alignment requirements.
+
+**Error Message**: "Email address is not verified. The following identities failed the check in region US-EAST-2"
+
+**Root Causes Identified**:
+
+1. **Region Mismatch**:
+   - Application SMTP endpoint: `email-smtp.us-east-2.amazonaws.com` (US-EAST-2)
+   - Domain verification: US-EAST-1
+   - Custom MAIL FROM domain: US-EAST-1
+   - **Issue**: AWS SES verification is region-specific - resources must be in the same region
+
+2. **DMARC Alignment Not Configured**:
+   - Default MAIL FROM domain: `@amazonses.com`
+   - From header domain: `@prodemundial.app`
+   - **Issue**: Domains don't align for DMARC, causing rejection
+   - AWS SES recommendation: "MAIL FROM record is not aligned"
+
+**Solutions Implemented**:
+
+1. **Set Up Custom MAIL FROM Domain** (in AWS SES Console):
+   - Subdomain: `info.prodemundial.app`
+   - Purpose: Align MAIL FROM with From header domain for DMARC compliance
+   - DNS Records (added to Cloudflare):
+     ```
+     MX:  info.prodemundial.app → 10 feedback-smtp.us-east-1.amazonses.com
+     TXT: info.prodemundial.app → "v=spf1 include:amazonses.com ~all"
+     ```
+   - Status: "Successful" in US-EAST-1
+
+2. **Fixed Region Mismatch** (in Vercel environment variables):
+   - Changed: `EMAIL_SERVER_HOST=email-smtp.us-east-1.amazonaws.com`
+   - Ensured SMTP credentials are for US-EAST-1 region
+   - Result: All resources now in same region (US-EAST-1)
+
+3. **Display Name Format**:
+   - Used RFC 5322 quoted format: `"Display Name" <email@address>`
+   - Works correctly with AWS SES after alignment fixes
+
+**Final Working Configuration**:
+```typescript
+// Email sending
+from: `"${senderName}" <${emailAddress}>`  // Display name in From header
+envelope: {
+  from: emailAddress,  // Plain email for SMTP MAIL FROM
+  to,
+}
+
+// SMTP Envelope (set by AWS SES custom MAIL FROM):
+// MAIL FROM: <something@info.prodemundial.app>
+
+// From Header (visible to users):
+// From: "La Maquina World Cup Predictions" <noreply@prodemundial.app>
+
+// DMARC Alignment:
+// ✅ Both use prodemundial.app domain (relaxed alignment)
+```
+
+**Environment Configuration Required**:
+- Domain verified in US-EAST-1: `prodemundial.app`
+- Custom MAIL FROM in US-EAST-1: `info.prodemundial.app`
+- SMTP endpoint: `email-smtp.us-east-1.amazonaws.com`
+- Region consistency: All AWS SES resources in US-EAST-1
+
+**Result**: Emails send successfully with localized display names. DMARC alignment achieved through custom MAIL FROM domain.
+
+**Commit**: `4ebe4c5` - "feat: implement localized email sender names with AWS SES compatibility"
+
+**References**:
+- [Using a custom MAIL FROM domain - AWS Documentation](https://docs.aws.amazon.com/ses/latest/dg/mail-from.html)
+- [Troubleshoot DMARC validation for SPF or DKIM alignment on Amazon SES](https://repost.aws/knowledge-center/ses-dmarc-spf-dkim-alignment)
+- [MAIL FROM record is not aligned - AWS re:Post](https://repost.aws/questions/QUeV_KkCI0Txaiw5LNfJrLZA/mail-from-record-is-not-aligned)
+- [Complying with DMARC authentication protocol in Amazon SES](https://docs.aws.amazon.com/ses/latest/dg/send-email-authentication-dmarc.html)
