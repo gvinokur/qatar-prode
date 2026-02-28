@@ -1,5 +1,11 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { generateVerificationEmail, generatePasswordResetEmail } from '../../app/utils/email-templates';
+import {
+  generateVerificationEmail,
+  generatePasswordResetEmail,
+  generateJoinRequestNotificationEmail,
+  generateJoinRequestApprovedEmail,
+  generateJoinRequestRejectedEmail,
+} from '../../app/utils/email-templates';
 
 // Mock translations
 const mockTranslations = {
@@ -15,6 +21,25 @@ const mockTranslations = {
     'passwordReset.button': 'Reset password',
     'passwordReset.expiration': 'This link will expire in 1 hour.',
     'passwordReset.signature': 'The La Maquina Prode team',
+    'joinRequest.adminNotification.subject': 'New join request for {groupName}',
+    'joinRequest.adminNotification.title': 'New Join Request',
+    'joinRequest.adminNotification.greeting': 'Hi {adminName},',
+    'joinRequest.adminNotification.message': '{userName} wants to join {groupName}.',
+    'joinRequest.adminNotification.requestedOn': 'Requested on: {date}',
+    'joinRequest.adminNotification.viewButton': 'View Request',
+    'joinRequest.adminNotification.signature': 'Qatar Prode Team',
+    'joinRequest.userApproved.subject': "You've been accepted to {groupName}!",
+    'joinRequest.userApproved.title': 'Request Approved',
+    'joinRequest.userApproved.greeting': 'Great news, {userName}!',
+    'joinRequest.userApproved.message': 'Your request to join {groupName} has been approved.',
+    'joinRequest.userApproved.viewButton': 'View Group',
+    'joinRequest.userApproved.signature': 'Qatar Prode Team',
+    'joinRequest.userRejected.subject': 'Your request to join {groupName} was not approved',
+    'joinRequest.userRejected.title': 'Request Not Approved',
+    'joinRequest.userRejected.greeting': 'Hi {userName},',
+    'joinRequest.userRejected.message': 'Your request to join {groupName} was not approved.',
+    'joinRequest.userRejected.cooldown': 'You can request to join again in 7 days.',
+    'joinRequest.userRejected.signature': 'Thanks for your interest!',
   },
   es: {
     'verification.subject': 'Verificación de Cuenta - La Maquina Prode',
@@ -28,6 +53,25 @@ const mockTranslations = {
     'passwordReset.button': 'Restablecer contraseña',
     'passwordReset.expiration': 'Este enlace expirará en 1 hora.',
     'passwordReset.signature': 'El equipo de La Maquina Prode',
+    'joinRequest.adminNotification.subject': 'Nueva solicitud para {groupName}',
+    'joinRequest.adminNotification.title': 'Nueva Solicitud',
+    'joinRequest.adminNotification.greeting': 'Hola {adminName},',
+    'joinRequest.adminNotification.message': '{userName} quiere unirse a {groupName}.',
+    'joinRequest.adminNotification.requestedOn': 'Solicitado el: {date}',
+    'joinRequest.adminNotification.viewButton': 'Ver Solicitud',
+    'joinRequest.adminNotification.signature': 'Equipo Qatar Prode',
+    'joinRequest.userApproved.subject': '¡Fuiste aceptado en {groupName}!',
+    'joinRequest.userApproved.title': 'Solicitud Aprobada',
+    'joinRequest.userApproved.greeting': '¡Buenas noticias, {userName}!',
+    'joinRequest.userApproved.message': 'Tu solicitud para unirte a {groupName} fue aprobada.',
+    'joinRequest.userApproved.viewButton': 'Ver Grupo',
+    'joinRequest.userApproved.signature': 'Equipo Qatar Prode',
+    'joinRequest.userRejected.subject': 'Tu solicitud para unirte a {groupName} no fue aprobada',
+    'joinRequest.userRejected.title': 'Solicitud No Aprobada',
+    'joinRequest.userRejected.greeting': 'Hola {userName},',
+    'joinRequest.userRejected.message': 'Tu solicitud para unirte a {groupName} no fue aprobada.',
+    'joinRequest.userRejected.cooldown': 'Puedes volver a solicitar en 7 días.',
+    'joinRequest.userRejected.signature': '¡Gracias por tu interés!',
   },
 };
 
@@ -220,6 +264,144 @@ describe('email-templates', () => {
       );
 
       expect(result).toHaveProperty('locale', 'en');
+    });
+  });
+
+  describe('generateJoinRequestNotificationEmail', () => {
+    it('should send to admin email and include group url', async () => {
+      const result = await generateJoinRequestNotificationEmail(
+        'admin@example.com', 'AdminUser', 'RequesterUser', 'My Group',
+        'Jan 15, 2026', 'https://example.com/groups/1?tab=admin', 'en'
+      );
+
+      expect(result.to).toBe('admin@example.com');
+      expect(result.html).toContain('href="https://example.com/groups/1?tab=admin"');
+    });
+
+    it('should include admin name, requester name and group name directly in HTML', async () => {
+      const result = await generateJoinRequestNotificationEmail(
+        'admin@example.com', 'AdminUser', 'RequesterUser', 'My Group',
+        'Jan 15, 2026', 'https://example.com/groups/1?tab=admin', 'en'
+      );
+
+      expect(result.html).toContain('New Join Request');
+    });
+
+    it('should include requestedOn translation text in HTML', async () => {
+      const result = await generateJoinRequestNotificationEmail(
+        'admin@example.com', 'AdminUser', 'RequesterUser', 'My Group',
+        'Jan 15, 2026', 'https://example.com/groups/1?tab=admin', 'en'
+      );
+
+      // requestedDate is passed as a translation param — mock returns raw key text
+      expect(result.html).toContain('Requested on: {date}');
+    });
+
+    it('should use Spanish translations when locale is es', async () => {
+      const result = await generateJoinRequestNotificationEmail(
+        'admin@example.com', 'AdminUser', 'RequesterUser', 'My Group',
+        '15 ene. 2026', 'https://example.com/groups/1?tab=admin', 'es'
+      );
+
+      expect(result.html).toContain('Nueva Solicitud');
+    });
+
+    it('should use Spanish as default locale', async () => {
+      const result = await generateJoinRequestNotificationEmail(
+        'admin@example.com', 'AdminUser', 'RequesterUser', 'My Group',
+        'Jan 15, 2026', 'https://example.com/groups/1?tab=admin'
+      );
+
+      expect(result.html).toContain('Nueva Solicitud');
+    });
+  });
+
+  describe('generateJoinRequestApprovedEmail', () => {
+    it('should send to user email', async () => {
+      const result = await generateJoinRequestApprovedEmail(
+        'user@example.com', 'UserName', 'My Group',
+        'https://example.com/groups/1', 'en'
+      );
+
+      expect(result.to).toBe('user@example.com');
+    });
+
+    it('should include group url link', async () => {
+      const result = await generateJoinRequestApprovedEmail(
+        'user@example.com', 'UserName', 'My Group',
+        'https://example.com/groups/1', 'en'
+      );
+
+      expect(result.html).toContain('href="https://example.com/groups/1"');
+    });
+
+    it('should include approved title text', async () => {
+      const result = await generateJoinRequestApprovedEmail(
+        'user@example.com', 'UserName', 'My Group',
+        'https://example.com/groups/1', 'en'
+      );
+
+      expect(result.html).toContain('Request Approved');
+    });
+
+    it('should use Spanish translations when locale is es', async () => {
+      const result = await generateJoinRequestApprovedEmail(
+        'user@example.com', 'UserName', 'My Group',
+        'https://example.com/groups/1', 'es'
+      );
+
+      expect(result.html).toContain('Solicitud Aprobada');
+    });
+
+    it('should use Spanish as default locale', async () => {
+      const result = await generateJoinRequestApprovedEmail(
+        'user@example.com', 'UserName', 'My Group',
+        'https://example.com/groups/1'
+      );
+
+      expect(result.html).toContain('Solicitud Aprobada');
+    });
+  });
+
+  describe('generateJoinRequestRejectedEmail', () => {
+    it('should send to user email', async () => {
+      const result = await generateJoinRequestRejectedEmail(
+        'user@example.com', 'UserName', 'My Group', 'en'
+      );
+
+      expect(result.to).toBe('user@example.com');
+    });
+
+    it('should include rejected title text', async () => {
+      const result = await generateJoinRequestRejectedEmail(
+        'user@example.com', 'UserName', 'My Group', 'en'
+      );
+
+      expect(result.html).toContain('Request Not Approved');
+    });
+
+    it('should include cooldown message', async () => {
+      const result = await generateJoinRequestRejectedEmail(
+        'user@example.com', 'UserName', 'My Group', 'en'
+      );
+
+      expect(result.html).toContain('You can request to join again in 7 days.');
+    });
+
+    it('should use Spanish translations when locale is es', async () => {
+      const result = await generateJoinRequestRejectedEmail(
+        'user@example.com', 'UserName', 'My Group', 'es'
+      );
+
+      expect(result.html).toContain('Solicitud No Aprobada');
+    });
+
+    it('should use Spanish as default locale', async () => {
+      const result = await generateJoinRequestRejectedEmail(
+        'user@example.com', 'UserName', 'My Group'
+      );
+
+      expect(result.html).toContain('Solicitud No Aprobada');
     });
   });
 });

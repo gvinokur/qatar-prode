@@ -132,7 +132,6 @@ export default async function FriendsGroup(props : Props){
 
               )}
               groupId={prodeGroup.id}
-              ownerId={prodeGroup.owner_user_id}
               members={members}
               bettingData={bettingData}
               selectedTournamentId={searchParams.tournament}

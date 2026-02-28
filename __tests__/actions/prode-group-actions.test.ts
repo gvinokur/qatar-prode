@@ -5,6 +5,7 @@ import * as s3 from '../../app/actions/s3';
 import * as gameGuessRepository from '../../app/db/game-guess-repository';
 import * as tournamentGuessRepository from '../../app/db/tournament-guess-repository';
 import * as objectUtils from '../../app/utils/ObjectUtils';
+import * as joinRequestRepository from '../../app/db/prode-group-join-request-repository';
 import {
   createDbGroup,
   getGroupsForUser,
@@ -30,6 +31,7 @@ vi.mock('../../app/actions/s3');
 vi.mock('../../app/db/game-guess-repository');
 vi.mock('../../app/db/tournament-guess-repository');
 vi.mock('../../app/utils/ObjectUtils');
+vi.mock('../../app/db/prode-group-join-request-repository');
 
 const mockGetLoggedInUser = vi.mocked(userActions.getLoggedInUser);
 const mockCreateProdeGroup = vi.mocked(prodeGroupRepository.createProdeGroup);
@@ -48,6 +50,7 @@ const mockFindTournamentGuessByUserIdsTournament = vi.mocked(tournamentGuessRepo
 const mockCustomToMap = vi.mocked(objectUtils.customToMap);
 const mockCreateS3Client = vi.mocked(s3.createS3Client);
 const mockDeleteThemeLogoFromS3 = vi.mocked(s3.deleteThemeLogoFromS3);
+const mockFindJoinRequestsByUser = vi.mocked(joinRequestRepository.findJoinRequestsByUser);
 
 describe('Prode Group Actions', () => {
   const mockUser = { id: 'user1', email: 'test@example.com', emailVerified: new Date() };
@@ -127,6 +130,7 @@ describe('Prode Group Actions', () => {
     mockFindParticipantsInGroup.mockResolvedValue([mockParticipant]);
     mockGetGameGuessStatisticsForUsers.mockResolvedValue([mockGameStatistic]);
     mockFindTournamentGuessByUserIdsTournament.mockResolvedValue([mockTournamentGuess]);
+    mockFindJoinRequestsByUser.mockResolvedValue([]);
     mockCustomToMap.mockImplementation((data: any[], _keyExtractor: any) => {
       if (data.length > 0 && 'group_score' in data[0]) {
         // Game statistics data
@@ -163,7 +167,7 @@ describe('Prode Group Actions', () => {
   describe('getGroupsForUser', () => {
     it('returns user and participant groups', async () => {
       const result = await getGroupsForUser();
-      expect(result).toEqual({ userGroups: [mockGroup], participantGroups: [mockGroup] });
+      expect(result).toEqual({ userGroups: [mockGroup], participantGroups: [mockGroup], pendingRequests: [] });
     });
     it('returns undefined if not logged in', async () => {
       mockGetLoggedInUser.mockResolvedValue(undefined);

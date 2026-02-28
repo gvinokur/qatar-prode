@@ -29,5 +29,32 @@
     },
     "requestedFor": "This code was requested for:",
     "support": "If you have trouble signing in, contact support."
+  },
+  "joinRequest": {
+    "adminNotification": {
+      "subject": "New join request for {groupName}",
+      "title": "New Join Request",
+      "greeting": "Hi {adminName},",
+      "message": "{userName} has requested to join your friend group \"{groupName}\".",
+      "requestedOn": "Requested on: {date}",
+      "viewButton": "View Request",
+      "signature": "The La Maquina Prode Team"
+    },
+    "userApproved": {
+      "subject": "You've been accepted to {groupName}!",
+      "title": "Request Approved",
+      "greeting": "Great news, {userName}!",
+      "message": "Your request to join \"{groupName}\" has been approved.",
+      "viewButton": "View Group",
+      "signature": "The La Maquina Prode Team"
+    },
+    "userRejected": {
+      "subject": "Your request to join {groupName} was not approved",
+      "title": "Request Not Approved",
+      "greeting": "Hi {userName},",
+      "message": "Unfortunately, your request to join \"{groupName}\" was not approved at this time.",
+      "cooldown": "You can request to join again in 7 days if you'd like.",
+      "signature": "Thanks for your interest!"
+    }
   }
 }

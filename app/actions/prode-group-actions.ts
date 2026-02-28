@@ -14,6 +14,7 @@ import {
   findParticipantsInGroup
 } from "../db/prode-group-repository";
 import {getLoggedInUser} from "./user-actions";
+import { findJoinRequestsByUser } from "../db/prode-group-join-request-repository";
 import {z} from "zod";
 import {createS3Client, deleteThemeLogoFromS3} from "./s3";
 import { getGameGuessStatisticsForUsers } from '../db/game-guess-repository';
@@ -42,10 +43,16 @@ export async function getGroupsForUser() {
   }
   const userGroups = await findProdeGroupsByOwner(user.id)
   const participantGroups = await findProdeGroupsByParticipant(user.id)
+  const pendingRequests = await findJoinRequestsByUser(user.id, 'pending')
 
   return ({
     userGroups,
-    participantGroups
+    participantGroups,
+    pendingRequests: pendingRequests.map(r => ({
+      id: r.id,
+      group_id: r.group_id,
+      group_name: r.group_name
+    }))
   })
 }
 
@@ -82,6 +89,10 @@ export async function demoteParticipantFromAdmin(groupId: string, userId: string
   await updateParticipantAdminStatus(groupId, userId, false);
 }
 
+/**
+ * @deprecated Use requestToJoinGroup from prode-group-join-request-actions.ts instead
+ * Auto-join has been replaced with request/approval workflow
+ */
 export async function joinGroup(groupId: string, isAdmin: boolean = false) {
   const user = await getLoggedInUser();
   if(!user) {

@@ -5,7 +5,7 @@ import {Button} from "@mui/material";
 import {Share} from "@mui/icons-material";
 import { useTranslations } from 'next-intl';
 
-export const InviteFriendsDialogButton = ({groupId, groupName}: { groupId: string, groupName: string }) => {
+export const InviteFriendsDialogButton = ({groupId, groupName, tournamentId}: { groupId: string, groupName: string, tournamentId?: string }) => {
   const t = useTranslations('groups.actions');
 
   return (
@@ -15,6 +15,7 @@ export const InviteFriendsDialogButton = ({groupId, groupName}: { groupId: strin
           {t('inviteMore')}
         </Button>}
       groupId={groupId}
-      groupName={groupName}/>
+      groupName={groupName}
+      tournamentId={tournamentId}/>
   )
 }

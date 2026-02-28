@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Typography, Button, Box, Chip } from "../mui-wrappers/";
 import {
   Card,
+  CardActionArea,
   CardContent,
   CardActions,
   Stack,
@@ -17,24 +18,29 @@ import { useLocale, useTranslations } from 'next-intl';
 interface TournamentGroupCardProps {
   readonly group: TournamentGroupStats;
   readonly tournamentId: string;
+  readonly isPending?: boolean;
 }
 
-export default function TournamentGroupCard({ group, tournamentId }: TournamentGroupCardProps) {
+export default function TournamentGroupCard({ group, tournamentId, isPending = false }: TournamentGroupCardProps) {
   const locale = useLocale();
   const t = useTranslations('groups.card');
+  const tPending = useTranslations('groups.pendingRequest');
   const isLeader = group.userPosition === 1;
   const leaderDisplay = isLeader ? t('you') : group.leaderName;
 
-  return (
-    <Card
-      sx={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'relative'
-      }}
-    >
+  const cardContent = (
+    <>
       <CardContent sx={{ flexGrow: 1, pb: 1 }}>
+        {isPending && (
+          <Box sx={{ mb: 2 }}>
+            <Chip
+              label={tPending('status')}
+              color="warning"
+              size="small"
+              sx={{ fontWeight: 600 }}
+            />
+          </Box>
+        )}
         {/* Group Name with Owner Badge and Share Button */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
           <Typography
@@ -67,13 +73,14 @@ export default function TournamentGroupCard({ group, tournamentId }: TournamentG
                 }
                 groupId={group.groupId}
                 groupName={group.groupName}
+                tournamentId={tournamentId}
               />
             </>
           )}
         </Box>
 
         {/* Stats Section */}
-        <Stack spacing={1.5}>
+        <Stack spacing={1.5} sx={{ filter: isPending ? 'blur(3px)' : 'none', pointerEvents: isPending ? 'none' : 'auto' }}>
           {/* Position and Points - Compact Layout */}
           <Box sx={{ display: 'flex', gap: 3 }}>
             <Box sx={{ flex: 1 }}>
@@ -108,16 +115,50 @@ export default function TournamentGroupCard({ group, tournamentId }: TournamentG
 
       {/* Actions */}
       <CardActions sx={{ pt: 0, pb: 2, px: 2, justifyContent: 'flex-end' }}>
-        <Button
-          component={Link}
-          href={`/${locale}/tournaments/${tournamentId}/friend-groups/${group.groupId}`}
-          variant="text"
-          color="primary"
-          size="small"
-        >
-          {t('viewDetails')}
-        </Button>
+        {isPending ? (
+          <Typography variant="caption" color="text.secondary" sx={{ mr: 'auto' }}>
+            {tPending('awaitingApproval')}
+          </Typography>
+        ) : (
+          <Button
+            component={Link}
+            href={`/${locale}/tournaments/${tournamentId}/friend-groups/${group.groupId}`}
+            variant="text"
+            color="primary"
+            size="small"
+          >
+            {t('viewDetails')}
+          </Button>
+        )}
       </CardActions>
+    </>
+  );
+
+  return (
+    <Card
+      sx={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'relative',
+        opacity: isPending ? 0.7 : 1,
+        ...(isPending && {
+          border: '2px dashed',
+          borderColor: 'warning.main'
+        })
+      }}
+    >
+      {isPending ? (
+        <CardActionArea
+          component={Link}
+          href={`/${locale}/tournaments/${tournamentId}/friend-groups/join/${group.groupId}`}
+          sx={{ display: 'flex', flexDirection: 'column', height: '100%', alignItems: 'stretch' }}
+        >
+          {cardContent}
+        </CardActionArea>
+      ) : (
+        cardContent
+      )}
     </Card>
   );
 }

@@ -4,7 +4,7 @@ import {
   Button, Card,
   CardActions,
   CardContent,
-  CardHeader, Collapse, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
+  CardHeader, Chip, Collapse, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
   IconButton,
   List,
   ListItem,
@@ -25,6 +25,7 @@ type Props = {
   participantGroups: {id: string, name: string}[]
   tournamentId?: string
   isActive?: boolean
+  pendingRequests?: { id: string; group_id: string; group_name?: string | null }[]
 }
 
 type GroupForm = {
@@ -36,6 +37,7 @@ export default function FriendGroupsList({
   participantGroups,
   tournamentId,
   isActive = false,
+  pendingRequests = [],
 } : Props) {
   const t = useTranslations('groups');
   const theme = useTheme();
@@ -120,7 +122,8 @@ export default function FriendGroupsList({
                                   <ShareIcon/>
                                 </IconButton>}
                               groupId={userGroup.id}
-                              groupName={userGroup.name} />
+                              groupName={userGroup.name}
+                              tournamentId={tournamentId} />
                           </>
                         }>
                 <ListItemText>
@@ -138,6 +141,29 @@ export default function FriendGroupsList({
                     {participantGroup.name}
                   </Link>
                 </ListItemText>
+              </ListItem>
+            ))}
+            {pendingRequests.length > 0 && (userGroups.length > 0 || participantGroups.length > 0) && <ListItem divider/>}
+            {pendingRequests.map(request => (
+              <ListItem key={request.id} disableGutters sx={{ gap: 1 }}>
+                <ListItemText
+                  primary={
+                    tournamentId ? (
+                      <Link href={`/${locale}/tournaments/${tournamentId}/friend-groups/join/${request.group_id}`}>
+                        {request.group_name || t('pendingRequests.unknownGroup')}
+                      </Link>
+                    ) : (
+                      request.group_name || t('pendingRequests.unknownGroup')
+                    )
+                  }
+                  slotProps={{ primary: { color: 'text.secondary', noWrap: true } }}
+                />
+                <Chip
+                  label={t('pendingRequests.status.pending')}
+                  color="warning"
+                  size="small"
+                  sx={{ flexShrink: 0 }}
+                />
               </ListItem>
             ))}
           </List>
@@ -158,7 +184,7 @@ export default function FriendGroupsList({
           >
             {t('actions.create')}
           </Button>
-          {tournamentId && (userGroups.length + participantGroups.length) > 1 && (
+          {tournamentId && (userGroups.length + participantGroups.length > 1 || pendingRequests.length > 0) && (
             <Button
               component={Link}
               href={`/${locale}/tournaments/${tournamentId}/friend-groups`}

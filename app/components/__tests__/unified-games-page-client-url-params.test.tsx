@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import React from 'react';
-import { render, waitFor } from '@testing-library/react';
+import { render, act } from '@testing-library/react';
 import { UnifiedGamesPageClient } from '../unified-games-page-client';
 import * as nextNavigation from 'next/navigation';
 import { testFactories } from '@/__tests__/db/test-factories';
@@ -71,6 +71,7 @@ describe('UnifiedGamesPageClient URL Parameter Handling', () => {
   let mockSearchParams: Map<string, string>;
 
   beforeEach(async () => {
+    vi.useFakeTimers();
     mockSetActiveFilter = vi.fn();
     mockSetGroupFilter = vi.fn();
     mockSetRoundFilter = vi.fn();
@@ -125,6 +126,11 @@ describe('UnifiedGamesPageClient URL Parameter Handling', () => {
     vi.clearAllMocks();
   });
 
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+  });
+
   it('should detect edit parameter and clear filters', async () => {
     // Set edit parameter
     mockSearchParams.set('edit', 'game-123');
@@ -148,12 +154,10 @@ describe('UnifiedGamesPageClient URL Parameter Handling', () => {
       />
     );
 
-    // Verify filters were cleared
-    await waitFor(() => {
-      expect(mockSetActiveFilter).toHaveBeenCalledWith('all');
-      expect(mockSetGroupFilter).toHaveBeenCalledWith(null);
-      expect(mockSetRoundFilter).toHaveBeenCalledWith(null);
-    });
+    // Effects run synchronously within act(); assert directly
+    expect(mockSetActiveFilter).toHaveBeenCalledWith('all');
+    expect(mockSetGroupFilter).toHaveBeenCalledWith(null);
+    expect(mockSetRoundFilter).toHaveBeenCalledWith(null);
   });
 
   it('should trigger edit mode after filter state confirms clearing', async () => {
@@ -190,10 +194,13 @@ describe('UnifiedGamesPageClient URL Parameter Handling', () => {
       />
     );
 
+    // Advance fake timers to fire the nested setTimeout callbacks
+    await act(async () => {
+      vi.runAllTimers();
+    });
+
     // Verify triggerEdit is called after filters are cleared
-    await waitFor(() => {
-      expect(mockTriggerEdit).toHaveBeenCalledWith('game-456');
-    }, { timeout: 1000 }); // Wait for timeout delays
+    expect(mockTriggerEdit).toHaveBeenCalledWith('game-456');
   });
 
   it('should override localStorage filters when edit parameter present', async () => {
@@ -234,12 +241,10 @@ describe('UnifiedGamesPageClient URL Parameter Handling', () => {
       />
     );
 
-    // Verify filters are cleared (overriding localStorage)
-    await waitFor(() => {
-      expect(mockSetActiveFilter).toHaveBeenCalledWith('all');
-      expect(mockSetGroupFilter).toHaveBeenCalledWith(null);
-      expect(mockSetRoundFilter).toHaveBeenCalledWith(null);
-    });
+    // Effects run synchronously within act(); assert directly
+    expect(mockSetActiveFilter).toHaveBeenCalledWith('all');
+    expect(mockSetGroupFilter).toHaveBeenCalledWith(null);
+    expect(mockSetRoundFilter).toHaveBeenCalledWith(null);
 
     // Cleanup
     globalThis.localStorage.removeItem('tournamentFilter-123');

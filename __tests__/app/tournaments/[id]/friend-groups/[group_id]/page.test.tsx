@@ -75,7 +75,7 @@ describe('TournamentScopedFriendGroup', () => {
       vi.mocked(findProdeGroupById).mockResolvedValue(mockProdeGroup);
       vi.mocked(findTournamentById).mockResolvedValue(mockTournament);
 
-      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId });
+      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId, locale: 'es' });
       const searchParams = Promise.resolve({});
 
       await expect(TournamentScopedFriendGroup({ params, searchParams }))
@@ -87,7 +87,7 @@ describe('TournamentScopedFriendGroup', () => {
       vi.mocked(findProdeGroupById).mockResolvedValue(null);
       vi.mocked(findTournamentById).mockResolvedValue(mockTournament);
 
-      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId });
+      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId, locale: 'es' });
       const searchParams = Promise.resolve({});
 
       await expect(TournamentScopedFriendGroup({ params, searchParams }))
@@ -99,7 +99,7 @@ describe('TournamentScopedFriendGroup', () => {
       vi.mocked(findProdeGroupById).mockResolvedValue(mockProdeGroup);
       vi.mocked(findTournamentById).mockResolvedValue(null);
 
-      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId });
+      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId, locale: 'es' });
       const searchParams = Promise.resolve({});
 
       await expect(TournamentScopedFriendGroup({ params, searchParams }))
@@ -135,7 +135,7 @@ describe('TournamentScopedFriendGroup', () => {
     });
 
     it('fetches prode group by group_id', async () => {
-      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId });
+      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId, locale: 'es' });
       const searchParams = Promise.resolve({});
 
       await TournamentScopedFriendGroup({ params, searchParams });
@@ -144,7 +144,7 @@ describe('TournamentScopedFriendGroup', () => {
     });
 
     it('fetches tournament by id', async () => {
-      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId });
+      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId, locale: 'es' });
       const searchParams = Promise.resolve({});
 
       await TournamentScopedFriendGroup({ params, searchParams });
@@ -153,7 +153,7 @@ describe('TournamentScopedFriendGroup', () => {
     });
 
     it('fetches participants in the group', async () => {
-      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId });
+      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId, locale: 'es' });
       const searchParams = Promise.resolve({});
 
       await TournamentScopedFriendGroup({ params, searchParams });
@@ -162,7 +162,7 @@ describe('TournamentScopedFriendGroup', () => {
     });
 
     it('fetches users including owner and participants', async () => {
-      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId });
+      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId, locale: 'es' });
       const searchParams = Promise.resolve({});
 
       await TournamentScopedFriendGroup({ params, searchParams });
@@ -175,7 +175,7 @@ describe('TournamentScopedFriendGroup', () => {
     });
 
     it('fetches user scores only for the specific tournament', async () => {
-      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId });
+      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId, locale: 'es' });
       const searchParams = Promise.resolve({});
 
       await TournamentScopedFriendGroup({ params, searchParams });
@@ -188,7 +188,7 @@ describe('TournamentScopedFriendGroup', () => {
     });
 
     it('fetches betting config for the specific tournament', async () => {
-      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId });
+      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId, locale: 'es' });
       const searchParams = Promise.resolve({});
 
       await TournamentScopedFriendGroup({ params, searchParams });
@@ -203,7 +203,7 @@ describe('TournamentScopedFriendGroup', () => {
       const mockConfig = { id: 'config-1' };
       vi.mocked(getGroupTournamentBettingConfigAction).mockResolvedValue(mockConfig);
 
-      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId });
+      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId, locale: 'es' });
       const searchParams = Promise.resolve({});
 
       await TournamentScopedFriendGroup({ params, searchParams });
@@ -214,7 +214,7 @@ describe('TournamentScopedFriendGroup', () => {
     it('does not fetch betting payments if config does not exist', async () => {
       vi.mocked(getGroupTournamentBettingConfigAction).mockResolvedValue(null);
 
-      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId });
+      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId, locale: 'es' });
       const searchParams = Promise.resolve({});
 
       await TournamentScopedFriendGroup({ params, searchParams });
@@ -248,7 +248,7 @@ describe('TournamentScopedFriendGroup', () => {
     });
 
     it('renders the page with group data', async () => {
-      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId });
+      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId, locale: 'es' });
       const searchParams = Promise.resolve({});
 
       const result = await TournamentScopedFriendGroup({ params, searchParams });
@@ -257,7 +257,7 @@ describe('TournamentScopedFriendGroup', () => {
     });
 
     it('pre-selects the tournament in ProdeGroupTable', async () => {
-      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId });
+      const params = Promise.resolve({ id: mockTournamentId, group_id: mockGroupId, locale: 'es' });
       const searchParams = Promise.resolve({});
 
       const result = await TournamentScopedFriendGroup({ params, searchParams });

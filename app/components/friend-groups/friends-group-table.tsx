@@ -11,10 +11,8 @@ import {
   Typography,
 } from "@mui/material";
 import {useState} from "react";
-import GroupTournamentBettingAdmin from './group-tournament-betting-admin';
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 import Snackbar from '@mui/material/Snackbar';
-import Button from '@mui/material/Button';
 import MuiAlert from '@mui/material/Alert';
 import NotificationDialog from "./notification-dialog";
 import LeaderboardView from '../leaderboard/LeaderboardView';
@@ -27,19 +25,18 @@ type Props = {
   readonly tournaments: Tournament[],
   readonly action?: React.ReactNode,
   readonly groupId: string,
-  readonly ownerId: string,
   readonly members: { id: string, nombre: string, is_admin?: boolean }[],
   readonly bettingData: { [tournamentId: string]: { config: any, payments: any[] } }
-  readonly selectedTournamentId?: string
+  readonly selectedTournamentId?: string,
 }
 
-export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, ownerId, members, bettingData, selectedTournamentId}: Props) {
+export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, members, bettingData, selectedTournamentId}: Props) {
   const t = useTranslations('groups.standings');
+  const tBetting = useTranslations('groups.betting');
 
   const [selectedTab, setSelectedTab] = useState<string>(selectedTournamentId || tournaments[0]?.id || '')
   const [snackbar, setSnackbar] = useState<{open: boolean, message: string, severity: 'success' | 'error'}>({open: false, message: '', severity: 'success'});
   const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
-  const isAdmin = ownerId === loggedInUser || !!members.find(m => m.id === loggedInUser && m.is_admin);
 
   if (tournaments.length === 0) {
     return (
@@ -97,6 +94,13 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
               individualAwardsScore: score.individualAwardsScore || 0
             }))
 
+            const bettingConfig = bettingData[tournament.id]?.config;
+            const bettingPayments: { user_id: string, has_paid: boolean }[] = bettingData[tournament.id]?.payments || [];
+            const paidUserIds = new Set(bettingPayments.filter(p => p.has_paid).map(p => p.user_id));
+            const paidMembers = members.filter(m => paidUserIds.has(m.id));
+            const unpaidMembers = members.filter(m => !paidUserIds.has(m.id));
+            const totalAmount = paidMembers.length * (bettingConfig?.betting_amount || 0);
+
             return (
               <TabPanel value={tournament.id} key={tournament.id} keepMounted={true}>
                 <LeaderboardView
@@ -104,21 +108,35 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
                   currentUserId={loggedInUser}
                   tournament={tournament}
                 />
-                {isAdmin && (
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 2 }}>
-                    <Button variant="contained" color="primary" onClick={() => setNotificationDialogOpen(true)}>
-                      {t('sendNotification')}
-                    </Button>
+                {/* Betting Status (read-only) */}
+                {bettingConfig?.betting_enabled && (
+                  <Box sx={{ mt: 2, p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
+                    <Typography variant="body2" fontWeight="bold" gutterBottom>
+                      💰 {tBetting('statusEnabled')}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {tBetting('summary.perPerson')} ${bettingConfig.betting_amount || 0}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {tBetting('summary.total')} ${totalAmount.toFixed(2)}
+                    </Typography>
+                    {bettingConfig.betting_payout_description && (
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                        {tBetting('summary.description')} {bettingConfig.betting_payout_description}
+                      </Typography>
+                    )}
+                    {paidMembers.length > 0 && (
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                        ✅ {tBetting('summary.paidList')} {paidMembers.map(m => m.nombre).join(', ')}
+                      </Typography>
+                    )}
+                    {unpaidMembers.length > 0 && (
+                      <Typography variant="body2" color="text.secondary">
+                        ❌ {tBetting('summary.notPaidList')} {unpaidMembers.map(m => m.nombre).join(', ')}
+                      </Typography>
+                    )}
                   </Box>
                 )}
-                <GroupTournamentBettingAdmin
-                  groupId={groupId}
-                  tournamentId={tournament.id}
-                  isAdmin={ownerId === loggedInUser || !!members.find(m => m.id === loggedInUser)?.is_admin}
-                  members={members}
-                  config={bettingData[tournament.id]?.config}
-                  payments={bettingData[tournament.id]?.payments}
-                />
               </TabPanel>
             )
           })}

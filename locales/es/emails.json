@@ -29,5 +29,32 @@
     },
     "requestedFor": "Este código fue solicitado para:",
     "support": "Si tienes problemas para iniciar sesión, contacta a soporte."
+  },
+  "joinRequest": {
+    "adminNotification": {
+      "subject": "Nueva solicitud para unirse a {groupName}",
+      "title": "Nueva Solicitud de Ingreso",
+      "greeting": "Hola {adminName},",
+      "message": "{userName} ha solicitado unirse a tu grupo de amigos \"{groupName}\".",
+      "requestedOn": "Solicitado el: {date}",
+      "viewButton": "Ver Solicitud",
+      "signature": "El equipo de La Maquina Prode"
+    },
+    "userApproved": {
+      "subject": "¡Has sido aceptado en {groupName}!",
+      "title": "Solicitud Aprobada",
+      "greeting": "¡Buenas noticias, {userName}!",
+      "message": "Tu solicitud para unirte a \"{groupName}\" ha sido aprobada.",
+      "viewButton": "Ver Grupo",
+      "signature": "El equipo de La Maquina Prode"
+    },
+    "userRejected": {
+      "subject": "Tu solicitud para unirte a {groupName} no fue aprobada",
+      "title": "Solicitud No Aprobada",
+      "greeting": "Hola {userName},",
+      "message": "Lamentablemente, tu solicitud para unirte a \"{groupName}\" no fue aprobada en este momento.",
+      "cooldown": "Puedes solicitar unirte nuevamente en 7 días si lo deseas.",
+      "signature": "¡Gracias por tu interés!"
+    }
   }
 }

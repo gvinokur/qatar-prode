@@ -106,7 +106,8 @@
       "perPerson": "Monto por persona:",
       "total": "Monto acumulado:",
       "description": "Descripción:",
-      "paidList": "Pagaron:"
+      "paidList": "Pagaron:",
+      "notPaidList": "No pagaron:"
     },
     "feedback": {
       "configSaved": "¡Configuración guardada!",
@@ -158,5 +159,73 @@
     "noImageSelected": "No se seleccionó imagen",
     "aspectRatioHint": "Proporción de imagen recomendada: {ratio}:1",
     "saveButton": "Guardar"
+  },
+  "joinRequests": {
+    "title": "Solicitudes de Ingreso",
+    "noPendingRequests": "No hay solicitudes pendientes",
+    "approve": "Aprobar",
+    "approveRejected": "Aprobar de todas formas",
+    "reject": "Rechazar",
+    "approveSuccess": "Solicitud aprobada",
+    "rejectSuccess": "Solicitud rechazada",
+    "approveFailed": "Error al aprobar solicitud",
+    "rejectFailed": "Error al rechazar solicitud",
+    "recentlyRejectedTitle": "Rechazadas Recientemente",
+    "timeAgo": {
+      "minutes": "hace {count, plural, =1 {1 minuto} other {# minutos}}",
+      "hours": "hace {count, plural, =1 {1 hora} other {# horas}}",
+      "days": "hace {count, plural, =1 {1 día} other {# días}}"
+    },
+    "source": {
+      "invite_link": "mediante enlace de invitación",
+      "discovery": "mediante descubrimiento",
+      "email_invite": "mediante invitación por email"
+    }
+  },
+  "pendingRequest": {
+    "title": "Solicitud Pendiente",
+    "message": "Tu solicitud para unirte a este grupo está pendiente de aprobación por un administrador.",
+    "requestedOn": "Solicitado el: {date}",
+    "members": "{count, plural, =1 {1 miembro} other {# miembros}}",
+    "hiddenContent": "La tabla de posiciones, puntajes e información de apuestas están ocultos hasta que tu solicitud sea aprobada.",
+    "cancelButton": "Cancelar Solicitud",
+    "confirmCancel": "¿Estás seguro que quieres cancelar tu solicitud de ingreso?",
+    "cancelFailed": "Error al cancelar solicitud",
+    "status": "SOLICITUD PENDIENTE",
+    "awaitingApproval": "Esperando aprobación del administrador"
+  },
+  "pendingRequests": {
+    "title": "Mis Solicitudes Pendientes",
+    "noRequests": "No hay solicitudes pendientes",
+    "unknownGroup": "Grupo Desconocido",
+    "cancel": "Cancelar",
+    "confirmCancel": "¿Estás seguro que quieres cancelar esta solicitud?",
+    "status": {
+      "pending": "Pendiente",
+      "approved": "Aprobada",
+      "rejected": "Rechazada"
+    },
+    "canRequestAgain": "Puedes solicitar nuevamente: {date}",
+    "timeAgo": {
+      "today": "Hoy",
+      "yesterday": "Ayer",
+      "daysAgo": "hace {count, plural, =1 {1 día} other {# días}}"
+    }
+  },
+  "tabs": {
+    "leaderboard": "Tabla de Posiciones",
+    "admin": "Administración"
+  },
+  "joinRequest": {
+    "preview": "Vista Previa del Grupo",
+    "members": "{count, plural, =1 {1 miembro} other {# miembros}}",
+    "approvalRequired": "Se requiere aprobación del administrador para unirse a este grupo. Tu solicitud será revisada por los administradores del grupo.",
+    "requestButton": "Solicitar Unirse al Grupo",
+    "requestFailed": "Error al enviar solicitud de ingreso",
+    "successTitle": "¡Solicitud Enviada!",
+    "successMessage": "Tu solicitud para unirte a este grupo ha sido enviada. Serás notificado por email cuando un administrador revise tu solicitud.",
+    "rejectedTitle": "Solicitud No Aprobada",
+    "rejectedMessage": "Tu solicitud anterior para unirte a este grupo no fue aprobada.",
+    "cooldownMessage": "Podrás solicitar unirte nuevamente el {date}."
   }
 }
