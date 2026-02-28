@@ -34,16 +34,16 @@ export async function sendEmail({
     const validLocale: Locale = (locale === 'en' || locale === 'es') ? locale : 'es';
 
     // Get localized sender name with error handling
+    const emailAddress = process.env.EMAIL_FROM || '';
     let from: string;
     try {
       const t = await getTranslations({ locale: validLocale, namespace: 'emails' });
       const senderName = t('senderName');
-      const emailAddress = process.env.EMAIL_FROM;
       from = `${senderName} <${emailAddress}>`;
     } catch (translationError) {
       // Fallback to hardcoded default if translations fail
       console.error('Failed to get email sender translation:', translationError);
-      from = `La Maquina Prode Mundial <${process.env.EMAIL_FROM}>`;
+      from = `La Maquina Prode Mundial <${emailAddress}>`;
     }
 
     // Determine which email provider to use based on environment variable
@@ -58,6 +58,10 @@ export async function sendEmail({
         to,
         subject,
         html,
+        envelope: {
+          from: emailAddress, // Use only email address for SMTP MAIL FROM
+          to,
+        },
       };
 
       const info = await transporter.sendMail(mailOptions);

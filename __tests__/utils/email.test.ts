@@ -98,6 +98,14 @@ describe('email', () => {
           pass: 'password123',
         },
       });
+      expect(globalThis.mockSendMail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          envelope: {
+            from: 'noreply@example.com',
+            to: 'test@example.com',
+          },
+        })
+      );
     });
 
     it('should use default Gmail settings when environment variables are not set', async () => {
@@ -156,6 +164,10 @@ describe('email', () => {
         to: 'different@example.com',
         subject: 'Different Subject',
         html: '<h1>Different Content</h1>',
+        envelope: {
+          from: 'noreply@example.com',
+          to: 'different@example.com',
+        },
       });
     });
   });
@@ -171,7 +183,11 @@ describe('email', () => {
 
       expect(globalThis.mockSendMail).toHaveBeenCalledWith(
         expect.objectContaining({
-          from: 'La Maquina Prode Mundial <noreply@example.com>'
+          from: 'La Maquina Prode Mundial <noreply@example.com>',
+          envelope: {
+            from: 'noreply@example.com',
+            to: 'user@example.com',
+          },
         })
       );
     });
@@ -186,7 +202,11 @@ describe('email', () => {
 
       expect(globalThis.mockSendMail).toHaveBeenCalledWith(
         expect.objectContaining({
-          from: 'La Maquina World Cup Predictions <noreply@example.com>'
+          from: 'La Maquina World Cup Predictions <noreply@example.com>',
+          envelope: {
+            from: 'noreply@example.com',
+            to: 'user@example.com',
+          },
         })
       );
     });
@@ -200,7 +220,11 @@ describe('email', () => {
 
       expect(globalThis.mockSendMail).toHaveBeenCalledWith(
         expect.objectContaining({
-          from: 'La Maquina Prode Mundial <noreply@example.com>'
+          from: 'La Maquina Prode Mundial <noreply@example.com>',
+          envelope: {
+            from: 'noreply@example.com',
+            to: 'user@example.com',
+          },
         })
       );
     });
@@ -215,7 +239,11 @@ describe('email', () => {
 
       expect(globalThis.mockSendMail).toHaveBeenCalledWith(
         expect.objectContaining({
-          from: 'La Maquina Prode Mundial <noreply@example.com>'
+          from: 'La Maquina Prode Mundial <noreply@example.com>',
+          envelope: {
+            from: 'noreply@example.com',
+            to: 'user@example.com',
+          },
         })
       );
     });
