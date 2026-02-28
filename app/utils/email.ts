@@ -1,10 +1,13 @@
 'use server'
 import nodemailer from 'nodemailer';
+import { getTranslations } from 'next-intl/server';
+import type { Locale } from '@/i18n.config';
 
 interface EmailOptions {
   to: string;
   subject: string;
   html: string;
+  locale?: Locale;
 }
 
 const createGmailClient = () => {
@@ -20,8 +23,30 @@ const createGmailClient = () => {
   });
 };
 
-export async function sendEmail({ to, subject, html }: EmailOptions) {
+export async function sendEmail({
+  to,
+  subject,
+  html,
+  locale = 'es' as Locale
+}: EmailOptions) {
   try {
+    // Validate locale (fallback to 'es' if invalid)
+    const validLocale: Locale = (locale === 'en' || locale === 'es') ? locale : 'es';
+
+    // Get localized sender name with error handling
+    const emailAddress = process.env.EMAIL_FROM || '';
+    let from: string;
+    try {
+      const t = await getTranslations({ locale: validLocale, namespace: 'emails' });
+      const senderName = t('senderName');
+      // Use quoted display name format for AWS SES compatibility
+      from = `"${senderName}" <${emailAddress}>`;
+    } catch (translationError) {
+      // Fallback to hardcoded default if translations fail
+      console.error('Failed to get email sender translation:', translationError);
+      from = `"La Maquina Prode Mundial" <${emailAddress}>`;
+    }
+
     // Determine which email provider to use based on environment variable
     const emailProvider = process.env.EMAIL_PROVIDER || 'gmail';
 
@@ -30,10 +55,14 @@ export async function sendEmail({ to, subject, html }: EmailOptions) {
       const transporter = createGmailClient();
 
       const mailOptions = {
-        from: process.env.EMAIL_FROM,
+        from,
         to,
         subject,
         html,
+        envelope: {
+          from: emailAddress, // Use only email address for SMTP MAIL FROM
+          to,
+        },
       };
 
       const info = await transporter.sendMail(mailOptions);

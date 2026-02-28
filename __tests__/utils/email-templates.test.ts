@@ -110,6 +110,26 @@ describe('email-templates', () => {
       expect(result.html).toContain('href="' + verificationLink + '"');
       expect(result.html).toContain('style="display: inline-block; padding: 10px 20px; background-color: #1976d2; color: white; text-decoration: none; border-radius: 4px;"');
     });
+
+    it('should include locale in verification email data for Spanish', async () => {
+      const result = await generateVerificationEmail(
+        'test@example.com',
+        'https://example.com/verify',
+        'es'
+      );
+
+      expect(result).toHaveProperty('locale', 'es');
+    });
+
+    it('should include locale in verification email data for English', async () => {
+      const result = await generateVerificationEmail(
+        'test@example.com',
+        'https://example.com/verify',
+        'en'
+      );
+
+      expect(result).toHaveProperty('locale', 'en');
+    });
   });
 
   describe('generatePasswordResetEmail', () => {
@@ -180,6 +200,26 @@ describe('email-templates', () => {
       expect(result.html).toContain('href="' + resetLink + '"');
       expect(result.html).toContain('style="display: inline-block; padding: 10px 20px; background-color: #1976d2; color: white; text-decoration: none; border-radius: 4px;"');
       expect(result.html).toContain('El equipo de La Maquina Prode');
+    });
+
+    it('should include locale in password reset email data for Spanish', async () => {
+      const result = await generatePasswordResetEmail(
+        'test@example.com',
+        'https://example.com/reset',
+        'es'
+      );
+
+      expect(result).toHaveProperty('locale', 'es');
+    });
+
+    it('should include locale in password reset email data for English', async () => {
+      const result = await generatePasswordResetEmail(
+        'test@example.com',
+        'https://example.com/reset',
+        'en'
+      );
+
+      expect(result).toHaveProperty('locale', 'en');
     });
   });
 });

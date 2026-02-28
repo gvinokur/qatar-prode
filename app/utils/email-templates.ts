@@ -26,7 +26,7 @@ export async function generateVerificationEmail(
     </div>
   `;
 
-  return {to: email, subject, html};
+  return {to: email, subject, html, locale};
 }
 /**
  * Generate password reset email content
@@ -55,5 +55,5 @@ export async function generatePasswordResetEmail(
     </div>
   `;
 
-  return {to: email, subject, html};
+  return {to: email, subject, html, locale};
 }
