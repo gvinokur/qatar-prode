@@ -23,9 +23,7 @@ export default function AdminTabs({ isAdmin, leaderboardContent, adminContent, d
   // Determine initial tab from URL query param or defaultTab
   const tabFromUrl = searchParams.get('tab');
   let initialTab = 'leaderboard';
-  if (tabFromUrl === 'admin' && isAdmin) {
-    initialTab = 'admin';
-  } else if (defaultTab === 'admin' && isAdmin) {
+  if ((tabFromUrl === 'admin' || defaultTab === 'admin') && isAdmin) {
     initialTab = 'admin';
   }
 
