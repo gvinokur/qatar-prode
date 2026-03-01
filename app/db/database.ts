@@ -19,7 +19,8 @@ import {
   TournamentUserGroupPositionsPredictionTable,
   UserTable,
   ProdeGroupTournamentBettingTable,
-  ProdeGroupTournamentBettingPaymentTable
+  ProdeGroupTournamentBettingPaymentTable,
+  ShortUrlTable
 } from "./tables-definition";
 
 export interface Database {
@@ -42,6 +43,7 @@ export interface Database {
   prode_groups: ProdeGroupTable
   prode_group_participants: ProdeGroupParticipantTable
   prode_group_join_requests: ProdeGroupJoinRequestTable
+  short_urls: ShortUrlTable
 
   game_guesses: GameGuessTable
   game_results: GameResultTable

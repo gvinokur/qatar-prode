@@ -18,7 +18,8 @@ type IdentifiableTables =
   'tournament_qualified_teams_predictions' |
   'players' |
   'tournament_venues' |
-  'tournament_third_place_rules'
+  'tournament_third_place_rules' |
+  'short_urls'
 
 function findByIdFactory<K2 extends Selectable<Identifiable>>  (tableName: IdentifiableTables) {
   return cache(async function (id: string) {

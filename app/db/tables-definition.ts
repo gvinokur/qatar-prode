@@ -594,3 +594,16 @@ export interface ProdeGroupJoinRequestTable extends Identifiable {
 export type ProdeGroupJoinRequest = Selectable<ProdeGroupJoinRequestTable>;
 export type ProdeGroupJoinRequestNew = Insertable<ProdeGroupJoinRequestTable>;
 export type ProdeGroupJoinRequestUpdate = Updateable<ProdeGroupJoinRequestTable>;
+
+// Short URLs for friend group invitations
+export interface ShortUrlTable extends Identifiable {
+  code: string;
+  group_id: string;
+  tournament_id: string | null;
+  created_at: Generated<Date>;
+  click_count: number;
+}
+
+export type ShortUrl = Selectable<ShortUrlTable>;
+export type ShortUrlNew = Insertable<ShortUrlTable>;
+export type ShortUrlUpdate = Updateable<ShortUrlTable>;
