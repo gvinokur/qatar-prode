@@ -17,7 +17,6 @@ import {
   Alert
 } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import EmailIcon from '@mui/icons-material/Email';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import CloseIcon from '@mui/icons-material/Close';
 
