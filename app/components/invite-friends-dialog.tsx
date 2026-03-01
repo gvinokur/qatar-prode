@@ -76,13 +76,6 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName, tourn
       });
   };
 
-  // Share via email
-  const shareViaEmail = () => {
-    const subject = encodeURIComponent(t('emailSubject', { groupName }));
-    const body = encodeURIComponent(getInvitationMessage());
-    window.open(`mailto:?subject=${subject}&body=${body}`);
-  };
-
   // Share via WhatsApp
   const shareViaWhatsApp = () => {
     const message = encodeURIComponent(getInvitationMessage());
@@ -144,13 +137,6 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName, tourn
           </Typography>
 
           <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
-            <Button
-              variant="outlined"
-              startIcon={<EmailIcon />}
-              onClick={shareViaEmail}
-            >
-              {t('buttons.email')}
-            </Button>
             <Button
               variant="outlined"
               color="success"
