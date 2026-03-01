@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import {
@@ -17,6 +17,7 @@ export default function TournamentRedirect({
   tournaments,
 }: TournamentRedirectProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const locale = useLocale();
   const t = useTranslations('common');
 
@@ -37,9 +38,14 @@ export default function TournamentRedirect({
     // Save selection
     setLastSelectedTournamentId(targetTournament.id);
 
+    // Build redirect URL with preserved query parameters
+    const targetPath = `/${locale}/tournaments/${targetTournament.id}`;
+    const queryString = searchParams?.toString();
+    const redirectUrl = queryString ? `${targetPath}?${queryString}` : targetPath;
+
     // Redirect (using id, not slug - route is /tournaments/[id])
-    router.push(`/${locale}/tournaments/${targetTournament.id}`);
-  }, [tournaments, router, locale]);
+    router.push(redirectUrl);
+  }, [tournaments, router, locale, searchParams]);
 
   // Show centered loading indicator while redirecting
   return (

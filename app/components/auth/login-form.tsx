@@ -60,8 +60,8 @@ export default function LoginForm({ onSuccess, email, onOTPLoginClick }: LoginFo
         });
       } else {
         onSuccess();
-        if(searchParams?.get('callbackUrl')) {
-          router.push(searchParams.get('callbackUrl') || `/${locale}`);
+        if(searchParams?.get('returnUrl')) {
+          router.push(searchParams.get('returnUrl') || `/${locale}`);
         }
         router.refresh();
       }

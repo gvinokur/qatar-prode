@@ -3,7 +3,7 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from "@mui/material";
 import * as React from "react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import LoginForm from "./login-form";
 import SignupForm from "./signup-form";
@@ -27,6 +27,7 @@ type DialogMode = 'emailInput' | 'login' | 'signup' | 'forgotPassword' | 'resetS
 
 export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginDialog }: LoginOrSignupProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const t = useTranslations('auth');
   const locale = useLocale() as Locale;
   const [dialogMode, setDialogMode] = useState<DialogMode>('emailInput');
@@ -66,7 +67,8 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
     // Check if user is Google-only (has account with Google but no password)
     if (methods.userExists && !methods.hasPassword && methods.hasGoogle) {
       // Auto-trigger Google sign-in for Google-only users
-      await signIn('google', { callbackUrl: '/' });
+      const returnUrl = searchParams?.get('returnUrl') || `/${locale}`;
+      await signIn('google', { callbackUrl: returnUrl });
       return;
     }
 
@@ -138,7 +140,12 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
 
       if (result?.ok) {
         handleCloseLoginDialog(true);
-        router.refresh();
+        const returnUrl = searchParams?.get('returnUrl');
+        if (returnUrl) {
+          router.push(returnUrl);
+        } else {
+          router.refresh();
+        }
       } else {
         // Error: Failed to sign in after OTP verification
         switchMode('emailInput');
@@ -157,6 +164,12 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
   // Handle account setup success
   const handleAccountSetupSuccess = () => {
     handleCloseLoginDialog(true);
+    const returnUrl = searchParams?.get('returnUrl');
+    if (returnUrl) {
+      router.push(returnUrl);
+    } else {
+      router.refresh();
+    }
   };
 
   // Get dialog title based on current mode
