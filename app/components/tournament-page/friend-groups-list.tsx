@@ -184,7 +184,7 @@ export default function FriendGroupsList({
           >
             {t('actions.create')}
           </Button>
-          {tournamentId && (userGroups.length + participantGroups.length > 1 || pendingRequests.length > 0) && (
+          {tournamentId && (userGroups.length + participantGroups.length >= 1 || pendingRequests.length > 0) && (
             <Button
               component={Link}
               href={`/${locale}/tournaments/${tournamentId}/friend-groups`}

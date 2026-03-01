@@ -199,7 +199,7 @@ export async function findPublicGroups(
       id: row.owner_user_id,
       name: row.owner_nickname || row.owner_email
     },
-    memberCount: parseInt(row.member_count, 10)
+    memberCount: parseInt(row.member_count, 10) + 1  // +1 for owner (not in participants table)
   }));
 }
 

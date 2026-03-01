@@ -584,7 +584,7 @@ describe('Prode Group Repository', () => {
             description: 'A test group',
             is_public: true,
             owner: { id: 'user-1', name: 'TestUser' },
-            memberCount: 5,
+            memberCount: 6,  // 5 participants + 1 for owner (not in participants table)
           },
         ]);
       });

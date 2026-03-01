@@ -71,8 +71,8 @@ describe('TournamentGroupCard', () => {
 
   it('has link to tournament-scoped friend group detail page', () => {
     renderWithTheme(<TournamentGroupCard group={mockGroup} tournamentId={tournamentId} />);
-    // Spanish: "Ver Detalles" instead of "View Details"
-    const link = screen.getByRole('link', { name: /Ver Detalles/ });
+    // Spanish: "Ver Marcador" instead of "View Leaderboard"
+    const link = screen.getByRole('link', { name: /Ver Marcador/ });
     expect(link).toHaveAttribute('href', `/es/tournaments/${tournamentId}/friend-groups/${mockGroup.groupId}`);
   });
 
@@ -93,9 +93,9 @@ describe('TournamentGroupCard', () => {
     expect(screen.queryByLabelText('Compartir grupo')).not.toBeInTheDocument();
   });
 
-  it('displays trophy emoji in group name', () => {
+  it('does not display trophy emoji in group name', () => {
     renderWithTheme(<TournamentGroupCard group={mockGroup} tournamentId={tournamentId} />);
-    expect(screen.getByText(/🏆/)).toBeInTheDocument();
+    expect(screen.queryByText(/🏆/)).not.toBeInTheDocument();
   });
 
   it('has no special border styling (borders removed)', () => {
@@ -189,7 +189,7 @@ describe('TournamentGroupCard', () => {
       expect(pendingButton).toBeDisabled();
     });
 
-    it('shows "Ver Grupo" link when userStatus is member', () => {
+    it('shows "Ver Marcador" link when userStatus is member', () => {
       renderWithTheme(
         <TournamentGroupCard
           variant="discovery"
@@ -197,10 +197,10 @@ describe('TournamentGroupCard', () => {
           tournamentId={tournamentId}
         />
       );
-      expect(screen.getByRole('link', { name: /Ver Grupo/ })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /Ver Marcador/ })).toBeInTheDocument();
     });
 
-    it('Ver Grupo link points to the correct URL', () => {
+    it('Ver Marcador link points to the correct URL', () => {
       renderWithTheme(
         <TournamentGroupCard
           variant="discovery"
@@ -208,7 +208,7 @@ describe('TournamentGroupCard', () => {
           tournamentId={tournamentId}
         />
       );
-      const link = screen.getByRole('link', { name: /Ver Grupo/ });
+      const link = screen.getByRole('link', { name: /Ver Marcador/ });
       expect(link).toHaveAttribute(
         'href',
         `/es/tournaments/${tournamentId}/friend-groups/${discoveryGroup.id}`

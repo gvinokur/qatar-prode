@@ -10,7 +10,8 @@
     "inviteMore": "Invite more friends",
     "join": "Join Group",
     "view": "View Groups",
-    "expandMore": "show more"
+    "expandMore": "show more",
+    "backToGroups": "All Groups"
   },
   "create": {
     "title": "Create Friend Group",
@@ -147,6 +148,7 @@
     "yourPoints": "Your Points",
     "leader": "Leader",
     "viewDetails": "View Details",
+    "viewLeaderboard": "View Leaderboard",
     "positionOf": "#{position} of {total}"
   },
   "customization": {
@@ -257,7 +259,8 @@
     "createdBy": "Created by {name}",
     "requestToJoin": "Request to Join",
     "pending": "Request Pending",
-    "viewGroup": "View Group",
+    "viewGroup": "View Leaderboard",
+    "viewLeaderboard": "View Leaderboard",
     "readMore": "Read more",
     "readLess": "Read less",
     "loginToJoin": "Sign in to join this group",

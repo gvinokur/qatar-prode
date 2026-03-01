@@ -74,9 +74,25 @@ describe('TournamentGroupsList', () => {
     expect(screen.getByText(/Test Group 2/)).toBeInTheDocument();
   });
 
-  it('shows empty state when no groups provided', () => {
+  it('shows empty state when no groups and no pending requests', () => {
     renderWithTheme(<TournamentGroupsList groups={[]} tournamentId={tournamentId} />);
     expect(screen.getByText('No Groups Yet!')).toBeInTheDocument();
+  });
+
+  it('does not show empty state when pending requests exist without approved groups', () => {
+    const pendingRequests = [
+      {
+        id: 'request-1',
+        group_id: 'group-pending',
+        group_name: 'Pending Group',
+        status: 'pending' as const,
+        requested_at: new Date(),
+      }
+    ];
+    renderWithTheme(
+      <TournamentGroupsList groups={[]} tournamentId={tournamentId} pendingRequests={pendingRequests} />
+    );
+    expect(screen.queryByText('No Groups Yet!')).not.toBeInTheDocument();
   });
 
   it('opens create dialog when Create button is clicked', async () => {

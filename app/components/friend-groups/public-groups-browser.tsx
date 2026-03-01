@@ -132,7 +132,7 @@ export default function PublicGroupsBrowser({
       ) : (
         <Grid container spacing={2} sx={{ mb: 3, opacity: isPending ? 0.6 : 1, transition: 'opacity 0.2s' }}>
           {groups.map((group) => (
-            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={group.id}>
+            <Grid size={{ xs: 12, sm: 12, md: 6 }} key={group.id}>
               <TournamentGroupCard
                 variant="discovery"
                 group={group}

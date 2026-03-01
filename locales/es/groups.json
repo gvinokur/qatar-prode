@@ -10,7 +10,8 @@
     "inviteMore": "Invitar mas amigos",
     "join": "Unirse al Grupo",
     "view": "Ver Grupos",
-    "expandMore": "mostrar más"
+    "expandMore": "mostrar más",
+    "backToGroups": "Todos los Grupos"
   },
   "create": {
     "title": "Crear Grupo de Amigos",
@@ -147,6 +148,7 @@
     "yourPoints": "Tus Puntos",
     "leader": "Líder",
     "viewDetails": "Ver Detalles",
+    "viewLeaderboard": "Ver Marcador",
     "positionOf": "#{position} de {total}"
   },
   "customization": {
@@ -257,7 +259,8 @@
     "createdBy": "Creado por {name}",
     "requestToJoin": "Solicitar Unirse",
     "pending": "Solicitud Pendiente",
-    "viewGroup": "Ver Grupo",
+    "viewGroup": "Ver Marcador",
+    "viewLeaderboard": "Ver Marcador",
     "readMore": "Leer más",
     "readLess": "Leer menos",
     "loginToJoin": "Inicia sesión para unirte a este grupo",

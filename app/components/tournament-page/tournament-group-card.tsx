@@ -65,7 +65,7 @@ export default function TournamentGroupCard(props: TournamentGroupCardProps) {
             size="small"
             fullWidth
           >
-            {tDiscovery('viewGroup')}
+            {tDiscovery('viewLeaderboard')}
           </Button>
         );
       }
@@ -190,7 +190,7 @@ export default function TournamentGroupCard(props: TournamentGroupCardProps) {
               whiteSpace: 'nowrap'
             }}
           >
-            🏆 {group.groupName}
+            {group.groupName}
           </Typography>
           {group.isOwner && (
             <>
@@ -213,9 +213,7 @@ export default function TournamentGroupCard(props: TournamentGroupCardProps) {
               />
             </>
           )}
-          {group.is_public !== undefined && (
-            <PrivacyIndicatorIcon isPublic={group.is_public} size="small" />
-          )}
+          <PrivacyIndicatorIcon isPublic={group.is_public ?? false} size="small" />
         </Box>
 
         {/* Stats Section */}
@@ -253,7 +251,7 @@ export default function TournamentGroupCard(props: TournamentGroupCardProps) {
       </CardContent>
 
       {/* Actions */}
-      <CardActions sx={{ pt: 0, pb: 2, px: 2, justifyContent: 'flex-end' }}>
+      <CardActions sx={{ pt: 0, pb: 2, px: 2, justifyContent: 'center' }}>
         {isPending ? (
           <Typography variant="caption" color="text.secondary" sx={{ mr: 'auto' }}>
             {tPending('awaitingApproval')}
@@ -262,11 +260,12 @@ export default function TournamentGroupCard(props: TournamentGroupCardProps) {
           <Button
             component={Link}
             href={`/${locale}/tournaments/${tournamentId}/friend-groups/${group.groupId}`}
-            variant="text"
+            variant="outlined"
             color="primary"
             size="small"
+            fullWidth
           >
-            {t('viewDetails')}
+            {t('viewLeaderboard')}
           </Button>
         )}
       </CardActions>
