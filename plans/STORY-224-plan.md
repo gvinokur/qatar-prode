@@ -130,17 +130,19 @@ The `discover/page.tsx` server component composes data from two separate sources
 | `app/components/friend-groups/privacy-indicator-icon.tsx` | Lock/Globe icon with tooltip. Props: `isPublic: boolean`, `size?: 'small' \| 'medium'` |
 | `app/components/friend-groups/group-privacy-settings.tsx` | Privacy toggle section for admin tab. Props: `groupId`, `initialIsPublic`, `initialDescription` |
 | `app/components/friend-groups/public-group-preview-dialog.tsx` | Preview dialog showing how group appears in discovery. Props: `open`, `onClose`, `group` |
-| `app/components/friend-groups/public-group-card.tsx` | Single group card for discovery. Props: `group`, `userStatus: 'none' \| 'pending' \| 'member'`, `onRequestToJoin` |
 | `app/components/friend-groups/public-groups-browser.tsx` | Client component: search bar + grid + pagination. Props: `initialGroups`, `initialSearchTerm`, `initialPage`, `totalPages`, `tournamentId`, `currentUserId?` |
+
+**No `public-group-card.tsx` — extend existing `TournamentGroupCard` instead (see below).**
 
 ### 6. Updated Components/Pages
 
+- **`app/components/tournament-page/tournament-group-card.tsx`** — Extend with `variant?: 'my-groups' | 'discovery'` prop (default: `'my-groups'`). When `variant='discovery'`: replace position/points stats with description (2-line truncated) + member count; add betting info row; replace "VER DETALLES" link with "SOLICITAR UNIRSE" / "SOLICITUD PENDIENTE" / "VER GRUPO" button based on `userStatus`; show privacy indicator icon. New props added: `description?`, `memberCount?`, `bettingEnabled?`, `bettingAmount?`, `userStatus?: 'none' | 'pending' | 'member'`. Existing `my-groups` behavior is **100% unchanged**.
 - **`app/[locale]/tournaments/[id]/friend-groups/[group_id]/page.tsx`** — Add `PrivacyIndicatorIcon` next to group name; add `GroupPrivacySettings` as Section 3 in admin tab (between Betting and Theme)
 - **`app/components/tournament-page/tournament-groups-list.tsx`** — Add `PrivacyIndicatorIcon` to group cards; **remove** `JoinGroupDialog` usage and `openJoinDialog` state; pass `onDiscoverGroups` (router push to discover page) to `EmptyGroupsState` instead of `onJoinGroup`
 - **`app/components/tournament-page/empty-groups-state.tsx`** — Replace "Join with Code" button with "Discover Groups" button (Search/Explore icon, navigates to `/tournaments/[id]/friend-groups/discover`); component receives `onDiscoverGroups` callback instead of `onJoinGroup`
 - **`app/components/tournament-page/friend-groups-list.tsx`** (sidebar) — Add "Discover Groups" button (Search icon) when `userGroups.length + participantGroups.length === 0` (user has no groups, "View All" is not shown); button navigates to `/tournaments/[id]/friend-groups/discover`
-- ~~`app/components/tournament-page/join-group-dialog.tsx`~~ — **NOT modified** (dialog becomes unreferenced from groups list; invite links via URL still work from story #223)
-- **`TournamentGroupStats` type in `app/definitions.ts`** — Add `is_public?: boolean` so privacy indicator can be shown in tournament group cards
+- ~~`app/components/tournament-page/join-group-dialog.tsx`~~ — **NOT modified** (becomes unreferenced from groups list; invite links via URL still work)
+- **`TournamentGroupStats` type in `app/definitions.ts`** — Add `is_public?: boolean` so privacy indicator can be shown in my-groups cards
 
 ### 7. New Page
 
@@ -285,24 +287,23 @@ Desktop: 3 column grid
 2. `app/components/friend-groups/privacy-indicator-icon.tsx`
 3. `app/components/friend-groups/group-privacy-settings.tsx`
 4. `app/components/friend-groups/public-group-preview-dialog.tsx`
-5. `app/components/friend-groups/public-group-card.tsx`
-6. `app/components/friend-groups/public-groups-browser.tsx`
-7. `app/actions/prode-group-discovery-actions.ts`
-8. `app/[locale]/tournaments/[id]/friend-groups/discover/page.tsx`
+5. `app/components/friend-groups/public-groups-browser.tsx`
+6. `app/actions/prode-group-discovery-actions.ts`
+7. `app/[locale]/tournaments/[id]/friend-groups/discover/page.tsx`
 
 ## Files to Modify
 
 1. `app/db/tables-definition.ts` — Add `is_public`, `description` to `ProdeGroupTable`
 2. `app/db/prode-group-repository.ts` — Add 3 new functions
 3. `app/actions/prode-group-actions.ts` — Add `updateGroupPrivacyAction`
-4. `app/[locale]/tournaments/[id]/friend-groups/[group_id]/page.tsx` — Privacy indicator + privacy settings section
-5. `app/components/tournament-page/tournament-groups-list.tsx` — Privacy indicator on cards
-6. `app/components/tournament-page/tournament-groups-list.tsx` — Remove `JoinGroupDialog` usage; pass `onDiscoverGroups` to `EmptyGroupsState`
+4. `app/components/tournament-page/tournament-group-card.tsx` — Add `variant='discovery'` mode + new optional props (`description`, `memberCount`, `bettingEnabled`, `bettingAmount`, `userStatus`)
+5. `app/[locale]/tournaments/[id]/friend-groups/[group_id]/page.tsx` — Privacy indicator + privacy settings section
+6. `app/components/tournament-page/tournament-groups-list.tsx` — Remove `JoinGroupDialog` usage; pass `onDiscoverGroups` to `EmptyGroupsState`; add privacy indicator to cards
 7. `app/components/tournament-page/empty-groups-state.tsx` — Replace "Join with Code" with "Discover Groups" button
 8. `app/components/tournament-page/friend-groups-list.tsx` — Add "Discover Groups" button in sidebar when user has no groups
 9. `app/definitions.ts` — Add `is_public` to `TournamentGroupStats`
-8. `locales/en/groups.json` — Add privacy + discovery keys
-9. `locales/es/groups.json` — Add translated keys
+10. `locales/en/groups.json` — Add privacy + discovery keys
+11. `locales/es/groups.json` — Add translated keys
 
 ---
 
@@ -320,18 +321,17 @@ Desktop: 3 column grid
 
 ### Phase 3: Core UI Components
 7. Create `privacy-indicator-icon.tsx`
-8. Create `public-group-card.tsx`
+8. Extend `tournament-group-card.tsx` — add `variant='discovery'` mode (no new file)
 9. Create `public-group-preview-dialog.tsx`
 10. Create `group-privacy-settings.tsx`
-11. Create `public-groups-browser.tsx`
+11. Create `public-groups-browser.tsx` — uses extended `TournamentGroupCard` with `variant='discovery'`
 
 ### Phase 4: Discovery Page + Integration
 12. Create `discover/page.tsx`
 13. Update `[group_id]/page.tsx` — add privacy indicator + privacy settings section
-14. Update `tournament-groups-list.tsx` — add privacy indicator
+14. Update `tournament-groups-list.tsx` — remove JoinGroupDialog, pass `onDiscoverGroups`; add privacy indicator
 15. Update `empty-groups-state.tsx` — replace "Join with Code" with "Discover Groups" button
-16. Update `tournament-groups-list.tsx` — remove JoinGroupDialog, pass `onDiscoverGroups` callback
-17. Update `friend-groups-list.tsx` — add "Discover Groups" button in sidebar when no groups
+16. Update `friend-groups-list.tsx` — add "Discover Groups" button in sidebar when no groups
 
 ### Phase 5: i18n
 16. Add keys to `locales/en/groups.json` and `locales/es/groups.json`
@@ -354,9 +354,10 @@ Desktop: 3 column grid
     - Non-owner calling `updateGroupPrivacyAction` — throws unauthorized
 19. Component tests:
     - `PrivacyIndicatorIcon` — LockIcon for private; PublicIcon for public; correct tooltip text
-    - `PublicGroupCard` — "Request to Join" for status='none'; "Pending" (disabled) for status='pending'; "View Group" for status='member'; null user → redirects to login on click
+    - `TournamentGroupCard` with `variant='my-groups'` — existing behavior unchanged (regression tests)
+    - `TournamentGroupCard` with `variant='discovery'` — shows description; shows memberCount; shows betting row; "SOLICITAR UNIRSE" for userStatus='none'; "SOLICITUD PENDIENTE" (disabled) for status='pending'; "VER GRUPO" for status='member'
     - `GroupPrivacySettings` — description field hidden when toggle=private; shown+required when toggle=public; preview dialog opens on preview click
-    - `PublicGroupsBrowser` — renders search input; renders group grid; renders pagination; search input calls onSearch callback
+    - `PublicGroupsBrowser` — renders search input; renders group grid using TournamentGroupCard; renders pagination; search input calls onSearch callback
 
 ---
 
