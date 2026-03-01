@@ -96,7 +96,7 @@
       "npm run test"
     ],
     "app/**/*.{ts,tsx}": [
-      "npm run lint -- ."
+      "eslint"
     ]
   }
 }

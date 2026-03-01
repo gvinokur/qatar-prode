@@ -56,19 +56,6 @@ describe('InviteFriendsDialog', () => {
     });
   });
 
-  it('opens email client when email button is clicked', async () => {
-    render(<InviteFriendsDialog {...mockProps} />);
-    await userEvent.click(screen.getByText('Invite'));
-    
-    const emailButton = screen.getByRole('button', { name: /email/i });
-    await userEvent.click(emailButton);
-    
-    const expectedMessage = `¡Hola! Te invito a unirte a nuestro grupo "Test Group Name" para jugar en al prode en los torneos actuales y futuros. Usa este enlace para unirte: http://localhost:3000/friend-groups/join/test-group-id`;
-    const expectedMailto = `mailto:?subject=Invitaci%C3%B3n%20al%20grupo%20%22Test%20Group%20Name%22%20del%20Prode&body=${encodeURIComponent(expectedMessage)}`;
-    
-    expect(global.open).toHaveBeenCalledWith(expectedMailto);
-  });
-
   it('opens WhatsApp when WhatsApp button is clicked', async () => {
     render(<InviteFriendsDialog {...mockProps} />);
     await userEvent.click(screen.getByText('Invite'));

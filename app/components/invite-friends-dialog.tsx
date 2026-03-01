@@ -17,7 +17,6 @@ import {
   Alert
 } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import EmailIcon from '@mui/icons-material/Email';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import CloseIcon from '@mui/icons-material/Close';
 
@@ -74,13 +73,6 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName, tourn
         console.error('Error al copiar: ', err);
         showSnackbar(t('feedback.copyError'));
       });
-  };
-
-  // Share via email
-  const shareViaEmail = () => {
-    const subject = encodeURIComponent(t('emailSubject', { groupName }));
-    const body = encodeURIComponent(getInvitationMessage());
-    window.open(`mailto:?subject=${subject}&body=${body}`);
   };
 
   // Share via WhatsApp
@@ -144,13 +136,6 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName, tourn
           </Typography>
 
           <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
-            <Button
-              variant="outlined"
-              startIcon={<EmailIcon />}
-              onClick={shareViaEmail}
-            >
-              {t('buttons.email')}
-            </Button>
             <Button
               variant="outlined"
               color="success"
