@@ -208,7 +208,7 @@ export async function findPublicGroups(
       id: row.owner_user_id,
       name: row.owner_nickname || row.owner_email
     },
-    memberCount: parseInt(row.member_count, 10) + 1,  // +1 for owner (not in participants table)
+    memberCount: Number.parseInt(row.member_count, 10) + 1,  // +1 for owner (not in participants table)
     bettingEnabled: row.betting_enabled ?? false
   }));
 }
@@ -228,7 +228,7 @@ export async function countPublicGroups(searchTerm?: string): Promise<number> {
   }
 
   const result = await query.executeTakeFirst();
-  return parseInt(result?.total ?? '0', 10);
+  return Number.parseInt(result?.total ?? '0', 10);
 }
 
 /**

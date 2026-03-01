@@ -128,7 +128,7 @@ export default function GroupPrivacySettings({
             fullWidth
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            inputProps={{ maxLength: 500 }}
+            slotProps={{ htmlInput: { maxLength: 500 } }}
             helperText={`${descriptionLength} / 500 — ${t('descriptionHelper')}`}
             error={isPublic && description.trim().length === 0 && descriptionLength > 0}
           />

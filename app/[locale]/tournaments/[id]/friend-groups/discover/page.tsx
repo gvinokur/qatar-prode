@@ -24,7 +24,7 @@ export default async function DiscoverGroupsPage(props: Props) {
   const tActions = await getTranslations('groups.actions');
 
   const searchTerm = searchParams.search ?? '';
-  const page = Math.max(1, parseInt(searchParams.page ?? '1', 10) || 1);
+  const page = Math.max(1, Number.parseInt(searchParams.page ?? '1', 10) || 1);
 
   // Fetch public groups (no auth required)
   const result = await getPublicGroupsAction(searchTerm || undefined, page, params.id);
