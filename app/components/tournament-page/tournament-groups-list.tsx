@@ -15,9 +15,9 @@ import { Controller, useForm } from "react-hook-form";
 import type { TournamentGroupStats } from "../../definitions";
 import TournamentGroupCard from "./tournament-group-card";
 import EmptyGroupsState from "./empty-groups-state";
-import JoinGroupDialog from "./join-group-dialog";
 import { createDbGroup } from "../../actions/prode-group-actions";
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+import { useRouter } from 'next/navigation';
 
 interface UserJoinRequest {
   id: string;
@@ -42,9 +42,11 @@ export default function TournamentGroupsList({ groups, tournamentId, pendingRequ
   const tCreate = useTranslations('groups.create');
   const tList = useTranslations('groups.list');
   const tActions = useTranslations('groups.actions');
+  const tDiscovery = useTranslations('groups.discovery');
+  const locale = useLocale();
+  const router = useRouter();
 
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
-  const [openJoinDialog, setOpenJoinDialog] = useState(false);
   const [loading, setLoading] = useState(false);
   const { control, handleSubmit, reset } = useForm<GroupForm>();
 
@@ -67,6 +69,10 @@ export default function TournamentGroupsList({ groups, tournamentId, pendingRequ
     }
   };
 
+  const handleDiscoverGroups = () => {
+    router.push(`/${locale}/tournaments/${tournamentId}/friend-groups/discover`);
+  };
+
   // Show empty state if no groups
   if (groups.length === 0) {
     return (
@@ -75,7 +81,7 @@ export default function TournamentGroupsList({ groups, tournamentId, pendingRequ
           <Grid size={12}>
             <EmptyGroupsState
               onCreateGroup={() => setOpenCreateDialog(true)}
-              onJoinGroup={() => setOpenJoinDialog(true)}
+              onDiscoverGroups={handleDiscoverGroups}
             />
           </Grid>
         </Grid>
@@ -129,8 +135,6 @@ export default function TournamentGroupsList({ groups, tournamentId, pendingRequ
             </Button>
           </DialogActions>
         </Dialog>
-        {/* Join Dialog */}
-        <JoinGroupDialog open={openJoinDialog} onClose={() => setOpenJoinDialog(false)} />
       </>
     );
   }
@@ -164,9 +168,9 @@ export default function TournamentGroupsList({ groups, tournamentId, pendingRequ
                   variant="outlined"
                   color="primary"
                   size="small"
-                  onClick={() => setOpenJoinDialog(true)}
+                  onClick={handleDiscoverGroups}
                 >
-                  {tActions('join')}
+                  {tDiscovery('discoverGroups')}
                 </Button>
               </Stack>
             </Stack>
@@ -259,9 +263,6 @@ export default function TournamentGroupsList({ groups, tournamentId, pendingRequ
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* Join Dialog */}
-      <JoinGroupDialog open={openJoinDialog} onClose={() => setOpenJoinDialog(false)} />
     </>
   );
 }

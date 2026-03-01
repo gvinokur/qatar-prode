@@ -10,21 +10,157 @@ import {
   Stack,
   IconButton
 } from "@mui/material";
-import {Share as ShareIcon} from "@mui/icons-material";
+import {Groups as GroupsIcon, Share as ShareIcon} from "@mui/icons-material";
 import type { TournamentGroupStats } from "../../definitions";
 import InviteFriendsDialog from "../invite-friends-dialog";
 import { useLocale, useTranslations } from 'next-intl';
+import PrivacyIndicatorIcon from '../friend-groups/privacy-indicator-icon';
 
-interface TournamentGroupCardProps {
+export interface DiscoveryGroupData {
+  id: string;
+  name: string;
+  description: string | null;
+  is_public: boolean;
+  owner: { id: string; name: string };
+  memberCount: number;
+  userStatus: 'none' | 'pending' | 'member';
+}
+
+// my-groups variant props
+interface MyGroupsCardProps {
+  readonly variant?: 'my-groups';
   readonly group: TournamentGroupStats;
   readonly tournamentId: string;
   readonly isPending?: boolean;
 }
 
-export default function TournamentGroupCard({ group, tournamentId, isPending = false }: TournamentGroupCardProps) {
+// discovery variant props
+interface DiscoveryCardProps {
+  readonly variant: 'discovery';
+  readonly group: DiscoveryGroupData;
+  readonly tournamentId: string;
+  readonly onRequestJoin?: (groupId: string) => void;
+  readonly isPending?: never;
+}
+
+type TournamentGroupCardProps = MyGroupsCardProps | DiscoveryCardProps;
+
+export default function TournamentGroupCard(props: TournamentGroupCardProps) {
   const locale = useLocale();
   const t = useTranslations('groups.card');
   const tPending = useTranslations('groups.pendingRequest');
+  const tDiscovery = useTranslations('groups.discovery');
+
+  if (props.variant === 'discovery') {
+    const { group, tournamentId, onRequestJoin } = props;
+
+    const actionButton = (() => {
+      if (group.userStatus === 'member') {
+        return (
+          <Button
+            component={Link}
+            href={`/${locale}/tournaments/${tournamentId}/friend-groups/${group.id}`}
+            variant="outlined"
+            color="primary"
+            size="small"
+            fullWidth
+          >
+            {tDiscovery('viewGroup')}
+          </Button>
+        );
+      }
+      if (group.userStatus === 'pending') {
+        return (
+          <Button
+            variant="outlined"
+            color="warning"
+            size="small"
+            disabled
+            fullWidth
+          >
+            {tDiscovery('pending')}
+          </Button>
+        );
+      }
+      return (
+        <Button
+          variant="contained"
+          color="primary"
+          size="small"
+          fullWidth
+          onClick={() => onRequestJoin?.(group.id)}
+          startIcon={<GroupsIcon />}
+        >
+          {tDiscovery('requestToJoin')}
+        </Button>
+      );
+    })();
+
+    return (
+      <Card
+        sx={{
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        <CardContent sx={{ flexGrow: 1, pb: 1 }}>
+          {/* Group Name with Public Icon */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+            <PrivacyIndicatorIcon isPublic={true} size="small" />
+            <Typography
+              variant="h6"
+              component="h3"
+              sx={{
+                fontWeight: 600,
+                flexGrow: 1,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {group.name}
+            </Typography>
+          </Box>
+
+          {/* Description */}
+          {group.description && (
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{
+                mb: 1.5,
+                display: '-webkit-box',
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                lineHeight: 1.4
+              }}
+            >
+              {group.description}
+            </Typography>
+          )}
+
+          {/* Stats */}
+          <Stack spacing={0.5}>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
+              👥 {tDiscovery('memberCount', { count: group.memberCount })}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
+              {tDiscovery('createdBy', { name: group.owner.name })}
+            </Typography>
+          </Stack>
+        </CardContent>
+
+        <CardActions sx={{ pt: 0, pb: 2, px: 2 }}>
+          {actionButton}
+        </CardActions>
+      </Card>
+    );
+  }
+
+  // my-groups variant (original behavior, unchanged)
+  const { group, tournamentId, isPending = false } = props;
   const isLeader = group.userPosition === 1;
   const leaderDisplay = isLeader ? t('you') : group.leaderName;
 
@@ -76,6 +212,9 @@ export default function TournamentGroupCard({ group, tournamentId, isPending = f
                 tournamentId={tournamentId}
               />
             </>
+          )}
+          {group.is_public !== undefined && (
+            <PrivacyIndicatorIcon isPublic={group.is_public} size="small" />
           )}
         </Box>
 

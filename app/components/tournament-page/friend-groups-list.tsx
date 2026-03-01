@@ -10,7 +10,7 @@ import {
   ListItem,
   ListItemText, TextField, useTheme
 } from "@mui/material";
-import {Delete as DeleteIcon, Share as ShareIcon, ExpandMore as ExpandMoreIcon, Groups as GroupsIcon} from "@mui/icons-material";
+import {Delete as DeleteIcon, Share as ShareIcon, ExpandMore as ExpandMoreIcon, Groups as GroupsIcon, Search as SearchIcon} from "@mui/icons-material";
 import {useState} from "react";
 import {ExpandMore} from './expand-more';
 import {Controller, useForm} from "react-hook-form";
@@ -193,6 +193,17 @@ export default function FriendGroupsList({
               fullWidth
             >
               {t('actions.view')}
+            </Button>
+          )}
+          {tournamentId && userGroups.length + participantGroups.length === 0 && pendingRequests.length === 0 && (
+            <Button
+              component={Link}
+              href={`/${locale}/tournaments/${tournamentId}/friend-groups/discover`}
+              startIcon={<SearchIcon />}
+              size="small"
+              fullWidth
+            >
+              {t('discovery.discoverGroups')}
             </Button>
           )}
         </CardActions>

@@ -227,5 +227,45 @@
     "rejectedTitle": "Solicitud No Aprobada",
     "rejectedMessage": "Tu solicitud anterior para unirte a este grupo no fue aprobada.",
     "cooldownMessage": "Podrás solicitar unirte nuevamente el {date}."
+  },
+  "privacy": {
+    "public": "Público",
+    "private": "Privado",
+    "settingsTitle": "Configuración de Privacidad",
+    "description": "Descripción",
+    "descriptionPlaceholder": "Describe tu grupo para ayudar a otros a decidir si quieren unirse...",
+    "descriptionHelper": "Visible cuando los usuarios navegan grupos públicos (máx. 500 caracteres)",
+    "descriptionRequired": "La descripción es obligatoria para grupos públicos",
+    "previewInDiscovery": "Vista previa en Descubrimiento",
+    "makePrivateConfirm": "Hacer tu grupo privado lo eliminará del descubrimiento. Las solicitudes pendientes de descubrimiento serán rechazadas. ¿Continuar?",
+    "makePublicTip": "Tu grupo será visible para todos en la página de descubrimiento",
+    "saveSettings": "Guardar Configuración",
+    "saved": "Configuración de privacidad guardada",
+    "tooltip": {
+      "public": "Grupo Público",
+      "private": "Grupo Privado"
+    }
+  },
+  "discovery": {
+    "title": "Descubrir Grupos Públicos",
+    "subtitle": "Encuentra y únete a grupos de amigos",
+    "searchPlaceholder": "Buscar grupos por nombre...",
+    "noResults": "No se encontraron grupos públicos",
+    "noResultsSearch": "No hay grupos que coincidan con \"{search}\"",
+    "browsePublicGroups": "O navega grupos públicos para encontrar uno al que unirte",
+    "memberCount": "{count, plural, =1 {1 miembro} other {# miembros}}",
+    "createdBy": "Creado por {name}",
+    "requestToJoin": "Solicitar Unirse",
+    "pending": "Solicitud Pendiente",
+    "viewGroup": "Ver Grupo",
+    "readMore": "Leer más",
+    "readLess": "Leer menos",
+    "loginToJoin": "Inicia sesión para unirte a este grupo",
+    "discoverGroups": "Descubrir Grupos"
+  },
+  "pagination": {
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "pageInfo": "Página {current} de {total}"
   }
 }

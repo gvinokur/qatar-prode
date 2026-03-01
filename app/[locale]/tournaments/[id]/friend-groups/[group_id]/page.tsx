@@ -22,6 +22,8 @@ import PendingRequestView from "../../../../../components/friend-groups/pending-
 import AdminTabs from "../../../../../components/friend-groups/admin-tabs";
 import JoinRequestManager from "../../../../../components/friend-groups/join-request-manager";
 import GroupTournamentBettingAdmin from "../../../../../components/friend-groups/group-tournament-betting-admin";
+import PrivacyIndicatorIcon from "../../../../../components/friend-groups/privacy-indicator-icon";
+import GroupPrivacySettings from "../../../../../components/friend-groups/group-privacy-settings";
 
 type Props = {
   readonly params: Promise<{
@@ -171,6 +173,7 @@ export default async function TournamentScopedFriendGroup(props : Props){
         >
           {prodeGroup.name}
         </Typography>
+        <PrivacyIndicatorIcon isPublic={prodeGroup.is_public ?? false} size="medium" />
         <Box sx={{ ml: 'auto' }}>
           {isOwner && (
             <InviteFriendsDialogButton
@@ -222,6 +225,16 @@ export default async function TournamentScopedFriendGroup(props : Props){
                     members={members}
                     config={config ?? null}
                     payments={payments}
+                  />
+                </Box>
+
+                {/* Section 3: Privacy Settings */}
+                <Box sx={{ mb: 3 }}>
+                  <GroupPrivacySettings
+                    groupId={prodeGroup.id}
+                    groupName={prodeGroup.name}
+                    initialIsPublic={prodeGroup.is_public ?? false}
+                    initialDescription={prodeGroup.description ?? null}
                   />
                 </Box>
 

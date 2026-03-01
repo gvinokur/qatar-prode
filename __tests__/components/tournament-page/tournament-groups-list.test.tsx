@@ -63,9 +63,9 @@ describe('TournamentGroupsList', () => {
     expect(screen.getByRole('button', { name: /Crear/i })).toBeInTheDocument();
   });
 
-  it('renders Join button', () => {
+  it('renders Discover Groups button', () => {
     renderWithTheme(<TournamentGroupsList groups={mockGroups} tournamentId={tournamentId} />);
-    expect(screen.getByRole('button', { name: /Unirse/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Descubrir/i })).toBeInTheDocument();
   });
 
   it('renders all group cards', () => {
@@ -91,15 +91,19 @@ describe('TournamentGroupsList', () => {
     });
   });
 
-  it('opens join dialog when Join button is clicked', async () => {
+  it('navigates to discover page when Discover Groups button is clicked', async () => {
+    const { useRouter } = await import('next/navigation');
+    const mockPush = vi.fn();
+    (useRouter as any).mockReturnValue({ push: mockPush });
+
     const user = userEvent.setup();
     renderWithTheme(<TournamentGroupsList groups={mockGroups} tournamentId={tournamentId} />);
 
-    const joinButton = screen.getByRole('button', { name: /Unirse/i });
-    await user.click(joinButton);
+    const discoverButton = screen.getByRole('button', { name: /Descubrir/i });
+    await user.click(discoverButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Unirse a un Grupo')).toBeInTheDocument();
+      expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('discover'));
     });
   });
 

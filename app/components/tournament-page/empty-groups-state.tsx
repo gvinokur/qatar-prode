@@ -2,13 +2,17 @@
 
 import { Box, Typography, Button } from "../mui-wrappers/";
 import { Stack } from "@mui/material";
+import { Search as SearchIcon } from "@mui/icons-material";
+import { useTranslations } from 'next-intl';
 
 interface EmptyGroupsStateProps {
   readonly onCreateGroup: () => void;
-  readonly onJoinGroup: () => void;
+  readonly onDiscoverGroups: () => void;
 }
 
-export default function EmptyGroupsState({ onCreateGroup, onJoinGroup }: EmptyGroupsStateProps) {
+export default function EmptyGroupsState({ onCreateGroup, onDiscoverGroups }: EmptyGroupsStateProps) {
+  const t = useTranslations('groups');
+
   return (
     <Box
       sx={{
@@ -34,7 +38,7 @@ export default function EmptyGroupsState({ onCreateGroup, onJoinGroup }: EmptyGr
 
       {/* Description */}
       <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: '500px' }}>
-        Create your first group or join an existing one to compete with friends!
+        Create your first group or discover public groups to compete with friends!
       </Typography>
 
       {/* Action Buttons */}
@@ -52,10 +56,11 @@ export default function EmptyGroupsState({ onCreateGroup, onJoinGroup }: EmptyGr
           variant="outlined"
           color="primary"
           size="large"
-          onClick={onJoinGroup}
+          startIcon={<SearchIcon />}
+          onClick={onDiscoverGroups}
           sx={{ minWidth: { xs: '100%', sm: '200px' } }}
         >
-          Join with Code
+          {t('discovery.discoverGroups')}
         </Button>
       </Stack>
     </Box>
