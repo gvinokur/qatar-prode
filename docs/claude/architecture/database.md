@@ -44,6 +44,30 @@ export const db = createKysely<Database>();
 
 TypeScript will catch invalid column names, table names, and type mismatches.
 
+## ⚠️ Known Limitations
+
+### Transactions Not Supported
+
+Kysely transactions (`db.transaction().execute(...)`) are **not supported** on Vercel Postgres (Neon pooler). Calling them throws:
+
+```
+VercelPostgresError - 'kysely_transactions_not_supported': Transactions are not supported yet.
+```
+
+**Workaround:** Run multiple operations sequentially without a transaction. Order them so the most critical operation goes first. If a later operation fails, the state is still partially consistent (the first operation persisted).
+
+```typescript
+// ❌ DO NOT USE — throws at runtime on Vercel Postgres
+await db.transaction().execute(async (trx) => {
+  await trx.updateTable('foo').set({ ... }).execute();
+  await trx.updateTable('bar').set({ ... }).execute();
+});
+
+// ✅ CORRECT — sequential operations without transaction
+await db.updateTable('foo').set({ ... }).execute();
+await db.updateTable('bar').set({ ... }).execute();
+```
+
 ### Example Query
 
 ```typescript

@@ -231,32 +231,33 @@ export async function updateGroupPrivacy(
   isPublic: boolean,
   description?: string | null
 ): Promise<ProdeGroup> {
-  return db.transaction().execute(async (trx) => {
-    // Update the group's privacy settings
-    const updated = await trx
-      .updateTable('prode_groups')
+  // Note: Kysely transactions are not supported on Vercel Postgres (neon pooler).
+  // These two operations run sequentially without a transaction. The group is updated
+  // first (more critical), then discovery requests are rejected. If the second
+  // operation fails, the group is still private but pending requests linger — acceptable.
+  const updated = await db
+    .updateTable('prode_groups')
+    .set({
+      is_public: isPublic,
+      description: isPublic ? (description ?? null) : null
+    })
+    .where('id', '=', groupId)
+    .returningAll()
+    .executeTakeFirstOrThrow();
+
+  // If making private, reject all pending discovery-sourced requests
+  if (!isPublic) {
+    await db
+      .updateTable('prode_group_join_requests')
       .set({
-        is_public: isPublic,
-        description: isPublic ? (description ?? null) : null
+        status: 'rejected',
+        resolved_at: new Date()
       })
-      .where('id', '=', groupId)
-      .returningAll()
-      .executeTakeFirstOrThrow();
+      .where('group_id', '=', groupId)
+      .where('status', '=', 'pending')
+      .where('request_source', '=', 'discovery')
+      .execute();
+  }
 
-    // If making private, reject all pending discovery-sourced requests
-    if (!isPublic) {
-      await trx
-        .updateTable('prode_group_join_requests')
-        .set({
-          status: 'rejected',
-          resolved_at: new Date()
-        })
-        .where('group_id', '=', groupId)
-        .where('status', '=', 'pending')
-        .where('request_source', '=', 'discovery')
-        .execute();
-    }
-
-    return updated;
-  });
+  return updated;
 }

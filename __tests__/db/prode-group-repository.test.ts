@@ -36,7 +36,6 @@ vi.mock('../../app/db/database', () => ({
     fn: {
       count: vi.fn().mockReturnValue({ as: vi.fn().mockReturnValue('count') }),
     },
-    transaction: vi.fn(),
   },
 }));
 
@@ -676,24 +675,13 @@ describe('Prode Group Repository', () => {
     describe('updateGroupPrivacy', () => {
       const mockUpdatedGroup = testFactories.prodeGroup({ id: 'group-1' });
 
-      const createMockTrx = () => {
-        const mockUpdateQuery = createMockUpdateQuery(mockUpdatedGroup);
-        return {
-          updateTable: vi.fn().mockReturnValue(mockUpdateQuery),
-          insertInto: vi.fn(),
-        };
-      };
-
       it('should update group to public with description', async () => {
-        const mockTrx = createMockTrx();
-        mockDb.transaction.mockReturnValue({
-          execute: vi.fn().mockImplementation(async (fn: (trx: typeof mockTrx) => Promise<any>) => fn(mockTrx)),
-        });
+        const mockUpdateQuery = createMockUpdateQuery(mockUpdatedGroup);
+        mockDb.updateTable.mockReturnValue(mockUpdateQuery);
 
         await updateGroupPrivacy('group-1', true, 'A public group description');
 
-        expect(mockTrx.updateTable).toHaveBeenCalledWith('prode_groups');
-        const mockUpdateQuery = vi.mocked(mockTrx.updateTable).mock.results[0].value;
+        expect(mockDb.updateTable).toHaveBeenCalledWith('prode_groups');
         expect(mockUpdateQuery.set).toHaveBeenCalledWith({
           is_public: true,
           description: 'A public group description',
@@ -702,14 +690,11 @@ describe('Prode Group Repository', () => {
       });
 
       it('should set description to null when making private', async () => {
-        const mockTrx = createMockTrx();
-        mockDb.transaction.mockReturnValue({
-          execute: vi.fn().mockImplementation(async (fn: (trx: typeof mockTrx) => Promise<any>) => fn(mockTrx)),
-        });
+        const mockUpdateQuery = createMockUpdateQuery(mockUpdatedGroup);
+        mockDb.updateTable.mockReturnValue(mockUpdateQuery);
 
         await updateGroupPrivacy('group-1', false);
 
-        const mockUpdateQuery = vi.mocked(mockTrx.updateTable).mock.results[0].value;
         expect(mockUpdateQuery.set).toHaveBeenCalledWith({
           is_public: false,
           description: null,
@@ -719,21 +704,15 @@ describe('Prode Group Repository', () => {
       it('should reject pending discovery requests when making group private', async () => {
         const mockGroupUpdateQuery = createMockUpdateQuery(mockUpdatedGroup);
         const mockRequestUpdateQuery = createMockUpdateQuery([]);
-        const mockTrx = {
-          updateTable: vi.fn()
-            .mockReturnValueOnce(mockGroupUpdateQuery)
-            .mockReturnValueOnce(mockRequestUpdateQuery),
-          insertInto: vi.fn(),
-        };
-        mockDb.transaction.mockReturnValue({
-          execute: vi.fn().mockImplementation(async (fn: (trx: typeof mockTrx) => Promise<any>) => fn(mockTrx)),
-        });
+        mockDb.updateTable
+          .mockReturnValueOnce(mockGroupUpdateQuery)
+          .mockReturnValueOnce(mockRequestUpdateQuery);
 
         await updateGroupPrivacy('group-1', false);
 
         // Should call updateTable twice: once for group, once for join requests
-        expect(mockTrx.updateTable).toHaveBeenCalledTimes(2);
-        expect(mockTrx.updateTable).toHaveBeenNthCalledWith(2, 'prode_group_join_requests');
+        expect(mockDb.updateTable).toHaveBeenCalledTimes(2);
+        expect(mockDb.updateTable).toHaveBeenNthCalledWith(2, 'prode_group_join_requests');
         expect(mockRequestUpdateQuery.set).toHaveBeenCalledWith(
           expect.objectContaining({ status: 'rejected' })
         );
@@ -745,43 +724,32 @@ describe('Prode Group Repository', () => {
       it('should NOT reject non-discovery requests when making group private', async () => {
         const mockGroupUpdateQuery = createMockUpdateQuery(mockUpdatedGroup);
         const mockRequestUpdateQuery = createMockUpdateQuery([]);
-        const mockTrx = {
-          updateTable: vi.fn()
-            .mockReturnValueOnce(mockGroupUpdateQuery)
-            .mockReturnValueOnce(mockRequestUpdateQuery),
-          insertInto: vi.fn(),
-        };
-        mockDb.transaction.mockReturnValue({
-          execute: vi.fn().mockImplementation(async (fn: (trx: typeof mockTrx) => Promise<any>) => fn(mockTrx)),
-        });
+        mockDb.updateTable
+          .mockReturnValueOnce(mockGroupUpdateQuery)
+          .mockReturnValueOnce(mockRequestUpdateQuery);
 
         await updateGroupPrivacy('group-1', false);
 
         // The where clause must filter only 'discovery' source - not affect other sources
         expect(mockRequestUpdateQuery.where).toHaveBeenCalledWith('request_source', '=', 'discovery');
-        // Should NOT have where clause excluding other sources (it uses specific source filter)
         expect(mockRequestUpdateQuery.where).not.toHaveBeenCalledWith('request_source', '=', 'invite_link');
         expect(mockRequestUpdateQuery.where).not.toHaveBeenCalledWith('request_source', '=', 'email_invite');
       });
 
       it('should NOT update join requests when making group public', async () => {
-        const mockTrx = createMockTrx();
-        mockDb.transaction.mockReturnValue({
-          execute: vi.fn().mockImplementation(async (fn: (trx: typeof mockTrx) => Promise<any>) => fn(mockTrx)),
-        });
+        const mockUpdateQuery = createMockUpdateQuery(mockUpdatedGroup);
+        mockDb.updateTable.mockReturnValue(mockUpdateQuery);
 
         await updateGroupPrivacy('group-1', true, 'My group');
 
         // Only one call to updateTable (for the group itself, not join requests)
-        expect(mockTrx.updateTable).toHaveBeenCalledTimes(1);
-        expect(mockTrx.updateTable).toHaveBeenCalledWith('prode_groups');
+        expect(mockDb.updateTable).toHaveBeenCalledTimes(1);
+        expect(mockDb.updateTable).toHaveBeenCalledWith('prode_groups');
       });
 
       it('should return the updated group', async () => {
-        const mockTrx = createMockTrx();
-        mockDb.transaction.mockReturnValue({
-          execute: vi.fn().mockImplementation(async (fn: (trx: typeof mockTrx) => Promise<any>) => fn(mockTrx)),
-        });
+        const mockUpdateQuery = createMockUpdateQuery(mockUpdatedGroup);
+        mockDb.updateTable.mockReturnValue(mockUpdateQuery);
 
         const result = await updateGroupPrivacy('group-1', true);
 
