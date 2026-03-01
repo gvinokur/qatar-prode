@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Descubrir Grupos Públicos - Prode Mundial</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-primary: #1a1a1a;
+      --bg-card: #2d2d2d;
+      --bg-card-hover: #333333;
+      --accent-red: #f44336;
+      --accent-red-dark: #d32f2f;
+      --accent-red-hover: #e53935;
+      --accent-orange: #ff9800;
+      --accent-gold: #ffd700;
+      --accent-blue: #1565c0;
+      --accent-blue-light: #1976d2;
+      --text-primary: #ffffff;
+      --text-secondary: #9e9e9e;
+      --text-disabled: #616161;
+      --border-color: #404040;
+      --card-border-accent: #f44336;
+      --shadow: 0 2px 8px rgba(0,0,0,0.4);
+      --shadow-hover: 0 4px 16px rgba(0,0,0,0.6);
+      --font: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* ─── APPBAR ─── */
+    .appbar {
+      background-color: var(--accent-blue);
+      height: 56px;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      gap: 12px;
+    }
+
+    .appbar-logo {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #ffd700, #ff9800);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .appbar-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+      letter-spacing: 0.5px;
+      flex: 1;
+    }
+
+    .appbar-tournament {
+      font-size: 12px;
+      color: rgba(255,255,255,0.8);
+      background: rgba(255,255,255,0.12);
+      padding: 4px 10px;
+      border-radius: 12px;
+      white-space: nowrap;
+    }
+
+    .appbar-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #42a5f5, #1565c0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 700;
+      color: white;
+      border: 2px solid rgba(255,255,255,0.3);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    /* ─── NAV TABS ─── */
+    .nav-tabs {
+      background: #1e1e1e;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .nav-tabs::-webkit-scrollbar { display: none; }
+
+    .nav-tab {
+      padding: 12px 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      cursor: pointer;
+      white-space: nowrap;
+      border-bottom: 3px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .nav-tab:hover {
+      color: var(--text-primary);
+    }
+    .nav-tab.active {
+      color: var(--accent-red);
+      border-bottom-color: var(--accent-red);
+    }
+
+    /* ─── PAGE LAYOUT ─── */
+    .page-layout {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px 16px;
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .page-layout {
+        grid-template-columns: 1fr;
+      }
+      .sidebar { display: none; }
+    }
+
+    /* ─── MAIN CONTENT ─── */
+    .main-content {
+      min-width: 0;
+    }
+
+    .page-header {
+      margin-bottom: 20px;
+    }
+
+    .page-title {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      line-height: 1.2;
+      margin-bottom: 4px;
+    }
+
+    .page-title-icon {
+      font-size: 28px;
+    }
+
+    .page-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-left: 38px;
+    }
+
+    /* ─── SEARCH BAR ─── */
+    .search-container {
+      position: relative;
+      margin-bottom: 24px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px 16px 12px 46px;
+      font-size: 15px;
+      color: var(--text-primary);
+      font-family: var(--font);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .search-input:focus {
+      border-color: var(--accent-red);
+      box-shadow: 0 0 0 2px rgba(244, 67, 54, 0.15);
+    }
+
+    /* ─── GROUPS GRID ─── */
+    .groups-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 1100px) {
+      .groups-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .groups-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ─── GROUP CARD ─── */
+    .group-card {
+      background: var(--bg-card);
+      border-radius: 10px;
+      border-left: 3px solid var(--card-border-accent);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .group-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+      background-color: var(--bg-card-hover);
+    }
+
+    .group-card-header {
+      padding: 14px 14px 10px 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .group-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(244,67,54,0.2), rgba(244,67,54,0.1));
+      border: 1px solid rgba(244,67,54,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .group-name-wrap {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .group-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.3;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .group-description {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 3px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.4;
+    }
+
+    .group-badge {
+      background: rgba(33, 150, 243, 0.15);
+      border: 1px solid rgba(33, 150, 243, 0.3);
+      color: #64b5f6;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 2px 7px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* ─── DIVIDER ─── */
+    .card-divider {
+      height: 1px;
+      background: var(--border-color);
+      margin: 0 14px;
+    }
+
+    /* ─── CARD STATS ─── */
+    .card-stats {
+      padding: 10px 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .stat-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      font-weight: 600;
+    }
+
+    .stat-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .stat-value.highlight {
+      color: var(--accent-red);
+    }
+
+    /* ─── BET ROW ─── */
+    .bet-row {
+      padding: 8px 14px;
+      background: rgba(255,255,255,0.03);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+
+    .bet-row.has-bet {
+      color: var(--accent-gold);
+    }
+
+    .bet-row.no-bet {
+      color: var(--text-secondary);
+    }
+
+    .bet-icon {
+      font-size: 13px;
+    }
+
+    .bet-label {
+      font-weight: 600;
+    }
+
+    /* ─── CARD FOOTER ─── */
+    .card-footer {
+      padding: 10px 14px 14px 14px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    /* ─── BUTTONS ─── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border: none;
+      font-family: var(--font);
+      transition: all 0.2s;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn-join {
+      background: transparent;
+      border: 1.5px solid var(--accent-red);
+      color: var(--accent-red);
+    }
+    .btn-join:hover {
+      background: rgba(244, 67, 54, 0.1);
+      border-color: var(--accent-red-hover);
+    }
+
+    .btn-pending {
+      background: transparent;
+      border: 1.5px solid var(--accent-orange);
+      color: var(--accent-orange);
+      cursor: default;
+      opacity: 0.9;
+    }
+
+    .btn-member {
+      background: transparent;
+      border: 1.5px solid var(--text-disabled);
+      color: var(--text-secondary);
+    }
+    .btn-member:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: var(--text-secondary);
+    }
+
+    .btn-icon {
+      font-size: 13px;
+    }
+
+    /* ─── PAGINATION ─── */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px 0;
+      margin-bottom: 32px;
+    }
+
+    .page-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .page-btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent-red);
+    }
+    .page-btn:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    .page-info {
+      font-size: 13px;
+      color: var(--text-secondary);
+      padding: 0 8px;
+    }
+
+    /* ─── EMPTY STATE VARIANT ─── */
+    .empty-state-section {
+      margin-top: 40px;
+    }
+
+    .variant-label {
+      display: inline-block;
+      background: rgba(255, 152, 0, 0.15);
+      border: 1px solid rgba(255, 152, 0, 0.4);
+      color: var(--accent-orange);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 4px;
+      margin-bottom: 16px;
+    }
+
+    .empty-state-card {
+      background: var(--bg-card);
+      border-radius: 10px;
+      border-left: 3px solid var(--accent-red);
+      box-shadow: var(--shadow);
+      padding: 48px 32px;
+      text-align: center;
+    }
+
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.6;
+      display: block;
+    }
+
+    .empty-state-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .empty-state-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .empty-state-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      background: var(--accent-red);
+      color: white;
+      padding: 10px 24px;
+      font-size: 13px;
+    }
+    .btn-primary:hover {
+      background: var(--accent-red-dark);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1.5px solid var(--text-secondary);
+      color: var(--text-secondary);
+      padding: 10px 24px;
+      font-size: 13px;
+    }
+    .btn-secondary:hover {
+      border-color: var(--text-primary);
+      color: var(--text-primary);
+    }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .sidebar-card {
+      background: var(--bg-card);
+      border-radius: 10px;
+      border-left: 3px solid var(--accent-red);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .sidebar-card-header {
+      background: rgba(244, 67, 54, 0.08);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .sidebar-card-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-primary);
+    }
+
+    .sidebar-card-body {
+      padding: 12px 14px;
+    }
+
+    /* ─── STANDINGS ─── */
+    .standing-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .standing-row:last-child { border-bottom: none; }
+
+    .standing-pos {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .pos-1 { background: var(--accent-gold); color: #000; }
+    .pos-2 { background: #b0bec5; color: #000; }
+    .pos-3 { background: #cd7f32; color: #fff; }
+    .pos-other { background: rgba(255,255,255,0.1); color: var(--text-secondary); }
+
+    .standing-name {
+      flex: 1;
+      font-size: 13px;
+      color: var(--text-primary);
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .standing-name.current-user {
+      color: var(--accent-red);
+      font-weight: 700;
+    }
+
+    .standing-pts {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent-gold);
+    }
+
+    /* ─── STATS CARD ─── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat-item {
+      background: rgba(255,255,255,0.04);
+      border-radius: 6px;
+      padding: 8px 10px;
+      text-align: center;
+    }
+
+    .stat-item-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent-red);
+      line-height: 1.2;
+    }
+
+    .stat-item-label {
+      font-size: 10px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    /* ─── GROUPS SIDEBAR CARD ─── */
+    .my-groups-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .my-groups-item:last-child { border-bottom: none; }
+
+    .my-group-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-red);
+      flex-shrink: 0;
+    }
+
+    .my-group-name {
+      flex: 1;
+      font-size: 12px;
+      color: var(--text-primary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .my-group-badge {
+      background: rgba(244, 67, 54, 0.15);
+      border: 1px solid rgba(244, 67, 54, 0.3);
+      color: var(--accent-red);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 8px;
+    }
+
+    .here-badge {
+      background: rgba(33, 150, 243, 0.15);
+      border: 1px solid rgba(33, 150, 243, 0.3);
+      color: #64b5f6;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      padding: 1px 6px;
+      border-radius: 8px;
+    }
+
+    .sidebar-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .sidebar-btn {
+      flex: 1;
+      background: transparent;
+      border: 1px solid var(--accent-red);
+      color: var(--accent-red);
+      padding: 7px 10px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: background 0.2s;
+      text-align: center;
+    }
+    .sidebar-btn:hover {
+      background: rgba(244, 67, 54, 0.1);
+    }
+    .sidebar-btn.filled {
+      background: var(--accent-red);
+      color: white;
+    }
+    .sidebar-btn.filled:hover {
+      background: var(--accent-red-dark);
+    }
+
+    /* ─── RULES CARD ─── */
+    .rule-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 5px 0;
+      font-size: 12px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .rule-item:last-child { border-bottom: none; }
+
+    .rule-icon {
+      font-size: 13px;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+
+    /* ─── ICONS (inline SVG) ─── */
+    .icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ─── SECTION DIVIDER ─── */
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 32px 0 16px;
+    }
+    .section-divider-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border-color);
+    }
+    .section-divider-text {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── APPBAR ─── -->
+  <header class="appbar">
+    <div class="appbar-logo">🏆</div>
+    <span class="appbar-title">Prode Mundial</span>
+    <span class="appbar-tournament">FIFA Mundial 2026</span>
+    <div class="appbar-avatar">A</div>
+  </header>
+
+  <!-- ─── NAVIGATION TABS ─── -->
+  <nav class="nav-tabs">
+    <div class="nav-tab">Partidos</div>
+    <div class="nav-tab">Clasificados</div>
+    <div class="nav-tab">Premios</div>
+    <div class="nav-tab active">Grupos</div>
+    <div class="nav-tab">Estadísticas</div>
+  </nav>
+
+  <!-- ─── PAGE LAYOUT ─── -->
+  <div class="page-layout">
+
+    <!-- ─── MAIN CONTENT ─── -->
+    <main class="main-content">
+
+      <!-- Page Header -->
+      <div class="page-header">
+        <h1 class="page-title">
+          <span class="page-title-icon">🌐</span>
+          Descubrir Grupos Públicos
+        </h1>
+        <p class="page-subtitle">Encuentra y únete a grupos de amigos</p>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="search-container">
+        <span class="search-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </span>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Buscar grupos por nombre o descripción..."
+        />
+      </div>
+
+      <!-- ─── GROUPS GRID (6 cards in various states) ─── -->
+      <div class="groups-grid">
+
+        <!-- Card 1: Default "SOLICITAR UNIRSE" -->
+        <div class="group-card">
+          <div class="group-card-header">
+            <div class="group-icon">🌐</div>
+            <div class="group-name-wrap">
+              <div class="group-name">La Selección de Titi</div>
+              <div class="group-description">Grupo para fanáticos del fútbol sudamericano. Pronósticos del mundial con apuesta para el campeón.</div>
+            </div>
+            <div class="group-badge">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+              Público
+            </div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-stats">
+            <div class="stat-block">
+              <span class="stat-label">Miembros</span>
+              <span class="stat-value">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="#9e9e9e"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                24 miembros
+              </span>
+            </div>
+            <div class="stat-block">
+              <span class="stat-label">Líder</span>
+              <span class="stat-value">
+                <span style="color: var(--accent-gold);">🏆</span>
+                Titi (187 pts)
+              </span>
+            </div>
+          </div>
+          <div class="bet-row has-bet">
+            <span class="bet-icon">💰</span>
+            <span class="bet-label">Apuesta: $500 por persona</span>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-join">
+              Solicitar Unirse
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12,5 19,12 12,19"></polyline></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 2: Default "SOLICITAR UNIRSE" no bet -->
+        <div class="group-card">
+          <div class="group-card-header">
+            <div class="group-icon">🌐</div>
+            <div class="group-name-wrap">
+              <div class="group-name">Los Cracks del Barrio</div>
+              <div class="group-description">Amigos del barrio apostando con el honor. Sin dinero, pura pasión futbolera y orgullo entre amigos.</div>
+            </div>
+            <div class="group-badge">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+              Público
+            </div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-stats">
+            <div class="stat-block">
+              <span class="stat-label">Miembros</span>
+              <span class="stat-value">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="#9e9e9e"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                8 miembros
+              </span>
+            </div>
+            <div class="stat-block">
+              <span class="stat-label">Líder</span>
+              <span class="stat-value">
+                <span style="color: var(--accent-gold);">🏆</span>
+                Rodrigo (142 pts)
+              </span>
+            </div>
+          </div>
+          <div class="bet-row no-bet">
+            <span class="bet-icon">🤝</span>
+            <span class="bet-label">Sin apuesta</span>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-join">
+              Solicitar Unirse
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12,5 19,12 12,19"></polyline></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 3: PENDING state -->
+        <div class="group-card">
+          <div class="group-card-header">
+            <div class="group-icon">🌐</div>
+            <div class="group-name-wrap">
+              <div class="group-name">Banda del Parche</div>
+              <div class="group-description">El grupo de los parceros. Pronósticos con premio para el que más acierte en el mundial.</div>
+            </div>
+            <div class="group-badge">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+              Público
+            </div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-stats">
+            <div class="stat-block">
+              <span class="stat-label">Miembros</span>
+              <span class="stat-value">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="#9e9e9e"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                17 miembros
+              </span>
+            </div>
+            <div class="stat-block">
+              <span class="stat-label">Líder</span>
+              <span class="stat-value">
+                <span style="color: var(--accent-gold);">🏆</span>
+                Aucan (120 pts)
+              </span>
+            </div>
+          </div>
+          <div class="bet-row has-bet">
+            <span class="bet-icon">💰</span>
+            <span class="bet-label">Apuesta: $200 por persona</span>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-pending" disabled>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12,6 12,12 16,14"></polyline></svg>
+              Solicitud Pendiente
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 4: Already member "VER GRUPO" -->
+        <div class="group-card">
+          <div class="group-card-header">
+            <div class="group-icon">🌐</div>
+            <div class="group-name-wrap">
+              <div class="group-name">Mundial 2026 Friends</div>
+              <div class="group-description">El grupo más grande de la plataforma para el mundial. Competencia internacional con premios reales.</div>
+            </div>
+            <div class="group-badge">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+              Público
+            </div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-stats">
+            <div class="stat-block">
+              <span class="stat-label">Miembros</span>
+              <span class="stat-value">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="#9e9e9e"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                32 miembros
+              </span>
+            </div>
+            <div class="stat-block">
+              <span class="stat-label">Líder</span>
+              <span class="stat-value">
+                <span style="color: var(--accent-gold);">🏆</span>
+                Carlos (210 pts)
+              </span>
+            </div>
+          </div>
+          <div class="bet-row has-bet">
+            <span class="bet-icon">💰</span>
+            <span class="bet-label">Apuesta: $1,000 por persona</span>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-member">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              Ver Grupo
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 5: Default "SOLICITAR UNIRSE" small group -->
+        <div class="group-card">
+          <div class="group-card-header">
+            <div class="group-icon">🌐</div>
+            <div class="group-name-wrap">
+              <div class="group-name">Argentina Campeón</div>
+              <div class="group-description">Solo para creyentes de la albiceleste. Pronósticos mundialistas con la fe puesta en Messi y compañía.</div>
+            </div>
+            <div class="group-badge">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+              Público
+            </div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-stats">
+            <div class="stat-block">
+              <span class="stat-label">Miembros</span>
+              <span class="stat-value">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="#9e9e9e"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                5 miembros
+              </span>
+            </div>
+            <div class="stat-block">
+              <span class="stat-label">Líder</span>
+              <span class="stat-value">
+                <span style="color: var(--accent-gold);">🏆</span>
+                Nico (98 pts)
+              </span>
+            </div>
+          </div>
+          <div class="bet-row has-bet">
+            <span class="bet-icon">💰</span>
+            <span class="bet-label">Apuesta: $300 por persona</span>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-join">
+              Solicitar Unirse
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12,5 19,12 12,19"></polyline></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 6: Default "SOLICITAR UNIRSE" no bet -->
+        <div class="group-card">
+          <div class="group-card-header">
+            <div class="group-icon">🌐</div>
+            <div class="group-name-wrap">
+              <div class="group-name">Los Pronósticos</div>
+              <div class="group-description">Grupo casual para compartir pronósticos. Abierto a todos los fans del fútbol mundial sin compromiso económico.</div>
+            </div>
+            <div class="group-badge">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+              Público
+            </div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-stats">
+            <div class="stat-block">
+              <span class="stat-label">Miembros</span>
+              <span class="stat-value">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="#9e9e9e"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                12 miembros
+              </span>
+            </div>
+            <div class="stat-block">
+              <span class="stat-label">Líder</span>
+              <span class="stat-value">
+                <span style="color: var(--accent-gold);">🏆</span>
+                Laura (155 pts)
+              </span>
+            </div>
+          </div>
+          <div class="bet-row no-bet">
+            <span class="bet-icon">🤝</span>
+            <span class="bet-label">Sin apuesta</span>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-join">
+              Solicitar Unirse
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12,5 19,12 12,19"></polyline></svg>
+            </button>
+          </div>
+        </div>
+
+      </div>
+      <!-- end groups-grid -->
+
+      <!-- ─── PAGINATION ─── -->
+      <div class="pagination">
+        <button class="page-btn" disabled>← Anterior</button>
+        <span class="page-info">Página 1 de 5</span>
+        <button class="page-btn">Siguiente →</button>
+      </div>
+
+      <!-- ─── EMPTY STATE VARIANT ─── -->
+      <div class="empty-state-section">
+        <div class="section-divider">
+          <div class="section-divider-line"></div>
+          <span class="section-divider-text">VARIANTE: Estado sin grupos encontrados</span>
+          <div class="section-divider-line"></div>
+        </div>
+        <div class="variant-label">VARIANTE: Estado vacío (sin resultados de búsqueda)</div>
+
+        <div class="empty-state-card">
+          <span class="empty-state-icon">🔍</span>
+          <h2 class="empty-state-title">No se encontraron grupos</h2>
+          <p class="empty-state-subtitle">
+            No hay grupos públicos que coincidan con tu búsqueda. Intenta con otros términos o crea tu propio grupo.
+          </p>
+          <div class="empty-state-actions">
+            <button class="btn btn-primary btn" style="border-radius:6px;">
+              🌐 Descubrir Grupos
+            </button>
+            <button class="btn btn-secondary btn" style="border-radius:6px;">
+              ➕ Crear Grupo
+            </button>
+          </div>
+        </div>
+
+        <!-- ─── ALSO SHOW: Empty MY GROUPS state with "Discover Groups" replacing "Join with Code" ─── -->
+        <div style="margin-top: 24px;">
+          <div class="variant-label" style="margin-bottom:12px;">VARIANTE: Mi lista de grupos vacía (reemplaza "Unirse con código" por "Descubrir Grupos")</div>
+
+          <div style="background: var(--bg-card); border-radius: 10px; border-left: 3px solid var(--accent-red); box-shadow: var(--shadow); overflow: hidden; max-width: 480px;">
+            <div class="sidebar-card-header">
+              <span>👥</span>
+              <span class="sidebar-card-title">Grupos de Amigos</span>
+            </div>
+            <div class="sidebar-card-body">
+              <div style="text-align:center; padding: 24px 16px 16px;">
+                <span style="font-size: 40px; display:block; margin-bottom: 12px; opacity:0.5;">🏟️</span>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.5;">
+                  Aún no eres parte de ningún grupo. ¡Descubre grupos públicos o crea uno propio!
+                </p>
+                <div class="sidebar-actions" style="flex-direction: column; gap: 10px;">
+                  <button class="sidebar-btn filled" style="font-size: 12px; padding: 9px 14px; display:flex; align-items:center; justify-content:center; gap:6px;">
+                    🌐 Descubrir Grupos Públicos
+                  </button>
+                  <button class="sidebar-btn" style="font-size: 12px; padding: 9px 14px; display:flex; align-items:center; justify-content:center; gap:6px;">
+                    ➕ Crear Grupo
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- end empty state -->
+
+    </main>
+    <!-- end main-content -->
+
+    <!-- ─── SIDEBAR ─── -->
+    <aside class="sidebar">
+
+      <!-- Standings Card -->
+      <div class="sidebar-card">
+        <div class="sidebar-card-header">
+          <span>🏆</span>
+          <span class="sidebar-card-title">Grupo A — Clasificación</span>
+        </div>
+        <div class="sidebar-card-body" style="padding: 8px 14px 12px;">
+          <div class="standing-row">
+            <div class="standing-pos pos-1">1</div>
+            <span class="standing-name current-user">Aucan</span>
+            <span class="standing-pts">120</span>
+          </div>
+          <div class="standing-row">
+            <div class="standing-pos pos-2">2</div>
+            <span class="standing-name">María G.</span>
+            <span class="standing-pts">115</span>
+          </div>
+          <div class="standing-row">
+            <div class="standing-pos pos-3">3</div>
+            <span class="standing-name">Pedro R.</span>
+            <span class="standing-pts">108</span>
+          </div>
+          <div class="standing-row">
+            <div class="standing-pos pos-other">4</div>
+            <span class="standing-name">Jorge L.</span>
+            <span class="standing-pts">102</span>
+          </div>
+          <div class="standing-row">
+            <div class="standing-pos pos-other">5</div>
+            <span class="standing-name">Sofía M.</span>
+            <span class="standing-pts">97</span>
+          </div>
+          <div class="standing-row">
+            <div class="standing-pos pos-other">6</div>
+            <span class="standing-name">Carlos B.</span>
+            <span class="standing-pts">89</span>
+          </div>
+          <div class="standing-row">
+            <div class="standing-pos pos-other">7</div>
+            <span class="standing-name">Ana P.</span>
+            <span class="standing-pts">84</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Card -->
+      <div class="sidebar-card">
+        <div class="sidebar-card-header">
+          <span>📊</span>
+          <span class="sidebar-card-title">Tus Estadísticas</span>
+        </div>
+        <div class="sidebar-card-body">
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-item-value">120</div>
+              <div class="stat-item-label">Puntos</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-item-value">#1</div>
+              <div class="stat-item-label">Posición</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-item-value">34</div>
+              <div class="stat-item-label">Predicciones</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-item-value" style="color: var(--accent-gold);">68%</div>
+              <div class="stat-item-label">Aciertos</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- My Groups Card -->
+      <div class="sidebar-card">
+        <div class="sidebar-card-header">
+          <span>👥</span>
+          <span class="sidebar-card-title">Grupos de Amigos</span>
+        </div>
+        <div class="sidebar-card-body">
+          <div class="my-groups-item">
+            <div class="my-group-dot"></div>
+            <span class="my-group-name">Grupo A</span>
+            <span class="my-group-badge">#1</span>
+          </div>
+          <div class="my-groups-item">
+            <div class="my-group-dot"></div>
+            <span class="my-group-name">Mundial 2026 Friends</span>
+            <span class="my-group-badge">#12</span>
+          </div>
+          <div class="my-groups-item">
+            <div class="my-group-dot" style="background: #64b5f6;"></div>
+            <span class="my-group-name" style="color: #64b5f6; font-weight:700;">Descubrir Grupos</span>
+            <span class="here-badge">Estás aquí</span>
+          </div>
+          <div class="sidebar-actions">
+            <button class="sidebar-btn filled">Crear Grupo</button>
+            <button class="sidebar-btn">Ver Grupos</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rules Card -->
+      <div class="sidebar-card">
+        <div class="sidebar-card-header">
+          <span>📋</span>
+          <span class="sidebar-card-title">Reglas Generales</span>
+        </div>
+        <div class="sidebar-card-body" style="padding: 10px 14px 12px;">
+          <div class="rule-item">
+            <span class="rule-icon">⚽</span>
+            <span>Resultado exacto: 3 puntos</span>
+          </div>
+          <div class="rule-item">
+            <span class="rule-icon">✅</span>
+            <span>Ganador correcto: 1 punto</span>
+          </div>
+          <div class="rule-item">
+            <span class="rule-icon">❌</span>
+            <span>Predicción incorrecta: 0 puntos</span>
+          </div>
+          <div class="rule-item">
+            <span class="rule-icon">⏰</span>
+            <span>Predicciones cierran al inicio del partido</span>
+          </div>
+          <div class="rule-item">
+            <span class="rule-icon">🔒</span>
+            <span>Los grupos públicos requieren aprobación del admin</span>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+    <!-- end sidebar -->
+
+  </div>
+  <!-- end page-layout -->
+
+</body>
+</html>
