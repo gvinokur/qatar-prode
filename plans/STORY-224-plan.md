@@ -212,6 +212,9 @@ Add to `locales/en/groups.json` and `locales/es/groups.json` under `groups.priva
 
 ## Visual Prototypes
 
+**High-fidelity HTML mockup:** `discover-groups-mockup.html` (in repo root and worktree)
+Open in browser for full interactive mockup with all card states, responsive grid, and sidebar.
+
 ### Discovery Page Layout
 
 ```
