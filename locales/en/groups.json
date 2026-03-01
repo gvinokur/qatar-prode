@@ -31,6 +31,7 @@
   "invite": {
     "title": "Invite friends to {groupName}",
     "description": "Share this link with your friends so they can join the group.",
+    "generatingLink": "Generating link...",
     "directShare": "Or share directly via:",
     "message": "Hey! I'm inviting you to join our group \"{groupName}\" to play Prode for current and future tournaments. Use this link to join: {link}",
     "emailSubject": "Invitation to Prode group \"{groupName}\"",
