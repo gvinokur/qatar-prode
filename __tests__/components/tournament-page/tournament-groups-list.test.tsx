@@ -95,6 +95,23 @@ describe('TournamentGroupsList', () => {
     expect(screen.queryByText('No Groups Yet!')).not.toBeInTheDocument();
   });
 
+  it('shows empty state when no groups and only resolved (non-pending) requests exist', () => {
+    const resolvedRequests = [
+      {
+        id: 'request-1',
+        group_id: 'group-resolved',
+        group_name: 'Resolved Group',
+        status: 'approved' as const,
+        requested_at: new Date(),
+        resolved_at: new Date(),
+      }
+    ];
+    renderWithTheme(
+      <TournamentGroupsList groups={[]} tournamentId={tournamentId} pendingRequests={resolvedRequests} />
+    );
+    expect(screen.getByText('No Groups Yet!')).toBeInTheDocument();
+  });
+
   it('opens create dialog when Create button is clicked', async () => {
     const user = userEvent.setup();
     renderWithTheme(<TournamentGroupsList groups={mockGroups} tournamentId={tournamentId} />);

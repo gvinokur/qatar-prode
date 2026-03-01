@@ -1,4 +1,6 @@
-import { Box, Typography } from '../../../../../components/mui-wrappers';
+import { Box, Typography, Button } from '../../../../../components/mui-wrappers';
+import Link from 'next/link';
+import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { getPublicGroupsAction } from '../../../../../actions/prode-group-discovery-actions';
 import { getLoggedInUser } from '../../../../../actions/user-actions';
 import { findJoinRequestsByUser } from '../../../../../db/prode-group-join-request-repository';
@@ -19,6 +21,7 @@ export default async function DiscoverGroupsPage(props: Props) {
   const params = await props.params;
   const searchParams = await props.searchParams;
   const t = await getTranslations('groups.discovery');
+  const tActions = await getTranslations('groups.actions');
 
   const searchTerm = searchParams.search ?? '';
   const page = Math.max(1, parseInt(searchParams.page ?? '1', 10) || 1);
@@ -72,6 +75,18 @@ export default async function DiscoverGroupsPage(props: Props) {
 
   return (
     <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 2, sm: 3 } }}>
+      {/* Back Navigation */}
+      <Box sx={{ mb: 1 }}>
+        <Button
+          component={Link}
+          href={`/${params.locale}/tournaments/${params.id}/friend-groups`}
+          startIcon={<ArrowBackIcon />}
+          size="small"
+        >
+          {tActions('backToGroups')}
+        </Button>
+      </Box>
+
       {/* Page Header */}
       <Box sx={{ mb: 3 }}>
         <Typography variant="h4" component="h1" sx={{ fontWeight: 600, mb: 0.5 }}>

@@ -73,8 +73,9 @@ export default function TournamentGroupsList({ groups, tournamentId, pendingRequ
     router.push(`/${locale}/tournaments/${tournamentId}/friend-groups/discover`);
   };
 
-  // Show empty state if no groups and no pending requests
-  if (groups.length === 0 && pendingRequests.length === 0) {
+  // Show empty state if no groups and no actively pending requests
+  const activePendingRequests = pendingRequests.filter(req => req.status === 'pending');
+  if (groups.length === 0 && activePendingRequests.length === 0) {
     return (
       <>
         <Grid container maxWidth={'868px'} mt={1} mx={{ md: 'auto' }}>
