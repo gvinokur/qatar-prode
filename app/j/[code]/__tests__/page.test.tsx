@@ -16,6 +16,14 @@ vi.mock('@/app/db/short-url-repository', () => ({
   incrementClickCount: vi.fn(),
 }));
 
+// Mock next/headers cookies
+const mockCookiesGet = vi.fn();
+vi.mock('next/headers', () => ({
+  cookies: vi.fn(() => ({
+    get: mockCookiesGet,
+  })),
+}));
+
 describe('ShortUrlRedirect', () => {
   const mockShortUrl: ShortUrl = {
     id: 'short-url-1',
@@ -37,14 +45,17 @@ describe('ShortUrlRedirect', () => {
     });
     // Default mock for incrementClickCount (can be overridden in specific tests)
     (shortUrlRepository.incrementClickCount as any).mockResolvedValue(undefined);
+    // Default mock for locale cookie (English)
+    mockCookiesGet.mockReturnValue({ value: 'en' });
   });
 
   describe('valid short codes', () => {
-    it('should redirect to tournament-scoped join page with locale', async () => {
+    it('should redirect to tournament-scoped join page with English locale', async () => {
       (shortUrlRepository.getShortUrlByCode as any).mockResolvedValue(mockShortUrl);
+      mockCookiesGet.mockReturnValue({ value: 'en' });
 
       const props = {
-        params: Promise.resolve({ locale: 'en', code: 'abc123' }),
+        params: Promise.resolve({ code: 'abc123' }),
       };
 
       await expect(ShortUrlRedirect(props)).rejects.toThrow(
@@ -58,9 +69,10 @@ describe('ShortUrlRedirect', () => {
 
     it('should redirect to tournament-scoped join page with Spanish locale', async () => {
       (shortUrlRepository.getShortUrlByCode as any).mockResolvedValue(mockShortUrl);
+      mockCookiesGet.mockReturnValue({ value: 'es' });
 
       const props = {
-        params: Promise.resolve({ locale: 'es', code: 'abc123' }),
+        params: Promise.resolve({ code: 'abc123' }),
       };
 
       await expect(ShortUrlRedirect(props)).rejects.toThrow(
@@ -75,7 +87,7 @@ describe('ShortUrlRedirect', () => {
       (shortUrlRepository.getShortUrlByCode as any).mockResolvedValue(mockShortUrlNoTournament);
 
       const props = {
-        params: Promise.resolve({ locale: 'en', code: 'abc123' }),
+        params: Promise.resolve({ code: 'abc123' }),
       };
 
       await expect(ShortUrlRedirect(props)).rejects.toThrow(
@@ -90,7 +102,7 @@ describe('ShortUrlRedirect', () => {
       (shortUrlRepository.incrementClickCount as any).mockResolvedValue(undefined);
 
       const props = {
-        params: Promise.resolve({ locale: 'en', code: 'abc123' }),
+        params: Promise.resolve({ code: 'abc123' }),
       };
 
       await expect(ShortUrlRedirect(props)).rejects.toThrow('REDIRECT');
@@ -106,7 +118,7 @@ describe('ShortUrlRedirect', () => {
       (shortUrlRepository.incrementClickCount as any).mockRejectedValue(new Error('Database error'));
 
       const props = {
-        params: Promise.resolve({ locale: 'en', code: 'abc123' }),
+        params: Promise.resolve({ code: 'abc123' }),
       };
 
       // Should still redirect despite click count failure
@@ -127,7 +139,7 @@ describe('ShortUrlRedirect', () => {
       (shortUrlRepository.getShortUrlByCode as any).mockResolvedValue(undefined);
 
       const props = {
-        params: Promise.resolve({ locale: 'en', code: 'invalid' }),
+        params: Promise.resolve({ code: 'invalid' }),
       };
 
       await expect(ShortUrlRedirect(props)).rejects.toThrow('NOT_FOUND');
@@ -142,7 +154,7 @@ describe('ShortUrlRedirect', () => {
       (shortUrlRepository.getShortUrlByCode as any).mockResolvedValue(undefined);
 
       const props = {
-        params: Promise.resolve({ locale: 'en', code: '' }),
+        params: Promise.resolve({ code: '' }),
       };
 
       await expect(ShortUrlRedirect(props)).rejects.toThrow('NOT_FOUND');
@@ -154,7 +166,7 @@ describe('ShortUrlRedirect', () => {
       (shortUrlRepository.getShortUrlByCode as any).mockResolvedValue(undefined);
 
       const props = {
-        params: Promise.resolve({ locale: 'en', code: 'abc@123' }),
+        params: Promise.resolve({ code: 'abc@123' }),
       };
 
       await expect(ShortUrlRedirect(props)).rejects.toThrow('NOT_FOUND');
@@ -163,12 +175,12 @@ describe('ShortUrlRedirect', () => {
     });
   });
 
-  describe('locale preservation', () => {
-    it('should preserve English locale in redirect URL', async () => {
+  describe('locale detection', () => {
+    it('should use English locale from cookie in redirect URL', async () => {
       (shortUrlRepository.getShortUrlByCode as any).mockResolvedValue(mockShortUrl);
 
       const props = {
-        params: Promise.resolve({ locale: 'en', code: 'abc123' }),
+        params: Promise.resolve({ code: 'abc123' }),
       };
 
       await expect(ShortUrlRedirect(props)).rejects.toThrow(
@@ -176,11 +188,12 @@ describe('ShortUrlRedirect', () => {
       );
     });
 
-    it('should preserve Spanish locale in redirect URL', async () => {
+    it('should use Spanish locale from cookie in redirect URL', async () => {
       (shortUrlRepository.getShortUrlByCode as any).mockResolvedValue(mockShortUrl);
+      mockCookiesGet.mockReturnValue({ value: 'es' });
 
       const props = {
-        params: Promise.resolve({ locale: 'es', code: 'abc123' }),
+        params: Promise.resolve({ code: 'abc123' }),
       };
 
       await expect(ShortUrlRedirect(props)).rejects.toThrow(
@@ -195,7 +208,7 @@ describe('ShortUrlRedirect', () => {
       (shortUrlRepository.getShortUrlByCode as any).mockResolvedValue(mockShortUrlDeletedTournament);
 
       const props = {
-        params: Promise.resolve({ locale: 'en', code: 'abc123' }),
+        params: Promise.resolve({ code: 'abc123' }),
       };
 
       await expect(ShortUrlRedirect(props)).rejects.toThrow(
