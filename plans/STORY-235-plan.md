@@ -51,9 +51,11 @@ This plan implements URL shortening to create cleaner, more shareable links:
 - One canonical short code per group (reusable across sharing contexts)
 - Simpler data model: lookup by `group_id` only
 - Easier to manage and display in UI
-- Short URL stores the tournament context when created, but the same code is reused for that group
-- **Note:** Same group = same short code regardless of where it's shared from
-- **Implementation:** `getShortUrlForGroup()` looks up by `group_id` only, ignoring `tournament_id` parameter
+- **Tournament context updates automatically:** When short URL is requested with a new tournament, the stored `tournament_id` updates to reflect current context
+- **Example:** Group first used in World Cup 2026 → later used in Copa America 2027 → short URL updates to redirect to Copa America
+- **Note:** Same group = same short code, but redirect target updates to current tournament
+- **Trade-off:** Click tracking is cumulative across all tournaments (acceptable)
+- **Implementation:** `getOrCreateShortUrl()` updates `tournament_id` if it changed since last use
 
 **4. Track Analytics: Yes**
 - Add `click_count` column to track visits
@@ -484,10 +486,20 @@ export async function getOrCreateShortUrl(
   const existing = await getShortUrlForGroup(groupId);
 
   if (existing) {
+    // If tournament context changed, UPDATE the short URL to point to new tournament
+    // This ensures users are redirected to the CURRENT tournament, not the original one
+    if (existing.tournament_id !== tournamentId) {
+      return await db
+        .updateTable('short_urls')
+        .set({ tournament_id: tournamentId ?? null })
+        .where('id', '=', existing.id)
+        .returningAll()
+        .executeTakeFirstOrThrow();
+    }
     return existing;
   }
 
-  // Create new short URL with tournament context (stored for analytics, but not used for lookup)
+  // Create new short URL with tournament context
   return createShortUrl(groupId, tournamentId);
 }
 
@@ -723,9 +735,10 @@ export interface Database {
 - ✅ `getShortUrlByCode()` returns undefined for invalid code
 - ✅ `getShortUrlForGroup()` finds existing URL by group_id only
 - ✅ `getShortUrlForGroup()` ignores tournament_id parameter (one per group)
-- ✅ `getOrCreateShortUrl()` returns existing if present
+- ✅ `getOrCreateShortUrl()` returns existing if tournament context unchanged
 - ✅ `getOrCreateShortUrl()` creates new if missing
-- ✅ `getOrCreateShortUrl()` stores tournament_id for analytics
+- ✅ `getOrCreateShortUrl()` UPDATES tournament_id if tournament context changed
+- ✅ `getOrCreateShortUrl()` stores tournament_id for current tournament
 - ✅ `incrementClickCount()` updates click_count
 - ✅ `incrementClickCount()` handles database errors gracefully
 - ✅ Collision handling retries up to maxAttempts
@@ -777,7 +790,9 @@ export interface Database {
 | **Invalid code** | Return 404 using Next.js `notFound()` |
 | **Group deleted** | Cascade delete removes short_urls entry (ON DELETE CASCADE) |
 | **Tournament deleted** | Set tournament_id to NULL (ON DELETE SET NULL), redirect to global join |
+| **Tournament context changes** | Update tournament_id to new tournament when short URL is requested (ensures redirect to current tournament) |
 | **Click tracking fails** | Fire-and-forget, don't block redirect if increment fails (may lose some click counts, acceptable trade-off) |
+| **Click tracking across tournaments** | click_count is cumulative across all tournaments for a group (acceptable, simplifies analytics) |
 | **Server action fails** | Fallback to long URL in invite dialog |
 
 ## Validation Considerations
@@ -850,6 +865,7 @@ None - all design decisions have been made based on story requirements and best 
 
 - Short codes are case-sensitive (e.g., `Abc123` ≠ `abc123`)
 - Short URLs are permanent and never expire
-- Click tracking is optional but recommended for future analytics
+- **Tournament context updates automatically:** When a group is used in multiple tournaments, the short URL redirects to the most recently used tournament
+- **Click tracking is cumulative:** click_count tracks total clicks across all tournaments (not per-tournament)
 - Migration is safe: new table, no changes to existing schema
 - Backward compatible: old long URLs continue to work
