@@ -585,6 +585,7 @@ describe('Prode Group Repository', () => {
             is_public: true,
             owner: { id: 'user-1', name: 'TestUser' },
             memberCount: 6,  // 5 participants + 1 for owner (not in participants table)
+            bettingEnabled: false,  // no betting config in mock row → defaults to false
           },
         ]);
       });

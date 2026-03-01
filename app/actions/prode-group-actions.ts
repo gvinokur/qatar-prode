@@ -12,7 +12,8 @@ import {
   deleteParticipantFromGroup,
   updateParticipantAdminStatus,
   findParticipantsInGroup,
-  updateGroupPrivacy
+  updateGroupPrivacy,
+  getGroupTournamentBettingConfig
 } from "../db/prode-group-repository";
 import {getLoggedInUser} from "./user-actions";
 import { findJoinRequestsByUser } from "../db/prode-group-join-request-repository";
@@ -307,8 +308,11 @@ export async function calculateTournamentGroupStats(
   const participants = await findParticipantsInGroup(groupId);
   const userIds = [group.owner_user_id, ...participants.map(p => p.user_id)];
 
-  // Get tournament scores for all users
-  const scores = await getUserScoresForTournament(userIds, tournamentId);
+  // Get tournament scores and betting config in parallel
+  const [scores, bettingConfig] = await Promise.all([
+    getUserScoresForTournament(userIds, tournamentId),
+    getGroupTournamentBettingConfig(groupId, tournamentId)
+  ]);
 
   // Sort by total points descending to get positions
   const sortedScores = [...scores].sort((a, b) => b.totalPoints - a.totalPoints);
@@ -331,6 +335,7 @@ export async function calculateTournamentGroupStats(
     userPoints: userScore?.totalPoints || 0,
     leaderName: leaderUser?.nickname || leaderUser?.email || 'Unknown',
     leaderPoints: leader.totalPoints,
-    themeColor: group.theme?.primary_color || null
+    themeColor: group.theme?.primary_color || null,
+    bettingEnabled: bettingConfig?.betting_enabled ?? false
   };
 }

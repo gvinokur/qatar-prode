@@ -12,6 +12,7 @@ export interface PublicGroupResult {
   is_public: boolean;
   owner: { id: string; name: string };
   memberCount: number;
+  bettingEnabled: boolean;
 }
 
 export interface GetPublicGroupsResult {
@@ -27,7 +28,8 @@ export interface GetPublicGroupsResult {
  */
 export async function getPublicGroupsAction(
   searchTerm?: string,
-  page = 1
+  page = 1,
+  tournamentId?: string
 ): Promise<GetPublicGroupsResult | { error: string }> {
   if (page < 1 || page > MAX_PAGE) {
     return { error: `Page must be between 1 and ${MAX_PAGE}` };
@@ -37,7 +39,7 @@ export async function getPublicGroupsAction(
   const offset = (page - 1) * PAGE_SIZE;
 
   const [groups, totalCount] = await Promise.all([
-    findPublicGroups(cleanSearchTerm, PAGE_SIZE, offset),
+    findPublicGroups(cleanSearchTerm, PAGE_SIZE, offset, tournamentId),
     countPublicGroups(cleanSearchTerm)
   ]);
 

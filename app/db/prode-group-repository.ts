@@ -12,6 +12,7 @@ export interface PublicGroupData {
   is_public: boolean;
   owner: { id: string; name: string };
   memberCount: number;
+  bettingEnabled: boolean;
 }
 
 const baseFunctions = createBaseFunctions<ProdeGroupTable, ProdeGroup>('prode_groups')
@@ -162,12 +163,19 @@ export async function setUserGroupTournamentBettingPayment(
 export async function findPublicGroups(
   searchTerm?: string,
   limit = 20,
-  offset = 0
+  offset = 0,
+  tournamentId?: string
 ): Promise<PublicGroupData[]> {
   let query = db
     .selectFrom('prode_groups')
     .innerJoin('users', 'users.id', 'prode_groups.owner_user_id')
     .leftJoin('prode_group_participants', 'prode_group_participants.prode_group_id', 'prode_groups.id')
+    .leftJoin('prode_group_tournament_betting', (join) => {
+      const base = join.onRef('prode_group_tournament_betting.group_id', '=', 'prode_groups.id');
+      return tournamentId
+        ? base.on('prode_group_tournament_betting.tournament_id', '=', tournamentId)
+        : base.on(sql<boolean>`false`);
+    })
     .select([
       'prode_groups.id',
       'prode_groups.name',
@@ -176,10 +184,11 @@ export async function findPublicGroups(
       'prode_groups.owner_user_id',
       'users.nickname as owner_nickname',
       'users.email as owner_email',
-      db.fn.count<string>('prode_group_participants.participant_id').as('member_count')
+      db.fn.count<string>('prode_group_participants.participant_id').as('member_count'),
+      'prode_group_tournament_betting.betting_enabled'
     ])
     .where('prode_groups.is_public', '=', true)
-    .groupBy(['prode_groups.id', 'users.id'])
+    .groupBy(['prode_groups.id', 'users.id', 'prode_group_tournament_betting.betting_enabled'])
     .orderBy('prode_groups.name', 'asc')
     .limit(limit)
     .offset(offset);
@@ -199,7 +208,8 @@ export async function findPublicGroups(
       id: row.owner_user_id,
       name: row.owner_nickname || row.owner_email
     },
-    memberCount: parseInt(row.member_count, 10) + 1  // +1 for owner (not in participants table)
+    memberCount: parseInt(row.member_count, 10) + 1,  // +1 for owner (not in participants table)
+    bettingEnabled: row.betting_enabled ?? false
   }));
 }
 

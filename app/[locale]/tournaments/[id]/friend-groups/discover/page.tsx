@@ -27,7 +27,7 @@ export default async function DiscoverGroupsPage(props: Props) {
   const page = Math.max(1, parseInt(searchParams.page ?? '1', 10) || 1);
 
   // Fetch public groups (no auth required)
-  const result = await getPublicGroupsAction(searchTerm || undefined, page);
+  const result = await getPublicGroupsAction(searchTerm || undefined, page, params.id);
 
   if ('error' in result) {
     return (

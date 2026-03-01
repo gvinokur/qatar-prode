@@ -19,6 +19,7 @@ const mockPublicGroup = {
   is_public: true,
   owner: { id: 'user-1', name: 'Test Owner' },
   memberCount: 5,
+  bettingEnabled: false,
 };
 
 describe('getPublicGroupsAction', () => {
@@ -37,7 +38,7 @@ describe('getPublicGroupsAction', () => {
       currentPage: 1,
       totalPages: 1,
     });
-    expect(mockFindPublicGroups).toHaveBeenCalledWith(undefined, 20, 0);
+    expect(mockFindPublicGroups).toHaveBeenCalledWith(undefined, 20, 0, undefined);
     expect(mockCountPublicGroups).toHaveBeenCalledWith(undefined);
   });
 
@@ -59,21 +60,21 @@ describe('getPublicGroupsAction', () => {
   it('should apply search term', async () => {
     await getPublicGroupsAction('soccer');
 
-    expect(mockFindPublicGroups).toHaveBeenCalledWith('soccer', 20, 0);
+    expect(mockFindPublicGroups).toHaveBeenCalledWith('soccer', 20, 0, undefined);
     expect(mockCountPublicGroups).toHaveBeenCalledWith('soccer');
   });
 
   it('should trim whitespace from search term', async () => {
     await getPublicGroupsAction('  soccer  ');
 
-    expect(mockFindPublicGroups).toHaveBeenCalledWith('soccer', 20, 0);
+    expect(mockFindPublicGroups).toHaveBeenCalledWith('soccer', 20, 0, undefined);
     expect(mockCountPublicGroups).toHaveBeenCalledWith('soccer');
   });
 
   it('should treat blank search term as no search term', async () => {
     await getPublicGroupsAction('   ');
 
-    expect(mockFindPublicGroups).toHaveBeenCalledWith(undefined, 20, 0);
+    expect(mockFindPublicGroups).toHaveBeenCalledWith(undefined, 20, 0, undefined);
     expect(mockCountPublicGroups).toHaveBeenCalledWith(undefined);
   });
 
@@ -97,13 +98,19 @@ describe('getPublicGroupsAction', () => {
   it('should calculate correct offset for page 2', async () => {
     await getPublicGroupsAction(undefined, 2);
 
-    expect(mockFindPublicGroups).toHaveBeenCalledWith(undefined, 20, 20);
+    expect(mockFindPublicGroups).toHaveBeenCalledWith(undefined, 20, 20, undefined);
   });
 
   it('should calculate correct offset for page 3', async () => {
     await getPublicGroupsAction(undefined, 3);
 
-    expect(mockFindPublicGroups).toHaveBeenCalledWith(undefined, 20, 40);
+    expect(mockFindPublicGroups).toHaveBeenCalledWith(undefined, 20, 40, undefined);
+  });
+
+  it('should pass tournamentId to findPublicGroups', async () => {
+    await getPublicGroupsAction(undefined, 1, 'tournament-42');
+
+    expect(mockFindPublicGroups).toHaveBeenCalledWith(undefined, 20, 0, 'tournament-42');
   });
 
   it('should return currentPage matching the requested page', async () => {

@@ -10,7 +10,7 @@ import {
   Stack,
   IconButton
 } from "@mui/material";
-import {Groups as GroupsIcon, Share as ShareIcon} from "@mui/icons-material";
+import {Groups as GroupsIcon, Share as ShareIcon, MonetizationOn as MonetizationOnIcon} from "@mui/icons-material";
 import type { TournamentGroupStats } from "../../definitions";
 import InviteFriendsDialog from "../invite-friends-dialog";
 import { useLocale, useTranslations } from 'next-intl';
@@ -24,6 +24,7 @@ export interface DiscoveryGroupData {
   owner: { id: string; name: string };
   memberCount: number;
   userStatus: 'none' | 'pending' | 'member';
+  bettingEnabled: boolean;
 }
 
 // my-groups variant props
@@ -50,6 +51,7 @@ export default function TournamentGroupCard(props: TournamentGroupCardProps) {
   const t = useTranslations('groups.card');
   const tPending = useTranslations('groups.pendingRequest');
   const tDiscovery = useTranslations('groups.discovery');
+  const tBetting = useTranslations('groups.betting');
 
   if (props.variant === 'discovery') {
     const { group, tournamentId, onRequestJoin } = props;
@@ -149,6 +151,16 @@ export default function TournamentGroupCard(props: TournamentGroupCardProps) {
             <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
               {tDiscovery('createdBy', { name: group.owner.name })}
             </Typography>
+            {group.bettingEnabled && (
+              <Chip
+                icon={<MonetizationOnIcon fontSize="small" />}
+                label={tBetting('statusEnabled')}
+                size="small"
+                color="success"
+                variant="outlined"
+                sx={{ alignSelf: 'flex-start', fontSize: '0.75rem' }}
+              />
+            )}
           </Stack>
         </CardContent>
 
@@ -237,6 +249,18 @@ export default function TournamentGroupCard(props: TournamentGroupCardProps) {
               </Typography>
             </Box>
           </Box>
+
+          {/* Betting */}
+          {group.bettingEnabled && (
+            <Chip
+              icon={<MonetizationOnIcon fontSize="small" />}
+              label={tBetting('statusEnabled')}
+              size="small"
+              color="success"
+              variant="outlined"
+              sx={{ alignSelf: 'flex-start', fontSize: '0.75rem' }}
+            />
+          )}
 
           {/* Leader */}
           <Box>
