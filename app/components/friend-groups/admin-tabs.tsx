@@ -72,13 +72,13 @@ export default function AdminTabs({ isAdmin, leaderboardContent, adminContent, d
               value="leaderboard"
             />
             <Tab
-              icon={<SettingsIcon />}
-              iconPosition="start"
-              label={
+              icon={
                 <Badge badgeContent={pendingRequestCount} color="error" max={99}>
-                  {t('admin')}
+                  <SettingsIcon />
                 </Badge>
               }
+              iconPosition="start"
+              label={t('admin')}
               value="admin"
             />
           </TabList>

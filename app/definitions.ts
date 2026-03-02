@@ -98,4 +98,6 @@ export interface TournamentGroupStats {
   leaderName: string
   leaderPoints: number
   themeColor?: string | null
+  is_public?: boolean
+  bettingEnabled?: boolean
 }

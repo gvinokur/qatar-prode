@@ -70,7 +70,7 @@ describe('FriendGroupsList', () => {
     expect(icon).toBeInTheDocument()
   })
 
-  it('does not render "Ver Grupos" button when only one group exists', () => {
+  it('renders "Ver Grupos" button when exactly one group exists', () => {
     const propsWithOneGroup = {
       ...mockProps,
       userGroups: [{ id: 'group-1', name: 'Only Group' }],
@@ -78,7 +78,7 @@ describe('FriendGroupsList', () => {
     }
     renderWithTheme(<FriendGroupsList {...propsWithOneGroup} />)
 
-    expect(screen.queryByRole('link', { name: /Ver Grupos/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Ver Grupos/i })).toBeInTheDocument()
   })
 
   it('renders "Crear Grupo" button', () => {

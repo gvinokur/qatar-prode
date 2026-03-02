@@ -1,6 +1,9 @@
 'use server'
 
-import {Box, Grid, Typography} from "../../../../../components/mui-wrappers";
+import {Box, Grid, Typography, Button} from "../../../../../components/mui-wrappers";
+import Link from 'next/link';
+import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
+import { getTranslations } from 'next-intl/server';
 import {redirect} from "next/navigation";
 import {DebugObject} from "../../../../../components/debug";
 import {findParticipantsInGroup, findProdeGroupById} from "../../../../../db/prode-group-repository";
@@ -22,6 +25,8 @@ import PendingRequestView from "../../../../../components/friend-groups/pending-
 import AdminTabs from "../../../../../components/friend-groups/admin-tabs";
 import JoinRequestManager from "../../../../../components/friend-groups/join-request-manager";
 import GroupTournamentBettingAdmin from "../../../../../components/friend-groups/group-tournament-betting-admin";
+import PrivacyIndicatorIcon from "../../../../../components/friend-groups/privacy-indicator-icon";
+import GroupPrivacySettings from "../../../../../components/friend-groups/group-privacy-settings";
 
 type Props = {
   readonly params: Promise<{
@@ -35,6 +40,7 @@ type Props = {
 export default async function TournamentScopedFriendGroup(props : Props){
   const params = await props.params
   const searchParams = await props.searchParams
+  const t = await getTranslations('groups')
   const user = await getLoggedInUser()
   const prodeGroup = await findProdeGroupById(params.group_id)
   const tournament = await findTournamentById(params.id)
@@ -134,6 +140,18 @@ export default async function TournamentScopedFriendGroup(props : Props){
           userScoresByTournament
         }}/>
       )}
+      {/* Back Navigation */}
+      <Box sx={{ px: 2, pt: 1 }}>
+        <Button
+          component={Link}
+          href={`/${params.locale}/tournaments/${params.id}/friend-groups`}
+          startIcon={<ArrowBackIcon />}
+          size="small"
+          sx={{ mb: 1 }}
+        >
+          {t('actions.backToGroups')}
+        </Button>
+      </Box>
       {/* Group Header */}
       <Box
         sx={{
@@ -171,6 +189,7 @@ export default async function TournamentScopedFriendGroup(props : Props){
         >
           {prodeGroup.name}
         </Typography>
+        <PrivacyIndicatorIcon isPublic={prodeGroup.is_public ?? false} size="medium" />
         <Box sx={{ ml: 'auto' }}>
           {isOwner && (
             <InviteFriendsDialogButton
@@ -203,7 +222,17 @@ export default async function TournamentScopedFriendGroup(props : Props){
             }
             adminContent={
               <Box>
-                {/* Section 1: Join Requests */}
+                {/* Section 1: Privacy Settings */}
+                <Box sx={{ mb: 3 }}>
+                  <GroupPrivacySettings
+                    groupId={prodeGroup.id}
+                    groupName={prodeGroup.name}
+                    initialIsPublic={prodeGroup.is_public ?? false}
+                    initialDescription={prodeGroup.description ?? null}
+                  />
+                </Box>
+
+                {/* Section 2: Join Requests */}
                 <Box sx={{ mb: 3 }}>
                   <JoinRequestManager
                     groupId={prodeGroup.id}
@@ -213,7 +242,7 @@ export default async function TournamentScopedFriendGroup(props : Props){
                   />
                 </Box>
 
-                {/* Section 2: Betting Configuration */}
+                {/* Section 3: Betting Configuration */}
                 <Box sx={{ mb: 3 }}>
                   <GroupTournamentBettingAdmin
                     groupId={prodeGroup.id}

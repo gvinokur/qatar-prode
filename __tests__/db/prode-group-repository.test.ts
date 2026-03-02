@@ -18,6 +18,9 @@ import {
   getGroupTournamentBettingPayments,
   getUserGroupTournamentBettingPayment,
   setUserGroupTournamentBettingPayment,
+  findPublicGroups,
+  countPublicGroups,
+  updateGroupPrivacy,
 } from '../../app/db/prode-group-repository';
 import { db } from '../../app/db/database';
 import { testFactories } from './test-factories';
@@ -30,6 +33,9 @@ vi.mock('../../app/db/database', () => ({
     insertInto: vi.fn(),
     updateTable: vi.fn(),
     deleteFrom: vi.fn(),
+    fn: {
+      count: vi.fn().mockReturnValue({ as: vi.fn().mockReturnValue('count') }),
+    },
   },
 }));
 
@@ -481,6 +487,274 @@ describe('Prode Group Repository', () => {
           user_id: 'user-1',
           has_paid: false,
         });
+      });
+    });
+  });
+
+  describe('Public Group Discovery Functions', () => {
+    describe('findPublicGroups', () => {
+      it('should query only public groups', async () => {
+        const mockQuery = createMockSelectQuery([]);
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        await findPublicGroups();
+
+        expect(mockDb.selectFrom).toHaveBeenCalledWith('prode_groups');
+        expect(mockQuery.where).toHaveBeenCalledWith('prode_groups.is_public', '=', true);
+      });
+
+      it('should join users and participants tables', async () => {
+        const mockQuery = createMockSelectQuery([]);
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        await findPublicGroups();
+
+        expect(mockQuery.innerJoin).toHaveBeenCalledWith('users', 'users.id', 'prode_groups.owner_user_id');
+        expect(mockQuery.leftJoin).toHaveBeenCalledWith(
+          'prode_group_participants',
+          'prode_group_participants.prode_group_id',
+          'prode_groups.id'
+        );
+      });
+
+      it('should apply search term filter when provided', async () => {
+        const mockQuery = createMockSelectQuery([]);
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        await findPublicGroups('soccer');
+
+        // where is called twice: once for is_public, once for the search term
+        expect(mockQuery.where).toHaveBeenCalledTimes(2);
+        // First call: is_public filter
+        expect(mockQuery.where).toHaveBeenCalledWith('prode_groups.is_public', '=', true);
+        // Second call: search term (raw sql - we just verify it was called with something)
+        expect(mockQuery.where).toHaveBeenCalledWith(expect.anything());
+      });
+
+      it('should NOT apply search term filter when not provided', async () => {
+        const mockQuery = createMockSelectQuery([]);
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        await findPublicGroups();
+
+        // Only called once for is_public filter
+        expect(mockQuery.where).toHaveBeenCalledTimes(1);
+        expect(mockQuery.where).toHaveBeenCalledWith('prode_groups.is_public', '=', true);
+      });
+
+      it('should apply pagination with limit and offset', async () => {
+        const mockQuery = createMockSelectQuery([]);
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        await findPublicGroups(undefined, 20, 20);
+
+        expect(mockQuery.limit).toHaveBeenCalledWith(20);
+        expect(mockQuery.offset).toHaveBeenCalledWith(20);
+      });
+
+      it('should order results by group name ascending', async () => {
+        const mockQuery = createMockSelectQuery([]);
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        await findPublicGroups();
+
+        expect(mockQuery.orderBy).toHaveBeenCalledWith('prode_groups.name', 'asc');
+      });
+
+      it('should return mapped PublicGroupData array', async () => {
+        const mockRow = {
+          id: 'group-1',
+          name: 'Test Group',
+          description: 'A test group',
+          is_public: true,
+          owner_user_id: 'user-1',
+          owner_nickname: 'TestUser',
+          owner_email: 'test@example.com',
+          member_count: '5',
+        };
+        const mockQuery = createMockSelectQuery([mockRow]);
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        const result = await findPublicGroups();
+
+        expect(result).toEqual([
+          {
+            id: 'group-1',
+            name: 'Test Group',
+            description: 'A test group',
+            is_public: true,
+            owner: { id: 'user-1', name: 'TestUser' },
+            memberCount: 6,  // 5 participants + 1 for owner (not in participants table)
+            bettingEnabled: false,  // no betting config in mock row → defaults to false
+          },
+        ]);
+      });
+
+      it('should use email as owner name when nickname is not set', async () => {
+        const mockRow = {
+          id: 'group-1',
+          name: 'Test Group',
+          description: null,
+          is_public: true,
+          owner_user_id: 'user-1',
+          owner_nickname: null,
+          owner_email: 'test@example.com',
+          member_count: '3',
+        };
+        const mockQuery = createMockSelectQuery([mockRow]);
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        const result = await findPublicGroups();
+
+        expect(result[0].owner.name).toBe('test@example.com');
+      });
+
+      it('should return empty array when no public groups exist', async () => {
+        const mockQuery = createMockSelectQuery([]);
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        const result = await findPublicGroups();
+
+        expect(result).toEqual([]);
+      });
+    });
+
+    describe('countPublicGroups', () => {
+      it('should count only public groups', async () => {
+        const mockQuery = {
+          ...createMockSelectQuery({ total: '5' }),
+          executeTakeFirst: vi.fn().mockResolvedValue({ total: '5' }),
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        const result = await countPublicGroups();
+
+        expect(mockDb.selectFrom).toHaveBeenCalledWith('prode_groups');
+        expect(mockQuery.where).toHaveBeenCalledWith('prode_groups.is_public', '=', true);
+        expect(result).toBe(5);
+      });
+
+      it('should return 0 when no public groups exist', async () => {
+        const mockQuery = {
+          ...createMockSelectQuery(null),
+          executeTakeFirst: vi.fn().mockResolvedValue(undefined),
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        const result = await countPublicGroups();
+
+        expect(result).toBe(0);
+      });
+
+      it('should apply search term filter when provided', async () => {
+        const mockQuery = {
+          ...createMockSelectQuery({ total: '2' }),
+          executeTakeFirst: vi.fn().mockResolvedValue({ total: '2' }),
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        const result = await countPublicGroups('soccer');
+
+        expect(mockQuery.where).toHaveBeenCalledTimes(2);
+        expect(result).toBe(2);
+      });
+
+      it('should parse result as integer', async () => {
+        const mockQuery = {
+          ...createMockSelectQuery({ total: '42' }),
+          executeTakeFirst: vi.fn().mockResolvedValue({ total: '42' }),
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        const result = await countPublicGroups();
+
+        expect(result).toBe(42);
+        expect(typeof result).toBe('number');
+      });
+    });
+
+    describe('updateGroupPrivacy', () => {
+      const mockUpdatedGroup = testFactories.prodeGroup({ id: 'group-1' });
+
+      it('should update group to public with description', async () => {
+        const mockUpdateQuery = createMockUpdateQuery(mockUpdatedGroup);
+        mockDb.updateTable.mockReturnValue(mockUpdateQuery);
+
+        await updateGroupPrivacy('group-1', true, 'A public group description');
+
+        expect(mockDb.updateTable).toHaveBeenCalledWith('prode_groups');
+        expect(mockUpdateQuery.set).toHaveBeenCalledWith({
+          is_public: true,
+          description: 'A public group description',
+        });
+        expect(mockUpdateQuery.where).toHaveBeenCalledWith('id', '=', 'group-1');
+      });
+
+      it('should set description to null when making private', async () => {
+        const mockUpdateQuery = createMockUpdateQuery(mockUpdatedGroup);
+        mockDb.updateTable.mockReturnValue(mockUpdateQuery);
+
+        await updateGroupPrivacy('group-1', false);
+
+        expect(mockUpdateQuery.set).toHaveBeenCalledWith({
+          is_public: false,
+          description: null,
+        });
+      });
+
+      it('should reject pending discovery requests when making group private', async () => {
+        const mockGroupUpdateQuery = createMockUpdateQuery(mockUpdatedGroup);
+        const mockRequestUpdateQuery = createMockUpdateQuery([]);
+        mockDb.updateTable
+          .mockReturnValueOnce(mockGroupUpdateQuery)
+          .mockReturnValueOnce(mockRequestUpdateQuery);
+
+        await updateGroupPrivacy('group-1', false);
+
+        // Should call updateTable twice: once for group, once for join requests
+        expect(mockDb.updateTable).toHaveBeenCalledTimes(2);
+        expect(mockDb.updateTable).toHaveBeenNthCalledWith(2, 'prode_group_join_requests');
+        expect(mockRequestUpdateQuery.set).toHaveBeenCalledWith(
+          expect.objectContaining({ status: 'rejected' })
+        );
+        expect(mockRequestUpdateQuery.where).toHaveBeenCalledWith('group_id', '=', 'group-1');
+        expect(mockRequestUpdateQuery.where).toHaveBeenCalledWith('status', '=', 'pending');
+        expect(mockRequestUpdateQuery.where).toHaveBeenCalledWith('request_source', '=', 'discovery');
+      });
+
+      it('should NOT reject non-discovery requests when making group private', async () => {
+        const mockGroupUpdateQuery = createMockUpdateQuery(mockUpdatedGroup);
+        const mockRequestUpdateQuery = createMockUpdateQuery([]);
+        mockDb.updateTable
+          .mockReturnValueOnce(mockGroupUpdateQuery)
+          .mockReturnValueOnce(mockRequestUpdateQuery);
+
+        await updateGroupPrivacy('group-1', false);
+
+        // The where clause must filter only 'discovery' source - not affect other sources
+        expect(mockRequestUpdateQuery.where).toHaveBeenCalledWith('request_source', '=', 'discovery');
+        expect(mockRequestUpdateQuery.where).not.toHaveBeenCalledWith('request_source', '=', 'invite_link');
+        expect(mockRequestUpdateQuery.where).not.toHaveBeenCalledWith('request_source', '=', 'email_invite');
+      });
+
+      it('should NOT update join requests when making group public', async () => {
+        const mockUpdateQuery = createMockUpdateQuery(mockUpdatedGroup);
+        mockDb.updateTable.mockReturnValue(mockUpdateQuery);
+
+        await updateGroupPrivacy('group-1', true, 'My group');
+
+        // Only one call to updateTable (for the group itself, not join requests)
+        expect(mockDb.updateTable).toHaveBeenCalledTimes(1);
+        expect(mockDb.updateTable).toHaveBeenCalledWith('prode_groups');
+      });
+
+      it('should return the updated group', async () => {
+        const mockUpdateQuery = createMockUpdateQuery(mockUpdatedGroup);
+        mockDb.updateTable.mockReturnValue(mockUpdateQuery);
+
+        const result = await updateGroupPrivacy('group-1', true);
+
+        expect(result).toEqual(mockUpdatedGroup);
       });
     });
   });

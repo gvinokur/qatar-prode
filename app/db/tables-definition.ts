@@ -270,6 +270,8 @@ export interface ProdeGroupTable extends Identifiable{
   owner_user_id: string
   name: string
   theme?: JSONColumnType<Theme>
+  is_public?: boolean
+  description?: string | null
 }
 
 export type ProdeGroup = Selectable<ProdeGroupTable>

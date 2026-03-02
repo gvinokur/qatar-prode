@@ -231,7 +231,7 @@ describe('AdminTabs', () => {
     });
 
     it('does not render a visible badge when pendingRequestCount is 0', () => {
-      renderWithTheme(
+      const { container } = renderWithTheme(
         <AdminTabs
           isAdmin={true}
           leaderboardContent={leaderboardContent}
@@ -240,7 +240,9 @@ describe('AdminTabs', () => {
         />
       );
 
-      expect(screen.queryByText('0')).not.toBeInTheDocument();
+      // MUI Badge renders the element in the DOM but applies MuiBadge-invisible to hide it
+      const badge = container.querySelector('.MuiBadge-badge');
+      expect(badge).toHaveClass('MuiBadge-invisible');
     });
 
     it('does not render a badge when pendingRequestCount is not provided', () => {

@@ -10,7 +10,8 @@
     "inviteMore": "Invite more friends",
     "join": "Join Group",
     "view": "View Groups",
-    "expandMore": "show more"
+    "expandMore": "show more",
+    "backToGroups": "All Groups"
   },
   "create": {
     "title": "Create Friend Group",
@@ -147,6 +148,7 @@
     "yourPoints": "Your Points",
     "leader": "Leader",
     "viewDetails": "View Details",
+    "viewLeaderboard": "View Leaderboard",
     "positionOf": "#{position} of {total}"
   },
   "customization": {
@@ -227,5 +229,46 @@
     "rejectedTitle": "Request Not Approved",
     "rejectedMessage": "Your previous request to join this group was not approved.",
     "cooldownMessage": "You can request to join again on {date}."
+  },
+  "privacy": {
+    "public": "Public",
+    "private": "Private",
+    "settingsTitle": "Privacy Settings",
+    "description": "Description",
+    "descriptionPlaceholder": "Describe your group to help others decide if they want to join...",
+    "descriptionHelper": "Visible when users browse public groups (max 500 characters)",
+    "descriptionRequired": "Description is required for public groups",
+    "previewInDiscovery": "Preview in Discovery",
+    "makePrivateConfirm": "Making your group private will remove it from discovery. Pending discovery-based requests will be rejected. Continue?",
+    "makePublicTip": "Your group will be visible to everyone in the discovery page",
+    "saveSettings": "Save Settings",
+    "saved": "Privacy settings saved",
+    "tooltip": {
+      "public": "Public Group",
+      "private": "Private Group"
+    }
+  },
+  "discovery": {
+    "title": "Discover Public Groups",
+    "subtitle": "Find and join friend groups",
+    "searchPlaceholder": "Search groups by name...",
+    "noResults": "No public groups found",
+    "noResultsSearch": "No groups matching \"{search}\"",
+    "browsePublicGroups": "Or browse public groups to find one to join",
+    "memberCount": "{count, plural, =1 {1 member} other {# members}}",
+    "createdBy": "Created by {name}",
+    "requestToJoin": "Request to Join",
+    "pending": "Request Pending",
+    "viewGroup": "View Leaderboard",
+    "viewLeaderboard": "View Leaderboard",
+    "readMore": "Read more",
+    "readLess": "Read less",
+    "loginToJoin": "Sign in to join this group",
+    "discoverGroups": "Discover Groups"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "pageInfo": "Page {current} of {total}"
   }
 }

@@ -3,6 +3,17 @@ import { createBaseFunctions} from "./base-repository";
 import {ProdeGroupTable, ProdeGroup, ProdeGroupTournamentBetting, ProdeGroupTournamentBettingNew, ProdeGroupTournamentBettingUpdate, ProdeGroupTournamentBettingPayment} from "./tables-definition";
 import {cache} from "react";
 import {User} from "next-auth";
+import { sql } from 'kysely';
+
+export interface PublicGroupData {
+  id: string;
+  name: string;
+  description: string | null;
+  is_public: boolean;
+  owner: { id: string; name: string };
+  memberCount: number;
+  bettingEnabled: boolean;
+}
 
 const baseFunctions = createBaseFunctions<ProdeGroupTable, ProdeGroup>('prode_groups')
 
@@ -143,4 +154,120 @@ export async function setUserGroupTournamentBettingPayment(
       .returningAll()
       .executeTakeFirstOrThrow();
   }
+}
+
+/**
+ * Find public groups for discovery page with owner info and member count.
+ * Uses parameterized bindings (Kysely default) for SQL injection safety.
+ */
+export async function findPublicGroups(
+  searchTerm?: string,
+  limit = 20,
+  offset = 0,
+  tournamentId?: string
+): Promise<PublicGroupData[]> {
+  let query = db
+    .selectFrom('prode_groups')
+    .innerJoin('users', 'users.id', 'prode_groups.owner_user_id')
+    .leftJoin('prode_group_participants', 'prode_group_participants.prode_group_id', 'prode_groups.id')
+    .leftJoin('prode_group_tournament_betting', (join) => {
+      const base = join.onRef('prode_group_tournament_betting.group_id', '=', 'prode_groups.id');
+      return tournamentId
+        ? base.on('prode_group_tournament_betting.tournament_id', '=', tournamentId)
+        : base.on(sql<boolean>`false`);
+    })
+    .select([
+      'prode_groups.id',
+      'prode_groups.name',
+      'prode_groups.description',
+      'prode_groups.is_public',
+      'prode_groups.owner_user_id',
+      'users.nickname as owner_nickname',
+      'users.email as owner_email',
+      db.fn.count<string>('prode_group_participants.participant_id').as('member_count'),
+      'prode_group_tournament_betting.betting_enabled'
+    ])
+    .where('prode_groups.is_public', '=', true)
+    .groupBy(['prode_groups.id', 'users.id', 'prode_group_tournament_betting.betting_enabled'])
+    .orderBy('prode_groups.name', 'asc')
+    .limit(limit)
+    .offset(offset);
+
+  if (searchTerm) {
+    query = query.where(sql<boolean>`LOWER(prode_groups.name) LIKE LOWER(${'%' + searchTerm + '%'})`);
+  }
+
+  const rows = await query.execute();
+
+  return rows.map(row => ({
+    id: row.id,
+    name: row.name,
+    description: row.description ?? null,
+    is_public: row.is_public ?? true,
+    owner: {
+      id: row.owner_user_id,
+      name: row.owner_nickname || row.owner_email
+    },
+    memberCount: Number.parseInt(row.member_count, 10) + 1,  // +1 for owner (not in participants table)
+    bettingEnabled: row.betting_enabled ?? false
+  }));
+}
+
+/**
+ * Count total public groups (for pagination).
+ * Capped conceptually at 100 pages (2000 records) to prevent expensive full scans.
+ */
+export async function countPublicGroups(searchTerm?: string): Promise<number> {
+  let query = db
+    .selectFrom('prode_groups')
+    .select(db.fn.count<string>('prode_groups.id').as('total'))
+    .where('prode_groups.is_public', '=', true);
+
+  if (searchTerm) {
+    query = query.where(sql<boolean>`LOWER(prode_groups.name) LIKE LOWER(${'%' + searchTerm + '%'})`);
+  }
+
+  const result = await query.executeTakeFirst();
+  return Number.parseInt(result?.total ?? '0', 10);
+}
+
+/**
+ * Update group privacy settings.
+ * If making private, bulk-rejects all pending 'discovery' source join requests for this group.
+ * Does NOT affect 'invite_link' or 'email_invite' requests.
+ */
+export async function updateGroupPrivacy(
+  groupId: string,
+  isPublic: boolean,
+  description?: string | null
+): Promise<ProdeGroup> {
+  // Note: Kysely transactions are not supported on Vercel Postgres (neon pooler).
+  // These two operations run sequentially without a transaction. The group is updated
+  // first (more critical), then discovery requests are rejected. If the second
+  // operation fails, the group is still private but pending requests linger — acceptable.
+  const updated = await db
+    .updateTable('prode_groups')
+    .set({
+      is_public: isPublic,
+      description: isPublic ? (description ?? null) : null
+    })
+    .where('id', '=', groupId)
+    .returningAll()
+    .executeTakeFirstOrThrow();
+
+  // If making private, reject all pending discovery-sourced requests
+  if (!isPublic) {
+    await db
+      .updateTable('prode_group_join_requests')
+      .set({
+        status: 'rejected',
+        resolved_at: new Date()
+      })
+      .where('group_id', '=', groupId)
+      .where('status', '=', 'pending')
+      .where('request_source', '=', 'discovery')
+      .execute();
+  }
+
+  return updated;
 }

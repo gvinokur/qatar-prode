@@ -63,9 +63,9 @@ describe('TournamentGroupsList', () => {
     expect(screen.getByRole('button', { name: /Crear/i })).toBeInTheDocument();
   });
 
-  it('renders Join button', () => {
+  it('renders Discover Groups button', () => {
     renderWithTheme(<TournamentGroupsList groups={mockGroups} tournamentId={tournamentId} />);
-    expect(screen.getByRole('button', { name: /Unirse/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Descubrir/i })).toBeInTheDocument();
   });
 
   it('renders all group cards', () => {
@@ -74,8 +74,41 @@ describe('TournamentGroupsList', () => {
     expect(screen.getByText(/Test Group 2/)).toBeInTheDocument();
   });
 
-  it('shows empty state when no groups provided', () => {
+  it('shows empty state when no groups and no pending requests', () => {
     renderWithTheme(<TournamentGroupsList groups={[]} tournamentId={tournamentId} />);
+    expect(screen.getByText('No Groups Yet!')).toBeInTheDocument();
+  });
+
+  it('does not show empty state when pending requests exist without approved groups', () => {
+    const pendingRequests = [
+      {
+        id: 'request-1',
+        group_id: 'group-pending',
+        group_name: 'Pending Group',
+        status: 'pending' as const,
+        requested_at: new Date(),
+      }
+    ];
+    renderWithTheme(
+      <TournamentGroupsList groups={[]} tournamentId={tournamentId} pendingRequests={pendingRequests} />
+    );
+    expect(screen.queryByText('No Groups Yet!')).not.toBeInTheDocument();
+  });
+
+  it('shows empty state when no groups and only resolved (non-pending) requests exist', () => {
+    const resolvedRequests = [
+      {
+        id: 'request-1',
+        group_id: 'group-resolved',
+        group_name: 'Resolved Group',
+        status: 'approved' as const,
+        requested_at: new Date(),
+        resolved_at: new Date(),
+      }
+    ];
+    renderWithTheme(
+      <TournamentGroupsList groups={[]} tournamentId={tournamentId} pendingRequests={resolvedRequests} />
+    );
     expect(screen.getByText('No Groups Yet!')).toBeInTheDocument();
   });
 
@@ -91,15 +124,19 @@ describe('TournamentGroupsList', () => {
     });
   });
 
-  it('opens join dialog when Join button is clicked', async () => {
+  it('navigates to discover page when Discover Groups button is clicked', async () => {
+    const { useRouter } = await import('next/navigation');
+    const mockPush = vi.fn();
+    (useRouter as any).mockReturnValue({ push: mockPush });
+
     const user = userEvent.setup();
     renderWithTheme(<TournamentGroupsList groups={mockGroups} tournamentId={tournamentId} />);
 
-    const joinButton = screen.getByRole('button', { name: /Unirse/i });
-    await user.click(joinButton);
+    const discoverButton = screen.getByRole('button', { name: /Descubrir/i });
+    await user.click(discoverButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Unirse a un Grupo')).toBeInTheDocument();
+      expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('discover'));
     });
   });
 

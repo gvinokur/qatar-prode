@@ -11,7 +11,9 @@ import {
   updateProdeGroup,
   deleteParticipantFromGroup,
   updateParticipantAdminStatus,
-  findParticipantsInGroup
+  findParticipantsInGroup,
+  updateGroupPrivacy,
+  getGroupTournamentBettingConfig
 } from "../db/prode-group-repository";
 import {getLoggedInUser} from "./user-actions";
 import { findJoinRequestsByUser } from "../db/prode-group-join-request-repository";
@@ -178,6 +180,52 @@ export async function updateTheme(groupId: string, formData: any) {
   })
 }
 
+const privacySchema = z.object({
+  isPublic: z.boolean(),
+  description: z.string().max(500, 'Description must be 500 characters or less').optional()
+}).refine(
+  (data) => !data.isPublic || (data.description && data.description.trim().length > 0),
+  { message: 'Description is required for public groups', path: ['description'] }
+);
+
+/**
+ * Update group privacy settings (owner or admin only)
+ */
+export async function updateGroupPrivacyAction(
+  groupId: string,
+  isPublic: boolean,
+  description?: string
+): Promise<{ success: true } | { error: string }> {
+  const user = await getLoggedInUser();
+  if (!user) {
+    return { error: 'You must be logged in' };
+  }
+
+  const group = await findProdeGroupById(groupId);
+  if (!group) {
+    return { error: 'Group not found' };
+  }
+
+  // Check owner or admin access
+  const participants = await findParticipantsInGroup(groupId);
+  const isOwner = group.owner_user_id === user.id;
+  const participantRecord = participants.find(p => p.user_id === user.id);
+  const isAdmin = isOwner || !!participantRecord?.is_admin;
+
+  if (!isAdmin) {
+    return { error: 'Only group owner or admin can change privacy settings' };
+  }
+
+  const validation = privacySchema.safeParse({ isPublic, description });
+  if (!validation.success) {
+    const firstError = validation.error.errors[0];
+    return { error: firstError.message };
+  }
+
+  await updateGroupPrivacy(groupId, isPublic, description?.trim() || null);
+  return { success: true };
+}
+
 export async function leaveGroupAction(groupId: string) {
   const user = await getLoggedInUser();
   if (!user) {
@@ -260,8 +308,11 @@ export async function calculateTournamentGroupStats(
   const participants = await findParticipantsInGroup(groupId);
   const userIds = [group.owner_user_id, ...participants.map(p => p.user_id)];
 
-  // Get tournament scores for all users
-  const scores = await getUserScoresForTournament(userIds, tournamentId);
+  // Get tournament scores and betting config in parallel
+  const [scores, bettingConfig] = await Promise.all([
+    getUserScoresForTournament(userIds, tournamentId),
+    getGroupTournamentBettingConfig(groupId, tournamentId)
+  ]);
 
   // Sort by total points descending to get positions
   const sortedScores = [...scores].sort((a, b) => b.totalPoints - a.totalPoints);
@@ -284,6 +335,7 @@ export async function calculateTournamentGroupStats(
     userPoints: userScore?.totalPoints || 0,
     leaderName: leaderUser?.nickname || leaderUser?.email || 'Unknown',
     leaderPoints: leader.totalPoints,
-    themeColor: group.theme?.primary_color || null
+    themeColor: group.theme?.primary_color || null,
+    bettingEnabled: bettingConfig?.betting_enabled ?? false
   };
 }
