@@ -68,9 +68,9 @@ export async function generateJoinRequestNotificationEmail(
   groupName: string,
   requestedDate: string,
   groupUrl: string,
-  locale: Locale = 'es',
-  message?: string
+  options: { locale?: Locale; message?: string } = {}
 ) {
+  const { locale = 'es', message } = options;
   const t = await getTranslations({ locale, namespace: 'emails' });
 
   const subject = t('joinRequest.adminNotification.subject', { groupName });

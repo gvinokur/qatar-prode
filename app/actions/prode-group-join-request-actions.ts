@@ -99,8 +99,7 @@ export async function requestToJoinGroup(groupId: string, source: JoinRequestSou
       group.name,
       requestedDate,
       groupUrl,
-      adminLocale,
-      trimmedMessage
+      { locale: adminLocale, message: trimmedMessage }
     ).then(emailData => sendEmail(emailData));
 
     // Fire and forget - don't await

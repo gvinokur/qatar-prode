@@ -206,7 +206,7 @@ export default function PublicGroupsBrowser({
             fullWidth
             value={joinMessage}
             onChange={(e) => setJoinMessage(e.target.value)}
-            inputProps={{ maxLength: 300 }}
+            slotProps={{ htmlInput: { maxLength: 300 } }}
             helperText={`${joinMessage.length}/300`}
             sx={{ mt: 1 }}
           />

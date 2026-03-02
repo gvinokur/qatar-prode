@@ -222,8 +222,7 @@ describe('Prode Group Join Request Actions', () => {
         expect.any(String),
         expect.any(String),
         expect.any(String),
-        expect.any(String),
-        'Hello from the gym!'
+        expect.objectContaining({ message: 'Hello from the gym!' })
       );
     });
 
@@ -285,8 +284,7 @@ describe('Prode Group Join Request Actions', () => {
         expect.any(String),
         expect.any(String),
         expect.stringContaining('tournaments/tournament-1/friend-groups/group-1'),
-        expect.any(String),
-        undefined
+        expect.objectContaining({ locale: expect.any(String) })
       );
     });
 
@@ -305,8 +303,7 @@ describe('Prode Group Join Request Actions', () => {
         expect.any(String),
         expect.any(String),
         expect.stringContaining('friend-groups/group-1'),
-        expect.any(String),
-        undefined
+        expect.objectContaining({ locale: expect.any(String) })
       );
       expect(mockGenerateJoinRequestNotificationEmail).toHaveBeenCalledWith(
         expect.any(String),
@@ -315,8 +312,7 @@ describe('Prode Group Join Request Actions', () => {
         expect.any(String),
         expect.any(String),
         expect.not.stringContaining('tournaments'),
-        expect.any(String),
-        undefined
+        expect.objectContaining({ locale: expect.any(String) })
       );
     });
 

@@ -273,7 +273,7 @@ describe('email-templates', () => {
     it('should send to admin email and include group url', async () => {
       const result = await generateJoinRequestNotificationEmail(
         'admin@example.com', 'AdminUser', 'RequesterUser', 'My Group',
-        'Jan 15, 2026', 'https://example.com/groups/1?tab=admin', 'en'
+        'Jan 15, 2026', 'https://example.com/groups/1?tab=admin', { locale: 'en' }
       );
 
       expect(result.to).toBe('admin@example.com');
@@ -283,7 +283,7 @@ describe('email-templates', () => {
     it('should include admin name, requester name and group name directly in HTML', async () => {
       const result = await generateJoinRequestNotificationEmail(
         'admin@example.com', 'AdminUser', 'RequesterUser', 'My Group',
-        'Jan 15, 2026', 'https://example.com/groups/1?tab=admin', 'en'
+        'Jan 15, 2026', 'https://example.com/groups/1?tab=admin', { locale: 'en' }
       );
 
       expect(result.html).toContain('New Join Request');
@@ -292,7 +292,7 @@ describe('email-templates', () => {
     it('should include requestedOn translation text in HTML', async () => {
       const result = await generateJoinRequestNotificationEmail(
         'admin@example.com', 'AdminUser', 'RequesterUser', 'My Group',
-        'Jan 15, 2026', 'https://example.com/groups/1?tab=admin', 'en'
+        'Jan 15, 2026', 'https://example.com/groups/1?tab=admin', { locale: 'en' }
       );
 
       // requestedDate is passed as a translation param — mock returns raw key text
@@ -302,7 +302,7 @@ describe('email-templates', () => {
     it('should use Spanish translations when locale is es', async () => {
       const result = await generateJoinRequestNotificationEmail(
         'admin@example.com', 'AdminUser', 'RequesterUser', 'My Group',
-        '15 ene. 2026', 'https://example.com/groups/1?tab=admin', 'es'
+        '15 ene. 2026', 'https://example.com/groups/1?tab=admin', { locale: 'es' }
       );
 
       expect(result.html).toContain('Nueva Solicitud');
@@ -320,8 +320,8 @@ describe('email-templates', () => {
     it('should include personal message block when message is provided', async () => {
       const result = await generateJoinRequestNotificationEmail(
         'admin@example.com', 'AdminUser', 'RequesterUser', 'My Group',
-        'Jan 15, 2026', 'https://example.com/groups/1?tab=admin', 'en',
-        'Hey, I know you from the gym!'
+        'Jan 15, 2026', 'https://example.com/groups/1?tab=admin',
+        { locale: 'en', message: 'Hey, I know you from the gym!' }
       );
 
       expect(result.html).toContain('Hey, I know you from the gym!');
@@ -331,7 +331,7 @@ describe('email-templates', () => {
     it('should NOT include personal message block when message is undefined', async () => {
       const result = await generateJoinRequestNotificationEmail(
         'admin@example.com', 'AdminUser', 'RequesterUser', 'My Group',
-        'Jan 15, 2026', 'https://example.com/groups/1?tab=admin', 'en'
+        'Jan 15, 2026', 'https://example.com/groups/1?tab=admin', { locale: 'en' }
       );
 
       expect(result.html).not.toContain('Personal message from');
@@ -340,8 +340,8 @@ describe('email-templates', () => {
     it('should NOT include personal message block when message is empty string', async () => {
       const result = await generateJoinRequestNotificationEmail(
         'admin@example.com', 'AdminUser', 'RequesterUser', 'My Group',
-        'Jan 15, 2026', 'https://example.com/groups/1?tab=admin', 'en',
-        ''
+        'Jan 15, 2026', 'https://example.com/groups/1?tab=admin',
+        { locale: 'en', message: '' }
       );
 
       // Empty string is falsy — the conditional block should not render

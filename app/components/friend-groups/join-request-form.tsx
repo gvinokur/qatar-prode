@@ -129,7 +129,7 @@ export default function JoinRequestForm({ group, memberCount, locale, tournament
           fullWidth
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          inputProps={{ maxLength: 300 }}
+          slotProps={{ htmlInput: { maxLength: 300 } }}
           helperText={`${message.length}/300`}
           sx={{ mb: 3 }}
         />
