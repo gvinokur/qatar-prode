@@ -19,6 +19,8 @@ import {createDbGroup, deleteGroup} from "../../actions/prode-group-actions";
 import InviteFriendsDialog from "../invite-friends-dialog";
 import Link from "next/link";
 import { useLocale, useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import FriendGroupsSidebarEmptyState from "../friend-groups/FriendGroupsSidebarEmptyState";
 
 type Props = {
   userGroups: { id: string, name: string}[]
@@ -42,6 +44,7 @@ export default function FriendGroupsList({
   const t = useTranslations('groups');
   const theme = useTheme();
   const locale = useLocale();
+  const router = useRouter();
   const [expanded, setExpanded] = useState(false);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [openConfirmDeleteGroup, setOpenConfirmDeleteGroup] = useState<string | false>(false)
@@ -169,44 +172,52 @@ export default function FriendGroupsList({
           </List>
         </CardContent>
         </Collapse>
-        <CardActions sx={{
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: 1,
-          px: 2,
-          py: 1.5
-        }}>
-          <Button
-            onClick={() => setOpenCreateDialog(true)}
-            size="small"
-            fullWidth
-          >
-            {t('actions.create')}
-          </Button>
-          {tournamentId && (userGroups.length + participantGroups.length >= 1 || pendingRequests.length > 0) && (
+        {tournamentId && userGroups.length + participantGroups.length === 0 && pendingRequests.length === 0 ? (
+          <FriendGroupsSidebarEmptyState
+            onCreateGroup={() => setOpenCreateDialog(true)}
+            onDiscoverGroups={() => router.push(`/${locale}/tournaments/${tournamentId}/friend-groups/discover`)}
+            onLearnMore={() => router.push(`/${locale}/tournaments/${tournamentId}/friend-groups`)}
+          />
+        ) : (
+          <CardActions sx={{
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 1,
+            px: 2,
+            py: 1.5
+          }}>
             <Button
-              component={Link}
-              href={`/${locale}/tournaments/${tournamentId}/friend-groups`}
-              startIcon={<GroupsIcon />}
+              onClick={() => setOpenCreateDialog(true)}
               size="small"
               fullWidth
             >
-              {t('actions.view')}
+              {t('actions.create')}
             </Button>
-          )}
-          {tournamentId && userGroups.length + participantGroups.length === 0 && pendingRequests.length === 0 && (
-            <Button
-              component={Link}
-              href={`/${locale}/tournaments/${tournamentId}/friend-groups/discover`}
-              startIcon={<SearchIcon />}
-              size="small"
-              fullWidth
-            >
-              {t('discovery.discoverGroups')}
-            </Button>
-          )}
-        </CardActions>
+            {tournamentId && (userGroups.length + participantGroups.length >= 1 || pendingRequests.length > 0) && (
+              <Button
+                component={Link}
+                href={`/${locale}/tournaments/${tournamentId}/friend-groups`}
+                startIcon={<GroupsIcon />}
+                size="small"
+                fullWidth
+              >
+                {t('actions.view')}
+              </Button>
+            )}
+            {tournamentId && userGroups.length + participantGroups.length === 0 && pendingRequests.length === 0 && (
+              <Button
+                component={Link}
+                href={`/${locale}/tournaments/${tournamentId}/friend-groups/discover`}
+                startIcon={<SearchIcon />}
+                size="small"
+                fullWidth
+              >
+                {t('discovery.discoverGroups')}
+              </Button>
+            )}
+          </CardActions>
+        )}
       </Card>
       <Dialog open={openCreateDialog} onClose={handleCloseCreateDialog}
               slotProps={{

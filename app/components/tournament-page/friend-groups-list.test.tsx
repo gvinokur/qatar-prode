@@ -113,4 +113,66 @@ describe('FriendGroupsList', () => {
       expect(screen.getByText('Friend Group')).toBeInTheDocument()
     })
   })
+
+  describe('Empty State', () => {
+    const emptyProps = {
+      userGroups: [],
+      participantGroups: [],
+      tournamentId: 'test-tournament',
+      pendingRequests: [],
+    }
+
+    it('renders FriendGroupsSidebarEmptyState when no groups and no pending requests', () => {
+      renderWithTheme(<FriendGroupsList {...emptyProps} />)
+
+      // Check for sidebar empty state content
+      expect(screen.getByText('¡Compite con Amigos!')).toBeInTheDocument()
+      expect(screen.getByText(/Crea grupos privados o únete/)).toBeInTheDocument()
+    })
+
+    it('renders regular buttons when there are groups', () => {
+      renderWithTheme(<FriendGroupsList {...mockProps} />)
+
+      // Should NOT show empty state
+      expect(screen.queryByText('¡Compite con Amigos!')).not.toBeInTheDocument()
+
+      // Should show regular Create button
+      expect(screen.getByRole('button', { name: /Crear Grupo/i })).toBeInTheDocument()
+    })
+
+    it('renders regular buttons when there are pending requests', () => {
+      const propsWithPendingRequest = {
+        userGroups: [],
+        participantGroups: [],
+        tournamentId: 'test-tournament',
+        pendingRequests: [
+          { id: 'req-1', group_id: 'group-1', group_name: 'Pending Group' }
+        ],
+      }
+
+      renderWithTheme(<FriendGroupsList {...propsWithPendingRequest} />)
+
+      // Should NOT show empty state
+      expect(screen.queryByText('¡Compite con Amigos!')).not.toBeInTheDocument()
+
+      // Should show regular Create button
+      expect(screen.getByRole('button', { name: /Crear Grupo/i })).toBeInTheDocument()
+    })
+
+    it('does not render empty state when tournamentId is missing', () => {
+      const propsWithoutTournament = {
+        userGroups: [],
+        participantGroups: [],
+        pendingRequests: [],
+      }
+
+      renderWithTheme(<FriendGroupsList {...propsWithoutTournament} />)
+
+      // Should NOT show sidebar empty state (requires tournamentId)
+      expect(screen.queryByText('¡Compite con Amigos!')).not.toBeInTheDocument()
+
+      // Should show regular buttons
+      expect(screen.getByRole('button', { name: /Crear Grupo/i })).toBeInTheDocument()
+    })
+  })
 })

@@ -270,5 +270,160 @@
     "previous": "Anterior",
     "next": "Siguiente",
     "pageInfo": "Página {current} de {total}"
+  },
+  "emptyState": {
+    "sidebar": {
+      "headline": "¡Compite con Amigos!",
+      "description": "Crea grupos privados o únete a competencias públicas para seguir tus pronósticos contra otros.",
+      "benefits": {
+        "privateLeaderboards": "Tablas de posiciones privadas",
+        "braggingRights": "Compite por derechos de fanfarronear",
+        "trackProgress": "Seguimiento del progreso juntos"
+      },
+      "learnMore": "Aprende más sobre los grupos",
+      "actions": {
+        "createGroup": "Crear Grupo",
+        "discoverGroups": "Descubrir Grupos Públicos"
+      }
+    },
+    "landing": {
+      "hero": {
+        "headline": "Las Predicciones Son Mejores con Amigos",
+        "subtitle": "Crea grupos privados para tu grupo o descubre competencias públicas. Sigue predicciones, escala tablas de clasificación y gana derechos de fanfarronear.",
+        "actions": {
+          "createGroup": "Crea Tu Primer Grupo",
+          "discoverGroups": "Descubrir Grupos Públicos"
+        }
+      },
+      "features": {
+        "headline": "¿Por Qué Unirse o Crear un Grupo?",
+        "subtitle": "Todo lo que necesitas para competir y conectar",
+        "privateGroups": {
+          "title": "Grupos Privados",
+          "description": "Crea grupos solo por invitación para familia, amigos o compañeros de trabajo. Controla quién se une y manténlo exclusivo."
+        },
+        "publicCompetitions": {
+          "title": "Competencias Públicas",
+          "description": "Únete a grupos abiertos para competir con la comunidad global. Demuestra tus habilidades de predicción en un escenario más grande."
+        },
+        "liveLeaderboards": {
+          "title": "Tablas de Clasificación en Vivo",
+          "description": "Sigue las clasificaciones en tiempo real. Ve quién está en la cima y dónde te encuentras después de cada partido."
+        },
+        "groupChat": {
+          "title": "Chat del Grupo",
+          "description": "Habla mal, celebra victorias y discute predicciones con los miembros de tu grupo."
+        },
+        "customPrizes": {
+          "title": "Premios Personalizados",
+          "description": "Establece tus propias apuestas. ¿El ganador compra pizza? ¿El perdedor lava los platos? Tú decides qué está en juego."
+        },
+        "detailedStats": {
+          "title": "Estadísticas Detalladas",
+          "description": "Compara la precisión de las predicciones, ve tendencias y analiza quién es el verdadero campeón de predicciones."
+        }
+      },
+      "howItWorks": {
+        "headline": "Cómo Funciona",
+        "subtitle": "Elige tu camino y comienza en minutos",
+        "tabs": {
+          "create": "Crear un Grupo",
+          "joinPrivate": "Unirse a un Grupo Privado",
+          "joinPublic": "Unirse a un Grupo Público"
+        },
+        "createGroup": {
+          "step1": {
+            "title": "Crea Tu Grupo",
+            "description": "Haz clic en 'Crear Grupo', dale un nombre y elige si es privado o público.",
+            "tip": "Los grupos privados requieren un enlace de invitación. Los grupos públicos aparecen en el directorio para que cualquiera se una."
+          },
+          "step2": {
+            "title": "Comparte el Enlace de Invitación",
+            "description": "Comparte tu enlace de invitación único por texto, correo electrónico o redes sociales. Los amigos hacen clic en él para solicitar unirse.",
+            "tip": "Para grupos privados: Solo las personas con el enlace pueden solicitar acceso. Puedes revocar el enlace en cualquier momento."
+          },
+          "step3": {
+            "title": "Aprueba Miembros",
+            "description": "Recibirás notificaciones cuando la gente solicite unirse. Revisa y aprueba miembros para agregarlos al grupo.",
+            "tip": "Como administrador, eres responsable de gestionar la cola de aprobación. Los miembros no pueden unirse hasta que los apruebes."
+          },
+          "step4": {
+            "title": "Comienza a Competir",
+            "description": "Una vez que los miembros sean aprobados, todos hacen predicciones y la tabla de clasificación se actualiza automáticamente. ¡Que comiencen los juegos!",
+            "tip": "Continúa gestionando miembros, personalizando configuraciones y estableciendo premios del grupo."
+          }
+        },
+        "joinPrivate": {
+          "step1": {
+            "title": "Obtén un Enlace de Invitación",
+            "description": "Pídele al administrador del grupo que te envíe el enlace de invitación. Pueden encontrarlo en la configuración de su grupo.",
+            "tip": "Los grupos privados no aparecen en búsquedas públicas. Debes tener el enlace de invitación para solicitar acceso."
+          },
+          "step2": {
+            "title": "Solicitar Unirse",
+            "description": "Haz clic en el enlace de invitación, revisa los detalles del grupo y envía tu solicitud para unirte.",
+            "tip": "Verás el nombre del grupo, el número de miembros y la descripción antes de solicitar."
+          },
+          "step3": {
+            "title": "Espera la Aprobación",
+            "description": "El administrador del grupo revisará tu solicitud. Recibirás una notificación cuando te aprueben o rechacen.",
+            "tip": "Los tiempos de aprobación varían según el administrador. ¡Vuelve a revisar o espera la notificación!"
+          },
+          "step4": {
+            "title": "¡Estás Dentro!",
+            "description": "Una vez aprobado, eres parte del grupo. ¡Haz predicciones y ve cómo te comparas en la tabla de clasificación!",
+            "tip": "Tus predicciones existentes cuentan para la tabla de clasificación del grupo inmediatamente."
+          }
+        },
+        "joinPublic": {
+          "step1": {
+            "title": "Explora Grupos Públicos",
+            "description": "Haz clic en 'Descubrir Grupos Públicos' para ver todos los grupos abiertos. Filtra por tamaño, actividad o torneo.",
+            "tip": "¡Los grupos públicos aparecen en el directorio—no se necesita enlace de invitación! Ve conteos de miembros y descripciones."
+          },
+          "step2": {
+            "title": "Solicitar Unirse",
+            "description": "Haz clic en cualquier grupo para ver detalles y descripción. Cuando encuentres uno que te guste, envía tu solicitud para unirte.",
+            "tip": "¡Puedes solicitar unirte a tantos grupos como quieras—privados o públicos!"
+          },
+          "step3": {
+            "title": "Espera la Aprobación",
+            "description": "El administrador del grupo revisará tu solicitud. Recibirás una notificación cuando te aprueben.",
+            "tip": "Incluso los grupos públicos requieren aprobación para mantener la calidad del grupo y prevenir spam."
+          },
+          "step4": {
+            "title": "¡Comienza a Competir!",
+            "description": "Una vez aprobado, ¡estás dentro! Tus predicciones cuentan para la tabla de clasificación y puedes ver cómo te clasificas.",
+            "tip": "Tus predicciones existentes se incluyen inmediatamente en las clasificaciones del grupo."
+          }
+        }
+      },
+      "useCases": {
+        "headline": "Formas Populares de Usar Grupos",
+        "familyFriends": {
+          "title": "Familia y Amigos",
+          "description": "Mantén el contacto a través de las distancias. Haz de cada partido una experiencia compartida con tus seres queridos."
+        },
+        "officeCompetitions": {
+          "title": "Competencias de Oficina",
+          "description": "Aumenta la moral del equipo con rivalidades amistosas en el lugar de trabajo. ¡El ganador se lleva el lugar de estacionamiento!"
+        },
+        "barFanClubs": {
+          "title": "Bares y Clubes de Aficionados",
+          "description": "Une a tus seguidores locales. Perfecto para bares deportivos o reuniones de clubes de fans."
+        },
+        "collegeDorms": {
+          "title": "Residencias Universitarias",
+          "description": "Reúne a tu piso o fraternidad. La temporada de torneos acaba de ponerse más interesante."
+        }
+      },
+      "finalCta": {
+        "headline": "¿Listo para Comenzar?",
+        "actions": {
+          "createGroup": "Crear un Grupo Privado",
+          "discoverGroups": "Explorar Grupos Públicos"
+        }
+      }
+    }
   }
 }

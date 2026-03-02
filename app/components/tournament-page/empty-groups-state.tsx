@@ -1,5 +1,11 @@
 'use client'
 
+/**
+ * @deprecated This component is deprecated and replaced by FriendGroupsLandingEmptyState.
+ * It will be removed after Story #238 is merged.
+ * Use FriendGroupsLandingEmptyState from app/components/friend-groups/FriendGroupsLandingEmptyState.tsx instead.
+ */
+
 import { Box, Typography, Button } from "../mui-wrappers/";
 import { Stack } from "@mui/material";
 import { Search as SearchIcon } from "@mui/icons-material";

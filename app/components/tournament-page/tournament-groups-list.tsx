@@ -15,6 +15,7 @@ import { Controller, useForm } from "react-hook-form";
 import type { TournamentGroupStats } from "../../definitions";
 import TournamentGroupCard from "./tournament-group-card";
 import EmptyGroupsState from "./empty-groups-state";
+import FriendGroupsLandingEmptyState from "../friend-groups/FriendGroupsLandingEmptyState";
 import { createDbGroup } from "../../actions/prode-group-actions";
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
@@ -80,7 +81,7 @@ export default function TournamentGroupsList({ groups, tournamentId, pendingRequ
       <>
         <Grid container maxWidth={'868px'} mt={1} mx={{ md: 'auto' }}>
           <Grid size={12}>
-            <EmptyGroupsState
+            <FriendGroupsLandingEmptyState
               onCreateGroup={() => setOpenCreateDialog(true)}
               onDiscoverGroups={handleDiscoverGroups}
             />
