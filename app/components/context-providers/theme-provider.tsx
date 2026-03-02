@@ -1,10 +1,9 @@
 'use client'
 
-import {createTheme} from "@mui/material/styles";
+import {createTheme, PaletteMode} from "@mui/material/styles";
 import {ThemeProvider} from "@mui/material";
 import {useTheme } from 'next-themes'
 import {useEffect, useState} from "react";
-import {useThemeVariant} from './theme-variant-provider'
 
 export type ThemeMode = 'light' | 'dark'
 
@@ -15,279 +14,105 @@ export default function AppThemeProvider(
     children: React.ReactNode
   }) {
   const { resolvedTheme: themeMode } = useTheme()
-  const { variant } = useThemeVariant()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  // Theme definitions for all 3 variants
-  const themeDefinitions = {
-    violet: {
-      dark: {
-        mode: 'dark',
-        primary: {
-          main: '#8b5cf6',      // Vibrant violet (for buttons/CTAs)
-          light: '#a78bfa',
-          dark: '#7c3aed',
-          contrastText: '#ffffff'
-        },
-        secondary: {
-          main: '#f87171',      // Coral accent
-          light: '#fca5a5',
-          dark: '#dc2626',
-        },
-        accent: {
-          gold: {
-            main: '#fbbf24',
-            light: '#fcd34d',
-            dark: '#f59e0b',
-            contrastText: '#000000'
-          },
-          silver: {
-            main: '#B0B0B0',
-            light: '#D0D0D0',
-            dark: '#909090',
-            contrastText: '#000000'
-          }
-        },
-        background: {
-          default: '#0a0a0a',    // Neutral dark (not purple tinted)
-          paper: '#1a1a1a',      // Neutral dark gray
-        },
-        text: {
-          primary: '#e5e7eb',    // Neutral light gray
-          secondary: '#9ca3af',  // Neutral medium gray
-        },
-        divider: 'rgba(255, 255, 255, 0.08)'  // Neutral divider
-      },
-      light: {
-        mode: 'light',
-        primary: {
-          main: '#7c3aed',
-          light: '#a855f7',
-          dark: '#6b21a8',
-          contrastText: '#ffffff'
-        },
-        secondary: {
-          main: '#f87171',
-          light: '#fca5a5',
-          dark: '#dc2626',
-        },
-        accent: {
-          gold: {
-            main: '#f59e0b',
-            light: '#fbbf24',
-            dark: '#d97706',
-            contrastText: '#000000'
-          },
-          silver: {
-            main: '#9ca3af',
-            light: '#d1d5db',
-            dark: '#6b7280',
-            contrastText: '#000000'
-          }
-        },
-        background: {
-          default: '#f5f3ff',
-          paper: '#ffffff',
-        },
-        text: {
-          primary: '#2e1065',
-          secondary: '#7c3aed',
-        },
-        divider: 'rgba(124, 58, 237, 0.12)'
-      }
-    },
-    rose: {
-      dark: {
-        mode: 'dark',
-        primary: {
-          main: '#f43f5e',      // Rose red (for buttons/CTAs)
-          light: '#fb7185',
-          dark: '#e11d48',
-          contrastText: '#ffffff'
-        },
-        secondary: {
-          main: '#fbbf24',      // Gold accent
-          light: '#fcd34d',
-          dark: '#f59e0b',
-        },
-        accent: {
-          gold: {
-            main: '#fbbf24',
-            light: '#fcd34d',
-            dark: '#f59e0b',
-            contrastText: '#000000'
-          },
-          silver: {
-            main: '#B0B0B0',
-            light: '#D0D0D0',
-            dark: '#909090',
-            contrastText: '#000000'
-          }
-        },
-        background: {
-          default: '#0a0a0a',    // Neutral dark (not red tinted)
-          paper: '#1a1a1a',      // Neutral dark gray
-        },
-        text: {
-          primary: '#e5e7eb',    // Neutral light gray
-          secondary: '#9ca3af',  // Neutral medium gray
-        },
-        divider: 'rgba(255, 255, 255, 0.08)'  // Neutral divider
-      },
-      light: {
-        mode: 'light',
-        primary: {
-          main: '#b91c1c',
-          light: '#dc2626',
-          dark: '#7f1d1d',
-          contrastText: '#ffffff'
-        },
-        secondary: {
-          main: '#78350f',      // Brown
-          light: '#92400e',
-          dark: '#451a03',
-        },
-        accent: {
-          gold: {
-            main: '#f59e0b',
-            light: '#fbbf24',
-            dark: '#d97706',
-            contrastText: '#000000'
-          },
-          silver: {
-            main: '#9ca3af',
-            light: '#d1d5db',
-            dark: '#6b7280',
-            contrastText: '#000000'
-          }
-        },
-        background: {
-          default: '#fef2f2',
-          paper: '#ffffff',
-        },
-        text: {
-          primary: '#450a0a',
-          secondary: '#991b1b',
-        },
-        divider: 'rgba(185, 28, 28, 0.12)'
-      }
-    },
-    olive: {
-      dark: {
-        mode: 'dark',
-        primary: {
-          main: '#84cc16',      // Lime green (for buttons/CTAs)
-          light: '#a3e635',
-          dark: '#65a30d',
-          contrastText: '#000000'
-        },
-        secondary: {
-          main: '#fb923c',      // Orange accent
-          light: '#fdba74',
-          dark: '#ea580c',
-        },
-        accent: {
-          gold: {
-            main: '#fbbf24',
-            light: '#fcd34d',
-            dark: '#f59e0b',
-            contrastText: '#000000'
-          },
-          silver: {
-            main: '#B0B0B0',
-            light: '#D0D0D0',
-            dark: '#909090',
-            contrastText: '#000000'
-          }
-        },
-        background: {
-          default: '#0a0a0a',    // Neutral dark (not green tinted)
-          paper: '#1a1a1a',      // Neutral dark gray
-        },
-        text: {
-          primary: '#e5e7eb',    // Neutral light gray
-          secondary: '#9ca3af',  // Neutral medium gray
-        },
-        divider: 'rgba(255, 255, 255, 0.08)'  // Neutral divider
-      },
-      light: {
-        mode: 'light',
-        primary: {
-          main: '#3f6212',
-          light: '#65a30d',
-          dark: '#1a2e05',
-          contrastText: '#ffffff'
-        },
-        secondary: {
-          main: '#ea580c',
-          light: '#fb923c',
-          dark: '#c2410c',
-        },
-        accent: {
-          gold: {
-            main: '#f59e0b',
-            light: '#fbbf24',
-            dark: '#d97706',
-            contrastText: '#000000'
-          },
-          silver: {
-            main: '#9ca3af',
-            light: '#d1d5db',
-            dark: '#6b7280',
-            contrastText: '#000000'
-          }
-        },
-        background: {
-          default: '#f7fee7',
-          paper: '#ffffff',
-        },
-        text: {
-          primary: '#1a2e05',
-          secondary: '#3f6212',
-        },
-        divider: 'rgba(63, 98, 18, 0.12)'
-      }
-    }
-  }
-
-  // Gradient definitions for CSS variables
-  const gradients = {
-    violet: {
-      dark: 'linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%)',
-      light: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)'
-    },
-    rose: {
-      dark: 'linear-gradient(135deg, #e11d48 0%, #f43f5e 100%)',
-      light: 'linear-gradient(135deg, #7f1d1d 0%, #b91c1c 100%)'
-    },
-    olive: {
-      dark: 'linear-gradient(135deg, #65a30d 0%, #84cc16 100%)',
-      light: 'linear-gradient(135deg, #3f6212 0%, #65a30d 100%)'
-    }
-  }
-
-  // Inject CSS gradient variable based on theme mode and variant
+  // Inject CSS gradient variable based on theme mode
   useEffect(() => {
-    if (mounted && themeMode && variant) {
-      const gradientValue = gradients[variant][themeMode as 'light' | 'dark']
+    if (mounted) {
+      const gradientValue = themeMode === 'light'
+        ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)'
+        : 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)';
       document.documentElement.style.setProperty('--gradient-primary', gradientValue);
-
-      // Also set a data attribute for variant-specific styling
-      document.documentElement.setAttribute('data-theme-variant', variant)
     }
-  }, [mounted, themeMode, variant])
+  }, [mounted, themeMode])
 
-  // Get the current theme configuration
-  const mode = (themeMode as 'light' | 'dark') || 'dark'
-  const themeConfig = themeDefinitions[variant][mode]
+  const lightTheme = {
+    mode: 'light' as PaletteMode,
+    primary: {
+      main: '#7c3aed',        // Violet
+      light: '#a855f7',
+      dark: '#6b21a8',
+      contrastText: '#ffffff'
+    },
+    secondary: {
+      main: '#f87171',        // Coral
+      light: '#fca5a5',
+      dark: '#dc2626',
+      contrastText: '#ffffff'
+    },
+    accent: {
+      gold: {
+        main: '#ffc107',      // Gold for awards (same as original)
+        light: '#ffd54f',
+        dark: '#ffa000',
+        contrastText: '#000000'
+      },
+      silver: {
+        main: '#C0C0C0',      // Silver for awards (same as original)
+        light: '#E0E0E0',
+        dark: '#A0A0A0',
+        contrastText: '#000000'
+      }
+    },
+    background: {
+      default: '#f5f3ff',     // Lavender tint
+      paper: '#ffffff',
+    },
+    text: {
+      primary: '#2e1065',     // Deep purple
+      secondary: '#7c3aed',   // Violet
+    },
+    divider: 'rgba(124, 58, 237, 0.12)'
+  }
+
+  const darkTheme = {
+    mode: 'dark' as PaletteMode,
+    primary: {
+      main: '#a78bfa',        // SOFTER violet (less eye strain)
+      light: '#c4b5fd',
+      dark: '#8b5cf6',
+      contrastText: '#ffffff'
+    },
+    secondary: {
+      main: '#f87171',        // Coral
+      light: '#fca5a5',
+      dark: '#dc2626',
+      contrastText: '#ffffff'
+    },
+    accent: {
+      gold: {
+        main: '#ffb300',      // Dimmed gold for dark mode
+        light: '#ffd54f',
+        dark: '#ff8f00',
+        contrastText: '#000000'
+      },
+      silver: {
+        main: '#B0B0B0',      // Dimmed silver for dark mode
+        light: '#D0D0D0',
+        dark: '#909090',
+        contrastText: '#000000'
+      }
+    },
+    background: {
+      default: '#0a0a0a',     // NEUTRAL black (not purple-tinted)
+      paper: '#1a1a1a',       // Neutral dark gray
+    },
+    text: {
+      primary: '#e5e7eb',     // Neutral light gray
+      secondary: '#9ca3af',   // Neutral medium gray
+    },
+    divider: 'rgba(255, 255, 255, 0.08)'
+  }
+
+  const themeToUse = themeMode === 'light' ? lightTheme : darkTheme
 
   const theme = createTheme({
     palette: {
-      ...themeConfig
+      ...themeToUse
     },
   });
 
