@@ -358,6 +358,8 @@ export default function AppThemeProvider({ children }: { children: React.ReactNo
 - Cast `themeMode` as `PaletteMode` when using it
 - Type the definitions object as `Record<ThemeVariant, Record<'light' | 'dark', any>>`
 
+**Verification:** This fix has been tested and confirmed working. Build passes with no TypeScript errors.
+
 **localStorage Key:**
 - **Key name**: `theme-variant` (consistent with existing `theme` key for light/dark mode)
 - **Values**: `'violet'` | `'rose'` | `'olive'`
