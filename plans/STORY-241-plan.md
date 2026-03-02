@@ -2,27 +2,29 @@
 
 ## Story Context
 
-**Problem**: The current app uses a single theme (violet/purple) that, while functional, limits user personalization and may not appeal to all users' aesthetic preferences. The current design doesn't allow users to:
-- Choose their preferred color scheme
-- Switch between different visual identities
-- Customize the app's appearance to match their personal taste
-- Experience alternative sophisticated, modern designs
+**Problem**: The current app theme, while functional, needs a fresh, modern, and exciting new look. The existing design could benefit from:
+- More sophisticated color palette
+- Better visual hierarchy with neutral backgrounds
+- Strategic use of accent colors
+- Modern, professional appearance
 
-**Solution**: Implement a comprehensive multi-theme system with 3 distinct, sophisticated color schemes that maintain the app's sports identity while offering users choice:
-1. **Royal Sports (Violet)** - Soft violet with coral accents (refined, sophisticated)
-2. **Refined Competition (Rose)** - Rose red with gold accents (passionate, competitive)
-3. **Classic Championship (Olive)** - Olive green with orange accents (traditional, championship)
-
-Each theme features:
+**Solution**: Replace the current theme with a new **Royal Sports (Violet)** theme that features:
+- Soft violet with coral accents (refined, sophisticated)
 - Neutral backgrounds (#0a0a0a dark mode) to avoid color overload
 - Primary colors reserved for CTAs and interactive elements only
-- Full light/dark mode support (6 total theme combinations)
-- Persistent user preferences via localStorage
-- Environment variable configuration for default theme
+- Full light/dark mode support
+- Strategic accent colors for better visual hierarchy
 
-**User Story**: As a user, I want to choose my preferred color scheme from multiple sophisticated options, so that I can personalize the app's appearance to match my taste while maintaining a professional, modern look.
+**Additional themes explored** (documented for future use):
+1. **Refined Competition (Rose)** - Rose red with gold accents (passionate, competitive)
+2. **Classic Championship (Olive)** - Olive green with orange accents (traditional, championship)
+3. **Original Theme** - Current production theme (preserved for reference)
 
-**Design Philosophy**: After exploring the implementation, we discovered that using colored/tinted backgrounds in dark mode created overwhelming visual noise. The final approach uses **neutral backgrounds** with **strategic accent colors** - primary colors only for buttons, links, and CTAs. This maintains sophistication and readability.
+**User Story**: As a user, I want to experience a fresh, modern, and sophisticated visual design that maintains the app's sports identity while being more visually appealing and professional.
+
+**Design Philosophy**: After exploration, we discovered that using colored/tinted backgrounds in dark mode created overwhelming visual noise. The new approach uses **neutral backgrounds** with **strategic accent colors** - primary colors only for buttons, links, and CTAs. This maintains sophistication and readability.
+
+**Approach Decision**: No theme switcher UI will be implemented. This keeps the codebase simple and reduces maintenance burden. The new Violet theme becomes the default. Alternative themes are documented for potential future use.
 
 **Design Mockups**: Complete visual prototypes created during exploration:
 - `mockups/final-three-themes-side-by-side.html` - All 3 themes in light/dark modes
@@ -32,12 +34,11 @@ Each theme features:
 ## Acceptance Criteria
 
 ### Core Functionality
-- ✅ Users can switch between 3 theme variants (Violet, Rose, Olive)
-- ✅ Theme preference persists across sessions (localStorage)
-- ✅ Theme switcher accessible from all pages
-- ✅ Each theme works in both light and dark modes
-- ✅ Default theme configurable via environment variable
+- ✅ Current theme documented before replacement
+- ✅ New Violet theme replaces current default theme
+- ✅ Theme works in both light and dark modes
 - ✅ No hydration mismatches or console errors
+- ✅ Alternative themes documented for future reference
 
 ### Theme Quality Standards
 - ✅ All themes use neutral backgrounds (#0a0a0a dark, variant-specific light)
@@ -47,114 +48,99 @@ Each theme features:
 - ✅ Gradients update based on theme variant
 
 ### UI/UX Requirements
-- ✅ Theme variant switcher uses palette icon in header
-- ✅ Menu shows all 3 options with icons and descriptions
-- ✅ Current theme visually indicated with checkmark
-- ✅ Switcher appears in both main header and tournament header
-- ✅ Translations for theme names (English + Spanish)
+- ✅ Visual design is cohesive and professional with new theme
+- ✅ Color contrast maintains accessibility standards
+- ✅ Existing dark/light mode toggle continues to work
+- ✅ No new UI components needed (no theme switcher)
 
 ### Technical Requirements
-- ✅ React Context API for theme variant state management
 - ✅ Material-UI theme system integration
-- ✅ next-themes compatibility for light/dark mode
+- ✅ next-themes compatibility for light/dark mode (existing)
 - ✅ CSS custom properties for gradients
-- ✅ Data attributes for variant-specific styling
-- ✅ TypeScript strict typing for theme variants
+- ✅ TypeScript strict typing with PaletteMode
+- ✅ Documentation file for theme variants
 
 ## Technical Approach
 
-### 1. Theme Management Architecture
+### 1. Theme Replacement Approach
 
-**Three-Layer Theme System:**
+**Simplified Architecture:**
 
 ```
 ┌─────────────────────────────────────┐
-│   next-themes (ThemeProvider)       │  ← Light/Dark mode toggle
+│   next-themes (ThemeProvider)       │  ← Light/Dark mode toggle (existing)
 │   - System preference detection     │
 │   - Mode persistence                │
 └─────────────────────────────────────┘
             ↓
 ┌─────────────────────────────────────┐
-│   ThemeVariantProvider (Context)    │  ← Variant selection (Violet/Rose/Olive)
-│   - Variant state management        │
-│   - localStorage persistence        │
-│   - Default from env variable       │
-└─────────────────────────────────────┘
-            ↓
-┌─────────────────────────────────────┐
-│   MUI ThemeProvider                 │  ← Combines mode + variant
+│   MUI ThemeProvider                 │  ← NEW Violet theme definition
 │   - Creates MUI theme object        │
-│   - Injects CSS variables           │
+│   - Supports light/dark modes       │
 │   - Provides theme to components    │
 └─────────────────────────────────────┘
 ```
 
-**Why this architecture:**
-- **Separation of concerns**: Light/dark mode separate from color scheme selection
-- **Backward compatible**: Existing `next-themes` integration unchanged
-- **Composable**: Each layer has a single responsibility
-- **Extensible**: Easy to add more theme variants
+**Why this approach:**
+- **Simple**: No new state management or UI components
+- **Maintainable**: Single theme to maintain, not multiple
+- **Flexible**: Can add theme switching later if needed
+- **Documented**: Alternative themes preserved for future use
 
-### 2. Component Implementation
+### 2. Documentation File Creation
 
-**New Components to Create:**
+**New Documentation File:**
 
-1. **`app/components/context-providers/theme-variant-provider.tsx`** (Client Component)
-   - Purpose: Manage theme variant state and persistence
-   - Responsibilities:
-     - Read default theme from `NEXT_PUBLIC_DEFAULT_THEME_VARIANT` env var
-     - Load user preference from localStorage on mount
-     - Provide `variant` and `setVariant` via React Context
-     - Save changes to localStorage when variant changes
-     - Prevent hydration mismatches (return children always, only gate localStorage)
-   - Exports:
-     - `ThemeVariant` type: `'violet' | 'rose' | 'olive'`
-     - `ThemeVariantProvider` component
-     - `useThemeVariant` hook
-
-2. **`app/components/header/theme-variant-switcher.tsx`** (Client Component)
-   - Purpose: UI for switching between theme variants
-   - Design:
-     - IconButton with Palette icon
-     - Material-UI Menu component
-     - 3 MenuItems (one per theme)
-     - Each item shows icon, name, description, and checkmark if active
-   - Features:
-     - Tooltips for accessibility
-     - Icons: 👑 (Violet), 🍷 (Rose), 🏆 (Olive)
-     - Translated labels using next-intl
-   - User interaction:
-     - Click palette icon → Menu opens
-     - Click theme option → Theme changes, menu closes
-     - Visual feedback: Current theme shows checkmark
+**`docs/theme-variants.md`**
+- Purpose: Document all explored theme options for future reference
+- Contents:
+  - **Original Theme** - Current production theme (colors, gradients, specifications)
+  - **Royal Sports (Violet)** - NEW DEFAULT (detailed specifications)
+  - **Refined Competition (Rose)** - Alternative option (full color palette)
+  - **Classic Championship (Olive)** - Alternative option (full color palette)
+- Includes:
+  - Color hex codes for all variants
+  - Light/dark mode specifications
+  - Gradient definitions
+  - Design philosophy notes
+  - Migration instructions if switching themes in future
 
 ### 3. Modifications to Existing Components
 
-**`app/components/context-providers/theme-provider.tsx`** (MAJOR UPDATE):
-- **Before**: Single theme definition with light/dark modes
-- **After**: 3 complete theme definitions, each with light/dark modes
+**`app/components/context-providers/theme-provider.tsx`** (UPDATE):
+- **Before**: Current theme definition with light/dark modes
+- **After**: New Violet theme definition with light/dark modes
+- **Backup**: Document current theme in `docs/theme-variants.md` before replacing
 
 **Changes:**
-1. Import `useThemeVariant` hook and `PaletteMode` type from MUI
-2. Define `themeDefinitions` object with all 3 themes (properly typed):
+1. Import `PaletteMode` type from '@mui/material/styles'
+2. **Document current theme** colors/config in `docs/theme-variants.md`
+3. Replace theme definition with new Violet theme:
    ```typescript
-   import { PaletteMode } from '@mui/material';
+   import { PaletteMode } from '@mui/material/styles';
 
-   const themeDefinitions: Record<ThemeVariant, Record<PaletteMode, any>> = {
-     violet: {
-       dark: { mode: 'dark' as PaletteMode, ...colors },
-       light: { mode: 'light' as PaletteMode, ...colors }
+   const themeDefinitions = {
+     dark: {
+       mode: 'dark' as PaletteMode,
+       primary: { main: '#8b5cf6', light: '#a78bfa', dark: '#7c3aed', contrastText: '#ffffff' },
+       secondary: { main: '#f87171', light: '#fca5a5', dark: '#dc2626' },
+       background: { default: '#0a0a0a', paper: '#1a1a1a' },
+       text: { primary: '#e5e7eb', secondary: '#9ca3af' },
+       divider: 'rgba(255, 255, 255, 0.08)'
      },
-     rose: { dark: {...}, light: {...} },
-     olive: { dark: {...}, light: {...} }
+     light: {
+       mode: 'light' as PaletteMode,
+       primary: { main: '#7c3aed', light: '#a855f7', dark: '#6b21a8', contrastText: '#ffffff' },
+       secondary: { main: '#f87171', light: '#fca5a5', dark: '#dc2626' },
+       background: { default: '#f5f3ff', paper: '#ffffff' },
+       text: { primary: '#2e1065', secondary: '#7c3aed' },
+       divider: 'rgba(124, 58, 237, 0.12)'
+     }
    }
    ```
-3. Define `gradients` object for CSS variable injection
-4. Add `useEffect` to inject gradient CSS variables based on variant + mode
-5. Add `useEffect` to set `data-theme-variant` attribute on document root
-6. Get current variant from `useThemeVariant()` hook
-7. Select theme config based on `variant` and `mode` (properly typed as PaletteMode)
-8. Create MUI theme with selected config
+4. Update gradient definition for Violet theme
+5. Select theme config based on light/dark `mode`
+6. Create MUI theme with selected config
 
 **Theme Color Specifications:**
 
@@ -175,135 +161,31 @@ Each theme features:
 
 **Critical Design Decision:** All dark modes use the same neutral background (#0a0a0a) and neutral text colors. This prevents color overload and maintains professionalism. Primary colors appear ONLY in interactive elements (buttons, links, CTAs).
 
-**`app/[locale]/layout.tsx`** (Root Layout):
-- Wrap `<ThemeProvider>` with `<ThemeVariantProvider>`
-- Import: `import { ThemeVariantProvider } from "../components/context-providers/theme-variant-provider"`
-- Structure:
-  ```tsx
-  <NextThemeProvider>
-    <ThemeVariantProvider>
-      <ThemeProvider>
-        <SessionWrapper>
-          {children}
-        </SessionWrapper>
-      </ThemeProvider>
-    </ThemeVariantProvider>
-  </NextThemeProvider>
-  ```
+**No layout changes needed** - theme provider already exists and will use new theme definition automatically.
 
-**`app/[locale]/tournaments/[id]/layout.tsx`** (Tournament Layout):
-- Import and add `<ThemeVariantSwitcher />` to user actions section
-- **Why needed**: Tournament pages use separate header, switcher must appear there too
-- Location: Lines 238-249, add before `<ThemeSwitcher />`
+### 4. No i18n Changes Needed
 
-**`app/components/header/header.tsx`** (Main Header):
-- Import and add `<ThemeVariantSwitcher />` to header actions
-- Place before existing `<ThemeSwitcher />`
+No translation changes required - no new UI components or user-facing text.
 
-### 4. Internationalization (i18n)
+### 5. No Environment Variable Changes Needed
 
-**Add to `locales/en/common.json`:**
-```json
-{
-  "theme": {
-    "switchTo": "Switch to {mode} mode",
-    "light": "light",
-    "dark": "dark",
-    "changeColorScheme": "Change color scheme",
-    "violet": "Royal Sports",
-    "rose": "Refined Competition",
-    "olive": "Classic Championship"
-  }
-}
-```
+No new environment variables required - the new Violet theme becomes the hardcoded default.
 
-**Add to `locales/es/common.json`:**
-```json
-{
-  "theme": {
-    "switchTo": "Cambiar a modo {mode}",
-    "light": "claro",
-    "dark": "oscuro",
-    "changeColorScheme": "Cambiar esquema de colores",
-    "violet": "Deportes Reales",
-    "rose": "Competición Refinada",
-    "olive": "Campeonato Clásico"
-  }
-}
-```
+### 6. CSS Custom Properties (Optional - if gradients used)
 
-**Translation Strategy:**
-- Theme names capture the personality of each variant
-- Violet = Royal/Sophisticated
-- Rose = Refined/Competitive
-- Olive = Classic/Championship
+**Gradient Definition for Violet:**
+- Gradient: `linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%)`
 
-### 5. Environment Configuration
+**If gradients are used in the app:**
+- Update the gradient CSS variable injection to use the new Violet gradient
+- No data attributes needed (single theme)
 
-**Add to `.env.example`:**
-```bash
-# Theme Configuration
-# Default theme variant for new users (options: 'violet', 'rose', 'olive')
-# Users can override this via the theme switcher - preference is saved in localStorage
-# Default: violet
-NEXT_PUBLIC_DEFAULT_THEME_VARIANT=violet
-```
+**If gradients are NOT used:**
+- Skip this step entirely
 
-**Add to `.env.local`:**
-```bash
-NEXT_PUBLIC_DEFAULT_THEME_VARIANT=violet
-```
+### 7. TypeScript Type Safety
 
-**Usage:**
-- Production: Set in Vercel environment variables
-- Development: Set in `.env.local`
-- User preference (localStorage) always overrides default
-- Fallback: If no env var and no localStorage, defaults to 'violet'
-
-### 6. CSS Custom Properties
-
-**Gradient Variables:**
-The theme provider injects CSS variables for gradients based on current variant:
-```typescript
-document.documentElement.style.setProperty('--gradient-primary', gradientValue)
-```
-
-**Gradient Definitions:**
-- Violet: `linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%)`
-- Rose: `linear-gradient(135deg, #e11d48 0%, #f43f5e 100%)`
-- Olive: `linear-gradient(135deg, #65a30d 0%, #84cc16 100%)`
-
-**Gradient Usage:**
-Gradients are currently used in the following components (existing implementation):
-- Hero sections and landing pages
-- Decorative backgrounds for feature cards
-- **NOT used for buttons** (solid colors only)
-- **NOT used for main backgrounds** (neutral colors for readability)
-
-**CSS Fallback:**
-Default gradient in CSS (for browsers without custom property support):
-```css
-.gradient-element {
-  background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%); /* Default violet */
-  background: var(--gradient-primary, linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%));
-}
-```
-
-**Data Attribute:**
-```typescript
-document.documentElement.setAttribute('data-theme-variant', variant)
-```
-
-Allows CSS targeting:
-```css
-[data-theme-variant="violet"] { ... }
-[data-theme-variant="rose"] { ... }
-[data-theme-variant="olive"] { ... }
-```
-
-### 7. Implementation Details & Clarifications
-
-**TypeScript Type Safety:**
+**Critical TypeScript Fix:**
 
 To avoid TypeScript errors with MUI's `PaletteMode`, ensure proper type imports and casting:
 
@@ -360,81 +242,23 @@ export default function AppThemeProvider({ children }: { children: React.ReactNo
 
 **Verification:** This fix has been tested and confirmed working. Build passes with no TypeScript errors.
 
-**localStorage Key:**
-- **Key name**: `theme-variant` (consistent with existing `theme` key for light/dark mode)
-- **Values**: `'violet'` | `'rose'` | `'olive'`
-- **Storage format**: Plain string (no JSON serialization needed)
+**No localStorage needed** - single theme, no user preference to save.
 
-**Environment Variable Validation:**
-```typescript
-// In ThemeVariantProvider
-const validVariants = ['violet', 'rose', 'olive'] as const;
-const defaultTheme = validVariants.includes(process.env.NEXT_PUBLIC_DEFAULT_THEME_VARIANT as ThemeVariant)
-  ? (process.env.NEXT_PUBLIC_DEFAULT_THEME_VARIANT as ThemeVariant)
-  : 'violet'; // Fallback to violet if invalid/missing
-```
+**No environment variables needed** - Violet theme is hardcoded as default.
 
-**Supported Locales:**
-- **Current**: English (en) and Spanish (es) only
-- **Translation files to update**:
-  - `locales/en/common.json`
-  - `locales/es/common.json`
-- **Future**: If additional locales are added, theme translations must be added to those files
-
-**Theme Provider Nesting (Current Structure):**
-Before implementation, verify current provider structure in `app/[locale]/layout.tsx`:
+**Theme Provider Structure (No Changes):**
+Existing structure in `app/[locale]/layout.tsx` remains unchanged:
 ```tsx
-// Current structure (to be verified):
 <NextThemeProvider>
-  <ThemeProvider>  {/* MUI ThemeProvider */}
+  <ThemeProvider>  {/* MUI ThemeProvider - will use new Violet theme */}
     <SessionWrapper>
       {children}
     </SessionWrapper>
   </ThemeProvider>
 </NextThemeProvider>
-
-// New structure (after implementation):
-<NextThemeProvider>
-  <ThemeVariantProvider>  {/* NEW - wraps MUI provider */}
-    <ThemeProvider>  {/* MUI ThemeProvider - now reads variant from context */}
-      <SessionWrapper>
-        {children}
-      </SessionWrapper>
-    </ThemeProvider>
-  </ThemeVariantProvider>
-</NextThemeProvider>
 ```
 
-**SSR/Hydration Mismatch Prevention:**
-```typescript
-// In ThemeVariantProvider
-export function ThemeVariantProvider({ children }: { children: ReactNode }) {
-  const [variant, setVariantState] = useState<ThemeVariant>(defaultTheme)
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-    const stored = localStorage.getItem('theme-variant') as ThemeVariant
-    if (stored && validVariants.includes(stored)) {
-      setVariantState(stored)
-    }
-  }, [])
-
-  const setVariant = (newVariant: ThemeVariant) => {
-    setVariantState(newVariant)
-    if (mounted) {
-      localStorage.setItem('theme-variant', newVariant)
-    }
-  }
-
-  // CRITICAL: Always return children (not null before mount)
-  // Only gate localStorage access with 'mounted' check
-  return (
-    <ThemeVariantContext.Provider value={{ variant, setVariant }}>
-      {children}
-    </ThemeVariantContext.Provider>
-  )
-}
+**No hydration concerns** - no dynamic theme loading, just static theme definition replacement.
 ```
 
 ## Visual Prototypes
