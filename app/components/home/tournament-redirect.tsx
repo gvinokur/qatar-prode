@@ -21,6 +21,9 @@ export default function TournamentRedirect({
   const locale = useLocale();
   const t = useTranslations('common');
 
+  // Check if this is an auth redirect (openSignin=true)
+  const isAuthRedirect = searchParams?.get('openSignin') === 'true';
+
   useEffect(() => {
     if (tournaments.length === 0) return;
 
@@ -46,6 +49,11 @@ export default function TournamentRedirect({
     // Redirect (using id, not slug - route is /tournaments/[id])
     router.push(redirectUrl);
   }, [tournaments, router, locale, searchParams]);
+
+  // Don't show UI during auth redirect (faster, avoids flash)
+  if (isAuthRedirect) {
+    return null;
+  }
 
   // Show centered loading indicator while redirecting
   return (
