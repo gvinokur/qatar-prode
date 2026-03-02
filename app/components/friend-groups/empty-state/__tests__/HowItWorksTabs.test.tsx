@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { screen, fireEvent } from '@testing-library/react';
 import HowItWorksTabs from '../HowItWorksTabs';
 import { renderWithProviders } from '@/__tests__/utils/test-utils';

@@ -2,7 +2,7 @@
 
 import { Box, Typography, Button, Stack } from "@mui/material";
 import { useTranslations } from 'next-intl';
-import ScrollShadowContainer from '../common/scroll-shadow-container';
+import { ScrollShadowContainer } from '../common/scroll-shadow-container';
 import FeatureCards from './empty-state/FeatureCards';
 import HowItWorksTabs from './empty-state/HowItWorksTabs';
 import UseCases from './empty-state/UseCases';

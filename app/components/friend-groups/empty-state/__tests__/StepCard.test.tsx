@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import StepCard from '../StepCard';
 import { renderWithTheme } from '@/__tests__/utils/test-utils';
 import CreateIcon from '@mui/icons-material/Create';

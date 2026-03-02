@@ -14,7 +14,6 @@ import {
 import { Controller, useForm } from "react-hook-form";
 import type { TournamentGroupStats } from "../../definitions";
 import TournamentGroupCard from "./tournament-group-card";
-import EmptyGroupsState from "./empty-groups-state";
 import FriendGroupsLandingEmptyState from "../friend-groups/FriendGroupsLandingEmptyState";
 import { createDbGroup } from "../../actions/prode-group-actions";
 import { useTranslations, useLocale } from 'next-intl';
