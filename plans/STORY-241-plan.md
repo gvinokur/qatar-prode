@@ -135,11 +135,16 @@ Each theme features:
 - **After**: 3 complete theme definitions, each with light/dark modes
 
 **Changes:**
-1. Import `useThemeVariant` hook
-2. Define `themeDefinitions` object with all 3 themes:
+1. Import `useThemeVariant` hook and `PaletteMode` type from MUI
+2. Define `themeDefinitions` object with all 3 themes (properly typed):
    ```typescript
-   const themeDefinitions = {
-     violet: { dark: {...}, light: {...} },
+   import { PaletteMode } from '@mui/material';
+
+   const themeDefinitions: Record<ThemeVariant, Record<PaletteMode, any>> = {
+     violet: {
+       dark: { mode: 'dark' as PaletteMode, ...colors },
+       light: { mode: 'light' as PaletteMode, ...colors }
+     },
      rose: { dark: {...}, light: {...} },
      olive: { dark: {...}, light: {...} }
    }
@@ -148,7 +153,7 @@ Each theme features:
 4. Add `useEffect` to inject gradient CSS variables based on variant + mode
 5. Add `useEffect` to set `data-theme-variant` attribute on document root
 6. Get current variant from `useThemeVariant()` hook
-7. Select theme config based on `variant` and `mode`
+7. Select theme config based on `variant` and `mode` (properly typed as PaletteMode)
 8. Create MUI theme with selected config
 
 **Theme Color Specifications:**
@@ -297,6 +302,61 @@ Allows CSS targeting:
 ```
 
 ### 7. Implementation Details & Clarifications
+
+**TypeScript Type Safety:**
+
+To avoid TypeScript errors with MUI's `PaletteMode`, ensure proper type imports and casting:
+
+```typescript
+'use client'
+
+import { createTheme, PaletteMode } from "@mui/material/styles";
+import { ThemeProvider } from "@mui/material";
+import { useTheme } from 'next-themes'
+import { useEffect, useState } from "react";
+import { useThemeVariant, ThemeVariant } from './theme-variant-provider'
+
+export default function AppThemeProvider({ children }: { children: React.ReactNode }) {
+  const { resolvedTheme: themeMode } = useTheme()
+  const { variant } = useThemeVariant()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
+
+  // Theme definitions with proper PaletteMode typing
+  const themeDefinitions: Record<ThemeVariant, Record<'light' | 'dark', any>> = {
+    violet: {
+      dark: {
+        mode: 'dark' as PaletteMode,  // ← Type assertion needed
+        primary: { main: '#8b5cf6', light: '#a78bfa', dark: '#7c3aed', contrastText: '#ffffff' },
+        // ... rest of colors
+      },
+      light: {
+        mode: 'light' as PaletteMode,  // ← Type assertion needed
+        primary: { main: '#7c3aed', light: '#a855f7', dark: '#6b21a8', contrastText: '#ffffff' },
+        // ... rest of colors
+      }
+    },
+    // ... rose and olive themes
+  }
+
+  // Get current theme config
+  const mode = (themeMode as PaletteMode) || 'dark'
+  const themeConfig = themeDefinitions[variant][mode]
+
+  const theme = createTheme({
+    palette: themeConfig  // Now properly typed
+  });
+
+  return mounted && <ThemeProvider theme={theme}>{children}</ThemeProvider>
+}
+```
+
+**Key TypeScript Points:**
+- Import `PaletteMode` from '@mui/material/styles'
+- Use type assertion `'dark' as PaletteMode` for mode properties
+- Cast `themeMode` as `PaletteMode` when using it
+- Type the definitions object as `Record<ThemeVariant, Record<'light' | 'dark', any>>`
 
 **localStorage Key:**
 - **Key name**: `theme-variant` (consistent with existing `theme` key for light/dark mode)
@@ -508,7 +568,9 @@ Since this involves significant UI changes (new color schemes across entire app)
    - Prevent hydration mismatches
 
 2. Update `app/components/context-providers/theme-provider.tsx`
-   - Define all 3 theme objects (violet, rose, olive)
+   - Import `PaletteMode` type from '@mui/material'
+   - Define all 3 theme objects (violet, rose, olive) with proper TypeScript types
+   - Cast `mode` properties as `PaletteMode` to avoid type errors
    - Implement dynamic theme selection based on variant
    - Add CSS variable injection for gradients
    - Add data attribute injection for variant
