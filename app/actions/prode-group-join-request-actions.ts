@@ -16,6 +16,7 @@ import { findProdeGroupById, findParticipantsInGroup } from '../db/prode-group-r
 import { findUsersByIds } from '../db/users-repository';
 import { JoinRequestSource } from '../db/tables-definition';
 import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
 import { sendEmail } from '../utils/email';
 import {
   generateJoinRequestNotificationEmail,
@@ -27,7 +28,12 @@ import { Locale } from '@/i18n.config';
 /**
  * Request to join a friend group
  */
-export async function requestToJoinGroup(groupId: string, source: JoinRequestSource = 'invite_link', locale: Locale = 'es', tournamentId?: string) {
+const messageSchema = z.string().max(300).optional().nullable();
+
+export async function requestToJoinGroup(groupId: string, source: JoinRequestSource = 'invite_link', locale: Locale = 'es', tournamentId?: string, message?: string) {
+  const parsedMessage = messageSchema.parse(message);
+  const trimmedMessage = parsedMessage?.trim() || undefined;
+
   const user = await getLoggedInUser();
   if (!user) {
     throw new Error('Should not call this action from a logged out page');
@@ -70,7 +76,7 @@ export async function requestToJoinGroup(groupId: string, source: JoinRequestSou
   }
 
   // Create the request
-  await createJoinRequest(groupId, user.id, source);
+  await createJoinRequest(groupId, user.id, source, trimmedMessage);
 
   // Send email notifications to all admins + owner (non-blocking, fire and forget)
   const adminParticipants = participants.filter(p => p.is_admin);
@@ -93,7 +99,8 @@ export async function requestToJoinGroup(groupId: string, source: JoinRequestSou
       group.name,
       requestedDate,
       groupUrl,
-      adminLocale
+      adminLocale,
+      trimmedMessage
     ).then(emailData => sendEmail(emailData));
 
     // Fire and forget - don't await

@@ -26,6 +26,7 @@ const mockTranslations = {
     'joinRequest.adminNotification.greeting': 'Hi {adminName},',
     'joinRequest.adminNotification.message': '{userName} wants to join {groupName}.',
     'joinRequest.adminNotification.requestedOn': 'Requested on: {date}',
+    'joinRequest.adminNotification.personalMessage': 'Personal message from {userName}:',
     'joinRequest.adminNotification.viewButton': 'View Request',
     'joinRequest.adminNotification.signature': 'Qatar Prode Team',
     'joinRequest.userApproved.subject': "You've been accepted to {groupName}!",
@@ -58,6 +59,7 @@ const mockTranslations = {
     'joinRequest.adminNotification.greeting': 'Hola {adminName},',
     'joinRequest.adminNotification.message': '{userName} quiere unirse a {groupName}.',
     'joinRequest.adminNotification.requestedOn': 'Solicitado el: {date}',
+    'joinRequest.adminNotification.personalMessage': 'Mensaje personal de {userName}:',
     'joinRequest.adminNotification.viewButton': 'Ver Solicitud',
     'joinRequest.adminNotification.signature': 'Equipo Qatar Prode',
     'joinRequest.userApproved.subject': '¡Fuiste aceptado en {groupName}!',
@@ -313,6 +315,37 @@ describe('email-templates', () => {
       );
 
       expect(result.html).toContain('Nueva Solicitud');
+    });
+
+    it('should include personal message block when message is provided', async () => {
+      const result = await generateJoinRequestNotificationEmail(
+        'admin@example.com', 'AdminUser', 'RequesterUser', 'My Group',
+        'Jan 15, 2026', 'https://example.com/groups/1?tab=admin', 'en',
+        'Hey, I know you from the gym!'
+      );
+
+      expect(result.html).toContain('Hey, I know you from the gym!');
+      expect(result.html).toContain('Personal message from {userName}:');
+    });
+
+    it('should NOT include personal message block when message is undefined', async () => {
+      const result = await generateJoinRequestNotificationEmail(
+        'admin@example.com', 'AdminUser', 'RequesterUser', 'My Group',
+        'Jan 15, 2026', 'https://example.com/groups/1?tab=admin', 'en'
+      );
+
+      expect(result.html).not.toContain('Personal message from');
+    });
+
+    it('should NOT include personal message block when message is empty string', async () => {
+      const result = await generateJoinRequestNotificationEmail(
+        'admin@example.com', 'AdminUser', 'RequesterUser', 'My Group',
+        'Jan 15, 2026', 'https://example.com/groups/1?tab=admin', 'en',
+        ''
+      );
+
+      // Empty string is falsy — the conditional block should not render
+      expect(result.html).not.toContain('Personal message from');
     });
   });
 

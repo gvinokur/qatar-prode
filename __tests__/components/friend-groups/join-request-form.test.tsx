@@ -56,6 +56,61 @@ describe('JoinRequestForm', () => {
       expect(screen.getByRole('button', { name: /Solicitar Unirse al Grupo/i })).toBeInTheDocument();
     });
 
+    it('renders the message textarea with placeholder text', () => {
+      renderWithTheme(<JoinRequestForm {...defaultProps} />);
+
+      expect(screen.getByPlaceholderText(/Cuéntale un poco sobre ti/i)).toBeInTheDocument();
+    });
+
+    it('shows character counter starting at 0/300', () => {
+      renderWithTheme(<JoinRequestForm {...defaultProps} />);
+
+      expect(screen.getByText('0/300')).toBeInTheDocument();
+    });
+
+    it('updates character counter when typing in textarea', async () => {
+      renderWithTheme(<JoinRequestForm {...defaultProps} />);
+
+      const textarea = screen.getByPlaceholderText(/Cuéntale un poco sobre ti/i);
+      fireEvent.change(textarea, { target: { value: 'Hola, soy tu amigo del gimnasio' } });
+
+      expect(screen.getByText('31/300')).toBeInTheDocument();
+    });
+
+    it('passes trimmed message to requestToJoinGroup on submit', async () => {
+      const { requestToJoinGroup } = await import('@/app/actions/prode-group-join-request-actions');
+      (requestToJoinGroup as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+
+      renderWithTheme(<JoinRequestForm {...defaultProps} />);
+
+      const textarea = screen.getByPlaceholderText(/Cuéntale un poco sobre ti/i);
+      fireEvent.change(textarea, { target: { value: 'Hola desde el gimnasio' } });
+
+      fireEvent.click(screen.getByRole('button', { name: /Solicitar Unirse al Grupo/i }));
+
+      await waitFor(() => {
+        expect(requestToJoinGroup).toHaveBeenCalledWith(
+          mockGroup.id, 'invite_link', 'es', undefined, 'Hola desde el gimnasio'
+        );
+      });
+    });
+
+    it('passes undefined to requestToJoinGroup when message textarea is empty', async () => {
+      const { requestToJoinGroup } = await import('@/app/actions/prode-group-join-request-actions');
+      (requestToJoinGroup as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+
+      renderWithTheme(<JoinRequestForm {...defaultProps} />);
+
+      // Do not type anything in the textarea
+      fireEvent.click(screen.getByRole('button', { name: /Solicitar Unirse al Grupo/i }));
+
+      await waitFor(() => {
+        expect(requestToJoinGroup).toHaveBeenCalledWith(
+          mockGroup.id, 'invite_link', 'es', undefined, undefined
+        );
+      });
+    });
+
     it('button is disabled while loading', async () => {
       const { requestToJoinGroup } = await import('@/app/actions/prode-group-join-request-actions');
       (requestToJoinGroup as ReturnType<typeof vi.fn>).mockImplementation(

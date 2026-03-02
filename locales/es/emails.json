@@ -37,6 +37,7 @@
       "greeting": "Hola {adminName},",
       "message": "{userName} ha solicitado unirse a tu grupo de amigos \"{groupName}\".",
       "requestedOn": "Solicitado el: {date}",
+      "personalMessage": "Mensaje personal de {userName}:",
       "viewButton": "Ver Solicitud",
       "signature": "El equipo de La Maquina Prode"
     },

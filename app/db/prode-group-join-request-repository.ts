@@ -12,7 +12,8 @@ import {
 export async function createJoinRequest(
   groupId: string,
   userId: string,
-  source: JoinRequestSource = 'invite_link'
+  source: JoinRequestSource = 'invite_link',
+  message?: string
 ): Promise<ProdeGroupJoinRequest> {
   return db
     .insertInto('prode_group_join_requests')
@@ -20,7 +21,8 @@ export async function createJoinRequest(
       group_id: groupId,
       user_id: userId,
       status: 'pending',
-      request_source: source
+      request_source: source,
+      message: message ?? null
     })
     .returningAll()
     .executeTakeFirstOrThrow();
@@ -44,6 +46,7 @@ export const findJoinRequestsByGroup = cache(
         'prode_group_join_requests.requested_at',
         'prode_group_join_requests.resolved_at',
         'prode_group_join_requests.resolved_by_user_id',
+        'prode_group_join_requests.message',
         'users.nickname as user_nickname',
         'users.email as user_email'
       ])

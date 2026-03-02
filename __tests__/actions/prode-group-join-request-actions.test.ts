@@ -185,7 +185,60 @@ describe('Prode Group Join Request Actions', () => {
     it('succeeds and creates the join request', async () => {
       const result = await requestToJoinGroup('group-1');
 
-      expect(mockCreateJoinRequest).toHaveBeenCalledWith('group-1', 'user-1', 'invite_link');
+      expect(mockCreateJoinRequest).toHaveBeenCalledWith('group-1', 'user-1', 'invite_link', undefined);
+      expect(result).toEqual({ success: true, message: 'Join request submitted successfully' });
+    });
+
+    it('passes message to createJoinRequest when provided', async () => {
+      await requestToJoinGroup('group-1', 'invite_link', 'es', undefined, 'Hey, I know you from the gym!');
+
+      expect(mockCreateJoinRequest).toHaveBeenCalledWith('group-1', 'user-1', 'invite_link', 'Hey, I know you from the gym!');
+    });
+
+    it('passes undefined to createJoinRequest when message is empty string', async () => {
+      await requestToJoinGroup('group-1', 'invite_link', 'es', undefined, '');
+
+      expect(mockCreateJoinRequest).toHaveBeenCalledWith('group-1', 'user-1', 'invite_link', undefined);
+    });
+
+    it('passes undefined to createJoinRequest when message is whitespace only', async () => {
+      await requestToJoinGroup('group-1', 'invite_link', 'es', undefined, '   ');
+
+      expect(mockCreateJoinRequest).toHaveBeenCalledWith('group-1', 'user-1', 'invite_link', undefined);
+    });
+
+    it('passes message to email notification when provided', async () => {
+      mockFindParticipantsInGroup.mockResolvedValue([] as any);
+      mockFindUsersByIds.mockResolvedValue([mockOwner] as any);
+
+      await requestToJoinGroup('group-1', 'invite_link', 'en', undefined, 'Hello from the gym!');
+
+      await vi.runAllTimersAsync().catch(() => {});
+
+      expect(mockGenerateJoinRequestNotificationEmail).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        expect.any(String),
+        expect.any(String),
+        expect.any(String),
+        expect.any(String),
+        expect.any(String),
+        'Hello from the gym!'
+      );
+    });
+
+    it('throws Zod error when message exceeds 300 characters', async () => {
+      const longMessage = 'a'.repeat(301);
+      await expect(
+        requestToJoinGroup('group-1', 'invite_link', 'es', undefined, longMessage)
+      ).rejects.toThrow();
+    });
+
+    it('accepts message of exactly 300 characters', async () => {
+      const exactMessage = 'a'.repeat(300);
+      const result = await requestToJoinGroup('group-1', 'invite_link', 'es', undefined, exactMessage);
+
+      expect(mockCreateJoinRequest).toHaveBeenCalledWith('group-1', 'user-1', 'invite_link', exactMessage);
       expect(result).toEqual({ success: true, message: 'Join request submitted successfully' });
     });
 
@@ -232,7 +285,8 @@ describe('Prode Group Join Request Actions', () => {
         expect.any(String),
         expect.any(String),
         expect.stringContaining('tournaments/tournament-1/friend-groups/group-1'),
-        expect.any(String)
+        expect.any(String),
+        undefined
       );
     });
 
@@ -251,7 +305,8 @@ describe('Prode Group Join Request Actions', () => {
         expect.any(String),
         expect.any(String),
         expect.stringContaining('friend-groups/group-1'),
-        expect.any(String)
+        expect.any(String),
+        undefined
       );
       expect(mockGenerateJoinRequestNotificationEmail).toHaveBeenCalledWith(
         expect.any(String),
@@ -260,7 +315,8 @@ describe('Prode Group Join Request Actions', () => {
         expect.any(String),
         expect.any(String),
         expect.not.stringContaining('tournaments'),
-        expect.any(String)
+        expect.any(String),
+        undefined
       );
     });
 

@@ -68,7 +68,8 @@ export async function generateJoinRequestNotificationEmail(
   groupName: string,
   requestedDate: string,
   groupUrl: string,
-  locale: Locale = 'es'
+  locale: Locale = 'es',
+  message?: string
 ) {
   const t = await getTranslations({ locale, namespace: 'emails' });
 
@@ -82,6 +83,7 @@ export async function generateJoinRequestNotificationEmail(
       <p style="color: #666; font-size: 14px;">
         ${t('joinRequest.adminNotification.requestedOn', { date: requestedDate })}
       </p>
+      ${message ? `<p style="color: #444; font-size: 14px; font-style: italic; border-left: 3px solid #1976d2; padding-left: 12px; margin: 16px 0;">${t('joinRequest.adminNotification.personalMessage', { userName: requesterName })}<br>&ldquo;${message}&rdquo;</p>` : ''}
       <p style="margin: 20px 0;">
         <a
           href="${groupUrl}"
