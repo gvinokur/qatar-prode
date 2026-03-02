@@ -62,7 +62,7 @@ export function getLastSelectedTournamentId(): string | null {
 }
 
 /**
- * Set the last selected tournament ID in localStorage
+ * Set the last selected tournament ID in localStorage and cookie
  * @param tournamentId - The tournament ID to store
  */
 export function setLastSelectedTournamentId(tournamentId: string): void {
@@ -71,7 +71,11 @@ export function setLastSelectedTournamentId(tournamentId: string): void {
   }
 
   try {
+    // Store in localStorage for client-side access
     localStorage.setItem('lastSelectedTournamentId', tournamentId)
+
+    // Also store in cookie for middleware access
+    document.cookie = `lastSelectedTournamentId=${tournamentId}; path=/; max-age=${365 * 24 * 60 * 60}; samesite=lax`
   } catch (error) {
     console.error('Error setting last selected tournament ID:', error)
   }

@@ -5,6 +5,7 @@ import { cookies } from 'next/headers';
 import { parseAcceptLanguage, matchLocale } from './app/utils/locale-detection';
 import { locales, defaultLocale } from './i18n.config';
 import type { Locale } from './i18n.config';
+import { getTournaments } from './app/actions/tournament-actions';
 
 // Helper function for custom locale detection
 async function detectLocale(request: NextRequest): Promise<Locale> {
@@ -55,6 +56,36 @@ async function detectLocale(request: NextRequest): Promise<Locale> {
 
   // 4. Fall back to default locale
   return defaultLocale;
+}
+
+// Helper function to get signin redirect URL (with tournament selection)
+async function getSigninRedirectUrl(locale: Locale, returnUrl: string): Promise<string> {
+  try {
+    // Get active tournaments
+    const tournaments = await getTournaments();
+
+    // If no tournaments, redirect to home
+    if (tournaments.length === 0) {
+      return `/${locale}?openSignin=true&returnUrl=${encodeURIComponent(returnUrl)}`;
+    }
+
+    // Check for last selected tournament from cookie
+    const cookieStore = await cookies();
+    const lastSelectedId = cookieStore.get('lastSelectedTournamentId')?.value;
+
+    // Find the tournament to redirect to
+    const selectedTournament = lastSelectedId
+      ? tournaments.find((t) => t.id === lastSelectedId)
+      : null;
+    const targetTournament = selectedTournament || tournaments[0];
+
+    // Redirect directly to tournament page with openSignin
+    return `/${locale}/tournaments/${targetTournament.id}?openSignin=true&returnUrl=${encodeURIComponent(returnUrl)}`;
+  } catch (error) {
+    // Fallback to home page if tournament query fails
+    console.error('Error getting tournaments for signin redirect:', error);
+    return `/${locale}?openSignin=true&returnUrl=${encodeURIComponent(returnUrl)}`;
+  }
 }
 
 // Create i18n middleware
@@ -139,11 +170,10 @@ export default async function middleware(request: NextRequest) {
     // Check authentication for protected routes
     const session = await auth();
     if (!session) {
-      // User not authenticated, redirect to signin
-      const signInUrl = new URL(`/${pathname.split('/')[1]}/`, request.url);
-      signInUrl.searchParams.set('openSignin', 'true');
-      signInUrl.searchParams.set('returnUrl', pathname);
-      return NextResponse.redirect(signInUrl);
+      // User not authenticated, redirect to signin (with smart tournament selection)
+      const locale = pathname.split('/')[1] as Locale;
+      const signinUrl = await getSigninRedirectUrl(locale, pathname);
+      return NextResponse.redirect(new URL(signinUrl, request.url));
     }
   }
 
