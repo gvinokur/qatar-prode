@@ -19,43 +19,60 @@ describe('FriendGroupsLandingEmptyState', () => {
     onDiscoverGroups: mockOnDiscoverGroups
   };
 
+  // Wrapper component to provide height context for the component
+  const TestWrapper = ({ children }: { children: React.ReactNode }) => (
+    <div style={{ height: '800px' }}>
+      {children}
+    </div>
+  );
+
+  const renderComponent = (props = defaultProps) => {
+    return renderWithProviders(
+      <TestWrapper>
+        <FriendGroupsLandingEmptyState {...props} />
+      </TestWrapper>
+    );
+  };
+
   afterEach(() => {
     vi.clearAllMocks();
   });
 
   describe('Hero Section', () => {
     it('renders the headline', () => {
-      renderWithProviders(<FriendGroupsLandingEmptyState {...defaultProps} />);
+      renderComponent();
 
       expect(screen.getByText('Las Predicciones Son Mejores con Amigos')).toBeInTheDocument();
     });
 
     it('renders the subtitle', () => {
-      renderWithProviders(<FriendGroupsLandingEmptyState {...defaultProps} />);
+      renderComponent();
 
       expect(screen.getByText(/Crea grupos privados para tu grupo/)).toBeInTheDocument();
     });
 
     it('renders both CTA buttons in hero', () => {
-      renderWithProviders(<FriendGroupsLandingEmptyState {...defaultProps} />);
+      renderComponent();
 
-      const createButtons = screen.getAllByRole('button', { name: /Create/i });
-      const discoverButtons = screen.getAllByRole('button', { name: /Discover/i });
+      // Hero buttons
+      expect(screen.getByRole('button', { name: /Crea Tu Primer Grupo/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Descubrir Grupos Públicos/i })).toBeInTheDocument();
 
-      expect(createButtons.length).toBeGreaterThanOrEqual(2);
-      expect(discoverButtons.length).toBeGreaterThanOrEqual(2);
+      // Final CTA buttons
+      expect(screen.getByRole('button', { name: /Crear un Grupo Privado/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Explorar Grupos Públicos/i })).toBeInTheDocument();
     });
   });
 
   describe('Features Section', () => {
     it('renders the features headline', () => {
-      renderWithProviders(<FriendGroupsLandingEmptyState {...defaultProps} />);
+      renderComponent();
 
       expect(screen.getByText('¿Por Qué Unirse o Crear un Grupo?')).toBeInTheDocument();
     });
 
     it('renders feature cards', () => {
-      renderWithProviders(<FriendGroupsLandingEmptyState {...defaultProps} />);
+      renderComponent();
 
       expect(screen.getByText('Grupos Privados')).toBeInTheDocument();
       expect(screen.getByText('Competencias Públicas')).toBeInTheDocument();
@@ -65,13 +82,13 @@ describe('FriendGroupsLandingEmptyState', () => {
 
   describe('How It Works Section', () => {
     it('renders the how it works headline', () => {
-      renderWithProviders(<FriendGroupsLandingEmptyState {...defaultProps} />);
+      renderComponent();
 
       expect(screen.getByText('Cómo Funciona')).toBeInTheDocument();
     });
 
     it('renders tab controls', () => {
-      renderWithProviders(<FriendGroupsLandingEmptyState {...defaultProps} />);
+      renderComponent();
 
       expect(screen.getByText('Crear un Grupo')).toBeInTheDocument();
       expect(screen.getByText('Unirse a un Grupo Privado')).toBeInTheDocument();
@@ -81,13 +98,13 @@ describe('FriendGroupsLandingEmptyState', () => {
 
   describe('Use Cases Section', () => {
     it('renders the use cases headline', () => {
-      renderWithProviders(<FriendGroupsLandingEmptyState {...defaultProps} />);
+      renderComponent();
 
       expect(screen.getByText('Formas Populares de Usar Grupos')).toBeInTheDocument();
     });
 
     it('renders use case cards', () => {
-      renderWithProviders(<FriendGroupsLandingEmptyState {...defaultProps} />);
+      renderComponent();
 
       expect(screen.getByText('Familia y Amigos')).toBeInTheDocument();
       expect(screen.getByText('Competencias de Oficina')).toBeInTheDocument();
@@ -98,13 +115,13 @@ describe('FriendGroupsLandingEmptyState', () => {
 
   describe('Final CTA Section', () => {
     it('renders the final CTA headline', () => {
-      renderWithProviders(<FriendGroupsLandingEmptyState {...defaultProps} />);
+      renderComponent();
 
       expect(screen.getByText('¿Listo para Comenzar?')).toBeInTheDocument();
     });
 
     it('renders final CTA buttons', () => {
-      renderWithProviders(<FriendGroupsLandingEmptyState {...defaultProps} />);
+      renderComponent();
 
       expect(screen.getByText(/Crear un Grupo Privado/)).toBeInTheDocument();
       expect(screen.getByText(/Explorar Grupos Públicos/)).toBeInTheDocument();
@@ -113,36 +130,36 @@ describe('FriendGroupsLandingEmptyState', () => {
 
   describe('Button Interactions', () => {
     it('calls onCreateGroup when hero Create button is clicked', () => {
-      renderWithProviders(<FriendGroupsLandingEmptyState {...defaultProps} />);
+      renderComponent();
 
-      const createButtons = screen.getAllByRole('button', { name: /Create/i });
-      fireEvent.click(createButtons[0]);
+      const createButton = screen.getByRole('button', { name: /Crea Tu Primer Grupo/i });
+      fireEvent.click(createButton);
 
       expect(mockOnCreateGroup).toHaveBeenCalled();
     });
 
     it('calls onDiscoverGroups when hero Discover button is clicked', () => {
-      renderWithProviders(<FriendGroupsLandingEmptyState {...defaultProps} />);
+      renderComponent();
 
-      const discoverButtons = screen.getAllByRole('button', { name: /Discover/i });
-      fireEvent.click(discoverButtons[0]);
+      const discoverButton = screen.getByRole('button', { name: /Descubrir Grupos Públicos/i });
+      fireEvent.click(discoverButton);
 
       expect(mockOnDiscoverGroups).toHaveBeenCalled();
     });
 
     it('calls onCreateGroup when final CTA Create button is clicked', () => {
-      renderWithProviders(<FriendGroupsLandingEmptyState {...defaultProps} />);
+      renderComponent();
 
-      const createButton = screen.getByRole('button', { name: /Create a Private Group/i });
+      const createButton = screen.getByRole('button', { name: /Crear un Grupo Privado/i });
       fireEvent.click(createButton);
 
       expect(mockOnCreateGroup).toHaveBeenCalled();
     });
 
     it('calls onDiscoverGroups when final CTA Discover button is clicked', () => {
-      renderWithProviders(<FriendGroupsLandingEmptyState {...defaultProps} />);
+      renderComponent();
 
-      const discoverButton = screen.getByRole('button', { name: /Browse Public Groups/i });
+      const discoverButton = screen.getByRole('button', { name: /Explorar Grupos Públicos/i });
       fireEvent.click(discoverButton);
 
       expect(mockOnDiscoverGroups).toHaveBeenCalled();
@@ -151,7 +168,7 @@ describe('FriendGroupsLandingEmptyState', () => {
 
   describe('Scrollable Content', () => {
     it('has a scrollable content area for features, how it works, use cases, and final CTA', () => {
-      const { container } = renderWithProviders(<FriendGroupsLandingEmptyState {...defaultProps} />);
+      const { container } = renderComponent();
 
       // Check that the scrollable content area exists
       const scrollableBox = container.querySelector('[style*="overflow"]');

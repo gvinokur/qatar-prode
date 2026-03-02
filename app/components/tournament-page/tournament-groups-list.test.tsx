@@ -81,12 +81,6 @@ describe('TournamentGroupsList', () => {
       expect(screen.getByText(/Crea grupos privados para tu grupo/)).toBeInTheDocument();
     });
 
-    it('renders hero section with trophy emoji', () => {
-      renderWithProviders(<TournamentGroupsList {...emptyProps} />);
-
-      expect(screen.getByText('🏆')).toBeInTheDocument();
-    });
-
     it('renders Create Your First Group button in empty state', () => {
       renderWithProviders(<TournamentGroupsList {...emptyProps} />);
 

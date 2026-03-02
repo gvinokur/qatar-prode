@@ -76,7 +76,8 @@ describe('TournamentGroupsList', () => {
 
   it('shows empty state when no groups and no pending requests', () => {
     renderWithTheme(<TournamentGroupsList groups={[]} tournamentId={tournamentId} />);
-    expect(screen.getByText('No Groups Yet!')).toBeInTheDocument();
+    // Check for landing page empty state headline
+    expect(screen.getByText('Las Predicciones Son Mejores con Amigos')).toBeInTheDocument();
   });
 
   it('does not show empty state when pending requests exist without approved groups', () => {
@@ -92,7 +93,8 @@ describe('TournamentGroupsList', () => {
     renderWithTheme(
       <TournamentGroupsList groups={[]} tournamentId={tournamentId} pendingRequests={pendingRequests} />
     );
-    expect(screen.queryByText('No Groups Yet!')).not.toBeInTheDocument();
+    // Should not show the landing page empty state
+    expect(screen.queryByText('Las Predicciones Son Mejores con Amigos')).not.toBeInTheDocument();
   });
 
   it('shows empty state when no groups and only resolved (non-pending) requests exist', () => {
@@ -109,7 +111,8 @@ describe('TournamentGroupsList', () => {
     renderWithTheme(
       <TournamentGroupsList groups={[]} tournamentId={tournamentId} pendingRequests={resolvedRequests} />
     );
-    expect(screen.getByText('No Groups Yet!')).toBeInTheDocument();
+    // Check for landing page empty state headline
+    expect(screen.getByText('Las Predicciones Son Mejores con Amigos')).toBeInTheDocument();
   });
 
   it('opens create dialog when Create button is clicked', async () => {
