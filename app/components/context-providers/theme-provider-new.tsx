@@ -28,13 +28,13 @@ export default function AppThemeProvider(
       dark: {
         mode: 'dark',
         primary: {
-          main: '#8b5cf6',      // Vibrant violet (for buttons/CTAs)
+          main: '#7c3aed',      // Soft violet
           light: '#a78bfa',
-          dark: '#7c3aed',
+          dark: '#6b21a8',
           contrastText: '#ffffff'
         },
         secondary: {
-          main: '#f87171',      // Coral accent
+          main: '#f87171',      // Coral-red
           light: '#fca5a5',
           dark: '#dc2626',
         },
@@ -53,14 +53,14 @@ export default function AppThemeProvider(
           }
         },
         background: {
-          default: '#0a0a0a',    // Neutral dark (not purple tinted)
-          paper: '#1a1a1a',      // Neutral dark gray
+          default: '#0f0a1a',
+          paper: '#1e1330',
         },
         text: {
-          primary: '#e5e7eb',    // Neutral light gray
-          secondary: '#9ca3af',  // Neutral medium gray
+          primary: '#faf5ff',
+          secondary: '#d8b4fe',
         },
-        divider: 'rgba(255, 255, 255, 0.08)'  // Neutral divider
+        divider: 'rgba(167, 139, 250, 0.12)'
       },
       light: {
         mode: 'light',
@@ -104,15 +104,15 @@ export default function AppThemeProvider(
       dark: {
         mode: 'dark',
         primary: {
-          main: '#f43f5e',      // Rose red (for buttons/CTAs)
-          light: '#fb7185',
-          dark: '#e11d48',
+          main: '#e11d48',      // Rose red
+          light: '#f43f5e',
+          dark: '#881337',
           contrastText: '#ffffff'
         },
         secondary: {
-          main: '#fbbf24',      // Gold accent
-          light: '#fcd34d',
-          dark: '#f59e0b',
+          main: '#fde68a',      // Cream-yellow
+          light: '#fef3c7',
+          dark: '#fbbf24',
         },
         accent: {
           gold: {
@@ -129,14 +129,14 @@ export default function AppThemeProvider(
           }
         },
         background: {
-          default: '#0a0a0a',    // Neutral dark (not red tinted)
-          paper: '#1a1a1a',      // Neutral dark gray
+          default: '#120808',
+          paper: '#1c0e0e',
         },
         text: {
-          primary: '#e5e7eb',    // Neutral light gray
-          secondary: '#9ca3af',  // Neutral medium gray
+          primary: '#fff1f2',
+          secondary: '#fecdd3',
         },
-        divider: 'rgba(255, 255, 255, 0.08)'  // Neutral divider
+        divider: 'rgba(251, 113, 133, 0.12)'
       },
       light: {
         mode: 'light',
@@ -180,15 +180,15 @@ export default function AppThemeProvider(
       dark: {
         mode: 'dark',
         primary: {
-          main: '#84cc16',      // Lime green (for buttons/CTAs)
-          light: '#a3e635',
-          dark: '#65a30d',
-          contrastText: '#000000'
+          main: '#65a30d',      // Olive green
+          light: '#84cc16',
+          dark: '#3f6212',
+          contrastText: '#ffffff'
         },
         secondary: {
-          main: '#fb923c',      // Orange accent
-          light: '#fdba74',
-          dark: '#ea580c',
+          main: '#ea580c',      // Orange
+          light: '#fb923c',
+          dark: '#c2410c',
         },
         accent: {
           gold: {
@@ -205,14 +205,14 @@ export default function AppThemeProvider(
           }
         },
         background: {
-          default: '#0a0a0a',    // Neutral dark (not green tinted)
-          paper: '#1a1a1a',      // Neutral dark gray
+          default: '#050a05',
+          paper: '#0d1a0d',
         },
         text: {
-          primary: '#e5e7eb',    // Neutral light gray
-          secondary: '#9ca3af',  // Neutral medium gray
+          primary: '#f7fee7',
+          secondary: '#d9f99d',
         },
-        divider: 'rgba(255, 255, 255, 0.08)'  // Neutral divider
+        divider: 'rgba(132, 204, 22, 0.12)'
       },
       light: {
         mode: 'light',
@@ -257,15 +257,15 @@ export default function AppThemeProvider(
   // Gradient definitions for CSS variables
   const gradients = {
     violet: {
-      dark: 'linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%)',
+      dark: 'linear-gradient(135deg, #6b21a8 0%, #a78bfa 100%)',
       light: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)'
     },
     rose: {
-      dark: 'linear-gradient(135deg, #e11d48 0%, #f43f5e 100%)',
+      dark: 'linear-gradient(135deg, #881337 0%, #e11d48 100%)',
       light: 'linear-gradient(135deg, #7f1d1d 0%, #b91c1c 100%)'
     },
     olive: {
-      dark: 'linear-gradient(135deg, #65a30d 0%, #84cc16 100%)',
+      dark: 'linear-gradient(135deg, #3f6212 0%, #65a30d 100%)',
       light: 'linear-gradient(135deg, #3f6212 0%, #65a30d 100%)'
     }
   }

@@ -21,6 +21,7 @@ import { redirect, notFound } from 'next/navigation';
 import { DevTournamentBadge } from '../../../components/common/dev-tournament-badge';
 import TournamentBottomNavWrapper from '../../../components/tournament-bottom-nav/tournament-bottom-nav-wrapper';
 import ThemeSwitcher from '../../../components/header/theme-switcher';
+import ThemeVariantSwitcher from '../../../components/header/theme-variant-switcher';
 import LanguageSwitcher from '../../../components/header/language-switcher';
 import UserActions from '../../../components/header/user-actions';
 import TournamentSidebar from '../../../components/tournament-page/tournament-sidebar';
@@ -243,6 +244,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
               gap: 0.5,
               flexShrink: 0
             }}>
+              <ThemeVariantSwitcher />
               <ThemeSwitcher />
               <LanguageSwitcher />
               <UserActions user={user} />

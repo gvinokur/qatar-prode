@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prode Mundial - Your UI with Different Themes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            max-width: 1200px;
+            margin: 0 auto 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #e57373 0%, #ef9a9a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #a0a0a0;
+            font-size: 1.1rem;
+        }
+
+        .theme-selector {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: #1a1a1a;
+            border-radius: 12px;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .theme-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .theme-btn {
+            padding: 12px 24px;
+            border: 2px solid #333;
+            background: transparent;
+            color: #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .theme-btn:hover {
+            border-color: #555;
+            background: #242424;
+        }
+
+        .theme-btn.active {
+            border-color: #e57373;
+            background: rgba(229, 115, 115, 0.1);
+            color: #e57373;
+        }
+
+        .preview-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            min-height: 800px;
+        }
+
+        .main-content {
+            background: var(--bg-default);
+            border-radius: 12px;
+            padding: 30px;
+            border: 2px solid var(--border-color);
+        }
+
+        .sidebar {
+            background: var(--bg-default);
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid var(--border-color);
+        }
+
+        /* Progress Section */
+        .progress-section {
+            margin-bottom: 30px;
+        }
+
+        .progress-item {
+            background: var(--bg-paper);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .progress-label {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .progress-badges {
+            display: flex;
+            gap: 8px;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .badge-silver {
+            background: #C0C0C0;
+            color: #000;
+        }
+
+        .badge-gold {
+            background: var(--accent-gold);
+            color: #000;
+        }
+
+        .badge-check {
+            background: #22c55e;
+            color: white;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--gradient-primary);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        /* Filter Section */
+        .filters {
+            margin-bottom: 25px;
+        }
+
+        .filter-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .filter-select {
+            flex: 1;
+            padding: 12px;
+            background: var(--bg-paper);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        /* Button */
+        .scroll-button {
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            border: 2px solid var(--primary-main);
+            color: var(--primary-main);
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            margin-bottom: 25px;
+        }
+
+        .scroll-button:hover {
+            background: var(--primary-main);
+            color: white;
+        }
+
+        /* Match Card */
+        .match-card {
+            background: var(--bg-paper);
+            border: 2px solid var(--border-highlight);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .match-date {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .match-date-link {
+            color: var(--primary-main);
+            text-decoration: underline;
+            margin-left: 5px;
+            cursor: pointer;
+        }
+
+        .match-status {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .match-teams {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .team {
+            text-align: center;
+        }
+
+        .team-flag {
+            font-size: 48px;
+            margin-bottom: 8px;
+        }
+
+        .team-name {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .vs {
+            color: var(--text-secondary);
+            font-weight: 500;
+            opacity: 0.6;
+        }
+
+        .match-venue {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Sidebar Sections */
+        .sidebar-section {
+            background: var(--bg-paper);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .section-title {
+            color: var(--primary-main);
+            font-weight: 600;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .expand-icon {
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .group-nav {
+            display: flex;
+            gap: 15px;
+        }
+
+        .group-nav-btn {
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        .team-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .team-row:last-child {
+            border-bottom: none;
+        }
+
+        .team-position {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .position {
+            color: var(--text-secondary);
+            font-weight: 700;
+            min-width: 30px;
+        }
+
+        .team-code {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .team-points {
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .sidebar-link {
+            display: block;
+            text-align: center;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            color: var(--primary-main);
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* Current Theme */
+        .theme-current {
+            --bg-default: #1a1a1a;
+            --bg-paper: #242424;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --primary-main: #e57373;
+            --border-color: #333;
+            --border-highlight: #444;
+            --accent-gold: #ffb300;
+            --gradient-primary: linear-gradient(135deg, #d32f2f 0%, #e57373 100%);
+            font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
+        }
+
+        /* Modern Sports */
+        .theme-modern-sports {
+            --bg-default: #0f1419;
+            --bg-paper: #1a202e;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --primary-main: #f97316;
+            --border-color: #2d3748;
+            --border-highlight: #f97316;
+            --accent-gold: #fbbf24;
+            --gradient-primary: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+            font-family: 'Inter', -apple-system, sans-serif;
+        }
+
+        /* Sophisticated Tech */
+        .theme-sophisticated {
+            --bg-default: #0a0e1a;
+            --bg-paper: #0f172a;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --primary-main: #06b6d4;
+            --border-color: #1e293b;
+            --border-highlight: #06b6d4;
+            --accent-gold: #fbbf24;
+            --gradient-primary: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+            font-family: 'DM Sans', -apple-system, sans-serif;
+        }
+
+        /* Electric Contrast */
+        .theme-electric {
+            --bg-default: #000000;
+            --bg-paper: #0a0a0a;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --primary-main: #60a5fa;
+            --border-color: #1a1a1a;
+            --border-highlight: #60a5fa;
+            --accent-gold: #fbbf24;
+            --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+            font-family: 'Space Grotesk', -apple-system, sans-serif;
+        }
+
+        /* Evolved Sports */
+        .theme-evolved {
+            --bg-default: #0d0d0d;
+            --bg-paper: #1a1a1a;
+            --text-primary: #fafafa;
+            --text-secondary: #a3a3a3;
+            --primary-main: #f97316;
+            --border-color: #2a2a2a;
+            --border-highlight: #dc2626;
+            --accent-gold: #fbbf24;
+            --gradient-primary: linear-gradient(135deg, #dc2626 0%, #f97316 100%);
+            font-family: 'Manrope', -apple-system, sans-serif;
+        }
+
+        @media (max-width: 1200px) {
+            .preview-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .info-box {
+            background: rgba(6, 182, 212, 0.1);
+            border: 2px solid rgba(6, 182, 212, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #06b6d4;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Your Actual UI - Theme Comparison</h1>
+        <p>See how your exact UI looks with each modern theme option</p>
+    </div>
+
+    <div class="theme-selector">
+        <div class="theme-buttons">
+            <button class="theme-btn active" data-theme="current">✅ Current</button>
+            <button class="theme-btn" data-theme="modern-sports">🔥 Modern Sports</button>
+            <button class="theme-btn" data-theme="sophisticated">💎 Sophisticated Tech</button>
+            <button class="theme-btn" data-theme="electric">⚡ Electric Contrast</button>
+            <button class="theme-btn" data-theme="evolved">🏆 Evolved Sports</button>
+        </div>
+    </div>
+
+    <div class="info-box">
+        Click the buttons above to instantly see your UI with different themes
+    </div>
+
+    <div class="preview-container theme-current" id="preview">
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Progress Section -->
+            <div class="progress-section">
+                <div class="progress-item">
+                    <div class="progress-header">
+                        <span class="progress-label">Partidos: 76/104</span>
+                        <div class="progress-badges">
+                            <span class="badge badge-silver">🥈 0/20</span>
+                            <span class="badge badge-gold">🥇 1/10</span>
+                            <span class="badge badge-check">✓</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: 73%"></div>
+                    </div>
+                </div>
+
+                <div class="progress-item">
+                    <div class="progress-header">
+                        <span class="progress-label">Torneo: 39/39</span>
+                        <div class="progress-badges">
+                            <span class="badge badge-check">✓</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters">
+                <label class="filter-label">Filtro</label>
+                <div class="filter-row">
+                    <select class="filter-select">
+                        <option>Playoffs (32)</option>
+                    </select>
+                    <select class="filter-select">
+                        <option>Ronda</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Scroll to Next Button -->
+            <button class="scroll-button">
+                <span>⬇️</span>
+                <span>IR AL PROXIMO PARTIDO</span>
+            </button>
+
+            <!-- Match Cards -->
+            <div class="match-card">
+                <div class="match-header">
+                    <div>
+                        <span class="match-date">28 jun 12:00 (Tu Horario)</span>
+                        <span class="match-date-link">Ver horario local</span>
+                    </div>
+                </div>
+                <div class="match-status">Cierra en 117 días</div>
+                <div class="match-teams">
+                    <div class="team">
+                        <div class="team-flag">▶️</div>
+                        <div class="team-name">UEFA Playoff D</div>
+                    </div>
+                    <div class="vs">vs</div>
+                    <div class="team">
+                        <div class="team-flag">🇨🇦</div>
+                        <div class="team-name">Canada</div>
+                    </div>
+                </div>
+                <div class="match-venue">SoFi Stadium (Los Angeles)</div>
+            </div>
+
+            <div class="match-card" style="border-color: var(--accent-gold);">
+                <div class="match-header">
+                    <div>
+                        <span class="match-date">29 jun 12:00 (Tu Horario)</span>
+                        <span class="match-date-link">Ver horario local</span>
+                    </div>
+                    <span class="badge badge-gold">🥇 3x</span>
+                </div>
+                <div class="match-status">Cierra en 118 días</div>
+                <div class="match-teams">
+                    <div class="team">
+                        <div class="team-flag">🇧🇷</div>
+                        <div class="team-name">Brazil</div>
+                    </div>
+                    <div class="vs">vs</div>
+                    <div class="team">
+                        <div class="team-flag">🇦🇷</div>
+                        <div class="team-name">Argentina</div>
+                    </div>
+                </div>
+                <div class="match-venue">MetLife Stadium (New York)</div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Groups Section -->
+            <div class="sidebar-section">
+                <div class="section-header">
+                    <span class="section-title">Grupos</span>
+                    <span class="expand-icon">▲</span>
+                </div>
+
+                <div class="group-header">
+                    <div class="group-nav">
+                        <span class="group-nav-btn">◀</span>
+                    </div>
+                    <span>GRUPO A</span>
+                    <div class="group-nav">
+                        <span class="group-nav-btn">▶</span>
+                    </div>
+                </div>
+
+                <div class="team-row">
+                    <div class="team-position">
+                        <span class="position">#1</span>
+                        <span class="team-code">KOR</span>
+                    </div>
+                    <span class="team-points">0 pts</span>
+                </div>
+
+                <div class="team-row">
+                    <div class="team-position">
+                        <span class="position">#1</span>
+                        <span class="team-code">RSA</span>
+                    </div>
+                    <span class="team-points">0 pts</span>
+                </div>
+
+                <div class="team-row">
+                    <div class="team-position">
+                        <span class="position">#1</span>
+                        <span class="team-code">MEX</span>
+                    </div>
+                    <span class="team-points">0 pts</span>
+                </div>
+
+                <div class="team-row">
+                    <div class="team-position">
+                        <span class="position">#1</span>
+                        <span class="team-code">PO-D</span>
+                    </div>
+                    <span class="team-points">0 pts</span>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <a class="sidebar-link">
+                        <span>📊</span>
+                        <span>VER RESULTADOS</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Statistics Section -->
+            <div class="sidebar-section">
+                <div class="section-header">
+                    <span class="section-title">Tus Estadísticas</span>
+                    <span class="expand-icon">▼</span>
+                </div>
+            </div>
+
+            <!-- Friend Groups Section -->
+            <div class="sidebar-section">
+                <div class="section-header">
+                    <span class="section-title">Grupos de Amigos</span>
+                    <span class="expand-icon">▼</span>
+                </div>
+
+                <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+                    <a class="sidebar-link" style="border: 2px solid var(--primary-main); border-radius: 8px; padding: 12px;">
+                        CREAR GRUPO
+                    </a>
+                    <a class="sidebar-link">
+                        <span>👥</span>
+                        <span>VER GRUPOS</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Rules Section -->
+            <div class="sidebar-section">
+                <div class="section-header">
+                    <span class="section-title">Reglas Generales</span>
+                    <span class="expand-icon">▼</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 50px; color: #a0a0a0; max-width: 800px; margin-left: auto; margin-right: auto; padding: 20px;">
+        <p>This mockup recreates your actual UI from the screenshots. Each theme option changes colors, gradients, backgrounds, and typography to give you a realistic preview of how each option would look in your app.</p>
+    </div>
+
+    <script>
+        const buttons = document.querySelectorAll('.theme-btn');
+        const preview = document.getElementById('preview');
+
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons
+                buttons.forEach(btn => btn.classList.remove('active'));
+
+                // Add active class to clicked button
+                button.classList.add('active');
+
+                // Change theme
+                const theme = button.getAttribute('data-theme');
+                preview.className = `preview-container theme-${theme}`;
+            });
+        });
+    </script>
+</body>
+</html>

@@ -3,6 +3,7 @@ import {getMessages, getTranslations} from 'next-intl/server';
 import {Metadata} from 'next';
 import SessionWrapper from "../components/session-wrapper";
 import ThemeProvider from "../components/context-providers/theme-provider";
+import { ThemeVariantProvider } from "../components/context-providers/theme-variant-provider";
 import NextThemeProvider from '../components/context-providers/next-theme-wrapper-provider';
 import InstallPwa from "../components/Install-pwa";
 import OfflineDetection from "../components/offline-detection";
@@ -92,17 +93,19 @@ export default async function LocaleLayout({
           <TimezoneProvider>
             <CountdownProvider>
               <NextThemeProvider defaultTheme={'system'} enableSystem={true}>
-                <ThemeProvider>
-                  <SessionWrapper>
-                    <ConditionalHeader>
-                      <Header user={user}/>
-                    </ConditionalHeader>
-                    {children}
-                    <Footer message={`${appName} © 2025`} />
-                    <InstallPwa />
-                    <OfflineDetection />
-                  </SessionWrapper>
-                </ThemeProvider>
+                <ThemeVariantProvider>
+                  <ThemeProvider>
+                    <SessionWrapper>
+                      <ConditionalHeader>
+                        <Header user={user}/>
+                      </ConditionalHeader>
+                      {children}
+                      <Footer message={`${appName} © 2025`} />
+                      <InstallPwa />
+                      <OfflineDetection />
+                    </SessionWrapper>
+                  </ThemeProvider>
+                </ThemeVariantProvider>
               </NextThemeProvider>
             </CountdownProvider>
           </TimezoneProvider>

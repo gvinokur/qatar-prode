@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prode Mundial - Theme Alternatives Comparison</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #e57373 0%, #ef9a9a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .intro {
+            text-align: center;
+            margin-bottom: 40px;
+            color: #a0a0a0;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .theme-card {
+            border: 2px solid #333;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #1a1a1a;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .theme-card:hover {
+            transform: translateY(-5px);
+            border-color: #555;
+        }
+
+        .theme-header {
+            padding: 20px;
+            border-bottom: 1px solid #333;
+        }
+
+        .theme-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .theme-description {
+            font-size: 0.9rem;
+            color: #a0a0a0;
+            line-height: 1.5;
+        }
+
+        .theme-preview {
+            padding: 30px 20px;
+            min-height: 600px;
+        }
+
+        /* Current Theme Styles */
+        .current-theme .theme-preview {
+            background: #1a1a1a;
+            font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
+        }
+
+        .current-theme .primary-color { background: linear-gradient(135deg, #d32f2f 0%, #e57373 100%); }
+        .current-theme .secondary-color { background: #5c93c4; }
+        .current-theme .accent-gold { background: #ffb300; color: #000; }
+        .current-theme .card-bg { background: #242424; }
+        .current-theme .text-primary { color: #e0e0e0; }
+        .current-theme .text-secondary { color: #a0a0a0; }
+        .current-theme .button-primary {
+            background: linear-gradient(135deg, #d32f2f 0%, #e57373 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+        .current-theme .button-outline {
+            background: transparent;
+            color: #e57373;
+            border: 1px solid #e57373;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        /* Modern Alternative 1: Deep Navy + Vibrant Orange */
+        .modern-1 .theme-preview {
+            background: #0f1419;
+            font-family: 'Inter', -apple-system, sans-serif;
+        }
+
+        .modern-1 .primary-color { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
+        .modern-1 .secondary-color { background: #f97316; }
+        .modern-1 .accent-gold { background: #fbbf24; color: #000; }
+        .modern-1 .card-bg { background: #1a202e; }
+        .modern-1 .text-primary { color: #f1f5f9; }
+        .modern-1 .text-secondary { color: #94a3b8; }
+        .modern-1 .button-primary {
+            background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            letter-spacing: 0.3px;
+        }
+        .modern-1 .button-outline {
+            background: transparent;
+            color: #f97316;
+            border: 2px solid #f97316;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Modern Alternative 2: Sophisticated Blue-Gray + Teal */
+        .modern-2 .theme-preview {
+            background: #0a0e1a;
+            font-family: 'DM Sans', -apple-system, sans-serif;
+        }
+
+        .modern-2 .primary-color { background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); }
+        .modern-2 .secondary-color { background: #475569; }
+        .modern-2 .accent-gold { background: #fbbf24; color: #000; }
+        .modern-2 .card-bg { background: #0f172a; }
+        .modern-2 .text-primary { color: #f8fafc; }
+        .modern-2 .text-secondary { color: #cbd5e1; }
+        .modern-2 .button-primary {
+            background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+        }
+        .modern-2 .button-outline {
+            background: transparent;
+            color: #06b6d4;
+            border: 2px solid #06b6d4;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        /* Modern Alternative 3: Pure Black + Electric Blue */
+        .modern-3 .theme-preview {
+            background: #000000;
+            font-family: 'Space Grotesk', -apple-system, sans-serif;
+        }
+
+        .modern-3 .primary-color { background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%); }
+        .modern-3 .secondary-color { background: #8b5cf6; }
+        .modern-3 .accent-gold { background: #fbbf24; color: #000; }
+        .modern-3 .card-bg { background: #0a0a0a; border: 1px solid #1a1a1a; }
+        .modern-3 .text-primary { color: #ffffff; }
+        .modern-3 .text-secondary { color: #a1a1aa; }
+        .modern-3 .button-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.85rem;
+        }
+        .modern-3 .button-outline {
+            background: transparent;
+            color: #60a5fa;
+            border: 2px solid #60a5fa;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.85rem;
+        }
+
+        /* Modern Alternative 4: Warm Sports (Red-Orange Evolution) */
+        .modern-4 .theme-preview {
+            background: #0d0d0d;
+            font-family: 'Manrope', -apple-system, sans-serif;
+        }
+
+        .modern-4 .primary-color { background: linear-gradient(135deg, #dc2626 0%, #f97316 100%); }
+        .modern-4 .secondary-color { background: #4f46e5; }
+        .modern-4 .accent-gold { background: #fbbf24; color: #000; }
+        .modern-4 .card-bg { background: #1a1a1a; border-left: 3px solid #dc2626; }
+        .modern-4 .text-primary { color: #fafafa; }
+        .modern-4 .text-secondary { color: #a3a3a3; }
+        .modern-4 .button-primary {
+            background: linear-gradient(135deg, #dc2626 0%, #f97316 100%);
+            color: white;
+            border: none;
+            padding: 13px 28px;
+            border-radius: 9px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
+        }
+        .modern-4 .button-outline {
+            background: transparent;
+            color: #f97316;
+            border: 2px solid #f97316;
+            padding: 13px 28px;
+            border-radius: 9px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Common Styles for Preview Components */
+        .match-card {
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .match-teams {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .team {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .team-flag {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .team-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .vs {
+            font-size: 0.9rem;
+            opacity: 0.6;
+            font-weight: 500;
+        }
+
+        .match-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .progress-bars {
+            margin-top: 20px;
+        }
+
+        .progress-item {
+            margin-bottom: 15px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+
+        .progress-bar {
+            height: 8px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.1);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .sidebar-section {
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .team-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .team-row:last-child {
+            border-bottom: none;
+        }
+
+        .team-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .position {
+            font-weight: 700;
+            font-size: 0.9rem;
+            opacity: 0.5;
+            min-width: 30px;
+        }
+
+        .points {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .color-palette {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .color-swatch {
+            flex: 1;
+            min-width: 80px;
+            height: 60px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .font-showcase {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .font-sample {
+            margin-bottom: 15px;
+        }
+
+        .font-label {
+            font-size: 0.8rem;
+            opacity: 0.6;
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 1200px) {
+            .theme-grid {
+                grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .theme-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+
+        .toggle-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .toggle-button {
+            background: #242424;
+            color: #e0e0e0;
+            border: 2px solid #444;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-button:hover {
+            border-color: #e57373;
+            background: #2a2a2a;
+        }
+
+        .comparison-note {
+            background: #242424;
+            border-left: 4px solid #e57373;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px 0;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .comparison-note h3 {
+            margin-bottom: 10px;
+            color: #e57373;
+        }
+
+        .comparison-note ul {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Prode Mundial - Theme Exploration</h1>
+        <div class="intro">
+            <p>Compare your current theme with modern alternatives. Each option maintains your app's sports identity while bringing fresh, contemporary design.</p>
+        </div>
+
+        <div class="comparison-note">
+            <h3>📊 What's Being Compared</h3>
+            <ul>
+                <li><strong>Colors:</strong> Primary/Secondary palettes, accent colors, backgrounds</li>
+                <li><strong>Typography:</strong> Font families and their impact on readability</li>
+                <li><strong>Modern Trends:</strong> Gradients, shadows, spacing, and button styles</li>
+                <li><strong>Identity:</strong> Each alternative maintains sports/competition feel</li>
+            </ul>
+        </div>
+
+        <div class="theme-grid">
+            <!-- Current Theme -->
+            <div class="theme-card current-theme">
+                <div class="theme-header">
+                    <div class="theme-title">✅ Current Theme</div>
+                    <div class="theme-description">
+                        <strong>Font:</strong> System Default (Roboto, Segoe UI)<br>
+                        <strong>Colors:</strong> Soft Red (#e57373) + Desaturated Blue<br>
+                        <strong>Feel:</strong> Warm, accessible, traditional sports
+                    </div>
+                </div>
+                <div class="theme-preview">
+                    <div class="color-palette">
+                        <div class="color-swatch primary-color">Primary</div>
+                        <div class="color-swatch secondary-color">Secondary</div>
+                        <div class="color-swatch accent-gold">Gold</div>
+                    </div>
+
+                    <div class="match-card card-bg">
+                        <div class="match-header">
+                            <span class="text-secondary">28 jun 12:00 (Tu Horario)</span>
+                            <span class="badge accent-gold">3x</span>
+                        </div>
+                        <div class="match-teams">
+                            <div class="team">
+                                <div class="team-flag">🇺🇸</div>
+                                <span class="team-name text-primary">USA</span>
+                            </div>
+                            <span class="vs text-secondary">vs</span>
+                            <div class="team">
+                                <div class="team-flag">🇨🇦</div>
+                                <span class="team-name text-primary">Canada</span>
+                            </div>
+                        </div>
+                        <div class="match-actions">
+                            <button class="button-primary">IR AL PROXIMO PARTIDO</button>
+                            <button class="button-outline">VER GRUPOS</button>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section card-bg">
+                        <div class="section-title text-primary">
+                            <span>📊</span> Grupos
+                        </div>
+                        <div class="team-row">
+                            <div class="team-info">
+                                <span class="position text-secondary">#1</span>
+                                <span class="text-primary">KOR</span>
+                            </div>
+                            <span class="points text-primary">0 pts</span>
+                        </div>
+                        <div class="team-row">
+                            <div class="team-info">
+                                <span class="position text-secondary">#1</span>
+                                <span class="text-primary">RSA</span>
+                            </div>
+                            <span class="points text-primary">0 pts</span>
+                        </div>
+                    </div>
+
+                    <div class="font-showcase">
+                        <div class="font-sample">
+                            <div class="font-label text-secondary">Heading</div>
+                            <div style="font-size: 1.5rem; font-weight: 700;" class="text-primary">The Quick Brown Fox</div>
+                        </div>
+                        <div class="font-sample">
+                            <div class="font-label text-secondary">Body</div>
+                            <div class="text-secondary">Making predictions, tracking tournaments, competing with friends</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modern Alternative 1 -->
+            <div class="theme-card modern-1">
+                <div class="theme-header">
+                    <div class="theme-title">🔥 Modern Sports</div>
+                    <div class="theme-description">
+                        <strong>Font:</strong> Inter (Clean, modern, excellent readability)<br>
+                        <strong>Colors:</strong> Deep Navy + Vibrant Orange<br>
+                        <strong>Feel:</strong> Energetic, sports broadcast, bold
+                    </div>
+                </div>
+                <div class="theme-preview">
+                    <div class="color-palette">
+                        <div class="color-swatch primary-color">Primary</div>
+                        <div class="color-swatch secondary-color">Secondary</div>
+                        <div class="color-swatch accent-gold">Gold</div>
+                    </div>
+
+                    <div class="match-card card-bg">
+                        <div class="match-header">
+                            <span class="text-secondary">28 jun 12:00 (Tu Horario)</span>
+                            <span class="badge accent-gold">3x</span>
+                        </div>
+                        <div class="match-teams">
+                            <div class="team">
+                                <div class="team-flag">🇺🇸</div>
+                                <span class="team-name text-primary">USA</span>
+                            </div>
+                            <span class="vs text-secondary">vs</span>
+                            <div class="team">
+                                <div class="team-flag">🇨🇦</div>
+                                <span class="team-name text-primary">Canada</span>
+                            </div>
+                        </div>
+                        <div class="match-actions">
+                            <button class="button-primary">IR AL PROXIMO PARTIDO</button>
+                            <button class="button-outline">VER GRUPOS</button>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section card-bg">
+                        <div class="section-title text-primary">
+                            <span>📊</span> Grupos
+                        </div>
+                        <div class="team-row">
+                            <div class="team-info">
+                                <span class="position text-secondary">#1</span>
+                                <span class="text-primary">KOR</span>
+                            </div>
+                            <span class="points text-primary">0 pts</span>
+                        </div>
+                        <div class="team-row">
+                            <div class="team-info">
+                                <span class="position text-secondary">#1</span>
+                                <span class="text-primary">RSA</span>
+                            </div>
+                            <span class="points text-primary">0 pts</span>
+                        </div>
+                    </div>
+
+                    <div class="font-showcase">
+                        <div class="font-sample">
+                            <div class="font-label text-secondary">Heading - Inter Bold</div>
+                            <div style="font-size: 1.5rem; font-weight: 700;" class="text-primary">The Quick Brown Fox</div>
+                        </div>
+                        <div class="font-sample">
+                            <div class="font-label text-secondary">Body - Inter Regular</div>
+                            <div class="text-secondary">Making predictions, tracking tournaments, competing with friends</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modern Alternative 2 -->
+            <div class="theme-card modern-2">
+                <div class="theme-header">
+                    <div class="theme-title">💎 Sophisticated Tech</div>
+                    <div class="theme-description">
+                        <strong>Font:</strong> DM Sans (Professional, geometric, friendly)<br>
+                        <strong>Colors:</strong> Blue-Gray + Teal<br>
+                        <strong>Feel:</strong> Clean, premium, tech-forward
+                    </div>
+                </div>
+                <div class="theme-preview">
+                    <div class="color-palette">
+                        <div class="color-swatch primary-color">Primary</div>
+                        <div class="color-swatch secondary-color">Secondary</div>
+                        <div class="color-swatch accent-gold">Gold</div>
+                    </div>
+
+                    <div class="match-card card-bg">
+                        <div class="match-header">
+                            <span class="text-secondary">28 jun 12:00 (Tu Horario)</span>
+                            <span class="badge accent-gold">3x</span>
+                        </div>
+                        <div class="match-teams">
+                            <div class="team">
+                                <div class="team-flag">🇺🇸</div>
+                                <span class="team-name text-primary">USA</span>
+                            </div>
+                            <span class="vs text-secondary">vs</span>
+                            <div class="team">
+                                <div class="team-flag">🇨🇦</div>
+                                <span class="team-name text-primary">Canada</span>
+                            </div>
+                        </div>
+                        <div class="match-actions">
+                            <button class="button-primary">IR AL PROXIMO PARTIDO</button>
+                            <button class="button-outline">VER GRUPOS</button>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section card-bg">
+                        <div class="section-title text-primary">
+                            <span>📊</span> Grupos
+                        </div>
+                        <div class="team-row">
+                            <div class="team-info">
+                                <span class="position text-secondary">#1</span>
+                                <span class="text-primary">KOR</span>
+                            </div>
+                            <span class="points text-primary">0 pts</span>
+                        </div>
+                        <div class="team-row">
+                            <div class="team-info">
+                                <span class="position text-secondary">#1</span>
+                                <span class="text-primary">RSA</span>
+                            </div>
+                            <span class="points text-primary">0 pts</span>
+                        </div>
+                    </div>
+
+                    <div class="font-showcase">
+                        <div class="font-sample">
+                            <div class="font-label text-secondary">Heading - DM Sans Bold</div>
+                            <div style="font-size: 1.5rem; font-weight: 700;" class="text-primary">The Quick Brown Fox</div>
+                        </div>
+                        <div class="font-sample">
+                            <div class="font-label text-secondary">Body - DM Sans Regular</div>
+                            <div class="text-secondary">Making predictions, tracking tournaments, competing with friends</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modern Alternative 3 -->
+            <div class="theme-card modern-3">
+                <div class="theme-header">
+                    <div class="theme-title">⚡ Electric Contrast</div>
+                    <div class="theme-description">
+                        <strong>Font:</strong> Space Grotesk (Bold, geometric, distinctive)<br>
+                        <strong>Colors:</strong> Pure Black + Electric Blue<br>
+                        <strong>Feel:</strong> High contrast, modern, striking
+                    </div>
+                </div>
+                <div class="theme-preview">
+                    <div class="color-palette">
+                        <div class="color-swatch primary-color">Primary</div>
+                        <div class="color-swatch secondary-color">Secondary</div>
+                        <div class="color-swatch accent-gold">Gold</div>
+                    </div>
+
+                    <div class="match-card card-bg">
+                        <div class="match-header">
+                            <span class="text-secondary">28 jun 12:00 (Tu Horario)</span>
+                            <span class="badge accent-gold">3x</span>
+                        </div>
+                        <div class="match-teams">
+                            <div class="team">
+                                <div class="team-flag">🇺🇸</div>
+                                <span class="team-name text-primary">USA</span>
+                            </div>
+                            <span class="vs text-secondary">vs</span>
+                            <div class="team">
+                                <div class="team-flag">🇨🇦</div>
+                                <span class="team-name text-primary">Canada</span>
+                            </div>
+                        </div>
+                        <div class="match-actions">
+                            <button class="button-primary">IR AL PROXIMO PARTIDO</button>
+                            <button class="button-outline">VER GRUPOS</button>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section card-bg">
+                        <div class="section-title text-primary">
+                            <span>📊</span> Grupos
+                        </div>
+                        <div class="team-row">
+                            <div class="team-info">
+                                <span class="position text-secondary">#1</span>
+                                <span class="text-primary">KOR</span>
+                            </div>
+                            <span class="points text-primary">0 pts</span>
+                        </div>
+                        <div class="team-row">
+                            <div class="team-info">
+                                <span class="position text-secondary">#1</span>
+                                <span class="text-primary">RSA</span>
+                            </div>
+                            <span class="points text-primary">0 pts</span>
+                        </div>
+                    </div>
+
+                    <div class="font-showcase">
+                        <div class="font-sample">
+                            <div class="font-label text-secondary">Heading - Space Grotesk Bold</div>
+                            <div style="font-size: 1.5rem; font-weight: 700;" class="text-primary">The Quick Brown Fox</div>
+                        </div>
+                        <div class="font-sample">
+                            <div class="font-label text-secondary">Body - Space Grotesk Regular</div>
+                            <div class="text-secondary">Making predictions, tracking tournaments, competing with friends</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modern Alternative 4 -->
+            <div class="theme-card modern-4">
+                <div class="theme-header">
+                    <div class="theme-title">🏆 Evolved Sports</div>
+                    <div class="theme-description">
+                        <strong>Font:</strong> Manrope (Rounded, approachable, modern)<br>
+                        <strong>Colors:</strong> Red-to-Orange Evolution<br>
+                        <strong>Feel:</strong> Keeps red identity but warmer, more dynamic
+                    </div>
+                </div>
+                <div class="theme-preview">
+                    <div class="color-palette">
+                        <div class="color-swatch primary-color">Primary</div>
+                        <div class="color-swatch secondary-color">Secondary</div>
+                        <div class="color-swatch accent-gold">Gold</div>
+                    </div>
+
+                    <div class="match-card card-bg">
+                        <div class="match-header">
+                            <span class="text-secondary">28 jun 12:00 (Tu Horario)</span>
+                            <span class="badge accent-gold">3x</span>
+                        </div>
+                        <div class="match-teams">
+                            <div class="team">
+                                <div class="team-flag">🇺🇸</div>
+                                <span class="team-name text-primary">USA</span>
+                            </div>
+                            <span class="vs text-secondary">vs</span>
+                            <div class="team">
+                                <div class="team-flag">🇨🇦</div>
+                                <span class="team-name text-primary">Canada</span>
+                            </div>
+                        </div>
+                        <div class="match-actions">
+                            <button class="button-primary">IR AL PROXIMO PARTIDO</button>
+                            <button class="button-outline">VER GRUPOS</button>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section card-bg">
+                        <div class="section-title text-primary">
+                            <span>📊</span> Grupos
+                        </div>
+                        <div class="team-row">
+                            <div class="team-info">
+                                <span class="position text-secondary">#1</span>
+                                <span class="text-primary">KOR</span>
+                            </div>
+                            <span class="points text-primary">0 pts</span>
+                        </div>
+                        <div class="team-row">
+                            <div class="team-info">
+                                <span class="position text-secondary">#1</span>
+                                <span class="text-primary">RSA</span>
+                            </div>
+                            <span class="points text-primary">0 pts</span>
+                        </div>
+                    </div>
+
+                    <div class="font-showcase">
+                        <div class="font-sample">
+                            <div class="font-label text-secondary">Heading - Manrope Bold</div>
+                            <div style="font-size: 1.5rem; font-weight: 700;" class="text-primary">The Quick Brown Fox</div>
+                        </div>
+                        <div class="font-sample">
+                            <div class="font-label text-secondary">Body - Manrope Regular</div>
+                            <div class="text-secondary">Making predictions, tracking tournaments, competing with friends</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="comparison-note">
+            <h3>🎯 Key Takeaways</h3>
+            <ul>
+                <li><strong>Modern Sports:</strong> Best for energy and broadcast feel. Inter is highly readable.</li>
+                <li><strong>Sophisticated Tech:</strong> Most professional look. DM Sans feels premium.</li>
+                <li><strong>Electric Contrast:</strong> Most striking/modern. Space Grotesk is distinctive.</li>
+                <li><strong>Evolved Sports:</strong> Keeps your red identity but modernizes it. Manrope is friendly.</li>
+            </ul>
+            <p style="margin-top: 15px;"><strong>Next Step:</strong> Try each mockup on different screen sizes. Which one feels most "you"?</p>
+        </div>
+    </div>
+</body>
+</html>

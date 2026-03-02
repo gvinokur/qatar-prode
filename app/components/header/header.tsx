@@ -11,6 +11,7 @@ import UserActions from "./user-actions";
 import Link from "next/link";
 import {User} from "next-auth";
 import ThemeSwitcher from "./theme-switcher";
+import ThemeVariantSwitcher from "./theme-variant-switcher";
 import LanguageSwitcher from "./language-switcher";
 import { getLocale, getTranslations } from 'next-intl/server';
 
@@ -78,6 +79,7 @@ export default async function Header(props: FrameProps) {
             minWidth={'96px'}
             gap={0.5}
           >
+            <ThemeVariantSwitcher />
             <ThemeSwitcher />
             <LanguageSwitcher />
             <UserActions user={props.user}/>
