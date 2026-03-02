@@ -25,18 +25,18 @@
 - ✅ Show trophy icon, value-focused headline ("Compete with Friends!")
 - ✅ Brief description of private vs. public groups
 - ✅ 3 checkmarked benefits (leaderboards, bragging rights, progress tracking)
+- ✅ "Learn more about groups →" link (positioned ABOVE CTAs for prominence - above the fold)
 - ✅ Two CTAs: "Create Group" (primary) and "Discover Public Groups" (secondary)
-- ✅ "Learn more about groups →" link to landing page
 
 ### Landing Page Empty State
-- ✅ Hero section with icon, headline, subtitle, and CTAs
-- ✅ Features section with 6 feature cards (Private Groups, Public Competitions, Live Leaderboards, Group Chat, Custom Prizes, Detailed Stats)
-- ✅ **How It Works section** (tabbed interface with 3 scenarios):
+- ✅ Hero section with icon, headline, subtitle, and CTAs (FIXED/STICKY - stays visible while scrolling)
+- ✅ Features section with 6 feature cards (Private Groups, Public Competitions, Live Leaderboards, Group Chat, Custom Prizes, Detailed Stats) - SCROLLABLE
+- ✅ **How It Works section** (tabbed interface with 3 scenarios) - SCROLLABLE:
   - Tab 1: Create a Group (4 steps)
   - Tab 2: Join a Private Group (4 steps)
   - Tab 3: Join a Public Group (4 steps)
-- ✅ Use Cases section (4 scenarios: Family & Friends, Office Competitions, Bar & Fan Clubs, College Dorms)
-- ✅ Final CTA section
+- ✅ Use Cases section (4 scenarios: Family & Friends, Office Competitions, Bar & Fan Clubs, College Dorms) - SCROLLABLE
+- ✅ Final CTA section - SCROLLABLE
 
 ### Critical Requirements
 - ✅ All copy is i18n-compatible (English + Spanish)
@@ -259,6 +259,23 @@
 - Hover effects on cards
 - Smooth transitions
 
+**Sticky Hero Section (Landing Page):**
+- Hero section uses `position: sticky; top: 0; z-index: 10`
+- Stays visible while Features/How It Works/Use Cases sections scroll beneath it
+- Provides persistent access to CTAs while user explores features
+- Implementation:
+  ```typescript
+  <Box sx={{
+    position: 'sticky',
+    top: 0,
+    zIndex: 10,
+    backgroundColor: 'background.default',
+    pb: 2
+  }}>
+    {/* Hero content */}
+  </Box>
+  ```
+
 ### 6. State Management
 
 **Sidebar Component:**
@@ -290,10 +307,10 @@
 │   ✓ Compete for bragging rights        │
 │   ✓ Track progress together            │
 │                                        │
+│   Learn more about groups →            │
+│                                        │
 │   [    Create Group     ]              │
 │   [  Discover Public Groups  ]         │
-│                                        │
-│   Learn more about groups →            │
 │                                        │
 └────────────────────────────────────────┘
 ```
@@ -303,12 +320,16 @@
 - Value-first headline (not "No groups yet")
 - Brief but compelling description
 - 3 benefits with checkmarks
+- **"Learn more" link positioned ABOVE CTAs** (above the fold, more prominent)
 - Two CTAs with clear visual hierarchy
-- "Learn more" link to landing page
 
 **Responsive Behavior:**
-- Mobile: Full width, buttons stack vertically
+- Mobile: Full width, buttons stack vertically, "Learn more" link stays above CTAs
 - Desktop: Maintain compact sidebar width (320px max)
+
+**UX Note:**
+- "Learn more" link is positioned ABOVE the CTAs to ensure it's visible above the fold
+- This makes the progressive disclosure path (sidebar → landing page) more discoverable
 
 ### Landing Page Empty State (Full)
 
