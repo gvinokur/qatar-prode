@@ -3,6 +3,13 @@ import { screen, fireEvent } from '@testing-library/react';
 import FriendGroupsLandingEmptyState from '../FriendGroupsLandingEmptyState';
 import { renderWithProviders } from '@/__tests__/utils/test-utils';
 
+// Mock ScrollShadowContainer to render children directly
+vi.mock('../../common/scroll-shadow-container', () => ({
+  ScrollShadowContainer: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="scroll-shadow-container">{children}</div>
+  ),
+}));
+
 describe('FriendGroupsLandingEmptyState', () => {
   const mockOnCreateGroup = vi.fn();
   const mockOnDiscoverGroups = vi.fn();

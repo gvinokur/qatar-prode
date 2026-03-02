@@ -2,6 +2,7 @@
 
 import { Box, Typography, Button, Stack } from "@mui/material";
 import { useTranslations } from 'next-intl';
+import { ScrollShadowContainer } from '../common/scroll-shadow-container';
 import FeatureCards from './empty-state/FeatureCards';
 import HowItWorksTabs from './empty-state/HowItWorksTabs';
 import UseCases from './empty-state/UseCases';
@@ -90,11 +91,13 @@ export default function FriendGroupsLandingEmptyState({
       </Box>
 
       {/* Scrollable Content */}
-      <Box
+      <ScrollShadowContainer
+        direction="vertical"
         sx={{
           flex: 1,
-          minHeight: 0,
-          overflow: 'auto',
+          minHeight: 0
+        }}
+        scrollContainerSx={{
           display: 'flex',
           flexDirection: 'column',
           gap: 4,
@@ -155,7 +158,7 @@ export default function FriendGroupsLandingEmptyState({
             </Button>
           </Stack>
         </Box>
-      </Box>
+      </ScrollShadowContainer>
     </Box>
   );
 }

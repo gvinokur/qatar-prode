@@ -78,7 +78,7 @@ export default function TournamentGroupsList({ groups, tournamentId, pendingRequ
   if (groups.length === 0 && activePendingRequests.length === 0) {
     return (
       <>
-        <Grid container maxWidth={'868px'} mt={1} mx={{ md: 'auto' }} sx={{ height: '100%' }}>
+        <Grid container maxWidth={'868px'} mx={{ md: 'auto' }} sx={{ height: '100%' }}>
           <Grid size={12} sx={{ height: '100%' }}>
             <FriendGroupsLandingEmptyState
               onCreateGroup={() => setOpenCreateDialog(true)}
