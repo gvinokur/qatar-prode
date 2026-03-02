@@ -21,9 +21,6 @@ export default function TournamentRedirect({
   const locale = useLocale();
   const t = useTranslations('common');
 
-  // Check if this is an auth redirect (openSignin=true)
-  const isAuthRedirect = searchParams?.get('openSignin') === 'true';
-
   useEffect(() => {
     if (tournaments.length === 0) return;
 
@@ -46,17 +43,9 @@ export default function TournamentRedirect({
     const queryString = searchParams?.toString();
     const redirectUrl = queryString ? `${targetPath}?${queryString}` : targetPath;
 
-    // If this is an auth redirect, clear openSignin from current URL immediately
-    // This prevents the login dialog from opening on the home page while redirecting
-    if (isAuthRedirect && typeof window !== 'undefined') {
-      const currentUrl = new URL(window.location.href);
-      currentUrl.searchParams.delete('openSignin');
-      window.history.replaceState({}, '', currentUrl.toString());
-    }
-
     // Redirect (using id, not slug - route is /tournaments/[id])
     router.push(redirectUrl);
-  }, [tournaments, router, locale, searchParams, isAuthRedirect]);
+  }, [tournaments, router, locale, searchParams]);
 
   // Show centered loading indicator while redirecting
   return (
