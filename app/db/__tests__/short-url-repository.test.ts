@@ -23,7 +23,7 @@ vi.mock('../database', () => ({
 }));
 
 // Mock crypto
-vi.mock('crypto', () => ({
+vi.mock('node:crypto', () => ({
   default: {
     randomBytes: mockRandomBytes,
   },

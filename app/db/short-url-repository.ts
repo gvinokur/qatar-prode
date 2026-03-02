@@ -2,7 +2,7 @@ import { db } from './database';
 import { ShortUrl, ShortUrlTable } from './tables-definition';
 import { createBaseFunctions } from './base-repository';
 import { cache } from 'react';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 // Base CRUD operations
 const baseFunctions = createBaseFunctions<ShortUrlTable, ShortUrl>('short_urls');
@@ -41,6 +41,12 @@ function generateShortCode(): string {
   return code;
 }
 
+// Helper to check database constraint errors
+function isUniqueConstraintError(error: any, constraintName: string): boolean {
+  return error?.code === '23505' &&
+         (error?.constraint === constraintName || error?.constraint?.includes(constraintName.split('_').pop() || ''));
+}
+
 // Create short URL with collision handling
 export async function createShortUrl(
   groupId: string,
@@ -63,33 +69,22 @@ export async function createShortUrl(
         .returningAll()
         .executeTakeFirstOrThrow();
     } catch (error: any) {
-      // Check for unique constraint violation on code
-      const isCodeCollision = error?.code === '23505' &&
-                             (error?.constraint === 'idx_short_urls_code' ||
-                              error?.constraint?.includes('code'));
-
-      // Check for unique constraint violation on group_id (shouldn't happen in getOrCreateShortUrl, but defensive)
-      const isGroupCollision = error?.code === '23505' &&
-                              (error?.constraint === 'idx_short_urls_group' ||
-                               error?.constraint?.includes('group'));
-
-      if (isCodeCollision) {
-        if (attempt < maxAttempts - 1) {
-          // Code collision - try again with new code
-          continue;
-        } else {
-          // Max attempts reached - throw custom error
-          throw new Error(`Failed to generate unique short code after ${maxAttempts} attempts`);
-        }
-      }
+      const isCodeCollision = isUniqueConstraintError(error, 'idx_short_urls_code');
+      const isGroupCollision = isUniqueConstraintError(error, 'idx_short_urls_group');
 
       if (isGroupCollision) {
-        // Group already has a short URL - this shouldn't happen if using getOrCreateShortUrl correctly
         throw new Error(`Group ${groupId} already has a short URL. Use getOrCreateShortUrl instead.`);
       }
 
-      // Some other error - re-throw
-      throw error;
+      if (isCodeCollision && attempt < maxAttempts - 1) {
+        continue; // Try again with new code
+      }
+
+      if (isCodeCollision) {
+        throw new Error(`Failed to generate unique short code after ${maxAttempts} attempts`);
+      }
+
+      throw error; // Some other error
     }
   }
 
