@@ -5,14 +5,10 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import { useTranslations } from 'next-intl';
 
 interface FriendGroupsSidebarEmptyStateProps {
-  readonly onCreateGroup: () => void;
-  readonly onDiscoverGroups: () => void;
   readonly onLearnMore: () => void;
 }
 
 export default function FriendGroupsSidebarEmptyState({
-  onCreateGroup,
-  onDiscoverGroups,
   onLearnMore
 }: FriendGroupsSidebarEmptyStateProps) {
   const t = useTranslations('groups.emptyState.sidebar');
@@ -31,11 +27,6 @@ export default function FriendGroupsSidebarEmptyState({
         px: 3
       }}
     >
-      {/* Trophy Emoji */}
-      <Box sx={{ fontSize: '3rem', mb: 2 }}>
-        🏆
-      </Box>
-
       {/* Headline */}
       <Typography
         variant="h6"
@@ -90,8 +81,8 @@ export default function FriendGroupsSidebarEmptyState({
         ))}
       </Stack>
 
-      {/* Learn More Link (ABOVE CTAs) */}
-      <Box sx={{ mb: 3 }}>
+      {/* Learn More Link */}
+      <Box>
         <Button
           variant="text"
           onClick={onLearnMore}
@@ -103,24 +94,6 @@ export default function FriendGroupsSidebarEmptyState({
           {t('learnMore')} →
         </Button>
       </Box>
-
-      {/* Action Buttons */}
-      <Stack spacing={1.5}>
-        <Button
-          variant="contained"
-          fullWidth
-          onClick={onCreateGroup}
-        >
-          {t('actions.createGroup')}
-        </Button>
-        <Button
-          variant="outlined"
-          fullWidth
-          onClick={onDiscoverGroups}
-        >
-          {t('actions.discoverGroups')}
-        </Button>
-      </Stack>
     </Box>
   );
 }

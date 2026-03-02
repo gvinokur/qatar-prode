@@ -98,27 +98,23 @@ export default function FriendGroupsList({
           subheader={isActive ? t('status.youAreHere') : undefined}
           sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
           action={
-            !isEmpty ? (
-              <ExpandMore
-                expand={expanded}
-                onClick={handleExpandClick}
-                aria-expanded={expanded}
-                aria-label={t('actions.expandMore')}
-              >
-                <ExpandMoreIcon />
-              </ExpandMore>
-            ) : undefined
+            <ExpandMore
+              expand={expanded}
+              onClick={handleExpandClick}
+              aria-expanded={expanded}
+              aria-label={t('actions.expandMore')}
+            >
+              <ExpandMoreIcon />
+            </ExpandMore>
           }
         />
-        {isEmpty ? (
-          <FriendGroupsSidebarEmptyState
-            onCreateGroup={() => setOpenCreateDialog(true)}
-            onDiscoverGroups={() => router.push(`/${locale}/tournaments/${tournamentId}/friend-groups/discover`)}
-            onLearnMore={() => router.push(`/${locale}/tournaments/${tournamentId}/friend-groups`)}
-          />
-        ) : (
-          <Collapse in={expanded} timeout="auto" unmountOnExit>
-            <CardContent sx={{ borderBottom: `${theme.palette.primary.contrastText} 1px solid`, borderTop: `${theme.palette.primary.contrastText} 1px solid` }}>
+        <Collapse in={expanded} timeout="auto" unmountOnExit>
+          <CardContent sx={{ borderBottom: `${theme.palette.primary.contrastText} 1px solid`, borderTop: `${theme.palette.primary.contrastText} 1px solid` }}>
+          {isEmpty ? (
+            <FriendGroupsSidebarEmptyState
+              onLearnMore={() => router.push(`/${locale}/tournaments/${tournamentId}/friend-groups`)}
+            />
+          ) : (
             <List sx={{ width: '100%'}} disablePadding >
             {userGroups.map(userGroup => (
               <ListItem key={userGroup.id}
@@ -180,12 +176,11 @@ export default function FriendGroupsList({
               </ListItem>
             ))}
             </List>
+          )}
           </CardContent>
-          </Collapse>
-        )}
-        {!isEmpty && (
-          <CardActions sx={{
-            flexDirection: 'column',
+        </Collapse>
+        <CardActions sx={{
+          flexDirection: 'column',
             justifyContent: 'center',
             alignItems: 'center',
             gap: 1,
@@ -222,7 +217,6 @@ export default function FriendGroupsList({
               </Button>
             )}
           </CardActions>
-        )}
       </Card>
       <Dialog open={openCreateDialog} onClose={handleCloseCreateDialog}
               slotProps={{
