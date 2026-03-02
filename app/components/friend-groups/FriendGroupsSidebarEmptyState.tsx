@@ -23,7 +23,7 @@ export default function FriendGroupsSidebarEmptyState({
     <Box
       sx={{
         textAlign: 'center',
-        py: 4,
+        py: 2,
         px: 3
       }}
     >
@@ -32,7 +32,7 @@ export default function FriendGroupsSidebarEmptyState({
         variant="h6"
         component="h2"
         gutterBottom
-        sx={{ fontWeight: 600, mb: 2 }}
+        sx={{ fontWeight: 600, mb: 1.5 }}
       >
         {t('headline')}
       </Typography>
@@ -41,13 +41,13 @@ export default function FriendGroupsSidebarEmptyState({
       <Typography
         variant="body2"
         color="text.secondary"
-        sx={{ mb: 3 }}
+        sx={{ mb: 2 }}
       >
         {t('description')}
       </Typography>
 
       {/* Benefits List */}
-      <Stack spacing={1} sx={{ mb: 3, alignItems: 'flex-start', width: '100%' }}>
+      <Stack spacing={1} sx={{ mb: 2, alignItems: 'flex-start', width: '100%' }}>
         {benefits.map((benefit, index) => (
           <Box
             key={index}
