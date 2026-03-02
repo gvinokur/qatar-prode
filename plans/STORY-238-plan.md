@@ -247,6 +247,7 @@
 - `Box`, `Typography`, `Button`, `Stack`, `Grid` - Layout
 - `Card`, `CardContent` - Feature cards
 - `Tabs`, `Tab`, `TabPanel` - How It Works section (custom implementation)
+- `ScrollShadowContainer` - From `app/components/common/scroll-shadow-container.tsx` (landing page scrollable content)
 - Icons from `@mui/icons-material`: `EmojiEvents` (trophy), `Lock`, `Public`, `BarChart`, `Chat`, `EmojiEvents`, `TrendingUp`
 - Theme colors: `primary.main`, `secondary.main`, `text.primary`, `text.secondary`, `background.paper`
 
@@ -259,22 +260,37 @@
 - Hover effects on cards
 - Smooth transitions
 
-**Sticky Hero Section (Landing Page):**
-- Hero section uses `position: sticky; top: 0; z-index: 10`
-- Stays visible while Features/How It Works/Use Cases sections scroll beneath it
-- Provides persistent access to CTAs while user explores features
+**Fixed Hero with ScrollShadowContainer Pattern (Landing Page):**
+- Hero section is fixed at top (not scrollable)
+- Features/How It Works/Use Cases/Final CTA sections wrapped in `ScrollShadowContainer`
+- Follows Pattern 6 from migration guide: "Nested in Flex Layout"
 - Implementation:
   ```typescript
-  <Box sx={{
-    position: 'sticky',
-    top: 0,
-    zIndex: 10,
-    backgroundColor: 'background.default',
-    pb: 2
-  }}>
-    {/* Hero content */}
+  <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    {/* Hero: Fixed at top */}
+    <Box sx={{ flexShrink: 0 }}>
+      {/* Hero icon, headline, subtitle, CTAs */}
+    </Box>
+
+    {/* Scrollable content with shadow indicators */}
+    <ScrollShadowContainer
+      direction="vertical"
+      sx={{ flex: 1, minHeight: 0 }}
+      scrollContainerSx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 4,
+        pt: 2
+      }}
+    >
+      <FeatureCards />
+      <HowItWorksTabs />
+      <UseCases />
+      <FinalCTA />
+    </ScrollShadowContainer>
   </Box>
   ```
+- Benefits: Scroll shadows indicate more content below, hero stays visible, follows established app patterns
 
 ### 6. State Management
 
