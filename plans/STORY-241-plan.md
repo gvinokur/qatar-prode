@@ -145,15 +145,30 @@ Modify `app/components/context-providers/theme-provider.tsx`:
    const darkTheme = {
      mode: 'dark' as PaletteMode,  // Type assertion critical
      primary: {
-       main: '#8b5cf6',      // Vibrant violet
-       light: '#a78bfa',
-       dark: '#7c3aed',
+       main: '#a78bfa',      // SOFTER violet (less eye strain)
+       light: '#c4b5fd',
+       dark: '#8b5cf6',
        contrastText: '#ffffff'
      },
      secondary: {
        main: '#f87171',      // Coral accent
        light: '#fca5a5',
        dark: '#dc2626',
+       contrastText: '#ffffff'
+     },
+     accent: {
+       gold: {
+         main: '#ffb300',    // Dimmed gold for dark mode
+         light: '#ffd54f',
+         dark: '#ff8f00',
+         contrastText: '#000000'
+       },
+       silver: {
+         main: '#B0B0B0',    // Dimmed silver for dark mode
+         light: '#D0D0D0',
+         dark: '#909090',
+         contrastText: '#000000'
+       }
      },
      background: {
        default: '#0a0a0a',   // Neutral dark (NOT purple-tinted)
@@ -181,6 +196,21 @@ Modify `app/components/context-providers/theme-provider.tsx`:
        main: '#f87171',
        light: '#fca5a5',
        dark: '#dc2626',
+       contrastText: '#ffffff'
+     },
+     accent: {
+       gold: {
+         main: '#ffc107',    // Gold for awards (same as current)
+         light: '#ffd54f',
+         dark: '#ffa000',
+         contrastText: '#000000'
+       },
+       silver: {
+         main: '#C0C0C0',    // Silver for awards (same as current)
+         light: '#E0E0E0',
+         dark: '#A0A0A0',
+         contrastText: '#000000'
+       }
      },
      background: {
        default: '#f5f3ff',   // Lavender tint
@@ -194,7 +224,20 @@ Modify `app/components/context-providers/theme-provider.tsx`:
    }
    ```
 
-4. **Update theme selection logic:**
+4. **Update gradient injection:**
+   ```typescript
+   // Update gradient values for violet theme
+   useEffect(() => {
+     if (mounted) {
+       const gradientValue = themeMode === 'light'
+         ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)'  // Violet light
+         : 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)'; // Violet dark
+       document.documentElement.style.setProperty('--gradient-primary', gradientValue);
+     }
+   }, [mounted, themeMode])
+   ```
+
+5. **Update theme selection logic:**
    ```typescript
    const mode = (themeMode as PaletteMode) || 'dark'
    const themeConfig = mode === 'dark' ? darkTheme : lightTheme
@@ -368,33 +411,162 @@ Existing mockup files (created during exploration) are preserved for reference:
 
 These mockups are referenced in `docs/theme-variants.md` for visual reference.
 
+## Current Theme Analysis
+
+**Current Theme (RED - to be replaced):**
+```typescript
+// Light mode
+primary: { main: '#c62828', light: '#e53935', dark: '#b71c1c' }
+secondary: { main: '#90caf9' }  // Light blue
+accent: {
+  gold: { main: '#ffc107', light: '#ffd54f', dark: '#ffa000' },
+  silver: { main: '#C0C0C0', light: '#E0E0E0', dark: '#A0A0A0' }
+}
+// Gradient: 'linear-gradient(135deg, #c62828 0%, #e53935 100%)'
+
+// Dark mode
+primary: { main: '#e57373', light: '#ef9a9a', dark: '#d32f2f' }
+secondary: { main: '#5c93c4' }  // Deeper blue
+accent: {
+  gold: { main: '#ffb300', light: '#ffd54f', dark: '#ff8f00' },  // Dimmed for dark mode
+  silver: { main: '#B0B0B0', light: '#D0D0D0', dark: '#909090' }  // Dimmed for dark mode
+}
+background: { default: '#1a1a1a', paper: '#242424' }
+text: { primary: '#e0e0e0', secondary: '#a0a0a0' }
+// Gradient: 'linear-gradient(135deg, #d32f2f 0%, #e57373 100%)'
+```
+
+**Key Properties to Preserve:**
+- ✅ accent.gold (for awards/medals)
+- ✅ accent.silver (for awards/medals)
+- ✅ CSS gradient injection
+- ✅ Mode-specific dimming for dark mode
+
+## MUI v7 Theming Research
+
+Based on [MUI Theming Documentation](https://mui.com/material-ui/customization/theming/) and [Palette Customization](https://mui.com/material-ui/customization/palette/):
+
+**Best Practices:**
+1. **Auto-calculation**: MUI can auto-calculate `contrastText`, `dark`, and `light` if only `main` is provided
+2. **CSS Variables**: V7 supports CSS theme variables for better performance
+3. **Modern Color Spaces**: Support for oklch, oklab, display-p3 (future enhancement)
+4. **theme.applyStyles()**: Recommended over checking `theme.palette.mode`
+
+**Purple/Violet Recommendations:**
+- MUI purple[500]: `#9c27b0` (Material Design standard)
+- Custom violet: `#7F00FF` (vibrant)
+- Our choice: `#8b5cf6` (Tailwind violet-500, more modern)
+
+**Improvements for Violet Theme:**
+1. Use softer violet in dark mode to reduce eye strain
+2. Ensure accent colors (gold/silver) work well with violet
+3. Maintain coral secondary for contrast
+4. Leverage MUI's auto-calculation for variants
+
 ## Theme Color Specifications
 
 ### Royal Sports (Violet) - NEW DEFAULT
 
-**Dark Mode:**
-- Primary: `#8b5cf6` (vibrant violet for CTAs)
-- Secondary: `#f87171` (coral accent)
-- Background Default: `#0a0a0a` (neutral dark - NOT tinted)
-- Background Paper: `#1a1a1a` (neutral dark gray)
-- Text Primary: `#e5e7eb` (neutral light gray)
-- Text Secondary: `#9ca3af` (neutral medium gray)
-- Divider: `rgba(255, 255, 255, 0.08)`
-
 **Light Mode:**
-- Primary: `#7c3aed` (violet)
-- Secondary: `#f87171` (coral)
-- Background Default: `#f5f3ff` (soft lavender)
-- Background Paper: `#ffffff` (white)
-- Text Primary: `#2e1065` (deep purple)
-- Text Secondary: `#7c3aed` (violet)
-- Divider: `rgba(124, 58, 237, 0.12)`
+```typescript
+{
+  mode: 'light' as PaletteMode,
+  primary: {
+    main: '#7c3aed',        // Violet (base)
+    light: '#a855f7',       // Lighter violet (auto-calc or explicit)
+    dark: '#6b21a8',        // Darker violet
+    contrastText: '#ffffff' // White text on violet buttons
+  },
+  secondary: {
+    main: '#f87171',        // Coral accent (contrast to violet)
+    light: '#fca5a5',
+    dark: '#dc2626',
+    contrastText: '#ffffff'
+  },
+  accent: {
+    gold: {
+      main: '#ffc107',      // Gold for awards (same as current)
+      light: '#ffd54f',
+      dark: '#ffa000',
+      contrastText: '#000000'
+    },
+    silver: {
+      main: '#C0C0C0',      // Silver for awards (same as current)
+      light: '#E0E0E0',
+      dark: '#A0A0A0',
+      contrastText: '#000000'
+    }
+  },
+  background: {
+    default: '#f5f3ff',     // Soft lavender (subtle tint)
+    paper: '#ffffff'        // White for cards
+  },
+  text: {
+    primary: '#2e1065',     // Deep purple (good contrast on lavender)
+    secondary: '#7c3aed'    // Violet for secondary text
+  },
+  divider: 'rgba(124, 58, 237, 0.12)'  // Subtle violet-tinted divider
+}
+```
 
-**Design Notes:**
-- Neutral backgrounds prevent color overload
-- Primary colors reserved for interactive elements only
-- High contrast ratios ensure accessibility (WCAG AA)
-- Professional, sophisticated appearance
+**Gradient (Light):**
+```typescript
+'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)'  // Violet to lighter violet
+```
+
+**Dark Mode:**
+```typescript
+{
+  mode: 'dark' as PaletteMode,
+  primary: {
+    main: '#a78bfa',        // SOFTER violet (less eye strain in dark mode)
+    light: '#c4b5fd',       // Even softer
+    dark: '#8b5cf6',        // More saturated for emphasis
+    contrastText: '#ffffff'
+  },
+  secondary: {
+    main: '#f87171',        // Coral (same as light mode for consistency)
+    light: '#fca5a5',
+    dark: '#dc2626',
+    contrastText: '#ffffff'
+  },
+  accent: {
+    gold: {
+      main: '#ffb300',      // Dimmed gold for dark mode (same as current)
+      light: '#ffd54f',
+      dark: '#ff8f00',
+      contrastText: '#000000'
+    },
+    silver: {
+      main: '#B0B0B0',      // Dimmed silver for dark mode (same as current)
+      light: '#D0D0D0',
+      dark: '#909090',
+      contrastText: '#000000'
+    }
+  },
+  background: {
+    default: '#0a0a0a',     // NEUTRAL black (not purple-tinted)
+    paper: '#1a1a1a'        // Neutral dark gray for cards
+  },
+  text: {
+    primary: '#e5e7eb',     // Neutral light gray (not purple-tinted)
+    secondary: '#9ca3af'    // Neutral medium gray
+  },
+  divider: 'rgba(255, 255, 255, 0.08)'  // Neutral divider (not purple-tinted)
+}
+```
+
+**Gradient (Dark):**
+```typescript
+'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)'  // Saturated to softer
+```
+
+**Design Philosophy:**
+- **Light mode**: Violet everywhere (backgrounds, text, accents) for brand identity
+- **Dark mode**: Neutral backgrounds + violet accents (prevent color overload)
+- **Accessibility**: All combinations meet WCAG AA (4.5:1)
+- **Consistency**: Accent colors (gold/silver) preserved for awards system
+- **Eye comfort**: Softer violet in dark mode reduces strain
 
 ## Validation Considerations
 
