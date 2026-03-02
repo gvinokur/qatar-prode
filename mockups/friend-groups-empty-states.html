@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friend Groups Empty States - Mockups</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: #0a1929;
+            color: #fff;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 60px;
+            color: #90caf9;
+            font-size: 2rem;
+        }
+
+        .mockups-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 60px;
+            margin-bottom: 80px;
+        }
+
+        .mockup-section h2 {
+            margin-bottom: 20px;
+            color: #90caf9;
+            font-size: 1.3rem;
+        }
+
+        /* Sidebar Card Empty State */
+        .sidebar-card {
+            background: #1e2a35;
+            border-radius: 8px;
+            border: 1px solid #2d3843;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            background: #162029;
+            padding: 16px;
+            border-bottom: 1px solid #2d3843;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h3 {
+            color: #f48fb1;
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .collapse-icon {
+            color: #90caf9;
+            cursor: pointer;
+        }
+
+        .sidebar-content {
+            padding: 20px 16px;
+        }
+
+        .empty-icon {
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 12px;
+            opacity: 0.8;
+        }
+
+        .empty-headline {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-align: center;
+            color: #e3f2fd;
+        }
+
+        .empty-subtext {
+            font-size: 0.8rem;
+            color: #b0bec5;
+            text-align: center;
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+
+        .benefit-list {
+            margin: 16px 0 20px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .benefit-list li {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            font-size: 0.8rem;
+            color: #cfd8dc;
+            line-height: 1.3;
+        }
+
+        .benefit-list li::before {
+            content: "✓";
+            color: #66bb6a;
+            font-weight: bold;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+
+        .cta-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #f48fb1;
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            background: #f06292;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #90caf9;
+            border: 1px solid #90caf9;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(144, 202, 249, 0.1);
+        }
+
+        .learn-more {
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        .learn-more a {
+            color: #90caf9;
+            text-decoration: none;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .learn-more a:hover {
+            text-decoration: underline;
+        }
+
+        /* Landing Page Empty State */
+        .landing-page {
+            background: #0a1929;
+            border-radius: 8px;
+            padding: 60px 40px;
+        }
+
+        .landing-hero {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .landing-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+
+        .landing-title {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+            color: #e3f2fd;
+        }
+
+        .landing-subtitle {
+            font-size: 1.1rem;
+            color: #b0bec5;
+            max-width: 600px;
+            margin: 0 auto 32px;
+            line-height: 1.6;
+        }
+
+        .landing-ctas {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-large {
+            padding: 14px 32px;
+            font-size: 1rem;
+        }
+
+        /* Features Grid */
+        .features-section {
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 1px solid #2d3843;
+        }
+
+        .features-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .features-header h3 {
+            font-size: 1.8rem;
+            margin-bottom: 12px;
+            color: #e3f2fd;
+        }
+
+        .features-header p {
+            color: #b0bec5;
+            font-size: 1rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .feature-card {
+            background: #1e2a35;
+            border: 1px solid #2d3843;
+            border-radius: 12px;
+            padding: 30px 24px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: #f48fb1;
+            box-shadow: 0 8px 24px rgba(244, 143, 177, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+
+        .feature-title {
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+            color: #e3f2fd;
+            font-weight: 600;
+        }
+
+        .feature-description {
+            font-size: 0.9rem;
+            color: #b0bec5;
+            line-height: 1.5;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            margin-top: 50px;
+            padding-top: 40px;
+            border-top: 1px solid #2d3843;
+        }
+
+        .how-it-works-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .how-it-works-header h3 {
+            font-size: 1.8rem;
+            margin-bottom: 12px;
+            color: #e3f2fd;
+        }
+
+        .how-it-works-header p {
+            color: #b0bec5;
+            font-size: 1rem;
+        }
+
+        .how-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .how-tab {
+            padding: 12px 24px;
+            background: #1e2a35;
+            border: 2px solid #2d3843;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #b0bec5;
+            transition: all 0.3s;
+        }
+
+        .how-tab:hover {
+            border-color: #f48fb1;
+            color: #e3f2fd;
+        }
+
+        .how-tab.active {
+            background: #f48fb1;
+            border-color: #f48fb1;
+            color: #000;
+        }
+
+        .how-content {
+            display: none;
+        }
+
+        .how-content.active {
+            display: block;
+            animation: fadeIn 0.4s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .steps-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .step-card {
+            background: #1e2a35;
+            border: 1px solid #2d3843;
+            border-radius: 12px;
+            padding: 30px 24px;
+            position: relative;
+        }
+
+        .step-number {
+            position: absolute;
+            top: -15px;
+            left: 24px;
+            background: #f48fb1;
+            color: #000;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .step-icon {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 16px;
+            margin-top: 10px;
+        }
+
+        .step-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #e3f2fd;
+            text-align: center;
+        }
+
+        .step-description {
+            font-size: 0.9rem;
+            color: #b0bec5;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .step-note {
+            margin-top: 16px;
+            padding: 12px;
+            background: #162029;
+            border-radius: 6px;
+            border-left: 3px solid #90caf9;
+            font-size: 0.85rem;
+            color: #cfd8dc;
+            line-height: 1.5;
+        }
+
+        .step-note strong {
+            color: #90caf9;
+        }
+
+        /* Use Cases */
+        .use-cases {
+            margin-top: 50px;
+            background: #162029;
+            border-radius: 12px;
+            padding: 40px 32px;
+        }
+
+        .use-cases h3 {
+            font-size: 1.5rem;
+            margin-bottom: 24px;
+            color: #e3f2fd;
+            text-align: center;
+        }
+
+        .use-case-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .use-case-item {
+            background: #1e2a35;
+            border-radius: 8px;
+            padding: 20px;
+            border-left: 4px solid #f48fb1;
+        }
+
+        .use-case-item h4 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: #f48fb1;
+        }
+
+        .use-case-item p {
+            font-size: 0.85rem;
+            color: #b0bec5;
+            line-height: 1.4;
+        }
+
+        /* Final CTA */
+        .final-cta {
+            margin-top: 50px;
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, rgba(244, 143, 177, 0.1) 0%, rgba(144, 202, 249, 0.1) 100%);
+            border-radius: 12px;
+            border: 1px solid #2d3843;
+        }
+
+        .final-cta h3 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #e3f2fd;
+        }
+
+        .final-cta-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .mockups-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar-card {
+                max-width: 400px;
+                margin: 0 auto;
+            }
+        }
+
+        /* Notes Section */
+        .notes {
+            background: #162029;
+            border-left: 4px solid #90caf9;
+            padding: 20px 24px;
+            margin-top: 40px;
+            border-radius: 4px;
+        }
+
+        .notes h3 {
+            color: #90caf9;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .notes ul {
+            margin-left: 20px;
+            color: #cfd8dc;
+            line-height: 1.8;
+        }
+
+        .notes li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏆 Friend Groups - Empty State Mockups</h1>
+
+        <div class="mockups-grid">
+            <!-- Sidebar Card -->
+            <div class="mockup-section">
+                <h2>📍 Sidebar Card (Compact)</h2>
+
+                <div class="sidebar-card">
+                    <div class="sidebar-header">
+                        <h3>Friend Groups</h3>
+                        <span class="collapse-icon">▲</span>
+                    </div>
+
+                    <div class="sidebar-content">
+                        <div class="empty-icon">🏆</div>
+                        <div class="empty-headline">Compete with Friends!</div>
+                        <div class="empty-subtext">
+                            Create private groups or join public competitions to track your predictions against others.
+                        </div>
+
+                        <ul class="benefit-list">
+                            <li>Private leaderboards</li>
+                            <li>Compete for bragging rights</li>
+                            <li>Track progress together</li>
+                        </ul>
+
+                        <div class="cta-section">
+                            <button class="btn btn-primary">Create Group</button>
+                            <button class="btn btn-secondary">Discover Public Groups</button>
+                        </div>
+
+                        <div class="learn-more">
+                            <a href="#landing">Learn more about groups →</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Landing Page -->
+            <div class="mockup-section">
+                <h2>📄 Landing Page (Full Experience)</h2>
+
+                <div class="landing-page" id="landing">
+                    <div class="landing-hero">
+                        <div class="landing-icon">🏆</div>
+                        <h2 class="landing-title">Predictions Are Better with Friends</h2>
+                        <p class="landing-subtitle">
+                            Create private groups for your crew or discover public competitions.
+                            Track predictions, climb leaderboards, and earn bragging rights.
+                        </p>
+                        <div class="landing-ctas">
+                            <button class="btn btn-primary btn-large">Create Your First Group</button>
+                            <button class="btn btn-secondary btn-large">🔍 Discover Public Groups</button>
+                        </div>
+                    </div>
+
+                    <div class="features-section">
+                        <div class="features-header">
+                            <h3>Why Join or Create a Group?</h3>
+                            <p>Everything you need to compete and connect</p>
+                        </div>
+
+                        <div class="features-grid">
+                            <div class="feature-card">
+                                <div class="feature-icon">🔒</div>
+                                <h4 class="feature-title">Private Groups</h4>
+                                <p class="feature-description">
+                                    Create invite-only groups for family, friends, or coworkers. Control who joins and keep it exclusive.
+                                </p>
+                            </div>
+
+                            <div class="feature-card">
+                                <div class="feature-icon">🌍</div>
+                                <h4 class="feature-title">Public Competitions</h4>
+                                <p class="feature-description">
+                                    Join open groups to compete with the global community. Prove your prediction skills on a bigger stage.
+                                </p>
+                            </div>
+
+                            <div class="feature-card">
+                                <div class="feature-icon">📊</div>
+                                <h4 class="feature-title">Live Leaderboards</h4>
+                                <p class="feature-description">
+                                    Track rankings in real-time. See who's on top and where you stand after every match.
+                                </p>
+                            </div>
+
+                            <div class="feature-card">
+                                <div class="feature-icon">💬</div>
+                                <h4 class="feature-title">Group Chat</h4>
+                                <p class="feature-description">
+                                    Trash talk, celebrate wins, and discuss predictions with your group members.
+                                </p>
+                            </div>
+
+                            <div class="feature-card">
+                                <div class="feature-icon">🎯</div>
+                                <h4 class="feature-title">Custom Prizes</h4>
+                                <p class="feature-description">
+                                    Set your own stakes. Winner buys pizza? Loser does dishes? You decide what's on the line.
+                                </p>
+                            </div>
+
+                            <div class="feature-card">
+                                <div class="feature-icon">📈</div>
+                                <h4 class="feature-title">Detailed Stats</h4>
+                                <p class="feature-description">
+                                    Compare prediction accuracy, see trends, and analyze who's the real prediction champion.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="how-it-works">
+                        <div class="how-it-works-header">
+                            <h3>How It Works</h3>
+                            <p>Choose your path and get started in minutes</p>
+                        </div>
+
+                        <div class="how-tabs">
+                            <div class="how-tab active" onclick="showTab('create')">🛠️ Create a Group</div>
+                            <div class="how-tab" onclick="showTab('join-private')">🔗 Join a Private Group</div>
+                            <div class="how-tab" onclick="showTab('join-public')">🌍 Join a Public Group</div>
+                        </div>
+
+                        <!-- Create a Group -->
+                        <div class="how-content active" id="create">
+                            <div class="steps-container">
+                                <div class="step-card">
+                                    <div class="step-number">1</div>
+                                    <div class="step-icon">✏️</div>
+                                    <h4 class="step-title">Create Your Group</h4>
+                                    <p class="step-description">
+                                        Click "Create Group", give it a name, and choose whether it's private or public.
+                                    </p>
+                                    <div class="step-note">
+                                        <strong>Tip:</strong> Private groups require an invite link. Public groups appear in the directory for anyone to join.
+                                    </div>
+                                </div>
+
+                                <div class="step-card">
+                                    <div class="step-number">2</div>
+                                    <div class="step-icon">📤</div>
+                                    <h4 class="step-title">Share the Invite Link</h4>
+                                    <p class="step-description">
+                                        Share your unique invite link via text, email, or social media. Friends click it to request to join.
+                                    </p>
+                                    <div class="step-note">
+                                        <strong>For private groups:</strong> Only people with the link can request access. You can revoke the link anytime.
+                                    </div>
+                                </div>
+
+                                <div class="step-card">
+                                    <div class="step-number">3</div>
+                                    <div class="step-icon">✅</div>
+                                    <h4 class="step-title">Approve Members</h4>
+                                    <p class="step-description">
+                                        You'll receive notifications when people request to join. Review and approve members to add them to the group.
+                                    </p>
+                                    <div class="step-note">
+                                        <strong>Important:</strong> As admin, you're responsible for managing the approval queue. Members can't join until you approve them.
+                                    </div>
+                                </div>
+
+                                <div class="step-card">
+                                    <div class="step-number">4</div>
+                                    <div class="step-icon">🏆</div>
+                                    <h4 class="step-title">Start Competing</h4>
+                                    <p class="step-description">
+                                        Once members are approved, everyone makes predictions and the leaderboard updates automatically. Let the games begin!
+                                    </p>
+                                    <div class="step-note">
+                                        <strong>Ongoing:</strong> Continue managing members, customize settings, and set group prizes.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Join a Private Group -->
+                        <div class="how-content" id="join-private">
+                            <div class="steps-container">
+                                <div class="step-card">
+                                    <div class="step-number">1</div>
+                                    <div class="step-icon">💬</div>
+                                    <h4 class="step-title">Get an Invite Link</h4>
+                                    <p class="step-description">
+                                        Ask the group admin to send you the invite link. They can find it in their group settings.
+                                    </p>
+                                    <div class="step-note">
+                                        <strong>Note:</strong> Private groups don't appear in public searches. You must have the invite link to request access.
+                                    </div>
+                                </div>
+
+                                <div class="step-card">
+                                    <div class="step-number">2</div>
+                                    <div class="step-icon">🔗</div>
+                                    <h4 class="step-title">Request to Join</h4>
+                                    <p class="step-description">
+                                        Click the invite link, review the group details, and submit your request to join.
+                                    </p>
+                                    <div class="step-note">
+                                        <strong>Preview first:</strong> You'll see the group name, member count, and description before requesting.
+                                    </div>
+                                </div>
+
+                                <div class="step-card">
+                                    <div class="step-number">3</div>
+                                    <div class="step-icon">⏳</div>
+                                    <h4 class="step-title">Wait for Approval</h4>
+                                    <p class="step-description">
+                                        The group admin will review your request. You'll get notified when they approve or deny it.
+                                    </p>
+                                    <div class="step-note">
+                                        <strong>Patience:</strong> Approval times vary by admin. Check back or wait for the notification!
+                                    </div>
+                                </div>
+
+                                <div class="step-card">
+                                    <div class="step-number">4</div>
+                                    <div class="step-icon">🎉</div>
+                                    <h4 class="step-title">You're In!</h4>
+                                    <p class="step-description">
+                                        Once approved, you're part of the group. Make predictions and see how you stack up on the leaderboard!
+                                    </p>
+                                    <div class="step-note">
+                                        <strong>Automatic:</strong> Your existing predictions count toward the group leaderboard immediately.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Join a Public Group -->
+                        <div class="how-content" id="join-public">
+                            <div class="steps-container">
+                                <div class="step-card">
+                                    <div class="step-number">1</div>
+                                    <div class="step-icon">🔍</div>
+                                    <h4 class="step-title">Browse Public Groups</h4>
+                                    <p class="step-description">
+                                        Click "Discover Public Groups" to see all open groups. Filter by size, activity, or tournament.
+                                    </p>
+                                    <div class="step-note">
+                                        <strong>Easy discovery:</strong> Public groups appear in the directory—no invite link needed! See member counts and descriptions.
+                                    </div>
+                                </div>
+
+                                <div class="step-card">
+                                    <div class="step-number">2</div>
+                                    <div class="step-icon">👀</div>
+                                    <h4 class="step-title">Request to Join</h4>
+                                    <p class="step-description">
+                                        Click any group to see details and description. When you find one you like, submit your request to join.
+                                    </p>
+                                    <div class="step-note">
+                                        <strong>Join multiple:</strong> You can request to join as many groups as you want—private or public!
+                                    </div>
+                                </div>
+
+                                <div class="step-card">
+                                    <div class="step-number">3</div>
+                                    <div class="step-icon">⏳</div>
+                                    <h4 class="step-title">Wait for Approval</h4>
+                                    <p class="step-description">
+                                        The group admin will review your request. You'll get notified when they approve you.
+                                    </p>
+                                    <div class="step-note">
+                                        <strong>Admin-managed:</strong> Even public groups require approval to maintain group quality and prevent spam.
+                                    </div>
+                                </div>
+
+                                <div class="step-card">
+                                    <div class="step-number">4</div>
+                                    <div class="step-icon">🎉</div>
+                                    <h4 class="step-title">Start Competing!</h4>
+                                    <p class="step-description">
+                                        Once approved, you're in! Your predictions count toward the leaderboard and you can see how you rank.
+                                    </p>
+                                    <div class="step-note">
+                                        <strong>Automatic:</strong> Your existing predictions are immediately included in the group standings.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="use-cases">
+                        <h3>Popular Ways to Use Groups</h3>
+                        <div class="use-case-list">
+                            <div class="use-case-item">
+                                <h4>👨‍👩‍👧‍👦 Family & Friends</h4>
+                                <p>Keep in touch across distances. Make every match a shared experience with your loved ones.</p>
+                            </div>
+
+                            <div class="use-case-item">
+                                <h4>💼 Office Competitions</h4>
+                                <p>Boost team morale with friendly workplace rivalries. Winner gets the parking spot!</p>
+                            </div>
+
+                            <div class="use-case-item">
+                                <h4>🍺 Bar & Fan Clubs</h4>
+                                <p>Unite your local supporters. Perfect for sports bars or fan club meetups.</p>
+                            </div>
+
+                            <div class="use-case-item">
+                                <h4>🏫 College Dorms</h4>
+                                <p>Rally your floor or fraternity. Tournament season just got more interesting.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="final-cta">
+                        <h3>Ready to Get Started?</h3>
+                        <div class="final-cta-buttons">
+                            <button class="btn btn-primary btn-large">Create a Private Group</button>
+                            <button class="btn btn-secondary btn-large">Browse Public Groups</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="notes">
+            <h3>💡 Design Notes & Considerations</h3>
+            <ul>
+                <li><strong>Sidebar Card Strategy:</strong> Keep it concise but compelling. The "Learn more" link bridges to the landing page where users can get full details.</li>
+                <li><strong>Value-First Messaging:</strong> Lead with benefits ("Compete with Friends") not features ("Create a Group"). Focus on outcomes users care about.</li>
+                <li><strong>Visual Hierarchy:</strong> Icons help scan quickly. Checkmarks in sidebar show quick wins without overwhelming.</li>
+                <li><strong>Multiple Entry Points:</strong> Different users have different goals (create private vs. discover public). Offer both paths equally.</li>
+                <li><strong>How It Works Section (NEW):</strong> Tabbed interface addresses the mechanics gap. Users can self-select their scenario (create/join private/join public) and get step-by-step guidance. Each step includes practical tips in blue notes.</li>
+                <li><strong>Request/Approval Flow (CRITICAL):</strong> All groups (private AND public) require admin approval—no auto-join. This is clearly communicated with dedicated "Wait for Approval" steps and notes about admin responsibility.</li>
+                <li><strong>Admin Responsibility Emphasized:</strong> "Create a Group" flow explicitly calls out that admins must manage the approval queue. Sets expectations that this requires ongoing attention.</li>
+                <li><strong>Private vs Public Distinction:</strong> Framed as discoverability difference only. Private = need invite link to request; Public = appears in directory to request. Both require approval.</li>
+                <li><strong>Progressive Disclosure:</strong> Hero → Why (features) → How (mechanics) → Inspiration (use cases) → Conversion (CTA). Natural flow from emotional to practical to action.</li>
+                <li><strong>Use Cases Section:</strong> Helps users visualize themselves using the feature. "Oh, that's perfect for my office pool!"</li>
+                <li><strong>Social Proof Opportunity:</strong> Could add "1,234 active groups" or "Join 5,678 players in groups" to show activity.</li>
+                <li><strong>Alternative for Sidebar:</strong> Could show a mini-preview of what a populated leaderboard looks like (with blurred/sample data) instead of just icon.</li>
+                <li><strong>Personalization Idea:</strong> If user has predictions but no groups, could say "You've made X predictions - see how you compare to friends!"</li>
+                <li><strong>Interactive Tabs:</strong> Reduces cognitive load by showing only relevant steps. Users don't have to read all scenarios—just the one they care about.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            // Hide all content
+            document.querySelectorAll('.how-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Remove active from all tabs
+            document.querySelectorAll('.how-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected content
+            document.getElementById(tabId).classList.add('active');
+
+            // Mark selected tab as active
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

@@ -16,6 +16,8 @@
 
 **User Story**: As a user, I want to understand how friend groups work and how to join/create them, so that I can start competing with friends without confusion.
 
+**Design Mockup**: See complete interactive mockup at `mockups/friend-groups-empty-states.html` (included in this PR)
+
 ## Acceptance Criteria
 
 ### Sidebar Card Empty State
