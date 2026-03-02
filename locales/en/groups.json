@@ -229,7 +229,9 @@
     "successMessage": "Your request to join this group has been submitted. You will be notified via email when an admin reviews your request.",
     "rejectedTitle": "Request Not Approved",
     "rejectedMessage": "Your previous request to join this group was not approved.",
-    "cooldownMessage": "You can request to join again on {date}."
+    "cooldownMessage": "You can request to join again on {date}.",
+    "messageLabel": "Personal message (optional)",
+    "messagePlaceholder": "Tell the group admin a bit about yourself..."
   },
   "privacy": {
     "public": "Public",

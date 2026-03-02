@@ -10,7 +10,8 @@ import {
   Box,
   Alert,
   CircularProgress,
-  Divider
+  Divider,
+  TextField
 } from '@mui/material';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
@@ -33,13 +34,16 @@ export default function JoinRequestForm({ group, memberCount, locale, tournament
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [message, setMessage] = useState('');
 
   const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
+    const messageToSend = message.trim() === '' ? undefined : message.trim();
+
     try {
-      await requestToJoinGroup(group.id, 'invite_link', locale, tournamentId);
+      await requestToJoinGroup(group.id, 'invite_link', locale, tournamentId, messageToSend);
       setSuccess(true);
       // Refresh the page to show PendingRequestView
       router.refresh();
@@ -116,6 +120,19 @@ export default function JoinRequestForm({ group, memberCount, locale, tournament
             {t('approvalRequired')}
           </Typography>
         </Alert>
+
+        <TextField
+          label={t('messageLabel')}
+          placeholder={t('messagePlaceholder')}
+          multiline
+          rows={3}
+          fullWidth
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          slotProps={{ htmlInput: { maxLength: 300 } }}
+          helperText={`${message.length}/300`}
+          sx={{ mb: 3 }}
+        />
 
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           <Button

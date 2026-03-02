@@ -7,7 +7,12 @@ import {
   InputAdornment,
   Grid,
   Typography,
-  Stack
+  Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  CircularProgress
 } from '@mui/material';
 import { Search as SearchIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon } from '@mui/icons-material';
 import { Button } from '../mui-wrappers/';
@@ -37,6 +42,8 @@ export default function PublicGroupsBrowser({
 }: PublicGroupsBrowserProps) {
   const t = useTranslations('groups.discovery');
   const tPagination = useTranslations('groups.pagination');
+  const tJoinRequest = useTranslations('groups.joinRequest');
+  const tJoin = useTranslations('groups.join');
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -45,6 +52,9 @@ export default function PublicGroupsBrowser({
   const [searchValue, setSearchValue] = useState(initialSearchTerm);
   const [groups, setGroups] = useState(initialGroups);
   const [isPending, startTransition] = useTransition();
+  const [pendingGroupId, setPendingGroupId] = useState<string | null>(null);
+  const [joinMessage, setJoinMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Debounced search
   useEffect(() => {
@@ -80,23 +90,38 @@ export default function PublicGroupsBrowser({
     });
   };
 
-  const handleRequestJoin = async (groupId: string) => {
+  const handleRequestJoin = (groupId: string) => {
     if (!currentUserId) {
       // Redirect to login with returnUrl
       const returnUrl = encodeURIComponent(globalThis.location.href);
       router.push(`/${locale}/login?returnUrl=${returnUrl}`);
       return;
     }
+    setPendingGroupId(groupId);
+    setJoinMessage('');
+  };
 
+  const handleConfirmJoin = async () => {
+    if (!pendingGroupId) return;
+    setIsSubmitting(true);
+    const messageToSend = joinMessage.trim() === '' ? undefined : joinMessage.trim();
     try {
-      await requestToJoinGroup(groupId, 'discovery', locale as 'en' | 'es', tournamentId);
-      // Optimistically update the button state for this group
+      await requestToJoinGroup(pendingGroupId, 'discovery', locale as 'en' | 'es', tournamentId, messageToSend);
       setGroups(prev =>
-        prev.map(g => g.id === groupId ? { ...g, userStatus: 'pending' as const } : g)
+        prev.map(g => g.id === pendingGroupId ? { ...g, userStatus: 'pending' as const } : g)
       );
     } catch (error) {
       console.error('Failed to request to join group:', error);
+    } finally {
+      setIsSubmitting(false);
+      setPendingGroupId(null);
+      setJoinMessage('');
     }
+  };
+
+  const handleCancelJoin = () => {
+    setPendingGroupId(null);
+    setJoinMessage('');
   };
 
   return (
@@ -168,6 +193,38 @@ export default function PublicGroupsBrowser({
           </Button>
         </Stack>
       )}
+
+      {/* Join Request Dialog */}
+      <Dialog open={pendingGroupId !== null} onClose={handleCancelJoin} maxWidth="sm" fullWidth>
+        <DialogTitle>{tJoinRequest('requestButton')}</DialogTitle>
+        <DialogContent>
+          <TextField
+            label={tJoinRequest('messageLabel')}
+            placeholder={tJoinRequest('messagePlaceholder')}
+            multiline
+            rows={3}
+            fullWidth
+            value={joinMessage}
+            onChange={(e) => setJoinMessage(e.target.value)}
+            slotProps={{ htmlInput: { maxLength: 300 } }}
+            helperText={`${joinMessage.length}/300`}
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelJoin} disabled={isSubmitting}>
+            {tJoin('buttons.cancel')}
+          </Button>
+          <Button
+            onClick={handleConfirmJoin}
+            variant="contained"
+            disabled={isSubmitting}
+            startIcon={isSubmitting ? <CircularProgress size={16} /> : undefined}
+          >
+            {tJoinRequest('requestButton')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

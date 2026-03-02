@@ -591,6 +591,7 @@ export interface ProdeGroupJoinRequestTable extends Identifiable {
   requested_at: Generated<Date>;
   resolved_at?: Date | null;
   resolved_by_user_id?: string | null;
+  message?: string | null;
 }
 
 export type ProdeGroupJoinRequest = Selectable<ProdeGroupJoinRequestTable>;

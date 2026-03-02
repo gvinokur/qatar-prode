@@ -256,27 +256,95 @@ describe('PublicGroupsBrowser', () => {
   });
 
   describe('Join request — authenticated user', () => {
-    it('calls requestToJoinGroup with correct arguments when clicking Request to Join', async () => {
+    it('opens dialog when clicking Request to Join', async () => {
       renderWithTheme(<PublicGroupsBrowser {...defaultProps} />);
-      // ES: groups.discovery.requestToJoin → "Solicitar Unirse"
       fireEvent.click(screen.getByRole('button', { name: 'Solicitar Unirse' }));
+
+      await waitFor(() => {
+        // Dialog title: groups.joinRequest.requestButton → "Solicitar Unirse al Grupo"
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText(/Cuéntale un poco sobre ti/i)).toBeInTheDocument();
+      });
+      expect(mockRequestToJoinGroup).not.toHaveBeenCalled();
+    });
+
+    it('calls requestToJoinGroup with correct arguments when confirming dialog without message', async () => {
+      renderWithTheme(<PublicGroupsBrowser {...defaultProps} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Solicitar Unirse' }));
+
+      await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
+
+      // Click confirm without typing a message
+      const confirmButtons = screen.getAllByRole('button', { name: /Solicitar Unirse al Grupo/i });
+      fireEvent.click(confirmButtons[confirmButtons.length - 1]);
 
       await waitFor(() => {
         expect(mockRequestToJoinGroup).toHaveBeenCalledWith(
           'group-1',
           'discovery',
           'es',
-          'tournament-1'
+          'tournament-1',
+          undefined
         );
       });
     });
 
-    it('optimistically marks group as pending after successful join request', async () => {
+    it('calls requestToJoinGroup with message when user types one', async () => {
       renderWithTheme(<PublicGroupsBrowser {...defaultProps} />);
       fireEvent.click(screen.getByRole('button', { name: 'Solicitar Unirse' }));
 
+      await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
+
+      fireEvent.change(screen.getByPlaceholderText(/Cuéntale un poco sobre ti/i), {
+        target: { value: 'Hola desde el gimnasio' },
+      });
+
+      const confirmButtons = screen.getAllByRole('button', { name: /Solicitar Unirse al Grupo/i });
+      fireEvent.click(confirmButtons[confirmButtons.length - 1]);
+
       await waitFor(() => {
-        // "Solicitar Unirse" replaced by "Solicitud Pendiente" (disabled pending button)
+        expect(mockRequestToJoinGroup).toHaveBeenCalledWith(
+          'group-1',
+          'discovery',
+          'es',
+          'tournament-1',
+          'Hola desde el gimnasio'
+        );
+      });
+    });
+
+    it('shows character counter in dialog', async () => {
+      renderWithTheme(<PublicGroupsBrowser {...defaultProps} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Solicitar Unirse' }));
+
+      await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
+      expect(screen.getByText('0/300')).toBeInTheDocument();
+    });
+
+    it('closes dialog without calling action when cancel is clicked', async () => {
+      renderWithTheme(<PublicGroupsBrowser {...defaultProps} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Solicitar Unirse' }));
+
+      await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
+
+      fireEvent.click(screen.getByRole('button', { name: /Cancelar/i }));
+
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      });
+      expect(mockRequestToJoinGroup).not.toHaveBeenCalled();
+    });
+
+    it('optimistically marks group as pending after confirming join', async () => {
+      renderWithTheme(<PublicGroupsBrowser {...defaultProps} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Solicitar Unirse' }));
+
+      await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
+
+      const confirmButtons = screen.getAllByRole('button', { name: /Solicitar Unirse al Grupo/i });
+      fireEvent.click(confirmButtons[confirmButtons.length - 1]);
+
+      await waitFor(() => {
         expect(screen.queryByRole('button', { name: 'Solicitar Unirse' })).not.toBeInTheDocument();
       });
     });
@@ -287,8 +355,13 @@ describe('PublicGroupsBrowser', () => {
       renderWithTheme(<PublicGroupsBrowser {...defaultProps} />);
       fireEvent.click(screen.getByRole('button', { name: 'Solicitar Unirse' }));
 
+      await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
+
+      const confirmButtons = screen.getAllByRole('button', { name: /Solicitar Unirse al Grupo/i });
+      fireEvent.click(confirmButtons[confirmButtons.length - 1]);
+
       await waitFor(() => {
-        // State not updated — join button still present
+        // State not updated — join button still present after dialog closes
         expect(screen.getByRole('button', { name: 'Solicitar Unirse' })).toBeInTheDocument();
       });
     });

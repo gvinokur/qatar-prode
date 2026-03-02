@@ -30,6 +30,7 @@ interface JoinRequest {
   requested_at: Date;
   request_source: string;
   status: string;
+  message?: string | null;
 }
 
 type Props = {
@@ -160,6 +161,11 @@ export default function JoinRequestManager({ groupId, initialRequests, locale = 
             <Typography variant="body2" component="span" color="text.secondary">
               {t(`source.${request.request_source}`)}
             </Typography>
+            {request.message && (
+              <Typography variant="body2" component="span" display="block" sx={{ mt: 0.5, fontStyle: 'italic', color: 'text.secondary' }}>
+                &ldquo;{request.message}&rdquo;
+              </Typography>
+            )}
           </Box>
         }
       />

@@ -80,6 +80,7 @@ describe('Prode Group Join Request Repository', () => {
         user_id: 'user-1',
         status: 'pending',
         request_source: 'invite_link',
+        message: null,
       });
       expect(mockQuery.returningAll).toHaveBeenCalled();
       expect(mockQuery.executeTakeFirstOrThrow).toHaveBeenCalled();
@@ -106,6 +107,42 @@ describe('Prode Group Join Request Repository', () => {
 
       expect(mockQuery.values).toHaveBeenCalledWith(
         expect.objectContaining({ request_source: 'manual' })
+      );
+    });
+
+    it('should store message when provided', async () => {
+      const requestWithMessage = { ...mockRequest, message: 'Hey, I know you from the gym!' };
+      const mockQuery = createMockInsertQuery(requestWithMessage);
+      mockDb.insertInto.mockReturnValue(mockQuery as any);
+
+      await createJoinRequest('group-1', 'user-1', 'invite_link', 'Hey, I know you from the gym!');
+
+      expect(mockQuery.values).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Hey, I know you from the gym!' })
+      );
+    });
+
+    it('should store null message when not provided', async () => {
+      const mockQuery = createMockInsertQuery(mockRequest);
+      mockDb.insertInto.mockReturnValue(mockQuery as any);
+
+      await createJoinRequest('group-1', 'user-1', 'invite_link');
+
+      expect(mockQuery.values).toHaveBeenCalledWith(
+        expect.objectContaining({ message: null })
+      );
+    });
+
+    it('should store message at exactly 300 chars (boundary)', async () => {
+      const longMessage = 'a'.repeat(300);
+      const requestWithMessage = { ...mockRequest, message: longMessage };
+      const mockQuery = createMockInsertQuery(requestWithMessage);
+      mockDb.insertInto.mockReturnValue(mockQuery as any);
+
+      await createJoinRequest('group-1', 'user-1', 'invite_link', longMessage);
+
+      expect(mockQuery.values).toHaveBeenCalledWith(
+        expect.objectContaining({ message: longMessage })
       );
     });
   });
@@ -181,6 +218,39 @@ describe('Prode Group Join Request Repository', () => {
       const result = await findJoinRequestsByGroup('empty-group');
 
       expect(result).toEqual([]);
+    });
+
+    it('should include message in the select list', async () => {
+      const mockRequestWithMessage = {
+        ...mockRequest,
+        user_nickname: 'TestUser',
+        user_email: 'test@example.com',
+        message: 'Hi there!',
+      };
+      const mockQuery = createMockSelectQuery([mockRequestWithMessage]);
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      const result = await findJoinRequestsByGroup('group-1');
+
+      expect(mockQuery.select).toHaveBeenCalledWith(
+        expect.arrayContaining(['prode_group_join_requests.message'])
+      );
+      expect(result[0]).toEqual(expect.objectContaining({ message: 'Hi there!' }));
+    });
+
+    it('should return null message for requests without message', async () => {
+      const mockRequestNoMessage = {
+        ...mockRequest,
+        user_nickname: 'TestUser',
+        user_email: 'test@example.com',
+        message: null,
+      };
+      const mockQuery = createMockSelectQuery([mockRequestNoMessage]);
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      const result = await findJoinRequestsByGroup('group-1');
+
+      expect(result[0]).toEqual(expect.objectContaining({ message: null }));
     });
   });
 

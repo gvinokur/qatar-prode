@@ -229,7 +229,9 @@
     "successMessage": "Tu solicitud para unirte a este grupo ha sido enviada. Serás notificado por email cuando un administrador revise tu solicitud.",
     "rejectedTitle": "Solicitud No Aprobada",
     "rejectedMessage": "Tu solicitud anterior para unirte a este grupo no fue aprobada.",
-    "cooldownMessage": "Podrás solicitar unirte nuevamente el {date}."
+    "cooldownMessage": "Podrás solicitar unirte nuevamente el {date}.",
+    "messageLabel": "Mensaje personal (opcional)",
+    "messagePlaceholder": "Cuéntale un poco sobre ti al administrador del grupo..."
   },
   "privacy": {
     "public": "Público",

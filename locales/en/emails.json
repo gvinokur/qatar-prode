@@ -37,6 +37,7 @@
       "greeting": "Hi {adminName},",
       "message": "{userName} has requested to join your friend group \"{groupName}\".",
       "requestedOn": "Requested on: {date}",
+      "personalMessage": "Personal message from {userName}:",
       "viewButton": "View Request",
       "signature": "The La Maquina Prode Team"
     },

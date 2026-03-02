@@ -24,6 +24,7 @@ const makeRequest = (overrides: Partial<{
   requested_at: Date;
   request_source: string;
   status: string;
+  message?: string | null;
 }> = {}) => ({
   id: 'request-1',
   user_id: 'user-1',
@@ -75,6 +76,39 @@ describe('JoinRequestManager', () => {
 
       expect(screen.getByRole('button', { name: /Aprobar/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /Rechazar/i })).toBeInTheDocument();
+    });
+
+    it('displays message in italic when present', () => {
+      const request = makeRequest({ status: 'pending', message: 'Hola, soy tu amigo del gimnasio' });
+      renderWithTheme(
+        <JoinRequestManager {...defaultProps} initialRequests={[request]} />
+      );
+
+      expect(screen.getByText(/Hola, soy tu amigo del gimnasio/i)).toBeInTheDocument();
+    });
+
+    it('does not render message element when message is null', () => {
+      const request = makeRequest({ status: 'pending', message: null });
+      renderWithTheme(
+        <JoinRequestManager {...defaultProps} initialRequests={[request]} />
+      );
+
+      // The request renders without any message block — only standard elements visible
+      expect(screen.getByText('TestUser')).toBeInTheDocument();
+      // No italic message text should exist
+      const italicElements = document.querySelectorAll('[style*="italic"]');
+      expect(italicElements.length).toBe(0);
+    });
+
+    it('does not render message element when message is undefined', () => {
+      const request = makeRequest({ status: 'pending' }); // message not set
+      renderWithTheme(
+        <JoinRequestManager {...defaultProps} initialRequests={[request]} />
+      );
+
+      expect(screen.getByText('TestUser')).toBeInTheDocument();
+      const italicElements = document.querySelectorAll('[style*="italic"]');
+      expect(italicElements.length).toBe(0);
     });
   });
 
