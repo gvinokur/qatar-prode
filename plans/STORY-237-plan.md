@@ -223,6 +223,16 @@ ES:
 - 0 new issues of any severity
 - All existing tests must continue to pass
 
+## Implementation Amendments
+
+### Amendment 1: Discovery Join Flow Also Required Message Dialog
+**Date:** 2026-03-02
+**Reason:** The plan covered the invite-link flow (`join-request-form.tsx`) but omitted the discovery flow (`public-groups-browser.tsx`), which had a direct "Request to Join" button that bypassed the message field entirely. Discovered during post-implementation review.
+**Change:** Added a MUI Dialog to `public-groups-browser.tsx`. Clicking "Request to Join" on the discover page now opens the dialog with the optional message textarea (same 300-char counter), a Cancel button, and a Confirm button that calls `requestToJoinGroup` with the message. 7 new tests added to `__tests__/components/friend-groups/public-groups-browser.test.tsx`. No new i18n keys needed — reuses `groups.joinRequest.messageLabel`, `messagePlaceholder`, `requestButton`, and `groups.join.buttons.cancel`.
+
+**Additional file modified:**
+- `app/components/friend-groups/public-groups-browser.tsx` — **MODIFY** — Add join dialog with message textarea
+
 ## Open Questions
 
 None — acceptance criteria and scope are clearly defined. Migration will require explicit user approval before running.
