@@ -24,6 +24,12 @@ export default function TournamentRedirect({
   useEffect(() => {
     if (tournaments.length === 0) return;
 
+    // If openSignin is present, don't redirect - let user complete login first
+    // After login, the returnUrl parameter will handle navigation to the tournament
+    if (searchParams?.get('openSignin')) {
+      return;
+    }
+
     // Get last selected tournament
     const lastSelectedId = getLastSelectedTournamentId();
 
