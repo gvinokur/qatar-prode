@@ -125,6 +125,26 @@ export default function HowItWorksTabs() {
     }
   ];
 
+  const allSteps = [createGroupSteps, joinPrivateSteps, joinPublicSteps];
+
+  const renderStepsPanel = (steps: typeof createGroupSteps, tabIndex: number) => (
+    <TabPanel value={activeTab} index={tabIndex}>
+      <Grid container spacing={3}>
+        {steps.map((step, index) => (
+          <Grid size={{ xs: 12, sm: 6, md: 3 }} key={step.title}>
+            <StepCard
+              stepNumber={index + 1}
+              icon={step.icon}
+              title={step.title}
+              description={step.description}
+              tip={step.tip}
+            />
+          </Grid>
+        ))}
+      </Grid>
+    </TabPanel>
+  );
+
   return (
     <Box sx={{ py: 4 }}>
       <Box sx={{ textAlign: 'center', mb: 4 }}>
@@ -157,56 +177,8 @@ export default function HowItWorksTabs() {
         </Tabs>
       </Box>
 
-      {/* Tab Panel: Create a Group */}
-      <TabPanel value={activeTab} index={0}>
-        <Grid container spacing={3}>
-          {createGroupSteps.map((step, index) => (
-            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={step.title}>
-              <StepCard
-                stepNumber={index + 1}
-                icon={step.icon}
-                title={step.title}
-                description={step.description}
-                tip={step.tip}
-              />
-            </Grid>
-          ))}
-        </Grid>
-      </TabPanel>
-
-      {/* Tab Panel: Join Private Group */}
-      <TabPanel value={activeTab} index={1}>
-        <Grid container spacing={3}>
-          {joinPrivateSteps.map((step, index) => (
-            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={step.title}>
-              <StepCard
-                stepNumber={index + 1}
-                icon={step.icon}
-                title={step.title}
-                description={step.description}
-                tip={step.tip}
-              />
-            </Grid>
-          ))}
-        </Grid>
-      </TabPanel>
-
-      {/* Tab Panel: Join Public Group */}
-      <TabPanel value={activeTab} index={2}>
-        <Grid container spacing={3}>
-          {joinPublicSteps.map((step, index) => (
-            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={step.title}>
-              <StepCard
-                stepNumber={index + 1}
-                icon={step.icon}
-                title={step.title}
-                description={step.description}
-                tip={step.tip}
-              />
-            </Grid>
-          ))}
-        </Grid>
-      </TabPanel>
+      {/* Tab Panels */}
+      {allSteps.map((steps, index) => renderStepsPanel(steps, index))}
     </Box>
   );
 }
