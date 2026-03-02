@@ -19,6 +19,8 @@ import {createDbGroup, deleteGroup} from "../../actions/prode-group-actions";
 import InviteFriendsDialog from "../invite-friends-dialog";
 import Link from "next/link";
 import { useLocale, useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import FriendGroupsSidebarEmptyState from "../friend-groups/FriendGroupsSidebarEmptyState";
 
 type Props = {
   userGroups: { id: string, name: string}[]
@@ -42,12 +44,14 @@ export default function FriendGroupsList({
   const t = useTranslations('groups');
   const theme = useTheme();
   const locale = useLocale();
-  const [expanded, setExpanded] = useState(false);
+  const router = useRouter();
+  const [userGroups, setUserGroups] = useState(initialUserGroups);
+  const isEmpty = Boolean(tournamentId && userGroups.length + participantGroups.length === 0 && pendingRequests.length === 0);
+  const [expanded, setExpanded] = useState(isEmpty);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [openConfirmDeleteGroup, setOpenConfirmDeleteGroup] = useState<string | false>(false)
   const [loading, setLoading] = useState(false)
   const { control, handleSubmit } =useForm<GroupForm>()
-  const [userGroups, setUserGroups] = useState(initialUserGroups);
 
   const handleExpandClick = () => {
     setExpanded(!expanded);
@@ -106,7 +110,12 @@ export default function FriendGroupsList({
         />
         <Collapse in={expanded} timeout="auto" unmountOnExit>
           <CardContent sx={{ borderBottom: `${theme.palette.primary.contrastText} 1px solid`, borderTop: `${theme.palette.primary.contrastText} 1px solid` }}>
-          <List sx={{ width: '100%'}} disablePadding >
+          {isEmpty ? (
+            <FriendGroupsSidebarEmptyState
+              onLearnMore={() => router.push(`/${locale}/tournaments/${tournamentId}/friend-groups`)}
+            />
+          ) : (
+            <List sx={{ width: '100%'}} disablePadding >
             {userGroups.map(userGroup => (
               <ListItem key={userGroup.id}
                         alignItems='flex-start'
@@ -166,47 +175,48 @@ export default function FriendGroupsList({
                 />
               </ListItem>
             ))}
-          </List>
-        </CardContent>
+            </List>
+          )}
+          </CardContent>
         </Collapse>
         <CardActions sx={{
           flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: 1,
-          px: 2,
-          py: 1.5
-        }}>
-          <Button
-            onClick={() => setOpenCreateDialog(true)}
-            size="small"
-            fullWidth
-          >
-            {t('actions.create')}
-          </Button>
-          {tournamentId && (userGroups.length + participantGroups.length >= 1 || pendingRequests.length > 0) && (
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 1,
+            px: 2,
+            py: 1.5
+          }}>
             <Button
-              component={Link}
-              href={`/${locale}/tournaments/${tournamentId}/friend-groups`}
-              startIcon={<GroupsIcon />}
+              onClick={() => setOpenCreateDialog(true)}
               size="small"
               fullWidth
             >
-              {t('actions.view')}
+              {t('actions.create')}
             </Button>
-          )}
-          {tournamentId && userGroups.length + participantGroups.length === 0 && pendingRequests.length === 0 && (
-            <Button
-              component={Link}
-              href={`/${locale}/tournaments/${tournamentId}/friend-groups/discover`}
-              startIcon={<SearchIcon />}
-              size="small"
-              fullWidth
-            >
-              {t('discovery.discoverGroups')}
-            </Button>
-          )}
-        </CardActions>
+            {tournamentId && (userGroups.length + participantGroups.length >= 1 || pendingRequests.length > 0) && (
+              <Button
+                component={Link}
+                href={`/${locale}/tournaments/${tournamentId}/friend-groups`}
+                startIcon={<GroupsIcon />}
+                size="small"
+                fullWidth
+              >
+                {t('actions.view')}
+              </Button>
+            )}
+            {tournamentId && userGroups.length + participantGroups.length === 0 && pendingRequests.length === 0 && (
+              <Button
+                component={Link}
+                href={`/${locale}/tournaments/${tournamentId}/friend-groups/discover`}
+                startIcon={<SearchIcon />}
+                size="small"
+                fullWidth
+              >
+                {t('discovery.discoverGroups')}
+              </Button>
+            )}
+          </CardActions>
       </Card>
       <Dialog open={openCreateDialog} onClose={handleCloseCreateDialog}
               slotProps={{

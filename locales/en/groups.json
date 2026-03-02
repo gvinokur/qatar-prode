@@ -273,5 +273,160 @@
     "previous": "Previous",
     "next": "Next",
     "pageInfo": "Page {current} of {total}"
+  },
+  "emptyState": {
+    "sidebar": {
+      "headline": "Compete with Friends!",
+      "description": "Create private groups or join public competitions to track your predictions against others.",
+      "benefits": {
+        "privateLeaderboards": "Private leaderboards",
+        "braggingRights": "Compete for bragging rights",
+        "trackProgress": "Track progress together"
+      },
+      "learnMore": "Learn more about groups",
+      "actions": {
+        "createGroup": "Create Group",
+        "discoverGroups": "Discover Public Groups"
+      }
+    },
+    "landing": {
+      "hero": {
+        "headline": "Predictions Are Better with Friends",
+        "subtitle": "Create private groups for your crew or discover public competitions. Track predictions, climb leaderboards, and earn bragging rights.",
+        "actions": {
+          "createGroup": "Create Your First Group",
+          "discoverGroups": "Discover Public Groups"
+        }
+      },
+      "features": {
+        "headline": "Why Join or Create a Group?",
+        "subtitle": "Everything you need to compete and connect",
+        "privateGroups": {
+          "title": "Private Groups",
+          "description": "Create invite-only groups for family, friends, or coworkers. Control who joins and keep it exclusive."
+        },
+        "publicCompetitions": {
+          "title": "Public Competitions",
+          "description": "Join open groups to compete with the global community. Prove your prediction skills on a bigger stage."
+        },
+        "liveLeaderboards": {
+          "title": "Live Leaderboards",
+          "description": "Track rankings in real-time. See who's on top and where you stand after every match."
+        },
+        "groupChat": {
+          "title": "Group Chat",
+          "description": "Trash talk, celebrate wins, and discuss predictions with your group members."
+        },
+        "customPrizes": {
+          "title": "Custom Prizes",
+          "description": "Set your own stakes. Winner buys pizza? Loser does dishes? You decide what's on the line."
+        },
+        "detailedStats": {
+          "title": "Detailed Stats",
+          "description": "Compare prediction accuracy, see trends, and analyze who's the real prediction champion."
+        }
+      },
+      "howItWorks": {
+        "headline": "How It Works",
+        "subtitle": "Choose your path and get started in minutes",
+        "tabs": {
+          "create": "Create a Group",
+          "joinPrivate": "Join a Private Group",
+          "joinPublic": "Join a Public Group"
+        },
+        "createGroup": {
+          "step1": {
+            "title": "Create Your Group",
+            "description": "Click 'Create Group', give it a name, and choose whether it's private or public.",
+            "tip": "Private groups require an invite link. Public groups appear in the directory for anyone to join."
+          },
+          "step2": {
+            "title": "Share the Invite Link",
+            "description": "Share your unique invite link via text, email, or social media. Friends click it to request to join.",
+            "tip": "For private groups: Only people with the link can request access. You can revoke the link anytime."
+          },
+          "step3": {
+            "title": "Approve Members",
+            "description": "You'll receive notifications when people request to join. Review and approve members to add them to the group.",
+            "tip": "As admin, you're responsible for managing the approval queue. Members can't join until you approve them."
+          },
+          "step4": {
+            "title": "Start Competing",
+            "description": "Once members are approved, everyone makes predictions and the leaderboard updates automatically. Let the games begin!",
+            "tip": "Continue managing members, customize settings, and set group prizes."
+          }
+        },
+        "joinPrivate": {
+          "step1": {
+            "title": "Get an Invite Link",
+            "description": "Ask the group admin to send you the invite link. They can find it in their group settings.",
+            "tip": "Private groups don't appear in public searches. You must have the invite link to request access."
+          },
+          "step2": {
+            "title": "Request to Join",
+            "description": "Click the invite link, review the group details, and submit your request to join.",
+            "tip": "You'll see the group name, member count, and description before requesting."
+          },
+          "step3": {
+            "title": "Wait for Approval",
+            "description": "The group admin will review your request. You'll get notified when they approve or deny it.",
+            "tip": "Approval times vary by admin. Check back or wait for the notification!"
+          },
+          "step4": {
+            "title": "You're In!",
+            "description": "Once approved, you're part of the group. Make predictions and see how you stack up on the leaderboard!",
+            "tip": "Your existing predictions count toward the group leaderboard immediately."
+          }
+        },
+        "joinPublic": {
+          "step1": {
+            "title": "Browse Public Groups",
+            "description": "Click 'Discover Public Groups' to see all open groups. Filter by size, activity, or tournament.",
+            "tip": "Public groups appear in the directory—no invite link needed! See member counts and descriptions."
+          },
+          "step2": {
+            "title": "Request to Join",
+            "description": "Click any group to see details and description. When you find one you like, submit your request to join.",
+            "tip": "You can request to join as many groups as you want—private or public!"
+          },
+          "step3": {
+            "title": "Wait for Approval",
+            "description": "The group admin will review your request. You'll get notified when they approve you.",
+            "tip": "Even public groups require approval to maintain group quality and prevent spam."
+          },
+          "step4": {
+            "title": "Start Competing!",
+            "description": "Once approved, you're in! Your predictions count toward the leaderboard and you can see how you rank.",
+            "tip": "Your existing predictions are immediately included in the group standings."
+          }
+        }
+      },
+      "useCases": {
+        "headline": "Popular Ways to Use Groups",
+        "familyFriends": {
+          "title": "Family & Friends",
+          "description": "Keep in touch across distances. Make every match a shared experience with your loved ones."
+        },
+        "officeCompetitions": {
+          "title": "Office Competitions",
+          "description": "Boost team morale with friendly workplace rivalries. Winner gets the parking spot!"
+        },
+        "barFanClubs": {
+          "title": "Bar & Fan Clubs",
+          "description": "Unite your local supporters. Perfect for sports bars or fan club meetups."
+        },
+        "collegeDorms": {
+          "title": "College Dorms",
+          "description": "Rally your floor or fraternity. Tournament season just got more interesting."
+        }
+      },
+      "finalCta": {
+        "headline": "Ready to Get Started?",
+        "actions": {
+          "createGroup": "Create a Private Group",
+          "discoverGroups": "Browse Public Groups"
+        }
+      }
+    }
   }
 }
