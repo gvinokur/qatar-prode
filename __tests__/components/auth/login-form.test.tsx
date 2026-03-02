@@ -239,7 +239,7 @@ describe('LoginForm', () => {
     it('redirects to callback URL when present', async () => {
       (signIn as any).mockResolvedValue({ ok: true });
       mockSearchParams.get.mockImplementation((key: string) => {
-        if (key === 'callbackUrl') return '/dashboard';
+        if (key === 'returnUrl') return '/dashboard';
         return null;
       });
       

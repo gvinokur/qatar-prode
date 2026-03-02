@@ -68,10 +68,11 @@ const intlMiddleware = createMiddleware({
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 1. Skip locale middleware for API routes and static files
+  // 1. Skip locale middleware for API routes, static files, and short URLs
   if (
     pathname.startsWith('/api') ||
     pathname.startsWith('/_next') ||
+    pathname.startsWith('/j/') ||  // Short URL redirects (handled at root level)
     pathname.includes('.')  // Static files (favicon.ico, manifest.json, etc.)
   ) {
     return NextResponse.next();

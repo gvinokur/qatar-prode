@@ -7,12 +7,14 @@ import * as dismissalStorage from '@/app/utils/dismissal-storage';
 // Mock next/navigation
 const mockPush = vi.fn();
 let mockPathname = '/en';
+const mockSearchParams = new URLSearchParams();
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
   }),
   usePathname: () => mockPathname,
+  useSearchParams: () => mockSearchParams,
 }));
 
 // Mock next-intl

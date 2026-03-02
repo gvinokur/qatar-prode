@@ -1,7 +1,8 @@
 'use client'
 
-import {useState, ReactNode, cloneElement, isValidElement} from 'react';
-import {useTranslations} from 'next-intl';
+import {useState, useEffect, ReactNode, cloneElement, isValidElement} from 'react';
+import {useTranslations, useLocale} from 'next-intl';
+import {generateShortUrlForGroup, buildShortUrl} from '@/app/actions/short-url-actions';
 import {
   Dialog,
   DialogTitle,
@@ -30,15 +31,44 @@ interface InviteFriendsDialogProps {
 export default function InviteFriendsDialog({ trigger, groupId, groupName, tournamentId }: InviteFriendsDialogProps) {
   const t = useTranslations('groups.invite');
   const tCommon = useTranslations('common.buttons');
+  const locale = useLocale();
 
   const [open, setOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [shortUrl, setShortUrl] = useState<string>('');
+  const [loading, setLoading] = useState(true);
 
   const handleOpen = async () => {
     setOpen(true);
   }
   const handleClose = () => setOpen(false);
+
+  // Fetch short URL when dialog opens
+  useEffect(() => {
+    if (!open) return; // Only fetch when dialog is open
+
+    async function fetchShortUrl() {
+      try {
+        setLoading(true);
+        const result = await generateShortUrlForGroup(groupId, tournamentId);
+        const fullUrl = await buildShortUrl(result.code);
+        setShortUrl(fullUrl);
+      } catch (error) {
+        console.error('Failed to generate short URL:', error);
+        // Fallback to long URL WITH LOCALE PRESERVATION
+        const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+        const fallbackUrl = tournamentId
+          ? `${baseUrl}/${locale}/tournaments/${tournamentId}/friend-groups/join/${groupId}`
+          : `${baseUrl}/${locale}/friend-groups/join/${groupId}`;
+        setShortUrl(fallbackUrl);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchShortUrl();
+  }, [open, groupId, tournamentId, locale]);
 
   const showSnackbar = (message: string) => {
     setSnackbarMessage(message);
@@ -49,13 +79,12 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName, tourn
     setSnackbarOpen(false);
   };
 
-  // Generate invitation link
+  // Get invitation link (short URL or loading message)
   const getInvitationLink = () => {
-    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-    if (tournamentId) {
-      return `${baseUrl}/tournaments/${tournamentId}/friend-groups/join/${groupId}`;
+    if (loading) {
+      return t('generatingLink', { default: 'Generating link...' });
     }
-    return `${baseUrl}/friend-groups/join/${groupId}`;
+    return shortUrl;
   };
 
   // Generate invitation message

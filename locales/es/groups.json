@@ -32,6 +32,7 @@
   "invite": {
     "title": "Invitar amigos a {groupName}",
     "description": "Comparte este enlace con tus amigos para que se unan al grupo.",
+    "generatingLink": "Generando enlace...",
     "directShare": "O comparte directamente a través de:",
     "message": "¡Hola! Te invito a unirte a nuestro grupo \"{groupName}\" para jugar en al prode en los torneos actuales y futuros. Usa este enlace para unirte: {link}",
     "emailSubject": "Invitación al grupo \"{groupName}\" del Prode",
