@@ -2,7 +2,6 @@
 
 import { Box, Typography, Button, Stack } from "@mui/material";
 import { useTranslations } from 'next-intl';
-import { ScrollShadowContainer } from '../common/scroll-shadow-container';
 import FeatureCards from './empty-state/FeatureCards';
 import HowItWorksTabs from './empty-state/HowItWorksTabs';
 import UseCases from './empty-state/UseCases';
@@ -35,11 +34,6 @@ export default function FriendGroupsLandingEmptyState({
           px: { xs: 2, sm: 3 }
         }}
       >
-        {/* Trophy Emoji */}
-        <Box sx={{ fontSize: '4rem', mb: 3 }}>
-          🏆
-        </Box>
-
         {/* Headline */}
         <Typography
           variant="h3"
@@ -95,14 +89,12 @@ export default function FriendGroupsLandingEmptyState({
         </Stack>
       </Box>
 
-      {/* Scrollable Content with Shadow Indicators */}
-      <ScrollShadowContainer
-        direction="vertical"
+      {/* Scrollable Content */}
+      <Box
         sx={{
           flex: 1,
-          minHeight: 0
-        }}
-        scrollContainerSx={{
+          minHeight: 0,
+          overflow: 'auto',
           display: 'flex',
           flexDirection: 'column',
           gap: 4,
@@ -163,7 +155,7 @@ export default function FriendGroupsLandingEmptyState({
             </Button>
           </Stack>
         </Box>
-      </ScrollShadowContainer>
+      </Box>
     </Box>
   );
 }

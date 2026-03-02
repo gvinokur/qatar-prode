@@ -17,12 +17,6 @@ describe('FriendGroupsLandingEmptyState', () => {
   });
 
   describe('Hero Section', () => {
-    it('renders the trophy emoji', () => {
-      renderWithProviders(<FriendGroupsLandingEmptyState {...defaultProps} />);
-
-      expect(screen.getByText('🏆')).toBeInTheDocument();
-    });
-
     it('renders the headline', () => {
       renderWithProviders(<FriendGroupsLandingEmptyState {...defaultProps} />);
 
@@ -148,13 +142,13 @@ describe('FriendGroupsLandingEmptyState', () => {
     });
   });
 
-  describe('ScrollShadowContainer Integration', () => {
-    it('uses ScrollShadowContainer for scrollable content', () => {
+  describe('Scrollable Content', () => {
+    it('has a scrollable content area for features, how it works, use cases, and final CTA', () => {
       const { container } = renderWithProviders(<FriendGroupsLandingEmptyState {...defaultProps} />);
 
-      // ScrollShadowContainer renders with specific structure
-      // Check that features, how it works, use cases, and final CTA are within scrollable area
-      expect(container.querySelector('[style*="overflow"]')).toBeInTheDocument();
+      // Check that the scrollable content area exists
+      const scrollableBox = container.querySelector('[style*="overflow"]');
+      expect(scrollableBox).toBeInTheDocument();
     });
   });
 });
