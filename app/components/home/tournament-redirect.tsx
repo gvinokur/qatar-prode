@@ -46,14 +46,17 @@ export default function TournamentRedirect({
     const queryString = searchParams?.toString();
     const redirectUrl = queryString ? `${targetPath}?${queryString}` : targetPath;
 
+    // If this is an auth redirect, clear openSignin from current URL immediately
+    // This prevents the login dialog from opening on the home page while redirecting
+    if (isAuthRedirect && typeof window !== 'undefined') {
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.delete('openSignin');
+      window.history.replaceState({}, '', currentUrl.toString());
+    }
+
     // Redirect (using id, not slug - route is /tournaments/[id])
     router.push(redirectUrl);
-  }, [tournaments, router, locale, searchParams]);
-
-  // Don't show UI during auth redirect (faster, avoids flash)
-  if (isAuthRedirect) {
-    return null;
-  }
+  }, [tournaments, router, locale, searchParams, isAuthRedirect]);
 
   // Show centered loading indicator while redirecting
   return (
