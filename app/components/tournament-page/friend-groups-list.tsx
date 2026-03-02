@@ -45,12 +45,13 @@ export default function FriendGroupsList({
   const theme = useTheme();
   const locale = useLocale();
   const router = useRouter();
-  const [expanded, setExpanded] = useState(false);
+  const [userGroups, setUserGroups] = useState(initialUserGroups);
+  const isEmpty = Boolean(tournamentId && userGroups.length + participantGroups.length === 0 && pendingRequests.length === 0);
+  const [expanded, setExpanded] = useState(isEmpty);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [openConfirmDeleteGroup, setOpenConfirmDeleteGroup] = useState<string | false>(false)
   const [loading, setLoading] = useState(false)
   const { control, handleSubmit } =useForm<GroupForm>()
-  const [userGroups, setUserGroups] = useState(initialUserGroups);
 
   const handleExpandClick = () => {
     setExpanded(!expanded);
@@ -97,19 +98,28 @@ export default function FriendGroupsList({
           subheader={isActive ? t('status.youAreHere') : undefined}
           sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
           action={
-            <ExpandMore
-              expand={expanded}
-              onClick={handleExpandClick}
-              aria-expanded={expanded}
-              aria-label={t('actions.expandMore')}
-            >
-              <ExpandMoreIcon />
-            </ExpandMore>
+            !isEmpty ? (
+              <ExpandMore
+                expand={expanded}
+                onClick={handleExpandClick}
+                aria-expanded={expanded}
+                aria-label={t('actions.expandMore')}
+              >
+                <ExpandMoreIcon />
+              </ExpandMore>
+            ) : undefined
           }
         />
-        <Collapse in={expanded} timeout="auto" unmountOnExit>
-          <CardContent sx={{ borderBottom: `${theme.palette.primary.contrastText} 1px solid`, borderTop: `${theme.palette.primary.contrastText} 1px solid` }}>
-          <List sx={{ width: '100%'}} disablePadding >
+        {isEmpty ? (
+          <FriendGroupsSidebarEmptyState
+            onCreateGroup={() => setOpenCreateDialog(true)}
+            onDiscoverGroups={() => router.push(`/${locale}/tournaments/${tournamentId}/friend-groups/discover`)}
+            onLearnMore={() => router.push(`/${locale}/tournaments/${tournamentId}/friend-groups`)}
+          />
+        ) : (
+          <Collapse in={expanded} timeout="auto" unmountOnExit>
+            <CardContent sx={{ borderBottom: `${theme.palette.primary.contrastText} 1px solid`, borderTop: `${theme.palette.primary.contrastText} 1px solid` }}>
+            <List sx={{ width: '100%'}} disablePadding >
             {userGroups.map(userGroup => (
               <ListItem key={userGroup.id}
                         alignItems='flex-start'
@@ -169,16 +179,11 @@ export default function FriendGroupsList({
                 />
               </ListItem>
             ))}
-          </List>
-        </CardContent>
-        </Collapse>
-        {tournamentId && userGroups.length + participantGroups.length === 0 && pendingRequests.length === 0 ? (
-          <FriendGroupsSidebarEmptyState
-            onCreateGroup={() => setOpenCreateDialog(true)}
-            onDiscoverGroups={() => router.push(`/${locale}/tournaments/${tournamentId}/friend-groups/discover`)}
-            onLearnMore={() => router.push(`/${locale}/tournaments/${tournamentId}/friend-groups`)}
-          />
-        ) : (
+            </List>
+          </CardContent>
+          </Collapse>
+        )}
+        {!isEmpty && (
           <CardActions sx={{
             flexDirection: 'column',
             justifyContent: 'center',

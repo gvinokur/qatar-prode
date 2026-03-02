@@ -56,24 +56,34 @@ export default function FriendGroupsSidebarEmptyState({
       </Typography>
 
       {/* Benefits List */}
-      <Stack spacing={1} sx={{ mb: 3, alignItems: 'flex-start' }}>
+      <Stack spacing={1} sx={{ mb: 3, alignItems: 'flex-start', width: '100%' }}>
         {benefits.map((benefit, index) => (
           <Box
             key={index}
             sx={{
               display: 'flex',
-              alignItems: 'center',
-              gap: 1
+              alignItems: 'flex-start',
+              gap: 1,
+              width: '100%'
             }}
           >
             <CheckCircleOutlineIcon
               sx={{
                 fontSize: '1.25rem',
                 color: 'success.main',
-                flexShrink: 0
+                flexShrink: 0,
+                mt: 0.25
               }}
             />
-            <Typography variant="body2" color="text.secondary">
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{
+                flex: 1,
+                wordWrap: 'break-word',
+                overflowWrap: 'break-word'
+              }}
+            >
               {benefit}
             </Typography>
           </Box>
