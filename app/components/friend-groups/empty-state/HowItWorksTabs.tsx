@@ -161,7 +161,7 @@ export default function HowItWorksTabs() {
       <TabPanel value={activeTab} index={0}>
         <Grid container spacing={3}>
           {createGroupSteps.map((step, index) => (
-            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={step.title}>
               <StepCard
                 stepNumber={index + 1}
                 icon={step.icon}
@@ -178,7 +178,7 @@ export default function HowItWorksTabs() {
       <TabPanel value={activeTab} index={1}>
         <Grid container spacing={3}>
           {joinPrivateSteps.map((step, index) => (
-            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={step.title}>
               <StepCard
                 stepNumber={index + 1}
                 icon={step.icon}
@@ -195,7 +195,7 @@ export default function HowItWorksTabs() {
       <TabPanel value={activeTab} index={2}>
         <Grid container spacing={3}>
           {joinPublicSteps.map((step, index) => (
-            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={step.title}>
               <StepCard
                 stepNumber={index + 1}
                 icon={step.icon}

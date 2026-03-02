@@ -48,9 +48,9 @@ export default function FriendGroupsSidebarEmptyState({
 
       {/* Benefits List */}
       <Stack spacing={1} sx={{ mb: 2, alignItems: 'flex-start', width: '100%' }}>
-        {benefits.map((benefit, index) => (
+        {benefits.map((benefit) => (
           <Box
-            key={index}
+            key={benefit}
             sx={{
               display: 'flex',
               alignItems: 'flex-start',

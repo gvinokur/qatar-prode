@@ -105,8 +105,8 @@ export default function FeatureCards() {
       </Box>
 
       <Grid container spacing={3}>
-        {features.map((feature, index) => (
-          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
+        {features.map((feature) => (
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={feature.title}>
             <FeatureCard
               icon={feature.icon}
               title={feature.title}

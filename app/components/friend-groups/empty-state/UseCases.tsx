@@ -78,8 +78,8 @@ export default function UseCases() {
       </Typography>
 
       <Grid container spacing={3}>
-        {useCases.map((useCase, index) => (
-          <Grid size={{ xs: 12, sm: 6 }} key={index}>
+        {useCases.map((useCase) => (
+          <Grid size={{ xs: 12, sm: 6 }} key={useCase.title}>
             <UseCaseCard
               emoji={useCase.emoji}
               title={useCase.title}
