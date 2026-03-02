@@ -24,7 +24,7 @@ export default function FriendGroupsSidebarEmptyState({
       sx={{
         textAlign: 'center',
         py: 2,
-        px: 3
+        px: 1.5
       }}
     >
       {/* Headline */}
