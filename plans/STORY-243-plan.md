@@ -408,6 +408,34 @@ None - requirements are clear from Story #241 analysis.
 
 ## Post-Implementation
 
-- Update design documentation with color usage guidelines
+### Documentation for Future Development
+
+**Create permanent documentation file: `docs/claude/component-styling-guidelines.md`**
+
+Include:
+1. **Decision Matrix: When to Use Each Color** (copy from this plan)
+2. **Button Color Guidelines:**
+   - Primary buttons: Use `color="primary"` for main actions (Submit, Save, Create)
+   - Secondary buttons: Use `color="secondary"` for alternative actions (Cancel, Delete, Close)
+   - Default buttons: Use `inherit` for informational elements
+3. **IconButton Color Guidelines:**
+   - Navigation/Edit actions: `color="primary"`
+   - Destructive actions (Delete): `color="secondary"`
+   - Informational actions (Info, Help): `inherit` or no color prop
+4. **When NOT to use theme colors:**
+   - Award badges (gold/silver have specific colors)
+   - Status indicators with semantic meaning (success=green, error=red, warning=yellow)
+   - Brand-specific elements that must maintain exact colors
+5. **Testing color changes:**
+   - Always test in both light and dark modes
+   - Verify WCAG AA contrast ratios
+   - Update snapshot tests and review carefully
+
+**Purpose:** Ensure future agents and developers maintain consistent theme color usage when creating new components.
+
+**Location:** Add to project documentation in `docs/claude/` directory alongside other development guidelines.
+
+### Additional Tasks
+
 - Consider creating reusable button components with pre-configured colors
 - Monitor user feedback on visual changes
