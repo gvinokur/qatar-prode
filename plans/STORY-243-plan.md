@@ -100,9 +100,62 @@ Files with contained buttons missing color props:
   - `app/components/backoffice/*.tsx` (multiple files)
   - `app/components/auth/otp-verify-form.tsx`
 
-#### MEDIUM Priority (~25 files)
+#### MEDIUM Priority (~40 files - USER-FACING FOCUS)
 
-**3. Add color to IconButtons for actions/navigation (~10 files)**
+**3. Add theme colors to Card components and CardHeaders (~20 files)**
+
+**Key user-facing card components:**
+- **Leaderboard:**
+  - `app/components/leaderboard/LeaderboardCard.tsx` - Add theme colors to CardHeader, review hardcoded avatar colors (lines 22-27)
+  - `app/components/leaderboard/LeaderboardSkeleton.tsx` - Ensure consistent theming
+  - `app/components/leaderboard/RankChangeIndicator.tsx` - Review color usage
+
+- **Tournament Stats:**
+  - `app/components/tournament-stats/performance-overview-card.tsx` - ✅ Already good example
+  - `app/components/tournament-stats/prediction-accuracy-card.tsx` - Add CardHeader theming
+  - `app/components/tournament-stats/boost-analysis-card.tsx` - Add CardHeader theming
+
+- **Friend Groups:**
+  - `app/components/friend-groups/pending-requests-card.tsx` - Add CardHeader theming
+  - `app/components/friend-groups/join-request-form.tsx` - Add CardHeader theming
+  - `app/components/friend-groups/friends-group-table.tsx` - Add CardHeader theming
+  - `app/components/friend-groups/friend-groups-themer.tsx` - Add CardHeader theming
+
+- **Game Cards:**
+  - `app/components/flippable-game-card.tsx` - Review Card theming
+  - `app/components/urgency-game-card.tsx` - Review Card theming
+  - `app/components/compact-game-view-card.tsx` - Review Card theming
+  - `app/components/game-card-point-overlay.tsx` - Review Card theming
+
+- **Results & Tournament Pages:**
+  - `app/components/results-page/bracket-game-card.tsx` - Add CardHeader theming
+  - `app/components/results-page/group-result-card.tsx` - Add CardHeader theming
+  - `app/components/qualified-teams/group-card.tsx` - Add CardHeader theming
+  - `app/components/qualified-teams/draggable-team-card.tsx` - Add CardHeader theming
+  - `app/components/tournament-prediction-category-card.tsx` - Add CardHeader theming
+
+- **Home & Other:**
+  - `app/components/home/home-component.tsx` - ✅ Already good example (line 53)
+  - `app/components/compact-prediction-dashboard.tsx` - Review component theming
+
+**Pattern to apply:**
+```tsx
+// CardHeader with theme colors
+<CardHeader
+  title={t('title')}
+  sx={{
+    color: theme.palette.primary.main,
+    borderBottom: `${theme.palette.primary.light} solid 1px`
+  }}
+/>
+
+// Card with subtle theme background
+<Card sx={{
+  bgcolor: (theme) => alpha(theme.palette.primary.main, 0.04)
+}}>
+```
+
+**4. Add color to IconButtons for actions/navigation (~10 files)**
 
 Files with IconButtons:
 - `app/components/tournament-page/expand-more.tsx`
@@ -115,7 +168,6 @@ Files with IconButtons:
 - `app/components/invite-friends-dialog.tsx`
 - `app/components/game-boost-selector.tsx`
 - `app/components/awards/mobile-friendly-autocomplete.tsx`
-- Backoffice components
 
 **Pattern to apply:**
 ```tsx
@@ -129,13 +181,27 @@ Files with IconButtons:
 <IconButton color="secondary" onClick={handleDelete}><DeleteIcon /></IconButton>
 ```
 
-**4. Increase secondary color usage for alternative actions (~15 files)**
+**5. Review and enhance Link/Button components used for navigation (~10 files)**
 
-Apply secondary color to:
-- Cancel/close buttons
-- Alternative action buttons
-- Delete/remove buttons
-- Secondary navigation elements
+Files with Link/Button navigation:
+- `app/components/tournament-page/friend-groups-list.tsx` - Multiple Button+Link combinations (lines 199, 210)
+- `app/components/tournament-page/group-standings-sidebar.tsx` - Button as Link (line 227)
+- `app/components/tournament-page/rules.tsx` - Button as Link (line 391)
+- `app/components/tournament-page/tournament-group-card.tsx` - Multiple Button+Link (lines 63, 285, 315)
+- `app/components/tournament-page/user-tournament-statistics.tsx` - Button+Link (line 118)
+
+**Pattern to apply:**
+```tsx
+// Navigation buttons should use primary color
+<Button
+  component={Link}
+  href={`/${locale}/path`}
+  variant="contained"
+  color="primary"
+>
+  {t('action')}
+</Button>
+```
 
 #### LOW Priority (~5 files)
 
@@ -197,22 +263,48 @@ Apply secondary color to:
 22. **app/components/backoffice/tournament-teams-manager-tab.tsx** - Remove hardcoded colors
 23. **app/components/backoffice/internal/team-dialog.tsx** - Remove hardcoded colors
 
-### MEDIUM Priority
+### MEDIUM Priority (USER-FACING COMPONENTS)
 
-24. **app/components/tournament-page/expand-more.tsx** - Add IconButton color
-25. **app/components/urgency-game-card.tsx** - Add IconButton colors
-26. **app/components/auth/account-setup-form.tsx** - Add IconButton colors
-27. **app/components/tournament/tournament-switcher.tsx** - Add IconButton colors
-28. **app/components/invite-friends-dialog.tsx** - Add IconButton colors
-29. **app/components/game-boost-selector.tsx** - Add IconButton colors
-30. **app/components/awards/mobile-friendly-autocomplete.tsx** - Add IconButton colors
-31. **app/components/backoffice/tournament-main-data-tab.tsx** - Add IconButton colors
-32. **app/components/backoffice/tournament-game-manager-tab.tsx** - Add IconButton colors
-33. **app/components/backoffice/internal/group-dialog.tsx** - Add IconButton colors
-34. **app/components/backoffice/tournament-third-place-rules-tab.tsx** - Add IconButton colors
-35. **app/components/backoffice/tournament-teams-manager-tab.tsx** - Add IconButton colors
+**Card Components & CardHeaders:**
+24. **app/components/leaderboard/LeaderboardCard.tsx** - CardHeader + hardcoded avatar colors
+25. **app/components/leaderboard/LeaderboardSkeleton.tsx** - Consistent theming
+26. **app/components/leaderboard/RankChangeIndicator.tsx** - Color review
+27. **app/components/tournament-stats/prediction-accuracy-card.tsx** - CardHeader theming
+28. **app/components/tournament-stats/boost-analysis-card.tsx** - CardHeader theming
+29. **app/components/friend-groups/pending-requests-card.tsx** - CardHeader theming
+30. **app/components/friend-groups/join-request-form.tsx** - CardHeader theming
+31. **app/components/friend-groups/friends-group-table.tsx** - CardHeader theming
+32. **app/components/friend-groups/friend-groups-themer.tsx** - CardHeader theming
+33. **app/components/flippable-game-card.tsx** - Card theming review
+34. **app/components/urgency-game-card.tsx** - Card theming review
+35. **app/components/compact-game-view-card.tsx** - Card theming review
+36. **app/components/game-card-point-overlay.tsx** - Card theming review
+37. **app/components/results-page/bracket-game-card.tsx** - CardHeader theming
+38. **app/components/results-page/group-result-card.tsx** - CardHeader theming
+39. **app/components/qualified-teams/group-card.tsx** - CardHeader theming
+40. **app/components/qualified-teams/draggable-team-card.tsx** - CardHeader theming
+41. **app/components/tournament-prediction-category-card.tsx** - CardHeader theming
+42. **app/components/compact-prediction-dashboard.tsx** - Component theming review
 
-**Note:** Initial scope focuses on these 35 clearly identified files. Additional files may be discovered during implementation and will be addressed as needed.
+**IconButtons:**
+43. **app/components/tournament-page/expand-more.tsx** - Add IconButton color
+44. **app/components/auth/account-setup-form.tsx** - Add IconButton colors
+45. **app/components/tournament/tournament-switcher.tsx** - Add IconButton colors
+46. **app/components/invite-friends-dialog.tsx** - Add IconButton colors
+47. **app/components/game-boost-selector.tsx** - Add IconButton colors
+48. **app/components/awards/mobile-friendly-autocomplete.tsx** - Add IconButton colors
+
+**Navigation Buttons:**
+49. **app/components/tournament-page/user-tournament-statistics.tsx** - Button+Link colors
+
+**Backoffice (Lower Priority):**
+50. **app/components/backoffice/tournament-main-data-tab.tsx** - Add IconButton colors
+51. **app/components/backoffice/tournament-game-manager-tab.tsx** - Add IconButton colors
+52. **app/components/backoffice/internal/group-dialog.tsx** - Add IconButton colors
+53. **app/components/backoffice/tournament-third-place-rules-tab.tsx** - Add IconButton colors
+54. **app/components/backoffice/tournament-teams-manager-tab.tsx** - Add IconButton colors
+
+**Note:** Initial scope now includes 54 clearly identified files (23 HIGH + 31 MEDIUM user-facing). Focus prioritizes user-facing components over backoffice. Additional files may be discovered during implementation.
 
 ## Implementation Steps
 
