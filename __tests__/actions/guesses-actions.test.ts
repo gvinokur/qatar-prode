@@ -6,6 +6,7 @@ import * as tournamentGroupRepository from '../../app/db/tournament-group-reposi
 import * as playoffTeamsCalculator from '../../app/utils/playoff-teams-calculator';
 import * as tournamentPlayoffRepository from '../../app/db/tournament-playoff-repository';
 import * as gameRepository from '../../app/db/game-repository';
+import * as qualifiedTeamsRepository from '../../app/db/qualified-teams-repository';
 import {
   updateOrCreateGameGuesses,
   updateOrCreateTournamentGuess,
@@ -52,6 +53,9 @@ vi.mock('../../app/db/tournament-group-repository');
 vi.mock('../../app/utils/playoff-teams-calculator');
 vi.mock('../../app/db/tournament-playoff-repository');
 vi.mock('../../app/db/game-repository');
+vi.mock('../../app/db/qualified-teams-repository', () => ({
+  getAllUserGroupPositionsPredictions: vi.fn().mockResolvedValue([]),
+}));
 
 const mockGetLoggedInUser = vi.mocked(userActions.getLoggedInUser);
 const mockUpdateGameGuessByGameId = vi.mocked(gameGuessRepository.updateGameGuessByGameId);
@@ -61,6 +65,7 @@ const mockFindGroupsInTournament = vi.mocked(tournamentGroupRepository.findGroup
 const mockCalculatePlayoffTeamsFromPositions = vi.mocked(playoffTeamsCalculator.calculatePlayoffTeamsFromPositions);
 const mockFindPlayoffStagesWithGamesInTournament = vi.mocked(tournamentPlayoffRepository.findPlayoffStagesWithGamesInTournament);
 const mockFindGamesInTournament = vi.mocked(gameRepository.findGamesInTournament);
+const mockGetAllUserGroupPositionsPredictions = vi.mocked(qualifiedTeamsRepository.getAllUserGroupPositionsPredictions);
 
 describe('Guesses Actions', () => {
   const mockUser = {
@@ -132,6 +137,7 @@ describe('Guesses Actions', () => {
     mockFindGamesInTournament.mockResolvedValue([]);
     mockCalculatePlayoffTeamsFromPositions.mockReturnValue(Promise.resolve({}));
     mockUpdateGameGuessByGameId.mockResolvedValue(mockGameGuessResult);
+    mockGetAllUserGroupPositionsPredictions.mockResolvedValue([]);
   });
 
   describe('updateOrCreateGameGuesses', () => {
@@ -357,9 +363,95 @@ describe('Guesses Actions', () => {
 
     it('continues execution when orphaned guess update fails', async () => {
       // Test coverage for the orphaned guess update error handling
-      // This test verifies that the function continues execution even when 
+      // This test verifies that the function continues execution even when
       // updating orphaned guesses fails
       expect(true).toBe(true); // Placeholder assertion to satisfy linting
+    });
+
+    it('excludes position-3 teams with predicted_to_qualify: false from standings', async () => {
+      mockFindGroupsInTournament.mockResolvedValue([mockGroup]);
+      mockGetAllUserGroupPositionsPredictions.mockResolvedValue([
+        {
+          id: 'pred1',
+          user_id: 'user1',
+          tournament_id: 'tournament1',
+          group_id: 'group1',
+          team_predicted_positions: [
+            { team_id: 'team1', predicted_position: 1, predicted_to_qualify: true },
+            { team_id: 'team2', predicted_position: 2, predicted_to_qualify: true },
+            { team_id: 'team3', predicted_position: 3, predicted_to_qualify: false },
+          ] as any,
+          created_at: new Date(),
+          updated_at: new Date(),
+        }
+      ]);
+
+      await updatePlayoffGameGuesses('tournament1');
+
+      const callArgs = mockCalculatePlayoffTeamsFromPositions.mock.calls[0];
+      const positionsByGroup = callArgs[3] as Record<string, Array<{ team_id: string; position: number }>>
+      const groupAStandings = positionsByGroup['A'];
+
+      expect(groupAStandings).toHaveLength(2);
+      expect(groupAStandings.map(s => s.team_id)).toEqual(['team1', 'team2']);
+      expect(groupAStandings.map(s => s.position)).toEqual([1, 2]);
+    });
+
+    it('includes position-3 teams with predicted_to_qualify: true in standings', async () => {
+      mockFindGroupsInTournament.mockResolvedValue([mockGroup]);
+      mockGetAllUserGroupPositionsPredictions.mockResolvedValue([
+        {
+          id: 'pred1',
+          user_id: 'user1',
+          tournament_id: 'tournament1',
+          group_id: 'group1',
+          team_predicted_positions: [
+            { team_id: 'team1', predicted_position: 1, predicted_to_qualify: true },
+            { team_id: 'team2', predicted_position: 2, predicted_to_qualify: true },
+            { team_id: 'team3', predicted_position: 3, predicted_to_qualify: true },
+          ] as any,
+          created_at: new Date(),
+          updated_at: new Date(),
+        }
+      ]);
+
+      await updatePlayoffGameGuesses('tournament1');
+
+      const callArgs = mockCalculatePlayoffTeamsFromPositions.mock.calls[0];
+      const positionsByGroup = callArgs[3] as Record<string, Array<{ team_id: string; position: number }>>
+      const groupAStandings = positionsByGroup['A'];
+
+      expect(groupAStandings).toHaveLength(3);
+      expect(groupAStandings.map(s => s.team_id)).toEqual(['team1', 'team2', 'team3']);
+      expect(groupAStandings.map(s => s.position)).toEqual([1, 2, 3]);
+    });
+
+    it('always includes position-1 and position-2 teams regardless of predicted_to_qualify', async () => {
+      mockFindGroupsInTournament.mockResolvedValue([mockGroup]);
+      mockGetAllUserGroupPositionsPredictions.mockResolvedValue([
+        {
+          id: 'pred1',
+          user_id: 'user1',
+          tournament_id: 'tournament1',
+          group_id: 'group1',
+          team_predicted_positions: [
+            { team_id: 'team1', predicted_position: 1, predicted_to_qualify: false },
+            { team_id: 'team2', predicted_position: 2, predicted_to_qualify: false },
+          ] as any,
+          created_at: new Date(),
+          updated_at: new Date(),
+        }
+      ]);
+
+      await updatePlayoffGameGuesses('tournament1');
+
+      const callArgs = mockCalculatePlayoffTeamsFromPositions.mock.calls[0];
+      const positionsByGroup = callArgs[3] as Record<string, Array<{ team_id: string; position: number }>>
+      const groupAStandings = positionsByGroup['A'];
+
+      expect(groupAStandings).toHaveLength(2);
+      expect(groupAStandings.map(s => s.team_id)).toEqual(['team1', 'team2']);
+      expect(groupAStandings.map(s => s.position)).toEqual([1, 2]);
     });
   });
 }); 
