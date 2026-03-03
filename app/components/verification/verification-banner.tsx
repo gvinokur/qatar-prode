@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react';
-import { Alert, AlertTitle, Button, Snackbar } from '@mui/material';
+import { Alert, AlertTitle, Button, Snackbar, Typography } from '@mui/material';
 import { resendVerificationEmail } from '../../actions/user-actions';
 import {usePathname} from "next/navigation";
 
