@@ -12,7 +12,6 @@ import JoinMessage from "../../../../../components/friend-groups/friend-groups-j
 import {findUsersByIds} from "../../../../../db/users-repository";
 import ProdeGroupTable from "../../../../../components/friend-groups/friends-group-table";
 import {getLoggedInUser} from "../../../../../actions/user-actions";
-import ProdeGroupThemer from "../../../../../components/friend-groups/friend-groups-themer";
 import {findTournamentById} from "../../../../../db/tournament-repository";
 import { toMap} from "../../../../../utils/ObjectUtils";
 import {InviteFriendsDialogButton} from "../../../../../components/friend-groups/invite-friends-dialog-button";
@@ -23,10 +22,8 @@ import { getUserScoresForTournament } from "../../../../../actions/prode-group-a
 import { getGroupJoinRequests, getPendingRequestCount } from "../../../../../actions/prode-group-join-request-actions";
 import PendingRequestView from "../../../../../components/friend-groups/pending-request-view";
 import AdminTabs from "../../../../../components/friend-groups/admin-tabs";
-import JoinRequestManager from "../../../../../components/friend-groups/join-request-manager";
-import GroupTournamentBettingAdmin from "../../../../../components/friend-groups/group-tournament-betting-admin";
 import PrivacyIndicatorIcon from "../../../../../components/friend-groups/privacy-indicator-icon";
-import GroupPrivacySettings from "../../../../../components/friend-groups/group-privacy-settings";
+import AdminSectionTabs from "../../../../../components/friend-groups/admin-section-tabs";
 
 type Props = {
   readonly params: Promise<{
@@ -221,44 +218,21 @@ export default async function TournamentScopedFriendGroup(props : Props){
               />
             }
             adminContent={
-              <Box>
-                {/* Section 1: Privacy Settings */}
-                <Box sx={{ mb: 3 }}>
-                  <GroupPrivacySettings
-                    groupId={prodeGroup.id}
-                    groupName={prodeGroup.name}
-                    initialIsPublic={prodeGroup.is_public ?? false}
-                    initialDescription={prodeGroup.description ?? null}
-                  />
-                </Box>
-
-                {/* Section 2: Join Requests */}
-                <Box sx={{ mb: 3 }}>
-                  <JoinRequestManager
-                    groupId={prodeGroup.id}
-                    initialRequests={joinRequests}
-                    locale={params.locale as 'en' | 'es'}
-                    tournamentId={tournament.id}
-                  />
-                </Box>
-
-                {/* Section 3: Betting Configuration */}
-                <Box sx={{ mb: 3 }}>
-                  <GroupTournamentBettingAdmin
-                    groupId={prodeGroup.id}
-                    tournamentId={tournament.id}
-                    isAdmin={isAdmin}
-                    members={members}
-                    config={config ?? null}
-                    payments={payments}
-                  />
-                </Box>
-
-                {/* Section 4: Theme Customization */}
-                <Box>
-                  <ProdeGroupThemer group={prodeGroup} />
-                </Box>
-              </Box>
+              <AdminSectionTabs
+                groupId={prodeGroup.id}
+                initialRequests={joinRequests}
+                locale={params.locale as 'en' | 'es'}
+                tournamentId={tournament.id}
+                groupName={prodeGroup.name}
+                initialIsPublic={prodeGroup.is_public ?? false}
+                initialDescription={prodeGroup.description ?? null}
+                isAdmin={isAdmin}
+                members={members}
+                config={config ?? null}
+                payments={payments}
+                group={prodeGroup}
+                pendingRequestCount={pendingRequestCount}
+              />
             }
           />
         </Grid>

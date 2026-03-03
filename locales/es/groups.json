@@ -219,6 +219,12 @@
     "leaderboard": "Tabla de Posiciones",
     "admin": "Administración"
   },
+  "adminSectionTabs": {
+    "requests": "Solicitudes",
+    "privacy": "Privacidad",
+    "betting": "Apuestas",
+    "customize": "Personalizar"
+  },
   "joinRequest": {
     "preview": "Vista Previa del Grupo",
     "members": "{count, plural, =1 {1 miembro} other {# miembros}}",

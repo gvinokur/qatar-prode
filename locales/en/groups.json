@@ -219,6 +219,12 @@
     "leaderboard": "Leaderboard",
     "admin": "Admin"
   },
+  "adminSectionTabs": {
+    "requests": "Requests",
+    "privacy": "Privacy",
+    "betting": "Betting",
+    "customize": "Customize"
+  },
   "joinRequest": {
     "preview": "Group Preview",
     "members": "{count, plural, =1 {1 member} other {# members}}",
