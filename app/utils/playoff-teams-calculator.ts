@@ -173,8 +173,8 @@ export async function calculatePlayoffTeamsFromPositions(
         const teamBStats = b[1]
         return genericTeamStatsComparator(teamAStats, teamBStats);
       })
-    //Wait until all groups are finished to make this calculation.
-    if(thirdTeams.length === Object.keys(positionsByGroup).length) {
+    //Wait until all required qualifying 3rd-place teams are selected.
+    if(thirdPlaceTeamRules.length > 0 && thirdTeams.length === thirdPlaceTeamRules.length) {
       const topThirdTeams = thirdTeams.filter((value, index) => index < thirdPlaceTeamRules.length)
       const topThirdTeamGroups = topThirdTeams.map(([letter, ]) => letter).sort((a, b) => a.localeCompare(b))
       const combinationKey = topThirdTeamGroups.join('')

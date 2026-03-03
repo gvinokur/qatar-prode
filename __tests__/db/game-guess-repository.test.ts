@@ -172,16 +172,58 @@ describe('Game Guess Repository', () => {
         expect(result).toEqual({ ...mockGuess, ...updates });
       });
 
-      it('should use OR condition for team changes', async () => {
-        const mockQuery = createMockUpdateQuery(mockGuess);
+      it('should update when both teams are null (clearing inferred teams)', async () => {
+        const updates = { home_team: null, away_team: null };
+        const mockQuery = createMockUpdateQuery({ ...mockGuess, home_team: null, away_team: null });
         mockDb.updateTable.mockReturnValue(mockQuery as any);
 
-        await updateGameGuessByGameId('game-1', 'user-1', { home_team: 'team-1' });
+        const result = await updateGameGuessByGameId('game-1', 'user-1', updates);
 
-        expect(mockQuery.where).toHaveBeenCalledWith(expect.any(Function));
+        expect(mockQuery.set).toHaveBeenCalledWith(updates);
+        expect(mockQuery.where).toHaveBeenCalledWith('game_guesses.game_id', '=', 'game-1');
+        expect(mockQuery.where).toHaveBeenCalledWith('game_guesses.user_id', '=', 'user-1');
+        expect(result?.home_team).toBeNull();
+        expect(result?.away_team).toBeNull();
       });
 
-      it('should return undefined when no update needed', async () => {
+      it('should update when home_team is null and away_team is non-null', async () => {
+        const updates = { home_team: null, away_team: 'team-away' };
+        const mockQuery = createMockUpdateQuery({ ...mockGuess, home_team: null, away_team: 'team-away' });
+        mockDb.updateTable.mockReturnValue(mockQuery as any);
+
+        const result = await updateGameGuessByGameId('game-1', 'user-1', updates);
+
+        expect(mockQuery.set).toHaveBeenCalledWith(updates);
+        expect(result?.home_team).toBeNull();
+        expect(result?.away_team).toBe('team-away');
+      });
+
+      it('should update when home_team is non-null and away_team is null', async () => {
+        const updates = { home_team: 'team-home', away_team: null };
+        const mockQuery = createMockUpdateQuery({ ...mockGuess, home_team: 'team-home', away_team: null });
+        mockDb.updateTable.mockReturnValue(mockQuery as any);
+
+        const result = await updateGameGuessByGameId('game-1', 'user-1', updates);
+
+        expect(mockQuery.set).toHaveBeenCalledWith(updates);
+        expect(result?.home_team).toBe('team-home');
+        expect(result?.away_team).toBeNull();
+      });
+
+      it('should not use function-based WHERE clause', async () => {
+        const updates = { home_team: null, away_team: null };
+        const mockQuery = createMockUpdateQuery(undefined);
+        mockDb.updateTable.mockReturnValue(mockQuery as any);
+
+        await updateGameGuessByGameId('game-1', 'user-1', updates);
+
+        // Verify no function-based WHERE was used (the old NULL-unsafe optimization)
+        const whereCalls = mockQuery.where.mock.calls;
+        const hasFunctionWhere = whereCalls.some(([arg]: [unknown]) => typeof arg === 'function');
+        expect(hasFunctionWhere).toBe(false);
+      });
+
+      it('should return undefined when no matching row exists', async () => {
         const mockQuery = createMockUpdateQuery(undefined);
         mockDb.updateTable.mockReturnValue(mockQuery as any);
 

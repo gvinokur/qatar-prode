@@ -37,21 +37,23 @@ export const getGroupPositionsPrediction = cache(
 /**
  * Get all group positions predictions (JSONB format) for a user in a tournament
  * Returns array of all group predictions
+ *
+ * Note: Not wrapped with cache() intentionally — this function is called both before
+ * and after a DB write within the same Server Action (updateGroupPositionsJsonb).
+ * Using cache() would return stale pre-write data on the second call.
  */
-export const getAllUserGroupPositionsPredictions = cache(
-  async function (
-    userId: string,
-    tournamentId: string
-  ): Promise<TournamentUserGroupPositionsPrediction[]> {
-    return db
-      .selectFrom(jsonbTableName)
-      .where('user_id', '=', userId)
-      .where('tournament_id', '=', tournamentId)
-      .selectAll()
-      .orderBy('group_id')
-      .execute();
-  }
-);
+export async function getAllUserGroupPositionsPredictions(
+  userId: string,
+  tournamentId: string
+): Promise<TournamentUserGroupPositionsPrediction[]> {
+  return db
+    .selectFrom(jsonbTableName)
+    .where('user_id', '=', userId)
+    .where('tournament_id', '=', tournamentId)
+    .selectAll()
+    .orderBy('group_id')
+    .execute();
+}
 
 /**
  * Upsert group positions prediction (JSONB format)

@@ -77,7 +77,9 @@ export async function updatePlayoffGameGuesses(tournamentId: string, user?: User
       }>
 
       // Sort by predicted position and convert to standings format
+      // Positions 1 and 2 always qualify; position 3+ only if explicitly marked as qualifying
       const standings = positions
+        .filter(p => p.predicted_position <= 2 || p.predicted_to_qualify)
         .toSorted((a, b) => a.predicted_position - b.predicted_position)
         .map(p => ({
           team_id: p.team_id,

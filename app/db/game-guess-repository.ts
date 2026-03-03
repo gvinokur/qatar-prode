@@ -30,10 +30,6 @@ export async function updateGameGuessByGameId(game_id: string, user_id: string, 
     .set(withUpdate)
     .where("game_guesses.game_id", "=", game_id)
     .where("game_guesses.user_id", "=", user_id)
-    .where(eb => eb.or([
-      eb("game_guesses.home_team", "<>", withUpdate.home_team),
-      eb("game_guesses.away_team", "<>", withUpdate.away_team)
-    ]))
     .returningAll()
     .executeTakeFirst()
 }
