@@ -307,7 +307,7 @@ export default function LoginOrSignupDialog({ handleCloseLoginDialog, openLoginD
     if (dialogMode === 'resetSent') {
       return (
         <DialogActions>
-          <Button onClick={closeDialog}>{t('dialog.buttons.close')}</Button>
+          <Button onClick={closeDialog} color="secondary">{t('dialog.buttons.close')}</Button>
         </DialogActions>
       );
     }

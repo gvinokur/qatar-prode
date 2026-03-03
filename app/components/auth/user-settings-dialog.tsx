@@ -116,8 +116,8 @@ export default function UserSettingsDialog({ open, onClose }: UserSettingsDialog
 
       </DialogContent>
       <DialogActions>
-        <Button disabled={loading} onClick={onClose}>{t('nicknameSetup.buttons.cancel')}</Button>
-        <Button loading={loading} type='submit'>{t('nicknameSetup.buttons.save')}</Button>
+        <Button disabled={loading} onClick={onClose} color="secondary">{t('nicknameSetup.buttons.cancel')}</Button>
+        <Button loading={loading} type='submit' color="primary">{t('nicknameSetup.buttons.save')}</Button>
       </DialogActions>
     </Dialog>
   );

@@ -75,7 +75,7 @@ export default function PublicGroupPreviewDialog({
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>{tPrivacy('saveSettings')}</Button>
+        <Button onClick={onClose} color="secondary">{tPrivacy('saveSettings')}</Button>
       </DialogActions>
     </Dialog>
   );

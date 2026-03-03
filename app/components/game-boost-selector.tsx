@@ -214,7 +214,7 @@ export default function GameBoostSelector({
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>{t('common.close')}</Button>
+          <Button onClick={() => setDialogOpen(false)} color="secondary">{t('common.close')}</Button>
         </DialogActions>
       </Dialog>
 

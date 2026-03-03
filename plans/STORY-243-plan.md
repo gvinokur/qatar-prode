@@ -580,3 +580,97 @@ Include:
 
 - Consider creating reusable button components with pre-configured colors
 - Monitor user feedback on visual changes
+
+---
+
+## AMENDMENT 1: Dialog Button Color Consistency Fixes
+
+**Date:** 2026-03-03
+**Trigger:** User feedback after initial implementation - "We are having a lot of cancel/close and secondary buttons with primary color"
+
+### Problem Discovered
+
+After completing the main implementation (20 tasks), user identified remaining inconsistencies:
+
+1. **Close button with wrong color**: 1 instance using `color="primary"` instead of `color="secondary"`
+2. **Cancel/Close buttons missing color props**: 6 instances defaulting to grey/inherit instead of `color="secondary"`
+3. **Save button missing color prop**: 1 instance defaulting to grey/inherit instead of `color="primary"`
+4. **Qualified Teams page "unthemed"**: Group headers lacked theme color accents
+
+### User Feedback
+
+> "I feel our usage is still somewhat inconsistent. Do we need even more plans after the audit?"
+>
+> - "We are having a lot of cancel/close and secondary buttons with primary color"
+> - "We have still a lot of neutral text (which I don't know it's good or bd)"
+> - "The qualified teams page overal seems a bit 'unthemed'"
+
+### Analysis Document
+
+Created comprehensive audit: `docs/visual-audit/post-implementation-gaps.md`
+
+**Total Issues:** 9
+- Wrong color (primary→secondary): 1
+- Missing secondary color: 6
+- Missing primary color: 1
+- Optional qualified teams theming: 1
+
+### Changes Made
+
+**Files Modified:** 8
+
+1. **invite-friends-dialog.tsx** (line 180)
+   - Changed Close button from `color="primary"` to `color="secondary"`
+
+2. **notification-dialog.tsx** (line 82)
+   - Added `color="secondary"` to Cancel button
+
+3. **user-settings-dialog.tsx** (lines 119-120)
+   - Added `color="secondary"` to Cancel button
+   - Added `color="primary"` to Save button
+
+4. **leave-group-button.tsx** (line 47)
+   - Added `color="secondary"` to Cancel button
+
+5. **login-or-signup-dialog.tsx** (line 310)
+   - Added `color="secondary"` to Close button
+
+6. **game-boost-selector.tsx** (line 217)
+   - Added `color="secondary"` to Close button
+
+7. **public-group-preview-dialog.tsx** (line 78)
+   - Added `color="secondary"` to Close button
+
+8. **qualified-teams/group-card.tsx** (lines 69, 247)
+   - Added `color: 'primary.main'` to desktop header Typography
+   - Added `color: 'primary.main'` to mobile accordion header Typography
+
+### Impact
+
+- **Risk:** Very low - only color prop additions/changes
+- **Scope:** Targeted fixes to dialog buttons and specialized component headers
+- **Coverage:** Addresses all identified gaps from user feedback
+- **Consistency:** Aligns all dialog buttons with component styling guidelines
+
+### Tasks
+
+- [x] Task #21: Fix Close button wrong color in invite-friends-dialog
+- [x] Task #22: Add secondary color to 6 Cancel/Close buttons
+- [x] Task #23: Add primary color to Save button in user-settings-dialog
+- [x] Task #24: Add theme color accent to qualified teams headers (optional)
+
+### Notes
+
+**Qualified Teams Headers Decision:**
+- This is a specialized drag-and-drop component with custom layouts
+- Added subtle theme color accent (`color: 'primary.main'`) to Typography titles
+- Did NOT restructure to use CardHeader (would break accordion/DnD layout)
+- This approach adds visual theming without disrupting specialized UX
+
+**Neutral Text Discussion:**
+- Most neutral/default text is appropriate (body text, labels, descriptions)
+- Theme colors should be reserved for:
+  - Interactive elements (buttons, IconButtons)
+  - Visual hierarchy (headers, important stats)
+  - Brand emphasis (titles, primary CTAs)
+- Neutral text for content is a design choice, not an inconsistency
