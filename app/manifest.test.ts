@@ -34,8 +34,8 @@ describe('PWA Manifest', () => {
   });
 
   it('has correct theme and background colors', () => {
-    expect(manifest.theme_color).toBe('#242424');
-    expect(manifest.background_color).toBe('#242424');
+    expect(manifest.theme_color).toBe('#7c3aed');
+    expect(manifest.background_color).toBe('#7c3aed');
   });
 
   it('has standalone display mode', () => {

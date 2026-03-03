@@ -131,7 +131,7 @@ describe('Header', () => {
             await renderHeader();
 
             const logo = screen.getByAltText('la-maquina-prode');
-            expect(logo).toHaveAttribute('src', '/logo.webp');
+            expect(logo).toHaveAttribute('src', '/logo.png');
             expect(logo).toHaveAttribute('alt', 'la-maquina-prode');
         });
 
@@ -171,7 +171,7 @@ describe('Header', () => {
             await renderHeader();
 
             const logo = screen.getByAltText('la-maquina-prode');
-            expect(logo).toHaveAttribute('src', '/logo.webp');
+            expect(logo).toHaveAttribute('src', '/logo.png');
             // Avatar should have variant="rounded"
             expect(logo.closest('.MuiAvatar-root')).toHaveClass('MuiAvatar-rounded');
         });
