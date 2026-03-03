@@ -308,6 +308,51 @@ Files with Link/Button navigation:
 
 ## Implementation Steps
 
+### Step 0: Visual Audit with Playwright (Pre-Implementation Baseline)
+
+**Purpose:** Capture comprehensive visual baseline of current app state to identify ALL components needing theme colors.
+
+**Setup:**
+1. Install Playwright if not already available: `npm install -D @playwright/test`
+2. Store test credentials in `.env.local`:
+   ```
+   PLAYWRIGHT_TEST_EMAIL=gvinokur+3@gmail.com
+   PLAYWRIGHT_TEST_PASSWORD=somepass
+   ```
+3. Create visual audit script: `scripts/visual-audit.ts`
+4. Create images output directory: `docs/visual-audit/baseline/`
+
+**Audit Process:**
+1. **Login and navigate** through key user flows:
+   - Home page
+   - Tournament pages (games, leaderboard, stats)
+   - Friend groups (list, detail, join requests)
+   - User profile/settings
+   - Auth flows
+2. **Capture screenshots** in both light and dark modes
+3. **Analyze visuals** for:
+   - Buttons without color props (gray buttons)
+   - IconButtons without theme colors
+   - Hardcoded colors
+   - Cards/CardHeaders without theme styling
+   - Opportunities for secondary color usage
+4. **Generate report**: `docs/visual-audit/pre-implementation-analysis.md`
+   - List of components found
+   - Screenshots showing current state
+   - Recommendations for additional files to update
+
+**Outputs:**
+- `docs/visual-audit/baseline/` - Screenshots (light/dark mode)
+- `docs/visual-audit/pre-implementation-analysis.md` - Analysis report
+- `docs/visual-audit/how-to-run-audit.md` - Instructions for future use
+- `scripts/visual-audit.ts` - Reusable audit script
+
+**Expected discoveries:**
+- Components missed in initial analysis
+- Edge cases (modals, dialogs, error states)
+- Mobile-specific components
+- Animation/interaction states
+
 ### Step 1: Update HIGH Priority Files (Buttons & Hardcoded Colors)
 
 **Order of execution (with dependencies):**
