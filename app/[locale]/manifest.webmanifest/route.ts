@@ -34,8 +34,8 @@ export async function GET(
         purpose: 'any'
       }
     ],
-    theme_color: '#242424',
-    background_color: '#242424',
+    theme_color: '#7c3aed',
+    background_color: '#7c3aed',
     display: 'standalone',
     dir: 'auto',
     lang: locale,
