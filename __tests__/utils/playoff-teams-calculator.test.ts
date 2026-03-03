@@ -302,6 +302,79 @@ describe('playoff-teams-calculator', () => {
       expect(result).toBeDefined();
       expect(Object.keys(result)).toHaveLength(1);
     });
+
+    it('should assign 3rd-place teams when exactly the required number are present', async () => {
+      const mockGameWithThirdPlaceRules = (gameId: string, gameNumber: number, thirdPlaceGroup: string): Game => ({
+        ...mockGame(gameId, gameNumber),
+        home_team_rule: { group: 'A', position: 1 },
+        away_team_rule: { group: thirdPlaceGroup, position: 3 },
+      });
+
+      // 2 groups qualify their 3rd-place teams; game expects 1 third-place slot
+      const positionsByGroup = {
+        'A': [
+          mockTeamStats('team1', 9), // 1st
+          mockTeamStats('team2', 6), // 2nd
+          mockTeamStats('team3', 3), // 3rd (qualifying)
+        ],
+        'B': [
+          mockTeamStats('team5', 9), // 1st
+          mockTeamStats('team6', 6), // 2nd
+          // No 3rd-place team — not qualifying
+        ],
+      };
+
+      const game1 = mockGameWithThirdPlaceRules('game1', 1, 'A');
+      const firstPlayoffStage = mockExtendedPlayoffRoundData([game1]);
+      const gamesMap = { 'game1': game1 };
+
+      const result = await calculatePlayoffTeamsFromPositions(
+        'test-tournament',
+        firstPlayoffStage,
+        gamesMap,
+        positionsByGroup
+      );
+
+      expect(result).toBeDefined();
+      expect(Object.keys(result)).toHaveLength(1);
+    });
+
+    it('should not assign 3rd-place teams when fewer than required are present', async () => {
+      const mockGameWithThirdPlaceRules = (gameId: string, gameNumber: number): Game => ({
+        ...mockGame(gameId, gameNumber),
+        home_team_rule: { group: 'A', position: 3 },
+        away_team_rule: { group: 'B', position: 3 },
+      });
+
+      // Game needs 2 third-place slots but only 1 group has a 3rd-place team
+      const positionsByGroup = {
+        'A': [
+          mockTeamStats('team1', 9),
+          mockTeamStats('team2', 6),
+          mockTeamStats('team3', 3), // 3rd-place present
+        ],
+        'B': [
+          mockTeamStats('team5', 9),
+          mockTeamStats('team6', 6),
+          // No 3rd-place team
+        ],
+      };
+
+      const game1 = mockGameWithThirdPlaceRules('game1', 1);
+      const firstPlayoffStage = mockExtendedPlayoffRoundData([game1]);
+      const gamesMap = { 'game1': game1 };
+
+      const result = await calculatePlayoffTeamsFromPositions(
+        'test-tournament',
+        firstPlayoffStage,
+        gamesMap,
+        positionsByGroup
+      );
+
+      // 3rd-place slots should be undefined (not yet assigned) since only 1 of 2 needed are present
+      expect(result['game1'].homeTeam).toBeUndefined();
+      expect(result['game1'].awayTeam).toBeUndefined();
+    });
   });
 
   describe('calculateTeamNamesForPlayoffGame', () => {
