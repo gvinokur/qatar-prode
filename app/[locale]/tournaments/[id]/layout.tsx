@@ -157,7 +157,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
             <Link href={`/${locale}`} style={{ display: 'inline-flex', alignItems: 'center' }}>
               <Avatar
                 variant="rounded"
-                src="/logo.webp"
+                src="/logo.png"
                 alt="La Maquina"
                 sx={{
                   width: { xs: 32, md: 48 },

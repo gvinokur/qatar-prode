@@ -47,7 +47,7 @@ export default async function Header(props: FrameProps) {
             <Link href={`/${locale}`}>
               <Avatar
                 variant={"rounded"}
-                src={'/logo.webp'}
+                src={'/logo.png'}
                 alt={t('app.logoAlt')}
                 sx={{
                   backgroundColor: 'white',

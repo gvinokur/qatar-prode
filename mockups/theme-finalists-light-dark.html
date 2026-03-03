@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prode Mundial - Finalists: Light & Dark Modes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Public+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            max-width: 1200px;
+            margin: 0 auto 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #e57373 0%, #ef9a9a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #a0a0a0;
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+        }
+
+        .mode-toggle {
+            display: inline-flex;
+            background: #1a1a1a;
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 6px;
+            gap: 6px;
+        }
+
+        .mode-btn {
+            padding: 10px 24px;
+            border: none;
+            background: transparent;
+            color: #a0a0a0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mode-btn.active {
+            background: #333;
+            color: #e0e0e0;
+        }
+
+        .theme-showcase {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .theme-section {
+            margin-bottom: 60px;
+        }
+
+        .theme-section-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: #1a1a1a;
+            border-radius: 12px;
+            border: 2px solid #333;
+        }
+
+        .theme-section-title {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .theme-section-description {
+            color: #a0a0a0;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .variations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .variation-card {
+            border: 2px solid #333;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #1a1a1a;
+            transition: transform 0.3s ease;
+        }
+
+        .variation-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .variation-header {
+            padding: 20px;
+            border-bottom: 2px solid #333;
+        }
+
+        .variation-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .variation-subtitle {
+            font-size: 0.9rem;
+            color: #a0a0a0;
+        }
+
+        .variation-preview {
+            padding: 30px 20px;
+            min-height: 550px;
+        }
+
+        /* Royal Sports - Dark Variations */
+        .royal-dark-1 .variation-preview {
+            background: #0a0510;
+            font-family: 'Archivo', sans-serif;
+        }
+        .royal-dark-1 .primary-gradient { background: linear-gradient(135deg, #6b21a8 0%, #a855f7 100%); }
+        .royal-dark-1 .secondary-color { background: #ff6b6b; }
+        .royal-dark-1 .accent-gold { background: #fbbf24; color: #000; }
+        .royal-dark-1 .card-bg { background: #1a0b2e; border: 1px solid #2d1b4e; }
+        .royal-dark-1 .text-primary { color: #f5f3ff; }
+        .royal-dark-1 .text-secondary { color: #c4b5fd; }
+
+        .royal-dark-2 .variation-preview {
+            background: #0f0a1a;
+            font-family: 'Archivo', sans-serif;
+        }
+        .royal-dark-2 .primary-gradient { background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%); }
+        .royal-dark-2 .secondary-color { background: #f87171; }
+        .royal-dark-2 .accent-gold { background: #fbbf24; color: #000; }
+        .royal-dark-2 .card-bg { background: #1e1330; border: 1px solid #352547; }
+        .royal-dark-2 .text-primary { color: #faf5ff; }
+        .royal-dark-2 .text-secondary { color: #d8b4fe; }
+
+        .royal-dark-3 .variation-preview {
+            background: #0d0815;
+            font-family: 'Archivo', sans-serif;
+        }
+        .royal-dark-3 .primary-gradient { background: linear-gradient(135deg, #581c87 0%, #9333ea 100%); }
+        .royal-dark-3 .secondary-color { background: #fb7185; }
+        .royal-dark-3 .accent-gold { background: #fbbf24; color: #000; }
+        .royal-dark-3 .card-bg { background: #1a0d28; border: 1px solid #2d1a3f; }
+        .royal-dark-3 .text-primary { color: #faf5ff; }
+        .royal-dark-3 .text-secondary { color: #e9d5ff; }
+
+        /* Royal Sports - Light Variations */
+        .royal-light-1 .variation-preview {
+            background: #faf5ff;
+            font-family: 'Archivo', sans-serif;
+        }
+        .royal-light-1 .primary-gradient { background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); }
+        .royal-light-1 .secondary-color { background: #ff6b6b; }
+        .royal-light-1 .accent-gold { background: #f59e0b; color: #000; }
+        .royal-light-1 .card-bg { background: #ffffff; border: 1px solid #e9d5ff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .royal-light-1 .text-primary { color: #1e1b4b; }
+        .royal-light-1 .text-secondary { color: #6b21a8; }
+
+        .royal-light-2 .variation-preview {
+            background: #f5f3ff;
+            font-family: 'Archivo', sans-serif;
+        }
+        .royal-light-2 .primary-gradient { background: linear-gradient(135deg, #6b21a8 0%, #9333ea 100%); }
+        .royal-light-2 .secondary-color { background: #f87171; }
+        .royal-light-2 .accent-gold { background: #f59e0b; color: #000; }
+        .royal-light-2 .card-bg { background: #ffffff; border: 1px solid #ddd6fe; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .royal-light-2 .text-primary { color: #2e1065; }
+        .royal-light-2 .text-secondary { color: #7c3aed; }
+
+        .royal-light-3 .variation-preview {
+            background: #fdf4ff;
+            font-family: 'Archivo', sans-serif;
+        }
+        .royal-light-3 .primary-gradient { background: linear-gradient(135deg, #86198f 0%, #a855f7 100%); }
+        .royal-light-3 .secondary-color { background: #fb7185; }
+        .royal-light-3 .accent-gold { background: #f59e0b; color: #000; }
+        .royal-light-3 .card-bg { background: #ffffff; border: 1px solid #f3e8ff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .royal-light-3 .text-primary { color: #4a044e; }
+        .royal-light-3 .text-secondary { color: #86198f; }
+
+        /* Refined Competition - Dark Variations */
+        .refined-dark-1 .variation-preview {
+            background: #0f0505;
+            font-family: 'Outfit', sans-serif;
+        }
+        .refined-dark-1 .primary-gradient { background: linear-gradient(135deg, #7c2d12 0%, #dc2626 100%); }
+        .refined-dark-1 .secondary-color { background: #f5deb3; }
+        .refined-dark-1 .accent-gold { background: #fbbf24; color: #000; }
+        .refined-dark-1 .card-bg { background: #1a0a0a; border: 1px solid #2d1515; }
+        .refined-dark-1 .text-primary { color: #fef2f2; }
+        .refined-dark-1 .text-secondary { color: #fecaca; }
+
+        .refined-dark-2 .variation-preview {
+            background: #120808;
+            font-family: 'Outfit', sans-serif;
+        }
+        .refined-dark-2 .primary-gradient { background: linear-gradient(135deg, #881337 0%, #e11d48 100%); }
+        .refined-dark-2 .secondary-color { background: #fde68a; }
+        .refined-dark-2 .accent-gold { background: #fbbf24; color: #000; }
+        .refined-dark-2 .card-bg { background: #1c0e0e; border: 1px solid #2f1a1a; }
+        .refined-dark-2 .text-primary { color: #fff1f2; }
+        .refined-dark-2 .text-secondary { color: #fecdd3; }
+
+        .refined-dark-3 .variation-preview {
+            background: #0d0606;
+            font-family: 'Outfit', sans-serif;
+        }
+        .refined-dark-3 .primary-gradient { background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%); }
+        .refined-dark-3 .secondary-color { background: #d4a574; }
+        .refined-dark-3 .accent-gold { background: #fbbf24; color: #000; }
+        .refined-dark-3 .card-bg { background: #1a0c0c; border: 1px solid #2d1818; }
+        .refined-dark-3 .text-primary { color: #fef2f2; }
+        .refined-dark-3 .text-secondary { color: #fed7aa; }
+
+        /* Refined Competition - Light Variations */
+        .refined-light-1 .variation-preview {
+            background: #fff9f5;
+            font-family: 'Outfit', sans-serif;
+        }
+        .refined-light-1 .primary-gradient { background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%); }
+        .refined-light-1 .secondary-color { background: #92400e; }
+        .refined-light-1 .accent-gold { background: #f59e0b; color: #000; }
+        .refined-light-1 .card-bg { background: #ffffff; border: 1px solid #fed7aa; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .refined-light-1 .text-primary { color: #450a0a; }
+        .refined-light-1 .text-secondary { color: #7c2d12; }
+
+        .refined-light-2 .variation-preview {
+            background: #fef2f2;
+            font-family: 'Outfit', sans-serif;
+        }
+        .refined-light-2 .primary-gradient { background: linear-gradient(135deg, #7f1d1d 0%, #b91c1c 100%); }
+        .refined-light-2 .secondary-color { background: #78350f; }
+        .refined-light-2 .accent-gold { background: #f59e0b; color: #000; }
+        .refined-light-2 .card-bg { background: #ffffff; border: 1px solid #fecaca; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .refined-light-2 .text-primary { color: #450a0a; }
+        .refined-light-2 .text-secondary { color: #991b1b; }
+
+        .refined-light-3 .variation-preview {
+            background: #fffbf5;
+            font-family: 'Outfit', sans-serif;
+        }
+        .refined-light-3 .primary-gradient { background: linear-gradient(135deg, #881337 0%, #e11d48 100%); }
+        .refined-light-3 .secondary-color { background: #92400e; }
+        .refined-light-3 .accent-gold { background: #f59e0b; color: #000; }
+        .refined-light-3 .card-bg { background: #ffffff; border: 1px solid #fde68a; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .refined-light-3 .text-primary { color: #4c0519; }
+        .refined-light-3 .text-secondary { color: #881337; }
+
+        /* Classic Championship - Dark Variations */
+        .classic-dark-1 .variation-preview {
+            background: #020a02;
+            font-family: 'Public Sans', sans-serif;
+        }
+        .classic-dark-1 .primary-gradient { background: linear-gradient(135deg, #14532d 0%, #22c55e 100%); }
+        .classic-dark-1 .secondary-color { background: #d97706; }
+        .classic-dark-1 .accent-gold { background: #f59e0b; color: #000; }
+        .classic-dark-1 .card-bg { background: #0a1f0a; border: 1px solid #1a3a1a; }
+        .classic-dark-1 .text-primary { color: #f0fdf4; }
+        .classic-dark-1 .text-secondary { color: #bbf7d0; }
+
+        .classic-dark-2 .variation-preview {
+            background: #050a05;
+            font-family: 'Public Sans', sans-serif;
+        }
+        .classic-dark-2 .primary-gradient { background: linear-gradient(135deg, #3f6212 0%, #65a30d 100%); }
+        .classic-dark-2 .secondary-color { background: #ea580c; }
+        .classic-dark-2 .accent-gold { background: #fbbf24; color: #000; }
+        .classic-dark-2 .card-bg { background: #0d1a0d; border: 1px solid #1e331e; }
+        .classic-dark-2 .text-primary { color: #f7fee7; }
+        .classic-dark-2 .text-secondary { color: #d9f99d; }
+
+        .classic-dark-3 .variation-preview {
+            background: #030803;
+            font-family: 'Public Sans', sans-serif;
+        }
+        .classic-dark-3 .primary-gradient { background: linear-gradient(135deg, #15803d 0%, #4ade80 100%); }
+        .classic-dark-3 .secondary-color { background: #c2410c; }
+        .classic-dark-3 .accent-gold { background: #fbbf24; color: #000; }
+        .classic-dark-3 .card-bg { background: #081508; border: 1px solid #1a2e1a; }
+        .classic-dark-3 .text-primary { color: #f0fdf4; }
+        .classic-dark-3 .text-secondary { color: #86efac; }
+
+        /* Classic Championship - Light Variations */
+        .classic-light-1 .variation-preview {
+            background: #f7fee7;
+            font-family: 'Public Sans', sans-serif;
+        }
+        .classic-light-1 .primary-gradient { background: linear-gradient(135deg, #3f6212 0%, #65a30d 100%); }
+        .classic-light-1 .secondary-color { background: #ea580c; }
+        .classic-light-1 .accent-gold { background: #f59e0b; color: #000; }
+        .classic-light-1 .card-bg { background: #ffffff; border: 1px solid #d9f99d; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .classic-light-1 .text-primary { color: #1a2e05; }
+        .classic-light-1 .text-secondary { color: #3f6212; }
+
+        .classic-light-2 .variation-preview {
+            background: #f0fdf4;
+            font-family: 'Public Sans', sans-serif;
+        }
+        .classic-light-2 .primary-gradient { background: linear-gradient(135deg, #14532d 0%, #16a34a 100%); }
+        .classic-light-2 .secondary-color { background: #d97706; }
+        .classic-light-2 .accent-gold { background: #f59e0b; color: #000; }
+        .classic-light-2 .card-bg { background: #ffffff; border: 1px solid #bbf7d0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .classic-light-2 .text-primary { color: #052e16; }
+        .classic-light-2 .text-secondary { color: #166534; }
+
+        .classic-light-3 .variation-preview {
+            background: #fefce8;
+            font-family: 'Public Sans', sans-serif;
+        }
+        .classic-light-3 .primary-gradient { background: linear-gradient(135deg, #4d7c0f 0%, #84cc16 100%); }
+        .classic-light-3 .secondary-color { background: #c2410c; }
+        .classic-light-3 .accent-gold { background: #f59e0b; color: #000; }
+        .classic-light-3 .card-bg { background: #ffffff; border: 1px solid #fef08a; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .classic-light-3 .text-primary { color: #1a2e05; }
+        .classic-light-3 .text-secondary { color: #365314; }
+
+        /* Common button styles */
+        .button-primary {
+            padding: 13px 28px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .button-outline {
+            padding: 13px 28px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            background: transparent;
+            border: 2px solid;
+            transition: all 0.3s ease;
+        }
+
+        .royal-dark-1 .button-primary,
+        .royal-dark-2 .button-primary,
+        .royal-dark-3 .button-primary,
+        .royal-light-1 .button-primary,
+        .royal-light-2 .button-primary,
+        .royal-light-3 .button-primary {
+            background: var(--btn-bg, linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%));
+        }
+
+        .royal-dark-1 .button-outline,
+        .royal-dark-2 .button-outline,
+        .royal-dark-3 .button-outline { border-color: #ff6b6b; color: #ff6b6b; }
+        .royal-light-1 .button-outline,
+        .royal-light-2 .button-outline,
+        .royal-light-3 .button-outline { border-color: #dc2626; color: #dc2626; }
+
+        .refined-dark-1 .button-primary,
+        .refined-dark-2 .button-primary,
+        .refined-dark-3 .button-primary,
+        .refined-light-1 .button-primary,
+        .refined-light-2 .button-primary,
+        .refined-light-3 .button-primary {
+            background: var(--btn-bg, linear-gradient(135deg, #7c2d12 0%, #dc2626 100%));
+        }
+
+        .refined-dark-1 .button-outline,
+        .refined-dark-2 .button-outline,
+        .refined-dark-3 .button-outline { border-color: #dc2626; color: #dc2626; }
+        .refined-light-1 .button-outline,
+        .refined-light-2 .button-outline,
+        .refined-light-3 .button-outline { border-color: #991b1b; color: #991b1b; }
+
+        .classic-dark-1 .button-primary,
+        .classic-dark-2 .button-primary,
+        .classic-dark-3 .button-primary {
+            background: var(--btn-bg, linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%));
+            color: #000;
+        }
+
+        .classic-light-1 .button-primary,
+        .classic-light-2 .button-primary,
+        .classic-light-3 .button-primary {
+            background: var(--btn-bg, linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%));
+            color: #000;
+        }
+
+        .classic-dark-1 .button-outline,
+        .classic-dark-2 .button-outline,
+        .classic-dark-3 .button-outline { border-color: #fbbf24; color: #fbbf24; }
+        .classic-light-1 .button-outline,
+        .classic-light-2 .button-outline,
+        .classic-light-3 .button-outline { border-color: #f59e0b; color: #f59e0b; }
+
+        /* Preview components */
+        .color-palette {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .color-swatch {
+            flex: 1;
+            height: 50px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .match-card {
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(128,128,128,0.2);
+        }
+
+        .match-teams {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .team {
+            text-align: center;
+        }
+
+        .team-flag {
+            font-size: 32px;
+            margin-bottom: 6px;
+        }
+
+        .team-name {
+            font-weight: 600;
+        }
+
+        .vs {
+            opacity: 0.6;
+            font-weight: 500;
+        }
+
+        .match-actions {
+            display: flex;
+            gap: 8px;
+            flex-direction: column;
+        }
+
+        .sidebar-section {
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 15px;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .team-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(128,128,128,0.1);
+        }
+
+        .team-row:last-child {
+            border-bottom: none;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        @media (max-width: 1200px) {
+            .variations-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .note-box {
+            max-width: 900px;
+            margin: 30px auto;
+            background: rgba(6, 182, 212, 0.1);
+            border: 2px solid rgba(6, 182, 212, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .note-box h3 {
+            color: #06b6d4;
+            margin-bottom: 10px;
+        }
+
+        .note-box p {
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎨 Your Top 3 Finalists</h1>
+        <p>Light & Dark modes + variations to find the perfect balance</p>
+        <div class="mode-toggle">
+            <button class="mode-btn active" data-mode="dark">
+                <span>🌙</span>
+                <span>Dark Mode</span>
+            </button>
+            <button class="mode-btn" data-mode="light">
+                <span>☀️</span>
+                <span>Light Mode</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="theme-showcase">
+        <!-- Royal Sports Section -->
+        <div class="theme-section">
+            <div class="theme-section-header">
+                <h2 class="theme-section-title">👑 Royal Sports (Plum + Coral)</h2>
+                <p class="theme-section-description">
+                    <strong>What you loved:</strong> Unique purple, sophisticated but energetic<br>
+                    <strong>Variations:</strong> Different purple saturations - from deep plum to softer violet
+                </p>
+            </div>
+
+            <div class="variations-grid dark-variations">
+                <div class="variation-card royal-dark-1">
+                    <div class="variation-header">
+                        <div class="variation-title">Deep Plum (Original)</div>
+                        <div class="variation-subtitle">Boldest purple, highest contrast</div>
+                    </div>
+                    <div class="variation-preview">
+                        <div class="color-palette">
+                            <div class="color-swatch primary-gradient">Plum</div>
+                            <div class="color-swatch secondary-color">Coral</div>
+                            <div class="color-swatch accent-gold">Gold</div>
+                        </div>
+                        <div class="match-card card-bg">
+                            <div class="match-header">
+                                <span class="text-secondary" style="font-size: 0.85rem;">28 jun 12:00</span>
+                                <span class="badge accent-gold">3x</span>
+                            </div>
+                            <div class="match-teams">
+                                <div class="team">
+                                    <div class="team-flag">🇺🇸</div>
+                                    <div class="team-name text-primary">USA</div>
+                                </div>
+                                <span class="vs text-secondary">vs</span>
+                                <div class="team">
+                                    <div class="team-flag">🇨🇦</div>
+                                    <div class="team-name text-primary">Canada</div>
+                                </div>
+                            </div>
+                            <div class="match-actions">
+                                <button class="button-primary">IR AL PROXIMO PARTIDO</button>
+                                <button class="button-outline">VER GRUPOS</button>
+                            </div>
+                        </div>
+                        <div class="sidebar-section card-bg">
+                            <div class="section-title text-primary">📊 Grupos</div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 KOR</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 RSA</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="variation-card royal-dark-2">
+                    <div class="variation-header">
+                        <div class="variation-title">Soft Violet</div>
+                        <div class="variation-subtitle">Lighter purple, more approachable</div>
+                    </div>
+                    <div class="variation-preview">
+                        <div class="color-palette">
+                            <div class="color-swatch primary-gradient">Violet</div>
+                            <div class="color-swatch secondary-color">Coral</div>
+                            <div class="color-swatch accent-gold">Gold</div>
+                        </div>
+                        <div class="match-card card-bg">
+                            <div class="match-header">
+                                <span class="text-secondary" style="font-size: 0.85rem;">28 jun 12:00</span>
+                                <span class="badge accent-gold">3x</span>
+                            </div>
+                            <div class="match-teams">
+                                <div class="team">
+                                    <div class="team-flag">🇺🇸</div>
+                                    <div class="team-name text-primary">USA</div>
+                                </div>
+                                <span class="vs text-secondary">vs</span>
+                                <div class="team">
+                                    <div class="team-flag">🇨🇦</div>
+                                    <div class="team-name text-primary">Canada</div>
+                                </div>
+                            </div>
+                            <div class="match-actions">
+                                <button class="button-primary">IR AL PROXIMO PARTIDO</button>
+                                <button class="button-outline">VER GRUPOS</button>
+                            </div>
+                        </div>
+                        <div class="sidebar-section card-bg">
+                            <div class="section-title text-primary">📊 Grupos</div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 KOR</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 RSA</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="variation-card royal-dark-3">
+                    <div class="variation-header">
+                        <div class="variation-title">Rich Purple</div>
+                        <div class="variation-subtitle">Balanced - not too dark, not too bright</div>
+                    </div>
+                    <div class="variation-preview">
+                        <div class="color-palette">
+                            <div class="color-swatch primary-gradient">Purple</div>
+                            <div class="color-swatch secondary-color">Pink</div>
+                            <div class="color-swatch accent-gold">Gold</div>
+                        </div>
+                        <div class="match-card card-bg">
+                            <div class="match-header">
+                                <span class="text-secondary" style="font-size: 0.85rem;">28 jun 12:00</span>
+                                <span class="badge accent-gold">3x</span>
+                            </div>
+                            <div class="match-teams">
+                                <div class="team">
+                                    <div class="team-flag">🇺🇸</div>
+                                    <div class="team-name text-primary">USA</div>
+                                </div>
+                                <span class="vs text-secondary">vs</span>
+                                <div class="team">
+                                    <div class="team-flag">🇨🇦</div>
+                                    <div class="team-name text-primary">Canada</div>
+                                </div>
+                            </div>
+                            <div class="match-actions">
+                                <button class="button-primary">IR AL PROXIMO PARTIDO</button>
+                                <button class="button-outline">VER GRUPOS</button>
+                            </div>
+                        </div>
+                        <div class="sidebar-section card-bg">
+                            <div class="section-title text-primary">📊 Grupos</div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 KOR</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 RSA</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="variations-grid light-variations" style="display: none;">
+                <div class="variation-card royal-light-1">
+                    <div class="variation-header">
+                        <div class="variation-title">Lavender Light</div>
+                        <div class="variation-subtitle">Soft purple background, clean and elegant</div>
+                    </div>
+                    <div class="variation-preview">
+                        <div class="color-palette">
+                            <div class="color-swatch primary-gradient">Purple</div>
+                            <div class="color-swatch secondary-color">Coral</div>
+                            <div class="color-swatch accent-gold">Gold</div>
+                        </div>
+                        <div class="match-card card-bg">
+                            <div class="match-header">
+                                <span class="text-secondary" style="font-size: 0.85rem;">28 jun 12:00</span>
+                                <span class="badge accent-gold">3x</span>
+                            </div>
+                            <div class="match-teams">
+                                <div class="team">
+                                    <div class="team-flag">🇺🇸</div>
+                                    <div class="team-name text-primary">USA</div>
+                                </div>
+                                <span class="vs text-secondary">vs</span>
+                                <div class="team">
+                                    <div class="team-flag">🇨🇦</div>
+                                    <div class="team-name text-primary">Canada</div>
+                                </div>
+                            </div>
+                            <div class="match-actions">
+                                <button class="button-primary">IR AL PROXIMO PARTIDO</button>
+                                <button class="button-outline">VER GRUPOS</button>
+                            </div>
+                        </div>
+                        <div class="sidebar-section card-bg">
+                            <div class="section-title text-primary">📊 Grupos</div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 KOR</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 RSA</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="variation-card royal-light-2">
+                    <div class="variation-header">
+                        <div class="variation-title">Bright Violet</div>
+                        <div class="variation-subtitle">Crisp white cards, purple accents</div>
+                    </div>
+                    <div class="variation-preview">
+                        <div class="color-palette">
+                            <div class="color-swatch primary-gradient">Violet</div>
+                            <div class="color-swatch secondary-color">Coral</div>
+                            <div class="color-swatch accent-gold">Gold</div>
+                        </div>
+                        <div class="match-card card-bg">
+                            <div class="match-header">
+                                <span class="text-secondary" style="font-size: 0.85rem;">28 jun 12:00</span>
+                                <span class="badge accent-gold">3x</span>
+                            </div>
+                            <div class="match-teams">
+                                <div class="team">
+                                    <div class="team-flag">🇺🇸</div>
+                                    <div class="team-name text-primary">USA</div>
+                                </div>
+                                <span class="vs text-secondary">vs</span>
+                                <div class="team">
+                                    <div class="team-flag">🇨🇦</div>
+                                    <div class="team-name text-primary">Canada</div>
+                                </div>
+                            </div>
+                            <div class="match-actions">
+                                <button class="button-primary">IR AL PROXIMO PARTIDO</button>
+                                <button class="button-outline">VER GRUPOS</button>
+                            </div>
+                        </div>
+                        <div class="sidebar-section card-bg">
+                            <div class="section-title text-primary">📊 Grupos</div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 KOR</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 RSA</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="variation-card royal-light-3">
+                    <div class="variation-header">
+                        <div class="variation-title">Fuchsia Light</div>
+                        <div class="variation-subtitle">Pink-purple tint, warm and inviting</div>
+                    </div>
+                    <div class="variation-preview">
+                        <div class="color-palette">
+                            <div class="color-swatch primary-gradient">Fuchsia</div>
+                            <div class="color-swatch secondary-color">Pink</div>
+                            <div class="color-swatch accent-gold">Gold</div>
+                        </div>
+                        <div class="match-card card-bg">
+                            <div class="match-header">
+                                <span class="text-secondary" style="font-size: 0.85rem;">28 jun 12:00</span>
+                                <span class="badge accent-gold">3x</span>
+                            </div>
+                            <div class="match-teams">
+                                <div class="team">
+                                    <div class="team-flag">🇺🇸</div>
+                                    <div class="team-name text-primary">USA</div>
+                                </div>
+                                <span class="vs text-secondary">vs</span>
+                                <div class="team">
+                                    <div class="team-flag">🇨🇦</div>
+                                    <div class="team-name text-primary">Canada</div>
+                                </div>
+                            </div>
+                            <div class="match-actions">
+                                <button class="button-primary">IR AL PROXIMO PARTIDO</button>
+                                <button class="button-outline">VER GRUPOS</button>
+                            </div>
+                        </div>
+                        <div class="sidebar-section card-bg">
+                            <div class="section-title text-primary">📊 Grupos</div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 KOR</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 RSA</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Refined Competition Section -->
+        <div class="theme-section">
+            <div class="theme-section-header">
+                <h2 class="theme-section-title">🍷 Refined Competition (Burgundy + Cream)</h2>
+                <p class="theme-section-description">
+                    <strong>What you loved:</strong> Warm, luxurious, sophisticated<br>
+                    <strong>Variations:</strong> Different red tones - from burgundy to rose
+                </p>
+            </div>
+
+            <div class="variations-grid dark-variations">
+                <div class="variation-card refined-dark-1">
+                    <div class="variation-header">
+                        <div class="variation-title">Classic Burgundy</div>
+                        <div class="variation-subtitle">Deep wine red, most luxurious</div>
+                    </div>
+                    <div class="variation-preview">
+                        <div class="color-palette">
+                            <div class="color-swatch primary-gradient">Burgundy</div>
+                            <div class="color-swatch secondary-color" style="color: #000;">Wheat</div>
+                            <div class="color-swatch accent-gold">Gold</div>
+                        </div>
+                        <div class="match-card card-bg">
+                            <div class="match-header">
+                                <span class="text-secondary" style="font-size: 0.85rem;">28 jun 12:00</span>
+                                <span class="badge accent-gold">3x</span>
+                            </div>
+                            <div class="match-teams">
+                                <div class="team">
+                                    <div class="team-flag">🇺🇸</div>
+                                    <div class="team-name text-primary">USA</div>
+                                </div>
+                                <span class="vs text-secondary">vs</span>
+                                <div class="team">
+                                    <div class="team-flag">🇨🇦</div>
+                                    <div class="team-name text-primary">Canada</div>
+                                </div>
+                            </div>
+                            <div class="match-actions">
+                                <button class="button-primary">IR AL PROXIMO PARTIDO</button>
+                                <button class="button-outline">VER GRUPOS</button>
+                            </div>
+                        </div>
+                        <div class="sidebar-section card-bg">
+                            <div class="section-title text-primary">📊 Grupos</div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 KOR</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 RSA</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="variation-card refined-dark-2">
+                    <div class="variation-header">
+                        <div class="variation-title">Rose Red</div>
+                        <div class="variation-subtitle">Brighter rose, more energetic</div>
+                    </div>
+                    <div class="variation-preview">
+                        <div class="color-palette">
+                            <div class="color-swatch primary-gradient">Rose</div>
+                            <div class="color-swatch secondary-color" style="color: #000;">Cream</div>
+                            <div class="color-swatch accent-gold">Gold</div>
+                        </div>
+                        <div class="match-card card-bg">
+                            <div class="match-header">
+                                <span class="text-secondary" style="font-size: 0.85rem;">28 jun 12:00</span>
+                                <span class="badge accent-gold">3x</span>
+                            </div>
+                            <div class="match-teams">
+                                <div class="team">
+                                    <div class="team-flag">🇺🇸</div>
+                                    <div class="team-name text-primary">USA</div>
+                                </div>
+                                <span class="vs text-secondary">vs</span>
+                                <div class="team">
+                                    <div class="team-flag">🇨🇦</div>
+                                    <div class="team-name text-primary">Canada</div>
+                                </div>
+                            </div>
+                            <div class="match-actions">
+                                <button class="button-primary">IR AL PROXIMO PARTIDO</button>
+                                <button class="button-outline">VER GRUPOS</button>
+                            </div>
+                        </div>
+                        <div class="sidebar-section card-bg">
+                            <div class="section-title text-primary">📊 Grupos</div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 KOR</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 RSA</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="variation-card refined-dark-3">
+                    <div class="variation-header">
+                        <div class="variation-title">Mahogany</div>
+                        <div class="variation-subtitle">Brown-red, warmest option</div>
+                    </div>
+                    <div class="variation-preview">
+                        <div class="color-palette">
+                            <div class="color-swatch primary-gradient">Mahogany</div>
+                            <div class="color-swatch secondary-color" style="color: #000;">Tan</div>
+                            <div class="color-swatch accent-gold">Gold</div>
+                        </div>
+                        <div class="match-card card-bg">
+                            <div class="match-header">
+                                <span class="text-secondary" style="font-size: 0.85rem;">28 jun 12:00</span>
+                                <span class="badge accent-gold">3x</span>
+                            </div>
+                            <div class="match-teams">
+                                <div class="team">
+                                    <div class="team-flag">🇺🇸</div>
+                                    <div class="team-name text-primary">USA</div>
+                                </div>
+                                <span class="vs text-secondary">vs</span>
+                                <div class="team">
+                                    <div class="team-flag">🇨🇦</div>
+                                    <div class="team-name text-primary">Canada</div>
+                                </div>
+                            </div>
+                            <div class="match-actions">
+                                <button class="button-primary">IR AL PROXIMO PARTIDO</button>
+                                <button class="button-outline">VER GRUPOS</button>
+                            </div>
+                        </div>
+                        <div class="sidebar-section card-bg">
+                            <div class="section-title text-primary">📊 Grupos</div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 KOR</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 RSA</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="variations-grid light-variations" style="display: none;">
+                <div class="variation-card refined-light-1">
+                    <div class="variation-header">
+                        <div class="variation-title">Warm Cream</div>
+                        <div class="variation-subtitle">Cream background, burgundy accents</div>
+                    </div>
+                    <div class="variation-preview">
+                        <div class="color-palette">
+                            <div class="color-swatch primary-gradient">Burgundy</div>
+                            <div class="color-swatch secondary-color" style="color: #000;">Brown</div>
+                            <div class="color-swatch accent-gold">Gold</div>
+                        </div>
+                        <div class="match-card card-bg">
+                            <div class="match-header">
+                                <span class="text-secondary" style="font-size: 0.85rem;">28 jun 12:00</span>
+                                <span class="badge accent-gold">3x</span>
+                            </div>
+                            <div class="match-teams">
+                                <div class="team">
+                                    <div class="team-flag">🇺🇸</div>
+                                    <div class="team-name text-primary">USA</div>
+                                </div>
+                                <span class="vs text-secondary">vs</span>
+                                <div class="team">
+                                    <div class="team-flag">🇨🇦</div>
+                                    <div class="team-name text-primary">Canada</div>
+                                </div>
+                            </div>
+                            <div class="match-actions">
+                                <button class="button-primary">IR AL PROXIMO PARTIDO</button>
+                                <button class="button-outline">VER GRUPOS</button>
+                            </div>
+                        </div>
+                        <div class="sidebar-section card-bg">
+                            <div class="section-title text-primary">📊 Grupos</div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 KOR</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 RSA</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="variation-card refined-light-2">
+                    <div class="variation-header">
+                        <div class="variation-title">Classic Red</div>
+                        <div class="variation-subtitle">Clean white, classic red accents</div>
+                    </div>
+                    <div class="variation-preview">
+                        <div class="color-palette">
+                            <div class="color-swatch primary-gradient">Red</div>
+                            <div class="color-swatch secondary-color" style="color: #000;">Brown</div>
+                            <div class="color-swatch accent-gold">Gold</div>
+                        </div>
+                        <div class="match-card card-bg">
+                            <div class="match-header">
+                                <span class="text-secondary" style="font-size: 0.85rem;">28 jun 12:00</span>
+                                <span class="badge accent-gold">3x</span>
+                            </div>
+                            <div class="match-teams">
+                                <div class="team">
+                                    <div class="team-flag">🇺🇸</div>
+                                    <div class="team-name text-primary">USA</div>
+                                </div>
+                                <span class="vs text-secondary">vs</span>
+                                <div class="team">
+                                    <div class="team-flag">🇨🇦</div>
+                                    <div class="team-name text-primary">Canada</div>
+                                </div>
+                            </div>
+                            <div class="match-actions">
+                                <button class="button-primary">IR AL PROXIMO PARTIDO</button>
+                                <button class="button-outline">VER GRUPOS</button>
+                            </div>
+                        </div>
+                        <div class="sidebar-section card-bg">
+                            <div class="section-title text-primary">📊 Grupos</div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 KOR</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 RSA</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="variation-card refined-light-3">
+                    <div class="variation-header">
+                        <div class="variation-title">Champagne Rose</div>
+                        <div class="variation-subtitle">Soft yellow-cream, rose accents</div>
+                    </div>
+                    <div class="variation-preview">
+                        <div class="color-palette">
+                            <div class="color-swatch primary-gradient">Rose</div>
+                            <div class="color-swatch secondary-color" style="color: #000;">Brown</div>
+                            <div class="color-swatch accent-gold">Gold</div>
+                        </div>
+                        <div class="match-card card-bg">
+                            <div class="match-header">
+                                <span class="text-secondary" style="font-size: 0.85rem;">28 jun 12:00</span>
+                                <span class="badge accent-gold">3x</span>
+                            </div>
+                            <div class="match-teams">
+                                <div class="team">
+                                    <div class="team-flag">🇺🇸</div>
+                                    <div class="team-name text-primary">USA</div>
+                                </div>
+                                <span class="vs text-secondary">vs</span>
+                                <div class="team">
+                                    <div class="team-flag">🇨🇦</div>
+                                    <div class="team-name text-primary">Canada</div>
+                                </div>
+                            </div>
+                            <div class="match-actions">
+                                <button class="button-primary">IR AL PROXIMO PARTIDO</button>
+                                <button class="button-outline">VER GRUPOS</button>
+                            </div>
+                        </div>
+                        <div class="sidebar-section card-bg">
+                            <div class="section-title text-primary">📊 Grupos</div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 KOR</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 RSA</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Classic Championship Section -->
+        <div class="theme-section">
+            <div class="theme-section-header">
+                <h2 class="theme-section-title">🏆 Classic Championship (Green + Gold)</h2>
+                <p class="theme-section-description">
+                    <strong>Your concern:</strong> Might be "too much" across entire app<br>
+                    <strong>Variations:</strong> More muted greens (olive, sage) to reduce intensity
+                </p>
+            </div>
+
+            <div class="variations-grid dark-variations">
+                <div class="variation-card classic-dark-1">
+                    <div class="variation-header">
+                        <div class="variation-title">Forest Green (Original)</div>
+                        <div class="variation-subtitle">Boldest - trophy green</div>
+                    </div>
+                    <div class="variation-preview">
+                        <div class="color-palette">
+                            <div class="color-swatch primary-gradient">Forest</div>
+                            <div class="color-swatch secondary-color">Amber</div>
+                            <div class="color-swatch accent-gold">Gold</div>
+                        </div>
+                        <div class="match-card card-bg">
+                            <div class="match-header">
+                                <span class="text-secondary" style="font-size: 0.85rem;">28 jun 12:00</span>
+                                <span class="badge accent-gold">3x</span>
+                            </div>
+                            <div class="match-teams">
+                                <div class="team">
+                                    <div class="team-flag">🇺🇸</div>
+                                    <div class="team-name text-primary">USA</div>
+                                </div>
+                                <span class="vs text-secondary">vs</span>
+                                <div class="team">
+                                    <div class="team-flag">🇨🇦</div>
+                                    <div class="team-name text-primary">Canada</div>
+                                </div>
+                            </div>
+                            <div class="match-actions">
+                                <button class="button-primary">IR AL PROXIMO PARTIDO</button>
+                                <button class="button-outline">VER GRUPOS</button>
+                            </div>
+                        </div>
+                        <div class="sidebar-section card-bg">
+                            <div class="section-title text-primary">📊 Grupos</div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 KOR</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 RSA</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="variation-card classic-dark-2">
+                    <div class="variation-header">
+                        <div class="variation-title">Olive Green ⭐ RECOMMENDED</div>
+                        <div class="variation-subtitle">Muted - less intense, more sophisticated</div>
+                    </div>
+                    <div class="variation-preview">
+                        <div class="color-palette">
+                            <div class="color-swatch primary-gradient">Olive</div>
+                            <div class="color-swatch secondary-color">Orange</div>
+                            <div class="color-swatch accent-gold">Gold</div>
+                        </div>
+                        <div class="match-card card-bg">
+                            <div class="match-header">
+                                <span class="text-secondary" style="font-size: 0.85rem;">28 jun 12:00</span>
+                                <span class="badge accent-gold">3x</span>
+                            </div>
+                            <div class="match-teams">
+                                <div class="team">
+                                    <div class="team-flag">🇺🇸</div>
+                                    <div class="team-name text-primary">USA</div>
+                                </div>
+                                <span class="vs text-secondary">vs</span>
+                                <div class="team">
+                                    <div class="team-flag">🇨🇦</div>
+                                    <div class="team-name text-primary">Canada</div>
+                                </div>
+                            </div>
+                            <div class="match-actions">
+                                <button class="button-primary">IR AL PROXIMO PARTIDO</button>
+                                <button class="button-outline">VER GRUPOS</button>
+                            </div>
+                        </div>
+                        <div class="sidebar-section card-bg">
+                            <div class="section-title text-primary">📊 Grupos</div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 KOR</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 RSA</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="variation-card classic-dark-3">
+                    <div class="variation-header">
+                        <div class="variation-title">Emerald Green</div>
+                        <div class="variation-subtitle">Jewel tone - elegant compromise</div>
+                    </div>
+                    <div class="variation-preview">
+                        <div class="color-palette">
+                            <div class="color-swatch primary-gradient">Emerald</div>
+                            <div class="color-swatch secondary-color">Orange</div>
+                            <div class="color-swatch accent-gold">Gold</div>
+                        </div>
+                        <div class="match-card card-bg">
+                            <div class="match-header">
+                                <span class="text-secondary" style="font-size: 0.85rem;">28 jun 12:00</span>
+                                <span class="badge accent-gold">3x</span>
+                            </div>
+                            <div class="match-teams">
+                                <div class="team">
+                                    <div class="team-flag">🇺🇸</div>
+                                    <div class="team-name text-primary">USA</div>
+                                </div>
+                                <span class="vs text-secondary">vs</span>
+                                <div class="team">
+                                    <div class="team-flag">🇨🇦</div>
+                                    <div class="team-name text-primary">Canada</div>
+                                </div>
+                            </div>
+                            <div class="match-actions">
+                                <button class="button-primary">IR AL PROXIMO PARTIDO</button>
+                                <button class="button-outline">VER GRUPOS</button>
+                            </div>
+                        </div>
+                        <div class="sidebar-section card-bg">
+                            <div class="section-title text-primary">📊 Grupos</div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 KOR</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 RSA</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="variations-grid light-variations" style="display: none;">
+                <div class="variation-card classic-light-1">
+                    <div class="variation-header">
+                        <div class="variation-title">Lime Tint</div>
+                        <div class="variation-subtitle">Soft yellow-green background</div>
+                    </div>
+                    <div class="variation-preview">
+                        <div class="color-palette">
+                            <div class="color-swatch primary-gradient">Olive</div>
+                            <div class="color-swatch secondary-color">Orange</div>
+                            <div class="color-swatch accent-gold">Gold</div>
+                        </div>
+                        <div class="match-card card-bg">
+                            <div class="match-header">
+                                <span class="text-secondary" style="font-size: 0.85rem;">28 jun 12:00</span>
+                                <span class="badge accent-gold">3x</span>
+                            </div>
+                            <div class="match-teams">
+                                <div class="team">
+                                    <div class="team-flag">🇺🇸</div>
+                                    <div class="team-name text-primary">USA</div>
+                                </div>
+                                <span class="vs text-secondary">vs</span>
+                                <div class="team">
+                                    <div class="team-flag">🇨🇦</div>
+                                    <div class="team-name text-primary">Canada</div>
+                                </div>
+                            </div>
+                            <div class="match-actions">
+                                <button class="button-primary">IR AL PROXIMO PARTIDO</button>
+                                <button class="button-outline">VER GRUPOS</button>
+                            </div>
+                        </div>
+                        <div class="sidebar-section card-bg">
+                            <div class="section-title text-primary">📊 Grupos</div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 KOR</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 RSA</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="variation-card classic-light-2">
+                    <div class="variation-header">
+                        <div class="variation-title">Mint Cream ⭐ RECOMMENDED</div>
+                        <div class="variation-subtitle">Subtle green tint, clean and fresh</div>
+                    </div>
+                    <div class="variation-preview">
+                        <div class="color-palette">
+                            <div class="color-swatch primary-gradient">Forest</div>
+                            <div class="color-swatch secondary-color">Amber</div>
+                            <div class="color-swatch accent-gold">Gold</div>
+                        </div>
+                        <div class="match-card card-bg">
+                            <div class="match-header">
+                                <span class="text-secondary" style="font-size: 0.85rem;">28 jun 12:00</span>
+                                <span class="badge accent-gold">3x</span>
+                            </div>
+                            <div class="match-teams">
+                                <div class="team">
+                                    <div class="team-flag">🇺🇸</div>
+                                    <div class="team-name text-primary">USA</div>
+                                </div>
+                                <span class="vs text-secondary">vs</span>
+                                <div class="team">
+                                    <div class="team-flag">🇨🇦</div>
+                                    <div class="team-name text-primary">Canada</div>
+                                </div>
+                            </div>
+                            <div class="match-actions">
+                                <button class="button-primary">IR AL PROXIMO PARTIDO</button>
+                                <button class="button-outline">VER GRUPOS</button>
+                            </div>
+                        </div>
+                        <div class="sidebar-section card-bg">
+                            <div class="section-title text-primary">📊 Grupos</div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 KOR</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 RSA</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="variation-card classic-light-3">
+                    <div class="variation-header">
+                        <div class="variation-title">Honeydew</div>
+                        <div class="variation-subtitle">Warm yellow background, green accents</div>
+                    </div>
+                    <div class="variation-preview">
+                        <div class="color-palette">
+                            <div class="color-swatch primary-gradient">Lime</div>
+                            <div class="color-swatch secondary-color">Orange</div>
+                            <div class="color-swatch accent-gold">Gold</div>
+                        </div>
+                        <div class="match-card card-bg">
+                            <div class="match-header">
+                                <span class="text-secondary" style="font-size: 0.85rem;">28 jun 12:00</span>
+                                <span class="badge accent-gold">3x</span>
+                            </div>
+                            <div class="match-teams">
+                                <div class="team">
+                                    <div class="team-flag">🇺🇸</div>
+                                    <div class="team-name text-primary">USA</div>
+                                </div>
+                                <span class="vs text-secondary">vs</span>
+                                <div class="team">
+                                    <div class="team-flag">🇨🇦</div>
+                                    <div class="team-name text-primary">Canada</div>
+                                </div>
+                            </div>
+                            <div class="match-actions">
+                                <button class="button-primary">IR AL PROXIMO PARTIDO</button>
+                                <button class="button-outline">VER GRUPOS</button>
+                            </div>
+                        </div>
+                        <div class="sidebar-section card-bg">
+                            <div class="section-title text-primary">📊 Grupos</div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 KOR</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                            <div class="team-row">
+                                <span class="text-primary">#1 RSA</span>
+                                <span class="text-primary">0 pts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="note-box">
+            <h3>💡 My Recommendations</h3>
+            <p>
+                <strong>For Green + Gold concern:</strong> Try "Olive Green" (dark) or "Mint Cream" (light) - much more subtle, less "too much"<br><br>
+                <strong>Top pick for uniqueness + balance:</strong> Royal Sports (Deep Plum or Rich Purple)<br><br>
+                <strong>Top pick for warmth + luxury:</strong> Refined Competition (Classic Burgundy or Mahogany)
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const modeButtons = document.querySelectorAll('.mode-btn');
+        const darkVariations = document.querySelectorAll('.dark-variations');
+        const lightVariations = document.querySelectorAll('.light-variations');
+
+        modeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active from all buttons
+                modeButtons.forEach(b => b.classList.remove('active'));
+                // Add active to clicked button
+                btn.classList.add('active');
+
+                const mode = btn.getAttribute('data-mode');
+
+                if (mode === 'dark') {
+                    darkVariations.forEach(el => el.style.display = 'grid');
+                    lightVariations.forEach(el => el.style.display = 'none');
+                } else {
+                    darkVariations.forEach(el => el.style.display = 'none');
+                    lightVariations.forEach(el => el.style.display = 'grid');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

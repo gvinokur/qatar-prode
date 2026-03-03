@@ -48,8 +48,8 @@ describe('Locale-specific PWA Manifest Route Handler', () => {
     const result = await response.json()
 
     expect(result.id).toBe('prode_mundial')
-    expect(result.theme_color).toBe('#242424')
-    expect(result.background_color).toBe('#242424')
+    expect(result.theme_color).toBe('#7c3aed')
+    expect(result.background_color).toBe('#7c3aed')
     expect(result.display).toBe('standalone')
     expect(result.icons).toHaveLength(3)
     expect(result.categories).toEqual(['social', 'sports'])

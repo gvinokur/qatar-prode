@@ -48,8 +48,8 @@ describe('AppThemeProvider', () => {
     await waitFor(() => {
       const gradientValue = document.documentElement.style.getPropertyValue('--gradient-primary');
       expect(gradientValue).toContain('linear-gradient');
-      expect(gradientValue).toContain('#c62828');
-      expect(gradientValue).toContain('#e53935');
+      expect(gradientValue).toContain('#7c3aed');
+      expect(gradientValue).toContain('#a855f7');
     });
   });
 
@@ -73,8 +73,8 @@ describe('AppThemeProvider', () => {
     await waitFor(() => {
       const gradientValue = document.documentElement.style.getPropertyValue('--gradient-primary');
       expect(gradientValue).toContain('linear-gradient');
-      expect(gradientValue).toContain('#d32f2f');
-      expect(gradientValue).toContain('#e57373');
+      expect(gradientValue).toContain('#8b5cf6');
+      expect(gradientValue).toContain('#a78bfa');
     });
   });
 
