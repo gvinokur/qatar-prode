@@ -140,12 +140,12 @@ export default function FriendGroupsList({
                         disableGutters
                         secondaryAction={
                           <>
-                            <IconButton title={t('actions.delete')} onClick={() => setOpenConfirmDeleteGroup(userGroup.id)}>
+                            <IconButton title={t('actions.delete')} color="secondary" onClick={() => setOpenConfirmDeleteGroup(userGroup.id)}>
                               <DeleteIcon/>
                             </IconButton>
                             <InviteFriendsDialog
                               trigger={
-                                <IconButton title={t('actions.invite')}>
+                                <IconButton title={t('actions.invite')} color="primary">
                                   <ShareIcon/>
                                 </IconButton>}
                               groupId={userGroup.id}

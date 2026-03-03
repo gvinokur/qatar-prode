@@ -1,7 +1,7 @@
 'use client'
 
 import {ProdeGroup} from "../../db/tables-definition";
-import {Button, Card, CardActions, CardContent, CardHeader, TextField} from "@mui/material";
+import {Button, Card, CardActions, CardContent, CardHeader, TextField, useTheme} from "@mui/material";
 import {Controller, useForm} from "react-hook-form";
 import * as React from "react";
 import {MuiColorInput} from "mui-color-input";
@@ -25,6 +25,7 @@ type FormData = {
 
 export default function ProdeGroupThemer({ group }: Props) {
   const t = useTranslations('groups.customization');
+  const theme = useTheme();
   const [loading, setLoading] = useState<boolean>(false)
   const router = useRouter()
   const { handleSubmit, control } =
@@ -50,7 +51,10 @@ export default function ProdeGroupThemer({ group }: Props) {
 
   return (
     <Card>
-      <CardHeader title={t('title')}/>
+      <CardHeader
+        title={t('title')}
+        sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px` }}
+      />
       <form onSubmit={handleSubmit(onUpdateTheme)}>
         <CardContent>
           <Controller

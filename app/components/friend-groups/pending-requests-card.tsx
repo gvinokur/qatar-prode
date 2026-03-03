@@ -12,7 +12,8 @@ import {
   Typography,
   Chip,
   Box,
-  CircularProgress
+  CircularProgress,
+  useTheme
 } from '@mui/material';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
@@ -41,6 +42,7 @@ function statusChipColor(status: string): 'warning' | 'success' | 'error' {
 export default function PendingRequestsCard({ requests: initialRequests }: Readonly<Props>) {
   const t = useTranslations('groups.pendingRequests');
   const tCommon = useTranslations('common.buttons');
+  const theme = useTheme();
   const router = useRouter();
   const [requests, setRequests] = useState<UserJoinRequest[]>(initialRequests);
   const [loadingRequests, setLoadingRequests] = useState<Set<string>>(new Set());
@@ -93,7 +95,11 @@ export default function PendingRequestsCard({ requests: initialRequests }: Reado
   if (requests.length === 0) {
     return (
       <Card>
-        <CardHeader title={t('title')} avatar={<MailIcon />} />
+        <CardHeader
+          title={t('title')}
+          avatar={<MailIcon />}
+          sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px` }}
+        />
         <CardContent>
           <Typography variant="body2" color="text.secondary" align="center">
             {t('noRequests')}

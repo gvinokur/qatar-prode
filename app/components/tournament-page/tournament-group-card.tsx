@@ -215,7 +215,7 @@ export default function TournamentGroupCard(props: TournamentGroupCardProps) {
               />
               <InviteFriendsDialog
                 trigger={
-                  <IconButton size="small" aria-label="Compartir grupo">
+                  <IconButton size="small" color="primary" aria-label="Compartir grupo">
                     <ShareIcon fontSize="small" />
                   </IconButton>
                 }
