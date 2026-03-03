@@ -7,11 +7,14 @@ import {
 import { Game, GameGuessNew, TeamStats } from '../../app/db/tables-definition';
 import { ExtendedGroupData, ExtendedPlayoffRoundData } from '../../app/definitions';
 import { vi } from 'vitest';
+import { getThirdPlaceRulesMapForTournament } from '../../app/db/tournament-third-place-rules-repository';
 
 // Mock the third place rules repository
 vi.mock('../../app/db/tournament-third-place-rules-repository', () => ({
   getThirdPlaceRulesMapForTournament: vi.fn().mockResolvedValue({})
 }));
+
+const mockGetThirdPlaceRulesMapForTournament = vi.mocked(getThirdPlaceRulesMapForTournament);
 
 describe('playoff-teams-calculator', () => {
   const mockGame = (gameId: string, gameNumber: number, homeTeam?: string, awayTeam?: string): Game => ({
@@ -153,6 +156,51 @@ describe('playoff-teams-calculator', () => {
 
       const gameResultsMap = {};
       const gameGuessesMap = {};
+
+      const result = await calculatePlayoffTeams(
+        'test-tournament',
+        firstPlayoffStage,
+        groups,
+        gamesMap,
+        gameResultsMap,
+        gameGuessesMap
+      );
+
+      expect(result).toBeDefined();
+      expect(Object.keys(result)).toHaveLength(1);
+    });
+
+    it('should resolve position-3 team slots via thirdPlaceGroupMap (covers home and away position-3 branches)', async () => {
+      // Two groups each with 3 teams so thirdTeams.length === groups.length (both have position 3)
+      const groups: ExtendedGroupData[] = [
+        mockExtendedGroupData('A', [
+          mockTeamStats('team1', 9),
+          mockTeamStats('team2', 6),
+          mockTeamStats('team3', 3),
+        ]),
+        mockExtendedGroupData('B', [
+          mockTeamStats('team5', 9),
+          mockTeamStats('team6', 6),
+          mockTeamStats('team7', 3),
+        ]),
+      ];
+
+      // Both home and away use position-3 rules to cover both if-branches
+      const game1: Game = {
+        ...mockGame('game1', 1, undefined, undefined),
+        home_team_rule: { group: 'A', position: 3 },
+        away_team_rule: { group: 'A/B', position: 3 },
+      };
+
+      const firstPlayoffStage = mockExtendedPlayoffRoundData([game1]);
+      const gamesMap = { 'game1': game1 };
+
+      mockGetThirdPlaceRulesMapForTournament.mockResolvedValueOnce({
+        'AB': { 'A/B': 'A' },
+      });
+
+      const gameGuessesMap = {};
+      const gameResultsMap = {};
 
       const result = await calculatePlayoffTeams(
         'test-tournament',
@@ -374,6 +422,40 @@ describe('playoff-teams-calculator', () => {
       // 3rd-place slots should be undefined (not yet assigned) since only 1 of 2 needed are present
       expect(result['game1'].homeTeam).toBeUndefined();
       expect(result['game1'].awayTeam).toBeUndefined();
+    });
+
+    it('should use database-sourced rules when available', async () => {
+      const game1: Game = {
+        ...mockGame('game1', 1, undefined, undefined),
+        home_team_rule: { group: 'A', position: 1 },
+        away_team_rule: { group: 'A', position: 3 },
+      };
+
+      const positionsByGroup = {
+        'A': [
+          mockTeamStats('team1', 9),
+          mockTeamStats('team2', 6),
+          mockTeamStats('team3', 3),
+        ],
+      };
+
+      const firstPlayoffStage = mockExtendedPlayoffRoundData([game1]);
+      const gamesMap = { 'game1': game1 };
+
+      // Return non-empty rules to hit the `if (Object.keys(tournamentRules).length > 0)` branch
+      mockGetThirdPlaceRulesMapForTournament.mockResolvedValueOnce({
+        'A': { 'A': 'A' },
+      });
+
+      const result = await calculatePlayoffTeamsFromPositions(
+        'test-tournament',
+        firstPlayoffStage,
+        gamesMap,
+        positionsByGroup
+      );
+
+      expect(result).toBeDefined();
+      expect(Object.keys(result)).toHaveLength(1);
     });
   });
 

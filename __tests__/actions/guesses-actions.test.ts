@@ -7,6 +7,7 @@ import * as playoffTeamsCalculator from '../../app/utils/playoff-teams-calculato
 import * as tournamentPlayoffRepository from '../../app/db/tournament-playoff-repository';
 import * as gameRepository from '../../app/db/game-repository';
 import * as qualifiedTeamsRepository from '../../app/db/qualified-teams-repository';
+import { db } from '../../app/db/database';
 import {
   updateOrCreateGameGuesses,
   updateOrCreateTournamentGuess,
@@ -353,19 +354,39 @@ describe('Guesses Actions', () => {
         .rejects.toThrow('Update failed');
     });
 
-    // Note: The following tests are skipped due to complex database mocking requirements
-    // They test edge cases in the temporary fix logic that would require sophisticated
-    // database query mocking that is beyond the scope of this test suite
-    it.skip('handles the temporary fix logic for existing guesses', async () => {
-      // This test would require complex database mocking
-      expect(true).toBe(true); // Placeholder assertion to satisfy linting
+    it('updates orphaned guess game_id when matching guess found', async () => {
+      const orphanedGuess = { id: 'orphan1', game_id: null, home_team: 'team1', away_team: 'team2', user_id: 'user1' };
+      const orphanChain = {
+        selectAll: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(orphanedGuess),
+      };
+      vi.mocked(db.selectFrom).mockReturnValueOnce(orphanChain as any);
+
+      await updatePlayoffGameGuesses('tournament1');
+
+      expect(orphanChain.executeTakeFirst).toHaveBeenCalled();
+      expect(mockUpdateGameGuessByGameId).toHaveBeenCalledWith('game1', mockUser.id, {
+        home_team: 'team1',
+        away_team: 'team2',
+      });
     });
 
     it('continues execution when orphaned guess update fails', async () => {
-      // Test coverage for the orphaned guess update error handling
-      // This test verifies that the function continues execution even when
-      // updating orphaned guesses fails
-      expect(true).toBe(true); // Placeholder assertion to satisfy linting
+      const orphanedGuess = { id: 'orphan1', game_id: null, home_team: 'team1', away_team: 'team2', user_id: 'user1' };
+      const orphanChain = {
+        selectAll: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(orphanedGuess),
+      };
+      vi.mocked(db.selectFrom).mockReturnValueOnce(orphanChain as any);
+      vi.mocked(db.updateTable).mockReturnValueOnce({
+        set: vi.fn(() => ({ where: vi.fn(() => ({ execute: vi.fn().mockRejectedValue(new Error('DB update error')) })) }))
+      } as any);
+
+      // Should not throw despite the update error
+      await expect(updatePlayoffGameGuesses('tournament1')).resolves.toBeDefined();
+      expect(mockUpdateGameGuessByGameId).toHaveBeenCalled();
     });
 
     it('excludes position-3 teams with predicted_to_qualify: false from standings', async () => {
