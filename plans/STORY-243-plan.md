@@ -319,24 +319,28 @@ Files with Link/Button navigation:
    PLAYWRIGHT_TEST_EMAIL=gvinokur+3@gmail.com
    PLAYWRIGHT_TEST_PASSWORD=somepass
    ```
-3. Create visual audit script: `scripts/visual-audit.ts`
-4. Create images output directory: `docs/visual-audit/baseline/`
+3. Get Vercel Preview URL from PR #247
+4. Create visual audit script: `scripts/visual-audit.ts`
+5. Create images output directory: `docs/visual-audit/baseline/`
 
 **Audit Process:**
-1. **Login and navigate** through key user flows:
+1. **Use Vercel Preview URL** (not localhost) - get from PR #247 deployment
+   - Credentials will work on Vercel Preview
+   - Real database with actual data
+   - No need to run local dev server or create test users
+2. **Login and navigate** through key user flows:
    - Home page
    - Tournament pages (games, leaderboard, stats)
    - Friend groups (list, detail, join requests)
    - User profile/settings
-   - Auth flows
-2. **Capture screenshots** in both light and dark modes
-3. **Analyze visuals** for:
+3. **Capture screenshots** in both light and dark modes
+4. **Analyze visuals** for:
    - Buttons without color props (gray buttons)
    - IconButtons without theme colors
    - Hardcoded colors
    - Cards/CardHeaders without theme styling
    - Opportunities for secondary color usage
-4. **Generate report**: `docs/visual-audit/pre-implementation-analysis.md`
+5. **Generate report**: `docs/visual-audit/pre-implementation-analysis.md`
    - List of components found
    - Screenshots showing current state
    - Recommendations for additional files to update
