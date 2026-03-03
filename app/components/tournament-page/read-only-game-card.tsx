@@ -96,7 +96,7 @@ export default function ReadOnlyGameCard({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: alpha('#000', 0.65),
+              backgroundColor: (theme) => alpha(theme.palette.common.black, 0.65),
               zIndex: 10,
               borderRadius: 1,
             }}
@@ -107,7 +107,7 @@ export default function ReadOnlyGameCard({
                 flexDirection: 'column',
                 alignItems: 'center',
                 gap: 1.5,
-                backgroundColor: alpha('#fff', 0.98),
+                backgroundColor: (theme) => alpha(theme.palette.common.white, 0.98),
                 px: 3,
                 py: 2.5,
                 borderRadius: 2,

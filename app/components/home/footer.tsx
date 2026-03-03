@@ -73,8 +73,8 @@ function Footer({ imageUrl, message }: FooterProps) {
       sx={{
         top: 'auto',
         bottom: 0,
-        backgroundColor: '#222',
-        color: '#fff',
+        backgroundColor: 'primary.dark',
+        color: 'primary.contrastText',
         zIndex: 1300,
       }}
       component="footer"

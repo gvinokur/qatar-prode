@@ -259,11 +259,12 @@ export default function TeamDialog({
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose}>Cancel</Button>
+        <Button onClick={handleClose} color="secondary">Cancel</Button>
         <Button
           loading={loading}
           onClick={handleSubmit}
           variant="contained"
+          color="primary"
         >
           {isEditMode ? 'Save Changes' : 'Create Team'}
         </Button>

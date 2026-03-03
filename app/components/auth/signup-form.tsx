@@ -210,6 +210,7 @@ export default function SignupForm({ onSuccess, email, onOTPSignupClick }: Signu
         {onOTPSignupClick && (
           <Button
             variant="outlined"
+            color="secondary"
             startIcon={<VpnKey />}
             onClick={onOTPSignupClick}
             disabled={loading}
@@ -217,7 +218,7 @@ export default function SignupForm({ onSuccess, email, onOTPSignupClick }: Signu
             {t('signup.buttons.otpEmail')}
           </Button>
         )}
-        <Button loading={loading} type="submit" variant="contained">
+        <Button loading={loading} type="submit" variant="contained" color="primary">
           {t('signup.buttons.submit')}
         </Button>
       </div>

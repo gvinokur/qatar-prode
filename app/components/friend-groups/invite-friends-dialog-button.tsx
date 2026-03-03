@@ -11,7 +11,7 @@ export const InviteFriendsDialogButton = ({groupId, groupName, tournamentId}: { 
   return (
     <InviteFriendsDialog
       trigger={
-        <Button variant={'contained'} endIcon={<Share/>}>
+        <Button variant={'contained'} color="primary" endIcon={<Share/>}>
           {t('inviteMore')}
         </Button>}
       groupId={groupId}

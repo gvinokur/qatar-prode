@@ -484,7 +484,7 @@ function QualifiedTeamsUI({
       <Backdrop
         open={isSaving}
         sx={{
-          color: '#fff',
+          color: 'common.white',
           zIndex: (theme) => theme.zIndex.drawer + 1,
           backdropFilter: 'blur(2px)',
         }}

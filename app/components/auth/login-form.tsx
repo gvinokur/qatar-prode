@@ -139,6 +139,7 @@ export default function LoginForm({ onSuccess, email, onOTPLoginClick }: LoginFo
         {onOTPLoginClick && (
           <Button
             variant="outlined"
+            color="secondary"
             startIcon={<VpnKey />}
             onClick={onOTPLoginClick}
             disabled={loading}
@@ -146,7 +147,7 @@ export default function LoginForm({ onSuccess, email, onOTPLoginClick }: LoginFo
             {t('login.buttons.otpEmail')}
           </Button>
         )}
-        <Button loading={loading} type="submit" variant="contained">
+        <Button loading={loading} type="submit" variant="contained" color="primary">
           {t('login.buttons.submit')}
         </Button>
       </div>

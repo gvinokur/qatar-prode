@@ -30,7 +30,7 @@ export default function LeaderboardError({ onRetry }: LeaderboardErrorProps) {
         There was an error loading the leaderboard data. Please try again.
       </Typography>
       {onRetry && (
-        <Button variant="contained" onClick={onRetry}>
+        <Button variant="contained" color="primary" onClick={onRetry}>
           Retry
         </Button>
       )}

@@ -57,7 +57,7 @@ export default function VerificationBanner() {
       >
         <AlertTitle>Email Not Verified</AlertTitle>
         Please verify your email address to access all features.
-        {error && <div style={{ color: '#d32f2f', marginTop: 8 }}>{error}</div>}
+        {error && <Typography color="error.main" sx={{ mt: 1 }}>{error}</Typography>}
       </Alert>
 
       <Snackbar

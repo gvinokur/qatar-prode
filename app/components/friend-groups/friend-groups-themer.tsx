@@ -100,7 +100,7 @@ export default function ProdeGroupThemer({ group }: Props) {
         <CardActions sx={{
           direction: 'rtl'
         }}>
-          <Button variant={'contained'} loading={loading} type={'submit'}>{t('saveButton')}</Button>
+          <Button variant={'contained'} color="primary" loading={loading} type={'submit'}>{t('saveButton')}</Button>
         </CardActions>
       </form>
     </Card>
