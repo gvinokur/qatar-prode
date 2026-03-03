@@ -256,6 +256,30 @@ divider: 'rgba(255, 255, 255, 0.08)'
 linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)
 ```
 
+### Typography
+
+**Font Family:** Archivo
+**Weights:** 400 (Regular), 500 (Medium), 600 (Semibold), 700 (Bold)
+**Style:** Geometric, modern
+**Source:** Google Fonts
+
+**Characteristics:**
+- Clean, geometric letterforms
+- Professional and contemporary feel
+- Excellent readability at all sizes
+- Pairs well with violet color palette
+
+**Usage:**
+- Headings (h1-h6): 600-700 weight for prominence
+- Body text: 400 weight for readability
+- Buttons/UI: 600 weight for clarity
+- Subtitles: 500 weight for hierarchy
+
+**Fallback chain:**
+```
+font-family: 'Archivo', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+```
+
 ### Implementation Notes
 - Neutral backgrounds prevent color overload in dark mode
 - Softer violet in dark mode reduces eye strain during extended use
@@ -391,6 +415,32 @@ divider: 'rgba(255, 255, 255, 0.08)'
 linear-gradient(135deg, #e11d48 0%, #f43f5e 100%)
 ```
 
+### Typography
+
+**Font Family:** Outfit
+**Weights:** 400 (Regular), 500 (Medium), 600 (Semibold), 700 (Bold)
+**Style:** Rounded, friendly
+**Source:** Google Fonts
+
+**Characteristics:**
+- Soft, rounded letterforms
+- Warm and approachable feel
+- Modern yet inviting
+- Pairs well with rose/red color palette
+
+**Usage:**
+- Headings (h1-h6): 600-700 weight for warmth
+- Body text: 400 weight for readability
+- Buttons/UI: 600 weight for friendliness
+- Subtitles: 500 weight for balance
+
+**Fallback chain:**
+```
+font-family: 'Outfit', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+```
+
+**Note:** This font is loaded but not currently active. To use it, update the `fontFamily` in `theme-provider.tsx` to reference 'Outfit' instead of 'Archivo'.
+
 ---
 
 ## Classic Championship (Olive) - Alternative
@@ -517,6 +567,32 @@ divider: 'rgba(255, 255, 255, 0.08)'
 ```
 linear-gradient(135deg, #65a30d 0%, #84cc16 100%)
 ```
+
+### Typography
+
+**Font Family:** Public Sans
+**Weights:** 400 (Regular), 500 (Medium), 600 (Semibold), 700 (Bold)
+**Style:** Clean, authoritative
+**Source:** Google Fonts
+
+**Characteristics:**
+- Neutral, professional letterforms
+- Clean and legible
+- Trustworthy and classic feel
+- Pairs well with olive/green color palette
+
+**Usage:**
+- Headings (h1-h6): 600-700 weight for authority
+- Body text: 400 weight for clarity
+- Buttons/UI: 600 weight for confidence
+- Subtitles: 500 weight for structure
+
+**Fallback chain:**
+```
+font-family: 'Public Sans', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+```
+
+**Note:** This font is loaded but not currently active. To use it, update the `fontFamily` in `theme-provider.tsx` to reference 'Public Sans' instead of 'Archivo'.
 
 ---
 

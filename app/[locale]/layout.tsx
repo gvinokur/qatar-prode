@@ -86,6 +86,13 @@ export default async function LocaleLayout({
     <html lang={locale} style={{ height: '100%' }}>
       <head>
         <meta name="apple-mobile-web-app-title" content={appName}/>
+        {/* Google Fonts for theme typography */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=Public+Sans:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
       </head>
       <body style={{minHeight: '100%'}}>
         <NextIntlClientProvider messages={messages} locale={locale}>

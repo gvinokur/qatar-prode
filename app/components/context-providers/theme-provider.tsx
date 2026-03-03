@@ -114,6 +114,27 @@ export default function AppThemeProvider(
     palette: {
       ...themeToUse
     },
+    typography: {
+      fontFamily: [
+        'Archivo',              // Primary: Violet theme font (geometric, modern)
+        'Roboto',               // MUI default fallback
+        'Helvetica',            // System fallback
+        'Arial',                // System fallback
+        'sans-serif',           // Generic fallback
+      ].join(','),
+      // Configure font weights for MUI typography variants
+      h1: { fontWeight: 700 },
+      h2: { fontWeight: 700 },
+      h3: { fontWeight: 600 },
+      h4: { fontWeight: 600 },
+      h5: { fontWeight: 600 },
+      h6: { fontWeight: 600 },
+      subtitle1: { fontWeight: 500 },
+      subtitle2: { fontWeight: 500 },
+      body1: { fontWeight: 400 },
+      body2: { fontWeight: 400 },
+      button: { fontWeight: 600 },
+    },
   });
 
   return mounted && <ThemeProvider theme={theme}>{children}</ThemeProvider>
