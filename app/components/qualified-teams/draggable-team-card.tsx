@@ -433,7 +433,12 @@ export default function DraggableTeamCard({
   const cannotAddMore = !predictedToQualify && currentThirdPlaceCount >= maxThirdPlace;
 
   const isDragDisabled = isLocked || isSaving;
-  const cardCursor = isDragDisabled ? 'default' : isDragging ? 'grabbing' : 'grab';
+  let cardCursor = 'grab';
+  if (isDragDisabled) {
+    cardCursor = 'default';
+  } else if (isDragging) {
+    cardCursor = 'grabbing';
+  }
 
   return (
     <Card
