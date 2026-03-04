@@ -121,6 +121,7 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess, t
             variant="outlined"
             color="secondary"
             size="small"
+            fullWidth
             aria-label={t('sidebar.ariaLabels.viewDetailsButton')}
           >
             {t('sidebar.viewDetails')}

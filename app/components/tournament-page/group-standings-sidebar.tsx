@@ -230,6 +230,7 @@ export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifie
           variant="outlined"
           color="secondary"
           size="small"
+          fullWidth
         >
           {t('groups.viewResults')}
         </Button>

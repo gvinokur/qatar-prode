@@ -394,6 +394,7 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
             variant="outlined"
             color="secondary"
             size="small"
+            fullWidth
           >
             {tActions('viewFullRules')}
           </Button>
