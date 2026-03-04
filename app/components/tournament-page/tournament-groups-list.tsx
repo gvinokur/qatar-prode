@@ -167,7 +167,7 @@ export default function TournamentGroupsList({ groups, tournamentId, pendingRequ
                 </Button>
                 <Button
                   variant="outlined"
-                  color="primary"
+                  color="secondary"
                   size="small"
                   onClick={handleDiscoverGroups}
                 >
@@ -256,10 +256,10 @@ export default function TournamentGroupsList({ groups, tournamentId, pendingRequ
           />
         </DialogContent>
         <DialogActions>
-          <Button disabled={loading} onClick={handleCloseCreateDialog}>
+          <Button disabled={loading} color="secondary" onClick={handleCloseCreateDialog}>
             {tCreate('buttons.cancel')}
           </Button>
-          <Button loading={loading} type="submit">
+          <Button loading={loading} color="primary" type="submit">
             {tCreate('buttons.create')}
           </Button>
         </DialogActions>

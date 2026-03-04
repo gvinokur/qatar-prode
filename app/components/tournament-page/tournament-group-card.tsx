@@ -209,7 +209,7 @@ export default function TournamentGroupCard(props: TournamentGroupCardProps) {
               <Chip
                 label={t('owner')}
                 size="small"
-                color="primary"
+                color="secondary"
                 variant="outlined"
                 sx={{ fontSize: '0.7rem' }}
               />
