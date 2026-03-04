@@ -87,6 +87,7 @@ After `<FriendGroupsSidebarEmptyState>`, add a prominent "Create Group" button:
     <ListItem disableGutters sx={{ justifyContent: 'center', pt: 1 }}>
       <Button
         size="small"
+        color="secondary"
         onClick={() => setOpenCreateDialog(true)}
         startIcon={<AddIcon />}
       >
