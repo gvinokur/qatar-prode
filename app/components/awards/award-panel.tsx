@@ -254,7 +254,13 @@ export default function AwardsPanel({
       />
 
       <Card>
-        <CardHeader title={t('podium.title')}/>
+        <CardHeader
+          title={t('podium.title')}
+          sx={{
+            color: theme.palette.primary.main,
+            borderBottom: `${theme.palette.primary.light} solid 1px`
+          }}
+        />
         <CardContent>
           <Grid container spacing={3}>
             <Grid
@@ -347,7 +353,13 @@ export default function AwardsPanel({
         </CardContent>
       </Card>
       <Card sx={{ marginTop: '24px' }}>
-        <CardHeader title={t('individual.title')}/>
+        <CardHeader
+          title={t('individual.title')}
+          sx={{
+            color: theme.palette.primary.main,
+            borderBottom: `${theme.palette.primary.light} solid 1px`
+          }}
+        />
         <CardContent>
           {allPlayers.length === 0 && (
             <Alert variant={'filled'} severity={'warning'}>
