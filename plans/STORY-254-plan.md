@@ -29,11 +29,11 @@ The tournament home page displays game cards in a single vertical column regardl
 ### Acceptance Criteria
 
 **Two-Column Layout:**
-- [x] Game cards display in 2 columns on tablets and larger screens (≥600px)
-- [x] Single column maintained on mobile (<600px)
-- [x] Layout uses viewport breakpoints (consistent with project patterns)
+- [x] Game cards display in 2 columns when container width allows (based on minimum card width)
+- [x] Single column when container is narrow (automatic via CSS Grid auto-fit)
+- [x] Layout uses CSS Grid auto-fit with minmax() - responds to container width, not viewport
 - [x] No horizontal scrolling introduced
-- [x] Card content remains readable at half-width
+- [x] Minimum card width ensures content remains readable
 
 **Entire Card Clickable:**
 - [x] Entire card surface area is clickable to enter edit mode
@@ -46,11 +46,12 @@ The tournament home page displays game cards in a single vertical column regardl
 - [x] "Actual Result" label centered (matches "Your Prediction" style)
 - [x] Full team names displayed (no abbreviations like "BRA")
 - [x] Prediction Result badge shown below score (Exact/Correct/Incorrect)
-- [x] Badge colors: Green for Exact/Correct, Red for Incorrect
+- [x] Badge colors: theme.palette.success for Exact/Correct, theme.palette.error for Incorrect
 - [x] No gradient backgrounds (subtle borders only)
 - [x] Handles "In Play" state with appropriate message
 - [x] No text truncation on mobile devices
 - [x] Clear visual hierarchy maintained
+- [x] Points shown in badge only (remove existing point overlay from card header to avoid duplication)
 
 **General:**
 - [x] No visual glitches during layout transitions
@@ -204,34 +205,47 @@ State 5: BEFORE GAME (No result section)
 </Stack>
 ```
 
-**New Implementation:**
+**New Implementation (CSS Grid auto-fit):**
 ```tsx
-<Grid container spacing={2}>
+<Box
+  sx={{
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+    gap: 2,
+    width: '100%',
+  }}
+>
   {games.map(game => (
-    <Grid key={game.id} size={{ xs: 12, sm: 6 }}>
-      <FlippableGameCard {...props} />
-    </Grid>
+    <FlippableGameCard key={game.id} {...props} />
   ))}
-</Grid>
+</Box>
 ```
 
 **Changes:**
-- Replace `Stack` with `Grid container`
-- Wrap each card in `Grid` item with responsive sizing
-- `xs: 12` = full width on mobile (<600px)
-- `sm: 6` = half width on tablets and desktop (≥600px)
-- `spacing={2}` maintains 16px gaps between cards
+- Replace `Stack` with `Box` using CSS Grid
+- Use `auto-fit` with `minmax(340px, 1fr)` for responsive columns
+- Minimum card width: 340px (ensures readable content)
+- Maximum card width: 1fr (fills available space)
+- `gap: 2` maintains 16px spacing (same as before)
+
+**How it works:**
+- Container < 680px (2 × 340px): 1 column (mobile)
+- Container ≥ 680px: 2 columns (tablet/desktop)
+- Container ≥ 1020px (3 × 340px): Could show 3 columns, but cards will be capped at reasonable max width via parent container
+- **Responds to container width, not viewport** - adapts to sidebar open/closed state
 
 **Rationale:**
-- Uses Material-UI Grid component (MUI v7 API with `size` prop)
-- Follows existing project patterns (see `games-grid.tsx` and `qualified-teams-grid.tsx`)
-- Viewport-based breakpoints (project standard, not container queries)
-- Automatically handles navigation button visibility (they're already responsive)
+- Pure CSS solution, no JavaScript needed
+- Container-width-based (not viewport-based)
+- Automatically wraps when space insufficient
+- No breakpoints to maintain
+- Cards automatically size between 340px and available space
 
 **Edge Cases:**
-- Odd number of games: Last card takes full width in second column
+- Odd number of games: Last card stretches to fill row
 - Empty games list: Already handled by existing empty state component
-- Single game: Displays centered in first column
+- Single game: Takes full width (up to max-width of parent)
+- Very wide containers (>1020px): Can limit via parent max-width or add maxWidth to grid
 
 #### 2. Make Entire Card Clickable
 
@@ -382,7 +396,7 @@ export function ActualResultDisplay({ ... }: ActualResultDisplayProps) {
         <Chip
           label={getPredictionResultLabel(predictionResult, t)}
           icon={getPredictionResultIcon(predictionResult)}
-          color={predictionResult === 'incorrect' ? 'error' : 'success'}
+          color={predictionResult === 'incorrect' ? 'error' : 'success'} // Uses theme.palette.error/success
           size="small"
           variant="filled"
         />
@@ -681,6 +695,7 @@ t('game.predictionResultExact', { points: 10 }) // "✓ Exact (10 points)" / "�
    - Add calculatePredictionResult function
    - Add result border styling to Card sx prop
    - Handle "In Play" state with message
+   - **Remove existing point overlay** (GameCardPointOverlay) when game has result to avoid duplication - points now shown in result badge only
 
 4. **Update CompactGameViewCard (Clickability)**
    - Move onClick handler from Grid (line 274) to Card (line 154)
@@ -690,12 +705,12 @@ t('game.predictionResultExact', { points: 10 }) // "✓ Exact (10 points)" / "�
    - Test keyboard navigation and focus states
 
 5. **Update GamesListWithScroll (Layout)**
-   - Import Grid component from '@mui/material'
-   - Replace Stack with Grid container
-   - Wrap FlippableGameCard in Grid items
-   - Set responsive sizing: size={{ xs: 12, sm: 6 }}
-   - Maintain spacing={2}
-   - Verify navigation buttons still work
+   - Replace Stack with Box using CSS Grid
+   - Set `display: 'grid'`
+   - Use `gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))'`
+   - Set `gap: 2` (maintains 16px spacing)
+   - Remove Grid item wrappers (cards are direct children)
+   - Verify navigation buttons still work (they're outside the grid)
 
 6. **Manual Testing**
    - Test two-column layout on different screen sizes
