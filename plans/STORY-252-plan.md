@@ -20,7 +20,7 @@ Replace TextField inputs with stepper buttons (increment/decrement pattern) on m
 - [ ] Touch targets are 44px × 44px (WCAG 2.1 Level AA compliant)
 - [ ] No mobile keyboard triggered during score input
 - [ ] Card flip animation remains visible during editing
-- [ ] Empty state handled: first "+" tap sets to 1 (not undefined + 1)
+- [ ] Empty state handled: first "+" tap sets to 0
 - [ ] Decrement disabled when score is empty or 0
 - [ ] Score display shows current value between buttons
 - [ ] Min value: 0, Max value: 99
@@ -62,7 +62,7 @@ Replace TextField inputs with stepper buttons (increment/decrement pattern) on m
 - **Font weight:** medium (500)
 - **Min width:** 32px (for double-digit numbers)
 - **Text align:** center
-- **Color:** `text.primary`
+- **Color:** `text.secondary` (lower emphasis than buttons)
 - **Empty state:** Show "—" (em dash) or "" (empty string)
 
 **Button States:**
@@ -80,10 +80,17 @@ Replace TextField inputs with stepper buttons (increment/decrement pattern) on m
 3. **Active (pressed):**
    - Background: `action.selected`
    - Icon color: `primary.main`
+   - Animation: Subtle scale (0.95) on tap for tactile feedback
 
 4. **Focus:**
    - Outline: 2px solid `primary.main`
    - Outline offset: 2px
+
+**Micro-animations:**
+- **Button tap:** Gentle scale animation (transform: scale(0.95)) on press, return to 1.0 on release
+- **Duration:** 100ms with ease-out timing
+- **Implementation:** MUI `sx` with `transition` and `&:active` pseudo-class
+- **Score update:** Optional fade-in/pulse when value changes (150ms)
 
 **Layout Spacing:**
 ```
@@ -115,7 +122,7 @@ Argentina    [ - ]    —    [ + ]
 - Decrement button: disabled
 - Score display: "—" or blank
 - Increment button: enabled
-- First tap of "+": sets score to 1 (not undefined + 1)
+- First tap of "+": sets score to 0
 
 **2. Zero State:**
 ```
@@ -220,7 +227,7 @@ export default function StepperScoreInput({
   const handleIncrement = () => {
     if (disabled) return;
     if (value === undefined) {
-      onChange(1); // First tap sets to 1
+      onChange(0); // First tap sets to 0
     } else if (value < 99) {
       onChange(value + 1);
     }
@@ -255,7 +262,11 @@ export default function StepperScoreInput({
           width: compact ? 36 : 44,
           height: compact ? 36 : 44,
           border: '1px solid',
-          borderColor: 'divider'
+          borderColor: 'divider',
+          transition: 'transform 100ms ease-out',
+          '&:active': {
+            transform: 'scale(0.95)'
+          }
         }}
       >
         <RemoveIcon fontSize={compact ? 'small' : 'medium'} />
@@ -264,7 +275,11 @@ export default function StepperScoreInput({
       <Typography
         variant={compact ? 'body2' : 'body1'}
         fontWeight="medium"
-        sx={{ minWidth: 32, textAlign: 'center' }}
+        sx={{
+          minWidth: 32,
+          textAlign: 'center',
+          color: 'text.secondary'
+        }}
       >
         {value ?? '—'}
       </Typography>
@@ -278,7 +293,11 @@ export default function StepperScoreInput({
           width: compact ? 36 : 44,
           height: compact ? 36 : 44,
           border: '1px solid',
-          borderColor: 'divider'
+          borderColor: 'divider',
+          transition: 'transform 100ms ease-out',
+          '&:active': {
+            transform: 'scale(0.95)'
+          }
         }}
       >
         <AddIcon fontSize={compact ? 'small' : 'medium'} />
@@ -618,16 +637,17 @@ import { Add as AddIcon, Remove as RemoveIcon } from '@mui/icons-material';
 **Solution:**
 - `undefined` = no score entered yet (show "—")
 - `0` = score is zero (show "0")
-- First "+" tap on undefined → sets to 1
+- First "+" tap on undefined → sets to 0
 - First "-" tap on undefined → disabled (can't decrement empty)
 - Decrement from 1 → sets to 0 (not undefined)
+- Once score is set (including 0), it cannot return to undefined
 
 **Implementation:**
 ```typescript
 const handleIncrement = () => {
   if (value === undefined) {
-    onChange(1); // ✅ Correct
-  } else {
+    onChange(0); // ✅ First tap sets to 0
+  } else if (value < 99) {
     onChange(value + 1);
   }
 };
@@ -637,7 +657,7 @@ const handleDecrement = () => {
   if (value > 0) {
     onChange(value - 1);
   }
-  // Note: When value === 0, do nothing (don't go to undefined)
+  // Note: When value === 0, do nothing (can't go below 0)
 };
 ```
 
@@ -807,7 +827,7 @@ This gives more room for stepper buttons without cramping the layout.
    - Increment button is enabled
 
 2. **Increment from empty:**
-   - Click "+": value becomes 1 (not undefined + 1)
+   - Click "+": value becomes 0 (first score is always 0)
 
 3. **Decrement behavior:**
    - When undefined: no-op
