@@ -116,7 +116,6 @@ export default function CompactGameViewCard({
     }
   };
 
-  const isClickableStyles = (!disabled || specificProps.isGameFixture) ? {cursor: 'pointer'} : {}
   const isDraft = (!specificProps.isGameGuess && specificProps.isDraft)
   const boostType = specificProps.isGameGuess ? specificProps.boostType : null
 
