@@ -1,11 +1,11 @@
 'use client'
 
-import { Box, Typography, Grid, Chip, useTheme, alpha } from '@mui/material';
+import { Box, Typography, Chip, useTheme, alpha } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import { useTranslations } from 'next-intl';
 import { Theme } from '../db/tables-definition';
-import { getThemeLogoUrl } from '../utils/theme-utils';
+import { TeamScoreRow } from './team-score-row';
 
 interface ActualResultDisplayProps {
   homeTeamName: string;
@@ -48,10 +48,6 @@ export function ActualResultDisplay({
   const t = useTranslations('predictions');
   const theme = useTheme();
 
-  // Get logo URLs once to avoid multiple calls and TypeScript issues
-  const homeLogoUrl = homeTeamTheme ? getThemeLogoUrl(homeTeamTheme) : null;
-  const awayLogoUrl = awayTeamTheme ? getThemeLogoUrl(awayTeamTheme) : null;
-
   // Treat no prediction as incorrect (0 points)
   const effectiveResult = predictionResult || 'incorrect';
 
@@ -91,72 +87,22 @@ export function ActualResultDisplay({
         {t('game.actualResult')}
       </Typography>
 
-      {/* Score display with full team names - matches prediction layout */}
-      <Grid container spacing={1} alignItems="center" justifyContent="center" width="100%">
-        {/* Home Team */}
-        <Grid display="flex" justifyContent="flex-end" alignItems="center" size={5}>
-          <Typography
-            variant="body2"
-            fontWeight="medium"
-            sx={{
-              ml: 1,
-              maxWidth: '100%',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            {homeTeamName}
-          </Typography>
-          {homeLogoUrl && (
-            <Box
-              component="img"
-              src={homeLogoUrl}
-              alt={homeTeamName}
-              sx={{ width: 24, height: 24, objectFit: 'contain', ml: 0.75 }}
-            />
-          )}
-        </Grid>
+      {/* Score display - uses shared TeamScoreRow component */}
+      <TeamScoreRow
+        homeTeamName={homeTeamName}
+        awayTeamName={awayTeamName}
+        homeScore={homeScore}
+        awayScore={awayScore}
+        homeTeamTheme={homeTeamTheme}
+        awayTeamTheme={awayTeamTheme}
+      />
 
-        {/* Score */}
-        <Grid display="flex" justifyContent="center" alignItems="center" size={2}>
-          <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="body1" fontWeight="bold">
-              {homeScore} - {awayScore}
-            </Typography>
-            {(homePenaltyScore !== null || awayPenaltyScore !== null) && (
-              <Typography variant="caption" color="text.secondary">
-                ({homePenaltyScore ?? 0} - {awayPenaltyScore ?? 0} pen)
-              </Typography>
-            )}
-          </Box>
-        </Grid>
-
-        {/* Away Team */}
-        <Grid display="flex" justifyContent="flex-start" alignItems="center" size={5}>
-          {awayLogoUrl && (
-            <Box
-              component="img"
-              src={awayLogoUrl}
-              alt={awayTeamName}
-              sx={{ width: 24, height: 24, objectFit: 'contain', mr: 0.75 }}
-            />
-          )}
-          <Typography
-            variant="body2"
-            fontWeight="medium"
-            sx={{
-              mr: 1,
-              maxWidth: '100%',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            {awayTeamName}
-          </Typography>
-        </Grid>
-      </Grid>
+      {/* Penalty scores */}
+      {(homePenaltyScore !== null || awayPenaltyScore !== null) && (
+        <Typography variant="caption" color="text.secondary" align="center" display="block" sx={{ mt: 0.5 }}>
+          ({homePenaltyScore ?? 0} - {awayPenaltyScore ?? 0} pen)
+        </Typography>
+      )}
 
       {/* Prediction Result badge - shows incorrect (0 pts) when no prediction */}
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>

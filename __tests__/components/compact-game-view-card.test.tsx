@@ -65,8 +65,9 @@ describe('CompactGameViewCard', () => {
         <CompactGameViewCard {...guessProps} />
       </TestWrapper>
     );
-    expect(screen.getByText('Team A')).toBeInTheDocument();
-    expect(screen.getByText('Team B')).toBeInTheDocument();
+    // Team names appear twice when game has results (prediction + actual result)
+    expect(screen.getAllByText('Team A').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Team B').length).toBeGreaterThan(0);
     expect(screen.getByText('Stadium 1')).toBeInTheDocument();
   });
 
