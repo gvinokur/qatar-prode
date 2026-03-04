@@ -85,14 +85,14 @@ export function ActualResultDisplay({
   };
 
   return (
-    <Box sx={{ mt: 1, borderTop: (theme) => `1px solid ${theme.palette.divider}`, pt: 1 }}>
+    <Box sx={{ mt: 1, borderTop: (theme) => `1px solid ${theme.palette.divider}`, pt: 1, width: '100%' }}>
       {/* "Actual Result" label - centered */}
       <Typography variant="body2" align="center" sx={{ mb: 1, fontWeight: 'medium' }}>
         {t('game.actualResult')}
       </Typography>
 
       {/* Score display with full team names - matches prediction layout */}
-      <Grid container spacing={1} alignItems="center" justifyContent="center">
+      <Grid container spacing={1} alignItems="center" justifyContent="center" width="100%">
         {/* Home Team */}
         <Grid display="flex" justifyContent="flex-end" alignItems="center" size={5}>
           <Typography
