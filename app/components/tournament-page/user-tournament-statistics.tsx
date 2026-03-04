@@ -118,8 +118,8 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess, t
             component={Link}
             href={`/${locale}/tournaments/${tournamentId}/stats`}
             startIcon={<BarChartIcon />}
-            variant="text"
-            color="primary"
+            variant="outlined"
+            color="secondary"
             size="small"
             aria-label={t('sidebar.ariaLabels.viewDetailsButton')}
           >

@@ -391,8 +391,8 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
             component={Link}
             href={tournamentId ? `/${locale}/tournaments/${tournamentId}/rules` : `/${locale}/rules`}
             startIcon={<GavelIcon />}
-            variant="text"
-            color="primary"
+            variant="outlined"
+            color="secondary"
             size="small"
           >
             {tActions('viewFullRules')}
