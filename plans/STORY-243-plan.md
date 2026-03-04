@@ -674,3 +674,73 @@ Created comprehensive audit: `docs/visual-audit/post-implementation-gaps.md`
   - Visual hierarchy (headers, important stats)
   - Brand emphasis (titles, primary CTAs)
 - Neutral text for content is a design choice, not an inconsistency
+
+---
+
+## AMENDMENT 2: Awards Page CardHeader Theming
+
+**Date:** 2026-03-03
+**Trigger:** User feedback - "I feel the awards page also lacks some primary/secondary colors"
+
+### Problem Discovered
+
+Awards page had two unthemed CardHeader components, making section headers appear plain/neutral without visual hierarchy.
+
+### User Feedback
+
+> "Ok, other topic: I feel the awards page also lacks some primary/secondary colors"
+
+Screenshot showed grey/neutral "Tournament Podium" and "Individual Awards" headers with no theme styling.
+
+### Analysis
+
+**Missing theme colors:**
+1. **Line 257**: `<CardHeader title={t('podium.title')}/>` - No theme styling
+2. **Line 350**: `<CardHeader title={t('individual.title')}/>` - No theme styling
+
+These CardHeaders were missing the standard theming pattern applied to other cards throughout the app.
+
+### Changes Made
+
+**File:** `app/components/awards/award-panel.tsx`
+
+**Added theme styling to both CardHeaders:**
+
+```tsx
+// Before
+<CardHeader title={t('podium.title')}/>
+<CardHeader title={t('individual.title')}/>
+
+// After
+<CardHeader
+  title={t('podium.title')}
+  sx={{
+    color: theme.palette.primary.main,
+    borderBottom: `${theme.palette.primary.light} solid 1px`
+  }}
+/>
+<CardHeader
+  title={t('individual.title')}
+  sx={{
+    color: theme.palette.primary.main,
+    borderBottom: `${theme.palette.primary.light} solid 1px`
+  }}
+/>
+```
+
+### Impact
+
+- **Risk:** Very low - standard CardHeader theming pattern
+- **Scope:** Awards page only (2 headers)
+- **Consistency:** Now matches CardHeader styling throughout app
+- **Visual hierarchy:** Section headers now use primary violet color
+
+### Task
+
+- [x] Task #25: Add theme styling to Awards page CardHeaders
+
+### Notes
+
+- `useTheme()` was already imported (line 17)
+- Applied same theming pattern as friend groups, stats, qualified teams, etc.
+- Awards page now has consistent violet headers for visual hierarchy
