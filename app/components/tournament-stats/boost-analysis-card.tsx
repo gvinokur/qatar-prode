@@ -45,7 +45,7 @@ export function BoostAnalysisCard(props: Props) {
       <Card>
         <CardHeader
           title={t('boosts.title')}
-          sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px` }}
+          sx={{ borderBottom: `${theme.palette.primary.light} solid 1px` }}
         />
         <CardContent>
           <Typography variant='body1' color='text.secondary' align='center'>
@@ -76,13 +76,13 @@ export function BoostAnalysisCard(props: Props) {
     <Card>
       <CardHeader
         title={t('boosts.title')}
-        sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px` }}
+        sx={{ borderBottom: `${theme.palette.primary.light} solid 1px` }}
       />
       <CardContent>
         <Grid container spacing={1}>
           {/* Silver Boosts Section */}
           <Grid size={12}>
-            <Typography variant='h6' color='primary.light'>
+            <Typography variant='h6' color='text.secondary'>
               {t('boosts.silver')}
             </Typography>
           </Grid>
@@ -134,12 +134,12 @@ export function BoostAnalysisCard(props: Props) {
               </Grid>
 
               <Grid size={8}>
-                <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
+                <Typography variant='body1' color='secondary.main' sx={{ pl: 2 }}>
                   {t('boosts.roi')}
                 </Typography>
               </Grid>
               <Grid size={4}>
-                <Typography variant='body1' fontWeight={700} align='right'>
+                <Typography variant='body1' fontWeight={700} color='secondary.main' align='right'>
                   {props.silverBoost.roi.toFixed(1)} pts
                 </Typography>
               </Grid>
@@ -152,7 +152,7 @@ export function BoostAnalysisCard(props: Props) {
             mt={2}
             size={12}
           >
-            <Typography variant='h6' color='primary.light'>
+            <Typography variant='h6' color='text.secondary'>
               {t('boosts.golden')}
             </Typography>
           </Grid>
@@ -204,12 +204,12 @@ export function BoostAnalysisCard(props: Props) {
               </Grid>
 
               <Grid size={8}>
-                <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
+                <Typography variant='body1' color='secondary.main' sx={{ pl: 2 }}>
                   {t('boosts.roi')}
                 </Typography>
               </Grid>
               <Grid size={4}>
-                <Typography variant='body1' fontWeight={700} align='right'>
+                <Typography variant='body1' fontWeight={700} color='secondary.main' align='right'>
                   {props.goldenBoost.roi.toFixed(1)} pts
                 </Typography>
               </Grid>
@@ -224,7 +224,7 @@ export function BoostAnalysisCard(props: Props) {
                 mt={2}
                 size={12}
               >
-                <Typography variant='h6' color='primary.light'>
+                <Typography variant='h6' color='text.secondary'>
                   {t('boosts.distribution.title')}
                 </Typography>
               </Grid>
@@ -232,7 +232,7 @@ export function BoostAnalysisCard(props: Props) {
               {props.silverBoost.used > 0 && (
                 <>
                   <Grid size={12} mt={1}>
-                    <Typography variant='body2' fontWeight={600} color='primary.main'>
+                    <Typography variant='body2' fontWeight={600} color='text.secondary'>
                       {t('boosts.distribution.silverLabel')}
                     </Typography>
                   </Grid>
@@ -247,7 +247,7 @@ export function BoostAnalysisCard(props: Props) {
               {props.goldenBoost.used > 0 && (
                 <>
                   <Grid size={12} mt={1}>
-                    <Typography variant='body2' fontWeight={600} color='primary.main'>
+                    <Typography variant='body2' fontWeight={600} color='text.secondary'>
                       {t('boosts.distribution.goldenLabel')}
                     </Typography>
                   </Grid>

@@ -227,9 +227,10 @@ export default function GroupStandingsSidebar({ groups, defaultGroupId, qualifie
           component={Link}
           href={`/${locale}/tournaments/${tournamentId}/results`}
           startIcon={<AssessmentIcon />}
-          variant="text"
-          color="primary"
+          variant="outlined"
+          color="secondary"
           size="small"
+          fullWidth
         >
           {t('groups.viewResults')}
         </Button>

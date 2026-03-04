@@ -11,7 +11,8 @@ import {
   Alert,
   CircularProgress,
   Divider,
-  TextField
+  TextField,
+  useTheme
 } from '@mui/material';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
@@ -30,6 +31,7 @@ type Props = {
 
 export default function JoinRequestForm({ group, memberCount, locale, tournamentId, rejectionCooldown }: Readonly<Props>) {
   const t = useTranslations('groups.joinRequest');
+  const theme = useTheme();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +60,11 @@ export default function JoinRequestForm({ group, memberCount, locale, tournament
   if (rejectionCooldown) {
     return (
       <Card>
-        <CardHeader title={group.name} subheader={t('preview')} />
+        <CardHeader
+          title={group.name}
+          subheader={t('preview')}
+          sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px` }}
+        />
         <Divider />
         <CardContent>
           <Alert severity="warning" sx={{ mb: 2 }}>
@@ -100,6 +106,7 @@ export default function JoinRequestForm({ group, memberCount, locale, tournament
       <CardHeader
         title={group.name}
         subheader={t('preview')}
+        sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px` }}
       />
       <Divider />
       <CardContent>

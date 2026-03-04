@@ -251,9 +251,9 @@ export default function OTPVerifyForm({ email, onSuccess, onCancel, onResend }: 
               {t('otp.resend.action')}
             </Link>
           ) : (
-            <span style={{ color: '#999' }}>
+            <Typography component="span" color="text.disabled">
               {t('otp.resend.countdown', { seconds: resendTimeLeft })}
-            </span>
+            </Typography>
           )}
         </Typography>
       </Box>
@@ -262,6 +262,7 @@ export default function OTPVerifyForm({ email, onSuccess, onCancel, onResend }: 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
         <Button
           variant="text"
+          color="secondary"
           onClick={onCancel}
           disabled={isVerifying}
         >
@@ -269,6 +270,7 @@ export default function OTPVerifyForm({ email, onSuccess, onCancel, onResend }: 
         </Button>
         <Button
           variant="contained"
+          color="primary"
           onClick={handleManualVerify}
           disabled={isVerifying || otp.join('').length !== 6}
         >

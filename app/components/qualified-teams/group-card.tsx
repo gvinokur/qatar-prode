@@ -66,7 +66,7 @@ function GroupHeader({
     <Box sx={{ mb: 2 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant="h5" component="h2" sx={{ fontWeight: 600 }}>
+          <Typography variant="h5" component="h2" sx={{ fontWeight: 600, color: 'primary.main' }}>
             {t('group.header', { letter: groupLetter.toUpperCase() })}
           </Typography>
           {isGroupTouched && (
@@ -244,7 +244,7 @@ export default function GroupCard({
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="h6" component="h2" sx={{ fontWeight: 600 }}>
+            <Typography variant="h6" component="h2" sx={{ fontWeight: 600, color: 'primary.main' }}>
               {t('group.header', { letter: group.group_letter.toUpperCase() })} - {t('group.selected', { count: qualifiedCount })}
             </Typography>
             {isGroupTouched && (

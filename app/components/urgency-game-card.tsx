@@ -155,6 +155,7 @@ export function UrgencyGameCard({
         {!disabled && (
           <IconButton
             size="small"
+            color="primary"
             onClick={() => onEdit(game.id)}
             aria-label={t('game.editPrediction', { homeTeam: homeTeamName, awayTeam: awayTeamName })}
             data-action="edit-prediction"

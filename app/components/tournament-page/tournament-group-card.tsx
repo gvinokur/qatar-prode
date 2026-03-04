@@ -209,13 +209,13 @@ export default function TournamentGroupCard(props: TournamentGroupCardProps) {
               <Chip
                 label={t('owner')}
                 size="small"
-                color="primary"
+                color="secondary"
                 variant="outlined"
                 sx={{ fontSize: '0.7rem' }}
               />
               <InviteFriendsDialog
                 trigger={
-                  <IconButton size="small" aria-label="Compartir grupo">
+                  <IconButton size="small" color="primary" aria-label="Compartir grupo">
                     <ShareIcon fontSize="small" />
                   </IconButton>
                 }

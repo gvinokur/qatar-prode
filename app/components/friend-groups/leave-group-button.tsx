@@ -44,7 +44,7 @@ export default function LeaveGroupButton({ groupId, tournamentId }: { readonly g
           {t('confirmation.message')}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)} disabled={loading}>{tCommon('cancel')}</Button>
+          <Button onClick={() => setOpen(false)} disabled={loading} color="secondary">{tCommon('cancel')}</Button>
           <Button onClick={handleLeave} color="error" disabled={loading} autoFocus>
             {t('button')}
           </Button>

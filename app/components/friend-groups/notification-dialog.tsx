@@ -79,7 +79,7 @@ const NotificationDialog: React.FC<NotificationDialogProps> = ({ open, onClose, 
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose} disabled={loading}>{tCommon('cancel')}</Button>
+          <Button onClick={onClose} disabled={loading} color="secondary">{tCommon('cancel')}</Button>
           <Button onClick={handleSend} variant="contained" color="primary" disabled={loading || !title || !message}>{tCommon('send')}</Button>
         </DialogActions>
       </Dialog>

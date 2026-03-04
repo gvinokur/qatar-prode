@@ -30,7 +30,7 @@ export function PerformanceOverviewCard(props: Props) {
       <Card>
         <CardHeader
           title={t('performance.title')}
-          sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px` }}
+          sx={{ borderBottom: `${theme.palette.primary.light} solid 1px` }}
         />
         <CardContent>
           <Typography variant='body1' color='text.secondary' align='center'>
@@ -45,18 +45,18 @@ export function PerformanceOverviewCard(props: Props) {
     <Card>
       <CardHeader
         title={t('performance.title')}
-        sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px` }}
+        sx={{ borderBottom: `${theme.palette.primary.light} solid 1px` }}
       />
       <CardContent>
         <Grid container spacing={1}>
           {/* Total Points - Prominent display */}
           <Grid size={8}>
-            <Typography variant='h6' color='primary.light'>
+            <Typography variant='h6' color='secondary.main'>
               {t('performance.totalPoints')}
             </Typography>
           </Grid>
           <Grid size={4}>
-            <Typography variant='h4' fontWeight={700} align='right'>
+            <Typography variant='h4' fontWeight={700} color='secondary.main' align='right'>
               {props.totalPoints}
             </Typography>
           </Grid>
@@ -67,14 +67,14 @@ export function PerformanceOverviewCard(props: Props) {
             mt={2}
             size={12}
           >
-            <Typography variant='h6' color='primary.light'>
+            <Typography variant='h6' color='text.secondary'>
               {t('performance.breakdown')}
             </Typography>
           </Grid>
 
           {/* Group Stage Section */}
           <Grid size={12} mt={1}>
-            <Typography variant='body1' fontWeight={600} color='primary.main'>
+            <Typography variant='body1' fontWeight={600} color='text.secondary'>
               {t('performance.groupStage.title')}
             </Typography>
           </Grid>
@@ -128,19 +128,19 @@ export function PerformanceOverviewCard(props: Props) {
           </Grid>
 
           <Grid size={8}>
-            <Typography variant='body1' fontWeight={600} sx={{ pl: 2 }}>
+            <Typography variant='body1' fontWeight={600} color='secondary.main' sx={{ pl: 2 }}>
               {t('performance.groupStage.total')}
             </Typography>
           </Grid>
           <Grid size={4}>
-            <Typography variant='body1' fontWeight={700} align='right'>
+            <Typography variant='body1' fontWeight={700} color='secondary.main' align='right'>
               {props.groupStagePoints}
             </Typography>
           </Grid>
 
           {/* Playoff Stage Section */}
           <Grid size={12} mt={2}>
-            <Typography variant='body1' fontWeight={600} color='primary.main'>
+            <Typography variant='body1' fontWeight={600} color='text.secondary'>
               {t('performance.playoffStage.title')}
             </Typography>
           </Grid>
@@ -194,12 +194,12 @@ export function PerformanceOverviewCard(props: Props) {
           </Grid>
 
           <Grid size={8}>
-            <Typography variant='body1' fontWeight={600} sx={{ pl: 2 }}>
+            <Typography variant='body1' fontWeight={600} color='secondary.main' sx={{ pl: 2 }}>
               {t('performance.playoffStage.total')}
             </Typography>
           </Grid>
           <Grid size={4}>
-            <Typography variant='body1' fontWeight={700} align='right'>
+            <Typography variant='body1' fontWeight={700} color='secondary.main' align='right'>
               {props.playoffStagePoints}
             </Typography>
           </Grid>

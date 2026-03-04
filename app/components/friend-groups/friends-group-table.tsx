@@ -9,6 +9,7 @@ import {
   CardHeader,
   Tab,
   Typography,
+  useTheme,
 } from "@mui/material";
 import {useState} from "react";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
@@ -33,6 +34,7 @@ type Props = {
 export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, members, bettingData, selectedTournamentId}: Props) {
   const t = useTranslations('groups.standings');
   const tBetting = useTranslations('groups.betting');
+  const theme = useTheme();
 
   const [selectedTab, setSelectedTab] = useState<string>(selectedTournamentId || tournaments[0]?.id || '')
   const [snackbar, setSnackbar] = useState<{open: boolean, message: string, severity: 'success' | 'error'}>({open: false, message: '', severity: 'success'});
@@ -44,6 +46,7 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
         <CardHeader
           title={t('title')}
           action={action}
+          sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px` }}
         />
         <CardContent>
           <Box sx={{ textAlign: 'center', py: 4 }}>

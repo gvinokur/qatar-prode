@@ -140,12 +140,12 @@ export default function FriendGroupsList({
                         disableGutters
                         secondaryAction={
                           <>
-                            <IconButton title={t('actions.delete')} onClick={() => setOpenConfirmDeleteGroup(userGroup.id)}>
+                            <IconButton title={t('actions.delete')} color="secondary" onClick={() => setOpenConfirmDeleteGroup(userGroup.id)}>
                               <DeleteIcon/>
                             </IconButton>
                             <InviteFriendsDialog
                               trigger={
-                                <IconButton title={t('actions.invite')}>
+                                <IconButton title={t('actions.invite')} color="primary">
                                   <ShareIcon/>
                                 </IconButton>}
                               groupId={userGroup.id}
@@ -196,6 +196,7 @@ export default function FriendGroupsList({
             <ListItem disableGutters sx={{ justifyContent: 'center', pt: 1 }}>
               <Button
                 size="small"
+                variant="text"
                 color="secondary"
                 onClick={() => setOpenCreateDialog(true)}
                 startIcon={<AddIcon />}
@@ -212,6 +213,8 @@ export default function FriendGroupsList({
               <Button
                 component={Link}
                 href={`/${locale}/tournaments/${tournamentId}/friend-groups`}
+                variant="outlined"
+                color="secondary"
                 startIcon={<GroupsIcon />}
                 size="small"
                 fullWidth
@@ -223,6 +226,8 @@ export default function FriendGroupsList({
               <Button
                 component={Link}
                 href={`/${locale}/tournaments/${tournamentId}/friend-groups/discover`}
+                variant="outlined"
+                color="secondary"
                 startIcon={<SearchIcon />}
                 size="small"
                 fullWidth
@@ -270,8 +275,8 @@ export default function FriendGroupsList({
           />
         </DialogContent>
         <DialogActions>
-          <Button disabled={loading} onClick={handleCloseCreateDialog}>{t('create.buttons.cancel')}</Button>
-          <Button loading={loading} type='submit'>{t('create.buttons.create')}</Button>
+          <Button disabled={loading} color="secondary" onClick={handleCloseCreateDialog}>{t('create.buttons.cancel')}</Button>
+          <Button loading={loading} color="primary" type='submit'>{t('create.buttons.create')}</Button>
         </DialogActions>
       </Dialog>
       <Dialog open={!!openConfirmDeleteGroup} onClose={() => setOpenConfirmDeleteGroup(false)}>
@@ -282,8 +287,8 @@ export default function FriendGroupsList({
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button disabled={loading} onClick={() => setOpenConfirmDeleteGroup(false)}>{t('create.buttons.cancel')}</Button>
-          <Button loading={loading} onClick={handleGroupDelete}>{t('actions.delete')}</Button>
+          <Button disabled={loading} color="secondary" onClick={() => setOpenConfirmDeleteGroup(false)}>{t('create.buttons.cancel')}</Button>
+          <Button loading={loading} color="secondary" onClick={handleGroupDelete}>{t('actions.delete')}</Button>
         </DialogActions>
       </Dialog>
     </>

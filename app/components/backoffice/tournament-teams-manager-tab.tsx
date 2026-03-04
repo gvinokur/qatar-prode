@@ -109,6 +109,7 @@ export default function TournamentTeamsManagerTab({ tournamentId }: TournamentTe
           <Typography variant="h5">Tournament Teams</Typography>
           <Button
             variant="contained"
+            color="primary"
             startIcon={<AddIcon />}
             onClick={handleCreateTeam}
           >
