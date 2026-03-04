@@ -432,6 +432,9 @@ export default function DraggableTeamCard({
   // Only disable if this team is NOT already selected and limit is reached
   const cannotAddMore = !predictedToQualify && currentThirdPlaceCount >= maxThirdPlace;
 
+  const isDragDisabled = isLocked || isSaving;
+  const cardCursor = isDragDisabled ? 'default' : isDragging ? 'grabbing' : 'grab';
+
   return (
     <Card
       ref={setNodeRef}
@@ -440,8 +443,8 @@ export default function DraggableTeamCard({
       {...listeners}
       sx={{
         mb: 1,
-        touchAction: (isLocked || isSaving) ? 'auto' : 'none',
-        cursor: (isLocked || isSaving) ? 'default' : isDragging ? 'grabbing' : 'grab',
+        touchAction: isDragDisabled ? 'auto' : 'none',
+        cursor: cardCursor,
         backgroundColor,
         border: isDragging ? `2px dashed ${theme.palette.primary.main}` : '1px solid',
         borderColor: isDragging ? theme.palette.primary.main : theme.palette.divider,
