@@ -493,6 +493,99 @@ export default function GamePredictionEditControls({
     }
   }, [homeScoreInputRef, layout]);
 
+  // Helper: Render compact penalty selector (SonarQube - reduce duplication)
+  const renderCompactPenaltySelector = () => {
+    if (!compact || !isPenaltyShootout) return null;
+
+    return (
+      <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
+          <Typography
+            variant="caption"
+            sx={{
+              color: (!homePenaltyWinner && !awayPenaltyWinner) ? 'warning.main' : 'text.secondary',
+              minWidth: 'fit-content'
+            }}
+          >
+            {t('edit.penaltyWinner')}
+          </Typography>
+          {(!homePenaltyWinner && !awayPenaltyWinner) && (
+            <WarningIcon
+              sx={{
+                fontSize: 14,
+                color: 'warning.main'
+              }}
+            />
+          )}
+        </Box>
+        <Box sx={{ display: 'flex', gap: 3, flex: 1, minWidth: 0, justifyContent: 'flex-end' }}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={homePenaltyWinner}
+                onChange={handleHomePenaltyWinnerChange}
+                onKeyDown={(e) => handleKeyDown(e, 'homePenalty')}
+                onFocus={() => setCurrentField('homePenalty')}
+                onClick={() => setCurrentField('homePenalty')}
+                disabled={loading}
+                size="small"
+                slotProps={{
+                  input: {
+                    'aria-label': `${homeTeamShortName ?? homeTeamName} penalty winner`,
+                    ref: homePenaltyCheckboxRef
+                  }
+                }}
+              />
+            }
+            label={<Typography variant="caption">{homeTeamShortName ?? homeTeamName}</Typography>}
+            sx={{
+              mr: 0,
+              minWidth: 0,
+              flex: '0 1 auto',
+              '&:focus-within': {
+                outline: '2px solid',
+                outlineColor: 'primary.main',
+                outlineOffset: '2px',
+                borderRadius: '4px'
+              }
+            }}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={awayPenaltyWinner}
+                onChange={handleAwayPenaltyWinnerChange}
+                onKeyDown={(e) => handleKeyDown(e, 'awayPenalty')}
+                onFocus={() => setCurrentField('awayPenalty')}
+                onClick={() => setCurrentField('awayPenalty')}
+                disabled={loading}
+                size="small"
+                slotProps={{
+                  input: {
+                    'aria-label': `${awayTeamShortName ?? awayTeamName} penalty winner`,
+                    ref: awayPenaltyCheckboxRef
+                  }
+                }}
+              />
+            }
+            label={<Typography variant="caption">{awayTeamShortName ?? awayTeamName}</Typography>}
+            sx={{
+              mr: 0,
+              minWidth: 0,
+              flex: '0 1 auto',
+              '&:focus-within': {
+                outline: '2px solid',
+                outlineColor: 'primary.main',
+                outlineOffset: '2px',
+                borderRadius: '4px'
+              }
+            }}
+          />
+        </Box>
+      </Box>
+    );
+  };
+
   // Helper: Render horizontal layout with mobile steppers (SonarQube S3776 - reduce complexity)
   const renderHorizontalMobileStepper = () => (
     <Box>
@@ -539,93 +632,7 @@ export default function GamePredictionEditControls({
       </Grid>
 
       {/* Penalty shootout selector - single line below scores */}
-      {compact && isPenaltyShootout && (
-        <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
-            <Typography
-              variant="caption"
-              sx={{
-                color: (!homePenaltyWinner && !awayPenaltyWinner) ? 'warning.main' : 'text.secondary',
-                minWidth: 'fit-content'
-              }}
-            >
-              {t('edit.penaltyWinner')}
-            </Typography>
-            {(!homePenaltyWinner && !awayPenaltyWinner) && (
-              <WarningIcon
-                sx={{
-                  fontSize: 14,
-                  color: 'warning.main'
-                }}
-              />
-            )}
-          </Box>
-          <Box sx={{ display: 'flex', gap: 3, flex: 1, minWidth: 0, justifyContent: 'flex-end' }}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={homePenaltyWinner}
-                  onChange={handleHomePenaltyWinnerChange}
-                  onKeyDown={(e) => handleKeyDown(e, 'homePenalty')}
-                  onFocus={() => setCurrentField('homePenalty')}
-                  onClick={() => setCurrentField('homePenalty')}
-                  disabled={loading}
-                  size="small"
-                  slotProps={{
-                    input: {
-                      'aria-label': `${homeTeamShortName ?? homeTeamName} penalty winner`,
-                      ref: homePenaltyCheckboxRef
-                    }
-                  }}
-                />
-              }
-              label={<Typography variant="caption">{homeTeamShortName ?? homeTeamName}</Typography>}
-              sx={{
-                mr: 0,
-                minWidth: 0,
-                flex: '0 1 auto',
-                '&:focus-within': {
-                  outline: '2px solid',
-                  outlineColor: 'primary.main',
-                  outlineOffset: '2px',
-                  borderRadius: '4px'
-                }
-              }}
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={awayPenaltyWinner}
-                  onChange={handleAwayPenaltyWinnerChange}
-                  onKeyDown={(e) => handleKeyDown(e, 'awayPenalty')}
-                  onFocus={() => setCurrentField('awayPenalty')}
-                  onClick={() => setCurrentField('awayPenalty')}
-                  disabled={loading}
-                  size="small"
-                  slotProps={{
-                    input: {
-                      'aria-label': `${awayTeamShortName ?? awayTeamName} penalty winner`,
-                      ref: awayPenaltyCheckboxRef
-                    }
-                  }}
-                />
-              }
-              label={<Typography variant="caption">{awayTeamShortName ?? awayTeamName}</Typography>}
-              sx={{
-                mr: 0,
-                minWidth: 0,
-                flex: '0 1 auto',
-                '&:focus-within': {
-                  outline: '2px solid',
-                  outlineColor: 'primary.main',
-                  outlineOffset: '2px',
-                  borderRadius: '4px'
-                }
-              }}
-            />
-          </Box>
-        </Box>
-      )}
+      {renderCompactPenaltySelector()}
     </Box>
   );
 
@@ -691,93 +698,7 @@ export default function GamePredictionEditControls({
       </Grid>
 
       {/* Penalty shootout selector - single line below scores */}
-      {compact && isPenaltyShootout && (
-        <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
-            <Typography
-              variant="caption"
-              sx={{
-                color: (!homePenaltyWinner && !awayPenaltyWinner) ? 'warning.main' : 'text.secondary',
-                minWidth: 'fit-content'
-              }}
-            >
-              {t('edit.penaltyWinner')}
-            </Typography>
-            {(!homePenaltyWinner && !awayPenaltyWinner) && (
-              <WarningIcon
-                sx={{
-                  fontSize: 14,
-                  color: 'warning.main'
-                }}
-              />
-            )}
-          </Box>
-          <Box sx={{ display: 'flex', gap: 3, flex: 1, minWidth: 0, justifyContent: 'flex-end' }}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={homePenaltyWinner}
-                  onChange={handleHomePenaltyWinnerChange}
-                  onKeyDown={(e) => handleKeyDown(e, 'homePenalty')}
-                  onFocus={() => setCurrentField('homePenalty')}
-                  onClick={() => setCurrentField('homePenalty')}
-                  disabled={loading}
-                  size="small"
-                  slotProps={{
-                    input: {
-                      'aria-label': `${homeTeamShortName ?? homeTeamName} penalty winner`,
-                      ref: homePenaltyCheckboxRef
-                    }
-                  }}
-                />
-              }
-              label={<Typography variant="caption">{homeTeamShortName ?? homeTeamName}</Typography>}
-              sx={{
-                mr: 0,
-                minWidth: 0,
-                flex: '0 1 auto',
-                '&:focus-within': {
-                  outline: '2px solid',
-                  outlineColor: 'primary.main',
-                  outlineOffset: '2px',
-                  borderRadius: '4px'
-                }
-              }}
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={awayPenaltyWinner}
-                  onChange={handleAwayPenaltyWinnerChange}
-                  onKeyDown={(e) => handleKeyDown(e, 'awayPenalty')}
-                  onFocus={() => setCurrentField('awayPenalty')}
-                  onClick={() => setCurrentField('awayPenalty')}
-                  disabled={loading}
-                  size="small"
-                  slotProps={{
-                    input: {
-                      'aria-label': `${awayTeamShortName ?? awayTeamName} penalty winner`,
-                      ref: awayPenaltyCheckboxRef
-                    }
-                  }}
-                />
-              }
-              label={<Typography variant="caption">{awayTeamShortName ?? awayTeamName}</Typography>}
-              sx={{
-                mr: 0,
-                minWidth: 0,
-                flex: '0 1 auto',
-                '&:focus-within': {
-                  outline: '2px solid',
-                  outlineColor: 'primary.main',
-                  outlineOffset: '2px',
-                  borderRadius: '4px'
-                }
-              }}
-            />
-          </Box>
-        </Box>
-      )}
+      {renderCompactPenaltySelector()}
     </Box>
   );
 
