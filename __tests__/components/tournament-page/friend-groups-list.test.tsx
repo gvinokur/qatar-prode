@@ -95,7 +95,7 @@ describe('FriendGroupsList', () => {
       expect(screen.getByText('Participant Group 2')).toBeInTheDocument();
     });
 
-    it('renders create group button even when collapsed', () => {
+    it('renders create group button inside list when expanded', async () => {
       renderWithTheme(
         <FriendGroupsList
           userGroups={mockUserGroups}
@@ -103,7 +103,9 @@ describe('FriendGroupsList', () => {
         />
       );
 
-      // Button text changed from "Crear Nuevo Grupo" to "Crear Grupo"
+      await expandCard();
+
+      // Create group button is now inside the card content (not CardActions)
       expect(screen.getByText('Crear Grupo')).toBeInTheDocument();
     });
 
@@ -141,7 +143,7 @@ describe('FriendGroupsList', () => {
   });
 
   describe('edge cases', () => {
-    it('renders correctly with empty arrays', () => {
+    it('renders correctly with empty arrays', async () => {
       renderWithTheme(
         <FriendGroupsList
           userGroups={[]}
@@ -150,7 +152,10 @@ describe('FriendGroupsList', () => {
       );
 
       expect(screen.getByText('Grupos de Amigos')).toBeInTheDocument();
-      // Button text changed from "Crear Nuevo Grupo" to "Crear Grupo"
+
+      await expandCard();
+
+      // Create group button is inside the card content
       expect(screen.getByText('Crear Grupo')).toBeInTheDocument();
     });
 

@@ -3,6 +3,10 @@
   "status": {
     "youAreHere": "You are here"
   },
+  "header": {
+    "groupCount": "{count, plural, =1 {1 group} other {# groups}}",
+    "noGroups": "No groups"
+  },
   "actions": {
     "create": "Create Group",
     "delete": "Delete Group",

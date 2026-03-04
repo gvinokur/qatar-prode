@@ -1,7 +1,7 @@
 'use client'
 
 import {
-  Button, Card,
+  Box, Button, Card,
   CardActions,
   CardContent,
   CardHeader, Chip, Collapse, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
@@ -10,7 +10,7 @@ import {
   ListItem,
   ListItemText, TextField, useTheme
 } from "@mui/material";
-import {Delete as DeleteIcon, Share as ShareIcon, ExpandMore as ExpandMoreIcon, Groups as GroupsIcon, Search as SearchIcon} from "@mui/icons-material";
+import {Add as AddIcon, Delete as DeleteIcon, Share as ShareIcon, ExpandMore as ExpandMoreIcon, Groups as GroupsIcon, Search as SearchIcon} from "@mui/icons-material";
 import {useState} from "react";
 import {ExpandMore} from './expand-more';
 import {Controller, useForm} from "react-hook-form";
@@ -47,6 +47,7 @@ export default function FriendGroupsList({
   const router = useRouter();
   const [userGroups, setUserGroups] = useState(initialUserGroups);
   const isEmpty = Boolean(tournamentId && userGroups.length + participantGroups.length === 0 && pendingRequests.length === 0);
+  const groupCount = userGroups.length + participantGroups.length;
   const [expanded, setExpanded] = useState(isEmpty);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [openConfirmDeleteGroup, setOpenConfirmDeleteGroup] = useState<string | false>(false)
@@ -95,7 +96,10 @@ export default function FriendGroupsList({
         <CardHeader
           title={t('title')}
           slotProps={{ title: { variant: 'h6' } }}
-          subheader={isActive ? t('status.youAreHere') : undefined}
+          subheader={[
+            isActive ? t('status.youAreHere') : null,
+            groupCount > 0 ? t('header.groupCount', { count: groupCount }) : t('header.noGroups'),
+          ].filter(Boolean).join(' · ')}
           sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
           action={
             <ExpandMore
@@ -111,9 +115,23 @@ export default function FriendGroupsList({
         <Collapse in={expanded} timeout="auto" unmountOnExit>
           <CardContent sx={{ borderBottom: `${theme.palette.primary.contrastText} 1px solid`, borderTop: `${theme.palette.primary.contrastText} 1px solid` }}>
           {isEmpty ? (
-            <FriendGroupsSidebarEmptyState
-              onLearnMore={() => router.push(`/${locale}/tournaments/${tournamentId}/friend-groups`)}
-            />
+            <>
+              <FriendGroupsSidebarEmptyState
+                onLearnMore={() => router.push(`/${locale}/tournaments/${tournamentId}/friend-groups`)}
+              />
+              <Box sx={{ mt: 1 }}>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  fullWidth
+                  size="small"
+                  startIcon={<AddIcon />}
+                  onClick={() => setOpenCreateDialog(true)}
+                >
+                  {t('actions.create')}
+                </Button>
+              </Box>
+            </>
           ) : (
             <List sx={{ width: '100%'}} disablePadding >
             {userGroups.map(userGroup => (
@@ -175,26 +193,22 @@ export default function FriendGroupsList({
                 />
               </ListItem>
             ))}
+            <ListItem disableGutters sx={{ justifyContent: 'center', pt: 1 }}>
+              <Button
+                size="small"
+                color="secondary"
+                onClick={() => setOpenCreateDialog(true)}
+                startIcon={<AddIcon />}
+              >
+                {t('actions.create')}
+              </Button>
+            </ListItem>
             </List>
           )}
           </CardContent>
         </Collapse>
-        <CardActions sx={{
-          flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: 1,
-            px: 2,
-            py: 1.5
-          }}>
-            <Button
-              onClick={() => setOpenCreateDialog(true)}
-              size="small"
-              fullWidth
-            >
-              {t('actions.create')}
-            </Button>
-            {tournamentId && (userGroups.length + participantGroups.length >= 1 || pendingRequests.length > 0) && (
+        <CardActions sx={{ justifyContent: 'center', px: 2, py: 1.5 }}>
+            {tournamentId && (groupCount >= 1 || pendingRequests.length > 0) && (
               <Button
                 component={Link}
                 href={`/${locale}/tournaments/${tournamentId}/friend-groups`}
@@ -205,7 +219,7 @@ export default function FriendGroupsList({
                 {t('actions.view')}
               </Button>
             )}
-            {tournamentId && userGroups.length + participantGroups.length === 0 && pendingRequests.length === 0 && (
+            {tournamentId && groupCount === 0 && pendingRequests.length === 0 && (
               <Button
                 component={Link}
                 href={`/${locale}/tournaments/${tournamentId}/friend-groups/discover`}
