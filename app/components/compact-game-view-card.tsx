@@ -415,6 +415,8 @@ export default function CompactGameViewCard({
               awayTeamTheme={awayTeamTheme}
               homePenaltyScore={specificProps.gameResult?.home_penalty_score}
               awayPenaltyScore={specificProps.gameResult?.away_penalty_score}
+              points={specificProps.isGameGuess ? pointCalc?.finalScore : undefined}
+              boostType={specificProps.isGameGuess ? specificProps.boostType : undefined}
             />
           )}
 

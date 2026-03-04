@@ -1,6 +1,6 @@
 'use client'
 
-import { Box, Typography, Grid, Chip } from '@mui/material';
+import { Box, Typography, Grid, Chip, useTheme, alpha } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import { useTranslations } from 'next-intl';
@@ -17,6 +17,8 @@ interface ActualResultDisplayProps {
   awayTeamTheme?: Theme | null;
   homePenaltyScore?: number | null;
   awayPenaltyScore?: number | null;
+  points?: number; // Actual points earned (includes boost multiplier)
+  boostType?: 'golden' | 'silver' | null;
 }
 
 /**
@@ -40,12 +42,46 @@ export function ActualResultDisplay({
   awayTeamTheme,
   homePenaltyScore,
   awayPenaltyScore,
+  points,
+  boostType,
 }: ActualResultDisplayProps) {
   const t = useTranslations('predictions');
+  const theme = useTheme();
 
   // Get logo URLs once to avoid multiple calls and TypeScript issues
   const homeLogoUrl = homeTeamTheme ? getThemeLogoUrl(homeTeamTheme) : null;
   const awayLogoUrl = awayTeamTheme ? getThemeLogoUrl(awayTeamTheme) : null;
+
+  // Calculate default points if not provided
+  const displayPoints = points !== undefined
+    ? points
+    : (predictionResult === 'exact' ? 10 : predictionResult === 'correct' ? 3 : 0);
+
+  // Determine badge styling based on boost type
+  const getBadgeColor = () => {
+    if (predictionResult === 'incorrect') return 'error';
+    // Use boost colors for correct/exact predictions with boosts
+    if (boostType) {
+      return undefined; // Will use custom sx styling
+    }
+    return 'success';
+  };
+
+  const getBadgeSx = () => {
+    if (predictionResult === 'incorrect' || !boostType) return {};
+
+    const boostColor = boostType === 'golden'
+      ? theme.palette.accent.gold.main
+      : theme.palette.accent.silver.main;
+
+    return {
+      backgroundColor: alpha(boostColor, 0.2),
+      color: boostColor,
+      '& .MuiChip-icon': {
+        color: boostColor,
+      },
+    };
+  };
 
   return (
     <Box sx={{ mt: 1, borderTop: (theme) => `1px solid ${theme.palette.divider}`, pt: 1 }}>
@@ -102,11 +138,12 @@ export function ActualResultDisplay({
       {/* Prediction Result badge */}
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
         <Chip
-          label={getPredictionResultLabel(predictionResult, t)}
+          label={getPredictionResultLabel(predictionResult, displayPoints, t)}
           icon={getPredictionResultIcon(predictionResult)}
-          color={predictionResult === 'incorrect' ? 'error' : 'success'}
+          color={getBadgeColor()}
           size="small"
           variant="filled"
+          sx={getBadgeSx()}
         />
       </Box>
     </Box>
@@ -117,16 +154,15 @@ export function ActualResultDisplay({
  * Returns the translated label for a prediction result with points.
  *
  * @param result - The prediction result type
+ * @param points - Actual points earned (includes boost multiplier)
  * @param t - Translation function
- * @returns Translated label string with points (e.g., "✓ Exact (10 points)")
+ * @returns Translated label string with points (e.g., "Exact (30 points)" for golden boost)
  */
 function getPredictionResultLabel(
   result: 'exact' | 'correct' | 'incorrect',
+  points: number,
   t: ReturnType<typeof useTranslations>
 ): string {
-  // Points based on result type (matches scoring system)
-  const points = result === 'exact' ? 10 : result === 'correct' ? 3 : 0;
-
   const labels = {
     exact: t('game.predictionResultExact', { points }),
     correct: t('game.predictionResultCorrect', { points }),

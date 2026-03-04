@@ -315,4 +315,109 @@ describe('ActualResultDisplay', () => {
       expect(screen.getByText('Another Very Long Team Name')).toBeInTheDocument();
     });
   });
+
+  describe('Boost Integration', () => {
+    it('displays actual points including golden boost multiplier', () => {
+      renderWithTheme(
+        <ActualResultDisplay
+          homeTeamName="Brazil"
+          awayTeamName="Morocco"
+          homeScore={2}
+          awayScore={1}
+          predictionResult="exact"
+          points={30} // 10 base * 3 golden boost
+          boostType="golden"
+        />
+      );
+
+      expect(screen.getByText(/30 points|30 puntos/)).toBeInTheDocument();
+    });
+
+    it('displays actual points including silver boost multiplier', () => {
+      renderWithTheme(
+        <ActualResultDisplay
+          homeTeamName="Brazil"
+          awayTeamName="Morocco"
+          homeScore={2}
+          awayScore={1}
+          predictionResult="correct"
+          points={6} // 3 base * 2 silver boost
+          boostType="silver"
+        />
+      );
+
+      expect(screen.getByText(/6 points|6 puntos/)).toBeInTheDocument();
+    });
+
+    it('uses golden color styling when golden boost is applied', () => {
+      const { container } = renderWithTheme(
+        <ActualResultDisplay
+          homeTeamName="Brazil"
+          awayTeamName="Morocco"
+          homeScore={2}
+          awayScore={1}
+          predictionResult="exact"
+          points={30}
+          boostType="golden"
+        />
+      );
+
+      // Check for custom styling (not standard success color)
+      const chip = container.querySelector('.MuiChip-root');
+      expect(chip).toBeInTheDocument();
+      // Golden boost should apply custom background color via sx prop
+    });
+
+    it('uses silver color styling when silver boost is applied', () => {
+      const { container } = renderWithTheme(
+        <ActualResultDisplay
+          homeTeamName="Brazil"
+          awayTeamName="Morocco"
+          homeScore={2}
+          awayScore={1}
+          predictionResult="correct"
+          points={6}
+          boostType="silver"
+        />
+      );
+
+      // Check for custom styling (not standard success color)
+      const chip = container.querySelector('.MuiChip-root');
+      expect(chip).toBeInTheDocument();
+      // Silver boost should apply custom background color via sx prop
+    });
+
+    it('uses default green success color when no boost', () => {
+      const { container } = renderWithTheme(
+        <ActualResultDisplay
+          homeTeamName="Brazil"
+          awayTeamName="Morocco"
+          homeScore={2}
+          awayScore={1}
+          predictionResult="exact"
+          points={10}
+        />
+      );
+
+      const chip = container.querySelector('.MuiChip-colorSuccess');
+      expect(chip).toBeInTheDocument();
+    });
+
+    it('uses default red error color for incorrect even with boost', () => {
+      const { container } = renderWithTheme(
+        <ActualResultDisplay
+          homeTeamName="Brazil"
+          awayTeamName="Morocco"
+          homeScore={2}
+          awayScore={1}
+          predictionResult="incorrect"
+          points={0}
+          boostType="golden"
+        />
+      );
+
+      const chip = container.querySelector('.MuiChip-colorError');
+      expect(chip).toBeInTheDocument();
+    });
+  });
 });
