@@ -196,7 +196,7 @@ export default function FriendGroupsList({
             <ListItem disableGutters sx={{ justifyContent: 'center', pt: 1 }}>
               <Button
                 size="small"
-                variant="outlined"
+                variant="text"
                 color="secondary"
                 onClick={() => setOpenCreateDialog(true)}
                 startIcon={<AddIcon />}
