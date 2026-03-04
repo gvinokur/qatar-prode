@@ -43,28 +43,34 @@ export default function StepperScoreInput({
   // Handle increment
   const handleIncrement = () => {
     if (disabled) return;
-    if (value === undefined) {
-      onChange(0); // First tap sets to 0
-    } else if (value < 99) {
+
+    // First tap from empty state sets to 0 (not 1)
+    if (value === undefined || value === null) {
+      onChange(0);
+      return;
+    }
+
+    // Increment existing value (up to max of 99)
+    if (value < 99) {
       onChange(value + 1);
     }
   };
 
   // Handle decrement
   const handleDecrement = () => {
-    if (disabled || value === undefined) return;
+    if (disabled || value === undefined || value === null) return;
     if (value > 0) {
       onChange(value - 1);
     }
     // Note: When value === 0, do nothing (can't go below 0)
   };
 
-  const isDecrementDisabled = disabled || value === undefined || value === 0;
+  const isDecrementDisabled = disabled || value === undefined || value === null || value === 0;
   const isIncrementDisabled = disabled || value === 99;
 
   return (
     <Box
-      sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+      sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}
       onKeyDown={onKeyDown}
       onFocus={onFocus}
     >
@@ -72,6 +78,7 @@ export default function StepperScoreInput({
         ref={decrementButtonRef}
         onClick={handleDecrement}
         disabled={isDecrementDisabled}
+        color="secondary"
         size={compact ? 'small' : 'medium'}
         aria-label={`Decrease ${teamName} score`}
         sx={{
@@ -94,7 +101,7 @@ export default function StepperScoreInput({
         sx={{
           minWidth: 32,
           textAlign: 'center',
-          color: 'text.secondary'
+          color: 'primary.main'
         }}
       >
         {value ?? '—'}
@@ -103,6 +110,7 @@ export default function StepperScoreInput({
       <IconButton
         onClick={handleIncrement}
         disabled={isIncrementDisabled}
+        color="secondary"
         size={compact ? 'small' : 'medium'}
         aria-label={`Increase ${teamName} score`}
         sx={{
