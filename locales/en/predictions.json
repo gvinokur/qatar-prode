@@ -32,6 +32,7 @@
     "isPublished": "Is published?",
     "inPlayOrRecentlyFinished": "IN PLAY OR RECENTLY FINISHED",
     "yourPrediction": "Your Prediction",
+    "noPrediction": "No Prediction",
     "actualResult": "Actual Result",
     "predictionResultExact": "Exact ({points} points)",
     "predictionResultCorrect": "Correct ({points} points)",

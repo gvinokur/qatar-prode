@@ -289,10 +289,15 @@ export default function CompactGameViewCard({
             }}
           />
 
-          {/* "Your Prediction" label when result exists */}
+          {/* "Your Prediction" or "No Prediction" label when result exists */}
           {hasGameResult && (
-            <Typography variant="body2" align="center" sx={{ mb: 1, fontWeight: 'medium' }}>
-              {t('game.yourPrediction')}
+            <Typography
+              variant="body2"
+              align="center"
+              sx={{ mb: 1, fontWeight: 'medium' }}
+              color={hasResult ? 'text.primary' : 'error.main'}
+            >
+              {hasResult ? t('game.yourPrediction') : t('game.noPrediction')}
             </Typography>
           )}
 
@@ -398,25 +403,29 @@ export default function CompactGameViewCard({
             </Grid>
           </Grid>
 
-          {/* Actual Result Display - shown right after prediction */}
-          {hasGameResult && homeScore !== undefined && awayScore !== undefined && (
+          {/* Actual Result Display - shown when game has result (even if user didn't predict) */}
+          {hasGameResult && (
             <ActualResultDisplay
               homeTeamName={homeTeamNameOrDescription}
               awayTeamName={awayTeamNameOrDescription}
               homeScore={specificProps.gameResult!.home_score!}
               awayScore={specificProps.gameResult!.away_score!}
-              predictionResult={calculatePredictionResult(
-                homeScore,
-                awayScore,
-                specificProps.gameResult!.home_score!,
-                specificProps.gameResult!.away_score!
-              )}
+              predictionResult={
+                homeScore !== undefined && awayScore !== undefined
+                  ? calculatePredictionResult(
+                      homeScore,
+                      awayScore,
+                      specificProps.gameResult!.home_score!,
+                      specificProps.gameResult!.away_score!
+                    )
+                  : undefined
+              }
               homeTeamTheme={homeTeamTheme}
               awayTeamTheme={awayTeamTheme}
               homePenaltyScore={specificProps.gameResult?.home_penalty_score}
               awayPenaltyScore={specificProps.gameResult?.away_penalty_score}
-              points={specificProps.isGameGuess ? pointCalc?.finalScore : undefined}
-              boostType={specificProps.isGameGuess ? specificProps.boostType : undefined}
+              points={specificProps.isGameGuess && homeScore !== undefined && awayScore !== undefined ? pointCalc?.finalScore : undefined}
+              boostType={specificProps.isGameGuess && homeScore !== undefined && awayScore !== undefined ? specificProps.boostType : undefined}
             />
           )}
 

@@ -420,4 +420,75 @@ describe('ActualResultDisplay', () => {
       expect(chip).toBeInTheDocument();
     });
   });
+
+  describe('No Prediction Scenario', () => {
+    it('displays actual result with incorrect badge when user did not predict', () => {
+      renderWithTheme(
+        <ActualResultDisplay
+          homeTeamName="Mexico"
+          awayTeamName="South Africa"
+          homeScore={2}
+          awayScore={1}
+        />
+      );
+
+      // Should show actual result
+      expect(screen.getByText(/Actual Result|Resultado Real/)).toBeInTheDocument();
+      expect(screen.getByText('Mexico')).toBeInTheDocument();
+      expect(screen.getByText('South Africa')).toBeInTheDocument();
+      expect(screen.getByText('2 - 1')).toBeInTheDocument();
+
+      // Should show Incorrect badge (0 points) since no prediction = incorrect
+      expect(screen.getByText(/Incorrect \(0 points\)|Incorrecto \(0 puntos\)/)).toBeInTheDocument();
+    });
+
+    it('displays team logos when themes provided even without prediction', () => {
+      const { container } = renderWithTheme(
+        <ActualResultDisplay
+          homeTeamName="Mexico"
+          awayTeamName="South Africa"
+          homeScore={2}
+          awayScore={1}
+          homeTeamTheme={mockHomeTheme}
+          awayTeamTheme={mockAwayTheme}
+        />
+      );
+
+      const logos = container.querySelectorAll('img');
+      if (logos.length > 0) {
+        expect(logos[0]).toHaveAttribute('alt', 'Mexico');
+        expect(logos[1]).toHaveAttribute('alt', 'South Africa');
+      }
+    });
+
+    it('displays penalty scores even without prediction', () => {
+      renderWithTheme(
+        <ActualResultDisplay
+          homeTeamName="Mexico"
+          awayTeamName="South Africa"
+          homeScore={1}
+          awayScore={1}
+          homePenaltyScore={4}
+          awayPenaltyScore={3}
+        />
+      );
+
+      expect(screen.getByText('(4 - 3 pen)')).toBeInTheDocument();
+    });
+
+    it('uses error color for badge when user did not predict', () => {
+      const { container } = renderWithTheme(
+        <ActualResultDisplay
+          homeTeamName="Mexico"
+          awayTeamName="South Africa"
+          homeScore={2}
+          awayScore={1}
+        />
+      );
+
+      // No prediction = incorrect = error color
+      const chip = container.querySelector('.MuiChip-colorError');
+      expect(chip).toBeInTheDocument();
+    });
+  });
 });

@@ -12,7 +12,7 @@ interface ActualResultDisplayProps {
   awayTeamName: string;
   homeScore: number;
   awayScore: number;
-  predictionResult: 'exact' | 'correct' | 'incorrect';
+  predictionResult?: 'exact' | 'correct' | 'incorrect'; // undefined when user didn't predict
   homeTeamTheme?: Theme | null;
   awayTeamTheme?: Theme | null;
   homePenaltyScore?: number | null;
@@ -52,14 +52,17 @@ export function ActualResultDisplay({
   const homeLogoUrl = homeTeamTheme ? getThemeLogoUrl(homeTeamTheme) : null;
   const awayLogoUrl = awayTeamTheme ? getThemeLogoUrl(awayTeamTheme) : null;
 
+  // Treat no prediction as incorrect (0 points)
+  const effectiveResult = predictionResult || 'incorrect';
+
   // Calculate default points if not provided
   const displayPoints = points !== undefined
     ? points
-    : (predictionResult === 'exact' ? 10 : predictionResult === 'correct' ? 3 : 0);
+    : (effectiveResult === 'exact' ? 10 : effectiveResult === 'correct' ? 3 : 0);
 
   // Determine badge styling based on boost type
   const getBadgeColor = () => {
-    if (predictionResult === 'incorrect') return 'error';
+    if (effectiveResult === 'incorrect') return 'error';
     // Use boost colors for correct/exact predictions with boosts
     if (boostType) {
       return undefined; // Will use custom sx styling
@@ -68,7 +71,7 @@ export function ActualResultDisplay({
   };
 
   const getBadgeSx = () => {
-    if (predictionResult === 'incorrect' || !boostType) return {};
+    if (effectiveResult === 'incorrect' || !boostType) return {};
 
     const boostColor = boostType === 'golden'
       ? theme.palette.accent.gold.main
@@ -157,11 +160,11 @@ export function ActualResultDisplay({
         </Grid>
       </Grid>
 
-      {/* Prediction Result badge */}
+      {/* Prediction Result badge - shows incorrect (0 pts) when no prediction */}
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
         <Chip
-          label={getPredictionResultLabel(predictionResult, displayPoints, t)}
-          icon={getPredictionResultIcon(predictionResult)}
+          label={getPredictionResultLabel(effectiveResult, displayPoints, t)}
+          icon={getPredictionResultIcon(effectiveResult)}
           color={getBadgeColor()}
           size="small"
           variant="filled"
