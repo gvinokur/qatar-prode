@@ -8,12 +8,14 @@ vi.mock('../../auth', () => ({
   auth: vi.fn(),
 }));
 
-// Mock MUI useMediaQuery to return false (desktop)
+// Mock MUI useMediaQuery with mockable function
+const mockUseMediaQuery = vi.fn();
+
 vi.mock('@mui/material', async () => {
   const actual = await vi.importActual('@mui/material');
   return {
     ...actual,
-    useMediaQuery: () => false, // Not mobile
+    useMediaQuery: () => mockUseMediaQuery(),
   };
 });
 
@@ -563,6 +565,110 @@ describe('GamePredictionEditControls', () => {
 
       const alert = screen.getByRole('alert');
       expect(alert).toHaveTextContent('Test error');
+    });
+  });
+
+  describe('Mobile (stepper buttons)', () => {
+    beforeEach(() => {
+      mockUseMediaQuery.mockReturnValue(true); // Mobile
+    });
+
+    it('renders stepper buttons instead of TextField', () => {
+      renderWithProviders(<GamePredictionEditControls {...defaultProps} />, {
+        guessesContext: createMockGuessesContext({ boostCounts: defaultBoostCounts })
+      });
+
+      // Verify stepper buttons are rendered
+      expect(screen.getByLabelText(/Increase Mexico score/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Decrease Mexico score/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Increase Qatar score/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Decrease Qatar score/i)).toBeInTheDocument();
+
+      // Verify TextField is NOT rendered
+      expect(screen.queryByRole('textbox', { name: /Mexico score/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('textbox', { name: /Qatar score/i })).not.toBeInTheDocument();
+    });
+
+    it('calls onHomeScoreChange when increment button is clicked', () => {
+      const onHomeScoreChange = vi.fn();
+      renderWithProviders(
+        <GamePredictionEditControls {...defaultProps} onHomeScoreChange={onHomeScoreChange} />,
+        { guessesContext: createMockGuessesContext({ boostCounts: defaultBoostCounts }) }
+      );
+
+      const incrementButton = screen.getByLabelText(/Increase Mexico score/i);
+      fireEvent.click(incrementButton);
+
+      expect(onHomeScoreChange).toHaveBeenCalledWith(0);
+    });
+
+    it('calls onAwayScoreChange when increment button is clicked', () => {
+      const onAwayScoreChange = vi.fn();
+      renderWithProviders(
+        <GamePredictionEditControls {...defaultProps} onAwayScoreChange={onAwayScoreChange} />,
+        { guessesContext: createMockGuessesContext({ boostCounts: defaultBoostCounts }) }
+      );
+
+      const incrementButton = screen.getByLabelText(/Increase Qatar score/i);
+      fireEvent.click(incrementButton);
+
+      expect(onAwayScoreChange).toHaveBeenCalledWith(0);
+    });
+
+    it('resets penalty winners when home score changes via stepper', () => {
+      const onHomePenaltyWinnerChange = vi.fn();
+      const onAwayPenaltyWinnerChange = vi.fn();
+      renderWithProviders(
+        <GamePredictionEditControls
+          {...defaultProps}
+          isPlayoffGame={true}
+          homeScore={1}
+          awayScore={1}
+          homePenaltyWinner={true}
+          onHomePenaltyWinnerChange={onHomePenaltyWinnerChange}
+          onAwayPenaltyWinnerChange={onAwayPenaltyWinnerChange}
+        />,
+        { guessesContext: createMockGuessesContext({ boostCounts: defaultBoostCounts }) }
+      );
+
+      const incrementButton = screen.getByLabelText(/Increase Mexico score/i);
+      fireEvent.click(incrementButton);
+
+      expect(onHomePenaltyWinnerChange).toHaveBeenCalledWith(false);
+      expect(onAwayPenaltyWinnerChange).toHaveBeenCalledWith(false);
+    });
+  });
+
+  describe('Desktop (TextField)', () => {
+    beforeEach(() => {
+      mockUseMediaQuery.mockReturnValue(false); // Desktop
+    });
+
+    it('renders TextField instead of stepper buttons', () => {
+      renderWithProviders(<GamePredictionEditControls {...defaultProps} />, {
+        guessesContext: createMockGuessesContext({ boostCounts: defaultBoostCounts })
+      });
+
+      // Verify TextField is rendered
+      expect(screen.getByLabelText(/Mexico score/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Qatar score/i)).toBeInTheDocument();
+
+      // Verify stepper buttons are NOT rendered
+      expect(screen.queryByLabelText(/Increase Mexico score/i)).not.toBeInTheDocument();
+      expect(screen.queryByLabelText(/Decrease Mexico score/i)).not.toBeInTheDocument();
+    });
+
+    it('maintains existing TextField functionality', () => {
+      const onHomeScoreChange = vi.fn();
+      renderWithProviders(
+        <GamePredictionEditControls {...defaultProps} onHomeScoreChange={onHomeScoreChange} />,
+        { guessesContext: createMockGuessesContext({ boostCounts: defaultBoostCounts }) }
+      );
+
+      const homeInput = screen.getByLabelText(/Mexico score/i);
+      fireEvent.change(homeInput, { target: { value: '3' } });
+
+      expect(onHomeScoreChange).toHaveBeenCalledWith(3);
     });
   });
 });
