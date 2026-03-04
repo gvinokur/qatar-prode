@@ -43,6 +43,10 @@ export function ActualResultDisplay({
 }: ActualResultDisplayProps) {
   const t = useTranslations('predictions');
 
+  // Get logo URLs once to avoid multiple calls and TypeScript issues
+  const homeLogoUrl = homeTeamTheme ? getThemeLogoUrl(homeTeamTheme) : null;
+  const awayLogoUrl = awayTeamTheme ? getThemeLogoUrl(awayTeamTheme) : null;
+
   return (
     <Box sx={{ mt: 1, borderTop: (theme) => `1px solid ${theme.palette.divider}`, pt: 1 }}>
       {/* "Actual Result" label - centered */}
@@ -57,10 +61,10 @@ export function ActualResultDisplay({
           <Typography variant="body2" fontWeight="medium" noWrap>
             {homeTeamName}
           </Typography>
-          {homeTeamTheme && getThemeLogoUrl(homeTeamTheme) && (
+          {homeLogoUrl && (
             <Box
               component="img"
-              src={getThemeLogoUrl(homeTeamTheme)!}
+              src={homeLogoUrl}
               alt={homeTeamName}
               sx={{ width: 24, height: 24, objectFit: 'contain', mt: 0.5 }}
             />
@@ -84,10 +88,10 @@ export function ActualResultDisplay({
           <Typography variant="body2" fontWeight="medium" noWrap>
             {awayTeamName}
           </Typography>
-          {awayTeamTheme && getThemeLogoUrl(awayTeamTheme) && (
+          {awayLogoUrl && (
             <Box
               component="img"
-              src={getThemeLogoUrl(awayTeamTheme)!}
+              src={awayLogoUrl}
               alt={awayTeamName}
               sx={{ width: 24, height: 24, objectFit: 'contain', mt: 0.5 }}
             />
