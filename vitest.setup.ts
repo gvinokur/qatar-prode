@@ -105,17 +105,19 @@ function getTranslation(namespace: string, key: string, values?: Record<string, 
 
     const count = values[varName];
 
+    let result: string;
     // Check for exact match first (e.g., =0 or =1)
     if (exactNum && count === parseInt(exactNum)) {
-      return exactText || '';
+      result = exactText || '';
+    } else if (count === 1 && oneKeyword) {
+      // Then check for one vs other
+      result = oneText || '';
+    } else {
+      result = otherText || '';
     }
 
-    // Then check for one vs other
-    if (count === 1 && oneKeyword) {
-      return oneText || '';
-    } else {
-      return otherText || '';
-    }
+    // Replace # with the count value (ICU plural format shorthand)
+    return result.replace(/#/g, count.toString());
   });
 
   // Handle simple interpolation
