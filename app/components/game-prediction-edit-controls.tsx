@@ -1109,6 +1109,7 @@ export default function GamePredictionEditControls({
           <Button
             ref={cancelButtonRef}
             variant="outlined"
+            color="secondary"
             onClick={onCancel}
             onKeyDown={(e) => handleKeyDown(e, 'cancel')}
             onFocus={() => setCurrentField('cancel')}
