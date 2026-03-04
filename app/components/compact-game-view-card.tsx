@@ -155,6 +155,7 @@ export default function CompactGameViewCard({
   return (
     <Card
       variant="outlined"
+      onClick={!disabled || specificProps.isGameFixture ? handleEditClick : undefined}
       sx={{
         mb: 1,
         // Border priority: Boost > Result > Default
@@ -397,23 +398,7 @@ export default function CompactGameViewCard({
             </Grid>
           </Grid>
 
-          <Divider
-            variant={'fullWidth'}
-            color={theme.palette.primary.main}
-            sx={{
-              width: '100%',
-              mt: 2,
-              mb: 1
-            }}
-          />
-
-          <Box display='flex' justifyContent="center" alignItems="center" gap={1}>
-            <Typography variant="body2" color="text.secondary">
-              {location}
-            </Typography>
-          </Box>
-
-          {/* Actual Result Display */}
+          {/* Actual Result Display - shown right after prediction */}
           {hasGameResult && homeScore !== undefined && awayScore !== undefined && (
             <ActualResultDisplay
               homeTeamName={homeTeamNameOrDescription}
@@ -443,6 +428,22 @@ export default function CompactGameViewCard({
                 </Typography>
               </Box>
             )}
+
+          <Divider
+            variant={'fullWidth'}
+            color={theme.palette.primary.main}
+            sx={{
+              width: '100%',
+              mt: 2,
+              mb: 1
+            }}
+          />
+
+          <Box display='flex' justifyContent="center" alignItems="center" gap={1}>
+            <Typography variant="body2" color="text.secondary">
+              {location}
+            </Typography>
+          </Box>
         </Box>
       </CardContent>
     </Card>

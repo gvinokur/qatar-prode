@@ -33,9 +33,9 @@
     "inPlayOrRecentlyFinished": "EN JUEGO O RECIÉN TERMINADO",
     "yourPrediction": "Tu Predicción",
     "actualResult": "Resultado Real",
-    "predictionResultExact": "✓ Exacto ({points} puntos)",
-    "predictionResultCorrect": "✓ Correcto ({points} puntos)",
-    "predictionResultIncorrect": "✗ Incorrecto (0 puntos)"
+    "predictionResultExact": "Exacto ({points} puntos)",
+    "predictionResultCorrect": "Correcto ({points} puntos)",
+    "predictionResultIncorrect": "Incorrecto (0 puntos)"
   },
   "urgency": {
     "games": "{count, plural, =0 {Ningún partido cierra en {timeframe}} one {{count} partido cierra en {timeframe}} other {{count} partidos cierran en {timeframe}}}",
