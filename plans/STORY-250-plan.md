@@ -31,17 +31,21 @@ Use the `subheader` slot of `CardHeader`, combining the count with the active in
 ```tsx
 const groupCount = userGroups.length + participantGroups.length
 
+const groupCountLabel = groupCount > 0
+  ? t('header.groupCount', { count: groupCount })
+  : t('header.noGroups')
+
 const subheaderParts = [
   isActive ? t('status.youAreHere') : null,
-  groupCount > 0 ? t('header.groupCount', { count: groupCount }) : null,
+  groupCountLabel,
 ].filter(Boolean).join(' · ')
 ```
 
 Resulting subheader values:
 - Active + groups: `"You are here · 3 groups"`
-- Active + no groups: `"You are here"`
+- Active + no groups: `"You are here · No groups"`
 - Not active + groups: `"3 groups"`
-- Not active + no groups: nothing (undefined)
+- Not active + no groups: `"No groups"`
 
 This approach reuses the existing `subheader` slot without adding extra DOM elements, stays consistent with the `user-tournament-statistics.tsx` pattern.
 
@@ -65,6 +69,7 @@ After `<FriendGroupsSidebarEmptyState>`, add a prominent "Create Group" button:
     <Box sx={{ mt: 1 }}>
       <Button
         variant="outlined"
+        color="primary"
         fullWidth
         size="small"
         startIcon={<AddIcon />}
@@ -97,17 +102,19 @@ Import `Box` from MUI (already available via `@mui/material`).
 
 ### 4. i18n Keys to Add
 
-**`locales/en/groups.json`** — add under `header` section (create new section at top level or nest under existing):
+**`locales/en/groups.json`** — add under `header` section:
 ```json
 "header": {
-  "groupCount": "{count, plural, =1 {1 group} other {# groups}}"
+  "groupCount": "{count, plural, =1 {1 group} other {# groups}}",
+  "noGroups": "No groups"
 }
 ```
 
 **`locales/es/groups.json`**:
 ```json
 "header": {
-  "groupCount": "{count, plural, =1 {1 grupo} other {# grupos}}"
+  "groupCount": "{count, plural, =1 {1 grupo} other {# grupos}}",
+  "noGroups": "Sin grupos"
 }
 ```
 
@@ -173,6 +180,7 @@ Import `Box` from MUI (already available via `@mui/material`).
 ```
 ┌─────────────────────────────────────────────┐
 │ Friend Groups              [▼]               │
+│ No groups                                    │
 ├─────────────────────────────────────────────┤
 │ [DISCOVER GROUPS 🔍]                         │
 └─────────────────────────────────────────────┘
@@ -232,11 +240,11 @@ Import `Box` from MUI (already available via `@mui/material`).
    })
    ```
 
-6. **No count indicator when count is 0:**
+6. **Shows "No groups" in subheader when count is 0:**
    ```tsx
-   it('does not show group count in subheader when no groups', () => {
+   it('shows "Sin grupos" in subheader when no groups', () => {
      renderWithTheme(<FriendGroupsList {...emptyProps} />)
-     expect(screen.queryByText(/grupo/i)).not.toBeInTheDocument()
+     expect(screen.getByText('Sin grupos')).toBeInTheDocument()
    })
    ```
 
