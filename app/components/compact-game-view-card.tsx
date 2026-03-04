@@ -21,6 +21,7 @@ import {getThemeLogoUrl} from "../utils/theme-utils";
 import { calculateFinalPoints } from "../utils/point-calculator";
 import GameCardPointOverlay from "./game-card-point-overlay";
 import GameCountdownDisplay from "./game-countdown-display";
+import { ActualResultDisplay } from "./actual-result-display";
 
 type SharedProps = {
   gameNumber: number;
@@ -133,6 +134,22 @@ export default function CompactGameViewCard({
     return 'none';
   };
 
+  // Result border styling (only when no boost present)
+  const hasGameResult = specificProps.isGameGuess &&
+    specificProps.gameResult &&
+    Number.isInteger(specificProps.gameResult.home_score) &&
+    Number.isInteger(specificProps.gameResult.away_score) &&
+    hasResult;
+
+  const resultBorderColor = hasGameResult && !boostType && homeScore !== undefined && awayScore !== undefined
+    ? (calculatePredictionResult(
+        homeScore,
+        awayScore,
+        specificProps.gameResult!.home_score!,
+        specificProps.gameResult!.away_score!
+      ) === 'incorrect' ? 'error.main' : 'success.main')
+    : undefined;
+
   let logoUrl = null
 
   return (
@@ -140,14 +157,17 @@ export default function CompactGameViewCard({
       variant="outlined"
       sx={{
         mb: 1,
-        borderColor: getBoostBorderColor(),
-        borderWidth: boostType ? 2 : 1,
+        // Border priority: Boost > Result > Default
+        borderColor: boostType ? getBoostBorderColor() : (resultBorderColor || 'divider'),
+        borderWidth: boostType ? 2 : (resultBorderColor ? 2 : 1),
         boxShadow: getBoostShadow(),
         transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
         '&:focus-within': {
           borderColor: 'primary.main',
           boxShadow: (theme) => `0 0 0 3px ${theme.palette.primary.main}33`,
-        }
+        },
+        // Add cursor pointer to entire card when clickable (visual feedback)
+        ...(!disabled || specificProps.isGameFixture ? { cursor: 'pointer' } : {})
       }}
     >
       <CardContent sx={{ py: 2, px: 2, '&:last-child': { pb: 3 } }}>
@@ -227,11 +247,13 @@ export default function CompactGameViewCard({
                       />
                     </Tooltip>
                   )}
+                  {/* Hide point overlay when result is shown in ActualResultDisplay badge to avoid duplication */}
                   {specificProps.isGameGuess &&
                     Number.isInteger(specificProps.gameResult?.home_score) &&
                     Number.isInteger(specificProps.gameResult?.away_score) &&
                     Number.isInteger(specificProps.scoreForGame) &&
-                    pointCalc && (
+                    pointCalc &&
+                    !hasGameResult && (
                       <Box display="flex" justifyContent="flex-end">
                         <GameCardPointOverlay
                           gameId={gameNumber.toString()}
@@ -265,6 +287,13 @@ export default function CompactGameViewCard({
               mb: 2,
             }}
           />
+
+          {/* "Your Prediction" label when result exists */}
+          {hasGameResult && (
+            <Typography variant="body2" align="center" sx={{ mb: 1, fontWeight: 'medium' }}>
+              {t('game.yourPrediction')}
+            </Typography>
+          )}
 
           {/* Teams and score */}
           <Grid
@@ -384,50 +413,95 @@ export default function CompactGameViewCard({
             </Typography>
           </Box>
 
+          {/* Actual Result Display */}
+          {hasGameResult && homeScore !== undefined && awayScore !== undefined && (
+            <ActualResultDisplay
+              homeTeamName={homeTeamNameOrDescription}
+              awayTeamName={awayTeamNameOrDescription}
+              homeScore={specificProps.gameResult!.home_score!}
+              awayScore={specificProps.gameResult!.away_score!}
+              predictionResult={calculatePredictionResult(
+                homeScore,
+                awayScore,
+                specificProps.gameResult!.home_score!,
+                specificProps.gameResult!.away_score!
+              )}
+              homeTeamTheme={homeTeamTheme}
+              awayTeamTheme={awayTeamTheme}
+              homePenaltyScore={specificProps.gameResult?.home_penalty_score}
+              awayPenaltyScore={specificProps.gameResult?.away_penalty_score}
+            />
+          )}
+
+          {/* In Play message (when past deadline but no result yet) */}
+          {specificProps.isGameGuess &&
+            gameDate.getTime() < Date.now() &&
+            !hasGameResult && (
+              <Box sx={{ mt: 1, textAlign: 'center', borderTop: (theme) => `1px solid ${theme.palette.divider}`, pt: 1 }}>
+                <Typography variant="body2" color="warning.main">
+                  ⚽ {t('game.inPlayOrRecentlyFinished')}
+                </Typography>
+              </Box>
+            )}
         </Box>
       </CardContent>
-      {specificProps.isGameGuess &&
-        specificProps.gameResult &&
-        Number.isInteger(specificProps.gameResult.home_score) &&
-        Number.isInteger(specificProps.gameResult.away_score) && (
-          <Box
-            sx={{
-              borderTop: `${theme.palette.divider} 1px solid`,
-              backgroundColor: 'secondary.light',
-              py: 0.5,
-              px: 1,
-              textAlign: 'center'
-            }}
-          >
-            <Typography variant='caption' component='div' color='secondary.contrastText'>
-              {homeTeamShortNameOrDescription}&nbsp;
-              {specificProps.gameResult.home_score}&nbsp;
-              {Number.isInteger(specificProps.gameResult.home_penalty_score) && `(${specificProps.gameResult.home_penalty_score})`} - &nbsp;
-              {Number.isInteger(specificProps.gameResult.away_penalty_score) && `(${specificProps.gameResult.away_penalty_score})`}&nbsp;
-              {specificProps.gameResult.away_score}&nbsp;
-              {awayTeamShortNameOrDescription?.substring(0, 3)}
-            </Typography>
-          </Box>
-        )}
-      {specificProps.isGameGuess &&
-        gameDate.getTime() < Date.now() &&
-        !(specificProps.gameResult &&
-          Number.isInteger(specificProps.gameResult.home_score) &&
-          Number.isInteger(specificProps.gameResult.away_score)) && (
-          <Box
-            sx={{
-              borderTop: `${theme.palette.divider} 1px solid`,
-              backgroundColor: 'secondary.light',
-              py: 0.5,
-              px: 1,
-              textAlign: 'center'
-            }}
-          >
-            <Typography variant='caption' component='div' color='secondary.contrastText'>
-              {t('game.inPlayOrRecentlyFinished')}
-            </Typography>
-          </Box>
-        )}
     </Card>
   );
+}
+
+/**
+ * Determines prediction accuracy based on predicted vs actual scores.
+ *
+ * Returns:
+ * - 'exact': Predicted scores match actual scores exactly (10 points)
+ * - 'correct': Predicted winner matches actual winner, but not exact score (3 points)
+ * - 'incorrect': Predicted winner does not match actual winner (0 points)
+ *
+ * Winner determination:
+ * - home > away = home wins
+ * - away > home = away wins
+ * - home === away = draw
+ *
+ * Edge cases:
+ * - User predicted draw (1-1), actual was draw (0-0) → 'correct' (same winner: draw)
+ * - User predicted home win (2-0), actual was draw (1-1) → 'incorrect' (different winner)
+ * - User predicted draw (0-0), actual was home win (1-0) → 'incorrect' (different winner)
+ *
+ * @param predictedHome - Predicted home team score
+ * @param predictedAway - Predicted away team score
+ * @param actualHome - Actual home team score
+ * @param actualAway - Actual away team score
+ * @returns 'exact' | 'correct' | 'incorrect'
+ */
+export function calculatePredictionResult(
+  predictedHome: number,
+  predictedAway: number,
+  actualHome: number,
+  actualAway: number
+): 'exact' | 'correct' | 'incorrect' {
+  // EXACT: Predicted scores match actual scores exactly
+  if (predictedHome === actualHome && predictedAway === actualAway) {
+    return 'exact';
+  }
+
+  // Determine winners using explicit conditions
+  // Predicted winner
+  const predictedWinner: 'home' | 'away' | 'draw' =
+    predictedHome > predictedAway ? 'home' :
+    predictedHome < predictedAway ? 'away' :
+    'draw'; // predictedHome === predictedAway
+
+  // Actual winner
+  const actualWinner: 'home' | 'away' | 'draw' =
+    actualHome > actualAway ? 'home' :
+    actualHome < actualAway ? 'away' :
+    'draw'; // actualHome === actualAway
+
+  // CORRECT: Predicted winner matches actual winner (not exact score)
+  if (predictedWinner === actualWinner) {
+    return 'correct';
+  }
+
+  // INCORRECT: Predicted winner does not match actual winner
+  return 'incorrect';
 }
