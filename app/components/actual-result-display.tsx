@@ -90,11 +90,21 @@ export function ActualResultDisplay({
         {t('game.actualResult')}
       </Typography>
 
-      {/* Score display with full team names */}
+      {/* Score display with full team names - matches prediction layout */}
       <Grid container spacing={1} alignItems="center" justifyContent="center">
         {/* Home Team */}
-        <Grid size={5} sx={{ textAlign: 'right' }}>
-          <Typography variant="body2" fontWeight="medium" noWrap>
+        <Grid display="flex" justifyContent="flex-end" alignItems="center" size={5}>
+          <Typography
+            variant="body2"
+            fontWeight="medium"
+            sx={{
+              ml: 1,
+              maxWidth: '100%',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
             {homeTeamName}
           </Typography>
           {homeLogoUrl && (
@@ -102,36 +112,48 @@ export function ActualResultDisplay({
               component="img"
               src={homeLogoUrl}
               alt={homeTeamName}
-              sx={{ width: 24, height: 24, objectFit: 'contain', mt: 0.5 }}
+              sx={{ width: 24, height: 24, objectFit: 'contain', ml: 0.75 }}
             />
           )}
         </Grid>
 
         {/* Score */}
-        <Grid size={2} sx={{ textAlign: 'center' }}>
-          <Typography variant="body1" fontWeight="bold">
-            {homeScore} - {awayScore}
-          </Typography>
-          {(homePenaltyScore !== null || awayPenaltyScore !== null) && (
-            <Typography variant="caption" color="text.secondary">
-              ({homePenaltyScore ?? 0} - {awayPenaltyScore ?? 0} pen)
+        <Grid display="flex" justifyContent="center" alignItems="center" size={2}>
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="body1" fontWeight="bold">
+              {homeScore} - {awayScore}
             </Typography>
-          )}
+            {(homePenaltyScore !== null || awayPenaltyScore !== null) && (
+              <Typography variant="caption" color="text.secondary">
+                ({homePenaltyScore ?? 0} - {awayPenaltyScore ?? 0} pen)
+              </Typography>
+            )}
+          </Box>
         </Grid>
 
         {/* Away Team */}
-        <Grid size={5}>
-          <Typography variant="body2" fontWeight="medium" noWrap>
-            {awayTeamName}
-          </Typography>
+        <Grid display="flex" justifyContent="flex-start" alignItems="center" size={5}>
           {awayLogoUrl && (
             <Box
               component="img"
               src={awayLogoUrl}
               alt={awayTeamName}
-              sx={{ width: 24, height: 24, objectFit: 'contain', mt: 0.5 }}
+              sx={{ width: 24, height: 24, objectFit: 'contain', mr: 0.75 }}
             />
           )}
+          <Typography
+            variant="body2"
+            fontWeight="medium"
+            sx={{
+              mr: 1,
+              maxWidth: '100%',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {awayTeamName}
+          </Typography>
         </Grid>
       </Grid>
 
