@@ -35,7 +35,7 @@ export function PredictionAccuracyCard(props: Props) {
       <Card>
         <CardHeader
           title={t('accuracy.title')}
-          sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px` }}
+          sx={{ borderBottom: `${theme.palette.primary.light} solid 1px` }}
         />
         <CardContent>
           <Typography variant='body1' color='text.secondary' align='center'>
@@ -50,7 +50,7 @@ export function PredictionAccuracyCard(props: Props) {
     <Card>
       <CardHeader
         title={t('accuracy.title')}
-        sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px` }}
+        sx={{ borderBottom: `${theme.palette.primary.light} solid 1px` }}
       />
       <CardContent>
         <Grid container spacing={1}>

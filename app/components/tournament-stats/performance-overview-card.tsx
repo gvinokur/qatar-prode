@@ -30,7 +30,7 @@ export function PerformanceOverviewCard(props: Props) {
       <Card>
         <CardHeader
           title={t('performance.title')}
-          sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px` }}
+          sx={{ borderBottom: `${theme.palette.primary.light} solid 1px` }}
         />
         <CardContent>
           <Typography variant='body1' color='text.secondary' align='center'>
@@ -45,18 +45,18 @@ export function PerformanceOverviewCard(props: Props) {
     <Card>
       <CardHeader
         title={t('performance.title')}
-        sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px` }}
+        sx={{ borderBottom: `${theme.palette.primary.light} solid 1px` }}
       />
       <CardContent>
         <Grid container spacing={1}>
           {/* Total Points - Prominent display */}
           <Grid size={8}>
-            <Typography variant='h6' color='primary.light'>
+            <Typography variant='h6' color='secondary.main'>
               {t('performance.totalPoints')}
             </Typography>
           </Grid>
           <Grid size={4}>
-            <Typography variant='h4' fontWeight={700} align='right'>
+            <Typography variant='h4' fontWeight={700} color='secondary.main' align='right'>
               {props.totalPoints}
             </Typography>
           </Grid>

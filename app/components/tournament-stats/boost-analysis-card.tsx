@@ -45,7 +45,7 @@ export function BoostAnalysisCard(props: Props) {
       <Card>
         <CardHeader
           title={t('boosts.title')}
-          sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px` }}
+          sx={{ borderBottom: `${theme.palette.primary.light} solid 1px` }}
         />
         <CardContent>
           <Typography variant='body1' color='text.secondary' align='center'>
@@ -76,7 +76,7 @@ export function BoostAnalysisCard(props: Props) {
     <Card>
       <CardHeader
         title={t('boosts.title')}
-        sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px` }}
+        sx={{ borderBottom: `${theme.palette.primary.light} solid 1px` }}
       />
       <CardContent>
         <Grid container spacing={1}>
@@ -134,7 +134,7 @@ export function BoostAnalysisCard(props: Props) {
               </Grid>
 
               <Grid size={8}>
-                <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
+                <Typography variant='body1' color='secondary.main' sx={{ pl: 2 }}>
                   {t('boosts.roi')}
                 </Typography>
               </Grid>
@@ -204,7 +204,7 @@ export function BoostAnalysisCard(props: Props) {
               </Grid>
 
               <Grid size={8}>
-                <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
+                <Typography variant='body1' color='secondary.main' sx={{ pl: 2 }}>
                   {t('boosts.roi')}
                 </Typography>
               </Grid>
