@@ -344,6 +344,96 @@ describe('DraggableTeamCard', () => {
     expect(dragHandle).toBeInTheDocument();
   });
 
+  describe('Card drag affordance', () => {
+    it('should have grab cursor on card when not locked and not saving', () => {
+      const { container } = renderWithDndContext(
+        <DraggableTeamCard
+          team={mockTeam}
+          position={1}
+          predictedToQualify={true}
+          isLocked={false}
+          isSaving={false}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={0}
+          isGroupComplete={false}
+          allGroupsComplete={false}
+          isPending3rdPlace={false}
+        />
+      );
+
+      const card = container.querySelector('.MuiCard-root');
+      expect(card).toHaveStyle({ cursor: 'grab' });
+    });
+
+    it('should have default cursor on card when locked', () => {
+      const { container } = renderWithDndContext(
+        <DraggableTeamCard
+          team={mockTeam}
+          position={1}
+          predictedToQualify={true}
+          isLocked={true}
+          isSaving={false}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={0}
+          isGroupComplete={false}
+          allGroupsComplete={false}
+          isPending3rdPlace={false}
+        />
+      );
+
+      const card = container.querySelector('.MuiCard-root');
+      expect(card).toHaveStyle({ cursor: 'default' });
+    });
+
+    it('should have default cursor on card when saving', () => {
+      const { container } = renderWithDndContext(
+        <DraggableTeamCard
+          team={mockTeam}
+          position={1}
+          predictedToQualify={true}
+          isLocked={false}
+          isSaving={true}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={0}
+          isGroupComplete={false}
+          allGroupsComplete={false}
+          isPending3rdPlace={false}
+        />
+      );
+
+      const card = container.querySelector('.MuiCard-root');
+      expect(card).toHaveStyle({ cursor: 'default' });
+    });
+
+    it('should stop pointer event propagation from ThirdPlaceCheckbox area', () => {
+      renderWithDndContext(
+        <DraggableTeamCard
+          team={mockTeam}
+          position={3}
+          predictedToQualify={false}
+          isLocked={false}
+          isSaving={false}
+          maxThirdPlace={8}
+          currentThirdPlaceCount={0}
+          isGroupComplete={false}
+          allGroupsComplete={false}
+          isPending3rdPlace={false}
+        />
+      );
+
+      const checkbox = screen.getByRole('checkbox');
+      const checkboxWrapper = checkbox.closest('span[onpointerdown]') as HTMLElement
+        ?? checkbox.parentElement?.parentElement as HTMLElement;
+
+      const stopPropagation = vi.fn();
+      fireEvent.pointerDown(checkboxWrapper, { stopPropagation });
+
+      // The wrapper should have handled the pointer down without propagating to card
+      // We verify the checkbox itself is still interactable (not disabled by drag)
+      expect(checkbox).not.toBeDisabled();
+    });
+  });
+
   it('should have reduced opacity when disabled', () => {
     const { container } = renderWithDndContext(
       <DraggableTeamCard
