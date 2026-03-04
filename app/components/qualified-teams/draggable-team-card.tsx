@@ -160,18 +160,15 @@ function getBorderColor(theme: Theme, options: BorderColorOptions): string {
   return 'transparent';
 }
 
-/** Drag handle component */
-function DragHandle({ disabled, attributes, listeners }: { readonly disabled: boolean; readonly attributes: any; readonly listeners: any }) {
+/** Drag handle component - visual affordance only, pointer events disabled */
+function DragHandle({ disabled }: { readonly disabled: boolean }) {
   return (
     <Box
-      {...attributes}
-      {...listeners}
       sx={{
+        pointerEvents: 'none',
         display: 'flex',
         alignItems: 'center',
         opacity: disabled ? 0.38 : 0.54,
-        cursor: disabled ? 'not-allowed' : 'grab',
-        '&:active': { cursor: disabled ? 'not-allowed' : 'grabbing' },
       }}
     >
       <DragIndicatorIcon />
@@ -435,13 +432,24 @@ export default function DraggableTeamCard({
   // Only disable if this team is NOT already selected and limit is reached
   const cannotAddMore = !predictedToQualify && currentThirdPlaceCount >= maxThirdPlace;
 
+  const isDragDisabled = isLocked || isSaving;
+  let cardCursor = 'grab';
+  if (isDragDisabled) {
+    cardCursor = 'default';
+  } else if (isDragging) {
+    cardCursor = 'grabbing';
+  }
+
   return (
     <Card
       ref={setNodeRef}
       style={style}
+      {...attributes}
+      {...listeners}
       sx={{
         mb: 1,
-        touchAction: (isLocked || isSaving) ? 'auto' : 'none',
+        touchAction: isDragDisabled ? 'auto' : 'none',
+        cursor: cardCursor,
         backgroundColor,
         border: isDragging ? `2px dashed ${theme.palette.primary.main}` : '1px solid',
         borderColor: isDragging ? theme.palette.primary.main : theme.palette.divider,
@@ -457,18 +465,20 @@ export default function DraggableTeamCard({
           '&:last-child': { pb: 1.5 },
         }}
       >
-        {!isLocked && <DragHandle disabled={isLocked || isSaving} attributes={attributes} listeners={listeners} />}
+        {!isLocked && <DragHandle disabled={isLocked || isSaving} />}
         <PositionBadge position={position} t={t} />
         <TeamInfo team={team} />
         {position === 3 && !isLocked && (
-          <ThirdPlaceCheckbox
-            checked={predictedToQualify}
-            disabled={isLocked || isSaving || cannotAddMore}
-            onChange={onToggleThirdPlace}
-            disabledReason={cannotAddMore ? 'limit-reached' : undefined}
-            maxThirdPlace={maxThirdPlace}
-            t={t}
-          />
+          <Box component="span" onPointerDown={(e: React.PointerEvent) => e.stopPropagation()}>
+            <ThirdPlaceCheckbox
+              checked={predictedToQualify}
+              disabled={isLocked || isSaving || cannotAddMore}
+              onChange={onToggleThirdPlace}
+              disabledReason={cannotAddMore ? 'limit-reached' : undefined}
+              maxThirdPlace={maxThirdPlace}
+              t={t}
+            />
+          </Box>
         )}
         {showResults && <ResultsOverlay result={result} isPending3rdPlace={isPending3rdPlace} isPendingBeforeResults={isPendingBeforeResults} position={position} t={t} />}
       </CardContent>

@@ -214,7 +214,7 @@ function QualifiedTeamsUI({
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 200,
+        delay: 250,
         tolerance: 8,
       },
     })
