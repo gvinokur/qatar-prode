@@ -55,10 +55,8 @@ export function ActualResultDisplay({
   // Treat no prediction as incorrect (0 points)
   const effectiveResult = predictionResult || 'incorrect';
 
-  // Calculate default points if not provided
-  const displayPoints = points !== undefined
-    ? points
-    : (effectiveResult === 'exact' ? 10 : effectiveResult === 'correct' ? 3 : 0);
+  // Points should always come from backend - default to 0 if not provided
+  const displayPoints = points ?? 0;
 
   // Determine badge styling based on boost type
   const getBadgeColor = () => {

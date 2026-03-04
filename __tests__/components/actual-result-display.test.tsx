@@ -142,6 +142,7 @@ describe('ActualResultDisplay', () => {
           homeScore={2}
           awayScore={1}
           predictionResult="exact"
+          points={10}
         />
       );
 
@@ -156,6 +157,7 @@ describe('ActualResultDisplay', () => {
           homeScore={2}
           awayScore={1}
           predictionResult="correct"
+          points={3}
         />
       );
 
