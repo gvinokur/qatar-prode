@@ -493,405 +493,404 @@ export default function GamePredictionEditControls({
     }
   }, [homeScoreInputRef, layout]);
 
-  // Helper: Render score inputs (SonarQube S3776 - extract rendering logic)
-  const renderScoreInputs = () => {
-    if (layout === 'horizontal') {
-      if (isMobile) {
-        // Mobile: Stepper buttons
-        return (
-          <Box>
-            {/* Home team row */}
-            <Grid container spacing={1} alignItems="center" sx={{ mb: 1 }}>
-              <Grid size={5}>
-                <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
-                  {homeTeamName}
-                </Typography>
-              </Grid>
-              <Grid size={7}>
-                <StepperScoreInput
-                  value={homeScore}
-                  onChange={handleHomeScoreChangeInternal}
-                  teamName={homeTeamName}
-                  disabled={loading}
-                  inputRef={homeScoreInputRef}
-                  onKeyDown={(e) => handleKeyDown(e, 'home')}
-                  onFocus={() => setCurrentField('home')}
-                  compact={compact}
-                />
-              </Grid>
-            </Grid>
+  // Helper: Render horizontal layout with mobile steppers (SonarQube S3776 - reduce complexity)
+  const renderHorizontalMobileStepper = () => (
+    <Box>
+      {/* Home team row */}
+      <Grid container spacing={1} alignItems="center" sx={{ mb: 1 }}>
+        <Grid size={5}>
+          <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
+            {homeTeamName}
+          </Typography>
+        </Grid>
+        <Grid size={7}>
+          <StepperScoreInput
+            value={homeScore}
+            onChange={handleHomeScoreChangeInternal}
+            teamName={homeTeamName}
+            disabled={loading}
+            inputRef={homeScoreInputRef}
+            onKeyDown={(e) => handleKeyDown(e, 'home')}
+            onFocus={() => setCurrentField('home')}
+            compact={compact}
+          />
+        </Grid>
+      </Grid>
 
-            {/* Away team row */}
-            <Grid container spacing={1} alignItems="center">
-              <Grid size={5}>
-                <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
-                  {awayTeamName}
-                </Typography>
-              </Grid>
-              <Grid size={7}>
-                <StepperScoreInput
-                  value={awayScore}
-                  onChange={handleAwayScoreChangeInternal}
-                  teamName={awayTeamName}
-                  disabled={loading}
-                  inputRef={awayScoreInputRef}
-                  onKeyDown={(e) => handleKeyDown(e, 'away')}
-                  onFocus={() => setCurrentField('away')}
-                  compact={compact}
-                />
-              </Grid>
-            </Grid>
+      {/* Away team row */}
+      <Grid container spacing={1} alignItems="center">
+        <Grid size={5}>
+          <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
+            {awayTeamName}
+          </Typography>
+        </Grid>
+        <Grid size={7}>
+          <StepperScoreInput
+            value={awayScore}
+            onChange={handleAwayScoreChangeInternal}
+            teamName={awayTeamName}
+            disabled={loading}
+            inputRef={awayScoreInputRef}
+            onKeyDown={(e) => handleKeyDown(e, 'away')}
+            onFocus={() => setCurrentField('away')}
+            compact={compact}
+          />
+        </Grid>
+      </Grid>
 
-          {/* Penalty shootout selector - single line below scores */}
-          {compact && isPenaltyShootout && (
-            <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: (!homePenaltyWinner && !awayPenaltyWinner) ? 'warning.main' : 'text.secondary',
-                    minWidth: 'fit-content'
-                  }}
-                >
-                  {t('edit.penaltyWinner')}
-                </Typography>
-                {(!homePenaltyWinner && !awayPenaltyWinner) && (
-                  <WarningIcon
-                    sx={{
-                      fontSize: 14,
-                      color: 'warning.main'
-                    }}
-                  />
-                )}
-              </Box>
-              <Box sx={{ display: 'flex', gap: 3, flex: 1, minWidth: 0, justifyContent: 'flex-end' }}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={homePenaltyWinner}
-                      onChange={handleHomePenaltyWinnerChange}
-                      onKeyDown={(e) => handleKeyDown(e, 'homePenalty')}
-                      onFocus={() => setCurrentField('homePenalty')}
-                      onClick={() => setCurrentField('homePenalty')}
-                      disabled={loading}
-                      size="small"
-                      slotProps={{
-                        input: {
-                          'aria-label': `${homeTeamShortName ?? homeTeamName} penalty winner`,
-                          ref: homePenaltyCheckboxRef
-                        }
-                      }}
-                    />
-                  }
-                  label={<Typography variant="caption">{homeTeamShortName ?? homeTeamName}</Typography>}
-                  sx={{
-                    mr: 0,
-                    minWidth: 0,
-                    flex: '0 1 auto',
-                    '&:focus-within': {
-                      outline: '2px solid',
-                      outlineColor: 'primary.main',
-                      outlineOffset: '2px',
-                      borderRadius: '4px'
-                    }
-                  }}
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={awayPenaltyWinner}
-                      onChange={handleAwayPenaltyWinnerChange}
-                      onKeyDown={(e) => handleKeyDown(e, 'awayPenalty')}
-                      onFocus={() => setCurrentField('awayPenalty')}
-                      onClick={() => setCurrentField('awayPenalty')}
-                      disabled={loading}
-                      size="small"
-                      slotProps={{
-                        input: {
-                          'aria-label': `${awayTeamShortName ?? awayTeamName} penalty winner`,
-                          ref: awayPenaltyCheckboxRef
-                        }
-                      }}
-                    />
-                  }
-                  label={<Typography variant="caption">{awayTeamShortName ?? awayTeamName}</Typography>}
-                  sx={{
-                    mr: 0,
-                    minWidth: 0,
-                    flex: '0 1 auto',
-                    '&:focus-within': {
-                      outline: '2px solid',
-                      outlineColor: 'primary.main',
-                      outlineOffset: '2px',
-                      borderRadius: '4px'
-                    }
-                  }}
-                />
-              </Box>
-            </Box>
-          )}
-        </Box>
-      );
-      } else {
-        // Desktop: Keep existing TextField
-        return (
-          <Box>
-            {/* Home team row */}
-            <Grid container spacing={1} alignItems="center" sx={{ mb: 1 }}>
-              <Grid size={7}>
-                <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
-                  {homeTeamName}
-                </Typography>
-              </Grid>
-              <Grid size={5}>
-                <TextField
-                  inputRef={homeScoreInputRef}
-                  type="number"
-                  value={homeScore ?? ''}
-                  onChange={handleHomeScoreChange}
-                  onKeyDown={(e) => handleKeyDown(e, 'home')}
-                  onFocus={() => setCurrentField('home')}
-                  slotProps={{
-                    htmlInput: {
-                      min: 0,
-                      style: { textAlign: 'center' },
-                      'aria-label': `${homeTeamName} score`
-                    }
-                  }}
-                  disabled={loading}
-                  size="small"
-                  fullWidth
-                />
-              </Grid>
-            </Grid>
-
-            {/* Away team row */}
-            <Grid container spacing={1} alignItems="center">
-              <Grid size={7}>
-                <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
-                  {awayTeamName}
-                </Typography>
-              </Grid>
-              <Grid size={5}>
-                <TextField
-                  inputRef={awayScoreInputRef}
-                  type="number"
-                  value={awayScore ?? ''}
-                  onChange={handleAwayScoreChange}
-                  onKeyDown={(e) => handleKeyDown(e, 'away')}
-                  onFocus={() => setCurrentField('away')}
-                  slotProps={{
-                    htmlInput: {
-                      min: 0,
-                      style: { textAlign: 'center' },
-                      'aria-label': `${awayTeamName} score`
-                    }
-                  }}
-                  disabled={loading}
-                  size="small"
-                  fullWidth
-                />
-              </Grid>
-            </Grid>
-
-            {/* Penalty shootout selector - single line below scores */}
-            {compact && isPenaltyShootout && (
-              <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: (!homePenaltyWinner && !awayPenaltyWinner) ? 'warning.main' : 'text.secondary',
-                      minWidth: 'fit-content'
-                    }}
-                  >
-                    {t('edit.penaltyWinner')}
-                  </Typography>
-                  {(!homePenaltyWinner && !awayPenaltyWinner) && (
-                    <WarningIcon
-                      sx={{
-                        fontSize: 14,
-                        color: 'warning.main'
-                      }}
-                    />
-                  )}
-                </Box>
-                <Box sx={{ display: 'flex', gap: 3, flex: 1, minWidth: 0, justifyContent: 'flex-end' }}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={homePenaltyWinner}
-                        onChange={handleHomePenaltyWinnerChange}
-                        onKeyDown={(e) => handleKeyDown(e, 'homePenalty')}
-                        onFocus={() => setCurrentField('homePenalty')}
-                        onClick={() => setCurrentField('homePenalty')}
-                        disabled={loading}
-                        size="small"
-                        slotProps={{
-                          input: {
-                            'aria-label': `${homeTeamShortName ?? homeTeamName} penalty winner`,
-                            ref: homePenaltyCheckboxRef
-                          }
-                        }}
-                      />
-                    }
-                    label={<Typography variant="caption">{homeTeamShortName ?? homeTeamName}</Typography>}
-                    sx={{
-                      mr: 0,
-                      minWidth: 0,
-                      flex: '0 1 auto',
-                      '&:focus-within': {
-                        outline: '2px solid',
-                        outlineColor: 'primary.main',
-                        outlineOffset: '2px',
-                        borderRadius: '4px'
-                      }
-                    }}
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={awayPenaltyWinner}
-                        onChange={handleAwayPenaltyWinnerChange}
-                        onKeyDown={(e) => handleKeyDown(e, 'awayPenalty')}
-                        onFocus={() => setCurrentField('awayPenalty')}
-                        onClick={() => setCurrentField('awayPenalty')}
-                        disabled={loading}
-                        size="small"
-                        slotProps={{
-                          input: {
-                            'aria-label': `${awayTeamShortName ?? awayTeamName} penalty winner`,
-                            ref: awayPenaltyCheckboxRef
-                          }
-                        }}
-                      />
-                    }
-                    label={<Typography variant="caption">{awayTeamShortName ?? awayTeamName}</Typography>}
-                    sx={{
-                      mr: 0,
-                      minWidth: 0,
-                      flex: '0 1 auto',
-                      '&:focus-within': {
-                        outline: '2px solid',
-                        outlineColor: 'primary.main',
-                        outlineOffset: '2px',
-                        borderRadius: '4px'
-                      }
-                    }}
-                  />
-                </Box>
-              </Box>
+      {/* Penalty shootout selector - single line below scores */}
+      {compact && isPenaltyShootout && (
+        <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
+            <Typography
+              variant="caption"
+              sx={{
+                color: (!homePenaltyWinner && !awayPenaltyWinner) ? 'warning.main' : 'text.secondary',
+                minWidth: 'fit-content'
+              }}
+            >
+              {t('edit.penaltyWinner')}
+            </Typography>
+            {(!homePenaltyWinner && !awayPenaltyWinner) && (
+              <WarningIcon
+                sx={{
+                  fontSize: 14,
+                  color: 'warning.main'
+                }}
+              />
             )}
           </Box>
-        );
-      }
-    }
+          <Box sx={{ display: 'flex', gap: 3, flex: 1, minWidth: 0, justifyContent: 'flex-end' }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={homePenaltyWinner}
+                  onChange={handleHomePenaltyWinnerChange}
+                  onKeyDown={(e) => handleKeyDown(e, 'homePenalty')}
+                  onFocus={() => setCurrentField('homePenalty')}
+                  onClick={() => setCurrentField('homePenalty')}
+                  disabled={loading}
+                  size="small"
+                  slotProps={{
+                    input: {
+                      'aria-label': `${homeTeamShortName ?? homeTeamName} penalty winner`,
+                      ref: homePenaltyCheckboxRef
+                    }
+                  }}
+                />
+              }
+              label={<Typography variant="caption">{homeTeamShortName ?? homeTeamName}</Typography>}
+              sx={{
+                mr: 0,
+                minWidth: 0,
+                flex: '0 1 auto',
+                '&:focus-within': {
+                  outline: '2px solid',
+                  outlineColor: 'primary.main',
+                  outlineOffset: '2px',
+                  borderRadius: '4px'
+                }
+              }}
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={awayPenaltyWinner}
+                  onChange={handleAwayPenaltyWinnerChange}
+                  onKeyDown={(e) => handleKeyDown(e, 'awayPenalty')}
+                  onFocus={() => setCurrentField('awayPenalty')}
+                  onClick={() => setCurrentField('awayPenalty')}
+                  disabled={loading}
+                  size="small"
+                  slotProps={{
+                    input: {
+                      'aria-label': `${awayTeamShortName ?? awayTeamName} penalty winner`,
+                      ref: awayPenaltyCheckboxRef
+                    }
+                  }}
+                />
+              }
+              label={<Typography variant="caption">{awayTeamShortName ?? awayTeamName}</Typography>}
+              sx={{
+                mr: 0,
+                minWidth: 0,
+                flex: '0 1 auto',
+                '&:focus-within': {
+                  outline: '2px solid',
+                  outlineColor: 'primary.main',
+                  outlineOffset: '2px',
+                  borderRadius: '4px'
+                }
+              }}
+            />
+          </Box>
+        </Box>
+      )}
+    </Box>
+  );
 
-    // Vertical layout
-    if (isMobile) {
-      // Mobile: Stepper buttons
-      return (
-        <Grid container spacing={2} alignItems="center">
-          <Grid size={8}>
-            <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
-              {homeTeamName}
-            </Typography>
-          </Grid>
-          <Grid size={4}>
-            <StepperScoreInput
-              value={homeScore}
-              onChange={handleHomeScoreChangeInternal}
-              teamName={homeTeamName}
-              disabled={loading}
-              inputRef={homeScoreInputRef}
-              onKeyDown={(e) => handleKeyDown(e, 'home')}
-              onFocus={() => setCurrentField('home')}
-              compact={compact}
-            />
-          </Grid>
-          <Grid size={12} sx={{ textAlign: 'center' }}>
-            <Typography variant="body2" color="text.secondary">vs</Typography>
-          </Grid>
-          <Grid size={8}>
-            <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
-              {awayTeamName}
-            </Typography>
-          </Grid>
-          <Grid size={4}>
-            <StepperScoreInput
-              value={awayScore}
-              onChange={handleAwayScoreChangeInternal}
-              teamName={awayTeamName}
-              disabled={loading}
-              inputRef={awayScoreInputRef}
-              onKeyDown={(e) => handleKeyDown(e, 'away')}
-              onFocus={() => setCurrentField('away')}
-              compact={compact}
-            />
-          </Grid>
+  // Helper: Render horizontal layout with desktop text fields (SonarQube S3776 - reduce complexity)
+  const renderHorizontalDesktopTextField = () => (
+    <Box>
+      {/* Home team row */}
+      <Grid container spacing={1} alignItems="center" sx={{ mb: 1 }}>
+        <Grid size={7}>
+          <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
+            {homeTeamName}
+          </Typography>
         </Grid>
-      );
-    } else {
-      // Desktop: Keep existing TextField
-      return (
-        <Grid container spacing={2} alignItems="center">
-          <Grid size={8}>
-            <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
-              {homeTeamName}
+        <Grid size={5}>
+          <TextField
+            inputRef={homeScoreInputRef}
+            type="number"
+            value={homeScore ?? ''}
+            onChange={handleHomeScoreChange}
+            onKeyDown={(e) => handleKeyDown(e, 'home')}
+            onFocus={() => setCurrentField('home')}
+            slotProps={{
+              htmlInput: {
+                min: 0,
+                style: { textAlign: 'center' },
+                'aria-label': `${homeTeamName} score`
+              }
+            }}
+            disabled={loading}
+            size="small"
+            fullWidth
+          />
+        </Grid>
+      </Grid>
+
+      {/* Away team row */}
+      <Grid container spacing={1} alignItems="center">
+        <Grid size={7}>
+          <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
+            {awayTeamName}
+          </Typography>
+        </Grid>
+        <Grid size={5}>
+          <TextField
+            inputRef={awayScoreInputRef}
+            type="number"
+            value={awayScore ?? ''}
+            onChange={handleAwayScoreChange}
+            onKeyDown={(e) => handleKeyDown(e, 'away')}
+            onFocus={() => setCurrentField('away')}
+            slotProps={{
+              htmlInput: {
+                min: 0,
+                style: { textAlign: 'center' },
+                'aria-label': `${awayTeamName} score`
+              }
+            }}
+            disabled={loading}
+            size="small"
+            fullWidth
+          />
+        </Grid>
+      </Grid>
+
+      {/* Penalty shootout selector - single line below scores */}
+      {compact && isPenaltyShootout && (
+        <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
+            <Typography
+              variant="caption"
+              sx={{
+                color: (!homePenaltyWinner && !awayPenaltyWinner) ? 'warning.main' : 'text.secondary',
+                minWidth: 'fit-content'
+              }}
+            >
+              {t('edit.penaltyWinner')}
             </Typography>
-          </Grid>
-          <Grid size={4}>
-            <TextField
-              inputRef={homeScoreInputRef}
-              type="number"
-              value={homeScore ?? ''}
-              onChange={handleHomeScoreChange}
-              onKeyDown={(e) => handleKeyDown(e, 'home')}
-              onFocus={() => setCurrentField('home')}
-              slotProps={{
-                htmlInput: {
-                  min: 0,
-                  style: { textAlign: 'center' },
-                  'aria-label': `${homeTeamName} score`
+            {(!homePenaltyWinner && !awayPenaltyWinner) && (
+              <WarningIcon
+                sx={{
+                  fontSize: 14,
+                  color: 'warning.main'
+                }}
+              />
+            )}
+          </Box>
+          <Box sx={{ display: 'flex', gap: 3, flex: 1, minWidth: 0, justifyContent: 'flex-end' }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={homePenaltyWinner}
+                  onChange={handleHomePenaltyWinnerChange}
+                  onKeyDown={(e) => handleKeyDown(e, 'homePenalty')}
+                  onFocus={() => setCurrentField('homePenalty')}
+                  onClick={() => setCurrentField('homePenalty')}
+                  disabled={loading}
+                  size="small"
+                  slotProps={{
+                    input: {
+                      'aria-label': `${homeTeamShortName ?? homeTeamName} penalty winner`,
+                      ref: homePenaltyCheckboxRef
+                    }
+                  }}
+                />
+              }
+              label={<Typography variant="caption">{homeTeamShortName ?? homeTeamName}</Typography>}
+              sx={{
+                mr: 0,
+                minWidth: 0,
+                flex: '0 1 auto',
+                '&:focus-within': {
+                  outline: '2px solid',
+                  outlineColor: 'primary.main',
+                  outlineOffset: '2px',
+                  borderRadius: '4px'
                 }
               }}
-              disabled={loading}
-              size="small"
-              fullWidth
             />
-          </Grid>
-          <Grid size={12} sx={{ textAlign: 'center' }}>
-            <Typography variant="body2" color="text.secondary">vs</Typography>
-          </Grid>
-          <Grid size={8}>
-            <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
-              {awayTeamName}
-            </Typography>
-          </Grid>
-          <Grid size={4}>
-            <TextField
-              inputRef={awayScoreInputRef}
-              type="number"
-              value={awayScore ?? ''}
-              onChange={handleAwayScoreChange}
-              onKeyDown={(e) => handleKeyDown(e, 'away')}
-              onFocus={() => setCurrentField('away')}
-              slotProps={{
-                htmlInput: {
-                  min: 0,
-                  style: { textAlign: 'center' },
-                  'aria-label': `${awayTeamName} score`
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={awayPenaltyWinner}
+                  onChange={handleAwayPenaltyWinnerChange}
+                  onKeyDown={(e) => handleKeyDown(e, 'awayPenalty')}
+                  onFocus={() => setCurrentField('awayPenalty')}
+                  onClick={() => setCurrentField('awayPenalty')}
+                  disabled={loading}
+                  size="small"
+                  slotProps={{
+                    input: {
+                      'aria-label': `${awayTeamShortName ?? awayTeamName} penalty winner`,
+                      ref: awayPenaltyCheckboxRef
+                    }
+                  }}
+                />
+              }
+              label={<Typography variant="caption">{awayTeamShortName ?? awayTeamName}</Typography>}
+              sx={{
+                mr: 0,
+                minWidth: 0,
+                flex: '0 1 auto',
+                '&:focus-within': {
+                  outline: '2px solid',
+                  outlineColor: 'primary.main',
+                  outlineOffset: '2px',
+                  borderRadius: '4px'
                 }
               }}
-              disabled={loading}
-              size="small"
-              fullWidth
             />
-          </Grid>
-        </Grid>
-      );
+          </Box>
+        </Box>
+      )}
+    </Box>
+  );
+
+  // Helper: Render vertical layout with mobile steppers (SonarQube S3776 - reduce complexity)
+  const renderVerticalMobileStepper = () => (
+    <Grid container spacing={2} alignItems="center">
+      <Grid size={8}>
+        <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
+          {homeTeamName}
+        </Typography>
+      </Grid>
+      <Grid size={4}>
+        <StepperScoreInput
+          value={homeScore}
+          onChange={handleHomeScoreChangeInternal}
+          teamName={homeTeamName}
+          disabled={loading}
+          inputRef={homeScoreInputRef}
+          onKeyDown={(e) => handleKeyDown(e, 'home')}
+          onFocus={() => setCurrentField('home')}
+          compact={compact}
+        />
+      </Grid>
+      <Grid size={12} sx={{ textAlign: 'center' }}>
+        <Typography variant="body2" color="text.secondary">vs</Typography>
+      </Grid>
+      <Grid size={8}>
+        <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
+          {awayTeamName}
+        </Typography>
+      </Grid>
+      <Grid size={4}>
+        <StepperScoreInput
+          value={awayScore}
+          onChange={handleAwayScoreChangeInternal}
+          teamName={awayTeamName}
+          disabled={loading}
+          inputRef={awayScoreInputRef}
+          onKeyDown={(e) => handleKeyDown(e, 'away')}
+          onFocus={() => setCurrentField('away')}
+          compact={compact}
+        />
+      </Grid>
+    </Grid>
+  );
+
+  // Helper: Render vertical layout with desktop text fields (SonarQube S3776 - reduce complexity)
+  const renderVerticalDesktopTextField = () => (
+    <Grid container spacing={2} alignItems="center">
+      <Grid size={8}>
+        <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
+          {homeTeamName}
+        </Typography>
+      </Grid>
+      <Grid size={4}>
+        <TextField
+          inputRef={homeScoreInputRef}
+          type="number"
+          value={homeScore ?? ''}
+          onChange={handleHomeScoreChange}
+          onKeyDown={(e) => handleKeyDown(e, 'home')}
+          onFocus={() => setCurrentField('home')}
+          slotProps={{
+            htmlInput: {
+              min: 0,
+              style: { textAlign: 'center' },
+              'aria-label': `${homeTeamName} score`
+            }
+          }}
+          disabled={loading}
+          size="small"
+          fullWidth
+        />
+      </Grid>
+      <Grid size={12} sx={{ textAlign: 'center' }}>
+        <Typography variant="body2" color="text.secondary">vs</Typography>
+      </Grid>
+      <Grid size={8}>
+        <Typography variant={compact ? 'body2' : 'body1'} fontWeight="medium">
+          {awayTeamName}
+        </Typography>
+      </Grid>
+      <Grid size={4}>
+        <TextField
+          inputRef={awayScoreInputRef}
+          type="number"
+          value={awayScore ?? ''}
+          onChange={handleAwayScoreChange}
+          onKeyDown={(e) => handleKeyDown(e, 'away')}
+          onFocus={() => setCurrentField('away')}
+          slotProps={{
+            htmlInput: {
+              min: 0,
+              style: { textAlign: 'center' },
+              'aria-label': `${awayTeamName} score`
+            }
+          }}
+          disabled={loading}
+          size="small"
+          fullWidth
+        />
+      </Grid>
+    </Grid>
+  );
+
+  // Helper: Render score inputs (SonarQube S3776 - simplified by extracting helpers)
+  const renderScoreInputs = () => {
+    if (layout === 'horizontal') {
+      return isMobile ? renderHorizontalMobileStepper() : renderHorizontalDesktopTextField();
     }
+    return isMobile ? renderVerticalMobileStepper() : renderVerticalDesktopTextField();
   };
+
 
   // Helper: Render penalty selection (SonarQube S3776 - extract rendering logic)
   const renderPenaltySelection = () => {

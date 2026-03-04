@@ -10,14 +10,14 @@ export interface ScoreInputHandle {
 }
 
 interface StepperScoreInputProps {
-  value?: number;                              // Score value (undefined = empty)
-  onChange: (value?: number) => void;         // Callback when value changes
-  teamName: string;                           // For aria-label
-  disabled?: boolean;                         // Loading state
-  inputRef?: React.RefObject<unknown>;         // For keyboard navigation (uses useImperativeHandle)
-  onKeyDown?: (e: React.KeyboardEvent) => void; // Keyboard event handler
-  onFocus?: () => void;                       // Focus event handler
-  compact?: boolean;                          // Compact mode (smaller buttons)
+  readonly value?: number;                              // Score value (undefined = empty)
+  readonly onChange: (value?: number) => void;         // Callback when value changes
+  readonly teamName: string;                           // For aria-label
+  readonly disabled?: boolean;                         // Loading state
+  readonly inputRef?: React.RefObject<unknown>;         // For keyboard navigation (uses useImperativeHandle)
+  readonly onKeyDown?: (e: React.KeyboardEvent) => void; // Keyboard event handler
+  readonly onFocus?: () => void;                       // Focus event handler
+  readonly compact?: boolean;                          // Compact mode (smaller buttons)
 }
 
 export default function StepperScoreInput({
