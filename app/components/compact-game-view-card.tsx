@@ -141,14 +141,20 @@ export default function CompactGameViewCard({
   const userHasPrediction = hasResult; // homeScore and awayScore are defined
 
   // Result border styling (only when no boost present and user predicted)
-  const resultBorderColor = gameHasResult && userHasPrediction && !boostType
-    ? (calculatePredictionResult(
-        homeScore!,
-        awayScore!,
-        specificProps.gameResult!.home_score!,
-        specificProps.gameResult!.away_score!
-      ) === 'incorrect' ? 'error.main' : 'success.main')
-    : undefined;
+  let resultBorderColor: string | undefined = undefined;
+  if (gameHasResult && userHasPrediction && !boostType) {
+    const result = calculatePredictionResult(
+      homeScore!,
+      awayScore!,
+      specificProps.gameResult!.home_score!,
+      specificProps.gameResult!.away_score!
+    );
+    resultBorderColor = result === 'incorrect' ? 'error.main' : 'success.main';
+  }
+
+  // Calculate border styling based on priority: Boost > Result > Default
+  const cardBorderColor = boostType ? getBoostBorderColor() : (resultBorderColor || 'divider');
+  const cardBorderWidth = boostType ? 2 : (resultBorderColor ? 2 : 1);
 
   return (
     <Card
@@ -156,9 +162,8 @@ export default function CompactGameViewCard({
       onClick={!disabled || specificProps.isGameFixture ? handleEditClick : undefined}
       sx={{
         mb: 1,
-        // Border priority: Boost > Result > Default
-        borderColor: boostType ? getBoostBorderColor() : (resultBorderColor || 'divider'),
-        borderWidth: boostType ? 2 : (resultBorderColor ? 2 : 1),
+        borderColor: cardBorderColor,
+        borderWidth: cardBorderWidth,
         boxShadow: getBoostShadow(),
         transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
         '&:focus-within': {
@@ -416,16 +421,24 @@ export function calculatePredictionResult(
 
   // Determine winners using explicit conditions
   // Predicted winner
-  const predictedWinner: 'home' | 'away' | 'draw' =
-    predictedHome > predictedAway ? 'home' :
-    predictedHome < predictedAway ? 'away' :
-    'draw'; // predictedHome === predictedAway
+  let predictedWinner: 'home' | 'away' | 'draw';
+  if (predictedHome > predictedAway) {
+    predictedWinner = 'home';
+  } else if (predictedHome < predictedAway) {
+    predictedWinner = 'away';
+  } else {
+    predictedWinner = 'draw';
+  }
 
   // Actual winner
-  const actualWinner: 'home' | 'away' | 'draw' =
-    actualHome > actualAway ? 'home' :
-    actualHome < actualAway ? 'away' :
-    'draw'; // actualHome === actualAway
+  let actualWinner: 'home' | 'away' | 'draw';
+  if (actualHome > actualAway) {
+    actualWinner = 'home';
+  } else if (actualHome < actualAway) {
+    actualWinner = 'away';
+  } else {
+    actualWinner = 'draw';
+  }
 
   // CORRECT: Predicted winner matches actual winner (not exact score)
   if (predictedWinner === actualWinner) {

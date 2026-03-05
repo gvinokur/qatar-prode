@@ -32,7 +32,7 @@ export function TeamScoreRow({
   awayPenaltyWinner,
   onClick,
   clickable = false,
-}: TeamScoreRowProps) {
+}: Readonly<TeamScoreRowProps>) {
   const homeLogoUrl = homeTeamTheme ? getThemeLogoUrl(homeTeamTheme) : null;
   const awayLogoUrl = awayTeamTheme ? getThemeLogoUrl(awayTeamTheme) : null;
 

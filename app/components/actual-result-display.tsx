@@ -7,12 +7,14 @@ import { useTranslations } from 'next-intl';
 import { Theme } from '../db/tables-definition';
 import { TeamScoreRow } from './team-score-row';
 
+type PredictionResult = 'exact' | 'correct' | 'incorrect';
+
 interface ActualResultDisplayProps {
   homeTeamName: string;
   awayTeamName: string;
   homeScore: number;
   awayScore: number;
-  predictionResult?: 'exact' | 'correct' | 'incorrect'; // undefined when user didn't predict
+  predictionResult?: PredictionResult; // undefined when user didn't predict
   homeTeamTheme?: Theme | null;
   awayTeamTheme?: Theme | null;
   homePenaltyScore?: number | null;
@@ -44,7 +46,7 @@ export function ActualResultDisplay({
   awayPenaltyScore,
   points,
   boostType,
-}: ActualResultDisplayProps) {
+}: Readonly<ActualResultDisplayProps>) {
   const t = useTranslations('predictions');
   const theme = useTheme();
 
@@ -128,7 +130,7 @@ export function ActualResultDisplay({
  * @returns Translated label string with points (e.g., "Exact (30 points)" for golden boost)
  */
 function getPredictionResultLabel(
-  result: 'exact' | 'correct' | 'incorrect',
+  result: PredictionResult,
   points: number,
   t: ReturnType<typeof useTranslations>
 ): string {
@@ -146,6 +148,6 @@ function getPredictionResultLabel(
  * @param result - The prediction result type
  * @returns CheckIcon for exact/correct, CloseIcon for incorrect
  */
-function getPredictionResultIcon(result: 'exact' | 'correct' | 'incorrect') {
+function getPredictionResultIcon(result: PredictionResult) {
   return result === 'incorrect' ? <CloseIcon /> : <CheckIcon />;
 }
