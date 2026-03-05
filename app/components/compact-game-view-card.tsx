@@ -154,7 +154,14 @@ export default function CompactGameViewCard({
 
   // Calculate border styling based on priority: Boost > Result > Default
   const cardBorderColor = boostType ? getBoostBorderColor() : (resultBorderColor || 'divider');
-  const cardBorderWidth = boostType ? 2 : (resultBorderColor ? 2 : 1);
+  let cardBorderWidth: number;
+  if (boostType) {
+    cardBorderWidth = 2;
+  } else if (resultBorderColor) {
+    cardBorderWidth = 2;
+  } else {
+    cardBorderWidth = 1;
+  }
 
   return (
     <Card
