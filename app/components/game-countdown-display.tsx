@@ -93,7 +93,10 @@ export default function GameCountdownDisplay({
             <Link
               component="button"
               variant={compact ? 'caption' : 'body2'}
-              onClick={toggleTimezone}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleTimezone();
+              }}
               tabIndex={-1}
               sx={{
                 textDecoration: 'underline',

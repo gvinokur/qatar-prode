@@ -1,6 +1,6 @@
 'use client'
 
-import { Box, Stack, Button } from '@mui/material';
+import { Box, Button } from '@mui/material';
 import { useContext, useState, useCallback, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
@@ -198,7 +198,7 @@ export function GamesListWithScroll({
   }
 
   return (
-    <Stack spacing={2}>
+    <Box>
       {/* Next game button - only show on desktop if more than 1 game */}
       {games.length > 1 && (
         <Box sx={{ display: { xs: 'none', md: 'flex' }, justifyContent: 'center', pb: 2 }}>
@@ -213,37 +213,47 @@ export function GamesListWithScroll({
         </Box>
       )}
 
-      {games.map(game => {
-        const gameGuess = gameGuesses[game.id];
-        const isPlayoffGame = game.playoffStage !== null && game.playoffStage !== undefined;
+      {/* Two-column responsive grid for game cards */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+          gap: 2,
+          width: '100%',
+        }}
+      >
+        {games.map(game => {
+          const gameGuess = gameGuesses[game.id];
+          const isPlayoffGame = game.playoffStage !== null && game.playoffStage !== undefined;
 
-        return (
-          <Box
-            key={game.id}
-            id={`game-${game.id}`}
-            data-game-id={game.id}
-          >
-            <FlippableGameCard
-              game={game}
-              teamsMap={teamsMap}
-              isPlayoffs={isPlayoffGame}
-              tournamentId={tournamentId}
-              homeScore={gameGuess?.home_score}
-              awayScore={gameGuess?.away_score}
-              homePenaltyWinner={gameGuess?.home_penalty_winner}
-              awayPenaltyWinner={gameGuess?.away_penalty_winner}
-              boostType={gameGuess?.boost_type}
-              initialBoostType={gameGuess?.boost_type}
-              isEditing={editingGameId === game.id}
-              onEditStart={() => handleEditStart(game.id)}
-              onEditEnd={handleEditEnd}
-              disabled={false}
-              onAutoAdvanceNext={() => handleAutoAdvanceNext(game.id)}
-              onAutoGoPrevious={() => handleAutoGoPrevious(game.id)}
-            />
-          </Box>
-        );
-      })}
+          return (
+            <Box
+              key={game.id}
+              id={`game-${game.id}`}
+              data-game-id={game.id}
+            >
+              <FlippableGameCard
+                game={game}
+                teamsMap={teamsMap}
+                isPlayoffs={isPlayoffGame}
+                tournamentId={tournamentId}
+                homeScore={gameGuess?.home_score}
+                awayScore={gameGuess?.away_score}
+                homePenaltyWinner={gameGuess?.home_penalty_winner}
+                awayPenaltyWinner={gameGuess?.away_penalty_winner}
+                boostType={gameGuess?.boost_type}
+                initialBoostType={gameGuess?.boost_type}
+                isEditing={editingGameId === game.id}
+                onEditStart={() => handleEditStart(game.id)}
+                onEditEnd={handleEditEnd}
+                disabled={false}
+                onAutoAdvanceNext={() => handleAutoAdvanceNext(game.id)}
+                onAutoGoPrevious={() => handleAutoGoPrevious(game.id)}
+              />
+            </Box>
+          );
+        })}
+      </Box>
 
       {/* Back to top button - only show on desktop if more than 1 game */}
       {games.length > 1 && (
@@ -258,6 +268,6 @@ export function GamesListWithScroll({
           </Button>
         </Box>
       )}
-    </Stack>
+    </Box>
   );
 }

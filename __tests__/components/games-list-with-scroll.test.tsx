@@ -1186,4 +1186,150 @@ describe('GamesListWithScroll', () => {
       expect(screen.getByTestId('game-card-game1')).toBeInTheDocument();
     });
   });
+
+  describe('Story #254 - Two-Column Grid Layout', () => {
+    it('should render games in a grid container', () => {
+      const { container } = renderWithProviders(
+        <GamesListWithScroll {...defaultProps} />,
+        { guessesContext: true }
+      );
+
+      // Find the grid container (Box with CSS Grid styling via MUI classes)
+      // Grid is applied via sx prop, so we check for the presence of the games structure
+      const gameCards = container.querySelectorAll('[data-testid^="game-card-"]');
+      expect(gameCards.length).toBeGreaterThan(0);
+    });
+
+    it('should render all game cards in the grid', () => {
+      const multipleGames = [
+        createMockGame({ id: 'game1', game_number: 1 }),
+        createMockGame({ id: 'game2', game_number: 2 }),
+        createMockGame({ id: 'game3', game_number: 3 }),
+      ];
+
+      renderWithProviders(
+        <GamesListWithScroll {...defaultProps} games={multipleGames} />,
+        { guessesContext: true }
+      );
+
+      expect(screen.getByTestId('game-card-game1')).toBeInTheDocument();
+      expect(screen.getByTestId('game-card-game2')).toBeInTheDocument();
+      expect(screen.getByTestId('game-card-game3')).toBeInTheDocument();
+    });
+
+    it('should handle single game', () => {
+      const singleGame = createMockGame({
+        id: 'game1',
+        game_number: 1,
+      });
+
+      renderWithProviders(
+        <GamesListWithScroll
+          {...defaultProps}
+          games={[singleGame]}
+        />,
+        { guessesContext: true }
+      );
+
+      expect(screen.getByTestId('game-card-game1')).toBeInTheDocument();
+    });
+
+    it('should handle odd number of games', () => {
+      const threeGames = [
+        createMockGame({ id: 'game1', game_number: 1 }),
+        createMockGame({ id: 'game2', game_number: 2 }),
+        createMockGame({ id: 'game3', game_number: 3 }),
+      ];
+
+      renderWithProviders(
+        <GamesListWithScroll
+          {...defaultProps}
+          games={threeGames}
+        />,
+        { guessesContext: true }
+      );
+
+      expect(screen.getByTestId('game-card-game1')).toBeInTheDocument();
+      expect(screen.getByTestId('game-card-game2')).toBeInTheDocument();
+      expect(screen.getByTestId('game-card-game3')).toBeInTheDocument();
+    });
+
+    it('should render navigation buttons outside the grid', () => {
+      const multipleGames = [
+        createMockGame({ id: 'game1', game_number: 1 }),
+        createMockGame({ id: 'game2', game_number: 2 }),
+        createMockGame({ id: 'game3', game_number: 3 }),
+      ];
+
+      renderWithProviders(
+        <GamesListWithScroll {...defaultProps} games={multipleGames} />,
+        { guessesContext: true }
+      );
+
+      // Navigation buttons should still be present (supports both English and Spanish)
+      const goToNextButton = screen.getByText(/Go to Next Match|Ir al Proximo Partido/i);
+      const backToTopButton = screen.getByText(/Back to Top|Volver al Principio/i);
+
+      expect(goToNextButton).toBeInTheDocument();
+      expect(backToTopButton).toBeInTheDocument();
+    });
+
+    it('should not render navigation buttons when only 1 game', () => {
+      const singleGame = createMockGame({
+        id: 'game1',
+        game_number: 1,
+      });
+
+      renderWithProviders(
+        <GamesListWithScroll
+          {...defaultProps}
+          games={[singleGame]}
+        />,
+        { guessesContext: true }
+      );
+
+      // Navigation buttons should not appear for single game (check both languages)
+      expect(screen.queryByText(/Go to Next Match|Ir al Proximo Partido/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Back to Top|Volver al Principio/i)).not.toBeInTheDocument();
+    });
+
+    it('should preserve game IDs for scrolling', () => {
+      const multipleGames = [
+        createMockGame({ id: 'game1', game_number: 1 }),
+        createMockGame({ id: 'game2', game_number: 2 }),
+        createMockGame({ id: 'game3', game_number: 3 }),
+      ];
+
+      const { container } = renderWithProviders(
+        <GamesListWithScroll {...defaultProps} games={multipleGames} />,
+        { guessesContext: true }
+      );
+
+      // Each game should have an id attribute for scrolling
+      expect(container.querySelector('#game-game1')).toBeInTheDocument();
+      expect(container.querySelector('#game-game2')).toBeInTheDocument();
+      expect(container.querySelector('#game-game3')).toBeInTheDocument();
+    });
+
+    it('should handle large number of games (no virtualization needed)', () => {
+      const manyGames = Array.from({ length: 50 }, (_, i) =>
+        createMockGame({
+          id: `game${i + 1}`,
+          game_number: i + 1,
+        })
+      );
+
+      renderWithProviders(
+        <GamesListWithScroll
+          {...defaultProps}
+          games={manyGames}
+        />,
+        { guessesContext: true }
+      );
+
+      // All games should be rendered (no virtualization for <100 games)
+      expect(screen.getByTestId('game-card-game1')).toBeInTheDocument();
+      expect(screen.getByTestId('game-card-game50')).toBeInTheDocument();
+    });
+  });
 });

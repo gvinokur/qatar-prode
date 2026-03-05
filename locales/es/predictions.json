@@ -30,7 +30,13 @@
     "locked": "Bloqueado",
     "closesIn": "Cierra en {countdown}",
     "isPublished": "¿Está publicado?",
-    "inPlayOrRecentlyFinished": "EN JUEGO O RECIÉN TERMINADO"
+    "inPlayOrRecentlyFinished": "EN JUEGO O RECIÉN TERMINADO",
+    "yourPrediction": "Tu Predicción",
+    "noPrediction": "Sin Predicción",
+    "actualResult": "Resultado Real",
+    "predictionResultExact": "Exacto ({points} puntos)",
+    "predictionResultCorrect": "Correcto ({points} puntos)",
+    "predictionResultIncorrect": "Incorrecto (0 puntos)"
   },
   "urgency": {
     "games": "{count, plural, =0 {Ningún partido cierra en {timeframe}} one {{count} partido cierra en {timeframe}} other {{count} partidos cierran en {timeframe}}}",

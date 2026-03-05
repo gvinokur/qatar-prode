@@ -30,7 +30,13 @@
     "locked": "Locked",
     "closesIn": "Closes in {countdown}",
     "isPublished": "Is published?",
-    "inPlayOrRecentlyFinished": "IN PLAY OR RECENTLY FINISHED"
+    "inPlayOrRecentlyFinished": "IN PLAY OR RECENTLY FINISHED",
+    "yourPrediction": "Your Prediction",
+    "noPrediction": "No Prediction",
+    "actualResult": "Actual Result",
+    "predictionResultExact": "Exact ({points} points)",
+    "predictionResultCorrect": "Correct ({points} points)",
+    "predictionResultIncorrect": "Incorrect (0 points)"
   },
   "urgency": {
     "games": "{count, plural, =0 {No matches close in {timeframe}} one {{count} match closes in {timeframe}} other {{count} matches close in {timeframe}}}",

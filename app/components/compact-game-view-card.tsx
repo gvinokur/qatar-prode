@@ -7,7 +7,7 @@ import {
   Typography,
   useTheme,
   IconButton,
-  Tooltip, Divider, Grid,
+  Tooltip, Divider,
   Checkbox,
   Badge, CircularProgress,
   Chip,
@@ -17,10 +17,11 @@ import { Edit as EditIcon, Save as SaveIcon, SaveOutlined as SaveOutlinedIcon, S
 import { GameResultNew, Theme} from "../db/tables-definition";
 import {useState} from "react";
 import { useTranslations } from 'next-intl';
-import {getThemeLogoUrl} from "../utils/theme-utils";
 import { calculateFinalPoints } from "../utils/point-calculator";
 import GameCardPointOverlay from "./game-card-point-overlay";
 import GameCountdownDisplay from "./game-countdown-display";
+import { ActualResultDisplay } from "./actual-result-display";
+import { TeamScoreRow } from "./team-score-row";
 
 type SharedProps = {
   gameNumber: number;
@@ -115,7 +116,6 @@ export default function CompactGameViewCard({
     }
   };
 
-  const isClickableStyles = (!disabled || specificProps.isGameFixture) ? {cursor: 'pointer'} : {}
   const isDraft = (!specificProps.isGameGuess && specificProps.isDraft)
   const boostType = specificProps.isGameGuess ? specificProps.boostType : null
 
@@ -133,21 +133,52 @@ export default function CompactGameViewCard({
     return 'none';
   };
 
-  let logoUrl = null
+  // Separate game result from user prediction
+  const gameHasResult = 'gameResult' in specificProps && specificProps.gameResult &&
+    Number.isInteger(specificProps.gameResult.home_score) &&
+    Number.isInteger(specificProps.gameResult.away_score);
+
+  const userHasPrediction = hasResult; // homeScore and awayScore are defined
+
+  // Result border styling (only when no boost present and user predicted)
+  let resultBorderColor: string | undefined = undefined;
+  if (gameHasResult && userHasPrediction && !boostType) {
+    const result = calculatePredictionResult(
+      homeScore!,
+      awayScore!,
+      specificProps.gameResult!.home_score!,
+      specificProps.gameResult!.away_score!
+    );
+    resultBorderColor = result === 'incorrect' ? 'error.main' : 'success.main';
+  }
+
+  // Calculate border styling based on priority: Boost > Result > Default
+  const cardBorderColor = boostType ? getBoostBorderColor() : (resultBorderColor || 'divider');
+  let cardBorderWidth: number;
+  if (boostType) {
+    cardBorderWidth = 2;
+  } else if (resultBorderColor) {
+    cardBorderWidth = 2;
+  } else {
+    cardBorderWidth = 1;
+  }
 
   return (
     <Card
       variant="outlined"
+      onClick={!disabled || specificProps.isGameFixture ? handleEditClick : undefined}
       sx={{
         mb: 1,
-        borderColor: getBoostBorderColor(),
-        borderWidth: boostType ? 2 : 1,
+        borderColor: cardBorderColor,
+        borderWidth: cardBorderWidth,
         boxShadow: getBoostShadow(),
         transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
         '&:focus-within': {
           borderColor: 'primary.main',
           boxShadow: (theme) => `0 0 0 3px ${theme.palette.primary.main}33`,
-        }
+        },
+        // Add cursor pointer to entire card when clickable (visual feedback)
+        ...(!disabled || specificProps.isGameFixture ? { cursor: 'pointer' } : {})
       }}
     >
       <CardContent sx={{ py: 2, px: 2, '&:last-child': { pb: 3 } }}>
@@ -227,11 +258,13 @@ export default function CompactGameViewCard({
                       />
                     </Tooltip>
                   )}
+                  {/* Hide point overlay when result is shown in ActualResultDisplay badge to avoid duplication */}
                   {specificProps.isGameGuess &&
                     Number.isInteger(specificProps.gameResult?.home_score) &&
                     Number.isInteger(specificProps.gameResult?.away_score) &&
                     Number.isInteger(specificProps.scoreForGame) &&
-                    pointCalc && (
+                    pointCalc &&
+                    !gameHasResult && (
                       <Box display="flex" justifyContent="flex-end">
                         <GameCardPointOverlay
                           gameId={gameNumber.toString()}
@@ -266,107 +299,76 @@ export default function CompactGameViewCard({
             }}
           />
 
+          {/* "Your Prediction" or "No Prediction" label when game has result */}
+          {gameHasResult && (
+            <Typography
+              variant="body2"
+              align="center"
+              sx={{ mb: 1, fontWeight: 'medium' }}
+              color={userHasPrediction ? 'text.primary' : 'error.main'}
+            >
+              {userHasPrediction ? t('game.yourPrediction') : t('game.noPrediction')}
+            </Typography>
+          )}
+
           {/* Teams and score */}
-          <Grid
-            container
-            spacing={1}
-            sx={isClickableStyles}
+          <TeamScoreRow
+            homeTeamName={homeTeamNameOrDescription}
+            awayTeamName={awayTeamNameOrDescription}
+            homeScore={hasResult ? homeScore : undefined}
+            awayScore={hasResult ? awayScore : undefined}
+            homeTeamTheme={homeTeamTheme}
+            awayTeamTheme={awayTeamTheme}
+            homePenaltyWinner={isPlayoffGame && specificProps.isGameGuess && specificProps.homePenaltyWinner}
+            awayPenaltyWinner={isPlayoffGame && specificProps.isGameGuess && specificProps.awayPenaltyWinner}
             onClick={handleEditClick}
-            width='100%'
-          >
-            {/* Home team */}
-            <Grid display="flex" justifyContent="flex-end" alignItems={'center'} size={5}>
-              <Typography
-                variant="body2"
-                fontWeight="medium"
-                textAlign="left"
-                sx={{
-                  ml: 1,
-                  maxWidth: '100%',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                {homeTeamNameOrDescription}
-              </Typography>
-              {(() => {
-                logoUrl = getThemeLogoUrl(homeTeamTheme);
-                return logoUrl && (
-                  <img
-                    src={logoUrl}
-                    alt={homeTeamNameOrDescription}
-                    height={'24px'}
-                    style={{ marginLeft: '6px' }}
-                  />
-                );
-              })()}
-              {isPlayoffGame &&
-                specificProps.isGameGuess &&
-                specificProps.homePenaltyWinner &&
-                '(x)'}
-            </Grid>
+            clickable={!disabled || specificProps.isGameFixture}
+          />
 
-            {/* Score */}
-            <Grid
-              display={'flex'}
-              justifyContent={'space-around'}
-              alignItems={'center'}
-              size={2}>
-              {hasResult ? (
-                <Typography variant="body2" fontWeight="bold">
-                  {homeScore}
-                  {isPlayoffGame &&
-                    !specificProps.isGameGuess &&
-                    Number.isInteger(specificProps.homePenaltyScore) &&
-                    ` (${specificProps.homePenaltyScore})`}
-                  &nbsp;-&nbsp;
-                  {awayScore}
-                  {isPlayoffGame &&
-                    !specificProps.isGameGuess &&
-                    Number.isInteger(specificProps.awayPenaltyScore) &&
-                    ` (${specificProps.awayPenaltyScore})`}
-                </Typography>
-              ) : (
-                <Typography variant="caption" color="text.secondary">
-                  {t('game.vs')}
-                </Typography>
-              )}
-            </Grid>
+          {/* Penalty scores - shown separately for tournament predictions (fixtures) */}
+          {isPlayoffGame && !specificProps.isGameGuess && hasResult &&
+            (Number.isInteger(specificProps.homePenaltyScore) || Number.isInteger(specificProps.awayPenaltyScore)) && (
+            <Typography variant="caption" color="text.secondary" align="center" display="block" sx={{ mt: 0.5 }}>
+              ({specificProps.homePenaltyScore ?? 0} - {specificProps.awayPenaltyScore ?? 0} pen)
+            </Typography>
+          )}
 
-            {/* Away team */}
-            <Grid display="flex" alignItems={'center'} size={5}>
-              {isPlayoffGame &&
-                specificProps.isGameGuess &&
-                specificProps.awayPenaltyWinner &&
-                '(x)'}
-              {(() => {
-                logoUrl = getThemeLogoUrl(awayTeamTheme);
-                return logoUrl && (
-                  <img
-                    src={logoUrl}
-                    alt={awayTeamNameOrDescription}
-                    height={'24px'}
-                    style={{ marginRight: '6px' }}
-                  />
-                );
-              })()}
-              <Typography
-                variant="body2"
-                fontWeight="medium"
-                textAlign="left"
-                sx={{
-                  ml: 1,
-                  maxWidth: '100%',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                {awayTeamNameOrDescription}
-              </Typography>
-            </Grid>
-          </Grid>
+          {/* Actual Result Display - shown when game has result (even if user didn't predict) */}
+          {gameHasResult && (
+            <ActualResultDisplay
+              homeTeamName={homeTeamNameOrDescription}
+              awayTeamName={awayTeamNameOrDescription}
+              homeScore={specificProps.gameResult!.home_score!}
+              awayScore={specificProps.gameResult!.away_score!}
+              predictionResult={
+                homeScore !== undefined && awayScore !== undefined
+                  ? calculatePredictionResult(
+                      homeScore,
+                      awayScore,
+                      specificProps.gameResult!.home_score!,
+                      specificProps.gameResult!.away_score!
+                    )
+                  : undefined
+              }
+              homeTeamTheme={homeTeamTheme}
+              awayTeamTheme={awayTeamTheme}
+              homePenaltyScore={specificProps.gameResult?.home_penalty_score}
+              awayPenaltyScore={specificProps.gameResult?.away_penalty_score}
+              points={specificProps.isGameGuess && homeScore !== undefined && awayScore !== undefined ? pointCalc?.finalScore : undefined}
+              boostType={specificProps.isGameGuess && homeScore !== undefined && awayScore !== undefined ? specificProps.boostType : undefined}
+            />
+          )}
+
+          {/* In Play message (when past deadline but no result yet) */}
+          {specificProps.isGameGuess &&
+            gameDate.getTime() < Date.now() &&
+            !gameHasResult && (
+              <Box sx={{ mt: 1, textAlign: 'center', borderTop: (theme) => `1px solid ${theme.palette.divider}`, pt: 1 }}>
+                <Typography variant="body2" color="warning.main">
+                  ⚽ {t('game.inPlayOrRecentlyFinished')}
+                </Typography>
+              </Box>
+            )}
 
           <Divider
             variant={'fullWidth'}
@@ -383,51 +385,73 @@ export default function CompactGameViewCard({
               {location}
             </Typography>
           </Box>
-
         </Box>
       </CardContent>
-      {specificProps.isGameGuess &&
-        specificProps.gameResult &&
-        Number.isInteger(specificProps.gameResult.home_score) &&
-        Number.isInteger(specificProps.gameResult.away_score) && (
-          <Box
-            sx={{
-              borderTop: `${theme.palette.divider} 1px solid`,
-              backgroundColor: 'secondary.light',
-              py: 0.5,
-              px: 1,
-              textAlign: 'center'
-            }}
-          >
-            <Typography variant='caption' component='div' color='secondary.contrastText'>
-              {homeTeamShortNameOrDescription}&nbsp;
-              {specificProps.gameResult.home_score}&nbsp;
-              {Number.isInteger(specificProps.gameResult.home_penalty_score) && `(${specificProps.gameResult.home_penalty_score})`} - &nbsp;
-              {Number.isInteger(specificProps.gameResult.away_penalty_score) && `(${specificProps.gameResult.away_penalty_score})`}&nbsp;
-              {specificProps.gameResult.away_score}&nbsp;
-              {awayTeamShortNameOrDescription?.substring(0, 3)}
-            </Typography>
-          </Box>
-        )}
-      {specificProps.isGameGuess &&
-        gameDate.getTime() < Date.now() &&
-        !(specificProps.gameResult &&
-          Number.isInteger(specificProps.gameResult.home_score) &&
-          Number.isInteger(specificProps.gameResult.away_score)) && (
-          <Box
-            sx={{
-              borderTop: `${theme.palette.divider} 1px solid`,
-              backgroundColor: 'secondary.light',
-              py: 0.5,
-              px: 1,
-              textAlign: 'center'
-            }}
-          >
-            <Typography variant='caption' component='div' color='secondary.contrastText'>
-              {t('game.inPlayOrRecentlyFinished')}
-            </Typography>
-          </Box>
-        )}
     </Card>
   );
+}
+
+/**
+ * Determines prediction accuracy based on predicted vs actual scores.
+ *
+ * Returns:
+ * - 'exact': Predicted scores match actual scores exactly (10 points)
+ * - 'correct': Predicted winner matches actual winner, but not exact score (3 points)
+ * - 'incorrect': Predicted winner does not match actual winner (0 points)
+ *
+ * Winner determination:
+ * - home > away = home wins
+ * - away > home = away wins
+ * - home === away = draw
+ *
+ * Edge cases:
+ * - User predicted draw (1-1), actual was draw (0-0) → 'correct' (same winner: draw)
+ * - User predicted home win (2-0), actual was draw (1-1) → 'incorrect' (different winner)
+ * - User predicted draw (0-0), actual was home win (1-0) → 'incorrect' (different winner)
+ *
+ * @param predictedHome - Predicted home team score
+ * @param predictedAway - Predicted away team score
+ * @param actualHome - Actual home team score
+ * @param actualAway - Actual away team score
+ * @returns 'exact' | 'correct' | 'incorrect'
+ */
+export function calculatePredictionResult(
+  predictedHome: number,
+  predictedAway: number,
+  actualHome: number,
+  actualAway: number
+): 'exact' | 'correct' | 'incorrect' {
+  // EXACT: Predicted scores match actual scores exactly
+  if (predictedHome === actualHome && predictedAway === actualAway) {
+    return 'exact';
+  }
+
+  // Determine winners using explicit conditions
+  // Predicted winner
+  let predictedWinner: 'home' | 'away' | 'draw';
+  if (predictedHome > predictedAway) {
+    predictedWinner = 'home';
+  } else if (predictedHome < predictedAway) {
+    predictedWinner = 'away';
+  } else {
+    predictedWinner = 'draw';
+  }
+
+  // Actual winner
+  let actualWinner: 'home' | 'away' | 'draw';
+  if (actualHome > actualAway) {
+    actualWinner = 'home';
+  } else if (actualHome < actualAway) {
+    actualWinner = 'away';
+  } else {
+    actualWinner = 'draw';
+  }
+
+  // CORRECT: Predicted winner matches actual winner (not exact score)
+  if (predictedWinner === actualWinner) {
+    return 'correct';
+  }
+
+  // INCORRECT: Predicted winner does not match actual winner
+  return 'incorrect';
 }
