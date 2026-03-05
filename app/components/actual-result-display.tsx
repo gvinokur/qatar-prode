@@ -83,7 +83,7 @@ export function ActualResultDisplay({
   return (
     <Box sx={{ mt: 1, borderTop: (theme) => `1px solid ${theme.palette.divider}`, pt: 1, width: '100%' }}>
       {/* "Actual Result" label - centered */}
-      <Typography variant="body2" align="center" sx={{ mb: 1, fontWeight: 'medium' }}>
+      <Typography variant="body1" align="center" sx={{ mb: 1, fontWeight: 'medium' }}>
         {t('game.actualResult')}
       </Typography>
 
@@ -105,7 +105,7 @@ export function ActualResultDisplay({
       )}
 
       {/* Prediction Result badge - shows incorrect (0 pts) when no prediction */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1.5 }}>
         <Chip
           label={getPredictionResultLabel(effectiveResult, displayPoints, t)}
           icon={getPredictionResultIcon(effectiveResult)}

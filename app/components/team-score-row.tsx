@@ -49,7 +49,7 @@ export function TeamScoreRow({
       {/* Home team */}
       <Grid display="flex" justifyContent="flex-end" alignItems="center" size={5}>
         <Typography
-          variant="body2"
+          variant="body1"
           fontWeight="medium"
           sx={{
             ml: 1,
@@ -75,11 +75,11 @@ export function TeamScoreRow({
       {/* Score */}
       <Grid display="flex" justifyContent="center" alignItems="center" size={2}>
         {hasScores ? (
-          <Typography variant="body2" fontWeight="bold">
+          <Typography variant="body1" fontWeight="bold">
             {homeScore} - {awayScore}
           </Typography>
         ) : (
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body1" color="text.secondary">
             vs
           </Typography>
         )}
@@ -97,7 +97,7 @@ export function TeamScoreRow({
           />
         )}
         <Typography
-          variant="body2"
+          variant="body1"
           fontWeight="medium"
           sx={{
             mr: 1,
