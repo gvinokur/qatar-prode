@@ -144,7 +144,29 @@
     "tournament": "Tournament",
     "honorRoll": "Honor Roll",
     "individualAwards": "Individual Awards",
-    "tapToCollapse": "Tap to collapse"
+    "tapToCollapse": "Tap to collapse",
+    "tapToViewDetails": "Tap to view details",
+    "tapToCompare": "Tap to compare"
+  },
+  "headToHead": {
+    "title": "Head to Head",
+    "loading": "Loading comparison...",
+    "totalPoints": "Total Points",
+    "breakdown": "Category Breakdown",
+    "accuracy": "Accuracy",
+    "groupStage": "Group Stage",
+    "playoff": "Playoff",
+    "overall": "Overall",
+    "exactScore": "Exact Score",
+    "yourLead": "Your Lead",
+    "theirLead": "{name}'s Lead",
+    "evenlyMatched": "You're evenly matched!",
+    "shareWhatsapp": "Share on WhatsApp",
+    "close": "Close",
+    "pts": "pts",
+    "winningMessage": "I'm crushing it! In {groupName}: Me {myPts}pts vs {name} {theirPts}pts. Accuracy: {myAcc}% vs {theirAcc}%",
+    "losingMessage": "Catching up... {name}: {theirPts}pts vs Me: {myPts}pts. I'm coming for you!",
+    "tiedMessage": "It's tied! In {groupName}: both at {pts}pts!"
   },
   "card": {
     "owner": "Owner",

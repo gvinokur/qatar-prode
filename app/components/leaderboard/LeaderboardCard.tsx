@@ -72,7 +72,10 @@ export default function LeaderboardCard({
       }}
       tabIndex={0}
       role="button"
-      aria-label={`${isCurrentUser ? 'Your' : displayName + "'s"} leaderboard card, rank ${rank}. ${isExpanded ? 'Expanded' : 'Collapsed'}. Press Enter or Space to ${isExpanded ? 'collapse' : 'expand'}.`}
+      aria-label={isCurrentUser
+        ? `Your leaderboard card, rank ${rank}. ${isExpanded ? 'Expanded' : 'Collapsed'}. Press Enter or Space to ${isExpanded ? 'collapse' : 'expand'}.`
+        : `Press Enter to compare with ${displayName}, rank ${rank}.`
+      }
       aria-expanded={isExpanded}
       sx={{
         py: 1.5,
@@ -152,14 +155,23 @@ export default function LeaderboardCard({
           </Typography>
         </Box>
 
-        {/* Expand Hint (only on current user's card initially) */}
+        {/* Action Hint */}
         {isCurrentUser && !isExpanded && (
           <Typography
             variant="caption"
             color="text.secondary"
             sx={{ display: 'block', mt: 1, textAlign: 'center', fontStyle: 'italic' }}
           >
-            Tap to view details
+            {t('tapToViewDetails')}
+          </Typography>
+        )}
+        {!isCurrentUser && (
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ display: 'block', mt: 1, textAlign: 'center', fontStyle: 'italic' }}
+          >
+            {t('tapToCompare')}
           </Typography>
         )}
 

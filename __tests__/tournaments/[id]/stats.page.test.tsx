@@ -11,7 +11,7 @@ import {
 } from '../../../app/db/game-guess-repository';
 import { findTournamentGuessByUserIdTournament } from '../../../app/db/tournament-guess-repository';
 import { findTournamentById } from '../../../app/db/tournament-repository';
-import { findGamesInTournament } from '../../../app/db/game-repository';
+import { getGameCountsForTournament } from '../../../app/db/game-repository';
 import { testFactories } from '../../db/test-factories';
 import type { GameStatisticForUser, BoostAllocationBreakdown } from '../../../types/definitions';
 
@@ -43,7 +43,7 @@ vi.mock('../../../app/db/tournament-repository', () => ({
 }));
 
 vi.mock('../../../app/db/game-repository', () => ({
-  findGamesInTournament: vi.fn(),
+  getGameCountsForTournament: vi.fn(),
 }));
 
 describe('TournamentStatsPage', () => {
@@ -125,11 +125,8 @@ describe('TournamentStatsPage', () => {
     );
     vi.mocked(findGameGuessesByUserId).mockResolvedValue(mockGameGuesses);
 
-    // Mock all games (38 total)
-    const mockGames = Array.from({ length: 38 }, (_, i) =>
-      testFactories.game({ id: `game-${i + 1}`, tournament_id: mockTournamentId })
-    );
-    vi.mocked(findGamesInTournament).mockResolvedValue(mockGames as any);
+    // Mock game counts (38 total, 32 played)
+    vi.mocked(getGameCountsForTournament).mockResolvedValue({ total: 38, played: 32 });
   });
 
   describe('Authentication', () => {
@@ -175,7 +172,7 @@ describe('TournamentStatsPage', () => {
       expect(getBoostAllocationBreakdown).toHaveBeenCalledWith(mockUser.id, mockTournamentId, 'silver');
       expect(getBoostAllocationBreakdown).toHaveBeenCalledWith(mockUser.id, mockTournamentId, 'golden');
       expect(findGameGuessesByUserId).toHaveBeenCalledWith(mockUser.id, mockTournamentId);
-      expect(findGamesInTournament).toHaveBeenCalledWith(mockTournamentId);
+      expect(getGameCountsForTournament).toHaveBeenCalledWith(mockTournamentId);
     });
   });
 

@@ -55,7 +55,7 @@ describe('LeaderboardCard', () => {
     )
 
     expect(screen.getByText('You')).toBeInTheDocument()
-    expect(screen.getByText(/tap to view details/i)).toBeInTheDocument()
+    expect(screen.getByText(/toca para ver detalles/i)).toBeInTheDocument()
   })
 
   it('calls onToggle when clicked', () => {
@@ -164,6 +164,6 @@ describe('LeaderboardCard', () => {
       />
     )
 
-    expect(screen.getByLabelText(/john doe's leaderboard card/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/press enter to compare with john doe/i)).toBeInTheDocument()
   })
 })

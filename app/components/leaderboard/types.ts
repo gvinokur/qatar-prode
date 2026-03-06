@@ -27,12 +27,14 @@ export interface LeaderboardViewProps {
   readonly scores: unknown[] // Will be typed as UserScore from DB when integrated
   readonly currentUserId: string
   readonly tournament: unknown // Will be typed as Tournament when integrated
+  readonly tournamentId?: string
 }
 
 export interface LeaderboardCardsProps {
   readonly scores: unknown[]
   readonly currentUserId: string
   readonly previousScores?: unknown[]
+  readonly tournamentId?: string
 }
 
 export interface LeaderboardCardProps {
