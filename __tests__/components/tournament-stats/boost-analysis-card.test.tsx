@@ -162,6 +162,44 @@ describe('BoostAnalysisCard', () => {
     });
   });
 
+  describe('Active boosts warning', () => {
+    it('shows active boosts row for silver when activeBoosts > 0', () => {
+      const propsWithActiveBoosts = {
+        ...mockProps,
+        silverBoost: {
+          ...mockProps.silverBoost,
+          activeBoosts: 2,
+        },
+      };
+
+      renderWithTheme(<BoostAnalysisCard {...propsWithActiveBoosts} />);
+
+      expect(screen.getByText('Activos')).toBeInTheDocument();
+      expect(screen.getByText(/2.*Aún se puede cambiar/)).toBeInTheDocument();
+    });
+
+    it('shows active boosts row for golden when activeBoosts > 0', () => {
+      const propsWithActiveBoosts = {
+        ...mockProps,
+        goldenBoost: {
+          ...mockProps.goldenBoost,
+          activeBoosts: 1,
+        },
+      };
+
+      renderWithTheme(<BoostAnalysisCard {...propsWithActiveBoosts} />);
+
+      expect(screen.getAllByText('Activos')).toHaveLength(1);
+      expect(screen.getByText(/1.*Aún se puede cambiar/)).toBeInTheDocument();
+    });
+
+    it('hides active boosts row when activeBoosts is 0', () => {
+      renderWithTheme(<BoostAnalysisCard {...mockProps} />);
+
+      expect(screen.queryByText('Activos')).not.toBeInTheDocument();
+    });
+  });
+
   describe('ROI and Success Rate calculations', () => {
     it('displays ROI with one decimal place', () => {
       renderWithTheme(<BoostAnalysisCard {...mockProps} />);
