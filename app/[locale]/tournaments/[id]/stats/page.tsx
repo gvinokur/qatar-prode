@@ -38,6 +38,7 @@ type PerformanceStats = {
 type AccuracyStats = {
   readonly totalPredictionsMade: number
   readonly totalGamesAvailable: number
+  readonly totalGamesPlayed: number
   readonly completionPercentage: number
   readonly overallCorrect: number
   readonly overallCorrectPercentage: number
@@ -58,6 +59,9 @@ type AccuracyStats = {
 type BoostStats = {
   readonly boostType: 'silver' | 'golden'
   readonly available: number
+  readonly totalBoosts: number
+  readonly lockedBoosts: number
+  readonly activeBoosts: number
   readonly used: number
   readonly usedPercentage: number
   readonly scoredGames: number
@@ -80,7 +84,8 @@ function calculatePercentage(numerator: number, denominator: number, decimalPlac
 function calculateAccuracyStats(
   userGameStats: { total_correct_guesses?: number, total_exact_guesses?: number, group_correct_guesses?: number, group_exact_guesses?: number, playoff_correct_guesses?: number, playoff_exact_guesses?: number } | null,
   totalPredictionsMade: number,
-  totalGamesAvailable: number
+  totalGamesAvailable: number,
+  totalGamesPlayed: number
 ): AccuracyStats {
   const overallCorrect = userGameStats?.total_correct_guesses ?? 0
   const overallExact = userGameStats?.total_exact_guesses ?? 0
@@ -88,42 +93,46 @@ function calculateAccuracyStats(
   return {
     totalPredictionsMade,
     totalGamesAvailable,
+    totalGamesPlayed,
     completionPercentage: calculatePercentage(totalPredictionsMade, totalGamesAvailable),
     overallCorrect,
-    overallCorrectPercentage: calculatePercentage(overallCorrect, totalPredictionsMade),
+    overallCorrectPercentage: calculatePercentage(overallCorrect, totalGamesPlayed),
     overallExact,
-    overallExactPercentage: calculatePercentage(overallExact, totalPredictionsMade),
-    overallMissed: totalPredictionsMade - overallCorrect,
-    overallMissedPercentage: calculatePercentage(totalPredictionsMade - overallCorrect, totalPredictionsMade),
+    overallExactPercentage: calculatePercentage(overallExact, totalGamesPlayed),
+    overallMissed: totalGamesPlayed - overallCorrect,
+    overallMissedPercentage: calculatePercentage(totalGamesPlayed - overallCorrect, totalGamesPlayed),
     groupCorrect: userGameStats?.group_correct_guesses ?? 0,
-    groupCorrectPercentage: calculatePercentage(userGameStats?.group_correct_guesses ?? 0, totalPredictionsMade),
+    groupCorrectPercentage: calculatePercentage(userGameStats?.group_correct_guesses ?? 0, totalGamesPlayed),
     groupExact: userGameStats?.group_exact_guesses ?? 0,
-    groupExactPercentage: calculatePercentage(userGameStats?.group_exact_guesses ?? 0, totalPredictionsMade),
+    groupExactPercentage: calculatePercentage(userGameStats?.group_exact_guesses ?? 0, totalGamesPlayed),
     playoffCorrect: userGameStats?.playoff_correct_guesses ?? 0,
-    playoffCorrectPercentage: calculatePercentage(userGameStats?.playoff_correct_guesses ?? 0, totalPredictionsMade),
+    playoffCorrectPercentage: calculatePercentage(userGameStats?.playoff_correct_guesses ?? 0, totalGamesPlayed),
     playoffExact: userGameStats?.playoff_exact_guesses ?? 0,
-    playoffExactPercentage: calculatePercentage(userGameStats?.playoff_exact_guesses ?? 0, totalPredictionsMade),
+    playoffExactPercentage: calculatePercentage(userGameStats?.playoff_exact_guesses ?? 0, totalGamesPlayed),
   }
 }
 
 // Helper function to calculate boost stats
 function calculateBoostStats(
-  boostData: { totalBoosts: number, scoredGamesCount: number, totalPointsEarned: number, byGroup: { groupLetter: string, count: number }[], playoffCount: number },
+  boostData: { totalBoosts: number, lockedBoosts: number, activeBoosts: number, scoredGamesCount: number, totalPointsEarned: number, byGroup: { groupLetter: string, count: number }[], playoffCount: number },
   maxGames: number | null | undefined,
   boostType: 'silver' | 'golden'
 ): BoostStats {
   const available = maxGames ?? 0
-  const { totalBoosts, scoredGamesCount, totalPointsEarned, byGroup, playoffCount } = boostData
+  const { totalBoosts, lockedBoosts, activeBoosts, scoredGamesCount, totalPointsEarned, byGroup, playoffCount } = boostData
 
   return {
     boostType,
     available,
+    totalBoosts,
+    lockedBoosts,
+    activeBoosts,
     used: totalBoosts,
-    usedPercentage: calculatePercentage(totalBoosts, available),
+    usedPercentage: calculatePercentage(lockedBoosts, available),
     scoredGames: scoredGamesCount,
-    successRate: calculatePercentage(scoredGamesCount, totalBoosts),
+    successRate: calculatePercentage(scoredGamesCount, lockedBoosts),
     pointsEarned: totalPointsEarned,
-    roi: totalBoosts > 0 ? Math.round((totalPointsEarned / totalBoosts) * 10) / 10 : 0,
+    roi: lockedBoosts > 0 ? Math.round((totalPointsEarned / lockedBoosts) * 10) / 10 : 0,
     allocationByGroup: byGroup,
     allocationPlayoffs: playoffCount
   }
@@ -195,7 +204,10 @@ export default async function TournamentStatsPage(props: Props) {
   const allGames = await findGamesInTournament(tournamentId)
   const totalGamesAvailable = allGames.length
 
-  const accuracyStats = calculateAccuracyStats(userGameStats, totalPredictionsMade, totalGamesAvailable)
+  // Calculate games with results (played games) for accurate percentage calculations
+  const totalGamesPlayed = allGames.filter(g => g.gameResult?.home_score != null).length
+
+  const accuracyStats = calculateAccuracyStats(userGameStats, totalPredictionsMade, totalGamesAvailable, totalGamesPlayed)
 
   // Calculate Boost stats
   const silverBoostStats = calculateBoostStats(silverBoostData, tournament.max_silver_games, 'silver')

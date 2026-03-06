@@ -64,8 +64,10 @@ export async function updateOrCreateGuess(guess: GameGuessNew) {
 export async function legacyGetGameGuessStatisticsForUsers(userIds: string[], tournamentId: string) {
   const statisticsForUsers = await db.selectFrom('game_guesses')
     .innerJoin('games', 'games.id', 'game_guesses.game_id')
+    .leftJoin('game_results', 'game_results.game_id', 'games.id')
     .where('game_guesses.user_id', 'in', userIds)
     .where('games.tournament_id', '=', tournamentId)
+    .where('game_results.home_score', 'is not', null)
     .select('user_id')
     .select(eb => [
       eb.cast<number>(
@@ -473,33 +475,60 @@ export async function getBoostAllocationBreakdown(
   byGroup: { groupLetter: string; count: number }[];
   playoffCount: number;
   totalBoosts: number;
+  lockedBoosts: number;
+  activeBoosts: number;
   scoredGamesCount: number;
   totalPointsEarned: number;
 }> {
-  // Query 1: Group stage boosts
+  // Query 1: Group stage boosts (LOCKED only - game has result OR game started)
   const groupBoosts = await db
     .selectFrom('game_guesses as gg')
     .innerJoin('games as g', 'g.id', 'gg.game_id')
+    .leftJoin('game_results as gr', 'gr.game_id', 'g.id')
     .innerJoin('tournament_group_games as tgg', 'tgg.game_id', 'g.id')
     .innerJoin('tournament_groups as tg', 'tg.id', 'tgg.tournament_group_id')
     .where('gg.user_id', '=', userId)
     .where('g.tournament_id', '=', tournamentId)
     .where('gg.boost_type', '=', boostType)
+    .where((eb) => eb.or([
+      eb('gr.home_score', 'is not', null),
+      eb('g.game_date', '<', sql<Date>`NOW()`)
+    ]))
     .select('tg.group_letter')
     .select(buildBoostAggregateSelect)
     .groupBy('tg.group_letter')
     .orderBy('tg.group_letter')
     .execute();
 
-  // Query 2: Playoff boosts
+  // Query 2: Playoff boosts (LOCKED only - game has result OR game started)
   const playoffBoosts = await db
     .selectFrom('game_guesses as gg')
     .innerJoin('games as g', 'g.id', 'gg.game_id')
+    .leftJoin('game_results as gr', 'gr.game_id', 'g.id')
     .innerJoin('tournament_playoff_round_games as prg', 'prg.game_id', 'g.id')
     .where('gg.user_id', '=', userId)
     .where('g.tournament_id', '=', tournamentId)
     .where('gg.boost_type', '=', boostType)
+    .where((eb) => eb.or([
+      eb('gr.home_score', 'is not', null),
+      eb('g.game_date', '<', sql<Date>`NOW()`)
+    ]))
     .select(buildBoostAggregateSelect)
+    .executeTakeFirst();
+
+  // Query 3: Active boosts (game has NO result AND game not started)
+  const activeBoostsCount = await db
+    .selectFrom('game_guesses as gg')
+    .innerJoin('games as g', 'g.id', 'gg.game_id')
+    .leftJoin('game_results as gr', 'gr.game_id', 'g.id')
+    .where('gg.user_id', '=', userId)
+    .where('g.tournament_id', '=', tournamentId)
+    .where('gg.boost_type', '=', boostType)
+    .where((eb) => eb.and([
+      eb('gr.home_score', 'is', null),
+      eb('g.game_date', '>=', sql<Date>`NOW()`)
+    ]))
+    .select(eb => eb.fn.countAll().as('count'))
     .executeTakeFirst();
 
   // Aggregate results
@@ -509,8 +538,9 @@ export async function getBoostAllocationBreakdown(
   }));
 
   const playoffCount = playoffBoosts ? Number(playoffBoosts.count) : 0;
-
-  const totalBoosts = byGroup.reduce((sum, g) => sum + g.count, 0) + playoffCount;
+  const lockedBoosts = byGroup.reduce((sum, g) => sum + g.count, 0) + playoffCount;
+  const activeBoosts = activeBoostsCount ? Number(activeBoostsCount.count) : 0;
+  const totalBoosts = lockedBoosts + activeBoosts;
 
   const scoredGamesCount =
     groupBoosts.reduce((sum, row) => sum + Number(row.scored_games), 0) +
@@ -524,6 +554,8 @@ export async function getBoostAllocationBreakdown(
     byGroup,
     playoffCount,
     totalBoosts,
+    lockedBoosts,
+    activeBoosts,
     scoredGamesCount,
     totalPointsEarned,
   };

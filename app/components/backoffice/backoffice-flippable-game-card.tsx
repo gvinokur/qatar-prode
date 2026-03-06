@@ -129,6 +129,7 @@ export default function BackofficeFlippableGameCard({
 
     // Focus edit button after flip animation completes
     setTimeout(() => {
+      if (typeof document === 'undefined') return;
       const cardElement = document.querySelector(`[data-game-id="${game.id}"]`);
       const editButton = cardElement?.querySelector<HTMLButtonElement>('button[aria-label*="Edit"]');
       editButton?.focus();
