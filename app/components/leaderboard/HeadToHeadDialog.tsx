@@ -43,11 +43,11 @@ function getUserInitials(name: string): string {
 }
 
 interface MetricRowProps {
-  label: string
-  myValue: number
-  theirValue: number
-  unit?: string
-  highlightWinner?: boolean
+  readonly label: string
+  readonly myValue: number
+  readonly theirValue: number
+  readonly unit?: string
+  readonly highlightWinner?: boolean
 }
 
 function MetricRow({ label, myValue, theirValue, unit = '', highlightWinner = true }: MetricRowProps) {
@@ -92,7 +92,7 @@ function MetricRow({ label, myValue, theirValue, unit = '', highlightWinner = tr
 }
 
 interface SectionHeaderProps {
-  label: string
+  readonly label: string
 }
 
 function SectionHeader({ label }: SectionHeaderProps) {
@@ -108,16 +108,16 @@ function SectionHeader({ label }: SectionHeaderProps) {
 }
 
 export interface HeadToHeadDialogProps {
-  open: boolean
-  onClose: () => void
-  currentUserId: string
-  opponentId: string
-  tournamentId: string
-  currentUserName: string
-  opponentName: string
-  currentUserRank?: number
-  opponentRank?: number
-  groupName?: string
+  readonly open: boolean
+  readonly onClose: () => void
+  readonly currentUserId: string
+  readonly opponentId: string
+  readonly tournamentId: string
+  readonly currentUserName: string
+  readonly opponentName: string
+  readonly currentUserRank?: number
+  readonly opponentRank?: number
+  readonly groupName?: string
 }
 
 export default function HeadToHeadDialog({

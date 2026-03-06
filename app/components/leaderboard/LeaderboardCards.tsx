@@ -134,7 +134,7 @@ export default function LeaderboardCards({
                 isCurrentUser={isCurrentUser}
                 isExpanded={isExpanded}
                 onToggle={() => handleCardToggle(user.id)}
-                onCompare={!isCurrentUser ? () => setCompareUserId(user.id) : undefined}
+                onCompare={isCurrentUser ? undefined : () => setCompareUserId(user.id)}
               />
             )
           })}
