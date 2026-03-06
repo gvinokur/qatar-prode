@@ -61,18 +61,25 @@ export async function getGameCountsForTournament(
   tournamentId: string
 ): Promise<{ total: number; played: number }>
 ```
-Single SQL query:
+Single SQL query — counting only games with **both scores published** (not drafts):
 ```sql
 SELECT
-  COUNT(*)                                                       AS total,
-  COUNT(gr.home_score)                                           AS played
+  COUNT(*)                                                              AS total,
+  COUNT(
+    CASE WHEN gr.home_score IS NOT NULL
+          AND gr.away_score IS NOT NULL
+          AND gr.is_draft = false
+    THEN 1 END
+  )                                                                     AS played
 FROM games g
 LEFT JOIN game_results gr ON gr.game_id = g.id
 WHERE g.tournament_id = ?
 ```
 Returns **1 row with 2 numbers** instead of 64+ rows with 15+ columns each.
 
-**Update `stats/page.tsx`:** Replace `findGamesInTournament` usage with `getGameCountsForTournament`. No functional change to the stats page.
+Note: The existing stats page filters only `home_score != null` — this new query is more accurate by also requiring `away_score` and `is_draft = false`. The stats page will get a subtle accuracy fix as a side effect.
+
+**Update `stats/page.tsx`:** Replace `findGamesInTournament` with `getGameCountsForTournament`. Destructure `{total: totalGamesAvailable, played: totalGamesPlayed}`.
 
 #### 2b. Selective column selection for tournament_guesses stats (LOW-MEDIUM IMPACT)
 
