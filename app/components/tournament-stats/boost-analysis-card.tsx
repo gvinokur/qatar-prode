@@ -11,6 +11,9 @@ type BoostAllocation = {
 type Props = {
   readonly silverBoost: {
     readonly available: number
+    readonly totalBoosts: number
+    readonly lockedBoosts: number
+    readonly activeBoosts: number
     readonly used: number
     readonly usedPercentage: number
     readonly scoredGames: number
@@ -22,6 +25,9 @@ type Props = {
   }
   readonly goldenBoost: {
     readonly available: number
+    readonly totalBoosts: number
+    readonly lockedBoosts: number
+    readonly activeBoosts: number
     readonly used: number
     readonly usedPercentage: number
     readonly scoredGames: number
@@ -100,14 +106,29 @@ export function BoostAnalysisCard(props: Props) {
 
           <Grid size={8}>
             <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-              {t('boosts.used')}
+              {t('boosts.locked')}
             </Typography>
           </Grid>
           <Grid size={4}>
             <Typography variant='body1' fontWeight={700} align='right'>
-              {props.silverBoost.used} ({props.silverBoost.usedPercentage.toFixed(1)}%)
+              {props.silverBoost.lockedBoosts} ({props.silverBoost.usedPercentage.toFixed(1)}%)
             </Typography>
           </Grid>
+
+          {props.silverBoost.activeBoosts > 0 && (
+            <>
+              <Grid size={8}>
+                <Typography variant='body1' color='warning.main' sx={{ pl: 2 }}>
+                  {t('boosts.active')}
+                </Typography>
+              </Grid>
+              <Grid size={4}>
+                <Typography variant='body1' fontWeight={700} color='warning.main' align='right'>
+                  {props.silverBoost.activeBoosts} ({t('boosts.canChange')})
+                </Typography>
+              </Grid>
+            </>
+          )}
 
           {props.silverBoost.used > 0 && (
             <>
@@ -118,7 +139,7 @@ export function BoostAnalysisCard(props: Props) {
               </Grid>
               <Grid size={4}>
                 <Typography variant='body1' fontWeight={700} align='right'>
-                  {props.silverBoost.scoredGames} ({props.silverBoost.successRate.toFixed(1)}%)
+                  {props.silverBoost.scoredGames} / {props.silverBoost.lockedBoosts} ({props.silverBoost.successRate.toFixed(1)}%)
                 </Typography>
               </Grid>
 
@@ -170,14 +191,29 @@ export function BoostAnalysisCard(props: Props) {
 
           <Grid size={8}>
             <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
-              {t('boosts.used')}
+              {t('boosts.locked')}
             </Typography>
           </Grid>
           <Grid size={4}>
             <Typography variant='body1' fontWeight={700} align='right'>
-              {props.goldenBoost.used} ({props.goldenBoost.usedPercentage.toFixed(1)}%)
+              {props.goldenBoost.lockedBoosts} ({props.goldenBoost.usedPercentage.toFixed(1)}%)
             </Typography>
           </Grid>
+
+          {props.goldenBoost.activeBoosts > 0 && (
+            <>
+              <Grid size={8}>
+                <Typography variant='body1' color='warning.main' sx={{ pl: 2 }}>
+                  {t('boosts.active')}
+                </Typography>
+              </Grid>
+              <Grid size={4}>
+                <Typography variant='body1' fontWeight={700} color='warning.main' align='right'>
+                  {props.goldenBoost.activeBoosts} ({t('boosts.canChange')})
+                </Typography>
+              </Grid>
+            </>
+          )}
 
           {props.goldenBoost.used > 0 && (
             <>
@@ -188,7 +224,7 @@ export function BoostAnalysisCard(props: Props) {
               </Grid>
               <Grid size={4}>
                 <Typography variant='body1' fontWeight={700} align='right'>
-                  {props.goldenBoost.scoredGames} ({props.goldenBoost.successRate.toFixed(1)}%)
+                  {props.goldenBoost.scoredGames} / {props.goldenBoost.lockedBoosts} ({props.goldenBoost.successRate.toFixed(1)}%)
                 </Typography>
               </Grid>
 

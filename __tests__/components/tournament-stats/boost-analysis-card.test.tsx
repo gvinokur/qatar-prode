@@ -8,6 +8,9 @@ describe('BoostAnalysisCard', () => {
   const mockProps = {
     silverBoost: {
       available: 5,
+      totalBoosts: 4,
+      lockedBoosts: 4,
+      activeBoosts: 0,
       used: 4,
       usedPercentage: 80.0,
       scoredGames: 3,
@@ -22,6 +25,9 @@ describe('BoostAnalysisCard', () => {
     },
     goldenBoost: {
       available: 3,
+      totalBoosts: 2,
+      lockedBoosts: 2,
+      activeBoosts: 0,
       used: 2,
       usedPercentage: 66.7,
       scoredGames: 2,
@@ -46,8 +52,8 @@ describe('BoostAnalysisCard', () => {
 
       expect(screen.getByText('Boosts Silver')).toBeInTheDocument();
       expect(screen.getByText('5')).toBeInTheDocument(); // available
-      expect(screen.getByText(/4.*80\.0%/)).toBeInTheDocument(); // used
-      expect(screen.getByText(/3.*75\.0%/)).toBeInTheDocument(); // scored games
+      expect(screen.getByText(/4.*80\.0%/)).toBeInTheDocument(); // locked (not used anymore)
+      expect(screen.getByText(/3.*4.*75\.0%/)).toBeInTheDocument(); // scored games / locked
       expect(screen.getByText('18')).toBeInTheDocument(); // points earned
       expect(screen.getByText(/4\.5 pts/)).toBeInTheDocument(); // ROI
     });
@@ -57,8 +63,8 @@ describe('BoostAnalysisCard', () => {
 
       expect(screen.getByText('Boosts Golden')).toBeInTheDocument();
       expect(screen.getByText('3')).toBeInTheDocument(); // available
-      expect(screen.getByText(/2.*66\.7%/)).toBeInTheDocument(); // used
-      expect(screen.getByText(/2.*100\.0%/)).toBeInTheDocument(); // scored games
+      expect(screen.getByText(/2.*66\.7%/)).toBeInTheDocument(); // locked (not used anymore)
+      expect(screen.getByText(/2.*2.*100\.0%/)).toBeInTheDocument(); // scored games / locked
       expect(screen.getByText('20')).toBeInTheDocument(); // points earned
       expect(screen.getByText(/10\.0 pts/)).toBeInTheDocument(); // ROI
     });
@@ -79,6 +85,9 @@ describe('BoostAnalysisCard', () => {
       const noBoostsProps = {
         silverBoost: {
           available: 5,
+          totalBoosts: 0,
+          lockedBoosts: 0,
+          activeBoosts: 0,
           used: 0,
           usedPercentage: 0,
           scoredGames: 0,
@@ -90,6 +99,9 @@ describe('BoostAnalysisCard', () => {
         },
         goldenBoost: {
           available: 3,
+          totalBoosts: 0,
+          lockedBoosts: 0,
+          activeBoosts: 0,
           used: 0,
           usedPercentage: 0,
           scoredGames: 0,
@@ -115,6 +127,9 @@ describe('BoostAnalysisCard', () => {
       const emptyProps = {
         silverBoost: {
           available: 5,
+          totalBoosts: 0,
+          lockedBoosts: 0,
+          activeBoosts: 0,
           used: 0,
           usedPercentage: 0,
           scoredGames: 0,
@@ -126,6 +141,9 @@ describe('BoostAnalysisCard', () => {
         },
         goldenBoost: {
           available: 3,
+          totalBoosts: 0,
+          lockedBoosts: 0,
+          activeBoosts: 0,
           used: 0,
           usedPercentage: 0,
           scoredGames: 0,
@@ -155,8 +173,8 @@ describe('BoostAnalysisCard', () => {
     it('displays success rate with one decimal place', () => {
       renderWithTheme(<BoostAnalysisCard {...mockProps} />);
 
-      expect(screen.getByText(/3.*75\.0%/)).toBeInTheDocument(); // silver success rate
-      expect(screen.getByText(/2.*100\.0%/)).toBeInTheDocument(); // golden success rate
+      expect(screen.getByText(/3.*4.*75\.0%/)).toBeInTheDocument(); // silver: 3 / 4 (75.0%)
+      expect(screen.getByText(/2.*2.*100\.0%/)).toBeInTheDocument(); // golden: 2 / 2 (100.0%)
     });
 
     it('handles division by zero (no boosts used)', () => {

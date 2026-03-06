@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, Grid, Typography, useTheme } from "@mui/
 type Props = {
   readonly totalPredictionsMade: number
   readonly totalGamesAvailable: number
+  readonly totalGamesPlayed: number
   readonly completionPercentage: number
   readonly overallCorrect: number
   readonly overallCorrectPercentage: number
@@ -77,6 +78,17 @@ export function PredictionAccuracyCard(props: Props) {
             </Typography>
           </Grid>
 
+          <Grid size={8}>
+            <Typography variant='body2' color='text.secondary'>
+              {t('accuracy.gamesPlayed')}
+            </Typography>
+          </Grid>
+          <Grid size={4}>
+            <Typography variant='body2' color='text.secondary' align='right'>
+              {props.totalGamesPlayed} {t('accuracy.finished')}
+            </Typography>
+          </Grid>
+
           {/* Divider */}
           <Grid
             sx={{ borderTop: `${theme.palette.primary.contrastText} 1px solid` }}
@@ -96,7 +108,7 @@ export function PredictionAccuracyCard(props: Props) {
           </Grid>
           <Grid size={4}>
             <Typography variant='body1' fontWeight={700} align='right'>
-              {props.overallCorrect} ({props.overallCorrectPercentage.toFixed(1)}%)
+              {props.overallCorrect} / {props.totalGamesPlayed} ({props.overallCorrectPercentage.toFixed(1)}%)
             </Typography>
           </Grid>
 
@@ -107,7 +119,7 @@ export function PredictionAccuracyCard(props: Props) {
           </Grid>
           <Grid size={4}>
             <Typography variant='body1' fontWeight={700} align='right'>
-              {props.overallExact} ({props.overallExactPercentage.toFixed(1)}%)
+              {props.overallExact} / {props.totalGamesPlayed} ({props.overallExactPercentage.toFixed(1)}%)
             </Typography>
           </Grid>
 
@@ -118,7 +130,13 @@ export function PredictionAccuracyCard(props: Props) {
           </Grid>
           <Grid size={4}>
             <Typography variant='body1' fontWeight={700} align='right'>
-              {props.overallMissed} ({props.overallMissedPercentage.toFixed(1)}%)
+              {props.overallMissed} / {props.totalGamesPlayed} ({props.overallMissedPercentage.toFixed(1)}%)
+            </Typography>
+          </Grid>
+
+          <Grid size={12} mt={1}>
+            <Typography variant='caption' color='text.secondary' fontStyle='italic'>
+              {t('accuracy.note')}
             </Typography>
           </Grid>
 
