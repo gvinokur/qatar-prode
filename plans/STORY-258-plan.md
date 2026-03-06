@@ -40,7 +40,68 @@ Also move/export the type definitions:
 
 **Update `app/[locale]/tournaments/[id]/stats/page.tsx`:** Import from `stats-calculations.ts` instead of local definitions. No functional change to the stats page.
 
-### 2. New Server Action: getUserStatsForComparison
+### 2. DB Query Optimizations (Push Calculations to DB)
+
+Before building the server action, optimize the underlying queries that the stats page uses — these same queries will be used by the head-to-head feature.
+
+#### 2a. Replace `findGamesInTournament` with a COUNT query (HIGH IMPACT)
+
+**Current problem:** Stats page calls `findGamesInTournament(tournamentId)` which fetches **all game rows** with all columns + joined group/playoff/result data, just to compute two counts:
+```typescript
+const totalGamesAvailable = allGames.length      // just COUNT(*)
+const totalGamesPlayed = allGames.filter(g =>    // just COUNT WHERE result exists
+  g.gameResult?.home_score != null
+).length
+```
+For a 64-game tournament this is ~64 rows × 15+ columns fetched and discarded.
+
+**Fix:** New function in `app/db/game-repository.ts`:
+```typescript
+export async function getGameCountsForTournament(
+  tournamentId: string
+): Promise<{ total: number; played: number }>
+```
+Single SQL query:
+```sql
+SELECT
+  COUNT(*)                                                       AS total,
+  COUNT(gr.home_score)                                           AS played
+FROM games g
+LEFT JOIN game_results gr ON gr.game_id = g.id
+WHERE g.tournament_id = ?
+```
+Returns **1 row with 2 numbers** instead of 64+ rows with 15+ columns each.
+
+**Update `stats/page.tsx`:** Replace `findGamesInTournament` usage with `getGameCountsForTournament`. No functional change to the stats page.
+
+#### 2b. Selective column selection for tournament_guesses stats (LOW-MEDIUM IMPACT)
+
+**Current problem:** `findTournamentGuessByUserIdsTournament` uses `selectAll()`, fetching all 29 columns — including 8+ award prediction columns (champion/player IDs) and tracking columns that stats doesn't use at all.
+
+**Fix:** New function in `app/db/tournament-guess-repository.ts`:
+```typescript
+export async function getTournamentGuessStatsForUsers(
+  userIds: string[],
+  tournamentId: string
+): Promise<TournamentGuessStats[]>
+```
+Selects only the ~10 columns stats actually needs:
+```sql
+SELECT user_id,
+  honor_roll_score, individual_awards_score,
+  qualified_teams_score, qualified_teams_correct, qualified_teams_exact,
+  group_position_score,
+  yesterday_tournament_score
+FROM tournament_guesses
+WHERE user_id IN (?) AND tournament_id = ?
+```
+Used exclusively in `getUserStatsForComparison`. The existing `findTournamentGuessByUserIdsTournament` (with `selectAll()`) remains unchanged for callers that need all columns.
+
+#### What stays in the app (not pushed to DB)
+
+Accuracy percentage calculations (`overallCorrectPercentage`, etc.) are simple divisions on already-fetched counts. Pushing these to DB would add complexity (NULLIF, ROUND, CAST in SQL) with zero data transfer benefit since the counts are already materialized — the math stays in `stats-calculations.ts`.
+
+### 3. New Server Action: getUserStatsForComparison
 
 **New file: `app/actions/stats-actions.ts`**
 
@@ -57,15 +118,15 @@ export async function getUserStatsForComparison(
 ): Promise<UserComparisonStats[]>
 ```
 
-**Implementation:**
-1. `getGameGuessStatisticsForUsers(userIds, tournamentId)` — already multi-user
-2. `findTournamentGuessByUserIdsTournament(userIds, tournamentId)` — already multi-user
-3. `findGamesInTournament(tournamentId)` — fetched once, common to all users; provides `totalGamesPlayed` (games with results) — **this is the denominator for accuracy %**
-4. For each userId: compute `PerformanceStats` and `AccuracyStats` using the extracted `stats-calculations.ts` utilities
+**Implementation (uses optimized queries):**
+1. `getGameGuessStatisticsForUsers(userIds, tournamentId)` — already multi-user, already efficient (reads materialized columns)
+2. `getTournamentGuessStatsForUsers(userIds, tournamentId)` — new selective-column query (only ~10 stats columns, not `selectAll()`)
+3. `getGameCountsForTournament(tournamentId)` — new COUNT query, returns `{total, played}` in 1 row (replaces full `findGamesInTournament` fetch)
+4. For each userId: compute `PerformanceStats` and `AccuracyStats` using `stats-calculations.ts` utilities
 
-Note: Boost stats are NOT included in head-to-head (too detailed; head-to-head is a "summary").
+Note: Boost stats NOT included in head-to-head (too detailed).
 
-Note: `findGameGuessesByUserId` (used in stats page for `totalPredictionsMade`) is single-user only. For head-to-head, `totalPredictionsMade` can be omitted or approximated — the comparison focuses on accuracy % not completion rate.
+Note: `totalPredictionsMade` (from `findGameGuessesByUserId`) is omitted from head-to-head — comparison focuses on accuracy %, not completion rate. The accuracy % uses `getGameCountsForTournament().played` as the denominator.
 
 ### 3. HeadToHeadDialog Component
 
@@ -173,15 +234,21 @@ When `compareUserId` is set → `HeadToHeadDialog` opens. The dialog internally 
 
 | File | Change |
 |------|--------|
-| `app/[locale]/tournaments/[id]/stats/page.tsx` | Import from `stats-calculations.ts` instead of local functions; no functional change |
-| `app/components/leaderboard/types.ts` | Add `tournamentId?: string` to `LeaderboardCardsProps`; add `tournamentId?: string` to `LeaderboardViewProps` |
+| `app/db/game-repository.ts` | Add `getGameCountsForTournament(tournamentId)` — 1-row COUNT query replacing full table fetch |
+| `app/db/tournament-guess-repository.ts` | Add `getTournamentGuessStatsForUsers(userIds, tournamentId)` — stats-only selective column query |
+| `app/[locale]/tournaments/[id]/stats/page.tsx` | Import from `stats-calculations.ts`; replace `findGamesInTournament` with `getGameCountsForTournament` |
+| `app/components/leaderboard/types.ts` | Add `tournamentId?: string` to `LeaderboardCardsProps` and `LeaderboardViewProps` |
 | `app/components/leaderboard/LeaderboardCard.tsx` | Update aria-label and add "Tap to compare" caption for non-self cards |
 | `app/components/leaderboard/LeaderboardCards.tsx` | Add `compareUserId` state, `tournamentId` prop, pass different closures to `onToggle`, render `<HeadToHeadDialog>` |
 | `app/components/leaderboard/LeaderboardView.tsx` | Pass `tournament.id` as `tournamentId` to `LeaderboardCards` |
 | `locales/en/groups.json` | Add `groups.headToHead.*` translations |
 | `locales/es/groups.json` | Add Spanish translations |
 
-Note: No changes needed to `friends-group-table.tsx`, `definitions.ts`, or `prode-group-actions.ts` — the rich stats are fetched fresh by the dialog via the new server action.
+Note: No changes needed to `friends-group-table.tsx`, `definitions.ts`, or `prode-group-actions.ts`.
+
+**New DB functions (data transfer reduction):**
+- `getGameCountsForTournament` → 1 row, 2 columns vs. 64+ rows × 15 columns (replaces stats page's `findGamesInTournament` usage)
+- `getTournamentGuessStatsForUsers` → 10 columns vs. 29 columns per user (replaces `findTournamentGuessByUserIdsTournament` for stats context)
 
 ## Data Flow Summary
 
@@ -192,25 +259,38 @@ Leaderboard loads (existing):
 When user clicks another member's card:
   HeadToHeadDialog opens (with loading skeleton)
   → calls getUserStatsForComparison([currentUserId, opponentId], tournamentId)
-      → getGameGuessStatisticsForUsers (multi-user, materialized)
-      → findTournamentGuessByUserIdsTournament (multi-user)
-      → findGamesInTournament (once, provides totalGamesPlayed for accuracy %)
-      → calculateAccuracyStats() per user (from stats-calculations.ts)
+      → getGameGuessStatisticsForUsers()     [multi-user, reads materialized columns]
+      → getTournamentGuessStatsForUsers()    [NEW: multi-user, 10 selected columns only]
+      → getGameCountsForTournament()         [NEW: 1 row COUNT query, not 64+ rows]
+      → calculateAccuracyStats() per user    [from stats-calculations.ts, app-side division]
       → returns UserComparisonStats[]
   → Dialog renders side-by-side comparison with accuracy %
+
+DB data transfer savings vs. original stats page approach:
+  - findGamesInTournament (64+ rows × 15 cols)  →  getGameCountsForTournament (1 row × 2 cols)
+  - selectAll() from tournament_guesses (29 cols) →  selective select (10 cols)
 ```
 
 ## Implementation Steps
 
-1. **Extract stats utilities** (`app/utils/stats-calculations.ts`)
+1. **Add `getGameCountsForTournament`** (`app/db/game-repository.ts`)
+   - Single COUNT query: `SELECT COUNT(*), COUNT(gr.home_score) FROM games LEFT JOIN game_results WHERE tournament_id = ?`
+   - Returns `{total: number, played: number}`
+
+2. **Add `getTournamentGuessStatsForUsers`** (`app/db/tournament-guess-repository.ts`)
+   - Selective SELECT of 10 stats-relevant columns only (not `selectAll()`)
+   - New type `TournamentGuessStats` for the return shape
+
+3. **Extract stats utilities** (`app/utils/stats-calculations.ts`)
    - Move `calculatePercentage`, `calculateAccuracyStats`, `calculateBoostStats` from stats page
    - Export `PerformanceStats`, `AccuracyStats`, `BoostStats` types
 
-2. **Update stats page** (`stats/page.tsx`)
+4. **Update stats page** (`stats/page.tsx`)
    - Import from `stats-calculations.ts`
-   - No functional change
+   - Replace `findGamesInTournament` → `getGameCountsForTournament` (same result, far less data)
+   - No functional change to the page output
 
-3. **Create server action** (`app/actions/stats-actions.ts`)
+5. **Create server action** (`app/actions/stats-actions.ts`)
    - `getUserStatsForComparison(userIds, tournamentId)` using multi-user repo functions
    - Returns `UserComparisonStats[]` with `PerformanceStats` + `AccuracyStats` per user
 
