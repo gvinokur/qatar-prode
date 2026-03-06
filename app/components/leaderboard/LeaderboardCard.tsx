@@ -8,10 +8,13 @@ import {
   Collapse,
   Divider,
   Grid,
+  IconButton,
+  Tooltip,
   Typography,
   alpha,
   useTheme
 } from '@mui/material'
+import CompareArrowsIcon from '@mui/icons-material/CompareArrows'
 import { motion } from 'framer-motion'
 import type { LeaderboardCardProps } from './types'
 import { RankChangeIndicator } from './rank-change-animations'
@@ -42,7 +45,8 @@ export default function LeaderboardCard({
   rankChange = 0,
   isCurrentUser,
   isExpanded,
-  onToggle
+  onToggle,
+  onCompare
 }: LeaderboardCardProps) {
   const theme = useTheme()
   const t = useTranslations('groups.leaderboard')
@@ -72,10 +76,7 @@ export default function LeaderboardCard({
       }}
       tabIndex={0}
       role="button"
-      aria-label={isCurrentUser
-        ? `Your leaderboard card, rank ${rank}. ${isExpanded ? 'Expanded' : 'Collapsed'}. Press Enter or Space to ${isExpanded ? 'collapse' : 'expand'}.`
-        : `Press Enter to compare with ${displayName}, rank ${rank}.`
-      }
+      aria-label={`${isCurrentUser ? 'Your' : displayName + "'s"} leaderboard card, rank ${rank}. ${isExpanded ? 'Expanded' : 'Collapsed'}. Press Enter or Space to ${isExpanded ? 'collapse' : 'expand'}.`}
       aria-expanded={isExpanded}
       sx={{
         py: 1.5,
@@ -153,25 +154,33 @@ export default function LeaderboardCard({
           >
             {user.totalPoints.toLocaleString()} pts
           </Typography>
+
+          {/* Compare button (non-self cards only) */}
+          {!isCurrentUser && onCompare && (
+            <Tooltip title={t('tapToCompare')}>
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onCompare()
+                }}
+                aria-label={`Compare with ${displayName}`}
+                sx={{ ml: 0.5, color: 'text.secondary' }}
+              >
+                <CompareArrowsIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
         </Box>
 
-        {/* Action Hint */}
-        {isCurrentUser && !isExpanded && (
+        {/* Expand hint (all cards when collapsed) */}
+        {!isExpanded && (
           <Typography
             variant="caption"
             color="text.secondary"
             sx={{ display: 'block', mt: 1, textAlign: 'center', fontStyle: 'italic' }}
           >
             {t('tapToViewDetails')}
-          </Typography>
-        )}
-        {!isCurrentUser && (
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ display: 'block', mt: 1, textAlign: 'center', fontStyle: 'italic' }}
-          >
-            {t('tapToCompare')}
           </Typography>
         )}
 

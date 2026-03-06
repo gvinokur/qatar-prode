@@ -75,13 +75,12 @@ describe('LeaderboardCards', () => {
       />
     )
 
-    // Non-self cards have aria-label "Press Enter to compare with {name}, rank {rank}."
-    const cards = screen.getAllByRole('button', { name: /press enter to compare/i })
+    const cards = screen.getAllByRole('button', { name: /leaderboard card/i })
     // Alice and Bob tie at 100 points (both rank 1), Alice comes first alphabetically (user-1 < user-2)
     // Charlie has 80 points (rank 3, using competition ranking)
-    expect(cards[0]).toHaveAccessibleName(/compare with alice.*rank 1/i)
-    expect(cards[1]).toHaveAccessibleName(/compare with bob.*rank 1/i)
-    expect(cards[2]).toHaveAccessibleName(/compare with charlie.*rank 3/i)
+    expect(cards[0]).toHaveAccessibleName(/alice.*rank 1/i)
+    expect(cards[1]).toHaveAccessibleName(/bob.*rank 1/i)
+    expect(cards[2]).toHaveAccessibleName(/charlie.*rank 3/i)
   })
 
   it('highlights current user card', () => {
@@ -97,53 +96,47 @@ describe('LeaderboardCards', () => {
   })
 
   it('allows expanding and collapsing cards', () => {
-    // Alice (user-1) is the current user — self card expands on click
     renderWithTheme(
       <LeaderboardCards
         scores={mockScores}
-        currentUserId="user-1"
+        currentUserId="user-99"
       />
     )
 
-    // Self card has aria-label containing "Your leaderboard card"
-    const selfCard = screen.getByLabelText(/your leaderboard card.*rank/i)
+    const aliceCard = screen.getByLabelText(/alice.*leaderboard card/i)
 
     // Initially collapsed
-    expect(selfCard).toHaveAttribute('aria-expanded', 'false')
+    expect(aliceCard).toHaveAttribute('aria-expanded', 'false')
 
     // Expand
-    fireEvent.click(selfCard)
-    expect(selfCard).toHaveAttribute('aria-expanded', 'true')
+    fireEvent.click(aliceCard)
+    expect(aliceCard).toHaveAttribute('aria-expanded', 'true')
 
     // Collapse
-    fireEvent.click(selfCard)
-    expect(selfCard).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(aliceCard)
+    expect(aliceCard).toHaveAttribute('aria-expanded', 'false')
   })
 
   it('ensures only one card is expanded at a time', () => {
-    // Alice (user-1) is the current user — self card can expand
-    // Bob (user-2) is a non-self card — click opens compare dialog
     renderWithTheme(
       <LeaderboardCards
         scores={mockScores}
-        currentUserId="user-1"
+        currentUserId="user-99"
       />
     )
 
-    const selfCard = screen.getByLabelText(/your leaderboard card.*rank/i)
-    const bobCard = screen.getByLabelText(/compare with bob/i)
+    const aliceCard = screen.getByLabelText(/alice.*leaderboard card/i)
+    const bobCard = screen.getByLabelText(/bob.*leaderboard card/i)
 
-    // Initially both collapsed
-    expect(selfCard).toHaveAttribute('aria-expanded', 'false')
+    // Expand Alice
+    fireEvent.click(aliceCard)
+    expect(aliceCard).toHaveAttribute('aria-expanded', 'true')
     expect(bobCard).toHaveAttribute('aria-expanded', 'false')
 
-    // Expand self card (Alice)
-    fireEvent.click(selfCard)
-    expect(selfCard).toHaveAttribute('aria-expanded', 'true')
-
-    // Click Bob (non-self) — opens compare dialog, does NOT affect self card expansion
+    // Expand Bob (should collapse Alice)
     fireEvent.click(bobCard)
-    expect(bobCard).toHaveAttribute('aria-expanded', 'false') // Non-self cards don't expand
+    expect(aliceCard).toHaveAttribute('aria-expanded', 'false')
+    expect(bobCard).toHaveAttribute('aria-expanded', 'true')
   })
 
   it('displays empty state when no scores', () => {
@@ -239,13 +232,11 @@ describe('LeaderboardCards', () => {
       />
     )
 
-    // Non-self cards (user-a, user-b, user-c) all have "compare" in aria-label
-    // currentUserId is "user-1" which doesn't match any score
-    const cards = screen.getAllByRole('button', { name: /press enter to compare/i })
+    const cards = screen.getAllByRole('button', { name: /leaderboard card/i })
     // All three users tied at 100 points (all rank 1 with competition ranking)
     // Sorted alphabetically by user ID: user-a, user-b, user-c
-    expect(cards[0]).toHaveAccessibleName(/compare with alice.*rank 1/i)
-    expect(cards[1]).toHaveAccessibleName(/compare with bob.*rank 1/i)
-    expect(cards[2]).toHaveAccessibleName(/compare with charlie.*rank 1/i)
+    expect(cards[0]).toHaveAccessibleName(/alice.*rank 1/i)
+    expect(cards[1]).toHaveAccessibleName(/bob.*rank 1/i)
+    expect(cards[2]).toHaveAccessibleName(/charlie.*rank 1/i)
   })
 })

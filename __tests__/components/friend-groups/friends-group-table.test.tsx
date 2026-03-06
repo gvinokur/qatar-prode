@@ -192,15 +192,17 @@ describe('ProdeGroupTable', () => {
     it('displays user scores in correct order (highest first)', () => {
       render(<ProdeGroupTable {...defaultProps} />);
 
+      // Get all leaderboard cards (both tabs are kept mounted)
+      const cards = screen.getAllByRole('button', { name: /leaderboard card/i });
+
+      // Should have at least 3 cards
+      expect(cards.length).toBeGreaterThanOrEqual(3);
+
       // Verify scores appear in descending order: 100, 90, 80
       // Both tabs are kept mounted, so text may appear multiple times
       expect(screen.getAllByText('100 pts').length).toBeGreaterThanOrEqual(1);
       expect(screen.getAllByText('90 pts').length).toBeGreaterThanOrEqual(1);
       expect(screen.getAllByText('80 pts').length).toBeGreaterThanOrEqual(1);
-
-      // Self card and non-self cards are both rendered as buttons
-      const allButtons = screen.getAllByRole('button');
-      expect(allButtons.length).toBeGreaterThanOrEqual(3);
     });
 
     it('highlights the logged in user card', () => {
@@ -337,18 +339,16 @@ describe('ProdeGroupTable', () => {
     it('only expands one card at a time', () => {
       render(<ProdeGroupTable {...defaultProps} />);
 
-      // Self card (user1) can expand — it has the "your leaderboard card" aria-label
-      const selfCards = screen.getAllByLabelText(/your leaderboard card/i);
-      expect(selfCards.length).toBeGreaterThanOrEqual(1);
-      const selfCard = selfCards[0];
+      const cards = screen.getAllByRole('button', { name: /leaderboard card/i });
 
-      // Expand self card
-      fireEvent.click(selfCard);
-      expect(selfCard).toHaveAttribute('aria-expanded', 'true');
+      // Expand first card
+      fireEvent.click(cards[0]);
+      expect(cards[0]).toHaveAttribute('aria-expanded', 'true');
 
-      // Collapse self card
-      fireEvent.click(selfCard);
-      expect(selfCard).toHaveAttribute('aria-expanded', 'false');
+      // Expand second card (should collapse the first)
+      fireEvent.click(cards[1]);
+      expect(cards[1]).toHaveAttribute('aria-expanded', 'true');
+      expect(cards[0]).toHaveAttribute('aria-expanded', 'false');
     });
   });
 
@@ -365,10 +365,11 @@ describe('ProdeGroupTable', () => {
     it('displays rank correctly', () => {
       render(<ProdeGroupTable {...defaultProps} />);
 
-      // Ranks #1, #2, #3 should be visible as text in the cards
-      expect(screen.getAllByText('#1').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('#2').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('#3').length).toBeGreaterThanOrEqual(1);
+      // Ranks should be #1, #2, #3
+      const cards = screen.getAllByRole('button', { name: /leaderboard card, rank/i });
+      expect(cards[0]).toHaveAccessibleName(/rank 1/i);
+      expect(cards[1]).toHaveAccessibleName(/rank 2/i);
+      expect(cards[2]).toHaveAccessibleName(/rank 3/i);
     });
 
     it('shows boost bonuses conditionally when expanded', () => {

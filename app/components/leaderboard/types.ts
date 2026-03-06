@@ -44,6 +44,7 @@ export interface LeaderboardCardProps {
   readonly isCurrentUser: boolean
   readonly isExpanded: boolean
   readonly onToggle: () => void
+  readonly onCompare?: () => void  // Opens H2H dialog (non-self cards only)
 }
 
 export interface RankChangeIndicatorProps {

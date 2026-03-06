@@ -164,6 +164,6 @@ describe('LeaderboardCard', () => {
       />
     )
 
-    expect(screen.getByLabelText(/press enter to compare with john doe/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/john doe's leaderboard card/i)).toBeInTheDocument()
   })
 })

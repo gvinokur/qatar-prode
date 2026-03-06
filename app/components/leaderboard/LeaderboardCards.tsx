@@ -133,10 +133,8 @@ export default function LeaderboardCards({
                 rankChange={(user as any).rankChange}
                 isCurrentUser={isCurrentUser}
                 isExpanded={isExpanded}
-                onToggle={isCurrentUser
-                  ? () => handleCardToggle(user.id)
-                  : () => setCompareUserId(user.id)
-                }
+                onToggle={() => handleCardToggle(user.id)}
+                onCompare={!isCurrentUser ? () => setCompareUserId(user.id) : undefined}
               />
             )
           })}
