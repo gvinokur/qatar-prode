@@ -4,6 +4,7 @@ import {Tournament, User} from "../../db/tables-definition";
 import {UserScore} from "../../definitions";
 import {
   Box,
+  Button,
   Card,
   CardContent,
   CardHeader,
@@ -11,8 +12,9 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import {useState} from "react";
+import {useState, useRef} from "react";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
+import ShareIcon from '@mui/icons-material/Share';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
 import NotificationDialog from "./notification-dialog";
@@ -37,7 +39,9 @@ type Props = {
 export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, members, bettingData, selectedTournamentId, groupName, joinUrl, themeColor}: Props) {
   const t = useTranslations('groups.standings');
   const tBetting = useTranslations('groups.betting');
+  const tSharing = useTranslations('groups.sharing');
   const theme = useTheme();
+  const leaderboardShareRef = useRef<{ openLeaderboardShare: () => void } | null>(null);
 
   const [selectedTab, setSelectedTab] = useState<string>(selectedTournamentId || tournaments[0]?.id || '')
   const [snackbar, setSnackbar] = useState<{open: boolean, message: string, severity: 'success' | 'error'}>({open: false, message: '', severity: 'success'});
@@ -62,11 +66,26 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
     );
   }
 
+  const shareAction = (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Button
+        size="small"
+        variant="outlined"
+        startIcon={<ShareIcon />}
+        onClick={() => leaderboardShareRef.current?.openLeaderboardShare()}
+        sx={{ fontSize: '0.75rem' }}
+      >
+        {tSharing('shareStandings')}
+      </Button>
+      {action}
+    </Box>
+  )
+
   return (
     <Card>
       <CardHeader
         title={t('title')}
-        action={action}
+        action={shareAction}
       />
       <CardContent>
         <TabContext value={selectedTab || tournaments[0]?.id || ''}>
@@ -116,6 +135,7 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
                   groupName={groupName}
                   joinUrl={joinUrl}
                   themeColor={themeColor}
+                  shareRef={leaderboardShareRef}
                 />
                 {/* Betting Status (read-only) */}
                 {bettingConfig?.betting_enabled && (

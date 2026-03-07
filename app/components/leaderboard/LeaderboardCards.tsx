@@ -1,7 +1,7 @@
 'use client'
 
 import { Box, Button, Typography } from '@mui/material'
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { LayoutGroup } from 'framer-motion'
 import ShareIcon from '@mui/icons-material/Share'
@@ -42,6 +42,7 @@ export default function LeaderboardCards({
   groupName,
   joinUrl,
   themeColor,
+  shareRef,
 }: LeaderboardCardsProps) {
   const t = useTranslations('groups.sharing')
 
@@ -54,6 +55,15 @@ export default function LeaderboardCards({
 
   const leaderboardTemplateRef = useRef<HTMLDivElement | null>(null)
   const highlightTemplateRef = useRef<HTMLDivElement | null>(null)
+
+  const openLeaderboardShare = useCallback(() => setLeaderboardShareOpen(true), [])
+
+  useEffect(() => {
+    if (shareRef) {
+      shareRef.current = { openLeaderboardShare }
+      return () => { shareRef.current = null }
+    }
+  }, [shareRef, openLeaderboardShare])
 
   // Wait for client mount before rendering portals
   useEffect(() => {
@@ -168,18 +178,20 @@ export default function LeaderboardCards({
 
   return (
     <>
-      {/* Share Standings button */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: { xs: 2, sm: 3, md: 4 }, mb: 1 }}>
-        <Button
-          size="small"
-          variant="outlined"
-          startIcon={<ShareIcon />}
-          onClick={() => setLeaderboardShareOpen(true)}
-          sx={{ fontSize: '0.75rem' }}
-        >
-          {t('shareStandings')}
-        </Button>
-      </Box>
+      {/* Share Standings button — only shown when no external shareRef controls it */}
+      {!shareRef && (
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: { xs: 2, sm: 3, md: 4 }, mb: 1 }}>
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<ShareIcon />}
+            onClick={openLeaderboardShare}
+            sx={{ fontSize: '0.75rem' }}
+          >
+            {t('shareStandings')}
+          </Button>
+        </Box>
+      )}
 
       <LayoutGroup>
         <Box

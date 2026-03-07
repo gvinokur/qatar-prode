@@ -23,6 +23,10 @@ export interface LeaderboardUser {
   individualAwardsScore: number    // Individual awards points
 }
 
+export interface LeaderboardShareHandle {
+  openLeaderboardShare: () => void
+}
+
 export interface LeaderboardViewProps {
   readonly scores: unknown[] // Will be typed as UserScore from DB when integrated
   readonly currentUserId: string
@@ -31,6 +35,7 @@ export interface LeaderboardViewProps {
   readonly groupName?: string
   readonly joinUrl?: string
   readonly themeColor?: string
+  readonly shareRef?: React.MutableRefObject<LeaderboardShareHandle | null>
 }
 
 export interface LeaderboardCardsProps {
@@ -41,6 +46,7 @@ export interface LeaderboardCardsProps {
   readonly groupName?: string
   readonly joinUrl?: string
   readonly themeColor?: string
+  readonly shareRef?: React.MutableRefObject<LeaderboardShareHandle | null>
 }
 
 export interface LeaderboardCardProps {

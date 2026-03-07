@@ -9,6 +9,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Skeleton,
   Typography,
 } from '@mui/material'
 import { useTranslations } from 'next-intl'
@@ -93,11 +94,14 @@ export default function SharePreviewModal({
 
       <DialogContent>
         {isCapturing && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 4, gap: 2 }}>
-            <CircularProgress size={32} />
-            <Typography variant="body2" color="text.secondary">
-              {t('generatingImage')}
-            </Typography>
+          <Box>
+            <Skeleton variant="rectangular" width="100%" height={220} sx={{ borderRadius: 1, mb: 1 }} />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <CircularProgress size={16} />
+              <Typography variant="caption" color="text.secondary">
+                {t('generatingImage')}
+              </Typography>
+            </Box>
           </Box>
         )}
 
