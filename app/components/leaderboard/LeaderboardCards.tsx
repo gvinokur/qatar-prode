@@ -1,12 +1,18 @@
 'use client'
 
-import { Box, Typography } from '@mui/material'
-import { useState, useMemo, useEffect } from 'react'
+import { Box, Button, Typography } from '@mui/material'
+import { useState, useMemo, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { LayoutGroup } from 'framer-motion'
+import ShareIcon from '@mui/icons-material/Share'
+import { useTranslations } from 'next-intl'
 import type { LeaderboardCardsProps, LeaderboardUser } from './types'
 import LeaderboardCard from './LeaderboardCard'
 import HeadToHeadDialog from './HeadToHeadDialog'
 import { calculateRanks, calculateRanksWithChange } from '../../utils/rank-calculator'
+import SharePreviewModal from '../friend-groups/sharing/SharePreviewModal'
+import LeaderboardTemplate, { type LeaderboardTemplateUser } from '../friend-groups/sharing/LeaderboardTemplate'
+import PersonalHighlightTemplate from '../friend-groups/sharing/PersonalHighlightTemplate'
 
 // Helper function to transform UserScore to LeaderboardUser
 function transformToLeaderboardUser(score: any): LeaderboardUser {
@@ -32,11 +38,27 @@ export default function LeaderboardCards({
   scores,
   currentUserId,
   previousScores,
-  tournamentId
+  tournamentId,
+  groupName,
+  joinUrl,
+  themeColor,
 }: LeaderboardCardsProps) {
+  const t = useTranslations('groups.sharing')
+
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null)
   const [compareUserId, setCompareUserId] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<'yesterday' | 'today'>('yesterday')
+  const [leaderboardShareOpen, setLeaderboardShareOpen] = useState(false)
+  const [highlightShareOpen, setHighlightShareOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  const leaderboardTemplateRef = useRef<HTMLDivElement | null>(null)
+  const highlightTemplateRef = useRef<HTMLDivElement | null>(null)
+
+  // Wait for client mount before rendering portals
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Check if we have yesterday data to enable animation
   const hasYesterdayData = scores.some((s: any) => s.yesterdayTotalPoints !== undefined && s.yesterdayTotalPoints !== null)
@@ -108,9 +130,57 @@ export default function LeaderboardCards({
 
   const compareUser = compareUserId ? leaderboardUsers.find((u) => u.id === compareUserId) : null
   const currentUser = leaderboardUsers.find((u) => u.id === currentUserId)
+  const currentUserRankChange = (currentUser as any)?.rankChange ?? 0
+  const currentUserRank = (currentUser as any)?.currentRank ?? 0
+
+  // Build template users (top 5, always include current user)
+  const top5 = leaderboardUsers.slice(0, 5)
+  const currentUserInTop5 = top5.some((u) => u.id === currentUserId)
+  const templateUsers: LeaderboardTemplateUser[] = [
+    ...top5.map((u) => ({
+      rank: (u as any).currentRank,
+      name: u.name,
+      userId: u.id,
+      points: u.totalPoints,
+      isCurrentUser: u.id === currentUserId,
+    })),
+    ...(!currentUserInTop5 && currentUser
+      ? [{
+          rank: currentUserRank,
+          name: currentUser.name,
+          userId: currentUser.id,
+          points: currentUser.totalPoints,
+          isCurrentUser: true,
+        }]
+      : []),
+  ]
+
+  const leaderboardShareText = t('leaderboardShareText', {
+    groupName: groupName ?? '',
+    url: joinUrl ?? 'qatar-prode.app',
+  })
+
+  const highlightShareText = t('highlightShareText', {
+    count: currentUserRankChange,
+    groupName: groupName ?? '',
+    url: joinUrl ?? 'qatar-prode.app',
+  })
 
   return (
     <>
+      {/* Share Standings button */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: { xs: 2, sm: 3, md: 4 }, mb: 1 }}>
+        <Button
+          size="small"
+          variant="outlined"
+          startIcon={<ShareIcon />}
+          onClick={() => setLeaderboardShareOpen(true)}
+          sx={{ fontSize: '0.75rem' }}
+        >
+          {t('shareStandings')}
+        </Button>
+      </Box>
+
       <LayoutGroup>
         <Box
           role="list"
@@ -124,17 +194,19 @@ export default function LeaderboardCards({
           {leaderboardUsers.map((user) => {
             const isCurrentUser = user.id === currentUserId
             const isExpanded = expandedCardId === user.id
+            const userRankChange = (user as any).rankChange ?? 0
 
             return (
               <LeaderboardCard
                 key={user.id}
                 user={user}
                 rank={(user as any).currentRank}
-                rankChange={(user as any).rankChange}
+                rankChange={userRankChange}
                 isCurrentUser={isCurrentUser}
                 isExpanded={isExpanded}
                 onToggle={() => handleCardToggle(user.id)}
                 onCompare={isCurrentUser ? undefined : () => setCompareUserId(user.id)}
+                onShareHighlight={isCurrentUser && userRankChange > 0 ? () => setHighlightShareOpen(true) : undefined}
               />
             )
           })}
@@ -150,10 +222,80 @@ export default function LeaderboardCards({
           tournamentId={tournamentId}
           currentUserName={currentUser?.name ?? 'You'}
           opponentName={compareUser?.name ?? ''}
-          currentUserRank={(currentUser as any)?.currentRank}
+          currentUserRank={currentUserRank}
           opponentRank={(compareUser as any)?.currentRank}
+          groupName={groupName}
+          joinUrl={joinUrl}
+          themeColor={themeColor}
         />
       )}
+
+      {/* Off-screen portals for image templates */}
+      {mounted && createPortal(
+        <div
+          style={{
+            position: 'fixed',
+            left: -9999,
+            top: 0,
+            visibility: 'hidden',
+            pointerEvents: 'none',
+          }}
+        >
+          <LeaderboardTemplate
+            ref={leaderboardTemplateRef}
+            groupName={groupName ?? ''}
+            tournamentName=""
+            users={templateUsers}
+            currentUserRank={currentUserRank}
+            totalUsers={leaderboardUsers.length}
+            joinUrl={joinUrl}
+            themeColor={themeColor}
+          />
+        </div>,
+        document.body
+      )}
+
+      {mounted && currentUser && createPortal(
+        <div
+          style={{
+            position: 'fixed',
+            left: -9999,
+            top: 0,
+            visibility: 'hidden',
+            pointerEvents: 'none',
+          }}
+        >
+          <PersonalHighlightTemplate
+            ref={highlightTemplateRef}
+            groupName={groupName ?? ''}
+            tournamentName=""
+            userName={currentUser.name}
+            userId={currentUser.id}
+            currentRank={currentUserRank}
+            previousRank={currentUserRank + currentUserRankChange}
+            currentPoints={currentUser.totalPoints}
+            themeColor={themeColor}
+          />
+        </div>,
+        document.body
+      )}
+
+      {/* Share preview modals */}
+      <SharePreviewModal
+        open={leaderboardShareOpen}
+        onClose={() => setLeaderboardShareOpen(false)}
+        templateRef={leaderboardTemplateRef}
+        shareText={leaderboardShareText}
+        filename="leaderboard.png"
+      />
+
+      <SharePreviewModal
+        open={highlightShareOpen}
+        onClose={() => setHighlightShareOpen(false)}
+        templateRef={highlightTemplateRef}
+        shareText={highlightShareText}
+        filename="highlight.png"
+      />
     </>
   )
 }

@@ -20,6 +20,7 @@ import { getUserScoresForTournament } from "../../../actions/prode-group-actions
 type Props = {
   readonly params: Promise<{
     id: string
+    locale: string
   }>,
   readonly searchParams: Promise<{[k:string]:string}>
 }
@@ -135,6 +136,9 @@ export default async function FriendsGroup(props : Props){
               members={members}
               bettingData={bettingData}
               selectedTournamentId={searchParams.tournament}
+              groupName={prodeGroup.name}
+              joinUrl={`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/${params.locale}/friend-groups/join/${prodeGroup.id}`}
+              themeColor={prodeGroup.theme?.primary_color ?? undefined}
             />
           </Grid>
           {(prodeGroup.owner_user_id === user.id || members.find(m => m.id === user.id)?.is_admin) && (

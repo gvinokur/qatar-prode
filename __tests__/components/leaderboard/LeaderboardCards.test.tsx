@@ -63,8 +63,9 @@ describe('LeaderboardCards', () => {
     expect(screen.getByRole('list', { name: /leaderboard/i })).toBeInTheDocument()
     // Alice is current user, so displays as "You"
     expect(screen.getByText('You')).toBeInTheDocument()
-    expect(screen.getByText('Bob')).toBeInTheDocument()
-    expect(screen.getByText('Charlie')).toBeInTheDocument()
+    // Names may appear in both leaderboard cards and off-screen sharing templates
+    expect(screen.getAllByText('Bob').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Charlie').length).toBeGreaterThan(0)
   })
 
   it('sorts users by total points descending', () => {
@@ -176,7 +177,8 @@ describe('LeaderboardCards', () => {
       />
     )
 
-    expect(screen.getByText('Unknown User')).toBeInTheDocument()
+    // Name may appear in both leaderboard card and off-screen sharing template
+    expect(screen.getAllByText('Unknown User').length).toBeGreaterThan(0)
   })
 
   it('handles tie-breaking by user ID', () => {

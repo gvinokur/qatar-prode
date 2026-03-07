@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useTransition, useState } from 'react'
+import { useEffect, useTransition, useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import {
   Avatar,
   Box,
@@ -23,24 +24,9 @@ import CloseIcon from '@mui/icons-material/Close'
 import WhatsAppIcon from '@mui/icons-material/WhatsApp'
 import { useTranslations } from 'next-intl'
 import { getUserStatsForComparison, type UserComparisonStats } from '../../actions/stats-actions'
-
-// Helper to get avatar color from user ID (same as LeaderboardCard)
-function getAvatarColor(userId: string): string {
-  const colors = [
-    '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A',
-    '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2',
-  ]
-  const hash = userId.split('').reduce((acc, char) => acc + (char.codePointAt(0) || 0), 0)
-  return colors[hash % colors.length]
-}
-
-function getUserInitials(name: string): string {
-  const parts = name.trim().split(' ')
-  if (parts.length >= 2) {
-    return `${parts[0][0]}${parts.at(-1)![0]}`.toUpperCase()
-  }
-  return name.substring(0, 2).toUpperCase()
-}
+import { getAvatarColor, getUserInitials } from '../../utils/avatar-utils'
+import HeadToHeadTemplate from '../friend-groups/sharing/HeadToHeadTemplate'
+import SharePreviewModal from '../friend-groups/sharing/SharePreviewModal'
 
 interface MetricRowProps {
   readonly label: string
@@ -118,6 +104,8 @@ export interface HeadToHeadDialogProps {
   readonly currentUserRank?: number
   readonly opponentRank?: number
   readonly groupName?: string
+  readonly joinUrl?: string
+  readonly themeColor?: string
 }
 
 export default function HeadToHeadDialog({
@@ -131,15 +119,25 @@ export default function HeadToHeadDialog({
   currentUserRank,
   opponentRank,
   groupName,
+  joinUrl,
+  themeColor,
 }: HeadToHeadDialogProps) {
   const theme = useTheme()
   const t = useTranslations('groups.headToHead')
   const tLeaderboard = useTranslations('groups.leaderboard')
+  const tSharing = useTranslations('groups.sharing')
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'))
 
   const [isPending, startTransition] = useTransition()
   const [stats, setStats] = useState<UserComparisonStats[] | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [shareModalOpen, setShareModalOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const h2hTemplateRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     if (!open) {
@@ -205,28 +203,67 @@ export default function HeadToHeadDialog({
   const myLeads = advantages.filter((a) => a.my > a.their)
   const theirLeads = advantages.filter((a) => a.their > a.my)
 
-  function handleShare() {
-    if (!myStats || !theirStats) return
-
+  function getShareText(): string {
+    if (!myStats || !theirStats) return ''
     const myPts = myStats.performance.totalPoints
     const theirPts = theirStats.performance.totalPoints
-    const myAcc = myStats.accuracy.overallCorrectPercentage
-    const theirAcc = theirStats.accuracy.overallCorrectPercentage
-    const group = groupName ?? ''
-
-    let message: string
-    if (myPts > theirPts) {
-      message = t('winningMessage', { groupName: group, myPts, name: opponentName, theirPts, myAcc, theirAcc })
-    } else if (theirPts > myPts) {
-      message = t('losingMessage', { name: opponentName, theirPts, myPts })
-    } else {
-      message = t('tiedMessage', { groupName: group, pts: myPts })
-    }
-
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
+    return tSharing('h2hShareText', {
+      groupName: groupName ?? '',
+      myPts,
+      name: opponentName,
+      theirPts,
+    })
   }
 
+  function handleShare() {
+    if (!myStats || !theirStats) return
+    setShareModalOpen(true)
+  }
+
+  const myStatsForTemplate = myStats ? {
+    totalPoints: myStats.performance.totalPoints,
+    groupStagePoints: myStats.performance.groupStagePoints,
+    playoffStagePoints: myStats.performance.playoffStagePoints,
+    accuracy: myStats.accuracy.overallCorrectPercentage,
+  } : null
+
+  const theirStatsForTemplate = theirStats ? {
+    totalPoints: theirStats.performance.totalPoints,
+    groupStagePoints: theirStats.performance.groupStagePoints,
+    playoffStagePoints: theirStats.performance.playoffStagePoints,
+    accuracy: theirStats.accuracy.overallCorrectPercentage,
+  } : null
+
   return (
+    <>
+    {mounted && myStatsForTemplate && theirStatsForTemplate && createPortal(
+      <div style={{ position: 'fixed', left: -9999, top: 0, visibility: 'hidden', pointerEvents: 'none' }}>
+        <HeadToHeadTemplate
+          ref={h2hTemplateRef}
+          groupName={groupName ?? ''}
+          tournamentName=""
+          myName={currentUserName}
+          myRank={currentUserRank ?? 0}
+          myUserId={currentUserId}
+          myStats={myStatsForTemplate}
+          theirName={opponentName}
+          theirRank={opponentRank ?? 0}
+          theirUserId={opponentId}
+          theirStats={theirStatsForTemplate}
+          themeColor={themeColor}
+        />
+      </div>,
+      document.body
+    )}
+
+    <SharePreviewModal
+      open={shareModalOpen}
+      onClose={() => setShareModalOpen(false)}
+      templateRef={h2hTemplateRef}
+      shareText={getShareText()}
+      filename="head-to-head.png"
+    />
+
     <Dialog
       open={open}
       onClose={onClose}
@@ -410,5 +447,6 @@ export default function HeadToHeadDialog({
         </Button>
       </DialogActions>
     </Dialog>
+    </>
   )
 }

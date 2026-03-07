@@ -215,6 +215,9 @@ export default async function TournamentScopedFriendGroup(props : Props){
                 members={members}
                 bettingData={bettingData}
                 selectedTournamentId={tournament.id}
+                groupName={prodeGroup.name}
+                joinUrl={`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/${params.locale}/tournaments/${tournament.id}/friend-groups/join/${prodeGroup.id}`}
+                themeColor={prodeGroup.theme?.primary_color ?? undefined}
               />
             }
             adminContent={

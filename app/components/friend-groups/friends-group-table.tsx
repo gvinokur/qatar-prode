@@ -29,9 +29,12 @@ type Props = {
   readonly members: { id: string, nombre: string, is_admin?: boolean }[],
   readonly bettingData: { [tournamentId: string]: { config: any, payments: any[] } }
   readonly selectedTournamentId?: string,
+  readonly groupName?: string,
+  readonly joinUrl?: string,
+  readonly themeColor?: string,
 }
 
-export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, members, bettingData, selectedTournamentId}: Props) {
+export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, members, bettingData, selectedTournamentId, groupName, joinUrl, themeColor}: Props) {
   const t = useTranslations('groups.standings');
   const tBetting = useTranslations('groups.betting');
   const theme = useTheme();
@@ -110,6 +113,9 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
                   scores={transformedScores}
                   currentUserId={loggedInUser}
                   tournament={tournament}
+                  groupName={groupName}
+                  joinUrl={joinUrl}
+                  themeColor={themeColor}
                 />
                 {/* Betting Status (read-only) */}
                 {bettingConfig?.betting_enabled && (

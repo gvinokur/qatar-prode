@@ -8,6 +8,13 @@ vi.mock('../../../app/actions/stats-actions', () => ({
   getUserStatsForComparison: vi.fn(),
 }))
 
+vi.mock('../../../app/utils/share-utils', () => ({
+  captureElement: vi.fn().mockResolvedValue(new Blob(['img'], { type: 'image/png' })),
+  shareImage: vi.fn().mockResolvedValue(undefined),
+  downloadBlob: vi.fn(),
+  openWhatsApp: vi.fn(),
+}))
+
 import { getUserStatsForComparison } from '../../../app/actions/stats-actions'
 
 const mockUserA: UserComparisonStats = {
@@ -210,9 +217,10 @@ describe('HeadToHeadDialog', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
-  it('share button opens WhatsApp URL with winning message', async () => {
+  it('share button opens share preview modal', async () => {
     vi.mocked(getUserStatsForComparison).mockResolvedValue([mockUserA, mockUserB])
-    const windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
+    Object.defineProperty(URL, 'createObjectURL', { value: vi.fn().mockReturnValue('blob:test'), writable: true })
+    Object.defineProperty(URL, 'revokeObjectURL', { value: vi.fn(), writable: true })
 
     renderWithTheme(<HeadToHeadDialog {...defaultProps} />)
 
@@ -223,26 +231,23 @@ describe('HeadToHeadDialog', () => {
     const shareButton = screen.getByText('Compartir por WhatsApp')
     fireEvent.click(shareButton)
 
-    expect(windowOpenSpy).toHaveBeenCalledOnce()
-    const [url] = windowOpenSpy.mock.calls[0]
-    expect(url).toContain('wa.me')
-    expect(url).toContain('1250') // my points
-    expect(url).toContain('Maria')
-
-    windowOpenSpy.mockRestore()
+    // Share preview modal should open — MUI sets aria-hidden on the H2H dialog when preview modal opens
+    await waitFor(() => {
+      expect(screen.getAllByRole('dialog', { hidden: true }).length).toBeGreaterThanOrEqual(2)
+    })
   })
 
-  it('share button uses losing message when opponent leads', async () => {
+  it('share button uses share preview for any stats result', async () => {
     const losingStats: UserComparisonStats[] = [
       { ...mockUserA, performance: { ...mockUserA.performance, totalPoints: 1000, groupStagePoints: 600, playoffStagePoints: 400 } },
       { ...mockUserB, performance: { ...mockUserB.performance, totalPoints: 1300, groupStagePoints: 800, playoffStagePoints: 500 } },
     ]
     vi.mocked(getUserStatsForComparison).mockResolvedValue(losingStats)
-    const windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
+    Object.defineProperty(URL, 'createObjectURL', { value: vi.fn().mockReturnValue('blob:test'), writable: true })
+    Object.defineProperty(URL, 'revokeObjectURL', { value: vi.fn(), writable: true })
 
     renderWithTheme(<HeadToHeadDialog {...defaultProps} />)
 
-    // Wait for stats to load — "Their Lead" section only appears after data is loaded
     await waitFor(() => {
       expect(screen.getByText(/Ventaja de Maria/)).toBeTruthy()
     })
@@ -250,14 +255,10 @@ describe('HeadToHeadDialog', () => {
     const shareButton = screen.getByText('Compartir por WhatsApp')
     fireEvent.click(shareButton)
 
-    expect(windowOpenSpy).toHaveBeenCalledOnce()
-    const [url] = windowOpenSpy.mock.calls[0]
-    expect(url).toContain('wa.me')
-    // Losing message should mention opponent name
-    const decodedText = decodeURIComponent(url.replace('https://wa.me/?text=', ''))
-    expect(decodedText).toContain('Maria')
-
-    windowOpenSpy.mockRestore()
+    // Share preview modal should open — MUI sets aria-hidden on the H2H dialog when preview modal opens
+    await waitFor(() => {
+      expect(screen.getAllByRole('dialog', { hidden: true }).length).toBeGreaterThanOrEqual(2)
+    })
   })
 
   it('does not render dialog content when closed', () => {

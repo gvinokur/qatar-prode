@@ -15,29 +15,12 @@ import {
   useTheme
 } from '@mui/material'
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows'
+import ShareIcon from '@mui/icons-material/Share'
 import { motion } from 'framer-motion'
 import type { LeaderboardCardProps } from './types'
 import { RankChangeIndicator } from './rank-change-animations'
 import { useTranslations } from 'next-intl'
-
-// Helper function to get avatar color from user ID
-function getAvatarColor(userId: string): string {
-  const colors = [
-    '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A',
-    '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'
-  ]
-  const hash = userId.split('').reduce((acc, char) => acc + (char.codePointAt(0) || 0), 0)
-  return colors[hash % colors.length]
-}
-
-// Helper function to get user initials
-function getUserInitials(name: string): string {
-  const parts = name.trim().split(' ')
-  if (parts.length >= 2) {
-    return `${parts[0][0]}${parts.at(-1)![0]}`.toUpperCase()
-  }
-  return name.substring(0, 2).toUpperCase()
-}
+import { getAvatarColor, getUserInitials } from '../../utils/avatar-utils'
 
 export default function LeaderboardCard({
   user,
@@ -46,7 +29,8 @@ export default function LeaderboardCard({
   isCurrentUser,
   isExpanded,
   onToggle,
-  onCompare
+  onCompare,
+  onShareHighlight,
 }: LeaderboardCardProps) {
   const theme = useTheme()
   const t = useTranslations('groups.leaderboard')
@@ -168,6 +152,23 @@ export default function LeaderboardCard({
                 sx={{ ml: 0.5, color: 'text.secondary' }}
               >
                 <CompareArrowsIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
+
+          {/* Share highlight button (current user with positive rank change) */}
+          {isCurrentUser && onShareHighlight && rankChange > 0 && (
+            <Tooltip title="Share Highlight">
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onShareHighlight()
+                }}
+                aria-label="Share rank improvement"
+                sx={{ ml: 0.5, color: 'text.secondary' }}
+              >
+                <ShareIcon fontSize="small" />
               </IconButton>
             </Tooltip>
           )}
