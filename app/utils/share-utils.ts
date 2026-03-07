@@ -2,8 +2,11 @@ import { toPng } from 'html-to-image'
 
 export async function captureElement(el: HTMLElement): Promise<Blob> {
   const dataUrl = await toPng(el, { cacheBust: true, skipFonts: true })
-  const response = await fetch(dataUrl)
-  return response.blob()
+  // Convert data URL to Blob without fetch (avoids service worker interception)
+  const [header, base64] = dataUrl.split(',')
+  const mimeType = header.match(/:(.*?);/)?.[1] ?? 'image/png'
+  const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
+  return new Blob([bytes], { type: mimeType })
 }
 
 export async function shareImage(blob: Blob, text: string, filename: string): Promise<void> {
