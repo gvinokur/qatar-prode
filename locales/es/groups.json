@@ -144,7 +144,29 @@
     "tournament": "Torneo",
     "honorRoll": "Cuadro de Honor",
     "individualAwards": "Premios Individuales",
-    "tapToCollapse": "Toca para colapsar"
+    "tapToCollapse": "Toca para colapsar",
+    "tapToViewDetails": "Toca para ver detalles",
+    "tapToCompare": "Toca para comparar"
+  },
+  "headToHead": {
+    "title": "Mano a Mano",
+    "loading": "Cargando comparación...",
+    "totalPoints": "Puntos Totales",
+    "breakdown": "Desglose por Categoría",
+    "accuracy": "Precisión",
+    "groupStage": "Fase de Grupos",
+    "playoff": "Playoff",
+    "overall": "General",
+    "exactScore": "Puntaje Exacto",
+    "yourLead": "Tu Ventaja",
+    "theirLead": "Ventaja de {name}",
+    "evenlyMatched": "¡Están igualados!",
+    "shareWhatsapp": "Compartir por WhatsApp",
+    "close": "Cerrar",
+    "pts": "pts",
+    "winningMessage": "¡La estoy rompiendo! En {groupName}: Yo {myPts}pts vs {name} {theirPts}pts. Precisión: {myAcc}% vs {theirAcc}%",
+    "losingMessage": "Lo voy a alcanzar... {name}: {theirPts}pts vs Yo: {myPts}pts. ¡Voy por vos!",
+    "tiedMessage": "¡Estamos igualados! En {groupName}: ambos con {pts}pts!"
   },
   "card": {
     "owner": "Dueño",

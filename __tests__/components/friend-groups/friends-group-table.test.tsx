@@ -211,7 +211,7 @@ describe('ProdeGroupTable', () => {
       // Current user card should show "You" with hint
       // Both tabs are kept mounted, so text appears twice
       expect(screen.getAllByText('You').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText(/tap to view details/i).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/toca para ver detalles/i).length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -345,7 +345,7 @@ describe('ProdeGroupTable', () => {
       fireEvent.click(cards[0]);
       expect(cards[0]).toHaveAttribute('aria-expanded', 'true');
 
-      // Expand second card
+      // Expand second card (should collapse the first)
       fireEvent.click(cards[1]);
       expect(cards[1]).toHaveAttribute('aria-expanded', 'true');
       expect(cards[0]).toHaveAttribute('aria-expanded', 'false');

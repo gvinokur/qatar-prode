@@ -62,6 +62,47 @@ export const findGamesInTournament = cache(async (tournamentId: string, draftRes
 })
 
 /**
+ * Get total game count and played game count for a tournament.
+ * Efficient COUNT query — returns 1 row instead of fetching all game rows.
+ *
+ * A game is considered "played" when both home_score and away_score are published
+ * (not null and not a draft result).
+ */
+export async function getGameCountsForTournament(
+  tournamentId: string
+): Promise<{ total: number; played: number }> {
+  const result = await db
+    .selectFrom('games')
+    .leftJoin('game_results', 'game_results.game_id', 'games.id')
+    .where('games.tournament_id', '=', tournamentId)
+    .select((eb) => [
+      eb.fn.countAll<number>().as('total'),
+      eb.fn
+        .count<number>(
+          eb
+            .case()
+            .when(
+              eb.and([
+                eb('game_results.home_score', 'is not', null),
+                eb('game_results.away_score', 'is not', null),
+                eb('game_results.is_draft', '=', false),
+              ])
+            )
+            .then(1)
+            .else(null)
+            .end()
+        )
+        .as('played'),
+    ])
+    .executeTakeFirstOrThrow()
+
+  return {
+    total: Number(result.total),
+    played: Number(result.played),
+  }
+}
+
+/**
  * Find the first game in a tournament by date.
  *
  * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action

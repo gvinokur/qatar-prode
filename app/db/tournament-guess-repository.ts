@@ -119,6 +119,43 @@ export async function findTournamentGuessByUserIdsTournament(userIds: string[], 
     .execute()
 }
 
+export type TournamentGuessStats = {
+  user_id: string
+  honor_roll_score: number | undefined
+  individual_awards_score: number | undefined
+  qualified_teams_score: number | undefined
+  qualified_teams_correct: number | undefined
+  qualified_teams_exact: number | undefined
+  group_position_score: number | undefined
+  yesterday_tournament_score: number | undefined
+}
+
+/**
+ * Get only the stats-relevant columns from tournament_guesses for multiple users.
+ * Avoids fetching all 29 columns when only ~8 are needed for stats calculations.
+ */
+export async function getTournamentGuessStatsForUsers(
+  userIds: string[],
+  tournamentId: string
+): Promise<TournamentGuessStats[]> {
+  if (userIds.length === 0) return []
+  return db
+    .selectFrom('tournament_guesses')
+    .select([
+      'user_id',
+      'honor_roll_score',
+      'individual_awards_score',
+      'qualified_teams_score',
+      'qualified_teams_correct',
+      'qualified_teams_exact',
+      'group_position_score',
+      'yesterday_tournament_score',
+    ])
+    .where('user_id', 'in', userIds)
+    .where('tournament_id', '=', tournamentId)
+    .execute()
+}
+
 export async function updateOrCreateTournamentGuess(guess: TournamentGuessNew) {
   const existingGuess = await findTournamentGuessByUserIdTournament(guess.user_id, guess.tournament_id)
   if(existingGuess) {

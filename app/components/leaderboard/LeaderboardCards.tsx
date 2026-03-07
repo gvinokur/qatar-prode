@@ -5,6 +5,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { LayoutGroup } from 'framer-motion'
 import type { LeaderboardCardsProps, LeaderboardUser } from './types'
 import LeaderboardCard from './LeaderboardCard'
+import HeadToHeadDialog from './HeadToHeadDialog'
 import { calculateRanks, calculateRanksWithChange } from '../../utils/rank-calculator'
 
 // Helper function to transform UserScore to LeaderboardUser
@@ -30,9 +31,11 @@ function transformToLeaderboardUser(score: any): LeaderboardUser {
 export default function LeaderboardCards({
   scores,
   currentUserId,
-  previousScores
+  previousScores,
+  tournamentId
 }: LeaderboardCardsProps) {
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null)
+  const [compareUserId, setCompareUserId] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<'yesterday' | 'today'>('yesterday')
 
   // Check if we have yesterday data to enable animation
@@ -103,34 +106,54 @@ export default function LeaderboardCards({
     )
   }
 
-  return (
-    <LayoutGroup>
-      <Box
-        role="list"
-        aria-label="Leaderboard"
-        sx={{
-          maxWidth: '1000px',
-          mx: { md: 'auto' },
-          px: { xs: 2, sm: 3, md: 4 }
-        }}
-      >
-        {leaderboardUsers.map((user) => {
-          const isCurrentUser = user.id === currentUserId
-          const isExpanded = expandedCardId === user.id
+  const compareUser = compareUserId ? leaderboardUsers.find((u) => u.id === compareUserId) : null
+  const currentUser = leaderboardUsers.find((u) => u.id === currentUserId)
 
-          return (
-            <LeaderboardCard
-              key={user.id}
-              user={user}
-              rank={(user as any).currentRank}
-              rankChange={(user as any).rankChange}
-              isCurrentUser={isCurrentUser}
-              isExpanded={isExpanded}
-              onToggle={() => handleCardToggle(user.id)}
-            />
-          )
-        })}
-      </Box>
-    </LayoutGroup>
+  return (
+    <>
+      <LayoutGroup>
+        <Box
+          role="list"
+          aria-label="Leaderboard"
+          sx={{
+            maxWidth: '1000px',
+            mx: { md: 'auto' },
+            px: { xs: 2, sm: 3, md: 4 }
+          }}
+        >
+          {leaderboardUsers.map((user) => {
+            const isCurrentUser = user.id === currentUserId
+            const isExpanded = expandedCardId === user.id
+
+            return (
+              <LeaderboardCard
+                key={user.id}
+                user={user}
+                rank={(user as any).currentRank}
+                rankChange={(user as any).rankChange}
+                isCurrentUser={isCurrentUser}
+                isExpanded={isExpanded}
+                onToggle={() => handleCardToggle(user.id)}
+                onCompare={isCurrentUser ? undefined : () => setCompareUserId(user.id)}
+              />
+            )
+          })}
+        </Box>
+      </LayoutGroup>
+
+      {tournamentId && compareUserId && (
+        <HeadToHeadDialog
+          open={!!compareUserId}
+          onClose={() => setCompareUserId(null)}
+          currentUserId={currentUserId}
+          opponentId={compareUserId}
+          tournamentId={tournamentId}
+          currentUserName={currentUser?.name ?? 'You'}
+          opponentName={compareUser?.name ?? ''}
+          currentUserRank={(currentUser as any)?.currentRank}
+          opponentRank={(compareUser as any)?.currentRank}
+        />
+      )}
+    </>
   )
 }
