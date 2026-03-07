@@ -1,7 +1,7 @@
 import { toPng } from 'html-to-image'
 
 export async function captureElement(el: HTMLElement): Promise<Blob> {
-  const dataUrl = await toPng(el, { cacheBust: true })
+  const dataUrl = await toPng(el, { cacheBust: true, skipFonts: true })
   const response = await fetch(dataUrl)
   return response.blob()
 }
