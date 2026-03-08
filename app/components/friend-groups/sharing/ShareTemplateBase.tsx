@@ -17,7 +17,7 @@ export default function ShareTemplateBase({
   children,
 }: ShareTemplateBaseProps) {
   const tCommon = useTranslations('common')
-  const appName = `${tCommon('app.title')} ${tCommon('app.name')}`
+  const appName = tCommon('app.fullName')
 
   return (
     <Box

@@ -5,7 +5,8 @@
     "logoAlt": "La Maquina Prode",
     "description": "Plataforma de pronósticos deportivos",
     "loading": "Cargando...",
-    "error": "Ocurrió un error"
+    "error": "Ocurrió un error",
+    "fullName": "La Maquina Prode Mundial"
   },
   "theme": {
     "switchTo": "Cambiar a modo {mode}",
