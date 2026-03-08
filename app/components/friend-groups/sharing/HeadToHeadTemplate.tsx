@@ -164,7 +164,6 @@ const HeadToHeadTemplate = React.forwardRef<HTMLDivElement, HeadToHeadTemplatePr
           accentColor={themeColor}
           title={t('headToHeadTitle')}
           subtitle={`${groupName} – ${tournamentName}`}
-          footerText="qatar-prode.app"
         >
           {/* User headers */}
           <Box sx={{ display: 'flex', alignItems: 'center', px: 2.5, py: 1.5 }}>

@@ -61,7 +61,6 @@ const LeaderboardTemplate = React.forwardRef<HTMLDivElement, LeaderboardTemplate
           accentColor={themeColor}
           title={groupName}
           subtitle={tournamentName}
-          footerText="qatar-prode.app"
         >
           {/* Standings rows */}
           <Box sx={{ px: 2.5, pt: 1 }}>
@@ -158,7 +157,7 @@ const LeaderboardTemplate = React.forwardRef<HTMLDivElement, LeaderboardTemplate
                 borderRadius: 1,
               }}
             >
-              <QRCodeSVG value={joinUrl} size={72} />
+              <QRCodeSVG value={joinUrl} size={120} />
               <Box>
                 <Typography sx={{ fontSize: 12, color: '#424242', fontWeight: 'bold', fontFamily: 'inherit' }}>
                   {t('joinGroup')}

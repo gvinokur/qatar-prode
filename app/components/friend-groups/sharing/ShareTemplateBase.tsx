@@ -1,11 +1,13 @@
+'use client'
+
 import { Box, Typography } from '@mui/material'
+import { useTranslations } from 'next-intl'
 
 interface ShareTemplateBaseProps {
   readonly accentColor: string
   readonly title: string
   readonly subtitle: string
   readonly children: React.ReactNode
-  readonly footerText: string
 }
 
 export default function ShareTemplateBase({
@@ -13,8 +15,10 @@ export default function ShareTemplateBase({
   title,
   subtitle,
   children,
-  footerText,
 }: ShareTemplateBaseProps) {
+  const tCommon = useTranslations('common')
+  const appName = `${tCommon('app.title')} ${tCommon('app.name')}`
+
   return (
     <Box
       sx={{
@@ -59,10 +63,21 @@ export default function ShareTemplateBase({
           py: 1,
           display: 'flex',
           justifyContent: 'flex-end',
+          alignItems: 'center',
+          gap: 0.75,
         }}
       >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/favicon-32x32.png"
+          width={14}
+          height={14}
+          alt=""
+          crossOrigin="anonymous"
+          style={{ display: 'block', flexShrink: 0 }}
+        />
         <Typography sx={{ color: '#999999', fontSize: 11, fontFamily: 'inherit' }}>
-          {footerText}
+          {appName}
         </Typography>
       </Box>
     </Box>

@@ -24,6 +24,7 @@ import PendingRequestView from "../../../../../components/friend-groups/pending-
 import AdminTabs from "../../../../../components/friend-groups/admin-tabs";
 import PrivacyIndicatorIcon from "../../../../../components/friend-groups/privacy-indicator-icon";
 import AdminSectionTabs from "../../../../../components/friend-groups/admin-section-tabs";
+import { generateShortUrlForGroup } from '../../../../../actions/short-url-actions';
 
 type Props = {
   readonly params: Promise<{
@@ -93,6 +94,10 @@ export default async function TournamentScopedFriendGroup(props : Props){
   }
 
   let logoUrl = getThemeLogoUrl(prodeGroup.theme)
+
+  const shortUrlRecord = await generateShortUrlForGroup(prodeGroup.id, tournament.id)
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://prodemundial.app'
+  const shareJoinUrl = `${baseUrl}/j/${shortUrlRecord.code}`
 
   const members = users.map(u => ({
     id: u.id,
@@ -216,7 +221,7 @@ export default async function TournamentScopedFriendGroup(props : Props){
                 bettingData={bettingData}
                 selectedTournamentId={tournament.id}
                 groupName={prodeGroup.name}
-                joinUrl={`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/${params.locale}/tournaments/${tournament.id}/friend-groups/join/${prodeGroup.id}`}
+                joinUrl={shareJoinUrl}
                 themeColor={prodeGroup.theme?.primary_color ?? undefined}
               />
             }

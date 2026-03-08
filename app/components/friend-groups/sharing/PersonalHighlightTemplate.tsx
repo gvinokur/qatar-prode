@@ -43,7 +43,6 @@ const PersonalHighlightTemplate = React.forwardRef<HTMLDivElement, PersonalHighl
           accentColor={themeColor}
           title={t('movingUpTitle')}
           subtitle={`${groupName} – ${tournamentName}`}
-          footerText="qatar-prode.app"
         >
           <Box
             sx={{
