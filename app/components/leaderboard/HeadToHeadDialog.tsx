@@ -21,6 +21,7 @@ import {
   useTheme,
 } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
+import ShareIcon from '@mui/icons-material/Share'
 import { useTranslations } from 'next-intl'
 import { getUserStatsForComparison, type UserComparisonStats } from '../../actions/stats-actions'
 import { getAvatarColor, getUserInitials } from '../../utils/avatar-utils'
@@ -439,6 +440,7 @@ export default function HeadToHeadDialog({
           onClick={handleShare}
           disabled={!myStats || !theirStats}
           size="small"
+          startIcon={<ShareIcon />}
         >
           {tSharing('shareButton')}
         </Button>
