@@ -249,7 +249,7 @@ export default function LeaderboardCards({
             position: 'fixed',
             left: -9999,
             top: 0,
-            visibility: 'hidden',
+            opacity: 0,
             pointerEvents: 'none',
           }}
         >
@@ -273,7 +273,7 @@ export default function LeaderboardCards({
             position: 'fixed',
             left: -9999,
             top: 0,
-            visibility: 'hidden',
+            opacity: 0,
             pointerEvents: 'none',
           }}
         >

@@ -237,7 +237,7 @@ export default function HeadToHeadDialog({
   return (
     <>
     {mounted && myStatsForTemplate && theirStatsForTemplate && createPortal(
-      <div style={{ position: 'fixed', left: -9999, top: 0, visibility: 'hidden', pointerEvents: 'none' }}>
+      <div style={{ position: 'fixed', left: -9999, top: 0, opacity: 0, pointerEvents: 'none' }}>
         <HeadToHeadTemplate
           ref={h2hTemplateRef}
           groupName={groupName ?? ''}
