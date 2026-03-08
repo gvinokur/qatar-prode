@@ -228,7 +228,7 @@ describe('HeadToHeadDialog', () => {
       expect(screen.getByText('Maria')).toBeTruthy()
     })
 
-    const shareButton = screen.getByText('Compartir por WhatsApp')
+    const shareButton = screen.getByText('Compartir')
     fireEvent.click(shareButton)
 
     // Share preview modal should open — MUI sets aria-hidden on the H2H dialog when preview modal opens
@@ -252,7 +252,7 @@ describe('HeadToHeadDialog', () => {
       expect(screen.getByText(/Ventaja de Maria/)).toBeTruthy()
     })
 
-    const shareButton = screen.getByText('Compartir por WhatsApp')
+    const shareButton = screen.getByText('Compartir')
     fireEvent.click(shareButton)
 
     // Share preview modal should open — MUI sets aria-hidden on the H2H dialog when preview modal opens

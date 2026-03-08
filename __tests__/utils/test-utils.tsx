@@ -10,6 +10,8 @@ import esRulesMessages from '../../locales/es/rules.json';
 import enRulesMessages from '../../locales/en/rules.json';
 import esTablesMessages from '../../locales/es/tables.json';
 import enTablesMessages from '../../locales/en/tables.json';
+import esGroupsMessages from '../../locales/es/groups.json';
+import enGroupsMessages from '../../locales/en/groups.json';
 import { setTestLocale } from '../../vitest.setup';
 
 export interface RenderWithThemeOptions {
@@ -249,8 +251,8 @@ export const renderWithProviders = (
 
   // Get messages for the locale
   const messages = locale === 'en'
-    ? { rules: enRulesMessages, tables: enTablesMessages }
-    : { rules: esRulesMessages, tables: esTablesMessages };
+    ? { rules: enRulesMessages, tables: enTablesMessages, groups: enGroupsMessages }
+    : { rules: esRulesMessages, tables: esTablesMessages, groups: esGroupsMessages };
 
   // Compose providers from inside-out
   let wrapped = component;

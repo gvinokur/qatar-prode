@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { Box, Typography } from '@mui/material'
+import { useTranslations } from 'next-intl'
 import ShareTemplateBase from './ShareTemplateBase'
 import { getAvatarColor, getUserInitials } from '../../../utils/avatar-utils'
 
@@ -128,15 +129,7 @@ function AvatarCircle({ userId, name, rank, align }: AvatarCircleProps) {
   )
 }
 
-function getSummaryMessage(myPts: number, theirPts: number, theirName: string): string {
-  if (myPts > theirPts) {
-    return `You lead by ${(myPts - theirPts).toLocaleString()} pts!`
-  }
-  if (theirPts > myPts) {
-    return `${theirName} leads by ${(theirPts - myPts).toLocaleString()} pts – I'm coming!`
-  }
-  return "It's a tie!"
-}
+// Summary message is now rendered inline with translations
 
 const HeadToHeadTemplate = React.forwardRef<HTMLDivElement, HeadToHeadTemplateProps>(
   function HeadToHeadTemplate(
@@ -155,13 +148,21 @@ const HeadToHeadTemplate = React.forwardRef<HTMLDivElement, HeadToHeadTemplatePr
     },
     ref
   ) {
-    const summary = getSummaryMessage(myStats.totalPoints, theirStats.totalPoints, theirName)
+    const t = useTranslations('groups.sharing')
+
+    const myPts = myStats.totalPoints
+    const theirPts = theirStats.totalPoints
+    const summary = myPts > theirPts
+      ? t('youLead', { pts: (myPts - theirPts).toLocaleString() })
+      : theirPts > myPts
+        ? t('theyLead', { name: theirName, pts: (theirPts - myPts).toLocaleString() })
+        : t('tie')
 
     return (
       <div ref={ref}>
         <ShareTemplateBase
           accentColor={themeColor}
-          title="Head to Head"
+          title={t('headToHeadTitle')}
           subtitle={`${groupName} – ${tournamentName}`}
           footerText="qatar-prode.app"
         >
@@ -181,25 +182,25 @@ const HeadToHeadTemplate = React.forwardRef<HTMLDivElement, HeadToHeadTemplatePr
           {/* Stats */}
           <Box sx={{ px: 2.5, pb: 0.5 }}>
             <StatRow
-              label="Total Points"
+              label={t('totalPoints')}
               myValue={myStats.totalPoints}
               theirValue={theirStats.totalPoints}
-              unit=" pts"
+              unit={` ${t('pts')}`}
             />
             <StatRow
-              label="Group Stage"
+              label={t('groupStage')}
               myValue={myStats.groupStagePoints}
               theirValue={theirStats.groupStagePoints}
-              unit=" pts"
+              unit={` ${t('pts')}`}
             />
             <StatRow
-              label="Knockout"
+              label={t('knockout')}
               myValue={myStats.playoffStagePoints}
               theirValue={theirStats.playoffStagePoints}
-              unit=" pts"
+              unit={` ${t('pts')}`}
             />
             <StatRow
-              label="Accuracy"
+              label={t('accuracy')}
               myValue={myStats.accuracy}
               theirValue={theirStats.accuracy}
               unit="%"

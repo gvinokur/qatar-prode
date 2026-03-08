@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { Box, Typography } from '@mui/material'
+import { useTranslations } from 'next-intl'
 import ShareTemplateBase from './ShareTemplateBase'
 import { getAvatarColor, getUserInitials } from '../../../utils/avatar-utils'
 
@@ -30,6 +31,7 @@ const PersonalHighlightTemplate = React.forwardRef<HTMLDivElement, PersonalHighl
     },
     ref
   ) {
+    const t = useTranslations('groups.sharing')
     const placesUp = previousRank - currentRank
     const avatarColor = getAvatarColor(userId)
     const initials = getUserInitials(userName)
@@ -39,7 +41,7 @@ const PersonalHighlightTemplate = React.forwardRef<HTMLDivElement, PersonalHighl
       <div ref={ref}>
         <ShareTemplateBase
           accentColor={themeColor}
-          title="Moving Up! 🎉"
+          title={t('movingUpTitle')}
           subtitle={`${groupName} – ${tournamentName}`}
           footerText="qatar-prode.app"
         >
@@ -100,7 +102,7 @@ const PersonalHighlightTemplate = React.forwardRef<HTMLDivElement, PersonalHighl
                   letterSpacing: 1,
                 }}
               >
-                ▲ MOVED UP {placesUp} {placesUp === 1 ? 'PLACE' : 'PLACES'}
+                ▲ {t('movedUp', { count: placesUp }).toUpperCase()}
               </Typography>
             </Box>
 
@@ -125,7 +127,7 @@ const PersonalHighlightTemplate = React.forwardRef<HTMLDivElement, PersonalHighl
 
             {/* Points */}
             <Typography sx={{ fontSize: 14, color: '#757575', fontFamily: 'inherit' }}>
-              {currentPoints.toLocaleString()} pts
+              {currentPoints.toLocaleString()} {t('pts')}
             </Typography>
 
             {/* Tagline */}
@@ -137,7 +139,7 @@ const PersonalHighlightTemplate = React.forwardRef<HTMLDivElement, PersonalHighl
                 fontFamily: 'inherit',
               }}
             >
-              Can you catch me?
+              {t('catchMe')}
             </Typography>
           </Box>
         </ShareTemplateBase>

@@ -3,6 +3,7 @@
 import React from 'react'
 import { Box, Typography } from '@mui/material'
 import { QRCodeSVG } from 'qrcode.react'
+import { useTranslations } from 'next-intl'
 import ShareTemplateBase from './ShareTemplateBase'
 
 const ACCENT_DEFAULT = '#1976d2'
@@ -46,6 +47,7 @@ const LeaderboardTemplate = React.forwardRef<HTMLDivElement, LeaderboardTemplate
     },
     ref
   ) {
+    const t = useTranslations('groups.sharing')
     const currentUser = users.find((u) => u.isCurrentUser)
     const leader = users.find((u) => u.rank === 1)
     const ptsFromLead =
@@ -114,7 +116,7 @@ const LeaderboardTemplate = React.forwardRef<HTMLDivElement, LeaderboardTemplate
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {user.isCurrentUser ? 'YOU' : user.name}
+                    {user.isCurrentUser ? t('you') : user.name}
                   </Typography>
                   <Typography
                     sx={{
@@ -125,7 +127,7 @@ const LeaderboardTemplate = React.forwardRef<HTMLDivElement, LeaderboardTemplate
                       flexShrink: 0,
                     }}
                   >
-                    {user.points.toLocaleString()} pts
+                    {user.points.toLocaleString()} {t('pts')}
                   </Typography>
                 </Box>
               )
@@ -136,7 +138,7 @@ const LeaderboardTemplate = React.forwardRef<HTMLDivElement, LeaderboardTemplate
           {ptsFromLead > 0 && (
             <Box sx={{ px: 2.5, pb: 1, pt: 0.5 }}>
               <Typography sx={{ fontSize: 12, color: '#888888', fontStyle: 'italic', fontFamily: 'inherit' }}>
-                📈 {ptsFromLead.toLocaleString()} pts from the lead
+                📈 {t('pointsFromLead', { points: ptsFromLead.toLocaleString() })}
               </Typography>
             </Box>
           )}
@@ -159,10 +161,10 @@ const LeaderboardTemplate = React.forwardRef<HTMLDivElement, LeaderboardTemplate
               <QRCodeSVG value={joinUrl} size={72} />
               <Box>
                 <Typography sx={{ fontSize: 12, color: '#424242', fontWeight: 'bold', fontFamily: 'inherit' }}>
-                  Join our group!
+                  {t('joinGroup')}
                 </Typography>
                 <Typography sx={{ fontSize: 11, color: '#888888', fontFamily: 'inherit' }}>
-                  {totalUsers} {totalUsers === 1 ? 'member' : 'members'}
+                  {t('members', { count: totalUsers })}
                 </Typography>
                 <Typography sx={{ fontSize: 11, color: '#888888', fontFamily: 'inherit', wordBreak: 'break-all' }}>
                   {joinUrl}

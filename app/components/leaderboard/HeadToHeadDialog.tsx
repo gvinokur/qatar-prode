@@ -21,7 +21,6 @@ import {
   useTheme,
 } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
-import WhatsAppIcon from '@mui/icons-material/WhatsApp'
 import { useTranslations } from 'next-intl'
 import { getUserStatsForComparison, type UserComparisonStats } from '../../actions/stats-actions'
 import { getAvatarColor, getUserInitials } from '../../utils/avatar-utils'
@@ -432,18 +431,16 @@ export default function HeadToHeadDialog({
       </DialogContent>
 
       <DialogActions sx={{ px: 2, py: 1.5, justifyContent: 'space-between' }}>
+        <Button onClick={onClose} variant="outlined" size="small">
+          {t('close')}
+        </Button>
         <Button
           variant="contained"
-          color="success"
-          startIcon={<WhatsAppIcon />}
           onClick={handleShare}
           disabled={!myStats || !theirStats}
           size="small"
         >
-          {t('shareWhatsapp')}
-        </Button>
-        <Button onClick={onClose} variant="outlined" size="small">
-          {t('close')}
+          {tSharing('shareButton')}
         </Button>
       </DialogActions>
     </Dialog>
