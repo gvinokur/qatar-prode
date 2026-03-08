@@ -432,7 +432,7 @@ export default function HeadToHeadDialog({
       </DialogContent>
 
       <DialogActions sx={{ px: 2, py: 1.5, justifyContent: 'space-between' }}>
-        <Button onClick={onClose} variant="outlined" size="small">
+        <Button onClick={onClose} variant="outlined" color="secondary" size="small">
           {t('close')}
         </Button>
         <Button

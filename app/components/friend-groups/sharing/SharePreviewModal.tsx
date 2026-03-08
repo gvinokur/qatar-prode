@@ -12,6 +12,8 @@ import {
   Skeleton,
   Typography,
 } from '@mui/material'
+import DownloadIcon from '@mui/icons-material/Download'
+import ShareIcon from '@mui/icons-material/Share'
 import { useTranslations } from 'next-intl'
 import { captureElement, downloadBlob, openWhatsApp, shareImage } from '../../../utils/share-utils'
 
@@ -129,7 +131,7 @@ export default function SharePreviewModal({
       </DialogContent>
 
       <DialogActions sx={{ px: 2, pb: 2, gap: 1, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-        <Button onClick={onClose} variant="outlined" size="small">
+        <Button onClick={onClose} variant="outlined" color="secondary" size="small">
           {t('cancel')}
         </Button>
 
@@ -140,6 +142,7 @@ export default function SharePreviewModal({
               variant="outlined"
               size="small"
               disabled={!blob}
+              startIcon={<DownloadIcon />}
             >
               {t('download')}
             </Button>
@@ -150,6 +153,7 @@ export default function SharePreviewModal({
                 variant="contained"
                 size="small"
                 disabled={!blob}
+                startIcon={<ShareIcon />}
               >
                 {t('shareButton')}
               </Button>
@@ -159,6 +163,7 @@ export default function SharePreviewModal({
                 variant="contained"
                 color="success"
                 size="small"
+                startIcon={<ShareIcon />}
               >
                 {t('openWhatsApp')}
               </Button>
