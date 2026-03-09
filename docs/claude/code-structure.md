@@ -157,6 +157,18 @@ Update the relevant layer file **as part of every task commit** — not at end o
 | New/modified page or layout | `docs/code-structure/pages.md` |
 | New/modified component | the matching `components/components-[domain].md` |
 | New file in a new domain | create a new `components-[domain].md` and add to index in `CODE-STRUCTURE.md` |
+| New cross-layer call chain, new context provider in a flow, new UI flow end-to-end, or changed action call in an existing flow | **`## Call Graph` in `CODE-STRUCTURE.md`** |
+
+### When to update the Call Graph
+
+The `## Call Graph` in `CODE-STRUCTURE.md` captures the cross-layer data flow — not just function signatures. Update it whenever:
+
+- A **new numbered flow** is introduced (new page + action + repo chain)
+- An **existing flow gains a new step** (e.g., added a sharing step to leaderboard, added a context provider wrapping, added a new action call inside an existing component)
+- A **flow is removed or replaced** (delete the flow or update the affected nodes)
+- A **context provider** is added or removed from a flow (they control state distribution and must be visible)
+
+When in doubt, update the call graph. A slightly over-specified graph is better than a stale one that misleads future planning.
 
 ### Quality checks before committing
 
@@ -164,6 +176,7 @@ Update the relevant layer file **as part of every task commit** — not at end o
 - Signatures exactly match the implemented signatures (not the plan's signatures if they changed)
 - `Calls:` lists only project functions (no npm packages)
 - `CODE-STRUCTURE.md` index is updated if a new layer file was added
+- `## Call Graph` updated if any cross-layer call relationship changed (see table row above)
 
 ---
 

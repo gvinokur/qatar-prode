@@ -212,7 +212,20 @@ Do NOT defer CODE-STRUCTURE.md updates to the end of a story. Update it per-task
    - Remove entries for deleted functions/components
    - Keep the 1–2 sentence file description accurate
 
-3. **Update the `## Call Graph`** in `CODE-STRUCTURE.md` if any cross-layer call relationships changed (new `Calls:` lines, deleted functions, new files).
+3. **Update the `## Call Graph`** in `CODE-STRUCTURE.md` if ANY of the following is true:
+   - A new page, Server Action, or component was added that calls something across layers
+   - An existing call chain changed (new param added, different action called, new repo function used)
+   - A context provider was added or removed from a flow (e.g., new `[Provider]` wrapping)
+   - A new UI flow exists end-to-end that isn't represented by any existing flow in the graph
+   - A component was deleted or moved that is referenced in an existing flow
+
+   **Concrete triggers requiring a call graph update:**
+   - New page → new action → new repo call: add a new numbered flow or extend an existing one
+   - Added sharing/export feature to a leaderboard: extend the leaderboard flow tree
+   - New context provider wrapping a flow: add it as a `[Provider]` node in the tree
+   - New admin action in backoffice: extend the backoffice flow
+
+   **When in doubt, update the call graph.** A slightly over-specified graph is better than a stale one.
 
 4. **Stage `CODE-STRUCTURE.md` alongside the task's source files** — it should be in the same commit, not a separate one.
 
@@ -1295,6 +1308,7 @@ You MUST run validation checks before committing:
 6. **Did the build succeed?** (Answer MUST be YES)
 7. **Have I updated CODE-STRUCTURE.md for every file created or modified in this commit?** (Answer MUST be YES — see CODE-STRUCTURE.md Update Rule above)
 8. **Do the CODE-STRUCTURE.md entries match actual implemented signatures (not plan signatures if they changed)?** (Answer MUST be YES)
+9. **Have I updated the `## Call Graph` in `CODE-STRUCTURE.md` if this commit added/changed any cross-layer call relationship, new context provider, new UI flow, or new action call?** (Answer MUST be YES or "not applicable — no call relationships changed")
 
 **If ANY answer is NO, DO NOT COMMIT. Fix the issues first.**
 
