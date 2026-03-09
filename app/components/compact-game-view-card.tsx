@@ -209,6 +209,7 @@ export default function CompactGameViewCard({
                         icon={<TrophyIcon sx={{ fontSize: 14 }} />}
                         label={boostType === 'golden' ? '3x' : '2x'}
                         size="small"
+                        onClick={(e) => e.stopPropagation()}
                         sx={{
                           height: '20px',
                           backgroundColor: boostType === 'golden' ? alpha(theme.palette.accent.gold.main, 0.2) : alpha(theme.palette.accent.silver.main, 0.2),
@@ -255,6 +256,7 @@ export default function CompactGameViewCard({
                         checkedIcon={publishing? <CircularProgress size={24} color={'secondary'}/> :<SaveIcon />}
                         disabled={publishing}
                         onChange={handleDraftChange}
+                        onClick={(e) => e.stopPropagation()}
                       />
                     </Tooltip>
                   )}
