@@ -189,6 +189,54 @@ Success criteria:
 })
 ```
 
+#### CODE-STRUCTURE.md Update Rule (MANDATORY)
+
+**Every task that creates or modifies source files must update `CODE-STRUCTURE.md` as part of its commit.**
+
+Do NOT defer CODE-STRUCTURE.md updates to the end of a story. Update it per-task, immediately after completing the code changes for that task, before committing.
+
+**How to update CODE-STRUCTURE.md for a task:**
+
+1. **Read `docs/claude/code-structure.md`** — the format guide. Follow it exactly to ensure consistency with existing entries.
+
+2. **For each file you created or modified in this task:**
+   - Identify the correct layer file to update (see table in `docs/claude/code-structure.md`):
+     - `app/db/` → `docs/code-structure/db.md`
+     - `app/actions/` → `docs/code-structure/actions.md`
+     - `app/utils/` → `docs/code-structure/utils.md`
+     - `app/[locale]/` pages → `docs/code-structure/pages.md`
+     - `app/components/` → the matching `docs/code-structure/components/components-[domain].md`
+   - Locate (or create) the `### path/to/file.ts` section in the relevant layer file
+   - Update all function/component entries to reflect current signatures
+   - Add entries for new functions/components
+   - Remove entries for deleted functions/components
+   - Keep the 1–2 sentence file description accurate
+
+3. **Update the `## Call Graph`** in `CODE-STRUCTURE.md` if ANY of the following is true:
+   - A new page, Server Action, or component was added that calls something across layers
+   - An existing call chain changed (new param added, different action called, new repo function used)
+   - A context provider was added or removed from a flow (e.g., new `[Provider]` wrapping)
+   - A new UI flow exists end-to-end that isn't represented by any existing flow in the graph
+   - A component was deleted or moved that is referenced in an existing flow
+
+   **Concrete triggers requiring a call graph update:**
+   - New page → new action → new repo call: add a new numbered flow or extend an existing one
+   - Added sharing/export feature to a leaderboard: extend the leaderboard flow tree
+   - New context provider wrapping a flow: add it as a `[Provider]` node in the tree
+   - New admin action in backoffice: extend the backoffice flow
+
+   **When in doubt, update the call graph.** A slightly over-specified graph is better than a stale one.
+
+4. **Stage `CODE-STRUCTURE.md` alongside the task's source files** — it should be in the same commit, not a separate one.
+
+**Checking your work:**
+- Every exported function/component in modified files must have a matching entry
+- Signatures in CODE-STRUCTURE.md must exactly match the implemented signatures
+- `Calls:` lines must list only project functions (no npm packages or stdlib)
+- If a function listed in the plan's Mid-Level Design changed during implementation, the CODE-STRUCTURE.md entry reflects the **actual** implementation, not the plan
+
+**Reference:** See `docs/claude/code-structure.md` for the complete format specification and examples.
+
 #### Step C: Define Dependencies with TaskUpdate
 
 **Set up dependency chain using TaskUpdate:**
@@ -1258,6 +1306,9 @@ You MUST run validation checks before committing:
 4. **Did linting pass with no errors?** (Answer MUST be YES)
 5. **Have I run `npm run build`?** (Answer MUST be YES)
 6. **Did the build succeed?** (Answer MUST be YES)
+7. **Have I updated CODE-STRUCTURE.md for every file created or modified in this commit?** (Answer MUST be YES — see CODE-STRUCTURE.md Update Rule above)
+8. **Do the CODE-STRUCTURE.md entries match actual implemented signatures (not plan signatures if they changed)?** (Answer MUST be YES)
+9. **Have I updated the `## Call Graph` in `CODE-STRUCTURE.md` if this commit added/changed any cross-layer call relationship, new context provider, new UI flow, or new action call?** (Answer MUST be YES or "not applicable — no call relationships changed")
 
 **If ANY answer is NO, DO NOT COMMIT. Fix the issues first.**
 

@@ -91,6 +91,7 @@ If you start planning before reading planning.md, you WILL do it wrong.
 8. **NEVER ask "would you like to proceed?" after creating plan PR** - Just WAIT for user (see planning.md Step 7 "CRITICAL CHECKPOINT")
 9. **ALWAYS create PRs as DRAFT** - Only mark as ready for review when user explicitly requests it or asks to merge (see planning.md Step 7 and validation.md Section 10)
 10. **ALWAYS set Priority, Effort, and Category fields when creating stories** - Never use labels like `priority/high` instead of field values; create new categories if needed (see github-projects-workflow.md Section 2)
+11. **ALWAYS read `CODE-STRUCTURE.md` before code changes** — It is the living map of the codebase. Read it at the start of research. Update it after every code change (see [code-structure.md](docs/claude/code-structure.md))
 
 ## Permissions Configuration
 
@@ -320,6 +321,7 @@ For detailed guidance, see:
 - **[GitHub Projects Workflow](docs/claude/github-projects-workflow.md)** - Complete story workflow from start to completion
 - **[Architecture Guide](docs/claude/architecture.md)** - Stack, patterns, i18n infrastructure, context providers, authentication patterns, performance optimization, reusable UI components, server/client boundaries
 - **[Patterns Quick Reference](docs/claude/patterns.md)** - 5 critical patterns with examples (NEW)
+- **[Code Structure Guide](docs/claude/code-structure.md)** - Format and maintenance rules for CODE-STRUCTURE.md
 - **[Helper Script Docs](scripts/README.md)** - Full documentation for `github-projects-helper`
 
 ## Project Context
@@ -497,6 +499,7 @@ Go back to validation
 | Adding locale params to repositories | Violates separation of concerns | Use applyLocalization in Server Actions | patterns.md Pattern 1 |
 | Not using test factories | Incomplete mock data, test failures | ALWAYS use testFactories.* | patterns.md Pattern 2 |
 | Client Components fetching data | Slow, insecure, wrong pattern | Server Components fetch, pass as props | patterns.md Pattern 3 |
+| Not updating CODE-STRUCTURE.md | File map drifts from reality, future planning uses stale info | Update CODE-STRUCTURE.md as part of every task commit | code-structure.md |
 
 ## Development Guidelines
 
