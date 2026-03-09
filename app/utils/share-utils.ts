@@ -4,7 +4,7 @@ export async function captureElement(el: HTMLElement): Promise<Blob> {
   const dataUrl = await toPng(el, { cacheBust: true, skipFonts: true, pixelRatio: 2 })
   // Convert data URL to Blob without fetch (avoids service worker interception)
   const [header, base64] = dataUrl.split(',')
-  const mimeType = /:(.*?);/.exec(header)?.[1] ?? 'image/png'
+  const mimeType = /:[^;]+/.exec(header)?.[0].slice(1) ?? 'image/png'
   const bytes = Uint8Array.from(atob(base64), (c) => c.codePointAt(0) ?? 0)
   return new Blob([bytes], { type: mimeType })
 }
