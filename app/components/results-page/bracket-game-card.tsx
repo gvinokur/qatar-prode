@@ -37,15 +37,26 @@ export default function BracketGameCard({ game, teamsMap }: BracketGameCardProps
   const homeIsWinner = winner === game.home_team
   const awayIsWinner = winner === game.away_team
 
-  // C2 winner styling: extract to variables to avoid nested ternaries in JSX
+  // C2 winner styling: winner → bold + text.primary, loser → normal + text.secondary
   const homeNameWeight = homeIsWinner ? 700 : 400
-  const homeNameColor = awayIsWinner ? 'text.secondary' : 'text.primary'
-  const homeScoreWeight = homeIsWinner ? 700 : awayIsWinner ? 400 : 500
-  const homeScoreColor = homeIsWinner ? 'text.primary' : awayIsWinner ? 'text.secondary' : 'text.primary'
   const awayNameWeight = awayIsWinner ? 700 : 400
-  const awayNameColor = homeIsWinner ? 'text.secondary' : 'text.primary'
-  const awayScoreWeight = awayIsWinner ? 700 : homeIsWinner ? 400 : 500
-  const awayScoreColor = awayIsWinner ? 'text.primary' : homeIsWinner ? 'text.secondary' : 'text.primary'
+  let homeNameColor = 'text.primary'
+  let homeScoreWeight = 500
+  let homeScoreColor = 'text.primary'
+  let awayNameColor = 'text.primary'
+  let awayScoreWeight = 500
+  let awayScoreColor = 'text.primary'
+  if (homeIsWinner) {
+    homeScoreWeight = 700
+    awayNameColor = 'text.secondary'
+    awayScoreWeight = 400
+    awayScoreColor = 'text.secondary'
+  } else if (awayIsWinner) {
+    awayScoreWeight = 700
+    homeNameColor = 'text.secondary'
+    homeScoreWeight = 400
+    homeScoreColor = 'text.secondary'
+  }
 
   return (
     <Paper

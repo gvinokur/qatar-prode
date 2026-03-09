@@ -47,11 +47,22 @@ export default function MinimalisticGamesList({ games, teamsMap }: MinimalisticG
         const homeIsWinner = !!winner && winner === game.home_team
         const awayIsWinner = !!winner && winner === game.away_team
 
-        // C2 winner styling: extract to variables to avoid nested ternaries in JSX
-        const homeNameWeight = homeIsWinner ? 700 : awayIsWinner ? 400 : 'inherit'
-        const homeNameColor = homeIsWinner ? 'text.primary' : awayIsWinner ? 'text.secondary' : 'inherit'
-        const awayNameWeight = awayIsWinner ? 700 : homeIsWinner ? 400 : 'inherit'
-        const awayNameColor = awayIsWinner ? 'text.primary' : homeIsWinner ? 'text.secondary' : 'inherit'
+        // C2 winner styling: winner → bold + text.primary, loser → normal + text.secondary
+        let homeNameWeight: number | string = 'inherit'
+        let homeNameColor = 'inherit'
+        let awayNameWeight: number | string = 'inherit'
+        let awayNameColor = 'inherit'
+        if (homeIsWinner) {
+          homeNameWeight = 700
+          homeNameColor = 'text.primary'
+          awayNameWeight = 400
+          awayNameColor = 'text.secondary'
+        } else if (awayIsWinner) {
+          awayNameWeight = 700
+          awayNameColor = 'text.primary'
+          homeNameWeight = 400
+          homeNameColor = 'text.secondary'
+        }
 
         return (
           <Typography

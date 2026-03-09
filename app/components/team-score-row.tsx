@@ -43,10 +43,21 @@ export function TeamScoreRow({
   const hasScores = homeScore !== undefined && awayScore !== undefined;
 
   // C2 winner styling: winner → bold + text.primary, loser → normal + text.secondary
-  const homeNameWeight = homeIsWinner ? 700 : awayIsWinner ? 400 : 'medium';
-  const homeNameColor = homeIsWinner ? 'text.primary' : awayIsWinner ? 'text.secondary' : 'inherit';
-  const awayNameWeight = awayIsWinner ? 700 : homeIsWinner ? 400 : 'medium';
-  const awayNameColor = awayIsWinner ? 'text.primary' : homeIsWinner ? 'text.secondary' : 'inherit';
+  let homeNameWeight: number | string = 'medium';
+  let homeNameColor = 'inherit';
+  let awayNameWeight: number | string = 'medium';
+  let awayNameColor = 'inherit';
+  if (homeIsWinner) {
+    homeNameWeight = 700;
+    homeNameColor = 'text.primary';
+    awayNameWeight = 400;
+    awayNameColor = 'text.secondary';
+  } else if (awayIsWinner) {
+    awayNameWeight = 700;
+    awayNameColor = 'text.primary';
+    homeNameWeight = 400;
+    homeNameColor = 'text.secondary';
+  }
 
   return (
     <Grid
