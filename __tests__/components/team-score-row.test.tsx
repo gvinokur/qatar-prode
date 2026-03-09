@@ -292,4 +292,83 @@ describe('TeamScoreRow', () => {
       expect(scoreGrid).toHaveStyle({ justifyContent: 'center' });
     });
   });
+
+  describe('C2 Winner Styling', () => {
+    it('applies bold fontWeight and text.primary color to home team name when homeIsWinner=true', () => {
+      renderWithTheme(
+        <TeamScoreRow
+          homeTeamName="Brazil"
+          awayTeamName="Argentina"
+          homeScore={2}
+          awayScore={1}
+          homeIsWinner={true}
+        />
+      );
+
+      const homeTeamEl = screen.getByText('Brazil');
+      expect(homeTeamEl).toHaveStyle({ fontWeight: 700 });
+    });
+
+    it('applies text.secondary color to away team name when homeIsWinner=true', () => {
+      renderWithTheme(
+        <TeamScoreRow
+          homeTeamName="Brazil"
+          awayTeamName="Argentina"
+          homeScore={2}
+          awayScore={1}
+          homeIsWinner={true}
+        />
+      );
+
+      const awayTeamEl = screen.getByText('Argentina');
+      expect(awayTeamEl).toHaveStyle({ fontWeight: 400 });
+    });
+
+    it('applies bold fontWeight to away team name when awayIsWinner=true', () => {
+      renderWithTheme(
+        <TeamScoreRow
+          homeTeamName="Brazil"
+          awayTeamName="Argentina"
+          homeScore={0}
+          awayScore={3}
+          awayIsWinner={true}
+        />
+      );
+
+      const awayTeamEl = screen.getByText('Argentina');
+      expect(awayTeamEl).toHaveStyle({ fontWeight: 700 });
+    });
+
+    it('applies reduced fontWeight to home team name when awayIsWinner=true', () => {
+      renderWithTheme(
+        <TeamScoreRow
+          homeTeamName="Brazil"
+          awayTeamName="Argentina"
+          homeScore={0}
+          awayScore={3}
+          awayIsWinner={true}
+        />
+      );
+
+      const homeTeamEl = screen.getByText('Brazil');
+      expect(homeTeamEl).toHaveStyle({ fontWeight: 400 });
+    });
+
+    it('does not apply winner/loser styles when neither prop is set (draw)', () => {
+      renderWithTheme(
+        <TeamScoreRow
+          homeTeamName="Brazil"
+          awayTeamName="Argentina"
+          homeScore={1}
+          awayScore={1}
+        />
+      );
+
+      const homeTeamEl = screen.getByText('Brazil');
+      const awayTeamEl = screen.getByText('Argentina');
+      // fontWeight medium is the MUI default; not 400 (loser) or 700 (winner)
+      expect(homeTeamEl).not.toHaveStyle({ fontWeight: 400 });
+      expect(awayTeamEl).not.toHaveStyle({ fontWeight: 400 });
+    });
+  });
 });

@@ -27,9 +27,9 @@ Loading skeleton component that displays placeholder cards while data loads.
   Renders: Grid, Skeleton, Paper
 
 ### app/components/results-page/bracket-game-card.tsx
-Minimalistic game card for playoff bracket display showing team names and scores.
+Minimalistic game card for playoff bracket display showing team names and scores. Uses C2 winner styling: winner name+score → text.primary/bold, loser name+score → text.secondary/normal. No primary.main color used.
 
-- **BracketGameCard({ game, teamsMap }: BracketGameCardProps)**: `JSX.Element` — [Client] Displays team names with scores, highlights winner, shows penalty results.
+- **BracketGameCard({ game, teamsMap }: BracketGameCardProps)**: `JSX.Element` — [Client] Displays team names with scores, highlights winner with C2 (text.primary/bold), dims loser (text.secondary), shows penalty results.
   Calls: formatPenaltyResult, getGameWinner, getTeamDescription
   Uses: useTranslations
 
@@ -46,10 +46,10 @@ Displays groups stage results in a responsive grid layout (1-3 columns based on 
   Renders: GroupResultCard
 
 ### app/components/results-page/minimalistic-games-list.tsx
-Simple read-only list of all games showing team names and scores with penalty shootouts.
+Simple read-only list of all games showing team names and scores with penalty shootouts. Applies C2 winner styling to home/away name spans (winner → bold + text.primary, loser → normal + text.secondary).
 
-- **MinimalisticGamesList({ games, teamsMap }: MinimalisticGamesListProps)**: `JSX.Element` — [Client] Sorts games by number, displays in flex column.
-  Calls: formatGameScore, getTeamDescription
+- **MinimalisticGamesList({ games, teamsMap }: MinimalisticGamesListProps)**: `JSX.Element` — [Client] Sorts games by number, displays in flex column, calls getGameWinner per game for C2 name highlighting.
+  Calls: formatGameScore, getTeamDescription, getGameWinner
   Uses: useTranslations
 
 ### app/components/results-page/results-page-client.tsx

@@ -423,6 +423,90 @@ describe('ActualResultDisplay', () => {
     });
   });
 
+  describe('C2 Winner Styling', () => {
+    it('home win (2-1): home team name is bold', () => {
+      renderWithTheme(
+        <ActualResultDisplay
+          homeTeamName="Brazil"
+          awayTeamName="Morocco"
+          homeScore={2}
+          awayScore={1}
+          predictionResult="correct"
+        />
+      );
+
+      const homeTeamEl = screen.getByText('Brazil');
+      expect(homeTeamEl).toHaveStyle({ fontWeight: 700 });
+    });
+
+    it('home win (2-1): away team name has reduced weight', () => {
+      renderWithTheme(
+        <ActualResultDisplay
+          homeTeamName="Brazil"
+          awayTeamName="Morocco"
+          homeScore={2}
+          awayScore={1}
+          predictionResult="correct"
+        />
+      );
+
+      const awayTeamEl = screen.getByText('Morocco');
+      expect(awayTeamEl).toHaveStyle({ fontWeight: 400 });
+    });
+
+    it('away win (0-3): away team name is bold', () => {
+      renderWithTheme(
+        <ActualResultDisplay
+          homeTeamName="Brazil"
+          awayTeamName="Morocco"
+          homeScore={0}
+          awayScore={3}
+          predictionResult="correct"
+        />
+      );
+
+      const awayTeamEl = screen.getByText('Morocco');
+      expect(awayTeamEl).toHaveStyle({ fontWeight: 700 });
+    });
+
+    it('draw (1-1, no penalties): neither team gets winner/loser styles', () => {
+      renderWithTheme(
+        <ActualResultDisplay
+          homeTeamName="Brazil"
+          awayTeamName="Morocco"
+          homeScore={1}
+          awayScore={1}
+          homePenaltyScore={null}
+          awayPenaltyScore={null}
+          predictionResult="correct"
+        />
+      );
+
+      const homeTeamEl = screen.getByText('Brazil');
+      const awayTeamEl = screen.getByText('Morocco');
+      // No loser dimming for draws
+      expect(homeTeamEl).not.toHaveStyle({ fontWeight: 400 });
+      expect(awayTeamEl).not.toHaveStyle({ fontWeight: 400 });
+    });
+
+    it('penalty home winner (1-1, homePenaltyScore=4, awayPenaltyScore=3): home team is bold', () => {
+      renderWithTheme(
+        <ActualResultDisplay
+          homeTeamName="Brazil"
+          awayTeamName="Morocco"
+          homeScore={1}
+          awayScore={1}
+          homePenaltyScore={4}
+          awayPenaltyScore={3}
+          predictionResult="correct"
+        />
+      );
+
+      const homeTeamEl = screen.getByText('Brazil');
+      expect(homeTeamEl).toHaveStyle({ fontWeight: 700 });
+    });
+  });
+
   describe('No Prediction Scenario', () => {
     it('displays actual result with incorrect badge when user did not predict', () => {
       renderWithTheme(

@@ -192,8 +192,8 @@ Accessible tab panel component with role and aria attributes.
 - `TabPanel` - [Client] - Renders: Box with tabpanel role and conditional content rendering
 
 **app/components/team-score-row.tsx**
-Displays team score row with logos, team names, and scores in responsive grid layout.
-- `TeamScoreRow` - [Client] - Uses: `getThemeLogoUrl` utility - Renders: Grid with Typography, Box (img)
+Displays team score row with logos, team names, and scores in responsive grid layout. Supports C2 winner styling: winner → bold + text.primary, loser → normal + text.secondary, draw/no-result → unchanged defaults.
+- `TeamScoreRow` - [Client] - Props: `homeIsWinner?`, `awayIsWinner?` (optional booleans for C2 winner highlighting) - Uses: `getThemeLogoUrl` utility - Renders: Grid with Typography, Box (img)
 
 **app/components/tournament-details-popover.tsx**
 Popover displaying detailed tournament predictions (final standings, awards, qualifiers, overall progress).

@@ -3,6 +3,7 @@ import { Team } from '@/app/db/tables-definition'
 import { Typography, Box } from '@mui/material'
 import { formatGameScore } from '@/app/utils/penalty-result-formatter'
 import { getTeamDescription } from '@/app/utils/playoffs-rule-helper'
+import { getGameWinner } from '@/app/utils/score-utils'
 import { useTranslations } from 'next-intl'
 
 interface MinimalisticGamesListProps {
@@ -42,6 +43,27 @@ export default function MinimalisticGamesList({ games, teamsMap }: MinimalisticG
 
         const scoreDisplay = formatGameScore(game)
 
+        const winner = getGameWinner(game)
+        const homeIsWinner = !!winner && winner === game.home_team
+        const awayIsWinner = !!winner && winner === game.away_team
+
+        // C2 winner styling: winner → bold + text.primary, loser → normal + text.secondary
+        let homeNameWeight: number | string = 'inherit'
+        let homeNameColor = 'inherit'
+        let awayNameWeight: number | string = 'inherit'
+        let awayNameColor = 'inherit'
+        if (homeIsWinner) {
+          homeNameWeight = 700
+          homeNameColor = 'text.primary'
+          awayNameWeight = 400
+          awayNameColor = 'text.secondary'
+        } else if (awayIsWinner) {
+          awayNameWeight = 700
+          awayNameColor = 'text.primary'
+          homeNameWeight = 400
+          homeNameColor = 'text.secondary'
+        }
+
         return (
           <Typography
             key={game.id}
@@ -61,6 +83,8 @@ export default function MinimalisticGamesList({ games, teamsMap }: MinimalisticG
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
+                fontWeight: homeNameWeight,
+                color: homeNameColor,
               }}
             >
               {homeTeamDisplay}
@@ -84,6 +108,8 @@ export default function MinimalisticGamesList({ games, teamsMap }: MinimalisticG
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
+                fontWeight: awayNameWeight,
+                color: awayNameColor,
               }}
             >
               {awayTeamDisplay}

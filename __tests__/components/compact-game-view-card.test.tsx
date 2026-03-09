@@ -672,4 +672,97 @@ describe('CompactGameViewCard', () => {
       expect(card).toHaveStyle({ borderWidth: '1px' });
     });
   });
+  describe('Prediction row C2 winner styling', () => {
+    const baseGuessProps = {
+      isGameGuess: true as const,
+      isGameFixture: false as const,
+      gameNumber: 1,
+      gameDate: new Date('2024-07-01T18:00:00Z'),
+      gameTimezone: 'America/New_York',
+      location: 'Stadium',
+      homeTeamNameOrDescription: 'Home Team',
+      awayTeamNameOrDescription: 'Away Team',
+      isPlayoffGame: false,
+      onEditClick: vi.fn(),
+    };
+
+    it('predicted home win (2-0): prediction row home team is bold', () => {
+      renderWithTheme(
+        <TestWrapper>
+          <CompactGameViewCard
+            {...baseGuessProps}
+            homeScore={2}
+            awayScore={0}
+          />
+        </TestWrapper>
+      );
+
+      // Get all elements with Home Team text (could appear multiple times)
+      const homeTeamEls = screen.getAllByText('Home Team');
+      // First occurrence is the prediction row
+      expect(homeTeamEls[0]).toHaveStyle({ fontWeight: 700 });
+    });
+
+    it('predicted away win (0-1): prediction row away team is bold', () => {
+      renderWithTheme(
+        <TestWrapper>
+          <CompactGameViewCard
+            {...baseGuessProps}
+            homeScore={0}
+            awayScore={1}
+          />
+        </TestWrapper>
+      );
+
+      const awayTeamEls = screen.getAllByText('Away Team');
+      expect(awayTeamEls[0]).toHaveStyle({ fontWeight: 700 });
+    });
+
+    it('predicted draw (1-1, no penalty flags): no winner/loser styles on prediction row', () => {
+      renderWithTheme(
+        <TestWrapper>
+          <CompactGameViewCard
+            {...baseGuessProps}
+            homeScore={1}
+            awayScore={1}
+          />
+        </TestWrapper>
+      );
+
+      const homeTeamEls = screen.getAllByText('Home Team');
+      const awayTeamEls = screen.getAllByText('Away Team');
+      expect(homeTeamEls[0]).not.toHaveStyle({ fontWeight: 400 });
+      expect(awayTeamEls[0]).not.toHaveStyle({ fontWeight: 400 });
+    });
+
+    it('no prediction (scores undefined): no winner/loser styles', () => {
+      renderWithTheme(
+        <TestWrapper>
+          <CompactGameViewCard
+            {...baseGuessProps}
+          />
+        </TestWrapper>
+      );
+
+      const homeTeamEl = screen.getByText('Home Team');
+      expect(homeTeamEl).not.toHaveStyle({ fontWeight: 400 });
+    });
+
+    it('draw with homePenaltyWinner=true: home team is bold on prediction row', () => {
+      renderWithTheme(
+        <TestWrapper>
+          <CompactGameViewCard
+            {...baseGuessProps}
+            homeScore={1}
+            awayScore={1}
+            isPlayoffGame={true}
+            homePenaltyWinner={true}
+          />
+        </TestWrapper>
+      );
+
+      const homeTeamEls = screen.getAllByText('Home Team');
+      expect(homeTeamEls[0]).toHaveStyle({ fontWeight: 700 });
+    });
+  });
 }); // test comment

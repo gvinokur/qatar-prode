@@ -37,6 +37,27 @@ export default function BracketGameCard({ game, teamsMap }: BracketGameCardProps
   const homeIsWinner = winner === game.home_team
   const awayIsWinner = winner === game.away_team
 
+  // C2 winner styling: winner → bold + text.primary, loser → normal + text.secondary
+  const homeNameWeight = homeIsWinner ? 700 : 400
+  const awayNameWeight = awayIsWinner ? 700 : 400
+  let homeNameColor = 'text.primary'
+  let homeScoreWeight = 500
+  let homeScoreColor = 'text.primary'
+  let awayNameColor = 'text.primary'
+  let awayScoreWeight = 500
+  let awayScoreColor = 'text.primary'
+  if (homeIsWinner) {
+    homeScoreWeight = 700
+    awayNameColor = 'text.secondary'
+    awayScoreWeight = 400
+    awayScoreColor = 'text.secondary'
+  } else if (awayIsWinner) {
+    awayScoreWeight = 700
+    homeNameColor = 'text.secondary'
+    homeScoreWeight = 400
+    homeScoreColor = 'text.secondary'
+  }
+
   return (
     <Paper
       elevation={2}
@@ -62,8 +83,8 @@ export default function BracketGameCard({ game, teamsMap }: BracketGameCardProps
         <Typography
           variant="body2"
           sx={{
-            fontWeight: homeIsWinner ? 700 : 400,
-            color: homeIsWinner ? 'primary.main' : 'text.primary',
+            fontWeight: homeNameWeight,
+            color: homeNameColor,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
@@ -75,7 +96,8 @@ export default function BracketGameCard({ game, teamsMap }: BracketGameCardProps
         <Typography
           variant="body1"
           sx={{
-            fontWeight: homeIsWinner ? 700 : 500,
+            fontWeight: homeScoreWeight,
+            color: homeScoreColor,
             minWidth: '30px',
             textAlign: 'center',
           }}
@@ -95,8 +117,8 @@ export default function BracketGameCard({ game, teamsMap }: BracketGameCardProps
         <Typography
           variant="body2"
           sx={{
-            fontWeight: awayIsWinner ? 700 : 400,
-            color: awayIsWinner ? 'primary.main' : 'text.primary',
+            fontWeight: awayNameWeight,
+            color: awayNameColor,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
@@ -108,7 +130,8 @@ export default function BracketGameCard({ game, teamsMap }: BracketGameCardProps
         <Typography
           variant="body1"
           sx={{
-            fontWeight: awayIsWinner ? 700 : 500,
+            fontWeight: awayScoreWeight,
+            color: awayScoreColor,
             minWidth: '30px',
             textAlign: 'center',
           }}

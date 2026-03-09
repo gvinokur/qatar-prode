@@ -13,6 +13,8 @@ interface TeamScoreRowProps {
   awayTeamTheme?: Theme | null;
   homePenaltyWinner?: boolean;
   awayPenaltyWinner?: boolean;
+  homeIsWinner?: boolean;
+  awayIsWinner?: boolean;
   onClick?: () => void;
   clickable?: boolean;
 }
@@ -30,6 +32,8 @@ export function TeamScoreRow({
   awayTeamTheme,
   homePenaltyWinner,
   awayPenaltyWinner,
+  homeIsWinner,
+  awayIsWinner,
   onClick,
   clickable = false,
 }: Readonly<TeamScoreRowProps>) {
@@ -37,6 +41,23 @@ export function TeamScoreRow({
   const awayLogoUrl = awayTeamTheme ? getThemeLogoUrl(awayTeamTheme) : null;
 
   const hasScores = homeScore !== undefined && awayScore !== undefined;
+
+  // C2 winner styling: winner → bold + text.primary, loser → normal + text.secondary
+  let homeNameWeight: number | string = 'medium';
+  let homeNameColor = 'inherit';
+  let awayNameWeight: number | string = 'medium';
+  let awayNameColor = 'inherit';
+  if (homeIsWinner) {
+    homeNameWeight = 700;
+    homeNameColor = 'text.primary';
+    awayNameWeight = 400;
+    awayNameColor = 'text.secondary';
+  } else if (awayIsWinner) {
+    awayNameWeight = 700;
+    awayNameColor = 'text.primary';
+    homeNameWeight = 400;
+    homeNameColor = 'text.secondary';
+  }
 
   return (
     <Grid
@@ -50,13 +71,14 @@ export function TeamScoreRow({
       <Grid display="flex" justifyContent="flex-end" alignItems="center" size={5}>
         <Typography
           variant="body1"
-          fontWeight="medium"
           sx={{
             ml: 1,
             maxWidth: '100%',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
+            fontWeight: homeNameWeight,
+            color: homeNameColor,
           }}
         >
           {homeTeamName}
@@ -98,13 +120,14 @@ export function TeamScoreRow({
         )}
         <Typography
           variant="body1"
-          fontWeight="medium"
           sx={{
             mr: 1,
             maxWidth: '100%',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
+            fontWeight: awayNameWeight,
+            color: awayNameColor,
           }}
         >
           {awayTeamName}
