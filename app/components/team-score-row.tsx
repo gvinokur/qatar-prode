@@ -42,6 +42,12 @@ export function TeamScoreRow({
 
   const hasScores = homeScore !== undefined && awayScore !== undefined;
 
+  // C2 winner styling: winner → bold + text.primary, loser → normal + text.secondary
+  const homeNameWeight = homeIsWinner ? 700 : awayIsWinner ? 400 : 'medium';
+  const homeNameColor = homeIsWinner ? 'text.primary' : awayIsWinner ? 'text.secondary' : 'inherit';
+  const awayNameWeight = awayIsWinner ? 700 : homeIsWinner ? 400 : 'medium';
+  const awayNameColor = awayIsWinner ? 'text.primary' : homeIsWinner ? 'text.secondary' : 'inherit';
+
   return (
     <Grid
       container
@@ -60,8 +66,8 @@ export function TeamScoreRow({
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
-            fontWeight: homeIsWinner ? 700 : awayIsWinner ? 400 : 'medium',
-            color: homeIsWinner ? 'text.primary' : awayIsWinner ? 'text.secondary' : 'inherit',
+            fontWeight: homeNameWeight,
+            color: homeNameColor,
           }}
         >
           {homeTeamName}
@@ -109,8 +115,8 @@ export function TeamScoreRow({
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
-            fontWeight: awayIsWinner ? 700 : homeIsWinner ? 400 : 'medium',
-            color: awayIsWinner ? 'text.primary' : homeIsWinner ? 'text.secondary' : 'inherit',
+            fontWeight: awayNameWeight,
+            color: awayNameColor,
           }}
         >
           {awayTeamName}

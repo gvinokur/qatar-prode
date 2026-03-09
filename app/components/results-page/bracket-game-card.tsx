@@ -37,6 +37,16 @@ export default function BracketGameCard({ game, teamsMap }: BracketGameCardProps
   const homeIsWinner = winner === game.home_team
   const awayIsWinner = winner === game.away_team
 
+  // C2 winner styling: extract to variables to avoid nested ternaries in JSX
+  const homeNameWeight = homeIsWinner ? 700 : 400
+  const homeNameColor = awayIsWinner ? 'text.secondary' : 'text.primary'
+  const homeScoreWeight = homeIsWinner ? 700 : awayIsWinner ? 400 : 500
+  const homeScoreColor = homeIsWinner ? 'text.primary' : awayIsWinner ? 'text.secondary' : 'text.primary'
+  const awayNameWeight = awayIsWinner ? 700 : 400
+  const awayNameColor = homeIsWinner ? 'text.secondary' : 'text.primary'
+  const awayScoreWeight = awayIsWinner ? 700 : homeIsWinner ? 400 : 500
+  const awayScoreColor = awayIsWinner ? 'text.primary' : homeIsWinner ? 'text.secondary' : 'text.primary'
+
   return (
     <Paper
       elevation={2}
@@ -62,8 +72,8 @@ export default function BracketGameCard({ game, teamsMap }: BracketGameCardProps
         <Typography
           variant="body2"
           sx={{
-            fontWeight: homeIsWinner ? 700 : 400,
-            color: homeIsWinner ? 'text.primary' : awayIsWinner ? 'text.secondary' : 'text.primary',
+            fontWeight: homeNameWeight,
+            color: homeNameColor,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
@@ -75,8 +85,8 @@ export default function BracketGameCard({ game, teamsMap }: BracketGameCardProps
         <Typography
           variant="body1"
           sx={{
-            fontWeight: homeIsWinner ? 700 : awayIsWinner ? 400 : 500,
-            color: homeIsWinner ? 'text.primary' : awayIsWinner ? 'text.secondary' : 'text.primary',
+            fontWeight: homeScoreWeight,
+            color: homeScoreColor,
             minWidth: '30px',
             textAlign: 'center',
           }}
@@ -96,8 +106,8 @@ export default function BracketGameCard({ game, teamsMap }: BracketGameCardProps
         <Typography
           variant="body2"
           sx={{
-            fontWeight: awayIsWinner ? 700 : 400,
-            color: awayIsWinner ? 'text.primary' : homeIsWinner ? 'text.secondary' : 'text.primary',
+            fontWeight: awayNameWeight,
+            color: awayNameColor,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
@@ -109,8 +119,8 @@ export default function BracketGameCard({ game, teamsMap }: BracketGameCardProps
         <Typography
           variant="body1"
           sx={{
-            fontWeight: awayIsWinner ? 700 : homeIsWinner ? 400 : 500,
-            color: awayIsWinner ? 'text.primary' : homeIsWinner ? 'text.secondary' : 'text.primary',
+            fontWeight: awayScoreWeight,
+            color: awayScoreColor,
             minWidth: '30px',
             textAlign: 'center',
           }}

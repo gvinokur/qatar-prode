@@ -47,6 +47,12 @@ export default function MinimalisticGamesList({ games, teamsMap }: MinimalisticG
         const homeIsWinner = !!winner && winner === game.home_team
         const awayIsWinner = !!winner && winner === game.away_team
 
+        // C2 winner styling: extract to variables to avoid nested ternaries in JSX
+        const homeNameWeight = homeIsWinner ? 700 : awayIsWinner ? 400 : 'inherit'
+        const homeNameColor = homeIsWinner ? 'text.primary' : awayIsWinner ? 'text.secondary' : 'inherit'
+        const awayNameWeight = awayIsWinner ? 700 : homeIsWinner ? 400 : 'inherit'
+        const awayNameColor = awayIsWinner ? 'text.primary' : homeIsWinner ? 'text.secondary' : 'inherit'
+
         return (
           <Typography
             key={game.id}
@@ -66,8 +72,8 @@ export default function MinimalisticGamesList({ games, teamsMap }: MinimalisticG
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
-                fontWeight: homeIsWinner ? 700 : awayIsWinner ? 400 : 'inherit',
-                color: homeIsWinner ? 'text.primary' : awayIsWinner ? 'text.secondary' : 'inherit',
+                fontWeight: homeNameWeight,
+                color: homeNameColor,
               }}
             >
               {homeTeamDisplay}
@@ -91,8 +97,8 @@ export default function MinimalisticGamesList({ games, teamsMap }: MinimalisticG
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
-                fontWeight: awayIsWinner ? 700 : homeIsWinner ? 400 : 'inherit',
-                color: awayIsWinner ? 'text.primary' : homeIsWinner ? 'text.secondary' : 'inherit',
+                fontWeight: awayNameWeight,
+                color: awayNameColor,
               }}
             >
               {awayTeamDisplay}
