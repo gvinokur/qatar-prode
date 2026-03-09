@@ -151,17 +151,21 @@ Key flows:
                                                                        └── setGameGuessBoost
 
 2. Game scoring pipeline
+   Triggered by: cron via app/api/update-guesses GET → calculateGameScores
+                 or: saveGameResults (backoffice) → calculateGameScores (see flow 14)
    calculateGameScores [server action]
      ├── findAllGamesWithPublishedResultsAndGameGuesses
+     ├── findAllGuessesForGamesWithResultsInDraft (draft recalc)
      ├── calculateScoreForGame (util)
      ├── updateGameGuessWithBoost
+     ├── updateGameGuess
      └── recalculateGameScoresForUsers
            └── (materializes scores → tournament_guesses)
 
 3. Friend group join request flow
    PublicGroupsBrowser [Client]
      └── getPublicGroupsAction [server action]
-           └── findPublicGroups
+           ├── findPublicGroups
            └── countPublicGroups
    JoinRequestForm [Client]
      └── requestToJoinGroup [server action]
@@ -169,34 +173,69 @@ Key flows:
            ├── createJoinRequest
            └── sendEmail (notify admins)
    JoinRequestManager [Client] (admin)
-     └── approveJoinRequestAction [server action]
-           ├── approveJoinRequest (adds user to group)
+     ├── approveJoinRequestAction [server action]
+     │     ├── approveJoinRequestRepo (adds user to group)
+     │     └── sendEmail (notify requester)
+     └── rejectJoinRequestAction [server action]
+           ├── rejectJoinRequestRepo
            └── sendEmail (notify requester)
+   PendingRequestView / PendingRequestsCard [Client]
+     └── cancelJoinRequestAction [server action]
+           └── cancelJoinRequestRepo
 
 4. Qualified teams prediction
-   QualifiedTeamsClientPage [Client]
-     └── updateGroupPositionsJsonb [server action]
-           ├── upsertGroupPositionsPrediction
-           └── updatePlayoffGameGuesses
-                 ├── getAllUserGroupPositionsPredictions
-                 ├── calculatePlayoffTeamsFromPositions (util)
-                 └── updateGameGuessByGameId
+   QualifiedTeamsPage (Server)
+     ├── getLoggedInUser
+     ├── getTournamentQualificationConfig [server action]
+     ├── findQualifiedTeams
+     ├── calculateQualifiedTeamsScore (util)
+     └── getAllTournamentGames
+     └── QualifiedTeamsClientPage [renders]
+           └── QualifiedTeamsContextProvider [Provider]
+                 ├── holds: position predictions per group (state)
+                 └── auto-save: updateGroupPositionsJsonb [server action]
+                               ├── upsertGroupPositionsPrediction
+                               └── updatePlayoffGameGuesses
+                                     ├── getAllUserGroupPositionsPredictions
+                                     ├── calculatePlayoffTeamsFromPositions (util)
+                                     └── updateGameGuessByGameId
+                 └── QualifiedTeamsUI [renders]
+                       └── DndContext [renders]
+                             └── QualifiedTeamsGrid [renders]
+                                   └── GroupCard [renders]
+                                         └── DraggableTeamCard [renders]
 
-5. Group stats / leaderboard
-   LeaderboardView [Client]
+5. Group stats / leaderboard & social sharing
+   TournamentScopedFriendGroup (Server)
+     ├── getLoggedInUser
+     ├── findProdeGroupById
+     ├── findParticipantsInGroup
      └── getUserScoresForTournament [server action]
            ├── getGameGuessStatisticsForUsers (materialized)
            └── findTournamentGuessByUserIdsTournament
-   HeadToHeadDialog [Client]
-     └── getUserStatsForComparison [server action]
-           ├── getGameGuessStatisticsForUsers
-           ├── getTournamentGuessStatsForUsers
-           └── calculateAccuracyStats (util)
+     └── ProdeGroupTable [renders]
+           └── LeaderboardView [renders]
+                 └── LeaderboardCards [renders]
+                       ├── HeadToHeadDialog [renders] (on compare click)
+                       │     ├── getUserStatsForComparison [server action]
+                       │     │     ├── getGameGuessStatisticsForUsers
+                       │     │     ├── getTournamentGuessStatsForUsers
+                       │     │     └── calculateAccuracyStats (util)
+                       │     ├── HeadToHeadTemplate [renders] (off-screen, image source)
+                       │     └── SharePreviewModal [renders]
+                       │           └── captures DOM → generates image → download/WhatsApp share
+                       ├── LeaderboardTemplate [renders] (off-screen, leaderboard image source)
+                       ├── PersonalHighlightTemplate [renders] (off-screen, personal card image source)
+                       └── SharePreviewModal [renders] (on share click)
+                             └── captures DOM → generates image → download/WhatsApp share
 
 6. Authentication & signup
-   LoginOrSignupDialog [Client]
-     └── checkAuthMethods [server action]
-           └── getAuthMethodsForEmail
+   LoginOrSignupDialog [Client] (orchestrates all sub-flows)
+     └── EmailInputForm [renders]
+           └── checkAuthMethods [server action]
+                 └── getAuthMethodsForEmail
+   LoginForm [Client]
+     └── signIn (credentials)
    SignupForm [Client]
      └── signupUser [server action]
            ├── findUserByEmail
@@ -212,6 +251,12 @@ Key flows:
      └── createAccountViaOTP [server action]
            ├── findUserByEmail
            └── updateUser
+   NicknameSetupDialog [Client] (OAuth post-signup)
+     └── setNickname [server action]
+           └── updateUser
+   VerificationBanner [Client] (persistent on all pages for unverified users)
+     └── resendVerificationEmail [server action]
+           └── sendVerificationEmail
 
 7. Email verification
    VerifyEmailPage (Server)
@@ -219,6 +264,7 @@ Key flows:
            └── verifyUserEmail [server action]
                  ├── findUserByVerificationToken
                  └── verifyEmail
+           └── signOut (forces re-login with verified session)
 
 8. Password reset
    ForgotPasswordForm [Client]
@@ -233,22 +279,34 @@ Key flows:
 
 9. Onboarding flow
    ServerHome (Server)
-     └── getOnboardingStatus
-   OnboardingDialog [Client]
-     ├── saveOnboardingStep [server action]
-     │     └── updateOnboardingData
-     ├── markOnboardingComplete [server action]
-     │     └── completeOnboarding
-     └── skipOnboardingFlow [server action]
-           └── skipOnboarding
+     ├── getOnboardingStatus
+     └── OnboardingTrigger [renders] (Server)
+           └── OnboardingDialogClient [renders]
+                 ├── getTournaments [server action] (loads active tournament)
+                 └── OnboardingDialog [renders]
+                       ├── saveOnboardingStep [server action]
+                       │     └── updateOnboardingData
+                       ├── markOnboardingComplete [server action]
+                       │     └── completeOnboarding
+                       └── skipOnboardingFlow [server action]
+                             └── skipOnboarding
    OnboardingChecklist [Client]
      └── updateChecklistItem [server action]
            └── updateChecklistItemRepo
+   OnboardingTooltip [Client] (scattered across UI)
+     └── dismissTooltip [server action]
+           └── dismissTooltipRepo
 
 10. Awards prediction
     Awards (Server)
+      ├── getLoggedInUser
       ├── findTournamentGuessByUserIdTournament
-      └── findAllPlayersInTournamentWithTeamData
+      ├── findAllPlayersInTournamentWithTeamData
+      ├── getTournamentStartDate [server action]
+      ├── getPlayoffRounds [server action]
+      ├── getAllTournamentGames
+      ├── findGameGuessesByUserId
+      └── getTournamentPredictionCompletion
       └── AwardsPanel [renders]
             └── updateOrCreateTournamentGuess [server action]
                   └── dbUpdateOrCreateTournamentGuess
@@ -257,52 +315,85 @@ Key flows:
     ResultsPage (Server)
       ├── findGamesInTournament
       ├── getTeamsMap [server action]
-      │     └── findTeamInTournament, findTeamInGroup
       ├── getGroupStandingsForTournament [server action]
       │     └── calculateGroupPosition (util)
+      └── findPlayoffStagesWithGamesInTournament
       └── ResultsPageClient [renders]
-            └── PlayoffsBracketView [renders]
+            ├── GroupsStageView [renders] (groups tab)
+            │     └── GroupResultCard [renders]
+            │           ├── MinimalisticGamesList [renders]
+            │           └── TeamStandingsCards [renders]
+            └── PlayoffsBracketView [renders] (playoffs tab)
                   └── BracketGameCard [renders]
 
 12. User stats page
     TournamentStatsPage (Server)
+      ├── getLoggedInUser
+      ├── findTournamentById
       ├── getGameGuessStatisticsForUsers
       ├── findTournamentGuessByUserIdTournament
       ├── getBoostAllocationBreakdown
+      ├── getGameCountsForTournament
+      ├── findGameGuessesByUserId
       ├── calculateAccuracyStats (util)
       └── calculateBoostStats (util)
       └── StatsTabs [renders]
             └── PerformanceOverviewCard, PredictionAccuracyCard, BoostAnalysisCard [renders]
 
 13. Friend group management
-    FriendGroupsTable [Client]
+    FriendGroupsList / TournamentGroupsList [Client]
       ├── createDbGroup [server action]
       │     └── createProdeGroup
-      ├── deleteGroup [server action]
-      │     └── deleteProdeGroup
+      └── deleteGroup [server action]
+            └── deleteProdeGroup
+    LeaveGroupButton [Client]
       └── leaveGroupAction [server action]
             └── deleteParticipantFromGroup
-    GroupPrivacySettings [Client]
-      └── updateGroupPrivacyAction [server action]
-            └── updateGroupPrivacy
-    ProdeGroupThemer [Client]
-      └── updateTheme [server action]
-            └── updateProdeGroup, deleteThemeLogoFromS3
+    AdminSectionTabs [Client] (admin view — 4 tabs)
+      ├── JoinRequestManager [renders] → approveJoinRequestAction / rejectJoinRequestAction
+      ├── GroupPrivacySettings [renders]
+      │     └── updateGroupPrivacyAction [server action]
+      │           └── updateGroupPrivacy
+      ├── GroupTournamentBettingAdmin [renders]
+      │     └── setGroupTournamentBettingConfigAction, setUserGroupTournamentBettingPaymentAction
+      └── ProdeGroupThemer [renders]
+            └── updateTheme [server action]
+                  └── updateProdeGroup, deleteThemeLogoFromS3
+    NotificationDialog [Client] (admin — send to group)
+      └── sendGroupNotification [server action]
+            ├── findParticipantsInGroup
+            └── sendNotification
 
 14. Backoffice game result editing
-    BackofficeFlippableGameCard [Client]
-      └── BackofficeGameResultEditControls [renders]
-            └── saveGameResults [server action]
-                  ├── updateGameResult / createGameResult
-                  └── calculateGameScores [same as flow 2]
+    GroupBackoffice [Client] (group stage)
+      ├── getCompleteGroupData [server action]
+      ├── saveGamesData [server action]
+      ├── calculateAndStoreGroupPosition [server action]
+      ├── calculateAndStoreQualifiedTeamsScores [server action]
+      ├── calculateAndSavePlayoffGamesForTournament [server action]
+      └── BackofficeFlippableGameCard [renders]
+            └── BackofficeGameResultEditControls [renders]
+                  └── saveGameResults [server action]
+                        ├── updateGameResult / createGameResult
+                        └── calculateGameScores [see flow 2]
+      └── BulkActionsMenu [renders]
+            ├── autoFillGameScores [server action]
+            └── clearGameScores [server action]
+    PlayoffTab [Client] (playoff stage)
+      ├── getCompletePlayoffData [server action]
+      ├── saveGameResults [server action]
+      └── updateTournamentHonorRoll [server action]
 
 15. Push notifications
-    NotificationSubscriptionPrompt [Client]
+    InstallPwa [Client] (first-time prompt)
+      └── NotificationsSubscriptionPrompt [renders]
+            └── subscribeUser [server action]
+                  └── addNotificationSubscription
+    UserSettingsDialog [Client] (manage from settings)
       ├── subscribeUser [server action]
-      │     └── addNotificationSubscription
       └── unsubscribeUser [server action]
             └── removeNotificationSubscription
-    NotificationSender [Client] (admin)
+    NotificationSender [Client] (admin — broadcast)
       └── sendNotification [server action]
             └── sendPushNotification
 
@@ -311,6 +402,7 @@ Key flows:
       ├── getShortUrlByCode
       └── incrementClickCount
     InviteFriendsDialogButton [Client]
-      └── generateShortUrlForGroup [server action]
-            └── getOrCreateShortUrl
+      └── InviteFriendsDialog [renders]
+            └── generateShortUrlForGroup [server action]
+                  └── getOrCreateShortUrl
 ```
