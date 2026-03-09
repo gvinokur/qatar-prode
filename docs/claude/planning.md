@@ -108,6 +108,22 @@ EnterPlanMode()
 
 ### 2. Research & Gather Context
 
+**Read CODE-STRUCTURE.md first:**
+
+Before exploring individual files, read `CODE-STRUCTURE.md` to understand existing
+function signatures and call relationships. This prevents redundant file reads — if
+the function you need already exists or a similar pattern is documented, you'll find
+it here.
+
+```typescript
+Read({
+  file_path: `${WORKTREE_PATH}/CODE-STRUCTURE.md`
+})
+```
+
+As you read the story and explore the codebase, note which existing functions you'll
+call from new code. These will go in the `Calls:` lines of your Mid-Level Design.
+
 **Read story details:**
 ```bash
 # Fetch full issue details
@@ -146,6 +162,7 @@ PLAN_FILE="${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-plan.md"
 - Acceptance criteria
 - Technical approach
 - Files to create/modify
+- Mid-Level Design (see Step 3.2 below)
 - Implementation steps
 - Testing strategy (must include unit tests)
 - Validation considerations (SonarCloud requirements, quality gates)
@@ -253,6 +270,64 @@ Add a "Visual Prototypes" section after "Technical Approach" with:
 
 ---
 
+### 3.2. Mid-Level Design (MANDATORY for all stories with code changes)
+
+A function-by-function specification of every new or significantly changed function, server action, component, and utility. Uses the same format as `CODE-STRUCTURE.md` — **read `docs/claude/code-structure.md` for the complete format rules and examples** before writing this section.
+
+**Why it matters:**
+- Tests can be written before implementation (TDD) — implementer writes tests against these specs
+- Reviewer evaluates architecture at signature level, not just intent
+- Testing subagent can create tests in parallel using this section
+- Design issues (wrong types, missing params, wrong call chain) surface before any code is written
+
+**When to skip:** Only if the story has zero code changes (docs-only, config-only).
+
+**Add a `## Mid-Level Design` section to the plan, structured as:**
+
+```markdown
+## Mid-Level Design
+
+### `app/db/group-repository.ts` *(modified)*
+
+**New functions:**
+
+- **findGroupsByUser(userId: string)**: `Promise<Group[]>`
+  Returns all active group memberships for the user, ordered by name.
+  Tests:
+  - returns empty array when user has no group memberships
+  - returns groups sorted by name ascending
+  - excludes groups where membership is inactive
+
+### `app/actions/group-actions.ts` *(modified)*
+
+**New functions:**
+
+- **getUserGroups(locale: string)**: `Promise<LocalizedGroup[]>`
+  Server Action. Fetches and localizes groups for the authenticated user.
+  Calls: getLoggedInUser, findGroupsByUser, applyLocalization
+  Tests:
+  - throws Unauthorized when no active session
+  - returns localized groups for valid user
+  - returns empty array when user has no groups
+
+**Changed functions:**
+
+- **createGroup(data: GroupNew, locale: string)**: `Promise<LocalizedGroup>` *(was: no locale param)*
+  Now localizes before returning so callers get display-ready data.
+  Calls: getLoggedInUser, insertGroup, applyLocalization
+  Tests:
+  - (existing tests unchanged)
+  - new: returned group name matches the locale parameter
+```
+
+**Key rules (full rules in `docs/claude/code-structure.md`):**
+- Signatures use real TypeScript types from the codebase (not invented types)
+- `Calls:` lists project functions only — omit npm packages, stdlib, framework calls
+- Test cases are observable behavior descriptions, ≥3 per function including at least one error/edge case
+- Cover all new exported functions/components; changed functions only if signature or behavior meaningfully differs
+
+---
+
 **✋ CHECKPOINT: Have you used the Write tool?**
 
 After creating the plan content, verify:
@@ -287,6 +362,7 @@ Before launching the plan reviewer subagent:
 - [ ] Visual prototypes included (if UI changes)
 - [ ] Technical approach is detailed
 - [ ] Files to create/modify are listed
+- [ ] Mid-Level Design section included: all new/changed functions have signatures, Calls:, and ≥3 test cases each
 - [ ] Testing strategy is comprehensive
 - [ ] I am STILL IN PLAN MODE
 - [ ] I have NOT exited plan mode
@@ -365,6 +441,10 @@ Review criteria:
 4. **Risks**: Any potential issues, edge cases, security concerns, or architectural problems?
 5. **Quality Gates**: Will this meet SonarCloud requirements (80% coverage on new code, 0 new issues)?
 6. **Completeness**: Any gaps in requirements, acceptance criteria, or implementation steps?
+7. **Mid-Level Design**: Does every new or changed function/component have a TypeScript
+   signature, correct Calls:/Uses:/Renders: relationships (cross-checked against
+   CODE-STRUCTURE.md), and at least 3 meaningful test scenarios? Are test cases
+   specific enough to implement directly without guesswork?
 
 Provide specific, constructive feedback. Focus on issues that would cause problems during implementation.
 If the plan looks solid, say "No significant concerns."

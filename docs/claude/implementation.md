@@ -189,6 +189,35 @@ Success criteria:
 })
 ```
 
+#### CODE-STRUCTURE.md Update Rule (MANDATORY)
+
+**Every task that creates or modifies source files must update `CODE-STRUCTURE.md` as part of its commit.**
+
+Do NOT defer CODE-STRUCTURE.md updates to the end of a story. Update it per-task, immediately after completing the code changes for that task, before committing.
+
+**How to update CODE-STRUCTURE.md for a task:**
+
+1. **Read `docs/claude/code-structure.md`** — the format guide. Follow it exactly to ensure consistency with existing entries.
+
+2. **For each file you created or modified in this task:**
+   - Locate (or create) the `### path/to/file.ts` section in `CODE-STRUCTURE.md`
+   - Update all function/component entries to reflect current signatures
+   - Add entries for new functions/components
+   - Remove entries for deleted functions/components
+   - Keep the 1–2 sentence file description accurate
+
+3. **Update `## Call Graph`** if any call relationships changed (new `Calls:` lines, deleted functions, new files).
+
+4. **Stage `CODE-STRUCTURE.md` alongside the task's source files** — it should be in the same commit, not a separate one.
+
+**Checking your work:**
+- Every exported function/component in modified files must have a matching entry
+- Signatures in CODE-STRUCTURE.md must exactly match the implemented signatures
+- `Calls:` lines must list only project functions (no npm packages or stdlib)
+- If a function listed in the plan's Mid-Level Design changed during implementation, the CODE-STRUCTURE.md entry reflects the **actual** implementation, not the plan
+
+**Reference:** See `docs/claude/code-structure.md` for the complete format specification and examples.
+
 #### Step C: Define Dependencies with TaskUpdate
 
 **Set up dependency chain using TaskUpdate:**
@@ -1258,6 +1287,8 @@ You MUST run validation checks before committing:
 4. **Did linting pass with no errors?** (Answer MUST be YES)
 5. **Have I run `npm run build`?** (Answer MUST be YES)
 6. **Did the build succeed?** (Answer MUST be YES)
+7. **Have I updated CODE-STRUCTURE.md for every file created or modified in this commit?** (Answer MUST be YES — see CODE-STRUCTURE.md Update Rule above)
+8. **Do the CODE-STRUCTURE.md entries match actual implemented signatures (not plan signatures if they changed)?** (Answer MUST be YES)
 
 **If ANY answer is NO, DO NOT COMMIT. Fix the issues first.**
 
