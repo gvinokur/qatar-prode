@@ -170,6 +170,25 @@ export function calculateBracketDimensions(
 }
 
 /**
+ * Places a feeder game into the ordered list if the rule is a TeamWinnerRule pointing to a game
+ * in the current round that hasn't been placed yet.
+ */
+function placeFeeder(
+  rule: unknown,
+  gamesByNumber: { [gameNumber: number]: ExtendedGameData },
+  currentRoundIds: Set<string>,
+  placed: Set<string>,
+  ordered: ExtendedGameData[]
+): void {
+  if (!isTeamWinnerRule(rule)) return
+  const feeder = gamesByNumber[rule.game]
+  if (feeder && currentRoundIds.has(feeder.id) && !placed.has(feeder.id)) {
+    ordered.push(feeder)
+    placed.add(feeder.id)
+  }
+}
+
+/**
  * Given the already-ordered games of a later round and the unordered games of the current round,
  * returns the current round games re-ordered to match the bracket tree structure.
  *
@@ -193,26 +212,8 @@ function orderRoundByLaterGames(
   const placed = new Set<string>()
 
   for (const laterGame of orderedLaterRoundGames) {
-    const homeRule = laterGame.home_team_rule
-    const awayRule = laterGame.away_team_rule
-
-    // Place home feeder
-    if (isTeamWinnerRule(homeRule)) {
-      const feeder = gamesByNumber[homeRule.game]
-      if (feeder && currentRoundIds.has(feeder.id) && !placed.has(feeder.id)) {
-        ordered.push(feeder)
-        placed.add(feeder.id)
-      }
-    }
-
-    // Place away feeder
-    if (isTeamWinnerRule(awayRule)) {
-      const feeder = gamesByNumber[awayRule.game]
-      if (feeder && currentRoundIds.has(feeder.id) && !placed.has(feeder.id)) {
-        ordered.push(feeder)
-        placed.add(feeder.id)
-      }
-    }
+    placeFeeder(laterGame.home_team_rule, gamesByNumber, currentRoundIds, placed, ordered)
+    placeFeeder(laterGame.away_team_rule, gamesByNumber, currentRoundIds, placed, ordered)
   }
 
   // Append any unplaced games (e.g. GroupFinishRule qualifiers with no TeamWinnerRule pointer)
