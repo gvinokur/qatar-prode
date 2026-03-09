@@ -6,7 +6,11 @@ import LeaderboardCards from './LeaderboardCards'
 export default function LeaderboardView({
   scores,
   currentUserId,
-  tournament
+  tournament,
+  groupName,
+  joinUrl,
+  themeColor,
+  shareRef,
 }: LeaderboardViewProps) {
   // For now, we don't have previous scores, so rank changes will be 0
   // In the future, this could be passed as a prop
@@ -20,6 +24,10 @@ export default function LeaderboardView({
       currentUserId={currentUserId}
       previousScores={previousScores}
       tournamentId={tournamentId}
+      groupName={groupName}
+      joinUrl={joinUrl}
+      themeColor={themeColor}
+      shareRef={shareRef}
     />
   )
 }

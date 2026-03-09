@@ -54,7 +54,8 @@ describe('LeaderboardView', () => {
     expect(screen.getByRole('list', { name: /leaderboard/i})).toBeInTheDocument()
     // User One is current user, displays as "You"
     expect(screen.getByText('You')).toBeInTheDocument()
-    expect(screen.getByText('User Two')).toBeInTheDocument()
+    // Name may appear in both leaderboard card and off-screen sharing template
+    expect(screen.getAllByText('User Two').length).toBeGreaterThan(0)
   })
 
   it('passes currentUserId to LeaderboardCards', () => {

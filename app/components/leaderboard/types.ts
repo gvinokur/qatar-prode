@@ -23,11 +23,19 @@ export interface LeaderboardUser {
   individualAwardsScore: number    // Individual awards points
 }
 
+export interface LeaderboardShareHandle {
+  openLeaderboardShare: () => void
+}
+
 export interface LeaderboardViewProps {
   readonly scores: unknown[] // Will be typed as UserScore from DB when integrated
   readonly currentUserId: string
   readonly tournament: unknown // Will be typed as Tournament when integrated
   readonly tournamentId?: string
+  readonly groupName?: string
+  readonly joinUrl?: string
+  readonly themeColor?: string
+  readonly shareRef?: React.RefObject<LeaderboardShareHandle | null>
 }
 
 export interface LeaderboardCardsProps {
@@ -35,6 +43,10 @@ export interface LeaderboardCardsProps {
   readonly currentUserId: string
   readonly previousScores?: unknown[]
   readonly tournamentId?: string
+  readonly groupName?: string
+  readonly joinUrl?: string
+  readonly themeColor?: string
+  readonly shareRef?: React.RefObject<LeaderboardShareHandle | null>
 }
 
 export interface LeaderboardCardProps {
@@ -45,6 +57,7 @@ export interface LeaderboardCardProps {
   readonly isExpanded: boolean
   readonly onToggle: () => void
   readonly onCompare?: () => void  // Opens H2H dialog (non-self cards only)
+  readonly onShareHighlight?: () => void  // Share rank improvement (current user with positive rankChange)
 }
 
 export interface RankChangeIndicatorProps {

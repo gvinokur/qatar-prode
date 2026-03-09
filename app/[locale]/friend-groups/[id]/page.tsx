@@ -16,10 +16,12 @@ import {getThemeLogoUrl} from "../../../utils/theme-utils";
 import { getGroupTournamentBettingConfigAction, getGroupTournamentBettingPaymentsAction } from '../../../actions/group-tournament-betting-actions';
 import LeaveGroupButton from '../../../components/friend-groups/leave-group-button';
 import { getUserScoresForTournament } from "../../../actions/prode-group-actions";
+import { generateShortUrlForGroup } from '../../../actions/short-url-actions';
 
 type Props = {
   readonly params: Promise<{
     id: string
+    locale: string
   }>,
   readonly searchParams: Promise<{[k:string]:string}>
 }
@@ -54,6 +56,10 @@ export default async function FriendsGroup(props : Props){
       )))
 
   let logoUrl = getThemeLogoUrl(prodeGroup.theme)
+
+  const shortUrlRecord = await generateShortUrlForGroup(prodeGroup.id)
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://prodemundial.app'
+  const shareJoinUrl = `${baseUrl}/j/${shortUrlRecord.code}`
 
   const members = users.map(u => ({ id: u.id, nombre: u.nickname || u.email, is_admin: participants.find((p: any) => p.user_id === u.id)?.is_admin || false }));
 
@@ -135,6 +141,9 @@ export default async function FriendsGroup(props : Props){
               members={members}
               bettingData={bettingData}
               selectedTournamentId={searchParams.tournament}
+              groupName={prodeGroup.name}
+              joinUrl={shareJoinUrl}
+              themeColor={prodeGroup.theme?.primary_color ?? undefined}
             />
           </Grid>
           {(prodeGroup.owner_user_id === user.id || members.find(m => m.id === user.id)?.is_admin) && (

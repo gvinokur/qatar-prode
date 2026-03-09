@@ -5,7 +5,8 @@
     "logoAlt": "La Maquina Prode",
     "description": "Sports prediction platform",
     "loading": "Loading...",
-    "error": "An error occurred"
+    "error": "An error occurred",
+    "fullName": "La Maquina World Cup Predictions"
   },
   "theme": {
     "switchTo": "Switch to {mode} mode",
