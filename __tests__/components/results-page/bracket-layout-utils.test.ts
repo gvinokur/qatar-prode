@@ -3,11 +3,13 @@ import {
   calculateGamePositions,
   calculateConnectionPath,
   calculateBracketDimensions,
+  buildOrderedBracketRounds,
   BRACKET_CONSTANTS,
   type BracketRound,
   type GamePosition,
 } from '@/app/components/results-page/bracket-layout-utils';
 import { testFactories } from '@/__tests__/db/test-factories';
+import { ExtendedGameData } from '@/app/definitions';
 
 describe('bracket-layout-utils', () => {
   describe('BRACKET_CONSTANTS', () => {
@@ -533,6 +535,164 @@ describe('bracket-layout-utils', () => {
       expect(typeof dimensions.height).toBe('number');
       expect(dimensions.width).toBeGreaterThan(0);
       expect(dimensions.height).toBeGreaterThan(0);
+    });
+  });
+
+  describe('buildOrderedBracketRounds', () => {
+    /**
+     * Helper to create an ExtendedGameData with specific game_number and optional team rules.
+     */
+    function makeGame(
+      id: string,
+      game_number: number,
+      homeRule?: { game: number; winner: boolean },
+      awayRule?: { game: number; winner: boolean }
+    ): ExtendedGameData {
+      return testFactories.game({
+        id,
+        game_number,
+        home_team_rule: homeRule as any,
+        away_team_rule: awayRule as any,
+      }) as ExtendedGameData;
+    }
+
+    function makeStage(roundName: string, games: ExtendedGameData[]) {
+      return {
+        tournament_playoff_round_id: `stage-${roundName}`,
+        tournament_id: 'tournament-1',
+        round_name: roundName,
+        round_order: 1,
+        is_third_place: false,
+        is_final: false,
+        games: games.map((g) => ({ game_id: g.id })),
+      };
+    }
+
+    it('returns single-round bracket games in original order when no TeamWinnerRule pointers exist', () => {
+      const g1 = makeGame('g1', 1);
+      const g2 = makeGame('g2', 2);
+      const g3 = makeGame('g3', 3);
+
+      const stages = [makeStage('Final', [g1, g2, g3])];
+      const gamesMap = { g1, g2, g3 };
+      const gamesByNumber = { 1: g1, 2: g2, 3: g3 };
+
+      const result = buildOrderedBracketRounds(stages, gamesMap, gamesByNumber);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].games.map((g) => g.id)).toEqual(['g1', 'g2', 'g3']);
+      expect(result[0].name).toBe('Final');
+      expect(result[0].columnIndex).toBe(0);
+    });
+
+    it('correctly orders a 2-round bracket when round-1 games are cross-referenced by round-2 via TeamWinnerRule', () => {
+      // Round 1 (in DB order): game 3, game 4, game 1, game 2
+      // Round 2 (final): game 5 (home=winner of 1, away=winner of 2), game 6 (home=winner of 3, away=winner of 4)
+      const g1 = makeGame('g1', 1);
+      const g2 = makeGame('g2', 2);
+      const g3 = makeGame('g3', 3);
+      const g4 = makeGame('g4', 4);
+      const g5 = makeGame('g5', 5, { game: 1, winner: true }, { game: 2, winner: true });
+      const g6 = makeGame('g6', 6, { game: 3, winner: true }, { game: 4, winner: true });
+
+      // Round 1 games out of bracket order (DB insertion order)
+      const stage1 = makeStage('Round of 4', [g3, g4, g1, g2]);
+      // Round 2 references g1/g2 and g3/g4
+      const stage2 = makeStage('Semifinals', [g5, g6]);
+
+      const gamesMap = { g1, g2, g3, g4, g5, g6 };
+      const gamesByNumber = { 1: g1, 2: g2, 3: g3, 4: g4, 5: g5, 6: g6 };
+
+      const result = buildOrderedBracketRounds([stage1, stage2], gamesMap, gamesByNumber);
+
+      expect(result).toHaveLength(2);
+      // Round 1 should be reordered: g5 feeds g1, g2 → then g6 feeds g3, g4
+      expect(result[0].games.map((g) => g.id)).toEqual(['g1', 'g2', 'g3', 'g4']);
+      // Round 2 stays as-is (it's the final round)
+      expect(result[1].games.map((g) => g.id)).toEqual(['g5', 'g6']);
+    });
+
+    it('correctly orders a 4-round (8-game) bracket by full tree traversal', () => {
+      // Games 1-4: Round of 8 (first round)
+      // Games 5-6: Semifinals
+      // Game 7: Final
+      // DB order for round 1 is scrambled: g3, g1, g4, g2
+      const g1 = makeGame('g1', 1);
+      const g2 = makeGame('g2', 2);
+      const g3 = makeGame('g3', 3);
+      const g4 = makeGame('g4', 4);
+      // Semis: g5 feeds from g1+g2, g6 feeds from g3+g4
+      const g5 = makeGame('g5', 5, { game: 1, winner: true }, { game: 2, winner: true });
+      const g6 = makeGame('g6', 6, { game: 3, winner: true }, { game: 4, winner: true });
+      // Final: g7 feeds from g5+g6
+      const g7 = makeGame('g7', 7, { game: 5, winner: true }, { game: 6, winner: true });
+
+      const stage1 = makeStage('Quarterfinals', [g3, g1, g4, g2]); // scrambled DB order
+      const stage2 = makeStage('Semifinals', [g5, g6]);
+      const stage3 = makeStage('Final', [g7]);
+
+      const gamesMap = { g1, g2, g3, g4, g5, g6, g7 };
+      const gamesByNumber = { 1: g1, 2: g2, 3: g3, 4: g4, 5: g5, 6: g6, 7: g7 };
+
+      const result = buildOrderedBracketRounds([stage1, stage2, stage3], gamesMap, gamesByNumber);
+
+      expect(result).toHaveLength(3);
+      // Semis stay in g5, g6 order; round 1 should follow: g1, g2, g3, g4
+      expect(result[0].games.map((g) => g.id)).toEqual(['g1', 'g2', 'g3', 'g4']);
+      expect(result[1].games.map((g) => g.id)).toEqual(['g5', 'g6']);
+      expect(result[2].games.map((g) => g.id)).toEqual(['g7']);
+    });
+
+    it('appends unplaced games (GroupFinishRule only, no TeamWinnerRule pointer) at end of round', () => {
+      // Round 1: two group-stage qualifiers (no TeamWinnerRule pointers from later rounds)
+      const g1 = makeGame('g1', 1); // GroupFinishRule qualifiers — no rules set
+      const g2 = makeGame('g2', 2);
+      // Final: references only g1
+      const g3 = makeGame('g3', 3, { game: 1, winner: true }, undefined);
+
+      const stage1 = makeStage('Semis', [g2, g1]); // g2 first in DB
+      const stage2 = makeStage('Final', [g3]);
+
+      const gamesMap = { g1, g2, g3 };
+      const gamesByNumber = { 1: g1, 2: g2, 3: g3 };
+
+      const result = buildOrderedBracketRounds([stage1, stage2], gamesMap, gamesByNumber);
+
+      // g1 is referenced by g3, so placed first; g2 has no pointer so appended
+      expect(result[0].games.map((g) => g.id)).toEqual(['g1', 'g2']);
+    });
+
+    it('skips game references pointing outside the current round set (cross-round or missing)', () => {
+      // Round 1 games: g1, g2
+      // Final references g1 (valid) and g99 (missing / wrong round)
+      const g1 = makeGame('g1', 1);
+      const g2 = makeGame('g2', 2);
+      const g3 = makeGame('g3', 3, { game: 1, winner: true }, { game: 99, winner: true });
+
+      const stage1 = makeStage('Semis', [g1, g2]);
+      const stage2 = makeStage('Final', [g3]);
+
+      const gamesMap = { g1, g2, g3 };
+      const gamesByNumber = { 1: g1, 2: g2, 3: g3 }; // game 99 not in map
+
+      const result = buildOrderedBracketRounds([stage1, stage2], gamesMap, gamesByNumber);
+
+      // g1 placed via pointer, g99 missing so skipped, g2 appended
+      expect(result[0].games.map((g) => g.id)).toEqual(['g1', 'g2']);
+    });
+
+    it('isTeamWinnerRule correctly identifies runtime shape of home_team_rule / away_team_rule', () => {
+      // This confirms the runtime type guard works for plain objects (as deserialized from JSON DB columns)
+      const gameWithRule = makeGame('g1', 1, { game: 2, winner: true }, { game: 3, winner: false });
+      const gameWithoutRule = makeGame('g2', 2);
+
+      // home_team_rule should satisfy isTeamWinnerRule
+      const { isTeamWinnerRule: checkRule } = require('@/app/utils/playoffs-rule-helper');
+      expect(checkRule(gameWithRule.home_team_rule)).toBe(true);
+      expect(checkRule(gameWithRule.away_team_rule)).toBe(true);
+      expect(checkRule(gameWithoutRule.home_team_rule)).toBe(false);
+      expect(checkRule(undefined)).toBe(false);
+      expect(checkRule({ position: 1, group: 'A' })).toBe(false); // GroupFinishRule
     });
   });
 });
