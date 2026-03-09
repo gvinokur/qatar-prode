@@ -13,6 +13,8 @@ interface TeamScoreRowProps {
   awayTeamTheme?: Theme | null;
   homePenaltyWinner?: boolean;
   awayPenaltyWinner?: boolean;
+  homeIsWinner?: boolean;
+  awayIsWinner?: boolean;
   onClick?: () => void;
   clickable?: boolean;
 }
@@ -30,6 +32,8 @@ export function TeamScoreRow({
   awayTeamTheme,
   homePenaltyWinner,
   awayPenaltyWinner,
+  homeIsWinner,
+  awayIsWinner,
   onClick,
   clickable = false,
 }: Readonly<TeamScoreRowProps>) {
@@ -50,13 +54,14 @@ export function TeamScoreRow({
       <Grid display="flex" justifyContent="flex-end" alignItems="center" size={5}>
         <Typography
           variant="body1"
-          fontWeight="medium"
           sx={{
             ml: 1,
             maxWidth: '100%',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
+            fontWeight: homeIsWinner ? 700 : awayIsWinner ? 400 : 'medium',
+            color: homeIsWinner ? 'text.primary' : awayIsWinner ? 'text.secondary' : 'inherit',
           }}
         >
           {homeTeamName}
@@ -98,13 +103,14 @@ export function TeamScoreRow({
         )}
         <Typography
           variant="body1"
-          fontWeight="medium"
           sx={{
             mr: 1,
             maxWidth: '100%',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
+            fontWeight: awayIsWinner ? 700 : homeIsWinner ? 400 : 'medium',
+            color: awayIsWinner ? 'text.primary' : homeIsWinner ? 'text.secondary' : 'inherit',
           }}
         >
           {awayTeamName}

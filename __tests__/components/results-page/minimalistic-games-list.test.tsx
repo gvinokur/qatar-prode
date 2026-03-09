@@ -26,10 +26,17 @@ vi.mock('@/app/utils/playoffs-rule-helper', () => ({
 
 import * as playoffsHelper from '@/app/utils/playoffs-rule-helper'
 
+vi.mock('@/app/utils/score-utils', () => ({
+  getGameWinner: vi.fn(),
+}))
+
+import * as scoreUtils from '@/app/utils/score-utils'
+
 describe('MinimalisticGamesList', () => {
   beforeEach(() => {
     // Reset mocks before each test
     vi.mocked(playoffsHelper.getTeamDescription).mockClear()
+    vi.mocked(scoreUtils.getGameWinner).mockReturnValue(undefined)
   })
 
   const createTeam = (id: string, name: string): Team =>
@@ -568,6 +575,110 @@ describe('MinimalisticGamesList', () => {
 
       // Should show 0-0 with penalties
       expect(screen.getByText('0 - 0 (5-4p)')).toBeInTheDocument()
+    })
+  })
+
+  describe('C2 Winner Styling', () => {
+    it('home winner game: home span has fontWeight 700', async () => {
+      const team1 = createTeam('argentina', 'Argentina')
+      const team2 = createTeam('brazil', 'Brazil')
+
+      const teamsMap = { [team1.id]: team1, [team2.id]: team2 }
+
+      const games: ExtendedGameData[] = [
+        createGame({
+          id: 'game-1',
+          game_number: 1,
+          home_team: team1.id,
+          away_team: team2.id,
+          gameResult: { game_id: 'game-1', home_score: 2, away_score: 1, is_draft: false },
+        }),
+      ]
+
+      vi.mocked(scoreUtils.getGameWinner).mockReturnValue('argentina')
+
+      const component = await MinimalisticGamesList({ games, teamsMap })
+      renderWithTheme(component)
+
+      const homeTeamEl = screen.getByText('Argentina')
+      expect(homeTeamEl).toHaveStyle({ fontWeight: 700 })
+    })
+
+    it('home winner game: away span has fontWeight 400', async () => {
+      const team1 = createTeam('argentina', 'Argentina')
+      const team2 = createTeam('brazil', 'Brazil')
+
+      const teamsMap = { [team1.id]: team1, [team2.id]: team2 }
+
+      const games: ExtendedGameData[] = [
+        createGame({
+          id: 'game-1',
+          game_number: 1,
+          home_team: team1.id,
+          away_team: team2.id,
+          gameResult: { game_id: 'game-1', home_score: 2, away_score: 1, is_draft: false },
+        }),
+      ]
+
+      vi.mocked(scoreUtils.getGameWinner).mockReturnValue('argentina')
+
+      const component = await MinimalisticGamesList({ games, teamsMap })
+      renderWithTheme(component)
+
+      const awayTeamEl = screen.getByText('Brazil')
+      expect(awayTeamEl).toHaveStyle({ fontWeight: 400 })
+    })
+
+    it('away winner game: away span has fontWeight 700', async () => {
+      const team1 = createTeam('argentina', 'Argentina')
+      const team2 = createTeam('brazil', 'Brazil')
+
+      const teamsMap = { [team1.id]: team1, [team2.id]: team2 }
+
+      const games: ExtendedGameData[] = [
+        createGame({
+          id: 'game-1',
+          game_number: 1,
+          home_team: team1.id,
+          away_team: team2.id,
+          gameResult: { game_id: 'game-1', home_score: 0, away_score: 2, is_draft: false },
+        }),
+      ]
+
+      vi.mocked(scoreUtils.getGameWinner).mockReturnValue('brazil')
+
+      const component = await MinimalisticGamesList({ games, teamsMap })
+      renderWithTheme(component)
+
+      const awayTeamEl = screen.getByText('Brazil')
+      expect(awayTeamEl).toHaveStyle({ fontWeight: 700 })
+    })
+
+    it('draw game: both spans use inherited styling (no winner/loser)', async () => {
+      const team1 = createTeam('argentina', 'Argentina')
+      const team2 = createTeam('brazil', 'Brazil')
+
+      const teamsMap = { [team1.id]: team1, [team2.id]: team2 }
+
+      const games: ExtendedGameData[] = [
+        createGame({
+          id: 'game-1',
+          game_number: 1,
+          home_team: team1.id,
+          away_team: team2.id,
+          gameResult: { game_id: 'game-1', home_score: 1, away_score: 1, is_draft: false },
+        }),
+      ]
+
+      vi.mocked(scoreUtils.getGameWinner).mockReturnValue(undefined)
+
+      const component = await MinimalisticGamesList({ games, teamsMap })
+      renderWithTheme(component)
+
+      const homeTeamEl = screen.getByText('Argentina')
+      const awayTeamEl = screen.getByText('Brazil')
+      expect(homeTeamEl).not.toHaveStyle({ fontWeight: 400 })
+      expect(awayTeamEl).not.toHaveStyle({ fontWeight: 400 })
     })
   })
 })

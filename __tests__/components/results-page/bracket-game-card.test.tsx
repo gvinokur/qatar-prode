@@ -327,6 +327,97 @@ describe('BracketGameCard', () => {
       const awayTeamElement = screen.getByText('Brazil')
       expect(awayTeamElement).toHaveStyle({ fontWeight: 700 })
     })
+
+    it('winner name does NOT use primary.main color (uses C2 text.primary)', async () => {
+      const game: ExtendedGameData = {
+        ...testFactories.game({
+          id: 'game-1',
+          home_team: 'argentina',
+          away_team: 'brazil',
+        }),
+        gameResult: testFactories.gameResult({
+          game_id: 'game-1',
+          home_score: 2,
+          away_score: 1,
+        }),
+      }
+
+      vi.mocked(scoreUtils.getGameWinner).mockReturnValue('argentina')
+
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+      renderWithTheme(component)
+
+      const homeTeamEl = screen.getByText('Argentina')
+      // Should NOT have primary.main color — C2 uses text.primary instead
+      expect(homeTeamEl).not.toHaveStyle({ color: 'primary.main' })
+    })
+
+    it('loser away team name has fontWeight 400 when home team wins', async () => {
+      const game: ExtendedGameData = {
+        ...testFactories.game({
+          id: 'game-1',
+          home_team: 'argentina',
+          away_team: 'brazil',
+        }),
+        gameResult: testFactories.gameResult({
+          game_id: 'game-1',
+          home_score: 3,
+          away_score: 1,
+        }),
+      }
+
+      vi.mocked(scoreUtils.getGameWinner).mockReturnValue('argentina')
+
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+      renderWithTheme(component)
+
+      const awayTeamEl = screen.getByText('Brazil')
+      expect(awayTeamEl).toHaveStyle({ fontWeight: 400 })
+    })
+
+    it('loser home team name has fontWeight 400 when away team wins', async () => {
+      const game: ExtendedGameData = {
+        ...testFactories.game({
+          id: 'game-1',
+          home_team: 'argentina',
+          away_team: 'brazil',
+        }),
+        gameResult: testFactories.gameResult({
+          game_id: 'game-1',
+          home_score: 1,
+          away_score: 3,
+        }),
+      }
+
+      vi.mocked(scoreUtils.getGameWinner).mockReturnValue('brazil')
+
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+      renderWithTheme(component)
+
+      const homeTeamEl = screen.getByText('Argentina')
+      expect(homeTeamEl).toHaveStyle({ fontWeight: 400 })
+    })
+
+    it('no result: neither team name has primary.main or text.secondary color', async () => {
+      const game: ExtendedGameData = {
+        ...testFactories.game({
+          id: 'game-1',
+          home_team: 'argentina',
+          away_team: 'brazil',
+        }),
+        gameResult: null,
+      }
+
+      vi.mocked(scoreUtils.getGameWinner).mockReturnValue(undefined)
+
+      const component = await BracketGameCard({ game: game, teamsMap: mockTeams })
+      renderWithTheme(component)
+
+      const homeTeamEl = screen.getByText('Argentina')
+      const awayTeamEl = screen.getByText('Brazil')
+      expect(homeTeamEl).not.toHaveStyle({ color: 'primary.main' })
+      expect(awayTeamEl).not.toHaveStyle({ color: 'primary.main' })
+    })
   })
 
   describe('Penalty results', () => {

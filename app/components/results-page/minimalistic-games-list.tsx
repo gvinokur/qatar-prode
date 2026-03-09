@@ -3,6 +3,7 @@ import { Team } from '@/app/db/tables-definition'
 import { Typography, Box } from '@mui/material'
 import { formatGameScore } from '@/app/utils/penalty-result-formatter'
 import { getTeamDescription } from '@/app/utils/playoffs-rule-helper'
+import { getGameWinner } from '@/app/utils/score-utils'
 import { useTranslations } from 'next-intl'
 
 interface MinimalisticGamesListProps {
@@ -42,6 +43,10 @@ export default function MinimalisticGamesList({ games, teamsMap }: MinimalisticG
 
         const scoreDisplay = formatGameScore(game)
 
+        const winner = getGameWinner(game)
+        const homeIsWinner = !!winner && winner === game.home_team
+        const awayIsWinner = !!winner && winner === game.away_team
+
         return (
           <Typography
             key={game.id}
@@ -61,6 +66,8 @@ export default function MinimalisticGamesList({ games, teamsMap }: MinimalisticG
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
+                fontWeight: homeIsWinner ? 700 : awayIsWinner ? 400 : 'inherit',
+                color: homeIsWinner ? 'text.primary' : awayIsWinner ? 'text.secondary' : 'inherit',
               }}
             >
               {homeTeamDisplay}
@@ -84,6 +91,8 @@ export default function MinimalisticGamesList({ games, teamsMap }: MinimalisticG
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
+                fontWeight: awayIsWinner ? 700 : homeIsWinner ? 400 : 'inherit',
+                color: awayIsWinner ? 'text.primary' : homeIsWinner ? 'text.secondary' : 'inherit',
               }}
             >
               {awayTeamDisplay}

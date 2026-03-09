@@ -63,7 +63,7 @@ export default function BracketGameCard({ game, teamsMap }: BracketGameCardProps
           variant="body2"
           sx={{
             fontWeight: homeIsWinner ? 700 : 400,
-            color: homeIsWinner ? 'primary.main' : 'text.primary',
+            color: homeIsWinner ? 'text.primary' : awayIsWinner ? 'text.secondary' : 'text.primary',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
@@ -75,7 +75,8 @@ export default function BracketGameCard({ game, teamsMap }: BracketGameCardProps
         <Typography
           variant="body1"
           sx={{
-            fontWeight: homeIsWinner ? 700 : 500,
+            fontWeight: homeIsWinner ? 700 : awayIsWinner ? 400 : 500,
+            color: homeIsWinner ? 'text.primary' : awayIsWinner ? 'text.secondary' : 'text.primary',
             minWidth: '30px',
             textAlign: 'center',
           }}
@@ -96,7 +97,7 @@ export default function BracketGameCard({ game, teamsMap }: BracketGameCardProps
           variant="body2"
           sx={{
             fontWeight: awayIsWinner ? 700 : 400,
-            color: awayIsWinner ? 'primary.main' : 'text.primary',
+            color: awayIsWinner ? 'text.primary' : homeIsWinner ? 'text.secondary' : 'text.primary',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
@@ -108,7 +109,8 @@ export default function BracketGameCard({ game, teamsMap }: BracketGameCardProps
         <Typography
           variant="body1"
           sx={{
-            fontWeight: awayIsWinner ? 700 : 500,
+            fontWeight: awayIsWinner ? 700 : homeIsWinner ? 400 : 500,
+            color: awayIsWinner ? 'text.primary' : homeIsWinner ? 'text.secondary' : 'text.primary',
             minWidth: '30px',
             textAlign: 'center',
           }}

@@ -140,6 +140,24 @@ export default function CompactGameViewCard({
 
   const userHasPrediction = hasResult; // homeScore and awayScore are defined
 
+  // Compute winner for prediction row (C2 styling)
+  let predictionHomeIsWinner = false
+  let predictionAwayIsWinner = false
+
+  if (specificProps.isGameGuess && hasResult) {
+    const h = homeScore!
+    const a = awayScore!
+    if (h > a) {
+      predictionHomeIsWinner = true
+    } else if (a > h) {
+      predictionAwayIsWinner = true
+    } else if (specificProps.homePenaltyWinner) {
+      predictionHomeIsWinner = true
+    } else if (specificProps.awayPenaltyWinner) {
+      predictionAwayIsWinner = true
+    }
+  }
+
   // Result border styling (only when no boost present and user predicted)
   let resultBorderColor: string | undefined = undefined;
   if (gameHasResult && userHasPrediction && !boostType) {
@@ -321,6 +339,8 @@ export default function CompactGameViewCard({
             awayTeamTheme={awayTeamTheme}
             homePenaltyWinner={isPlayoffGame && specificProps.isGameGuess && specificProps.homePenaltyWinner}
             awayPenaltyWinner={isPlayoffGame && specificProps.isGameGuess && specificProps.awayPenaltyWinner}
+            homeIsWinner={predictionHomeIsWinner}
+            awayIsWinner={predictionAwayIsWinner}
             onClick={handleEditClick}
             clickable={!disabled || specificProps.isGameFixture}
           />

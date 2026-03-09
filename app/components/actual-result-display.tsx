@@ -82,6 +82,24 @@ export function ActualResultDisplay({
     };
   };
 
+  const homePenaltyWinner =
+    typeof homePenaltyScore === 'number' &&
+    typeof awayPenaltyScore === 'number' &&
+    homePenaltyScore > awayPenaltyScore
+
+  const awayPenaltyWinner =
+    typeof homePenaltyScore === 'number' &&
+    typeof awayPenaltyScore === 'number' &&
+    awayPenaltyScore > homePenaltyScore
+
+  const homeIsWinner =
+    homeScore > awayScore ||
+    (homeScore === awayScore && homePenaltyWinner)
+
+  const awayIsWinner =
+    awayScore > homeScore ||
+    (homeScore === awayScore && awayPenaltyWinner)
+
   return (
     <Box sx={{ mt: 1, borderTop: (theme) => `1px solid ${theme.palette.divider}`, pt: 1, width: '100%' }}>
       {/* "Actual Result" label - centered */}
@@ -97,6 +115,8 @@ export function ActualResultDisplay({
         awayScore={awayScore}
         homeTeamTheme={homeTeamTheme}
         awayTeamTheme={awayTeamTheme}
+        homeIsWinner={homeIsWinner}
+        awayIsWinner={awayIsWinner}
       />
 
       {/* Penalty scores */}
