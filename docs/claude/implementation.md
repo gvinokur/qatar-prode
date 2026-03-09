@@ -95,10 +95,18 @@ TaskCreate({
   - Dependencies on other tasks
   - Success criteria
   - Any special considerations
+
+CODE-STRUCTURE files to update:
+  - docs/code-structure/[layer].md — list each layer file that covers the files you're changing
+  - CODE-STRUCTURE.md call graph — YES/NO: does this task add/change any cross-layer call?
   `,
   activeForm: "Present continuous (e.g., Adding database tables)"
 })
 ```
+
+> **⚠️ CODE-STRUCTURE is MANDATORY for every task that creates or modifies source files.**
+> Every task description MUST include a "CODE-STRUCTURE files to update" section.
+> Update the relevant layer files and call graph **in the same commit** as the source changes — never defer to later.
 
 **Example: Feature with multiple components**
 
@@ -118,6 +126,10 @@ Success criteria:
 - Repository functions have proper TypeScript types
 - Basic CRUD operations work (create, read, update, delete)
 - Functions handle errors appropriately
+
+CODE-STRUCTURE files to update:
+- docs/code-structure/db.md — add/update entries for all new/modified repository functions
+- CODE-STRUCTURE.md call graph — NO (repository functions are called by actions; update call graph in the action task)
 `,
   activeForm: "Adding database layer"
 })
@@ -140,6 +152,10 @@ Success criteria:
 - Action calls repository functions correctly
 - Proper error handling and logging
 - Returns typed response
+
+CODE-STRUCTURE files to update:
+- docs/code-structure/actions.md — add/update entries for all new/modified server actions
+- CODE-STRUCTURE.md call graph — YES: add/extend the flow showing page → action → repository call chain
 `,
   activeForm: "Implementing server action"
 })
@@ -162,6 +178,10 @@ Success criteria:
 - Proper TypeScript types for props
 - Follows Material-UI design patterns
 - Accessible (ARIA labels, keyboard navigation)
+
+CODE-STRUCTURE files to update:
+- docs/code-structure/components/components-[domain].md — add entry for the new component with [Client] tag, props, Renders: children
+- CODE-STRUCTURE.md call graph — NO (component is wired in during integration task; update call graph there)
 `,
   activeForm: "Creating UI component"
 })
@@ -184,6 +204,10 @@ Success criteria:
 - Data passed as props to Client Component
 - No client-side data fetching (keep Server Component pattern)
 - Loading states handled appropriately
+
+CODE-STRUCTURE files to update:
+- docs/code-structure/pages.md — update page entry to reflect new server action call and rendered component
+- CODE-STRUCTURE.md call graph — YES: extend the existing flow (or add a new flow) to show page → action → repo and page [renders] component
 `,
   activeForm: "Integrating feature into page"
 })

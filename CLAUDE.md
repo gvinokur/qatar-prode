@@ -92,6 +92,7 @@ If you start planning before reading planning.md, you WILL do it wrong.
 9. **ALWAYS create PRs as DRAFT** - Only mark as ready for review when user explicitly requests it or asks to merge (see planning.md Step 7 and validation.md Section 10)
 10. **ALWAYS set Priority, Effort, and Category fields when creating stories** - Never use labels like `priority/high` instead of field values; create new categories if needed (see github-projects-workflow.md Section 2)
 11. **ALWAYS read `CODE-STRUCTURE.md` before code changes** — It is the living map of the codebase. Read it at the start of research. Update it after every code change (see [code-structure.md](docs/claude/code-structure.md))
+12. **ALWAYS update CODE-STRUCTURE layer files AND call graph in the SAME COMMIT as source changes** — NEVER defer to end of story. Every TaskCreate description MUST include a "CODE-STRUCTURE files to update" section listing the exact layer files (db.md / actions.md / utils.md / pages.md / components-[domain].md) and whether the call graph needs updating. (see implementation.md Section 2 "CODE-STRUCTURE.md Update Rule")
 
 ## Permissions Configuration
 
@@ -500,6 +501,9 @@ Go back to validation
 | Not using test factories | Incomplete mock data, test failures | ALWAYS use testFactories.* | patterns.md Pattern 2 |
 | Client Components fetching data | Slow, insecure, wrong pattern | Server Components fetch, pass as props | patterns.md Pattern 3 |
 | Not updating CODE-STRUCTURE.md | File map drifts from reality, future planning uses stale info | Update CODE-STRUCTURE.md as part of every task commit | code-structure.md |
+| Not including "CODE-STRUCTURE files to update" in TaskCreate | CODE-STRUCTURE update gets forgotten during implementation | Every TaskCreate description MUST have a "CODE-STRUCTURE files to update" section — name the exact layer files and state YES/NO for call graph | implementation.md Section 2 |
+| Updating CODE-STRUCTURE.md at end of story instead of per-task | Batch updates are incomplete; function signatures may have drifted from plan | Update the layer file and call graph in the SAME COMMIT as the source change, not after | implementation.md Section 2 |
+| Missing call graph update after adding a new action or cross-layer call | Call graph becomes stale and misleads future planning | Update `## Call Graph` in CODE-STRUCTURE.md whenever a new page→action→repo flow is added or an existing flow gains a new step | code-structure.md |
 
 ## Development Guidelines
 
