@@ -10,6 +10,7 @@ import {
 } from '@/app/components/results-page/bracket-layout-utils';
 import { testFactories } from '@/__tests__/db/test-factories';
 import { ExtendedGameData } from '@/app/definitions';
+import { isTeamWinnerRule } from '@/app/utils/playoffs-rule-helper';
 
 describe('bracket-layout-utils', () => {
   describe('BRACKET_CONSTANTS', () => {
@@ -687,12 +688,11 @@ describe('bracket-layout-utils', () => {
       const gameWithoutRule = makeGame('g2', 2);
 
       // home_team_rule should satisfy isTeamWinnerRule
-      const { isTeamWinnerRule: checkRule } = require('@/app/utils/playoffs-rule-helper');
-      expect(checkRule(gameWithRule.home_team_rule)).toBe(true);
-      expect(checkRule(gameWithRule.away_team_rule)).toBe(true);
-      expect(checkRule(gameWithoutRule.home_team_rule)).toBe(false);
-      expect(checkRule(undefined)).toBe(false);
-      expect(checkRule({ position: 1, group: 'A' })).toBe(false); // GroupFinishRule
+      expect(isTeamWinnerRule(gameWithRule.home_team_rule)).toBe(true);
+      expect(isTeamWinnerRule(gameWithRule.away_team_rule)).toBe(true);
+      expect(isTeamWinnerRule(gameWithoutRule.home_team_rule)).toBe(false);
+      expect(isTeamWinnerRule(undefined)).toBe(false);
+      expect(isTeamWinnerRule({ position: 1, group: 'A' })).toBe(false); // GroupFinishRule
     });
   });
 });
