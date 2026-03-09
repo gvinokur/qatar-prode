@@ -35,7 +35,7 @@ export interface LeaderboardViewProps {
   readonly groupName?: string
   readonly joinUrl?: string
   readonly themeColor?: string
-  readonly shareRef?: React.MutableRefObject<LeaderboardShareHandle | null>
+  readonly shareRef?: React.RefObject<LeaderboardShareHandle | null>
 }
 
 export interface LeaderboardCardsProps {
@@ -46,7 +46,7 @@ export interface LeaderboardCardsProps {
   readonly groupName?: string
   readonly joinUrl?: string
   readonly themeColor?: string
-  readonly shareRef?: React.MutableRefObject<LeaderboardShareHandle | null>
+  readonly shareRef?: React.RefObject<LeaderboardShareHandle | null>
 }
 
 export interface LeaderboardCardProps {

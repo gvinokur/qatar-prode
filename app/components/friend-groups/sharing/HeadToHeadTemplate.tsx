@@ -152,11 +152,14 @@ const HeadToHeadTemplate = React.forwardRef<HTMLDivElement, HeadToHeadTemplatePr
 
     const myPts = myStats.totalPoints
     const theirPts = theirStats.totalPoints
-    const summary = myPts > theirPts
-      ? t('youLead', { pts: (myPts - theirPts).toLocaleString() })
-      : theirPts > myPts
-        ? t('theyLead', { name: theirName, pts: (theirPts - myPts).toLocaleString() })
-        : t('tie')
+    let summary: string
+    if (myPts > theirPts) {
+      summary = t('youLead', { pts: (myPts - theirPts).toLocaleString() })
+    } else if (theirPts > myPts) {
+      summary = t('theyLead', { name: theirName, pts: (theirPts - myPts).toLocaleString() })
+    } else {
+      summary = t('tie')
+    }
 
     return (
       <div ref={ref}>
