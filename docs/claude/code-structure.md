@@ -189,6 +189,16 @@ During planning, the `## Mid-Level Design` section uses the same per-function fo
 ```markdown
 ## Mid-Level Design
 
+### Call Graph Changes
+
+*(Required. Write "No call graph changes." if truly none — forces conscious evaluation.)*
+
+**Modified flows:**
+- **Flow N (name)** — describe what node/edge is added, extended, or removed
+
+**New flows:**
+- none  *(or describe the new end-to-end flow)*
+
 ### `app/db/group-repository.ts` *(modified)*
 
 **New functions:**

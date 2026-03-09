@@ -295,6 +295,20 @@ A function-by-function specification of every new or significantly changed funct
 ```markdown
 ## Mid-Level Design
 
+### Call Graph Changes
+
+*(Required when the story adds/changes any cross-layer call relationship, new context
+provider, or new end-to-end UI flow. Write "No call graph changes." if truly none.)*
+
+**Modified flows:**
+- **Flow 5 (Group stats / leaderboard)** — extend `LeaderboardCards` to render
+  `SharePreviewModal` + `LeaderboardTemplate` (off-screen) for image export
+- **Flow 13 (Friend group management)** — add `NotificationDialog` →
+  `sendGroupNotification` branch under `AdminSectionTabs`
+
+**New flows:**
+- none
+
 ### `app/db/group-repository.ts` *(modified)*
 
 **New functions:**
@@ -329,6 +343,7 @@ A function-by-function specification of every new or significantly changed funct
 ```
 
 **Key rules (full rules in `docs/claude/code-structure.md`):**
+- **Always include `### Call Graph Changes`** — even if "No call graph changes." Forces conscious evaluation
 - Signatures use real TypeScript types from the codebase (not invented types)
 - `Calls:` lists project functions only — omit npm packages, stdlib, framework calls
 - Test cases are observable behavior descriptions, ≥3 per function including at least one error/edge case
@@ -371,6 +386,7 @@ Before launching the plan reviewer subagent:
 - [ ] Technical approach is detailed
 - [ ] Files to create/modify are listed
 - [ ] Mid-Level Design section included: all new/changed functions have signatures, Calls:, and ≥3 test cases each
+- [ ] Mid-Level Design includes `### Call Graph Changes` subsection (even if "No call graph changes.")
 - [ ] Testing strategy is comprehensive
 - [ ] I am STILL IN PLAN MODE
 - [ ] I have NOT exited plan mode
@@ -453,6 +469,8 @@ Review criteria:
    signature, correct Calls:/Uses:/Renders: relationships (cross-checked against
    CODE-STRUCTURE.md), and at least 3 meaningful test scenarios? Are test cases
    specific enough to implement directly without guesswork?
+   Does the `### Call Graph Changes` subsection identify all affected flows and describe
+   what nodes/edges are added, extended, or removed?
 
 Provide specific, constructive feedback. Focus on issues that would cause problems during implementation.
 If the plan looks solid, say "No significant concerns."
