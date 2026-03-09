@@ -110,10 +110,9 @@ EnterPlanMode()
 
 **Read CODE-STRUCTURE.md first:**
 
-Before exploring individual files, read `CODE-STRUCTURE.md` to understand existing
-function signatures and call relationships. This prevents redundant file reads — if
-the function you need already exists or a similar pattern is documented, you'll find
-it here.
+Before exploring individual files, read `CODE-STRUCTURE.md` (the index + call graph) to
+understand the overall structure and identify which layer files to read next. The index
+descriptions will tell you which files are relevant to your story.
 
 ```typescript
 Read({
@@ -121,8 +120,17 @@ Read({
 })
 ```
 
-As you read the story and explore the codebase, note which existing functions you'll
-call from new code. These will go in the `Calls:` lines of your Mid-Level Design.
+**Then read the relevant layer files** based on what the story touches:
+
+| Story touches... | Read... |
+|-----------------|---------|
+| Data access / DB queries | `docs/code-structure/db.md` |
+| Business logic / mutations | `docs/code-structure/actions.md` |
+| Utility / calculation logic | `docs/code-structure/utils.md` |
+| Page routes / layouts | `docs/code-structure/pages.md` |
+| UI components | one or more `docs/code-structure/components/components-[domain].md` — read whichever domains are relevant (may be more than one) |
+
+As you read, note which existing functions you'll call from new code. These will go in the `Calls:` lines of your Mid-Level Design.
 
 **Read story details:**
 ```bash

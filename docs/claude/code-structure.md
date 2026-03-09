@@ -1,59 +1,77 @@
 # Code Structure Guide
 
-Format and maintenance rules for `CODE-STRUCTURE.md` — the living map of this codebase.
+Format and maintenance rules for the `CODE-STRUCTURE.md` system — the living map of this codebase.
 
 ---
 
-## Purpose
+## Overview
 
-`CODE-STRUCTURE.md` (at the project root) documents every production file's exported functions and components: their TypeScript signatures, call relationships, and descriptions. It serves three roles:
+The codebase map is split across multiple files to stay within context limits. The entry point is always `CODE-STRUCTURE.md` at the project root.
 
-1. **Fast-lookup reference** — understand what exists and how it connects without re-reading source files
-2. **Mid-level design surface** — during planning, specify new functions before writing code
-3. **TDD enabler** — test cases are defined at the signature level before implementation begins
+```
+CODE-STRUCTURE.md                          ← index + call graph (always read this first)
+docs/code-structure/
+  db.md                                    ← all repositories (app/db/)
+  actions.md                               ← all server actions (app/actions/)
+  utils.md                                 ← utilities (app/utils/)
+  pages.md                                 ← page routes, layouts, API routes
+  components/
+    components-tournament-games.md         ← game cards, predictions, boosts, filters, score input
+    components-tournament-page.md          ← tournament home, groups list, sidebar, standings
+    components-friend-groups.md            ← groups management, join requests, discovery, sharing
+    components-leaderboard-stats.md        ← leaderboard, head-to-head, stats cards
+    components-qualified-teams.md          ← qualified teams prediction UI
+    components-results-playoffs.md         ← results page, playoff bracket
+    components-auth-onboarding.md          ← auth forms, onboarding steps, tooltips
+    components-backoffice.md               ← admin UI components and awards
+    components-shared-ui.md               ← header, skeletons, context providers, reusable primitives
+```
 
----
+### What to read during planning (Step 2)
 
-## What to Document
+Always read `CODE-STRUCTURE.md` first (index + call graph). Then read the layer files relevant to the story:
 
-**Include:**
-- All production source files (`.ts`, `.tsx`) under `app/`, `lib/`, `components/`
-- Every exported function, Server Action, React component, and custom hook
+- Touching data access → `docs/code-structure/db.md`
+- Touching business logic / Server Actions → `docs/code-structure/actions.md`
+- Touching utilities → `docs/code-structure/utils.md`
+- Touching pages / layouts → `docs/code-structure/pages.md`
+- Touching UI → read whichever `docs/code-structure/components/components-[domain].md` files are relevant (may be more than one)
 
-**Exclude:**
-- Test files (`*.test.ts`, `*.test.tsx`, files under `__tests__/`)
-- Config files (`next.config.ts`, `tailwind.config.ts`, etc.)
-- Migration files
-- Type-only files (files that only export `type` or `interface` declarations)
+### What to update after each task
+
+Update only the files that cover the code you changed. If you added a new server action, update `actions.md`. If you modified a component in the friend-groups domain, update `components-friend-groups.md`. Always stage the updated code-structure file in the same commit as the source change.
 
 ---
 
 ## File Format
 
-The document has two top-level sections:
+Every layer file (db, actions, utils, pages, components-*) uses the same format.
 
+### File header
+
+Each layer file starts with:
+```markdown
+# [Layer Name]
+
+Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
+
+**Last updated:** YYYY-MM-DD
 ```
-## Files
-## Call Graph
-```
 
-### `## Files` Section
+### `## Files` section
 
-One `###` subsection per production file, using the relative path from project root as the heading.
+One `###` subsection per production file, using the relative path from project root as the heading. After the heading: a 1–2 sentence description of the file's responsibility.
 
 ```markdown
 ### app/db/tournament-repository.ts
+Encapsulates all Kysely queries for tournaments. No auth or localization logic.
 ```
-
-After the heading: a 1–2 sentence description of the file's responsibility.
-
-Then list all exported functions and components.
 
 ---
 
 ## Function Entry Format
 
-For repositories, server actions, utilities, and hooks:
+For repositories, server actions, utilities:
 
 ```markdown
 - **functionName(param: Type, param2: Type)**: `ReturnType` — 1–2 sentence description.
@@ -62,28 +80,18 @@ For repositories, server actions, utilities, and hooks:
 ```
 
 **Rules:**
-- Bold name with full TypeScript signature (all params, return type)
+- Bold name with full TypeScript signature (all params with types, return type)
 - Em-dash (`—`) separating signature from description
-- `Calls:` line lists **project functions only** — no npm packages, no Node stdlib, no Next.js/React internals. Omit line entirely if no project calls.
-- `Uses:` line lists custom hooks consumed (not useState, useEffect). Omit line if none.
+- `Calls:` lists **project functions only** — no npm packages, no Node stdlib, no Next.js/React internals. Omit line entirely if none.
+- `Uses:` lists custom hooks consumed (not useState, useEffect). Omit if none.
 - Async functions: return type is `Promise<T>`, not just `T`
-
-**Example:**
-```markdown
-- **findActiveTournaments()**: `Promise<Tournament[]>` — Returns all active tournaments ordered by start_date. Omits drafts and archived.
-
-- **findTournamentById(id: number)**: `Promise<Tournament | undefined>` — Fetches a single tournament by primary key.
-
-- **getActiveTournaments(locale: string)**: `Promise<LocalizedTournament[]>` — Server Action. Fetches, localizes, and returns active tournaments for the given locale.
-  Calls: findActiveTournaments, applyLocalization
-```
 
 ---
 
 ## React Component Entry Format
 
 ```markdown
-- **ComponentName({ prop, prop2 }: PropsType)**: `JSX.Element` — [Tag] 1–2 sentence description.
+- **ComponentName({ prop, prop2 }: PropsType)**: `JSX.Element` — [Tag] description.
   Calls: serverActionOrUtility
   Uses: useCustomHook
   Renders: ChildComponent, AnotherComponent
@@ -92,140 +100,76 @@ For repositories, server actions, utilities, and hooks:
 **Component type tags** (add to the beginning of description):
 - `[Server]` — Next.js Server Component (no `'use client'`)
 - `[Client]` — React Client Component (`'use client'` directive)
-- `[Provider]` — Context Provider that wraps children
+- `[Provider]` — Context Provider wrapping children
 
 **Rules:**
-- Props type written as inline object `{ prop: Type }` or named type `ComponentProps`
 - `Calls:` lists project server actions or utilities invoked (not React hooks)
 - `Uses:` lists custom hooks or contexts consumed
-- `Renders:` lists non-trivial project components rendered as children. Omit for primitive/MUI-only renders or if the component list would be exhaustive.
+- `Renders:` lists non-trivial project components rendered. Omit for MUI-only renders or exhaustive lists.
 - Omit any line (`Calls:`, `Uses:`, `Renders:`) if it would be empty
 
-**Example:**
-```markdown
-- **TournamentsPage({ params }: { params: Promise<{ locale: string }> })**: `JSX.Element` — [Server] Fetches active tournaments and renders authenticated or public list view.
-  Calls: getActiveTournaments, getLoggedInUser
-  Renders: TournamentList, PublicTournamentList
-
-- **TournamentList({ tournaments, onSelect }: TournamentListProps)**: `JSX.Element` — [Client] Scrollable list of tournaments with hover state and selection callback.
-  Uses: useState
-```
-
 ---
 
-## `## Call Graph` Section
+## `CODE-STRUCTURE.md` Format (the index file)
 
-ASCII tree showing non-trivial call relationships between **project functions only**. Use this to visualize how pages connect to actions connect to repositories.
+The root `CODE-STRUCTURE.md` contains two sections only — no function detail.
 
-**Edge labels:**
-- `[server action]` — Client Component calling a Server Action
-- `[renders]` — Component rendering a child component
+### `## File Index` section
 
-**Collapse repeated subtrees** with `[same as above]`.
+Lists every layer file and component domain file with:
+- Relative path as a link
+- 2–4 sentence description covering what kinds of files it documents, which features it's relevant for, and what to look for there
 
-**Example:**
+Example:
 ```markdown
-## Call Graph
+## File Index
 
-TournamentsPage
-  └── getActiveTournaments [server action]
-        └── findActiveTournaments
-        └── applyLocalization
-  └── getLoggedInUser [server action]
-  └── TournamentList [renders]
-        └── (no project calls)
-  └── PublicTournamentList [renders]
-        └── (no project calls)
+### [docs/code-structure/db.md](docs/code-structure/db.md)
+All Kysely repository functions for every database table. Read this when a story
+touches data access — finding an existing query to reuse, adding a new query, or
+understanding what columns are available. Each function lists its exact TypeScript
+signature. No auth or localization logic lives here.
+
+### [docs/code-structure/components/components-friend-groups.md](docs/code-structure/components/components-friend-groups.md)
+All components for the friend groups feature: group management UI, join request
+forms, public group discovery browser, admin panels, group sharing templates,
+privacy settings, and betting configuration. Read this for any story touching
+friend groups, invitations, or the groups leaderboard tab.
 ```
 
-Only include the call graph for non-trivial relationships. If the codebase is large, focus on the most important flows (e.g., page → action → repository chains).
+### `## Call Graph` section
 
----
-
-## Full Example
-
-```markdown
-## Files
-
-### app/db/tournament-repository.ts
-Encapsulates all Kysely queries for tournaments. No auth or localization logic.
-
-- **findActiveTournaments()**: `Promise<Tournament[]>` — Returns all active tournaments ordered by start_date.
-
-- **findTournamentById(id: number)**: `Promise<Tournament | undefined>` — Fetches single tournament by primary key.
-
-- **createTournament(data: TournamentNew)**: `Promise<Tournament>` — Inserts and returns a new tournament record.
-
-### app/actions/tournament-actions.ts
-Server Actions orchestrating tournament data with auth and localization applied.
-
-- **getActiveTournaments(locale: string)**: `Promise<LocalizedTournament[]>` — Server Action. Fetches, localizes, and returns active tournaments.
-  Calls: findActiveTournaments, applyLocalization
-
-- **createTournament(data: CreateTournamentInput, locale: string)**: `Promise<LocalizedTournament>` — Server Action. Validates input, inserts tournament, returns localized result.
-  Calls: getLoggedInUser, createTournamentRecord, applyLocalization
-
-### app/[locale]/tournaments/page.tsx
-Server Component page for the tournaments list.
-
-- **TournamentsPage({ params }: { params: Promise<{ locale: string }> })**: `JSX.Element` — [Server] Fetches tournaments and renders authenticated or public view.
-  Calls: getActiveTournaments, getLoggedInUser
-  Renders: TournamentList, PublicTournamentList
-
-### app/components/tournament-list.tsx
-Interactive list of tournaments with selection state.
-
-- **TournamentList({ tournaments, onSelect }: TournamentListProps)**: `JSX.Element` — [Client] Renders scrollable list with hover state and selection callback.
-  Uses: useState
-
-## Call Graph
-
-TournamentsPage
-  └── getActiveTournaments [server action]
-        └── findActiveTournaments
-        └── applyLocalization
-  └── TournamentList [renders]
-  └── PublicTournamentList [renders]
-```
+ASCII tree for major call chains across layers (page → action → repository). Use `[server action]` and `[renders]` edge labels. This is the cross-layer view.
 
 ---
 
 ## Maintenance Rules
 
-### When to update CODE-STRUCTURE.md
+### When to update
 
-Update it **as part of every task commit** — not at the end of a story, not in a separate PR. The entry for a file must reflect the current state of that file in the same commit.
+Update the relevant layer file **as part of every task commit** — not at end of story.
 
-### How to update
-
-1. **New file created** → Add a new `### path/to/file.ts` section in the correct alphabetical position.
-2. **Function added** → Add entry under the file's section.
-3. **Function signature changed** → Update the entry to match the actual implementation.
-4. **Function deleted** → Remove its entry.
-5. **File deleted** → Remove the entire `###` section.
-6. **Call relationships changed** → Update `Calls:` lines and the Call Graph.
+| Change | Update |
+|--------|--------|
+| New/modified repository function | `docs/code-structure/db.md` |
+| New/modified server action | `docs/code-structure/actions.md` |
+| New/modified utility | `docs/code-structure/utils.md` |
+| New/modified page or layout | `docs/code-structure/pages.md` |
+| New/modified component | the matching `components/components-[domain].md` |
+| New file in a new domain | create a new `components-[domain].md` and add to index in `CODE-STRUCTURE.md` |
 
 ### Quality checks before committing
 
 - Every exported function/component in modified files has a matching entry
-- Signatures in CODE-STRUCTURE.md exactly match the implemented signatures
-- `Calls:` lines list only project functions (no npm packages, no stdlib)
-- File description (1–2 sentences) accurately reflects current responsibility
-- If the plan's Mid-Level Design specified a different signature that changed during implementation, CODE-STRUCTURE.md reflects the **actual** implementation
-
-### What NOT to do
-
-- ❌ Copy signatures from the plan without checking if they changed during implementation
-- ❌ Defer CODE-STRUCTURE.md updates to a "cleanup" commit at story end
-- ❌ Include npm package names in `Calls:` (e.g., don't list `kysely`, `next-auth`, `zod`)
-- ❌ Document private/unexported helper functions
-- ❌ Include test files or config files
+- Signatures exactly match the implemented signatures (not the plan's signatures if they changed)
+- `Calls:` lists only project functions (no npm packages)
+- `CODE-STRUCTURE.md` index is updated if a new layer file was added
 
 ---
 
 ## Mid-Level Design in Story Plans
 
-During planning, the `## Mid-Level Design` section of a plan uses the same format as CODE-STRUCTURE.md entries, extended with test cases.
+During planning, the `## Mid-Level Design` section uses the same per-function format as the layer files, extended with test cases.
 
 ### Template
 
@@ -253,7 +197,7 @@ During planning, the `## Mid-Level Design` section of a plan uses the same forma
   - (existing tests unchanged)
   - new: returned group name matches the locale parameter
 
-### `app/components/group-list.tsx` *(new file)*
+### `app/components/friend-groups/group-list.tsx` *(new file)*
 
 - **GroupList({ groups }: GroupListProps)**: `JSX.Element`
   [Client] Renders scrollable list of groups with name, member count, and join button.
@@ -267,16 +211,7 @@ During planning, the `## Mid-Level Design` section of a plan uses the same forma
 
 ### Test case rules
 
-- Minimum 3 test cases per new function
-- At least one error/edge case per function (e.g., unauthorized, not found, empty input)
-- Cases must be observable (testable via assertions), not implementation notes
-- For changed functions: list changed behavior as "new:" and note "(existing tests unchanged)" for unchanged behavior
-
----
-
-## Integration with Workflow
-
-- **Planning (Step 2):** Read CODE-STRUCTURE.md before exploring individual files — understand existing signatures and call relationships first
-- **Planning (Step 3):** Write `## Mid-Level Design` section in plan using this format
-- **Implementation (Section 2.5):** Update CODE-STRUCTURE.md as part of each task's commit
-- **Pre-commit checklist:** Verify CODE-STRUCTURE.md is updated before every commit
+- Minimum 3 test cases per new function/component
+- At least one error/edge case (unauthorized, not found, empty input)
+- Cases must be observable via assertions, not implementation notes
+- For changed functions: note "(existing tests unchanged)" and list only new behavior

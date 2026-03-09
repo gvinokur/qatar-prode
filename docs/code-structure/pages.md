@@ -1,0 +1,222 @@
+# Pages, Layouts & API Routes
+
+Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
+
+**Last updated:** 2026-03-09
+
+---
+
+## Files
+
+### app/layout.tsx
+Root layout that sets up global metadata and CSS imports, returns raw children without wrapper components.
+
+- **generateMetadata()**: `Metadata` — [Server] Generates global app metadata including PWA configuration, OpenGraph, Twitter cards, and favicons from environment variables.
+- **RootLayout({ children })**: `JSX.Element` — [Server] Root layout component that returns children directly without any wrappers.
+
+### app/template.tsx
+Template component that applies email verification overlay and banner logic across all routes.
+
+- **Template({ children })**: `JSX.Element` — [Server] Wraps children with verification banner and overlay based on user verification status and email verification requirement config.
+  Calls: getLoggedInUser, findUserById
+
+### app/transition.tsx
+Client-side page transition animation component using Framer Motion.
+
+- **Transition({ children })**: `JSX.Element` — [Client] Applies fade-in/out animation on page transitions with `beforeunload` detection.
+
+### app/service-worker.ts
+Service worker configuration using Serwist for PWA offline support and push notifications.
+
+- No exported functions. Initializes Serwist with precaching, navigation fallback to `/offline`, and handles push/notification events.
+
+### middleware.ts
+i18n and authentication routing middleware.
+
+- **detectLocale(request)**: `Promise<Locale>` — [Server] Detects user locale from cookie, user preference, Accept-Language header, or defaults to configured default locale.
+  Calls: auth
+- **middleware(request)**: `NextResponse | undefined` — [Server] Handles locale routing, authentication checks, and legacy route redirects.
+  Calls: detectLocale, auth
+
+### app/api/auth/[...nextauth]/route.ts
+NextAuth.js route handler that exports authentication endpoints.
+
+- **GET/POST**: Route handlers exported from auth configuration module.
+
+### app/api/update-guesses/route.ts
+API route for scoring calculation triggered by cron jobs or manual requests.
+
+- **GET(req)**: `NextResponse` — [Server] Calculates game scores based on query parameters (object, forceAll, forceDrafts, forceAllGuesses).
+  Calls: calculateGameScores
+
+### app/[locale]/layout.tsx
+Locale-specific layout that sets up i18n providers, theme, and session context.
+
+- **generateStaticParams()**: `Array` — [Server] Returns static locale parameters for SSG (en, es).
+- **generateMetadata({ params })**: `Metadata` — [Server] Generates locale-specific metadata with alternate language links.
+  Calls: getTranslations
+- **LocaleLayout({ children, params })**: `JSX.Element` — [Server] Sets up locale context, theme providers, session wrapper, header, and footer.
+  Calls: getLoggedInUser, getMessages, getTranslations
+  Renders: NextIntlClientProvider, TimezoneProvider, CountdownProvider, NextThemeProvider, ThemeProvider, SessionWrapper, ConditionalHeader, Header, Footer, InstallPwa, OfflineDetection
+
+### app/[locale]/page.tsx
+Home/landing page that conditionally shows onboarding or redirects to first tournament.
+
+- **ServerHome({ searchParams })**: `JSX.Element` — [Server] Displays onboarding trigger and either empty tournaments state or tournament redirect based on available tournaments.
+  Calls: getTournaments, getLoggedInUser, getOnboardingStatus
+  Renders: OnboardingTrigger, EmptyTournamentsState, TournamentRedirect
+
+### app/[locale]/backoffice/page.tsx
+Admin console page with tabbed interface for tournament management.
+
+- **Backoffice()**: `JSX.Element` — [Server] Displays backoffice tabs for active/inactive tournaments with admin subcomponents (scoring, awards, teams, games, players, notifications).
+  Calls: getLoggedInUser, getLocale, findAllTournaments
+  Renders: BackofficeTabs, CreateTournamentButton, NotificationSender, various tournament management tabs
+
+### app/[locale]/delete-account/page.tsx
+Simple page for account deletion with centered button component.
+
+- **Page()**: `JSX.Element` — [Server] Renders delete account button in centered container.
+  Renders: DeleteAccountButton
+
+### app/[locale]/verify-email/page.tsx
+Email verification page that validates token from URL parameter.
+
+- **VerifyEmailPage({ searchParams })**: `JSX.Element` — [Server] Validates email verification token and renders verifier component; redirects home if token missing.
+  Calls: getLocale
+  Renders: EmailVerifier
+
+### app/[locale]/reset-password/page.tsx
+Client-side password reset form with token validation.
+
+- **ResetPasswordPage()**: `JSX.Element` — [Client] Password reset form that verifies token on load and submits new password via server action.
+  Calls: verifyResetToken, updateUserPassword
+  Renders: AuthPageSkeleton, TextField, Button, Alert
+
+### app/[locale]/rules/page.tsx
+Standalone rules page displaying tournament rules.
+
+- **RulesPage()**: `JSX.Element` — [Server] Displays full-page rules component.
+  Renders: Rules
+
+### app/[locale]/offline/page.tsx
+Offline fallback page shown when service worker catches offline navigation.
+
+- **OfflinePage()**: `JSX.Element` — [Server] Displays reload link with styled typography.
+  Calls: getLocale
+
+### app/[locale]/tournaments/[id]/page.tsx
+Tournament landing page showing games for selected group.
+
+- **TournamentLandingPage(props)**: `JSX.Element` — [Server] Renders unified games page for tournament.
+  Renders: UnifiedGamesPage
+
+### app/[locale]/tournaments/[id]/layout.tsx
+Tournament context layout with header, sidebar, and bottom navigation.
+
+- **checkDevTournamentPermission(tournamentId, tournament, user, locale)**: `Promise<void>` — [Server] Validates user access to dev-only tournaments in production.
+  Calls: hasUserPermission
+- **extractScoringConfig(tournament)**: `ScoringConfig | undefined` — [Server] Extracts scoring configuration from tournament object.
+- **isWithinFiveDaysOfStart(startDate)**: `boolean` — [Server] Checks if current time is within 5 days of tournament start.
+- **TournamentLayout(props)**: `JSX.Element` — [Server] Renders two-column layout with main content (9/12) and sidebar (3/12 desktop, hidden mobile); handles tournament switcher, navigation, and badges.
+  Calls: getLocale, getLoggedInUser, getTournamentAndGroupsData, getTournaments, getTournamentStartDate, getGroupStandingsForTournament, getGroupsForUser, findTournamentGuessByUserIdTournament, getPlayersInTournament, findTournamentById, getGameGuessStatisticsForUsers, getThemeLogoUrl, isDevelopmentMode
+  Renders: TournamentSwitcher, GroupSelector, TournamentSidebar, ThemeSwitcher, LanguageSwitcher, UserActions, DevTournamentBadge, ScrollableContentArea, EmptyAwardsSnackbar, EnvironmentIndicator, TournamentBottomNavWrapper, NewTournamentSnackbar
+
+### app/[locale]/tournaments/[id]/error.tsx
+Error boundary for tournament access denied scenarios.
+
+- **TournamentError({ _error, _reset })**: `JSX.Element` — [Client] Displays access denied error with icon and home navigation button.
+  Calls: useLocale, useRouter, useTranslations
+
+### app/[locale]/tournaments/[id]/results/page.tsx
+Results and standings page showing group stage and playoff results.
+
+- **ResultsPage(props)**: `JSX.Element` — [Server] Fetches game results, group standings, and playoff data; displays in tabbed interface with loading skeleton fallback.
+  Calls: findGamesInTournament, getTeamsMap, getGroupStandingsForTournament, findPlayoffStagesWithGamesInTournament, getTranslations
+  Renders: LoadingSkeleton, ResultsPageClient
+
+### app/[locale]/tournaments/[id]/rules/page.tsx
+Tournament-specific rules page with scoring configuration.
+
+- **TournamentRulesPage(props)**: `JSX.Element` — [Server] Fetches tournament scoring config and renders rules component.
+  Calls: findTournamentById
+  Renders: Rules
+
+### app/[locale]/tournaments/[id]/stats/page.tsx
+User tournament statistics page showing performance, accuracy, and boost analysis.
+
+- **TournamentStatsPage(props)**: `JSX.Element` — [Server] Fetches game guesses, tournament guesses, boost allocations; calculates performance and accuracy metrics; renders stats in tabbed interface.
+  Calls: getLoggedInUser, findTournamentById, getGameGuessStatisticsForUsers, findTournamentGuessByUserIdTournament, getBoostAllocationBreakdown, getGameCountsForTournament, findGameGuessesByUserId, calculateAccuracyStats, calculateBoostStats
+  Renders: StatsTabs, PerformanceOverviewCard, PredictionAccuracyCard, BoostAnalysisCard
+
+### app/[locale]/tournaments/[id]/awards/page.tsx
+Awards prediction page for tournament individual awards and podium.
+
+- **Awards(props)**: `JSX.Element` — [Server] Fetches all players, tournament guesses, playoff stages, and games; checks if predictions are locked; renders awards panel.
+  Calls: getLoggedInUser, findTournamentGuessByUserIdTournament, findAllPlayersInTournamentWithTeamData, getTournamentStartDate, getTeamsMap, findTournamentById, getPlayoffRounds, getAllTournamentGames, findGameGuessesByUserId, getTournamentPredictionCompletion
+  Renders: AwardsPanel
+
+### app/[locale]/tournaments/[id]/qualified-teams/page.tsx
+Qualified teams (group finalists) prediction page with drag-and-drop interface.
+
+- **fetchGroupsWithTeams(tournamentId)**: `Promise<Array>` — [Server] Fetches tournament groups with localized team names.
+  Calls: getLocale, applyLocalizationBatch
+- **initializePredictions(userId, tournamentId, groupsWithTeams)**: `Promise<QualifiedTeamPrediction[]>` — [Server] Creates initial JSONB predictions for user in each group.
+- **fetchAndFlattenPredictions(userId, tournamentId)**: `Promise<QualifiedTeamPrediction[]>` — [Server] Fetches JSONB predictions and flattens into array format.
+- **QualifiedTeamsPage({ params, searchParams })**: `JSX.Element` — [Server] Fetches tournament, qualification config, groups, predictions, and actual results; renders client page with scoring breakdown.
+  Calls: getLoggedInUser, getTournamentQualificationConfig, findQualifiedTeams, calculateQualifiedTeamsScore, getAllTournamentGames, findGameGuessesByUserId, getTournamentPredictionCompletion, getTeamsMap
+  Renders: QualifiedTeamsClientPage
+
+### app/[locale]/tournaments/[id]/friend-groups/page.tsx
+Tournament-scoped friend groups list showing group stats for specific tournament.
+
+- **TournamentGroupsPage(props)**: `JSX.Element` — [Server] Fetches user's groups and calculates tournament-specific stats; renders groups list.
+  Calls: getLoggedInUser, getGroupsForUser, calculateTournamentGroupStats, getUserJoinRequests
+  Renders: TournamentGroupsList
+
+### app/[locale]/tournaments/[id]/friend-groups/[group_id]/page.tsx
+Tournament-scoped group leaderboard with admin management interface.
+
+- **TournamentScopedFriendGroup(props)**: `JSX.Element` — [Server] Fetches group, participants, user scores for tournament; checks admin status; renders leaderboard with optional admin tabs and betting config.
+  Calls: getLoggedInUser, findProdeGroupById, findTournamentById, findParticipantsInGroup, findUsersByIds, getUserScoresForTournament, generateShortUrlForGroup, getGroupTournamentBettingConfigAction, getGroupTournamentBettingPaymentsAction, getPendingRequestCount, getGroupJoinRequests, getTranslations
+  Renders: ProdeGroupTable, AdminTabs, LeaveGroupButton, InviteFriendsDialogButton
+
+### app/[locale]/tournaments/[id]/friend-groups/discover/page.tsx
+Public friend groups discovery page with search and pagination.
+
+- **DiscoverGroupsPage(props)**: `JSX.Element` — [Server] Fetches public groups with search/pagination; determines user membership status for each group; renders browser with search UI.
+  Calls: getPublicGroupsAction, getLoggedInUser, findJoinRequestsByUser, findProdeGroupsByOwner, findProdeGroupsByParticipant, getTranslations
+  Renders: PublicGroupsBrowser
+
+### app/[locale]/tournaments/[id]/friend-groups/join/[group_id]/page.tsx
+Tournament-scoped join request form for groups.
+
+- **TournamentScopedJoinGroup(props)**: `JSX.Element` — [Server] Checks authentication, membership, and rejection cooldown; renders join request form or pending/member views.
+  Calls: getLoggedInUser, findTournamentById, findProdeGroupById, findParticipantsInGroup, findPendingJoinRequest, findRecentRejectedRequest
+  Renders: JoinRequestForm, PendingRequestView, Alert
+
+### app/[locale]/friend-groups/[id]/page.tsx
+Global friend group leaderboard showing scores across all active tournaments.
+
+- **FriendsGroup(props)**: `JSX.Element` — [Server] Fetches all active tournaments, group participants, user scores for each tournament; renders multi-tournament leaderboard.
+  Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, findUsersByIds, findAllActiveTournaments, getUserScoresForTournament, getGroupTournamentBettingConfigAction, getGroupTournamentBettingPaymentsAction, generateShortUrlForGroup, getThemeLogoUrl, toMap
+  Renders: ProdeGroupTable, ProdeGroupThemer, InviteFriendsDialogButton, LeaveGroupButton
+
+### app/[locale]/friend-groups/join/[id]/page.tsx
+Global join request form for groups.
+
+- **JoinGroup(props)**: `JSX.Element` — [Server] Checks authentication and membership; renders join request form or pending/member views.
+  Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, findPendingJoinRequest
+  Renders: JoinRequestForm, PendingRequestView, Alert
+
+### app/[locale]/manifest.webmanifest/route.ts
+PWA manifest endpoint that generates locale-specific app manifest.
+
+- **GET(_request, { params })**: `NextResponse` — [Server] Returns PWA manifest JSON with localized app name/description, icons, and theme colors.
+  Calls: getTranslations
+
+### app/j/[code]/page.tsx
+Short URL redirect handler for group join links.
+
+- **ShortUrlRedirect(props)**: `never` — [Server] Looks up short URL code and redirects to tournament-scoped or global group join page with detected locale.
+  Calls: getShortUrlByCode, incrementClickCount, cookies

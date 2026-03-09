@@ -200,13 +200,19 @@ Do NOT defer CODE-STRUCTURE.md updates to the end of a story. Update it per-task
 1. **Read `docs/claude/code-structure.md`** — the format guide. Follow it exactly to ensure consistency with existing entries.
 
 2. **For each file you created or modified in this task:**
-   - Locate (or create) the `### path/to/file.ts` section in `CODE-STRUCTURE.md`
+   - Identify the correct layer file to update (see table in `docs/claude/code-structure.md`):
+     - `app/db/` → `docs/code-structure/db.md`
+     - `app/actions/` → `docs/code-structure/actions.md`
+     - `app/utils/` → `docs/code-structure/utils.md`
+     - `app/[locale]/` pages → `docs/code-structure/pages.md`
+     - `app/components/` → the matching `docs/code-structure/components/components-[domain].md`
+   - Locate (or create) the `### path/to/file.ts` section in the relevant layer file
    - Update all function/component entries to reflect current signatures
    - Add entries for new functions/components
    - Remove entries for deleted functions/components
    - Keep the 1–2 sentence file description accurate
 
-3. **Update `## Call Graph`** if any call relationships changed (new `Calls:` lines, deleted functions, new files).
+3. **Update the `## Call Graph`** in `CODE-STRUCTURE.md` if any cross-layer call relationships changed (new `Calls:` lines, deleted functions, new files).
 
 4. **Stage `CODE-STRUCTURE.md` alongside the task's source files** — it should be in the same commit, not a separate one.
 
