@@ -169,4 +169,132 @@ Key flows:
            ├── getGameGuessStatisticsForUsers
            ├── getTournamentGuessStatsForUsers
            └── calculateAccuracyStats (util)
+
+6. Authentication & signup
+   LoginOrSignupDialog [Client]
+     └── checkAuthMethods [server action]
+           └── getAuthMethodsForEmail
+   SignupForm [Client]
+     └── signupUser [server action]
+           ├── findUserByEmail
+           ├── createUser
+           ├── getPasswordHash
+           └── sendVerificationEmail
+   OTPVerifyForm [Client]
+     ├── sendOTPCode [server action]
+     │     └── sendEmail
+     └── verifyOTPCode [server action]
+           └── verifyOTP
+   AccountSetupForm [Client]
+     └── createAccountViaOTP [server action]
+           ├── findUserByEmail
+           └── updateUser
+
+7. Email verification
+   VerifyEmailPage (Server)
+     └── EmailVerifier [renders]
+           └── verifyUserEmail [server action]
+                 ├── findUserByVerificationToken
+                 └── verifyEmail
+
+8. Password reset
+   ForgotPasswordForm [Client]
+     └── sendPasswordResetLink [server action]
+           ├── findUserByEmail
+           ├── generatePasswordResetEmail (util)
+           └── sendEmail
+   ResetPasswordPage [Client]
+     ├── verifyResetToken [server action]
+     └── updateUserPassword [server action]
+           └── updateUser
+
+9. Onboarding flow
+   ServerHome (Server)
+     └── getOnboardingStatus
+   OnboardingDialog [Client]
+     ├── saveOnboardingStep [server action]
+     │     └── updateOnboardingData
+     ├── markOnboardingComplete [server action]
+     │     └── completeOnboarding
+     └── skipOnboardingFlow [server action]
+           └── skipOnboarding
+   OnboardingChecklist [Client]
+     └── updateChecklistItem [server action]
+           └── updateChecklistItemRepo
+
+10. Awards prediction
+    Awards (Server)
+      ├── findTournamentGuessByUserIdTournament
+      └── findAllPlayersInTournamentWithTeamData
+      └── AwardsPanel [renders]
+            └── updateOrCreateTournamentGuess [server action]
+                  └── dbUpdateOrCreateTournamentGuess
+
+11. Tournament results page
+    ResultsPage (Server)
+      ├── findGamesInTournament
+      ├── getTeamsMap [server action]
+      │     └── findTeamInTournament, findTeamInGroup
+      ├── getGroupStandingsForTournament [server action]
+      │     └── calculateGroupPosition (util)
+      └── ResultsPageClient [renders]
+            └── PlayoffsBracketView [renders]
+                  └── BracketGameCard [renders]
+
+12. User stats page
+    TournamentStatsPage (Server)
+      ├── getGameGuessStatisticsForUsers
+      ├── findTournamentGuessByUserIdTournament
+      ├── getBoostAllocationBreakdown
+      ├── calculateAccuracyStats (util)
+      └── calculateBoostStats (util)
+      └── StatsTabs [renders]
+            └── PerformanceOverviewCard, PredictionAccuracyCard, BoostAnalysisCard [renders]
+
+13. Friend group management
+    FriendGroupsTable [Client]
+      ├── createDbGroup [server action]
+      │     └── createProdeGroup
+      ├── deleteGroup [server action]
+      │     └── deleteProdeGroup
+      └── leaveGroupAction [server action]
+            └── deleteParticipantFromGroup
+    GroupPrivacySettings [Client]
+      └── updateGroupPrivacyAction [server action]
+            └── updateGroupPrivacy
+    ProdeGroupThemer [Client]
+      └── updateTheme [server action]
+            └── updateProdeGroup, deleteThemeLogoFromS3
+
+14. Backoffice game result editing
+    BackofficeFlippableGameCard [Client]
+      └── BackofficeGameResultEditControls [renders]
+            └── saveGameResults [server action]
+                  ├── updateGameResult / createGameResult
+                  └── calculateGameScores [same as flow 2]
+
+15. Push notifications
+    NotificationSubscriptionPrompt [Client]
+      ├── subscribeUser [server action]
+      │     └── addNotificationSubscription
+      └── unsubscribeUser [server action]
+            └── removeNotificationSubscription
+    NotificationSender [Client] (admin)
+      └── sendNotification [server action]
+            └── sendPushNotification
+
+16. Boost allocation
+    BoostSelector [Client]
+      └── setGameBoostAction [server action]
+            ├── findGameById
+            ├── countUserBoostsByType
+            └── setGameGuessBoost
+
+17. Short URL / group invite
+    app/j/[code]/page.tsx (Server)
+      ├── getShortUrlByCode
+      └── incrementClickCount
+    InviteFriendsDialogButton [Client]
+      └── generateShortUrlForGroup [server action]
+            └── getOrCreateShortUrl
 ```
