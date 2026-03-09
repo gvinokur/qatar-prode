@@ -1,4 +1,6 @@
 import { ExtendedGameData } from '@/app/definitions'
+import { PlayoffRound } from '@/app/db/tables-definition'
+import { isTeamWinnerRule } from '@/app/utils/playoffs-rule-helper'
 
 /**
  * Represents a round in the playoff bracket
@@ -165,4 +167,99 @@ export function calculateBracketDimensions(
   const height = maxHeight * scale
 
   return { width, height }
+}
+
+/**
+ * Places a feeder game into the ordered list if the rule is a TeamWinnerRule pointing to a game
+ * in the current round that hasn't been placed yet.
+ */
+function placeFeeder(
+  rule: unknown,
+  gamesByNumber: { [gameNumber: number]: ExtendedGameData },
+  currentRoundIds: Set<string>,
+  placed: Set<string>,
+  ordered: ExtendedGameData[]
+): void {
+  if (!isTeamWinnerRule(rule)) return
+  const feeder = gamesByNumber[rule.game]
+  if (feeder && currentRoundIds.has(feeder.id) && !placed.has(feeder.id)) {
+    ordered.push(feeder)
+    placed.add(feeder.id)
+  }
+}
+
+/**
+ * Given the already-ordered games of a later round and the unordered games of the current round,
+ * returns the current round games re-ordered to match the bracket tree structure.
+ *
+ * For each game in the later (already-ordered) round, the home_team_rule feeder game is placed
+ * first, then the away_team_rule feeder game. Unplaced games are appended at the end.
+ *
+ * @param orderedLaterRoundGames - Games in the later (next) round, already in correct order
+ * @param currentRoundGames - Games in the current round, to be reordered
+ * @param gamesByNumber - Map from game_number to ExtendedGameData for lookup
+ * @returns currentRoundGames reordered to match the bracket tree
+ */
+function orderRoundByLaterGames(
+  orderedLaterRoundGames: ExtendedGameData[],
+  currentRoundGames: ExtendedGameData[],
+  gamesByNumber: { [gameNumber: number]: ExtendedGameData }
+): ExtendedGameData[] {
+  // Build a Set of game IDs belonging to the current round to prevent cross-round misplacement
+  const currentRoundIds = new Set(currentRoundGames.map((g) => g.id))
+
+  const ordered: ExtendedGameData[] = []
+  const placed = new Set<string>()
+
+  for (const laterGame of orderedLaterRoundGames) {
+    placeFeeder(laterGame.home_team_rule, gamesByNumber, currentRoundIds, placed, ordered)
+    placeFeeder(laterGame.away_team_rule, gamesByNumber, currentRoundIds, placed, ordered)
+  }
+
+  // Append any unplaced games (e.g. GroupFinishRule qualifiers with no TeamWinnerRule pointer)
+  for (const game of currentRoundGames) {
+    if (!placed.has(game.id)) {
+      ordered.push(game)
+    }
+  }
+
+  return ordered
+}
+
+/**
+ * Builds BracketRound[] where each round's games are ordered according to the actual bracket tree,
+ * derived by traversing game references from the final backwards through earlier rounds.
+ *
+ * This corrects the naive database-insertion order so that SVG connection lines in
+ * PlayoffsBracketView connect the correct game pairs.
+ *
+ * @param mainStages - Playoff stages excluding third-place game, in chronological order (earliest first)
+ * @param gamesMap - Map from game_id to ExtendedGameData
+ * @param gamesByNumber - Map from game_number to ExtendedGameData
+ * @returns BracketRound[] with games in correct bracket tree order
+ */
+export function buildOrderedBracketRounds(
+  mainStages: ReadonlyArray<PlayoffRound & { games: ReadonlyArray<{ game_id: string }> }>,
+  gamesMap: { [gameId: string]: ExtendedGameData },
+  gamesByNumber: { [gameNumber: number]: ExtendedGameData }
+): BracketRound[] {
+  // Initialize with each stage's games in original order, filtering missing entries
+  const orderedGamesPerStage: ExtendedGameData[][] = mainStages.map((stage) =>
+    stage.games.map((g) => gamesMap[g.game_id]).filter((g) => g !== undefined)
+  )
+
+  // Traverse from the last round backwards, reordering each earlier round
+  for (let i = orderedGamesPerStage.length - 1; i >= 1; i--) {
+    orderedGamesPerStage[i - 1] = orderRoundByLaterGames(
+      orderedGamesPerStage[i],
+      orderedGamesPerStage[i - 1],
+      gamesByNumber
+    )
+  }
+
+  return orderedGamesPerStage.map((games, index) => ({
+    name: mainStages[index].round_name,
+    games,
+    columnIndex: index,
+  }))
 }

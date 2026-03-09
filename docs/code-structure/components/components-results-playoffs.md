@@ -17,6 +17,8 @@ Utility functions and constants for calculating playoff bracket layout positions
 - **calculateGamePositions(rounds: BracketRound[])**: `GamePosition[]` — Calculates absolute positions for each game in the bracket.
 - **calculateConnectionPath(fromPosition: GamePosition, toPosition: GamePosition)**: `string` — Generates SVG path for L-shaped connector lines between games.
 - **calculateBracketDimensions(rounds: BracketRound[], isMobile?: boolean, hasThirdPlace?: boolean)**: `{ width: number; height: number }` — Calculates total bracket container dimensions.
+- **buildOrderedBracketRounds(mainStages, gamesMap, gamesByNumber)**: `BracketRound[]` — Returns bracket rounds with games ordered by actual bracket tree structure, derived by traversing TeamWinnerRule references from the final backwards. Fixes SVG connection lines that would otherwise point to wrong game pairs when DB insertion order differs from bracket order.
+  Calls: isTeamWinnerRule (from app/utils/playoffs-rule-helper)
 
 ### app/components/results-page/loading-skeleton.tsx
 Loading skeleton component that displays placeholder cards while data loads.
@@ -60,7 +62,7 @@ Client wrapper providing tabs to switch between Groups and Playoffs views.
 Displays playoff bracket with SVG connection lines and game cards positioned absolutely.
 
 - **PlayoffsBracketView({ playoffStages, games, teamsMap }: PlayoffsBracketViewProps)**: `JSX.Element` — [Client] Renders horizontally-scrollable bracket with positioned cards and SVG connectors, includes third-place playoff.
-  Calls: calculateGamePositions, calculateConnectionPath, calculateBracketDimensions
+  Calls: buildOrderedBracketRounds, calculateGamePositions, calculateConnectionPath, calculateBracketDimensions
   Uses: useTranslations, useMemo, useTheme, useMediaQuery
   Renders: BracketGameCard
 

@@ -11,6 +11,7 @@ import {
   calculateGamePositions,
   calculateConnectionPath,
   calculateBracketDimensions,
+  buildOrderedBracketRounds,
   BRACKET_CONSTANTS,
 } from './bracket-layout-utils'
 
@@ -64,18 +65,20 @@ export default function PlayoffsBracketView({
     return map
   }, [games])
 
-  // Organize playoff stages into bracket rounds (exclude third place)
+  // Build game_number → game lookup for tree traversal
+  const gamesByNumber = useMemo(() => {
+    const map: { [gameNumber: number]: ExtendedGameData } = {}
+    Object.values(gamesMap).forEach((game) => {
+      map[game.game_number] = game
+    })
+    return map
+  }, [gamesMap])
+
+  // Organize playoff stages into bracket rounds (exclude third place), ordered by bracket tree
   const bracketRounds: BracketRound[] = useMemo(() => {
     const mainStages = playoffStages.filter((stage) => !stage.is_third_place)
-
-    return mainStages.map((stage, index) => ({
-      name: stage.round_name,
-      games: stage.games
-        .map((g) => gamesMap[g.game_id])
-        .filter((g) => g !== undefined), // Filter out any missing games
-      columnIndex: index,
-    }))
-  }, [playoffStages, gamesMap])
+    return buildOrderedBracketRounds(mainStages, gamesMap, gamesByNumber)
+  }, [playoffStages, gamesMap, gamesByNumber])
 
   // Find third place playoff separately
   const thirdPlaceStage = playoffStages.find((stage) => stage.is_third_place)
