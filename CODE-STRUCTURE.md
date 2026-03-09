@@ -115,17 +115,40 @@ Architecture:
 
 Key flows:
 
-1. Tournament home page
-   TournamentPage (Server)
-     └── getTournaments [server action]
-           └── findAllActiveTournaments
-           └── applyLocalizationBatch
-     └── UnifiedGamesPage [renders]
-           └── getGamesForDashboard [server action]
-                 └── findGamesForDashboard
-           └── FlippableGameCard [renders]
-                 └── updateOrCreateGameGuesses [server action]
-                       └── updateOrCreateGuess
+1. Predictions dashboard (tournament home)
+   TournamentLandingPage (Server)
+     └── UnifiedGamesPage [renders] (Server)
+           ├── getLoggedInUser
+           ├── getTeamsMap [server action]
+           ├── getAllTournamentGames
+           ├── findGameGuessesByUserId
+           ├── getPredictionDashboardStats
+           ├── getTournamentPredictionCompletion
+           ├── findGroupsInTournament
+           ├── findPlayoffStagesWithGamesInTournament
+           └── getGamesClosingWithin48Hours
+           └── GuessesContextProvider [Provider]
+                 ├── holds: all game guesses + boost counts (state)
+                 └── auto-save: updateOrCreateGameGuesses [server action]
+                               └── updateOrCreateGuess
+                 └── EditTriggerContextProvider [Provider]
+                       └── UnifiedGamesPageClient [renders]
+                             └── FilterContextProvider [Provider]
+                                   └── UnifiedGamesPageContent [Client]
+                                         └── uses: GuessesContext, FilterContext
+                                         ├── CompactPredictionDashboard [renders]
+                                         │     └── uses: GuessesContext (reads boosts, progress)
+                                         └── GamesListWithScroll [renders]
+                                               └── uses: GuessesContext
+                                               └── FlippableGameCard [renders]
+                                                     └── uses: GuessesContext
+                                                     ├── GameView [renders] (front face)
+                                                     │     └── CompactGameViewCard [renders]
+                                                     └── GamePredictionEditControls [renders] (back face)
+                                                           └── uses: GuessesContext (reads + writes guess)
+                                                           └── GameBoostSelector [renders]
+                                                                 └── setGameBoostAction [server action]
+                                                                       └── setGameGuessBoost
 
 2. Game scoring pipeline
    calculateGameScores [server action]
@@ -283,14 +306,7 @@ Key flows:
       └── sendNotification [server action]
             └── sendPushNotification
 
-16. Boost allocation
-    BoostSelector [Client]
-      └── setGameBoostAction [server action]
-            ├── findGameById
-            ├── countUserBoostsByType
-            └── setGameGuessBoost
-
-17. Short URL / group invite
+16. Short URL / group invite
     app/j/[code]/page.tsx (Server)
       ├── getShortUrlByCode
       └── incrementClickCount
