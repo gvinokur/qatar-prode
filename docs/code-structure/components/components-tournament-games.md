@@ -15,8 +15,8 @@ Now let me compile the complete report with all the file information.
 ## Component Reference Report
 
 **File:** `app/components/actual-result-display.tsx`
-Displays actual game result with scores and prediction result badge. Shows "Actual Result" label, team names, scores, logos, penalty scores, and prediction accuracy with points earned.
-- **ActualResultDisplay** (FC) - `[Client]` - Calls: none - Uses: `useTranslations` - Renders: `TeamScoreRow`
+Displays actual game result with scores and prediction result badge. Shows "Actual Result" label, team names, scores, logos, penalty scores, and prediction accuracy with points earned. Derives homeIsWinner/awayIsWinner inline using typeof null-safety guard on penalty scores and passes C2 winner props to TeamScoreRow.
+- **ActualResultDisplay** (FC) - `[Client]` - Calls: none (inline winner derivation) - Uses: `useTranslations` - Renders: `TeamScoreRow` (with homeIsWinner/awayIsWinner)
 - **getPredictionResultLabel** (fn) - Helper to format prediction result labels with translations
 - **getPredictionResultIcon** (fn) - Returns icon for prediction result (Check/Close)
 
@@ -40,8 +40,8 @@ Popover showing detailed boost allocation breakdown by group, playoff, and perfo
 - **PerformanceSection** (FC) - Helper section for boost performance
 
 **File:** `app/components/compact-game-view-card.tsx`
-Compact card displaying a single game with prediction and result. Handles game guesses, fixtures, and results with optional boost display.
-- **CompactGameViewCard** (FC) - `[Client]` - Calls: none - Uses: `useTheme, useTranslations` - Renders: `Card, GameCountdownDisplay, TeamScoreRow, ActualResultDisplay, GameCardPointOverlay`
+Compact card displaying a single game with prediction and result. Handles game guesses, fixtures, and results with optional boost display. Computes prediction row winner inline (predictionHomeIsWinner/predictionAwayIsWinner) and passes C2 props to the prediction TeamScoreRow; actual result row winner is handled independently by ActualResultDisplay.
+- **CompactGameViewCard** (FC) - `[Client]` - Calls: none - Uses: `useTheme, useTranslations` - Renders: `Card, GameCountdownDisplay, TeamScoreRow` (prediction row with C2 winner props)`, ActualResultDisplay, GameCardPointOverlay`
 - **calculatePredictionResult** (fn) - Determines prediction accuracy (exact/correct/incorrect)
 
 **File:** `app/components/compact-prediction-dashboard.tsx`

@@ -300,3 +300,19 @@ color: awayIsWinner ? 'text.primary' : homeIsWinner ? 'text.secondary' : 'text.p
 2. `actual-result-display.tsx` + `compact-game-view-card.tsx` (parallel — both use TeamScoreRow)
 3. `minimalistic-games-list.tsx` + `bracket-game-card.tsx` (parallel — independent)
 4. All 5 test files (parallel via subagents)
+
+---
+
+## Implementation Summary
+
+**Status:** ✅ Implemented — commit `b6a6195` on `feature/story-266`
+
+**Implemented exactly as planned.** All 5 files modified per specification:
+
+- `team-score-row.tsx` — Added `homeIsWinner?`/`awayIsWinner?` props; C2 sx applied to both name Typographys (moved `fontWeight` from prop to sx to support conditional logic).
+- `actual-result-display.tsx` — Inline penalty winner derivation with `typeof` guard; passes `homeIsWinner`/`awayIsWinner` to TeamScoreRow.
+- `compact-game-view-card.tsx` — `predictionHomeIsWinner`/`predictionAwayIsWinner` computed inline; passed to prediction TeamScoreRow only.
+- `minimalistic-games-list.tsx` — Imports `getGameWinner`; C2 `fontWeight`/`color` sx added to home/away name spans.
+- `bracket-game-card.tsx` — `primary.main` replaced with `text.primary`; loser dimming (`text.secondary`) added to names and scores.
+
+**Tests:** 146 tests passing across all 5 test files (5690 total suite). All new C2 winner/loser/draw scenarios covered.
