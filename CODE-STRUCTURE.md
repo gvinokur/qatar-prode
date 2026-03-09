@@ -324,6 +324,8 @@ Key flows:
             │           ├── MinimalisticGamesList [renders]
             │           └── TeamStandingsCards [renders]
             └── PlayoffsBracketView [renders] (playoffs tab)
+                  ├── buildOrderedBracketRounds (bracket-layout-utils)
+                  │     └── isTeamWinnerRule (playoffs-rule-helper)
                   └── BracketGameCard [renders]
 
 12. User stats page
