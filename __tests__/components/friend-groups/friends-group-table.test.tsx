@@ -241,8 +241,8 @@ describe('ProdeGroupTable', () => {
     it('hides tabs when only one tournament', () => {
       render(<ProdeGroupTable {...defaultProps} tournaments={[mockTournaments[0]]} />);
 
-      // Should not show tabs when there's only one tournament
-      expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
+      // Should not show tournament-switching tabs when there's only one tournament
+      expect(screen.queryByRole('tablist', { name: /scrollable auto tabs example/i })).not.toBeInTheDocument();
       expect(screen.queryByText('TT1')).not.toBeInTheDocument();
     });
   });

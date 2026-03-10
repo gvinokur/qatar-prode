@@ -96,6 +96,8 @@ import {
   addUsersToTournament,
   removeAllTournamentPermissions
 } from '../db/tournament-view-permission-repository';
+import {writeScoreSnapshot} from '../db/score-history-repository';
+import {getTodayYYYYMMDD} from '../utils/date-utils';
 
 
 export async function deleteDBTournamentTree(tournament: Tournament, locale: Locale = 'es') {
@@ -577,9 +579,23 @@ export async function updateTournamentAwards(tournamentId: string, withUpdate: T
       }
       return accumScore
     }, 0)
-    return await updateTournamentGuessWithSnapshot(tournamentGuess.id, {
+    const updatedGuess = await updateTournamentGuessWithSnapshot(tournamentGuess.id, {
       individual_awards_score: awardsScore
     })
+    if (updatedGuess) {
+      await writeScoreSnapshot({
+        user_id: tournamentGuess.user_id,
+        tournament_id: tournamentId,
+        snapshot_date: getTodayYYYYMMDD(),
+        total_game_score: updatedGuess.total_game_score ?? 0,
+        total_boost_bonus: updatedGuess.total_boost_bonus ?? 0,
+        honor_roll_score: updatedGuess.honor_roll_score ?? 0,
+        individual_awards_score: updatedGuess.individual_awards_score ?? 0,
+        qualified_teams_score: updatedGuess.qualified_teams_score ?? 0,
+        group_position_score: updatedGuess.group_position_score ?? 0,
+      });
+    }
+    return updatedGuess
   }))
 }
 
@@ -614,9 +630,23 @@ export async function updateTournamentHonorRoll(tournamentId: string, withUpdate
         tournamentGuess.third_place_team_id === withUpdate.third_place_team_id) {
         honorRollScore += third_place_points
       }
-      return await updateTournamentGuessWithSnapshot(tournamentGuess.id, {
+      const updatedGuess = await updateTournamentGuessWithSnapshot(tournamentGuess.id, {
         honor_roll_score: honorRollScore
       })
+      if (updatedGuess) {
+        await writeScoreSnapshot({
+          user_id: tournamentGuess.user_id,
+          tournament_id: tournamentId,
+          snapshot_date: getTodayYYYYMMDD(),
+          total_game_score: updatedGuess.total_game_score ?? 0,
+          total_boost_bonus: updatedGuess.total_boost_bonus ?? 0,
+          honor_roll_score: updatedGuess.honor_roll_score ?? 0,
+          individual_awards_score: updatedGuess.individual_awards_score ?? 0,
+          qualified_teams_score: updatedGuess.qualified_teams_score ?? 0,
+          group_position_score: updatedGuess.group_position_score ?? 0,
+        });
+      }
+      return updatedGuess
     }))
   }
 }

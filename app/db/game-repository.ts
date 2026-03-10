@@ -120,6 +120,17 @@ export const findFirstGameInTournament = cache(async (tournamentId: string)  => 
 })
 
 /**
+ * Find the last game by date in a tournament (used for X-axis end bound in score history charts).
+ */
+export const findLastGameInTournament = cache(async (tournamentId: string) => {
+  return db.selectFrom(tableName)
+    .selectAll()
+    .where('tournament_id', '=', tournamentId)
+    .orderBy('game_date', 'desc')
+    .executeTakeFirst()
+})
+
+/**
  * Find games in a group, optionally with full metadata.
  *
  * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action

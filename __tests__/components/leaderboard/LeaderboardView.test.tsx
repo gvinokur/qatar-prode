@@ -1,7 +1,28 @@
-import { describe, it, expect } from 'vitest'
-import { screen } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
+import { screen, fireEvent } from '@testing-library/react'
 import { renderWithTheme } from '@/__tests__/utils/test-utils'
 import LeaderboardView from '@/app/components/leaderboard/LeaderboardView'
+
+vi.mock('next-intl', () => ({
+  useTranslations: () => (key: string) => key,
+}))
+
+vi.mock('@/app/components/leaderboard/HistoryTab', () => ({
+  default: ({ historyData }: any) => (
+    <div data-testid="history-tab">{historyData ? 'has-data' : 'no-data'}</div>
+  ),
+}))
+
+vi.mock('@/app/components/leaderboard/LeaderboardCards', () => ({
+  default: ({ scores }: any) => (
+    <div>
+      {scores.length === 0
+        ? <span>no leaderboard data</span>
+        : <ul aria-label="leaderboard">{scores.map((s: any) => <li key={s.userId}>{s.userId === 'user-1' ? 'You' : s.userName}</li>)}</ul>
+      }
+    </div>
+  ),
+}))
 
 const mockScores = [
   {
@@ -81,5 +102,68 @@ describe('LeaderboardView', () => {
     )
 
     expect(screen.getByText(/no leaderboard data/i)).toBeInTheDocument()
+  })
+})
+
+describe('LeaderboardView tabs', () => {
+  it('default tab is Standings (LeaderboardCards content visible, History tab not selected)', () => {
+    renderWithTheme(
+      <LeaderboardView
+        scores={mockScores}
+        currentUserId="user-1"
+        tournament={mockTournament}
+      />
+    )
+
+    // Standings content is visible (mocked LeaderboardCards renders "You")
+    expect(screen.getByRole('list', { name: /leaderboard/i })).toBeInTheDocument()
+    // Standings tab is selected by default
+    expect(screen.getByRole('tab', { name: 'standingsTabLabel' })).toHaveAttribute('aria-selected', 'true')
+    // History tab is not selected
+    expect(screen.getByRole('tab', { name: 'tabLabel' })).toHaveAttribute('aria-selected', 'false')
+  })
+
+  it('History tab renders HistoryTab when clicked', () => {
+    const historyData = {
+      userHistories: [{
+        userId: 'user-1',
+        displayName: 'Alice',
+        data: [{ date: 20260610, totalPoints: 50, rank: 1 }],
+      }],
+      tournamentStartDate: 20260601,
+      tournamentEndDate: 20260715,
+      isEmpty: false,
+    }
+
+    renderWithTheme(
+      <LeaderboardView
+        scores={mockScores}
+        currentUserId="user-1"
+        tournament={mockTournament}
+        historyData={historyData}
+      />
+    )
+
+    const historyTab = screen.getByRole('tab', { name: 'tabLabel' })
+    fireEvent.click(historyTab)
+
+    expect(screen.getByTestId('history-tab')).toBeInTheDocument()
+    expect(screen.getByTestId('history-tab')).toHaveTextContent('has-data')
+  })
+
+  it('History tab renders HistoryTab with no-data when historyData is undefined', () => {
+    renderWithTheme(
+      <LeaderboardView
+        scores={mockScores}
+        currentUserId="user-1"
+        tournament={mockTournament}
+      />
+    )
+
+    const historyTab = screen.getByRole('tab', { name: 'tabLabel' })
+    fireEvent.click(historyTab)
+
+    expect(screen.getByTestId('history-tab')).toBeInTheDocument()
+    expect(screen.getByTestId('history-tab')).toHaveTextContent('no-data')
   })
 })

@@ -28,6 +28,7 @@ import AdminTabs from "../../../../../components/friend-groups/admin-tabs";
 import PrivacyIndicatorIcon from "../../../../../components/friend-groups/privacy-indicator-icon";
 import AdminSectionTabs from "../../../../../components/friend-groups/admin-section-tabs";
 import { generateShortUrlForGroup } from '../../../../../actions/short-url-actions';
+import { getScoreHistoryForGroup } from '../../../../../actions/score-history-actions';
 
 type Props = {
   readonly params: Promise<{
@@ -133,6 +134,10 @@ export default async function TournamentScopedFriendGroup(props : Props){
   const bettingData = {
     [tournament.id]: { config, payments }
   };
+
+  // Fetch score history for this tournament's History tab
+  const historyData = await getScoreHistoryForGroup(prodeGroup.id, tournament.id);
+  const historyByTournament = { [tournament.id]: historyData };
 
   // Fetch pending request count for admin badge
   const pendingRequestCount = isAdmin ? await getPendingRequestCount(prodeGroup.id) : 0;
@@ -243,6 +248,7 @@ export default async function TournamentScopedFriendGroup(props : Props){
                 joinUrl={shareJoinUrl}
                 themeColor={prodeGroup.theme?.primary_color ?? undefined}
                 tournamentBadgeConfigs={tournamentBadgeConfigs}
+                historyByTournament={historyByTournament}
               />
             }
             adminContent={

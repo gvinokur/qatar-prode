@@ -2,6 +2,7 @@
 
 import {Tournament, User} from "../../db/tables-definition";
 import {UserScore} from "../../definitions";
+import type {ScoreHistoryResult} from "../../actions/score-history-actions";
 import {
   Box,
   Button,
@@ -36,9 +37,10 @@ type Props = {
   readonly joinUrl?: string,
   readonly themeColor?: string,
   readonly tournamentBadgeConfigs?: Record<string, TournamentBadgeConfig>,
+  readonly historyByTournament?: { [tournamentId: string]: ScoreHistoryResult },
 }
 
-export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, members, bettingData, selectedTournamentId, groupName, joinUrl, themeColor, tournamentBadgeConfigs}: Props) {
+export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, members, bettingData, selectedTournamentId, groupName, joinUrl, themeColor, tournamentBadgeConfigs, historyByTournament}: Props) {
   const t = useTranslations('groups.standings');
   const tBetting = useTranslations('groups.betting');
   const tSharing = useTranslations('groups.sharing');
@@ -139,6 +141,7 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
                   themeColor={themeColor}
                   shareRef={leaderboardShareRef}
                   tournamentBadgeConfig={tournamentBadgeConfigs?.[tournament.id]}
+                  historyData={historyByTournament?.[tournament.id]}
                 />
                 {/* Betting Status (read-only) */}
                 {bettingConfig?.betting_enabled && (

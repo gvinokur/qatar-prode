@@ -543,5 +543,13 @@
       "name": "Pase de Madera",
       "description": "El que menos clasificados acertó"
     }
+  },
+  "history": {
+    "tabLabel": "Historial",
+    "standingsTabLabel": "Clasificación",
+    "totalPointsChartTitle": "Puntos totales en el tiempo",
+    "rankChartTitle": "Posición en el tiempo",
+    "noHistory": "Sin historial",
+    "noHistoryDescription": "El historial de puntos aparecerá cuando comience el torneo y se calculen los puntajes."
   }
 }

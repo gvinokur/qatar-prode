@@ -21,6 +21,11 @@ Kysely database instance and schema definition for PostgreSQL.
 ### app/db/tables-definition.ts
 TypeScript type definitions for all database tables, insertable/updateable shapes, and schema interface. No runtime exports — type-only file.
 
+Includes `TournamentScoreHistoryTable` for the `tournament_score_history` table (Story #272). Key types:
+- **TournamentScoreHistoryTable**: Interface with `id`, `user_id`, `tournament_id`, `snapshot_date` (YYYYMMDD integer), six score segment columns, `total_points` (Generated — GENERATED ALWAYS computed), `created_at`.
+- **TournamentScoreHistory**: `Selectable<TournamentScoreHistoryTable>` — full row shape.
+- **TournamentScoreHistoryNew**: `Omit<Insertable<...>, 'id' | 'total_points' | 'created_at'>` — insert shape without auto-generated fields.
+
 ### app/db/game-guess-repository.ts
 Repository for game_guesses table. Handles user predictions with boost tracking and materialized score storage.
 
@@ -54,6 +59,7 @@ Repository for games table. Manages game records with group/playoff metadata. Re
 - **findGamesInTournament(tournamentId: string, draftResult: boolean)**: `Promise<ExtendedGameData[]>` — Finds all games in tournament with group/playoff metadata (cached).
 - **getGameCountsForTournament(tournamentId: string)**: `Promise<{ total: number; played: number }>` — Efficient COUNT query for total and played games.
 - **findFirstGameInTournament(tournamentId: string)**: `Promise<Game | undefined>` — Finds first game by date (cached).
+- **findLastGameInTournament(tournamentId: string)**: `Promise<Game | undefined>` — Finds last game by date (cached). Used for score history chart X-axis end bound.
 - **findGamesInGroup(groupId: string, completeGame: boolean, draftResult: boolean)**: `Promise<ExtendedGameData[] | Game[]>` — Finds games in a group with optional metadata (cached).
 - **deleteAllGamesFromTournament(tournamentId: string)**: `Promise<void>` — Deletes all games for a tournament.
 - **findAllGamesWithPublishedResultsAndGameGuesses(forceDrafts: boolean, forceAllGameGuesses: boolean)**: `Promise<GameWithResultAndGuess[]>` — Finds games with published results and unscored guesses (cached).
@@ -155,6 +161,12 @@ Repository for short_urls table. Manages short invite links for groups.
 - **getOrCreateShortUrl(groupId: string, tournamentId?: string)**: `Promise<ShortUrl>` — Gets or creates short URL (one per group).
 - **incrementClickCount(code: string)**: `Promise<void>` — Increments click counter (fire-and-forget).
 
+### app/db/score-history-repository.ts
+Repository for `tournament_score_history` table. Writes and reads daily per-user score snapshots for rank/score history charts (Story #272).
+
+- **writeScoreSnapshot(snapshot: TournamentScoreHistoryNew)**: `Promise<TournamentScoreHistory>` — Upserts daily snapshot; on conflict by (user_id, tournament_id, snapshot_date) overwrites all 6 score segment fields.
+- **getScoreHistoryForUsers(userIds: string[], tournamentId: string)**: `Promise<TournamentScoreHistory[]>` — Fetches all history rows for given users in tournament, ordered by snapshot_date ASC. Returns empty array for empty userIds.
+
 ### app/db/team-repository.ts
 Repository for teams table. Manages team records across tournaments. Returns raw data; localization applied in Server Actions.
 
@@ -203,7 +215,7 @@ Repository for tournament_guesses table. Tracks overall tournament scores and ma
 - **findTournamentGuessByTournament(tournamentId: string)**: `Promise<TournamentGuess[]>` — Finds all for tournament.
 - **deleteAllUserTournamentGuesses(userId: string)**: `Promise<void>` — Deletes all for user (account deletion).
 - **deleteAllTournamentGuessesByTournamentId(tournamentId: string)**: `Promise<void>` — Deletes all for tournament.
-- **recalculateGameScoresForUsers(userIds: string[], tournamentId: string)**: `Promise<TournamentGuess[]>` — Recalculates and materializes game scores from aggregation.
+- **recalculateGameScoresForUsers(userIds: string[], tournamentId: string)**: `Promise<TournamentGuess[]>` — Recalculates and materializes game scores from aggregation. Also writes a daily score snapshot (writeScoreSnapshot) per user inside the loop.
 
 ### app/db/tournament-playoff-repository.ts
 Repository for tournament_playoff_rounds and playoff games. Manages playoff bracket structure.

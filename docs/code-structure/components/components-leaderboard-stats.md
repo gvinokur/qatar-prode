@@ -21,10 +21,11 @@ Reusable badge display component rendering a flex row of emoji badges with toolt
   Uses: useTranslations('groups.badges'), Avatar, Tooltip, Box, alpha
 
 ### app/components/leaderboard/LeaderboardView.tsx
-Top-level client component that wraps user scores and delegates to LeaderboardCards for responsive display.
+Top-level client component with Standings/History tab switcher. Standings tab shows LeaderboardCards; History tab shows HistoryTab with pre-loaded data.
 
-- **LeaderboardView(props: LeaderboardViewProps)**: `JSX.Element` — [Client] Renders leaderboard with card-based layout (desktop/mobile unified). Extracts tournamentId from tournament object.
-  Renders: LeaderboardCards
+- **LeaderboardView(props: LeaderboardViewProps)**: `JSX.Element` — [Client] Renders MUI TabContext/TabList/TabPanel with two tabs. Default tab = Standings (LeaderboardCards). History tab renders HistoryTab with optional historyData prop. Accepts historyData?: ScoreHistoryResult (Story #272).
+  Uses: useState, useTranslations('groups.history')
+  Renders: LeaderboardCards, HistoryTab
 
 ### app/components/leaderboard/LeaderboardCard.tsx
 Expandable leaderboard card for individual user with collapsible detailed stats breakdown.
@@ -75,6 +76,25 @@ Advanced animation utilities for rank transitions and celebration effects.
   Renders: ConfettiEffect
 - **StaggeredLeaderboardRow({ index, selected?, rankChange?, children })**: `JSX.Element` — [Client] TableRow wrapper with staggered fade-in (0.05s × index, max 10 rows, 0.3s total).
   Renders: RankUpCelebration
+
+### app/components/leaderboard/HistoryTab.tsx
+Wrapper component for the History tab content — renders score and rank charts from pre-loaded server data (Story #272). [Client]
+
+- **HistoryTab(props: HistoryTabProps)**: `JSX.Element` — [Client] Displays empty state when historyData is undefined/isEmpty or tournamentStartDate is null. Otherwise renders ScoreHistoryChart and RankHistoryChart using pre-loaded historyData prop. Reads currentUserId from next-auth session.
+  Uses: useSession, useTranslations('groups.history')
+  Renders: ScoreHistoryChart, RankHistoryChart
+
+### app/components/leaderboard/ScoreHistoryChart.tsx
+Line chart showing total points over time for all group members (Story #272). [Client]
+
+- **ScoreHistoryChart(props: ScoreHistoryChartProps)**: `JSX.Element` — [Client] Renders a recharts ResponsiveContainer+LineChart with one Line per user. Current user highlighted with themeColor and strokeWidth=3; others strokeWidth=2. connectNulls=false (sparse gaps). X-axis spans startDate→endDate (YYYYMMDD); tick format DD MMM. Title from i18n groups.history.totalPointsChartTitle.
+  Uses: useTranslations('groups.history'), recharts
+
+### app/components/leaderboard/RankHistoryChart.tsx
+Line chart showing rank over time for all group members, Y-axis inverted with #N labels (Story #272). [Client]
+
+- **RankHistoryChart(props: RankHistoryChartProps)**: `JSX.Element` — [Client] Same pattern as ScoreHistoryChart but Y-axis domain=[1, totalUsers], reversed=true, tick formatter '#'+v. Title from i18n groups.history.rankChartTitle.
+  Uses: useTranslations('groups.history'), recharts
 
 ### app/components/leaderboard/HeadToHeadDialog.tsx
 Modal dialog for head-to-head comparison between two users across multiple metrics.

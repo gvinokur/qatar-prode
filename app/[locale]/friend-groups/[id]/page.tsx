@@ -20,6 +20,7 @@ import { findQualifiedTeams } from "../../../db/team-repository";
 import { getTournamentStartDate } from "../../../actions/tournament-actions";
 import { generateShortUrlForGroup } from '../../../actions/short-url-actions';
 import type { TournamentBadgeConfig } from "../../../components/leaderboard/types";
+import { getScoreHistoryForGroup } from '../../../actions/score-history-actions';
 
 type Props = {
   readonly params: Promise<{
@@ -95,6 +96,16 @@ export default async function FriendsGroup(props : Props){
     bettingData[tournament.id] = { config, payments };
   }
 
+  // Fetch score history per tournament for the History tab
+  const historyByTournament = Object.fromEntries(
+    await Promise.all(
+      tournaments.map(async (tournament) => [
+        tournament.id,
+        await getScoreHistoryForGroup(prodeGroup.id, tournament.id),
+      ])
+    )
+  );
+
   return (
     <Box>
       {searchParams.hasOwnProperty('debug') && (
@@ -166,6 +177,7 @@ export default async function FriendsGroup(props : Props){
               joinUrl={shareJoinUrl}
               themeColor={prodeGroup.theme?.primary_color ?? undefined}
               tournamentBadgeConfigs={tournamentBadgeConfigs}
+              historyByTournament={historyByTournament}
             />
           </Grid>
           {(prodeGroup.owner_user_id === user.id || members.find(m => m.id === user.id)?.is_admin) && (
