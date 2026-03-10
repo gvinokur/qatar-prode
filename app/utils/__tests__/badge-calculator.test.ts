@@ -25,6 +25,7 @@ function makeUser(overrides: Partial<UserBadgeInput> & { userId: string }): User
 }
 
 const defaultConfig: TournamentBadgeConfig = {
+  tournamentStarted: true,
   championPoints: 5,
   runnerUpPoints: 3,
   thirdPlacePoints: 1,
@@ -352,6 +353,7 @@ describe('calculateBadges', () => {
 
       // u1 is neither first nor last, no other badge criteria met
       const config: TournamentBadgeConfig = {
+        tournamentStarted: true,
         championPoints: 0,
         runnerUpPoints: 0,
         thirdPlacePoints: 0,
@@ -375,6 +377,41 @@ describe('calculateBadges', () => {
 
       expect(getBadgeIds(users, defaultConfig, 'u1')).toContain('sharp');
       expect(getBadgeIds(users, defaultConfig, 'u3')).toContain('broken-sight');
+    });
+  });
+
+  describe('tournamentStarted guard', () => {
+    it('returns no badges for any user when tournamentStarted = false', () => {
+      const users = [
+        makeUser({ userId: 'u1', rank: 1 }),
+        makeUser({ userId: 'u2', rank: 2 }),
+      ];
+      const config: TournamentBadgeConfig = { ...defaultConfig, tournamentStarted: false };
+      const result = calculateBadges(users, config);
+      result.forEach((badges) => expect(badges).toHaveLength(0));
+    });
+  });
+
+  describe('wooden-spoon (🥄) qualified teams scoring', () => {
+    it('does not award WoodenSpoon when all users have qualifiedTeamsCorrect = 0', () => {
+      const users = [
+        makeUser({ userId: 'u1', qualifiedTeamsCorrect: 0 }),
+        makeUser({ userId: 'u2', qualifiedTeamsCorrect: 0 }),
+        makeUser({ userId: 'u3', qualifiedTeamsCorrect: 0 }),
+      ];
+      users.forEach((u) => {
+        expect(getBadgeIds(users, defaultConfig, u.userId)).not.toContain('wooden-spoon');
+      });
+    });
+
+    it('awards WoodenSpoon when at least one user has qualifiedTeamsCorrect > 0', () => {
+      const users = [
+        makeUser({ userId: 'u1', qualifiedTeamsCorrect: 0 }),
+        makeUser({ userId: 'u2', qualifiedTeamsCorrect: 4 }),
+        makeUser({ userId: 'u3', qualifiedTeamsCorrect: 2 }),
+      ];
+      expect(getBadgeIds(users, defaultConfig, 'u1')).toContain('wooden-spoon');
+      expect(getBadgeIds(users, defaultConfig, 'u2')).not.toContain('wooden-spoon');
     });
   });
 

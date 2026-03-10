@@ -36,6 +36,8 @@ export interface Badge {
  * Default points (5, 3, 1) match updateTournamentHonorRoll in backoffice-actions.ts.
  */
 export interface TournamentBadgeConfig {
+  /** false = skip all badges (tournament hasn't started yet) */
+  tournamentStarted: boolean
   /** 0 = no Crystal Ball / Oracle badges */
   championPoints: number
   runnerUpPoints: number
@@ -213,6 +215,10 @@ const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
     type: 'negative',
     apply: (users, config) => {
       if (config.totalQualifyingSlots <= 0) return []
+      // Only award when at least one user has actually scored qualified teams correctly
+      // (prevents awarding when qualified teams haven't been scored yet — all users at 0)
+      const maxCorrect = Math.max(...users.map((u) => u.qualifiedTeamsCorrect))
+      if (maxCorrect <= 0) return []
       const min = Math.min(...users.map((u) => u.qualifiedTeamsCorrect))
       return users.filter((u) => u.qualifiedTeamsCorrect === min).map((u) => u.userId)
     },
@@ -245,6 +251,9 @@ export function calculateBadges(
 ): Map<string, Badge[]> {
   const badgesByUser = new Map<string, Badge[]>()
   users.forEach((u) => badgesByUser.set(u.userId, []))
+
+  // Skip all badges if the tournament hasn't started yet
+  if (!config.tournamentStarted) return badgesByUser
 
   for (const id of ORDERED_BADGE_IDS) {
     const def = BADGE_DEFINITIONS[id]

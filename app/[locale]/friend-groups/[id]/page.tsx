@@ -17,6 +17,7 @@ import { getGroupTournamentBettingConfigAction, getGroupTournamentBettingPayment
 import LeaveGroupButton from '../../../components/friend-groups/leave-group-button';
 import { getUserScoresForTournament } from "../../../actions/prode-group-actions";
 import { findQualifiedTeams } from "../../../db/team-repository";
+import { getTournamentStartDate } from "../../../actions/tournament-actions";
 import { generateShortUrlForGroup } from '../../../actions/short-url-actions';
 import type { TournamentBadgeConfig } from "../../../components/leaderboard/types";
 
@@ -47,14 +48,17 @@ export default async function FriendsGroup(props : Props){
 
   const users = await findUsersByIds(allParticipants)
   const usersMap = toMap(users)
-  // Calculate user scores and qualified teams for each active tournament (in parallel per-tournament)
+  // Calculate user scores, qualified teams, and start date for each active tournament (in parallel per-tournament)
+  const now = new Date()
   const tournamentData = await Promise.all(
     tournaments.map(async (tournament) => {
-      const [scores, qualifiedTeamsResult] = await Promise.all([
+      const [scores, qualifiedTeamsResult, tournamentStartDate] = await Promise.all([
         getUserScoresForTournament(allParticipants, tournament.id),
         findQualifiedTeams(tournament.id),
+        getTournamentStartDate(tournament.id),
       ])
       const badgeConfig: TournamentBadgeConfig = {
+        tournamentStarted: now >= tournamentStartDate,
         championPoints: tournament.champion_points ?? 5,
         runnerUpPoints: tournament.runner_up_points ?? 3,
         thirdPlacePoints: tournament.third_place_points ?? 1,

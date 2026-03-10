@@ -19,6 +19,7 @@ import {getThemeLogoUrl} from "../../../../../utils/theme-utils";
 import { getGroupTournamentBettingConfigAction, getGroupTournamentBettingPaymentsAction } from '../../../../../actions/group-tournament-betting-actions';
 import LeaveGroupButton from '../../../../../components/friend-groups/leave-group-button';
 import { getUserScoresForTournament } from "../../../../../actions/prode-group-actions";
+import { getTournamentStartDate } from "../../../../../actions/tournament-actions";
 import { findQualifiedTeams } from "../../../../../db/team-repository";
 import { getGroupJoinRequests, getPendingRequestCount } from "../../../../../actions/prode-group-join-request-actions";
 import type { TournamentBadgeConfig } from "../../../../../components/leaderboard/types";
@@ -89,10 +90,11 @@ export default async function TournamentScopedFriendGroup(props : Props){
   const users = await findUsersByIds(allParticipants)
   const usersMap = toMap(users)
 
-  // Get scores and qualified teams in parallel for badge config
-  const [userScores, qualifiedTeamsResult] = await Promise.all([
+  // Get scores, qualified teams, and tournament start date in parallel for badge config
+  const [userScores, qualifiedTeamsResult, tournamentStartDate] = await Promise.all([
     getUserScoresForTournament(allParticipants, tournament.id),
     findQualifiedTeams(tournament.id),
+    getTournamentStartDate(tournament.id),
   ])
   const userScoresByTournament = {
     [tournament.id]: userScores
@@ -101,6 +103,7 @@ export default async function TournamentScopedFriendGroup(props : Props){
   // Build badge config from tournament settings + qualified teams count
   // Default points (5, 3, 1) match updateTournamentHonorRoll in backoffice-actions.ts
   const tournamentBadgeConfig: TournamentBadgeConfig = {
+    tournamentStarted: new Date() >= tournamentStartDate,
     championPoints: tournament.champion_points ?? 5,
     runnerUpPoints: tournament.runner_up_points ?? 3,
     thirdPlacePoints: tournament.third_place_points ?? 1,
