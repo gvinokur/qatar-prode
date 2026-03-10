@@ -1,6 +1,5 @@
 'use server'
 
-import { findParticipantsInGroup, findProdeGroupById } from '../db/prode-group-repository';
 import { findUsersByIds } from '../db/users-repository';
 import { getScoreHistoryForUsers } from '../db/score-history-repository';
 import { findFirstGameInTournament, findLastGameInTournament } from '../db/game-repository';
@@ -80,23 +79,14 @@ function computeRanksForDate(
  * rank calculation (sparse history — connectNulls=false in charts).
  */
 export async function getScoreHistoryForGroup(
-  groupId: string,
+  userIds: string[],
   tournamentId: string
 ): Promise<ScoreHistoryResult> {
-  // 1. Resolve current group members (participants + owner, who may not be in participants table)
-  const [group, participants] = await Promise.all([
-    findProdeGroupById(groupId),
-    findParticipantsInGroup(groupId),
-  ]);
-  const participantIds = participants.map((p) => p.user_id);
-  const ownerIds = group?.owner_user_id ? [group.owner_user_id] : [];
-  const userIds = [...new Set([...ownerIds, ...participantIds])];
-
   if (userIds.length === 0) {
     return { userHistories: [], tournamentStartDate: null, tournamentEndDate: null, isEmpty: true };
   }
 
-  // 2. Fetch display names
+  // 1. Fetch display names
   const users = await findUsersByIds(userIds);
   const displayNameByUserId = new Map(
     users.map((u) => [u.id, u.nickname ?? u.email])

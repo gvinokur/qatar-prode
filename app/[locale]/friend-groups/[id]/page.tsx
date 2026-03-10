@@ -101,7 +101,7 @@ export default async function FriendsGroup(props : Props){
     await Promise.all(
       tournaments.map(async (tournament) => [
         tournament.id,
-        await getScoreHistoryForGroup(prodeGroup.id, tournament.id),
+        await getScoreHistoryForGroup(allParticipants, tournament.id),
       ])
     )
   );
