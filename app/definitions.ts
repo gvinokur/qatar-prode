@@ -78,6 +78,12 @@ export interface UserScore {
   groupBoostBonus: number,      // Bonus from boosted group stage games
   playoffBoostBonus: number,    // Bonus from boosted playoff games
   totalBoostBonus: number,      // Total bonus (group + playoff)
+  // Badge-related fields
+  totalExactGuesses: number,    // Count of exact score predictions
+  totalCorrectGuesses: number,  // Count of correct result predictions
+  qualifiedTeamsCorrect: number, // Count of correctly predicted qualified teams
+  boostsUsed: number,           // Count of locked games where boost was applied
+  scoredBoosts: number,         // Count of locked boosted games where score > 0
 }
 
 export interface ExtendedPlayerData extends Player{

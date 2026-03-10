@@ -44,6 +44,10 @@ vi.mock('@/app/db/users-repository', () => ({
   findUsersByIds: vi.fn(),
 }));
 
+vi.mock('@/app/db/team-repository', () => ({
+  findQualifiedTeams: vi.fn().mockResolvedValue({ teams: [] }),
+}));
+
 // Mock theme utils
 vi.mock('@/app/utils/theme-utils', () => ({
   getThemeLogoUrl: vi.fn().mockReturnValue('https://example.com/logo.png'),

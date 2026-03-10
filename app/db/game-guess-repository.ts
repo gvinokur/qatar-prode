@@ -440,6 +440,47 @@ export async function getPredictionDashboardStats(
 }
 
 /**
+ * Get boost stats for multiple users in a tournament (for badge calculation).
+ * Only counts locked games (game has a result OR game_date < NOW()).
+ * boosts_used: COUNT where boost_type IS NOT NULL AND game is locked
+ * scored_boosts: COUNT where boost_type IS NOT NULL AND game is locked AND game_guesses.score > 0
+ */
+export async function getBoostStatsForUsersInTournament(
+  userIds: string[],
+  tournamentId: string
+): Promise<Array<{ user_id: string; boosts_used: number; scored_boosts: number }>> {
+  if (userIds.length === 0) return [];
+
+  const rows = await db
+    .selectFrom('game_guesses as gg')
+    .innerJoin('games as g', 'g.id', 'gg.game_id')
+    .leftJoin('game_results as gr', 'gr.game_id', 'g.id')
+    .where('gg.user_id', 'in', userIds)
+    .where('g.tournament_id', '=', tournamentId)
+    .where('gg.boost_type', 'is not', null)
+    .where((eb) => eb.or([
+      eb('gr.home_score', 'is not', null),
+      eb('g.game_date', '<', sql<Date>`NOW()`)
+    ]))
+    .select('gg.user_id')
+    .select((eb) => [
+      eb.fn.countAll<number>().as('boosts_used'),
+      eb.fn
+        .count<number>('gg.id')
+        .filterWhere('gg.score', '>', 0)
+        .as('scored_boosts'),
+    ])
+    .groupBy('gg.user_id')
+    .execute();
+
+  return rows.map((row) => ({
+    user_id: row.user_id,
+    boosts_used: Number(row.boosts_used),
+    scored_boosts: Number(row.scored_boosts),
+  }));
+}
+
+/**
  * Get boost allocation breakdown by group and playoff stages
  * Returns how boosts are distributed across tournament groups and playoff games
  * Also includes performance metrics (scored games and points earned)

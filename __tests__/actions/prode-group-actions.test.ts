@@ -46,6 +46,7 @@ const mockUpdateParticipantAdminStatus = vi.mocked(prodeGroupRepository.updatePa
 const mockDeleteParticipantFromGroup = vi.mocked(prodeGroupRepository.deleteParticipantFromGroup);
 const mockFindParticipantsInGroup = vi.mocked(prodeGroupRepository.findParticipantsInGroup);
 const mockGetGameGuessStatisticsForUsers = vi.mocked(gameGuessRepository.getGameGuessStatisticsForUsers);
+const mockGetBoostStatsForUsersInTournament = vi.mocked(gameGuessRepository.getBoostStatsForUsersInTournament);
 const mockFindTournamentGuessByUserIdsTournament = vi.mocked(tournamentGuessRepository.findTournamentGuessByUserIdsTournament);
 const mockCustomToMap = vi.mocked(objectUtils.customToMap);
 const mockCreateS3Client = vi.mocked(s3.createS3Client);
@@ -111,7 +112,10 @@ describe('Prode Group Actions', () => {
     honor_roll_score: 3,
     individual_awards_score: 4,
     qualified_teams_score: 2,
-    group_position_score: 1
+    group_position_score: 1,
+    total_exact_guesses: 5,
+    total_correct_guesses: 10,
+    qualified_teams_correct: 3,
   } as any;
 
   beforeEach(() => {
@@ -129,18 +133,24 @@ describe('Prode Group Actions', () => {
     mockDeleteParticipantFromGroup.mockResolvedValue([mockParticipant]);
     mockFindParticipantsInGroup.mockResolvedValue([mockParticipant]);
     mockGetGameGuessStatisticsForUsers.mockResolvedValue([mockGameStatistic]);
+    mockGetBoostStatsForUsersInTournament.mockResolvedValue([{ user_id: 'user1', boosts_used: 2, scored_boosts: 1 }]);
     mockFindTournamentGuessByUserIdsTournament.mockResolvedValue([mockTournamentGuess]);
     mockFindJoinRequestsByUser.mockResolvedValue([]);
     mockCustomToMap.mockImplementation((data: any[], _keyExtractor: any) => {
-      if (data.length > 0 && 'group_score' in data[0]) {
+      if (data && data.length > 0 && 'group_score' in data[0]) {
         // Game statistics data
-        return { 
+        return {
           user1: mockGameStatistic
         };
-      } else if (data.length > 0 && 'qualified_teams_score' in data[0]) {
+      } else if (data && data.length > 0 && 'qualified_teams_score' in data[0]) {
         // Tournament guesses data
-        return { 
+        return {
           user1: mockTournamentGuess
+        };
+      } else if (data && data.length > 0 && 'boosts_used' in data[0]) {
+        // Boost stats data
+        return {
+          user1: { user_id: 'user1', boosts_used: 2, scored_boosts: 1 }
         };
       }
       return {};
@@ -317,7 +327,12 @@ describe('Prode Group Actions', () => {
           playoffBoostBonus: 1,
           totalBoostBonus: 3,
           totalPoints: 28,  // 15 (total_score) + 3 (total_boost_bonus) + 2 + 3 + 4 + 1 = 28
-          yesterdayTotalPoints: 0  // 0 + 0 (yesterday totals)
+          yesterdayTotalPoints: 0,  // 0 + 0 (yesterday totals)
+          totalExactGuesses: 5,
+          totalCorrectGuesses: 10,
+          qualifiedTeamsCorrect: 3,
+          boostsUsed: 2,
+          scoredBoosts: 1,
         }
       ]);
     });
@@ -325,7 +340,7 @@ describe('Prode Group Actions', () => {
     it('handles missing game statistics gracefully', async () => {
       mockGetGameGuessStatisticsForUsers.mockResolvedValue([]);
       mockFindTournamentGuessByUserIdsTournament.mockResolvedValue([mockTournamentGuess]);
-      mockCustomToMap.mockReturnValueOnce({}).mockReturnValueOnce({ 'user1': mockTournamentGuess });
+      mockCustomToMap.mockReturnValueOnce({}).mockReturnValueOnce({ 'user1': mockTournamentGuess }).mockReturnValueOnce({});
 
       const result = await getUserScoresForTournament(['user1'], 'tournament1');
 
@@ -341,14 +356,19 @@ describe('Prode Group Actions', () => {
         playoffBoostBonus: 0,
         totalBoostBonus: 0,
         totalPoints: 10,  // 0 (total_score) + 0 (total_boost_bonus) + 2 + 3 + 4 + 1 = 10
-        yesterdayTotalPoints: 0
+        yesterdayTotalPoints: 0,
+        totalExactGuesses: 5,
+        totalCorrectGuesses: 10,
+        qualifiedTeamsCorrect: 3,
+        boostsUsed: 0,
+        scoredBoosts: 0,
       });
     });
 
     it('handles missing tournament guesses gracefully', async () => {
       mockGetGameGuessStatisticsForUsers.mockResolvedValue([mockGameStatistic]);
       mockFindTournamentGuessByUserIdsTournament.mockResolvedValue([]);
-      mockCustomToMap.mockReturnValueOnce({ 'user1': mockGameStatistic }).mockReturnValueOnce({});
+      mockCustomToMap.mockReturnValueOnce({ 'user1': mockGameStatistic }).mockReturnValueOnce({}).mockReturnValueOnce({});
 
       const result = await getUserScoresForTournament(['user1'], 'tournament1');
 
@@ -364,7 +384,12 @@ describe('Prode Group Actions', () => {
         playoffBoostBonus: 1,
         totalBoostBonus: 3,
         totalPoints: 18,  // 15 (total_score) + 3 (total_boost_bonus) + 0 + 0 + 0 + 0 = 18
-        yesterdayTotalPoints: 0
+        yesterdayTotalPoints: 0,
+        totalExactGuesses: 0,
+        totalCorrectGuesses: 0,
+        qualifiedTeamsCorrect: 0,
+        boostsUsed: 0,
+        scoredBoosts: 0,
       });
     });
 
@@ -378,7 +403,7 @@ describe('Prode Group Actions', () => {
 
       mockGetGameGuessStatisticsForUsers.mockResolvedValue([gameStatWithoutBonus]);
       mockFindTournamentGuessByUserIdsTournament.mockResolvedValue([mockTournamentGuess]);
-      mockCustomToMap.mockReturnValueOnce({ 'user1': gameStatWithoutBonus }).mockReturnValueOnce({ 'user1': mockTournamentGuess });
+      mockCustomToMap.mockReturnValueOnce({ 'user1': gameStatWithoutBonus }).mockReturnValueOnce({ 'user1': mockTournamentGuess }).mockReturnValueOnce({});
 
       const result = await getUserScoresForTournament(['user1'], 'tournament1');
 

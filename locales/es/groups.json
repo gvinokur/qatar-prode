@@ -492,5 +492,56 @@
         }
       }
     }
+  },
+  "badges": {
+    "sectionLabel": "Insignias",
+    "crack": {
+      "name": "El Crack",
+      "description": "Actualmente #1 en el grupo"
+    },
+    "rocket": {
+      "name": "Cohete",
+      "description": "Más puestos ganados hoy"
+    },
+    "sharp": {
+      "name": "Ojo de Águila",
+      "description": "Top 10% en predicciones exactas del grupo"
+    },
+    "crystal-ball": {
+      "name": "Bola de Cristal",
+      "description": "Predijo correctamente al campeón"
+    },
+    "oracle": {
+      "name": "Oráculo",
+      "description": "Predijo correctamente al campeón, subcampeón y tercer lugar"
+    },
+    "award-scout": {
+      "name": "Cazatalentos",
+      "description": "Acertó 3+ premios individuales"
+    },
+    "golden-ticket": {
+      "name": "Boleto Dorado",
+      "description": "Predijo correctamente el 70%+ de los equipos clasificados"
+    },
+    "boost-king": {
+      "name": "Rey del Boost",
+      "description": "Mejor tasa de éxito con boosts en el grupo"
+    },
+    "free-fall": {
+      "name": "Caída Libre",
+      "description": "Más puestos perdidos hoy"
+    },
+    "dead-last": {
+      "name": "Último del Grupo",
+      "description": "Actualmente en el último lugar"
+    },
+    "broken-sight": {
+      "name": "Vista Rota",
+      "description": "Bottom 10% en predicciones exactas del grupo"
+    },
+    "wooden-spoon": {
+      "name": "Cuchara de Palo",
+      "description": "Predijo la menor cantidad de equipos clasificados correctamente"
+    }
   }
 }

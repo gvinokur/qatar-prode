@@ -19,7 +19,9 @@ import {getThemeLogoUrl} from "../../../../../utils/theme-utils";
 import { getGroupTournamentBettingConfigAction, getGroupTournamentBettingPaymentsAction } from '../../../../../actions/group-tournament-betting-actions';
 import LeaveGroupButton from '../../../../../components/friend-groups/leave-group-button';
 import { getUserScoresForTournament } from "../../../../../actions/prode-group-actions";
+import { findQualifiedTeams } from "../../../../../db/team-repository";
 import { getGroupJoinRequests, getPendingRequestCount } from "../../../../../actions/prode-group-join-request-actions";
+import type { TournamentBadgeConfig } from "../../../../../components/leaderboard/types";
 import PendingRequestView from "../../../../../components/friend-groups/pending-request-view";
 import AdminTabs from "../../../../../components/friend-groups/admin-tabs";
 import PrivacyIndicatorIcon from "../../../../../components/friend-groups/privacy-indicator-icon";
@@ -87,11 +89,25 @@ export default async function TournamentScopedFriendGroup(props : Props){
   const users = await findUsersByIds(allParticipants)
   const usersMap = toMap(users)
 
-  // Get scores only for this tournament
-  const userScores = await getUserScoresForTournament(allParticipants, tournament.id)
+  // Get scores and qualified teams in parallel for badge config
+  const [userScores, qualifiedTeamsResult] = await Promise.all([
+    getUserScoresForTournament(allParticipants, tournament.id),
+    findQualifiedTeams(tournament.id),
+  ])
   const userScoresByTournament = {
     [tournament.id]: userScores
   }
+
+  // Build badge config from tournament settings + qualified teams count
+  // Default points (5, 3, 1) match updateTournamentHonorRoll in backoffice-actions.ts
+  const tournamentBadgeConfig: TournamentBadgeConfig = {
+    championPoints: tournament.champion_points ?? 5,
+    runnerUpPoints: tournament.runner_up_points ?? 3,
+    thirdPlacePoints: tournament.third_place_points ?? 1,
+    individualAwardPoints: tournament.individual_award_points ?? 0,
+    totalQualifyingSlots: qualifiedTeamsResult.teams.length,
+  }
+  const tournamentBadgeConfigs = { [tournament.id]: tournamentBadgeConfig }
 
   let logoUrl = getThemeLogoUrl(prodeGroup.theme)
 
@@ -223,6 +239,7 @@ export default async function TournamentScopedFriendGroup(props : Props){
                 groupName={prodeGroup.name}
                 joinUrl={shareJoinUrl}
                 themeColor={prodeGroup.theme?.primary_color ?? undefined}
+                tournamentBadgeConfigs={tournamentBadgeConfigs}
               />
             }
             adminContent={

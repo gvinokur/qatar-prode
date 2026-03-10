@@ -492,5 +492,56 @@
         }
       }
     }
+  },
+  "badges": {
+    "sectionLabel": "Badges",
+    "crack": {
+      "name": "Top Dog",
+      "description": "Currently #1 in the group"
+    },
+    "rocket": {
+      "name": "Rocket",
+      "description": "Most rank places gained today"
+    },
+    "sharp": {
+      "name": "Sharp",
+      "description": "Top 10% by exact predictions in the group"
+    },
+    "crystal-ball": {
+      "name": "Crystal Ball",
+      "description": "Predicted the champion correctly"
+    },
+    "oracle": {
+      "name": "Oracle",
+      "description": "Predicted champion, runner-up, and third place correctly"
+    },
+    "award-scout": {
+      "name": "Scout",
+      "description": "Nailed 3+ individual award predictions"
+    },
+    "golden-ticket": {
+      "name": "Golden Ticket",
+      "description": "Correctly predicted 70%+ of qualified teams"
+    },
+    "boost-king": {
+      "name": "Boost King",
+      "description": "Best boost success rate in the group"
+    },
+    "free-fall": {
+      "name": "Free Fall",
+      "description": "Most rank places lost today"
+    },
+    "dead-last": {
+      "name": "Dead Last",
+      "description": "Currently in last place"
+    },
+    "broken-sight": {
+      "name": "Broken Sight",
+      "description": "Bottom 10% by exact predictions in the group"
+    },
+    "wooden-spoon": {
+      "name": "Wooden Spoon",
+      "description": "Predicted the fewest qualified teams correctly"
+    }
   }
 }

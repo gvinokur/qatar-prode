@@ -5,6 +5,8 @@ import { Box, Typography } from '@mui/material'
 import { useTranslations } from 'next-intl'
 import ShareTemplateBase from './ShareTemplateBase'
 import { getAvatarColor, getUserInitials } from '../../../utils/avatar-utils'
+import { BadgeRow } from '../../leaderboard/BadgeRow'
+import type { Badge } from '../../leaderboard/types'
 
 const WIN_COLOR = '#2e7d32'
 const LOSE_COLOR = '#757575'
@@ -28,6 +30,8 @@ export interface HeadToHeadTemplateProps {
   readonly theirUserId: string
   readonly theirStats: UserStats
   readonly themeColor?: string
+  readonly myBadges?: Badge[]
+  readonly theirBadges?: Badge[]
 }
 
 interface StatRowProps {
@@ -145,6 +149,8 @@ const HeadToHeadTemplate = React.forwardRef<HTMLDivElement, HeadToHeadTemplatePr
       theirUserId,
       theirStats,
       themeColor = '#1976d2',
+      myBadges = [],
+      theirBadges = [],
     },
     ref
   ) {
@@ -172,12 +178,22 @@ const HeadToHeadTemplate = React.forwardRef<HTMLDivElement, HeadToHeadTemplatePr
           <Box sx={{ display: 'flex', alignItems: 'center', px: 2.5, py: 1.5 }}>
             <Box sx={{ flex: 1 }}>
               <AvatarCircle userId={myUserId} name={myName} rank={myRank} align="left" />
+              {myBadges.length > 0 && (
+                <Box sx={{ mt: 0.5 }}>
+                  <BadgeRow badges={myBadges} sizePx={17} context="share" justify="flex-start" maxDisplay={6} />
+                </Box>
+              )}
             </Box>
             <Typography sx={{ fontSize: 18, color: '#cccccc', fontWeight: 'bold', fontFamily: 'inherit' }}>
               vs
             </Typography>
-            <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
               <AvatarCircle userId={theirUserId} name={theirName} rank={theirRank} align="right" />
+              {theirBadges.length > 0 && (
+                <Box sx={{ mt: 0.5 }}>
+                  <BadgeRow badges={theirBadges} sizePx={17} context="share" justify="flex-end" maxDisplay={6} />
+                </Box>
+              )}
             </Box>
           </Box>
 

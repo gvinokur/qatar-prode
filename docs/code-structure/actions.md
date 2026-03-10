@@ -177,8 +177,8 @@ Friend group management — creation, membership, scoring, and theme updates.
   Calls: getLoggedInUser, findProdeGroupById, deleteParticipantFromGroup
 - **getUsersForGroup(groupId)**: `Promise<string[]>` — Gets all user IDs in a group.
   Calls: findProdeGroupById, findParticipantsInGroup
-- **getUserScoresForTournament(userIds, tournamentId)**: `Promise<UserScore[]>` — Calculates tournament scores for a set of users.
-  Calls: getGameGuessStatisticsForUsers, findTournamentGuessByUserIdsTournament
+- **getUserScoresForTournament(userIds, tournamentId)**: `Promise<UserScore[]>` — Calculates tournament scores for a set of users. Return shape extended with badge fields: totalExactGuesses, totalCorrectGuesses, qualifiedTeamsCorrect, boostsUsed, scoredBoosts.
+  Calls: getGameGuessStatisticsForUsers, findTournamentGuessByUserIdsTournament, getBoostStatsForUsersInTournament
 - **calculateTournamentGroupStats(groupId, tournamentId, userId)**: `Promise<TournamentGroupStats>` — Gets aggregated group stats for a tournament.
   Calls: findProdeGroupById, findParticipantsInGroup, getUserScoresForTournament, getGroupTournamentBettingConfig, findUsersByIds
 

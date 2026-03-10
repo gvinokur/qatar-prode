@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-09
+**Last updated:** 2026-03-10
 
 ---
 
@@ -11,7 +11,14 @@ Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index
 ### app/components/leaderboard/types.ts
 Type definitions for leaderboard UI including user stats, view props, card props, and rank change indicators.
 
-- **No default exports** — Type definitions only (LeaderboardUser, LeaderboardViewProps, LeaderboardCardsProps, LeaderboardCardProps, RankChangeIndicatorProps, LeaderboardShareHandle).
+- **No default exports** — Type definitions only (LeaderboardUser, LeaderboardViewProps, LeaderboardCardsProps, LeaderboardCardProps, RankChangeIndicatorProps, LeaderboardShareHandle). Re-exports Badge and TournamentBadgeConfig from badge-calculator.ts. LeaderboardUser now includes `badges?: Badge[]`. LeaderboardCardsProps and LeaderboardViewProps now include `tournamentBadgeConfig?: TournamentBadgeConfig`. LeaderboardCardProps now includes `badges?: Badge[]`.
+
+### app/components/leaderboard/BadgeRow.tsx
+Reusable badge display component rendering a flex row of emoji badges with tooltips.
+
+- **BadgeRow(props: BadgeRowProps)**: `JSX.Element | null` — [Client] Renders a flex row of emoji spans wrapped in MUI Tooltips. Returns null when badges array is empty. Negative badges styled with opacity (dark: 0.4, share: 0.35) + CSS grayscale filter in dark context only (omitted in share context for html-to-image compat).
+  Props: badges, sizePx (15|16|17|18|20), context ('dark'|'share'), justify?, maxDisplay?
+  Uses: useTranslations('groups.badges'), Tooltip, Box
 
 ### app/components/leaderboard/LeaderboardView.tsx
 Top-level client component that wraps user scores and delegates to LeaderboardCards for responsive display.
@@ -22,15 +29,15 @@ Top-level client component that wraps user scores and delegates to LeaderboardCa
 ### app/components/leaderboard/LeaderboardCard.tsx
 Expandable leaderboard card for individual user with collapsible detailed stats breakdown.
 
-- **LeaderboardCard(props: LeaderboardCardProps)**: `JSX.Element` — [Client] Displays user rank, name, avatar, total points, and toggle for detailed breakdown (group/knockout/tournament stats with boost bonuses). Includes compare and share highlight buttons.
-  Uses: useTheme, useTranslations('groups.leaderboard'), RankChangeIndicator
-  Renders: RankChangeIndicator
+- **LeaderboardCard(props: LeaderboardCardProps)**: `JSX.Element` — [Client] Displays user rank, name, avatar, total points, and toggle for detailed breakdown (group/knockout/tournament stats with boost bonuses). Includes compare and share highlight buttons. Collapsed view shows badges below points (16px, flex-end). Expanded view shows "Insignias" section with badges (20px).
+  Uses: useTheme, useTranslations('groups.leaderboard'), useTranslations('groups.badges'), RankChangeIndicator
+  Renders: RankChangeIndicator, BadgeRow
 
 ### app/components/leaderboard/LeaderboardCards.tsx
 Cards layout wrapper managing leaderboard state (expanded cards, comparisons, ranking animations). Implements sharing modal for leaderboard and personal highlights.
 
-- **LeaderboardCards(props: LeaderboardCardsProps)**: `JSX.Element` — [Client] Orchestrates leaderboard UI with expansion state, rank calculation with change indicators, head-to-head comparisons, and social sharing. Uses LayoutGroup for framer-motion animations. Renders off-screen LeaderboardTemplate and PersonalHighlightTemplate for image sharing.
-  Calls: calculateRanks, calculateRanksWithChange (rank-calculator)
+- **LeaderboardCards(props: LeaderboardCardsProps)**: `JSX.Element` — [Client] Orchestrates leaderboard UI with expansion state, rank calculation with change indicators, head-to-head comparisons, and social sharing. Uses LayoutGroup for framer-motion animations. Renders off-screen LeaderboardTemplate and PersonalHighlightTemplate for image sharing. Computes badgeMap via useMemo from calculateBadges and passes Badge[] to all children.
+  Calls: calculateRanks, calculateRanksWithChange (rank-calculator), calculateBadges (badge-calculator)
   Uses: useTranslations('groups.sharing'), useState, useMemo, useCallback, createPortal
   Renders: LeaderboardCard, HeadToHeadDialog, SharePreviewModal, LeaderboardTemplate, PersonalHighlightTemplate
 
@@ -72,10 +79,10 @@ Advanced animation utilities for rank transitions and celebration effects.
 ### app/components/leaderboard/HeadToHeadDialog.tsx
 Modal dialog for head-to-head comparison between two users across multiple metrics.
 
-- **HeadToHeadDialog(props: HeadToHeadDialogProps)**: `JSX.Element` — [Client] Displays comparative stats (total points, group/playoff breakdown, accuracy metrics). Fetches data with useTransition. Includes sharing template for image export. Shows loading, error, or metric comparison with advantage highlights.
+- **HeadToHeadDialog(props: HeadToHeadDialogProps)**: `JSX.Element` — [Client] Displays comparative stats (total points, group/playoff breakdown, accuracy metrics). Fetches data with useTransition. Includes sharing template for image export. Shows loading, error, or metric comparison with advantage highlights. Accepts currentUserBadges and opponentBadges; renders BadgeRow for each player in header and passes badges to HeadToHeadTemplate.
   Calls: getUserStatsForComparison
   Uses: useTransition, useState, useEffect, useTheme, useMediaQuery, useTranslations, createPortal
-  Renders: MetricRow, SectionHeader, HeadToHeadTemplate, SharePreviewModal
+  Renders: MetricRow, SectionHeader, HeadToHeadTemplate, SharePreviewModal, BadgeRow
 
 ### app/components/tournament-stats/stats-tabs.tsx
 Tab container for tournament stats (performance, accuracy, boosts) with scroll shadow support.

@@ -5,6 +5,8 @@ import { Box, Typography } from '@mui/material'
 import { QRCodeSVG } from 'qrcode.react'
 import { useTranslations } from 'next-intl'
 import ShareTemplateBase from './ShareTemplateBase'
+import { BadgeRow } from '../../leaderboard/BadgeRow'
+import type { Badge } from '../../leaderboard/types'
 
 const ACCENT_DEFAULT = '#1976d2'
 
@@ -22,6 +24,7 @@ export interface LeaderboardTemplateUser {
   readonly userId: string
   readonly points: number
   readonly isCurrentUser: boolean
+  readonly badges?: Badge[]
 }
 
 export interface LeaderboardTemplateProps {
@@ -117,17 +120,27 @@ const LeaderboardTemplate = React.forwardRef<HTMLDivElement, LeaderboardTemplate
                   >
                     {user.isCurrentUser ? t('you') : user.name}
                   </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: 14,
-                      fontWeight: user.isCurrentUser ? 'bold' : 'normal',
-                      color: user.isCurrentUser ? themeColor : '#424242',
-                      fontFamily: 'inherit',
-                      flexShrink: 0,
-                    }}
-                  >
-                    {user.points.toLocaleString()} {t('pts')}
-                  </Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', flexShrink: 0 }}>
+                    <Typography
+                      sx={{
+                        fontSize: 14,
+                        fontWeight: user.isCurrentUser ? 'bold' : 'normal',
+                        color: user.isCurrentUser ? themeColor : '#424242',
+                        fontFamily: 'inherit',
+                      }}
+                    >
+                      {user.points.toLocaleString()} {t('pts')}
+                    </Typography>
+                    {user.badges && user.badges.length > 0 && (
+                      <BadgeRow
+                        badges={user.badges}
+                        sizePx={15}
+                        context="share"
+                        justify="flex-end"
+                        maxDisplay={6}
+                      />
+                    )}
+                  </Box>
                 </Box>
               )
             })}

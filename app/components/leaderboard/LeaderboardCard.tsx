@@ -19,6 +19,7 @@ import ShareIcon from '@mui/icons-material/Share'
 import { motion } from 'framer-motion'
 import type { LeaderboardCardProps } from './types'
 import { RankChangeIndicator } from './rank-change-animations'
+import { BadgeRow } from './BadgeRow'
 import { useTranslations } from 'next-intl'
 import { getAvatarColor, getUserInitials } from '../../utils/avatar-utils'
 
@@ -31,9 +32,11 @@ export default function LeaderboardCard({
   onToggle,
   onCompare,
   onShareHighlight,
+  badges = [],
 }: LeaderboardCardProps) {
   const theme = useTheme()
   const t = useTranslations('groups.leaderboard')
+  const tBadges = useTranslations('groups.badges')
 
   // Truncate long names
   const displayName = user.name.length > 25
@@ -130,14 +133,21 @@ export default function LeaderboardCard({
             {isCurrentUser ? 'You' : displayName}
           </Typography>
 
-          {/* Points */}
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{ fontWeight: 'bold' }}
-          >
-            {user.totalPoints.toLocaleString()} pts
-          </Typography>
+          {/* Points + Badges (stacked column on right side) */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+            <Typography
+              variant="h6"
+              component="div"
+              sx={{ fontWeight: 'bold' }}
+            >
+              {user.totalPoints.toLocaleString()} pts
+            </Typography>
+            {badges.length > 0 && (
+              <Box sx={{ mt: '5px' }}>
+                <BadgeRow badges={badges} sizePx={16} context="dark" justify="flex-end" />
+              </Box>
+            )}
+          </Box>
 
           {/* Compare button (non-self cards only) */}
           {!isCurrentUser && onCompare && (
@@ -318,6 +328,29 @@ export default function LeaderboardCard({
               </Grid>
             </Grid>
           </Box>
+          {/* Badges / Insignias section */}
+          {badges.length > 0 && (
+            <>
+              <Divider sx={{ mt: 1.5 }} />
+              <Box sx={{ mt: 1 }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontWeight: 'bold',
+                    letterSpacing: '0.08em',
+                    color: 'text.secondary',
+                    textTransform: 'uppercase',
+                    display: 'block',
+                    mb: 0.5,
+                  }}
+                >
+                  {tBadges('sectionLabel')}
+                </Typography>
+                <BadgeRow badges={badges} sizePx={20} context="dark" />
+              </Box>
+            </>
+          )}
+
           <Typography
             variant="caption"
             color="text.secondary"
