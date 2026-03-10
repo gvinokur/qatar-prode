@@ -78,9 +78,11 @@ CREATE INDEX idx_score_history_tournament_users
 | `app/db/game-repository.ts` | Add `findLastGameInTournament` |
 | `app/db/tournament-guess-repository.ts` | Call `writeScoreSnapshot` inside `recalculateGameScoresForUsers` loop |
 | `app/actions/backoffice-actions.ts` | Call `writeScoreSnapshot` after `updateTournamentGuessWithSnapshot` at lines ~580, ~617 |
-| `app/components/leaderboard/LeaderboardView.tsx` | Add Standings/History tab switcher |
-| `app/components/leaderboard/types.ts` | Add `groupId` to `LeaderboardViewProps`; add history data types |
-| `app/components/friend-groups/friends-group-table.tsx` | Pass `groupId` to `LeaderboardView` |
+| `app/components/leaderboard/LeaderboardView.tsx` | Add Standings/History tab switcher; accept `historyData` prop |
+| `app/components/leaderboard/types.ts` | Add `historyData?: ScoreHistoryResult` to `LeaderboardViewProps`; add history data types |
+| `app/components/friend-groups/friends-group-table.tsx` | Accept `historyByTournament` prop; pass per-tournament `historyData` to `LeaderboardView` |
+| `app/[locale]/tournaments/[id]/friend-groups/[group_id]/page.tsx` | Call `getScoreHistoryForGroup` per tournament; pass to `ProdeGroupTable` |
+| `app/[locale]/friend-groups/[id]/page.tsx` | Same — call `getScoreHistoryForGroup` per tournament; pass to `ProdeGroupTable` |
 | `locales/en/groups.json` + `locales/es/groups.json` | Add `history` translation keys |
 | `package.json` | Add `recharts` |
 | `docs/code-structure/db.md`, `actions.md`, `components-leaderboard-stats.md`, `components-friend-groups.md` | Update per CODE-STRUCTURE rules |
@@ -97,9 +99,11 @@ CREATE INDEX idx_score_history_tournament_users
 - **Flow 2 (Game scoring pipeline)** — extend `recalculateGameScoresForUsers` to call `writeScoreSnapshot` inside its user loop after materialization
 
 **New flows:**
-- **Flow 5b (Score history — lazy loaded):**
-  `HistoryTab [Client] → getScoreHistoryForGroup [server action] → getScoreHistoryForUsers + findFirstGameInTournament + findLastGameInTournament`
-  `ScoreHistoryChart [renders], RankHistoryChart [renders]`
+- **Flow 5b (Score history — server-loaded):**
+  `TournamentScopedFriendGroup (Server) → getScoreHistoryForGroup [server action]`
+  `→ findParticipantsInGroup + getScoreHistoryForUsers + findFirstGameInTournament + findLastGameInTournament`
+  `→ ProdeGroupTable → LeaderboardView → HistoryTab [Client, presentational]`
+  `→ ScoreHistoryChart [renders], RankHistoryChart [renders]`
 - **Score write path:** `updateTournamentAwards / updateTournamentHonorRoll → updateTournamentGuessWithSnapshot → writeScoreSnapshot (NEW)`
 
 ---
@@ -255,33 +259,52 @@ After `updateTournamentGuessWithSnapshot` in both `updateTournamentAwards` (~lin
 
 ---
 
+### Data loading: Server Component (architectural decision)
+
+**Per PR feedback:** History data is loaded in the **Server Component** (friend group page), not lazily in the client. Rationale: badge calculations (Story C) will also need this data on the same page, so fetching server-side avoids a redundant client-side fetch later.
+
+**Data flow:**
+```
+TournamentScopedFriendGroup (Server)
+  ├── getScoreHistoryForGroup(groupId, tournamentId)  ← NEW call, per active tournament
+  └── ProdeGroupTable [renders]
+        └── LeaderboardView [renders]   ← receives historyData as prop
+              └── HistoryTab [renders]  ← pure presentational, no fetch
+```
+
+**`ProdeGroupTable`** gains a new prop: `historyByTournament: { [tournamentId: string]: ScoreHistoryResult }`. For each tournament tab, it passes `historyByTournament[tournament.id]` to `LeaderboardView`.
+
+**`LeaderboardViewProps`** gains: `historyData?: ScoreHistoryResult`
+
+---
+
 ### `app/components/leaderboard/LeaderboardView.tsx` *(modified)*
 
-Add MUI `TabContext / TabList / TabPanel` (same pattern as `ProdeGroupTable`). Default: "Standings" tab. "History" tab renders `<HistoryTab groupId={groupId} tournamentId={tournamentId} />` lazily (only mounts when tab is first selected).
+Add MUI `TabContext / TabList / TabPanel` (same pattern as `ProdeGroupTable`). Default: "Standings" tab. "History" tab renders `<HistoryTab historyData={historyData} />` — data pre-loaded, no client fetch.
 
-**Call site audit:** `LeaderboardView` is rendered only from `friends-group-table.tsx` (confirmed from `ProdeGroupTable`). No other call sites. Adding `groupId?: string` as optional to `LeaderboardViewProps` is backward-safe if ever called elsewhere without history support.
+**Call site audit:** Only rendered from `friends-group-table.tsx`. `historyData?: ScoreHistoryResult` is optional for backward safety.
 
 Tests:
 - Default tab is Standings (LeaderboardCards visible)
-- Clicking History tab renders HistoryTab
-- HistoryTab not mounted on initial render (lazy)
+- Clicking History tab renders HistoryTab with pre-loaded data
+- When `historyData` is undefined, History tab renders empty state
 
-**`recharts`:** Not currently installed in the project (verified via `package.json`). Install with `npm install recharts`. Bundle size impact: ~140kB gzipped — acceptable for a chart-heavy tab.
+**`recharts`:** Not currently installed. Install with `npm install recharts`. Bundle size ~200kB gzipped — acceptable.
 
 ---
 
 ### `app/components/leaderboard/HistoryTab.tsx` *(new)*
 
 ```typescript
-interface HistoryTabProps { groupId: string; tournamentId: string }
+interface HistoryTabProps { historyData?: ScoreHistoryResult }
 ```
 
-On mount: triggers `getScoreHistoryForGroup` using React 18 `useTransition` + `useEffect` (empty dep array, fires once). `isPending` drives skeleton display. This component is only mounted when the History tab is first clicked (lazy) — tab state is owned by `LeaderboardView`, which wraps both Standings and History tabs.
+Pure presentational — no data fetching. Renders immediately from props. If `historyData` is undefined or `isEmpty`: shows "no history" message. If data: renders `ScoreHistoryChart` + `RankHistoryChart`. Tab state owned by `LeaderboardView`.
 
 Tests:
-- Shows loading skeleton on mount (isPending = true)
-- Shows empty state when result `isEmpty: true`
-- Shows "not started" / no-history message when `tournamentStartDate` is null and no data
+- Shows empty state when `historyData` is undefined
+- Shows empty state when `historyData.isEmpty` is true
+- Shows "not started" message when `tournamentStartDate` is null
 - Renders both `ScoreHistoryChart` and `RankHistoryChart` when history data is available
 
 ---
@@ -432,7 +455,7 @@ Add under `groups.history` in both `locales/en/groups.json` and `locales/es/grou
 6. `score-history-actions.ts` — `getScoreHistoryForGroup`
 
 **Wave 4 — UI**
-7. `npm install recharts` (new production dependency, ~200kB gzipped). Charts are rendered inside a Client Component that is only mounted on tab switch — consider `dynamic(() => import('./ScoreHistoryChart'), { ssr: false })` for bundle optimization if needed. Add `groupId` to `LeaderboardViewProps`; pass from `ProdeGroupTable`.
+7. `npm install recharts` (new production dependency, ~200kB gzipped). Add `historyData?: ScoreHistoryResult` to `LeaderboardViewProps` + `historyByTournament` to `ProdeGroupTable` props. Update both friend group page Server Components to call `getScoreHistoryForGroup` per tournament and pass results down.
 8. `ScoreHistoryChart.tsx` + `RankHistoryChart.tsx`
 9. `HistoryTab.tsx`
 10. Modify `LeaderboardView.tsx` to add Standings/History tabs
