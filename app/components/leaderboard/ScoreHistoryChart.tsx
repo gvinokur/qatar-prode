@@ -10,7 +10,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { Typography, Box } from '@mui/material';
+import { Typography, Box, useTheme } from '@mui/material';
 import { useTranslations } from 'next-intl';
 
 export interface ScoreHistoryChartProps {
@@ -26,21 +26,18 @@ export interface ScoreHistoryChartProps {
 }
 
 /**
- * Convert a YYYYMMDD integer to a Date object (local time).
+ * Convert a YYYYMMDD integer to a Unix timestamp (ms).
+ * Using local time so ticks align with calendar dates.
  */
-function yyyymmddToDate(d: number): Date {
+function yyyymmddToMs(d: number): number {
   const year = Math.floor(d / 10000);
   const month = Math.floor((d % 10000) / 100) - 1;
   const day = d % 100;
-  return new Date(year, month, day);
+  return new Date(year, month, day).getTime();
 }
 
-/**
- * Format a YYYYMMDD date for X-axis tick display: "DD MMM".
- */
 function formatDateTick(value: number): string {
-  const date = yyyymmddToDate(value);
-  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+  return new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
 }
 
 // Palette of colors for non-current users
@@ -57,25 +54,29 @@ export default function ScoreHistoryChart({
   themeColor,
 }: ScoreHistoryChartProps) {
   const t = useTranslations('groups.history');
+  const theme = useTheme();
 
   if (userHistories.length === 0) return null;
 
-  // Build a unified list of all unique dates across all users (sorted asc)
   const allDates = Array.from(
     new Set(userHistories.flatMap((u) => u.data.map((d) => d.date)))
   ).sort((a, b) => a - b);
 
-  // Transform into recharts data: [{ date, [userId]: points, ... }]
+  // Use timestamps as the X axis key for proper time-proportional spacing
   const chartData = allDates.map((date) => {
-    const entry: Record<string, number | string> = { date };
+    const entry: Record<string, number> = { date: yyyymmddToMs(date) };
     for (const user of userHistories) {
       const point = user.data.find((d) => d.date === date);
-      if (point !== undefined) {
-        entry[user.userId] = point.totalPoints;
-      }
+      if (point !== undefined) entry[user.userId] = point.totalPoints;
     }
     return entry;
   });
+
+  const tooltipStyle = {
+    backgroundColor: theme.palette.background.paper,
+    border: `1px solid ${theme.palette.divider}`,
+    color: theme.palette.text.primary,
+  };
 
   return (
     <Box>
@@ -88,13 +89,14 @@ export default function ScoreHistoryChart({
           <XAxis
             dataKey="date"
             type="number"
-            domain={[startDate, endDate]}
+            domain={[yyyymmddToMs(startDate), yyyymmddToMs(endDate)]}
             tickFormatter={formatDateTick}
             scale="time"
             tick={{ fontSize: 11 }}
           />
           <YAxis tick={{ fontSize: 11 }} />
           <Tooltip
+            contentStyle={tooltipStyle}
             labelFormatter={(v) => formatDateTick(Number(v))}
             formatter={(value, name) => {
               const user = userHistories.find((u) => u.userId === name);

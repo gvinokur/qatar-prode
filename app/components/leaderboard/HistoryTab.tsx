@@ -1,6 +1,6 @@
 'use client'
 
-import { Box, Typography } from '@mui/material';
+import { Box, Card, CardContent, Typography } from '@mui/material';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import type { ScoreHistoryResult } from '../../actions/score-history-actions';
@@ -84,22 +84,30 @@ export default function HistoryTab({ historyData, themeColor }: HistoryTabProps)
   }));
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <ScoreHistoryChart
-        userHistories={scoreHistories}
-        currentUserId={currentUserId}
-        startDate={startDate}
-        endDate={endDate}
-        themeColor={themeColor}
-      />
-      <RankHistoryChart
-        userHistories={rankHistories}
-        currentUserId={currentUserId}
-        startDate={startDate}
-        endDate={endDate}
-        totalUsers={totalUsers}
-        themeColor={themeColor}
-      />
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
+      <Card variant="outlined">
+        <CardContent>
+          <ScoreHistoryChart
+            userHistories={scoreHistories}
+            currentUserId={currentUserId}
+            startDate={startDate}
+            endDate={endDate}
+            themeColor={themeColor}
+          />
+        </CardContent>
+      </Card>
+      <Card variant="outlined">
+        <CardContent>
+          <RankHistoryChart
+            userHistories={rankHistories}
+            currentUserId={currentUserId}
+            startDate={startDate}
+            endDate={endDate}
+            totalUsers={totalUsers}
+            themeColor={themeColor}
+          />
+        </CardContent>
+      </Card>
     </Box>
   );
 }
