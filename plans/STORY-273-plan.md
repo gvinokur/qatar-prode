@@ -391,11 +391,55 @@ export interface TournamentBadgeConfig {
 **Changed functions:**
 
 - **LeaderboardCard(props)** *(adds badges: Badge[] prop)*
-  Collapsed row: adds `<BadgeRow size="small" context="dark" badges={badges}>` in the right column below points using `flex-direction: column; align-items: flex-end`. Expanded "Insignias" section: adds section label + `<BadgeRow size="large" context="dark" badges={badges}>` at bottom of point breakdown.
+  Collapsed view: right column uses `flex-direction: column; align-items: flex-end` — points on top row, badges row below (16px, `gap: 4px`, `marginTop: '5px'`). Expanded "Insignias" section: divider + "INSIGNIAS" label + `<BadgeRow sizePx={20} context="dark">` at bottom of point breakdown.
   Tests:
-  - renders badge row with correct size in collapsed state
-  - renders Insignias section when expanded and badges exist
+  - renders badge row below points (not inline) in collapsed state
+  - renders Insignias section with 20px badges when expanded and badges non-empty
   - does not render Insignias section when badges array is empty
+
+---
+
+### `app/components/leaderboard/HeadToHeadDialog.tsx` *(modified)*
+
+**Changed functions:**
+
+- **HeadToHeadDialog(props)** *(adds currentUserBadges: Badge[], opponentBadges: Badge[])*
+  Receives pre-computed badge arrays from `LeaderboardCards` (not recalculated). Renders `<BadgeRow sizePx={18} context="dark" justify="flex-start" badges={currentUserBadges}>` below current user's name/rank in the dialog header. Renders `<BadgeRow sizePx={18} context="dark" justify="flex-end" badges={opponentBadges}>` for opponent. Passes both to `HeadToHeadTemplate` for image capture. Negative badges: `opacity: 0.38` + grayscale in dark context.
+  Tests:
+  - renders badge row for current user left-justified
+  - renders badge row for opponent right-justified
+  - passes badges to HeadToHeadTemplate
+  - renders empty rows without errors when badges arrays are empty
+
+---
+
+### `app/components/friend-groups/sharing/LeaderboardTemplate.tsx` *(modified)*
+
+**Changed types:**
+
+- **LeaderboardTemplateUser** — add `badges?: Badge[]`
+
+**Changed functions:**
+
+- **LeaderboardTemplate(props)** *(LeaderboardTemplateUser now includes badges)*
+  Right column per row: `flex-direction: column; align-items: flex-end` — points on top, badge row below. Renders `<BadgeRow sizePx={15} context="share" maxDisplay={6}>`. `context="share"` omits CSS filter (html-to-image compatibility). Negative badges: `opacity: 0.35` only. Positive badges first (guaranteed by badge calculator contract).
+  Tests:
+  - renders badge emojis in share template row
+  - does not apply grayscale filter (share context)
+  - caps display at maxDisplay=6 when user has many badges
+
+---
+
+### `app/components/friend-groups/sharing/HeadToHeadTemplate.tsx` *(modified)*
+
+**Changed functions:**
+
+- **HeadToHeadTemplate(props)** *(adds myBadges: Badge[], theirBadges: Badge[])*
+  Left player badges: `<BadgeRow sizePx={17} context="share" justify="flex-start" badges={myBadges}>` below my points. Right player badges: `<BadgeRow sizePx={17} context="share" justify="flex-end" badges={theirBadges}>` below their points. `context="share"` omits CSS filter. Negative badges: `opacity: 0.35` only.
+  Tests:
+  - renders my badges left-justified below my points
+  - renders their badges right-justified below their points
+  - does not apply grayscale filter (share context)
 
 ---
 
@@ -403,14 +447,14 @@ export interface TournamentBadgeConfig {
 
 ```
 ┌───────────────────────────────────────────────┐
-│  #1 ↑  [Avatar]  PlayerName      450 pts  🥇🎯│
-│                                               │
+│  #1 ↑  [Avatar]  PlayerName         450 pts   │
+│                                       🥇🎯    │
 │                 ▼ Tap to view details         │
 └───────────────────────────────────────────────┘
 
 Right column (flex-direction: column, align-items: flex-end):
   └── 450 pts
-  └── 🥇🎯  (gap: 4px, 5px margin-top from pts)
+  └── 🥇🎯  (badges row below pts, gap: 4px, margin-top: 5px)
 ```
 
 ## Visual Layout (Expanded Card — Insignias section)
