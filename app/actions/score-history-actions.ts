@@ -115,50 +115,58 @@ export async function getScoreHistoryForGroup(
     };
   }
 
-  // 4. Group snapshots by date, then compute per-date ranks
-  // Map: date → Array<{ userId, totalPoints }>
-  const snapshotsByDate = new Map<number, Array<{ userId: string; totalPoints: number }>>();
+  // 4. Collect all unique dates (sorted) where ANY user has a snapshot
+  const allDates = [...new Set(rawHistory.map((r) => r.snapshot_date))].sort((a, b) => a - b);
 
+  // Build lookup: userId → Map<date, totalPoints>
+  const snapshotPointsByUser = new Map<string, Map<number, number>>();
   for (const row of rawHistory) {
-    const existing = snapshotsByDate.get(row.snapshot_date) ?? [];
-    existing.push({ userId: row.user_id, totalPoints: row.total_points });
-    snapshotsByDate.set(row.snapshot_date, existing);
+    if (!snapshotPointsByUser.has(row.user_id)) {
+      snapshotPointsByUser.set(row.user_id, new Map());
+    }
+    snapshotPointsByUser.get(row.user_id)!.set(row.snapshot_date, row.total_points);
   }
 
-  // Map: userId → Map<date, rank>
-  const ranksByUserAndDate = new Map<string, Map<number, number>>();
+  // 5. Forward-fill each user's last known score across all dates
+  // Users with no prior data on a given date are excluded (line starts at first snapshot)
+  const forwardFilledByUser = new Map<string, Map<number, number>>();
+  for (const userId of userIds) {
+    const snapshots = snapshotPointsByUser.get(userId) ?? new Map<number, number>();
+    const filled = new Map<number, number>();
+    let lastKnown: number | undefined;
+    for (const date of allDates) {
+      if (snapshots.has(date)) lastKnown = snapshots.get(date)!;
+      if (lastKnown !== undefined) filled.set(date, lastKnown);
+    }
+    if (filled.size > 0) forwardFilledByUser.set(userId, filled);
+  }
 
-  for (const [date, usersOnDate] of snapshotsByDate.entries()) {
+  // 6. Recompute per-date ranks using forward-filled values
+  const ranksByUserAndDate = new Map<string, Map<number, number>>();
+  for (const date of allDates) {
+    const usersOnDate: Array<{ userId: string; totalPoints: number }> = [];
+    for (const [userId, filledMap] of forwardFilledByUser) {
+      if (filledMap.has(date)) usersOnDate.push({ userId, totalPoints: filledMap.get(date)! });
+    }
     const rankMap = computeRanksForDate(usersOnDate);
     for (const [userId, rank] of rankMap.entries()) {
-      if (!ranksByUserAndDate.has(userId)) {
-        ranksByUserAndDate.set(userId, new Map());
-      }
+      if (!ranksByUserAndDate.has(userId)) ranksByUserAndDate.set(userId, new Map());
       ranksByUserAndDate.get(userId)!.set(date, rank);
     }
   }
 
-  // 5. Build per-user history arrays
-  // Map: userId → snapshot rows (already sorted by snapshot_date asc from repo)
-  const rowsByUser = new Map<string, typeof rawHistory>();
-  for (const row of rawHistory) {
-    const existing = rowsByUser.get(row.user_id) ?? [];
-    existing.push(row);
-    rowsByUser.set(row.user_id, existing);
-  }
-
+  // 7. Build per-user history arrays from forward-filled data
   const userHistories: UserScoreHistory[] = [];
   for (const userId of userIds) {
-    const rows = rowsByUser.get(userId);
-    if (!rows || rows.length === 0) continue;
-
+    const filledMap = forwardFilledByUser.get(userId);
+    if (!filledMap || filledMap.size === 0) continue;
     const dateRankMap = ranksByUserAndDate.get(userId) ?? new Map<number, number>();
-    const data: ScoreHistoryDataPoint[] = rows.map((row) => ({
-      date: row.snapshot_date,
-      totalPoints: row.total_points,
-      rank: dateRankMap.get(row.snapshot_date) ?? 1,
-    }));
-
+    const data: ScoreHistoryDataPoint[] = [];
+    for (const date of allDates) {
+      if (filledMap.has(date)) {
+        data.push({ date, totalPoints: filledMap.get(date)!, rank: dateRankMap.get(date) ?? 1 });
+      }
+    }
     userHistories.push({
       userId,
       displayName: displayNameByUserId.get(userId) ?? userId,

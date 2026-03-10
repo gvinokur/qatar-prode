@@ -2,10 +2,6 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { getScoreHistoryForGroup } from '../../app/actions/score-history-actions';
 import { testFactories } from '../db/test-factories';
 
-// Mock all repository dependencies
-vi.mock('../../app/db/prode-group-repository', () => ({
-  findParticipantsInGroup: vi.fn(),
-}));
 vi.mock('../../app/db/users-repository', () => ({
   findUsersByIds: vi.fn(),
 }));
@@ -17,8 +13,6 @@ vi.mock('../../app/db/game-repository', () => ({
   findLastGameInTournament: vi.fn(),
 }));
 
-// Import mocked modules so we can configure return values per test
-import { findParticipantsInGroup } from '../../app/db/prode-group-repository';
 import { findUsersByIds } from '../../app/db/users-repository';
 import { getScoreHistoryForUsers } from '../../app/db/score-history-repository';
 import { findFirstGameInTournament, findLastGameInTournament } from '../../app/db/game-repository';
@@ -26,8 +20,6 @@ import { findFirstGameInTournament, findLastGameInTournament } from '../../app/d
 // ──────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ──────────────────────────────────────────────────────────────────────────────
-
-const makeParticipant = (userId: string) => ({ user_id: userId, is_admin: false });
 
 const makeHistoryRow = (
   userId: string,
@@ -49,7 +41,6 @@ const makeHistoryRow = (
   created_at: new Date(),
 });
 
-const GROUP_ID = 'group-1';
 const TOURNAMENT_ID = 'tourn-1';
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -59,18 +50,15 @@ const TOURNAMENT_ID = 'tourn-1';
 describe('getScoreHistoryForGroup', () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    // Default: no games (no tournament date bounds)
     (findFirstGameInTournament as ReturnType<typeof vi.fn>).mockResolvedValue(null);
     (findLastGameInTournament as ReturnType<typeof vi.fn>).mockResolvedValue(null);
   });
 
   // ────────────────────────────────────────────────────────────────────────────
-  // 1. Empty participants → isEmpty: true
+  // 1. Empty userIds → isEmpty: true (early return, no DB calls)
   // ────────────────────────────────────────────────────────────────────────────
-  it('returns isEmpty: true when no participants exist in the group', async () => {
-    (findParticipantsInGroup as ReturnType<typeof vi.fn>).mockResolvedValue([]);
-
-    const result = await getScoreHistoryForGroup(GROUP_ID, TOURNAMENT_ID);
+  it('returns isEmpty: true when userIds is empty', async () => {
+    const result = await getScoreHistoryForGroup([], TOURNAMENT_ID);
 
     expect(result).toEqual({
       isEmpty: true,
@@ -78,23 +66,19 @@ describe('getScoreHistoryForGroup', () => {
       tournamentStartDate: null,
       tournamentEndDate: null,
     });
-    // No further repository calls should have been made
     expect(findUsersByIds).not.toHaveBeenCalled();
     expect(getScoreHistoryForUsers).not.toHaveBeenCalled();
   });
 
   // ────────────────────────────────────────────────────────────────────────────
-  // 2. Participants exist but no history snapshots → isEmpty: true
+  // 2. Users exist but no history snapshots → isEmpty: true
   // ────────────────────────────────────────────────────────────────────────────
-  it('returns isEmpty: true when participants exist but there are no history snapshots', async () => {
+  it('returns isEmpty: true when there are no history snapshots', async () => {
     const userA = testFactories.user({ id: 'user-A', nickname: 'Alice' });
-    (findParticipantsInGroup as ReturnType<typeof vi.fn>).mockResolvedValue([
-      makeParticipant(userA.id),
-    ]);
     (findUsersByIds as ReturnType<typeof vi.fn>).mockResolvedValue([userA]);
     (getScoreHistoryForUsers as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
-    const result = await getScoreHistoryForGroup(GROUP_ID, TOURNAMENT_ID);
+    const result = await getScoreHistoryForGroup([userA.id], TOURNAMENT_ID);
 
     expect(result.isEmpty).toBe(true);
     expect(result.userHistories).toHaveLength(0);
@@ -107,17 +91,13 @@ describe('getScoreHistoryForGroup', () => {
     const userA = testFactories.user({ id: 'user-A', nickname: 'Alice' });
     const userB = testFactories.user({ id: 'user-B', nickname: 'Bob' });
 
-    (findParticipantsInGroup as ReturnType<typeof vi.fn>).mockResolvedValue([
-      makeParticipant(userA.id),
-      makeParticipant(userB.id),
-    ]);
     (findUsersByIds as ReturnType<typeof vi.fn>).mockResolvedValue([userA, userB]);
     (getScoreHistoryForUsers as ReturnType<typeof vi.fn>).mockResolvedValue([
       makeHistoryRow(userA.id, 20260610, 50, 100),
       makeHistoryRow(userB.id, 20260610, 25, 50),
     ]);
 
-    const result = await getScoreHistoryForGroup(GROUP_ID, TOURNAMENT_ID);
+    const result = await getScoreHistoryForGroup([userA.id, userB.id], TOURNAMENT_ID);
 
     expect(result.isEmpty).toBe(false);
 
@@ -136,11 +116,6 @@ describe('getScoreHistoryForGroup', () => {
     const userB = testFactories.user({ id: 'user-B', nickname: 'Bob' });
     const userC = testFactories.user({ id: 'user-C', nickname: 'Carol' });
 
-    (findParticipantsInGroup as ReturnType<typeof vi.fn>).mockResolvedValue([
-      makeParticipant(userA.id),
-      makeParticipant(userB.id),
-      makeParticipant(userC.id),
-    ]);
     (findUsersByIds as ReturnType<typeof vi.fn>).mockResolvedValue([userA, userB, userC]);
     (getScoreHistoryForUsers as ReturnType<typeof vi.fn>).mockResolvedValue([
       makeHistoryRow(userA.id, 20260610, 50, 100),
@@ -148,54 +123,49 @@ describe('getScoreHistoryForGroup', () => {
       makeHistoryRow(userC.id, 20260610, 25, 50),
     ]);
 
-    const result = await getScoreHistoryForGroup(GROUP_ID, TOURNAMENT_ID);
+    const result = await getScoreHistoryForGroup([userA.id, userB.id, userC.id], TOURNAMENT_ID);
 
     const histA = result.userHistories.find((h) => h.userId === userA.id)!;
     const histB = result.userHistories.find((h) => h.userId === userB.id)!;
     const histC = result.userHistories.find((h) => h.userId === userC.id)!;
 
-    // A and B are tied → both rank 1
     expect(histA.data[0].rank).toBe(1);
     expect(histB.data[0].rank).toBe(1);
-    // C is behind two users → rank 3 (skips rank 2)
-    expect(histC.data[0].rank).toBe(3);
+    expect(histC.data[0].rank).toBe(3); // skips rank 2
   });
 
   // ────────────────────────────────────────────────────────────────────────────
-  // 5. User with no snapshot on a date is excluded from that date's rank
+  // 5. Forward-fill: user with no snapshot on day1 gets carried-forward value
+  //    on day2; user with no prior data on day1 is still excluded from day1
   // ────────────────────────────────────────────────────────────────────────────
-  it('excludes users who have no snapshot on a given date from that date rank calculation', async () => {
+  it('forward-fills last known score for missing dates; excludes user with no prior data', async () => {
     const userA = testFactories.user({ id: 'user-A', nickname: 'Alice' });
     const userB = testFactories.user({ id: 'user-B', nickname: 'Bob' });
 
-    (findParticipantsInGroup as ReturnType<typeof vi.fn>).mockResolvedValue([
-      makeParticipant(userA.id),
-      makeParticipant(userB.id),
-    ]);
     (findUsersByIds as ReturnType<typeof vi.fn>).mockResolvedValue([userA, userB]);
-    // user-A has snapshots on both day1 and day2; user-B only on day2
+    // user-A has snapshots on day1 and day2; user-B only on day2
     (getScoreHistoryForUsers as ReturnType<typeof vi.fn>).mockResolvedValue([
-      makeHistoryRow(userA.id, 20260601, 30, 60), // day1: only A
-      makeHistoryRow(userA.id, 20260602, 50, 100), // day2: A
-      makeHistoryRow(userB.id, 20260602, 25, 50),  // day2: B
+      makeHistoryRow(userA.id, 20260601, 30, 60),  // day1: only A
+      makeHistoryRow(userA.id, 20260602, 50, 100), // day2: A updated
+      makeHistoryRow(userB.id, 20260602, 25, 50),  // day2: B first snapshot
     ]);
 
-    const result = await getScoreHistoryForGroup(GROUP_ID, TOURNAMENT_ID);
+    const result = await getScoreHistoryForGroup([userA.id, userB.id], TOURNAMENT_ID);
 
     const histA = result.userHistories.find((h) => h.userId === userA.id)!;
     const histB = result.userHistories.find((h) => h.userId === userB.id)!;
 
-    // day1: only user-A participated → rank 1
+    // day1: only user-A has prior data → rank 1
     const day1Point = histA.data.find((d) => d.date === 20260601)!;
     expect(day1Point.rank).toBe(1);
 
-    // day2: both users → A has more points → rank 1; B → rank 2
+    // day2: both users present → A (100pts) rank 1, B (50pts) rank 2
     const day2PointA = histA.data.find((d) => d.date === 20260602)!;
     const day2PointB = histB.data.find((d) => d.date === 20260602)!;
     expect(day2PointA.rank).toBe(1);
     expect(day2PointB.rank).toBe(2);
 
-    // user-B has no data for day1
+    // user-B has no prior data before day2 → no day1 data point
     expect(histB.data.find((d) => d.date === 20260601)).toBeUndefined();
   });
 
@@ -205,9 +175,6 @@ describe('getScoreHistoryForGroup', () => {
   it('populates tournamentStartDate from the first game date returned by the repository', async () => {
     const userA = testFactories.user({ id: 'user-A', nickname: 'Alice' });
 
-    (findParticipantsInGroup as ReturnType<typeof vi.fn>).mockResolvedValue([
-      makeParticipant(userA.id),
-    ]);
     (findUsersByIds as ReturnType<typeof vi.fn>).mockResolvedValue([userA]);
     (getScoreHistoryForUsers as ReturnType<typeof vi.fn>).mockResolvedValue([
       makeHistoryRow(userA.id, 20260610, 50, 100),
@@ -218,28 +185,24 @@ describe('getScoreHistoryForGroup', () => {
       game_date: new Date(2026, 5, 10), // June 10 2026 (local time, month is 0-indexed)
     });
     (findFirstGameInTournament as ReturnType<typeof vi.fn>).mockResolvedValue(firstGame);
-    (findLastGameInTournament as ReturnType<typeof vi.fn>).mockResolvedValue(null);
 
-    const result = await getScoreHistoryForGroup(GROUP_ID, TOURNAMENT_ID);
+    const result = await getScoreHistoryForGroup([userA.id], TOURNAMENT_ID);
 
     expect(result.tournamentStartDate).toBe(20260610);
   });
 
   // ────────────────────────────────────────────────────────────────────────────
-  // 7. isEmpty: false when at least one snapshot exists
+  // 7. isEmpty: false when at least one snapshot exists; displayName resolved
   // ────────────────────────────────────────────────────────────────────────────
-  it('sets isEmpty to false when at least one snapshot exists for any participant', async () => {
+  it('sets isEmpty to false when at least one snapshot exists and resolves displayName', async () => {
     const userA = testFactories.user({ id: 'user-A', nickname: 'Alice' });
 
-    (findParticipantsInGroup as ReturnType<typeof vi.fn>).mockResolvedValue([
-      makeParticipant(userA.id),
-    ]);
     (findUsersByIds as ReturnType<typeof vi.fn>).mockResolvedValue([userA]);
     (getScoreHistoryForUsers as ReturnType<typeof vi.fn>).mockResolvedValue([
       makeHistoryRow(userA.id, 20260610, 50, 100),
     ]);
 
-    const result = await getScoreHistoryForGroup(GROUP_ID, TOURNAMENT_ID);
+    const result = await getScoreHistoryForGroup([userA.id], TOURNAMENT_ID);
 
     expect(result.isEmpty).toBe(false);
     expect(result.userHistories).toHaveLength(1);
