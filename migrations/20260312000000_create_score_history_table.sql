@@ -1,7 +1,7 @@
 CREATE TABLE tournament_score_history (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id         TEXT NOT NULL,
-  tournament_id   TEXT NOT NULL,
+  user_id         UUID NOT NULL,
+  tournament_id   UUID NOT NULL,
   snapshot_date   INTEGER NOT NULL,  -- YYYYMMDD (Argentina TZ, matches existing convention)
   total_game_score         INTEGER NOT NULL DEFAULT 0,
   total_boost_bonus        INTEGER NOT NULL DEFAULT 0,
