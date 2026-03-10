@@ -64,7 +64,7 @@ CREATE INDEX idx_score_history_tournament_users
 |------|---------|
 | `migrations/20260312000000_create_score_history_table.sql` | DB migration |
 | `app/db/score-history-repository.ts` | DB layer (4 functions) |
-| `app/actions/score-history-actions.ts` | Server Action for lazy-loading history |
+| `app/actions/score-history-actions.ts` | Server Action — fetches history data (called from Server Component) |
 | `app/components/leaderboard/HistoryTab.tsx` | History tab wrapper |
 | `app/components/leaderboard/ScoreHistoryChart.tsx` | Total points line chart |
 | `app/components/leaderboard/RankHistoryChart.tsx` | Rank line chart (inverted Y-axis) |
@@ -95,7 +95,7 @@ CREATE INDEX idx_score_history_tournament_users
 ### Call Graph Changes
 
 **Modified flows:**
-- **Flow 5 (Group stats / leaderboard)** — extend `LeaderboardView` to add Standings/History tabs; `HistoryTab` lazy-loads via new Server Action
+- **Flow 5 (Group stats / leaderboard)** — extend `LeaderboardView` to add Standings/History tabs; history data loaded in Server Component via `getScoreHistoryForGroup`, passed down as props
 - **Flow 2 (Game scoring pipeline)** — extend `recalculateGameScoresForUsers` to call `writeScoreSnapshot` inside its user loop after materialization
 
 **New flows:**
