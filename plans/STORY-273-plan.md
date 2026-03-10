@@ -52,9 +52,11 @@ Notes:
 
 **File:** `app/db/game-guess-repository.ts` *(modified)*
 
-New function that queries `game_guesses` joined to `games` to count:
-- `boosts_used`: COUNT where boost_type IS NOT NULL
-- `scored_boosts`: COUNT where boost_type IS NOT NULL AND final_score > 0
+Note: `getBoostAllocationBreakdown` already exists but is per-user, per-boost-type, and runs 3 separate queries with group-by-group breakdown — too granular for multi-user badge calculation. The new function is a simpler single-query multi-user variant.
+
+New function queries `game_guesses` joined to `games` and `game_results` (left join) to count **only locked games** (game has a result OR game_date < NOW() — same filter pattern used in `getBoostAllocationBreakdown`):
+- `boosts_used`: COUNT where `boost_type IS NOT NULL` AND game is locked
+- `scored_boosts`: COUNT where `boost_type IS NOT NULL` AND game is locked AND `score > 0` (`score` = base prediction score, not `final_score`)
 
 This is the only new DB round-trip. All other badge data already exists in `tournament_guesses`.
 
@@ -246,10 +248,11 @@ Add `"badges"` section under `"groups"` namespace:
 **New functions:**
 
 - **getBoostStatsForUsersInTournament(userIds: string[], tournamentId: string)**: `Promise<Array<{ user_id: string; boosts_used: number; scored_boosts: number }>>`
-  Queries `game_guesses` joined to `games` on `game_id`. Counts rows where `boost_type IS NOT NULL` as `boosts_used`, rows where `boost_type IS NOT NULL AND score > 0` as `scored_boosts` (`score` = base prediction score, 0 = wrong prediction regardless of boost). Groups by `user_id`. Returns empty array if `userIds` is empty.
+  Queries `game_guesses` joined to `games` and `game_results` (left join). Filters to **locked games only**: `game_results.home_score IS NOT NULL OR games.game_date < NOW()` (same pattern as `getBoostAllocationBreakdown`). Counts rows where `boost_type IS NOT NULL` as `boosts_used`; rows where `boost_type IS NOT NULL AND game_guesses.score > 0` as `scored_boosts`. Groups by `user_id`. Returns empty array if `userIds` is empty.
   Tests:
   - returns empty array for empty userIds
-  - returns 0 scored_boosts when all boosts had score = 0 (wrong predictions)
+  - excludes boosts for games that haven't been played yet (future game_date, no result)
+  - returns 0 scored_boosts when all boosted games had score = 0 (wrong predictions)
   - counts only rows where game belongs to the specified tournament
   - returns correct counts when some boosts scored and others didn't
   - does not count non-boosted game guesses in boosts_used
@@ -295,7 +298,32 @@ Only `boostsUsed` + `scoredBoosts` require the new `getBoostStatsForUsersInTourn
 **New functions:**
 
 - **calculateBadges(users: UserBadgeInput[], config: TournamentBadgeConfig)**: `Map<string, Badge[]>`
-  Pure function. Computes all 12 badge types in a single pass over all users. `UserBadgeInput.rankChange` is pre-computed by `calculateRanksWithChange` in `LeaderboardCards` and passed here; the badge calculator does NOT re-derive it. Relative badges compare across all users; absolute badges use per-user thresholds. Returns a Map keyed by userId. **Contract: each user's badge array is guaranteed positive-first, negative-last order** — `BadgeRow` relies on this for `maxDisplay` truncation (show most flattering badges first).
+  Pure function. Iterates over `BADGES` entries and calls each badge's `apply` function. Collects userId arrays from each badge, builds the result Map. Returns positive badges first, negative badges last per user. `UserBadgeInput.rankChange` is pre-computed by `calculateRanksWithChange` and passed in — not re-derived here. **Contract: each user's badge array is guaranteed positive-first, negative-last order** — `BadgeRow` relies on this for `maxDisplay` truncation.
+
+- **BADGES**: `Record<BadgeId, BadgeDefinition>` — static object where each entry has `emoji`, `type: 'positive' | 'negative'`, and `apply: BadgeApplyFn`. The `apply` function signature receives all users + config and returns an array of userIds that earn the badge. This makes each badge independently testable and keeps `calculateBadges` as a thin orchestrator.
+
+```typescript
+type BadgeApplyFn = (users: UserBadgeInput[], config: TournamentBadgeConfig) => string[]
+
+interface BadgeDefinition {
+  emoji: string
+  type: 'positive' | 'negative'
+  apply: BadgeApplyFn
+}
+
+// Example entries:
+const BADGES: Record<BadgeId, BadgeDefinition> = {
+  'crack': {
+    emoji: '🥇', type: 'positive',
+    apply: (users) => users.filter(u => u.rank === 1).map(u => u.userId)
+  },
+  'rocket': {
+    emoji: '📈', type: 'positive',
+    apply: (users) => { /* find max rankChange, return that userId */ }
+  },
+  // ...
+}
+```
   Tests:
   - assigns Crack only to user with rank 1 (other users get no Crack badge)
   - assigns DeadLast only to user with the highest rank number; same user as Crack in 1-person group
@@ -443,7 +471,7 @@ CODE-STRUCTURE files to update:
 ## Resolved Design Decisions
 
 1. **total_qualifying_slots**: Add a call to `findQualifiedTeams(tournamentId)` in both friend-group pages (a simple `count()` query, already exists in repo). Pass the count as `total_qualifying_slots` in `TournamentBadgeConfig`. If count is 0 (teams not yet set), skip Golden Ticket entirely.
-2. **Crystal Ball/Oracle threshold**: Uses `honor_roll_score` as a reliable proxy because the scoring design guarantees `champion_points (5) > runner_up_points + third_place_points (3+1=4)`. Therefore `honor_roll_score >= 5` iff and only if champion was correctly predicted. This assumption must be documented in the badge-calculator source. If `champion_points` is 0 or null → skip both badges.
+2. **Crystal Ball/Oracle threshold**: Uses `honor_roll_score` as a proxy. The assumption `champion_points (5) > runner_up_points + third_place_points (3+1=4)` holds for all current tournaments, as acknowledged by the team. If a future tournament had e.g. runner_up=3 + third=3 > champion=5, this would break — but that would be an unusual configuration. The assumption is documented in the badge-calculator source with a comment. If `champion_points` is 0 or null → skip both badges.
 3. **Boost King condition**: Use `score > 0 AND boost_type IS NOT NULL` in the new query. A boost "scored" means the base prediction (game outcome/score) was correct. `score` (not `final_score`) is the right field since `final_score` already includes the multiplier.
 4. **Tied Rocket/FreeFall**: Award to first user by lexicographic userId sort (deterministic tie-break, documented in source).
 5. **Tied Boost King**: No award when two or more users share the highest ratio (require unique winner).
