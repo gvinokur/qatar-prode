@@ -163,7 +163,8 @@ export default async function TournamentScopedFriendGroup(props : Props){
           tournament,
           searchParams,
           users,
-          userScoresByTournament
+          userScoresByTournament,
+          historyData
         }}/>
       )}
       {/* Back Navigation */}
