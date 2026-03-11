@@ -1,5 +1,6 @@
 'use client'
 
+import React, { createContext, useContext } from 'react';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { ChartsTooltipContainer, useAxisTooltip } from '@mui/x-charts/ChartsTooltip';
 import { Typography, Box } from '@mui/material';
@@ -29,12 +30,16 @@ const LINE_COLORS = [
   '#FFBB28', '#FF8042', '#a4de6c', '#d0ed57', '#83a6ed',
 ];
 
-interface CustomTooltipContentProps {
+interface TooltipCtx {
   currentUserId: string
   userHistories: ScoreHistoryChartProps['userHistories']
 }
 
-function ScoreTooltipContent({ currentUserId, userHistories }: CustomTooltipContentProps) {
+const ScoreTooltipCtx = createContext<TooltipCtx>({ currentUserId: '', userHistories: [] });
+
+// Stable component defined outside render — required by MUI X Charts slots
+function ScoreTooltipSlot() {
+  const { currentUserId, userHistories } = useContext(ScoreTooltipCtx);
   const tooltip = useAxisTooltip();
   if (!tooltip) return null;
 
@@ -85,30 +90,27 @@ export default function ScoreHistoryChart({
     };
   });
 
-  // Stable slot component — closed over current props
-  const TooltipSlot = () => (
-    <ScoreTooltipContent currentUserId={currentUserId} userHistories={userHistories} />
-  );
-
   return (
-    <Box>
-      <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-        {t('totalPointsChartTitle')}
-      </Typography>
-      <LineChart
-        xAxis={[{
-          data: allDates,
-          scaleType: 'time',
-          min: yyyymmddToMs(startDate),
-          max: yyyymmddToMs(endDate),
-          valueFormatter: (v) =>
-            new Date(v).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
-        }]}
-        series={series}
-        height={260}
-        slots={{ tooltip: TooltipSlot }}
-        margin={{ left: 40, right: 16, top: 10, bottom: 30 }}
-      />
-    </Box>
+    <ScoreTooltipCtx.Provider value={{ currentUserId, userHistories }}>
+      <Box>
+        <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+          {t('totalPointsChartTitle')}
+        </Typography>
+        <LineChart
+          xAxis={[{
+            data: allDates,
+            scaleType: 'time',
+            min: yyyymmddToMs(startDate),
+            max: yyyymmddToMs(endDate),
+            valueFormatter: (v) =>
+              new Date(v).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
+          }]}
+          series={series}
+          height={260}
+          slots={{ tooltip: ScoreTooltipSlot }}
+          margin={{ left: 40, right: 16, top: 10, bottom: 30 }}
+        />
+      </Box>
+    </ScoreTooltipCtx.Provider>
   );
 }

@@ -1,5 +1,6 @@
 'use client'
 
+import React, { createContext, useContext } from 'react';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { ChartsTooltipContainer, useAxisTooltip } from '@mui/x-charts/ChartsTooltip';
 import { Typography, Box } from '@mui/material';
@@ -30,12 +31,16 @@ const LINE_COLORS = [
   '#FFBB28', '#FF8042', '#a4de6c', '#d0ed57', '#83a6ed',
 ];
 
-interface CustomTooltipContentProps {
+interface TooltipCtx {
   currentUserId: string
   userHistories: RankHistoryChartProps['userHistories']
 }
 
-function RankTooltipContent({ currentUserId, userHistories }: CustomTooltipContentProps) {
+const RankTooltipCtx = createContext<TooltipCtx>({ currentUserId: '', userHistories: [] });
+
+// Stable component defined outside render — required by MUI X Charts slots
+function RankTooltipSlot() {
+  const { currentUserId, userHistories } = useContext(RankTooltipCtx);
   const tooltip = useAxisTooltip();
   if (!tooltip) return null;
 
@@ -87,35 +92,33 @@ export default function RankHistoryChart({
     };
   });
 
-  const TooltipSlot = () => (
-    <RankTooltipContent currentUserId={currentUserId} userHistories={userHistories} />
-  );
-
   return (
-    <Box>
-      <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-        {t('rankChartTitle')}
-      </Typography>
-      <LineChart
-        xAxis={[{
-          data: allDates,
-          scaleType: 'time',
-          min: yyyymmddToMs(startDate),
-          max: yyyymmddToMs(endDate),
-          valueFormatter: (v) =>
-            new Date(v).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
-        }]}
-        yAxis={[{
-          min: 1,
-          max: totalUsers,
-          reverse: true,
-          valueFormatter: (v: number) => `#${v}`,
-        }]}
-        series={series}
-        height={260}
-        slots={{ tooltip: TooltipSlot }}
-        margin={{ left: 40, right: 16, top: 10, bottom: 30 }}
-      />
-    </Box>
+    <RankTooltipCtx.Provider value={{ currentUserId, userHistories }}>
+      <Box>
+        <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+          {t('rankChartTitle')}
+        </Typography>
+        <LineChart
+          xAxis={[{
+            data: allDates,
+            scaleType: 'time',
+            min: yyyymmddToMs(startDate),
+            max: yyyymmddToMs(endDate),
+            valueFormatter: (v) =>
+              new Date(v).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
+          }]}
+          yAxis={[{
+            min: 1,
+            max: totalUsers,
+            reverse: true,
+            valueFormatter: (v: number) => `#${v}`,
+          }]}
+          series={series}
+          height={260}
+          slots={{ tooltip: RankTooltipSlot }}
+          margin={{ left: 40, right: 16, top: 10, bottom: 30 }}
+        />
+      </Box>
+    </RankTooltipCtx.Provider>
   );
 }
