@@ -2,8 +2,6 @@
 export type { Badge, TournamentBadgeConfig } from '../../utils/badge-calculator'
 import type { Badge, TournamentBadgeConfig } from '../../utils/badge-calculator'
 
-import type { ScoreHistoryResult } from '../../actions/score-history-actions';
-
 export interface LeaderboardUser {
   id: string
   name: string
@@ -44,12 +42,8 @@ export interface LeaderboardViewProps {
   readonly themeColor?: string
   readonly shareRef?: React.RefObject<LeaderboardShareHandle | null>
   readonly tournamentBadgeConfig?: TournamentBadgeConfig
-  readonly historyData?: ScoreHistoryResult
-  readonly hideHistoryTab?: boolean
 }
 
-// Re-export for convenience in consumer components
-export type { ScoreHistoryResult };
 
 export interface LeaderboardCardsProps {
   readonly scores: unknown[]

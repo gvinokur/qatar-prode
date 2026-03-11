@@ -242,7 +242,7 @@
     }
   },
   "tabs": {
-    "leaderboard": "Tabla de Posiciones",
+    "standings": "Clasificación",
     "history": "Historial",
     "admin": "Administración"
   },

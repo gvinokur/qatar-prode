@@ -9,105 +9,70 @@ import { Leaderboard as LeaderboardIcon, Settings as SettingsIcon, Timeline as T
 
 type Props = {
   isAdmin: boolean;
-  leaderboardContent: React.ReactNode;
-  adminContent: React.ReactNode;
-  historyContent?: React.ReactNode;
-  defaultTab?: 'leaderboard' | 'admin';
+  standingsContent: React.ReactNode;
+  historyContent: React.ReactNode;
+  adminContent?: React.ReactNode;
   pendingRequestCount?: number;
 };
 
-export default function AdminTabs({ isAdmin, leaderboardContent, adminContent, historyContent, defaultTab, pendingRequestCount }: Readonly<Props>) {
+export default function AdminTabs({ isAdmin, standingsContent, historyContent, adminContent, pendingRequestCount }: Readonly<Props>) {
   const t = useTranslations('groups.tabs');
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const hasHistory = isAdmin && !!historyContent;
-
-  // Determine initial tab from URL query param or defaultTab
   const tabFromUrl = searchParams.get('tab');
-  let initialTab = 'leaderboard';
-  if ((tabFromUrl === 'admin' || defaultTab === 'admin') && isAdmin) {
-    initialTab = 'admin';
-  } else if (tabFromUrl === 'history' && hasHistory) {
-    initialTab = 'history';
-  }
+  let initialTab = 'standings';
+  if (tabFromUrl === 'history') initialTab = 'history';
+  else if (tabFromUrl === 'admin' && isAdmin) initialTab = 'admin';
 
   const [value, setValue] = useState<string>(initialTab);
 
-  // Update tab if URL changes (e.g., back button)
   useEffect(() => {
-    const tabFromUrl = searchParams.get('tab');
-    if (tabFromUrl === 'admin' && isAdmin) {
-      setValue('admin');
-    } else if (tabFromUrl === 'history' && hasHistory) {
-      setValue('history');
-    } else if (!tabFromUrl || (tabFromUrl !== 'admin' && tabFromUrl !== 'history')) {
-      setValue('leaderboard');
-    }
-  }, [searchParams, isAdmin, hasHistory]);
+    const tab = searchParams.get('tab');
+    if (tab === 'admin' && isAdmin) setValue('admin');
+    else if (tab === 'history') setValue('history');
+    else if (!tab || (tab !== 'admin' && tab !== 'history')) setValue('standings');
+  }, [searchParams, isAdmin]);
 
-  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+  const handleChange = (_: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
-
     const currentPath = globalThis.location.pathname;
-    const newUrl = newValue === 'admin' || newValue === 'history'
-      ? `${currentPath}?tab=${newValue}`
-      : currentPath;
-
+    const newUrl = newValue === 'standings' ? currentPath : `${currentPath}?tab=${newValue}`;
     router.replace(newUrl, { scroll: false });
   };
-
-  // If not admin, just show content without tabs
-  if (!isAdmin) {
-    return (
-      <Box sx={{ width: '100%' }}>
-        {leaderboardContent}
-      </Box>
-    );
-  }
 
   return (
     <Box sx={{ width: '100%', typography: 'body1' }}>
       <TabContext value={value}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <TabList onChange={handleChange} aria-label="group tabs">
-            <Tab
-              icon={<LeaderboardIcon />}
-              iconPosition="start"
-              label={t('leaderboard')}
-              value="leaderboard"
-            />
-            {hasHistory && (
+            <Tab icon={<LeaderboardIcon />} iconPosition="start" label={t('standings')} value="standings" />
+            <Tab icon={<TimelineIcon />} iconPosition="start" label={t('history')} value="history" />
+            {isAdmin && (
               <Tab
-                icon={<TimelineIcon />}
+                icon={
+                  <Badge badgeContent={pendingRequestCount} color="error" max={99}>
+                    <SettingsIcon />
+                  </Badge>
+                }
                 iconPosition="start"
-                label={t('history')}
-                value="history"
+                label={t('admin')}
+                value="admin"
               />
             )}
-            <Tab
-              icon={
-                <Badge badgeContent={pendingRequestCount} color="error" max={99}>
-                  <SettingsIcon />
-                </Badge>
-              }
-              iconPosition="start"
-              label={t('admin')}
-              value="admin"
-            />
           </TabList>
         </Box>
-        <TabPanel value="leaderboard" sx={{ px: 0 }}>
-          {leaderboardContent}
+        <TabPanel value="standings" sx={{ px: 0 }}>
+          {standingsContent}
         </TabPanel>
-        {hasHistory && (
-          <TabPanel value="history" sx={{ px: 0 }}>
-            {historyContent}
+        <TabPanel value="history" sx={{ px: 0 }}>
+          {historyContent}
+        </TabPanel>
+        {isAdmin && (
+          <TabPanel value="admin" sx={{ px: 0 }}>
+            {adminContent}
           </TabPanel>
         )}
-        <TabPanel value="admin" sx={{ px: 0 }}>
-          {adminContent}
-        </TabPanel>
       </TabContext>
     </Box>
   );

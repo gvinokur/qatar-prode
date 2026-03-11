@@ -153,8 +153,6 @@ export default async function TournamentScopedFriendGroup(props : Props){
     }
   }
 
-  // Check for default tab from URL
-  const defaultTab = searchParams.tab === 'admin' && isAdmin ? 'admin' : 'leaderboard';
 
   return (
     <Box>
@@ -234,15 +232,8 @@ export default async function TournamentScopedFriendGroup(props : Props){
         <Grid size={12}>
           <AdminTabs
             isAdmin={isAdmin}
-            defaultTab={defaultTab}
             pendingRequestCount={pendingRequestCount}
-            historyContent={isAdmin ? (
-              <HistoryTab
-                historyData={historyData}
-                themeColor={prodeGroup.theme?.primary_color ?? undefined}
-              />
-            ) : undefined}
-            leaderboardContent={
+            standingsContent={
               <ProdeGroupTable
                 users={usersMap}
                 userScoresByTournament={userScoresByTournament}
@@ -256,8 +247,12 @@ export default async function TournamentScopedFriendGroup(props : Props){
                 joinUrl={shareJoinUrl}
                 themeColor={prodeGroup.theme?.primary_color ?? undefined}
                 tournamentBadgeConfigs={tournamentBadgeConfigs}
-                historyByTournament={historyByTournament}
-                hideHistoryTab={isAdmin}
+              />
+            }
+            historyContent={
+              <HistoryTab
+                historyData={historyData}
+                themeColor={prodeGroup.theme?.primary_color ?? undefined}
               />
             }
             adminContent={
