@@ -72,7 +72,7 @@ export default function ScoreHistoryChart({
         }]}
         series={series}
         height={260}
-        tooltip={{ trigger: 'axis' }}
+        slotProps={{ tooltip: { trigger: 'axis' } }}
         margin={{ left: 40, right: 16, top: 10, bottom: 30 }}
       />
     </Box>
