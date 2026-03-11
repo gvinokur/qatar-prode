@@ -30,9 +30,9 @@ The leaderboard rank change arrows currently read `yesterday_*` materialized col
 | `app/components/leaderboard/types.ts` — `LeaderboardUser` | Remove `yesterdayTotalPoints?: number` |
 | `app/components/friend-groups/friends-group-table.tsx` | Remove explicit `yesterdayTotalPoints: score.yesterdayTotalPoints` copy in transform |
 | `app/components/leaderboard/LeaderboardCards.tsx` | Remove all `yesterdayTotalPoints` / `hasYesterdayData` references |
-| `scripts/validate-materialized-scores.ts` | Remove `yesterday_boost_bonus` from validation |
+| `scripts/validate-materialized-scores.ts` | Remove `yesterday_boost_bonus` AND `yesterday_total_score` from `fieldsToCheck` |
 
-Note: `getTournamentGuessStatsForUsers` in tournament-guess-repository.ts selects `yesterday_tournament_score`. That column select is removed from the query but the function stays (Story 2 cleans up the repo).
+Note: `getTournamentGuessStatsForUsers` in tournament-guess-repository.ts selects `yesterday_tournament_score`. Since `getUserScoresForTournament` no longer assembles `yesterdayTotalPoints`, this field is simply unused after the action change. No repo change needed — Story 2 will drop it.
 
 ### Added: History-based snapshot scores
 
@@ -65,6 +65,8 @@ Effect: all group members now appear in history from the first snapshot date of 
 
 ### 2. New exported utility — `computeSnapshotScores` (score-history-actions.ts)
 
+**Dependency chain:** `buildForwardFilledMap` (modified in step 1) is called inside `getScoreHistoryForGroup`, which populates `ScoreHistoryResult.userHistories`. Each `UserScoreHistory.data` array already reflects the score=0 LOCF behavior — every user has an entry at every snapshot date. `computeSnapshotScores` simply reads these pre-filled `userHistories`; it does NOT re-run LOCF logic. The `?? 0` fallbacks in the algorithm below are safety nets only; with the step-1 fix in place, they will never fire.
+
 ```typescript
 export function computeSnapshotScores(
   userHistories: UserScoreHistory[]
@@ -76,7 +78,7 @@ Algorithm:
 2. `latestDate = sortedDates[last]`; `penultimateDate = sortedDates[last-2]` (undefined if < 2 dates)
 3. For each user: `latest = data.find(p => p.date === latestDate)?.totalPoints ?? 0`
 4. For each user: `penultimate = penultimateDate ? (data.find(p => p.date === penultimateDate)?.totalPoints ?? 0) : undefined`
-5. Returns Map — all users are included since LOCF with score=0 guarantees entries at all dates
+5. Returns Map — all users included; LOCF with score=0 guarantees entries at all dates
 
 ### 3. Remove `yesterday_*` reads from DB layer
 
@@ -162,7 +164,7 @@ Remove explicit `yesterdayTotalPoints: score.yesterdayTotalPoints` line from sco
 | `app/actions/score-history-actions.ts` | LOCF fix + export `computeSnapshotScores` |
 | `app/definitions.ts` | Remove `yesterdayTotalPoints`, add `latestSnapshotPoints`/`penultimateSnapshotPoints` to `UserScore`; remove yesterday fields from `GameStatisticForUser` |
 | `app/db/game-guess-repository.ts` | Remove `yesterday_*` selects from `getGameGuessStatisticsForUsers` |
-| `app/db/tournament-guess-repository.ts` | Remove `yesterday_tournament_score` from `getTournamentGuessStatsForUsers` select |
+| ~~`app/db/tournament-guess-repository.ts`~~ | No changes — `findTournamentGuessByUserIdsTournament` (used by leaderboard) does `selectAll()` so the field exists in the row but we simply stop using it. `getTournamentGuessStatsForUsers` is used by the stats page (unrelated). Repo cleanup is Story 2. |
 | `app/actions/prode-group-actions.ts` | Remove `yesterdayTotalPoints` assembly |
 | `app/components/leaderboard/types.ts` | Remove `yesterdayTotalPoints`, add snapshot fields to `LeaderboardUser` |
 | `app/components/leaderboard/LeaderboardCards.tsx` | Use snapshot fields for animation + rank change |
@@ -170,16 +172,17 @@ Remove explicit `yesterdayTotalPoints: score.yesterdayTotalPoints` line from sco
 | `app/utils/rank-calculator.ts` | Rename `yesterdayScoreField` → `comparisonScoreField` |
 | `app/[locale]/friend-groups/[id]/page.tsx` | Compute + patch snapshot scores |
 | `app/[locale]/tournaments/[id]/friend-groups/[group_id]/page.tsx` | Same |
-| `scripts/validate-materialized-scores.ts` | Remove `yesterday_boost_bonus` validation |
+| `scripts/validate-materialized-scores.ts` | Remove `yesterday_boost_bonus` AND `yesterday_total_score` from `fieldsToCheck` |
 
 ## Tests to Update
 
 | File | Change |
 |------|--------|
-| `__tests__/actions/score-history-actions.test.ts` | Update LOCF tests (score=0); add `computeSnapshotScores` tests |
+| `__tests__/actions/score-history-actions.test.ts` | Update LOCF tests (score=0); **update existing test 5** (user-B at day1 must assert `totalPoints: 0`, not `toBeUndefined`); add `computeSnapshotScores` tests |
 | `__tests__/db/game-guess-repository-materialized.test.ts` | Remove assertions for `yesterday_total_score`/`yesterday_boost_bonus` |
 | `__tests__/actions/prode-group-actions.test.ts` | Remove `yesterdayTotalPoints` assertions from `getUserScoresForTournament` tests |
 | `__tests__/utils/rank-calculator.test.ts` | Rename `yesterdayTotalPoints` → `penultimateSnapshotPoints` in test fixtures |
+| `__tests__/components/tournament-page/user-tournament-statistics.test.tsx` | Remove `yesterday_total_score: null` and `yesterday_boost_bonus: null` from mock `GameStatisticForUser` fixtures (TypeScript will error when fields are removed from type) |
 
 **Not changed** (Story 2): `__tests__/db/tournament-guess-repository.test.ts` — tests snapshot *write* logic, stays until columns are dropped.
 
@@ -203,7 +206,7 @@ Remove explicit `yesterdayTotalPoints: score.yesterdayTotalPoints` line from sco
 - **`buildForwardFilledMap`** — private; change `if (lastKnown !== undefined) filled.set(...)` to `filled.set(date, lastKnown ?? 0)`; remove size guard
   Tests:
   - user with no snapshots gets score=0 for all dates when other users have snapshots
-  - user whose first snapshot is date[-1] gets score=0 at date[-2]
+  - user whose first snapshot is date[-1] gets score=0 at date[-2] (existing test 5 assertion flipped: `toBeUndefined` → assert entry exists with `totalPoints: 0`)
   - existing LOCF carry-forward behavior unchanged for users with prior snapshots
 
 **New functions:**
