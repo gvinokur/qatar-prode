@@ -345,3 +345,19 @@ Mock pattern (same as other chart tests): `vi.mock('@mui/x-charts/LineChart', ()
 ## Open Questions
 
 None — requirements are clear and all infrastructure already exists.
+
+---
+
+## Amendments
+
+### Amendment 1 — Card wrapper + reduced left margin on history charts (post-preview feedback)
+
+**Trigger:** User visual feedback after Vercel Preview testing.
+
+**Changes made:**
+
+1. **`HistoryTabCard`** — wrapped `ScoreGrowthChart` in `Card variant="outlined"` + `CardContent`, matching the card pattern used by `HistoryTab.tsx` in the leaderboard. Empty state path unchanged.
+
+2. **`ScoreGrowthChart`** — reduced `margin.left` from 40 to 10 in the `LineChart` so the chart area starts close to the left edge.
+
+3. **`ScoreHistoryChart`** and **`RankHistoryChart`** (leaderboard) — same `margin.left` reduction (40 → 10). User noticed both charts shared the same visual issue.

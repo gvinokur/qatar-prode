@@ -119,8 +119,8 @@ Stacked area chart showing user's cumulative score growth over tournament timeli
 ### app/components/tournament-stats/history-tab-card.tsx
 Card wrapper for the History tab — renders empty state or ScoreGrowthChart (Story #279). [Client]
 
-- **HistoryTabCard({ rows })**: `JSX.Element` — [Client] Renders empty state Typography (stats.history.emptyState) when rows is empty. Otherwise renders ScoreGrowthChart with the provided rows.
-  Uses: useTranslations('stats')
+- **HistoryTabCard({ rows })**: `JSX.Element` — [Client] Renders empty state Typography (stats.history.emptyState) when rows is empty. Otherwise wraps ScoreGrowthChart in `Card variant="outlined"` + `CardContent` (matching leaderboard HistoryTab card pattern).
+  Uses: useTranslations('stats'), Card, CardContent
   Renders: ScoreGrowthChart
 
 ### app/components/tournament-stats/performance-overview-card.tsx
