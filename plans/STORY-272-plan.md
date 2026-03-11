@@ -483,3 +483,64 @@ Add under `groups.history` in both `locales/en/groups.json` and `locales/es/grou
 4. Navigate to a friend group leaderboard → click "History" tab → charts render
 5. Check Vercel Preview: charts visible, rank #1 at top, X-axis spans full tournament
 6. Run `npm test` (≥ 80% coverage new code), `npm run lint`, `npm run build` — all green
+
+---
+
+## Amendments
+
+### Amendment 1: Unified tab navigation for all users (Option B)
+
+**Trigger:** Post-implementation UX review — three levels of tabs (AdminTabs page-level → card title → Clasificación/Historial sub-tabs) were identified as excessive. Initial implementation (Option A) only flattened for admins. User clarified: same unified view for ALL users, with the Admin tab conditionally visible.
+
+**Final change (Option B):**
+- `AdminTabs` renders [Clasificación][Historial] for ALL users. Admin tab added conditionally. This applies to both tournament-scoped and standalone pages.
+- `LeaderboardView` simplified to a simple passthrough — no tab logic. Renders `LeaderboardCards` directly.
+- `ProdeGroupTable` props cleaned: removed `historyByTournament` and `hideHistoryTab` entirely. Now only accepts `tournamentBadgeConfigs` for badges; history is provided via `historyContent` prop in `AdminTabs`.
+- Card title ("Tabla de Posiciones") removed — tabs provide navigation context.
+- Both page Server Components wrapped in `AdminTabs` with `standingsContent=<ProdeGroupTable>` and `historyContent=<HistoryTab>`.
+- `LeaderboardViewProps` type: removed `historyData` and `hideHistoryTab`; kept `tournamentBadgeConfig`.
+- i18n key: renamed `tabs.leaderboard` → `tabs.standings` ("Clasificación" / "Standings").
+- `AdminTabs` URL sync: `?tab=history`, `?tab=admin`, no param = standings default.
+- `keepMounted` on tabs to prevent Share button unmount issue.
+
+**Files changed:** `admin-tabs.tsx`, `LeaderboardView.tsx`, `friends-group-table.tsx`, `types.ts`, both page files, `admin-tabs.test.tsx`, `LeaderboardView.test.tsx`, locale files.
+
+---
+
+### Amendment 2: Migration UUID type fix
+
+**Trigger:** Build error — `user_id` and `tournament_id` in `tournament_score_history` defined as `TEXT` in plan but actual FK targets use `UUID`.
+
+**Change:** Updated migration SQL to use `UUID` for both FK columns.
+
+---
+
+### Amendment 3: getScoreHistoryForGroup signature change
+
+**Trigger:** `getScoreHistoryForGroup` resolved group members internally, duplicating a DB call already made by the Server Component.
+
+**Change:** Signature changed from `getScoreHistoryForGroup(groupId, tournamentId)` to `getScoreHistoryForGroup(userIds: string[], tournamentId: string)`. Server Component passes the already-resolved `allParticipants` array.
+
+---
+
+### Amendment 4: MUI X Charts migration (replaced recharts)
+
+**Trigger:** `recharts` v2 incompatible with React 19 strict mode; hydration errors. `@mui/x-charts` already a project dependency.
+
+**Change:** Uninstalled `recharts`. `ScoreHistoryChart` and `RankHistoryChart` rewritten to use MUI X `LineChart` with `scaleType: 'time'`, `yAxis.reverse`, custom axis formatting, and `slotProps.tooltip`. X-axis uses ms timestamps. Tooltip rows in RankHistoryChart sorted ascending by last known rank. Charts wrapped in MUI `Card`.
+
+---
+
+### Amendment 5: Forward-fill (LOCF) for sparse history data
+
+**Trigger:** Charts showed gaps for days without score recalculations (weekends/no games) — misleading visual breaks.
+
+**Change:** `getScoreHistoryForGroup` applies Last Observation Carried Forward (LOCF) — each user's score is carried forward to fill missing dates within the tournament's active range.
+
+---
+
+### Amendment 6: Proportional X axis
+
+**Trigger:** `scaleType: 'time'` required ms timestamp values; YYYYMMDD integers produced non-proportional spacing.
+
+**Change:** X-axis data converted to ms timestamps before passing to charts. Tick density auto-managed via MUI X Charts `tickNumber` prop.
