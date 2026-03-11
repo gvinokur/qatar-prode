@@ -3,15 +3,17 @@ import { screen } from '@testing-library/react'
 import { renderWithTheme } from '@/__tests__/utils/test-utils'
 import HistoryTab from '@/app/components/leaderboard/HistoryTab'
 
-vi.mock('recharts', () => ({
-  LineChart: ({ children }: any) => <div data-testid="line-chart">{children}</div>,
-  Line: ({ dataKey }: any) => <div data-testid={`line-${dataKey}`} />,
-  XAxis: () => <div />,
-  YAxis: () => <div />,
-  CartesianGrid: () => <div />,
-  Tooltip: () => <div />,
-  Legend: () => <div />,
-  ResponsiveContainer: ({ children }: any) => <div>{children}</div>,
+vi.mock('@mui/x-charts/LineChart', () => ({
+  LineChart: ({ series }: any) => (
+    <div data-testid="line-chart">
+      {series?.map((s: any) => <div key={s.id} data-testid={`line-${s.id}`} />)}
+    </div>
+  ),
+}))
+
+vi.mock('@mui/x-charts/ChartsTooltip', () => ({
+  ChartsTooltipContainer: ({ children }: any) => <div>{children}</div>,
+  useAxisTooltip: () => null,
 }))
 
 vi.mock('next-auth/react', () => ({
