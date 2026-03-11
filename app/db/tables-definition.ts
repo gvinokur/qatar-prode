@@ -5,6 +5,9 @@ import {
   Selectable,
   Updateable
 } from "kysely";
+
+// NOTE: Kysely 0.27.x does not export GeneratedAlways.
+// We use Generated<T> for GENERATED ALWAYS columns and omit them from New types explicitly.
 import {PushSubscription} from "web-push";
 
 export interface Identifiable {
@@ -610,3 +613,28 @@ export interface ShortUrlTable extends Identifiable {
 export type ShortUrl = Selectable<ShortUrlTable>;
 export type ShortUrlNew = Insertable<ShortUrlTable>;
 export type ShortUrlUpdate = Updateable<ShortUrlTable>;
+
+// Score history: persistent daily snapshots of each user's score per tournament.
+// Enables rank/score trajectory charts and time-based badge calculations.
+export interface TournamentScoreHistoryTable {
+  id: Generated<string>
+  user_id: string
+  tournament_id: string
+  snapshot_date: number          // YYYYMMDD integer (Argentina TZ)
+  total_game_score: number
+  total_boost_bonus: number
+  honor_roll_score: number
+  individual_awards_score: number
+  qualified_teams_score: number
+  group_position_score: number
+  /** GENERATED ALWAYS AS computed column — read-only; must not appear in inserts */
+  total_points: Generated<number>
+  created_at: Generated<Date>
+}
+
+export type TournamentScoreHistory = Selectable<TournamentScoreHistoryTable>
+/** Omits auto-generated fields; total_points excluded because it is GENERATED ALWAYS */
+export type TournamentScoreHistoryNew = Omit<
+  Insertable<TournamentScoreHistoryTable>,
+  'id' | 'total_points' | 'created_at'
+>

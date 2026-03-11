@@ -160,7 +160,8 @@ Key flows:
      ├── updateGameGuessWithBoost
      ├── updateGameGuess
      └── recalculateGameScoresForUsers
-           └── (materializes scores → tournament_guesses)
+           ├── (materializes scores → tournament_guesses)
+           └── writeScoreSnapshot (per user, using updated game scores + existing award scores)
 
 3. Friend group join request flow
    PublicGroupsBrowser [Client]
@@ -214,22 +215,37 @@ Key flows:
            ├── getGameGuessStatisticsForUsers (materialized)
            ├── findTournamentGuessByUserIdsTournament
            └── getBoostStatsForUsersInTournament (parallel, for badge data)
-     └── ProdeGroupTable [renders]
-           └── LeaderboardView [renders]
-                 └── LeaderboardCards [renders]
-                       ├── calculateBadges (util) — useMemo, computes Badge[] per user
-                       ├── HeadToHeadDialog [renders] (on compare click)
-                       │     ├── getUserStatsForComparison [server action]
-                       │     │     ├── getGameGuessStatisticsForUsers
-                       │     │     ├── getTournamentGuessStatsForUsers
-                       │     │     └── calculateAccuracyStats (util)
-                       │     ├── HeadToHeadTemplate [renders] (off-screen, image source)
-                       │     └── SharePreviewModal [renders]
-                       │           └── captures DOM → generates image → download/WhatsApp share
-                       ├── LeaderboardTemplate [renders] (off-screen, leaderboard image source)
-                       ├── PersonalHighlightTemplate [renders] (off-screen, personal card image source)
-                       └── SharePreviewModal [renders] (on share click)
-                             └── captures DOM → generates image → download/WhatsApp share
+     └── AdminTabs [renders] (Clasificación/Historial/Admin? tabs for all users)
+           ├── standingsContent → ProdeGroupTable [renders]
+           │     └── LeaderboardView [renders] (simple passthrough)
+           │           └── LeaderboardCards [renders]
+           │                 ├── calculateBadges (util) — useMemo, computes Badge[] per user
+           │                 ├── HeadToHeadDialog [renders] (on compare click)
+           │                 │     ├── getUserStatsForComparison [server action]
+           │                 │     │     ├── getGameGuessStatisticsForUsers
+           │                 │     │     ├── getTournamentGuessStatsForUsers
+           │                 │     │     └── calculateAccuracyStats (util)
+           │                 │     ├── HeadToHeadTemplate [renders] (off-screen, image source)
+           │                 │     └── SharePreviewModal [renders]
+           │                 │           └── captures DOM → generates image → download/WhatsApp share
+           │                 ├── LeaderboardTemplate [renders] (off-screen, leaderboard image source)
+           │                 ├── PersonalHighlightTemplate [renders] (off-screen, personal card image source)
+           │                 └── SharePreviewModal [renders] (on share click)
+           │                       └── captures DOM → generates image → download/WhatsApp share
+           ├── historyContent → HistoryTab [renders] (data pre-loaded server-side)
+           │     ├── ScoreHistoryChart [renders]
+           │     └── RankHistoryChart [renders]
+           └── adminContent → AdminSectionTabs [renders] (admin only)
+
+5b. Score history — server-loaded data path
+    TournamentScopedFriendGroup (Server) — per active tournament:
+      └── getScoreHistoryForGroup [server action]
+            ├── findParticipantsInGroup (resolves member IDs)
+            ├── findUsersByIds (display names)
+            ├── getScoreHistoryForUsers
+            ├── findFirstGameInTournament
+            └── findLastGameInTournament
+    → result passed as historyData → AdminTabs historyContent prop → HistoryTab
 
 6. Authentication & signup
    LoginOrSignupDialog [Client] (orchestrates all sub-flows)
@@ -387,6 +403,12 @@ Key flows:
       ├── getCompletePlayoffData [server action]
       ├── saveGameResults [server action]
       └── updateTournamentHonorRoll [server action]
+            ├── updateTournamentGuessWithSnapshot
+            └── writeScoreSnapshot (per user, with all 6 score segments from updated guess)
+   GroupStageTab [Client] (awards via GroupStageTab)
+      └── updateTournamentAwards [server action]
+            ├── updateTournamentGuessWithSnapshot
+            └── writeScoreSnapshot (per user, with all 6 score segments from updated guess)
 
 15. Push notifications
     InstallPwa [Client] (first-time prompt)

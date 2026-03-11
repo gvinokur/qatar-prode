@@ -44,6 +44,7 @@ export interface LeaderboardViewProps {
   readonly tournamentBadgeConfig?: TournamentBadgeConfig
 }
 
+
 export interface LeaderboardCardsProps {
   readonly scores: unknown[]
   readonly currentUserId: string

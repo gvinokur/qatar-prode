@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-10
+**Last updated:** 2026-03-11
 
 ---
 
@@ -54,10 +54,10 @@ Card showing pending group join request status with cancel option. [Client]
   Uses: useTranslations, useLocale, useRouter
 
 ### app/components/friend-groups/admin-tabs.tsx
-Tab container for group leaderboard and admin functions. [Client]
+Unified tab navigation for group pages. Shows [Clasificación][Historial] for ALL users; adds [Administración] tab conditionally for admins. [Client]
 
-- **AdminTabs(props: Props)**: `JSX.Element` — [Client] Shows leaderboard tab for all users, admin tab (with request badge) for admins only.
-  Uses: useTranslations, useSearchParams, useRouter
+- **AdminTabs(props: { isAdmin, standingsContent, historyContent, adminContent?, pendingRequestCount? })**: `JSX.Element` — [Client] Renders Clasificación and Historial tabs for all users. Adds Administración tab (with pending request badge) when isAdmin=true. URL-synced via ?tab=history and ?tab=admin; no param defaults to standings. Uses keepMounted on tabs to prevent unmount.
+  Uses: useTranslations('groups.tabs'), useSearchParams, useRouter
 
 ### app/components/friend-groups/group-privacy-settings.tsx
 Admin form to toggle group privacy (public/private) and manage public description. [Client]
@@ -187,7 +187,7 @@ Dialog preview of how group appears in public discovery. [Client]
 ### app/components/friend-groups/friends-group-table.tsx
 Multi-tournament leaderboard with sharing, notification, and betting display. [Client]
 
-- **ProdeGroupTable(props: Props)**: `JSX.Element` — [Client] Tabbed tournament standings with LeaderboardView, share button, notification dialog, and read-only betting summary.
+- **ProdeGroupTable(props: Props)**: `JSX.Element` — [Client] Tabbed tournament standings (one tab per tournament), share button, notification dialog, and read-only betting summary. Accepts `tournamentBadgeConfigs?: Record<string, TournamentBadgeConfig>` and passes per-tournament badge config to LeaderboardView. History is handled by parent (AdminTabs historyContent prop) — not passed through here.
   Uses: useTranslations, useTheme
   Renders: LeaderboardView, NotificationDialog
 

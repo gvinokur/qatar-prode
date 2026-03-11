@@ -33,10 +33,10 @@ Administrative tournament management — full lifecycle operations: tournament c
   Calls: calculateGroupPosition, updateTournamentGroupTeams
 - **findDataForAwards(tournamentId)**: `Promise<{ tournament: Tournament; players: ExtendedPlayerData[] }>` — Gets tournament and players for award assignment.
   Calls: findTournamentById, findAllPlayersInTournamentWithTeamData, applyLocalization
-- **updateTournamentAwards(tournamentId, withUpdate, locale)**: `Promise<void>` — Updates individual awards and recalculates scores.
-  Calls: updateTournament, findTournamentById, findTournamentGuessByTournament, updateTournamentGuessWithSnapshot
-- **updateTournamentHonorRoll(tournamentId, withUpdate, locale)**: `Promise<void>` — Updates honor roll (champion, runner-up, third place).
-  Calls: updateTournament, findTournamentById, findTournamentGuessByTournament, updateTournamentGuessWithSnapshot
+- **updateTournamentAwards(tournamentId, withUpdate, locale)**: `Promise<void>` — Updates individual awards, recalculates scores, and writes daily score snapshot for each user.
+  Calls: updateTournament, findTournamentById, findTournamentGuessByTournament, updateTournamentGuessWithSnapshot, writeScoreSnapshot
+- **updateTournamentHonorRoll(tournamentId, withUpdate, locale)**: `Promise<void>` — Updates honor roll (champion, runner-up, third place), and writes daily score snapshot for each user.
+  Calls: updateTournament, findTournamentById, findTournamentGuessByTournament, updateTournamentGuessWithSnapshot, writeScoreSnapshot
 - **copyTournament(tournamentId, newStartDate, longName, shortName, locale)**: `Promise<Tournament>` — Creates a complete tournament copy with all structure.
   Calls: getLoggedInUser, findTournamentById, createTournament, findTeamInTournament, createTournamentTeam, findAllPlayersInTournamentWithTeamData, createPlayer, findAllTournamentVenues, createTournamentVenue, findPlayoffStagesWithGamesInTournament, createPlayoffRound, findGroupsWithGamesAndTeamsInTournament, createTournamentGroup, createTournamentGroupTeam, findGamesInTournament, createGame, createTournamentGroupGame, createPlayoffRoundGame, findThirdPlaceRulesByTournament, createThirdPlaceRule, applyLocalization
 - **updateGroupTeamConductScores(groupId, conductScores, locale)**: `Promise<void>` — Updates conduct scores (admin only).
@@ -293,6 +293,14 @@ Tournament CRUD and data retrieval — the primary data access layer for tournam
 - **findLatestFinishedGroupGame(tournamentId)**: `Promise<Game | undefined>` — Finds the most recently completed group game.
 - **getGroupStandingsForTournament(tournamentId)**: `Promise<GroupStandings[]>` — Gets standings for all groups in a tournament.
   Calls: findGroupsInTournament, findQualifiedTeams, findGamesInGroup, findTeamInGroup, calculateGroupPosition, applyLocalizationBatch, toMap
+
+### app/actions/score-history-actions.ts
+Server Action for reading daily score history for a friend group in a tournament (Story #272).
+
+- **getScoreHistoryForGroup(groupId: string, tournamentId: string)**: `Promise<ScoreHistoryResult>` — Fetches per-user daily score snapshots and computes 1224 competition ranks per date. Returns `isEmpty: true` when no snapshots exist. Sparse history: users missing on a date are excluded from that date's rank calculation.
+  Calls: findParticipantsInGroup, findUsersByIds, getScoreHistoryForUsers, findFirstGameInTournament, findLastGameInTournament
+
+Exported types: `ScoreHistoryDataPoint`, `UserScoreHistory`, `ScoreHistoryResult`
 
 ### app/actions/tournament-scoring-actions.ts
 Manages tournament scoring configuration (points per correct prediction).

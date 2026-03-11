@@ -170,7 +170,7 @@ describe('ProdeGroupTable', () => {
     it('renders the component with tournament tabs', () => {
       render(<ProdeGroupTable {...defaultProps} />);
 
-      expect(screen.getByText('Tabla de Posiciones')).toBeInTheDocument();
+      expect(screen.queryByText('Tabla de Posiciones')).not.toBeInTheDocument();
       expect(screen.getByText('TT1')).toBeInTheDocument();
       expect(screen.getByText('TT2')).toBeInTheDocument();
     });
@@ -241,8 +241,8 @@ describe('ProdeGroupTable', () => {
     it('hides tabs when only one tournament', () => {
       render(<ProdeGroupTable {...defaultProps} tournaments={[mockTournaments[0]]} />);
 
-      // Should not show tabs when there's only one tournament
-      expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
+      // Should not show tournament-switching tabs when there's only one tournament
+      expect(screen.queryByRole('tablist', { name: /scrollable auto tabs example/i })).not.toBeInTheDocument();
       expect(screen.queryByText('TT1')).not.toBeInTheDocument();
     });
   });
@@ -261,7 +261,7 @@ describe('ProdeGroupTable', () => {
         />
       );
 
-      expect(screen.getByText('Tabla de Posiciones')).toBeInTheDocument();
+      expect(screen.queryByText('Tabla de Posiciones')).not.toBeInTheDocument();
       expect(screen.getByText('No hay torneos activos disponibles en este momento.')).toBeInTheDocument();
       expect(screen.queryByRole('tab')).not.toBeInTheDocument();
     });
@@ -274,7 +274,7 @@ describe('ProdeGroupTable', () => {
         />
       );
 
-      expect(screen.getByText('Tabla de Posiciones')).toBeInTheDocument();
+      expect(screen.queryByText('Tabla de Posiciones')).not.toBeInTheDocument();
       // Should show empty state
       expect(screen.getAllByText('No leaderboard data')).toHaveLength(2);
     });
@@ -288,7 +288,7 @@ describe('ProdeGroupTable', () => {
       );
 
       // Should fallback to "Unknown User" when user data is missing
-      expect(screen.getByText('Tabla de Posiciones')).toBeInTheDocument();
+      expect(screen.queryByText('Tabla de Posiciones')).not.toBeInTheDocument();
     });
 
     it('handles custom action prop', () => {

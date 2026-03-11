@@ -242,7 +242,8 @@
     }
   },
   "tabs": {
-    "leaderboard": "Leaderboard",
+    "standings": "Standings",
+    "history": "History",
     "admin": "Admin"
   },
   "adminSectionTabs": {
@@ -543,5 +544,13 @@
       "name": "Wooden Spoon",
       "description": "Predicted the fewest qualified teams correctly"
     }
+  },
+  "history": {
+    "tabLabel": "History",
+    "standingsTabLabel": "Standings",
+    "totalPointsChartTitle": "Total Points Over Time",
+    "rankChartTitle": "Rank Over Time",
+    "noHistory": "No history yet",
+    "noHistoryDescription": "Score history will appear once the tournament starts and scores are calculated."
   }
 }

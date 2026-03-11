@@ -4,6 +4,7 @@ import {db} from "./database";
 import {getTodayYYYYMMDD} from "../utils/date-utils";
 import {legacyGetGameGuessStatisticsForUsers} from "./game-guess-repository";
 import {customToMap} from "../utils/ObjectUtils";
+import {writeScoreSnapshot} from "./score-history-repository";
 
 const baseFunctions = createBaseFunctions<TournamentGuessTable, TournamentGuess>('tournament_guesses')
 
@@ -262,6 +263,20 @@ export async function recalculateGameScoresForUsers(
     if (updated) {
       results.push(updated);
     }
+
+    // Write daily score snapshot using updated game scores + existing award scores from
+    // the pre-fetched tournamentGuess row (no additional DB read needed).
+    await writeScoreSnapshot({
+      user_id: userId,
+      tournament_id: tournamentId,
+      snapshot_date: getTodayYYYYMMDD(),
+      total_game_score: updates.total_game_score ?? 0,
+      total_boost_bonus: updates.total_boost_bonus ?? 0,
+      honor_roll_score: tournamentGuess.honor_roll_score ?? 0,
+      individual_awards_score: tournamentGuess.individual_awards_score ?? 0,
+      qualified_teams_score: tournamentGuess.qualified_teams_score ?? 0,
+      group_position_score: tournamentGuess.group_position_score ?? 0,
+    });
   }
 
   return results;

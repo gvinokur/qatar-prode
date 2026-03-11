@@ -6,6 +6,7 @@ import {
   deleteGame,
   findGamesInTournament,
   findFirstGameInTournament,
+  findLastGameInTournament,
   findGamesInGroup,
   deleteAllGamesFromTournament,
   findAllGamesWithPublishedResultsAndGameGuesses,
@@ -214,6 +215,56 @@ describe('Game Repository', () => {
         const result = await findFirstGameInTournament('empty-tournament');
 
         expect(result).toBeUndefined();
+      });
+    });
+
+    describe('findLastGameInTournament', () => {
+      it('should find game with latest game_date (orderBy game_date desc)', async () => {
+        const mockQuery = {
+          selectAll: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          orderBy: vi.fn().mockReturnThis(),
+          executeTakeFirst: vi.fn().mockResolvedValue(mockGame),
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        const result = await findLastGameInTournament('tournament-1');
+
+        expect(mockDb.selectFrom).toHaveBeenCalledWith('games');
+        expect(mockQuery.selectAll).toHaveBeenCalled();
+        expect(mockQuery.where).toHaveBeenCalledWith('tournament_id', '=', 'tournament-1');
+        expect(mockQuery.orderBy).toHaveBeenCalledWith('game_date', 'desc');
+        expect(mockQuery.executeTakeFirst).toHaveBeenCalled();
+        expect(result).toEqual(mockGame);
+      });
+
+      it('should return undefined for tournament with no games', async () => {
+        const mockQuery = {
+          selectAll: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          orderBy: vi.fn().mockReturnThis(),
+          executeTakeFirst: vi.fn().mockResolvedValue(undefined),
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        const result = await findLastGameInTournament('empty-tournament');
+
+        expect(result).toBeUndefined();
+      });
+
+      it('should not return games from different tournament (where clause uses tournament_id)', async () => {
+        const mockQuery = {
+          selectAll: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          orderBy: vi.fn().mockReturnThis(),
+          executeTakeFirst: vi.fn().mockResolvedValue(mockGame),
+        };
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        await findLastGameInTournament('tournament-1');
+
+        expect(mockQuery.where).toHaveBeenCalledWith('tournament_id', '=', 'tournament-1');
+        expect(mockQuery.where).not.toHaveBeenCalledWith('tournament_id', '=', 'tournament-other');
       });
     });
 

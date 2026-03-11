@@ -12,7 +12,8 @@ vi.mock('next/navigation', () => ({
   useSearchParams: vi.fn(),
 }));
 
-const leaderboardContent = <div>Leaderboard Content</div>;
+const standingsContent = <div>Standings Content</div>;
+const historyContent = <div>History Content</div>;
 const adminContent = <div>Admin Content</div>;
 
 describe('AdminTabs', () => {
@@ -27,342 +28,217 @@ describe('AdminTabs', () => {
     vi.mocked(useSearchParams).mockReturnValue(mockSearchParams);
   });
 
-  describe('Non-admin mode (isAdmin=false)', () => {
-    it('shows leaderboard content without tabs', () => {
+  describe('Tab visibility', () => {
+    it('always shows Clasificación and Historial tabs for non-admin', () => {
       renderWithTheme(
         <AdminTabs
           isAdmin={false}
-          leaderboardContent={leaderboardContent}
-          adminContent={adminContent}
+          standingsContent={standingsContent}
+          historyContent={historyContent}
         />
       );
 
-      expect(screen.getByText('Leaderboard Content')).toBeInTheDocument();
-      expect(screen.queryByText('Tabla de Posiciones')).not.toBeInTheDocument();
-      expect(screen.queryByText('Administración')).not.toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /Clasificación/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /Historial/i })).toBeInTheDocument();
+      expect(screen.queryByRole('tab', { name: /Administración/i })).not.toBeInTheDocument();
     });
 
-    it('does not render tab UI elements when not admin', () => {
+    it('shows all three tabs for admin', () => {
       renderWithTheme(
         <AdminTabs
-          isAdmin={false}
-          leaderboardContent={leaderboardContent}
+          isAdmin={true}
+          standingsContent={standingsContent}
+          historyContent={historyContent}
           adminContent={adminContent}
         />
       );
 
-      expect(screen.queryByRole('tab')).not.toBeInTheDocument();
-      expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
-    });
-
-    it('ignores ?tab=admin URL param when not admin', () => {
-      mockSearchParams = createMockSearchParams({ tab: 'admin' });
-      vi.mocked(useSearchParams).mockReturnValue(mockSearchParams);
-
-      renderWithTheme(
-        <AdminTabs
-          isAdmin={false}
-          leaderboardContent={leaderboardContent}
-          adminContent={adminContent}
-        />
-      );
-
-      // Should still show leaderboard content, not admin content
-      expect(screen.getByText('Leaderboard Content')).toBeInTheDocument();
-      expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /Clasificación/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /Historial/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /Administración/i })).toBeInTheDocument();
     });
   });
 
-  describe('Admin mode (isAdmin=true)', () => {
-    it('shows both Leaderboard and Admin tab labels', () => {
+  describe('Default tab selection', () => {
+    it('defaults to Clasificación tab when no URL param', () => {
       renderWithTheme(
         <AdminTabs
-          isAdmin={true}
-          leaderboardContent={leaderboardContent}
-          adminContent={adminContent}
+          isAdmin={false}
+          standingsContent={standingsContent}
+          historyContent={historyContent}
         />
       );
 
-      expect(screen.getByText('Tabla de Posiciones')).toBeInTheDocument();
-      expect(screen.getByText('Administración')).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /Clasificación/i })).toHaveAttribute('aria-selected', 'true');
     });
 
-    it('defaults to leaderboard tab when no URL param is present', () => {
+    it('defaults to Historial tab when URL has ?tab=history', () => {
+      mockSearchParams = createMockSearchParams({ tab: 'history' });
+      vi.mocked(useSearchParams).mockReturnValue(mockSearchParams);
+
       renderWithTheme(
         <AdminTabs
-          isAdmin={true}
-          leaderboardContent={leaderboardContent}
-          adminContent={adminContent}
+          isAdmin={false}
+          standingsContent={standingsContent}
+          historyContent={historyContent}
         />
       );
 
-      const leaderboardTab = screen.getByRole('tab', { name: /Tabla de Posiciones/i });
-      expect(leaderboardTab).toHaveAttribute('aria-selected', 'true');
-
-      const adminTab = screen.getByRole('tab', { name: /Administración/i });
-      expect(adminTab).toHaveAttribute('aria-selected', 'false');
+      expect(screen.getByRole('tab', { name: /Historial/i })).toHaveAttribute('aria-selected', 'true');
     });
 
-    it('starts on admin tab when URL has ?tab=admin', () => {
+    it('defaults to Administración tab when URL has ?tab=admin and isAdmin=true', () => {
       mockSearchParams = createMockSearchParams({ tab: 'admin' });
       vi.mocked(useSearchParams).mockReturnValue(mockSearchParams);
 
       renderWithTheme(
         <AdminTabs
           isAdmin={true}
-          leaderboardContent={leaderboardContent}
+          standingsContent={standingsContent}
+          historyContent={historyContent}
           adminContent={adminContent}
         />
       );
 
-      const adminTab = screen.getByRole('tab', { name: /Administración/i });
-      expect(adminTab).toHaveAttribute('aria-selected', 'true');
-
-      const leaderboardTab = screen.getByRole('tab', { name: /Tabla de Posiciones/i });
-      expect(leaderboardTab).toHaveAttribute('aria-selected', 'false');
+      expect(screen.getByRole('tab', { name: /Administración/i })).toHaveAttribute('aria-selected', 'true');
     });
 
-    it('shows leaderboard content in the leaderboard tab by default', () => {
-      renderWithTheme(
-        <AdminTabs
-          isAdmin={true}
-          leaderboardContent={leaderboardContent}
-          adminContent={adminContent}
-        />
-      );
-
-      // The active tab panel should be visible
-      expect(screen.getByText('Leaderboard Content')).toBeVisible();
-    });
-
-    it('clicking admin tab calls router.replace with ?tab=admin', () => {
-      Object.defineProperty(window, 'location', {
-        value: { pathname: '/test-group' },
-        writable: true,
-      });
-
-      renderWithTheme(
-        <AdminTabs
-          isAdmin={true}
-          leaderboardContent={leaderboardContent}
-          adminContent={adminContent}
-        />
-      );
-
-      const adminTab = screen.getByRole('tab', { name: /Administración/i });
-      fireEvent.click(adminTab);
-
-      expect(mockRouter.replace).toHaveBeenCalledWith(
-        '/test-group?tab=admin',
-        { scroll: false }
-      );
-    });
-
-    it('clicking leaderboard tab calls router.replace without ?tab param', () => {
-      Object.defineProperty(window, 'location', {
-        value: { pathname: '/test-group' },
-        writable: true,
-      });
-
+    it('ignores ?tab=admin when non-admin, falls back to standings', () => {
       mockSearchParams = createMockSearchParams({ tab: 'admin' });
       vi.mocked(useSearchParams).mockReturnValue(mockSearchParams);
 
       renderWithTheme(
         <AdminTabs
-          isAdmin={true}
-          leaderboardContent={leaderboardContent}
-          adminContent={adminContent}
+          isAdmin={false}
+          standingsContent={standingsContent}
+          historyContent={historyContent}
         />
       );
 
-      const leaderboardTab = screen.getByRole('tab', { name: /Tabla de Posiciones/i });
-      fireEvent.click(leaderboardTab);
+      expect(screen.getByRole('tab', { name: /Clasificación/i })).toHaveAttribute('aria-selected', 'true');
+    });
+  });
 
-      expect(mockRouter.replace).toHaveBeenCalledWith(
-        '/test-group',
-        { scroll: false }
+  describe('Tab content', () => {
+    it('shows standings content on Clasificación tab by default', () => {
+      renderWithTheme(
+        <AdminTabs
+          isAdmin={false}
+          standingsContent={standingsContent}
+          historyContent={historyContent}
+        />
       );
+
+      expect(screen.getByText('Standings Content')).toBeVisible();
     });
 
-    it('shows admin content after clicking admin tab', () => {
+    it('shows history content after clicking Historial tab', () => {
+      renderWithTheme(
+        <AdminTabs
+          isAdmin={false}
+          standingsContent={standingsContent}
+          historyContent={historyContent}
+        />
+      );
+
+      fireEvent.click(screen.getByRole('tab', { name: /Historial/i }));
+      expect(screen.getByText('History Content')).toBeVisible();
+    });
+
+    it('shows admin content after clicking Administración tab', () => {
       renderWithTheme(
         <AdminTabs
           isAdmin={true}
-          leaderboardContent={leaderboardContent}
+          standingsContent={standingsContent}
+          historyContent={historyContent}
           adminContent={adminContent}
         />
       );
 
-      const adminTab = screen.getByRole('tab', { name: /Administración/i });
-      fireEvent.click(adminTab);
-
+      fireEvent.click(screen.getByRole('tab', { name: /Administración/i }));
       expect(screen.getByText('Admin Content')).toBeVisible();
     });
+  });
 
-    it('shows admin content when starting on admin tab from URL', () => {
-      mockSearchParams = createMockSearchParams({ tab: 'admin' });
-      vi.mocked(useSearchParams).mockReturnValue(mockSearchParams);
+  describe('URL sync', () => {
+    it('clicking Historial updates URL to ?tab=history', () => {
+      Object.defineProperty(window, 'location', { value: { pathname: '/test-group' }, writable: true });
+
+      renderWithTheme(
+        <AdminTabs
+          isAdmin={false}
+          standingsContent={standingsContent}
+          historyContent={historyContent}
+        />
+      );
+
+      fireEvent.click(screen.getByRole('tab', { name: /Historial/i }));
+      expect(mockRouter.replace).toHaveBeenCalledWith('/test-group?tab=history', { scroll: false });
+    });
+
+    it('clicking Administración updates URL to ?tab=admin', () => {
+      Object.defineProperty(window, 'location', { value: { pathname: '/test-group' }, writable: true });
 
       renderWithTheme(
         <AdminTabs
           isAdmin={true}
-          leaderboardContent={leaderboardContent}
+          standingsContent={standingsContent}
+          historyContent={historyContent}
           adminContent={adminContent}
         />
       );
 
-      expect(screen.getByText('Admin Content')).toBeVisible();
+      fireEvent.click(screen.getByRole('tab', { name: /Administración/i }));
+      expect(mockRouter.replace).toHaveBeenCalledWith('/test-group?tab=admin', { scroll: false });
+    });
+
+    it('clicking Clasificación clears URL param', () => {
+      Object.defineProperty(window, 'location', { value: { pathname: '/test-group' }, writable: true });
+
+      mockSearchParams = createMockSearchParams({ tab: 'history' });
+      vi.mocked(useSearchParams).mockReturnValue(mockSearchParams);
+
+      renderWithTheme(
+        <AdminTabs
+          isAdmin={false}
+          standingsContent={standingsContent}
+          historyContent={historyContent}
+        />
+      );
+
+      fireEvent.click(screen.getByRole('tab', { name: /Clasificación/i }));
+      expect(mockRouter.replace).toHaveBeenCalledWith('/test-group', { scroll: false });
     });
   });
 
   describe('Badge with pending request count', () => {
-    it('shows Badge with pendingRequestCount on the Admin tab when count > 0', () => {
+    it('shows badge on Admin tab when pendingRequestCount > 0', () => {
       renderWithTheme(
         <AdminTabs
           isAdmin={true}
-          leaderboardContent={leaderboardContent}
+          standingsContent={standingsContent}
+          historyContent={historyContent}
           adminContent={adminContent}
           pendingRequestCount={3}
         />
       );
 
-      // The badge content should be visible
       expect(screen.getByText('3')).toBeInTheDocument();
     });
 
-    it('does not render a visible badge when pendingRequestCount is 0', () => {
+    it('does not show numeric badge when pendingRequestCount is 0', () => {
       const { container } = renderWithTheme(
         <AdminTabs
           isAdmin={true}
-          leaderboardContent={leaderboardContent}
+          standingsContent={standingsContent}
+          historyContent={historyContent}
           adminContent={adminContent}
           pendingRequestCount={0}
         />
       );
 
-      // MUI Badge renders the element in the DOM but applies MuiBadge-invisible to hide it
       const badge = container.querySelector('.MuiBadge-badge');
       expect(badge).toHaveClass('MuiBadge-invisible');
-    });
-
-    it('does not render a badge when pendingRequestCount is not provided', () => {
-      renderWithTheme(
-        <AdminTabs
-          isAdmin={true}
-          leaderboardContent={leaderboardContent}
-          adminContent={adminContent}
-        />
-      );
-
-      // No numeric badge content expected
-      expect(screen.queryByText(/^\d+$/)).not.toBeInTheDocument();
-    });
-
-    it('does not show badge in non-admin mode even with pendingRequestCount', () => {
-      renderWithTheme(
-        <AdminTabs
-          isAdmin={false}
-          leaderboardContent={leaderboardContent}
-          adminContent={adminContent}
-          pendingRequestCount={5}
-        />
-      );
-
-      expect(screen.queryByText('5')).not.toBeInTheDocument();
-    });
-  });
-
-  describe('useEffect: syncs tab when searchParams change', () => {
-    it('switches to admin tab when searchParams change to ?tab=admin', () => {
-      const { rerenderWithTheme } = renderWithTheme(
-        <AdminTabs
-          isAdmin={true}
-          leaderboardContent={leaderboardContent}
-          adminContent={adminContent}
-        />
-      );
-
-      // Initially on leaderboard tab
-      expect(screen.getByRole('tab', { name: /Tabla de Posiciones/i })).toHaveAttribute('aria-selected', 'true');
-
-      // Simulate searchParams changing to ?tab=admin
-      const newSearchParams = createMockSearchParams({ tab: 'admin' });
-      vi.mocked(useSearchParams).mockReturnValue(newSearchParams);
-
-      rerenderWithTheme(
-        <AdminTabs
-          isAdmin={true}
-          leaderboardContent={leaderboardContent}
-          adminContent={adminContent}
-        />
-      );
-
-      expect(screen.getByRole('tab', { name: /Administración/i })).toHaveAttribute('aria-selected', 'true');
-    });
-
-    it('switches back to leaderboard tab when searchParams change to no tab param', () => {
-      mockSearchParams = createMockSearchParams({ tab: 'admin' });
-      vi.mocked(useSearchParams).mockReturnValue(mockSearchParams);
-
-      const { rerenderWithTheme } = renderWithTheme(
-        <AdminTabs
-          isAdmin={true}
-          leaderboardContent={leaderboardContent}
-          adminContent={adminContent}
-        />
-      );
-
-      // Initially on admin tab
-      expect(screen.getByRole('tab', { name: /Administración/i })).toHaveAttribute('aria-selected', 'true');
-
-      // Simulate searchParams changing (e.g., back button)
-      const newSearchParams = createMockSearchParams();
-      vi.mocked(useSearchParams).mockReturnValue(newSearchParams);
-
-      rerenderWithTheme(
-        <AdminTabs
-          isAdmin={true}
-          leaderboardContent={leaderboardContent}
-          adminContent={adminContent}
-        />
-      );
-
-      expect(screen.getByRole('tab', { name: /Tabla de Posiciones/i })).toHaveAttribute('aria-selected', 'true');
-    });
-  });
-
-  describe('defaultTab prop', () => {
-    it('URL param takes precedence over defaultTab for initial tab selection', () => {
-      // When ?tab=admin is in URL, admin tab is selected regardless of defaultTab
-      mockSearchParams = createMockSearchParams({ tab: 'admin' });
-      vi.mocked(useSearchParams).mockReturnValue(mockSearchParams);
-
-      renderWithTheme(
-        <AdminTabs
-          isAdmin={true}
-          leaderboardContent={leaderboardContent}
-          adminContent={adminContent}
-          defaultTab="leaderboard"
-        />
-      );
-
-      const adminTab = screen.getByRole('tab', { name: /Administración/i });
-      expect(adminTab).toHaveAttribute('aria-selected', 'true');
-    });
-
-    it('does not use defaultTab="admin" when isAdmin=false', () => {
-      renderWithTheme(
-        <AdminTabs
-          isAdmin={false}
-          leaderboardContent={leaderboardContent}
-          adminContent={adminContent}
-          defaultTab="admin"
-        />
-      );
-
-      // Non-admin: no tabs shown at all
-      expect(screen.queryByRole('tab')).not.toBeInTheDocument();
-      expect(screen.getByText('Leaderboard Content')).toBeInTheDocument();
     });
   });
 });

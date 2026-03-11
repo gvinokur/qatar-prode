@@ -7,6 +7,8 @@ import {findParticipantsInGroup, findProdeGroupById} from "../../../db/prode-gro
 import JoinMessage from "../../../components/friend-groups/friend-groups-join-message";
 import {findUsersByIds} from "../../../db/users-repository";
 import ProdeGroupTable from "../../../components/friend-groups/friends-group-table";
+import AdminTabs from "../../../components/friend-groups/admin-tabs";
+import HistoryTab from "../../../components/leaderboard/HistoryTab";
 import {getLoggedInUser} from "../../../actions/user-actions";
 import ProdeGroupThemer from "../../../components/friend-groups/friend-groups-themer";
 import {findAllActiveTournaments} from "../../../db/tournament-repository";
@@ -20,6 +22,7 @@ import { findQualifiedTeams } from "../../../db/team-repository";
 import { getTournamentStartDate } from "../../../actions/tournament-actions";
 import { generateShortUrlForGroup } from '../../../actions/short-url-actions';
 import type { TournamentBadgeConfig } from "../../../components/leaderboard/types";
+import { getScoreHistoryForGroup } from '../../../actions/score-history-actions';
 
 type Props = {
   readonly params: Promise<{
@@ -95,6 +98,16 @@ export default async function FriendsGroup(props : Props){
     bettingData[tournament.id] = { config, payments };
   }
 
+  // Fetch score history per tournament for the History tab
+  const historyByTournament = Object.fromEntries(
+    await Promise.all(
+      tournaments.map(async (tournament) => [
+        tournament.id,
+        await getScoreHistoryForGroup(allParticipants, tournament.id),
+      ])
+    )
+  );
+
   return (
     <Box>
       {searchParams.hasOwnProperty('debug') && (
@@ -145,27 +158,48 @@ export default async function FriendsGroup(props : Props){
       <Box sx={{ maxWidth: '1200px', mx: 'auto', p: 2 }}>
         <Grid container spacing={2} justifyContent={'center'}>
           <Grid size={{ xs:12, md :9 }}>
-            <ProdeGroupTable
-              users={usersMap}
-              userScoresByTournament={userScoresByTournament}
-              loggedInUser={user.id}
-              tournaments={tournaments}
-              action={prodeGroup.owner_user_id === user.id ? (
-                <InviteFriendsDialogButton
+            <AdminTabs
+              isAdmin={prodeGroup.owner_user_id === user.id || !!members.find(m => m.id === user.id)?.is_admin}
+              standingsContent={
+                <ProdeGroupTable
+                  users={usersMap}
+                  userScoresByTournament={userScoresByTournament}
+                  loggedInUser={user.id}
+                  tournaments={tournaments}
+                  action={prodeGroup.owner_user_id === user.id ? (
+                    <InviteFriendsDialogButton
+                      groupName={prodeGroup.name}
+                      groupId={prodeGroup.id}/>
+                  ) : (
+                    <LeaveGroupButton groupId={prodeGroup.id} />
+                  )}
+                  groupId={prodeGroup.id}
+                  members={members}
+                  bettingData={bettingData}
+                  selectedTournamentId={searchParams.tournament}
                   groupName={prodeGroup.name}
-                  groupId={prodeGroup.id}/>
-              ) : (
-                <LeaveGroupButton groupId={prodeGroup.id} />
-
-              )}
-              groupId={prodeGroup.id}
-              members={members}
-              bettingData={bettingData}
-              selectedTournamentId={searchParams.tournament}
-              groupName={prodeGroup.name}
-              joinUrl={shareJoinUrl}
-              themeColor={prodeGroup.theme?.primary_color ?? undefined}
-              tournamentBadgeConfigs={tournamentBadgeConfigs}
+                  joinUrl={shareJoinUrl}
+                  themeColor={prodeGroup.theme?.primary_color ?? undefined}
+                  tournamentBadgeConfigs={tournamentBadgeConfigs}
+                />
+              }
+              historyContent={
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {tournaments.map((tournament) => (
+                    <Box key={tournament.id}>
+                      {tournaments.length > 1 && (
+                        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1, px: 1 }}>
+                          {tournament.long_name}
+                        </Typography>
+                      )}
+                      <HistoryTab
+                        historyData={historyByTournament[tournament.id]}
+                        themeColor={prodeGroup.theme?.primary_color ?? undefined}
+                      />
+                    </Box>
+                  ))}
+                </Box>
+              }
             />
           </Grid>
           {(prodeGroup.owner_user_id === user.id || members.find(m => m.id === user.id)?.is_admin) && (

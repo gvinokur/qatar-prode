@@ -25,9 +25,11 @@ import { getGroupJoinRequests, getPendingRequestCount } from "../../../../../act
 import type { TournamentBadgeConfig } from "../../../../../components/leaderboard/types";
 import PendingRequestView from "../../../../../components/friend-groups/pending-request-view";
 import AdminTabs from "../../../../../components/friend-groups/admin-tabs";
+import HistoryTab from "../../../../../components/leaderboard/HistoryTab";
 import PrivacyIndicatorIcon from "../../../../../components/friend-groups/privacy-indicator-icon";
 import AdminSectionTabs from "../../../../../components/friend-groups/admin-section-tabs";
 import { generateShortUrlForGroup } from '../../../../../actions/short-url-actions';
+import { getScoreHistoryForGroup } from '../../../../../actions/score-history-actions';
 
 type Props = {
   readonly params: Promise<{
@@ -134,6 +136,9 @@ export default async function TournamentScopedFriendGroup(props : Props){
     [tournament.id]: { config, payments }
   };
 
+  // Fetch score history for this tournament's History tab
+  const historyData = await getScoreHistoryForGroup(allParticipants, tournament.id);
+
   // Fetch pending request count for admin badge
   const pendingRequestCount = isAdmin ? await getPendingRequestCount(prodeGroup.id) : 0;
 
@@ -147,8 +152,6 @@ export default async function TournamentScopedFriendGroup(props : Props){
     }
   }
 
-  // Check for default tab from URL
-  const defaultTab = searchParams.tab === 'admin' && isAdmin ? 'admin' : 'leaderboard';
 
   return (
     <Box>
@@ -158,7 +161,8 @@ export default async function TournamentScopedFriendGroup(props : Props){
           tournament,
           searchParams,
           users,
-          userScoresByTournament
+          userScoresByTournament,
+          historyData
         }}/>
       )}
       {/* Back Navigation */}
@@ -227,9 +231,8 @@ export default async function TournamentScopedFriendGroup(props : Props){
         <Grid size={12}>
           <AdminTabs
             isAdmin={isAdmin}
-            defaultTab={defaultTab}
             pendingRequestCount={pendingRequestCount}
-            leaderboardContent={
+            standingsContent={
               <ProdeGroupTable
                 users={usersMap}
                 userScoresByTournament={userScoresByTournament}
@@ -243,6 +246,12 @@ export default async function TournamentScopedFriendGroup(props : Props){
                 joinUrl={shareJoinUrl}
                 themeColor={prodeGroup.theme?.primary_color ?? undefined}
                 tournamentBadgeConfigs={tournamentBadgeConfigs}
+              />
+            }
+            historyContent={
+              <HistoryTab
+                historyData={historyData}
+                themeColor={prodeGroup.theme?.primary_color ?? undefined}
               />
             }
             adminContent={

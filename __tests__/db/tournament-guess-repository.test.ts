@@ -12,6 +12,7 @@ const mockLegacyGetGameGuessStatisticsForUsers = vi.fn();
 const mockFindTournamentGuessByUserIdTournament = vi.fn();
 const mockCreateTournamentGuess = vi.fn();
 const mockUpdateTournamentGuessByUserIdTournament = vi.fn();
+const mockWriteScoreSnapshot = vi.fn().mockResolvedValue({ id: 'hist-1' });
 
 vi.mock('../../app/db/database', () => ({
   db: mockDb,
@@ -21,9 +22,14 @@ vi.mock('../../app/db/game-guess-repository', () => ({
   legacyGetGameGuessStatisticsForUsers: mockLegacyGetGameGuessStatisticsForUsers,
 }));
 
+vi.mock('../../app/db/score-history-repository', () => ({
+  writeScoreSnapshot: mockWriteScoreSnapshot,
+}));
+
 describe('Tournament Guess Repository - Materialization', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockWriteScoreSnapshot.mockResolvedValue({ id: 'hist-1' });
   });
 
   describe('recalculateGameScoresForUsers', () => {
@@ -376,6 +382,194 @@ describe('Tournament Guess Repository - Materialization', () => {
           yesterday_boost_bonus: 0,  // undefined becomes 0
         })
       );
+    });
+
+    it('should call writeScoreSnapshot with correct total_game_score after materialization', async () => {
+      const { recalculateGameScoresForUsers } = await import('../../app/db/tournament-guess-repository');
+
+      const userId = 'user-1';
+      const tournamentId = 'tournament-1';
+
+      const mockStats = [{
+        user_id: userId,
+        total_score: 75,
+        group_score: 45,
+        playoff_score: 30,
+        total_boost_bonus: 15,
+        group_boost_bonus: 9,
+        playoff_boost_bonus: 6,
+        total_correct_guesses: 10,
+        total_exact_guesses: 5,
+        group_correct_guesses: 6,
+        group_exact_guesses: 3,
+        playoff_correct_guesses: 4,
+        playoff_exact_guesses: 2,
+        yesterday_total_score: 60,
+        yesterday_boost_bonus: 12,
+        last_game_date: new Date('2024-07-14'),
+      }];
+
+      mockLegacyGetGameGuessStatisticsForUsers.mockResolvedValue(mockStats);
+
+      const existingGuess = testFactories.tournamentGuess({
+        user_id: userId,
+        tournament_id: tournamentId,
+      });
+
+      const mockSelectQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(existingGuess),
+      };
+
+      const mockUpdateQuery = {
+        where: vi.fn().mockReturnThis(),
+        set: vi.fn().mockReturnThis(),
+        returningAll: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue({ ...existingGuess, total_game_score: 75 }),
+      };
+
+      mockDb.selectFrom.mockReturnValue(mockSelectQuery);
+      mockDb.updateTable.mockReturnValue(mockUpdateQuery);
+
+      await recalculateGameScoresForUsers([userId], tournamentId);
+
+      expect(mockWriteScoreSnapshot).toHaveBeenCalledWith(
+        expect.objectContaining({
+          user_id: userId,
+          tournament_id: tournamentId,
+          total_game_score: 75,
+          total_boost_bonus: 15,
+        })
+      );
+    });
+
+    it('should include existing award scores from pre-fetched DB row in snapshot', async () => {
+      const { recalculateGameScoresForUsers } = await import('../../app/db/tournament-guess-repository');
+
+      const userId = 'user-1';
+      const tournamentId = 'tournament-1';
+
+      const mockStats = [{
+        user_id: userId,
+        total_score: 50,
+        group_score: 30,
+        playoff_score: 20,
+        total_boost_bonus: 10,
+        group_boost_bonus: 6,
+        playoff_boost_bonus: 4,
+        total_correct_guesses: 8,
+        total_exact_guesses: 4,
+        group_correct_guesses: 5,
+        group_exact_guesses: 2,
+        playoff_correct_guesses: 3,
+        playoff_exact_guesses: 2,
+        yesterday_total_score: 40,
+        yesterday_boost_bonus: 8,
+        last_game_date: new Date('2024-07-15'),
+      }];
+
+      mockLegacyGetGameGuessStatisticsForUsers.mockResolvedValue(mockStats);
+
+      // Pre-fetched row with existing award scores
+      const existingGuess = testFactories.tournamentGuess({
+        user_id: userId,
+        tournament_id: tournamentId,
+        honor_roll_score: 8,
+        individual_awards_score: 6,
+        qualified_teams_score: 4,
+        group_position_score: 3,
+      });
+
+      const mockSelectQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(existingGuess),
+      };
+
+      const mockUpdateQuery = {
+        where: vi.fn().mockReturnThis(),
+        set: vi.fn().mockReturnThis(),
+        returningAll: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue({ ...existingGuess, total_game_score: 50 }),
+      };
+
+      mockDb.selectFrom.mockReturnValue(mockSelectQuery);
+      mockDb.updateTable.mockReturnValue(mockUpdateQuery);
+
+      await recalculateGameScoresForUsers([userId], tournamentId);
+
+      // Award scores come from the pre-fetched tournamentGuess row, not from updated fields
+      expect(mockWriteScoreSnapshot).toHaveBeenCalledWith(
+        expect.objectContaining({
+          honor_roll_score: existingGuess.honor_roll_score ?? 0,
+          individual_awards_score: existingGuess.individual_awards_score ?? 0,
+          qualified_teams_score: existingGuess.qualified_teams_score ?? 0,
+          group_position_score: existingGuess.group_position_score ?? 0,
+        })
+      );
+    });
+
+    it('should call writeScoreSnapshot with snapshot_date = getTodayYYYYMMDD()', async () => {
+      const { recalculateGameScoresForUsers } = await import('../../app/db/tournament-guess-repository');
+
+      const userId = 'user-1';
+      const tournamentId = 'tournament-1';
+
+      const mockStats = [{
+        user_id: userId,
+        total_score: 30,
+        group_score: 20,
+        playoff_score: 10,
+        total_boost_bonus: 5,
+        group_boost_bonus: 3,
+        playoff_boost_bonus: 2,
+        total_correct_guesses: 6,
+        total_exact_guesses: 3,
+        group_correct_guesses: 4,
+        group_exact_guesses: 2,
+        playoff_correct_guesses: 2,
+        playoff_exact_guesses: 1,
+        yesterday_total_score: 20,
+        yesterday_boost_bonus: 4,
+        last_game_date: new Date('2024-07-10'),
+      }];
+
+      mockLegacyGetGameGuessStatisticsForUsers.mockResolvedValue(mockStats);
+
+      const existingGuess = testFactories.tournamentGuess({
+        user_id: userId,
+        tournament_id: tournamentId,
+      });
+
+      const mockSelectQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(existingGuess),
+      };
+
+      const mockUpdateQuery = {
+        where: vi.fn().mockReturnThis(),
+        set: vi.fn().mockReturnThis(),
+        returningAll: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue({ ...existingGuess, total_game_score: 30 }),
+      };
+
+      mockDb.selectFrom.mockReturnValue(mockSelectQuery);
+      mockDb.updateTable.mockReturnValue(mockUpdateQuery);
+
+      await recalculateGameScoresForUsers([userId], tournamentId);
+
+      // snapshot_date should be a numeric YYYYMMDD integer (from getTodayYYYYMMDD)
+      expect(mockWriteScoreSnapshot).toHaveBeenCalledWith(
+        expect.objectContaining({
+          snapshot_date: expect.any(Number),
+        })
+      );
+
+      const callArg = mockWriteScoreSnapshot.mock.calls[0][0];
+      // Verify it looks like a valid YYYYMMDD date (8-digit number)
+      expect(callArg.snapshot_date.toString()).toHaveLength(8);
     });
   });
 

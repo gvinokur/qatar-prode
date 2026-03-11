@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-10
+**Last updated:** 2026-03-11
 
 ---
 
@@ -11,7 +11,7 @@ Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index
 ### app/components/leaderboard/types.ts
 Type definitions for leaderboard UI including user stats, view props, card props, and rank change indicators.
 
-- **No default exports** — Type definitions only (LeaderboardUser, LeaderboardViewProps, LeaderboardCardsProps, LeaderboardCardProps, RankChangeIndicatorProps, LeaderboardShareHandle). Re-exports Badge and TournamentBadgeConfig from badge-calculator.ts. LeaderboardUser now includes `badges?: Badge[]`. LeaderboardCardsProps and LeaderboardViewProps now include `tournamentBadgeConfig?: TournamentBadgeConfig`. LeaderboardCardProps now includes `badges?: Badge[]`.
+- **No default exports** — Type definitions only (LeaderboardUser, LeaderboardViewProps, LeaderboardCardsProps, LeaderboardCardProps, RankChangeIndicatorProps, LeaderboardShareHandle). Re-exports Badge and TournamentBadgeConfig from badge-calculator.ts. LeaderboardUser includes `badges?: Badge[]`. LeaderboardCardsProps and LeaderboardViewProps include `tournamentBadgeConfig?: TournamentBadgeConfig`. LeaderboardCardProps includes `badges?: Badge[]`. Note: `historyData` and `hideHistoryTab` were removed from LeaderboardViewProps (history is now managed by AdminTabs historyContent prop).
 
 ### app/components/leaderboard/BadgeRow.tsx
 Reusable badge display component rendering a flex row of emoji badges with tooltips.
@@ -21,9 +21,9 @@ Reusable badge display component rendering a flex row of emoji badges with toolt
   Uses: useTranslations('groups.badges'), Avatar, Tooltip, Box, alpha
 
 ### app/components/leaderboard/LeaderboardView.tsx
-Top-level client component that wraps user scores and delegates to LeaderboardCards for responsive display.
+Simple passthrough component — wraps LeaderboardCards with no tab logic. [Client]
 
-- **LeaderboardView(props: LeaderboardViewProps)**: `JSX.Element` — [Client] Renders leaderboard with card-based layout (desktop/mobile unified). Extracts tournamentId from tournament object.
+- **LeaderboardView(props: LeaderboardViewProps)**: `JSX.Element` — [Client] Renders LeaderboardCards directly with all props passed through (scores, currentUserId, tournament, groupName, joinUrl, themeColor, shareRef, tournamentBadgeConfig). No tab UI — history navigation is handled by AdminTabs in the parent page (Story #272 Amendment 1).
   Renders: LeaderboardCards
 
 ### app/components/leaderboard/LeaderboardCard.tsx
@@ -75,6 +75,25 @@ Advanced animation utilities for rank transitions and celebration effects.
   Renders: ConfettiEffect
 - **StaggeredLeaderboardRow({ index, selected?, rankChange?, children })**: `JSX.Element` — [Client] TableRow wrapper with staggered fade-in (0.05s × index, max 10 rows, 0.3s total).
   Renders: RankUpCelebration
+
+### app/components/leaderboard/HistoryTab.tsx
+Wrapper component for the History tab content — renders score and rank charts from pre-loaded server data (Story #272). [Client]
+
+- **HistoryTab(props: HistoryTabProps)**: `JSX.Element` — [Client] Displays empty state when historyData is undefined/isEmpty or tournamentStartDate is null. Otherwise renders ScoreHistoryChart and RankHistoryChart using pre-loaded historyData prop. Reads currentUserId from next-auth session.
+  Uses: useSession, useTranslations('groups.history')
+  Renders: ScoreHistoryChart, RankHistoryChart
+
+### app/components/leaderboard/ScoreHistoryChart.tsx
+Line chart showing total points over time for all group members (Story #272). [Client]
+
+- **ScoreHistoryChart(props: ScoreHistoryChartProps)**: `JSX.Element` — [Client] Renders a MUI X Charts LineChart with one series per user. Current user highlighted with themeColor and wider line; others use palette colors. Missing dates produce gaps (no forward-fill except LOCF applied before this point in data pipeline). X-axis scaleType='time', spans startDate→endDate (YYYYMMDD as ms timestamp); tick format DD MMM. Title from i18n groups.history.totalPointsChartTitle. Card wrapper for visual grouping.
+  Uses: useTranslations('groups.history'), @mui/x-charts
+
+### app/components/leaderboard/RankHistoryChart.tsx
+Line chart showing rank over time for all group members, Y-axis inverted with #N labels (Story #272). [Client]
+
+- **RankHistoryChart(props: RankHistoryChartProps)**: `JSX.Element` — [Client] Same pattern as ScoreHistoryChart but Y-axis reversed=true (rank #1 at top), tick formatter '#'+v, domain 1→totalUsers. Tooltip rows sorted ascending by last known rank. Card wrapper for visual grouping.
+  Uses: useTranslations('groups.history'), @mui/x-charts
 
 ### app/components/leaderboard/HeadToHeadDialog.tsx
 Modal dialog for head-to-head comparison between two users across multiple metrics.
