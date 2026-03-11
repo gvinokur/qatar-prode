@@ -17,6 +17,7 @@ After implementation is complete, code is committed/pushed, and user has tested 
 5. **NEVER auto-fix issues** - Always show user and ask permission
 6. **All checks must pass** - CI/CD, SonarCloud quality gates
 7. **Keep PR in DRAFT until ready to merge** - Only mark as ready for review when user explicitly requests it or asks to merge
+8. **After all SonarCloud issues are resolved and before calling `story complete`, you MUST run the Pre-Merge Documentation Audit (Section 7.5).** This is non-negotiable — `story complete` cannot be called until the Section 7.5 checklist is complete.
 
 ## When to Run Validation
 
@@ -53,6 +54,25 @@ After implementation is complete, code is committed/pushed, and user has tested 
 **🛑 BEFORE running final validation, reconcile plan with implementation 🛑**
 
 **Purpose:** Ensure plan documentation accurately reflects what was actually built, so future readers understand the final implementation.
+
+#### Step A.5: Audit via Git History (do this FIRST)
+
+Before reading the plan, get the full picture of what actually changed on this branch using git history as the source of truth:
+
+```bash
+# All commits on this branch (initial implementation + all feedback iterations)
+git -C ${WORKTREE_PATH} log origin/main..HEAD --oneline
+
+# All source files changed across the entire branch lifetime
+git -C ${WORKTREE_PATH} diff origin/main..HEAD --name-only
+```
+
+Then:
+1. **Group commits by phase**: identify which commits were the initial implementation vs. post-feedback iterations (commits after the first push/Vercel test cycle)
+2. **For each post-feedback commit**: check whether a plan amendment already covers the change; if not, add one in Step D below
+3. **Use the full file diff list** (not memory) as the authoritative record of what changed — this is the input for Steps B and C
+
+This replaces "compare plan to code from memory" with "compare plan to git evidence."
 
 #### Step A: Read Plan Document
 
@@ -378,7 +398,82 @@ gh pr ready ${PR_NUMBER}
 - ❌ After user testing if more changes are expected
 - ❌ Automatically without user's explicit instruction
 
+### 7.5. Pre-Merge Documentation Audit (MANDATORY)
+
+**🛑 This section is a hard gate before `story complete`. Do NOT proceed to Section 8 until the checklist at the bottom of this section is fully checked off. 🛑**
+
+**Purpose:** Verify CODE-STRUCTURE layer files accurately reflect the *current* implementation — not the initial implementation, and not stale entries from before feedback-driven changes.
+
+**Key distinction:** This is NOT a presence check ("was the layer file touched on this branch?"). It is an **accuracy check** — read both the source file and its layer entry, and verify they match the *current* code. A function documented during the initial task but whose signature changed during a feedback session will still have a stale entry even though the layer file was technically "updated."
+
+**Prerequisite:** SonarCloud must report 0 new issues before running this audit.
+
+#### Step A: Get all changed source files
+
+```bash
+git -C ${WORKTREE_PATH} diff origin/main..HEAD --name-only | grep -E '^app/'
+```
+
+#### Step B: For each changed source file, read both the source and its layer entry
+
+Use this mapping to find the correct layer file:
+
+| Source path | Layer file |
+|---|---|
+| `app/db/*.ts` | `docs/code-structure/db.md` |
+| `app/actions/*.ts` | `docs/code-structure/actions.md` |
+| `app/utils/*.ts` | `docs/code-structure/utils.md` |
+| `app/(routes)/` or `app/api/` | `docs/code-structure/pages.md` |
+| `app/components/tournament-games/` | `docs/code-structure/components-tournament-games.md` |
+| `app/components/friend-groups/` | `docs/code-structure/components-friend-groups.md` |
+| *(other component domains)* | matching `docs/code-structure/components-[domain].md` |
+
+For each source file, read the current file alongside its layer entry. Verify:
+- **Signature accuracy**: parameter names, types, and return type match the current source (not the plan's signatures or the initial implementation)
+- **Description accuracy**: description reflects what the function/component actually does now
+- **`Calls:` accuracy**: lists the project functions it currently calls (feedback refactors may have added/removed callsites)
+- **`Renders:` accuracy** (components): reflects current child components
+- **Presence**: added/renamed exports have entries; removed exports are deleted from the layer file
+
+#### Step C: Check call graph currency
+
+```bash
+# Review commits for new page→action→repo flows added during feedback
+git -C ${WORKTREE_PATH} log origin/main..HEAD --oneline
+```
+
+If any feedback commits introduced new cross-layer relationships (e.g., a page now calls an action it didn't before, or an action calls a new repo function), update `CODE-STRUCTURE.md` `## Call Graph`.
+
+#### Step D: Commit any updates
+
+```bash
+git -C ${WORKTREE_PATH} add docs/code-structure/ CODE-STRUCTURE.md
+git -C ${WORKTREE_PATH} commit -m "docs: pre-merge CODE-STRUCTURE audit
+
+Verified and corrected layer file entries against final implementation.
+Captures signature/relationship changes from post-feedback iterations.
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+git -C ${WORKTREE_PATH} push
+```
+
+If no changes were needed, explicitly note "no documentation drift found" — do not skip this confirmation.
+
+#### Section 7.5 Checklist (must be complete before Section 8)
+
+- [ ] SonarCloud reports 0 new issues (prerequisite — Sonar must be clean first)
+- [ ] Every changed `app/` source file has been read alongside its layer file entry
+- [ ] All function/component signatures match current code (not plan or earlier iteration)
+- [ ] `Calls:` and `Renders:` lines reflect current code, not original implementation
+- [ ] Removed or renamed exports are removed from layer files
+- [ ] `CODE-STRUCTURE.md` call graph reflects current cross-layer flows
+- [ ] All modified layer file `Last updated:` headers updated to today
+- [ ] Updates committed and pushed (or "no drift found" explicitly confirmed)
+
 ### 8. Final Quality Gate Confirmation
+
+**Prerequisites before presenting final summary:**
+- ✅ Pre-Merge Documentation Audit complete (Section 7.5 checklist fully checked off)
 
 **After marking as ready for review, present summary to user:**
 ```
@@ -388,6 +483,7 @@ Build: ✓ Success
 Tests: ✓ All passing
 SonarCloud: ✓ 0 new issues, 97.83% coverage on new code
 Vercel: ✓ Deployed successfully
+Documentation Audit: ✓ CODE-STRUCTURE layer files verified against final implementation
 
 Preview URL: [URL]
 SonarCloud Report: [URL]

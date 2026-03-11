@@ -227,7 +227,7 @@ This project requires using specific tools during planning:
    - If feedback: Define tasks FIRST (implementation.md Section 7), then fix, repeat steps 7-11
    - If approved: Proceed to final validation
 12. **Reconcile plan with implementation** → validation.md Section 1 (ensure plan matches reality)
-13. **Final SonarCloud validation** → validation.md Sections 3-8 (after reconciliation and user approval)
+13. **Mark PR ready → SonarCloud validation → Documentation Audit → story complete** → validation.md Sections 7→3-6→7.5→8 (mark PR ready first to trigger SonarCloud; after all Sonar issues resolved, run Pre-Merge Documentation Audit Section 7.5; only then call story complete)
 
 **For task parallelization and subagent patterns:** See [subagent-workflows.md](docs/claude/subagent-workflows.md)
 
@@ -495,6 +495,7 @@ Go back to validation
 | Making sequential code changes when handling feedback | Inefficient, no parallelization, no progress tracking | For 2+ changes: Define tasks with TaskCreate/TaskUpdate FIRST, then execute in waves | implementation.md Section 7 |
 | Not documenting deviations from plan | Plan diverges from reality, future confusion | Add amendments when discovering gaps/bugs during implementation | implementation.md Section 8 |
 | Skipping plan reconciliation before merge | Plan contradicts actual code, documentation debt | Review plan vs. implementation before final validation | validation.md Section 1 |
+| Skipping pre-merge documentation audit | CODE-STRUCTURE entries remain stale from initial implementation; next story plans from wrong signatures | Run Section 7.5 of validation.md after Sonar passes — read source + layer file for every changed file, correct all inaccuracies before story complete | validation.md Section 7.5 |
 | Not updating main worktree after merge | Next story branches from old commit, causes conflicts | After story complete, go to main worktree and `git pull origin main` | github-projects-workflow.md Section 10 |
 | Not registering new translation namespaces | Missing translations, runtime errors | Register in i18n.config.ts and create namespace files | architecture/i18n.md |
 | Adding locale params to repositories | Violates separation of concerns | Use applyLocalization in Server Actions | patterns.md Pattern 1 |
