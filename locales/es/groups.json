@@ -497,51 +497,51 @@
     "sectionLabel": "Insignias",
     "crack": {
       "name": "El Crack",
-      "description": "Actualmente #1 en el grupo"
+      "description": "Primero en el grupo, por ahora"
     },
     "rocket": {
       "name": "Cohete",
-      "description": "Más puestos ganados hoy"
+      "description": "El que más puestos escaló hoy"
     },
     "sharp": {
-      "name": "Ojo de Águila",
-      "description": "Top 10% en predicciones exactas del grupo"
+      "name": "Certero",
+      "description": "Top 10% en clavadas del grupo"
     },
     "crystal-ball": {
       "name": "Bola de Cristal",
-      "description": "Predijo correctamente al campeón"
+      "description": "Le pegó al campeón"
     },
     "oracle": {
       "name": "Oráculo",
-      "description": "Predijo correctamente al campeón, subcampeón y tercer lugar"
+      "description": "Clavó el podio completo"
     },
     "award-scout": {
       "name": "Cazatalentos",
-      "description": "Acertó 3+ premios individuales"
+      "description": "Clavó 3 o más premios individuales"
     },
     "golden-ticket": {
-      "name": "Boleto Dorado",
-      "description": "Predijo correctamente el 70%+ de los equipos clasificados"
+      "name": "Pase de Oro",
+      "description": "Acertó el 70%+ de los clasificados"
     },
     "boost-king": {
       "name": "Rey del Boost",
-      "description": "Mejor tasa de éxito con boosts en el grupo"
+      "description": "El que mejor aprovechó sus boosts"
     },
     "free-fall": {
-      "name": "Caída Libre",
-      "description": "Más puestos perdidos hoy"
+      "name": "En Picada",
+      "description": "El que más puestos perdió hoy"
     },
     "dead-last": {
-      "name": "Último del Grupo",
-      "description": "Actualmente en el último lugar"
+      "name": "La Linterna",
+      "description": "Cerrando la tabla por ahora"
     },
     "broken-sight": {
-      "name": "Vista Rota",
-      "description": "Bottom 10% en predicciones exactas del grupo"
+      "name": "A Ciegas",
+      "description": "Último 10% en clavadas del grupo"
     },
     "wooden-spoon": {
       "name": "Cuchara de Palo",
-      "description": "Predijo la menor cantidad de equipos clasificados correctamente"
+      "description": "El que menos clasificados acertó"
     }
   }
 }
