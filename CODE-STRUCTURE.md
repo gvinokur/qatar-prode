@@ -215,35 +215,37 @@ Key flows:
            ├── getGameGuessStatisticsForUsers (materialized)
            ├── findTournamentGuessByUserIdsTournament
            └── getBoostStatsForUsersInTournament (parallel, for badge data)
-     └── ProdeGroupTable [renders]
-           └── LeaderboardView [renders]
-                 ├── LeaderboardCards [renders] (Standings tab)
-                 │     ├── calculateBadges (util) — useMemo, computes Badge[] per user
-                 │     ├── HeadToHeadDialog [renders] (on compare click)
-                 │     │     ├── getUserStatsForComparison [server action]
-                 │     │     │     ├── getGameGuessStatisticsForUsers
-                 │     │     │     ├── getTournamentGuessStatsForUsers
-                 │     │     │     └── calculateAccuracyStats (util)
-                 │     │     ├── HeadToHeadTemplate [renders] (off-screen, image source)
-                 │     │     └── SharePreviewModal [renders]
-                 │     │           └── captures DOM → generates image → download/WhatsApp share
-                 │     ├── LeaderboardTemplate [renders] (off-screen, leaderboard image source)
-                 │     ├── PersonalHighlightTemplate [renders] (off-screen, personal card image source)
-                 │     └── SharePreviewModal [renders] (on share click)
-                 │           └── captures DOM → generates image → download/WhatsApp share
-                 └── HistoryTab [renders] (History tab — data pre-loaded server-side)
-                       ├── ScoreHistoryChart [renders]
-                       └── RankHistoryChart [renders]
+     └── AdminTabs [renders] (Clasificación/Historial/Admin? tabs for all users)
+           ├── standingsContent → ProdeGroupTable [renders]
+           │     └── LeaderboardView [renders] (simple passthrough)
+           │           └── LeaderboardCards [renders]
+           │                 ├── calculateBadges (util) — useMemo, computes Badge[] per user
+           │                 ├── HeadToHeadDialog [renders] (on compare click)
+           │                 │     ├── getUserStatsForComparison [server action]
+           │                 │     │     ├── getGameGuessStatisticsForUsers
+           │                 │     │     ├── getTournamentGuessStatsForUsers
+           │                 │     │     └── calculateAccuracyStats (util)
+           │                 │     ├── HeadToHeadTemplate [renders] (off-screen, image source)
+           │                 │     └── SharePreviewModal [renders]
+           │                 │           └── captures DOM → generates image → download/WhatsApp share
+           │                 ├── LeaderboardTemplate [renders] (off-screen, leaderboard image source)
+           │                 ├── PersonalHighlightTemplate [renders] (off-screen, personal card image source)
+           │                 └── SharePreviewModal [renders] (on share click)
+           │                       └── captures DOM → generates image → download/WhatsApp share
+           ├── historyContent → HistoryTab [renders] (data pre-loaded server-side)
+           │     ├── ScoreHistoryChart [renders]
+           │     └── RankHistoryChart [renders]
+           └── adminContent → AdminSectionTabs [renders] (admin only)
 
 5b. Score history — server-loaded data path
     TournamentScopedFriendGroup (Server) — per active tournament:
       └── getScoreHistoryForGroup [server action]
-            ├── findParticipantsInGroup
-            ├── findUsersByIds
+            ├── findParticipantsInGroup (resolves member IDs)
+            ├── findUsersByIds (display names)
             ├── getScoreHistoryForUsers
             ├── findFirstGameInTournament
             └── findLastGameInTournament
-    → result passed as historyByTournament prop → ProdeGroupTable → LeaderboardView (historyData) → HistoryTab
+    → result passed as historyData → AdminTabs historyContent prop → HistoryTab
 
 6. Authentication & signup
    LoginOrSignupDialog [Client] (orchestrates all sub-flows)
