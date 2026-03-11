@@ -2,135 +2,156 @@
 
 ## Context
 
-The Friend Groups leaderboard shows rank change arrows (↑↓) using `yesterday_*` materialized columns — confusing because the "yesterday" concept resets on the first score update of each day.
+The leaderboard rank change arrows currently read `yesterday_*` materialized columns from the DB. This story replaces them entirely with history-snapshot-based rank changes and removes ALL code that reads `yesterday_*` columns, so Story 2 can drop the DB columns with no code changes.
 
-Story #272 introduced `tournament_score_history` with daily snapshots. This story replaces rank changes by deriving them from the last two comparable snapshot dates. The key insight: `getScoreHistoryForGroup` already computes LOCF-filled scores **and** competition ranks per date for the History tab — we reuse that work directly rather than re-computing ranks a second time.
-
-`yesterday_*` columns remain untouched (Story 2 removes them).
+`yesterday_*` **write** logic (snapshot updates in backoffice-actions, tournament-guess-repository) is **not changed** — that's Story 2.
 
 ---
 
 ## Behavioral Specification
 
-- **Rank change** = rank at penultimate snapshot date − rank at latest snapshot date (positive = moved up)
-- **LOCF**: Each user's score at a date = their most recent snapshot on or before that date; users with **no prior snapshot** get score=**0** (ranked last), not excluded
-- **< 2 distinct snapshot dates across all users**: All rank changes = 0
-- **No history at all**: Same — all rank changes = 0
+- **Rank change** = rank at penultimate snapshot date − rank at latest snapshot date (positive = up)
+- **LOCF**: score at a date = last known snapshot on or before that date; users with **no prior snapshot** get score **0** (ranked last), not excluded
+- **< 2 distinct snapshot dates**: No rank change shown (no animation, no arrows)
+- **No history**: Same
+
+---
+
+## Complete Change Inventory
+
+### Removed: All `yesterday_*` reads from code
+
+| Location | What's removed |
+|----------|----------------|
+| `app/db/game-guess-repository.ts` — `getGameGuessStatisticsForUsers` | Remove select of `yesterday_total_game_score as yesterday_total_score`, `yesterday_boost_bonus`; remove from return type |
+| `app/definitions.ts` — `GameStatisticForUser` type | Remove `yesterday_total_score`, `yesterday_boost_bonus` fields |
+| `app/actions/prode-group-actions.ts` — `getUserScoresForTournament` | Remove `yesterdayTotalPoints` assembly (reading `yesterday_total_score`, `yesterday_boost_bonus`, `yesterday_tournament_score`) |
+| `app/definitions.ts` — `UserScore` | Remove `yesterdayTotalPoints?: number` |
+| `app/components/leaderboard/types.ts` — `LeaderboardUser` | Remove `yesterdayTotalPoints?: number` |
+| `app/components/friend-groups/friends-group-table.tsx` | Remove explicit `yesterdayTotalPoints: score.yesterdayTotalPoints` copy in transform |
+| `app/components/leaderboard/LeaderboardCards.tsx` | Remove all `yesterdayTotalPoints` / `hasYesterdayData` references |
+| `scripts/validate-materialized-scores.ts` | Remove `yesterday_boost_bonus` from validation |
+
+Note: `getTournamentGuessStatsForUsers` in tournament-guess-repository.ts selects `yesterday_tournament_score`. That column select is removed from the query but the function stays (Story 2 cleans up the repo).
+
+### Added: History-based snapshot scores
+
+| Location | What's added |
+|----------|--------------|
+| `app/actions/score-history-actions.ts` — `buildForwardFilledMap` | LOCF fix: score=0 before first snapshot |
+| `app/actions/score-history-actions.ts` | Export `computeSnapshotScores` utility |
+| `app/definitions.ts` — `UserScore` | Add `latestSnapshotPoints?: number`, `penultimateSnapshotPoints?: number` |
+| `app/components/leaderboard/types.ts` — `LeaderboardUser` | Add same two fields |
+| `app/[locale]/friend-groups/[id]/page.tsx` | Compute + patch snapshot scores from history onto user scores |
+| `app/[locale]/tournaments/[id]/friend-groups/[group_id]/page.tsx` | Same |
+| `app/components/leaderboard/LeaderboardCards.tsx` | Use new fields for animation and rank change |
 
 ---
 
 ## Technical Approach
 
-### Change 1: LOCF includes score=0 before first snapshot
-
-**File:** `app/actions/score-history-actions.ts`, `buildForwardFilledMap`
-
-Currently users with no prior snapshot on a date are excluded from that date entirely. Change: treat score as `0` for all dates before the user's first snapshot.
+### 1. LOCF fix — `buildForwardFilledMap` (score-history-actions.ts)
 
 ```typescript
-// Before
+// Before: excludes users with no prior data
 if (lastKnown !== undefined) filled.set(date, lastKnown);
 
-// After
+// After: score=0 before first snapshot
 filled.set(date, lastKnown ?? 0);
-// Remove the `if (filled.size > 0)` guard — every user gets entries for all dates
+// Remove `if (filled.size > 0)` guard — every user always gets entries
 ```
 
-Effect on History tab charts: users now appear from the first snapshot date of any group member, starting at score=0 until their own first snapshot. This is intentional — it shows new users joining from the bottom rather than appearing out of nowhere mid-tournament.
+Effect: all group members now appear in history from the first snapshot date of any member. New users are ranked last (score=0) before their first snapshot. Affects History tab charts (lines start at 0 for new users) and rank computations.
 
-Effect on rank computation: all group members are now ranked at every date; new users rank last (tied with other 0-score users).
-
-### Change 2: New `computeHistoryRankChanges` utility
-
-**File:** `app/actions/score-history-actions.ts` — new exported function
+### 2. New exported utility — `computeSnapshotScores` (score-history-actions.ts)
 
 ```typescript
-export function computeHistoryRankChanges(
+export function computeSnapshotScores(
   userHistories: UserScoreHistory[]
-): Map<string, number>
+): Map<string, { latest: number; penultimate: number | undefined }>
 ```
 
 Algorithm:
-1. Collect all distinct dates from all `userHistories[*].data[*].date`, sort ascending
-2. If `< 2` distinct dates → return empty `Map` (caller sets rank change = 0 for everyone)
-3. `latestDate = sortedDates[sortedDates.length - 1]`
-4. `penultimateDate = sortedDates[sortedDates.length - 2]`
-5. For each user:
-   - `rankAtLatest = data.find(p => p.date === latestDate)?.rank ?? (userHistories.length + 1)`
-   - `rankAtPenultimate = data.find(p => p.date === penultimateDate)?.rank ?? (userHistories.length + 1)`
-   - `result.set(user.userId, rankAtPenultimate - rankAtLatest)`
-6. Return `Map<userId, rankChange>`
+1. Collect all distinct dates from `userHistories[*].data[*].date`, sort ascending
+2. `latestDate = sortedDates[last]`; `penultimateDate = sortedDates[last-2]` (undefined if < 2 dates)
+3. For each user: `latest = data.find(p => p.date === latestDate)?.totalPoints ?? 0`
+4. For each user: `penultimate = penultimateDate ? (data.find(p => p.date === penultimateDate)?.totalPoints ?? 0) : undefined`
+5. Returns Map — all users are included since LOCF with score=0 guarantees entries at all dates
 
-With the LOCF change from Step 1, all users will have entries at every date once any user in the group has a snapshot — so the `?? (userHistories.length + 1)` fallback is only needed for users who are in `allParticipants` but have no history at all (never played).
+### 3. Remove `yesterday_*` reads from DB layer
 
-### Change 3: Thread `historyRankChange` through the data model
-
-Add optional field to `UserScore` so it travels naturally through the existing chain:
-
-**`app/definitions.ts`:**
+**`app/db/game-guess-repository.ts` — `getGameGuessStatisticsForUsers`:**
+Remove the two `yesterday_*` selects:
 ```typescript
-interface UserScore {
-  // ... existing fields
-  historyRankChange?: number  // pre-computed from score history; undefined = no history
-}
+// Remove:
+'yesterday_total_game_score as yesterday_total_score',
+'yesterday_boost_bonus',
 ```
+Remove from the return type. Callers that used these fields must be updated (only `getUserScoresForTournament`).
 
-**`app/components/leaderboard/types.ts` — `LeaderboardUser`:**
+**`app/db/tournament-guess-repository.ts` — `getTournamentGuessStatsForUsers`:**
+Remove `yesterday_tournament_score` from the select. Only `getUserScoresForTournament` consumed this field.
+
+### 4. Remove `yesterdayTotalPoints` assembly from action
+
+**`app/actions/prode-group-actions.ts` — `getUserScoresForTournament`:**
+Remove:
 ```typescript
-interface LeaderboardUser {
-  // ... existing fields
-  historyRankChange?: number
-}
+// Remove these lines:
+yesterdayTotalPoints:
+  (gameStats?.yesterday_total_score || 0) +
+  (gameStats?.yesterday_boost_bonus || 0) +
+  (tournamentGuess?.yesterday_tournament_score || 0),
 ```
+`UserScore.yesterdayTotalPoints` field is also removed from `app/definitions.ts`.
 
-**`app/components/leaderboard/LeaderboardCards.tsx` — `transformToLeaderboardUser`:**
-Map `score.historyRankChange → leaderboardUser.historyRankChange`.
+### 5. Patch snapshot scores in pages
 
-### Change 4: `LeaderboardCards` uses pre-computed rank change
-
-**File:** `app/components/leaderboard/LeaderboardCards.tsx`
+Both pages already call `getScoreHistoryForGroup` for the History tab. After fetching:
 
 ```typescript
-// Current:
-if (sortBy === 'today' && hasYesterdayData) {
-  return calculateRanksWithChange(usersWithCurrentRank, 'yesterdayTotalPoints')
-}
+const snapshotScores = computeSnapshotScores(historyResult.userHistories)
 
-// New: prefer history-based rank change when available
-const hasHistoryRankChange = sorted.some(s => s.historyRankChange !== undefined)
-if (sortBy === 'today' && hasHistoryRankChange) {
-  return usersWithCurrentRank.map(user => ({
-    ...user,
-    rankChange: user.historyRankChange ?? 0
-  }))
-} else if (sortBy === 'today' && hasYesterdayData) {
-  return calculateRanksWithChange(usersWithCurrentRank, 'yesterdayTotalPoints') // old fallback kept until Story 2
-}
+const patchedScores = scores.map(score => {
+  const snapshots = snapshotScores.get(score.userId)
+  return {
+    ...score,
+    latestSnapshotPoints: snapshots?.latest,
+    penultimateSnapshotPoints: snapshots?.penultimate,
+  }
+})
 ```
 
-The animation (`hasYesterdayData`, `yesterdayTotalPoints`) is untouched — that is a separate concern for Story 2.
+**Global page (`friend-groups/[id]/page.tsx`):** `userScoresByTournament` is `const` — build a new `patchedUserScoresByTournament` via `Object.fromEntries`.
 
-### Change 5: Pages compute and set `historyRankChange`
+**Tournament-scoped page:** Same — patch `userScores` before building `userScoresByTournament`.
 
-Both pages call `getScoreHistoryForGroup` for the History tab. After fetching, compute rank changes and patch the scores:
+### 6. Update LeaderboardCards
+
+Replace all `yesterdayTotalPoints` / `hasYesterdayData` usage:
 
 ```typescript
-const rankChanges = computeHistoryRankChanges(historyResult.userHistories)
+// Before:
+const hasYesterdayData = scores.some(s => s.yesterdayTotalPoints !== undefined)
+const scoreField = sortBy === 'yesterday' ? 'yesterdayTotalPoints' : 'totalPoints'
+// calculateRanksWithChange(..., 'yesterdayTotalPoints')
 
-const patchedScores = scores.map(score => ({
-  ...score,
-  historyRankChange: rankChanges.size > 0
-    ? (rankChanges.get(score.userId) ?? 0)
-    : undefined,  // no history → no indicator
-}))
+// After:
+const hasSnapshotHistory = scores.some(s => s.penultimateSnapshotPoints !== undefined)
+// Animation: 'yesterday' → 'today' phases still work, just different field names
+const scoreField = sortBy === 'yesterday'
+  ? 'penultimateSnapshotPoints'
+  : (scores.some(s => s.latestSnapshotPoints !== undefined) ? 'latestSnapshotPoints' : 'totalPoints')
+// calculateRanksWithChange(..., 'penultimateSnapshotPoints')
 ```
 
-- `rankChanges.size > 0` → real rank changes; users missing from map (never played) get 0
-- `rankChanges.size === 0` → `historyRankChange = undefined` → `LeaderboardCards` shows no change indicators
+`transformToLeaderboardUser`: replace `yesterdayTotalPoints` with `latestSnapshotPoints` + `penultimateSnapshotPoints`.
 
-**Global page (`app/[locale]/friend-groups/[id]/page.tsx`):** `userScoresByTournament` is `const` — build a new `patchedUserScoresByTournament` (via `Object.fromEntries`) and use it in the JSX.
+`calculateRanksWithChange` function itself is unchanged (it's generic). Rename its `yesterdayScoreField` parameter to `comparisonScoreField`.
 
-**Tournament-scoped page (`app/[locale]/tournaments/[id]/friend-groups/[group_id]/page.tsx`):** `historyData` and `userScores` are both available; patch before building `userScoresByTournament`.
+### 7. friends-group-table.tsx
+
+Remove explicit `yesterdayTotalPoints: score.yesterdayTotalPoints` line from score transform — the `...score` spread will carry `latestSnapshotPoints` and `penultimateSnapshotPoints` automatically.
 
 ---
 
@@ -138,18 +159,29 @@ const patchedScores = scores.map(score => ({
 
 | File | Change |
 |------|--------|
-| `app/actions/score-history-actions.ts` | Change LOCF (score=0); export `computeHistoryRankChanges` |
-| `app/definitions.ts` | Add `historyRankChange?: number` to `UserScore` |
-| `app/components/leaderboard/types.ts` | Add `historyRankChange?: number` to `LeaderboardUser` |
-| `app/components/leaderboard/LeaderboardCards.tsx` | Use pre-computed rank change when available |
-| `app/[locale]/friend-groups/[id]/page.tsx` | Compute + apply rank changes to scores |
+| `app/actions/score-history-actions.ts` | LOCF fix + export `computeSnapshotScores` |
+| `app/definitions.ts` | Remove `yesterdayTotalPoints`, add `latestSnapshotPoints`/`penultimateSnapshotPoints` to `UserScore`; remove yesterday fields from `GameStatisticForUser` |
+| `app/db/game-guess-repository.ts` | Remove `yesterday_*` selects from `getGameGuessStatisticsForUsers` |
+| `app/db/tournament-guess-repository.ts` | Remove `yesterday_tournament_score` from `getTournamentGuessStatsForUsers` select |
+| `app/actions/prode-group-actions.ts` | Remove `yesterdayTotalPoints` assembly |
+| `app/components/leaderboard/types.ts` | Remove `yesterdayTotalPoints`, add snapshot fields to `LeaderboardUser` |
+| `app/components/leaderboard/LeaderboardCards.tsx` | Use snapshot fields for animation + rank change |
+| `app/components/friend-groups/friends-group-table.tsx` | Remove explicit `yesterdayTotalPoints` copy |
+| `app/utils/rank-calculator.ts` | Rename `yesterdayScoreField` → `comparisonScoreField` |
+| `app/[locale]/friend-groups/[id]/page.tsx` | Compute + patch snapshot scores |
 | `app/[locale]/tournaments/[id]/friend-groups/[group_id]/page.tsx` | Same |
+| `scripts/validate-materialized-scores.ts` | Remove `yesterday_boost_bonus` validation |
 
-## Files to Update (Tests)
+## Tests to Update
 
 | File | Change |
 |------|--------|
-| `__tests__/actions/score-history-actions.test.ts` | Update LOCF tests + add `computeHistoryRankChanges` tests |
+| `__tests__/actions/score-history-actions.test.ts` | Update LOCF tests (score=0); add `computeSnapshotScores` tests |
+| `__tests__/db/game-guess-repository-materialized.test.ts` | Remove assertions for `yesterday_total_score`/`yesterday_boost_bonus` |
+| `__tests__/actions/prode-group-actions.test.ts` | Remove `yesterdayTotalPoints` assertions from `getUserScoresForTournament` tests |
+| `__tests__/utils/rank-calculator.test.ts` | Rename `yesterdayTotalPoints` → `penultimateSnapshotPoints` in test fixtures |
+
+**Not changed** (Story 2): `__tests__/db/tournament-guess-repository.test.ts` — tests snapshot *write* logic, stays until columns are dropped.
 
 ---
 
@@ -158,9 +190,8 @@ const patchedScores = scores.map(score => ({
 ### Call Graph Changes
 
 **Modified flows:**
-- **Friend Groups Page (global)** — after fetching `historyByTournament`, calls `computeHistoryRankChanges(historyByTournament[t.id].userHistories)` per tournament; patches `historyRankChange` on score objects before passing to `ProdeGroupTable`
-- **Friend Groups Page (tournament-scoped)** — same with single `historyData`
-- **`LeaderboardCards`** — uses `historyRankChange` directly when present, bypasses `calculateRanksWithChange`
+- **Both friend-group pages** — after fetching `historyData`, call `computeSnapshotScores` → patch `latestSnapshotPoints` + `penultimateSnapshotPoints` onto each `UserScore`; `getUserScoresForTournament` no longer returns `yesterdayTotalPoints`
+- **`LeaderboardCards`** — animation and rank change now driven by `penultimateSnapshotPoints` / `latestSnapshotPoints` instead of `yesterdayTotalPoints`
 
 **New flows:** none
 
@@ -169,80 +200,78 @@ const patchedScores = scores.map(score => ({
 ### `app/actions/score-history-actions.ts` *(modified)*
 
 **Changed functions:**
-
-- **`buildForwardFilledMap(userIds, snapshotPointsByUser, allDates)`** — private helper
-  Change: `filled.set(date, lastKnown ?? 0)` for all dates; remove `if (filled.size > 0)` guard so every user always gets entries for every date in `allDates`.
+- **`buildForwardFilledMap`** — private; change `if (lastKnown !== undefined) filled.set(...)` to `filled.set(date, lastKnown ?? 0)`; remove size guard
   Tests:
   - user with no snapshots gets score=0 for all dates when other users have snapshots
-  - user with first snapshot on date[-1] gets score=0 at date[-2] and actual score at date[-1]
-  - user with snapshot on date[-2] still gets LOCF-carried score at date[-1] (no regression)
+  - user whose first snapshot is date[-1] gets score=0 at date[-2]
+  - existing LOCF carry-forward behavior unchanged for users with prior snapshots
 
 **New functions:**
-
-- **`computeHistoryRankChanges(userHistories: UserScoreHistory[]): Map<string, number>`**
-  Derives rank change per user from pre-computed ranks in `userHistories`. Returns empty Map if < 2 distinct snapshot dates. Uses `data[].rank` at penultimate and latest dates directly — no re-computation.
+- **`computeSnapshotScores(userHistories: UserScoreHistory[]): Map<string, { latest: number; penultimate: number | undefined }>`**
+  Returns latest and penultimate LOCF scores per user. Returns empty Map if no histories. `penultimate` is undefined when fewer than 2 distinct dates exist.
   Calls: (none — pure data transformation)
   Tests:
   - returns empty Map when `userHistories` is empty
-  - returns empty Map when all users have only one distinct date
-  - positive rankChange when user moved up (penultimate rank > latest rank)
-  - negative rankChange when user moved down
-  - zero rankChange when rank is unchanged
-  - user present in group but with no history data gets rankChange=0 (fallback to last rank)
-  - correctly uses penultimate, not latest, when 3+ dates exist
+  - `penultimate` is `undefined` when only 1 distinct date
+  - returns correct latest and penultimate when ≥2 dates exist
+  - user with LOCF-carried score (no snapshot exactly on penultimate date) returns carried value
+  - user with no snapshot before penultimate date returns 0 (from LOCF fix)
+  - all users returned, no sparse exclusion
 
 ---
 
-### `app/definitions.ts` *(modified)*
+### `app/db/game-guess-repository.ts` *(modified)*
 
-**Changed types:**
-- **`UserScore`** — add `historyRankChange?: number`
+**Changed functions:**
+- **`getGameGuessStatisticsForUsers`** — remove `yesterday_total_game_score as yesterday_total_score` and `yesterday_boost_bonus` from select; remove from return type
 
-### `app/components/leaderboard/types.ts` *(modified)*
+### `app/actions/prode-group-actions.ts` *(modified)*
 
-**Changed types:**
-- **`LeaderboardUser`** — add `historyRankChange?: number`
+**Changed functions:**
+- **`getUserScoresForTournament`** — remove `yesterdayTotalPoints` from assembled `UserScore`; no longer reads yesterday fields from game/tournament stats
 
 ### `app/components/leaderboard/LeaderboardCards.tsx` *(modified)*
 
-No new functions. Logic change in rank computation: when `historyRankChange` is present on score objects, use it directly instead of calling `calculateRanksWithChange`. Existing `calculateRanksWithChange` path retained as fallback.
+No new functions. Logic changes: replace `hasYesterdayData`/`yesterdayTotalPoints` with `hasSnapshotHistory`/`penultimateSnapshotPoints`/`latestSnapshotPoints` throughout.
+
+### `app/utils/rank-calculator.ts` *(modified)*
+
+**Changed functions:**
+- **`calculateRanksWithChange`** — rename parameter `yesterdayScoreField` → `comparisonScoreField` (no behavior change)
 
 ---
 
 ## Testing Strategy
 
-**Unit tests for `buildForwardFilledMap` change** (update existing or new cases):
-- 3 test cases above, verifying score=0 behavior for new users
-
-**Unit tests for `computeHistoryRankChanges`** (new describe block):
-- 7 test cases above
-- Pure function, `UserScoreHistory[]` built inline, no mocks needed
+**Unit tests** (4 files updated, new cases for `computeSnapshotScores` + LOCF fix):
+- `buildForwardFilledMap`: 3 new test cases
+- `computeSnapshotScores`: 6 test cases (pure function, no mocks)
 
 **Manual verification in Vercel Preview:**
-1. Open Friend Group leaderboard with ≥2 snapshot dates → rank arrows reflect history
-2. User who just joined → shows as having moved up from last place
-3. Group with 0 or 1 snapshot date → all "—" (no change)
-4. History tab charts → new users now visible from score=0 (verify acceptable UX)
-5. No regression in leaderboard load time
+1. Group with ≥2 snapshot dates → rank arrows reflect history
+2. New user who just joined → shows as having moved up (from rank last)
+3. Group with 0 or 1 snapshot date → no rank arrows (not even "—")
+4. History tab charts → new users visible from score=0 before first snapshot
+5. No leaderboard regression (scores displayed correctly, animation still works)
 
 ---
 
 ## CODE-STRUCTURE Files to Update
 
-- `docs/code-structure/actions.md` — update `buildForwardFilledMap` description; add `computeHistoryRankChanges`
-- `docs/code-structure/pages.md` — update both page descriptions
-- `docs/code-structure/components/components-leaderboard.md` (or similar) — update `LeaderboardCards` description
-- Call graph: update both friend-groups page flows
+- `docs/code-structure/actions.md` — update `getUserScoresForTournament`, `buildForwardFilledMap`; add `computeSnapshotScores`
+- `docs/code-structure/db.md` — update `getGameGuessStatisticsForUsers`, `getTournamentGuessStatsForUsers`
+- `docs/code-structure/components/components-leaderboard.md` — update `LeaderboardCards`, `LeaderboardUser` type
+- `docs/code-structure/pages.md` — update both friend-group pages
+- Call graph: update both page flows
 
 ---
 
-## Edge Cases Handled
+## Edge Cases
 
 | Scenario | Behavior |
 |----------|----------|
-| No history snapshots | empty rankChanges → `historyRankChange = undefined` → no arrows |
-| Only 1 distinct snapshot date | same as above |
-| User never played (no snapshots) | ranked last (score=0) at all dates; rankChange = last_rank - current_rank |
-| User joined after penultimate date | score=0 at penultimate, actual at latest → shows rank change correctly |
-| All users same score → tied-last at penultimate | competition ranking handles ties; rank change computed correctly |
-| `yesterday_*` DB columns | still read, still drive animation; `historyRankChange` overrides rank-change *indicator* only |
+| No history snapshots | `snapshotScores` empty → no patch → no animation, no arrows |
+| Only 1 snapshot date | `penultimate = undefined` → no patch → same |
+| User never played | LOCF gives score=0 → ranked last → rank change computed correctly when others have scores |
+| New user (first snapshot = latest date) | score=0 at penultimate → rank change = (last rank) - (actual rank) = positive |
+| `yesterday_*` DB columns | Still populated by backoffice writes; no code reads them after this story |
