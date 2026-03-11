@@ -21,6 +21,7 @@ import NotificationDialog from "./notification-dialog";
 import LeaderboardView from '../leaderboard/LeaderboardView';
 import { useTranslations } from 'next-intl';
 import type { TournamentBadgeConfig } from '../leaderboard/types';
+import type { ScoreHistoryResult } from '../../actions/score-history-actions';
 
 type Props = {
   readonly users: {[k:string]: User},
@@ -36,9 +37,10 @@ type Props = {
   readonly joinUrl?: string,
   readonly themeColor?: string,
   readonly tournamentBadgeConfigs?: Record<string, TournamentBadgeConfig>,
+  readonly historyByTournament?: Record<string, ScoreHistoryResult>,
 }
 
-export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, members, bettingData, selectedTournamentId, groupName, joinUrl, themeColor, tournamentBadgeConfigs}: Props) {
+export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, members, bettingData, selectedTournamentId, groupName, joinUrl, themeColor, tournamentBadgeConfigs, historyByTournament}: Props) {
   const t = useTranslations('groups.standings');
   const tBetting = useTranslations('groups.betting');
   const tSharing = useTranslations('groups.sharing');
@@ -137,6 +139,7 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
                   themeColor={themeColor}
                   shareRef={leaderboardShareRef}
                   tournamentBadgeConfig={tournamentBadgeConfigs?.[tournament.id]}
+                  historyData={historyByTournament?.[tournament.id]}
                 />
                 {/* Betting Status (read-only) */}
                 {bettingConfig?.betting_enabled && (

@@ -1,6 +1,7 @@
 // Type definitions for leaderboard components
 export type { Badge, TournamentBadgeConfig } from '../../utils/badge-calculator'
 import type { Badge, TournamentBadgeConfig } from '../../utils/badge-calculator'
+import type { ScoreHistoryResult } from '../../actions/score-history-actions'
 
 export interface LeaderboardUser {
   id: string
@@ -42,6 +43,7 @@ export interface LeaderboardViewProps {
   readonly themeColor?: string
   readonly shareRef?: React.RefObject<LeaderboardShareHandle | null>
   readonly tournamentBadgeConfig?: TournamentBadgeConfig
+  readonly historyData?: ScoreHistoryResult
 }
 
 
@@ -55,6 +57,7 @@ export interface LeaderboardCardsProps {
   readonly themeColor?: string
   readonly shareRef?: React.RefObject<LeaderboardShareHandle | null>
   readonly tournamentBadgeConfig?: TournamentBadgeConfig
+  readonly historyData?: ScoreHistoryResult
 }
 
 export interface LeaderboardCardProps {

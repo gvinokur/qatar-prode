@@ -12,6 +12,7 @@ export default function LeaderboardView({
   themeColor,
   shareRef,
   tournamentBadgeConfig,
+  historyData,
 }: LeaderboardViewProps) {
   const previousScores = undefined
   const tournamentId = (tournament as any)?.id as string | undefined
@@ -27,6 +28,7 @@ export default function LeaderboardView({
       themeColor={themeColor}
       shareRef={shareRef}
       tournamentBadgeConfig={tournamentBadgeConfig}
+      historyData={historyData}
     />
   )
 }

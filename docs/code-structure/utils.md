@@ -232,11 +232,11 @@ User avatar color and initial generation utilities.
 Pure TypeScript badge calculation engine. No framework dependencies.
 
 - **calculateBadges(users: UserBadgeInput[], config: TournamentBadgeConfig)**: `Map<string, Badge[]>` — Computes badges for all users in a group. Returns positive badges first, negative last per user (guaranteed contract for BadgeRow maxDisplay truncation).
-- **BADGES**: `Record<BadgeId, Badge>` — Static lookup of all 12 badge definitions (emoji + type). Used for display without re-running apply().
-- **BadgeId**: type union of 12 badge string literals.
+- **BADGES**: `Record<BadgeId, Badge>` — Static lookup of all 17 badge definitions (emoji + type). Used for display without re-running apply().
+- **BadgeId**: type union of 17 badge string literals (12 static + 5 time-dimension: 'on-fire', 'trending-up', 'comeback-kid', 'ice-cold', 'trending-down').
 - **Badge**: `{ id: BadgeId; emoji: string; type: 'positive' | 'negative' }`.
 - **TournamentBadgeConfig**: `{ tournamentStarted, championPoints, runnerUpPoints, thirdPlacePoints, individualAwardPoints, totalQualifyingSlots }`. `tournamentStarted: false` skips all badges. 0 values disable corresponding badges.
-- **UserBadgeInput**: `{ userId, rank, rankChange, totalExactGuesses, totalCorrectGuesses, qualifiedTeamsCorrect, honorRollScore, individualAwardsScore, boostsUsed, scoredBoosts }`.
+- **UserBadgeInput**: `{ userId, rank, rankChange, totalExactGuesses, totalCorrectGuesses, qualifiedTeamsCorrect, honorRollScore, individualAwardsScore, boostsUsed, scoredBoosts, rankHistory?: number[] }`. `rankHistory` is chronological rank array (oldest index 0, newest last); when absent or too short, all 5 time-dimension badges suppress silently. Updated emoji: rocket=🚀, free-fall=🪂.
 
 ### app/utils/share-utils.ts
 Image capture and sharing utilities for social media.

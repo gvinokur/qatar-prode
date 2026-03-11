@@ -543,6 +543,26 @@
     "wooden-spoon": {
       "name": "Wooden Spoon",
       "description": "Predicted the fewest qualified teams correctly"
+    },
+    "on-fire": {
+      "name": "On Fire",
+      "description": "Rank improved 3 or more consecutive snapshots"
+    },
+    "trending-up": {
+      "name": "Trending Up",
+      "description": "Net rank improvement over the last 5 snapshots"
+    },
+    "comeback-kid": {
+      "name": "Comeback Kid",
+      "description": "Was in last place, now in the top 3"
+    },
+    "ice-cold": {
+      "name": "Ice Cold",
+      "description": "Rank dropped 3 or more consecutive snapshots"
+    },
+    "trending-down": {
+      "name": "Trending Down",
+      "description": "Net rank decline over the last 5 snapshots"
     }
   },
   "history": {

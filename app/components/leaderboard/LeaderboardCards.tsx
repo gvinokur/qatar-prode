@@ -45,6 +45,7 @@ export default function LeaderboardCards({
   themeColor,
   shareRef,
   tournamentBadgeConfig,
+  historyData,
 }: LeaderboardCardsProps) {
   const t = useTranslations('groups.sharing')
 
@@ -122,6 +123,13 @@ export default function LeaderboardCards({
     const scoreMap = new Map<string, any>()
     scores.forEach((s: any) => scoreMap.set(s.userId, s))
 
+    const rankHistoryMap = new Map<string, number[]>()
+    if (historyData && !historyData.isEmpty) {
+      for (const uh of historyData.userHistories) {
+        rankHistoryMap.set(uh.userId, uh.data.map((d: any) => d.rank))
+      }
+    }
+
     const inputs: UserBadgeInput[] = leaderboardUsers.map((u) => {
       const s = scoreMap.get(u.id) ?? {}
       return {
@@ -135,11 +143,12 @@ export default function LeaderboardCards({
         individualAwardsScore: s.individualAwardsScore ?? 0,
         boostsUsed: s.boostsUsed ?? 0,
         scoredBoosts: s.scoredBoosts ?? 0,
+        rankHistory: rankHistoryMap.get(u.id),
       }
     })
 
     return calculateBadges(inputs, tournamentBadgeConfig)
-  }, [leaderboardUsers, scores, tournamentBadgeConfig])
+  }, [leaderboardUsers, scores, tournamentBadgeConfig, historyData])
 
   // Handle card toggle (mutual exclusion - only one card expanded at a time)
   const handleCardToggle = (userId: string) => {

@@ -138,6 +138,7 @@ export default async function TournamentScopedFriendGroup(props : Props){
 
   // Fetch score history for this tournament's History tab
   const historyData = await getScoreHistoryForGroup(allParticipants, tournament.id);
+  const historyByTournament = { [tournament.id]: historyData };
 
   // Fetch pending request count for admin badge
   const pendingRequestCount = isAdmin ? await getPendingRequestCount(prodeGroup.id) : 0;
@@ -246,6 +247,7 @@ export default async function TournamentScopedFriendGroup(props : Props){
                 joinUrl={shareJoinUrl}
                 themeColor={prodeGroup.theme?.primary_color ?? undefined}
                 tournamentBadgeConfigs={tournamentBadgeConfigs}
+                historyByTournament={historyByTournament}
               />
             }
             historyContent={
