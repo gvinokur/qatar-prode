@@ -131,7 +131,7 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
             const totalAmount = paidMembers.length * (bettingConfig?.betting_amount || 0);
 
             return (
-              <TabPanel value={tournament.id} key={tournament.id} keepMounted={true}>
+              <TabPanel value={tournament.id} key={tournament.id} keepMounted={true} sx={{ p: 0 }}>
                 <LeaderboardView
                   scores={transformedScores}
                   currentUserId={loggedInUser}
