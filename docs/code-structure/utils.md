@@ -235,7 +235,7 @@ Pure TypeScript badge calculation engine. No framework dependencies.
 - **BADGES**: `Record<BadgeId, Badge>` — Static lookup of all 12 badge definitions (emoji + type). Used for display without re-running apply().
 - **BadgeId**: type union of 12 badge string literals.
 - **Badge**: `{ id: BadgeId; emoji: string; type: 'positive' | 'negative' }`.
-- **TournamentBadgeConfig**: `{ championPoints, runnerUpPoints, thirdPlacePoints, individualAwardPoints, totalQualifyingSlots }`. 0 values disable corresponding badges.
+- **TournamentBadgeConfig**: `{ tournamentStarted, championPoints, runnerUpPoints, thirdPlacePoints, individualAwardPoints, totalQualifyingSlots }`. `tournamentStarted: false` skips all badges. 0 values disable corresponding badges.
 - **UserBadgeInput**: `{ userId, rank, rankChange, totalExactGuesses, totalCorrectGuesses, qualifiedTeamsCorrect, honorRollScore, individualAwardsScore, boostsUsed, scoredBoosts }`.
 
 ### app/utils/share-utils.ts

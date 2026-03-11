@@ -524,3 +524,27 @@ CODE-STRUCTURE files to update:
 8. **i18n namespace**: `badges.*` keys go inside the existing `groups.json` namespace (no new namespace registration needed).
 9. **Two friend-group pages**: Both pages call `getUserScoresForTournament` independently (no shared helper currently). Badge config extraction is duplicated in both — this is intentional, as the pages have different server components with different tournament sources. Not worth abstracting for now.
 10. **Magic number defaults**: The default points (5, 3, 1) match the scoring constants already used in `updateTournamentHonorRoll` in `backoffice-actions.ts`. These are the canonical defaults for this codebase. Acceptable as inline defaults with a comment.
+
+---
+
+## Amendments
+
+### Amendment 1 — `tournamentStarted` guard in TournamentBadgeConfig
+**Discovered during:** implementation (user feedback after Vercel Preview)
+**Change:** Added `tournamentStarted: boolean` field to `TournamentBadgeConfig`. When `false`, `calculateBadges()` returns empty arrays for all users immediately — no badges before the tournament starts. Both friend-group pages derive this value by calling `getTournamentStartDate(tournament.id)` in parallel and comparing with `new Date()`.
+**Reason:** Badges computed from pre-tournament data (e.g. rank = 1 before any games played) are meaningless and misleading.
+
+### Amendment 2 — Wooden Spoon guard for unresolved group stage
+**Discovered during:** implementation (user feedback after Vercel Preview)
+**Change:** `wooden-spoon` apply function checks `Math.max(...users.map(u => u.qualifiedTeamsCorrect)) <= 0` and returns `[]` when all users have zero qualified teams correct. Previously would award the spoon to the first user alphabetically even when no group stage had concluded.
+**Reason:** `findQualifiedTeams()` returns only teams from *completed* groups. Before any groups finish, all `qualifiedTeamsCorrect` values are 0, making the badge meaningless.
+
+### Amendment 3 — Sharp/BrokenSight guard for identical exactRate
+**Discovered during:** implementation (failing test)
+**Change:** Sharp and BrokenSight apply functions check `new Set(rates).size === 1` and return `[]` when all users share the same exactRate. Previously the percentile sort still placed one user at the top/bottom even in a homogeneous group.
+**Reason:** Awarding a "top 10%" badge when everyone has the same rate is arbitrary and unfair.
+
+### Amendment 4 — BadgeRow styling: MUI Avatar with tinted background (replaces grayscale/opacity approach)
+**Discovered during:** implementation (visual review + user feedback)
+**Change:** Plan specified negative badges rendered with `opacity: 0.4` + `filter: grayscale(1)` (dark context) or `opacity: 0.35` only (share context), controlled by a `context: 'dark' | 'share'` prop. Implementation replaced this entirely with MUI `Avatar` components (circular, `border-radius: 50%`), tinted backgrounds (`alpha(success.light, 0.15)` for positive, `alpha(error.light, 0.15)` for negative), neutral `divider` border, and no grayscale filter anywhere. The `context` prop was dropped as unnecessary.
+**Reason:** The grayscale/opacity approach made negative badges unclear in practice. Tinted circular backgrounds communicate badge type through color while keeping all badges equally readable. Emoji semantics (📉, 💩, 🙈, 🥄) carry the negative signal without visual degradation.

@@ -16,9 +16,9 @@ Type definitions for leaderboard UI including user stats, view props, card props
 ### app/components/leaderboard/BadgeRow.tsx
 Reusable badge display component rendering a flex row of emoji badges with tooltips.
 
-- **BadgeRow(props: BadgeRowProps)**: `JSX.Element | null` — [Client] Renders a flex row of emoji spans wrapped in MUI Tooltips. Returns null when badges array is empty. Negative badges styled with opacity (dark: 0.4, share: 0.35) + CSS grayscale filter in dark context only (omitted in share context for html-to-image compat).
-  Props: badges, sizePx (15|16|17|18|20), context ('dark'|'share'), justify?, maxDisplay?
-  Uses: useTranslations('groups.badges'), Tooltip, Box
+- **BadgeRow(props: BadgeRowProps)**: `JSX.Element | null` — [Client] Renders a flex row of MUI Avatar elements wrapped in Tooltips. Returns null when badges array is empty. Each badge is a circle (Avatar, border-radius 50%) with a tinted background: alpha(success.light, 0.15) for positive, alpha(error.light, 0.15) for negative. No grayscale filter; badge type is conveyed by emoji semantics alone.
+  Props: badges, sizePx (15|16|17|18|20), justify?, maxDisplay?
+  Uses: useTranslations('groups.badges'), Avatar, Tooltip, Box, alpha
 
 ### app/components/leaderboard/LeaderboardView.tsx
 Top-level client component that wraps user scores and delegates to LeaderboardCards for responsive display.
