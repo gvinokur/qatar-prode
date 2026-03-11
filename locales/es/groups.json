@@ -505,7 +505,7 @@
     },
     "sharp": {
       "name": "Certero",
-      "description": "Top 10% en clavadas del grupo"
+      "description": "De los mejores pegándole al resultado"
     },
     "crystal-ball": {
       "name": "Bola de Cristal",
@@ -532,15 +532,15 @@
       "description": "El que más puestos perdió hoy"
     },
     "dead-last": {
-      "name": "La Linterna",
-      "description": "Cerrando la tabla por ahora"
+      "name": "Caquita",
+      "description": "Último, tranquilo"
     },
     "broken-sight": {
       "name": "A Ciegas",
-      "description": "Último 10% en clavadas del grupo"
+      "description": "De los que más pifian"
     },
     "wooden-spoon": {
-      "name": "Cuchara de Palo",
+      "name": "Pase de Madera",
       "description": "El que menos clasificados acertó"
     }
   }
