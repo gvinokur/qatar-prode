@@ -7,10 +7,10 @@ import { useTranslations } from 'next-intl'
 import { Badge } from './types'
 
 export interface BadgeRowProps {
-  badges: Badge[]
-  sizePx: 15 | 16 | 17 | 18 | 20
-  justify?: 'flex-start' | 'flex-end' | 'center'
-  maxDisplay?: number
+  readonly badges: Badge[]
+  readonly sizePx: 15 | 16 | 17 | 18 | 20
+  readonly justify?: 'flex-start' | 'flex-end' | 'center'
+  readonly maxDisplay?: number
 }
 
 export function BadgeRow({
@@ -23,7 +23,7 @@ export function BadgeRow({
 
   if (badges.length === 0) return null
 
-  const displayed = maxDisplay != null ? badges.slice(0, maxDisplay) : badges
+  const displayed = maxDisplay == null ? badges : badges.slice(0, maxDisplay)
 
   return (
     <Box
@@ -40,11 +40,12 @@ export function BadgeRow({
       {displayed.map((badge) => {
         const isPositive = badge.type === 'positive'
         const circlePx = sizePx + 16
+        const tooltipTitle = `${t(`${badge.id}.name`)}: ${t(`${badge.id}.description`)}`
 
         return (
           <Tooltip
             key={badge.id}
-            title={`${t(`${badge.id}.name`)}: ${t(`${badge.id}.description`)}`}
+            title={tooltipTitle}
             arrow
           >
             <Avatar

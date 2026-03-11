@@ -81,7 +81,7 @@ function exactRate(user: UserBadgeInput): number {
  * Deterministic and documented here so tests can rely on it.
  */
 function firstAlpha(userIds: string[]): string {
-  return [...userIds].sort()[0]
+  return [...userIds].sort((a, b) => a.localeCompare(b))[0]
 }
 
 const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
@@ -252,15 +252,14 @@ export function calculateBadges(
   const badgesByUser = new Map<string, Badge[]>()
   users.forEach((u) => badgesByUser.set(u.userId, []))
 
-  // Skip all badges if the tournament hasn't started yet
-  if (!config.tournamentStarted) return badgesByUser
-
-  for (const id of ORDERED_BADGE_IDS) {
-    const def = BADGE_DEFINITIONS[id]
-    const badge: Badge = { id, emoji: def.emoji, type: def.type }
-    const earners = def.apply(users, config)
-    for (const userId of earners) {
-      badgesByUser.get(userId)?.push(badge)
+  if (config.tournamentStarted) {
+    for (const id of ORDERED_BADGE_IDS) {
+      const def = BADGE_DEFINITIONS[id]
+      const badge: Badge = { id, emoji: def.emoji, type: def.type }
+      const earners = def.apply(users, config)
+      for (const userId of earners) {
+        badgesByUser.get(userId)?.push(badge)
+      }
     }
   }
 

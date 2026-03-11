@@ -1,7 +1,6 @@
 // Type definitions for leaderboard components
-import { Badge, TournamentBadgeConfig } from '../../utils/badge-calculator'
-
-export type { Badge, TournamentBadgeConfig }
+export type { Badge, TournamentBadgeConfig } from '../../utils/badge-calculator'
+import type { Badge, TournamentBadgeConfig } from '../../utils/badge-calculator'
 
 export interface LeaderboardUser {
   id: string
