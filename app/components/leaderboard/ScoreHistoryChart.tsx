@@ -43,7 +43,14 @@ export default function ScoreHistoryChart({
     new Set(userHistories.flatMap((u) => u.data.map((d) => d.date)))
   ).sort((a, b) => a - b).map(yyyymmddToMs);
 
-  const series = userHistories.map((user, idx) => {
+  // Sort descending by last known value so tooltip rows appear highest-first
+  const sorted = [...userHistories].sort((a, b) => {
+    const aLast = a.data.at(-1)?.totalPoints ?? 0;
+    const bLast = b.data.at(-1)?.totalPoints ?? 0;
+    return bLast - aLast;
+  });
+
+  const series = sorted.map((user, idx) => {
     const isCurrentUser = user.userId === currentUserId;
     const pointsByDate = new Map(user.data.map((d) => [yyyymmddToMs(d.date), d.totalPoints]));
     return {

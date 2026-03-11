@@ -45,7 +45,14 @@ export default function RankHistoryChart({
     new Set(userHistories.flatMap((u) => u.data.map((d) => d.date)))
   ).sort((a, b) => a - b).map(yyyymmddToMs);
 
-  const series = userHistories.map((user, idx) => {
+  // Sort ascending by last known rank so tooltip rows appear best-rank-first (#1 at top)
+  const sorted = [...userHistories].sort((a, b) => {
+    const aLast = a.data.at(-1)?.rank ?? Infinity;
+    const bLast = b.data.at(-1)?.rank ?? Infinity;
+    return aLast - bLast;
+  });
+
+  const series = sorted.map((user, idx) => {
     const isCurrentUser = user.userId === currentUserId;
     const pointsByDate = new Map(user.data.map((d) => [yyyymmddToMs(d.date), d.rank]));
     return {
