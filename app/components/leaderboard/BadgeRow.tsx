@@ -2,7 +2,6 @@
 
 import React from 'react'
 import { Box, Tooltip } from '@mui/material'
-import { alpha } from '@mui/material/styles'
 import { useTranslations } from 'next-intl'
 import { Badge } from './types'
 
@@ -37,39 +36,33 @@ export function BadgeRow({
         gap: '3px',
       }}
     >
-      {displayed.map((badge) => {
-        const isPositive = badge.type === 'positive'
-
-        return (
-          <Tooltip
-            key={badge.id}
-            title={`${t(`${badge.id}.name`)}: ${t(`${badge.id}.description`)}`}
-            arrow
+      {displayed.map((badge) => (
+        <Tooltip
+          key={badge.id}
+          title={`${t(`${badge.id}.name`)}: ${t(`${badge.id}.description`)}`}
+          arrow
+        >
+          <Box
+            component="span"
+            sx={{
+              fontSize: `${sizePx}px`,
+              lineHeight: 1,
+              cursor: 'default',
+              userSelect: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: `${sizePx + 10}px`,
+              height: `${sizePx + 10}px`,
+              borderRadius: '50%',
+              border: '1px solid',
+              borderColor: 'divider',
+            }}
           >
-            <Box
-              component="span"
-              sx={{
-                fontSize: `${sizePx}px`,
-                lineHeight: 1,
-                cursor: 'default',
-                userSelect: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: '6px',
-                padding: '2px 4px',
-                border: '1px solid',
-                borderColor: isPositive ? 'success.light' : 'error.light',
-                bgcolor: (theme) => isPositive
-                  ? alpha(theme.palette.success.light, 0.15)
-                  : alpha(theme.palette.error.light, 0.15),
-              }}
-            >
-              {badge.emoji}
-            </Box>
-          </Tooltip>
-        )
-      })}
+            {badge.emoji}
+          </Box>
+        </Tooltip>
+      ))}
     </Box>
   )
 }
