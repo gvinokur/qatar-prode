@@ -37,7 +37,7 @@ Repository for game_guesses table. Handles user predictions with boost tracking 
 - **updateGameGuessByGameId(gameId: string, userId: string, update: object)**: `Promise<GameGuess | undefined>` — Updates home/away scores for a specific game guess.
 - **updateOrCreateGuess(guess: GameGuessNew)**: `Promise<GameGuess>` — Upserts a game guess (deletes existing, creates new).
 - **legacyGetGameGuessStatisticsForUsers(userIds: string[], tournamentId: string)**: `Promise<GameStatisticForUser[]>` — Legacy SQL aggregation for game statistics; used for backfill and validation.
-- **getGameGuessStatisticsForUsers(userIds: string[], tournamentId: string)**: `Promise<GameStatisticForUser[]>` — Reads materialized game scores from tournament_guesses table.
+- **getGameGuessStatisticsForUsers(userIds: string[], tournamentId: string)**: `Promise<GameStatisticForUser[]>` — Reads materialized game scores from tournament_guesses table. Does not include yesterday_* fields (removed in Story #277).
 - **findAllGuessesForGamesWithResultsInDraft()**: `Promise<GameGuess[]>` — Finds guesses for games with draft results.
 - **deleteAllUserGameGuesses(userId: string)**: `Promise<void>` — Deletes all game guesses for user (account deletion).
 - **deleteAllGameGuessesByTournamentId(tournamentId: string)**: `Promise<void>` — Deletes all game guesses for tournament.

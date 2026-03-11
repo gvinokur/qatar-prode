@@ -91,11 +91,11 @@ describe('rank-calculator', () => {
   describe('calculateRanksWithChange', () => {
     it('should calculate positive rank change (moved up)', () => {
       const users = [
-        { userId: 'user1', totalPoints: 100, yesterdayTotalPoints: 80, currentRank: 1 },
-        { userId: 'user2', totalPoints: 90, yesterdayTotalPoints: 100, currentRank: 2 },
+        { userId: 'user1', totalPoints: 100, penultimateSnapshotPoints: 80, currentRank: 1 },
+        { userId: 'user2', totalPoints: 90, penultimateSnapshotPoints: 100, currentRank: 2 },
       ];
 
-      const result = calculateRanksWithChange(users, 'yesterdayTotalPoints');
+      const result = calculateRanksWithChange(users, 'penultimateSnapshotPoints');
 
       expect(result[0].rankChange).toBe(1); // Was rank 2, now rank 1 (moved up)
       expect(result[1].rankChange).toBe(-1); // Was rank 1, now rank 2 (moved down)
@@ -103,11 +103,11 @@ describe('rank-calculator', () => {
 
     it('should calculate zero rank change (no movement)', () => {
       const users = [
-        { userId: 'user1', totalPoints: 100, yesterdayTotalPoints: 100, currentRank: 1 },
-        { userId: 'user2', totalPoints: 90, yesterdayTotalPoints: 90, currentRank: 2 },
+        { userId: 'user1', totalPoints: 100, penultimateSnapshotPoints: 100, currentRank: 1 },
+        { userId: 'user2', totalPoints: 90, penultimateSnapshotPoints: 90, currentRank: 2 },
       ];
 
-      const result = calculateRanksWithChange(users, 'yesterdayTotalPoints');
+      const result = calculateRanksWithChange(users, 'penultimateSnapshotPoints');
 
       expect(result[0].rankChange).toBe(0);
       expect(result[1].rankChange).toBe(0);
@@ -115,11 +115,11 @@ describe('rank-calculator', () => {
 
     it('should calculate negative rank change (moved down)', () => {
       const users = [
-        { userId: 'user1', totalPoints: 90, yesterdayTotalPoints: 100, currentRank: 2 },
-        { userId: 'user2', totalPoints: 100, yesterdayTotalPoints: 90, currentRank: 1 },
+        { userId: 'user1', totalPoints: 90, penultimateSnapshotPoints: 100, currentRank: 2 },
+        { userId: 'user2', totalPoints: 100, penultimateSnapshotPoints: 90, currentRank: 1 },
       ];
 
-      const result = calculateRanksWithChange(users, 'yesterdayTotalPoints');
+      const result = calculateRanksWithChange(users, 'penultimateSnapshotPoints');
 
       expect(result[0].rankChange).toBe(-1); // Was rank 1, now rank 2
       expect(result[1].rankChange).toBe(1); // Was rank 2, now rank 1
@@ -131,7 +131,7 @@ describe('rank-calculator', () => {
         { userId: 'user2', totalPoints: 90, currentRank: 2 },
       ];
 
-      const result = calculateRanksWithChange(users, 'yesterdayTotalPoints');
+      const result = calculateRanksWithChange(users, 'penultimateSnapshotPoints');
 
       // When yesterday data is missing (undefined), treated as 0 points
       // Both were tied at rank 1 yesterday with 0 points
@@ -141,12 +141,12 @@ describe('rank-calculator', () => {
 
     it('should handle ties in yesterday ranks', () => {
       const users = [
-        { userId: 'user1', totalPoints: 100, yesterdayTotalPoints: 90, currentRank: 1 },
-        { userId: 'user2', totalPoints: 95, yesterdayTotalPoints: 90, currentRank: 2 },
-        { userId: 'user3', totalPoints: 90, yesterdayTotalPoints: 90, currentRank: 3 },
+        { userId: 'user1', totalPoints: 100, penultimateSnapshotPoints: 90, currentRank: 1 },
+        { userId: 'user2', totalPoints: 95, penultimateSnapshotPoints: 90, currentRank: 2 },
+        { userId: 'user3', totalPoints: 90, penultimateSnapshotPoints: 90, currentRank: 3 },
       ];
 
-      const result = calculateRanksWithChange(users, 'yesterdayTotalPoints');
+      const result = calculateRanksWithChange(users, 'penultimateSnapshotPoints');
 
       // All were tied at rank 1 yesterday with 90 points
       // user1 moved to rank 1 (no change from rank 1)
@@ -159,11 +159,11 @@ describe('rank-calculator', () => {
 
     it('should work with different user ID field names', () => {
       const users = [
-        { user_id: 'user1', totalPoints: 100, yesterdayTotalPoints: 90, currentRank: 1 },
-        { user_id: 'user2', totalPoints: 90, yesterdayTotalPoints: 100, currentRank: 2 },
+        { user_id: 'user1', totalPoints: 100, penultimateSnapshotPoints: 90, currentRank: 1 },
+        { user_id: 'user2', totalPoints: 90, penultimateSnapshotPoints: 100, currentRank: 2 },
       ];
 
-      const result = calculateRanksWithChange(users, 'yesterdayTotalPoints');
+      const result = calculateRanksWithChange(users, 'penultimateSnapshotPoints');
 
       expect(result[0].rankChange).toBe(1);
       expect(result[1].rankChange).toBe(-1);

@@ -85,8 +85,6 @@ async function validateRandomUsers(
       'group_exact_guesses',
       'playoff_correct_guesses',
       'playoff_exact_guesses',
-      'yesterday_total_score',
-      'yesterday_boost_bonus',
     ];
 
     for (const userId of userIds) {

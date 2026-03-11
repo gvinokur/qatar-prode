@@ -21,7 +21,8 @@ function transformToLeaderboardUser(score: any): LeaderboardUser {
     id: score.userId,
     name: score.userName || 'Unknown User',
     totalPoints: score.totalPoints || 0,
-    yesterdayTotalPoints: score.yesterdayTotalPoints,
+    latestSnapshotPoints: score.latestSnapshotPoints,
+    penultimateSnapshotPoints: score.penultimateSnapshotPoints,
     groupPoints: score.groupStagePoints ?? 0,
     knockoutPoints: score.knockoutPoints ?? 0,
     groupStageScore: score.groupStageScore || 0,
@@ -73,29 +74,33 @@ export default function LeaderboardCards({
     setMounted(true)
   }, [])
 
-  // Check if we have yesterday data to enable animation
-  const hasYesterdayData = scores.some((s: any) => s.yesterdayTotalPoints !== undefined && s.yesterdayTotalPoints !== null)
+  // Check if we have snapshot history to enable animation
+  const hasSnapshotHistory = scores.some((s: any) => s.penultimateSnapshotPoints !== undefined && s.penultimateSnapshotPoints !== null)
 
   // After initial render, animate to today's scores
   useEffect(() => {
-    if (hasYesterdayData) {
+    if (hasSnapshotHistory) {
       const timer = setTimeout(() => setSortBy('today'), 800)
       return () => clearTimeout(timer)
     } else {
-      // If no yesterday data, immediately show today's scores
+      // If no snapshot history, immediately show today's scores
       setSortBy('today')
     }
-  }, [hasYesterdayData])
+  }, [hasSnapshotHistory])
 
   // Transform, sort, and calculate ranks with changes
   const leaderboardUsers = useMemo(() => {
     const transformed = scores.map(score => transformToLeaderboardUser(score))
 
-    // Sort based on current sortBy state
-    const scoreField = sortBy === 'yesterday' ? 'yesterdayTotalPoints' : 'totalPoints'
+    // Sort based on current sortBy state:
+    // 'yesterday' phase uses penultimate snapshot; 'today' uses latest snapshot (or totalPoints fallback)
+    const hasLatestSnapshot = transformed.some(s => s.latestSnapshotPoints !== undefined)
+    const scoreField = sortBy === 'yesterday'
+      ? 'penultimateSnapshotPoints'
+      : (hasLatestSnapshot ? 'latestSnapshotPoints' : 'totalPoints')
     const sorted = transformed.toSorted((a, b) => {
-      const scoreA = a[scoreField] ?? 0
-      const scoreB = b[scoreField] ?? 0
+      const scoreA = (a[scoreField as keyof LeaderboardUser] as number) ?? 0
+      const scoreB = (b[scoreField as keyof LeaderboardUser] as number) ?? 0
 
       if (scoreB !== scoreA) {
         return scoreB - scoreA
@@ -105,16 +110,16 @@ export default function LeaderboardCards({
     })
 
     // Calculate ranks based on current sort field
-    const usersWithCurrentRank = calculateRanks(sorted, scoreField)
+    const usersWithCurrentRank = calculateRanks(sorted, scoreField as keyof LeaderboardUser)
 
     // Calculate rank changes only when showing today's scores
-    if (sortBy === 'today' && hasYesterdayData) {
-      return calculateRanksWithChange(usersWithCurrentRank, 'yesterdayTotalPoints')
+    if (sortBy === 'today' && hasSnapshotHistory) {
+      return calculateRanksWithChange(usersWithCurrentRank, 'penultimateSnapshotPoints')
     }
 
-    // When showing yesterday's scores or no yesterday data, no rank change indicators
+    // When showing penultimate scores or no snapshot history, no rank change indicators
     return usersWithCurrentRank.map(u => ({ ...u, rankChange: 0 }))
-  }, [scores, sortBy, hasYesterdayData])
+  }, [scores, sortBy, hasSnapshotHistory])
 
   // Build badge map using pre-computed ranks + original score badge fields
   const badgeMap = useMemo(() => {

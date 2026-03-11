@@ -283,10 +283,6 @@ export async function getUserScoresForTournament(userIds: string[], tournamentId
         (tournamentGuess?.honor_roll_score || 0) +
         (tournamentGuess?.individual_awards_score || 0) +
         (tournamentGuess?.group_position_score || 0),
-      yesterdayTotalPoints:
-        (gameStats?.yesterday_total_score || 0) +
-        (gameStats?.yesterday_boost_bonus || 0) +
-        (tournamentGuess?.yesterday_tournament_score || 0),
       totalExactGuesses: tournamentGuess?.total_exact_guesses || 0,
       totalCorrectGuesses: tournamentGuess?.total_correct_guesses || 0,
       qualifiedTeamsCorrect: tournamentGuess?.qualified_teams_correct || 0,

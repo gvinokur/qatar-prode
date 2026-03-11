@@ -23,6 +23,7 @@ import { getTournamentStartDate } from "../../../actions/tournament-actions";
 import { generateShortUrlForGroup } from '../../../actions/short-url-actions';
 import type { TournamentBadgeConfig } from "../../../components/leaderboard/types";
 import { getScoreHistoryForGroup } from '../../../actions/score-history-actions';
+import { computeSnapshotScores } from '../../../utils/score-history-utils';
 
 type Props = {
   readonly params: Promise<{
@@ -108,6 +109,26 @@ export default async function FriendsGroup(props : Props){
     )
   );
 
+  // Patch snapshot scores onto user scores for rank-change tracking
+  const patchedUserScoresByTournament = Object.fromEntries(
+    Object.entries(userScoresByTournament).map(([tournamentId, scores]) => {
+      const historyResult = historyByTournament[tournamentId]
+      if (!historyResult) return [tournamentId, scores]
+      const snapshotMap = computeSnapshotScores(historyResult.userHistories)
+      return [
+        tournamentId,
+        scores.map(score => {
+          const snapshots = snapshotMap.get(score.userId)
+          return {
+            ...score,
+            latestSnapshotPoints: snapshots?.latest,
+            penultimateSnapshotPoints: snapshots?.penultimate,
+          }
+        })
+      ]
+    })
+  );
+
   return (
     <Box>
       {searchParams.hasOwnProperty('debug') && (
@@ -163,7 +184,7 @@ export default async function FriendsGroup(props : Props){
               standingsContent={
                 <ProdeGroupTable
                   users={usersMap}
-                  userScoresByTournament={userScoresByTournament}
+                  userScoresByTournament={patchedUserScoresByTournament}
                   loggedInUser={user.id}
                   tournaments={tournaments}
                   action={prodeGroup.owner_user_id === user.id ? (

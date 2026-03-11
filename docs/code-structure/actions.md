@@ -177,7 +177,7 @@ Friend group management — creation, membership, scoring, and theme updates.
   Calls: getLoggedInUser, findProdeGroupById, deleteParticipantFromGroup
 - **getUsersForGroup(groupId)**: `Promise<string[]>` — Gets all user IDs in a group.
   Calls: findProdeGroupById, findParticipantsInGroup
-- **getUserScoresForTournament(userIds, tournamentId)**: `Promise<UserScore[]>` — Calculates tournament scores for a set of users. Return shape extended with badge fields: totalExactGuesses, totalCorrectGuesses, qualifiedTeamsCorrect, boostsUsed, scoredBoosts.
+- **getUserScoresForTournament(userIds, tournamentId)**: `Promise<UserScore[]>` — Calculates tournament scores for a set of users. Return shape includes badge fields (totalExactGuesses, totalCorrectGuesses, qualifiedTeamsCorrect, boostsUsed, scoredBoosts). Does not include yesterdayTotalPoints (removed in Story #277); snapshot fields (latestSnapshotPoints, penultimateSnapshotPoints) are patched on by pages after calling computeSnapshotScores.
   Calls: getGameGuessStatisticsForUsers, findTournamentGuessByUserIdsTournament, getBoostStatsForUsersInTournament
 - **calculateTournamentGroupStats(groupId, tournamentId, userId)**: `Promise<TournamentGroupStats>` — Gets aggregated group stats for a tournament.
   Calls: findProdeGroupById, findParticipantsInGroup, getUserScoresForTournament, getGroupTournamentBettingConfig, findUsersByIds
@@ -295,10 +295,10 @@ Tournament CRUD and data retrieval — the primary data access layer for tournam
   Calls: findGroupsInTournament, findQualifiedTeams, findGamesInGroup, findTeamInGroup, calculateGroupPosition, applyLocalizationBatch, toMap
 
 ### app/actions/score-history-actions.ts
-Server Action for reading daily score history for a friend group in a tournament (Story #272).
+Server Action for reading daily score history for a friend group in a tournament (Story #272). Also provides snapshot score utilities for leaderboard rank-change computation (Story #277).
 
-- **getScoreHistoryForGroup(groupId: string, tournamentId: string)**: `Promise<ScoreHistoryResult>` — Fetches per-user daily score snapshots and computes 1224 competition ranks per date. Returns `isEmpty: true` when no snapshots exist. Sparse history: users missing on a date are excluded from that date's rank calculation.
-  Calls: findParticipantsInGroup, findUsersByIds, getScoreHistoryForUsers, findFirstGameInTournament, findLastGameInTournament
+- **getScoreHistoryForGroup(userIds: string[], tournamentId: string)**: `Promise<ScoreHistoryResult>` — Fetches per-user daily score snapshots and computes 1224 competition ranks per date. Returns `isEmpty: true` when no snapshots exist. LOCF with score=0: users with no prior snapshot get score=0 at earlier dates (ranked last).
+  Calls: findUsersByIds, getScoreHistoryForUsers, findFirstGameInTournament, findLastGameInTournament
 
 Exported types: `ScoreHistoryDataPoint`, `UserScoreHistory`, `ScoreHistoryResult`
 

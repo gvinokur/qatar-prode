@@ -30,6 +30,7 @@ import PrivacyIndicatorIcon from "../../../../../components/friend-groups/privac
 import AdminSectionTabs from "../../../../../components/friend-groups/admin-section-tabs";
 import { generateShortUrlForGroup } from '../../../../../actions/short-url-actions';
 import { getScoreHistoryForGroup } from '../../../../../actions/score-history-actions';
+import { computeSnapshotScores } from '../../../../../utils/score-history-utils';
 
 type Props = {
   readonly params: Promise<{
@@ -98,9 +99,6 @@ export default async function TournamentScopedFriendGroup(props : Props){
     findQualifiedTeams(tournament.id),
     getTournamentStartDate(tournament.id),
   ])
-  const userScoresByTournament = {
-    [tournament.id]: userScores
-  }
 
   // Build badge config from tournament settings + qualified teams count
   // Default points (5, 3, 1) match updateTournamentHonorRoll in backoffice-actions.ts
@@ -139,6 +137,20 @@ export default async function TournamentScopedFriendGroup(props : Props){
   // Fetch score history for this tournament's History tab
   const historyData = await getScoreHistoryForGroup(allParticipants, tournament.id);
   const historyByTournament = { [tournament.id]: historyData };
+
+  // Patch snapshot scores onto user scores for rank-change tracking
+  const snapshotScores = computeSnapshotScores(historyData.userHistories)
+  const patchedUserScores = userScores.map(score => {
+    const snapshots = snapshotScores.get(score.userId)
+    return {
+      ...score,
+      latestSnapshotPoints: snapshots?.latest,
+      penultimateSnapshotPoints: snapshots?.penultimate,
+    }
+  })
+  const userScoresByTournament = {
+    [tournament.id]: patchedUserScores
+  }
 
   // Fetch pending request count for admin badge
   const pendingRequestCount = isAdmin ? await getPendingRequestCount(prodeGroup.id) : 0;

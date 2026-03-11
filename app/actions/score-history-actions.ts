@@ -88,7 +88,8 @@ function buildSnapshotLookup(
 
 /**
  * Forward-fill (LOCF) each user's last known score across all dates.
- * Users with no prior data on a given date are excluded (line starts at first snapshot).
+ * Users with no prior snapshot on a given date get score=0 (ranked last).
+ * Every user always gets entries for all dates.
  */
 function buildForwardFilledMap(
   userIds: string[],
@@ -102,9 +103,9 @@ function buildForwardFilledMap(
     let lastKnown: number | undefined;
     for (const date of allDates) {
       if (snapshots.has(date)) lastKnown = snapshots.get(date)!;
-      if (lastKnown !== undefined) filled.set(date, lastKnown);
+      filled.set(date, lastKnown ?? 0);
     }
-    if (filled.size > 0) result.set(userId, filled);
+    result.set(userId, filled);
   }
   return result;
 }
@@ -192,3 +193,4 @@ export async function getScoreHistoryForGroup(
 
   return { userHistories, tournamentStartDate, tournamentEndDate, isEmpty: userHistories.length === 0 };
 }
+
