@@ -8,8 +8,8 @@ import ScoreHistoryChart from './ScoreHistoryChart';
 import RankHistoryChart from './RankHistoryChart';
 
 interface HistoryTabProps {
-  historyData?: ScoreHistoryResult
-  themeColor?: string
+  readonly historyData?: ScoreHistoryResult
+  readonly themeColor?: string
 }
 
 export default function HistoryTab({ historyData, themeColor }: HistoryTabProps) {

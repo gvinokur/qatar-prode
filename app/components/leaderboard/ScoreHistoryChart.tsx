@@ -5,15 +5,15 @@ import { Typography, Box } from '@mui/material';
 import { useTranslations } from 'next-intl';
 
 export interface ScoreHistoryChartProps {
-  userHistories: {
-    userId: string
-    displayName: string
-    data: { date: number; totalPoints: number }[]
+  readonly userHistories: readonly {
+    readonly userId: string
+    readonly displayName: string
+    readonly data: readonly { readonly date: number; readonly totalPoints: number }[]
   }[]
-  currentUserId: string
-  startDate: number   // YYYYMMDD
-  endDate: number     // YYYYMMDD
-  themeColor?: string
+  readonly currentUserId: string
+  readonly startDate: number   // YYYYMMDD
+  readonly endDate: number     // YYYYMMDD
+  readonly themeColor?: string
 }
 
 function yyyymmddToMs(d: number): number {
@@ -53,11 +53,12 @@ export default function ScoreHistoryChart({
   const series = sorted.map((user, idx) => {
     const isCurrentUser = user.userId === currentUserId;
     const pointsByDate = new Map(user.data.map((d) => [yyyymmddToMs(d.date), d.totalPoints]));
+    const color = isCurrentUser ? themeColor : LINE_COLORS[idx % LINE_COLORS.length];
     return {
       id: user.userId,
       label: user.displayName,
       data: allDates.map((ts) => pointsByDate.get(ts) ?? null),
-      ...(isCurrentUser && themeColor ? { color: themeColor } : !isCurrentUser ? { color: LINE_COLORS[idx % LINE_COLORS.length] } : {}),
+      ...(color !== undefined ? { color } : {}),
       strokeWidth: isCurrentUser ? 3 : 1.5,
       showMark: false,
     };

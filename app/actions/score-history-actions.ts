@@ -73,6 +73,89 @@ function computeRanksForDate(
 }
 
 /**
+ * Build a lookup: userId → Map<snapshotDate, totalPoints> from raw DB rows.
+ */
+function buildSnapshotLookup(
+  rawHistory: Array<{ user_id: string; snapshot_date: number; total_points: number }>
+): Map<string, Map<number, number>> {
+  const lookup = new Map<string, Map<number, number>>();
+  for (const row of rawHistory) {
+    if (!lookup.has(row.user_id)) lookup.set(row.user_id, new Map());
+    lookup.get(row.user_id)!.set(row.snapshot_date, row.total_points);
+  }
+  return lookup;
+}
+
+/**
+ * Forward-fill (LOCF) each user's last known score across all dates.
+ * Users with no prior data on a given date are excluded (line starts at first snapshot).
+ */
+function buildForwardFilledMap(
+  userIds: string[],
+  snapshotPointsByUser: Map<string, Map<number, number>>,
+  allDates: number[]
+): Map<string, Map<number, number>> {
+  const result = new Map<string, Map<number, number>>();
+  for (const userId of userIds) {
+    const snapshots = snapshotPointsByUser.get(userId) ?? new Map<number, number>();
+    const filled = new Map<number, number>();
+    let lastKnown: number | undefined;
+    for (const date of allDates) {
+      if (snapshots.has(date)) lastKnown = snapshots.get(date)!;
+      if (lastKnown !== undefined) filled.set(date, lastKnown);
+    }
+    if (filled.size > 0) result.set(userId, filled);
+  }
+  return result;
+}
+
+/**
+ * Compute per-date 1224 competition ranks for all users using forward-filled values.
+ * Returns a map: userId → Map<date, rank>.
+ */
+function buildRanksByUserAndDate(
+  forwardFilledByUser: Map<string, Map<number, number>>,
+  allDates: number[]
+): Map<string, Map<number, number>> {
+  const ranksByUserAndDate = new Map<string, Map<number, number>>();
+  for (const date of allDates) {
+    const usersOnDate: Array<{ userId: string; totalPoints: number }> = [];
+    for (const [userId, filledMap] of forwardFilledByUser) {
+      if (filledMap.has(date)) usersOnDate.push({ userId, totalPoints: filledMap.get(date)! });
+    }
+    const rankMap = computeRanksForDate(usersOnDate);
+    for (const [userId, rank] of rankMap.entries()) {
+      if (!ranksByUserAndDate.has(userId)) ranksByUserAndDate.set(userId, new Map());
+      ranksByUserAndDate.get(userId)!.set(date, rank);
+    }
+  }
+  return ranksByUserAndDate;
+}
+
+/**
+ * Build per-user history arrays from forward-filled scores and ranks.
+ */
+function buildUserHistories(
+  userIds: string[],
+  allDates: number[],
+  forwardFilledByUser: Map<string, Map<number, number>>,
+  ranksByUserAndDate: Map<string, Map<number, number>>,
+  displayNameByUserId: Map<string, string>
+): UserScoreHistory[] {
+  const userHistories: UserScoreHistory[] = [];
+  for (const userId of userIds) {
+    const filledMap = forwardFilledByUser.get(userId);
+    if (!filledMap || filledMap.size === 0) continue;
+    const dateRankMap = ranksByUserAndDate.get(userId) ?? new Map<number, number>();
+    const data: ScoreHistoryDataPoint[] = allDates
+      .filter((date) => filledMap.has(date))
+      .map((date) => ({ date, totalPoints: filledMap.get(date)!, rank: dateRankMap.get(date) ?? 1 }));
+    userHistories.push({ userId, displayName: displayNameByUserId.get(userId) ?? userId, data });
+  }
+  return userHistories;
+}
+
+/**
  * Fetch score history data for all current members of a group in a given tournament.
  * Ranks are computed per-date using 1224 competition ranking (ties share rank;
  * next rank skips). Users with no snapshot on a date are excluded from that date's
@@ -86,98 +169,26 @@ export async function getScoreHistoryForGroup(
     return { userHistories: [], tournamentStartDate: null, tournamentEndDate: null, isEmpty: true };
   }
 
-  // 1. Fetch display names
-  const users = await findUsersByIds(userIds);
-  const displayNameByUserId = new Map(
-    users.map((u) => [u.id, u.nickname ?? u.email])
-  );
-
-  // 3. Fetch raw snapshots + tournament date bounds (in parallel)
-  const [rawHistory, firstGame, lastGame] = await Promise.all([
+  const [users, rawHistory, firstGame, lastGame] = await Promise.all([
+    findUsersByIds(userIds),
     getScoreHistoryForUsers(userIds, tournamentId),
     findFirstGameInTournament(tournamentId),
     findLastGameInTournament(tournamentId),
   ]);
 
-  const tournamentStartDate = firstGame
-    ? dateToYYYYMMDD(new Date(firstGame.game_date))
-    : null;
-  const tournamentEndDate = lastGame
-    ? dateToYYYYMMDD(new Date(lastGame.game_date))
-    : null;
+  const displayNameByUserId = new Map(users.map((u) => [u.id, u.nickname ?? u.email]));
+  const tournamentStartDate = firstGame ? dateToYYYYMMDD(new Date(firstGame.game_date)) : null;
+  const tournamentEndDate = lastGame ? dateToYYYYMMDD(new Date(lastGame.game_date)) : null;
 
   if (rawHistory.length === 0) {
-    return {
-      userHistories: [],
-      tournamentStartDate,
-      tournamentEndDate,
-      isEmpty: true,
-    };
+    return { userHistories: [], tournamentStartDate, tournamentEndDate, isEmpty: true };
   }
 
-  // 4. Collect all unique dates (sorted) where ANY user has a snapshot
   const allDates = [...new Set(rawHistory.map((r) => r.snapshot_date))].sort((a, b) => a - b);
+  const snapshotPointsByUser = buildSnapshotLookup(rawHistory);
+  const forwardFilledByUser = buildForwardFilledMap(userIds, snapshotPointsByUser, allDates);
+  const ranksByUserAndDate = buildRanksByUserAndDate(forwardFilledByUser, allDates);
+  const userHistories = buildUserHistories(userIds, allDates, forwardFilledByUser, ranksByUserAndDate, displayNameByUserId);
 
-  // Build lookup: userId → Map<date, totalPoints>
-  const snapshotPointsByUser = new Map<string, Map<number, number>>();
-  for (const row of rawHistory) {
-    if (!snapshotPointsByUser.has(row.user_id)) {
-      snapshotPointsByUser.set(row.user_id, new Map());
-    }
-    snapshotPointsByUser.get(row.user_id)!.set(row.snapshot_date, row.total_points);
-  }
-
-  // 5. Forward-fill each user's last known score across all dates
-  // Users with no prior data on a given date are excluded (line starts at first snapshot)
-  const forwardFilledByUser = new Map<string, Map<number, number>>();
-  for (const userId of userIds) {
-    const snapshots = snapshotPointsByUser.get(userId) ?? new Map<number, number>();
-    const filled = new Map<number, number>();
-    let lastKnown: number | undefined;
-    for (const date of allDates) {
-      if (snapshots.has(date)) lastKnown = snapshots.get(date)!;
-      if (lastKnown !== undefined) filled.set(date, lastKnown);
-    }
-    if (filled.size > 0) forwardFilledByUser.set(userId, filled);
-  }
-
-  // 6. Recompute per-date ranks using forward-filled values
-  const ranksByUserAndDate = new Map<string, Map<number, number>>();
-  for (const date of allDates) {
-    const usersOnDate: Array<{ userId: string; totalPoints: number }> = [];
-    for (const [userId, filledMap] of forwardFilledByUser) {
-      if (filledMap.has(date)) usersOnDate.push({ userId, totalPoints: filledMap.get(date)! });
-    }
-    const rankMap = computeRanksForDate(usersOnDate);
-    for (const [userId, rank] of rankMap.entries()) {
-      if (!ranksByUserAndDate.has(userId)) ranksByUserAndDate.set(userId, new Map());
-      ranksByUserAndDate.get(userId)!.set(date, rank);
-    }
-  }
-
-  // 7. Build per-user history arrays from forward-filled data
-  const userHistories: UserScoreHistory[] = [];
-  for (const userId of userIds) {
-    const filledMap = forwardFilledByUser.get(userId);
-    if (!filledMap || filledMap.size === 0) continue;
-    const dateRankMap = ranksByUserAndDate.get(userId) ?? new Map<number, number>();
-    const data: ScoreHistoryDataPoint[] = [];
-    for (const date of allDates) {
-      if (filledMap.has(date)) {
-        data.push({ date, totalPoints: filledMap.get(date)!, rank: dateRankMap.get(date) ?? 1 });
-      }
-    }
-    userHistories.push({
-      userId,
-      displayName: displayNameByUserId.get(userId) ?? userId,
-      data,
-    });
-  }
-
-  return {
-    userHistories,
-    tournamentStartDate,
-    tournamentEndDate,
-    isEmpty: userHistories.length === 0,
-  };
+  return { userHistories, tournamentStartDate, tournamentEndDate, isEmpty: userHistories.length === 0 };
 }

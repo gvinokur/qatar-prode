@@ -5,16 +5,16 @@ import { Typography, Box } from '@mui/material';
 import { useTranslations } from 'next-intl';
 
 export interface RankHistoryChartProps {
-  userHistories: {
-    userId: string
-    displayName: string
-    data: { date: number; rank: number }[]
+  readonly userHistories: readonly {
+    readonly userId: string
+    readonly displayName: string
+    readonly data: readonly { readonly date: number; readonly rank: number }[]
   }[]
-  currentUserId: string
-  startDate: number   // YYYYMMDD
-  endDate: number     // YYYYMMDD
-  totalUsers: number
-  themeColor?: string
+  readonly currentUserId: string
+  readonly startDate: number   // YYYYMMDD
+  readonly endDate: number     // YYYYMMDD
+  readonly totalUsers: number
+  readonly themeColor?: string
 }
 
 function yyyymmddToMs(d: number): number {
@@ -55,11 +55,12 @@ export default function RankHistoryChart({
   const series = sorted.map((user, idx) => {
     const isCurrentUser = user.userId === currentUserId;
     const pointsByDate = new Map(user.data.map((d) => [yyyymmddToMs(d.date), d.rank]));
+    const color = isCurrentUser ? themeColor : LINE_COLORS[idx % LINE_COLORS.length];
     return {
       id: user.userId,
       label: user.displayName,
       data: allDates.map((ts) => pointsByDate.get(ts) ?? null),
-      ...(isCurrentUser && themeColor ? { color: themeColor } : !isCurrentUser ? { color: LINE_COLORS[idx % LINE_COLORS.length] } : {}),
+      ...(color !== undefined ? { color } : {}),
       strokeWidth: isCurrentUser ? 3 : 1.5,
       showMark: false,
     };
