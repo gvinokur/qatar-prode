@@ -87,7 +87,7 @@ export function ScoreGrowthChart({ rows }: ScoreGrowthChartProps) {
         series={series}
         height={260}
         slotProps={{ tooltip: { trigger: 'axis' } }}
-        margin={{ left: 40, right: 16, top: 10, bottom: 30 }}
+        margin={{ left: 10, right: 16, top: 10, bottom: 30 }}
       />
     </Box>
   );

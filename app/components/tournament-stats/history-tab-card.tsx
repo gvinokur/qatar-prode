@@ -1,6 +1,6 @@
 'use client'
 
-import { Typography } from '@mui/material';
+import { Card, CardContent, Typography } from '@mui/material';
 import { useTranslations } from 'next-intl';
 import { TournamentScoreHistory } from '../../db/tables-definition';
 import { ScoreGrowthChart } from './score-growth-chart';
@@ -20,5 +20,11 @@ export function HistoryTabCard({ rows }: HistoryTabCardProps) {
     );
   }
 
-  return <ScoreGrowthChart rows={rows} />;
+  return (
+    <Card variant="outlined">
+      <CardContent>
+        <ScoreGrowthChart rows={rows} />
+      </CardContent>
+    </Card>
+  );
 }
