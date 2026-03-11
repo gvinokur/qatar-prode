@@ -356,6 +356,13 @@ makeUser({ userId: 'u1', rank: 2, rankHistory: [5, 4, 3, 2] })
 - Edge: Verify no time badges appear when historyData is absent (empty group/new tournament)
 - Edge: Verify static badges (crack, rocket, etc.) unaffected when timeBadgeInputs is absent
 
+## Implementation Amendments
+
+### Amendment 1: Call Graph section has stale reference to `deriveTimeBadgeInputs`
+**Date:** 2026-03-11
+**Reason:** The "Mid-Level Design → Call Graph Changes" section still references `deriveTimeBadgeInputs` (new) from the original design. The plan update (commit `e3e26f0`) simplified the design by adding `rankHistory?` directly to `UserBadgeInput`, eliminating the need for a separate `deriveTimeBadgeInputs` utility or a 3rd param on `calculateBadges`. The call graph for `LeaderboardCards` is unchanged: it only calls `calculateBadges` (no new function).
+**Change:** No code change needed — the plan update already captured the design decision. The stale Call Graph sentence is documentation drift only.
+
 ## Dependencies
 - Blocked by Story A (#272) — score history data must exist
 - Blocked by Story B (#273) — badge engine infrastructure must exist
