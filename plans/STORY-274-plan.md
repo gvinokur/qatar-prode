@@ -47,137 +47,86 @@ rocket:    emoji: '🚀'   // was 📈
 'free-fall': emoji: '🪂'   // was 📉
 ```
 
-#### New `TimeBadgeInputs` interface
+#### Updated `UserBadgeInput` — add `rankHistory?`
 ```typescript
-export interface TimeBadgeInputs {
-  /** userId → rank array, chronological (oldest index 0, newest last) */
-  ranksByUser: Map<string, number[]>
+export interface UserBadgeInput {
+  userId: string
+  rank: number
+  rankChange: number
+  totalExactGuesses: number
+  totalCorrectGuesses: number
+  qualifiedTeamsCorrect: number
+  honorRollScore: number
+  individualAwardsScore: number
+  boostsUsed: number
+  scoredBoosts: number
+  /** Chronological rank history (oldest index 0, newest last). Optional — when absent, time badges suppress. */
+  rankHistory?: number[]
 }
 ```
-Note: `groupSize` is NOT in `TimeBadgeInputs`. Comeback Kid uses `users.length` (already available via the `users: UserBadgeInput[]` first param) for the group-size guard and last-place check. This avoids the `userHistories.length` vs actual membership discrepancy.
+Adding `rankHistory` directly to `UserBadgeInput` eliminates the need for a separate `TimeBadgeInputs` map + `deriveTimeBadgeInputs` utility. Badge apply functions access `u.rankHistory` directly — simpler and co-located with the user data they belong to. The existing `calculateBadges` signature is **unchanged** (no 3rd param).
 
-#### New `deriveTimeBadgeInputs` function
-```typescript
-// Accepts UserScoreHistory[] from score-history-actions directly (structural supertype)
-export function deriveTimeBadgeInputs(
-  userHistories: { userId: string; data: { rank: number }[] }[]
-): TimeBadgeInputs {
-  const ranksByUser = new Map<string, number[]>()
-  for (const h of userHistories) {
-    ranksByUser.set(h.userId, h.data.map((d) => d.rank))
-  }
-  return { ranksByUser }
-}
-```
-The duck-typed input `{ userId, data: { rank }[] }[]` is a structural subset of `UserScoreHistory`, so callers pass `historyData.userHistories` directly without casting. No import of `score-history-actions` in `badge-calculator.ts`.
-
-#### Extended `BadgeApplyFn` type
-```typescript
-type BadgeApplyFn = (
-  users: UserBadgeInput[],
-  config: TournamentBadgeConfig,
-  timeBadgeInputs?: TimeBadgeInputs
-) => string[]
-```
-Existing 12 badge `apply` functions are compatible (they already ignore extra args in JS/TS).
-
-#### Updated `calculateBadges` signature
-```typescript
-export function calculateBadges(
-  users: UserBadgeInput[],
-  config: TournamentBadgeConfig,
-  timeBadgeInputs?: TimeBadgeInputs
-): Map<string, Badge[]>
-```
-Pass `timeBadgeInputs` to each `def.apply(users, config, timeBadgeInputs)` call inside the loop.
+#### `BadgeApplyFn` and `calculateBadges` — unchanged
+`BadgeApplyFn` and `calculateBadges` signatures are **not changed**. Time badge `apply` functions access `u.rankHistory` via the existing `users: UserBadgeInput[]` first param. No 3rd param needed.
 
 #### 5 new badge definitions
 
 **`on-fire` (🔥, positive)**
-The last 3 ranks (tail) form a strictly decreasing sequence (lower rank number = better position).
-Implementation uses concrete index arithmetic to avoid off-by-one bugs:
 ```typescript
-apply: (users, _config, timeBadgeInputs) => {
-  if (!timeBadgeInputs) return []
-  return users.filter(u => {
-    const ranks = timeBadgeInputs.ranksByUser.get(u.userId)
-    if (!ranks || ranks.length < 3) return false
-    const len = ranks.length
-    // ranks[len-3] is 3rd-from-last, ranks[len-1] is most recent
-    return ranks[len - 3] > ranks[len - 2] && ranks[len - 2] > ranks[len - 1]
-  }).map(u => u.userId)
-}
+apply: (users) => users.filter(u => {
+  const r = u.rankHistory
+  if (!r || r.length < 3) return false
+  const n = r.length
+  return r[n - 3] > r[n - 2] && r[n - 2] > r[n - 1]  // strictly decreasing rank# = improving
+}).map(u => u.userId)
 ```
 
-**`ice-cold` (🧊, negative)**
-The last 3 ranks (tail) form a strictly increasing sequence (higher rank number = worsening position — direct inverse of on-fire).
+**`ice-cold` (🧊, negative)** — direct inverse of on-fire
 ```typescript
-apply: (users, _config, timeBadgeInputs) => {
-  if (!timeBadgeInputs) return []
-  return users.filter(u => {
-    const ranks = timeBadgeInputs.ranksByUser.get(u.userId)
-    if (!ranks || ranks.length < 3) return false
-    const len = ranks.length
-    // ranks[len-3] < ranks[len-2] < ranks[len-1]: each snapshot rank number is larger = worse
-    return ranks[len - 3] < ranks[len - 2] && ranks[len - 2] < ranks[len - 1]
-  }).map(u => u.userId)
-}
+apply: (users) => users.filter(u => {
+  const r = u.rankHistory
+  if (!r || r.length < 3) return false
+  const n = r.length
+  return r[n - 3] < r[n - 2] && r[n - 2] < r[n - 1]  // strictly increasing rank# = worsening
+}).map(u => u.userId)
 ```
 
 **`trending-up` (📈, positive)**
-Net rank improved (lower rank number) from 5 snapshots ago vs current.
 ```typescript
-apply: (users, _config, timeBadgeInputs) => {
-  if (!timeBadgeInputs) return []
-  return users.filter(u => {
-    const ranks = timeBadgeInputs.ranksByUser.get(u.userId)
-    if (!ranks || ranks.length < 5) return false
-    const len = ranks.length
-    return ranks[len - 5] > ranks[len - 1]  // baseline rank > current rank = improved
-  }).map(u => u.userId)
-}
+apply: (users) => users.filter(u => {
+  const r = u.rankHistory
+  if (!r || r.length < 5) return false
+  return r[r.length - 5] > r[r.length - 1]  // rank# improved vs 5 snapshots ago
+}).map(u => u.userId)
 ```
 
 **`trending-down` (📉, negative)**
-Net rank declined (higher rank number) from 5 snapshots ago vs current.
 ```typescript
-apply: (users, _config, timeBadgeInputs) => {
-  if (!timeBadgeInputs) return []
-  return users.filter(u => {
-    const ranks = timeBadgeInputs.ranksByUser.get(u.userId)
-    if (!ranks || ranks.length < 5) return false
-    const len = ranks.length
-    return ranks[len - 5] < ranks[len - 1]  // baseline rank < current rank = declined
-  }).map(u => u.userId)
-}
+apply: (users) => users.filter(u => {
+  const r = u.rankHistory
+  if (!r || r.length < 5) return false
+  return r[r.length - 5] < r[r.length - 1]  // rank# worsened vs 5 snapshots ago
+}).map(u => u.userId)
 ```
 
 **`comeback-kid` (🎢, positive)**
-Uses `users.length` (current group size from `UserBadgeInput[]`) for both the suppression guard and the "last place" check. This is consistent with how static badges like `dead-last` work and avoids `userHistories.length` discrepancies.
-- Suppress when `users.length <= 3`
-- Need ≥ 2 snapshots
-- At any PAST snapshot (all except most recent): `rank === users.length`
-- Currently top 3: `ranks[len - 1] <= 3`
 ```typescript
-apply: (users, _config, timeBadgeInputs) => {
-  if (!timeBadgeInputs) return []
+apply: (users) => {
   if (users.length <= 3) return []
   const groupSize = users.length
   return users.filter(u => {
-    const ranks = timeBadgeInputs.ranksByUser.get(u.userId)
-    if (!ranks || ranks.length < 2) return false
-    const len = ranks.length
-    if (ranks[len - 1] > 3) return false          // must be top 3 now
-    const pastRanks = ranks.slice(0, len - 1)     // all but most recent
-    return pastRanks.some(r => r === groupSize)   // was ever last place
+    const r = u.rankHistory
+    if (!r || r.length < 2) return false
+    if (r[r.length - 1] > 3) return false          // must be top 3 now
+    return r.slice(0, -1).some(rank => rank === groupSize)  // was ever last place in past
   }).map(u => u.userId)
 }
 ```
-Note: `rank` values in `ScoreHistoryDataPoint` are always positive integers (set by `computeRanksForDate` which uses integer `currentRank` increments with no fractional values). `===` equality is safe.
 
-Note on `tournamentStarted` gate: the existing `if (config.tournamentStarted)` block in `calculateBadges` wraps ALL badge processing including the time badge `apply` calls. When `tournamentStarted: false`, the badgesByUser map is returned empty — no badge (static or time) is awarded. No additional guard needed in time badge definitions.
-
-Note on field names: `ScoreHistoryResult.userHistories` is `UserScoreHistory[]` where each entry has `userId: string` and `data: ScoreHistoryDataPoint[]` with `data[i].rank: number`. This matches the duck type `{ userId: string; data: { rank: number }[] }[]` exactly. `deriveTimeBadgeInputs(historyData.userHistories)` compiles without cast.
+Notes:
+- `rank` values are always positive integers (`computeRanksForDate` uses integer increments), so `=== groupSize` is safe.
+- `tournamentStarted` gate: the existing `if (config.tournamentStarted)` block in `calculateBadges` wraps ALL badge apply calls. When `false`, nothing is awarded — time badges included. No extra guard needed in definitions.
+- `rankHistory` absent = `undefined` → guards `if (!r || r.length < N)` handle silently (no crash).
 
 ### 2. `types.ts` — new `historyData` prop
 ```typescript
@@ -193,17 +142,27 @@ readonly historyData?: ScoreHistoryResult
 <LeaderboardCards ... historyData={historyData} />
 ```
 
-### 4. `LeaderboardCards.tsx` — derive and inject
+### 4. `LeaderboardCards.tsx` — build rankHistory inline
 ```typescript
-import { deriveTimeBadgeInputs } from '../../utils/badge-calculator'
+// Build userId → rankHistory map from historyData (inside badgeMap useMemo)
+const rankHistoryMap = new Map<string, number[]>()
+if (historyData && !historyData.isEmpty) {
+  for (const uh of historyData.userHistories) {
+    rankHistoryMap.set(uh.userId, uh.data.map((d: any) => d.rank))
+  }
+}
 
-// Inside badgeMap useMemo, after checking tournamentBadgeConfig:
-const timeBadgeInputs =
-  historyData && !historyData.isEmpty
-    ? deriveTimeBadgeInputs(historyData.userHistories)
-    : undefined
+// Add rankHistory to each UserBadgeInput (inside existing inputs construction):
+const inputs: UserBadgeInput[] = leaderboardUsers.map((u) => {
+  const s = scoreMap.get(u.id) ?? {}
+  return {
+    userId: u.id,
+    // ... existing fields ...
+    rankHistory: rankHistoryMap.get(u.id),  // undefined if no history
+  }
+})
 
-return calculateBadges(inputs, tournamentBadgeConfig, timeBadgeInputs)
+return calculateBadges(inputs, tournamentBadgeConfig)  // signature unchanged
 ```
 
 ### 5. `friends-group-table.tsx` — thread history prop
@@ -261,25 +220,17 @@ historyByTournament={historyByTournament}
 
 **New exports:**
 
-- **`TimeBadgeInputs`**: `{ ranksByUser: Map<string, number[]> }` — Input type for time-dimension badge computation. `ranksByUser` maps userId to chronological rank array (oldest=index 0). No `groupSize` field — Comeback Kid uses `users.length` from its first param instead (consistent with how static badges access group size).
-
-- **`deriveTimeBadgeInputs(userHistories: { userId: string; data: { rank: number }[] }[])`**: `TimeBadgeInputs` — Pure derivation function. Maps each user's `data[i].rank` into `ranksByUser`. Duck-typed input is a structural subset of `UserScoreHistory[]` from score-history-actions; no import needed.
-  Calls: none
-  Tests:
-  - returns empty ranksByUser map when userHistories is empty
-  - ranksByUser has one entry per user
-  - rank array preserves chronological order from input data
-  - non-rank fields in data entries are correctly ignored (only rank is mapped)
+- **`UserBadgeInput`** *(extended with `rankHistory?: number[]`)*: Optional chronological rank array (oldest index 0, newest last). When absent, all 5 time badges suppress per their `!r || r.length < N` guard. No other change to the type.
 
 **Changed exports:**
 
-- **`calculateBadges(users: UserBadgeInput[], config: TournamentBadgeConfig, timeBadgeInputs?: TimeBadgeInputs)`**: `Map<string, Badge[]>` *(added optional 3rd param)*
-  When `timeBadgeInputs` is absent: 5 new time badges produce no recipients, static badges unaffected.
+- **`calculateBadges(users: UserBadgeInput[], config: TournamentBadgeConfig)`**: `Map<string, Badge[]>` *(signature unchanged)*
+  When `rankHistory` is absent from a user's input, all 5 time badge definitions silently return no recipients for that user. Static badges unaffected.
   Tests:
-  - (all existing tests pass unchanged)
-  - time badges produce no recipients when timeBadgeInputs is undefined
-  - time badges produce no recipients when tournamentStarted is false
-  - user with 5 snapshots but absent from timeBadgeInputs.ranksByUser receives no time badges (no crash)
+  - (all existing tests pass unchanged — no signature change)
+  - time badges produce no recipients when all users have `rankHistory: undefined`
+  - time badges produce no recipients when `tournamentStarted: false`
+  - user with `rankHistory` absent in input receives no time badges (no crash)
   - rocket badge emoji is 🚀 (verified via BADGES lookup)
   - free-fall badge emoji is 🪂 (verified via BADGES lookup)
 
@@ -341,35 +292,27 @@ Tests: No unit tests needed for type-only changes.
 
 **Changed function:**
 
-- **`LeaderboardCards(props: LeaderboardCardsProps)`** *(adds historyData? prop and timeBadgeInputs derivation)*
-  `timeBadgeInputs` derived via `deriveTimeBadgeInputs(historyData.userHistories)` when `historyData && !historyData.isEmpty`. Passed as 3rd arg to `calculateBadges`.
-  Calls: calculateRanks, calculateRanksWithChange, calculateBadges, deriveTimeBadgeInputs *(new)*
-  Tests: (integration — existing LeaderboardCard.badge tests cover rendering; no new component test needed for this change; logic covered by badge-calculator tests)
+- **`LeaderboardCards(props: LeaderboardCardsProps)`** *(adds historyData? prop; builds rankHistory map inline)*
+  Builds `rankHistoryMap: Map<string, number[]>` from `historyData.userHistories` (when present) and sets `rankHistory` on each `UserBadgeInput` before calling `calculateBadges`. Signature of `calculateBadges` call is unchanged.
+  Calls: calculateRanks, calculateRanksWithChange, calculateBadges
+  Tests: (integration — existing LeaderboardCard.badge tests cover rendering; logic covered by badge-calculator unit tests)
 
 ## Testing Strategy
 
 ### New test file: `app/utils/__tests__/badge-calculator.time-badges.test.ts`
 Tests for:
-1. `deriveTimeBadgeInputs` (4 tests above)
-2. `on-fire` badge (4 tests)
-3. `ice-cold` badge (4 tests)
-4. `trending-up` badge (4 tests)
-5. `trending-down` badge (4 tests)
-6. `comeback-kid` badge (6 tests)
-7. `calculateBadges` with no `timeBadgeInputs` (2 tests — static badges unaffected)
-8. Emoji updates: `rocket` is 🚀, `free-fall` is 🪂 (2 tests in existing test file)
+1. `on-fire` badge (4 tests)
+2. `ice-cold` badge (4 tests)
+3. `trending-up` badge (4 tests)
+4. `trending-down` badge (4 tests)
+5. `comeback-kid` badge (6 tests)
+6. `calculateBadges` with no `rankHistory` (2 tests — static badges unaffected)
+7. Emoji updates: `rocket` is 🚀, `free-fall` is 🪂 (2 tests — can add to existing test file)
 
-**Test helper pattern** (same as existing `badge-calculator.test.ts`):
+**Test helper pattern** (extends existing `makeUser` from `badge-calculator.test.ts`):
 ```typescript
-function makeTimeBadgeInputs(
-  entries: { userId: string; ranks: number[] }[],
-  groupSize?: number
-): TimeBadgeInputs {
-  return {
-    ranksByUser: new Map(entries.map(e => [e.userId, e.ranks])),
-    groupSize: groupSize ?? entries.length,
-  }
-}
+// makeUser already accepts Partial<UserBadgeInput> overrides — just add rankHistory:
+makeUser({ userId: 'u1', rank: 2, rankHistory: [5, 4, 3, 2] })
 ```
 
 ### Existing tests remain unchanged
@@ -378,17 +321,17 @@ function makeTimeBadgeInputs(
 
 ## Implementation Tasks (for execution phase)
 
-1. **badge-calculator.ts** — Add types, `deriveTimeBadgeInputs`, 5 badge defs, emoji updates, extend signature
+1. **badge-calculator.ts** — Add `rankHistory?` to `UserBadgeInput`, 5 badge defs, emoji updates (no signature change to `calculateBadges`)
    CODE-STRUCTURE: `utils.md` (badge-calculator entry)
-   Call graph: YES (new call in LeaderboardCards)
+   Call graph: NO (calculateBadges call site in LeaderboardCards unchanged)
 
 2. **types.ts + LeaderboardView.tsx** — Add historyData prop thread
    CODE-STRUCTURE: `components-leaderboard-stats.md`
    Call graph: NO
 
-3. **LeaderboardCards.tsx** — Derive timeBadgeInputs, pass to calculateBadges
+3. **LeaderboardCards.tsx** — Build rankHistory map inline, add to UserBadgeInput per user
    CODE-STRUCTURE: `components-leaderboard-stats.md`
-   Call graph: YES
+   Call graph: NO
 
 4. **friends-group-table.tsx + page.tsx (×2)** — Thread historyByTournament
    CODE-STRUCTURE: NO (no new exported function)
