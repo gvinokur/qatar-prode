@@ -20,6 +20,7 @@ import MuiAlert from '@mui/material/Alert';
 import NotificationDialog from "./notification-dialog";
 import LeaderboardView from '../leaderboard/LeaderboardView';
 import { useTranslations } from 'next-intl';
+import type { TournamentBadgeConfig } from '../leaderboard/types';
 
 type Props = {
   readonly users: {[k:string]: User},
@@ -34,9 +35,10 @@ type Props = {
   readonly groupName?: string,
   readonly joinUrl?: string,
   readonly themeColor?: string,
+  readonly tournamentBadgeConfigs?: Record<string, TournamentBadgeConfig>,
 }
 
-export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, members, bettingData, selectedTournamentId, groupName, joinUrl, themeColor}: Props) {
+export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, members, bettingData, selectedTournamentId, groupName, joinUrl, themeColor, tournamentBadgeConfigs}: Props) {
   const t = useTranslations('groups.standings');
   const tBetting = useTranslations('groups.betting');
   const tSharing = useTranslations('groups.sharing');
@@ -136,6 +138,7 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
                   joinUrl={joinUrl}
                   themeColor={themeColor}
                   shareRef={leaderboardShareRef}
+                  tournamentBadgeConfig={tournamentBadgeConfigs?.[tournament.id]}
                 />
                 {/* Betting Status (read-only) */}
                 {bettingConfig?.betting_enabled && (

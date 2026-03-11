@@ -492,5 +492,56 @@
         }
       }
     }
+  },
+  "badges": {
+    "sectionLabel": "Insignias",
+    "crack": {
+      "name": "El Crack",
+      "description": "Primero en el grupo, por ahora"
+    },
+    "rocket": {
+      "name": "Cohete",
+      "description": "El que más puestos escaló hoy"
+    },
+    "sharp": {
+      "name": "Certero",
+      "description": "De los mejores pegándole al resultado"
+    },
+    "crystal-ball": {
+      "name": "Bola de Cristal",
+      "description": "Le pegó al campeón"
+    },
+    "oracle": {
+      "name": "Oráculo",
+      "description": "Clavó el podio completo"
+    },
+    "award-scout": {
+      "name": "Cazatalentos",
+      "description": "Clavó 3 o más premios individuales"
+    },
+    "golden-ticket": {
+      "name": "Pase de Oro",
+      "description": "Acertó el 70%+ de los clasificados"
+    },
+    "boost-king": {
+      "name": "Rey del Boost",
+      "description": "El que mejor aprovechó sus boosts"
+    },
+    "free-fall": {
+      "name": "En Picada",
+      "description": "El que más puestos perdió hoy"
+    },
+    "dead-last": {
+      "name": "Caquita",
+      "description": "Último, tranquilo"
+    },
+    "broken-sight": {
+      "name": "A Ciegas",
+      "description": "De los que más pifian"
+    },
+    "wooden-spoon": {
+      "name": "Pase de Madera",
+      "description": "El que menos clasificados acertó"
+    }
   }
 }

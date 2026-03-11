@@ -11,6 +11,7 @@ export default function LeaderboardView({
   joinUrl,
   themeColor,
   shareRef,
+  tournamentBadgeConfig,
 }: LeaderboardViewProps) {
   // For now, we don't have previous scores, so rank changes will be 0
   // In the future, this could be passed as a prop
@@ -28,6 +29,7 @@ export default function LeaderboardView({
       joinUrl={joinUrl}
       themeColor={themeColor}
       shareRef={shareRef}
+      tournamentBadgeConfig={tournamentBadgeConfig}
     />
   )
 }

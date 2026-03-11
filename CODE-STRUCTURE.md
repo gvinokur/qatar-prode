@@ -3,7 +3,7 @@
 Living map of all production source files, their exported functions/components, and call relationships.
 
 **Format guide:** `docs/claude/code-structure.md`
-**Last updated:** 2026-03-09
+**Last updated:** 2026-03-10
 
 ---
 
@@ -212,10 +212,12 @@ Key flows:
      ├── findParticipantsInGroup
      └── getUserScoresForTournament [server action]
            ├── getGameGuessStatisticsForUsers (materialized)
-           └── findTournamentGuessByUserIdsTournament
+           ├── findTournamentGuessByUserIdsTournament
+           └── getBoostStatsForUsersInTournament (parallel, for badge data)
      └── ProdeGroupTable [renders]
            └── LeaderboardView [renders]
                  └── LeaderboardCards [renders]
+                       ├── calculateBadges (util) — useMemo, computes Badge[] per user
                        ├── HeadToHeadDialog [renders] (on compare click)
                        │     ├── getUserStatsForComparison [server action]
                        │     │     ├── getGameGuessStatisticsForUsers

@@ -19,7 +19,7 @@ import {getLoggedInUser} from "./user-actions";
 import { findJoinRequestsByUser } from "../db/prode-group-join-request-repository";
 import {z} from "zod";
 import {createS3Client, deleteThemeLogoFromS3} from "./s3";
-import { getGameGuessStatisticsForUsers } from '../db/game-guess-repository';
+import { getGameGuessStatisticsForUsers, getBoostStatsForUsersInTournament } from '../db/game-guess-repository';
 import { findTournamentGuessByUserIdsTournament } from '../db/tournament-guess-repository';
 import { customToMap } from "../utils/ObjectUtils";
 import { TournamentGroupStats, UserScore } from "../definitions";
@@ -251,14 +251,19 @@ export async function getUsersForGroup(groupId: string): Promise<string[]> {
 }
 
 export async function getUserScoresForTournament(userIds: string[], tournamentId: string): Promise<UserScore[]> {
-  const allUsersGameStatics = await getGameGuessStatisticsForUsers(userIds, tournamentId);
-  const allUserTournamentGuesses = await findTournamentGuessByUserIdsTournament(userIds, tournamentId);
+  const [allUsersGameStatics, allUserTournamentGuesses, boostStats] = await Promise.all([
+    getGameGuessStatisticsForUsers(userIds, tournamentId),
+    findTournamentGuessByUserIdsTournament(userIds, tournamentId),
+    getBoostStatsForUsersInTournament(userIds, tournamentId),
+  ]);
   const gameStatisticsByUserIdMap = customToMap(allUsersGameStatics, (userGameStatistics) => userGameStatistics.user_id);
   const tournamentGuessesByUserIdMap = customToMap(allUserTournamentGuesses, (userTournamentGuess) => userTournamentGuess.user_id);
+  const boostStatsByUserIdMap = customToMap(boostStats, (s) => s.user_id);
 
   return userIds.map(userId => {
     const gameStats = gameStatisticsByUserIdMap[userId];
     const tournamentGuess = tournamentGuessesByUserIdMap[userId];
+    const boostStat = boostStatsByUserIdMap[userId];
 
     return {
       userId,
@@ -281,7 +286,12 @@ export async function getUserScoresForTournament(userIds: string[], tournamentId
       yesterdayTotalPoints:
         (gameStats?.yesterday_total_score || 0) +
         (gameStats?.yesterday_boost_bonus || 0) +
-        (tournamentGuess?.yesterday_tournament_score || 0)
+        (tournamentGuess?.yesterday_tournament_score || 0),
+      totalExactGuesses: tournamentGuess?.total_exact_guesses || 0,
+      totalCorrectGuesses: tournamentGuess?.total_correct_guesses || 0,
+      qualifiedTeamsCorrect: tournamentGuess?.qualified_teams_correct || 0,
+      boostsUsed: boostStat?.boosts_used || 0,
+      scoredBoosts: boostStat?.scored_boosts || 0,
     };
   }) as UserScore[];
 }

@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-09
+**Last updated:** 2026-03-10
 
 ---
 
@@ -227,6 +227,16 @@ User avatar color and initial generation utilities.
 
 - **getAvatarColor(userId)**: `string` — Generates a consistent avatar color based on user ID hash.
 - **getUserInitials(name)**: `string` — Extracts user initials from name (first and last letter or first two letters).
+
+### app/utils/badge-calculator.ts
+Pure TypeScript badge calculation engine. No framework dependencies.
+
+- **calculateBadges(users: UserBadgeInput[], config: TournamentBadgeConfig)**: `Map<string, Badge[]>` — Computes badges for all users in a group. Returns positive badges first, negative last per user (guaranteed contract for BadgeRow maxDisplay truncation).
+- **BADGES**: `Record<BadgeId, Badge>` — Static lookup of all 12 badge definitions (emoji + type). Used for display without re-running apply().
+- **BadgeId**: type union of 12 badge string literals.
+- **Badge**: `{ id: BadgeId; emoji: string; type: 'positive' | 'negative' }`.
+- **TournamentBadgeConfig**: `{ tournamentStarted, championPoints, runnerUpPoints, thirdPlacePoints, individualAwardPoints, totalQualifyingSlots }`. `tournamentStarted: false` skips all badges. 0 values disable corresponding badges.
+- **UserBadgeInput**: `{ userId, rank, rankChange, totalExactGuesses, totalCorrectGuesses, qualifiedTeamsCorrect, honorRollScore, individualAwardsScore, boostsUsed, scoredBoosts }`.
 
 ### app/utils/share-utils.ts
 Image capture and sharing utilities for social media.

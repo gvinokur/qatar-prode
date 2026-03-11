@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-09
+**Last updated:** 2026-03-10
 
 ---
 
@@ -196,14 +196,16 @@ Head-to-head comparison card showing stats between two users. [Client]
 
 - **StatRow(props: StatRowProps)**: `JSX.Element` — [Client] Stat row with left/right comparison, bold winner.
 - **AvatarCircle(props: AvatarCircleProps)**: `JSX.Element` — [Client] Avatar with initials, name, and rank.
-- **HeadToHeadTemplate(props: HeadToHeadTemplateProps, ref)**: `JSX.Element` — [Client] Compare two users' total points, group stage, knockout, accuracy; show who leads/loses/ties.
+- **HeadToHeadTemplate(props: HeadToHeadTemplateProps, ref)**: `JSX.Element` — [Client] Compare two users' total points, group stage, knockout, accuracy; show who leads/loses/ties. Accepts myBadges and theirBadges; renders BadgeRow (17px, share context, maxDisplay=6) below each avatar.
   Uses: useTranslations
+  Renders: BadgeRow
 
 ### app/components/friend-groups/sharing/LeaderboardTemplate.tsx
 Shareable leaderboard image with top users, QR code, and join link. [Client]
 
-- **LeaderboardTemplate(props: LeaderboardTemplateProps, ref)**: `JSX.Element` — [Client] Display standings with medals/stars, current user highlighted, points-from-lead info, and QR code with join URL.
+- **LeaderboardTemplate(props: LeaderboardTemplateProps, ref)**: `JSX.Element` — [Client] Display standings with medals/stars, current user highlighted, points-from-lead info, and QR code with join URL. Each user row includes badges?: Badge[] (15px, share context, maxDisplay=6, flex-end justify).
   Uses: useTranslations
+  Renders: BadgeRow
 
 ### app/components/friend-groups/sharing/PersonalHighlightTemplate.tsx
 Personal achievement card showing rank improvement. [Client]

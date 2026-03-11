@@ -42,6 +42,7 @@ Repository for game_guesses table. Handles user predictions with boost tracking 
 - **getGameGuessWithBoost(userId: string, gameId: string)**: `Promise<GameGuess | undefined>` — Gets game guess with boost information.
 - **getPredictionDashboardStats(userId: string, tournamentId: string)**: `Promise<{ totalGames: number; predictedGames: number; silverUsed: number; goldenUsed: number }>` — Aggregated dashboard metrics in single query.
 - **getBoostAllocationBreakdown(userId: string, tournamentId: string, boostType: 'silver' | 'golden')**: `Promise<BoostBreakdown>` — Breaks down boost usage by group and playoff stage.
+- **getBoostStatsForUsersInTournament(userIds: string[], tournamentId: string)**: `Promise<Array<{ user_id: string; boosts_used: number; scored_boosts: number }>>` — Multi-user boost stats for badge calculation. Only counts locked games (result exists OR game_date < NOW()). Returns empty array for empty userIds.
 
 ### app/db/game-repository.ts
 Repository for games table. Manages game records with group/playoff metadata. Returns raw data; localization applied in Server Actions.

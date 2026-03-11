@@ -6,10 +6,11 @@ import { createPortal } from 'react-dom'
 import { LayoutGroup } from 'framer-motion'
 import ShareIcon from '@mui/icons-material/Share'
 import { useTranslations } from 'next-intl'
-import type { LeaderboardCardsProps, LeaderboardUser } from './types'
+import type { LeaderboardCardsProps, LeaderboardUser, Badge } from './types'
 import LeaderboardCard from './LeaderboardCard'
 import HeadToHeadDialog from './HeadToHeadDialog'
 import { calculateRanks, calculateRanksWithChange } from '../../utils/rank-calculator'
+import { calculateBadges, UserBadgeInput } from '../../utils/badge-calculator'
 import SharePreviewModal from '../friend-groups/sharing/SharePreviewModal'
 import LeaderboardTemplate, { type LeaderboardTemplateUser } from '../friend-groups/sharing/LeaderboardTemplate'
 import PersonalHighlightTemplate from '../friend-groups/sharing/PersonalHighlightTemplate'
@@ -43,6 +44,7 @@ export default function LeaderboardCards({
   joinUrl,
   themeColor,
   shareRef,
+  tournamentBadgeConfig,
 }: LeaderboardCardsProps) {
   const t = useTranslations('groups.sharing')
 
@@ -113,6 +115,32 @@ export default function LeaderboardCards({
     return usersWithCurrentRank.map(u => ({ ...u, rankChange: 0 }))
   }, [scores, sortBy, hasYesterdayData])
 
+  // Build badge map using pre-computed ranks + original score badge fields
+  const badgeMap = useMemo(() => {
+    if (!tournamentBadgeConfig) return new Map<string, Badge[]>()
+
+    const scoreMap = new Map<string, any>()
+    scores.forEach((s: any) => scoreMap.set(s.userId, s))
+
+    const inputs: UserBadgeInput[] = leaderboardUsers.map((u) => {
+      const s = scoreMap.get(u.id) ?? {}
+      return {
+        userId: u.id,
+        rank: (u as any).currentRank ?? 1,
+        rankChange: (u as any).rankChange ?? 0,
+        totalExactGuesses: s.totalExactGuesses ?? 0,
+        totalCorrectGuesses: s.totalCorrectGuesses ?? 0,
+        qualifiedTeamsCorrect: s.qualifiedTeamsCorrect ?? 0,
+        honorRollScore: s.honorRollScore ?? 0,
+        individualAwardsScore: s.individualAwardsScore ?? 0,
+        boostsUsed: s.boostsUsed ?? 0,
+        scoredBoosts: s.scoredBoosts ?? 0,
+      }
+    })
+
+    return calculateBadges(inputs, tournamentBadgeConfig)
+  }, [leaderboardUsers, scores, tournamentBadgeConfig])
+
   // Handle card toggle (mutual exclusion - only one card expanded at a time)
   const handleCardToggle = (userId: string) => {
     setExpandedCardId(prev => (prev === userId ? null : userId))
@@ -153,6 +181,7 @@ export default function LeaderboardCards({
       userId: u.id,
       points: u.totalPoints,
       isCurrentUser: u.id === currentUserId,
+      badges: badgeMap.get(u.id) ?? [],
     })),
     ...(!currentUserInTop5 && currentUser
       ? [{
@@ -161,6 +190,7 @@ export default function LeaderboardCards({
           userId: currentUser.id,
           points: currentUser.totalPoints,
           isCurrentUser: true,
+          badges: badgeMap.get(currentUser.id) ?? [],
         }]
       : []),
   ]
@@ -219,6 +249,7 @@ export default function LeaderboardCards({
                 onToggle={() => handleCardToggle(user.id)}
                 onCompare={isCurrentUser ? undefined : () => setCompareUserId(user.id)}
                 onShareHighlight={isCurrentUser && userRankChange > 0 ? () => setHighlightShareOpen(true) : undefined}
+                badges={badgeMap.get(user.id) ?? []}
               />
             )
           })}
@@ -239,6 +270,8 @@ export default function LeaderboardCards({
           groupName={groupName}
           joinUrl={joinUrl}
           themeColor={themeColor}
+          currentUserBadges={badgeMap.get(currentUserId) ?? []}
+          opponentBadges={badgeMap.get(compareUserId) ?? []}
         />
       )}
 

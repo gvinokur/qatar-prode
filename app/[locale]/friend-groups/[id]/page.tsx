@@ -16,7 +16,10 @@ import {getThemeLogoUrl} from "../../../utils/theme-utils";
 import { getGroupTournamentBettingConfigAction, getGroupTournamentBettingPaymentsAction } from '../../../actions/group-tournament-betting-actions';
 import LeaveGroupButton from '../../../components/friend-groups/leave-group-button';
 import { getUserScoresForTournament } from "../../../actions/prode-group-actions";
+import { findQualifiedTeams } from "../../../db/team-repository";
+import { getTournamentStartDate } from "../../../actions/tournament-actions";
 import { generateShortUrlForGroup } from '../../../actions/short-url-actions';
+import type { TournamentBadgeConfig } from "../../../components/leaderboard/types";
 
 type Props = {
   readonly params: Promise<{
@@ -45,15 +48,33 @@ export default async function FriendsGroup(props : Props){
 
   const users = await findUsersByIds(allParticipants)
   const usersMap = toMap(users)
-  // Calculate user scores for each active tournament
-  const userScoresByTournament =
-    Object.fromEntries(
-      await Promise.all(
-        tournaments.map(async (tournament) => [
-            tournament.id,
-            await getUserScoresForTournament(allParticipants, tournament.id)
-          ]
-      )))
+  // Calculate user scores, qualified teams, and start date for each active tournament (in parallel per-tournament)
+  const now = new Date()
+  const tournamentData = await Promise.all(
+    tournaments.map(async (tournament) => {
+      const [scores, qualifiedTeamsResult, tournamentStartDate] = await Promise.all([
+        getUserScoresForTournament(allParticipants, tournament.id),
+        findQualifiedTeams(tournament.id),
+        getTournamentStartDate(tournament.id),
+      ])
+      const badgeConfig: TournamentBadgeConfig = {
+        tournamentStarted: now >= tournamentStartDate,
+        championPoints: tournament.champion_points ?? 5,
+        runnerUpPoints: tournament.runner_up_points ?? 3,
+        thirdPlacePoints: tournament.third_place_points ?? 1,
+        individualAwardPoints: tournament.individual_award_points ?? 0,
+        totalQualifyingSlots: qualifiedTeamsResult.teams.length,
+      }
+      return { tournamentId: tournament.id, scores, badgeConfig }
+    })
+  )
+
+  const userScoresByTournament = Object.fromEntries(
+    tournamentData.map(({ tournamentId, scores }) => [tournamentId, scores])
+  )
+  const tournamentBadgeConfigs = Object.fromEntries(
+    tournamentData.map(({ tournamentId, badgeConfig }) => [tournamentId, badgeConfig])
+  )
 
   let logoUrl = getThemeLogoUrl(prodeGroup.theme)
 
@@ -144,6 +165,7 @@ export default async function FriendsGroup(props : Props){
               groupName={prodeGroup.name}
               joinUrl={shareJoinUrl}
               themeColor={prodeGroup.theme?.primary_color ?? undefined}
+              tournamentBadgeConfigs={tournamentBadgeConfigs}
             />
           </Grid>
           {(prodeGroup.owner_user_id === user.id || members.find(m => m.id === user.id)?.is_admin) && (

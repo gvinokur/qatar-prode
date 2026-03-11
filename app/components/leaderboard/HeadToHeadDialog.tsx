@@ -27,6 +27,8 @@ import { getUserStatsForComparison, type UserComparisonStats } from '../../actio
 import { getAvatarColor, getUserInitials } from '../../utils/avatar-utils'
 import HeadToHeadTemplate from '../friend-groups/sharing/HeadToHeadTemplate'
 import SharePreviewModal from '../friend-groups/sharing/SharePreviewModal'
+import { BadgeRow } from './BadgeRow'
+import type { Badge } from './types'
 
 interface MetricRowProps {
   readonly label: string
@@ -106,6 +108,8 @@ export interface HeadToHeadDialogProps {
   readonly groupName?: string
   readonly joinUrl?: string
   readonly themeColor?: string
+  readonly currentUserBadges?: Badge[]
+  readonly opponentBadges?: Badge[]
 }
 
 export default function HeadToHeadDialog({
@@ -121,6 +125,8 @@ export default function HeadToHeadDialog({
   groupName,
   joinUrl,
   themeColor,
+  currentUserBadges = [],
+  opponentBadges = [],
 }: HeadToHeadDialogProps) {
   const theme = useTheme()
   const t = useTranslations('groups.headToHead')
@@ -251,6 +257,8 @@ export default function HeadToHeadDialog({
           theirUserId={opponentId}
           theirStats={theirStatsForTemplate}
           themeColor={themeColor}
+          myBadges={currentUserBadges}
+          theirBadges={opponentBadges}
         />
       </div>,
       document.body
@@ -294,6 +302,9 @@ export default function HeadToHeadDialog({
             {currentUserRank && (
               <Typography variant="caption" color="text.secondary">#{currentUserRank}</Typography>
             )}
+            {currentUserBadges.length > 0 && (
+              <BadgeRow badges={currentUserBadges} sizePx={18} justify="flex-start" />
+            )}
           </Grid>
           <Grid size={{ xs: 4 }} sx={{ textAlign: 'center' }}>
             <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.65rem', display: 'block' }}>
@@ -309,6 +320,9 @@ export default function HeadToHeadDialog({
             </Typography>
             {opponentRank && (
               <Typography variant="caption" color="text.secondary">#{opponentRank}</Typography>
+            )}
+            {opponentBadges.length > 0 && (
+              <BadgeRow badges={opponentBadges} sizePx={18} justify="flex-end" />
             )}
           </Grid>
         </Grid>

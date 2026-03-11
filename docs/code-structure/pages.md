@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-09
+**Last updated:** 2026-03-10
 
 ---
 
@@ -177,8 +177,8 @@ Tournament-scoped friend groups list showing group stats for specific tournament
 ### app/[locale]/tournaments/[id]/friend-groups/[group_id]/page.tsx
 Tournament-scoped group leaderboard with admin management interface.
 
-- **TournamentScopedFriendGroup(props)**: `JSX.Element` — [Server] Fetches group, participants, user scores for tournament; checks admin status; renders leaderboard with optional admin tabs and betting config.
-  Calls: getLoggedInUser, findProdeGroupById, findTournamentById, findParticipantsInGroup, findUsersByIds, getUserScoresForTournament, generateShortUrlForGroup, getGroupTournamentBettingConfigAction, getGroupTournamentBettingPaymentsAction, getPendingRequestCount, getGroupJoinRequests, getTranslations
+- **TournamentScopedFriendGroup(props)**: `JSX.Element` — [Server] Fetches group, participants, user scores for tournament; checks admin status; renders leaderboard with optional admin tabs and betting config. Also fetches findQualifiedTeams in parallel with getUserScoresForTournament to build TournamentBadgeConfig and pass to ProdeGroupTable.
+  Calls: getLoggedInUser, findProdeGroupById, findTournamentById, findParticipantsInGroup, findUsersByIds, getUserScoresForTournament, findQualifiedTeams, generateShortUrlForGroup, getGroupTournamentBettingConfigAction, getGroupTournamentBettingPaymentsAction, getPendingRequestCount, getGroupJoinRequests, getTranslations
   Renders: ProdeGroupTable, AdminTabs, LeaveGroupButton, InviteFriendsDialogButton
 
 ### app/[locale]/tournaments/[id]/friend-groups/discover/page.tsx
@@ -198,8 +198,8 @@ Tournament-scoped join request form for groups.
 ### app/[locale]/friend-groups/[id]/page.tsx
 Global friend group leaderboard showing scores across all active tournaments.
 
-- **FriendsGroup(props)**: `JSX.Element` — [Server] Fetches all active tournaments, group participants, user scores for each tournament; renders multi-tournament leaderboard.
-  Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, findUsersByIds, findAllActiveTournaments, getUserScoresForTournament, getGroupTournamentBettingConfigAction, getGroupTournamentBettingPaymentsAction, generateShortUrlForGroup, getThemeLogoUrl, toMap
+- **FriendsGroup(props)**: `JSX.Element` — [Server] Fetches all active tournaments, group participants, user scores and qualified teams for each tournament; builds TournamentBadgeConfig per tournament; renders multi-tournament leaderboard.
+  Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, findUsersByIds, findAllActiveTournaments, getUserScoresForTournament, findQualifiedTeams, getGroupTournamentBettingConfigAction, getGroupTournamentBettingPaymentsAction, generateShortUrlForGroup, getThemeLogoUrl, toMap
   Renders: ProdeGroupTable, ProdeGroupThemer, InviteFriendsDialogButton, LeaveGroupButton
 
 ### app/[locale]/friend-groups/join/[id]/page.tsx

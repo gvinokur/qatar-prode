@@ -1,4 +1,6 @@
 // Type definitions for leaderboard components
+export type { Badge, TournamentBadgeConfig } from '../../utils/badge-calculator'
+import type { Badge, TournamentBadgeConfig } from '../../utils/badge-calculator'
 
 export interface LeaderboardUser {
   id: string
@@ -21,6 +23,9 @@ export interface LeaderboardUser {
   // Tournament awards
   honorRollScore: number           // Honor roll points
   individualAwardsScore: number    // Individual awards points
+
+  // Badge data (computed by LeaderboardCards)
+  badges?: Badge[]
 }
 
 export interface LeaderboardShareHandle {
@@ -36,6 +41,7 @@ export interface LeaderboardViewProps {
   readonly joinUrl?: string
   readonly themeColor?: string
   readonly shareRef?: React.RefObject<LeaderboardShareHandle | null>
+  readonly tournamentBadgeConfig?: TournamentBadgeConfig
 }
 
 export interface LeaderboardCardsProps {
@@ -47,6 +53,7 @@ export interface LeaderboardCardsProps {
   readonly joinUrl?: string
   readonly themeColor?: string
   readonly shareRef?: React.RefObject<LeaderboardShareHandle | null>
+  readonly tournamentBadgeConfig?: TournamentBadgeConfig
 }
 
 export interface LeaderboardCardProps {
@@ -58,6 +65,7 @@ export interface LeaderboardCardProps {
   readonly onToggle: () => void
   readonly onCompare?: () => void  // Opens H2H dialog (non-self cards only)
   readonly onShareHighlight?: () => void  // Share rank improvement (current user with positive rankChange)
+  readonly badges?: Badge[]
 }
 
 export interface RankChangeIndicatorProps {
