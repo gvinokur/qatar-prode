@@ -24,15 +24,15 @@ export function computeSnapshotScores(
 
   if (sortedDates.length === 0) return new Map();
 
-  const latestDate = sortedDates[sortedDates.length - 1];
-  const penultimateDate = sortedDates.length >= 2 ? sortedDates[sortedDates.length - 2] : undefined;
+  const latestDate = sortedDates.at(-1)!;
+  const penultimateDate = sortedDates.length >= 2 ? sortedDates.at(-2) : undefined;
 
   const result = new Map<string, { latest: number; penultimate: number | undefined }>();
   for (const history of userHistories) {
     const latest = history.data.find(p => p.date === latestDate)?.totalPoints ?? 0;
-    const penultimate = penultimateDate !== undefined
-      ? (history.data.find(p => p.date === penultimateDate)?.totalPoints ?? 0)
-      : undefined;
+    const penultimate = penultimateDate === undefined
+      ? undefined
+      : (history.data.find(p => p.date === penultimateDate)?.totalPoints ?? 0);
     result.set(history.userId, { latest, penultimate });
   }
   return result;

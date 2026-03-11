@@ -95,9 +95,12 @@ export default function LeaderboardCards({
     // Sort based on current sortBy state:
     // 'yesterday' phase uses penultimate snapshot; 'today' uses latest snapshot (or totalPoints fallback)
     const hasLatestSnapshot = transformed.some(s => s.latestSnapshotPoints !== undefined)
-    const scoreField = sortBy === 'yesterday'
-      ? 'penultimateSnapshotPoints'
-      : (hasLatestSnapshot ? 'latestSnapshotPoints' : 'totalPoints')
+    let scoreField: string
+    if (sortBy === 'yesterday') {
+      scoreField = 'penultimateSnapshotPoints'
+    } else {
+      scoreField = hasLatestSnapshot ? 'latestSnapshotPoints' : 'totalPoints'
+    }
     const sorted = transformed.toSorted((a, b) => {
       const scoreA = (a[scoreField as keyof LeaderboardUser] as number) ?? 0
       const scoreB = (b[scoreField as keyof LeaderboardUser] as number) ?? 0
