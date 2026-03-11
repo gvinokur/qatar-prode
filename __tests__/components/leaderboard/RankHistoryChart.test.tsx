@@ -11,10 +11,6 @@ vi.mock('@mui/x-charts/LineChart', () => ({
   ),
 }))
 
-vi.mock('@mui/x-charts/ChartsTooltip', () => ({
-  ChartsTooltipContainer: ({ children }: any) => <div>{children}</div>,
-  useAxisTooltip: () => null,
-}))
 
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
