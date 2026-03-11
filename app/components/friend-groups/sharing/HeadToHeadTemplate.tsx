@@ -180,7 +180,7 @@ const HeadToHeadTemplate = React.forwardRef<HTMLDivElement, HeadToHeadTemplatePr
               <AvatarCircle userId={myUserId} name={myName} rank={myRank} align="left" />
               {myBadges.length > 0 && (
                 <Box sx={{ mt: 0.5 }}>
-                  <BadgeRow badges={myBadges} sizePx={17} context="share" justify="flex-start" maxDisplay={6} />
+                  <BadgeRow badges={myBadges} sizePx={17} justify="flex-start" maxDisplay={6} />
                 </Box>
               )}
             </Box>
@@ -191,7 +191,7 @@ const HeadToHeadTemplate = React.forwardRef<HTMLDivElement, HeadToHeadTemplatePr
               <AvatarCircle userId={theirUserId} name={theirName} rank={theirRank} align="right" />
               {theirBadges.length > 0 && (
                 <Box sx={{ mt: 0.5 }}>
-                  <BadgeRow badges={theirBadges} sizePx={17} context="share" justify="flex-end" maxDisplay={6} />
+                  <BadgeRow badges={theirBadges} sizePx={17} justify="flex-end" maxDisplay={6} />
                 </Box>
               )}
             </Box>

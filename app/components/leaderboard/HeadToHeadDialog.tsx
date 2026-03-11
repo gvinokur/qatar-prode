@@ -303,7 +303,7 @@ export default function HeadToHeadDialog({
               <Typography variant="caption" color="text.secondary">#{currentUserRank}</Typography>
             )}
             {currentUserBadges.length > 0 && (
-              <BadgeRow badges={currentUserBadges} sizePx={18} context="dark" justify="flex-start" />
+              <BadgeRow badges={currentUserBadges} sizePx={18} justify="flex-start" />
             )}
           </Grid>
           <Grid size={{ xs: 4 }} sx={{ textAlign: 'center' }}>
@@ -322,7 +322,7 @@ export default function HeadToHeadDialog({
               <Typography variant="caption" color="text.secondary">#{opponentRank}</Typography>
             )}
             {opponentBadges.length > 0 && (
-              <BadgeRow badges={opponentBadges} sizePx={18} context="dark" justify="flex-end" />
+              <BadgeRow badges={opponentBadges} sizePx={18} justify="flex-end" />
             )}
           </Grid>
         </Grid>

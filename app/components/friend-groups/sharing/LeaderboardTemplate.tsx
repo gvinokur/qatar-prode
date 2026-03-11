@@ -135,7 +135,7 @@ const LeaderboardTemplate = React.forwardRef<HTMLDivElement, LeaderboardTemplate
                       <BadgeRow
                         badges={user.badges}
                         sizePx={15}
-                        context="share"
+                       
                         justify="flex-end"
                         maxDisplay={6}
                       />

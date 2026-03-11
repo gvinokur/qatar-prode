@@ -2,13 +2,13 @@
 
 import React from 'react'
 import { Box, Tooltip } from '@mui/material'
+import { alpha } from '@mui/material/styles'
 import { useTranslations } from 'next-intl'
 import { Badge } from './types'
 
 export interface BadgeRowProps {
   badges: Badge[]
   sizePx: 15 | 16 | 17 | 18 | 20
-  context: 'dark' | 'share'
   justify?: 'flex-start' | 'flex-end' | 'center'
   maxDisplay?: number
 }
@@ -16,7 +16,6 @@ export interface BadgeRowProps {
 export function BadgeRow({
   badges,
   sizePx,
-  context,
   justify = 'flex-start',
   maxDisplay,
 }: BadgeRowProps) {
@@ -39,9 +38,7 @@ export function BadgeRow({
       }}
     >
       {displayed.map((badge) => {
-        const isNegative = badge.type === 'negative'
-        const opacity = isNegative ? (context === 'dark' ? 0.4 : 0.35) : 1
-        const filter = isNegative && context === 'dark' ? 'grayscale(1)' : undefined
+        const isPositive = badge.type === 'positive'
 
         return (
           <Tooltip
@@ -54,10 +51,18 @@ export function BadgeRow({
               sx={{
                 fontSize: `${sizePx}px`,
                 lineHeight: 1,
-                opacity,
-                filter,
                 cursor: 'default',
                 userSelect: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '6px',
+                padding: '2px 4px',
+                border: '1px solid',
+                borderColor: isPositive ? 'success.light' : 'error.light',
+                bgcolor: (theme) => isPositive
+                  ? alpha(theme.palette.success.light, 0.15)
+                  : alpha(theme.palette.error.light, 0.15),
               }}
             >
               {badge.emoji}

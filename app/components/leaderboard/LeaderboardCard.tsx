@@ -144,7 +144,7 @@ export default function LeaderboardCard({
             </Typography>
             {badges.length > 0 && (
               <Box sx={{ mt: '5px' }}>
-                <BadgeRow badges={badges} sizePx={16} context="dark" justify="flex-end" />
+                <BadgeRow badges={badges} sizePx={16} justify="flex-end" />
               </Box>
             )}
           </Box>
@@ -346,7 +346,7 @@ export default function LeaderboardCard({
                 >
                   {tBadges('sectionLabel')}
                 </Typography>
-                <BadgeRow badges={badges} sizePx={20} context="dark" />
+                <BadgeRow badges={badges} sizePx={20} />
               </Box>
             </>
           )}
