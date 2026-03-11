@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Box, Tooltip } from '@mui/material'
+import { Avatar, Box, Tooltip } from '@mui/material'
 import { alpha } from '@mui/material/styles'
 import { useTranslations } from 'next-intl'
 import { Badge } from './types'
@@ -47,20 +47,13 @@ export function BadgeRow({
             title={`${t(`${badge.id}.name`)}: ${t(`${badge.id}.description`)}`}
             arrow
           >
-            <Box
-              component="span"
+            <Avatar
               sx={{
+                width: circlePx,
+                height: circlePx,
                 fontSize: `${sizePx}px`,
-                lineHeight: 1,
                 cursor: 'default',
                 userSelect: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-                width: `${circlePx}px`,
-                height: `${circlePx}px`,
-                borderRadius: '50%',
                 border: '1px solid',
                 borderColor: 'divider',
                 bgcolor: (theme) => isPositive
@@ -69,7 +62,7 @@ export function BadgeRow({
               }}
             >
               {badge.emoji}
-            </Box>
+            </Avatar>
           </Tooltip>
         )
       })}

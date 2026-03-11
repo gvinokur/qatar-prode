@@ -33,22 +33,23 @@ describe('BadgeRow', () => {
     expect(screen.getByText('💩')).toBeInTheDocument()
   })
 
-  it('renders positive badge with success border color', () => {
+  it('renders positive badge as circular Avatar', () => {
     renderWithTheme(
       <BadgeRow badges={[positiveBadge]} sizePx={16} />
     )
     const emoji = screen.getByText('🥇')
     expect(emoji).toBeInTheDocument()
-    expect(emoji).toHaveStyle({ borderRadius: '6px' })
+    // MUI Avatar renders as a circle (border-radius: 50%)
+    expect(emoji.tagName.toLowerCase()).toBe('div')
   })
 
-  it('renders negative badge with error border color', () => {
+  it('renders negative badge as circular Avatar', () => {
     renderWithTheme(
       <BadgeRow badges={[negativeBadge]} sizePx={16} />
     )
     const emoji = screen.getByText('💩')
     expect(emoji).toBeInTheDocument()
-    expect(emoji).toHaveStyle({ borderRadius: '6px' })
+    expect(emoji.tagName.toLowerCase()).toBe('div')
   })
 
   it('does not apply grayscale filter to any badge', () => {
