@@ -62,7 +62,7 @@ discovery, join requests, or group-level leaderboard.
 ### [docs/code-structure/components/components-leaderboard-stats.md](docs/code-structure/components/components-leaderboard-stats.md)
 Leaderboard components (`LeaderboardView`, `LeaderboardTable`, `LeaderboardCards`,
 `LeaderboardCard`, `HeadToHeadDialog`, rank change animations) and tournament statistics
-cards (`PerformanceOverviewCard`, `PredictionAccuracyCard`, `BoostAnalysisCard`, `StatsTabs`).
+cards (`PerformanceOverviewCard`, `PredictionAccuracyCard`, `BoostAnalysisCard`, `StatsTabs`, `HistoryTabCard`, `ScoreGrowthChart`).
 Also covers the qualified-teams prediction UI (`QualifiedTeamsClientPage`, `GroupCard`,
 `DraggableTeamCard`, `QualifiedTeamsGrid`, `ThirdPlaceSummary`). Read this for stories
 touching the leaderboard, head-to-head comparison, user stats, or qualified teams prediction.
@@ -356,9 +356,12 @@ Key flows:
       ├── getGameCountsForTournament
       ├── findGameGuessesByUserId
       ├── calculateAccuracyStats (util)
-      └── calculateBoostStats (util)
+      ├── calculateBoostStats (util)
+      └── getScoreHistoryForUsers (score-history-repository)
       └── StatsTabs [renders]
-            └── PerformanceOverviewCard, PredictionAccuracyCard, BoostAnalysisCard [renders]
+            ├── PerformanceOverviewCard, PredictionAccuracyCard, BoostAnalysisCard [renders]
+            └── HistoryTabCard [renders]
+                  └── ScoreGrowthChart [renders] (when rows.length > 0)
 
 13. Friend group management
     FriendGroupsList / TournamentGroupsList [Client]

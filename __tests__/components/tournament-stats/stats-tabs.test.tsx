@@ -8,19 +8,22 @@ describe('StatsTabs', () => {
   const mockPerformanceTab = <div data-testid="performance-content">Performance Content</div>;
   const mockPrecisionTab = <div data-testid="precision-content">Precision Content</div>;
   const mockBoostsTab = <div data-testid="boosts-content">Boosts Content</div>;
+  const mockHistoryTab = <div data-testid="history-content">History Content</div>;
 
-  it('should render with all three tabs', () => {
+  it('should render with all four tabs', () => {
     renderWithTheme(
       <StatsTabs
         performanceTab={mockPerformanceTab}
         precisionTab={mockPrecisionTab}
         boostsTab={mockBoostsTab}
+        historyTab={mockHistoryTab}
       />
     );
 
     expect(screen.getByRole('tab', { name: /rendimiento/i })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /precisión/i })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /boosts/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /historial/i })).toBeInTheDocument();
   });
 
   it('should show performance tab content by default', () => {
@@ -29,12 +32,14 @@ describe('StatsTabs', () => {
         performanceTab={mockPerformanceTab}
         precisionTab={mockPrecisionTab}
         boostsTab={mockBoostsTab}
+        historyTab={mockHistoryTab}
       />
     );
 
     expect(screen.getByTestId('performance-content')).toBeInTheDocument();
     expect(screen.queryByTestId('precision-content')).not.toBeInTheDocument();
     expect(screen.queryByTestId('boosts-content')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('history-content')).not.toBeInTheDocument();
   });
 
   it('should switch to precision tab when clicked', async () => {
@@ -45,6 +50,7 @@ describe('StatsTabs', () => {
         performanceTab={mockPerformanceTab}
         precisionTab={mockPrecisionTab}
         boostsTab={mockBoostsTab}
+        historyTab={mockHistoryTab}
       />
     );
 
@@ -54,6 +60,7 @@ describe('StatsTabs', () => {
     expect(screen.queryByTestId('performance-content')).not.toBeInTheDocument();
     expect(screen.getByTestId('precision-content')).toBeInTheDocument();
     expect(screen.queryByTestId('boosts-content')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('history-content')).not.toBeInTheDocument();
   });
 
   it('should switch to boosts tab when clicked', async () => {
@@ -64,6 +71,7 @@ describe('StatsTabs', () => {
         performanceTab={mockPerformanceTab}
         precisionTab={mockPrecisionTab}
         boostsTab={mockBoostsTab}
+        historyTab={mockHistoryTab}
       />
     );
 
@@ -73,6 +81,7 @@ describe('StatsTabs', () => {
     expect(screen.queryByTestId('performance-content')).not.toBeInTheDocument();
     expect(screen.queryByTestId('precision-content')).not.toBeInTheDocument();
     expect(screen.getByTestId('boosts-content')).toBeInTheDocument();
+    expect(screen.queryByTestId('history-content')).not.toBeInTheDocument();
   });
 
   it('should maintain tab selection when switching between tabs', async () => {
@@ -83,6 +92,7 @@ describe('StatsTabs', () => {
         performanceTab={mockPerformanceTab}
         precisionTab={mockPrecisionTab}
         boostsTab={mockBoostsTab}
+        historyTab={mockHistoryTab}
       />
     );
 
@@ -107,6 +117,7 @@ describe('StatsTabs', () => {
         performanceTab={mockPerformanceTab}
         precisionTab={mockPrecisionTab}
         boostsTab={mockBoostsTab}
+        historyTab={mockHistoryTab}
       />
     );
 
@@ -131,11 +142,51 @@ describe('StatsTabs', () => {
         performanceTab={mockPerformanceTab}
         precisionTab={mockPrecisionTab}
         boostsTab={mockBoostsTab}
+        historyTab={mockHistoryTab}
       />
     );
 
     // ScrollShadowContainer adds data-scroll-container attribute
     const scrollContainer = container.querySelector('[data-scroll-container="true"]');
     expect(scrollContainer).toBeInTheDocument();
+  });
+
+  it('should switch to history tab when clicked', async () => {
+    const user = userEvent.setup();
+
+    renderWithTheme(
+      <StatsTabs
+        performanceTab={mockPerformanceTab}
+        precisionTab={mockPrecisionTab}
+        boostsTab={mockBoostsTab}
+        historyTab={mockHistoryTab}
+      />
+    );
+
+    const historyTab = screen.getByRole('tab', { name: /historial/i });
+    await user.click(historyTab);
+
+    expect(screen.queryByTestId('performance-content')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('precision-content')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('boosts-content')).not.toBeInTheDocument();
+    expect(screen.getByTestId('history-content')).toBeInTheDocument();
+  });
+
+  it('should render historyTab content in the History tab panel', async () => {
+    const user = userEvent.setup();
+
+    renderWithTheme(
+      <StatsTabs
+        performanceTab={mockPerformanceTab}
+        precisionTab={mockPrecisionTab}
+        boostsTab={mockBoostsTab}
+        historyTab={mockHistoryTab}
+      />
+    );
+
+    await user.click(screen.getByRole('tab', { name: /historial/i }));
+
+    expect(screen.getByTestId('history-content')).toBeInTheDocument();
+    expect(screen.getByText('History Content')).toBeInTheDocument();
   });
 });

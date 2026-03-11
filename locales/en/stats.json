@@ -83,6 +83,19 @@
     "performance": "Performance",
     "accuracy": "Accuracy",
     "boosts": "Boost Analysis",
+    "history": "History",
     "ariaLabel": "tournament statistics"
+  },
+  "history": {
+    "title": "Score Growth",
+    "emptyState": "No score history yet. History will appear once the tournament starts and scores are calculated.",
+    "bands": {
+      "gameScore": "Game Score",
+      "boostBonus": "Boost Bonus",
+      "honorRoll": "Honor Roll",
+      "individualAwards": "Individual Awards",
+      "qualifiedTeams": "Qualified Teams",
+      "groupPosition": "Group Position"
+    }
   }
 }

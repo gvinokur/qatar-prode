@@ -18,6 +18,7 @@ import {
   TournamentThirdPlaceRules,
   ProdeGroupTournamentBetting,
   ProdeGroupTournamentBettingPayment,
+  TournamentScoreHistory,
 } from '../../app/db/tables-definition';
 
 /**
@@ -485,6 +486,43 @@ export const testFactories = {
     predicted_to_qualify: true,
     created_at: new Date(),
     updated_at: new Date(),
+    ...overrides,
+  }),
+
+  /**
+   * Creates a TournamentScoreHistory snapshot with default values.
+   *
+   * Default values:
+   * - snapshot_date: 20260601 (YYYYMMDD integer)
+   * - All 6 score segment fields: 0
+   * - total_points: 0 (generated column, resolves to number in Selectable)
+   *
+   * @param overrides - Partial score history object to override defaults
+   * @returns Complete TournamentScoreHistory object
+   *
+   * @example
+   * const snapshot = testFactories.scoreHistory();
+   *
+   * @example
+   * const snapshot = testFactories.scoreHistory({
+   *   snapshot_date: 20260615,
+   *   total_game_score: 45,
+   *   total_boost_bonus: 10,
+   * });
+   */
+  scoreHistory: (overrides?: Partial<TournamentScoreHistory>): TournamentScoreHistory => ({
+    id: 'history-1',
+    user_id: 'user-1',
+    tournament_id: 'tournament-1',
+    snapshot_date: 20260601,
+    total_game_score: 0,
+    total_boost_bonus: 0,
+    honor_roll_score: 0,
+    individual_awards_score: 0,
+    qualified_teams_score: 0,
+    group_position_score: 0,
+    total_points: 0,
+    created_at: new Date(),
     ...overrides,
   }),
 };
