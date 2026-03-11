@@ -143,11 +143,11 @@ Tournament-specific rules page with scoring configuration.
   Renders: Rules
 
 ### app/[locale]/tournaments/[id]/stats/page.tsx
-User tournament statistics page showing performance, accuracy, and boost analysis.
+User tournament statistics page showing performance, accuracy, boost analysis, and score history.
 
-- **TournamentStatsPage(props)**: `JSX.Element` — [Server] Fetches game guesses, tournament guesses, boost allocations; calculates performance and accuracy metrics; renders stats in tabbed interface.
-  Calls: getLoggedInUser, findTournamentById, getGameGuessStatisticsForUsers, findTournamentGuessByUserIdTournament, getBoostAllocationBreakdown, getGameCountsForTournament, findGameGuessesByUserId, calculateAccuracyStats, calculateBoostStats
-  Renders: StatsTabs, PerformanceOverviewCard, PredictionAccuracyCard, BoostAnalysisCard
+- **TournamentStatsPage(props)**: `JSX.Element` — [Server] Fetches game guesses, tournament guesses, boost allocations, and score history; calculates performance and accuracy metrics; renders stats in tabbed interface.
+  Calls: getLoggedInUser, findTournamentById, getGameGuessStatisticsForUsers, findTournamentGuessByUserIdTournament, getBoostAllocationBreakdown, getGameCountsForTournament, findGameGuessesByUserId, calculateAccuracyStats, calculateBoostStats, getScoreHistoryForUsers
+  Renders: StatsTabs, PerformanceOverviewCard, PredictionAccuracyCard, BoostAnalysisCard, HistoryTabCard
 
 ### app/[locale]/tournaments/[id]/awards/page.tsx
 Awards prediction page for tournament individual awards and podium.

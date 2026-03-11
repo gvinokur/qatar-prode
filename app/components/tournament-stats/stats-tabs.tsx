@@ -42,9 +42,10 @@ type Props = {
   readonly performanceTab: React.ReactNode
   readonly precisionTab: React.ReactNode
   readonly boostsTab: React.ReactNode
+  readonly historyTab: React.ReactNode
 }
 
-export function StatsTabs({ performanceTab, precisionTab, boostsTab }: Props) {
+export function StatsTabs({ performanceTab, precisionTab, boostsTab, historyTab }: Props) {
   const t = useTranslations('stats');
   const [value, setValue] = useState(0);
 
@@ -64,6 +65,7 @@ export function StatsTabs({ performanceTab, precisionTab, boostsTab }: Props) {
           <Tab label={t('tabs.performance')} {...a11yProps(0)} />
           <Tab label={t('tabs.accuracy')} {...a11yProps(1)} />
           <Tab label={t('tabs.boosts')} {...a11yProps(2)} />
+          <Tab label={t('tabs.history')} {...a11yProps(3)} />
         </Tabs>
       </Box>
 
@@ -82,6 +84,9 @@ export function StatsTabs({ performanceTab, precisionTab, boostsTab }: Props) {
         </TabPanel>
         <TabPanel value={value} index={2}>
           {boostsTab}
+        </TabPanel>
+        <TabPanel value={value} index={3}>
+          {historyTab}
         </TabPanel>
       </ScrollShadowContainer>
     </Box>

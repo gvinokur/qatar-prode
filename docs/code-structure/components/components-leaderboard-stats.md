@@ -104,11 +104,24 @@ Modal dialog for head-to-head comparison between two users across multiple metri
   Renders: MetricRow, SectionHeader, HeadToHeadTemplate, SharePreviewModal, BadgeRow
 
 ### app/components/tournament-stats/stats-tabs.tsx
-Tab container for tournament stats (performance, accuracy, boosts) with scroll shadow support.
+Tab container for tournament stats (performance, accuracy, boosts, history) with scroll shadow support.
 
-- **StatsTabs({ performanceTab, precisionTab, boostsTab })**: `JSX.Element` — [Client] Renders 3 tabs (Performance, Accuracy, Boosts) with scrollable tab content. Tab labels from useTranslations('stats').
+- **StatsTabs({ performanceTab, precisionTab, boostsTab, historyTab })**: `JSX.Element` — [Client] Renders 4 tabs (Performance, Accuracy, Boosts, History) with scrollable tab content. Tab labels from useTranslations('stats').
   Uses: useState, useTranslations, ScrollShadowContainer
   Renders: TabPanel, ScrollShadowContainer
+
+### app/components/tournament-stats/score-growth-chart.tsx
+Stacked area chart showing user's cumulative score growth over tournament timeline, broken down by 6 score components (Story #279). [Client]
+
+- **ScoreGrowthChart({ rows })**: `JSX.Element` — [Client] Renders a MUI X Charts LineChart with 6 stacked area series (total_game_score, total_boost_bonus, honor_roll_score, individual_awards_score, qualified_teams_score, group_position_score). X-axis scaleType='time' using YYYYMMDD-to-ms conversion; tick format DD MMM. Band labels from i18n stats.history.bands.*. Title from stats.history.title.
+  Uses: useTranslations('stats'), @mui/x-charts
+
+### app/components/tournament-stats/history-tab-card.tsx
+Card wrapper for the History tab — renders empty state or ScoreGrowthChart (Story #279). [Client]
+
+- **HistoryTabCard({ rows })**: `JSX.Element` — [Client] Renders empty state Typography (stats.history.emptyState) when rows is empty. Otherwise renders ScoreGrowthChart with the provided rows.
+  Uses: useTranslations('stats')
+  Renders: ScoreGrowthChart
 
 ### app/components/tournament-stats/performance-overview-card.tsx
 Card displaying breakdown of user's total points across group stage, playoff, and tournament awards.

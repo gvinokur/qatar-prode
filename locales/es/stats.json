@@ -83,6 +83,19 @@
     "performance": "Rendimiento",
     "accuracy": "Precisión",
     "boosts": "Análisis de Boosts",
+    "history": "Historial",
     "ariaLabel": "estadísticas del torneo"
+  },
+  "history": {
+    "title": "Crecimiento de Puntos",
+    "emptyState": "Sin historial de puntos aún. El historial aparecerá cuando el torneo comience y se calculen los puntos.",
+    "bands": {
+      "gameScore": "Puntos por Partidos",
+      "boostBonus": "Bonus Boost",
+      "honorRoll": "Honor Roll",
+      "individualAwards": "Premios Individuales",
+      "qualifiedTeams": "Equipos Clasificados",
+      "groupPosition": "Posición de Grupo"
+    }
   }
 }

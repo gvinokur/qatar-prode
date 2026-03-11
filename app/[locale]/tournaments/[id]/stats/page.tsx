@@ -7,9 +7,11 @@ import { getGameGuessStatisticsForUsers, getBoostAllocationBreakdown, findGameGu
 import { findTournamentGuessByUserIdTournament } from "../../../../db/tournament-guess-repository";
 import { findTournamentById } from "../../../../db/tournament-repository";
 import { getGameCountsForTournament } from "../../../../db/game-repository";
+import { getScoreHistoryForUsers } from "../../../../db/score-history-repository";
 import { PerformanceOverviewCard } from "../../../../components/tournament-stats/performance-overview-card";
 import { PredictionAccuracyCard } from "../../../../components/tournament-stats/prediction-accuracy-card";
 import { BoostAnalysisCard } from "../../../../components/tournament-stats/boost-analysis-card";
+import { HistoryTabCard } from "../../../../components/tournament-stats/history-tab-card";
 import { StatsTabs } from "../../../../components/tournament-stats/stats-tabs";
 import { calculateAccuracyStats, calculateBoostStats, type PerformanceStats } from "../../../../utils/stats-calculations";
 
@@ -90,6 +92,9 @@ export default async function TournamentStatsPage(props: Props) {
   const silverBoostStats = calculateBoostStats(silverBoostData, tournament.max_silver_games, 'silver')
   const goldenBoostStats = calculateBoostStats(goldenBoostData, tournament.max_golden_games, 'golden')
 
+  // Fetch score history for History tab
+  const userHistory = await getScoreHistoryForUsers([user.id], tournamentId)
+
   return (
     <Box sx={{ pt: 2, height: '100%' }}>
       <StatsTabs
@@ -101,6 +106,7 @@ export default async function TournamentStatsPage(props: Props) {
             goldenBoost={goldenBoostStats}
           />
         }
+        historyTab={<HistoryTabCard rows={userHistory} />}
       />
     </Box>
   )

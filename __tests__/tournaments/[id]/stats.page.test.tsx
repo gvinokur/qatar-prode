@@ -12,6 +12,7 @@ import {
 import { findTournamentGuessByUserIdTournament } from '../../../app/db/tournament-guess-repository';
 import { findTournamentById } from '../../../app/db/tournament-repository';
 import { getGameCountsForTournament } from '../../../app/db/game-repository';
+import { getScoreHistoryForUsers } from '../../../app/db/score-history-repository';
 import { testFactories } from '../../db/test-factories';
 import type { GameStatisticForUser, BoostAllocationBreakdown } from '../../../types/definitions';
 
@@ -44,6 +45,10 @@ vi.mock('../../../app/db/tournament-repository', () => ({
 
 vi.mock('../../../app/db/game-repository', () => ({
   getGameCountsForTournament: vi.fn(),
+}));
+
+vi.mock('../../../app/db/score-history-repository', () => ({
+  getScoreHistoryForUsers: vi.fn(),
 }));
 
 describe('TournamentStatsPage', () => {
@@ -127,6 +132,9 @@ describe('TournamentStatsPage', () => {
 
     // Mock game counts (38 total, 32 played)
     vi.mocked(getGameCountsForTournament).mockResolvedValue({ total: 38, played: 32 });
+
+    // Default: no score history
+    vi.mocked(getScoreHistoryForUsers).mockResolvedValue([]);
   });
 
   describe('Authentication', () => {
@@ -173,6 +181,7 @@ describe('TournamentStatsPage', () => {
       expect(getBoostAllocationBreakdown).toHaveBeenCalledWith(mockUser.id, mockTournamentId, 'golden');
       expect(findGameGuessesByUserId).toHaveBeenCalledWith(mockUser.id, mockTournamentId);
       expect(getGameCountsForTournament).toHaveBeenCalledWith(mockTournamentId);
+      expect(getScoreHistoryForUsers).toHaveBeenCalledWith([mockUser.id], mockTournamentId);
     });
   });
 
@@ -315,6 +324,7 @@ describe('TournamentStatsPage', () => {
       expect(screen.getByRole('tab', { name: /rendimiento/i })).toBeInTheDocument();
       expect(screen.getByRole('tab', { name: /precisión/i })).toBeInTheDocument();
       expect(screen.getByRole('tab', { name: /análisis de boosts/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /historial/i })).toBeInTheDocument();
 
       // Check that the first tab content is visible by default
       expect(screen.getByText('Rendimiento General')).toBeInTheDocument();
