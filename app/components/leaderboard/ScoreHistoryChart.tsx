@@ -10,7 +10,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { Typography, Box, useTheme } from '@mui/material';
+import { Typography, Box, Paper, useTheme } from '@mui/material';
 import { useTranslations } from 'next-intl';
 
 export interface ScoreHistoryChartProps {
@@ -20,15 +20,11 @@ export interface ScoreHistoryChartProps {
     data: { date: number; totalPoints: number }[]
   }[]
   currentUserId: string
-  startDate: number   // YYYYMMDD — X-axis left bound
-  endDate: number     // YYYYMMDD — X-axis right bound
+  startDate: number
+  endDate: number
   themeColor?: string
 }
 
-/**
- * Convert a YYYYMMDD integer to a Unix timestamp (ms).
- * Using local time so ticks align with calendar dates.
- */
 function yyyymmddToMs(d: number): number {
   const year = Math.floor(d / 10000);
   const month = Math.floor((d % 10000) / 100) - 1;
@@ -40,11 +36,35 @@ function formatDateTick(value: number): string {
   return new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
 }
 
-// Palette of colors for non-current users
 const LINE_COLORS = [
   '#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00C49F',
   '#FFBB28', '#FF8042', '#a4de6c', '#d0ed57', '#83a6ed',
 ];
+
+interface TooltipProps {
+  active?: boolean
+  payload?: Array<{ dataKey: string; value: number }>
+  label?: number
+  currentUserId: string
+  userHistories: ScoreHistoryChartProps['userHistories']
+}
+
+function ScoreTooltip({ active, payload, label, currentUserId, userHistories }: TooltipProps) {
+  if (!active || !payload || label === undefined) return null;
+  const myEntry = payload.find((p) => p.dataKey === currentUserId);
+  if (!myEntry) return null;
+  const me = userHistories.find((u) => u.userId === currentUserId);
+  return (
+    <Paper elevation={3} sx={{ px: 1.5, py: 1, minWidth: 120 }}>
+      <Typography variant="caption" color="text.secondary" display="block">
+        {formatDateTick(label)}
+      </Typography>
+      <Typography variant="body2" fontWeight="bold">
+        {me?.displayName ?? currentUserId}: {myEntry.value} pts
+      </Typography>
+    </Paper>
+  );
+}
 
 export default function ScoreHistoryChart({
   userHistories,
@@ -62,7 +82,6 @@ export default function ScoreHistoryChart({
     new Set(userHistories.flatMap((u) => u.data.map((d) => d.date)))
   ).sort((a, b) => a - b);
 
-  // Use timestamps as the X axis key for proper time-proportional spacing
   const chartData = allDates.map((date) => {
     const entry: Record<string, number> = { date: yyyymmddToMs(date) };
     for (const user of userHistories) {
@@ -72,12 +91,6 @@ export default function ScoreHistoryChart({
     return entry;
   });
 
-  const tooltipStyle = {
-    backgroundColor: theme.palette.background.paper,
-    border: `1px solid ${theme.palette.divider}`,
-    color: theme.palette.text.primary,
-  };
-
   return (
     <Box>
       <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
@@ -85,7 +98,7 @@ export default function ScoreHistoryChart({
       </Typography>
       <ResponsiveContainer width="100%" height={240}>
         <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
           <XAxis
             dataKey="date"
             type="number"
@@ -96,12 +109,13 @@ export default function ScoreHistoryChart({
           />
           <YAxis tick={{ fontSize: 11 }} />
           <Tooltip
-            contentStyle={tooltipStyle}
-            labelFormatter={(v) => formatDateTick(Number(v))}
-            formatter={(value, name) => {
-              const user = userHistories.find((u) => u.userId === name);
-              return [value, user?.displayName ?? name];
-            }}
+            content={(props) => (
+              <ScoreTooltip
+                {...props}
+                currentUserId={currentUserId}
+                userHistories={userHistories}
+              />
+            )}
           />
           <Legend
             formatter={(value) => {

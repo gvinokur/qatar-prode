@@ -10,7 +10,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { Typography, Box, useTheme } from '@mui/material';
+import { Typography, Box, Paper, useTheme } from '@mui/material';
 import { useTranslations } from 'next-intl';
 
 export interface RankHistoryChartProps {
@@ -20,9 +20,9 @@ export interface RankHistoryChartProps {
     data: { date: number; rank: number }[]
   }[]
   currentUserId: string
-  startDate: number    // YYYYMMDD — X-axis left bound
-  endDate: number      // YYYYMMDD — X-axis right bound
-  totalUsers: number   // Y-axis domain max
+  startDate: number
+  endDate: number
+  totalUsers: number
   themeColor?: string
 }
 
@@ -41,6 +41,31 @@ const LINE_COLORS = [
   '#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00C49F',
   '#FFBB28', '#FF8042', '#a4de6c', '#d0ed57', '#83a6ed',
 ];
+
+interface TooltipProps {
+  active?: boolean
+  payload?: Array<{ dataKey: string; value: number }>
+  label?: number
+  currentUserId: string
+  userHistories: RankHistoryChartProps['userHistories']
+}
+
+function RankTooltip({ active, payload, label, currentUserId, userHistories }: TooltipProps) {
+  if (!active || !payload || label === undefined) return null;
+  const myEntry = payload.find((p) => p.dataKey === currentUserId);
+  if (!myEntry) return null;
+  const me = userHistories.find((u) => u.userId === currentUserId);
+  return (
+    <Paper elevation={3} sx={{ px: 1.5, py: 1, minWidth: 120 }}>
+      <Typography variant="caption" color="text.secondary" display="block">
+        {formatDateTick(label)}
+      </Typography>
+      <Typography variant="body2" fontWeight="bold">
+        {me?.displayName ?? currentUserId}: #{myEntry.value}
+      </Typography>
+    </Paper>
+  );
+}
 
 export default function RankHistoryChart({
   userHistories,
@@ -68,12 +93,6 @@ export default function RankHistoryChart({
     return entry;
   });
 
-  const tooltipStyle = {
-    backgroundColor: theme.palette.background.paper,
-    border: `1px solid ${theme.palette.divider}`,
-    color: theme.palette.text.primary,
-  };
-
   return (
     <Box>
       <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
@@ -81,7 +100,7 @@ export default function RankHistoryChart({
       </Typography>
       <ResponsiveContainer width="100%" height={240}>
         <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
           <XAxis
             dataKey="date"
             type="number"
@@ -97,12 +116,13 @@ export default function RankHistoryChart({
             tick={{ fontSize: 11 }}
           />
           <Tooltip
-            contentStyle={tooltipStyle}
-            labelFormatter={(v) => formatDateTick(Number(v))}
-            formatter={(value, name) => {
-              const user = userHistories.find((u) => u.userId === name);
-              return [`#${value}`, user?.displayName ?? name];
-            }}
+            content={(props) => (
+              <RankTooltip
+                {...props}
+                currentUserId={currentUserId}
+                userHistories={userHistories}
+              />
+            )}
           />
           <Legend
             formatter={(value) => {
