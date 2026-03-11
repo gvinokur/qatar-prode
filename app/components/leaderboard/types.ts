@@ -45,6 +45,7 @@ export interface LeaderboardViewProps {
   readonly shareRef?: React.RefObject<LeaderboardShareHandle | null>
   readonly tournamentBadgeConfig?: TournamentBadgeConfig
   readonly historyData?: ScoreHistoryResult
+  readonly hideHistoryTab?: boolean
 }
 
 // Re-export for convenience in consumer components

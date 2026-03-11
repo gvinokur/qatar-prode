@@ -14,6 +14,7 @@ vi.mock('next/navigation', () => ({
 
 const leaderboardContent = <div>Leaderboard Content</div>;
 const adminContent = <div>Admin Content</div>;
+const historyContent = <div>History Content</div>;
 
 describe('AdminTabs', () => {
   let mockRouter: ReturnType<typeof createMockRouter>;
@@ -328,6 +329,107 @@ describe('AdminTabs', () => {
       );
 
       expect(screen.getByRole('tab', { name: /Tabla de Posiciones/i })).toHaveAttribute('aria-selected', 'true');
+    });
+  });
+
+  describe('History tab (historyContent prop)', () => {
+    it('shows 3 tabs when admin and historyContent is provided', () => {
+      renderWithTheme(
+        <AdminTabs
+          isAdmin={true}
+          leaderboardContent={leaderboardContent}
+          adminContent={adminContent}
+          historyContent={historyContent}
+        />
+      );
+
+      expect(screen.getByRole('tab', { name: /Tabla de Posiciones/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /Historial/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /Administración/i })).toBeInTheDocument();
+    });
+
+    it('shows history content after clicking the History tab', () => {
+      renderWithTheme(
+        <AdminTabs
+          isAdmin={true}
+          leaderboardContent={leaderboardContent}
+          adminContent={adminContent}
+          historyContent={historyContent}
+        />
+      );
+
+      const historyTab = screen.getByRole('tab', { name: /Historial/i });
+      fireEvent.click(historyTab);
+
+      expect(screen.getByText('History Content')).toBeVisible();
+    });
+
+    it('starts on History tab when URL has ?tab=history', () => {
+      mockSearchParams = createMockSearchParams({ tab: 'history' });
+      vi.mocked(useSearchParams).mockReturnValue(mockSearchParams);
+
+      renderWithTheme(
+        <AdminTabs
+          isAdmin={true}
+          leaderboardContent={leaderboardContent}
+          adminContent={adminContent}
+          historyContent={historyContent}
+        />
+      );
+
+      expect(screen.getByRole('tab', { name: /Historial/i })).toHaveAttribute('aria-selected', 'true');
+    });
+
+    it('clicking History tab updates URL to ?tab=history', () => {
+      Object.defineProperty(window, 'location', {
+        value: { pathname: '/test-group' },
+        writable: true,
+      });
+
+      renderWithTheme(
+        <AdminTabs
+          isAdmin={true}
+          leaderboardContent={leaderboardContent}
+          adminContent={adminContent}
+          historyContent={historyContent}
+        />
+      );
+
+      const historyTab = screen.getByRole('tab', { name: /Historial/i });
+      fireEvent.click(historyTab);
+
+      expect(mockRouter.replace).toHaveBeenCalledWith(
+        '/test-group?tab=history',
+        { scroll: false }
+      );
+    });
+
+    it('does not show History tab when historyContent is not provided', () => {
+      renderWithTheme(
+        <AdminTabs
+          isAdmin={true}
+          leaderboardContent={leaderboardContent}
+          adminContent={adminContent}
+        />
+      );
+
+      expect(screen.queryByRole('tab', { name: /Historial/i })).not.toBeInTheDocument();
+      expect(screen.getAllByRole('tab')).toHaveLength(2);
+    });
+
+    it('ignores historyContent for non-admin users', () => {
+      renderWithTheme(
+        <AdminTabs
+          isAdmin={false}
+          leaderboardContent={leaderboardContent}
+          adminContent={adminContent}
+          historyContent={historyContent}
+        />
+      );
+
+      expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+      expect(screen.queryByText('History Content')).not.toBeInTheDocument();
+      expect(screen.getByText('Leaderboard Content')).toBeInTheDocument();
     });
   });
 

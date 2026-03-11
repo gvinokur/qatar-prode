@@ -167,3 +167,47 @@ describe('LeaderboardView tabs', () => {
     expect(screen.getByTestId('history-tab')).toHaveTextContent('no-data')
   })
 })
+
+describe('LeaderboardView hideHistoryTab', () => {
+  it('renders LeaderboardCards directly without tab UI when hideHistoryTab=true', () => {
+    renderWithTheme(
+      <LeaderboardView
+        scores={mockScores}
+        currentUserId="user-1"
+        tournament={mockTournament}
+        hideHistoryTab={true}
+      />
+    )
+
+    expect(screen.getByRole('list', { name: /leaderboard/i })).toBeInTheDocument()
+    expect(screen.queryByRole('tab')).not.toBeInTheDocument()
+    expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
+  })
+
+  it('still shows Standings/History tabs when hideHistoryTab is false', () => {
+    renderWithTheme(
+      <LeaderboardView
+        scores={mockScores}
+        currentUserId="user-1"
+        tournament={mockTournament}
+        hideHistoryTab={false}
+      />
+    )
+
+    expect(screen.getByRole('tab', { name: 'standingsTabLabel' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'tabLabel' })).toBeInTheDocument()
+  })
+
+  it('still shows Standings/History tabs when hideHistoryTab is undefined (default)', () => {
+    renderWithTheme(
+      <LeaderboardView
+        scores={mockScores}
+        currentUserId="user-1"
+        tournament={mockTournament}
+      />
+    )
+
+    expect(screen.getByRole('tab', { name: 'standingsTabLabel' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'tabLabel' })).toBeInTheDocument()
+  })
+})

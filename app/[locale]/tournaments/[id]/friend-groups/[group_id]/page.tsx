@@ -25,6 +25,7 @@ import { getGroupJoinRequests, getPendingRequestCount } from "../../../../../act
 import type { TournamentBadgeConfig } from "../../../../../components/leaderboard/types";
 import PendingRequestView from "../../../../../components/friend-groups/pending-request-view";
 import AdminTabs from "../../../../../components/friend-groups/admin-tabs";
+import HistoryTab from "../../../../../components/leaderboard/HistoryTab";
 import PrivacyIndicatorIcon from "../../../../../components/friend-groups/privacy-indicator-icon";
 import AdminSectionTabs from "../../../../../components/friend-groups/admin-section-tabs";
 import { generateShortUrlForGroup } from '../../../../../actions/short-url-actions';
@@ -235,6 +236,12 @@ export default async function TournamentScopedFriendGroup(props : Props){
             isAdmin={isAdmin}
             defaultTab={defaultTab}
             pendingRequestCount={pendingRequestCount}
+            historyContent={isAdmin ? (
+              <HistoryTab
+                historyData={historyData}
+                themeColor={prodeGroup.theme?.primary_color ?? undefined}
+              />
+            ) : undefined}
             leaderboardContent={
               <ProdeGroupTable
                 users={usersMap}
@@ -250,6 +257,7 @@ export default async function TournamentScopedFriendGroup(props : Props){
                 themeColor={prodeGroup.theme?.primary_color ?? undefined}
                 tournamentBadgeConfigs={tournamentBadgeConfigs}
                 historyByTournament={historyByTournament}
+                hideHistoryTab={isAdmin}
               />
             }
             adminContent={

@@ -243,6 +243,7 @@
   },
   "tabs": {
     "leaderboard": "Leaderboard",
+    "history": "History",
     "admin": "Admin"
   },
   "adminSectionTabs": {

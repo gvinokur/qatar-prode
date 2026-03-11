@@ -38,9 +38,10 @@ type Props = {
   readonly themeColor?: string,
   readonly tournamentBadgeConfigs?: Record<string, TournamentBadgeConfig>,
   readonly historyByTournament?: { [tournamentId: string]: ScoreHistoryResult },
+  readonly hideHistoryTab?: boolean,
 }
 
-export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, members, bettingData, selectedTournamentId, groupName, joinUrl, themeColor, tournamentBadgeConfigs, historyByTournament}: Props) {
+export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, members, bettingData, selectedTournamentId, groupName, joinUrl, themeColor, tournamentBadgeConfigs, historyByTournament, hideHistoryTab}: Props) {
   const t = useTranslations('groups.standings');
   const tBetting = useTranslations('groups.betting');
   const tSharing = useTranslations('groups.sharing');
@@ -55,7 +56,6 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
     return (
       <Card>
         <CardHeader
-          title={t('title')}
           action={action}
           sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px` }}
         />
@@ -88,7 +88,6 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
   return (
     <Card>
       <CardHeader
-        title={t('title')}
         action={shareAction}
       />
       <CardContent>
@@ -142,6 +141,7 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
                   shareRef={leaderboardShareRef}
                   tournamentBadgeConfig={tournamentBadgeConfigs?.[tournament.id]}
                   historyData={historyByTournament?.[tournament.id]}
+                  hideHistoryTab={hideHistoryTab}
                 />
                 {/* Betting Status (read-only) */}
                 {bettingConfig?.betting_enabled && (

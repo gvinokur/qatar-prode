@@ -18,12 +18,31 @@ export default function LeaderboardView({
   shareRef,
   tournamentBadgeConfig,
   historyData,
+  hideHistoryTab,
 }: LeaderboardViewProps) {
   const t = useTranslations('groups.history')
   const [activeTab, setActiveTab] = useState<'standings' | 'history'>('standings')
 
   const previousScores = undefined
   const tournamentId = (tournament as any)?.id as string | undefined
+
+  const standingsContent = (
+    <LeaderboardCards
+      scores={scores}
+      currentUserId={currentUserId}
+      previousScores={previousScores}
+      tournamentId={tournamentId}
+      groupName={groupName}
+      joinUrl={joinUrl}
+      themeColor={themeColor}
+      shareRef={shareRef}
+      tournamentBadgeConfig={tournamentBadgeConfig}
+    />
+  )
+
+  if (hideHistoryTab) {
+    return standingsContent
+  }
 
   return (
     <TabContext value={activeTab}>
@@ -36,17 +55,7 @@ export default function LeaderboardView({
       </TabList>
 
       <TabPanel value="standings" sx={{ p: 0 }} keepMounted>
-        <LeaderboardCards
-          scores={scores}
-          currentUserId={currentUserId}
-          previousScores={previousScores}
-          tournamentId={tournamentId}
-          groupName={groupName}
-          joinUrl={joinUrl}
-          themeColor={themeColor}
-          shareRef={shareRef}
-          tournamentBadgeConfig={tournamentBadgeConfig}
-        />
+        {standingsContent}
       </TabPanel>
 
       <TabPanel value="history" sx={{ p: 0 }}>

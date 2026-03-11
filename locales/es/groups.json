@@ -243,6 +243,7 @@
   },
   "tabs": {
     "leaderboard": "Tabla de Posiciones",
+    "history": "Historial",
     "admin": "Administración"
   },
   "adminSectionTabs": {
