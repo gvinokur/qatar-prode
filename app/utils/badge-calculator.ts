@@ -205,7 +205,7 @@ const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
         .filter((u) => {
           const r = u.rankHistory
           if (!r || r.length < 5) return false
-          return r[r.length - 5] > r[r.length - 1]
+          return r.at(-5)! > r.at(-1)!
         })
         .map((u) => u.userId),
   },
@@ -220,8 +220,8 @@ const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
         .filter((u) => {
           const r = u.rankHistory
           if (!r || r.length < 2) return false
-          if (r[r.length - 1] > 3) return false
-          return r.slice(0, -1).some((rank) => rank === groupSize)
+          if (r.at(-1)! > 3) return false
+          return r.slice(0, -1).includes(groupSize)
         })
         .map((u) => u.userId)
     },
@@ -297,7 +297,7 @@ const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
         .filter((u) => {
           const r = u.rankHistory
           if (!r || r.length < 5) return false
-          return r[r.length - 5] < r[r.length - 1]
+          return r.at(-5)! < r.at(-1)!
         })
         .map((u) => u.userId),
   },
