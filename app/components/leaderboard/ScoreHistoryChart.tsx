@@ -58,7 +58,7 @@ export default function ScoreHistoryChart({
       id: user.userId,
       label: user.displayName,
       data: allDates.map((ts) => pointsByDate.get(ts) ?? null),
-      ...(color !== undefined ? { color } : {}),
+      ...(color === undefined ? {} : { color }),
       strokeWidth: isCurrentUser ? 3 : 1.5,
       showMark: false,
     };
