@@ -18,10 +18,15 @@ export type BadgeId =
   | 'award-scout'
   | 'golden-ticket'
   | 'boost-king'
+  | 'on-fire'
+  | 'trending-up'
+  | 'comeback-kid'
   | 'free-fall'
   | 'dead-last'
   | 'broken-sight'
   | 'wooden-spoon'
+  | 'ice-cold'
+  | 'trending-down'
 
 export interface Badge {
   id: BadgeId
@@ -61,6 +66,8 @@ export interface UserBadgeInput {
   individualAwardsScore: number
   boostsUsed: number
   scoredBoosts: number
+  /** Chronological rank history (oldest index 0, newest last). When absent, time badges suppress. */
+  rankHistory?: number[]
 }
 
 type BadgeApplyFn = (users: UserBadgeInput[], config: TournamentBadgeConfig) => string[]
@@ -92,7 +99,7 @@ const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
   },
 
   rocket: {
-    emoji: '📈',
+    emoji: '🚀',
     type: 'positive',
     apply: (users) => {
       const max = Math.max(...users.map((u) => u.rankChange))
@@ -176,8 +183,52 @@ const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
     },
   },
 
+  'on-fire': {
+    emoji: '🔥',
+    type: 'positive',
+    apply: (users) =>
+      users
+        .filter((u) => {
+          const r = u.rankHistory
+          if (!r || r.length < 3) return false
+          const n = r.length
+          return r[n - 3] > r[n - 2] && r[n - 2] > r[n - 1]
+        })
+        .map((u) => u.userId),
+  },
+
+  'trending-up': {
+    emoji: '📈',
+    type: 'positive',
+    apply: (users) =>
+      users
+        .filter((u) => {
+          const r = u.rankHistory
+          if (!r || r.length < 5) return false
+          return r[r.length - 5] > r[r.length - 1]
+        })
+        .map((u) => u.userId),
+  },
+
+  'comeback-kid': {
+    emoji: '🎢',
+    type: 'positive',
+    apply: (users) => {
+      if (users.length <= 3) return []
+      const groupSize = users.length
+      return users
+        .filter((u) => {
+          const r = u.rankHistory
+          if (!r || r.length < 2) return false
+          if (r[r.length - 1] > 3) return false
+          return r.slice(0, -1).some((rank) => rank === groupSize)
+        })
+        .map((u) => u.userId)
+    },
+  },
+
   'free-fall': {
-    emoji: '📉',
+    emoji: '🪂',
     type: 'negative',
     apply: (users) => {
       const min = Math.min(...users.map((u) => u.rankChange))
@@ -222,6 +273,33 @@ const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
       const min = Math.min(...users.map((u) => u.qualifiedTeamsCorrect))
       return users.filter((u) => u.qualifiedTeamsCorrect === min).map((u) => u.userId)
     },
+  },
+
+  'ice-cold': {
+    emoji: '🧊',
+    type: 'negative',
+    apply: (users) =>
+      users
+        .filter((u) => {
+          const r = u.rankHistory
+          if (!r || r.length < 3) return false
+          const n = r.length
+          return r[n - 3] < r[n - 2] && r[n - 2] < r[n - 1]
+        })
+        .map((u) => u.userId),
+  },
+
+  'trending-down': {
+    emoji: '📉',
+    type: 'negative',
+    apply: (users) =>
+      users
+        .filter((u) => {
+          const r = u.rankHistory
+          if (!r || r.length < 5) return false
+          return r[r.length - 5] < r[r.length - 1]
+        })
+        .map((u) => u.userId),
   },
 }
 

@@ -543,6 +543,26 @@
     "wooden-spoon": {
       "name": "Pase de Madera",
       "description": "El que menos clasificados acertó"
+    },
+    "on-fire": {
+      "name": "En llamas",
+      "description": "El rango mejoró 3 o más snapshots consecutivos"
+    },
+    "trending-up": {
+      "name": "En ascenso",
+      "description": "Mejora neta del rango en los últimos 5 snapshots"
+    },
+    "comeback-kid": {
+      "name": "La remontada",
+      "description": "Estuvo en el último lugar, ahora está en el top 3"
+    },
+    "ice-cold": {
+      "name": "Helado",
+      "description": "El rango cayó 3 o más snapshots consecutivos"
+    },
+    "trending-down": {
+      "name": "En descenso",
+      "description": "Caída neta del rango en los últimos 5 snapshots"
     }
   },
   "history": {

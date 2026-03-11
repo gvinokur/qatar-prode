@@ -181,6 +181,7 @@ export default async function FriendsGroup(props : Props){
                   joinUrl={shareJoinUrl}
                   themeColor={prodeGroup.theme?.primary_color ?? undefined}
                   tournamentBadgeConfigs={tournamentBadgeConfigs}
+                  historyByTournament={historyByTournament}
                 />
               }
               historyContent={
