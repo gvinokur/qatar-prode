@@ -1,16 +1,8 @@
 'use client'
 
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
-import { Typography, Box, Paper, useTheme } from '@mui/material';
+import { LineChart } from '@mui/x-charts/LineChart';
+import { ChartsTooltipContainer, useAxisTooltip } from '@mui/x-charts/ChartsTooltip';
+import { Typography, Box } from '@mui/material';
 import { useTranslations } from 'next-intl';
 
 export interface RankHistoryChartProps {
@@ -20,8 +12,8 @@ export interface RankHistoryChartProps {
     data: { date: number; rank: number }[]
   }[]
   currentUserId: string
-  startDate: number
-  endDate: number
+  startDate: number   // YYYYMMDD
+  endDate: number     // YYYYMMDD
   totalUsers: number
   themeColor?: string
 }
@@ -33,37 +25,36 @@ function yyyymmddToMs(d: number): number {
   return new Date(year, month, day).getTime();
 }
 
-function formatDateTick(value: number): string {
-  return new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
-}
-
 const LINE_COLORS = [
   '#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00C49F',
   '#FFBB28', '#FF8042', '#a4de6c', '#d0ed57', '#83a6ed',
 ];
 
-interface TooltipProps {
-  active?: boolean
-  payload?: Array<{ dataKey: string; value: number }>
-  label?: number
+interface CustomTooltipContentProps {
   currentUserId: string
   userHistories: RankHistoryChartProps['userHistories']
 }
 
-function RankTooltip({ active, payload, label, currentUserId, userHistories }: TooltipProps) {
-  if (!active || !payload || label === undefined) return null;
-  const myEntry = payload.find((p) => p.dataKey === currentUserId);
-  if (!myEntry) return null;
+function RankTooltipContent({ currentUserId, userHistories }: CustomTooltipContentProps) {
+  const tooltip = useAxisTooltip();
+  if (!tooltip) return null;
+
+  const myItem = tooltip.seriesItems.find((item) => item.seriesId === currentUserId);
+  if (!myItem) return null;
+
   const me = userHistories.find((u) => u.userId === currentUserId);
+
   return (
-    <Paper elevation={3} sx={{ px: 1.5, py: 1, minWidth: 120 }}>
-      <Typography variant="caption" color="text.secondary" display="block">
-        {formatDateTick(label)}
-      </Typography>
-      <Typography variant="body2" fontWeight="bold">
-        {me?.displayName ?? currentUserId}: #{myEntry.value}
-      </Typography>
-    </Paper>
+    <ChartsTooltipContainer trigger="axis">
+      <Box sx={{ px: 1.5, py: 1 }}>
+        <Typography variant="caption" color="text.secondary" display="block">
+          {tooltip.axisFormattedValue}
+        </Typography>
+        <Typography variant="body2" fontWeight="bold">
+          {me?.displayName ?? currentUserId}: #{myItem.value as number}
+        </Typography>
+      </Box>
+    </ChartsTooltipContainer>
   );
 }
 
@@ -76,79 +67,55 @@ export default function RankHistoryChart({
   themeColor,
 }: RankHistoryChartProps) {
   const t = useTranslations('groups.history');
-  const theme = useTheme();
 
   if (userHistories.length === 0) return null;
 
   const allDates = Array.from(
     new Set(userHistories.flatMap((u) => u.data.map((d) => d.date)))
-  ).sort((a, b) => a - b);
+  ).sort((a, b) => a - b).map(yyyymmddToMs);
 
-  const chartData = allDates.map((date) => {
-    const entry: Record<string, number> = { date: yyyymmddToMs(date) };
-    for (const user of userHistories) {
-      const point = user.data.find((d) => d.date === date);
-      if (point !== undefined) entry[user.userId] = point.rank;
-    }
-    return entry;
+  const series = userHistories.map((user, idx) => {
+    const isCurrentUser = user.userId === currentUserId;
+    const pointsByDate = new Map(user.data.map((d) => [yyyymmddToMs(d.date), d.rank]));
+    return {
+      id: user.userId,
+      label: user.displayName,
+      data: allDates.map((ts) => pointsByDate.get(ts) ?? null),
+      ...(isCurrentUser && themeColor ? { color: themeColor } : !isCurrentUser ? { color: LINE_COLORS[idx % LINE_COLORS.length] } : {}),
+      strokeWidth: isCurrentUser ? 3 : 1.5,
+      showMark: false,
+    };
   });
+
+  const TooltipSlot = () => (
+    <RankTooltipContent currentUserId={currentUserId} userHistories={userHistories} />
+  );
 
   return (
     <Box>
       <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
         {t('rankChartTitle')}
       </Typography>
-      <ResponsiveContainer width="100%" height={240}>
-        <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-          <XAxis
-            dataKey="date"
-            type="number"
-            domain={[yyyymmddToMs(startDate), yyyymmddToMs(endDate)]}
-            tickFormatter={formatDateTick}
-            scale="time"
-            tick={{ fontSize: 11 }}
-          />
-          <YAxis
-            domain={[1, totalUsers]}
-            reversed={true}
-            tickFormatter={(v: number) => `#${v}`}
-            tick={{ fontSize: 11 }}
-          />
-          <Tooltip
-            content={(props) => (
-              <RankTooltip
-                {...props}
-                currentUserId={currentUserId}
-                userHistories={userHistories}
-              />
-            )}
-          />
-          <Legend
-            formatter={(value) => {
-              const user = userHistories.find((u) => u.userId === value);
-              return user?.displayName ?? value;
-            }}
-          />
-          {userHistories.map((user, idx) => {
-            const isCurrentUser = user.userId === currentUserId;
-            const color = isCurrentUser
-              ? (themeColor ?? '#1976d2')
-              : LINE_COLORS[idx % LINE_COLORS.length];
-            return (
-              <Line
-                key={user.userId}
-                type="monotone"
-                dataKey={user.userId}
-                stroke={color}
-                strokeWidth={isCurrentUser ? 3 : 2}
-                dot={false}
-                connectNulls={false}
-              />
-            );
-          })}
-        </LineChart>
-      </ResponsiveContainer>
+      <LineChart
+        xAxis={[{
+          data: allDates,
+          scaleType: 'time',
+          min: yyyymmddToMs(startDate),
+          max: yyyymmddToMs(endDate),
+          valueFormatter: (v) =>
+            new Date(v).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
+        }]}
+        yAxis={[{
+          min: 1,
+          max: totalUsers,
+          reverse: true,
+          valueFormatter: (v: number) => `#${v}`,
+        }]}
+        series={series}
+        height={260}
+        slots={{ tooltip: TooltipSlot }}
+        margin={{ left: 40, right: 16, top: 10, bottom: 30 }}
+      />
     </Box>
   );
 }

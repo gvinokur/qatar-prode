@@ -3,15 +3,17 @@ import { screen } from '@testing-library/react'
 import { renderWithTheme } from '@/__tests__/utils/test-utils'
 import ScoreHistoryChart from '@/app/components/leaderboard/ScoreHistoryChart'
 
-vi.mock('recharts', () => ({
-  LineChart: ({ children }: any) => <div data-testid="line-chart">{children}</div>,
-  Line: ({ dataKey }: any) => <div data-testid={`line-${dataKey}`} />,
-  XAxis: () => <div />,
-  YAxis: () => <div />,
-  CartesianGrid: () => <div />,
-  Tooltip: () => <div />,
-  Legend: () => <div />,
-  ResponsiveContainer: ({ children }: any) => <div>{children}</div>,
+vi.mock('@mui/x-charts/LineChart', () => ({
+  LineChart: ({ series }: any) => (
+    <div data-testid="line-chart">
+      {series?.map((s: any) => <div key={s.id} data-testid={`line-${s.id}`} />)}
+    </div>
+  ),
+}))
+
+vi.mock('@mui/x-charts/ChartsTooltip', () => ({
+  ChartsTooltipContainer: ({ children }: any) => <div>{children}</div>,
+  useAxisTooltip: () => null,
 }))
 
 vi.mock('next-intl', () => ({
@@ -27,21 +29,9 @@ const singleUserHistory = [
 ]
 
 const multiUserHistories = [
-  {
-    userId: 'user-1',
-    displayName: 'Alice',
-    data: [{ date: 20260610, totalPoints: 50 }],
-  },
-  {
-    userId: 'user-2',
-    displayName: 'Bob',
-    data: [{ date: 20260610, totalPoints: 40 }],
-  },
-  {
-    userId: 'user-3',
-    displayName: 'Charlie',
-    data: [{ date: 20260610, totalPoints: 30 }],
-  },
+  { userId: 'user-1', displayName: 'Alice', data: [{ date: 20260610, totalPoints: 50 }] },
+  { userId: 'user-2', displayName: 'Bob', data: [{ date: 20260610, totalPoints: 40 }] },
+  { userId: 'user-3', displayName: 'Charlie', data: [{ date: 20260610, totalPoints: 30 }] },
 ]
 
 describe('ScoreHistoryChart', () => {
@@ -54,7 +44,6 @@ describe('ScoreHistoryChart', () => {
         endDate={20260715}
       />
     )
-
     expect(screen.getByTestId('line-chart')).toBeInTheDocument()
   })
 
@@ -67,7 +56,6 @@ describe('ScoreHistoryChart', () => {
         endDate={20260715}
       />
     )
-
     expect(screen.getByTestId('line-user-1')).toBeInTheDocument()
     expect(screen.getByTestId('line-user-2')).toBeInTheDocument()
     expect(screen.getByTestId('line-user-3')).toBeInTheDocument()
@@ -82,7 +70,6 @@ describe('ScoreHistoryChart', () => {
         endDate={20260715}
       />
     )
-
     expect(screen.getByTestId('line-user-1')).toBeInTheDocument()
   })
 
@@ -95,7 +82,6 @@ describe('ScoreHistoryChart', () => {
         endDate={20260715}
       />
     )
-
     expect(container.firstChild).toBeNull()
   })
 })

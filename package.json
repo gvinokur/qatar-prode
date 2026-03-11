@@ -28,6 +28,7 @@
     "@mui/icons-material": "^7.3.8",
     "@mui/lab": "^7.0.0-beta.13",
     "@mui/material": "^7.0.2",
+    "@mui/x-charts": "^8.27.4",
     "@mui/x-date-pickers": "^8.2.0",
     "@serwist/next": "^9.0.14",
     "@vercel/postgres-kysely": "^0.10.0",
