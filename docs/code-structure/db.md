@@ -26,6 +26,8 @@ Includes `TournamentScoreHistoryTable` for the `tournament_score_history` table 
 - **TournamentScoreHistory**: `Selectable<TournamentScoreHistoryTable>` — full row shape.
 - **TournamentScoreHistoryNew**: `Omit<Insertable<...>, 'id' | 'total_points' | 'created_at'>` — insert shape without auto-generated fields.
 
+Note: `yesterday_tournament_score`, `yesterday_total_game_score`, `yesterday_boost_bonus`, and `last_score_update_date` fields were removed from `TournamentGuessTable` in Story #278. Rank-change tracking now uses `tournament_score_history` snapshots (Story #272/#277).
+
 ### app/db/game-guess-repository.ts
 Repository for game_guesses table. Handles user predictions with boost tracking and materialized score storage.
 

@@ -261,8 +261,6 @@ describe('Tournament Guess Repository - Materialization', () => {
           group_exact_guesses: 3,
           playoff_correct_guesses: 4,
           playoff_exact_guesses: 2,
-          yesterday_total_score: 60,
-          yesterday_boost_bonus: 12,
           last_game_date: new Date('2024-07-14'),
         },
         {
@@ -679,61 +677,6 @@ describe('Tournament Guess Repository - Materialization', () => {
           playoff_stage_boost_bonus: 12, // Preserved
           total_correct_guesses: 20, // Preserved
           total_exact_guesses: 10, // Preserved
-        })
-      );
-    });
-
-    it('should preserve snapshot fields for rank tracking', async () => {
-      const { updateOrCreateTournamentGuess } = await import('../../app/db/tournament-guess-repository');
-
-      const userId = 'user-1';
-      const tournamentId = 'tournament-1';
-
-      const existingGuess = testFactories.tournamentGuess({
-        user_id: userId,
-        tournament_id: tournamentId,
-        champion_team_id: 'team-1',
-        yesterday_tournament_score: 140,
-        yesterday_total_game_score: 130,
-        yesterday_boost_bonus: 25,
-        last_score_update_date: 20260214,
-        last_game_score_update_at: new Date('2024-07-14'),
-      });
-
-      const mockSelectQuery = {
-        selectAll: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        executeTakeFirst: vi.fn().mockResolvedValue(existingGuess),
-      };
-
-      const mockUpdateQuery = {
-        where: vi.fn().mockReturnThis(),
-        set: vi.fn().mockReturnThis(),
-        returningAll: vi.fn().mockReturnThis(),
-        executeTakeFirstOrThrow: vi.fn().mockResolvedValue({
-          ...existingGuess,
-          runner_up_team_id: 'team-2',
-        }),
-      };
-
-      mockDb.selectFrom.mockReturnValue(mockSelectQuery);
-      mockDb.updateTable.mockReturnValue(mockUpdateQuery);
-
-      // Update honor roll guess
-      const result = await updateOrCreateTournamentGuess({
-        user_id: userId,
-        tournament_id: tournamentId,
-        runner_up_team_id: 'team-2',
-      });
-
-      // Verify all snapshot fields preserved
-      expect(result).toEqual(
-        expect.objectContaining({
-          yesterday_tournament_score: 140, // Preserved
-          yesterday_total_game_score: 130, // Preserved
-          yesterday_boost_bonus: 25, // Preserved
-          last_score_update_date: 20260214, // Preserved
-          last_game_score_update_at: new Date('2024-07-14'), // Preserved
         })
       );
     });

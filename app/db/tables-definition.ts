@@ -377,17 +377,6 @@ export interface TournamentGuessTable extends Identifiable{
    */
   qualification_score?: number
   /**
-   * Date when tournament scores were last updated, in YYYYMMDD format (e.g., 20260206)
-   * Used for daily rank change tracking
-   */
-  last_score_update_date?: number
-  /**
-   * Snapshot of previous day's total tournament score
-   * Sum of: qualified_teams_score + honor_roll_score + individual_awards_score + group_position_score
-   * Updated on first score change each day
-   */
-  yesterday_tournament_score?: number
-  /**
    * Materialized game score totals (sum of game_guesses.score)
    * Story #147: Performance optimization to avoid expensive SQL aggregations
    */
@@ -409,11 +398,6 @@ export interface TournamentGuessTable extends Identifiable{
   group_exact_guesses?: number
   playoff_correct_guesses?: number
   playoff_exact_guesses?: number
-  /**
-   * Yesterday snapshots for rank tracking (24-hour window)
-   */
-  yesterday_total_game_score?: number
-  yesterday_boost_bonus?: number
   /**
    * Timestamp of last game score update (date of last game used in calculation)
    */
