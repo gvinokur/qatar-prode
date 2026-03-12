@@ -36,7 +36,7 @@ Repository for game_guesses table. Handles user predictions with boost tracking 
 - **findGameGuessesByUserId(userId: string, tournamentId: string)**: `Promise<GameGuess[]>` — Returns all game guesses for user in tournament (cached).
 - **updateGameGuessByGameId(gameId: string, userId: string, update: object)**: `Promise<GameGuess | undefined>` — Updates home/away scores for a specific game guess.
 - **updateOrCreateGuess(guess: GameGuessNew)**: `Promise<GameGuess>` — Upserts a game guess (deletes existing, creates new).
-- **legacyGetGameGuessStatisticsForUsers(userIds: string[], tournamentId: string)**: `Promise<GameStatisticForUser[]>` — Legacy SQL aggregation for game statistics; used for backfill and validation.
+- **legacyGetGameGuessStatisticsForUsers(userIds: string[], tournamentId: string)**: `Promise<GameStatisticForUser[]>` — Legacy SQL aggregation for game statistics; used for backfill and validation. Does not compute `yesterday_total_score` or `yesterday_boost_bonus` (removed in Story #283).
 - **getGameGuessStatisticsForUsers(userIds: string[], tournamentId: string)**: `Promise<GameStatisticForUser[]>` — Reads materialized game scores from tournament_guesses table. Does not include `yesterday_total_score` or `yesterday_boost_bonus` (removed in Story #277); snapshot fields (`latestSnapshotPoints`, `penultimateSnapshotPoints`) are patched onto UserScore by pages after calling `computeSnapshotScores`.
 - **findAllGuessesForGamesWithResultsInDraft()**: `Promise<GameGuess[]>` — Finds guesses for games with draft results.
 - **deleteAllUserGameGuesses(userId: string)**: `Promise<void>` — Deletes all game guesses for user (account deletion).
@@ -205,9 +205,7 @@ Repository for tournament_guesses table. Tracks overall tournament scores and ma
 - **createTournamentGuess(guess: TournamentGuessNew)**: `Promise<TournamentGuess>` — Creates new record.
 - **updateTournamentGuess(id: string, update: TournamentGuessUpdate)**: `Promise<TournamentGuess>` — Updates record.
 - **deleteTournamentGuess(id: string)**: `Promise<TournamentGuess>` — Deletes record.
-- **updateTournamentGuessWithSnapshot(guessId: string, updates: TournamentGuessUpdate)**: `Promise<TournamentGuess | undefined>` — Updates with daily snapshot for rank tracking.
 - **updateTournamentGuessByUserIdTournament(userId: string, tournamentId: string, update: TournamentGuessUpdate)**: `Promise<TournamentGuess | undefined>` — Updates by user/tournament composite key.
-- **updateTournamentGuessByUserIdTournamentWithSnapshot(userId: string, tournamentId: string, updates: TournamentGuessUpdate)**: `Promise<TournamentGuess | undefined>` — Updates with daily snapshot by user/tournament.
 - **findTournamentGuessByUserIdTournament(userId: string, tournamentId: string)**: `Promise<TournamentGuess | undefined>` — Finds by user/tournament composite.
 - **findTournamentGuessByUserIdsTournament(userIds: string[], tournamentId: string)**: `Promise<TournamentGuess[]>` — Finds for multiple users.
 - **getTournamentGuessStatsForUsers(userIds: string[], tournamentId: string)**: `Promise<TournamentGuessStats[]>` — Gets stats columns (optimized projection).

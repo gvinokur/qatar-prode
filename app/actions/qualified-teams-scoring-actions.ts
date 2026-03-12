@@ -3,6 +3,8 @@
 import { calculateQualifiedTeamsScore } from '../utils/qualified-teams-scoring';
 import { getLoggedInUser } from './user-actions';
 import { findTournamentById } from '../db/tournament-repository';
+import { writeScoreSnapshot } from '../db/score-history-repository';
+import { getTodayYYYYMMDD } from '../utils/date-utils';
 import { db } from '../db/database';
 import { revalidatePath } from 'next/cache';
 import { getTranslations } from 'next-intl/server';
@@ -125,7 +127,7 @@ export async function calculateAndStoreQualifiedTeamsScores(
 
         // Update tournament_guesses with the calculated score and counts
         // Use atomic upsert (no transaction needed - supported by PostgreSQL)
-        await db
+        const upsertedRow = await db
           .insertInto('tournament_guesses')
           .values({
             user_id: userId,
@@ -141,7 +143,22 @@ export async function calculateAndStoreQualifiedTeamsScores(
               qualified_teams_exact: exactCount,
             })
           )
-          .execute();
+          .returningAll()
+          .executeTakeFirst();
+
+        if (upsertedRow) {
+          await writeScoreSnapshot({
+            user_id: userId,
+            tournament_id: tournamentId,
+            snapshot_date: getTodayYYYYMMDD(),
+            total_game_score: upsertedRow.total_game_score ?? 0,
+            total_boost_bonus: upsertedRow.total_boost_bonus ?? 0,
+            honor_roll_score: upsertedRow.honor_roll_score ?? 0,
+            individual_awards_score: upsertedRow.individual_awards_score ?? 0,
+            qualified_teams_score: upsertedRow.qualified_teams_score ?? 0,
+            group_position_score: upsertedRow.group_position_score ?? 0,
+          });
+        }
 
         usersProcessed++;
         totalScoreSum += scoringResult.totalScore;

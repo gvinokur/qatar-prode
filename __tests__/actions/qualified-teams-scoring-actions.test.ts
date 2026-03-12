@@ -33,18 +33,28 @@ vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
 }));
 
+vi.mock('../../app/db/score-history-repository', () => ({
+  writeScoreSnapshot: vi.fn(),
+}));
+
+vi.mock('../../app/utils/date-utils', () => ({
+  getTodayYYYYMMDD: vi.fn().mockReturnValue(20260312),
+}));
+
 // Import mocked modules
 import { calculateQualifiedTeamsScore } from '../../app/utils/qualified-teams-scoring';
 import { getLoggedInUser } from '../../app/actions/user-actions';
 import { findTournamentById } from '../../app/db/tournament-repository';
 import { db } from '../../app/db/database';
 import { revalidatePath } from 'next/cache';
+import { writeScoreSnapshot } from '../../app/db/score-history-repository';
 
 const mockCalculateQualifiedTeamsScore = vi.mocked(calculateQualifiedTeamsScore);
 const mockGetLoggedInUser = vi.mocked(getLoggedInUser);
 const mockFindTournamentById = vi.mocked(findTournamentById);
 const mockDb = vi.mocked(db);
 const mockRevalidatePath = vi.mocked(revalidatePath);
+const mockWriteScoreSnapshot = vi.mocked(writeScoreSnapshot);
 
 describe('qualified-teams-scoring-actions', () => {
   const tournamentId = 'tournament-1';
@@ -95,13 +105,19 @@ describe('qualified-teams-scoring-actions', () => {
       const mockClearQuery = createMockUpdateQuery({ qualified_teams_score: 0 });
       mockDb.updateTable.mockReturnValue(mockClearQuery as any);
 
-      // Mock the upsert query (INSERT...ON CONFLICT DO UPDATE)
+      // Mock the upsert query (INSERT...ON CONFLICT DO UPDATE SET...RETURNING *)
+      const upsertedRow1 = testFactories.tournamentGuess({ user_id: userId1, tournament_id: tournamentId, qualified_teams_score: 5 });
+      const upsertedRow2 = testFactories.tournamentGuess({ user_id: userId2, tournament_id: tournamentId, qualified_teams_score: 8 });
       const mockInsertQuery = {
         values: vi.fn().mockReturnThis(),
         onConflict: vi.fn().mockReturnThis(),
-        execute: vi.fn().mockResolvedValue(undefined),
+        returningAll: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn()
+          .mockResolvedValueOnce(upsertedRow1)
+          .mockResolvedValueOnce(upsertedRow2),
       };
       mockDb.insertInto.mockReturnValue(mockInsertQuery as any);
+      mockWriteScoreSnapshot.mockResolvedValue(undefined as any);
 
       const result = await calculateAndStoreQualifiedTeamsScores(tournamentId);
 
@@ -151,22 +167,15 @@ describe('qualified-teams-scoring-actions', () => {
         breakdown: [],
       });
 
-      const mockTransaction = vi.fn().mockImplementation((callback) => {
-        return callback({
-          selectFrom: vi.fn().mockReturnValue({
-            where: vi.fn().mockReturnThis(),
-            select: vi.fn().mockReturnThis(),
-            executeTakeFirst: vi.fn().mockResolvedValue({ id: 'guess-1' }),
-          }),
-          updateTable: vi.fn().mockReturnValue({
-            set: vi.fn().mockReturnThis(),
-            where: vi.fn().mockReturnThis(),
-            execute: vi.fn().mockResolvedValue(undefined),
-          }),
-        });
-      });
-
-      mockDb.transaction.mockReturnValue({ execute: mockTransaction } as any);
+      const upsertedRow = testFactories.tournamentGuess({ user_id: userId1, tournament_id: tournamentId, qualified_teams_score: 5 });
+      const mockInsertQuery = {
+        values: vi.fn().mockReturnThis(),
+        onConflict: vi.fn().mockReturnThis(),
+        returningAll: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(upsertedRow),
+      };
+      mockDb.insertInto.mockReturnValue(mockInsertQuery as any);
+      mockWriteScoreSnapshot.mockResolvedValue(undefined as any);
 
       await calculateAndStoreQualifiedTeamsScores(tournamentId);
 
@@ -197,13 +206,18 @@ describe('qualified-teams-scoring-actions', () => {
       const mockClearQuery = createMockUpdateQuery({ qualified_teams_score: 0 });
       mockDb.updateTable.mockReturnValue(mockClearQuery as any);
 
-      // Mock the upsert query (INSERT...ON CONFLICT DO UPDATE)
+      // Mock the upsert query (INSERT...ON CONFLICT DO UPDATE SET...RETURNING *)
+      // user-1 fails in calculateQualifiedTeamsScore before reaching insertInto
+      // user-2 succeeds
+      const upsertedRow2 = testFactories.tournamentGuess({ user_id: userId2, tournament_id: tournamentId, qualified_teams_score: 8 });
       const mockInsertQuery = {
         values: vi.fn().mockReturnThis(),
         onConflict: vi.fn().mockReturnThis(),
-        execute: vi.fn().mockResolvedValue(undefined),
+        returningAll: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(upsertedRow2),
       };
       mockDb.insertInto.mockReturnValue(mockInsertQuery as any);
+      mockWriteScoreSnapshot.mockResolvedValue(undefined as any);
 
       const result = await calculateAndStoreQualifiedTeamsScores(tournamentId);
 
@@ -228,21 +242,23 @@ describe('qualified-teams-scoring-actions', () => {
       const mockClearQuery = createMockUpdateQuery({ qualified_teams_score: 0 });
       mockDb.updateTable.mockReturnValue(mockClearQuery as any);
 
-      // Mock the upsert query (INSERT...ON CONFLICT DO UPDATE)
-      // This handles both insert and update cases
-      const mockExecute = vi.fn().mockResolvedValue(undefined);
+      // Mock the upsert query (INSERT...ON CONFLICT DO UPDATE SET...RETURNING *)
+      const upsertedRow = testFactories.tournamentGuess({ user_id: userId1, tournament_id: tournamentId, qualified_teams_score: 5 });
+      const mockExecuteTakeFirst = vi.fn().mockResolvedValue(upsertedRow);
       const mockInsertQuery = {
         values: vi.fn().mockReturnThis(),
         onConflict: vi.fn().mockReturnThis(),
-        execute: mockExecute,
+        returningAll: vi.fn().mockReturnThis(),
+        executeTakeFirst: mockExecuteTakeFirst,
       };
       mockDb.insertInto.mockReturnValue(mockInsertQuery as any);
+      mockWriteScoreSnapshot.mockResolvedValue(undefined as any);
 
       const result = await calculateAndStoreQualifiedTeamsScores(tournamentId);
 
       expect(result.success).toBe(true);
       expect(result.usersProcessed).toBe(1);
-      expect(mockExecute).toHaveBeenCalled();
+      expect(mockExecuteTakeFirst).toHaveBeenCalled();
     });
 
     it('should handle top-level errors', async () => {
@@ -336,13 +352,16 @@ describe('qualified-teams-scoring-actions', () => {
       const mockClearQuery = createMockUpdateQuery({ qualified_teams_score: 0 });
       mockDb.updateTable.mockReturnValue(mockClearQuery as any);
 
-      // Mock the upsert query (INSERT...ON CONFLICT DO UPDATE)
+      // Mock the upsert query (INSERT...ON CONFLICT DO UPDATE SET...RETURNING *)
+      const upsertedRow = testFactories.tournamentGuess({ user_id: userId1, tournament_id: tournamentId, qualified_teams_score: 5 });
       const mockInsertQuery = {
         values: vi.fn().mockReturnThis(),
         onConflict: vi.fn().mockReturnThis(),
-        execute: vi.fn().mockResolvedValue(undefined),
+        returningAll: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(upsertedRow),
       };
       mockDb.insertInto.mockReturnValue(mockInsertQuery as any);
+      mockWriteScoreSnapshot.mockResolvedValue(undefined as any);
 
       const result = await triggerQualifiedTeamsScoringAction(tournamentId);
 
@@ -377,27 +396,142 @@ describe('qualified-teams-scoring-actions', () => {
       const mockClearQuery = createMockUpdateQuery({ qualified_teams_score: 0 });
       mockDb.updateTable.mockReturnValue(mockClearQuery as any);
 
-      const mockTransaction = vi.fn().mockImplementation((callback) => {
-        return callback({
-          selectFrom: vi.fn().mockReturnValue({
-            where: vi.fn().mockReturnThis(),
-            select: vi.fn().mockReturnThis(),
-            executeTakeFirst: vi.fn().mockResolvedValue({ id: 'guess-1' }),
-          }),
-          updateTable: vi.fn().mockReturnValue({
-            set: vi.fn().mockReturnThis(),
-            where: vi.fn().mockReturnThis(),
-            execute: vi.fn().mockResolvedValue(undefined),
-          }),
-        });
-      });
-
-      mockDb.transaction.mockReturnValue({ execute: mockTransaction } as any);
+      // Mock the upsert query (INSERT...ON CONFLICT DO UPDATE SET...RETURNING *)
+      const upsertedRow = testFactories.tournamentGuess({ user_id: userId1, tournament_id: tournamentId, qualified_teams_score: 0 });
+      const mockInsertQuery = {
+        values: vi.fn().mockReturnThis(),
+        onConflict: vi.fn().mockReturnThis(),
+        returningAll: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(upsertedRow),
+      };
+      mockDb.insertInto.mockReturnValue(mockInsertQuery as any);
+      mockWriteScoreSnapshot.mockResolvedValue(undefined as any);
 
       const result = await calculateAndStoreQualifiedTeamsScores(tournamentId);
 
       expect(result.success).toBe(true);
       expect(result.totalScoreSum).toBe(0);
+    });
+
+    it('should call writeScoreSnapshot with all score fields from upserted row', async () => {
+      const mockUsersQuery = createMockSelectQuery([{ user_id: userId1 }]);
+      mockDb.selectFrom.mockReturnValue(mockUsersQuery as any);
+
+      mockCalculateQualifiedTeamsScore.mockResolvedValue({
+        userId: userId1,
+        tournamentId,
+        totalScore: 5,
+        breakdown: [],
+      });
+
+      const mockClearQuery = createMockUpdateQuery({ qualified_teams_score: 0 });
+      mockDb.updateTable.mockReturnValue(mockClearQuery as any);
+
+      const upsertedRow = testFactories.tournamentGuess({
+        user_id: userId1,
+        tournament_id: tournamentId,
+        qualified_teams_score: 5,
+        total_game_score: 100,
+        total_boost_bonus: 20,
+        honor_roll_score: 30,
+        individual_awards_score: 40,
+        group_position_score: 10,
+      });
+      const mockInsertQuery = {
+        values: vi.fn().mockReturnThis(),
+        onConflict: vi.fn().mockReturnThis(),
+        returningAll: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(upsertedRow),
+      };
+      mockDb.insertInto.mockReturnValue(mockInsertQuery as any);
+      mockWriteScoreSnapshot.mockResolvedValue(undefined as any);
+
+      await calculateAndStoreQualifiedTeamsScores(tournamentId);
+
+      expect(mockWriteScoreSnapshot).toHaveBeenCalledWith({
+        user_id: userId1,
+        tournament_id: tournamentId,
+        snapshot_date: 20260312,
+        total_game_score: upsertedRow.total_game_score ?? 0,
+        total_boost_bonus: upsertedRow.total_boost_bonus ?? 0,
+        honor_roll_score: upsertedRow.honor_roll_score ?? 0,
+        individual_awards_score: upsertedRow.individual_awards_score ?? 0,
+        qualified_teams_score: 5,
+        group_position_score: upsertedRow.group_position_score ?? 0,
+      });
+    });
+
+    it('should call writeScoreSnapshot once per successfully processed user', async () => {
+      const mockUsersQuery = createMockSelectQuery([
+        { user_id: userId1 },
+        { user_id: userId2 },
+      ]);
+      mockDb.selectFrom.mockReturnValue(mockUsersQuery as any);
+
+      mockCalculateQualifiedTeamsScore
+        .mockResolvedValueOnce({ userId: userId1, tournamentId, totalScore: 5, breakdown: [] })
+        .mockResolvedValueOnce({ userId: userId2, tournamentId, totalScore: 8, breakdown: [] });
+
+      const mockClearQuery = createMockUpdateQuery({ qualified_teams_score: 0 });
+      mockDb.updateTable.mockReturnValue(mockClearQuery as any);
+
+      const upsertedRow1 = testFactories.tournamentGuess({ user_id: userId1, tournament_id: tournamentId, qualified_teams_score: 5 });
+      const upsertedRow2 = testFactories.tournamentGuess({ user_id: userId2, tournament_id: tournamentId, qualified_teams_score: 8 });
+      const mockInsertQuery = {
+        values: vi.fn().mockReturnThis(),
+        onConflict: vi.fn().mockReturnThis(),
+        returningAll: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn()
+          .mockResolvedValueOnce(upsertedRow1)
+          .mockResolvedValueOnce(upsertedRow2),
+      };
+      mockDb.insertInto.mockReturnValue(mockInsertQuery as any);
+      mockWriteScoreSnapshot.mockResolvedValue(undefined as any);
+
+      await calculateAndStoreQualifiedTeamsScores(tournamentId);
+
+      expect(mockWriteScoreSnapshot).toHaveBeenCalledTimes(2);
+    });
+
+    it('should not call writeScoreSnapshot when upsert returns no row', async () => {
+      const mockUsersQuery = createMockSelectQuery([{ user_id: userId1 }]);
+      mockDb.selectFrom.mockReturnValue(mockUsersQuery as any);
+
+      mockCalculateQualifiedTeamsScore.mockResolvedValue({
+        userId: userId1,
+        tournamentId,
+        totalScore: 5,
+        breakdown: [],
+      });
+
+      const mockClearQuery = createMockUpdateQuery({ qualified_teams_score: 0 });
+      mockDb.updateTable.mockReturnValue(mockClearQuery as any);
+
+      const mockInsertQuery = {
+        values: vi.fn().mockReturnThis(),
+        onConflict: vi.fn().mockReturnThis(),
+        returningAll: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(undefined), // No row returned
+      };
+      mockDb.insertInto.mockReturnValue(mockInsertQuery as any);
+
+      await calculateAndStoreQualifiedTeamsScores(tournamentId);
+
+      expect(mockWriteScoreSnapshot).not.toHaveBeenCalled();
+    });
+
+    it('should not call writeScoreSnapshot when user score calculation fails', async () => {
+      const mockUsersQuery = createMockSelectQuery([{ user_id: userId1 }]);
+      mockDb.selectFrom.mockReturnValue(mockUsersQuery as any);
+
+      mockCalculateQualifiedTeamsScore.mockRejectedValue(new Error('Calculation failed'));
+
+      const mockClearQuery = createMockUpdateQuery({ qualified_teams_score: 0 });
+      mockDb.updateTable.mockReturnValue(mockClearQuery as any);
+
+      await calculateAndStoreQualifiedTeamsScores(tournamentId);
+
+      expect(mockWriteScoreSnapshot).not.toHaveBeenCalled();
     });
 
     it('should handle multiple errors across different users', async () => {

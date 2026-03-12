@@ -190,9 +190,7 @@ vi.mock('../../app/utils/date-utils', () => ({
 vi.mock('../../app/db/tournament-guess-repository', () => ({
   findTournamentGuessByTournament: vi.fn(),
   updateTournamentGuess: vi.fn(),
-  updateTournamentGuessWithSnapshot: vi.fn(),
   updateTournamentGuessByUserIdTournament: vi.fn(),
-  updateTournamentGuessByUserIdTournamentWithSnapshot: vi.fn(),
   deleteAllTournamentGuessesByTournamentId: vi.fn(),
   recalculateGameScoresForUsers: vi.fn().mockResolvedValue([]),
 }));
@@ -259,6 +257,10 @@ vi.mock('../../app/db/database', () => ({
       }))
     }))
   }
+}));
+
+vi.mock('../../app/db/score-history-repository', () => ({
+  writeScoreSnapshot: vi.fn().mockResolvedValue(undefined),
 }));
 
 // Import mocked functions
@@ -355,9 +357,7 @@ const mockFindAllGuessesForGamesWithResultsInDraft = vi.mocked(gameGuessReposito
 
 const mockFindTournamentGuessByTournament = vi.mocked(tournamentGuessRepository.findTournamentGuessByTournament);
 const mockUpdateTournamentGuess = vi.mocked(tournamentGuessRepository.updateTournamentGuess);
-const mockUpdateTournamentGuessWithSnapshot = vi.mocked(tournamentGuessRepository.updateTournamentGuessWithSnapshot);
 const mockUpdateTournamentGuessByUserIdTournament = vi.mocked(tournamentGuessRepository.updateTournamentGuessByUserIdTournament);
-const mockUpdateTournamentGuessByUserIdTournamentWithSnapshot = vi.mocked(tournamentGuessRepository.updateTournamentGuessByUserIdTournamentWithSnapshot);
 
 const mockGetLoggedInUser = vi.mocked(userActions.getLoggedInUser);
 
@@ -1043,7 +1043,7 @@ describe('Backoffice Actions', () => {
       const result = await updateTournamentAwards('tournament1', mockTournamentUpdate);
 
       expect(mockUpdateTournament).toHaveBeenCalledWith('tournament1', mockTournamentUpdate);
-      expect(mockUpdateTournamentGuessWithSnapshot).toHaveBeenCalledWith('guess1', {
+      expect(mockUpdateTournamentGuess).toHaveBeenCalledWith('guess1', {
         individual_awards_score: 5 // Only best_player_id matches (5 points from tournament config)
       });
       expect(result).toHaveLength(1);
@@ -1071,7 +1071,7 @@ describe('Backoffice Actions', () => {
 
       await updateTournamentAwards('tournament1', mockTournamentUpdate);
 
-      expect(mockUpdateTournamentGuessWithSnapshot).toHaveBeenCalledWith('guess1', {
+      expect(mockUpdateTournamentGuess).toHaveBeenCalledWith('guess1', {
         individual_awards_score: 0
       });
     });
@@ -1127,7 +1127,7 @@ describe('Backoffice Actions', () => {
       const result = await updateTournamentHonorRoll('tournament1', mockTournamentUpdate);
 
       expect(mockUpdateTournament).toHaveBeenCalledWith('tournament1', mockTournamentUpdate);
-      expect(mockUpdateTournamentGuessWithSnapshot).toHaveBeenCalledWith('guess1', {
+      expect(mockUpdateTournamentGuess).toHaveBeenCalledWith('guess1', {
         honor_roll_score: 15 // 10 (champion) + 5 (runner-up) + 0 (third place) from tournament config
       });
       expect(result).toHaveLength(1);

@@ -62,7 +62,6 @@ const mockTournamentGuesses = [
     qualified_teams_correct: 12,
     qualified_teams_exact: 4,
     group_position_score: 10,
-    yesterday_tournament_score: undefined,
   },
   {
     user_id: 'user-2',
@@ -72,7 +71,6 @@ const mockTournamentGuesses = [
     qualified_teams_correct: 8,
     qualified_teams_exact: 2,
     group_position_score: 5,
-    yesterday_tournament_score: undefined,
   },
 ]
 

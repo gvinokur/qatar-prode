@@ -398,7 +398,7 @@ Key flows:
       ├── getCompleteGroupData [server action]
       ├── saveGamesData [server action]
       ├── calculateAndStoreGroupPosition [server action]
-      ├── calculateAndStoreQualifiedTeamsScores [server action]
+      ├── calculateAndStoreQualifiedTeamsScores [server action] → writeScoreSnapshot (per user, upsert RETURNING *)
       ├── calculateAndSavePlayoffGamesForTournament [server action]
       └── BackofficeFlippableGameCard [renders]
             └── BackofficeGameResultEditControls [renders]
@@ -412,11 +412,11 @@ Key flows:
       ├── getCompletePlayoffData [server action]
       ├── saveGameResults [server action]
       └── updateTournamentHonorRoll [server action]
-            ├── updateTournamentGuessWithSnapshot
+            ├── updateTournamentGuess
             └── writeScoreSnapshot (per user, with all 6 score segments from updated guess)
    GroupStageTab [Client] (awards via GroupStageTab)
       └── updateTournamentAwards [server action]
-            ├── updateTournamentGuessWithSnapshot
+            ├── updateTournamentGuess
             └── writeScoreSnapshot (per user, with all 6 score segments from updated guess)
 
 15. Push notifications
