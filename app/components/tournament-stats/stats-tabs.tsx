@@ -61,7 +61,7 @@ export function StatsTabs({ performanceTab, precisionTab, boostsTab, historyTab 
     }}>
       {/* Fixed tabs header */}
       <Box sx={{ flexShrink: 0, borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={value} onChange={handleChange} aria-label={t('tabs.ariaLabel')}>
+        <Tabs value={value} onChange={handleChange} aria-label={t('tabs.ariaLabel')} variant="scrollable" scrollButtons="auto">
           <Tab label={t('tabs.performance')} {...a11yProps(0)} />
           <Tab label={t('tabs.accuracy')} {...a11yProps(1)} />
           <Tab label={t('tabs.boosts')} {...a11yProps(2)} />

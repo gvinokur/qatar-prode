@@ -106,7 +106,7 @@ Modal dialog for head-to-head comparison between two users across multiple metri
 ### app/components/tournament-stats/stats-tabs.tsx
 Tab container for tournament stats (performance, accuracy, boosts, history) with scroll shadow support.
 
-- **StatsTabs({ performanceTab, precisionTab, boostsTab, historyTab })**: `JSX.Element` — [Client] Renders 4 tabs (Performance, Accuracy, Boosts, History) with scrollable tab content. Tab labels from useTranslations('stats').
+- **StatsTabs({ performanceTab, precisionTab, boostsTab, historyTab })**: `JSX.Element` — [Client] Renders 4 tabs (Performance, Accuracy, Boosts, History) with scrollable tab content (variant="scrollable" scrollButtons="auto"). Tab labels from useTranslations('stats').
   Uses: useState, useTranslations, ScrollShadowContainer
   Renders: TabPanel, ScrollShadowContainer
 
