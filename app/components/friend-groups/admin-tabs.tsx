@@ -45,7 +45,7 @@ export default function AdminTabs({ isAdmin, standingsContent, historyContent, a
     <Box sx={{ width: '100%', typography: 'body1' }}>
       <TabContext value={value}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <TabList onChange={handleChange} aria-label="group tabs">
+          <TabList onChange={handleChange} aria-label="group tabs" variant="scrollable" scrollButtons="auto">
             <Tab icon={<LeaderboardIcon />} iconPosition="start" label={t('standings')} value="standings" />
             <Tab icon={<TimelineIcon />} iconPosition="start" label={t('history')} value="history" />
             {isAdmin && (

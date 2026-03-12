@@ -56,7 +56,7 @@ Card showing pending group join request status with cancel option. [Client]
 ### app/components/friend-groups/admin-tabs.tsx
 Unified tab navigation for group pages. Shows [Clasificación][Historial] for ALL users; adds [Administración] tab conditionally for admins. [Client]
 
-- **AdminTabs(props: { isAdmin, standingsContent, historyContent, adminContent?, pendingRequestCount? })**: `JSX.Element` — [Client] Renders Clasificación and Historial tabs for all users. Adds Administración tab (with pending request badge) when isAdmin=true. URL-synced via ?tab=history and ?tab=admin; no param defaults to standings. Uses keepMounted on tabs to prevent unmount.
+- **AdminTabs(props: { isAdmin, standingsContent, historyContent, adminContent?, pendingRequestCount? })**: `JSX.Element` — [Client] Renders Clasificación and Historial tabs for all users. Adds Administración tab (with pending request badge) when isAdmin=true. URL-synced via ?tab=history and ?tab=admin; no param defaults to standings. Uses keepMounted on tabs to prevent unmount. TabList uses variant="scrollable" scrollButtons="auto" for mobile touch scrolling.
   Uses: useTranslations('groups.tabs'), useSearchParams, useRouter
 
 ### app/components/friend-groups/group-privacy-settings.tsx
