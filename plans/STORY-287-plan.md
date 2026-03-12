@@ -2,7 +2,9 @@
 
 ## Context
 
-A bug in `calculatePredictionResult` causes game cards to display "Exact" even when the user predicted the correct score (e.g. 1-1) but the wrong penalty winner in a playoff game that went to penalties. The fix requires the function to receive optional penalty data and return 'incorrect' when scores match exactly but the penalty winner prediction is wrong.
+A bug in `calculatePredictionResult` causes game cards to display "Exact" even when the user predicted the correct score (e.g. 1-1) but the wrong penalty winner in a playoff game that went to penalties. The fix requires the function to receive optional penalty data and return 'incorrect' when:
+- scores match exactly but the penalty winner prediction is wrong, OR
+- scores match exactly but the user made no penalty winner prediction (incomplete prediction) and the game went to penalties.
 
 The backend scoring logic is already correct (awards 0 points), so this is a UI display-only fix.
 
@@ -18,7 +20,7 @@ The backend scoring logic is already correct (awards 0 points), so this is a UI 
 
 ### 1. Update `calculatePredictionResult` signature
 
-Add 3 optional parameters:
+Add 4 optional parameters (both predicted penalty winner props from `GameGuessProps`, plus actual penalty scores):
 
 ```typescript
 export function calculatePredictionResult(
@@ -27,6 +29,7 @@ export function calculatePredictionResult(
   actualHome: number,
   actualAway: number,
   predictedHomePenaltyWinner?: boolean,   // true = user predicted home wins penalties
+  predictedAwayPenaltyWinner?: boolean,   // true = user predicted away wins penalties
   actualHomePenaltyScore?: number | null,
   actualAwayPenaltyScore?: number | null
 ): 'exact' | 'correct' | 'incorrect'
@@ -40,10 +43,18 @@ Inside the `if (predictedHome === actualHome && predictedAway === actualAway)` b
 const gameWentToPenalties =
   actualHomePenaltyScore != null && actualAwayPenaltyScore != null;
 
-if (gameWentToPenalties && predictedHomePenaltyWinner !== undefined) {
+if (gameWentToPenalties) {
   const actualHomePenaltyWins = actualHomePenaltyScore > actualAwayPenaltyScore!;
-  const predictedHomePenaltyWins = predictedHomePenaltyWinner === true;
-  if (actualHomePenaltyWins !== predictedHomePenaltyWins) {
+  const userPredictedHomePenaltyWins = predictedHomePenaltyWinner === true;
+  const userPredictedAwayPenaltyWins = predictedAwayPenaltyWinner === true;
+
+  // Incomplete prediction: user didn't predict any penalty winner → incorrect
+  if (!userPredictedHomePenaltyWins && !userPredictedAwayPenaltyWins) {
+    return 'incorrect';
+  }
+
+  // Wrong penalty winner prediction → incorrect
+  if (actualHomePenaltyWins !== userPredictedHomePenaltyWins) {
     return 'incorrect';
   }
 }
@@ -60,6 +71,7 @@ const result = calculatePredictionResult(
   specificProps.gameResult!.home_score!,
   specificProps.gameResult!.away_score!,
   isPlayoffGame && specificProps.isGameGuess ? specificProps.homePenaltyWinner : undefined,
+  isPlayoffGame && specificProps.isGameGuess ? specificProps.awayPenaltyWinner : undefined,
   isPlayoffGame ? specificProps.gameResult?.home_penalty_score : undefined,
   isPlayoffGame ? specificProps.gameResult?.away_penalty_score : undefined
 );
@@ -74,12 +86,13 @@ calculatePredictionResult(
   specificProps.gameResult!.home_score!,
   specificProps.gameResult!.away_score!,
   isPlayoffGame && specificProps.isGameGuess ? specificProps.homePenaltyWinner : undefined,
+  isPlayoffGame && specificProps.isGameGuess ? specificProps.awayPenaltyWinner : undefined,
   isPlayoffGame ? specificProps.gameResult?.home_penalty_score : undefined,
   isPlayoffGame ? specificProps.gameResult?.away_penalty_score : undefined
 )
 ```
 
-Note: `specificProps.isGameGuess` guard is needed because `homePenaltyWinner` only exists on `GameGuessProps`. This follows the existing pattern at lines 342-343 and 379-380 of the same file.
+Note: `specificProps.isGameGuess` guard is needed because `homePenaltyWinner`/`awayPenaltyWinner` only exist on `GameGuessProps`. This follows the existing pattern at lines 342-343 and 379-380 of the same file.
 
 ## Mid-Level Design
 
@@ -90,17 +103,17 @@ No call graph changes. `calculatePredictionResult` is called only from within `c
 
 **Changed functions:**
 
-- **calculatePredictionResult(predictedHome: number, predictedAway: number, actualHome: number, actualAway: number, predictedHomePenaltyWinner?: boolean, actualHomePenaltyScore?: number | null, actualAwayPenaltyScore?: number | null)**: `'exact' | 'correct' | 'incorrect'`
-  Determines prediction accuracy. Now additionally returns `'incorrect'` when scores match exactly but game went to penalties and predicted penalty winner differs from actual. When `predictedHomePenaltyWinner` is `undefined` or game didn't go to penalties, behavior is unchanged.
+- **calculatePredictionResult(predictedHome: number, predictedAway: number, actualHome: number, actualAway: number, predictedHomePenaltyWinner?: boolean, predictedAwayPenaltyWinner?: boolean, actualHomePenaltyScore?: number | null, actualAwayPenaltyScore?: number | null)**: `'exact' | 'correct' | 'incorrect'`
+  Determines prediction accuracy. Now additionally returns `'incorrect'` when scores match exactly and: (a) game went to penalties and user predicted wrong penalty winner, or (b) game went to penalties and user made no penalty winner prediction (incomplete). Fully backward-compatible — new params are all optional.
   Calls: none
   Tests:
   - returns 'exact' when scores match and no penalty data provided (non-playoff, backward compat)
-  - returns 'exact' when scores match, game went to penalties, and predicted home penalty winner is correct
-  - returns 'exact' when scores match, game went to penalties, and predicted away penalty winner is correct
+  - returns 'exact' when scores match, game went to penalties, and predicted home penalty winner correctly
+  - returns 'exact' when scores match, game went to penalties, and predicted away penalty winner correctly
   - returns 'incorrect' when scores match, game went to penalties, and predicted home winner but away actually won
   - returns 'incorrect' when scores match, game went to penalties, and predicted away winner but home actually won
-  - returns 'exact' when scores match and penalty scores are null/undefined (game didn't go to penalties)
-  - returns 'exact' when scores match, game went to penalties, but predictedHomePenaltyWinner is undefined (user made no penalty winner pick — treated leniently)
+  - returns 'incorrect' when scores match, game went to penalties, and neither penalty winner was predicted (incomplete prediction)
+  - returns 'exact' when scores match and penalty scores are null/undefined (game didn't go to penalties, no params passed)
 
 ## CODE-STRUCTURE Files to Update
 
@@ -117,7 +130,9 @@ Run `npm test -- --testPathPattern=prediction-result` to validate.
 
 ## Acceptance Criteria
 
-- Game shows "Incorrect" when score matches (e.g. 1-1) but penalty winner prediction is wrong
-- Game still shows "Exact" when score matches AND penalty winner prediction is correct (or game didn't go to penalties)
+- Game shows "Incorrect" when score matches but penalty winner prediction is wrong
+- Game shows "Incorrect" when score matches, game went to penalties, but no penalty winner was predicted (incomplete)
+- Game still shows "Exact" when score matches AND penalty winner prediction is correct
+- Game still shows "Exact" when score matches and game did NOT go to penalties
 - All existing non-playoff tests unaffected
 - Border color styling (success/error) matches the corrected label
