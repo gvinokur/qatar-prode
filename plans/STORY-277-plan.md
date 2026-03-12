@@ -269,6 +269,20 @@ No new functions. Logic changes: replace `hasYesterdayData`/`yesterdayTotalPoint
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: computeSnapshotScores moved to a new utility file
+**Date:** 2026-03-11
+**Reason:** `score-history-actions.ts` has the `'use server'` directive, which requires all exports from the file to be async functions. `computeSnapshotScores` is a pure synchronous function and cannot legally live there.
+**Change:** Created `app/utils/score-history-utils.ts` to hold `computeSnapshotScores`. All imports and CODE-STRUCTURE documentation updated accordingly (`utils.md` instead of `actions.md`). Behavior is identical to what was planned.
+
+### Amendment 2: Post-implementation SonarCloud code quality fixes
+**Date:** 2026-03-11
+**Reason:** SonarCloud flagged 4 new issues on the first analysis: nested ternary (MAJOR), two `.at()` style (MINOR), negated condition (MINOR).
+**Change:**
+- `LeaderboardCards.tsx`: extracted nested ternary in `scoreField` assignment into explicit `if/else` block
+- `score-history-utils.ts`: replaced `sortedDates[sortedDates.length - 1]` and `[…-2]` with `.at(-1)` / `.at(-2)`; flipped negated `penultimateDate !== undefined` condition to positive form
+
 ## Edge Cases
 
 | Scenario | Behavior |
