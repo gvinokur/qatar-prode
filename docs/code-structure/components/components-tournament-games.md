@@ -42,7 +42,7 @@ Popover showing detailed boost allocation breakdown by group, playoff, and perfo
 **File:** `app/components/compact-game-view-card.tsx`
 Compact card displaying a single game with prediction and result. Handles game guesses, fixtures, and results with optional boost display. Computes prediction row winner inline (predictionHomeIsWinner/predictionAwayIsWinner) and passes C2 props to the prediction TeamScoreRow; actual result row winner is handled independently by ActualResultDisplay.
 - **CompactGameViewCard** (FC) - `[Client]` - Calls: none - Uses: `useTheme, useTranslations` - Renders: `Card, GameCountdownDisplay, TeamScoreRow` (prediction row with C2 winner props)`, ActualResultDisplay, GameCardPointOverlay`
-- **calculatePredictionResult(predictedHome, predictedAway, actualHome, actualAway, predictedHomePenaltyWinner?, predictedAwayPenaltyWinner?, actualHomePenaltyScore?, actualAwayPenaltyScore?)** (fn) - Determines prediction accuracy (exact/correct/incorrect). Returns 'incorrect' when scores match exactly but game went to penalties and user predicted wrong winner or made no penalty prediction.
+- **calculatePredictionResult(predictedHome, predictedAway, actualHome, actualAway, penaltyOptions?)** (fn) - Determines prediction accuracy (exact/correct/incorrect). `penaltyOptions` groups `{predictedHomePenaltyWinner?, predictedAwayPenaltyWinner?, actualHomePenaltyScore?, actualAwayPenaltyScore?}`. Returns 'incorrect' when scores or winner match but penalty winner is wrong or unpredicted in a game that went to penalties.
 
 **File:** `app/components/compact-prediction-dashboard.tsx`
 Compact dashboard showing game and tournament prediction progress with urgency indicators and boost counts.
