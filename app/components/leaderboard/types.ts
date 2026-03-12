@@ -7,7 +7,8 @@ export interface LeaderboardUser {
   id: string
   name: string
   totalPoints: number
-  yesterdayTotalPoints?: number    // Previous day's total points (for rank change tracking)
+  latestSnapshotPoints?: number      // Score at latest snapshot date (for rank change display)
+  penultimateSnapshotPoints?: number // Score at penultimate snapshot date (for rank change computation)
 
   // Group Stage breakdown
   groupPoints: number              // Total group stage points (for sorting/display)

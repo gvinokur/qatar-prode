@@ -11,7 +11,7 @@ Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index
 ### app/components/leaderboard/types.ts
 Type definitions for leaderboard UI including user stats, view props, card props, and rank change indicators.
 
-- **No default exports** — Type definitions only (LeaderboardUser, LeaderboardViewProps, LeaderboardCardsProps, LeaderboardCardProps, RankChangeIndicatorProps, LeaderboardShareHandle). Re-exports Badge and TournamentBadgeConfig from badge-calculator.ts. LeaderboardUser includes `badges?: Badge[]`. LeaderboardCardsProps and LeaderboardViewProps include `tournamentBadgeConfig?: TournamentBadgeConfig` and `historyData?: ScoreHistoryResult`. LeaderboardCardProps includes `badges?: Badge[]`.
+- **No default exports** — Type definitions only (LeaderboardUser, LeaderboardViewProps, LeaderboardCardsProps, LeaderboardCardProps, RankChangeIndicatorProps, LeaderboardShareHandle). Re-exports Badge and TournamentBadgeConfig from badge-calculator.ts. LeaderboardUser includes `badges?: Badge[]`, `latestSnapshotPoints?: number`, `penultimateSnapshotPoints?: number` (replaces `yesterdayTotalPoints` removed in Story #277). LeaderboardCardsProps and LeaderboardViewProps include `tournamentBadgeConfig?: TournamentBadgeConfig` and `historyData?: ScoreHistoryResult`. LeaderboardCardProps includes `badges?: Badge[]`.
 
 ### app/components/leaderboard/BadgeRow.tsx
 Reusable badge display component rendering a flex row of emoji badges with tooltips.

@@ -12,6 +12,4 @@ export type GameStatisticForUser = {
   playoff_exact_guesses: number,
   playoff_score: number | null,
   playoff_boost_bonus: number | null,
-  yesterday_total_score: number | null,
-  yesterday_boost_bonus: number | null,
 }

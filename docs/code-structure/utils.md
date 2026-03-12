@@ -87,11 +87,17 @@ Mobile haptic feedback utilities using the Vibration API.
 - **triggerRankChangeHaptic()**: `void` — Triggers a subtle 30ms vibration for rank changes.
 - **isHapticSupported()**: `boolean` — Checks if the device supports the Vibration API.
 
+### app/utils/score-history-utils.ts
+Pure utility for computing snapshot scores from score history data (Story #277).
+
+- **computeSnapshotScores(userHistories: UserScoreHistory[])**: `Map<string, { latest: number; penultimate: number | undefined }>` — Returns latest and penultimate LOCF snapshot scores per user. `penultimate` is `undefined` when fewer than 2 distinct dates exist. Returns empty Map when input is empty.
+  Calls: (none — pure data transformation)
+
 ### app/utils/rank-calculator.ts
 User ranking and rank change calculation with competition ranking support.
 
 - **calculateRanks<T>(users, scoreField)**: `UserWithRank<T>[]` — Calculates competition ranks for users (1-2-2-4 for ties) based on a numeric score field.
-- **calculateRanksWithChange<T>(users, yesterdayScoreField)**: `UserWithRankChange<T>[]` — Calculates ranks with day-over-day rank changes for leaderboard movement tracking.
+- **calculateRanksWithChange<T>(users, comparisonScoreField)**: `UserWithRankChange<T>[]` — Calculates ranks with snapshot-based rank changes for leaderboard movement tracking. Uses penultimateSnapshotPoints as the comparison field (Story #277).
 
 ### app/utils/poisson-generator.ts
 Sports score generation using Poisson distribution for realistic predictions.

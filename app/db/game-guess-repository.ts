@@ -267,8 +267,6 @@ export async function getGameGuessStatisticsForUsers(
       'total_boost_bonus',
       'group_stage_boost_bonus as group_boost_bonus',
       'playoff_stage_boost_bonus as playoff_boost_bonus',
-      'yesterday_total_game_score as yesterday_total_score',
-      'yesterday_boost_bonus',
       // Prediction accuracy counts (for stats page)
       'total_correct_guesses',
       'total_exact_guesses',

@@ -62,20 +62,20 @@ export function calculateRanks<T extends RankableUser>(
 }
 
 /**
- * Calculate ranks with day-over-day change comparison
+ * Calculate ranks with snapshot-based change comparison
  *
  * @param users - Array of users with current ranks
- * @param yesterdayScoreField - Field name for yesterday's score (e.g., 'yesterdayTotalPoints')
+ * @param comparisonScoreField - Field name for comparison score (e.g., 'penultimateSnapshotPoints')
  * @returns Array of users with rankChange added
  */
 export function calculateRanksWithChange<T extends RankableUser>(
   users: UserWithRank<T>[],
-  yesterdayScoreField: keyof T
+  comparisonScoreField: keyof T
 ): UserWithRankChange<T>[] {
-  // Calculate yesterday's ranks using the same users but different field
+  // Calculate comparison ranks using the same users but different field
   const usersWithYesterdayData = users.map(user => ({
     ...user,
-    _yesterdayScore: user[yesterdayScoreField],
+    _yesterdayScore: user[comparisonScoreField],
   }));
 
   const yesterdayRanked = calculateRanks(usersWithYesterdayData, '_yesterdayScore');

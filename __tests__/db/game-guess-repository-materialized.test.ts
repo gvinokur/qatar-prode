@@ -38,8 +38,6 @@ describe('Game Guess Repository - Materialized Queries', () => {
           group_exact_guesses: 3,
           playoff_correct_guesses: 4,
           playoff_exact_guesses: 2,
-          yesterday_total_game_score: 60,
-          yesterday_boost_bonus: 12,
           last_game_score_update_at: new Date('2024-07-14'),
         },
         {
@@ -56,8 +54,6 @@ describe('Game Guess Repository - Materialized Queries', () => {
           group_exact_guesses: 3,
           playoff_correct_guesses: 5,
           playoff_exact_guesses: 3,
-          yesterday_total_game_score: 70,
-          yesterday_boost_bonus: 14,
           last_game_score_update_at: new Date('2024-07-14'),
         },
       ];
@@ -118,8 +114,6 @@ describe('Game Guess Repository - Materialized Queries', () => {
         group_exact_guesses: 2,
         playoff_correct_guesses: 3,
         playoff_exact_guesses: 2,
-        yesterday_total_game_score: 40,
-        yesterday_boost_bonus: 8,
         last_game_score_update_at: new Date('2024-07-14'),
       }];
 

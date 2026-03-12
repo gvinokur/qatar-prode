@@ -327,7 +327,6 @@ describe('Prode Group Actions', () => {
           playoffBoostBonus: 1,
           totalBoostBonus: 3,
           totalPoints: 28,  // 15 (total_score) + 3 (total_boost_bonus) + 2 + 3 + 4 + 1 = 28
-          yesterdayTotalPoints: 0,  // 0 + 0 (yesterday totals)
           totalExactGuesses: 5,
           totalCorrectGuesses: 10,
           qualifiedTeamsCorrect: 3,
@@ -356,7 +355,7 @@ describe('Prode Group Actions', () => {
         playoffBoostBonus: 0,
         totalBoostBonus: 0,
         totalPoints: 10,  // 0 (total_score) + 0 (total_boost_bonus) + 2 + 3 + 4 + 1 = 10
-        yesterdayTotalPoints: 0,
+
         totalExactGuesses: 5,
         totalCorrectGuesses: 10,
         qualifiedTeamsCorrect: 3,
@@ -384,7 +383,7 @@ describe('Prode Group Actions', () => {
         playoffBoostBonus: 1,
         totalBoostBonus: 3,
         totalPoints: 18,  // 15 (total_score) + 3 (total_boost_bonus) + 0 + 0 + 0 + 0 = 18
-        yesterdayTotalPoints: 0,
+
         totalExactGuesses: 0,
         totalCorrectGuesses: 0,
         qualifiedTeamsCorrect: 0,

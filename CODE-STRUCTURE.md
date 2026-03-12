@@ -237,15 +237,21 @@ Key flows:
            │     └── RankHistoryChart [renders]
            └── adminContent → AdminSectionTabs [renders] (admin only)
 
-5b. Score history — server-loaded data path
-    TournamentScopedFriendGroup (Server) — per active tournament:
+5b. Score history + rank-change snapshot — server-loaded data path
+    TournamentScopedFriendGroup (Server):
       └── getScoreHistoryForGroup [server action]
-            ├── findParticipantsInGroup (resolves member IDs)
             ├── findUsersByIds (display names)
             ├── getScoreHistoryForUsers
             ├── findFirstGameInTournament
             └── findLastGameInTournament
-    → result passed as historyData → AdminTabs historyContent prop → HistoryTab
+      └── computeSnapshotScores [utils/score-history-utils, pure]
+            → patches latestSnapshotPoints / penultimateSnapshotPoints onto UserScore[]
+    FriendsGroup (Server) — per active tournament:
+      └── getScoreHistoryForGroup [server action] (same as above)
+      └── computeSnapshotScores [utils/score-history-utils, pure]
+            → patches latestSnapshotPoints / penultimateSnapshotPoints onto UserScore[]
+    Patched UserScore[] → ProdeGroupTable → LeaderboardView → LeaderboardCards
+      → computeSnapshotScores result drives rank-change animation
 
 6. Authentication & signup
    LoginOrSignupDialog [Client] (orchestrates all sub-flows)
