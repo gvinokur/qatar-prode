@@ -158,6 +158,14 @@ export default function CompactGameViewCard({
     }
   }
 
+  // Penalty options for playoff games — computed once, reused for border color and ActualResultDisplay
+  const penaltyOpts = isPlayoffGame && specificProps.isGameGuess ? {
+    predictedHomePenaltyWinner: specificProps.homePenaltyWinner,
+    predictedAwayPenaltyWinner: specificProps.awayPenaltyWinner,
+    actualHomePenaltyScore: specificProps.gameResult?.home_penalty_score,
+    actualAwayPenaltyScore: specificProps.gameResult?.away_penalty_score,
+  } : undefined;
+
   // Result border styling (only when no boost present and user predicted)
   let resultBorderColor: string | undefined = undefined;
   if (gameHasResult && userHasPrediction && !boostType) {
@@ -165,7 +173,8 @@ export default function CompactGameViewCard({
       homeScore!,
       awayScore!,
       specificProps.gameResult!.home_score!,
-      specificProps.gameResult!.away_score!
+      specificProps.gameResult!.away_score!,
+      penaltyOpts
     );
     resultBorderColor = result === 'incorrect' ? 'error.main' : 'success.main';
   }
@@ -368,7 +377,8 @@ export default function CompactGameViewCard({
                       homeScore,
                       awayScore,
                       specificProps.gameResult!.home_score!,
-                      specificProps.gameResult!.away_score!
+                      specificProps.gameResult!.away_score!,
+                      penaltyOpts
                     )
                   : undefined
               }
@@ -430,22 +440,55 @@ export default function CompactGameViewCard({
  * - User predicted draw (1-1), actual was draw (0-0) → 'correct' (same winner: draw)
  * - User predicted home win (2-0), actual was draw (1-1) → 'incorrect' (different winner)
  * - User predicted draw (0-0), actual was home win (1-0) → 'incorrect' (different winner)
+ * - Playoff game that went to penalties: scores match but wrong penalty winner → 'incorrect'
+ * - Playoff game that went to penalties: scores match but no penalty winner predicted → 'incorrect'
  *
  * @param predictedHome - Predicted home team score
  * @param predictedAway - Predicted away team score
  * @param actualHome - Actual home team score
  * @param actualAway - Actual away team score
+ * @param penaltyOptions - Optional penalty data for playoff games
  * @returns 'exact' | 'correct' | 'incorrect'
  */
 export function calculatePredictionResult(
   predictedHome: number,
   predictedAway: number,
   actualHome: number,
-  actualAway: number
+  actualAway: number,
+  penaltyOptions?: {
+    predictedHomePenaltyWinner?: boolean;
+    predictedAwayPenaltyWinner?: boolean;
+    actualHomePenaltyScore?: number | null;
+    actualAwayPenaltyScore?: number | null;
+  }
 ): 'exact' | 'correct' | 'incorrect' {
+  const {
+    predictedHomePenaltyWinner,
+    predictedAwayPenaltyWinner,
+    actualHomePenaltyScore,
+    actualAwayPenaltyScore,
+  } = penaltyOptions ?? {};
+
+  // Helper: check penalty winner when game went to penalties (both scores are draws).
+  // Returns 'incorrect' if user got the penalty winner wrong or didn't predict one.
+  // Returns null if penalty check doesn't apply.
+  const penaltyWinnerResult = (): 'incorrect' | null => {
+    const gameWentToPenalties =
+      actualHomePenaltyScore != null && actualAwayPenaltyScore != null;
+    if (!gameWentToPenalties) return null;
+
+    const actualHomePenaltyWins = actualHomePenaltyScore > actualAwayPenaltyScore;
+    const userPredictedHomePenaltyWins = predictedHomePenaltyWinner === true;
+    const userPredictedAwayPenaltyWins = predictedAwayPenaltyWinner === true;
+
+    if (!userPredictedHomePenaltyWins && !userPredictedAwayPenaltyWins) return 'incorrect';
+    if (actualHomePenaltyWins !== userPredictedHomePenaltyWins) return 'incorrect';
+    return null;
+  };
+
   // EXACT: Predicted scores match actual scores exactly
   if (predictedHome === actualHome && predictedAway === actualAway) {
-    return 'exact';
+    return penaltyWinnerResult() ?? 'exact';
   }
 
   // Determine winners using explicit conditions
@@ -470,7 +513,11 @@ export function calculatePredictionResult(
   }
 
   // CORRECT: Predicted winner matches actual winner (not exact score)
+  // For draws that went to penalties, also check the penalty winner prediction.
   if (predictedWinner === actualWinner) {
+    if (predictedWinner === 'draw') {
+      return penaltyWinnerResult() ?? 'correct';
+    }
     return 'correct';
   }
 

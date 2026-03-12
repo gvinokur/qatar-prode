@@ -100,6 +100,115 @@ describe('calculatePredictionResult', () => {
     });
   });
 
+  describe('Playoff penalty winner', () => {
+    it('returns "exact" when scores match and no penaltyOptions provided (non-playoff, backward compat)', () => {
+      expect(calculatePredictionResult(1, 1, 1, 1)).toBe('exact');
+      expect(calculatePredictionResult(2, 0, 2, 0)).toBe('exact');
+    });
+
+    it('returns "exact" when scores match and penaltyOptions has no penalty scores (game did not go to penalties)', () => {
+      expect(calculatePredictionResult(1, 1, 1, 1, {})).toBe('exact');
+      expect(calculatePredictionResult(1, 1, 1, 1, { actualHomePenaltyScore: null, actualAwayPenaltyScore: null })).toBe('exact');
+    });
+
+    it('returns "exact" when scores match, game went to penalties, and predicted home penalty winner correctly', () => {
+      expect(calculatePredictionResult(1, 1, 1, 1, {
+        predictedHomePenaltyWinner: true,
+        actualHomePenaltyScore: 4,
+        actualAwayPenaltyScore: 2,
+      })).toBe('exact');
+    });
+
+    it('returns "exact" when scores match, game went to penalties, and predicted away penalty winner correctly', () => {
+      expect(calculatePredictionResult(1, 1, 1, 1, {
+        predictedAwayPenaltyWinner: true,
+        actualHomePenaltyScore: 2,
+        actualAwayPenaltyScore: 4,
+      })).toBe('exact');
+    });
+
+    it('returns "incorrect" when scores match, game went to penalties, and predicted home winner but away actually won', () => {
+      expect(calculatePredictionResult(1, 1, 1, 1, {
+        predictedHomePenaltyWinner: true,
+        actualHomePenaltyScore: 2,
+        actualAwayPenaltyScore: 4,
+      })).toBe('incorrect');
+    });
+
+    it('returns "incorrect" when scores match, game went to penalties, and predicted away winner but home actually won', () => {
+      expect(calculatePredictionResult(1, 1, 1, 1, {
+        predictedAwayPenaltyWinner: true,
+        actualHomePenaltyScore: 4,
+        actualAwayPenaltyScore: 2,
+      })).toBe('incorrect');
+    });
+
+    it('returns "incorrect" when scores match, game went to penalties, and neither penalty winner was predicted (incomplete prediction)', () => {
+      expect(calculatePredictionResult(1, 1, 1, 1, {
+        actualHomePenaltyScore: 4,
+        actualAwayPenaltyScore: 2,
+      })).toBe('incorrect');
+    });
+
+    // Non-exact draw (predicted draw, different score, game went to penalties)
+    it('returns "correct" when draw predicted (different score), game went to penalties, and predicted home penalty winner correctly', () => {
+      expect(calculatePredictionResult(0, 0, 1, 1, {
+        predictedHomePenaltyWinner: true,
+        actualHomePenaltyScore: 4,
+        actualAwayPenaltyScore: 2,
+      })).toBe('correct');
+    });
+
+    it('returns "correct" when draw predicted (different score), game went to penalties, and predicted away penalty winner correctly', () => {
+      expect(calculatePredictionResult(0, 0, 1, 1, {
+        predictedAwayPenaltyWinner: true,
+        actualHomePenaltyScore: 2,
+        actualAwayPenaltyScore: 4,
+      })).toBe('correct');
+    });
+
+    it('returns "incorrect" when draw predicted (different score), game went to penalties, and predicted home winner but away actually won', () => {
+      expect(calculatePredictionResult(0, 0, 1, 1, {
+        predictedHomePenaltyWinner: true,
+        actualHomePenaltyScore: 2,
+        actualAwayPenaltyScore: 4,
+      })).toBe('incorrect');
+    });
+
+    it('returns "incorrect" when draw predicted (different score), game went to penalties, and predicted away winner but home actually won', () => {
+      expect(calculatePredictionResult(0, 0, 1, 1, {
+        predictedAwayPenaltyWinner: true,
+        actualHomePenaltyScore: 4,
+        actualAwayPenaltyScore: 2,
+      })).toBe('incorrect');
+    });
+
+    it('returns "incorrect" when draw predicted (different score), game went to penalties, and neither penalty winner was predicted', () => {
+      expect(calculatePredictionResult(0, 0, 1, 1, {
+        actualHomePenaltyScore: 4,
+        actualAwayPenaltyScore: 2,
+      })).toBe('incorrect');
+    });
+
+    it('returns "correct" when draw predicted (different score) and game did not go to penalties', () => {
+      expect(calculatePredictionResult(0, 0, 1, 1)).toBe('correct');
+      expect(calculatePredictionResult(0, 0, 1, 1, {})).toBe('correct');
+    });
+
+    it('non-playoff home win with penaltyOptions is unaffected by penalty data', () => {
+      expect(calculatePredictionResult(2, 1, 2, 1, {
+        predictedHomePenaltyWinner: true,
+        actualHomePenaltyScore: 4,
+        actualAwayPenaltyScore: 2,
+      })).toBe('exact');
+      expect(calculatePredictionResult(1, 0, 2, 1, {
+        predictedHomePenaltyWinner: true,
+        actualHomePenaltyScore: 4,
+        actualAwayPenaltyScore: 2,
+      })).toBe('correct');
+    });
+  });
+
   describe('Comprehensive Scenarios', () => {
     it('correctly classifies all possible outcomes for 2-1 actual score', () => {
       const actualHome = 2;
