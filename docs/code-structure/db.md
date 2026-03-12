@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-09
+**Last updated:** 2026-03-12
 
 ---
 
@@ -26,6 +26,8 @@ Includes `TournamentScoreHistoryTable` for the `tournament_score_history` table 
 - **TournamentScoreHistory**: `Selectable<TournamentScoreHistoryTable>` — full row shape.
 - **TournamentScoreHistoryNew**: `Omit<Insertable<...>, 'id' | 'total_points' | 'created_at'>` — insert shape without auto-generated fields.
 
+Note: `yesterday_tournament_score`, `yesterday_total_game_score`, `yesterday_boost_bonus`, and `last_score_update_date` fields were removed from `TournamentGuessTable` in Story #278. Rank-change tracking now uses `tournament_score_history` snapshots (Story #272/#277).
+
 ### app/db/game-guess-repository.ts
 Repository for game_guesses table. Handles user predictions with boost tracking and materialized score storage.
 
@@ -36,8 +38,8 @@ Repository for game_guesses table. Handles user predictions with boost tracking 
 - **findGameGuessesByUserId(userId: string, tournamentId: string)**: `Promise<GameGuess[]>` — Returns all game guesses for user in tournament (cached).
 - **updateGameGuessByGameId(gameId: string, userId: string, update: object)**: `Promise<GameGuess | undefined>` — Updates home/away scores for a specific game guess.
 - **updateOrCreateGuess(guess: GameGuessNew)**: `Promise<GameGuess>` — Upserts a game guess (deletes existing, creates new).
-- **legacyGetGameGuessStatisticsForUsers(userIds: string[], tournamentId: string)**: `Promise<GameStatisticForUser[]>` — Legacy SQL aggregation for game statistics; used for backfill and validation. Does not compute `yesterday_total_score` or `yesterday_boost_bonus` (removed in Story #283).
-- **getGameGuessStatisticsForUsers(userIds: string[], tournamentId: string)**: `Promise<GameStatisticForUser[]>` — Reads materialized game scores from tournament_guesses table. Does not include `yesterday_total_score` or `yesterday_boost_bonus` (removed in Story #277); snapshot fields (`latestSnapshotPoints`, `penultimateSnapshotPoints`) are patched onto UserScore by pages after calling `computeSnapshotScores`.
+- **legacyGetGameGuessStatisticsForUsers(userIds: string[], tournamentId: string)**: `Promise<GameStatisticForUser[]>` — Legacy SQL aggregation for game statistics; used for backfill and validation.
+- **getGameGuessStatisticsForUsers(userIds: string[], tournamentId: string)**: `Promise<GameStatisticForUser[]>` — Reads materialized game scores from tournament_guesses table. Snapshot fields (`latestSnapshotPoints`, `penultimateSnapshotPoints`) are patched onto UserScore by pages after calling `computeSnapshotScores`.
 - **findAllGuessesForGamesWithResultsInDraft()**: `Promise<GameGuess[]>` — Finds guesses for games with draft results.
 - **deleteAllUserGameGuesses(userId: string)**: `Promise<void>` — Deletes all game guesses for user (account deletion).
 - **deleteAllGameGuessesByTournamentId(tournamentId: string)**: `Promise<void>` — Deletes all game guesses for tournament.

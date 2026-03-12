@@ -22,8 +22,6 @@ function createMockGameStatistic(overrides?: Partial<GameStatisticForUser>): Gam
     playoff_exact_guesses: 0,
     playoff_score: null,
     playoff_boost_bonus: null,
-    yesterday_total_score: null,
-    yesterday_boost_bonus: null,
     ...overrides
   }
 }
