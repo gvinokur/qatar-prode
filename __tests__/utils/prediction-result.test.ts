@@ -100,6 +100,39 @@ describe('calculatePredictionResult', () => {
     });
   });
 
+  describe('Playoff penalty winner', () => {
+    it('returns "exact" when scores match and no penalty data provided (non-playoff, backward compat)', () => {
+      expect(calculatePredictionResult(1, 1, 1, 1)).toBe('exact');
+      expect(calculatePredictionResult(2, 0, 2, 0)).toBe('exact');
+    });
+
+    it('returns "exact" when scores match, game went to penalties, and predicted home penalty winner correctly', () => {
+      expect(calculatePredictionResult(1, 1, 1, 1, true, false, 4, 2)).toBe('exact');
+    });
+
+    it('returns "exact" when scores match, game went to penalties, and predicted away penalty winner correctly', () => {
+      expect(calculatePredictionResult(1, 1, 1, 1, false, true, 2, 4)).toBe('exact');
+    });
+
+    it('returns "incorrect" when scores match, game went to penalties, and predicted home winner but away actually won', () => {
+      expect(calculatePredictionResult(1, 1, 1, 1, true, false, 2, 4)).toBe('incorrect');
+    });
+
+    it('returns "incorrect" when scores match, game went to penalties, and predicted away winner but home actually won', () => {
+      expect(calculatePredictionResult(1, 1, 1, 1, false, true, 4, 2)).toBe('incorrect');
+    });
+
+    it('returns "incorrect" when scores match, game went to penalties, and neither penalty winner was predicted (incomplete prediction)', () => {
+      expect(calculatePredictionResult(1, 1, 1, 1, false, false, 4, 2)).toBe('incorrect');
+      expect(calculatePredictionResult(1, 1, 1, 1, undefined, undefined, 4, 2)).toBe('incorrect');
+    });
+
+    it('returns "exact" when scores match and penalty scores are null/undefined (game did not go to penalties)', () => {
+      expect(calculatePredictionResult(1, 1, 1, 1, undefined, undefined, null, null)).toBe('exact');
+      expect(calculatePredictionResult(1, 1, 1, 1, undefined, undefined, undefined, undefined)).toBe('exact');
+    });
+  });
+
   describe('Comprehensive Scenarios', () => {
     it('correctly classifies all possible outcomes for 2-1 actual score', () => {
       const actualHome = 2;
