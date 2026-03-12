@@ -131,6 +131,28 @@ describe('calculatePredictionResult', () => {
       expect(calculatePredictionResult(1, 1, 1, 1, undefined, undefined, null, null)).toBe('exact');
       expect(calculatePredictionResult(1, 1, 1, 1, undefined, undefined, undefined, undefined)).toBe('exact');
     });
+
+    // Non-exact draw (predicted draw, different score, game went to penalties)
+    it('returns "correct" when draw predicted (different score), game went to penalties, and predicted home penalty winner correctly', () => {
+      expect(calculatePredictionResult(0, 0, 1, 1, true, false, 4, 2)).toBe('correct');
+    });
+
+    it('returns "correct" when draw predicted (different score), game went to penalties, and predicted away penalty winner correctly', () => {
+      expect(calculatePredictionResult(0, 0, 1, 1, false, true, 2, 4)).toBe('correct');
+    });
+
+    it('returns "incorrect" when draw predicted (different score), game went to penalties, and predicted home winner but away actually won', () => {
+      expect(calculatePredictionResult(0, 0, 1, 1, true, false, 2, 4)).toBe('incorrect');
+    });
+
+    it('returns "incorrect" when draw predicted (different score), game went to penalties, and neither penalty winner was predicted', () => {
+      expect(calculatePredictionResult(0, 0, 1, 1, undefined, undefined, 4, 2)).toBe('incorrect');
+    });
+
+    it('returns "correct" when draw predicted (different score) and game did not go to penalties', () => {
+      expect(calculatePredictionResult(0, 0, 1, 1)).toBe('correct');
+      expect(calculatePredictionResult(0, 0, 1, 1, undefined, undefined, null, null)).toBe('correct');
+    });
   });
 
   describe('Comprehensive Scenarios', () => {

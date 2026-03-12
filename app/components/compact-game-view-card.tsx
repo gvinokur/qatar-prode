@@ -461,28 +461,26 @@ export function calculatePredictionResult(
   actualHomePenaltyScore?: number | null,
   actualAwayPenaltyScore?: number | null
 ): 'exact' | 'correct' | 'incorrect' {
-  // EXACT: Predicted scores match actual scores exactly
-  if (predictedHome === actualHome && predictedAway === actualAway) {
+  // Helper: check penalty winner when game went to penalties (both scores are draws).
+  // Returns 'incorrect' if user got the penalty winner wrong or didn't predict one.
+  // Returns null if penalty check doesn't apply.
+  const penaltyWinnerResult = (): 'incorrect' | null => {
     const gameWentToPenalties =
       actualHomePenaltyScore != null && actualAwayPenaltyScore != null;
+    if (!gameWentToPenalties) return null;
 
-    if (gameWentToPenalties) {
-      const actualHomePenaltyWins = actualHomePenaltyScore > actualAwayPenaltyScore!;
-      const userPredictedHomePenaltyWins = predictedHomePenaltyWinner === true;
-      const userPredictedAwayPenaltyWins = predictedAwayPenaltyWinner === true;
+    const actualHomePenaltyWins = actualHomePenaltyScore > actualAwayPenaltyScore!;
+    const userPredictedHomePenaltyWins = predictedHomePenaltyWinner === true;
+    const userPredictedAwayPenaltyWins = predictedAwayPenaltyWinner === true;
 
-      // Incomplete prediction: user didn't predict any penalty winner → incorrect
-      if (!userPredictedHomePenaltyWins && !userPredictedAwayPenaltyWins) {
-        return 'incorrect';
-      }
+    if (!userPredictedHomePenaltyWins && !userPredictedAwayPenaltyWins) return 'incorrect';
+    if (actualHomePenaltyWins !== userPredictedHomePenaltyWins) return 'incorrect';
+    return null;
+  };
 
-      // Wrong penalty winner prediction → incorrect
-      if (actualHomePenaltyWins !== userPredictedHomePenaltyWins) {
-        return 'incorrect';
-      }
-    }
-
-    return 'exact';
+  // EXACT: Predicted scores match actual scores exactly
+  if (predictedHome === actualHome && predictedAway === actualAway) {
+    return penaltyWinnerResult() ?? 'exact';
   }
 
   // Determine winners using explicit conditions
@@ -507,7 +505,11 @@ export function calculatePredictionResult(
   }
 
   // CORRECT: Predicted winner matches actual winner (not exact score)
+  // For draws that went to penalties, also check the penalty winner prediction.
   if (predictedWinner === actualWinner) {
+    if (predictedWinner === 'draw') {
+      return penaltyWinnerResult() ?? 'correct';
+    }
     return 'correct';
   }
 
