@@ -80,7 +80,7 @@ import {db} from "../db/database";
 import {calculateScoreForGame} from "../utils/game-score-calculator";
 import {
   findTournamentGuessByTournament,
-  updateTournamentGuessWithSnapshot,
+  updateTournamentGuess,
   deleteAllTournamentGuessesByTournamentId,
   recalculateGameScoresForUsers
 } from "../db/tournament-guess-repository";
@@ -579,7 +579,7 @@ export async function updateTournamentAwards(tournamentId: string, withUpdate: T
       }
       return accumScore
     }, 0)
-    const updatedGuess = await updateTournamentGuessWithSnapshot(tournamentGuess.id, {
+    const updatedGuess = await updateTournamentGuess(tournamentGuess.id, {
       individual_awards_score: awardsScore
     })
     if (updatedGuess) {
@@ -630,7 +630,7 @@ export async function updateTournamentHonorRoll(tournamentId: string, withUpdate
         tournamentGuess.third_place_team_id === withUpdate.third_place_team_id) {
         honorRollScore += third_place_points
       }
-      const updatedGuess = await updateTournamentGuessWithSnapshot(tournamentGuess.id, {
+      const updatedGuess = await updateTournamentGuess(tournamentGuess.id, {
         honor_roll_score: honorRollScore
       })
       if (updatedGuess) {

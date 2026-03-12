@@ -34,9 +34,9 @@ Administrative tournament management — full lifecycle operations: tournament c
 - **findDataForAwards(tournamentId)**: `Promise<{ tournament: Tournament; players: ExtendedPlayerData[] }>` — Gets tournament and players for award assignment.
   Calls: findTournamentById, findAllPlayersInTournamentWithTeamData, applyLocalization
 - **updateTournamentAwards(tournamentId, withUpdate, locale)**: `Promise<void>` — Updates individual awards, recalculates scores, and writes daily score snapshot for each user.
-  Calls: updateTournament, findTournamentById, findTournamentGuessByTournament, updateTournamentGuessWithSnapshot, writeScoreSnapshot
+  Calls: updateTournament, findTournamentById, findTournamentGuessByTournament, updateTournamentGuess, writeScoreSnapshot
 - **updateTournamentHonorRoll(tournamentId, withUpdate, locale)**: `Promise<void>` — Updates honor roll (champion, runner-up, third place), and writes daily score snapshot for each user.
-  Calls: updateTournament, findTournamentById, findTournamentGuessByTournament, updateTournamentGuessWithSnapshot, writeScoreSnapshot
+  Calls: updateTournament, findTournamentById, findTournamentGuessByTournament, updateTournamentGuess, writeScoreSnapshot
 - **copyTournament(tournamentId, newStartDate, longName, shortName, locale)**: `Promise<Tournament>` — Creates a complete tournament copy with all structure.
   Calls: getLoggedInUser, findTournamentById, createTournament, findTeamInTournament, createTournamentTeam, findAllPlayersInTournamentWithTeamData, createPlayer, findAllTournamentVenues, createTournamentVenue, findPlayoffStagesWithGamesInTournament, createPlayoffRound, findGroupsWithGamesAndTeamsInTournament, createTournamentGroup, createTournamentGroupTeam, findGamesInTournament, createGame, createTournamentGroupGame, createPlayoffRoundGame, findThirdPlaceRulesByTournament, createThirdPlaceRule, applyLocalization
 - **updateGroupTeamConductScores(groupId, conductScores, locale)**: `Promise<void>` — Updates conduct scores (admin only).
@@ -217,8 +217,8 @@ Manages qualified team position predictions for group stages.
 ### app/actions/qualified-teams-scoring-actions.ts
 Calculates and stores scores for qualified team predictions.
 
-- **calculateAndStoreQualifiedTeamsScores(tournamentId, locale)**: `Promise<BatchScoringResult>` — Calculates and persists scores for all tournament users.
-  Calls: findTournamentById, calculateQualifiedTeamsScore, updateTournamentGuesses, revalidatePath
+- **calculateAndStoreQualifiedTeamsScores(tournamentId, locale)**: `Promise<BatchScoringResult>` — Calculates and persists scores for all tournament users. Uses upsert (INSERT...ON CONFLICT) with RETURNING * to get full row, then writes a score snapshot per user.
+  Calls: findTournamentById, calculateQualifiedTeamsScore, db.insertInto (upsert), writeScoreSnapshot, getTodayYYYYMMDD, revalidatePath
 - **calculateUserQualifiedTeamsScore(userId, tournamentId, locale)**: `Promise<SingleUserScoringResult>` — Calculates score for a single user.
   Calls: calculateQualifiedTeamsScore
 - **triggerQualifiedTeamsScoringAction(tournamentId, locale)**: `Promise<BatchScoringResult>` — Admin trigger for qualification scoring.

@@ -64,8 +64,6 @@ describe('Tournament Guess Repository - Materialization', () => {
         group_exact_guesses: 3,
         playoff_correct_guesses: 4,
         playoff_exact_guesses: 2,
-        yesterday_total_score: 60,
-        yesterday_boost_bonus: 12,
         last_game_date: new Date('2024-07-14'),
       }];
 
@@ -157,8 +155,6 @@ describe('Tournament Guess Repository - Materialization', () => {
         group_exact_guesses: 2,
         playoff_correct_guesses: 3,
         playoff_exact_guesses: 2,
-        yesterday_total_score: 40,
-        yesterday_boost_bonus: 8,
         last_game_date: new Date('2024-07-15'),
       }];
 
@@ -219,8 +215,6 @@ describe('Tournament Guess Repository - Materialization', () => {
         group_exact_guesses: 2,
         playoff_correct_guesses: 3,
         playoff_exact_guesses: 2,
-        yesterday_total_score: 40,
-        yesterday_boost_bonus: 8,
         last_game_date: new Date('2024-07-15'),
       }]);
 
@@ -285,8 +279,6 @@ describe('Tournament Guess Repository - Materialization', () => {
           group_exact_guesses: 3,
           playoff_correct_guesses: 5,
           playoff_exact_guesses: 3,
-          yesterday_total_score: 70,
-          yesterday_boost_bonus: 14,
           last_game_date: new Date('2024-07-14'),
         },
       ];
@@ -343,8 +335,6 @@ describe('Tournament Guess Repository - Materialization', () => {
         group_exact_guesses: 0,
         playoff_correct_guesses: 5,
         playoff_exact_guesses: 2,
-        yesterday_total_score: null,
-        yesterday_boost_bonus: undefined,
         last_game_date: new Date('2024-07-14'),
       }];
 
@@ -378,8 +368,6 @@ describe('Tournament Guess Repository - Materialization', () => {
           group_stage_game_score: 0,  // null becomes 0
           total_boost_bonus: 0,  // undefined becomes 0
           total_exact_guesses: 0,  // null becomes 0
-          yesterday_total_game_score: 0,  // null becomes 0
-          yesterday_boost_bonus: 0,  // undefined becomes 0
         })
       );
     });
@@ -404,8 +392,6 @@ describe('Tournament Guess Repository - Materialization', () => {
         group_exact_guesses: 3,
         playoff_correct_guesses: 4,
         playoff_exact_guesses: 2,
-        yesterday_total_score: 60,
-        yesterday_boost_bonus: 12,
         last_game_date: new Date('2024-07-14'),
       }];
 
@@ -464,8 +450,6 @@ describe('Tournament Guess Repository - Materialization', () => {
         group_exact_guesses: 2,
         playoff_correct_guesses: 3,
         playoff_exact_guesses: 2,
-        yesterday_total_score: 40,
-        yesterday_boost_bonus: 8,
         last_game_date: new Date('2024-07-15'),
       }];
 
@@ -530,8 +514,6 @@ describe('Tournament Guess Repository - Materialization', () => {
         group_exact_guesses: 2,
         playoff_correct_guesses: 2,
         playoff_exact_guesses: 1,
-        yesterday_total_score: 20,
-        yesterday_boost_bonus: 4,
         last_game_date: new Date('2024-07-10'),
       }];
 
