@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-09
+**Last updated:** 2026-03-26
 
 ---
 
@@ -85,6 +85,13 @@ Flippable card showing game or edit form with 3D animation. [Client] interactive
 - **BackofficeFlippableGameCard({ game, teamsMap, isPlayoffs, onSave, onPublishToggle }: BackofficeFlippableGameCardProps)**: `JSX.Element` — [Client] Shows game view on front, edit controls on back with smooth 3D flip animation.
   Uses: useTheme, useMediaQuery, useReducedMotion, useRef, useEffect, useState
   Renders: CompactGameViewCard, BackofficeGameResultEditControls, Card, Box
+
+### app/components/backoffice/users-tab.tsx
+Read-only admin user list with search and pagination. [Client] self-fetching via Server Action.
+- **UsersTab()**: `JSX.Element` — [Client] Paginated, searchable table of all users for backoffice. No props — fetches via `getUsersPaginated` Server Action. 300ms debounced search, page reset on search change. Columns: Display Name, Email, Login Method(s) (Chip per provider), Role (Admin/User), Verified (CheckIcon/CloseIcon). Does not render sensitive fields (password_hash, tokens).
+  Calls: getUsersPaginated
+  Uses: useState, useEffect
+  Renders: TextField (search), Table, TablePagination, Chip, CheckIcon, CloseIcon, CircularProgress
 
 ### app/components/backoffice/PlayersTab.tsx
 Player management with Transfermarkt import. [Client] import interface and player list.
