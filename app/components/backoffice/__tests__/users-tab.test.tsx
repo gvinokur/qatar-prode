@@ -173,6 +173,24 @@ describe('UsersTab', () => {
     })
   })
 
+  it('shows loading spinner while action is pending', async () => {
+    let resolve: (value: { users: never[]; total: number }) => void
+    vi.mocked(getUsersPaginated).mockReturnValue(
+      new Promise((res) => {
+        resolve = res
+      })
+    )
+
+    renderWithTheme(<UsersTab />)
+
+    expect(document.querySelector('[role="progressbar"]')).toBeInTheDocument()
+
+    // Resolve the promise to clean up
+    await act(async () => {
+      resolve!({ users: [], total: 0 })
+    })
+  })
+
   it('renders empty state message when action returns no users', async () => {
     mockPaginated([])
 

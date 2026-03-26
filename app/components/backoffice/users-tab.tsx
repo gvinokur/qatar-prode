@@ -60,6 +60,63 @@ export default function UsersTab() {
       .finally(() => setLoading(false))
   }, [debouncedSearch, page])
 
+  function renderTableBody() {
+    if (loading) {
+      return (
+        <TableRow>
+          <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+            <CircularProgress size={24} />
+          </TableCell>
+        </TableRow>
+      )
+    }
+    if (users.length === 0) {
+      return (
+        <TableRow>
+          <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+            <Typography variant="body2" color="text.secondary">
+              No users found
+            </Typography>
+          </TableCell>
+        </TableRow>
+      )
+    }
+    return users.map((user) => {
+      const providers = (user.auth_providers as string[] | null) ?? []
+      return (
+        <TableRow key={user.id}>
+          <TableCell>{user.nickname ?? '(no nickname)'}</TableCell>
+          <TableCell>{user.email}</TableCell>
+          <TableCell>
+            {providers.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">
+                (no login method)
+              </Typography>
+            ) : (
+              <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                {providers.map((p) => (
+                  <Chip
+                    key={p}
+                    label={PROVIDER_LABELS[p] ?? p}
+                    size="small"
+                  />
+                ))}
+              </Box>
+            )}
+          </TableCell>
+          <TableCell>{user.is_admin ? 'Admin' : 'User'}</TableCell>
+          <TableCell>
+            {user.email_verified ? (
+              <CheckIcon fontSize="small" color="success" />
+            ) : (
+              <CloseIcon fontSize="small" color="error" />
+            )}
+          </TableCell>
+        </TableRow>
+      )
+    })
+  }
+
   return (
     <Box sx={{ p: 2 }}>
       <TextField
@@ -82,56 +139,7 @@ export default function UsersTab() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
-                  <CircularProgress size={24} />
-                </TableCell>
-              </TableRow>
-            ) : users.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    No users found
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            ) : (
-              users.map((user) => {
-                const providers = (user.auth_providers as string[] | null) ?? []
-                return (
-                  <TableRow key={user.id}>
-                    <TableCell>{user.nickname ?? '(no nickname)'}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      {providers.length === 0 ? (
-                        <Typography variant="body2" color="text.secondary">
-                          (no login method)
-                        </Typography>
-                      ) : (
-                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                          {providers.map((p) => (
-                            <Chip
-                              key={p}
-                              label={PROVIDER_LABELS[p] ?? p}
-                              size="small"
-                            />
-                          ))}
-                        </Box>
-                      )}
-                    </TableCell>
-                    <TableCell>{user.is_admin ? 'Admin' : 'User'}</TableCell>
-                    <TableCell>
-                      {user.email_verified ? (
-                        <CheckIcon fontSize="small" color="success" />
-                      ) : (
-                        <CloseIcon fontSize="small" color="error" />
-                      )}
-                    </TableCell>
-                  </TableRow>
-                )
-              })
-            )}
+            {renderTableBody()}
           </TableBody>
         </Table>
         <TablePagination
