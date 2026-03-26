@@ -217,6 +217,21 @@ describe('UsersTab', () => {
     })
   })
 
+  it('falls back to raw provider key when not in PROVIDER_LABELS', async () => {
+    mockPaginated([
+      {
+        ...makeUser({ id: 'u1' }),
+        auth_providers: ['unknown_provider'] as unknown as never,
+      },
+    ])
+
+    renderWithTheme(<UsersTab />)
+
+    await waitFor(() => {
+      expect(screen.getByText('unknown_provider')).toBeInTheDocument()
+    })
+  })
+
   it('treats email_verified=null the same as false (shows CloseIcon)', async () => {
     mockPaginated([{ ...makeUser({ id: 'u1' }), email_verified: null as unknown as never }])
 
