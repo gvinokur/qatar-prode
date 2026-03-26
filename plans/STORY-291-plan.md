@@ -57,12 +57,24 @@ user confirms approach.
 
 ## Technical Approach
 
-**Data fetching:** Call `findAllUsers()` directly in the backoffice Server Component —
-same pattern as `findAllTournaments()` already in that file. No new Server Action needed
-(the page already enforces `isAdmin`, and `findAllUsers` is a pure read).
+**Data fetching:** Server-side pagination and search — the backoffice page does NOT
+pre-load users. Instead, `UsersTab` [Client] calls a Server Action on mount and on
+every search/page change. This avoids loading the full user list into memory and
+scales as the user base grows.
 
-**Component:** New `UsersTab` [Client] component. Receives `users: User[]` as props
-(server fetches, client renders). Uses `useState` for search term and current page.
+**Repository:** Two new functions in `users-repository.ts`:
+- `findUsersPaginated(search, page, pageSize)` — DB-level `ILIKE` filter on
+  `nickname` and `email`, `LIMIT`/`OFFSET` for pagination, ordered by email
+- `countUsers(search)` — matching `COUNT(*)` for total row count (drives pagination)
+  `findAllUsers()` is **not modified** (its existing caller is unaffected).
+
+**Server Action:** New `getUsersPaginated(search, page, pageSize)` in
+`app/actions/user-actions.ts` — calls `getLoggedInUser()`, asserts `isAdmin`,
+then calls both repo functions in parallel and returns `{ users, total }`.
+
+**Component:** New `UsersTab` [Client] component. No props from server — it manages
+its own search, page, loading state and calls the Server Action via `useEffect` with
+300 ms debounce on the search string. Resets to page 0 when search changes.
 
 **Sensitive fields:** Never render `password_hash`, `reset_token`, `otp_code`,
 `verification_token`, or any credential field. Only render safe display fields.
@@ -73,14 +85,16 @@ same pattern as `findAllTournaments()` already in that file. No new Server Actio
 
 | File | Action | Description |
 |------|--------|-------------|
-| `app/db/users-repository.ts` | **MODIFY** | Extend `findAllUsers()` to also select `auth_providers` and `email_verified` |
-| `app/components/backoffice/users-tab.tsx` | **CREATE** | New `UsersTab` [Client] component |
-| `app/[locale]/backoffice/page.tsx` | **MODIFY** | Import `UsersTab`, fetch users, add tab |
-| `docs/code-structure/db.md` | **MODIFY** | Update `findAllUsers()` entry to reflect new fields |
+| `app/db/users-repository.ts` | **MODIFY** | Add `findUsersPaginated()` and `countUsers()` — DB-level search + pagination |
+| `app/actions/user-actions.ts` | **MODIFY** | Add `getUsersPaginated(search, page, pageSize)` Server Action (admin-gated) |
+| `app/components/backoffice/users-tab.tsx` | **CREATE** | New `UsersTab` [Client] component — calls Server Action, manages loading/search/page state |
+| `app/[locale]/backoffice/page.tsx` | **MODIFY** | Import `UsersTab`, add tab (no user data fetched here) |
+| `docs/code-structure/db.md` | **MODIFY** | Document `findUsersPaginated()` and `countUsers()` |
+| `docs/code-structure/actions.md` | **MODIFY** | Document `getUsersPaginated()` Server Action |
 | `docs/code-structure/components/components-backoffice.md` | **MODIFY** | Document `UsersTab` |
-| `docs/code-structure/pages.md` | **MODIFY** | Update `Backoffice()` entry (new call + render) |
+| `docs/code-structure/pages.md` | **MODIFY** | Update `Backoffice()` entry (renders `UsersTab`, no user fetch) |
 
-**Why extend `findAllUsers()`:** The current implementation selects only `['id', 'email', 'nickname', 'is_admin']`. The Users tab needs `auth_providers` (for login method display) and `email_verified` (for verified column). Both are non-sensitive display fields. The existing caller (`getTournamentPermissionData`) is unaffected by extra fields on the returned objects.
+**`findAllUsers()` is unchanged** — its only caller (`getTournamentPermissionData`) is unaffected. New repo functions are additive.
 
 ---
 
@@ -119,15 +133,21 @@ same pattern as `findAllTournaments()` already in that file. No new Server Actio
 ### Call Graph Changes
 
 **Modified flows:**
-- **Flow (Backoffice page)** — add `findAllUsers` call and render `UsersTab` [Client]
+- **Flow (Backoffice page)** — renders `UsersTab` with no user data (no server fetch)
+- **Flow (UsersTab → Server Action)** — client-driven, triggered on mount + search/page change
 
 ```
 Backoffice (Server)
   ├── getLoggedInUser
   ├── findAllTournaments     (existing)
-  ├── findAllUsers           (NEW — for Users tab)
-  └── UsersTab [renders]    (NEW)
-        └── client-side: useState for search + pagination
+  └── UsersTab [renders]    (NEW — no props, self-fetching)
+
+UsersTab [Client]
+  └── getUsersPaginated(search, page, 25)   (Server Action, on mount + change)
+        ├── getLoggedInUser
+        ├── isAdmin check
+        ├── findUsersPaginated(search, page, pageSize)   (NEW repo)
+        └── countUsers(search)                           (NEW repo)
 ```
 
 ### `app/[locale]/backoffice/page.tsx` *(modified)*
@@ -135,46 +155,64 @@ Backoffice (Server)
 **Changed functions:**
 
 - **`Backoffice()`**: `JSX.Element` *(existing — extended)*
-  Now also calls `findAllUsers()` and adds `createTab('Users', <UsersTab users={users} />)` at the
-  end of the top-level tabs array (before the `Notifications` tab).
-  Calls (new): findAllUsers
+  Adds `createTab('Users', <UsersTab />)` at the end of the top-level tabs array
+  (before the `Notifications` tab). Does NOT call `findAllUsers()` — the component
+  fetches its own data via Server Action.
   Renders (new): UsersTab
 
-### `app/db/users-repository.ts` *(modified)*
+### `app/db/users-repository.ts` *(modified — additive only)*
 
-**Changed functions:**
+**New functions:**
 
-- **`findAllUsers()`**: `Promise<Pick<User, 'id' | 'email' | 'nickname' | 'is_admin' | 'auth_providers' | 'email_verified'>[]>` *(was: only id/email/nickname/is_admin)*
-  Now also selects `auth_providers` and `email_verified` for use in admin Users tab.
-  Existing caller (`getTournamentPermissionData`) is unaffected.
+- **`findUsersPaginated(search: string, page: number, pageSize: number)`**:
+  `Promise<Pick<User, 'id' | 'email' | 'nickname' | 'is_admin' | 'auth_providers' | 'email_verified'>[]>`
+  DB-level filter: `WHERE (nickname ILIKE %search% OR email ILIKE %search%)` (skipped when search is empty).
+  `ORDER BY email ASC`, `LIMIT pageSize OFFSET page * pageSize`.
+
+- **`countUsers(search: string)`**: `Promise<number>`
+  `SELECT COUNT(*) FROM users WHERE (same filter as above)`. Returns total matching rows
+  for pagination.
+
+`findAllUsers()` is **not modified**.
+
+### `app/actions/user-actions.ts` *(modified — additive only)*
+
+**New functions:**
+
+- **`getUsersPaginated(search: string, page: number, pageSize: number)`**:
+  `Promise<{ users: UserRow[]; total: number }>`
+  Server Action. Calls `getLoggedInUser()`, asserts `user?.isAdmin` (throws if not).
+  Calls `findUsersPaginated` and `countUsers` in parallel via `Promise.all`.
+  Returns `{ users, total }`.
 
 ### `app/components/backoffice/users-tab.tsx` *(new)*
 
 **New functions:**
 
-- **`UsersTab({ users }: UsersTabProps)`**: `JSX.Element`
-  [Client] Renders a paginated, searchable, read-only table of all users.
-  - Props: `users: Array<Pick<User, 'id' | 'email' | 'nickname' | 'is_admin' | 'auth_providers' | 'email_verified'>>`
-  - State: `search: string`, `page: number` (0-indexed), `rowsPerPage: 25`
-  - Derived: `filteredUsers` = users filtered by `nickname` OR `email` containing `search` (case-insensitive)
+- **`UsersTab()`**: `JSX.Element`
+  [Client] No props. Self-fetching via `getUsersPaginated` Server Action.
+  - State: `search: string`, `debouncedSearch: string` (300 ms debounce), `page: number` (0-indexed), `users: UserRow[]`, `total: number`, `loading: boolean`
+  - On `debouncedSearch` or `page` change: calls `getUsersPaginated(debouncedSearch, page, 25)`, sets `users` + `total`
+  - Resets `page` to 0 when `debouncedSearch` changes
+  - Shows loading skeleton/indicator while fetching
   - Login method display: map `user.auth_providers ?? []` to Chip list using `PROVIDER_LABELS`
     - `auth_providers = null | []` → renders "(no login method)" text, no chips
     - Multiple providers → one Chip per provider
   - Role: `user.is_admin ? 'Admin' : 'User'`
   - Email verified: CheckIcon or CloseIcon based on `user.email_verified ?? false`
   - Does NOT render: password_hash, reset_token, otp_code, verification_token, or any credential/token fields
-  Tests (using `testFactories.user()`):
-  - renders all users when search is empty
-  - filters users by nickname (case-insensitive)
-  - filters users by email (case-insensitive)
+  Tests (mocking `getUsersPaginated`):
+  - renders returned users on mount (calls action with empty search, page 0)
+  - debounces search input (action not called on every keystroke)
+  - calls action with new search term after debounce delay
+  - resets page to 0 when search changes
   - shows "(no nickname)" when user.nickname is null
-  - renders "Admin" for is_admin=true users, "User" for is_admin=false
-  - renders one chip per entry in auth_providers (e.g. ['credentials', 'google'] → 2 chips: "Password", "Google")
-  - renders "(no login method)" when auth_providers is null
-  - renders "(no login method)" when auth_providers is empty array
-  - renders empty state message when no users match the search term
-  - paginates correctly: page 2 shows users 26–50 from filteredUsers
-  - email_verified=null renders same as false (CloseIcon)
+  - renders "Admin" for is_admin=true, "User" for is_admin=false
+  - renders one chip per provider in auth_providers (e.g. ['credentials', 'google'] → 2 chips)
+  - renders "(no login method)" when auth_providers is null or empty array
+  - renders empty state message when action returns empty users array
+  - calls action with correct page when user navigates pagination
+  - email_verified=null treated same as false (shows CloseIcon)
 
 ---
 
@@ -182,53 +220,68 @@ Backoffice (Server)
 
 **Wave 1 — Data Layer**
 1. Modify `app/db/users-repository.ts`
-   - In `findAllUsers()`, extend `.select([...])` to also include `'auth_providers'` and `'email_verified'`
+   - Add `findUsersPaginated(search, page, pageSize)` — Kysely query with optional ILIKE filter, ORDER BY email, LIMIT/OFFSET
+   - Add `countUsers(search)` — Kysely COUNT query with same optional filter
 
-**Wave 2 — Component + Page**
-2. Create `app/components/backoffice/users-tab.tsx` [Client]
-   - Search TextField (immediate filter, no debounce needed)
+**Wave 2 — Server Action**
+2. Modify `app/actions/user-actions.ts`
+   - Add `getUsersPaginated(search, page, pageSize)` — assert admin, `Promise.all([findUsersPaginated, countUsers])`, return `{ users, total }`
+
+**Wave 3 — Component + Page**
+3. Create `app/components/backoffice/users-tab.tsx` [Client]
+   - 300 ms debounce on search input
+   - `useEffect` calls `getUsersPaginated` on mount and on `debouncedSearch`/`page` change
+   - Loading indicator while fetching
    - MUI Table with columns: Display Name, Email, Login Method(s), Role, Verified
-   - TablePagination at 25/page
-   - `PROVIDER_LABELS` constant defined locally at top of file (not imported): `{ credentials: 'Password', google: 'Google', otp: 'OTP / Magic Link' }`
+   - `TablePagination` driven by `total` from Server Action
+   - `PROVIDER_LABELS` constant defined locally: `{ credentials: 'Password', google: 'Google', otp: 'OTP / Magic Link' }`
    - Null/empty `auth_providers` → show "(no login method)" text
 
-3. Modify `app/[locale]/backoffice/page.tsx`
+4. Modify `app/[locale]/backoffice/page.tsx`
    - Add `import UsersTab from '../../components/backoffice/users-tab'`
-   - Call `const users = await findAllUsers()` inside `Backoffice()`
-   - Add `createTab('Users', <UsersTab users={users} />)` after tournament tabs, before `Notifications`
+   - Add `createTab('Users', <UsersTab />)` after tournament tabs, before `Notifications`
+   - No user data fetched in the Server Component
 
-**Wave 3 — CODE-STRUCTURE**
-4. Update `docs/code-structure/db.md` — update `findAllUsers()` entry (new fields)
-5. Update `docs/code-structure/components/components-backoffice.md` — add `UsersTab` entry
-6. Update `docs/code-structure/pages.md` — update `Backoffice()` entry
+**Wave 4 — CODE-STRUCTURE**
+5. Update `docs/code-structure/db.md` — add `findUsersPaginated()` and `countUsers()` entries
+6. Update `docs/code-structure/actions.md` — add `getUsersPaginated()` entry
+7. Update `docs/code-structure/components/components-backoffice.md` — add `UsersTab` entry
+8. Update `docs/code-structure/pages.md` — update `Backoffice()` entry (renders UsersTab, no user fetch)
 
 ---
 
 ## Testing Strategy
 
-**Scope:** Unit tests for `UsersTab` in isolation — the component receives `users` as a prop, no
-data fetching occurs inside it (purely presentational; no loading/error states needed). Auth
-redirect is already enforced by the page (`isAdmin` check) and is not retested here.
+**Scope:** Unit tests for `UsersTab` in isolation — mock `getUsersPaginated` Server Action
+so tests are fully synchronous with controlled data. No real DB or auth needed.
 
-**Factories:** `testFactories.user()` does NOT include `auth_providers` in its defaults. All test
-cases that exercise login method rendering must override it explicitly:
+**Factories:** `testFactories.user()` does NOT include `auth_providers` or `email_verified`
+in its defaults. All test cases that exercise those fields must override them explicitly:
 ```ts
-testFactories.user({ auth_providers: ['credentials'] as unknown as ... })
-// or use the JSON cast pattern used elsewhere in the test suite
+testFactories.user({ auth_providers: ['credentials'] as unknown as JsonValue })
 ```
 
-**Test cases** (unit, UsersTab in isolation):
-- renders all users when search is empty
-- filters users by nickname (case-insensitive)
-- filters users by email (case-insensitive)
+**Mock pattern:**
+```ts
+vi.mock('@/app/actions/user-actions', () => ({
+  getUsersPaginated: vi.fn(),
+}))
+// In each test:
+vi.mocked(getUsersPaginated).mockResolvedValue({ users: [...], total: N })
+```
+
+**Test cases** (unit, UsersTab with mocked Server Action):
+- renders returned users on mount (calls action with empty search '', page 0, pageSize 25)
+- debounces search: rapid typing fires action only once after 300 ms
+- calls action with updated search term after debounce fires
+- resets to page 0 when search changes
 - shows "(no nickname)" when user.nickname is null
 - renders "Admin" for is_admin=true, "User" for is_admin=false
-- renders one chip per provider in auth_providers (e.g. ['credentials', 'google'] → 2 chips)
+- renders one chip per provider (e.g. ['credentials', 'google'] → 2 chips: "Password", "Google")
 - renders "(no login method)" when auth_providers is null
 - renders "(no login method)" when auth_providers is empty array
-- renders empty state message when no users match the search term
-- paginates: when filteredUsers.length ≥ 26, page 2 shows users at indices 25–49
-- paginates: when filteredUsers.length < 26, navigating to page 2 shows empty table
+- renders empty state message when action returns users: []
+- calls action with correct page when user navigates to next page
 - email_verified=null treated same as false (shows CloseIcon)
 
 ---
