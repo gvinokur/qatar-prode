@@ -15,7 +15,9 @@ import {
   findUserByVerificationToken,
   verifyEmail,
   deleteUser,
-  userHasPasswordAuth
+  userHasPasswordAuth,
+  findUsersPaginated,
+  countUsers
 } from "../db/users-repository"
 import {generatePasswordResetEmail, generateVerificationEmail} from "../utils/email-templates";
 import {sendEmail} from "../utils/email";
@@ -319,4 +321,18 @@ export async function deleteAccount(locale: Locale = 'es') {
     console.error('Error deleting account:', error);
     return { error: 'Error al eliminar la cuenta. Por favor, inténtalo de nuevo.' };
   }
+}
+
+export async function getUsersPaginated(search: string, page: number, pageSize: number) {
+  const user = await getLoggedInUser()
+  if (!user?.isAdmin) {
+    throw new Error('Unauthorized')
+  }
+
+  const [users, total] = await Promise.all([
+    findUsersPaginated(search, page, pageSize),
+    countUsers(search),
+  ])
+
+  return { users, total }
 }
