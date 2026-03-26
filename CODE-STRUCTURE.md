@@ -440,4 +440,10 @@ Key flows:
       └── InviteFriendsDialog [renders]
             └── generateShortUrlForGroup [server action]
                   └── getOrCreateShortUrl
+
+17. Backoffice Users tab
+    UsersTab [Client] (self-fetching, no server props)
+      └── getUsersPaginated [server action] (on mount + search/page change)
+            ├── findUsersPaginated
+            └── countUsers
 ```

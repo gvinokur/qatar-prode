@@ -41,6 +41,38 @@ export const findAllUsers = cache(async function () {
     .execute()
 })
 
+export async function findUsersPaginated(search: string, page: number, pageSize: number) {
+  let query = db.selectFrom('users')
+    .select(['id', 'email', 'nickname', 'is_admin', 'auth_providers', 'email_verified'])
+    .orderBy('email', 'asc')
+    .limit(pageSize)
+    .offset(page * pageSize)
+
+  if (search) {
+    query = query.where((eb) => eb.or([
+      eb('nickname', 'ilike', `%${search}%`),
+      eb('email', 'ilike', `%${search}%`),
+    ]))
+  }
+
+  return query.execute()
+}
+
+export async function countUsers(search: string): Promise<number> {
+  let query = db.selectFrom('users')
+    .select((eb) => eb.fn.countAll<string>().as('count'))
+
+  if (search) {
+    query = query.where((eb) => eb.or([
+      eb('nickname', 'ilike', `%${search}%`),
+      eb('email', 'ilike', `%${search}%`),
+    ]))
+  }
+
+  const result = await query.executeTakeFirst()
+  return result ? Number(result.count) : 0
+}
+
 export const findUserByResetToken = cache(async function(resetToken: string) {
   return db.selectFrom('users')
     .where('reset_token', '=', resetToken)

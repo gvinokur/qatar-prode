@@ -335,3 +335,5 @@ Authentication and user account management — signup, verification, password, O
   Calls: getPasswordHash, updateUser
 - **deleteAccount(locale)**: `Promise<{ success?: boolean; error?: string }>` — Deletes user account and all associated data.
   Calls: getLoggedInUser, findProdeGroupsByOwner, deleteAllParticipantsFromGroup, deleteProdeGroup, deleteParticipantFromAllGroups, deleteAllUserTournamentGuesses, deleteAllUserGameGuesses, deleteAllUserGroupPositionsPredictions, deleteUser
+- **getUsersPaginated(search: string, page: number, pageSize: number)**: `Promise<{ users: UserRow[]; total: number }>` — Admin-only. Fetches paginated, filtered user list for backoffice Users tab.
+  Calls: getLoggedInUser, findUsersPaginated, countUsers

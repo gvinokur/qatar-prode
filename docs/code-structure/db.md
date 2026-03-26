@@ -296,6 +296,8 @@ Repository for users table. Manages user accounts, authentication (password, OAu
 - **findUserByNickname(nickname: string)**: `Promise<User | undefined>` — Finds by nickname (cached).
 - **findUsersByIds(userIds: string[])**: `Promise<User[]>` — Finds multiple by IDs (cached).
 - **findAllUsers()**: `Promise<User[]>` — Finds all users sorted by email (cached).
+- **findUsersPaginated(search: string, page: number, pageSize: number)**: `Promise<Pick<User, 'id' | 'email' | 'nickname' | 'is_admin' | 'auth_providers' | 'email_verified'>[]>` — Finds users with optional ILIKE filter on nickname/email, ordered by email, paginated.
+- **countUsers(search: string)**: `Promise<number>` — Counts users matching optional ILIKE filter on nickname/email.
 - **findUserByResetToken(token: string)**: `Promise<User | undefined>` — Finds by password reset token.
 - **getPasswordHash(password: string)**: `string` — Hashes password with salt.
 - **verifyEmail(token: string)**: `Promise<User | undefined>` — Marks email verified by token.
