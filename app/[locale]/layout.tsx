@@ -2,6 +2,7 @@ import {NextIntlClientProvider} from 'next-intl';
 import {getMessages, getTranslations} from 'next-intl/server';
 import {Metadata} from 'next';
 import Script from 'next/script';
+import { headers } from 'next/headers';
 import SessionWrapper from "../components/session-wrapper";
 import ThemeProvider from "../components/context-providers/theme-provider";
 import NextThemeProvider from '../components/context-providers/next-theme-wrapper-provider';
@@ -82,6 +83,9 @@ export default async function LocaleLayout({
   const user = await getLoggedInUser();
   const messages = await getMessages();
   const t = await getTranslations({ locale, namespace: 'common' })
+  const headersList = await headers();
+  const pathname = headersList.get('x-pathname') ?? '';
+  const isTournamentPage = /\/tournaments\//.test(pathname);
 
   const appName = t('app.name')
 
@@ -115,12 +119,14 @@ export default async function LocaleLayout({
                     <ConditionalHeader>
                       <Header user={user}/>
                     </ConditionalHeader>
-                    <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        {children}
+                    {isTournamentPage ? children : (
+                      <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          {children}
+                        </div>
+                        <AdSidebar isAdFree={user?.isAdFree ?? false} />
                       </div>
-                      <AdSidebar isAdFree={user?.isAdFree ?? false} />
-                    </div>
+                    )}
                     <Footer message={`${appName} © 2025`} />
                     <InstallPwa />
                     <OfflineDetection />
