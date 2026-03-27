@@ -22,20 +22,7 @@ We use four subagent patterns integrated into our workflow phases:
 
 **Impact:** Catches 2-3 issues per story before user review, reduces iteration cycles.
 
-**Details:** See **[Planning Guide - Section 4: Plan Review](planning.md#4-plan-review-with-subagent-mandatory)**
-
-**Quick example:**
-```typescript
-// After creating plan, launch reviewer
-Task({
-  subagent_type: "general-purpose",
-  model: "haiku",
-  description: "Review implementation plan",
-  prompt: `Review plan for feasibility, testability, risks...`
-})
-
-// Incorporate feedback, repeat 2-3 cycles
-```
+**Details:** See `/plan-reviewer` (full dual-persona loop) invoked from `/architect` Step 5.
 
 ---
 
@@ -47,22 +34,7 @@ Task({
 
 **Impact:** Clear progress tracking, enables parallelization, easier resumption.
 
-**Details:** See **[Implementation Guide - Section 2: Task Definition](implementation.md#2-task-definition-phase-mandatory)**
-
-**Quick example:**
-```typescript
-// After exiting plan mode
-TaskCreate({
-  subject: "Add database tables",
-  description: "Files, dependencies, success criteria...",
-  activeForm: "Adding database tables"
-})
-
-TaskUpdate({
-  taskId: "2",
-  addBlockedBy: ["1"] // Task 2 blocked by Task 1
-})
-```
+**Details:** See `/implementer` Section 2.
 
 ---
 
@@ -74,19 +46,7 @@ TaskUpdate({
 
 **Impact:** 2-3x faster test creation, consistent quality.
 
-**Details:** See **[Testing Guide - Parallel Test Creation](testing.md#parallel-test-creation-recommended)**
-
-**Quick example:**
-```typescript
-// After implementing files A, B, C
-// Launch 3 subagents in parallel (single message, multiple Task calls)
-
-Task({subagent_type: "general-purpose", model: "haiku", ...}) // Test A
-Task({subagent_type: "general-purpose", model: "haiku", ...}) // Test B
-Task({subagent_type: "general-purpose", model: "haiku", ...}) // Test C
-
-// Review outputs, run tests
-```
+**Details:** See `/test-engineer` Section 10 (now lives there).
 
 ---
 
@@ -98,41 +58,19 @@ Task({subagent_type: "general-purpose", model: "haiku", ...}) // Test C
 
 **Impact:** 20-40% faster, 30-50% cheaper (depends on simple vs complex task ratio), maintains quality.
 
-**Details:** See **[Implementation Guide - Section 2.5 & 3.5: Hybrid Mode](implementation.md#25-execution-mode-selection-optional-hybrid-mode)**
-
-**Quick example:**
-```typescript
-// After defining 8 tasks, classify by complexity
-// Simple: Tasks 1, 3, 5, 7
-// Complex: Tasks 2, 4, 6, 8
-
-// Ask user: "main agent" or "hybrid" mode
-
-// If hybrid:
-// Wave 1:
-Task({model: "haiku", description: "Implement simple Task 1", ...})
-// Main agent implements complex Task 2
-
-// Wave 2 (parallel):
-Task({model: "haiku", description: "Implement simple Task 3", ...})
-Task({model: "haiku", description: "Implement simple Task 5", ...})
-// Main agent implements complex Tasks 4 & 6
-
-// Review outputs, mark complete
-```
+**Details:** See `/implementer` Sections 2.5 and 3.5.
 
 ---
 
 ## When to Use Subagents
 
-### ✅ Use Subagents When:
-- **Planning review:** Always (2-3 cycles)
-- **Task definition:** Always for non-trivial stories
-- **Parallel testing:** Always when 2+ files need tests
-- **Hybrid execution:** Optional, when 5+ tasks with 3+ simple/isolated (ask user first)
-- **Independent work:** Tasks with clear boundaries and no dependencies
+### Use Subagents When:
+- **Planning review:** Always (2-3 cycles via `/plan-reviewer`)
+- **Task definition:** Always for non-trivial stories (via `/implementer` Section 2)
+- **Parallel testing:** Always when 2+ files need tests (via `/test-engineer` Section 10)
+- **Hybrid execution:** Optional, when 5+ tasks with 3+ simple/isolated
 
-### ❌ Don't Use Subagents When:
+### Don't Use Subagents When:
 - **Single simple task:** Overhead not worth it
 - **Deep exploration needed:** Use Explore agent instead
 - **Architectural decisions:** Needs holistic view, main agent handles
@@ -149,10 +87,11 @@ Task({model: "haiku", description: "Implement simple Task 5", ...})
 │   → Create initial plan             │
 │                                     │
 │ ✨ Plan Reviewer Subagent:          │
-│   → Review 2-3 cycles               │
+│   → /plan-reviewer (2-3 cycles)     │
 │   → Main agent updates plan         │
 │                                     │
-│ Create PR → User review             │
+│ Create PR via /git-ops Section 1    │
+│ → User review                       │
 └─────────────────────────────────────┘
               ↓
 ┌─────────────────────────────────────┐
@@ -162,13 +101,14 @@ Task({model: "haiku", description: "Implement simple Task 5", ...})
 │   → Exit plan mode                  │
 │                                     │
 │ ✨ Task Definition Pattern:         │
+│   → /implementer Section 2         │
 │   → TaskCreate for atomic units     │
 │   → TaskUpdate for dependencies     │
 │   → Identify parallel opportunities │
 │                                     │
 │ ✨ Execution Mode Choice (Optional):│
 │   → Classify tasks (simple/complex) │
-│   → Ask user: main agent or hybrid  │
+│   → Proceed immediately (no input)  │
 │   → If hybrid: delegate simple tasks│
 │                                     │
 │ Main Agent (or Hybrid):             │
@@ -180,6 +120,7 @@ Task({model: "haiku", description: "Implement simple Task 5", ...})
 │ 3. TESTING PHASE                    │
 ├─────────────────────────────────────┤
 │ ✨ Parallel Test Creation:          │
+│   → /test-engineer Section 10       │
 │   → Launch test subagents (Haiku)   │
 │   → Create tests concurrently       │
 │                                     │
@@ -193,8 +134,8 @@ Task({model: "haiku", description: "Implement simple Task 5", ...})
 ├─────────────────────────────────────┤
 │ Main Agent:                         │
 │   → Wait for user: "code looks good"│
-│   → Run validation pipeline         │
-│   → Push and wait for CI/CD         │
+│   → Follow /code-reviewer workflow  │
+│   → SonarCloud validation           │
 └─────────────────────────────────────┘
 ```
 
@@ -239,9 +180,9 @@ Task({model: "haiku", description: "Implement simple Task 5", ...})
 
 | Mistake | Correct Approach |
 |---------|------------------|
-| Skipping plan review | Always use (2-3 cycles) |
+| Skipping plan review | Always use (2-3 cycles via `/plan-reviewer`) |
 | No task definition | Always create tasks before coding |
-| Sequential test creation | Parallelize when 2+ files |
+| Sequential test creation | Parallelize when 2+ files (`/test-engineer` Section 10) |
 | Too much context | Only include relevant files |
 | Too little context | Include implementation + conventions + example |
 | Not reviewing output | Always review before integrating |
@@ -251,79 +192,49 @@ Task({model: "haiku", description: "Implement simple Task 5", ...})
 
 ## Quick Workflow Reference
 
-### Story Implementation with Subagents
-
 ```
 User: "Implement story #42"
 
 1. Planning:
-   ✓ EnterPlanMode, research, create plan
-   ✓ Launch Plan Reviewer (2-3 cycles)
-   ✓ Commit reviewed plan, create PR
+   ✓ EnterPlanMode, research, create plan (/architect)
+   ✓ Launch Plan Reviewer via /plan-reviewer (2-3 cycles)
+   ✓ Commit plan, create DRAFT PR via /git-ops Section 1
    ✓ Wait for user approval
 
 2. User: "Execute the plan"
    ✓ Exit plan mode
 
 3. Implementation:
-   ✓ TaskCreate (break into atomic units)
+   ✓ TaskCreate (break into atomic units) /implementer Section 2
    ✓ TaskUpdate (define dependencies)
    ✓ Implement in waves
    ✓ Mark tasks in_progress → completed
 
 4. Testing:
-   ✓ Launch test subagents in parallel (if 2+ files)
+   ✓ Launch test subagents in parallel via /test-engineer Section 10
    ✓ Review outputs
    ✓ Run tests, verify coverage
 
 5. User: "Code looks good"
-   ✓ Validation phase
-   ✓ Push, wait for CI/CD
-   ✓ Ready to merge
+   ✓ /code-reviewer validation workflow
+   ✓ SonarCloud analysis
+   ✓ Section 7.5 Documentation Audit
+   ✓ Ready to merge via /git-ops Section 4
 ```
-
-## Expected Improvements
-
-**Planning Quality:**
-- Fewer user review cycles (1-2 vs 2-3)
-- Issues caught before user sees them
-- Better consideration of testability
-
-**Development Speed:**
-- 20-30% faster via parallelization
-- 2-3x faster test creation
-- Clear progress tracking
-
-**Quality Maintained:**
-- 0 new SonarCloud issues (maintained)
-- >80% test coverage (maintained)
-- All quality gates still enforced
 
 ## Detailed Documentation
 
 For complete implementation details, see:
 
-- **[Planning Guide](planning.md)** - Section 4: Plan Review with Subagent
-- **[Implementation Guide](implementation.md)** - Section 2: Task Definition Phase
-- **[Testing Guide](testing.md)** - Section: Parallel Test Creation
+- **`/plan-reviewer`** — Plan review dual-persona loop
+- **`/architect`** — Planning workflow (Steps 1-10)
+- **`/implementer`** — Implementation workflow (Sections 1-9)
+- **`/test-engineer`** — Testing guide with parallel creation (Section 10)
+- **`/code-reviewer`** — Validation workflow (Sections 1-8)
+- **`/git-ops`** — Git operation templates
 
 For full investigation and future optimizations, see:
 - **[Workflow Optimization Investigation](../workflow-optimization-investigation.md)**
-
-## Future Optimization Patterns
-
-Additional patterns documented for future consideration:
-
-**Medium Priority:**
-- Progressive context loading (load files as needed)
-- Validation pipeline automation (automate test/build cycles)
-- Incremental development with checkpoints
-
-**Low Priority:**
-- Template-based code generation
-- Smart commit bundling
-
-See [Workflow Optimization Investigation](../workflow-optimization-investigation.md) for details.
 
 ---
 
