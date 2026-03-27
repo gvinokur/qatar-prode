@@ -31,7 +31,7 @@ export default function AdSidebar({ isAdFree }: AdSidebarProps) {
   return (
     <Box
       sx={{
-        display: { xs: 'none', lg: 'flex' },
+        display: { xs: 'none', xl: 'flex' },
         flexDirection: 'column',
         flexShrink: 0,
         width: 300,
