@@ -67,7 +67,7 @@ export default function AdModalController() {
 
   // Push ad slot when modal opens
   useEffect(() => {
-    if (!open || process.env.NODE_ENV !== 'production') return
+    if (!open || !process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID) return
     try {
       ;(window.adsbygoogle = window.adsbygoogle || []).push({})
     } catch {
@@ -87,7 +87,7 @@ export default function AdModalController() {
     <Box sx={{ display: { xs: 'block', lg: 'none' } }}>
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogContent sx={{ p: 1 }}>
-          {process.env.NODE_ENV !== 'production' ? (
+          {!process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID ? (
             <Box
               sx={{
                 width: '100%',

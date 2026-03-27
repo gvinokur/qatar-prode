@@ -18,7 +18,7 @@ export default function AdSidebar({ isAdFree }: AdSidebarProps) {
   const pathname = usePathname()
 
   useEffect(() => {
-    if (isAdFree || process.env.NODE_ENV !== 'production') return
+    if (isAdFree || !process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID) return
     try {
       ;(window.adsbygoogle = window.adsbygoogle || []).push({})
     } catch {
@@ -40,7 +40,7 @@ export default function AdSidebar({ isAdFree }: AdSidebarProps) {
         top: 16,
       }}
     >
-      {process.env.NODE_ENV !== 'production' ? (
+      {!process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID ? (
         <Box
           sx={{
             width: 300,
