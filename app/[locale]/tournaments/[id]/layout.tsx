@@ -24,7 +24,6 @@ import ThemeSwitcher from '../../../components/header/theme-switcher';
 import LanguageSwitcher from '../../../components/header/language-switcher';
 import UserActions from '../../../components/header/user-actions';
 import TournamentSidebar from '../../../components/tournament-page/tournament-sidebar';
-import AdSidebar from '../../../components/ads/ad-sidebar';
 import { findTournamentById } from '../../../db/tournament-repository';
 import { getGameGuessStatisticsForUsers } from '../../../db/game-guess-repository';
 import type { ScoringConfig } from '../../../components/tournament-page/rules';
@@ -264,44 +263,39 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
           </Box>
         </Box>
       </AppBar>
-      {/* Main content area — flex row so AdSidebar sits beside content, below AppBar */}
-      <Box sx={{ display: 'flex', flexGrow: 1, minHeight: 0 }}>
-        {/* Scrollable content + tournament sidebar */}
+      {/* Main content area */}
+      <Box sx={{
+        display: 'flow-root',
+        flexGrow: 1,
+        minHeight: 0,
+        px: 2
+      }}>
+        {/* Centered max-width container */}
         <Box sx={{
-          flex: '1 1 0',
-          minWidth: 0,
-          overflow: 'hidden',
-          px: 2
+          maxWidth: '1200px',
+          mx: 'auto',
+          height: '100%'
         }}>
-          {/* Centered max-width container */}
-          <Box sx={{
-            maxWidth: '1200px',
-            mx: 'auto',
-            height: '100%'
-          }}>
-            <Grid container spacing={2} sx={{ height: '100%' }}>
-              {/* Main content - 9/12 on desktop, full on mobile */}
-              <Grid size={{ xs: 12, md: 9 }} sx={{ height: '100%' }}>
-                <ScrollableContentArea>
-                  {children}
-                </ScrollableContentArea>
-              </Grid>
-
-              {/* Tournament sidebar - 3/12 on desktop, hidden on mobile */}
-              <TournamentSidebar
-                tournamentId={params.id}
-                scoringConfig={scoringConfig}
-                userGameStatistics={userGameStatistics?.[0]}
-                tournamentGuess={tournamentGuesses || undefined}
-                groupStandings={groupStandings}
-                prodeGroups={prodeGroups}
-                user={user ?? undefined}
-              />
+          <Grid container spacing={2} sx={{ height: '100%' }}>
+            {/* Main content - 9/12 on desktop, full on mobile */}
+            <Grid size={{ xs: 12, md: 9 }} sx={{ height: '100%' }}>
+              <ScrollableContentArea>
+                {children}
+              </ScrollableContentArea>
             </Grid>
-          </Box>
+
+            {/* Sidebar - 4/12 on desktop, hidden on mobile */}
+            <TournamentSidebar
+              tournamentId={params.id}
+              scoringConfig={scoringConfig}
+              userGameStatistics={userGameStatistics?.[0]}
+              tournamentGuess={tournamentGuesses || undefined}
+              groupStandings={groupStandings}
+              prodeGroups={prodeGroups}
+              user={user ?? undefined}
+            />
+          </Grid>
         </Box>
-        {/* Ad sidebar — sticky, outside the max-width container, only on lg+ */}
-        <AdSidebar isAdFree={user?.isAdFree ?? false} />
       </Box>
       {user &&
         (((!tournamentGuesses?.best_player_id ||
