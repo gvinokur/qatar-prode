@@ -6,9 +6,10 @@ import { testFactories } from '@/__tests__/db/test-factories'
 
 vi.mock('../../../actions/user-actions', () => ({
   getUsersPaginated: vi.fn(),
+  toggleUserAdFreeAction: vi.fn(),
 }))
 
-import { getUsersPaginated } from '../../../actions/user-actions'
+import { getUsersPaginated, toggleUserAdFreeAction } from '../../../actions/user-actions'
 
 function makeUser(overrides = {}) {
   return {
@@ -240,6 +241,67 @@ describe('UsersTab', () => {
     await waitFor(() => {
       const closeIcons = document.querySelectorAll('[data-testid="CloseIcon"]')
       expect(closeIcons.length).toBeGreaterThan(0)
+    })
+  })
+
+  it('renders Ad-Free column header', async () => {
+    mockPaginated([])
+
+    renderWithTheme(<UsersTab />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Ad-Free')).toBeInTheDocument()
+    })
+  })
+
+  it('renders Switch checked when user.is_ad_free is true', async () => {
+    mockPaginated([makeUser({ id: 'u1', nickname: 'alice-adfree', is_ad_free: true })])
+
+    renderWithTheme(<UsersTab />)
+
+    // Wait for the row to appear
+    await waitFor(() => expect(screen.getByText('alice-adfree')).toBeInTheDocument())
+
+    const switchInput = document.querySelector('input[type="checkbox"]') as HTMLInputElement
+    expect(switchInput).not.toBeNull()
+    expect(switchInput.checked).toBe(true)
+  })
+
+  it('calls toggleUserAdFreeAction with userId and new value when Switch is toggled', async () => {
+    vi.mocked(toggleUserAdFreeAction).mockResolvedValue(undefined)
+    mockPaginated([makeUser({ id: 'u1', nickname: 'bob-toggle', is_ad_free: false })])
+
+    renderWithTheme(<UsersTab />)
+
+    await waitFor(() => expect(screen.getByText('bob-toggle')).toBeInTheDocument())
+
+    const switchInput = document.querySelector('input[type="checkbox"]') as HTMLInputElement
+    fireEvent.click(switchInput)
+
+    await waitFor(() => {
+      expect(toggleUserAdFreeAction).toHaveBeenCalledWith('u1', true)
+    })
+  })
+
+  it('reverts Switch state when toggleUserAdFreeAction rejects', async () => {
+    vi.mocked(toggleUserAdFreeAction).mockRejectedValue(new Error('Server error'))
+    mockPaginated([makeUser({ id: 'u1', nickname: 'carol-revert', is_ad_free: false })])
+
+    renderWithTheme(<UsersTab />)
+
+    await waitFor(() => expect(screen.getByText('carol-revert')).toBeInTheDocument())
+
+    const switchInput = document.querySelector('input[type="checkbox"]') as HTMLInputElement
+    expect(switchInput.checked).toBe(false)
+
+    fireEvent.click(switchInput)
+
+    await waitFor(() => expect(toggleUserAdFreeAction).toHaveBeenCalled())
+
+    // After rejection, state reverts back to false
+    await waitFor(() => {
+      const updated = document.querySelector('input[type="checkbox"]') as HTMLInputElement
+      expect(updated.checked).toBe(false)
     })
   })
 })

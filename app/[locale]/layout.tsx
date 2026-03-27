@@ -1,6 +1,7 @@
 import {NextIntlClientProvider} from 'next-intl';
 import {getMessages, getTranslations} from 'next-intl/server';
 import {Metadata} from 'next';
+import Script from 'next/script';
 import SessionWrapper from "../components/session-wrapper";
 import ThemeProvider from "../components/context-providers/theme-provider";
 import NextThemeProvider from '../components/context-providers/next-theme-wrapper-provider';
@@ -12,6 +13,8 @@ import {getLoggedInUser} from "../actions/user-actions";
 import { TimezoneProvider } from '../components/context-providers/timezone-context-provider';
 import { CountdownProvider } from '../components/context-providers/countdown-context-provider';
 import Footer from '../components/home/footer';
+import AdSidebar from '../components/ads/ad-sidebar';
+import AdModalController from '../components/ads/ad-modal-controller';
 
 export function generateStaticParams() {
   return [{ locale: 'en' }, { locale: 'es' }];
@@ -93,6 +96,14 @@ export default async function LocaleLayout({
           href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=Public+Sans:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
+        {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && (
+          <Script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
+            strategy="afterInteractive"
+            crossOrigin="anonymous"
+          />
+        )}
       </head>
       <body style={{minHeight: '100%'}}>
         <NextIntlClientProvider messages={messages} locale={locale}>
@@ -104,10 +115,16 @@ export default async function LocaleLayout({
                     <ConditionalHeader>
                       <Header user={user}/>
                     </ConditionalHeader>
-                    {children}
+                    <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        {children}
+                      </div>
+                      <AdSidebar isAdFree={user?.isAdFree ?? false} />
+                    </div>
                     <Footer message={`${appName} © 2025`} />
                     <InstallPwa />
                     <OfflineDetection />
+                    <AdModalController />
                   </SessionWrapper>
                 </ThemeProvider>
               </NextThemeProvider>

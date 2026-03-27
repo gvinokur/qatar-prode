@@ -337,3 +337,13 @@ Authentication and user account management — signup, verification, password, O
   Calls: getLoggedInUser, findProdeGroupsByOwner, deleteAllParticipantsFromGroup, deleteProdeGroup, deleteParticipantFromAllGroups, deleteAllUserTournamentGuesses, deleteAllUserGameGuesses, deleteAllUserGroupPositionsPredictions, deleteUser
 - **getUsersPaginated(search: string, page: number, pageSize: number)**: `Promise<{ users: UserRow[]; total: number }>` — Admin-only. Fetches paginated, filtered user list for backoffice Users tab.
   Calls: getLoggedInUser, findUsersPaginated, countUsers
+- **toggleUserAdFreeAction(userId: string, isAdFree: boolean)**: `Promise<void>` — Admin-only. Toggles ad-free status for a user.
+  Calls: getLoggedInUser, updateUserAdFreeStatus
+
+### app/actions/ad-settings-actions.ts
+Server actions for reading and updating global modal ad frequency settings (Story #295).
+
+- **getAdSettingsAction()**: `Promise<{ modalMinMinutesBetween: number; modalMinPageviewsBetween: number }>` — No auth required. Returns stored settings or hard-coded defaults (30 min, 10 pageviews) if row is missing or DB throws.
+  Calls: getAdSettings
+- **updateAdSettingsAction(minMinutes: number, minPageviews: number)**: `Promise<void>` — Admin-only. Validates values ≥ 0, then persists. Throws Error('Invalid values') for negative numbers.
+  Calls: getLoggedInUser, upsertAdSettings

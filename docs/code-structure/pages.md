@@ -55,9 +55,9 @@ Locale-specific layout that sets up i18n providers, theme, and session context.
 - **generateStaticParams()**: `Array` — [Server] Returns static locale parameters for SSG (en, es).
 - **generateMetadata({ params })**: `Metadata` — [Server] Generates locale-specific metadata with alternate language links.
   Calls: getTranslations
-- **LocaleLayout({ children, params })**: `JSX.Element` — [Server] Sets up locale context, theme providers, session wrapper, header, and footer.
+- **LocaleLayout({ children, params })**: `JSX.Element` — [Server] Sets up locale context, theme providers, session wrapper, header, footer, and ad components. Children wrapped in flex container alongside AdSidebar. AdSense Script loaded afterInteractive when NEXT_PUBLIC_ADSENSE_CLIENT_ID is set.
   Calls: getLoggedInUser, getMessages, getTranslations
-  Renders: NextIntlClientProvider, TimezoneProvider, CountdownProvider, NextThemeProvider, ThemeProvider, SessionWrapper, ConditionalHeader, Header, Footer, InstallPwa, OfflineDetection
+  Renders: NextIntlClientProvider, TimezoneProvider, CountdownProvider, NextThemeProvider, ThemeProvider, SessionWrapper, ConditionalHeader, Header, AdSidebar, AdModalController, Footer, InstallPwa, OfflineDetection
 
 ### app/[locale]/page.tsx
 Home/landing page that conditionally shows onboarding or redirects to first tournament.

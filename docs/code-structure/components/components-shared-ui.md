@@ -2,13 +2,26 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-09
+**Last updated:** 2026-03-27
 
 ---
 
 ## Files
 
-Perfect! Now I have all the information needed. Let me compile the comprehensive report:
+### app/components/ads/ad-sidebar.tsx
+Sticky right-side 300px ad panel for desktop. [Client] visible only on lg+ breakpoints.
+- **AdSidebar({ isAdFree }: { isAdFree: boolean })**: `JSX.Element | null` — [Client] Renders null when isAdFree. Calls adsbygoogle.push() on each pathname change to refresh the ad. In dev mode renders a grey placeholder box instead of an ins element.
+  Uses: usePathname, useEffect
+  Renders: Box (sticky wrapper), ins.adsbygoogle or placeholder Box
+
+### app/components/ads/ad-modal-controller.tsx
+Global modal ad orchestrator for mobile. [Client] tracks page views and minutes to open ad dialog at configurable frequency.
+- **AdModalController()**: `JSX.Element | null` — [Client] Renders null for ad-free users. Fetches ad settings once on mount, tracks page views via pathname, stores lastAdShownAt in localStorage. Opens MUI Dialog with AdSense slot when both min-minutes and min-pageviews thresholds are met. Resets counter and saves timestamp on close. Only renders on small screens (display xs:block lg:none).
+  Uses: useSession, usePathname, useEffect, useRef, useState
+  Calls: getAdSettingsAction
+  Renders: Dialog, DialogContent, DialogActions, Button, ins.adsbygoogle or placeholder Box
+
+---
 
 ---
 

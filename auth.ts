@@ -35,6 +35,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             name: user.nickname || user.email,
             nickname: user.nickname,
             isAdmin: user.is_admin || false,
+            isAdFree: user.is_ad_free || false,
             emailVerified: user.email_verified || false,
             preferred_locale: user.preferred_locale || null,
           }
@@ -68,6 +69,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             name: result.user.nickname || result.user.email,
             nickname: result.user.nickname,
             isAdmin: result.user.is_admin || false,
+            isAdFree: result.user.is_ad_free || false,
             emailVerified: result.user.email_verified || false,
             preferred_locale: result.user.preferred_locale || null,
           };
@@ -117,6 +119,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           user.name = existingOAuthUser.nickname || existingOAuthUser.email;
           user.nickname = existingOAuthUser.nickname;
           user.isAdmin = existingOAuthUser.is_admin || false;
+          user.isAdFree = existingOAuthUser.is_ad_free || false;
           user.emailVerified = existingOAuthUser.email_verified || false;
           user.preferred_locale = existingOAuthUser.preferred_locale || null;
           return true;
@@ -134,6 +137,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             user.name = updatedUser.nickname || updatedUser.email;
             user.nickname = updatedUser.nickname;
             user.isAdmin = updatedUser.is_admin || false;
+            user.isAdFree = updatedUser.is_ad_free || false;
             user.emailVerified = updatedUser.email_verified || false;
             user.preferred_locale = updatedUser.preferred_locale || null;
             return true;
@@ -150,6 +154,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           user.name = newUser.nickname || newUser.email;
           user.nickname = newUser.nickname;
           user.isAdmin = newUser.is_admin || false;
+          user.isAdFree = newUser.is_ad_free || false;
           user.emailVerified = newUser.email_verified || false;
           user.preferred_locale = newUser.preferred_locale || null;
           return true;
@@ -161,7 +166,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return true;
     },
     session: ({session, trigger, token, user }) => {
-      const pickedFields = pick(token, ['email', 'name', 'nickname', 'isAdmin', 'id', 'emailVerified', 'preferred_locale']);
+      const pickedFields = pick(token, ['email', 'name', 'nickname', 'isAdmin', 'isAdFree', 'id', 'emailVerified', 'preferred_locale']);
       session.user = {
         ...pickedFields,
         ...session.user,

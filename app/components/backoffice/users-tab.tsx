@@ -6,6 +6,7 @@ import {
   Chip,
   CircularProgress,
   Paper,
+  Switch,
   Table,
   TableBody,
   TableCell,
@@ -18,7 +19,7 @@ import {
 } from '@mui/material'
 import CheckIcon from '@mui/icons-material/Check'
 import CloseIcon from '@mui/icons-material/Close'
-import { getUsersPaginated } from '../../actions/user-actions'
+import { getUsersPaginated, toggleUserAdFreeAction } from '../../actions/user-actions'
 
 const PROVIDER_LABELS: Record<string, string> = {
   credentials: 'Password',
@@ -64,7 +65,7 @@ export default function UsersTab() {
     if (loading) {
       return (
         <TableRow>
-          <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+          <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
             <CircularProgress size={24} />
           </TableCell>
         </TableRow>
@@ -73,7 +74,7 @@ export default function UsersTab() {
     if (users.length === 0) {
       return (
         <TableRow>
-          <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+          <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
             <Typography variant="body2" color="text.secondary">
               No users found
             </Typography>
@@ -112,6 +113,29 @@ export default function UsersTab() {
               <CloseIcon fontSize="small" color="error" />
             )}
           </TableCell>
+          <TableCell>
+            <Switch
+              checked={user.is_ad_free ?? false}
+              size="small"
+              onChange={(e) => {
+                const newValue = e.target.checked
+                // Optimistic update
+                setUsers((prev) =>
+                  prev.map((u) =>
+                    u.id === user.id ? { ...u, is_ad_free: newValue } : u
+                  )
+                )
+                toggleUserAdFreeAction(user.id, newValue).catch(() => {
+                  // Revert on failure
+                  setUsers((prev) =>
+                    prev.map((u) =>
+                      u.id === user.id ? { ...u, is_ad_free: !newValue } : u
+                    )
+                  )
+                })
+              }}
+            />
+          </TableCell>
         </TableRow>
       )
     })
@@ -136,6 +160,7 @@ export default function UsersTab() {
               <TableCell>Login Method(s)</TableCell>
               <TableCell>Role</TableCell>
               <TableCell>Verified</TableCell>
+              <TableCell>Ad-Free</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

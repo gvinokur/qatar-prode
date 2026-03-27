@@ -443,7 +443,31 @@ Key flows:
 
 17. Backoffice Users tab
     UsersTab [Client] (self-fetching, no server props)
-      └── getUsersPaginated [server action] (on mount + search/page change)
-            ├── findUsersPaginated
-            └── countUsers
+      ├── getUsersPaginated [server action] (on mount + search/page change)
+      │     ├── findUsersPaginated
+      │     └── countUsers
+      └── toggleUserAdFreeAction [server action] (on Ad-Free switch toggle)
+            └── updateUserAdFreeStatus
+
+18. Ad sidebar (desktop)
+    LocaleLayout (Server)
+      └── AdSidebar [Client] (prop: isAdFree from session)
+            └── adsbygoogle.push() (on pathname change, window global)
+
+19. Ad modal (mobile)
+    LocaleLayout (Server)
+      └── AdModalController [Client]
+            ├── getAdSettingsAction [server action] (on mount)
+            │     └── getAdSettings
+            └── adsbygoogle.push() (when modal opens)
+
+20. Ad-free toggle
+    UsersTab [Client] → toggleUserAdFreeAction [server action] → updateUserAdFreeStatus
+
+21. Ad settings CRUD
+    AdSettingsTab [Client]
+      ├── getAdSettingsAction [server action] (on mount)
+      │     └── getAdSettings
+      └── updateAdSettingsAction [server action] (on save)
+            └── upsertAdSettings
 ```
