@@ -50,4 +50,5 @@ public/swe-worker*
 
 
 certificates
-.claude/
+.claude/settings.local.json
+.claude/worktrees/

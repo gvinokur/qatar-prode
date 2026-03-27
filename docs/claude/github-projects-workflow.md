@@ -95,6 +95,7 @@ This provides:
 - Aesthetics - Visual design, UI polish
 - Technical UX - Performance, error handling, loading states
 - i18n - Internationalization and localization
+- Admin - Backoffice and admin-facing features
 
 **Creating a new story:**
 
@@ -136,6 +137,7 @@ mutation {
       {name: "Aesthetics", color: PINK, description: ""}
       {name: "Technical UX", color: PURPLE, description: ""}
       {name: "i18n", color: GRAY, description: ""}
+      {name: "Admin", color: BLUE, description: ""}
       {name: "Performance", color: GREEN, description: ""}
     ]
   }) {
@@ -230,213 +232,11 @@ Present to user:
 
 ### 5. Planning Work
 
-**Trigger EnterPlanMode:**
-```typescript
-// Use EnterPlanMode tool to transition to plan mode
-```
-
-**Read story details:**
-```bash
-# Fetch full issue details
-gh issue view ${STORY_NUMBER} --json number,title,body,labels,milestone,projectItems
-
-# If story references a milestone, fetch milestone description
-gh api repos/<owner>/<repo>/milestones/<milestone_number> --jq '.description'
-
-# If story is linked to an epic, fetch epic details
-gh issue view <EPIC_NUMBER> --json body
-```
-
-**Research context:**
-- Read referenced documentation
-- Review acceptance criteria
-- Check related issues or dependencies
-- Search codebase for relevant files
-
-**Gather requirements (use AskUserQuestion):**
-- Ask clarifying questions
-- Confirm technical approach
-- Validate assumptions
-- Get decisions on implementation choices
-
-**Create plan document:**
-```bash
-mkdir -p plans
-PLAN_FILE="plans/STORY-${STORY_NUMBER}-plan.md"
-```
-
-**Plan structure:**
-```markdown
-# Plan: [Story Title] (#STORY_NUMBER)
-
-## Story Context
-- **Epic**: [Link to epic if applicable]
-- **Milestone**: [Milestone name and goals]
-- **Priority**: [High/Medium/Low]
-- **Size Estimate**: [S/M/L/XL]
-
-## Objective
-[Clear statement of what this story aims to accomplish]
-
-## Acceptance Criteria
-- [ ] Criterion 1
-- [ ] Criterion 2
-- [ ] Criterion 3
-
-## Technical Approach
-
-### Architecture Changes
-[Describe any new patterns or structural changes]
-
-### Files to Create
-- `path/to/new-file.ts` - Purpose
-
-### Files to Modify
-- `path/to/existing-file.ts` - Changes needed
-
-### Dependencies
-- New packages to install (if any)
-- Other stories that must be completed first
-
-## Implementation Steps
-1. [Step 1]
-2. [Step 2]
-3. [Step 3]
-
-## Testing Strategy
-- Unit tests for [specific components/functions]
-- Integration tests for [workflows]
-- Manual testing steps
-
-## Rollout Considerations
-- Breaking changes (if any)
-- Migration steps (if any)
-- Feature flags (if needed)
-
-## Open Questions
-[Any remaining unknowns]
-```
-
-**Commit and create PR for plan (using Bash subagent):**
-
-```typescript
-// First, fetch the actual issue title
-const issueTitle = await Bash({
-  command: `gh issue view ${STORY_NUMBER} --json title --jq '.title'`,
-  description: "Get issue title for PR"
-})
-
-// Launch Bash subagent to commit and create PR
-Task({
-  subagent_type: "Bash",
-  description: "Commit plan and create PR",
-  prompt: `Commit the implementation plan and create a PR.
-
-Execute these commands in sequence:
-
-1. Add plan file:
-git -C ${WORKTREE_PATH} add plans/STORY-${STORY_NUMBER}-plan.md
-
-2. Commit with co-author:
-git -C ${WORKTREE_PATH} commit -m "docs: add implementation plan for story #${STORY_NUMBER}
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
-
-3. Push to remote:
-git -C ${WORKTREE_PATH} push -u origin ${BRANCH_NAME}
-
-4. Create PR with proper issue linking:
-gh pr create --base main --head ${BRANCH_NAME} \\
-  --title "Plan: ${issueTitle} #${STORY_NUMBER}" \\
-  --body "Fixes #${STORY_NUMBER}
-
-Implementation plan for the story.
-
-## Summary
-This PR contains the implementation plan for the story.
-
-## Plan Document
-See \`plans/STORY-${STORY_NUMBER}-plan.md\` for full details.
-
-## Next Steps
-- Review and approve plan
-- Iterate on plan based on feedback
-- Execute plan once approved
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)"
-
-5. Optional: Update status to "Pending Review":
-./scripts/github-projects-helper status update ${STORY_NUMBER} "Pending Review" --project <PROJECT_NUMBER>
-
-Report back the PR number and URL.
-`
-})
-
-// Wait for subagent to complete
-// You remain IN PLAN MODE the entire time
-```
-
-**CRITICAL:**
-- **You are STILL IN PLAN MODE** - subagent handled git operations
-- **DO NOT call ExitPlanMode yet** - stay in plan mode for iterations
-- **DO NOT start writing code** - wait for user to say "execute the plan"
-- **DO NOT make any file changes** except to the plan document
-
-**Plan Iteration Phase:**
-- Remain in plan mode
-- Make updates to plan based on feedback
-- Use Bash subagent to commit and push changes to the same PR
-- Continue until user explicitly approves
-
-When user says "execute the plan":
-- **THEN call ExitPlanMode** to transition to implementation
+Invoke `/architect` — it contains the complete planning workflow (Steps 0-10), including context gathering, plan document creation, plan review via `/plan-reviewer`, and committing the plan as a DRAFT PR via `/git-ops` Section 1.
 
 ### 6. Executing the Plan
 
-**ONLY start when user explicitly says "execute the plan" or "start implementation"**
-
-**Pre-implementation verification:**
-```bash
-git worktree list
-git branch --show-current
-git worktree list | grep story-${STORY_NUMBER}
-```
-
-**Exit plan mode:**
-```typescript
-// Use ExitPlanMode tool to exit plan mode
-```
-
-**Read approved plan:**
-```bash
-cat plans/STORY-${STORY_NUMBER}-plan.md
-```
-
-**Implement according to plan:**
-- Follow implementation steps in order
-- Create/modify files as specified
-- Write tests as outlined
-- Use TodoWrite tool to track progress
-
-**Commit Policy:**
-- ❌ NEVER commit code without user verification
-- ❌ NEVER commit automatically after each change
-- ✅ Only commit when user explicitly asks
-- ✅ Only commit when user says they've verified locally
-
-**When user asks to commit:**
-```bash
-# Verify branch first
-git -C ${WORKTREE_PATH} branch --show-current
-
-# If "main" → STOP and ASK USER
-# If feature branch → Proceed
-
-git -C ${WORKTREE_PATH} add .
-git -C ${WORKTREE_PATH} commit -m "<descriptive message>
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
-```
+Invoke `/implementer` — it contains the complete implementation workflow (Sections 1-9), including task definition, wave-based execution, validation, and Vercel Preview deployment.
 
 ### 7. Pushing and Waiting for Checks
 
