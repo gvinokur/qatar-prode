@@ -5,9 +5,8 @@ import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 
 declare global {
-  interface Window {
-    adsbygoogle: { pauseAdRequests?: number } & unknown[]
-  }
+  // eslint-disable-next-line no-var
+  var adsbygoogle: ({ pauseAdRequests?: number } & unknown[]) | undefined
 }
 
 /**
