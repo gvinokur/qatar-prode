@@ -475,4 +475,68 @@ Note: the `is_ad_free` column has NOT NULL DEFAULT FALSE, so all three Google pa
 
 ## Implementation Amendments
 
-*(Added during implementation when deviations from plan are discovered)*
+---
+
+### Amendment 1 — Replace custom ad components with AdSense Auto Ads
+
+**Date:** 2026-03-28
+**Trigger:** Post-implementation AdSense policy research (via Gemini) revealed two blockers.
+
+#### Problems with the original plan
+
+**1. Custom modal violates AdSense policy**
+The `AdModalController` component places a standard AdSense display `ins` unit inside a custom MUI `Dialog`. This is explicitly prohibited by the [AdSense ad placement policy](https://support.google.com/adsense/answer/1346295): only Google-provided overlay formats (vignette, anchor) may appear as overlays. Custom modals containing AdSense units risk account suspension.
+
+**2. Sidebar cannot appear on tournament pages**
+The tournament layout uses a fixed-height scroll model (`height: calc(100vh - 56px)` → `flexGrow: 1` → `height: 100%` chain into `ScrollShadowContainer`). Every attempt to add a flex sibling to the content Box broke scrolling. The tournament page also already has `TournamentSidebar` occupying the right column, leaving no room for a 300px ad sidebar without making content too narrow.
+
+**3. Manual sidebar only visible on xl screens (≥1536px)**
+After accounting for the 1200px content + 300px sidebar, the breakpoint had to be raised to `xl` (1536px), drastically reducing the audience who see desktop ads.
+
+#### What changes
+
+| | Original Plan | Amendment |
+|---|---|---|
+| Mobile ads | Custom MUI Dialog modal, frequency via localStorage + DB | Auto Ads **vignette** (full-screen between transitions, Google-managed) |
+| Desktop ads | Manual sticky 300px sidebar (xl+ only, non-tournament only) | Auto Ads **side rail** + **anchor** (Google-managed, works on all pages) |
+| Tournament pages | No ads (layout incompatible) | Auto Ads overlays work on all pages, no layout changes needed |
+| Ad frequency control | Admin-configurable via `ad_settings` DB table | Managed in AdSense account UI |
+| SPA page view signaling | Per-component `adsbygoogle.push()` on pathname change | Single global `usePathname` hook calling `push({})` on every route change |
+
+#### What is removed
+
+- `app/components/ads/ad-sidebar.tsx` — deleted
+- `app/components/ads/ad-modal-controller.tsx` — deleted
+- `app/components/backoffice/ad-settings-tab.tsx` — deleted
+- `app/actions/ad-settings-actions.ts` — deleted
+- `app/db/ad-settings-repository.ts` — deleted
+- `ad_settings` DB table + migration — kept in DB (harmless), but no longer read or written
+- `app/[locale]/backoffice/page.tsx` — remove "Ad Settings" tab
+- `app/[locale]/layout.tsx` — remove flex wrapper, AdSidebar, AdModalController; keep AdSense script tag
+
+#### What is added
+
+- `app/components/ads/adsense-page-view-tracker.tsx` *(new)* — minimal Client Component, uses `usePathname` to call `(window.adsbygoogle = window.adsbygoogle || []).push({})` on every SPA route change, signaling virtual page views to Auto Ads
+- Mounted once inside `LocaleLayout` alongside the existing AdSense `<Script>` tag
+
+#### What is unchanged
+
+- `is_ad_free` DB column, session propagation through NextAuth, `isAdFree` on JWT/session
+- `toggleUserAdFreeAction` + backoffice Users tab Ad-Free Switch — still needed to suppress Auto Ads per user (done by not loading the AdSense script for ad-free users)
+- AdSense `<Script strategy="afterInteractive">` in locale layout `<head>`
+
+#### AdSense account configuration required (no code)
+
+After account approval, enable in AdSense UI:
+- **Auto ads → Single-page app support** — enables URL-change detection
+- **Auto ads → Allow additional triggers for vignette ads** — enables vignette on inactivity, back button, tab events
+- **Auto ads → Anchor ads** — sticky bottom banner (mobile-first, high viewability)
+- **Auto ads → Vignette ads** — full-screen between transitions (highest RPM)
+- **Auto ads → Side rail ads** — desktop sidebar (Google-managed, no layout code needed)
+
+#### Open questions resolved by this amendment
+
+- ~~Ad refresh behavior~~ — handled by Auto Ads automatically
+- ~~Modal slot ID~~ — no longer needed
+- ~~Sidebar slot ID~~ — no longer needed (side rail is Auto Ads, not manual)
+- `ca-pub-XXXX` publisher ID still required for the script tag
