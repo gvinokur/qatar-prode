@@ -32,10 +32,17 @@ export async function generateMetadata(
   // Determine alternate locale
   const alternateLocale = locale === 'es' ? 'en' : 'es'
 
+  const adSenseAccount = process.env.NEXT_PUBLIC_ADSENSE_ACCOUNT
+
   return {
     title: appName,
     description: appDescription,
     manifest: `/${locale}/manifest.webmanifest`,
+    ...(adSenseAccount && {
+      other: {
+        'google-adsense-account': adSenseAccount,
+      },
+    }),
     metadataBase: new URL(appUrl),
     alternates: {
       canonical: `/${locale}`,
