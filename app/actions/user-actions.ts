@@ -17,7 +17,8 @@ import {
   deleteUser,
   userHasPasswordAuth,
   findUsersPaginated,
-  countUsers
+  countUsers,
+  updateUserAdFreeStatus
 } from "../db/users-repository"
 import {generatePasswordResetEmail, generateVerificationEmail} from "../utils/email-templates";
 import {sendEmail} from "../utils/email";
@@ -335,4 +336,12 @@ export async function getUsersPaginated(search: string, page: number, pageSize: 
   ])
 
   return { users, total }
+}
+
+export async function toggleUserAdFreeAction(userId: string, isAdFree: boolean): Promise<void> {
+  const user = await getLoggedInUser()
+  if (!user?.isAdmin) {
+    throw new Error('Unauthorized')
+  }
+  await updateUserAdFreeStatus(userId, isAdFree)
 }

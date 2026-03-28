@@ -20,6 +20,7 @@ import TournamentGameManagerTab from "../../components/backoffice/tournament-gam
 import PlayersTab from "../../components/backoffice/PlayersTab";
 import NotificationSender from "../../components/backoffice/notification-sender";
 import UsersTab from "../../components/backoffice/users-tab";
+
 import TournamentThirdPlaceRulesTab from "../../components/backoffice/tournament-third-place-rules-tab";
 import TournamentScoringConfigTab from "../../components/backoffice/tournament-scoring-config-tab";
 

@@ -2,13 +2,19 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-09
+**Last updated:** 2026-03-28
 
 ---
 
 ## Files
 
-Perfect! Now I have all the information needed. Let me compile the comprehensive report:
+### app/components/ads/adsense-page-view-tracker.tsx
+SPA page-view signal component for Google AdSense Auto Ads. [Client] fires on every route change.
+- **AdSensePageViewTracker()**: `null` — [Client] Renders nothing. On each `pathname` change, calls `(window.adsbygoogle = window.adsbygoogle || []).push({})` so vignette and anchor Auto Ads fire on client-side navigation. No-ops when `NEXT_PUBLIC_ADSENSE_CLIENT_ID` is unset.
+  Uses: usePathname, useEffect, useSession
+  Calls: adsbygoogle.push({}), adsbygoogle.pauseAdRequests = X
+
+---
 
 ---
 

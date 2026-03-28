@@ -43,7 +43,7 @@ export const findAllUsers = cache(async function () {
 
 export async function findUsersPaginated(search: string, page: number, pageSize: number) {
   let query = db.selectFrom('users')
-    .select(['id', 'email', 'nickname', 'is_admin', 'auth_providers', 'email_verified'])
+    .select(['id', 'email', 'nickname', 'is_admin', 'is_ad_free', 'auth_providers', 'email_verified'])
     .orderBy('email', 'asc')
     .limit(pageSize)
     .offset(page * pageSize)
@@ -438,6 +438,10 @@ export async function verifyOTP(email: string, code: string): Promise<{
   // Return updated user
   const updatedUser = await findUserById(user.id);
   return { success: true, user: updatedUser };
+}
+
+export async function updateUserAdFreeStatus(userId: string, isAdFree: boolean): Promise<User> {
+  return updateUser(userId, { is_ad_free: isAdFree });
 }
 
 /**

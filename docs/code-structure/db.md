@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-26
+**Last updated:** 2026-03-28
 
 ---
 
@@ -25,6 +25,11 @@ Includes `TournamentScoreHistoryTable` for the `tournament_score_history` table 
 - **TournamentScoreHistoryTable**: Interface with `id`, `user_id`, `tournament_id`, `snapshot_date` (YYYYMMDD integer), six score segment columns, `total_points` (Generated — GENERATED ALWAYS computed), `created_at`.
 - **TournamentScoreHistory**: `Selectable<TournamentScoreHistoryTable>` — full row shape.
 - **TournamentScoreHistoryNew**: `Omit<Insertable<...>, 'id' | 'total_points' | 'created_at'>` — insert shape without auto-generated fields.
+- **AdSettingsTable**: Interface with `id`, `modal_min_minutes_between`, `modal_min_pageviews_between`, `created_at`, `updated_at`.
+- **AdSettings**: `Selectable<AdSettingsTable>` — full row shape.
+- **AdSettingsUpdate**: `Updateable<AdSettingsTable>` — update shape.
+
+`UserTable` includes `is_ad_free?: boolean` (NOT NULL DEFAULT FALSE in DB — optional in TypeScript because it is omitted from inserts by default).
 
 Note: `yesterday_tournament_score`, `yesterday_total_game_score`, `yesterday_boost_bonus`, and `last_score_update_date` fields were removed from `TournamentGuessTable` in Story #278. Rank-change tracking now uses `tournament_score_history` snapshots (Story #272/#277).
 
@@ -296,7 +301,8 @@ Repository for users table. Manages user accounts, authentication (password, OAu
 - **findUserByNickname(nickname: string)**: `Promise<User | undefined>` — Finds by nickname (cached).
 - **findUsersByIds(userIds: string[])**: `Promise<User[]>` — Finds multiple by IDs (cached).
 - **findAllUsers()**: `Promise<User[]>` — Finds all users sorted by email (cached).
-- **findUsersPaginated(search: string, page: number, pageSize: number)**: `Promise<Pick<User, 'id' | 'email' | 'nickname' | 'is_admin' | 'auth_providers' | 'email_verified'>[]>` — Finds users with optional ILIKE filter on nickname/email, ordered by email, paginated.
+- **findUsersPaginated(search: string, page: number, pageSize: number)**: `Promise<Pick<User, 'id' | 'email' | 'nickname' | 'is_admin' | 'is_ad_free' | 'auth_providers' | 'email_verified'>[]>` — Finds users with optional ILIKE filter on nickname/email, ordered by email, paginated.
+- **updateUserAdFreeStatus(userId: string, isAdFree: boolean)**: `Promise<User>` — Updates is_ad_free for a user. Propagates error from updateUser if user not found.
 - **countUsers(search: string)**: `Promise<number>` — Counts users matching optional ILIKE filter on nickname/email.
 - **findUserByResetToken(token: string)**: `Promise<User | undefined>` — Finds by password reset token.
 - **getPasswordHash(password: string)**: `string` — Hashes password with salt.

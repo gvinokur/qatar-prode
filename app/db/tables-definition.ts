@@ -126,6 +126,8 @@ export interface UserTable extends Identifiable{
   otp_last_request?: Date | null  // Rate limiting (1 per minute)
   // i18n fields
   preferred_locale?: string | null  // User's preferred language ('en' or 'es')
+  // Ad fields
+  is_ad_free?: boolean  // When true, ads are not shown to this user
 }
 
 export type User = Selectable<UserTable>
@@ -622,3 +624,15 @@ export type TournamentScoreHistoryNew = Omit<
   Insertable<TournamentScoreHistoryTable>,
   'id' | 'total_points' | 'created_at'
 >
+
+// Singleton table for global ad display settings
+export interface AdSettingsTable {
+  id: Generated<string>
+  modal_min_minutes_between: number
+  modal_min_pageviews_between: number
+  created_at: Generated<Date>
+  updated_at: Generated<Date>
+}
+
+export type AdSettings = Selectable<AdSettingsTable>
+export type AdSettingsUpdate = Updateable<AdSettingsTable>

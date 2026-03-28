@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-26
+**Last updated:** 2026-03-28
 
 ---
 
@@ -55,9 +55,9 @@ Locale-specific layout that sets up i18n providers, theme, and session context.
 - **generateStaticParams()**: `Array` — [Server] Returns static locale parameters for SSG (en, es).
 - **generateMetadata({ params })**: `Metadata` — [Server] Generates locale-specific metadata with alternate language links.
   Calls: getTranslations
-- **LocaleLayout({ children, params })**: `JSX.Element` — [Server] Sets up locale context, theme providers, session wrapper, header, and footer.
+- **LocaleLayout({ children, params })**: `JSX.Element` — [Server] Sets up locale context, theme providers, session wrapper, header, footer, and AdSense Auto Ads. AdSense Script loaded afterInteractive when NEXT_PUBLIC_ADSENSE_CLIENT_ID is set and user is NOT ad-free. Mounts AdSensePageViewTracker to signal virtual page views on SPA navigation.
   Calls: getLoggedInUser, getMessages, getTranslations
-  Renders: NextIntlClientProvider, TimezoneProvider, CountdownProvider, NextThemeProvider, ThemeProvider, SessionWrapper, ConditionalHeader, Header, Footer, InstallPwa, OfflineDetection
+  Renders: NextIntlClientProvider, TimezoneProvider, CountdownProvider, NextThemeProvider, ThemeProvider, SessionWrapper, ConditionalHeader, Header, AdSensePageViewTracker, Footer, InstallPwa, OfflineDetection
 
 ### app/[locale]/page.tsx
 Home/landing page that conditionally shows onboarding or redirects to first tournament.

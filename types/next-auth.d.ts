@@ -9,6 +9,7 @@ declare module "next-auth" {
       id: string
       nickname: string | null
       isAdmin: boolean
+      isAdFree: boolean
       emailVerified: boolean
       preferred_locale?: string | null
     } & DefaultSession["user"]
@@ -22,6 +23,7 @@ declare module "next-auth" {
     id: string
     nickname: string | null
     isAdmin: boolean
+    isAdFree: boolean
     emailVerified: boolean
     preferred_locale?: string | null
   }
@@ -33,6 +35,7 @@ declare module "next-auth/jwt" {
     id: string
     nickname: string | null
     isAdmin: boolean
+    isAdFree: boolean
     emailVerified: boolean
     preferred_locale?: string | null
   }

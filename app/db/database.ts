@@ -21,7 +21,8 @@ import {
   ProdeGroupTournamentBettingTable,
   ProdeGroupTournamentBettingPaymentTable,
   ShortUrlTable,
-  TournamentScoreHistoryTable
+  TournamentScoreHistoryTable,
+  AdSettingsTable
 } from "./tables-definition";
 
 export interface Database {
@@ -59,6 +60,8 @@ export interface Database {
   prode_group_tournament_betting_payments: ProdeGroupTournamentBettingPaymentTable
 
   tournament_score_history: TournamentScoreHistoryTable
+
+  ad_settings: AdSettingsTable
 }
 
 export const db= createKysely<Database>();

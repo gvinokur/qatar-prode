@@ -19,6 +19,7 @@ import {
   ProdeGroupTournamentBetting,
   ProdeGroupTournamentBettingPayment,
   TournamentScoreHistory,
+
 } from '../../app/db/tables-definition';
 
 /**
@@ -136,6 +137,7 @@ export const testFactories = {
     nickname: 'TestUser',
     password_hash: 'hashed_password_123',
     is_admin: false,
+    is_ad_free: false,
     reset_token: null,
     reset_token_expiration: null,
     email_verified: true,

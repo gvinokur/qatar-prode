@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-26
+**Last updated:** 2026-03-28
 
 ---
 
@@ -87,11 +87,11 @@ Flippable card showing game or edit form with 3D animation. [Client] interactive
   Renders: CompactGameViewCard, BackofficeGameResultEditControls, Card, Box
 
 ### app/components/backoffice/users-tab.tsx
-Read-only admin user list with search and pagination. [Client] self-fetching via Server Action.
-- **UsersTab()**: `JSX.Element` — [Client] Paginated, searchable table of all users for backoffice. No props — fetches via `getUsersPaginated` Server Action. 300ms debounced search, page reset on search change. Columns: Display Name, Email, Login Method(s) (Chip per provider), Role (Admin/User), Verified (CheckIcon/CloseIcon). Does not render sensitive fields (password_hash, tokens).
-  Calls: getUsersPaginated
+Admin user list with search, pagination, and ad-free toggle. [Client] self-fetching via Server Action.
+- **UsersTab()**: `JSX.Element` — [Client] Paginated, searchable table of all users for backoffice. No props — fetches via `getUsersPaginated`. Columns: Display Name, Email, Login Method(s), Role, Verified, Ad-Free (Switch with optimistic update, reverts on error).
+  Calls: getUsersPaginated, toggleUserAdFreeAction
   Uses: useState, useEffect
-  Renders: TextField (search), Table, TablePagination, Chip, CheckIcon, CloseIcon, CircularProgress
+  Renders: TextField (search), Table, TablePagination, Switch, Chip, CheckIcon, CloseIcon, CircularProgress
 
 ### app/components/backoffice/PlayersTab.tsx
 Player management with Transfermarkt import. [Client] import interface and player list.
