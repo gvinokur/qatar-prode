@@ -34,13 +34,18 @@ Service worker configuration using Serwist for PWA offline support and push noti
 i18n and authentication routing middleware.
 
 - **detectLocale(request)**: `Promise<Locale>` — [Server] Detects user locale from cookie, user preference, Accept-Language header, or defaults to configured default locale.
-  Calls: auth
-- **middleware(request)**: `NextResponse | undefined` — [Server] Handles locale routing, authentication checks, and legacy route redirects.
+  Calls: auth, parseAcceptLanguage, matchLocale
+- **middleware(request)**: `NextResponse` — [Server] Handles locale routing, authentication checks, and legacy route redirects.
   Calls: detectLocale, auth
+- **config**: `Object` — Next.js middleware matcher configuration; applies middleware to all routes except API, static files, and asset paths.
 
 ### auth.ts
 Root NextAuth.js configuration. Exports `handlers`, `signIn`, `signOut`, `auth` for use throughout the app.
 
+- **handlers**: `Object` — NextAuth.js GET/POST route handlers; re-exported by `app/api/auth/[...nextauth]/route.ts`.
+- **signIn**: `Function` — Initiates sign-in with a given provider; used in auth Server Actions.
+- **signOut**: `Function` — Initiates sign-out; used in auth Server Actions.
+- **auth**: `Function` — Returns the current session (or null); used throughout Server Components and middleware.
 - **authorize (credentials)**: `Promise<User | null>` — [Server] Validates email+password against stored hash; returns user object with `isAdFree`, `isAdmin`, `emailVerified`, `nickname`, `preferred_locale`, or `null` on mismatch.
   Calls: findUserByEmail, getPasswordHash
 - **authorize (otp)**: `Promise<User | null>` — [Server] Validates OTP code; clears OTP on success; returns user object including `isAdFree`, or `null` on failed verification.
