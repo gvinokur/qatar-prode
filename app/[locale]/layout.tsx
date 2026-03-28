@@ -118,7 +118,7 @@ export default async function LocaleLayout({
                     <Footer message={`${appName} © 2025`} />
                     <InstallPwa />
                     <OfflineDetection />
-                    {!user?.isAdFree && <AdSensePageViewTracker />}
+                    <AdSensePageViewTracker />
                   </SessionWrapper>
                 </ThemeProvider>
               </NextThemeProvider>

@@ -2,29 +2,44 @@
 
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 
 declare global {
   interface Window {
-    adsbygoogle: unknown[]
+    adsbygoogle: { pauseAdRequests?: number } & unknown[]
   }
 }
 
 /**
- * Signals a virtual page view to Google AdSense Auto Ads on every route change.
- * Required for SPAs so vignette and anchor ads fire on client-side navigation.
- * Only active when NEXT_PUBLIC_ADSENSE_CLIENT_ID is configured.
+ * Manages Google AdSense Auto Ads for SPA navigation.
+ *
+ * Two responsibilities:
+ * 1. Signals virtual page views on each route change so vignette/anchor ads
+ *    fire correctly on client-side navigation.
+ * 2. Pauses ad requests for ad-free users — handles the edge case where the
+ *    script loaded while the user was unauthenticated and they then logged in
+ *    as an ad-free user within the same browser session.
  */
 export default function AdSensePageViewTracker() {
   const pathname = usePathname()
+  const { data: session } = useSession()
+  const isAdFree = session?.user?.isAdFree ?? false
 
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID) return
     try {
-      ;(window.adsbygoogle = window.adsbygoogle || []).push({})
+      if (isAdFree) {
+        // Script may have loaded while unauthenticated — pause it now
+        window.adsbygoogle = window.adsbygoogle || []
+        window.adsbygoogle.pauseAdRequests = 1
+      } else {
+        window.adsbygoogle.pauseAdRequests = 0
+        ;(window.adsbygoogle = window.adsbygoogle || []).push({})
+      }
     } catch {
-      // adsbygoogle not yet loaded — Auto Ads handles this on its own init
+      // adsbygoogle not yet loaded — no-op
     }
-  }, [pathname])
+  }, [pathname, isAdFree])
 
   return null
 }
