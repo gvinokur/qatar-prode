@@ -34,9 +34,33 @@ Service worker configuration using Serwist for PWA offline support and push noti
 i18n and authentication routing middleware.
 
 - **detectLocale(request)**: `Promise<Locale>` — [Server] Detects user locale from cookie, user preference, Accept-Language header, or defaults to configured default locale.
-  Calls: auth
-- **middleware(request)**: `NextResponse | undefined` — [Server] Handles locale routing, authentication checks, and legacy route redirects.
+  Calls: auth, parseAcceptLanguage, matchLocale
+- **middleware(request)**: `NextResponse` — [Server] Handles locale routing, authentication checks, and legacy route redirects.
   Calls: detectLocale, auth
+- **config**: `Object` — Next.js middleware matcher configuration; applies middleware to all routes except API, static files, and asset paths.
+
+### auth.ts
+Root NextAuth.js configuration. Exports `handlers`, `signIn`, `signOut`, `auth` for use throughout the app.
+
+- **handlers**: `Object` — NextAuth.js GET/POST route handlers; re-exported by `app/api/auth/[...nextauth]/route.ts`.
+- **signIn**: `Function` — Initiates sign-in with a given provider; used in auth Server Actions.
+- **signOut**: `Function` — Initiates sign-out; used in auth Server Actions.
+- **auth**: `Function` — Returns the current session (or null); used throughout Server Components and middleware.
+- **authorize (credentials)**: `Promise<User | null>` — [Server] Validates email+password against stored hash; returns user object with `isAdFree`, `isAdmin`, `emailVerified`, `nickname`, `preferred_locale`, or `null` on mismatch.
+  Calls: findUserByEmail, getPasswordHash
+- **authorize (otp)**: `Promise<User | null>` — [Server] Validates OTP code; clears OTP on success; returns user object including `isAdFree`, or `null` on failed verification.
+  Calls: verifyOTP, clearOTP
+- **signIn callback**: `Promise<boolean>` — [Server] Handles Google OAuth flow: finds existing linked account, merges with matching email, or creates new OAuth user; populates `user` object including `isAdFree`. Returns `false` if user creation fails.
+  Calls: findUserByOAuthAccount, findUserByEmail, linkOAuthAccount, createOAuthUser
+- **session callback**: `Session` — [Server] Picks `isAdFree`, `isAdmin`, `nickname`, `emailVerified`, `preferred_locale`, `id` from JWT token into `session.user`.
+- **jwt callback**: `JWT` — [Server] Merges user fields (including `isAdFree`) into JWT token on sign-in or session update trigger. Returns merged `JWT`.
+
+### types/next-auth.d.ts
+TypeScript module augmentation for NextAuth.js. Extends `Session`, `User`, and `JWT` interfaces with app-specific fields including `isAdFree`.
+
+- **Session.user**: extends `DefaultSession["user"]` with `id: string`, `nickname: string | null`, `isAdmin: boolean`, `isAdFree: boolean`, `emailVerified: boolean`, `preferred_locale?: string | null`
+- **User**: `id: string`, `nickname: string | null`, `isAdmin: boolean`, `isAdFree: boolean`, `emailVerified: boolean`, `preferred_locale?: string | null`
+- **JWT**: `id: string`, `nickname: string | null`, `isAdmin: boolean`, `isAdFree: boolean`, `emailVerified: boolean`, `preferred_locale?: string | null`
 
 ### app/api/auth/[...nextauth]/route.ts
 NextAuth.js route handler that exports authentication endpoints.

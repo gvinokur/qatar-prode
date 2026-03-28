@@ -116,9 +116,6 @@ export default async function middleware(request: NextRequest) {
     return intlResponse;
   }
 
-  // 5b. Expose pathname to Server Components via response header
-  intlResponse.headers.set('x-pathname', pathname);
-
   // 6. Exclude public auth routes from NextAuth protection
   const isPublicRoute = pathname.match(/^\/[^/]+\/auth/) || pathname.match(/^\/[^/]+\/verify-email/);
   if (isPublicRoute) {
