@@ -38,6 +38,25 @@ i18n and authentication routing middleware.
 - **middleware(request)**: `NextResponse | undefined` — [Server] Handles locale routing, authentication checks, and legacy route redirects.
   Calls: detectLocale, auth
 
+### auth.ts
+Root NextAuth.js configuration. Exports `handlers`, `signIn`, `signOut`, `auth` for use throughout the app.
+
+- **authorize (credentials)**: `Promise<User | null>` — [Server] Validates email+password against stored hash; returns user object with `isAdFree`, `isAdmin`, `emailVerified`, `nickname`, `preferred_locale`, or `null` on mismatch.
+  Calls: findUserByEmail, getPasswordHash
+- **authorize (otp)**: `Promise<User | null>` — [Server] Validates OTP code; clears OTP on success; returns user object including `isAdFree`, or `null` on failed verification.
+  Calls: verifyOTP, clearOTP
+- **signIn callback**: `Promise<boolean>` — [Server] Handles Google OAuth flow: finds existing linked account, merges with matching email, or creates new OAuth user; populates `user` object including `isAdFree`. Returns `false` if user creation fails.
+  Calls: findUserByOAuthAccount, findUserByEmail, linkOAuthAccount, createOAuthUser
+- **session callback**: `Session` — [Server] Picks `isAdFree`, `isAdmin`, `nickname`, `emailVerified`, `preferred_locale`, `id` from JWT token into `session.user`.
+- **jwt callback**: `JWT` — [Server] Merges user fields (including `isAdFree`) into JWT token on sign-in or session update trigger. Returns merged `JWT`.
+
+### types/next-auth.d.ts
+TypeScript module augmentation for NextAuth.js. Extends `Session`, `User`, and `JWT` interfaces with app-specific fields including `isAdFree`.
+
+- **Session.user**: extends `DefaultSession["user"]` with `id: string`, `nickname: string | null`, `isAdmin: boolean`, `isAdFree: boolean`, `emailVerified: boolean`, `preferred_locale?: string | null`
+- **User**: `id: string`, `nickname: string | null`, `isAdmin: boolean`, `isAdFree: boolean`, `emailVerified: boolean`, `preferred_locale?: string | null`
+- **JWT**: `id: string`, `nickname: string | null`, `isAdmin: boolean`, `isAdFree: boolean`, `emailVerified: boolean`, `preferred_locale?: string | null`
+
 ### app/api/auth/[...nextauth]/route.ts
 NextAuth.js route handler that exports authentication endpoints.
 

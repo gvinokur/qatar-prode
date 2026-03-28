@@ -146,6 +146,25 @@ Configured for Vercel deployment:
 
 ---
 
+## AdSense Integration
+
+Google AdSense Auto Ads are loaded conditionally for non-ad-free users.
+
+**Script loading flow:**
+1. `app/[locale]/layout.tsx` (Server Component) checks `process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && !user?.isAdFree` before rendering the `<Script>` tag — ad-free users never receive the script
+2. `AdSensePageViewTracker` (Client Component, always mounted) fires `adsbygoogle.push({})` on each SPA pathname change for non-ad-free sessions, or sets `adsbygoogle.pauseAdRequests = 1` for ad-free users — handles mid-session login/logout without requiring a hard refresh
+
+**`isAdFree` propagation chain:**
+- Stored as `is_ad_free: boolean` in the `users` table
+- All four auth paths (password, OTP, Google OAuth existing/new) read `is_ad_free` from the DB and set `user.isAdFree` — see `auth.ts`
+- `auth.ts` JWT callback merges `isAdFree` into the JWT token; session callback picks it into `session.user`
+- `types/next-auth.d.ts` extends `Session.user`, `User`, and `JWT` with `isAdFree: boolean` for type safety
+- Admins toggle per-user ad-free status in the Backoffice → Users tab via `toggleUserAdFreeAction`
+
+**Graceful degradation:** If `NEXT_PUBLIC_ADSENSE_CLIENT_ID` is absent (dev/test), no script loads and the tracker is a no-op.
+
+---
+
 ## Quick References
 
 - **[Critical Patterns Quick Reference](patterns.md)** - Top 5 patterns with ✅/❌ examples
