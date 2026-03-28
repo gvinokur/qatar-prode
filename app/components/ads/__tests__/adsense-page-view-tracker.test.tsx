@@ -12,7 +12,6 @@ vi.mock('next-auth/react', () => ({
   useSession: vi.fn(),
 }))
 
-import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 
 describe('AdSensePageViewTracker', () => {
