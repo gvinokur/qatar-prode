@@ -20,7 +20,7 @@ import TournamentGameManagerTab from "../../components/backoffice/tournament-gam
 import PlayersTab from "../../components/backoffice/PlayersTab";
 import NotificationSender from "../../components/backoffice/notification-sender";
 import UsersTab from "../../components/backoffice/users-tab";
-import AdSettingsTab from "../../components/backoffice/ad-settings-tab";
+
 import TournamentThirdPlaceRulesTab from "../../components/backoffice/tournament-third-place-rules-tab";
 import TournamentScoringConfigTab from "../../components/backoffice/tournament-scoring-config-tab";
 
@@ -86,7 +86,6 @@ export default async function Backoffice() {
           ),
           createActionTab(<CreateTournamentButton key='create-tournament' />),
           createTab('Users', <UsersTab />),
-          createTab('Ad Settings', <AdSettingsTab />),
           createTab('Notifications', <NotificationSender />)
         ]
       }/>

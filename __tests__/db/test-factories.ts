@@ -19,7 +19,7 @@ import {
   ProdeGroupTournamentBetting,
   ProdeGroupTournamentBettingPayment,
   TournamentScoreHistory,
-  AdSettings,
+
 } from '../../app/db/tables-definition';
 
 /**
@@ -144,15 +144,6 @@ export const testFactories = {
     verification_token: null,
     verification_token_expiration: null,
     notification_subscriptions: null,
-    ...overrides,
-  }),
-
-  adSettings: (overrides?: Partial<AdSettings>): AdSettings => ({
-    id: 'ad-settings-1',
-    modal_min_minutes_between: 30,
-    modal_min_pageviews_between: 10,
-    created_at: new Date('2026-03-27'),
-    updated_at: new Date('2026-03-27'),
     ...overrides,
   }),
 

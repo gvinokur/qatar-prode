@@ -2,7 +2,6 @@ import {NextIntlClientProvider} from 'next-intl';
 import {getMessages, getTranslations} from 'next-intl/server';
 import {Metadata} from 'next';
 import Script from 'next/script';
-import { headers } from 'next/headers';
 import SessionWrapper from "../components/session-wrapper";
 import ThemeProvider from "../components/context-providers/theme-provider";
 import NextThemeProvider from '../components/context-providers/next-theme-wrapper-provider';
@@ -14,8 +13,7 @@ import {getLoggedInUser} from "../actions/user-actions";
 import { TimezoneProvider } from '../components/context-providers/timezone-context-provider';
 import { CountdownProvider } from '../components/context-providers/countdown-context-provider';
 import Footer from '../components/home/footer';
-import AdSidebar from '../components/ads/ad-sidebar';
-import AdModalController from '../components/ads/ad-modal-controller';
+import AdSensePageViewTracker from '../components/ads/adsense-page-view-tracker';
 
 export function generateStaticParams() {
   return [{ locale: 'en' }, { locale: 'es' }];
@@ -83,9 +81,6 @@ export default async function LocaleLayout({
   const user = await getLoggedInUser();
   const messages = await getMessages();
   const t = await getTranslations({ locale, namespace: 'common' })
-  const headersList = await headers();
-  const pathname = headersList.get('x-pathname') ?? '';
-  const isTournamentPage = /\/tournaments\//.test(pathname);
 
   const appName = t('app.name')
 
@@ -119,18 +114,11 @@ export default async function LocaleLayout({
                     <ConditionalHeader>
                       <Header user={user}/>
                     </ConditionalHeader>
-                    {isTournamentPage ? children : (
-                      <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          {children}
-                        </div>
-                        <AdSidebar isAdFree={user?.isAdFree ?? false} />
-                      </div>
-                    )}
+                    {children}
                     <Footer message={`${appName} © 2025`} />
                     <InstallPwa />
                     <OfflineDetection />
-                    <AdModalController />
+                    <AdSensePageViewTracker />
                   </SessionWrapper>
                 </ThemeProvider>
               </NextThemeProvider>

@@ -93,13 +93,6 @@ Admin user list with search, pagination, and ad-free toggle. [Client] self-fetch
   Uses: useState, useEffect
   Renders: TextField (search), Table, TablePagination, Switch, Chip, CheckIcon, CloseIcon, CircularProgress
 
-### app/components/backoffice/ad-settings-tab.tsx
-Admin form for modal ad frequency settings. [Client] reads and saves via Server Actions.
-- **AdSettingsTab()**: `JSX.Element` — [Client] Two number inputs for modal min minutes and min pageviews. Fetches current settings on mount. Saves via `updateAdSettingsAction`. Shows success/error Snackbar.
-  Calls: getAdSettingsAction, updateAdSettingsAction
-  Uses: useState, useEffect
-  Renders: TextField (minMinutes), TextField (minPageviews), Button, Snackbar, Alert, Paper, Typography
-
 ### app/components/backoffice/PlayersTab.tsx
 Player management with Transfermarkt import. [Client] import interface and player list.
 - **PlayersTab({ tournamentId }: { readonly tournamentId: string })**: `JSX.Element` — [Client] Displays teams with player lists and Transfermarkt import dialog.

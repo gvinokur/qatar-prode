@@ -26,7 +26,7 @@ Includes `TournamentScoreHistoryTable` for the `tournament_score_history` table 
 - **TournamentScoreHistory**: `Selectable<TournamentScoreHistoryTable>` — full row shape.
 - **TournamentScoreHistoryNew**: `Omit<Insertable<...>, 'id' | 'total_points' | 'created_at'>` — insert shape without auto-generated fields.
 
-`UserTable` includes `is_ad_free?: boolean` (NOT NULL DEFAULT FALSE in DB — optional in TypeScript because it is omitted from inserts by default). `AdSettingsTable` (Story #295): singleton settings table with `id`, `modal_min_minutes_between: number`, `modal_min_pageviews_between: number`, `created_at`, `updated_at`. Exported as `AdSettings` (Selectable) and `AdSettingsUpdate` (Updateable).
+`UserTable` includes `is_ad_free?: boolean` (NOT NULL DEFAULT FALSE in DB — optional in TypeScript because it is omitted from inserts by default).
 
 Note: `yesterday_tournament_score`, `yesterday_total_game_score`, `yesterday_boost_bonus`, and `last_score_update_date` fields were removed from `TournamentGuessTable` in Story #278. Rank-change tracking now uses `tournament_score_history` snapshots (Story #272/#277).
 
@@ -164,12 +164,6 @@ Repository for short_urls table. Manages short invite links for groups.
 - **createShortUrl(groupId: string, tournamentId?: string)**: `Promise<ShortUrl>` — Creates short URL with collision handling.
 - **getOrCreateShortUrl(groupId: string, tournamentId?: string)**: `Promise<ShortUrl>` — Gets or creates short URL (one per group).
 - **incrementClickCount(code: string)**: `Promise<void>` — Increments click counter (fire-and-forget).
-
-### app/db/ad-settings-repository.ts
-Repository for the singleton `ad_settings` table. Reads and updates global modal ad frequency configuration (Story #295).
-
-- **getAdSettings()**: `Promise<AdSettings | undefined>` — Returns the singleton settings row; undefined if table is empty.
-- **upsertAdSettings(update: AdSettingsUpdate)**: `Promise<AdSettings>` — Updates the singleton row if it exists; creates it with provided values (defaults to 30/10) if missing.
 
 ### app/db/score-history-repository.ts
 Repository for `tournament_score_history` table. Writes and reads daily per-user score snapshots for rank/score history charts (Story #272).

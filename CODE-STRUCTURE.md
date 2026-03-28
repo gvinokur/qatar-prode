@@ -449,25 +449,11 @@ Key flows:
       └── toggleUserAdFreeAction [server action] (on Ad-Free switch toggle)
             └── updateUserAdFreeStatus
 
-18. Ad sidebar (desktop)
+18. AdSense Auto Ads (SPA page-view signaling)
     LocaleLayout (Server)
-      └── AdSidebar [Client] (prop: isAdFree from session)
-            └── adsbygoogle.push() (on pathname change, window global)
+      └── AdSensePageViewTracker [Client]
+            └── adsbygoogle.push({}) (on pathname change — signals virtual page view to Auto Ads)
 
-19. Ad modal (mobile)
-    LocaleLayout (Server)
-      └── AdModalController [Client]
-            ├── getAdSettingsAction [server action] (on mount)
-            │     └── getAdSettings
-            └── adsbygoogle.push() (when modal opens)
-
-20. Ad-free toggle
+19. Ad-free toggle
     UsersTab [Client] → toggleUserAdFreeAction [server action] → updateUserAdFreeStatus
-
-21. Ad settings CRUD
-    AdSettingsTab [Client]
-      ├── getAdSettingsAction [server action] (on mount)
-      │     └── getAdSettings
-      └── updateAdSettingsAction [server action] (on save)
-            └── upsertAdSettings
 ```

@@ -8,18 +8,10 @@ Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index
 
 ## Files
 
-### app/components/ads/ad-sidebar.tsx
-Sticky right-side 300px ad panel for desktop. [Client] visible only on lg+ breakpoints.
-- **AdSidebar({ isAdFree }: { isAdFree: boolean })**: `JSX.Element | null` — [Client] Renders null when isAdFree. Calls adsbygoogle.push() on each pathname change to refresh the ad. In dev mode renders a grey placeholder box instead of an ins element.
+### app/components/ads/adsense-page-view-tracker.tsx
+SPA page-view signal component for Google AdSense Auto Ads. [Client] fires on every route change.
+- **AdSensePageViewTracker()**: `null` — [Client] Renders nothing. On each `pathname` change, calls `(window.adsbygoogle = window.adsbygoogle || []).push({})` so vignette and anchor Auto Ads fire on client-side navigation. No-ops when `NEXT_PUBLIC_ADSENSE_CLIENT_ID` is unset.
   Uses: usePathname, useEffect
-  Renders: Box (sticky wrapper), ins.adsbygoogle or placeholder Box
-
-### app/components/ads/ad-modal-controller.tsx
-Global modal ad orchestrator for mobile. [Client] tracks page views and minutes to open ad dialog at configurable frequency.
-- **AdModalController()**: `JSX.Element | null` — [Client] Renders null for ad-free users. Fetches ad settings once on mount, tracks page views via pathname, stores lastAdShownAt in localStorage. Opens MUI Dialog with AdSense slot when both min-minutes and min-pageviews thresholds are met. Resets counter and saves timestamp on close. Only renders on small screens (display xs:block lg:none).
-  Uses: useSession, usePathname, useEffect, useRef, useState
-  Calls: getAdSettingsAction
-  Renders: Dialog, DialogContent, DialogActions, Button, ins.adsbygoogle or placeholder Box
 
 ---
 
