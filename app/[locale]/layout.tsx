@@ -95,7 +95,7 @@ export default async function LocaleLayout({
           href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=Public+Sans:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
-        {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && (
+        {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && !user?.isAdFree && (
           <Script
             async
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
@@ -118,7 +118,7 @@ export default async function LocaleLayout({
                     <Footer message={`${appName} © 2025`} />
                     <InstallPwa />
                     <OfflineDetection />
-                    <AdSensePageViewTracker />
+                    {!user?.isAdFree && <AdSensePageViewTracker />}
                   </SessionWrapper>
                 </ThemeProvider>
               </NextThemeProvider>
