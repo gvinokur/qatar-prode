@@ -540,3 +540,37 @@ After account approval, enable in AdSense UI:
 - ~~Modal slot ID~~ — no longer needed
 - ~~Sidebar slot ID~~ — no longer needed (side rail is Auto Ads, not manual)
 - `ca-pub-XXXX` publisher ID still required for the script tag
+
+---
+
+### Amendment 2 — Proper ad-free suppression and mid-session login fix
+
+**Date:** 2026-03-28
+**Trigger:** Post-implementation testing revealed two gaps in how Auto Ads are suppressed for ad-free users.
+
+#### Problems
+
+**1. Script loaded for all users**
+Amendment 1 always loaded the AdSense script regardless of `isAdFree`. Auto Ads activate automatically once the script loads, so ad-free users were receiving ads.
+
+**2. Script already loaded when ad-free user logs in mid-session**
+Even with a server-side condition (`!user?.isAdFree`), the script loads while the user is unauthenticated (Google's crawler also needs this). If an ad-free user logs in without a hard refresh, the script is already in memory and Auto Ads fire until reload.
+
+#### Changes
+
+- **`app/[locale]/layout.tsx`** — Add `!user?.isAdFree` condition to the `<Script>` tag so the script is never served to users already known to be ad-free on the server render. Unauthenticated requests (Google's crawler, new visitors) always receive the script, enabling AdSense site validation.
+
+- **`app/components/ads/adsense-page-view-tracker.tsx`** — Extended to use `useSession()` to read `isAdFree` client-side. On each pathname change:
+  - If ad-free: sets `window.adsbygoogle.pauseAdRequests = 1` (pauses Auto Ads immediately, handles the mid-session login case)
+  - If not ad-free: clears the pause flag and calls `push({})` as before
+  - Tracker is always mounted (no server-side conditional) so it can handle both pause and resume
+
+#### Behaviour matrix
+
+| Scenario | Script loaded | Tracker behaviour |
+|---|---|---|
+| Unauthenticated visitor | ✅ Yes | `push({})` on nav |
+| Regular user (known at server render) | ✅ Yes | `push({})` on nav |
+| Ad-free user (known at server render) | ❌ No | `pauseAdRequests=1` (no-op, script absent) |
+| Ad-free user logging in mid-session | ✅ Script already loaded | `pauseAdRequests=1` fires on session change |
+| Ad-free flag removed by admin | ✅ Yes | `pauseAdRequests=0` + `push({})` resumes |
