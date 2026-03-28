@@ -3,7 +3,7 @@
 Living map of all production source files, their exported functions/components, and call relationships.
 
 **Format guide:** `docs/claude/code-structure.md`
-**Last updated:** 2026-03-10
+**Last updated:** 2026-03-28
 
 ---
 
@@ -449,10 +449,13 @@ Key flows:
       └── toggleUserAdFreeAction [server action] (on Ad-Free switch toggle)
             └── updateUserAdFreeStatus
 
-18. AdSense Auto Ads (SPA page-view signaling)
+18. AdSense Auto Ads (SPA page-view signaling and ad-free suppression)
     LocaleLayout (Server)
       └── AdSensePageViewTracker [Client]
-            └── adsbygoogle.push({}) (on pathname change — signals virtual page view to Auto Ads)
+            ├── uses useSession to determine ad-free status
+            ├── conditionally loads AdSense script based on user.isAdFree
+            ├── adsbygoogle.push({}) (on pathname change — signals virtual page view to Auto Ads)
+            └── adsbygoogle.pauseAdRequests = X (to suppress ads for ad-free users)
 
 19. Ad-free toggle
     UsersTab [Client] → toggleUserAdFreeAction [server action] → updateUserAdFreeStatus

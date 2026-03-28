@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-26
+**Last updated:** 2026-03-28
 
 ---
 
@@ -25,6 +25,9 @@ Includes `TournamentScoreHistoryTable` for the `tournament_score_history` table 
 - **TournamentScoreHistoryTable**: Interface with `id`, `user_id`, `tournament_id`, `snapshot_date` (YYYYMMDD integer), six score segment columns, `total_points` (Generated — GENERATED ALWAYS computed), `created_at`.
 - **TournamentScoreHistory**: `Selectable<TournamentScoreHistoryTable>` — full row shape.
 - **TournamentScoreHistoryNew**: `Omit<Insertable<...>, 'id' | 'total_points' | 'created_at'>` — insert shape without auto-generated fields.
+- **AdSettingsTable**: Interface with `id`, `modal_min_minutes_between`, `modal_min_pageviews_between`, `created_at`, `updated_at`.
+- **AdSettings**: `Selectable<AdSettingsTable>` — full row shape.
+- **AdSettingsUpdate**: `Updateable<AdSettingsTable>` — update shape.
 
 `UserTable` includes `is_ad_free?: boolean` (NOT NULL DEFAULT FALSE in DB — optional in TypeScript because it is omitted from inserts by default).
 
