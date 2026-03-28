@@ -1232,4 +1232,32 @@ describe('Users Repository', () => {
         .rejects.toThrow('Transaction rolled back');
     });
   });
+
+  describe('updateUserAdFreeStatus', () => {
+    it('should set is_ad_free to true', async () => {
+      mockBaseFunctions.update.mockResolvedValue(mockUser);
+
+      const result = await usersRepository.updateUserAdFreeStatus('user-123', true);
+
+      expect(mockBaseFunctions.update).toHaveBeenCalledWith('user-123', { is_ad_free: true });
+      expect(result).toBe(mockUser);
+    });
+
+    it('should set is_ad_free to false', async () => {
+      mockBaseFunctions.update.mockResolvedValue(mockUser);
+
+      const result = await usersRepository.updateUserAdFreeStatus('user-123', false);
+
+      expect(mockBaseFunctions.update).toHaveBeenCalledWith('user-123', { is_ad_free: false });
+      expect(result).toBe(mockUser);
+    });
+
+    it('should propagate error when update fails', async () => {
+      const error = new Error('Update failed');
+      mockBaseFunctions.update.mockRejectedValue(error);
+
+      await expect(usersRepository.updateUserAdFreeStatus('user-123', true))
+        .rejects.toThrow('Update failed');
+    });
+  });
 });

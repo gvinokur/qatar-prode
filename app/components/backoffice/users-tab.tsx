@@ -61,6 +61,13 @@ export default function UsersTab() {
       .finally(() => setLoading(false))
   }, [debouncedSearch, page])
 
+  function handleAdFreeToggle(userId: string, newValue: boolean) {
+    setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, is_ad_free: newValue } : u)))
+    toggleUserAdFreeAction(userId, newValue).catch(() => {
+      setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, is_ad_free: !newValue } : u)))
+    })
+  }
+
   function renderTableBody() {
     if (loading) {
       return (
@@ -117,23 +124,7 @@ export default function UsersTab() {
             <Switch
               checked={user.is_ad_free ?? false}
               size="small"
-              onChange={(e) => {
-                const newValue = e.target.checked
-                // Optimistic update
-                setUsers((prev) =>
-                  prev.map((u) =>
-                    u.id === user.id ? { ...u, is_ad_free: newValue } : u
-                  )
-                )
-                toggleUserAdFreeAction(user.id, newValue).catch(() => {
-                  // Revert on failure
-                  setUsers((prev) =>
-                    prev.map((u) =>
-                      u.id === user.id ? { ...u, is_ad_free: !newValue } : u
-                    )
-                  )
-                })
-              }}
+              onChange={(e) => handleAdFreeToggle(user.id, e.target.checked)}
             />
           </TableCell>
         </TableRow>

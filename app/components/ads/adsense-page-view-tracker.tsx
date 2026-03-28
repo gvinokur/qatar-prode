@@ -28,13 +28,13 @@ export default function AdSensePageViewTracker() {
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID) return
     try {
+      globalThis.adsbygoogle = globalThis.adsbygoogle || []
       if (isAdFree) {
         // Script may have loaded while unauthenticated — pause it now
-        window.adsbygoogle = window.adsbygoogle || []
-        window.adsbygoogle.pauseAdRequests = 1
+        globalThis.adsbygoogle.pauseAdRequests = 1
       } else {
-        window.adsbygoogle.pauseAdRequests = 0
-        ;(window.adsbygoogle = window.adsbygoogle || []).push({})
+        globalThis.adsbygoogle.pauseAdRequests = 0
+        globalThis.adsbygoogle.push({})
       }
     } catch {
       // adsbygoogle not yet loaded — no-op
