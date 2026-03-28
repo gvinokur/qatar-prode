@@ -191,6 +191,8 @@ Confirm user has tested in Vercel Preview and is satisfied with:
 
 ### 3. Wait for CI/CD Checks
 
+**Prerequisite:** PR must already be marked as ready (Section 7 must have run). SonarCloud does not run on draft PRs.
+
 ```bash
 # Wait for Vercel and SonarCloud
 ./scripts/github-projects-helper pr wait-checks ${PR_NUMBER}
@@ -337,30 +339,22 @@ gh pr view ${PR_NUMBER} --json statusCheckRollup --jq '.statusCheckRollup[] | se
 
 ### 7. Mark PR as Ready for Review
 
-**CRITICAL: PRs should remain in DRAFT mode throughout planning and implementation.**
+**CRITICAL: This step runs IMMEDIATELY when "code looks good" is received — BEFORE waiting for CI/CD (Section 3). SonarCloud only runs on non-draft PRs, so this must come first.**
 
-**Only mark PR as ready for review when:**
-1. ✅ All implementation is complete
-2. ✅ All tests pass
-3. ✅ All lint/build checks pass
-4. ✅ SonarCloud quality gates pass (0 new issues, ≥80% coverage)
-5. ✅ User has tested in Vercel Preview and is satisfied
-6. ✅ No more feedback or changes expected
+**Trigger:** User says "code looks good" / "I'm satisfied" / "looks good in preview" (any phrase from the "When to Run Validation" section above).
 
-**When to mark as ready:**
-- User explicitly says "mark as ready for review"
-- User says "ready to merge" and PR is still in draft
-- User says "merge this" and PR is still in draft
-
+**Action:** Run immediately after confirming user satisfaction (Section 2):
 ```bash
 gh pr ready ${PR_NUMBER}
 ```
 
+This removes the DRAFT status, which triggers SonarCloud analysis. Then proceed to Section 3 (Wait for CI/CD).
+
 **DO NOT mark as ready for review:**
-- ❌ During planning phase (even after plan is approved)
-- ❌ During implementation phase (even if code works)
-- ❌ After user testing if more changes are expected
-- ❌ Automatically without user's explicit instruction
+- ❌ During planning phase
+- ❌ During implementation phase
+- ❌ Before user has tested in Vercel Preview
+- ❌ When user is still iterating on functionality
 
 ### 7.5. Pre-Merge Documentation Audit (MANDATORY)
 
@@ -378,35 +372,61 @@ gh pr ready ${PR_NUMBER}
 git -C ${WORKTREE_PATH} diff origin/main..HEAD --name-only | grep -E '^app/'
 ```
 
-#### Step B: For each changed source file, read both the source and its layer entry
+#### Step B: Delegate accuracy audit to Gemini Librarian
 
-Use this mapping to find the correct layer file:
-
-| Source path | Layer file |
-|---|---|
-| `app/db/*.ts` | `docs/code-structure/db.md` |
-| `app/actions/*.ts` | `docs/code-structure/actions.md` |
-| `app/utils/*.ts` | `docs/code-structure/utils.md` |
-| `app/(routes)/` or `app/api/` | `docs/code-structure/pages.md` |
-| `app/components/tournament-games/` | `docs/code-structure/components-tournament-games.md` |
-| `app/components/friend-groups/` | `docs/code-structure/components-friend-groups.md` |
-| *(other component domains)* | matching `docs/code-structure/components-[domain].md` |
-
-For each source file, read the current file alongside its layer entry. Verify:
-- **Signature accuracy**: parameter names, types, and return type match the current source (not the plan's signatures or the initial implementation)
-- **Description accuracy**: description reflects what the function/component actually does now
-- **`Calls:` accuracy**: lists the project functions it currently calls (feedback refactors may have added/removed callsites)
-- **`Renders:` accuracy** (components): reflects current child components
-- **Presence**: added/renamed exports have entries; removed exports are deleted from the layer file
-
-#### Step C: Check call graph currency
+Collect all inputs and pass them to Gemini — it scans all changed files in a single call and identifies every instance of drift.
 
 ```bash
-# Review commits for new page→action→repo flows added during feedback
-git -C ${WORKTREE_PATH} log origin/main..HEAD --oneline
+PROJECT_ROOT=$(git worktree list --porcelain | head -1 | sed 's/^worktree //')
+CHANGED_FILES=$(git -C ${WORKTREE_PATH} diff origin/main..HEAD --name-only | grep -E '^app/')
+SOURCE_CONTENTS=$(for f in ${CHANGED_FILES}; do
+  echo "=== ${f} ==="
+  cat ${WORKTREE_PATH}/${f}
+done)
+COMMIT_LOG=$(git -C ${WORKTREE_PATH} log origin/main..HEAD --oneline)
+LAYER_CONTENTS=$(cat ${WORKTREE_PATH}/docs/code-structure/db.md \
+                 ${WORKTREE_PATH}/docs/code-structure/actions.md \
+                 ${WORKTREE_PATH}/docs/code-structure/utils.md \
+                 ${WORKTREE_PATH}/docs/code-structure/pages.md)
+
+AUDIT_RESULT=$(gemini --yolo -m gemini-2.5-flash --save-chat story-${STORY_NUMBER}-audit -p "$(cat ${PROJECT_ROOT}/.ai/agents/librarian-agent.md)
+
+---
+CHANGED_FILES:
+${CHANGED_FILES}
+
+SOURCE_CONTENTS:
+${SOURCE_CONTENTS}
+
+LAYER_FILE_CONTENTS:
+${LAYER_CONTENTS}
+
+COMMIT_LOG:
+${COMMIT_LOG}
+")
 ```
 
-If any feedback commits introduced new cross-layer relationships (e.g., a page now calls an action it didn't before, or an action calls a new repo function), update `CODE-STRUCTURE.md` `## Call Graph`.
+Read `AUDIT_RESULT`:
+- If verdict is **`DRIFT FOUND`**: apply each correction listed in the Drift Found section directly to the layer files using Edit tool
+- If verdict is **`CLEAN`**: note it explicitly — "Gemini Librarian: no documentation drift found"
+
+#### Quality Assessment
+
+Apply the **Quality Assessment Loop** (see `/gemini`). Expected output sections for this agent:
+- Files Audited list
+- Drift Found (with specific corrections) or CLEAN verdict
+- Call Graph Assessment (YES/NO with description)
+
+If any section is missing:
+```bash
+gemini --yolo -m gemini-2.5-flash --resume-chat story-${STORY_NUMBER}-audit \
+  -p "The response is missing [section]. Please provide it."
+```
+Maximum 2 follow-up attempts.
+
+#### Step C: Apply call graph updates if flagged
+
+If Gemini's **Call Graph Assessment** says YES, update `CODE-STRUCTURE.md` `## Call Graph` with the new flows identified.
 
 #### Step D: Commit any updates
 
@@ -422,6 +442,21 @@ git -C ${WORKTREE_PATH} push
 ```
 
 If no changes were needed, explicitly note "no documentation drift found" — do not skip this confirmation.
+
+#### Re-audit path
+
+After applying drift corrections from a DRIFT FOUND verdict, verify accuracy by resuming the session with only the updated layer file entries — no need to re-send all source files:
+
+```bash
+gemini --yolo -m gemini-2.5-flash --resume-chat story-${STORY_NUMBER}-audit \
+  -p "Here are the updated layer file entries after corrections were applied:
+
+[paste only the modified entries]
+
+Do these corrections now accurately reflect the source code? Are there any remaining drift issues?"
+```
+
+Only proceed to the checklist below once the re-audit confirms CLEAN or all remaining issues are explicitly noted.
 
 #### Section 7.5 Checklist (must be complete before Section 8)
 
@@ -439,34 +474,51 @@ If no changes were needed, explicitly note "no documentation drift found" — do
 **Prerequisites before presenting final summary:**
 - ✅ Pre-Merge Documentation Audit complete (Section 7.5 checklist fully checked off)
 
-**After marking as ready for review, present summary to user:**
+**Present this summary to the user and STOP.** Fill in real values — do not use placeholder text:
+
 ```
-✅ All Quality Gates Passed!
+## Validation Summary — Story #${STORY_NUMBER}
 
-Build: ✓ Success
-Tests: ✓ All passing
-SonarCloud: ✓ 0 new issues, 97.83% coverage on new code
-Vercel: ✓ Deployed successfully
-Documentation Audit: ✓ CODE-STRUCTURE layer files verified against final implementation
+### Pre-Merge Checks
+| Check | Status | Details |
+|-------|--------|---------|
+| Tests | ✓ Pass | [N] tests passing |
+| Lint | ✓ Pass | No lint errors |
+| Build | ✓ Pass | Build succeeded |
 
-Preview URL: [URL]
-SonarCloud Report: [URL]
+### CI/CD
+| Check | Status | Details |
+|-------|--------|---------|
+| Vercel | ✓ Deployed | [preview URL] |
+| SonarCloud | ✓ Pass | 0 new issues, [X]% coverage on new code |
 
-PR #${PR_NUMBER} marked as ready for review and ready to merge
+### Documentation Audit (Section 7.5)
+| Check | Status | Details |
+|-------|--------|---------|
+| CODE-STRUCTURE drift | ✓ Clean | [or: X corrections applied] |
+| Call graph | ✓ Up to date | [or: updated] |
+
+### Plan Reconciliation
+| Check | Status | Details |
+|-------|--------|---------|
+| Plan vs. implementation | ✓ Aligned | [or: N amendments added] |
+
+SonarCloud report: [URL]
+PR: #${PR_NUMBER} — [PR URL]
 ```
 
-**Commands used:**
+**🛑 STOP HERE. DO NOT PROCEED FURTHER. 🛑**
+
+After presenting the summary above, WAIT for the user. Do not run any additional commands.
+
+**What you MUST NOT do after presenting the summary:**
+- ❌ Do NOT run `story complete` — only run when user explicitly says "merge", "complete the story", or similar
+- ❌ Do NOT ask "would you like me to merge?" or "shall I complete the story?"
+- ❌ Do NOT suggest next steps that imply proceeding
+
+**To merge:** Wait for user to explicitly say "merge" / "merge this" / "complete the story" / "story complete", then run via `/git-ops` Section 4:
 ```bash
-# 1. Wait for checks
-./scripts/github-projects-helper pr wait-checks ${PR_NUMBER}
-
-# 2. Get detailed SonarCloud results
-./scripts/github-projects-helper pr sonar-issues ${PR_NUMBER}
-
-# 3. Mark PR as ready for review (ONLY when user explicitly requests it)
-gh pr ready ${PR_NUMBER}
-
-# 4. If all passes, complete story
+# Complete story (merge + cleanup) — ONLY on explicit user request
 ./scripts/github-projects-helper story complete ${STORY_NUMBER} --project ${PROJECT_NUMBER}
 ```
 
